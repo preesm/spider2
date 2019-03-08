@@ -18,4 +18,4 @@ test-memory:
     - "rm -rf report/"
   artifacts:
     reports:
-      junit: report.xml
+      junit: libspider/units-tests/libSpider2-tests/memory/report.xml
