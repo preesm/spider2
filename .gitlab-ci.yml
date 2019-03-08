@@ -1,19 +1,18 @@
-stages:
-	- build
-	- test
-
-job-build:
-	stage: build
-	script:
-		- mkdir libspider/bin/make
-		- cd libspider/bin/make
-		- cmake ../..
-		- make VERBOSE=1
-		- cd ../../..
-test-memory:
-	stage: test
-	script: 
-		- cd libspider/units-tests/libSpider2-tests/memory
-		- ./run-memory-test.sh
-		- rm -rf report
+stages: 
+  - build
+  - test
+job-build: 
+  stage: build
+  script: 
+    - "mkdir libspider/bin/make"
+    - "cd libspider/bin/make"
+    - "cmake ../.."
+    - "make VERBOSE=1"
+    - "cd ../../.."
+test-memory: 
+  stage: test
+  script: 
+    - "cd libspider/units-tests/libSpider2-tests/memory"
+    - ./run-memory-test.sh
+    - "rm -rf report"
 		
