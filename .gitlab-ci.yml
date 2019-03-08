@@ -4,6 +4,7 @@ stages:
 job-build: 
   stage: build
   script: 
+    - "mkdir libspider/bin/"
     - "mkdir libspider/bin/make"
     - "cd libspider/bin/make"
     - "cmake ../.."
