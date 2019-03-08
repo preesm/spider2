@@ -70,41 +70,63 @@ public:
     inline Node *last() const;
 
     /**
-     * @brief Return current node of the list
+     * @brief Return current node of the list.
      * @return current node of the list
      */
     inline Node *current() const;
 
     /**
-     * @brief Set on next node of the list and return it
+     * @brief Set current on next node of the list and return it.
      * @return  next element of the list
      */
     inline Node *next() const;
 
     /**
-     * @brief Set on previous node of the list and return it
+     * @brief Set current on previous node of the list and return it.
      * @return  previous element of the list
      */
     inline Node *previous() const;
 
     /**
-     * @brief set current as first
+     * @brief Set current as first.
      */
     void setOnFirst();
 
     /**
-     * @brief set current as last
+     * @brief Set current as last.
      */
     void setOnLast();
 
+    /**
+     * @brief Return current size of the list.
+     * @return size of the list
+     */
     inline std::int32_t size() const;
 
+    /**
+     * @brief Add an element in first position to the list.
+     * @param e Element to be added.
+     */
     void add(T e);
 
+    /**
+     * @brief Add an element in last position to the list.
+     * @param e Element to be added.
+     */
     void addLast(T e);
 
+    /**
+     * @brief Remove a node from the list.
+     * @param n Node to be removed
+     * @return value held by the removed node.
+     */
     T &del(Node *n);
 
+    /**
+     * @brief Test if an element is in the list.
+     * @param element Element to be tested.
+     * @return true if element is in the list, false else
+     */
     bool contains(T item);
 
 private:

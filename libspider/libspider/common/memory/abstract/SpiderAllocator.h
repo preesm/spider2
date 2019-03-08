@@ -51,11 +51,21 @@ public:
 
     ~SpiderAllocator() = default;
 
+    /**
+     * @brief Allocate a memory buffer.
+     * @param size Size of the buffer to allocate
+     * @return pointer to allocated memory, nullptr on failure or if size is 0
+     */
     virtual void *alloc(std::uint64_t size) = 0;
 
+    /**
+     * @brief Free a memory buffer.
+     * @param ptr Memory address to be freed
+     */
     virtual void free(void *ptr) = 0;
 
-    /** Setters **/
+    /* Setters */
+
     /**
      * @brief Set memory allocation alignment.
      *        All new allocation made after this call result in allocation aligned to new value.
@@ -63,16 +73,25 @@ public:
      */
     inline void setAllocationAlignment(std::int32_t alignment);
 
-    /** Getters **/
+    /* Getters */
+
     /**
      * @brief Fetch current memory allocation alignment
      * @return current allocation alignment
      */
     inline std::int32_t getAllocationAlignment() const;
 
+    /**
+     * @brief Return name of the allocator.
+     * @return name of the allocator
+     */
     inline const char *getName() const;
 
-    /** Methods **/
+    /* Methods */
+
+    /**
+     * @brief Print allocator usage statistics (peak usage, average usage)
+     */
     inline void printStats() const;
 
 protected:
