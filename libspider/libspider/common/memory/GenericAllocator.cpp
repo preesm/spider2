@@ -38,11 +38,12 @@
  * knowledge of the CeCILL license and that you accept its terms.
  */
 #include <algorithm>
-#include <common/SpiderException.h>
 #include "GenericAllocator.h"
 
 GenericAllocator::GenericAllocator(const char *name, int32_t alignment) : DynamicAllocator(name, alignment) {
-
+    if (alignment < 0) {
+        throwSpiderException("Memory alignment should be positive integer.");
+    }
 }
 
 GenericAllocator::~GenericAllocator() {

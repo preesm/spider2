@@ -44,6 +44,7 @@
 #include <cstdint>
 #include <cinttypes>
 #include "common/logger.h"
+#include "common/SpiderException.h"
 
 class SpiderAllocator {
 public:

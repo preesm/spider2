@@ -37,7 +37,6 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#include "common/SpiderException.h"
 #include "LIFOStaticAllocator.h"
 
 LIFOStaticAllocator::LIFOStaticAllocator(const char *name, std::uint64_t totalSize) :
@@ -69,6 +68,7 @@ void LIFOStaticAllocator::free(void *ptr) {
     if (!ptr) {
         return;
     }
+    StaticAllocator::checkPointerAddress(ptr);
     char *currentAddress = static_cast<char *>(ptr);
     if (currentAddress > (used_ + startPtr_)) {
         throwSpiderException("Allocator: %s -- LIFO allocator should free element in reverse order of allocation.",

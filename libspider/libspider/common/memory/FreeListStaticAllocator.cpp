@@ -37,14 +37,13 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#include "common/SpiderException.h"
 #include "FreeListStaticAllocator.h"
 
 FreeListStaticAllocator::FreeListStaticAllocator(const char *name,
                                                  std::uint64_t totalSize,
                                                  FreeListPolicy policy,
                                                  std::int32_t alignment) :
-        StaticAllocator(name, totalSize, alignment) {
+        StaticAllocator(name, totalSize + sizeof(FreeListStaticAllocator::Header), alignment) {
     if (alignment < 8) {
         throwSpiderException("Memory alignment should be at least of size sizeof(std::int64_t) = 8 bytes.");
     }
@@ -61,8 +60,9 @@ void *FreeListStaticAllocator::alloc(std::uint64_t size) {
         return nullptr;
     }
     if ((std::size_t) size < sizeof(Node)) {
-        throwSpiderException("Can not allocate memory blocks inferior to Node size. Allocator: %s -- Requested: %d",
-                             getName(), size);
+        throwSpiderException(
+                "Can not allocate memory blocks inferior to Node size (%d). Allocator: %s -- Requested: %d",
+                sizeof(Node), getName(), size);
     }
     std::int32_t padding = 0;
     Node *baseNode = list_;
@@ -79,7 +79,6 @@ void *FreeListStaticAllocator::alloc(std::uint64_t size) {
         insert(memoryNode, freeNode);
     }
     remove(baseNode, memoryNode);
-    baseNode->blockSize_ += paddingWithoutHeader;
     /*! Computing header and data address */
     char *headerAddress = (char *) (memoryNode) + paddingWithoutHeader;
     char *dataAddress = (char *) (memoryNode) + padding;
@@ -99,6 +98,7 @@ void FreeListStaticAllocator::free(void *ptr) {
     if (!ptr) {
         return;
     }
+    StaticAllocator::checkPointerAddress(ptr);
     char *currentAddress = static_cast<char *>(ptr);
     char *headerAddress = currentAddress - sizeof(FreeListStaticAllocator::Header);
 
@@ -107,6 +107,11 @@ void FreeListStaticAllocator::free(void *ptr) {
     Node *freeNode = (Node *) (headerAddress - header->padding_);
     freeNode->blockSize_ = header->size_;
     freeNode->next_ = nullptr;
+
+    /*! Case where we allocated all memory at once */
+    if (!list_) {
+        list_ = freeNode;
+    }
 
     Node *it = list_;
     Node *itPrev = nullptr;
@@ -182,7 +187,7 @@ FreeListStaticAllocator::findFirst(std::uint64_t &size, std::int32_t &padding, s
             padding += alignment * (headerSize / alignment + (headerSize % alignment != 0));
         }
         std::uint64_t requiredSize = size + padding;
-        if (it->blockSize_ > requiredSize) {
+        if (it->blockSize_ >= requiredSize) {
             foundNode = it;
             return;
         }
@@ -199,7 +204,8 @@ FreeListStaticAllocator::findBest(std::uint64_t &size, std::int32_t &padding, st
                                   Node *&baseNode,
                                   Node *&foundNode) {
     std::int32_t headerSize = sizeof(FreeListStaticAllocator::Header);
-    Node *it = baseNode;
+    Node *head = baseNode;
+    Node *it = head;
     baseNode = nullptr;
     std::uint64_t minFit = UINT64_MAX;
     while (it) {
@@ -211,12 +217,19 @@ FreeListStaticAllocator::findBest(std::uint64_t &size, std::int32_t &padding, st
             padding += alignment * (headerSize / alignment + (headerSize % alignment != 0));
         }
         std::uint64_t requiredSize = size + padding;
-        if (it->blockSize_ > requiredSize && (it->blockSize_ - requiredSize < minFit)) {
+        if (it->blockSize_ >= requiredSize && (it->blockSize_ - requiredSize < minFit)) {
             foundNode = it;
             minFit = it->blockSize_ - requiredSize;
+            if (minFit == 0) {
+                /*!< We won't find better fit */
+                return;
+            }
         }
         baseNode = it;
         it = it->next_;
+    }
+    if (baseNode == head && head->next_ == nullptr) {
+        baseNode = nullptr;
     }
     if (!foundNode) {
         throwSpiderException("Not enough memory available for requested size of %"

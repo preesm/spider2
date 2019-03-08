@@ -37,45 +37,62 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#include "LinearStaticAllocator.h"
+#ifndef SPIDER2_MEMORY_TEST_GENERIC_ALLOCATOR_H
+#define SPIDER2_MEMORY_TEST_GENERIC_ALLOCATOR_H
 
-LinearStaticAllocator::LinearStaticAllocator(const char *name, std::uint64_t totalSize, std::int32_t alignment) :
-        StaticAllocator(name, totalSize, alignment) {
-    if (alignment < 8) {
-        throwSpiderException("Memory alignment should be at least of size sizeof(std::int64_t) = 8 bytes.");
-    }
+#include <gtest/gtest.h>
+#include "common/memory/GenericAllocator.h"
+#include "common/SpiderException.h"
+
+#define ALLOCATOR_NAME "my-allocator"
+
+TEST(GenericAllocatorTest, GetName) {
+    auto *allocator = new GenericAllocator(ALLOCATOR_NAME);
+    EXPECT_STREQ(allocator->getName(), ALLOCATOR_NAME);
+    delete allocator;
 }
 
-void *LinearStaticAllocator::alloc(std::uint64_t size) {
-    if (!size) {
-        return nullptr;
-    }
-    std::int32_t padding = 0;
-    if (alignment_ && used_ % alignment_ != 0) {
-        /*!< Compute next aligned address padding */
-        padding = SpiderAllocator::computePadding(used_, alignment_);
-    }
-
-    std::uint64_t requestedSize = used_ + padding + size;
-    if (requestedSize > totalSize_) {
-        throwSpiderException("Memory request exceed memory available. Stack: %s -- Size: %"
-                                     PRIu64
-                                     " -- Requested: %"
-                                     PRIu64, getName(), totalSize_, requestedSize);
-    }
-    char *alignedAllocatedAddress = startPtr_ + used_ + padding;
-    used_ += (size + padding);
-    peak_ = std::max(peak_, used_);
-    return alignedAllocatedAddress;
+TEST(GenericAllocatorTest, MinAlignmentSize) {
+    EXPECT_THROW(GenericAllocator(ALLOCATOR_NAME, -1), SpiderException);
 }
 
-void LinearStaticAllocator::free(void *ptr) {
-    StaticAllocator::checkPointerAddress(ptr);
-    /*!< LinearStaticAllocator does not free memory per block */
+TEST(GenericAllocatorTest, MemoryAlloc) {
+    auto *allocator = new GenericAllocator(ALLOCATOR_NAME);
+    auto *array = (double *) allocator->alloc(2 * sizeof(double));
+    ASSERT_NE(array, nullptr);
+    array[0] = 1;
+    array[1] = 2;
+    ASSERT_EQ(array[0], 1);
+    ASSERT_EQ(array[1], 2);
+    ASSERT_EQ(nullptr, allocator->alloc(0));
+    EXPECT_NO_THROW(allocator->free(array));
+    EXPECT_NO_THROW(allocator->reset());
+    delete allocator;
 }
 
-void LinearStaticAllocator::reset() {
-    averageUse_ += used_;
-    numberAverage_++;
-    used_ = 0;
+TEST(GenericAllocatorTest, DestructorWithUnFreedMemory) {
+    auto *allocator = new GenericAllocator(ALLOCATOR_NAME);
+    auto *array = (double *) allocator->alloc(2 * sizeof(double));
+    ASSERT_NE(array, nullptr);
+    delete allocator;
+    allocator = new GenericAllocator(ALLOCATOR_NAME);
+    array = (double *) allocator->alloc(1024);
+    ASSERT_NE(array, nullptr);
+    delete allocator;
+    allocator = new GenericAllocator(ALLOCATOR_NAME);
+    array = (double *) allocator->alloc(1024 * 1024);
+    ASSERT_NE(array, nullptr);
+    delete allocator;
+    allocator = new GenericAllocator(ALLOCATOR_NAME);
+    array = (double *) allocator->alloc(1024 * 1024 * 1024);
+    ASSERT_NE(array, nullptr);
+    delete allocator;
 }
+
+TEST(GenericAllocatorTest, FreeNull) {
+    auto *allocator = new GenericAllocator(ALLOCATOR_NAME);
+    EXPECT_NO_THROW(allocator->free(nullptr));
+    delete allocator;
+}
+
+#endif //SPIDER2_MEMORY_TEST_GENERIC_ALLOCATOR_H

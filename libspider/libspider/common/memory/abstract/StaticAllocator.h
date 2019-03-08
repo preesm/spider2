@@ -56,7 +56,9 @@ protected:
 
     inline StaticAllocator(const char *name, std::uint64_t totalSize, std::int32_t alignment = 0);
 
-    inline ~StaticAllocator();
+    virtual inline ~StaticAllocator();
+
+    inline void checkPointerAddress(void *ptr) const;
 };
 
 StaticAllocator::StaticAllocator(const char *name, std::uint64_t totalSize, std::int32_t alignment) :
@@ -68,6 +70,16 @@ StaticAllocator::StaticAllocator(const char *name, std::uint64_t totalSize, std:
 
 StaticAllocator::~StaticAllocator() {
     std::free(startPtr_);
+}
+
+void StaticAllocator::checkPointerAddress(void *ptr) const {
+    if ((char *) (ptr) < startPtr_) {
+        throwSpiderException("Trying to free unallocated memory block.");
+    }
+
+    if ((char *) (ptr) > startPtr_ + totalSize_) {
+        throwSpiderException("Trying to free memory block out of memory space.");
+    }
 }
 
 #endif //SPIDER2_STATICALLOCATOR_H

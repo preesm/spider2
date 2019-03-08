@@ -48,7 +48,7 @@ public:
     explicit LinearStaticAllocator(const char *name, std::uint64_t totalSize,
                                    std::int32_t alignment = sizeof(std::int64_t));
 
-    ~LinearStaticAllocator() = default;
+    ~LinearStaticAllocator() override = default;
 
     void *alloc(std::uint64_t size) override;
 

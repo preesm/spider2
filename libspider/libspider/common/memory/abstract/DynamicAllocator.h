@@ -54,7 +54,7 @@ protected:
 
     inline explicit DynamicAllocator(const char *name, std::int32_t alignment = 0);
 
-    inline ~DynamicAllocator() = default;
+    virtual inline ~DynamicAllocator() = default;
 };
 
 DynamicAllocator::DynamicAllocator(const char *name, int32_t alignment) : SpiderAllocator(name, alignment) {

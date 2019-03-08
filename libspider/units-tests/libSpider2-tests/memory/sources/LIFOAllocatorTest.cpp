@@ -68,12 +68,12 @@ TEST_F(LIFOAllocatorTest, ThrowSizeException) {
 
 TEST_F(LIFOAllocatorTest, MemoryAlloc) {
     auto *array = (double *) allocator.alloc(2 * sizeof(double));
-    EXPECT_NE(array, nullptr);
+    ASSERT_NE(array, nullptr);
     array[0] = 1;
     array[1] = 2;
-    EXPECT_EQ(array[0], 1);
-    EXPECT_EQ(array[1], 2);
-    EXPECT_EQ(nullptr, allocator.alloc(0));
+    ASSERT_EQ(array[0], 1);
+    ASSERT_EQ(array[1], 2);
+    ASSERT_EQ(nullptr, allocator.alloc(0));
     EXPECT_THROW(allocator.alloc(MAX_SIZE), SpiderException);
     EXPECT_NO_THROW(allocator.reset());
     EXPECT_NO_THROW(allocator.alloc(MAX_SIZE));
@@ -82,10 +82,10 @@ TEST_F(LIFOAllocatorTest, MemoryAlloc) {
 
 TEST_F(LIFOAllocatorTest, MemoryAllocAlignment) {
     auto *charArray = (char *) allocator.alloc(9 * sizeof(char));
-    EXPECT_NE(charArray, nullptr);
+    ASSERT_NE(charArray, nullptr);
     auto *dblArray = (double *) allocator.alloc(2 * sizeof(double));
-    EXPECT_NE(dblArray, nullptr);
-    EXPECT_EQ(charArray + 2 * sizeof(std::uint64_t), (char*) dblArray);
+    ASSERT_NE(dblArray, nullptr);
+    ASSERT_EQ(charArray + 2 * sizeof(std::uint64_t), (char*) dblArray);
 }
 
 TEST_F(LIFOAllocatorTest, FreeNull) {
@@ -94,9 +94,9 @@ TEST_F(LIFOAllocatorTest, FreeNull) {
 
 TEST_F(LIFOAllocatorTest, FreeUnordered) {
     auto *charArray = (char *) allocator.alloc(9 * sizeof(char));
-    EXPECT_NE(charArray, nullptr);
+    ASSERT_NE(charArray, nullptr);
     auto *dblArray = (double *) allocator.alloc(2 * sizeof(double));
-    EXPECT_NE(dblArray, nullptr);
+    ASSERT_NE(dblArray, nullptr);
     EXPECT_NO_THROW(allocator.free(charArray));
     EXPECT_THROW(allocator.free(dblArray), SpiderException);
 }
@@ -104,9 +104,18 @@ TEST_F(LIFOAllocatorTest, FreeUnordered) {
 TEST_F(LIFOAllocatorTest, FreeOrdered) {
     EXPECT_NO_THROW(allocator.free(nullptr));
     auto *charArray = (char *) allocator.alloc(9 * sizeof(char));
-    EXPECT_NE(charArray, nullptr);
+    ASSERT_NE(charArray, nullptr);
     auto *dblArray = (double *) allocator.alloc(2 * sizeof(double));
-    EXPECT_NE(dblArray, nullptr);
+    ASSERT_NE(dblArray, nullptr);
     EXPECT_NO_THROW(allocator.free(dblArray));
     EXPECT_NO_THROW(allocator.free(charArray));
+}
+
+TEST_F(LIFOAllocatorTest, FreeOutOfScope) {
+    char *charArray = new char[8];
+    EXPECT_THROW(allocator.free(charArray), SpiderException);
+    delete[] charArray;
+    auto *dblArray = (double *) allocator.alloc(2 * sizeof(double));
+    ASSERT_NE(dblArray, nullptr);
+    EXPECT_THROW(allocator.free(dblArray + MAX_SIZE), SpiderException);
 }
