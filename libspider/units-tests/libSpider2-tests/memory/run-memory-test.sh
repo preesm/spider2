@@ -19,7 +19,7 @@ cmake ..
 make -j$(nproc) 
 
 # Run test
-./test-memory 
+./test-memory --gtest_output="xml:../report.xml"
 
 # Generate html report
 mv CMakeFiles/runtime.dir/main.gcda .

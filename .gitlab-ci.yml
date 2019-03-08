@@ -15,4 +15,7 @@ test-memory:
   script: 
     - "cd libspider/units-tests/libSpider2-tests/memory"
     - ./run-memory-test.sh
-    - "rm -rf report"
+    - "rm -rf report/"
+  artifacts:
+    reports:
+      junit: report.xml
