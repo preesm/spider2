@@ -48,7 +48,7 @@ GenericAllocator::GenericAllocator(const char *name, int32_t alignment) : Dynami
 
 GenericAllocator::~GenericAllocator() {
     if (used_ > 0) {
-        Logger::print(LOG_GENERAL, LOG_WARNING, "Allocator: %s -- Still has %" PRId64" %s in use.\n",
+        Logger::print(LOG_GENERAL, LOG_WARNING, "Allocator: %s -- Still has %lf %s in use.\n",
                       getName(),
                       SpiderAllocator::getByteNormalizedSize(used_),
                       SpiderAllocator::getByteUnitString(used_));

@@ -89,7 +89,7 @@ void Logger::print(LoggerType type, LoggerLevel level, const char *fmt, ...) {
         fprintf(outStream_, "%s-", loggersLitteral[type]);
         switch (level) {
             case LOG_INFO:
-                fprintf(outStream_, LOG_WHT "INFO: ");
+                fprintf(outStream_, LOG_NRM "INFO: ");
                 break;
             case LOG_WARNING:
                 fprintf(outStream_, LOG_YEL "WARNING: ");

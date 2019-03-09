@@ -37,25 +37,33 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_FREELISTSTATICALLOCATOR_H
-#define SPIDER2_FREELISTSTATICALLOCATOR_H
+#ifndef SPIDER2_FREELISTALLOCATOR_H
+#define SPIDER2_FREELISTALLOCATOR_H
 
-#include "abstract/StaticAllocator.h"
+#include <vector>
+#include "abstract/DynamicAllocator.h"
 
 
-class FreeListStaticAllocator : public StaticAllocator {
+#define MIN_CHUNK 4096
+
+class FreeListAllocator : public DynamicAllocator {
 public:
     typedef enum FreeListPolicy {
         FIND_FIRST = 0,
         FIND_BEST = 1
     } FreeListPolicy;
 
-    explicit FreeListStaticAllocator(const char *name,
-                                     std::uint64_t totalSize,
-                                     FreeListPolicy policy = FIND_FIRST,
-                                     std::int32_t alignment = sizeof(std::int64_t));
+    typedef struct Node {
+        std::uint64_t blockSize_;
+        Node *next_;
+    } Node;
 
-    ~FreeListStaticAllocator() override = default;
+    explicit FreeListAllocator(const char *name,
+                               std::uint64_t staticBufferSize,
+                               FreeListPolicy policy = FIND_FIRST,
+                               std::int32_t alignment = sizeof(std::int64_t));
+
+    ~FreeListAllocator() override;
 
     void *alloc(std::uint64_t size) override;
 
@@ -63,18 +71,23 @@ public:
 
     void reset() override;
 
-    typedef struct Node {
-        std::uint64_t blockSize_;
-        Node *next_;
-    } Node;
-
 private:
     typedef struct Header {
         std::uint64_t size_;
         std::uint64_t padding_;
     } Header;
 
+    typedef struct Buffer {
+        std::uint64_t size_;
+        char *bufferPtr_;
+    } Buffer;
+
     Node *list_;
+
+    char *staticBufferPtr_;
+    std::vector<Buffer> extraBuffers_;
+    std::uint64_t staticBufferSize_;
+
 
     void insert(Node *baseNode, Node *newNode);
 
@@ -89,6 +102,8 @@ private:
 
     static void
     findBest(std::uint64_t &size, std::int32_t &padding, std::int32_t &alignment, Node *&baseNode, Node *&foundNode);
+
+    void checkPointerAddress(void *ptr);
 };
 
-#endif //SPIDER2_FREELISTSTATICALLOCATOR_H
+#endif //SPIDER2_FREELISTALLOCATOR_H

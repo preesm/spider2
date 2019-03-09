@@ -37,31 +37,31 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_MEMORY_TEST_FREELIST_ALLOCATOR_H
-#define SPIDER2_MEMORY_TEST_FREELIST_ALLOCATOR_H
+#ifndef SPIDER2_MEMORY_TEST_FREELISTDYNAMIC_ALLOCATOR_H
+#define SPIDER2_MEMORY_TEST_FREELISTDYNAMIC_ALLOCATOR_H
 
 #include <gtest/gtest.h>
-#include "common/memory/FreeListStaticAllocator.h"
+#include "common/memory/FreeListAllocator.h"
 
 #define ALLOCATOR_NAME "my-allocator"
 
 #define MAX_SIZE 512
 
-TEST(FreeListStaticAllocatorTest, GetName) {
-    auto *allocator = new FreeListStaticAllocator(ALLOCATOR_NAME, MAX_SIZE);
+TEST(FreeListAllocatorTest, GetName) {
+    auto *allocator = new FreeListAllocator(ALLOCATOR_NAME, MAX_SIZE);
     EXPECT_STREQ(allocator->getName(), ALLOCATOR_NAME);
     delete allocator;
 }
 
-TEST(FreeListStaticAllocatorTest, ThrowSizeException) {
-    auto *allocator = new FreeListStaticAllocator(ALLOCATOR_NAME, MAX_SIZE);
+TEST(FreeListAllocatorTest, ThrowSizeException) {
+    auto *allocator = new FreeListAllocator(ALLOCATOR_NAME, MAX_SIZE);
     std::uint64_t size = MAX_SIZE + 1;
-    EXPECT_THROW(allocator->alloc(size), SpiderException);
+    EXPECT_NO_THROW(allocator->alloc(size));
     delete allocator;
 }
 
-TEST(FreeListStaticAllocatorTest, MemoryAllocFindFirst) {
-    auto *allocator = new FreeListStaticAllocator(ALLOCATOR_NAME, MAX_SIZE);
+TEST(FreeListAllocatorTest, MemoryAllocFindFirst) {
+    auto *allocator = new FreeListAllocator(ALLOCATOR_NAME, MAX_SIZE);
     auto *array = (double *) allocator->alloc(2 * sizeof(double));
     ASSERT_NE(array, nullptr);
     array[0] = 1;
@@ -69,17 +69,18 @@ TEST(FreeListStaticAllocatorTest, MemoryAllocFindFirst) {
     ASSERT_EQ(array[0], 1);
     ASSERT_EQ(array[1], 2);
     ASSERT_EQ(nullptr, allocator->alloc(0));
-    EXPECT_THROW(allocator->alloc(MAX_SIZE), SpiderException);
+    EXPECT_NO_THROW(allocator->alloc(MAX_SIZE));
     EXPECT_THROW(allocator->alloc(sizeof(std::int32_t)), SpiderException);
+    EXPECT_NO_THROW(allocator->free(array));
     EXPECT_NO_THROW(allocator->reset());
     EXPECT_NO_THROW(allocator->alloc(MAX_SIZE));
-    EXPECT_NO_THROW(allocator->free(array));
+    EXPECT_THROW(allocator->free(array), SpiderException);
     EXPECT_NO_THROW(allocator->alloc(MAX_SIZE));
     delete allocator;
 }
 
-TEST(FreeListStaticAllocatorTest, MemoryAllocAlignmentFindFirst) {
-    auto *allocator = new FreeListStaticAllocator(ALLOCATOR_NAME, MAX_SIZE);
+TEST(FreeListAllocatorTest, MemoryAllocAlignmentFindFirst) {
+    auto *allocator = new FreeListAllocator(ALLOCATOR_NAME, MAX_SIZE);
     auto *charArray = (char *) allocator->alloc(17 * sizeof(char));
     ASSERT_NE(charArray, nullptr);
     auto *dblArray = (double *) allocator->alloc(2 * sizeof(double));
@@ -90,14 +91,28 @@ TEST(FreeListStaticAllocatorTest, MemoryAllocAlignmentFindFirst) {
     delete allocator;
 }
 
-TEST(FreeListStaticAllocatorTest, FreeNull) {
-    auto *allocator = new FreeListStaticAllocator(ALLOCATOR_NAME, MAX_SIZE);
+TEST(FreeListAllocatorTest, MemoryAllocAlignmentChunks) {
+    auto *allocator = new FreeListAllocator(ALLOCATOR_NAME, MAX_SIZE);
+    auto *charArray = (char *) allocator->alloc(MAX_SIZE);
+    ASSERT_NE(charArray, nullptr);
+    auto *dblArray = (double *) allocator->alloc(MAX_SIZE);
+    ASSERT_NE(dblArray, nullptr);
+    std::int32_t paddingSize = 0;
+    std::int32_t headerSize = 2 * sizeof(std::uint64_t);
+    ASSERT_EQ(charArray + MAX_SIZE + paddingSize + headerSize, (char *) dblArray);
+    auto *ptr = (char *) allocator->alloc(17 * sizeof(char));
+    ASSERT_NE(ptr + 2 * MAX_SIZE + 2 * headerSize, (char *) dblArray);
+    delete allocator;
+}
+
+TEST(FreeListAllocatorTest, FreeNull) {
+    auto *allocator = new FreeListAllocator(ALLOCATOR_NAME, MAX_SIZE);
     EXPECT_NO_THROW(allocator->free(nullptr));
     delete allocator;
 }
 
-TEST(FreeListStaticAllocatorTest, FreeOutOfScope) {
-    auto *allocator = new FreeListStaticAllocator(ALLOCATOR_NAME, MAX_SIZE);
+TEST(FreeListAllocatorTest, FreeOutOfScope) {
+    auto *allocator = new FreeListAllocator(ALLOCATOR_NAME, MAX_SIZE);
     char *charArray = new char[8];
     EXPECT_THROW(allocator->free(charArray), SpiderException);
     delete[] charArray;
@@ -107,8 +122,8 @@ TEST(FreeListStaticAllocatorTest, FreeOutOfScope) {
     delete allocator;
 }
 
-TEST(FreeListStaticAllocatorTest, MemoryAllocFindBest) {
-    auto *allocator = new FreeListStaticAllocator(ALLOCATOR_NAME, MAX_SIZE, FreeListStaticAllocator::FIND_BEST);
+TEST(FreeListAllocatorTest, MemoryAllocFindBest) {
+    auto *allocator = new FreeListAllocator(ALLOCATOR_NAME, MAX_SIZE, FreeListAllocator::FIND_BEST);
     auto *array = (double *) allocator->alloc(2 * sizeof(double));
     ASSERT_NE(array, nullptr);
     array[0] = 1;
@@ -116,18 +131,18 @@ TEST(FreeListStaticAllocatorTest, MemoryAllocFindBest) {
     ASSERT_EQ(array[0], 1);
     ASSERT_EQ(array[1], 2);
     ASSERT_EQ(nullptr, allocator->alloc(0));
-    EXPECT_THROW(allocator->alloc(MAX_SIZE), SpiderException);
+    EXPECT_NO_THROW(allocator->alloc(MAX_SIZE));
     EXPECT_THROW(allocator->alloc(sizeof(std::int32_t)), SpiderException);
     EXPECT_NO_THROW(allocator->reset());
     EXPECT_NO_THROW(allocator->alloc(MAX_SIZE));
-    EXPECT_NO_THROW(allocator->free(array));
+    EXPECT_THROW(allocator->free(array), SpiderException);
     EXPECT_NO_THROW(allocator->alloc(MAX_SIZE));
 
     delete allocator;
 }
 
-TEST(FreeListStaticAllocatorTest, MemoryAllocAlignmentFindBest) {
-    auto *allocator = new FreeListStaticAllocator(ALLOCATOR_NAME, MAX_SIZE, FreeListStaticAllocator::FIND_BEST);
+TEST(FreeListAllocatorTest, MemoryAllocAlignmentFindBest) {
+    auto *allocator = new FreeListAllocator(ALLOCATOR_NAME, MAX_SIZE, FreeListAllocator::FIND_BEST);
     auto *charArray = (char *) allocator->alloc(17 * sizeof(char));
     ASSERT_NE(charArray, nullptr);
     auto *dblArray = (double *) allocator->alloc(2 * sizeof(double));
@@ -138,8 +153,8 @@ TEST(FreeListStaticAllocatorTest, MemoryAllocAlignmentFindBest) {
     delete allocator;
 }
 
-TEST(FreeListStaticAllocatorTest, Free) {
-    auto *allocator = new FreeListStaticAllocator(ALLOCATOR_NAME, MAX_SIZE);
+TEST(FreeListAllocatorTest, Free) {
+    auto *allocator = new FreeListAllocator(ALLOCATOR_NAME, MAX_SIZE);
     EXPECT_NO_THROW(allocator->free(nullptr));
     auto *charArray = (char *) allocator->alloc(16 * sizeof(char));
     ASSERT_NE(charArray, nullptr);
@@ -150,13 +165,14 @@ TEST(FreeListStaticAllocatorTest, Free) {
     EXPECT_NO_THROW(allocator->free(dblArray));
     EXPECT_NO_THROW(allocator->free(ptr));
     EXPECT_NO_THROW(allocator->free(charArray));
-    EXPECT_NO_THROW(allocator->alloc(MAX_SIZE));
+    ptr = allocator->alloc(MAX_SIZE);
+    EXPECT_NO_THROW(allocator->free(ptr));
     delete allocator;
 }
 
-TEST(FreeListStaticAllocatorTest, MinAlignmentSize) {
-    EXPECT_THROW(FreeListStaticAllocator(ALLOCATOR_NAME, MAX_SIZE, FreeListStaticAllocator::FIND_FIRST, 0),
+TEST(FreeListAllocatorTest, MinAlignmentSize) {
+    EXPECT_THROW(FreeListAllocator(ALLOCATOR_NAME, MAX_SIZE, FreeListAllocator::FIND_FIRST, 0),
                  SpiderException);
 }
 
-#endif //SPIDER2_MEMORY_TEST_FREELIST_ALLOCATOR_H
+#endif //SPIDER2_MEMORY_TEST_FREELISTDYNAMIC_ALLOCATOR_H

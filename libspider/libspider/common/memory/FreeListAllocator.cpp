@@ -37,25 +37,36 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#include "FreeListStaticAllocator.h"
+#include "FreeListAllocator.h"
 
-FreeListStaticAllocator::FreeListStaticAllocator(const char *name,
-                                                 std::uint64_t totalSize,
-                                                 FreeListPolicy policy,
-                                                 std::int32_t alignment) :
-        StaticAllocator(name, totalSize + sizeof(FreeListStaticAllocator::Header), alignment) {
+
+FreeListAllocator::FreeListAllocator(const char *name,
+                                     std::uint64_t staticBufferSize,
+                                     FreeListPolicy policy,
+                                     std::int32_t alignment) :
+        DynamicAllocator(name, alignment), staticBufferSize_{staticBufferSize} {
     if (alignment < 8) {
         throwSpiderException("Memory alignment should be at least of size sizeof(std::int64_t) = 8 bytes.");
     }
+    staticBufferPtr_ = (char *) std::malloc(staticBufferSize_);
     this->reset();
     if (policy == FIND_FIRST) {
-        method_ = FreeListStaticAllocator::findFirst;
-    } else if (policy == FIND_BEST) {
-        method_ = FreeListStaticAllocator::findBest;
+        method_ = FreeListAllocator::findFirst;
+    } else if (policy == FIND_BEST){
+        method_ = FreeListAllocator::findBest;
     }
 }
 
-void *FreeListStaticAllocator::alloc(std::uint64_t size) {
+
+FreeListAllocator::~FreeListAllocator() {
+    std::free(staticBufferPtr_);
+    for (auto &it: extraBuffers_) {
+        std::free(it.bufferPtr_);
+        it.bufferPtr_ = nullptr;
+    }
+}
+
+void *FreeListAllocator::alloc(std::uint64_t size) {
     if (!size) {
         return nullptr;
     }
@@ -69,7 +80,24 @@ void *FreeListStaticAllocator::alloc(std::uint64_t size) {
     Node *memoryNode = nullptr;
     /*!< Find first / best node fitting memory requirement */
     method_(size, padding, alignment_, baseNode, memoryNode);
-    std::int32_t paddingWithoutHeader = padding - sizeof(FreeListStaticAllocator::Header);
+    if (!memoryNode) {
+        /*!< We need to allocate new chunks of memory */
+        padding = sizeof(FreeListAllocator::Header);
+        FreeListAllocator::Buffer newBuffer;
+        /*!< Allocate new buffer with size aligned to MIN_CHUNK */
+        newBuffer.size_ = SpiderAllocator::computeAlignedSize(size, MIN_CHUNK);
+        newBuffer.bufferPtr_ = (char *) std::malloc(newBuffer.size_);
+        /*!< Initialize memoryNode */
+        memoryNode = (Node *) (newBuffer.bufferPtr_);
+        memoryNode->blockSize_ = newBuffer.size_;
+        memoryNode->next_ = nullptr;
+        /*!< Add the new node to the existing list of free node */
+        insert(baseNode, memoryNode);
+        /*!< Push buffer into vector to keep track of it */
+        extraBuffers_.push_back(newBuffer);
+    }
+    /*!< Compute padding and real required size */
+    std::int32_t paddingWithoutHeader = padding - sizeof(FreeListAllocator::Header);
     std::uint64_t requiredSize = size + padding;
     std::uint64_t leftOverMemory = memoryNode->blockSize_ - requiredSize;
     if (leftOverMemory) {
@@ -94,25 +122,20 @@ void *FreeListStaticAllocator::alloc(std::uint64_t size) {
     return dataAddress;
 }
 
-void FreeListStaticAllocator::free(void *ptr) {
+void FreeListAllocator::free(void *ptr) {
     if (!ptr) {
         return;
     }
     char *currentAddress = static_cast<char *>(ptr);
-    char *headerAddress = currentAddress - sizeof(FreeListStaticAllocator::Header);
+    char *headerAddress = currentAddress - sizeof(FreeListAllocator::Header);
 
     /*!< Read header info */
     auto *header = (Header *) (headerAddress);
     Node *freeNode = (Node *) (headerAddress - header->padding_);
     /*!< Check address */
-    StaticAllocator::checkPointerAddress(freeNode);
+    checkPointerAddress(freeNode);
     freeNode->blockSize_ = header->size_;
     freeNode->next_ = nullptr;
-
-    /*! Case where we allocated all memory at once */
-    if (!list_) {
-        list_ = freeNode;
-    }
 
     Node *it = list_;
     Node *itPrev = nullptr;
@@ -140,16 +163,24 @@ void FreeListStaticAllocator::free(void *ptr) {
 
 }
 
-void FreeListStaticAllocator::reset() {
+void FreeListAllocator::reset() {
     averageUse_ += used_;
     numberAverage_++;
     used_ = 0;
-    list_ = (Node *) (startPtr_);
-    list_->blockSize_ = totalSize_;
+    list_ = (Node *) (staticBufferPtr_);
+    list_->blockSize_ = staticBufferSize_;
     list_->next_ = nullptr;
+    Node *currentNode = list_;
+    for (auto &it: extraBuffers_) {
+        auto *bufferHead = (Node *) (it.bufferPtr_);
+        bufferHead->blockSize_ = it.size_;
+        bufferHead->next_ = nullptr;
+        insert(currentNode, bufferHead);
+        currentNode = bufferHead;
+    }
 }
 
-void FreeListStaticAllocator::insert(Node *baseNode, Node *newNode) {
+void FreeListAllocator::insert(Node *baseNode, Node *newNode) {
     if (!baseNode) {
         /*!< Insert node as first */
         newNode->next_ = list_ ? list_ : nullptr;
@@ -162,7 +193,7 @@ void FreeListStaticAllocator::insert(Node *baseNode, Node *newNode) {
     }
 }
 
-void FreeListStaticAllocator::remove(Node *baseNode, Node *removedNode) {
+void FreeListAllocator::remove(Node *baseNode, Node *removedNode) {
     if (!baseNode) {
         /*!< Remove the first node */
         list_ = removedNode->next_;
@@ -173,10 +204,10 @@ void FreeListStaticAllocator::remove(Node *baseNode, Node *removedNode) {
 }
 
 void
-FreeListStaticAllocator::findFirst(std::uint64_t &size, std::int32_t &padding, std::int32_t &alignment,
-                                   Node *&baseNode,
-                                   Node *&foundNode) {
-    std::int32_t headerSize = sizeof(FreeListStaticAllocator::Header);
+FreeListAllocator::findFirst(std::uint64_t &size, std::int32_t &padding, std::int32_t &alignment,
+                             Node *&baseNode,
+                             Node *&foundNode) {
+    std::int32_t headerSize = sizeof(FreeListAllocator::Header);
     Node *it = baseNode;
     baseNode = nullptr;
     while (it) {
@@ -195,16 +226,13 @@ FreeListStaticAllocator::findFirst(std::uint64_t &size, std::int32_t &padding, s
         baseNode = it;
         it = it->next_;
     }
-    throwSpiderException("Not enough memory available for requested size of %"
-                                 PRIu64
-                                 "", size);
 }
 
 void
-FreeListStaticAllocator::findBest(std::uint64_t &size, std::int32_t &padding, std::int32_t &alignment,
-                                  Node *&baseNode,
-                                  Node *&foundNode) {
-    std::int32_t headerSize = sizeof(FreeListStaticAllocator::Header);
+FreeListAllocator::findBest(std::uint64_t &size, std::int32_t &padding, std::int32_t &alignment,
+                            Node *&baseNode,
+                            Node *&foundNode) {
+    std::int32_t headerSize = sizeof(FreeListAllocator::Header);
     Node *head = baseNode;
     Node *it = head;
     baseNode = nullptr;
@@ -232,9 +260,21 @@ FreeListStaticAllocator::findBest(std::uint64_t &size, std::int32_t &padding, st
     if (baseNode == head && head->next_ == nullptr) {
         baseNode = nullptr;
     }
-    if (!foundNode) {
-        throwSpiderException("Not enough memory available for requested size of %"
-                                     PRIu64
-                                     "", size);
+}
+
+void FreeListAllocator::checkPointerAddress(void *ptr) {
+    if (used_ == 0) {
+        throwSpiderException("Trying to free unallocated memory block.");
+    }
+    for (auto &it: extraBuffers_) {
+        if ((char *) (ptr) >= it.bufferPtr_ &&
+            (char *) (ptr) < (it.bufferPtr_ + it.size_)) {
+            return;
+        }
+    }
+    if ((char *) (ptr) < staticBufferPtr_ ||
+        (char *) (ptr) > (staticBufferPtr_ + staticBufferSize_)) {
+        throwSpiderException("Trying to free memory block out of memory space.");
     }
 }
+
