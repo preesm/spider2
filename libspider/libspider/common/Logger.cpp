@@ -37,7 +37,7 @@
  */
 #include <cstdarg>
 #include <mutex>
-#include "logger.h"
+#include "Logger.h"
 
 #define LOG_RED "\x1B[31m"
 #define LOG_GRN "\x1B[32m"
