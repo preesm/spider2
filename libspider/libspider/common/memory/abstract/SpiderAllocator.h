@@ -43,7 +43,7 @@
 #include <cstdlib>
 #include <cstdint>
 #include <cinttypes>
-#include "common/logger.h"
+#include "common/Logger.h"
 #include "common/SpiderException.h"
 
 class SpiderAllocator {
@@ -175,14 +175,15 @@ double SpiderAllocator::getByteNormalizedSize(std::uint64_t &size) {
     const double sizeGB = 1024 * 1024 * 1024;
     const double sizeMB = 1024 * 1024;
     const double sizeKB = 1024;
-    if (size / sizeGB >= 1.) {
-        return size / sizeGB;
-    } else if (size / sizeMB >= 1.) {
-        return size / sizeMB;
-    } else if (size / sizeKB >= 1.) {
-        return size / sizeKB;
+    const double dblSize = (double) size;
+    if (dblSize / sizeGB >= 1.) {
+        return dblSize / sizeGB;
+    } else if (dblSize / sizeMB >= 1.) {
+        return dblSize / sizeMB;
+    } else if (dblSize / sizeKB >= 1.) {
+        return dblSize / sizeKB;
     }
-    return size;
+    return dblSize;
 }
 
 #endif //SPIDER2_SPIDERALLOCATOR_H

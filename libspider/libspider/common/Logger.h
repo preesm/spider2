@@ -1,12 +1,10 @@
 /**
- * Copyright or © or Copr. IETR/INSA - Rennes (2013 - 2018) :
+ * Copyright or © or Copr. IETR/INSA - Rennes (2014 - 2018) :
  *
  * Antoine Morvan <antoine.morvan@insa-rennes.fr> (2018)
- * Clément Guy <clement.guy@insa-rennes.fr> (2014)
  * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2018)
  * Hugo Miomandre <hugo.miomandre@insa-rennes.fr> (2017)
- * Julien Heulot <julien.heulot@insa-rennes.fr> (2013 - 2015)
- * Yaset Oliva <yaset.oliva@insa-rennes.fr> (2013 - 2014)
+ * Julien Heulot <julien.heulot@insa-rennes.fr> (2014 - 2018)
  *
  * Spider is a dataflow based runtime used to execute dynamic PiSDF
  * applications. The Preesm tool may be used to design PiSDF applications.
@@ -37,58 +35,35 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_FREELISTSTATICALLOCATOR_H
-#define SPIDER2_FREELISTSTATICALLOCATOR_H
+#ifndef SPIDER_LOGGER_H
+#define SPIDER_LOGGER_H
 
-#include "abstract/StaticAllocator.h"
+#include <cstdio>
 
+#define N_LOGGER 3
 
-class FreeListStaticAllocator : public StaticAllocator {
-public:
-    typedef enum FreeListPolicy {
-        FIND_FIRST = 0,
-        FIND_BEST = 1
-    } FreeListPolicy;
+typedef enum {
+    LOG_JOB = 0,
+    LOG_TIME = 1,
+    LOG_GENERAL = 2,
+} LoggerType;
 
-    explicit FreeListStaticAllocator(const char *name,
-                                     std::uint64_t totalSize,
-                                     FreeListPolicy policy = FIND_FIRST,
-                                     std::int32_t alignment = sizeof(std::int64_t));
+typedef enum {
+    LOG_INFO,
+    LOG_WARNING,
+    LOG_ERROR
+} LoggerLevel;
 
-    ~FreeListStaticAllocator() override = default;
+namespace Logger {
+    void init();
 
-    void *alloc(std::uint64_t size) override;
+    void enable(LoggerType type);
 
-    void free(void *ptr) override;
+    void disable(LoggerType type);
 
-    void reset() override;
+    void setOutputStream(FILE *stream);
 
-    typedef struct Node {
-        std::uint64_t blockSize_;
-        Node *next_;
-    } Node;
+    void print(LoggerType type, LoggerLevel level, const char *fmt, ...);
+}
 
-private:
-    typedef struct Header {
-        std::uint64_t size_;
-        std::uint64_t padding_;
-    } Header;
-
-    Node *list_;
-
-    void insert(Node *baseNode, Node *newNode);
-
-    void remove(Node *baseNode, Node *removedNode);
-
-    using policyMethod = void (*)(std::uint64_t &, std::int32_t &, std::int32_t &, Node *&, Node *&);
-
-    policyMethod method_;
-
-    static void
-    findFirst(std::uint64_t &size, std::int32_t &padding, std::int32_t &alignment, Node *&baseNode, Node *&foundNode);
-
-    static void
-    findBest(std::uint64_t &size, std::int32_t &padding, std::int32_t &alignment, Node *&baseNode, Node *&foundNode);
-};
-
-#endif //SPIDER2_FREELISTSTATICALLOCATOR_H
+#endif //SPIDER_LOGGER_H
