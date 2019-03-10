@@ -163,6 +163,7 @@ file(
 	GLOB_RECURSE
 	source_files
     ${SPIDER_LIB_DIR}/common/*.cpp
+	${SPIDER_LIB_DIR}/common/containers/*.cpp
 	${SPIDER_LIB_DIR}/common/memory/*.cpp
 #    ${SPIDER_LIB_DIR}/graphs/pisdf/*.cpp
 #    ${SPIDER_LIB_DIR}/graphs/srdag/*.cpp
@@ -184,6 +185,7 @@ file(
 	GLOB_RECURSE
 	header_files
 	${SPIDER_LIB_DIR}/common/*.h
+	${SPIDER_LIB_DIR}/common/containers/*.h
 	${SPIDER_LIB_DIR}/common/memory/*.h
 	${SPIDER_LIB_DIR}/common/memory/abstract/*.h
 #    ${SPIDER_LIB_DIR}/graphs/abstract/*.h
