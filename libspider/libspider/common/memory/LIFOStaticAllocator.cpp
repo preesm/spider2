@@ -49,7 +49,7 @@ void *LIFOStaticAllocator::alloc(std::uint64_t size) {
         return nullptr;
     }
     used_ += size;
-    /*!< We assume alignment on 64 bits */
+    /*! We assume alignment on 64 bits */
     std::uint64_t alignedSize = SpiderAllocator::computeAlignedSize(used_, alignment_);
     if (alignedSize > totalSize_) {
         throwSpiderException("Memory request exceed memory available. Stack: %s -- Size: %"

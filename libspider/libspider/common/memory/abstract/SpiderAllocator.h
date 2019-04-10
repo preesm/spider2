@@ -149,7 +149,7 @@ std::uint64_t SpiderAllocator::computeAlignedSize(std::uint64_t &size, std::int3
 }
 
 std::uint64_t SpiderAllocator::computeAlignedSize(std::uint64_t &size) {
-    std::int32_t alignment = 4096;
+    const std::int32_t alignment = 4096;
     return computeAlignedSize(size, alignment);
 }
 
@@ -158,9 +158,9 @@ std::int32_t SpiderAllocator::computePadding(std::uint64_t &base, std::int32_t a
 }
 
 const char *SpiderAllocator::getByteUnitString(std::uint64_t &size) {
-    const std::uint64_t sizeGB = 1024 * 1024 * 1024;
-    const std::uint64_t sizeMB = 1024 * 1024;
-    const std::uint64_t sizeKB = 1024;
+    constexpr std::uint64_t sizeGB = 1024 * 1024 * 1024;
+    constexpr std::uint64_t sizeMB = 1024 * 1024;
+    constexpr std::uint64_t sizeKB = 1024;
     if (size / sizeGB) {
         return "GB";
     } else if (size / sizeMB) {
@@ -172,9 +172,9 @@ const char *SpiderAllocator::getByteUnitString(std::uint64_t &size) {
 }
 
 double SpiderAllocator::getByteNormalizedSize(std::uint64_t &size) {
-    const double sizeGB = 1024 * 1024 * 1024;
-    const double sizeMB = 1024 * 1024;
-    const double sizeKB = 1024;
+    constexpr double sizeGB = 1024 * 1024 * 1024;
+    constexpr double sizeMB = 1024 * 1024;
+    constexpr double sizeKB = 1024;
     const double dblSize = (double) size;
     if (dblSize / sizeGB >= 1.) {
         return dblSize / sizeGB;
