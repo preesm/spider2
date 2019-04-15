@@ -1,12 +1,8 @@
 /**
- * Copyright or © or Copr. IETR/INSA - Rennes (2013 - 2018) :
+ * Copyright or © or Copr. IETR/INSA - Rennes (2018) :
  *
  * Antoine Morvan <antoine.morvan@insa-rennes.fr> (2018)
- * Clément Guy <clement.guy@insa-rennes.fr> (2014)
  * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2018)
- * Hugo Miomandre <hugo.miomandre@insa-rennes.fr> (2017)
- * Julien Heulot <julien.heulot@insa-rennes.fr> (2013 - 2015)
- * Yaset Oliva <yaset.oliva@insa-rennes.fr> (2013 - 2014)
  *
  * Spider is a dataflow based runtime used to execute dynamic PiSDF
  * applications. The Preesm tool may be used to design PiSDF applications.
@@ -37,49 +33,11 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_STATICALLOCATOR_H
-#define SPIDER2_STATICALLOCATOR_H
+#include <gtest/gtest.h>
 
-#include "SpiderAllocator.h"
 
-class StaticAllocator : public SpiderAllocator {
-public:
-    void *alloc(std::uint64_t size) override = 0;
 
-    void dealloc(void *ptr) override = 0;
-
-    virtual void reset() = 0;
-
-protected:
-    std::uint64_t totalSize_;
-    char *startPtr_;
-
-    inline StaticAllocator(const char *name, std::uint64_t totalSize, std::int32_t alignment = 0);
-
-    virtual inline ~StaticAllocator();
-
-    inline void checkPointerAddress(void *ptr) const;
-};
-
-StaticAllocator::StaticAllocator(const char *name, std::uint64_t totalSize, std::int32_t alignment) :
-        SpiderAllocator(name, alignment),
-        totalSize_{totalSize},
-        startPtr_{nullptr} {
-    startPtr_ = (char *) std::malloc(totalSize_);
+int main(int argc, char **argv) {
+    testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }
-
-StaticAllocator::~StaticAllocator() {
-    std::free(startPtr_);
-}
-
-void StaticAllocator::checkPointerAddress(void *ptr) const {
-    if ((char *) (ptr) < startPtr_) {
-        throwSpiderException("Trying to dealloc unallocated memory block.");
-    }
-
-    if ((char *) (ptr) > startPtr_ + totalSize_) {
-        throwSpiderException("Trying to dealloc memory block out of memory space.");
-    }
-}
-
-#endif //SPIDER2_STATICALLOCATOR_H

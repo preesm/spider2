@@ -75,7 +75,7 @@ void *GenericAllocator::alloc(std::uint64_t size) {
     return headerAddress + sizeof(std::uint64_t);
 }
 
-void GenericAllocator::free(void *ptr) {
+void GenericAllocator::dealloc(void *ptr) {
     if (!ptr) {
         return;
     }

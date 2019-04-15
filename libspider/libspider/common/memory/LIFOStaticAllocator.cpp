@@ -64,14 +64,14 @@ void *LIFOStaticAllocator::alloc(std::uint64_t size) {
     return alignedAllocatedAddress;
 }
 
-void LIFOStaticAllocator::free(void *ptr) {
+void LIFOStaticAllocator::dealloc(void *ptr) {
     if (!ptr) {
         return;
     }
     StaticAllocator::checkPointerAddress(ptr);
     char *currentAddress = static_cast<char *>(ptr);
     if (currentAddress > (used_ + startPtr_)) {
-        throwSpiderException("Allocator: %s -- LIFO allocator should free element in reverse order of allocation.",
+        throwSpiderException("Allocator: %s -- LIFO allocator should dealloc element in reverse order of allocation.",
                              getName());
     }
     used_ = currentAddress - startPtr_;

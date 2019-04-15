@@ -46,7 +46,7 @@ class DynamicAllocator : public SpiderAllocator {
 public:
     void *alloc(std::uint64_t size) override = 0;
 
-    void free(void *ptr) override = 0;
+    void dealloc(void *ptr) override = 0;
 
     virtual void reset() = 0;
 

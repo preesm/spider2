@@ -59,7 +59,7 @@ public:
 
     void *alloc(std::uint64_t size) override;
 
-    void free(void *ptr) override;
+    void dealloc(void *ptr) override;
 
     void reset() override;
 

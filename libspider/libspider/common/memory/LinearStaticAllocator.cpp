@@ -69,7 +69,7 @@ void *LinearStaticAllocator::alloc(std::uint64_t size) {
     return alignedAllocatedAddress;
 }
 
-void LinearStaticAllocator::free(void *ptr) {
+void LinearStaticAllocator::dealloc(void *ptr) {
     StaticAllocator::checkPointerAddress(ptr);
     /*!< LinearStaticAllocator does not free memory per block */
 }

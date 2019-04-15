@@ -63,7 +63,7 @@ public:
      * @brief Free a memory buffer.
      * @param ptr Memory address to be freed
      */
-    virtual void free(void *ptr) = 0;
+    virtual void dealloc(void *ptr) = 0;
 
     /* Setters */
 
@@ -137,8 +137,9 @@ const char *SpiderAllocator::getName() const {
 
 void SpiderAllocator::printStats() const {
     Logger::print(LOG_GENERAL, LOG_INFO, "Allocator: %s\n", getName());
-    Logger::print(LOG_GENERAL, LOG_INFO, "       ==> max usage: %" PRIu64"\n", peak_);
-    Logger::print(LOG_GENERAL, LOG_INFO, "       ==> avg usage: %" PRIu64"\n", averageUse_ / numberAverage_);
+    Logger::print(LOG_GENERAL, LOG_INFO, "       ==> max usage:    %" PRIu64"\n", peak_);
+    Logger::print(LOG_GENERAL, LOG_INFO, "       ==> avg usage:    %" PRIu64"\n", averageUse_ / numberAverage_);
+    Logger::print(LOG_GENERAL, LOG_INFO, "       ==> still in use: %" PRIu64"\n", used_);
 }
 
 std::uint64_t SpiderAllocator::computeAlignedSize(std::uint64_t &size, std::int32_t alignment /* = 4096 */) {
