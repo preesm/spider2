@@ -93,3 +93,7 @@ depcomp
 install-sh
 missing
 stamp-h1
+
+# Doxygen generated files #
+###########################
+*/doxygen-output/*

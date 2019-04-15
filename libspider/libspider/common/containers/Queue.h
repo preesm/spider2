@@ -90,7 +90,7 @@ public:
 	 inline std::uint64_t size() const;
 
 private:
-    std::uint64_t queueSize_;
+    std::uint64_t queueSize_ = 0;
     std::queue<T> queue_;
     std::mutex queueMutex_;
     sem_t queueCounter_;

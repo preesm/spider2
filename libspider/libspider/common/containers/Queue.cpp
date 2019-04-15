@@ -45,19 +45,19 @@
 extern int errno;
 
 template<typename T>
-Queue<T>::Queue() : queueSize_{0} {
+Queue<T>::Queue() {
     if (sem_init(&queueCounter_, 0, 0) < 0) {
-		throwSpiderException("Failed to initialize semaphore with error code: %d", errno);
-	}
+        throwSpiderException("Failed to initialize semaphore with error code: %d", errno);
+    }
 }
 
 template<typename T>
 Queue<T>::~Queue() {
-	/*!< Clearing the queue */
+    /*!< Clearing the queue */
     while (!queue_.empty()) {
         queue_.pop();
     }
-	/*!< Destroying the semaphore */
+    /*!< Destroying the semaphore */
     sem_destroy(&queueCounter_);
 }
 

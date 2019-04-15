@@ -48,7 +48,7 @@
 
 class SpiderAllocator {
 public:
-    explicit inline SpiderAllocator(const char *name, std::int32_t alignment);
+    explicit inline SpiderAllocator(const char *name, std::int32_t alignment = 0);
 
     ~SpiderAllocator() = default;
 
@@ -96,15 +96,13 @@ public:
     inline void printStats() const;
 
 protected:
-    std::uint64_t used_;
-    std::uint64_t peak_;
-    std::uint64_t averageUse_;
-    std::uint64_t numberAverage_;
-    std::int32_t alignment_;
+    std::uint64_t used_ = 0;
+    std::uint64_t peak_ = 0;
+    std::uint64_t averageUse_ = 0;
+    std::uint64_t numberAverage_ = 0;
+    std::int32_t alignment_ = 0;
 
-    static inline std::uint64_t computeAlignedSize(std::uint64_t &size, std::int32_t alignment);
-
-    static inline std::uint64_t computeAlignedSize(std::uint64_t &size);
+    static inline std::uint64_t computeAlignedSize(std::uint64_t &size, std::int32_t alignment = 4096);
 
     static inline std::int32_t computePadding(std::uint64_t &base, std::int32_t alignment);
 
@@ -143,14 +141,9 @@ void SpiderAllocator::printStats() const {
     Logger::print(LOG_GENERAL, LOG_INFO, "       ==> avg usage: %" PRIu64"\n", averageUse_ / numberAverage_);
 }
 
-std::uint64_t SpiderAllocator::computeAlignedSize(std::uint64_t &size, std::int32_t alignment) {
+std::uint64_t SpiderAllocator::computeAlignedSize(std::uint64_t &size, std::int32_t alignment /* = 4096 */) {
     std::uint64_t alignFactor = size / alignment + (size % alignment != 0); // ceil(size / pageSize)
     return alignFactor * alignment;
-}
-
-std::uint64_t SpiderAllocator::computeAlignedSize(std::uint64_t &size) {
-    const std::int32_t alignment = 4096;
-    return computeAlignedSize(size, alignment);
 }
 
 std::int32_t SpiderAllocator::computePadding(std::uint64_t &base, std::int32_t alignment) {
@@ -175,7 +168,7 @@ double SpiderAllocator::getByteNormalizedSize(std::uint64_t &size) {
     constexpr double sizeGB = 1024 * 1024 * 1024;
     constexpr double sizeMB = 1024 * 1024;
     constexpr double sizeKB = 1024;
-    const double dblSize = (double) size;
+    const auto dblSize = (double) size;
     if (dblSize / sizeGB >= 1.) {
         return dblSize / sizeGB;
     } else if (dblSize / sizeMB >= 1.) {

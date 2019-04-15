@@ -18,4 +18,13 @@ test-memory:
     - "rm -rf report/"
   artifacts:
     reports:
-      junit: libspider/units-tests/libSpider2-tests/memory/report.xml
+      junit: libspider/units-tests/libSpider2-tests/memory/report-memory.xml
+test-containers: 
+  stage: test
+  script: 
+    - "cd libspider/units-tests/libSpider2-tests/containers"
+    - ./run-containers-test.sh
+    - "rm -rf report/"
+  artifacts:
+    reports:
+      junit: libspider/units-tests/libSpider2-tests/memory/report-containers.xml
