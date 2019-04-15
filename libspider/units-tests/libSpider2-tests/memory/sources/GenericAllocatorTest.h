@@ -65,7 +65,7 @@ TEST(GenericAllocatorTest, MemoryAlloc) {
     ASSERT_EQ(array[0], 1);
     ASSERT_EQ(array[1], 2);
     ASSERT_EQ(nullptr, allocator->alloc(0));
-    EXPECT_NO_THROW(allocator->free(array));
+    EXPECT_NO_THROW(allocator->dealloc(array));
     EXPECT_NO_THROW(allocator->reset());
     delete allocator;
 }
@@ -91,7 +91,7 @@ TEST(GenericAllocatorTest, DestructorWithUnFreedMemory) {
 
 TEST(GenericAllocatorTest, FreeNull) {
     auto *allocator = new GenericAllocator(ALLOCATOR_NAME);
-    EXPECT_NO_THROW(allocator->free(nullptr));
+    EXPECT_NO_THROW(allocator->dealloc(nullptr));
     delete allocator;
 }
 

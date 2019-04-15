@@ -71,7 +71,7 @@ TEST_F(LinearAllocatorTest, MemoryAlloc) {
     EXPECT_THROW(allocator.alloc(MAX_SIZE), SpiderException);
     EXPECT_NO_THROW(allocator.reset());
     EXPECT_NO_THROW(allocator.alloc(MAX_SIZE));
-    EXPECT_NO_THROW(allocator.free(array));
+    EXPECT_NO_THROW(allocator.dealloc(array));
 }
 
 TEST_F(LinearAllocatorTest, MemoryAllocDefaultAlignment) {
@@ -84,11 +84,11 @@ TEST_F(LinearAllocatorTest, MemoryAllocDefaultAlignment) {
 
 TEST_F(LinearAllocatorTest, FreeOutOfScope) {
     char *charArray = new char[8];
-    EXPECT_THROW(allocator.free(charArray), SpiderException);
+    EXPECT_THROW(allocator.dealloc(charArray), SpiderException);
     delete[] charArray;
     auto *dblArray = (double *) allocator.alloc(2 * sizeof(double));
     ASSERT_NE(dblArray, nullptr);
-    EXPECT_THROW(allocator.free(dblArray + MAX_SIZE), SpiderException);
+    EXPECT_THROW(allocator.dealloc(dblArray + MAX_SIZE), SpiderException);
 }
 
 TEST(LinearStaticAllocatorTest, MemoryAllocUserAlignment) {
