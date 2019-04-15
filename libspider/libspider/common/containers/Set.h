@@ -40,13 +40,15 @@
 #define SPIDER_SET_H
 
 #include <common/SpiderException.h>
+#include <common/memory/StackAllocator.h>
+#include <type_traits>
 
 template<typename TYPE>
 class Set {
 public:
     class SetElement {
     public:
-        SetElement() : setIx_{-1} {};
+        SetElement() = default;
 
         ~SetElement() = default;
 
@@ -59,23 +61,18 @@ public:
         }
 
     private:
-        std::int32_t setIx_;
+        std::int32_t setIx_ = -1;
     };
 
-    Set(std::int32_t sizeMax, int stackId) : size_{0}, sizeMax_{sizeMax}, stackId_{stackId} {
-        if (sizeMax_ > 0) {
-            //elements_ = CREATE_MUL(stackId, sizeMax_, TYPE);
-            elements_ = new TYPE[sizeMax_];
-        } else {
-            elements_ = nullptr;
+    Set(std::int32_t sizeMax, SpiderStack stackId) : sizeMax_{sizeMax}, stackId_{stackId} {
+        if (!is_derived_from_base_t<TYPE>{}) {
+            throwSpiderException("Type should inherit SetElement to use Set.");
         }
+        elements_ = Allocator::allocate<TYPE>(sizeMax, stackId);
     }
 
     ~Set() {
-        if (sizeMax_ != 0) {
-            //StackMonitor::free(stackId_, elements_);
-            delete[] elements_;
-        }
+        Allocator::deallocate(elements_);
     }
 
     inline void add(TYPE value);
@@ -98,9 +95,16 @@ public:
 
 private:
     SetElement *elements_;
-    std::int32_t size_;
+    std::int32_t size_ = 0;
     std::int32_t sizeMax_;
-    int stackId_;
+    SpiderStack stackId_;
+
+    static std::true_type is_derived_from_base_t_impl(const SetElement *impl);
+
+    static std::false_type is_derived_from_base_t_impl(...);
+
+    template<class Derived>
+    using is_derived_from_base_t = decltype(is_derived_from_base_t_impl(std::declval<Derived *>()));
 };
 
 template<typename TYPE>

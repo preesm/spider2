@@ -130,22 +130,16 @@ public:
     bool contains(T item);
 
 private:
+    Node *head_ = nullptr;
+    Node *current_ = nullptr;
+    Node *tail_ = nullptr;
+    std::int32_t size_ = 0;
     SpiderStack stackId_;
-    Node *head_;
-    Node *current_;
-    Node *tail_;
-    std::int32_t size_;
     std::int32_t sizeMax_;
 };
 
 template<class T>
-inline LinkedList<T>::LinkedList(SpiderStack stackId, std::int32_t sizeMax) {
-    stackId_ = stackId;
-    size_ = 0;
-    sizeMax_ = sizeMax;
-    head_ = nullptr;
-    current_ = nullptr;
-    tail_ = nullptr;
+inline LinkedList<T>::LinkedList(SpiderStack stackId, std::int32_t sizeMax) : stackId_{stackId}, sizeMax_{sizeMax} {
 }
 
 template<class T>
@@ -221,7 +215,7 @@ inline void LinkedList<T>::add(T e) {
     if (size_ >= sizeMax_) {
         throwSpiderException("Can not add element, list is full.");
     }
-    auto *newNode = CREATE_NA(stackId_, Node);
+    auto *newNode = Allocator::allocate(sizeof(Node), stackId_);
     if (!head_) {
         head_ = newNode;
         tail_ = newNode;

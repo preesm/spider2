@@ -40,21 +40,22 @@
 #ifndef SPIDER_STACKALLOCATOR_H
 #define SPIDER_STACKALLOCATOR_H
 
-#include <spider/spider.h>
 #include "FreeListStaticAllocator.h"
 #include "GenericAllocator.h"
+#include "FreeListAllocator.h"
 
 /**
  * @brief Stack ids
  */
-enum class SpiderStack {
+enum class SpiderStack : std::uint64_t {
     PISDF_STACK,     /*!< Stack used for PISDF graph (should be static) */
     ARCHI_STACK,     /*!< Stack used for architecture (should be static) */
     PLATFORM_STACK,  /*!< Stack used by the platform (should be static) */
     TRANSFO_STACK,   /*!< Stack used for graph transformations */
     SCHEDULE_STACK,  /*!< Stack used for scheduling */
     SRDAG_STACK,     /*!< Stack used for SRDAG graph */
-    LRT_STACK        /*!< Stack used by LRTs */
+    LRT_STACK,        /*!< Stack used by LRTs */
+    NEW_STACK,        /*!< Stack used by calls to new / delete */
 };
 
 /**
@@ -75,28 +76,11 @@ typedef struct SpiderStackConfig {
     std::uint64_t alignment = 0;
 } SpiderStackConfig;
 
-namespace StackAllocator {
-    void initStack(SpiderStack id, SpiderStackConfig cfg);
-
-    void clean(SpiderStack id);
-
-    void cleanAllStack();
-
-    template<typename T>
-    T *alloc(SpiderStack id, int size, bool pageAligned = true) {
-        return nullptr;
-    }
-
-    void free(SpiderStack id, void *ptr);
-
-    void freeAll(SpiderStack id, const char *function);
-
-    void freeAll(SpiderStack id);
-
-    void printStackStats();
-};
 
 namespace Allocator {
+    void stackInit(SpiderStack stack, SpiderStackConfig cfg) {
+    }
+
     /**
      * @brief  Construct a previously allocated object
      * @attention This method does not allocate memory, use @refitem Allocator::allocate first
@@ -106,7 +90,7 @@ namespace Allocator {
      * @param args   Arguments use for by the constructor of the object
      */
     template<typename T, class... Args>
-    void construct(T *&ptr, Args &&... args) {
+    void construct(T *ptr, Args &&... args) {
         if (ptr) {
             new((void *) ptr) T(std::forward<Args>(args)...);
         }
@@ -119,7 +103,7 @@ namespace Allocator {
      * @param ptr Reference pointer to the object to destroy
      */
     template<typename T>
-    void destroy(T *&ptr) {
+    void destroy(T *ptr) {
         if (ptr) {
             ptr->~T();
         }
@@ -135,7 +119,41 @@ namespace Allocator {
     template<typename T>
     T *allocate(std::uint64_t size, SpiderStack stack) {
         /* 0. Allocate buffer with (size + 1) to store stack identifier */
+        char *buffer = nullptr;
+        switch (stack) {
+            case SpiderStack::PISDF_STACK:
+//                buffer = (char *) newStack.alloc(size + sizeof(std::uint64_t));
+                break;
+            case SpiderStack::ARCHI_STACK:
+//                buffer = (char *) newStack.alloc(size + sizeof(std::uint64_t));
+                break;
+            case SpiderStack::PLATFORM_STACK:
+//                buffer = (char *) newStack.alloc(size + sizeof(std::uint64_t));
+                break;
+            case SpiderStack::TRANSFO_STACK:
+//                buffer = (char *) newStack.alloc(size + sizeof(std::uint64_t));
+                break;
+            case SpiderStack::SCHEDULE_STACK:
+//                buffer = (char *) newStack.alloc(size + sizeof(std::uint64_t));
+                break;
+            case SpiderStack::SRDAG_STACK:
+//                buffer = (char *) newStack.alloc(size + sizeof(std::uint64_t));
+                break;
+            case SpiderStack::LRT_STACK:
+//                buffer = (char *) newStack.alloc(size + sizeof(std::uint64_t));
+                break;
+            case SpiderStack::NEW_STACK:
+//                buffer = (char *) newStack.alloc(size + sizeof(std::uint64_t));
+                break;
+            default:
+                break;
+        }
         /* 1. Return allocated buffer */
+        if (buffer) {
+            ((std::uint64_t *) (buffer))[0] = (std::uint64_t) stack;
+            buffer = buffer + sizeof(std::uint64_t);
+        }
+        return (T *) buffer;
     }
 
     /**
@@ -143,7 +161,7 @@ namespace Allocator {
      * @attention This method does not destroy the object, use @refitem Allocator::destroy
      * @param ptr Raw pointer to deallocate
      */
-    void deallocate(void *&ptr) {
+    void deallocate(void *ptr) {
         if (ptr) {
             /* 0. Retrieve stack id */
             auto *originalPtr = ((char *) ptr - sizeof(std::uint64_t));
@@ -151,31 +169,23 @@ namespace Allocator {
             /* 1. Deallocate the pointer */
         }
     }
-};
-
-void *operator new(std::size_t) {
-    Logger::print(LOG_GENERAL, LOG_ERROR,
-                  "operator new should not be used. usage: Allocator::allocate(ptr, stack);\n");
-    return nullptr;
 }
 
-void *operator new[](std::size_t)  {
-    Logger::print(LOG_GENERAL, LOG_ERROR,
-                  "operator new[] should not be used. usage: Allocator::allocate(ptr, stack);\n");
-    return nullptr;
-}
-
-void operator delete(void *) _GLIBCXX_USE_NOEXCEPT {
-    Logger::print(LOG_GENERAL, LOG_ERROR,
-                  "operator delete should not be used. usage: Allocator::destroy(ptr);\n"
-                  "                                           Allocator::deallocate(ptr);\n");
-}
-
-void operator delete[](void *) _GLIBCXX_USE_NOEXCEPT {
-    Logger::print(LOG_GENERAL, LOG_ERROR,
-                  "operator delete[] should not be used. usage: Allocator::destroy(ptr);\n"
-                  "                                           Allocator::deallocate(ptr);\n");
-}
+//void *operator new(std::size_t size) {
+//    return Allocator::allocate<void>(size, SpiderStack::NEW_STACK);
+//}
+//
+//void *operator new[](std::size_t size) {
+//    return Allocator::allocate<void>(size, SpiderStack::NEW_STACK);
+//}
+//
+//void operator delete(void *ptr) _GLIBCXX_USE_NOEXCEPT {
+//    Allocator::deallocate(ptr);
+//}
+//
+//void operator delete[](void *ptr) _GLIBCXX_USE_NOEXCEPT {
+//    Allocator::deallocate(ptr);
+//}
 
 #endif /* SPIDER_STACKALLOCATOR_H */
 
