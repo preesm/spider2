@@ -53,43 +53,43 @@ Queue<T>::Queue() {
 
 template<typename T>
 Queue<T>::~Queue() {
-    /*!< Clearing the queue */
+    /* Clearing the queue */
     while (!queue_.empty()) {
         queue_.pop();
     }
-    /*!< Destroying the semaphore */
+    /* Destroying the semaphore */
     sem_destroy(&queueCounter_);
 }
 
 template<typename T>
 void Queue<T>::push(T *data) {
-    /*!< Creating a scope for lock_guard */
+    /* Creating a scope for lock_guard */
     {
-        /*!< Locking mutex with guard (in case of exception) */
+        /* Locking mutex with guard (in case of exception) */
         std::lock_guard<std::mutex> lock(queueMutex_);
-        /*!< Filling queue with data */
+        /* Filling queue with data */
         queue_.push((*data));
         queueSize_++;
     }
 
-    /** Posting queue semaphore to signal item is added inside */
+    /* Posting queue semaphore to signal item is added inside */
     sem_post(&queueCounter_);
 }
 
 template<typename T>
 bool Queue<T>::pop(T *data, bool blocking) {
-    /*!< Wait until an item is pushed in the queue */
+    /* Wait until an item is pushed in the queue */
     if (blocking) {
         sem_wait(&queueCounter_);
     } else if (sem_trywait(&queueCounter_)) {
-        /*!< If queue is empty return */
+        /* If queue is empty return */
         return false;
     }
-    /*!< Locking mutex with guard (in case of exception) */
+    /* Locking mutex with guard (in case of exception) */
     std::lock_guard<std::mutex> lock(queueMutex_);
-    /*!< Retrieving data */
+    /* Retrieving data */
     (*data) = T(queue_.front());
-    /*!< Removing the element from the queue */
+    /* Removing the element from the queue */
     queue_.pop();
     queueSize_--;
     return true;

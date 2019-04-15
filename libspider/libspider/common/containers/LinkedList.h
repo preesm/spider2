@@ -47,8 +47,8 @@ class LinkedList {
 public:
     typedef struct Node {
         T val_;
-        Node *prev_;
-        Node *next_;
+        Node *prev_ = nullptr;
+        Node *next_ = nullptr;
     } Node;
 
     LinkedList(SpiderStack stackId, std::int32_t sizeMax);
@@ -234,7 +234,7 @@ inline void LinkedList<T>::addLast(T e) {
     if (size_ >= sizeMax_) {
         throwSpiderException("Can not add element, list is full.");
     }
-    auto *newNode = CREATE_NA(stackId_, Node);
+    auto *newNode = Allocator::allocate(sizeof(Node), stackId_);
     if (!head_) {
         head_ = newNode;
         tail_ = newNode;
@@ -286,7 +286,7 @@ inline T &LinkedList<T>::del(LinkedList::Node *n) {
             }
         }
         auto &val = n->val_;
-        StackMonitor::free(stackId_, n);
+        Allocator::deallocate(n);
         return val;
     } else {
         throwSpiderException("Trying to remove nullptr node.");

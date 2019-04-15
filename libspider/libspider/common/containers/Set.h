@@ -41,33 +41,30 @@
 
 #include <common/SpiderException.h>
 #include <common/memory/StackAllocator.h>
-#include <type_traits>
+
+class SetElement {
+public:
+    SetElement() = default;
+
+    ~SetElement() = default;
+
+    inline void setSetIx(std::int32_t ix) {
+        setIx_ = ix;
+    }
+
+    inline std::int32_t getSetIx() const {
+        return setIx_;
+    }
+
+private:
+    std::int32_t setIx_ = -1;
+};
 
 template<typename TYPE>
 class Set {
 public:
-    class SetElement {
-    public:
-        SetElement() = default;
-
-        ~SetElement() = default;
-
-        inline void setSetIx(std::int32_t ix) {
-            setIx_ = ix;
-        }
-
-        inline std::int32_t getSetIx() const {
-            return setIx_;
-        }
-
-    private:
-        std::int32_t setIx_ = -1;
-    };
 
     Set(std::int32_t sizeMax, SpiderStack stackId) : sizeMax_{sizeMax}, stackId_{stackId} {
-        if (!is_derived_from_base_t<TYPE>{}) {
-            throwSpiderException("Type should inherit SetElement to use Set.");
-        }
         elements_ = Allocator::allocate<TYPE>(sizeMax, stackId);
     }
 
@@ -98,13 +95,6 @@ private:
     std::int32_t size_ = 0;
     std::int32_t sizeMax_;
     SpiderStack stackId_;
-
-    static std::true_type is_derived_from_base_t_impl(const SetElement *impl);
-
-    static std::false_type is_derived_from_base_t_impl(...);
-
-    template<class Derived>
-    using is_derived_from_base_t = decltype(is_derived_from_base_t_impl(std::declval<Derived *>()));
 };
 
 template<typename TYPE>
