@@ -37,7 +37,7 @@
 #define SPIDER2_MEMORY_TEST_LINEAR_ALLOCATOR_H
 
 #include <gtest/gtest.h>
-#include "common/memory/LinearStaticAllocator.h"
+#include <common/memory/static-allocators/LinearStaticAllocator.h>
 
 #define ALLOCATOR_NAME "my-allocator"
 

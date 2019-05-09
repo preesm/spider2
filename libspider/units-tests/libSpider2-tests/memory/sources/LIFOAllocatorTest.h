@@ -41,7 +41,7 @@
 #define SPIDER2_MEMORY_TEST_LIFO_ALLOCATOR_H
 
 #include <gtest/gtest.h>
-#include "common/memory/LIFOStaticAllocator.h"
+#include <common/memory/static-allocators/LIFOStaticAllocator.h>
 
 #define ALLOCATOR_NAME "my-allocator"
 
