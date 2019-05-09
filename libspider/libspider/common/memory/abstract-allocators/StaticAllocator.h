@@ -56,7 +56,7 @@ protected:
 
     inline StaticAllocator(const char *name, std::uint64_t totalSize, std::int32_t alignment = 0);
 
-    virtual inline ~StaticAllocator();
+    inline ~StaticAllocator() override;
 
     inline void checkPointerAddress(void *ptr) const;
 };
@@ -65,6 +65,9 @@ StaticAllocator::StaticAllocator(const char *name, std::uint64_t totalSize, std:
         AbstractAllocator(name, alignment),
         totalSize_{totalSize},
         startPtr_{nullptr} {
+    if (!totalSize) {
+        throwSpiderException("Allocator size should be >= 0.\n");
+    }
     startPtr_ = (char *) std::malloc(totalSize_);
 }
 

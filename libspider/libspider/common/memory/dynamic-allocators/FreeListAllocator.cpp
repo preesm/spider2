@@ -45,7 +45,7 @@ FreeListAllocator::FreeListAllocator(const char *name,
                                      std::uint64_t staticBufferSize,
                                      FreeListPolicy policy,
                                      std::int32_t alignment) :
-        DynamicAllocator(name, alignment), staticBufferSize_{staticBufferSize} {
+        DynamicAllocator(name, alignment), staticBufferSize_{std::max(staticBufferSize, sizeof(Node))} {
     if (alignment < 8) {
         throwSpiderException("Memory alignment should be at least of size sizeof(std::int64_t) = 8 bytes.");
     }

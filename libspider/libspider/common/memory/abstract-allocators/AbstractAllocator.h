@@ -43,14 +43,19 @@
 #include <cstdlib>
 #include <cstdint>
 #include <cinttypes>
-#include "common/Logger.h"
-#include "common/SpiderException.h"
+#include <common/Logger.h>
+#include <common/SpiderException.h>
+
+typedef enum FreeListPolicy {
+    FIND_FIRST = 0,
+    FIND_BEST = 1
+} FreeListPolicy;
 
 class AbstractAllocator {
 public:
     explicit inline AbstractAllocator(const char *name, std::int32_t alignment = 0);
 
-    ~AbstractAllocator() = default;
+    virtual ~AbstractAllocator() = default;
 
     /**
      * @brief Allocate a memory buffer.

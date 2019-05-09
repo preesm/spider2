@@ -45,10 +45,6 @@
 
 class FreeListStaticAllocator : public StaticAllocator {
 public:
-    typedef enum FreeListPolicy {
-        FIND_FIRST = 0,
-        FIND_BEST = 1
-    } FreeListPolicy;
 
     explicit FreeListStaticAllocator(const char *name,
                                      std::uint64_t totalSize,

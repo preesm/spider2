@@ -41,6 +41,7 @@
 #define SPIDER_STACKALLOCATOR_H
 
 #include <cstdint>
+#include <common/memory/abstract-allocators/AbstractAllocator.h>
 
 /**
  * @brief Stack ids
@@ -48,12 +49,12 @@
 enum class SpiderStack : std::uint64_t {
     PISDF_STACK,     /*!< Stack used for PISDF graph (should be static) */
     ARCHI_STACK,     /*!< Stack used for architecture (should be static) */
-    PLATFORM_STACK,  /*!< Stack used by the platform (should be static) */
-    TRANSFO_STACK,   /*!< Stack used for graph transformations */
+//    PLATFORM_STACK,  /*!< Stack used by the platform (should be static) */
+            TRANSFO_STACK,   /*!< Stack used for graph transformations */
     SCHEDULE_STACK,  /*!< Stack used for scheduling */
     SRDAG_STACK,     /*!< Stack used for SRDAG graph */
-    LRT_STACK,        /*!< Stack used by LRTs */
-    NEW_STACK,        /*!< Stack used by calls to new / delete */
+    LRT_STACK,       /*!< Stack used by LRTs */
+    NEW_STACK,       /*!< Stack used by calls to new / delete */
 };
 
 /**
@@ -69,14 +70,19 @@ enum class SpiderAllocatorType {
 
 typedef struct SpiderStackConfig {
     const char *name;
-    SpiderAllocatorType allocatorType = SpiderAllocatorType::GENERIC;
+    SpiderAllocatorType allocatorType = SpiderAllocatorType::FREELIST;
     std::uint64_t size = 0;
-    std::uint64_t alignment = 0;
+    std::uint64_t alignment = sizeof(std::uint64_t);
+    FreeListPolicy policy = FreeListPolicy::FIND_FIRST;
 } SpiderStackConfig;
 
 
 namespace Allocator {
+    AbstractAllocator *&getAllocator(SpiderStack stack);
+
     void init(SpiderStack stack, SpiderStackConfig cfg);
+
+    void finalize();
 
     /**
      * @brief  Construct a previously allocated object
@@ -87,7 +93,11 @@ namespace Allocator {
      * @param args   Arguments use for by the constructor of the object
      */
     template<typename T, class... Args>
-    void construct(T *ptr, Args &&... args);
+    inline void construct(T *ptr, Args &&... args) {
+        if (ptr) {
+            new((void *) ptr) T(std::forward<Args>(args)...);
+        }
+    }
 
     /**
      * @brief Destroy an object
@@ -96,7 +106,11 @@ namespace Allocator {
      * @param ptr Reference pointer to the object to destroy
      */
     template<typename T>
-    void destroy(T *ptr);
+    inline void destroy(T *ptr) {
+        if (ptr) {
+            ptr->~T();
+        }
+    }
 
     /**
      * @brief Allocate raw memory buffer on given stack.
@@ -106,7 +120,19 @@ namespace Allocator {
      * @return pointer to allocated buffer, nullptr if size is 0.
      */
     template<typename T>
-    T *allocate(SpiderStack stack, std::uint64_t size = 1);
+    inline T *allocate(SpiderStack stack, std::uint64_t size = 1) {
+        /* 0. Allocate buffer with (size + 1) to store stack identifier */
+        size = size * sizeof(T);
+        char *buffer = nullptr;
+        auto *&allocator = getAllocator(stack);
+        buffer = (char *) allocator->alloc(size + sizeof(std::uint64_t));
+        /* 1. Return allocated buffer */
+        if (buffer) {
+            ((std::uint64_t *) (buffer))[0] = static_cast<std::uint64_t>(stack);
+            buffer = buffer + sizeof(std::uint64_t);
+        }
+        return (T *) buffer;
+    }
 
     /**
      * @brief Deallocate raw memory pointer

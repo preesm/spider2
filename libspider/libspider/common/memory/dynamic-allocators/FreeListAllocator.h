@@ -48,11 +48,6 @@
 
 class FreeListAllocator : public DynamicAllocator {
 public:
-    typedef enum FreeListPolicy {
-        FIND_FIRST = 0,
-        FIND_BEST = 1
-    } FreeListPolicy;
-
     typedef struct Node {
         std::uint64_t blockSize_;
         Node *next_;

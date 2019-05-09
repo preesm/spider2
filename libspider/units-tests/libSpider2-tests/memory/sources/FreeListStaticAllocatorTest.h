@@ -108,7 +108,7 @@ TEST(FreeListStaticAllocatorTest, FreeOutOfScope) {
 }
 
 TEST(FreeListStaticAllocatorTest, MemoryAllocFindBest) {
-    auto *allocator = new FreeListStaticAllocator(ALLOCATOR_NAME, MAX_SIZE, FreeListStaticAllocator::FIND_BEST);
+    auto *allocator = new FreeListStaticAllocator(ALLOCATOR_NAME, MAX_SIZE, FreeListPolicy::FIND_BEST);
     auto *array = (double *) allocator->alloc(2 * sizeof(double));
     ASSERT_NE(array, nullptr);
     array[0] = 1;
@@ -127,7 +127,7 @@ TEST(FreeListStaticAllocatorTest, MemoryAllocFindBest) {
 }
 
 TEST(FreeListStaticAllocatorTest, MemoryAllocAlignmentFindBest) {
-    auto *allocator = new FreeListStaticAllocator(ALLOCATOR_NAME, MAX_SIZE, FreeListStaticAllocator::FIND_BEST);
+    auto *allocator = new FreeListStaticAllocator(ALLOCATOR_NAME, MAX_SIZE, FreeListPolicy::FIND_BEST);
     auto *charArray = (char *) allocator->alloc(17 * sizeof(char));
     ASSERT_NE(charArray, nullptr);
     auto *dblArray = (double *) allocator->alloc(2 * sizeof(double));
@@ -155,7 +155,7 @@ TEST(FreeListStaticAllocatorTest, Free) {
 }
 
 TEST(FreeListStaticAllocatorTest, MinAlignmentSize) {
-    EXPECT_THROW(FreeListStaticAllocator(ALLOCATOR_NAME, MAX_SIZE, FreeListStaticAllocator::FIND_FIRST, 0),
+    EXPECT_THROW(FreeListStaticAllocator(ALLOCATOR_NAME, MAX_SIZE, FreeListPolicy::FIND_FIRST, 0),
                  SpiderException);
 }
 
