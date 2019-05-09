@@ -38,6 +38,7 @@
 #define RATIONAL_H_
 
 #include <cstdint>
+#include <common/SpiderException.h>
 
 class Rational {
 private:

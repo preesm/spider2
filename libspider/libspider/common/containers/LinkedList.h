@@ -39,7 +39,7 @@
 #ifndef SPIDER_LINKEDLIST_H
 #define SPIDER_LINKEDLIST_H
 
-#include <common/memory/StackAllocator.h>
+#include <common/memory/Allocator.h>
 #include <common/SpiderException.h>
 
 template<class T>
@@ -215,7 +215,7 @@ inline void LinkedList<T>::add(T e) {
     if (size_ >= sizeMax_) {
         throwSpiderException("Can not add element, list is full.");
     }
-    auto *newNode = Allocator::allocate(sizeof(Node), stackId_);
+    auto *newNode = Allocator::allocate<Node>(stackId_);
     if (!head_) {
         head_ = newNode;
         tail_ = newNode;
@@ -234,7 +234,7 @@ inline void LinkedList<T>::addLast(T e) {
     if (size_ >= sizeMax_) {
         throwSpiderException("Can not add element, list is full.");
     }
-    auto *newNode = Allocator::allocate(sizeof(Node), stackId_);
+    auto *newNode = Allocator::allocate<Node>(stackId_);
     if (!head_) {
         head_ = newNode;
         tail_ = newNode;

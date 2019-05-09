@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright or © or Copr. IETR/INSA - Rennes (2013 - 2018) :
  *
  * Antoine Morvan <antoine.morvan@insa-rennes.fr> (2018)
@@ -37,58 +37,58 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_FREELISTSTATICALLOCATOR_H
-#define SPIDER2_FREELISTSTATICALLOCATOR_H
+#include <algorithm>
+#include <common/memory/dynamic-allocators/GenericAllocator.h>
 
-#include "abstract/StaticAllocator.h"
+GenericAllocator::GenericAllocator(const char *name, int32_t alignment) : DynamicAllocator(name, alignment) {
+    if (alignment < 0) {
+        throwSpiderException("Memory alignment should be positive integer.");
+    }
+}
+
+GenericAllocator::~GenericAllocator() {
+    if (used_ > 0) {
+        Logger::print(LOG_GENERAL, LOG_WARNING, "Allocator: %s -- Still has %lf %s in use.\n",
+                      getName(),
+                      AbstractAllocator::getByteNormalizedSize(used_),
+                      AbstractAllocator::getByteUnitString(used_));
+    }
+}
+
+void *GenericAllocator::alloc(std::uint64_t size) {
+    if (!size) {
+        return nullptr;
+    }
+    std::uint64_t requiredSize = size + sizeof(std::uint64_t);
+    auto alignedSize = AbstractAllocator::computeAlignedSize(requiredSize, alignment_);
+
+    auto *headerAddress = (char *) std::malloc(alignedSize);
+    if (!headerAddress) {
+        throwSpiderException("Failed to allocate %lf %s",
+                             AbstractAllocator::getByteNormalizedSize(alignedSize),
+                             AbstractAllocator::getByteUnitString(alignedSize));
+    }
+    auto *header = (std::uint64_t *) (headerAddress);
+    (*header) = alignedSize;
+    used_ += alignedSize;
+    peak_ = std::max(peak_, used_);
+    return headerAddress + sizeof(std::uint64_t);
+}
+
+void GenericAllocator::dealloc(void *ptr) {
+    if (!ptr) {
+        return;
+    }
+    auto *headerAddress = ((char *) ptr) - sizeof(std::uint64_t);
+    auto *header = (std::uint64_t *) (headerAddress);
+    used_ -= (*header);
+    std::free(headerAddress);
+}
+
+void GenericAllocator::reset() {
+    averageUse_ += used_;
+    numberAverage_++;
+    used_ = 0;
+}
 
 
-class FreeListStaticAllocator : public StaticAllocator {
-public:
-    typedef enum FreeListPolicy {
-        FIND_FIRST = 0,
-        FIND_BEST = 1
-    } FreeListPolicy;
-
-    explicit FreeListStaticAllocator(const char *name,
-                                     std::uint64_t totalSize,
-                                     FreeListPolicy policy = FIND_FIRST,
-                                     std::int32_t alignment = sizeof(std::int64_t));
-
-    ~FreeListStaticAllocator() override = default;
-
-    void *alloc(std::uint64_t size) override;
-
-    void dealloc(void *ptr) override;
-
-    void reset() override;
-
-    typedef struct Node {
-        std::uint64_t blockSize_;
-        Node *next_;
-    } Node;
-
-private:
-    typedef struct Header {
-        std::uint64_t size_;
-        std::uint64_t padding_;
-    } Header;
-
-    Node *list_;
-
-    void insert(Node *baseNode, Node *newNode);
-
-    void remove(Node *baseNode, Node *removedNode);
-
-    using policyMethod = void (*)(std::uint64_t &, std::int32_t &, std::int32_t &, Node *&, Node *&);
-
-    policyMethod method_;
-
-    static void
-    findFirst(std::uint64_t &size, std::int32_t &padding, std::int32_t &alignment, Node *&baseNode, Node *&foundNode);
-
-    static void
-    findBest(std::uint64_t &size, std::int32_t &padding, std::int32_t &alignment, Node *&baseNode, Node *&foundNode);
-};
-
-#endif //SPIDER2_FREELISTSTATICALLOCATOR_H

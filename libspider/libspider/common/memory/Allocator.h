@@ -117,8 +117,9 @@ namespace Allocator {
      * @return pointer to allocated buffer, nullptr if size is 0.
      */
     template<typename T>
-    T *allocate(std::uint64_t size, SpiderStack stack) {
+    T *allocate(SpiderStack stack, std::uint64_t size = 1) {
         /* 0. Allocate buffer with (size + 1) to store stack identifier */
+        size = size * sizeof(T);
         char *buffer = nullptr;
         switch (stack) {
             case SpiderStack::PISDF_STACK:

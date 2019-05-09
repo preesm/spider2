@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright or © or Copr. IETR/INSA - Rennes (2013 - 2018) :
  *
  * Antoine Morvan <antoine.morvan@insa-rennes.fr> (2018)
@@ -37,73 +37,49 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_FREELISTALLOCATOR_H
-#define SPIDER2_FREELISTALLOCATOR_H
+#ifndef SPIDER2_STATICALLOCATOR_H
+#define SPIDER2_STATICALLOCATOR_H
 
-#include <vector>
-#include "abstract/DynamicAllocator.h"
+#include "AbstractAllocator.h"
 
-
-#define MIN_CHUNK 4096
-
-class FreeListAllocator : public DynamicAllocator {
+class StaticAllocator : public AbstractAllocator {
 public:
-    typedef enum FreeListPolicy {
-        FIND_FIRST = 0,
-        FIND_BEST = 1
-    } FreeListPolicy;
+    void *alloc(std::uint64_t size) override = 0;
 
-    typedef struct Node {
-        std::uint64_t blockSize_;
-        Node *next_;
-    } Node;
+    void dealloc(void *ptr) override = 0;
 
-    explicit FreeListAllocator(const char *name,
-                               std::uint64_t staticBufferSize,
-                               FreeListPolicy policy = FIND_FIRST,
-                               std::int32_t alignment = sizeof(std::int64_t));
+    virtual void reset() = 0;
 
-    ~FreeListAllocator() override;
+protected:
+    std::uint64_t totalSize_;
+    char *startPtr_;
 
-    void *alloc(std::uint64_t size) override;
+    inline StaticAllocator(const char *name, std::uint64_t totalSize, std::int32_t alignment = 0);
 
-    void dealloc(void *ptr) override;
+    virtual inline ~StaticAllocator();
 
-    void reset() override;
-
-private:
-    typedef struct Header {
-        std::uint64_t size_;
-        std::uint64_t padding_;
-    } Header;
-
-    typedef struct Buffer {
-        std::uint64_t size_;
-        char *bufferPtr_;
-    } Buffer;
-
-    Node *list_;
-
-    char *staticBufferPtr_;
-    std::vector<Buffer> extraBuffers_;
-    std::uint64_t staticBufferSize_;
-
-
-    void insert(Node *baseNode, Node *newNode);
-
-    void remove(Node *baseNode, Node *removedNode);
-
-    using policyMethod = void (*)(std::uint64_t &, std::int32_t &, std::int32_t &, Node *&, Node *&);
-
-    policyMethod method_;
-
-    static void
-    findFirst(std::uint64_t &size, std::int32_t &padding, std::int32_t &alignment, Node *&baseNode, Node *&foundNode);
-
-    static void
-    findBest(std::uint64_t &size, std::int32_t &padding, std::int32_t &alignment, Node *&baseNode, Node *&foundNode);
-
-    void checkPointerAddress(void *ptr);
+    inline void checkPointerAddress(void *ptr) const;
 };
 
-#endif //SPIDER2_FREELISTALLOCATOR_H
+StaticAllocator::StaticAllocator(const char *name, std::uint64_t totalSize, std::int32_t alignment) :
+        AbstractAllocator(name, alignment),
+        totalSize_{totalSize},
+        startPtr_{nullptr} {
+    startPtr_ = (char *) std::malloc(totalSize_);
+}
+
+StaticAllocator::~StaticAllocator() {
+    std::free(startPtr_);
+}
+
+void StaticAllocator::checkPointerAddress(void *ptr) const {
+    if ((char *) (ptr) < startPtr_) {
+        throwSpiderException("Trying to dealloc unallocated memory block.");
+    }
+
+    if ((char *) (ptr) > startPtr_ + totalSize_) {
+        throwSpiderException("Trying to dealloc memory block out of memory space.");
+    }
+}
+
+#endif //SPIDER2_STATICALLOCATOR_H

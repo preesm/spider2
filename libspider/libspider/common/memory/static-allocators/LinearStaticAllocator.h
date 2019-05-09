@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright or © or Copr. IETR/INSA - Rennes (2013 - 2018) :
  *
  * Antoine Morvan <antoine.morvan@insa-rennes.fr> (2018)
@@ -37,48 +37,25 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#include "LIFOStaticAllocator.h"
+#ifndef SPIDER2_LINEARSTATICALLOCATOR_H
+#define SPIDER2_LINEARSTATICALLOCATOR_H
 
-LIFOStaticAllocator::LIFOStaticAllocator(const char *name, std::uint64_t totalSize) :
-        StaticAllocator(name, totalSize, sizeof(std::uint64_t)) {
+#include <common/memory/abstract-allocators/StaticAllocator.h>
 
-}
+class LinearStaticAllocator : public StaticAllocator {
+public:
 
-void *LIFOStaticAllocator::alloc(std::uint64_t size) {
-    if (!size) {
-        return nullptr;
-    }
-    used_ += size;
-    /*! We assume alignment on 64 bits */
-    std::uint64_t alignedSize = SpiderAllocator::computeAlignedSize(used_, alignment_);
-    if (alignedSize > totalSize_) {
-        throwSpiderException("Memory request exceed memory available. Stack: %s -- Size: %"
-                                     PRIu64
-                                     " -- Requested: %"
-                                     PRIu64
-                                     "", getName(), totalSize_, alignedSize);
-    }
-    char *alignedAllocatedAddress = startPtr_ + used_ - size;
-    used_ = alignedSize;
-    peak_ = std::max(peak_, used_);
-    return alignedAllocatedAddress;
-}
+    explicit LinearStaticAllocator(const char *name, std::uint64_t totalSize,
+                                   std::int32_t alignment = sizeof(std::int64_t));
 
-void LIFOStaticAllocator::dealloc(void *ptr) {
-    if (!ptr) {
-        return;
-    }
-    StaticAllocator::checkPointerAddress(ptr);
-    char *currentAddress = static_cast<char *>(ptr);
-    if (currentAddress > (used_ + startPtr_)) {
-        throwSpiderException("Allocator: %s -- LIFO allocator should dealloc element in reverse order of allocation.",
-                             getName());
-    }
-    used_ = currentAddress - startPtr_;
-}
+    ~LinearStaticAllocator() override = default;
 
-void LIFOStaticAllocator::reset() {
-    averageUse_ += used_;
-    numberAverage_++;
-    used_ = 0;
-}
+    void *alloc(std::uint64_t size) override;
+
+    void dealloc(void *ptr) override;
+
+    void reset() override;
+
+};
+
+#endif //SPIDER2_LINEARSTATICALLOCATOR_H

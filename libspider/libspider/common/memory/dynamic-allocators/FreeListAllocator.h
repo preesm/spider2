@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright or © or Copr. IETR/INSA - Rennes (2013 - 2018) :
  *
  * Antoine Morvan <antoine.morvan@insa-rennes.fr> (2018)
@@ -37,28 +37,72 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_DYNAMICALLOCATOR_H
-#define SPIDER2_DYNAMICALLOCATOR_H
+#ifndef SPIDER2_FREELISTALLOCATOR_H
+#define SPIDER2_FREELISTALLOCATOR_H
 
-#include "SpiderAllocator.h"
+#include <vector>
+#include <common/memory/abstract-allocators/DynamicAllocator.h>
 
-class DynamicAllocator : public SpiderAllocator {
+
+#define MIN_CHUNK 4096
+
+class FreeListAllocator : public DynamicAllocator {
 public:
-    void *alloc(std::uint64_t size) override = 0;
+    typedef enum FreeListPolicy {
+        FIND_FIRST = 0,
+        FIND_BEST = 1
+    } FreeListPolicy;
 
-    void dealloc(void *ptr) override = 0;
+    typedef struct Node {
+        std::uint64_t blockSize_;
+        Node *next_;
+    } Node;
 
-    virtual void reset() = 0;
+    explicit FreeListAllocator(const char *name,
+                               std::uint64_t staticBufferSize,
+                               FreeListPolicy policy = FIND_FIRST,
+                               std::int32_t alignment = sizeof(std::int64_t));
 
-protected:
+    ~FreeListAllocator() override;
 
-    inline explicit DynamicAllocator(const char *name, std::int32_t alignment = 0);
+    void *alloc(std::uint64_t size) override;
 
-    virtual inline ~DynamicAllocator() = default;
+    void dealloc(void *ptr) override;
+
+    void reset() override;
+
+private:
+    typedef struct Header {
+        std::uint64_t size_;
+        std::uint64_t padding_;
+    } Header;
+
+    typedef struct Buffer {
+        std::uint64_t size_;
+        char *bufferPtr_;
+    } Buffer;
+
+    Node *list_;
+
+    char *staticBufferPtr_;
+    std::vector<Buffer> extraBuffers_;
+    std::uint64_t staticBufferSize_;
+
+    void insert(Node *baseNode, Node *newNode);
+
+    void remove(Node *baseNode, Node *removedNode);
+
+    using policyMethod = void (*)(std::uint64_t &, std::int32_t &, std::int32_t &, Node *&, Node *&);
+
+    policyMethod method_;
+
+    static void
+    findFirst(std::uint64_t &size, std::int32_t &padding, std::int32_t &alignment, Node *&baseNode, Node *&foundNode);
+
+    static void
+    findBest(std::uint64_t &size, std::int32_t &padding, std::int32_t &alignment, Node *&baseNode, Node *&foundNode);
+
+    void checkPointerAddress(void *ptr);
 };
 
-DynamicAllocator::DynamicAllocator(const char *name, int32_t alignment) : SpiderAllocator(name, alignment) {
-
-}
-
-#endif //SPIDER2_DYNAMICALLOCATOR_H
+#endif //SPIDER2_FREELISTALLOCATOR_H

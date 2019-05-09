@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright or © or Copr. IETR/INSA - Rennes (2013 - 2018) :
  *
  * Antoine Morvan <antoine.morvan@insa-rennes.fr> (2018)
@@ -37,7 +37,8 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#include "FreeListStaticAllocator.h"
+
+#include <common/memory/static-allocators/FreeListStaticAllocator.h>
 
 FreeListStaticAllocator::FreeListStaticAllocator(const char *name,
                                                  std::uint64_t totalSize,
@@ -181,7 +182,7 @@ FreeListStaticAllocator::findFirst(std::uint64_t &size, std::int32_t &padding, s
     baseNode = nullptr;
     while (it) {
         auto currentSize = (std::uint64_t) it;
-        padding = SpiderAllocator::computePadding(currentSize, alignment);
+        padding = AbstractAllocator::computePadding(currentSize, alignment);
         if (padding < headerSize) {
             /*!< Find next aligned address to fit header */
             headerSize -= padding;
@@ -211,7 +212,7 @@ FreeListStaticAllocator::findBest(std::uint64_t &size, std::int32_t &padding, st
     std::uint64_t minFit = UINT64_MAX;
     while (it) {
         auto currentSize = (std::uint64_t) it;
-        padding = SpiderAllocator::computePadding(currentSize, alignment);
+        padding = AbstractAllocator::computePadding(currentSize, alignment);
         if (padding < headerSize) {
             /*!< Find next aligned address to fit header */
             headerSize -= padding;

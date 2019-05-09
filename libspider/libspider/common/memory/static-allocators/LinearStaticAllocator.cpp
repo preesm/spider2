@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright or © or Copr. IETR/INSA - Rennes (2013 - 2018) :
  *
  * Antoine Morvan <antoine.morvan@insa-rennes.fr> (2018)
@@ -37,58 +37,45 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#include <algorithm>
-#include "GenericAllocator.h"
+#include <common/memory/static-allocators/LinearStaticAllocator.h>
 
-GenericAllocator::GenericAllocator(const char *name, int32_t alignment) : DynamicAllocator(name, alignment) {
-    if (alignment < 0) {
-        throwSpiderException("Memory alignment should be positive integer.");
+LinearStaticAllocator::LinearStaticAllocator(const char *name, std::uint64_t totalSize, std::int32_t alignment) :
+        StaticAllocator(name, totalSize, alignment) {
+    if (alignment < 8) {
+        throwSpiderException("Memory alignment should be at least of size sizeof(std::int64_t) = 8 bytes.");
     }
 }
 
-GenericAllocator::~GenericAllocator() {
-    if (used_ > 0) {
-        Logger::print(LOG_GENERAL, LOG_WARNING, "Allocator: %s -- Still has %lf %s in use.\n",
-                      getName(),
-                      SpiderAllocator::getByteNormalizedSize(used_),
-                      SpiderAllocator::getByteUnitString(used_));
-    }
-}
-
-void *GenericAllocator::alloc(std::uint64_t size) {
+void *LinearStaticAllocator::alloc(std::uint64_t size) {
     if (!size) {
         return nullptr;
     }
-    std::uint64_t requiredSize = size + sizeof(std::uint64_t);
-    auto alignedSize = SpiderAllocator::computeAlignedSize(requiredSize, alignment_);
-
-    auto *headerAddress = (char *) std::malloc(alignedSize);
-    if (!headerAddress) {
-        throwSpiderException("Failed to allocate %lf %s",
-                             SpiderAllocator::getByteNormalizedSize(alignedSize),
-                             SpiderAllocator::getByteUnitString(alignedSize));
+    std::int32_t padding = 0;
+    if (alignment_ && used_ % alignment_ != 0) {
+        /*!< Compute next aligned address padding */
+        padding = AbstractAllocator::computePadding(used_, alignment_);
     }
-    auto *header = (std::uint64_t *) (headerAddress);
-    (*header) = alignedSize;
-    used_ += alignedSize;
+
+    std::uint64_t requestedSize = used_ + padding + size;
+    if (requestedSize > totalSize_) {
+        throwSpiderException("Memory request exceed memory available. Stack: %s -- Size: %"
+                                     PRIu64
+                                     " -- Requested: %"
+                                     PRIu64, getName(), totalSize_, requestedSize);
+    }
+    char *alignedAllocatedAddress = startPtr_ + used_ + padding;
+    used_ += (size + padding);
     peak_ = std::max(peak_, used_);
-    return headerAddress + sizeof(std::uint64_t);
+    return alignedAllocatedAddress;
 }
 
-void GenericAllocator::dealloc(void *ptr) {
-    if (!ptr) {
-        return;
-    }
-    auto *headerAddress = ((char *) ptr) - sizeof(std::uint64_t);
-    auto *header = (std::uint64_t *) (headerAddress);
-    used_ -= (*header);
-    std::free(headerAddress);
+void LinearStaticAllocator::dealloc(void *ptr) {
+    StaticAllocator::checkPointerAddress(ptr);
+    /*!< LinearStaticAllocator does not free memory per block */
 }
 
-void GenericAllocator::reset() {
+void LinearStaticAllocator::reset() {
     averageUse_ += used_;
     numberAverage_++;
     used_ = 0;
 }
-
-

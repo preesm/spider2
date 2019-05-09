@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright or © or Copr. IETR/INSA - Rennes (2013 - 2018) :
  *
  * Antoine Morvan <antoine.morvan@insa-rennes.fr> (2018)
@@ -37,45 +37,28 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#include "LinearStaticAllocator.h"
+#ifndef SPIDER2_DYNAMICALLOCATOR_H
+#define SPIDER2_DYNAMICALLOCATOR_H
 
-LinearStaticAllocator::LinearStaticAllocator(const char *name, std::uint64_t totalSize, std::int32_t alignment) :
-        StaticAllocator(name, totalSize, alignment) {
-    if (alignment < 8) {
-        throwSpiderException("Memory alignment should be at least of size sizeof(std::int64_t) = 8 bytes.");
-    }
+#include "AbstractAllocator.h"
+
+class DynamicAllocator : public AbstractAllocator {
+public:
+    void *alloc(std::uint64_t size) override = 0;
+
+    void dealloc(void *ptr) override = 0;
+
+    virtual void reset() = 0;
+
+protected:
+
+    inline explicit DynamicAllocator(const char *name, std::int32_t alignment = 0);
+
+    virtual inline ~DynamicAllocator() = default;
+};
+
+DynamicAllocator::DynamicAllocator(const char *name, int32_t alignment) : AbstractAllocator(name, alignment) {
+
 }
 
-void *LinearStaticAllocator::alloc(std::uint64_t size) {
-    if (!size) {
-        return nullptr;
-    }
-    std::int32_t padding = 0;
-    if (alignment_ && used_ % alignment_ != 0) {
-        /*!< Compute next aligned address padding */
-        padding = SpiderAllocator::computePadding(used_, alignment_);
-    }
-
-    std::uint64_t requestedSize = used_ + padding + size;
-    if (requestedSize > totalSize_) {
-        throwSpiderException("Memory request exceed memory available. Stack: %s -- Size: %"
-                                     PRIu64
-                                     " -- Requested: %"
-                                     PRIu64, getName(), totalSize_, requestedSize);
-    }
-    char *alignedAllocatedAddress = startPtr_ + used_ + padding;
-    used_ += (size + padding);
-    peak_ = std::max(peak_, used_);
-    return alignedAllocatedAddress;
-}
-
-void LinearStaticAllocator::dealloc(void *ptr) {
-    StaticAllocator::checkPointerAddress(ptr);
-    /*!< LinearStaticAllocator does not free memory per block */
-}
-
-void LinearStaticAllocator::reset() {
-    averageUse_ += used_;
-    numberAverage_++;
-    used_ = 0;
-}
+#endif //SPIDER2_DYNAMICALLOCATOR_H

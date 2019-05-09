@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright or © or Copr. IETR/INSA - Rennes (2013 - 2018) :
  *
  * Antoine Morvan <antoine.morvan@insa-rennes.fr> (2018)
@@ -37,49 +37,23 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_STATICALLOCATOR_H
-#define SPIDER2_STATICALLOCATOR_H
+#ifndef SPIDER2_LIFOSTATICALLOCATOR_H
+#define SPIDER2_LIFOSTATICALLOCATOR_H
 
-#include "SpiderAllocator.h"
+#include <common/memory/abstract-allocators/StaticAllocator.h>
 
-class StaticAllocator : public SpiderAllocator {
+class LIFOStaticAllocator : public StaticAllocator {
 public:
-    void *alloc(std::uint64_t size) override = 0;
 
-    void dealloc(void *ptr) override = 0;
+    explicit LIFOStaticAllocator(const char *name, std::uint64_t totalSize);
 
-    virtual void reset() = 0;
+    ~LIFOStaticAllocator() override = default;
 
-protected:
-    std::uint64_t totalSize_;
-    char *startPtr_;
+    void *alloc(std::uint64_t size) override;
 
-    inline StaticAllocator(const char *name, std::uint64_t totalSize, std::int32_t alignment = 0);
+    void dealloc(void *ptr) override;
 
-    virtual inline ~StaticAllocator();
-
-    inline void checkPointerAddress(void *ptr) const;
+    void reset() override;
 };
 
-StaticAllocator::StaticAllocator(const char *name, std::uint64_t totalSize, std::int32_t alignment) :
-        SpiderAllocator(name, alignment),
-        totalSize_{totalSize},
-        startPtr_{nullptr} {
-    startPtr_ = (char *) std::malloc(totalSize_);
-}
-
-StaticAllocator::~StaticAllocator() {
-    std::free(startPtr_);
-}
-
-void StaticAllocator::checkPointerAddress(void *ptr) const {
-    if ((char *) (ptr) < startPtr_) {
-        throwSpiderException("Trying to dealloc unallocated memory block.");
-    }
-
-    if ((char *) (ptr) > startPtr_ + totalSize_) {
-        throwSpiderException("Trying to dealloc memory block out of memory space.");
-    }
-}
-
-#endif //SPIDER2_STATICALLOCATOR_H
+#endif //SPIDER2_LIFOSTATICALLOCATOR_H

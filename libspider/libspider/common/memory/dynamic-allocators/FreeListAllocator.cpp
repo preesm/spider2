@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright or © or Copr. IETR/INSA - Rennes (2013 - 2018) :
  *
  * Antoine Morvan <antoine.morvan@insa-rennes.fr> (2018)
@@ -37,7 +37,8 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#include "FreeListAllocator.h"
+
+#include <common/memory/dynamic-allocators/FreeListAllocator.h>
 
 
 FreeListAllocator::FreeListAllocator(const char *name,
@@ -78,45 +79,45 @@ void *FreeListAllocator::alloc(std::uint64_t size) {
     std::int32_t padding = 0;
     Node *baseNode = list_;
     Node *memoryNode = nullptr;
-    /*!< Find first / best node fitting memory requirement */
+    /* == Find first / best node fitting memory requirement == */
     method_(size, padding, alignment_, baseNode, memoryNode);
     if (!memoryNode) {
-        /*!< We need to allocate new chunks of memory */
+        /* == We need to allocate new chunks of memory == */
         padding = sizeof(FreeListAllocator::Header);
         FreeListAllocator::Buffer newBuffer;
-        /*!< Allocate new buffer with size aligned to MIN_CHUNK */
-        newBuffer.size_ = SpiderAllocator::computeAlignedSize(size, MIN_CHUNK);
+        /* == Allocate new buffer with size aligned to MIN_CHUNK == */
+        newBuffer.size_ = AbstractAllocator::computeAlignedSize(size, MIN_CHUNK);
         newBuffer.bufferPtr_ = (char *) std::malloc(newBuffer.size_);
-        /*!< Initialize memoryNode */
+        /* == Initialize memoryNode == */
         memoryNode = (Node *) (newBuffer.bufferPtr_);
         memoryNode->blockSize_ = newBuffer.size_;
         memoryNode->next_ = nullptr;
-        /*!< Add the new node to the existing list of free node */
+        /* == Add the new node to the existing list of free node == */
         insert(baseNode, memoryNode);
-        /*!< Push buffer into vector to keep track of it */
+        /* == Push buffer into vector to keep track of it == */
         extraBuffers_.push_back(newBuffer);
     }
-    /*!< Compute padding and real required size */
+    /* == Compute padding and real required size == */
     std::int32_t paddingWithoutHeader = padding - sizeof(FreeListAllocator::Header);
     std::uint64_t requiredSize = size + padding;
     std::uint64_t leftOverMemory = memoryNode->blockSize_ - requiredSize;
     if (leftOverMemory) {
-        /*!< We split block to limit waste memory space */
+        /* == We split block to limit waste memory space == */
         Node *freeNode = (Node *) (((char *) memoryNode) + requiredSize);
         freeNode->blockSize_ = leftOverMemory;
         insert(memoryNode, freeNode);
     }
     remove(baseNode, memoryNode);
-    /*! Computing header and data address */
+    /*! Computing header and data address == */
     char *headerAddress = (char *) (memoryNode) + paddingWithoutHeader;
     char *dataAddress = (char *) (memoryNode) + padding;
 
-    /*!< Write header info */
+    /* == Write header info == */
     auto *header = (Header *) (headerAddress);
     header->size_ = requiredSize;
     header->padding_ = static_cast<uint64_t>(paddingWithoutHeader);
 
-    /*!< Updating usage stats */
+    /* == Updating usage stats == */
     used_ += requiredSize;
     peak_ = std::max(peak_, used_);
     return dataAddress;
@@ -129,10 +130,10 @@ void FreeListAllocator::dealloc(void *ptr) {
     char *currentAddress = static_cast<char *>(ptr);
     char *headerAddress = currentAddress - sizeof(FreeListAllocator::Header);
 
-    /*!< Read header info */
+    /* == Read header info == */
     auto *header = (Header *) (headerAddress);
     Node *freeNode = (Node *) (headerAddress - header->padding_);
-    /*!< Check address */
+    /* == Check address == */
     checkPointerAddress(freeNode);
     freeNode->blockSize_ = header->size_;
     freeNode->next_ = nullptr;
@@ -148,10 +149,10 @@ void FreeListAllocator::dealloc(void *ptr) {
         it = it->next_;
     }
 
-    /*!< Update internal usage */
+    /* == Update internal usage == */
     used_ -= freeNode->blockSize_;
 
-    /*!< Look for contiguous block to merge (coalescence) */
+    /* == Look for contiguous block to merge (coalescence) == */
     if (freeNode->next_ && ((char *) freeNode + freeNode->blockSize_) == ((char *) freeNode->next_)) {
         freeNode->blockSize_ += freeNode->next_->blockSize_;
         remove(freeNode, freeNode->next_);
@@ -182,12 +183,12 @@ void FreeListAllocator::reset() {
 
 void FreeListAllocator::insert(Node *baseNode, Node *newNode) {
     if (!baseNode) {
-        /*!< Insert node as first */
+        /* == Insert node as first == */
         newNode->next_ = list_ ? list_ : nullptr;
         list_ = newNode;
     } else {
-        /*!< Insert node as last if baseNode->next == nullptr */
-        /*!< Insert node in middle else */
+        /* == Insert node as last if baseNode->next == nullptr == */
+        /* == Insert node in middle else == */
         newNode->next_ = baseNode->next_;
         baseNode->next_ = newNode;
     }
@@ -195,10 +196,10 @@ void FreeListAllocator::insert(Node *baseNode, Node *newNode) {
 
 void FreeListAllocator::remove(Node *baseNode, Node *removedNode) {
     if (!baseNode) {
-        /*!< Remove the first node */
+        /* == Remove the first node == */
         list_ = removedNode->next_;
     } else {
-        /*!< Remove node in the list */
+        /* == Remove node in the list == */
         baseNode->next_ = removedNode->next_;
     }
 }
@@ -212,9 +213,9 @@ FreeListAllocator::findFirst(std::uint64_t &size, std::int32_t &padding, std::in
     baseNode = nullptr;
     while (it) {
         auto currentSize = (std::uint64_t) it;
-        padding = SpiderAllocator::computePadding(currentSize, alignment);
+        padding = AbstractAllocator::computePadding(currentSize, alignment);
         if (padding < headerSize) {
-            /*!< Find next aligned address to fit header */
+            /* == Find next aligned address to fit header == */
             headerSize -= padding;
             padding += alignment * (headerSize / alignment + (headerSize % alignment != 0));
         }
@@ -239,9 +240,9 @@ FreeListAllocator::findBest(std::uint64_t &size, std::int32_t &padding, std::int
     std::uint64_t minFit = UINT64_MAX;
     while (it) {
         auto currentSize = (std::uint64_t) it;
-        padding = SpiderAllocator::computePadding(currentSize, alignment);
+        padding = AbstractAllocator::computePadding(currentSize, alignment);
         if (padding < headerSize) {
-            /*!< Find next aligned address to fit header */
+            /* == Find next aligned address to fit header == */
             headerSize -= padding;
             padding += alignment * (headerSize / alignment + (headerSize % alignment != 0));
         }
@@ -250,7 +251,7 @@ FreeListAllocator::findBest(std::uint64_t &size, std::int32_t &padding, std::int
             foundNode = it;
             minFit = it->blockSize_ - requiredSize;
             if (minFit == 0) {
-                /*!< We won't find better fit */
+                /* == We won't find better fit == */
                 return;
             }
         }

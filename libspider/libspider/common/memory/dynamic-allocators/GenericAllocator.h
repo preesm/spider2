@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright or © or Copr. IETR/INSA - Rennes (2013 - 2018) :
  *
  * Antoine Morvan <antoine.morvan@insa-rennes.fr> (2018)
@@ -37,17 +37,16 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_LIFOSTATICALLOCATOR_H
-#define SPIDER2_LIFOSTATICALLOCATOR_H
+#ifndef SPIDER2_GENERICALLOCATOR_H
+#define SPIDER2_GENERICALLOCATOR_H
 
-#include "abstract/StaticAllocator.h"
+#include <common/memory/abstract-allocators/DynamicAllocator.h>
 
-class LIFOStaticAllocator : public StaticAllocator {
+class GenericAllocator : public DynamicAllocator {
 public:
+    explicit GenericAllocator(const char *name, std::int32_t alignment = sizeof(std::uint64_t));
 
-    explicit LIFOStaticAllocator(const char *name, std::uint64_t totalSize);
-
-    ~LIFOStaticAllocator() override = default;
+    ~GenericAllocator() override;
 
     void *alloc(std::uint64_t size) override;
 
@@ -56,4 +55,4 @@ public:
     void reset() override;
 };
 
-#endif //SPIDER2_LIFOSTATICALLOCATOR_H
+#endif //SPIDER2_GENERICALLOCATOR_H

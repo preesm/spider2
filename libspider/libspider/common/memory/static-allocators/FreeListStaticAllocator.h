@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright or © or Copr. IETR/INSA - Rennes (2013 - 2018) :
  *
  * Antoine Morvan <antoine.morvan@insa-rennes.fr> (2018)
@@ -37,18 +37,25 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_LINEARSTATICALLOCATOR_H
-#define SPIDER2_LINEARSTATICALLOCATOR_H
+#ifndef SPIDER2_FREELISTSTATICALLOCATOR_H
+#define SPIDER2_FREELISTSTATICALLOCATOR_H
 
-#include "abstract/StaticAllocator.h"
+#include <common/memory/abstract-allocators/StaticAllocator.h>
 
-class LinearStaticAllocator : public StaticAllocator {
+
+class FreeListStaticAllocator : public StaticAllocator {
 public:
+    typedef enum FreeListPolicy {
+        FIND_FIRST = 0,
+        FIND_BEST = 1
+    } FreeListPolicy;
 
-    explicit LinearStaticAllocator(const char *name, std::uint64_t totalSize,
-                                   std::int32_t alignment = sizeof(std::int64_t));
+    explicit FreeListStaticAllocator(const char *name,
+                                     std::uint64_t totalSize,
+                                     FreeListPolicy policy = FIND_FIRST,
+                                     std::int32_t alignment = sizeof(std::int64_t));
 
-    ~LinearStaticAllocator() override = default;
+    ~FreeListStaticAllocator() override = default;
 
     void *alloc(std::uint64_t size) override;
 
@@ -56,6 +63,32 @@ public:
 
     void reset() override;
 
+    typedef struct Node {
+        std::uint64_t blockSize_;
+        Node *next_;
+    } Node;
+
+private:
+    typedef struct Header {
+        std::uint64_t size_;
+        std::uint64_t padding_;
+    } Header;
+
+    Node *list_;
+
+    void insert(Node *baseNode, Node *newNode);
+
+    void remove(Node *baseNode, Node *removedNode);
+
+    using policyMethod = void (*)(std::uint64_t &, std::int32_t &, std::int32_t &, Node *&, Node *&);
+
+    policyMethod method_;
+
+    static void
+    findFirst(std::uint64_t &size, std::int32_t &padding, std::int32_t &alignment, Node *&baseNode, Node *&foundNode);
+
+    static void
+    findBest(std::uint64_t &size, std::int32_t &padding, std::int32_t &alignment, Node *&baseNode, Node *&foundNode);
 };
 
-#endif //SPIDER2_LINEARSTATICALLOCATOR_H
+#endif //SPIDER2_FREELISTSTATICALLOCATOR_H

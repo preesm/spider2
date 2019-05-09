@@ -40,6 +40,7 @@
 #define SPIDER_LIST_H
 
 #include <common/SpiderException.h>
+#include <common/memory/Allocator.h>
 
 template<class T>
 class List {

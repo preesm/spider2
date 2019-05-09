@@ -40,7 +40,7 @@
 #define SPIDER_SET_H
 
 #include <common/SpiderException.h>
-#include <common/memory/StackAllocator.h>
+#include <common/memory/Allocator.h>
 
 class SetElement {
 public:
@@ -65,7 +65,7 @@ class Set {
 public:
 
     Set(std::int32_t sizeMax, SpiderStack stackId) : sizeMax_{sizeMax}, stackId_{stackId} {
-        elements_ = Allocator::allocate<TYPE>(sizeMax, stackId);
+        elements_ = Allocator::allocate<TYPE>(stackId, sizeMax);
     }
 
     ~Set() {

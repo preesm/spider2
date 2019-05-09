@@ -35,16 +35,17 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#include <cstdarg>
 #include <mutex>
-#include "Logger.h"
+#include <cstdarg>
+#include <common/Logger.h>
+#include <common/memory/Allocator.h>
 
 #define LOG_RED "\x1B[31m"
 #define LOG_GRN "\x1B[32m"
 #define LOG_YEL "\x1B[33m"
-//#define BLU   "\x1B[34m"
-//#define MAG   "\x1B[35m"
-//#define CYN   "\x1B[36m"
+#define LOG_BLU "\x1B[34m"
+#define LOG_MAG "\x1B[35m"
+#define LOG_CYN "\x1B[36m"
 #define LOG_WHT "\x1B[37m"
 #define LOG_NRM "\x1B[0m"
 
