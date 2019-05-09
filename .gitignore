@@ -85,14 +85,18 @@ configure
 
 # Clion Project files #
 #######################
-*/.idea/*
-*/cmake-build-release/*
-*/cmake-build-debug/*
+.idea/
+cmake-build-release/
+cmake-build-debug/
 configure.scan
 depcomp
 install-sh
 missing
 stamp-h1
+
+# Build folder #
+################
+build/
 
 # Doxygen generated files #
 ###########################
