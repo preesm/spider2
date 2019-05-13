@@ -1,8 +1,12 @@
 /*
- * Copyright or © or Copr. IETR/INSA - Rennes (2018) :
+ * Copyright or © or Copr. IETR/INSA - Rennes (2013 - 2018) :
  *
  * Antoine Morvan <antoine.morvan@insa-rennes.fr> (2018)
+ * Clément Guy <clement.guy@insa-rennes.fr> (2014)
  * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2018)
+ * Hugo Miomandre <hugo.miomandre@insa-rennes.fr> (2017)
+ * Julien Heulot <julien.heulot@insa-rennes.fr> (2013 - 2015)
+ * Yaset Oliva <yaset.oliva@insa-rennes.fr> (2013 - 2014)
  *
  * Spider is a dataflow based runtime used to execute dynamic PiSDF
  * applications. The Preesm tool may be used to design PiSDF applications.
@@ -33,17 +37,31 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#include <gtest/gtest.h>
-#include "LinearAllocatorTest.h"
-#include "LIFOAllocatorTest.h"
-#include "FreeListStaticAllocatorTest.h"
-#include "FreeListAllocatorTest.h"
-#include "GenericAllocatorTest.h"
+
+
 #include "AllocatorTest.h"
 
+AllocatorTest::AllocatorTest() {
+    cfgA.allocatorType = AllocatorType::FREELIST;
+    cfgA.size = 512;
+
+    cfgB.allocatorType = AllocatorType::FREELIST_STATIC;
+    cfgB.size = 0;
 
 
-int main(int argc, char **argv) {
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
+    Allocator::init(StackID::PISDF_STACK, cfgA);
+    Allocator::init(StackID::PISDF_STACK, cfgA);
+    Allocator::init(StackID::SRDAG_STACK, cfgB);
+}
+
+AllocatorTest::~AllocatorTest() {
+
+}
+
+void AllocatorTest::SetUp() {
+
+}
+
+void AllocatorTest::TearDown() {
+
 }

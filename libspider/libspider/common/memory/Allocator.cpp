@@ -46,52 +46,29 @@
 #include <common/memory/dynamic-allocators/FreeListAllocator.h>
 #include <common/memory/dynamic-allocators/GenericAllocator.h>
 
-static AbstractAllocator *newAllocator = nullptr;
-static AbstractAllocator *lrtAllocator = nullptr;
-static AbstractAllocator *pisdfAllocator = nullptr;
-static AbstractAllocator *srdagAllocator = nullptr;
-static AbstractAllocator *archiAllocator = nullptr;
-static AbstractAllocator *schedAllocator = nullptr;
-static AbstractAllocator *transfoAllocator = nullptr;
+static AbstractAllocator *allocatorArray[NB_ALLOCATORS] = {nullptr};
 
-AbstractAllocator *&Allocator::getAllocator(SpiderStack stack) {
-    switch (stack) {
-        case SpiderStack::PISDF_STACK:
-            return pisdfAllocator;
-        case SpiderStack::ARCHI_STACK:
-            return archiAllocator;
-        case SpiderStack::TRANSFO_STACK:
-            return transfoAllocator;
-        case SpiderStack::LRT_STACK:
-            return lrtAllocator;
-        case SpiderStack::NEW_STACK:
-            return newAllocator;
-        case SpiderStack::SRDAG_STACK:
-            return srdagAllocator;
-        case SpiderStack::SCHEDULE_STACK:
-            return schedAllocator;
-        default:
-            throwSpiderException("Invalid stack id: %d", stack);
-    }
+AbstractAllocator *&Allocator::getAllocator(std::uint64_t stack) {
+    return allocatorArray[stack];
 }
 
-void Allocator::init(SpiderStack stack, SpiderStackConfig cfg) {
-    auto *&allocator = getAllocator(stack);
+void Allocator::init(StackID stack, AllocatorConfig cfg) {
+    auto *&allocator = getAllocator(static_cast<std::uint64_t>(stack));
     if (!allocator) {
         switch (cfg.allocatorType) {
-            case SpiderAllocatorType::FREELIST:
+            case AllocatorType::FREELIST:
                 allocator = new FreeListAllocator(cfg.name, cfg.size, cfg.policy, cfg.alignment);
                 break;
-            case SpiderAllocatorType::GENERIC:
+            case AllocatorType::GENERIC:
                 allocator = new GenericAllocator(cfg.name, cfg.alignment);
                 break;
-            case SpiderAllocatorType::FREELIST_STATIC:
+            case AllocatorType::FREELIST_STATIC:
                 allocator = new FreeListStaticAllocator(cfg.name, cfg.size, cfg.policy, cfg.alignment);
                 break;
-            case SpiderAllocatorType::LIFO_STATIC:
+            case AllocatorType::LIFO_STATIC:
                 allocator = new LIFOStaticAllocator(cfg.name, cfg.size);
                 break;
-            case SpiderAllocatorType::LINEAR_STATIC:
+            case AllocatorType::LINEAR_STATIC:
                 allocator = new LinearStaticAllocator(cfg.name, cfg.size, cfg.alignment);
                 break;
             default:
@@ -101,13 +78,9 @@ void Allocator::init(SpiderStack stack, SpiderStackConfig cfg) {
 }
 
 void Allocator::finalize() {
-    delete newAllocator;
-    delete lrtAllocator;
-    delete pisdfAllocator;
-    delete srdagAllocator;
-    delete archiAllocator;
-    delete schedAllocator;
-    delete transfoAllocator;
+    for (auto *&allocator : allocatorArray) {
+        delete allocator;
+    }
 }
 
 
@@ -115,9 +88,9 @@ void Allocator::deallocate(void *ptr) {
     if (ptr) {
         /* 0. Retrieve stack id */
         auto *originalPtr = ((char *) ptr - sizeof(std::uint64_t));
-        auto stackId = static_cast<SpiderStack>(((std::uint64_t *) (originalPtr))[0]);
+        auto stackId = static_cast<StackID>(((std::uint64_t *) (originalPtr))[0]);
         /* 1. Deallocate the pointer */
-        auto *&allocator = getAllocator(stackId);
+        auto *&allocator = getAllocator(static_cast<std::uint64_t>(stackId));
         allocator->dealloc(ptr);
     }
 }

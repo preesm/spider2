@@ -1,8 +1,12 @@
 /*
- * Copyright or © or Copr. IETR/INSA - Rennes (2018) :
+ * Copyright or © or Copr. IETR/INSA - Rennes (2013 - 2018) :
  *
  * Antoine Morvan <antoine.morvan@insa-rennes.fr> (2018)
+ * Clément Guy <clement.guy@insa-rennes.fr> (2014)
  * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2018)
+ * Hugo Miomandre <hugo.miomandre@insa-rennes.fr> (2017)
+ * Julien Heulot <julien.heulot@insa-rennes.fr> (2013 - 2015)
+ * Yaset Oliva <yaset.oliva@insa-rennes.fr> (2013 - 2014)
  *
  * Spider is a dataflow based runtime used to execute dynamic PiSDF
  * applications. The Preesm tool may be used to design PiSDF applications.
@@ -33,17 +37,27 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
+#ifndef MEMORY_ALLOCATORTEST_H
+#define MEMORY_ALLOCATORTEST_H
+
+
 #include <gtest/gtest.h>
-#include "LinearAllocatorTest.h"
-#include "LIFOAllocatorTest.h"
-#include "FreeListStaticAllocatorTest.h"
-#include "FreeListAllocatorTest.h"
-#include "GenericAllocatorTest.h"
-#include "AllocatorTest.h"
+#include <common/memory/Allocator.h>
 
 
+class AllocatorTest : public ::testing::Test {
+public:
+    explicit AllocatorTest();
 
-int main(int argc, char **argv) {
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}
+    ~AllocatorTest() override;
+
+    void SetUp() override;
+
+    void TearDown() override;
+
+protected:
+    AllocatorConfig cfgA;
+    AllocatorConfig cfgB;
+};
+
+#endif //MEMORY_ALLOCATORTEST_H

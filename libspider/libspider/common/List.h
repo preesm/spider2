@@ -45,7 +45,7 @@
 template<class T>
 class List {
 public:
-    List(SpiderStack stackId, int size);
+    List(StackID stackId, int size);
 
     ~List();
 
@@ -60,7 +60,7 @@ public:
     bool isPresent(T item);
 
 private:
-    SpiderStack stackId_;
+    StackID stackId_;
     T *array_;
     int nb;
     int nbMax;
@@ -71,7 +71,7 @@ private:
 };
 
 template<class T>
-inline List<T>::List(SpiderStack stackId, int size) {
+inline List<T>::List(StackID stackId, int size) {
     stackId_ = stackId;
     nb = 0;
     nbMax = size;

@@ -43,24 +43,25 @@
 #include <cstdint>
 #include <common/memory/abstract-allocators/AbstractAllocator.h>
 
+#define NB_ALLOCATORS 7
+
 /**
  * @brief Stack ids
  */
-enum class SpiderStack : std::uint64_t {
-    PISDF_STACK,     /*!< Stack used for PISDF graph (should be static) */
-    ARCHI_STACK,     /*!< Stack used for architecture (should be static) */
-//    PLATFORM_STACK,  /*!< Stack used by the platform (should be static) */
-            TRANSFO_STACK,   /*!< Stack used for graph transformations */
-    SCHEDULE_STACK,  /*!< Stack used for scheduling */
-    SRDAG_STACK,     /*!< Stack used for SRDAG graph */
-    LRT_STACK,       /*!< Stack used by LRTs */
-    NEW_STACK,       /*!< Stack used by calls to new / delete */
+enum class StackID : std::uint64_t {
+    PISDF_STACK = 0,     /*!< Stack used for PISDF graph (should be static) */
+    ARCHI_STACK = 1,     /*!< Stack used for architecture (should be static) */
+    TRANSFO_STACK = 2,   /*!< Stack used for graph transformations */
+    SCHEDULE_STACK = 3,  /*!< Stack used for scheduling */
+    SRDAG_STACK = 4,     /*!< Stack used for SRDAG graph */
+    LRT_STACK = 5,       /*!< Stack used by LRTs */
+    NEW_STACK = 6,       /*!< Stack used by calls to new / delete */
 };
 
 /**
  * @brief Allocator types
  */
-enum class SpiderAllocatorType {
+enum class AllocatorType {
     FREELIST,        /*!< (Dynamic) FreeList type allocator */
     GENERIC,         /*!< (Dynamic) Generic type allocator (=malloc) */
     LIFO_STATIC,     /*!< (Static) LIFO type allocator */
@@ -68,19 +69,18 @@ enum class SpiderAllocatorType {
     LINEAR_STATIC    /*!< (Static) Linear type allocator */
 };
 
-typedef struct SpiderStackConfig {
-    const char *name;
-    SpiderAllocatorType allocatorType = SpiderAllocatorType::FREELIST;
+typedef struct AllocatorConfig {
+    const char *name = "unnamed-allocator";
+    AllocatorType allocatorType = AllocatorType::FREELIST;
     std::uint64_t size = 0;
     std::uint64_t alignment = sizeof(std::uint64_t);
     FreeListPolicy policy = FreeListPolicy::FIND_FIRST;
-} SpiderStackConfig;
-
+} AllocatorConfig;
 
 namespace Allocator {
-    AbstractAllocator *&getAllocator(SpiderStack stack);
+    AbstractAllocator *&getAllocator(std::uint64_t stack);
 
-    void init(SpiderStack stack, SpiderStackConfig cfg);
+    void init(StackID stack, AllocatorConfig cfg);
 
     void finalize();
 
@@ -120,11 +120,11 @@ namespace Allocator {
      * @return pointer to allocated buffer, nullptr if size is 0.
      */
     template<typename T>
-    inline T *allocate(SpiderStack stack, std::uint64_t size = 1) {
+    inline T *allocate(StackID stack, std::uint64_t size = 1) {
         /* 0. Allocate buffer with (size + 1) to store stack identifier */
         size = size * sizeof(T);
         char *buffer = nullptr;
-        auto *&allocator = getAllocator(stack);
+        auto *&allocator = getAllocator(static_cast<std::uint64_t>(stack));
         buffer = (char *) allocator->alloc(size + sizeof(std::uint64_t));
         /* 1. Return allocated buffer */
         if (buffer) {

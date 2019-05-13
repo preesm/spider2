@@ -64,7 +64,7 @@ template<typename TYPE>
 class Set {
 public:
 
-    Set(std::int32_t sizeMax, SpiderStack stackId) : sizeMax_{sizeMax}, stackId_{stackId} {
+    Set(std::int32_t sizeMax, StackID stackId) : sizeMax_{sizeMax}, stackId_{stackId} {
         elements_ = Allocator::allocate<TYPE>(stackId, sizeMax);
     }
 
@@ -94,7 +94,7 @@ private:
     SetElement *elements_;
     std::int32_t size_ = 0;
     std::int32_t sizeMax_;
-    SpiderStack stackId_;
+    StackID stackId_;
 };
 
 template<typename TYPE>

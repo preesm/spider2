@@ -51,7 +51,7 @@ public:
         Node *next_ = nullptr;
     } Node;
 
-    LinkedList(SpiderStack stackId, std::int32_t sizeMax);
+    LinkedList(StackID stackId, std::int32_t sizeMax);
 
     ~LinkedList();
 
@@ -134,12 +134,12 @@ private:
     Node *current_ = nullptr;
     Node *tail_ = nullptr;
     std::int32_t size_ = 0;
-    SpiderStack stackId_;
+    StackID stackId_;
     std::int32_t sizeMax_;
 };
 
 template<class T>
-inline LinkedList<T>::LinkedList(SpiderStack stackId, std::int32_t sizeMax) : stackId_{stackId}, sizeMax_{sizeMax} {
+inline LinkedList<T>::LinkedList(StackID stackId, std::int32_t sizeMax) : stackId_{stackId}, sizeMax_{sizeMax} {
 }
 
 template<class T>
