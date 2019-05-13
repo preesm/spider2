@@ -45,19 +45,29 @@
 #include <common/memory/Allocator.h>
 
 
-class AllocatorTest : public ::testing::Test {
-public:
-    explicit AllocatorTest();
+TEST(AllocatorTest, TryAlloc) {
+    AllocatorConfig cfg;
+    cfg.allocatorType = AllocatorType::FREELIST;
+    cfg.size = 512;
+    Allocator::init(StackID::PISDF_STACK, cfg);
+    EXPECT_THROW(Allocator::allocate<double>(StackID::SCHEDULE_STACK, 10), SpiderException);
+    cfg.allocatorType = AllocatorType::FREELIST_STATIC;
+    cfg.size = 0;
+    Allocator::init(StackID::SRDAG_STACK, cfg);
+    EXPECT_THROW(Allocator::allocate<double>(StackID::SRDAG_STACK, 10), SpiderException);
+    EXPECT_NO_THROW(Allocator::allocate<double>(StackID::PISDF_STACK, 10));
+    Allocator::finalize();
+}
 
-    ~AllocatorTest() override;
+TEST(AllocatorTest, TryDealloc) {
+    AllocatorConfig cfg;
+    cfg.allocatorType = AllocatorType::FREELIST;
+    cfg.size = 512;
+    Allocator::init(StackID::PISDF_STACK, cfg);
+    auto *array = Allocator::allocate<double>(StackID::PISDF_STACK, 10);
+    EXPECT_NO_THROW(Allocator::deallocate(array));
+    Allocator::finalize();
+}
 
-    void SetUp() override;
-
-    void TearDown() override;
-
-protected:
-    AllocatorConfig cfgA;
-    AllocatorConfig cfgB;
-};
 
 #endif //MEMORY_ALLOCATORTEST_H

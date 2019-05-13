@@ -125,6 +125,9 @@ namespace Allocator {
         size = size * sizeof(T);
         char *buffer = nullptr;
         auto *&allocator = getAllocator(static_cast<std::uint64_t>(stack));
+        if (!allocator) {
+            throwSpiderException("Allocating memory with non-initialized allocator.");
+        }
         buffer = (char *) allocator->alloc(size + sizeof(std::uint64_t));
         /* 1. Return allocated buffer */
         if (buffer) {

@@ -80,6 +80,7 @@ void Allocator::init(StackID stack, AllocatorConfig cfg) {
 void Allocator::finalize() {
     for (auto *&allocator : allocatorArray) {
         delete allocator;
+        allocator = nullptr;
     }
 }
 
