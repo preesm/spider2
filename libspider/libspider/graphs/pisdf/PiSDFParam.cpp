@@ -40,23 +40,6 @@
 
 /* === Includes === */
 
-#include <graphs/pisdf/PiSDFEdge.h>
-#include <graphs/pisdf/PiSDFGraph.h>
-#include <graphs/pisdf/PiSDFVertex.h>
+#include "PiSDFParam.h"
 
 /* === Methods implementation === */
-
-PiSDFEdge::PiSDFEdge(PiSDFGraph *graph, PiSDFVertex *source, PiSDFVertex *sink) : graph_{graph},
-                                                                                  source_{source},
-                                                                                  sink_{sink} {
-
-}
-
-std::uint64_t PiSDFEdge::sourceRate() const {
-    return sourceRate_;
-}
-
-
-std::uint64_t PiSDFEdge::sinkRate() const {
-    return sinkRate_;
-}

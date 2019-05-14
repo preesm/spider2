@@ -43,12 +43,191 @@
 /* === Includes === */
 
 #include <cstdint>
+#include <cinttypes>
+#include <graphs/pisdf/PiSDFTypes.h>
+#include <common/SpiderException.h>
+
+/* === Forward declaration(s) === */
+
+class PiSDFEdge;
+
+class PiSDFGraph;
+
+class PiSDFParam;
 
 /* === Class definition === */
 
 class PiSDFVertex {
+public:
 
+    PiSDFVertex(PiSDFGraph *graph);
+
+    ~PiSDFVertex() = default;
+
+    /* === Methods === */
+
+    /* === Setters === */
+
+    /* === Getters ===  */
+
+    /**
+     * @brief Get the containing @refitem PiSDFGraph of the edge.
+     * @return containing @refitem PiSDFGraph
+     */
+    inline PiSDFGraph *containingGraph() const;
+
+    /**
+     * @brief Get the number of input edges connected to the vertex.
+     * @return number of input edges.
+     */
+    inline std::uint32_t nEdgesIN() const;
+
+    /**
+     * @brief Get the number of output edges connected to the vertex.
+     * @return number of output edges.
+     */
+    inline std::uint32_t nEdgesOUT() const;
+
+    /**
+     * @brief Get the number of input parameters connected to the vertex.
+     * @return number of input edges.
+     */
+    inline std::uint32_t nParamsIN() const;
+
+    /**
+     * @brief Get the number of output parameters connected to the vertex.
+     * @return number of output parameters (config actor only).
+     */
+    inline std::uint32_t nParamsOUT() const;
+
+    /**
+     * @brief Get the @refitem PiSDFType of the vertex.
+     * @return @refitem PiSDFType of the vertex.
+     */
+    inline PiSDFType type() const;
+
+    /**
+     * @brief Get the @refitem PiSDFSubType of the vertex.
+     * @return @refitem PiSDFSubType of the vertex.
+     */
+    inline PiSDFSubType subType() const;
+
+    /**
+     * @brief Get input edge connected to port Ix.
+     * @param ix Index of the input port.
+     * @return @refitem PiSDFEdge
+     * @throw @refitem SpiderException if out of bound
+     */
+    inline PiSDFEdge *inEdge(std::uint32_t ix) const;
+
+    /**
+     * @brief Get input edge connected to port Ix.
+     * @param ix Index of the output port.
+     * @return @refitem PiSDFEdge
+     * @throw @refitem SpiderException if out of bound.
+     */
+    inline PiSDFEdge *outEdge(std::uint32_t ix) const;
+
+    /**
+     * @brief Get input edge connected to port Ix.
+     * @param ix Index of the input port.
+     * @return @refitem PiSDFParam
+     * @throw @refitem SpiderException if out of bound.
+     */
+    inline PiSDFParam *inParam(std::uint32_t ix) const;
+
+    /**
+     * @brief Get input edge connected to port Ix.
+     * @param ix Index of the output port.
+     * @return @refitem PiSDFParam
+     * @throw @refitem SpiderException if out of bound.
+     */
+    inline PiSDFParam *outParam(std::uint32_t ix) const;
+
+private:
+    PiSDFGraph *graph_ = nullptr;
+
+    PiSDFType type_ = PiSDFType::VERTEX;
+    PiSDFSubType subType_ = PiSDFSubType::NORMAL;
+
+    std::uint32_t nEdgesIN_ = 0;
+    std::uint32_t nEdgesOUT_ = 0;
+    std::uint32_t nParamsIN_ = 0;
+    std::uint32_t nParamsOUT_ = 0;
 };
 
+/* === Inline methods === */
+
+PiSDFGraph *PiSDFVertex::containingGraph() const {
+    return graph_;
+}
+
+std::uint32_t PiSDFVertex::nEdgesIN() const {
+    return nEdgesIN_;
+}
+
+std::uint32_t PiSDFVertex::nEdgesOUT() const {
+    return nEdgesOUT_;
+}
+
+std::uint32_t PiSDFVertex::nParamsIN() const {
+    return nParamsIN_;
+}
+
+std::uint32_t PiSDFVertex::nParamsOUT() const {
+    return nParamsOUT_;
+}
+
+PiSDFType PiSDFVertex::type() const {
+    return type_;
+}
+
+PiSDFSubType PiSDFVertex::subType() const {
+    return subType_;
+}
+
+PiSDFEdge *PiSDFVertex::inEdge(std::uint32_t ix) const {
+    if (ix >= nEdgesIN_) {
+        throwSpiderException("Index out of bound: %"
+                                     PRIu32
+                                     " -- Max: %"
+                                     PRIu32
+                                     ".", ix, nEdgesIN_);
+    }
+    return nullptr;
+}
+
+PiSDFEdge *PiSDFVertex::outEdge(std::uint32_t ix) const {
+    if (ix >= nEdgesOUT_) {
+        throwSpiderException("Index out of bound: %"
+                                     PRIu32
+                                     " -- Max: %"
+                                     PRIu32
+                                     ".", ix, nEdgesOUT_);
+    }
+    return nullptr;
+}
+
+PiSDFParam *PiSDFVertex::inParam(std::uint32_t ix) const {
+    if (ix >= nParamsIN_) {
+        throwSpiderException("Index out of bound: %"
+                                     PRIu32
+                                     " -- Max: %"
+                                     PRIu32
+                                     ".", ix, nParamsIN_);
+    }
+    return nullptr;
+}
+
+PiSDFParam *PiSDFVertex::outParam(std::uint32_t ix) const {
+    if (ix >= nParamsOUT_) {
+        throwSpiderException("Index out of bound: %"
+                                     PRIu32
+                                     " -- Max: %"
+                                     PRIu32
+                                     ".", ix, nParamsOUT_);
+    }
+    return nullptr;
+}
 
 #endif //SPIDER2_PISDFVERTEX_H

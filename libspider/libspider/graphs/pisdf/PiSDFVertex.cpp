@@ -40,6 +40,8 @@
 
 /* === Includes === */
 
-#include "PiSDFVertex.h"
+#include <graphs/pisdf/PiSDFVertex.h>
+#include <graphs/pisdf/PiSDFGraph.h>
+#include <graphs/pisdf/PiSDFEdge.h>
 
 /* === Methods implementation === */

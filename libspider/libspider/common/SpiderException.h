@@ -54,7 +54,7 @@
 /* === Macros === */
 
 #define throwHelper(msg, ...)\
-    throw SpiderException("%s::%s:%d " msg, __FILENAME__, __func__, __LINE__, __VA_ARGS__)
+    throw SpiderException("%s::%s(%d) " msg, __FILENAME__, __func__, __LINE__, __VA_ARGS__)
 #define throwSpiderException(...) throwHelper(__VA_ARGS__, '\0')
 
 /* === Class definition === */

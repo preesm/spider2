@@ -44,6 +44,12 @@
 
 #include <cstdint>
 
+/* === Forward declaration(s) === */
+
+class PiSDFEdge;
+
+class PiSDFVertex;
+
 /* === Class definition === */
 
 class PiSDFGraph {
