@@ -35,10 +35,15 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
+
+/* === Includes === */
+
 #include <mutex>
 #include <cstdarg>
 #include <common/Logger.h>
 #include <common/memory/Allocator.h>
+
+/* === Defines === */
 
 #define LOG_RED "\x1B[31m"
 #define LOG_GRN "\x1B[32m"
@@ -48,6 +53,8 @@
 #define LOG_CYN "\x1B[36m"
 #define LOG_WHT "\x1B[37m"
 #define LOG_NRM "\x1B[0m"
+
+/* === Static variables === */
 
 static bool loggersState_[N_LOGGER];
 
@@ -60,6 +67,8 @@ static const char *loggersLitteral[N_LOGGER] = {
 };
 
 static std::mutex lock;
+
+/* === Methods implementation === */
 
 void Logger::init() {
     loggersState_[LOG_JOB] = false;

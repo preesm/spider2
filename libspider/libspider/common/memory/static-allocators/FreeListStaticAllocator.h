@@ -40,8 +40,11 @@
 #ifndef SPIDER2_FREELISTSTATICALLOCATOR_H
 #define SPIDER2_FREELISTSTATICALLOCATOR_H
 
+/* === Includes === */
+
 #include <common/memory/abstract-allocators/StaticAllocator.h>
 
+/* === Class definition === */
 
 class FreeListStaticAllocator : public StaticAllocator {
 public:

@@ -38,7 +38,11 @@
  * knowledge of the CeCILL license and that you accept its terms.
  */
 
+/* === Includes === */
+
 #include <common/memory/static-allocators/FreeListStaticAllocator.h>
+
+/* === Methods implementation === */
 
 FreeListStaticAllocator::FreeListStaticAllocator(const char *name,
                                                  std::uint64_t totalSize,

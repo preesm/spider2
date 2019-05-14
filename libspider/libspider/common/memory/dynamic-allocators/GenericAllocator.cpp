@@ -37,8 +37,13 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
+
+/* === Includes === */
+
 #include <algorithm>
 #include <common/memory/dynamic-allocators/GenericAllocator.h>
+
+/* === Methods implementation === */
 
 GenericAllocator::GenericAllocator(const char *name, int32_t alignment) : DynamicAllocator(name, alignment) {
     if (alignment < 0) {

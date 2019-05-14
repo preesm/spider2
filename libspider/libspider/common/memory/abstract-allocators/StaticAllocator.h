@@ -40,7 +40,11 @@
 #ifndef SPIDER2_STATICALLOCATOR_H
 #define SPIDER2_STATICALLOCATOR_H
 
+/* === Includes === */
+
 #include "AbstractAllocator.h"
+
+/* === Class definition === */
 
 class StaticAllocator : public AbstractAllocator {
 public:
@@ -61,6 +65,12 @@ protected:
     inline void checkPointerAddress(void *ptr) const;
 };
 
+/* === Inline methods === */
+
+StaticAllocator::~StaticAllocator() {
+    std::free(startPtr_);
+}
+
 StaticAllocator::StaticAllocator(const char *name, std::uint64_t totalSize, std::int32_t alignment) :
         AbstractAllocator(name, alignment),
         totalSize_{totalSize},
@@ -69,10 +79,6 @@ StaticAllocator::StaticAllocator(const char *name, std::uint64_t totalSize, std:
         throwSpiderException("Allocator size should be >= 0.\n");
     }
     startPtr_ = (char *) std::malloc(totalSize_);
-}
-
-StaticAllocator::~StaticAllocator() {
-    std::free(startPtr_);
 }
 
 void StaticAllocator::checkPointerAddress(void *ptr) const {

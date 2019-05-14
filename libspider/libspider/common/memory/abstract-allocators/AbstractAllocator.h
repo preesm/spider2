@@ -40,16 +40,22 @@
 #ifndef SPIDER2_ABSTRACTALLOCATOR_H
 #define SPIDER2_ABSTRACTALLOCATOR_H
 
+/* === Includes === */
+
 #include <cstdlib>
 #include <cstdint>
 #include <cinttypes>
 #include <common/Logger.h>
 #include <common/SpiderException.h>
 
+/* === Enumeration(s) === */
+
 typedef enum FreeListPolicy {
     FIND_FIRST = 0,
     FIND_BEST = 1
 } FreeListPolicy;
+
+/* === Class definition === */
 
 class AbstractAllocator {
 public:
@@ -118,6 +124,8 @@ protected:
 private:
     const char *name_;
 };
+
+/* === Inline methods === */
 
 AbstractAllocator::AbstractAllocator(const char *name, std::int32_t alignment) : used_{0},
                                                                              peak_{0},

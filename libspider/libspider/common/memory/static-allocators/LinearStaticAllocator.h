@@ -40,7 +40,11 @@
 #ifndef SPIDER2_LINEARSTATICALLOCATOR_H
 #define SPIDER2_LINEARSTATICALLOCATOR_H
 
+/* === Includes === */
+
 #include <common/memory/abstract-allocators/StaticAllocator.h>
+
+/* === Class definition === */
 
 class LinearStaticAllocator : public StaticAllocator {
 public:

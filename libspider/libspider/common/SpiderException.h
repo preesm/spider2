@@ -40,18 +40,24 @@
 #ifndef SPIDER_SPIDEREXCEPTION_H
 #define SPIDER_SPIDEREXCEPTION_H
 
+/* === Includes === */
+
 #include <stdexcept>
 #include <cstdarg>
 #include <cstring>
 
+/* === Defines === */
 
-
-// Size of 50 minimum is required for the error message associated
+/* Size of 50 minimum is required for the error message associated */
 #define SPIDER_EXCEPTION_BUFFER_SIZE 300
+
+/* === Macros === */
 
 #define throwHelper(msg, ...)\
     throw SpiderException("%s::%s:%d " msg, __FILENAME__, __func__, __LINE__, __VA_ARGS__)
 #define throwSpiderException(...) throwHelper(__VA_ARGS__, '\0')
+
+/* === Class definition === */
 
 class SpiderException : public std::exception {
 public:

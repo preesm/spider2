@@ -40,7 +40,11 @@
 #ifndef SPIDER2_GENERICALLOCATOR_H
 #define SPIDER2_GENERICALLOCATOR_H
 
+/* === Includes === */
+
 #include <common/memory/abstract-allocators/DynamicAllocator.h>
+
+/* === Class definition === */
 
 class GenericAllocator : public DynamicAllocator {
 public:

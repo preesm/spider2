@@ -38,9 +38,16 @@
 #ifndef SPIDER_LOGGER_H
 #define SPIDER_LOGGER_H
 
+/* === Includes === */
+
+#include <cstdint>
 #include <cstdio>
 
+/* === Define(s) === */
+
 #define N_LOGGER 3
+
+/* === Enumeration(s) === */
 
 typedef enum {
     LOG_JOB = 0,
@@ -53,6 +60,8 @@ typedef enum {
     LOG_WARNING,
     LOG_ERROR
 } LoggerLevel;
+
+/* === Namespace === */
 
 namespace Logger {
     void init();

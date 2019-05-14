@@ -37,8 +37,12 @@
 #ifndef RATIONAL_H_
 #define RATIONAL_H_
 
+/* === Includes === */
+
 #include <cstdint>
 #include <common/SpiderException.h>
+
+/* === Class definition === */
 
 class Rational {
 private:
@@ -110,6 +114,8 @@ public:
 
     static inline std::int64_t compute_lcm(std::int64_t a, std::int64_t b);
 };
+
+/* === Inline methods === */
 
 Rational::Rational(int64_t n, int64_t d) : n_{n}, d_{d} {
     if (d_ == 0) {

@@ -38,15 +38,20 @@
  * knowledge of the CeCILL license and that you accept its terms.
  */
 
-#include <common/memory/Allocator.h>
+/* === Includes === */
 
+#include <common/memory/Allocator.h>
 #include <common/memory/static-allocators/FreeListStaticAllocator.h>
 #include <common/memory/static-allocators/LIFOStaticAllocator.h>
 #include <common/memory/static-allocators/LinearStaticAllocator.h>
 #include <common/memory/dynamic-allocators/FreeListAllocator.h>
 #include <common/memory/dynamic-allocators/GenericAllocator.h>
 
+/* === Static variables === */
+
 static AbstractAllocator *allocatorArray[NB_ALLOCATORS] = {nullptr};
+
+/* === Methods implementation === */
 
 AbstractAllocator *&Allocator::getAllocator(std::uint64_t stack) {
     return allocatorArray[stack];
@@ -83,7 +88,6 @@ void Allocator::finalize() {
         allocator = nullptr;
     }
 }
-
 
 void Allocator::deallocate(void *ptr) {
     if (ptr) {

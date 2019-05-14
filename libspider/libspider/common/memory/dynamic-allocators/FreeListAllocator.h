@@ -40,11 +40,16 @@
 #ifndef SPIDER2_FREELISTALLOCATOR_H
 #define SPIDER2_FREELISTALLOCATOR_H
 
+/* === Includes === */
+
 #include <vector>
 #include <common/memory/abstract-allocators/DynamicAllocator.h>
 
+/* === Defines === */
 
 #define MIN_CHUNK 4096
+
+/* === Class definition === */
 
 class FreeListAllocator : public DynamicAllocator {
 public:

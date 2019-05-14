@@ -40,10 +40,16 @@
 #ifndef SPIDER_STACKALLOCATOR_H
 #define SPIDER_STACKALLOCATOR_H
 
+/* === Includes === */
+
 #include <cstdint>
 #include <common/memory/abstract-allocators/AbstractAllocator.h>
 
+/* === Define(s) === */
+
 #define NB_ALLOCATORS 7
+
+/* === Enumeration(s) === */
 
 /**
  * @brief Stack ids
@@ -69,6 +75,8 @@ enum class AllocatorType {
     LINEAR_STATIC    /*!< (Static) Linear type allocator */
 };
 
+/* === Structure(s) === */
+
 typedef struct AllocatorConfig {
     const char *name = "unnamed-allocator";
     AllocatorType allocatorType = AllocatorType::FREELIST;
@@ -76,6 +84,8 @@ typedef struct AllocatorConfig {
     std::uint64_t alignment = sizeof(std::uint64_t);
     FreeListPolicy policy = FreeListPolicy::FIND_FIRST;
 } AllocatorConfig;
+
+/* === Namespace === */
 
 namespace Allocator {
     AbstractAllocator *&getAllocator(std::uint64_t stack);

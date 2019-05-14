@@ -40,7 +40,11 @@
 #ifndef SPIDER2_LIFOSTATICALLOCATOR_H
 #define SPIDER2_LIFOSTATICALLOCATOR_H
 
+/* === Includes === */
+
 #include <common/memory/abstract-allocators/StaticAllocator.h>
+
+/* === Class definition === */
 
 class LIFOStaticAllocator : public StaticAllocator {
 public:

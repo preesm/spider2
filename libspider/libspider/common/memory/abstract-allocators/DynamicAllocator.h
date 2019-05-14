@@ -40,7 +40,11 @@
 #ifndef SPIDER2_DYNAMICALLOCATOR_H
 #define SPIDER2_DYNAMICALLOCATOR_H
 
+/* === Includes === */
+
 #include "AbstractAllocator.h"
+
+/* === Class definition === */
 
 class DynamicAllocator : public AbstractAllocator {
 public:
@@ -54,6 +58,8 @@ protected:
 
     inline explicit DynamicAllocator(const char *name, std::int32_t alignment = 0);
 };
+
+/* === Inline methods === */
 
 DynamicAllocator::DynamicAllocator(const char *name, int32_t alignment) : AbstractAllocator(name, alignment) {
 

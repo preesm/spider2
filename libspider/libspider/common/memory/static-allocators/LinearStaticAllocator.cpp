@@ -37,7 +37,12 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
+
+/* === Includes === */
+
 #include <common/memory/static-allocators/LinearStaticAllocator.h>
+
+/* === Methods implementation === */
 
 LinearStaticAllocator::LinearStaticAllocator(const char *name, std::uint64_t totalSize, std::int32_t alignment) :
         StaticAllocator(name, totalSize, alignment) {
