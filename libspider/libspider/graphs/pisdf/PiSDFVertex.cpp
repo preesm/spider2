@@ -43,5 +43,26 @@
 #include <graphs/pisdf/PiSDFVertex.h>
 #include <graphs/pisdf/PiSDFGraph.h>
 #include <graphs/pisdf/PiSDFEdge.h>
+#include <common/memory/Allocator.h>
 
 /* === Methods implementation === */
+
+PiSDFVertex::PiSDFVertex(PiSDFGraph *graph,
+                         PiSDFType type,
+                         PiSDFSubType subType,
+                         std::uint32_t nEdgesIN,
+                         std::uint32_t nEdgesOUT) : graph_{graph},
+                                                    type_{type},
+                                                    subType_{subType},
+                                                    nEdgesIN_{nEdgesIN},
+                                                    nEdgesOUT_{nEdgesOUT} {
+    inputEdgeList_ = Allocator::allocate<PiSDFEdge *>(StackID::PISDF_STACK, nEdgesIN);
+    outputEdgeList_ = Allocator::allocate<PiSDFEdge *>(StackID::PISDF_STACK, nEdgesOUT);
+}
+
+PiSDFVertex::~PiSDFVertex() {
+    Allocator::deallocate(inputEdgeList_);
+    Allocator::deallocate(outputEdgeList_);
+    inputEdgeList_ = nullptr;
+    outputEdgeList_ = nullptr;
+}

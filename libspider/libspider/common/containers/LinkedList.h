@@ -69,7 +69,7 @@ public:
 
     /* === Operators === */
 
-    T &operator[](std::uint32_t ix);
+    NodeList<T> *operator[](std::uint32_t ix);
 
     /* === Methods === */
 
@@ -177,7 +177,7 @@ LinkedList<T>::~LinkedList() {
 }
 
 template<class T>
-inline T &LinkedList<T>::operator[](std::uint32_t ix) {
+inline NodeList<T> *LinkedList<T>::operator[](std::uint32_t ix) {
     if (ix >= size_) {
         throwSpiderException("Accesing unitialized element. Ix = %"
                                      PRIu32
@@ -191,7 +191,7 @@ inline T &LinkedList<T>::operator[](std::uint32_t ix) {
         current = current->next_;
         i++;
     }
-    return current->val_;
+    return current;
 }
 
 template<typename T>
