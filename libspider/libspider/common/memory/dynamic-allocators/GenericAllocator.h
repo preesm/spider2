@@ -50,7 +50,7 @@ class GenericAllocator : public DynamicAllocator {
 public:
     explicit GenericAllocator(const char *name, std::int32_t alignment = sizeof(std::uint64_t));
 
-    ~GenericAllocator() override;
+    ~GenericAllocator() override = default;
 
     void *alloc(std::uint64_t size) override;
 

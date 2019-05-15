@@ -61,7 +61,7 @@ class AbstractAllocator {
 public:
     explicit inline AbstractAllocator(const char *name, std::int32_t alignment = 0);
 
-    virtual ~AbstractAllocator() = default;
+    virtual inline ~AbstractAllocator();
 
     /**
      * @brief Allocate a memory buffer.
@@ -128,11 +128,11 @@ private:
 /* === Inline methods === */
 
 AbstractAllocator::AbstractAllocator(const char *name, std::int32_t alignment) : used_{0},
-                                                                             peak_{0},
-                                                                             averageUse_{0},
-                                                                             numberAverage_{0},
-                                                                             alignment_{alignment},
-                                                                             name_{name} {
+                                                                                 peak_{0},
+                                                                                 averageUse_{0},
+                                                                                 numberAverage_{0},
+                                                                                 alignment_{alignment},
+                                                                                 name_{name} {
 
 }
 
@@ -191,6 +191,15 @@ double AbstractAllocator::getByteNormalizedSize(std::uint64_t &size) {
         return dblSize / sizeKB;
     }
     return dblSize;
+}
+
+AbstractAllocator::~AbstractAllocator() {
+    if (used_ > 0) {
+        Logger::print(LOG_GENERAL, LOG_ERROR, "Allocator: %s -- Still has %lf %s in use.\n",
+                      getName(),
+                      AbstractAllocator::getByteNormalizedSize(used_),
+                      AbstractAllocator::getByteUnitString(used_));
+    }
 }
 
 #endif //SPIDER2_ABSTRACTALLOCATOR_H

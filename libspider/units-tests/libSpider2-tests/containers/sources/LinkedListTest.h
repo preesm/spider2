@@ -37,54 +37,11 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
+#ifndef CONTAINERS_LINKEDLISTTEST_H
+#define CONTAINERS_LINKEDLISTTEST_H
 
 /* === Includes === */
 
-#include <algorithm>
-#include <common/memory/dynamic-allocators/GenericAllocator.h>
+/* === Methods prototype === */
 
-/* === Methods implementation === */
-
-GenericAllocator::GenericAllocator(const char *name, int32_t alignment) : DynamicAllocator(name, alignment) {
-    if (alignment < 0) {
-        throwSpiderException("Memory alignment should be positive integer.");
-    }
-}
-
-void *GenericAllocator::alloc(std::uint64_t size) {
-    if (!size) {
-        return nullptr;
-    }
-    std::uint64_t requiredSize = size + sizeof(std::uint64_t);
-    auto alignedSize = AbstractAllocator::computeAlignedSize(requiredSize, alignment_);
-
-    auto *headerAddress = (char *) std::malloc(alignedSize);
-    if (!headerAddress) {
-        throwSpiderException("Failed to allocate %lf %s",
-                             AbstractAllocator::getByteNormalizedSize(alignedSize),
-                             AbstractAllocator::getByteUnitString(alignedSize));
-    }
-    auto *header = (std::uint64_t *) (headerAddress);
-    (*header) = alignedSize;
-    used_ += alignedSize;
-    peak_ = std::max(peak_, used_);
-    return headerAddress + sizeof(std::uint64_t);
-}
-
-void GenericAllocator::dealloc(void *ptr) {
-    if (!ptr) {
-        return;
-    }
-    auto *headerAddress = ((char *) ptr) - sizeof(std::uint64_t);
-    auto *header = (std::uint64_t *) (headerAddress);
-    used_ -= (*header);
-    std::free(headerAddress);
-}
-
-void GenericAllocator::reset() {
-    averageUse_ += used_;
-    numberAverage_++;
-    used_ = 0;
-}
-
-
+#endif //CONTAINERS_LINKEDLISTTEST_H
