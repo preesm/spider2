@@ -63,7 +63,7 @@ struct NodeList {
 template<typename T>
 class LinkedList {
 public:
-    inline LinkedList(StackID stack);
+    explicit inline LinkedList(StackID stack);
 
     inline ~LinkedList();
 

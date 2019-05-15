@@ -51,8 +51,8 @@ TEST(LinkedListTest, TestAdd) {
     AllocatorConfig cfg;
     cfg.allocatorType = AllocatorType::FREELIST;
     cfg.size = 512;
-    Allocator::init(StackID::NEW_STACK, cfg);
-    auto testList = LinkedList<double>(StackID::NEW_STACK);
+    Allocator::init(StackID::GENERAL_STACK, cfg);
+    auto testList = LinkedList<double>(StackID::GENERAL_STACK);
     EXPECT_NO_THROW(testList.addHead(10.2));
     EXPECT_EQ(testList.tail(), testList.head());
     EXPECT_EQ(testList.tail(), testList.current());
@@ -68,8 +68,8 @@ TEST(LinkedListTest, TestEqValue) {
     AllocatorConfig cfg;
     cfg.allocatorType = AllocatorType::FREELIST;
     cfg.size = 512;
-    Allocator::init(StackID::NEW_STACK, cfg);
-    auto testList = LinkedList<double>(StackID::NEW_STACK);
+    Allocator::init(StackID::GENERAL_STACK, cfg);
+    auto testList = LinkedList<double>(StackID::GENERAL_STACK);
     EXPECT_NO_THROW(testList.addHead(10.2));
     EXPECT_NO_THROW(testList.addHead(3.14159265358));
     EXPECT_EQ(testList.tail()->value, 10.2);
@@ -89,8 +89,8 @@ TEST(LinkedListTest, TestRemove) {
     AllocatorConfig cfg;
     cfg.allocatorType = AllocatorType::FREELIST;
     cfg.size = 512;
-    Allocator::init(StackID::NEW_STACK, cfg);
-    auto testList = LinkedList<double>(StackID::NEW_STACK);
+    Allocator::init(StackID::GENERAL_STACK, cfg);
+    auto testList = LinkedList<double>(StackID::GENERAL_STACK);
     EXPECT_NO_THROW(testList.addHead(10.2));
     EXPECT_NO_THROW(testList.addHead(3.14159265358));
     EXPECT_NO_THROW(testList.addCurrent(2.71));
@@ -111,8 +111,8 @@ TEST(LinkedListTest, TestRandomAccessOperator) {
     AllocatorConfig cfg;
     cfg.allocatorType = AllocatorType::FREELIST;
     cfg.size = 512;
-    Allocator::init(StackID::NEW_STACK, cfg);
-    auto testList = LinkedList<double>(StackID::NEW_STACK);
+    Allocator::init(StackID::GENERAL_STACK, cfg);
+    auto testList = LinkedList<double>(StackID::GENERAL_STACK);
     EXPECT_NO_THROW(testList.addHead(10.2));
     EXPECT_NO_THROW(testList.addHead(3.14159265358));
     EXPECT_NO_THROW(testList.addCurrent(2.71));

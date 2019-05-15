@@ -42,6 +42,81 @@
 
 /* === Includes === */
 
-/* === Methods prototype === */
+#include <cstdint>
+#include <common/memory/Allocator.h>
+
+/* === Class definition === */
+
+template<typename T>
+class Array {
+public:
+    explicit inline Array(StackID stack, std::uint32_t size);
+
+    inline ~Array();
+
+    /* === Operators === */
+
+    T &operator[](std::uint32_t ix);
+
+    /* === Iterator methods === */
+
+    typedef T *iterator;
+    typedef const T *const_iterator;
+
+    iterator begin();
+
+    iterator end();
+
+    /* === Getters === */
+
+    inline std::uint32_t size() const;
+
+private:
+    std::uint32_t size_;
+    T *array_;
+};
+
+/* === Inline methods === */
+
+template<typename T>
+Array<T>::Array(StackID stack, std::uint32_t size) : size_{size} {
+    array_ = Allocator::allocate<T>(stack, size);
+    if (!array_) {
+        throwSpiderException("Failed to allocate array.");
+    }
+}
+
+template<typename T>
+Array<T>::~Array() {
+    Allocator::deallocate(array_);
+}
+
+template<typename T>
+T &Array<T>::operator[](std::uint32_t ix) {
+    if (ix >= size_) {
+        throwSpiderException("Index out of bound. Ix = %"
+                                     PRIu32
+                                     " -- Size = %"
+                                     PRIu32
+                                     "", ix, size_);
+    }
+    return array_[ix];
+}
+
+template<typename T>
+typename Array<T>::iterator Array<T>::begin() {
+    return array_;
+}
+
+template<typename T>
+typename Array<T>::iterator Array<T>::end() {
+    return &array_[size_];
+}
+
+template<typename T>
+std::uint32_t Array<T>::size() const {
+    return size_;
+}
+
 
 #endif //SPIDER2_ARRAY_H
