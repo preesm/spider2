@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright or © or Copr. IETR/INSA - Rennes (2018) :
  *
  * Antoine Morvan <antoine.morvan@insa-rennes.fr> (2018)
@@ -33,8 +33,9 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#include <gtest/gtest.h>
 
+#include <gtest/gtest.h>
+#include "sources/LinkedListTest.h"
 
 
 int main(int argc, char **argv) {

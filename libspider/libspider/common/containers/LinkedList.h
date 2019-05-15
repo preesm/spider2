@@ -95,26 +95,26 @@ public:
      * @brief Creates a new @refitem NodeList with value val and add it as head of the list.
      * @param val  Value to add.
      */
-    inline void addHead(T &val);
+    inline void addHead(T val);
 
     /**
      * @brief Creates a new @refitem NodeList with value val and add it as tail of the list.
      * @param val  Value to add.
      */
-    inline void addTail(T &val);
+    inline void addTail(T val);
 
     /**
      * @brief Creates a new @refitem NodeList with value val and add it after current in the list.
      * @param val  Value to add.
      */
-    inline void addCurrent(T &val);
+    inline void addCurrent(T val);
 
     /**
      * @brief Test if the LinkedList contains a given value.
      * @param val  Value to test.
      * @return true if value is in the LinkedList, false else.
      */
-    inline bool contains(T &val) const;
+    inline bool contains(T val) const;
 
 
     /**
@@ -188,7 +188,7 @@ inline NodeList<T> *LinkedList<T>::operator[](std::uint32_t ix) {
     std::uint32_t i = 0;
     auto *current = head_;
     while (i < ix) {
-        current = current->next_;
+        current = current->next;
         i++;
     }
     return current;
@@ -196,13 +196,13 @@ inline NodeList<T> *LinkedList<T>::operator[](std::uint32_t ix) {
 
 template<typename T>
 inline NodeList<T> *LinkedList<T>::next() {
-    current_ = current_->next_;
+    current_ = current_->next;
     return current_;
 }
 
 template<typename T>
 inline NodeList<T> *LinkedList<T>::previous() {
-    current_ = current_->prev_;
+    current_ = current_->previous;
     return current_;
 }
 
@@ -214,7 +214,7 @@ void LinkedList<T>::setOnValue(NodeList<T> *val) {
 }
 
 template<typename T>
-void LinkedList<T>::addHead(T &val) {
+void LinkedList<T>::addHead(T val) {
     if (!head_) {
         head_ = newNodeList(val);
         tail_ = head_;
@@ -228,7 +228,7 @@ void LinkedList<T>::addHead(T &val) {
 }
 
 template<typename T>
-void LinkedList<T>::addTail(T &val) {
+void LinkedList<T>::addTail(T val) {
     if (!head_) {
         tail_ = newNodeList(val);
         head_ = tail_;
@@ -242,7 +242,7 @@ void LinkedList<T>::addTail(T &val) {
 }
 
 template<typename T>
-void LinkedList<T>::addCurrent(T &val) {
+void LinkedList<T>::addCurrent(T val) {
     if (!current_) {
         current_ = newNodeList(val);
         head_ = current_;
@@ -251,13 +251,16 @@ void LinkedList<T>::addCurrent(T &val) {
         current_->previous = current_;
     } else {
         current_ = newNodeList(val, current_, current_->next);
+        if (current_->previous == tail_) {
+            tail_ = current_;
+        }
     }
     size_++;
 
 }
 
 template<typename T>
-bool LinkedList<T>::contains(T &val) const {
+bool LinkedList<T>::contains(T val) const {
     auto *node = head_;
     do {
         if (node->value == val) {
