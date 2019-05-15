@@ -61,7 +61,7 @@ enum class StackID : std::uint64_t {
     SCHEDULE_STACK = 3,  /*!< Stack used for scheduling */
     SRDAG_STACK = 4,     /*!< Stack used for SRDAG graph */
     LRT_STACK = 5,       /*!< Stack used by LRTs */
-    NEW_STACK = 6,       /*!< Stack used by calls to new / delete */
+    GENERAL_STACK = 6,   /*!< General stack used for classic new / delete */
 };
 
 /**
