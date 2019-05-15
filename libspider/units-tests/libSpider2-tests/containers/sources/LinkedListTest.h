@@ -54,7 +54,11 @@ TEST(LinkedListTest, TestAdd) {
     Allocator::init(StackID::NEW_STACK, cfg);
     auto testList = LinkedList<double>(StackID::NEW_STACK);
     EXPECT_NO_THROW(testList.addHead(10.2));
+    EXPECT_EQ(testList.tail(), testList.head());
+    EXPECT_EQ(testList.tail(), testList.current());
+    EXPECT_NO_THROW(testList.remove(testList.head()));
     EXPECT_NO_THROW(testList.addTail(3.14159265358));
+    EXPECT_NO_THROW(testList.remove(testList.head()));
     EXPECT_NO_THROW(testList.addCurrent(2.71));
     EXPECT_NO_THROW(testList.~LinkedList());
     Allocator::finalize();
