@@ -48,17 +48,20 @@
 
 
 ArrayTest::ArrayTest() {
+}
+
+ArrayTest::~ArrayTest() {
+}
+
+void ArrayTest::SetUp() {
     AllocatorConfig cfg;
     cfg.allocatorType = AllocatorType::FREELIST;
     cfg.size = 512;
     Allocator::init(StackID::GENERAL_STACK, cfg);
 }
 
-ArrayTest::~ArrayTest() {
-    AllocatorConfig cfg;
-    cfg.allocatorType = AllocatorType::FREELIST;
-    cfg.size = 512;
-    Allocator::init(StackID::GENERAL_STACK, cfg);
+void ArrayTest::TearDown() {
+    Allocator::finalize();
 }
 
 TEST_F(ArrayTest, TestCreation) {
@@ -74,9 +77,17 @@ TEST_F(ArrayTest, TestAssignation) {
     EXPECT_THROW(testArray[-1] =  3.141592, SpiderException);
 }
 
+
 TEST_F(ArrayTest, TestIteration) {
     auto testArray = Array<double>(StackID::GENERAL_STACK, 10);
+    double count = 1.;
     for (auto &val : testArray) {
-        val = 3.1415926535;
+        val = 3.1415926535 + count;
+        count += 1;
+    }
+    count = 1;
+    for (const auto &val : testArray) {
+        EXPECT_EQ(val, 3.1415926535 + count);
+        count += 1;
     }
 }

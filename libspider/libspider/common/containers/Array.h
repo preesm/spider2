@@ -50,13 +50,15 @@
 template<typename T>
 class Array {
 public:
-    explicit inline Array(StackID stack, std::uint32_t size);
+    explicit inline Array(StackID stack, std::uint64_t size);
 
     inline ~Array();
 
     /* === Operators === */
 
-    T &operator[](std::uint32_t ix);
+    T &operator[](std::uint64_t ix);
+
+    T &operator[](std::uint64_t ix) const;
 
     /* === Iterator methods === */
 
@@ -67,19 +69,23 @@ public:
 
     iterator end();
 
+    const_iterator begin() const;
+
+    const_iterator end() const;
+
     /* === Getters === */
 
-    inline std::uint32_t size() const;
+    inline std::uint64_t size() const;
 
 private:
-    std::uint32_t size_;
+    std::uint64_t size_;
     T *array_;
 };
 
 /* === Inline methods === */
 
 template<typename T>
-Array<T>::Array(StackID stack, std::uint32_t size) : size_{size} {
+Array<T>::Array(StackID stack, std::uint64_t size) : size_{size} {
     array_ = Allocator::allocate<T>(stack, size);
     if (!array_) {
         throwSpiderException("Failed to allocate array.");
@@ -92,7 +98,19 @@ Array<T>::~Array() {
 }
 
 template<typename T>
-T &Array<T>::operator[](std::uint32_t ix) {
+T &Array<T>::operator[](std::uint64_t ix) {
+    if (ix >= size_) {
+        throwSpiderException("Index out of bound. Ix = %"
+                                     PRIu32
+                                     " -- Size = %"
+                                     PRIu32
+                                     "", ix, size_);
+    }
+    return array_[ix];
+}
+
+template<typename T>
+T &Array<T>::operator[](std::uint64_t ix) const {
     if (ix >= size_) {
         throwSpiderException("Index out of bound. Ix = %"
                                      PRIu32
@@ -114,7 +132,17 @@ typename Array<T>::iterator Array<T>::end() {
 }
 
 template<typename T>
-std::uint32_t Array<T>::size() const {
+typename Array<T>::const_iterator Array<T>::begin() const {
+    return array_;
+}
+
+template<typename T>
+typename Array<T>::const_iterator Array<T>::end() const {
+    return &array_[size_];
+}
+
+template<typename T>
+std::uint64_t Array<T>::size() const {
     return size_;
 }
 
