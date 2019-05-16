@@ -75,6 +75,10 @@ public:
 
     /* === Getters === */
 
+    /**
+     * @brief  Return the size of the Array.
+     * @return size of the array
+     */
     inline std::uint64_t size() const;
 
 private:
