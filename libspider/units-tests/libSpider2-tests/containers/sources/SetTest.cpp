@@ -76,25 +76,30 @@ TEST_F(SetTest, TestCreation) {
 
 
 TEST_F(SetTest, TestAssignation) {
-    auto testArray = Set<MySetElement *>(StackID::GENERAL, 10);
+    auto testSet = Set<MySetElement *>(StackID::GENERAL, 10);
     MySetElement elt;
-    EXPECT_NO_THROW(testArray.add(&elt));
-    EXPECT_NO_THROW(testArray[0] = &elt);
-    EXPECT_EQ(testArray[0], &elt);
-    EXPECT_THROW(testArray[1], SpiderException);
-    EXPECT_THROW(testArray[-1], SpiderException);
+    EXPECT_NO_THROW(testSet.add(&elt));
+    EXPECT_EQ(testSet.occupied(), 1);
+    EXPECT_NO_THROW(testSet.add(&elt));
+    EXPECT_EQ(testSet.occupied(), 1);
+    EXPECT_NO_THROW(testSet[0] = &elt);
+    EXPECT_EQ(testSet[0], &elt);
+    EXPECT_THROW(testSet[1], SpiderException);
+    EXPECT_THROW(testSet[-1], SpiderException);
 }
 
 TEST_F(SetTest, TestRemove) {
-    auto testArray = Set<MySetElement *>(StackID::GENERAL, 10);
+    auto testSet = Set<MySetElement *>(StackID::GENERAL, 10);
     MySetElement *elt = new MySetElement;
     MySetElement *elt2 = new MySetElement;
-    EXPECT_NO_THROW(testArray.add(elt));
-    EXPECT_NO_THROW(testArray.add(elt2));
-    EXPECT_NO_THROW(testArray.remove(elt));
-    EXPECT_THROW(testArray.remove(elt), SpiderException);
-    EXPECT_NO_THROW(testArray.remove(elt2));
-    EXPECT_NO_THROW(testArray.remove(elt2));
+    EXPECT_NO_THROW(testSet.add(elt));
+    EXPECT_EQ(testSet.occupied(), 1);
+    EXPECT_NO_THROW(testSet.add(elt2));
+    EXPECT_EQ(testSet.occupied(), 2);
+    EXPECT_NO_THROW(testSet.remove(elt));
+    EXPECT_THROW(testSet.remove(elt), SpiderException);
+    EXPECT_NO_THROW(testSet.remove(elt2));
+    EXPECT_NO_THROW(testSet.remove(elt2));
     delete elt;
     delete elt2;
 }

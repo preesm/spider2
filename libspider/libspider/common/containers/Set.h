@@ -48,7 +48,7 @@
 /* === Structure(s) definition === */
 
 struct SetElement {
-    std::uint32_t ix;
+    std::uint32_t ix = UINT32_MAX;
 };
 
 /* === Class definition === */
@@ -150,6 +150,9 @@ T &Set<T, EnableIfPolicy<T>>::operator[](std::uint64_t ix) const {
 template<typename T>
 void Set<T, EnableIfPolicy<T>>::add(T elt) {
     auto *setElement = (SetElement *) (elt);
+    if (setElement->ix != UINT32_MAX) {
+        return;
+    }
     setElement->ix = occupied_;
     elements_[occupied_++] = elt;
 }
