@@ -43,17 +43,18 @@
 /* === Includes === */
 
 #include <cstdint>
-
-/* === Forward declaration(s) === */
-
-class PiSDFEdge;
-
-class PiSDFVertex;
+#include <common/containers/Set.h>
+#include <graphs/pisdf/PiSDFVertex.h>
+#include <graphs/pisdf/PiSDFEdge.h>
 
 /* === Class definition === */
 
 class PiSDFGraph {
+public:
 
+private:
+    Set<PiSDFVertex *> vertexSet_;
+    Set<PiSDFEdge *> edgeSet_;
 };
 
 

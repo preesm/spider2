@@ -43,6 +43,8 @@
 /* === Includes === */
 
 #include <cstdint>
+#include <string>
+#include <common/containers/Set.h>
 
 /* === Forward declaration(s) === */
 
@@ -52,7 +54,7 @@ class PiSDFGraph;
 
 /* === Class definition === */
 
-class PiSDFEdge {
+class PiSDFEdge : public SetElement {
 public:
 
     PiSDFEdge(PiSDFGraph *graph, PiSDFVertex *source, PiSDFVertex *sink);
@@ -62,6 +64,10 @@ public:
     /* === Methods === */
 
     /* === Setters === */
+
+    inline void setSource(PiSDFVertex *vertex, std::uint32_t srcPortIx, std::string prodExpr);
+
+    inline void setSink(PiSDFVertex *vertex, std::uint32_t snkPortIx, std::string consExpr);
 
     /* === Getters ===  */
 
@@ -140,6 +146,18 @@ std::uint32_t PiSDFEdge::sourcePortIx() const {
 
 std::uint32_t PiSDFEdge::sinkPortIx() const {
     return sinkPortIx_;
+}
+
+void PiSDFEdge::setSource(PiSDFVertex *vertex, std::uint32_t srcPortIx, std::string /* prodExpr */){
+    source_ = vertex;
+    sourcePortIx_ = srcPortIx;
+    // TODO: set prod Expression
+}
+
+void PiSDFEdge::setSink(PiSDFVertex *vertex, std::uint32_t snkPortIx, std::string /* consExpr */) {
+    sink_ = vertex;
+    sinkPortIx_ = snkPortIx;
+    // TODO: set cons Expression
 }
 
 #endif //SPIDER2_PISDFEDGE_H

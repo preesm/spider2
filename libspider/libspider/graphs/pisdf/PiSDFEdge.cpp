@@ -60,3 +60,4 @@ std::uint64_t PiSDFEdge::sourceRate() const {
 std::uint64_t PiSDFEdge::sinkRate() const {
     return sinkRate_;
 }
+

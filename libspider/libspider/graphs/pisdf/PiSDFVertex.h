@@ -46,6 +46,8 @@
 #include <cinttypes>
 #include <graphs/pisdf/PiSDFTypes.h>
 #include <common/SpiderException.h>
+#include <common/containers/Array.h>
+#include <common/containers/Set.h>
 
 /* === Forward declaration(s) === */
 
@@ -57,13 +59,13 @@ class PiSDFParam;
 
 /* === Class definition === */
 
-class PiSDFVertex {
+class PiSDFVertex : public SetElement {
 public:
 
     PiSDFVertex(PiSDFGraph *graph, PiSDFType type, PiSDFSubType subType, std::uint32_t nEdgesIN,
-                std::uint32_t nEdgesOUT);
+                std::uint32_t nEdgesOUT, std::string name);
 
-    ~PiSDFVertex();
+    ~PiSDFVertex() = default;
 
     /* === Methods === */
 
@@ -141,7 +143,7 @@ public:
      * @return @refitem PiSDFEdge
      * @throw @refitem SpiderException if out of bound
      */
-    inline PiSDFEdge *inEdge(std::uint32_t ix) const;
+    inline PiSDFEdge *inputEdge(std::uint32_t ix) const;
 
     /**
      * @brief Get input edge connected to port Ix.
@@ -149,7 +151,7 @@ public:
      * @return @refitem PiSDFEdge
      * @throw @refitem SpiderException if out of bound.
      */
-    inline PiSDFEdge *outEdge(std::uint32_t ix) const;
+    inline PiSDFEdge *outputEdge(std::uint32_t ix) const;
 
     /**
      * @brief Get input edge connected to port Ix.
@@ -157,7 +159,7 @@ public:
      * @return @refitem PiSDFParam
      * @throw @refitem SpiderException if out of bound.
      */
-    inline PiSDFParam *inParam(std::uint32_t ix) const;
+    inline PiSDFParam *inputParam(std::uint32_t ix) const;
 
     /**
      * @brief Get input edge connected to port Ix.
@@ -165,7 +167,19 @@ public:
      * @return @refitem PiSDFParam
      * @throw @refitem SpiderException if out of bound.
      */
-    inline PiSDFParam *outParam(std::uint32_t ix) const;
+    inline PiSDFParam *outputParam(std::uint32_t ix) const;
+
+    /**
+     * @brief A const reference on the array of input edges. Useful for iterating on the edges.
+     * @return const reference to input edge array
+     */
+    inline const Array<PiSDFEdge *> &inputEdges() const;
+
+    /**
+     * @brief A const reference on the array of output edges. Useful for iterating on the edges.
+     * @return const reference to output edge array
+     */
+    inline const Array<PiSDFEdge *> &outputEdges() const;
 
 private:
     PiSDFGraph *graph_ = nullptr;
@@ -179,8 +193,8 @@ private:
     std::uint32_t nParamsIN_ = 0;
     std::uint32_t nParamsOUT_ = 0;
 
-    PiSDFEdge **inputEdgeList_;
-    PiSDFEdge **outputEdgeList_;
+    Array<PiSDFEdge *> inputEdgeArray_;
+    Array<PiSDFEdge *> outputEdgeArray_;
 };
 
 /* === Inline methods === */
@@ -192,12 +206,12 @@ void PiSDFVertex::setInputEdge(PiSDFEdge *edge, std::uint32_t ix) {
                                      " -- Max: %"
                                      PRIu32
                                      ".", ix, nEdgesIN_);
-    } else if (inputEdgeList_[ix]) {
+    } else if (inputEdgeArray_[ix]) {
         throwSpiderException("Already existing input edge at ix: %"
                                      PRIu32
                                      ".", ix);
     }
-    inputEdgeList_[ix] = edge;
+    inputEdgeArray_[ix] = edge;
 }
 
 void PiSDFVertex::setOutputEdge(PiSDFEdge *edge, std::uint32_t ix) {
@@ -207,12 +221,12 @@ void PiSDFVertex::setOutputEdge(PiSDFEdge *edge, std::uint32_t ix) {
                                      " -- Max: %"
                                      PRIu32
                                      ".", ix, nEdgesOUT_);
-    } else if (outputEdgeList_[ix]) {
+    } else if (outputEdgeArray_[ix]) {
         throwSpiderException("Already existing output edge at ix: %"
                                      PRIu32
                                      ".", ix);
     }
-    outputEdgeList_[ix] = edge;
+    outputEdgeArray_[ix] = edge;
 }
 
 PiSDFGraph *PiSDFVertex::containingGraph() const {
@@ -247,7 +261,7 @@ PiSDFSubType PiSDFVertex::subType() const {
     return subType_;
 }
 
-PiSDFEdge *PiSDFVertex::inEdge(std::uint32_t ix) const {
+PiSDFEdge *PiSDFVertex::inputEdge(std::uint32_t ix) const {
     if (ix >= nEdgesIN_) {
         throwSpiderException("Index out of bound: %"
                                      PRIu32
@@ -255,10 +269,10 @@ PiSDFEdge *PiSDFVertex::inEdge(std::uint32_t ix) const {
                                      PRIu32
                                      ".", ix, nEdgesIN_);
     }
-    return inputEdgeList_[ix];
+    return inputEdgeArray_[ix];
 }
 
-PiSDFEdge *PiSDFVertex::outEdge(std::uint32_t ix) const {
+PiSDFEdge *PiSDFVertex::outputEdge(std::uint32_t ix) const {
     if (ix >= nEdgesOUT_) {
         throwSpiderException("Index out of bound: %"
                                      PRIu32
@@ -266,10 +280,10 @@ PiSDFEdge *PiSDFVertex::outEdge(std::uint32_t ix) const {
                                      PRIu32
                                      ".", ix, nEdgesOUT_);
     }
-    return outputEdgeList_[ix];
+    return outputEdgeArray_[ix];
 }
 
-PiSDFParam *PiSDFVertex::inParam(std::uint32_t ix) const {
+PiSDFParam *PiSDFVertex::inputParam(std::uint32_t ix) const {
     if (ix >= nParamsIN_) {
         throwSpiderException("Index out of bound: %"
                                      PRIu32
@@ -280,7 +294,7 @@ PiSDFParam *PiSDFVertex::inParam(std::uint32_t ix) const {
     return nullptr;
 }
 
-PiSDFParam *PiSDFVertex::outParam(std::uint32_t ix) const {
+PiSDFParam *PiSDFVertex::outputParam(std::uint32_t ix) const {
     if (ix >= nParamsOUT_) {
         throwSpiderException("Index out of bound: %"
                                      PRIu32
@@ -289,6 +303,14 @@ PiSDFParam *PiSDFVertex::outParam(std::uint32_t ix) const {
                                      ".", ix, nParamsOUT_);
     }
     return nullptr;
+}
+
+const Array<PiSDFEdge *> &PiSDFVertex::inputEdges() const {
+    return inputEdgeArray_;
+}
+
+const Array<PiSDFEdge *> &PiSDFVertex::outputEdges() const {
+    return inputEdgeArray_;
 }
 
 #endif //SPIDER2_PISDFVERTEX_H
