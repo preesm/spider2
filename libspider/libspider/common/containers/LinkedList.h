@@ -69,7 +69,9 @@ public:
 
     /* === Operators === */
 
-    NodeList<T> *operator[](std::uint32_t ix);
+    NodeList<T> *operator[](std::uint64_t ix);
+
+    NodeList<T> *operator[](std::uint64_t ix) const;
 
     /* === Methods === */
 
@@ -147,7 +149,7 @@ public:
      * @brief Get the size of the LinkedList.
      * @return size of the list.
      */
-    inline std::uint32_t size() const;
+    inline std::uint64_t size() const;
 
 private:
     NodeList<T> *head_ = nullptr;
@@ -155,7 +157,7 @@ private:
     NodeList<T> *tail_ = nullptr;
 
     StackID stack_;
-    std::uint32_t size_ = 0;
+    std::uint64_t size_ = 0;
 
     inline NodeList<T> *newNodeList(T &val, NodeList<T> *prev = nullptr, NodeList<T> *next = nullptr) const;
 };
@@ -177,21 +179,26 @@ LinkedList<T>::~LinkedList() {
 }
 
 template<class T>
-inline NodeList<T> *LinkedList<T>::operator[](std::uint32_t ix) {
+inline NodeList<T> *LinkedList<T>::operator[](std::uint64_t ix) {
     if (ix >= size_) {
         throwSpiderException("Accesing unitialized element. Ix = %"
-                                     PRIu32
+                                     PRIu64
                                      " -- Size = %"
-                                     PRIu32
+                                     PRIu64
                                      "", ix, size_);
     }
-    std::uint32_t i = 0;
+    std::uint64_t i = 0;
     auto *current = head_;
     while (i < ix) {
         current = current->next;
         i++;
     }
     return current;
+}
+
+template<class T>
+inline NodeList<T> *LinkedList<T>::operator[](std::uint64_t ix) const {
+    return operator[](ix);
 }
 
 template<typename T>
@@ -311,7 +318,7 @@ NodeList<T> *LinkedList<T>::current() const {
 }
 
 template<typename T>
-std::uint32_t LinkedList<T>::size() const {
+std::uint64_t LinkedList<T>::size() const {
     return size_;
 }
 
