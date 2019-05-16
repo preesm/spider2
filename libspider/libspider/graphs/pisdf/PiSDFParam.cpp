@@ -43,3 +43,28 @@
 #include "PiSDFParam.h"
 
 /* === Methods implementation === */
+
+PiSDFParam::PiSDFParam(std::string name,
+                       std::string expression,
+                       PiSDFParamType type,
+                       PiSDFGraph *graph) : graph_{graph},
+                                            name_{std::move(name)},
+                                            type_{type},
+                                            dependencies_(StackID::PISDF, 0) {
+
+}
+
+PiSDFParam::PiSDFParam(std::string name,
+                       std::string expression,
+                       PiSDFParamType type,
+                       PiSDFGraph *graph,
+                       std::initializer_list<PiSDFParam *> dependencies) : graph_{graph},
+                                                                           name_{std::move(name)},
+                                                                           type_{type},
+                                                                           dependencies_(StackID::PISDF,
+                                                                                         dependencies.size()) {
+    std::uint32_t i = 0;
+    for (auto &v: dependencies) {
+        dependencies_[i++] = v;
+    }
+}

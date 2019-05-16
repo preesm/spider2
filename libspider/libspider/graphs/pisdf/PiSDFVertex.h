@@ -98,7 +98,7 @@ public:
     /* === Getters ===  */
 
     /**
-     * @brief Get the containing @refitem PiSDFGraph of the edge.
+     * @brief Get the containing @refitem PiSDFGraph of the vertex.
      * @return containing @refitem PiSDFGraph
      */
     inline PiSDFGraph *containingGraph() const;

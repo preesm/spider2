@@ -43,12 +43,151 @@
 /* === Includes === */
 
 #include <cstdint>
+#include <common/containers/Array.h>
+#include <common/containers/Set.h>
+#include "PiSDFTypes.h"
+
+/* === Type declarations === */
+
+using Param = std::int64_t;
+
+/* === Forward declaration(s) === */
+
+class PiSDFGraph;
+
+class PiSDFVertex;
 
 /* === Class definition === */
 
-class PiSDFParam {
+class PiSDFParam : public SetElement {
+public:
 
+    PiSDFParam(std::string name,
+               std::string expression,
+               PiSDFParamType type,
+               PiSDFGraph *graph);
+
+    PiSDFParam(std::string name,
+               std::string expression,
+               PiSDFParamType type,
+               PiSDFGraph *graph,
+               std::initializer_list<PiSDFParam *> dependencies);
+
+    ~PiSDFParam() = default;
+
+
+    /* === Methods === */
+
+    /**
+     * @brief Get the dynamic property of the parameter.
+     * @return true if parameter is dynamic, false else.
+     */
+    inline bool isDynamic() const;
+
+    /* === Setters === */
+
+    /**
+     * @brief Set the inherited parameter.
+     * @param param Parameter to the set.
+     */
+    inline void setInheritedParameter(PiSDFParam *param);
+
+    /* === Getters === */
+
+    /**
+   * @brief Get the containing @refitem PiSDFGraph of the parameter.
+   * @return containing @refitem PiSDFGraph
+   */
+    inline PiSDFGraph *containingGraph() const;
+
+    /**
+     * @brief Get the string of the name of the parameter.
+     * @return name of the parameter
+     */
+    inline std::string name() const;
+
+    /**
+     * @brief Get the vertex setting the value of the parameter (if any).
+     * @return Vertex setting the parameter, nullptr else.
+     */
+    inline PiSDFVertex *setter() const;
+
+    /**
+     * @brief Get the value of the parameter (evaluate the Expression if needed).
+     * @remark For dynamic parameters, it is up to the user to evaluate expression after parameter resolution.
+     * @return Value of the parameter.
+     */
+    inline Param value() const;
+
+    /**
+     * @brief Get the @refitem PiSDFParamType of the parameter.
+     * @return type of the parameter.
+     */
+    inline PiSDFParamType type() const;
+
+private:
+    /**
+     * @brief Containing graph of the parameter.
+     */
+    PiSDFGraph *graph_ = nullptr;
+
+    /**
+     * @brief Name of the parameter within its containing graph.
+     */
+    std::string name_ = "unnamed-parameter";
+
+    /**
+     * @brief Parameter Type (STATIC, DYNAMIC, HERITED).
+     */
+    PiSDFParamType type_ = PiSDFParamType::STATIC;
+
+    /**
+     * @brief Vertex setting the parameter's value if it is of type DYNAMIC.
+     */
+    PiSDFVertex *setter_ = nullptr;
+
+    /**
+    * @brief Pointer to original parameter if parameter if of type HERITED.
+    */
+    PiSDFParam *inheritedParam_ = nullptr;
+
+    /**
+     * @brief Vector of parameter dependencies (in the case of a dynamic dependent parameter)
+     */
+    Array<PiSDFParam *> dependencies_;
 };
 
+/* === Inline Methods === */
+
+bool PiSDFParam::isDynamic() const {
+    return type_ == PiSDFParamType::DYNAMIC;
+}
+
+void PiSDFParam::setInheritedParameter(PiSDFParam *param) {
+    inheritedParam_ = param;
+}
+
+PiSDFGraph *PiSDFParam::containingGraph() const {
+    return graph_;
+}
+
+std::string PiSDFParam::name() const {
+    return name_;
+}
+
+PiSDFVertex *PiSDFParam::setter() const {
+    return setter_;
+}
+
+Param PiSDFParam::value() const {
+    if (inheritedParam_) {
+        return inheritedParam_->value();
+    }
+    return 0;
+}
+
+PiSDFParamType PiSDFParam::type() const {
+    return type_;
+}
 
 #endif //SPIDER2_PISDFPARAM_H
