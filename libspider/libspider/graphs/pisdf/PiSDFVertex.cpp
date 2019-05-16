@@ -67,3 +67,21 @@ PiSDFVertex::PiSDFVertex(PiSDFGraph *graph,
         outputEdgeArray_[i] = nullptr;
     }
 }
+
+void PiSDFVertex::setSubGraph(PiSDFGraph *subgraph) {
+    if (subgraph_) {
+        throwSpiderException("Vertex [%s] already has a subgraph.", name_.c_str());
+    }
+    if (!subgraph) {
+        throwSpiderException("Trying to set nullptr subgraph to vertex [%s]", name_.c_str());
+    }
+    hierarchical_ = true;
+    subgraph_ = subgraph;
+    if (subgraph->parentVertex() != this) {
+        subgraph->setParentVertex(this);
+    }
+    if (!graph_) {
+        throwSpiderException("Vertex [%s] is not part of any graph.", name_.c_str());
+    }
+    graph_->addSubGraph(this);
+}

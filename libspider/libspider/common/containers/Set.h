@@ -170,8 +170,8 @@ void Set<T, EnableIfPolicy<T>>::remove(T elt) {
 
 template<typename T>
 bool Set<T, EnableIfPolicy<T>>::contains(T elt) {
-    for (const auto &e: this) {
-        if (e == elt) {
+    for (auto e = begin(); e != end(); ++e) {
+        if (*e == elt) {
             return true;
         }
     }

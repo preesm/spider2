@@ -43,3 +43,29 @@
 #include "PiSDFGraph.h"
 
 /* === Methods implementation === */
+
+void PiSDFGraph::removeVertex(PiSDFVertex *vertex) {
+    if (!vertex) {
+        return;
+    }
+    if (!vertexSet_.contains(vertex)) {
+        throwSpiderException("Trying to remove a vertex [%s] that don't belong to this graph.", vertex->name().c_str());
+    }
+    if (vertex->isHierarchical()) {
+        auto *subGraph = vertex->subGraph();
+        subgraphList_.removeFromValue(subGraph);
+        Allocator::destroy(subGraph);
+        Allocator::deallocate(subGraph);
+    }
+    vertexSet_.remove(vertex);
+    Allocator::destroy(vertex);
+    Allocator::deallocate(vertex);
+}
+
+void PiSDFGraph::addSubGraph(PiSDFVertex *vertex) {
+    if (!vertex->isHierarchical()) {
+        throwSpiderException("Can not add subgraph from non hierarchical vertex.");
+    }
+    auto *subgraph = vertex->subGraph();
+    subgraphList_.addTail(subgraph);
+}

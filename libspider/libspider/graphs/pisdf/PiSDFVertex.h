@@ -87,6 +87,14 @@ public:
      */
     inline void setOutputEdge(PiSDFEdge *edge, std::uint32_t ix);
 
+    /**
+     * @brief Set the subgraph of a hierarchical vertex.
+     * @remark This method calls @refitem setParentVertex of the  @refitem PiSDFGraph class.
+     * @param subgraph The subgraph to set.
+     * @throw @refitem SpiderException if vertex already has a subgraph or nullptr.
+     */
+    void setSubGraph(PiSDFGraph *subgraph);
+
     /* === Getters ===  */
 
     /**
@@ -181,6 +189,18 @@ public:
      */
     inline const Array<PiSDFEdge *> &outputEdges() const;
 
+    /**
+     * @brief Get the hierarchical property of the vertex.
+     * @return true if vertex is hierarchical, false else;
+     */
+    inline bool isHierarchical() const;
+
+    /**
+     * @brief Get the subgraph attached to the vertex.
+     * @return Subgraph, nullptr if vertex is not hierarchical.
+     */
+    inline PiSDFGraph *subGraph() const;
+
 private:
     PiSDFGraph *graph_ = nullptr;
     std::string name_ = "unnamed-vertex";
@@ -195,6 +215,9 @@ private:
 
     Array<PiSDFEdge *> inputEdgeArray_;
     Array<PiSDFEdge *> outputEdgeArray_;
+
+    bool hierarchical_ = false;
+    PiSDFGraph *subgraph_ = nullptr;
 };
 
 /* === Inline methods === */
@@ -311,6 +334,14 @@ const Array<PiSDFEdge *> &PiSDFVertex::inputEdges() const {
 
 const Array<PiSDFEdge *> &PiSDFVertex::outputEdges() const {
     return inputEdgeArray_;
+}
+
+bool PiSDFVertex::isHierarchical() const {
+    return hierarchical_;
+}
+
+PiSDFGraph *PiSDFVertex::subGraph() const {
+    return subgraph_;
 }
 
 #endif //SPIDER2_PISDFVERTEX_H

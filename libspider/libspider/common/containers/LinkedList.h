@@ -125,6 +125,12 @@ public:
      */
     inline void remove(NodeList<T> *node);
 
+    /**
+     * @brief Remove the first @refitem NodeList whose value is equal to val.
+     * @param val Value to remove.
+     */
+    inline void removeFromValue(T val);
+
     /* === Getters === */
 
     /**
@@ -300,6 +306,18 @@ void LinkedList<T>::remove(NodeList<T> *node) {
             head_ = current_ = tail_ = nullptr;
         }
     }
+}
+
+template<typename T>
+void LinkedList<T>::removeFromValue(T val) {
+    auto *node = head_;
+    do {
+        if (node->value == val) {
+            remove(node);
+            return;
+        }
+        node = node->next;
+    } while (node != head_);
 }
 
 template<typename T>
