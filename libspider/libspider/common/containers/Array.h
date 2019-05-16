@@ -43,6 +43,7 @@
 /* === Includes === */
 
 #include <cstdint>
+#include <vector>
 #include <common/memory/Allocator.h>
 
 /* === Class definition === */
@@ -72,6 +73,16 @@ public:
     const_iterator begin() const;
 
     const_iterator end() const;
+
+    /* === Setters === */
+
+    /**
+     * @brief Set the values of the array from a vector.
+     * @param values   Vector of values to set.
+     * @param offset   Offset from which values are added (0 by default).
+     * @throw @refitem SpiderException if sizes do not match.
+     */
+    inline void setValues(std::vector<T> &values, std::uint32_t offset = 0);
 
     /* === Getters === */
 
@@ -143,6 +154,21 @@ typename Array<T>::const_iterator Array<T>::begin() const {
 template<typename T>
 typename Array<T>::const_iterator Array<T>::end() const {
     return &array_[size_];
+}
+
+template<typename T>
+void Array<T>::setValues(std::vector<T> &values, uint32_t offset) {
+    if (values.size() + offset > size_) {
+        throwSpiderException("Size of the vector %"
+                                     PRIu64
+                                     " do not match size of the Array %"
+                                     PRIu64
+                                     "", values.size(), size_);
+    }
+    std::uint32_t i = offset;
+    for (auto &v: values) {
+        array_[i++] = v;
+    }
 }
 
 template<typename T>
