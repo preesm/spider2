@@ -55,13 +55,13 @@
  * @brief Stack ids
  */
 enum class StackID : std::uint64_t {
-    PISDF_STACK = 0,     /*!< Stack used for PISDF graph (should be static) */
-    ARCHI_STACK = 1,     /*!< Stack used for architecture (should be static) */
-    TRANSFO_STACK = 2,   /*!< Stack used for graph transformations */
-    SCHEDULE_STACK = 3,  /*!< Stack used for scheduling */
-    SRDAG_STACK = 4,     /*!< Stack used for SRDAG graph */
-    LRT_STACK = 5,       /*!< Stack used by LRTs */
-    GENERAL_STACK = 6,   /*!< General stack used for classic new / delete */
+    PISDF = 0,     /*!< Stack used for PISDF graph (should be static) */
+    ARCHI = 1,     /*!< Stack used for architecture (should be static) */
+    TRANSFO = 2,   /*!< Stack used for graph transformations */
+    SCHEDULE = 3,  /*!< Stack used for scheduling */
+    SRDAG = 4,     /*!< Stack used for SRDAG graph */
+    LRT = 5,       /*!< Stack used by LRTs */
+    GENERAL = 6,   /*!< General stack used for classic new / delete */
 };
 
 /**

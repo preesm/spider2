@@ -57,7 +57,7 @@ void SetTest::SetUp() {
     AllocatorConfig cfg;
     cfg.allocatorType = AllocatorType::FREELIST;
     cfg.size = 512;
-    Allocator::init(StackID::GENERAL_STACK, cfg);
+    Allocator::init(StackID::GENERAL, cfg);
 }
 
 void SetTest::TearDown() {
@@ -70,13 +70,13 @@ public:
 };
 
 TEST_F(SetTest, TestCreation) {
-    EXPECT_THROW(Set<MySetElement>(StackID::GENERAL_STACK, 10), SpiderException);
-    EXPECT_NO_THROW(Set<MySetElement *>(StackID::GENERAL_STACK, 10));
+    EXPECT_THROW(Set<MySetElement>(StackID::GENERAL, 10), SpiderException);
+    EXPECT_NO_THROW(Set<MySetElement *>(StackID::GENERAL, 10));
 }
 
 
 TEST_F(SetTest, TestAssignation) {
-    auto testArray = Set<MySetElement *>(StackID::GENERAL_STACK, 10);
+    auto testArray = Set<MySetElement *>(StackID::GENERAL, 10);
     MySetElement elt;
     EXPECT_NO_THROW(testArray.add(&elt));
     EXPECT_NO_THROW(testArray[0] = &elt);
@@ -86,7 +86,7 @@ TEST_F(SetTest, TestAssignation) {
 }
 
 TEST_F(SetTest, TestRemove) {
-    auto testArray = Set<MySetElement *>(StackID::GENERAL_STACK, 10);
+    auto testArray = Set<MySetElement *>(StackID::GENERAL, 10);
     MySetElement *elt = new MySetElement;
     MySetElement *elt2 = new MySetElement;
     EXPECT_NO_THROW(testArray.add(elt));
@@ -101,7 +101,7 @@ TEST_F(SetTest, TestRemove) {
 
 
 TEST_F(SetTest, TestIteration) {
-    auto testSet = Set<MySetElement *>(StackID::GENERAL_STACK, 10);
+    auto testSet = Set<MySetElement *>(StackID::GENERAL, 10);
     MySetElement count;
     count.value = 0.;
     EXPECT_EQ(testSet.size(), 10);
