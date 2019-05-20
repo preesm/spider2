@@ -51,7 +51,7 @@ GenericAllocator::GenericAllocator(const char *name, int32_t alignment) : Dynami
     }
 }
 
-void *GenericAllocator::alloc(std::uint64_t size) {
+void *GenericAllocator::allocate(std::uint64_t size) {
     if (!size) {
         return nullptr;
     }
@@ -71,7 +71,7 @@ void *GenericAllocator::alloc(std::uint64_t size) {
     return headerAddress + sizeof(std::uint64_t);
 }
 
-void GenericAllocator::dealloc(void *ptr) {
+void GenericAllocator::deallocate(void *ptr) {
     if (!ptr) {
         return;
     }

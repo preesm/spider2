@@ -70,7 +70,7 @@ FreeListAllocator::~FreeListAllocator() {
     }
 }
 
-void *FreeListAllocator::alloc(std::uint64_t size) {
+void *FreeListAllocator::allocate(std::uint64_t size) {
     if (!size) {
         return nullptr;
     }
@@ -126,7 +126,7 @@ void *FreeListAllocator::alloc(std::uint64_t size) {
     return dataAddress;
 }
 
-void FreeListAllocator::dealloc(void *ptr) {
+void FreeListAllocator::deallocate(void *ptr) {
     if (!ptr) {
         return;
     }
@@ -268,7 +268,7 @@ FreeListAllocator::findBest(std::uint64_t &size, std::int32_t &padding, std::int
 
 void FreeListAllocator::checkPointerAddress(void *ptr) {
     if (used_ == 0) {
-        throwSpiderException("Trying to dealloc unallocated memory block.");
+        throwSpiderException("Trying to deallocate unallocated memory block.");
     }
     for (auto &it: extraBuffers_) {
         if ((char *) (ptr) >= it.bufferPtr_ &&
@@ -278,7 +278,7 @@ void FreeListAllocator::checkPointerAddress(void *ptr) {
     }
     if ((char *) (ptr) < staticBufferPtr_ ||
         (char *) (ptr) > (staticBufferPtr_ + staticBufferSize_)) {
-        throwSpiderException("Trying to dealloc memory block out of memory space.");
+        throwSpiderException("Trying to deallocate memory block out of memory space.");
     }
 }
 

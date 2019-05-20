@@ -37,32 +37,9 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_DYNAMICALLOCATOR_H
-#define SPIDER2_DYNAMICALLOCATOR_H
 
 /* === Includes === */
 
-#include "AbstractAllocator.h"
+#include "RPNConverter.h"
 
-/* === Class definition === */
-
-class DynamicAllocator : public AbstractAllocator {
-public:
-    void *allocate(std::uint64_t size) override = 0;
-
-    void deallocate(void *ptr) override = 0;
-
-    virtual void reset() = 0;
-
-protected:
-
-    inline explicit DynamicAllocator(const char *name, std::int32_t alignment = 0);
-};
-
-/* === Inline methods === */
-
-DynamicAllocator::DynamicAllocator(const char *name, int32_t alignment) : AbstractAllocator(name, alignment) {
-
-}
-
-#endif //SPIDER2_DYNAMICALLOCATOR_H
+/* === Methods implementation === */

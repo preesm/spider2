@@ -54,12 +54,12 @@ void PiSDFGraph::removeVertex(PiSDFVertex *vertex) {
     if (vertex->isHierarchical()) {
         auto *subGraph = vertex->subGraph();
         subgraphList_.removeFromValue(subGraph);
-        Allocator::destroy(subGraph);
-        Allocator::deallocate(subGraph);
+        Spider::destroy(subGraph);
+        Spider::deallocate(subGraph);
     }
     vertexSet_.remove(vertex);
-    Allocator::destroy(vertex);
-    Allocator::deallocate(vertex);
+    Spider::destroy(vertex);
+    Spider::deallocate(vertex);
 }
 
 void PiSDFGraph::addSubGraph(PiSDFVertex *vertex) {

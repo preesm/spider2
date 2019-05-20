@@ -57,11 +57,11 @@ void SetTest::SetUp() {
     AllocatorConfig cfg;
     cfg.allocatorType = AllocatorType::FREELIST;
     cfg.size = 512;
-    Allocator::init(StackID::GENERAL, cfg);
+    Spider::initAllocator(StackID::GENERAL, cfg);
 }
 
 void SetTest::TearDown() {
-    Allocator::finalize();
+    Spider::finalizeAllocator();
 }
 
 class MySetElement : public SetElement {

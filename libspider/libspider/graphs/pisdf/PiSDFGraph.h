@@ -46,6 +46,7 @@
 #include <common/containers/Set.h>
 #include <graphs/pisdf/PiSDFVertex.h>
 #include <graphs/pisdf/PiSDFEdge.h>
+#include <graphs/pisdf/PiSDFParam.h>
 #include <common/containers/LinkedList.h>
 
 /* === Routine declaration(s) === */
@@ -93,6 +94,13 @@ public:
      * @throw @refitem SpiderException if edge does not exist in the graph.
      */
     inline void removeEdge(PiSDFEdge *edge);
+
+    /**
+     * @brief Retrieve a parameter from its name.
+     * @param name Name of the parameter.
+     * @return pointer to the @refitem PiSDFParam if found, nullptr else.
+     */
+    inline PiSDFParam *findParam(std::string name) const;
 
     /* === Setters === */
 
@@ -180,6 +188,12 @@ public:
     inline const Set<PiSDFEdge *> edges() const;
 
     /**
+    * @brief A const reference on the set of params. Useful for iterating on the params.
+    * @return const reference to param set
+    */
+    inline const Set<PiSDFParam *> params() const;
+
+    /**
      * @brief A const reference to the LinkedList of subgraph. Useful for iterating on the subgraphs.
      * @return const reference to subgraph LinkedList.
      */
@@ -194,6 +208,7 @@ private:
     Set<PiSDFVertex *> inputInterfaceSet_;
     Set<PiSDFVertex *> outputInterfaceSet_;
     Set<PiSDFEdge *> edgeSet_;
+    Set<PiSDFParam *> paramSet_;
 };
 
 /* === Inline methods === */
@@ -223,8 +238,17 @@ void PiSDFGraph::removeEdge(PiSDFEdge *edge) {
         throwSpiderException("Trying to remove an edge not from this graph.");
     }
     edgeSet_.remove(edge);
-    Allocator::destroy(edge);
-    Allocator::deallocate(edge);
+    Spider::destroy(edge);
+    Spider::deallocate(edge);
+}
+
+PiSDFParam *PiSDFGraph::findParam(std::string name) const {
+    for (auto &p : paramSet_) {
+        if (p->name() == name) {
+            return p;
+        }
+    }
+    return nullptr;
 }
 
 void PiSDFGraph::setParentVertex(PiSDFVertex *vertex) {
@@ -286,6 +310,10 @@ const Set<PiSDFVertex *> PiSDFGraph::outputInterfaces() const {
 
 const Set<PiSDFEdge *> PiSDFGraph::edges() const {
     return edgeSet_;
+}
+
+const Set<PiSDFParam *> PiSDFGraph::params() const {
+    return paramSet_;
 }
 
 const LinkedList<PiSDFGraph *> PiSDFGraph::subgraphs() const {

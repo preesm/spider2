@@ -68,13 +68,13 @@ public:
      * @param size Size of the buffer to allocate
      * @return pointer to allocated memory, nullptr on failure or if size is 0
      */
-    virtual void *alloc(std::uint64_t size) = 0;
+    virtual void *allocate(std::uint64_t size) = 0;
 
     /**
      * @brief Free a memory buffer.
      * @param ptr Memory address to be freed
      */
-    virtual void dealloc(void *ptr) = 0;
+    virtual void deallocate(void *ptr) = 0;
 
     /* Setters */
 
@@ -200,6 +200,7 @@ AbstractAllocator::~AbstractAllocator() {
                       AbstractAllocator::getByteNormalizedSize(used_),
                       AbstractAllocator::getByteUnitString(used_));
     }
+    printStats();
 }
 
 #endif //SPIDER2_ABSTRACTALLOCATOR_H

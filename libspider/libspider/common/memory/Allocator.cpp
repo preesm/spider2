@@ -53,11 +53,11 @@ static AbstractAllocator *allocatorArray[NB_ALLOCATORS] = {nullptr};
 
 /* === Methods implementation === */
 
-AbstractAllocator *&Allocator::getAllocator(std::uint64_t stack) {
+AbstractAllocator *&Spider::getAllocator(std::uint64_t stack) {
     return allocatorArray[stack];
 }
 
-void Allocator::init(StackID stack, AllocatorConfig cfg) {
+void Spider::initAllocator(StackID stack, AllocatorConfig cfg) {
     auto *&allocator = getAllocator(static_cast<std::uint64_t>(stack));
     if (!allocator) {
         switch (cfg.allocatorType) {
@@ -82,20 +82,20 @@ void Allocator::init(StackID stack, AllocatorConfig cfg) {
     }
 }
 
-void Allocator::finalize() {
+void Spider::finalizeAllocator() {
     for (auto *&allocator : allocatorArray) {
         delete allocator;
         allocator = nullptr;
     }
 }
 
-void Allocator::deallocate(void *ptr) {
+void Spider::deallocate(void *ptr) {
     if (ptr) {
         /* 0. Retrieve stack id */
         auto *originalPtr = ((char *) ptr - sizeof(std::uint64_t));
         auto stackId = static_cast<StackID>(((std::uint64_t *) (originalPtr))[0]);
         /* 1. Deallocate the pointer */
         auto *&allocator = getAllocator(static_cast<std::uint64_t>(stackId));
-        allocator->dealloc(ptr);
+        allocator->deallocate(ptr);
     }
 }

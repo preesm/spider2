@@ -54,9 +54,9 @@ public:
 
     ~LinearStaticAllocator() override = default;
 
-    void *alloc(std::uint64_t size) override;
+    void *allocate(std::uint64_t size) override;
 
-    void dealloc(void *ptr) override;
+    void deallocate(void *ptr) override;
 
     void reset() override;
 

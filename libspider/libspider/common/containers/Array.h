@@ -101,7 +101,7 @@ private:
 
 template<typename T>
 Array<T>::Array(StackID stack, std::uint64_t size) : size_{size} {
-    array_ = Allocator::allocate<T>(stack, size);
+    array_ = Spider::allocate<T>(stack, size);
     if (!array_) {
         throwSpiderException("Failed to allocate array.");
     }
@@ -109,7 +109,7 @@ Array<T>::Array(StackID stack, std::uint64_t size) : size_{size} {
 
 template<typename T>
 Array<T>::~Array() {
-    Allocator::deallocate(array_);
+    Spider::deallocate(array_);
 }
 
 template<typename T>

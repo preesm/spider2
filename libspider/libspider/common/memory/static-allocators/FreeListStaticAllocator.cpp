@@ -60,7 +60,7 @@ FreeListStaticAllocator::FreeListStaticAllocator(const char *name,
     }
 }
 
-void *FreeListStaticAllocator::alloc(std::uint64_t size) {
+void *FreeListStaticAllocator::allocate(std::uint64_t size) {
     if (!size) {
         return nullptr;
     }
@@ -99,7 +99,7 @@ void *FreeListStaticAllocator::alloc(std::uint64_t size) {
     return dataAddress;
 }
 
-void FreeListStaticAllocator::dealloc(void *ptr) {
+void FreeListStaticAllocator::deallocate(void *ptr) {
     if (!ptr) {
         return;
     }

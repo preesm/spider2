@@ -48,9 +48,9 @@
 
 class StaticAllocator : public AbstractAllocator {
 public:
-    void *alloc(std::uint64_t size) override = 0;
+    void *allocate(std::uint64_t size) override = 0;
 
-    void dealloc(void *ptr) override = 0;
+    void deallocate(void *ptr) override = 0;
 
     virtual void reset() = 0;
 
@@ -83,11 +83,11 @@ StaticAllocator::StaticAllocator(const char *name, std::uint64_t totalSize, std:
 
 void StaticAllocator::checkPointerAddress(void *ptr) const {
     if ((char *) (ptr) < startPtr_) {
-        throwSpiderException("Trying to dealloc unallocated memory block.");
+        throwSpiderException("Trying to deallocate unallocated memory block.");
     }
 
     if ((char *) (ptr) > startPtr_ + totalSize_) {
-        throwSpiderException("Trying to dealloc memory block out of memory space.");
+        throwSpiderException("Trying to deallocate memory block out of memory space.");
     }
 }
 

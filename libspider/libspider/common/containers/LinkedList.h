@@ -300,7 +300,7 @@ void LinkedList<T>::remove(NodeList<T> *node) {
         }
         nextNode->previous = previousNode;
         previousNode->next = nextNode;
-        Allocator::deallocate(node);
+        Spider::deallocate(node);
         size_--;
         if (!size_) {
             head_ = current_ = tail_ = nullptr;
@@ -352,7 +352,7 @@ std::uint64_t LinkedList<T>::size() const {
  */
 template<typename T>
 NodeList<T> *LinkedList<T>::newNodeList(T &val, NodeList<T> *prev, NodeList<T> *next) const {
-    auto *node = Allocator::allocate<NodeList<T> >(stack_);
+    auto *node = Spider::allocate<NodeList<T> >(stack_);
     node->value = val;
     node->previous = prev;
     node->next = next;
