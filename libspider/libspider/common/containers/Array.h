@@ -48,133 +48,134 @@
 
 /* === Class definition === */
 
-template<typename T>
-class Array {
-public:
-    explicit inline Array(StackID stack, std::uint64_t size);
+namespace Spider {
 
-    inline ~Array();
+    template<typename T>
+    class Array {
+    public:
+        explicit inline Array(StackID stack, std::uint64_t size);
 
-    /* === Operators === */
+        inline ~Array();
 
-    T &operator[](std::uint64_t ix);
+        /* === Operators === */
 
-    T &operator[](std::uint64_t ix) const;
+        T &operator[](std::uint64_t ix);
 
-    /* === Iterator methods === */
+        T &operator[](std::uint64_t ix) const;
 
-    typedef T *iterator;
-    typedef const T *const_iterator;
+        /* === Iterator methods === */
 
-    iterator begin();
+        typedef T *iterator;
+        typedef const T *const_iterator;
 
-    iterator end();
+        iterator begin();
 
-    const_iterator begin() const;
+        iterator end();
 
-    const_iterator end() const;
+        const_iterator begin() const;
 
-    /* === Setters === */
+        const_iterator end() const;
 
-    /**
-     * @brief Set the values of the array from a vector.
-     * @param values   Vector of values to set.
-     * @param offset   Offset from which values are added (0 by default).
-     * @throw @refitem SpiderException if sizes do not match.
-     */
-    inline void setValues(std::vector<T> &values, std::uint32_t offset = 0);
+        /* === Setters === */
 
-    /* === Getters === */
+        /**
+         * @brief Set the values of the array from a vector.
+         * @param values   Vector of values to set.
+         * @param offset   Offset from which values are added (0 by default).
+         * @throw @refitem SpiderException if sizes do not match.
+         */
+        inline void setValues(std::vector<T> &values, std::uint32_t offset = 0);
 
-    /**
-     * @brief  Return the size of the Array.
-     * @return size of the array
-     */
-    inline std::uint64_t size() const;
+        /* === Getters === */
 
-private:
-    std::uint64_t size_;
-    T *array_;
-};
+        /**
+         * @brief  Return the size of the Array.
+         * @return size of the array
+         */
+        inline std::uint64_t size() const;
+
+    private:
+        std::uint64_t size_;
+        T *array_;
+    };
 
 /* === Inline methods === */
 
-template<typename T>
-Array<T>::Array(StackID stack, std::uint64_t size) : size_{size} {
-    array_ = Spider::allocate<T>(stack, size);
-    if (!array_) {
-        throwSpiderException("Failed to allocate array.");
+    template<typename T>
+    Array<T>::Array(StackID stack, std::uint64_t size) : size_{size} {
+        array_ = Spider::allocate<T>(stack, size);
+        if (!array_) {
+            throwSpiderException("Failed to allocate array.");
+        }
+    }
+
+    template<typename T>
+    Array<T>::~Array() {
+        Spider::deallocate(array_);
+    }
+
+    template<typename T>
+    T &Array<T>::operator[](std::uint64_t ix) {
+        if (ix >= size_) {
+            throwSpiderException("Index out of bound. Ix = %"
+                                         PRIu32
+                                         " -- Size = %"
+                                         PRIu32
+                                         "", ix, size_);
+        }
+        return array_[ix];
+    }
+
+    template<typename T>
+    T &Array<T>::operator[](std::uint64_t ix) const {
+        if (ix >= size_) {
+            throwSpiderException("Index out of bound. Ix = %"
+                                         PRIu32
+                                         " -- Size = %"
+                                         PRIu32
+                                         "", ix, size_);
+        }
+        return array_[ix];
+    }
+
+    template<typename T>
+    typename Array<T>::iterator Array<T>::begin() {
+        return array_;
+    }
+
+    template<typename T>
+    typename Array<T>::iterator Array<T>::end() {
+        return &array_[size_];
+    }
+
+    template<typename T>
+    typename Array<T>::const_iterator Array<T>::begin() const {
+        return array_;
+    }
+
+    template<typename T>
+    typename Array<T>::const_iterator Array<T>::end() const {
+        return &array_[size_];
+    }
+
+    template<typename T>
+    void Array<T>::setValues(std::vector<T> &values, uint32_t offset) {
+        if (values.size() + offset > size_) {
+            throwSpiderException("Size of the vector %"
+                                         PRIu64
+                                         " do not match size of the Array %"
+                                         PRIu64
+                                         "", values.size(), size_);
+        }
+        std::uint32_t i = offset;
+        for (auto &v: values) {
+            array_[i++] = v;
+        }
+    }
+
+    template<typename T>
+    std::uint64_t Array<T>::size() const {
+        return size_;
     }
 }
-
-template<typename T>
-Array<T>::~Array() {
-    Spider::deallocate(array_);
-}
-
-template<typename T>
-T &Array<T>::operator[](std::uint64_t ix) {
-    if (ix >= size_) {
-        throwSpiderException("Index out of bound. Ix = %"
-                                     PRIu32
-                                     " -- Size = %"
-                                     PRIu32
-                                     "", ix, size_);
-    }
-    return array_[ix];
-}
-
-template<typename T>
-T &Array<T>::operator[](std::uint64_t ix) const {
-    if (ix >= size_) {
-        throwSpiderException("Index out of bound. Ix = %"
-                                     PRIu32
-                                     " -- Size = %"
-                                     PRIu32
-                                     "", ix, size_);
-    }
-    return array_[ix];
-}
-
-template<typename T>
-typename Array<T>::iterator Array<T>::begin() {
-    return array_;
-}
-
-template<typename T>
-typename Array<T>::iterator Array<T>::end() {
-    return &array_[size_];
-}
-
-template<typename T>
-typename Array<T>::const_iterator Array<T>::begin() const {
-    return array_;
-}
-
-template<typename T>
-typename Array<T>::const_iterator Array<T>::end() const {
-    return &array_[size_];
-}
-
-template<typename T>
-void Array<T>::setValues(std::vector<T> &values, uint32_t offset) {
-    if (values.size() + offset > size_) {
-        throwSpiderException("Size of the vector %"
-                                     PRIu64
-                                     " do not match size of the Array %"
-                                     PRIu64
-                                     "", values.size(), size_);
-    }
-    std::uint32_t i = offset;
-    for (auto &v: values) {
-        array_[i++] = v;
-    }
-}
-
-template<typename T>
-std::uint64_t Array<T>::size() const {
-    return size_;
-}
-
-
 #endif //SPIDER2_ARRAY_H

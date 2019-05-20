@@ -59,7 +59,7 @@ class PiSDFParam;
 
 /* === Class definition === */
 
-class PiSDFVertex : public SetElement {
+class PiSDFVertex : public Spider::SetElement {
 public:
 
     PiSDFVertex(PiSDFGraph *graph, PiSDFType type, PiSDFSubType subType, std::uint32_t nEdgesIN,
@@ -181,13 +181,13 @@ public:
      * @brief A const reference on the array of input edges. Useful for iterating on the edges.
      * @return const reference to input edge array
      */
-    inline const Array<PiSDFEdge *> &inputEdges() const;
+    inline const Spider::Array<PiSDFEdge *> &inputEdges() const;
 
     /**
      * @brief A const reference on the array of output edges. Useful for iterating on the edges.
      * @return const reference to output edge array
      */
-    inline const Array<PiSDFEdge *> &outputEdges() const;
+    inline const Spider::Array<PiSDFEdge *> &outputEdges() const;
 
     /**
      * @brief Get the hierarchical property of the vertex.
@@ -213,8 +213,8 @@ private:
     std::uint32_t nParamsIN_ = 0;
     std::uint32_t nParamsOUT_ = 0;
 
-    Array<PiSDFEdge *> inputEdgeArray_;
-    Array<PiSDFEdge *> outputEdgeArray_;
+    Spider::Array<PiSDFEdge *> inputEdgeArray_;
+    Spider::Array<PiSDFEdge *> outputEdgeArray_;
 
     bool hierarchical_ = false;
     PiSDFGraph *subgraph_ = nullptr;
@@ -328,11 +328,11 @@ PiSDFParam *PiSDFVertex::outputParam(std::uint32_t ix) const {
     return nullptr;
 }
 
-const Array<PiSDFEdge *> &PiSDFVertex::inputEdges() const {
+const Spider::Array<PiSDFEdge *> &PiSDFVertex::inputEdges() const {
     return inputEdgeArray_;
 }
 
-const Array<PiSDFEdge *> &PiSDFVertex::outputEdges() const {
+const Spider::Array<PiSDFEdge *> &PiSDFVertex::outputEdges() const {
     return inputEdgeArray_;
 }
 

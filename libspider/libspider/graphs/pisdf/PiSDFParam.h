@@ -59,7 +59,7 @@ class PiSDFVertex;
 
 /* === Class definition === */
 
-class PiSDFParam : public SetElement {
+class PiSDFParam : public Spider::SetElement {
 public:
 
     PiSDFParam(std::string name,
@@ -154,7 +154,7 @@ private:
     /**
      * @brief Vector of parameter dependencies (in the case of a dynamic dependent parameter)
      */
-    Array<PiSDFParam *> dependencies_;
+    Spider::Array<PiSDFParam *> dependencies_;
 };
 
 /* === Inline Methods === */

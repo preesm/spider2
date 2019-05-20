@@ -64,19 +64,19 @@ void SetTest::TearDown() {
     Spider::finalizeAllocator();
 }
 
-class MySetElement : public SetElement {
+class MySetElement : public Spider::SetElement {
 public:
     double value;
 };
 
 TEST_F(SetTest, TestCreation) {
-    EXPECT_THROW(Set<MySetElement>(StackID::GENERAL, 10), SpiderException);
-    EXPECT_NO_THROW(Set<MySetElement *>(StackID::GENERAL, 10));
+    EXPECT_THROW(Spider::Set<MySetElement>(StackID::GENERAL, 10), SpiderException);
+    EXPECT_NO_THROW(Spider::Set<MySetElement *>(StackID::GENERAL, 10));
 }
 
 
 TEST_F(SetTest, TestAssignation) {
-    auto testSet = Set<MySetElement *>(StackID::GENERAL, 10);
+    auto testSet = Spider::Set<MySetElement *>(StackID::GENERAL, 10);
     MySetElement elt;
     EXPECT_NO_THROW(testSet.add(&elt));
     EXPECT_EQ(testSet.occupied(), 1);
@@ -89,7 +89,7 @@ TEST_F(SetTest, TestAssignation) {
 }
 
 TEST_F(SetTest, TestRemove) {
-    auto testSet = Set<MySetElement *>(StackID::GENERAL, 10);
+    auto testSet = Spider::Set<MySetElement *>(StackID::GENERAL, 10);
     MySetElement *elt = new MySetElement;
     MySetElement *elt2 = new MySetElement;
     EXPECT_NO_THROW(testSet.add(elt));
@@ -106,7 +106,7 @@ TEST_F(SetTest, TestRemove) {
 
 
 TEST_F(SetTest, TestIteration) {
-    auto testSet = Set<MySetElement *>(StackID::GENERAL, 10);
+    auto testSet = Spider::Set<MySetElement *>(StackID::GENERAL, 10);
     MySetElement count;
     count.value = 0.;
     EXPECT_EQ(testSet.size(), 10);

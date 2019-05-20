@@ -45,300 +45,302 @@
 #include <cstdint>
 #include <common/memory/Allocator.h>
 
+namespace Spider {
+
 /* === Structure definition === */
 
 /**
  * @brief Node used in @refitem LinkedList
  * @tparam T Template type of the value of the node.
  */
-template<typename T>
-struct NodeList {
-    T value;
-    NodeList *next = nullptr;
-    NodeList *previous = nullptr;
-};
+    template<typename T>
+    struct NodeList {
+        T value;
+        NodeList *next = nullptr;
+        NodeList *previous = nullptr;
+    };
 
 /* === Class definition === */
 
-template<typename T>
-class LinkedList {
-public:
-    explicit inline LinkedList(StackID stack);
+    template<typename T>
+    class LinkedList {
+    public:
+        explicit inline LinkedList(StackID stack);
 
-    inline ~LinkedList();
+        inline ~LinkedList();
 
-    /* === Operators === */
+        /* === Operators === */
 
-    NodeList<T> *operator[](std::uint64_t ix);
+        NodeList<T> *operator[](std::uint64_t ix);
 
-    NodeList<T> *operator[](std::uint64_t ix) const;
+        NodeList<T> *operator[](std::uint64_t ix) const;
 
-    /* === Methods === */
+        /* === Methods === */
 
-    /**
-     * @brief Set on next node of the list and return it
-     * @return  next element of the list
-     */
-    inline NodeList<T> *next();
+        /**
+         * @brief Set on next node of the list and return it
+         * @return  next element of the list
+         */
+        inline NodeList<T> *next();
 
-    /**
-     * @brief Set on previous node of the list and return it
-     * @return  previous element of the list
-     */
-    inline NodeList<T> *previous();
+        /**
+         * @brief Set on previous node of the list and return it
+         * @return  previous element of the list
+         */
+        inline NodeList<T> *previous();
 
-    /**
-     * @brief Set current to val.
-     * @param val @refitem NodeList to set current on.
-     */
-    inline void setOnValue(NodeList<T> *val);
+        /**
+         * @brief Set current to val.
+         * @param val @refitem NodeList to set current on.
+         */
+        inline void setOnValue(NodeList<T> *val);
 
-    /**
-     * @brief Creates a new @refitem NodeList with value val and add it as head of the list.
-     * @param val  Value to add.
-     */
-    inline void addHead(T val);
+        /**
+         * @brief Creates a new @refitem NodeList with value val and add it as head of the list.
+         * @param val  Value to add.
+         */
+        inline void addHead(T val);
 
-    /**
-     * @brief Creates a new @refitem NodeList with value val and add it as tail of the list.
-     * @param val  Value to add.
-     */
-    inline void addTail(T val);
+        /**
+         * @brief Creates a new @refitem NodeList with value val and add it as tail of the list.
+         * @param val  Value to add.
+         */
+        inline void addTail(T val);
 
-    /**
-     * @brief Creates a new @refitem NodeList with value val and add it after current in the list.
-     * @param val  Value to add.
-     */
-    inline void addCurrent(T val);
+        /**
+         * @brief Creates a new @refitem NodeList with value val and add it after current in the list.
+         * @param val  Value to add.
+         */
+        inline void addCurrent(T val);
 
-    /**
-     * @brief Test if the LinkedList contains a given value.
-     * @param val  Value to test.
-     * @return true if value is in the LinkedList, false else.
-     */
-    inline bool contains(T val) const;
+        /**
+         * @brief Test if the LinkedList contains a given value.
+         * @param val  Value to test.
+         * @return true if value is in the LinkedList, false else.
+         */
+        inline bool contains(T val) const;
 
 
-    /**
-     * @brief Remove a node in the LinkedList.
-     * @param node NodeList to remove.
-     */
-    inline void remove(NodeList<T> *node);
+        /**
+         * @brief Remove a node in the LinkedList.
+         * @param node NodeList to remove.
+         */
+        inline void remove(NodeList<T> *node);
 
-    /**
-     * @brief Remove the first @refitem NodeList whose value is equal to val.
-     * @param val Value to remove.
-     */
-    inline void removeFromValue(T val);
+        /**
+         * @brief Remove the first @refitem NodeList whose value is equal to val.
+         * @param val Value to remove.
+         */
+        inline void removeFromValue(T val);
 
-    /* === Getters === */
+        /* === Getters === */
 
-    /**
-     * @brief Return first node of the list. Current is unchanged.
-     * @return first node of the list
-     */
-    inline NodeList<T> *head() const;
+        /**
+         * @brief Return first node of the list. Current is unchanged.
+         * @return first node of the list
+         */
+        inline NodeList<T> *head() const;
 
-    /**
-     * @brief Return last node of the list. Current is unchanged.
-     * @return last node of the list
-     */
-    inline NodeList<T> *tail() const;
+        /**
+         * @brief Return last node of the list. Current is unchanged.
+         * @return last node of the list
+         */
+        inline NodeList<T> *tail() const;
 
-    /**
-     * @brief Return current node of the list
-     * @return current node of the list
-     */
-    inline NodeList<T> *current() const;
+        /**
+         * @brief Return current node of the list
+         * @return current node of the list
+         */
+        inline NodeList<T> *current() const;
 
-    /**
-     * @brief Get the size of the LinkedList.
-     * @return size of the list.
-     */
-    inline std::uint64_t size() const;
+        /**
+         * @brief Get the size of the LinkedList.
+         * @return size of the list.
+         */
+        inline std::uint64_t size() const;
 
-private:
-    NodeList<T> *head_ = nullptr;
-    NodeList<T> *current_ = nullptr;
-    NodeList<T> *tail_ = nullptr;
+    private:
+        NodeList<T> *head_ = nullptr;
+        NodeList<T> *current_ = nullptr;
+        NodeList<T> *tail_ = nullptr;
 
-    StackID stack_;
-    std::uint64_t size_ = 0;
+        StackID stack_;
+        std::uint64_t size_ = 0;
 
-    inline NodeList<T> *newNodeList(T &val, NodeList<T> *prev = nullptr, NodeList<T> *next = nullptr) const;
-};
+        inline NodeList<T> *newNodeList(T &val, NodeList<T> *prev = nullptr, NodeList<T> *next = nullptr) const;
+    };
 
 /* === Inline methods === */
 
 
-template<typename T>
-LinkedList<T>::LinkedList(StackID stack) : stack_{stack} {
+    template<typename T>
+    LinkedList<T>::LinkedList(StackID stack) : stack_{stack} {
 
-}
-
-template<typename T>
-LinkedList<T>::~LinkedList() {
-    setOnValue(head_);
-    while (size_) {
-        remove(current_);
     }
-}
 
-template<class T>
-inline NodeList<T> *LinkedList<T>::operator[](std::uint64_t ix) {
-    if (ix >= size_) {
-        throwSpiderException("Accesing unitialized element. Ix = %"
-                                     PRIu64
-                                     " -- Size = %"
-                                     PRIu64
-                                     "", ix, size_);
+    template<typename T>
+    LinkedList<T>::~LinkedList() {
+        setOnValue(head_);
+        while (size_) {
+            remove(current_);
+        }
     }
-    std::uint64_t i = 0;
-    auto *current = head_;
-    while (i < ix) {
-        current = current->next;
-        i++;
+
+    template<class T>
+    inline NodeList<T> *LinkedList<T>::operator[](std::uint64_t ix) {
+        if (ix >= size_) {
+            throwSpiderException("Accesing unitialized element. Ix = %"
+                                         PRIu64
+                                         " -- Size = %"
+                                         PRIu64
+                                         "", ix, size_);
+        }
+        std::uint64_t i = 0;
+        auto *current = head_;
+        while (i < ix) {
+            current = current->next;
+            i++;
+        }
+        return current;
     }
-    return current;
-}
 
-template<class T>
-inline NodeList<T> *LinkedList<T>::operator[](std::uint64_t ix) const {
-    return operator[](ix);
-}
-
-template<typename T>
-inline NodeList<T> *LinkedList<T>::next() {
-    current_ = current_->next;
-    return current_;
-}
-
-template<typename T>
-inline NodeList<T> *LinkedList<T>::previous() {
-    current_ = current_->previous;
-    return current_;
-}
-
-template<typename T>
-void LinkedList<T>::setOnValue(NodeList<T> *val) {
-    if (val) {
-        current_ = val;
+    template<class T>
+    inline NodeList<T> *LinkedList<T>::operator[](std::uint64_t ix) const {
+        return operator[](ix);
     }
-}
 
-template<typename T>
-void LinkedList<T>::addHead(T val) {
-    if (!head_) {
-        head_ = newNodeList(val);
-        tail_ = head_;
-        current_ = head_;
-        head_->next = head_;
-        head_->previous = head_;
-    } else {
-        head_ = newNodeList(val, tail_, head_);
+    template<typename T>
+    inline NodeList<T> *LinkedList<T>::next() {
+        current_ = current_->next;
+        return current_;
     }
-    size_++;
-}
 
-template<typename T>
-void LinkedList<T>::addTail(T val) {
-    if (!head_) {
-        tail_ = newNodeList(val);
-        head_ = tail_;
-        current_ = tail_;
-        head_->next = tail_;
-        head_->previous = tail_;
-    } else {
-        tail_ = newNodeList(val, tail_, head_);
+    template<typename T>
+    inline NodeList<T> *LinkedList<T>::previous() {
+        current_ = current_->previous;
+        return current_;
     }
-    size_++;
-}
 
-template<typename T>
-void LinkedList<T>::addCurrent(T val) {
-    if (!current_) {
-        current_ = newNodeList(val);
-        head_ = current_;
-        tail_ = current_;
-        current_->next = current_;
-        current_->previous = current_;
-    } else {
-        current_ = newNodeList(val, current_, current_->next);
-        if (current_->previous == tail_) {
+    template<typename T>
+    void LinkedList<T>::setOnValue(NodeList<T> *val) {
+        if (val) {
+            current_ = val;
+        }
+    }
+
+    template<typename T>
+    void LinkedList<T>::addHead(T val) {
+        if (!head_) {
+            head_ = newNodeList(val);
+            tail_ = head_;
+            current_ = head_;
+            head_->next = head_;
+            head_->previous = head_;
+        } else {
+            head_ = newNodeList(val, tail_, head_);
+        }
+        size_++;
+    }
+
+    template<typename T>
+    void LinkedList<T>::addTail(T val) {
+        if (!head_) {
+            tail_ = newNodeList(val);
+            head_ = tail_;
+            current_ = tail_;
+            head_->next = tail_;
+            head_->previous = tail_;
+        } else {
+            tail_ = newNodeList(val, tail_, head_);
+        }
+        size_++;
+    }
+
+    template<typename T>
+    void LinkedList<T>::addCurrent(T val) {
+        if (!current_) {
+            current_ = newNodeList(val);
+            head_ = current_;
             tail_ = current_;
+            current_->next = current_;
+            current_->previous = current_;
+        } else {
+            current_ = newNodeList(val, current_, current_->next);
+            if (current_->previous == tail_) {
+                tail_ = current_;
+            }
+        }
+        size_++;
+
+    }
+
+    template<typename T>
+    bool LinkedList<T>::contains(T val) const {
+        auto *node = head_;
+        do {
+            if (node->value == val) {
+                return true;
+            }
+            node = node->next;
+        } while (node != tail_);
+        return false;
+    }
+
+    template<typename T>
+    void LinkedList<T>::remove(NodeList<T> *node) {
+        if (node && size_) {
+            auto *previousNode = node->previous;
+            auto *nextNode = node->next;
+            if (node == current_) {
+                current_ = nextNode;
+            }
+            if (node == head_) {
+                head_ = nextNode;
+            }
+            if (node == tail_) {
+                tail_ = previousNode;
+            }
+            nextNode->previous = previousNode;
+            previousNode->next = nextNode;
+            Spider::deallocate(node);
+            size_--;
+            if (!size_) {
+                head_ = current_ = tail_ = nullptr;
+            }
         }
     }
-    size_++;
 
-}
-
-template<typename T>
-bool LinkedList<T>::contains(T val) const {
-    auto *node = head_;
-    do {
-        if (node->value == val) {
-            return true;
-        }
-        node = node->next;
-    } while (node != tail_);
-    return false;
-}
-
-template<typename T>
-void LinkedList<T>::remove(NodeList<T> *node) {
-    if (node && size_) {
-        auto *previousNode = node->previous;
-        auto *nextNode = node->next;
-        if (node == current_) {
-            current_ = nextNode;
-        }
-        if (node == head_) {
-            head_ = nextNode;
-        }
-        if (node == tail_) {
-            tail_ = previousNode;
-        }
-        nextNode->previous = previousNode;
-        previousNode->next = nextNode;
-        Spider::deallocate(node);
-        size_--;
-        if (!size_) {
-            head_ = current_ = tail_ = nullptr;
-        }
+    template<typename T>
+    void LinkedList<T>::removeFromValue(T val) {
+        auto *node = head_;
+        do {
+            if (node->value == val) {
+                remove(node);
+                return;
+            }
+            node = node->next;
+        } while (node != head_);
     }
-}
 
-template<typename T>
-void LinkedList<T>::removeFromValue(T val) {
-    auto *node = head_;
-    do {
-        if (node->value == val) {
-            remove(node);
-            return;
-        }
-        node = node->next;
-    } while (node != head_);
-}
+    template<typename T>
+    NodeList<T> *LinkedList<T>::head() const {
+        return head_;
+    }
 
-template<typename T>
-NodeList<T> *LinkedList<T>::head() const {
-    return head_;
-}
+    template<typename T>
+    NodeList<T> *LinkedList<T>::tail() const {
+        return tail_;
+    }
 
-template<typename T>
-NodeList<T> *LinkedList<T>::tail() const {
-    return tail_;
-}
+    template<typename T>
+    NodeList<T> *LinkedList<T>::current() const {
+        return current_;
+    }
 
-template<typename T>
-NodeList<T> *LinkedList<T>::current() const {
-    return current_;
-}
-
-template<typename T>
-std::uint64_t LinkedList<T>::size() const {
-    return size_;
-}
+    template<typename T>
+    std::uint64_t LinkedList<T>::size() const {
+        return size_;
+    }
 
 /* === Private inline methods === */
 
@@ -350,20 +352,21 @@ std::uint64_t LinkedList<T>::size() const {
  * @param next Next NodeList
  * @return Newly created NodeList
  */
-template<typename T>
-NodeList<T> *LinkedList<T>::newNodeList(T &val, NodeList<T> *prev, NodeList<T> *next) const {
-    auto *node = Spider::allocate<NodeList<T> >(stack_);
-    node->value = val;
-    node->previous = prev;
-    node->next = next;
-    if (prev) {
-        prev->next = node;
+    template<typename T>
+    NodeList<T> *LinkedList<T>::newNodeList(T &val, NodeList<T> *prev, NodeList<T> *next) const {
+        auto *node = Spider::allocate<NodeList<T> >(stack_);
+        node->value = val;
+        node->previous = prev;
+        node->next = next;
+        if (prev) {
+            prev->next = node;
+        }
+        if (next) {
+            next->previous = node;
+        }
+        return node;
     }
-    if (next) {
-        next->previous = node;
-    }
-    return node;
-}
 
+}
 
 #endif //SPIDER2_LINKEDLIST_H

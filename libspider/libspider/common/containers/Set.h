@@ -45,167 +45,172 @@
 #include <type_traits>
 #include <common/containers/Array.h>
 
+namespace Spider {
+
 /* === Structure(s) definition === */
 
-struct SetElement {
-    std::uint32_t ix = UINT32_MAX;
-};
+    struct SetElement {
+        std::uint32_t ix = UINT32_MAX;
+    };
 
 /* === Class definition === */
 
-template<typename T, typename Enable = void>
-class Set;
+    template<typename T, typename Enable = void>
+    class Set;
 
 /* == Condition to ensure the use of proper derived class with this container == */
-template<typename T>
-using EnableIfPolicy = typename std::enable_if<std::is_base_of<SetElement, typename std::remove_pointer<T>::type>::value>::type;
+    template<typename T>
+    using EnableIfPolicy =
+    typename std::enable_if<std::is_base_of<Spider::SetElement, typename std::remove_pointer<T>::type>::value>::type;
 
-template<class T>
-class Set<T, EnableIfPolicy<T>> {
-public:
+    template<class T>
+    class Set<T, EnableIfPolicy<T>> {
+    public:
 
-    Set(StackID stack, std::uint64_t size);
+        Set(StackID stack, std::uint64_t size);
 
-    ~Set() = default;
+        ~Set() = default;
 
-    /* === Operators === */
+        /* === Operators === */
 
-    T &operator[](std::uint64_t ix);
+        T &operator[](std::uint64_t ix);
 
-    T &operator[](std::uint64_t ix) const;
+        T &operator[](std::uint64_t ix) const;
 
-    /* === Methods === */
+        /* === Methods === */
 
-    inline void add(T elt);
+        inline void add(T elt);
 
-    inline void remove(T elt);
+        inline void remove(T elt);
 
-    inline bool contains(T elt);
+        inline bool contains(T elt);
 
-    /* === Iterator methods === */
+        /* === Iterator methods === */
 
-    typedef T *iterator;
-    typedef const T *const_iterator;
+        typedef T *iterator;
+        typedef const T *const_iterator;
 
-    iterator begin();
+        iterator begin();
 
-    iterator end();
+        iterator end();
 
-    const_iterator begin() const;
+        const_iterator begin() const;
 
-    const_iterator end() const;
+        const_iterator end() const;
 
-    /* === Getters === */
+        /* === Getters === */
 
-    /**
-     * @brief Return the maximum size of the Set.
-     * @return Maximum size of the Set.
-     */
-    inline std::uint64_t size() const;
+        /**
+         * @brief Return the maximum size of the Set.
+         * @return Maximum size of the Set.
+         */
+        inline std::uint64_t size() const;
 
-    /**
-     * @brief Current occupied size of Set, necessary less or equal to @refitem size.
-     * @return
-     */
-    inline std::uint64_t occupied() const;
+        /**
+         * @brief Current occupied size of Set, necessary less or equal to @refitem size.
+         * @return
+         */
+        inline std::uint64_t occupied() const;
 
-private:
-    Array<T> elements_;
-    std::uint64_t occupied_ = 0;
-};
+    private:
+        Spider::Array<T> elements_;
+        std::uint64_t occupied_ = 0;
+    };
 
 /* === Inline methods === */
 
-template<typename T>
-Set<T, EnableIfPolicy<T>>::Set(StackID stack, std::uint64_t size) : elements_(stack, size) {
-    if (!std::is_pointer<T>()) {
-        throwSpiderException("Set should only be used with pointer type.");
-    }
-}
-
-template<typename T>
-T &Set<T, EnableIfPolicy<T>>::operator[](std::uint64_t ix) {
-    if (ix >= occupied_) {
-        throwSpiderException("Index of non-initialized element. Ix = %"
-                                     PRIu32
-                                     " -- Size = %"
-                                     PRIu32
-                                     "", ix, occupied_);
-    }
-    return elements_[ix];
-}
-
-template<typename T>
-T &Set<T, EnableIfPolicy<T>>::operator[](std::uint64_t ix) const {
-    if (ix >= occupied_) {
-        throwSpiderException("Index of non-initialized element. Ix = %"
-                                     PRIu32
-                                     " -- Size = %"
-                                     PRIu32
-                                     "", ix, occupied_);
-    }
-    return elements_[ix];
-}
-
-template<typename T>
-void Set<T, EnableIfPolicy<T>>::add(T elt) {
-    auto *setElement = (SetElement *) (elt);
-    if (setElement->ix != UINT32_MAX) {
-        return;
-    }
-    setElement->ix = occupied_;
-    elements_[occupied_++] = elt;
-}
-
-template<typename T>
-void Set<T, EnableIfPolicy<T>>::remove(T elt) {
-    if (occupied_) {
-        auto *setElement = (SetElement *) (elt);
-        elements_[setElement->ix] = elements_[occupied_ - 1];
-        ((SetElement *) (elements_[setElement->ix]))->ix = setElement->ix;
-        setElement->ix = UINT32_MAX;
-        --occupied_;
-    }
-}
-
-template<typename T>
-bool Set<T, EnableIfPolicy<T>>::contains(T elt) {
-    for (auto e = begin(); e != end(); ++e) {
-        if (*e == elt) {
-            return true;
+    template<typename T>
+    Set<T, EnableIfPolicy<T>>::Set(StackID stack, std::uint64_t size) : elements_(stack, size) {
+        if (!std::is_pointer<T>()) {
+            throwSpiderException("Set should only be used with pointer type.");
         }
     }
-    return false;
-}
 
-template<typename T>
-typename Set<T, EnableIfPolicy<T>>::iterator Set<T, EnableIfPolicy<T>>::begin() {
-    return elements_.begin();
-}
+    template<typename T>
+    T &Set<T, EnableIfPolicy<T>>::operator[](std::uint64_t ix) {
+        if (ix >= occupied_) {
+            throwSpiderException("Index of non-initialized element. Ix = %"
+                                         PRIu32
+                                         " -- Size = %"
+                                         PRIu32
+                                         "", ix, occupied_);
+        }
+        return elements_[ix];
+    }
 
-template<typename T>
-typename Set<T, EnableIfPolicy<T>>::iterator Set<T, EnableIfPolicy<T>>::end() {
-    return &elements_[occupied_];
-}
+    template<typename T>
+    T &Set<T, EnableIfPolicy<T>>::operator[](std::uint64_t ix) const {
+        if (ix >= occupied_) {
+            throwSpiderException("Index of non-initialized element. Ix = %"
+                                         PRIu32
+                                         " -- Size = %"
+                                         PRIu32
+                                         "", ix, occupied_);
+        }
+        return elements_[ix];
+    }
 
-template<typename T>
-typename Set<T, EnableIfPolicy<T>>::const_iterator Set<T, EnableIfPolicy<T>>::begin() const {
-    return elements_.begin();
-}
+    template<typename T>
+    void Set<T, EnableIfPolicy<T>>::add(T elt) {
+        auto *setElement = (SetElement *) (elt);
+        if (setElement->ix != UINT32_MAX) {
+            return;
+        }
+        setElement->ix = occupied_;
+        elements_[occupied_++] = elt;
+    }
 
-template<typename T>
-typename Set<T, EnableIfPolicy<T>>::const_iterator Set<T, EnableIfPolicy<T>>::end() const {
-    return &elements_[occupied_];
-}
+    template<typename T>
+    void Set<T, EnableIfPolicy<T>>::remove(T elt) {
+        if (occupied_) {
+            auto *setElement = (SetElement *) (elt);
+            elements_[setElement->ix] = elements_[occupied_ - 1];
+            ((SetElement *) (elements_[setElement->ix]))->ix = setElement->ix;
+            setElement->ix = UINT32_MAX;
+            --occupied_;
+        }
+    }
 
-template<typename T>
-std::uint64_t Set<T, EnableIfPolicy<T>>::size() const {
-    return elements_.size();
-}
+    template<typename T>
+    bool Set<T, EnableIfPolicy<T>>::contains(T elt) {
+        for (auto e = begin(); e != end(); ++e) {
+            if (*e == elt) {
+                return true;
+            }
+        }
+        return false;
+    }
 
-template<class T>
-std::uint64_t Set<T, EnableIfPolicy<T>>::occupied() const {
-    return occupied_;
+    template<typename T>
+    typename Set<T, EnableIfPolicy<T>>::iterator Set<T, EnableIfPolicy<T>>::begin() {
+        return elements_.begin();
+    }
+
+    template<typename T>
+    typename Set<T, EnableIfPolicy<T>>::iterator Set<T, EnableIfPolicy<T>>::end() {
+        return &elements_[occupied_];
+    }
+
+    template<typename T>
+    typename Set<T, EnableIfPolicy<T>>::const_iterator Set<T, EnableIfPolicy<T>>::begin() const {
+        return elements_.begin();
+    }
+
+    template<typename T>
+    typename Set<T, EnableIfPolicy<T>>::const_iterator Set<T, EnableIfPolicy<T>>::end() const {
+        return &elements_[occupied_];
+    }
+
+    template<typename T>
+    std::uint64_t Set<T, EnableIfPolicy<T>>::size() const {
+        return elements_.size();
+    }
+
+    template<class T>
+    std::uint64_t Set<T, EnableIfPolicy<T>>::occupied() const {
+        return occupied_;
+    }
+
 }
 
 #endif //SPIDER2_SET_H

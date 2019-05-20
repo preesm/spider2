@@ -65,12 +65,12 @@ void ArrayTest::TearDown() {
 }
 
 TEST_F(ArrayTest, TestCreation) {
-    auto testArray = Array<double>(StackID::GENERAL, 10);
+    auto testArray = Spider::Array<double>(StackID::GENERAL, 10);
 }
 
 
 TEST_F(ArrayTest, TestAssignation) {
-    auto testArray = Array<double>(StackID::GENERAL, 10);
+    auto testArray = Spider::Array<double>(StackID::GENERAL, 10);
     EXPECT_NO_THROW(testArray[0] =  3.1415926535);
     EXPECT_EQ(testArray[0], 3.1415926535);
     EXPECT_THROW(testArray[10] =  3.141592, SpiderException);
@@ -79,7 +79,7 @@ TEST_F(ArrayTest, TestAssignation) {
 
 
 TEST_F(ArrayTest, TestIteration) {
-    auto testArray = Array<double>(StackID::GENERAL, 10);
+    auto testArray = Spider::Array<double>(StackID::GENERAL, 10);
     double count = 1.;
     for (auto &val : testArray) {
         val = 3.1415926535 + count;

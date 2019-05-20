@@ -54,7 +54,7 @@ class PiSDFGraph;
 
 /* === Class definition === */
 
-class PiSDFEdge : public SetElement {
+class PiSDFEdge : public Spider::SetElement {
 public:
 
     PiSDFEdge(PiSDFGraph *graph, PiSDFVertex *source, PiSDFVertex *sink);
