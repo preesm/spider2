@@ -75,9 +75,10 @@ void *FreeListAllocator::allocate(std::uint64_t size) {
         return nullptr;
     }
     if ((std::size_t) size < sizeof(Node)) {
-        throwSpiderException(
-                "Can not allocate memory blocks inferior to Node size (%d). Allocator: %s -- Requested: %d",
-                sizeof(Node), getName(), size);
+//        throwSpiderException(
+//                "Can not allocate memory blocks inferior to Node size (%d). Allocator: %s -- Requested: %d",
+//                sizeof(Node), getName(), size);
+        size = size + sizeof(Node);
     }
     std::int32_t padding = 0;
     Node *baseNode = list_;
@@ -111,7 +112,7 @@ void *FreeListAllocator::allocate(std::uint64_t size) {
         insert(memoryNode, freeNode);
     }
     remove(baseNode, memoryNode);
-    /*! Computing header and data address == */
+    /* == Computing header and data address == */
     char *headerAddress = (char *) (memoryNode) + paddingWithoutHeader;
     char *dataAddress = (char *) (memoryNode) + padding;
 

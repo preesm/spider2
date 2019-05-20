@@ -58,40 +58,40 @@ TEST(GenericAllocatorTest, MinAlignmentSize) {
 
 TEST(GenericAllocatorTest, MemoryAlloc) {
     auto *allocator = new GenericAllocator(ALLOCATOR_NAME);
-    auto *array = (double *) allocator->alloc(2 * sizeof(double));
+    auto *array = (double *) allocator->allocate(2 * sizeof(double));
     ASSERT_NE(array, nullptr);
     array[0] = 1;
     array[1] = 2;
     ASSERT_EQ(array[0], 1);
     ASSERT_EQ(array[1], 2);
-    ASSERT_EQ(nullptr, allocator->alloc(0));
-    EXPECT_NO_THROW(allocator->dealloc(array));
+    ASSERT_EQ(nullptr, allocator->allocate(0));
+    EXPECT_NO_THROW(allocator->deallocate(array));
     EXPECT_NO_THROW(allocator->reset());
     delete allocator;
 }
 
 TEST(GenericAllocatorTest, DestructorWithUnFreedMemory) {
     auto *allocator = new GenericAllocator(ALLOCATOR_NAME);
-    auto *array = (double *) allocator->alloc(2 * sizeof(double));
+    auto *array = (double *) allocator->allocate(2 * sizeof(double));
     ASSERT_NE(array, nullptr);
     delete allocator;
     allocator = new GenericAllocator(ALLOCATOR_NAME);
-    array = (double *) allocator->alloc(1024);
+    array = (double *) allocator->allocate(1024);
     ASSERT_NE(array, nullptr);
     delete allocator;
     allocator = new GenericAllocator(ALLOCATOR_NAME);
-    array = (double *) allocator->alloc(1024 * 1024);
+    array = (double *) allocator->allocate(1024 * 1024);
     ASSERT_NE(array, nullptr);
     delete allocator;
     allocator = new GenericAllocator(ALLOCATOR_NAME);
-    array = (double *) allocator->alloc(1024 * 1024 * 1024);
+    array = (double *) allocator->allocate(1024 * 1024 * 1024);
     ASSERT_NE(array, nullptr);
     delete allocator;
 }
 
 TEST(GenericAllocatorTest, FreeNull) {
     auto *allocator = new GenericAllocator(ALLOCATOR_NAME);
-    EXPECT_NO_THROW(allocator->dealloc(nullptr));
+    EXPECT_NO_THROW(allocator->deallocate(nullptr));
     delete allocator;
 }
 

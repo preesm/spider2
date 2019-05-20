@@ -56,34 +56,36 @@ TEST(FreeListAllocatorTest, GetName) {
 TEST(FreeListAllocatorTest, ThrowSizeException) {
     auto *allocator = new FreeListAllocator(ALLOCATOR_NAME, MAX_SIZE);
     std::uint64_t size = MAX_SIZE + 1;
-    EXPECT_NO_THROW(allocator->alloc(size));
+    EXPECT_NO_THROW(allocator->allocate(size));
     delete allocator;
 }
 
 TEST(FreeListAllocatorTest, MemoryAllocFindFirst) {
     auto *allocator = new FreeListAllocator(ALLOCATOR_NAME, MAX_SIZE);
-    auto *array = (double *) allocator->alloc(2 * sizeof(double));
+    auto *array = (double *) allocator->allocate(2 * sizeof(double));
     ASSERT_NE(array, nullptr);
     array[0] = 1;
     array[1] = 2;
     ASSERT_EQ(array[0], 1);
     ASSERT_EQ(array[1], 2);
-    ASSERT_EQ(nullptr, allocator->alloc(0));
-    EXPECT_NO_THROW(allocator->alloc(MAX_SIZE));
-    EXPECT_THROW(allocator->alloc(sizeof(std::int32_t)), SpiderException);
-    EXPECT_NO_THROW(allocator->dealloc(array));
+    ASSERT_EQ(nullptr, allocator->allocate(0));
+    EXPECT_NO_THROW(allocator->allocate(MAX_SIZE));
+    void *test = nullptr;
+    EXPECT_NO_THROW(test = allocator->allocate(1));
+    EXPECT_NO_THROW(allocator->deallocate(test));
+    EXPECT_NO_THROW(allocator->deallocate(array));
     EXPECT_NO_THROW(allocator->reset());
-    EXPECT_NO_THROW(allocator->alloc(MAX_SIZE));
-    EXPECT_THROW(allocator->dealloc(array), SpiderException);
-    EXPECT_NO_THROW(allocator->alloc(MAX_SIZE));
+    EXPECT_NO_THROW(allocator->allocate(MAX_SIZE));
+    EXPECT_THROW(allocator->deallocate(array), SpiderException);
+    EXPECT_NO_THROW(allocator->allocate(MAX_SIZE));
     delete allocator;
 }
 
 TEST(FreeListAllocatorTest, MemoryAllocAlignmentFindFirst) {
     auto *allocator = new FreeListAllocator(ALLOCATOR_NAME, MAX_SIZE);
-    auto *charArray = (char *) allocator->alloc(17 * sizeof(char));
+    auto *charArray = (char *) allocator->allocate(17 * sizeof(char));
     ASSERT_NE(charArray, nullptr);
-    auto *dblArray = (double *) allocator->alloc(2 * sizeof(double));
+    auto *dblArray = (double *) allocator->allocate(2 * sizeof(double));
     ASSERT_NE(dblArray, nullptr);
     std::int32_t paddingSize = 1 * sizeof(std::uint64_t);
     std::int32_t headerSize = 2 * sizeof(std::uint64_t);
@@ -93,59 +95,59 @@ TEST(FreeListAllocatorTest, MemoryAllocAlignmentFindFirst) {
 
 TEST(FreeListAllocatorTest, MemoryAllocAlignmentChunks) {
     auto *allocator = new FreeListAllocator(ALLOCATOR_NAME, MAX_SIZE);
-    auto *charArray = (char *) allocator->alloc(MAX_SIZE);
+    auto *charArray = (char *) allocator->allocate(MAX_SIZE);
     ASSERT_NE(charArray, nullptr);
-    auto *dblArray = (double *) allocator->alloc(MAX_SIZE);
+    auto *dblArray = (double *) allocator->allocate(MAX_SIZE);
     ASSERT_NE(dblArray, nullptr);
     std::int32_t paddingSize = 0;
     std::int32_t headerSize = 2 * sizeof(std::uint64_t);
     ASSERT_EQ(charArray + MAX_SIZE + paddingSize + headerSize, (char *) dblArray);
-    auto *ptr = (char *) allocator->alloc(17 * sizeof(char));
+    auto *ptr = (char *) allocator->allocate(17 * sizeof(char));
     ASSERT_NE(ptr + 2 * MAX_SIZE + 2 * headerSize, (char *) dblArray);
     delete allocator;
 }
 
 TEST(FreeListAllocatorTest, FreeNull) {
     auto *allocator = new FreeListAllocator(ALLOCATOR_NAME, MAX_SIZE);
-    EXPECT_NO_THROW(allocator->dealloc(nullptr));
+    EXPECT_NO_THROW(allocator->deallocate(nullptr));
     delete allocator;
 }
 
 TEST(FreeListAllocatorTest, FreeOutOfScope) {
     auto *allocator = new FreeListAllocator(ALLOCATOR_NAME, MAX_SIZE);
     char *charArray = new char[8];
-    EXPECT_THROW(allocator->dealloc(charArray), SpiderException);
+    EXPECT_THROW(allocator->deallocate(charArray), SpiderException);
     delete[] charArray;
-    auto *dblArray = (double *) allocator->alloc(2 * sizeof(double));
+    auto *dblArray = (double *) allocator->allocate(2 * sizeof(double));
     ASSERT_NE(dblArray, nullptr);
-    EXPECT_THROW(allocator->dealloc(dblArray + MAX_SIZE), SpiderException);
+    EXPECT_THROW(allocator->deallocate(dblArray + MAX_SIZE), SpiderException);
     delete allocator;
 }
 
 TEST(FreeListAllocatorTest, MemoryAllocFindBest) {
     auto *allocator = new FreeListAllocator(ALLOCATOR_NAME, MAX_SIZE, FreeListPolicy::FIND_BEST);
-    auto *array = (double *) allocator->alloc(2 * sizeof(double));
+    auto *array = (double *) allocator->allocate(2 * sizeof(double));
     ASSERT_NE(array, nullptr);
     array[0] = 1;
     array[1] = 2;
     ASSERT_EQ(array[0], 1);
     ASSERT_EQ(array[1], 2);
-    ASSERT_EQ(nullptr, allocator->alloc(0));
-    EXPECT_NO_THROW(allocator->alloc(MAX_SIZE));
-    EXPECT_THROW(allocator->alloc(sizeof(std::int32_t)), SpiderException);
+    ASSERT_EQ(nullptr, allocator->allocate(0));
+    EXPECT_NO_THROW(allocator->allocate(MAX_SIZE));
+    EXPECT_NO_THROW(allocator->allocate(sizeof(std::int32_t)));
     EXPECT_NO_THROW(allocator->reset());
-    EXPECT_NO_THROW(allocator->alloc(MAX_SIZE));
-    EXPECT_THROW(allocator->dealloc(array), SpiderException);
-    EXPECT_NO_THROW(allocator->alloc(MAX_SIZE));
+    EXPECT_NO_THROW(allocator->allocate(MAX_SIZE));
+    EXPECT_THROW(allocator->deallocate(array), SpiderException);
+    EXPECT_NO_THROW(allocator->allocate(MAX_SIZE));
 
     delete allocator;
 }
 
 TEST(FreeListAllocatorTest, MemoryAllocAlignmentFindBest) {
     auto *allocator = new FreeListAllocator(ALLOCATOR_NAME, MAX_SIZE, FreeListPolicy::FIND_BEST);
-    auto *charArray = (char *) allocator->alloc(17 * sizeof(char));
+    auto *charArray = (char *) allocator->allocate(17 * sizeof(char));
     ASSERT_NE(charArray, nullptr);
-    auto *dblArray = (double *) allocator->alloc(2 * sizeof(double));
+    auto *dblArray = (double *) allocator->allocate(2 * sizeof(double));
     ASSERT_NE(dblArray, nullptr);
     std::int32_t paddingSize = 1 * sizeof(std::uint64_t);
     std::int32_t headerSize = 2 * sizeof(std::uint64_t);
@@ -155,18 +157,18 @@ TEST(FreeListAllocatorTest, MemoryAllocAlignmentFindBest) {
 
 TEST(FreeListAllocatorTest, Free) {
     auto *allocator = new FreeListAllocator(ALLOCATOR_NAME, MAX_SIZE);
-    EXPECT_NO_THROW(allocator->dealloc(nullptr));
-    auto *charArray = (char *) allocator->alloc(16 * sizeof(char));
+    EXPECT_NO_THROW(allocator->deallocate(nullptr));
+    auto *charArray = (char *) allocator->allocate(16 * sizeof(char));
     ASSERT_NE(charArray, nullptr);
-    auto *dblArray = (double *) allocator->alloc(2 * sizeof(double));
+    auto *dblArray = (double *) allocator->allocate(2 * sizeof(double));
     ASSERT_NE(dblArray, nullptr);
-    auto *ptr = allocator->alloc(6 * sizeof(double));
+    auto *ptr = allocator->allocate(6 * sizeof(double));
     ASSERT_NE(ptr, nullptr);
-    EXPECT_NO_THROW(allocator->dealloc(dblArray));
-    EXPECT_NO_THROW(allocator->dealloc(ptr));
-    EXPECT_NO_THROW(allocator->dealloc(charArray));
-    ptr = allocator->alloc(MAX_SIZE);
-    EXPECT_NO_THROW(allocator->dealloc(ptr));
+    EXPECT_NO_THROW(allocator->deallocate(dblArray));
+    EXPECT_NO_THROW(allocator->deallocate(ptr));
+    EXPECT_NO_THROW(allocator->deallocate(charArray));
+    ptr = allocator->allocate(MAX_SIZE);
+    EXPECT_NO_THROW(allocator->deallocate(ptr));
     delete allocator;
 }
 

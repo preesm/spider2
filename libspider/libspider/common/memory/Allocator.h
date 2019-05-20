@@ -224,7 +224,7 @@ namespace Spider {
             if (!allocator) {
                 throwSpiderException("Allocating memory with non-initialized allocator.");
             }
-            auto buffer = static_cast<pointer >(allocator->allocate(size));
+            auto buffer = static_cast<pointer >(allocator->allocate(size * sizeof(T)));
             if (buffer) {
                 return buffer;
             }
@@ -291,10 +291,6 @@ namespace Spider {
                     const Allocator<T2> &) {
         return false;
     }
-
-
-    template <class T>
-    using vector = std::vector<T, Spider::Allocator<T> >;
 }
 
 #endif /* SPIDER_STACKALLOCATOR_H */

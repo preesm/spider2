@@ -151,7 +151,9 @@ const char *AbstractAllocator::getName() const {
 void AbstractAllocator::printStats() const {
     Logger::print(LOG_GENERAL, LOG_INFO, "Allocator: %s\n", getName());
     Logger::print(LOG_GENERAL, LOG_INFO, "       ==> max usage:    %" PRIu64"\n", peak_);
-    Logger::print(LOG_GENERAL, LOG_INFO, "       ==> avg usage:    %" PRIu64"\n", averageUse_ / numberAverage_);
+    if (averageUse_) {
+        Logger::print(LOG_GENERAL, LOG_INFO, "       ==> avg usage:    %" PRIu64"\n", averageUse_ / numberAverage_);
+    }
     Logger::print(LOG_GENERAL, LOG_INFO, "       ==> still in use: %" PRIu64"\n", used_);
 }
 

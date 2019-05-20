@@ -49,24 +49,24 @@ TEST(AllocatorTest, TryAlloc) {
     AllocatorConfig cfg;
     cfg.allocatorType = AllocatorType::FREELIST;
     cfg.size = 512;
-    Allocator::init(StackID::PISDF_STACK, cfg);
-    EXPECT_THROW(Allocator::allocate<double>(StackID::SCHEDULE_STACK, 10), SpiderException);
+    Spider::initAllocator(StackID::PISDF, cfg);
+    EXPECT_THROW(Spider::allocate<double>(StackID::SCHEDULE, 10), SpiderException);
     cfg.allocatorType = AllocatorType::FREELIST_STATIC;
     cfg.size = 0;
-    Allocator::init(StackID::SRDAG_STACK, cfg);
-    EXPECT_THROW(Allocator::allocate<double>(StackID::SRDAG_STACK, 10), SpiderException);
-    EXPECT_NO_THROW(Allocator::allocate<double>(StackID::PISDF_STACK, 10));
-    Allocator::finalize();
+    Spider::initAllocator(StackID::SRDAG, cfg);
+    EXPECT_THROW(Spider::allocate<double>(StackID::SRDAG, 10), SpiderException);
+    EXPECT_NO_THROW(Spider::allocate<double>(StackID::PISDF, 10));
+    Spider::finalizeAllocator();
 }
 
 TEST(AllocatorTest, TryDealloc) {
     AllocatorConfig cfg;
     cfg.allocatorType = AllocatorType::FREELIST;
     cfg.size = 512;
-    Allocator::init(StackID::PISDF_STACK, cfg);
-    auto *array = Allocator::allocate<double>(StackID::PISDF_STACK, 10);
-    EXPECT_NO_THROW(Allocator::deallocate(array));
-    Allocator::finalize();
+    Spider::initAllocator(StackID::PISDF, cfg);
+    auto *array = Spider::allocate<double>(StackID::PISDF, 10);
+    EXPECT_NO_THROW(Spider::deallocate(array));
+    Spider::finalizeAllocator();
 }
 
 
