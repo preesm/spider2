@@ -70,7 +70,7 @@ TEST(FreeListStaticAllocatorTest, MemoryAllocFindFirst) {
     ASSERT_EQ(array[1], 2);
     ASSERT_EQ(nullptr, allocator->allocate(0));
     EXPECT_THROW(allocator->allocate(MAX_SIZE), SpiderException);
-    EXPECT_THROW(allocator->allocate(sizeof(std::int32_t)), SpiderException);
+    EXPECT_NO_THROW(allocator->allocate(sizeof(std::int32_t)));
     EXPECT_NO_THROW(allocator->reset());
     EXPECT_NO_THROW(allocator->allocate(MAX_SIZE));
     EXPECT_NO_THROW(allocator->deallocate(array));
@@ -117,7 +117,7 @@ TEST(FreeListStaticAllocatorTest, MemoryAllocFindBest) {
     ASSERT_EQ(array[1], 2);
     ASSERT_EQ(nullptr, allocator->allocate(0));
     EXPECT_THROW(allocator->allocate(MAX_SIZE), SpiderException);
-    EXPECT_THROW(allocator->allocate(sizeof(std::int32_t)), SpiderException);
+    EXPECT_NO_THROW(allocator->allocate(sizeof(std::int32_t)));
     EXPECT_NO_THROW(allocator->reset());
     EXPECT_NO_THROW(allocator->allocate(MAX_SIZE));
     EXPECT_NO_THROW(allocator->deallocate(array));

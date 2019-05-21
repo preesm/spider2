@@ -76,7 +76,8 @@ TEST(FreeListAllocatorTest, MemoryAllocFindFirst) {
     EXPECT_NO_THROW(allocator->deallocate(array));
     EXPECT_NO_THROW(allocator->reset());
     EXPECT_NO_THROW(allocator->allocate(MAX_SIZE));
-    EXPECT_THROW(allocator->deallocate(array), SpiderException);
+    /* == undefined behavior == */
+    EXPECT_NO_THROW(allocator->deallocate(array));
     EXPECT_NO_THROW(allocator->allocate(MAX_SIZE));
     delete allocator;
 }
@@ -89,7 +90,7 @@ TEST(FreeListAllocatorTest, MemoryAllocAlignmentFindFirst) {
     ASSERT_NE(dblArray, nullptr);
     std::int32_t paddingSize = 1 * sizeof(std::uint64_t);
     std::int32_t headerSize = 2 * sizeof(std::uint64_t);
-    ASSERT_EQ(charArray + 16 + paddingSize + headerSize, (char *) dblArray);
+    ASSERT_EQ(charArray + 17 + 1 + headerSize, (char *) dblArray);
     delete allocator;
 }
 
@@ -120,7 +121,7 @@ TEST(FreeListAllocatorTest, FreeOutOfScope) {
     delete[] charArray;
     auto *dblArray = (double *) allocator->allocate(2 * sizeof(double));
     ASSERT_NE(dblArray, nullptr);
-    EXPECT_THROW(allocator->deallocate(dblArray + MAX_SIZE), SpiderException);
+    EXPECT_THROW(allocator->deallocate(dblArray + 3 * MAX_SIZE), SpiderException);
     delete allocator;
 }
 
@@ -136,8 +137,8 @@ TEST(FreeListAllocatorTest, MemoryAllocFindBest) {
     EXPECT_NO_THROW(allocator->allocate(MAX_SIZE));
     EXPECT_NO_THROW(allocator->allocate(sizeof(std::int32_t)));
     EXPECT_NO_THROW(allocator->reset());
-    EXPECT_NO_THROW(allocator->allocate(MAX_SIZE));
-    EXPECT_THROW(allocator->deallocate(array), SpiderException);
+    EXPECT_NO_THROW(array = (double *) allocator->allocate(MIN_CHUNK));
+    EXPECT_NO_THROW(allocator->deallocate(array));
     EXPECT_NO_THROW(allocator->allocate(MAX_SIZE));
 
     delete allocator;

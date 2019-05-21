@@ -52,6 +52,11 @@ public:
 
     void deallocate(void *ptr) override = 0;
 
+    /**
+     * @brief Reset internal state of the allocator.
+     * @remark Memory should be deallocated before calling reset.
+     * @remark Behavior is undefined for memory block deallocated after reset call.
+     */
     virtual void reset() = 0;
 
 protected:

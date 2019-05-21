@@ -48,7 +48,8 @@ FreeListAllocator::FreeListAllocator(const char *name,
                                      std::uint64_t staticBufferSize,
                                      FreeListPolicy policy,
                                      std::int32_t alignment) :
-        DynamicAllocator(name, alignment), staticBufferSize_{std::max(staticBufferSize, sizeof(Node))} {
+        DynamicAllocator(name, alignment),
+        staticBufferSize_{std::max(staticBufferSize, static_cast<std::uint64_t >(MIN_CHUNK))} {
     if (alignment < 8) {
         throwSpiderException("Memory alignment should be at least of size sizeof(std::int64_t) = 8 bytes.");
     }
@@ -56,7 +57,7 @@ FreeListAllocator::FreeListAllocator(const char *name,
     this->reset();
     if (policy == FIND_FIRST) {
         method_ = FreeListAllocator::findFirst;
-    } else if (policy == FIND_BEST){
+    } else if (policy == FIND_BEST) {
         method_ = FreeListAllocator::findBest;
     }
 }
@@ -75,9 +76,6 @@ void *FreeListAllocator::allocate(std::uint64_t size) {
         return nullptr;
     }
     if ((std::size_t) size < sizeof(Node)) {
-//        throwSpiderException(
-//                "Can not allocate memory blocks inferior to Node size (%d). Allocator: %s -- Requested: %d",
-//                sizeof(Node), getName(), size);
         size = size + sizeof(Node);
     }
     std::int32_t padding = 0;
@@ -90,7 +88,8 @@ void *FreeListAllocator::allocate(std::uint64_t size) {
         padding = sizeof(FreeListAllocator::Header);
         FreeListAllocator::Buffer newBuffer;
         /* == Allocate new buffer with size aligned to MIN_CHUNK == */
-        newBuffer.size_ = AbstractAllocator::computeAlignedSize(size, MIN_CHUNK);
+        auto newSize = size + padding;
+        newBuffer.size_ = AbstractAllocator::computeAlignedSize(newSize, MIN_CHUNK);
         newBuffer.bufferPtr_ = (char *) std::malloc(newBuffer.size_);
         /* == Initialize memoryNode == */
         memoryNode = (Node *) (newBuffer.bufferPtr_);
@@ -216,7 +215,7 @@ FreeListAllocator::findFirst(std::uint64_t &size, std::int32_t &padding, std::in
     Node *it = baseNode;
     baseNode = nullptr;
     while (it) {
-        auto currentSize = (std::uint64_t) it;
+        auto currentSize = it->blockSize_;
         padding = AbstractAllocator::computePadding(currentSize, alignment);
         if (padding < headerSize) {
             /* == Find next aligned address to fit header == */
