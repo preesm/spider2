@@ -217,18 +217,11 @@ namespace Spider {
          * @return pointer to allocated buffer, nullptr if size is 0.
          */
         inline pointer allocate(size_type size) {
-            if (size > std::size_t(-1) / sizeof(T)) {
-                throw std::bad_alloc();
-            }
             auto *&allocator = getAllocator(static_cast<std::uint64_t>(StackID::GENERAL));
             if (!allocator) {
                 throwSpiderException("Allocating memory with non-initialized allocator.");
             }
-            auto buffer = static_cast<pointer >(allocator->allocate(size * sizeof(T)));
-            if (buffer) {
-                return buffer;
-            }
-            throw std::bad_alloc();
+            return static_cast<pointer >(allocator->allocate(size * sizeof(T)));
         }
 
         /**
@@ -237,31 +230,29 @@ namespace Spider {
          * @param ptr Raw pointer to deallocate
          */
         inline void deallocate(pointer ptr, std::size_t) {
-            if (ptr) {
-                auto *&allocator = getAllocator(static_cast<std::uint64_t>(StackID::GENERAL));
-                allocator->deallocate(ptr);
-            }
+            auto *&allocator = getAllocator(static_cast<std::uint64_t>(StackID::GENERAL));
+            allocator->deallocate(ptr);
         }
 
         /**
-     * @brief  Construct a previously allocated object from value.
-     * @attention This method does not allocate memory, use @refitem Spider::Allocator::allocate first
-     * @tparam T     Type of the object to construct
-     * @param ptr    Reference pointer of the object to be constructed
-     * @param value  Arguments use for by the constructor of the object
-     */
+         * @brief  Construct a previously allocated object from value.
+         * @attention This method does not allocate memory, use @refitem Spider::Allocator::allocate first
+         * @tparam T     Type of the object to construct
+         * @param ptr    Reference pointer of the object to be constructed
+         * @param value  Arguments use for by the constructor of the object
+         */
         inline void construct(pointer ptr, const T &value) {
             new((void *) ptr) T(value);
         }
 
         /**
-     * @brief  Construct a previously allocated object
-     * @attention This method does not allocate memory, use @refitem Allocator::allocate first
-     * @tparam T     Type of the object to construct
-     * @tparam Args  Packed arguments list for construction
-     * @param ptr    Reference pointer of the object to be constructed
-     * @param args   Arguments use for by the constructor of the object
-     */
+         * @brief  Construct a previously allocated object
+         * @attention This method does not allocate memory, use @refitem Allocator::allocate first
+         * @tparam T     Type of the object to construct
+         * @tparam Args  Packed arguments list for construction
+         * @param ptr    Reference pointer of the object to be constructed
+         * @param args   Arguments use for by the constructor of the object
+         */
         template<class ...Args>
         inline void construct(pointer ptr, Args &&... args) {
             if (ptr) {
@@ -270,11 +261,11 @@ namespace Spider {
         }
 
         /**
-     * @brief Destroy an object
-     * @attention This method does not deallocate memory of the pointer, use @refitem Allocator::deallocate
-     * @tparam T  Type of the object to destroy
-     * @param ptr Reference pointer to the object to destroy
-     */
+         * @brief Destroy an object
+         * @attention This method does not deallocate memory of the pointer, use @refitem Allocator::deallocate
+         * @tparam T  Type of the object to destroy
+         * @param ptr Reference pointer to the object to destroy
+         */
         inline void destroy(pointer ptr) {
             ptr->~T();
         }
