@@ -42,14 +42,143 @@
 
 /* === Includes === */
 
+#include <algorithm>
+#include <cstdint>
+#include <string>
+#include <vector>
+#include <deque>
+#include <common/containers/LinkedList.h>
 
+/* === Defines === */
+
+#define N_OPERATOR 14
+
+/* === Forward declaration(s) === */
+
+class PiSDFParam;
+
+/* === Enum declaration(s) === */
+
+/**
+ * @brief Primary type of an @refitem RPNElement.
+ */
+enum class RPNElementType : std::uint16_t {
+    OPERATOR,   /*! Operator element */
+    OPERAND,    /*! Operand element */
+};
+
+/**
+ * @brief Secondary type of an @refitem RPNElement
+ */
+enum class RPNElementSubType : std::uint16_t {
+    VALUE,      /*! Value (digit) */
+    PARAMETER,  /*! Value coming from a parameter */
+    LEFT_PAR,   /*! Operator is a left parenthesis */
+    RIGHT_PAR,  /*! Operator is a right parenthesis */
+};
+
+/**
+ * @brief Enumeration of the supported operators by the parser.
+ */
+enum class RPNOperatorType : std::uint32_t {
+    ADD = 0,     /*! Addition operator */
+    SUB = 1,     /*! Subtraction operator */
+    MUL = 2,     /*! Multiplication operator */
+    DIV = 3,     /*! Division operator */
+    POW = 4,     /*! Power operator */
+    MOD = 5,     /*! Modulo operator */
+    CEIL = 6,    /*! Ceil function */
+    FLOOR = 7,   /*! Floor function */
+    LOG = 8,     /*! Logarithm (base 10) function */
+    LOG2 = 9,    /*! Logarithm (base 2) function */
+    COS = 10,    /*! Cosinus function */
+    SIN = 11,    /*! Sinus function */
+    TAN = 12,    /*! Tangent function */
+    EXP = 13,    /*! Exponential function */
+    LEFT_PAR = 14,    /*! Left parenthesis */
+    RIGHT_PAR = 15,   /*! Right parenthesis */
+};
+
+/**
+ * @brief Operator structure.
+ */
+struct RPNOperator {
+    RPNOperatorType type;       /*! Operator type (see @refitem RPNOperatorType) */
+    std::uint16_t precendence;  /*! Precedence value level of the operator */
+    bool isRighAssociative;     /*! Right associativity property of the operator */
+};
+
+/* === Structure definition(s) === */
+
+/**
+ * @brief Structure defining an element for the Reverse Polish Notation (RPN) conversion.
+ */
+struct RPNElement {
+    RPNElementType type;
+    RPNElementSubType subType;
+    union {
+        double value;
+        PiSDFParam *param;
+        RPNOperator op;
+    } element;
+};
 
 /* === Class definition === */
 
 class RPNConverter {
+public:
 
+    RPNConverter(std::string inFixExpr);
+
+    ~RPNConverter();
+
+    /* === Methods === */
+
+    inline std::string toString() const;
+
+
+    /* === Getters === */
+
+    /**
+     * @brief Get the static property of the expression.
+     * @return true if the expression is static, false else.
+     */
+    inline bool isStatic() const;
+
+private:
+    std::string infixExpr_;
+    bool static_ = false;
+    Spider::LinkedList<RPNElement *> postfixExpr_;
+    std::vector<std::string> operators_;
+    std::vector<std::string> operands_;
+    std::deque<RPNOperatorType> operatorStack_;
+
+    /* === Private Methods === */
+
+    void cleanInfixExpression();
+
+    /**
+     * @brief Build the postfix expression.
+     */
+    void buildPostFix();
+
+    /**
+     * @brief Check for miss match in the number of parenthesis
+     * @return true if there is a miss match, false else.
+     */
+    inline bool missMatchParenthesis() const;
 };
 
+/* === Inline methods === */
+
+bool RPNConverter::missMatchParenthesis() const {
+    return std::count(infixExpr_.begin(), infixExpr_.end(), '(') !=
+           std::count(infixExpr_.begin(), infixExpr_.end(), ')');
+}
+
+bool RPNConverter::isStatic() const {
+    return static_;
+}
 
 
 #endif //SPIDER2_RPNCONVERTER_H
