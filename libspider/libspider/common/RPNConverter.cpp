@@ -143,11 +143,11 @@ RPNConverter::~RPNConverter() {
 
 void RPNConverter::cleanInfixExpression() {
     /* == Clean the inFix expression by removing all white spaces == */
-    infixExpr_.erase(std::remove(infixExpr_.begin(), infixExpr_.end(), ' '), infixExpr_.end());
+    std::regex spaceTabRemover("([ ]+)|([\\t]+)|([\t]+)");
+    infixExpr_ = std::regex_replace(infixExpr_, spaceTabRemover, "");
 
     /* == Clean the inFix expression by adding '*' for #valueY -> #value * Y  == */
-    std::regex multReplacer("([0-9]+)([a-zA-Z])",
-                            std::regex_constants::icase);
+    std::regex multReplacer("([0-9]+|[)]+)([a-zA-Z]|[(])", std::regex_constants::icase);
     infixExpr_ = std::regex_replace(infixExpr_, multReplacer, "$1*$2");
 
     /* == Clean the inFix expression by replacing every occurrence of PI to its value == */
@@ -155,49 +155,91 @@ void RPNConverter::cleanInfixExpression() {
     infixExpr_ = std::regex_replace(infixExpr_, picleaner, "3.1415926535979");
 }
 
+static bool isOperator(const std::string &token) {
+    return stringToOperatorMap.find(token) != stringToOperatorMap.end();
+}
+
+static RPNOperator &getOperator(RPNOperatorType type) {
+    return rpnOperators[static_cast<std::uint32_t >(type)];
+}
+
 void RPNConverter::buildPostFix() {
 
-    /* == Retrieve operands == */
-    std::regex operandsRegex("[^*/)(+^]+");
+    /* == Check for incoherence == */
+    std::regex badOpRegex("([*/+^]+)([*/+^])");
+    if (std::sregex_iterator(infixExpr_.begin(), infixExpr_.end(), badOpRegex) != std::sregex_iterator()) {
+        throwSpiderException("Expression ill formed. Two operators without operands: %s", infixExpr_.c_str());
+    }
+
+    /* == Retrieve tokens == */
+    std::regex operandsRegex("([^*/)(+^]+)|([*/)(+^])");
     auto words_begin = std::sregex_iterator(infixExpr_.begin(), infixExpr_.end(), operandsRegex);
     auto words_end = std::sregex_iterator();
-    for (std::sregex_iterator i = words_begin; i != words_end; ++i) {
-        operands_.push_back((*i).str());
-        std::cerr << (*i).str() << std::endl;
+    for (auto regexIterator = words_begin; regexIterator != words_end; ++regexIterator) {
+        tokens_.push_back((*regexIterator).str());
     }
 
-    /* == Retrieve operators == */
-    std::regex operatorsRegex("[*/)(+^]");
-    words_begin = std::sregex_iterator(infixExpr_.begin(), infixExpr_.end(), operatorsRegex);
-    for (std::sregex_iterator i = words_begin; i != words_end; ++i) {
-        auto operatorString = (*i).str();
-        operators_.push_back(operatorString);
-        std::cerr << operatorString << std::endl;
-    }
+    std::cerr << toString() << std::endl;
 
     std::string postfix;
-    std::uint32_t i = 0;
-    for (auto &s : operands_) {
-        postfix += s + std::string(" ");
-        if (i < operators_.size() &&
-            stringToOperatorMap.find(operators_[i]) != stringToOperatorMap.end()) {
-            auto opType = stringToOperatorMap[operators_[i]];
-            if (!operatorStack_.empty()) {
-                auto currentOPType = operatorStack_.front();
-                auto op = rpnOperators[static_cast<std::uint32_t >(opType)];
-                auto currentOP = rpnOperators[static_cast<std::uint32_t >(currentOPType)];
-                while (opType != RPNOperatorType::LEFT_PAR &&
-                       !operatorStack_.empty() &&
-                       (op.precendence < currentOP.precendence ||
-                        (op.precendence == currentOP.precendence && !currentOP.isRighAssociative))) {
+    for (const auto &t : tokens_) {
+        if (isOperator(t)) {
+            /* == Handle operator == */
+            auto opType = stringToOperatorMap[t];
+
+            /* == Handle right parenthesis case == */
+            if (opType == RPNOperatorType::RIGHT_PAR) {
+                auto frontOPType = operatorStack_.front();
+
+                /* == This should not fail because miss match parenthesis is checked on constructor == */
+                while (frontOPType != RPNOperatorType::LEFT_PAR) {
+                    /* == Put operator to the output == */
                     postfix += operatorToStringMap[operatorStack_.front()] + std::string(" ");
                     operatorStack_.pop_front();
-                    currentOPType = operatorStack_.front();
-                    currentOP = rpnOperators[static_cast<std::uint32_t >(currentOPType)];
+                    if (operatorStack_.empty()) {
+                        break;
+                    }
+                    /* == Pop operator from the stack == */
+                    frontOPType = operatorStack_.front();
+                }
+
+                /* == Pop left parenthesis == */
+                operatorStack_.pop_front();
+                continue;
+            }
+
+            /* == Handle left parenthesis case == */
+            if (opType == RPNOperatorType::LEFT_PAR) {
+                operatorStack_.push_front(opType);
+                continue;
+            }
+
+            /* == Handle general case == */
+            if (!operatorStack_.empty()) {
+                auto op = getOperator(opType);
+                auto frontOPType = operatorStack_.front();
+                auto frontOP = getOperator(frontOPType);
+                while (frontOPType != RPNOperatorType::LEFT_PAR &&
+                       (op.precendence < frontOP.precendence ||
+                        (op.precendence == frontOP.precendence && !frontOP.isRighAssociative))) {
+                    /* == Put operator to the output == */
+                    postfix += operatorToStringMap[operatorStack_.front()] + std::string(" ");
+                    operatorStack_.pop_front();
+                    if (operatorStack_.empty()) {
+                        break;
+                    }
+
+                    /* == Pop operator from the stack == */
+                    frontOPType = operatorStack_.front();
+                    frontOP = getOperator(frontOPType);
                 }
             }
+
+            /* == Push current operator to the stack == */
             operatorStack_.push_front(opType);
-            i++;
+        } else {
+            /* == Handle operand == */
+            postfix += t + std::string(" ");
         }
     }
     while (!operatorStack_.empty()) {

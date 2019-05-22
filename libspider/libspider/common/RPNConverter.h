@@ -149,8 +149,7 @@ private:
     std::string infixExpr_;
     bool static_ = false;
     Spider::LinkedList<RPNElement *> postfixExpr_;
-    std::vector<std::string> operators_;
-    std::vector<std::string> operands_;
+    std::vector<std::string> tokens_;
     std::deque<RPNOperatorType> operatorStack_;
 
     /* === Private Methods === */
@@ -178,6 +177,15 @@ bool RPNConverter::missMatchParenthesis() const {
 
 bool RPNConverter::isStatic() const {
     return static_;
+}
+
+
+std::string RPNConverter::toString() const {
+    std::string stringPostfix;
+    for (const auto &t:tokens_) {
+        stringPostfix += t;
+    }
+    return stringPostfix;
 }
 
 
