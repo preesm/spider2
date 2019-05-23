@@ -152,8 +152,21 @@ private:
     std::vector<std::string> tokens_;
     std::deque<RPNOperatorType> operatorStack_;
 
+    /**
+     * @brief String containing all supported operators.
+     */
+    std::string operators_{"*/+-%^)("};
+
+    /**
+     * @brief String containing all supported functions.
+     */
+    std::string functions_{",cos,sin,exp,tan,log,log2,ceil,floor,"};
+
     /* === Private Methods === */
 
+    /**
+     * @brief Perform clean and reformatting operations on the original infix expression.
+     */
     void cleanInfixExpression();
 
     /**
@@ -166,13 +179,41 @@ private:
      * @return true if there is a miss match, false else.
      */
     inline bool missMatchParenthesis() const;
+
+    /**
+     * @brief In place replace of all occurrences of substring in a string.
+     * @param s     String on which we are working.
+     * @param pattern  Substring to find.
+     * @param replace    Substring to replace found matches.
+     * @return Modified string (same as s).
+     */
+    std::string &replace(std::string &s, const std::string &pattern, const std::string &replace);
+
+    /**
+     * @brief Test if a given string is a supported function.
+     * @param s String to test.
+     * @return true if s is a supported function, false else
+     */
+    inline bool isFunction(const std::string &s) const;
+
+    /**
+     * @brief Test if a given string is a supported operator.
+     * @param s String to test.
+     * @return true if s is a supported operator, false else
+     */
+    inline bool isOperator(const std::string &s) const;
 };
 
 /* === Inline methods === */
 
 bool RPNConverter::missMatchParenthesis() const {
-    return std::count(infixExpr_.begin(), infixExpr_.end(), '(') !=
-           std::count(infixExpr_.begin(), infixExpr_.end(), ')');
+    std::uint32_t nLeftPar = 0;
+    std::uint32_t nRightPar = 0;
+    for (auto &t : infixExpr_) {
+        nLeftPar += (t == '(');
+        nRightPar += (t == ')');
+    }
+    return nLeftPar != nRightPar;
 }
 
 bool RPNConverter::isStatic() const {
@@ -186,6 +227,17 @@ std::string RPNConverter::toString() const {
         stringPostfix += t;
     }
     return stringPostfix;
+}
+
+bool RPNConverter::isFunction(const std::string &s) const {
+    auto pos = functions_.find(s);
+    return pos != std::string::npos &&
+           functions_[pos - 1] == ',' &&
+           functions_[pos + s.size()] == ',';
+}
+
+bool RPNConverter::isOperator(const std::string &s) const {
+    return operators_.find(s) != std::string::npos;
 }
 
 

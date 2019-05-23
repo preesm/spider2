@@ -42,7 +42,7 @@
 
 #include <sstream>
 #include <iostream>
-#include <regex>
+#include <map>
 #include "RPNConverter.h"
 #include <common/containers/StlContainers.h>
 #include <common/SpiderException.h>
@@ -57,59 +57,70 @@ static RPNOperator rpnOperators[N_OPERATOR]{
         {.type = RPNOperatorType::DIV, .precendence = 3, .isRighAssociative = false},   /*! DIV operator */
         {.type = RPNOperatorType::MOD, .precendence = 3, .isRighAssociative = false},   /*! MOD operator */
         {.type = RPNOperatorType::POW, .precendence = 4, .isRighAssociative = true},    /*! POW operator */
-        {.type = RPNOperatorType::CEIL, .precendence = 1, .isRighAssociative = false},  /*! CEIL operator */
-        {.type = RPNOperatorType::FLOOR, .precendence = 1, .isRighAssociative = false}, /*! FLOOR operator */
-        {.type = RPNOperatorType::LOG, .precendence = 1, .isRighAssociative = false},   /*! LOG operator */
-        {.type = RPNOperatorType::LOG2, .precendence = 1, .isRighAssociative = false},  /*! LOG2 operator */
-        {.type = RPNOperatorType::COS, .precendence = 1, .isRighAssociative = false},   /*! COS operator */
-        {.type = RPNOperatorType::SIN, .precendence = 1, .isRighAssociative = false},   /*! SIN operator */
-        {.type = RPNOperatorType::TAN, .precendence = 1, .isRighAssociative = false},   /*! TAN operator */
-        {.type = RPNOperatorType::EXP, .precendence = 1, .isRighAssociative = false},   /*! EXP operator */
+        {.type = RPNOperatorType::CEIL, .precendence = 5, .isRighAssociative = false},  /*! CEIL operator */
+        {.type = RPNOperatorType::FLOOR, .precendence = 5, .isRighAssociative = false}, /*! FLOOR operator */
+        {.type = RPNOperatorType::LOG, .precendence = 5, .isRighAssociative = false},   /*! LOG operator */
+        {.type = RPNOperatorType::LOG2, .precendence = 5, .isRighAssociative = false},  /*! LOG2 operator */
+        {.type = RPNOperatorType::COS, .precendence = 5, .isRighAssociative = false},   /*! COS operator */
+        {.type = RPNOperatorType::SIN, .precendence = 5, .isRighAssociative = false},   /*! SIN operator */
+        {.type = RPNOperatorType::TAN, .precendence = 5, .isRighAssociative = false},   /*! TAN operator */
+        {.type = RPNOperatorType::EXP, .precendence = 5, .isRighAssociative = false},   /*! EXP operator */
 };
 
-static std::map<std::string, RPNOperatorType> createMap() {
-    std::map<std::string, RPNOperatorType> m;
-    m["+"] = RPNOperatorType::ADD;
-    m["-"] = RPNOperatorType::SUB;
-    m["*"] = RPNOperatorType::MUL;
-    m["/"] = RPNOperatorType::DIV;
-    m["%"] = RPNOperatorType::MOD;
-    m["^"] = RPNOperatorType::POW;
-    m["cos"] = RPNOperatorType::COS;
-    m["sin"] = RPNOperatorType::SIN;
-    m["log"] = RPNOperatorType::LOG;
-    m["log2"] = RPNOperatorType::LOG2;
-    m["tan"] = RPNOperatorType::TAN;
-    m["exp"] = RPNOperatorType::EXP;
-    m["ceil"] = RPNOperatorType::CEIL;
-    m["floor"] = RPNOperatorType::FLOOR;
-    m["("] = RPNOperatorType::LEFT_PAR;
-    m[")"] = RPNOperatorType::RIGHT_PAR;
-    return m;
+static std::map<std::string, RPNOperatorType> &getStringToOperatorMap() {
+    static std::map<std::string, RPNOperatorType> stringToOperatorMap = {
+            {"+", RPNOperatorType::ADD},
+            {"-", RPNOperatorType::SUB},
+            {"*", RPNOperatorType::MUL},
+            {"/", RPNOperatorType::DIV},
+            {"%", RPNOperatorType::MOD},
+            {"^", RPNOperatorType::POW},
+            {"(", RPNOperatorType::LEFT_PAR},
+            {")", RPNOperatorType::RIGHT_PAR},
+    };
+    return stringToOperatorMap;
 }
 
-static std::map<RPNOperatorType, std::string> createReverseMap() {
-    std::map<RPNOperatorType, std::string> m;
-    m[RPNOperatorType::ADD] = "+";
-    m[RPNOperatorType::SUB] = "-";
-    m[RPNOperatorType::MUL] = "*";
-    m[RPNOperatorType::DIV] = "/";
-    m[RPNOperatorType::MOD] = "%";
-    m[RPNOperatorType::POW] = "^";
-    m[RPNOperatorType::COS] = "cos";
-    m[RPNOperatorType::SIN] = "sin";
-    m[RPNOperatorType::LOG] = "log";
-    m[RPNOperatorType::LOG2] = "log2";
-    m[RPNOperatorType::TAN] = "tan";
-    m[RPNOperatorType::EXP] = "exp";
-    m[RPNOperatorType::CEIL] = "ceil";
-    m[RPNOperatorType::FLOOR] = "floor";
-    return m;
+static std::map<std::string, RPNOperatorType> &getStringToFunctionMap() {
+    static std::map<std::string, RPNOperatorType> stringToFunctionMap = {
+            {"cos",   RPNOperatorType::COS},
+            {"sin",   RPNOperatorType::SIN},
+            {"log",   RPNOperatorType::LOG},
+            {"log2",  RPNOperatorType::LOG2},
+            {"tan",   RPNOperatorType::TAN},
+            {"exp",   RPNOperatorType::EXP},
+            {"ceil",  RPNOperatorType::CEIL},
+            {"floor", RPNOperatorType::FLOOR},
+    };
+    return stringToFunctionMap;
 }
 
+static std::map<RPNOperatorType, std::string> &getOperatorToStringMap() {
+    static std::map<RPNOperatorType, std::string> operatorToStringMap = {
+            {RPNOperatorType::ADD,       "+"},
+            {RPNOperatorType::SUB,       "-"},
+            {RPNOperatorType::MUL,       "*"},
+            {RPNOperatorType::DIV,       "/"},
+            {RPNOperatorType::MOD,       "%"},
+            {RPNOperatorType::POW,       "^"},
+            {RPNOperatorType::LEFT_PAR,  "("},
+            {RPNOperatorType::RIGHT_PAR, ")"},
+            {RPNOperatorType::COS,       "cos"},
+            {RPNOperatorType::SIN,       "sin"},
+            {RPNOperatorType::LOG,       "log"},
+            {RPNOperatorType::LOG2,      "log2"},
+            {RPNOperatorType::TAN,       "tan"},
+            {RPNOperatorType::EXP,       "exp"},
+            {RPNOperatorType::CEIL,      "ceil"},
+            {RPNOperatorType::FLOOR,     "floor"},
+    };
+    return operatorToStringMap;
+}
 
-static std::map<std::string, RPNOperatorType> stringToOperatorMap = createMap();
-static std::map<RPNOperatorType, std::string> operatorToStringMap = createReverseMap();
+static RPNOperator &getOperator(RPNOperatorType type) {
+    return rpnOperators[static_cast<std::uint32_t >(type)];
+}
+
 
 /* === Methods implementation === */
 
@@ -118,11 +129,11 @@ RPNConverter::RPNConverter(std::string inFixExpr) : infixExpr_{std::move(inFixEx
     if (missMatchParenthesis()) {
         throwSpiderException("Expression with miss matched parenthesis: %s", infixExpr_.c_str());
     }
-    fprintf(stderr, "INFO: original expression:%s\n", infixExpr_.c_str());
+    fprintf(stderr, "INFO: original expression:  %s\n", infixExpr_.c_str());
 
     /* == Format properly the expression == */
     cleanInfixExpression();
-    fprintf(stderr, "INFO: formatted expression:%s\n", infixExpr_.c_str());
+    fprintf(stderr, "INFO: formatted expression: %s\n", infixExpr_.c_str());
 
     /* == Build the postfix expression == */
     buildPostFix();
@@ -141,51 +152,85 @@ RPNConverter::~RPNConverter() {
     }
 }
 
+std::string &RPNConverter::replace(std::string &s, const std::string &pattern, const std::string &replace) {
+    if (!pattern.empty()) {
+        for (size_t pos = 0; (pos = s.find(pattern, pos)) != std::string::npos; pos += replace.size()) {
+            s.replace(pos, pattern.size(), replace);
+        }
+    }
+    return s;
+}
+
 void RPNConverter::cleanInfixExpression() {
     /* == Clean the inFix expression by removing all white spaces == */
-    std::regex spaceTabRemover("([ ]+)|([\\t]+)|([\t]+)");
-    infixExpr_ = std::regex_replace(infixExpr_, spaceTabRemover, "");
+    infixExpr_.erase(std::remove(infixExpr_.begin(), infixExpr_.end(), ' '), infixExpr_.end());
 
     /* == Clean the inFix expression by adding '*' for #valueY -> #value * Y  == */
-    std::regex multReplacer("([0-9]+|[)]+)([a-zA-Z]|[(])", std::regex_constants::icase);
-    infixExpr_ = std::regex_replace(infixExpr_, multReplacer, "$1*$2");
+    std::string tmp{std::move(infixExpr_)};
+    infixExpr_.reserve(tmp.size() * 2); /*= Worst case is actually 1.5 = */
+    std::uint32_t i = 0;
+    for (const auto &c:tmp) {
+        infixExpr_ += c;
+        auto next = tmp[++i];
+        if ((std::isdigit(c) && std::isalpha(next)) ||
+            (c == ')' && next == '(')) {
+            infixExpr_ += '*';
+        }
+    }
 
     /* == Clean the inFix expression by replacing every occurrence of PI to its value == */
-    std::regex picleaner("pi", std::regex_constants::icase);
-    infixExpr_ = std::regex_replace(infixExpr_, picleaner, "3.1415926535979");
-}
+    replace(infixExpr_, std::string("pi"), std::string("3.1415926535"));
+    replace(infixExpr_, std::string("PI"), std::string("3.1415926535"));
 
-static bool isOperator(const std::string &token) {
-    return stringToOperatorMap.find(token) != stringToOperatorMap.end();
-}
-
-static RPNOperator &getOperator(RPNOperatorType type) {
-    return rpnOperators[static_cast<std::uint32_t >(type)];
 }
 
 void RPNConverter::buildPostFix() {
 
     /* == Check for incoherence == */
-    std::regex badOpRegex("([*/+^]+)([*/+^])");
-    if (std::sregex_iterator(infixExpr_.begin(), infixExpr_.end(), badOpRegex) != std::sregex_iterator()) {
-        throwSpiderException("Expression ill formed. Two operators without operands: %s", infixExpr_.c_str());
+    std::string restrictedOperators{"*/+-%^"};
+    std::uint32_t i = 0;
+    for (const auto &c: infixExpr_) {
+        auto next = infixExpr_[++i];
+        if (restrictedOperators.find(c) != std::string::npos &&
+            restrictedOperators.find(next) != std::string::npos) {
+            throwSpiderException("Expression ill formed. Two operators without operands: %s", infixExpr_.c_str());
+        }
     }
 
     /* == Retrieve tokens == */
-    std::regex operandsRegex("([^*/)(+^]+)|([*/)(+^])");
-    auto words_begin = std::sregex_iterator(infixExpr_.begin(), infixExpr_.end(), operandsRegex);
-    auto words_end = std::sregex_iterator();
-    for (auto regexIterator = words_begin; regexIterator != words_end; ++regexIterator) {
-        tokens_.push_back((*regexIterator).str());
+    std::uint32_t nTokens = 0;
+    std::string operators{"*/+-%^)("};
+    for (const auto &c: infixExpr_) {
+        if (operators.find(c) != std::string::npos) {
+            nTokens += (2 - (c == '(' || c == ')'));
+        }
     }
-
-    std::cerr << toString() << std::endl;
+    i = 0;
+    std::uint32_t last = 0;
+    tokens_.reserve(nTokens);
+    for (const auto &c: infixExpr_) {
+        if (operators.find(c) != std::string::npos) {
+            if ((i - last) > 0) {
+                tokens_.push_back(infixExpr_.substr(last, i - last));
+            }
+            std::string tokenOp{c};
+            tokens_.push_back(tokenOp);
+            last = i + 1;
+        }
+        i++;
+    }
+    if ((i - last) > 0) {
+        tokens_.push_back(infixExpr_.substr(last, i - last));
+    }
 
     std::string postfix;
     for (const auto &t : tokens_) {
-        if (isOperator(t)) {
+        if (isFunction(t)) {
+            auto opType = getStringToFunctionMap()[t];
+            operatorStack_.push_front(opType);
+        } else if (isOperator(t)) {
             /* == Handle operator == */
-            auto opType = stringToOperatorMap[t];
+            auto opType = getStringToOperatorMap()[t];
 
             /* == Handle right parenthesis case == */
             if (opType == RPNOperatorType::RIGHT_PAR) {
@@ -194,11 +239,12 @@ void RPNConverter::buildPostFix() {
                 /* == This should not fail because miss match parenthesis is checked on constructor == */
                 while (frontOPType != RPNOperatorType::LEFT_PAR) {
                     /* == Put operator to the output == */
-                    postfix += operatorToStringMap[operatorStack_.front()] + std::string(" ");
+                    postfix += getOperatorToStringMap()[operatorStack_.front()] + std::string(" ");
                     operatorStack_.pop_front();
                     if (operatorStack_.empty()) {
                         break;
                     }
+
                     /* == Pop operator from the stack == */
                     frontOPType = operatorStack_.front();
                 }
@@ -223,7 +269,7 @@ void RPNConverter::buildPostFix() {
                        (op.precendence < frontOP.precendence ||
                         (op.precendence == frontOP.precendence && !frontOP.isRighAssociative))) {
                     /* == Put operator to the output == */
-                    postfix += operatorToStringMap[operatorStack_.front()] + std::string(" ");
+                    postfix += getOperatorToStringMap()[operatorStack_.front()] + std::string(" ");
                     operatorStack_.pop_front();
                     if (operatorStack_.empty()) {
                         break;
@@ -243,8 +289,8 @@ void RPNConverter::buildPostFix() {
         }
     }
     while (!operatorStack_.empty()) {
-        postfix += operatorToStringMap[operatorStack_.front()] + std::string(" ");
+        postfix += getOperatorToStringMap()[operatorStack_.front()] + std::string(" ");
         operatorStack_.pop_front();
     }
-    std::cerr << postfix << std::endl;
+    fprintf(stderr, "INFO: postfix expression: %s\n", postfix.c_str());
 }
