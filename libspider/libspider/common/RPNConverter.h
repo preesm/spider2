@@ -155,7 +155,7 @@ private:
     /**
      * @brief String containing all supported operators.
      */
-    std::string operators_{"*/+-%^)("};
+    std::string operators_{"+-*/%^()"};
 
     /**
      * @brief String containing all supported functions.
@@ -202,6 +202,10 @@ private:
      * @return true if s is a supported operator, false else
      */
     inline bool isOperator(const std::string &s) const;
+
+    inline RPNOperatorType getOperatorFromString(const std::string &t) const;
+
+    inline std::string &getStringFromOperator(RPNOperatorType type) const;
 };
 
 /* === Inline methods === */
@@ -240,5 +244,42 @@ bool RPNConverter::isOperator(const std::string &s) const {
     return operators_.find(s) != std::string::npos;
 }
 
+RPNOperatorType RPNConverter::getOperatorFromString(const std::string &t) const {
+    static RPNOperatorType operators[8] = {
+            RPNOperatorType::ADD,
+            RPNOperatorType::SUB,
+            RPNOperatorType::MUL,
+            RPNOperatorType::DIV,
+            RPNOperatorType::MOD,
+            RPNOperatorType::POW,
+            RPNOperatorType::LEFT_PAR,
+            RPNOperatorType::RIGHT_PAR,
+    };
+    auto op = operators_.find(t);
+    return operators[op];
+}
+
+
+std::string &RPNConverter::getStringFromOperator(RPNOperatorType type) const {
+    static std::string operators[N_OPERATOR + 2] = {
+            "+",
+            "-",
+            "*",
+            "/",
+            "^",
+            "%",
+            "ceil",
+            "floor",
+            "log",
+            "log2",
+            "cos",
+            "sin",
+            "tan",
+            "exp",
+            "(",
+            ")",
+    };
+    return operators[static_cast<std::uint32_t>(type)];
+}
 
 #endif //SPIDER2_RPNCONVERTER_H
