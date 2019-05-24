@@ -117,9 +117,9 @@ protected:
 
     static inline std::int32_t computePadding(std::uint64_t &base, std::int32_t alignment);
 
-    static inline const char *getByteUnitString(std::uint64_t &size);
+    static inline const char *getByteUnitString(std::uint64_t size);
 
-    static inline double getByteNormalizedSize(std::uint64_t &size);
+    static inline double getByteNormalizedSize(std::uint64_t size);
 
 private:
     const char *name_;
@@ -150,11 +150,15 @@ const char *AbstractAllocator::getName() const {
 
 void AbstractAllocator::printStats() const {
     Logger::print(LOG_GENERAL, LOG_INFO, "Allocator: %s\n", getName());
-    Logger::print(LOG_GENERAL, LOG_INFO, "       ==> max usage:    %" PRIu64"\n", peak_);
+    Logger::print(LOG_GENERAL, LOG_INFO, "       ==> max usage:    %lf %s\n", getByteNormalizedSize(peak_),
+                  getByteUnitString(peak_));
     if (averageUse_) {
-        Logger::print(LOG_GENERAL, LOG_INFO, "       ==> avg usage:    %" PRIu64"\n", averageUse_ / numberAverage_);
+        Logger::print(LOG_GENERAL, LOG_INFO, "       ==> avg usage:    %lf %s\n",
+                      getByteNormalizedSize(averageUse_ / numberAverage_),
+                      getByteUnitString(averageUse_ / numberAverage_));
     }
-    Logger::print(LOG_GENERAL, LOG_INFO, "       ==> still in use: %" PRIu64"\n", used_);
+    Logger::print(LOG_GENERAL, LOG_INFO, "       ==> still in use: %lf %s\n", getByteNormalizedSize(used_),
+                  getByteUnitString(used_));
 }
 
 std::uint64_t AbstractAllocator::computeAlignedSize(std::uint64_t &size, std::int32_t alignment /* = 4096 */) {
@@ -166,7 +170,7 @@ std::int32_t AbstractAllocator::computePadding(std::uint64_t &base, std::int32_t
     return static_cast<int32_t>(computeAlignedSize(base, alignment) - base);
 }
 
-const char *AbstractAllocator::getByteUnitString(std::uint64_t &size) {
+const char *AbstractAllocator::getByteUnitString(const std::uint64_t size) {
     constexpr std::uint64_t sizeGB = 1024 * 1024 * 1024;
     constexpr std::uint64_t sizeMB = 1024 * 1024;
     constexpr std::uint64_t sizeKB = 1024;
@@ -180,7 +184,7 @@ const char *AbstractAllocator::getByteUnitString(std::uint64_t &size) {
     return "B";
 }
 
-double AbstractAllocator::getByteNormalizedSize(std::uint64_t &size) {
+double AbstractAllocator::getByteNormalizedSize(std::uint64_t size) {
     constexpr double sizeGB = 1024 * 1024 * 1024;
     constexpr double sizeMB = 1024 * 1024;
     constexpr double sizeKB = 1024;
