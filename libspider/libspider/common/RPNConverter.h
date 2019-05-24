@@ -47,6 +47,7 @@
 #include <string>
 #include <vector>
 #include <deque>
+#include <common/containers/StlContainers.h>
 #include <common/containers/LinkedList.h>
 
 /* === Defines === */
@@ -149,7 +150,7 @@ private:
     std::string infixExpr_;
     bool static_ = false;
     Spider::LinkedList<RPNElement *> postfixExpr_;
-    std::vector<std::string> tokens_;
+    Spider::vector<std::string> tokens_;
     std::deque<RPNOperatorType> operatorStack_;
 
     /**
@@ -203,9 +204,22 @@ private:
      */
     inline bool isOperator(const std::string &s) const;
 
-    inline RPNOperatorType getOperatorFromString(const std::string &t) const;
+    /**
+     * @brief Convert an operator string to @refitem RPNOperatorType
+     * @remark This method assume the string is a valid operator.
+     * @param operatorString Operator as a string.
+     * @return enum class @refitem RPNOperatorType corresponding to the operator string.
+     * @example "+" -> RPNOperatorType::ADD
+     */
+    inline RPNOperatorType getOperatorFromString(const std::string &operatorString) const;
 
-    inline std::string &getStringFromOperator(RPNOperatorType type) const;
+    /**
+     * @brief Convert a @refitem RPNOperatorType to corresponding string.
+     * @param type  Operator type
+     * @return string corresponding to the operator type.
+     * @example RPNOperatorType::ADD -> "+"
+     */
+    inline std::string getStringFromOperator(RPNOperatorType type) const;
 };
 
 /* === Inline methods === */
@@ -244,7 +258,7 @@ bool RPNConverter::isOperator(const std::string &s) const {
     return operators_.find(s) != std::string::npos;
 }
 
-RPNOperatorType RPNConverter::getOperatorFromString(const std::string &t) const {
+RPNOperatorType RPNConverter::getOperatorFromString(const std::string &operatorString) const {
     static RPNOperatorType operators[8] = {
             RPNOperatorType::ADD,
             RPNOperatorType::SUB,
@@ -255,13 +269,13 @@ RPNOperatorType RPNConverter::getOperatorFromString(const std::string &t) const 
             RPNOperatorType::LEFT_PAR,
             RPNOperatorType::RIGHT_PAR,
     };
-    auto op = operators_.find(t);
+    auto op = operators_.find(operatorString);
     return operators[op];
 }
 
 
-std::string &RPNConverter::getStringFromOperator(RPNOperatorType type) const {
-    static std::string operators[N_OPERATOR + 2] = {
+std::string RPNConverter::getStringFromOperator(RPNOperatorType type) const {
+    constexpr const char *operators[N_OPERATOR + 2] = {
             "+",
             "-",
             "*",
