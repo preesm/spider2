@@ -24,15 +24,6 @@ if (${CROSS_COMPILE_MINGW})
     set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 endif ()
 
-
-# Macro to get short file name (vs full path) at compile time
-# The additional / is important to remove the last character from the path.
-# Note that it does not matter if the OS uses / or \, because we are only
-# saving the path size.
-string(LENGTH "${CMAKE_SOURCE_DIR}/" SOURCE_PATH_SIZE)
-add_definitions("-DSOURCE_PATH_SIZE=${SOURCE_PATH_SIZE}")
-add_definitions("-D__FILENAME__=(__FILE__ + ${SOURCE_PATH_SIZE})")
-
 # *******************************************
 # ************* CMake Content ***************
 # *******************************************
@@ -67,7 +58,7 @@ if (NOT ${CMAKE_GENERATOR} MATCHES "Visual Studio.*")
         MESSAGE("Generate Debug project")
         set(CMAKE_BUILD_TYPE Debug)
         set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Debug)
-        set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -pg -Wall -Wextra")
+        set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -pg -Wall -Wextra")
     else ()
         MESSAGE("Generate Release project")
         set(CMAKE_BUILD_TYPE Release)
@@ -213,7 +204,7 @@ file(
 
 add_library(Spider2 SHARED ${source_files} ${header_files})
 target_link_libraries(Spider2 ${CMAKE_THREAD_LIBS_INIT} ${PAPI_LIBRARIES})
-set(CMAKE_CXX_FLAGS "-fpermissive")
+set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -fpermissive")
 
 if (NOT MINGW AND NOT ${CMAKE_GENERATOR} MATCHES "Visual Studio.*")
     set(CMAKE_CXX_FLAGS "-fPIC")

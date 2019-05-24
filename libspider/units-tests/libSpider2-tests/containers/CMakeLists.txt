@@ -2,20 +2,12 @@ cmake_minimum_required(VERSION 3.1)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Macro to get short file name (vs full path) at compile time
-# The additional / is important to remove the last character from the path.
-# Note that it does not matter if the OS uses / or \, because we are only
-# saving the path size.
-string(LENGTH "${CMAKE_SOURCE_DIR}/" SOURCE_PATH_SIZE)
-add_definitions("-DSOURCE_PATH_SIZE=${SOURCE_PATH_SIZE}")
-add_definitions("-D__FILENAME__=(__FILE__ + ${SOURCE_PATH_SIZE})")
-
 # Locate GTest
 find_package(GTest REQUIRED)
 
 # Set flags
 set(CMAKE_BUILD_TYPE Debug)
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -pg -Wall -Wextra -coverage")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O3 -Wall -Wextra -coverage")
 
 
 # Link runTests with what we want to test and the GTest and pthread library
