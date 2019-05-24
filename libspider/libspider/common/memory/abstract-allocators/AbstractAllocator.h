@@ -149,15 +149,15 @@ const char *AbstractAllocator::getName() const {
 }
 
 void AbstractAllocator::printStats() const {
-    Logger::print(LOG_GENERAL, LOG_INFO, "Allocator: %s\n", getName());
-    Logger::print(LOG_GENERAL, LOG_INFO, "       ==> max usage:    %lf %s\n", getByteNormalizedSize(peak_),
+    Spider::Logger::print(LOG_GENERAL, LOG_INFO, "Allocator: %s\n", getName());
+    Spider::Logger::print(LOG_GENERAL, LOG_INFO, "       ==> max usage:    %lf %s\n", getByteNormalizedSize(peak_),
                   getByteUnitString(peak_));
     if (averageUse_) {
-        Logger::print(LOG_GENERAL, LOG_INFO, "       ==> avg usage:    %lf %s\n",
+        Spider::Logger::print(LOG_GENERAL, LOG_INFO, "       ==> avg usage:    %lf %s\n",
                       getByteNormalizedSize(averageUse_ / numberAverage_),
                       getByteUnitString(averageUse_ / numberAverage_));
     }
-    Logger::print(LOG_GENERAL, LOG_INFO, "       ==> still in use: %lf %s\n", getByteNormalizedSize(used_),
+    Spider::Logger::print(LOG_GENERAL, LOG_INFO, "       ==> still in use: %lf %s\n", getByteNormalizedSize(used_),
                   getByteUnitString(used_));
 }
 
@@ -201,7 +201,7 @@ double AbstractAllocator::getByteNormalizedSize(std::uint64_t size) {
 
 AbstractAllocator::~AbstractAllocator() {
     if (used_ > 0) {
-        Logger::print(LOG_GENERAL, LOG_ERROR, "Allocator: %s -- Still has %lf %s in use.\n",
+        Spider::Logger::print(LOG_GENERAL, LOG_ERROR, "Allocator: %s -- Still has %lf %s in use.\n",
                       getName(),
                       AbstractAllocator::getByteNormalizedSize(used_),
                       AbstractAllocator::getByteUnitString(used_));

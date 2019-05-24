@@ -70,28 +70,28 @@ static std::mutex lock;
 
 /* === Methods implementation === */
 
-void Logger::init() {
+void Spider::Logger::init() {
     loggersState_[LOG_JOB] = false;
     loggersState_[LOG_TIME] = false;
     loggersState_[LOG_GENERAL] = true;
 }
 
-void Logger::enable(LoggerType type) {
+void Spider::Logger::enable(LoggerType type) {
     std::lock_guard<std::mutex> locker(lock);
     loggersState_[type] = true;
 }
 
-void Logger::disable(LoggerType type) {
+void Spider::Logger::disable(LoggerType type) {
     std::lock_guard<std::mutex> locker(lock);
     loggersState_[type] = false;
 }
 
-void Logger::setOutputStream(FILE *stream) {
+void Spider::Logger::setOutputStream(FILE *stream) {
     std::lock_guard<std::mutex> locker(lock);
     outStream_ = stream;
 }
 
-void Logger::print(LoggerType type, LoggerLevel level, const char *fmt, ...) {
+void Spider::Logger::print(LoggerType type, LoggerLevel level, const char *fmt, ...) {
     if (loggersState_[type]) {
         std::lock_guard<std::mutex> locker(lock);
         va_list l;

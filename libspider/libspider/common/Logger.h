@@ -63,16 +63,18 @@ typedef enum {
 
 /* === Namespace === */
 
-namespace Logger {
-    void init();
+namespace Spider {
+    namespace Logger {
+        void init();
 
-    void enable(LoggerType type);
+        void enable(LoggerType type);
 
-    void disable(LoggerType type);
+        void disable(LoggerType type);
 
-    void setOutputStream(FILE *stream);
+        void setOutputStream(FILE *stream);
 
-    void print(LoggerType type, LoggerLevel level, const char *fmt, ...);
+        void print(LoggerType type, LoggerLevel level, const char *fmt, ...);
+    }
 }
 
 #endif //SPIDER_LOGGER_H
