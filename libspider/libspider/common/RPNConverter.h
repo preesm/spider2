@@ -43,16 +43,17 @@
 /* === Includes === */
 
 #include <algorithm>
+#include <common/containers/LinkedList.h>
+#include <common/containers/StlContainers.h>
 #include <cstdint>
+#include <deque>
 #include <string>
 #include <vector>
-#include <deque>
-#include <common/containers/StlContainers.h>
-#include <common/containers/LinkedList.h>
 
 /* === Defines === */
 
-#define N_OPERATOR 14
+#define N_OPERATOR 8
+#define N_FUNCTION 8
 
 /* === Forward declaration(s) === */
 
@@ -64,55 +65,58 @@ class PiSDFParam;
  * @brief Primary type of an @refitem RPNElement.
  */
 enum class RPNElementType : std::uint16_t {
-    OPERATOR,   /*! Operator element */
-    OPERAND,    /*! Operand element */
+    OPERATOR, /*! Operator element */
+    OPERAND,  /*! Operand element */
 };
 
 /**
  * @brief Secondary type of an @refitem RPNElement
  */
 enum class RPNElementSubType : std::uint16_t {
-    VALUE,      /*! Value (digit) */
-    PARAMETER,  /*! Value coming from a parameter */
-    LEFT_PAR,   /*! Operator is a left parenthesis */
-    RIGHT_PAR,  /*! Operator is a right parenthesis */
+    VALUE,     /*! Value (digit) */
+    PARAMETER, /*! Value coming from a parameter */
+//    LEFT_PAR,  /*! Operator is a left parenthesis */
+//    RIGHT_PAR, /*! Operator is a right parenthesis */
+            FUNCTION,  /*! Operator is a function */
+    OPERATOR,  /*! Operator is an elementary operator */
 };
 
 /**
  * @brief Enumeration of the supported operators by the parser.
  */
 enum class RPNOperatorType : std::uint32_t {
-    ADD = 0,     /*! Addition operator */
-    SUB = 1,     /*! Subtraction operator */
-    MUL = 2,     /*! Multiplication operator */
-    DIV = 3,     /*! Division operator */
-    POW = 4,     /*! Power operator */
-    MOD = 5,     /*! Modulo operator */
-    CEIL = 6,    /*! Ceil function */
-    FLOOR = 7,   /*! Floor function */
-    LOG = 8,     /*! Logarithm (base 10) function */
-    LOG2 = 9,    /*! Logarithm (base 2) function */
-    COS = 10,    /*! Cosinus function */
-    SIN = 11,    /*! Sinus function */
-    TAN = 12,    /*! Tangent function */
-    EXP = 13,    /*! Exponential function */
-    LEFT_PAR = 14,    /*! Left parenthesis */
-    RIGHT_PAR = 15,   /*! Right parenthesis */
+    ADD = 0,        /*! Addition operator */
+    SUB = 1,        /*! Subtraction operator */
+    MUL = 2,        /*! Multiplication operator */
+    DIV = 3,        /*! Division operator */
+    POW = 4,        /*! Power operator */
+    MOD = 5,        /*! Modulo operator */
+    CEIL = 6,       /*! Ceil function */
+    FLOOR = 7,      /*! Floor function */
+    LOG = 8,        /*! Logarithm (base 10) function */
+    LOG2 = 9,       /*! Logarithm (base 2) function */
+    COS = 10,       /*! Cosinus function */
+    SIN = 11,       /*! Sinus function */
+    TAN = 12,       /*! Tangent function */
+    EXP = 13,       /*! Exponential function */
+    LEFT_PAR = 14,  /*! Left parenthesis */
+    RIGHT_PAR = 15, /*! Right parenthesis */
 };
 
 /**
  * @brief Operator structure.
  */
 struct RPNOperator {
-    RPNOperatorType type;       /*! Operator type (see @refitem RPNOperatorType) */
-    std::uint16_t precendence;  /*! Precedence value level of the operator */
-    bool isRighAssociative;     /*! Right associativity property of the operator */
+    RPNOperatorType type;      /*! Operator type (see @refitem RPNOperatorType) */
+    std::uint16_t precendence; /*! Precedence value level of the operator */
+    bool isRighAssociative;    /*! Right associativity property of the operator */
 };
 
 /* === Structure definition(s) === */
 
 /**
- * @brief Structure defining an element for the Reverse Polish Notation (RPN) conversion.
+ * @brief Structure defining an element for the Reverse Polish Notation (RPN)
+ * conversion.
  */
 struct RPNElement {
     RPNElementType type;
@@ -120,23 +124,30 @@ struct RPNElement {
     union {
         double value;
         PiSDFParam *param;
-        RPNOperator op;
+        RPNOperatorType op;
     } element;
 };
+
+
+struct ExpressionTreeNode {
+    ExpressionTreeNode *left = nullptr;
+    ExpressionTreeNode *right = nullptr;
+    RPNElement elt;
+};
+
+using ExpressionTree = ExpressionTreeNode;
 
 /* === Class definition === */
 
 class RPNConverter {
 public:
-
     RPNConverter(std::string inFixExpr);
 
     ~RPNConverter();
 
     /* === Methods === */
 
-    inline std::string toString() const;
-
+    inline std::string postfixString();
 
     /* === Getters === */
 
@@ -147,26 +158,17 @@ public:
     inline bool isStatic() const;
 
 private:
+
     std::string infixExpr_;
+    std::string postfixExprString_{""};
     bool static_ = false;
-    Spider::LinkedList<RPNElement *> postfixExpr_;
-    Spider::vector<std::string> tokens_;
-    std::deque<RPNOperatorType> operatorStack_;
-
-    /**
-     * @brief String containing all supported operators.
-     */
-    std::string operators_{"+-*/%^()"};
-
-    /**
-     * @brief String containing all supported functions.
-     */
-    std::string functions_{",cos,sin,exp,tan,log,log2,ceil,floor,"};
+    Spider::queue<RPNElement> postfixExpr_;
 
     /* === Private Methods === */
 
     /**
-     * @brief Perform clean and reformatting operations on the original infix expression.
+     * @brief Perform clean and reformatting operations on the original infix
+     * expression.
      */
     void cleanInfixExpression();
 
@@ -188,38 +190,8 @@ private:
      * @param replace    Substring to replace found matches.
      * @return Modified string (same as s).
      */
-    std::string &replace(std::string &s, const std::string &pattern, const std::string &replace);
-
-    /**
-     * @brief Test if a given string is a supported function.
-     * @param s String to test.
-     * @return true if s is a supported function, false else
-     */
-    inline bool isFunction(const std::string &s) const;
-
-    /**
-     * @brief Test if a given string is a supported operator.
-     * @param s String to test.
-     * @return true if s is a supported operator, false else
-     */
-    inline bool isOperator(const std::string &s) const;
-
-    /**
-     * @brief Convert an operator string to @refitem RPNOperatorType
-     * @remark This method assume the string is a valid operator.
-     * @param operatorString Operator as a string.
-     * @return enum class @refitem RPNOperatorType corresponding to the operator string.
-     * @example "+" -> RPNOperatorType::ADD
-     */
-    inline RPNOperatorType getOperatorFromString(const std::string &operatorString) const;
-
-    /**
-     * @brief Convert a @refitem RPNOperatorType to corresponding string.
-     * @param type  Operator type
-     * @return string corresponding to the operator type.
-     * @example RPNOperatorType::ADD -> "+"
-     */
-    inline std::string getStringFromOperator(RPNOperatorType type) const;
+    std::string &replace(std::string &s, const std::string &pattern,
+                         const std::string &replace);
 };
 
 /* === Inline methods === */
@@ -234,66 +206,11 @@ bool RPNConverter::missMatchParenthesis() const {
     return nLeftPar != nRightPar;
 }
 
-bool RPNConverter::isStatic() const {
-    return static_;
+bool RPNConverter::isStatic() const { return static_; }
+
+std::string RPNConverter::postfixString() {
+    return postfixExprString_;
 }
 
 
-std::string RPNConverter::toString() const {
-    std::string stringPostfix;
-    for (const auto &t:tokens_) {
-        stringPostfix += t;
-    }
-    return stringPostfix;
-}
-
-bool RPNConverter::isFunction(const std::string &s) const {
-    auto pos = functions_.find(s);
-    return pos != std::string::npos &&
-           functions_[pos - 1] == ',' &&
-           functions_[pos + s.size()] == ',';
-}
-
-bool RPNConverter::isOperator(const std::string &s) const {
-    return operators_.find(s) != std::string::npos;
-}
-
-RPNOperatorType RPNConverter::getOperatorFromString(const std::string &operatorString) const {
-    static RPNOperatorType operators[8] = {
-            RPNOperatorType::ADD,
-            RPNOperatorType::SUB,
-            RPNOperatorType::MUL,
-            RPNOperatorType::DIV,
-            RPNOperatorType::MOD,
-            RPNOperatorType::POW,
-            RPNOperatorType::LEFT_PAR,
-            RPNOperatorType::RIGHT_PAR,
-    };
-    auto op = operators_.find(operatorString);
-    return operators[op];
-}
-
-
-std::string RPNConverter::getStringFromOperator(RPNOperatorType type) const {
-    constexpr const char *operators[N_OPERATOR + 2] = {
-            "+",
-            "-",
-            "*",
-            "/",
-            "^",
-            "%",
-            "ceil",
-            "floor",
-            "log",
-            "log2",
-            "cos",
-            "sin",
-            "tan",
-            "exp",
-            "(",
-            ")",
-    };
-    return operators[static_cast<std::uint32_t>(type)];
-}
-
-#endif //SPIDER2_RPNCONVERTER_H
+#endif // SPIDER2_RPNCONVERTER_H

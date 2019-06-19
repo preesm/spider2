@@ -50,7 +50,20 @@
 
 /* === Static variable definition(s) === */
 
-static RPNOperator rpnOperators[N_OPERATOR]{
+/**
+ * @brief String containing all supported operators.
+ */
+static std::string operators{"+-*/%^()"};
+
+/**
+ * @brief String containing all supported functions.
+ */
+static std::string functions{",0cos,1sin,2exp,3tan,4log,5log2,6ceil,7floor,"};
+
+/**
+ * @brief Pre-declared @refitem RPNOperator (same order as @refitem RPNOperatorType enum class).
+ */
+static RPNOperator rpnOperators[N_OPERATOR + N_FUNCTION]{
         {.type = RPNOperatorType::ADD, .precendence = 2, .isRighAssociative = false},   /*! ADD operator */
         {.type = RPNOperatorType::SUB, .precendence = 2, .isRighAssociative = false},   /*! ADD operator */
         {.type = RPNOperatorType::MUL, .precendence = 3, .isRighAssociative = false},   /*! MUL operator */
@@ -67,53 +80,186 @@ static RPNOperator rpnOperators[N_OPERATOR]{
         {.type = RPNOperatorType::EXP, .precendence = 5, .isRighAssociative = false},   /*! EXP operator */
 };
 
-static std::map<std::string, RPNOperatorType> &getStringToFunctionMap() {
-    static std::map<std::string, RPNOperatorType> stringToFunctionMap = {
-            {"cos",   RPNOperatorType::COS},
-            {"sin",   RPNOperatorType::SIN},
-            {"log",   RPNOperatorType::LOG},
-            {"log2",  RPNOperatorType::LOG2},
-            {"tan",   RPNOperatorType::TAN},
-            {"exp",   RPNOperatorType::EXP},
-            {"ceil",  RPNOperatorType::CEIL},
-            {"floor", RPNOperatorType::FLOOR},
-    };
-    return stringToFunctionMap;
-}
+/**
+ * @brief Array of @refitem RPNOperatorType operators (same order as @refitem operators) for the translation from string.
+ */
+static RPNOperatorType rpnOperatorsType[N_OPERATOR] = {
+        RPNOperatorType::ADD, RPNOperatorType::SUB,
+        RPNOperatorType::MUL, RPNOperatorType::DIV,
+        RPNOperatorType::MOD, RPNOperatorType::POW,
+        RPNOperatorType::LEFT_PAR, RPNOperatorType::RIGHT_PAR,
+};
+
+/**
+ * @brief Array of @refitem RPNOperatorType functions (same order as @refitem functions) for the translation from string.
+ */
+static RPNOperatorType rpnFunctionsType[N_FUNCTION] = {
+        RPNOperatorType::COS, RPNOperatorType::SIN,
+        RPNOperatorType::EXP, RPNOperatorType::TAN,
+        RPNOperatorType::LOG, RPNOperatorType::LOG2,
+        RPNOperatorType::CEIL, RPNOperatorType::FLOOR,
+};
+
+/* === Static Functions === */
 
 static RPNOperator &getOperator(RPNOperatorType type) {
     return rpnOperators[static_cast<std::uint32_t >(type)];
 }
 
+static bool isFunction(const std::string &s) {
+    auto pos = functions.find(s);
+    return pos != std::string::npos && functions[pos - 2] == ',' && functions[pos + s.size()] == ',';
+}
+
+static bool isFunction(RPNOperatorType type) {
+    return static_cast<std::int32_t >(type) > static_cast<std::int32_t >(RPNOperatorType::MOD) &&
+           type != RPNOperatorType::LEFT_PAR &&
+           type != RPNOperatorType::RIGHT_PAR;
+}
+
+static bool isOperator(const std::string &s) {
+    return operators.find(s) != std::string::npos;
+}
+
+/**
+ * @brief Retrieve the @refitem RPNOperatorType corresponding to the input string.
+ * @param operatorString input string corresponding to the operator.
+ * @return RPNOperatorType
+ */
+static RPNOperatorType getOperatorTypeFromString(const std::string &operatorString) {
+    auto op = operators.find(operatorString);
+    if (op == std::string::npos) {
+        op = functions.find(operatorString);
+        op = functions[op - 1] - '0';
+        return rpnFunctionsType[op];
+    }
+    return rpnOperatorsType[op];
+}
+
+static std::string getStringFromOperatorType(RPNOperatorType type) {
+    static constexpr const char *stringOperators[N_OPERATOR + N_FUNCTION] = {
+            "+", "-", "*", "/", "^", "%", "ceil", "floor",
+            "log", "log2", "cos", "sin", "tan", "exp", "(", ")",
+    };
+    return stringOperators[static_cast<std::uint32_t>(type)];
+}
+
+static inline RPNElement *createOperatorElement(RPNOperatorType opType) {
+    auto *elt = Spider::allocate<RPNElement>(StackID::GENERAL);
+    elt->type = RPNElementType::OPERATOR;
+    elt->subType = isFunction(opType) ? RPNElementSubType::FUNCTION
+                                      : RPNElementSubType::OPERATOR;
+    elt->element.op = opType;
+    return elt;
+}
+
+static inline RPNElement *createOperandElement(const std::string &token, PiSDFGraph *graph = nullptr) {
+    auto *elt = Spider::allocate<RPNElement>(StackID::GENERAL);
+    elt->type = RPNElementType::OPERAND;
+    char *end;
+    auto value = std::strtod(token.c_str(), &end);
+    if (end == token.c_str() || (*end) != '\0') {
+        elt->subType = RPNElementSubType::PARAMETER;
+    } else {
+        elt->subType = RPNElementSubType::VALUE;
+        elt->element.value = value;
+    }
+    return elt;
+}
+
+static inline void setOperatorElement(RPNElement *elt, RPNOperatorType opType) {
+    elt->type = RPNElementType::OPERATOR;
+    elt->subType = isFunction(opType) ? RPNElementSubType::FUNCTION
+                                      : RPNElementSubType::OPERATOR;
+    elt->element.op = opType;
+}
+
+static inline void setOperandElement(RPNElement *elt, const std::string &token, PiSDFGraph *graph = nullptr) {
+    elt->type = RPNElementType::OPERAND;
+    char *end;
+    auto value = std::strtod(token.c_str(), &end);
+    if (end == token.c_str() || (*end) != '\0') {
+        elt->subType = RPNElementSubType::PARAMETER;
+    } else {
+        elt->subType = RPNElementSubType::VALUE;
+        elt->element.value = value;
+    }
+}
+
+
+static void retrieveExprTokens(std::string &inFixExpr, Spider::vector<RPNElement> &tokens) {
+    std::uint32_t nTokens = 1;
+
+    /* == Compute the number of tokens in the expression == */
+    bool prevOP = false;
+    bool first = true;
+    for (const auto &c: inFixExpr) {
+        if (operators.find(c) != std::string::npos) {
+            nTokens += (2 - (prevOP || first));
+            prevOP = true;
+        } else {
+            prevOP = false;
+        }
+        first = false;
+    }
+    std::uint32_t i = 0;
+    std::uint32_t last = 0;
+    tokens.reserve(nTokens);
+    for (std::uint32_t j = 0; j < nTokens; ++j) {
+        tokens.push_back(RPNElement());
+    }
+
+    /* == Extract the tokens from the infix expression == */
+    std::uint32_t nDone = 0;
+    for (const auto &c: inFixExpr) {
+        if (operators.find(c) != std::string::npos) {
+            if ((i - last) > 0) {
+                auto token = inFixExpr.substr(last, i - last);
+                if (isFunction(token) || isOperator(token)) {
+                    /* == Operator and Function case == */
+                    setOperatorElement(&tokens[nDone++], getOperatorTypeFromString(token));
+                } else {
+                    /* == Operand case == */
+                    setOperandElement(&tokens[nDone++], token);
+                }
+            }
+            std::string tokenOp{c};
+            setOperatorElement(&tokens[nDone++], getOperatorTypeFromString(tokenOp));
+            last = i + 1;
+        }
+        i++;
+    }
+    if ((i - last) > 0) {
+        auto token = inFixExpr.substr(last, i - last);
+        if (isFunction(token) || isOperator(token)) {
+            /* == Operator and Function case == */
+            setOperatorElement(&tokens[nDone], getOperatorTypeFromString(token));
+        } else {
+            /* == Operand case == */
+            setOperandElement(&tokens[nDone], token);
+        }
+    }
+}
 
 /* === Methods implementation === */
 
-RPNConverter::RPNConverter(std::string inFixExpr) : infixExpr_{std::move(inFixExpr)},
-                                                    postfixExpr_(StackID::EXPR_PARSER) {
+RPNConverter::RPNConverter(std::string inFixExpr) : infixExpr_{std::move(inFixExpr)} {
     if (missMatchParenthesis()) {
         throwSpiderException("Expression with miss matched parenthesis: %s", infixExpr_.c_str());
     }
-//    fprintf(stderr, "INFO: original expression:  %s\n", infixExpr_.c_str());
 
     /* == Format properly the expression == */
     cleanInfixExpression();
-//    fprintf(stderr, "INFO: formatted expression: %s\n", infixExpr_.c_str());
 
     /* == Build the postfix expression == */
     buildPostFix();
 }
 
 RPNConverter::~RPNConverter() {
-    if (postfixExpr_.size()) {
-        postfixExpr_.setOnValue(postfixExpr_.head());
-        auto *element = postfixExpr_.current();
-        do {
-            auto *&value = element->value;
-            Spider::destroy(value);
-            value = nullptr;
-            element = postfixExpr_.next();
-        } while (postfixExpr_.current() != postfixExpr_.head());
-    }
+//    while (!postfixExpr_.empty()) {
+//        Spider::deallocate(postfixExpr_.front());
+//        postfixExpr_.pop();
+//    }
 }
 
 std::string &RPNConverter::replace(std::string &s, const std::string &pattern, const std::string &replace) {
@@ -136,8 +282,8 @@ void RPNConverter::cleanInfixExpression() {
     for (const auto &c:tmp) {
         infixExpr_ += c;
         auto next = tmp[++i];
-        if ((std::isdigit(c) && std::isalpha(next)) ||
-            (c == ')' && next == '(')) {
+        if ((std::isdigit(c) && (std::isalpha(next) || next == '(')) ||
+            (c == ')' && (next == '(' || std::isdigit(next) || std::isalpha(next)))) {
             infixExpr_ += '*';
         }
     }
@@ -145,9 +291,7 @@ void RPNConverter::cleanInfixExpression() {
     /* == Clean the inFix expression by replacing every occurrence of PI to its value == */
     replace(infixExpr_, std::string("pi"), std::string("3.1415926535"));
     replace(infixExpr_, std::string("PI"), std::string("3.1415926535"));
-
 }
-
 
 void RPNConverter::buildPostFix() {
 
@@ -163,100 +307,89 @@ void RPNConverter::buildPostFix() {
     }
 
     /* == Retrieve tokens == */
-    std::uint32_t nTokens = 0;
-    std::string operators{"*/+-%^)("};
-    for (const auto &c: infixExpr_) {
-        if (operators.find(c) != std::string::npos) {
-            nTokens += (2 - (c == '(' || c == ')'));
-        }
-    }
-    nTokens++;
-    i = 0;
-    std::uint32_t last = 0;
-    tokens_.reserve(nTokens);
-    for (const auto &c: infixExpr_) {
-        if (operators.find(c) != std::string::npos) {
-            if ((i - last) > 0) {
-                tokens_.push_back(infixExpr_.substr(last, i - last));
-            }
-            std::string tokenOp{c};
-            tokens_.push_back(tokenOp);
-            last = i + 1;
-        }
-        i++;
-    }
-    if ((i - last) > 0) {
-        tokens_.push_back(infixExpr_.substr(last, i - last));
-    }
+    Spider::vector<RPNElement> tokens;
+    retrieveExprTokens(infixExpr_, tokens);
 
-    std::string postfix;
-    for (const auto &t : tokens_) {
-        if (isFunction(t)) {
-            auto opType = getStringToFunctionMap()[t];
-            operatorStack_.push_front(opType);
-        } else if (isOperator(t)) {
+    /* == Build the postfix expression == */
+    Spider::deque<RPNOperatorType> operatorStack;
+    for (const auto &t : tokens) {
+        if (t.type == RPNElementType::OPERATOR) {
+
             /* == Handle operator == */
-            auto opType = getOperatorFromString(t);
+            auto opType = t.element.op;
+            if (isFunction(opType)) {
+                operatorStack.push_front(opType);
+            } else {
 
-            /* == Handle right parenthesis case == */
-            if (opType == RPNOperatorType::RIGHT_PAR) {
-                auto frontOPType = operatorStack_.front();
+                /* == Handle right parenthesis case == */
+                if (opType == RPNOperatorType::RIGHT_PAR) {
+                    auto frontOPType = operatorStack.front();
 
-                /* == This should not fail because miss match parenthesis is checked on constructor == */
-                while (frontOPType != RPNOperatorType::LEFT_PAR) {
-                    /* == Put operator to the output == */
-                    postfix += getStringFromOperator(operatorStack_.front()) + std::string(" ");
-                    operatorStack_.pop_front();
-                    if (operatorStack_.empty()) {
-                        break;
+                    /* == This should not fail because miss match parenthesis is checked on constructor == */
+                    while (frontOPType != RPNOperatorType::LEFT_PAR) {
+
+                        /* == Put operator to the output == */
+                        RPNElement elt;
+                        setOperatorElement(&elt, frontOPType);
+                        postfixExpr_.push(elt);
+                        operatorStack.pop_front();
+                        if (operatorStack.empty()) {
+                            break;
+                        }
+
+                        /* == Pop operator from the stack == */
+                        frontOPType = operatorStack.front();
                     }
 
-                    /* == Pop operator from the stack == */
-                    frontOPType = operatorStack_.front();
+                    /* == Pop left parenthesis == */
+                    operatorStack.pop_front();
+                    continue;
                 }
 
-                /* == Pop left parenthesis == */
-                operatorStack_.pop_front();
-                continue;
-            }
+                /* == Handle left parenthesis case == */
+                if (opType == RPNOperatorType::LEFT_PAR) {
+                    operatorStack.push_front(opType);
+                    continue;
+                }
 
-            /* == Handle left parenthesis case == */
-            if (opType == RPNOperatorType::LEFT_PAR) {
-                operatorStack_.push_front(opType);
-                continue;
-            }
+                /* == Handle general case == */
+                if (!operatorStack.empty()) {
+                    auto op = getOperator(opType);
+                    auto frontOPType = operatorStack.front();
+                    auto frontOP = getOperator(frontOPType);
+                    while (frontOPType != RPNOperatorType::LEFT_PAR &&
+                           (op.precendence < frontOP.precendence ||
+                            (op.precendence == frontOP.precendence && !frontOP.isRighAssociative))) {
 
-            /* == Handle general case == */
-            if (!operatorStack_.empty()) {
-                auto op = getOperator(opType);
-                auto frontOPType = operatorStack_.front();
-                auto frontOP = getOperator(frontOPType);
-                while (frontOPType != RPNOperatorType::LEFT_PAR &&
-                       (op.precendence < frontOP.precendence ||
-                        (op.precendence == frontOP.precendence && !frontOP.isRighAssociative))) {
-                    /* == Put operator to the output == */
-                    postfix += getStringFromOperator(operatorStack_.front()) + std::string(" ");
-                    operatorStack_.pop_front();
-                    if (operatorStack_.empty()) {
-                        break;
+                        /* == Put operator to the output == */
+                        RPNElement elt;
+                        setOperatorElement(&elt, frontOPType);
+                        postfixExpr_.push(elt);
+                        operatorStack.pop_front();
+                        if (operatorStack.empty()) {
+                            break;
+                        }
+
+                        /* == Pop operator from the stack == */
+                        frontOPType = operatorStack.front();
+                        frontOP = getOperator(frontOPType);
                     }
-
-                    /* == Pop operator from the stack == */
-                    frontOPType = operatorStack_.front();
-                    frontOP = getOperator(frontOPType);
                 }
-            }
 
-            /* == Push current operator to the stack == */
-            operatorStack_.push_front(opType);
+                /* == Push current operator to the stack == */
+                operatorStack.push_front(opType);
+            }
         } else {
             /* == Handle operand == */
-            postfix += t + std::string(" ");
+            postfixExpr_.push(t);
         }
     }
-    while (!operatorStack_.empty()) {
-        postfix += getStringFromOperator(operatorStack_.front()) + std::string(" ");
-        operatorStack_.pop_front();
+
+    while (!operatorStack.empty()) {
+        auto frontOPType = operatorStack.front();
+        RPNElement elt;
+        setOperatorElement(&elt, frontOPType);
+        postfixExpr_.push(elt);
+        operatorStack.pop_front();
     }
-//    fprintf(stderr, "INFO: postfix expression: %s\n", postfix.c_str());
 }
