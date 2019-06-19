@@ -96,6 +96,6 @@ void Spider::deallocate(void *ptr) {
         auto stackId = static_cast<StackID>(((std::uint64_t *) (originalPtr))[0]);
         /* 1. Deallocate the pointer */
         auto *&allocator = getAllocator(static_cast<std::uint64_t>(stackId));
-        allocator->deallocate(ptr);
+        allocator->deallocate(originalPtr);
     }
 }

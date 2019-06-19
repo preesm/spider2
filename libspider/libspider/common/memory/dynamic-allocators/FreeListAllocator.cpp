@@ -81,6 +81,7 @@ void *FreeListAllocator::allocate(std::uint64_t size) {
     std::int32_t padding = 0;
     Node *baseNode = list_;
     Node *memoryNode = nullptr;
+
     /* == Find first / best node fitting memory requirement == */
     method_(size, padding, alignment_, baseNode, memoryNode);
     if (!memoryNode) {
@@ -100,6 +101,7 @@ void *FreeListAllocator::allocate(std::uint64_t size) {
         /* == Push buffer into vector to keep track of it == */
         extraBuffers_.push_back(newBuffer);
     }
+
     /* == Compute padding and real required size == */
     std::int32_t paddingWithoutHeader = padding - sizeof(FreeListAllocator::Header);
     std::uint64_t requiredSize = size + padding;
@@ -111,6 +113,7 @@ void *FreeListAllocator::allocate(std::uint64_t size) {
         insert(memoryNode, freeNode);
     }
     remove(baseNode, memoryNode);
+
     /* == Computing header and data address == */
     char *headerAddress = (char *) (memoryNode) + paddingWithoutHeader;
     char *dataAddress = (char *) (memoryNode) + padding;
@@ -211,21 +214,21 @@ void
 FreeListAllocator::findFirst(std::uint64_t &size, std::int32_t &padding, std::int32_t &alignment,
                              Node *&baseNode,
                              Node *&foundNode) {
-    std::int32_t headerSize = sizeof(FreeListAllocator::Header);
     Node *it = baseNode;
     baseNode = nullptr;
+    constexpr std::int32_t headerSize = sizeof(FreeListAllocator::Header);
+    auto sizeWithHeader = size + headerSize;
     while (it) {
         auto currentSize = it->blockSize_;
-        padding = AbstractAllocator::computePadding(currentSize, alignment);
-        if (padding < headerSize) {
-            /* == Find next aligned address to fit header == */
-            headerSize -= padding;
-            padding += alignment * (headerSize / alignment + (headerSize % alignment != 0));
-        }
-        std::uint64_t requiredSize = size + padding;
-        if (it->blockSize_ >= requiredSize) {
-            foundNode = it;
-            return;
+        if (it->blockSize_ > sizeWithHeader) {
+            auto alignSize = currentSize - (size + headerSize);
+            padding = AbstractAllocator::computePadding(alignSize, alignment);
+            padding += headerSize;
+            std::uint64_t requiredSize = size + padding;
+            if (it->blockSize_ >= requiredSize) {
+                foundNode = it;
+                return;
+            }
         }
         baseNode = it;
         it = it->next_;
@@ -236,29 +239,30 @@ void
 FreeListAllocator::findBest(std::uint64_t &size, std::int32_t &padding, std::int32_t &alignment,
                             Node *&baseNode,
                             Node *&foundNode) {
-    std::int32_t headerSize = sizeof(FreeListAllocator::Header);
     Node *head = baseNode;
     Node *it = head;
     baseNode = nullptr;
     std::uint64_t minFit = UINT64_MAX;
+    constexpr std::int32_t headerSize = sizeof(FreeListAllocator::Header);
+    auto sizeWithHeader = size + headerSize;
     while (it) {
-        auto currentSize = (std::uint64_t) it;
-        padding = AbstractAllocator::computePadding(currentSize, alignment);
-        if (padding < headerSize) {
-            /* == Find next aligned address to fit header == */
-            headerSize -= padding;
-            padding += alignment * (headerSize / alignment + (headerSize % alignment != 0));
-        }
-        std::uint64_t requiredSize = size + padding;
-        if (it->blockSize_ >= requiredSize && (it->blockSize_ - requiredSize < minFit)) {
-            foundNode = it;
-            minFit = it->blockSize_ - requiredSize;
-            if (minFit == 0) {
-                /* == We won't find better fit == */
-                return;
+        auto currentSize = it->blockSize_;
+        if (it->blockSize_ > sizeWithHeader) {
+            auto alignSize = currentSize - (size + headerSize);
+            padding = AbstractAllocator::computePadding(alignSize, alignment);
+            padding += headerSize;
+            std::uint64_t requiredSize = size + padding;
+            if (it->blockSize_ >= requiredSize && ((it->blockSize_ - requiredSize) < minFit)) {
+                foundNode = it;
+                minFit = it->blockSize_ - requiredSize;
+                if (minFit == 0) {
+                    /* == We won't find better fit == */
+                    return;
+                }
+            } else {
+                baseNode = it;
             }
         }
-        baseNode = it;
         it = it->next_;
     }
     if (baseNode == head && head->next_ == nullptr) {
