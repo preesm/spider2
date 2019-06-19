@@ -55,10 +55,10 @@ namespace Spider {
     using vector = std::vector<T, Spider::Allocator<T> >;
 
     template<class T>
-    using queue = std::queue<T, Spider::Allocator<T> >;
+    using deque = std::deque<T, Spider::Allocator<T> >;
 
     template<class T>
-    using deque = std::deque<T, Spider::Allocator<T> >;
+    using queue = std::queue<T, Spider::deque<T> >;
 
     using string = std::basic_string<char,  std::char_traits<char>, Spider::Allocator<char>>;
 }
