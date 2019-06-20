@@ -42,13 +42,10 @@
 
 /* === Includes === */
 
-#include <algorithm>
 #include <common/containers/LinkedList.h>
 #include <common/containers/StlContainers.h>
+#include <algorithm>
 #include <cstdint>
-#include <deque>
-#include <string>
-#include <vector>
 
 /* === Defines === */
 
@@ -91,14 +88,14 @@ enum class RPNOperatorType : std::uint32_t {
     DIV = 3,        /*! Division operator */
     POW = 4,        /*! Power operator */
     MOD = 5,        /*! Modulo operator */
-    CEIL = 6,       /*! Ceil function */
-    FLOOR = 7,      /*! Floor function */
-    LOG = 8,        /*! Logarithm (base 10) function */
-    LOG2 = 9,       /*! Logarithm (base 2) function */
-    COS = 10,       /*! Cosinus function */
-    SIN = 11,       /*! Sinus function */
-    TAN = 12,       /*! Tangent function */
-    EXP = 13,       /*! Exponential function */
+    COS = 6,        /*! Cosinus function */
+    SIN = 7,        /*! Sinus function */
+    TAN = 8,        /*! Tangent function */
+    EXP = 9,        /*! Exponential function */
+    LOG = 10,       /*! Logarithm (base 10) function */
+    LOG2 = 11,      /*! Logarithm (base 2) function */
+    CEIL = 12,      /*! Ceil function */
+    FLOOR = 13,     /*! Floor function */
     LEFT_PAR = 14,  /*! Left parenthesis */
     RIGHT_PAR = 15, /*! Right parenthesis */
 };
@@ -119,8 +116,8 @@ struct RPNOperator {
  * conversion.
  */
 struct RPNElement {
-    RPNElementType type;
-    RPNElementSubType subType;
+    RPNElementType type = RPNElementType::OPERATOR;
+    RPNElementSubType subType = RPNElementSubType::OPERATOR;
     union {
         double value;
         PiSDFParam *param;
@@ -132,10 +129,9 @@ struct RPNElement {
 struct ExpressionTreeNode {
     ExpressionTreeNode *left = nullptr;
     ExpressionTreeNode *right = nullptr;
+    ExpressionTreeNode *parent = nullptr;
     RPNElement elt;
 };
-
-using ExpressionTree = ExpressionTreeNode;
 
 /* === Class definition === */
 
@@ -147,7 +143,11 @@ public:
 
     /* === Methods === */
 
-    inline std::string postfixString();
+    std::string toString();
+
+    void printExpressionTree();
+
+    double evaluate() const;
 
     /* === Getters === */
 
@@ -162,7 +162,8 @@ private:
     std::string infixExpr_;
     std::string postfixExprString_{""};
     bool static_ = false;
-    Spider::queue<RPNElement> postfixExpr_;
+    Spider::deque<RPNElement> postfixExpr_;
+    ExpressionTreeNode *expressionTree_ = nullptr;
 
     /* === Private Methods === */
 
@@ -176,6 +177,11 @@ private:
      * @brief Build the postfix expression.
      */
     void buildPostFix();
+
+    /**
+     * @brief Build the expression tree parser.
+     */
+    void buildExpressionTree();
 
     /**
      * @brief Check for miss match in the number of parenthesis
@@ -208,9 +214,6 @@ bool RPNConverter::missMatchParenthesis() const {
 
 bool RPNConverter::isStatic() const { return static_; }
 
-std::string RPNConverter::postfixString() {
-    return postfixExprString_;
-}
 
 
 #endif // SPIDER2_RPNCONVERTER_H
