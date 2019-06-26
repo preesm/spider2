@@ -51,6 +51,7 @@
 
 #define N_OPERATOR 8
 #define N_FUNCTION 8
+#define FUNCTION_OPERATOR_OFFSET 6 /*! Value of the @refitem RPNOperatorType::COS */
 
 /* === Forward declaration(s) === */
 
@@ -88,7 +89,7 @@ enum class RPNOperatorType : std::uint32_t {
     DIV = 3,        /*! Division operator */
     POW = 4,        /*! Power operator */
     MOD = 5,        /*! Modulo operator */
-    COS = 6,        /*! Cosinus function */
+    COS = 6,        /*! Cosine function */
     SIN = 7,        /*! Sinus function */
     TAN = 8,        /*! Tangent function */
     EXP = 9,        /*! Exponential function */
@@ -137,16 +138,24 @@ struct ExpressionTreeNode {
 
 class RPNConverter {
 public:
-    RPNConverter(std::string inFixExpr);
+    explicit RPNConverter(std::string inFixExpr);
 
     ~RPNConverter();
 
     /* === Methods === */
 
+    /**
+     * @brief Convert the expression to postfix string
+     * @return
+     */
     std::string toString();
 
     void printExpressionTree();
 
+    /**
+     * @brief Evaluate the expression (optimized)
+     * @return Result of the evaluated expression
+     */
     double evaluate() const;
 
     /* === Getters === */
@@ -174,6 +183,11 @@ private:
     void cleanInfixExpression();
 
     /**
+     * @brief Check for inconsistencies in the infix expression.
+     */
+    void checkInfixExpression() const;
+
+    /**
      * @brief Build the postfix expression.
      */
     void buildPostFix();
@@ -182,6 +196,11 @@ private:
      * @brief Build the expression tree parser.
      */
     void buildExpressionTree();
+
+    /**
+     * @brief Reduce the expression tree as much as possible to make evaluation faster.
+     */
+    void reduceExpressionTree();
 
     /**
      * @brief Check for miss match in the number of parenthesis

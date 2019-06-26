@@ -40,6 +40,7 @@
 
 /* === Includes === */
 
+#include <algorithm>
 #include <iostream>
 #include "RPNConverter.h"
 #include <common/containers/StlContainers.h>
@@ -194,8 +195,8 @@ static void retrieveExprTokens(std::string &inFixExpr, Spider::vector<RPNElement
     bool first = true;
     for (const auto &c: inFixExpr) {
         if (operators.find(c) != std::string::npos) {
-            bool last = c == inFixExpr.back();
-            nTokens += (2 - (prevOP || first || last));
+            bool last = &c == &inFixExpr.back();
+            nTokens += (2 - (prevOP || first || last) - last);
             prevOP = true;
         } else {
             prevOP = false;
@@ -262,6 +263,19 @@ static void printExpressionTreeNode(ExpressionTreeNode *node, std::int32_t depth
     printExpressionTreeNode(node->left, depth + 1);
 }
 
+static double evaluateNode(ExpressionTreeNode *node) {
+    if (node->elt.type == RPNElementType::OPERAND) {
+        return node->elt.element.value;
+    } else if (node->elt.subType == RPNElementSubType::FUNCTION) {
+        auto val = evaluateNode(node->left);
+        return functionsFctArray[static_cast<std::uint32_t >(node->elt.element.op) - FUNCTION_OPERATOR_OFFSET](val);
+    } else {
+        auto valLeft = evaluateNode(node->left);
+        auto valRight = evaluateNode(node->right);
+        return operatorsFctArray[static_cast<std::uint32_t >(node->elt.element.op)](valLeft, valRight);
+    }
+}
+
 /* === Methods implementation === */
 
 RPNConverter::RPNConverter(std::string inFixExpr) : infixExpr_{std::move(inFixExpr)} {
@@ -271,6 +285,11 @@ RPNConverter::RPNConverter(std::string inFixExpr) : infixExpr_{std::move(inFixEx
 
     /* == Format properly the expression == */
     cleanInfixExpression();
+
+    std::cerr << infixExpr_ << std::endl;
+
+    /* == Check for incoherence == */
+    checkInfixExpression();
 
     /* == Build the postfix expression == */
     buildPostFix();
@@ -286,6 +305,33 @@ RPNConverter::~RPNConverter() {
     }
 }
 
+
+
+void RPNConverter::printExpressionTree() {
+    if (expressionTree_) {
+        printExpressionTreeNode(expressionTree_, 0);
+    }
+}
+
+std::string RPNConverter::toString() {
+    if (postfixExprString_.empty()) {
+        for (auto &t:postfixExpr_) {
+            if (t.type == RPNElementType::OPERATOR) {
+                postfixExprString_ += getStringFromOperatorType(t.element.op) + " ";
+            } else {
+                postfixExprString_ += std::to_string(t.element.value) + " ";
+            }
+        }
+    }
+    return postfixExprString_;
+}
+
+
+
+double RPNConverter::evaluate() const {
+    return evaluateNode(expressionTree_);
+}
+
 std::string &RPNConverter::replace(std::string &s, const std::string &pattern, const std::string &replace) {
     if (!pattern.empty()) {
         for (size_t pos = 0; (pos = s.find(pattern, pos)) != std::string::npos; pos += replace.size()) {
@@ -298,6 +344,9 @@ std::string &RPNConverter::replace(std::string &s, const std::string &pattern, c
 void RPNConverter::cleanInfixExpression() {
     /* == Clean the inFix expression by removing all white spaces == */
     infixExpr_.erase(std::remove(infixExpr_.begin(), infixExpr_.end(), ' '), infixExpr_.end());
+
+    /* == Convert the infix to lowercase == */
+    std::transform(infixExpr_.begin(), infixExpr_.end(), infixExpr_.begin(), ::tolower);
 
     /* == Clean the inFix expression by adding '*' for #valueY -> #value * Y  == */
     std::string tmp{std::move(infixExpr_)};
@@ -314,21 +363,27 @@ void RPNConverter::cleanInfixExpression() {
 
     /* == Clean the inFix expression by replacing every occurrence of PI to its value == */
     replace(infixExpr_, std::string("pi"), std::string("3.1415926535"));
-    replace(infixExpr_, std::string("PI"), std::string("3.1415926535"));
 }
 
-void RPNConverter::buildPostFix() {
-
-    /* == Check for incoherence == */
+void RPNConverter::checkInfixExpression() const {
     std::string restrictedOperators{"*/+-%^"};
     std::uint32_t i = 0;
     for (const auto &c: infixExpr_) {
-        auto next = infixExpr_[++i];
-        if (restrictedOperators.find(c) != std::string::npos &&
-            restrictedOperators.find(next) != std::string::npos) {
-            throwSpiderException("Expression ill formed. Two operators without operands: %s", infixExpr_.c_str());
+        i += 1;
+        if (restrictedOperators.find(c) != std::string::npos) {
+            auto next = infixExpr_[i];
+            if (restrictedOperators.find(next) != std::string::npos) {
+                throwSpiderException("Expression ill formed. Two operators without operands between: %c -- %c", c,
+                                     next);
+            } else if (&c == &infixExpr_.front() ||
+                       &c == &infixExpr_.back()) {
+                throwSpiderException("Expression ill formed. Operator [%c] expecting two operands.", c);
+            }
         }
     }
+}
+
+void RPNConverter::buildPostFix() {
 
     /* == Retrieve tokens == */
     Spider::vector<RPNElement> tokens;
@@ -460,39 +515,7 @@ void RPNConverter::buildExpressionTree() {
     }
 }
 
-void RPNConverter::printExpressionTree() {
-    if (expressionTree_) {
-        printExpressionTreeNode(expressionTree_, 0);
-    }
+void RPNConverter::reduceExpressionTree() {
+
 }
 
-std::string RPNConverter::toString() {
-    if (postfixExprString_.empty()) {
-        for (auto &t:postfixExpr_) {
-            if (t.type == RPNElementType::OPERATOR) {
-                postfixExprString_ += getStringFromOperatorType(t.element.op) + " ";
-            } else {
-                postfixExprString_ += std::to_string(t.element.value) + " ";
-            }
-        }
-    }
-    return postfixExprString_;
-}
-
-static double evaluateNode(ExpressionTreeNode *node) {
-    if (node->elt.type == RPNElementType::OPERAND) {
-        return node->elt.element.value;
-    } else if (node->elt.subType == RPNElementSubType::FUNCTION) {
-        auto val = evaluateNode(node->left);
-        return functionsFctArray[static_cast<std::uint32_t >(node->elt.element.op) -
-                                 static_cast<std::uint32_t >(RPNOperatorType::COS)](val);
-    } else {
-        auto valLeft = evaluateNode(node->left);
-        auto valRight = evaluateNode(node->right);
-        return operatorsFctArray[static_cast<std::uint32_t >(node->elt.element.op)](valLeft, valRight);
-    }
-}
-
-double RPNConverter::evaluate() const {
-    return evaluateNode(expressionTree_);
-}
