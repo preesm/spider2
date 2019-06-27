@@ -46,6 +46,7 @@
 #include <common/containers/StlContainers.h>
 #include <common/SpiderException.h>
 #include <graphs/pisdf/PiSDFParam.h>
+#include <graphs/pisdf/PiSDFGraph.h>
 #include <common/expression-parser/ParserFunctions.h>
 
 /* === Static variable definition(s) === */
@@ -54,35 +55,41 @@ using operator2ArgsFct = double (*)(double &, double &);
 
 using operator1ArgFct = double (*)(double &);
 
-static operator2ArgsFct operatorsFctArray[N_OPERATOR - 2] = {
-        add,
-        sub,
-        mul,
-        div,
-        pow,
-        mod,
+static const operator2ArgsFct operatorsFctArray[N_OPERATOR - 2] = {
+        Spider::add,
+        Spider::sub,
+        Spider::mul,
+        Spider::div,
+        Spider::pow,
+        Spider::mod,
 };
 
-static operator1ArgFct functionsFctArray[N_FUNCTION] = {
-        cos,
-        sin,
-        exp,
-        tan,
-        log,
-        log2,
-        ceil,
-        floor,
+static const operator1ArgFct functionsFctArray[N_FUNCTION] = {
+        Spider::cos,
+        Spider::sin,
+        Spider::exp,
+        Spider::tan,
+        Spider::log,
+        Spider::log2,
+        Spider::ceil,
+        Spider::floor,
 };
 
 /**
- * @brief String containing all supported operators.
+ * @brief String containing all supported operators (should not be edited).
  */
-static std::string operators{"+-*/%^()"};
+static const std::string &operators() {
+    static std::string operators{"+-*/%^()"};
+    return operators;
+}
 
 /**
- * @brief String containing all supported functions.
+ * @brief String containing all supported functions (can be edited to add more functions).
  */
-static std::string functions{",0cos,1sin,2exp,3tan,4log,5log2,6ceil,7floor,"};
+static const std::string &functions() {
+    static std::string functions{",0cos,1sin,2exp,3tan,4log,5log2,6ceil,7floor,"};
+    return functions;
+}
 
 /**
  * @brief Pre-declared @refitem RPNOperator (same order as @refitem RPNOperatorType enum class).
@@ -131,8 +138,8 @@ static RPNOperator &getOperator(RPNOperatorType type) {
 }
 
 static bool isFunction(const std::string &s) {
-    auto pos = functions.find(s);
-    return pos != std::string::npos && functions[pos - 2] == ',' && functions[pos + s.size()] == ',';
+    auto pos = functions().find(s);
+    return pos != std::string::npos && functions()[pos - 2] == ',' && functions()[pos + s.size()] == ',';
 }
 
 static bool isFunction(RPNOperatorType type) {
@@ -142,7 +149,7 @@ static bool isFunction(RPNOperatorType type) {
 }
 
 static bool isOperator(const std::string &s) {
-    return operators.find(s) != std::string::npos;
+    return operators().find(s) != std::string::npos;
 }
 
 /**
@@ -151,10 +158,10 @@ static bool isOperator(const std::string &s) {
  * @return RPNOperatorType
  */
 static RPNOperatorType getOperatorTypeFromString(const std::string &operatorString) {
-    auto op = operators.find(operatorString);
+    auto op = operators().find(operatorString);
     if (op == std::string::npos) {
-        op = functions.find(operatorString);
-        op = functions[op - 1] - '0';
+        op = functions().find(operatorString);
+        op = functions()[op - 1] - '0';
         return rpnFunctionsType[op];
     }
     return rpnOperatorsType[op];
@@ -175,26 +182,35 @@ static inline void setOperatorElement(RPNElement *elt, RPNOperatorType opType) {
     elt->element.op = opType;
 }
 
-static inline void setOperandElement(RPNElement *elt, const std::string &token, PiSDFGraph *graph = nullptr) {
+static inline void setOperandElement(RPNElement *elt, const std::string &token, PiSDFGraph *graph) {
     elt->type = RPNElementType::OPERAND;
     char *end;
     auto value = std::strtod(token.c_str(), &end);
     if (end == token.c_str() || (*end) != '\0') {
         elt->subType = RPNElementSubType::PARAMETER;
+        elt->element.value = 0;
+//        auto *param = graph->findParam(token);
+//        if (param->isDynamic()) {
+//            elt->subType = RPNElementSubType::PARAMETER;
+//            elt->element.param = param;
+//        } else {
+//            elt->subType = RPNElementSubType::VALUE;
+//            elt->element.value = param->value();
+//        }
     } else {
         elt->subType = RPNElementSubType::VALUE;
         elt->element.value = value;
     }
 }
 
-static void retrieveExprTokens(std::string &inFixExpr, Spider::vector<RPNElement> &tokens) {
+static void retrieveExprTokens(std::string &inFixExpr, Spider::vector<RPNElement> &tokens, PiSDFGraph *graph) {
     std::uint32_t nTokens = 1;
 
     /* == Compute the number of tokens in the expression == */
     bool prevOP = false;
     bool first = true;
     for (const auto &c: inFixExpr) {
-        if (operators.find(c) != std::string::npos) {
+        if (operators().find(c) != std::string::npos) {
             bool last = &c == &inFixExpr.back();
             nTokens += (2 - (prevOP || first || last) - last);
             prevOP = true;
@@ -213,7 +229,7 @@ static void retrieveExprTokens(std::string &inFixExpr, Spider::vector<RPNElement
     /* == Extract the tokens from the infix expression == */
     std::uint32_t nDone = 0;
     for (const auto &c: inFixExpr) {
-        if (operators.find(c) != std::string::npos) {
+        if (operators().find(c) != std::string::npos) {
             if ((i - last) > 0) {
                 auto token = inFixExpr.substr(last, i - last);
                 if (isFunction(token) || isOperator(token)) {
@@ -221,7 +237,7 @@ static void retrieveExprTokens(std::string &inFixExpr, Spider::vector<RPNElement
                     setOperatorElement(&tokens[nDone++], getOperatorTypeFromString(token));
                 } else {
                     /* == Operand case == */
-                    setOperandElement(&tokens[nDone++], token);
+                    setOperandElement(&tokens[nDone++], token, graph);
                 }
             }
             std::string tokenOp{c};
@@ -237,7 +253,7 @@ static void retrieveExprTokens(std::string &inFixExpr, Spider::vector<RPNElement
             setOperatorElement(&tokens[nDone], getOperatorTypeFromString(token));
         } else {
             /* == Operand case == */
-            setOperandElement(&tokens[nDone], token);
+            setOperandElement(&tokens[nDone], token, graph);
         }
     }
 }
@@ -264,29 +280,32 @@ static void printExpressionTreeNode(ExpressionTreeNode *node, std::int32_t depth
 }
 
 static double evaluateNode(ExpressionTreeNode *node) {
-    if (node->elt.type == RPNElementType::OPERAND) {
-        return node->elt.element.value;
-    } else if (node->elt.subType == RPNElementSubType::FUNCTION) {
+    auto &elt = node->elt;
+    if (elt.type == RPNElementType::OPERAND) {
+        if (elt.subType == RPNElementSubType::PARAMETER) {
+            return elt.element.param->value();
+        }
+        return elt.element.value;
+    } else if (elt.subType == RPNElementSubType::FUNCTION) {
         auto val = evaluateNode(node->left);
-        return functionsFctArray[static_cast<std::uint32_t >(node->elt.element.op) - FUNCTION_OPERATOR_OFFSET](val);
+        return functionsFctArray[static_cast<std::uint32_t >(elt.element.op) - FUNCTION_OPERATOR_OFFSET](val);
     } else {
         auto valLeft = evaluateNode(node->left);
         auto valRight = evaluateNode(node->right);
-        return operatorsFctArray[static_cast<std::uint32_t >(node->elt.element.op)](valLeft, valRight);
+        return operatorsFctArray[static_cast<std::uint32_t >(elt.element.op)](valLeft, valRight);
     }
 }
 
 /* === Methods implementation === */
 
-RPNConverter::RPNConverter(std::string inFixExpr) : infixExpr_{std::move(inFixExpr)} {
+RPNConverter::RPNConverter(std::string inFixExpr, PiSDFGraph *graph) : infixExpr_{std::move(inFixExpr)},
+                                                                       graph_{graph} {
     if (missMatchParenthesis()) {
         throwSpiderException("Expression with miss matched parenthesis: %s", infixExpr_.c_str());
     }
 
     /* == Format properly the expression == */
     cleanInfixExpression();
-
-    std::cerr << infixExpr_ << std::endl;
 
     /* == Check for incoherence == */
     checkInfixExpression();
@@ -296,6 +315,13 @@ RPNConverter::RPNConverter(std::string inFixExpr) : infixExpr_{std::move(inFixEx
 
     /* == Build tree for fast resolving == */
     buildExpressionTree();
+
+//    printExpressionTree();
+
+    /* == Reduce the expression tree == */
+//    reduceExpressionTree();
+
+//    printExpressionTree();
 }
 
 RPNConverter::~RPNConverter() {
@@ -306,26 +332,11 @@ RPNConverter::~RPNConverter() {
 }
 
 
-
 void RPNConverter::printExpressionTree() {
     if (expressionTree_) {
         printExpressionTreeNode(expressionTree_, 0);
     }
 }
-
-std::string RPNConverter::toString() {
-    if (postfixExprString_.empty()) {
-        for (auto &t:postfixExpr_) {
-            if (t.type == RPNElementType::OPERATOR) {
-                postfixExprString_ += getStringFromOperatorType(t.element.op) + " ";
-            } else {
-                postfixExprString_ += std::to_string(t.element.value) + " ";
-            }
-        }
-    }
-    return postfixExprString_;
-}
-
 
 
 double RPNConverter::evaluate() const {
@@ -387,7 +398,7 @@ void RPNConverter::buildPostFix() {
 
     /* == Retrieve tokens == */
     Spider::vector<RPNElement> tokens;
-    retrieveExprTokens(infixExpr_, tokens);
+    retrieveExprTokens(infixExpr_, tokens, graph_);
 
     /* == Build the postfix expression == */
     Spider::deque<RPNOperatorType> operatorStack;
@@ -473,49 +484,84 @@ void RPNConverter::buildPostFix() {
     }
 }
 
+static ExpressionTreeNode *
+insertNode(ExpressionTreeNode *poolNode, ExpressionTreeNode *node, RPNElement *elt, std::uint16_t &nodeIx) {
+    node->elt = *elt;
+    while (node) {
+        auto *tmpElt = &node->elt;
+        if (tmpElt->subType == RPNElementSubType::OPERATOR && !node->right) {
+            node->right = &poolNode[nodeIx];
+            Spider::construct(node->right, nodeIx++, node);
+            return node->right;
+        } else if (!node->left && (node->right || tmpElt->subType == RPNElementSubType::FUNCTION)) {
+            node->left = &poolNode[nodeIx];
+            Spider::construct(node->left, nodeIx++, node);
+            return node->left;
+        } else {
+            node = node->parent;
+        }
+    }
+    return node;
+}
+
 void RPNConverter::buildExpressionTree() {
     auto *poolNodes = Spider::allocate<ExpressionTreeNode>(StackID::GENERAL, postfixExpr_.size());
     expressionTree_ = &poolNodes[0];
-    Spider::construct(expressionTree_);
-    ExpressionTreeNode *parent = nullptr;
+    std::uint16_t nodeIx = 0;
+    Spider::construct(expressionTree_, nodeIx++, nullptr);
     auto *node = expressionTree_;
-    std::int32_t nNode = 1;
     for (auto elt = postfixExpr_.rbegin(); elt != postfixExpr_.rend(); ++elt) {
-        node->elt = *elt;
-        node->parent = parent;
-        if (elt->type == RPNElementType::OPERATOR) {
-            if (elt->subType == RPNElementSubType::FUNCTION) {
-                node->left = &poolNodes[nNode++];
-                Spider::construct(node->left);
-            } else {
-                node->right = &poolNodes[nNode++];
-                Spider::construct(node->right);
-                node->left = &poolNodes[nNode++];
-                Spider::construct(node->left);
-            }
-        }
-        parent = node;
-        if (node->right) {
-            node = node->right;
-        } else if (node->left) {
-            node = node->left;
-        } else {
-            /* == Go up the tree to find first left node == */
-            auto *tmpParent = node->parent;
-            while (tmpParent) {
-                auto *tmpNode = tmpParent;
-                if (!tmpNode->left->parent) {
-                    parent = tmpNode;
-                    node = tmpNode->left;
-                    break;
-                }
-                tmpParent = tmpNode->parent;
-            }
-        }
+        node = insertNode(poolNodes, node, &(*elt), nodeIx);
     }
 }
 
 void RPNConverter::reduceExpressionTree() {
+    static_ = true;
 
+    /* == Array of bool == */
+    Spider::Array<bool> visitedArray(StackID::GENERAL, postfixExpr_.size());
+    std::fill(visitedArray.begin(), visitedArray.end(), false);
+
+    /* == Set on root == */
+    auto *node = expressionTree_;
+
+    while (node) {
+        visitedArray[node->ix] = true;
+        auto *left = node->left;
+        auto *right = node->right;
+        if (node->elt.subType == RPNElementSubType::FUNCTION &&
+            left->elt.type == RPNElementType::OPERAND &&
+            left->elt.subType == RPNElementSubType::VALUE) {
+            auto valLeft = left->elt.element.value;
+            node->left = nullptr;
+            node->right = nullptr;
+            node->elt.type = RPNElementType::OPERAND;
+            node->elt.subType = RPNElementSubType::VALUE;
+            node->elt.element.value = functionsFctArray[static_cast<std::uint32_t >(node->elt.element.op) -
+                                                        FUNCTION_OPERATOR_OFFSET](valLeft);
+            node = node->parent;
+        } else if (left->elt.type == RPNElementType::OPERAND &&
+                   left->elt.subType == RPNElementSubType::VALUE &&
+                   right->elt.type == RPNElementType::OPERAND &&
+                   right->elt.subType == RPNElementSubType::VALUE) {
+            auto valLeft = left->elt.element.value;
+            auto valRight = right->elt.element.value;
+            node->left = nullptr;
+            node->right = nullptr;
+            node->elt.type = RPNElementType::OPERAND;
+            node->elt.subType = RPNElementSubType::VALUE;
+            node->elt.element.value = operatorsFctArray[static_cast<std::uint32_t >(node->elt.element.op)](valLeft,
+                                                                                                           valRight);
+            node = node->parent;
+        } else if (left->elt.type != RPNElementType::OPERAND && !visitedArray[left->ix]) {
+            node = left;
+        } else if (right &&
+                   right->elt.type != RPNElementType::OPERAND &&
+                   !visitedArray[right->ix]) {
+            node = right;
+        } else {
+            node = node->parent;
+        }
+    }
 }
 

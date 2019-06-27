@@ -57,6 +57,8 @@
 
 class PiSDFParam;
 
+class PiSDFGraph;
+
 /* === Enum declaration(s) === */
 
 /**
@@ -120,7 +122,7 @@ struct RPNElement {
     RPNElementType type = RPNElementType::OPERATOR;
     RPNElementSubType subType = RPNElementSubType::OPERATOR;
     union {
-        double value;
+        double value = 0.;
         PiSDFParam *param;
         RPNOperatorType op;
     } element;
@@ -131,14 +133,20 @@ struct ExpressionTreeNode {
     ExpressionTreeNode *left = nullptr;
     ExpressionTreeNode *right = nullptr;
     ExpressionTreeNode *parent = nullptr;
+    std::uint16_t ix = 0;
     RPNElement elt;
+
+    ExpressionTreeNode(std::uint16_t ix, ExpressionTreeNode *parent) : parent{parent}, ix{ix} {
+        right = nullptr;
+        left = nullptr;
+    }
 };
 
 /* === Class definition === */
 
 class RPNConverter {
 public:
-    explicit RPNConverter(std::string inFixExpr);
+    explicit RPNConverter(std::string inFixExpr, PiSDFGraph *graph);
 
     ~RPNConverter();
 
@@ -148,7 +156,7 @@ public:
      * @brief Convert the expression to postfix string
      * @return
      */
-    std::string toString();
+    inline std::string toString() const;
 
     void printExpressionTree();
 
@@ -169,7 +177,7 @@ public:
 private:
 
     std::string infixExpr_;
-    std::string postfixExprString_{""};
+    PiSDFGraph *graph_ = nullptr;
     bool static_ = false;
     Spider::deque<RPNElement> postfixExpr_;
     ExpressionTreeNode *expressionTree_ = nullptr;
@@ -231,8 +239,12 @@ bool RPNConverter::missMatchParenthesis() const {
     return nLeftPar != nRightPar;
 }
 
-bool RPNConverter::isStatic() const { return static_; }
+bool RPNConverter::isStatic() const {
+    return static_;
+}
 
-
+std::string RPNConverter::toString() const {
+    return infixExpr_;
+}
 
 #endif // SPIDER2_RPNCONVERTER_H
