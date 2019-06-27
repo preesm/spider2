@@ -94,6 +94,12 @@ namespace Spider {
          */
         inline std::uint64_t size() const;
 
+        /**
+         * @brief Return the raw array pointer.
+         * @return pointer to the array
+         */
+        inline const T *data() const;
+
     private:
         std::uint64_t size_;
         T *array_;
@@ -176,6 +182,11 @@ namespace Spider {
     template<typename T>
     std::uint64_t Array<T>::size() const {
         return size_;
+    }
+
+    template<typename T>
+    const T *Array<T>::data() const {
+        return array_;
     }
 }
 #endif //SPIDER2_ARRAY_H
