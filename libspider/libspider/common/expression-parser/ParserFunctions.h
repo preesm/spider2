@@ -47,60 +47,62 @@
 
 /* === Methods prototype === */
 
-inline double add(double &a, double &b) {
-    return a + b;
-}
+namespace Spider {
+    inline double add(double &a, double &b) {
+        return a + b;
+    }
 
-inline double sub(double &a, double &b) {
-    return a - b;
-}
+    inline double sub(double &a, double &b) {
+        return a - b;
+    }
 
-inline double mul(double &a, double &b) {
-    return a * b;
-}
+    inline double mul(double &a, double &b) {
+        return a * b;
+    }
 
-inline double div(double &a, double &b) {
-    return a / b;
-}
+    inline double div(double &a, double &b) {
+        return a / b;
+    }
 
-inline double mod(double &a, double &b) {
-    return static_cast<std::int64_t >(a) % static_cast<std::int64_t >(b);
-}
+    inline double mod(double &a, double &b) {
+        return static_cast<std::int64_t >(a) % static_cast<std::int64_t >(b);
+    }
 
-inline double pow(double &a, double &b) {
-    return std::pow(a, b);
-}
+    inline double pow(double &a, double &b) {
+        return std::pow(a, b);
+    }
 
-inline double cos(double &a) {
-    return std::cos(a);
-}
+    inline double cos(double &a) {
+        return std::cos(a);
+    }
 
-inline double sin(double &a) {
-    return std::sin(a);
-}
+    inline double sin(double &a) {
+        return std::sin(a);
+    }
 
-inline double tan(double &a) {
-    return std::tan(a);
-}
+    inline double tan(double &a) {
+        return std::tan(a);
+    }
 
-inline double exp(double &a) {
-    return std::exp(a);
-}
+    inline double exp(double &a) {
+        return std::exp(a);
+    }
 
-inline double log(double &a) {
-    return std::log(a);
-}
+    inline double log(double &a) {
+        return std::log(a);
+    }
 
-inline double log2(double &a) {
-    return std::log2(a);
-}
+    inline double log2(double &a) {
+        return std::log2(a);
+    }
 
-inline double ceil(double &a) {
-    return std::ceil(a);
-}
+    inline double ceil(double &a) {
+        return std::ceil(a);
+    }
 
-inline double floor(double &a) {
-    return std::floor(a);
+    inline double floor(double &a) {
+        return std::floor(a);
+    }
 }
 
 #endif //SPIDER2_PARSERFUNCTIONS_H
