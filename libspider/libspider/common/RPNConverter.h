@@ -201,14 +201,9 @@ private:
     void buildPostFix();
 
     /**
-     * @brief Build the expression tree parser.
+     * @brief Build and reduce the expression tree parser.
      */
     void buildExpressionTree();
-
-    /**
-     * @brief Reduce the expression tree as much as possible to make evaluation faster.
-     */
-    void reduceExpressionTree();
 
     /**
      * @brief Check for miss match in the number of parenthesis

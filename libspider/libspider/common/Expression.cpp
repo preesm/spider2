@@ -43,3 +43,7 @@
 #include "Expression.h"
 
 /* === Methods implementation === */
+
+Expression::Expression(std::string expression, PiSDFGraph *graph) : rpnConverter_(std::move(expression), graph) {
+    expression_ = rpnConverter_.toString();
+}

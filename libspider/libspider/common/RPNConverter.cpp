@@ -187,16 +187,14 @@ static inline void setOperandElement(RPNElement *elt, const std::string &token, 
     char *end;
     auto value = std::strtod(token.c_str(), &end);
     if (end == token.c_str() || (*end) != '\0') {
-        elt->subType = RPNElementSubType::PARAMETER;
-        elt->element.value = 0;
-//        auto *param = graph->findParam(token);
-//        if (param->isDynamic()) {
-//            elt->subType = RPNElementSubType::PARAMETER;
-//            elt->element.param = param;
-//        } else {
-//            elt->subType = RPNElementSubType::VALUE;
-//            elt->element.value = param->value();
-//        }
+        auto *param = graph->findParam(token);
+        if (param->isDynamic()) {
+            elt->subType = RPNElementSubType::PARAMETER;
+            elt->element.param = param;
+        } else {
+            elt->subType = RPNElementSubType::VALUE;
+            elt->element.value = param->value();
+        }
     } else {
         elt->subType = RPNElementSubType::VALUE;
         elt->element.value = value;
@@ -273,7 +271,11 @@ static void printExpressionTreeNode(ExpressionTreeNode *node, std::int32_t depth
     if (elt.type == RPNElementType::OPERATOR) {
         fprintf(stderr, "%s\n", getStringFromOperatorType(elt.element.op).c_str());
     } else {
-        fprintf(stderr, "%lf\n", elt.element.value);
+        if (elt.subType == RPNElementSubType::PARAMETER) {
+            fprintf(stderr, "%s\n", elt.element.param->name().c_str());
+        } else {
+            fprintf(stderr, "%lf\n", elt.element.value);
+        }
     }
     printExpressionTreeNode(node->right, depth + 1);
     printExpressionTreeNode(node->left, depth + 1);
@@ -313,15 +315,8 @@ RPNConverter::RPNConverter(std::string inFixExpr, PiSDFGraph *graph) : infixExpr
     /* == Build the postfix expression == */
     buildPostFix();
 
-    /* == Build tree for fast resolving == */
+    /* == Build and reduce the expression tree for fast resolving == */
     buildExpressionTree();
-
-//    printExpressionTree();
-
-    /* == Reduce the expression tree == */
-//    reduceExpressionTree();
-
-//    printExpressionTree();
 }
 
 RPNConverter::~RPNConverter() {
@@ -498,6 +493,29 @@ insertNode(ExpressionTreeNode *poolNode, ExpressionTreeNode *node, RPNElement *e
             Spider::construct(node->left, nodeIx++, node);
             return node->left;
         } else {
+            if (node->elt.subType == RPNElementSubType::FUNCTION &&
+                node->left &&
+                node->left->elt.subType == RPNElementSubType::VALUE) {
+                auto &value = node->left->elt.element.value;
+                node->left = nullptr;
+                node->right = nullptr;
+                node->elt.type = RPNElementType::OPERAND;
+                node->elt.subType = RPNElementSubType::VALUE;
+                node->elt.element.value = functionsFctArray[static_cast<std::uint32_t >(node->elt.element.op) -
+                                                            FUNCTION_OPERATOR_OFFSET](value);
+            } else if (node->elt.subType == RPNElementSubType::OPERATOR &&
+                       node->left && node->left->elt.subType == RPNElementSubType::VALUE &&
+                       node->right && node->right->elt.subType == RPNElementSubType::VALUE) {
+                auto valLeft = node->left->elt.element.value;
+                auto valRight = node->right->elt.element.value;
+                node->left = nullptr;
+                node->right = nullptr;
+                node->elt.type = RPNElementType::OPERAND;
+                node->elt.subType = RPNElementSubType::VALUE;
+                node->elt.element.value = operatorsFctArray[static_cast<std::uint32_t >(node->elt.element.op)](valLeft,
+                                                                                                               valRight);
+
+            }
             node = node->parent;
         }
     }
@@ -514,54 +532,3 @@ void RPNConverter::buildExpressionTree() {
         node = insertNode(poolNodes, node, &(*elt), nodeIx);
     }
 }
-
-void RPNConverter::reduceExpressionTree() {
-    static_ = true;
-
-    /* == Array of bool == */
-    Spider::Array<bool> visitedArray(StackID::GENERAL, postfixExpr_.size());
-    std::fill(visitedArray.begin(), visitedArray.end(), false);
-
-    /* == Set on root == */
-    auto *node = expressionTree_;
-
-    while (node) {
-        visitedArray[node->ix] = true;
-        auto *left = node->left;
-        auto *right = node->right;
-        if (node->elt.subType == RPNElementSubType::FUNCTION &&
-            left->elt.type == RPNElementType::OPERAND &&
-            left->elt.subType == RPNElementSubType::VALUE) {
-            auto valLeft = left->elt.element.value;
-            node->left = nullptr;
-            node->right = nullptr;
-            node->elt.type = RPNElementType::OPERAND;
-            node->elt.subType = RPNElementSubType::VALUE;
-            node->elt.element.value = functionsFctArray[static_cast<std::uint32_t >(node->elt.element.op) -
-                                                        FUNCTION_OPERATOR_OFFSET](valLeft);
-            node = node->parent;
-        } else if (left->elt.type == RPNElementType::OPERAND &&
-                   left->elt.subType == RPNElementSubType::VALUE &&
-                   right->elt.type == RPNElementType::OPERAND &&
-                   right->elt.subType == RPNElementSubType::VALUE) {
-            auto valLeft = left->elt.element.value;
-            auto valRight = right->elt.element.value;
-            node->left = nullptr;
-            node->right = nullptr;
-            node->elt.type = RPNElementType::OPERAND;
-            node->elt.subType = RPNElementSubType::VALUE;
-            node->elt.element.value = operatorsFctArray[static_cast<std::uint32_t >(node->elt.element.op)](valLeft,
-                                                                                                           valRight);
-            node = node->parent;
-        } else if (left->elt.type != RPNElementType::OPERAND && !visitedArray[left->ix]) {
-            node = left;
-        } else if (right &&
-                   right->elt.type != RPNElementType::OPERAND &&
-                   !visitedArray[right->ix]) {
-            node = right;
-        } else {
-            node = node->parent;
-        }
-    }
-}
-

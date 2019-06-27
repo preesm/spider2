@@ -45,6 +45,7 @@
 #include <cstdint>
 #include <string>
 #include <common/containers/Array.h>
+#include "RPNConverter.h"
 
 /* === Type declarations === */
 
@@ -52,56 +53,44 @@ using Param = std::int64_t;
 
 /* === Forward declaration(s) === */
 
-class PiSDFParam;
-
-/* === Enum declaration(s) === */
-
-enum class ExprOperator : std::uint8_t {
-    OPERATOR,
-    VALUE,
-    PARAMETER,
-    LEFT_PAR,
-    RIGHT_PAR
-};
-
-enum class ExprOperatorType : std::uint8_t {
-    ADD,
-    SUB,
-    MUL,
-    DIV,
-    CEIL,
-    FLOOR,
-    POW
-};
+class PiSDFGraph;
 
 /* === Class definition === */
 
 class Expression {
 public:
 
+    Expression(std::string expression, PiSDFGraph *graph);
+
     ~Expression() = default;
 
     /* === Methods === */
 
-    Param evaluate() const;
+    /**
+     * @brief Evaluate the expression and return the value.
+     * @return Evaluated value of the expression.
+     */
+    inline Param evaluate() const;
 
     /* === Getters === */
 
+    /**
+     * @brief Get the last evaluated value (faster than evaluated on static expressions)
+     * @return last evaluated value (default value, i.e no evaluation done, is 0)
+     */
     inline Param value() const;
 
-    inline std::string expression() const;
+    /**
+     * @brief Get the infix expression string
+     * @return Clean infix expression string
+     */
+    inline std::string toString() const;
 
 private:
 
-    struct Token {
-        ExprOperator op;
-        ExprOperatorType opType;
-        PiSDFParam *param = nullptr;
-    };
-
-    std::string expression_;
-    Param value_;
-    Array<Token> stack_;
+    std::string expression_{""};
+    RPNConverter rpnConverter_;
+    Param value_ = 0;
 };
 
 /* === Inline methods === */
@@ -110,8 +99,15 @@ Param Expression::value() const {
     return value_;
 }
 
-std::string Expression::expression() const {
+std::string Expression::toString() const {
     return expression_;
+}
+
+Param Expression::evaluate() const {
+    if (rpnConverter_.isStatic()) {
+        return value_;
+    }
+    return static_cast<Param>(rpnConverter_.evaluate());
 }
 
 #endif //SPIDER2_EXPRESSION_H
