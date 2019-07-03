@@ -34,10 +34,10 @@
  * knowledge of the CeCILL license and that you accept its terms.
  */
 
-#include <gtest/gtest.h>
-#include "sources/LinkedListTest.h"
 #include "sources/ArrayTest.h"
-
+#include "sources/LinkedListTest.h"
+#include "sources/SetTest.h"
+#include <gtest/gtest.h>
 
 int main(int argc, char **argv) {
     testing::InitGoogleTest(&argc, argv);

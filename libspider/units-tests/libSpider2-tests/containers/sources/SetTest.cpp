@@ -66,7 +66,7 @@ void SetTest::TearDown() {
 
 class MySetElement : public Spider::SetElement {
 public:
-    double value;
+    double value = 0;
 };
 
 TEST_F(SetTest, TestCreation) {
@@ -90,8 +90,8 @@ TEST_F(SetTest, TestAssignation) {
 
 TEST_F(SetTest, TestRemove) {
     auto testSet = Spider::Set<MySetElement *>(StackID::GENERAL, 10);
-    MySetElement *elt = new MySetElement;
-    MySetElement *elt2 = new MySetElement;
+    auto *elt = new MySetElement;
+    auto *elt2 = new MySetElement;
     EXPECT_NO_THROW(testSet.add(elt));
     EXPECT_EQ(testSet.occupied(), 1);
     EXPECT_NO_THROW(testSet.add(elt2));

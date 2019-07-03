@@ -7,7 +7,7 @@ find_package(GTest REQUIRED)
 
 # Set flags
 set(CMAKE_BUILD_TYPE Debug)
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O3 -Wall -Wextra -coverage")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -Wall -Wextra -coverage -ftest-coverage -fprofile-arcs")
 
 
 # Link runTests with what we want to test and the GTest and pthread library
