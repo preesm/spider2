@@ -60,15 +60,15 @@ static const operator2ArgsFct operatorsFctArray[N_OPERATOR - 2] = {
         Spider::sub,
         Spider::mul,
         Spider::div,
-        Spider::pow,
         Spider::mod,
+        Spider::pow,
 };
 
 static const operator1ArgFct functionsFctArray[N_FUNCTION] = {
         Spider::cos,
         Spider::sin,
-        Spider::exp,
         Spider::tan,
+        Spider::exp,
         Spider::log,
         Spider::log2,
         Spider::ceil,
@@ -87,7 +87,7 @@ static const std::string &operators() {
  * @brief String containing all supported functions (can be edited to add more functions).
  */
 static const std::string &functions() {
-    static std::string functions{",0cos,1sin,2exp,3tan,4log,5log2,6ceil,7floor,"};
+    static std::string functions{",0cos,1sin,2tan,3exp,4log,5log2,6ceil,7floor,"};
     return functions;
 }
 
@@ -99,16 +99,16 @@ static RPNOperator rpnOperators[N_OPERATOR + N_FUNCTION]{
         {.type = RPNOperatorType::SUB, .precendence = 2, .isRighAssociative = false},   /*! ADD operator */
         {.type = RPNOperatorType::MUL, .precendence = 3, .isRighAssociative = false},   /*! MUL operator */
         {.type = RPNOperatorType::DIV, .precendence = 3, .isRighAssociative = false},   /*! DIV operator */
-        {.type = RPNOperatorType::MOD, .precendence = 3, .isRighAssociative = false},   /*! MOD operator */
+        {.type = RPNOperatorType::MOD, .precendence = 4, .isRighAssociative = false},   /*! MOD operator */
         {.type = RPNOperatorType::POW, .precendence = 4, .isRighAssociative = true},    /*! POW operator */
-        {.type = RPNOperatorType::CEIL, .precendence = 5, .isRighAssociative = false},  /*! CEIL operator */
-        {.type = RPNOperatorType::FLOOR, .precendence = 5, .isRighAssociative = false}, /*! FLOOR operator */
-        {.type = RPNOperatorType::LOG, .precendence = 5, .isRighAssociative = false},   /*! LOG operator */
-        {.type = RPNOperatorType::LOG2, .precendence = 5, .isRighAssociative = false},  /*! LOG2 operator */
         {.type = RPNOperatorType::COS, .precendence = 5, .isRighAssociative = false},   /*! COS operator */
         {.type = RPNOperatorType::SIN, .precendence = 5, .isRighAssociative = false},   /*! SIN operator */
         {.type = RPNOperatorType::TAN, .precendence = 5, .isRighAssociative = false},   /*! TAN operator */
         {.type = RPNOperatorType::EXP, .precendence = 5, .isRighAssociative = false},   /*! EXP operator */
+        {.type = RPNOperatorType::LOG, .precendence = 5, .isRighAssociative = false},   /*! LOG operator */
+        {.type = RPNOperatorType::LOG2, .precendence = 5, .isRighAssociative = false},  /*! LOG2 operator */
+        {.type = RPNOperatorType::CEIL, .precendence = 5, .isRighAssociative = false},  /*! CEIL operator */
+        {.type = RPNOperatorType::FLOOR, .precendence = 5, .isRighAssociative = false}, /*! FLOOR operator */
 };
 
 /**
@@ -126,7 +126,7 @@ static RPNOperatorType rpnOperatorsType[N_OPERATOR] = {
  */
 static RPNOperatorType rpnFunctionsType[N_FUNCTION] = {
         RPNOperatorType::COS, RPNOperatorType::SIN,
-        RPNOperatorType::EXP, RPNOperatorType::TAN,
+        RPNOperatorType::TAN, RPNOperatorType::EXP,
         RPNOperatorType::LOG, RPNOperatorType::LOG2,
         RPNOperatorType::CEIL, RPNOperatorType::FLOOR,
 };
@@ -143,7 +143,7 @@ static bool isFunction(const std::string &s) {
 }
 
 static bool isFunction(RPNOperatorType type) {
-    return static_cast<std::int32_t >(type) > static_cast<std::int32_t >(RPNOperatorType::MOD) &&
+    return static_cast<std::int32_t >(type) >= FUNCTION_OPERATOR_OFFSET &&
            type != RPNOperatorType::LEFT_PAR &&
            type != RPNOperatorType::RIGHT_PAR;
 }
@@ -202,15 +202,14 @@ static inline void setOperandElement(RPNElement *elt, const std::string &token, 
 }
 
 static void retrieveExprTokens(std::string &inFixExpr, Spider::vector<RPNElement> &tokens, PiSDFGraph *graph) {
-    std::uint32_t nTokens = 1;
+    std::uint32_t nTokens = std::isdigit(inFixExpr.back());
 
     /* == Compute the number of tokens in the expression == */
     bool prevOP = false;
     bool first = true;
     for (const auto &c: inFixExpr) {
         if (operators().find(c) != std::string::npos) {
-            bool last = &c == &inFixExpr.back();
-            nTokens += (2 - (prevOP || first || last) - last);
+            nTokens += (2 - (prevOP || first));
             prevOP = true;
         } else {
             prevOP = false;
@@ -358,13 +357,17 @@ void RPNConverter::cleanInfixExpression() {
     std::string tmp{std::move(infixExprString_)};
     infixExprString_.reserve(tmp.size() * 2); /*= Worst case is actually 1.5 = */
     std::uint32_t i = 0;
+    bool ignore = false;
     for (const auto &c:tmp) {
         infixExprString_ += c;
         auto next = tmp[++i];
-        if ((std::isdigit(c) && (std::isalpha(next) || next == '(')) ||
-            (c == ')' && (next == '(' || std::isdigit(next) || std::isalpha(next)))) {
+        if (!ignore && ((std::isdigit(c) &&
+                         (std::isalpha(next) || next == '(')) ||
+                        (c == ')' &&
+                         (next == '(' || std::isdigit(next) || std::isalpha(next))))) {
             infixExprString_ += '*';
         }
+        ignore = std::isalpha(c) && std::isdigit(next);
     }
 
     /* == Clean the inFix expression by replacing every occurrence of PI to its value == */

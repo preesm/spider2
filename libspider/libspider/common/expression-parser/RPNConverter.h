@@ -89,8 +89,8 @@ enum class RPNOperatorType : std::uint32_t {
     SUB = 1,        /*! Subtraction operator */
     MUL = 2,        /*! Multiplication operator */
     DIV = 3,        /*! Division operator */
-    POW = 4,        /*! Power operator */
-    MOD = 5,        /*! Modulo operator */
+    MOD = 4,        /*! Modulo operator */
+    POW = 5,        /*! Power operator */
     COS = 6,        /*! Cosine function */
     SIN = 7,        /*! Sinus function */
     TAN = 8,        /*! Tangent function */
