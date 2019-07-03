@@ -54,6 +54,13 @@ public:
                                      FreeListPolicy policy = FIND_FIRST,
                                      std::int32_t alignment = sizeof(std::int64_t));
 
+
+    explicit FreeListStaticAllocator(const char *name,
+                                     std::uint64_t totalSize,
+                                     char *externalBase,
+                                     FreeListPolicy policy = FIND_FIRST,
+                                     std::int32_t alignment = sizeof(std::int64_t));
+
     ~FreeListStaticAllocator() override = default;
 
     void *allocate(std::uint64_t size) override;

@@ -60,6 +60,20 @@ FreeListStaticAllocator::FreeListStaticAllocator(const char *name,
     }
 }
 
+FreeListStaticAllocator::FreeListStaticAllocator(const char *name, std::uint64_t totalSize, char *externalBase,
+                                                 FreeListPolicy policy, int32_t alignment) :
+        StaticAllocator(name, totalSize + sizeof(FreeListStaticAllocator::Header), externalBase, alignment) {
+    if (alignment < 8) {
+        throwSpiderException("Memory alignment should be at least of size sizeof(std::int64_t) = 8 bytes.");
+    }
+    this->reset();
+    if (policy == FIND_FIRST) {
+        method_ = FreeListStaticAllocator::findFirst;
+    } else if (policy == FIND_BEST) {
+        method_ = FreeListStaticAllocator::findBest;
+    }
+}
+
 void *FreeListStaticAllocator::allocate(std::uint64_t size) {
     if (!size) {
         return nullptr;

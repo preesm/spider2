@@ -49,6 +49,11 @@ LIFOStaticAllocator::LIFOStaticAllocator(const char *name, std::uint64_t totalSi
 
 }
 
+LIFOStaticAllocator::LIFOStaticAllocator(const char *name, std::uint64_t totalSize, char *externalBase) :
+        StaticAllocator(name, totalSize, externalBase, sizeof(std::uint64_t)) {
+
+}
+
 void *LIFOStaticAllocator::allocate(std::uint64_t size) {
     if (!size) {
         return nullptr;
@@ -76,8 +81,9 @@ void LIFOStaticAllocator::deallocate(void *ptr) {
     StaticAllocator::checkPointerAddress(ptr);
     char *currentAddress = static_cast<char *>(ptr);
     if (currentAddress > (used_ + startPtr_)) {
-        throwSpiderException("Allocator: %s -- LIFO allocator should deallocate element in reverse order of allocation.",
-                             getName());
+        throwSpiderException(
+                "Allocator: %s -- LIFO allocator should deallocate element in reverse order of allocation.",
+                getName());
     }
     used_ = currentAddress - startPtr_;
 }
