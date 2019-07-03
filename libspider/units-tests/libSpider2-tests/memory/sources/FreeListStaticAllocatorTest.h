@@ -73,6 +73,8 @@ TEST(FreeListStaticAllocatorTest, MemoryAllocFindFirst) {
     EXPECT_NO_THROW(allocator->allocate(sizeof(std::int32_t)));
     EXPECT_NO_THROW(allocator->reset());
     EXPECT_NO_THROW(allocator->allocate(MAX_SIZE));
+
+    /* == Undefined behavior == */
     EXPECT_NO_THROW(allocator->deallocate(array));
     EXPECT_NO_THROW(allocator->allocate(MAX_SIZE));
     delete allocator;
@@ -84,9 +86,8 @@ TEST(FreeListStaticAllocatorTest, MemoryAllocAlignmentFindFirst) {
     ASSERT_NE(charArray, nullptr);
     auto *dblArray = (double *) allocator->allocate(2 * sizeof(double));
     ASSERT_NE(dblArray, nullptr);
-    std::int32_t paddingSize = 1 * sizeof(std::uint64_t);
     std::int32_t headerSize = 2 * sizeof(std::uint64_t);
-    ASSERT_EQ(charArray + 16 + paddingSize + headerSize, (char *) dblArray);
+    ASSERT_EQ(charArray + 17 + headerSize, (char *) dblArray);
     delete allocator;
 }
 
@@ -132,9 +133,8 @@ TEST(FreeListStaticAllocatorTest, MemoryAllocAlignmentFindBest) {
     ASSERT_NE(charArray, nullptr);
     auto *dblArray = (double *) allocator->allocate(2 * sizeof(double));
     ASSERT_NE(dblArray, nullptr);
-    std::int32_t paddingSize = 1 * sizeof(std::uint64_t);
     std::int32_t headerSize = 2 * sizeof(std::uint64_t);
-    ASSERT_EQ(charArray + 16 + paddingSize + headerSize, (char *) dblArray);
+    ASSERT_EQ(charArray + 17 + headerSize, (char *) dblArray);
     delete allocator;
 }
 

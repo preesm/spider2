@@ -219,10 +219,8 @@ FreeListAllocator::findFirst(std::uint64_t &size, std::int32_t &padding, std::in
     constexpr std::int32_t headerSize = sizeof(FreeListAllocator::Header);
     auto sizeWithHeader = size + headerSize;
     while (it) {
-        auto currentSize = it->blockSize_;
-        if (it->blockSize_ > sizeWithHeader) {
-            auto alignSize = currentSize - (size + headerSize);
-            padding = AbstractAllocator::computePadding(alignSize, alignment);
+        if (it->blockSize_ >= sizeWithHeader) {
+            padding = AbstractAllocator::computePadding(sizeWithHeader, alignment);
             padding += headerSize;
             std::uint64_t requiredSize = size + padding;
             if (it->blockSize_ >= requiredSize) {
@@ -246,10 +244,8 @@ FreeListAllocator::findBest(std::uint64_t &size, std::int32_t &padding, std::int
     constexpr std::int32_t headerSize = sizeof(FreeListAllocator::Header);
     auto sizeWithHeader = size + headerSize;
     while (it) {
-        auto currentSize = it->blockSize_;
-        if (it->blockSize_ > sizeWithHeader) {
-            auto alignSize = currentSize - (size + headerSize);
-            padding = AbstractAllocator::computePadding(alignSize, alignment);
+        if (it->blockSize_ >= sizeWithHeader) {
+            padding = AbstractAllocator::computePadding(sizeWithHeader, alignment);
             padding += headerSize;
             std::uint64_t requiredSize = size + padding;
             if (it->blockSize_ >= requiredSize && ((it->blockSize_ - requiredSize) < minFit)) {
