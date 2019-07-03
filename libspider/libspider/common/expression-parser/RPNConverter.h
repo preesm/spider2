@@ -153,10 +153,16 @@ public:
     /* === Methods === */
 
     /**
-     * @brief Convert the expression to postfix string
+     * @brief Get the expression postfix string
      * @return
      */
-    inline std::string toString() const;
+    std::string toString();
+
+    /**
+     * @brief Get the expression infix string
+     * @return
+     */
+    inline std::string infixString() const;
 
     void printExpressionTree();
 
@@ -176,10 +182,11 @@ public:
 
 private:
 
-    std::string infixExpr_;
+    std::string infixExprString_;
+    std::string postfixExprString_{""};
     PiSDFGraph *graph_ = nullptr;
     bool static_ = false;
-    Spider::deque<RPNElement> postfixExpr_;
+    Spider::deque<RPNElement> postfixExprStack_;
     ExpressionTreeNode *expressionTree_ = nullptr;
 
     /* === Private Methods === */
@@ -227,7 +234,7 @@ private:
 bool RPNConverter::missMatchParenthesis() const {
     std::uint32_t nLeftPar = 0;
     std::uint32_t nRightPar = 0;
-    for (auto &t : infixExpr_) {
+    for (auto &t : infixExprString_) {
         nLeftPar += (t == '(');
         nRightPar += (t == ')');
     }
@@ -238,8 +245,9 @@ bool RPNConverter::isStatic() const {
     return static_;
 }
 
-std::string RPNConverter::toString() const {
-    return infixExpr_;
+
+std::string RPNConverter::infixString() const {
+    return infixExprString_;
 }
 
 #endif // SPIDER2_RPNCONVERTER_H

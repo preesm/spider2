@@ -37,13 +37,25 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
+#ifndef CONTAINERS_SETTEST_H
+#define CONTAINERS_SETTEST_H
 
 /* === Includes === */
 
-#include "Expression.h"
+#include <gtest/gtest.h>
 
-/* === Methods implementation === */
+/* === Class definition === */
 
-Expression::Expression(std::string expression, PiSDFGraph *graph) : rpnConverter_(std::move(expression), graph) {
-    expression_ = rpnConverter_.toString();
-}
+class RPNConverterTest : public ::testing::Test {
+public:
+    explicit RPNConverterTest();
+
+    ~RPNConverterTest() override;
+
+    void SetUp() override;
+
+    void TearDown() override;
+};
+
+
+#endif //CONTAINERS_SETTEST_H

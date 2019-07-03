@@ -88,8 +88,8 @@ public:
 
 private:
 
-    std::string expression_{""};
-    RPNConverter rpnConverter_;
+    std::string infixExpression_{""};
+    RPNConverter postFixExpression_;
     Param value_ = 0;
 };
 
@@ -100,14 +100,14 @@ Param Expression::value() const {
 }
 
 std::string Expression::toString() const {
-    return expression_;
+    return infixExpression_;
 }
 
 Param Expression::evaluate() const {
-    if (rpnConverter_.isStatic()) {
+    if (postFixExpression_.isStatic()) {
         return value_;
     }
-    return static_cast<Param>(rpnConverter_.evaluate());
+    return static_cast<Param>(postFixExpression_.evaluate());
 }
 
 #endif //SPIDER2_EXPRESSION_H

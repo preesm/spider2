@@ -300,10 +300,10 @@ static double evaluateNode(ExpressionTreeNode *node) {
 
 /* === Methods implementation === */
 
-RPNConverter::RPNConverter(std::string inFixExpr, PiSDFGraph *graph) : infixExpr_{std::move(inFixExpr)},
+RPNConverter::RPNConverter(std::string inFixExpr, PiSDFGraph *graph) : infixExprString_{std::move(inFixExpr)},
                                                                        graph_{graph} {
     if (missMatchParenthesis()) {
-        throwSpiderException("Expression with miss matched parenthesis: %s", infixExpr_.c_str());
+        throwSpiderException("Expression with miss matched parenthesis: %s", infixExprString_.c_str());
     }
 
     /* == Format properly the expression == */
@@ -349,40 +349,40 @@ std::string &RPNConverter::replace(std::string &s, const std::string &pattern, c
 
 void RPNConverter::cleanInfixExpression() {
     /* == Clean the inFix expression by removing all white spaces == */
-    infixExpr_.erase(std::remove(infixExpr_.begin(), infixExpr_.end(), ' '), infixExpr_.end());
+    infixExprString_.erase(std::remove(infixExprString_.begin(), infixExprString_.end(), ' '), infixExprString_.end());
 
     /* == Convert the infix to lowercase == */
-    std::transform(infixExpr_.begin(), infixExpr_.end(), infixExpr_.begin(), ::tolower);
+    std::transform(infixExprString_.begin(), infixExprString_.end(), infixExprString_.begin(), ::tolower);
 
     /* == Clean the inFix expression by adding '*' for #valueY -> #value * Y  == */
-    std::string tmp{std::move(infixExpr_)};
-    infixExpr_.reserve(tmp.size() * 2); /*= Worst case is actually 1.5 = */
+    std::string tmp{std::move(infixExprString_)};
+    infixExprString_.reserve(tmp.size() * 2); /*= Worst case is actually 1.5 = */
     std::uint32_t i = 0;
     for (const auto &c:tmp) {
-        infixExpr_ += c;
+        infixExprString_ += c;
         auto next = tmp[++i];
         if ((std::isdigit(c) && (std::isalpha(next) || next == '(')) ||
             (c == ')' && (next == '(' || std::isdigit(next) || std::isalpha(next)))) {
-            infixExpr_ += '*';
+            infixExprString_ += '*';
         }
     }
 
     /* == Clean the inFix expression by replacing every occurrence of PI to its value == */
-    replace(infixExpr_, std::string("pi"), std::string("3.1415926535"));
+    replace(infixExprString_, std::string("pi"), std::string("3.1415926535"));
 }
 
 void RPNConverter::checkInfixExpression() const {
     std::string restrictedOperators{"*/+-%^"};
     std::uint32_t i = 0;
-    for (const auto &c: infixExpr_) {
+    for (const auto &c: infixExprString_) {
         i += 1;
         if (restrictedOperators.find(c) != std::string::npos) {
-            auto next = infixExpr_[i];
+            auto next = infixExprString_[i];
             if (restrictedOperators.find(next) != std::string::npos) {
                 throwSpiderException("Expression ill formed. Two operators without operands between: %c -- %c", c,
                                      next);
-            } else if (&c == &infixExpr_.front() ||
-                       &c == &infixExpr_.back()) {
+            } else if (&c == &infixExprString_.front() ||
+                       &c == &infixExprString_.back()) {
                 throwSpiderException("Expression ill formed. Operator [%c] expecting two operands.", c);
             }
         }
@@ -393,7 +393,7 @@ void RPNConverter::buildPostFix() {
 
     /* == Retrieve tokens == */
     Spider::vector<RPNElement> tokens;
-    retrieveExprTokens(infixExpr_, tokens, graph_);
+    retrieveExprTokens(infixExprString_, tokens, graph_);
 
     /* == Build the postfix expression == */
     Spider::deque<RPNOperatorType> operatorStack;
@@ -416,7 +416,7 @@ void RPNConverter::buildPostFix() {
                         /* == Put operator to the output == */
                         RPNElement elt;
                         setOperatorElement(&elt, frontOPType);
-                        postfixExpr_.push_back(elt);
+                        postfixExprStack_.push_back(elt);
                         operatorStack.pop_front();
                         if (operatorStack.empty()) {
                             break;
@@ -449,7 +449,7 @@ void RPNConverter::buildPostFix() {
                         /* == Put operator to the output == */
                         RPNElement elt;
                         setOperatorElement(&elt, frontOPType);
-                        postfixExpr_.push_back(elt);
+                        postfixExprStack_.push_back(elt);
                         operatorStack.pop_front();
                         if (operatorStack.empty()) {
                             break;
@@ -466,7 +466,7 @@ void RPNConverter::buildPostFix() {
             }
         } else {
             /* == Handle operand == */
-            postfixExpr_.push_back(t);
+            postfixExprStack_.push_back(t);
         }
     }
 
@@ -474,7 +474,7 @@ void RPNConverter::buildPostFix() {
         auto frontOPType = operatorStack.front();
         RPNElement elt;
         setOperatorElement(&elt, frontOPType);
-        postfixExpr_.push_back(elt);
+        postfixExprStack_.push_back(elt);
         operatorStack.pop_front();
     }
 }
@@ -514,7 +514,6 @@ insertNode(ExpressionTreeNode *poolNode, ExpressionTreeNode *node, RPNElement *e
                 node->elt.subType = RPNElementSubType::VALUE;
                 node->elt.element.value = operatorsFctArray[static_cast<std::uint32_t >(node->elt.element.op)](valLeft,
                                                                                                                valRight);
-
             }
             node = node->parent;
         }
@@ -523,12 +522,26 @@ insertNode(ExpressionTreeNode *poolNode, ExpressionTreeNode *node, RPNElement *e
 }
 
 void RPNConverter::buildExpressionTree() {
-    auto *poolNodes = Spider::allocate<ExpressionTreeNode>(StackID::GENERAL, postfixExpr_.size());
+    auto *poolNodes = Spider::allocate<ExpressionTreeNode>(StackID::GENERAL, postfixExprStack_.size());
     expressionTree_ = &poolNodes[0];
     std::uint16_t nodeIx = 0;
     Spider::construct(expressionTree_, nodeIx++, nullptr);
     auto *node = expressionTree_;
-    for (auto elt = postfixExpr_.rbegin(); elt != postfixExpr_.rend(); ++elt) {
+    for (auto elt = postfixExprStack_.rbegin(); elt != postfixExprStack_.rend(); ++elt) {
         node = insertNode(poolNodes, node, &(*elt), nodeIx);
     }
+}
+
+
+std::string RPNConverter::toString() {
+    if (postfixExprString_.empty()) {
+        for (auto &t : postfixExprStack_) {
+            if (t.type == RPNElementType::OPERATOR) {
+
+            } else if (t.subType == RPNElementSubType::PARAMETER) {
+                postfixExprString_ += t.element.param->name() + " ";
+            }
+        }
+    }
+    return infixExprString_;
 }
