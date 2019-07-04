@@ -66,6 +66,11 @@ static bool &staticOptimFlag() {
     return staticOptimFlag;
 }
 
+static bool &srdagOptimFlag() {
+    static bool srdagOptim = true;
+    return srdagOptim;
+}
+
 /* === Methods implementation === */
 
 void Spider::initStack(StackID stackId,
@@ -159,6 +164,14 @@ void Spider::disableStaticScheduleOptim() {
     staticOptimFlag() = false;
 }
 
+void Spider::enableSRDAGOptims() {
+    srdagOptimFlag() = true;
+}
+
+void Spider::disableSRDAGOptims() {
+    srdagOptimFlag() = false;
+}
+
 bool Spider::trace() {
     return traceFlag();
 }
@@ -169,4 +182,8 @@ bool Spider::verbose() {
 
 bool Spider::staticOptim() {
     return staticOptimFlag();
+}
+
+bool Spider::srdagOptim() {
+    return srdagOptimFlag();
 }

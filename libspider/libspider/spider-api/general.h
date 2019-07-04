@@ -154,6 +154,16 @@ namespace Spider {
      */
     void disableStaticScheduleOptim();
 
+    /**
+     * @brief Enable the SRDAG optimizations (default behavior).
+     */
+    void enableSRDAGOptims();
+
+    /**
+     * @brief Disable the SRDAG optimizations.
+     */
+    void disableSRDAGOptims();
+
     /* === Getters for static variables === */
 
     /**
@@ -169,10 +179,16 @@ namespace Spider {
     bool verbose();
 
     /**
-     * @brief Get the staticOptim flag value.
-     * @return value of staticOptim flag.
+     * @brief Get the staticOptims flag value.
+     * @return value of staticOptims flag.
      */
     bool staticOptim();
+
+    /**
+     * @brief Get the srdagOptim flag value.
+     * @return value of srdagOptim flag.
+     */
+    bool srdagOptim();
 
 }
 

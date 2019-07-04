@@ -42,6 +42,13 @@
 
 /* === Includes === */
 
+#include <string>
+
 /* === Methods prototype === */
+
+namespace Spider {
+
+    void exportGantt(const std::string &path);
+}
 
 #endif //SPIDER2_DEBUG_H

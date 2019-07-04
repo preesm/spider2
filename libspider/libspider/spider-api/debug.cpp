@@ -40,6 +40,22 @@
 
 /* === Includes === */
 
+#include <common/SpiderException.h>
+#include <spider.h>
 #include "debug.h"
 
 /* === Methods implementation === */
+
+void Spider::exportGantt(const std::string &path) {
+    if (!Spider::trace()) {
+        throwSpiderException("Can not export graph if traces are disable. Use Spider::enableTrace().");
+    }
+
+    /* == Open the file for the gantt == */
+
+    /* == Get the execution traces == */
+
+    /* == Print the gantt == */
+
+    /* == Close the file == */
+}
