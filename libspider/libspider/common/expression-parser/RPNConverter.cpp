@@ -540,11 +540,13 @@ std::string RPNConverter::toString() {
     if (postfixExprString_.empty()) {
         for (auto &t : postfixExprStack_) {
             if (t.type == RPNElementType::OPERATOR) {
-
+                postfixExprString_ += getStringFromOperatorType(t.element.op) + " ";
             } else if (t.subType == RPNElementSubType::PARAMETER) {
                 postfixExprString_ += t.element.param->name() + " ";
+            } else {
+                postfixExprString_ += std::to_string(t.element.value) + " ";
             }
         }
     }
-    return infixExprString_;
+    return postfixExprString_;
 }

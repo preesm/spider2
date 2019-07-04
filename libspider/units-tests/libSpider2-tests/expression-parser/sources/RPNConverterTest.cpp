@@ -108,9 +108,10 @@ TEST_F(RPNConverterTest, TestEvaluationFunctions) {
     ASSERT_NEAR(RPNConverter("log(exp(0.2))", nullptr).evaluate(), 0.2, 0.000001);
 }
 
-TEST_F(RPNConverterTest, TestRemove) {
+TEST_F(RPNConverterTest, TestString) {
+    ASSERT_EQ(RPNConverter("exp(log(0.2))", nullptr).toString(), "0.200000 log exp ");
+    ASSERT_EQ(RPNConverter("exp(log(0.2))", nullptr).infixString(), "exp(log(0.2))");
+    ASSERT_EQ(RPNConverter("exp( log ( 0.2) )", nullptr).infixString(), "exp(log(0.2))");
+    ASSERT_EQ(RPNConverter("4cos(PI/2)", nullptr).infixString(), "4*cos(3.1415926535/2)");
 }
 
-
-TEST_F(RPNConverterTest, TestIteration) {
-}
