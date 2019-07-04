@@ -140,14 +140,6 @@ include_directories(
         ${PAPI_INCLUDE_DIRS}
         ${PTHREADDIR}/include
         ${SPIDER_LIB_DIR}/
-        #        ${SPIDER_LIB_DIR}/common
-        #        ${SPIDER_LIB_DIR}/graphs
-        #        ${SPIDER_LIB_DIR}/graphs-tools
-        #        ${SPIDER_LIB_DIR}/monitoring
-        #        ${SPIDER_LIB_DIR}/platform
-        #        ${SPIDER_LIB_DIR}/scheduling
-        #        ${SPIDER_LIB_DIR}/runtime
-        #        ${SPIDER_LIB_DIR}/spider
 )
 
 file(
@@ -159,6 +151,7 @@ file(
         ${SPIDER_LIB_DIR}/common/memory/dynamic-allocators/*.cpp
         ${SPIDER_LIB_DIR}/common/memory/static-allocators/*.cpp
         ${SPIDER_LIB_DIR}/graphs/pisdf/*.cpp
+        ${SPIDER_LIB_DIR}/spider-api/*.cpp
         #    ${SPIDER_LIB_DIR}/graphs/srdag/*.cpp
         #    ${SPIDER_LIB_DIR}/graphs-tools/brv/*.cpp
         #    ${SPIDER_LIB_DIR}/graphs-tools/transformation/*.cpp
@@ -183,8 +176,9 @@ file(
         ${SPIDER_LIB_DIR}/common/memory/abstract-allocators/*.h
         ${SPIDER_LIB_DIR}/common/memory/dynamic-allocators/*.h
         ${SPIDER_LIB_DIR}/common/memory/static-allocators/*.h
-        #    ${SPIDER_LIB_DIR}/graphs/abstract/*.h
         ${SPIDER_LIB_DIR}/graphs/pisdf/*.h
+        ${SPIDER_LIB_DIR}/spider-api/*.h
+        ${SPIDER_LIB_DIR}/spider.h
         #    ${SPIDER_LIB_DIR}/graphs/srdag/*.h
         #    ${SPIDER_LIB_DIR}/graphs-tools/brv/*.h
         #    ${SPIDER_LIB_DIR}/graphs-tools/transformation/*.h

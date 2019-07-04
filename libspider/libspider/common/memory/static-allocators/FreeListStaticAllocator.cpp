@@ -53,9 +53,9 @@ FreeListStaticAllocator::FreeListStaticAllocator(const char *name,
         throwSpiderException("Memory alignment should be at least of size sizeof(std::int64_t) = 8 bytes.");
     }
     this->reset();
-    if (policy == FIND_FIRST) {
+    if (policy == FreeListPolicy::FIND_FIRST) {
         method_ = FreeListStaticAllocator::findFirst;
-    } else if (policy == FIND_BEST) {
+    } else if (policy == FreeListPolicy::FIND_BEST) {
         method_ = FreeListStaticAllocator::findBest;
     }
 }
@@ -67,9 +67,9 @@ FreeListStaticAllocator::FreeListStaticAllocator(const char *name, std::uint64_t
         throwSpiderException("Memory alignment should be at least of size sizeof(std::int64_t) = 8 bytes.");
     }
     this->reset();
-    if (policy == FIND_FIRST) {
+    if (policy == FreeListPolicy::FIND_FIRST) {
         method_ = FreeListStaticAllocator::findFirst;
-    } else if (policy == FIND_BEST) {
+    } else if (policy == FreeListPolicy::FIND_BEST) {
         method_ = FreeListStaticAllocator::findBest;
     }
 }

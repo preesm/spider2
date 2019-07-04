@@ -51,14 +51,14 @@ public:
 
     explicit FreeListStaticAllocator(const char *name,
                                      std::uint64_t totalSize,
-                                     FreeListPolicy policy = FIND_FIRST,
+                                     FreeListPolicy policy = FreeListPolicy::FIND_FIRST,
                                      std::int32_t alignment = sizeof(std::int64_t));
 
 
     explicit FreeListStaticAllocator(const char *name,
                                      std::uint64_t totalSize,
                                      char *externalBase,
-                                     FreeListPolicy policy = FIND_FIRST,
+                                     FreeListPolicy policy = FreeListPolicy::FIND_FIRST,
                                      std::int32_t alignment = sizeof(std::int64_t));
 
     ~FreeListStaticAllocator() override = default;

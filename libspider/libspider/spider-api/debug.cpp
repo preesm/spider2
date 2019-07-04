@@ -37,72 +37,9 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_FREELISTALLOCATOR_H
-#define SPIDER2_FREELISTALLOCATOR_H
 
 /* === Includes === */
 
-#include <vector>
-#include <common/memory/abstract-allocators/DynamicAllocator.h>
+#include "debug.h"
 
-/* === Defines === */
-
-#define MIN_CHUNK 4096
-
-/* === Class definition === */
-
-class FreeListAllocator : public DynamicAllocator {
-public:
-    typedef struct Node {
-        std::uint64_t blockSize_;
-        Node *next_;
-    } Node;
-
-    explicit FreeListAllocator(const char *name,
-                               std::uint64_t staticBufferSize,
-                               FreeListPolicy policy = FreeListPolicy::FIND_FIRST,
-                               std::int32_t alignment = sizeof(std::int64_t));
-
-    ~FreeListAllocator() override;
-
-    void *allocate(std::uint64_t size) override;
-
-    void deallocate(void *ptr) override;
-
-    void reset() override;
-
-private:
-    typedef struct Header {
-        std::uint64_t size_;
-        std::uint64_t padding_;
-    } Header;
-
-    typedef struct Buffer {
-        std::uint64_t size_;
-        char *bufferPtr_;
-    } Buffer;
-
-    Node *list_;
-
-    char *staticBufferPtr_;
-    std::vector<Buffer> extraBuffers_;
-    std::uint64_t staticBufferSize_;
-
-    void insert(Node *baseNode, Node *newNode);
-
-    void remove(Node *baseNode, Node *removedNode);
-
-    using policyMethod = void (*)(std::uint64_t &, std::int32_t &, std::int32_t &, Node *&, Node *&);
-
-    policyMethod method_;
-
-    static void
-    findFirst(std::uint64_t &size, std::int32_t &padding, std::int32_t &alignment, Node *&baseNode, Node *&foundNode);
-
-    static void
-    findBest(std::uint64_t &size, std::int32_t &padding, std::int32_t &alignment, Node *&baseNode, Node *&foundNode);
-
-    void checkPointerAddress(void *ptr);
-};
-
-#endif //SPIDER2_FREELISTALLOCATOR_H
+/* === Methods implementation === */

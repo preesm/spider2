@@ -73,7 +73,7 @@ static std::mutex lock;
 void Spider::Logger::init() {
     loggersState_[LOG_JOB] = false;
     loggersState_[LOG_TIME] = false;
-    loggersState_[LOG_GENERAL] = true;
+    loggersState_[LOG_GENERAL] = false;
 }
 
 void Spider::Logger::enable(LoggerType type) {

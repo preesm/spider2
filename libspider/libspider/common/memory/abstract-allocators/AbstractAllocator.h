@@ -50,10 +50,10 @@
 
 /* === Enumeration(s) === */
 
-typedef enum FreeListPolicy {
+enum class FreeListPolicy {
     FIND_FIRST = 0,
     FIND_BEST = 1
-} FreeListPolicy;
+};
 
 /* === Class definition === */
 

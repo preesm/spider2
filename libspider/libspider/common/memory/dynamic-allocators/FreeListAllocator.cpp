@@ -55,9 +55,9 @@ FreeListAllocator::FreeListAllocator(const char *name,
     }
     staticBufferPtr_ = (char *) std::malloc(staticBufferSize_);
     this->reset();
-    if (policy == FIND_FIRST) {
+    if (policy == FreeListPolicy::FIND_FIRST) {
         method_ = FreeListAllocator::findFirst;
-    } else if (policy == FIND_BEST) {
+    } else if (policy == FreeListPolicy::FIND_BEST) {
         method_ = FreeListAllocator::findBest;
     }
 }

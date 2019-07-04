@@ -43,10 +43,10 @@
 #include "RPNConverterTest.h"
 #include <common/memory/Allocator.h>
 #include <common/expression-parser/RPNConverter.h>
+#include <spider-api/general.h>
 #include <cmath>
 
 /* === Methods implementation === */
-
 
 RPNConverterTest::RPNConverterTest() {
 }
@@ -55,14 +55,14 @@ RPNConverterTest::~RPNConverterTest() {
 }
 
 void RPNConverterTest::SetUp() {
-    AllocatorConfig cfg;
+    AllocatorConfig cfg = AllocatorConfig();
     cfg.allocatorType = AllocatorType::FREELIST;
     cfg.size = 512;
     Spider::initAllocator(StackID::GENERAL, cfg);
 }
 
 void RPNConverterTest::TearDown() {
-    Spider::finalizeAllocator();
+    Spider::finalizeAllocators();
 }
 
 

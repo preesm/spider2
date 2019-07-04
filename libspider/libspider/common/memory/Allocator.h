@@ -44,39 +44,12 @@
 
 #include <cstdint>
 #include <limits>
-#include <vector>
 #include <common/memory/abstract-allocators/AbstractAllocator.h>
+#include <spider-api/general.h>
 
 /* === Define(s) === */
 
-#define NB_ALLOCATORS 8
-
 /* === Enumeration(s) === */
-
-/**
- * @brief Stack ids
- */
-enum class StackID : std::uint64_t {
-    PISDF = 0,         /*!< Stack used for PISDF graph (should be static) */
-    ARCHI = 1,         /*!< Stack used for architecture (should be static) */
-    TRANSFO = 2,       /*!< Stack used for graph transformations */
-    SCHEDULE = 3,      /*!< Stack used for scheduling */
-    SRDAG = 4,         /*!< Stack used for SRDAG graph */
-    LRT = 5,           /*!< Stack used by LRTs */
-    EXPR_PARSER = 6,   /*!< Stack used by LRTs */
-    GENERAL = 7,       /*!< General stack used for classic new / delete */
-};
-
-/**
- * @brief Allocator types
- */
-enum class AllocatorType {
-    FREELIST,        /*!< (Dynamic) FreeList type allocator */
-    GENERIC,         /*!< (Dynamic) Generic type allocator (=malloc) */
-    LIFO_STATIC,     /*!< (Static) LIFO type allocator */
-    FREELIST_STATIC, /*!< (Static) FreeList type allocator */
-    LINEAR_STATIC    /*!< (Static) Linear type allocator */
-};
 
 /* === Structure(s) === */
 
@@ -86,6 +59,18 @@ typedef struct AllocatorConfig {
     std::uint64_t size = 0;
     std::uint64_t alignment = sizeof(std::uint64_t);
     FreeListPolicy policy = FreeListPolicy::FIND_FIRST;
+    char *baseAddr = nullptr;
+
+    AllocatorConfig() {
+
+    }
+
+    AllocatorConfig(const std::string &name, AllocatorType type, std::uint64_t size, std::uint64_t alignment,
+                    FreeListPolicy policy, char *base) : name{name.c_str()}, allocatorType{type}, size{size},
+                                                         alignment{alignment}, policy{policy}, baseAddr{base} {
+
+    }
+
 } AllocatorConfig;
 
 /* === Namespace === */
@@ -98,7 +83,7 @@ namespace Spider {
 
     void initAllocator(StackID stack, AllocatorConfig cfg);
 
-    void finalizeAllocator();
+    void finalizeAllocators();
 
     /**
      * @brief  Construct a previously allocated object

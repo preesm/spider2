@@ -68,12 +68,22 @@ void Spider::initAllocator(StackID stack, AllocatorConfig cfg) {
                 allocator = new GenericAllocator(cfg.name, cfg.alignment);
                 break;
             case AllocatorType::FREELIST_STATIC:
+                if (cfg.baseAddr) {
+                    allocator = new FreeListStaticAllocator(cfg.name, cfg.size, cfg.baseAddr, cfg.policy,
+                                                            cfg.alignment);
+                }
                 allocator = new FreeListStaticAllocator(cfg.name, cfg.size, cfg.policy, cfg.alignment);
                 break;
             case AllocatorType::LIFO_STATIC:
+                if (cfg.baseAddr) {
+                    allocator = new LIFOStaticAllocator(cfg.name, cfg.size, cfg.baseAddr);
+                }
                 allocator = new LIFOStaticAllocator(cfg.name, cfg.size);
                 break;
             case AllocatorType::LINEAR_STATIC:
+                if (cfg.baseAddr) {
+                    allocator = new LinearStaticAllocator(cfg.name, cfg.size, cfg.baseAddr, cfg.alignment);
+                }
                 allocator = new LinearStaticAllocator(cfg.name, cfg.size, cfg.alignment);
                 break;
             default:
@@ -82,7 +92,7 @@ void Spider::initAllocator(StackID stack, AllocatorConfig cfg) {
     }
 }
 
-void Spider::finalizeAllocator() {
+void Spider::finalizeAllocators() {
     for (auto *&allocator : allocatorArray) {
         delete allocator;
         allocator = nullptr;
