@@ -96,11 +96,25 @@ public:
     inline void removeEdge(PiSDFEdge *edge);
 
     /**
+     * @brief Add an param to the graph.
+     * @param param Param to add.
+     */
+    inline void addParam(PiSDFParam *param);
+
+    /**
+     * @brief Remove a param from the graph.
+     * @remark If param is nullptr, nothing happens.
+     * @param param Edge to remove.
+     * @throw @refitem SpiderException if param does not exist in the graph.
+     */
+    inline void removeParam(PiSDFParam *param);
+
+    /**
      * @brief Retrieve a parameter from its name.
      * @param name Name of the parameter.
      * @return pointer to the @refitem PiSDFParam if found, nullptr else.
      */
-    inline PiSDFParam *findParam(std::string name) const;
+    inline PiSDFParam *findParam(const std::string &name) const;
 
     /* === Setters === */
 
@@ -199,6 +213,18 @@ public:
      */
     inline const Spider::LinkedList<PiSDFGraph *> subgraphs() const;
 
+    /**
+     * @brief Get the static property of the graph.
+     * @return true if graph is static, false else.
+     */
+    inline bool isStatic() const;
+
+    /**
+     * @brief  Check if the graph contains dynamic parameter(s).
+     * @return true if graph contains at least one dynamic parameter, false else.
+     */
+    inline bool containsDynamicParameters() const;
+
 private:
     PiSDFVertex *parentVertex_ = nullptr;
 
@@ -209,6 +235,9 @@ private:
     Spider::Set<PiSDFVertex *> outputInterfaceSet_;
     Spider::Set<PiSDFEdge *> edgeSet_;
     Spider::Set<PiSDFParam *> paramSet_;
+
+    bool static_ = true;
+    bool hasDynamicParameters_ = false;
 };
 
 /* === Inline methods === */
@@ -216,10 +245,21 @@ private:
 void PiSDFGraph::addVertex(PiSDFVertex *vertex) {
     switch (vertex->type()) {
         case PiSDFType::VERTEX:
+            if (vertex->subType() == PiSDFSubType::GRAPH) {
+                addSubGraph(vertex);
+            } else {
+                vertexSet_.add(vertex);
+            }
             break;
         case PiSDFType::CONFIG_VERTEX:
+            configSet_.add(vertex);
             break;
         case PiSDFType::INTERFACE_VERTEX:
+            if (vertex->subType() == PiSDFSubType::INPUT) {
+                inputInterfaceSet_.add(vertex);
+            } else {
+                outputInterfaceSet_.add(vertex);
+            }
             break;
         default:
             throwSpiderException("Unsupported type of vertex.");
@@ -242,7 +282,39 @@ void PiSDFGraph::removeEdge(PiSDFEdge *edge) {
     Spider::deallocate(edge);
 }
 
-PiSDFParam *PiSDFGraph::findParam(std::string name) const {
+void PiSDFGraph::addParam(PiSDFParam *param) {
+    paramSet_.add(param);
+    if (param->isDynamic() && static_) {
+        static_ = false;
+
+        /* == We need to propagate this property up in the hierarchy == */
+        auto *parent = parentVertex_;
+        while (parent) {
+            auto *graph = parent->containingGraph();
+
+            /* == If graph was already dynamic then information is already propagated == */
+            if (!graph->static_) {
+                break;
+            }
+            graph->static_ = false;
+            parent = graph->parentVertex_;
+        }
+    }
+}
+
+void PiSDFGraph::removeParam(PiSDFParam *param) {
+    if (!param) {
+        return;
+    }
+    if (!paramSet_.contains(param)) {
+        throwSpiderException("Trying to remove an edge not from this graph.");
+    }
+    paramSet_.remove(param);
+    Spider::destroy(param);
+    Spider::deallocate(param);
+}
+
+PiSDFParam *PiSDFGraph::findParam(const std::string &name) const {
     for (auto &p : paramSet_) {
         if (p->name() == name) {
             return p;
@@ -259,7 +331,7 @@ void PiSDFGraph::setParentVertex(PiSDFVertex *vertex) {
         throwSpiderException("Trying to set nullptr parent vertex.");
     }
     parentVertex_ = vertex;
-    if (vertex->subGraph() != this) {
+    if (vertex->subgraph() != this) {
         vertex->setSubGraph(this);
     }
 }
@@ -318,6 +390,14 @@ const Spider::Set<PiSDFParam *> PiSDFGraph::params() const {
 
 const Spider::LinkedList<PiSDFGraph *> PiSDFGraph::subgraphs() const {
     return subgraphList_;
+}
+
+bool PiSDFGraph::isStatic() const {
+    return static_;
+}
+
+bool PiSDFGraph::containsDynamicParameters() const {
+    return hasDynamicParameters_;
 }
 
 

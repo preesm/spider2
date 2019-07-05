@@ -52,10 +52,21 @@ void PiSDFGraph::removeVertex(PiSDFVertex *vertex) {
         throwSpiderException("Trying to remove a vertex [%s] that don't belong to this graph.", vertex->name().c_str());
     }
     if (vertex->isHierarchical()) {
-        auto *subGraph = vertex->subGraph();
-        subgraphList_.removeFromValue(subGraph);
-        Spider::destroy(subGraph);
-        Spider::deallocate(subGraph);
+        auto *subgraph = vertex->subgraph();
+        auto wasStatic = subgraph->isStatic();
+        subgraphList_.removeFromValue(subgraph);
+        Spider::destroy(subgraph);
+        Spider::deallocate(subgraph);
+
+        /* == Recompute the static property == */
+        if (wasStatic) {
+            static_ = hasDynamicParameters_;
+            if (static_) {
+                for (auto &g:subgraphList_) {
+                    static_ &= g->isStatic();
+                }
+            }
+        }
     }
     vertexSet_.remove(vertex);
     Spider::destroy(vertex);
@@ -64,8 +75,9 @@ void PiSDFGraph::removeVertex(PiSDFVertex *vertex) {
 
 void PiSDFGraph::addSubGraph(PiSDFVertex *vertex) {
     if (!vertex->isHierarchical()) {
-        throwSpiderException("Can not add subgraph from non hierarchical vertex.");
+        throwSpiderException("Can not add subgraph from non-hierarchical vertex.");
     }
-    auto *subgraph = vertex->subGraph();
+    auto *subgraph = vertex->subgraph();
     subgraphList_.addTail(subgraph);
+    static_ &= subgraph->static_;
 }

@@ -199,7 +199,7 @@ public:
      * @brief Get the subgraph attached to the vertex.
      * @return Subgraph, nullptr if vertex is not hierarchical.
      */
-    inline PiSDFGraph *subGraph() const;
+    inline PiSDFGraph *subgraph() const;
 
 private:
     PiSDFGraph *graph_ = nullptr;
@@ -340,7 +340,7 @@ bool PiSDFVertex::isHierarchical() const {
     return hierarchical_;
 }
 
-PiSDFGraph *PiSDFVertex::subGraph() const {
+PiSDFGraph *PiSDFVertex::subgraph() const {
     return subgraph_;
 }
 
