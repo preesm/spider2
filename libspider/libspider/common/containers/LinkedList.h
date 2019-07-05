@@ -43,16 +43,17 @@
 /* === Includes === */
 
 #include <cstdint>
+#include <cassert>
 #include <common/memory/Allocator.h>
 
 namespace Spider {
 
-/* === Structure definition === */
+    /* === Structure definition === */
 
-/**
- * @brief Node used in @refitem LinkedList
- * @tparam T Template type of the value of the node.
- */
+    /**
+     * @brief Node used in @refitem LinkedList
+     * @tparam T Template type of the value of the node.
+     */
     template<typename T>
     struct NodeList {
         T value;
@@ -60,7 +61,67 @@ namespace Spider {
         NodeList *previous = nullptr;
     };
 
-/* === Class definition === */
+    /* === Iterator definition === */
+
+    template<class T>
+    class LinkedListIterator : public std::iterator<std::forward_iterator_tag, NodeList<T> *> {
+    public:
+
+        explicit LinkedListIterator() : itr(nullptr) {
+
+        }
+
+        explicit LinkedListIterator(NodeList<T> *tmp) : itr{tmp} {
+
+        }
+
+        LinkedListIterator(const LinkedListIterator &tmp) : itr{tmp.itr} {
+
+        }
+
+        bool operator==(const LinkedListIterator &rhs) {
+            return itr == rhs.itr;
+        }
+
+        bool operator!=(const LinkedListIterator &rhs) {
+            return itr != rhs.itr;
+        }
+
+        T &operator*() {
+            assert(itr != nullptr && "Invalid iterator dereference!");
+            return itr->value;
+        }
+
+        T &operator->() {
+            assert(itr != nullptr && "Invalid iterator dereference!");
+            return itr->value;
+        }
+
+        /* == Post-increment == */
+        const LinkedListIterator operator++(int) {
+            assert(itr != nullptr && "Out-of-bounds iterator increment!");
+            auto tmp = LinkedListIterator(*this);
+            itr = itr->next;
+            return tmp;
+        }
+
+        /* == Pre-increment == */
+        const LinkedListIterator operator++() {
+            assert(itr != nullptr && "Out-of-bounds iterator increment!");
+            itr = itr->next;
+            return *this;
+        };
+
+        /* == Converting iterator -> const_iterator == */
+        explicit operator LinkedListIterator<const T>() const {
+            return LinkedListIterator<const T>(itr);
+        }
+
+    private:
+        NodeList<T> *itr;
+    };
+
+    /* === Class definition === */
 
     template<typename T>
     class LinkedList {
@@ -132,6 +193,19 @@ namespace Spider {
          * @param val Value to remove.
          */
         inline void removeFromValue(T val);
+
+        /* === Iterator methods === */
+
+        typedef LinkedListIterator<T> iterator;
+        typedef LinkedListIterator<const T> const_iterator;
+
+        iterator begin();
+
+        iterator end();
+
+        const_iterator begin() const;
+
+        const_iterator end() const;
 
         /* === Getters === */
 
@@ -211,13 +285,17 @@ namespace Spider {
 
     template<typename T>
     inline NodeList<T> *LinkedList<T>::next() {
-        current_ = current_->next;
+        if (current_->next) {
+            current_ = current_->next;
+        }
         return current_;
     }
 
     template<typename T>
     inline NodeList<T> *LinkedList<T>::previous() {
-        current_ = current_->previous;
+        if (current_->previous) {
+            current_ = current_->previous;
+        }
         return current_;
     }
 
@@ -234,10 +312,10 @@ namespace Spider {
             head_ = newNodeList(val);
             tail_ = head_;
             current_ = head_;
-            head_->next = head_;
-            head_->previous = head_;
+            head_->next = nullptr;
+            head_->previous = nullptr;
         } else {
-            head_ = newNodeList(val, tail_, head_);
+            head_ = newNodeList(val, nullptr, head_);
         }
         size_++;
     }
@@ -248,10 +326,10 @@ namespace Spider {
             tail_ = newNodeList(val);
             head_ = tail_;
             current_ = tail_;
-            head_->next = tail_;
-            head_->previous = tail_;
+            head_->next = nullptr;
+            head_->previous = nullptr;
         } else {
-            tail_ = newNodeList(val, tail_, head_);
+            tail_ = newNodeList(val, tail_, nullptr);
         }
         size_++;
     }
@@ -300,8 +378,16 @@ namespace Spider {
             if (node == tail_) {
                 tail_ = previousNode;
             }
-            nextNode->previous = previousNode;
-            previousNode->next = nextNode;
+            if (nextNode) {
+                nextNode->previous = previousNode;
+            } else {
+                current_ = tail_;
+            }
+            if (previousNode) {
+                previousNode->next = nextNode;
+            } else {
+                current_ = head_;
+            }
             Spider::deallocate(node);
             size_--;
             if (!size_) {
@@ -342,19 +428,20 @@ namespace Spider {
         return size_;
     }
 
-/* === Private inline methods === */
+    /* === Private inline methods === */
 
-/**
- * @brief Create a new @refitem NodeList.
- * @tparam T Template type
- * @param val Value
- * @param prev Previous NodeList
- * @param next Next NodeList
- * @return Newly created NodeList
- */
+    /**
+     * @brief Create a new @refitem NodeList.
+     * @tparam T Template type
+     * @param val Value
+     * @param prev Previous NodeList
+     * @param next Next NodeList
+     * @return Newly created NodeList
+     */
     template<typename T>
     NodeList<T> *LinkedList<T>::newNodeList(T &val, NodeList<T> *prev, NodeList<T> *next) const {
         auto *node = Spider::allocate<NodeList<T> >(stack_);
+        Spider::construct(node);
         node->value = val;
         node->previous = prev;
         node->next = next;
@@ -365,6 +452,26 @@ namespace Spider {
             next->previous = node;
         }
         return node;
+    }
+
+    template<typename T>
+    typename LinkedList<T>::iterator LinkedList<T>::begin() {
+        return iterator(head_);
+    }
+
+    template<typename T>
+    typename LinkedList<T>::iterator LinkedList<T>::end() {
+        return iterator();
+    }
+
+    template<typename T>
+    typename LinkedList<T>::const_iterator LinkedList<T>::begin() const {
+        return iterator(head_);
+    }
+
+    template<typename T>
+    typename LinkedList<T>::const_iterator LinkedList<T>::end() const {
+        return iterator();
     }
 
 }

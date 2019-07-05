@@ -61,7 +61,7 @@ TEST(LinkedListTest, TestAdd) {
     EXPECT_NO_THROW(testList.remove(testList.head()));
     EXPECT_NO_THROW(testList.addCurrent(2.71));
     EXPECT_NO_THROW(testList.~LinkedList());
-    Spider::finalizeAllocator();
+    Spider::finalizeAllocators();
 }
 
 TEST(LinkedListTest, TestEqValue) {
@@ -82,7 +82,7 @@ TEST(LinkedListTest, TestEqValue) {
     testList.previous();
     EXPECT_EQ(testList.current()->value, 3.14159265358);
     EXPECT_NO_THROW(testList.~LinkedList());
-    Spider::finalizeAllocator();
+    Spider::finalizeAllocators();
 }
 
 TEST(LinkedListTest, TestRemove) {
@@ -96,7 +96,7 @@ TEST(LinkedListTest, TestRemove) {
     EXPECT_NO_THROW(testList.addCurrent(2.71));
     EXPECT_NO_THROW(testList.remove(testList.current()));
     EXPECT_EQ(testList.tail()->value, 10.2);
-    EXPECT_EQ(testList.current()->value, 3.14159265358);
+    EXPECT_EQ(testList.current()->value, 10.2);
     EXPECT_EQ(testList.size(), 2);
     EXPECT_NO_THROW(testList.remove(testList.current()));
     EXPECT_EQ(testList.size(), 1);
@@ -104,7 +104,28 @@ TEST(LinkedListTest, TestRemove) {
     EXPECT_NO_THROW(testList.remove(testList.current()));
     EXPECT_EQ(testList.size(), 0);
     EXPECT_NO_THROW(testList.~LinkedList());
-    Spider::finalizeAllocator();
+    Spider::finalizeAllocators();
+}
+
+TEST(LinkedListTest, TestIterator) {
+    AllocatorConfig cfg;
+    cfg.allocatorType = AllocatorType::FREELIST;
+    cfg.size = 512;
+    Spider::initAllocator(StackID::GENERAL, cfg);
+    auto testList = Spider::LinkedList<double>(StackID::GENERAL);
+    EXPECT_NO_THROW(testList.addHead(10.2));
+    EXPECT_NO_THROW(testList.addHead(3.14159265358));
+    EXPECT_NO_THROW(testList.addCurrent(2.71));
+    double count = 1.;
+    for (auto &val : testList) {
+        val = 3.1415926535 + count;
+        count += 1;
+    }
+    count = 1;
+    for (const auto &val : testList) {
+        EXPECT_EQ(val, 3.1415926535 + count);
+        count += 1;
+    }
 }
 
 TEST(LinkedListTest, TestRandomAccessOperator) {
@@ -122,7 +143,7 @@ TEST(LinkedListTest, TestRandomAccessOperator) {
     EXPECT_EQ(testList[1]->value, 10.2);
     EXPECT_EQ(testList.current()->value, 2.71);
     EXPECT_NO_THROW(testList.~LinkedList());
-    Spider::finalizeAllocator();
+    Spider::finalizeAllocators();
 }
 
 #endif //CONTAINERS_LINKEDLISTTEST_H
