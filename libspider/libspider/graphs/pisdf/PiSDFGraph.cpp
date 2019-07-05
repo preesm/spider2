@@ -40,7 +40,15 @@
 
 /* === Includes === */
 
+#include <fstream>
+#include <iostream>
 #include "PiSDFGraph.h"
+
+/* === Static function(s) === */
+
+static void exportSubGraph(FILE *file, PiSDFGraph *graph) {
+    fprintf(file, "\tsubgraph {\n");
+}
 
 /* === Methods implementation === */
 
@@ -80,4 +88,29 @@ void PiSDFGraph::addSubGraph(PiSDFVertex *vertex) {
     auto *subgraph = vertex->subgraph();
     subgraphList_.addTail(subgraph);
     static_ &= subgraph->static_;
+}
+
+void PiSDFGraph::exportGraph(const std::string &path) const {
+    auto *file = std::fopen(path.c_str(), "w+");
+
+    fprintf(file, "digraph {\n");
+    fprintf(file, "\tlabel=%s;\n", parentVertex_ != nullptr ? parentVertex_->name().c_str() : "top-graph");
+    fprintf(file, "\trankdir=LR;\n");
+    fprintf(file, "\tranksep=\"2.5\";\n");
+    fprintf(file, "\tnode [shape=box, style=filled, fillcolor=\"#eeeeee\", color=\"#393c3c\", ];\n");
+    for (auto &v : vertexSet_) {
+//        if (v->isHierarchical()) {
+//            exportSubGraph(file, v->subgraph());
+//        }
+        for (auto &e:v->outputEdges()) {
+            fprintf(file,
+                    "\t%s -> %s [penwidth=2, color=\"#393c3c\", dir=forward, headlabel=\"%" PRIu64"   \", taillabel=\" %" PRIu64"\"];\n",
+                    v->name().c_str(),
+                    e->sink()->name().c_str(),
+                    e->sourceRate(),
+                    e->sinkRate());
+        }
+    }
+
+    std::fclose(file);
 }

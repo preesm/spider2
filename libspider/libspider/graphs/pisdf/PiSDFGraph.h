@@ -116,6 +116,13 @@ public:
      */
     inline PiSDFParam *findParam(const std::string &name) const;
 
+
+    /**
+     * @brief Export the graph to a dot file.
+     * @param path Path of the file.
+     */
+    void exportGraph(const std::string &path) const;
+
     /* === Setters === */
 
     /**
@@ -399,6 +406,5 @@ bool PiSDFGraph::isStatic() const {
 bool PiSDFGraph::containsDynamicParameters() const {
     return hasDynamicParameters_;
 }
-
 
 #endif //SPIDER2_PISDFGRAPH_H
