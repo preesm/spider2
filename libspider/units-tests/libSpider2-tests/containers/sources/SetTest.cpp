@@ -61,7 +61,7 @@ void SetTest::SetUp() {
 }
 
 void SetTest::TearDown() {
-    Spider::finalizeAllocator();
+    Spider::finalizeAllocators();
 }
 
 class MySetElement : public Spider::SetElement {

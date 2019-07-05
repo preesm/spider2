@@ -61,7 +61,7 @@ void ArrayTest::SetUp() {
 }
 
 void ArrayTest::TearDown() {
-    Spider::finalizeAllocator();
+    Spider::finalizeAllocators();
 }
 
 TEST_F(ArrayTest, TestCreation) {

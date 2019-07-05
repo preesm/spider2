@@ -56,7 +56,7 @@ TEST(AllocatorTest, TryAlloc) {
     Spider::initAllocator(StackID::SRDAG, cfg);
     EXPECT_THROW(Spider::allocate<double>(StackID::SRDAG, 10), SpiderException);
     EXPECT_NO_THROW(Spider::allocate<double>(StackID::PISDF, 10));
-    Spider::finalizeAllocator();
+    Spider::finalizeAllocators();
 }
 
 TEST(AllocatorTest, TryDealloc) {
@@ -66,7 +66,7 @@ TEST(AllocatorTest, TryDealloc) {
     Spider::initAllocator(StackID::PISDF, cfg);
     auto *array = Spider::allocate<double>(StackID::PISDF, 10);
     EXPECT_NO_THROW(Spider::deallocate(array));
-    Spider::finalizeAllocator();
+    Spider::finalizeAllocators();
 }
 
 
