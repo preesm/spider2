@@ -45,6 +45,7 @@
 #include <cstdint>
 #include <common/containers/Array.h>
 #include <common/containers/Set.h>
+#include <common/expression-parser/Expression.h>
 #include "PiSDFTypes.h"
 
 /* === Type declarations === */
@@ -155,6 +156,8 @@ private:
      * @brief Vector of parameter dependencies (in the case of a dynamic dependent parameter)
      */
     Spider::Array<PiSDFParam *> dependencies_;
+
+    Expression expression_;
 };
 
 /* === Inline Methods === */
@@ -164,6 +167,7 @@ bool PiSDFParam::isDynamic() const {
 }
 
 void PiSDFParam::setInheritedParameter(PiSDFParam *param) {
+    type_ = PiSDFParamType::HERITED;
     inheritedParam_ = param;
 }
 
@@ -183,7 +187,7 @@ Param PiSDFParam::value() const {
     if (inheritedParam_) {
         return inheritedParam_->value();
     }
-    return 0;
+    return expression_.evaluate();
 }
 
 PiSDFParamType PiSDFParam::type() const {

@@ -50,7 +50,8 @@ PiSDFParam::PiSDFParam(std::string name,
                        PiSDFGraph *graph) : graph_{graph},
                                             name_{std::move(name)},
                                             type_{type},
-                                            dependencies_(StackID::PISDF, 0) {
+                                            dependencies_(StackID::PISDF, 0),
+                                            expression_{std::move(expression), graph} {
 
 }
 
@@ -62,7 +63,8 @@ PiSDFParam::PiSDFParam(std::string name,
                                                                            name_{std::move(name)},
                                                                            type_{type},
                                                                            dependencies_(StackID::PISDF,
-                                                                                         dependencies.size()) {
+                                                                                         dependencies.size()),
+                                                                           expression_{std::move(expression), graph} {
     std::uint32_t i = 0;
     for (auto &v: dependencies) {
         dependencies_[i++] = v;
