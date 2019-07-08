@@ -60,10 +60,10 @@ public:
 
     PiSDFGraph(std::uint64_t nActors,
                std::uint64_t nEdges,
-               std::uint64_t nParams = 1,
-               std::uint64_t nInputInterfaces = 1,
-               std::uint64_t nOutputInterfaces = 1,
-               std::uint64_t nConfigActors = 1);
+               std::uint64_t nParams = 0,
+               std::uint64_t nInputInterfaces = 0,
+               std::uint64_t nOutputInterfaces = 0,
+               std::uint64_t nConfigActors = 0);
 
     ~PiSDFGraph();
 

@@ -75,17 +75,18 @@ static void exportVertex(FILE *file, PiSDFVertex *vertex, const Spider::string &
     fprintf(file, "%s\t\t\t\t<table border=\"0\" cellpadding=\"0\" cellspacing=\"1\">\n", offset.c_str());
     {
         auto *it = vertex->inputEdges().begin();
+        std::uint32_t edgeIx = 0;
         for (std::uint32_t i = 0; i < maxRows; ++i) {
             fprintf(file, "%s\t\t\t\t\t<tr>\n", offset.c_str());
-            if (i >= vertex->nEdgesIN() || (i % 2)) {
+            if (edgeIx >= vertex->nEdgesIN() || (i % 2)) {
                 fprintf(file, "%s\t\t\t\t\t\t<td border=\"0\" bgcolor=\"#eeeeee\">    </td>\n", offset.c_str());
             } else {
                 fprintf(file, "%s\t\t\t\t\t\t<td port=\"in_%" PRIu32"\" border=\"1\" bgcolor=\"#87d37c\">    </td>\n",
-                        offset.c_str(), (*(it)) ? (*(it))->sinkPortIx() : 0);
+                        offset.c_str(), (*(it)) ? (*(it++))->sinkPortIx() : 0);
                 fprintf(file,
                         "%s\t\t\t\t\t\t<td align=\"right\" border=\"0\" bgcolor=\"#eeeeee\"><font point-size=\"15\">width</font></td>\n",
                         offset.c_str());
-                it++;
+                edgeIx++;
             }
             fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());
         }
@@ -101,17 +102,18 @@ static void exportVertex(FILE *file, PiSDFVertex *vertex, const Spider::string &
     fprintf(file, "%s\t\t\t\t<table border=\"0\" cellpadding=\"0\" cellspacing=\"1\">\n", offset.c_str());
     {
         auto *it = vertex->outputEdges().begin();
+        std::uint32_t edgeIx = 0;
         for (std::uint32_t i = 0; i < maxRows; ++i) {
             fprintf(file, "%s\t\t\t\t\t<tr>\n", offset.c_str());
-            if (i >= vertex->nEdgesOUT() || (i % 2)) {
+            if (edgeIx >= vertex->nEdgesOUT() || (i % 2)) {
                 fprintf(file, "%s\t\t\t\t\t\t<td border=\"0\" bgcolor=\"#eeeeee\">    </td>\n", offset.c_str());
             } else {
                 fprintf(file,
                         "%s\t\t\t\t\t\t<td align=\"right\" border=\"0\" bgcolor=\"#eeeeee\"><font point-size=\"15\">width</font></td>\n",
                         offset.c_str());
                 fprintf(file, "%s\t\t\t\t\t\t<td port=\"out_%" PRIu32"\" border=\"1\" bgcolor=\"#ec644b\">    </td>\n",
-                        offset.c_str(), (*(it)) ? (*(it))->sourcePortIx() : 0);
-                it++;
+                        offset.c_str(), (*(it)) ? (*(it++))->sourcePortIx() : 0);
+                edgeIx++;
             }
             fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());
         }
@@ -230,7 +232,7 @@ void PiSDFGraph::exportGraph(const std::string &path) const {
     fprintf(file, "digraph {\n");
     fprintf(file, "\tlabel=%s;\n", parentVertex_ != nullptr ? parentVertex_->name().c_str() : "topgraph");
     fprintf(file, "\trankdir=LR;\n");
-    fprintf(file, "\tranksep=\"2\";\n");
+    fprintf(file, "\tranksep=\"2\";\n\n");
     fprintf(file, "\t// Vertices\n");
 
     Spider::string offset{"\t"};
