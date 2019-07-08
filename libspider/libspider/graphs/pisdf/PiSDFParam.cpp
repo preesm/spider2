@@ -50,9 +50,9 @@ PiSDFParam::PiSDFParam(std::string name,
                        PiSDFGraph *graph) : graph_{graph},
                                             name_{std::move(name)},
                                             type_{type},
-                                            dependencies_(StackID::PISDF, 0),
-                                            expression_{std::move(expression), graph} {
-
+                                            dependencies_(StackID::PISDF, 0) {
+    expression_ = Spider::allocate<Expression>(StackID::PISDF);
+    Spider::construct(expression_, std::move(expression), graph);
 }
 
 PiSDFParam::PiSDFParam(std::string name,
@@ -63,10 +63,18 @@ PiSDFParam::PiSDFParam(std::string name,
                                                                            name_{std::move(name)},
                                                                            type_{type},
                                                                            dependencies_(StackID::PISDF,
-                                                                                         dependencies.size()),
-                                                                           expression_{std::move(expression), graph} {
+                                                                                         dependencies.size()) {
+    expression_ = Spider::allocate<Expression>(StackID::PISDF);
+    Spider::construct(expression_, std::move(expression), graph);
     std::uint32_t i = 0;
     for (auto &v: dependencies) {
         dependencies_[i++] = v;
+    }
+}
+
+PiSDFParam::~PiSDFParam() {
+    if (expression_) {
+        Spider::destroy(expression_);
+        Spider::deallocate(expression_);
     }
 }

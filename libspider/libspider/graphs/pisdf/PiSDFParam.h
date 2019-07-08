@@ -74,7 +74,7 @@ public:
                PiSDFGraph *graph,
                std::initializer_list<PiSDFParam *> dependencies);
 
-    ~PiSDFParam() = default;
+    ~PiSDFParam();
 
 
     /* === Methods === */
@@ -153,11 +153,14 @@ private:
     PiSDFParam *inheritedParam_ = nullptr;
 
     /**
+     * @brief Expression of the parameter
+     */
+    Expression *expression_ = nullptr;
+
+    /**
      * @brief Vector of parameter dependencies (in the case of a dynamic dependent parameter)
      */
     Spider::Array<PiSDFParam *> dependencies_;
-
-    Expression expression_;
 };
 
 /* === Inline Methods === */
@@ -187,7 +190,7 @@ Param PiSDFParam::value() const {
     if (inheritedParam_) {
         return inheritedParam_->value();
     }
-    return expression_.evaluate();
+    return expression_->evaluate();
 }
 
 PiSDFParamType PiSDFParam::type() const {
