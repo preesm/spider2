@@ -58,6 +58,15 @@ using execRoutine = void (*)(void **, void **, std::uint64_t *, std::uint64_t *)
 class PiSDFGraph {
 public:
 
+    PiSDFGraph(std::uint64_t nActors,
+               std::uint64_t nEdges,
+               std::uint64_t nParams = 1,
+               std::uint64_t nInputInterfaces = 1,
+               std::uint64_t nOutputInterfaces = 1,
+               std::uint64_t nConfigActors = 1);
+
+    ~PiSDFGraph();
+
     /* === Methods === */
 
     /**
@@ -121,7 +130,7 @@ public:
      * @brief Export the graph to a dot file.
      * @param path Path of the file.
      */
-    void exportGraph(const std::string &path) const;
+    void exportGraph(const std::string &path = "./pisdf.dot") const;
 
     /* === Setters === */
 
@@ -236,12 +245,12 @@ private:
     PiSDFVertex *parentVertex_ = nullptr;
 
     Spider::Set<PiSDFVertex *> vertexSet_;
-    Spider::Set<PiSDFVertex *> configSet_;
-    Spider::LinkedList<PiSDFGraph *> subgraphList_;
-    Spider::Set<PiSDFVertex *> inputInterfaceSet_;
-    Spider::Set<PiSDFVertex *> outputInterfaceSet_;
     Spider::Set<PiSDFEdge *> edgeSet_;
     Spider::Set<PiSDFParam *> paramSet_;
+    Spider::Set<PiSDFVertex *> inputInterfaceSet_;
+    Spider::Set<PiSDFVertex *> outputInterfaceSet_;
+    Spider::Set<PiSDFVertex *> configSet_;
+    Spider::LinkedList<PiSDFGraph *> subgraphList_;
 
     bool static_ = true;
     bool hasDynamicParameters_ = false;
@@ -344,15 +353,15 @@ void PiSDFGraph::setParentVertex(PiSDFVertex *vertex) {
 }
 
 std::uint64_t PiSDFGraph::nVertices() const {
-    return vertexSet_.size();
+    return vertexSet_.occupied();
 }
 
 std::uint64_t PiSDFGraph::nConfigs() const {
-    return configSet_.size();
+    return configSet_.occupied();
 }
 
 std::uint64_t PiSDFGraph::nEdges() const {
-    return edgeSet_.size();
+    return edgeSet_.occupied();
 }
 
 std::uint64_t PiSDFGraph::nSubGraphs() const {
@@ -360,15 +369,15 @@ std::uint64_t PiSDFGraph::nSubGraphs() const {
 }
 
 std::uint64_t PiSDFGraph::nInterfaces() const {
-    return inputInterfaceSet_.size() + outputInterfaceSet_.size();
+    return inputInterfaceSet_.occupied() + outputInterfaceSet_.occupied();
 }
 
 std::uint64_t PiSDFGraph::nInputInterfaces() const {
-    return inputInterfaceSet_.size();
+    return inputInterfaceSet_.occupied();
 }
 
 std::uint64_t PiSDFGraph::nOutputInterfaces() const {
-    return outputInterfaceSet_.size();
+    return outputInterfaceSet_.occupied();
 }
 
 PiSDFVertex *PiSDFGraph::parentVertex() const {
