@@ -126,7 +126,7 @@ namespace Spider {
     template<typename T>
     class LinkedList {
     public:
-        explicit inline LinkedList(StackID stack);
+        explicit inline LinkedList(StackID stack = StackID::GENERAL);
 
         inline ~LinkedList();
 

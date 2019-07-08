@@ -102,14 +102,15 @@ namespace Spider {
 
     private:
         std::uint64_t size_;
+        std::uint64_t arraySize_;
         T *array_;
     };
 
 /* === Inline methods === */
 
     template<typename T>
-    Array<T>::Array(StackID stack, std::uint64_t size) : size_{size} {
-        array_ = Spider::allocate<T>(stack, size);
+    Array<T>::Array(StackID stack, std::uint64_t size) : size_{size}, arraySize_{size + 1} {
+        array_ = Spider::allocate<T>(stack, size + 1);
         if (!array_) {
             throwSpiderException("Failed to allocate array.");
         }
@@ -122,24 +123,24 @@ namespace Spider {
 
     template<typename T>
     T &Array<T>::operator[](std::uint64_t ix) {
-        if (ix >= size_) {
+        if (ix >= arraySize_) {
             throwSpiderException("Index out of bound. Ix = %"
                                          PRIu32
                                          " -- Size = %"
                                          PRIu32
-                                         "", ix, size_);
+                                         "", ix, arraySize_);
         }
         return array_[ix];
     }
 
     template<typename T>
     T &Array<T>::operator[](std::uint64_t ix) const {
-        if (ix >= size_) {
+        if (ix >= arraySize_) {
             throwSpiderException("Index out of bound. Ix = %"
                                          PRIu32
                                          " -- Size = %"
                                          PRIu32
-                                         "", ix, size_);
+                                         "", ix, arraySize_);
         }
         return array_[ix];
     }
