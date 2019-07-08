@@ -45,6 +45,7 @@
 #include <cstdint>
 #include <string>
 #include <common/containers/Set.h>
+#include <common/expression-parser/Expression.h>
 
 /* === Forward declaration(s) === */
 
@@ -59,7 +60,15 @@ public:
 
     PiSDFEdge(PiSDFGraph *graph, PiSDFVertex *source, PiSDFVertex *sink);
 
-    ~PiSDFEdge() = default;
+    PiSDFEdge(PiSDFGraph *graph,
+              PiSDFVertex *source,
+              std::uint32_t srcPortIx,
+              std::string prodExpr,
+              PiSDFVertex *sink,
+              std::uint32_t snkPortIx,
+              std::string consExpr);
+
+    ~PiSDFEdge();
 
     /* === Methods === */
 
@@ -121,8 +130,8 @@ private:
     std::uint32_t sourcePortIx_ = 0;
     std::uint32_t sinkPortIx_ = 0;
 
-    std::uint64_t sourceRate_ = 0;
-    std::uint64_t sinkRate_ = 0;
+    Expression *sourceRateExpr_ = nullptr;
+    Expression *sinkRateExpr_ = nullptr;
 };
 
 /* === Inline methdos === */
@@ -146,18 +155,6 @@ std::uint32_t PiSDFEdge::sourcePortIx() const {
 
 std::uint32_t PiSDFEdge::sinkPortIx() const {
     return sinkPortIx_;
-}
-
-void PiSDFEdge::setSource(PiSDFVertex *vertex, std::uint32_t srcPortIx, std::string /* prodExpr */){
-    source_ = vertex;
-    sourcePortIx_ = srcPortIx;
-    // TODO: set prod Expression
-}
-
-void PiSDFEdge::setSink(PiSDFVertex *vertex, std::uint32_t snkPortIx, std::string /* consExpr */) {
-    sink_ = vertex;
-    sinkPortIx_ = snkPortIx;
-    // TODO: set cons Expression
 }
 
 #endif //SPIDER2_PISDFEDGE_H

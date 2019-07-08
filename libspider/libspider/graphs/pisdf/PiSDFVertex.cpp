@@ -58,8 +58,12 @@ PiSDFVertex::PiSDFVertex(PiSDFGraph *graph,
                                              subType_{subType},
                                              nEdgesIN_{nEdgesIN},
                                              nEdgesOUT_{nEdgesOUT},
-                                             inputEdgeArray_(StackID::PISDF, nEdgesIN),
-                                             outputEdgeArray_(StackID::PISDF, nEdgesOUT) {
+                                             inputEdgeArray_(StackID::GENERAL, nEdgesIN),
+                                             outputEdgeArray_(StackID::GENERAL, nEdgesOUT) {
+    if (!graph) {
+        throwSpiderException("Vertex should belong to a graph.");
+    }
+    graph->addVertex(this);
     for (std::uint32_t i = 0; i < nEdgesIN; ++i) {
         inputEdgeArray_[i] = nullptr;
     }

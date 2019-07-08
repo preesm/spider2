@@ -49,15 +49,65 @@
 PiSDFEdge::PiSDFEdge(PiSDFGraph *graph, PiSDFVertex *source, PiSDFVertex *sink) : graph_{graph},
                                                                                   source_{source},
                                                                                   sink_{sink} {
+    if (!graph) {
+        throwSpiderException("Edge should belong to a graph.");
+    }
+    graph->addEdge(this);
+}
 
+PiSDFEdge::PiSDFEdge(PiSDFGraph *graph,
+                     PiSDFVertex *source,
+                     std::uint32_t srcPortIx,
+                     std::string prodExpr,
+                     PiSDFVertex *sink,
+                     std::uint32_t snkPortIx,
+                     std::string consExpr) : PiSDFEdge(graph, source, sink) {
+    setSource(source, srcPortIx, std::move(prodExpr));
+    setSink(sink, snkPortIx, std::move(consExpr));
+}
+
+PiSDFEdge::~PiSDFEdge() {
+    if (sourceRateExpr_) {
+        Spider::destroy(sourceRateExpr_);
+        Spider::deallocate(sourceRateExpr_);
+    }
+
+    if (sinkRateExpr_) {
+        Spider::destroy(sinkRateExpr_);
+        Spider::deallocate(sinkRateExpr_);
+    }
 }
 
 std::uint64_t PiSDFEdge::sourceRate() const {
-    return sourceRate_;
+    return sourceRateExpr_->evaluate();
 }
 
 
 std::uint64_t PiSDFEdge::sinkRate() const {
-    return sinkRate_;
+    return sinkRateExpr_->evaluate();
+}
+
+void PiSDFEdge::setSource(PiSDFVertex *vertex, std::uint32_t srcPortIx, std::string prodExpr) {
+    source_ = vertex;
+    sourcePortIx_ = srcPortIx;
+    if (sourceRateExpr_) {
+        Spider::destroy(sourceRateExpr_);
+    } else {
+        sourceRateExpr_ = Spider::allocate<Expression>(StackID::GENERAL);
+    }
+    Spider::construct(sourceRateExpr_, prodExpr, graph_);
+    source_->setOutputEdge(this, srcPortIx);
+}
+
+void PiSDFEdge::setSink(PiSDFVertex *vertex, std::uint32_t snkPortIx, std::string consExpr) {
+    sink_ = vertex;
+    sinkPortIx_ = snkPortIx;
+    if (sinkRateExpr_) {
+        Spider::destroy(sinkRateExpr_);
+    } else {
+        sinkRateExpr_ = Spider::allocate<Expression>(StackID::GENERAL);
+    }
+    Spider::construct(sinkRateExpr_, consExpr, graph_);
+    sink_->setInputEdge(this, snkPortIx);
 }
 

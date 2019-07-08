@@ -62,8 +62,12 @@ class PiSDFParam;
 class PiSDFVertex : public Spider::SetElement {
 public:
 
-    PiSDFVertex(PiSDFGraph *graph, PiSDFType type, PiSDFSubType subType, std::uint32_t nEdgesIN,
-                std::uint32_t nEdgesOUT, std::string name);
+    PiSDFVertex(PiSDFGraph *graph,
+                PiSDFType type,
+                PiSDFSubType subType,
+                std::uint32_t nEdgesIN = 1,
+                std::uint32_t nEdgesOUT = 1,
+                std::string name = "unnamed-vertex");
 
     ~PiSDFVertex() = default;
 
