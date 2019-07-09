@@ -72,6 +72,18 @@ static const char *getVertexDotColor(PiSDFSubType subType) {
     }
 }
 
+static void checkSubtypeConsistency(PiSDFSubType subType, std::uint32_t nEdgesIN, std::uint32_t nEdgesOUT) {
+    if (nEdgesIN > 1 && (subType == PiSDFSubType::FORK || subType == PiSDFSubType::BROADCAST)) {
+        throwSpiderException("Fork and Broadcast actors can only have one input edge.");
+    } else if (nEdgesIN && subType == PiSDFSubType::INIT) {
+        throwSpiderException("Init actors can not have input edge !");
+    }
+    if (nEdgesOUT > 1 && (subType == PiSDFSubType::JOIN || subType == PiSDFSubType::ROUNDBUFFER)) {
+        throwSpiderException("Join and Roundbuffer actors can only have one input edge.");
+    } else if (nEdgesOUT && subType == PiSDFSubType::END) {
+        throwSpiderException("End actors can not have output edge !");
+    }
+}
 
 /* === Methods implementation === */
 
@@ -91,6 +103,8 @@ PiSDFVertex::PiSDFVertex(PiSDFGraph *graph,
     if (!graph) {
         throwSpiderException("Vertex should belong to a graph.");
     }
+    checkSubtypeConsistency(subType, nEdgesIN, nEdgesOUT);
+
     graph->addVertex(this);
     for (std::uint32_t i = 0; i < nEdgesIN; ++i) {
         inputEdgeArray_[i] = nullptr;
@@ -119,7 +133,7 @@ void PiSDFVertex::setSubGraph(PiSDFGraph *subgraph) {
 }
 
 void PiSDFVertex::exportDot(FILE *file, const Spider::string &offset) const {
-    fprintf(file, "%s%s [ shape = none, margin = 0, label = <\n", offset.c_str(), name_.c_str());
+    fprintf(file, "%s\"%s\" [ shape = none, margin = 0, label = <\n", offset.c_str(), name_.c_str());
     fprintf(file, "%s\t<table border = \"1\" cellspacing=\"0\" cellpadding = \"0\" bgcolor = \"#%s\">\n",
             offset.c_str(), getVertexDotColor(subType_));
 

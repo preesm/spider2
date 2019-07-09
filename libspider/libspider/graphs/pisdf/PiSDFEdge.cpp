@@ -113,7 +113,7 @@ void PiSDFEdge::setSink(PiSDFVertex *vertex, std::uint32_t snkPortIx, std::strin
 
 void PiSDFEdge::exportDot(FILE *file) const {
     fprintf(file,
-            "\t%s:out_%" PRIu32":e -> %s:in_%" PRIu32":w [penwidth=2, "
+            "\t\"%s\":out_%" PRIu32":e -> \"%s\":in_%" PRIu32":w [penwidth=2, "
             "color=\"#393c3c\", "
             "dir=forward, "
             "headlabel=\"%" PRIu64"   \", "
