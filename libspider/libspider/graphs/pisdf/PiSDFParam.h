@@ -85,6 +85,13 @@ public:
      */
     inline bool isDynamic() const;
 
+    /**
+     * @brief Export edge in the dot format to the given file.
+     * @param file   File to which the edge should be exported.
+     * @param offset Tab offset in the file.
+     */
+    void exportDot(FILE *file, const Spider::string &offset = "\t") const;
+
     /* === Setters === */
 
     /**

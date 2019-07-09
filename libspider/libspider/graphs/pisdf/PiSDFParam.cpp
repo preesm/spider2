@@ -40,6 +40,7 @@
 
 /* === Includes === */
 
+#include <graphs/pisdf/PiSDFGraph.h>
 #include "PiSDFParam.h"
 
 /* === Methods implementation === */
@@ -53,6 +54,7 @@ PiSDFParam::PiSDFParam(std::string name,
                                             dependencies_(StackID::PISDF, 0) {
     expression_ = Spider::allocate<Expression>(StackID::PISDF);
     Spider::construct(expression_, std::move(expression), graph);
+    graph->addParam(this);
 }
 
 PiSDFParam::PiSDFParam(std::string name,
@@ -70,6 +72,7 @@ PiSDFParam::PiSDFParam(std::string name,
     for (auto &v: dependencies) {
         dependencies_[i++] = v;
     }
+    graph->addParam(this);
 }
 
 PiSDFParam::~PiSDFParam() {
@@ -77,4 +80,8 @@ PiSDFParam::~PiSDFParam() {
         Spider::destroy(expression_);
         Spider::deallocate(expression_);
     }
+}
+
+void PiSDFParam::exportDot(FILE *file, const Spider::string &offset) const {
+    fprintf(file, "%s\"%s\"[shape=triangle, style=filled, fillcolor=\"#89c4f4\"]\n", offset.c_str(), name_.c_str());
 }

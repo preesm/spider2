@@ -93,7 +93,7 @@ void PiSDFEdge::setSource(PiSDFVertex *vertex, std::uint32_t srcPortIx, std::str
     if (sourceRateExpr_) {
         Spider::destroy(sourceRateExpr_);
     } else {
-        sourceRateExpr_ = Spider::allocate<Expression>(StackID::GENERAL);
+        sourceRateExpr_ = Spider::allocate<Expression>(StackID::PISDF);
     }
     Spider::construct(sourceRateExpr_, prodExpr, graph_);
     source_->setOutputEdge(this, srcPortIx);
@@ -105,7 +105,7 @@ void PiSDFEdge::setSink(PiSDFVertex *vertex, std::uint32_t snkPortIx, std::strin
     if (sinkRateExpr_) {
         Spider::destroy(sinkRateExpr_);
     } else {
-        sinkRateExpr_ = Spider::allocate<Expression>(StackID::GENERAL);
+        sinkRateExpr_ = Spider::allocate<Expression>(StackID::PISDF);
     }
     Spider::construct(sinkRateExpr_, consExpr, graph_);
     sink_->setInputEdge(this, snkPortIx);
@@ -113,7 +113,7 @@ void PiSDFEdge::setSink(PiSDFVertex *vertex, std::uint32_t snkPortIx, std::strin
 
 void PiSDFEdge::exportDot(FILE *file) const {
     fprintf(file,
-            "\t\"%s\":out_%" PRIu32":e -> \"%s\":in_%" PRIu32":w [penwidth=2, "
+            "\t\"%s\":out_%" PRIu32":e -> \"%s\":in_%" PRIu32":w [penwidth=3, "
             "color=\"#393c3c\", "
             "dir=forward, "
             "headlabel=\"%" PRIu64"   \", "

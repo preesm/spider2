@@ -46,10 +46,6 @@
 
 /* === Static function(s) === */
 
-static void exportSubGraph(FILE *file, PiSDFGraph *graph) {
-    fprintf(file, "\tsubgraph {\n");
-}
-
 /* === Methods implementation === */
 
 PiSDFGraph::PiSDFGraph(std::uint64_t nActors,
@@ -57,12 +53,12 @@ PiSDFGraph::PiSDFGraph(std::uint64_t nActors,
                        std::uint64_t nParams,
                        std::uint64_t nInputInterfaces,
                        std::uint64_t nOutputInterfaces,
-                       std::uint64_t nConfigActors) : vertexSet_{StackID::GENERAL, nActors},
-                                                      edgeSet_{StackID::GENERAL, nEdges},
-                                                      paramSet_{StackID::GENERAL, nParams},
-                                                      inputInterfaceSet_{StackID::GENERAL, nInputInterfaces},
-                                                      outputInterfaceSet_{StackID::GENERAL, nOutputInterfaces},
-                                                      configSet_{StackID::GENERAL, nConfigActors} {
+                       std::uint64_t nConfigActors) : vertexSet_{StackID::PISDF, nActors},
+                                                      edgeSet_{StackID::PISDF, nEdges},
+                                                      paramSet_{StackID::PISDF, nParams},
+                                                      inputInterfaceSet_{StackID::PISDF, nInputInterfaces},
+                                                      outputInterfaceSet_{StackID::PISDF, nOutputInterfaces},
+                                                      configSet_{StackID::PISDF, nConfigActors} {
 
 }
 
@@ -143,21 +139,25 @@ void PiSDFGraph::exportDot(const std::string &path) const {
     fprintf(file, "\tlabel=%s;\n", parentVertex_ != nullptr ? parentVertex_->name().c_str() : "topgraph");
     fprintf(file, "\trankdir=LR;\n");
     fprintf(file, "\tranksep=\"2\";\n\n");
-    fprintf(file, "\t// Vertices\n");
-
     Spider::string offset{"\t"};
-    for (auto &v:vertexSet_) {
-//        if (v->isHierarchical()) {
-//            exportSubGraph(file, v->subgraph());
-//        }
+
+    fprintf(file, "\t// Vertices\n");
+    for (const auto &v:vertexSet_) {
         v->exportDot(file, offset);
     }
 
-    fprintf(file, "\t// Edges\n");
-    for (auto &e:edgeSet_) {
+    if (paramSet_.occupied()) {
+        fprintf(file, "\t// Parameters\n");
+        for (const auto &p:paramSet_) {
+            p->exportDot(file, offset);
+        }
+    }
+
+    fprintf(file, "\t// Vertex edges\n");
+    for (const auto &e:edgeSet_) {
         e->exportDot(file);
     }
-    fprintf(file, "}\n");
 
+    fprintf(file, "}\n");
     std::fclose(file);
 }

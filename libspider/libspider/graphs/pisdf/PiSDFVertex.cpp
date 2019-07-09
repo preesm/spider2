@@ -98,8 +98,8 @@ PiSDFVertex::PiSDFVertex(PiSDFGraph *graph,
                                              subType_{subType},
                                              nEdgesIN_{nEdgesIN},
                                              nEdgesOUT_{nEdgesOUT},
-                                             inputEdgeArray_(StackID::GENERAL, nEdgesIN),
-                                             outputEdgeArray_(StackID::GENERAL, nEdgesOUT) {
+                                             inputEdgeArray_(StackID::PISDF, nEdgesIN),
+                                             outputEdgeArray_(StackID::PISDF, nEdgesOUT) {
     if (!graph) {
         throwSpiderException("Vertex should belong to a graph.");
     }
