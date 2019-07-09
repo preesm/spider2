@@ -48,6 +48,7 @@
 #include <common/SpiderException.h>
 #include <common/containers/Array.h>
 #include <common/containers/Set.h>
+#include <common/containers/StlContainers.h>
 
 /* === Forward declaration(s) === */
 
@@ -72,6 +73,13 @@ public:
     ~PiSDFVertex() = default;
 
     /* === Methods === */
+
+    /**
+     * @brief Export vertex in the dot format to the given file.
+     * @param file   File to which the vertex should be exported.
+     * @param offset Tab offset (default is "\t").
+     */
+    void exportDot(FILE *file, const Spider::string &offset = "\t") const;
 
     /* === Setters === */
 
@@ -222,6 +230,22 @@ private:
 
     bool hierarchical_ = false;
     PiSDFGraph *subgraph_ = nullptr;
+
+    /* === Private methods === */
+
+    /**
+     * @brief Export the input ports of the vertex in DOT format.
+     * @param file    File to export to.
+     * @param offset  Tab offset for the export.
+     */
+    void exportInputPortsToDot(FILE *file, const Spider::string &offset) const;
+
+    /**
+     * @brief Export the output ports of the vertex in DOT format.
+     * @param file    File to export to.
+     * @param offset  Tab offset for the export.
+     */
+    void exportOutputPortsToDot(FILE *file, const Spider::string &offset) const;
 };
 
 /* === Inline methods === */

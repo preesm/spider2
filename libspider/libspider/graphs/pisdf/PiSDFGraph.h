@@ -130,7 +130,7 @@ public:
      * @brief Export the graph to a dot file.
      * @param path Path of the file.
      */
-    void exportGraph(const std::string &path = "./pisdf.dot") const;
+    void exportDot(const std::string &path = "./pisdf.dot") const;
 
     /* === Setters === */
 

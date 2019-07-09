@@ -45,6 +45,34 @@
 #include <graphs/pisdf/PiSDFEdge.h>
 #include <common/memory/Allocator.h>
 
+/* === Static methods === */
+
+static const char *getVertexDotColor(PiSDFSubType subType) {
+    switch (subType) {
+        case PiSDFSubType::NORMAL:
+            return "eeeeee";
+        case PiSDFSubType::FORK:
+            return "fabe58";
+        case PiSDFSubType::JOIN:
+            return "aea8d3";
+        case PiSDFSubType::BROADCAST:
+            return "fdeba7";
+        case PiSDFSubType::ROUNDBUFFER:
+            return "f1e7fe";
+        case PiSDFSubType::INPUT:
+            return "87d37c";
+        case PiSDFSubType::OUTPUT:
+            return "ec644b";
+        case PiSDFSubType::INIT:
+            return "e4f1fe";
+        case PiSDFSubType::END:
+            return "e8ecf1";
+        default:
+            return "eeeeee";
+    }
+}
+
+
 /* === Methods implementation === */
 
 PiSDFVertex::PiSDFVertex(PiSDFGraph *graph,
@@ -88,4 +116,103 @@ void PiSDFVertex::setSubGraph(PiSDFGraph *subgraph) {
         throwSpiderException("Vertex [%s] is not part of any graph.", name_.c_str());
     }
     graph_->addSubGraph(this);
+}
+
+void PiSDFVertex::exportDot(FILE *file, const Spider::string &offset) const {
+    fprintf(file, "%s%s [ shape = none, margin = 0, label = <\n", offset.c_str(), name_.c_str());
+    fprintf(file, "%s\t<table border = \"1\" cellspacing=\"0\" cellpadding = \"0\" bgcolor = \"#%s\">\n",
+            offset.c_str(), getVertexDotColor(subType_));
+
+    /* == Header == */
+    fprintf(file, "%s\t\t<tr> <td colspan=\"4\" border=\"0\"><font point-size=\"5\"> </font></td></tr>\n",
+            offset.c_str());
+
+    /* == Vertex name == */
+    fprintf(file, "%s\t\t<tr> <td colspan=\"4\" border=\"0\"><font point-size=\"35\">%s</font></td></tr>\n",
+            offset.c_str(), name_.c_str());
+
+    /* == Input ports == */
+    fprintf(file, "%s\t\t<tr>\n", offset.c_str());
+    exportInputPortsToDot(file, offset);
+
+    /* == Center column == */
+    fprintf(file, "%s\t\t\t<td border=\"0\" colspan=\"2\" cellpadding=\"10\"> </td>\n", offset.c_str());
+
+    /* == Output ports == */
+    exportOutputPortsToDot(file, offset);
+    fprintf(file, "%s\t\t</tr>\n", offset.c_str());
+
+    /* == Footer == */
+    fprintf(file, "%s\t\t<tr> <td colspan=\"4\" border=\"0\"><font point-size=\"5\"> </font></td></tr>\n",
+            offset.c_str());
+    fprintf(file, "%s\t</table>>\n", offset.c_str());
+    fprintf(file, "%s];\n\n", offset.c_str());
+}
+
+void PiSDFVertex::exportInputPortsToDot(FILE *file,
+                                        const Spider::string &offset) const {
+    fprintf(file, "%s\t\t\t<td border=\"0\">\n", offset.c_str());
+    fprintf(file, "%s\t\t\t\t<table border=\"0\" cellpadding=\"0\" cellspacing=\"1\">\n", offset.c_str());
+    for (const auto &e: inputEdgeArray_) {
+        /* == Print the input port associated to the edge == */
+        fprintf(file, "%s\t\t\t\t\t<tr>\n", offset.c_str());
+        fprintf(file, "%s\t\t\t\t\t\t<td port=\"in_%" PRIu32"\" border=\"1\" bgcolor=\"#87d37c\">    </td>\n",
+                offset.c_str(), e->sinkPortIx());
+        fprintf(file,
+                "%s\t\t\t\t\t\t<td align=\"right\" border=\"0\" bgcolor=\"#%s\"><font point-size=\"15\">width</font></td>\n",
+                offset.c_str(),
+                getVertexDotColor(subType_));
+        fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());
+
+        /* == Print the dummy port for pretty spacing == */
+        fprintf(file, "%s\t\t\t\t\t<tr>\n", offset.c_str());
+        fprintf(file, "%s\t\t\t\t\t\t<td border=\"0\" bgcolor=\"#%s\">    </td>\n",
+                offset.c_str(),
+                getVertexDotColor(subType_));
+        fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());
+    }
+
+    /* == Print dummy extra input ports to match with output ports (if needed) == */
+    for (auto i = nEdgesIN_; i < nEdgesOUT_; ++i) {
+        fprintf(file, "%s\t\t\t\t\t<tr>\n", offset.c_str());
+        fprintf(file, "%s\t\t\t\t\t\t<td border=\"0\" bgcolor=\"#%s\">    </td>\n",
+                offset.c_str(),
+                getVertexDotColor(subType_));
+        fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());
+    }
+    fprintf(file, "%s\t\t\t\t</table>\n", offset.c_str());
+    fprintf(file, "%s\t\t\t</td>\n", offset.c_str());
+}
+
+void PiSDFVertex::exportOutputPortsToDot(FILE *file,
+                                         const Spider::string &offset) const {
+    fprintf(file, "%s\t\t\t<td border=\"0\">\n", offset.c_str());
+    fprintf(file, "%s\t\t\t\t<table border=\"0\" cellpadding=\"0\" cellspacing=\"1\">\n", offset.c_str());
+    for (const auto &e:outputEdgeArray_) {
+        /* == Print the output edge port information == */
+        fprintf(file, "%s\t\t\t\t\t<tr>\n", offset.c_str());
+        fprintf(file,
+                "%s\t\t\t\t\t\t<td align=\"right\" border=\"0\" bgcolor=\"#%s\"><font point-size=\"15\">width</font></td>\n",
+                offset.c_str(),
+                getVertexDotColor(subType_));
+        fprintf(file, "%s\t\t\t\t\t\t<td port=\"out_%" PRIu32"\" border=\"1\" bgcolor=\"#ec644b\">    </td>\n",
+                offset.c_str(), e->sourcePortIx());
+        fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());
+
+        /* == Print the dummy port for pretty spacing == */
+        fprintf(file, "%s\t\t\t\t\t<tr>\n", offset.c_str());
+        fprintf(file, "%s\t\t\t\t\t\t<td border=\"0\" bgcolor=\"#%s\">    </td>\n", offset.c_str(),
+                getVertexDotColor(subType_));
+        fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());
+    }
+    /* == Print dummy extra input ports to match with output ports (if needed) == */
+    for (auto i = nEdgesOUT_; i < nEdgesIN_; ++i) {
+        fprintf(file, "%s\t\t\t\t\t<tr>\n", offset.c_str());
+        fprintf(file, "%s\t\t\t\t\t\t<td border=\"0\" bgcolor=\"#%s\">    </td>\n",
+                offset.c_str(),
+                getVertexDotColor(subType_));
+        fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());
+    }
+    fprintf(file, "%s\t\t\t\t</table>\n", offset.c_str());
+    fprintf(file, "%s\t\t\t</td>\n", offset.c_str());
 }

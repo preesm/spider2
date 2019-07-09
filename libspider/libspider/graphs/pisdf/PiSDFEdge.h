@@ -72,6 +72,12 @@ public:
 
     /* === Methods === */
 
+    /**
+     * @brief Export edge in the dot format to the given file.
+     * @param file   File to which the edge should be exported.
+     */
+    void exportDot(FILE *file) const;
+
     /* === Setters === */
 
     inline void setSource(PiSDFVertex *vertex, std::uint32_t srcPortIx, std::string prodExpr);
