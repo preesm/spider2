@@ -117,7 +117,6 @@ void Spider::start() {
                                sizeof(std::uint64_t),
                                FreeListPolicy::FIND_FIRST,
                                nullptr};
-    cfg.name = "general-allocator";
     Spider::initAllocator(StackID::GENERAL, cfg);
 
     /* == Init the Logger and enable the GENERAL Logger == */

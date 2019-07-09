@@ -49,10 +49,10 @@
 class LinearStaticAllocator : public StaticAllocator {
 public:
 
-    explicit LinearStaticAllocator(const char *name, std::uint64_t totalSize,
+    explicit LinearStaticAllocator(std::string name, std::uint64_t totalSize,
                                    std::int32_t alignment = sizeof(std::int64_t));
 
-    explicit LinearStaticAllocator(const char *name, std::uint64_t totalSize,
+    explicit LinearStaticAllocator(std::string name, std::uint64_t totalSize,
                                    char *externalBase,
                                    std::int32_t alignment = sizeof(std::int64_t));
 

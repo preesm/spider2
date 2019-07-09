@@ -58,7 +58,7 @@ public:
         Node *next_;
     } Node;
 
-    explicit FreeListAllocator(const char *name,
+    explicit FreeListAllocator(std::string name,
                                std::uint64_t staticBufferSize,
                                FreeListPolicy policy = FreeListPolicy::FIND_FIRST,
                                std::int32_t alignment = sizeof(std::int64_t));
@@ -82,7 +82,7 @@ private:
         char *bufferPtr_;
     } Buffer;
 
-    Node *list_;
+    Node *list_ = nullptr;
 
     char *staticBufferPtr_;
     std::vector<Buffer> extraBuffers_;

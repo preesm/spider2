@@ -54,7 +54,7 @@
 /* === Structure(s) === */
 
 typedef struct AllocatorConfig {
-    const char *name = "unnamed-allocator";
+    std::string name = "unnamed-allocator";
     AllocatorType allocatorType = AllocatorType::FREELIST;
     std::uint64_t size = 0;
     std::uint64_t alignment = sizeof(std::uint64_t);

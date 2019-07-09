@@ -44,13 +44,13 @@
 
 /* === Methods implementation === */
 
-LIFOStaticAllocator::LIFOStaticAllocator(const char *name, std::uint64_t totalSize) :
-        StaticAllocator(name, totalSize, sizeof(std::uint64_t)) {
+LIFOStaticAllocator::LIFOStaticAllocator(std::string name, std::uint64_t totalSize) :
+        StaticAllocator(std::move(name), totalSize, sizeof(std::uint64_t)) {
 
 }
 
-LIFOStaticAllocator::LIFOStaticAllocator(const char *name, std::uint64_t totalSize, char *externalBase) :
-        StaticAllocator(name, totalSize, externalBase, sizeof(std::uint64_t)) {
+LIFOStaticAllocator::LIFOStaticAllocator(std::string name, std::uint64_t totalSize, char *externalBase) :
+        StaticAllocator(std::move(name), totalSize, externalBase, sizeof(std::uint64_t)) {
 
 }
 

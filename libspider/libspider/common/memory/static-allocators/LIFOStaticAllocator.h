@@ -49,9 +49,9 @@
 class LIFOStaticAllocator : public StaticAllocator {
 public:
 
-    explicit LIFOStaticAllocator(const char *name, std::uint64_t totalSize);
+    explicit LIFOStaticAllocator(std::string name, std::uint64_t totalSize);
 
-    explicit LIFOStaticAllocator(const char *name, std::uint64_t totalSize, char *externalBase);
+    explicit LIFOStaticAllocator(std::string name, std::uint64_t totalSize, char *externalBase);
 
     ~LIFOStaticAllocator() override = default;
 

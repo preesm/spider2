@@ -61,12 +61,12 @@ public:
 
 protected:
 
-    inline explicit DynamicAllocator(const char *name, std::int32_t alignment = 0);
+    inline explicit DynamicAllocator(std::string name, std::int32_t alignment = 0);
 };
 
 /* === Inline methods === */
 
-DynamicAllocator::DynamicAllocator(const char *name, int32_t alignment) : AbstractAllocator(name, alignment) {
+DynamicAllocator::DynamicAllocator(std::string name, int32_t alignment) : AbstractAllocator(std::move(name), alignment) {
 
 }
 

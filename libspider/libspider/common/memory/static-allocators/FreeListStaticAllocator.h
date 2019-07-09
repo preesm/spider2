@@ -49,13 +49,13 @@
 class FreeListStaticAllocator : public StaticAllocator {
 public:
 
-    explicit FreeListStaticAllocator(const char *name,
+    explicit FreeListStaticAllocator(std::string name,
                                      std::uint64_t totalSize,
                                      FreeListPolicy policy = FreeListPolicy::FIND_FIRST,
                                      std::int32_t alignment = sizeof(std::int64_t));
 
 
-    explicit FreeListStaticAllocator(const char *name,
+    explicit FreeListStaticAllocator(std::string name,
                                      std::uint64_t totalSize,
                                      char *externalBase,
                                      FreeListPolicy policy = FreeListPolicy::FIND_FIRST,

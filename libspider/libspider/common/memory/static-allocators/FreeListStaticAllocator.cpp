@@ -44,11 +44,11 @@
 
 /* === Methods implementation === */
 
-FreeListStaticAllocator::FreeListStaticAllocator(const char *name,
+FreeListStaticAllocator::FreeListStaticAllocator(std::string name,
                                                  std::uint64_t totalSize,
                                                  FreeListPolicy policy,
                                                  std::int32_t alignment) :
-        StaticAllocator(name, totalSize + sizeof(FreeListStaticAllocator::Header), alignment) {
+        StaticAllocator(std::move(name), totalSize + sizeof(FreeListStaticAllocator::Header), alignment) {
     if (alignment < 8) {
         throwSpiderException("Memory alignment should be at least of size sizeof(std::int64_t) = 8 bytes.");
     }
@@ -60,9 +60,9 @@ FreeListStaticAllocator::FreeListStaticAllocator(const char *name,
     }
 }
 
-FreeListStaticAllocator::FreeListStaticAllocator(const char *name, std::uint64_t totalSize, char *externalBase,
+FreeListStaticAllocator::FreeListStaticAllocator(std::string name, std::uint64_t totalSize, char *externalBase,
                                                  FreeListPolicy policy, int32_t alignment) :
-        StaticAllocator(name, totalSize + sizeof(FreeListStaticAllocator::Header), externalBase, alignment) {
+        StaticAllocator(std::move(name), totalSize + sizeof(FreeListStaticAllocator::Header), externalBase, alignment) {
     if (alignment < 8) {
         throwSpiderException("Memory alignment should be at least of size sizeof(std::int64_t) = 8 bytes.");
     }

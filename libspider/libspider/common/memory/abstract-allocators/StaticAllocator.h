@@ -59,9 +59,9 @@ protected:
     bool externalBase_;
     char *startPtr_;
 
-    inline StaticAllocator(const char *name, std::uint64_t totalSize, std::int32_t alignment = 0);
+    inline StaticAllocator(std::string name, std::uint64_t totalSize, std::int32_t alignment = 0);
 
-    inline StaticAllocator(const char *name, std::uint64_t totalSize, char *externalBase,
+    inline StaticAllocator(std::string name, std::uint64_t totalSize, char *externalBase,
                            std::int32_t alignment = 0);
 
     inline ~StaticAllocator() override;
@@ -77,8 +77,8 @@ StaticAllocator::~StaticAllocator() {
     }
 }
 
-StaticAllocator::StaticAllocator(const char *name, std::uint64_t totalSize, std::int32_t alignment) :
-        AbstractAllocator(name, alignment),
+StaticAllocator::StaticAllocator(std::string name, std::uint64_t totalSize, std::int32_t alignment) :
+        AbstractAllocator(std::move(name), alignment),
         totalSize_{totalSize},
         startPtr_{nullptr} {
     if (!totalSize) {
@@ -88,9 +88,9 @@ StaticAllocator::StaticAllocator(const char *name, std::uint64_t totalSize, std:
     externalBase_ = false;
 }
 
-StaticAllocator::StaticAllocator(const char *name, std::uint64_t totalSize, char *externalBase,
+StaticAllocator::StaticAllocator(std::string name, std::uint64_t totalSize, char *externalBase,
                                  std::int32_t alignment) :
-        AbstractAllocator(name, alignment),
+        AbstractAllocator(std::move(name), alignment),
         totalSize_{totalSize},
         startPtr_{nullptr} {
     if (!totalSize) {

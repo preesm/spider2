@@ -44,11 +44,11 @@
 
 /* === Methods implementation === */
 
-FreeListAllocator::FreeListAllocator(const char *name,
+FreeListAllocator::FreeListAllocator(std::string name,
                                      std::uint64_t staticBufferSize,
                                      FreeListPolicy policy,
                                      std::int32_t alignment) :
-        DynamicAllocator(name, alignment),
+        DynamicAllocator(std::move(name), alignment),
         staticBufferSize_{std::max(staticBufferSize, static_cast<std::uint64_t >(MIN_CHUNK))} {
     if (alignment < 8) {
         throwSpiderException("Memory alignment should be at least of size sizeof(std::int64_t) = 8 bytes.");

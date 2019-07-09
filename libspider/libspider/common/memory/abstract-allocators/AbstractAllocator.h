@@ -59,7 +59,7 @@ enum class FreeListPolicy {
 
 class AbstractAllocator {
 public:
-    explicit inline AbstractAllocator(const char *name, std::int32_t alignment = 0);
+    explicit inline AbstractAllocator(std::string name, std::int32_t alignment = 0);
 
     virtual inline ~AbstractAllocator();
 
@@ -122,17 +122,17 @@ protected:
     static inline double getByteNormalizedSize(std::uint64_t size);
 
 private:
-    const char *name_;
+    std::string name_;
 };
 
 /* === Inline methods === */
 
-AbstractAllocator::AbstractAllocator(const char *name, std::int32_t alignment) : used_{0},
+AbstractAllocator::AbstractAllocator(std::string name, std::int32_t alignment) : used_{0},
                                                                                  peak_{0},
                                                                                  averageUse_{0},
                                                                                  numberAverage_{0},
                                                                                  alignment_{alignment},
-                                                                                 name_{name} {
+                                                                                 name_{std::move(name)} {
 
 }
 
@@ -145,7 +145,7 @@ std::int32_t AbstractAllocator::getAllocationAlignment() const {
 }
 
 const char *AbstractAllocator::getName() const {
-    return name_;
+    return name_.c_str();
 }
 
 void AbstractAllocator::printStats() const {
