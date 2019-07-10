@@ -185,7 +185,7 @@ private:
     std::string infixExprString_;
     std::string postfixExprString_{""};
     PiSDFGraph *graph_ = nullptr;
-    bool static_ = false;
+    bool static_ = true;
     Spider::deque<RPNElement> postfixExprStack_;
     ExpressionTreeNode *expressionTree_ = nullptr;
 

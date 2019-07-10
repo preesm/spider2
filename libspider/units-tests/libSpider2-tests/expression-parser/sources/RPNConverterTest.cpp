@@ -69,8 +69,8 @@ void RPNConverterTest::TearDown() {
 TEST_F(RPNConverterTest, TestCreation) {
     EXPECT_THROW(RPNConverter("4*((4+3)", nullptr), SpiderException);
     EXPECT_THROW(RPNConverter("4**3", nullptr), SpiderException);
-    EXPECT_NO_THROW(RPNConverter("", nullptr));
-    EXPECT_NO_THROW(RPNConverter("4*3", nullptr));
+    EXPECT_THROW(RPNConverter("", nullptr), SpiderException);
+    EXPECT_NO_THROW(RPNConverter("(4)*3", nullptr));
     EXPECT_NO_THROW(RPNConverter("4*(3)", nullptr));
 }
 
@@ -96,6 +96,8 @@ TEST_F(RPNConverterTest, TestEvaluationFunctions) {
     ASSERT_NEAR(RPNConverter("sin(Pi)", nullptr).evaluate(), 0., 0.000001);
     ASSERT_NEAR(RPNConverter("sin(PI/2)", nullptr).evaluate(), 1., 0.000001);
     ASSERT_NEAR(RPNConverter("tan(4)", nullptr).evaluate(), RPNConverter("sin(4) / cos(4)", nullptr).evaluate(),
+                0.000001);
+    ASSERT_NEAR(RPNConverter("tan((8/2))", nullptr).evaluate(), RPNConverter("sin((8/2)) / cos((2^2))", nullptr).evaluate(),
                 0.000001);
     ASSERT_NEAR(RPNConverter("floor(1.2)", nullptr).evaluate(), 1., 0.000001);
     ASSERT_NEAR(RPNConverter("ceil(0.2)", nullptr).evaluate(), 1., 0.000001);
