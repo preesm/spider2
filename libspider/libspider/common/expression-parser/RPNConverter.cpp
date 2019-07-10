@@ -119,6 +119,14 @@ static RPNOperator &getOperator(RPNOperatorType type) {
     return rpnOperators[static_cast<std::uint32_t >(type)];
 }
 
+static double evalFunction(RPNOperatorType type, double val) {
+    return functionsFctArray[static_cast<std::uint32_t >(type) - FUNCTION_OPERATOR_OFFSET](val);
+}
+
+static double evalFunction(RPNOperatorType type, double valLeft, double valRight) {
+    return operatorsFctArray[static_cast<std::uint32_t >(type)](valLeft, valRight);
+}
+
 static bool isFunction(const std::string &s) {
     auto pos = functions().find(s);
     return pos != std::string::npos && functions()[pos - 2] == ',' && functions()[pos + s.size()] == ',';
@@ -248,11 +256,11 @@ static double evaluateNode(ExpressionTreeNode *node) {
         return elt.element.value;
     } else if (elt.subType == RPNElementSubType::FUNCTION) {
         auto val = evaluateNode(node->left);
-        return functionsFctArray[static_cast<std::uint32_t >(elt.element.op) - FUNCTION_OPERATOR_OFFSET](val);
+        return evalFunction(elt.element.op, val);
     } else {
         auto valLeft = evaluateNode(node->left);
         auto valRight = evaluateNode(node->right);
-        return operatorsFctArray[static_cast<std::uint32_t >(elt.element.op)](valLeft, valRight);
+        return evalFunction(elt.element.op, valLeft, valRight);
     }
 }
 
@@ -280,8 +288,7 @@ static ExpressionTreeNode *insertNode(ExpressionTreeNode *poolNode,
                 node->right = nullptr;
                 node->elt.type = RPNElementType::OPERAND;
                 node->elt.subType = RPNElementSubType::VALUE;
-                node->elt.element.value = functionsFctArray[static_cast<std::uint32_t >(node->elt.element.op) -
-                                                            FUNCTION_OPERATOR_OFFSET](value);
+                node->elt.element.value = evalFunction(node->elt.element.op, value);
             } else if (node->elt.subType == RPNElementSubType::OPERATOR &&
                        node->left && node->left->elt.subType == RPNElementSubType::VALUE &&
                        node->right && node->right->elt.subType == RPNElementSubType::VALUE) {
@@ -291,8 +298,7 @@ static ExpressionTreeNode *insertNode(ExpressionTreeNode *poolNode,
                 node->right = nullptr;
                 node->elt.type = RPNElementType::OPERAND;
                 node->elt.subType = RPNElementSubType::VALUE;
-                node->elt.element.value = operatorsFctArray[static_cast<std::uint32_t >(node->elt.element.op)](valLeft,
-                                                                                                               valRight);
+                node->elt.element.value = evalFunction(node->elt.element.op, valLeft, valRight);
             }
             node = node->parent;
         }
