@@ -95,40 +95,22 @@ static const std::string &functions() {
  * @brief Pre-declared @refitem RPNOperator (same order as @refitem RPNOperatorType enum class).
  */
 static RPNOperator rpnOperators[N_OPERATOR + N_FUNCTION]{
-        {.type = RPNOperatorType::ADD, .precendence = 2, .isRighAssociative = false},   /*! ADD operator */
-        {.type = RPNOperatorType::SUB, .precendence = 2, .isRighAssociative = false},   /*! ADD operator */
-        {.type = RPNOperatorType::MUL, .precendence = 3, .isRighAssociative = false},   /*! MUL operator */
-        {.type = RPNOperatorType::DIV, .precendence = 3, .isRighAssociative = false},   /*! DIV operator */
-        {.type = RPNOperatorType::MOD, .precendence = 4, .isRighAssociative = false},   /*! MOD operator */
-        {.type = RPNOperatorType::POW, .precendence = 4, .isRighAssociative = true},    /*! POW operator */
-        {.type = RPNOperatorType::COS, .precendence = 5, .isRighAssociative = false},   /*! COS operator */
-        {.type = RPNOperatorType::SIN, .precendence = 5, .isRighAssociative = false},   /*! SIN operator */
-        {.type = RPNOperatorType::TAN, .precendence = 5, .isRighAssociative = false},   /*! TAN operator */
-        {.type = RPNOperatorType::EXP, .precendence = 5, .isRighAssociative = false},   /*! EXP operator */
-        {.type = RPNOperatorType::LOG, .precendence = 5, .isRighAssociative = false},   /*! LOG operator */
-        {.type = RPNOperatorType::LOG2, .precendence = 5, .isRighAssociative = false},  /*! LOG2 operator */
-        {.type = RPNOperatorType::CEIL, .precendence = 5, .isRighAssociative = false},  /*! CEIL operator */
-        {.type = RPNOperatorType::FLOOR, .precendence = 5, .isRighAssociative = false}, /*! FLOOR operator */
-};
-
-/**
- * @brief Array of @refitem RPNOperatorType operators (same order as @refitem operators) for the translation from string.
- */
-static RPNOperatorType rpnOperatorsType[N_OPERATOR] = {
-        RPNOperatorType::ADD, RPNOperatorType::SUB,
-        RPNOperatorType::MUL, RPNOperatorType::DIV,
-        RPNOperatorType::MOD, RPNOperatorType::POW,
-        RPNOperatorType::LEFT_PAR, RPNOperatorType::RIGHT_PAR,
-};
-
-/**
- * @brief Array of @refitem RPNOperatorType functions (same order as @refitem functions) for the translation from string.
- */
-static RPNOperatorType rpnFunctionsType[N_FUNCTION] = {
-        RPNOperatorType::COS, RPNOperatorType::SIN,
-        RPNOperatorType::TAN, RPNOperatorType::EXP,
-        RPNOperatorType::LOG, RPNOperatorType::LOG2,
-        RPNOperatorType::CEIL, RPNOperatorType::FLOOR,
+        {.type = RPNOperatorType::ADD, .precendence = 2, .isRighAssociative = false},          /*! ADD operator */
+        {.type = RPNOperatorType::SUB, .precendence = 2, .isRighAssociative = false},          /*! ADD operator */
+        {.type = RPNOperatorType::MUL, .precendence = 3, .isRighAssociative = false},          /*! MUL operator */
+        {.type = RPNOperatorType::DIV, .precendence = 3, .isRighAssociative = false},          /*! DIV operator */
+        {.type = RPNOperatorType::MOD, .precendence = 4, .isRighAssociative = false},          /*! MOD operator */
+        {.type = RPNOperatorType::POW, .precendence = 4, .isRighAssociative = true},           /*! POW operator */
+        {.type = RPNOperatorType::LEFT_PAR, .precendence = 2, .isRighAssociative = false},     /*! LEFT_PAR operator */
+        {.type = RPNOperatorType::RIGHT_PAR, .precendence = 2, .isRighAssociative = false},    /*! RIGHT_PAR operator */
+        {.type = RPNOperatorType::COS, .precendence = 5, .isRighAssociative = false},          /*! COS operator */
+        {.type = RPNOperatorType::SIN, .precendence = 5, .isRighAssociative = false},          /*! SIN operator */
+        {.type = RPNOperatorType::TAN, .precendence = 5, .isRighAssociative = false},          /*! TAN operator */
+        {.type = RPNOperatorType::EXP, .precendence = 5, .isRighAssociative = false},          /*! EXP operator */
+        {.type = RPNOperatorType::LOG, .precendence = 5, .isRighAssociative = false},          /*! LOG operator */
+        {.type = RPNOperatorType::LOG2, .precendence = 5, .isRighAssociative = false},         /*! LOG2 operator */
+        {.type = RPNOperatorType::CEIL, .precendence = 5, .isRighAssociative = false},         /*! CEIL operator */
+        {.type = RPNOperatorType::FLOOR, .precendence = 5, .isRighAssociative = false},        /*! FLOOR operator */
 };
 
 /* === Static Functions === */
@@ -143,9 +125,7 @@ static bool isFunction(const std::string &s) {
 }
 
 static bool isFunction(RPNOperatorType type) {
-    return static_cast<std::int32_t >(type) >= FUNCTION_OPERATOR_OFFSET &&
-           type != RPNOperatorType::LEFT_PAR &&
-           type != RPNOperatorType::RIGHT_PAR;
+    return static_cast<std::uint32_t >(type) >= FUNCTION_OPERATOR_OFFSET;
 }
 
 /**
@@ -158,15 +138,15 @@ static RPNOperatorType getOperatorTypeFromString(const std::string &operatorStri
     if (op == std::string::npos) {
         op = functions().find(operatorString);
         op = functions()[op - 1] - '0';
-        return rpnFunctionsType[op];
+        return rpnOperators[N_OPERATOR + op].type;
     }
-    return rpnOperatorsType[op];
+    return rpnOperators[op].type;
 }
 
 static std::string getStringFromOperatorType(RPNOperatorType type) {
     static constexpr const char *stringOperators[N_OPERATOR + N_FUNCTION] = {
-            "+", "-", "*", "/", "^", "%", "cos", "sin", "tan", "exp",
-            "log", "log2", "ceil", "floor", "(", ")",
+            "+", "-", "*", "/", "^", "%", "(", ")", "cos", "sin", "tan", "exp",
+            "log", "log2", "ceil", "floor",
     };
     return stringOperators[static_cast<std::uint32_t>(type)];
 }

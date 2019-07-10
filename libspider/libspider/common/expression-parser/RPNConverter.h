@@ -51,7 +51,7 @@
 
 #define N_OPERATOR 8
 #define N_FUNCTION 8
-#define FUNCTION_OPERATOR_OFFSET 6 /*! Value of the @refitem RPNOperatorType::COS */
+#define FUNCTION_OPERATOR_OFFSET (static_cast<std::uint32_t>(RPNOperatorType::COS)) /*! Value of the @refitem RPNOperatorType::COS */
 
 /* === Forward declaration(s) === */
 
@@ -91,16 +91,16 @@ enum class RPNOperatorType : std::uint32_t {
     DIV = 3,        /*! Division operator */
     MOD = 4,        /*! Modulo operator */
     POW = 5,        /*! Power operator */
-    COS = 6,        /*! Cosine function */
-    SIN = 7,        /*! Sinus function */
-    TAN = 8,        /*! Tangent function */
-    EXP = 9,        /*! Exponential function */
-    LOG = 10,       /*! Logarithm (base 10) function */
-    LOG2 = 11,      /*! Logarithm (base 2) function */
-    CEIL = 12,      /*! Ceil function */
-    FLOOR = 13,     /*! Floor function */
-    LEFT_PAR = 14,  /*! Left parenthesis */
-    RIGHT_PAR = 15, /*! Right parenthesis */
+    LEFT_PAR = 6,   /*! Left parenthesis */
+    RIGHT_PAR = 7,  /*! Right parenthesis */
+    COS = 8,        /*! Cosine function */
+    SIN = 9,        /*! Sinus function */
+    TAN = 10,        /*! Tangent function */
+    EXP = 11,        /*! Exponential function */
+    LOG = 12,       /*! Logarithm (base 10) function */
+    LOG2 = 13,      /*! Logarithm (base 2) function */
+    CEIL = 14,      /*! Ceil function */
+    FLOOR = 15,     /*! Floor function */
 };
 
 /**
