@@ -299,6 +299,11 @@ void PiSDFGraph::removeEdge(PiSDFEdge *edge) {
 }
 
 void PiSDFGraph::addParam(PiSDFParam *param) {
+    /* == Check if a parameter with the same name already exists in the scope of this graph == */
+    if (findParam(param->name())) {
+        throwSpiderException("Parameter [%s] already exist in graph [%s].", param->name().c_str(),
+                             parentVertex_ ? parentVertex_->name().c_str() : "topgraph");
+    }
     paramSet_.add(param);
     if (param->isDynamic() && static_) {
         static_ = false;

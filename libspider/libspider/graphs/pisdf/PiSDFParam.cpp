@@ -50,28 +50,15 @@ PiSDFParam::PiSDFParam(std::string name,
                        PiSDFParamType type,
                        PiSDFGraph *graph) : graph_{graph},
                                             name_{std::move(name)},
-                                            type_{type},
-                                            dependencies_(StackID::PISDF, 0) {
+                                            type_{type} {
+    /* == Create the expression associated to the parameter == */
     expression_ = Spider::allocate<Expression>(StackID::PISDF);
     Spider::construct(expression_, std::move(expression), graph);
-    graph->addParam(this);
-}
 
-PiSDFParam::PiSDFParam(std::string name,
-                       std::string expression,
-                       PiSDFParamType type,
-                       PiSDFGraph *graph,
-                       std::initializer_list<PiSDFParam *> dependencies) : graph_{graph},
-                                                                           name_{std::move(name)},
-                                                                           type_{type},
-                                                                           dependencies_(StackID::PISDF,
-                                                                                         dependencies.size()) {
-    expression_ = Spider::allocate<Expression>(StackID::PISDF);
-    Spider::construct(expression_, std::move(expression), graph);
-    std::uint32_t i = 0;
-    for (auto &v: dependencies) {
-        dependencies_[i++] = v;
-    }
+    /* == Transform the name to lower case for the expression parser == */
+    std::transform(name_.begin(), name_.end(), name_.begin(), ::tolower);
+
+    /* == Add the parameter to the graph == */
     graph->addParam(this);
 }
 

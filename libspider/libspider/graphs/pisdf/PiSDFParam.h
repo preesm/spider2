@@ -68,12 +68,6 @@ public:
                PiSDFParamType type,
                PiSDFGraph *graph);
 
-    PiSDFParam(std::string name,
-               std::string expression,
-               PiSDFParamType type,
-               PiSDFGraph *graph,
-               std::initializer_list<PiSDFParam *> dependencies);
-
     ~PiSDFParam();
 
 
@@ -163,11 +157,6 @@ private:
      * @brief Expression of the parameter
      */
     Expression *expression_ = nullptr;
-
-    /**
-     * @brief Vector of parameter dependencies (in the case of a dynamic dependent parameter)
-     */
-    Spider::Array<PiSDFParam *> dependencies_;
 };
 
 /* === Inline Methods === */
