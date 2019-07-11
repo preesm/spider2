@@ -70,7 +70,15 @@ public:
                 std::uint32_t nEdgesOUT = 1,
                 std::string name = "unnamed-vertex");
 
-    ~PiSDFVertex() = default;
+    PiSDFVertex(PiSDFGraph *graph,
+                PiSDFType type,
+                PiSDFSubType subType,
+                PiSDFGraph *subgraph,
+                std::uint32_t nEdgesIN = 1,
+                std::uint32_t nEdgesOUT = 1,
+                std::string name = "unnamed-vertex");
+
+    ~PiSDFVertex();
 
     /* === Methods === */
 
@@ -98,14 +106,6 @@ public:
      * @throw @refitem SpiderException if out of bound or already existing edge.
      */
     inline void setOutputEdge(PiSDFEdge *edge, std::uint32_t ix);
-
-    /**
-     * @brief Set the subgraph of a hierarchical vertex.
-     * @remark This method calls @refitem setParentVertex of the  @refitem PiSDFGraph class.
-     * @param subgraph The subgraph to set.
-     * @throw @refitem SpiderException if vertex already has a subgraph or nullptr.
-     */
-    void setSubGraph(PiSDFGraph *subgraph);
 
     /* === Getters ===  */
 
@@ -246,6 +246,11 @@ private:
      * @param offset  Tab offset for the export.
      */
     void exportOutputPortsToDot(FILE *file, const Spider::string &offset) const;
+
+    /**
+     * @brief Check for subtype consistency.
+     */
+    void checkSubtypeConsistency() const;
 };
 
 /* === Inline methods === */

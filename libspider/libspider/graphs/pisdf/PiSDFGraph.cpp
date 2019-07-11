@@ -68,6 +68,11 @@ PiSDFGraph::~PiSDFGraph() {
         Spider::deallocate(v);
     }
 
+    for (auto &sg: subgraphList_) {
+        Spider::destroy(sg->parentVertex());
+        Spider::deallocate(sg->parentVertex());
+    }
+
     for (auto &e:edgeSet_) {
         Spider::destroy(e);
         Spider::deallocate(e);
@@ -135,29 +140,65 @@ void PiSDFGraph::addSubGraph(PiSDFVertex *vertex) {
 void PiSDFGraph::exportDot(const std::string &path) const {
     auto *file = std::fopen(path.c_str(), "w+");
 
-    fprintf(file, "digraph {\n");
-    fprintf(file, "\tlabel=%s;\n", parentVertex_ != nullptr ? parentVertex_->name().c_str() : "topgraph");
-    fprintf(file, "\trankdir=LR;\n");
-    fprintf(file, "\tranksep=\"2\";\n\n");
-    Spider::string offset{"\t"};
+    exportDotHelper(file, "\t");
 
-    fprintf(file, "\t// Vertices\n");
-    for (const auto &v:vertexSet_) {
-        v->exportDot(file, offset);
+    std::fclose(file);
+}
+
+void PiSDFGraph::exportDot(FILE *file, const Spider::string &offset) const {
+    exportDotHelper(file, offset);
+}
+
+/* === Private method(s) === */
+
+void PiSDFGraph::exportDotHelper(FILE *file, const Spider::string &offset) const {
+    auto fwOffset{offset};
+    if (parentVertex_) {
+        fprintf(file, "%ssubgraph cluster {\n", fwOffset.c_str());
+        fwOffset += "\t";
+        fprintf(file, "%slabel=%s;\n", fwOffset.c_str(), parentVertex_->name().c_str());
+        fprintf(file, "%sstyle=dotted;\n", fwOffset.c_str());
+        fprintf(file, "%sfillcolor=\"#ffffff\";\n", fwOffset.c_str());
+        fprintf(file, "%scolor=\"#393c3c\";\n", fwOffset.c_str());
+        fprintf(file, "%spenwidth=2;\n", fwOffset.c_str());
+    } else {
+        fprintf(file, "digraph {\n");
+        fprintf(file, "\tlabel=topgraph;\n");
+        fprintf(file, "\trankdir=LR;\n");
+        fprintf(file, "\tranksep=\"2\";\n\n");
     }
 
-    if (paramSet_.occupied()) {
-        fprintf(file, "\t// Parameters\n");
-        for (const auto &p:paramSet_) {
-            p->exportDot(file, offset);
+    fprintf(file, "%s// Vertices\n", fwOffset.c_str());
+    for (const auto &v:vertexSet_) {
+        v->exportDot(file, fwOffset);
+    }
+
+    if (parentVertex_) {
+        fprintf(file, "%s∕∕ Interfaces\n", fwOffset.c_str());
+        for (const auto &i:inputInterfaceSet_) {
+            i->exportDot(file, fwOffset);
+        }
+        for (const auto &o:outputInterfaceSet_) {
+            o->exportDot(file, fwOffset);
         }
     }
 
-    fprintf(file, "\t// Vertex edges\n");
+    if (paramSet_.occupied()) {
+        fprintf(file, "%s// Parameters\n", fwOffset.c_str());
+        for (const auto &p:paramSet_) {
+            p->exportDot(file, fwOffset);
+        }
+    }
+
+    fprintf(file, "\n%s// Subgraphs\n", fwOffset.c_str());
+    for (const auto &subgraph:subgraphList_) {
+        subgraph->exportDot(file, fwOffset);
+    }
+
+    fprintf(file, "%s// Vertex edges\n", fwOffset.c_str());
     for (const auto &e:edgeSet_) {
         e->exportDot(file);
     }
 
-    fprintf(file, "}\n");
-    std::fclose(file);
+    fprintf(file, "%s}\n", offset.c_str());
 }

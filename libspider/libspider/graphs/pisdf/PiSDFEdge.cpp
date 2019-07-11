@@ -97,6 +97,13 @@ void PiSDFEdge::setSource(PiSDFVertex *vertex, std::uint32_t srcPortIx, std::str
     }
     Spider::construct(sourceRateExpr_, prodExpr, graph_);
     source_->setOutputEdge(this, srcPortIx);
+    if (source_->isHierarchical()) {
+        /* == Fetch the corresponding interface == */
+        auto *subgraph = source_->subgraph();
+        auto *outputIf = subgraph->outputInterfaces()[srcPortIx];
+        sourceIf_ = outputIf;
+        sourceIf_->setOutputEdge(this);
+    }
 }
 
 void PiSDFEdge::setSink(PiSDFVertex *vertex, std::uint32_t snkPortIx, std::string consExpr) {
@@ -109,6 +116,13 @@ void PiSDFEdge::setSink(PiSDFVertex *vertex, std::uint32_t snkPortIx, std::strin
     }
     Spider::construct(sinkRateExpr_, consExpr, graph_);
     sink_->setInputEdge(this, snkPortIx);
+    if (sink_->isHierarchical()) {
+        /* == Fetch the corresponding interface == */
+        auto *subgraph = sink_->subgraph();
+        auto *inputIf = subgraph->inputInterfaces()[snkPortIx];
+        sinkIf_ = inputIf;
+        sinkIf_->setInputEdge(this);
+    }
 }
 
 void PiSDFEdge::exportDot(FILE *file) const {

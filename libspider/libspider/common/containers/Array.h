@@ -53,7 +53,21 @@ namespace Spider {
     template<typename T>
     class Array {
     public:
-        explicit inline Array(StackID stack, std::uint64_t size);
+
+        /**
+         * @brief Create an array of size size on stack stack.
+         * @param stack  Stack on which the array should be allocated.
+         * @param size   Size of the array.
+         */
+        inline Array(StackID stack, std::uint64_t size);
+
+        /**
+         * @brief Create an array of size size on stack stack with all values set to value;
+         * @param stack  Stack on which the array should be allocated.
+         * @param size   Size of the array.
+         * @param value  Value to set to all the elements of the array.
+         */
+        inline Array(StackID stack, std::uint64_t size, T value);
 
         inline ~Array();
 
@@ -104,15 +118,30 @@ namespace Spider {
         std::uint64_t size_;
         std::uint64_t arraySize_;
         T *array_;
+
+        inline void constructorHelper(StackID stack);
     };
 
-/* === Inline methods === */
+    /* === Inline methods === */
+
+    template <typename T>
+    void Array<T>::constructorHelper(StackID stack) {
+        array_ = Spider::allocate<T>(stack, arraySize_);
+        if (!array_) {
+            throwSpiderException("Failed to allocate array.");
+        }
+    }
 
     template<typename T>
     Array<T>::Array(StackID stack, std::uint64_t size) : size_{size}, arraySize_{size + 1} {
-        array_ = Spider::allocate<T>(stack, size + 1);
-        if (!array_) {
-            throwSpiderException("Failed to allocate array.");
+        constructorHelper(stack);
+    }
+
+    template<typename T>
+    Array<T>::Array(StackID stack, std::uint64_t size, T value) : size_{size}, arraySize_{size + 1} {
+        constructorHelper(stack);
+        for (std::uint32_t i = 0; i < size; ++i) {
+            array_[i] = value;
         }
     }
 

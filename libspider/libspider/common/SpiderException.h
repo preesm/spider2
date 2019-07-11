@@ -49,7 +49,7 @@
 /* === Defines === */
 
 /* Size of 50 minimum is required for the error message associated */
-#define SPIDER_EXCEPTION_BUFFER_SIZE 300
+#define SPIDER_EXCEPTION_BUFFER_SIZE 400
 
 constexpr const char *str_end(const char *str) {
   return *str ? str_end(str + 1) : str;

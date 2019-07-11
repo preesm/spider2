@@ -37,88 +37,95 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_PARSERFUNCTIONS_H
-#define SPIDER2_PARSERFUNCTIONS_H
+#ifndef SPIDER2_PISDFINTERFACE_H
+#define SPIDER2_PISDFINTERFACE_H
 
 /* === Includes === */
 
 #include <cstdint>
-#include <cmath>
+#include <string>
+#include <common/containers/StlContainers.h>
+#include <common/containers/Set.h>
+#include "PiSDFTypes.h"
 
-/* === Methods prototype === */
+/* === Forward definition === */
 
-namespace Spider {
-    inline double dummyEval(double &, double &) {
-        return 0.;
-    }
+class PiSDFGraph;
 
-    inline double add(double &a, double &b) {
-        return a + b;
-    }
+class PiSDFEdge;
 
-    inline double sub(double &a, double &b) {
-        return a - b;
-    }
+/* === Class definition === */
 
-    inline double mul(double &a, double &b) {
-        return a * b;
-    }
+class PiSDFInterface : public Spider::SetElement {
+public:
+    PiSDFInterface(PiSDFGraph *graph,
+                   PiSDFSubType type,
+                   std::uint32_t ix,
+                   PiSDFEdge *inputEdge,
+                   PiSDFEdge *outputEdge,
+                   std::string name = "unnamed-if");
 
-    inline double div(double &a, double &b) {
-        return a / b;
-    }
+    ~PiSDFInterface() = default;
 
-    inline double mod(double &a, double &b) {
-        return static_cast<std::int64_t >(a) % static_cast<std::int64_t >(b);
-    }
+    /* === Methods === */
 
-    inline double pow(double &a, double &b) {
-        return std::pow(a, b);
-    }
+    void exportDot(FILE *file, const Spider::string &offset) const;
 
-    inline double max(double &a, double &b) {
-        return std::max(a, b);
-    }
+    /* === Getters === */
 
-    inline double min(double &a, double &b) {
-        return std::min(a, b);
-    }
+    inline std::uint32_t ix() const;
 
-    inline double cos(double &a, double &) {
-        return std::cos(a);
-    }
+    inline const std::string &name() const;
 
-    inline double sin(double &a, double &) {
-        return std::sin(a);
-    }
+    inline PiSDFSubType type() const;
 
-    inline double tan(double &a, double &) {
-        return std::tan(a);
-    }
+    inline const PiSDFEdge *inputEdge() const;
 
-    inline double exp(double &a, double &) {
-        return std::exp(a);
-    }
+    inline const PiSDFEdge *outputEdge() const;
 
-    inline double log(double &a, double &) {
-        return std::log(a);
-    }
+    /* === Setters === */
 
-    inline double log2(double &a, double &) {
-        return std::log2(a);
-    }
+    inline void setInputEdge(PiSDFEdge *edge);
 
-    inline double ceil(double &a, double &) {
-        return std::ceil(a);
-    }
+    inline void setOutputEdge(PiSDFEdge *edge);
 
-    inline double floor(double &a, double &) {
-        return std::floor(a);
-    }
+private:
+    PiSDFGraph *graph_;
+    PiSDFSubType type_;
+    std::uint32_t ix_;
+    PiSDFEdge *inputEdge_ = nullptr;
+    PiSDFEdge *outputEdge_ = nullptr;
+    std::string name_;
+};
 
-    inline double sqrt(double &a, double &) {
-        return std::sqrt(a);
-    }
+
+std::uint32_t PiSDFInterface::ix() const {
+    return ix_;
 }
 
-#endif //SPIDER2_PARSERFUNCTIONS_H
+const std::string &PiSDFInterface::name() const {
+    return name_;
+}
+
+PiSDFSubType PiSDFInterface::type() const {
+    return type_;
+}
+
+const PiSDFEdge *PiSDFInterface::inputEdge() const {
+    return inputEdge_;
+}
+
+const PiSDFEdge *PiSDFInterface::outputEdge() const {
+    return outputEdge_;
+}
+
+void PiSDFInterface::setInputEdge(PiSDFEdge *edge) {
+    inputEdge_ = edge;
+}
+
+void PiSDFInterface::setOutputEdge(PiSDFEdge *edge) {
+    outputEdge_ = edge;
+}
+
+
+#endif //SPIDER2_PISDFINTERFACE_H

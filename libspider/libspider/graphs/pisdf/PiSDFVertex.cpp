@@ -72,19 +72,6 @@ static const char *getVertexDotColor(PiSDFSubType subType) {
     }
 }
 
-static void checkSubtypeConsistency(PiSDFSubType subType, std::uint32_t nEdgesIN, std::uint32_t nEdgesOUT) {
-    if (nEdgesIN > 1 && (subType == PiSDFSubType::FORK || subType == PiSDFSubType::BROADCAST)) {
-        throwSpiderException("Fork and Broadcast actors can only have one input edge.");
-    } else if (nEdgesIN && subType == PiSDFSubType::INIT) {
-        throwSpiderException("Init actors can not have input edge !");
-    }
-    if (nEdgesOUT > 1 && (subType == PiSDFSubType::JOIN || subType == PiSDFSubType::ROUNDBUFFER)) {
-        throwSpiderException("Join and Roundbuffer actors can only have one input edge.");
-    } else if (nEdgesOUT && subType == PiSDFSubType::END) {
-        throwSpiderException("End actors can not have output edge !");
-    }
-}
-
 /* === Methods implementation === */
 
 PiSDFVertex::PiSDFVertex(PiSDFGraph *graph,
@@ -98,41 +85,79 @@ PiSDFVertex::PiSDFVertex(PiSDFGraph *graph,
                                              subType_{subType},
                                              nEdgesIN_{nEdgesIN},
                                              nEdgesOUT_{nEdgesOUT},
-                                             inputEdgeArray_(StackID::PISDF, nEdgesIN),
-                                             outputEdgeArray_(StackID::PISDF, nEdgesOUT) {
+                                             inputEdgeArray_(StackID::PISDF, nEdgesIN, nullptr),
+                                             outputEdgeArray_(StackID::PISDF, nEdgesOUT, nullptr) {
     if (!graph) {
         throwSpiderException("Vertex should belong to a graph.");
     }
-    checkSubtypeConsistency(subType, nEdgesIN, nEdgesOUT);
+    checkSubtypeConsistency();
+
+    if (subType_ == PiSDFSubType::GRAPH) {
+        throwSpiderException("Can not instantiate a hierarchical vertex without the associated subgraph.");
+    }
 
     graph->addVertex(this);
-    for (std::uint32_t i = 0; i < nEdgesIN; ++i) {
-        inputEdgeArray_[i] = nullptr;
-    }
-    for (std::uint32_t i = 0; i < nEdgesOUT; ++i) {
-        outputEdgeArray_[i] = nullptr;
-    }
 }
 
-void PiSDFVertex::setSubGraph(PiSDFGraph *subgraph) {
-    if (subgraph_) {
-        throwSpiderException("Vertex [%s] already has a subgraph.", name_.c_str());
-    }
-    if (!subgraph) {
-        throwSpiderException("Trying to set nullptr subgraph to vertex [%s]", name_.c_str());
+PiSDFVertex::PiSDFVertex(PiSDFGraph *graph,
+                         PiSDFType type,
+                         PiSDFSubType subType,
+                         PiSDFGraph *subgraph,
+                         std::uint32_t nEdgesIN,
+                         std::uint32_t nEdgesOUT,
+                         std::string name) : graph_{graph},
+                                             name_{std::move(name)},
+                                             type_{type},
+                                             subType_{subType},
+                                             nEdgesIN_{nEdgesIN},
+                                             nEdgesOUT_{nEdgesOUT},
+                                             inputEdgeArray_(StackID::PISDF, nEdgesIN, nullptr),
+                                             outputEdgeArray_(StackID::PISDF, nEdgesOUT, nullptr),
+                                             subgraph_{subgraph} {
+    if (!graph) {
+        throwSpiderException("Vertex should belong to a graph.");
     }
     hierarchical_ = true;
-    subgraph_ = subgraph;
-    if (subgraph->parentVertex() != this) {
-        subgraph->setParentVertex(this);
+    if (!subgraph) {
+        throwSpiderException("Hierarchical vertex [%s] can not be created with null subgraph.", name_.c_str());
     }
-    if (!graph_) {
-        throwSpiderException("Vertex [%s] is not part of any graph.", name_.c_str());
+    if (subgraph->parentVertex()) {
+        throwSpiderException("Subgraph [%s] already has a parent vertex!", subgraph->parentVertex()->name().c_str());
     }
-    graph_->addSubGraph(this);
+    subgraph->setParentVertex(this);
+
+    /* == Consistency between vertex and its subgraph == */
+    if (nEdgesIN_ != subgraph_->nInputInterfaces()) {
+        throwSpiderException(
+                "Hierarchical vertex [%s]: miss match between number of input edges [%"
+                PRIu32
+                "] and input interfaces [%"
+                PRIu32
+                "].", name_.c_str(), nEdgesIN, subgraph_->nInputInterfaces());
+    }
+    if (nEdgesOUT_ != subgraph_->nOutputInterfaces()) {
+        throwSpiderException(
+                "Hierarchical vertex [%s]: miss match between number of output edges [%"
+                PRIu32
+                "] and output interfaces [%"
+                PRIu32
+                "].", name_.c_str(), nEdgesOUT, subgraph_->nOutputInterfaces());
+    }
+
+    graph->addVertex(this);
+}
+
+PiSDFVertex::~PiSDFVertex() {
+    if (subgraph_) {
+        Spider::destroy(subgraph_);
+        Spider::deallocate(subgraph_);
+    }
 }
 
 void PiSDFVertex::exportDot(FILE *file, const Spider::string &offset) const {
+    if (subgraph_) {
+        return subgraph_->exportDot(file, offset);
+    }
     fprintf(file, "%s\"%s\" [ shape = none, margin = 0, label = <\n", offset.c_str(), name_.c_str());
     fprintf(file, "%s\t<table border = \"1\" cellspacing=\"0\" cellpadding = \"0\" bgcolor = \"#%s\">\n",
             offset.c_str(), getVertexDotColor(subType_));
@@ -163,6 +188,8 @@ void PiSDFVertex::exportDot(FILE *file, const Spider::string &offset) const {
     fprintf(file, "%s];\n\n", offset.c_str());
 }
 
+/* === Private method(s) === */
+
 void PiSDFVertex::exportInputPortsToDot(FILE *file,
                                         const Spider::string &offset) const {
     fprintf(file, "%s\t\t\t<td border=\"0\">\n", offset.c_str());
@@ -178,6 +205,14 @@ void PiSDFVertex::exportInputPortsToDot(FILE *file,
                 getVertexDotColor(subType_));
         fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());
 
+        /* == Print the dummy port for pretty spacing == */
+        fprintf(file, "%s\t\t\t\t\t<tr>\n", offset.c_str());
+        fprintf(file, "%s\t\t\t\t\t\t<td border=\"0\" bgcolor=\"#%s\">    </td>\n",
+                offset.c_str(),
+                getVertexDotColor(subType_));
+        fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());
+    }
+    if (!nEdgesIN_) {
         /* == Print the dummy port for pretty spacing == */
         fprintf(file, "%s\t\t\t\t\t<tr>\n", offset.c_str());
         fprintf(file, "%s\t\t\t\t\t\t<td border=\"0\" bgcolor=\"#%s\">    </td>\n",
@@ -219,6 +254,15 @@ void PiSDFVertex::exportOutputPortsToDot(FILE *file,
                 getVertexDotColor(subType_));
         fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());
     }
+    if (!nEdgesOUT_) {
+        /* == Print the dummy port for pretty spacing == */
+        fprintf(file, "%s\t\t\t\t\t<tr>\n", offset.c_str());
+        fprintf(file, "%s\t\t\t\t\t\t<td border=\"0\" bgcolor=\"#%s\">    </td>\n",
+                offset.c_str(),
+                getVertexDotColor(subType_));
+        fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());
+    }
+
     /* == Print dummy extra input ports to match with output ports (if needed) == */
     for (auto i = nEdgesOUT_; i < nEdgesIN_; ++i) {
         fprintf(file, "%s\t\t\t\t\t<tr>\n", offset.c_str());
@@ -229,4 +273,23 @@ void PiSDFVertex::exportOutputPortsToDot(FILE *file,
     }
     fprintf(file, "%s\t\t\t\t</table>\n", offset.c_str());
     fprintf(file, "%s\t\t\t</td>\n", offset.c_str());
+}
+
+void PiSDFVertex::checkSubtypeConsistency() const {
+    if ((subType_ == PiSDFSubType::INPUT || subType_ == PiSDFSubType::OUTPUT)) {
+        throwSpiderException("Vertex can not have subtype INPUT nor OUTPUT.");
+    }
+
+    if (nEdgesIN_ > 1 && (subType_ == PiSDFSubType::FORK ||
+                          subType_ == PiSDFSubType::BROADCAST)) {
+        throwSpiderException("Fork and Broadcast actors can only have one input edge.");
+    } else if (nEdgesIN_ && subType_ == PiSDFSubType::INIT) {
+        throwSpiderException("Init actors can not have input edge !");
+    }
+    if (nEdgesOUT_ > 1 && (subType_ == PiSDFSubType::JOIN ||
+                           subType_ == PiSDFSubType::ROUNDBUFFER)) {
+        throwSpiderException("Join and Roundbuffer actors can only have one input edge.");
+    } else if (nEdgesOUT_ && subType_ == PiSDFSubType::END) {
+        throwSpiderException("End actors can not have output edge !");
+    }
 }

@@ -45,6 +45,7 @@
 #include <cstdint>
 #include <common/containers/Set.h>
 #include <graphs/pisdf/PiSDFVertex.h>
+#include <graphs/pisdf/PiSDFInterface.h>
 #include <graphs/pisdf/PiSDFEdge.h>
 #include <graphs/pisdf/PiSDFParam.h>
 #include <common/containers/LinkedList.h>
@@ -74,6 +75,12 @@ public:
      * @param vertex Vertex to add.
      */
     inline void addVertex(PiSDFVertex *vertex);
+
+    /**
+     * @brief Add an interface to the graph.
+     * @param interface Interface to add.
+     */
+    inline void addInterface(PiSDFInterface *interface);
 
     /**
      * @brief Remove a vertex from the graph and update subgraph list if needed.
@@ -131,6 +138,8 @@ public:
      * @param path Path of the file.
      */
     void exportDot(const std::string &path = "./pisdf.dot") const;
+
+    void exportDot(FILE *file, const Spider::string &offset) const;
 
     /* === Setters === */
 
@@ -203,13 +212,13 @@ public:
     * @brief A const reference on the set of output interfaces. Useful for iterating on the input interfaces.
     * @return const reference to input interface set
     */
-    inline const Spider::Set<PiSDFVertex *> inputInterfaces() const;
+    inline const Spider::Set<PiSDFInterface *> inputInterfaces() const;
 
     /**
     * @brief A const reference on the set of output interfaces. Useful for iterating on the output interfaces.
     * @return const reference to output interface set
     */
-    inline const Spider::Set<PiSDFVertex *> outputInterfaces() const;
+    inline const Spider::Set<PiSDFInterface *> outputInterfaces() const;
 
     /**
     * @brief A const reference on the set of edges. Useful for iterating on the edges.
@@ -247,13 +256,20 @@ private:
     Spider::Set<PiSDFVertex *> vertexSet_;
     Spider::Set<PiSDFEdge *> edgeSet_;
     Spider::Set<PiSDFParam *> paramSet_;
-    Spider::Set<PiSDFVertex *> inputInterfaceSet_;
-    Spider::Set<PiSDFVertex *> outputInterfaceSet_;
+    Spider::Set<PiSDFInterface *> inputInterfaceSet_;
+    Spider::Set<PiSDFInterface *> outputInterfaceSet_;
     Spider::Set<PiSDFVertex *> configSet_;
     Spider::LinkedList<PiSDFGraph *> subgraphList_;
 
     bool static_ = true;
     bool hasDynamicParameters_ = false;
+
+    /**
+     * @brief Export to DOT from a given FILE pointer.
+     * @param file     File to which to export.
+     * @param offset   TAB offset in the file.
+     */
+    void exportDotHelper(FILE *file, const Spider::string &offset) const;
 };
 
 /* === Inline methods === */
@@ -270,15 +286,21 @@ void PiSDFGraph::addVertex(PiSDFVertex *vertex) {
         case PiSDFType::CONFIG_VERTEX:
             configSet_.add(vertex);
             break;
-        case PiSDFType::INTERFACE_VERTEX:
-            if (vertex->subType() == PiSDFSubType::INPUT) {
-                inputInterfaceSet_.add(vertex);
-            } else {
-                outputInterfaceSet_.add(vertex);
-            }
-            break;
         default:
             throwSpiderException("Unsupported type of vertex.");
+    }
+}
+
+void PiSDFGraph::addInterface(PiSDFInterface *interface) {
+    switch (interface->type()) {
+        case PiSDFSubType::INPUT:
+            inputInterfaceSet_.add(interface);
+            break;
+        case PiSDFSubType::OUTPUT:
+            outputInterfaceSet_.add(interface);
+            break;
+        default:
+            throwSpiderException("Unsupported type of interface");
     }
 }
 
@@ -352,9 +374,6 @@ void PiSDFGraph::setParentVertex(PiSDFVertex *vertex) {
         throwSpiderException("Trying to set nullptr parent vertex.");
     }
     parentVertex_ = vertex;
-    if (vertex->subgraph() != this) {
-        vertex->setSubGraph(this);
-    }
 }
 
 std::uint64_t PiSDFGraph::nVertices() const {
@@ -393,11 +412,11 @@ const Spider::Set<PiSDFVertex *> PiSDFGraph::vertices() const {
     return vertexSet_;
 }
 
-const Spider::Set<PiSDFVertex *> PiSDFGraph::inputInterfaces() const {
+const Spider::Set<PiSDFInterface *> PiSDFGraph::inputInterfaces() const {
     return inputInterfaceSet_;
 }
 
-const Spider::Set<PiSDFVertex *> PiSDFGraph::outputInterfaces() const {
+const Spider::Set<PiSDFInterface *> PiSDFGraph::outputInterfaces() const {
     return outputInterfaceSet_;
 }
 

@@ -61,7 +61,6 @@ enum class PiSDFParamType: std::uint8_t {
 enum class PiSDFType: std::uint8_t {
     VERTEX,             /*! Standard vertex (normal or special actor) */
     CONFIG_VERTEX,      /*! Configure actor vertex (set dynamic parameter values) */
-    INTERFACE_VERTEX,   /*! Interface vertex (see pisdf reference paper) */
 };
 
 /**
