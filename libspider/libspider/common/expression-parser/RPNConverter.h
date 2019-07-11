@@ -49,8 +49,8 @@
 
 /* === Defines === */
 
-#define N_OPERATOR 8
-#define N_FUNCTION 8
+#define N_OPERATOR 10
+#define N_FUNCTION 9
 #define FUNCTION_OPERATOR_OFFSET (static_cast<std::uint32_t>(RPNOperatorType::COS)) /*! Value of the @refitem RPNOperatorType::COS */
 
 /* === Forward declaration(s) === */
@@ -58,6 +58,10 @@
 class PiSDFParam;
 
 class PiSDFGraph;
+
+/* === Function pointer declaration == */
+
+using evalFunction = double (*)(double &, double &);
 
 /* === Enum declaration(s) === */
 
@@ -73,12 +77,10 @@ enum class RPNElementType : std::uint16_t {
  * @brief Secondary type of an @refitem RPNElement
  */
 enum class RPNElementSubType : std::uint16_t {
-    VALUE,     /*! Value (digit) */
-    PARAMETER, /*! Value coming from a parameter */
-//    LEFT_PAR,  /*! Operator is a left parenthesis */
-//    RIGHT_PAR, /*! Operator is a right parenthesis */
-            FUNCTION,  /*! Operator is a function */
-    OPERATOR,  /*! Operator is an elementary operator */
+    VALUE,      /*! Value (digit) */
+    PARAMETER,  /*! Value coming from a parameter */
+    FUNCTION,   /*! Operator is a function */
+    OPERATOR,   /*! Operator is an elementary operator */
 };
 
 /**
@@ -91,16 +93,19 @@ enum class RPNOperatorType : std::uint32_t {
     DIV = 3,        /*! Division operator */
     MOD = 4,        /*! Modulo operator */
     POW = 5,        /*! Power operator */
-    LEFT_PAR = 6,   /*! Left parenthesis */
-    RIGHT_PAR = 7,  /*! Right parenthesis */
-    COS = 8,        /*! Cosine function */
-    SIN = 9,        /*! Sinus function */
-    TAN = 10,        /*! Tangent function */
-    EXP = 11,        /*! Exponential function */
-    LOG = 12,       /*! Logarithm (base 10) function */
-    LOG2 = 13,      /*! Logarithm (base 2) function */
-    CEIL = 14,      /*! Ceil function */
-    FLOOR = 15,     /*! Floor function */
+    MAX = 6,        /*! Max operator */
+    MIN = 7,        /*! Min operator */
+    LEFT_PAR = 8,   /*! Left parenthesis */
+    RIGHT_PAR = 9,  /*! Right parenthesis */
+    COS = 10,       /*! Cosine function */
+    SIN = 11,       /*! Sinus function */
+    TAN = 12,       /*! Tangent function */
+    EXP = 13,       /*! Exponential function */
+    LOG = 14,       /*! Logarithm (base 10) function */
+    LOG2 = 15,      /*! Logarithm (base 2) function */
+    CEIL = 16,      /*! Ceil function */
+    FLOOR = 17,     /*! Floor function */
+    SQRT = 18,      /*! Square root function */
 };
 
 /**
@@ -110,6 +115,8 @@ struct RPNOperator {
     RPNOperatorType type;      /*! Operator type (see @refitem RPNOperatorType) */
     std::uint16_t precendence; /*! Precedence value level of the operator */
     bool isRighAssociative;    /*! Right associativity property of the operator */
+    std::string label;         /*! Label of the operator */
+    evalFunction eval;         /*! Associated function of the operator */
 };
 
 /* === Structure definition(s) === */
@@ -127,7 +134,6 @@ struct RPNElement {
         RPNOperatorType op;
     } element;
 };
-
 
 struct ExpressionTreeNode {
     ExpressionTreeNode *left = nullptr;
@@ -153,17 +159,29 @@ public:
     /* === Methods === */
 
     /**
-     * @brief Get the expression postfix string
-     * @return
+     * @brief Build and return the expression string.
+     * @return Post fix string.
+     * @remark For static expression, building is done only once.
      */
-    std::string toString();
+    const std::string &toString();
 
     /**
-     * @brief Get the expression infix string
-     * @return
+     * @brief Get the expression infix string.
+     * @return infix expression string
      */
-    inline std::string infixString() const;
+    inline const std::string &infixString() const;
 
+    /**
+     * @brief Get the expression postfix string.
+     * @return postfix expression string
+     * @remark @refitem toString() method must be called at least once for static expression in the lifetime of
+     * the application.
+     */
+    inline const std::string &postfixString() const;
+
+    /**
+     * @brief Print the ExpressionTree (debug only).
+     */
     void printExpressionTree();
 
     /**
@@ -219,14 +237,25 @@ private:
     inline bool missMatchParenthesis() const;
 
     /**
-     * @brief In place replace of all occurrences of substring in a string.
-     * @param s     String on which we are working.
-     * @param pattern  Substring to find.
-     * @param replace    Substring to replace found matches.
-     * @return Modified string (same as s).
+     * @brief
+     * @param poolNode
+     * @param node
+     * @param elt
+     * @param nodeIx
+     * @return
      */
-    std::string &replace(std::string &s, const std::string &pattern,
-                         const std::string &replace);
+    ExpressionTreeNode *insertExpressionTreeNode(
+            ExpressionTreeNode *node,
+            RPNElement *elt,
+            std::uint16_t &nodeIx);
+
+    /**
+     * @brief Evaluate the value of a node in the ExpressionTree.
+     * @param node  Node to evaluate.
+     * @return value of the evaluated node.
+     * @remark This is a recursive method.
+     */
+    double evaluateNode(ExpressionTreeNode *node) const;
 };
 
 /* === Inline methods === */
@@ -245,9 +274,12 @@ bool RPNConverter::isStatic() const {
     return static_;
 }
 
-
-std::string RPNConverter::infixString() const {
+const std::string &RPNConverter::infixString() const {
     return infixExprString_;
+}
+
+const std::string &RPNConverter::postfixString() const {
+    return postfixExprString_;
 }
 
 #endif // SPIDER2_RPNCONVERTER_H

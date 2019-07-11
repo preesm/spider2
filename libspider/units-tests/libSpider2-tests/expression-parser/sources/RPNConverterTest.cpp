@@ -88,6 +88,13 @@ TEST_F(RPNConverterTest, TestEvaluationOperators) {
     ASSERT_EQ(RPNConverter("4*(3 + 5)", nullptr).evaluate(), 32.);
     ASSERT_EQ(RPNConverter("4*3 + 5", nullptr).evaluate(), 17.);
     ASSERT_EQ(RPNConverter("(2+2)(2 + 2)", nullptr).evaluate(), 16.);
+    ASSERT_EQ(RPNConverter("max(0.2, 0.21)", nullptr).evaluate(), 0.21);
+    ASSERT_EQ(RPNConverter("max(max(0.2,0.3*2), 0.21)", nullptr).evaluate(), 0.3*2.);
+    ASSERT_EQ(RPNConverter("min(min(0.2,0.1), 0.21)", nullptr).evaluate(), 0.1);
+    ASSERT_EQ(RPNConverter("min(0.2, 0.21)", nullptr).evaluate(), 0.2);
+    ASSERT_EQ(RPNConverter("min((0.2 + 0.1), 0.21)", nullptr).evaluate(), 0.21);
+    ASSERT_EQ(RPNConverter("min((0.2 * 0.1), 0.21)", nullptr).evaluate(), 0.2 * 0.1);
+    ASSERT_EQ(RPNConverter("min(0.2 * 0.1, 0.21)", nullptr).evaluate(), 0.2 * 0.1);
 }
 
 TEST_F(RPNConverterTest, TestEvaluationFunctions) {
@@ -108,6 +115,7 @@ TEST_F(RPNConverterTest, TestEvaluationFunctions) {
     ASSERT_NEAR(RPNConverter("exp(0.2)", nullptr).evaluate(), std::exp(0.2), 0.000001);
     ASSERT_NEAR(RPNConverter("exp(log(0.2))", nullptr).evaluate(), 0.2, 0.000001);
     ASSERT_NEAR(RPNConverter("log(exp(0.2))", nullptr).evaluate(), 0.2, 0.000001);
+    ASSERT_NEAR(RPNConverter("sqrt(4)", nullptr).evaluate(), 2., 0.000001);
 }
 
 TEST_F(RPNConverterTest, TestString) {

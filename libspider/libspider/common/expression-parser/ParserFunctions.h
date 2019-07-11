@@ -48,6 +48,10 @@
 /* === Methods prototype === */
 
 namespace Spider {
+    inline double dummyEval(double &, double &) {
+        return 0.;
+    }
+
     inline double add(double &a, double &b) {
         return a + b;
     }
@@ -72,36 +76,48 @@ namespace Spider {
         return std::pow(a, b);
     }
 
-    inline double cos(double &a) {
+    inline double cos(double &a, double &) {
         return std::cos(a);
     }
 
-    inline double sin(double &a) {
+    inline double sin(double &a, double &) {
         return std::sin(a);
     }
 
-    inline double tan(double &a) {
+    inline double tan(double &a, double &) {
         return std::tan(a);
     }
 
-    inline double exp(double &a) {
+    inline double exp(double &a, double &) {
         return std::exp(a);
     }
 
-    inline double log(double &a) {
+    inline double log(double &a, double &) {
         return std::log(a);
     }
 
-    inline double log2(double &a) {
+    inline double log2(double &a, double &) {
         return std::log2(a);
     }
 
-    inline double ceil(double &a) {
+    inline double ceil(double &a, double &) {
         return std::ceil(a);
     }
 
-    inline double floor(double &a) {
+    inline double floor(double &a, double &) {
         return std::floor(a);
+    }
+
+    inline double sqrt(double &a, double &) {
+        return std::sqrt(a);
+    }
+
+    inline double max(double &a, double &b) {
+        return std::max(a, b);
+    }
+
+    inline double min(double &a, double &b) {
+        return std::min(a, b);
     }
 }
 

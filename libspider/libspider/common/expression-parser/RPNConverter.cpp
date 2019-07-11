@@ -51,30 +51,6 @@
 
 /* === Static variable definition(s) === */
 
-using operator2ArgsFct = double (*)(double &, double &);
-
-using operator1ArgFct = double (*)(double &);
-
-static const operator2ArgsFct operatorsFctArray[N_OPERATOR - 2] = {
-        Spider::add,
-        Spider::sub,
-        Spider::mul,
-        Spider::div,
-        Spider::mod,
-        Spider::pow,
-};
-
-static const operator1ArgFct functionsFctArray[N_FUNCTION] = {
-        Spider::cos,
-        Spider::sin,
-        Spider::tan,
-        Spider::exp,
-        Spider::log,
-        Spider::log2,
-        Spider::ceil,
-        Spider::floor,
-};
-
 /**
  * @brief String containing all supported operators (should not be edited).
  */
@@ -84,79 +60,94 @@ static const std::string &operators() {
 }
 
 /**
- * @brief String containing all supported functions (can be edited to add more functions).
- */
-static const std::string &functions() {
-    static std::string functions{",0cos,1sin,2tan,3exp,4log,5log2,6ceil,7floor,"};
-    return functions;
-}
-
-/**
  * @brief Pre-declared @refitem RPNOperator (same order as @refitem RPNOperatorType enum class).
  */
-static RPNOperator rpnOperators[N_OPERATOR + N_FUNCTION]{
-        {.type = RPNOperatorType::ADD, .precendence = 2, .isRighAssociative = false},          /*! ADD operator */
-        {.type = RPNOperatorType::SUB, .precendence = 2, .isRighAssociative = false},          /*! ADD operator */
-        {.type = RPNOperatorType::MUL, .precendence = 3, .isRighAssociative = false},          /*! MUL operator */
-        {.type = RPNOperatorType::DIV, .precendence = 3, .isRighAssociative = false},          /*! DIV operator */
-        {.type = RPNOperatorType::MOD, .precendence = 4, .isRighAssociative = false},          /*! MOD operator */
-        {.type = RPNOperatorType::POW, .precendence = 4, .isRighAssociative = true},           /*! POW operator */
-        {.type = RPNOperatorType::LEFT_PAR, .precendence = 2, .isRighAssociative = false},     /*! LEFT_PAR operator */
-        {.type = RPNOperatorType::RIGHT_PAR, .precendence = 2, .isRighAssociative = false},    /*! RIGHT_PAR operator */
-        {.type = RPNOperatorType::COS, .precendence = 5, .isRighAssociative = false},          /*! COS operator */
-        {.type = RPNOperatorType::SIN, .precendence = 5, .isRighAssociative = false},          /*! SIN operator */
-        {.type = RPNOperatorType::TAN, .precendence = 5, .isRighAssociative = false},          /*! TAN operator */
-        {.type = RPNOperatorType::EXP, .precendence = 5, .isRighAssociative = false},          /*! EXP operator */
-        {.type = RPNOperatorType::LOG, .precendence = 5, .isRighAssociative = false},          /*! LOG operator */
-        {.type = RPNOperatorType::LOG2, .precendence = 5, .isRighAssociative = false},         /*! LOG2 operator */
-        {.type = RPNOperatorType::CEIL, .precendence = 5, .isRighAssociative = false},         /*! CEIL operator */
-        {.type = RPNOperatorType::FLOOR, .precendence = 5, .isRighAssociative = false},        /*! FLOOR operator */
-};
+static const RPNOperator &rpnOperators(std::uint32_t ix) {
+    static RPNOperator rpnOperators[N_OPERATOR + N_FUNCTION]{
+            {.type = RPNOperatorType::ADD, .precendence = 2, .isRighAssociative = false,
+                    .label="+", .eval = Spider::add},          /*! ADD operator */
+            {.type = RPNOperatorType::SUB, .precendence = 2, .isRighAssociative = false,
+                    .label="-", .eval = Spider::sub},          /*! SUB operator */
+            {.type = RPNOperatorType::MUL, .precendence = 3, .isRighAssociative = false,
+                    .label="*", .eval = Spider::mul},          /*! MUL operator */
+            {.type = RPNOperatorType::DIV, .precendence = 3, .isRighAssociative = false,
+                    .label="/", .eval = Spider::div},          /*! DIV operator */
+            {.type = RPNOperatorType::MOD, .precendence = 4, .isRighAssociative = false,
+                    .label="%", .eval = Spider::mod},          /*! MOD operator */
+            {.type = RPNOperatorType::POW, .precendence = 4, .isRighAssociative = true,
+                    .label="^", .eval = Spider::pow},          /*! POW operator */
+            {.type = RPNOperatorType::MAX, .precendence = 3, .isRighAssociative = false,
+                    .label="max", .eval = Spider::max},        /*! MAX operator */
+            {.type = RPNOperatorType::MIN, .precendence = 3, .isRighAssociative = false,
+                    .label="min", .eval = Spider::min},        /*! MIN operator */
+            {.type = RPNOperatorType::LEFT_PAR, .precendence = 2, .isRighAssociative = false,
+                    .label="(", .eval = Spider::dummyEval},    /*! LEFT_PAR operator */
+            {.type = RPNOperatorType::RIGHT_PAR, .precendence = 2, .isRighAssociative = false,
+                    .label=")", .eval = Spider::dummyEval},    /*! RIGHT_PAR operator */
+            {.type = RPNOperatorType::COS, .precendence = 5, .isRighAssociative = false,
+                    .label="cos", .eval = Spider::cos},        /*! COS function */
+            {.type = RPNOperatorType::SIN, .precendence = 5, .isRighAssociative = false,
+                    .label="sin", .eval = Spider::sin},        /*! SIN function */
+            {.type = RPNOperatorType::TAN, .precendence = 5, .isRighAssociative = false,
+                    .label="tan", .eval = Spider::tan},        /*! TAN function */
+            {.type = RPNOperatorType::EXP, .precendence = 5, .isRighAssociative = false,
+                    .label="exp", .eval = Spider::exp},        /*! EXP function */
+            {.type = RPNOperatorType::LOG, .precendence = 5, .isRighAssociative = false,
+                    .label="log", .eval = Spider::log},        /*! LOG function */
+            {.type = RPNOperatorType::LOG2, .precendence = 5, .isRighAssociative = false,
+                    .label="log2", .eval = Spider::log2},      /*! LOG2 function */
+            {.type = RPNOperatorType::CEIL, .precendence = 5, .isRighAssociative = false,
+                    .label="ceil", .eval = Spider::ceil},      /*! CEIL function */
+            {.type = RPNOperatorType::FLOOR, .precendence = 5, .isRighAssociative = false,
+                    .label="floor", .eval = Spider::floor},    /*! FLOOR function */
+            {.type = RPNOperatorType::SQRT, .precendence = 5, .isRighAssociative = false,
+                    .label="sqrt", .eval = Spider::sqrt},    /*! SQRT function */
+    };
+    return rpnOperators[ix];
+}
 
 /* === Static Functions === */
 
-static RPNOperator &getOperator(RPNOperatorType type) {
-    return rpnOperators[static_cast<std::uint32_t >(type)];
+static inline const RPNOperator &getOperator(RPNOperatorType type) {
+    return rpnOperators(static_cast<std::uint32_t >(type));
 }
 
-static double evalFunction(RPNOperatorType type, double val) {
-    return functionsFctArray[static_cast<std::uint32_t >(type) - FUNCTION_OPERATOR_OFFSET](val);
+static inline bool isOperator(const std::string &s) {
+    bool found = false;
+    for (auto i = 0; !found && i < (N_OPERATOR + N_FUNCTION); ++i) {
+        found |= (rpnOperators(i).label == s);
+    }
+    return found;
 }
 
-static double evalFunction(RPNOperatorType type, double valLeft, double valRight) {
-    return operatorsFctArray[static_cast<std::uint32_t >(type)](valLeft, valRight);
-}
-
-static bool isFunction(const std::string &s) {
-    auto pos = functions().find(s);
-    return pos != std::string::npos && functions()[pos - 2] == ',' && functions()[pos + s.size()] == ',';
-}
-
-static bool isFunction(RPNOperatorType type) {
+static inline bool isFunction(RPNOperatorType type) {
     return static_cast<std::uint32_t >(type) >= FUNCTION_OPERATOR_OFFSET;
 }
 
 /**
- * @brief Retrieve the @refitem RPNOperatorType corresponding to the input string.
+ * @brief Retrieve the @refitem RPNOperatorType corresponding to a given string.
  * @param operatorString input string corresponding to the operator.
  * @return RPNOperatorType
  */
-static RPNOperatorType getOperatorTypeFromString(const std::string &operatorString) {
-    auto op = operators().find(operatorString);
-    if (op == std::string::npos) {
-        op = functions().find(operatorString);
-        op = functions()[op - 1] - '0';
-        return rpnOperators[N_OPERATOR + op].type;
+static inline RPNOperatorType getOperatorTypeFromString(const std::string &operatorString) {
+    bool found = false;
+    std::uint32_t i = 0;
+    for (i = 0; !found && i < (N_OPERATOR + N_FUNCTION); ++i) {
+        found |= (rpnOperators(i).label == operatorString);
     }
-    return rpnOperators[op].type;
+    if (!found) {
+        throwSpiderException("Can not convert string [%s] to operator.", operatorString.c_str());
+    }
+    return rpnOperators(i - 1).type;
 }
 
-static std::string getStringFromOperatorType(RPNOperatorType type) {
-    static constexpr const char *stringOperators[N_OPERATOR + N_FUNCTION] = {
-            "+", "-", "*", "/", "^", "%", "(", ")", "cos", "sin", "tan", "exp",
-            "log", "log2", "ceil", "floor",
-    };
-    return stringOperators[static_cast<std::uint32_t>(type)];
+/**
+ * @brief Get the string label of an operator from its type.
+ * @param type
+ * @return
+ */
+static inline std::string getStringFromOperatorType(RPNOperatorType type) {
+    return getOperator(type).label;
 }
 
 static inline void setOperatorElement(RPNElement *elt, RPNOperatorType opType) {
@@ -172,6 +163,9 @@ static inline void setOperandElement(RPNElement *elt, const std::string &token, 
     auto value = std::strtod(token.c_str(), &end);
     if (end == token.c_str() || (*end) != '\0') {
         auto *param = graph->findParam(token);
+        if (!param) {
+            throwSpiderException("Did not find parameter [%s] for expression parsing.", token.c_str());
+        }
         if (param->isDynamic()) {
             elt->subType = RPNElementSubType::PARAMETER;
             elt->element.param = param;
@@ -185,17 +179,32 @@ static inline void setOperandElement(RPNElement *elt, const std::string &token, 
     }
 }
 
+static inline void setOperandElement(RPNElement *elt, double &value) {
+    elt->type = RPNElementType::OPERAND;
+    elt->subType = RPNElementSubType::VALUE;
+    elt->element.value = value;
+}
+
 static inline void addToken(Spider::vector<RPNElement> &tokens, const std::string &token, PiSDFGraph *graph) {
     if (token.empty()) {
         return;
     }
-    tokens.push_back(RPNElement());
-    if (isFunction(token)) {
+    if (isOperator(token)) {
+        tokens.push_back(RPNElement());
         /* == Function case == */
         setOperatorElement(&tokens.back(), getOperatorTypeFromString(token));
     } else {
-        /* == Operand case == */
-        setOperandElement(&tokens.back(), token, graph);
+        auto pos = token.find_first_of(',', 0);
+        if (pos != std::string::npos) {
+            /* == Double operand case == */
+            addToken(tokens, token.substr(0, pos), graph);
+            pos += 1;
+            addToken(tokens, token.substr(pos, (token.size() - pos)), graph);
+        } else {
+            tokens.push_back(RPNElement());
+            /* == Operand case == */
+            setOperandElement(&tokens.back(), token, graph);
+        }
     }
 }
 
@@ -211,8 +220,9 @@ static void retrieveExprTokens(std::string &inFixExpr, Spider::vector<RPNElement
         token = inFixExpr.substr(pos, 1);
         tokens.push_back(RPNElement());
         setOperatorElement(&tokens.back(), getOperatorTypeFromString(token));
-        lastPos = pos + 1;
-        pos = inFixExpr.find_first_of(operators(), pos + 1);
+        pos += 1;
+        lastPos = pos;
+        pos = inFixExpr.find_first_of(operators(), pos);
     }
 
     /* == Potential left over (if expression ends with an operand) == */
@@ -247,66 +257,23 @@ static void printExpressionTreeNode(ExpressionTreeNode *node, std::int32_t depth
     printExpressionTreeNode(node->left, depth + 1);
 }
 
-static double evaluateNode(ExpressionTreeNode *node) {
-    auto &elt = node->elt;
-    if (elt.type == RPNElementType::OPERAND) {
-        if (elt.subType == RPNElementSubType::PARAMETER) {
-            return elt.element.param->value();
-        }
-        return elt.element.value;
-    } else if (elt.subType == RPNElementSubType::FUNCTION) {
-        auto val = evaluateNode(node->left);
-        return evalFunction(elt.element.op, val);
-    } else {
-        auto valLeft = evaluateNode(node->left);
-        auto valRight = evaluateNode(node->right);
-        return evalFunction(elt.element.op, valLeft, valRight);
-    }
-}
-
-static ExpressionTreeNode *insertNode(ExpressionTreeNode *poolNode,
-                                      ExpressionTreeNode *node,
-                                      RPNElement *elt,
-                                      std::uint16_t &nodeIx) {
-    node->elt = *elt;
-    while (node) {
-        auto *tmpElt = &node->elt;
-        if (tmpElt->subType == RPNElementSubType::OPERATOR && !node->right) {
-            node->right = &poolNode[nodeIx];
-            Spider::construct(node->right, nodeIx++, node);
-            return node->right;
-        } else if (!node->left && (node->right || tmpElt->subType == RPNElementSubType::FUNCTION)) {
-            node->left = &poolNode[nodeIx];
-            Spider::construct(node->left, nodeIx++, node);
-            return node->left;
-        } else {
-            if (node->elt.subType == RPNElementSubType::FUNCTION &&
-                node->left &&
-                node->left->elt.subType == RPNElementSubType::VALUE) {
-                auto &value = node->left->elt.element.value;
-                node->left = nullptr;
-                node->right = nullptr;
-                node->elt.type = RPNElementType::OPERAND;
-                node->elt.subType = RPNElementSubType::VALUE;
-                node->elt.element.value = evalFunction(node->elt.element.op, value);
-            } else if (node->elt.subType == RPNElementSubType::OPERATOR &&
-                       node->left && node->left->elt.subType == RPNElementSubType::VALUE &&
-                       node->right && node->right->elt.subType == RPNElementSubType::VALUE) {
-                auto valLeft = node->left->elt.element.value;
-                auto valRight = node->right->elt.element.value;
-                node->left = nullptr;
-                node->right = nullptr;
-                node->elt.type = RPNElementType::OPERAND;
-                node->elt.subType = RPNElementSubType::VALUE;
-                node->elt.element.value = evalFunction(node->elt.element.op, valLeft, valRight);
-            }
-            node = node->parent;
+/**
+ * @brief In place replace of all occurrences of substring in a string.
+ * @param s     String on which we are working.
+ * @param pattern  Substring to find.
+ * @param replace    Substring to replace found matches.
+ * @return Modified string (same as s).
+ */
+static std::string &stringReplace(std::string &s, const std::string &pattern, const std::string &replace) {
+    if (!pattern.empty()) {
+        for (size_t pos = 0; (pos = s.find(pattern, pos)) != std::string::npos; pos += replace.size()) {
+            s.replace(pos, pattern.size(), replace);
         }
     }
-    return node;
+    return s;
 }
 
-/* === Methods implementation === */
+/* === Method(s) implementation === */
 
 RPNConverter::RPNConverter(std::string inFixExpr, PiSDFGraph *graph) : infixExprString_{std::move(inFixExpr)},
                                                                        graph_{graph} {
@@ -337,26 +304,33 @@ RPNConverter::~RPNConverter() {
     }
 }
 
-
 void RPNConverter::printExpressionTree() {
     if (expressionTree_) {
         printExpressionTreeNode(expressionTree_, 0);
     }
 }
 
-
 double RPNConverter::evaluate() const {
     return evaluateNode(expressionTree_);
 }
 
-std::string &RPNConverter::replace(std::string &s, const std::string &pattern, const std::string &replace) {
-    if (!pattern.empty()) {
-        for (size_t pos = 0; (pos = s.find(pattern, pos)) != std::string::npos; pos += replace.size()) {
-            s.replace(pos, pattern.size(), replace);
+const std::string &RPNConverter::toString() {
+    if (postfixExprString_.empty() || !static_) {
+        postfixExprString_ = "";
+        for (auto &t : postfixExprStack_) {
+            if (t.type == RPNElementType::OPERATOR) {
+                postfixExprString_ += getStringFromOperatorType(t.element.op) + " ";
+            } else if (t.subType == RPNElementSubType::PARAMETER) {
+                postfixExprString_ += t.element.param->name() + " ";
+            } else {
+                postfixExprString_ += std::to_string(t.element.value) + " ";
+            }
         }
     }
-    return s;
+    return postfixExprString_;
 }
+
+/* === Private method(s) === */
 
 void RPNConverter::cleanInfixExpression() {
     /* == Clean the inFix expression by removing all white spaces == */
@@ -382,8 +356,23 @@ void RPNConverter::cleanInfixExpression() {
         ignore = std::isalpha(c) && std::isdigit(next);
     }
 
+    /* == Make sure that double operand functions have parenthesis == */
+    auto pos = infixExprString_.find_first_of(',', 0);
+    auto lastPos = 0;
+    while (pos != std::string::npos) {
+        auto lowerPos = infixExprString_.find_last_of('(', pos - lastPos);
+        auto substr = infixExprString_.substr(lowerPos, (pos - lowerPos));
+        stringReplace(infixExprString_, substr, "(" + substr + ")");
+        pos += 3;
+        auto upperPos = infixExprString_.find_first_of(')', pos);
+        substr = infixExprString_.substr(pos, (upperPos - pos));
+        stringReplace(infixExprString_, substr, "(" + substr + ")");
+        lastPos = pos;
+        pos = infixExprString_.find_first_of(',', pos);
+    }
+
     /* == Clean the inFix expression by replacing every occurrence of PI to its value == */
-    replace(infixExprString_, std::string("pi"), std::string("3.1415926535"));
+    stringReplace(infixExprString_, std::string("pi"), std::string("3.1415926535"));
 }
 
 void RPNConverter::checkInfixExpression() const {
@@ -405,7 +394,6 @@ void RPNConverter::checkInfixExpression() const {
 }
 
 void RPNConverter::buildPostFix() {
-
     /* == Retrieve tokens == */
     Spider::vector<RPNElement> tokens;
     retrieveExprTokens(infixExprString_, tokens, graph_);
@@ -414,7 +402,6 @@ void RPNConverter::buildPostFix() {
     Spider::deque<RPNOperatorType> operatorStack;
     for (const auto &t : tokens) {
         if (t.type == RPNElementType::OPERATOR) {
-
             /* == Handle operator == */
             auto opType = t.element.op;
             if (isFunction(opType)) {
@@ -495,27 +482,56 @@ void RPNConverter::buildPostFix() {
 }
 
 void RPNConverter::buildExpressionTree() {
-    auto *poolNodes = Spider::allocate<ExpressionTreeNode>(StackID::GENERAL, postfixExprStack_.size());
-    expressionTree_ = &poolNodes[0];
+    expressionTree_ = Spider::allocate<ExpressionTreeNode>(StackID::GENERAL, postfixExprStack_.size());
     std::uint16_t nodeIx = 0;
     Spider::construct(expressionTree_, nodeIx++, nullptr);
     auto *node = expressionTree_;
     for (auto elt = postfixExprStack_.rbegin(); elt != postfixExprStack_.rend(); ++elt) {
-        node = insertNode(poolNodes, node, &(*elt), nodeIx);
+        node = insertExpressionTreeNode(node, &(*elt), nodeIx);
     }
 }
 
-std::string RPNConverter::toString() {
-    if (postfixExprString_.empty()) {
-        for (auto &t : postfixExprStack_) {
-            if (t.type == RPNElementType::OPERATOR) {
-                postfixExprString_ += getStringFromOperatorType(t.element.op) + " ";
-            } else if (t.subType == RPNElementSubType::PARAMETER) {
-                postfixExprString_ += t.element.param->name() + " ";
-            } else {
-                postfixExprString_ += std::to_string(t.element.value) + " ";
+ExpressionTreeNode *RPNConverter::insertExpressionTreeNode(ExpressionTreeNode *node,
+                                                           RPNElement *elt,
+                                                           std::uint16_t &nodeIx) {
+    node->elt = *elt;
+    while (node) {
+        auto *tmpElt = &node->elt;
+        if (tmpElt->subType == RPNElementSubType::OPERATOR && !node->right) {
+            node->right = &expressionTree_[nodeIx];
+            Spider::construct(node->right, nodeIx++, node);
+            return node->right;
+        } else if (!node->left && (node->right || tmpElt->subType == RPNElementSubType::FUNCTION)) {
+            node->left = &expressionTree_[nodeIx];
+            Spider::construct(node->left, nodeIx++, node);
+            return node->left;
+        } else {
+            auto *left = node->left;
+            auto *right = node->right;
+            if (node->elt.type == RPNElementType::OPERATOR && left && left->elt.subType == RPNElementSubType::VALUE) {
+                auto valLeft = left->elt.element.value;
+                auto valRight = right ? right->elt.element.value : 0.;
+                auto evalValue = getOperator(node->elt.element.op).eval(valLeft,
+                                                                        valRight);
+                setOperandElement(&node->elt, evalValue);
+                node->left = nullptr;
+                node->right = nullptr;
             }
+            node = node->parent;
         }
     }
-    return postfixExprString_;
+    return node;
+}
+
+double RPNConverter::evaluateNode(ExpressionTreeNode *node) const {
+    auto &elt = node->elt;
+    if (elt.type == RPNElementType::OPERAND) {
+        if (elt.subType == RPNElementSubType::PARAMETER) {
+            return elt.element.param->value();
+        }
+        return elt.element.value;
+    }
+    auto valLeft = evaluateNode(node->left);
+    auto valRight = node->right ? evaluateNode(node->right) : 0.;
+    return getOperator(elt.element.op).eval(valLeft, valRight);
 }
