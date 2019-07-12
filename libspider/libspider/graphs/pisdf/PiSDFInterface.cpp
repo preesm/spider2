@@ -60,17 +60,28 @@ PiSDFInterface::PiSDFInterface(PiSDFGraph *graph,
     graph->addInterface(this);
 }
 
+static const char * getBGColor(PiSDFSubType type) {
+    switch (type) {
+        case PiSDFSubType::INPUT:
+            return "c8f7c5";
+        case PiSDFSubType::OUTPUT:
+            return "f1a9a0";
+        default:
+            return "eeeeee";
+    }
+}
+
 void PiSDFInterface::exportDot(FILE *file, const Spider::string &offset) const {
     fprintf(file, "%s\"%s\" [ shape = none, margin = 0, label = <\n", offset.c_str(), name_.c_str());
-    fprintf(file, "%s\t<table border = \"1\" cellspacing=\"0\" cellpadding = \"0\" bgcolor = \"#eeeeee\">\n",
-            offset.c_str());
+    fprintf(file, "%s\t<table border = \"1\" cellspacing=\"0\" cellpadding = \"0\" bgcolor = \"#%s\">\n",
+            offset.c_str(), getBGColor(type_));
 
     /* == Header == */
-    fprintf(file, "%s\t\t<tr> <td colspan=\"4\" border=\"0\"><font point-size=\"5\"> </font></td></tr>\n",
+    fprintf(file, "%s\t\t<tr> <td colspan=\"3\" border=\"0\"><font point-size=\"5\"> </font></td></tr>\n",
             offset.c_str());
 
     /* == Vertex name == */
-    fprintf(file, "%s\t\t<tr> <td colspan=\"4\" border=\"0\"><font point-size=\"35\">%s</font></td></tr>\n",
+    fprintf(file, "%s\t\t<tr> <td colspan=\"3\" border=\"0\"><font point-size=\"35\">%s</font></td></tr>\n",
             offset.c_str(), name_.c_str());
 
     /* == Input ports == */
@@ -80,22 +91,22 @@ void PiSDFInterface::exportDot(FILE *file, const Spider::string &offset) const {
         fprintf(file, "%s\t\t\t\t<table border=\"0\" cellpadding=\"0\" cellspacing=\"1\">\n", offset.c_str());
         /* == Print the output edge port information == */
         fprintf(file, "%s\t\t\t\t\t<tr>\n", offset.c_str());
-        fprintf(file, "%s\t\t\t\t\t\t<td port=\"in\" border=\"1\" bgcolor=\"#87d37c\">    </td>\n", offset.c_str());
+        fprintf(file, "%s\t\t\t\t\t\t<td port=\"in_0\" border=\"1\" bgcolor=\"#87d37c\">    </td>\n", offset.c_str());
         fprintf(file,
-                "%s\t\t\t\t\t\t<td align=\"right\" border=\"0\" bgcolor=\"#eeeeee\"><font point-size=\"15\">in</font></td>\n",
-                offset.c_str());
+                "%s\t\t\t\t\t\t<td align=\"right\" border=\"0\" bgcolor=\"#%s\"><font point-size=\"15\">in</font></td>\n",
+                offset.c_str(), getBGColor(type_));
         fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());
         fprintf(file, "%s\t\t\t\t</table>\n", offset.c_str());
         fprintf(file, "%s\t\t\t</td>\n", offset.c_str());
     } else {
         /* == Print the dummy port for pretty spacing == */
         fprintf(file, "%s\t\t\t\t\t<tr>\n", offset.c_str());
-        fprintf(file, "%s\t\t\t\t\t\t<td border=\"0\" bgcolor=\"#eeeeee\">    </td>\n", offset.c_str());
+        fprintf(file, "%s\t\t\t\t\t\t<td border=\"0\" bgcolor=\"#%s\">    </td>\n", offset.c_str(), getBGColor(type_));
         fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());
     }
 
     /* == Center column == */
-    fprintf(file, "%s\t\t\t<td border=\"0\" colspan=\"2\" cellpadding=\"10\"> </td>\n", offset.c_str());
+    fprintf(file, "%s\t\t\t<td border=\"0\" colspan=\"1\" cellpadding=\"10\"> </td>\n", offset.c_str());
 
     /* == Output ports == */
     if (outputEdge_) {
@@ -104,22 +115,22 @@ void PiSDFInterface::exportDot(FILE *file, const Spider::string &offset) const {
         /* == Print the output edge port information == */
         fprintf(file, "%s\t\t\t\t\t<tr>\n", offset.c_str());
         fprintf(file,
-                "%s\t\t\t\t\t\t<td align=\"right\" border=\"0\" bgcolor=\"#eeeeee\"><font point-size=\"15\">out</font></td>\n",
-                offset.c_str());
-        fprintf(file, "%s\t\t\t\t\t\t<td port=\"out\" border=\"1\" bgcolor=\"#ec644b\">    </td>\n", offset.c_str());
+                "%s\t\t\t\t\t\t<td align=\"right\" border=\"0\" bgcolor=\"#%s\"><font point-size=\"15\">out</font></td>\n",
+                offset.c_str(), getBGColor(type_));
+        fprintf(file, "%s\t\t\t\t\t\t<td port=\"out_0\" border=\"1\" bgcolor=\"#ec644b\">    </td>\n", offset.c_str());
         fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());
         fprintf(file, "%s\t\t\t\t</table>\n", offset.c_str());
         fprintf(file, "%s\t\t\t</td>\n", offset.c_str());
     } else {
         /* == Print the dummy port for pretty spacing == */
         fprintf(file, "%s\t\t\t\t\t<tr>\n", offset.c_str());
-        fprintf(file, "%s\t\t\t\t\t\t<td border=\"0\" bgcolor=\"#eeeeee\">    </td>\n", offset.c_str());
+        fprintf(file, "%s\t\t\t\t\t\t<td border=\"0\" bgcolor=\"#%s\">    </td>\n", offset.c_str(), getBGColor(type_));
         fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());
     }
     fprintf(file, "%s\t\t</tr>\n", offset.c_str());
 
     /* == Footer == */
-    fprintf(file, "%s\t\t<tr> <td colspan=\"4\" border=\"0\"><font point-size=\"5\"> </font></td></tr>\n",
+    fprintf(file, "%s\t\t<tr> <td colspan=\"3\" border=\"0\"><font point-size=\"5\"> </font></td></tr>\n",
             offset.c_str());
     fprintf(file, "%s\t</table>>\n", offset.c_str());
     fprintf(file, "%s];\n\n", offset.c_str());

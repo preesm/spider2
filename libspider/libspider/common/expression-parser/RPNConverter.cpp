@@ -54,8 +54,8 @@
 /**
  * @brief String containing all supported operators (should not be edited).
  */
-static const std::string &operators() {
-    static std::string operators{"+-*/%^()"};
+static const Spider::string &operators() {
+    static Spider::string operators{"+-*/%^()"};
     return operators;
 }
 
@@ -112,7 +112,7 @@ static inline const RPNOperator &getOperator(RPNOperatorType type) {
     return rpnOperators(static_cast<std::uint32_t >(type));
 }
 
-static inline bool isOperator(const std::string &s) {
+static inline bool isOperator(const Spider::string &s) {
     bool found = false;
     for (auto i = 0; !found && i < (N_OPERATOR + N_FUNCTION); ++i) {
         found |= (rpnOperators(i).label == s);
@@ -129,7 +129,7 @@ static inline bool isFunction(RPNOperatorType type) {
  * @param operatorString input string corresponding to the operator.
  * @return RPNOperatorType
  */
-static inline RPNOperatorType getOperatorTypeFromString(const std::string &operatorString) {
+static inline RPNOperatorType getOperatorTypeFromString(const Spider::string &operatorString) {
     bool found = false;
     std::uint32_t i = 0;
     for (i = 0; !found && i < (N_OPERATOR + N_FUNCTION); ++i) {
@@ -146,7 +146,7 @@ static inline RPNOperatorType getOperatorTypeFromString(const std::string &opera
  * @param type
  * @return
  */
-static inline std::string getStringFromOperatorType(RPNOperatorType type) {
+static inline Spider::string getStringFromOperatorType(RPNOperatorType type) {
     return getOperator(type).label;
 }
 
@@ -157,7 +157,7 @@ static inline void setOperatorElement(RPNElement *elt, RPNOperatorType opType) {
     elt->element.op = opType;
 }
 
-static inline void setOperandElement(RPNElement *elt, const std::string &token, PiSDFGraph *graph) {
+static inline void setOperandElement(RPNElement *elt, const Spider::string &token, PiSDFGraph *graph) {
     elt->type = RPNElementType::OPERAND;
     char *end;
     auto value = std::strtod(token.c_str(), &end);
@@ -185,7 +185,7 @@ static inline void setOperandElement(RPNElement *elt, double &value) {
     elt->element.value = value;
 }
 
-static inline void addToken(Spider::vector<RPNElement> &tokens, const std::string &token, PiSDFGraph *graph) {
+static inline void addToken(Spider::vector<RPNElement> &tokens, const Spider::string &token, PiSDFGraph *graph) {
     if (token.empty()) {
         return;
     }
@@ -208,7 +208,7 @@ static inline void addToken(Spider::vector<RPNElement> &tokens, const std::strin
     }
 }
 
-static void retrieveExprTokens(std::string &inFixExpr, Spider::vector<RPNElement> &tokens, PiSDFGraph *graph) {
+static void retrieveExprTokens(Spider::string &inFixExpr, Spider::vector<RPNElement> &tokens, PiSDFGraph *graph) {
     auto pos = inFixExpr.find_first_of(operators(), 0);
     std::uint32_t lastPos = 0;
     while (pos != std::string::npos) {
@@ -227,7 +227,7 @@ static void retrieveExprTokens(std::string &inFixExpr, Spider::vector<RPNElement
 
     /* == Potential left over (if expression ends with an operand) == */
     if (lastPos != inFixExpr.size()) {
-        std::string token = inFixExpr.substr(lastPos, pos - lastPos);
+        Spider::string token = inFixExpr.substr(lastPos, pos - lastPos);
         addToken(tokens, token, graph);
     }
 }
@@ -264,7 +264,7 @@ static void printExpressionTreeNode(ExpressionTreeNode *node, std::int32_t depth
  * @param replace    Substring to replace found matches.
  * @return Modified string (same as s).
  */
-static std::string &stringReplace(std::string &s, const std::string &pattern, const std::string &replace) {
+static Spider::string &stringReplace(Spider::string &s, const Spider::string &pattern, const Spider::string &replace) {
     if (!pattern.empty()) {
         for (size_t pos = 0; (pos = s.find(pattern, pos)) != std::string::npos; pos += replace.size()) {
             s.replace(pos, pattern.size(), replace);
@@ -275,8 +275,8 @@ static std::string &stringReplace(std::string &s, const std::string &pattern, co
 
 /* === Method(s) implementation === */
 
-RPNConverter::RPNConverter(std::string inFixExpr, PiSDFGraph *graph) : infixExprString_{std::move(inFixExpr)},
-                                                                       graph_{graph} {
+RPNConverter::RPNConverter(Spider::string inFixExpr, PiSDFGraph *graph) : infixExprString_{std::move(inFixExpr)},
+                                                                          graph_{graph} {
     if (missMatchParenthesis()) {
         throwSpiderException("Expression with miss matched parenthesis: %s", infixExprString_.c_str());
     }
@@ -314,7 +314,7 @@ double RPNConverter::evaluate() const {
     return evaluateNode(expressionTree_);
 }
 
-const std::string &RPNConverter::toString() {
+const Spider::string &RPNConverter::toString() {
     if (postfixExprString_.empty() || !static_) {
         postfixExprString_ = "";
         for (auto &t : postfixExprStack_) {
@@ -323,7 +323,8 @@ const std::string &RPNConverter::toString() {
             } else if (t.subType == RPNElementSubType::PARAMETER) {
                 postfixExprString_ += t.element.param->name() + " ";
             } else {
-                postfixExprString_ += std::to_string(t.element.value) + " ";
+                auto strValue = std::to_string(t.element.value);
+                postfixExprString_ += strValue.c_str() + Spider::string(" ");
             }
         }
     }
@@ -340,7 +341,7 @@ void RPNConverter::cleanInfixExpression() {
     std::transform(infixExprString_.begin(), infixExprString_.end(), infixExprString_.begin(), ::tolower);
 
     /* == Clean the inFix expression by adding '*' for #valueY -> #value * Y  == */
-    std::string tmp{std::move(infixExprString_)};
+    Spider::string tmp{std::move(infixExprString_)};
     infixExprString_.reserve(tmp.size() * 2); /*= Worst case is actually 1.5 = */
     std::uint32_t i = 0;
     bool ignore = false;
@@ -372,7 +373,7 @@ void RPNConverter::cleanInfixExpression() {
     }
 
     /* == Clean the inFix expression by replacing every occurrence of PI to its value == */
-    stringReplace(infixExprString_, std::string("pi"), std::string("3.1415926535"));
+    stringReplace(infixExprString_, "pi", "3.1415926535");
 }
 
 void RPNConverter::checkInfixExpression() const {

@@ -70,15 +70,7 @@ public:
                 std::uint32_t nEdgesOUT = 1,
                 std::string name = "unnamed-vertex");
 
-    PiSDFVertex(PiSDFGraph *graph,
-                PiSDFType type,
-                PiSDFSubType subType,
-                PiSDFGraph *subgraph,
-                std::uint32_t nEdgesIN = 1,
-                std::uint32_t nEdgesOUT = 1,
-                std::string name = "unnamed-vertex");
-
-    ~PiSDFVertex();
+    ~PiSDFVertex() = default;
 
     /* === Methods === */
 
@@ -201,18 +193,6 @@ public:
      */
     inline const Spider::Array<PiSDFEdge *> &outputEdges() const;
 
-    /**
-     * @brief Get the hierarchical property of the vertex.
-     * @return true if vertex is hierarchical, false else;
-     */
-    inline bool isHierarchical() const;
-
-    /**
-     * @brief Get the subgraph attached to the vertex.
-     * @return Subgraph, nullptr if vertex is not hierarchical.
-     */
-    inline PiSDFGraph *subgraph() const;
-
 private:
     PiSDFGraph *graph_ = nullptr;
     std::string name_ = "unnamed-vertex";
@@ -227,9 +207,6 @@ private:
 
     Spider::Array<PiSDFEdge *> inputEdgeArray_;
     Spider::Array<PiSDFEdge *> outputEdgeArray_;
-
-    bool hierarchical_ = false;
-    PiSDFGraph *subgraph_ = nullptr;
 
     /* === Private methods === */
 
@@ -367,14 +344,6 @@ const Spider::Array<PiSDFEdge *> &PiSDFVertex::inputEdges() const {
 
 const Spider::Array<PiSDFEdge *> &PiSDFVertex::outputEdges() const {
     return inputEdgeArray_;
-}
-
-bool PiSDFVertex::isHierarchical() const {
-    return hierarchical_;
-}
-
-PiSDFGraph *PiSDFVertex::subgraph() const {
-    return subgraph_;
 }
 
 #endif //SPIDER2_PISDFVERTEX_H

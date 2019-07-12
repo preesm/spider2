@@ -45,8 +45,8 @@
 
 /* === Methods implementation === */
 
-PiSDFParam::PiSDFParam(std::string name,
-                       std::string expression,
+PiSDFParam::PiSDFParam(Spider::string name,
+                       Spider::string expression,
                        PiSDFParamType type,
                        PiSDFGraph *graph) : graph_{graph},
                                             name_{std::move(name)},

@@ -63,8 +63,8 @@ class PiSDFVertex;
 class PiSDFParam : public Spider::SetElement {
 public:
 
-    PiSDFParam(std::string name,
-               std::string expression,
+    PiSDFParam(Spider::string name,
+               Spider::string expression,
                PiSDFParamType type,
                PiSDFGraph *graph);
 
@@ -106,7 +106,7 @@ public:
      * @brief Get the string of the name of the parameter.
      * @return name of the parameter
      */
-    inline std::string name() const;
+    inline const Spider::string &name() const;
 
     /**
      * @brief Get the vertex setting the value of the parameter (if any).
@@ -136,7 +136,7 @@ private:
     /**
      * @brief Name of the parameter within its containing graph.
      */
-    std::string name_ = "unnamed-parameter";
+    Spider::string name_ = "unnamed-parameter";
 
     /**
      * @brief Parameter Type (STATIC, DYNAMIC, HERITED).
@@ -174,7 +174,7 @@ PiSDFGraph *PiSDFParam::containingGraph() const {
     return graph_;
 }
 
-std::string PiSDFParam::name() const {
+const Spider::string &PiSDFParam::name() const {
     return name_;
 }
 

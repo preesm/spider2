@@ -59,7 +59,17 @@ using execRoutine = void (*)(void **, void **, std::uint64_t *, std::uint64_t *)
 class PiSDFGraph {
 public:
 
-    PiSDFGraph(std::uint64_t nActors,
+    PiSDFGraph(Spider::string name,
+               std::uint64_t nActors,
+               std::uint64_t nEdges,
+               std::uint64_t nParams = 0,
+               std::uint64_t nInputInterfaces = 0,
+               std::uint64_t nOutputInterfaces = 0,
+               std::uint64_t nConfigActors = 0);
+
+    PiSDFGraph(Spider::string name,
+               PiSDFGraph *parent,
+               std::uint64_t nActors,
                std::uint64_t nEdges,
                std::uint64_t nParams = 0,
                std::uint64_t nInputInterfaces = 0,
@@ -91,11 +101,18 @@ public:
     void removeVertex(PiSDFVertex *vertex);
 
     /**
-     * @brief Add a subgraph to the graph.
-     * @param vertex Hierarchical vertex from which the subgraph is added to the graph.
-     * @throw @refitem SpiderException if vertex if not hierarchical.
+     * @brief Remove a subgraph from the graph.
+     * @remark If subgraph is nullptr, nothing happens.
+     * @param subgraph Subgraph to remove.
+     * @throw @refitem SpiderException if subgraph does not exist in the graph.
      */
-    void addSubGraph(PiSDFVertex *vertex);
+    void removeSubgraph(PiSDFGraph *subgraph);
+
+    /**
+     * @brief Add a subgraph to the graph.
+     * @param subgraph Subgraph to be added to the graph.
+     */
+    void addSubgraph(PiSDFGraph *subgraph);
 
     /**
      * @brief Add an edge to the graph.
@@ -130,7 +147,7 @@ public:
      * @param name Name of the parameter.
      * @return pointer to the @refitem PiSDFParam if found, nullptr else.
      */
-    inline PiSDFParam *findParam(const std::string &name) const;
+    inline PiSDFParam *findParam(const Spider::string &name) const;
 
 
     /**
@@ -139,17 +156,22 @@ public:
      */
     void exportDot(const std::string &path = "./pisdf.dot") const;
 
+    /**
+     * @brief Export the graph to a dot file.
+     * @param file    File pointer to write to.
+     * @param offset  Tab offset in the file.
+     */
     void exportDot(FILE *file, const Spider::string &offset) const;
 
     /* === Setters === */
 
     /**
-     * @brief Set the parent vertex of the graph.
-     * @param vertex Parent vertex.
-     * @remark This method may call @refitem setSubGraph of class @refitem PiSDFVertex.
-     * @throw @refitem SpiderException if already has a parent vertex or if nullptr.
+     * @brief Set the parent graph of the graph.
+     * @param parent Parent graph.
+     * @remark This method may call @refitem setSubGraph of class @refitem PiSDFGraph.
+     * @throw @refitem SpiderException if already has a parent graph or if nullptr.
      */
-    inline void setParentVertex(PiSDFVertex *vertex);
+    inline void setParentGraph(PiSDFGraph *parent);
 
     /* === Getters === */
 
@@ -197,10 +219,10 @@ public:
     inline std::uint64_t nOutputInterfaces() const;
 
     /**
-     * @brief Get the parent vertex of current sub-graph.
-     * @return Parent vertex, nullptr if top graph.
+     * @brief Get the parent graph of current sub-graph.
+     * @return Parent graph, nullptr if top graph.
      */
-    inline PiSDFVertex *parentVertex() const;
+    inline PiSDFGraph *parentGraph() const;
 
     /**
     * @brief A const reference on the set of vertices. Useful for iterating on the vertices.
@@ -250,9 +272,14 @@ public:
      */
     inline bool containsDynamicParameters() const;
 
-private:
-    PiSDFVertex *parentVertex_ = nullptr;
+    /**
+     * @brief Get the string of the name of the graph.
+     * @return string of the name.
+     */
+    inline const Spider::string &name() const;
 
+private:
+    Spider::string name_ = "topgraph";
     Spider::Set<PiSDFVertex *> vertexSet_;
     Spider::Set<PiSDFEdge *> edgeSet_;
     Spider::Set<PiSDFParam *> paramSet_;
@@ -263,6 +290,7 @@ private:
 
     bool static_ = true;
     bool hasDynamicParameters_ = false;
+    PiSDFGraph *parentGraph_ = nullptr;
 
     /**
      * @brief Export to DOT from a given FILE pointer.
@@ -277,11 +305,7 @@ private:
 void PiSDFGraph::addVertex(PiSDFVertex *vertex) {
     switch (vertex->type()) {
         case PiSDFType::VERTEX:
-            if (vertex->subType() == PiSDFSubType::GRAPH) {
-                addSubGraph(vertex);
-            } else {
-                vertexSet_.add(vertex);
-            }
+            vertexSet_.add(vertex);
             break;
         case PiSDFType::CONFIG_VERTEX:
             configSet_.add(vertex);
@@ -323,24 +347,21 @@ void PiSDFGraph::removeEdge(PiSDFEdge *edge) {
 void PiSDFGraph::addParam(PiSDFParam *param) {
     /* == Check if a parameter with the same name already exists in the scope of this graph == */
     if (findParam(param->name())) {
-        throwSpiderException("Parameter [%s] already exist in graph [%s].", param->name().c_str(),
-                             parentVertex_ ? parentVertex_->name().c_str() : "topgraph");
+        throwSpiderException("Parameter [%s] already exist in graph [%s].", param->name().c_str(), name_.c_str());
     }
     paramSet_.add(param);
     if (param->isDynamic() && static_) {
         static_ = false;
 
         /* == We need to propagate this property up in the hierarchy == */
-        auto *parent = parentVertex_;
+        auto *parent = parentGraph_;
         while (parent) {
-            auto *graph = parent->containingGraph();
-
             /* == If graph was already dynamic then information is already propagated == */
-            if (!graph->static_) {
+            if (!parent->static_) {
                 break;
             }
-            graph->static_ = false;
-            parent = graph->parentVertex_;
+            parent->static_ = false;
+            parent = parent->parentGraph_;
         }
     }
 }
@@ -357,7 +378,7 @@ void PiSDFGraph::removeParam(PiSDFParam *param) {
     Spider::deallocate(param);
 }
 
-PiSDFParam *PiSDFGraph::findParam(const std::string &name) const {
+PiSDFParam *PiSDFGraph::findParam(const Spider::string &name) const {
     for (auto &p : paramSet_) {
         if (p->name() == name) {
             return p;
@@ -366,14 +387,14 @@ PiSDFParam *PiSDFGraph::findParam(const std::string &name) const {
     return nullptr;
 }
 
-void PiSDFGraph::setParentVertex(PiSDFVertex *vertex) {
-    if (parentVertex_) {
-        throwSpiderException("Graph already has a parent vertex.");
+void PiSDFGraph::setParentGraph(PiSDFGraph *parent) {
+    if (parentGraph_) {
+        throwSpiderException("Graph already has a parent graph.");
     }
-    if (!vertex) {
-        throwSpiderException("Trying to set nullptr parent vertex.");
+    if (!parent) {
+        throwSpiderException("Trying to set nullptr parent graph.");
     }
-    parentVertex_ = vertex;
+    parentGraph_ = parent;
 }
 
 std::uint64_t PiSDFGraph::nVertices() const {
@@ -404,8 +425,8 @@ std::uint64_t PiSDFGraph::nOutputInterfaces() const {
     return outputInterfaceSet_.occupied();
 }
 
-PiSDFVertex *PiSDFGraph::parentVertex() const {
-    return parentVertex_;
+PiSDFGraph *PiSDFGraph::parentGraph() const {
+    return parentGraph_;
 }
 
 const Spider::Set<PiSDFVertex *> PiSDFGraph::vertices() const {
@@ -438,6 +459,10 @@ bool PiSDFGraph::isStatic() const {
 
 bool PiSDFGraph::containsDynamicParameters() const {
     return hasDynamicParameters_;
+}
+
+const Spider::string &PiSDFGraph::name() const {
+    return name_;
 }
 
 #endif //SPIDER2_PISDFGRAPH_H

@@ -76,7 +76,6 @@ enum class PiSDFSubType: std::uint8_t {
     END,            /*! End actor subtype */
     INPUT,          /*! Input interface subtype */
     OUTPUT,         /*! Output interface subtype */
-    GRAPH,          /*! Hierarchical actor subtype */
 };
 
 #endif //SPIDER2_PISDFTYPES_H

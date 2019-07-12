@@ -60,15 +60,33 @@ class PiSDFGraph;
 class PiSDFEdge : public Spider::SetElement {
 public:
 
-    PiSDFEdge(PiSDFGraph *graph, PiSDFVertex *source, PiSDFVertex *sink);
+    PiSDFEdge(PiSDFGraph *graph,
+              PiSDFVertex *source,
+              std::uint32_t srcPortIx,
+              const Spider::string &prodExpr,
+              PiSDFVertex *sink,
+              std::uint32_t snkPortIx,
+              const Spider::string &consExpr);
+
+    PiSDFEdge(PiSDFGraph *graph,
+              PiSDFInterface *sourceIf,
+              const Spider::string &prodExpr,
+              PiSDFInterface *sinkIf,
+              const Spider::string &consExpr);
+
+    PiSDFEdge(PiSDFGraph *graph,
+              PiSDFInterface *sourceIf,
+              const Spider::string &prodExpr,
+              PiSDFVertex *sink,
+              std::uint32_t snkPortIx,
+              const Spider::string &consExpr);
 
     PiSDFEdge(PiSDFGraph *graph,
               PiSDFVertex *source,
               std::uint32_t srcPortIx,
-              std::string prodExpr,
-              PiSDFVertex *sink,
-              std::uint32_t snkPortIx,
-              std::string consExpr);
+              const Spider::string &prodExpr,
+              PiSDFInterface *sinkIf,
+              const Spider::string &consExpr);
 
     ~PiSDFEdge();
 
@@ -78,13 +96,17 @@ public:
      * @brief Export edge in the dot format to the given file.
      * @param file   File to which the edge should be exported.
      */
-    void exportDot(FILE *file) const;
+    void exportDot(FILE *file, const Spider::string &offset) const;
 
     /* === Setters === */
 
-    inline void setSource(PiSDFVertex *vertex, std::uint32_t srcPortIx, std::string prodExpr);
+    void setSource(PiSDFVertex *vertex, std::uint32_t srcPortIx, const Spider::string &prodExpr);
 
-    inline void setSink(PiSDFVertex *vertex, std::uint32_t snkPortIx, std::string consExpr);
+    void setSource(PiSDFInterface *interface, const Spider::string &prodExpr);
+
+    void setSink(PiSDFVertex *vertex, std::uint32_t snkPortIx, const Spider::string &consExpr);
+
+    void setSink(PiSDFInterface *interface, const Spider::string &consExpr);
 
     /* === Getters ===  */
 
@@ -92,7 +114,7 @@ public:
      * @brief Get the containing @refitem PiSDFGraph of the edge.
      * @return containing @refitem PiSDFGraph
      */
-    inline PiSDFGraph *containingGraph() const;
+    inline const PiSDFGraph *containingGraph() const;
 
     /**
      * @brief Get the source @refitem PiSDFVertex of the edge.
@@ -153,13 +175,13 @@ private:
     Expression *sourceRateExpr_ = nullptr;
     Expression *sinkRateExpr_ = nullptr;
 
-    PiSDFInterface *sinkIf_ = nullptr;
     PiSDFInterface *sourceIf_ = nullptr;
+    PiSDFInterface *sinkIf_ = nullptr;
 };
 
 /* === Inline methdos === */
 
-PiSDFGraph *PiSDFEdge::containingGraph() const {
+const PiSDFGraph *PiSDFEdge::containingGraph() const {
     return graph_;
 }
 

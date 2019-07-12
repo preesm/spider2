@@ -83,6 +83,8 @@ public:
 
     inline const PiSDFEdge *outputEdge() const;
 
+    inline const PiSDFGraph *containingGraph() const;
+
     /* === Setters === */
 
     inline void setInputEdge(PiSDFEdge *edge);
@@ -127,5 +129,8 @@ void PiSDFInterface::setOutputEdge(PiSDFEdge *edge) {
     outputEdge_ = edge;
 }
 
+const PiSDFGraph *PiSDFInterface::containingGraph() const {
+    return graph_;
+}
 
 #endif //SPIDER2_PISDFINTERFACE_H

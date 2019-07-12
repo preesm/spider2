@@ -92,72 +92,10 @@ PiSDFVertex::PiSDFVertex(PiSDFGraph *graph,
     }
     checkSubtypeConsistency();
 
-    if (subType_ == PiSDFSubType::GRAPH) {
-        throwSpiderException("Can not instantiate a hierarchical vertex without the associated subgraph.");
-    }
-
     graph->addVertex(this);
-}
-
-PiSDFVertex::PiSDFVertex(PiSDFGraph *graph,
-                         PiSDFType type,
-                         PiSDFSubType subType,
-                         PiSDFGraph *subgraph,
-                         std::uint32_t nEdgesIN,
-                         std::uint32_t nEdgesOUT,
-                         std::string name) : graph_{graph},
-                                             name_{std::move(name)},
-                                             type_{type},
-                                             subType_{subType},
-                                             nEdgesIN_{nEdgesIN},
-                                             nEdgesOUT_{nEdgesOUT},
-                                             inputEdgeArray_(StackID::PISDF, nEdgesIN, nullptr),
-                                             outputEdgeArray_(StackID::PISDF, nEdgesOUT, nullptr),
-                                             subgraph_{subgraph} {
-    if (!graph) {
-        throwSpiderException("Vertex should belong to a graph.");
-    }
-    hierarchical_ = true;
-    if (!subgraph) {
-        throwSpiderException("Hierarchical vertex [%s] can not be created with null subgraph.", name_.c_str());
-    }
-    if (subgraph->parentVertex()) {
-        throwSpiderException("Subgraph [%s] already has a parent vertex!", subgraph->parentVertex()->name().c_str());
-    }
-    subgraph->setParentVertex(this);
-
-    /* == Consistency between vertex and its subgraph == */
-    if (nEdgesIN_ != subgraph_->nInputInterfaces()) {
-        throwSpiderException(
-                "Hierarchical vertex [%s]: miss match between number of input edges [%"
-                PRIu32
-                "] and input interfaces [%"
-                PRIu32
-                "].", name_.c_str(), nEdgesIN, subgraph_->nInputInterfaces());
-    }
-    if (nEdgesOUT_ != subgraph_->nOutputInterfaces()) {
-        throwSpiderException(
-                "Hierarchical vertex [%s]: miss match between number of output edges [%"
-                PRIu32
-                "] and output interfaces [%"
-                PRIu32
-                "].", name_.c_str(), nEdgesOUT, subgraph_->nOutputInterfaces());
-    }
-
-    graph->addVertex(this);
-}
-
-PiSDFVertex::~PiSDFVertex() {
-    if (subgraph_) {
-        Spider::destroy(subgraph_);
-        Spider::deallocate(subgraph_);
-    }
 }
 
 void PiSDFVertex::exportDot(FILE *file, const Spider::string &offset) const {
-    if (subgraph_) {
-        return subgraph_->exportDot(file, offset);
-    }
     fprintf(file, "%s\"%s\" [ shape = none, margin = 0, label = <\n", offset.c_str(), name_.c_str());
     fprintf(file, "%s\t<table border = \"1\" cellspacing=\"0\" cellpadding = \"0\" bgcolor = \"#%s\">\n",
             offset.c_str(), getVertexDotColor(subType_));
