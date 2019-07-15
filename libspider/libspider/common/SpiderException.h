@@ -52,19 +52,19 @@
 #define SPIDER_EXCEPTION_BUFFER_SIZE 400
 
 constexpr const char *str_end(const char *str) {
-  return *str ? str_end(str + 1) : str;
+    return *str ? str_end(str + 1) : str;
 }
 
 constexpr bool str_slant(const char *str) {
-  return *str == '/' ? true : (*str ? str_slant(str + 1) : false);
+    return *str == '/' ? true : (*str ? str_slant(str + 1) : false);
 }
 
 constexpr const char *r_slant(const char *str) {
-  return *str == '/' ? (str + 1) : r_slant(str - 1);
+    return *str == '/' ? (str + 1) : r_slant(str - 1);
 }
 
 constexpr const char *getFileName(const char *str) {
-  return str_slant(str) ? r_slant(str_end(str)) : str;
+    return str_slant(str) ? r_slant(str_end(str)) : str;
 }
 
 /* === Macros === */
@@ -78,26 +78,26 @@ constexpr const char *getFileName(const char *str) {
 
 class SpiderException : public std::exception {
 public:
-  explicit SpiderException(const char *msg, ...) : exceptionMessage_{} {
-    va_list args;
-    va_start(args, msg);
+    explicit SpiderException(const char *msg, ...) : exceptionMessage_{} {
+        va_list args;
+        va_start(args, msg);
 #ifdef _WIN32
-    int n = _vsnprintf(buffer, SPIDER_EXCEPTION_BUFFER_SIZE, msg, args);
+        int n = _vsnprintf(buffer, SPIDER_EXCEPTION_BUFFER_SIZE, msg, args);
 #else
-    int n =
-        vsnprintf(exceptionMessage_, SPIDER_EXCEPTION_BUFFER_SIZE, msg, args);
+        int n =
+                vsnprintf(exceptionMessage_, SPIDER_EXCEPTION_BUFFER_SIZE, msg, args);
 #endif
-    if (n > SPIDER_EXCEPTION_BUFFER_SIZE) {
-      fprintf(stderr, "SpiderException: ERROR: exception message too big.\n");
-      fprintf(stderr, "Partially recovered exception: ");
-      fflush(stderr);
+        if (n > SPIDER_EXCEPTION_BUFFER_SIZE) {
+            fprintf(stderr, "SpiderException: ERROR: exception message too big.\n");
+            fprintf(stderr, "Partially recovered exception: ");
+            fflush(stderr);
+        }
     }
-  }
 
-  const char *what() const noexcept override { return exceptionMessage_; }
+    const char *what() const noexcept override { return exceptionMessage_; }
 
 private:
-  char exceptionMessage_[SPIDER_EXCEPTION_BUFFER_SIZE];
+    char exceptionMessage_[SPIDER_EXCEPTION_BUFFER_SIZE];
 };
 
 #endif // SPIDER_SPIDEREXCEPTION_H

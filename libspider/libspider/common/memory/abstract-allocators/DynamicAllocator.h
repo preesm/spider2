@@ -66,7 +66,8 @@ protected:
 
 /* === Inline methods === */
 
-DynamicAllocator::DynamicAllocator(std::string name, int32_t alignment) : AbstractAllocator(std::move(name), alignment) {
+DynamicAllocator::DynamicAllocator(std::string name, int32_t alignment) : AbstractAllocator(std::move(name),
+                                                                                            alignment) {
 
 }
 

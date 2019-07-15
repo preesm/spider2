@@ -119,12 +119,14 @@ namespace Spider {
         std::uint64_t arraySize_;
         T *array_;
 
+        bool copied_ = false;
+
         inline void constructorHelper(StackID stack);
     };
 
     /* === Inline methods === */
 
-    template <typename T>
+    template<typename T>
     void Array<T>::constructorHelper(StackID stack) {
         array_ = Spider::allocate<T>(stack, arraySize_);
         if (!array_) {

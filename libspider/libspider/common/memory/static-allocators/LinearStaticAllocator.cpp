@@ -52,7 +52,8 @@ LinearStaticAllocator::LinearStaticAllocator(std::string name, std::uint64_t tot
 }
 
 LinearStaticAllocator::LinearStaticAllocator(std::string name, std::uint64_t totalSize, char *externalBase,
-                                             int32_t alignment) : StaticAllocator(std::move(name), totalSize, externalBase,
+                                             int32_t alignment) : StaticAllocator(std::move(name), totalSize,
+                                                                                  externalBase,
                                                                                   alignment) {
     if (alignment < 8) {
         throwSpiderException("Memory alignment should be at least of size sizeof(std::int64_t) = 8 bytes.");
