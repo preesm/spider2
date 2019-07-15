@@ -42,9 +42,14 @@
 
 /* === Includes === */
 
-#include <vector>
-#include <queue>
+#include <set>
+#include <map>
 #include <deque>
+#include <queue>
+#include <vector>
+#include <forward_list>
+#include <unordered_set>
+#include <unordered_map>
 #include <common/memory/Allocator.h>
 
 /* === Namespace === */
@@ -52,15 +57,34 @@
 namespace Spider {
 
     template<class T>
-    using vector = std::vector<T, Spider::Allocator<T> >;
+    using vector = std::vector<T, Spider::Allocator<T>>;
 
     template<class T>
-    using deque = std::deque<T, Spider::Allocator<T> >;
+    using deque = std::deque<T, Spider::Allocator<T>>;
 
     template<class T>
-    using queue = std::queue<T, Spider::deque<T> >;
+    using queue = std::queue<T, Spider::deque<T>>;
 
-    using string = std::basic_string<char,  std::char_traits<char>, Spider::Allocator<char>>;
+    template<class Key>
+    using unordered_set = std::unordered_set<Key, std::hash<Key>, std::equal_to<Key>, Spider::Allocator<Key>>;
+
+    template<class Key>
+    using set = std::set<Key, std::less<Key>, Spider::Allocator<Key>>;
+
+    template<class Key, class T>
+    using unordered_map = std::unordered_map<Key,
+            T,
+            std::hash<Key>,
+            std::equal_to<Key>,
+            Spider::Allocator<std::pair<const Key, T>>>;
+
+    template<class Key, class T>
+    using map = std::map<Key, T, std::less<Key>, Spider::Allocator<std::pair<const Key, T>>>;
+
+    template <class T>
+    using forward_list = std::forward_list<T, Spider::Allocator<T>>;
+
+    using string = std::basic_string<char, std::char_traits<char>, Spider::Allocator<char>>;
 }
 
 #endif //SPIDER2_STLCONTAINERS_H
