@@ -45,16 +45,12 @@
 /* === Class definition === */
 
 class Rational {
-private:
-    std::int64_t n_;
-    std::int64_t d_;
-
-    inline void reduce();
-
 public:
     inline explicit Rational(std::int64_t n = 0, std::int64_t d = 1);
 
     inline Rational(const Rational &r);
+
+    /* === Operators overload === */
 
     inline Rational &operator+=(const Rational &b);
 
@@ -96,6 +92,8 @@ public:
 
     inline bool operator<=(const Rational &b) const;
 
+    /* === Methods === */
+
     inline Rational abs() const;
 
     inline std::int64_t toInt64() const;
@@ -104,18 +102,30 @@ public:
 
     inline double toDouble() const;
 
-    inline std::int64_t getDenominator() const;
+    /* === Getters === */
 
-    inline std::int64_t getNominator() const;
+    inline std::int64_t dominator() const;
+
+    inline std::int64_t nominator() const;
+
+    /* === Static methods === */
 
     static inline std::int64_t gcd(std::int64_t a, std::int64_t b);
 
     static inline std::int64_t abs(std::int64_t x);
 
-    static inline std::int64_t compute_lcm(std::int64_t a, std::int64_t b);
+    static inline std::int64_t lcm(std::int64_t a, std::int64_t b);
+
+private:
+    std::int64_t n_;
+    std::int64_t d_;
+
+    /* === Private method(s) === */
+
+    inline void reduce();
 };
 
-/* === Inline methods === */
+/* === Inline method(s) === */
 
 Rational::Rational(int64_t n, int64_t d) : n_{n}, d_{d} {
     if (d_ == 0) {
@@ -241,26 +251,16 @@ Rational Rational::abs() const {
     return Rational{abs((*this).n_), abs((*this).d_)};
 }
 
-std::int64_t Rational::abs(std::int64_t x) {
-    return x < 0 ? -x : x;
-}
-
-std::int64_t Rational::getDenominator() const {
+std::int64_t Rational::dominator() const {
     return d_;
 }
 
-std::int64_t Rational::getNominator() const {
+std::int64_t Rational::nominator() const {
     return n_;
 }
 
-void Rational::reduce() {
-    auto gcd = Rational::gcd(n_, d_);
-    n_ /= gcd;
-    d_ /= gcd;
-    if (d_ < 0) {
-        n_ = -n_;
-        d_ = -d_;
-    }
+std::int64_t Rational::abs(std::int64_t x) {
+    return x < 0 ? -x : x;
 }
 
 std::int64_t Rational::gcd(std::int64_t a, std::int64_t b) {
@@ -273,8 +273,18 @@ std::int64_t Rational::gcd(std::int64_t a, std::int64_t b) {
     return a;
 }
 
-std::int64_t Rational::compute_lcm(std::int64_t a, std::int64_t b) {
+std::int64_t Rational::lcm(std::int64_t a, std::int64_t b) {
     return abs(a * b) / gcd(a, b);
+}
+
+void Rational::reduce() {
+    auto gcd = Rational::gcd(n_, d_);
+    n_ /= gcd;
+    d_ /= gcd;
+    if (d_ < 0) {
+        n_ = -n_;
+        d_ = -d_;
+    }
 }
 
 
