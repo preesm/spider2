@@ -228,37 +228,37 @@ public:
     * @brief A const reference on the set of vertices. Useful for iterating on the vertices.
     * @return const reference to vertex set
     */
-    inline const Spider::Set<PiSDFVertex *> vertices() const;
+    inline const Spider::Set<PiSDFVertex *> &vertices() const;
 
     /**
     * @brief A const reference on the set of output interfaces. Useful for iterating on the input interfaces.
     * @return const reference to input interface set
     */
-    inline const Spider::Set<PiSDFInterface *> inputInterfaces() const;
+    inline const Spider::Set<PiSDFInterface *> &inputInterfaces() const;
 
     /**
     * @brief A const reference on the set of output interfaces. Useful for iterating on the output interfaces.
     * @return const reference to output interface set
     */
-    inline const Spider::Set<PiSDFInterface *> outputInterfaces() const;
+    inline const Spider::Set<PiSDFInterface *> &outputInterfaces() const;
 
     /**
     * @brief A const reference on the set of edges. Useful for iterating on the edges.
     * @return const reference to edge set
     */
-    inline const Spider::Set<PiSDFEdge *> edges() const;
+    inline const Spider::Set<PiSDFEdge *> &edges() const;
 
     /**
     * @brief A const reference on the set of params. Useful for iterating on the params.
     * @return const reference to param set
     */
-    inline const Spider::Set<PiSDFParam *> params() const;
+    inline const Spider::Set<PiSDFParam *> &params() const;
 
     /**
      * @brief A const reference to the LinkedList of subgraph. Useful for iterating on the subgraphs.
      * @return const reference to subgraph LinkedList.
      */
-    inline const Spider::LinkedList<PiSDFGraph *> subgraphs() const;
+    inline const Spider::LinkedList<PiSDFGraph *> &subgraphs() const;
 
     /**
      * @brief Get the static property of the graph.
@@ -429,27 +429,27 @@ PiSDFGraph *PiSDFGraph::parentGraph() const {
     return parentGraph_;
 }
 
-const Spider::Set<PiSDFVertex *> PiSDFGraph::vertices() const {
+const Spider::Set<PiSDFVertex *> &PiSDFGraph::vertices() const {
     return vertexSet_;
 }
 
-const Spider::Set<PiSDFInterface *> PiSDFGraph::inputInterfaces() const {
+const Spider::Set<PiSDFInterface *> &PiSDFGraph::inputInterfaces() const {
     return inputInterfaceSet_;
 }
 
-const Spider::Set<PiSDFInterface *> PiSDFGraph::outputInterfaces() const {
+const Spider::Set<PiSDFInterface *> &PiSDFGraph::outputInterfaces() const {
     return outputInterfaceSet_;
 }
 
-const Spider::Set<PiSDFEdge *> PiSDFGraph::edges() const {
+const Spider::Set<PiSDFEdge *> &PiSDFGraph::edges() const {
     return edgeSet_;
 }
 
-const Spider::Set<PiSDFParam *> PiSDFGraph::params() const {
+const Spider::Set<PiSDFParam *> &PiSDFGraph::params() const {
     return paramSet_;
 }
 
-const Spider::LinkedList<PiSDFGraph *> PiSDFGraph::subgraphs() const {
+const Spider::LinkedList<PiSDFGraph *> &PiSDFGraph::subgraphs() const {
     return subgraphList_;
 }
 

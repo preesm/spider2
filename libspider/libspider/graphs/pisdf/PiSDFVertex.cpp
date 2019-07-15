@@ -79,7 +79,8 @@ PiSDFVertex::PiSDFVertex(PiSDFGraph *graph,
                          PiSDFSubType subType,
                          std::uint32_t nEdgesIN,
                          std::uint32_t nEdgesOUT,
-                         std::string name) : graph_{graph},
+                         std::string name) : SetElement(),
+                                             graph_{graph},
                                              name_{std::move(name)},
                                              type_{type},
                                              subType_{subType},
@@ -91,6 +92,11 @@ PiSDFVertex::PiSDFVertex(PiSDFGraph *graph,
         throwSpiderException("Vertex should belong to a graph.");
     }
     checkSubtypeConsistency();
+
+    if (type == PiSDFType::CONFIG_VERTEX) {
+        /* == Configuration actors have a fixed repetition vector value of 1 == */
+        repetitionValue_ = 1;
+    }
 
     graph->addVertex(this);
 }

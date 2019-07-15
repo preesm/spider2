@@ -229,5 +229,5 @@ void PiSDFGraph::exportDotHelper(FILE *file, const Spider::string &offset) const
         e->exportDot(file, fwOffset);
     }
 
-    fprintf(file, "%s}\n", parentGraph_? offset.c_str() : "");
+    fprintf(file, "%s}\n", parentGraph_ ? offset.c_str() : "");
 }

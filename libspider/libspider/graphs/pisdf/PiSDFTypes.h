@@ -49,7 +49,7 @@
 /**
  * @brief PiSDF parameter types
  */
-enum class PiSDFParamType: std::uint8_t {
+enum class PiSDFParamType : std::uint8_t {
     STATIC,  /*! Static parameter: expression is evaluated once in application lifetime */
     HERITED, /*! Herited parameter: if inheritance is fully static == STATIC type, else DYNAMIC */
     DYNAMIC  /*! Dynamic parameter: expression is evaluated at runtime */
@@ -58,7 +58,7 @@ enum class PiSDFParamType: std::uint8_t {
 /**
  * @brief Main type for PiSDF vertices
  */
-enum class PiSDFType: std::uint8_t {
+enum class PiSDFType : std::uint8_t {
     VERTEX,             /*! Standard vertex (normal or special actor) */
     CONFIG_VERTEX,      /*! Configure actor vertex (set dynamic parameter values) */
 };
@@ -66,7 +66,7 @@ enum class PiSDFType: std::uint8_t {
 /**
  * @brief Sub type for PiSDF vertices
  */
-enum class PiSDFSubType: std::uint8_t {
+enum class PiSDFSubType : std::uint8_t {
     NORMAL,         /*! Normal actor subtype */
     BROADCAST,      /*! Roundbuffer actor subtype */
     ROUNDBUFFER,    /*! Roundbuffer actor subtype */

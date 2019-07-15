@@ -81,7 +81,7 @@ public:
      */
     void exportDot(FILE *file, const Spider::string &offset = "\t") const;
 
-    /* === Setters === */
+    /* === Setter(s) === */
 
     /**
      * @brief Set the input edge of index ix.
@@ -98,6 +98,13 @@ public:
      * @throw @refitem SpiderException if out of bound or already existing edge.
      */
     inline void setOutputEdge(PiSDFEdge *edge, std::uint32_t ix);
+
+    /**
+     * @brief Set the repetition vector value of the vertex;
+     * @param rv Repetition value to set.
+     */
+    inline void setRepetitionValue(std::uint32_t rv);
+
 
     /* === Getters ===  */
 
@@ -193,6 +200,12 @@ public:
      */
     inline const Spider::Array<PiSDFEdge *> &outputEdges() const;
 
+    /**
+     * @brief Get the repetition vector value of the vertex.
+     * @return repetition vector value of the vertex. (UINT32_MAX if uninitialized)
+     */
+    inline std::uint32_t repetitionValue() const;
+
 private:
     PiSDFGraph *graph_ = nullptr;
     std::string name_ = "unnamed-vertex";
@@ -207,6 +220,8 @@ private:
 
     Spider::Array<PiSDFEdge *> inputEdgeArray_;
     Spider::Array<PiSDFEdge *> outputEdgeArray_;
+
+    std::uint32_t repetitionValue_ = UINT32_MAX;
 
     /* === Private methods === */
 
@@ -260,6 +275,10 @@ void PiSDFVertex::setOutputEdge(PiSDFEdge *edge, std::uint32_t ix) {
                                      ".", ix);
     }
     outputEdgeArray_[ix] = edge;
+}
+
+void PiSDFVertex::setRepetitionValue(std::uint32_t rv) {
+    repetitionValue_ = rv;
 }
 
 PiSDFGraph *PiSDFVertex::containingGraph() const {
@@ -343,7 +362,11 @@ const Spider::Array<PiSDFEdge *> &PiSDFVertex::inputEdges() const {
 }
 
 const Spider::Array<PiSDFEdge *> &PiSDFVertex::outputEdges() const {
-    return inputEdgeArray_;
+    return outputEdgeArray_;
+}
+
+std::uint32_t PiSDFVertex::repetitionValue() const {
+    return repetitionValue_;
 }
 
 #endif //SPIDER2_PISDFVERTEX_H

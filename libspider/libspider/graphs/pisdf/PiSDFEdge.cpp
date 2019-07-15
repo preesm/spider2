@@ -52,7 +52,8 @@ PiSDFEdge::PiSDFEdge(PiSDFGraph *graph,
                      const Spider::string &prodExpr,
                      PiSDFVertex *sink,
                      std::uint32_t snkPortIx,
-                     const Spider::string &consExpr) : graph_{graph},
+                     const Spider::string &consExpr) : SetElement(),
+                                                       graph_{graph},
                                                        source_{source},
                                                        sink_{sink} {
     if (!graph) {
@@ -67,7 +68,8 @@ PiSDFEdge::PiSDFEdge(PiSDFGraph *graph,
                      PiSDFInterface *sourceIf,
                      const Spider::string &prodExpr,
                      PiSDFInterface *sinkIf,
-                     const Spider::string &consExpr) : graph_{graph},
+                     const Spider::string &consExpr) : SetElement(),
+                                                       graph_{graph},
                                                        sourceIf_{sourceIf},
                                                        sinkIf_{sinkIf} {
     if (!graph) {
@@ -86,7 +88,8 @@ PiSDFEdge::PiSDFEdge(PiSDFGraph *graph,
                      const Spider::string &prodExpr,
                      PiSDFVertex *sink,
                      std::uint32_t snkPortIx,
-                     const Spider::string &consExpr) : graph_{graph},
+                     const Spider::string &consExpr) : SetElement(),
+                                                       graph_{graph},
                                                        sink_{sink},
                                                        sourceIf_{sourceIf} {
     if (!graph) {
@@ -106,7 +109,8 @@ PiSDFEdge::PiSDFEdge(PiSDFGraph *graph,
                      std::uint32_t srcPortIx,
                      const Spider::string &prodExpr,
                      PiSDFInterface *sinkIf,
-                     const Spider::string &consExpr) : graph_{graph},
+                     const Spider::string &consExpr) : SetElement(),
+                                                       graph_{graph},
                                                        source_{source},
                                                        sinkIf_{sinkIf} {
     if (!graph) {
