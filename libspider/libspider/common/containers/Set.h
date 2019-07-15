@@ -50,7 +50,18 @@ namespace Spider {
     /* === Structure(s) definition === */
 
     struct SetElement {
+    private:
         std::uint32_t ix = UINT32_MAX;
+    public:
+        SetElement() = default;
+
+        inline std::uint32_t getIx() const {
+            return ix;
+        }
+
+        inline void setIx(std::uint32_t val) {
+            ix = val;
+        }
     };
 
     /* === Class definition === */
@@ -73,9 +84,9 @@ namespace Spider {
 
         /* === Operators === */
 
-        T &operator[](std::uint64_t ix);
+        inline T &operator[](std::uint64_t ix);
 
-        T &operator[](std::uint64_t ix) const;
+        inline T &operator[](std::uint64_t ix) const;
 
         /* === Methods === */
 
@@ -84,6 +95,10 @@ namespace Spider {
         inline void remove(T elt);
 
         inline bool contains(T elt);
+
+        inline T &front() const;
+
+        inline T &back() const;
 
         /* === Iterator methods === */
 
@@ -111,6 +126,12 @@ namespace Spider {
          * @return
          */
         inline std::uint64_t occupied() const;
+
+        /**
+         * @brief Return the raw array pointer.
+         * @return pointer to the array.
+         */
+        inline const T *data() const;
 
     private:
         Spider::Array<T> elements_;
@@ -153,10 +174,10 @@ namespace Spider {
     template<typename T>
     void Set<T, Spider::EnableIfPolicy<T>>::add(T elt) {
         auto *setElement = (SetElement *) (elt);
-        if (setElement->ix != UINT32_MAX) {
+        if (setElement->getIx() != UINT32_MAX) {
             return;
         }
-        setElement->ix = occupied_;
+        setElement->setIx(occupied_);
         elements_[occupied_++] = elt;
     }
 
@@ -164,9 +185,9 @@ namespace Spider {
     void Set<T, Spider::EnableIfPolicy<T>>::remove(T elt) {
         if (occupied_) {
             auto *setElement = (SetElement *) (elt);
-            elements_[setElement->ix] = elements_[occupied_ - 1];
-            ((SetElement *) (elements_[setElement->ix]))->ix = setElement->ix;
-            setElement->ix = UINT32_MAX;
+            elements_[setElement->getIx()] = elements_[occupied_ - 1];
+            ((SetElement *) (elements_[setElement->getIx()]))->setIx(setElement->getIx());
+            setElement->setIx(UINT32_MAX);
             --occupied_;
         }
     }
@@ -209,6 +230,21 @@ namespace Spider {
     template<class T>
     std::uint64_t Set<T, Spider::EnableIfPolicy<T>>::occupied() const {
         return occupied_;
+    }
+
+    template<class T>
+    T &Set<T, Spider::EnableIfPolicy<T>>::front() const {
+        return elements_[0];
+    }
+
+    template<class T>
+    T &Set<T, Spider::EnableIfPolicy<T>>::back() const {
+        return elements_[occupied_ - 1];
+    }
+
+    template<typename T>
+    const T *Set<T, Spider::EnableIfPolicy<T>>::data() const {
+        return elements_.data();
     }
 
 }
