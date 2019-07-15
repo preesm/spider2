@@ -42,22 +42,53 @@
 
 /* === Include(s) === */
 
+#include <common/containers/StlContainers.h>
+#include <common/containers/Array.h>
+#include <common/containers/Set.h>
+#include <graphs/pisdf/PiSDFVertex.h>
 
+/* === Forward declaration(s) === */
+
+class PiSDFGraph;
+
+class PiSDFEdge;
+
+/* === Struct definition === */
+
+typedef struct BRVComponent {
+    std::uint32_t nEdges = 0;
+    Spider::vector<PiSDFVertex *> vertices;
+
+    BRVComponent() = default;
+} BRVComponent;
 
 /* === Class definition === */
 
 class BRVCompute {
 public:
 
+    explicit BRVCompute(PiSDFGraph *graph);
+
+    ~BRVCompute() = default;
+
     /* === Method(s) === */
-    
+
+    virtual void execute() = 0;
+
     /* === Getter(s) === */
-    
+
     /* === Setter(s) === */
 
-private:
+protected:
+    PiSDFGraph *graph_ = nullptr;
+    Spider::vector<BRVComponent> connectedComponents_;
 
     /* === Private method(s) === */
+
+    void extractConnectedComponent(BRVComponent &component,
+                                   Spider::Array<const PiSDFVertex *> &keyArray);
+
+    static void extractEdges(Spider::Array<const PiSDFEdge *> &edgeSet, const BRVComponent &component);
 };
 
 /* === Inline method(s) === */

@@ -41,9 +41,81 @@
 /* === Include(s) === */
 
 #include "BRVCompute.h"
+#include <graphs/pisdf/PiSDFGraph.h>
+#include <graphs/pisdf/PiSDFVertex.h>
+#include <graphs/pisdf/PiSDFEdge.h>
 
 /* === Static variable(s) === */
 
 /* === Static function(s) === */
 
 /* === Method(s) implementation === */
+
+BRVCompute::BRVCompute(PiSDFGraph *const graph) : graph_{graph} {
+    Spider::Array<const PiSDFVertex *> connectedComponentsKeys{StackID::TRANSFO, graph->nVertices(), nullptr};
+    Spider::Array<const PiSDFVertex *> vertexArray{StackID::TRANSFO, graph->nVertices(), nullptr};
+    for (auto *v:graph->vertices()) {
+        if (!connectedComponentsKeys[v->getIx()]) {
+            /* == Register current vertex == */
+            connectedComponentsKeys[v->getIx()] = v;
+            BRVComponent currentComponent;
+            currentComponent.vertices.push_back(v);
+
+            /* == Extract the connected component vertices == */
+            extractConnectedComponent(currentComponent, connectedComponentsKeys);
+            connectedComponents_.push_back(currentComponent);
+        }
+    }
+}
+
+/* === Private Method(s) implementation === */
+
+void BRVCompute::extractConnectedComponent(BRVComponent &component,
+                                           Spider::Array<const PiSDFVertex *> &keyArray) {
+    auto &vertexArray = component.vertices;
+    auto scannedIndex = vertexArray.size() - 1; /* = Index of current scanned vertex = */
+    bool addedVertex;
+    do {
+        addedVertex = false;
+        auto *currentVertex = vertexArray[scannedIndex];
+        /* == Scan output edges == */
+        for (const auto *edge : currentVertex->outputEdges()) {
+            if (!edge) {
+                throwSpiderException("Vertex [%s] has null edge.", currentVertex->name().c_str());
+            }
+            auto *sink = edge->sink();
+            if (!keyArray[sink->getIx()]) {
+                /* == Register the vertex == */
+                vertexArray.push_back(sink);
+                keyArray[sink->getIx()] = sink;
+                addedVertex = true;
+            }
+            component.nEdges += 1;
+        }
+
+        /* == Scan input edges == */
+        for (const auto *edge : currentVertex->inputEdges()) {
+            if (!edge) {
+                throwSpiderException("Vertex [%s] has null edge.", currentVertex->name().c_str());
+            }
+            auto *source = edge->source();
+            if (!keyArray[source->getIx()]) {
+                /* == Register the vertex == */
+                vertexArray.push_back(source);
+                keyArray[source->getIx()] = source;
+                addedVertex = true;
+            }
+        }
+        scannedIndex += 1;
+    } while (addedVertex || scannedIndex != vertexArray.size());
+}
+
+void BRVCompute::extractEdges(Spider::Array<const PiSDFEdge *> &edgeSet, const BRVComponent &component) {
+    const auto &vertexArray = component.vertices;
+    std::uint32_t index = 0;
+    for (const auto &v: vertexArray) {
+        for (const auto &edge: v->outputEdges()) {
+            edgeSet[index++] = edge;
+        }
+    }
+}
