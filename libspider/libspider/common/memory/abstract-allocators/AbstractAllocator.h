@@ -162,7 +162,7 @@ void AbstractAllocator::printStats() const {
 }
 
 std::uint64_t AbstractAllocator::computeAlignedSize(std::uint64_t &size, std::int32_t alignment /* = 4096 */) {
-    std::uint64_t alignFactor = size / alignment + (size % alignment != 0); // ceil(size / pageSize)
+    std::uint64_t alignFactor = size / alignment + (size % alignment != 0); /* = ceil(size / pageSize) = */
     return alignFactor * alignment;
 }
 
