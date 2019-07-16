@@ -64,13 +64,12 @@ void SetTest::TearDown() {
     Spider::finalizeAllocators();
 }
 
-class MySetElement : public Spider::SetElement {
+class MySetElement : public Spider::SetElement<MySetElement *> {
 public:
     double value = 0;
 };
 
 TEST_F(SetTest, TestCreation) {
-    EXPECT_THROW(Spider::Set<MySetElement>(StackID::GENERAL, 10), SpiderException);
     EXPECT_NO_THROW(Spider::Set<MySetElement *>(StackID::GENERAL, 10));
 }
 

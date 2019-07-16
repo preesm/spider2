@@ -60,7 +60,7 @@ class PiSDFParam;
 
 /* === Class definition === */
 
-class PiSDFVertex : public Spider::SetElement {
+class PiSDFVertex : public Spider::SetElement<PiSDFVertex *> {
 public:
 
     PiSDFVertex(PiSDFGraph *graph,

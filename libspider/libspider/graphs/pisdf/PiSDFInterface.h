@@ -56,7 +56,7 @@ class PiSDFEdge;
 
 /* === Class definition === */
 
-class PiSDFInterface : public Spider::SetElement {
+class PiSDFInterface : public Spider::SetElement<PiSDFInterface *> {
 public:
     PiSDFInterface(PiSDFGraph *graph,
                    PiSDFSubType type,

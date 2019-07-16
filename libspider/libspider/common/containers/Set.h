@@ -47,11 +47,18 @@
 
 namespace Spider {
 
+    /* === Class definition === */
+
+    template<typename T, typename Enable = void>
+    class Set;
+
     /* === Structure(s) definition === */
 
+    template<typename T>
     struct SetElement {
     private:
         std::uint32_t ix = UINT32_MAX;
+        Set<T> *set = nullptr;
     public:
         SetElement() = default;
 
@@ -62,18 +69,26 @@ namespace Spider {
         inline void setIx(std::uint32_t val) {
             ix = val;
         }
+
+        inline const Set<T> *getSet() const {
+            return set;
+        }
+
+        inline void setSet(Set<T> *s) {
+            set = s;
+        }
     };
-
-    /* === Class definition === */
-
-    template<typename T, typename Enable = void>
-    class Set;
 
     /* == Condition to ensure the use of proper derived class with this container == */
     template<typename T>
     using EnableIfPolicy =
-    typename std::enable_if<std::is_base_of<Spider::SetElement, typename std::remove_pointer<T>::type>::value>::type;
+    typename std::enable_if<std::is_base_of<Spider::SetElement<T>, typename std::remove_pointer<T>::type>::value>::type;
 
+    /**
+     * @brief Set of fixed size with fast insert remove
+     * @tparam T template type of the Set, the type should be a pointer and the base class should inherit from @refitem SetElement
+     * @warning  An element can only belong to one set.
+     */
     template<class T>
     class Set<T, Spider::EnableIfPolicy<T>> {
     public:
@@ -173,21 +188,26 @@ namespace Spider {
 
     template<typename T>
     void Set<T, Spider::EnableIfPolicy<T>>::add(T elt) {
-        auto *setElement = (SetElement *) (elt);
+        auto *setElement = (SetElement<T> *) (elt);
         if (setElement->getIx() != UINT32_MAX) {
+            if (setElement->getSet() != this) {
+                throwSpiderException("SetElement already belong to another Set.");
+            }
             return;
         }
         setElement->setIx(occupied_);
+        setElement->setSet(this);
         elements_[occupied_++] = elt;
     }
 
     template<typename T>
     void Set<T, Spider::EnableIfPolicy<T>>::remove(T elt) {
         if (occupied_) {
-            auto *setElement = (SetElement *) (elt);
+            auto *setElement = (SetElement<T> *) (elt);
             elements_[setElement->getIx()] = elements_[occupied_ - 1];
-            ((SetElement *) (elements_[setElement->getIx()]))->setIx(setElement->getIx());
+            ((SetElement<T> *) (elements_[setElement->getIx()]))->setIx(setElement->getIx());
             setElement->setIx(UINT32_MAX);
+            setElement->setSet(nullptr); /* = This allows the element to be added to a different set = */
             --occupied_;
         }
     }
