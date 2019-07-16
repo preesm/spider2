@@ -110,12 +110,73 @@ void BRVCompute::extractConnectedComponent(BRVComponent &component,
     } while (addedVertex || scannedIndex != vertexArray.size());
 }
 
-void BRVCompute::extractEdges(Spider::Array<const PiSDFEdge *> &edgeSet, const BRVComponent &component) {
+void BRVCompute::extractEdges(Spider::Array<const PiSDFEdge *> &edgeArray, const BRVComponent &component) {
     const auto &vertexArray = component.vertices;
     std::uint32_t index = 0;
     for (const auto &v: vertexArray) {
         for (const auto &edge: v->outputEdges()) {
-            edgeSet[index++] = edge;
+            edgeArray[index++] = edge;
         }
     }
+}
+
+void BRVCompute::updateBRV(Spider::Array<const PiSDFEdge *> &edgeArray, const BRVComponent &component) {
+    std::uint64_t scaleRVFactor{1};
+
+    /* == Compute the scale factor == */
+    for (const auto &edge : edgeArray) {
+        if (edge->sourceIf() && edge->sourceIf()->type() == PiSDFInterfaceType::INPUT) {
+            scaleRVFactor *= updateBRVFromInputIF(edge, scaleRVFactor);
+        } else if (edge->sinkIf() && edge->sinkIf()->type() == PiSDFInterfaceType::OUTPUT) {
+            scaleRVFactor *= updateBRVFromOutputIF(edge, scaleRVFactor);
+        } else if (edge->source()->type() == PiSDFType::CONFIG_VERTEX) {
+            scaleRVFactor *= updateBRVFromCFGActor(edge, scaleRVFactor);
+        }
+    }
+
+    /* == Apply the scale factor (if needed) == */
+    if (scaleRVFactor > 1) {
+        for (const auto &v : component.vertices) {
+            v->setRepetitionValue(v->repetitionValue() * scaleRVFactor);
+        }
+    }
+}
+
+std::uint64_t BRVCompute::updateBRVFromInputIF(const PiSDFEdge *edge, std::uint64_t currentScaleFactor) {
+    if (!edge->sinkIf() && edge->sink()->type() == PiSDFType::VERTEX) {
+        auto sourceRate = edge->sourceRate();
+        auto sinkRate = edge->sinkRate();
+        auto totalCons = sinkRate * edge->sink()->repetitionValue() * currentScaleFactor;
+        if (totalCons && totalCons < sourceRate) {
+            /* == Return ceil(interfaceProd / vertexCons) == */
+            return sourceRate / totalCons + (sourceRate % totalCons != 0);
+        }
+    }
+    return 1;
+}
+
+std::uint64_t BRVCompute::updateBRVFromOutputIF(const PiSDFEdge *edge, std::uint64_t currentScaleFactor) {
+    if (!edge->sourceIf() && edge->source()->type() == PiSDFType::VERTEX) {
+        auto sourceRate = edge->sourceRate();
+        auto sinkRate = edge->sinkRate();
+        auto totalProd = sourceRate * edge->source()->repetitionValue() * currentScaleFactor;
+        if (totalProd && totalProd < sinkRate) {
+            /* == Return ceil(vertexProd / interfaceCons) == */
+            return sinkRate / totalProd + (sinkRate % totalProd != 0);
+        }
+    }
+    return 1;
+}
+
+std::uint64_t BRVCompute::updateBRVFromCFGActor(const PiSDFEdge *edge, std::uint64_t currentScaleFactor) {
+    if (!edge->sinkIf()) {
+        auto sourceRate = edge->sourceRate();
+        auto sinkRate = edge->sinkRate();
+        auto totalCons = sinkRate * edge->sink()->repetitionValue() * currentScaleFactor;
+        if (totalCons && totalCons < sourceRate) {
+            /* == Return ceil(cfgActorProd / vertexCons) == */
+            return sourceRate / totalCons + (sourceRate % totalCons != 0);
+        }
+    }
+    return 1;
 }

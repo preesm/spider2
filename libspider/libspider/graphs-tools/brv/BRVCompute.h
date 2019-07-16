@@ -73,6 +73,9 @@ public:
 
     /* === Method(s) === */
 
+    /**
+     * @brief Compute the repetition vector values of the graph.
+     */
     virtual void execute() = 0;
 
     /* === Getter(s) === */
@@ -85,10 +88,32 @@ protected:
 
     /* === Private method(s) === */
 
-    void extractConnectedComponent(BRVComponent &component,
-                                   Spider::Array<const PiSDFVertex *> &keyArray);
+    /**
+     * @brief Extract all connected components of the current graph.
+     * @param component Reference to the connected component to be filled.
+     * @param keyArray  Key array for fast information on which vertex have already been visited.
+     */
+    static void extractConnectedComponent(BRVComponent &component, Spider::Array<const PiSDFVertex *> &keyArray);
 
-    static void extractEdges(Spider::Array<const PiSDFEdge *> &edgeSet, const BRVComponent &component);
+    /**
+     * @brief Extract the edges of a given connected component.
+     * @param edgeArray  Array of edges to be filled.
+     * @param component  Connected component.
+     */
+    static void extractEdges(Spider::Array<const PiSDFEdge *> &edgeArray, const BRVComponent &component);
+
+    /**
+     * @brief Update the repetition vector values depending on interfaces and config actors rates.
+     * @param edgeArray Edge array of the current connected components.
+     */
+    static void updateBRV(Spider::Array<const PiSDFEdge *> &edgeArray, const BRVComponent &component);
+
+    static std::uint64_t updateBRVFromInputIF(const PiSDFEdge *edge, std::uint64_t currentScaleFactor);
+
+    static std::uint64_t updateBRVFromOutputIF(const PiSDFEdge *edge, std::uint64_t currentScaleFactor);
+
+    static std::uint64_t updateBRVFromCFGActor(const PiSDFEdge *edge, std::uint64_t currentScaleFactor);
+
 };
 
 /* === Inline method(s) === */
