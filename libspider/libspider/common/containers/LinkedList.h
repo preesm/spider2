@@ -61,85 +61,13 @@ namespace Spider {
         NodeList *previous = nullptr;
     };
 
-    /* === Iterator definition === */
-
-//    template<class T>
-//    class LinkedListIterator : public std::iterator<std::forward_iterator_tag, NodeList<T> *> {
-//    public:
-//
-//        explicit LinkedListIterator() : itr(nullptr) {
-//
-//        }
-//
-//        /**
-//         * @brief Regular constructor
-//         * @param tmp
-//         */
-//        explicit LinkedListIterator(NodeList<T> *tmp) : itr{tmp} {
-//
-//        }
-//
-//        /**
-//         * @brief Regular constructor
-//         * @param tmp
-//         */
-//        explicit LinkedListIterator(NodeList<T> const *tmp) : itr{tmp} {
-//
-//        }
-//
-//        /**
-//         * @brief Copy constructor for implicit conversion from regular iterator to const_iterator
-//         * @param tmp
-//         */
-//        LinkedListIterator(LinkedListIterator const &tmp) : itr{tmp.itr} {
-//
-//        }
-//
-//        bool operator==(const LinkedListIterator &rhs) const {
-//            return itr == rhs.itr;
-//        }
-//
-//        bool operator!=(const LinkedListIterator &rhs) const {
-//            return itr != rhs.itr;
-//        }
-//
-//        T &operator*() {
-//            assert(itr != nullptr && "Invalid iterator dereference!");
-//            return itr->value;
-//        }
-//
-//        T &operator->() {
-//            assert(itr != nullptr && "Invalid iterator dereference!");
-//            return itr->value;
-//        }
-//
-//        /* == Post-increment == */
-//        const LinkedListIterator operator++(int) {
-//            assert(itr != nullptr && "Out-of-bounds iterator increment!");
-//            auto tmp = LinkedListIterator(*this);
-//            itr = itr->next;
-//            return tmp;
-//        }
-//
-//        /* == Pre-increment == */
-//        const LinkedListIterator operator++() {
-//            assert(itr != nullptr && "Out-of-bounds iterator increment!");
-//            itr = itr->next;
-//            return *this;
-//        };
-//
-//        /* == Converting iterator -> const_iterator == */
-//        explicit operator LinkedListIterator<T const>() const {
-//            return LinkedListIterator<T const>(itr);
-//        }
-//    private:
-//        NodeList<T> *itr;
-//    };
-
     /* === Class definition === */
 
     template<typename T>
     class LinkedList {
+
+        /* === Iterator definition === */
+
         template<bool is_const_iterator = true>
         class LinkedListIterator : public std::iterator<std::forward_iterator_tag, T> {
         public:
