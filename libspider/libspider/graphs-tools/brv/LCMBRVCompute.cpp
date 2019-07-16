@@ -56,7 +56,8 @@ void LCMBRVCompute::execute() {
     /* == Initializes the Rational array == */
     Spider::Array<Spider::Rational> reps{StackID::TRANSFO, graph_->nVertices(), Spider::Rational()};
 
-    for (auto &component : connectedComponents_) {
+    /* == Go through all connected components == */
+    for (const auto &component : connectedComponents_) {
         /* == Extract the edges == */
         Spider::Array<const PiSDFEdge *> edgeArray{StackID::TRANSFO, component.nEdges};
         BRVCompute::extractEdges(edgeArray, component);
@@ -69,14 +70,20 @@ void LCMBRVCompute::execute() {
 
         /* == Compute the repetition vector values of the current component == */
         computeBRV(component, reps);
+
+        /* == Update the repetition vector values using the interfaces of the graph == */
+
+        /* == Check validity of the obtained repetition vector == */
+        checkValidity(edgeArray);
     }
 }
 
 /* === Private method(s) implementation === */
 
-void LCMBRVCompute::extractRationals(Spider::Array<const PiSDFEdge *> &edgeSet, Spider::Array<Spider::Rational> &reps) {
+void LCMBRVCompute::extractRationals(Spider::Array<const PiSDFEdge *> &edgeArray,
+                                     Spider::Array<Spider::Rational> &reps) const {
     auto dummyRational = Spider::Rational{1};
-    for (const auto &edge:edgeSet) {
+    for (const auto &edge:edgeArray) {
         const auto *source = edge->source();
         const auto *sink = edge->sink();
         std::int64_t sourceRate = edge->sourceRate();
@@ -114,15 +121,45 @@ void LCMBRVCompute::extractRationals(Spider::Array<const PiSDFEdge *> &edgeSet, 
     }
 }
 
-void LCMBRVCompute::computeLCM(BRVComponent &component, Spider::Array<Spider::Rational> &reps) {
+void LCMBRVCompute::computeLCM(const BRVComponent &component, Spider::Array<Spider::Rational> &reps) {
     lcmFactor_ = 1;
     for (const auto &v : component.vertices) {
         lcmFactor_ = Spider::Rational::lcm(lcmFactor_, reps[v->getIx()].denominator());
     }
 }
 
-void LCMBRVCompute::computeBRV(BRVComponent &component, Spider::Array<Spider::Rational> &reps) {
+void LCMBRVCompute::computeBRV(const BRVComponent &component, Spider::Array<Spider::Rational> &reps) const {
     for (const auto &v : component.vertices) {
         v->setRepetitionValue(Spider::Rational{reps[v->getIx()] * lcmFactor_}.toInt32());
+    }
+}
+
+void LCMBRVCompute::checkValidity(Spider::Array<const PiSDFEdge *> &edgeArray) const {
+    for (const auto &edge : edgeArray) {
+        if (edge->sourceIf() || edge->sinkIf()) {
+            continue;
+        }
+        auto sourceRate = edge->sourceRate();
+        auto sinkRate = edge->sinkRate();
+        const auto *source = edge->source();
+        const auto *sink = edge->sink();
+
+        if ((sourceRate * source->repetitionValue()) != (sinkRate * sink->repetitionValue())) {
+            throwSpiderException("Edge [%s] -> [%s]. prod(%"
+                                         PRIu64
+                                         ") * sourceRV(%"
+                                         PRIu32
+                                         ") != cons(%"
+                                         PRIu64
+                                         ") * sinkRV(%"
+                                         PRIu32
+                                         ").",
+                                 source->name().c_str(),
+                                 sink->name().c_str(),
+                                 sourceRate,
+                                 source->repetitionValue(),
+                                 sinkRate,
+                                 sink->repetitionValue());
+        }
     }
 }
