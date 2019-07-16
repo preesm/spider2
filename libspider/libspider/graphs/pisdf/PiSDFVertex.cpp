@@ -59,10 +59,6 @@ static const char *getVertexDotColor(PiSDFSubType subType) {
             return "fdeba7";
         case PiSDFSubType::ROUNDBUFFER:
             return "f1e7fe";
-        case PiSDFSubType::INPUT:
-            return "87d37c";
-        case PiSDFSubType::OUTPUT:
-            return "ec644b";
         case PiSDFSubType::INIT:
             return "e4f1fe";
         case PiSDFSubType::END:
@@ -219,10 +215,6 @@ void PiSDFVertex::exportOutputPortsToDot(FILE *file,
 }
 
 void PiSDFVertex::checkSubtypeConsistency() const {
-    if ((subType_ == PiSDFSubType::INPUT || subType_ == PiSDFSubType::OUTPUT)) {
-        throwSpiderException("Vertex can not have subtype INPUT nor OUTPUT.");
-    }
-
     if (nEdgesIN_ > 1 && (subType_ == PiSDFSubType::FORK ||
                           subType_ == PiSDFSubType::BROADCAST)) {
         throwSpiderException("Fork and Broadcast actors can only have one input edge.");

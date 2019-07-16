@@ -74,8 +74,11 @@ enum class PiSDFSubType : std::uint8_t {
     JOIN,           /*! Join actor subtype */
     INIT,           /*! Init actor subtype */
     END,            /*! End actor subtype */
-    INPUT,          /*! Input interface subtype */
-    OUTPUT,         /*! Output interface subtype */
+};
+
+enum class PiSDFInterfaceType : std::uint8_t  {
+    INPUT,          /*! Input interface type */
+    OUTPUT,         /*! Output interface type */
 };
 
 #endif //SPIDER2_PISDFTYPES_H

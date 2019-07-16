@@ -46,7 +46,7 @@
 /* === Methods implementation === */
 
 PiSDFInterface::PiSDFInterface(PiSDFGraph *graph,
-                               PiSDFSubType type,
+                               PiSDFInterfaceType type,
                                std::uint32_t ix,
                                PiSDFEdge *inputEdge,
                                PiSDFEdge *outputEdge,
@@ -60,11 +60,11 @@ PiSDFInterface::PiSDFInterface(PiSDFGraph *graph,
     graph->addInterface(this);
 }
 
-static const char *getBGColor(PiSDFSubType type) {
+static const char *getBGColor(PiSDFInterfaceType type) {
     switch (type) {
-        case PiSDFSubType::INPUT:
+        case PiSDFInterfaceType::INPUT:
             return "c8f7c5";
-        case PiSDFSubType::OUTPUT:
+        case PiSDFInterfaceType::OUTPUT:
             return "f1a9a0";
         default:
             return "eeeeee";

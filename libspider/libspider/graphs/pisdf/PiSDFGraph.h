@@ -317,10 +317,10 @@ void PiSDFGraph::addVertex(PiSDFVertex *vertex) {
 
 void PiSDFGraph::addInterface(PiSDFInterface *interface) {
     switch (interface->type()) {
-        case PiSDFSubType::INPUT:
+        case PiSDFInterfaceType::INPUT:
             inputInterfaceSet_.add(interface);
             break;
-        case PiSDFSubType::OUTPUT:
+        case PiSDFInterfaceType::OUTPUT:
             outputInterfaceSet_.add(interface);
             break;
         default:

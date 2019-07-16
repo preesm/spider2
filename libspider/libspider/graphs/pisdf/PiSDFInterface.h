@@ -59,7 +59,7 @@ class PiSDFEdge;
 class PiSDFInterface : public Spider::SetElement<PiSDFInterface *> {
 public:
     PiSDFInterface(PiSDFGraph *graph,
-                   PiSDFSubType type,
+                   PiSDFInterfaceType type,
                    std::uint32_t ix,
                    PiSDFEdge *inputEdge,
                    PiSDFEdge *outputEdge,
@@ -77,7 +77,7 @@ public:
 
     inline const std::string &name() const;
 
-    inline PiSDFSubType type() const;
+    inline PiSDFInterfaceType type() const;
 
     inline const PiSDFEdge *inputEdge() const;
 
@@ -93,7 +93,7 @@ public:
 
 private:
     PiSDFGraph *graph_;
-    PiSDFSubType type_;
+    PiSDFInterfaceType type_;
     std::uint32_t ix_;
     PiSDFEdge *inputEdge_ = nullptr;
     PiSDFEdge *outputEdge_ = nullptr;
@@ -109,7 +109,7 @@ const std::string &PiSDFInterface::name() const {
     return name_;
 }
 
-PiSDFSubType PiSDFInterface::type() const {
+PiSDFInterfaceType PiSDFInterface::type() const {
     return type_;
 }
 
