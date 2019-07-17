@@ -62,6 +62,16 @@ typedef struct BRVComponent {
     BRVComponent() = default;
 } BRVComponent;
 
+/* === Enumeration(s) === */
+
+/**
+ * @brief BRV compute methods enumeration.
+ */
+enum class BRVMethod : std::uint8_t {
+    LCM_BASED,      /*! The LCM based method of computing the BRV (default) */
+    TOPOLOGY_BASED, /*! The Topology matrix based method of computing the BRV (legacy) */
+};
+
 /* === Class definition === */
 
 class BRVCompute {
