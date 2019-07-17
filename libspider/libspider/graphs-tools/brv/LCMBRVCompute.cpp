@@ -66,10 +66,10 @@ void LCMBRVCompute::execute() {
         extractRationals(edgeArray, reps);
 
         /* == Compute the LCM factor for the current component == */
-        computeLCM(component, reps);
+        auto lcmFactor = computeLCM(component, reps);
 
         /* == Compute the repetition vector values of the current component == */
-        computeBRV(component, reps);
+        computeBRV(component, reps, lcmFactor);
 
         /* == Update the repetition vector values using the interfaces of the graph == */
         updateBRV(edgeArray, component);
@@ -122,16 +122,19 @@ void LCMBRVCompute::extractRationals(Spider::Array<const PiSDFEdge *> &edgeArray
     }
 }
 
-void LCMBRVCompute::computeLCM(const BRVComponent &component, Spider::Array<Spider::Rational> &reps) {
-    lcmFactor_ = 1;
+std::int64_t LCMBRVCompute::computeLCM(const BRVComponent &component, Spider::Array<Spider::Rational> &reps) {
+    std::int64_t lcmFactor = 1;
     for (const auto &v : component.vertices) {
-        lcmFactor_ = Spider::Rational::lcm(lcmFactor_, reps[v->getIx()].denominator());
+        lcmFactor = Spider::Rational::lcm(lcmFactor, reps[v->getIx()].denominator());
     }
+    return lcmFactor;
 }
 
-void LCMBRVCompute::computeBRV(const BRVComponent &component, Spider::Array<Spider::Rational> &reps) const {
+void LCMBRVCompute::computeBRV(const BRVComponent &component,
+                               Spider::Array<Spider::Rational> &reps,
+                               std::int64_t lcmFactor) const {
     for (const auto &v : component.vertices) {
-        v->setRepetitionValue(Spider::Rational{reps[v->getIx()] * lcmFactor_}.toInt32());
+        v->setRepetitionValue(Spider::Rational{reps[v->getIx()] * lcmFactor}.toInt32());
     }
 }
 

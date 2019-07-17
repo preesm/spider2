@@ -63,8 +63,6 @@ public:
     /* === Setter(s) === */
 
 private:
-    std::int64_t lcmFactor_ = 0;
-
     /* === Private method(s) === */
 
     /**
@@ -81,14 +79,15 @@ private:
      * @param component Current connected component.
      * @param reps      Array of Rationals.
      */
-    void computeLCM(const BRVComponent &component, Spider::Array<Spider::Rational> &reps);
+    std::int64_t computeLCM(const BRVComponent &component, Spider::Array<Spider::Rational> &reps);
 
     /**
      * @brief Compute the repetition vector of a connected component based on all Rationals.
      * @param component Current connected component.
      * @param reps      Array of Rationals.
+     * @param lcmFactor LCM of the connected component rates.
      */
-    void computeBRV(const BRVComponent &component, Spider::Array<Spider::Rational> &reps) const;
+    void computeBRV(const BRVComponent &component, Spider::Array<Spider::Rational> &reps, std::int64_t lcmFactor) const;
 
     /**
      * Check the consistency of the connected components graph.
