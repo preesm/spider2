@@ -86,6 +86,10 @@ namespace Spider {
 
         inline bool operator!=(const std::int64_t &a) const;
 
+        inline bool operator!() const;
+
+        inline operator bool() const;
+
         inline bool operator>(const Rational &b) const;
 
         inline bool operator<(const Rational &b) const;
@@ -127,7 +131,7 @@ namespace Spider {
         inline void reduce();
     };
 
-/* === Inline method(s) === */
+    /* === Inline method(s) === */
 
     Rational::Rational(int64_t n, int64_t d) : n_{n}, d_{d} {
         if (d_ == 0) {
@@ -219,6 +223,14 @@ namespace Spider {
         return !(*this == a);
     }
 
+    bool Rational::operator!() const {
+        return n_ == 0;
+    }
+
+    Rational::operator bool() const {
+        return n_ != 0;
+    }
+
     bool Rational::operator>(const Rational &b) const {
         auto diff = *this - b;
         return diff.n_ > 0;
@@ -288,6 +300,5 @@ namespace Spider {
             d_ = -d_;
         }
     }
-
 }
 #endif /* RATIONAL_H_ */
