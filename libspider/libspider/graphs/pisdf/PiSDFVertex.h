@@ -60,7 +60,7 @@ class PiSDFParam;
 
 /* === Class definition === */
 
-class PiSDFVertex : public Spider::SetElement<PiSDFVertex *> {
+class PiSDFVertex : public Spider::SetElement {
 public:
 
     PiSDFVertex(PiSDFGraph *graph,
@@ -221,7 +221,7 @@ private:
     Spider::Array<PiSDFEdge *> inputEdgeArray_;
     Spider::Array<PiSDFEdge *> outputEdgeArray_;
 
-    std::uint32_t repetitionValue_ = UINT32_MAX;
+    std::uint32_t repetitionValue_ = 0;
 
     /* === Private methods === */
 

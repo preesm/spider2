@@ -54,11 +54,9 @@ namespace Spider {
 
     /* === Structure(s) definition === */
 
-    template<typename T>
     struct SetElement {
     private:
         std::uint32_t ix = UINT32_MAX;
-        Set<T> *set = nullptr;
     public:
         SetElement() = default;
 
@@ -69,20 +67,31 @@ namespace Spider {
         inline void setIx(std::uint32_t val) {
             ix = val;
         }
+    };
 
-        inline const Set<T> *getSet() const {
-            return set;
-        }
+    template<class T>
+    struct GenericSetElement : public Spider::SetElement {
+    private:
+        T elt;
+    public:
+        explicit GenericSetElement(const T &elt) : elt{elt} { };
 
-        inline void setSet(Set<T> *s) {
-            set = s;
+        GenericSetElement(GenericSetElement const &other) : elt{other.elt} { };
+
+        GenericSetElement(GenericSetElement &&other) noexcept : elt{other.elt} { };
+
+        GenericSetElement(std::initializer_list<T> l) noexcept : elt{*(l.begin())} { };
+
+        GenericSetElement &operator=(GenericSetElement const &other) {
+            elt = other.elt;
+            return *this;
         }
     };
 
     /* == Condition to ensure the use of proper derived class with this container == */
     template<typename T>
     using EnableIfPolicy =
-    typename std::enable_if<std::is_base_of<Spider::SetElement<T>, typename std::remove_pointer<T>::type>::value>::type;
+    typename std::enable_if<std::is_base_of<Spider::SetElement, typename std::remove_pointer<T>::type>::value>::type;
 
     /**
      * @brief Set of fixed size with fast insert remove
@@ -105,11 +114,13 @@ namespace Spider {
 
         /* === Methods === */
 
-        inline void add(T elt);
+        inline void add(T &elt);
 
-        inline void remove(T elt);
+        inline void add(T &&elt);
 
-        inline bool contains(T elt);
+        inline void remove(T &elt);
+
+        inline bool contains(const T &elt);
 
         inline T &front() const;
 
@@ -155,14 +166,12 @@ namespace Spider {
 
     /* === Inline methods === */
 
-    template<typename T>
+    template<class T>
     Set<T, Spider::EnableIfPolicy<T>>::Set(StackID stack, std::uint64_t size) : elements_(stack, size) {
-        if (!std::is_pointer<T>()) {
-            throwSpiderException("Set should only be used with pointer type.");
-        }
+
     }
 
-    template<typename T>
+    template<class T>
     T &Set<T, Spider::EnableIfPolicy<T>>::operator[](std::uint64_t ix) {
         if (ix >= occupied_) {
             throwSpiderException("Index of non-initialized element. Ix = %"
@@ -174,7 +183,7 @@ namespace Spider {
         return elements_[ix];
     }
 
-    template<typename T>
+    template<class T>
     T &Set<T, Spider::EnableIfPolicy<T>>::operator[](std::uint64_t ix) const {
         if (ix >= occupied_) {
             throwSpiderException("Index of non-initialized element. Ix = %"
@@ -186,70 +195,47 @@ namespace Spider {
         return elements_[ix];
     }
 
-    template<typename T>
-    void Set<T, Spider::EnableIfPolicy<T>>::add(T elt) {
-        auto *setElement = (SetElement<T> *) (elt);
-        if (setElement->getIx() != UINT32_MAX) {
-            if (setElement->getSet() != this) {
-                throwSpiderException("SetElement already belong to another Set.");
-            }
+    template<class T>
+    inline T &remove_pointer(T &obj) { return obj; }
+
+    template<class T>
+    inline T &remove_pointer(T *obj) { return *obj; }
+
+    template<class T>
+    void Set<T, Spider::EnableIfPolicy<T>>::add(T &elt) {
+        auto &setElement = static_cast<SetElement &>(Spider::remove_pointer(elt));
+        if (setElement.getIx() != UINT32_MAX) {
             return;
         }
-        setElement->setIx(occupied_);
-        setElement->setSet(this);
+        setElement.setIx(occupied_);
         elements_[occupied_++] = elt;
     }
 
-    template<typename T>
-    void Set<T, Spider::EnableIfPolicy<T>>::remove(T elt) {
+    template<class T>
+    void Set<T, Spider::EnableIfPolicy<T>>::add(T &&elt) {
+        add(elt);
+    }
+
+    template<class T>
+    void Set<T, Spider::EnableIfPolicy<T>>::remove(T &elt) {
         if (occupied_) {
-            auto *setElement = (SetElement<T> *) (elt);
-            elements_[setElement->getIx()] = elements_[occupied_ - 1];
-            ((SetElement<T> *) (elements_[setElement->getIx()]))->setIx(setElement->getIx());
-            setElement->setIx(UINT32_MAX);
-            setElement->setSet(nullptr); /* = This allows the element to be added to a different set = */
+            /* == Swap the removed element with the last one == */
+            auto &setElement = static_cast<SetElement &>(remove_pointer(elt));
+            elements_[setElement.getIx()] = elements_[occupied_ - 1];
+            static_cast<SetElement &>(remove_pointer(elements_[setElement.getIx()])).setIx(setElement.getIx());
+            setElement.setIx(UINT32_MAX);
             --occupied_;
         }
     }
 
-    template<typename T>
-    bool Set<T, Spider::EnableIfPolicy<T>>::contains(T elt) {
+    template<class T>
+    bool Set<T, Spider::EnableIfPolicy<T>>::contains(const T &elt) {
         for (auto e = begin(); e != end(); ++e) {
             if (*e == elt) {
                 return true;
             }
         }
         return false;
-    }
-
-    template<typename T>
-    typename Set<T, Spider::EnableIfPolicy<T>>::iterator Set<T, Spider::EnableIfPolicy<T>>::begin() {
-        return elements_.begin();
-    }
-
-    template<typename T>
-    typename Set<T, Spider::EnableIfPolicy<T>>::iterator Set<T, Spider::EnableIfPolicy<T>>::end() {
-        return &elements_[occupied_];
-    }
-
-    template<typename T>
-    typename Set<T, Spider::EnableIfPolicy<T>>::const_iterator Set<T, Spider::EnableIfPolicy<T>>::begin() const {
-        return elements_.begin();
-    }
-
-    template<typename T>
-    typename Set<T, Spider::EnableIfPolicy<T>>::const_iterator Set<T, Spider::EnableIfPolicy<T>>::end() const {
-        return &elements_[occupied_];
-    }
-
-    template<typename T>
-    std::uint64_t Set<T, Spider::EnableIfPolicy<T>>::size() const {
-        return elements_.size();
-    }
-
-    template<class T>
-    std::uint64_t Set<T, Spider::EnableIfPolicy<T>>::occupied() const {
-        return occupied_;
     }
 
     template<class T>
@@ -262,11 +248,40 @@ namespace Spider {
         return elements_[occupied_ - 1];
     }
 
-    template<typename T>
+    template<class T>
+    typename Set<T, Spider::EnableIfPolicy<T>>::iterator Set<T, Spider::EnableIfPolicy<T>>::begin() {
+        return elements_.begin();
+    }
+
+    template<class T>
+    typename Set<T, Spider::EnableIfPolicy<T>>::iterator Set<T, Spider::EnableIfPolicy<T>>::end() {
+        return &elements_[occupied_];
+    }
+
+    template<class T>
+    typename Set<T, Spider::EnableIfPolicy<T>>::const_iterator Set<T, Spider::EnableIfPolicy<T>>::begin() const {
+        return elements_.begin();
+    }
+
+    template<class T>
+    typename Set<T, Spider::EnableIfPolicy<T>>::const_iterator Set<T, Spider::EnableIfPolicy<T>>::end() const {
+        return &elements_[occupied_];
+    }
+
+    template<class T>
+    std::uint64_t Set<T, Spider::EnableIfPolicy<T>>::size() const {
+        return elements_.size();
+    }
+
+    template<class T>
+    std::uint64_t Set<T, Spider::EnableIfPolicy<T>>::occupied() const {
+        return occupied_;
+    }
+
+    template<class T>
     const T *Set<T, Spider::EnableIfPolicy<T>>::data() const {
         return elements_.data();
     }
-
 }
 
 #endif //SPIDER2_SET_H

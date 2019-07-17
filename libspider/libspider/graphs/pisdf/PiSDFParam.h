@@ -60,7 +60,7 @@ class PiSDFVertex;
 
 /* === Class definition === */
 
-class PiSDFParam : public Spider::SetElement<PiSDFParam *> {
+class PiSDFParam : public Spider::SetElement {
 public:
 
     PiSDFParam(Spider::string name,
