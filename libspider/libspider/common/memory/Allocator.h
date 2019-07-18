@@ -180,12 +180,12 @@ namespace Spider {
 
         /* === Constructors / Destructors === */
 
-        Allocator() = default;
+        explicit Allocator() = default;
 
-        Allocator(const Allocator &) {}
+        Allocator(const Allocator &) = default;
 
         template<class U>
-        Allocator(const Allocator<U> &) {};
+        explicit Allocator(const Allocator<U> &) {};
 
         ~Allocator() = default;
 

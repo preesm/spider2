@@ -47,11 +47,6 @@
 
 namespace Spider {
 
-    /* === Class definition === */
-
-    template<typename T, typename Enable = void>
-    class Set;
-
     /* === Structure(s) definition === */
 
     struct SetElement {
@@ -69,24 +64,10 @@ namespace Spider {
         }
     };
 
-    template<class T>
-    struct GenericSetElement : public Spider::SetElement {
-    private:
-        T elt;
-    public:
-        explicit GenericSetElement(const T &elt) : elt{elt} { };
+    /* === Class definition === */
 
-        GenericSetElement(GenericSetElement const &other) : elt{other.elt} { };
-
-        GenericSetElement(GenericSetElement &&other) noexcept : elt{other.elt} { };
-
-        GenericSetElement(std::initializer_list<T> l) noexcept : elt{*(l.begin())} { };
-
-        GenericSetElement &operator=(GenericSetElement const &other) {
-            elt = other.elt;
-            return *this;
-        }
-    };
+    template<typename T, typename Enable = void>
+    class Set;
 
     /* == Condition to ensure the use of proper derived class with this container == */
     template<typename T>
@@ -282,6 +263,31 @@ namespace Spider {
     const T *Set<T, Spider::EnableIfPolicy<T>>::data() const {
         return elements_.data();
     }
+
+
+    /* === Using generic element set === */
+
+    template<class T>
+    struct GenericSetElement : public Spider::SetElement {
+    private:
+        T elt;
+    public:
+        explicit GenericSetElement(const T &elt) : elt{elt} { };
+
+        GenericSetElement(GenericSetElement const &other) : elt{other.elt} { };
+
+        GenericSetElement(GenericSetElement &&other) noexcept : elt{other.elt} { };
+
+        GenericSetElement(std::initializer_list<T> l) noexcept : elt{*(l.begin())} { };
+
+        GenericSetElement &operator=(GenericSetElement const &other) {
+            elt = other.elt;
+            return *this;
+        }
+    };
+
+    template<class T>
+    using GenericSet = Spider::Set<GenericSetElement<T>>;
 }
 
 #endif //SPIDER2_SET_H
