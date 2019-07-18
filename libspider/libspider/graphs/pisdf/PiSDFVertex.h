@@ -64,11 +64,13 @@ class PiSDFVertex : public Spider::SetElement {
 public:
 
     PiSDFVertex(PiSDFGraph *graph,
+                std::string name,
                 PiSDFType type,
                 PiSDFSubType subType,
-                std::uint32_t nEdgesIN = 1,
-                std::uint32_t nEdgesOUT = 1,
-                std::string name = "unnamed-vertex");
+                std::uint32_t nEdgesIN = 0,
+                std::uint32_t nEdgesOUT = 0,
+                std::uint32_t nParamsIn = 0,
+                std::uint32_t nParamsOut = 0);
 
     ~PiSDFVertex() = default;
 
@@ -98,6 +100,22 @@ public:
      * @throw @refitem SpiderException if out of bound or already existing edge.
      */
     inline void setOutputEdge(PiSDFEdge *edge, std::uint32_t ix);
+
+    /**
+     * @brief Set the input param of index ix.
+     * @param param Param to set.
+     * @param ix  Index of the param.
+     * @throw @refitem SpiderException if out of bound or already existing param.
+     */
+    inline void setInputParam(PiSDFParam *param, std::uint32_t ix);
+
+    /**
+     * @brief Set the output edge of index ix.
+     * @param param Param to set.
+     * @param ix  Index of the param.
+     * @throw @refitem SpiderException if out of bound or already existing param.
+     */
+    inline void setOutputParam(PiSDFParam *param, std::uint32_t ix);
 
     /**
      * @brief Set the repetition vector value of the vertex;
@@ -201,6 +219,18 @@ public:
     inline const Spider::Array<PiSDFEdge *> &outputEdges() const;
 
     /**
+     * @brief A const reference on the array of input params. Useful for iterating on the params.
+     * @return const reference to input param array.
+     */
+    inline const Spider::Array<PiSDFParam *> &inputParams() const;
+
+    /**
+     * @brief A const reference on the array of output params. Useful for iterating on the params.
+     * @return const reference to output param array.
+     */
+    inline const Spider::Array<PiSDFParam *> &outputParams() const;
+
+    /**
      * @brief Get the repetition vector value of the vertex.
      * @return repetition vector value of the vertex. (UINT32_MAX if uninitialized)
      */
@@ -220,6 +250,8 @@ private:
 
     Spider::Array<PiSDFEdge *> inputEdgeArray_;
     Spider::Array<PiSDFEdge *> outputEdgeArray_;
+    Spider::Array<PiSDFParam *> inputParamArray_;
+    Spider::Array<PiSDFParam *> outputParamArray_;
 
     std::uint32_t repetitionValue_ = 0;
 
@@ -277,6 +309,36 @@ void PiSDFVertex::setOutputEdge(PiSDFEdge *edge, std::uint32_t ix) {
     outputEdgeArray_[ix] = edge;
 }
 
+void PiSDFVertex::setInputParam(PiSDFParam *param, std::uint32_t ix) {
+    if (ix >= nParamsIN_) {
+        throwSpiderException("Index out of bound: %"
+                                     PRIu32
+                                     " -- Max: %"
+                                     PRIu32
+                                     ".", ix, nParamsIN_);
+    } else if (inputParamArray_[ix]) {
+        throwSpiderException("Already existing input param at ix: %"
+                                     PRIu32
+                                     ".", ix);
+    }
+    inputParamArray_[ix] = param;
+}
+
+void PiSDFVertex::setOutputParam(PiSDFParam *param, std::uint32_t ix) {
+    if (ix >= nParamsOUT_) {
+        throwSpiderException("Index out of bound: %"
+                                     PRIu32
+                                     " -- Max: %"
+                                     PRIu32
+                                     ".", ix, nParamsOUT_);
+    } else if (outputParamArray_[ix]) {
+        throwSpiderException("Already existing output param at ix: %"
+                                     PRIu32
+                                     ".", ix);
+    }
+    outputParamArray_[ix] = param;
+}
+
 void PiSDFVertex::setRepetitionValue(std::uint32_t rv) {
     repetitionValue_ = rv;
 }
@@ -314,47 +376,19 @@ PiSDFSubType PiSDFVertex::subType() const {
 }
 
 PiSDFEdge *PiSDFVertex::inputEdge(std::uint32_t ix) const {
-    if (ix >= nEdgesIN_) {
-        throwSpiderException("Index out of bound: %"
-                                     PRIu32
-                                     " -- Max: %"
-                                     PRIu32
-                                     ".", ix, nEdgesIN_);
-    }
     return inputEdgeArray_[ix];
 }
 
 PiSDFEdge *PiSDFVertex::outputEdge(std::uint32_t ix) const {
-    if (ix >= nEdgesOUT_) {
-        throwSpiderException("Index out of bound: %"
-                                     PRIu32
-                                     " -- Max: %"
-                                     PRIu32
-                                     ".", ix, nEdgesOUT_);
-    }
     return outputEdgeArray_[ix];
 }
 
 PiSDFParam *PiSDFVertex::inputParam(std::uint32_t ix) const {
-    if (ix >= nParamsIN_) {
-        throwSpiderException("Index out of bound: %"
-                                     PRIu32
-                                     " -- Max: %"
-                                     PRIu32
-                                     ".", ix, nParamsIN_);
-    }
-    return nullptr;
+    return inputParamArray_[ix];
 }
 
 PiSDFParam *PiSDFVertex::outputParam(std::uint32_t ix) const {
-    if (ix >= nParamsOUT_) {
-        throwSpiderException("Index out of bound: %"
-                                     PRIu32
-                                     " -- Max: %"
-                                     PRIu32
-                                     ".", ix, nParamsOUT_);
-    }
-    return nullptr;
+    return outputParamArray_[ix];
 }
 
 const Spider::Array<PiSDFEdge *> &PiSDFVertex::inputEdges() const {
@@ -363,6 +397,14 @@ const Spider::Array<PiSDFEdge *> &PiSDFVertex::inputEdges() const {
 
 const Spider::Array<PiSDFEdge *> &PiSDFVertex::outputEdges() const {
     return outputEdgeArray_;
+}
+
+const Spider::Array<PiSDFParam *> &PiSDFVertex::inputParams() const {
+    return inputParamArray_;
+}
+
+const Spider::Array<PiSDFParam *> &PiSDFVertex::outputParams() const {
+    return outputParamArray_;
 }
 
 std::uint32_t PiSDFVertex::repetitionValue() const {

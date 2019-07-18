@@ -71,18 +71,24 @@ static const char *getVertexDotColor(PiSDFSubType subType) {
 /* === Methods implementation === */
 
 PiSDFVertex::PiSDFVertex(PiSDFGraph *graph,
+                         std::string name,
                          PiSDFType type,
                          PiSDFSubType subType,
                          std::uint32_t nEdgesIN,
                          std::uint32_t nEdgesOUT,
-                         std::string name) : graph_{graph},
-                                             name_{std::move(name)},
-                                             type_{type},
-                                             subType_{subType},
-                                             nEdgesIN_{nEdgesIN},
-                                             nEdgesOUT_{nEdgesOUT},
-                                             inputEdgeArray_(StackID::PISDF, nEdgesIN, nullptr),
-                                             outputEdgeArray_(StackID::PISDF, nEdgesOUT, nullptr) {
+                         std::uint32_t nParamsIn,
+                         std::uint32_t nParamsOut) : graph_{graph},
+                                                     name_{std::move(name)},
+                                                     type_{type},
+                                                     subType_{subType},
+                                                     nEdgesIN_{nEdgesIN},
+                                                     nEdgesOUT_{nEdgesOUT},
+                                                     nParamsIN_{nParamsIn},
+                                                     nParamsOUT_{nParamsOut},
+                                                     inputEdgeArray_(StackID::PISDF, nEdgesIN, nullptr),
+                                                     outputEdgeArray_(StackID::PISDF, nEdgesOUT, nullptr),
+                                                     inputParamArray_(StackID::PISDF, nParamsIn, nullptr),
+                                                     outputParamArray_(StackID::PISDF, nParamsOut, nullptr) {
     if (!graph) {
         throwSpiderException("Vertex should belong to a graph.");
     }
@@ -215,6 +221,9 @@ void PiSDFVertex::exportOutputPortsToDot(FILE *file,
 }
 
 void PiSDFVertex::checkSubtypeConsistency() const {
+    if (nParamsOUT_ && (type_ != PiSDFType::CONFIG_VERTEX)) {
+        throwSpiderException("Non configuration actors can not have output parameters. Vertex [%s]", name_.c_str());
+    }
     if (nEdgesIN_ > 1 && (subType_ == PiSDFSubType::FORK ||
                           subType_ == PiSDFSubType::BROADCAST)) {
         throwSpiderException("Fork and Broadcast actors can only have one input edge.");
