@@ -142,9 +142,7 @@ namespace Spider {
     template<typename T>
     Array<T>::Array(StackID stack, std::uint64_t size, T value) : size_{size}, arraySize_{size + 1} {
         constructorHelper(stack);
-        for (std::uint32_t i = 0; i < size; ++i) {
-            array_[i] = value;
-        }
+        std::fill(this->begin(), this->end(), value);
     }
 
     template<typename T>
