@@ -78,6 +78,7 @@ void BRVCompute::extractConnectedComponent(BRVComponent &component,
     do {
         addedVertex = false;
         auto *currentVertex = vertexArray[scannedIndex];
+
         /* == Scan output edges == */
         for (const auto *edge : currentVertex->outputEdges()) {
             if (!edge) {

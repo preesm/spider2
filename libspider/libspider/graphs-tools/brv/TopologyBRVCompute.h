@@ -42,22 +42,38 @@
 
 /* === Include(s) === */
 
-
+#include <graphs-tools/brv/BRVCompute.h>
 
 /* === Class definition === */
 
-class TopologyBRVCompute {
+class TopologyBRVCompute : public BRVCompute {
 public:
 
+    explicit TopologyBRVCompute(PiSDFGraph *graph) : BRVCompute(graph) { };
+
+    ~TopologyBRVCompute() = default;
+
     /* === Method(s) === */
-    
+
+    void execute() override;
+
     /* === Getter(s) === */
-    
+
     /* === Setter(s) === */
 
 private:
 
     /* === Private method(s) === */
+
+    static bool isVertexExecutable(const PiSDFVertex *vertex);
+
+    static bool isEdgeValid(const PiSDFEdge *edge, Spider::Array<std::int32_t> &vertexIxArray);
+
+    static void computeBRVFromNullSpace(Spider::Array<std::int64_t> &topologyMatrix,
+                                        std::uint32_t nMatVertices,
+                                        std::uint32_t nMatEdges,
+                                        Spider::Array<std::int32_t> &vertexIxArray,
+                                        const BRVComponent &component);
 };
 
 /* === Inline method(s) === */
