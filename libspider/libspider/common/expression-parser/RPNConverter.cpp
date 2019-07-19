@@ -108,10 +108,6 @@ static const RPNOperator &rpnOperators(std::uint32_t ix) {
 
 /* === Static Functions === */
 
-static inline const RPNOperator &getOperator(RPNOperatorType type) {
-    return rpnOperators(static_cast<std::uint32_t >(type));
-}
-
 static inline bool isOperator(const std::string &s) {
     bool found = false;
     for (auto i = 0; !found && i < (N_OPERATOR + N_FUNCTION); ++i) {
@@ -122,32 +118,6 @@ static inline bool isOperator(const std::string &s) {
 
 static inline bool isFunction(RPNOperatorType type) {
     return static_cast<std::uint32_t >(type) >= FUNCTION_OPERATOR_OFFSET;
-}
-
-/**
- * @brief Retrieve the @refitem RPNOperatorType corresponding to a given string.
- * @param operatorString input string corresponding to the operator.
- * @return RPNOperatorType
- */
-static inline RPNOperatorType getOperatorTypeFromString(const std::string &operatorString) {
-    bool found = false;
-    std::uint32_t i = 0;
-    for (i = 0; !found && i < (N_OPERATOR + N_FUNCTION); ++i) {
-        found |= (rpnOperators(i).label == operatorString);
-    }
-    if (!found) {
-        throwSpiderException("Can not convert string [%s] to operator.", operatorString.c_str());
-    }
-    return rpnOperators(i - 1).type;
-}
-
-/**
- * @brief Get the string label of an operator from its type.
- * @param type
- * @return
- */
-static inline std::string getStringFromOperatorType(RPNOperatorType type) {
-    return getOperator(type).label;
 }
 
 static inline void setOperatorElement(RPNElement *elt, RPNOperatorType opType) {
@@ -179,20 +149,15 @@ static inline void setOperandElement(RPNElement *elt, const std::string &token, 
     }
 }
 
-static inline void setOperandElement(RPNElement *elt, double &value) {
-    elt->type = RPNElementType::OPERAND;
-    elt->subType = RPNElementSubType::VALUE;
-    elt->element.value = value;
-}
-
 static inline void addToken(Spider::vector<RPNElement> &tokens, const std::string &token, PiSDFGraph *graph) {
     if (token.empty()) {
         return;
     }
     if (isOperator(token)) {
         tokens.push_back(RPNElement());
+
         /* == Function case == */
-        setOperatorElement(&tokens.back(), getOperatorTypeFromString(token));
+        setOperatorElement(&tokens.back(), RPNConverter::getOperatorTypeFromString(token));
     } else {
         auto pos = token.find_first_of(',', 0);
         if (pos != std::string::npos) {
@@ -202,6 +167,7 @@ static inline void addToken(Spider::vector<RPNElement> &tokens, const std::strin
             addToken(tokens, token.substr(pos, (token.size() - pos)), graph);
         } else {
             tokens.push_back(RPNElement());
+
             /* == Operand case == */
             setOperandElement(&tokens.back(), token, graph);
         }
@@ -219,7 +185,7 @@ static void retrieveExprTokens(std::string &inFixExpr, Spider::vector<RPNElement
         /* == Operator == */
         token = inFixExpr.substr(pos, 1);
         tokens.push_back(RPNElement());
-        setOperatorElement(&tokens.back(), getOperatorTypeFromString(token));
+        setOperatorElement(&tokens.back(), RPNConverter::getOperatorTypeFromString(token));
         pos += 1;
         lastPos = pos;
         pos = inFixExpr.find_first_of(operators(), pos);
@@ -232,36 +198,11 @@ static void retrieveExprTokens(std::string &inFixExpr, Spider::vector<RPNElement
     }
 }
 
-static void printExpressionTreeNode(ExpressionTreeNode *node, std::int32_t depth) {
-    if (!node) {
-        return;
-    }
-    auto &elt = node->elt;
-    if (depth) {
-        fprintf(stderr, "|");
-        for (auto i = 0; i < depth; ++i) {
-            fprintf(stderr, "-");
-        }
-        fprintf(stderr, "> ");
-    }
-    if (elt.type == RPNElementType::OPERATOR) {
-        fprintf(stderr, "%s\n", getStringFromOperatorType(elt.element.op).c_str());
-    } else {
-        if (elt.subType == RPNElementSubType::PARAMETER) {
-            fprintf(stderr, "%s\n", elt.element.param->name().c_str());
-        } else {
-            fprintf(stderr, "%lf\n", elt.element.value);
-        }
-    }
-    printExpressionTreeNode(node->right, depth + 1);
-    printExpressionTreeNode(node->left, depth + 1);
-}
-
 /**
  * @brief In place replace of all occurrences of substring in a string.
- * @param s     String on which we are working.
+ * @param s        String on which we are working.
  * @param pattern  Substring to find.
- * @param replace    Substring to replace found matches.
+ * @param replace  Substring to replace found matches.
  * @return Modified string (same as s).
  */
 static std::string &stringReplace(std::string &s, const std::string &pattern, const std::string &replace) {
@@ -271,6 +212,28 @@ static std::string &stringReplace(std::string &s, const std::string &pattern, co
         }
     }
     return s;
+}
+
+/* === Static method(s) === */
+
+const RPNOperator &RPNConverter::getOperator(RPNOperatorType type) {
+    return rpnOperators(static_cast<std::uint32_t >(type));
+}
+
+const std::string &RPNConverter::getStringFromOperatorType(RPNOperatorType type) {
+    return getOperator(type).label;
+}
+
+RPNOperatorType RPNConverter::getOperatorTypeFromString(const std::string &operatorString) {
+    bool found = false;
+    std::uint32_t i = 0;
+    for (i = 0; !found && i < (N_OPERATOR + N_FUNCTION); ++i) {
+        found |= (rpnOperators(i).label == operatorString);
+    }
+    if (!found) {
+        throwSpiderException("Can not convert string [%s] to operator.", operatorString.c_str());
+    }
+    return rpnOperators(i - 1).type;
 }
 
 /* === Method(s) implementation === */
@@ -293,41 +256,16 @@ RPNConverter::RPNConverter(PiSDFGraph *graph, std::string inFixExpr) : infixExpr
     /* == Build the postfix expression == */
     buildPostFix();
 
-    /* == Build and reduce the expression tree for fast resolving == */
-    buildExpressionTree();
-}
-
-RPNConverter::~RPNConverter() {
-    if (expressionTree_) {
-        Spider::deallocate(expressionTree_);
-        expressionTree_ = nullptr;
-    }
-}
-
-void RPNConverter::printExpressionTree() {
-    if (expressionTree_) {
-        printExpressionTreeNode(expressionTree_, 0);
-    }
-}
-
-double RPNConverter::evaluate() const {
-    return evaluateNode(expressionTree_);
-}
-
-const std::string &RPNConverter::toString() {
-    if (postfixExprString_.empty() || !static_) {
-        postfixExprString_ = "";
-        for (auto &t : postfixExprStack_) {
-            if (t.type == RPNElementType::OPERATOR) {
-                postfixExprString_ += getStringFromOperatorType(t.element.op) + " ";
-            } else if (t.subType == RPNElementSubType::PARAMETER) {
-                postfixExprString_ += t.element.param->name() + " ";
-            } else {
-                postfixExprString_ += std::to_string(t.element.value) + std::string(" ");
-            }
+    /* == Build the postfix string expression == */
+    for (auto &t : postfixExprStack_) {
+        if (t.type == RPNElementType::OPERATOR) {
+            postfixExprString_ += getStringFromOperatorType(t.element.op) + " ";
+        } else if (t.subType == RPNElementSubType::PARAMETER) {
+            postfixExprString_ += t.element.param->name() + " ";
+        } else {
+            postfixExprString_ += std::to_string(t.element.value) + std::string(" ");
         }
     }
-    return postfixExprString_;
 }
 
 /* === Private method(s) === */
@@ -481,57 +419,3 @@ void RPNConverter::buildPostFix() {
     }
 }
 
-void RPNConverter::buildExpressionTree() {
-    expressionTree_ = Spider::allocate<ExpressionTreeNode>(StackID::GENERAL, postfixExprStack_.size());
-    std::uint16_t nodeIx = 0;
-    Spider::construct(expressionTree_, nodeIx++, nullptr);
-    auto *node = expressionTree_;
-    for (auto elt = postfixExprStack_.rbegin(); elt != postfixExprStack_.rend(); ++elt) {
-        node = insertExpressionTreeNode(node, &(*elt), nodeIx);
-    }
-}
-
-ExpressionTreeNode *RPNConverter::insertExpressionTreeNode(ExpressionTreeNode *node,
-                                                           RPNElement *elt,
-                                                           std::uint16_t &nodeIx) {
-    node->elt = *elt;
-    while (node) {
-        auto *tmpElt = &node->elt;
-        if (tmpElt->subType == RPNElementSubType::OPERATOR && !node->right) {
-            node->right = &expressionTree_[nodeIx];
-            Spider::construct(node->right, nodeIx++, node);
-            return node->right;
-        } else if (!node->left && (node->right || tmpElt->subType == RPNElementSubType::FUNCTION)) {
-            node->left = &expressionTree_[nodeIx];
-            Spider::construct(node->left, nodeIx++, node);
-            return node->left;
-        } else {
-            auto *left = node->left;
-            auto *right = node->right;
-            if (node->elt.type == RPNElementType::OPERATOR && left && left->elt.subType == RPNElementSubType::VALUE) {
-                auto valLeft = left->elt.element.value;
-                auto valRight = right ? right->elt.element.value : 0.;
-                auto evalValue = getOperator(node->elt.element.op).eval(valLeft,
-                                                                        valRight);
-                setOperandElement(&node->elt, evalValue);
-                node->left = nullptr;
-                node->right = nullptr;
-            }
-            node = node->parent;
-        }
-    }
-    return node;
-}
-
-double RPNConverter::evaluateNode(ExpressionTreeNode *node) const {
-    auto &elt = node->elt;
-    if (elt.type == RPNElementType::OPERAND) {
-        if (elt.subType == RPNElementSubType::PARAMETER) {
-            return elt.element.param->value();
-        }
-        return elt.element.value;
-    }
-    auto valLeft = evaluateNode(node->left);
-    auto valRight = node->right ? evaluateNode(node->right) : 0.;
-    return getOperator(elt.element.op).eval(valLeft, valRight);
-}

@@ -47,22 +47,33 @@
 #include <common/containers/Array.h>
 #include "RPNConverter.h"
 
-/* === Type declarations === */
-
-using Param = std::int64_t;
-
 /* === Forward declaration(s) === */
 
 class PiSDFGraph;
+
+/* === Structure definition(s) === */
+
+struct ExpressionTreeNode {
+    ExpressionTreeNode *left = nullptr;
+    ExpressionTreeNode *right = nullptr;
+    ExpressionTreeNode *parent = nullptr;
+    std::uint16_t ix = 0;
+    RPNElement elt;
+
+    ExpressionTreeNode(std::uint16_t ix, ExpressionTreeNode *parent) : parent{parent}, ix{ix} {
+        right = nullptr;
+        left = nullptr;
+    }
+};
 
 /* === Class definition === */
 
 class Expression {
 public:
 
-    inline Expression(PiSDFGraph *graph, std::string expression);
+    Expression(PiSDFGraph *graph, std::string expression);
 
-    ~Expression() = default;
+    ~Expression();
 
     /* === Methods === */
 
@@ -70,7 +81,12 @@ public:
      * @brief Evaluate the expression and return the value.
      * @return Evaluated value of the expression.
      */
-    inline Param evaluate() const;
+    inline std::int64_t evaluate() const;
+
+    /**
+     * @brief Print the ExpressionTree (debug only).
+     */
+    void printExpressionTree();
 
     /* === Getters === */
 
@@ -78,43 +94,76 @@ public:
      * @brief Get the last evaluated value (faster than evaluated on static expressions)
      * @return last evaluated value (default value, i.e no evaluation done, is 0)
      */
-    inline Param value() const;
+    inline std::int64_t value() const;
 
     /**
      * @brief Get the infix expression string
      * @return Clean infix expression string
      */
-    inline std::string toString() const;
+    inline const std::string &toString() const;
+
+    /**
+     * @brief Get the expression postfix string.
+     * @return postfix expression string.
+     */
+    inline const std::string &postfixString() const;
 
 private:
 
-    std::string infixExpression_{""};
-    RPNConverter postFixExpression_;
-    Param value_ = 0;
+    RPNConverter rpnConverter_;
+    ExpressionTreeNode *expressionTree_ = nullptr;
+    std::int64_t value_ = 0;
+    bool static_ = true;
+
+    /* === Private method(s) === */
+
+    /**
+     * @brief Build and reduce the expression tree parser.
+     * @param expressionStack Stack of the postfix expression elements.
+     */
+    void buildExpressionTree(const Spider::deque<RPNElement> &expressionStack);
+
+    /**
+     * @brief
+     * @param node
+     * @param elt
+     * @param nodeIx
+     * @return
+     */
+    ExpressionTreeNode *insertExpressionTreeNode(ExpressionTreeNode *node,
+                                                 const RPNElement &elt,
+                                                 std::uint16_t &nodeIx);
+
+    /**
+     * @brief Evaluate the value of a node in the ExpressionTree.
+     * @param node  Node to evaluate.
+     * @return value of the evaluated node.
+     * @remark This is a recursive method.
+     */
+    double evaluateNode(ExpressionTreeNode *node) const;
+
+    void printExpressionTreeNode(ExpressionTreeNode *node, std::int32_t depth);
 };
 
 /* === Inline methods === */
 
-Expression::Expression(PiSDFGraph *graph, std::string expression) : postFixExpression_(graph, std::move(expression)) {
-    infixExpression_ = postFixExpression_.toString();
-    if (postFixExpression_.isStatic()) {
-        value_ = static_cast<Param>(postFixExpression_.evaluate());
-    }
-}
-
-Param Expression::value() const {
+std::int64_t Expression::value() const {
     return value_;
 }
 
-std::string Expression::toString() const {
-    return infixExpression_;
+const std::string &Expression::toString() const {
+    return rpnConverter_.infixString();
 }
 
-Param Expression::evaluate() const {
-    if (postFixExpression_.isStatic()) {
+const std::string &Expression::postfixString() const {
+    return rpnConverter_.postfixString();
+}
+
+std::int64_t Expression::evaluate() const {
+    if (static_) {
         return value_;
     }
-    return static_cast<Param>(postFixExpression_.evaluate());
+    return static_cast<std::int64_t>(evaluateNode(expressionTree_));
 }
 
 #endif //SPIDER2_EXPRESSION_H

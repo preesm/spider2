@@ -135,77 +135,63 @@ struct RPNElement {
     } element;
 };
 
-struct ExpressionTreeNode {
-    ExpressionTreeNode *left = nullptr;
-    ExpressionTreeNode *right = nullptr;
-    ExpressionTreeNode *parent = nullptr;
-    std::uint16_t ix = 0;
-    RPNElement elt;
-
-    ExpressionTreeNode(std::uint16_t ix, ExpressionTreeNode *parent) : parent{parent}, ix{ix} {
-        right = nullptr;
-        left = nullptr;
-    }
-};
-
 /* === Class definition === */
 
 class RPNConverter {
 public:
     explicit RPNConverter(PiSDFGraph *graph, std::string inFixExpr);
 
-    ~RPNConverter();
+    ~RPNConverter() = default;
 
-    /* === Methods === */
-
-    /**
-     * @brief Build and return the expression string.
-     * @return Post fix string.
-     * @remark For static expression, building is done only once.
-     */
-    const std::string &toString();
+    /* === Getters === */
 
     /**
      * @brief Get the expression infix string.
-     * @return infix expression string
+     * @return infix expression string.
      */
     inline const std::string &infixString() const;
 
     /**
      * @brief Get the expression postfix string.
-     * @return postfix expression string
-     * @remark @refitem toString() method must be called at least once for static expression in the lifetime of
-     * the application.
+     * @return postfix expression string.
      */
     inline const std::string &postfixString() const;
 
     /**
-     * @brief Print the ExpressionTree (debug only).
+     * @brief Get the expression postfix stack.
+     * @return postfix expression stack.
      */
-    void printExpressionTree();
+    inline const Spider::deque<RPNElement> &postfixStack() const;
+
+    /* === Static method(s) === */
 
     /**
-     * @brief Evaluate the expression (optimized)
-     * @return Result of the evaluated expression
+     * @brief Return the operator associated to the operator type.
+     * @param type  Operator type.
+     * @return Associated operator.
      */
-    double evaluate() const;
-
-    /* === Getters === */
+    static const RPNOperator &getOperator(RPNOperatorType type);
 
     /**
-     * @brief Get the static property of the expression.
-     * @return true if the expression is static, false else.
+     * @brief Get the string label of an operator from its type.
+     * @param type  Operator type.
+     * @return string label of the operator.
      */
-    inline bool isStatic() const;
+    static const std::string &getStringFromOperatorType(RPNOperatorType type);
+
+    /**
+     * @brief Retrieve the @refitem RPNOperatorType corresponding to a given string.
+     * @param operatorString input string corresponding to the operator.
+     * @return RPNOperatorType
+     */
+    static RPNOperatorType getOperatorTypeFromString(const std::string &operatorString);
 
 private:
 
     std::string infixExprString_;
     std::string postfixExprString_{""};
     PiSDFGraph *graph_ = nullptr;
-    bool static_ = true;
     Spider::deque<RPNElement> postfixExprStack_;
-    ExpressionTreeNode *expressionTree_ = nullptr;
 
     /* === Private Methods === */
 
@@ -226,36 +212,10 @@ private:
     void buildPostFix();
 
     /**
-     * @brief Build and reduce the expression tree parser.
-     */
-    void buildExpressionTree();
-
-    /**
      * @brief Check for miss match in the number of parenthesis
      * @return true if there is a miss match, false else.
      */
     inline bool missMatchParenthesis() const;
-
-    /**
-     * @brief
-     * @param poolNode
-     * @param node
-     * @param elt
-     * @param nodeIx
-     * @return
-     */
-    ExpressionTreeNode *insertExpressionTreeNode(
-            ExpressionTreeNode *node,
-            RPNElement *elt,
-            std::uint16_t &nodeIx);
-
-    /**
-     * @brief Evaluate the value of a node in the ExpressionTree.
-     * @param node  Node to evaluate.
-     * @return value of the evaluated node.
-     * @remark This is a recursive method.
-     */
-    double evaluateNode(ExpressionTreeNode *node) const;
 };
 
 /* === Inline methods === */
@@ -270,16 +230,16 @@ bool RPNConverter::missMatchParenthesis() const {
     return nLeftPar != nRightPar;
 }
 
-bool RPNConverter::isStatic() const {
-    return static_;
-}
-
 const std::string &RPNConverter::infixString() const {
     return infixExprString_;
 }
 
 const std::string &RPNConverter::postfixString() const {
     return postfixExprString_;
+}
+
+const Spider::deque<RPNElement> &RPNConverter::postfixStack() const {
+    return postfixExprStack_;
 }
 
 #endif // SPIDER2_RPNCONVERTER_H
