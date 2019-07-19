@@ -47,7 +47,7 @@
 #include <common/SpiderException.h>
 #include <graphs/pisdf/PiSDFParam.h>
 #include <graphs/pisdf/PiSDFGraph.h>
-#include <common/expression-parser/ParserFunctions.h>
+#include <graphs-tools/expression-parser/ParserFunctions.h>
 
 /* === Static variable definition(s) === */
 
