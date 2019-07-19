@@ -54,16 +54,18 @@
 BRVCompute::BRVCompute(PiSDFGraph *const graph) : graph_{graph} {
     Spider::Array<const PiSDFVertex *> connectedComponentsKeys{StackID::TRANSFO, graph->nVertices(), nullptr};
     Spider::Array<const PiSDFVertex *> vertexArray{StackID::TRANSFO, graph->nVertices(), nullptr};
+    BRVComponent component;
     for (auto *v:graph->vertices()) {
         if (!connectedComponentsKeys[v->getIx()]) {
+            component.nEdges = 0;
+            component.vertices.clear();
             /* == Register current vertex == */
             connectedComponentsKeys[v->getIx()] = v;
-            BRVComponent currentComponent;
-            currentComponent.vertices.push_back(v);
+            component.vertices.push_back(v);
 
             /* == Extract the connected component vertices == */
-            extractConnectedComponent(currentComponent, connectedComponentsKeys);
-            connectedComponents_.push_back(currentComponent);
+            extractConnectedComponent(component, connectedComponentsKeys);
+            connectedComponents_.push_back((component));
         }
     }
 }
@@ -72,12 +74,12 @@ BRVCompute::BRVCompute(PiSDFGraph *const graph) : graph_{graph} {
 
 void BRVCompute::extractConnectedComponent(BRVComponent &component,
                                            Spider::Array<const PiSDFVertex *> &keyArray) {
-    auto &vertexArray = component.vertices;
-    auto scannedIndex = vertexArray.size() - 1; /* = Index of current scanned vertex = */
+//    auto &vertexArray = component.vertices;
+    auto scannedIndex = component.vertices.size() - 1; /* = Index of current scanned vertex = */
     bool addedVertex;
     do {
         addedVertex = false;
-        auto *currentVertex = vertexArray[scannedIndex];
+        auto *currentVertex = component.vertices[scannedIndex];
 
         /* == Scan output edges == */
         for (const auto *edge : currentVertex->outputEdges()) {
@@ -87,7 +89,7 @@ void BRVCompute::extractConnectedComponent(BRVComponent &component,
             auto *sink = edge->sink();
             if (!keyArray[sink->getIx()]) {
                 /* == Register the vertex == */
-                vertexArray.push_back(sink);
+                component.vertices.push_back(sink);
                 keyArray[sink->getIx()] = sink;
                 addedVertex = true;
             }
@@ -102,13 +104,13 @@ void BRVCompute::extractConnectedComponent(BRVComponent &component,
             auto *source = edge->source();
             if (!keyArray[source->getIx()]) {
                 /* == Register the vertex == */
-                vertexArray.push_back(source);
+                component.vertices.push_back(source);
                 keyArray[source->getIx()] = source;
                 addedVertex = true;
             }
         }
         scannedIndex += 1;
-    } while (addedVertex || scannedIndex != vertexArray.size());
+    } while (addedVertex || scannedIndex != component.vertices.size());
 }
 
 void BRVCompute::extractEdges(Spider::Array<const PiSDFEdge *> &edgeArray, const BRVComponent &component) {

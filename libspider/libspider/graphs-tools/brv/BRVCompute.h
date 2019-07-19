@@ -55,12 +55,12 @@ class PiSDFEdge;
 
 /* === Struct definition === */
 
-typedef struct BRVComponent {
+struct BRVComponent {
     std::uint32_t nEdges = 0;
     Spider::vector<PiSDFVertex *> vertices;
 
     BRVComponent() = default;
-} BRVComponent;
+};
 
 /* === Enumeration(s) === */
 
