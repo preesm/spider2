@@ -78,10 +78,16 @@ public:
     /* === Methods === */
 
     /**
-     * @brief Evaluate the expression and return the value.
+     * @brief Evaluate the expression and return the value and cast result in int64_.
      * @return Evaluated value of the expression.
      */
     inline std::int64_t evaluate() const;
+
+    /**
+     * @brief Evaluate the expression and return the value.
+     * @return Evaluated value of the expression.
+     */
+    inline double evaluateDBL() const;
 
     /**
      * @brief Print the ExpressionTree (debug only).
@@ -112,7 +118,8 @@ private:
 
     RPNConverter rpnConverter_;
     ExpressionTreeNode *expressionTree_ = nullptr;
-    std::int64_t value_ = 0;
+    std::int64_t valueInt64_ = 0;
+    double valueDBL_ = 0;
     bool static_ = true;
 
     /* === Private method(s) === */
@@ -148,7 +155,7 @@ private:
 /* === Inline methods === */
 
 std::int64_t Expression::value() const {
-    return value_;
+    return valueInt64_;
 }
 
 const std::string &Expression::toString() const {
@@ -161,9 +168,16 @@ const std::string &Expression::postfixString() const {
 
 std::int64_t Expression::evaluate() const {
     if (static_) {
-        return value_;
+        return valueInt64_;
     }
     return static_cast<std::int64_t>(evaluateNode(expressionTree_));
+}
+
+double Expression::evaluateDBL() const {
+    if (static_) {
+        return valueDBL_;
+    }
+    return evaluateNode(expressionTree_);
 }
 
 #endif //SPIDER2_EXPRESSION_H

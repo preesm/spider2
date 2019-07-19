@@ -37,47 +37,25 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
+#ifndef CONTAINERS_EXPRESSIONTEST_H
+#define CONTAINERS_EXPRESSIONTEST_H
 
 /* === Includes === */
 
-#include "RPNConverterTest.h"
-#include <common/memory/Allocator.h>
-#include <common/expression-parser/RPNConverter.h>
-#include <spider-api/general.h>
-#include <cmath>
+#include <gtest/gtest.h>
 
-/* === Methods implementation === */
+/* === Class definition === */
 
-RPNConverterTest::RPNConverterTest() {
-}
+class ExpressionTest : public ::testing::Test {
+public:
+    explicit ExpressionTest();
 
-RPNConverterTest::~RPNConverterTest() {
-}
+    ~ExpressionTest() override;
 
-void RPNConverterTest::SetUp() {
-    AllocatorConfig cfg = AllocatorConfig();
-    cfg.allocatorType = AllocatorType::FREELIST;
-    cfg.size = 512;
-    Spider::initAllocator(StackID::GENERAL, cfg);
-}
+    void SetUp() override;
 
-void RPNConverterTest::TearDown() {
-    Spider::finalizeAllocators();
-}
+    void TearDown() override;
+};
 
 
-TEST_F(RPNConverterTest, TestCreation) {
-    EXPECT_THROW(RPNConverter(nullptr, "4*((4+3)"), SpiderException);
-    EXPECT_THROW(RPNConverter(nullptr, "4**3"), SpiderException);
-    EXPECT_THROW(RPNConverter(nullptr, ""), SpiderException);
-    EXPECT_NO_THROW(RPNConverter(nullptr, "(4)*3"));
-    EXPECT_NO_THROW(RPNConverter(nullptr, "4*(3)"));
-}
-
-TEST_F(RPNConverterTest, TestString) {
-    ASSERT_EQ(RPNConverter(nullptr, "exp(log(0.2))").postfixString(), "0.200000 log exp ");
-    ASSERT_EQ(RPNConverter(nullptr, "exp(log(0.2))").infixString(), "exp(log(0.2))");
-    ASSERT_EQ(RPNConverter(nullptr, "exp( log ( 0.2) )").infixString(), "exp(log(0.2))");
-    ASSERT_EQ(RPNConverter(nullptr, "4cos(PI/2)").infixString(), "4*cos(3.1415926535/2)");
-}
-
+#endif //CONTAINERS_EXPRESSIONTEST_H

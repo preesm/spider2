@@ -37,8 +37,8 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef CONTAINERS_SETTEST_H
-#define CONTAINERS_SETTEST_H
+#ifndef CONTAINERS_RPNCONVERTERTEST_H
+#define CONTAINERS_RPNCONVERTERTEST_H
 
 /* === Includes === */
 
@@ -58,4 +58,4 @@ public:
 };
 
 
-#endif //CONTAINERS_SETTEST_H
+#endif //CONTAINERS_RPNCONVERTERTEST_H
