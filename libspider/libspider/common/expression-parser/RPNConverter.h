@@ -152,7 +152,7 @@ struct ExpressionTreeNode {
 
 class RPNConverter {
 public:
-    explicit RPNConverter(std::string inFixExpr, PiSDFGraph *graph);
+    explicit RPNConverter(PiSDFGraph *graph, std::string inFixExpr);
 
     ~RPNConverter();
 

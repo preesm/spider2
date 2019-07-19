@@ -150,7 +150,7 @@ void PiSDFEdge::setSource(PiSDFVertex *vertex, std::uint32_t srcPortIx, const st
     } else {
         sourceRateExpr_ = Spider::allocate<Expression>(StackID::PISDF);
     }
-    Spider::construct(sourceRateExpr_, prodExpr, graph_);
+    Spider::construct(sourceRateExpr_, graph_, prodExpr);
     source_->setOutputEdge(this, srcPortIx);
 }
 
@@ -167,7 +167,7 @@ void PiSDFEdge::setSource(PiSDFInterface *interface, const std::string &prodExpr
     } else {
         sourceRateExpr_ = Spider::allocate<Expression>(StackID::PISDF);
     }
-    Spider::construct(sourceRateExpr_, prodExpr, graph_);
+    Spider::construct(sourceRateExpr_, graph_, prodExpr);
     sourceIf_->setOutputEdge(this);
 }
 
@@ -180,7 +180,7 @@ void PiSDFEdge::setSink(PiSDFVertex *vertex, std::uint32_t snkPortIx, const std:
     } else {
         sinkRateExpr_ = Spider::allocate<Expression>(StackID::PISDF);
     }
-    Spider::construct(sinkRateExpr_, consExpr, graph_);
+    Spider::construct(sinkRateExpr_, graph_, consExpr);
     sink_->setInputEdge(this, snkPortIx);
 }
 
@@ -197,7 +197,7 @@ void PiSDFEdge::setSink(PiSDFInterface *interface, const std::string &consExpr) 
     } else {
         sinkRateExpr_ = Spider::allocate<Expression>(StackID::PISDF);
     }
-    Spider::construct(sinkRateExpr_, consExpr, graph_);
+    Spider::construct(sinkRateExpr_, graph_, consExpr);
     sinkIf_->setInputEdge(this);
 }
 

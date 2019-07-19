@@ -60,7 +60,7 @@ class PiSDFGraph;
 class Expression {
 public:
 
-    Expression(std::string expression, PiSDFGraph *graph);
+    inline Expression(PiSDFGraph *graph, std::string expression);
 
     ~Expression() = default;
 
@@ -94,6 +94,13 @@ private:
 };
 
 /* === Inline methods === */
+
+Expression::Expression(PiSDFGraph *graph, std::string expression) : postFixExpression_(graph, std::move(expression)) {
+    infixExpression_ = postFixExpression_.toString();
+    if (postFixExpression_.isStatic()) {
+        value_ = static_cast<Param>(postFixExpression_.evaluate());
+    }
+}
 
 Param Expression::value() const {
     return value_;
