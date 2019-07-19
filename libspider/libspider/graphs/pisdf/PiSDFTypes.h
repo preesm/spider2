@@ -50,9 +50,10 @@
  * @brief PiSDF parameter types
  */
 enum class PiSDFParamType : std::uint8_t {
-    STATIC,  /*! Static parameter: expression is evaluated once in application lifetime */
-    HERITED, /*! Herited parameter: if inheritance is fully static == STATIC type, else DYNAMIC */
-    DYNAMIC  /*! Dynamic parameter: expression is evaluated at runtime */
+    STATIC,            /*! Static parameter: expression is evaluated at startup only once */
+    HERITED,           /*! Herited parameter: if inheritance is fully static == STATIC type, else DYNAMIC_DEPENDENT */
+    DYNAMIC,           /*! Dynamic parameter: value is set at runtime */
+    DYNAMIC_DEPENDENT, /*! Dynamic parameter: expression is evaluated at runtime */
 };
 
 /**

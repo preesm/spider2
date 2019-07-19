@@ -73,6 +73,8 @@ public:
 
     Expression(PiSDFGraph *graph, std::string expression);
 
+    Expression(std::int64_t value);
+
     ~Expression();
 
     /* === Methods === */
@@ -113,6 +115,12 @@ public:
      * @return postfix expression string.
      */
     inline const std::string &postfixString() const;
+
+    /**
+     * @brief Get the static property of the expression.
+     * @return true if the expression is static, false else.
+     */
+    inline bool isStatic() const;
 
 private:
 
@@ -178,6 +186,10 @@ double Expression::evaluateDBL() const {
         return valueDBL_;
     }
     return evaluateNode(expressionTree_);
+}
+
+bool Expression::isStatic() const {
+    return static_;
 }
 
 #endif //SPIDER2_EXPRESSION_H

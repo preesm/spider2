@@ -137,22 +137,17 @@ namespace Spider {
                                   const std::string &name,
                                   ParamInt64 value);
 
-    PiSDFParam *createStaticDependentParam(PiSDFGraph *graph,
-                                           const std::string &name,
-                                           const std::string &expression,
-                                           std::initializer_list<PiSDFParam *> dependencies);
-
     PiSDFParam *createDynamicParam(PiSDFGraph *graph,
-                                   const char *name);
+                                   const std::string &name,
+                                   PiSDFVertex *setter);
 
-    PiSDFParam *createDynamicDependentParam(PiSDFGraph *graph,
-                                            const std::string &name,
-                                            const std::string &expression,
-                                            std::initializer_list<PiSDFParam *> dependencies);
+    PiSDFParam *createDependentParam(PiSDFGraph *graph,
+                                     const std::string &name,
+                                     const std::string &expression);
 
     PiSDFParam *createInheritedParam(PiSDFGraph *graph,
                                      const std::string &name,
-                                     std::int32_t parentId);
+                                     PiSDFParam *parent);
 }
 
 #endif //SPIDER2_PISDF_H

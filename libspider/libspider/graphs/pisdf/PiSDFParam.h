@@ -65,13 +65,19 @@ public:
 
     PiSDFParam(PiSDFGraph *graph,
                std::string name,
-               PiSDFParamType type,
                std::string expression);
 
     PiSDFParam(PiSDFGraph *graph,
                std::string name,
-               PiSDFParamType type,
                std::int64_t value);
+
+    PiSDFParam(PiSDFGraph *graph,
+               std::string name,
+               PiSDFParam *parent);
+
+    PiSDFParam(PiSDFGraph *graph,
+               std::string name,
+               PiSDFVertex *setter);
 
     ~PiSDFParam();
 
@@ -94,10 +100,11 @@ public:
     /* === Setters === */
 
     /**
-     * @brief Set the inherited parameter.
-     * @param param Parameter to the set.
+     * @brief Set the value of a dynamic parameter.
+     * @param value value to set.
+     * @throw @refitem SpiderException if the parameter is not of type @refitem PiSDFParamType::DYNAMIC.
      */
-    inline void setInheritedParameter(PiSDFParam *param);
+    inline void setValue(std::int64_t value);
 
     /* === Getters === */
 
@@ -167,12 +174,17 @@ private:
 /* === Inline Methods === */
 
 bool PiSDFParam::isDynamic() const {
-    return type_ == PiSDFParamType::DYNAMIC;
+    return type_ == PiSDFParamType::DYNAMIC || type_ == PiSDFParamType::DYNAMIC_DEPENDENT;
 }
 
-void PiSDFParam::setInheritedParameter(PiSDFParam *param) {
-    type_ = PiSDFParamType::HERITED;
-    inheritedParam_ = param;
+void PiSDFParam::setValue(std::int64_t value) {
+    if (type_ != PiSDFParamType::DYNAMIC) {
+        throwSpiderException("Trying to set value of a non dynamic parameter.");
+    }
+    if (expression_) {
+        Spider::destroy(expression_);
+        Spider::construct(expression_, value);
+    }
 }
 
 PiSDFGraph *PiSDFParam::containingGraph() const {

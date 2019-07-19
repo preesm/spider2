@@ -141,6 +141,8 @@ class RPNConverter {
 public:
     explicit RPNConverter(PiSDFGraph *graph, std::string inFixExpr);
 
+    RPNConverter() = default;
+
     ~RPNConverter() = default;
 
     /* === Getters === */

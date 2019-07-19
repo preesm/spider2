@@ -70,6 +70,12 @@ Expression::Expression(PiSDFGraph *graph, std::string expression) : rpnConverter
     }
 }
 
+Expression::Expression(std::int64_t value) {
+    static_ = true;
+    valueDBL_ = value;
+    valueInt64_ = value;
+}
+
 Expression::~Expression() {
     if (expressionTree_) {
         Spider::deallocate(expressionTree_);

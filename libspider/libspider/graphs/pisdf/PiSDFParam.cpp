@@ -47,13 +47,16 @@
 
 PiSDFParam::PiSDFParam(PiSDFGraph *graph,
                        std::string name,
-                       PiSDFParamType type,
                        std::string expression) : graph_{graph},
-                                                 name_{std::move(name)},
-                                                 type_{type} {
+                                                 name_{std::move(name)} {
     /* == Create the expression associated to the parameter == */
     expression_ = Spider::allocate<Expression>(StackID::PISDF);
     Spider::construct(expression_, graph, std::move(expression));
+    if (expression_->isStatic()) {
+        type_ = PiSDFParamType::DYNAMIC_DEPENDENT;
+    } else {
+        type_ = PiSDFParamType::STATIC;
+    }
 
     /* == Transform the name to lower case for the expression parser == */
     std::transform(name_.begin(), name_.end(), name_.begin(), ::tolower);
@@ -64,13 +67,40 @@ PiSDFParam::PiSDFParam(PiSDFGraph *graph,
 
 PiSDFParam::PiSDFParam(PiSDFGraph *graph,
                        std::string name,
-                       PiSDFParamType type,
                        std::int64_t value) : graph_{graph},
                                              name_{std::move(name)},
-                                             type_{type} {
+                                             type_{PiSDFParamType::STATIC} {
     /* == Create the expression associated to the parameter == */
     expression_ = Spider::allocate<Expression>(StackID::PISDF);
     Spider::construct(expression_, graph, std::to_string(value));
+
+    /* == Transform the name to lower case for the expression parser == */
+    std::transform(name_.begin(), name_.end(), name_.begin(), ::tolower);
+
+    /* == Add the parameter to the graph == */
+    graph->addParam(this);
+}
+
+PiSDFParam::PiSDFParam(PiSDFGraph *graph, std::string name, PiSDFParam *parent) : graph_{graph},
+                                                                                  name_{std::move(name)},
+                                                                                  type_{PiSDFParamType::HERITED} {
+    /* == Set the parent parameter == */
+    inheritedParam_ = parent;
+
+    /* == Transform the name to lower case for the expression parser == */
+    std::transform(name_.begin(), name_.end(), name_.begin(), ::tolower);
+
+    /* == Add the parameter to the graph == */
+    graph->addParam(this);
+}
+
+PiSDFParam::PiSDFParam(PiSDFGraph *graph, std::string name, PiSDFVertex *setter) : graph_{graph},
+                                                                                   name_{std::move(name)},
+                                                                                   type_{PiSDFParamType::DYNAMIC},
+                                                                                   setter_{setter} {
+    /* == Set the expression to default value of 0 == */
+    expression_ = Spider::allocate<Expression>(StackID::PISDF);
+    Spider::construct(expression_, 0);
 
     /* == Transform the name to lower case for the expression parser == */
     std::transform(name_.begin(), name_.end(), name_.begin(), ::tolower);

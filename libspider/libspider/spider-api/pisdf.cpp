@@ -230,6 +230,40 @@ PiSDFInterface *Spider::createOutputInterface(PiSDFGraph *graph,
 /* === Param creation API === */
 
 PiSDFParam *Spider::createStaticParam(PiSDFGraph *graph, const std::string &name, ParamInt64 value) {
+    auto *param = Spider::allocate<PiSDFParam>(StackID::PISDF);
+    Spider::construct(param,
+                      graph,
+                      name,
+                      value);
+    return param;
+}
 
-    return nullptr;
+PiSDFParam *Spider::createDynamicParam(PiSDFGraph *graph, const std::string &name, PiSDFVertex *setter) {
+    auto *param = Spider::allocate<PiSDFParam>(StackID::PISDF);
+    Spider::construct(param,
+                      graph,
+                      name,
+                      setter);
+    return param;
+}
+
+PiSDFParam *Spider::createDependentParam(PiSDFGraph *graph, const std::string &name, const std::string &expression) {
+    auto *param = Spider::allocate<PiSDFParam>(StackID::PISDF);
+    Spider::construct(param,
+                      graph,
+                      name,
+                      expression);
+    return param;
+}
+
+PiSDFParam *Spider::createInheritedParam(PiSDFGraph *graph, const std::string &name, PiSDFParam *parent) {
+    if (!parent) {
+        throwSpiderException("Cannot instantiate inherited parameter with null parent.");
+    }
+    auto *param = Spider::allocate<PiSDFParam>(StackID::PISDF);
+    Spider::construct(param,
+                      graph,
+                      name,
+                      parent);
+    return param;
 }
