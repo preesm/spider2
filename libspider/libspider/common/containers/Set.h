@@ -55,7 +55,7 @@ namespace Spider {
     public:
         SetElement() = default;
 
-        SetElement &operator=(const SetElement&) = default;
+        SetElement &operator=(const SetElement &) = default;
 
         inline std::uint32_t getIx() const {
             return ix;

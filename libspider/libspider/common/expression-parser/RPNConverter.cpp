@@ -276,7 +276,7 @@ static std::string &stringReplace(std::string &s, const std::string &pattern, co
 /* === Method(s) implementation === */
 
 RPNConverter::RPNConverter(std::string inFixExpr, PiSDFGraph *graph) : infixExprString_{std::move(inFixExpr)},
-                                                                          graph_{graph} {
+                                                                       graph_{graph} {
     if (missMatchParenthesis()) {
         throwSpiderException("Expression with miss matched parenthesis: %s", infixExprString_.c_str());
     }

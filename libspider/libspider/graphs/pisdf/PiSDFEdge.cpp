@@ -53,8 +53,8 @@ PiSDFEdge::PiSDFEdge(PiSDFGraph *graph,
                      PiSDFVertex *sink,
                      std::uint32_t snkPortIx,
                      const std::string &consExpr) : graph_{graph},
-                                                       source_{source},
-                                                       sink_{sink} {
+                                                    source_{source},
+                                                    sink_{sink} {
     if (!graph) {
         throwSpiderException("Edge should belong to a graph.");
     }
@@ -68,8 +68,8 @@ PiSDFEdge::PiSDFEdge(PiSDFGraph *graph,
                      const std::string &prodExpr,
                      PiSDFInterface *sinkIf,
                      const std::string &consExpr) : graph_{graph},
-                                                       sourceIf_{sourceIf},
-                                                       sinkIf_{sinkIf} {
+                                                    sourceIf_{sourceIf},
+                                                    sinkIf_{sinkIf} {
     if (!graph) {
         throwSpiderException("Edge should belong to a graph.");
     }
@@ -87,8 +87,8 @@ PiSDFEdge::PiSDFEdge(PiSDFGraph *graph,
                      PiSDFVertex *sink,
                      std::uint32_t snkPortIx,
                      const std::string &consExpr) : graph_{graph},
-                                                       sink_{sink},
-                                                       sourceIf_{sourceIf} {
+                                                    sink_{sink},
+                                                    sourceIf_{sourceIf} {
     if (!graph) {
         throwSpiderException("Edge should belong to a graph.");
     }
@@ -107,8 +107,8 @@ PiSDFEdge::PiSDFEdge(PiSDFGraph *graph,
                      const std::string &prodExpr,
                      PiSDFInterface *sinkIf,
                      const std::string &consExpr) : graph_{graph},
-                                                       source_{source},
-                                                       sinkIf_{sinkIf} {
+                                                    source_{source},
+                                                    sinkIf_{sinkIf} {
     if (!graph) {
         throwSpiderException("Edge should belong to a graph.");
     }

@@ -185,7 +185,7 @@ namespace Spider {
         Allocator(const Allocator &) = default;
 
         template<class U>
-        explicit Allocator(const Allocator<U> &) {};
+        explicit Allocator(const Allocator<U> &) { };
 
         ~Allocator() = default;
 

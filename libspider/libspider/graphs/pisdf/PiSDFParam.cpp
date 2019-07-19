@@ -49,8 +49,8 @@ PiSDFParam::PiSDFParam(PiSDFGraph *graph,
                        std::string name,
                        PiSDFParamType type,
                        std::string expression) : graph_{graph},
-                                                    name_{std::move(name)},
-                                                    type_{type} {
+                                                 name_{std::move(name)},
+                                                 type_{type} {
     /* == Create the expression associated to the parameter == */
     expression_ = Spider::allocate<Expression>(StackID::PISDF);
     Spider::construct(expression_, std::move(expression), graph);
@@ -66,8 +66,8 @@ PiSDFParam::PiSDFParam(PiSDFGraph *graph,
                        std::string name,
                        PiSDFParamType type,
                        std::int64_t value) : graph_{graph},
-                                                    name_{std::move(name)},
-                                                    type_{type} {
+                                             name_{std::move(name)},
+                                             type_{type} {
     /* == Create the expression associated to the parameter == */
     expression_ = Spider::allocate<Expression>(StackID::PISDF);
     Spider::construct(expression_, std::to_string(value), graph);

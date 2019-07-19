@@ -81,7 +81,7 @@ namespace Spider {
     template<class Key, class T>
     using map = std::map<Key, T, std::less<Key>, Spider::Allocator<std::pair<const Key, T>>>;
 
-    template <class T>
+    template<class T>
     using forward_list = std::forward_list<T, Spider::Allocator<T>>;
 }
 

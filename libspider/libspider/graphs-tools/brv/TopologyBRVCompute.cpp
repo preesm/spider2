@@ -203,7 +203,7 @@ void TopologyBRVCompute::computeBRVFromNullSpace(Spider::Array<std::int64_t> &to
     for (const auto &r : rationalResult) {
         lcm = Spider::Rational::lcm(lcm, r.denominator());
     }
-    
+
     /* == Apply the LCM to compute BRV == */
     std::uint32_t vertexIx = 0;
     for (const auto &vertex : component.vertices) {

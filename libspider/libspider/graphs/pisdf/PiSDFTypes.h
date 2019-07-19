@@ -76,7 +76,7 @@ enum class PiSDFSubType : std::uint8_t {
     END,            /*! End actor subtype */
 };
 
-enum class PiSDFInterfaceType : std::uint8_t  {
+enum class PiSDFInterfaceType : std::uint8_t {
     INPUT,          /*! Input interface type */
     OUTPUT,         /*! Output interface type */
 };
