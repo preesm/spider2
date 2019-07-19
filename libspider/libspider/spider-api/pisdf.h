@@ -40,8 +40,119 @@
 #ifndef SPIDER2_PISDF_H
 #define SPIDER2_PISDF_H
 
-/* === Includes === */
+/* === Include(s) === */
 
-/* === Methods prototype === */
+#include <cstdint>
+#include <string>
+
+/* === Forward declaration(s) === */
+
+class PiSDFVertex;
+
+class PiSDFParam;
+
+class PiSDFGraph;
+
+class PiSDFEdge;
+
+class PiSDFInterface;
+
+/* === Type declaration(s) == */
+
+using ParamInt64 = std::int64_t;
+using ParamInt32 = std::int32_t;
+
+/* === API methods === */
+
+namespace Spider {
+
+    /* === Graph creation API === */
+
+    PiSDFGraph *createGraph(const std::string &name,
+                            std::uint64_t nActors,
+                            std::uint64_t nEdges,
+                            std::uint64_t nParams = 0,
+                            std::uint64_t nInputInterfaces = 0,
+                            std::uint64_t nOutputInterfaces = 0,
+                            std::uint64_t nConfigActors = 0);
+
+    // TODO: add function call.
+    PiSDFVertex *createVertex(PiSDFGraph *graph,
+                              const std::string &name,
+                              std::uint32_t nEdgesIN = 0,
+                              std::uint32_t nEdgesOUT = 0,
+                              std::uint32_t nParamsIN = 0);
+
+    PiSDFVertex *createBroadcast(PiSDFGraph *graph,
+                                 const std::string &name,
+                                 std::uint32_t nEdgesOUT = 0,
+                                 std::uint32_t nParamsIN = 0);
+
+    PiSDFVertex *createFork(PiSDFGraph *graph,
+                            const std::string &name,
+                            std::uint32_t nEdgesOUT = 0,
+                            std::uint32_t nParamsIN = 0);
+
+    PiSDFVertex *createRoundbuffer(PiSDFGraph *graph,
+                                   const std::string &name,
+                                   std::uint32_t nEdgesIN = 0,
+                                   std::uint32_t nParamsIN = 0);
+
+    PiSDFVertex *createJoin(PiSDFGraph *graph,
+                            const std::string &name,
+                            std::uint32_t nEdgesIN = 0,
+                            std::uint32_t nParamsIN = 0);
+
+    PiSDFVertex *createInit(PiSDFGraph *graph,
+                            const std::string &name,
+                            std::uint32_t nParamsIN = 0);
+
+    PiSDFVertex *createEnd(PiSDFGraph *graph,
+                           const std::string &name,
+                           std::uint32_t nParamsIN = 0);
+
+    // TODO: add function call
+    PiSDFVertex *createConfigActor(PiSDFGraph *graph,
+                                   const std::string &name,
+                                   std::uint32_t nEdgesIN = 0,
+                                   std::uint32_t nEdgesOUT = 0,
+                                   std::uint32_t nParamsIN = 0,
+                                   std::uint32_t nParamsOUT = 0);
+
+    PiSDFInterface *createInputInterface(PiSDFGraph *graph,
+                                         const std::string &name,
+                                         std::uint32_t portIx,
+                                         PiSDFEdge *inputEdge,
+                                         PiSDFEdge *outputEdge);
+
+    PiSDFInterface *createOutputInterface(PiSDFGraph *graph,
+                                          const std::string &name,
+                                          std::uint32_t portIx,
+                                          PiSDFEdge *inputEdge,
+                                          PiSDFEdge *outputEdge);
+
+    /* === Param creation API === */
+
+    PiSDFParam *createStaticParam(PiSDFGraph *graph,
+                                  const std::string &name,
+                                  ParamInt64 value);
+
+    PiSDFParam *createStaticDependentParam(PiSDFGraph *graph,
+                                           const std::string &name,
+                                           const std::string &expression,
+                                           std::initializer_list<PiSDFParam *> dependencies);
+
+    PiSDFParam *createDynamicParam(PiSDFGraph *graph,
+                                   const char *name);
+
+    PiSDFParam *createDynamicDependentParam(PiSDFGraph *graph,
+                                            const std::string &name,
+                                            const std::string &expression,
+                                            std::initializer_list<PiSDFParam *> dependencies);
+
+    PiSDFParam *createInheritedParam(PiSDFGraph *graph,
+                                     const std::string &name,
+                                     std::int32_t parentId);
+}
 
 #endif //SPIDER2_PISDF_H
