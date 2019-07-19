@@ -46,16 +46,16 @@
 /* === Methods implementation === */
 
 PiSDFInterface::PiSDFInterface(PiSDFGraph *graph,
+                               std::string name,
                                PiSDFInterfaceType type,
                                std::uint32_t ix,
                                PiSDFEdge *inputEdge,
-                               PiSDFEdge *outputEdge,
-                               std::string name) : graph_{graph},
-                                                   type_{type},
-                                                   ix_{ix},
-                                                   inputEdge_{inputEdge},
-                                                   outputEdge_{outputEdge},
-                                                   name_{std::move(name)} {
+                               PiSDFEdge *outputEdge) : graph_{graph},
+                                                        type_{type},
+                                                        ix_{ix},
+                                                        inputEdge_{inputEdge},
+                                                        outputEdge_{outputEdge},
+                                                        name_{std::move(name)} {
 
     graph->addInterface(this);
 }

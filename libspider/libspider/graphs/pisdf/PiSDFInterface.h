@@ -59,11 +59,11 @@ class PiSDFEdge;
 class PiSDFInterface : public Spider::SetElement {
 public:
     PiSDFInterface(PiSDFGraph *graph,
+                   std::string name,
                    PiSDFInterfaceType type,
                    std::uint32_t ix,
                    PiSDFEdge *inputEdge,
-                   PiSDFEdge *outputEdge,
-                   std::string name = "unnamed-if");
+                   PiSDFEdge *outputEdge);
 
     ~PiSDFInterface() = default;
 
