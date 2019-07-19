@@ -152,8 +152,8 @@ file(
         ${SPIDER_LIB_DIR}/common/memory/static-allocators/*.cpp
         ${SPIDER_LIB_DIR}/graphs/pisdf/*.cpp
         ${SPIDER_LIB_DIR}/spider-api/*.cpp
+        ${SPIDER_LIB_DIR}/graphs-tools/brv/*.cpp
         #    ${SPIDER_LIB_DIR}/graphs/srdag/*.cpp
-        #    ${SPIDER_LIB_DIR}/graphs-tools/brv/*.cpp
         #    ${SPIDER_LIB_DIR}/graphs-tools/transformation/*.cpp
         #    ${SPIDER_LIB_DIR}/memory/*.cpp
         ##    ${SPIDER_LIB_DIR}/monitoring/papify/*.cpp
@@ -177,10 +177,10 @@ file(
         ${SPIDER_LIB_DIR}/common/memory/dynamic-allocators/*.h
         ${SPIDER_LIB_DIR}/common/memory/static-allocators/*.h
         ${SPIDER_LIB_DIR}/graphs/pisdf/*.h
+        ${SPIDER_LIB_DIR}/graphs-tools/brv/*.h
         ${SPIDER_LIB_DIR}/spider-api/*.h
         ${SPIDER_LIB_DIR}/spider.h
         #    ${SPIDER_LIB_DIR}/graphs/srdag/*.h
-        #    ${SPIDER_LIB_DIR}/graphs-tools/brv/*.h
         #    ${SPIDER_LIB_DIR}/graphs-tools/transformation/*.h
         ##    ${SPIDER_LIB_DIR}/monitoring/papify/*.h
         #    ${SPIDER_LIB_DIR}/monitoring/generic/*.h
@@ -198,7 +198,7 @@ file(
 
 add_library(Spider2 SHARED ${source_files} ${header_files})
 target_link_libraries(Spider2 ${CMAKE_THREAD_LIBS_INIT} ${PAPI_LIBRARIES})
-set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -fpermissive")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive")
 
 if (NOT MINGW AND NOT ${CMAKE_GENERATOR} MATCHES "Visual Studio.*")
     set(CMAKE_CXX_FLAGS "-fPIC")
