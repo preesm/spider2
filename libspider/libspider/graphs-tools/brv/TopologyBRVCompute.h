@@ -65,10 +65,33 @@ private:
 
     /* === Private method(s) === */
 
+    /**
+     * @brief Check if a vertex is executable by checking its rate.
+     * @param vertex  Vertex to test.
+     * @return true if at least one rate is not null, false else.
+     */
     static bool isVertexExecutable(const PiSDFVertex *vertex);
 
+    /**
+     * @brief Check if an edge is valid.
+     * An edge is valid if is connected to two executable VERTEX and has non null rates.
+     * @param edge           Edge to test.
+     * @param vertexIxArray  Indexes in the topology matrix of the vertices of the graph.
+     * @return true if edge is valid, false else.
+     */
     static bool isEdgeValid(const PiSDFEdge *edge, Spider::Array<std::int32_t> &vertexIxArray);
 
+    /**
+     * @brief Compute the nullspace of the topology matrix using the pivot method.
+     * Repetition vector of the connected component is then deduced from the nullspace.
+     * @param topologyMatrix Topology matrix of the connected component.
+     * @param nMatVertices   Number of vertices (=number of columns) in the topology matrix.
+     * @param nMatEdges      Number of edges (=number of rows) in the topology matrix.
+     * @param vertexIxArray  Indexes in the topology matrix of the vertices of the graph.
+     * @param component      Current connected component.
+     *
+     * @throw @refitem SpiderException if nullspace can not be computed.
+     */
     static void computeBRVFromNullSpace(Spider::Array<std::int64_t> &topologyMatrix,
                                         std::uint32_t nMatVertices,
                                         std::uint32_t nMatEdges,

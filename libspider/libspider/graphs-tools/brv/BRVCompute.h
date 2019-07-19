@@ -118,10 +118,28 @@ protected:
      */
     static void updateBRV(Spider::Array<const PiSDFEdge *> &edgeArray, const BRVComponent &component);
 
+    /**
+     * @brief Update the repetition vector based on the production of a given input interface.
+     * @param edge                 Edge connected to the interface.
+     * @param currentScaleFactor   Current scaling factor of the repetition vector.
+     * @return new value of the scaling factor (can be unchanged).
+     */
     static std::uint64_t updateBRVFromInputIF(const PiSDFEdge *edge, std::uint64_t currentScaleFactor);
 
+    /**
+     * @brief Update the repetition vector based on the production of a given output interface.
+     * @param edge                 Edge connected to the interface.
+     * @param currentScaleFactor   Current scaling factor of the repetition vector.
+     * @return new value of the scaling factor (can be unchanged).
+     */
     static std::uint64_t updateBRVFromOutputIF(const PiSDFEdge *edge, std::uint64_t currentScaleFactor);
 
+    /**
+     * @brief Update the repetition vector based on the production rates of a given configuration actor.
+     * @param edge                 Edge connected to the config actor.
+     * @param currentScaleFactor   Current scaling factor of the repetition vector.
+     * @return new value of the scaling factor (can be unchanged).
+     */
     static std::uint64_t updateBRVFromCFGActor(const PiSDFEdge *edge, std::uint64_t currentScaleFactor);
 
 };
