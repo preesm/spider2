@@ -45,7 +45,7 @@
 #include <cstdint>
 #include <string>
 #include <common/containers/Set.h>
-#include <common/expression-parser/Expression.h>
+#include <graphs-tools/expression-parser/Expression.h>
 #include <graphs/pisdf/PiSDFInterface.h>
 
 /* === Forward declaration(s) === */

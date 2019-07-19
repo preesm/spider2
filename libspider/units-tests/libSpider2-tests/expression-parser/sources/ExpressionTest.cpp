@@ -42,8 +42,8 @@
 
 #include "ExpressionTest.h"
 #include <common/memory/Allocator.h>
-#include <common/expression-parser/RPNConverter.h>
-#include <common/expression-parser/Expression.h>
+#include <graphs-tools/expression-parser/RPNConverter.h>
+#include <graphs-tools/expression-parser/Expression.h>
 #include <spider-api/general.h>
 #include <cmath>
 

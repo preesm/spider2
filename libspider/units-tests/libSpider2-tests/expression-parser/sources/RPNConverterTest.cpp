@@ -42,7 +42,7 @@
 
 #include "RPNConverterTest.h"
 #include <common/memory/Allocator.h>
-#include <common/expression-parser/RPNConverter.h>
+#include <graphs-tools/expression-parser/RPNConverter.h>
 #include <spider-api/general.h>
 #include <cmath>
 
