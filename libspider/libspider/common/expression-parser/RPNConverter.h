@@ -115,7 +115,7 @@ struct RPNOperator {
     RPNOperatorType type;      /*! Operator type (see @refitem RPNOperatorType) */
     std::uint16_t precendence; /*! Precedence value level of the operator */
     bool isRighAssociative;    /*! Right associativity property of the operator */
-    Spider::string label;      /*! Label of the operator */
+    std::string label;      /*! Label of the operator */
     evalFunction eval;         /*! Associated function of the operator */
 };
 
@@ -152,7 +152,7 @@ struct ExpressionTreeNode {
 
 class RPNConverter {
 public:
-    explicit RPNConverter(Spider::string inFixExpr, PiSDFGraph *graph);
+    explicit RPNConverter(std::string inFixExpr, PiSDFGraph *graph);
 
     ~RPNConverter();
 
@@ -163,13 +163,13 @@ public:
      * @return Post fix string.
      * @remark For static expression, building is done only once.
      */
-    const Spider::string &toString();
+    const std::string &toString();
 
     /**
      * @brief Get the expression infix string.
      * @return infix expression string
      */
-    inline const Spider::string &infixString() const;
+    inline const std::string &infixString() const;
 
     /**
      * @brief Get the expression postfix string.
@@ -177,7 +177,7 @@ public:
      * @remark @refitem toString() method must be called at least once for static expression in the lifetime of
      * the application.
      */
-    inline const Spider::string &postfixString() const;
+    inline const std::string &postfixString() const;
 
     /**
      * @brief Print the ExpressionTree (debug only).
@@ -200,8 +200,8 @@ public:
 
 private:
 
-    Spider::string infixExprString_;
-    Spider::string postfixExprString_{""};
+    std::string infixExprString_;
+    std::string postfixExprString_{""};
     PiSDFGraph *graph_ = nullptr;
     bool static_ = true;
     Spider::deque<RPNElement> postfixExprStack_;
@@ -274,11 +274,11 @@ bool RPNConverter::isStatic() const {
     return static_;
 }
 
-const Spider::string &RPNConverter::infixString() const {
+const std::string &RPNConverter::infixString() const {
     return infixExprString_;
 }
 
-const Spider::string &RPNConverter::postfixString() const {
+const std::string &RPNConverter::postfixString() const {
     return postfixExprString_;
 }
 

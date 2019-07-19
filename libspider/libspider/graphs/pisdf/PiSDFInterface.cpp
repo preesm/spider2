@@ -71,7 +71,7 @@ static const char *getBGColor(PiSDFInterfaceType type) {
     }
 }
 
-void PiSDFInterface::exportDot(FILE *file, const Spider::string &offset) const {
+void PiSDFInterface::exportDot(FILE *file, const std::string &offset) const {
     fprintf(file, "%s\"%s\" [ shape = none, margin = 0, label = <\n", offset.c_str(), name_.c_str());
     fprintf(file, "%s\t<table border = \"1\" cellspacing=\"0\" cellpadding = \"0\" bgcolor = \"#%s\">\n",
             offset.c_str(), getBGColor(type_));

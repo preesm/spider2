@@ -69,7 +69,7 @@ public:
 
     /* === Methods === */
 
-    void exportDot(FILE *file, const Spider::string &offset) const;
+    void exportDot(FILE *file, const std::string &offset) const;
 
     /* === Getters === */
 

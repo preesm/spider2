@@ -59,7 +59,7 @@ using execRoutine = void (*)(void **, void **, std::uint64_t *, std::uint64_t *)
 class PiSDFGraph {
 public:
 
-    PiSDFGraph(Spider::string name,
+    PiSDFGraph(std::string name,
                std::uint64_t nActors,
                std::uint64_t nEdges,
                std::uint64_t nParams = 0,
@@ -67,7 +67,7 @@ public:
                std::uint64_t nOutputInterfaces = 0,
                std::uint64_t nConfigActors = 0);
 
-    PiSDFGraph(Spider::string name,
+    PiSDFGraph(std::string name,
                PiSDFGraph *parent,
                std::uint64_t nActors,
                std::uint64_t nEdges,
@@ -147,7 +147,7 @@ public:
      * @param name Name of the parameter.
      * @return pointer to the @refitem PiSDFParam if found, nullptr else.
      */
-    inline PiSDFParam *findParam(const Spider::string &name) const;
+    inline PiSDFParam *findParam(const std::string &name) const;
 
 
     /**
@@ -161,7 +161,7 @@ public:
      * @param file    File pointer to write to.
      * @param offset  Tab offset in the file.
      */
-    void exportDot(FILE *file, const Spider::string &offset) const;
+    void exportDot(FILE *file, const std::string &offset) const;
 
     /* === Setters === */
 
@@ -276,10 +276,10 @@ public:
      * @brief Get the string of the name of the graph.
      * @return string of the name.
      */
-    inline const Spider::string &name() const;
+    inline const std::string &name() const;
 
 private:
-    Spider::string name_ = "topgraph";
+    std::string name_ = "topgraph";
     Spider::Set<PiSDFVertex *> vertexSet_;
     Spider::Set<PiSDFEdge *> edgeSet_;
     Spider::Set<PiSDFParam *> paramSet_;
@@ -297,7 +297,7 @@ private:
      * @param file     File to which to export.
      * @param offset   TAB offset in the file.
      */
-    void exportDotHelper(FILE *file, const Spider::string &offset) const;
+    void exportDotHelper(FILE *file, const std::string &offset) const;
 };
 
 /* === Inline methods === */
@@ -378,7 +378,7 @@ void PiSDFGraph::removeParam(PiSDFParam *param) {
     Spider::deallocate(param);
 }
 
-PiSDFParam *PiSDFGraph::findParam(const Spider::string &name) const {
+PiSDFParam *PiSDFGraph::findParam(const std::string &name) const {
     for (auto &p : paramSet_) {
         if (p->name() == name) {
             return p;
@@ -461,7 +461,7 @@ bool PiSDFGraph::containsDynamicParameters() const {
     return hasDynamicParameters_;
 }
 
-const Spider::string &PiSDFGraph::name() const {
+const std::string &PiSDFGraph::name() const {
     return name_;
 }
 

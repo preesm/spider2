@@ -63,10 +63,15 @@ class PiSDFVertex;
 class PiSDFParam : public Spider::SetElement {
 public:
 
-    PiSDFParam(Spider::string name,
-               Spider::string expression,
+    PiSDFParam(PiSDFGraph *graph,
+               std::string name,
                PiSDFParamType type,
-               PiSDFGraph *graph);
+               std::string expression);
+
+    PiSDFParam(PiSDFGraph *graph,
+               std::string name,
+               PiSDFParamType type,
+               std::int64_t value);
 
     ~PiSDFParam();
 
@@ -84,7 +89,7 @@ public:
      * @param file   File to which the edge should be exported.
      * @param offset Tab offset in the file.
      */
-    void exportDot(FILE *file, const Spider::string &offset = "\t") const;
+    void exportDot(FILE *file, const std::string &offset = "\t") const;
 
     /* === Setters === */
 
@@ -106,7 +111,7 @@ public:
      * @brief Get the string of the name of the parameter.
      * @return name of the parameter
      */
-    inline const Spider::string &name() const;
+    inline const std::string &name() const;
 
     /**
      * @brief Get the vertex setting the value of the parameter (if any).
@@ -136,7 +141,7 @@ private:
     /**
      * @brief Name of the parameter within its containing graph.
      */
-    Spider::string name_ = "unnamed-parameter";
+    std::string name_ = "unnamed-parameter";
 
     /**
      * @brief Parameter Type (STATIC, DYNAMIC, HERITED).
@@ -174,7 +179,7 @@ PiSDFGraph *PiSDFParam::containingGraph() const {
     return graph_;
 }
 
-const Spider::string &PiSDFParam::name() const {
+const std::string &PiSDFParam::name() const {
     return name_;
 }
 

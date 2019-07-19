@@ -48,7 +48,7 @@
 
 /* === Methods implementation === */
 
-PiSDFGraph::PiSDFGraph(Spider::string name,
+PiSDFGraph::PiSDFGraph(std::string name,
                        std::uint64_t nActors,
                        std::uint64_t nEdges,
                        std::uint64_t nParams,
@@ -64,7 +64,7 @@ PiSDFGraph::PiSDFGraph(Spider::string name,
 
 }
 
-PiSDFGraph::PiSDFGraph(Spider::string name,
+PiSDFGraph::PiSDFGraph(std::string name,
                        PiSDFGraph *parent,
                        std::uint64_t nActors,
                        std::uint64_t nEdges,
@@ -174,13 +174,13 @@ void PiSDFGraph::exportDot(const std::string &path) const {
     std::fclose(file);
 }
 
-void PiSDFGraph::exportDot(FILE *file, const Spider::string &offset) const {
+void PiSDFGraph::exportDot(FILE *file, const std::string &offset) const {
     exportDotHelper(file, offset);
 }
 
 /* === Private method(s) === */
 
-void PiSDFGraph::exportDotHelper(FILE *file, const Spider::string &offset) const {
+void PiSDFGraph::exportDotHelper(FILE *file, const std::string &offset) const {
     auto fwOffset{offset};
     if (parentGraph_) {
         fprintf(file, "%ssubgraph cluster {\n", fwOffset.c_str());

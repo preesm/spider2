@@ -45,15 +45,32 @@
 
 /* === Methods implementation === */
 
-PiSDFParam::PiSDFParam(Spider::string name,
-                       Spider::string expression,
+PiSDFParam::PiSDFParam(PiSDFGraph *graph,
+                       std::string name,
                        PiSDFParamType type,
-                       PiSDFGraph *graph) : graph_{graph},
-                                            name_{std::move(name)},
-                                            type_{type} {
+                       std::string expression) : graph_{graph},
+                                                    name_{std::move(name)},
+                                                    type_{type} {
     /* == Create the expression associated to the parameter == */
     expression_ = Spider::allocate<Expression>(StackID::PISDF);
     Spider::construct(expression_, std::move(expression), graph);
+
+    /* == Transform the name to lower case for the expression parser == */
+    std::transform(name_.begin(), name_.end(), name_.begin(), ::tolower);
+
+    /* == Add the parameter to the graph == */
+    graph->addParam(this);
+}
+
+PiSDFParam::PiSDFParam(PiSDFGraph *graph,
+                       std::string name,
+                       PiSDFParamType type,
+                       std::int64_t value) : graph_{graph},
+                                                    name_{std::move(name)},
+                                                    type_{type} {
+    /* == Create the expression associated to the parameter == */
+    expression_ = Spider::allocate<Expression>(StackID::PISDF);
+    Spider::construct(expression_, std::to_string(value), graph);
 
     /* == Transform the name to lower case for the expression parser == */
     std::transform(name_.begin(), name_.end(), name_.begin(), ::tolower);
@@ -69,6 +86,6 @@ PiSDFParam::~PiSDFParam() {
     }
 }
 
-void PiSDFParam::exportDot(FILE *file, const Spider::string &offset) const {
+void PiSDFParam::exportDot(FILE *file, const std::string &offset) const {
     fprintf(file, "%s\"%s\"[shape=triangle, style=filled, fillcolor=\"#89c4f4\"]\n", offset.c_str(), name_.c_str());
 }

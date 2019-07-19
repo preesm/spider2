@@ -63,30 +63,30 @@ public:
     PiSDFEdge(PiSDFGraph *graph,
               PiSDFVertex *source,
               std::uint32_t srcPortIx,
-              const Spider::string &prodExpr,
+              const std::string &prodExpr,
               PiSDFVertex *sink,
               std::uint32_t snkPortIx,
-              const Spider::string &consExpr);
+              const std::string &consExpr);
 
     PiSDFEdge(PiSDFGraph *graph,
               PiSDFInterface *sourceIf,
-              const Spider::string &prodExpr,
+              const std::string &prodExpr,
               PiSDFInterface *sinkIf,
-              const Spider::string &consExpr);
+              const std::string &consExpr);
 
     PiSDFEdge(PiSDFGraph *graph,
               PiSDFInterface *sourceIf,
-              const Spider::string &prodExpr,
+              const std::string &prodExpr,
               PiSDFVertex *sink,
               std::uint32_t snkPortIx,
-              const Spider::string &consExpr);
+              const std::string &consExpr);
 
     PiSDFEdge(PiSDFGraph *graph,
               PiSDFVertex *source,
               std::uint32_t srcPortIx,
-              const Spider::string &prodExpr,
+              const std::string &prodExpr,
               PiSDFInterface *sinkIf,
-              const Spider::string &consExpr);
+              const std::string &consExpr);
 
     ~PiSDFEdge();
 
@@ -96,17 +96,17 @@ public:
      * @brief Export edge in the dot format to the given file.
      * @param file   File to which the edge should be exported.
      */
-    void exportDot(FILE *file, const Spider::string &offset) const;
+    void exportDot(FILE *file, const std::string &offset) const;
 
     /* === Setters === */
 
-    void setSource(PiSDFVertex *vertex, std::uint32_t srcPortIx, const Spider::string &prodExpr);
+    void setSource(PiSDFVertex *vertex, std::uint32_t srcPortIx, const std::string &prodExpr);
 
-    void setSource(PiSDFInterface *interface, const Spider::string &prodExpr);
+    void setSource(PiSDFInterface *interface, const std::string &prodExpr);
 
-    void setSink(PiSDFVertex *vertex, std::uint32_t snkPortIx, const Spider::string &consExpr);
+    void setSink(PiSDFVertex *vertex, std::uint32_t snkPortIx, const std::string &consExpr);
 
-    void setSink(PiSDFInterface *interface, const Spider::string &consExpr);
+    void setSink(PiSDFInterface *interface, const std::string &consExpr);
 
     /* === Getters ===  */
 

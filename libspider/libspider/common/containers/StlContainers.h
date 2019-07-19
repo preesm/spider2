@@ -83,8 +83,6 @@ namespace Spider {
 
     template <class T>
     using forward_list = std::forward_list<T, Spider::Allocator<T>>;
-
-    using string = std::basic_string<char, std::char_traits<char>, Spider::Allocator<char>>;
 }
 
 #endif //SPIDER2_STLCONTAINERS_H

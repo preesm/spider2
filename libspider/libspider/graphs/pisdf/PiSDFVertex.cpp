@@ -102,7 +102,7 @@ PiSDFVertex::PiSDFVertex(PiSDFGraph *graph,
     graph->addVertex(this);
 }
 
-void PiSDFVertex::exportDot(FILE *file, const Spider::string &offset) const {
+void PiSDFVertex::exportDot(FILE *file, const std::string &offset) const {
     fprintf(file, "%s\"%s\" [ shape = none, margin = 0, label = <\n", offset.c_str(), name_.c_str());
     fprintf(file, "%s\t<table border = \"1\" cellspacing=\"0\" cellpadding = \"0\" bgcolor = \"#%s\">\n",
             offset.c_str(), getVertexDotColor(subType_));
@@ -136,7 +136,7 @@ void PiSDFVertex::exportDot(FILE *file, const Spider::string &offset) const {
 /* === Private method(s) === */
 
 void PiSDFVertex::exportInputPortsToDot(FILE *file,
-                                        const Spider::string &offset) const {
+                                        const std::string &offset) const {
     fprintf(file, "%s\t\t\t<td border=\"0\">\n", offset.c_str());
     fprintf(file, "%s\t\t\t\t<table border=\"0\" cellpadding=\"0\" cellspacing=\"1\">\n", offset.c_str());
     for (const auto &e: inputEdgeArray_) {
@@ -179,7 +179,7 @@ void PiSDFVertex::exportInputPortsToDot(FILE *file,
 }
 
 void PiSDFVertex::exportOutputPortsToDot(FILE *file,
-                                         const Spider::string &offset) const {
+                                         const std::string &offset) const {
     fprintf(file, "%s\t\t\t<td border=\"0\">\n", offset.c_str());
     fprintf(file, "%s\t\t\t\t<table border=\"0\" cellpadding=\"0\" cellspacing=\"1\">\n", offset.c_str());
     for (const auto &e:outputEdgeArray_) {

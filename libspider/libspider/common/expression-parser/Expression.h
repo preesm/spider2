@@ -60,7 +60,7 @@ class PiSDFGraph;
 class Expression {
 public:
 
-    Expression(Spider::string expression, PiSDFGraph *graph);
+    Expression(std::string expression, PiSDFGraph *graph);
 
     ~Expression() = default;
 
@@ -84,11 +84,11 @@ public:
      * @brief Get the infix expression string
      * @return Clean infix expression string
      */
-    inline Spider::string toString() const;
+    inline std::string toString() const;
 
 private:
 
-    Spider::string infixExpression_{""};
+    std::string infixExpression_{""};
     RPNConverter postFixExpression_;
     Param value_ = 0;
 };
@@ -99,7 +99,7 @@ Param Expression::value() const {
     return value_;
 }
 
-Spider::string Expression::toString() const {
+std::string Expression::toString() const {
     return infixExpression_;
 }
 

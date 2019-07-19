@@ -59,7 +59,7 @@ PiSDFGraph *Spider::createGraph(const std::string &name,
                                 std::uint64_t nConfigActors) {
     auto *graph = Spider::allocate<PiSDFGraph>(StackID::PISDF);
     Spider::construct(graph,
-                      Spider::string{name.c_str()},
+                      name,
                       nActors,
                       nEdges,
                       nParams,
@@ -225,4 +225,11 @@ PiSDFInterface *Spider::createOutputInterface(PiSDFGraph *graph,
                       inputEdge,
                       outputEdge);
     return interface;
+}
+
+/* === Param creation API === */
+
+PiSDFParam *Spider::createStaticParam(PiSDFGraph *graph, const std::string &name, ParamInt64 value) {
+
+    return nullptr;
 }

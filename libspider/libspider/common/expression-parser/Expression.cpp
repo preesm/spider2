@@ -44,7 +44,7 @@
 
 /* === Methods implementation === */
 
-Expression::Expression(Spider::string expression, PiSDFGraph *graph) : postFixExpression_(std::move(expression),
+Expression::Expression(std::string expression, PiSDFGraph *graph) : postFixExpression_(std::move(expression),
                                                                                           graph) {
     infixExpression_ = postFixExpression_.toString();
     if (postFixExpression_.isStatic()) {

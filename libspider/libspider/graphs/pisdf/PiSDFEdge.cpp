@@ -49,10 +49,10 @@
 PiSDFEdge::PiSDFEdge(PiSDFGraph *graph,
                      PiSDFVertex *source,
                      std::uint32_t srcPortIx,
-                     const Spider::string &prodExpr,
+                     const std::string &prodExpr,
                      PiSDFVertex *sink,
                      std::uint32_t snkPortIx,
-                     const Spider::string &consExpr) : graph_{graph},
+                     const std::string &consExpr) : graph_{graph},
                                                        source_{source},
                                                        sink_{sink} {
     if (!graph) {
@@ -65,9 +65,9 @@ PiSDFEdge::PiSDFEdge(PiSDFGraph *graph,
 
 PiSDFEdge::PiSDFEdge(PiSDFGraph *graph,
                      PiSDFInterface *sourceIf,
-                     const Spider::string &prodExpr,
+                     const std::string &prodExpr,
                      PiSDFInterface *sinkIf,
-                     const Spider::string &consExpr) : graph_{graph},
+                     const std::string &consExpr) : graph_{graph},
                                                        sourceIf_{sourceIf},
                                                        sinkIf_{sinkIf} {
     if (!graph) {
@@ -83,10 +83,10 @@ PiSDFEdge::PiSDFEdge(PiSDFGraph *graph,
 
 PiSDFEdge::PiSDFEdge(PiSDFGraph *graph,
                      PiSDFInterface *sourceIf,
-                     const Spider::string &prodExpr,
+                     const std::string &prodExpr,
                      PiSDFVertex *sink,
                      std::uint32_t snkPortIx,
-                     const Spider::string &consExpr) : graph_{graph},
+                     const std::string &consExpr) : graph_{graph},
                                                        sink_{sink},
                                                        sourceIf_{sourceIf} {
     if (!graph) {
@@ -104,9 +104,9 @@ PiSDFEdge::PiSDFEdge(PiSDFGraph *graph,
 PiSDFEdge::PiSDFEdge(PiSDFGraph *graph,
                      PiSDFVertex *source,
                      std::uint32_t srcPortIx,
-                     const Spider::string &prodExpr,
+                     const std::string &prodExpr,
                      PiSDFInterface *sinkIf,
-                     const Spider::string &consExpr) : graph_{graph},
+                     const std::string &consExpr) : graph_{graph},
                                                        source_{source},
                                                        sinkIf_{sinkIf} {
     if (!graph) {
@@ -142,7 +142,7 @@ std::uint64_t PiSDFEdge::sinkRate() const {
     return sinkRateExpr_->evaluate();
 }
 
-void PiSDFEdge::setSource(PiSDFVertex *vertex, std::uint32_t srcPortIx, const Spider::string &prodExpr) {
+void PiSDFEdge::setSource(PiSDFVertex *vertex, std::uint32_t srcPortIx, const std::string &prodExpr) {
     source_ = vertex;
     sourcePortIx_ = srcPortIx;
     if (sourceRateExpr_) {
@@ -154,7 +154,7 @@ void PiSDFEdge::setSource(PiSDFVertex *vertex, std::uint32_t srcPortIx, const Sp
     source_->setOutputEdge(this, srcPortIx);
 }
 
-void PiSDFEdge::setSource(PiSDFInterface *interface, const Spider::string &prodExpr) {
+void PiSDFEdge::setSource(PiSDFInterface *interface, const std::string &prodExpr) {
     if (source_) {
         throwSpiderException("Can not connect iif [%s]. Edge already has a source: [%s].",
                              interface->name().c_str(),
@@ -171,7 +171,7 @@ void PiSDFEdge::setSource(PiSDFInterface *interface, const Spider::string &prodE
     sourceIf_->setOutputEdge(this);
 }
 
-void PiSDFEdge::setSink(PiSDFVertex *vertex, std::uint32_t snkPortIx, const Spider::string &consExpr) {
+void PiSDFEdge::setSink(PiSDFVertex *vertex, std::uint32_t snkPortIx, const std::string &consExpr) {
 
     sink_ = vertex;
     sinkPortIx_ = snkPortIx;
@@ -184,7 +184,7 @@ void PiSDFEdge::setSink(PiSDFVertex *vertex, std::uint32_t snkPortIx, const Spid
     sink_->setInputEdge(this, snkPortIx);
 }
 
-void PiSDFEdge::setSink(PiSDFInterface *interface, const Spider::string &consExpr) {
+void PiSDFEdge::setSink(PiSDFInterface *interface, const std::string &consExpr) {
     if (sink_) {
         throwSpiderException("Can not connect oif [%s]. Edge already has a sink: [%s].",
                              interface->name().c_str(),
@@ -201,7 +201,7 @@ void PiSDFEdge::setSink(PiSDFInterface *interface, const Spider::string &consExp
     sinkIf_->setInputEdge(this);
 }
 
-void PiSDFEdge::exportDot(FILE *file, const Spider::string &offset) const {
+void PiSDFEdge::exportDot(FILE *file, const std::string &offset) const {
     fprintf(file,
             "%s\"%s\":out_%" PRIu32":e -> \"%s\":in_%" PRIu32":w [penwidth=3, "
             "color=\"#393c3c\", "
