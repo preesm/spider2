@@ -100,13 +100,16 @@ PiSDFVertex::PiSDFVertex(PiSDFGraph *graph,
     if (type == PiSDFVertexType::HIERARCHICAL) {
         /* == Create the subgraph == */
         subgraph_ = Spider::allocate<PiSDFGraph>(StackID::PISDF);
-        Spider::construct(subgraph_, this, name_, 0, 0, 0, nEdgesIN, nEdgesOUT);
+        Spider::construct(subgraph_, this, std::string(name_), 0, 0, 0, nEdgesIN, nEdgesOUT);
     }
 
     graph->addVertex(this);
 }
 
 void PiSDFVertex::exportDot(FILE *file, const std::string &offset) const {
+    if (isHierarchical()) {
+        return;
+    }
     fprintf(file, "%s\"%s\" [ shape = none, margin = 0, label = <\n", offset.c_str(), name_.c_str());
     fprintf(file, "%s\t<table border = \"1\" cellspacing=\"0\" cellpadding = \"0\" bgcolor = \"#%s\">\n",
             offset.c_str(), getVertexDotColor(type_));

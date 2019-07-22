@@ -243,7 +243,7 @@ public:
      * @brief Get the subgraph (if any) associated to the vertex.
      * @return subgraph associated to the vertex, nullptr if vertex is not hierarchical.
      */
-    inline const PiSDFGraph *subgraph() const;
+    inline PiSDFGraph *subgraph() const;
 
     /**
      * @brief Get the ix of the vertex in the containing graph.
@@ -402,7 +402,7 @@ std::uint32_t PiSDFVertex::repetitionValue() const {
     return repetitionValue_;
 }
 
-const PiSDFGraph *PiSDFVertex::subgraph() const {
+PiSDFGraph *PiSDFVertex::subgraph() const {
     return subgraph_;
 }
 

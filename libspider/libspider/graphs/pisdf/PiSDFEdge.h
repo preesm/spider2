@@ -66,6 +66,14 @@ public:
               std::uint16_t snkPortIx,
               const std::string &consExpr);
 
+    PiSDFEdge(PiSDFGraph *graph,
+              PiSDFVertex *source,
+              std::uint16_t srcPortIx,
+              std::int64_t srcRate,
+              PiSDFVertex *sink,
+              std::uint16_t snkPortIx,
+              std::int64_t snkRate);
+
     ~PiSDFEdge();
 
     /* === Methods === */
@@ -83,6 +91,10 @@ public:
     void connectSink(PiSDFVertex *vertex, std::uint32_t portIx, const std::string &consExpr);
 
     void connectSink(PiSDFVertex *vertex, std::uint32_t portIx, std::int64_t cons);
+
+    void disconnectSource();
+
+    void disconnectSink();
 
     /* === Setters === */
 
@@ -102,17 +114,19 @@ public:
 
     /**
      * @brief Get the source @refitem PiSDFVertex of the edge.
+     * @param forward  Enable forwarding of source if it is an interface (default false).
      * @return source @refitem PiSDFVertex
      * @remark if source is hierarchical, return vertex connected to the interface
      */
-    PiSDFVertex *source() const;
+    PiSDFVertex *source(bool forward = false) const;
 
     /**
      * @brief Get the sink @refitem PiSDFVertex of the edge.
+     * @param forward  Enable forwarding of sink if it is an interface (default false).
      * @return sink @refitem PiSDFVertex
      * @remark if sink is hierarchical, return vertex connected to the interface
      */
-    PiSDFVertex *sink() const;
+    PiSDFVertex *sink(bool forward = false) const;
 
     /**
      * @brief Get the source rate of the edge.

@@ -321,6 +321,8 @@ void PiSDFGraph::addVertex(PiSDFVertex *vertex) {
             vertex->setIx(vertexVector_.size());
             configVector_.push_back(vertex);
             break;
+        case PiSDFVertexType::INTERFACE:
+            break;
         default:
             throwSpiderException("Unsupported type of vertex.");
     }

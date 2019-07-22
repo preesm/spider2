@@ -52,9 +52,7 @@ PiSDFEdge::PiSDFEdge(PiSDFGraph *graph,
                      const std::string &prodExpr,
                      PiSDFVertex *sink,
                      std::uint16_t snkPortIx,
-                     const std::string &consExpr) : graph_{graph},
-                                                    source_{source},
-                                                    sink_{sink} {
+                     const std::string &consExpr) : graph_{graph} {
     if (!graph) {
         throwSpiderException("Edge should belong to a graph.");
     }
@@ -62,6 +60,23 @@ PiSDFEdge::PiSDFEdge(PiSDFGraph *graph,
     sinkPort_ = Spider::allocate<PiSDFPort>(StackID::PISDF);
     connectSource(source, srcPortIx, prodExpr);
     connectSink(sink, snkPortIx, consExpr);
+    graph->addEdge(this);
+}
+
+PiSDFEdge::PiSDFEdge(PiSDFGraph *graph,
+                     PiSDFVertex *source,
+                     std::uint16_t srcPortIx,
+                     std::int64_t srcRate,
+                     PiSDFVertex *sink,
+                     std::uint16_t snkPortIx,
+                     std::int64_t snkRate) : graph_{graph} {
+    if (!graph) {
+        throwSpiderException("Edge should belong to a graph.");
+    }
+    sourcePort_ = Spider::allocate<PiSDFPort>(StackID::PISDF);
+    sinkPort_ = Spider::allocate<PiSDFPort>(StackID::PISDF);
+    connectSource(source, srcPortIx, srcRate);
+    connectSink(sink, snkPortIx, snkRate);
     graph->addEdge(this);
 }
 
@@ -96,7 +111,7 @@ void PiSDFEdge::connectSink(PiSDFVertex *vertex, std::uint32_t portIx, const std
     Spider::destroy(sinkPort_);
     Spider::construct(sinkPort_, vertex->containingGraph(), consExpr);
     sinkPort_->connectEdge(this, portIx);
-    source_->setInputEdge(this, portIx);
+    sink_->setInputEdge(this, portIx);
 }
 
 void PiSDFEdge::connectSource(PiSDFVertex *vertex, std::uint16_t portIx, std::int64_t prod) {
@@ -129,24 +144,26 @@ void PiSDFEdge::exportDot(FILE *file, const std::string &offset) const {
             "headlabel=\"%" PRIu64"   \", "
             "taillabel=\" %" PRIu64"\"];\n",
             offset.c_str(),
-            source_->name().c_str(),
-            sourcePort_->ix(),
-            sink_->name().c_str(),
-            sinkPort_->ix(),
+            source_->isHierarchical() ? source_->subgraph()->outputInterfaces()[sourcePort_->ix()]->name().c_str()
+                                      : source_->name().c_str(),
+            source_->isHierarchical() ? 0 : sourcePort_->ix(),
+            sink_->isHierarchical() ? sink_->subgraph()->inputInterfaces()[sinkPort_->ix()]->name().c_str()
+                                    : sink_->name().c_str(),
+            sink_->isHierarchical() ? 0 : sinkPort_->ix(),
             sinkRate(),
             sourceRate());
 }
 
-PiSDFVertex *PiSDFEdge::source() const {
-    if (source_ && source_->isHierarchical()) {
-        return source_->subgraph()->outputInterfaces()[sourcePort_->ix()]->inputEdge()->source();
+PiSDFVertex *PiSDFEdge::source(bool forward) const {
+    if (forward && source_ && source_->isHierarchical()) {
+        return source_->subgraph()->outputInterfaces()[sourcePort_->ix()]->inputEdge()->source(true);
     }
     return source_;
 }
 
-PiSDFVertex *PiSDFEdge::sink() const {
-    if (sink_ && sink_->isHierarchical()) {
-        return sink_->subgraph()->inputInterfaces()[sinkPort_->ix()]->outputEdge()->sink();
+PiSDFVertex *PiSDFEdge::sink(bool forward) const {
+    if (forward && sink_ && sink_->isHierarchical()) {
+        return sink_->subgraph()->inputInterfaces()[sinkPort_->ix()]->outputEdge()->sink(true);
     }
     return sink_;
 }
@@ -157,5 +174,15 @@ std::int64_t PiSDFEdge::sourceRate() const {
 
 std::int64_t PiSDFEdge::sinkRate() const {
     return sinkPort_->rate();
+}
+
+void PiSDFEdge::disconnectSource() {
+    source_ = nullptr;
+    Spider::destroy(sourcePort_);
+}
+
+void PiSDFEdge::disconnectSink() {
+    sink_ = nullptr;
+    Spider::destroy(sinkPort_);
 }
 
