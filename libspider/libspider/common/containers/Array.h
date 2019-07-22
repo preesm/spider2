@@ -120,14 +120,12 @@ namespace Spider {
         T *array_;
 
         bool copied_ = false;
-
-        inline void constructorHelper(StackID stack);
     };
 
     /* === Inline methods === */
 
     template<typename T>
-    void Array<T>::constructorHelper(StackID stack) {
+    Array<T>::Array(StackID stack, std::uint64_t size) : size_{size}, arraySize_{size + 1} {
         array_ = Spider::allocate<T>(stack, arraySize_);
         if (!array_) {
             throwSpiderException("Failed to allocate array.");
@@ -135,13 +133,7 @@ namespace Spider {
     }
 
     template<typename T>
-    Array<T>::Array(StackID stack, std::uint64_t size) : size_{size}, arraySize_{size + 1} {
-        constructorHelper(stack);
-    }
-
-    template<typename T>
-    Array<T>::Array(StackID stack, std::uint64_t size, T value) : size_{size}, arraySize_{size + 1} {
-        constructorHelper(stack);
+    Array<T>::Array(StackID stack, std::uint64_t size, T value) : Array(stack, size) {
         std::fill(this->begin(), this->end(), value);
     }
 
