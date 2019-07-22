@@ -37,44 +37,37 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_PISDFTYPES_H
-#define SPIDER2_PISDFTYPES_H
 
 /* === Includes === */
 
-#include <cstdint>
+#include "PiSDFPort.h"
+#include <graphs/pisdf/PiSDFEdge.h>
+#include <graphs/pisdf/PiSDFVertex.h>
 
-/* === Enumeration(s) === */
+/* === Methods implementation === */
 
-/**
- * @brief PiSDF parameter types
- */
-enum class PiSDFParamType : std::uint8_t {
-    STATIC,            /*! Static parameter: expression is evaluated at startup only once */
-    HERITED,           /*! Herited parameter: if inheritance is fully static == STATIC type, else DYNAMIC_DEPENDENT */
-    DYNAMIC,           /*! Dynamic parameter: value is set at runtime */
-    DYNAMIC_DEPENDENT, /*! Dynamic parameter: expression is evaluated at runtime */
-};
+PiSDFPort::PiSDFPort(PiSDFGraph *graph, const std::string &expression) : expression_{graph,
+                                                                                     expression} {
 
-/**
- * @brief Type of PiSDF vertices
- */
-enum class PiSDFVertexType : std::uint8_t {
-    NORMAL,         /*! Normal actor subtype */
-    BROADCAST,      /*! Roundbuffer actor subtype */
-    ROUNDBUFFER,    /*! Roundbuffer actor subtype */
-    FORK,           /*! Fork actor subtype */
-    JOIN,           /*! Join actor subtype */
-    INIT,           /*! Init actor subtype */
-    END,            /*! End actor subtype */
-    CONFIG,         /*! Config vertex subtype */
-    HIERARCHICAL,   /*! Hierarchical vertex subtype */
-    INTERFACE,      /*! Interface vertex subtype */
-};
+}
 
-enum class PiSDFInterfaceType : std::uint8_t {
-    INPUT,          /*! Input interface type */
-    OUTPUT,         /*! Output interface type */
-};
+PiSDFPort::PiSDFPort(std::int64_t rate) : expression_{rate} {
 
-#endif //SPIDER2_PISDFTYPES_H
+}
+
+void PiSDFPort::connectEdge(PiSDFEdge *edge, std::uint16_t ix) {
+    if (edge_) {
+        throwSpiderException("PiSDFPort is already connected to an edge.");
+    } else if (!edge) {
+        throwSpiderException("Trying to connect null edge to PiSDFPort.");
+    }
+    edge_ = edge;
+    ix_ = ix;
+}
+
+void PiSDFPort::disconnectEdge() {
+    edge_ = nullptr;
+    ix_ = UINT16_MAX;
+}
+
+

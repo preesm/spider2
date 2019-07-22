@@ -55,48 +55,47 @@ PiSDFGraph::PiSDFGraph(std::string name,
                        std::uint64_t nInputInterfaces,
                        std::uint64_t nOutputInterfaces,
                        std::uint64_t nConfigActors) : name_{std::move(name)},
-                                                      vertexSet_{StackID::PISDF, nActors},
-                                                      edgeSet_{StackID::PISDF, nEdges},
-                                                      paramSet_{StackID::PISDF, nParams},
-                                                      inputInterfaceSet_{StackID::PISDF, nInputInterfaces},
-                                                      outputInterfaceSet_{StackID::PISDF, nOutputInterfaces},
-                                                      configSet_{StackID::PISDF, nConfigActors} {
-
+                                                      paramSet_{StackID::PISDF, nParams} {
+    vertexVector_.reserve(nActors);
+    edgeVector_.reserve(nEdges);
+    configVector_.reserve(nConfigActors);
+    inputInterfaceVector_.reserve(nInputInterfaces);
+    outputInterfaceVector_.reserve(nOutputInterfaces);
 }
 
-PiSDFGraph::PiSDFGraph(std::string name,
-                       PiSDFGraph *parent,
+PiSDFGraph::PiSDFGraph(PiSDFVertex *parent,
+                       std::string name,
                        std::uint64_t nActors,
                        std::uint64_t nEdges,
                        std::uint64_t nParams,
                        std::uint64_t nInputInterfaces,
                        std::uint64_t nOutputInterfaces,
-                       std::uint64_t nConfigActors) : name_{std::move(name)},
-                                                      vertexSet_{StackID::PISDF, nActors},
-                                                      edgeSet_{StackID::PISDF, nEdges},
-                                                      paramSet_{StackID::PISDF, nParams},
-                                                      inputInterfaceSet_{StackID::PISDF, nInputInterfaces},
-                                                      outputInterfaceSet_{StackID::PISDF, nOutputInterfaces},
-                                                      configSet_{StackID::PISDF, nConfigActors},
-                                                      parentGraph_{parent} {
+                       std::uint64_t nConfigActors) : PiSDFGraph(name,
+                                                                 nActors,
+                                                                 nEdges,
+                                                                 nParams,
+                                                                 nInputInterfaces,
+                                                                 nOutputInterfaces,
+                                                                 nConfigActors) {
     if (!parent) {
         throwSpiderException("Can not create subgraph with null parent.");
     }
-    parent->addSubgraph(this);
+    parent_ = parent;
+    parent->containingGraph()->addSubgraph(this);
 }
 
 PiSDFGraph::~PiSDFGraph() {
-    for (auto &v : vertexSet_) {
+    for (auto &v : vertexVector_) {
         Spider::destroy(v);
         Spider::deallocate(v);
     }
 
-    for (auto &sg: subgraphList_) {
+    for (auto &sg: subgraphVector_) {
         Spider::destroy(sg);
         Spider::deallocate(sg);
     }
 
-    for (auto &e:edgeSet_) {
+    for (auto &e:edgeVector_) {
         Spider::destroy(e);
         Spider::deallocate(e);
     }
@@ -106,17 +105,17 @@ PiSDFGraph::~PiSDFGraph() {
         Spider::deallocate(p);
     }
 
-    for (auto &inIf:inputInterfaceSet_) {
+    for (auto &inIf:inputInterfaceVector_) {
         Spider::destroy(inIf);
         Spider::deallocate(inIf);
     }
 
-    for (auto &outIf:outputInterfaceSet_) {
+    for (auto &outIf:outputInterfaceVector_) {
         Spider::destroy(outIf);
         Spider::deallocate(outIf);
     }
 
-    for (auto &c:configSet_) {
+    for (auto &c:configVector_) {
         Spider::destroy(c);
         Spider::deallocate(c);
     }
@@ -126,10 +125,13 @@ void PiSDFGraph::removeVertex(PiSDFVertex *vertex) {
     if (!vertex) {
         return;
     }
-    if (!vertexSet_.contains(vertex)) {
+    auto ix = vertex->getIx();
+    if (vertexVector_[ix] != vertex) {
         throwSpiderException("Trying to remove a vertex [%s] that don't belong to this graph.", vertex->name().c_str());
     }
-    vertexSet_.remove(vertex);
+    vertexVector_[ix] = vertexVector_.back();
+    vertexVector_[ix]->setIx(ix);
+    vertexVector_.pop_back();
     Spider::destroy(vertex);
     Spider::deallocate(vertex);
 }
@@ -143,7 +145,7 @@ void PiSDFGraph::removeSubgraph(PiSDFGraph *subgraph) {
                              subgraph->name().c_str());
     }
     auto wasStatic = subgraph->isStatic();
-    subgraphList_.removeFromValue(subgraph);
+    subgraphVector_.removeFromValue(subgraph);
     Spider::destroy(subgraph);
     Spider::deallocate(subgraph);
 
@@ -151,18 +153,32 @@ void PiSDFGraph::removeSubgraph(PiSDFGraph *subgraph) {
     if (wasStatic) {
         static_ = hasDynamicParameters_;
         if (static_) {
-            for (auto &g:subgraphList_) {
+            for (auto &g:subgraphVector_) {
                 static_ &= g->isStatic();
             }
         }
     }
 }
 
+void PiSDFGraph::removeEdge(PiSDFEdge *edge) {
+    if (!edge) {
+        return;
+    }
+    if (edgeVector_[edge->getIx()] != edge) {
+        throwSpiderException("Trying to remove an edge not from this graph.");
+    }
+    edgeVector_[edge->getIx()] = edgeVector_.back();
+    edgeVector_[edge->getIx()]->setIx(edge->getIx());
+    edgeVector_.pop_back();
+    Spider::destroy(edge);
+    Spider::deallocate(edge);
+}
+
 void PiSDFGraph::addSubgraph(PiSDFGraph *subgraph) {
     if (!subgraph) {
         throwSpiderException("Can not add nullptr subgraph.");
     }
-    subgraphList_.addTail(subgraph);
+    subgraphVector_.addTail(subgraph);
     static_ &= subgraph->static_;
 }
 
@@ -182,7 +198,7 @@ void PiSDFGraph::exportDot(FILE *file, const std::string &offset) const {
 
 void PiSDFGraph::exportDotHelper(FILE *file, const std::string &offset) const {
     auto fwOffset{offset};
-    if (parentGraph_) {
+    if (parent_) {
         fprintf(file, "%ssubgraph cluster {\n", fwOffset.c_str());
         fwOffset += "\t";
         fprintf(file, "%slabel=\"%s\";\n", fwOffset.c_str(), name_.c_str());
@@ -198,16 +214,16 @@ void PiSDFGraph::exportDotHelper(FILE *file, const std::string &offset) const {
     }
 
     fprintf(file, "\n%s// Vertices\n", fwOffset.c_str());
-    for (const auto &v:vertexSet_) {
+    for (const auto &v:vertexVector_) {
         v->exportDot(file, fwOffset);
     }
 
-    if (parentGraph_) {
+    if (parent_) {
         fprintf(file, "\n%s// Interfaces\n", fwOffset.c_str());
-        for (const auto &i:inputInterfaceSet_) {
+        for (const auto &i:inputInterfaceVector_) {
             i->exportDot(file, fwOffset);
         }
-        for (const auto &o:outputInterfaceSet_) {
+        for (const auto &o:outputInterfaceVector_) {
             o->exportDot(file, fwOffset);
         }
     }
@@ -220,14 +236,14 @@ void PiSDFGraph::exportDotHelper(FILE *file, const std::string &offset) const {
     }
 
     fprintf(file, "\n%s// Subgraphs\n", fwOffset.c_str());
-    for (const auto &subgraph:subgraphList_) {
+    for (const auto &subgraph:subgraphVector_) {
         subgraph->exportDot(file, fwOffset);
     }
 
     fprintf(file, "\n%s// Vertex edges\n", fwOffset.c_str());
-    for (const auto &e:edgeSet_) {
+    for (const auto &e:edgeVector_) {
         e->exportDot(file, fwOffset);
     }
 
-    fprintf(file, "%s}\n", parentGraph_ ? offset.c_str() : "");
+    fprintf(file, "%s}\n", parent_ ? offset.c_str() : "");
 }

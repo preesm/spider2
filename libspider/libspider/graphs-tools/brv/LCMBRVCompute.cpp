@@ -103,8 +103,8 @@ void LCMBRVCompute::extractRationals(Spider::Array<const PiSDFEdge *> &edgeArray
                                  sinkRate);
         }
 
-        auto &sourceRational = edge->sourceIf() ? dummyRational : reps[source->getIx()];
-        auto &sinkRational = edge->sinkIf() ? dummyRational : reps[sink->getIx()];
+        auto &sourceRational = source->type() == PiSDFVertexType::INTERFACE ? dummyRational : reps[source->getIx()];
+        auto &sinkRational = sink->type() == PiSDFVertexType::INTERFACE ? dummyRational : reps[sink->getIx()];
 
         if (!sinkRational.nominator() && sinkRate) {
             sinkRational = Spider::Rational{sourceRate, sinkRate};
@@ -140,7 +140,8 @@ void LCMBRVCompute::computeBRV(const BRVComponent &component,
 
 void LCMBRVCompute::checkValidity(Spider::Array<const PiSDFEdge *> &edgeArray) const {
     for (const auto &edge : edgeArray) {
-        if (edge->sourceIf() || edge->sinkIf()) {
+        if (edge->source()->type() == PiSDFVertexType::INTERFACE ||
+            edge->sink()->type() == PiSDFVertexType::INTERFACE) {
             continue;
         }
         auto sourceRate = edge->sourceRate();

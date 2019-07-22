@@ -44,9 +44,8 @@
 
 #include <cstdint>
 #include <string>
-#include <common/containers/Set.h>
 #include <graphs-tools/expression-parser/Expression.h>
-#include <graphs/pisdf/PiSDFInterface.h>
+#include <graphs/pisdf/PiSDFPort.h>
 
 /* === Forward declaration(s) === */
 
@@ -54,38 +53,17 @@ class PiSDFVertex;
 
 class PiSDFGraph;
 
-
 /* === Class definition === */
 
-class PiSDFEdge : public Spider::SetElement {
+class PiSDFEdge {
 public:
 
     PiSDFEdge(PiSDFGraph *graph,
               PiSDFVertex *source,
-              std::uint32_t srcPortIx,
+              std::uint16_t srcPortIx,
               const std::string &prodExpr,
               PiSDFVertex *sink,
-              std::uint32_t snkPortIx,
-              const std::string &consExpr);
-
-    PiSDFEdge(PiSDFGraph *graph,
-              PiSDFInterface *sourceIf,
-              const std::string &prodExpr,
-              PiSDFInterface *sinkIf,
-              const std::string &consExpr);
-
-    PiSDFEdge(PiSDFGraph *graph,
-              PiSDFInterface *sourceIf,
-              const std::string &prodExpr,
-              PiSDFVertex *sink,
-              std::uint32_t snkPortIx,
-              const std::string &consExpr);
-
-    PiSDFEdge(PiSDFGraph *graph,
-              PiSDFVertex *source,
-              std::uint32_t srcPortIx,
-              const std::string &prodExpr,
-              PiSDFInterface *sinkIf,
+              std::uint16_t snkPortIx,
               const std::string &consExpr);
 
     ~PiSDFEdge();
@@ -98,15 +76,21 @@ public:
      */
     void exportDot(FILE *file, const std::string &offset) const;
 
+    void connectSource(PiSDFVertex *vertex, std::uint16_t portIx, const std::string &prodExpr);
+
+    void connectSource(PiSDFVertex *vertex, std::uint16_t portIx, std::int64_t prod);
+
+    void connectSink(PiSDFVertex *vertex, std::uint32_t portIx, const std::string &consExpr);
+
+    void connectSink(PiSDFVertex *vertex, std::uint32_t portIx, std::int64_t cons);
+
     /* === Setters === */
 
-    void setSource(PiSDFVertex *vertex, std::uint32_t srcPortIx, const std::string &prodExpr);
-
-    void setSource(PiSDFInterface *interface, const std::string &prodExpr);
-
-    void setSink(PiSDFVertex *vertex, std::uint32_t snkPortIx, const std::string &consExpr);
-
-    void setSink(PiSDFInterface *interface, const std::string &consExpr);
+    /**
+     * @brief Set the ix of the edge in the containing graph.
+     * @param ix Ix to set.
+     */
+    inline void setIx(std::uint32_t ix);
 
     /* === Getters ===  */
 
@@ -119,14 +103,16 @@ public:
     /**
      * @brief Get the source @refitem PiSDFVertex of the edge.
      * @return source @refitem PiSDFVertex
+     * @remark if source is hierarchical, return vertex connected to the interface
      */
-    inline PiSDFVertex *source() const;
+    PiSDFVertex *source() const;
 
     /**
      * @brief Get the sink @refitem PiSDFVertex of the edge.
      * @return sink @refitem PiSDFVertex
+     * @remark if sink is hierarchical, return vertex connected to the interface
      */
-    inline PiSDFVertex *sink() const;
+    PiSDFVertex *sink() const;
 
     /**
      * @brief Get the source rate of the edge.
@@ -144,76 +130,51 @@ public:
      * @brief Get the source rate of the edge.
      * @return source rate
      */
-    std::uint64_t sourceRate() const;
+    std::int64_t sourceRate() const;
 
     /**
      * @brief Get the sink rate of the edge.
      * @return sink rate
      */
-    std::uint64_t sinkRate() const;
+    std::int64_t sinkRate() const;
 
     /**
-     * @brief Get the sink @refitem PiSDFInterface of the edge (if any).
-     * @return sink @refitem PiSDFInterface
+     * @brief Get the ix of the edge in the containing graph.
+     * @return ix of the edge (UINT32_MAX if no ix).
      */
-    inline PiSDFInterface *sinkIf() const;
-
-    /**
-     * @brief Get the source @refitem PiSDFInterface of the edge (if any).
-     * @return source @refitem PiSDFInterface
-     */
-    inline PiSDFInterface *sourceIf() const;
+    inline std::uint32_t getIx() const;
 
 private:
     PiSDFGraph *graph_ = nullptr;
     PiSDFVertex *source_ = nullptr;
     PiSDFVertex *sink_ = nullptr;
 
-    std::uint32_t sourcePortIx_ = 0;
-    std::uint32_t sinkPortIx_ = 0;
+    PiSDFPort *sinkPort_ = nullptr;
+    PiSDFPort *sourcePort_ = nullptr;
 
-    Expression *sourceRateExpr_ = nullptr;
-    Expression *sinkRateExpr_ = nullptr;
-
-    PiSDFInterface *sourceIf_ = nullptr;
-    PiSDFInterface *sinkIf_ = nullptr;
+    std::uint32_t ix_ = UINT32_MAX;
 };
 
-/* === Inline methdos === */
+/* === Inline method(s) === */
+
+void PiSDFEdge::setIx(std::uint32_t ix) {
+    ix_ = ix;
+}
 
 const PiSDFGraph *PiSDFEdge::containingGraph() const {
     return graph_;
 }
 
-PiSDFVertex *PiSDFEdge::source() const {
-    if (!source_ && sourceIf_) {
-        return sourceIf_->inputEdge()->source();
-    }
-    return source_;
-}
-
-PiSDFVertex *PiSDFEdge::sink() const {
-    if (!sink_ && sinkIf_) {
-        return sinkIf_->outputEdge()->sink();
-    }
-    return sink_;
-}
-
 std::uint32_t PiSDFEdge::sourcePortIx() const {
-    return sourcePortIx_;
+    return sourcePort_->ix();
 }
-
 
 std::uint32_t PiSDFEdge::sinkPortIx() const {
-    return sinkPortIx_;
+    return sinkPort_->ix();
 }
 
-PiSDFInterface *PiSDFEdge::sourceIf() const {
-    return sourceIf_;
-}
-
-PiSDFInterface *PiSDFEdge::sinkIf() const {
-    return sinkIf_;
+std::uint32_t PiSDFEdge::getIx() const {
+    return ix_;
 }
 
 #endif //SPIDER2_PISDFEDGE_H

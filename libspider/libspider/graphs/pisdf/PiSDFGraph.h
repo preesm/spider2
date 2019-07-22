@@ -67,8 +67,8 @@ public:
                std::uint64_t nOutputInterfaces = 0,
                std::uint64_t nConfigActors = 0);
 
-    PiSDFGraph(std::string name,
-               PiSDFGraph *parent,
+    PiSDFGraph(PiSDFVertex *parent,
+               std::string name,
                std::uint64_t nActors,
                std::uint64_t nEdges,
                std::uint64_t nParams = 0,
@@ -126,7 +126,7 @@ public:
      * @param edge Edge to remove.
      * @throw @refitem SpiderException if edge does not exist in the graph.
      */
-    inline void removeEdge(PiSDFEdge *edge);
+    void removeEdge(PiSDFEdge *edge);
 
     /**
      * @brief Add an param to the graph.
@@ -165,13 +165,6 @@ public:
 
     /* === Setters === */
 
-    /**
-     * @brief Set the parent graph of the graph.
-     * @param parent Parent graph.
-     * @remark This method may call @refitem setSubGraph of class @refitem PiSDFGraph.
-     * @throw @refitem SpiderException if already has a parent graph or if nullptr.
-     */
-    inline void setParentGraph(PiSDFGraph *parent);
 
     /* === Getters === */
 
@@ -219,34 +212,40 @@ public:
     inline std::uint64_t nOutputInterfaces() const;
 
     /**
-     * @brief Get the parent graph of current sub-graph.
-     * @return Parent graph, nullptr if top graph.
+     * @brief Get the parent vertex of current sub-graph.
+     * @return Parent vertex, nullptr if top graph.
      */
-    inline PiSDFGraph *parentGraph() const;
+    inline PiSDFVertex *parent() const;
 
     /**
     * @brief A const reference on the set of vertices. Useful for iterating on the vertices.
     * @return const reference to vertex set
     */
-    inline const Spider::Set<PiSDFVertex *> &vertices() const;
+    inline const Spider::vector<PiSDFVertex *> &vertices() const;
+
+    /**
+    * @brief A const reference on the set of vertices. Useful for iterating on the vertices.
+    * @return const reference to vertex set
+    */
+    inline const Spider::vector<PiSDFVertex *> &configActors() const;
 
     /**
     * @brief A const reference on the set of output interfaces. Useful for iterating on the input interfaces.
     * @return const reference to input interface set
     */
-    inline const Spider::Set<PiSDFInterface *> &inputInterfaces() const;
+    inline const Spider::vector<PiSDFInterface *> &inputInterfaces() const;
 
     /**
     * @brief A const reference on the set of output interfaces. Useful for iterating on the output interfaces.
     * @return const reference to output interface set
     */
-    inline const Spider::Set<PiSDFInterface *> &outputInterfaces() const;
+    inline const Spider::vector<PiSDFInterface *> &outputInterfaces() const;
 
     /**
     * @brief A const reference on the set of edges. Useful for iterating on the edges.
     * @return const reference to edge set
     */
-    inline const Spider::Set<PiSDFEdge *> &edges() const;
+    inline const Spider::vector<PiSDFEdge *> &edges() const;
 
     /**
     * @brief A const reference on the set of params. Useful for iterating on the params.
@@ -280,17 +279,17 @@ public:
 
 private:
     std::string name_ = "topgraph";
-    Spider::Set<PiSDFVertex *> vertexSet_;
-    Spider::Set<PiSDFEdge *> edgeSet_;
+    Spider::vector<PiSDFVertex *> vertexVector_;
+    Spider::vector<PiSDFEdge *> edgeVector_;
     Spider::Set<PiSDFParam *> paramSet_;
-    Spider::Set<PiSDFInterface *> inputInterfaceSet_;
-    Spider::Set<PiSDFInterface *> outputInterfaceSet_;
-    Spider::Set<PiSDFVertex *> configSet_;
-    Spider::LinkedList<PiSDFGraph *> subgraphList_;
+    Spider::vector<PiSDFInterface *> inputInterfaceVector_;
+    Spider::vector<PiSDFInterface *> outputInterfaceVector_;
+    Spider::vector<PiSDFVertex *> configVector_;
+    Spider::LinkedList<PiSDFGraph *> subgraphVector_;
 
     bool static_ = true;
     bool hasDynamicParameters_ = false;
-    PiSDFGraph *parentGraph_ = nullptr;
+    PiSDFVertex *parent_ = nullptr;
 
     /**
      * @brief Export to DOT from a given FILE pointer.
@@ -304,11 +303,23 @@ private:
 
 void PiSDFGraph::addVertex(PiSDFVertex *vertex) {
     switch (vertex->type()) {
-        case PiSDFType::VERTEX:
-            vertexSet_.add(vertex);
+        case PiSDFVertexType::BROADCAST:
+        case PiSDFVertexType::ROUNDBUFFER:
+        case PiSDFVertexType::FORK:
+        case PiSDFVertexType::JOIN:
+        case PiSDFVertexType::INIT:
+        case PiSDFVertexType::END:
+        case PiSDFVertexType::NORMAL:
+            vertex->setIx(vertexVector_.size());
+            vertexVector_.push_back(vertex);
             break;
-        case PiSDFType::CONFIG_VERTEX:
-            configSet_.add(vertex);
+        case PiSDFVertexType::HIERARCHICAL:
+            vertex->setIx(vertexVector_.size());
+            vertexVector_.push_back(vertex);
+            break;
+        case PiSDFVertexType::CONFIG:
+            vertex->setIx(vertexVector_.size());
+            configVector_.push_back(vertex);
             break;
         default:
             throwSpiderException("Unsupported type of vertex.");
@@ -316,12 +327,14 @@ void PiSDFGraph::addVertex(PiSDFVertex *vertex) {
 }
 
 void PiSDFGraph::addInterface(PiSDFInterface *interface) {
-    switch (interface->type()) {
+    switch (interface->interfaceType()) {
         case PiSDFInterfaceType::INPUT:
-            inputInterfaceSet_.add(interface);
+            interface->setIx(inputInterfaceVector_.size());
+            inputInterfaceVector_.push_back(interface);
             break;
         case PiSDFInterfaceType::OUTPUT:
-            outputInterfaceSet_.add(interface);
+            interface->setIx(outputInterfaceVector_.size());
+            outputInterfaceVector_.push_back(interface);
             break;
         default:
             throwSpiderException("Unsupported type of interface");
@@ -329,19 +342,8 @@ void PiSDFGraph::addInterface(PiSDFInterface *interface) {
 }
 
 void PiSDFGraph::addEdge(PiSDFEdge *edge) {
-    edgeSet_.add(edge);
-}
-
-void PiSDFGraph::removeEdge(PiSDFEdge *edge) {
-    if (!edge) {
-        return;
-    }
-    if (!edgeSet_.contains(edge)) {
-        throwSpiderException("Trying to remove an edge not from this graph.");
-    }
-    edgeSet_.remove(edge);
-    Spider::destroy(edge);
-    Spider::deallocate(edge);
+    edge->setIx(edgeVector_.size());
+    edgeVector_.push_back(edge);
 }
 
 void PiSDFGraph::addParam(PiSDFParam *param) {
@@ -354,14 +356,14 @@ void PiSDFGraph::addParam(PiSDFParam *param) {
         static_ = false;
 
         /* == We need to propagate this property up in the hierarchy == */
-        auto *parent = parentGraph_;
+        auto *parent = parent_->containingGraph();
         while (parent) {
             /* == If graph was already dynamic then information is already propagated == */
             if (!parent->static_) {
                 break;
             }
             parent->static_ = false;
-            parent = parent->parentGraph_;
+            parent = parent->parent_->containingGraph();
         }
     }
 }
@@ -387,62 +389,56 @@ PiSDFParam *PiSDFGraph::findParam(const std::string &name) const {
     return nullptr;
 }
 
-void PiSDFGraph::setParentGraph(PiSDFGraph *parent) {
-    if (parentGraph_) {
-        throwSpiderException("Graph already has a parent graph.");
-    }
-    if (!parent) {
-        throwSpiderException("Trying to set nullptr parent graph.");
-    }
-    parentGraph_ = parent;
-}
-
 std::uint64_t PiSDFGraph::nVertices() const {
-    return vertexSet_.occupied();
+    return vertexVector_.size();
 }
 
 std::uint64_t PiSDFGraph::nConfigs() const {
-    return configSet_.occupied();
+    return configVector_.size();
 }
 
 std::uint64_t PiSDFGraph::nEdges() const {
-    return edgeSet_.occupied();
+    return edgeVector_.size();
 }
 
 std::uint64_t PiSDFGraph::nSubGraphs() const {
-    return subgraphList_.size();
+    return subgraphVector_.size();
 }
 
 std::uint64_t PiSDFGraph::nInterfaces() const {
-    return inputInterfaceSet_.occupied() + outputInterfaceSet_.occupied();
+    return nInputInterfaces() + nOutputInterfaces();
 }
 
 std::uint64_t PiSDFGraph::nInputInterfaces() const {
-    return inputInterfaceSet_.occupied();
+    return inputInterfaceVector_.size();
 }
 
 std::uint64_t PiSDFGraph::nOutputInterfaces() const {
-    return outputInterfaceSet_.occupied();
+    return outputInterfaceVector_.size();
 }
 
-PiSDFGraph *PiSDFGraph::parentGraph() const {
-    return parentGraph_;
+PiSDFVertex *PiSDFGraph::parent() const {
+    return parent_;
 }
 
-const Spider::Set<PiSDFVertex *> &PiSDFGraph::vertices() const {
-    return vertexSet_;
+const Spider::vector<PiSDFVertex *> &PiSDFGraph::vertices() const {
+    return vertexVector_;
 }
 
-const Spider::Set<PiSDFInterface *> &PiSDFGraph::inputInterfaces() const {
-    return inputInterfaceSet_;
+const Spider::vector<PiSDFVertex *> &PiSDFGraph::configActors() const {
+    return configVector_;
 }
 
-const Spider::Set<PiSDFInterface *> &PiSDFGraph::outputInterfaces() const {
-    return outputInterfaceSet_;
+const Spider::vector<PiSDFInterface *> &PiSDFGraph::inputInterfaces() const {
+    return inputInterfaceVector_;
 }
 
-const Spider::Set<PiSDFEdge *> &PiSDFGraph::edges() const {
-    return edgeSet_;
+const Spider::vector<PiSDFInterface *> &PiSDFGraph::outputInterfaces() const {
+    return outputInterfaceVector_;
+}
+
+const Spider::vector<PiSDFEdge *> &PiSDFGraph::edges() const {
+    return edgeVector_;
 }
 
 const Spider::Set<PiSDFParam *> &PiSDFGraph::params() const {
@@ -450,7 +446,7 @@ const Spider::Set<PiSDFParam *> &PiSDFGraph::params() const {
 }
 
 const Spider::LinkedList<PiSDFGraph *> &PiSDFGraph::subgraphs() const {
-    return subgraphList_;
+    return subgraphVector_;
 }
 
 bool PiSDFGraph::isStatic() const {

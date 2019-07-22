@@ -43,22 +43,7 @@
 #include <graphs/pisdf/PiSDFGraph.h>
 #include "PiSDFInterface.h"
 
-/* === Methods implementation === */
-
-PiSDFInterface::PiSDFInterface(PiSDFGraph *graph,
-                               std::string name,
-                               PiSDFInterfaceType type,
-                               std::uint32_t ix,
-                               PiSDFEdge *inputEdge,
-                               PiSDFEdge *outputEdge) : graph_{graph},
-                                                        type_{type},
-                                                        ix_{ix},
-                                                        inputEdge_{inputEdge},
-                                                        outputEdge_{outputEdge},
-                                                        name_{std::move(name)} {
-
-    graph->addInterface(this);
-}
+/* === Static function(s) === */
 
 static const char *getBGColor(PiSDFInterfaceType type) {
     switch (type) {
@@ -71,10 +56,33 @@ static const char *getBGColor(PiSDFInterfaceType type) {
     }
 }
 
+
+/* === Methods implementation === */
+
+PiSDFInterface::PiSDFInterface(PiSDFGraph *graph,
+                               std::string name,
+                               PiSDFInterfaceType type) : PiSDFVertex(graph,
+                                                                      std::move(name),
+                                                                      PiSDFVertexType::INTERFACE,
+                                                                      1,
+                                                                      1,
+                                                                      0,
+                                                                      0) {
+    interfaceType_ = type;
+    graph->addInterface(this);
+}
+
+std::uint16_t PiSDFInterface::correspondingPortIx() const {
+    if (interfaceType_ == PiSDFInterfaceType::INPUT) {
+        return inputEdge()->sinkPortIx();
+    }
+    return outputEdge()->sourcePortIx();
+}
+
 void PiSDFInterface::exportDot(FILE *file, const std::string &offset) const {
-    fprintf(file, "%s\"%s\" [ shape = none, margin = 0, label = <\n", offset.c_str(), name_.c_str());
+    fprintf(file, "%s\"%s\" [ shape = none, margin = 0, label = <\n", offset.c_str(), name().c_str());
     fprintf(file, "%s\t<table border = \"1\" cellspacing=\"0\" cellpadding = \"0\" bgcolor = \"#%s\">\n",
-            offset.c_str(), getBGColor(type_));
+            offset.c_str(), getBGColor(interfaceType_));
 
     /* == Header == */
     fprintf(file, "%s\t\t<tr> <td colspan=\"3\" border=\"0\"><font point-size=\"5\"> </font></td></tr>\n",
@@ -82,11 +90,11 @@ void PiSDFInterface::exportDot(FILE *file, const std::string &offset) const {
 
     /* == Vertex name == */
     fprintf(file, "%s\t\t<tr> <td colspan=\"3\" border=\"0\"><font point-size=\"35\">%s</font></td></tr>\n",
-            offset.c_str(), name_.c_str());
+            offset.c_str(), name().c_str());
 
     /* == Input ports == */
     fprintf(file, "%s\t\t<tr>\n", offset.c_str());
-    if (inputEdge_) {
+    if (inputEdge()) {
         fprintf(file, "%s\t\t\t<td border=\"0\">\n", offset.c_str());
         fprintf(file, "%s\t\t\t\t<table border=\"0\" cellpadding=\"0\" cellspacing=\"1\">\n", offset.c_str());
         /* == Print the output edge port information == */
@@ -94,14 +102,15 @@ void PiSDFInterface::exportDot(FILE *file, const std::string &offset) const {
         fprintf(file, "%s\t\t\t\t\t\t<td port=\"in_0\" border=\"1\" bgcolor=\"#87d37c\">    </td>\n", offset.c_str());
         fprintf(file,
                 "%s\t\t\t\t\t\t<td align=\"right\" border=\"0\" bgcolor=\"#%s\"><font point-size=\"15\">in</font></td>\n",
-                offset.c_str(), getBGColor(type_));
+                offset.c_str(), getBGColor(interfaceType_));
         fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());
         fprintf(file, "%s\t\t\t\t</table>\n", offset.c_str());
         fprintf(file, "%s\t\t\t</td>\n", offset.c_str());
     } else {
         /* == Print the dummy port for pretty spacing == */
         fprintf(file, "%s\t\t\t\t\t<tr>\n", offset.c_str());
-        fprintf(file, "%s\t\t\t\t\t\t<td border=\"0\" bgcolor=\"#%s\">    </td>\n", offset.c_str(), getBGColor(type_));
+        fprintf(file, "%s\t\t\t\t\t\t<td border=\"0\" bgcolor=\"#%s\">    </td>\n", offset.c_str(),
+                getBGColor(interfaceType_));
         fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());
     }
 
@@ -109,14 +118,14 @@ void PiSDFInterface::exportDot(FILE *file, const std::string &offset) const {
     fprintf(file, "%s\t\t\t<td border=\"0\" colspan=\"1\" cellpadding=\"10\"> </td>\n", offset.c_str());
 
     /* == Output ports == */
-    if (outputEdge_) {
+    if (outputEdge()) {
         fprintf(file, "%s\t\t\t<td border=\"0\">\n", offset.c_str());
         fprintf(file, "%s\t\t\t\t<table border=\"0\" cellpadding=\"0\" cellspacing=\"1\">\n", offset.c_str());
         /* == Print the output edge port information == */
         fprintf(file, "%s\t\t\t\t\t<tr>\n", offset.c_str());
         fprintf(file,
                 "%s\t\t\t\t\t\t<td align=\"right\" border=\"0\" bgcolor=\"#%s\"><font point-size=\"15\">out</font></td>\n",
-                offset.c_str(), getBGColor(type_));
+                offset.c_str(), getBGColor(interfaceType_));
         fprintf(file, "%s\t\t\t\t\t\t<td port=\"out_0\" border=\"1\" bgcolor=\"#ec644b\">    </td>\n", offset.c_str());
         fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());
         fprintf(file, "%s\t\t\t\t</table>\n", offset.c_str());
@@ -124,7 +133,8 @@ void PiSDFInterface::exportDot(FILE *file, const std::string &offset) const {
     } else {
         /* == Print the dummy port for pretty spacing == */
         fprintf(file, "%s\t\t\t\t\t<tr>\n", offset.c_str());
-        fprintf(file, "%s\t\t\t\t\t\t<td border=\"0\" bgcolor=\"#%s\">    </td>\n", offset.c_str(), getBGColor(type_));
+        fprintf(file, "%s\t\t\t\t\t\t<td border=\"0\" bgcolor=\"#%s\">    </td>\n", offset.c_str(),
+                getBGColor(interfaceType_));
         fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());
     }
     fprintf(file, "%s\t\t</tr>\n", offset.c_str());

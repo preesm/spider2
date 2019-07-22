@@ -118,11 +118,11 @@ bool TopologyBRVCompute::isVertexExecutable(const PiSDFVertex *vertex) {
 }
 
 bool TopologyBRVCompute::isEdgeValid(const PiSDFEdge *edge, Spider::Array<std::int32_t> &vertexIxArray) {
-    return !edge->sourceIf() &&
-           !edge->sinkIf() &&
+    return edge->source()->type() != PiSDFVertexType::INTERFACE &&
+           edge->sink()->type() != PiSDFVertexType::INTERFACE &&
            edge->source() != edge->sink() &&
-           edge->source()->type() == PiSDFType::VERTEX &&
-           edge->sink()->type() == PiSDFType::VERTEX &&
+           edge->source()->type() != PiSDFVertexType::CONFIG &&
+           edge->sink()->type() != PiSDFVertexType::CONFIG &&
            vertexIxArray[edge->source()->getIx()] >= 0 &&
            vertexIxArray[edge->sink()->getIx()] >= 0;
 }

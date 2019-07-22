@@ -128,11 +128,11 @@ void BRVCompute::updateBRV(Spider::Array<const PiSDFEdge *> &edgeArray, const BR
 
     /* == Compute the scale factor == */
     for (const auto &edge : edgeArray) {
-        if (edge->sourceIf() && edge->sourceIf()->type() == PiSDFInterfaceType::INPUT) {
+        if (edge->source()->type() == PiSDFVertexType::INTERFACE) {
             scaleRVFactor *= updateBRVFromInputIF(edge, scaleRVFactor);
-        } else if (edge->sinkIf() && edge->sinkIf()->type() == PiSDFInterfaceType::OUTPUT) {
+        } else if (edge->sink()->type() == PiSDFVertexType::INTERFACE) {
             scaleRVFactor *= updateBRVFromOutputIF(edge, scaleRVFactor);
-        } else if (edge->source()->type() == PiSDFType::CONFIG_VERTEX) {
+        } else if (edge->source()->type() == PiSDFVertexType::CONFIG) {
             scaleRVFactor *= updateBRVFromCFGActor(edge, scaleRVFactor);
         }
     }
@@ -146,7 +146,7 @@ void BRVCompute::updateBRV(Spider::Array<const PiSDFEdge *> &edgeArray, const BR
 }
 
 std::uint64_t BRVCompute::updateBRVFromInputIF(const PiSDFEdge *edge, std::uint64_t currentScaleFactor) {
-    if (!edge->sinkIf() && edge->sink()->type() == PiSDFType::VERTEX) {
+    if (edge->sink()->type() != PiSDFVertexType::INTERFACE) {
         auto sourceRate = edge->sourceRate();
         auto sinkRate = edge->sinkRate();
         auto totalCons = sinkRate * edge->sink()->repetitionValue() * currentScaleFactor;
@@ -159,7 +159,7 @@ std::uint64_t BRVCompute::updateBRVFromInputIF(const PiSDFEdge *edge, std::uint6
 }
 
 std::uint64_t BRVCompute::updateBRVFromOutputIF(const PiSDFEdge *edge, std::uint64_t currentScaleFactor) {
-    if (!edge->sourceIf() && edge->source()->type() == PiSDFType::VERTEX) {
+    if (edge->source()->type() != PiSDFVertexType::INTERFACE) {
         auto sourceRate = edge->sourceRate();
         auto sinkRate = edge->sinkRate();
         auto totalProd = sourceRate * edge->source()->repetitionValue() * currentScaleFactor;
@@ -172,7 +172,7 @@ std::uint64_t BRVCompute::updateBRVFromOutputIF(const PiSDFEdge *edge, std::uint
 }
 
 std::uint64_t BRVCompute::updateBRVFromCFGActor(const PiSDFEdge *edge, std::uint64_t currentScaleFactor) {
-    if (!edge->sinkIf()) {
+    if (edge->sink()->type() != PiSDFVertexType::INTERFACE) {
         auto sourceRate = edge->sourceRate();
         auto sinkRate = edge->sinkRate();
         auto totalCons = sinkRate * edge->sink()->repetitionValue() * currentScaleFactor;

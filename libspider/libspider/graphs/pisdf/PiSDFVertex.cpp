@@ -47,21 +47,21 @@
 
 /* === Static methods === */
 
-static const char *getVertexDotColor(PiSDFSubType subType) {
-    switch (subType) {
-        case PiSDFSubType::NORMAL:
+static const char *getVertexDotColor(PiSDFVertexType type) {
+    switch (type) {
+        case PiSDFVertexType::NORMAL:
             return "eeeeee";
-        case PiSDFSubType::FORK:
+        case PiSDFVertexType::FORK:
             return "fabe58";
-        case PiSDFSubType::JOIN:
+        case PiSDFVertexType::JOIN:
             return "aea8d3";
-        case PiSDFSubType::BROADCAST:
+        case PiSDFVertexType::BROADCAST:
             return "fdeba7";
-        case PiSDFSubType::ROUNDBUFFER:
+        case PiSDFVertexType::ROUNDBUFFER:
             return "f1e7fe";
-        case PiSDFSubType::INIT:
+        case PiSDFVertexType::INIT:
             return "e4f1fe";
-        case PiSDFSubType::END:
+        case PiSDFVertexType::END:
             return "e8ecf1";
         default:
             return "eeeeee";
@@ -72,15 +72,13 @@ static const char *getVertexDotColor(PiSDFSubType subType) {
 
 PiSDFVertex::PiSDFVertex(PiSDFGraph *graph,
                          std::string name,
-                         PiSDFType type,
-                         PiSDFSubType subType,
+                         PiSDFVertexType type,
                          std::uint32_t nEdgesIN,
                          std::uint32_t nEdgesOUT,
                          std::uint32_t nParamsIn,
                          std::uint32_t nParamsOut) : graph_{graph},
                                                      name_{std::move(name)},
                                                      type_{type},
-                                                     subType_{subType},
                                                      nEdgesIN_{nEdgesIN},
                                                      nEdgesOUT_{nEdgesOUT},
                                                      nParamsIN_{nParamsIn},
@@ -94,9 +92,15 @@ PiSDFVertex::PiSDFVertex(PiSDFGraph *graph,
     }
     checkSubtypeConsistency();
 
-    if (type == PiSDFType::CONFIG_VERTEX) {
+    if (type == PiSDFVertexType::CONFIG) {
         /* == Configuration actors have a fixed repetition vector value of 1 == */
         repetitionValue_ = 1;
+    }
+
+    if (type == PiSDFVertexType::HIERARCHICAL) {
+        /* == Create the subgraph == */
+        subgraph_ = Spider::allocate<PiSDFGraph>(StackID::PISDF);
+        Spider::construct(subgraph_, this, name_, 0, 0, 0, nEdgesIN, nEdgesOUT);
     }
 
     graph->addVertex(this);
@@ -105,7 +109,7 @@ PiSDFVertex::PiSDFVertex(PiSDFGraph *graph,
 void PiSDFVertex::exportDot(FILE *file, const std::string &offset) const {
     fprintf(file, "%s\"%s\" [ shape = none, margin = 0, label = <\n", offset.c_str(), name_.c_str());
     fprintf(file, "%s\t<table border = \"1\" cellspacing=\"0\" cellpadding = \"0\" bgcolor = \"#%s\">\n",
-            offset.c_str(), getVertexDotColor(subType_));
+            offset.c_str(), getVertexDotColor(type_));
 
     /* == Header == */
     fprintf(file, "%s\t\t<tr> <td colspan=\"4\" border=\"0\"><font point-size=\"5\"> </font></td></tr>\n",
@@ -147,14 +151,14 @@ void PiSDFVertex::exportInputPortsToDot(FILE *file,
         fprintf(file,
                 "%s\t\t\t\t\t\t<td align=\"right\" border=\"0\" bgcolor=\"#%s\"><font point-size=\"15\">width</font></td>\n",
                 offset.c_str(),
-                getVertexDotColor(subType_));
+                getVertexDotColor(type_));
         fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());
 
         /* == Print the dummy port for pretty spacing == */
         fprintf(file, "%s\t\t\t\t\t<tr>\n", offset.c_str());
         fprintf(file, "%s\t\t\t\t\t\t<td border=\"0\" bgcolor=\"#%s\">    </td>\n",
                 offset.c_str(),
-                getVertexDotColor(subType_));
+                getVertexDotColor(type_));
         fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());
     }
     if (!nEdgesIN_) {
@@ -162,7 +166,7 @@ void PiSDFVertex::exportInputPortsToDot(FILE *file,
         fprintf(file, "%s\t\t\t\t\t<tr>\n", offset.c_str());
         fprintf(file, "%s\t\t\t\t\t\t<td border=\"0\" bgcolor=\"#%s\">    </td>\n",
                 offset.c_str(),
-                getVertexDotColor(subType_));
+                getVertexDotColor(type_));
         fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());
     }
 
@@ -171,7 +175,7 @@ void PiSDFVertex::exportInputPortsToDot(FILE *file,
         fprintf(file, "%s\t\t\t\t\t<tr>\n", offset.c_str());
         fprintf(file, "%s\t\t\t\t\t\t<td border=\"0\" bgcolor=\"#%s\">    </td>\n",
                 offset.c_str(),
-                getVertexDotColor(subType_));
+                getVertexDotColor(type_));
         fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());
     }
     fprintf(file, "%s\t\t\t\t</table>\n", offset.c_str());
@@ -188,7 +192,7 @@ void PiSDFVertex::exportOutputPortsToDot(FILE *file,
         fprintf(file,
                 "%s\t\t\t\t\t\t<td align=\"right\" border=\"0\" bgcolor=\"#%s\"><font point-size=\"15\">width</font></td>\n",
                 offset.c_str(),
-                getVertexDotColor(subType_));
+                getVertexDotColor(type_));
         fprintf(file, "%s\t\t\t\t\t\t<td port=\"out_%" PRIu32"\" border=\"1\" bgcolor=\"#ec644b\">    </td>\n",
                 offset.c_str(), e->sourcePortIx());
         fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());
@@ -196,7 +200,7 @@ void PiSDFVertex::exportOutputPortsToDot(FILE *file,
         /* == Print the dummy port for pretty spacing == */
         fprintf(file, "%s\t\t\t\t\t<tr>\n", offset.c_str());
         fprintf(file, "%s\t\t\t\t\t\t<td border=\"0\" bgcolor=\"#%s\">    </td>\n", offset.c_str(),
-                getVertexDotColor(subType_));
+                getVertexDotColor(type_));
         fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());
     }
     if (!nEdgesOUT_) {
@@ -204,7 +208,7 @@ void PiSDFVertex::exportOutputPortsToDot(FILE *file,
         fprintf(file, "%s\t\t\t\t\t<tr>\n", offset.c_str());
         fprintf(file, "%s\t\t\t\t\t\t<td border=\"0\" bgcolor=\"#%s\">    </td>\n",
                 offset.c_str(),
-                getVertexDotColor(subType_));
+                getVertexDotColor(type_));
         fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());
     }
 
@@ -213,7 +217,7 @@ void PiSDFVertex::exportOutputPortsToDot(FILE *file,
         fprintf(file, "%s\t\t\t\t\t<tr>\n", offset.c_str());
         fprintf(file, "%s\t\t\t\t\t\t<td border=\"0\" bgcolor=\"#%s\">    </td>\n",
                 offset.c_str(),
-                getVertexDotColor(subType_));
+                getVertexDotColor(type_));
         fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());
     }
     fprintf(file, "%s\t\t\t\t</table>\n", offset.c_str());
@@ -221,19 +225,45 @@ void PiSDFVertex::exportOutputPortsToDot(FILE *file,
 }
 
 void PiSDFVertex::checkSubtypeConsistency() const {
-    if (nParamsOUT_ && (type_ != PiSDFType::CONFIG_VERTEX)) {
+    if (nParamsOUT_ && (type_ != PiSDFVertexType::CONFIG)) {
         throwSpiderException("Non configuration actors can not have output parameters. Vertex [%s]", name_.c_str());
     }
-    if (nEdgesIN_ > 1 && (subType_ == PiSDFSubType::FORK ||
-                          subType_ == PiSDFSubType::BROADCAST)) {
+    if (nEdgesIN_ > 1 && (type_ == PiSDFVertexType::FORK ||
+                          type_ == PiSDFVertexType::BROADCAST)) {
         throwSpiderException("Fork and Broadcast actors can only have one input edge.");
-    } else if (nEdgesIN_ && subType_ == PiSDFSubType::INIT) {
+    } else if (nEdgesIN_ && type_ == PiSDFVertexType::INIT) {
         throwSpiderException("Init actors can not have input edge !");
     }
-    if (nEdgesOUT_ > 1 && (subType_ == PiSDFSubType::JOIN ||
-                           subType_ == PiSDFSubType::ROUNDBUFFER)) {
+    if (nEdgesOUT_ > 1 && (type_ == PiSDFVertexType::JOIN ||
+                           type_ == PiSDFVertexType::ROUNDBUFFER)) {
         throwSpiderException("Join and Roundbuffer actors can only have one input edge.");
-    } else if (nEdgesOUT_ && subType_ == PiSDFSubType::END) {
+    } else if (nEdgesOUT_ && type_ == PiSDFVertexType::END) {
         throwSpiderException("End actors can not have output edge !");
+    }
+}
+
+void PiSDFVertex::setInputEdge(PiSDFEdge *edge, std::uint16_t ix) {
+    if (inputEdgeArray_[ix]) {
+        throwSpiderException("Already existing input edge at ix: %"
+                                     PRIu16
+                                     ".", ix);
+    }
+    inputEdgeArray_[ix] = edge;
+    if (isHierarchical()) {
+        auto *interface = subgraph_->inputInterfaces()[ix];
+        interface->setInputEdge(edge, 0);
+    }
+}
+
+void PiSDFVertex::setOutputEdge(PiSDFEdge *edge, std::uint16_t ix) {
+    if (outputEdgeArray_[ix]) {
+        throwSpiderException("Already existing output edge at ix: %"
+                                     PRIu16
+                                     ".", ix);
+    }
+    outputEdgeArray_[ix] = edge;
+    if (isHierarchical()) {
+        auto *interface = subgraph_->outputInterfaces()[ix];
+        interface->setOutputEdge(edge, 0);
     }
 }

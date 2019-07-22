@@ -37,44 +37,68 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_PISDFTYPES_H
-#define SPIDER2_PISDFTYPES_H
+#ifndef SPIDER2_PISDFPORT_H
+#define SPIDER2_PISDFPORT_H
 
-/* === Includes === */
+/* === Include(s) === */
 
 #include <cstdint>
+#include <string>
+#include <graphs-tools/expression-parser/Expression.h>
 
-/* === Enumeration(s) === */
+/* === Forward declaration(s) === */
 
-/**
- * @brief PiSDF parameter types
- */
-enum class PiSDFParamType : std::uint8_t {
-    STATIC,            /*! Static parameter: expression is evaluated at startup only once */
-    HERITED,           /*! Herited parameter: if inheritance is fully static == STATIC type, else DYNAMIC_DEPENDENT */
-    DYNAMIC,           /*! Dynamic parameter: value is set at runtime */
-    DYNAMIC_DEPENDENT, /*! Dynamic parameter: expression is evaluated at runtime */
+class PiSDFEdge;
+
+/* === Class definition === */
+
+class PiSDFPort {
+public:
+
+    PiSDFPort(PiSDFGraph *graph, const std::string &expression);
+
+    explicit PiSDFPort(std::int64_t rate);
+
+    ~PiSDFPort() = default;
+
+    /* === Method(s) === */
+
+    inline std::int64_t rate() const;
+
+    inline void disconnectEdge();
+
+    /* === Getter(s) === */
+
+    inline std::uint16_t ix() const;
+
+    inline const PiSDFEdge *edge() const;
+
+    /* === Setter(s) === */
+
+    void connectEdge(PiSDFEdge *edge, std::uint16_t ix);
+
+private:
+    PiSDFEdge *edge_ = nullptr;
+    std::uint16_t ix_ = UINT16_MAX;
+    Expression expression_;
 };
 
-/**
- * @brief Type of PiSDF vertices
- */
-enum class PiSDFVertexType : std::uint8_t {
-    NORMAL,         /*! Normal actor subtype */
-    BROADCAST,      /*! Roundbuffer actor subtype */
-    ROUNDBUFFER,    /*! Roundbuffer actor subtype */
-    FORK,           /*! Fork actor subtype */
-    JOIN,           /*! Join actor subtype */
-    INIT,           /*! Init actor subtype */
-    END,            /*! End actor subtype */
-    CONFIG,         /*! Config vertex subtype */
-    HIERARCHICAL,   /*! Hierarchical vertex subtype */
-    INTERFACE,      /*! Interface vertex subtype */
-};
+/* === Inline method(s) === */
 
-enum class PiSDFInterfaceType : std::uint8_t {
-    INPUT,          /*! Input interface type */
-    OUTPUT,         /*! Output interface type */
-};
+std::int64_t PiSDFPort::rate() const {
+    if (!edge_) {
+        throwSpiderException("Invalid rate evaluation: PiSDFPort not connected to an edge.");
+    }
+    return expression_.evaluate();
+}
 
-#endif //SPIDER2_PISDFTYPES_H
+std::uint16_t PiSDFPort::ix() const {
+    return ix_;
+}
+
+const PiSDFEdge *PiSDFPort::edge() const {
+    return edge_;
+}
+
+
+#endif //SPIDER2_PISDFPORT_H

@@ -45,7 +45,7 @@
 #include <cstdint>
 #include <string>
 #include <common/containers/StlContainers.h>
-#include <common/containers/Set.h>
+#include <graphs/pisdf/PiSDFVertex.h>
 #include "PiSDFTypes.h"
 
 /* === Forward definition === */
@@ -56,14 +56,11 @@ class PiSDFEdge;
 
 /* === Class definition === */
 
-class PiSDFInterface : public Spider::SetElement {
+class PiSDFInterface : public PiSDFVertex {
 public:
     PiSDFInterface(PiSDFGraph *graph,
                    std::string name,
-                   PiSDFInterfaceType type,
-                   std::uint32_t ix,
-                   PiSDFEdge *inputEdge,
-                   PiSDFEdge *outputEdge);
+                   PiSDFInterfaceType type);
 
     ~PiSDFInterface() = default;
 
@@ -71,66 +68,32 @@ public:
 
     void exportDot(FILE *file, const std::string &offset) const;
 
+    std::uint16_t correspondingPortIx() const;
+
     /* === Getters === */
 
-    inline std::uint32_t ix() const;
-
-    inline const std::string &name() const;
-
-    inline PiSDFInterfaceType type() const;
+    inline PiSDFInterfaceType interfaceType() const;
 
     inline const PiSDFEdge *inputEdge() const;
 
     inline const PiSDFEdge *outputEdge() const;
 
-    inline const PiSDFGraph *containingGraph() const;
-
     /* === Setters === */
 
-    inline void setInputEdge(PiSDFEdge *edge);
-
-    inline void setOutputEdge(PiSDFEdge *edge);
-
 private:
-    PiSDFGraph *graph_;
-    PiSDFInterfaceType type_;
-    std::uint32_t ix_;
-    PiSDFEdge *inputEdge_ = nullptr;
-    PiSDFEdge *outputEdge_ = nullptr;
-    std::string name_;
+    PiSDFInterfaceType interfaceType_;
 };
 
-
-std::uint32_t PiSDFInterface::ix() const {
-    return ix_;
-}
-
-const std::string &PiSDFInterface::name() const {
-    return name_;
-}
-
-PiSDFInterfaceType PiSDFInterface::type() const {
-    return type_;
+PiSDFInterfaceType PiSDFInterface::interfaceType() const {
+    return interfaceType_;
 }
 
 const PiSDFEdge *PiSDFInterface::inputEdge() const {
-    return inputEdge_;
+    return this->inputEdges()[0];
 }
 
 const PiSDFEdge *PiSDFInterface::outputEdge() const {
-    return outputEdge_;
-}
-
-void PiSDFInterface::setInputEdge(PiSDFEdge *edge) {
-    inputEdge_ = edge;
-}
-
-void PiSDFInterface::setOutputEdge(PiSDFEdge *edge) {
-    outputEdge_ = edge;
-}
-
-const PiSDFGraph *PiSDFInterface::containingGraph() const {
-    return graph_;
+    return this->outputEdges()[0];
 }
 
 #endif //SPIDER2_PISDFINTERFACE_H

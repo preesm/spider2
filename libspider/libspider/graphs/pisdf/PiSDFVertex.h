@@ -47,7 +47,6 @@
 #include <graphs/pisdf/PiSDFTypes.h>
 #include <common/SpiderException.h>
 #include <common/containers/Array.h>
-#include <common/containers/Set.h>
 #include <common/containers/StlContainers.h>
 
 /* === Forward declaration(s) === */
@@ -60,13 +59,12 @@ class PiSDFParam;
 
 /* === Class definition === */
 
-class PiSDFVertex : public Spider::SetElement {
+class PiSDFVertex {
 public:
 
     PiSDFVertex(PiSDFGraph *graph,
                 std::string name,
-                PiSDFType type,
-                PiSDFSubType subType,
+                PiSDFVertexType type,
                 std::uint32_t nEdgesIN = 0,
                 std::uint32_t nEdgesOUT = 0,
                 std::uint32_t nParamsIn = 0,
@@ -83,6 +81,12 @@ public:
      */
     void exportDot(FILE *file, const std::string &offset = "\t") const;
 
+    /**
+     * @brief Get the hierarchical property of the vertex.
+     * @return true if the vertex is hierarchical, false else.
+     */
+    inline bool isHierarchical() const;
+
     /* === Setter(s) === */
 
     /**
@@ -91,7 +95,7 @@ public:
      * @param ix  Index of the edge.
      * @throw @refitem SpiderException if out of bound or already existing edge.
      */
-    inline void setInputEdge(PiSDFEdge *edge, std::uint32_t ix);
+    void setInputEdge(PiSDFEdge *edge, std::uint16_t ix);
 
     /**
      * @brief Set the output edge of index ix.
@@ -99,7 +103,7 @@ public:
      * @param ix  Index of the edge.
      * @throw @refitem SpiderException if out of bound or already existing edge.
      */
-    inline void setOutputEdge(PiSDFEdge *edge, std::uint32_t ix);
+    void setOutputEdge(PiSDFEdge *edge, std::uint16_t ix);
 
     /**
      * @brief Set the input param of index ix.
@@ -123,6 +127,11 @@ public:
      */
     inline void setRepetitionValue(std::uint32_t rv);
 
+    /**
+     * @brief Set the ix of the vertex in the containing graph.
+     * @param ix Ix to set.
+     */
+    inline void setIx(std::uint32_t ix);
 
     /* === Getters ===  */
 
@@ -163,16 +172,10 @@ public:
     inline std::uint32_t nParamsOUT() const;
 
     /**
-     * @brief Get the @refitem PiSDFType of the vertex.
-     * @return @refitem PiSDFType of the vertex.
+     * @brief Get the @refitem PiSDFVertexType of the vertex.
+     * @return @refitem PiSDFVertexType of the vertex.
      */
-    inline PiSDFType type() const;
-
-    /**
-     * @brief Get the @refitem PiSDFSubType of the vertex.
-     * @return @refitem PiSDFSubType of the vertex.
-     */
-    inline PiSDFSubType subType() const;
+    inline PiSDFVertexType type() const;
 
     /**
      * @brief Get input edge connected to port Ix.
@@ -236,12 +239,23 @@ public:
      */
     inline std::uint32_t repetitionValue() const;
 
+    /**
+     * @brief Get the subgraph (if any) associated to the vertex.
+     * @return subgraph associated to the vertex, nullptr if vertex is not hierarchical.
+     */
+    inline const PiSDFGraph *subgraph() const;
+
+    /**
+     * @brief Get the ix of the vertex in the containing graph.
+     * @return ix of the vertex (UINT32_MAX if no ix).
+     */
+    inline std::uint32_t getIx() const;
+
 private:
     PiSDFGraph *graph_ = nullptr;
     std::string name_ = "unnamed-vertex";
 
-    PiSDFType type_ = PiSDFType::VERTEX;
-    PiSDFSubType subType_ = PiSDFSubType::NORMAL;
+    PiSDFVertexType type_ = PiSDFVertexType::NORMAL;
 
     std::uint32_t nEdgesIN_ = 0;
     std::uint32_t nEdgesOUT_ = 0;
@@ -253,7 +267,10 @@ private:
     Spider::Array<PiSDFParam *> inputParamArray_;
     Spider::Array<PiSDFParam *> outputParamArray_;
 
+    PiSDFGraph *subgraph_ = nullptr;
+
     std::uint32_t repetitionValue_ = 0;
+    std::uint32_t ix_ = UINT32_MAX;
 
     /* === Private methods === */
 
@@ -279,34 +296,8 @@ private:
 
 /* === Inline methods === */
 
-void PiSDFVertex::setInputEdge(PiSDFEdge *edge, std::uint32_t ix) {
-    if (ix >= nEdgesIN_) {
-        throwSpiderException("Index out of bound: %"
-                                     PRIu32
-                                     " -- Max: %"
-                                     PRIu32
-                                     ".", ix, nEdgesIN_);
-    } else if (inputEdgeArray_[ix]) {
-        throwSpiderException("Already existing input edge at ix: %"
-                                     PRIu32
-                                     ".", ix);
-    }
-    inputEdgeArray_[ix] = edge;
-}
-
-void PiSDFVertex::setOutputEdge(PiSDFEdge *edge, std::uint32_t ix) {
-    if (ix >= nEdgesOUT_) {
-        throwSpiderException("Index out of bound: %"
-                                     PRIu32
-                                     " -- Max: %"
-                                     PRIu32
-                                     ".", ix, nEdgesOUT_);
-    } else if (outputEdgeArray_[ix]) {
-        throwSpiderException("Already existing output edge at ix: %"
-                                     PRIu32
-                                     ".", ix);
-    }
-    outputEdgeArray_[ix] = edge;
+bool PiSDFVertex::isHierarchical() const {
+    return type_ == PiSDFVertexType::HIERARCHICAL;
 }
 
 void PiSDFVertex::setInputParam(PiSDFParam *param, std::uint32_t ix) {
@@ -343,6 +334,10 @@ void PiSDFVertex::setRepetitionValue(std::uint32_t rv) {
     repetitionValue_ = rv;
 }
 
+void PiSDFVertex::setIx(std::uint32_t ix) {
+    ix_ = ix;
+}
+
 PiSDFGraph *PiSDFVertex::containingGraph() const {
     return graph_;
 }
@@ -367,12 +362,8 @@ std::uint32_t PiSDFVertex::nParamsOUT() const {
     return nParamsOUT_;
 }
 
-PiSDFType PiSDFVertex::type() const {
+PiSDFVertexType PiSDFVertex::type() const {
     return type_;
-}
-
-PiSDFSubType PiSDFVertex::subType() const {
-    return subType_;
 }
 
 PiSDFEdge *PiSDFVertex::inputEdge(std::uint32_t ix) const {
@@ -409,6 +400,14 @@ const Spider::Array<PiSDFParam *> &PiSDFVertex::outputParams() const {
 
 std::uint32_t PiSDFVertex::repetitionValue() const {
     return repetitionValue_;
+}
+
+const PiSDFGraph *PiSDFVertex::subgraph() const {
+    return subgraph_;
+}
+
+std::uint32_t PiSDFVertex::getIx() const {
+    return ix_;
 }
 
 #endif //SPIDER2_PISDFVERTEX_H

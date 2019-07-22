@@ -120,16 +120,10 @@ namespace Spider {
                                    std::uint32_t nParamsOUT = 0);
 
     PiSDFInterface *createInputInterface(PiSDFGraph *graph,
-                                         const std::string &name,
-                                         std::uint32_t portIx,
-                                         PiSDFEdge *inputEdge,
-                                         PiSDFEdge *outputEdge);
+                                         const std::string &name);
 
     PiSDFInterface *createOutputInterface(PiSDFGraph *graph,
-                                          const std::string &name,
-                                          std::uint32_t portIx,
-                                          PiSDFEdge *inputEdge,
-                                          PiSDFEdge *outputEdge);
+                                          const std::string &name);
 
     /* === Param creation API === */
 
