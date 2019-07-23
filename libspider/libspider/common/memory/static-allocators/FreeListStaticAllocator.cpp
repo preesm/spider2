@@ -91,7 +91,7 @@ void *FreeListStaticAllocator::allocate(std::uint64_t size) {
     std::uint64_t leftOverMemory = memoryNode->blockSize_ - requiredSize;
     if (leftOverMemory) {
         /* == We split block to limit waste memory space == */
-        Node *freeNode = (Node *) (((char *) memoryNode) + requiredSize);
+        auto *freeNode = (Node *) (((char *) memoryNode) + requiredSize);
         freeNode->blockSize_ = leftOverMemory;
         insert(memoryNode, freeNode);
     }
@@ -115,12 +115,12 @@ void FreeListStaticAllocator::deallocate(void *ptr) {
     if (!ptr) {
         return;
     }
-    char *currentAddress = static_cast<char *>(ptr);
+    auto *currentAddress = static_cast<char *>(ptr);
     char *headerAddress = currentAddress - sizeof(FreeListStaticAllocator::Header);
 
     /* == Read header info == */
     auto *header = (Header *) (headerAddress);
-    Node *freeNode = (Node *) (headerAddress - header->padding_);
+    auto *freeNode = (Node *) (headerAddress - header->padding_);
     /* == Check address == */
     StaticAllocator::checkPointerAddress(freeNode);
     freeNode->blockSize_ = header->size_;

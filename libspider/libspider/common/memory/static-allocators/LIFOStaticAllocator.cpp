@@ -79,7 +79,7 @@ void LIFOStaticAllocator::deallocate(void *ptr) {
         return;
     }
     StaticAllocator::checkPointerAddress(ptr);
-    char *currentAddress = static_cast<char *>(ptr);
+    auto *currentAddress = static_cast<char *>(ptr);
     if (currentAddress > (used_ + startPtr_)) {
         throwSpiderException(
                 "Allocator: %s -- LIFO allocator should deallocate element in reverse order of allocation.",
