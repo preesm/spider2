@@ -292,3 +292,27 @@ PiSDFEdge *Spider::API::createEdge(PiSDFGraph *graph,
     Spider::construct(edge, graph, source, srcPortIx, srcRate, sink, snkPortIx, snkRate);
     return edge;
 }
+
+PiSDFEdge *Spider::API::createEdge(PiSDFGraph *graph,
+                                   PiSDFVertex *source,
+                                   std::uint16_t srcPortIx,
+                                   std::int64_t srcRate,
+                                   PiSDFVertex *sink,
+                                   std::uint16_t snkPortIx,
+                                   const std::string &snkRateExpression) {
+    auto *edge = Spider::allocate<PiSDFEdge>(StackID::PISDF);
+    Spider::construct(edge, graph, source, srcPortIx, std::to_string(srcRate), sink, snkPortIx, snkRateExpression);
+    return edge;
+}
+
+PiSDFEdge *Spider::API::createEdge(PiSDFGraph *graph,
+                                   PiSDFVertex *source,
+                                   std::uint16_t srcPortIx,
+                                   const std::string &srcRateExpression,
+                                   PiSDFVertex *sink,
+                                   std::uint16_t snkPortIx,
+                                   std::int64_t snkRate) {
+    auto *edge = Spider::allocate<PiSDFEdge>(StackID::PISDF);
+    Spider::construct(edge, graph, source, srcPortIx, srcRateExpression, sink, snkPortIx, std::to_string(snkRate));
+    return edge;
+}

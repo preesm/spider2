@@ -170,6 +170,22 @@ namespace Spider {
                               PiSDFVertex *sink,
                               std::uint16_t snkPortIx,
                               std::int64_t snkRate);
+
+        PiSDFEdge *createEdge(PiSDFGraph *graph,
+                              PiSDFVertex *source,
+                              std::uint16_t srcPortIx,
+                              std::int64_t srcRate,
+                              PiSDFVertex *sink,
+                              std::uint16_t snkPortIx,
+                              const std::string &snkRateExpression);
+
+        PiSDFEdge *createEdge(PiSDFGraph *graph,
+                              PiSDFVertex *source,
+                              std::uint16_t srcPortIx,
+                              const std::string &srcRateExpression,
+                              PiSDFVertex *sink,
+                              std::uint16_t snkPortIx,
+                              std::int64_t snkRate);
     }
 }
 
