@@ -81,6 +81,8 @@ PiSDFEdge::PiSDFEdge(PiSDFGraph *graph,
 }
 
 PiSDFEdge::~PiSDFEdge() {
+    source_ = nullptr;
+    sink_ = nullptr;
     if (sourcePort_) {
         Spider::destroy(sourcePort_);
         Spider::deallocate(sourcePort_);
@@ -97,7 +99,6 @@ void PiSDFEdge::connectSource(PiSDFVertex *vertex, std::uint16_t portIx, const s
         throwSpiderException("Trying to connect edge source to already connected edge.");
     }
     source_ = vertex;
-    Spider::destroy(sourcePort_);
     Spider::construct(sourcePort_, vertex->containingGraph(), prodExpr);
     sourcePort_->connectEdge(this, portIx);
     source_->setOutputEdge(this, portIx);
@@ -108,7 +109,6 @@ void PiSDFEdge::connectSink(PiSDFVertex *vertex, std::uint32_t portIx, const std
         throwSpiderException("Trying to connect edge sink to already connected edge.");
     }
     sink_ = vertex;
-    Spider::destroy(sinkPort_);
     Spider::construct(sinkPort_, vertex->containingGraph(), consExpr);
     sinkPort_->connectEdge(this, portIx);
     sink_->setInputEdge(this, portIx);
@@ -119,7 +119,6 @@ void PiSDFEdge::connectSource(PiSDFVertex *vertex, std::uint16_t portIx, std::in
         throwSpiderException("Trying to connect edge source to already connected edge.");
     }
     source_ = vertex;
-    Spider::destroy(sourcePort_);
     Spider::construct(sourcePort_, prod);
     sourcePort_->connectEdge(this, portIx);
     source_->setOutputEdge(this, portIx);
@@ -130,7 +129,6 @@ void PiSDFEdge::connectSink(PiSDFVertex *vertex, std::uint32_t portIx, std::int6
         throwSpiderException("Trying to connect edge sink to already connected edge.");
     }
     sink_ = vertex;
-    Spider::destroy(sinkPort_);
     Spider::construct(sinkPort_, cons);
     sinkPort_->connectEdge(this, portIx);
     source_->setInputEdge(this, portIx);

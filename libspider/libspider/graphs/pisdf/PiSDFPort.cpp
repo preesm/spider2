@@ -46,13 +46,10 @@
 
 /* === Methods implementation === */
 
-PiSDFPort::PiSDFPort(PiSDFGraph *graph, const std::string &expression) : expression_{graph,
-                                                                                     expression} {
-
+PiSDFPort::PiSDFPort(PiSDFGraph *graph, const std::string &expression) : expression_{graph, expression} {
 }
 
 PiSDFPort::PiSDFPort(std::int64_t rate) : expression_{rate} {
-
 }
 
 void PiSDFPort::connectEdge(PiSDFEdge *edge, std::uint16_t ix) {

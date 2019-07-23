@@ -73,7 +73,7 @@ public:
 
     Expression(PiSDFGraph *graph, std::string expression);
 
-    Expression(std::int64_t value);
+    explicit Expression(std::int64_t value);
 
     ~Expression();
 
@@ -136,7 +136,7 @@ private:
      * @brief Build and reduce the expression tree parser.
      * @param expressionStack Stack of the postfix expression elements.
      */
-    void buildExpressionTree(const Spider::deque<RPNElement> &expressionStack);
+    void buildExpressionTree(const Spider::deque<RPNElement> *expressionStack);
 
     /**
      * @brief

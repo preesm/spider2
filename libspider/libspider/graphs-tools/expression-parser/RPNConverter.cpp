@@ -124,7 +124,7 @@ static inline void setOperatorElement(RPNElement *elt, RPNOperatorType opType) {
     elt->type = RPNElementType::OPERATOR;
     elt->subType = isFunction(opType) ? RPNElementSubType::FUNCTION
                                       : RPNElementSubType::OPERATOR;
-    elt->element.op = opType;
+    elt->op = opType;
 }
 
 static inline void setOperandElement(RPNElement *elt, const std::string &token, PiSDFGraph *graph) {
@@ -138,14 +138,14 @@ static inline void setOperandElement(RPNElement *elt, const std::string &token, 
         }
         if (param->isDynamic()) {
             elt->subType = RPNElementSubType::PARAMETER;
-            elt->element.param = param;
+            elt->param = param;
         } else {
             elt->subType = RPNElementSubType::VALUE;
-            elt->element.value = param->value();
+            elt->value = param->value();
         }
     } else {
         elt->subType = RPNElementSubType::VALUE;
-        elt->element.value = value;
+        elt->value = value;
     }
 }
 
@@ -259,11 +259,11 @@ RPNConverter::RPNConverter(PiSDFGraph *graph, std::string inFixExpr) : infixExpr
     /* == Build the postfix string expression == */
     for (auto &t : postfixExprStack_) {
         if (t.type == RPNElementType::OPERATOR) {
-            postfixExprString_ += getStringFromOperatorType(t.element.op) + " ";
+            postfixExprString_ += getStringFromOperatorType(t.op) + " ";
         } else if (t.subType == RPNElementSubType::PARAMETER) {
-            postfixExprString_ += t.element.param->name() + " ";
+            postfixExprString_ += t.param->name() + " ";
         } else {
-            postfixExprString_ += std::to_string(t.element.value) + std::string(" ");
+            postfixExprString_ += std::to_string(t.value) + std::string(" ");
         }
     }
 }
@@ -341,7 +341,7 @@ void RPNConverter::buildPostFix() {
     for (const auto &t : tokens) {
         if (t.type == RPNElementType::OPERATOR) {
             /* == Handle operator == */
-            auto opType = t.element.op;
+            auto opType = t.op;
             if (isFunction(opType)) {
                 operatorStack.push_front(opType);
             } else {
@@ -352,7 +352,6 @@ void RPNConverter::buildPostFix() {
 
                     /* == This should not fail because miss match parenthesis is checked on constructor == */
                     while (frontOPType != RPNOperatorType::LEFT_PAR) {
-
                         /* == Put operator to the output == */
                         RPNElement elt;
                         setOperatorElement(&elt, frontOPType);

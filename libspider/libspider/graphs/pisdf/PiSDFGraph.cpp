@@ -88,36 +88,43 @@ PiSDFGraph::~PiSDFGraph() {
     for (auto &v : vertexVector_) {
         Spider::destroy(v);
         Spider::deallocate(v);
+        v = nullptr;
     }
 
     for (auto &sg: subgraphVector_) {
         Spider::destroy(sg);
         Spider::deallocate(sg);
+        sg = nullptr;
     }
 
     for (auto &e:edgeVector_) {
         Spider::destroy(e);
         Spider::deallocate(e);
+        e = nullptr;
     }
 
     for (auto &p:paramSet_) {
         Spider::destroy(p);
         Spider::deallocate(p);
+        p = nullptr;
     }
 
     for (auto &inIf:inputInterfaceVector_) {
         Spider::destroy(inIf);
         Spider::deallocate(inIf);
+        inIf = nullptr;
     }
 
     for (auto &outIf:outputInterfaceVector_) {
         Spider::destroy(outIf);
         Spider::deallocate(outIf);
+        outIf = nullptr;
     }
 
     for (auto &c:configVector_) {
         Spider::destroy(c);
         Spider::deallocate(c);
+        c = nullptr;
     }
 }
 
@@ -150,7 +157,7 @@ void PiSDFGraph::removeSubgraph(PiSDFGraph *subgraph) {
     Spider::deallocate(subgraph);
 
     /* == Recompute the static property == */
-    if (wasStatic) {
+    if (!wasStatic) {
         static_ = hasDynamicParameters_;
         if (static_) {
             for (auto &g:subgraphVector_) {

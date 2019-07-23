@@ -48,10 +48,11 @@
 
 /* === Methods implementation === */
 
-Expression::Expression(PiSDFGraph *graph, std::string expression) : rpnConverter_(graph, std::move(expression)) {
-    const auto &expressionStack = rpnConverter_.postfixStack();
+Expression::Expression(PiSDFGraph *graph, std::string expression) : rpnConverter_{graph, std::move(expression)} {
+    const auto *expressionStack = &rpnConverter_.postfixStack();
+
     /* == Check if expression is static == */
-    for (const auto &elt : expressionStack) {
+    for (const auto &elt : *expressionStack) {
         if (elt.subType == RPNElementSubType::PARAMETER) {
             static_ = false;
             break;
@@ -91,12 +92,12 @@ void Expression::printExpressionTree() {
 
 /* === Private method(s) === */
 
-void Expression::buildExpressionTree(const Spider::deque<RPNElement> &expressionStack) {
-    expressionTree_ = Spider::allocate<ExpressionTreeNode>(StackID::GENERAL, expressionStack.size());
+void Expression::buildExpressionTree(const Spider::deque<RPNElement> *expressionStack) {
+    expressionTree_ = Spider::allocate<ExpressionTreeNode>(StackID::GENERAL, expressionStack->size());
     Spider::construct(expressionTree_, 0, nullptr);
     std::uint16_t nodeIx = 1;
     auto *node = expressionTree_;
-    for (auto elt = expressionStack.rbegin(); elt != expressionStack.rend(); ++elt) {
+    for (auto elt = expressionStack->rbegin(); elt != expressionStack->rend(); ++elt) {
         node = insertExpressionTreeNode(node, *elt, nodeIx);
     }
 }
@@ -119,13 +120,15 @@ ExpressionTreeNode *Expression::insertExpressionTreeNode(ExpressionTreeNode *nod
             auto *left = node->left;
             auto *right = node->right;
             if (node->elt.type == RPNElementType::OPERATOR && left && left->elt.subType == RPNElementSubType::VALUE) {
-                auto valLeft = left->elt.element.value;
+                auto valLeft = left->elt.value;
                 if (!right || right->elt.subType == RPNElementSubType::VALUE) {
-                    auto valRight = right ? right->elt.element.value : 0.;
+                    auto valRight = right ? right->elt.value : 0.;
                     node->elt.type = RPNElementType::OPERAND;
                     node->elt.subType = RPNElementSubType::VALUE;
-                    node->elt.element.value = RPNConverter::getOperator(node->elt.element.op).eval(valLeft, valRight);
+                    node->elt.value = RPNConverter::getOperator(node->elt.op).eval(valLeft, valRight);
+                    Spider::destroy(node->left);
                     node->left = nullptr;
+                    Spider::destroy(node->right);
                     node->right = nullptr;
                 }
             }
@@ -139,13 +142,13 @@ double Expression::evaluateNode(ExpressionTreeNode *node) const {
     auto &elt = node->elt;
     if (elt.type == RPNElementType::OPERAND) {
         if (elt.subType == RPNElementSubType::PARAMETER) {
-            return elt.element.param->value();
+            return elt.param->value();
         }
-        return elt.element.value;
+        return elt.value;
     }
     auto valLeft = evaluateNode(node->left);
     auto valRight = node->right ? evaluateNode(node->right) : 0.;
-    return RPNConverter::getOperator(elt.element.op).eval(valLeft, valRight);
+    return RPNConverter::getOperator(elt.op).eval(valLeft, valRight);
 }
 
 void Expression::printExpressionTreeNode(ExpressionTreeNode *node, std::int32_t depth) {
@@ -161,12 +164,12 @@ void Expression::printExpressionTreeNode(ExpressionTreeNode *node, std::int32_t 
         fprintf(stderr, "> ");
     }
     if (elt.type == RPNElementType::OPERATOR) {
-        fprintf(stderr, "%s\n", RPNConverter::getStringFromOperatorType(elt.element.op).c_str());
+        fprintf(stderr, "%s\n", RPNConverter::getStringFromOperatorType(elt.op).c_str());
     } else {
         if (elt.subType == RPNElementSubType::PARAMETER) {
-            fprintf(stderr, "%s\n", elt.element.param->name().c_str());
+            fprintf(stderr, "%s\n", elt.param->name().c_str());
         } else {
-            fprintf(stderr, "%lf\n", elt.element.value);
+            fprintf(stderr, "%lf\n", elt.value);
         }
     }
     printExpressionTreeNode(node->right, depth + 1);

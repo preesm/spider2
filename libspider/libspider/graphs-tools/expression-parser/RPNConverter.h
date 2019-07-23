@@ -128,20 +128,25 @@ struct RPNOperator {
 struct RPNElement {
     RPNElementType type = RPNElementType::OPERATOR;
     RPNElementSubType subType = RPNElementSubType::OPERATOR;
-    union {
-        double value = 0.;
-        PiSDFParam *param;
-        RPNOperatorType op;
-    } element;
+    double value = 0.;
+    PiSDFParam *param = nullptr;
+    RPNOperatorType op = RPNOperatorType::ADD;
 };
 
 /* === Class definition === */
 
 class RPNConverter {
 public:
-    explicit RPNConverter(PiSDFGraph *graph, std::string inFixExpr);
+    RPNConverter(PiSDFGraph *graph, std::string inFixExpr);
 
     RPNConverter() = default;
+
+    RPNConverter(const RPNConverter &other) {
+        infixExprString_ = other.infixExprString_;
+        postfixExprString_ = other.postfixExprString_;
+        postfixExprStack_ = other.postfixExprStack_;
+        graph_ = other.graph_;
+    }
 
     ~RPNConverter() = default;
 
@@ -190,7 +195,7 @@ public:
 
 private:
 
-    std::string infixExprString_;
+    std::string infixExprString_{""};
     std::string postfixExprString_{""};
     PiSDFGraph *graph_ = nullptr;
     Spider::deque<RPNElement> postfixExprStack_;
