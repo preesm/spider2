@@ -117,6 +117,10 @@ protected:
 
     static inline std::int32_t computePadding(std::uint64_t &base, std::int32_t alignment);
 
+    static inline std::int32_t computePaddingWithHeader(std::uint64_t &base,
+                                                        std::int32_t alignment,
+                                                        std::int32_t headerSize);
+
     static inline const char *getByteUnitString(std::uint64_t size);
 
     static inline double getByteNormalizedSize(std::uint64_t size);
@@ -168,6 +172,21 @@ std::uint64_t AbstractAllocator::computeAlignedSize(std::uint64_t &size, std::in
 
 std::int32_t AbstractAllocator::computePadding(std::uint64_t &base, std::int32_t alignment) {
     return static_cast<int32_t>(computeAlignedSize(base, alignment) - base);
+}
+
+std::int32_t AbstractAllocator::computePaddingWithHeader(std::uint64_t &base,
+                                                         std::int32_t alignment,
+                                                         std::int32_t headerSize) {
+    auto padding = computePadding(base, alignment);
+    auto neededSpace = headerSize;
+    if (padding < neededSpace) {
+        neededSpace -= padding;
+        padding += (alignment * (neededSpace / alignment));
+        if (neededSpace % alignment > 0) {
+            padding += alignment;
+        }
+    }
+    return padding;
 }
 
 const char *AbstractAllocator::getByteUnitString(const std::uint64_t size) {

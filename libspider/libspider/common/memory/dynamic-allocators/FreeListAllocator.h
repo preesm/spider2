@@ -47,16 +47,16 @@
 
 /* === Defines === */
 
-#define MIN_CHUNK 4096
+#define MIN_CHUNK 8192
 
 /* === Class definition === */
 
 class FreeListAllocator : public DynamicAllocator {
 public:
-    typedef struct Node {
-        std::uint64_t blockSize_;
-        Node *next_;
-    } Node;
+    struct Node {
+        std::uint64_t blockSize_ = 0;
+        Node *next_ = nullptr;
+    };
 
     explicit FreeListAllocator(std::string name,
                                std::uint64_t staticBufferSize,
@@ -78,13 +78,13 @@ private:
     } Header;
 
     typedef struct Buffer {
-        std::uint64_t size_;
-        char *bufferPtr_;
+        std::uint64_t size_ = 0;
+        std::uint8_t *bufferPtr_ = nullptr;
     } Buffer;
 
     Node *list_ = nullptr;
 
-    char *staticBufferPtr_;
+    std::uint8_t *staticBufferPtr_;
     std::vector<Buffer> extraBuffers_;
     std::uint64_t staticBufferSize_;
 
@@ -103,6 +103,14 @@ private:
     findBest(std::uint64_t &size, std::int32_t &padding, std::int32_t &alignment, Node *&baseNode, Node *&foundNode);
 
     void checkPointerAddress(void *ptr);
+
+    constexpr FreeListAllocator::Node *cast_node(void *buffer) const {
+        return static_cast<FreeListAllocator::Node *>(buffer);
+    }
+
+    constexpr std::uint8_t *cast_buffer(void *node) const {
+        return static_cast<std::uint8_t *>(node);
+    }
 };
 
 #endif //SPIDER2_FREELISTALLOCATOR_H

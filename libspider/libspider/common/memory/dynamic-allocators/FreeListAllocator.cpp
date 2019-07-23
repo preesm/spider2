@@ -53,7 +53,7 @@ FreeListAllocator::FreeListAllocator(std::string name,
     if (alignment < 8) {
         throwSpiderException("Memory alignment should be at least of size sizeof(std::int64_t) = 8 bytes.");
     }
-    staticBufferPtr_ = (char *) std::malloc(staticBufferSize_);
+    staticBufferPtr_ = static_cast<std::uint8_t *>(std::malloc(staticBufferSize_ + 1));
     this->reset();
     if (policy == FreeListPolicy::FIND_FIRST) {
         method_ = FreeListAllocator::findFirst;
@@ -88,35 +88,39 @@ void *FreeListAllocator::allocate(std::uint64_t size) {
         /* == We need to allocate new chunks of memory == */
         padding = sizeof(FreeListAllocator::Header);
         FreeListAllocator::Buffer newBuffer;
+
         /* == Allocate new buffer with size aligned to MIN_CHUNK == */
-        auto newSize = size + padding;
-        newBuffer.size_ = AbstractAllocator::computeAlignedSize(newSize, MIN_CHUNK);
-        newBuffer.bufferPtr_ = (char *) std::malloc(newBuffer.size_);
+        auto sizeWithHeader = size + padding;
+        newBuffer.size_ = AbstractAllocator::computeAlignedSize(sizeWithHeader, MIN_CHUNK);
+        newBuffer.bufferPtr_ = cast_buffer(std::malloc(newBuffer.size_));
+
         /* == Initialize memoryNode == */
-        memoryNode = (Node *) (newBuffer.bufferPtr_);
+        memoryNode = cast_node(newBuffer.bufferPtr_);
         memoryNode->blockSize_ = newBuffer.size_;
         memoryNode->next_ = nullptr;
+
         /* == Add the new node to the existing list of free node == */
         insert(baseNode, memoryNode);
+
         /* == Push buffer into vector to keep track of it == */
         extraBuffers_.push_back(newBuffer);
     }
 
     /* == Compute padding and real required size == */
-    std::int32_t paddingWithoutHeader = padding - sizeof(FreeListAllocator::Header);
     std::uint64_t requiredSize = size + padding;
     std::uint64_t leftOverMemory = memoryNode->blockSize_ - requiredSize;
     if (leftOverMemory) {
         /* == We split block to limit waste memory space == */
-        Node *freeNode = (Node *) (((char *) memoryNode) + requiredSize);
+        Node *freeNode = cast_node(cast_buffer(memoryNode) + requiredSize);
         freeNode->blockSize_ = leftOverMemory;
         insert(memoryNode, freeNode);
     }
     remove(baseNode, memoryNode);
 
     /* == Computing header and data address == */
-    char *headerAddress = (char *) (memoryNode) + paddingWithoutHeader;
-    char *dataAddress = (char *) (memoryNode) + padding;
+    std::int32_t paddingWithoutHeader = padding - sizeof(FreeListAllocator::Header);
+    auto *headerAddress = cast_buffer(memoryNode) + paddingWithoutHeader;
+    auto *dataAddress = cast_buffer(memoryNode) + padding;
 
     /* == Write header info == */
     auto *header = (Header *) (headerAddress);
@@ -133,12 +137,12 @@ void FreeListAllocator::deallocate(void *ptr) {
     if (!ptr) {
         return;
     }
-    char *currentAddress = static_cast<char *>(ptr);
-    char *headerAddress = currentAddress - sizeof(FreeListAllocator::Header);
+    auto *currentAddress = cast_buffer(ptr);
+    auto *headerAddress = currentAddress - sizeof(FreeListAllocator::Header);
 
     /* == Read header info == */
     auto *header = (Header *) (headerAddress);
-    Node *freeNode = (Node *) (headerAddress - header->padding_);
+    Node *freeNode = cast_node(headerAddress - header->padding_);
     /* == Check address == */
     checkPointerAddress(freeNode);
     freeNode->blockSize_ = header->size_;
@@ -159,27 +163,27 @@ void FreeListAllocator::deallocate(void *ptr) {
     used_ -= freeNode->blockSize_;
 
     /* == Look for contiguous block to merge (coalescence) == */
-    if (freeNode->next_ && ((char *) freeNode + freeNode->blockSize_) == ((char *) freeNode->next_)) {
+    if (freeNode->next_ && (cast_buffer(freeNode) + freeNode->blockSize_) == (cast_buffer(freeNode->next_))) {
         freeNode->blockSize_ += freeNode->next_->blockSize_;
         remove(freeNode, freeNode->next_);
     }
-    if (itPrev && ((char *) itPrev + itPrev->blockSize_) == ((char *) freeNode)) {
+    if (itPrev && (cast_buffer(itPrev) + itPrev->blockSize_) == (cast_buffer(freeNode))) {
         itPrev->blockSize_ += freeNode->blockSize_;
         remove(itPrev, freeNode);
     }
-
 }
+
 
 void FreeListAllocator::reset() {
     averageUse_ += used_;
     numberAverage_++;
     used_ = 0;
-    list_ = (Node *) (staticBufferPtr_);
+    list_ = cast_node(staticBufferPtr_);
     list_->blockSize_ = staticBufferSize_;
     list_->next_ = nullptr;
     Node *currentNode = list_;
     for (auto &it: extraBuffers_) {
-        auto *bufferHead = (Node *) (it.bufferPtr_);
+        auto *bufferHead = cast_node(it.bufferPtr_);
         bufferHead->blockSize_ = it.size_;
         bufferHead->next_ = nullptr;
         insert(currentNode, bufferHead);
@@ -190,7 +194,7 @@ void FreeListAllocator::reset() {
 void FreeListAllocator::insert(Node *baseNode, Node *newNode) {
     if (!baseNode) {
         /* == Insert node as first == */
-        newNode->next_ = list_ ? list_ : nullptr;
+        newNode->next_ = list_;
         list_ = newNode;
     } else {
         /* == Insert node as last if baseNode->next == nullptr == */
@@ -217,16 +221,12 @@ FreeListAllocator::findFirst(std::uint64_t &size, std::int32_t &padding, std::in
     Node *it = baseNode;
     baseNode = nullptr;
     constexpr std::int32_t headerSize = sizeof(FreeListAllocator::Header);
-    auto sizeWithHeader = size + headerSize;
+    padding = AbstractAllocator::computePaddingWithHeader(size, alignment, headerSize);
+    auto requiredSize = size + padding;
     while (it) {
-        if (it->blockSize_ >= sizeWithHeader) {
-            padding = AbstractAllocator::computePadding(sizeWithHeader, alignment);
-            padding += headerSize;
-            std::uint64_t requiredSize = size + padding;
-            if (it->blockSize_ >= requiredSize) {
-                foundNode = it;
-                return;
-            }
+        if (it->blockSize_ >= requiredSize) {
+            foundNode = it;
+            return;
         }
         baseNode = it;
         it = it->next_;
@@ -242,22 +242,18 @@ FreeListAllocator::findBest(std::uint64_t &size, std::int32_t &padding, std::int
     baseNode = nullptr;
     std::uint64_t minFit = UINT64_MAX;
     constexpr std::int32_t headerSize = sizeof(FreeListAllocator::Header);
-    auto sizeWithHeader = size + headerSize;
+    padding = AbstractAllocator::computePaddingWithHeader(size, alignment, headerSize);
+    auto requiredSize = size + padding;
     while (it) {
-        if (it->blockSize_ >= sizeWithHeader) {
-            padding = AbstractAllocator::computePadding(sizeWithHeader, alignment);
-            padding += headerSize;
-            std::uint64_t requiredSize = size + padding;
-            if (it->blockSize_ >= requiredSize && ((it->blockSize_ - requiredSize) < minFit)) {
-                foundNode = it;
-                minFit = it->blockSize_ - requiredSize;
-                if (minFit == 0) {
-                    /* == We won't find better fit == */
-                    return;
-                }
-            } else {
-                baseNode = it;
+        if (it->blockSize_ >= requiredSize && ((it->blockSize_ - requiredSize) < minFit)) {
+            foundNode = it;
+            minFit = it->blockSize_ - requiredSize;
+            if (minFit == 0) {
+                /* == We won't find better fit == */
+                return;
             }
+        } else {
+            baseNode = it;
         }
         it = it->next_;
     }
@@ -271,13 +267,13 @@ void FreeListAllocator::checkPointerAddress(void *ptr) {
         throwSpiderException("Trying to deallocate unallocated memory block.");
     }
     for (auto &it: extraBuffers_) {
-        if ((char *) (ptr) >= it.bufferPtr_ &&
-            (char *) (ptr) < (it.bufferPtr_ + it.size_)) {
+        if (cast_buffer(ptr) >= it.bufferPtr_ &&
+            cast_buffer(ptr) < (it.bufferPtr_ + it.size_)) {
             return;
         }
     }
-    if ((char *) (ptr) < staticBufferPtr_ ||
-        (char *) (ptr) > (staticBufferPtr_ + staticBufferSize_)) {
+    if (cast_buffer(ptr) < staticBufferPtr_ ||
+        cast_buffer(ptr) > (staticBufferPtr_ + staticBufferSize_)) {
         throwSpiderException("Trying to deallocate memory block out of memory space.");
     }
 }
