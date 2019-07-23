@@ -47,7 +47,7 @@
 
 /* === Defines === */
 
-#define MIN_CHUNK 8192
+#define MIN_CHUNK_SIZE 8192
 
 /* === Class definition === */
 
@@ -84,13 +84,17 @@ private:
 
     Node *list_ = nullptr;
 
-    std::uint8_t *staticBufferPtr_;
+    std::uint8_t *staticBufferPtr_ = nullptr;
     std::vector<Buffer> extraBuffers_;
-    std::uint64_t staticBufferSize_;
+    std::uint64_t staticBufferSize_ = 0;
 
     void insert(Node *baseNode, Node *newNode);
 
     void remove(Node *baseNode, Node *removedNode);
+
+    Node *createExtraBuffer(std::uint64_t size, Node *base);
+
+    void updateFreeNodeList(Node *baseNode, Node *memoryNode, std::uint64_t requiredSize);
 
     using policyMethod = void (*)(std::uint64_t &, std::int32_t &, std::int32_t &, Node *&, Node *&);
 
