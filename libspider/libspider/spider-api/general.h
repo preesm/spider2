@@ -80,116 +80,118 @@ enum class FreeListPolicy;
 /* === Methods prototype === */
 
 namespace Spider {
+    namespace API {
 
-    /**
-     * @brief Initialize a given stack.
-     * @param stackId   Id of the stack to init (see @refitem StackID)
-     * @param name      Name to set to the stack.
-     * @param type      Type of memory allocator used for the stack (see @refitem AllocatorType)
-     * @param size      Size of the memory stack (size of the base static memory for non-static allocators)
-     * @param baseAddr  Base address provided by user instead of the default one. (for static allocators only)
-     * @param alignment Alignment base used (default alignment is sizeof(std::uint64_t) = 64bits).
-     */
-    void initStack(StackID stackId, const std::string &name, AllocatorType type, std::uint64_t size,
-                   char *baseAddr = nullptr,
-                   std::uint64_t alignment = sizeof(std::uint64_t));
+        /**
+         * @brief Initialize a given stack.
+         * @param stackId   Id of the stack to init (see @refitem StackID)
+         * @param name      Name to set to the stack.
+         * @param type      Type of memory allocator used for the stack (see @refitem AllocatorType)
+         * @param size      Size of the memory stack (size of the base static memory for non-static allocators)
+         * @param baseAddr  Base address provided by user instead of the default one. (for static allocators only)
+         * @param alignment Alignment base used (default alignment is sizeof(std::uint64_t) = 64bits).
+         */
+        void initStack(StackID stackId, const std::string &name, AllocatorType type, std::uint64_t size,
+                       char *baseAddr = nullptr,
+                       std::uint64_t alignment = sizeof(std::uint64_t));
 
-    /**
-     * @brief Initialize a given stack (specialized version for FreeList and FreeListStatic allocators).
-     * @param stackId   Id of the stack to init (see @refitem StackID)
-     * @param name      Name to set to the stack.
-     * @param type      Type of memory allocator used for the stack (see @refitem AllocatorType)
-     * @param size      Size of the memory stack (size of the base static memory for non-static allocators)
-     * @param policy    Policy of search of the memory block in the FreeList allocators (default is FIND_FIRST).
-     * @param baseAddr  Base address provided by user instead of the default one. (for static allocators only)
-     * @param alignment Alignment base used (default alignment is sizeof(std::uint64_t) = 64bits).
-     */
-    void
-    initStack(StackID stackId, const std::string &name, AllocatorType type, std::uint64_t size, FreeListPolicy policy,
-              char *baseAddr = nullptr, std::uint64_t alignment = sizeof(std::uint64_t));
+        /**
+         * @brief Initialize a given stack (specialized version for FreeList and FreeListStatic allocators).
+         * @param stackId   Id of the stack to init (see @refitem StackID)
+         * @param name      Name to set to the stack.
+         * @param type      Type of memory allocator used for the stack (see @refitem AllocatorType)
+         * @param size      Size of the memory stack (size of the base static memory for non-static allocators)
+         * @param policy    Policy of search of the memory block in the FreeList allocators (default is FIND_FIRST).
+         * @param baseAddr  Base address provided by user instead of the default one. (for static allocators only)
+         * @param alignment Alignment base used (default alignment is sizeof(std::uint64_t) = 64bits).
+         */
+        void
+        initStack(StackID stackId, const std::string &name, AllocatorType type, std::uint64_t size,
+                  FreeListPolicy policy,
+                  char *baseAddr = nullptr, std::uint64_t alignment = sizeof(std::uint64_t));
 
-    void start();
+        void start();
 
-    void quit();
+        void quit();
 
-    /* === Methods for setting flags value in Spider === */
+        /* === Methods for setting flags value in Spider === */
 
-    /**
-     * @brief Enable the traces in Spider.
-     */
-    void enableTrace();
+        /**
+         * @brief Enable the traces in Spider.
+         */
+        void enableTrace();
 
-    /**
-     * @brief Disable the traces in Spider (default behavior).
-     */
-    void disableTrace();
+        /**
+         * @brief Disable the traces in Spider (default behavior).
+         */
+        void disableTrace();
 
-    /**
-     * @brief Enable the Verbose mode in Spider.
-     */
-    void enableVerbose();
+        /**
+         * @brief Enable the Verbose mode in Spider.
+         */
+        void enableVerbose();
 
-    /**
-     * @brief Disable the Verbose mode in Spider (default behavior).
-     */
-    void disableVerbose();
+        /**
+         * @brief Disable the Verbose mode in Spider (default behavior).
+         */
+        void disableVerbose();
 
-    /**
-     * @brief Enable the Logs related to the JOBs.
-     */
-    void enableJobLogs();
+        /**
+         * @brief Enable the Logs related to the JOBs.
+         */
+        void enableJobLogs();
 
-    /**
-     * @brief Disable the Logs related to the JOBs (default behavior).
-     */
-    void disableJobLogs();
+        /**
+         * @brief Disable the Logs related to the JOBs (default behavior).
+         */
+        void disableJobLogs();
 
-    /**
-     * @brief Enable the schedule optimization for static graphs (default behavior).
-     */
-    void enableStaticScheduleOptim();
+        /**
+         * @brief Enable the schedule optimization for static graphs (default behavior).
+         */
+        void enableStaticScheduleOptim();
 
-    /**
-     * @brief Disable the schedule optimization for static graphs (schedule will be recomputed every iteration).
-     */
-    void disableStaticScheduleOptim();
+        /**
+         * @brief Disable the schedule optimization for static graphs (schedule will be recomputed every iteration).
+         */
+        void disableStaticScheduleOptim();
 
-    /**
-     * @brief Enable the SRDAG optimizations (default behavior).
-     */
-    void enableSRDAGOptims();
+        /**
+         * @brief Enable the SRDAG optimizations (default behavior).
+         */
+        void enableSRDAGOptims();
 
-    /**
-     * @brief Disable the SRDAG optimizations.
-     */
-    void disableSRDAGOptims();
+        /**
+         * @brief Disable the SRDAG optimizations.
+         */
+        void disableSRDAGOptims();
 
-    /* === Getters for static variables === */
+        /* === Getters for static variables === */
 
-    /**
-     * @brief Get the trace flag value.
-     * @return value of trace flag.
-     */
-    bool trace();
+        /**
+         * @brief Get the trace flag value.
+         * @return value of trace flag.
+         */
+        bool trace();
 
-    /**
-     * @brief Get the verbose flag value.
-     * @return value of verbose flag.
-     */
-    bool verbose();
+        /**
+         * @brief Get the verbose flag value.
+         * @return value of verbose flag.
+         */
+        bool verbose();
 
-    /**
-     * @brief Get the staticOptims flag value.
-     * @return value of staticOptims flag.
-     */
-    bool staticOptim();
+        /**
+         * @brief Get the staticOptims flag value.
+         * @return value of staticOptims flag.
+         */
+        bool staticOptim();
 
-    /**
-     * @brief Get the srdagOptim flag value.
-     * @return value of srdagOptim flag.
-     */
-    bool srdagOptim();
-
+        /**
+         * @brief Get the srdagOptim flag value.
+         * @return value of srdagOptim flag.
+         */
+        bool srdagOptim();
+    }
 }
 
 #endif //SPIDER2_GENERAL_H

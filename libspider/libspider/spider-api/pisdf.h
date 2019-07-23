@@ -65,83 +65,112 @@ using ParamInt32 = std::int32_t;
 /* === API methods === */
 
 namespace Spider {
+    namespace API {
 
-    /* === Graph creation API === */
+        /* === Graph API === */
 
-    PiSDFGraph *createGraph(const std::string &name,
-                            std::uint64_t nActors,
-                            std::uint64_t nEdges,
-                            std::uint64_t nParams = 0,
-                            std::uint64_t nInputInterfaces = 0,
-                            std::uint64_t nOutputInterfaces = 0,
-                            std::uint64_t nConfigActors = 0);
+        PiSDFGraph *createGraph(const std::string &name,
+                                std::uint64_t nActors,
+                                std::uint64_t nEdges,
+                                std::uint64_t nParams = 0,
+                                std::uint64_t nInputInterfaces = 0,
+                                std::uint64_t nOutputInterfaces = 0,
+                                std::uint64_t nConfigActors = 0);
 
-    // TODO: add function call.
-    PiSDFVertex *createVertex(PiSDFGraph *graph,
-                              const std::string &name,
-                              std::uint32_t nEdgesIN = 0,
-                              std::uint32_t nEdgesOUT = 0,
-                              std::uint32_t nParamsIN = 0);
-
-    PiSDFVertex *createBroadcast(PiSDFGraph *graph,
-                                 const std::string &name,
-                                 std::uint32_t nEdgesOUT = 0,
-                                 std::uint32_t nParamsIN = 0);
-
-    PiSDFVertex *createFork(PiSDFGraph *graph,
-                            const std::string &name,
-                            std::uint32_t nEdgesOUT = 0,
-                            std::uint32_t nParamsIN = 0);
-
-    PiSDFVertex *createRoundbuffer(PiSDFGraph *graph,
-                                   const std::string &name,
-                                   std::uint32_t nEdgesIN = 0,
-                                   std::uint32_t nParamsIN = 0);
-
-    PiSDFVertex *createJoin(PiSDFGraph *graph,
-                            const std::string &name,
-                            std::uint32_t nEdgesIN = 0,
-                            std::uint32_t nParamsIN = 0);
-
-    PiSDFVertex *createInit(PiSDFGraph *graph,
-                            const std::string &name,
-                            std::uint32_t nParamsIN = 0);
-
-    PiSDFVertex *createEnd(PiSDFGraph *graph,
-                           const std::string &name,
-                           std::uint32_t nParamsIN = 0);
-
-    // TODO: add function call
-    PiSDFVertex *createConfigActor(PiSDFGraph *graph,
-                                   const std::string &name,
-                                   std::uint32_t nEdgesIN = 0,
-                                   std::uint32_t nEdgesOUT = 0,
-                                   std::uint32_t nParamsIN = 0,
-                                   std::uint32_t nParamsOUT = 0);
-
-    PiSDFInterface *createInputInterface(PiSDFGraph *graph,
-                                         const std::string &name);
-
-    PiSDFInterface *createOutputInterface(PiSDFGraph *graph,
-                                          const std::string &name);
-
-    /* === Param creation API === */
-
-    PiSDFParam *createStaticParam(PiSDFGraph *graph,
+        PiSDFGraph *createSubraph(PiSDFGraph *graph,
                                   const std::string &name,
-                                  ParamInt64 value);
+                                  std::uint64_t nActors,
+                                  std::uint64_t nEdges,
+                                  std::uint64_t nParams = 0,
+                                  std::uint64_t nInputInterfaces = 0,
+                                  std::uint64_t nOutputInterfaces = 0,
+                                  std::uint64_t nConfigActors = 0);
 
-    PiSDFParam *createDynamicParam(PiSDFGraph *graph,
-                                   const std::string &name,
-                                   PiSDFVertex *setter);
+        // TODO: add function call.
+        PiSDFVertex *createVertex(PiSDFGraph *graph,
+                                  const std::string &name,
+                                  std::uint32_t nEdgesIN = 0,
+                                  std::uint32_t nEdgesOUT = 0,
+                                  std::uint32_t nParamsIN = 0);
 
-    PiSDFParam *createDependentParam(PiSDFGraph *graph,
+        PiSDFVertex *createBroadcast(PiSDFGraph *graph,
                                      const std::string &name,
-                                     const std::string &expression);
+                                     std::uint32_t nEdgesOUT = 0,
+                                     std::uint32_t nParamsIN = 0);
 
-    PiSDFParam *createInheritedParam(PiSDFGraph *graph,
-                                     const std::string &name,
-                                     PiSDFParam *parent);
+        PiSDFVertex *createFork(PiSDFGraph *graph,
+                                const std::string &name,
+                                std::uint32_t nEdgesOUT = 0,
+                                std::uint32_t nParamsIN = 0);
+
+        PiSDFVertex *createRoundbuffer(PiSDFGraph *graph,
+                                       const std::string &name,
+                                       std::uint32_t nEdgesIN = 0,
+                                       std::uint32_t nParamsIN = 0);
+
+        PiSDFVertex *createJoin(PiSDFGraph *graph,
+                                const std::string &name,
+                                std::uint32_t nEdgesIN = 0,
+                                std::uint32_t nParamsIN = 0);
+
+        PiSDFVertex *createInit(PiSDFGraph *graph,
+                                const std::string &name,
+                                std::uint32_t nParamsIN = 0);
+
+        PiSDFVertex *createEnd(PiSDFGraph *graph,
+                               const std::string &name,
+                               std::uint32_t nParamsIN = 0);
+
+        // TODO: add function call
+        PiSDFVertex *createConfigActor(PiSDFGraph *graph,
+                                       const std::string &name,
+                                       std::uint32_t nEdgesIN = 0,
+                                       std::uint32_t nEdgesOUT = 0,
+                                       std::uint32_t nParamsIN = 0,
+                                       std::uint32_t nParamsOUT = 0);
+
+        PiSDFInterface *createInputInterface(PiSDFGraph *graph,
+                                             const std::string &name);
+
+        PiSDFInterface *createOutputInterface(PiSDFGraph *graph,
+                                              const std::string &name);
+
+        /* === Param API === */
+
+        PiSDFParam *createStaticParam(PiSDFGraph *graph,
+                                      const std::string &name,
+                                      ParamInt64 value);
+
+        PiSDFParam *createDynamicParam(PiSDFGraph *graph,
+                                       const std::string &name,
+                                       PiSDFVertex *setter);
+
+        PiSDFParam *createDependentParam(PiSDFGraph *graph,
+                                         const std::string &name,
+                                         const std::string &expression);
+
+        PiSDFParam *createInheritedParam(PiSDFGraph *graph,
+                                         const std::string &name,
+                                         PiSDFParam *parent);
+
+        /* === Edge API === */
+
+        PiSDFEdge *createEdge(PiSDFGraph *graph,
+                              PiSDFVertex *source,
+                              std::uint16_t srcPortIx,
+                              const std::string &srcRateExpression,
+                              PiSDFVertex *sink,
+                              std::uint16_t snkPortIx,
+                              const std::string &snkRateExpression);
+
+        PiSDFEdge *createEdge(PiSDFGraph *graph,
+                              PiSDFVertex *source,
+                              std::uint16_t srcPortIx,
+                              std::int64_t srcRate,
+                              PiSDFVertex *sink,
+                              std::uint16_t snkPortIx,
+                              std::int64_t snkRate);
+    }
 }
 
 #endif //SPIDER2_PISDF_H

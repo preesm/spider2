@@ -131,7 +131,7 @@ void PiSDFEdge::connectSink(PiSDFVertex *vertex, std::uint32_t portIx, std::int6
     sink_ = vertex;
     Spider::construct(sinkPort_, cons);
     sinkPort_->connectEdge(this, portIx);
-    source_->setInputEdge(this, portIx);
+    sink_->setInputEdge(this, portIx);
 }
 
 void PiSDFEdge::exportDot(FILE *file, const std::string &offset) const {

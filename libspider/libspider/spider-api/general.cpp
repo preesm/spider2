@@ -73,7 +73,7 @@ static bool &srdagOptimFlag() {
 
 /* === Methods implementation === */
 
-void Spider::initStack(StackID stackId,
+void Spider::API::initStack(StackID stackId,
                        const std::string &name,
                        AllocatorType type,
                        std::uint64_t size,
@@ -90,7 +90,7 @@ void Spider::initStack(StackID stackId,
     Spider::initAllocator(stackId, cfg);
 }
 
-void Spider::initStack(StackID stackId,
+void Spider::API::initStack(StackID stackId,
                        const std::string &name,
                        AllocatorType type,
                        std::uint64_t size,
@@ -109,7 +109,7 @@ void Spider::initStack(StackID stackId,
     Spider::initAllocator(stackId, cfg);
 }
 
-void Spider::start() {
+void Spider::API::start() {
     /* == General stack initialization == */
     auto cfg = AllocatorConfig{"general-allocator",
                                AllocatorType::FREELIST,
@@ -127,63 +127,63 @@ void Spider::start() {
     startFlag() = true;
 }
 
-void Spider::quit() {
+void Spider::API::quit() {
     /* == Clear the stacks == */
     Spider::finalizeAllocators();
 }
 
-void Spider::enableTrace() {
+void Spider::API::enableTrace() {
     traceFlag() = true;
 }
 
-void Spider::disableTrace() {
+void Spider::API::disableTrace() {
     traceFlag() = false;
 }
 
-void Spider::enableVerbose() {
+void Spider::API::enableVerbose() {
     verboseFlag() = true;
 }
 
-void Spider::disableVerbose() {
+void Spider::API::disableVerbose() {
     verboseFlag() = false;
 }
 
-void Spider::enableJobLogs() {
+void Spider::API::enableJobLogs() {
     Logger::enable(LoggerType::LOG_JOB);
 }
 
-void Spider::disableJobLogs() {
+void Spider::API::disableJobLogs() {
     Logger::disable(LoggerType::LOG_JOB);
 }
 
-void Spider::enableStaticScheduleOptim() {
+void Spider::API::enableStaticScheduleOptim() {
     staticOptimFlag() = true;
 }
 
-void Spider::disableStaticScheduleOptim() {
+void Spider::API::disableStaticScheduleOptim() {
     staticOptimFlag() = false;
 }
 
-void Spider::enableSRDAGOptims() {
+void Spider::API::enableSRDAGOptims() {
     srdagOptimFlag() = true;
 }
 
-void Spider::disableSRDAGOptims() {
+void Spider::API::disableSRDAGOptims() {
     srdagOptimFlag() = false;
 }
 
-bool Spider::trace() {
+bool Spider::API::trace() {
     return traceFlag();
 }
 
-bool Spider::verbose() {
+bool Spider::API::verbose() {
     return verboseFlag();
 }
 
-bool Spider::staticOptim() {
+bool Spider::API::staticOptim() {
     return staticOptimFlag();
 }
 
-bool Spider::srdagOptim() {
+bool Spider::API::srdagOptim() {
     return srdagOptimFlag();
 }
