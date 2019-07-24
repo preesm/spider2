@@ -158,15 +158,6 @@ file(
         ${SPIDER_LIB_DIR}/graphs-tools/expression-parser/*.cpp
         ${SPIDER_LIB_DIR}/graphs-tools/transformation/*.cpp
         ${SPIDER_LIB_DIR}/spider-api/*.cpp
-        ##    ${SPIDER_LIB_DIR}/monitoring/papify/*.cpp
-        #    ${SPIDER_LIB_DIR}/monitoring/generic/*.cpp
-        #    ${SPIDER_LIB_DIR}/platform/archi/shared-memory/*.cpp
-        #    ${SPIDER_LIB_DIR}/platform/pthread/*.cpp
-        #    ${SPIDER_LIB_DIR}/scheduling/*.cpp
-        #    ${SPIDER_LIB_DIR}/scheduling/allocator/*.cpp
-        #    ${SPIDER_LIB_DIR}/scheduling/scheduler/*.cpp
-        #    ${SPIDER_LIB_DIR}/runtime/*.cpp
-        #    ${SPIDER_LIB_DIR}/spider/*.cpp
 )
 
 file(
