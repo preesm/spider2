@@ -123,11 +123,9 @@ public:
     inline bool isStatic() const;
 
 private:
-
     RPNConverter rpnConverter_;
     ExpressionTreeNode *expressionTree_ = nullptr;
-    std::int64_t valueInt64_ = 0;
-    double valueDBL_ = 0;
+    double value_ = 0;
     bool static_ = true;
 
     /* === Private method(s) === */
@@ -163,7 +161,7 @@ private:
 /* === Inline methods === */
 
 std::int64_t Expression::value() const {
-    return valueInt64_;
+    return static_cast<std::int64_t>(value_);
 }
 
 const std::string &Expression::toString() const {
@@ -176,14 +174,14 @@ const std::string &Expression::postfixString() const {
 
 std::int64_t Expression::evaluate() const {
     if (static_) {
-        return valueInt64_;
+        return static_cast<std::int64_t>(value_);
     }
     return static_cast<std::int64_t>(evaluateNode(expressionTree_));
 }
 
 double Expression::evaluateDBL() const {
     if (static_) {
-        return valueDBL_;
+        return value_;
     }
     return evaluateNode(expressionTree_);
 }

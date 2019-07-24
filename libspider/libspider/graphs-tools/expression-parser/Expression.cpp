@@ -64,8 +64,7 @@ Expression::Expression(const PiSDFGraph *graph, std::string expression) : rpnCon
 
     /* == If static, evaluate and delete the expression == */
     if (static_) {
-        valueDBL_ = evaluateNode(expressionTree_);
-        valueInt64_ = static_cast<std::int64_t >(valueDBL_);
+        value_ = evaluateNode(expressionTree_);
         Spider::deallocate(expressionTree_);
         expressionTree_ = nullptr;
     }
@@ -73,8 +72,7 @@ Expression::Expression(const PiSDFGraph *graph, std::string expression) : rpnCon
 
 Expression::Expression(std::int64_t value) {
     static_ = true;
-    valueDBL_ = value;
-    valueInt64_ = value;
+    value_ = value;
 }
 
 Expression::~Expression() {
