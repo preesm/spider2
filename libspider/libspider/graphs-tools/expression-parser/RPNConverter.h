@@ -42,8 +42,8 @@
 
 /* === Includes === */
 
-#include <common/containers/LinkedList.h>
-#include <common/containers/StlContainers.h>
+#include <containers/LinkedList.h>
+#include <containers/StlContainers.h>
 #include <algorithm>
 #include <cstdint>
 

@@ -149,7 +149,7 @@ file(
         GLOB_RECURSE
         source_files
         ${SPIDER_LIB_DIR}/common/*.cpp
-        ${SPIDER_LIB_DIR}/common/containers/*.cpp
+        ${SPIDER_LIB_DIR}/containers/*.cpp
         ${SPIDER_LIB_DIR}/memory/*.cpp
         ${SPIDER_LIB_DIR}/memory/dynamic-allocators/*.cpp
         ${SPIDER_LIB_DIR}/memory/static-allocators/*.cpp
@@ -173,7 +173,7 @@ file(
         GLOB_RECURSE
         header_files
         ${SPIDER_LIB_DIR}/common/*.h
-        ${SPIDER_LIB_DIR}/common/containers/*.h
+        ${SPIDER_LIB_DIR}/containers/*.h
         ${SPIDER_LIB_DIR}/memory/*.h
         ${SPIDER_LIB_DIR}/memory/abstract-allocators/*.h
         ${SPIDER_LIB_DIR}/memory/dynamic-allocators/*.h

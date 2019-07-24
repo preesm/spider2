@@ -43,12 +43,12 @@
 /* === Includes === */
 
 #include <cstdint>
-#include <common/containers/Set.h>
+#include <containers/Set.h>
 #include <graphs/pisdf/PiSDFVertex.h>
 #include <graphs/pisdf/PiSDFInterface.h>
 #include <graphs/pisdf/PiSDFEdge.h>
 #include <graphs/pisdf/PiSDFParam.h>
-#include <common/containers/LinkedList.h>
+#include <containers/LinkedList.h>
 
 /* === Routine declaration(s) === */
 

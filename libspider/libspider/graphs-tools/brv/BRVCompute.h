@@ -42,9 +42,9 @@
 
 /* === Include(s) === */
 
-#include <common/containers/StlContainers.h>
-#include <common/containers/Array.h>
-#include <common/containers/Set.h>
+#include <containers/StlContainers.h>
+#include <containers/Array.h>
+#include <containers/Set.h>
 #include <graphs/pisdf/PiSDFVertex.h>
 
 /* === Forward declaration(s) === */

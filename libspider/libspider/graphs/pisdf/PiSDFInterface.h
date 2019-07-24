@@ -44,7 +44,7 @@
 
 #include <cstdint>
 #include <string>
-#include <common/containers/StlContainers.h>
+#include <containers/StlContainers.h>
 #include <graphs/pisdf/PiSDFVertex.h>
 #include "PiSDFTypes.h"
 

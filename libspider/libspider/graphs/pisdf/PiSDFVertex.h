@@ -46,8 +46,8 @@
 #include <cinttypes>
 #include <graphs/pisdf/PiSDFTypes.h>
 #include <common/SpiderException.h>
-#include <common/containers/Array.h>
-#include <common/containers/StlContainers.h>
+#include <containers/Array.h>
+#include <containers/StlContainers.h>
 
 /* === Forward declaration(s) === */
 

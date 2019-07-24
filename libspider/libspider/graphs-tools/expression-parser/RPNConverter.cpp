@@ -42,7 +42,7 @@
 
 #include <algorithm>
 #include "RPNConverter.h"
-#include <common/containers/StlContainers.h>
+#include <containers/StlContainers.h>
 #include <common/SpiderException.h>
 #include <graphs/pisdf/PiSDFGraph.h>
 #include <graphs-tools/expression-parser/ParserFunctions.h>

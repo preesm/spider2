@@ -44,7 +44,7 @@
 
 #include <cstdint>
 #include <string>
-#include <common/containers/Array.h>
+#include <containers/Array.h>
 #include "RPNConverter.h"
 
 /* === Forward declaration(s) === */

@@ -43,7 +43,7 @@
 /* === Includes === */
 
 #include <gtest/gtest.h>
-#include <common/containers/LinkedList.h>
+#include <containers/LinkedList.h>
 
 /* === Methods prototype === */
 
