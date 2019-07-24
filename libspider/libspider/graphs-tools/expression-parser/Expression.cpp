@@ -91,7 +91,7 @@ void Expression::printExpressionTree() {
 /* === Private method(s) === */
 
 void Expression::buildExpressionTree(const Spider::deque<RPNElement> *expressionStack) {
-    expressionTree_ = Spider::allocate<ExpressionTreeNode>(StackID::GENERAL, expressionStack->size());
+    expressionTree_ = Spider::allocate<ExpressionTreeNode>(StackID::EXPR_PARSER, expressionStack->size());
     Spider::construct(expressionTree_, 0, nullptr);
     std::uint16_t nodeIx = 1;
     auto *node = expressionTree_;
@@ -155,19 +155,19 @@ void Expression::printExpressionTreeNode(ExpressionTreeNode *node, std::int32_t 
     }
     auto &elt = node->elt;
     if (depth) {
-        fprintf(stderr, "|");
+        Spider::Logger::print(LOG_GENERAL, LOG_INFO, "|");
         for (auto i = 0; i < depth; ++i) {
-            fprintf(stderr, "-");
+            Spider::Logger::print(LOG_GENERAL, LOG_INFO, "-");
         }
-        fprintf(stderr, "> ");
+        Spider::Logger::print(LOG_GENERAL, LOG_INFO, ">");
     }
     if (elt.type == RPNElementType::OPERATOR) {
-        fprintf(stderr, "%s\n", RPNConverter::getStringFromOperatorType(elt.op).c_str());
+        Spider::Logger::print(LOG_GENERAL, LOG_INFO, "%s\n", RPNConverter::getStringFromOperatorType(elt.op).c_str());
     } else {
         if (elt.subType == RPNElementSubType::PARAMETER) {
-            fprintf(stderr, "%s\n", elt.param->name().c_str());
+            Spider::Logger::print(LOG_GENERAL, LOG_INFO, "%s\n", elt.param->name().c_str());
         } else {
-            fprintf(stderr, "%lf\n", elt.value);
+            Spider::Logger::print(LOG_GENERAL, LOG_INFO, "%lf\n", elt.value);
         }
     }
     printExpressionTreeNode(node->right, depth + 1);

@@ -155,7 +155,7 @@ private:
      */
     double evaluateNode(ExpressionTreeNode *node) const;
 
-    void printExpressionTreeNode(ExpressionTreeNode *node, std::int32_t depth);
+    static void printExpressionTreeNode(ExpressionTreeNode *node, std::int32_t depth);
 };
 
 /* === Inline methods === */
