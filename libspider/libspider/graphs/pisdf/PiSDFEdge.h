@@ -168,7 +168,7 @@ public:
      * @brief Get the containing @refitem PiSDFGraph of the edge.
      * @return containing @refitem PiSDFGraph
      */
-    inline const PiSDFGraph *containingGraph() const;
+    inline PiSDFGraph *containingGraph() const;
 
     /**
      * @brief Get the source @refitem PiSDFVertex of the edge.
@@ -250,7 +250,7 @@ void PiSDFEdge::setDelay(PiSDFDelay *delay) {
     delay_ = delay;
 }
 
-const PiSDFGraph *PiSDFEdge::containingGraph() const {
+PiSDFGraph *PiSDFEdge::containingGraph() const {
     return graph_;
 }
 

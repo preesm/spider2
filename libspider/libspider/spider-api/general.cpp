@@ -74,11 +74,11 @@ static bool &srdagOptimFlag() {
 /* === Methods implementation === */
 
 void Spider::API::initStack(StackID stackId,
-                       const std::string &name,
-                       AllocatorType type,
-                       std::uint64_t size,
-                       char *baseAddr,
-                       std::uint64_t alignment) {
+                            const std::string &name,
+                            AllocatorType type,
+                            std::uint64_t size,
+                            char *baseAddr,
+                            std::uint64_t alignment) {
     if (!startFlag()) {
         throwSpiderException("Method Spider::start() should be called first.");
     }
@@ -91,12 +91,12 @@ void Spider::API::initStack(StackID stackId,
 }
 
 void Spider::API::initStack(StackID stackId,
-                       const std::string &name,
-                       AllocatorType type,
-                       std::uint64_t size,
-                       FreeListPolicy policy,
-                       char *baseAddr,
-                       std::uint64_t alignment) {
+                            const std::string &name,
+                            AllocatorType type,
+                            std::uint64_t size,
+                            FreeListPolicy policy,
+                            char *baseAddr,
+                            std::uint64_t alignment) {
 
     if (!startFlag()) {
         throwSpiderException("Method Spider::start() should be called first.");

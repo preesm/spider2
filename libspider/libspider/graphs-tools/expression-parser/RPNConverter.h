@@ -187,7 +187,6 @@ public:
     static RPNOperatorType getOperatorTypeFromString(const std::string &operatorString);
 
 private:
-
     std::string infixExprString_{""};
     std::string postfixExprString_{""};
     const PiSDFGraph *graph_ = nullptr;

@@ -156,5 +156,4 @@ void PiSDFDelay::setMemoryAddress(std::uint64_t address) {
 }
 
 
-
 #endif //SPIDER2_PISDFDELAY_H
