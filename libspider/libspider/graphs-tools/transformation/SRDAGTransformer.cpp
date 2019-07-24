@@ -40,6 +40,8 @@
 
 /* === Include(s) === */
 
+#include <memory/Allocator.h>
+#include <graphs/pisdf/PiSDFGraph.h>
 #include "SRDAGTransformer.h"
 
 /* === Static variable(s) === */
@@ -47,3 +49,64 @@
 /* === Static function(s) === */
 
 /* === Method(s) implementation === */
+
+
+SRDAGTransformer::SRDAGTransformer(const PiSDFGraph *graph) : piSdfGraph_{graph} {
+
+    srdag_ = Spider::allocate<PiSDFGraph>(StackID::PISDF);
+    Spider::construct(srdag_,
+                      "srdag-" + graph->name(),
+                      0, /* = nActors = */
+                      0, /* = nEdges = */
+                      0, /* = nParams = */
+                      0, /* = nInputInterfaces = */
+                      0, /* = nOutputInterfaces = */
+                      0  /* = nConfigActors = */);
+}
+
+SRDAGTransformer::~SRDAGTransformer() {
+
+}
+
+void SRDAGTransformer::execute() {
+    if (!piSdfGraph_) {
+        throwSpiderException("Cannot transform nullptr PiSDFGraph.");
+    }
+
+    /* == Extract the vertices from the top graph == */
+
+    /* == Iterate over the subgraphs == */
+    for (const auto *subgraph : piSdfGraph_->subgraphs()) {
+
+    }
+}
+
+void SRDAGTransformer::resume() {
+    if (stoppedFromConfig_) {
+
+    }
+}
+
+/* === Private method(s) === */
+
+void SRDAGTransformer::copyVertex(const PiSDFVertex *vertex) {
+    auto *copyVertex = Spider::allocate<PiSDFVertex>(StackID::TRANSFO);
+    Spider::construct(copyVertex,
+                      srdag_,
+                      vertex->name(),
+                      vertex->type(),
+                      vertex->nEdgesIN(),
+                      vertex->nEdgesOUT(),
+                      vertex->nParamsIN(),
+                      vertex->nParamsOUT());
+}
+
+void SRDAGTransformer::extractConfigActors(const PiSDFGraph *graph) {
+    /* == Pre-cache (if needed) the number of config actors of current graph == */
+    srdag_->precacheConfigVertices(graph->nConfigs());
+
+    /* == Copy all config actors == */
+    for (const auto *vertex : graph->configActors()) {
+        copyVertex(vertex);
+    }
+}

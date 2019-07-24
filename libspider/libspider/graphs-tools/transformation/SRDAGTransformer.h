@@ -54,20 +54,39 @@ class PiSDFVertex;
 
 class SRDAGTransformer {
 public:
+    explicit SRDAGTransformer(const PiSDFGraph *graph);
+
+    ~SRDAGTransformer();
 
     /* === Method(s) === */
 
+    void execute();
+
+    void resume();
+
     /* === Getter(s) === */
+
+    inline const PiSDFGraph *srdag() const;
 
     /* === Setter(s) === */
 
 private:
+    PiSDFGraph *srdag_ = nullptr;
+    const PiSDFGraph *piSdfGraph_ = nullptr;
+    bool stoppedFromConfig_ = false;
 
     /* === Private method(s) === */
+
+    void copyVertex(const PiSDFVertex *vertex);
+
+    void extractConfigActors(const PiSDFGraph *graph);
 };
 
 /* === Inline method(s) === */
 
+const PiSDFGraph *SRDAGTransformer::srdag() const {
+    return srdag_;
+}
 
 
 #endif //SPIDER2_SRDAGTRANSFORMER_H
