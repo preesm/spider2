@@ -238,6 +238,9 @@ namespace Spider {
 
     template<class T>
     typename Set<T, Spider::EnableIfPolicy<T>>::iterator Set<T, Spider::EnableIfPolicy<T>>::end() {
+        if (occupied_ == elements_.size()) {
+            return elements_.end();
+        }
         return &elements_[occupied_];
     }
 
@@ -248,6 +251,9 @@ namespace Spider {
 
     template<class T>
     typename Set<T, Spider::EnableIfPolicy<T>>::const_iterator Set<T, Spider::EnableIfPolicy<T>>::end() const {
+        if (occupied_ == elements_.size()) {
+            return elements_.end();
+        }
         return &elements_[occupied_];
     }
 

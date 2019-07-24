@@ -144,7 +144,7 @@ namespace Spider {
 
     template<typename T>
     T &Array<T>::operator[](std::uint64_t ix) {
-        if (ix >= arraySize_) {
+        if (ix >= size_) {
             throwSpiderException("Index out of bound. Ix = %"
                                          PRIu32
                                          " -- Size = %"
@@ -156,7 +156,7 @@ namespace Spider {
 
     template<typename T>
     T &Array<T>::operator[](std::uint64_t ix) const {
-        if (ix >= arraySize_) {
+        if (ix >= size_) {
             throwSpiderException("Index out of bound. Ix = %"
                                          PRIu32
                                          " -- Size = %"
