@@ -46,8 +46,8 @@
 
 /* === Methods implementation === */
 
-void Spider::exportGantt(const std::string &path) {
-    if (!Spider::trace()) {
+void Spider::exportPostExecGantt(const std::string &path) {
+    if (!Spider::API::trace()) {
         throwSpiderException("Can not export graph if traces are disable. Use Spider::enableTrace().");
     }
 
@@ -56,6 +56,26 @@ void Spider::exportGantt(const std::string &path) {
     /* == Get the execution traces == */
 
     /* == Print the gantt == */
+
+    /* == Close the file == */
+}
+
+void Spider::exportPreExecGantt(const std::string &path) {
+    /* == Open the file for the gantt == */
+
+    /* == Get the schedule == */
+
+    /* == Print the gantt == */
+
+    /* == Close the file == */
+}
+
+void Spider::exportSRDAG(const std::string &path) {
+    /* == Open the file for the SR-DAG == */
+
+    /* == Get the PiSDF graph and transform it to SR-DAG == */
+
+    /* == Print the SR-DAG == */
 
     /* == Close the file == */
 }
