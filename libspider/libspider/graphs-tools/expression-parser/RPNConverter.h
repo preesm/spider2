@@ -137,16 +137,9 @@ struct RPNElement {
 
 class RPNConverter {
 public:
-    RPNConverter(PiSDFGraph *graph, std::string inFixExpr);
+    RPNConverter(const PiSDFGraph *graph, std::string inFixExpr);
 
     RPNConverter() = default;
-
-    RPNConverter(const RPNConverter &other) {
-        infixExprString_ = other.infixExprString_;
-        postfixExprString_ = other.postfixExprString_;
-        postfixExprStack_ = other.postfixExprStack_;
-        graph_ = other.graph_;
-    }
 
     ~RPNConverter() = default;
 
@@ -197,7 +190,7 @@ private:
 
     std::string infixExprString_{""};
     std::string postfixExprString_{""};
-    PiSDFGraph *graph_ = nullptr;
+    const PiSDFGraph *graph_ = nullptr;
     Spider::deque<RPNElement> postfixExprStack_;
 
     /* === Private Methods === */

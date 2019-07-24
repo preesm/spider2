@@ -41,11 +41,9 @@
 /* === Includes === */
 
 #include <algorithm>
-#include <iostream>
 #include "RPNConverter.h"
 #include <common/containers/StlContainers.h>
 #include <common/SpiderException.h>
-#include <graphs/pisdf/PiSDFParam.h>
 #include <graphs/pisdf/PiSDFGraph.h>
 #include <graphs-tools/expression-parser/ParserFunctions.h>
 
@@ -127,7 +125,7 @@ static inline void setOperatorElement(RPNElement *elt, RPNOperatorType opType) {
     elt->op = opType;
 }
 
-static inline void setOperandElement(RPNElement *elt, const std::string &token, PiSDFGraph *graph) {
+static inline void setOperandElement(RPNElement *elt, const std::string &token, const PiSDFGraph *graph) {
     elt->type = RPNElementType::OPERAND;
     char *end;
     auto value = std::strtod(token.c_str(), &end);
@@ -149,7 +147,7 @@ static inline void setOperandElement(RPNElement *elt, const std::string &token, 
     }
 }
 
-static inline void addToken(Spider::vector<RPNElement> &tokens, const std::string &token, PiSDFGraph *graph) {
+static inline void addToken(Spider::vector<RPNElement> &tokens, const std::string &token, const PiSDFGraph *graph) {
     if (token.empty()) {
         return;
     }
@@ -174,7 +172,7 @@ static inline void addToken(Spider::vector<RPNElement> &tokens, const std::strin
     }
 }
 
-static void retrieveExprTokens(std::string &inFixExpr, Spider::vector<RPNElement> &tokens, PiSDFGraph *graph) {
+static void retrieveExprTokens(std::string &inFixExpr, Spider::vector<RPNElement> &tokens, const PiSDFGraph *graph) {
     auto pos = inFixExpr.find_first_of(operators(), 0);
     std::uint32_t lastPos = 0;
     while (pos != std::string::npos) {
@@ -238,8 +236,8 @@ RPNOperatorType RPNConverter::getOperatorTypeFromString(const std::string &opera
 
 /* === Method(s) implementation === */
 
-RPNConverter::RPNConverter(PiSDFGraph *graph, std::string inFixExpr) : infixExprString_{std::move(inFixExpr)},
-                                                                       graph_{graph} {
+RPNConverter::RPNConverter(const PiSDFGraph *graph, std::string inFixExpr) : infixExprString_{std::move(inFixExpr)},
+                                                                             graph_{graph} {
     if (missMatchParenthesis()) {
         throwSpiderException("Expression with miss matched parenthesis: %s", infixExprString_.c_str());
     }

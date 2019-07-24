@@ -71,7 +71,7 @@ struct ExpressionTreeNode {
 class Expression {
 public:
 
-    Expression(PiSDFGraph *graph, std::string expression);
+    Expression(const PiSDFGraph *graph, std::string expression);
 
     explicit Expression(std::int64_t value);
 
