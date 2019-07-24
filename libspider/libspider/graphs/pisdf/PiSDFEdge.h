@@ -76,14 +76,6 @@ public:
               std::uint16_t snkPortIx,
               std::int64_t snkRate);
 
-    PiSDFEdge() {
-        sourcePort_ = Spider::allocate<PiSDFPort>(StackID::PISDF);
-        sinkPort_ = Spider::allocate<PiSDFPort>(StackID::PISDF);
-        Spider::construct(sourcePort_, 0);
-        Spider::construct(sinkPort_, 0);
-        fprintf(stderr, "Hello\n");
-    };
-
     ~PiSDFEdge();
 
     /* === Methods === */
