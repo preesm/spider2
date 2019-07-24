@@ -54,11 +54,11 @@ PiSDFGraph::PiSDFGraph(std::string name,
                        std::uint64_t nParams,
                        std::uint64_t nInputInterfaces,
                        std::uint64_t nOutputInterfaces,
-                       std::uint64_t nConfigActors) : name_{std::move(name)},
-                                                      paramSet_{StackID::PISDF, nParams} {
+                       std::uint64_t nConfigActors) : name_{std::move(name)} {
     vertexVector_.reserve(nActors);
     edgeVector_.reserve(nEdges);
-    configVector_.reserve(nConfigActors);
+    paramVector_.reserve(nParams);
+    configVertexVector_.reserve(nConfigActors);
     inputInterfaceVector_.reserve(nInputInterfaces);
     outputInterfaceVector_.reserve(nOutputInterfaces);
 }
@@ -103,7 +103,7 @@ PiSDFGraph::~PiSDFGraph() {
         e = nullptr;
     }
 
-    for (auto &p:paramSet_) {
+    for (auto &p:paramVector_) {
         Spider::destroy(p);
         Spider::deallocate(p);
         p = nullptr;
@@ -121,7 +121,7 @@ PiSDFGraph::~PiSDFGraph() {
         outIf = nullptr;
     }
 
-    for (auto &c:configVector_) {
+    for (auto &c:configVertexVector_) {
         Spider::destroy(c);
         Spider::deallocate(c);
         c = nullptr;
@@ -132,9 +132,13 @@ void PiSDFGraph::removeVertex(PiSDFVertex *vertex) {
     if (!vertex) {
         return;
     }
+    if (vertex->containingGraph() != this) {
+        throwSpiderException("Trying to remove a vertex [%s] that don't belong to this graph.", vertex->name().c_str());
+    }
     auto ix = vertex->getIx();
     if (vertexVector_[ix] != vertex) {
-        throwSpiderException("Trying to remove a vertex [%s] that don't belong to this graph.", vertex->name().c_str());
+        throwSpiderException("Different vertex in ix position. Expected: %s -- Got: %s", vertex->name().c_str(),
+                             vertexVector_[ix]->name().c_str());
     }
     vertexVector_[ix] = vertexVector_.back();
     vertexVector_[ix]->setIx(ix);
@@ -171,14 +175,38 @@ void PiSDFGraph::removeEdge(PiSDFEdge *edge) {
     if (!edge) {
         return;
     }
-    if (edgeVector_[edge->getIx()] != edge) {
+    if (edge->containingGraph() != this) {
         throwSpiderException("Trying to remove an edge not from this graph.");
     }
-    edgeVector_[edge->getIx()] = edgeVector_.back();
-    edgeVector_[edge->getIx()]->setIx(edge->getIx());
+    auto ix = edge->getIx();
+    if (edgeVector_[ix] != edge) {
+        throwSpiderException("Different edge in ix position. Expected: %s -- Got: %s", edge->name().c_str(),
+                             edgeVector_[ix]->name().c_str());
+    }
+    edgeVector_[ix] = edgeVector_.back();
+    edgeVector_[ix]->setIx(ix);
     edgeVector_.pop_back();
     Spider::destroy(edge);
     Spider::deallocate(edge);
+}
+
+void PiSDFGraph::removeParam(PiSDFParam *param) {
+    if (!param) {
+        return;
+    }
+    if (param->containingGraph() != this) {
+        throwSpiderException("Trying to remove an edge not from this graph.");
+    }
+    auto ix = param->getIx();
+    if (paramVector_[ix] != param) {
+        throwSpiderException("Different parameter in ix position. Expected: %s -- Got: %s", param->name().c_str(),
+                             paramVector_[ix]->name().c_str());
+    }
+    paramVector_[ix] = paramVector_.back();
+    paramVector_[ix]->setIx(ix);
+    paramVector_.pop_back();
+    Spider::destroy(param);
+    Spider::deallocate(param);
 }
 
 void PiSDFGraph::addSubgraph(PiSDFGraph *subgraph) {
@@ -235,9 +263,9 @@ void PiSDFGraph::exportDotHelper(FILE *file, const std::string &offset) const {
         }
     }
 
-    if (paramSet_.occupied()) {
+    if (paramVector_.size()) {
         fprintf(file, "\n%s// Parameters\n", fwOffset.c_str());
-        for (const auto &p:paramSet_) {
+        for (const auto &p:paramVector_) {
             p->exportDot(file, fwOffset);
         }
     }

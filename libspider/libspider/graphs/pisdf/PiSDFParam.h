@@ -43,8 +43,6 @@
 /* === Includes === */
 
 #include <cstdint>
-#include <common/containers/Array.h>
-#include <common/containers/Set.h>
 #include <graphs-tools/expression-parser/Expression.h>
 #include "PiSDFTypes.h"
 
@@ -60,12 +58,12 @@ class PiSDFVertex;
 
 /* === Class definition === */
 
-class PiSDFParam : public Spider::SetElement {
+class PiSDFParam {
 public:
 
     PiSDFParam(PiSDFGraph *graph,
                std::string name,
-               std::string expression);
+               const std::string &expression);
 
     PiSDFParam(PiSDFGraph *graph,
                std::string name,
@@ -73,14 +71,13 @@ public:
 
     PiSDFParam(PiSDFGraph *graph,
                std::string name,
-               PiSDFParam *parent);
+               const PiSDFParam *parent);
 
     PiSDFParam(PiSDFGraph *graph,
                std::string name,
                PiSDFVertex *setter);
 
-    ~PiSDFParam();
-
+    ~PiSDFParam() = default;
 
     /* === Methods === */
 
@@ -105,6 +102,12 @@ public:
      * @throw @refitem SpiderException if the parameter is not of type @refitem PiSDFParamType::DYNAMIC.
      */
     inline void setValue(std::int64_t value);
+
+    /**
+     * @brief Set the ix of the param in the containing graph.
+     * @param ix Ix to set.
+     */
+    inline void setIx(std::uint32_t ix);
 
     /* === Getters === */
 
@@ -139,6 +142,12 @@ public:
      */
     inline PiSDFParamType type() const;
 
+    /**
+     * @brief Get the ix of the edge in the containing graph.
+     * @return ix of the edge (UINT32_MAX if no ix).
+     */
+    inline std::uint32_t getIx() const;
+
 private:
     /**
      * @brief Containing graph of the parameter.
@@ -163,12 +172,17 @@ private:
     /**
     * @brief Pointer to original parameter if parameter if of type HERITED.
     */
-    PiSDFParam *inheritedParam_ = nullptr;
+    const PiSDFParam *inheritedParam_ = nullptr;
 
     /**
      * @brief Expression of the parameter
      */
-    Expression *expression_ = nullptr;
+    Expression expression_;
+
+    /**
+     * @brief Ix of the parameter (unique per graph).
+     */
+    std::uint32_t ix_ = UINT32_MAX;
 };
 
 /* === Inline Methods === */
@@ -181,10 +195,11 @@ void PiSDFParam::setValue(std::int64_t value) {
     if (type_ != PiSDFParamType::DYNAMIC) {
         throwSpiderException("Trying to set value of a non dynamic parameter.");
     }
-    if (expression_) {
-        Spider::destroy(expression_);
-        Spider::construct(expression_, value);
-    }
+    expression_ = Expression(value);
+}
+
+void PiSDFParam::setIx(std::uint32_t ix) {
+    ix_ = ix;
 }
 
 PiSDFGraph *PiSDFParam::containingGraph() const {
@@ -203,11 +218,15 @@ Param PiSDFParam::value() const {
     if (inheritedParam_) {
         return inheritedParam_->value();
     }
-    return expression_->evaluate();
+    return expression_.evaluate();
 }
 
 PiSDFParamType PiSDFParam::type() const {
     return type_;
+}
+
+std::uint32_t PiSDFParam::getIx() const {
+    return ix_;
 }
 
 #endif //SPIDER2_PISDFPARAM_H

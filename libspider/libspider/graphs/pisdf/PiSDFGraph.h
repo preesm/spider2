@@ -163,6 +163,38 @@ public:
      */
     void exportDot(FILE *file, const std::string &offset) const;
 
+    /**
+     * @brief Pre-cache space for storing vertices. Accelerate insertion after.
+     * If (capacity - size) < n, the pre-cache space is added to current container size.
+     * If (capacity - size) >= n, nothing happens, container already possess sufficient space.
+     * @param n Number of vertices to pre-cache.
+     */
+    inline void precacheVertices(std::uint64_t n);
+
+    /**
+     * @brief Pre-cache space for storing config vertices. Accelerate insertion after.
+     * If (capacity - size) < n, the pre-cache space is added to current container size.
+     * If (capacity - size) >= n, nothing happens, container already possess sufficient space.
+     * @param n Number of config vertices to pre-cache.
+     */
+    inline void precacheConfigVertices(std::uint64_t n);
+
+    /**
+     * @brief Pre-cache space for storing edges. Accelerate insertion after.
+     * If (capacity - size) < n, the pre-cache space is added to current container size.
+     * If (capacity - size) >= n, nothing happens, container already possess sufficient space.
+     * @param n Number of edges to pre-cache.
+     */
+    inline void precacheEdges(std::uint64_t n);
+
+    /**
+     * @brief Pre-cache space for storing params. Accelerate insertion after.
+     * If (capacity - size) < n, the pre-cache space is added to current container size.
+     * If (capacity - size) >= n, nothing happens, container already possess sufficient space.
+     * @param n Number of params to pre-cache.
+     */
+    inline void precacheParams(std::uint64_t n);
+
     /* === Setters === */
 
 
@@ -186,6 +218,12 @@ public:
      * @return Number of edges.
      */
     inline std::uint64_t nEdges() const;
+
+    /**
+     * @brief Get the number of params contained in the graph.
+     * @return Number of params.
+     */
+    inline std::uint64_t nParams() const;
 
     /**
      * @brief Get the number of sub-graphs.
@@ -251,7 +289,7 @@ public:
     * @brief A const reference on the set of params. Useful for iterating on the params.
     * @return const reference to param set
     */
-    inline const Spider::Set<PiSDFParam *> &params() const;
+    inline const Spider::vector<PiSDFParam *> &params() const;
 
     /**
      * @brief A const reference to the LinkedList of subgraph. Useful for iterating on the subgraphs.
@@ -281,10 +319,10 @@ private:
     std::string name_ = "topgraph";
     Spider::vector<PiSDFVertex *> vertexVector_;
     Spider::vector<PiSDFEdge *> edgeVector_;
-    Spider::Set<PiSDFParam *> paramSet_;
+    Spider::vector<PiSDFParam *> paramVector_;
     Spider::vector<PiSDFInterface *> inputInterfaceVector_;
     Spider::vector<PiSDFInterface *> outputInterfaceVector_;
-    Spider::vector<PiSDFVertex *> configVector_;
+    Spider::vector<PiSDFVertex *> configVertexVector_;
     Spider::LinkedList<PiSDFGraph *> subgraphVector_;
 
     bool static_ = true;
@@ -319,7 +357,7 @@ void PiSDFGraph::addVertex(PiSDFVertex *vertex) {
             break;
         case PiSDFVertexType::CONFIG:
             vertex->setIx(vertexVector_.size());
-            configVector_.push_back(vertex);
+            configVertexVector_.push_back(vertex);
             break;
         case PiSDFVertexType::INTERFACE:
             break;
@@ -353,7 +391,8 @@ void PiSDFGraph::addParam(PiSDFParam *param) {
     if (findParam(param->name())) {
         throwSpiderException("Parameter [%s] already exist in graph [%s].", param->name().c_str(), name_.c_str());
     }
-    paramSet_.add(param);
+    param->setIx(paramVector_.size());
+    paramVector_.push_back(param);
     if (param->isDynamic() && static_) {
         static_ = false;
 
@@ -370,20 +409,8 @@ void PiSDFGraph::addParam(PiSDFParam *param) {
     }
 }
 
-void PiSDFGraph::removeParam(PiSDFParam *param) {
-    if (!param) {
-        return;
-    }
-    if (!paramSet_.contains(param)) {
-        throwSpiderException("Trying to remove an edge not from this graph.");
-    }
-    paramSet_.remove(param);
-    Spider::destroy(param);
-    Spider::deallocate(param);
-}
-
 PiSDFParam *PiSDFGraph::findParam(const std::string &name) const {
-    for (auto &p : paramSet_) {
+    for (auto &p : paramVector_) {
         if (p->name() == name) {
             return p;
         }
@@ -391,16 +418,48 @@ PiSDFParam *PiSDFGraph::findParam(const std::string &name) const {
     return nullptr;
 }
 
+void PiSDFGraph::precacheVertices(std::uint64_t n) {
+    auto currentCache = vertexVector_.capacity() - vertexVector_.size();
+    if (currentCache < n) {
+        vertexVector_.reserve(vertexVector_.capacity() + (n - currentCache));
+    }
+}
+
+void PiSDFGraph::precacheConfigVertices(std::uint64_t n) {
+    auto currentCache = configVertexVector_.capacity() - configVertexVector_.size();
+    if (currentCache < n) {
+        configVertexVector_.reserve(configVertexVector_.capacity() + (n - currentCache));
+    }
+}
+
+void PiSDFGraph::precacheEdges(std::uint64_t n) {
+    auto currentCache = edgeVector_.capacity() - edgeVector_.size();
+    if (currentCache < n) {
+        edgeVector_.reserve(edgeVector_.capacity() + (n - currentCache));
+    }
+}
+
+void PiSDFGraph::precacheParams(std::uint64_t n) {
+    auto currentCache = paramVector_.capacity() - paramVector_.size();
+    if (currentCache < n) {
+        paramVector_.reserve(paramVector_.capacity() + (n - currentCache));
+    }
+}
+
 std::uint64_t PiSDFGraph::nVertices() const {
     return vertexVector_.size();
 }
 
 std::uint64_t PiSDFGraph::nConfigs() const {
-    return configVector_.size();
+    return configVertexVector_.size();
 }
 
 std::uint64_t PiSDFGraph::nEdges() const {
     return edgeVector_.size();
+}
+
+std::uint64_t PiSDFGraph::nParams() const {
+    return paramVector_.size();
 }
 
 std::uint64_t PiSDFGraph::nSubGraphs() const {
@@ -428,7 +487,7 @@ const Spider::vector<PiSDFVertex *> &PiSDFGraph::vertices() const {
 }
 
 const Spider::vector<PiSDFVertex *> &PiSDFGraph::configActors() const {
-    return configVector_;
+    return configVertexVector_;
 }
 
 const Spider::vector<PiSDFInterface *> &PiSDFGraph::inputInterfaces() const {
@@ -443,8 +502,8 @@ const Spider::vector<PiSDFEdge *> &PiSDFGraph::edges() const {
     return edgeVector_;
 }
 
-const Spider::Set<PiSDFParam *> &PiSDFGraph::params() const {
-    return paramSet_;
+const Spider::vector<PiSDFParam *> &PiSDFGraph::params() const {
+    return paramVector_;
 }
 
 const Spider::LinkedList<PiSDFGraph *> &PiSDFGraph::subgraphs() const {

@@ -47,12 +47,10 @@
 
 PiSDFParam::PiSDFParam(PiSDFGraph *graph,
                        std::string name,
-                       std::string expression) : graph_{graph},
-                                                 name_{std::move(name)} {
-    /* == Create the expression associated to the parameter == */
-    expression_ = Spider::allocate<Expression>(StackID::PISDF);
-    Spider::construct(expression_, graph, std::move(expression));
-    if (expression_->isStatic()) {
+                       const std::string &expression) : graph_{graph},
+                                                        name_{std::move(name)},
+                                                        expression_{graph, expression} {
+    if (expression_.isStatic()) {
         type_ = PiSDFParamType::DYNAMIC_DEPENDENT;
     } else {
         type_ = PiSDFParamType::STATIC;
@@ -69,11 +67,8 @@ PiSDFParam::PiSDFParam(PiSDFGraph *graph,
                        std::string name,
                        std::int64_t value) : graph_{graph},
                                              name_{std::move(name)},
-                                             type_{PiSDFParamType::STATIC} {
-    /* == Create the expression associated to the parameter == */
-    expression_ = Spider::allocate<Expression>(StackID::PISDF);
-    Spider::construct(expression_, graph, std::to_string(value));
-
+                                             type_{PiSDFParamType::STATIC},
+                                             expression_{value} {
     /* == Transform the name to lower case for the expression parser == */
     std::transform(name_.begin(), name_.end(), name_.begin(), ::tolower);
 
@@ -81,10 +76,14 @@ PiSDFParam::PiSDFParam(PiSDFGraph *graph,
     graph->addParam(this);
 }
 
-PiSDFParam::PiSDFParam(PiSDFGraph *graph, std::string name, PiSDFParam *parent) : graph_{graph},
-                                                                                  name_{std::move(name)},
-                                                                                  type_{PiSDFParamType::HERITED} {
+PiSDFParam::PiSDFParam(PiSDFGraph *graph, std::string name, const PiSDFParam *parent) : graph_{graph},
+                                                                                        name_{std::move(name)},
+                                                                                        type_{PiSDFParamType::HERITED},
+                                                                                        expression_{0} {
     /* == Set the parent parameter == */
+    if (!parent) {
+        throwSpiderException("Parent parameter is nullptr");
+    }
     inheritedParam_ = parent;
 
     /* == Transform the name to lower case for the expression parser == */
@@ -97,23 +96,13 @@ PiSDFParam::PiSDFParam(PiSDFGraph *graph, std::string name, PiSDFParam *parent) 
 PiSDFParam::PiSDFParam(PiSDFGraph *graph, std::string name, PiSDFVertex *setter) : graph_{graph},
                                                                                    name_{std::move(name)},
                                                                                    type_{PiSDFParamType::DYNAMIC},
-                                                                                   setter_{setter} {
-    /* == Set the expression to default value of 0 == */
-    expression_ = Spider::allocate<Expression>(StackID::PISDF);
-    Spider::construct(expression_, 0);
-
+                                                                                   setter_{setter},
+                                                                                   expression_{0} {
     /* == Transform the name to lower case for the expression parser == */
     std::transform(name_.begin(), name_.end(), name_.begin(), ::tolower);
 
     /* == Add the parameter to the graph == */
     graph->addParam(this);
-}
-
-PiSDFParam::~PiSDFParam() {
-    if (expression_) {
-        Spider::destroy(expression_);
-        Spider::deallocate(expression_);
-    }
 }
 
 void PiSDFParam::exportDot(FILE *file, const std::string &offset) const {
