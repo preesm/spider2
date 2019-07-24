@@ -41,7 +41,7 @@
 /* === Includes === */
 
 #include "ExpressionTest.h"
-#include <common/memory/Allocator.h>
+#include <memory/Allocator.h>
 #include <graphs-tools/expression-parser/RPNConverter.h>
 #include <graphs-tools/expression-parser/Expression.h>
 #include <spider-api/general.h>
@@ -60,6 +60,7 @@ void ExpressionTest::SetUp() {
     cfg.allocatorType = AllocatorType::FREELIST;
     cfg.size = 512;
     Spider::initAllocator(StackID::GENERAL, cfg);
+    Spider::initAllocator(StackID::EXPR_PARSER, cfg);
 }
 
 void ExpressionTest::TearDown() {

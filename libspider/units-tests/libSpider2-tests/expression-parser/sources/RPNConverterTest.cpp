@@ -41,7 +41,7 @@
 /* === Includes === */
 
 #include "RPNConverterTest.h"
-#include <common/memory/Allocator.h>
+#include <memory/Allocator.h>
 #include <graphs-tools/expression-parser/RPNConverter.h>
 #include <spider-api/general.h>
 #include <cmath>
@@ -59,6 +59,7 @@ void RPNConverterTest::SetUp() {
     cfg.allocatorType = AllocatorType::FREELIST;
     cfg.size = 512;
     Spider::initAllocator(StackID::GENERAL, cfg);
+    Spider::initAllocator(StackID::EXPR_PARSER, cfg);
 }
 
 void RPNConverterTest::TearDown() {

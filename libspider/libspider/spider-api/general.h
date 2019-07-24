@@ -44,7 +44,7 @@
 
 /* === Define(s) === */
 
-#define NB_ALLOCATORS 8
+#define NB_ALLOCATORS 7
 
 /* === Enumeration(s) === */
 
@@ -56,10 +56,9 @@ enum class StackID : std::uint64_t {
     ARCHI = 1,         /*!< Stack used for architecture (should be static) */
     TRANSFO = 2,       /*!< Stack used for graph transformations */
     SCHEDULE = 3,      /*!< Stack used for scheduling */
-    SRDAG = 4,         /*!< Stack used for SRDAG graph */
-    LRT = 5,           /*!< Stack used by LRTs */
-    EXPR_PARSER = 6,   /*!< Stack used by LRTs */
-    GENERAL = 7,       /*!< General stack used for classic new / delete */
+    LRT = 4,           /*!< Stack used by LRTs */
+    EXPR_PARSER = 5,   /*!< Stack used by the expression parser */
+    GENERAL = 6,       /*!< General stack used for classic new / delete */
 };
 
 /**
