@@ -40,7 +40,7 @@
 
 /* === Includes === */
 
-#include <common/memory/Allocator.h>
+#include <memory/Allocator.h>
 #include <common/Logger.h>
 #include "general.h"
 

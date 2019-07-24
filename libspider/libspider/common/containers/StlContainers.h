@@ -50,7 +50,7 @@
 #include <forward_list>
 #include <unordered_set>
 #include <unordered_map>
-#include <common/memory/Allocator.h>
+#include <memory/Allocator.h>
 
 /* === Namespace === */
 

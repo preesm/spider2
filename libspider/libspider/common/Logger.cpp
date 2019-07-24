@@ -41,7 +41,7 @@
 #include <mutex>
 #include <cstdarg>
 #include <common/Logger.h>
-#include <common/memory/Allocator.h>
+#include <memory/Allocator.h>
 
 /* === Defines === */
 

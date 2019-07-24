@@ -41,7 +41,7 @@
 #define SPIDER2_MEMORY_TEST_FREELISTDYNAMIC_ALLOCATOR_H
 
 #include <gtest/gtest.h>
-#include <common/memory/dynamic-allocators/FreeListAllocator.h>
+#include <memory/dynamic-allocators/FreeListAllocator.h>
 
 #define ALLOCATOR_NAME "my-allocator"
 

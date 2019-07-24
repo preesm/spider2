@@ -41,7 +41,7 @@
 /* === Includes === */
 
 #include "SetTest.h"
-#include <common/memory/Allocator.h>
+#include <memory/Allocator.h>
 #include <common/containers/Set.h>
 
 /* === Methods implementation === */

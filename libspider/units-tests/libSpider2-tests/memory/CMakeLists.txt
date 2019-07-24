@@ -32,19 +32,19 @@ include_directories(
 file(GLOB_RECURSE
         source_files
         ${SPIDER_LIB_DIR}/common/*.cpp
-        ${SPIDER_LIB_DIR}/common/memory/*.cpp
-        ${SPIDER_LIB_DIR}/common/memory/static-allocators/*.cpp
-        ${SPIDER_LIB_DIR}/common/memory/dynamic-allocators/*.cpp
+        ${SPIDER_LIB_DIR}/memory/*.cpp
+        ${SPIDER_LIB_DIR}/memory/static-allocators/*.cpp
+        ${SPIDER_LIB_DIR}/memory/dynamic-allocators/*.cpp
         sources/*.cpp
         )
 
 file(GLOB_RECURSE
         header_files
         ${SPIDER_LIB_DIR}/common/*.h
-        ${SPIDER_LIB_DIR}/common/memory/*.h
-        ${SPIDER_LIB_DIR}/common/memory/abstract-allocators/*.h
-        ${SPIDER_LIB_DIR}/common/memory/static-allocators/*.h
-        ${SPIDER_LIB_DIR}/common/memory/dynamic-allocators/*.h
+        ${SPIDER_LIB_DIR}/memory/*.h
+        ${SPIDER_LIB_DIR}/memory/abstract-allocators/*.h
+        ${SPIDER_LIB_DIR}/memory/static-allocators/*.h
+        ${SPIDER_LIB_DIR}/memory/dynamic-allocators/*.h
         sources/*.h
         )
 

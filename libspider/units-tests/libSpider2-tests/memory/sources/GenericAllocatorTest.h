@@ -41,7 +41,7 @@
 #define SPIDER2_MEMORY_TEST_GENERIC_ALLOCATOR_H
 
 #include <gtest/gtest.h>
-#include <common/memory/dynamic-allocators/GenericAllocator.h>
+#include <memory/dynamic-allocators/GenericAllocator.h>
 #include "common/SpiderException.h"
 
 #define ALLOCATOR_NAME "my-allocator"

@@ -43,7 +43,7 @@
 #include <graphs/pisdf/PiSDFVertex.h>
 #include <graphs/pisdf/PiSDFGraph.h>
 #include <graphs/pisdf/PiSDFEdge.h>
-#include <common/memory/Allocator.h>
+#include <memory/Allocator.h>
 
 /* === Static methods === */
 
