@@ -63,18 +63,40 @@ public:
 
     /* === Method(s) === */
 
+    /**
+     * @brief Rate of the port. Calls @refitem Expression::evaluate
+     * @return rate value.
+     * @throws @refitem SpiderException if port is not connected to an edge.
+     */
     inline std::int64_t rate() const;
 
+    /**
+     * @brief Disconnect the edge associated to the port.
+     */
     inline void disconnectEdge();
 
     /* === Getter(s) === */
 
+    /**
+     * @brief Index of the port.
+     * @return index value.
+     */
     inline std::uint16_t ix() const;
 
+    /**
+     * @brief Get the edge connected to the port.
+     * @return @refitem PiSDFEdge associated to the port, nullptr if no edge.
+     */
     inline const PiSDFEdge *edge() const;
 
     /* === Setter(s) === */
 
+    /**
+     * @brief Connect an edge to the port.
+     * @param edge Edge to set.
+     * @param ix   Index of the port to set.
+     * @throws @refitem SpiderException if port already has an edge or if edge is nullptr.
+     */
     void connectEdge(PiSDFEdge *edge, std::uint16_t ix);
 
 private:
