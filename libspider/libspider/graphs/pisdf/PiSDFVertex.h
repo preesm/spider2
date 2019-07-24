@@ -62,6 +62,15 @@ class PiSDFParam;
 class PiSDFVertex {
 public:
 
+    PiSDFVertex(StackID stack,
+                PiSDFGraph *graph,
+                std::string name,
+                PiSDFVertexType type,
+                std::uint32_t nEdgesIN,
+                std::uint32_t nEdgesOUT,
+                std::uint32_t nParamsIn,
+                std::uint32_t nParamsOut);
+
     PiSDFVertex(PiSDFGraph *graph,
                 std::string name,
                 PiSDFVertexType type,

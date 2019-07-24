@@ -70,7 +70,8 @@ static const char *getVertexDotColor(PiSDFVertexType type) {
 
 /* === Methods implementation === */
 
-PiSDFVertex::PiSDFVertex(PiSDFGraph *graph,
+PiSDFVertex::PiSDFVertex(StackID stack,
+                         PiSDFGraph *graph,
                          std::string name,
                          PiSDFVertexType type,
                          std::uint32_t nEdgesIN,
@@ -83,10 +84,10 @@ PiSDFVertex::PiSDFVertex(PiSDFGraph *graph,
                                                      nEdgesOUT_{nEdgesOUT},
                                                      nParamsIN_{nParamsIn},
                                                      nParamsOUT_{nParamsOut},
-                                                     inputEdgeArray_(StackID::PISDF, nEdgesIN, nullptr),
-                                                     outputEdgeArray_(StackID::PISDF, nEdgesOUT, nullptr),
-                                                     inputParamArray_(StackID::PISDF, nParamsIn, nullptr),
-                                                     outputParamArray_(StackID::PISDF, nParamsOut, nullptr) {
+                                                     inputEdgeArray_(stack, nEdgesIN, nullptr),
+                                                     outputEdgeArray_(stack, nEdgesOUT, nullptr),
+                                                     inputParamArray_(stack, nParamsIn, nullptr),
+                                                     outputParamArray_(stack, nParamsOut, nullptr) {
     if (!graph) {
         throwSpiderException("Vertex should belong to a graph.");
     }
@@ -104,6 +105,22 @@ PiSDFVertex::PiSDFVertex(PiSDFGraph *graph,
     }
 
     graph->addVertex(this);
+}
+
+PiSDFVertex::PiSDFVertex(PiSDFGraph *graph,
+                         std::string name,
+                         PiSDFVertexType type,
+                         std::uint32_t nEdgesIN,
+                         std::uint32_t nEdgesOUT,
+                         std::uint32_t nParamsIn,
+                         std::uint32_t nParamsOut) : PiSDFVertex(StackID::PISDF,
+                                                                 graph,
+                                                                 std::move(name),
+                                                                 type,
+                                                                 nEdgesIN,
+                                                                 nEdgesOUT,
+                                                                 nParamsIn,
+                                                                 nParamsOut) {
 }
 
 void PiSDFVertex::exportDot(FILE *file, const std::string &offset) const {
