@@ -64,6 +64,9 @@ if (NOT ${CMAKE_GENERATOR} MATCHES "Visual Studio.*")
         set(CMAKE_BUILD_TYPE Release)
         set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Release)
         set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -Wall -Wextra")
+        if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+            set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -flto")
+        endif ()
     endif ()
 else ()
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
@@ -151,11 +154,9 @@ file(
         ${SPIDER_LIB_DIR}/common/memory/dynamic-allocators/*.cpp
         ${SPIDER_LIB_DIR}/common/memory/static-allocators/*.cpp
         ${SPIDER_LIB_DIR}/graphs/pisdf/*.cpp
-        ${SPIDER_LIB_DIR}/spider-api/*.cpp
         ${SPIDER_LIB_DIR}/graphs-tools/brv/*.cpp
-        #    ${SPIDER_LIB_DIR}/graphs/srdag/*.cpp
-        #    ${SPIDER_LIB_DIR}/graphs-tools/transformation/*.cpp
-        #    ${SPIDER_LIB_DIR}/memory/*.cpp
+        ${SPIDER_LIB_DIR}/graphs-tools/expression-parser/*.cpp
+        ${SPIDER_LIB_DIR}/spider-api/*.cpp
         ##    ${SPIDER_LIB_DIR}/monitoring/papify/*.cpp
         #    ${SPIDER_LIB_DIR}/monitoring/generic/*.cpp
         #    ${SPIDER_LIB_DIR}/platform/archi/shared-memory/*.cpp
@@ -178,21 +179,26 @@ file(
         ${SPIDER_LIB_DIR}/common/memory/static-allocators/*.h
         ${SPIDER_LIB_DIR}/graphs/pisdf/*.h
         ${SPIDER_LIB_DIR}/graphs-tools/brv/*.h
+        ${SPIDER_LIB_DIR}/graphs-tools/expression-parser/*.h
         ${SPIDER_LIB_DIR}/spider-api/*.h
         ${SPIDER_LIB_DIR}/spider.h
-        #    ${SPIDER_LIB_DIR}/graphs/srdag/*.h
-        #    ${SPIDER_LIB_DIR}/graphs-tools/transformation/*.h
-        ##    ${SPIDER_LIB_DIR}/monitoring/papify/*.h
-        #    ${SPIDER_LIB_DIR}/monitoring/generic/*.h
-        #    ${SPIDER_LIB_DIR}/platform/abstract/*.h
-        #    ${SPIDER_LIB_DIR}/platform/archi/abstract/*.h
-        #    ${SPIDER_LIB_DIR}/platform/archi/shared-memory/*.h
-        #    ${SPIDER_LIB_DIR}/platform/pthread/*.h
-        #    ${SPIDER_LIB_DIR}/scheduling/*.h
-        #    ${SPIDER_LIB_DIR}/scheduling/allocator/*.h
-        #    ${SPIDER_LIB_DIR}/scheduling/scheduler/*.h
-        #    ${SPIDER_LIB_DIR}/runtime/*.h
-        #    ${SPIDER_LIB_DIR}/spider/*.h
+)
+
+set(ALL_MY_SOURCE_FILES ${source_files} ${header_files})
+add_custom_target(
+        clang-tidy
+        COMMAND /usr/bin/clang-tidy
+        ${ALL_MY_SOURCE_FILES}
+        -config=''
+        -fix-errors
+        --
+        -std=c++11
+        -I${MY_SOURCE_INCLUDE_DIR}
+        -I${MY_MPI_INCLUDE_DIR1}
+        -I${MY_MPI_INCLUDE_DIR2}
+        -I${MY_MPI_INCLUDE_DIR3}
+        -I${MY_BOOST_INCLUDE_DIR}
+        -I${MY_VTK_INCLUDE_DIR}
 )
 
 
