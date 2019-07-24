@@ -43,7 +43,7 @@
 /* === Includes === */
 
 #include <type_traits>
-#include <common/containers/Array.h>
+#include <containers/Array.h>
 
 namespace Spider {
 
