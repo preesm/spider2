@@ -40,7 +40,7 @@
 
 /* === Includes === */
 
-#include <common/memory/dynamic-allocators/FreeListAllocator.h>
+#include <memory/dynamic-allocators/FreeListAllocator.h>
 
 /* === Methods implementation === */
 

@@ -40,7 +40,7 @@
 
 /* === Includes === */
 
-#include <common/memory/static-allocators/LIFOStaticAllocator.h>
+#include <memory/static-allocators/LIFOStaticAllocator.h>
 
 /* === Methods implementation === */
 

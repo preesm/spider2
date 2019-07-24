@@ -40,12 +40,12 @@
 
 /* === Includes === */
 
-#include <common/memory/Allocator.h>
-#include <common/memory/static-allocators/FreeListStaticAllocator.h>
-#include <common/memory/static-allocators/LIFOStaticAllocator.h>
-#include <common/memory/static-allocators/LinearStaticAllocator.h>
-#include <common/memory/dynamic-allocators/FreeListAllocator.h>
-#include <common/memory/dynamic-allocators/GenericAllocator.h>
+#include <memory/Allocator.h>
+#include <memory/static-allocators/FreeListStaticAllocator.h>
+#include <memory/static-allocators/LIFOStaticAllocator.h>
+#include <memory/static-allocators/LinearStaticAllocator.h>
+#include <memory/dynamic-allocators/FreeListAllocator.h>
+#include <memory/dynamic-allocators/GenericAllocator.h>
 
 /* === Static variables === */
 

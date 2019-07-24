@@ -42,7 +42,7 @@
 
 /* === Includes === */
 
-#include <common/memory/abstract-allocators/DynamicAllocator.h>
+#include <memory/abstract-allocators/DynamicAllocator.h>
 
 /* === Class definition === */
 

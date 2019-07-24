@@ -42,7 +42,7 @@
 
 /* === Includes === */
 
-#include <common/memory/abstract-allocators/StaticAllocator.h>
+#include <memory/abstract-allocators/StaticAllocator.h>
 
 /* === Class definition === */
 

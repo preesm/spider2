@@ -40,7 +40,7 @@
 
 /* === Includes === */
 
-#include <common/memory/static-allocators/LinearStaticAllocator.h>
+#include <memory/static-allocators/LinearStaticAllocator.h>
 
 /* === Methods implementation === */
 

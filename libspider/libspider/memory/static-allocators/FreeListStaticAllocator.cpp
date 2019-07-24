@@ -40,7 +40,7 @@
 
 /* === Includes === */
 
-#include <common/memory/static-allocators/FreeListStaticAllocator.h>
+#include <memory/static-allocators/FreeListStaticAllocator.h>
 
 /* === Methods implementation === */
 

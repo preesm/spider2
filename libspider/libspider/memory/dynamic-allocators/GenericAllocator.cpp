@@ -41,7 +41,7 @@
 /* === Includes === */
 
 #include <algorithm>
-#include <common/memory/dynamic-allocators/GenericAllocator.h>
+#include <memory/dynamic-allocators/GenericAllocator.h>
 
 /* === Methods implementation === */
 
