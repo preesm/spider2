@@ -47,6 +47,7 @@
 #include <graphs/pisdf/PiSDFParam.h>
 #include <graphs/pisdf/PiSDFTypes.h>
 #include <graphs/pisdf/PiSDFEdge.h>
+#include <graphs/pisdf/PiSDFDelay.h>
 
 /* === Methods implementation === */
 
@@ -86,6 +87,10 @@ PiSDFGraph *Spider::API::createSubraph(PiSDFGraph *graph,
                       nOutputInterfaces,
                       0);
     auto *subgraph = vertex->subgraph();
+    subgraph->precacheVertices(nActors);
+    subgraph->precacheConfigVertices(nConfigActors);
+    subgraph->precacheEdges(nEdges);
+    subgraph->precacheParams(nParams);
     return subgraph;
 }
 
@@ -316,3 +321,25 @@ PiSDFEdge *Spider::API::createEdge(PiSDFGraph *graph,
     Spider::construct(edge, graph, source, srcPortIx, srcRateExpression, sink, snkPortIx, std::to_string(snkRate));
     return edge;
 }
+
+PiSDFDelay *Spider::API::createDelay(PiSDFEdge *edge,
+                                     const std::string &delayExpression,
+                                     bool persistent,
+                                     PiSDFVertex *setter,
+                                     PiSDFVertex *getter) {
+    auto *delay = Spider::allocate<PiSDFDelay>(StackID::PISDF);
+    Spider::construct(delay, edge, delayExpression, persistent, setter, getter);
+    return delay;
+}
+
+PiSDFDelay *Spider::API::createDelay(PiSDFEdge *edge,
+                                     std::int64_t delayValue,
+                                     bool persistent,
+                                     PiSDFVertex *setter,
+                                     PiSDFVertex *getter) {
+    auto *delay = Spider::allocate<PiSDFDelay>(StackID::PISDF);
+    Spider::construct(delay, edge, delayValue, persistent, setter, getter);
+    return delay;
+}
+
+

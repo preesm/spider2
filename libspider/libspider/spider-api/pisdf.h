@@ -55,6 +55,8 @@ class PiSDFGraph;
 
 class PiSDFEdge;
 
+class PiSDFDelay;
+
 class PiSDFInterface;
 
 /* === Type declaration(s) == */
@@ -186,6 +188,18 @@ namespace Spider {
                               PiSDFVertex *sink,
                               std::uint16_t snkPortIx,
                               std::int64_t snkRate);
+
+        PiSDFDelay *createDelay(PiSDFEdge *edge,
+                                const std::string &delayExpression,
+                                bool persistent = true,
+                                PiSDFVertex *setter = nullptr,
+                                PiSDFVertex *getter = nullptr);
+
+        PiSDFDelay *createDelay(PiSDFEdge *edge,
+                                std::int64_t delayValue,
+                                bool persistent = true,
+                                PiSDFVertex *setter = nullptr,
+                                PiSDFVertex *getter = nullptr);
     }
 }
 

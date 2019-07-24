@@ -41,9 +41,34 @@
 /* === Include(s) === */
 
 #include "PiSDFDelay.h"
+#include <graphs/pisdf/PiSDFEdge.h>
 
 /* === Static variable(s) === */
 
 /* === Static function(s) === */
 
 /* === Method(s) implementation === */
+
+PiSDFDelay::PiSDFDelay(PiSDFEdge *edge,
+                       const std::string &expression,
+                       bool persistent,
+                       PiSDFVertex *setter,
+                       PiSDFVertex *getter) : edge_{edge},
+                                              setter_{setter},
+                                              getter_{getter},
+                                              expression_{edge->containingGraph(), expression},
+                                              persistent_{persistent} {
+    edge->setDelay(this);
+}
+
+PiSDFDelay::PiSDFDelay(PiSDFEdge *edge,
+                       std::int64_t value,
+                       bool persistent,
+                       PiSDFVertex *setter,
+                       PiSDFVertex *getter) : edge_{edge},
+                                              setter_{setter},
+                                              getter_{getter},
+                                              expression_{value},
+                                              persistent_{persistent} {
+    edge->setDelay(this);
+}

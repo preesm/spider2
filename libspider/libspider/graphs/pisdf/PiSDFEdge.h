@@ -53,6 +53,8 @@ class PiSDFVertex;
 
 class PiSDFGraph;
 
+class PiSDFDelay;
+
 /* === Class definition === */
 
 class PiSDFEdge {
@@ -92,17 +94,57 @@ public:
      */
     void exportDot(FILE *file, const std::string &offset) const;
 
+    /**
+     * @brief Connect the source vertex of the edge.
+     * @param vertex    Source vertex.
+     * @param portIx    Output port ix on the vertex.
+     * @param prodExpr  Rate expression.
+     * @throws @refitem SpiderException if edge is already connected to a source vertex.
+     */
     void connectSource(PiSDFVertex *vertex, std::uint16_t portIx, const std::string &prodExpr);
 
+    /**
+     * @brief Connect the source vertex of the edge.
+     * @param vertex    Source vertex.
+     * @param portIx    Output port ix on the vertex.
+     * @param prod      Rate value.
+     * @throws @refitem SpiderException if edge is already connected to a source vertex.
+     */
     void connectSource(PiSDFVertex *vertex, std::uint16_t portIx, std::int64_t prod);
 
+    /**
+     * @brief Connect the sink vertex of the edge.
+     * @param vertex    Sink vertex.
+     * @param portIx    Input port ix on the vertex.
+     * @param consExpr  Rate expression.
+     * @throws @refitem SpiderException if edge is already connected to a sink vertex.
+     */
     void connectSink(PiSDFVertex *vertex, std::uint32_t portIx, const std::string &consExpr);
 
+    /**
+     * @brief Connect the sink vertex of the edge.
+     * @param vertex    Sink vertex.
+     * @param portIx    Input port ix on the vertex.
+     * @param cons      Rate value.
+     * @throws @refitem SpiderException if edge is already connected to a sink vertex.
+     */
     void connectSink(PiSDFVertex *vertex, std::uint32_t portIx, std::int64_t cons);
 
+    /**
+     * @brief Disconnect current source vertex of the edge.
+     */
     void disconnectSource();
 
+    /**
+     * @brief Disconnect current sink vertex of the edge.
+     */
     void disconnectSink();
+
+    /**
+     * @brief Build and return a name of the edge.
+     * @return Name of the edge in format "source -> sink"
+     */
+    std::string name() const;
 
     /* === Setters === */
 
@@ -111,6 +153,14 @@ public:
      * @param ix Ix to set.
      */
     inline void setIx(std::uint32_t ix);
+
+    /**
+     * @brief Set the delay of the edge.
+     * If nullptr is passed, nothing happens.
+     * @param delay Delay to set.
+     * @throws @refitem SpiderException if edge already has a delay.
+     */
+    inline void setDelay(PiSDFDelay *delay);
 
     /* === Getters ===  */
 
@@ -166,6 +216,12 @@ public:
      */
     inline std::uint32_t getIx() const;
 
+    /**
+     * @brief Get the delay (if any) associated to the edge.
+     * @return @refitem PiSDFDelay of the edge.
+     */
+    inline const PiSDFDelay *delay() const;
+
 private:
     PiSDFGraph *graph_ = nullptr;
     PiSDFVertex *source_ = nullptr;
@@ -175,12 +231,23 @@ private:
     PiSDFPort *sourcePort_ = nullptr;
 
     std::uint32_t ix_ = UINT32_MAX;
+
+    PiSDFDelay *delay_ = nullptr;
 };
 
 /* === Inline method(s) === */
 
 void PiSDFEdge::setIx(std::uint32_t ix) {
     ix_ = ix;
+}
+
+void PiSDFEdge::setDelay(PiSDFDelay *delay) {
+    if (!delay) {
+        return;
+    } else if (delay_) {
+        throwSpiderException("Cannot set delay. Edge [%s] already has a delay.", name().c_str());
+    }
+    delay_ = delay;
 }
 
 const PiSDFGraph *PiSDFEdge::containingGraph() const {
@@ -197,6 +264,10 @@ std::uint32_t PiSDFEdge::sinkPortIx() const {
 
 std::uint32_t PiSDFEdge::getIx() const {
     return ix_;
+}
+
+const PiSDFDelay *PiSDFEdge::delay() const {
+    return delay_;
 }
 
 #endif //SPIDER2_PISDFEDGE_H

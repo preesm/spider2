@@ -184,3 +184,7 @@ void PiSDFEdge::disconnectSink() {
     Spider::destroy(sinkPort_);
 }
 
+std::string PiSDFEdge::name() const {
+    return source_->name() + "->" + sink_->name();
+}
+
