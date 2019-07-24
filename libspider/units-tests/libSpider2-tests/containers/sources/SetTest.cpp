@@ -64,7 +64,7 @@ void SetTest::TearDown() {
     Spider::finalizeAllocators();
 }
 
-class MySetElement : public Spider::SetElement<MySetElement *> {
+class MySetElement : public Spider::SetElement {
 public:
     double value = 0;
 };
@@ -77,9 +77,10 @@ TEST_F(SetTest, TestCreation) {
 TEST_F(SetTest, TestAssignation) {
     auto testSet = Spider::Set<MySetElement *>(StackID::GENERAL, 10);
     MySetElement elt;
-    EXPECT_NO_THROW(testSet.add(&elt));
+    auto *tmp = &elt;
+    EXPECT_NO_THROW(testSet.add(tmp));
     EXPECT_EQ(testSet.occupied(), 1);
-    EXPECT_NO_THROW(testSet.add(&elt));
+    EXPECT_NO_THROW(testSet.add(tmp));
     EXPECT_EQ(testSet.occupied(), 1);
     EXPECT_NO_THROW(testSet[0] = &elt);
     EXPECT_EQ(testSet[0], &elt);
@@ -116,7 +117,8 @@ TEST_F(SetTest, TestIteration) {
         it++;
     }
     EXPECT_EQ(it, 0);
-    testSet.add(&count);
+    auto *tmp = &count;
+    testSet.add(tmp);
     EXPECT_EQ(testSet.occupied(), 1);
     for (const auto &val : testSet) {
         EXPECT_EQ(val, &count);

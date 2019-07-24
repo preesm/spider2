@@ -23,7 +23,7 @@ include_directories(
 
 file(GLOB_RECURSE
         source_files
-        ${SPIDER_LIB_DIR}/common/expression-parser/*.cpp
+        ${SPIDER_LIB_DIR}/graphs-tools/expression-parser/*.cpp
         ${SPIDER_LIB_DIR}/common/*.cpp
         ${SPIDER_LIB_DIR}/common/memory/*.cpp
         ${SPIDER_LIB_DIR}/common/memory/static-allocators/*.cpp
@@ -33,14 +33,15 @@ file(GLOB_RECURSE
 
 file(GLOB_RECURSE
         header_files
-        ${SPIDER_LIB_DIR}/common/expression-parser/*.h
+        ${SPIDER_LIB_DIR}/graphs-tools/expression-parser/*.h
         ${SPIDER_LIB_DIR}/common/*.h
         ${SPIDER_LIB_DIR}/common/memory/*.h
         ${SPIDER_LIB_DIR}/common/memory/abstract-allocators/*.h
         ${SPIDER_LIB_DIR}/common/memory/static-allocators/*.h
         ${SPIDER_LIB_DIR}/common/memory/dynamic-allocators/*.h
+        ${SPIDER_LIB_DIR}/spider-api/*.h
         sources/*.h
         )
 
-add_executable(test-containers main.cpp ${source_files} ${header_files})
-target_link_libraries(test-containers ${GTEST_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+add_executable(test-expression-parser main.cpp ${source_files} ${header_files})
+target_link_libraries(test-expression-parser ${GTEST_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
