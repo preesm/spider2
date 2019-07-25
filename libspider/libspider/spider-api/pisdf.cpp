@@ -57,8 +57,9 @@ PiSDFGraph *Spider::API::createGraph(const std::string &name,
                                      std::uint64_t nParams,
                                      std::uint64_t nInputInterfaces,
                                      std::uint64_t nOutputInterfaces,
-                                     std::uint64_t nConfigActors) {
-    auto *graph = Spider::allocate<PiSDFGraph>(StackID::PISDF);
+                                     std::uint64_t nConfigActors,
+                                     StackID stack) {
+    auto *graph = Spider::allocate<PiSDFGraph>(stack);
     Spider::construct(graph,
                       name,
                       nActors,
@@ -77,8 +78,9 @@ PiSDFGraph *Spider::API::createSubraph(PiSDFGraph *graph,
                                        std::uint64_t nParams,
                                        std::uint64_t nInputInterfaces,
                                        std::uint64_t nOutputInterfaces,
-                                       std::uint64_t nConfigActors) {
-    auto *vertex = Spider::allocate<PiSDFVertex>(StackID::PISDF);
+                                       std::uint64_t nConfigActors,
+                                       StackID stack) {
+    auto *vertex = Spider::allocate<PiSDFVertex>(stack);
     Spider::construct(vertex,
                       graph,
                       name,
@@ -98,99 +100,118 @@ PiSDFVertex *Spider::API::createVertex(PiSDFGraph *graph,
                                        const std::string &name,
                                        std::uint32_t nEdgesIN,
                                        std::uint32_t nEdgesOUT,
-                                       std::uint32_t nParamsIN) {
-    auto *vertex = Spider::allocate<PiSDFVertex>(StackID::PISDF);
+                                       std::uint32_t nParamsIN,
+                                       StackID stack) {
+    auto *vertex = Spider::allocate<PiSDFVertex>(stack);
     Spider::construct(vertex,
+                      stack,
                       graph,
                       name,
                       PiSDFVertexType::NORMAL,
                       nEdgesIN,
                       nEdgesOUT,
-                      nParamsIN);
+                      nParamsIN,
+                      0);
     return vertex;
 }
 
 PiSDFVertex *Spider::API::createBroadcast(PiSDFGraph *graph,
                                           const std::string &name,
                                           std::uint32_t nEdgesOUT,
-                                          std::uint32_t nParamsIN) {
-    auto *vertex = Spider::allocate<PiSDFVertex>(StackID::PISDF);
+                                          std::uint32_t nParamsIN,
+                                          StackID stack) {
+    auto *vertex = Spider::allocate<PiSDFVertex>(stack);
     Spider::construct(vertex,
+                      stack,
                       graph,
                       name,
                       PiSDFVertexType::BROADCAST,
                       1, /* = Broadcast vertex has only ONE input edge = */
                       nEdgesOUT,
-                      nParamsIN);
+                      nParamsIN,
+                      0);
     return vertex;
 }
 
 PiSDFVertex *Spider::API::createFork(PiSDFGraph *graph,
                                      const std::string &name,
                                      std::uint32_t nEdgesOUT,
-                                     std::uint32_t nParamsIN) {
-    auto *vertex = Spider::allocate<PiSDFVertex>(StackID::PISDF);
+                                     std::uint32_t nParamsIN,
+                                     StackID stack) {
+    auto *vertex = Spider::allocate<PiSDFVertex>(stack);
     Spider::construct(vertex,
+                      stack,
                       graph,
                       name,
                       PiSDFVertexType::FORK,
                       1, /* = Fork vertex has only ONE input edge = */
                       nEdgesOUT,
-                      nParamsIN);
+                      nParamsIN,
+                      0);
     return vertex;
 }
 
 PiSDFVertex *Spider::API::createRoundbuffer(PiSDFGraph *graph,
                                             const std::string &name,
                                             std::uint32_t nEdgesIN,
-                                            std::uint32_t nParamsIN) {
-    auto *vertex = Spider::allocate<PiSDFVertex>(StackID::PISDF);
+                                            std::uint32_t nParamsIN,
+                                            StackID stack) {
+    auto *vertex = Spider::allocate<PiSDFVertex>(stack);
     Spider::construct(vertex,
+                      stack,
                       graph,
                       name,
                       PiSDFVertexType::ROUNDBUFFER,
                       nEdgesIN,
                       1, /* = Roundbuffer vertex has only ONE output edge = */
-                      nParamsIN);
+                      nParamsIN,
+                      0);
     return vertex;
 }
 
 PiSDFVertex *Spider::API::createJoin(PiSDFGraph *graph,
                                      const std::string &name,
                                      std::uint32_t nEdgesIN,
-                                     std::uint32_t nParamsIN) {
-    auto *vertex = Spider::allocate<PiSDFVertex>(StackID::PISDF);
+                                     std::uint32_t nParamsIN,
+                                     StackID stack) {
+    auto *vertex = Spider::allocate<PiSDFVertex>(stack);
     Spider::construct(vertex,
+                      stack,
                       graph,
                       name,
                       PiSDFVertexType::JOIN,
                       nEdgesIN,
                       1, /* = Join vertex has only ONE output edge = */
-                      nParamsIN);
+                      nParamsIN,
+                      0);
     return vertex;
 }
 
-PiSDFVertex *Spider::API::createInit(PiSDFGraph *graph, const std::string &name, uint32_t nParamsIN) {
-    auto *vertex = Spider::allocate<PiSDFVertex>(StackID::PISDF);
+PiSDFVertex *Spider::API::createInit(PiSDFGraph *graph, const std::string &name, uint32_t nParamsIN, StackID stack) {
+    auto *vertex = Spider::allocate<PiSDFVertex>(stack);
     Spider::construct(vertex,
+                      stack,
                       graph,
                       name,
                       PiSDFVertexType::INIT,
                       0, /* = Init vertex do not have input edges = */
                       1, /* = Init vertex has only ONE output edge = */
-                      nParamsIN);
+                      nParamsIN,
+                      0);
     return vertex;
 }
 
-PiSDFVertex *Spider::API::createEnd(PiSDFGraph *graph, const std::string &name, uint32_t nParamsIN) {
-    auto *vertex = Spider::allocate<PiSDFVertex>(StackID::PISDF);
+PiSDFVertex *Spider::API::createEnd(PiSDFGraph *graph, const std::string &name, uint32_t nParamsIN, StackID stack) {
+    auto *vertex = Spider::allocate<PiSDFVertex>(stack);
     Spider::construct(vertex,
+                      stack,
                       graph,
                       name,
                       PiSDFVertexType::END,
                       1, /* = End vertex has only ONE input edge = */
                       0, /* = End vertex do not have output edges = */
-                      nParamsIN);
+                      nParamsIN,
+                      0);
     return vertex;
 }
 
@@ -199,9 +220,11 @@ PiSDFVertex *Spider::API::createConfigActor(PiSDFGraph *graph,
                                             std::uint32_t nEdgesIN,
                                             std::uint32_t nEdgesOUT,
                                             std::uint32_t nParamsIN,
-                                            std::uint32_t nParamsOUT) {
-    auto *vertex = Spider::allocate<PiSDFVertex>(StackID::PISDF);
+                                            std::uint32_t nParamsOUT,
+                                            StackID stack) {
+    auto *vertex = Spider::allocate<PiSDFVertex>(stack);
     Spider::construct(vertex,
+                      stack,
                       graph,
                       name,
                       PiSDFVertexType::CONFIG,
@@ -213,8 +236,9 @@ PiSDFVertex *Spider::API::createConfigActor(PiSDFGraph *graph,
 }
 
 PiSDFInterface *Spider::API::createInputInterface(PiSDFGraph *graph,
-                                                  const std::string &name) {
-    auto *interface = Spider::allocate<PiSDFInterface>(StackID::PISDF);
+                                                  const std::string &name,
+                                                  StackID stack) {
+    auto *interface = Spider::allocate<PiSDFInterface>(stack);
     Spider::construct(interface,
                       graph,
                       name,
@@ -223,8 +247,9 @@ PiSDFInterface *Spider::API::createInputInterface(PiSDFGraph *graph,
 }
 
 PiSDFInterface *Spider::API::createOutputInterface(PiSDFGraph *graph,
-                                                   const std::string &name) {
-    auto *interface = Spider::allocate<PiSDFInterface>(StackID::PISDF);
+                                                   const std::string &name,
+                                                   StackID stack) {
+    auto *interface = Spider::allocate<PiSDFInterface>(stack);
     Spider::construct(interface,
                       graph,
                       name,
@@ -234,8 +259,11 @@ PiSDFInterface *Spider::API::createOutputInterface(PiSDFGraph *graph,
 
 /* === Param creation API === */
 
-PiSDFParam *Spider::API::createStaticParam(PiSDFGraph *graph, const std::string &name, ParamInt64 value) {
-    auto *param = Spider::allocate<PiSDFParam>(StackID::PISDF);
+PiSDFParam *Spider::API::createStaticParam(PiSDFGraph *graph,
+                                           const std::string &name,
+                                           ParamInt64 value,
+                                           StackID stack) {
+    auto *param = Spider::allocate<PiSDFParam>(stack);
     Spider::construct(param,
                       graph,
                       name,
@@ -243,8 +271,11 @@ PiSDFParam *Spider::API::createStaticParam(PiSDFGraph *graph, const std::string 
     return param;
 }
 
-PiSDFParam *Spider::API::createDynamicParam(PiSDFGraph *graph, const std::string &name, PiSDFVertex *setter) {
-    auto *param = Spider::allocate<PiSDFParam>(StackID::PISDF);
+PiSDFParam *Spider::API::createDynamicParam(PiSDFGraph *graph,
+                                            const std::string &name,
+                                            PiSDFVertex *setter,
+                                            StackID stack) {
+    auto *param = Spider::allocate<PiSDFParam>(stack);
     Spider::construct(param,
                       graph,
                       name,
@@ -252,9 +283,11 @@ PiSDFParam *Spider::API::createDynamicParam(PiSDFGraph *graph, const std::string
     return param;
 }
 
-PiSDFParam *
-Spider::API::createDependentParam(PiSDFGraph *graph, const std::string &name, const std::string &expression) {
-    auto *param = Spider::allocate<PiSDFParam>(StackID::PISDF);
+PiSDFParam *Spider::API::createDependentParam(PiSDFGraph *graph,
+                                              const std::string &name,
+                                              const std::string &expression,
+                                              StackID stack) {
+    auto *param = Spider::allocate<PiSDFParam>(stack);
     Spider::construct(param,
                       graph,
                       name,
@@ -262,11 +295,14 @@ Spider::API::createDependentParam(PiSDFGraph *graph, const std::string &name, co
     return param;
 }
 
-PiSDFParam *Spider::API::createInheritedParam(PiSDFGraph *graph, const std::string &name, PiSDFParam *parent) {
+PiSDFParam *Spider::API::createInheritedParam(PiSDFGraph *graph,
+                                              const std::string &name,
+                                              PiSDFParam *parent,
+                                              StackID stack) {
     if (!parent) {
         throwSpiderException("Cannot instantiate inherited parameter with null parent.");
     }
-    auto *param = Spider::allocate<PiSDFParam>(StackID::PISDF);
+    auto *param = Spider::allocate<PiSDFParam>(stack);
     Spider::construct(param,
                       graph,
                       name,
@@ -280,8 +316,9 @@ PiSDFEdge *Spider::API::createEdge(PiSDFGraph *graph,
                                    const std::string &srcRateExpression,
                                    PiSDFVertex *sink,
                                    std::uint16_t snkPortIx,
-                                   const std::string &snkRateExpression) {
-    auto *edge = Spider::allocate<PiSDFEdge>(StackID::PISDF);
+                                   const std::string &snkRateExpression,
+                                   StackID stack) {
+    auto *edge = Spider::allocate<PiSDFEdge>(stack);
     Spider::construct(edge, graph, source, srcPortIx, srcRateExpression, sink, snkPortIx, snkRateExpression);
     return edge;
 }
@@ -292,8 +329,9 @@ PiSDFEdge *Spider::API::createEdge(PiSDFGraph *graph,
                                    std::int64_t srcRate,
                                    PiSDFVertex *sink,
                                    std::uint16_t snkPortIx,
-                                   std::int64_t snkRate) {
-    auto *edge = Spider::allocate<PiSDFEdge>(StackID::PISDF);
+                                   std::int64_t snkRate,
+                                   StackID stack) {
+    auto *edge = Spider::allocate<PiSDFEdge>(stack);
     Spider::construct(edge, graph, source, srcPortIx, srcRate, sink, snkPortIx, snkRate);
     return edge;
 }
@@ -304,8 +342,9 @@ PiSDFEdge *Spider::API::createEdge(PiSDFGraph *graph,
                                    std::int64_t srcRate,
                                    PiSDFVertex *sink,
                                    std::uint16_t snkPortIx,
-                                   const std::string &snkRateExpression) {
-    auto *edge = Spider::allocate<PiSDFEdge>(StackID::PISDF);
+                                   const std::string &snkRateExpression,
+                                   StackID stack) {
+    auto *edge = Spider::allocate<PiSDFEdge>(stack);
     Spider::construct(edge, graph, source, srcPortIx, std::to_string(srcRate), sink, snkPortIx, snkRateExpression);
     return edge;
 }
@@ -316,8 +355,9 @@ PiSDFEdge *Spider::API::createEdge(PiSDFGraph *graph,
                                    const std::string &srcRateExpression,
                                    PiSDFVertex *sink,
                                    std::uint16_t snkPortIx,
-                                   std::int64_t snkRate) {
-    auto *edge = Spider::allocate<PiSDFEdge>(StackID::PISDF);
+                                   std::int64_t snkRate,
+                                   StackID stack) {
+    auto *edge = Spider::allocate<PiSDFEdge>(stack);
     Spider::construct(edge, graph, source, srcPortIx, srcRateExpression, sink, snkPortIx, std::to_string(snkRate));
     return edge;
 }
@@ -326,8 +366,9 @@ PiSDFDelay *Spider::API::createDelay(PiSDFEdge *edge,
                                      const std::string &delayExpression,
                                      bool persistent,
                                      PiSDFVertex *setter,
-                                     PiSDFVertex *getter) {
-    auto *delay = Spider::allocate<PiSDFDelay>(StackID::PISDF);
+                                     PiSDFVertex *getter,
+                                     StackID stack) {
+    auto *delay = Spider::allocate<PiSDFDelay>(stack);
     Spider::construct(delay, edge, delayExpression, persistent, setter, getter);
     return delay;
 }
@@ -336,8 +377,9 @@ PiSDFDelay *Spider::API::createDelay(PiSDFEdge *edge,
                                      std::int64_t delayValue,
                                      bool persistent,
                                      PiSDFVertex *setter,
-                                     PiSDFVertex *getter) {
-    auto *delay = Spider::allocate<PiSDFDelay>(StackID::PISDF);
+                                     PiSDFVertex *getter,
+                                     StackID stack) {
+    auto *delay = Spider::allocate<PiSDFDelay>(stack);
     Spider::construct(delay, edge, delayValue, persistent, setter, getter);
     return delay;
 }
