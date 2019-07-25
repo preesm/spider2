@@ -100,7 +100,7 @@ PiSDFVertex::PiSDFVertex(StackID stack,
 
     if (type == PiSDFVertexType::HIERARCHICAL) {
         /* == Create the subgraph == */
-        subgraph_ = Spider::allocate<PiSDFGraph>(StackID::PISDF);
+        subgraph_ = Spider::allocate<PiSDFGraph>(stack);
         Spider::construct(subgraph_, this, std::string(name_), 0, 0, 0, nEdgesIN, nEdgesOUT);
     }
 
