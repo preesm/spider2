@@ -169,7 +169,7 @@ void PiSDFVertex::exportInputPortsToDot(FILE *file,
         fprintf(file, "%s\t\t\t\t\t\t<td port=\"in_%" PRIu32"\" border=\"1\" bgcolor=\"#87d37c\">    </td>\n",
                 offset.c_str(), e->sinkPortIx());
         fprintf(file,
-                "%s\t\t\t\t\t\t<td align=\"right\" border=\"0\" bgcolor=\"#%s\"><font point-size=\"15\">width</font></td>\n",
+                "%s\t\t\t\t\t\t<td align=\"left\" border=\"0\" bgcolor=\"#%s\"><font point-size=\"15\">width</font></td>\n",
                 offset.c_str(),
                 getVertexDotColor(type_));
         fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());
