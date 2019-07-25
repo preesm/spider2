@@ -125,7 +125,7 @@ void LCMBRVCompute::extractRationals(Spider::Array<const PiSDFEdge *> &edgeArray
 std::int64_t LCMBRVCompute::computeLCM(const BRVComponent &component, Spider::Array<Spider::Rational> &reps) {
     std::int64_t lcmFactor = 1;
     for (const auto &v : component.vertices) {
-        lcmFactor = Spider::Rational::lcm(lcmFactor, reps[v->getIx()].denominator());
+        lcmFactor = Spider::Math::lcm(lcmFactor, reps[v->getIx()].denominator());
     }
     return lcmFactor;
 }

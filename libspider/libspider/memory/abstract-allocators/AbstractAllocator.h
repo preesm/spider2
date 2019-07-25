@@ -167,7 +167,7 @@ void AbstractAllocator::printStats() const {
 }
 
 std::uint64_t AbstractAllocator::computeAlignedSize(std::uint64_t &size, std::int32_t alignment /* = 4096 */) {
-    std::uint64_t alignFactor = Spider::Math::ceilDiv(size, alignment);
+    std::uint64_t alignFactor = Spider::Math::ceilDiv(size, static_cast<std::uint64_t>(alignment));
     return alignFactor * alignment;
 }
 

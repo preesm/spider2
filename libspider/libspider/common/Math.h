@@ -51,14 +51,71 @@
 namespace Spider {
     namespace Math {
 
-        inline std::uint32_t ceilDiv(const std::uint32_t &num, const std::uint32_t &den) {
-            return num / den + (num % den != 0);
+        inline std::uint16_t ceilDiv(const std::uint16_t &x, const std::uint16_t &y) {
+            return x / y + (x % y != 0);
         }
 
-        inline std::uint64_t ceilDiv(const std::uint64_t &num, const std::uint64_t &den) {
-            return num / den + (num % den != 0);
+        inline std::uint32_t ceilDiv(const std::uint32_t &x, const std::uint32_t &y) {
+            return x / y + (x % y != 0);
         }
 
+        inline std::uint64_t ceilDiv(const std::uint64_t &x, const std::uint64_t &y) {
+            return x / y + (x % y != 0);
+        }
+
+        inline std::int32_t ceilDiv(const std::int32_t &x, const std::int32_t &y) {
+            if (x < 0 && y < 0) {
+                return ceilDiv(static_cast<std::uint32_t>(-x), static_cast<std::uint32_t>(-y));
+            }
+            return x / y;
+        }
+
+        inline std::int64_t ceilDiv(const std::int64_t &x, const std::int64_t &y) {
+            if (x < 0 && y < 0) {
+                return ceilDiv(static_cast<std::uint64_t>(-x), static_cast<std::uint64_t>(-y));
+            }
+            return x / y;
+        }
+
+        inline std::int16_t abs(const std::int16_t &x) {
+            return x < 0 ? -x : x;
+        }
+
+        inline std::int32_t abs(const std::int32_t &x) {
+            return x < 0 ? -x : x;
+        }
+
+        inline std::int64_t abs(const std::int64_t &x) {
+            return x < 0 ? -x : x;
+        }
+
+        inline std::int64_t gcd(std::int64_t x, std::int64_t y) {
+            std::int64_t t;
+            while (y != 0) {
+                t = y;
+                y = x % y;
+                x = t;
+            }
+            return x;
+        }
+
+        inline std::uint64_t gcd(std::uint64_t x, std::uint64_t y) {
+            std::uint64_t t;
+            while (y != 0) {
+                t = y;
+                y = x % y;
+                x = t;
+            }
+            return x;
+        }
+
+        inline std::int64_t lcm(std::int64_t a, std::int64_t b) {
+            return Spider::Math::abs(a * b) / Spider::Math::gcd(a, b);
+        }
+
+        inline std::uint64_t lcm(std::uint64_t a, std::uint64_t b) {
+            return (a * b) / Spider::Math::gcd(a, b);
+        }
     }
 }
 

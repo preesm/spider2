@@ -40,6 +40,7 @@
 /* === Includes === */
 
 #include <cstdint>
+#include <common/Math.h>
 #include <common/SpiderException.h>
 
 /* === Class definition === */
@@ -88,7 +89,7 @@ namespace Spider {
 
         inline bool operator!() const;
 
-        inline operator bool() const;
+        inline explicit operator bool() const;
 
         inline bool operator>(const Rational &b) const;
 
@@ -113,14 +114,6 @@ namespace Spider {
         inline std::int64_t denominator() const;
 
         inline std::int64_t nominator() const;
-
-        /* === Static methods === */
-
-        static inline std::int64_t gcd(std::int64_t a, std::int64_t b);
-
-        static inline std::int64_t abs(std::int64_t x);
-
-        static inline std::int64_t lcm(std::int64_t a, std::int64_t b);
 
     private:
         std::int64_t n_;
@@ -262,7 +255,7 @@ namespace Spider {
     }
 
     Rational Rational::abs() const {
-        return Rational{abs((*this).n_), abs((*this).d_)};
+        return Rational{Spider::Math::abs((*this).n_), Spider::Math::abs((*this).d_)};
     }
 
     std::int64_t Rational::denominator() const {
@@ -273,26 +266,8 @@ namespace Spider {
         return n_;
     }
 
-    std::int64_t Rational::abs(std::int64_t x) {
-        return x < 0 ? -x : x;
-    }
-
-    std::int64_t Rational::gcd(std::int64_t a, std::int64_t b) {
-        std::int64_t t;
-        while (b != 0) {
-            t = b;
-            b = a % b;
-            a = t;
-        }
-        return a;
-    }
-
-    std::int64_t Rational::lcm(std::int64_t a, std::int64_t b) {
-        return abs(a * b) / gcd(a, b);
-    }
-
     void Rational::reduce() {
-        auto gcd = Rational::gcd(n_, d_);
+        auto gcd = Spider::Math::gcd(n_, d_);
         n_ /= gcd;
         d_ /= gcd;
         if (d_ < 0) {
