@@ -205,7 +205,7 @@ namespace Spider {
     }
 
     bool Rational::operator==(const std::int64_t &a) const {
-        return (n_ / d_) == a;
+        return this->toDouble() == static_cast<double >(a);
     }
 
     bool Rational::operator!=(const Rational &b) const {
