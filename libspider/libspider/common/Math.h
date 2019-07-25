@@ -66,8 +66,10 @@ namespace Spider {
         inline std::int32_t ceilDiv(const std::int32_t &x, const std::int32_t &y) {
             if (x < 0 && y < 0) {
                 return ceilDiv(static_cast<std::uint32_t>(-x), static_cast<std::uint32_t>(-y));
+            } else if (x < 0 || y < 0) {
+                return x / y;
             }
-            return x / y;
+            return x / y + (x % y != 0);
         }
 
         inline std::int64_t ceilDiv(const std::int64_t &x, const std::int64_t &y) {
