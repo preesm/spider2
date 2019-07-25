@@ -77,9 +77,28 @@ private:
 
     /* === Private method(s) === */
 
-    void copyVertex(const PiSDFVertex *vertex);
+    PiSDFVertex *copyVertex(const PiSDFVertex *vertex, std::uint32_t instance = 0);
 
     void extractConfigActors(const PiSDFGraph *graph);
+
+    void extractAndLinkActors(const PiSDFGraph *graph);
+
+    PiSDFVertex *createFork(const PiSDFEdge *edge,
+                            std::int64_t sourceRate,
+                            std::int64_t nConsumer,
+                            Spider::Array<PiSDFVertex *> &sourceArray,
+                            std::uint32_t sourceCount);
+
+    PiSDFVertex *createJoin(const PiSDFEdge *edge,
+                            std::int64_t sinkRate,
+                            std::int64_t nProducer,
+                            Spider::Array<PiSDFVertex *> &sinkArray,
+                            std::uint32_t sinkCount);
+
+//    void linkInstanceOfActor(const PiSDFVertex *vertex,
+//                             PiSDFVertex *copyVertex,
+//                             std::uint32_t instance,
+//                             Spider::Array<const PiSDFVertex *> &doneVertexArray);
 };
 
 /* === Inline method(s) === */
