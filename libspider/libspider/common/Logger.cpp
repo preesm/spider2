@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright or © or Copr. IETR/INSA - Rennes (2014 - 2018) :
  *
  * Antoine Morvan <antoine.morvan@insa-rennes.fr> (2018)
@@ -41,7 +41,6 @@
 #include <mutex>
 #include <cstdarg>
 #include <common/Logger.h>
-#include <memory/Allocator.h>
 
 /* === Defines === */
 

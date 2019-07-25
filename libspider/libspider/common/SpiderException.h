@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright or © or Copr. IETR/INSA - Rennes (2013 - 2018) :
  *
  * Antoine Morvan <antoine.morvan@insa-rennes.fr> (2018)
@@ -37,8 +37,8 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER_SPIDEREXCEPTION_H
-#define SPIDER_SPIDEREXCEPTION_H
+#ifndef SPIDER2_SPIDEREXCEPTION_H
+#define SPIDER2_SPIDEREXCEPTION_H
 
 /* === Includes === */
 
@@ -100,4 +100,4 @@ private:
     char exceptionMessage_[SPIDER_EXCEPTION_BUFFER_SIZE];
 };
 
-#endif // SPIDER_SPIDEREXCEPTION_H
+#endif // SPIDER2_SPIDEREXCEPTION_H

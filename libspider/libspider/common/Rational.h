@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright or © or Copr. IETR/INSA - Rennes (2014 - 2018) :
  *
  * Antoine Morvan <antoine.morvan@insa-rennes.fr> (2018)
@@ -34,8 +34,8 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef RATIONAL_H_
-#define RATIONAL_H_
+#ifndef SPIDER2_RATIONAL_H_
+#define SPIDER2_RATIONAL_H_
 
 /* === Includes === */
 
@@ -301,4 +301,4 @@ namespace Spider {
         }
     }
 }
-#endif /* RATIONAL_H_ */
+#endif // SPIDER2_RATIONAL_H_

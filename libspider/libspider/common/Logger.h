@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright or © or Copr. IETR/INSA - Rennes (2014 - 2018) :
  *
  * Antoine Morvan <antoine.morvan@insa-rennes.fr> (2018)
@@ -35,8 +35,8 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER_LOGGER_H
-#define SPIDER_LOGGER_H
+#ifndef SPIDER2_LOGGER_H
+#define SPIDER2_LOGGER_H
 
 /* === Includes === */
 
@@ -77,4 +77,4 @@ namespace Spider {
     }
 }
 
-#endif //SPIDER_LOGGER_H
+#endif // SPIDER2_LOGGER_H
