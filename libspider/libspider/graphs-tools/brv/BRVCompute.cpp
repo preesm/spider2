@@ -152,7 +152,7 @@ std::uint64_t BRVCompute::updateBRVFromInputIF(const PiSDFEdge *edge, std::uint6
         auto totalCons = sinkRate * edge->sink()->repetitionValue() * currentScaleFactor;
         if (totalCons && totalCons < sourceRate) {
             /* == Return ceil(interfaceProd / vertexCons) == */
-            return sourceRate / totalCons + (sourceRate % totalCons != 0);
+            return Spider::Math::ceilDiv(sourceRate, totalCons);
         }
     }
     return 1;
@@ -165,7 +165,7 @@ std::uint64_t BRVCompute::updateBRVFromOutputIF(const PiSDFEdge *edge, std::uint
         auto totalProd = sourceRate * edge->source()->repetitionValue() * currentScaleFactor;
         if (totalProd && totalProd < sinkRate) {
             /* == Return ceil(vertexProd / interfaceCons) == */
-            return sinkRate / totalProd + (sinkRate % totalProd != 0);
+            return Spider::Math::ceilDiv(sinkRate, totalProd);
         }
     }
     return 1;
@@ -178,7 +178,7 @@ std::uint64_t BRVCompute::updateBRVFromCFGActor(const PiSDFEdge *edge, std::uint
         auto totalCons = sinkRate * edge->sink()->repetitionValue() * currentScaleFactor;
         if (totalCons && totalCons < sourceRate) {
             /* == Return ceil(cfgActorProd / vertexCons) == */
-            return sourceRate / totalCons + (sourceRate % totalCons != 0);
+            return Spider::Math::ceilDiv(sourceRate, totalCons);
         }
     }
     return 1;
