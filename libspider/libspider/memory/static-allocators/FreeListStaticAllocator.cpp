@@ -48,7 +48,7 @@ FreeListStaticAllocator::FreeListStaticAllocator(std::string name,
                                                  std::uint64_t totalSize,
                                                  FreeListPolicy policy,
                                                  std::int32_t alignment) :
-        StaticAllocator(std::move(name), totalSize + sizeof(FreeListStaticAllocator::Header), alignment) {
+        StaticAllocator(std::move(name), totalSize + sizeof(FreeListStaticAllocator::Header) + sizeof(Node), alignment) {
     if (alignment < 8) {
         throwSpiderException("Memory alignment should be at least of size sizeof(std::int64_t) = 8 bytes.");
     }
@@ -195,17 +195,13 @@ FreeListStaticAllocator::findFirst(std::uint64_t &size, std::int32_t &padding, s
                                    Node *&foundNode) {
     Node *it = baseNode;
     baseNode = nullptr;
-    constexpr std::int32_t headerSize = sizeof(FreeListStaticAllocator::Header);
-    auto sizeWithHeader = size + headerSize;
+    constexpr std::int32_t overheadSize = sizeof(FreeListStaticAllocator::Header);
+    padding = AbstractAllocator::computePaddingWithHeader(size, alignment, overheadSize);
+    auto requiredSize = size + padding;
     while (it) {
-        if (it->blockSize_ >= sizeWithHeader) {
-            padding = AbstractAllocator::computePadding(sizeWithHeader, alignment);
-            padding += headerSize;
-            std::uint64_t requiredSize = size + padding;
-            if (it->blockSize_ >= requiredSize) {
-                foundNode = it;
-                return;
-            }
+        if (it->blockSize_ - sizeof(Node) >= requiredSize) {
+            foundNode = it;
+            return;
         }
         baseNode = it;
         it = it->next_;
@@ -215,31 +211,28 @@ FreeListStaticAllocator::findFirst(std::uint64_t &size, std::int32_t &padding, s
                                  "", size);
 }
 
-void
-FreeListStaticAllocator::findBest(std::uint64_t &size, std::int32_t &padding, std::int32_t &alignment,
-                                  Node *&baseNode,
-                                  Node *&foundNode) {
+void FreeListStaticAllocator::findBest(std::uint64_t &size,
+                                       std::int32_t &padding,
+                                       std::int32_t &alignment,
+                                       Node *&baseNode,
+                                       Node *&foundNode) {
     Node *head = baseNode;
     Node *it = head;
     baseNode = nullptr;
     std::uint64_t minFit = UINT64_MAX;
     constexpr std::int32_t headerSize = sizeof(FreeListStaticAllocator::Header);
-    auto sizeWithHeader = size + headerSize;
+    padding = AbstractAllocator::computePaddingWithHeader(size, alignment, headerSize);
+    auto requiredSize = size + padding;
     while (it) {
-        if (it->blockSize_ >= sizeWithHeader) {
-            padding = AbstractAllocator::computePadding(sizeWithHeader, alignment);
-            padding += headerSize;
-            std::uint64_t requiredSize = size + padding;
-            if (it->blockSize_ >= requiredSize && ((it->blockSize_ - requiredSize) < minFit)) {
-                foundNode = it;
-                minFit = it->blockSize_ - requiredSize;
-                if (minFit == 0) {
-                    /* == We won't find better fit == */
-                    return;
-                }
-            } else {
-                baseNode = it;
+        if (it->blockSize_ - sizeof(Node) >= requiredSize && ((it->blockSize_ - requiredSize) < minFit)) {
+            foundNode = it;
+            minFit = it->blockSize_ - requiredSize;
+            if (minFit == 0) {
+                /* == We won't find better fit == */
+                return;
             }
+        } else {
+            baseNode = it;
         }
         it = it->next_;
     }

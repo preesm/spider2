@@ -55,7 +55,7 @@ FreeListAllocator::FreeListAllocator(std::string name,
     }
 
     /* == We need extra space for the Node structure == */
-    staticBufferPtr_ = static_cast<std::uint8_t *>(std::malloc((staticBufferSize_ + sizeof(Node)) * sizeof(char)));
+    staticBufferPtr_ = cast_buffer(std::malloc((staticBufferSize_ + sizeof(Node)) * sizeof(char)));
     this->reset();
     if (policy == FreeListPolicy::FIND_FIRST) {
         method_ = FreeListAllocator::findFirst;
@@ -147,7 +147,7 @@ void FreeListAllocator::deallocate(void *ptr) {
     Node *it = list_;
     Node *itPrev = nullptr;
     while (it) {
-        if (ptr < it) {
+        if (cast_buffer(freeNode) < cast_buffer(it)) {
             insert(itPrev, freeNode);
             break;
         }
@@ -239,11 +239,11 @@ void FreeListAllocator::findFirst(std::uint64_t &size,
                                   Node *&foundNode) {
     Node *it = baseNode;
     baseNode = nullptr;
-    constexpr std::int32_t headerSize = sizeof(FreeListAllocator::Header);
-    padding = AbstractAllocator::computePaddingWithHeader(size, alignment, headerSize);
+    constexpr std::int32_t overheadSize = sizeof(FreeListAllocator::Header);
+    padding = AbstractAllocator::computePaddingWithHeader(size, alignment, overheadSize);
     auto requiredSize = size + padding;
     while (it) {
-        if (it->blockSize_ >= requiredSize) {
+        if (it->blockSize_ - sizeof(Node) >= requiredSize) {
             foundNode = it;
             return;
         }
@@ -265,7 +265,7 @@ void FreeListAllocator::findBest(std::uint64_t &size,
     padding = AbstractAllocator::computePaddingWithHeader(size, alignment, headerSize);
     auto requiredSize = size + padding;
     while (it) {
-        if (it->blockSize_ >= requiredSize && ((it->blockSize_ - requiredSize) < minFit)) {
+        if (it->blockSize_ - sizeof(Node) >= requiredSize && ((it->blockSize_ - requiredSize) < minFit)) {
             foundNode = it;
             minFit = it->blockSize_ - requiredSize;
             if (minFit == 0) {
