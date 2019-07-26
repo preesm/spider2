@@ -83,7 +83,7 @@ private:
         PiSDFVertex *sink = nullptr;
         std::uint64_t sourceRate = 0;
         std::uint64_t sinkRate = 0;
-        std::int64_t delay = 0;
+        std::uint64_t delay = 0;
         std::uint32_t sourceCount = 0;
         std::uint32_t sinkCount = 0;
         std::uint32_t sinkPortIx = 0;
@@ -121,6 +121,8 @@ private:
     void joinPatternLinkage(SRLinker &linker);
 
     void forkPatternLinkage(SRLinker &linker);
+
+    void forwardLinkageDelayed(SRLinker &linker);
 };
 
 /* === Inline method(s) === */
