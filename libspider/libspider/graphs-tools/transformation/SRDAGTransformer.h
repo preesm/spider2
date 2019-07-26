@@ -43,6 +43,8 @@
 /* === Include(s) === */
 
 #include <cstdint>
+#include <graphs/pisdf/PiSDFEdge.h>
+#include <graphs/pisdf/PiSDFDelay.h>
 
 /* === Forward declaration(s) === */
 
@@ -75,6 +77,37 @@ private:
     const PiSDFGraph *piSdfGraph_ = nullptr;
     bool stoppedFromConfig_ = false;
 
+    /* === Private struct === */
+    struct SRLinker {
+        PiSDFVertex *source = nullptr;
+        PiSDFVertex *sink = nullptr;
+        std::uint64_t sourceRate = 0;
+        std::uint64_t sinkRate = 0;
+        std::int64_t delay = 0;
+        std::uint32_t sourceCount = 0;
+        std::uint32_t sinkCount = 0;
+        std::uint32_t sinkPortIx = 0;
+        std::uint32_t sourcePortIx = 0;
+        Spider::Array<PiSDFVertex *> *sourceArray = nullptr;
+        Spider::Array<PiSDFVertex *> *sinkArray = nullptr;
+
+        SRLinker(const PiSDFEdge *edge,
+                 Spider::Array<Spider::Array<PiSDFVertex *>> &vertex2Vertex) : source{edge->source()},
+                                                                               sink{edge->sink()} {
+            sourceRate = edge->sourceRate();
+            sinkRate = edge->sinkRate();
+            sourceArray = &vertex2Vertex[edge->source()->getIx()];
+            sinkArray = &vertex2Vertex[edge->sink()->getIx()];
+            if (edge->delay()) {
+                delay = edge->delay()->value();
+            }
+            sourcePortIx = edge->sourcePortIx();
+            sinkPortIx = edge->sinkPortIx();
+        }
+
+        ~SRLinker() = default;
+    };
+
     /* === Private method(s) === */
 
     PiSDFVertex *copyVertex(const PiSDFVertex *vertex, std::uint32_t instance = 0);
@@ -83,22 +116,11 @@ private:
 
     void extractAndLinkActors(const PiSDFGraph *graph);
 
-    PiSDFVertex *createFork(const PiSDFEdge *edge,
-                            std::int64_t sourceRate,
-                            std::int64_t nConsumer,
-                            Spider::Array<PiSDFVertex *> &sourceArray,
-                            std::uint32_t sourceCount);
+    void forwardLinkage(SRLinker &linker);
 
-    PiSDFVertex *createJoin(const PiSDFEdge *edge,
-                            std::int64_t sinkRate,
-                            std::int64_t nProducer,
-                            Spider::Array<PiSDFVertex *> &sinkArray,
-                            std::uint32_t sinkCount);
+    void joinPatternLinkage(SRLinker &linker);
 
-//    void linkInstanceOfActor(const PiSDFVertex *vertex,
-//                             PiSDFVertex *copyVertex,
-//                             std::uint32_t instance,
-//                             Spider::Array<const PiSDFVertex *> &doneVertexArray);
+    void forkPatternLinkage(SRLinker &linker);
 };
 
 /* === Inline method(s) === */
