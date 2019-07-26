@@ -212,10 +212,41 @@ void SRDAGTransformer::joinPatternLinkage(SRDAGTransformer::SRLinker &linker) {
     }
 
     std::uint32_t joinPortIx = 0;
+//    if (linker.delay) {
+//        auto *init = Spider::API::createInit(srdag_, "init-" + linker.sink->name(), 0, StackID::TRANSFO);
+//        if (linker.delay == linker.sinkRate) {
+//            Spider::API::createEdge(srdag_, init, 0, linker.sinkRate,
+//                                    linker.sink, linker.sinkPortIx, linker.sinkRate, StackID::TRANSFO);
+//        } else if (linker.delay < linker.sinkRate) {
+//            Spider::API::createEdge(srdag_, init, 0, linker.delay,
+//                                    joinArray[0], 0, linker.delay, StackID::TRANSFO);
+//            joinPortIx = 1;
+//        } else {
+//            auto nFork = linker.delay / linker.sinkRate;
+//            auto *fork = Spider::API::createFork(srdag_, "fork-" + init->name(), nFork, 0, StackID::TRANSFO);
+//            Spider::API::createEdge(srdag_, init, 0, linker.delay,
+//                                    fork, 0, linker.delay, StackID::TRANSFO);
+//            auto remainderFork = linker.delay;
+//            std::uint32_t forkPortIx = 0;
+//            while (remainderFork > linker.sinkRate) {
+//                Spider::API::createEdge(srdag_, fork, forkPortIx, linker.sinkRate,
+//                                        linker.sink, linker.sinkPortIx, linker.sinkRate, StackID::TRANSFO);
+//                forkPortIx += 1;
+//                remainderFork -= linker.sinkRate;
+//            }
+//            Spider::API::createEdge(srdag_, fork, nFork - 1, linker.delay,
+//                                    joinArray[0], 0, linker.delay, StackID::TRANSFO);
+//            joinPortIx = 1;
+//        }
+//    }
+
     std::uint32_t joinIx = 0;
     for (auto *src : sourceArray) {
         auto lowerDep = (linker.sourceCount * linker.sourceRate + linker.delay) / linker.sinkRate;
         auto upperDep = ((linker.sourceCount + 1) * linker.sourceRate + linker.delay - 1) / linker.sinkRate;
+        if (lowerDep >= linker.sink->repetitionValue()) {
+            break;
+        }
         auto *join = joinArray[joinIx];
         if (lowerDep == upperDep) {
             Spider::API::createEdge(srdag_, src, linker.sourcePortIx, linker.sourceRate,
@@ -237,6 +268,17 @@ void SRDAGTransformer::joinPatternLinkage(SRDAGTransformer::SRLinker &linker) {
         }
         linker.sourceCount += 1;
     }
+
+//    if (linker.delay) {
+//        auto *end = Spider::API::createEnd(srdag_, "end-" + linker.source->name(), 0, StackID::TRANSFO);
+//        Spider::API::createEdge(srdag_, joinArray[joinArray.size() - 1], 0, linker.delay,
+//                                end, 0, linker.delay, StackID::TRANSFO);
+//
+//        for (std::uint32_t i = linker.sourceCount; i < linker.source->repetitionValue(); ++i) {
+//            Spider::API::createEdge(srdag_, joinArray[joinArray.size() - 1], 0, linker.delay,
+//                                    end, 0, linker.delay, StackID::TRANSFO);
+//        }
+//    }
 }
 
 void SRDAGTransformer::forkPatternLinkage(SRDAGTransformer::SRLinker &linker) {
