@@ -82,9 +82,9 @@ void SRDAGTransformer::execute() {
     extractAndLinkActors(piSdfGraph_);
 
     /* == Iterate over the subgraphs == */
-    for (const auto *subgraph : piSdfGraph_->subgraphs()) {
-
-    }
+//    for (const auto *subgraph : piSdfGraph_->subgraphs()) {
+//
+//    }
 }
 
 void SRDAGTransformer::resume() {
@@ -107,6 +107,13 @@ PiSDFVertex *SRDAGTransformer::copyVertex(const PiSDFVertex *vertex, std::uint32
                       vertex->nParamsIN(),
                       vertex->nParamsOUT());
     copyVertex->setRepetitionValue(1);
+
+    /* == Copy the input parameter == */
+    std::uint32_t ix = 0;
+    for (auto * param : vertex->inputParams()) {
+        copyVertex->setInputParam(param, ix);
+        ix += 1;
+    }
     return copyVertex;
 }
 
@@ -140,6 +147,7 @@ void SRDAGTransformer::extractAndLinkActors(const PiSDFGraph *graph) {
     for (const auto *edge : graph->edges()) {
         auto linker = SRLinker{edge, vertex2Vertex};
 
+        /* == Do the linkage == */
         if (linker.sourceRate == linker.sinkRate) {
             /* == Forward case == */
             forwardLinkage(linker);
