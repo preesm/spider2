@@ -194,7 +194,7 @@ void SRDAGTransformer::joinPatternLinkage(SRDAGTransformer::SRLinker &linker) {
     for (auto *snk : sinkArray) {
         auto *join = Spider::API::createJoin(srdag_, "join-" + snk->name(), nProducer, 0,
                                              StackID::TRANSFO);
-        joinArray[linker.sourceCount] = join;
+        joinArray[linker.sinkCount] = join;
         Spider::API::createEdge(srdag_, join, 0, linker.sinkRate,
                                 snk, linker.sinkPortIx, linker.sinkRate, StackID::TRANSFO);
         linker.sinkCount += 1;
