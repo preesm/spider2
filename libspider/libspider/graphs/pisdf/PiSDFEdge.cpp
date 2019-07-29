@@ -40,6 +40,7 @@
 
 /* === Includes === */
 
+#include <graphs/pisdf/PiSDFDelay.h>
 #include <graphs/pisdf/PiSDFEdge.h>
 #include <graphs/pisdf/PiSDFGraph.h>
 #include <graphs/pisdf/PiSDFVertex.h>
@@ -91,6 +92,11 @@ PiSDFEdge::~PiSDFEdge() {
     if (sinkPort_) {
         Spider::destroy(sinkPort_);
         Spider::deallocate(sinkPort_);
+    }
+
+    if (delay_) {
+        Spider::destroy(delay_);
+        Spider::deallocate(delay_);
     }
 }
 
