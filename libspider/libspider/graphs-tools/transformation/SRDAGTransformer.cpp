@@ -148,18 +148,12 @@ void SRDAGTransformer::extractAndLinkActors(const PiSDFGraph *graph) {
         auto linker = SRLinker{edge, vertex2Vertex};
 
         /* == Do the linkage == */
-        if (linker.delay >= linker.sinkRate * linker.sink->repetitionValue()) {
-            /* == Forward delayed linkage == */
-            forwardLinkageDelayed(linker);
-        } else if (linker.sourceRate == linker.sinkRate) {
-            /* == Forward case == */
-            forwardLinkage(linker);
-        } else if (linker.sourceRate < linker.sinkRate) {
-            /* == Join patterns == */
-            joinPatternLinkage(linker);
+        if (linker.delay) {
+            /* == Delay linkage == */
+            delayLinkage(linker);
         } else {
-            /* == Fork patterns == */
-            forkPatternLinkage(linker);
+            /* == No delay linkage == */
+            nodelayLinkage(linker);
         }
 
         /* == Check that everything has been linked == */
@@ -185,6 +179,18 @@ void SRDAGTransformer::extractAndLinkActors(const PiSDFGraph *graph) {
     }
 }
 
+void SRDAGTransformer::nodelayLinkage(SRDAGTransformer::SRLinker &linker) {
+    if (linker.sourceRate == linker.sinkRate) {
+        /* == Forward case == */
+        forwardLinkage(linker);
+    } else if (linker.sourceRate < linker.sinkRate) {
+        /* == Join patterns == */
+        joinPatternLinkage(linker);
+    } else {
+        /* == Fork patterns == */
+        forkPatternLinkage(linker);
+    }
+}
 
 void SRDAGTransformer::forwardLinkage(SRDAGTransformer::SRLinker &linker) {
     auto &sourceArray = *(linker.sourceArray);
@@ -212,41 +218,10 @@ void SRDAGTransformer::joinPatternLinkage(SRDAGTransformer::SRLinker &linker) {
     }
 
     std::uint32_t joinPortIx = 0;
-//    if (linker.delay) {
-//        auto *init = Spider::API::createInit(srdag_, "init-" + linker.sink->name(), 0, StackID::TRANSFO);
-//        if (linker.delay == linker.sinkRate) {
-//            Spider::API::createEdge(srdag_, init, 0, linker.sinkRate,
-//                                    linker.sink, linker.sinkPortIx, linker.sinkRate, StackID::TRANSFO);
-//        } else if (linker.delay < linker.sinkRate) {
-//            Spider::API::createEdge(srdag_, init, 0, linker.delay,
-//                                    joinArray[0], 0, linker.delay, StackID::TRANSFO);
-//            joinPortIx = 1;
-//        } else {
-//            auto nFork = linker.delay / linker.sinkRate;
-//            auto *fork = Spider::API::createFork(srdag_, "fork-" + init->name(), nFork, 0, StackID::TRANSFO);
-//            Spider::API::createEdge(srdag_, init, 0, linker.delay,
-//                                    fork, 0, linker.delay, StackID::TRANSFO);
-//            auto remainderFork = linker.delay;
-//            std::uint32_t forkPortIx = 0;
-//            while (remainderFork > linker.sinkRate) {
-//                Spider::API::createEdge(srdag_, fork, forkPortIx, linker.sinkRate,
-//                                        linker.sink, linker.sinkPortIx, linker.sinkRate, StackID::TRANSFO);
-//                forkPortIx += 1;
-//                remainderFork -= linker.sinkRate;
-//            }
-//            Spider::API::createEdge(srdag_, fork, nFork - 1, linker.delay,
-//                                    joinArray[0], 0, linker.delay, StackID::TRANSFO);
-//            joinPortIx = 1;
-//        }
-//    }
-
     std::uint32_t joinIx = 0;
     for (auto *src : sourceArray) {
         auto lowerDep = (linker.sourceCount * linker.sourceRate + linker.delay) / linker.sinkRate;
         auto upperDep = ((linker.sourceCount + 1) * linker.sourceRate + linker.delay - 1) / linker.sinkRate;
-        if (lowerDep >= linker.sink->repetitionValue()) {
-            break;
-        }
         auto *join = joinArray[joinIx];
         if (lowerDep == upperDep) {
             Spider::API::createEdge(srdag_, src, linker.sourcePortIx, linker.sourceRate,
@@ -268,17 +243,6 @@ void SRDAGTransformer::joinPatternLinkage(SRDAGTransformer::SRLinker &linker) {
         }
         linker.sourceCount += 1;
     }
-
-//    if (linker.delay) {
-//        auto *end = Spider::API::createEnd(srdag_, "end-" + linker.source->name(), 0, StackID::TRANSFO);
-//        Spider::API::createEdge(srdag_, joinArray[joinArray.size() - 1], 0, linker.delay,
-//                                end, 0, linker.delay, StackID::TRANSFO);
-//
-//        for (std::uint32_t i = linker.sourceCount; i < linker.source->repetitionValue(); ++i) {
-//            Spider::API::createEdge(srdag_, joinArray[joinArray.size() - 1], 0, linker.delay,
-//                                    end, 0, linker.delay, StackID::TRANSFO);
-//        }
-//    }
 }
 
 void SRDAGTransformer::forkPatternLinkage(SRDAGTransformer::SRLinker &linker) {
@@ -321,7 +285,67 @@ void SRDAGTransformer::forkPatternLinkage(SRDAGTransformer::SRLinker &linker) {
     }
 }
 
-void SRDAGTransformer::forwardLinkageDelayed(SRDAGTransformer::SRLinker &linker) {
+void SRDAGTransformer::delayLinkage(SRDAGTransformer::SRLinker &linker) {
+    auto &sourceArray = *(linker.sourceArray);
+    auto &sinkArray = *(linker.sinkArray);
+    if (linker.delay >= linker.sinkRate * linker.sink->repetitionValue()) {
+        /* == Delay linkage == */
+        fullyPipelinedLinkage(linker);
+    } else if (linker.sourceRate < linker.sinkRate) {
+        auto *init = Spider::API::createInit(srdag_, "init-" + linker.sink->name(), 0, StackID::TRANSFO);
+        if (linker.delay == linker.sinkRate) {
+            Spider::API::createEdge(srdag_, init, 0, linker.delay,
+                                    sinkArray[0], linker.sinkPortIx, linker.delay, StackID::TRANSFO);
+            linker.sinkCount += 1;
+            auto nProducer = Spider::Math::ceilDiv(linker.sinkRate, linker.sourceRate);
+            Spider::Array<PiSDFVertex *> joinArray{StackID::TRANSFO, linker.sink->repetitionValue()};
+            for (std::uint32_t i = 1; i < linker.sink->repetitionValue(); ++i) {
+                auto *snk = sinkArray[i];
+                auto *join = Spider::API::createJoin(srdag_, "join-" + snk->name(), nProducer, 0,
+                                                     StackID::TRANSFO);
+                joinArray[i - 1] = join;
+                Spider::API::createEdge(srdag_, join, 0, linker.sinkRate,
+                                        snk, linker.sinkPortIx, linker.sinkRate, StackID::TRANSFO);
+                linker.sinkCount += 1;
+            }
+            auto *end = Spider::API::createEnd(srdag_, "end-" + linker.source->name(), 0, StackID::TRANSFO);
+            joinArray[linker.sinkCount - 1] = Spider::API::createJoin(srdag_,
+                                                                      "join-" + end->name(),
+                                                                      nProducer, 0,
+                                                                      StackID::TRANSFO);
+            Spider::API::createEdge(srdag_, joinArray[linker.sinkCount - 1], 0, linker.delay,
+                                    end, 0, linker.delay, StackID::TRANSFO);
+            std::uint32_t joinPortIx = 0;
+            std::uint32_t joinIx = 0;
+            for (auto *src : sourceArray) {
+                auto lowerDep = (linker.sourceCount * linker.sourceRate + linker.delay) / linker.sinkRate;
+                auto upperDep = ((linker.sourceCount + 1) * linker.sourceRate + linker.delay - 1) / linker.sinkRate;
+                auto *join = joinArray[joinIx];
+                if (lowerDep == upperDep) {
+                    Spider::API::createEdge(srdag_, src, linker.sourcePortIx, linker.sourceRate,
+                                            join, joinPortIx, linker.sourceRate, StackID::TRANSFO);
+                    joinPortIx = (joinPortIx + 1) % join->nEdgesIN();
+                } else {
+                    auto *fork = Spider::API::createFork(srdag_, "fork-" + src->name(), 2, 0, StackID::TRANSFO);
+                    Spider::API::createEdge(srdag_, src, linker.sourcePortIx, linker.sourceRate,
+                                            fork, 0, linker.sourceRate, StackID::TRANSFO);
+                    auto remainderJoinLower = linker.sinkRate - (join->nEdgesIN() - 1) * linker.sourceRate;
+                    auto consumptionJoinUpper = linker.sourceRate - remainderJoinLower;
+                    Spider::API::createEdge(srdag_, fork, 0, remainderJoinLower,
+                                            join, join->nEdgesIN() - 1, remainderJoinLower,
+                                            StackID::TRANSFO);
+                    Spider::API::createEdge(srdag_, fork, 1, consumptionJoinUpper,
+                                            joinArray[joinIx + 1], 0, consumptionJoinUpper, StackID::TRANSFO);
+                    joinIx += 1;
+                    joinPortIx = 1;
+                }
+                linker.sourceCount += 1;
+            }
+        }
+    }
+}
+
+void SRDAGTransformer::fullyPipelinedLinkage(SRDAGTransformer::SRLinker &linker) {
     auto &sourceArray = *(linker.sourceArray);
     auto &sinkArray = *(linker.sinkArray);
 
@@ -355,4 +379,8 @@ void SRDAGTransformer::forwardLinkageDelayed(SRDAGTransformer::SRLinker &linker)
     }
     linker.sinkCount = sinkArray.size();
     linker.sourceCount = sourceArray.size();
+}
+
+void SRDAGTransformer::delayedJoinPatternLinkage(SRDAGTransformer::SRLinker &linker) {
+
 }
