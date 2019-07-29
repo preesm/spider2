@@ -88,6 +88,7 @@ private:
         std::uint32_t sinkCount = 0;
         std::uint32_t sinkPortIx = 0;
         std::uint32_t sourcePortIx = 0;
+        PiSDFVertex *init = nullptr;
         Spider::Array<PiSDFVertex *> *sourceArray = nullptr;
         Spider::Array<PiSDFVertex *> *sinkArray = nullptr;
 
@@ -128,7 +129,35 @@ private:
 
     void fullyPipelinedLinkage(SRLinker &linker);
 
+    void delayInitLinkage(SRLinker &linker);
+
+    void delayEndLinkage(SRLinker &linker);
+
     void delayedJoinPatternLinkage(SRLinker &linker);
+
+    void delayedForkPatternLinkage(SRLinker &linker);
+
+    static inline std::int64_t computeConsLowerDep(std::int64_t sinkRate,
+                                                   std::int64_t sourceRate,
+                                                   std::uint32_t instance,
+                                                   std::int64_t delay);
+
+    static inline std::int64_t computeConsUpperDep(std::int64_t sinkRate,
+                                                   std::int64_t sourceRate,
+                                                   std::uint32_t instance,
+                                                   std::int64_t delay);
+
+    static inline std::int64_t computeProdLowerDep(std::int64_t sinkRate,
+                                                   std::int64_t sourceRate,
+                                                   std::uint32_t instance,
+                                                   std::int64_t delay,
+                                                   std::int64_t sinkRepetitionValue);
+
+    static inline std::int64_t computeProdUpperDep(std::int64_t sinkRate,
+                                                   std::int64_t sourceRate,
+                                                   std::uint32_t instance,
+                                                   std::int64_t delay,
+                                                   std::int64_t sinkRepetitionValue);
 };
 
 /* === Inline method(s) === */
@@ -136,6 +165,48 @@ private:
 const PiSDFGraph *SRDAGTransformer::srdag() const {
     return srdag_;
 }
+
+std::int64_t SRDAGTransformer::computeConsLowerDep(std::int64_t sinkRate,
+                                                   std::int64_t sourceRate,
+                                                   std::uint32_t instance,
+                                                   std::int64_t delay) {
+    auto consumed = instance * sinkRate - delay;
+    auto lowerDep = consumed / sourceRate;
+    constexpr std::int64_t initBound = -1;
+    return std::max(initBound, lowerDep);
+}
+
+std::int64_t SRDAGTransformer::computeConsUpperDep(std::int64_t sinkRate,
+                                                   std::int64_t sourceRate,
+                                                   std::uint32_t instance,
+                                                   std::int64_t delay) {
+    auto consumed = (instance + 1) * sinkRate - delay - 1;
+    auto lowerDep = consumed / sourceRate;
+    constexpr std::int64_t initBound = -1;
+    return std::max(initBound, lowerDep);
+}
+
+std::int64_t SRDAGTransformer::computeProdLowerDep(std::int64_t sinkRate,
+                                                   std::int64_t sourceRate,
+                                                   std::uint32_t instance,
+                                                   std::int64_t delay,
+                                                   std::int64_t sinkRepetitionValue) {
+    auto produced = instance * sourceRate + delay;
+    auto lowerDep = produced / sinkRate;
+    return std::min(sinkRepetitionValue, lowerDep);
+}
+
+std::int64_t SRDAGTransformer::computeProdUpperDep(std::int64_t sinkRate,
+                                                   std::int64_t sourceRate,
+                                                   std::uint32_t instance,
+                                                   std::int64_t delay,
+                                                   std::int64_t sinkRepetitionValue) {
+    auto produced = (instance + 1) * sourceRate + delay - 1;
+    auto lowerDep = produced / sinkRate;
+    return std::min(sinkRepetitionValue, lowerDep);
+}
+
+
 
 
 #endif //SPIDER2_SRDAGTRANSFORMER_H
