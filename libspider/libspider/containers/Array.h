@@ -114,6 +114,10 @@ namespace Spider {
          */
         inline const T *data() const;
 
+        inline T &at(std::uint64_t ix);
+
+        inline T &at(std::uint64_t ix) const;
+
     private:
         std::uint64_t size_;
         std::uint64_t arraySize_;
@@ -144,6 +148,16 @@ namespace Spider {
 
     template<typename T>
     T &Array<T>::operator[](std::uint64_t ix) {
+        return array_[ix];
+    }
+
+    template<typename T>
+    T &Array<T>::operator[](std::uint64_t ix) const {
+        return array_[ix];
+    }
+
+    template<typename T>
+    T &Array<T>::at(std::uint64_t ix) {
         if (ix >= size_) {
             throwSpiderException("Index out of bound. Ix = %"
                                          PRIu32
@@ -155,7 +169,7 @@ namespace Spider {
     }
 
     template<typename T>
-    T &Array<T>::operator[](std::uint64_t ix) const {
+    T &Array<T>::at(std::uint64_t ix) const {
         if (ix >= size_) {
             throwSpiderException("Index out of bound. Ix = %"
                                          PRIu32
