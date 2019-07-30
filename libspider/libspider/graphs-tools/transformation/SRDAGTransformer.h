@@ -116,10 +116,6 @@ private:
 
     void extractAndLinkActors(const PiSDFGraph *graph);
 
-    void nodelayLinkage(SRLinker &linker);
-
-    void forwardLinkage(SRLinker &linker);
-
     void joinPatternLinkage(SRLinker &linker);
 
     void forkPatternLinkage(SRLinker &linker);
