@@ -88,7 +88,6 @@ private:
         std::uint32_t sinkCount = 0;
         std::uint32_t sinkPortIx = 0;
         std::uint32_t sourcePortIx = 0;
-        PiSDFVertex *init = nullptr;
         Spider::Array<PiSDFVertex *> *sourceArray = nullptr;
         Spider::Array<PiSDFVertex *> *sinkArray = nullptr;
 
@@ -129,13 +128,7 @@ private:
 
     void fullyPipelinedLinkage(SRLinker &linker);
 
-    void delayInitLinkage(SRLinker &linker);
-
-    void delayEndLinkage(SRLinker &linker);
-
-    void delayedJoinPatternLinkage(SRLinker &linker);
-
-    void delayedForkPatternLinkage(SRLinker &linker);
+    void delayEndLinkage(SRDAGTransformer::SRLinker &linker);
 
     static inline std::int64_t computeConsLowerDep(std::int64_t sinkRate,
                                                    std::int64_t sourceRate,
@@ -205,8 +198,4 @@ std::int64_t SRDAGTransformer::computeProdUpperDep(std::int64_t sinkRate,
     auto lowerDep = produced / sinkRate;
     return std::min(sinkRepetitionValue, lowerDep);
 }
-
-
-
-
 #endif //SPIDER2_SRDAGTRANSFORMER_H
