@@ -171,7 +171,7 @@ std::int64_t SRDAGTransformer::computeConsLowerDep(std::int64_t sinkRate,
                                                    std::uint32_t instance,
                                                    std::int64_t delay) {
     auto consumed = instance * sinkRate - delay;
-    auto lowerDep = consumed / sourceRate;
+    auto lowerDep = Spider::Math::floorDiv(consumed, sourceRate);
     constexpr std::int64_t initBound = -1;
     return std::max(initBound, lowerDep);
 }
@@ -181,7 +181,7 @@ std::int64_t SRDAGTransformer::computeConsUpperDep(std::int64_t sinkRate,
                                                    std::uint32_t instance,
                                                    std::int64_t delay) {
     auto consumed = (instance + 1) * sinkRate - delay - 1;
-    auto lowerDep = consumed / sourceRate;
+    auto lowerDep = Spider::Math::floorDiv(consumed, sourceRate);
     constexpr std::int64_t initBound = -1;
     return std::max(initBound, lowerDep);
 }
