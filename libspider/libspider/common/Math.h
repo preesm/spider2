@@ -64,19 +64,31 @@ namespace Spider {
         }
 
         inline std::int32_t ceilDiv(const std::int32_t &x, const std::int32_t &y) {
-            if (x < 0 && y < 0) {
-                return ceilDiv(static_cast<std::uint32_t>(-x), static_cast<std::uint32_t>(-y));
-            } else if (x < 0 || y < 0) {
-                return x / y;
-            }
-            return x / y + (x % y != 0);
+            auto neg = (x < 0 && y > 0) || (x > 0 && y < 0);
+            std::uint64_t a = x < 0 ? (-x) : x;
+            std::uint64_t b = y < 0 ? (-y) : y;
+            return neg ? -(a / b) : ceilDiv(a, b);
         }
 
         inline std::int64_t ceilDiv(const std::int64_t &x, const std::int64_t &y) {
-            if (x < 0 && y < 0) {
-                return ceilDiv(static_cast<std::uint64_t>(-x), static_cast<std::uint64_t>(-y));
-            }
-            return x / y;
+            auto neg = (x < 0 && y > 0) || (x > 0 && y < 0);
+            std::uint64_t a = x < 0 ? (-x) : x;
+            std::uint64_t b = y < 0 ? (-y) : y;
+            return neg ? -(a / b) : ceilDiv(a, b);
+        }
+
+        inline std::int64_t floorDiv(const std::int64_t &x, const std::int64_t &y) {
+            auto neg = (x < 0 && y > 0) || (x > 0 && y < 0);
+            std::uint64_t a = x < 0 ? (-x) : x;
+            std::uint64_t b = y < 0 ? (-y) : y;
+            return neg ? -ceilDiv(a, b) :  a / b;
+        }
+
+        inline std::int32_t floorDiv(const std::int32_t &x, const std::int32_t &y) {
+            auto neg = (x < 0 && y > 0) || (x > 0 && y < 0);
+            std::uint32_t a = x < 0 ? (-x) : x;
+            std::uint32_t b = y < 0 ? (-y) : y;
+            return neg ? -ceilDiv(a, b) :  a / b;
         }
 
         inline std::int16_t abs(const std::int16_t &x) {
