@@ -215,6 +215,8 @@ namespace Spider {
                                 bool persistent = true,
                                 PiSDFVertex *setter = nullptr,
                                 PiSDFVertex *getter = nullptr,
+                                std::uint32_t setterPortIx = 0,
+                                std::uint32_t getterPortIx = 0,
                                 StackID stack = StackID::PISDF);
 
         PiSDFDelay *createDelay(PiSDFEdge *edge,
@@ -222,6 +224,8 @@ namespace Spider {
                                 bool persistent = true,
                                 PiSDFVertex *setter = nullptr,
                                 PiSDFVertex *getter = nullptr,
+                                std::uint32_t setterPortIx = 0,
+                                std::uint32_t getterPortIx = 0,
                                 StackID stack = StackID::PISDF);
     }
 }

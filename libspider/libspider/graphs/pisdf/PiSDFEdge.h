@@ -134,7 +134,7 @@ public:
 
     /**
      * @brief Build and return a name of the edge.
-     * @return Name of the edge in format "source -> sink"
+     * @return Name of the edge in format "#source -> #sink"
      */
     std::string name() const;
 

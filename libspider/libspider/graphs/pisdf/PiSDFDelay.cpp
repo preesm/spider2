@@ -41,7 +41,9 @@
 /* === Include(s) === */
 
 #include "PiSDFDelay.h"
+#include <graphs/pisdf/PiSDFVertex.h>
 #include <graphs/pisdf/PiSDFEdge.h>
+#include <spider-api/pisdf.h>
 
 /* === Static variable(s) === */
 
@@ -53,22 +55,86 @@ PiSDFDelay::PiSDFDelay(PiSDFEdge *edge,
                        const std::string &expression,
                        bool persistent,
                        PiSDFVertex *setter,
-                       PiSDFVertex *getter) : edge_{edge},
-                                              setter_{setter},
-                                              getter_{getter},
-                                              expression_{edge->containingGraph(), expression},
-                                              persistent_{persistent} {
+                       PiSDFVertex *getter,
+                       std::uint32_t setterPortIx,
+                       std::uint32_t getterPortIx) : edge_{edge},
+                                                     setter_{setter},
+                                                     getter_{getter},
+                                                     setterPortIx_{setterPortIx},
+                                                     getterPortIx_{getterPortIx},
+                                                     expression_{edge->containingGraph(), expression},
+                                                     persistent_{persistent} {
     edge->setDelay(this);
+
+    /* == Check the persistent property == */
+    checkPersistence();
+
+    /* == If delay has setter / getter, creates the virtual actor == */
+    createVirtualVertex();
 }
 
 PiSDFDelay::PiSDFDelay(PiSDFEdge *edge,
                        std::int64_t value,
                        bool persistent,
                        PiSDFVertex *setter,
-                       PiSDFVertex *getter) : edge_{edge},
-                                              setter_{setter},
-                                              getter_{getter},
-                                              expression_{value},
-                                              persistent_{persistent} {
+                       PiSDFVertex *getter,
+                       std::uint32_t setterPortIx,
+                       std::uint32_t getterPortIx) : edge_{edge},
+                                                     setter_{setter},
+                                                     getter_{getter},
+                                                     setterPortIx_{setterPortIx},
+                                                     getterPortIx_{getterPortIx},
+                                                     expression_{value},
+                                                     persistent_{persistent} {
     edge->setDelay(this);
+
+    /* == Check the persistent property == */
+    checkPersistence();
+
+    /* == If delay has setter / getter, creates the virtual actor == */
+    createVirtualVertex();
+}
+
+/* === Pritvate method(s) === */
+
+void PiSDFDelay::checkPersistence() const {
+    if (persistent_ && (setter_ || getter_)) {
+        throwSpiderException("Persistent delay on edge [%s] can not have setter nor getter.", edge_->name().c_str());
+    }
+}
+
+void PiSDFDelay::createVirtualVertex() {
+    if (setter_ || getter_) {
+        /* == Create the virtual delay actor == */
+        virtualVertex_ = Spider::API::createVertex(edge_->containingGraph(),
+                                                   name(),
+                                                   1,
+                                                   1);
+
+        /* == If setter_ is null, replace it with init == */
+        if (!setter_) {
+            setter_ = Spider::API::createInit(edge_->containingGraph(), "init-" + name(), 0);
+            setterPortIx_ = 0;
+        }
+
+        /* == If getter_ is null, replace it with end == */
+        if (!getter_) {
+            getter_ = Spider::API::createEnd(edge_->containingGraph(), "end-" + name(), 0);
+            getterPortIx_ = 0;
+        }
+
+        /* == Connect setter to the virtual delay actor == */
+        Spider::API::createEdge(edge_->containingGraph(),
+                                setter_, setterPortIx_, expression_.toString(),
+                                virtualVertex_, 0, expression_.toString());
+
+        /* == Connect virtual delay actor to getter == */
+        Spider::API::createEdge(edge_->containingGraph(),
+                                virtualVertex_, 0, expression_.toString(),
+                                getter_, getterPortIx_, expression_.toString());
+    }
+}
+
+std::string PiSDFDelay::name() const {
+    return "delay-" + edge_->source()->name() + "--" + edge_->sink()->name();
 }

@@ -62,13 +62,19 @@ public:
                const std::string &expression,
                bool persistent = true,
                PiSDFVertex *setter = nullptr,
-               PiSDFVertex *getter = nullptr);
+               PiSDFVertex *getter = nullptr,
+               std::uint32_t setterPortIx = 0,
+               std::uint32_t getterPortIx = 0);
 
     PiSDFDelay(PiSDFEdge *edge,
                std::int64_t value,
                bool persistent = true,
                PiSDFVertex *setter = nullptr,
-               PiSDFVertex *getter = nullptr);
+               PiSDFVertex *getter = nullptr,
+               std::uint32_t setterPortIx = 0,
+               std::uint32_t getterPortIx = 0);
+
+    ~PiSDFDelay() = default;
 
     /* === Method(s) === */
 
@@ -79,6 +85,12 @@ public:
      * order of call.
      */
     inline std::int64_t value() const;
+
+    /**
+     * @brief Build and return a name for the delay.
+     * @return Name of the delay in format "delay-#source--#sink"
+     */
+    inline std::string name() const;
 
     /* === Getter(s) === */
 
@@ -95,6 +107,18 @@ public:
     inline const PiSDFVertex *setter() const;
 
     /**
+     * @brief Return the port ix on which the delay is connected to the setter.
+     * @return setter output port ix.
+     */
+    inline std::uint32_t setterPortIx() const;
+
+    /**
+     * @brief Return the port ix on which the delay is connected to the getter.
+     * @return getter output port ix.
+     */
+    inline std::uint32_t getterPortIx() const;
+
+    /**
      * @brief Get the getter vertex of the delay.
      * @return @refitem PiSDFVertex connected to the delay.
      */
@@ -105,6 +129,12 @@ public:
      * @return virtual memory address value.
      */
     inline std::uint64_t memoryAddress() const;
+
+    /**
+     * @brief Get the virtual actor associated with the vertex.
+     * @return @refitem PiSDFVertex pointer if delay has setter / getter, nullptr else.
+     */
+    inline PiSDFVertex *virtualVertex() const;
 
     /* === Setter(s) === */
 
@@ -119,11 +149,19 @@ private:
     PiSDFEdge *edge_ = nullptr;
     PiSDFVertex *setter_ = nullptr;
     PiSDFVertex *getter_ = nullptr;
+    std::uint32_t setterPortIx_ = 0;
+    std::uint32_t getterPortIx_ = 0;
+    PiSDFVertex *virtualVertex_ = nullptr;
+
     Expression expression_;
     bool persistent_ = true;
     std::uint64_t memoryAddress_ = UINT64_MAX;
 
     /* === Private method(s) === */
+
+    void checkPersistence() const;
+
+    void createVirtualVertex();
 };
 
 /* === Inline method(s) === */
@@ -155,5 +193,16 @@ void PiSDFDelay::setMemoryAddress(std::uint64_t address) {
     memoryAddress_ = address;
 }
 
+std::uint32_t PiSDFDelay::setterPortIx() const {
+    return setterPortIx_;
+}
+
+std::uint32_t PiSDFDelay::getterPortIx() const {
+    return getterPortIx_;
+}
+
+PiSDFVertex *PiSDFDelay::virtualVertex() const {
+    return virtualVertex_;
+}
 
 #endif //SPIDER2_PISDFDELAY_H

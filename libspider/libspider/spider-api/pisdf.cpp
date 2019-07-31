@@ -367,9 +367,11 @@ PiSDFDelay *Spider::API::createDelay(PiSDFEdge *edge,
                                      bool persistent,
                                      PiSDFVertex *setter,
                                      PiSDFVertex *getter,
+                                     std::uint32_t setterPortIx,
+                                     std::uint32_t getterPortIx,
                                      StackID stack) {
     auto *delay = Spider::allocate<PiSDFDelay>(stack);
-    Spider::construct(delay, edge, delayExpression, persistent, setter, getter);
+    Spider::construct(delay, edge, delayExpression, persistent, setter, getter, setterPortIx, getterPortIx);
     return delay;
 }
 
@@ -378,9 +380,11 @@ PiSDFDelay *Spider::API::createDelay(PiSDFEdge *edge,
                                      bool persistent,
                                      PiSDFVertex *setter,
                                      PiSDFVertex *getter,
+                                     std::uint32_t setterPortIx,
+                                     std::uint32_t getterPortIx,
                                      StackID stack) {
     auto *delay = Spider::allocate<PiSDFDelay>(stack);
-    Spider::construct(delay, edge, delayValue, persistent, setter, getter);
+    Spider::construct(delay, edge, delayValue, persistent, setter, getter, setterPortIx, getterPortIx);
     return delay;
 }
 
