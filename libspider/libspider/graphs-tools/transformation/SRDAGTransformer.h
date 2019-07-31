@@ -130,9 +130,13 @@ private:
 
     void singleRateLinkage(EdgeLinker &edgeLinker);
 
-    void buildSourceLinkArray(EdgeLinker &linker, Spider::Array<PiSDFVertex *> &sourceLinkArray);
+    void buildSourceLinkArray(EdgeLinker &edgeLinker, Spider::Array<PiSDFVertex *> &sourceLinkArray);
 
-    void buildSinkLinkArray(EdgeLinker &linker, Spider::Array<SinkLinker> &sinkLinkArray);
+    void buildSinkLinkArray(EdgeLinker &edgeLinker, Spider::Array<SinkLinker> &sinkLinkArray);
+
+    void reconnectSetter(const PiSDFEdge *edge, PiSDFVertex *delayVertex, PiSDFVertex *sink);
+
+    void reconnectGetter(const PiSDFEdge *edge, PiSDFVertex *delayVertex, PiSDFVertex *source);
 
     static inline std::int64_t computeConsLowerDep(std::int64_t sinkRate,
                                                    std::int64_t sourceRate,
@@ -202,7 +206,6 @@ std::int64_t SRDAGTransformer::computeProdUpperDep(std::int64_t sinkRate,
     auto lowerDep = produced / sinkRate;
     return std::min(sinkRepetitionValue, lowerDep);
 }
-
 
 
 #endif //SPIDER2_SRDAGTRANSFORMER_H

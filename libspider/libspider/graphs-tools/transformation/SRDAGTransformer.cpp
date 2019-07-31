@@ -167,6 +167,26 @@ void SRDAGTransformer::extractAndLinkActors(const PiSDFGraph *graph) {
         }
     }
 
+    /* == Connect setter / getter if any == */
+    for (const auto *edge : graph->edges()) {
+        if (edge->delay()) {
+            /* == Retrieve the virtual vertex (there can be only one) == */
+            auto *delayVertex = vertex2Vertex[edge->delay()->virtualVertex()->getIx()][0];
+
+            /* == Disconnect / reconnect setter == */
+            auto &sinkArray = vertex2Vertex[edge->sink()->getIx()];
+            reconnectSetter(edge, delayVertex, sinkArray[0]);
+
+            /* == Disconnect / reconnect getter == */
+            auto &sourceArray = vertex2Vertex[edge->source()->getIx()];
+            reconnectGetter(edge, delayVertex, sourceArray[edge->source()->repetitionValue() - 1]);
+
+            /* == Remove the delay vertex == */
+            srdag_->removeVertex(delayVertex);
+        }
+    }
+
+
     /* == Free memory of the arrays == */
     for (auto &array : vertex2Vertex) {
         Spider::destroy(&array);
@@ -188,7 +208,6 @@ void SRDAGTransformer::singleRateLinkage(SRDAGTransformer::EdgeLinker &edgeLinke
     /* == Do the actual linkage == */
     std::uint32_t forkPortIx = 0;
     std::uint64_t forkConsumption = 0;
-//    for (auto &sinkLinker : sinkLinkArray) {
     for (std::uint64_t sinkIx = 0; sinkIx < sinkLinkArray.size(); ++sinkIx) {
         auto &sinkLinker = sinkLinkArray[sinkIx];
         auto *src = sourceLinkArray[sinkLinker.lowerDep + hasDelay];
@@ -272,71 +291,123 @@ void SRDAGTransformer::singleRateLinkage(SRDAGTransformer::EdgeLinker &edgeLinke
     }
 }
 
-void SRDAGTransformer::buildSourceLinkArray(SRDAGTransformer::EdgeLinker &linker,
+void SRDAGTransformer::buildSourceLinkArray(SRDAGTransformer::EdgeLinker &edgeLinker,
                                             Spider::Array<PiSDFVertex *> &sourceLinkArray) {
-    auto &sourceArray = *(linker.sourceArray);
-    auto hasDelay = linker.delay != 0;
+    auto &sourceArray = *(edgeLinker.sourceArray);
+    auto hasDelay = edgeLinker.delay != 0;
 
     /* == If delay, then first sink will be init (or fork-init) == */
-    if (linker.delay) {
-        auto *init = Spider::API::createInit(srdag_, "init-" + linker.sink->name(), 0, StackID::TRANSFO);
-        if (linker.delay > linker.sinkRate) {
-            auto nConsumer = Spider::Math::ceilDiv(linker.delay, linker.sinkRate);
+    if (edgeLinker.delay) {
+        auto *init = Spider::API::createInit(srdag_, "init-" + edgeLinker.sink->name(), 0, StackID::TRANSFO);
+        if (edgeLinker.delay > edgeLinker.sinkRate) {
+            auto nConsumer = Spider::Math::ceilDiv(edgeLinker.delay, edgeLinker.sinkRate);
             auto *fork = Spider::API::createFork(srdag_, "fork-" + init->name(), nConsumer, 0, StackID::TRANSFO);
             sourceLinkArray[0] = fork;
-            Spider::API::createEdge(srdag_, init, 0, linker.delay,
-                                    fork, 0, linker.delay, StackID::TRANSFO);
+            Spider::API::createEdge(srdag_, init, 0, edgeLinker.delay,
+                                    fork, 0, edgeLinker.delay, StackID::TRANSFO);
         } else {
             sourceLinkArray[0] = init;
         }
+
     }
 
     /* == Set the sources or sources-fork == */
     for (auto *src : sourceArray) {
-        auto lowerDep = computeProdLowerDep(linker.sinkRate, linker.sourceRate, linker.sourceCount,
-                                            linker.delay,
-                                            linker.sink->repetitionValue());
-        auto upperDep = computeProdUpperDep(linker.sinkRate, linker.sourceRate, linker.sourceCount,
-                                            linker.delay,
-                                            linker.sink->repetitionValue());
+        auto lowerDep = computeProdLowerDep(edgeLinker.sinkRate, edgeLinker.sourceRate, edgeLinker.sourceCount,
+                                            edgeLinker.delay,
+                                            edgeLinker.sink->repetitionValue());
+        auto upperDep = computeProdUpperDep(edgeLinker.sinkRate, edgeLinker.sourceRate, edgeLinker.sourceCount,
+                                            edgeLinker.delay,
+                                            edgeLinker.sink->repetitionValue());
         if (lowerDep == upperDep) {
-            sourceLinkArray[linker.sourceCount + hasDelay] = src;
+            sourceLinkArray[edgeLinker.sourceCount + hasDelay] = src;
         } else {
             auto nConsumer = (upperDep - lowerDep) + 1;
             auto *fork = Spider::API::createFork(srdag_, "fork-" + src->name(), nConsumer, 0, StackID::TRANSFO);
-            sourceLinkArray[linker.sourceCount + hasDelay] = fork;
-            Spider::API::createEdge(srdag_, src, linker.sourcePortIx, linker.sourceRate,
-                                    fork, 0, linker.sourceRate, StackID::TRANSFO);
+            sourceLinkArray[edgeLinker.sourceCount + hasDelay] = fork;
+            Spider::API::createEdge(srdag_, src, edgeLinker.sourcePortIx, edgeLinker.sourceRate,
+                                    fork, 0, edgeLinker.sourceRate, StackID::TRANSFO);
         }
-        linker.sourceCount += 1;
+        edgeLinker.sourceCount += 1;
     }
 }
 
-void SRDAGTransformer::buildSinkLinkArray(SRDAGTransformer::EdgeLinker &linker,
+void SRDAGTransformer::buildSinkLinkArray(SRDAGTransformer::EdgeLinker &edgeLinker,
                                           Spider::Array<SinkLinker> &sinkLinkArray) {
-    auto &sinkArray = *(linker.sinkArray);
+    auto &sinkArray = *(edgeLinker.sinkArray);
 
     /* == Create the end vertex if needed and put it at the end == */
-    if (linker.delay) {
-        auto *end = Spider::API::createEnd(srdag_, "end-" + linker.source->name(), 0, StackID::TRANSFO);
+    if (edgeLinker.delay) {
+        auto *end = Spider::API::createEnd(srdag_, "end-" + edgeLinker.source->name(), 0, StackID::TRANSFO);
         auto &lastSinkLinker = sinkLinkArray[sinkLinkArray.size() - 1];
         lastSinkLinker.vertex = end;
-        lastSinkLinker.sinkRate = linker.delay;
+        lastSinkLinker.sinkRate = edgeLinker.delay;
         lastSinkLinker.sinkPortIx = 0;
-        lastSinkLinker.lowerDep = computeConsLowerDep(linker.sinkRate, linker.sourceRate,
-                                                      linker.sink->repetitionValue(), linker.delay);
-        lastSinkLinker.upperDep = linker.source->repetitionValue() - 1;
+        lastSinkLinker.lowerDep = computeConsLowerDep(edgeLinker.sinkRate, edgeLinker.sourceRate,
+                                                      edgeLinker.sink->repetitionValue(), edgeLinker.delay);
+        lastSinkLinker.upperDep = edgeLinker.source->repetitionValue() - 1;
     }
 
     /* == Add the sinks == */
     for (auto *snk : sinkArray) {
-        auto &sinkLinker = sinkLinkArray[linker.sinkCount];
+        auto &sinkLinker = sinkLinkArray[edgeLinker.sinkCount];
         sinkLinker.vertex = snk;
-        sinkLinker.sinkRate = linker.sinkRate;
-        sinkLinker.sinkPortIx = linker.sinkPortIx;
-        sinkLinker.lowerDep = computeConsLowerDep(linker.sinkRate, linker.sourceRate, linker.sinkCount, linker.delay);
-        sinkLinker.upperDep = computeConsUpperDep(linker.sinkRate, linker.sourceRate, linker.sinkCount, linker.delay);
-        linker.sinkCount += 1;
+        sinkLinker.sinkRate = edgeLinker.sinkRate;
+        sinkLinker.sinkPortIx = edgeLinker.sinkPortIx;
+        sinkLinker.lowerDep = computeConsLowerDep(edgeLinker.sinkRate, edgeLinker.sourceRate, edgeLinker.sinkCount,
+                                                  edgeLinker.delay);
+        sinkLinker.upperDep = computeConsUpperDep(edgeLinker.sinkRate, edgeLinker.sourceRate, edgeLinker.sinkCount,
+                                                  edgeLinker.delay);
+        edgeLinker.sinkCount += 1;
     }
+}
+
+void SRDAGTransformer::reconnectSetter(const PiSDFEdge *edge, PiSDFVertex *delayVertex, PiSDFVertex *sink) {
+    auto *setterEdge = delayVertex->inputEdge(0);
+    setterEdge->disconnectSink();
+    auto *inputEdge = sink->inputEdge(edge->sinkPortIx());
+    auto *firstSrc2Sink = inputEdge->source();
+    PiSDFVertex *init = nullptr;
+    if (firstSrc2Sink->type() == PiSDFVertexType::INIT) {
+        inputEdge->disconnectSink();
+        setterEdge->connectSink(sink, edge->sinkPortIx(), edge->delayValue());
+    } else if (firstSrc2Sink->type() == PiSDFVertexType::FORK ||
+               firstSrc2Sink->type() == PiSDFVertexType::JOIN) {
+        inputEdge = firstSrc2Sink->inputEdge(0);
+        inputEdge->disconnectSink();
+        setterEdge->connectSink(firstSrc2Sink, 0, edge->delayValue());
+    }
+
+    /* == Remove the edge and the init vertex == */
+    init = inputEdge->source();
+    inputEdge->disconnectSource();
+    srdag_->removeEdge(inputEdge);
+    srdag_->removeVertex(init);
+}
+
+void SRDAGTransformer::reconnectGetter(const PiSDFEdge *edge, PiSDFVertex *delayVertex, PiSDFVertex *source) {
+    auto *getterEdge = delayVertex->outputEdge(0);
+    getterEdge->disconnectSource();
+    auto *outputEdge = source->outputEdge(edge->sourcePortIx());
+    auto *lastSnk2Source = outputEdge->sink();
+    PiSDFVertex *end = nullptr;
+    if (lastSnk2Source->type() == PiSDFVertexType::END) {
+        outputEdge->disconnectSource();
+        getterEdge->connectSource(source, edge->sourcePortIx(), edge->delayValue());
+    } else if (lastSnk2Source->type() == PiSDFVertexType::FORK) {
+        outputEdge = lastSnk2Source->outputEdge(lastSnk2Source->nEdgesOUT() - 1);
+        outputEdge->disconnectSource();
+        getterEdge->connectSource(lastSnk2Source, lastSnk2Source->nEdgesOUT() - 1, edge->delayValue());
+    } else if (lastSnk2Source->type() == PiSDFVertexType::JOIN) {
+        outputEdge = lastSnk2Source->outputEdge(0);
+        outputEdge->disconnectSource();
+        getterEdge->connectSource(lastSnk2Source, 0, edge->delayValue());
+    }
+
+    /* == Remove the output edge and the end vertex == */
+    end = outputEdge->sink();
+    outputEdge->disconnectSink();
+    srdag_->removeEdge(outputEdge);
+    srdag_->removeVertex(end);
 }
 
