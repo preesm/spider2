@@ -77,8 +77,9 @@ private:
     const PiSDFGraph *piSdfGraph_ = nullptr;
     bool stoppedFromConfig_ = false;
 
-    /* === Private struct === */
-    struct SRLinker {
+    /* === Private structure(s) === */
+
+    struct EdgeLinker {
         PiSDFVertex *source = nullptr;
         PiSDFVertex *sink = nullptr;
         std::uint64_t sourceRate = 0;
@@ -91,22 +92,33 @@ private:
         Spider::Array<PiSDFVertex *> *sourceArray = nullptr;
         Spider::Array<PiSDFVertex *> *sinkArray = nullptr;
 
-        SRLinker(const PiSDFEdge *edge,
-                 Spider::Array<Spider::Array<PiSDFVertex *>> &vertex2Vertex) : source{edge->source()},
-                                                                               sink{edge->sink()} {
+        EdgeLinker(const PiSDFEdge *edge,
+                   Spider::Array<Spider::Array<PiSDFVertex *>> &vertex2Vertex) : source{edge->source()},
+                                                                                 sink{edge->sink()} {
             sourceRate = edge->sourceRate();
             sinkRate = edge->sinkRate();
             sourceArray = &vertex2Vertex[edge->source()->getIx()];
             sinkArray = &vertex2Vertex[edge->sink()->getIx()];
-            if (edge->delay()) {
-                delay = edge->delay()->value();
-            }
+            delay = edge->delayValue();
             sourcePortIx = edge->sourcePortIx();
             sinkPortIx = edge->sinkPortIx();
         }
 
-        ~SRLinker() = default;
+        ~EdgeLinker() = default;
     };
+
+    struct SinkLinker {
+        PiSDFVertex *vertex = nullptr;
+        std::uint32_t sinkPortIx = 0;
+        std::uint64_t sinkRate = 0;
+        std::int64_t lowerDep = 0;
+        std::int64_t upperDep = 0;
+
+        SinkLinker() = default;
+
+        ~SinkLinker() = default;
+    };
+
 
     /* === Private method(s) === */
 
@@ -116,15 +128,11 @@ private:
 
     void extractAndLinkActors(const PiSDFGraph *graph);
 
-    void joinPatternLinkage(SRLinker &linker);
+    void singleRateLinkage(EdgeLinker &edgeLinker);
 
-    void forkPatternLinkage(SRLinker &linker);
+    void buildSourceLinkArray(EdgeLinker &linker, Spider::Array<PiSDFVertex *> &sourceLinkArray);
 
-    void delayLinkage(SRLinker &linker);
-
-    void fullyPipelinedLinkage(SRLinker &linker);
-
-    void delayEndLinkage(SRDAGTransformer::SRLinker &linker);
+    void buildSinkLinkArray(EdgeLinker &linker, Spider::Array<SinkLinker> &sinkLinkArray);
 
     static inline std::int64_t computeConsLowerDep(std::int64_t sinkRate,
                                                    std::int64_t sourceRate,
@@ -194,4 +202,7 @@ std::int64_t SRDAGTransformer::computeProdUpperDep(std::int64_t sinkRate,
     auto lowerDep = produced / sinkRate;
     return std::min(sinkRepetitionValue, lowerDep);
 }
+
+
+
 #endif //SPIDER2_SRDAGTRANSFORMER_H
