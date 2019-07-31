@@ -263,6 +263,36 @@ void PiSDFVertex::checkSubtypeConsistency() const {
     }
 }
 
+
+void PiSDFVertex::disconnectInputEdge(std::uint16_t ix) {
+    if (ix >= inputEdgeArray_.size()) {
+        throwSpiderException("Trying to disconnect input edge out of bound: %s[%" PRIu16"].", name_.c_str(), ix);
+    }
+    if (!inputEdgeArray_[ix]) {
+        return;
+    }
+    inputEdgeArray_[ix] = nullptr;
+    if (isHierarchical()) {
+        auto *interface = subgraph_->inputInterfaces()[ix];
+        interface->disconnectInputEdge(0);
+    }
+}
+
+
+void PiSDFVertex::disconnectOutputEdge(std::uint16_t ix) {
+    if (ix >= outputEdgeArray_.size()) {
+        throwSpiderException("Trying to disconnect output edge out of bound: %s[%" PRIu16"].", name_.c_str(), ix);
+    }
+    if (!outputEdgeArray_[ix]) {
+        return;
+    }
+    outputEdgeArray_[ix] = nullptr;
+    if (isHierarchical()) {
+        auto *interface = subgraph_->outputInterfaces()[ix];
+        interface->disconnectOutputEdge(0);
+    }
+}
+
 void PiSDFVertex::setInputEdge(PiSDFEdge *edge, std::uint16_t ix) {
     if (inputEdgeArray_[ix]) {
         throwSpiderException("Already existing input edge at ix: %"

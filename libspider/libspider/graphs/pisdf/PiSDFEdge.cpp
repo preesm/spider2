@@ -74,8 +74,6 @@ PiSDFEdge::PiSDFEdge(PiSDFGraph *graph,
     if (!graph) {
         throwSpiderException("Edge should belong to a graph.");
     }
-    sourcePort_ = Spider::allocate<PiSDFPort>(StackID::PISDF);
-    sinkPort_ = Spider::allocate<PiSDFPort>(StackID::PISDF);
     connectSource(source, srcPortIx, srcRate);
     connectSink(sink, snkPortIx, snkRate);
     graph->addEdge(this);
@@ -125,6 +123,7 @@ void PiSDFEdge::connectSource(PiSDFVertex *vertex, std::uint16_t portIx, std::in
         throwSpiderException("Trying to connect edge source to already connected edge.");
     }
     source_ = vertex;
+    sourcePort_ = Spider::allocate<PiSDFPort>(StackID::PISDF);
     Spider::construct(sourcePort_, prod);
     sourcePort_->connectEdge(this, portIx);
     source_->setOutputEdge(this, portIx);
@@ -135,6 +134,7 @@ void PiSDFEdge::connectSink(PiSDFVertex *vertex, std::uint32_t portIx, std::int6
         throwSpiderException("Trying to connect edge sink to already connected edge.");
     }
     sink_ = vertex;
+    sinkPort_ = Spider::allocate<PiSDFPort>(StackID::PISDF);
     Spider::construct(sinkPort_, cons);
     sinkPort_->connectEdge(this, portIx);
     sink_->setInputEdge(this, portIx);
@@ -181,13 +181,19 @@ std::int64_t PiSDFEdge::sinkRate() const {
 }
 
 void PiSDFEdge::disconnectSource() {
+    source_->disconnectOutputEdge(sourcePort_->ix());
     source_ = nullptr;
     Spider::destroy(sourcePort_);
+    Spider::deallocate(sourcePort_);
+    sourcePort_ = nullptr;
 }
 
 void PiSDFEdge::disconnectSink() {
+    sink_->disconnectInputEdge(sinkPort_->ix());
     sink_ = nullptr;
     Spider::destroy(sinkPort_);
+    Spider::deallocate(sinkPort_);
+    sinkPort_ = nullptr;
 }
 
 std::string PiSDFEdge::name() const {

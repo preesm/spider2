@@ -96,6 +96,20 @@ public:
      */
     inline bool isHierarchical() const;
 
+    /**
+     * @brief Disconnect input edge on port ix. If no edge is connected, nothing happens
+     * @param ix  Index of the input edge to disconnect.
+     * @throws @refitem SpiderException if index out of bound.
+     */
+    void disconnectInputEdge(std::uint16_t ix);
+
+    /**
+     * @brief Disconnect output edge on port ix. If no edge is connected, nothing happens
+     * @param ix  Index of the output edge to disconnect.
+     * @throws @refitem SpiderException if index out of bound.
+     */
+    void disconnectOutputEdge(std::uint16_t ix);
+
     /* === Setter(s) === */
 
     /**
