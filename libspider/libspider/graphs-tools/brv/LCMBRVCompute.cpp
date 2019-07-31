@@ -44,6 +44,7 @@
 #include <graphs/pisdf/PiSDFGraph.h>
 #include <graphs/pisdf/PiSDFVertex.h>
 #include <graphs/pisdf/PiSDFEdge.h>
+#include <graphs/pisdf/PiSDFDelay.h>
 #include <cstdint>
 
 /* === Static variable(s) === */
@@ -148,6 +149,16 @@ void LCMBRVCompute::checkValidity(Spider::Array<const PiSDFEdge *> &edgeArray) c
         auto sinkRate = edge->sinkRate();
         const auto *source = edge->source();
         const auto *sink = edge->sink();
+
+        if (edge->delay() && edge->delay()->setter()) {
+            auto *vertex = edge->delay()->virtualVertex();
+            if (vertex->repetitionValue() != 1) {
+                throwSpiderException("Delay [%s] has repetition vector value of %"
+                                             PRIu32
+                                             " instead of 1.", edge->delay()->name().c_str(),
+                                     vertex->repetitionValue());
+            }
+        }
 
         if ((sourceRate * source->repetitionValue()) != (sinkRate * sink->repetitionValue())) {
             throwSpiderException("Edge [%s] -> [%s]. prod(%"
