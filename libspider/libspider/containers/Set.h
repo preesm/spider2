@@ -91,9 +91,9 @@ namespace Spider {
 
         /* === Operators === */
 
-        inline T &operator[](std::uint64_t ix);
+        inline virtual T &operator[](std::uint64_t ix);
 
-        inline T &operator[](std::uint64_t ix) const;
+        inline virtual T &operator[](std::uint64_t ix) const;
 
         /* === Methods === */
 
@@ -285,32 +285,6 @@ namespace Spider {
     const T *Set<T, Spider::EnableIfPolicy<T>>::data() const {
         return elements_.data();
     }
-
-
-    /* === Using generic element set === */
-
-    template<class T>
-    struct GenericSetElement : public Spider::SetElement {
-    private:
-        T elt;
-    public:
-        explicit GenericSetElement(const T &elt) : elt{elt} { };
-
-        GenericSetElement(GenericSetElement const &other) : elt{other.elt} { };
-
-        GenericSetElement(GenericSetElement &&other) noexcept : elt{other.elt} { };
-
-        GenericSetElement(std::initializer_list<T> l) noexcept : elt{*(l.begin())} { };
-
-        GenericSetElement &operator=(GenericSetElement const &other) {
-            elt = other.elt;
-            setIx(other.getIx());
-            return *this;
-        }
-    };
-
-    template<class T>
-    using GenericSet = Spider::Set<GenericSetElement<T>>;
 }
 
 #endif //SPIDER2_SET_H
