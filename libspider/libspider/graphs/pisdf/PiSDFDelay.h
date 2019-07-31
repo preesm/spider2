@@ -159,8 +159,6 @@ private:
 
     /* === Private method(s) === */
 
-    void checkPersistence() const;
-
     void createVirtualVertex();
 };
 

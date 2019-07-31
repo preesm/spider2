@@ -310,6 +310,8 @@ PiSDFParam *Spider::API::createInheritedParam(PiSDFGraph *graph,
     return param;
 }
 
+/* === Edge API === */
+
 PiSDFEdge *Spider::API::createEdge(PiSDFGraph *graph,
                                    PiSDFVertex *source,
                                    std::uint16_t srcPortIx,
@@ -386,6 +388,32 @@ PiSDFDelay *Spider::API::createDelay(PiSDFEdge *edge,
     auto *delay = Spider::allocate<PiSDFDelay>(stack);
     Spider::construct(delay, edge, delayValue, persistent, setter, getter, setterPortIx, getterPortIx);
     return delay;
+}
+
+PiSDFEdge *Spider::API::connectDelayGetter(PiSDFDelay *delay,
+                                           PiSDFVertex *getter,
+                                           const std::string &rate,
+                                           StackID stack) {
+    return createEdge(delay->edge()->containingGraph(), delay->virtualVertex(), 0, delay->value(),
+                      getter, delay->getterPortIx(), rate, stack);
+}
+
+PiSDFEdge *Spider::API::connectDelayGetter(PiSDFDelay *delay, PiSDFVertex *getter, std::int64_t rate, StackID stack) {
+    return createEdge(delay->edge()->containingGraph(), delay->virtualVertex(), 0, delay->value(),
+                      getter, delay->getterPortIx(), rate, stack);
+}
+
+PiSDFEdge *Spider::API::connectDelaySetter(PiSDFDelay *delay,
+                                           PiSDFVertex *setter,
+                                           const std::string &rate,
+                                           StackID stack) {
+    return createEdge(delay->edge()->containingGraph(), setter, delay->setterPortIx(), rate,
+                      delay->virtualVertex(), 0, delay->value(), stack);
+}
+
+PiSDFEdge *Spider::API::connectDelaySetter(PiSDFDelay *delay, PiSDFVertex *setter, std::int64_t rate, StackID stack) {
+    return createEdge(delay->edge()->containingGraph(), setter, delay->setterPortIx(), rate,
+                      delay->virtualVertex(), 0, delay->value(), stack);
 }
 
 

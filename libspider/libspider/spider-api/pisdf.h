@@ -227,6 +227,26 @@ namespace Spider {
                                 std::uint32_t setterPortIx = 0,
                                 std::uint32_t getterPortIx = 0,
                                 StackID stack = StackID::PISDF);
+
+        PiSDFEdge *connectDelayGetter(PiSDFDelay *delay,
+                                      PiSDFVertex *getter,
+                                      const std::string &rate,
+                                      StackID stack = StackID::PISDF);
+
+        PiSDFEdge *connectDelayGetter(PiSDFDelay *delay,
+                                      PiSDFVertex *getter,
+                                      std::int64_t rate,
+                                      StackID stack = StackID::PISDF);
+
+        PiSDFEdge *connectDelaySetter(PiSDFDelay *delay,
+                                      PiSDFVertex *setter,
+                                      const std::string &rate,
+                                      StackID stack = StackID::PISDF);
+
+        PiSDFEdge *connectDelaySetter(PiSDFDelay *delay,
+                                      PiSDFVertex *setter,
+                                      std::int64_t rate,
+                                      StackID stack = StackID::PISDF);
     }
 }
 
