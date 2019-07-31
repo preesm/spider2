@@ -78,7 +78,7 @@ namespace Spider {
 
     /**
      * @brief Set of fixed size with fast insert remove
-     * @tparam T template type of the Set, the type should be a pointer and the base class should inherit from @refitem SetElement
+     * @tparam T template type of the Set, the type should inherit from @refitem SetElement
      * @warning  An element can only belong to one set.
      */
     template<class T>
@@ -132,7 +132,7 @@ namespace Spider {
 
         /**
          * @brief Current occupied size of Set, necessary less or equal to @refitem size.
-         * @return
+         * @return occupied size.
          */
         inline std::uint64_t occupied() const;
 
@@ -178,11 +178,25 @@ namespace Spider {
         return elements_[ix];
     }
 
+    /**
+     * @brief Run-time (probably optimized by compiler though) version of std::remove_pointer.
+     * @param obj reference to the object
+     * @return reference to the object (itself)
+     */
     template<class T>
-    inline T &remove_pointer(T &obj) { return obj; }
+    inline T &remove_pointer(T &obj) {
+        return obj;
+    }
 
+    /**
+     * @brief Run-time (probably optimized by compiler though) version of std::remove_pointer.
+     * @param obj Pointer to the object
+     * @return reference to the object.
+     */
     template<class T>
-    inline T &remove_pointer(T *obj) { return *obj; }
+    inline T &remove_pointer(T *obj) {
+        return *obj;
+    }
 
     template<class T>
     void Set<T, Spider::EnableIfPolicy<T>>::add(T &elt) {
@@ -203,7 +217,7 @@ namespace Spider {
     void Set<T, Spider::EnableIfPolicy<T>>::remove(T &elt) {
         if (occupied_) {
             /* == Swap the removed element with the last one == */
-            auto &setElement = static_cast<SetElement &>(remove_pointer(elt));
+            auto &setElement = static_cast<SetElement &>(Spider::remove_pointer(elt));
             elements_[setElement.getIx()] = elements_[occupied_ - 1];
             static_cast<SetElement &>(remove_pointer(elements_[setElement.getIx()])).setIx(setElement.getIx());
             setElement.setIx(UINT32_MAX);
