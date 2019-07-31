@@ -341,7 +341,7 @@ private:
 
 void PiSDFGraph::addVertex(PiSDFVertex *vertex) {
     switch (vertex->type()) {
-        case PiSDFVertexType::BROADCAST:
+        case PiSDFVertexType::DUPLICATE:
         case PiSDFVertexType::ROUNDBUFFER:
         case PiSDFVertexType::FORK:
         case PiSDFVertexType::JOIN:

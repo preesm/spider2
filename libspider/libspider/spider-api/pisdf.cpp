@@ -115,7 +115,7 @@ PiSDFVertex *Spider::API::createVertex(PiSDFGraph *graph,
     return vertex;
 }
 
-PiSDFVertex *Spider::API::createBroadcast(PiSDFGraph *graph,
+PiSDFVertex *Spider::API::createDuplicate(PiSDFGraph *graph,
                                           const std::string &name,
                                           std::uint32_t nEdgesOUT,
                                           std::uint32_t nParamsIN,
@@ -125,7 +125,7 @@ PiSDFVertex *Spider::API::createBroadcast(PiSDFGraph *graph,
                       stack,
                       graph,
                       name,
-                      PiSDFVertexType::BROADCAST,
+                      PiSDFVertexType::DUPLICATE,
                       1, /* = Broadcast vertex has only ONE input edge = */
                       nEdgesOUT,
                       nParamsIN,

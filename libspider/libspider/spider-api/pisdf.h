@@ -99,7 +99,7 @@ namespace Spider {
                                   std::uint32_t nParamsIN = 0,
                                   StackID stack = StackID::PISDF);
 
-        PiSDFVertex *createBroadcast(PiSDFGraph *graph,
+        PiSDFVertex *createDuplicate(PiSDFGraph *graph,
                                      const std::string &name,
                                      std::uint32_t nEdgesOUT = 0,
                                      std::uint32_t nParamsIN = 0,

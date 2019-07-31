@@ -61,7 +61,7 @@ enum class PiSDFParamType : std::uint8_t {
  */
 enum class PiSDFVertexType : std::uint8_t {
     NORMAL,         /*! Normal actor subtype */
-    BROADCAST,      /*! Roundbuffer actor subtype */
+    DUPLICATE,      /*! Duplicate actor subtype */
     ROUNDBUFFER,    /*! Roundbuffer actor subtype */
     FORK,           /*! Fork actor subtype */
     JOIN,           /*! Join actor subtype */

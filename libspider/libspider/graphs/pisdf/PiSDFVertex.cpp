@@ -55,7 +55,7 @@ static const char *getVertexDotColor(PiSDFVertexType type) {
             return "#fabe58";
         case PiSDFVertexType::JOIN:
             return "#aea8d3";
-        case PiSDFVertexType::BROADCAST:
+        case PiSDFVertexType::DUPLICATE:
             return "#2c3e50";
         case PiSDFVertexType::ROUNDBUFFER:
             return "#f1e7fe";
@@ -249,7 +249,7 @@ void PiSDFVertex::checkSubtypeConsistency() const {
         throwSpiderException("Non configuration actors can not have output parameters. Vertex [%s]", name_.c_str());
     }
     if (nEdgesIN_ > 1 && (type_ == PiSDFVertexType::FORK ||
-                          type_ == PiSDFVertexType::BROADCAST)) {
+                          type_ == PiSDFVertexType::DUPLICATE)) {
         throwSpiderException("Fork and Broadcast actors can only have one input edge.");
     } else if (nEdgesIN_ && type_ == PiSDFVertexType::INIT) {
         throwSpiderException("Init actors can not have input edge !");
