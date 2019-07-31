@@ -214,6 +214,12 @@ public:
      */
     inline const PiSDFDelay *delay() const;
 
+    /**
+     * @brief Return the delay value (if any).
+     * @return value of associated delay, 0 else.
+     */
+    std::int64_t delayValue() const;
+
 private:
     PiSDFGraph *graph_ = nullptr;
     PiSDFVertex *source_ = nullptr;

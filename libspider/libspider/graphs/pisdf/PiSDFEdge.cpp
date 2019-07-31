@@ -194,3 +194,7 @@ std::string PiSDFEdge::name() const {
     return source_->name() + "->" + sink_->name();
 }
 
+std::int64_t PiSDFEdge::delayValue() const {
+    return delay_ ? delay_->value() : 0;
+}
+
