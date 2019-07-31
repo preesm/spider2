@@ -150,13 +150,12 @@ void LCMBRVCompute::checkValidity(Spider::Array<const PiSDFEdge *> &edgeArray) c
         const auto *source = edge->source();
         const auto *sink = edge->sink();
 
-        if (edge->delay() && edge->delay()->setter()) {
-            auto *vertex = edge->delay()->virtualVertex();
-            if (vertex->repetitionValue() != 1) {
+        if (edge->sink()->type() == PiSDFVertexType::DELAY) {
+            if (sink->repetitionValue() != 1) {
                 throwSpiderException("Delay [%s] has repetition vector value of %"
                                              PRIu32
                                              " instead of 1.", edge->delay()->name().c_str(),
-                                     vertex->repetitionValue());
+                                     sink->repetitionValue());
             }
         }
 

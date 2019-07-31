@@ -347,6 +347,7 @@ void PiSDFGraph::addVertex(PiSDFVertex *vertex) {
         case PiSDFVertexType::JOIN:
         case PiSDFVertexType::INIT:
         case PiSDFVertexType::END:
+        case PiSDFVertexType::DELAY:
         case PiSDFVertexType::NORMAL:
             vertex->setIx(vertexVector_.size());
             vertexVector_.push_back(vertex);

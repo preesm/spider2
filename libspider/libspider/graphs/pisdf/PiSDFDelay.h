@@ -90,7 +90,7 @@ public:
      * @brief Build and return a name for the delay.
      * @return Name of the delay in format "delay-#source--#sink"
      */
-    inline std::string name() const;
+    std::string name() const;
 
     /* === Getter(s) === */
 

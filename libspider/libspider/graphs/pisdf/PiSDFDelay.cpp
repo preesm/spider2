@@ -106,10 +106,15 @@ void PiSDFDelay::checkPersistence() const {
 void PiSDFDelay::createVirtualVertex() {
     if (setter_ || getter_) {
         /* == Create the virtual delay actor == */
-        virtualVertex_ = Spider::API::createVertex(edge_->containingGraph(),
-                                                   name(),
-                                                   1,
-                                                   1);
+        virtualVertex_ = Spider::allocate<PiSDFVertex>(StackID::PISDF);
+        Spider::construct(virtualVertex_,
+                          edge_->containingGraph(),
+                          name(),
+                          PiSDFVertexType::DELAY,
+                          1, /* = nEdgesIN = */
+                          1, /* = nEdgesOUT = */
+                          0, /* = nParamsIN = */
+                          0) /* = nParamsOUT = */;
 
         /* == If setter_ is null, replace it with init == */
         if (!setter_) {
@@ -124,14 +129,16 @@ void PiSDFDelay::createVirtualVertex() {
         }
 
         /* == Connect setter to the virtual delay actor == */
+        auto rateExpression = expression_.toString().empty() ? std::to_string(expression_.value())
+                                                             : expression_.toString();
         Spider::API::createEdge(edge_->containingGraph(),
-                                setter_, setterPortIx_, expression_.toString(),
-                                virtualVertex_, 0, expression_.toString());
+                                setter_, setterPortIx_, rateExpression,
+                                virtualVertex_, 0, rateExpression);
 
         /* == Connect virtual delay actor to getter == */
         Spider::API::createEdge(edge_->containingGraph(),
-                                virtualVertex_, 0, expression_.toString(),
-                                getter_, getterPortIx_, expression_.toString());
+                                virtualVertex_, 0, rateExpression,
+                                getter_, getterPortIx_, rateExpression);
     }
 }
 

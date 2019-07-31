@@ -49,6 +49,7 @@
 
 static const char *getVertexDotColor(PiSDFVertexType type) {
     switch (type) {
+        case PiSDFVertexType::DELAY:
         case PiSDFVertexType::NORMAL:
             return "#eeeeee";
         case PiSDFVertexType::FORK:

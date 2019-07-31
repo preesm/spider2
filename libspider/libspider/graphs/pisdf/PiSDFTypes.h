@@ -70,6 +70,7 @@ enum class PiSDFVertexType : std::uint8_t {
     CONFIG,         /*! Config vertex subtype */
     HIERARCHICAL,   /*! Hierarchical vertex subtype */
     INTERFACE,      /*! Interface vertex subtype */
+    DELAY,          /*! Delay vertex subtype */
 };
 
 enum class PiSDFInterfaceType : std::uint8_t {
