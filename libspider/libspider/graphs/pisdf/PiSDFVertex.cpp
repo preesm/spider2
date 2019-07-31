@@ -50,19 +50,19 @@
 static const char *getVertexDotColor(PiSDFVertexType type) {
     switch (type) {
         case PiSDFVertexType::NORMAL:
-            return "eeeeee";
+            return "#eeeeee";
         case PiSDFVertexType::FORK:
-            return "fabe58";
+            return "#fabe58";
         case PiSDFVertexType::JOIN:
-            return "aea8d3";
+            return "#aea8d3";
         case PiSDFVertexType::BROADCAST:
-            return "fdeba7";
+            return "#2c3e50";
         case PiSDFVertexType::ROUNDBUFFER:
-            return "f1e7fe";
+            return "#f1e7fe";
         case PiSDFVertexType::INIT:
-            return "e4f1fe";
+            return "#c8f7c5";
         case PiSDFVertexType::END:
-            return "e8ecf1";
+            return "#ff9478";
         default:
             return "eeeeee";
     }
@@ -128,7 +128,7 @@ void PiSDFVertex::exportDot(FILE *file, const std::string &offset) const {
         return;
     }
     fprintf(file, "%s\"%s\" [ shape = none, margin = 0, label = <\n", offset.c_str(), name_.c_str());
-    fprintf(file, "%s\t<table border = \"1\" cellspacing=\"0\" cellpadding = \"0\" bgcolor = \"#%s\">\n",
+    fprintf(file, "%s\t<table border = \"1\" cellspacing=\"0\" cellpadding = \"0\" bgcolor = \"%s\">\n",
             offset.c_str(), getVertexDotColor(type_));
 
     /* == Header == */
@@ -169,14 +169,14 @@ void PiSDFVertex::exportInputPortsToDot(FILE *file,
         fprintf(file, "%s\t\t\t\t\t\t<td port=\"in_%" PRIu32"\" border=\"1\" bgcolor=\"#87d37c\">    </td>\n",
                 offset.c_str(), e->sinkPortIx());
         fprintf(file,
-                "%s\t\t\t\t\t\t<td align=\"left\" border=\"0\" bgcolor=\"#%s\"><font point-size=\"15\">width</font></td>\n",
+                "%s\t\t\t\t\t\t<td align=\"left\" border=\"0\" bgcolor=\"%s\"><font point-size=\"15\">width</font></td>\n",
                 offset.c_str(),
                 getVertexDotColor(type_));
         fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());
 
         /* == Print the dummy port for pretty spacing == */
         fprintf(file, "%s\t\t\t\t\t<tr>\n", offset.c_str());
-        fprintf(file, "%s\t\t\t\t\t\t<td border=\"0\" bgcolor=\"#%s\">    </td>\n",
+        fprintf(file, "%s\t\t\t\t\t\t<td border=\"0\" bgcolor=\"%s\">    </td>\n",
                 offset.c_str(),
                 getVertexDotColor(type_));
         fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());
@@ -184,7 +184,7 @@ void PiSDFVertex::exportInputPortsToDot(FILE *file,
     if (!nEdgesIN_) {
         /* == Print the dummy port for pretty spacing == */
         fprintf(file, "%s\t\t\t\t\t<tr>\n", offset.c_str());
-        fprintf(file, "%s\t\t\t\t\t\t<td border=\"0\" bgcolor=\"#%s\">    </td>\n",
+        fprintf(file, "%s\t\t\t\t\t\t<td border=\"0\" bgcolor=\"%s\">    </td>\n",
                 offset.c_str(),
                 getVertexDotColor(type_));
         fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());
@@ -193,7 +193,7 @@ void PiSDFVertex::exportInputPortsToDot(FILE *file,
     /* == Print dummy extra input ports to match with output ports (if needed) == */
     for (auto i = nEdgesIN_; i < nEdgesOUT_; ++i) {
         fprintf(file, "%s\t\t\t\t\t<tr>\n", offset.c_str());
-        fprintf(file, "%s\t\t\t\t\t\t<td border=\"0\" bgcolor=\"#%s\">    </td>\n",
+        fprintf(file, "%s\t\t\t\t\t\t<td border=\"0\" bgcolor=\"%s\">    </td>\n",
                 offset.c_str(),
                 getVertexDotColor(type_));
         fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());
@@ -210,7 +210,7 @@ void PiSDFVertex::exportOutputPortsToDot(FILE *file,
         /* == Print the output edge port information == */
         fprintf(file, "%s\t\t\t\t\t<tr>\n", offset.c_str());
         fprintf(file,
-                "%s\t\t\t\t\t\t<td align=\"right\" border=\"0\" bgcolor=\"#%s\"><font point-size=\"15\">width</font></td>\n",
+                "%s\t\t\t\t\t\t<td align=\"right\" border=\"0\" bgcolor=\"%s\"><font point-size=\"15\">width</font></td>\n",
                 offset.c_str(),
                 getVertexDotColor(type_));
         fprintf(file, "%s\t\t\t\t\t\t<td port=\"out_%" PRIu32"\" border=\"1\" bgcolor=\"#ec644b\">    </td>\n",
@@ -219,14 +219,14 @@ void PiSDFVertex::exportOutputPortsToDot(FILE *file,
 
         /* == Print the dummy port for pretty spacing == */
         fprintf(file, "%s\t\t\t\t\t<tr>\n", offset.c_str());
-        fprintf(file, "%s\t\t\t\t\t\t<td border=\"0\" bgcolor=\"#%s\">    </td>\n", offset.c_str(),
+        fprintf(file, "%s\t\t\t\t\t\t<td border=\"0\" bgcolor=\"%s\">    </td>\n", offset.c_str(),
                 getVertexDotColor(type_));
         fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());
     }
     if (!nEdgesOUT_) {
         /* == Print the dummy port for pretty spacing == */
         fprintf(file, "%s\t\t\t\t\t<tr>\n", offset.c_str());
-        fprintf(file, "%s\t\t\t\t\t\t<td border=\"0\" bgcolor=\"#%s\">    </td>\n",
+        fprintf(file, "%s\t\t\t\t\t\t<td border=\"0\" bgcolor=\"%s\">    </td>\n",
                 offset.c_str(),
                 getVertexDotColor(type_));
         fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());
@@ -235,7 +235,7 @@ void PiSDFVertex::exportOutputPortsToDot(FILE *file,
     /* == Print dummy extra input ports to match with output ports (if needed) == */
     for (auto i = nEdgesOUT_; i < nEdgesIN_; ++i) {
         fprintf(file, "%s\t\t\t\t\t<tr>\n", offset.c_str());
-        fprintf(file, "%s\t\t\t\t\t\t<td border=\"0\" bgcolor=\"#%s\">    </td>\n",
+        fprintf(file, "%s\t\t\t\t\t\t<td border=\"0\" bgcolor=\"%s\">    </td>\n",
                 offset.c_str(),
                 getVertexDotColor(type_));
         fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());

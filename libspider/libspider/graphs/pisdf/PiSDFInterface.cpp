@@ -48,9 +48,9 @@
 static const char *getBGColor(PiSDFInterfaceType type) {
     switch (type) {
         case PiSDFInterfaceType::INPUT:
-            return "c8f7c5";
+            return "#fff68f";
         case PiSDFInterfaceType::OUTPUT:
-            return "f1a9a0";
+            return "#dcc6e0";
         default:
             return "eeeeee";
     }
@@ -81,7 +81,7 @@ std::uint16_t PiSDFInterface::correspondingPortIx() const {
 
 void PiSDFInterface::exportDot(FILE *file, const std::string &offset) const {
     fprintf(file, "%s\"%s\" [ shape = none, margin = 0, label = <\n", offset.c_str(), name().c_str());
-    fprintf(file, "%s\t<table border = \"1\" cellspacing=\"0\" cellpadding = \"0\" bgcolor = \"#%s\">\n",
+    fprintf(file, "%s\t<table border = \"1\" cellspacing=\"0\" cellpadding = \"0\" bgcolor = \"%s\">\n",
             offset.c_str(), getBGColor(interfaceType_));
 
     /* == Header == */
@@ -101,7 +101,7 @@ void PiSDFInterface::exportDot(FILE *file, const std::string &offset) const {
         fprintf(file, "%s\t\t\t\t\t<tr>\n", offset.c_str());
         fprintf(file, "%s\t\t\t\t\t\t<td port=\"in_0\" border=\"1\" bgcolor=\"#87d37c\">    </td>\n", offset.c_str());
         fprintf(file,
-                "%s\t\t\t\t\t\t<td align=\"right\" border=\"0\" bgcolor=\"#%s\"><font point-size=\"15\">in</font></td>\n",
+                "%s\t\t\t\t\t\t<td align=\"right\" border=\"0\" bgcolor=\"%s\"><font point-size=\"15\">in</font></td>\n",
                 offset.c_str(), getBGColor(interfaceType_));
         fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());
         fprintf(file, "%s\t\t\t\t</table>\n", offset.c_str());
@@ -109,7 +109,7 @@ void PiSDFInterface::exportDot(FILE *file, const std::string &offset) const {
     } else {
         /* == Print the dummy port for pretty spacing == */
         fprintf(file, "%s\t\t\t\t\t<tr>\n", offset.c_str());
-        fprintf(file, "%s\t\t\t\t\t\t<td border=\"0\" bgcolor=\"#%s\">    </td>\n", offset.c_str(),
+        fprintf(file, "%s\t\t\t\t\t\t<td border=\"0\" bgcolor=\"%s\">    </td>\n", offset.c_str(),
                 getBGColor(interfaceType_));
         fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());
     }
@@ -124,7 +124,7 @@ void PiSDFInterface::exportDot(FILE *file, const std::string &offset) const {
         /* == Print the output edge port information == */
         fprintf(file, "%s\t\t\t\t\t<tr>\n", offset.c_str());
         fprintf(file,
-                "%s\t\t\t\t\t\t<td align=\"right\" border=\"0\" bgcolor=\"#%s\"><font point-size=\"15\">out</font></td>\n",
+                "%s\t\t\t\t\t\t<td align=\"right\" border=\"0\" bgcolor=\"%s\"><font point-size=\"15\">out</font></td>\n",
                 offset.c_str(), getBGColor(interfaceType_));
         fprintf(file, "%s\t\t\t\t\t\t<td port=\"out_0\" border=\"1\" bgcolor=\"#ec644b\">    </td>\n", offset.c_str());
         fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());
@@ -133,7 +133,7 @@ void PiSDFInterface::exportDot(FILE *file, const std::string &offset) const {
     } else {
         /* == Print the dummy port for pretty spacing == */
         fprintf(file, "%s\t\t\t\t\t<tr>\n", offset.c_str());
-        fprintf(file, "%s\t\t\t\t\t\t<td border=\"0\" bgcolor=\"#%s\">    </td>\n", offset.c_str(),
+        fprintf(file, "%s\t\t\t\t\t\t<td border=\"0\" bgcolor=\"%s\">    </td>\n", offset.c_str(),
                 getBGColor(interfaceType_));
         fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());
     }
