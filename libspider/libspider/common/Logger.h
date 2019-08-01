@@ -44,10 +44,11 @@
 #include <cstdio>
 #include <mutex>
 #include <common/cxx11-printf/printf.h>
+#include <common/SpiderException.h>
 
 /* === Define(s) === */
 
-#define N_LOGGER 4
+#define N_LOGGER 6
 #define LOG_RED "\x1B[31m"
 #define LOG_GRN "\x1B[32m"
 #define LOG_YEL "\x1B[33m"
@@ -60,9 +61,12 @@
 /* === Enumeration(s) === */
 
 typedef enum {
-    LOG_JOB = 0,
-    LOG_TIME = 1,
-    LOG_GENERAL = 2,
+    LOG_LRT = 0,        /*! LRT logger. When enabled, this will print LRT logged information. */
+    LOG_TIME = 1,       /*! TIME logger. When enabled this will print time logged information */
+    LOG_GENERAL = 2,    /*! GENERAL purpose logger, used for information about almost everything */
+    LOG_SCHEDULE = 3,   /*! SCHEDULE logger. When enabled, this will print Schedule logged information. */
+    LOG_MEMORY = 4,     /*! MEMORY logger. When enabled, this will print Memory logged information. */
+    LOG_TRANSFO = 5,    /*! TRANSFO logger. When enabled, this will print transformation logged information. */
 } LoggerType;
 
 /* === Namespace === */
@@ -70,54 +74,109 @@ typedef enum {
 namespace Spider {
     namespace Logger {
 
-        void init();
+        inline std::mutex &mutex() {
+            static std::mutex lock;
+            return lock;
+        }
 
-        void enable(LoggerType type);
+        inline FILE *&outputStream() {
+            static FILE *stream = stderr;
+            return stream;
+        }
 
-        void disable(LoggerType type);
+        inline void setOutputStream(FILE *stream) {
+            std::lock_guard<std::mutex> locker(mutex());
+            outputStream() = stream;
+        }
 
-        void setOutputStream(FILE *stream);
+        inline bool &logger(std::uint8_t ix) {
+            static bool loggers[N_LOGGER] = {false};
+            return loggers[ix];
+        }
 
-        FILE *&outputStream();
+        inline void enable(LoggerType type) {
+            if (type >= N_LOGGER || type < 0) {
+                throwSpiderException("Invalid logger type: %d", type);
+            }
+            std::lock_guard<std::mutex> locker(mutex());
+            logger(type) = true;
+        }
 
-        std::mutex &mutex();
-
-        bool loggerEnabled(std::uint8_t ix);
+        inline void disable(LoggerType type) {
+            if (type >= N_LOGGER || type < 0) {
+                throwSpiderException("Invalid logger type: %d", type);
+            }
+            std::lock_guard<std::mutex> locker(mutex());
+            logger(type) = false;
+        }
 
         template<class... Ts>
-        inline void print(LoggerType type, const char *colorCode, const char *fmt, const Ts &... ts) {
+        inline void print(LoggerType type,
+                          const char *colorCode,
+                          const char *level,
+                          const char *fmt, const Ts &... ts) {
             constexpr const char *loggersLiteral[N_LOGGER] = {
-                    "JOB",
+                    "LRT",
                     "TIME",
                     "GENERAL",
-                    "VERBOSE",
+                    "SCHEDULE",
+                    "MEMORY",
+                    "TRANSFO",
             };
-            if (loggerEnabled(type)) {
+            if (logger(type)) {
                 std::lock_guard<std::mutex> locker(mutex());
-                Spider::cxx11::fprintf(outputStream(), "%s%s-", loggersLiteral[type], colorCode);
+                Spider::cxx11::fprintf(outputStream(), "%s[%s:%s]:", colorCode, loggersLiteral[type], level);
                 Spider::cxx11::fprintf(outputStream(), fmt, ts...);
                 Spider::cxx11::fprintf(outputStream(), LOG_NRM);
             }
         }
 
+        /**
+         * @brief Print information.
+         * @tparam Ts    Variadic parameters.
+         * @param type   @refitem LoggerType -> type of the logger.
+         * @param fmt    Formatted string to print.
+         * @param ts     Arguments to be printed.
+         */
         template<class... Ts>
         inline void printInfo(LoggerType type, const char *fmt, const Ts &...ts) {
-            print(type, LOG_NRM, fmt, ts...);
+            print(type, LOG_NRM, "INFO", fmt, ts...);
         }
 
+        /**
+         * @brief Print non-critical information. However, these should be looked up as they indicate mis-behavior.
+         * @tparam Ts    Variadic parameters.
+         * @param type   @refitem LoggerType -> type of the logger.
+         * @param fmt    Formatted string to print.
+         * @param ts     Arguments to be printed.
+         */
         template<class... Ts>
         inline void printWarning(LoggerType type, const char *fmt, const Ts &...ts) {
-            print(type, LOG_YEL, fmt, ts...);
+            print(type, LOG_YEL, "WARN", fmt, ts...);
         }
 
+        /**
+         * @brief Print critical information. Usually application will fail after.
+         * @tparam Ts    Variadic parameters.
+         * @param type   @refitem LoggerType -> type of the logger.
+         * @param fmt    Formatted string to print.
+         * @param ts     Arguments to be printed.
+         */
         template<class... Ts>
         inline void printError(LoggerType type, const char *fmt, const Ts &...ts) {
-            print(type, LOG_RED, fmt, ts...);
+            print(type, LOG_RED, "ERR ", fmt, ts...);
         }
 
+        /**
+         * @brief Print information only when using the verbose mode of spider.
+         * @tparam Ts    Variadic parameters.
+         * @param type   @refitem LoggerType -> type of the logger.
+         * @param fmt    Formatted string to print.
+         * @param ts     Arguments to be printed.
+         */
         template<class... Ts>
         inline void printVerbose(LoggerType type, const char *fmt, const Ts &...ts) {
-            print(type, LOG_GRN, fmt, ts...);
+            print(type, LOG_GRN, "VERB", fmt, ts...);
         }
     }
 }

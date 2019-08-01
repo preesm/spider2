@@ -120,7 +120,6 @@ void Spider::API::start() {
     Spider::initAllocator(StackID::GENERAL, cfg);
 
     /* == Init the Logger and enable the GENERAL Logger == */
-    Logger::init();
     Logger::enable(LoggerType::LOG_GENERAL);
 
     /* == Update startFlag == */
@@ -149,11 +148,11 @@ void Spider::API::disableVerbose() {
 }
 
 void Spider::API::enableJobLogs() {
-    Logger::enable(LoggerType::LOG_JOB);
+    Logger::enable(LoggerType::LOG_LRT);
 }
 
 void Spider::API::disableJobLogs() {
-    Logger::disable(LoggerType::LOG_JOB);
+    Logger::disable(LoggerType::LOG_LRT);
 }
 
 void Spider::API::enableStaticScheduleOptim() {
