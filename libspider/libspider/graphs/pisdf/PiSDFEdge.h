@@ -206,7 +206,7 @@ public:
      * @brief Get the ix of the edge in the containing graph.
      * @return ix of the edge (UINT32_MAX if no ix).
      */
-    inline std::uint32_t getIx() const;
+    inline std::uint32_t ix() const;
 
     /**
      * @brief Get the delay (if any) associated to the edge.
@@ -260,7 +260,7 @@ std::uint32_t PiSDFEdge::sinkPortIx() const {
     return sinkPort_->ix();
 }
 
-std::uint32_t PiSDFEdge::getIx() const {
+std::uint32_t PiSDFEdge::ix() const {
     return ix_;
 }
 

@@ -109,7 +109,7 @@ PiSDFVertex *SRDAGTransformer::copyVertex(const PiSDFVertex *vertex, std::uint32
                       StackID::TRANSFO,
                       srdag_,
                       std::string(vertex->name()) + "_" + std::to_string(instance),
-                      vertex->type(),
+                      vertex->type() == PiSDFVertexType::HIERARCHICAL ? PiSDFVertexType::NORMAL : vertex->type(),
                       vertex->nEdgesIN(),
                       vertex->nEdgesOUT(),
                       vertex->nParamsIN(),
@@ -141,15 +141,19 @@ void SRDAGTransformer::extractAndLinkActors(const PiSDFGraph *graph) {
     srdag_->precacheEdges(graph->nVertices());
 
     /* == Array to keep track of who has been done == */
-    Spider::Array<Spider::Array<PiSDFVertex *>> vertex2Vertex{StackID::TRANSFO, graph->nVertices()};
+    Spider::Array<Spider::Array<PiSDFVertex *>> vertex2Vertex{StackID::TRANSFO,
+                                                              graph->nVertices() + graph->nInterfaces()};
 
     /* == Copy all vertices == */
     for (const auto *vertex : graph->vertices()) {
-        Spider::construct(&vertex2Vertex[vertex->getIx()], StackID::TRANSFO, vertex->repetitionValue());
+        Spider::construct(&vertex2Vertex[vertex->ix()], StackID::TRANSFO, vertex->repetitionValue());
         for (std::uint32_t i = 0; i < vertex->repetitionValue(); ++i) {
-            vertex2Vertex[vertex->getIx()][i] = copyVertex(vertex, i);
+            vertex2Vertex[vertex->ix()][i] = copyVertex(vertex, i);
         }
     }
+
+    /* == Replace interfaces == */
+//    replaceInputInterfaces();
 
     /* == Do the linkage == */
     for (const auto *edge : graph->edges()) {
@@ -179,14 +183,14 @@ void SRDAGTransformer::extractAndLinkActors(const PiSDFGraph *graph) {
     for (const auto *edge : graph->edges()) {
         if (edge->delay()) {
             /* == Retrieve the virtual vertex (there can be only one) == */
-            auto *delayVertex = vertex2Vertex[edge->delay()->virtualVertex()->getIx()][0];
+            auto *delayVertex = vertex2Vertex[edge->delay()->virtualVertex()->ix()][0];
 
             /* == Disconnect / reconnect setter == */
-            auto &sinkArray = vertex2Vertex[edge->sink()->getIx()];
+            auto &sinkArray = vertex2Vertex[edge->sink()->ix()];
             reconnectSetter(edge, delayVertex, sinkArray[0]);
 
             /* == Disconnect / reconnect getter == */
-            auto &sourceArray = vertex2Vertex[edge->source()->getIx()];
+            auto &sourceArray = vertex2Vertex[edge->source()->ix()];
             reconnectGetter(edge, delayVertex, sourceArray[edge->source()->repetitionValue() - 1]);
 
             /* == Remove the delay vertex == */
@@ -198,6 +202,11 @@ void SRDAGTransformer::extractAndLinkActors(const PiSDFGraph *graph) {
     /* == Free memory of the arrays == */
     for (auto &array : vertex2Vertex) {
         Spider::destroy(&array);
+    }
+
+    /* == Iterate over subgraphs == */
+    for (const auto &subgraph : graph->subgraphs()) {
+        extractAndLinkActors(subgraph);
     }
 }
 

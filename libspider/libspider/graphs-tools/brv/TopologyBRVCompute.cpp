@@ -67,7 +67,7 @@ void TopologyBRVCompute::execute() {
         std::uint32_t nMatVertices = 0;
         for (const auto &vertex : component.vertices) {
             if (isVertexExecutable(vertex)) {
-                vertexIxArray[vertex->getIx()] = nMatVertices++;
+                vertexIxArray[vertex->ix()] = nMatVertices++;
             }
         }
 
@@ -87,8 +87,8 @@ void TopologyBRVCompute::execute() {
         std::uint32_t edgeRow = 0;
         for (const auto &edge : validEdgeVector) {
             auto edgeRowOffset = edgeRow * nMatVertices;
-            topologyMatrix[edgeRowOffset + vertexIxArray[edge->source()->getIx()]] = edge->sourceRate();
-            topologyMatrix[edgeRowOffset + vertexIxArray[edge->sink()->getIx()]] = -edge->sinkRate();
+            topologyMatrix[edgeRowOffset + vertexIxArray[edge->source()->ix()]] = edge->sourceRate();
+            topologyMatrix[edgeRowOffset + vertexIxArray[edge->sink()->ix()]] = -edge->sinkRate();
             edgeRow += 1;
         }
 
@@ -123,8 +123,8 @@ bool TopologyBRVCompute::isEdgeValid(const PiSDFEdge *edge, Spider::Array<std::i
            edge->source() != edge->sink() &&
            edge->source()->type() != PiSDFVertexType::CONFIG &&
            edge->sink()->type() != PiSDFVertexType::CONFIG &&
-           vertexIxArray[edge->source()->getIx()] >= 0 &&
-           vertexIxArray[edge->sink()->getIx()] >= 0;
+           vertexIxArray[edge->source()->ix()] >= 0 &&
+           vertexIxArray[edge->sink()->ix()] >= 0;
 }
 
 void TopologyBRVCompute::computeBRVFromNullSpace(Spider::Array<std::int64_t> &topologyMatrix,
@@ -207,7 +207,7 @@ void TopologyBRVCompute::computeBRVFromNullSpace(Spider::Array<std::int64_t> &to
     /* == Apply the LCM to compute BRV == */
     std::uint32_t vertexIx = 0;
     for (const auto &vertex : component.vertices) {
-        if (vertexIxArray[vertex->getIx()] >= 0) {
+        if (vertexIxArray[vertex->ix()] >= 0) {
             auto rv = (rationalResult[vertexIx] * lcm).abs().toInt32();
             vertex->setRepetitionValue(rv);
             vertexIx += 1;

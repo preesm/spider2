@@ -56,11 +56,11 @@ BRVCompute::BRVCompute(PiSDFGraph *const graph) : graph_{graph} {
     Spider::Array<const PiSDFVertex *> vertexArray{StackID::TRANSFO, graph->nVertices(), nullptr};
     BRVComponent component;
     for (auto *v:graph->vertices()) {
-        if (!connectedComponentsKeys[v->getIx()]) {
+        if (!connectedComponentsKeys[v->ix()]) {
             component.nEdges = 0;
             component.vertices.clear();
             /* == Register current vertex == */
-            connectedComponentsKeys[v->getIx()] = v;
+            connectedComponentsKeys[v->ix()] = v;
             component.vertices.push_back(v);
 
             /* == Extract the connected component vertices == */
@@ -87,10 +87,10 @@ void BRVCompute::extractConnectedComponent(BRVComponent &component,
                 throwSpiderException("Vertex [%s] has null edge.", currentVertex->name().c_str());
             }
             auto *sink = edge->sink();
-            if (!keyArray[sink->getIx()]) {
+            if (!keyArray[sink->ix()]) {
                 /* == Register the vertex == */
                 component.vertices.push_back(sink);
-                keyArray[sink->getIx()] = sink;
+                keyArray[sink->ix()] = sink;
                 addedVertex = true;
             }
             component.nEdges += 1;
@@ -102,10 +102,10 @@ void BRVCompute::extractConnectedComponent(BRVComponent &component,
                 throwSpiderException("Vertex [%s] has null edge.", currentVertex->name().c_str());
             }
             auto *source = edge->source();
-            if (!keyArray[source->getIx()]) {
+            if (!keyArray[source->ix()]) {
                 /* == Register the vertex == */
                 component.vertices.push_back(source);
-                keyArray[source->getIx()] = source;
+                keyArray[source->ix()] = source;
                 addedVertex = true;
             }
         }

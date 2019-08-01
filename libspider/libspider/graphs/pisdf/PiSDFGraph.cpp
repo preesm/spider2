@@ -135,7 +135,7 @@ void PiSDFGraph::removeVertex(PiSDFVertex *vertex) {
     if (vertex->containingGraph() != this) {
         throwSpiderException("Trying to remove a vertex [%s] that don't belong to this graph.", vertex->name().c_str());
     }
-    auto ix = vertex->getIx();
+    auto ix = vertex->ix();
     if (vertexVector_[ix] != vertex) {
         throwSpiderException("Different vertex in ix position. Expected: %s -- Got: %s", vertex->name().c_str(),
                              vertexVector_[ix]->name().c_str());
@@ -178,7 +178,7 @@ void PiSDFGraph::removeEdge(PiSDFEdge *edge) {
     if (edge->containingGraph() != this) {
         throwSpiderException("Trying to remove an edge not from this graph.");
     }
-    auto ix = edge->getIx();
+    auto ix = edge->ix();
     if (edgeVector_[ix] != edge) {
         throwSpiderException("Different edge in ix position. Expected: %s -- Got: %s", edge->name().c_str(),
                              edgeVector_[ix]->name().c_str());
@@ -197,7 +197,7 @@ void PiSDFGraph::removeParam(PiSDFParam *param) {
     if (param->containingGraph() != this) {
         throwSpiderException("Trying to remove an edge not from this graph.");
     }
-    auto ix = param->getIx();
+    auto ix = param->ix();
     if (paramVector_[ix] != param) {
         throwSpiderException("Different parameter in ix position. Expected: %s -- Got: %s", param->name().c_str(),
                              paramVector_[ix]->name().c_str());

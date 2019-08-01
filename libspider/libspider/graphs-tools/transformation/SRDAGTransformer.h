@@ -97,8 +97,8 @@ private:
                                                                                  sink{edge->sink()} {
             sourceRate = edge->sourceRate();
             sinkRate = edge->sinkRate();
-            sourceArray = &vertex2Vertex[edge->source()->getIx()];
-            sinkArray = &vertex2Vertex[edge->sink()->getIx()];
+            sourceArray = &vertex2Vertex[edge->source()->ix()];
+            sinkArray = &vertex2Vertex[edge->sink()->ix()];
             delay = edge->delayValue();
             sourcePortIx = edge->sourcePortIx();
             sinkPortIx = edge->sinkPortIx();

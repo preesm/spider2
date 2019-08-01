@@ -146,7 +146,7 @@ public:
      * @brief Get the ix of the edge in the containing graph.
      * @return ix of the edge (UINT32_MAX if no ix).
      */
-    inline std::uint32_t getIx() const;
+    inline std::uint32_t ix() const;
 
 private:
     /**
@@ -225,7 +225,7 @@ PiSDFParamType PiSDFParam::type() const {
     return type_;
 }
 
-std::uint32_t PiSDFParam::getIx() const {
+std::uint32_t PiSDFParam::ix() const {
     return ix_;
 }
 

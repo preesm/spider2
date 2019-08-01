@@ -88,7 +88,7 @@ public:
      * @param file   File to which the vertex should be exported.
      * @param offset Tab offset (default is "\t").
      */
-    void exportDot(FILE *file, const std::string &offset = "\t") const;
+    virtual void exportDot(FILE *file, const std::string &offset) const;
 
     /**
      * @brief Get the hierarchical property of the vertex.
@@ -272,7 +272,7 @@ public:
      * @brief Get the ix of the vertex in the containing graph.
      * @return ix of the vertex (UINT32_MAX if no ix).
      */
-    inline std::uint32_t getIx() const;
+    inline std::uint32_t ix() const;
 
 private:
     PiSDFGraph *graph_ = nullptr;
@@ -429,7 +429,7 @@ PiSDFGraph *PiSDFVertex::subgraph() const {
     return subgraph_;
 }
 
-std::uint32_t PiSDFVertex::getIx() const {
+std::uint32_t PiSDFVertex::ix() const {
     return ix_;
 }
 
