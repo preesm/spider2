@@ -415,7 +415,7 @@ namespace Spider {
 #endif
 
             template<class T>
-            const char *
+            constexpr const char *
             formatted_string(T s, typename std::enable_if<std::is_convertible<T, const char *>::value>::type * = 0) {
                 return s;
             }
