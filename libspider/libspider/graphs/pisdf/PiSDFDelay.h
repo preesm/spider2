@@ -186,7 +186,7 @@ std::uint64_t PiSDFDelay::memoryAddress() const {
 
 void PiSDFDelay::setMemoryAddress(std::uint64_t address) {
     if (memoryAddress_ != UINT64_MAX) {
-        Spider::Logger::print(LOG_GENERAL, LOG_WARNING, "Delay already has a memory address.\n");
+        Spider::Logger::printWarning(LOG_GENERAL, "Delay already has a memory address.\n");
     }
     memoryAddress_ = address;
 }

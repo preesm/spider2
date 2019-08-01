@@ -164,6 +164,7 @@ file(
         GLOB_RECURSE
         header_files
         ${SPIDER_LIB_DIR}/common/*.h
+        ${SPIDER_LIB_DIR}/common/cxx11-printf/*.h
         ${SPIDER_LIB_DIR}/containers/*.h
         ${SPIDER_LIB_DIR}/memory/*.h
         ${SPIDER_LIB_DIR}/memory/abstract-allocators/*.h

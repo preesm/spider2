@@ -155,19 +155,19 @@ void Expression::printExpressionTreeNode(ExpressionTreeNode *node, std::int32_t 
     }
     auto &elt = node->elt;
     if (depth) {
-        Spider::Logger::print(LOG_GENERAL, LOG_INFO, "|");
+        Spider::Logger::printInfo(LOG_GENERAL, "|");
         for (auto i = 0; i < depth; ++i) {
-            Spider::Logger::print(LOG_GENERAL, LOG_INFO, "-");
+            Spider::Logger::printInfo(LOG_GENERAL, "-");
         }
-        Spider::Logger::print(LOG_GENERAL, LOG_INFO, ">");
+        Spider::Logger::printInfo(LOG_GENERAL, ">");
     }
     if (elt.type == RPNElementType::OPERATOR) {
-        Spider::Logger::print(LOG_GENERAL, LOG_INFO, "%s\n", RPNConverter::getStringFromOperatorType(elt.op).c_str());
+        Spider::Logger::printInfo(LOG_GENERAL, "%s\n", RPNConverter::getStringFromOperatorType(elt.op).c_str());
     } else {
         if (elt.subType == RPNElementSubType::PARAMETER) {
-            Spider::Logger::print(LOG_GENERAL, LOG_INFO, "%s\n", elt.param->name().c_str());
+            Spider::Logger::printInfo(LOG_GENERAL, "%s\n", elt.param->name().c_str());
         } else {
-            Spider::Logger::print(LOG_GENERAL, LOG_INFO, "%lf\n", elt.value);
+            Spider::Logger::printInfo(LOG_GENERAL, "%lf\n", elt.value);
         }
     }
     printExpressionTreeNode(node->right, depth + 1);

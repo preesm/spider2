@@ -154,16 +154,16 @@ const char *AbstractAllocator::getName() const {
 }
 
 void AbstractAllocator::printStats() const {
-    Spider::Logger::print(LOG_GENERAL, LOG_INFO, "Allocator: %s\n", getName());
-    Spider::Logger::print(LOG_GENERAL, LOG_INFO, "       ==> max usage:    %lf %s\n", getByteNormalizedSize(peak_),
-                          getByteUnitString(peak_));
+    Spider::Logger::printInfo(LOG_GENERAL, "Allocator: %s\n", getName());
+    Spider::Logger::printInfo(LOG_GENERAL, "       ==> max usage:    %lf %s\n", getByteNormalizedSize(peak_),
+                              getByteUnitString(peak_));
     if (averageUse_) {
-        Spider::Logger::print(LOG_GENERAL, LOG_INFO, "       ==> avg usage:    %lf %s\n",
-                              getByteNormalizedSize(averageUse_ / numberAverage_),
-                              getByteUnitString(averageUse_ / numberAverage_));
+        Spider::Logger::printInfo(LOG_GENERAL, "       ==> avg usage:    %lf %s\n",
+                                  getByteNormalizedSize(averageUse_ / numberAverage_),
+                                  getByteUnitString(averageUse_ / numberAverage_));
     }
-    Spider::Logger::print(LOG_GENERAL, LOG_INFO, "       ==> still in use: %lf %s\n", getByteNormalizedSize(used_),
-                          getByteUnitString(used_));
+    Spider::Logger::printInfo(LOG_GENERAL, "       ==> still in use: %lf %s\n", getByteNormalizedSize(used_),
+                              getByteUnitString(used_));
 }
 
 std::uint64_t AbstractAllocator::computeAlignedSize(std::uint64_t &size, std::int32_t alignment /* = 4096 */) {
@@ -221,10 +221,10 @@ double AbstractAllocator::getByteNormalizedSize(std::uint64_t size) {
 
 AbstractAllocator::~AbstractAllocator() {
     if (used_ > 0) {
-        Spider::Logger::print(LOG_GENERAL, LOG_ERROR, "Allocator: %s -- Still has %lf %s in use.\n",
-                              getName(),
-                              AbstractAllocator::getByteNormalizedSize(used_),
-                              AbstractAllocator::getByteUnitString(used_));
+        Spider::Logger::printError(LOG_GENERAL, "Allocator: %s -- Still has %lf %s in use.\n",
+                                   getName(),
+                                   AbstractAllocator::getByteNormalizedSize(used_),
+                                   AbstractAllocator::getByteUnitString(used_));
     }
     printStats();
 }

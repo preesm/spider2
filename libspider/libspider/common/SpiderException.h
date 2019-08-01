@@ -42,13 +42,13 @@
 
 /* === Includes === */
 
-#include <cstdarg>
 #include <cstring>
 #include <stdexcept>
+#include <common/cxx11-printf/printf.h>
 
 /* === Defines === */
 
-/* Size of 50 minimum is required for the error message associated */
+/* == Size of 50 minimum is required for the error message associated == */
 #define SPIDER_EXCEPTION_BUFFER_SIZE 400
 
 constexpr const char *str_end(const char *str) {
@@ -78,18 +78,12 @@ constexpr const char *getFileName(const char *str) {
 
 class SpiderException : public std::exception {
 public:
-    explicit SpiderException(const char *msg, ...) : exceptionMessage_{} {
-        va_list args;
-        va_start(args, msg);
-#ifdef _WIN32
-        int n = _vsnprintf(buffer, SPIDER_EXCEPTION_BUFFER_SIZE, msg, args);
-#else
-        int n =
-                vsnprintf(exceptionMessage_, SPIDER_EXCEPTION_BUFFER_SIZE, msg, args);
-#endif
+    template<class... Ts>
+    explicit SpiderException(const char *msg, const Ts &...ts) : exceptionMessage_{} {
+        int n = Spider::cxx11::sprintf(exceptionMessage_, SPIDER_EXCEPTION_BUFFER_SIZE, msg, ts...);
         if (n > SPIDER_EXCEPTION_BUFFER_SIZE) {
-            fprintf(stderr, "SpiderException: ERROR: exception message too big.\n");
-            fprintf(stderr, "Partially recovered exception: ");
+            Spider::cxx11::fprintf(stderr, "SpiderException: ERROR: exception message too big.\n");
+            Spider::cxx11::fprintf(stderr, "Partially recovered exception: ");
             fflush(stderr);
         }
     }

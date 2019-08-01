@@ -42,10 +42,20 @@
 
 #include <cstdint>
 #include <cstdio>
+#include <mutex>
+#include <common/cxx11-printf/printf.h>
 
 /* === Define(s) === */
 
-#define N_LOGGER 3
+#define N_LOGGER 4
+#define LOG_RED "\x1B[31m"
+#define LOG_GRN "\x1B[32m"
+#define LOG_YEL "\x1B[33m"
+#define LOG_BLU "\x1B[34m"
+#define LOG_MAG "\x1B[35m"
+#define LOG_CYN "\x1B[36m"
+#define LOG_WHT "\x1B[37m"
+#define LOG_NRM "\x1B[0m"
 
 /* === Enumeration(s) === */
 
@@ -55,16 +65,11 @@ typedef enum {
     LOG_GENERAL = 2,
 } LoggerType;
 
-typedef enum {
-    LOG_INFO,
-    LOG_WARNING,
-    LOG_ERROR
-} LoggerLevel;
-
 /* === Namespace === */
 
 namespace Spider {
     namespace Logger {
+
         void init();
 
         void enable(LoggerType type);
@@ -73,7 +78,47 @@ namespace Spider {
 
         void setOutputStream(FILE *stream);
 
-        void print(LoggerType type, LoggerLevel level, const char *fmt, ...);
+        FILE *&outputStream();
+
+        std::mutex &mutex();
+
+        bool loggerEnabled(std::uint8_t ix);
+
+        template<class... Ts>
+        inline void print(LoggerType type, const char *colorCode, const char *fmt, const Ts &... ts) {
+            constexpr const char *loggersLiteral[N_LOGGER] = {
+                    "JOB",
+                    "TIME",
+                    "GENERAL",
+                    "VERBOSE",
+            };
+            if (loggerEnabled(type)) {
+                std::lock_guard<std::mutex> locker(mutex());
+                Spider::cxx11::fprintf(outputStream(), "%s%s-", loggersLiteral[type], colorCode);
+                Spider::cxx11::fprintf(outputStream(), fmt, ts...);
+                Spider::cxx11::fprintf(outputStream(), LOG_NRM);
+            }
+        }
+
+        template<class... Ts>
+        inline void printInfo(LoggerType type, const char *fmt, const Ts &...ts) {
+            print(type, LOG_NRM, fmt, ts...);
+        }
+
+        template<class... Ts>
+        inline void printWarning(LoggerType type, const char *fmt, const Ts &...ts) {
+            print(type, LOG_YEL, fmt, ts...);
+        }
+
+        template<class... Ts>
+        inline void printError(LoggerType type, const char *fmt, const Ts &...ts) {
+            print(type, LOG_RED, fmt, ts...);
+        }
+
+        template<class... Ts>
+        inline void printVerbose(LoggerType type, const char *fmt, const Ts &...ts) {
+            print(type, LOG_GRN, fmt, ts...);
+        }
     }
 }
 

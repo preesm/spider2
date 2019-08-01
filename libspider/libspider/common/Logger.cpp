@@ -38,32 +38,13 @@
 
 /* === Includes === */
 
-#include <mutex>
-#include <cstdarg>
 #include <common/Logger.h>
-
-/* === Defines === */
-
-#define LOG_RED "\x1B[31m"
-#define LOG_GRN "\x1B[32m"
-#define LOG_YEL "\x1B[33m"
-#define LOG_BLU "\x1B[34m"
-#define LOG_MAG "\x1B[35m"
-#define LOG_CYN "\x1B[36m"
-#define LOG_WHT "\x1B[37m"
-#define LOG_NRM "\x1B[0m"
 
 /* === Static variables === */
 
 static bool loggersState_[N_LOGGER];
 
 static FILE *outStream_ = stderr;
-
-static const char *loggersLitteral[N_LOGGER] = {
-        "JOB",
-        "TIME",
-        "GENERAL",
-};
 
 static std::mutex lock;
 
@@ -90,28 +71,15 @@ void Spider::Logger::setOutputStream(FILE *stream) {
     outStream_ = stream;
 }
 
-void Spider::Logger::print(LoggerType type, LoggerLevel level, const char *fmt, ...) {
-    if (loggersState_[type]) {
-        std::lock_guard<std::mutex> locker(lock);
-        va_list l;
-        va_start(l, fmt);
-        fprintf(outStream_, "%s-", loggersLitteral[type]);
-        switch (level) {
-            case LOG_INFO:
-                fprintf(outStream_, LOG_NRM "INFO: ");
-                break;
-            case LOG_WARNING:
-                fprintf(outStream_, LOG_YEL "WARNING: ");
-                break;
-            case LOG_ERROR:
-                fprintf(outStream_, LOG_RED "ERROR: ");
-                break;
-            default:
-                fprintf(outStream_, LOG_GRN "UNDEFINED: ");
-                break;
-        }
-        vfprintf(outStream_, fmt, l);
-        fprintf(outStream_, LOG_NRM);
-        va_end(l);
-    }
+FILE *&Spider::Logger::outputStream() {
+    return outStream_;
 }
+
+std::mutex &Spider::Logger::mutex() {
+    return lock;
+}
+
+bool Spider::Logger::loggerEnabled(std::uint8_t ix) {
+    return loggersState_[ix];
+}
+
