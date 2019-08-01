@@ -86,7 +86,7 @@ void SRDAGTransformer::execute() {
         auto *parent = subgraph->parent();
 
         /* == Replace interfaces == */
-        for (const auto & input : subgraph->inputInterfaces()) {
+        for (const auto &input : subgraph->inputInterfaces()) {
 
         }
 

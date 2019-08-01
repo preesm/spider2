@@ -81,14 +81,14 @@ namespace Spider {
             auto neg = (x < 0 && y > 0) || (x > 0 && y < 0);
             std::uint64_t a = x < 0 ? (-x) : x;
             std::uint64_t b = y < 0 ? (-y) : y;
-            return neg ? -ceilDiv(a, b) :  a / b;
+            return neg ? -ceilDiv(a, b) : a / b;
         }
 
         inline std::int32_t floorDiv(const std::int32_t &x, const std::int32_t &y) {
             auto neg = (x < 0 && y > 0) || (x > 0 && y < 0);
             std::uint32_t a = x < 0 ? (-x) : x;
             std::uint32_t b = y < 0 ? (-y) : y;
-            return neg ? -ceilDiv(a, b) :  a / b;
+            return neg ? -ceilDiv(a, b) : a / b;
         }
 
         inline std::int16_t abs(const std::int16_t &x) {

@@ -48,7 +48,8 @@ FreeListStaticAllocator::FreeListStaticAllocator(std::string name,
                                                  std::uint64_t totalSize,
                                                  FreeListPolicy policy,
                                                  std::int32_t alignment) :
-        StaticAllocator(std::move(name), totalSize + sizeof(FreeListStaticAllocator::Header) + sizeof(Node), alignment) {
+        StaticAllocator(std::move(name), totalSize + sizeof(FreeListStaticAllocator::Header) + sizeof(Node),
+                        alignment) {
     if (alignment < 8) {
         throwSpiderException("Memory alignment should be at least of size sizeof(std::int64_t) = 8 bytes.");
     }
