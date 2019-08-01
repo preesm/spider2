@@ -234,27 +234,27 @@ void PiSDFGraph::exportDot(FILE *file, const std::string &offset) const {
 void PiSDFGraph::exportDotHelper(FILE *file, const std::string &offset) const {
     auto fwOffset{offset};
     if (parent_) {
-        fprintf(file, "%ssubgraph cluster {\n", fwOffset.c_str());
+        Spider::cxx11::fprintf(file, "%ssubgraph cluster {\n", fwOffset.c_str());
         fwOffset += "\t";
-        fprintf(file, "%slabel=\"%s\";\n", fwOffset.c_str(), name_.c_str());
-        fprintf(file, "%sstyle=dotted;\n", fwOffset.c_str());
-        fprintf(file, "%sfillcolor=\"#ffffff\";\n", fwOffset.c_str());
-        fprintf(file, "%scolor=\"#393c3c\";\n", fwOffset.c_str());
-        fprintf(file, "%spenwidth=2;\n", fwOffset.c_str());
+        Spider::cxx11::fprintf(file, "%slabel=\"%s\";\n", fwOffset.c_str(), name_.c_str());
+        Spider::cxx11::fprintf(file, "%sstyle=dotted;\n", fwOffset.c_str());
+        Spider::cxx11::fprintf(file, "%sfillcolor=\"#ffffff\";\n", fwOffset.c_str());
+        Spider::cxx11::fprintf(file, "%scolor=\"#393c3c\";\n", fwOffset.c_str());
+        Spider::cxx11::fprintf(file, "%spenwidth=2;\n", fwOffset.c_str());
     } else {
-        fprintf(file, "digraph {\n");
-        fprintf(file, "\tlabel=topgraph;\n");
-        fprintf(file, "\trankdir=LR;\n");
-        fprintf(file, "\tranksep=\"2\";\n");
+        Spider::cxx11::fprintf(file, "digraph {\n");
+        Spider::cxx11::fprintf(file, "\tlabel=topgraph;\n");
+        Spider::cxx11::fprintf(file, "\trankdir=LR;\n");
+        Spider::cxx11::fprintf(file, "\tranksep=\"2\";\n");
     }
 
-    fprintf(file, "\n%s// Vertices\n", fwOffset.c_str());
+    Spider::cxx11::fprintf(file, "\n%s// Vertices\n", fwOffset.c_str());
     for (const auto &v:vertexVector_) {
         v->exportDot(file, fwOffset);
     }
 
     if (parent_) {
-        fprintf(file, "\n%s// Interfaces\n", fwOffset.c_str());
+        Spider::cxx11::fprintf(file, "\n%s// Interfaces\n", fwOffset.c_str());
         for (const auto &i:inputInterfaceVector_) {
             i->exportDot(file, fwOffset);
         }
@@ -264,21 +264,21 @@ void PiSDFGraph::exportDotHelper(FILE *file, const std::string &offset) const {
     }
 
     if (paramVector_.size()) {
-        fprintf(file, "\n%s// Parameters\n", fwOffset.c_str());
+        Spider::cxx11::fprintf(file, "\n%s// Parameters\n", fwOffset.c_str());
         for (const auto &p:paramVector_) {
             p->exportDot(file, fwOffset);
         }
     }
 
-    fprintf(file, "\n%s// Subgraphs\n", fwOffset.c_str());
+    Spider::cxx11::fprintf(file, "\n%s// Subgraphs\n", fwOffset.c_str());
     for (const auto &subgraph:subgraphVector_) {
         subgraph->exportDot(file, fwOffset);
     }
 
-    fprintf(file, "\n%s// Vertex edges\n", fwOffset.c_str());
+    Spider::cxx11::fprintf(file, "\n%s// Vertex edges\n", fwOffset.c_str());
     for (const auto &e:edgeVector_) {
         e->exportDot(file, fwOffset);
     }
 
-    fprintf(file, "%s}\n", parent_ ? offset.c_str() : "");
+    Spider::cxx11::fprintf(file, "%s}\n", parent_ ? offset.c_str() : "");
 }

@@ -141,21 +141,23 @@ void PiSDFEdge::connectSink(PiSDFVertex *vertex, std::uint32_t portIx, std::int6
 }
 
 void PiSDFEdge::exportDot(FILE *file, const std::string &offset) const {
-    fprintf(file,
-            "%s\"%s\":out_%" PRIu32":e -> \"%s\":in_%" PRIu32":w [penwidth=3, "
-            "color=\"#393c3c\", "
-            "dir=forward, "
-            "headlabel=\"%" PRIu64"   \", "
-            "taillabel=\" %" PRIu64"\"];\n",
-            offset.c_str(),
-            source_->isHierarchical() ? source_->subgraph()->outputInterfaces()[sourcePort_->ix()]->name().c_str()
-                                      : source_->name().c_str(),
-            source_->isHierarchical() ? 0 : sourcePort_->ix(),
-            sink_->isHierarchical() ? sink_->subgraph()->inputInterfaces()[sinkPort_->ix()]->name().c_str()
-                                    : sink_->name().c_str(),
-            sink_->isHierarchical() ? 0 : sinkPort_->ix(),
-            sinkRate(),
-            sourceRate());
+    Spider::cxx11::fprintf(file,
+                           "%s\"%s\":out_%" PRIu32":e -> \"%s\":in_%" PRIu32":w [penwidth=3, "
+                           "color=\"#393c3c\", "
+                           "dir=forward, "
+                           "headlabel=\"%" PRIu64"   \", "
+                           "taillabel=\" %" PRIu64"\"];\n",
+                           offset.c_str(),
+                           source_->isHierarchical()
+                           ? source_->subgraph()->outputInterfaces()[sourcePort_->ix()]->name().c_str()
+                           : source_->name().c_str(),
+                           source_->isHierarchical() ? 0 : sourcePort_->ix(),
+                           sink_->isHierarchical()
+                           ? sink_->subgraph()->inputInterfaces()[sinkPort_->ix()]->name().c_str()
+                           : sink_->name().c_str(),
+                           sink_->isHierarchical() ? 0 : sinkPort_->ix(),
+                           sinkRate(),
+                           sourceRate());
 }
 
 PiSDFVertex *PiSDFEdge::source(bool forward) const {
