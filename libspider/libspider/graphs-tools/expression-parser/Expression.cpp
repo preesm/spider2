@@ -90,7 +90,7 @@ void Expression::printExpressionTree() {
 
 /* === Private method(s) === */
 
-void Expression::buildExpressionTree(const Spider::deque<RPNElement> *expressionStack) {
+void Expression::buildExpressionTree(const Spider::vector<RPNElement> *expressionStack) {
     expressionTree_ = Spider::allocate<ExpressionTreeNode>(StackID::EXPR_PARSER, expressionStack->size());
     Spider::construct(expressionTree_, 0, nullptr);
     std::uint16_t nodeIx = 1;

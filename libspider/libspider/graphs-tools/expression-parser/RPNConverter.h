@@ -161,7 +161,7 @@ public:
      * @brief Get the expression postfix stack.
      * @return postfix expression stack.
      */
-    inline const Spider::deque<RPNElement> &postfixStack() const;
+    inline const Spider::vector<RPNElement> &postfixStack() const;
 
     /* === Static method(s) === */
 
@@ -190,7 +190,7 @@ private:
     std::string infixExprString_{""};
     std::string postfixExprString_{""};
     const PiSDFGraph *graph_ = nullptr;
-    Spider::deque<RPNElement> postfixExprStack_;
+    Spider::vector<RPNElement> postfixExprStack_;
 
     /* === Private Methods === */
 
@@ -237,7 +237,7 @@ const std::string &RPNConverter::postfixString() const {
     return postfixExprString_;
 }
 
-const Spider::deque<RPNElement> &RPNConverter::postfixStack() const {
+const Spider::vector<RPNElement> &RPNConverter::postfixStack() const {
     return postfixExprStack_;
 }
 

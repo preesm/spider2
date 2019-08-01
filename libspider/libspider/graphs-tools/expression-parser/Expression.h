@@ -134,14 +134,14 @@ private:
      * @brief Build and reduce the expression tree parser.
      * @param expressionStack Stack of the postfix expression elements.
      */
-    void buildExpressionTree(const Spider::deque<RPNElement> *expressionStack);
+    void buildExpressionTree(const Spider::vector<RPNElement> *expressionStack);
 
     /**
-     * @brief
-     * @param node
-     * @param elt
-     * @param nodeIx
-     * @return
+     * @brief  Insert current node in the expression tree and reduce it if possible.
+     * @param node    Node to insert.
+     * @param elt     Associated element to be set in the node.
+     * @param nodeIx  Index of the node in the global node array.
+     * @return next node
      */
     ExpressionTreeNode *insertExpressionTreeNode(ExpressionTreeNode *node,
                                                  const RPNElement &elt,
