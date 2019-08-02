@@ -58,13 +58,13 @@ class SRDAGTransformer {
 public:
     explicit SRDAGTransformer(const PiSDFGraph *graph);
 
+    SRDAGTransformer(const PiSDFGraph *graph, PiSDFGraph *srdag);
+
     ~SRDAGTransformer();
 
     /* === Method(s) === */
 
     void execute();
-
-    void resume();
 
     /* === Getter(s) === */
 
@@ -73,9 +73,9 @@ public:
     /* === Setter(s) === */
 
 private:
-    PiSDFGraph *srdag_ = nullptr;
     const PiSDFGraph *piSdfGraph_ = nullptr;
-    bool stoppedFromConfig_ = false;
+    PiSDFGraph *srdag_ = nullptr;
+    bool externSRDAG_ = false;
 
     /* === Private structure(s) === */
 
@@ -124,9 +124,7 @@ private:
 
     PiSDFVertex *copyVertex(const PiSDFVertex *vertex, std::uint32_t instance = 0);
 
-    void extractConfigActors(const PiSDFGraph *graph);
-
-    void extractAndLinkActors(const PiSDFGraph *graph, std::uint32_t instance = 0);
+    void extractAndLinkActors(const PiSDFGraph *graph);
 
     void singleRateLinkage(EdgeLinker &edgeLinker);
 
@@ -137,14 +135,6 @@ private:
     void reconnectSetter(const PiSDFEdge *edge, PiSDFVertex *delayVertex, PiSDFVertex *sink);
 
     void reconnectGetter(const PiSDFEdge *edge, PiSDFVertex *delayVertex, PiSDFVertex *source);
-
-    void replaceInputInterfaces(PiSDFGraph *graph,
-                                std::uint32_t instance,
-                                Spider::Array<Spider::Array<PiSDFVertex *>> &inputIfArray);
-
-    void replaceOutputInterfaces(PiSDFGraph *graph,
-                                 std::uint32_t instance,
-                                 Spider::Array<Spider::Array<PiSDFVertex *>> &outputIfArray);
 };
 
 /* === Inline method(s) === */

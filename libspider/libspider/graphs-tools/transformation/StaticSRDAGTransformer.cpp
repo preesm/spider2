@@ -53,9 +53,8 @@
 
 /* === Method(s) implementation === */
 
-
-SRDAGTransformer::SRDAGTransformer(const PiSDFGraph *graph) : piSdfGraph_{graph} {
-
+SRDAGTransformer::SRDAGTransformer(const PiSDFGraph *graph) : piSdfGraph_{graph},
+                                                              externSRDAG_{false} {
     srdag_ = Spider::allocate<PiSDFGraph>(StackID::PISDF);
     Spider::construct(srdag_,
                       "srdag-" + graph->name(),
@@ -67,8 +66,13 @@ SRDAGTransformer::SRDAGTransformer(const PiSDFGraph *graph) : piSdfGraph_{graph}
                       0  /* = nConfigActors = */);
 }
 
+SRDAGTransformer::SRDAGTransformer(const PiSDFGraph *graph, PiSDFGraph *srdag) : piSdfGraph_{graph},
+                                                                                 srdag_{srdag},
+                                                                                 externSRDAG_{true} {
+}
+
 SRDAGTransformer::~SRDAGTransformer() {
-    if (srdag_) {
+    if (srdag_ && !externSRDAG_) {
         Spider::destroy(srdag_);
         Spider::deallocate(srdag_);
     }
@@ -83,23 +87,17 @@ void SRDAGTransformer::execute() {
     extractAndLinkActors(piSdfGraph_);
 
     /* == Iterate over the subgraphs == */
-    for (const auto *subgraph : piSdfGraph_->subgraphs()) {
-        auto *parent = subgraph->parent();
-
-        /* == Replace interfaces == */
-        for (const auto &input : subgraph->inputInterfaces()) {
-
-        }
-
-        /* == Extract actors of sub-graphs == */
-        extractAndLinkActors(subgraph);
-    }
-}
-
-void SRDAGTransformer::resume() {
-    if (stoppedFromConfig_) {
-
-    }
+//    for (const auto *subgraph : piSdfGraph_->subgraphs()) {
+//        auto *parent = subgraph->parent();
+//
+//        /* == Replace interfaces == */
+//        for (const auto &input : subgraph->inputInterfaces()) {
+//
+//        }
+//
+//        /* == Extract actors of sub-graphs == */
+//        extractAndLinkActors(subgraph);
+//    }
 }
 
 /* === Private method(s) === */
@@ -126,17 +124,7 @@ PiSDFVertex *SRDAGTransformer::copyVertex(const PiSDFVertex *vertex, std::uint32
     return copyVertex;
 }
 
-void SRDAGTransformer::extractConfigActors(const PiSDFGraph *graph) {
-    /* == Pre-cache (if needed) the number of config actors of current graph == */
-    srdag_->precacheConfigVertices(graph->nConfigs());
-
-    /* == Copy all config actors == */
-    for (const auto *vertex : graph->configActors()) {
-        copyVertex(vertex);
-    }
-}
-
-void SRDAGTransformer::extractAndLinkActors(const PiSDFGraph *graph, std::uint32_t instance) {
+void SRDAGTransformer::extractAndLinkActors(const PiSDFGraph *graph) {
     /* == Pre-cache (if needed) == */
     srdag_->precacheVertices(graph->nVertices());
     srdag_->precacheEdges(graph->nVertices());
@@ -152,19 +140,9 @@ void SRDAGTransformer::extractAndLinkActors(const PiSDFGraph *graph, std::uint32
         }
     }
 
-    /* == Replace interfaces == */
-    Spider::Array<Spider::Array<PiSDFVertex *>> inputIfArray{StackID::TRANSFO, graph->nInputInterfaces()};
-    Spider::Array<Spider::Array<PiSDFVertex *>> outputIfArray{StackID::TRANSFO, graph->nOutputInterfaces()};
-//    replaceInputInterfaces(const_cast<PiSDFGraph *>(graph), instance, inputIfArray);
-//    replaceOutputInterfaces(const_cast<PiSDFGraph *>(graph), instance, outputIfArray);
-
     /* == Do the linkage == */
     for (const auto *edge : graph->edges()) {
-        auto edgeLinker = EdgeLinker{edge,
-                                     edge->source()->type() == PiSDFVertexType::INTERFACE
-                                     ? inputIfArray[edge->source()->ix()] : vertex2Vertex[edge->source()->ix()],
-                                     edge->sink()->type() == PiSDFVertexType::INTERFACE
-                                     ? outputIfArray[edge->sink()->ix()] : vertex2Vertex[edge->sink()->ix()]};
+        auto edgeLinker = EdgeLinker{edge, vertex2Vertex[edge->source()->ix()], vertex2Vertex[edge->sink()->ix()]};
 
         /* == Do the linkage == */
         singleRateLinkage(edgeLinker);
@@ -209,20 +187,6 @@ void SRDAGTransformer::extractAndLinkActors(const PiSDFGraph *graph, std::uint32
     /* == Free memory of the arrays == */
     for (auto &array : vertex2Vertex) {
         Spider::destroy(&array);
-    }
-    for (auto &array : inputIfArray) {
-        Spider::destroy(&array);
-    }
-    for (auto &array : outputIfArray) {
-        Spider::destroy(&array);
-    }
-
-    /* == Iterate over subgraphs == */
-    for (const auto &subgraph : graph->subgraphs()) {
-        auto *parent = subgraph->parent();
-        for (std::uint32_t i = 0; i < parent->repetitionValue(); ++i) {
-            extractAndLinkActors(subgraph, i);
-        }
     }
 }
 
@@ -445,18 +409,3 @@ void SRDAGTransformer::reconnectGetter(const PiSDFEdge *edge, PiSDFVertex *delay
     srdag_->removeEdge(outputEdge);
     srdag_->removeVertex(end);
 }
-
-void SRDAGTransformer::replaceInputInterfaces(PiSDFGraph *graph,
-                                              std::uint32_t instance,
-                                              Spider::Array<Spider::Array<PiSDFVertex *>> &inputIfArray) {
-//    for (const auto *interface : graph->inputInterfaces()) {
-//        Spider::construct(&inputIfArray[interface->ix()], StackID::TRANSFO, 1);
-//        auto *duplicate = Spider::API::createDuplicate(graph, "duplicate-" + interface->name(), 0);
-//        inputIfArray[interface->ix()][0] = duplicate;
-//
-//        /* == Reconnect the vertex == */
-//        auto *parent = graph->parent();
-//        auto *srParent =
-//    }
-}
-
