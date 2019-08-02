@@ -45,7 +45,7 @@
 #include <graphs/pisdf/PiSDFVertex.h>
 #include <spider-api/pisdf.h>
 #include <graphs-tools/numerical/PiSDFAnalysis.h>
-#include <graphs-tools/transformation/SRDAGTransformer.h>
+#include <graphs-tools/transformation/StaticSRDAGTransformer.h>
 
 /* === Static variable(s) === */
 
@@ -53,8 +53,8 @@
 
 /* === Method(s) implementation === */
 
-SRDAGTransformer::SRDAGTransformer(const PiSDFGraph *graph) : piSdfGraph_{graph},
-                                                              externSRDAG_{false} {
+StaticSRDAGTransformer::StaticSRDAGTransformer(const PiSDFGraph *graph) : piSdfGraph_{graph},
+                                                                          externSRDAG_{false} {
     srdag_ = Spider::allocate<PiSDFGraph>(StackID::PISDF);
     Spider::construct(srdag_,
                       "srdag-" + graph->name(),
@@ -66,19 +66,19 @@ SRDAGTransformer::SRDAGTransformer(const PiSDFGraph *graph) : piSdfGraph_{graph}
                       0  /* = nConfigActors = */);
 }
 
-SRDAGTransformer::SRDAGTransformer(const PiSDFGraph *graph, PiSDFGraph *srdag) : piSdfGraph_{graph},
-                                                                                 srdag_{srdag},
-                                                                                 externSRDAG_{true} {
+StaticSRDAGTransformer::StaticSRDAGTransformer(const PiSDFGraph *graph, PiSDFGraph *srdag) : piSdfGraph_{graph},
+                                                                                             srdag_{srdag},
+                                                                                             externSRDAG_{true} {
 }
 
-SRDAGTransformer::~SRDAGTransformer() {
+StaticSRDAGTransformer::~StaticSRDAGTransformer() {
     if (srdag_ && !externSRDAG_) {
         Spider::destroy(srdag_);
         Spider::deallocate(srdag_);
     }
 }
 
-void SRDAGTransformer::execute() {
+void StaticSRDAGTransformer::execute() {
     if (!piSdfGraph_) {
         throwSpiderException("Cannot transform nullptr PiSDFGraph.");
     }
@@ -102,7 +102,7 @@ void SRDAGTransformer::execute() {
 
 /* === Private method(s) === */
 
-PiSDFVertex *SRDAGTransformer::copyVertex(const PiSDFVertex *vertex, std::uint32_t instance) {
+PiSDFVertex *StaticSRDAGTransformer::copyVertex(const PiSDFVertex *vertex, std::uint32_t instance) {
     auto *copyVertex = Spider::allocate<PiSDFVertex>(StackID::TRANSFO);
     Spider::construct(copyVertex,
                       StackID::TRANSFO,
@@ -124,7 +124,7 @@ PiSDFVertex *SRDAGTransformer::copyVertex(const PiSDFVertex *vertex, std::uint32
     return copyVertex;
 }
 
-void SRDAGTransformer::extractAndLinkActors(const PiSDFGraph *graph) {
+void StaticSRDAGTransformer::extractAndLinkActors(const PiSDFGraph *graph) {
     /* == Pre-cache (if needed) == */
     srdag_->precacheVertices(graph->nVertices());
     srdag_->precacheEdges(graph->nVertices());
@@ -190,7 +190,7 @@ void SRDAGTransformer::extractAndLinkActors(const PiSDFGraph *graph) {
     }
 }
 
-void SRDAGTransformer::singleRateLinkage(SRDAGTransformer::EdgeLinker &edgeLinker) {
+void StaticSRDAGTransformer::singleRateLinkage(StaticSRDAGTransformer::EdgeLinker &edgeLinker) {
     auto hasDelay = edgeLinker.delay != 0;
     Spider::Array<PiSDFVertex *> sourceLinkArray{StackID::TRANSFO,
                                                  edgeLinker.source->repetitionValue() + hasDelay};
@@ -288,8 +288,8 @@ void SRDAGTransformer::singleRateLinkage(SRDAGTransformer::EdgeLinker &edgeLinke
     }
 }
 
-void SRDAGTransformer::buildSourceLinkArray(SRDAGTransformer::EdgeLinker &edgeLinker,
-                                            Spider::Array<PiSDFVertex *> &sourceLinkArray) {
+void StaticSRDAGTransformer::buildSourceLinkArray(StaticSRDAGTransformer::EdgeLinker &edgeLinker,
+                                                  Spider::Array<PiSDFVertex *> &sourceLinkArray) {
     auto &sourceArray = *(edgeLinker.sourceArray);
     auto hasDelay = edgeLinker.delay != 0;
 
@@ -329,8 +329,8 @@ void SRDAGTransformer::buildSourceLinkArray(SRDAGTransformer::EdgeLinker &edgeLi
     }
 }
 
-void SRDAGTransformer::buildSinkLinkArray(SRDAGTransformer::EdgeLinker &edgeLinker,
-                                          Spider::Array<SinkLinker> &sinkLinkArray) {
+void StaticSRDAGTransformer::buildSinkLinkArray(StaticSRDAGTransformer::EdgeLinker &edgeLinker,
+                                                Spider::Array<SinkLinker> &sinkLinkArray) {
     auto &sinkArray = *(edgeLinker.sinkArray);
 
     /* == Create the end vertex if needed and put it at the end == */
@@ -361,7 +361,7 @@ void SRDAGTransformer::buildSinkLinkArray(SRDAGTransformer::EdgeLinker &edgeLink
     }
 }
 
-void SRDAGTransformer::reconnectSetter(const PiSDFEdge *edge, PiSDFVertex *delayVertex, PiSDFVertex *sink) {
+void StaticSRDAGTransformer::reconnectSetter(const PiSDFEdge *edge, PiSDFVertex *delayVertex, PiSDFVertex *sink) {
     auto *setterEdge = delayVertex->inputEdge(0);
     setterEdge->disconnectSink();
     auto *inputEdge = sink->inputEdge(edge->sinkPortIx());
@@ -384,7 +384,7 @@ void SRDAGTransformer::reconnectSetter(const PiSDFEdge *edge, PiSDFVertex *delay
     srdag_->removeVertex(init);
 }
 
-void SRDAGTransformer::reconnectGetter(const PiSDFEdge *edge, PiSDFVertex *delayVertex, PiSDFVertex *source) {
+void StaticSRDAGTransformer::reconnectGetter(const PiSDFEdge *edge, PiSDFVertex *delayVertex, PiSDFVertex *source) {
     auto *getterEdge = delayVertex->outputEdge(0);
     getterEdge->disconnectSource();
     auto *outputEdge = source->outputEdge(edge->sourcePortIx());

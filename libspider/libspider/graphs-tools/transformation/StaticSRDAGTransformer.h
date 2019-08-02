@@ -37,8 +37,8 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_SRDAGTRANSFORMER_H
-#define SPIDER2_SRDAGTRANSFORMER_H
+#ifndef SPIDER2_STATICSRDAGTRANSFORMER_H
+#define SPIDER2_STATICSRDAGTRANSFORMER_H
 
 /* === Include(s) === */
 
@@ -54,13 +54,13 @@ class PiSDFVertex;
 
 /* === Class definition === */
 
-class SRDAGTransformer {
+class StaticSRDAGTransformer {
 public:
-    explicit SRDAGTransformer(const PiSDFGraph *graph);
+    explicit StaticSRDAGTransformer(const PiSDFGraph *graph);
 
-    SRDAGTransformer(const PiSDFGraph *graph, PiSDFGraph *srdag);
+    StaticSRDAGTransformer(const PiSDFGraph *graph, PiSDFGraph *srdag);
 
-    ~SRDAGTransformer();
+    ~StaticSRDAGTransformer();
 
     /* === Method(s) === */
 
@@ -139,8 +139,8 @@ private:
 
 /* === Inline method(s) === */
 
-const PiSDFGraph *SRDAGTransformer::srdag() const {
+const PiSDFGraph *StaticSRDAGTransformer::srdag() const {
     return srdag_;
 }
 
-#endif //SPIDER2_SRDAGTRANSFORMER_H
+#endif //SPIDER2_STATICSRDAGTRANSFORMER_H
