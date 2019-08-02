@@ -82,6 +82,9 @@ void StaticSRDAGTransformer::execute() {
     if (!piSdfGraph_) {
         throwSpiderException("Cannot transform nullptr PiSDFGraph.");
     }
+    if (!piSdfGraph_->isStatic()) {
+        throwSpiderException("Cannot transform non-static graph.");
+    }
 
     /* == Extract the vertices from the top graph == */
     extractAndLinkActors(piSdfGraph_);
