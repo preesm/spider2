@@ -155,14 +155,14 @@ const char *AbstractAllocator::getName() const {
 
 void AbstractAllocator::printStats() const {
     Spider::Logger::printInfo(LOG_GENERAL, "Allocator: %s\n", getName());
-    Spider::Logger::printInfo(LOG_GENERAL, "       ==> max usage:    %lf %s\n", getByteNormalizedSize(peak_),
+    Spider::Logger::printInfo(LOG_GENERAL, "       ==> max usage:    %.6lf %s\n", getByteNormalizedSize(peak_),
                               getByteUnitString(peak_));
     if (averageUse_) {
-        Spider::Logger::printInfo(LOG_GENERAL, "       ==> avg usage:    %lf %s\n",
+        Spider::Logger::printInfo(LOG_GENERAL, "       ==> avg usage:    %.6lf %s\n",
                                   getByteNormalizedSize(averageUse_ / numberAverage_),
                                   getByteUnitString(averageUse_ / numberAverage_));
     }
-    Spider::Logger::printInfo(LOG_GENERAL, "       ==> still in use: %lf %s\n", getByteNormalizedSize(used_),
+    Spider::Logger::printInfo(LOG_GENERAL, "       ==> still in use: %.6lf %s\n", getByteNormalizedSize(used_),
                               getByteUnitString(used_));
 }
 

@@ -4,6 +4,7 @@
 
 #include <common/cxx11-printf/Formatters.h>
 #include <common/cxx11-printf/Itoa.h>
+#include <common/cxx11-printf/Ftoa.h>
 #include <algorithm>
 #include <cassert>
 #include <cstring>
@@ -96,7 +97,8 @@ namespace Spider {
             }
 
             template<class R, class T>
-            constexpr R formatted_pointer(T p, typename std::enable_if<std::is_convertible<T, const void *>::value>::type * = 0) {
+            constexpr R
+            formatted_pointer(T p, typename std::enable_if<std::is_convertible<T, const void *>::value>::type * = 0) {
                 return reinterpret_cast<R>(reinterpret_cast<uintptr_t>(p));
             }
 
@@ -119,12 +121,14 @@ namespace Spider {
             }
 
             template<class R, class T>
-            constexpr R formatted_float(T n, typename std::enable_if<std::is_floating_point<T>::value>::type * = 0) {
+            constexpr R formatted_float(T n, typename std::enable_if<
+                    std::is_floating_point<T>::value || std::is_integral<T>::value>::type * = 0) {
                 return static_cast<R>(n);
             }
 
             template<class R, class T>
-            R formatted_float(T n, typename std::enable_if<!std::is_floating_point<T>::value>::type * = 0) {
+            R formatted_float(T n, typename std::enable_if<
+                    !std::is_floating_point<T>::value && !std::is_integral<T>::value>::type * = 0) {
                 (void) n;
                 throw format_error("Non-Floating_point Argument for Floating_point Format");
             }
@@ -190,15 +194,34 @@ namespace Spider {
 
                 char ch = *format;
                 switch (ch) {
+                    case 'a':
+                    case 'A':
+                        // TODO (farresti): implement hexa formatting for float numbers.. for now just consume argument.
+                        return Printf(ctx, format + 1, ts...);
                     case 'e':
                     case 'E':
                     case 'f':
                     case 'F':
-                    case 'a':
-                    case 'A':
                     case 'g':
                     case 'G':
-                        // TODO(eteran): implement float formatting... for now, just consume the argument
+                        if (precision < 0) {
+                            /* == Default floating_point precision == */
+                            precision = 6;
+                        }
+                        switch (modifier) {
+                            case Modifiers::MOD_LONG_DOUBLE:
+                                s_ptr = ftoa(num_buf, ch, precision, formatted_float<long double>(arg),
+                                             width,
+                                             flags, &slen);
+                                break;
+                            case Modifiers::MOD_LONG:
+                            default:
+                                s_ptr = ftoa(num_buf, ch, precision, formatted_float<double>(arg),
+                                             width,
+                                             flags, &slen);
+                                break;
+                        }
+                        output_string(ch, s_ptr, precision, width, flags, slen, ctx);
                         return Printf(ctx, format + 1, ts...);
 
                     case 'p':
@@ -567,22 +590,24 @@ namespace Spider {
 //------------------------------------------------------------------------------
         template<class Context, class... Ts>
         int Printf(Context &ctx, const char *format, const Ts &... ts) {
-
             assert(format);
-
+            constexpr auto n_args = sizeof...(ts);
+            std::uint16_t format_specifier = 0;
             while (*format != '\0') {
-                if (*format == '%') {
+                if (*format == '%' && *++format != '%') {
+                    --format;
+                    format_specifier += 1;
                     // %[flag][width][.precision][length]char
-
                     // this recurses into get_width -> get_precision -> get_length -> process_format
                     return detail::get_flags(ctx, format, ts...);
                 } else {
                     ctx.write(*format);
                 }
-
                 ++format;
             }
-
+            if (format_specifier != n_args) {
+                throw format_error("Bad format: expected format specifier.");
+            }
             // clean up any trailing stuff
             return Printf(ctx, format + 1, ts...);
         }
