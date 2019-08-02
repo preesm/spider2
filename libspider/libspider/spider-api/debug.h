@@ -44,29 +44,53 @@
 
 #include <string>
 
+/* === Enumeration(s) === */
+
+typedef enum {
+    LOG_LRT = 0,        /*! LRT logger. When enabled, this will print LRT logged information. */
+    LOG_TIME = 1,       /*! TIME logger. When enabled this will print time logged information */
+    LOG_GENERAL = 2,    /*! GENERAL purpose logger, used for information about almost everything */
+    LOG_SCHEDULE = 3,   /*! SCHEDULE logger. When enabled, this will print Schedule logged information. */
+    LOG_MEMORY = 4,     /*! MEMORY logger. When enabled, this will print Memory logged information. */
+    LOG_TRANSFO = 5,    /*! TRANSFO logger. When enabled, this will print transformation logged information. */
+} LoggerType;
+
 /* === Methods prototype === */
 
 namespace Spider {
+    namespace API {
+        /**
+         * @brief Export the Gantt of the real execution trace of the application for 1 graph iteration.
+         * @remark Requires to have enable the execution traces with @refitem Spider::enableTrace.
+         * @param path Path of the file.
+         */
+        void exportPostExecGantt(const std::string &path);
 
-    /**
-     * @brief Export the Gantt of the real execution trace of the application for 1 graph iteration.
-     * @remark Requires to have enable the execution traces with @refitem Spider::enableTrace.
-     * @param path Path of the file.
-     */
-    void exportPostExecGantt(const std::string &path);
+        /**
+         * @brief Export the expected Gantt obtained by the scheduling algorithm.
+         * @param path Path of the file.
+         */
+        void exportPreExecGantt(const std::string &path);
 
-    /**
-     * @brief Export the expected Gantt obtained by the scheduling algorithm.
-     * @param path Path of the file.
-     */
-    void exportPreExecGantt(const std::string &path);
+        /**
+         * @brief Export the equivalent Single-Rate Directed Acyclic Graph (SR-DAG) of the application graph
+         * after one graph iteration to a .dot file.
+         * @param path  Path of the file.
+         */
+        void exportSRDAG(const std::string &path);
 
-    /**
-     * @brief Export the equivalent Single-Rate Directed Acyclic Graph (SR-DAG) of the application graph
-     * after one graph iteration to a .dot file.
-     * @param path  Path of the file.
-     */
-    void exportSRDAG(const std::string &path);
+        /**
+         * @brief Enable a given logger.
+         * @param type @refitem LoggerType to enable.
+         */
+        void enableLogger(LoggerType type);
+
+        /**
+         * @brief Disable a given logger.
+         * @param type @refitem LoggerType to disable.
+         */
+        void disableLogger(LoggerType type);
+    }
 }
 
 #endif //SPIDER2_DEBUG_H

@@ -73,10 +73,7 @@ PiSDFInterface::PiSDFInterface(PiSDFGraph *graph,
 }
 
 std::uint16_t PiSDFInterface::correspondingPortIx() const {
-    if (interfaceType_ == PiSDFInterfaceType::INPUT) {
-        return inputEdge()->sinkPortIx();
-    }
-    return outputEdge()->sourcePortIx();
+    return ix();
 }
 
 void PiSDFInterface::exportDot(FILE *file, const std::string &offset) const {

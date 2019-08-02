@@ -44,7 +44,8 @@
 #include <graphs/pisdf/PiSDFGraph.h>
 #include <graphs/pisdf/PiSDFVertex.h>
 #include <spider-api/pisdf.h>
-#include "SRDAGTransformer.h"
+#include <graphs-tools/numerical/PiSDFAnalysis.h>
+#include <graphs-tools/transformation/SRDAGTransformer.h>
 
 /* === Static variable(s) === */
 
@@ -135,14 +136,13 @@ void SRDAGTransformer::extractConfigActors(const PiSDFGraph *graph) {
     }
 }
 
-void SRDAGTransformer::extractAndLinkActors(const PiSDFGraph *graph) {
+void SRDAGTransformer::extractAndLinkActors(const PiSDFGraph *graph, std::uint32_t instance) {
     /* == Pre-cache (if needed) == */
     srdag_->precacheVertices(graph->nVertices());
     srdag_->precacheEdges(graph->nVertices());
 
     /* == Array to keep track of who has been done == */
-    Spider::Array<Spider::Array<PiSDFVertex *>> vertex2Vertex{StackID::TRANSFO,
-                                                              graph->nVertices() + graph->nInterfaces()};
+    Spider::Array<Spider::Array<PiSDFVertex *>> vertex2Vertex{StackID::TRANSFO, graph->nVertices()};
 
     /* == Copy all vertices == */
     for (const auto *vertex : graph->vertices()) {
@@ -153,11 +153,18 @@ void SRDAGTransformer::extractAndLinkActors(const PiSDFGraph *graph) {
     }
 
     /* == Replace interfaces == */
-//    replaceInputInterfaces();
+    Spider::Array<Spider::Array<PiSDFVertex *>> inputIfArray{StackID::TRANSFO, graph->nInputInterfaces()};
+    Spider::Array<Spider::Array<PiSDFVertex *>> outputIfArray{StackID::TRANSFO, graph->nOutputInterfaces()};
+//    replaceInputInterfaces(const_cast<PiSDFGraph *>(graph), instance, inputIfArray);
+//    replaceOutputInterfaces(const_cast<PiSDFGraph *>(graph), instance, outputIfArray);
 
     /* == Do the linkage == */
     for (const auto *edge : graph->edges()) {
-        auto edgeLinker = EdgeLinker{edge, vertex2Vertex};
+        auto edgeLinker = EdgeLinker{edge,
+                                     edge->source()->type() == PiSDFVertexType::INTERFACE
+                                     ? inputIfArray[edge->source()->ix()] : vertex2Vertex[edge->source()->ix()],
+                                     edge->sink()->type() == PiSDFVertexType::INTERFACE
+                                     ? outputIfArray[edge->sink()->ix()] : vertex2Vertex[edge->sink()->ix()]};
 
         /* == Do the linkage == */
         singleRateLinkage(edgeLinker);
@@ -203,10 +210,19 @@ void SRDAGTransformer::extractAndLinkActors(const PiSDFGraph *graph) {
     for (auto &array : vertex2Vertex) {
         Spider::destroy(&array);
     }
+    for (auto &array : inputIfArray) {
+        Spider::destroy(&array);
+    }
+    for (auto &array : outputIfArray) {
+        Spider::destroy(&array);
+    }
 
     /* == Iterate over subgraphs == */
     for (const auto &subgraph : graph->subgraphs()) {
-        extractAndLinkActors(subgraph);
+        auto *parent = subgraph->parent();
+        for (std::uint32_t i = 0; i < parent->repetitionValue(); ++i) {
+            extractAndLinkActors(subgraph, i);
+        }
     }
 }
 
@@ -330,12 +346,12 @@ void SRDAGTransformer::buildSourceLinkArray(SRDAGTransformer::EdgeLinker &edgeLi
 
     /* == Set the sources or sources-fork == */
     for (auto *src : sourceArray) {
-        auto lowerDep = computeProdLowerDep(edgeLinker.sinkRate, edgeLinker.sourceRate, edgeLinker.sourceCount,
-                                            edgeLinker.delay,
-                                            edgeLinker.sink->repetitionValue());
-        auto upperDep = computeProdUpperDep(edgeLinker.sinkRate, edgeLinker.sourceRate, edgeLinker.sourceCount,
-                                            edgeLinker.delay,
-                                            edgeLinker.sink->repetitionValue());
+        auto lowerDep = Spider::computeProdLowerDep(edgeLinker.sinkRate, edgeLinker.sourceRate, edgeLinker.sourceCount,
+                                                    edgeLinker.delay,
+                                                    edgeLinker.sink->repetitionValue());
+        auto upperDep = Spider::computeProdUpperDep(edgeLinker.sinkRate, edgeLinker.sourceRate, edgeLinker.sourceCount,
+                                                    edgeLinker.delay,
+                                                    edgeLinker.sink->repetitionValue());
         if (lowerDep == upperDep) {
             sourceLinkArray[edgeLinker.sourceCount + hasDelay] = src;
         } else {
@@ -360,8 +376,8 @@ void SRDAGTransformer::buildSinkLinkArray(SRDAGTransformer::EdgeLinker &edgeLink
         lastSinkLinker.vertex = end;
         lastSinkLinker.sinkRate = edgeLinker.delay;
         lastSinkLinker.sinkPortIx = 0;
-        lastSinkLinker.lowerDep = computeConsLowerDep(edgeLinker.sinkRate, edgeLinker.sourceRate,
-                                                      edgeLinker.sink->repetitionValue(), edgeLinker.delay);
+        lastSinkLinker.lowerDep = Spider::computeConsLowerDep(edgeLinker.sinkRate, edgeLinker.sourceRate,
+                                                              edgeLinker.sink->repetitionValue(), edgeLinker.delay);
         lastSinkLinker.upperDep = edgeLinker.source->repetitionValue() - 1;
     }
 
@@ -371,10 +387,12 @@ void SRDAGTransformer::buildSinkLinkArray(SRDAGTransformer::EdgeLinker &edgeLink
         sinkLinker.vertex = snk;
         sinkLinker.sinkRate = edgeLinker.sinkRate;
         sinkLinker.sinkPortIx = edgeLinker.sinkPortIx;
-        sinkLinker.lowerDep = computeConsLowerDep(edgeLinker.sinkRate, edgeLinker.sourceRate, edgeLinker.sinkCount,
-                                                  edgeLinker.delay);
-        sinkLinker.upperDep = computeConsUpperDep(edgeLinker.sinkRate, edgeLinker.sourceRate, edgeLinker.sinkCount,
-                                                  edgeLinker.delay);
+        sinkLinker.lowerDep = Spider::computeConsLowerDep(edgeLinker.sinkRate, edgeLinker.sourceRate,
+                                                          edgeLinker.sinkCount,
+                                                          edgeLinker.delay);
+        sinkLinker.upperDep = Spider::computeConsUpperDep(edgeLinker.sinkRate, edgeLinker.sourceRate,
+                                                          edgeLinker.sinkCount,
+                                                          edgeLinker.delay);
         edgeLinker.sinkCount += 1;
     }
 }
@@ -426,5 +444,19 @@ void SRDAGTransformer::reconnectGetter(const PiSDFEdge *edge, PiSDFVertex *delay
     outputEdge->disconnectSink();
     srdag_->removeEdge(outputEdge);
     srdag_->removeVertex(end);
+}
+
+void SRDAGTransformer::replaceInputInterfaces(PiSDFGraph *graph,
+                                              std::uint32_t instance,
+                                              Spider::Array<Spider::Array<PiSDFVertex *>> &inputIfArray) {
+//    for (const auto *interface : graph->inputInterfaces()) {
+//        Spider::construct(&inputIfArray[interface->ix()], StackID::TRANSFO, 1);
+//        auto *duplicate = Spider::API::createDuplicate(graph, "duplicate-" + interface->name(), 0);
+//        inputIfArray[interface->ix()][0] = duplicate;
+//
+//        /* == Reconnect the vertex == */
+//        auto *parent = graph->parent();
+//        auto *srParent =
+//    }
 }
 

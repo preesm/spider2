@@ -43,8 +43,10 @@
 #include <cstdint>
 #include <cstdio>
 #include <mutex>
-#include <common/cxx11-printf/printf.h>
+#include <common/cxx11-printf/Printf.h>
 #include <common/SpiderException.h>
+#include <spider-api/general.h>
+#include <spider-api/debug.h>
 
 /* === Define(s) === */
 
@@ -57,17 +59,6 @@
 #define LOG_CYN "\x1B[36m"
 #define LOG_WHT "\x1B[37m"
 #define LOG_NRM "\x1B[0m"
-
-/* === Enumeration(s) === */
-
-typedef enum {
-    LOG_LRT = 0,        /*! LRT logger. When enabled, this will print LRT logged information. */
-    LOG_TIME = 1,       /*! TIME logger. When enabled this will print time logged information */
-    LOG_GENERAL = 2,    /*! GENERAL purpose logger, used for information about almost everything */
-    LOG_SCHEDULE = 3,   /*! SCHEDULE logger. When enabled, this will print Schedule logged information. */
-    LOG_MEMORY = 4,     /*! MEMORY logger. When enabled, this will print Memory logged information. */
-    LOG_TRANSFO = 5,    /*! TRANSFO logger. When enabled, this will print transformation logged information. */
-} LoggerType;
 
 /* === Namespace === */
 
@@ -176,7 +167,9 @@ namespace Spider {
          */
         template<class... Ts>
         inline void printVerbose(LoggerType type, const char *fmt, const Ts &...ts) {
-            print(type, LOG_GRN, "VERB", fmt, ts...);
+            if (Spider::API::verbose()) {
+                print(type, LOG_GRN, "VERB", fmt, ts...);
+            }
         }
     }
 }

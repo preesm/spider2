@@ -93,12 +93,13 @@ private:
         Spider::Array<PiSDFVertex *> *sinkArray = nullptr;
 
         EdgeLinker(const PiSDFEdge *edge,
-                   Spider::Array<Spider::Array<PiSDFVertex *>> &vertex2Vertex) : source{edge->source()},
-                                                                                 sink{edge->sink()} {
+                   Spider::Array<PiSDFVertex *> &sourceArray,
+                   Spider::Array<PiSDFVertex *> &sinkArray) : source{edge->source()},
+                                                              sink{edge->sink()},
+                                                              sourceArray{&sourceArray},
+                                                              sinkArray{&sinkArray} {
             sourceRate = edge->sourceRate();
             sinkRate = edge->sinkRate();
-            sourceArray = &vertex2Vertex[edge->source()->ix()];
-            sinkArray = &vertex2Vertex[edge->sink()->ix()];
             delay = edge->delayValue();
             sourcePortIx = edge->sourcePortIx();
             sinkPortIx = edge->sinkPortIx();
@@ -119,14 +120,13 @@ private:
         ~SinkLinker() = default;
     };
 
-
     /* === Private method(s) === */
 
     PiSDFVertex *copyVertex(const PiSDFVertex *vertex, std::uint32_t instance = 0);
 
     void extractConfigActors(const PiSDFGraph *graph);
 
-    void extractAndLinkActors(const PiSDFGraph *graph);
+    void extractAndLinkActors(const PiSDFGraph *graph, std::uint32_t instance = 0);
 
     void singleRateLinkage(EdgeLinker &edgeLinker);
 
@@ -138,27 +138,13 @@ private:
 
     void reconnectGetter(const PiSDFEdge *edge, PiSDFVertex *delayVertex, PiSDFVertex *source);
 
-    static inline std::int64_t computeConsLowerDep(std::int64_t sinkRate,
-                                                   std::int64_t sourceRate,
-                                                   std::uint32_t instance,
-                                                   std::int64_t delay);
+    void replaceInputInterfaces(PiSDFGraph *graph,
+                                std::uint32_t instance,
+                                Spider::Array<Spider::Array<PiSDFVertex *>> &inputIfArray);
 
-    static inline std::int64_t computeConsUpperDep(std::int64_t sinkRate,
-                                                   std::int64_t sourceRate,
-                                                   std::uint32_t instance,
-                                                   std::int64_t delay);
-
-    static inline std::int64_t computeProdLowerDep(std::int64_t sinkRate,
-                                                   std::int64_t sourceRate,
-                                                   std::uint32_t instance,
-                                                   std::int64_t delay,
-                                                   std::int64_t sinkRepetitionValue);
-
-    static inline std::int64_t computeProdUpperDep(std::int64_t sinkRate,
-                                                   std::int64_t sourceRate,
-                                                   std::uint32_t instance,
-                                                   std::int64_t delay,
-                                                   std::int64_t sinkRepetitionValue);
+    void replaceOutputInterfaces(PiSDFGraph *graph,
+                                 std::uint32_t instance,
+                                 Spider::Array<Spider::Array<PiSDFVertex *>> &outputIfArray);
 };
 
 /* === Inline method(s) === */
@@ -166,46 +152,5 @@ private:
 const PiSDFGraph *SRDAGTransformer::srdag() const {
     return srdag_;
 }
-
-std::int64_t SRDAGTransformer::computeConsLowerDep(std::int64_t sinkRate,
-                                                   std::int64_t sourceRate,
-                                                   std::uint32_t instance,
-                                                   std::int64_t delay) {
-    auto consumed = instance * sinkRate - delay;
-    auto lowerDep = Spider::Math::floorDiv(consumed, sourceRate);
-    constexpr std::int64_t initBound = -1;
-    return std::max(initBound, lowerDep);
-}
-
-std::int64_t SRDAGTransformer::computeConsUpperDep(std::int64_t sinkRate,
-                                                   std::int64_t sourceRate,
-                                                   std::uint32_t instance,
-                                                   std::int64_t delay) {
-    auto consumed = (instance + 1) * sinkRate - delay - 1;
-    auto lowerDep = Spider::Math::floorDiv(consumed, sourceRate);
-    constexpr std::int64_t initBound = -1;
-    return std::max(initBound, lowerDep);
-}
-
-std::int64_t SRDAGTransformer::computeProdLowerDep(std::int64_t sinkRate,
-                                                   std::int64_t sourceRate,
-                                                   std::uint32_t instance,
-                                                   std::int64_t delay,
-                                                   std::int64_t sinkRepetitionValue) {
-    auto produced = instance * sourceRate + delay;
-    auto lowerDep = produced / sinkRate;
-    return std::min(sinkRepetitionValue, lowerDep);
-}
-
-std::int64_t SRDAGTransformer::computeProdUpperDep(std::int64_t sinkRate,
-                                                   std::int64_t sourceRate,
-                                                   std::uint32_t instance,
-                                                   std::int64_t delay,
-                                                   std::int64_t sinkRepetitionValue) {
-    auto produced = (instance + 1) * sourceRate + delay - 1;
-    auto lowerDep = produced / sinkRate;
-    return std::min(sinkRepetitionValue, lowerDep);
-}
-
 
 #endif //SPIDER2_SRDAGTRANSFORMER_H

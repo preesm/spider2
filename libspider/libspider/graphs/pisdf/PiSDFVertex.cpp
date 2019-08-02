@@ -105,7 +105,9 @@ PiSDFVertex::PiSDFVertex(StackID stack,
         Spider::construct(subgraph_, this, std::string(name_), 0, 0, 0, nEdgesIN, nEdgesOUT);
     }
 
-    graph->addVertex(this);
+    if (type != PiSDFVertexType::INTERFACE) {
+        graph->addVertex(this);
+    }
 }
 
 PiSDFVertex::PiSDFVertex(PiSDFGraph *graph,

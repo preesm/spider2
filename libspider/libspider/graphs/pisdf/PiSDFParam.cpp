@@ -51,9 +51,9 @@ PiSDFParam::PiSDFParam(PiSDFGraph *graph,
                                                         name_{std::move(name)},
                                                         expression_{graph, expression} {
     if (expression_.isStatic()) {
-        type_ = PiSDFParamType::DYNAMIC_DEPENDENT;
-    } else {
         type_ = PiSDFParamType::STATIC;
+    } else {
+        type_ = PiSDFParamType::DYNAMIC_DEPENDENT;
     }
 
     /* == Transform the name to lower case for the expression parser == */

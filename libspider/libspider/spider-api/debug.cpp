@@ -40,13 +40,14 @@
 
 /* === Includes === */
 
+#include <common/Logger.h>
 #include <common/SpiderException.h>
+#include <spider-api/debug.h>
 #include <spider.h>
-#include "debug.h"
 
 /* === Methods implementation === */
 
-void Spider::exportPostExecGantt(const std::string &path) {
+void Spider::API::exportPostExecGantt(const std::string &path) {
     if (!Spider::API::trace()) {
         throwSpiderException("Can not export graph if traces are disable. Use Spider::enableTrace().");
     }
@@ -60,7 +61,7 @@ void Spider::exportPostExecGantt(const std::string &path) {
     /* == Close the file == */
 }
 
-void Spider::exportPreExecGantt(const std::string &path) {
+void Spider::API::exportPreExecGantt(const std::string &path) {
     /* == Open the file for the gantt == */
 
     /* == Get the schedule == */
@@ -70,7 +71,7 @@ void Spider::exportPreExecGantt(const std::string &path) {
     /* == Close the file == */
 }
 
-void Spider::exportSRDAG(const std::string &path) {
+void Spider::API::exportSRDAG(const std::string &path) {
     /* == Open the file for the SR-DAG == */
 
     /* == Get the PiSDF graph and transform it to SR-DAG == */
@@ -78,4 +79,12 @@ void Spider::exportSRDAG(const std::string &path) {
     /* == Print the SR-DAG == */
 
     /* == Close the file == */
+}
+
+void Spider::API::enableLogger(LoggerType type) {
+    Spider::Logger::enable(type);
+}
+
+void Spider::API::disableLogger(LoggerType type) {
+    Spider::Logger::disable(type);
 }
