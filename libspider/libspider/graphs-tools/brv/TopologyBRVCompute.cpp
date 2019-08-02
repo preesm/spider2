@@ -98,6 +98,9 @@ void TopologyBRVCompute::execute() {
         /* == Update the repetition vector values using the interfaces of the graph == */
         updateBRV(edgeArray, component);
     }
+
+    /* == Print the BRV (in VERBOSE mode only) == */
+    BRVCompute::print();
 }
 
 bool TopologyBRVCompute::isVertexExecutable(const PiSDFVertex *vertex) {

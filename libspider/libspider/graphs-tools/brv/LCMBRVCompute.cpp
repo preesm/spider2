@@ -78,6 +78,9 @@ void LCMBRVCompute::execute() {
         /* == Check validity of the obtained repetition vector == */
         checkValidity(edgeArray);
     }
+
+    /* == Print BRV if VERBOSE == */
+    BRVCompute::print();
 }
 
 /* === Private method(s) implementation === */

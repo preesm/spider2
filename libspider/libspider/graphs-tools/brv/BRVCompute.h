@@ -96,7 +96,14 @@ protected:
     PiSDFGraph *graph_ = nullptr;
     Spider::vector<BRVComponent> connectedComponents_;
 
-    /* === Private method(s) === */
+    /* === Protected method(s) === */
+
+    /**
+     * @brief Print the BRV (only if VERBOSE is enabled).
+     */
+    void print() const;
+
+    /* === Static method(s) === */
 
     /**
      * @brief Extract all connected components of the current graph.

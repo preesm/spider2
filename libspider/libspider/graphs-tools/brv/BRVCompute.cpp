@@ -183,3 +183,12 @@ std::uint64_t BRVCompute::updateBRVFromCFGActor(const PiSDFEdge *edge, std::uint
     }
     return 1;
 }
+
+void BRVCompute::print() const {
+    Spider::Logger::printVerbose(LOG_TRANSFO, "BRV values\n");
+    for (const auto &vertex : graph_->vertices()) {
+        Spider::Logger::printVerbose(LOG_TRANSFO, ">> Vertex: %-20s --> RV[%" PRIu32"]\n",
+                                     vertex->name().c_str(),
+                                     vertex->repetitionValue());
+    }
+}
