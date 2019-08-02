@@ -1,60 +1,9 @@
-/*
- * This project is dual licensed under the BSD 3-Clause License and under the Apache License version 2.0
- *
- * --------------------------------------------------------------------------------
- * BSD 3-Clause License
- *
- * Copyright (c) 2019, Evan Teran
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  Redistributions of source code must retain the above copyright notice, this
- *  list of conditions and the following disclaimer.
- *
- *   Redistributions in binary form must reproduce the above copyright notice,
- *   this list of conditions and the following disclaimer in the documentation
- *   and/or other materials provided with the distribution.
- *
- *    Neither the name of the copyright holder nor the names of its
- *    contributors may be used to endorse or promote products derived from
- *    this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * --------------------------------------------------------------------------------
- * Copyright 2019 Evan Teran
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- *
- * This code is originated from https://github.com/eteran/cxx11_printf.
- * Slight modifications have been done in order to uniformize with the rest of the Spider code base.
- */
+
 #ifndef PRINTF_20160922_H_
 #define PRINTF_20160922_H_
 
-#include "formatters.h"
-
+#include <common/cxx11-printf/Formatters.h>
+#include <common/cxx11-printf/Itoa.h>
 #include <algorithm>
 #include <cassert>
 #include <cstring>
@@ -65,300 +14,19 @@
 
 namespace Spider {
     namespace cxx11 {
-
         struct format_error : std::runtime_error {
             explicit format_error(const char *what_arg) : std::runtime_error(what_arg) {
             };
         };
 
         namespace detail {
-
-            enum class Modifiers {
-                MOD_NONE,
-                MOD_CHAR,
-                MOD_SHORT,
-                MOD_LONG,
-                MOD_LONG_LONG,
-                MOD_LONG_DOUBLE,
-                MOD_INTMAX_T,
-                MOD_SIZE_T,
-                MOD_PTRDIFF_T
-            };
-
-            struct Flags {
-                uint8_t justify  : 1;
-                uint8_t sign     : 1;
-                uint8_t space    : 1;
-                uint8_t prefix   : 1;
-                uint8_t padding  : 1;
-                uint8_t reserved : 3;
-            };
-
             static_assert(sizeof(Flags) == sizeof(uint8_t), "");
 
-// NOTE(eteran): by placing this in a class, it allows us to do things like specialization a lot easier
-            template<unsigned int Divisor>
-            struct itoa_helper;
-
-            template<>
-            struct itoa_helper<10> {
-                static constexpr int Divisor = 10;
-
-            public:
-                //------------------------------------------------------------------------------
-                // Name: format
-                // Desc: returns the value of d as a C-string, formatted based on Divisor,
-                //       and flags. places the length of the resultant string in *rlen
-                //------------------------------------------------------------------------------
-                template<class T, size_t N>
-                static const char *
-                format(char (&buf)[N], T d, int width, Flags flags, const char *alphabet, size_t *rlen) {
-
-                    typename std::make_unsigned<T>::type ud = d;
-
-                    char *p = buf + N;
-                    *--p = '\0';
-
-                    // reserve space for leading chars as needed
-                    // and if necessary negate the value in ud
-                    if (d < 0) {
-                        ud = -d;
-                        width -= 1;
-                    } else if (flags.space) {
-                        width -= 1;
-                    } else if (flags.sign) {
-                        width -= 1;
-                    }
-
-                    // Divide UD by Divisor until UD == 0.
-                    int digits = 0;
-                    for (; ud; ud /= Divisor) {
-                        const int remainder = (ud % Divisor);
-                        *--p = alphabet[remainder];
-                        ++digits;
-                    }
-
-                    // add in any necessary padding
-                    if (flags.padding) {
-                        while (width-- > digits) {
-                            *--p = '0';
-                        }
-                    }
-
-                    // add the prefix as needed
-                    if (d < 0) {
-                        *--p = '-';
-                    } else if (flags.space) {
-                        *--p = ' ';
-                    } else if (flags.sign) {
-                        *--p = '+';
-                    }
-
-                    *rlen = (buf + N) - p;
-                    return p;
-                }
-            };
-
-// Specialization for base 16 so we can make some assumptions
-            template<>
-            struct itoa_helper<16> {
-                static constexpr int Shift = 4;
-                static constexpr int Mask = 0x0f;
-
-            public:
-                //------------------------------------------------------------------------------
-                // Name: format
-                // Desc: returns the value of d as a C-string, formatted based on Divisor,
-                //       and flags. places the length of the resultant string in *rlen
-                //------------------------------------------------------------------------------
-                template<class T, size_t N>
-                static const char *
-                format(char (&buf)[N], T d, int width, Flags flags, const char *alphabet, size_t *rlen) {
-
-                    typename std::make_unsigned<T>::type ud = d;
-
-                    char *p = buf + N;
-                    *--p = '\0';
-
-                    // add the prefix as needed
-                    if (flags.prefix) {
-                        width -= 2;
-                    }
-
-                    // Divide UD by Divisor until UD == 0.
-                    int digits = 0;
-                    for (; ud; ud >>= Shift) {
-                        const int remainder = (ud & Mask);
-                        *--p = alphabet[remainder];
-                        ++digits;
-                    }
-
-                    // add in any necessary padding
-                    if (flags.padding) {
-                        while (width-- > digits) {
-                            *--p = '0';
-                        }
-                    }
-
-                    // add the prefix as needed
-                    if (flags.prefix) {
-                        *--p = alphabet[16];
-                        *--p = '0';
-                    }
-
-                    *rlen = (buf + N) - p;
-                    return p;
-                }
-            };
-
-// Specialization for base 8 so we can make some assumptions
-            template<>
-            struct itoa_helper<8> {
-                static constexpr int Shift = 3;
-                static constexpr int Mask = 0x07;
-
-            public:
-                //------------------------------------------------------------------------------
-                // Name: format
-                // Desc: returns the value of d as a C-string, formatted based on Divisor,
-                //       and flags. places the length of the resultant string in *rlen
-                //------------------------------------------------------------------------------
-                template<class T, size_t N>
-                static const char *
-                format(char (&buf)[N], T d, int width, Flags flags, const char *alphabet, size_t *rlen) {
-
-                    typename std::make_unsigned<T>::type ud = d;
-
-                    char *p = buf + N;
-                    *--p = '\0';
-
-                    // add the prefix as needed
-                    if (flags.prefix) {
-                        width -= 1;
-                    }
-
-                    // Divide UD by Divisor until UD == 0.
-                    int digits = 0;
-                    for (; ud; ud >>= Shift) {
-                        const int remainder = (ud & Mask);
-                        *--p = alphabet[remainder];
-                        ++digits;
-                    }
-
-                    // add in any necessary padding
-                    if (flags.padding) {
-                        while (width-- > digits) {
-                            *--p = '0';
-                        }
-                    }
-
-                    // add the prefix as needed
-                    if (flags.prefix) {
-                        *--p = '0';
-                    }
-
-                    *rlen = (buf + N) - p;
-                    return p;
-                }
-            };
-
-// Specialization for base 2 so we can make some assumptions
-            template<>
-            struct itoa_helper<2> {
-                static constexpr int Shift = 1;
-                static constexpr int Mask = 0x01;
-
-            public:
-                //------------------------------------------------------------------------------
-                // Name: format
-                // Desc: returns the value of d as a C-string, formatted based on Divisor,
-                //       and flags. places the length of the resultant string in *rlen
-                //------------------------------------------------------------------------------
-                template<class T, size_t N>
-                static const char *
-                format(char (&buf)[N], T d, int width, Flags flags, const char *alphabet, size_t *rlen) {
-
-                    typename std::make_unsigned<T>::type ud = d;
-
-                    char *p = buf + N;
-                    *--p = '\0';
-
-                    // add the prefix as needed
-                    if (flags.prefix) {
-                        width -= 2;
-                    }
-
-                    // Divide UD by Divisor until UD == 0.
-                    int digits = 0;
-                    for (; ud; ud >>= Shift) {
-                        const int remainder = (ud & Mask);
-                        *--p = alphabet[remainder];
-                        ++digits;
-                    }
-
-                    // add in any necessary padding
-                    if (flags.padding) {
-                        while (width-- > digits) {
-                            *--p = '0';
-                        }
-                    }
-
-                    // add the prefix as needed
-                    if (flags.prefix) {
-                        *--p = 'b';
-                        *--p = '0';
-                    }
-
-                    *rlen = (buf + N) - p;
-                    return p;
-                }
-            };
-
-//------------------------------------------------------------------------------
-// Name: itoa
-// Desc: as a minor optimization, let's determine a few things up front and pass
-//       them as template parameters enabling some more aggressive optimizations
-//       when the division can use more efficient operations
-//------------------------------------------------------------------------------
-            template<class T, size_t N>
-            const char *itoa(char (&buf)[N], char base, int precision, T d, int width, Flags flags, size_t *rlen) {
-
-                if (d == 0 && precision == 0) {
-                    *buf = '\0';
-                    *rlen = 0;
-                    return buf;
-                }
-
-                // NOTE(eteran): we include the x/X, here as an easy way to put the
-                //               upper/lower case prefix for hex numbers
-                static const char alphabet_l[] = "0123456789abcdefx";
-                static const char alphabet_u[] = "0123456789ABCDEFX";
-
-                switch (base) {
-                    case 'i':
-                    case 'd':
-                    case 'u':
-                        return itoa_helper<10>::format(buf, d, width, flags, alphabet_l, rlen);
-#ifdef CXX11_PRINTF_EXTENSIONS
-                    case 'b':
-                        return itoa_helper<2>::format(buf, d, width, flags, alphabet_l, rlen);
-#endif
-                    case 'X':
-                        return itoa_helper<16>::format(buf, d, width, flags, alphabet_u, rlen);
-                    case 'x':
-                        return itoa_helper<16>::format(buf, d, width, flags, alphabet_l, rlen);
-                    case 'o':
-                        return itoa_helper<8>::format(buf, d, width, flags, alphabet_l, rlen);
-                    default:
-                        return itoa_helper<10>::format(buf, d, width, flags, alphabet_l, rlen);
-                }
-            }
-
-//------------------------------------------------------------------------------
-// Name: output_string
-// Desc: prints a string to the Context object, taking into account padding flags
-// Note: ch is the current format specifier
-//------------------------------------------------------------------------------
+            //------------------------------------------------------------------------------
+            // Name: output_string
+            // Desc: prints a string to the Context object, taking into account padding flags
+            // Note: ch is the current format specifier
+            //------------------------------------------------------------------------------
             template<class Context>
             void
             output_string(char ch, const char *s_ptr, int precision, long int width, Flags flags, int len,
@@ -428,7 +96,7 @@ namespace Spider {
             }
 
             template<class R, class T>
-            R formatted_pointer(T p, typename std::enable_if<std::is_convertible<T, const void *>::value>::type * = 0) {
+            constexpr R formatted_pointer(T p, typename std::enable_if<std::is_convertible<T, const void *>::value>::type * = 0) {
                 return reinterpret_cast<R>(reinterpret_cast<uintptr_t>(p));
             }
 
@@ -440,7 +108,7 @@ namespace Spider {
             }
 
             template<class R, class T>
-            R formatted_integer(T n, typename std::enable_if<std::is_integral<T>::value>::type * = 0) {
+            constexpr R formatted_integer(T n, typename std::enable_if<std::is_integral<T>::value>::type * = 0) {
                 return static_cast<R>(n);
             }
 
@@ -448,6 +116,17 @@ namespace Spider {
             R formatted_integer(T n, typename std::enable_if<!std::is_integral<T>::value>::type * = 0) {
                 (void) n;
                 throw format_error("Non-Integer Argument For Integer Format");
+            }
+
+            template<class R, class T>
+            constexpr R formatted_float(T n, typename std::enable_if<std::is_floating_point<T>::value>::type * = 0) {
+                return static_cast<R>(n);
+            }
+
+            template<class R, class T>
+            R formatted_float(T n, typename std::enable_if<!std::is_floating_point<T>::value>::type * = 0) {
+                (void) n;
+                throw format_error("Non-Floating_point Argument for Floating_point Format");
             }
 
 //------------------------------------------------------------------------------
@@ -503,8 +182,8 @@ namespace Spider {
             int process_format(Context &ctx, const char *format, Flags flags, long int width, long int precision,
                                Modifiers modifier, const T &arg, const Ts &... ts) {
 
-                // enough to contain a 64-bit number in bin notation + optional prefix
-                char num_buf[67];
+                // enough to contain a 128-bit number in bin notation + optional prefix
+                char num_buf[131];
 
                 size_t slen;
                 const char *s_ptr = nullptr;
