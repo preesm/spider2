@@ -64,10 +64,19 @@ public:
 
     /* === Method(s) === */
 
+    /**
+     * @brief Creates and applies the SR-DAG transformation to the graph.
+     * @remark If called multiple times, apply transformation only on first call.
+     */
     void execute();
 
     /* === Getter(s) === */
 
+    /**
+     * @brief Get the resulting SR-DAG.
+     * @remark if called before @refitem StaticSRDAGTransformer::execute -> return nullptr graph.
+     * @return
+     */
     inline const PiSDFGraph *srdag() const;
 
     /* === Setter(s) === */
@@ -76,9 +85,13 @@ private:
     const PiSDFGraph *piSdfGraph_ = nullptr;
     PiSDFGraph *srdag_ = nullptr;
     bool externSRDAG_ = false;
+    bool done_ = false;
 
     /* === Private structure(s) === */
 
+    /**
+     * @brief Structure used during the SRLinkage containing every information of a given edge.
+     */
     struct EdgeLinker {
         PiSDFVertex *source = nullptr;
         PiSDFVertex *sink = nullptr;
@@ -108,6 +121,9 @@ private:
         ~EdgeLinker() = default;
     };
 
+    /**
+     * @brief Structure used during the SRLinkage containing information about a sink.
+     */
     struct SinkLinker {
         PiSDFVertex *vertex = nullptr;
         std::uint32_t sinkPortIx = 0;
@@ -122,18 +138,55 @@ private:
 
     /* === Private method(s) === */
 
+    /**
+     * @brief Copy a @refitem PiSDFVertex and return the copy.
+     * @remark Hierarchical vertices are copied as normal vertices.
+     * @param vertex    Vertex to copy.
+     * @param instance  Instance of the vertex.
+     * @return copied @refitem PiSDFVertex.
+     */
     PiSDFVertex *copyVertex(const PiSDFVertex *vertex, std::uint32_t instance = 0);
 
+    /**
+     * @brief Copy all vertices of a graph w.r.t their repetition values and do the single-rate DAG linkage.
+     * @param graph Graph to transform.
+     */
     void extractAndLinkActors(const PiSDFGraph *graph);
 
+    /**
+     * @brief Perform Single-Rate linkage for a given edge.
+     * @param edgeLinker @refitem EdgeLinker structure reference containing information needed for the linkage.
+     */
     void singleRateLinkage(EdgeLinker &edgeLinker);
 
+    /**
+     * @brief Creates the array of single rate sources (including init vertex).
+     * @param edgeLinker       @refitem EdgeLinker structure reference containing information needed for the linkage.
+     * @param sourceLinkArray  Array of single rate sources.
+     */
     void buildSourceLinkArray(EdgeLinker &edgeLinker, Spider::Array<PiSDFVertex *> &sourceLinkArray);
 
+    /**
+     * @brief Creates the array of single rate sinks (including end vertex).
+     * @param edgeLinker     @refitem EdgeLinker structure reference containing information needed for the linkage.
+     * @param sinkLinkArray  Array of single rate sources.
+     */
     void buildSinkLinkArray(EdgeLinker &edgeLinker, Spider::Array<SinkLinker> &sinkLinkArray);
 
+    /**
+     * @brief Remove the init introduced during transformation and connect the edge to the setter actor (if any).
+     * @param edge        Original edge with the delay.
+     * @param delayVertex Virtual delay vertex.
+     * @param sink        Single rate sink connected to the Init vertex.
+     */
     void reconnectSetter(const PiSDFEdge *edge, PiSDFVertex *delayVertex, PiSDFVertex *sink);
 
+    /**
+     * @brief Remove the end introduced during transformation and connect the edge to the getter actor (if any).
+     * @param edge        Original edge with the delay.
+     * @param delayVertex Virtual delay vertex.
+     * @param source      First single rate source connected to the End vertex.
+     */
     void reconnectGetter(const PiSDFEdge *edge, PiSDFVertex *delayVertex, PiSDFVertex *source);
 };
 

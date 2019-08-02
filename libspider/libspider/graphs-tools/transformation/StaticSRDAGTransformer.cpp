@@ -55,15 +55,7 @@
 
 StaticSRDAGTransformer::StaticSRDAGTransformer(const PiSDFGraph *graph) : piSdfGraph_{graph},
                                                                           externSRDAG_{false} {
-    srdag_ = Spider::allocate<PiSDFGraph>(StackID::PISDF);
-    Spider::construct(srdag_,
-                      "srdag-" + graph->name(),
-                      0, /* = nActors = */
-                      0, /* = nEdges = */
-                      0, /* = nParams = */
-                      0, /* = nInputInterfaces = */
-                      0, /* = nOutputInterfaces = */
-                      0  /* = nConfigActors = */);
+
 }
 
 StaticSRDAGTransformer::StaticSRDAGTransformer(const PiSDFGraph *graph, PiSDFGraph *srdag) : piSdfGraph_{graph},
@@ -79,11 +71,25 @@ StaticSRDAGTransformer::~StaticSRDAGTransformer() {
 }
 
 void StaticSRDAGTransformer::execute() {
+    if (done_) {
+        return;
+    }
     if (!piSdfGraph_) {
         throwSpiderException("Cannot transform nullptr PiSDFGraph.");
-    }
-    if (!piSdfGraph_->isStatic()) {
+    } else if (!piSdfGraph_->isStatic()) {
         throwSpiderException("Cannot transform non-static graph.");
+    }
+
+    if (!srdag_) {
+        srdag_ = Spider::allocate<PiSDFGraph>(StackID::PISDF);
+        Spider::construct(srdag_,
+                          "srdag-" + piSdfGraph_->name(),
+                          0, /* = nActors = */
+                          0, /* = nEdges = */
+                          0, /* = nParams = */
+                          0, /* = nInputInterfaces = */
+                          0, /* = nOutputInterfaces = */
+                          0  /* = nConfigActors = */);
     }
 
     /* == Extract the vertices from the top graph == */
@@ -101,6 +107,9 @@ void StaticSRDAGTransformer::execute() {
 //        /* == Extract actors of sub-graphs == */
 //        extractAndLinkActors(subgraph);
 //    }
+
+    /* == Set flag done to true == */
+    done_ = true;
 }
 
 /* === Private method(s) === */
@@ -169,7 +178,7 @@ void StaticSRDAGTransformer::extractAndLinkActors(const PiSDFGraph *graph) {
 
     /* == Connect setter / getter if any == */
     for (const auto *edge : graph->edges()) {
-        if (edge->delay()) {
+        if (edge->delay() && (edge->delay()->setter() || edge->delay()->getter())) {
             /* == Retrieve the virtual vertex (there can be only one) == */
             auto *delayVertex = vertex2Vertex[edge->delay()->virtualVertex()->ix()][0];
 
