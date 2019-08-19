@@ -126,10 +126,14 @@ namespace Spider {
 
                     // Divide UD by Divisor until UD == 0.
                     int digits = 0;
-                    for (; ud; ud /= Divisor) {
-                        const int remainder = (ud % Divisor);
-                        *--p = alphabet[remainder];
-                        ++digits;
+                    if (!ud) {
+                        *--p = '0';
+                    } else {
+                        for (; ud; ud /= Divisor) {
+                            const int remainder = (ud % Divisor);
+                            *--p = alphabet[remainder];
+                            ++digits;
+                        }
                     }
 
                     // add in any necessary padding
