@@ -263,12 +263,6 @@ public:
     inline std::uint32_t repetitionValue() const;
 
     /**
-     * @brief Get the subgraph (if any) associated to the vertex.
-     * @return subgraph associated to the vertex, nullptr if vertex is not hierarchical.
-     */
-    inline PiSDFGraph *subgraph() const;
-
-    /**
      * @brief Get the ix of the vertex in the containing graph.
      * @return ix of the vertex (UINT32_MAX if no ix).
      */
@@ -289,8 +283,6 @@ private:
     Spider::Array<PiSDFEdge *> outputEdgeArray_;
     Spider::Array<PiSDFParam *> inputParamArray_;
     Spider::Array<PiSDFParam *> outputParamArray_;
-
-    PiSDFGraph *subgraph_ = nullptr;
 
     std::uint32_t repetitionValue_ = 0;
     std::uint32_t ix_ = UINT32_MAX;
@@ -320,7 +312,7 @@ private:
 /* === Inline methods === */
 
 bool PiSDFVertex::isHierarchical() const {
-    return type_ == PiSDFVertexType::HIERARCHICAL;
+    return type_ == PiSDFVertexType::GRAPH;
 }
 
 void PiSDFVertex::setInputParam(PiSDFParam *param, std::uint32_t ix) {
@@ -423,10 +415,6 @@ const Spider::Array<PiSDFParam *> &PiSDFVertex::outputParams() const {
 
 std::uint32_t PiSDFVertex::repetitionValue() const {
     return repetitionValue_;
-}
-
-PiSDFGraph *PiSDFVertex::subgraph() const {
-    return subgraph_;
 }
 
 std::uint32_t PiSDFVertex::ix() const {

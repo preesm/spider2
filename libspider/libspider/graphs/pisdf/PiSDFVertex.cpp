@@ -89,23 +89,15 @@ PiSDFVertex::PiSDFVertex(StackID stack,
                                                      outputEdgeArray_(stack, nEdgesOUT, nullptr),
                                                      inputParamArray_(stack, nParamsIn, nullptr),
                                                      outputParamArray_(stack, nParamsOut, nullptr) {
-    if (!graph) {
-        throwSpiderException("Vertex should belong to a graph.");
-    }
     checkSubtypeConsistency();
 
-    if (type == PiSDFVertexType::CONFIG) {
-        /* == Configuration actors have a fixed repetition vector value of 1 == */
+    if (type == PiSDFVertexType::CONFIG ||
+        type == PiSDFVertexType::INTERFACE) {
+        /* == Configuration actors and interfaces have a fixed repetition vector value of 1 == */
         repetitionValue_ = 1;
     }
 
-    if (type == PiSDFVertexType::HIERARCHICAL) {
-        /* == Create the subgraph == */
-        subgraph_ = Spider::allocate<PiSDFGraph>(stack);
-        Spider::construct(subgraph_, this, std::string(name_), 0, 0, 0, nEdgesIN, nEdgesOUT);
-    }
-
-    if (type != PiSDFVertexType::INTERFACE) {
+    if (graph && type != PiSDFVertexType::INTERFACE) {
         graph->addVertex(this);
     }
 }
@@ -177,9 +169,10 @@ void PiSDFVertex::exportInputPortsToDot(FILE *file,
                                "%s\t\t\t\t\t\t<td port=\"in_%" PRIu32"\" border=\"1\" bgcolor=\"#87d37c\">    </td>\n",
                                offset.c_str(), e->sinkPortIx());
         Spider::cxx11::fprintf(file,
-                               "%s\t\t\t\t\t\t<td align=\"left\" border=\"0\" bgcolor=\"%s\"><font point-size=\"15\">width</font></td>\n",
+                               "%s\t\t\t\t\t\t<td align=\"left\" border=\"0\" bgcolor=\"%s\"><font point-size=\"15\">% " PRIu64"</font></td>\n",
                                offset.c_str(),
-                               getVertexDotColor(type_));
+                               getVertexDotColor(type_),
+                               e->sinkRate());
         Spider::cxx11::fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());
 
         /* == Print the dummy port for pretty spacing == */
@@ -219,9 +212,10 @@ void PiSDFVertex::exportOutputPortsToDot(FILE *file,
         /* == Print the output edge port information == */
         Spider::cxx11::fprintf(file, "%s\t\t\t\t\t<tr>\n", offset.c_str());
         Spider::cxx11::fprintf(file,
-                               "%s\t\t\t\t\t\t<td align=\"right\" border=\"0\" bgcolor=\"%s\"><font point-size=\"15\">width</font></td>\n",
+                               "%s\t\t\t\t\t\t<td align=\"right\" border=\"0\" bgcolor=\"%s\"><font point-size=\"15\">%" PRIu64" </font></td>\n",
                                offset.c_str(),
-                               getVertexDotColor(type_));
+                               getVertexDotColor(type_),
+                               e->sourceRate());
         Spider::cxx11::fprintf(file,
                                "%s\t\t\t\t\t\t<td port=\"out_%" PRIu32"\" border=\"1\" bgcolor=\"#ec644b\">    </td>\n",
                                offset.c_str(), e->sourcePortIx());
@@ -255,6 +249,9 @@ void PiSDFVertex::exportOutputPortsToDot(FILE *file,
 }
 
 void PiSDFVertex::checkSubtypeConsistency() const {
+    if (!graph_ && type_ != PiSDFVertexType::GRAPH) {
+        throwSpiderException("Vertex should belong to a graph.");
+    }
     if (nParamsOUT_ && (type_ != PiSDFVertexType::CONFIG)) {
         throwSpiderException("Non configuration actors can not have output parameters. Vertex [%s]", name_.c_str());
     }
@@ -283,10 +280,6 @@ void PiSDFVertex::disconnectInputEdge(std::uint16_t ix) {
         return;
     }
     inputEdgeArray_[ix] = nullptr;
-    if (isHierarchical()) {
-        auto *interface = subgraph_->inputInterfaces()[ix];
-        interface->disconnectInputEdge(0);
-    }
 }
 
 
@@ -300,10 +293,6 @@ void PiSDFVertex::disconnectOutputEdge(std::uint16_t ix) {
         return;
     }
     outputEdgeArray_[ix] = nullptr;
-    if (isHierarchical()) {
-        auto *interface = subgraph_->outputInterfaces()[ix];
-        interface->disconnectOutputEdge(0);
-    }
 }
 
 void PiSDFVertex::setInputEdge(PiSDFEdge *edge, std::uint16_t ix) {
@@ -313,10 +302,6 @@ void PiSDFVertex::setInputEdge(PiSDFEdge *edge, std::uint16_t ix) {
                                      ".", ix);
     }
     inputEdgeArray_[ix] = edge;
-    if (isHierarchical()) {
-        auto *interface = subgraph_->inputInterfaces()[ix];
-        interface->setInputEdge(edge, 0);
-    }
 }
 
 void PiSDFVertex::setOutputEdge(PiSDFEdge *edge, std::uint16_t ix) {
@@ -326,8 +311,4 @@ void PiSDFVertex::setOutputEdge(PiSDFEdge *edge, std::uint16_t ix) {
                                      ".", ix);
     }
     outputEdgeArray_[ix] = edge;
-    if (isHierarchical()) {
-        auto *interface = subgraph_->outputInterfaces()[ix];
-        interface->setOutputEdge(edge, 0);
-    }
 }

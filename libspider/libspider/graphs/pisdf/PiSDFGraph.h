@@ -56,18 +56,10 @@ using execRoutine = void (*)(void **, void **, std::uint64_t *, std::uint64_t *)
 
 /* === Class definition === */
 
-class PiSDFGraph {
+class PiSDFGraph : public PiSDFVertex {
 public:
 
-    PiSDFGraph(std::string name,
-               std::uint64_t nActors,
-               std::uint64_t nEdges,
-               std::uint64_t nParams = 0,
-               std::uint64_t nInputInterfaces = 0,
-               std::uint64_t nOutputInterfaces = 0,
-               std::uint64_t nConfigActors = 0);
-
-    PiSDFGraph(PiSDFVertex *parent,
+    PiSDFGraph(PiSDFGraph *graph,
                std::string name,
                std::uint64_t nActors,
                std::uint64_t nEdges,
@@ -112,7 +104,7 @@ public:
      * @brief Add a subgraph to the graph.
      * @param subgraph Subgraph to be added to the graph.
      */
-    void addSubgraph(PiSDFGraph *subgraph);
+    inline void addSubgraph(PiSDFGraph *subgraph);
 
     /**
      * @brief Add an edge to the graph.
@@ -149,7 +141,6 @@ public:
      */
     inline PiSDFParam *findParam(const std::string &name) const;
 
-
     /**
      * @brief Export the graph to a dot file.
      * @param path Path of the file.
@@ -161,7 +152,7 @@ public:
      * @param file    File pointer to write to.
      * @param offset  Tab offset in the file.
      */
-    void exportDot(FILE *file, const std::string &offset) const;
+    void exportDot(FILE *file, const std::string &offset) const override;
 
     /**
      * @brief Pre-cache space for storing vertices. Accelerate insertion after.
@@ -197,6 +188,11 @@ public:
 
     /* === Setters === */
 
+    /**
+     * @brief Set the subgraph ix.
+     * @param ix  Value of the ix to set.
+     */
+    inline void setSubgraphIx(std::uint32_t ix);
 
     /* === Getters === */
 
@@ -250,12 +246,6 @@ public:
     inline std::uint64_t nOutputInterfaces() const;
 
     /**
-     * @brief Get the parent vertex of current sub-graph.
-     * @return Parent vertex, nullptr if top graph.
-     */
-    inline PiSDFVertex *parent() const;
-
-    /**
     * @brief A const reference on the set of vertices. Useful for iterating on the vertices.
     * @return const reference to vertex set
     */
@@ -295,7 +285,7 @@ public:
      * @brief A const reference to the LinkedList of subgraph. Useful for iterating on the subgraphs.
      * @return const reference to subgraph LinkedList.
      */
-    inline const Spider::LinkedList<PiSDFGraph *> &subgraphs() const;
+    inline const Spider::vector<PiSDFGraph *> &subgraphs() const;
 
     /**
      * @brief Get the static property of the graph.
@@ -310,24 +300,23 @@ public:
     inline bool containsDynamicParameters() const;
 
     /**
-     * @brief Get the string of the name of the graph.
-     * @return string of the name.
+     * @brief Get the ix of the subgraph.
+     * @return ix in the subgraph vector.
      */
-    inline const std::string &name() const;
+    inline std::uint32_t subgraphIx() const;
 
 private:
-    std::string name_ = "topgraph";
     Spider::vector<PiSDFVertex *> vertexVector_;
     Spider::vector<PiSDFEdge *> edgeVector_;
     Spider::vector<PiSDFParam *> paramVector_;
     Spider::vector<PiSDFInterface *> inputInterfaceVector_;
     Spider::vector<PiSDFInterface *> outputInterfaceVector_;
     Spider::vector<PiSDFVertex *> configVertexVector_;
-    Spider::LinkedList<PiSDFGraph *> subgraphVector_;
+    Spider::vector<PiSDFGraph *> subgraphVector_;
 
     bool static_ = true;
     bool hasDynamicParameters_ = false;
-    PiSDFVertex *parent_ = nullptr;
+    std::uint32_t graphIx_ = 0;
 
     /**
      * @brief Export to DOT from a given FILE pointer.
@@ -348,14 +337,15 @@ void PiSDFGraph::addVertex(PiSDFVertex *vertex) {
         case PiSDFVertexType::INIT:
         case PiSDFVertexType::END:
         case PiSDFVertexType::DELAY:
+        case PiSDFVertexType::GRAPH:
         case PiSDFVertexType::NORMAL:
             vertex->setIx(vertexVector_.size());
             vertexVector_.push_back(vertex);
             break;
-        case PiSDFVertexType::HIERARCHICAL:
-            vertex->setIx(vertexVector_.size());
-            vertexVector_.push_back(vertex);
-            break;
+//        case PiSDFVertexType::GRAPH:
+//            vertex->setIx(vertexVector_.size());
+//            vertexVector_.push_back(vertex);
+//            break;
         case PiSDFVertexType::CONFIG:
             vertex->setIx(vertexVector_.size());
             configVertexVector_.push_back(vertex);
@@ -387,10 +377,17 @@ void PiSDFGraph::addEdge(PiSDFEdge *edge) {
     edgeVector_.push_back(edge);
 }
 
+
+void PiSDFGraph::addSubgraph(PiSDFGraph *subgraph) {
+    subgraph->setSubgraphIx(subgraphVector_.size());
+    subgraphVector_.push_back(subgraph);
+    static_ &= subgraph->static_;
+}
+
 void PiSDFGraph::addParam(PiSDFParam *param) {
     /* == Check if a parameter with the same name already exists in the scope of this graph == */
     if (findParam(param->name())) {
-        throwSpiderException("Parameter [%s] already exist in graph [%s].", param->name().c_str(), name_.c_str());
+        throwSpiderException("Parameter [%s] already exist in graph [%s].", param->name().c_str(), name().c_str());
     }
     param->setIx(paramVector_.size());
     paramVector_.push_back(param);
@@ -398,14 +395,14 @@ void PiSDFGraph::addParam(PiSDFParam *param) {
         static_ = false;
 
         /* == We need to propagate this property up in the hierarchy == */
-        auto *parent = parent_->containingGraph();
+        auto *parent = containingGraph();
         while (parent) {
             /* == If graph was already dynamic then information is already propagated == */
             if (!parent->static_) {
                 break;
             }
             parent->static_ = false;
-            parent = parent->parent_->containingGraph();
+            parent = parent->containingGraph();
         }
     }
 }
@@ -447,6 +444,10 @@ void PiSDFGraph::precacheParams(std::uint64_t n) {
     }
 }
 
+void PiSDFGraph::setSubgraphIx(std::uint32_t ix) {
+    graphIx_ = ix;
+}
+
 std::uint64_t PiSDFGraph::nVertices() const {
     return vertexVector_.size();
 }
@@ -479,10 +480,6 @@ std::uint64_t PiSDFGraph::nOutputInterfaces() const {
     return outputInterfaceVector_.size();
 }
 
-PiSDFVertex *PiSDFGraph::parent() const {
-    return parent_;
-}
-
 const Spider::vector<PiSDFVertex *> &PiSDFGraph::vertices() const {
     return vertexVector_;
 }
@@ -507,7 +504,7 @@ const Spider::vector<PiSDFParam *> &PiSDFGraph::params() const {
     return paramVector_;
 }
 
-const Spider::LinkedList<PiSDFGraph *> &PiSDFGraph::subgraphs() const {
+const Spider::vector<PiSDFGraph *> &PiSDFGraph::subgraphs() const {
     return subgraphVector_;
 }
 
@@ -519,8 +516,8 @@ bool PiSDFGraph::containsDynamicParameters() const {
     return hasDynamicParameters_;
 }
 
-const std::string &PiSDFGraph::name() const {
-    return name_;
+std::uint32_t PiSDFGraph::subgraphIx() const {
+    return graphIx_;
 }
 
 #endif //SPIDER2_PISDFGRAPH_H

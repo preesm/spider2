@@ -83,6 +83,7 @@ void StaticSRDAGTransformer::execute() {
     if (!srdag_) {
         srdag_ = Spider::allocate<PiSDFGraph>(StackID::PISDF);
         Spider::construct(srdag_,
+                          nullptr,
                           "srdag-" + piSdfGraph_->name(),
                           0, /* = nActors = */
                           0, /* = nEdges = */
@@ -120,7 +121,7 @@ PiSDFVertex *StaticSRDAGTransformer::copyVertex(const PiSDFVertex *vertex, std::
                       StackID::TRANSFO,
                       srdag_,
                       std::string(vertex->name()) + "_" + std::to_string(instance),
-                      vertex->type() == PiSDFVertexType::HIERARCHICAL ? PiSDFVertexType::NORMAL : vertex->type(),
+                      vertex->type() == PiSDFVertexType::GRAPH ? PiSDFVertexType::NORMAL : vertex->type(),
                       vertex->nEdgesIN(),
                       vertex->nEdgesOUT(),
                       vertex->nParamsIN(),

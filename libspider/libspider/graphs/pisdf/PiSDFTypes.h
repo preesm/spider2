@@ -68,7 +68,7 @@ enum class PiSDFVertexType : std::uint8_t {
     INIT,           /*! Init actor subtype */
     END,            /*! End actor subtype */
     CONFIG,         /*! Config vertex subtype */
-    HIERARCHICAL,   /*! Hierarchical vertex subtype */
+    GRAPH,          /*! Graph vertex subtype */
     INTERFACE,      /*! Interface vertex subtype */
     DELAY,          /*! Delay vertex subtype */
 };

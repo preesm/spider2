@@ -48,46 +48,37 @@
 
 /* === Methods implementation === */
 
-PiSDFGraph::PiSDFGraph(std::string name,
-                       std::uint64_t nActors,
-                       std::uint64_t nEdges,
-                       std::uint64_t nParams,
-                       std::uint64_t nInputInterfaces,
-                       std::uint64_t nOutputInterfaces,
-                       std::uint64_t nConfigActors) : name_{std::move(name)} {
-    vertexVector_.reserve(nActors);
-    edgeVector_.reserve(nEdges);
-    paramVector_.reserve(nParams);
-    configVertexVector_.reserve(nConfigActors);
-    inputInterfaceVector_.reserve(nInputInterfaces);
-    outputInterfaceVector_.reserve(nOutputInterfaces);
-}
-
-PiSDFGraph::PiSDFGraph(PiSDFVertex *parent,
+PiSDFGraph::PiSDFGraph(PiSDFGraph *graph,
                        std::string name,
                        std::uint64_t nActors,
                        std::uint64_t nEdges,
                        std::uint64_t nParams,
                        std::uint64_t nInputInterfaces,
                        std::uint64_t nOutputInterfaces,
-                       std::uint64_t nConfigActors) : PiSDFGraph(name,
-                                                                 nActors,
-                                                                 nEdges,
-                                                                 nParams,
-                                                                 nInputInterfaces,
-                                                                 nOutputInterfaces,
-                                                                 nConfigActors) {
-    if (!parent) {
-        throwSpiderException("Can not create subgraph with null parent.");
+                       std::uint64_t nConfigActors) : PiSDFVertex(graph,
+                                                                  std::move(name),
+                                                                  PiSDFVertexType::GRAPH,
+                                                                  nInputInterfaces,
+                                                                  nOutputInterfaces) {
+    vertexVector_.reserve(nActors);
+    edgeVector_.reserve(nEdges);
+    paramVector_.reserve(nParams);
+    configVertexVector_.reserve(nConfigActors);
+    inputInterfaceVector_.reserve(nInputInterfaces);
+    outputInterfaceVector_.reserve(nOutputInterfaces);
+
+    /* == Add the subgraph to the parent (if any) == */
+    if (graph) {
+        graph->addSubgraph(this);
     }
-    parent_ = parent;
-    parent->containingGraph()->addSubgraph(this);
 }
 
 PiSDFGraph::~PiSDFGraph() {
     for (auto &v : vertexVector_) {
-        Spider::destroy(v);
-        Spider::deallocate(v);
+        if (!v->isHierarchical()) {
+            Spider::destroy(v);
+            Spider::deallocate(v);
+        }
         v = nullptr;
     }
 
@@ -151,14 +142,22 @@ void PiSDFGraph::removeSubgraph(PiSDFGraph *subgraph) {
     if (!subgraph) {
         return;
     }
-    if (!subgraphs().contains(subgraph)) {
+    if (subgraph->containingGraph() != this) {
         throwSpiderException("Trying to remove a vertex [%s] that don't belong to this graph.",
                              subgraph->name().c_str());
     }
+    auto ix = subgraph->subgraphIx();
+    if (subgraphVector_[ix] != subgraph) {
+        throwSpiderException("Different vertex in ix position. Expected: %s -- Got: %s", subgraph->name().c_str(),
+                             subgraphVector_[ix]->name().c_str());
+    }
+    subgraphVector_[ix] = subgraphVector_.back();
+    subgraphVector_[ix]->setSubgraphIx(ix);
+    subgraphVector_.pop_back();
     auto wasStatic = subgraph->isStatic();
-    subgraphVector_.removeFromValue(subgraph);
-    Spider::destroy(subgraph);
-    Spider::deallocate(subgraph);
+    removeVertex(subgraph);
+//    Spider::destroy(subgraph);
+//    Spider::deallocate(subgraph);
 
     /* == Recompute the static property == */
     if (!wasStatic) {
@@ -209,13 +208,6 @@ void PiSDFGraph::removeParam(PiSDFParam *param) {
     Spider::deallocate(param);
 }
 
-void PiSDFGraph::addSubgraph(PiSDFGraph *subgraph) {
-    if (!subgraph) {
-        throwSpiderException("Can not add nullptr subgraph.");
-    }
-    subgraphVector_.addTail(subgraph);
-    static_ &= subgraph->static_;
-}
 
 void PiSDFGraph::exportDot(const std::string &path) const {
     auto *file = std::fopen(path.c_str(), "w+");
@@ -233,10 +225,10 @@ void PiSDFGraph::exportDot(FILE *file, const std::string &offset) const {
 
 void PiSDFGraph::exportDotHelper(FILE *file, const std::string &offset) const {
     auto fwOffset{offset};
-    if (parent_) {
+    if (containingGraph()) {
         Spider::cxx11::fprintf(file, "%ssubgraph cluster {\n", fwOffset.c_str());
         fwOffset += "\t";
-        Spider::cxx11::fprintf(file, "%slabel=\"%s\";\n", fwOffset.c_str(), name_.c_str());
+        Spider::cxx11::fprintf(file, "%slabel=\"%s\";\n", fwOffset.c_str(), name().c_str());
         Spider::cxx11::fprintf(file, "%sstyle=dotted;\n", fwOffset.c_str());
         Spider::cxx11::fprintf(file, "%sfillcolor=\"#ffffff\";\n", fwOffset.c_str());
         Spider::cxx11::fprintf(file, "%scolor=\"#393c3c\";\n", fwOffset.c_str());
@@ -250,10 +242,12 @@ void PiSDFGraph::exportDotHelper(FILE *file, const std::string &offset) const {
 
     Spider::cxx11::fprintf(file, "\n%s// Vertices\n", fwOffset.c_str());
     for (const auto &v:vertexVector_) {
-        v->exportDot(file, fwOffset);
+        if (!v->isHierarchical()) {
+            v->exportDot(file, fwOffset);
+        }
     }
 
-    if (parent_) {
+    if (containingGraph()) {
         Spider::cxx11::fprintf(file, "\n%s// Interfaces\n", fwOffset.c_str());
         for (const auto &i:inputInterfaceVector_) {
             i->exportDot(file, fwOffset);
@@ -263,7 +257,7 @@ void PiSDFGraph::exportDotHelper(FILE *file, const std::string &offset) const {
         }
     }
 
-    if (paramVector_.size()) {
+    if (!paramVector_.empty()) {
         Spider::cxx11::fprintf(file, "\n%s// Parameters\n", fwOffset.c_str());
         for (const auto &p:paramVector_) {
             p->exportDot(file, fwOffset);
@@ -280,5 +274,5 @@ void PiSDFGraph::exportDotHelper(FILE *file, const std::string &offset) const {
         e->exportDot(file, fwOffset);
     }
 
-    Spider::cxx11::fprintf(file, "%s}\n", parent_ ? offset.c_str() : "");
+    Spider::cxx11::fprintf(file, "%s}\n", containingGraph() ? offset.c_str() : "");
 }

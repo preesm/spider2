@@ -46,7 +46,7 @@
 #include <string>
 #include <containers/StlContainers.h>
 #include <graphs/pisdf/PiSDFVertex.h>
-#include "PiSDFTypes.h"
+#include <graphs/pisdf/PiSDFTypes.h>
 
 /* === Forward definition === */
 
@@ -74,9 +74,9 @@ public:
 
     inline PiSDFInterfaceType interfaceType() const;
 
-    inline const PiSDFEdge *inputEdge() const;
+    const PiSDFEdge *inputEdge() const;
 
-    inline const PiSDFEdge *outputEdge() const;
+    const PiSDFEdge *outputEdge() const;
 
     /* === Setters === */
 
@@ -86,14 +86,6 @@ private:
 
 PiSDFInterfaceType PiSDFInterface::interfaceType() const {
     return interfaceType_;
-}
-
-const PiSDFEdge *PiSDFInterface::inputEdge() const {
-    return this->inputEdges()[0];
-}
-
-const PiSDFEdge *PiSDFInterface::outputEdge() const {
-    return this->outputEdges()[0];
 }
 
 #endif //SPIDER2_PISDFINTERFACE_H

@@ -61,6 +61,7 @@ PiSDFGraph *Spider::API::createGraph(const std::string &name,
                                      StackID stack) {
     auto *graph = Spider::allocate<PiSDFGraph>(stack);
     Spider::construct(graph,
+                      nullptr,
                       name,
                       nActors,
                       nEdges,
@@ -80,19 +81,16 @@ PiSDFGraph *Spider::API::createSubraph(PiSDFGraph *graph,
                                        std::uint64_t nOutputInterfaces,
                                        std::uint64_t nConfigActors,
                                        StackID stack) {
-    auto *vertex = Spider::allocate<PiSDFVertex>(stack);
-    Spider::construct(vertex,
+    auto *subgraph = Spider::allocate<PiSDFGraph>(stack);
+    Spider::construct(subgraph,
                       graph,
                       name,
-                      PiSDFVertexType::HIERARCHICAL,
+                      nActors,
+                      nEdges,
+                      nParams,
                       nInputInterfaces,
                       nOutputInterfaces,
-                      0);
-    auto *subgraph = vertex->subgraph();
-    subgraph->precacheVertices(nActors);
-    subgraph->precacheConfigVertices(nConfigActors);
-    subgraph->precacheEdges(nEdges);
-    subgraph->precacheParams(nParams);
+                      nConfigActors);
     return subgraph;
 }
 

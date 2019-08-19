@@ -64,8 +64,8 @@ PiSDFInterface::PiSDFInterface(PiSDFGraph *graph,
                                PiSDFInterfaceType type) : PiSDFVertex(graph,
                                                                       std::move(name),
                                                                       PiSDFVertexType::INTERFACE,
-                                                                      1,
-                                                                      1,
+                                                                      type == PiSDFInterfaceType::OUTPUT,
+                                                                      type == PiSDFInterfaceType::INPUT,
                                                                       0,
                                                                       0) {
     interfaceType_ = type;
@@ -148,4 +148,20 @@ void PiSDFInterface::exportDot(FILE *file, const std::string &offset) const {
                            offset.c_str());
     Spider::cxx11::fprintf(file, "%s\t</table>>\n", offset.c_str());
     Spider::cxx11::fprintf(file, "%s];\n\n", offset.c_str());
+}
+
+const PiSDFEdge *PiSDFInterface::inputEdge() const {
+    if (interfaceType_ == PiSDFInterfaceType::INPUT) {
+        const auto *graph = containingGraph();
+        return graph->inputEdge(this->ix());
+    }
+    return this->inputEdges()[0];
+}
+
+const PiSDFEdge *PiSDFInterface::outputEdge() const {
+    if (interfaceType_ == PiSDFInterfaceType::OUTPUT) {
+        const auto *graph = containingGraph();
+        return graph->outputEdge(this->ix());
+    }
+    return this->outputEdges()[0];
 }

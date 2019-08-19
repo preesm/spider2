@@ -141,35 +141,35 @@ void PiSDFEdge::connectSink(PiSDFVertex *vertex, std::uint32_t portIx, std::int6
 }
 
 void PiSDFEdge::exportDot(FILE *file, const std::string &offset) const {
-    Spider::cxx11::fprintf(file,
-                           "%s\"%s\":out_%" PRIu32":e -> \"%s\":in_%" PRIu32":w [penwidth=3, "
+    auto *source = source_->isHierarchical()
+                   ? dynamic_cast<PiSDFGraph *>(source_)->outputInterfaces()[sourcePort_->ix()] : source_;
+    auto *sink = sink_->isHierarchical()
+                 ? dynamic_cast<PiSDFGraph *>(sink_)->inputInterfaces()[sourcePort_->ix()] : sink_;
+   Spider::cxx11::fprintf(file,
+                           "%s\"%s\":out_%" PRIu16":e -> \"%s\":in_%" PRIu16":w [penwidth=3, "
                            "color=\"#393c3c\", "
-                           "dir=forward, "
-                           "headlabel=\"%" PRIu64"   \", "
-                           "taillabel=\" %" PRIu64"\"];\n",
+                           "dir=forward];\n",
                            offset.c_str(),
-                           source_->isHierarchical()
-                           ? source_->subgraph()->outputInterfaces()[sourcePort_->ix()]->name().c_str()
-                           : source_->name().c_str(),
-                           source_->isHierarchical() ? 0 : sourcePort_->ix(),
-                           sink_->isHierarchical()
-                           ? sink_->subgraph()->inputInterfaces()[sinkPort_->ix()]->name().c_str()
-                           : sink_->name().c_str(),
-                           sink_->isHierarchical() ? 0 : sinkPort_->ix(),
-                           sinkRate(),
-                           sourceRate());
+                           source->name().c_str(),
+                           sourcePort_->ix(),
+                           sink->name().c_str(),
+                           sinkPort_->ix());
 }
 
 PiSDFVertex *PiSDFEdge::source(bool forward) const {
     if (forward && source_ && source_->isHierarchical()) {
-        return source_->subgraph()->outputInterfaces()[sourcePort_->ix()]->inputEdge()->source(true);
+        auto *graph = dynamic_cast<PiSDFGraph *>(source_);
+        auto *interface = graph->outputInterfaces()[sourcePort_->ix()];
+        return interface->inputEdge()->source(true);
     }
     return source_;
 }
 
 PiSDFVertex *PiSDFEdge::sink(bool forward) const {
     if (forward && sink_ && sink_->isHierarchical()) {
-        return sink_->subgraph()->inputInterfaces()[sinkPort_->ix()]->outputEdge()->sink(true);
+        auto *graph = dynamic_cast<PiSDFGraph *>(sink_);
+        auto *interface = graph->inputInterfaces()[sinkPort_->ix()];
+        return interface->outputEdge()->sink(true);
     }
     return sink_;
 }
