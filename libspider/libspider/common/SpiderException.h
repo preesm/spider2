@@ -69,18 +69,22 @@ constexpr const char *getFileName(const char *str) {
 
 /* === Macros === */
 
-#define throwHelper(msg, ...)                                                  \
-  throw SpiderException("%s::%s(%d) " msg, getFileName(__FILE__), __func__,    \
-                        __LINE__, __VA_ARGS__)
-#define throwSpiderException(...) throwHelper(__VA_ARGS__, "\0")
+#define throwSpiderException(...) throw SpiderException(getFileName(__FILE__), __func__, __LINE__, __VA_ARGS__)
 
 /* === Class definition === */
 
 class SpiderException : public std::exception {
 public:
     template<class... Ts>
-    explicit SpiderException(const char *msg, const Ts &...ts) : exceptionMessage_{} {
-        int n = Spider::cxx11::sprintf(exceptionMessage_, SPIDER_EXCEPTION_BUFFER_SIZE, msg, ts...);
+    explicit
+    SpiderException(const char *fileName, const char *fctName, int lineNumber, const char *msg, const Ts &...ts)
+            : exceptionMessage_{} {
+        /* == Writes exception header == */
+        int n = Spider::cxx11::sprintf(exceptionMessage_, SPIDER_EXCEPTION_BUFFER_SIZE, "%s::%s(%d): ", fileName,
+                                       fctName, lineNumber);
+
+        /* == Write the actual exception message == */
+        n = Spider::cxx11::sprintf(exceptionMessage_ + n, SPIDER_EXCEPTION_BUFFER_SIZE, msg, ts...);
         if (n > SPIDER_EXCEPTION_BUFFER_SIZE) {
             Spider::cxx11::fprintf(stderr, "SpiderException: ERROR: exception message too big.\n");
             Spider::cxx11::fprintf(stderr, "Partially recovered exception: ");
