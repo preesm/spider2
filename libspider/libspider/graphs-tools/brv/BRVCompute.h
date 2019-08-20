@@ -77,7 +77,7 @@ enum class BRVMethod : std::uint8_t {
 class BRVCompute {
 public:
 
-    explicit BRVCompute(PiSDFGraph *graph);
+    explicit BRVCompute(const PiSDFGraph *graph);
 
     ~BRVCompute() = default;
 
@@ -93,7 +93,7 @@ public:
     /* === Setter(s) === */
 
 protected:
-    PiSDFGraph *graph_ = nullptr;
+    const PiSDFGraph *graph_ = nullptr;
     Spider::vector<BRVComponent> connectedComponents_;
 
     /* === Protected method(s) === */

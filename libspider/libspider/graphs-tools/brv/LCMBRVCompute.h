@@ -50,7 +50,7 @@
 class LCMBRVCompute : public BRVCompute {
 public:
 
-    explicit LCMBRVCompute(PiSDFGraph *graph) : BRVCompute(graph) { };
+    explicit LCMBRVCompute(const PiSDFGraph *graph) : BRVCompute(graph) { };
 
     ~LCMBRVCompute() = default;
 

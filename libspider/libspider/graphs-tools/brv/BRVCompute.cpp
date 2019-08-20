@@ -51,7 +51,7 @@
 
 /* === Method(s) implementation === */
 
-BRVCompute::BRVCompute(PiSDFGraph *const graph) : graph_{graph} {
+BRVCompute::BRVCompute(const PiSDFGraph *graph) : graph_{graph} {
     Spider::Array<const PiSDFVertex *> connectedComponentsKeys{StackID::TRANSFO, graph->nVertices(), nullptr};
     Spider::Array<const PiSDFVertex *> vertexArray{StackID::TRANSFO, graph->nVertices(), nullptr};
     BRVComponent component;
@@ -185,7 +185,7 @@ std::uint64_t BRVCompute::updateBRVFromCFGActor(const PiSDFEdge *edge, std::uint
 }
 
 void BRVCompute::print() const {
-    Spider::Logger::printVerbose(LOG_TRANSFO, "BRV values\n");
+    Spider::Logger::printVerbose(LOG_TRANSFO, "BRV values for graph [%s]\n", graph_->name().c_str());
     for (const auto &vertex : graph_->vertices()) {
         Spider::Logger::printVerbose(LOG_TRANSFO, ">> Vertex: %-20s --> RV[%" PRIu32"]\n",
                                      vertex->name().c_str(),
