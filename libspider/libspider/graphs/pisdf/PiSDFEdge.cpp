@@ -174,11 +174,11 @@ PiSDFVertex *PiSDFEdge::sink(bool forward) const {
     return sink_;
 }
 
-std::int64_t PiSDFEdge::sourceRate() const {
+std::uint64_t PiSDFEdge::sourceRate() const {
     return sourcePort_->rate();
 }
 
-std::int64_t PiSDFEdge::sinkRate() const {
+std::uint64_t PiSDFEdge::sinkRate() const {
     return sinkPort_->rate();
 }
 

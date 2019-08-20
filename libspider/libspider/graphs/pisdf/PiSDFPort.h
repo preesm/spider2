@@ -68,7 +68,7 @@ public:
      * @return rate value.
      * @throws @refitem SpiderException if port is not connected to an edge.
      */
-    inline std::int64_t rate() const;
+    inline std::uint64_t rate() const;
 
     /**
      * @brief Disconnect the edge associated to the port.
@@ -107,7 +107,7 @@ private:
 
 /* === Inline method(s) === */
 
-std::int64_t PiSDFPort::rate() const {
+std::uint64_t PiSDFPort::rate() const {
     if (!edge_) {
         throwSpiderException("Invalid rate evaluation: PiSDFPort not connected to an edge.");
     }

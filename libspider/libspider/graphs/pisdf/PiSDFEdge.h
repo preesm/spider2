@@ -194,13 +194,13 @@ public:
      * @brief Get the source rate of the edge.
      * @return source rate
      */
-    std::int64_t sourceRate() const;
+    std::uint64_t sourceRate() const;
 
     /**
      * @brief Get the sink rate of the edge.
      * @return sink rate
      */
-    std::int64_t sinkRate() const;
+    std::uint64_t sinkRate() const;
 
     /**
      * @brief Get the ix of the edge in the containing graph.
