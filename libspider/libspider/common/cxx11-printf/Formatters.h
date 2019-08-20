@@ -79,6 +79,7 @@ namespace Spider {
             void write(const char *p, size_t n) {
                 size_t count = std::min(size_, n);
                 memcpy(ptr_, p, count);
+                ptr_ += count;
                 size_ -= count;
                 written += count;
             }
