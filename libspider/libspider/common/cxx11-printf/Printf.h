@@ -592,11 +592,9 @@ namespace Spider {
         int Printf(Context &ctx, const char *format, const Ts &... ts) {
             assert(format);
             constexpr auto n_args = sizeof...(ts);
-            std::uint16_t format_specifier = 0;
             while (*format != '\0') {
                 if (*format == '%' && *++format != '%') {
                     --format;
-                    format_specifier += 1;
                     // %[flag][width][.precision][length]char
                     // this recurses into get_width -> get_precision -> get_length -> process_format
                     return detail::get_flags(ctx, format, ts...);
@@ -605,8 +603,8 @@ namespace Spider {
                 }
                 ++format;
             }
-            if (format_specifier != n_args) {
-                throw format_error("Bad format: expected format specifier.");
+            if (n_args) {
+                throw format_error("Bad format: expected format_specifier.");
             }
             // clean up any trailing stuff
             return Printf(ctx, format + 1, ts...);
