@@ -330,10 +330,13 @@ private:
 
 void PiSDFGraph::addVertex(PiSDFVertex *vertex) {
     switch (vertex->type()) {
-        case PiSDFVertexType::DUPLICATE:
-        case PiSDFVertexType::ROUNDBUFFER:
         case PiSDFVertexType::FORK:
         case PiSDFVertexType::JOIN:
+        case PiSDFVertexType::UPSAMPLE:
+        case PiSDFVertexType::DOWNSAMPLE:
+        case PiSDFVertexType::TAIL:
+        case PiSDFVertexType::HEAD:
+        case PiSDFVertexType::DUPLICATE:
         case PiSDFVertexType::INIT:
         case PiSDFVertexType::END:
         case PiSDFVertexType::DELAY:
@@ -342,10 +345,6 @@ void PiSDFGraph::addVertex(PiSDFVertex *vertex) {
             vertex->setIx(vertexVector_.size());
             vertexVector_.push_back(vertex);
             break;
-//        case PiSDFVertexType::GRAPH:
-//            vertex->setIx(vertexVector_.size());
-//            vertexVector_.push_back(vertex);
-//            break;
         case PiSDFVertexType::CONFIG:
             vertex->setIx(vertexVector_.size());
             configVertexVector_.push_back(vertex);

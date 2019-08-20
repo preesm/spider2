@@ -58,7 +58,7 @@ static const char *getVertexDotColor(PiSDFVertexType type) {
             return "#aea8d3";
         case PiSDFVertexType::DUPLICATE:
             return "#2c3e50";
-        case PiSDFVertexType::ROUNDBUFFER:
+        case PiSDFVertexType::TAIL:
             return "#f1e7fe";
         case PiSDFVertexType::INIT:
             return "#c8f7c5";
@@ -250,22 +250,47 @@ void PiSDFVertex::exportOutputPortsToDot(FILE *file,
 
 void PiSDFVertex::checkSubtypeConsistency() const {
     if (!graph_ && type_ != PiSDFVertexType::GRAPH) {
-        throwSpiderException("Vertex should belong to a graph.");
+        throwSpiderException("Vertex should belong to a graph: [%s].", name_.c_str());
     }
     if (nParamsOUT_ && (type_ != PiSDFVertexType::CONFIG)) {
-        throwSpiderException("Non configuration actors can not have output parameters. Vertex [%s]", name_.c_str());
+        throwSpiderException("Non configuration actors can not have output parameters: [%s].", name_.c_str());
     }
-    if (nEdgesIN_ > 1 && (type_ == PiSDFVertexType::FORK ||
-                          type_ == PiSDFVertexType::DUPLICATE)) {
-        throwSpiderException("Fork and Broadcast actors can only have one input edge.");
-    } else if (nEdgesIN_ && type_ == PiSDFVertexType::INIT) {
-        throwSpiderException("Init actors can not have input edge !");
-    }
-    if (nEdgesOUT_ > 1 && (type_ == PiSDFVertexType::JOIN ||
-                           type_ == PiSDFVertexType::ROUNDBUFFER)) {
-        throwSpiderException("Join and Roundbuffer actors can only have one input edge.");
-    } else if (nEdgesOUT_ && type_ == PiSDFVertexType::END) {
-        throwSpiderException("End actors can not have output edge !");
+    switch (type_) {
+        case PiSDFVertexType::HEAD:
+        case PiSDFVertexType::TAIL:
+        case PiSDFVertexType::JOIN:
+            if (nEdgesIN_ != 1) {
+                throwSpiderException("Join, Head and Tail actors should have exactly 1 output edge: [%s].",
+                                     name_.c_str());
+            }
+            break;
+        case PiSDFVertexType::FORK:
+        case PiSDFVertexType::DUPLICATE:
+            if (nEdgesIN_ != 1) {
+                throwSpiderException("Fork and Duplicate actors should have exactly 1 input edge: [%s].",
+                                     name_.c_str());
+            }
+            break;
+        case PiSDFVertexType::UPSAMPLE:
+        case PiSDFVertexType::DOWNSAMPLE:
+            if (nEdgesOUT_ != 1 || nEdgesIN_ != 1) {
+                throwSpiderException(
+                        "Upsample and Downsample actors should have exactly 1 input edge and 1 output edge: [%s].",
+                        name_.c_str());
+            }
+            break;
+        case PiSDFVertexType::INIT:
+            if (nEdgesIN_) {
+                throwSpiderException("Init actors can not have input edges: [%s].", name_.c_str());
+            }
+            break;
+        case PiSDFVertexType::END:
+            if (nEdgesOUT_) {
+                throwSpiderException("End actors can not have output edges: [%s].", name_.c_str());
+            }
+            break;
+        default:
+            break;
     }
 }
 

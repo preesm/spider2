@@ -111,11 +111,27 @@ namespace Spider {
                                 std::uint32_t nParamsIN = 0,
                                 StackID stack = StackID::PISDF);
 
-        PiSDFVertex *createRoundbuffer(PiSDFGraph *graph,
-                                       const std::string &name,
-                                       std::uint32_t nEdgesIN = 0,
-                                       std::uint32_t nParamsIN = 0,
-                                       StackID stack = StackID::PISDF);
+        PiSDFVertex *createTail(PiSDFGraph *graph,
+                                const std::string &name,
+                                std::uint32_t nEdgesIN = 0,
+                                std::uint32_t nParamsIN = 0,
+                                StackID stack = StackID::PISDF);
+
+        PiSDFVertex *createHead(PiSDFGraph *graph,
+                                const std::string &name,
+                                std::uint32_t nEdgesIN = 0,
+                                std::uint32_t nParamsIN = 0,
+                                StackID stack = StackID::PISDF);
+
+        PiSDFVertex *createUpsample(PiSDFGraph *graph,
+                                    const std::string &name,
+                                    std::uint32_t nParamsIN = 0,
+                                    StackID stack = StackID::PISDF);
+
+        PiSDFVertex *createDownsample(PiSDFGraph *graph,
+                                      const std::string &name,
+                                      std::uint32_t nParamsIN = 0,
+                                      StackID stack = StackID::PISDF);
 
         PiSDFVertex *createJoin(PiSDFGraph *graph,
                                 const std::string &name,

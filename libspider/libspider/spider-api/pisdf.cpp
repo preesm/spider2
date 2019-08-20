@@ -113,24 +113,6 @@ PiSDFVertex *Spider::API::createVertex(PiSDFGraph *graph,
     return vertex;
 }
 
-PiSDFVertex *Spider::API::createDuplicate(PiSDFGraph *graph,
-                                          const std::string &name,
-                                          std::uint32_t nEdgesOUT,
-                                          std::uint32_t nParamsIN,
-                                          StackID stack) {
-    auto *vertex = Spider::allocate<PiSDFVertex>(stack);
-    Spider::construct(vertex,
-                      stack,
-                      graph,
-                      name,
-                      PiSDFVertexType::DUPLICATE,
-                      1, /* = Broadcast vertex has only ONE input edge = */
-                      nEdgesOUT,
-                      nParamsIN,
-                      0);
-    return vertex;
-}
-
 PiSDFVertex *Spider::API::createFork(PiSDFGraph *graph,
                                      const std::string &name,
                                      std::uint32_t nEdgesOUT,
@@ -149,24 +131,6 @@ PiSDFVertex *Spider::API::createFork(PiSDFGraph *graph,
     return vertex;
 }
 
-PiSDFVertex *Spider::API::createRoundbuffer(PiSDFGraph *graph,
-                                            const std::string &name,
-                                            std::uint32_t nEdgesIN,
-                                            std::uint32_t nParamsIN,
-                                            StackID stack) {
-    auto *vertex = Spider::allocate<PiSDFVertex>(stack);
-    Spider::construct(vertex,
-                      stack,
-                      graph,
-                      name,
-                      PiSDFVertexType::ROUNDBUFFER,
-                      nEdgesIN,
-                      1, /* = Roundbuffer vertex has only ONE output edge = */
-                      nParamsIN,
-                      0);
-    return vertex;
-}
-
 PiSDFVertex *Spider::API::createJoin(PiSDFGraph *graph,
                                      const std::string &name,
                                      std::uint32_t nEdgesIN,
@@ -180,6 +144,94 @@ PiSDFVertex *Spider::API::createJoin(PiSDFGraph *graph,
                       PiSDFVertexType::JOIN,
                       nEdgesIN,
                       1, /* = Join vertex has only ONE output edge = */
+                      nParamsIN,
+                      0);
+    return vertex;
+}
+
+PiSDFVertex *Spider::API::createTail(PiSDFGraph *graph,
+                                     const std::string &name,
+                                     std::uint32_t nEdgesIN,
+                                     std::uint32_t nParamsIN,
+                                     StackID stack) {
+    auto *vertex = Spider::allocate<PiSDFVertex>(stack);
+    Spider::construct(vertex,
+                      stack,
+                      graph,
+                      name,
+                      PiSDFVertexType::TAIL,
+                      nEdgesIN,
+                      1, /* = Tail vertex has only ONE output edge = */
+                      nParamsIN,
+                      0);
+    return vertex;
+}
+
+PiSDFVertex *Spider::API::createHead(PiSDFGraph *graph,
+                                     const std::string &name,
+                                     std::uint32_t nEdgesIN,
+                                     std::uint32_t nParamsIN,
+                                     StackID stack) {
+    auto *vertex = Spider::allocate<PiSDFVertex>(stack);
+    Spider::construct(vertex,
+                      stack,
+                      graph,
+                      name,
+                      PiSDFVertexType::HEAD,
+                      nEdgesIN,
+                      1, /* = Head vertex has only ONE output edge = */
+                      nParamsIN,
+                      0);
+    return vertex;
+}
+
+PiSDFVertex *Spider::API::createUpsample(PiSDFGraph *graph,
+                                         const std::string &name,
+                                         std::uint32_t nParamsIN,
+                                         StackID stack) {
+    auto *vertex = Spider::allocate<PiSDFVertex>(stack);
+    Spider::construct(vertex,
+                      stack,
+                      graph,
+                      name,
+                      PiSDFVertexType::UPSAMPLE,
+                      1, /* = Upsample vertex has only ONE input edge = */
+                      1, /* = Upsample vertex has only ONE output edge = */
+                      nParamsIN,
+                      0);
+    return vertex;
+}
+
+PiSDFVertex *Spider::API::createDownsample(PiSDFGraph *graph,
+                                           const std::string &name,
+                                           std::uint32_t nParamsIN,
+                                           StackID stack) {
+    auto *vertex = Spider::allocate<PiSDFVertex>(stack);
+    Spider::construct(vertex,
+                      stack,
+                      graph,
+                      name,
+                      PiSDFVertexType::DOWNSAMPLE,
+                      1, /* = Downsample vertex has only ONE input edge = */
+                      1, /* = Downsample vertex has only ONE output edge = */
+                      nParamsIN,
+                      0);
+    return vertex;
+}
+
+PiSDFVertex *Spider::API::createDuplicate(PiSDFGraph *graph,
+                                          const std::string &name,
+                                          std::uint32_t nEdgesOUT,
+                                          std::uint32_t nParamsIN,
+                                          StackID stack) {
+    auto *vertex = Spider::allocate<PiSDFVertex>(stack);
+    Spider::construct(vertex,
+                      stack,
+                      graph,
+                      name,
+                      PiSDFVertexType::DUPLICATE,
+                      1, /* = Broadcast vertex has only ONE input edge = */
+                      nEdgesOUT,
                       nParamsIN,
                       0);
     return vertex;
