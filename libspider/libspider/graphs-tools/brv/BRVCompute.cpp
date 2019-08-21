@@ -74,7 +74,6 @@ BRVCompute::BRVCompute(const PiSDFGraph *graph) : graph_{graph} {
 
 void BRVCompute::extractConnectedComponent(BRVComponent &component,
                                            Spider::Array<const PiSDFVertex *> &keyArray) {
-//    auto &vertexArray = component.vertices;
     auto scannedIndex = component.vertices.size() - 1; /* = Index of current scanned vertex = */
     bool addedVertex;
     do {
@@ -87,7 +86,8 @@ void BRVCompute::extractConnectedComponent(BRVComponent &component,
                 throwSpiderException("Vertex [%s] has null edge.", currentVertex->name().c_str());
             }
             auto *sink = edge->sink();
-            if (!keyArray[sink->ix()]) {
+            if (sink->type() != PiSDFVertexType::INTERFACE &&
+                !keyArray[sink->ix()]) {
                 /* == Register the vertex == */
                 component.vertices.push_back(sink);
                 keyArray[sink->ix()] = sink;
@@ -102,11 +102,14 @@ void BRVCompute::extractConnectedComponent(BRVComponent &component,
                 throwSpiderException("Vertex [%s] has null edge.", currentVertex->name().c_str());
             }
             auto *source = edge->source();
-            if (!keyArray[source->ix()]) {
+            if (source->type() != PiSDFVertexType::INTERFACE &&
+                !keyArray[source->ix()]) {
                 /* == Register the vertex == */
                 component.vertices.push_back(source);
                 keyArray[source->ix()] = source;
                 addedVertex = true;
+            } else if (source->type() == PiSDFVertexType::INTERFACE) {
+                component.nEdges += 1;
             }
         }
         scannedIndex += 1;
@@ -119,6 +122,11 @@ void BRVCompute::extractEdges(Spider::Array<const PiSDFEdge *> &edgeArray, const
     for (const auto &v: vertexArray) {
         for (const auto &edge: v->outputEdges()) {
             edgeArray[index++] = edge;
+        }
+        for (const auto &edge: v->inputEdges()) {
+            if (edge->source()->type() == PiSDFVertexType::INTERFACE) {
+                edgeArray[index++] = edge;
+            }
         }
     }
 }
