@@ -126,21 +126,36 @@ void PiSDFVertex::exportDot(FILE *file, const std::string &offset) const {
     if (isHierarchical()) {
         return;
     }
-    Spider::cxx11::fprintf(file, "%s\"%s\" [ shape = none, margin = 0, label = <\n", offset.c_str(), name_.c_str());
-    Spider::cxx11::fprintf(file, "%s\t<table border = \"1\" cellspacing=\"0\" cellpadding = \"0\" bgcolor = \"%s\">\n",
-                           offset.c_str(), getVertexDotColor(type_));
-
-    /* == Header == */
     Spider::cxx11::fprintf(file,
-                           "%s\t\t<tr> <td colspan=\"4\" border=\"0\"><font point-size=\"5\"> </font></td></tr>\n",
+                           "%s\"%s\" [shape=plain, style=filled, fillcolor=\"#%sff\", width=0, height = 0, label = <\n",
+                           offset.c_str(), name_.c_str(), getVertexDotColor(type_));
+    Spider::cxx11::fprintf(file, "%s\t<table border=\"0\" fixedsize=\"false\" cellspacing=\"0\" cellpadding=\"0\">\n",
                            offset.c_str());
 
     /* == Vertex name == */
     Spider::cxx11::fprintf(file,
-                           "%s\t\t<tr> <td colspan=\"4\" border=\"0\"><font point-size=\"35\">%s</font></td></tr>\n",
+                           "%s\t\t<tr> <td border=\"1\" sides=\"lrt\" colspan=\"4\" fixedsize=\"false\" height=\"10\"></td></tr>\n",
+                           offset.c_str());
+    Spider::cxx11::fprintf(file,
+                           "%s\t\t<tr> <td border=\"1\" sides=\"lr\" colspan=\"4\"><font point-size=\"25\" face=\"inconsolata\">%s</font></td></tr>\n",
                            offset.c_str(), name_.c_str());
+    Spider::cxx11::fprintf(file,
+                           "%s\t\t<tr> <td border=\"1\" sides=\"lrt\" colspan=\"4\" fixedsize=\"false\" height=\"10\"></td></tr>\n",
+                           offset.c_str());
 
-    /* == Input ports == */
+    /* == Compute widths == */
+    auto n = name_.size();
+    auto centerWidth = static_cast<std::uint32_t>(15. * (n - 8.) * (n > 8) +
+                                                  20. * (1 + 1. / (1 + std::exp(-10 * (n - 7)))));
+    double longestRateLen = 0;
+    for (const auto &e: inputEdgeArray_) {
+        longestRateLen = std::max(longestRateLen, std::log10(e->sinkRate()));
+    }
+    for (const auto &e: outputEdgeArray_) {
+        longestRateLen = std::max(longestRateLen, std::log10(e->sourceRate()));
+    }
+    auto rateWidth = 32 + std::max(static_cast<std::int32_t>(longestRateLen) - 3, 0) * 8;
+
     Spider::cxx11::fprintf(file, "%s\t\t<tr>\n", offset.c_str());
     exportInputPortsToDot(file, offset);
 
@@ -153,7 +168,7 @@ void PiSDFVertex::exportDot(FILE *file, const std::string &offset) const {
 
     /* == Footer == */
     Spider::cxx11::fprintf(file,
-                           "%s\t\t<tr> <td colspan=\"4\" border=\"0\"><font point-size=\"5\"> </font></td></tr>\n",
+                           "%s\t\t<tr> <td border=\"1\" colspan=\"4\" fixedsize=\"false\" height=\"10\" sides=\"lbr\"></td></tr>\n",
                            offset.c_str());
     Spider::cxx11::fprintf(file, "%s\t</table>>\n", offset.c_str());
     Spider::cxx11::fprintf(file, "%s];\n\n", offset.c_str());
@@ -263,7 +278,7 @@ void PiSDFVertex::checkSubtypeConsistency() const {
         case PiSDFVertexType::HEAD:
         case PiSDFVertexType::TAIL:
         case PiSDFVertexType::JOIN:
-            if (nEdgesIN_ != 1) {
+            if (nEdgesOUT_ != 1) {
                 throwSpiderException("Join, Head and Tail actors should have exactly 1 output edge: [%s].",
                                      name_.c_str());
             }
