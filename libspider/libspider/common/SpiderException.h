@@ -87,7 +87,7 @@ public:
         n = Spider::cxx11::sprintf(exceptionMessage_ + n, SPIDER_EXCEPTION_BUFFER_SIZE, msg, ts...);
         if (n > SPIDER_EXCEPTION_BUFFER_SIZE) {
             Spider::cxx11::fprintf(stderr, "SpiderException: ERROR: exception message too big.\n");
-            Spider::cxx11::fprintf(stderr, "Partially recovered exception: ");
+            Spider::cxx11::fprintf(stderr, "Partially recovered exception: %s\n", exceptionMessage_);
             fflush(stderr);
         }
     }
