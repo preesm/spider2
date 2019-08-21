@@ -64,6 +64,10 @@ static const char *getVertexDotColor(PiSDFVertexType type) {
             return "#c8f7c5";
         case PiSDFVertexType::END:
             return "#ff9478";
+        case PiSDFVertexType::UPSAMPLE:
+            return "#fff68f";
+        case PiSDFVertexType::DOWNSAMPLE:
+            return "#dcc6e0";
         default:
             return "eeeeee";
     }
