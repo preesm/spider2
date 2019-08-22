@@ -290,6 +290,15 @@ private:
     /* === Private methods === */
 
     /**
+     * @brief Check for subtype consistency.
+     */
+    void checkSubtypeConsistency() const;
+
+protected:
+
+    /* === Protected methods === */
+
+    /**
      * @brief Export an input port of the vertex in DOT format.
      * @param file       File to export to.
      * @param offset     Tab offset for the export.
@@ -328,11 +337,6 @@ private:
      * @param rateWidth  Fixed width for the rate writing good alignment.
      */
     void exportDummyOutputPortDOT(FILE *file, const std::string &offset, std::uint32_t rateWidth) const;
-
-    /**
-     * @brief Check for subtype consistency.
-     */
-    void checkSubtypeConsistency() const;
 };
 
 /* === Inline methods === */

@@ -182,7 +182,7 @@ void PiSDFVertex::exportDOT(FILE *file, const std::string &offset) const {
 
     /* == Trailing output ports == */
     if (nOutput < outputEdgeArray_.size()) {
-        for (auto i = nOutput; i < outputEdgeArray_.size(); ++i) {
+        for (std::uint64_t i = nOutput; i < outputEdgeArray_.size(); ++i) {
             auto *edge = outputEdgeArray_[i];
             Spider::cxx11::fprintf(file,
                                    "%s\t\t<tr> <td border=\"1\" sides=\"lr\" colspan=\"4\" fixedsize=\"false\" height=\"10\"></td></tr>\n",
@@ -212,7 +212,97 @@ void PiSDFVertex::exportDOT(FILE *file, const std::string &offset) const {
     Spider::cxx11::fprintf(file, "%s];\n\n", offset.c_str());
 }
 
+void PiSDFVertex::disconnectInputEdge(std::uint16_t ix) {
+    if (ix >= inputEdgeArray_.size()) {
+        throwSpiderException("Trying to disconnect input edge out of bound: %s[%"
+                                     PRIu16
+                                     "].", name_.c_str(), ix);
+    }
+    if (!inputEdgeArray_[ix]) {
+        return;
+    }
+    inputEdgeArray_[ix] = nullptr;
+}
+
+void PiSDFVertex::disconnectOutputEdge(std::uint16_t ix) {
+    if (ix >= outputEdgeArray_.size()) {
+        throwSpiderException("Trying to disconnect output edge out of bound: %s[%"
+                                     PRIu16
+                                     "].", name_.c_str(), ix);
+    }
+    if (!outputEdgeArray_[ix]) {
+        return;
+    }
+    outputEdgeArray_[ix] = nullptr;
+}
+
+void PiSDFVertex::setInputEdge(PiSDFEdge *edge, std::uint16_t ix) {
+    if (inputEdgeArray_[ix]) {
+        throwSpiderException("Already existing input edge at ix: %"
+                                     PRIu16
+                                     ".", ix);
+    }
+    inputEdgeArray_[ix] = edge;
+}
+
+void PiSDFVertex::setOutputEdge(PiSDFEdge *edge, std::uint16_t ix) {
+    if (outputEdgeArray_[ix]) {
+        throwSpiderException("Already existing output edge at ix: %"
+                                     PRIu16
+                                     ".", ix);
+    }
+    outputEdgeArray_[ix] = edge;
+}
+
 /* === Private method(s) === */
+
+void PiSDFVertex::checkSubtypeConsistency() const {
+    if (!graph_ && type_ != PiSDFVertexType::GRAPH) {
+        throwSpiderException("Vertex should belong to a graph: [%s].", name_.c_str());
+    }
+    if (nParamsOUT_ && (type_ != PiSDFVertexType::CONFIG)) {
+        throwSpiderException("Non configuration actors can not have output parameters: [%s].", name_.c_str());
+    }
+    switch (type_) {
+        case PiSDFVertexType::HEAD:
+        case PiSDFVertexType::TAIL:
+        case PiSDFVertexType::JOIN:
+            if (nEdgesOUT_ != 1) {
+                throwSpiderException("Join, Head and Tail actors should have exactly 1 output edge: [%s].",
+                                     name_.c_str());
+            }
+            break;
+        case PiSDFVertexType::FORK:
+        case PiSDFVertexType::DUPLICATE:
+            if (nEdgesIN_ != 1) {
+                throwSpiderException("Fork and Duplicate actors should have exactly 1 input edge: [%s].",
+                                     name_.c_str());
+            }
+            break;
+        case PiSDFVertexType::UPSAMPLE:
+        case PiSDFVertexType::DOWNSAMPLE:
+            if (nEdgesOUT_ != 1 || nEdgesIN_ != 1) {
+                throwSpiderException(
+                        "Upsample and Downsample actors should have exactly 1 input edge and 1 output edge: [%s].",
+                        name_.c_str());
+            }
+            break;
+        case PiSDFVertexType::INIT:
+            if (nEdgesIN_) {
+                throwSpiderException("Init actors can not have input edges: [%s].", name_.c_str());
+            }
+            break;
+        case PiSDFVertexType::END:
+            if (nEdgesOUT_) {
+                throwSpiderException("End actors can not have output edges: [%s].", name_.c_str());
+            }
+            break;
+        default:
+            break;
+    }
+}
+
+/* === Protected method(s) === */
 
 void PiSDFVertex::exportInputPortDOT(FILE *file,
                                      const std::string &offset,
@@ -287,94 +377,4 @@ void PiSDFVertex::exportDummyOutputPortDOT(FILE *file,
     Spider::cxx11::fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());
     Spider::cxx11::fprintf(file, "%s\t\t\t\t</table>\n", offset.c_str());
     Spider::cxx11::fprintf(file, "%s\t\t\t</td>\n", offset.c_str());
-}
-
-void PiSDFVertex::checkSubtypeConsistency() const {
-    if (!graph_ && type_ != PiSDFVertexType::GRAPH) {
-        throwSpiderException("Vertex should belong to a graph: [%s].", name_.c_str());
-    }
-    if (nParamsOUT_ && (type_ != PiSDFVertexType::CONFIG)) {
-        throwSpiderException("Non configuration actors can not have output parameters: [%s].", name_.c_str());
-    }
-    switch (type_) {
-        case PiSDFVertexType::HEAD:
-        case PiSDFVertexType::TAIL:
-        case PiSDFVertexType::JOIN:
-            if (nEdgesOUT_ != 1) {
-                throwSpiderException("Join, Head and Tail actors should have exactly 1 output edge: [%s].",
-                                     name_.c_str());
-            }
-            break;
-        case PiSDFVertexType::FORK:
-        case PiSDFVertexType::DUPLICATE:
-            if (nEdgesIN_ != 1) {
-                throwSpiderException("Fork and Duplicate actors should have exactly 1 input edge: [%s].",
-                                     name_.c_str());
-            }
-            break;
-        case PiSDFVertexType::UPSAMPLE:
-        case PiSDFVertexType::DOWNSAMPLE:
-            if (nEdgesOUT_ != 1 || nEdgesIN_ != 1) {
-                throwSpiderException(
-                        "Upsample and Downsample actors should have exactly 1 input edge and 1 output edge: [%s].",
-                        name_.c_str());
-            }
-            break;
-        case PiSDFVertexType::INIT:
-            if (nEdgesIN_) {
-                throwSpiderException("Init actors can not have input edges: [%s].", name_.c_str());
-            }
-            break;
-        case PiSDFVertexType::END:
-            if (nEdgesOUT_) {
-                throwSpiderException("End actors can not have output edges: [%s].", name_.c_str());
-            }
-            break;
-        default:
-            break;
-    }
-}
-
-
-void PiSDFVertex::disconnectInputEdge(std::uint16_t ix) {
-    if (ix >= inputEdgeArray_.size()) {
-        throwSpiderException("Trying to disconnect input edge out of bound: %s[%"
-                                     PRIu16
-                                     "].", name_.c_str(), ix);
-    }
-    if (!inputEdgeArray_[ix]) {
-        return;
-    }
-    inputEdgeArray_[ix] = nullptr;
-}
-
-
-void PiSDFVertex::disconnectOutputEdge(std::uint16_t ix) {
-    if (ix >= outputEdgeArray_.size()) {
-        throwSpiderException("Trying to disconnect output edge out of bound: %s[%"
-                                     PRIu16
-                                     "].", name_.c_str(), ix);
-    }
-    if (!outputEdgeArray_[ix]) {
-        return;
-    }
-    outputEdgeArray_[ix] = nullptr;
-}
-
-void PiSDFVertex::setInputEdge(PiSDFEdge *edge, std::uint16_t ix) {
-    if (inputEdgeArray_[ix]) {
-        throwSpiderException("Already existing input edge at ix: %"
-                                     PRIu16
-                                     ".", ix);
-    }
-    inputEdgeArray_[ix] = edge;
-}
-
-void PiSDFVertex::setOutputEdge(PiSDFEdge *edge, std::uint16_t ix) {
-    if (outputEdgeArray_[ix]) {
-        throwSpiderException("Already existing output edge at ix: %"
-                                     PRIu16
-                                     ".", ix);
-    }
-    outputEdgeArray_[ix] = edge;
 }

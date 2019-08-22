@@ -77,74 +77,50 @@ std::uint16_t PiSDFInterface::correspondingPortIx() const {
 }
 
 void PiSDFInterface::exportDOT(FILE *file, const std::string &offset) const {
-    Spider::cxx11::fprintf(file, "%s\"%s\" [ shape = none, margin = 0, label = <\n", offset.c_str(), name().c_str());
-    Spider::cxx11::fprintf(file, "%s\t<table border = \"1\" cellspacing=\"0\" cellpadding = \"0\" bgcolor = \"%s\">\n",
-                           offset.c_str(), getBGColor(interfaceType_));
-
-    /* == Header == */
     Spider::cxx11::fprintf(file,
-                           "%s\t\t<tr> <td colspan=\"3\" border=\"0\"><font point-size=\"5\"> </font></td></tr>\n",
+                           "%s\"%s\" [shape=plain, style=filled, fillcolor=\"%sff\", width=0, height=0, label = <\n",
+                           offset.c_str(), name().c_str(), getBGColor(interfaceType_));
+    Spider::cxx11::fprintf(file, "%s\t<table border=\"0\" fixedsize=\"false\" cellspacing=\"0\" cellpadding=\"0\">\n",
                            offset.c_str());
 
     /* == Vertex name == */
     Spider::cxx11::fprintf(file,
-                           "%s\t\t<tr> <td colspan=\"3\" border=\"0\"><font point-size=\"35\">%s</font></td></tr>\n",
+                           "%s\t\t<tr> <td border=\"1\" sides=\"lrt\" colspan=\"4\" fixedsize=\"false\" height=\"10\"></td></tr>\n",
+                           offset.c_str());
+    Spider::cxx11::fprintf(file,
+                           "%s\t\t<tr> <td border=\"1\" sides=\"lr\" colspan=\"4\"><font point-size=\"25\" face=\"inconsolata\">%s</font></td></tr>\n",
                            offset.c_str(), name().c_str());
 
-    /* == Input ports == */
+    /* == Compute widths == */
+    auto n = name().size();
+    auto centerWidth = static_cast<std::uint32_t>(15. * (n - 8.) * (n > 8) +
+                                                  std::ceil(20. * (1 + 1. / (1 + std::exp(-10. * (n - 7.))))));
+    double longestRateLen = std::max(0., std::log10(inputEdge()->sinkRate()));
+    longestRateLen = std::max(longestRateLen, std::log10(outputEdge()->sourceRate()));
+    auto rateWidth = 32 + std::max(static_cast<std::int32_t>(longestRateLen) + 1 - 3, 0) * 8;
+
+    /* == Export data ports == */
+    Spider::cxx11::fprintf(file,
+                           "%s\t\t<tr> <td border=\"1\" sides=\"lr\" colspan=\"4\" fixedsize=\"false\" height=\"10\"></td></tr>\n",
+                           offset.c_str());
     Spider::cxx11::fprintf(file, "%s\t\t<tr>\n", offset.c_str());
-    if (inputEdge()) {
-        Spider::cxx11::fprintf(file, "%s\t\t\t<td border=\"0\">\n", offset.c_str());
-        Spider::cxx11::fprintf(file, "%s\t\t\t\t<table border=\"0\" cellpadding=\"0\" cellspacing=\"1\">\n",
-                               offset.c_str());
-        /* == Print the output edge port information == */
-        Spider::cxx11::fprintf(file, "%s\t\t\t\t\t<tr>\n", offset.c_str());
-        Spider::cxx11::fprintf(file, "%s\t\t\t\t\t\t<td port=\"in_0\" border=\"1\" bgcolor=\"#87d37c\">    </td>\n",
-                               offset.c_str());
-        Spider::cxx11::fprintf(file,
-                               "%s\t\t\t\t\t\t<td align=\"right\" border=\"0\" bgcolor=\"%s\"><font point-size=\"15\">in</font></td>\n",
-                               offset.c_str(), getBGColor(interfaceType_));
-        Spider::cxx11::fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());
-        Spider::cxx11::fprintf(file, "%s\t\t\t\t</table>\n", offset.c_str());
-        Spider::cxx11::fprintf(file, "%s\t\t\t</td>\n", offset.c_str());
-    } else {
-        /* == Print the dummy port for pretty spacing == */
-        Spider::cxx11::fprintf(file, "%s\t\t\t\t\t<tr>\n", offset.c_str());
-        Spider::cxx11::fprintf(file, "%s\t\t\t\t\t\t<td border=\"0\" bgcolor=\"%s\">    </td>\n", offset.c_str(),
-                               getBGColor(interfaceType_));
-        Spider::cxx11::fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());
-    }
 
-    /* == Center column == */
-    Spider::cxx11::fprintf(file, "%s\t\t\t<td border=\"0\" colspan=\"1\" cellpadding=\"10\"> </td>\n", offset.c_str());
+    /* == Export input port == */
+    exportInputPortDOT(file, offset, rateWidth, inputEdge());
 
-    /* == Output ports == */
-    if (outputEdge()) {
-        Spider::cxx11::fprintf(file, "%s\t\t\t<td border=\"0\">\n", offset.c_str());
-        Spider::cxx11::fprintf(file, "%s\t\t\t\t<table border=\"0\" cellpadding=\"0\" cellspacing=\"1\">\n",
-                               offset.c_str());
-        /* == Print the output edge port information == */
-        Spider::cxx11::fprintf(file, "%s\t\t\t\t\t<tr>\n", offset.c_str());
-        Spider::cxx11::fprintf(file,
-                               "%s\t\t\t\t\t\t<td align=\"right\" border=\"0\" bgcolor=\"%s\"><font point-size=\"15\">out</font></td>\n",
-                               offset.c_str(), getBGColor(interfaceType_));
-        Spider::cxx11::fprintf(file, "%s\t\t\t\t\t\t<td port=\"out_0\" border=\"1\" bgcolor=\"#ec644b\">    </td>\n",
-                               offset.c_str());
-        Spider::cxx11::fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());
-        Spider::cxx11::fprintf(file, "%s\t\t\t\t</table>\n", offset.c_str());
-        Spider::cxx11::fprintf(file, "%s\t\t\t</td>\n", offset.c_str());
-    } else {
-        /* == Print the dummy port for pretty spacing == */
-        Spider::cxx11::fprintf(file, "%s\t\t\t\t\t<tr>\n", offset.c_str());
-        Spider::cxx11::fprintf(file, "%s\t\t\t\t\t\t<td border=\"0\" bgcolor=\"%s\">    </td>\n", offset.c_str(),
-                               getBGColor(interfaceType_));
-        Spider::cxx11::fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());
-    }
+    /* == Middle separation == */
+    Spider::cxx11::fprintf(file,
+                           "%s\t\t\t<td border=\"0\" colspan=\"2\" bgcolor=\"#00000000\" fixedsize=\"true\" width=\"%" PRIu32"\" height=\"20\"></td>\n",
+                           offset.c_str(), centerWidth);
+
+    /* == Export output port == */
+    exportOutputPortDOT(file, offset, rateWidth, outputEdge());
+
     Spider::cxx11::fprintf(file, "%s\t\t</tr>\n", offset.c_str());
 
     /* == Footer == */
     Spider::cxx11::fprintf(file,
-                           "%s\t\t<tr> <td colspan=\"3\" border=\"0\"><font point-size=\"5\"> </font></td></tr>\n",
+                           "%s\t\t<tr> <td border=\"1\" colspan=\"4\" fixedsize=\"false\" height=\"10\" sides=\"lbr\"></td></tr>\n",
                            offset.c_str());
     Spider::cxx11::fprintf(file, "%s\t</table>>\n", offset.c_str());
     Spider::cxx11::fprintf(file, "%s];\n\n", offset.c_str());
