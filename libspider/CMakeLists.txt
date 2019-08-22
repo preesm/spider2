@@ -158,6 +158,8 @@ file(
         ${SPIDER_LIB_DIR}/graphs-tools/expression-parser/*.cpp
         ${SPIDER_LIB_DIR}/graphs-tools/transformation/*.cpp
         ${SPIDER_LIB_DIR}/graphs-tools/numerical/*.cpp
+        ${SPIDER_LIB_DIR}/runtime/distributed/*.cpp
+        ${SPIDER_LIB_DIR}/runtime/master-slave/*.cpp
         ${SPIDER_LIB_DIR}/spider-api/*.cpp
 )
 
@@ -175,7 +177,11 @@ file(
         ${SPIDER_LIB_DIR}/graphs-tools/brv/*.h
         ${SPIDER_LIB_DIR}/graphs-tools/expression-parser/*.h
         ${SPIDER_LIB_DIR}/graphs-tools/transformation/*.h
+        ${SPIDER_LIB_DIR}/graphs-tools/transformation/optims/*.h
         ${SPIDER_LIB_DIR}/graphs-tools/numerical/*.h
+        ${SPIDER_LIB_DIR}/runtime/*.h
+        ${SPIDER_LIB_DIR}/runtime/distributed/*.h
+        ${SPIDER_LIB_DIR}/runtime/master-slave/*.h
         ${SPIDER_LIB_DIR}/spider-api/*.h
         ${SPIDER_LIB_DIR}/spider.h
 )
