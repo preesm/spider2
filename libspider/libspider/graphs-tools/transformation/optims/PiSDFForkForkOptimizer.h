@@ -92,7 +92,7 @@ PiSDFGraph *PiSDFForkForkOptimizer::operator()(PiSDFGraph *graph) const {
         for (auto *sourceEdge : source->outputEdges()) {
             if (sourceEdge->sourcePortIx() == insertEdgeIx) {
                 graph->removeEdge(sourceEdge);
-                offset = vertex->nEdgesOUT() - 1;
+                offset += vertex->nEdgesOUT() - 1;
                 for (auto *vertexEdge : vertex->outputEdges()) {
                     rate = vertexEdge->sourceRate();
                     auto ix = vertexEdge->sourcePortIx() + insertEdgeIx;

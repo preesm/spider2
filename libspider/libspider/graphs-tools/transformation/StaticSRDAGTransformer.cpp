@@ -307,7 +307,9 @@ void StaticSRDAGTransformer::singleRateLinkage(StaticSRDAGTransformer::EdgeLinke
         } else {
             /* == Sink needs a join == */
             auto nInput = (sinkLinker.upperDep - sinkLinker.lowerDep) + 1;
-            auto *join = Spider::API::createJoin(srdag_, "join-" + snk->name(), nInput, 0, StackID::TRANSFO);
+            auto *join = Spider::API::createJoin(srdag_,
+                                                 "join-" + snk->name() + "-in" + std::to_string(edgeLinker.sinkPortIx),
+                                                 nInput, 0, StackID::TRANSFO);
             Spider::API::createEdge(srdag_, join, 0, sinkLinker.sinkRate,
                                     snk, sinkLinker.sinkPortIx, sinkLinker.sinkRate, StackID::TRANSFO);
             std::uint64_t firstEdgeConsumption = 0;
@@ -394,7 +396,8 @@ void StaticSRDAGTransformer::buildSourceLinkArray(StaticSRDAGTransformer::EdgeLi
             sourceLinkArray[edgeLinker.sourceCount + hasDelay] = src;
         } else {
             auto nConsumer = (upperDep - lowerDep) + 1;
-            auto *fork = Spider::API::createFork(srdag_, "fork-" + src->name()+ "-out" + std::to_string(edgeLinker.sourcePortIx),
+            auto *fork = Spider::API::createFork(srdag_, "fork-" + src->name() + "-out" +
+                                                         std::to_string(edgeLinker.sourcePortIx),
                                                  nConsumer, 0, StackID::TRANSFO);
             sourceLinkArray[edgeLinker.sourceCount + hasDelay] = fork;
             Spider::API::createEdge(srdag_, src, edgeLinker.sourcePortIx, edgeLinker.sourceRate,

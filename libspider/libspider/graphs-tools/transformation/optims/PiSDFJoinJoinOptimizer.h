@@ -43,6 +43,7 @@
 /* === Includes === */
 
 #include <graphs-tools/transformation/optims/PiSDFGraphOptimizer.h>
+#include <spider-api/pisdf.h>
 
 /* === Class definition === */
 
@@ -52,7 +53,77 @@ public:
 };
 
 PiSDFGraph *PiSDFJoinJoinOptimizer::operator()(PiSDFGraph *graph) const {
-    return nullptr;
+    Spider::vector<std::pair<PiSDFVertex *, PiSDFVertex *>> verticesToOptimize;
+
+    /* == Search for the pair of fork to optimize == */
+    for (auto &vertex : graph->vertices()) {
+        if (vertex->type() == PiSDFVertexType::JOIN) {
+            auto *sink = vertex->outputEdge(0)->sink();
+            if (sink->type() == PiSDFVertexType::JOIN) {
+                verticesToOptimize.push_back(std::make_pair(vertex, sink));
+            }
+        }
+    }
+
+    if (verticesToOptimize.empty()) {
+        return graph;
+    }
+
+    /* == Do the optimization == */
+    for (auto it = verticesToOptimize.begin(); it != verticesToOptimize.end(); ++it) {
+        auto &pair = (*it);
+        auto *vertex = pair.first;
+        auto *sink = pair.second;
+
+        /* == Create the new fork == */
+        auto *join = Spider::API::createJoin(graph,
+                                             "merged-" + vertex->name() + "-" + sink->name(),
+                                             vertex->nEdgesIN() + (sink->nEdgesIN() - 1),
+                                             0,
+                                             StackID::TRANSFO);
+        auto *edge = sink->outputEdge(0);
+        auto rate = edge->sourceRate();
+        edge->disconnectSource();
+        edge->connectSource(join, 0, rate);
+
+        /* == Link the edges == */
+        auto insertEdgeIx = vertex->outputEdge(0)->sinkPortIx();
+        std::uint32_t offset = 0;
+        for (auto *sinkEdge :sink->inputEdges()) {
+            if (sinkEdge->sinkPortIx() == insertEdgeIx) {
+                graph->removeEdge(sinkEdge);
+                offset += vertex->nEdgesIN() - 1;
+                for (auto *vertexEdge : vertex->inputEdges()) {
+                    rate = vertexEdge->sinkRate();
+                    auto ix = vertexEdge->sinkPortIx() + insertEdgeIx;
+                    vertexEdge->disconnectSink();
+                    vertexEdge->connectSink(join, ix, rate);
+                }
+            } else {
+                rate = sinkEdge->sinkRate();
+                auto ix = sinkEdge->sinkPortIx() + offset;
+                sinkEdge->disconnectSink();
+                sinkEdge->connectSink(join, ix, rate);
+            }
+        }
+
+        /* == Search for the pair to modify (if any) == */
+        for (auto it2 = std::next(it); it2 != std::end(verticesToOptimize); ++it2) {
+            auto &secPair = (*it2);
+            if (secPair.first == vertex || secPair.first == sink) {
+                secPair.first = join;
+            }
+            if (secPair.second == sink || secPair.second == vertex) {
+                secPair.second = join;
+            }
+        }
+
+        /* == Remove the vertices == */
+        graph->removeVertex(vertex);
+        graph->removeVertex(sink);
+    }
+
+    return graph;
 }
 
 #endif //SPIDER2_PISDFJOINJOINOPTIMIZER_H
