@@ -260,7 +260,7 @@ void PiSDFGraph::exportDotHelper(FILE *file, const std::string &offset) const {
     if (!paramVector_.empty()) {
         Spider::cxx11::fprintf(file, "\n%s// Parameters\n", fwOffset.c_str());
         for (const auto &p:paramVector_) {
-            p->exportDot(file, fwOffset);
+            p->exportDOT(file, fwOffset);
         }
     }
 

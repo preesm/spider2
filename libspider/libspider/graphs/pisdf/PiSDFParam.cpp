@@ -105,7 +105,7 @@ PiSDFParam::PiSDFParam(PiSDFGraph *graph, std::string name, PiSDFVertex *setter)
     graph->addParam(this);
 }
 
-void PiSDFParam::exportDot(FILE *file, const std::string &offset) const {
+void PiSDFParam::exportDOT(FILE *file, const std::string &offset) const {
     Spider::cxx11::fprintf(file, "%s\"%s\"[shape=triangle, style=filled, fillcolor=\"#89c4f4\"]\n", offset.c_str(),
-                           name_.c_str());
+                           (containingGraph()->name() + ":" + name_).c_str());
 }
