@@ -46,6 +46,7 @@
 #include <spider-api/pisdf.h>
 #include <graphs-tools/numerical/PiSDFAnalysis.h>
 #include <graphs-tools/transformation/StaticSRDAGTransformer.h>
+#include <graphs-tools/brv/LCMBRVCompute.h>
 
 /* === Static variable(s) === */
 
@@ -94,20 +95,27 @@ void StaticSRDAGTransformer::execute() {
     }
 
     /* == Extract the vertices from the top graph == */
-    extractAndLinkActors(piSdfGraph_);
+    jobs_.push_back(SRDAGTransfoJob{piSdfGraph_});
 
     /* == Iterate over the subgraphs == */
-//    for (const auto *subgraph : piSdfGraph_->subgraphs()) {
-//        auto *parent = subgraph->parent();
-//
-//        /* == Replace interfaces == */
-//        for (const auto &input : subgraph->inputInterfaces()) {
-//
-//        }
-//
-//        /* == Extract actors of sub-graphs == */
-//        extractAndLinkActors(subgraph);
-//    }
+    while (!jobs_.empty()) {
+        /* == Pop the job == */
+        auto job = jobs_.back();
+        jobs_.pop_back();
+
+        /* == Compute BRV of the graph == */
+        LCMBRVCompute lcmbrvCompute{job.reference};
+        // TODO: use the firing count for the value of the parameter (even though they should be evaluated in order here)
+        lcmbrvCompute.execute();
+
+        /* == Do the job == */
+        extractAndLinkActors(job);
+
+        /* == Perform replace of the actor in the srdag and remove it == */
+        if (job.srdagIx != UINT32_MAX) {
+            srdag_->removeVertex(srdag_->vertices()[job.srdagIx]);
+        }
+    }
 
     /* == Set flag done to true == */
     done_ = true;
@@ -115,18 +123,27 @@ void StaticSRDAGTransformer::execute() {
 
 /* === Private method(s) === */
 
-PiSDFVertex *StaticSRDAGTransformer::copyVertex(const PiSDFVertex *vertex, std::uint32_t instance) {
+PiSDFVertex *StaticSRDAGTransformer::copyVertex(const PiSDFVertex *vertex,
+                                                std::uint32_t instance,
+                                                const std::string &prefix) {
     auto *copyVertex = Spider::allocate<PiSDFVertex>(StackID::TRANSFO);
     Spider::construct(copyVertex,
                       StackID::TRANSFO,
                       srdag_,
-                      std::string(vertex->name()) + "_" + std::to_string(instance),
-                      vertex->type() == PiSDFVertexType::GRAPH ? PiSDFVertexType::NORMAL : vertex->type(),
+                      prefix + std::string(vertex->name()) + "_" + std::to_string(instance),
+                      vertex->type(),
                       vertex->nEdgesIN(),
                       vertex->nEdgesOUT(),
                       vertex->nParamsIN(),
                       vertex->nParamsOUT());
     copyVertex->setRepetitionValue(1);
+
+    /* == Add the job for later process == */
+    if (vertex->isHierarchical()) {
+        jobs_.push_back(SRDAGTransfoJob{dynamic_cast<const PiSDFGraph *>(vertex),  /* = reference = */
+                                        copyVertex->ix(),                            /* = srdagIx = */
+                                        instance});                                  /* = firingCount = */
+    }
 
     /* == Copy the input parameter == */
     std::uint32_t ix = 0;
@@ -137,27 +154,69 @@ PiSDFVertex *StaticSRDAGTransformer::copyVertex(const PiSDFVertex *vertex, std::
     return copyVertex;
 }
 
-void StaticSRDAGTransformer::extractAndLinkActors(const PiSDFGraph *graph) {
-    /* == Pre-cache (if needed) == */
-    srdag_->precacheVertices(graph->nVertices());
-    srdag_->precacheEdges(graph->nVertices());
+void StaticSRDAGTransformer::extractAndLinkActors(SRDAGTransfoJob &job) {
+    auto *graph = job.reference;
 
     /* == Array to keep track of who has been done == */
     Spider::Array<Spider::Array<PiSDFVertex *>> vertex2Vertex{StackID::TRANSFO, graph->nVertices()};
 
+    /* == Dummy arrays for interfaces (if any) == */
+    Spider::Array<PiSDFVertex *> arrayInputInterface{StackID::TRANSFO, 1};
+    Spider::Array<PiSDFVertex *> arrayOutputInterface{StackID::TRANSFO, 1};
+
     /* == Copy all vertices == */
+    auto prefix = job.srdagIx != UINT32_MAX ? srdag_->vertices()[job.srdagIx]->name() + "-" : "";
     for (const auto *vertex : graph->vertices()) {
         Spider::construct(&vertex2Vertex[vertex->ix()], StackID::TRANSFO, vertex->repetitionValue());
         for (std::uint32_t i = 0; i < vertex->repetitionValue(); ++i) {
-            vertex2Vertex[vertex->ix()][i] = copyVertex(vertex, i);
+            vertex2Vertex[vertex->ix()][i] = copyVertex(vertex, i, prefix);
         }
     }
 
     /* == Do the linkage == */
     for (const auto *edge : graph->edges()) {
-        auto edgeLinker = EdgeLinker{edge, vertex2Vertex[edge->source()->ix()], vertex2Vertex[edge->sink()->ix()]};
+        auto *sourceArray = &vertex2Vertex[edge->source()->ix()];
+        auto *sinkArray = &vertex2Vertex[edge->sink()->ix()];
+        auto sourceRate = edge->sourceRate();
+        auto sinkRate = edge->sinkRate();
+
+        if (edge->source()->type() == PiSDFVertexType::INTERFACE) {
+            sourceArray = &arrayInputInterface;
+            arrayInputInterface[0] = Spider::API::createUpsample(srdag_, prefix + edge->source()->name());
+            auto *graphVertex = srdag_->vertices()[job.srdagIx];
+            auto *edge2Replace = graphVertex->inputEdge(edge->source()->ix());
+            auto rate = edge2Replace->sinkRate();
+            if (rate != sourceRate) {
+                throwSpiderException("Interface should have same rate inside and outside the graph. [%s] -> %"
+                                             PRIu64
+                                             " != %"
+                                             PRIu64
+                                             "", edge->source()->name().c_str(), rate, sourceRate);
+            }
+            edge2Replace->disconnectSink();
+            edge2Replace->connectSink(arrayInputInterface[0], 0, rate);
+            sourceRate = sinkRate * edge->sink()->repetitionValue();
+        }
+        if (edge->sink()->type() == PiSDFVertexType::INTERFACE) {
+            sinkArray = &arrayOutputInterface;
+            arrayOutputInterface[0] = Spider::API::createDownsample(srdag_, prefix + edge->sink()->name());
+            auto *graphVertex = srdag_->vertices()[job.srdagIx];
+            auto *edge2Replace = graphVertex->outputEdge(edge->sink()->ix());
+            auto rate = edge2Replace->sourceRate();
+            if (rate != sinkRate) {
+                throwSpiderException("Interface should have same rate inside and outside the graph. [%s] -> %"
+                                             PRIu64
+                                             " != %"
+                                             PRIu64
+                                             "", edge->sink()->name().c_str(), sinkRate, rate);
+            }
+            edge2Replace->disconnectSource();
+            edge2Replace->connectSource(arrayOutputInterface[0], 0, rate);
+            sinkRate = sourceRate * edge->source()->repetitionValue();
+        }
 
         /* == Do the linkage == */
+        auto edgeLinker = EdgeLinker{edge, *sourceArray, *sinkArray, sourceRate, sinkRate};
         singleRateLinkage(edgeLinker);
 
         /* == Check that everything has been linked == */
@@ -177,7 +236,7 @@ void StaticSRDAGTransformer::extractAndLinkActors(const PiSDFGraph *graph) {
         }
     }
 
-    /* == Connect setter / getter if any == */
+    /* == Connect setter / getter (if any) == */
     for (const auto *edge : graph->edges()) {
         if (edge->delay() && (edge->delay()->setter() || edge->delay()->getter())) {
             /* == Retrieve the virtual vertex (there can be only one) == */
@@ -195,7 +254,6 @@ void StaticSRDAGTransformer::extractAndLinkActors(const PiSDFGraph *graph) {
             srdag_->removeVertex(delayVertex);
         }
     }
-
 
     /* == Free memory of the arrays == */
     for (auto &array : vertex2Vertex) {

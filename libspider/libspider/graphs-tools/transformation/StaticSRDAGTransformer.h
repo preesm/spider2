@@ -90,6 +90,25 @@ private:
     /* === Private structure(s) === */
 
     /**
+     * @brief Job structure for hierarchical srdag transformation
+     */
+    struct SRDAGTransfoJob {
+        const PiSDFGraph *reference = nullptr;
+        std::uint32_t srdagIx = UINT32_MAX;
+        std::uint32_t firingCount = 0;
+
+        explicit SRDAGTransfoJob(const PiSDFGraph *reference,
+                                 std::uint32_t srdagIx = UINT32_MAX,
+                                 std::uint32_t firingCount = 0) : reference{reference},
+                                                                  srdagIx{srdagIx},
+                                                                  firingCount{firingCount} {
+
+        }
+    };
+
+    Spider::vector<SRDAGTransfoJob> jobs_;
+
+    /**
      * @brief Structure used during the SRLinkage containing every information of a given edge.
      */
     struct EdgeLinker {
@@ -107,12 +126,14 @@ private:
 
         EdgeLinker(const PiSDFEdge *edge,
                    Spider::Array<PiSDFVertex *> &sourceArray,
-                   Spider::Array<PiSDFVertex *> &sinkArray) : source{edge->source()},
-                                                              sink{edge->sink()},
-                                                              sourceArray{&sourceArray},
-                                                              sinkArray{&sinkArray} {
-            sourceRate = edge->sourceRate();
-            sinkRate = edge->sinkRate();
+                   Spider::Array<PiSDFVertex *> &sinkArray,
+                   std::uint64_t sourceRate,
+                   std::uint64_t sinkRate) : source{edge->source()},
+                                             sink{edge->sink()},
+                                             sourceRate{sourceRate},
+                                             sinkRate{sinkRate},
+                                             sourceArray{&sourceArray},
+                                             sinkArray{&sinkArray} {
             delay = edge->delayValue();
             sourcePortIx = edge->sourcePortIx();
             sinkPortIx = edge->sinkPortIx();
@@ -145,13 +166,13 @@ private:
      * @param instance  Instance of the vertex.
      * @return copied @refitem PiSDFVertex.
      */
-    PiSDFVertex *copyVertex(const PiSDFVertex *vertex, std::uint32_t instance = 0);
+    PiSDFVertex *copyVertex(const PiSDFVertex *vertex, std::uint32_t instance = 0, const std::string &prefix = "");
 
     /**
      * @brief Copy all vertices of a graph w.r.t their repetition values and do the single-rate DAG linkage.
      * @param graph Graph to transform.
      */
-    void extractAndLinkActors(const PiSDFGraph *graph);
+    void extractAndLinkActors(SRDAGTransfoJob &job);
 
     /**
      * @brief Perform Single-Rate linkage for a given edge.
