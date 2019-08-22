@@ -217,7 +217,7 @@ void PiSDFGraph::exportDot(const std::string &path) const {
     std::fclose(file);
 }
 
-void PiSDFGraph::exportDot(FILE *file, const std::string &offset) const {
+void PiSDFGraph::exportDOT(FILE *file, const std::string &offset) const {
     exportDotHelper(file, offset);
 }
 
@@ -243,17 +243,17 @@ void PiSDFGraph::exportDotHelper(FILE *file, const std::string &offset) const {
     Spider::cxx11::fprintf(file, "\n%s// Vertices\n", fwOffset.c_str());
     for (const auto &v:vertexVector_) {
         if (!v->isHierarchical()) {
-            v->exportDot(file, fwOffset);
+            v->exportDOT(file, fwOffset);
         }
     }
 
     if (containingGraph()) {
         Spider::cxx11::fprintf(file, "\n%s// Interfaces\n", fwOffset.c_str());
         for (const auto &i:inputInterfaceVector_) {
-            i->exportDot(file, fwOffset);
+            i->exportDOT(file, fwOffset);
         }
         for (const auto &o:outputInterfaceVector_) {
-            o->exportDot(file, fwOffset);
+            o->exportDOT(file, fwOffset);
         }
     }
 
@@ -266,7 +266,7 @@ void PiSDFGraph::exportDotHelper(FILE *file, const std::string &offset) const {
 
     Spider::cxx11::fprintf(file, "\n%s// Subgraphs\n", fwOffset.c_str());
     for (const auto &subgraph:subgraphVector_) {
-        subgraph->exportDot(file, fwOffset);
+        subgraph->exportDOT(file, fwOffset);
     }
 
     Spider::cxx11::fprintf(file, "\n%s// Vertex edges\n", fwOffset.c_str());

@@ -152,7 +152,7 @@ public:
      * @param file    File pointer to write to.
      * @param offset  Tab offset in the file.
      */
-    void exportDot(FILE *file, const std::string &offset) const override;
+    void exportDOT(FILE *file, const std::string &offset) const override;
 
     /**
      * @brief Pre-cache space for storing vertices. Accelerate insertion after.

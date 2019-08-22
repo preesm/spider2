@@ -88,7 +88,7 @@ public:
      * @param file   File to which the vertex should be exported.
      * @param offset Tab offset (default is "\t").
      */
-    virtual void exportDot(FILE *file, const std::string &offset) const;
+    virtual void exportDOT(FILE *file, const std::string &offset) const;
 
     /**
      * @brief Get the hierarchical property of the vertex.
@@ -290,18 +290,44 @@ private:
     /* === Private methods === */
 
     /**
-     * @brief Export the input ports of the vertex in DOT format.
-     * @param file    File to export to.
-     * @param offset  Tab offset for the export.
+     * @brief Export an input port of the vertex in DOT format.
+     * @param file       File to export to.
+     * @param offset     Tab offset for the export.
+     * @param rateWidth  Fixed width for the rate writing good alignment.
+     * @param edge       Edge associated with the input port.
      */
-    void exportInputPortsToDot(FILE *file, const std::string &offset) const;
+    void exportInputPortDOT(FILE *file,
+                            const std::string &offset,
+                            std::uint32_t rateWidth,
+                            const PiSDFEdge *edge) const;
 
     /**
-     * @brief Export the output ports of the vertex in DOT format.
-     * @param file    File to export to.
-     * @param offset  Tab offset for the export.
+     * @brief Export dummy input port in DOT format.
+     * @param file       File to export to.
+     * @param offset     Tab offset for the export.
+     * @param rateWidth  Fixed width for the rate writing good alignment.
      */
-    void exportOutputPortsToDot(FILE *file, const std::string &offset) const;
+    void exportDummyInputPortDOT(FILE *file, const std::string &offset, std::uint32_t rateWidth) const;
+
+    /**
+     * @brief Export an output port of the vertex in DOT format.
+     * @param file       File to export to.
+     * @param offset     Tab offset for the export.
+     * @param rateWidth  Fixed width for the rate writing good alignment.
+     * @param edge       Edge associated with the output port.
+     */
+    void exportOutputPortDOT(FILE *file,
+                             const std::string &offset,
+                             std::uint32_t rateWidth,
+                             const PiSDFEdge *edge) const;
+
+    /**
+     * @brief Export dummy output port in DOT format.
+     * @param file       File to export to.
+     * @param offset     Tab offset for the export.
+     * @param rateWidth  Fixed width for the rate writing good alignment.
+     */
+    void exportDummyOutputPortDOT(FILE *file, const std::string &offset, std::uint32_t rateWidth) const;
 
     /**
      * @brief Check for subtype consistency.

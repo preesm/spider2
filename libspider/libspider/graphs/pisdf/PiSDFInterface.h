@@ -66,7 +66,7 @@ public:
 
     /* === Methods === */
 
-    void exportDot(FILE *file, const std::string &offset) const override;
+    void exportDOT(FILE *file, const std::string &offset) const override;
 
     std::uint16_t correspondingPortIx() const;
 

@@ -76,7 +76,7 @@ std::uint16_t PiSDFInterface::correspondingPortIx() const {
     return ix();
 }
 
-void PiSDFInterface::exportDot(FILE *file, const std::string &offset) const {
+void PiSDFInterface::exportDOT(FILE *file, const std::string &offset) const {
     Spider::cxx11::fprintf(file, "%s\"%s\" [ shape = none, margin = 0, label = <\n", offset.c_str(), name().c_str());
     Spider::cxx11::fprintf(file, "%s\t<table border = \"1\" cellspacing=\"0\" cellpadding = \"0\" bgcolor = \"%s\">\n",
                            offset.c_str(), getBGColor(interfaceType_));

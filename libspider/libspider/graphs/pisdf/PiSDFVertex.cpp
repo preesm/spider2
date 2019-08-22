@@ -122,12 +122,12 @@ PiSDFVertex::PiSDFVertex(PiSDFGraph *graph,
                                                                  nParamsOut) {
 }
 
-void PiSDFVertex::exportDot(FILE *file, const std::string &offset) const {
+void PiSDFVertex::exportDOT(FILE *file, const std::string &offset) const {
     if (isHierarchical()) {
         return;
     }
     Spider::cxx11::fprintf(file,
-                           "%s\"%s\" [shape=plain, style=filled, fillcolor=\"#%sff\", width=0, height = 0, label = <\n",
+                           "%s\"%s\" [shape=plain, style=filled, fillcolor=\"%sff\", width=0, height=0, label = <\n",
                            offset.c_str(), name_.c_str(), getVertexDotColor(type_));
     Spider::cxx11::fprintf(file, "%s\t<table border=\"0\" fixedsize=\"false\" cellspacing=\"0\" cellpadding=\"0\">\n",
                            offset.c_str());
@@ -139,14 +139,11 @@ void PiSDFVertex::exportDot(FILE *file, const std::string &offset) const {
     Spider::cxx11::fprintf(file,
                            "%s\t\t<tr> <td border=\"1\" sides=\"lr\" colspan=\"4\"><font point-size=\"25\" face=\"inconsolata\">%s</font></td></tr>\n",
                            offset.c_str(), name_.c_str());
-    Spider::cxx11::fprintf(file,
-                           "%s\t\t<tr> <td border=\"1\" sides=\"lrt\" colspan=\"4\" fixedsize=\"false\" height=\"10\"></td></tr>\n",
-                           offset.c_str());
 
     /* == Compute widths == */
     auto n = name_.size();
     auto centerWidth = static_cast<std::uint32_t>(15. * (n - 8.) * (n > 8) +
-                                                  20. * (1 + 1. / (1 + std::exp(-10 * (n - 7)))));
+                                                  std::ceil(20. * (1 + 1. / (1 + std::exp(-10. * (n - 7.))))));
     double longestRateLen = 0;
     for (const auto &e: inputEdgeArray_) {
         longestRateLen = std::max(longestRateLen, std::log10(e->sinkRate()));
@@ -154,17 +151,58 @@ void PiSDFVertex::exportDot(FILE *file, const std::string &offset) const {
     for (const auto &e: outputEdgeArray_) {
         longestRateLen = std::max(longestRateLen, std::log10(e->sourceRate()));
     }
-    auto rateWidth = 32 + std::max(static_cast<std::int32_t>(longestRateLen) - 3, 0) * 8;
+    auto rateWidth = 32 + std::max(static_cast<std::int32_t>(longestRateLen) + 1 - 3, 0) * 8;
 
-    Spider::cxx11::fprintf(file, "%s\t\t<tr>\n", offset.c_str());
-    exportInputPortsToDot(file, offset);
+    /* == Export data ports == */
+    std::uint32_t nOutput = 0;
+    for (const auto &e : inputEdgeArray_) {
+        Spider::cxx11::fprintf(file,
+                               "%s\t\t<tr> <td border=\"1\" sides=\"lr\" colspan=\"4\" fixedsize=\"false\" height=\"10\"></td></tr>\n",
+                               offset.c_str());
+        Spider::cxx11::fprintf(file, "%s\t\t<tr>\n", offset.c_str());
 
-    /* == Center column == */
-    Spider::cxx11::fprintf(file, "%s\t\t\t<td border=\"0\" colspan=\"2\" cellpadding=\"10\"> </td>\n", offset.c_str());
+        /* == Export input port == */
+        exportInputPortDOT(file, offset, rateWidth, e);
 
-    /* == Output ports == */
-    exportOutputPortsToDot(file, offset);
-    Spider::cxx11::fprintf(file, "%s\t\t</tr>\n", offset.c_str());
+        /* == Middle separation == */
+        Spider::cxx11::fprintf(file,
+                               "%s\t\t\t<td border=\"0\" colspan=\"2\" bgcolor=\"#00000000\" fixedsize=\"true\" width=\"%" PRIu32"\" height=\"20\"></td>\n",
+                               offset.c_str(), centerWidth);
+
+        /* == Export output port == */
+        if (nOutput < outputEdgeArray_.size()) {
+            exportOutputPortDOT(file, offset, rateWidth, outputEdgeArray_[nOutput]);
+        } else {
+            exportDummyOutputPortDOT(file, offset, rateWidth);
+        }
+
+        Spider::cxx11::fprintf(file, "%s\t\t</tr>\n", offset.c_str());
+        nOutput += 1;
+    }
+
+    /* == Trailing output ports == */
+    if (nOutput < outputEdgeArray_.size()) {
+        for (auto i = nOutput; i < outputEdgeArray_.size(); ++i) {
+            auto *edge = outputEdgeArray_[i];
+            Spider::cxx11::fprintf(file,
+                                   "%s\t\t<tr> <td border=\"1\" sides=\"lr\" colspan=\"4\" fixedsize=\"false\" height=\"10\"></td></tr>\n",
+                                   offset.c_str());
+            Spider::cxx11::fprintf(file, "%s\t\t<tr>\n", offset.c_str());
+
+            /* == Export dummy input port == */
+            exportDummyInputPortDOT(file, offset, rateWidth);
+
+            /* == Middle separation == */
+            Spider::cxx11::fprintf(file,
+                                   "%s\t\t\t<td border=\"0\" colspan=\"2\" bgcolor=\"#00000000\" fixedsize=\"true\" width=\"%" PRIu32"\" height=\"20\"></td>\n",
+                                   offset.c_str(), centerWidth);
+
+            /* == Export output port == */
+            exportOutputPortDOT(file, offset, rateWidth, edge);
+
+            Spider::cxx11::fprintf(file, "%s\t\t</tr>\n", offset.c_str());
+        }
+    }
 
     /* == Footer == */
     Spider::cxx11::fprintf(file,
@@ -176,93 +214,77 @@ void PiSDFVertex::exportDot(FILE *file, const std::string &offset) const {
 
 /* === Private method(s) === */
 
-void PiSDFVertex::exportInputPortsToDot(FILE *file,
-                                        const std::string &offset) const {
-    Spider::cxx11::fprintf(file, "%s\t\t\t<td border=\"0\">\n", offset.c_str());
-    Spider::cxx11::fprintf(file, "%s\t\t\t\t<table border=\"0\" cellpadding=\"0\" cellspacing=\"1\">\n",
+void PiSDFVertex::exportInputPortDOT(FILE *file,
+                                     const std::string &offset,
+                                     std::uint32_t rateWidth,
+                                     const PiSDFEdge *edge) const {
+    Spider::cxx11::fprintf(file, "%s\t\t\t<td border=\"0\" colspan=\"1\" align=\"left\">\n", offset.c_str());
+    Spider::cxx11::fprintf(file, "%s\t\t\t\t<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\">\n",
                            offset.c_str());
-    for (const auto &e: inputEdgeArray_) {
-        /* == Print the input port associated to the edge == */
-        Spider::cxx11::fprintf(file, "%s\t\t\t\t\t<tr>\n", offset.c_str());
-        Spider::cxx11::fprintf(file,
-                               "%s\t\t\t\t\t\t<td port=\"in_%" PRIu32"\" border=\"1\" bgcolor=\"#87d37c\">    </td>\n",
-                               offset.c_str(), e->sinkPortIx());
-        Spider::cxx11::fprintf(file,
-                               "%s\t\t\t\t\t\t<td align=\"left\" border=\"0\" bgcolor=\"%s\"><font point-size=\"15\">% " PRIu64"</font></td>\n",
-                               offset.c_str(),
-                               getVertexDotColor(type_),
-                               e->sinkRate());
-        Spider::cxx11::fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());
-
-        /* == Print the dummy port for pretty spacing == */
-        Spider::cxx11::fprintf(file, "%s\t\t\t\t\t<tr>\n", offset.c_str());
-        Spider::cxx11::fprintf(file, "%s\t\t\t\t\t\t<td border=\"0\" bgcolor=\"%s\">    </td>\n",
-                               offset.c_str(),
-                               getVertexDotColor(type_));
-        Spider::cxx11::fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());
-    }
-    if (!nEdgesIN_) {
-        /* == Print the dummy port for pretty spacing == */
-        Spider::cxx11::fprintf(file, "%s\t\t\t\t\t<tr>\n", offset.c_str());
-        Spider::cxx11::fprintf(file, "%s\t\t\t\t\t\t<td border=\"0\" bgcolor=\"%s\">    </td>\n",
-                               offset.c_str(),
-                               getVertexDotColor(type_));
-        Spider::cxx11::fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());
-    }
-
-    /* == Print dummy extra input ports to match with output ports (if needed) == */
-    for (auto i = nEdgesIN_; i < nEdgesOUT_; ++i) {
-        Spider::cxx11::fprintf(file, "%s\t\t\t\t\t<tr>\n", offset.c_str());
-        Spider::cxx11::fprintf(file, "%s\t\t\t\t\t\t<td border=\"0\" bgcolor=\"%s\">    </td>\n",
-                               offset.c_str(),
-                               getVertexDotColor(type_));
-        Spider::cxx11::fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());
-    }
+    Spider::cxx11::fprintf(file, "%s\t\t\t\t\t<tr>\n", offset.c_str());
+    Spider::cxx11::fprintf(file,
+                           "%s\t\t\t\t\t\t<td port=\"in_%" PRIu32"\" border=\"1\" bgcolor=\"#87d37c\" align=\"left\" fixedsize=\"true\" width=\"20\" height=\"20\"></td>\n",
+                           offset.c_str(), edge->sinkPortIx());
+    Spider::cxx11::fprintf(file,
+                           "%s\t\t\t\t\t\t<td border=\"0\" align=\"left\" bgcolor=\"#00000000\" fixedsize=\"true\" width=\"%" PRIu32"\" height=\"20\"><font point-size=\"12\" face=\"inconsolata\"> %" PRIu64"</font></td>\n",
+                           offset.c_str(), rateWidth, edge->sinkRate());
+    Spider::cxx11::fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());
     Spider::cxx11::fprintf(file, "%s\t\t\t\t</table>\n", offset.c_str());
     Spider::cxx11::fprintf(file, "%s\t\t\t</td>\n", offset.c_str());
 }
 
-void PiSDFVertex::exportOutputPortsToDot(FILE *file,
-                                         const std::string &offset) const {
-    Spider::cxx11::fprintf(file, "%s\t\t\t<td border=\"0\">\n", offset.c_str());
-    Spider::cxx11::fprintf(file, "%s\t\t\t\t<table border=\"0\" cellpadding=\"0\" cellspacing=\"1\">\n",
+void PiSDFVertex::exportDummyInputPortDOT(FILE *file,
+                                          const std::string &offset,
+                                          std::uint32_t rateWidth) const {
+    Spider::cxx11::fprintf(file, "%s\t\t\t<td border=\"0\" colspan=\"1\" align=\"left\">\n", offset.c_str());
+    Spider::cxx11::fprintf(file, "%s\t\t\t\t<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\">\n",
                            offset.c_str());
-    for (const auto &e:outputEdgeArray_) {
-        /* == Print the output edge port information == */
-        Spider::cxx11::fprintf(file, "%s\t\t\t\t\t<tr>\n", offset.c_str());
-        Spider::cxx11::fprintf(file,
-                               "%s\t\t\t\t\t\t<td align=\"right\" border=\"0\" bgcolor=\"%s\"><font point-size=\"15\">%" PRIu64" </font></td>\n",
-                               offset.c_str(),
-                               getVertexDotColor(type_),
-                               e->sourceRate());
-        Spider::cxx11::fprintf(file,
-                               "%s\t\t\t\t\t\t<td port=\"out_%" PRIu32"\" border=\"1\" bgcolor=\"#ec644b\">    </td>\n",
-                               offset.c_str(), e->sourcePortIx());
-        Spider::cxx11::fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());
+    Spider::cxx11::fprintf(file, "%s\t\t\t\t\t<tr>\n", offset.c_str());
+    Spider::cxx11::fprintf(file,
+                           "%s\t\t\t\t\t\t<td border=\"1\" sides=\"l\" bgcolor=\"#00000000\" align=\"left\" fixedsize=\"true\" width=\"20\" height=\"20\"></td>\n",
+                           offset.c_str());
+    Spider::cxx11::fprintf(file,
+                           "%s\t\t\t\t\t\t<td border=\"0\" align=\"left\" bgcolor=\"#00000000\" fixedsize=\"true\" width=\"%" PRIu32"\" height=\"20\"><font color=\"#00000000\" point-size=\"12\" face=\"inconsolata\"> 0</font></td>\n",
+                           offset.c_str(), rateWidth);
+    Spider::cxx11::fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());
+    Spider::cxx11::fprintf(file, "%s\t\t\t\t</table>\n", offset.c_str());
+    Spider::cxx11::fprintf(file, "%s\t\t\t</td>\n", offset.c_str());
+}
 
-        /* == Print the dummy port for pretty spacing == */
-        Spider::cxx11::fprintf(file, "%s\t\t\t\t\t<tr>\n", offset.c_str());
-        Spider::cxx11::fprintf(file, "%s\t\t\t\t\t\t<td border=\"0\" bgcolor=\"%s\">    </td>\n", offset.c_str(),
-                               getVertexDotColor(type_));
-        Spider::cxx11::fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());
-    }
-    if (!nEdgesOUT_) {
-        /* == Print the dummy port for pretty spacing == */
-        Spider::cxx11::fprintf(file, "%s\t\t\t\t\t<tr>\n", offset.c_str());
-        Spider::cxx11::fprintf(file, "%s\t\t\t\t\t\t<td border=\"0\" bgcolor=\"%s\">    </td>\n",
-                               offset.c_str(),
-                               getVertexDotColor(type_));
-        Spider::cxx11::fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());
-    }
+void PiSDFVertex::exportOutputPortDOT(FILE *file,
+                                      const std::string &offset,
+                                      std::uint32_t rateWidth,
+                                      const PiSDFEdge *edge) const {
+    Spider::cxx11::fprintf(file, "%s\t\t\t<td border=\"0\" colspan=\"1\" align=\"left\">\n", offset.c_str());
+    Spider::cxx11::fprintf(file, "%s\t\t\t\t<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\">\n",
+                           offset.c_str());
+    Spider::cxx11::fprintf(file, "%s\t\t\t\t\t<tr>\n", offset.c_str());
 
-    /* == Print dummy extra input ports to match with output ports (if needed) == */
-    for (auto i = nEdgesOUT_; i < nEdgesIN_; ++i) {
-        Spider::cxx11::fprintf(file, "%s\t\t\t\t\t<tr>\n", offset.c_str());
-        Spider::cxx11::fprintf(file, "%s\t\t\t\t\t\t<td border=\"0\" bgcolor=\"%s\">    </td>\n",
-                               offset.c_str(),
-                               getVertexDotColor(type_));
-        Spider::cxx11::fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());
-    }
+    Spider::cxx11::fprintf(file,
+                           "%s\t\t\t\t\t\t<td border=\"0\" align=\"right\" bgcolor=\"#00000000\" fixedsize=\"true\" width=\"%" PRIu32"\" height=\"20\"><font point-size=\"12\" face=\"inconsolata\">%" PRIu64" </font></td>\n",
+                           offset.c_str(), rateWidth, edge->sourceRate());
+    Spider::cxx11::fprintf(file,
+                           "%s\t\t\t\t\t\t<td port=\"out_%" PRIu32"\" border=\"1\" bgcolor=\"#ec644bff\" align=\"left\" fixedsize=\"true\" width=\"20\" height=\"20\"></td>\n",
+                           offset.c_str(), edge->sourcePortIx());
+    Spider::cxx11::fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());
+    Spider::cxx11::fprintf(file, "%s\t\t\t\t</table>\n", offset.c_str());
+    Spider::cxx11::fprintf(file, "%s\t\t\t</td>\n", offset.c_str());
+}
+
+void PiSDFVertex::exportDummyOutputPortDOT(FILE *file,
+                                           const std::string &offset,
+                                           std::uint32_t rateWidth) const {
+    Spider::cxx11::fprintf(file, "%s\t\t\t<td border=\"0\" colspan=\"1\" align=\"left\">\n", offset.c_str());
+    Spider::cxx11::fprintf(file, "%s\t\t\t\t<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\">\n",
+                           offset.c_str());
+    Spider::cxx11::fprintf(file, "%s\t\t\t\t\t<tr>\n", offset.c_str());
+    Spider::cxx11::fprintf(file,
+                           "%s\t\t\t\t\t\t<td border=\"0\" align=\"right\" bgcolor=\"#00000000\" fixedsize=\"true\" width=\"%" PRIu32"\" height=\"20\"><font color=\"#00000000\" point-size=\"12\" face=\"inconsolata\">0 </font></td>\n",
+                           offset.c_str(), rateWidth);
+    Spider::cxx11::fprintf(file,
+                           "%s\t\t\t\t\t\t<td border=\"1\" sides=\"r\" bgcolor=\"#00000000\" align=\"left\" fixedsize=\"true\" width=\"20\" height=\"20\"></td>\n",
+                           offset.c_str());
+    Spider::cxx11::fprintf(file, "%s\t\t\t\t\t</tr>\n", offset.c_str());
     Spider::cxx11::fprintf(file, "%s\t\t\t\t</table>\n", offset.c_str());
     Spider::cxx11::fprintf(file, "%s\t\t\t</td>\n", offset.c_str());
 }
