@@ -50,7 +50,7 @@
 
 /* === Define(s) === */
 
-#define N_LOGGER 6
+#define N_LOGGER 7
 #define LOG_RED "\x1B[31m"
 #define LOG_GRN "\x1B[32m"
 #define LOG_YEL "\x1B[33m"
@@ -113,6 +113,7 @@ namespace Spider {
                     "SCHEDULE",
                     "MEMORY",
                     "TRANSFO",
+                    "OPTIMS",
             };
             if (logger(type)) {
                 std::lock_guard<std::mutex> locker(mutex());

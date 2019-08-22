@@ -53,6 +53,7 @@ typedef enum {
     LOG_SCHEDULE = 3,   /*! SCHEDULE logger. When enabled, this will print Schedule logged information. */
     LOG_MEMORY = 4,     /*! MEMORY logger. When enabled, this will print Memory logged information. */
     LOG_TRANSFO = 5,    /*! TRANSFO logger. When enabled, this will print transformation logged information. */
+    LOG_OPTIMS = 6,     /*! OPTIMS logger. When enabled, this will print transformation logged information. */
 } LoggerType;
 
 /* === Methods prototype === */
