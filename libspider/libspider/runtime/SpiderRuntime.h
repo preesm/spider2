@@ -42,6 +42,8 @@
 
 /* === Includes === */
 
+#include <common/SpiderException.h>
+
 /* === Forward declaration(s) === */
 
 class PiSDFGraph;
@@ -51,7 +53,11 @@ class PiSDFGraph;
 class SpiderRuntime {
 public:
 
-    explicit SpiderRuntime(PiSDFGraph *graph) : graph_{graph} { };
+    explicit SpiderRuntime(PiSDFGraph *graph) : graph_{graph} {
+        if (!graph_) {
+            throwSpiderException("nullptr graph.");
+        }
+    };
 
     ~SpiderRuntime() = default;
 
