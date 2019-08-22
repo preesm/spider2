@@ -80,18 +80,21 @@ PiSDFEdge::PiSDFEdge(PiSDFGraph *graph,
 }
 
 PiSDFEdge::~PiSDFEdge() {
-    source_ = nullptr;
-    sink_ = nullptr;
+    /* == Ensure the edge is properly disconnected == */
+    disconnectSource();
+    disconnectSink();
+
+    /* == Normally neither of below case should happen but we check to be sure == */
     if (sourcePort_) {
         Spider::destroy(sourcePort_);
         Spider::deallocate(sourcePort_);
     }
-
     if (sinkPort_) {
         Spider::destroy(sinkPort_);
         Spider::deallocate(sinkPort_);
     }
 
+    /* == Remove the delay == */
     if (delay_) {
         Spider::destroy(delay_);
         Spider::deallocate(delay_);
@@ -183,6 +186,9 @@ std::uint64_t PiSDFEdge::sinkRate() const {
 }
 
 void PiSDFEdge::disconnectSource() {
+    if (!source_) {
+        return;
+    }
     source_->disconnectOutputEdge(sourcePort_->ix());
     source_ = nullptr;
     Spider::destroy(sourcePort_);
@@ -191,6 +197,9 @@ void PiSDFEdge::disconnectSource() {
 }
 
 void PiSDFEdge::disconnectSink() {
+    if (!sink_) {
+        return;
+    }
     sink_->disconnectInputEdge(sinkPort_->ix());
     sink_ = nullptr;
     Spider::destroy(sinkPort_);
