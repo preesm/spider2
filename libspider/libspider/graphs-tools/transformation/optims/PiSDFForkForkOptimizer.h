@@ -70,9 +70,7 @@ PiSDFGraph *PiSDFForkForkOptimizer::operator()(PiSDFGraph *graph) const {
     }
 
     /* == Do the optimization == */
-    auto it = std::begin(verticesToOptimize);
-    auto end = std::end(verticesToOptimize);
-    for(; it != std::prev(end); ++it) {
+    for (auto it = verticesToOptimize.begin(); it != verticesToOptimize.end(); ++it) {
         auto &pair = (*it);
         auto *source = pair.first;
         auto *vertex = pair.second;
@@ -91,11 +89,11 @@ PiSDFGraph *PiSDFForkForkOptimizer::operator()(PiSDFGraph *graph) const {
         /* == Link the edges == */
         auto insertEdgeIx = vertex->inputEdge(0)->sourcePortIx();
         std::uint32_t offset = 0;
-        for (auto &sourceEdge : source->outputEdges()) {
+        for (auto *sourceEdge : source->outputEdges()) {
             if (sourceEdge->sourcePortIx() == insertEdgeIx) {
                 graph->removeEdge(sourceEdge);
-                offset = vertex->nEdgesOUT();
-                for (auto &vertexEdge : vertex->outputEdges()) {
+                offset = vertex->nEdgesOUT() - 1;
+                for (auto *vertexEdge : vertex->outputEdges()) {
                     rate = vertexEdge->sourceRate();
                     auto ix = vertexEdge->sourcePortIx() + insertEdgeIx;
                     vertexEdge->disconnectSource();
@@ -110,12 +108,12 @@ PiSDFGraph *PiSDFForkForkOptimizer::operator()(PiSDFGraph *graph) const {
         }
 
         /* == Search for the pair to modify (if any) == */
-        for(auto it2 = std::next(it); it2 != std::end(verticesToOptimize); ++it2) {
+        for (auto it2 = std::next(it); it2 != std::end(verticesToOptimize); ++it2) {
             auto &secPair = (*it2);
-            if (secPair.first == vertex) {
+            if (secPair.first == vertex || secPair.first == source) {
                 secPair.first = fork;
             }
-            if (secPair.second == source) {
+            if (secPair.second == source || secPair.second == vertex) {
                 secPair.second = fork;
             }
         }

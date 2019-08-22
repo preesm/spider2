@@ -48,6 +48,10 @@
 
 class PiSDFGraphOptimizer {
 public:
+    PiSDFGraphOptimizer() = default;
+
+    ~PiSDFGraphOptimizer() = default;
+
     virtual PiSDFGraph *operator()(PiSDFGraph *graph) const = 0;
 };
 

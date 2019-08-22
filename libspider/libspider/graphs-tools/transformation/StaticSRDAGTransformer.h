@@ -75,9 +75,9 @@ public:
     /**
      * @brief Get the resulting SR-DAG.
      * @remark if called before @refitem StaticSRDAGTransformer::execute -> return nullptr graph.
-     * @return
+     * @return Single rate graph.
      */
-    inline const PiSDFGraph *srdag() const;
+    inline PiSDFGraph *srdag() const;
 
     /* === Setter(s) === */
 
@@ -213,7 +213,7 @@ private:
 
 /* === Inline method(s) === */
 
-const PiSDFGraph *StaticSRDAGTransformer::srdag() const {
+PiSDFGraph *StaticSRDAGTransformer::srdag() const {
     return srdag_;
 }
 

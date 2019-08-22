@@ -394,7 +394,8 @@ void StaticSRDAGTransformer::buildSourceLinkArray(StaticSRDAGTransformer::EdgeLi
             sourceLinkArray[edgeLinker.sourceCount + hasDelay] = src;
         } else {
             auto nConsumer = (upperDep - lowerDep) + 1;
-            auto *fork = Spider::API::createFork(srdag_, "fork-" + src->name(), nConsumer, 0, StackID::TRANSFO);
+            auto *fork = Spider::API::createFork(srdag_, "fork-" + src->name()+ "-out" + std::to_string(edgeLinker.sourcePortIx),
+                                                 nConsumer, 0, StackID::TRANSFO);
             sourceLinkArray[edgeLinker.sourceCount + hasDelay] = fork;
             Spider::API::createEdge(srdag_, src, edgeLinker.sourcePortIx, edgeLinker.sourceRate,
                                     fork, 0, edgeLinker.sourceRate, StackID::TRANSFO);
