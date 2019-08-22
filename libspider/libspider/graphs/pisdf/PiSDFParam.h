@@ -92,7 +92,7 @@ public:
      * @param file   File to which the edge should be exported.
      * @param offset Tab offset in the file.
      */
-    void exportDot(FILE *file, const std::string &offset = "\t") const;
+    void exportDOT(FILE *file, const std::string &offset = "\t") const;
 
     /* === Setters === */
 
