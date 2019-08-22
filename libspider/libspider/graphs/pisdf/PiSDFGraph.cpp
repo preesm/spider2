@@ -228,14 +228,14 @@ void PiSDFGraph::exportDotHelper(FILE *file, const std::string &offset) const {
     if (containingGraph()) {
         Spider::cxx11::fprintf(file, "%ssubgraph cluster {\n", fwOffset.c_str());
         fwOffset += "\t";
-        Spider::cxx11::fprintf(file, "%slabel=\"%s\";\n", fwOffset.c_str(), name().c_str());
+        Spider::cxx11::fprintf(file, "%slabel=<<font point-size=\"40\" face=\"inconsolata\">\"%s\"</font>>;\n", fwOffset.c_str(), name().c_str());
         Spider::cxx11::fprintf(file, "%sstyle=dotted;\n", fwOffset.c_str());
         Spider::cxx11::fprintf(file, "%sfillcolor=\"#ffffff\";\n", fwOffset.c_str());
         Spider::cxx11::fprintf(file, "%scolor=\"#393c3c\";\n", fwOffset.c_str());
         Spider::cxx11::fprintf(file, "%spenwidth=2;\n", fwOffset.c_str());
     } else {
         Spider::cxx11::fprintf(file, "digraph {\n");
-        Spider::cxx11::fprintf(file, "\tlabel=topgraph;\n");
+        Spider::cxx11::fprintf(file, "\tlabel=<<font point-size=\"40\" face=\"inconsolata\">topgraph</font>>;\n");
         Spider::cxx11::fprintf(file, "\trankdir=LR;\n");
         Spider::cxx11::fprintf(file, "\tranksep=\"2\";\n");
     }
