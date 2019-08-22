@@ -98,15 +98,17 @@ void StaticSRDAGTransformer::execute() {
     jobs_.push_back(SRDAGTransfoJob{piSdfGraph_});
 
     /* == Iterate over the subgraphs == */
-    while (!jobs_.empty()) {
+    std::uint64_t jobIx = 0;
+    while (jobIx != jobs_.size()) {
         /* == Pop the job == */
-        auto job = jobs_.back();
-        jobs_.pop_back();
+        auto job = jobs_[jobIx];
 
         /* == Compute BRV of the graph == */
-        LCMBRVCompute lcmbrvCompute{job.reference};
-        // TODO: use the firing count for the value of the parameter (even though they should be evaluated in order here)
-        lcmbrvCompute.execute();
+        if (!job.reference->isStatic() || !job.firingCount) {
+            LCMBRVCompute lcmbrvCompute{job.reference};
+            // TODO: use the firing count for the value of the parameter (even though they should be evaluated in order here)
+            lcmbrvCompute.execute();
+        }
 
         /* == Do the job == */
         extractAndLinkActors(job);
@@ -115,6 +117,7 @@ void StaticSRDAGTransformer::execute() {
         if (job.srdagIx != UINT32_MAX) {
             srdag_->removeVertex(srdag_->vertices()[job.srdagIx]);
         }
+        jobIx += 1;
     }
 
     /* == Set flag done to true == */
