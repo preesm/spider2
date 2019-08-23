@@ -111,16 +111,6 @@ void PiSDFEdge::connectSource(PiSDFVertex *vertex, std::uint16_t portIx, const s
     source_->setOutputEdge(this, portIx);
 }
 
-void PiSDFEdge::connectSink(PiSDFVertex *vertex, std::uint32_t portIx, const std::string &consExpr) {
-    if (sink_) {
-        throwSpiderException("Trying to connect edge sink to already connected edge.");
-    }
-    sink_ = vertex;
-    Spider::construct(sinkPort_, vertex->containingGraph(), consExpr);
-    sinkPort_->connectEdge(this, portIx);
-    sink_->setInputEdge(this, portIx);
-}
-
 void PiSDFEdge::connectSource(PiSDFVertex *vertex, std::uint16_t portIx, std::int64_t prod) {
     if (source_) {
         throwSpiderException("Trying to connect edge source to already connected edge.");
@@ -130,6 +120,28 @@ void PiSDFEdge::connectSource(PiSDFVertex *vertex, std::uint16_t portIx, std::in
     Spider::construct(sourcePort_, prod);
     sourcePort_->connectEdge(this, portIx);
     source_->setOutputEdge(this, portIx);
+}
+
+void PiSDFEdge::connectSource(PiSDFEdge *edge) {
+    if (!edge->source_) {
+        throwSpiderException("Target edge does not have source to connect to.");
+    }
+    disconnectSource();
+    auto *source = edge->source_;
+    auto port = edge->sourcePortIx();
+    auto rate = edge->sourceRate();
+    edge->disconnectSource();
+    connectSource(source, port, rate);
+}
+
+void PiSDFEdge::connectSink(PiSDFVertex *vertex, std::uint32_t portIx, const std::string &consExpr) {
+    if (sink_) {
+        throwSpiderException("Trying to connect edge sink to already connected edge.");
+    }
+    sink_ = vertex;
+    Spider::construct(sinkPort_, vertex->containingGraph(), consExpr);
+    sinkPort_->connectEdge(this, portIx);
+    sink_->setInputEdge(this, portIx);
 }
 
 void PiSDFEdge::connectSink(PiSDFVertex *vertex, std::uint32_t portIx, std::int64_t cons) {
@@ -143,12 +155,24 @@ void PiSDFEdge::connectSink(PiSDFVertex *vertex, std::uint32_t portIx, std::int6
     sink_->setInputEdge(this, portIx);
 }
 
+void PiSDFEdge::connectSink(PiSDFEdge *edge) {
+    if (!edge->sink_) {
+        throwSpiderException("Target edge does not have sink to connect to.");
+    }
+    disconnectSink();
+    auto *sink = edge->sink_;
+    auto port = edge->sinkPortIx();
+    auto rate = edge->sinkRate();
+    edge->disconnectSink();
+    connectSink(sink, port, rate);
+}
+
 void PiSDFEdge::exportDot(FILE *file, const std::string &offset) const {
     auto *source = source_->isHierarchical()
                    ? dynamic_cast<PiSDFGraph *>(source_)->outputInterfaces()[sourcePort_->ix()] : source_;
     auto *sink = sink_->isHierarchical()
                  ? dynamic_cast<PiSDFGraph *>(sink_)->inputInterfaces()[sourcePort_->ix()] : sink_;
-   Spider::cxx11::fprintf(file,
+    Spider::cxx11::fprintf(file,
                            "%s\"%s\":out_%" PRIu16":e -> \"%s\":in_%" PRIu16":w [penwidth=3, "
                            "color=\"#393c3c\", "
                            "dir=forward];\n",

@@ -105,6 +105,15 @@ public:
     void connectSource(PiSDFVertex *vertex, std::uint16_t portIx, std::int64_t prod);
 
     /**
+     * @brief Set the source of this edge from the source of a given edge.
+     * @remark Disconnect the source vertex from edge.
+     *         Disconnect the source vertex from the target edge.
+     * @param edge    Edge from which source is taken.
+     * @throws @refitem SpiderException if target edge does not have a source vertex.
+     */
+    void connectSource(PiSDFEdge *edge);
+
+    /**
      * @brief Connect the sink vertex of the edge.
      * @param vertex    Sink vertex.
      * @param portIx    Input port ix on the vertex.
@@ -121,6 +130,15 @@ public:
      * @throws @refitem SpiderException if edge is already connected to a sink vertex.
      */
     void connectSink(PiSDFVertex *vertex, std::uint32_t portIx, std::int64_t cons);
+
+    /**
+     * @brief Set the sink of this edge from the source of a given edge.
+     * @remark Disconnect the sink vertex from edge.
+     *         Disconnect the sink vertex from the target edge.
+     * @param edge    Edge from which sink is taken.
+     * @throws @refitem SpiderException if target edge does not have a sink vertex.
+     */
+    void connectSink(PiSDFEdge *edge);
 
     /**
      * @brief Disconnect current source vertex of the edge.
