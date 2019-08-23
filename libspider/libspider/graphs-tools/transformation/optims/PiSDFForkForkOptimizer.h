@@ -69,10 +69,6 @@ PiSDFGraph *PiSDFForkForkOptimizer::operator()(PiSDFGraph *graph) const {
         }
     }
 
-    if (verticesToOptimize.empty()) {
-        return graph;
-    }
-
     /* == Do the optimization == */
     for (auto it = verticesToOptimize.begin(); it != verticesToOptimize.end(); ++it) {
         auto &pair = (*it);

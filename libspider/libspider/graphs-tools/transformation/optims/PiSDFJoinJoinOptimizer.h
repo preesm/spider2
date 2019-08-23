@@ -69,10 +69,6 @@ PiSDFGraph *PiSDFJoinJoinOptimizer::operator()(PiSDFGraph *graph) const {
         }
     }
 
-    if (verticesToOptimize.empty()) {
-        return graph;
-    }
-
     /* == Do the optimization == */
     for (auto it = verticesToOptimize.begin(); it != verticesToOptimize.end(); ++it) {
         auto &pair = (*it);
@@ -128,7 +124,6 @@ PiSDFGraph *PiSDFJoinJoinOptimizer::operator()(PiSDFGraph *graph) const {
         graph->removeVertex(vertex);
         graph->removeVertex(sink);
     }
-
     return graph;
 }
 
