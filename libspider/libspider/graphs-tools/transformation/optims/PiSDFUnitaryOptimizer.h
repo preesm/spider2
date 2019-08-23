@@ -42,6 +42,101 @@
 
 /* === Includes === */
 
-/* === Methods prototype === */
+#include <graphs-tools/transformation/optims/PiSDFGraphOptimizer.h>
+
+/* === Class definition === */
+
+/**
+ * @brief Optimize a PiSDFGraph by removing useless special actors.
+ *        detail:    --> Fork --> : removes fork with 1 output edge
+ *                   --> Join --> : removes join with 1 input edge
+ *                   --> Tail --> : removes tail with 1 input edge if rate_in == rate_out
+ *                   --> Head --> : removes head with 1 input edge if rate_in == rate_out
+ *                   --> Upsample -->   : removes upsample  if rate_in == rate_out
+ *                   --> Downsample --> : removes downsample if rate_in == rate_out
+ *                   --> Duplicate -->  : removes duplicate with 1 input edge if rate_in == rate_out
+ */
+class PiSDFUnitaryOptimizer : public PiSDFGraphOptimizer {
+public:
+    inline PiSDFGraph *operator()(PiSDFGraph *graph) const override;
+};
+
+PiSDFGraph *PiSDFUnitaryOptimizer::operator()(PiSDFGraph *graph) const {
+    Spider::vector<PiSDFVertex *> verticesToOptimize;
+
+    for (auto *vertex : graph->vertices()) {
+        switch (vertex->type()) {
+            case PiSDFVertexType::FORK:
+                if (vertex->nEdgesOUT() == 1) {
+                    auto *inputEdge = vertex->inputEdge(0);
+                    auto *outputEdge = vertex->outputEdge(0);
+                    if (inputEdge->sinkRate() != outputEdge->sourceRate()) {
+                        throwSpiderException("Fork [%s] with 1 output edge should have the same input/output rates.",
+                                             vertex->name().c_str());
+                    }
+                    inputEdge->connectSink(outputEdge);
+                    graph->removeEdge(outputEdge);
+                    verticesToOptimize.push_back(vertex);
+                }
+                break;
+            case PiSDFVertexType::JOIN:
+                if (vertex->nEdgesIN() == 1) {
+                    auto *inputEdge = vertex->inputEdge(0);
+                    auto *outputEdge = vertex->outputEdge(0);
+                    if (inputEdge->sinkRate() != outputEdge->sourceRate()) {
+                        throwSpiderException("Join [%s] with 1 input edge should have the same input/output rates.",
+                                             vertex->name().c_str());
+                    }
+                    outputEdge->connectSource(inputEdge);
+                    graph->removeEdge(inputEdge);
+                    verticesToOptimize.push_back(vertex);
+                }
+                break;
+            case PiSDFVertexType::HEAD:
+            case PiSDFVertexType::TAIL:
+                if (vertex->nEdgesIN() == 1) {
+                    auto *inputEdge = vertex->inputEdge(0);
+                    auto *outputEdge = vertex->outputEdge(0);
+                    if (inputEdge->sinkRate() == outputEdge->sourceRate()) {
+                        outputEdge->connectSource(inputEdge);
+                        graph->removeEdge(inputEdge);
+                        verticesToOptimize.push_back(vertex);
+                    }
+                }
+                break;
+            case PiSDFVertexType::DUPLICATE:
+                if (vertex->nEdgesOUT() == 1) {
+                    auto *inputEdge = vertex->inputEdge(0);
+                    auto *outputEdge = vertex->outputEdge(0);
+                    if (inputEdge->sinkRate() == outputEdge->sourceRate()) {
+                        inputEdge->connectSink(outputEdge);
+                        graph->removeEdge(outputEdge);
+                        verticesToOptimize.push_back(vertex);
+                    }
+                }
+                break;
+            case PiSDFVertexType::UPSAMPLE:
+            case PiSDFVertexType::DOWNSAMPLE: {
+                auto *inputEdge = vertex->inputEdge(0);
+                auto *outputEdge = vertex->outputEdge(0);
+                if (inputEdge->sinkRate() == outputEdge->sourceRate()) {
+                    inputEdge->connectSink(outputEdge);
+                    graph->removeEdge(outputEdge);
+                    verticesToOptimize.push_back(vertex);
+                }
+            }
+                break;
+            default:
+                break;
+        }
+    }
+
+    /* == Remove the vertices from the graph == */
+    for (auto &vertex : verticesToOptimize) {
+        graph->removeVertex(vertex);
+    }
+
+    return graph;
+}
 
 #endif //SPIDER2_PISDFUNITARYOPTIMIZER_H
