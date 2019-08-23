@@ -37,48 +37,11 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_PISDFINITENDOPTIMIZER_H
-#define SPIDER2_PISDFINITENDOPTIMIZER_H
+#ifndef SPIDER2_PISDFUNITARYOPTIMIZER_H
+#define SPIDER2_PISDFUNITARYOPTIMIZER_H
 
 /* === Includes === */
 
-#include <graphs-tools/transformation/optims/PiSDFGraphOptimizer.h>
+/* === Methods prototype === */
 
-/* === Class definition === */
-
-/**
- * @brief Optimize Init -> End patterns in a PiSDFGraph.
- * @see: https://tel.archives-ouvertes.fr/tel-01301642
- */
-class PiSDFInitEndOptimizer : public PiSDFGraphOptimizer {
-public:
-    inline PiSDFGraph *operator()(PiSDFGraph *graph) const override;
-};
-
-PiSDFGraph *PiSDFInitEndOptimizer::operator()(PiSDFGraph *graph) const {
-    Spider::vector<PiSDFVertex *> verticesToOptimize;
-
-    /* == Retrieve the vertices to remove == */
-    for (auto *vertex : graph->vertices()) {
-        if (vertex->type() == PiSDFVertexType::INIT) {
-            auto *sink = vertex->outputEdge(0)->sink();
-            if (sink->type() == PiSDFVertexType::END) {
-                verticesToOptimize.push_back(vertex);
-            }
-        }
-    }
-
-    /* == Remove useless init / end connections == */
-    for (auto *init : verticesToOptimize) {
-        auto *edge = init->outputEdge(0);
-        auto *end = edge->sink();
-        graph->removeEdge(edge);
-        Spider::Logger::printVerbose(LOG_OPTIMS, "InitEndOptimizer: removing init [%s] and end [%s] vertices.\n",
-                                     init->name().c_str(), end->name().c_str());
-        graph->removeVertex(init);
-        graph->removeVertex(end);
-    }
-    return graph;
-}
-
-#endif //SPIDER2_PISDFINITENDOPTIMIZER_H
+#endif //SPIDER2_PISDFUNITARYOPTIMIZER_H

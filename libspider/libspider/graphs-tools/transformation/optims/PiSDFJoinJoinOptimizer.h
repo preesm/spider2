@@ -47,6 +47,10 @@
 
 /* === Class definition === */
 
+/**
+ * @brief Optimize Join -> Join patterns in a PiSDFGraph.
+ * @see: https://tel.archives-ouvertes.fr/tel-01301642
+ */
 class PiSDFJoinJoinOptimizer : public PiSDFGraphOptimizer {
 public:
     inline PiSDFGraph *operator()(PiSDFGraph *graph) const override;
