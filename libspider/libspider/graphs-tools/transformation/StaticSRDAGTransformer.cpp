@@ -285,24 +285,20 @@ void StaticSRDAGTransformer::singleRateLinkage(StaticSRDAGTransformer::EdgeLinke
         auto *snk = sinkLinker.vertex;
         if (sinkLinker.lowerDep == sinkLinker.upperDep) {
             /* == Sink can be connected directly == */
-            switch (src->type()) {
-                case PiSDFVertexType::FORK:
-                    /* == Case sinkRate < sourceRate == */
-                    Spider::API::createEdge(srdag_, src, forkPortIx, sinkLinker.sinkRate,
-                                            snk, sinkLinker.sinkPortIx, sinkLinker.sinkRate, StackID::TRANSFO);
-                    forkPortIx = (forkPortIx + 1) % src->nEdgesOUT();
-                    forkConsumption += sinkLinker.sinkRate;
-                    break;
-                case PiSDFVertexType::INIT:
-                    /* == Case delay == sourceRate == */
-                    Spider::API::createEdge(srdag_, src, 0, edgeLinker.sinkRate,
-                                            snk, sinkLinker.sinkPortIx, edgeLinker.sinkRate, StackID::TRANSFO);
-                    break;
-                default:
-                    /* == Case sinkRate == sourceRate == */
-                    Spider::API::createEdge(srdag_, src, edgeLinker.sourcePortIx, edgeLinker.sourceRate,
-                                            snk, sinkLinker.sinkPortIx, sinkLinker.sinkRate, StackID::TRANSFO);
-                    break;
+            if (src->type() == PiSDFVertexType::INIT) {
+                /* == Case delay == sourceRate == */
+                Spider::API::createEdge(srdag_, src, 0, edgeLinker.sinkRate,
+                                        snk, sinkLinker.sinkPortIx, edgeLinker.sinkRate, StackID::TRANSFO);
+            } else if (edgeLinker.sourceRate == sinkLinker.sinkRate) {
+                /* == Case sinkRate == sourceRate == */
+                Spider::API::createEdge(srdag_, src, edgeLinker.sourcePortIx, edgeLinker.sourceRate,
+                                        snk, sinkLinker.sinkPortIx, sinkLinker.sinkRate, StackID::TRANSFO);
+            } else {
+                /* == Case sinkRate < sourceRate == */
+                Spider::API::createEdge(srdag_, src, forkPortIx, sinkLinker.sinkRate,
+                                        snk, sinkLinker.sinkPortIx, sinkLinker.sinkRate, StackID::TRANSFO);
+                forkPortIx = (forkPortIx + 1) % src->nEdgesOUT();
+                forkConsumption += sinkLinker.sinkRate;
             }
         } else {
             /* == Sink needs a join == */
