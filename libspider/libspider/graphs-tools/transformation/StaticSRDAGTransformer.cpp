@@ -239,7 +239,7 @@ void StaticSRDAGTransformer::extractAndLinkActors(SRDAGTransfoJob &job) {
         }
     }
 
-    /* == Connect setter / getter (if any) == */
+    /* == Reconnect setter / getter (if any) == */
     for (const auto *edge : graph->edges()) {
         if (edge->delay() && (edge->delay()->setter() || edge->delay()->getter())) {
             /* == Retrieve the virtual vertex (there can be only one) == */

@@ -170,7 +170,8 @@ private:
 
     /**
      * @brief Copy all vertices of a graph w.r.t their repetition values and do the single-rate DAG linkage.
-     * @param graph Graph to transform.
+     * @param job Current job to transform.
+     * @throws @refitem Spider::Exception if interfaces inner / outer rates do not match
      */
     void extractAndLinkActors(SRDAGTransfoJob &job);
 
