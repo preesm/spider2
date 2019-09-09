@@ -44,6 +44,8 @@
 #include <common/Exception.h>
 #include <spider-api/debug.h>
 #include <spider.h>
+#include <graphs-tools/transformation/StaticSRDAGTransformer.h>
+#include <graphs-tools/transformation/optims/PiSDFGraphOptimizer.h>
 
 /* === Methods implementation === */
 
@@ -72,13 +74,18 @@ void Spider::API::exportPreExecGantt(const std::string &path) {
 }
 
 void Spider::API::exportSRDAG(const std::string &path) {
-    /* == Open the file for the SR-DAG == */
-
     /* == Get the PiSDF graph and transform it to SR-DAG == */
+    auto *graph = Spider::pisdfGraph();
+    auto srdagTransfomer = StaticSRDAGTransformer{graph};
+    srdagTransfomer.execute();
+    auto *srdag = srdagTransfomer.srdag();
+
+    if (Spider::API::srdagOptim()) {
+        PiSDFGraphOptimizer()(srdag);
+    }
 
     /* == Print the SR-DAG == */
-
-    /* == Close the file == */
+    srdag->exportDot(path);
 }
 
 void Spider::API::enableLogger(LoggerType type) {

@@ -78,7 +78,7 @@ namespace Spider {
          * after one graph iteration to a .dot file.
          * @param path  Path of the file.
          */
-        void exportSRDAG(const std::string &path);
+        void exportSRDAG(const std::string &path = "./srdag.dot");
 
         /**
          * @brief Enable a given logger.
