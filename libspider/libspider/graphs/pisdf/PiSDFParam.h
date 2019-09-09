@@ -195,6 +195,7 @@ void PiSDFParam::setValue(std::int64_t value) {
     if (type_ != PiSDFParamType::DYNAMIC) {
         throwSpiderException("Trying to set value of a non dynamic parameter.");
     }
+    expression_.~Expression(); /* = We need to destroy the old expression = */
     expression_ = Expression(value);
 }
 
