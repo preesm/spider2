@@ -42,6 +42,10 @@
 
 /* === Includes === */
 
+/* === Forward declaration(s) === */
+
+class PiSDFGraph;
+
 /* === Define(s) === */
 
 #define NB_ALLOCATORS 7
@@ -191,6 +195,8 @@ namespace Spider {
          */
         bool srdagOptim();
     }
+
+    PiSDFGraph *&pisdfGraph();
 }
 
 #endif //SPIDER2_GENERAL_H

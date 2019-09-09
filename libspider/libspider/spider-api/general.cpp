@@ -42,7 +42,8 @@
 
 #include <memory/Allocator.h>
 #include <common/Logger.h>
-#include "general.h"
+#include <graphs/pisdf/PiSDFGraph.h>
+#include <spider-api/general.h>
 
 /* === Static variable(s) definition === */
 
@@ -185,4 +186,9 @@ bool Spider::API::staticOptim() {
 
 bool Spider::API::srdagOptim() {
     return srdagOptimFlag();
+}
+
+PiSDFGraph *&Spider::pisdfGraph() {
+    static PiSDFGraph *graph = nullptr;
+    return graph;
 }
