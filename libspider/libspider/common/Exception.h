@@ -37,8 +37,8 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_SPIDEREXCEPTION_H
-#define SPIDER2_SPIDEREXCEPTION_H
+#ifndef SPIDER2_EXCEPTION_H
+#define SPIDER2_EXCEPTION_H
 
 /* === Includes === */
 
@@ -49,53 +49,55 @@
 /* === Defines === */
 
 /* == Size of 50 minimum is required for the error message associated == */
-#define SPIDER_EXCEPTION_BUFFER_SIZE 400
-
-constexpr const char *str_end(const char *str) {
-    return *str ? str_end(str + 1) : str;
-}
-
-constexpr bool str_slant(const char *str) {
-    return *str == '/' ? true : (*str ? str_slant(str + 1) : false);
-}
-
-constexpr const char *r_slant(const char *str) {
-    return *str == '/' ? (str + 1) : r_slant(str - 1);
-}
-
-constexpr const char *getFileName(const char *str) {
-    return str_slant(str) ? r_slant(str_end(str)) : str;
-}
+#define EXCEPTION_BUFFER_SIZE 400
 
 /* === Macros === */
 
-#define throwSpiderException(...) throw SpiderException(getFileName(__FILE__), __func__, __LINE__, __VA_ARGS__)
+#define throwSpiderException(...) throw Spider::Exception(Spider::getFileName(__FILE__), __func__, __LINE__, __VA_ARGS__)
 
-/* === Class definition === */
+namespace Spider {
 
-class SpiderException : public std::exception {
-public:
-    template<class... Ts>
-    explicit
-    SpiderException(const char *fileName, const char *fctName, int lineNumber, const char *msg, const Ts &...ts)
-            : exceptionMessage_{} {
-        /* == Writes exception header == */
-        int n = Spider::cxx11::sprintf(exceptionMessage_, SPIDER_EXCEPTION_BUFFER_SIZE, "%s::%s(%d): ", fileName,
-                                       fctName, lineNumber);
-
-        /* == Write the actual exception message == */
-        n = Spider::cxx11::sprintf(exceptionMessage_ + n, SPIDER_EXCEPTION_BUFFER_SIZE, msg, ts...);
-        if (n > SPIDER_EXCEPTION_BUFFER_SIZE) {
-            Spider::cxx11::fprintf(stderr, "SpiderException: ERROR: exception message too big.\n");
-            Spider::cxx11::fprintf(stderr, "Partially recovered exception: %s\n", exceptionMessage_);
-            fflush(stderr);
-        }
+    constexpr const char *str_end(const char *str) {
+        return *str ? str_end(str + 1) : str;
     }
 
-    const char *what() const noexcept override { return exceptionMessage_; }
+    constexpr bool str_slant(const char *str) {
+        return *str == '/' ? true : (*str ? str_slant(str + 1) : false);
+    }
 
-private:
-    char exceptionMessage_[SPIDER_EXCEPTION_BUFFER_SIZE];
-};
+    constexpr const char *r_slant(const char *str) {
+        return *str == '/' ? (str + 1) : r_slant(str - 1);
+    }
 
-#endif // SPIDER2_SPIDEREXCEPTION_H
+    constexpr const char *getFileName(const char *str) {
+        return str_slant(str) ? r_slant(str_end(str)) : str;
+    }
+
+    /* === Class definition === */
+
+    class Exception : public std::exception {
+    public:
+        template<class... Ts>
+        explicit Exception(const char *fileName, const char *fctName, int lineNumber,
+                           const char *msg, const Ts &...ts)
+                : exceptionMessage_{} {
+            /* == Writes exception header == */
+            int n = Spider::cxx11::sprintf(exceptionMessage_, EXCEPTION_BUFFER_SIZE, "%s::%s(%d): ", fileName,
+                                           fctName, lineNumber);
+
+            /* == Write the actual exception message == */
+            n = Spider::cxx11::sprintf(exceptionMessage_ + n, EXCEPTION_BUFFER_SIZE, msg, ts...);
+            if (n > EXCEPTION_BUFFER_SIZE) {
+                Spider::cxx11::fprintf(stderr, "Exception: ERROR: exception message too big.\n");
+                Spider::cxx11::fprintf(stderr, "Partially recovered exception: %s\n", exceptionMessage_);
+                fflush(stderr);
+            }
+        }
+
+        const char *what() const noexcept override { return exceptionMessage_; }
+
+    private:
+        char exceptionMessage_[EXCEPTION_BUFFER_SIZE];
+    };
+}
+#endif //SPIDER2_EXCEPTION_H
