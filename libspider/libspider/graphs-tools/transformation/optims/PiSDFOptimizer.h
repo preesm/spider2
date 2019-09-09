@@ -37,8 +37,8 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_PISDFGRAPHOPTIMIZER_H
-#define SPIDER2_PISDFGRAPHOPTIMIZER_H
+#ifndef SPIDER2_PISDFOPTIMIZER_H
+#define SPIDER2_PISDFOPTIMIZER_H
 
 /* === Includes === */
 
@@ -46,11 +46,11 @@
 
 /* === Class definition === */
 
-class PiSDFGraphOptimizer {
+class PiSDFOptimizer {
 public:
-    PiSDFGraphOptimizer() = default;
+    PiSDFOptimizer() = default;
 
-    ~PiSDFGraphOptimizer() = default;
+    ~PiSDFOptimizer() = default;
 
     /**
      * @brief Apply the given optimization.
@@ -60,4 +60,4 @@ public:
     virtual bool operator()(PiSDFGraph *graph) const = 0;
 };
 
-#endif //SPIDER2_PISDFGRAPHOPTIMIZER_H
+#endif //SPIDER2_PISDFOPTIMIZER_H

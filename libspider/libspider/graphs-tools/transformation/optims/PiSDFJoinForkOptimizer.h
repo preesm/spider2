@@ -42,7 +42,7 @@
 
 /* === Includes === */
 
-#include <graphs-tools/transformation/optims/PiSDFGraphOptimizer.h>
+#include <graphs-tools/transformation/optims/PiSDFOptimizer.h>
 #include <common/Math.h>
 #include <spider-api/pisdf.h>
 
@@ -52,7 +52,7 @@
  * @brief Optimize Join -> Fork patterns in a PiSDFGraph.
  * @see: https://tel.archives-ouvertes.fr/tel-01301642
  */
-class PiSDFJoinForkOptimizer : public PiSDFGraphOptimizer {
+class PiSDFJoinForkOptimizer : public PiSDFOptimizer {
 public:
     inline bool operator()(PiSDFGraph *graph) const override;
 

@@ -42,7 +42,7 @@
 
 /* === Includes === */
 
-#include <graphs-tools/transformation/optims/PiSDFGraphOptimizer.h>
+#include <graphs-tools/transformation/optims/PiSDFOptimizer.h>
 
 /* === Class definition === */
 
@@ -56,7 +56,7 @@
  *                   --> Downsample --> : removes downsample if rate_in == rate_out
  *                   --> Duplicate -->  : removes duplicate with 1 input edge if rate_in == rate_out
  */
-class PiSDFUnitaryOptimizer : public PiSDFGraphOptimizer {
+class PiSDFUnitaryOptimizer : public PiSDFOptimizer {
 public:
     inline bool operator()(PiSDFGraph *graph) const override;
 };

@@ -42,12 +42,12 @@
 
 /* === Includes === */
 
-#include <graphs-tools/transformation/optims/PiSDFGraphOptimizer.h>
+#include <graphs-tools/transformation/optims/PiSDFOptimizer.h>
 #include <spider-api/pisdf.h>
 
 /* === Class definition === */
 
-class PiSDFJoinEndOptimizer : public PiSDFGraphOptimizer {
+class PiSDFJoinEndOptimizer : public PiSDFOptimizer {
 public:
     inline bool operator()(PiSDFGraph *graph) const override;
 };

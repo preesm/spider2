@@ -37,27 +37,45 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_PISDFOPTIMIZER_H
-#define SPIDER2_PISDFOPTIMIZER_H
+#ifndef SPIDER2_PISDFGRAPHOPTIMIZER_H
+#define SPIDER2_PISDFGRAPHOPTIMIZER_H
 
 /* === Includes === */
 
 #include <graphs/pisdf/PiSDFGraph.h>
+#include <graphs-tools/transformation/optims/PiSDFForkForkOptimizer.h>
+#include <graphs-tools/transformation/optims/PiSDFJoinJoinOptimizer.h>
+#include <graphs-tools/transformation/optims/PiSDFInitEndOptimizer.h>
+#include <graphs-tools/transformation/optims/PiSDFJoinEndOptimizer.h>
+#include <graphs-tools/transformation/optims/PiSDFJoinForkOptimizer.h>
+#include <graphs-tools/transformation/optims/PiSDFUnitaryOptimizer.h>
 
 /* === Class definition === */
 
-class PiSDFOptimizer {
+class PiSDFGraphOptimizer {
 public:
-    PiSDFOptimizer() = default;
+    PiSDFGraphOptimizer() = default;
 
-    ~PiSDFOptimizer() = default;
+    ~PiSDFGraphOptimizer() = default;
 
     /**
      * @brief Apply the given optimization.
      * @param graph @refitem PiSDFGraph on which to apply the optimization.
      * @return true if no optimization was necessary, false else.
      */
-    virtual bool operator()(PiSDFGraph *graph) const = 0;
+    inline void operator()(PiSDFGraph *graph);
 };
 
-#endif //SPIDER2_PISDFOPTIMIZER_H
+void PiSDFGraphOptimizer::operator()(PiSDFGraph *graph) {
+    PiSDFUnitaryOptimizer()(graph);
+    bool done = false;
+    while (!done) {
+        done &= PiSDFForkForkOptimizer()(graph);
+        done &= PiSDFJoinJoinOptimizer()(graph);
+        done &= PiSDFJoinForkOptimizer()(graph);
+    }
+    PiSDFJoinEndOptimizer()(graph);
+    PiSDFInitEndOptimizer()(graph);
+}
+
+#endif //SPIDER2_PISDFGRAPHOPTIMIZER_H

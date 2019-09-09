@@ -42,7 +42,7 @@
 
 /* === Includes === */
 
-#include <graphs-tools/transformation/optims/PiSDFGraphOptimizer.h>
+#include <graphs-tools/transformation/optims/PiSDFOptimizer.h>
 
 /* === Class definition === */
 
@@ -50,7 +50,7 @@
  * @brief Optimize Init -> End patterns in a PiSDFGraph.
  * @see: https://tel.archives-ouvertes.fr/tel-01301642
  */
-class PiSDFInitEndOptimizer : public PiSDFGraphOptimizer {
+class PiSDFInitEndOptimizer : public PiSDFOptimizer {
 public:
     inline bool operator()(PiSDFGraph *graph) const override;
 };
