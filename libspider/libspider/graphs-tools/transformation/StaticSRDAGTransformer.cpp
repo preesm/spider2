@@ -241,17 +241,21 @@ void StaticSRDAGTransformer::extractAndLinkActors(SRDAGTransfoJob &job) {
 
     /* == Reconnect setter / getter (if any) == */
     for (const auto *edge : graph->edges()) {
-        if (edge->delay() && (edge->delay()->setter() || edge->delay()->getter())) {
+        if (edge->delay()) {
             /* == Retrieve the virtual vertex (there can be only one) == */
             auto *delayVertex = vertex2Vertex[edge->delay()->virtualVertex()->ix()][0];
 
-            /* == Disconnect / reconnect setter == */
-            auto &sinkArray = vertex2Vertex[edge->sink()->ix()];
-            reconnectSetter(edge, delayVertex, sinkArray[0]);
+            if (edge->delay()->setter()) {
+                /* == Disconnect / reconnect setter == */
+                auto &sinkArray = vertex2Vertex[edge->sink()->ix()];
+                reconnectSetter(edge, delayVertex, sinkArray[0]);
+            }
 
-            /* == Disconnect / reconnect getter == */
-            auto &sourceArray = vertex2Vertex[edge->source()->ix()];
-            reconnectGetter(edge, delayVertex, sourceArray[edge->source()->repetitionValue() - 1]);
+            if (edge->delay()->getter()) {
+                /* == Disconnect / reconnect getter == */
+                auto &sourceArray = vertex2Vertex[edge->source()->ix()];
+                reconnectGetter(edge, delayVertex, sourceArray[edge->source()->repetitionValue() - 1]);
+            }
 
             /* == Remove the delay vertex == */
             srdag_->removeVertex(delayVertex);

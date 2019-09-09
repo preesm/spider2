@@ -109,31 +109,6 @@ void PiSDFDelay::createVirtualVertex() {
                           1, /* = nEdgesOUT = */
                           0, /* = nParamsIN = */
                           0) /* = nParamsOUT = */;
-
-        auto rateExpression = expression_.toString().empty() ? std::to_string(expression_.value())
-                                                             : expression_.toString();
-
-        /* == If setter_ is null, replace it with init == */
-        if (!setter_) {
-            setter_ = Spider::API::createInit(edge_->containingGraph(), "init-" + name(), 0);
-            setterPortIx_ = 0;
-
-            /* == Connect setter to the virtual delay actor == */
-            Spider::API::createEdge(edge_->containingGraph(),
-                                    setter_, setterPortIx_, rateExpression,
-                                    virtualVertex_, 0, rateExpression);
-        }
-
-        /* == If getter_ is null, replace it with end == */
-        if (!getter_) {
-            getter_ = Spider::API::createEnd(edge_->containingGraph(), "end-" + name(), 0);
-            getterPortIx_ = 0;
-
-            /* == Connect virtual delay actor to getter == */
-            Spider::API::createEdge(edge_->containingGraph(),
-                                    virtualVertex_, 0, rateExpression,
-                                    getter_, getterPortIx_, rateExpression);
-        }
     }
 }
 
