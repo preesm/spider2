@@ -34,7 +34,7 @@
  * knowledge of the CeCILL license and that you accept its terms.
  */
 #include "LinearAllocatorTest.h"
-#include <common/SpiderException.h>
+#include <common/Exception.h>
 
 LinearAllocatorTest::LinearAllocatorTest() : allocator(ALLOCATOR_NAME, MAX_SIZE, sizeof(std::uint64_t)) {
 }

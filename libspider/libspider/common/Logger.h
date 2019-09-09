@@ -44,7 +44,7 @@
 #include <cstdio>
 #include <mutex>
 #include <common/cxx11-printf/Printf.h>
-#include <common/SpiderException.h>
+#include <common/Exception.h>
 #include <spider-api/general.h>
 #include <spider-api/debug.h>
 

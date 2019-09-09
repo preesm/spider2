@@ -41,7 +41,7 @@
 
 #include <cstdint>
 #include <common/Math.h>
-#include <common/SpiderException.h>
+#include <common/Exception.h>
 
 /* === Class definition === */
 

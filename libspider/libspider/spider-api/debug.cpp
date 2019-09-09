@@ -41,7 +41,7 @@
 /* === Includes === */
 
 #include <common/Logger.h>
-#include <common/SpiderException.h>
+#include <common/Exception.h>
 #include <spider-api/debug.h>
 #include <spider.h>
 

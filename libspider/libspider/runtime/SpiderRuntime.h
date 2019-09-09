@@ -42,7 +42,7 @@
 
 /* === Includes === */
 
-#include <common/SpiderException.h>
+#include <common/Exception.h>
 
 /* === Forward declaration(s) === */
 

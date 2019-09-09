@@ -45,7 +45,7 @@
 #include <cstdint>
 #include <cinttypes>
 #include <graphs/pisdf/PiSDFTypes.h>
-#include <common/SpiderException.h>
+#include <common/Exception.h>
 #include <containers/Array.h>
 #include <containers/StlContainers.h>
 

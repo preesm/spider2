@@ -42,7 +42,7 @@
 
 #include <gtest/gtest.h>
 #include <memory/dynamic-allocators/GenericAllocator.h>
-#include "common/SpiderException.h"
+#include "common/Exception.h"
 
 #define ALLOCATOR_NAME "my-allocator"
 

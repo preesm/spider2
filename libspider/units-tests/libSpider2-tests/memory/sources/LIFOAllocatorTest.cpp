@@ -38,7 +38,7 @@
  * knowledge of the CeCILL license and that you accept its terms.
  */
 #include <gtest/gtest.h>
-#include <common/SpiderException.h>
+#include <common/Exception.h>
 #include "LIFOAllocatorTest.h"
 
 

@@ -46,7 +46,7 @@
 #include <cstdint>
 #include <cinttypes>
 #include <common/Logger.h>
-#include <common/SpiderException.h>
+#include <common/Exception.h>
 #include <common/Math.h>
 
 /* === Enumeration(s) === */
