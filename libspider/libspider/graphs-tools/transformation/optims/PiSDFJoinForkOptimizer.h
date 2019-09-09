@@ -54,7 +54,7 @@
  */
 class PiSDFJoinForkOptimizer : public PiSDFGraphOptimizer {
 public:
-    inline PiSDFGraph *operator()(PiSDFGraph *graph) const override;
+    inline bool operator()(PiSDFGraph *graph) const override;
 
 private:
     struct EdgeLinker {
@@ -76,7 +76,7 @@ private:
                                           std::uint32_t sinkIx) const;
 };
 
-PiSDFGraph *PiSDFJoinForkOptimizer::operator()(PiSDFGraph *graph) const {
+bool PiSDFJoinForkOptimizer::operator()(PiSDFGraph *graph) const {
     Spider::vector<std::pair<PiSDFVertex *, PiSDFVertex *>> verticesToOptimize;
 
     /* == Search for the pair of join / fork to optimize == */
@@ -178,7 +178,7 @@ PiSDFGraph *PiSDFJoinForkOptimizer::operator()(PiSDFGraph *graph) const {
             }
         }
     }
-    return graph;
+    return verticesToOptimize.empty();
 }
 
 std::uint32_t PiSDFJoinForkOptimizer::computeNJoinEdge(std::uint64_t sinkRate,

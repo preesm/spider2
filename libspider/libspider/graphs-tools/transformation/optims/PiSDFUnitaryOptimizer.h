@@ -58,10 +58,10 @@
  */
 class PiSDFUnitaryOptimizer : public PiSDFGraphOptimizer {
 public:
-    inline PiSDFGraph *operator()(PiSDFGraph *graph) const override;
+    inline bool operator()(PiSDFGraph *graph) const override;
 };
 
-PiSDFGraph *PiSDFUnitaryOptimizer::operator()(PiSDFGraph *graph) const {
+bool PiSDFUnitaryOptimizer::operator()(PiSDFGraph *graph) const {
     Spider::vector<PiSDFVertex *> verticesToOptimize;
 
     for (auto *vertex : graph->vertices()) {
@@ -136,7 +136,7 @@ PiSDFGraph *PiSDFUnitaryOptimizer::operator()(PiSDFGraph *graph) const {
         graph->removeVertex(vertex);
     }
 
-    return graph;
+    return verticesToOptimize.empty();
 }
 
 #endif //SPIDER2_PISDFUNITARYOPTIMIZER_H

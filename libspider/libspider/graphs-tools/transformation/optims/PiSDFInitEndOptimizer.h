@@ -52,10 +52,10 @@
  */
 class PiSDFInitEndOptimizer : public PiSDFGraphOptimizer {
 public:
-    inline PiSDFGraph *operator()(PiSDFGraph *graph) const override;
+    inline bool operator()(PiSDFGraph *graph) const override;
 };
 
-PiSDFGraph *PiSDFInitEndOptimizer::operator()(PiSDFGraph *graph) const {
+bool PiSDFInitEndOptimizer::operator()(PiSDFGraph *graph) const {
     Spider::vector<PiSDFVertex *> verticesToOptimize;
 
     /* == Retrieve the vertices to remove == */
@@ -78,7 +78,7 @@ PiSDFGraph *PiSDFInitEndOptimizer::operator()(PiSDFGraph *graph) const {
         graph->removeVertex(init);
         graph->removeVertex(end);
     }
-    return graph;
+    return verticesToOptimize.empty();
 }
 
 #endif //SPIDER2_PISDFINITENDOPTIMIZER_H

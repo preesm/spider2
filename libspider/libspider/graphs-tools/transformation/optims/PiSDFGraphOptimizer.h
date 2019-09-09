@@ -52,7 +52,12 @@ public:
 
     ~PiSDFGraphOptimizer() = default;
 
-    virtual PiSDFGraph *operator()(PiSDFGraph *graph) const = 0;
+    /**
+     * @brief Apply the given optimization.
+     * @param graph @refitem PiSDFGraph on which to apply the optimization.
+     * @return true if no optimization was necessary, false else.
+     */
+    virtual bool operator()(PiSDFGraph *graph) const = 0;
 };
 
 #endif //SPIDER2_PISDFGRAPHOPTIMIZER_H

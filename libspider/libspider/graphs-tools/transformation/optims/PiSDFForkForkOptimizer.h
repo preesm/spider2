@@ -53,10 +53,10 @@
  */
 class PiSDFForkForkOptimizer : public PiSDFGraphOptimizer {
 public:
-    inline PiSDFGraph *operator()(PiSDFGraph *graph) const override;
+    inline bool operator()(PiSDFGraph *graph) const override;
 };
 
-PiSDFGraph *PiSDFForkForkOptimizer::operator()(PiSDFGraph *graph) const {
+bool PiSDFForkForkOptimizer::operator()(PiSDFGraph *graph) const {
     Spider::vector<std::pair<PiSDFVertex *, PiSDFVertex *>> verticesToOptimize;
 
     /* == Search for the pair of fork to optimize == */
@@ -125,7 +125,7 @@ PiSDFGraph *PiSDFForkForkOptimizer::operator()(PiSDFGraph *graph) const {
         graph->removeVertex(source);
     }
 
-    return graph;
+    return verticesToOptimize.empty();
 }
 
 #endif //SPIDER2_PISDFFORKFORKOPTIMIZER_H
