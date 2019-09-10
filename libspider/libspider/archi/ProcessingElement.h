@@ -141,6 +141,8 @@ public:
      */
     inline void disable();
 
+    inline void setClusterIx(std::uint32_t ix);
+
 private:
 
     /* === Core properties === */
@@ -209,6 +211,10 @@ void ProcessingElement::enable() {
 
 void ProcessingElement::disable() {
     enabled_ = false;
+}
+
+void ProcessingElement::setClusterIx(std::uint32_t ix) {
+    clusterIx_ = ix;
 }
 
 #endif //SPIDER2_PROCESSINGELEMENT_H

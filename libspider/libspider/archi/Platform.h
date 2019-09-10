@@ -44,8 +44,11 @@
 
 #include <cstdint>
 #include <containers/Array.h>
+#include <containers/StlContainers.h>
 
 /* === Forward declaration(s) === */
+
+class Cluster;
 
 class ProcessingElement;
 
@@ -56,36 +59,54 @@ class MemoryUnit;
 class Platform {
 public:
 
-    Platform(std::uint32_t PECount, std::uint32_t PETypeCount, std::uint32_t memUnitCount);
+    Platform(std::uint32_t clusterCount);
 
     ~Platform() = default;
 
     /* === Method(s) === */
 
-    /* === Getter(s) === */
+    void addCluster(Cluster *cluster);
 
-    inline Spider::Array<MemoryUnit *> &memoryUnits() const;
+    /* === Getter(s) === */
 
     inline std::uint32_t spiderGRTClusterIx() const;
 
     inline std::uint32_t spiderGRTPEIx() const;
 
-    inline std::uint32_t PECount() const;
+    inline std::uint32_t clusterCount() const;
 
     inline std::uint32_t memUnitCount() const;
 
-    inline std::uint32_t LRTCount() const;
+    std::uint32_t PECount() const;
+
+    std::uint32_t LRTCount() const;
 
     /* === Setter(s) === */
 
 private:
+    Spider::Array<Cluster *> clusterArray_;
     std::uint32_t clusterCount_ = 0;
-    std::uint32_t memUnitCount_ = 0;
     std::uint32_t LRTCount_ = 0;
 
     /* === Private method(s) === */
 };
 
 /* === Inline method(s) === */
+
+std::uint32_t Platform::spiderGRTClusterIx() const {
+    return 0;
+}
+
+std::uint32_t Platform::spiderGRTPEIx() const {
+    return 0;
+}
+
+std::uint32_t Platform::clusterCount() const {
+    return clusterCount_;
+}
+
+std::uint32_t Platform::memUnitCount() const {
+    return clusterCount_;
+}
 
 #endif //SPIDER2_PLATFORM_H

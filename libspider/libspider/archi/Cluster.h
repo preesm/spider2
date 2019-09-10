@@ -47,6 +47,8 @@
 
 /* === Forward declaration(s) === */
 
+class Platform;
+
 class ProcessingElement;
 
 class MemoryUnit;
@@ -56,11 +58,13 @@ class MemoryUnit;
 class Cluster {
 public:
 
+    Cluster(std::uint32_t PECount, MemoryUnit *memoryUnit, Platform *platform);
+
     ~Cluster();
 
     /* === Method(s) === */
 
-
+    void addPE(ProcessingElement *PE);
 
     /* === Getter(s) === */
 
@@ -102,13 +106,22 @@ public:
      */
     inline std::uint32_t ix() const;
 
+    /**
+     * @brief Get the platform of the cluster.
+     * @return @refitem Platform of the cluster.
+     */
+    inline Platform &platform() const;
+
     /* === Setter(s) === */
+
+    inline void setIx(std::uint32_t ix);
 
 private:
 
     /* === Core properties === */
 
     Spider::Array<ProcessingElement *> PEArray_;
+    Platform *platform_ = nullptr;
     MemoryUnit *memoryUnit_ = nullptr;
     std::uint32_t PECount_ = 0;
 
@@ -144,6 +157,14 @@ std::uint32_t Cluster::LRTCount() const {
 
 std::uint32_t Cluster::ix() const {
     return ix_;
+}
+
+Platform &Cluster::platform() const {
+    return *platform_;
+}
+
+void Cluster::setIx(std::uint32_t ix) {
+    ix_ = ix;
 }
 
 #endif //SPIDER2_CLUSTER_H

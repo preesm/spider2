@@ -40,10 +40,37 @@
 
 /* === Include(s) === */
 
-#include "Platform.h"
+#include <archi/Platform.h>
+#include <archi/Cluster.h>
 
 /* === Static variable(s) === */
 
 /* === Static function(s) === */
 
 /* === Method(s) implementation === */
+
+Platform::Platform(std::uint32_t clusterCount) : clusterArray_{StackID::ARCHI, clusterCount} {
+
+}
+
+void Platform::addCluster(Cluster *cluster) {
+    clusterArray_.at(clusterCount_) = cluster;
+    cluster->setIx(clusterCount_);
+    clusterCount_ += 1;
+}
+
+std::uint32_t Platform::PECount() const {
+    std::uint32_t PECount = 0;
+    for (auto &cluster : clusterArray_) {
+        PECount += cluster->PECount();
+    }
+    return PECount;
+}
+
+std::uint32_t Platform::LRTCount() const {
+    std::uint32_t LRTCount = 0;
+    for (auto &cluster : clusterArray_) {
+        LRTCount += cluster->LRTCount();
+    }
+    return LRTCount;
+}

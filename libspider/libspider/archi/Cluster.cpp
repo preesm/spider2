@@ -50,6 +50,12 @@
 
 /* === Method(s) implementation === */
 
+Cluster::Cluster(std::uint32_t PECount, MemoryUnit *memoryUnit, Platform *platform) : PEArray_{StackID::ARCHI, PECount},
+                                                                                      platform_{platform},
+                                                                                      memoryUnit_{memoryUnit} {
+
+}
+
 Cluster::~Cluster() {
     for (auto &pe : PEArray_) {
         Spider::destroy(pe);
@@ -60,4 +66,10 @@ Cluster::~Cluster() {
         Spider::destroy(memoryUnit_);
         Spider::deallocate(memoryUnit_);
     }
+}
+
+void Cluster::addPE(ProcessingElement *PE) {
+    PEArray_.at(PECount_) = PE;
+    PE->setClusterIx(PECount_);
+    PECount_ += 1;
 }
