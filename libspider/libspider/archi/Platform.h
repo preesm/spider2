@@ -37,54 +37,55 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_ARCHI_H
-#define SPIDER2_ARCHI_H
+#ifndef SPIDER2_PLATFORM_H
+#define SPIDER2_PLATFORM_H
 
-/* === Includes === */
+/* === Include(s) === */
 
 #include <cstdint>
+#include <containers/Array.h>
 
 /* === Forward declaration(s) === */
-
-class Platform;
 
 class ProcessingElement;
 
 class MemoryUnit;
 
-namespace Spider {
-    /* === Enumeration(s) === */
+/* === Class definition === */
 
-    /**
-     * @brief Spider Processing Element types.
-     */
-    enum class PEType {
-        LRT_ONLY, /*!< PE is used as an LRT and does not perform any computation */
-        LRT_PE,   /*!< PE is used as an LRT and can be used for computation (default) */
-        PE_ONLY,  /*!< PE is used for computation only and does not perform any job management */
-    };
+class Platform {
+public:
 
-    /**
-     * @brief Hardware type used in Spider.
-     */
-    enum class HWType {
-        PHYS_PE,  /*!< PE is instantiated in Spider and run on a core (Spider::PEType::LRT_*) */
-        VIRT_PE,  /*!< PE is instantiated in Spider but fully managed by an LRT (Spider::PEType::PE_ONLY) */
-    };
+    Platform(std::uint32_t PECount, std::uint32_t PETypeCount, std::uint32_t memUnitCount);
 
-    /* === Structure(s) === */
+    ~Platform() = default;
 
-    struct PlatformConfig {
-        std::uint32_t PECount;
-        std::uint32_t PETypeCount;
-        std::uint32_t memoryUnitCount;
-    };
+    /* === Method(s) === */
 
-    /* === Function(s) prototype === */
+    /* === Getter(s) === */
 
-    namespace API {
+    inline Spider::Array<MemoryUnit *> &memoryUnits() const;
 
-    }
-}
+    inline std::uint32_t spiderGRTClusterIx() const;
 
-#endif //SPIDER2_ARCHI_H
+    inline std::uint32_t spiderGRTPEIx() const;
+
+    inline std::uint32_t PECount() const;
+
+    inline std::uint32_t memUnitCount() const;
+
+    inline std::uint32_t LRTCount() const;
+
+    /* === Setter(s) === */
+
+private:
+    std::uint32_t clusterCount_ = 0;
+    std::uint32_t memUnitCount_ = 0;
+    std::uint32_t LRTCount_ = 0;
+
+    /* === Private method(s) === */
+};
+
+/* === Inline method(s) === */
+
+#endif //SPIDER2_PLATFORM_H

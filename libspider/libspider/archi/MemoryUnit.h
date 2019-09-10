@@ -37,54 +37,28 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_ARCHI_H
-#define SPIDER2_ARCHI_H
+#ifndef SPIDER2_MEMORYUNIT_H
+#define SPIDER2_MEMORYUNIT_H
 
-/* === Includes === */
+/* === Include(s) === */
 
-#include <cstdint>
 
-/* === Forward declaration(s) === */
+/* === Class definition === */
 
-class Platform;
+class MemoryUnit {
+public:
 
-class ProcessingElement;
+    /* === Method(s) === */
 
-class MemoryUnit;
+    /* === Getter(s) === */
 
-namespace Spider {
-    /* === Enumeration(s) === */
+    /* === Setter(s) === */
 
-    /**
-     * @brief Spider Processing Element types.
-     */
-    enum class PEType {
-        LRT_ONLY, /*!< PE is used as an LRT and does not perform any computation */
-        LRT_PE,   /*!< PE is used as an LRT and can be used for computation (default) */
-        PE_ONLY,  /*!< PE is used for computation only and does not perform any job management */
-    };
+private:
 
-    /**
-     * @brief Hardware type used in Spider.
-     */
-    enum class HWType {
-        PHYS_PE,  /*!< PE is instantiated in Spider and run on a core (Spider::PEType::LRT_*) */
-        VIRT_PE,  /*!< PE is instantiated in Spider but fully managed by an LRT (Spider::PEType::PE_ONLY) */
-    };
+    /* === Private method(s) === */
+};
 
-    /* === Structure(s) === */
+/* === Inline method(s) === */
 
-    struct PlatformConfig {
-        std::uint32_t PECount;
-        std::uint32_t PETypeCount;
-        std::uint32_t memoryUnitCount;
-    };
-
-    /* === Function(s) prototype === */
-
-    namespace API {
-
-    }
-}
-
-#endif //SPIDER2_ARCHI_H
+#endif //SPIDER2_MEMORYUNIT_H

@@ -37,54 +37,30 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_ARCHI_H
-#define SPIDER2_ARCHI_H
 
-/* === Includes === */
+/* === Include(s) === */
 
-#include <cstdint>
+#include <archi/ProcessingElement.h>
 
-/* === Forward declaration(s) === */
+/* === Static variable(s) === */
 
-class Platform;
+/* === Static function(s) === */
 
-class ProcessingElement;
+/* === Method(s) implementation === */
 
-class MemoryUnit;
 
-namespace Spider {
-    /* === Enumeration(s) === */
+ProcessingElement::ProcessingElement(std::uint32_t hwType,
+                                     std::uint32_t hwIx,
+                                     std::uint32_t virtIx,
+                                     Cluster *cluster,
+                                     std::string name,
+                                     Spider::PEType spiderPEType,
+                                     Spider::HWType spiderHWType) : hwType_{hwType},
+                                                                    hwIx_{hwIx},
+                                                                    virtIx_{virtIx},
+                                                                    name_{std::move(name)},
+                                                                    cluster_{cluster},
+                                                                    spiderPEType_{spiderPEType},
+                                                                    spiderHWType_{spiderHWType} {
 
-    /**
-     * @brief Spider Processing Element types.
-     */
-    enum class PEType {
-        LRT_ONLY, /*!< PE is used as an LRT and does not perform any computation */
-        LRT_PE,   /*!< PE is used as an LRT and can be used for computation (default) */
-        PE_ONLY,  /*!< PE is used for computation only and does not perform any job management */
-    };
-
-    /**
-     * @brief Hardware type used in Spider.
-     */
-    enum class HWType {
-        PHYS_PE,  /*!< PE is instantiated in Spider and run on a core (Spider::PEType::LRT_*) */
-        VIRT_PE,  /*!< PE is instantiated in Spider but fully managed by an LRT (Spider::PEType::PE_ONLY) */
-    };
-
-    /* === Structure(s) === */
-
-    struct PlatformConfig {
-        std::uint32_t PECount;
-        std::uint32_t PETypeCount;
-        std::uint32_t memoryUnitCount;
-    };
-
-    /* === Function(s) prototype === */
-
-    namespace API {
-
-    }
 }
-
-#endif //SPIDER2_ARCHI_H
