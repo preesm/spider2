@@ -50,6 +50,8 @@
 
 class Cluster;
 
+class MemoryUnit;
+
 /* === Class definition === */
 
 class ProcessingElement {
@@ -129,6 +131,12 @@ public:
      */
     inline bool isLRT() const;
 
+    /**
+     * @brief Get the memory unit attached to the cluster to which the PE belong.
+     * @return reference to the @refitem MemoryUnit of the PE.
+     */
+    MemoryUnit &memoryUnit() const;
+
     /* === Setter(s) === */
 
     /**
@@ -143,7 +151,33 @@ public:
      */
     void disable();
 
-    inline void setClusterIx(std::uint32_t ix);
+    /**
+     * @brief Set the Processing Element ix inside the associated cluster.
+     * @remark This method override current value. It is up to the user to ensure consistency in the index.
+     * @param ix  Ix to set.
+     */
+    inline void setClusterPEIx(std::uint32_t ix);
+
+    /**
+     * @brief Set the name of the Processing Element.
+     * @remark Calling this method will replace current name of the PE.
+     * @param name  Name to set.
+     */
+    inline void setName(const std::string &name);
+
+    /**
+     * @brief The Spider::PEType of the Processing Element.
+     * @remark Calling this method will replace current PEType of the PE.
+     * @param type Type to set.
+     */
+    inline void setSpiderPEType(Spider::PEType type);
+
+    /**
+     * @brief The Spider::HWType of the Processing Element.
+     * @remark Calling this method will replace current HWType of the PE.
+     * @param type Type to set.
+     */
+    inline void setSpiderHWType(Spider::HWType type);
 
 private:
 
@@ -207,8 +241,20 @@ bool ProcessingElement::isLRT() const {
     return spiderPEType_ != Spider::PEType::PE_ONLY;
 }
 
-void ProcessingElement::setClusterIx(std::uint32_t ix) {
+void ProcessingElement::setClusterPEIx(std::uint32_t ix) {
     clusterIx_ = ix;
+}
+
+void ProcessingElement::setName(const std::string &name) {
+    name_ = name;
+}
+
+void ProcessingElement::setSpiderPEType(Spider::PEType type) {
+    spiderPEType_ = type;
+}
+
+void ProcessingElement::setSpiderHWType(Spider::HWType type) {
+    spiderHWType_ = type;
 }
 
 #endif //SPIDER2_PROCESSINGELEMENT_H

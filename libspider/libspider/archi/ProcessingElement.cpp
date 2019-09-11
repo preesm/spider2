@@ -63,7 +63,7 @@ ProcessingElement::ProcessingElement(std::uint32_t hwType,
                                                                     cluster_{cluster},
                                                                     spiderPEType_{spiderPEType},
                                                                     spiderHWType_{spiderHWType} {
-
+    cluster->addPE(this);
 }
 
 void ProcessingElement::enable() {
@@ -74,4 +74,8 @@ void ProcessingElement::enable() {
 void ProcessingElement::disable() {
     enabled_ = false;
     cluster_->setPEStatus(clusterIx_, false);
+}
+
+MemoryUnit &ProcessingElement::memoryUnit() const {
+    return cluster()->memoryUnit();
 }

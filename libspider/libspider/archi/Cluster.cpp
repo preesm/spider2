@@ -73,7 +73,7 @@ Cluster::~Cluster() {
 
 void Cluster::addPE(ProcessingElement *PE) {
     PEArray_.at(PECount_) = PE;
-    PE->setClusterIx(PECount_);
+    PE->setClusterPEIx(PECount_);
     PECount_ += 1;
     LRTCount_ += PE->isLRT();
 }
