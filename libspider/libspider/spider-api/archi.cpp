@@ -40,6 +40,86 @@
 
 /* === Includes === */
 
-#include "archi.h"
+#include <spider-api/archi.h>
+#include <archi/Platform.h>
+#include <archi/Cluster.h>
+#include <archi/ProcessingElement.h>
+#include <archi/MemoryUnit.h>
 
 /* === Methods implementation === */
+
+/* === General Platform related API === */
+
+Platform *&Spider::platform() {
+    static Platform *platform = nullptr;
+    return platform;
+}
+
+Platform *Spider::API::createPlatform(std::uint32_t clusterCount) {
+    auto *&platform = Spider::platform();
+    platform = Spider::allocate<Platform>(StackID::ARCHI);
+    Spider::construct(platform, clusterCount);
+    return platform;
+}
+
+void Spider::API::setSpiderGRTPE(ProcessingElement *grtPE) {
+    auto *&platform = Spider::platform();
+    if (platform) {
+        platform->setSpiderGRTPE(grtPE);
+    }
+}
+
+/* === Cluster related API === */
+
+Cluster *Spider::API::createCluster(std::uint32_t PECount, MemoryUnit *memoryUnit) {
+    auto *cluster = Spider::allocate<Cluster>(StackID::ARCHI);
+    Spider::construct(cluster, PECount, memoryUnit, Spider::platform());
+    return cluster;
+}
+
+/* === PE related API === */
+
+ProcessingElement *Spider::API::createPE(std::uint32_t hwType,
+                                         std::uint32_t hwID,
+                                         std::uint32_t virtID,
+                                         Cluster *cluster,
+                                         const std::string &name,
+                                         Spider::PEType spiderPEType,
+                                         Spider::HWType spiderHWType) {
+    auto *PE = Spider::allocate<ProcessingElement>(StackID::ARCHI);
+    Spider::construct(PE, hwType, hwID, virtID, cluster, name, spiderPEType, spiderHWType);
+    PE->enable();
+    return PE;
+}
+
+void Spider::API::setPESpiderPEType(ProcessingElement *PE, Spider::PEType type) {
+    PE->setSpiderPEType(type);
+}
+
+void Spider::API::setPESpiderHWType(ProcessingElement *PE, Spider::HWType type) {
+    PE->setSpiderHWType(type);
+}
+
+void Spider::API::setPEName(ProcessingElement *PE, const std::string &name) {
+    if (PE) {
+        PE->setName(name);
+    }
+}
+
+void Spider::API::enablePE(ProcessingElement *PE) {
+    if (PE) {
+        PE->enable();
+    }
+}
+
+void Spider::API::disablePE(ProcessingElement *PE) {
+    if (PE) {
+        PE->disable();
+    }
+}
+
+/* === MemoryUnit related API === */
+
+MemoryUnit *Spider::API::createMemoryUnit(char *base, std::uint64_t size) {
+    return nullptr;
+}

@@ -43,10 +43,13 @@
 /* === Includes === */
 
 #include <cstdint>
+#include <string>
 
 /* === Forward declaration(s) === */
 
 class Platform;
+
+class Cluster;
 
 class ProcessingElement;
 
@@ -82,8 +85,103 @@ namespace Spider {
 
     /* === Function(s) prototype === */
 
+    /**
+     * @brief Get the unique platform of the Spider session.
+     * @return reference pointer to the platform.
+     */
+    Platform *&platform();
+
     namespace API {
 
+        /* === General Platform related API === */
+
+        /**
+         * @brief Create a new Platform (only one is permitted)
+         * @param clusterCount   Number of cluster in the platform (1 by default)
+         * @return pointer to the newly created @refitem Platform
+         * @throws @refitem Spider::Exception if a platform already exists.
+         */
+        Platform *createPlatform(std::uint32_t clusterCount = 1);
+
+        /**
+         * @brief Set the Global Run-Time (GRT) PE.
+         * @param grtPE  Processing Element of the GRT.
+         */
+        void setSpiderGRTPE(ProcessingElement *grtPE);
+
+        /* === Cluster related API === */
+
+        /**
+         * @brief Create a new Cluster. A cluster is a set of PE connected to a same memory unit.
+         * @param PECount      Number of PE in the cluster.
+         * @param memoryUnit   Memory unit of the cluster.
+         * @return pointer to the newly created @refitem Cluster.
+         */
+        Cluster *createCluster(std::uint32_t PECount, MemoryUnit *memoryUnit);
+
+        /* === PE related API === */
+
+        /**
+         * @brief Create a new Processing Element (PE).
+         * @param hwType        S-LAM user defined hardware type.
+         * @param hwID          Physical hardware id of the PE (mainly used for thread affinity).
+         * @param virtID        S-LAM used defined PE id.
+         * @param cluster       Cluster of the PE.
+         * @param name          Name of the PE.
+         * @param spiderPEType  Spider PE type.
+         * @param spiderHWType  Spider hardware type.
+         * @return Pointer to newly created @refitem ProcessingElement, associated memory is handled by spider.
+         */
+        ProcessingElement *createPE(std::uint32_t hwType,
+                                    std::uint32_t hwID,
+                                    std::uint32_t virtID,
+                                    Cluster *cluster,
+                                    const std::string &name,
+                                    Spider::PEType spiderPEType = Spider::PEType::LRT_PE,
+                                    Spider::HWType spiderHWType = Spider::HWType::PHYS_PE);
+
+        /**
+         * @brief Set the SpiderPEType of a given PE.
+         * @param PE    Pointer to the PE.
+         * @param type  Spider::PEType to set.
+         */
+        void setPESpiderPEType(ProcessingElement *PE, Spider::PEType type);
+
+        /**
+         * @brief Set the SpiderHWType of a given PE.
+         * @param PE    Pointer to the PE.
+         * @param type  Spider::HWType to set.
+         */
+        void setPESpiderHWType(ProcessingElement *PE, Spider::HWType type);
+
+        /**
+         * @brief Set the name of a given PE.
+         * @param PE    Pointer to the PE.
+         * @param name  Name of the PE to set.
+         */
+        void setPEName(ProcessingElement *PE, const std::string &name);
+
+        /**
+         * @brief Enable a given PE (default).
+         * @param PE  Pointer to the PE.
+         */
+        void enablePE(ProcessingElement *PE);
+
+        /**
+         * @brief Disable a given PE.
+         * @param PE  Pointer to the PE.
+         */
+        void disablePE(ProcessingElement *PE);
+
+        /* === MemoryUnit related API === */
+
+        /**
+         * @brief Create a new MemoryUnit.
+         * @param base  Base address of the MemoryUnit.
+         * @param size  Size of the MemoryUnit.
+         * @return Pointer to newly created @refitem MemoryUnit, associated memory is handled by spider.
+         */
+        MemoryUnit *createMemoryUnit(char *base, std::uint64_t size);
     }
 }
 
