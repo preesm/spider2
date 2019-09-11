@@ -70,6 +70,7 @@ void PiSDFGraphOptimizer::operator()(PiSDFGraph *graph) {
     PiSDFUnitaryOptimizer()(graph);
     bool done = false;
     while (!done) {
+        done = true;
         done &= PiSDFForkForkOptimizer()(graph);
         done &= PiSDFJoinJoinOptimizer()(graph);
         done &= PiSDFJoinForkOptimizer()(graph);
