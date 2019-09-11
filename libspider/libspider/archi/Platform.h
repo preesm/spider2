@@ -59,7 +59,7 @@ class MemoryUnit;
 class Platform {
 public:
 
-    Platform(std::uint32_t clusterCount);
+    explicit Platform(std::uint32_t clusterCount);
 
     ~Platform() = default;
 
@@ -67,38 +67,109 @@ public:
 
     void addCluster(Cluster *cluster);
 
+    /**
+     * @brief Find a processing element in the platform from its name.
+     * @param name  Name of the PE to find.
+     * @return reference to the @refitem ProcessingElement found.
+     * @throws Spider::Exception if there is no PE with given name in the platform.
+     */
+    ProcessingElement &findPE(const std::string &name) const;
+
+    /**
+     * @brief Find a processing element in the platform from its virtual ix (S-LAM user ix).
+     * @param virtualIx  Virtual ix of the PE to find.
+     * @return reference to the @refitem ProcessingElement found.
+     * @throws Spider::Exception if there is no PE with given virtual ix in the platform.
+     */
+    ProcessingElement &findPE(std::uint32_t virtualIx) const;
+
+    /**
+     * @brief Find the processing element in the platform from its cluster ix and its PE ix.
+     * @param clusterIx   Ix of the cluster of the PE.
+     * @param PEIx        Ix of the PE inside the cluster.
+     * @return reference to the @refitem ProcessingElement found.
+     * @throws Spider::Exception if there is no PE with given cluster and PE ix in the platform.
+     */
+    ProcessingElement &findPE(std::uint32_t clusterIx, std::uint32_t PEIx) const;
+
+    /**
+     * @brief Activate a processing element.
+     * @param pe Pointer to the PE to be enabled.
+     */
+    inline void enablePE(ProcessingElement *PE) const;
+
+    /**
+     * @brief Deactivate a processing element.
+     * @param pe Pointer to the PE to be disabled.
+     * @throws Spider::Exception if PE is the GRT.
+     */
+    inline void disablePE(ProcessingElement *PE) const;
+
     /* === Getter(s) === */
 
-    inline std::uint32_t spiderGRTClusterIx() const;
+    /**
+     * @brief Get the processing element on which the GRT runs (in master-slave mode).
+     * @return pointer to the @refitem ProcessingElement of the GRT, nullptr if no GRT is set.
+     */
+    inline ProcessingElement *spiderGRTPE() const;
 
-    inline std::uint32_t spiderGRTPEIx() const;
+    /**
+     * @brief Get the cluster ix of the GRT.
+     * @return ix of the cluster of the GRT PE, -1 if no GRT is set.
+     */
+    std::int32_t spiderGRTClusterIx() const;
 
+    /**
+     * @brief Get the ix of the GRT PE inside its cluster.
+     * @return ix of the PE inside its cluster, -1 if no GRT is set.
+     */
+    std::int32_t spiderGRTPEIx() const;
+
+    /**
+     * @brief Get the number of cluster in the platform.
+     * @return Number of @refitem Cluster.
+     */
     inline std::uint32_t clusterCount() const;
 
+    /**
+     * @brief Get the number of memory unit in the platform (equivalent to the cluster count)
+     * @return Number of @refitem MemoryUnit
+     */
     inline std::uint32_t memUnitCount() const;
 
+    /**
+     * @brief Get the total number of PE in the platform (go through each cluster)
+     * @return total number of @refitem ProcessingElement in the platform.
+     */
     std::uint32_t PECount() const;
 
+    /**
+     * @brief Get the total number of local runtimes in the platform (go though each cluster)
+     * @return total number of @refitem ProcessingElement with the LRT_* @refitem Spider::PEType
+     */
     std::uint32_t LRTCount() const;
 
     /* === Setter(s) === */
 
+    /**
+     * @brief Set the processing element of the GRT (in master-slave mode).
+     * @remark This method replaces current GRT if it was set.
+     * @param PE  Processing element to set as GRT.
+     */
+    inline void setSpiderGRTPE(ProcessingElement *PE);
+
 private:
     Spider::Array<Cluster *> clusterArray_;
     std::uint32_t clusterCount_ = 0;
-    std::uint32_t LRTCount_ = 0;
+    ProcessingElement *grtPE_ = nullptr;
 
     /* === Private method(s) === */
 };
 
 /* === Inline method(s) === */
 
-std::uint32_t Platform::spiderGRTClusterIx() const {
-    return 0;
-}
-
-std::uint32_t Platform::spiderGRTPEIx() const {
-    return 0;
+ProcessingElement *Platform::spiderGRTPE() const {
+    return grtPE_;
 }
 
 std::uint32_t Platform::clusterCount() const {
@@ -107,6 +178,10 @@ std::uint32_t Platform::clusterCount() const {
 
 std::uint32_t Platform::memUnitCount() const {
     return clusterCount_;
+}
+
+void Platform::setSpiderGRTPE(ProcessingElement *PE) {
+    grtPE_ = PE;
 }
 
 #endif //SPIDER2_PLATFORM_H

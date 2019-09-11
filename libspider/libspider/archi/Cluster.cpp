@@ -40,6 +40,7 @@
 
 /* === Include(s) === */
 
+#include <archi/Platform.h>
 #include <archi/Cluster.h>
 #include <archi/ProcessingElement.h>
 #include <archi/MemoryUnit.h>
@@ -51,9 +52,11 @@
 /* === Method(s) implementation === */
 
 Cluster::Cluster(std::uint32_t PECount, MemoryUnit *memoryUnit, Platform *platform) : PEArray_{StackID::ARCHI, PECount},
+                                                                                      PEEnabledVector_(PECount, false),
                                                                                       platform_{platform},
                                                                                       memoryUnit_{memoryUnit} {
-
+    /* == Add the cluster to the platform == */
+    platform_->addCluster(this);
 }
 
 Cluster::~Cluster() {
@@ -72,4 +75,5 @@ void Cluster::addPE(ProcessingElement *PE) {
     PEArray_.at(PECount_) = PE;
     PE->setClusterIx(PECount_);
     PECount_ += 1;
+    LRTCount_ += PE->isLRT();
 }

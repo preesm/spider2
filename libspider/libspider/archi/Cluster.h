@@ -44,6 +44,7 @@
 
 #include <cstdint>
 #include <containers/Array.h>
+#include <containers/StlContainers.h>
 
 /* === Forward declaration(s) === */
 
@@ -64,7 +65,20 @@ public:
 
     /* === Method(s) === */
 
+    /**
+     * @brief Add a processing element to the cluster.
+     * @param PE Processing element to add.
+     * @throws @refitem Spider::Exception if cluster is already full.
+     */
     void addPE(ProcessingElement *PE);
+
+    /**
+     * @brief Set the state (enabled or disabled) of a processing element in the cluster.
+     * @param ix      Ix of the processing element.
+     * @param status  Status of the PE to set (true = enabled, false = disabled).
+     * @throws Spider::Exception if PE ix is out of bound.
+     */
+    inline void setPEStatus(std::uint32_t ix, bool status);
 
     /* === Getter(s) === */
 
@@ -112,6 +126,12 @@ public:
      */
     inline Platform &platform() const;
 
+    /**
+     * @brief Get the number of processing element enabled in the cluster.
+     * @return number of enabled PE.
+     */
+    inline std::uint32_t enabledPECount() const;
+
     /* === Setter(s) === */
 
     inline void setIx(std::uint32_t ix);
@@ -121,6 +141,7 @@ private:
     /* === Core properties === */
 
     Spider::Array<ProcessingElement *> PEArray_;
+    std::vector<bool> PEEnabledVector_;
     Platform *platform_ = nullptr;
     MemoryUnit *memoryUnit_ = nullptr;
     std::uint32_t PECount_ = 0;
@@ -128,12 +149,18 @@ private:
     /* === Spider properties === */
 
     std::uint32_t LRTCount_ = 0;
+    std::uint32_t enabledPECount_ = 0;
     std::uint32_t ix_ = 0;
 
     /* === Private method(s) === */
 };
 
 /* === Inline method(s) === */
+
+void Cluster::setPEStatus(std::uint32_t ix, bool status) {
+    PEEnabledVector_.at(ix) = status;
+    enabledPECount_ = std::count(PEEnabledVector_.begin(), PEEnabledVector_.end(), true);
+}
 
 const Spider::Array<ProcessingElement *> &Cluster::processingElements() const {
     return PEArray_;
@@ -165,6 +192,10 @@ Platform &Cluster::platform() const {
 
 void Cluster::setIx(std::uint32_t ix) {
     ix_ = ix;
+}
+
+std::uint32_t Cluster::enabledPECount() const {
+    return enabledPECount_;
 }
 
 #endif //SPIDER2_CLUSTER_H

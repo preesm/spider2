@@ -41,6 +41,7 @@
 /* === Include(s) === */
 
 #include <archi/ProcessingElement.h>
+#include <archi/Cluster.h>
 
 /* === Static variable(s) === */
 
@@ -63,4 +64,14 @@ ProcessingElement::ProcessingElement(std::uint32_t hwType,
                                                                     spiderPEType_{spiderPEType},
                                                                     spiderHWType_{spiderHWType} {
 
+}
+
+void ProcessingElement::enable() {
+    enabled_ = true;
+    cluster_->setPEStatus(clusterIx_, true);
+}
+
+void ProcessingElement::disable() {
+    enabled_ = false;
+    cluster_->setPEStatus(clusterIx_, false);
 }

@@ -85,7 +85,7 @@ public:
      * @brief Ix set by the user in the architecture description of the platform.
      * @return virtual ix.
      */
-    inline std::uint32_t getVirtualIx() const;
+    inline std::uint32_t virtualIx() const;
 
     /**
      * @brief Get the name of the processing element.
@@ -133,13 +133,15 @@ public:
 
     /**
      * @brief Enable the PE.
+     * @remark update the number of enabled PE in the associated Cluster.
      */
-    inline void enable();
+    void enable();
 
     /**
      * @brief Disable the PE.
+     * @remark update the number of enabled PE in the associated Cluster.
      */
-    inline void disable();
+    void disable();
 
     inline void setClusterIx(std::uint32_t ix);
 
@@ -173,7 +175,7 @@ std::uint32_t ProcessingElement::hardwareIx() const {
     return hwIx_;
 }
 
-std::uint32_t ProcessingElement::getVirtualIx() const {
+std::uint32_t ProcessingElement::virtualIx() const {
     return virtIx_;
 }
 
@@ -203,14 +205,6 @@ bool ProcessingElement::enabled() const {
 
 bool ProcessingElement::isLRT() const {
     return spiderPEType_ != Spider::PEType::PE_ONLY;
-}
-
-void ProcessingElement::enable() {
-    enabled_ = true;
-}
-
-void ProcessingElement::disable() {
-    enabled_ = false;
 }
 
 void ProcessingElement::setClusterIx(std::uint32_t ix) {
