@@ -61,7 +61,7 @@ public:
 
     explicit Platform(std::uint32_t clusterCount);
 
-    ~Platform() = default;
+    ~Platform();
 
     /* === Method(s) === */
 

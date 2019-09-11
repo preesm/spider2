@@ -54,6 +54,13 @@ Platform::Platform(std::uint32_t clusterCount) : clusterArray_{StackID::ARCHI, c
 
 }
 
+Platform::~Platform() {
+    for (auto &cluster : clusterArray_) {
+        Spider::destroy(cluster);
+        Spider::deallocate(cluster);
+    }
+}
+
 void Platform::addCluster(Cluster *cluster) {
     clusterArray_.at(clusterCount_) = cluster;
     cluster->setIx(clusterCount_);
