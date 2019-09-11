@@ -68,6 +68,9 @@ using ParamInt32 = std::int32_t;
 /* === API methods === */
 
 namespace Spider {
+
+    PiSDFGraph *&pisdfGraph();
+
     namespace API {
 
         /* === Graph API === */
@@ -264,8 +267,6 @@ namespace Spider {
                                       std::int64_t rate,
                                       StackID stack = StackID::PISDF);
     }
-
-    PiSDFGraph *&pisdfGraph();
 }
 
 #endif //SPIDER2_PISDF_H

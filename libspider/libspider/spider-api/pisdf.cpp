@@ -51,6 +51,11 @@
 
 /* === Methods implementation === */
 
+PiSDFGraph *&Spider::pisdfGraph() {
+    static PiSDFGraph *graph = nullptr;
+    return graph;
+}
+
 PiSDFGraph *Spider::API::createGraph(const std::string &name,
                                      std::uint64_t nActors,
                                      std::uint64_t nEdges,
@@ -464,11 +469,6 @@ PiSDFEdge *Spider::API::connectDelaySetter(PiSDFDelay *delay,
 PiSDFEdge *Spider::API::connectDelaySetter(PiSDFDelay *delay, PiSDFVertex *setter, std::int64_t rate, StackID stack) {
     return createEdge(delay->edge()->containingGraph(), setter, delay->setterPortIx(), rate,
                       delay->virtualVertex(), 0, delay->value(), stack);
-}
-
-PiSDFGraph *&Spider::pisdfGraph() {
-    static PiSDFGraph *graph = nullptr;
-    return graph;
 }
 
 
