@@ -187,8 +187,3 @@ bool Spider::API::staticOptim() {
 bool Spider::API::srdagOptim() {
     return srdagOptimFlag();
 }
-
-PiSDFGraph *&Spider::pisdfGraph() {
-    static PiSDFGraph *graph = nullptr;
-    return graph;
-}

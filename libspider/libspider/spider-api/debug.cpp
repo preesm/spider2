@@ -43,7 +43,7 @@
 #include <common/Logger.h>
 #include <common/Exception.h>
 #include <spider-api/debug.h>
-#include <spider.h>
+#include <spider-api/pisdf.h>
 #include <graphs-tools/transformation/StaticSRDAGTransformer.h>
 #include <graphs-tools/transformation/optims/PiSDFGraphOptimizer.h>
 

@@ -264,6 +264,8 @@ namespace Spider {
                                       std::int64_t rate,
                                       StackID stack = StackID::PISDF);
     }
+
+    PiSDFGraph *&pisdfGraph();
 }
 
 #endif //SPIDER2_PISDF_H

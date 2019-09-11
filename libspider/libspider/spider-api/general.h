@@ -195,8 +195,6 @@ namespace Spider {
          */
         bool srdagOptim();
     }
-
-    PiSDFGraph *&pisdfGraph();
 }
 
 #endif //SPIDER2_GENERAL_H

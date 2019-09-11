@@ -466,4 +466,9 @@ PiSDFEdge *Spider::API::connectDelaySetter(PiSDFDelay *delay, PiSDFVertex *sette
                       delay->virtualVertex(), 0, delay->value(), stack);
 }
 
+PiSDFGraph *&Spider::pisdfGraph() {
+    static PiSDFGraph *graph = nullptr;
+    return graph;
+}
+
 
