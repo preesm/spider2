@@ -56,6 +56,21 @@ class ProcessingElement;
 class MemoryUnit;
 
 namespace Spider {
+
+    /* === Routine(s) === */
+
+    using CommunicationCostRoutine = std::uint64_t (*)(
+            /* = Number of bytes  = */ std::uint64_t
+    );
+
+    inline std::uint64_t defaultZeroCommunicationCost(std::uint64_t) {
+        return 0;
+    }
+
+    inline std::uint64_t defaultInfiniteCommunicationCost(std::uint64_t) {
+        return UINT64_MAX;
+    }
+
     /* === Enumeration(s) === */
 
     /**

@@ -57,6 +57,10 @@ Cluster::Cluster(std::uint32_t PECount, MemoryUnit *memoryUnit, Platform *platfo
                                                                                       memoryUnit_{memoryUnit} {
     /* == Add the cluster to the platform == */
     platform_->addCluster(this);
+
+    /* == Set default read / write to the memory cost routine == */
+    writeCostRoutine_ = Spider::defaultZeroCommunicationCost;
+    readCostRoutine_ = Spider::defaultZeroCommunicationCost;
 }
 
 Cluster::~Cluster() {

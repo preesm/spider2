@@ -50,8 +50,12 @@
 
 /* === Method(s) implementation === */
 
-Platform::Platform(std::uint32_t clusterCount) : clusterArray_{StackID::ARCHI, clusterCount} {
-
+Platform::Platform(std::uint32_t clusterCount) : clusterArray_{StackID::ARCHI, clusterCount},
+                                                 cluster2ClusterComCostRoutines_{StackID::ARCHI,
+                                                                                 clusterCount * clusterCount} {
+    for (auto &func : cluster2ClusterComCostRoutines_) {
+        func = Spider::CommunicationCostFunctor(Spider::defaultZeroCommunicationCost);
+    }
 }
 
 Platform::~Platform() {
@@ -121,7 +125,7 @@ std::int32_t Platform::spiderGRTClusterIx() const {
 
 std::int32_t Platform::spiderGRTPEIx() const {
     if (grtPE_) {
-        return grtPE_->clusterIx();
+        return grtPE_->clusterPEIx();
     }
     return -1;
 }
@@ -139,4 +143,23 @@ void Platform::disablePE(ProcessingElement *const PE) const {
     if (PE) {
         PE->disable();
     }
+}
+
+std::uint64_t Platform::dataCommunicationCostPEToPE(ProcessingElement *PESrc,
+                                                    ProcessingElement *PESnk,
+                                                    std::uint64_t dataSize) {
+    /* == Test if it is an intra or inter cluster communication == */
+    if (PESrc->cluster()->ix() == PESnk->cluster()->ix()) {
+        /* == Intra cluster, communication cost is the read / write to the cluster memory cost == */
+        auto *cluster = PESrc->cluster();
+        return Spider::Math::saturateAdd(cluster->writeCostRoutine()(dataSize), cluster->readCostRoutine()(dataSize));
+    }
+
+    /* == For inter cluster communication, cost is a bit more complicated to compute == */
+    auto *clusterSrc = PESrc->cluster();
+    auto *clusterSnk = PESnk->cluster();
+    auto readWriteCost = Spider::Math::saturateAdd(clusterSrc->writeCostRoutine()(dataSize),
+                                                   clusterSnk->readCostRoutine()(dataSize));
+    return Spider::Math::saturateAdd(readWriteCost, cluster2ClusterComCostRoutines_[clusterSrc->ix() * clusterCount_ +
+                                                                                    clusterSnk->ix()](dataSize));
 }

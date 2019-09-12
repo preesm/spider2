@@ -45,6 +45,8 @@
 #include <cstdint>
 #include <containers/Array.h>
 #include <containers/StlContainers.h>
+#include <spider-api/archi.h>
+#include <archi/CommunicationCostFunctor.h>
 
 /* === Forward declaration(s) === */
 
@@ -93,6 +95,17 @@ public:
     ProcessingElement &findPE(std::uint32_t clusterIx, std::uint32_t PEIx) const;
 
     /**
+     * @brief Compute the data communication cost between two processing elements.
+     * @param PESrc      Processing Element sending the data.
+     * @param PESnk      Processing Element receiving the data.
+     * @param dataSize   Size (in byte) of the data to send / receive.
+     * @return communication cost (UINT64_MAX if communication is not possible).
+     */
+    std::uint64_t dataCommunicationCostPEToPE(ProcessingElement *PESrc,
+                                              ProcessingElement *PESnk,
+                                              std::uint64_t dataSize);
+
+    /**
      * @brief Activate a processing element.
      * @param pe Pointer to the PE to be enabled.
      */
@@ -104,6 +117,7 @@ public:
      * @throws Spider::Exception if PE is the GRT.
      */
     inline void disablePE(ProcessingElement *PE) const;
+
 
     /* === Getter(s) === */
 
@@ -162,6 +176,10 @@ private:
     Spider::Array<Cluster *> clusterArray_;
     std::uint32_t clusterCount_ = 0;
     ProcessingElement *grtPE_ = nullptr;
+
+    /* === Routines === */
+
+    Spider::Array<Spider::CommunicationCostFunctor> cluster2ClusterComCostRoutines_;
 
     /* === Private method(s) === */
 };

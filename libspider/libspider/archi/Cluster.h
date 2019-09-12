@@ -132,9 +132,37 @@ public:
      */
     inline std::uint32_t enabledPECount() const;
 
+    /**
+     * @brief Get the write cost routine.
+     * @return const reference to @refitem Spider::CommunicationCostRoutine
+     */
+    inline const Spider::CommunicationCostRoutine &writeCostRoutine() const;
+
+    /**
+     * @brief Get the read cost routine.
+     * @return const reference to @refitem Spider::CommunicationCostRoutine
+     */
+    inline const Spider::CommunicationCostRoutine &readCostRoutine() const;
+
     /* === Setter(s) === */
 
+    /**
+     * @brief Set the cluster ix inside the Platform.
+     * @param ix Ix to set.
+     */
     inline void setIx(std::uint32_t ix);
+
+    /**
+     * @brief Set the cost routine for writing in cluster memory.
+     * @param routine  Routine used for computing the cost to write in cluster memory.
+     */
+    inline void setWriteCostRoutine(Spider::CommunicationCostRoutine routine);
+
+    /**
+     * @brief Set the cost routine for reading from cluster memory.
+     * @param routine  Routine used for computing the cost to read from cluster memory.
+     */
+    inline void setReadCostRoutine(Spider::CommunicationCostRoutine routine);
 
 private:
 
@@ -151,6 +179,8 @@ private:
     std::uint32_t LRTCount_ = 0;
     std::uint32_t enabledPECount_ = 0;
     std::uint32_t ix_ = 0;
+    Spider::CommunicationCostRoutine writeCostRoutine_;
+    Spider::CommunicationCostRoutine readCostRoutine_;
 
     /* === Private method(s) === */
 };
@@ -175,7 +205,7 @@ const ProcessingElement &Cluster::processingElement(std::uint32_t ix) const {
 }
 
 std::uint32_t Cluster::PECount() const {
-    return PECount_;
+    return PEArray_.size();
 }
 
 std::uint32_t Cluster::LRTCount() const {
@@ -190,12 +220,28 @@ Platform &Cluster::platform() const {
     return *platform_;
 }
 
+std::uint32_t Cluster::enabledPECount() const {
+    return enabledPECount_;
+}
+
+const Spider::CommunicationCostRoutine &Cluster::writeCostRoutine() const {
+    return writeCostRoutine_;
+}
+
+const Spider::CommunicationCostRoutine &Cluster::readCostRoutine() const {
+    return readCostRoutine_;
+}
+
 void Cluster::setIx(std::uint32_t ix) {
     ix_ = ix;
 }
 
-std::uint32_t Cluster::enabledPECount() const {
-    return enabledPECount_;
+void Cluster::setWriteCostRoutine(Spider::CommunicationCostRoutine routine) {
+    writeCostRoutine_ = routine;
+}
+
+void Cluster::setReadCostRoutine(Spider::CommunicationCostRoutine routine) {
+    readCostRoutine_ = routine;
 }
 
 #endif //SPIDER2_CLUSTER_H
