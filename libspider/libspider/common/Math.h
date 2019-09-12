@@ -130,6 +130,14 @@ namespace Spider {
         inline std::uint64_t lcm(std::uint64_t a, std::uint64_t b) {
             return (a * b) / Spider::Math::gcd(a, b);
         }
+
+        inline std::uint64_t saturateAdd(std::uint64_t a, std::uint64_t b) {
+            return b > (UINT64_MAX - a) ? UINT64_MAX : a + b;
+        }
+
+        inline std::uint32_t saturateAdd(std::uint32_t a, std::uint32_t b) {
+            return b > (UINT32_MAX - a) ? UINT32_MAX : a + b;
+        }
     }
 }
 
