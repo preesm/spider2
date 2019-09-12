@@ -54,6 +54,11 @@ namespace Spider {
     class CommunicationCostFunctor {
     public:
 
+        explicit inline CommunicationCostFunctor(Spider::CommunicationCostRoutine routine) :
+                stack_{StackID::ARCHI, 1} {
+            stack_[0] = routine;
+        }
+
         explicit inline CommunicationCostFunctor(std::initializer_list<Spider::CommunicationCostRoutine> l) :
                 stack_{StackID::ARCHI, l.size()} {
             std::uint32_t ix = 0;
