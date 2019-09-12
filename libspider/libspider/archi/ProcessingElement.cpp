@@ -68,12 +68,12 @@ ProcessingElement::ProcessingElement(std::uint32_t hwType,
 
 void ProcessingElement::enable() {
     enabled_ = true;
-    cluster_->setPEStatus(clusterIx_, true);
+    cluster_->setPEStatus(clusterPEIx_, true);
 }
 
 void ProcessingElement::disable() {
     enabled_ = false;
-    cluster_->setPEStatus(clusterIx_, false);
+    cluster_->setPEStatus(clusterPEIx_, false);
 }
 
 MemoryUnit &ProcessingElement::memoryUnit() const {

@@ -117,7 +117,7 @@ public:
      * @brief Get the ix of the PE inside its cluster.
      * @return ix of the PE inside the cluster.
      */
-    inline std::uint32_t clusterIx() const;
+    inline std::uint32_t clusterPEIx() const;
 
     /**
      * @brief Get the state of the PE.
@@ -191,7 +191,7 @@ private:
     /* === Spider properties === */
 
     Cluster *cluster_ = nullptr;  /* = Cluster to which the PE belong = */
-    std::uint32_t clusterIx_ = 0; /* = Ix inside the cluster (used internally by spider) = */
+    std::uint32_t clusterPEIx_ = 0; /* = Ix inside the cluster (used internally by spider) = */
     Spider::PEType spiderPEType_ = Spider::PEType::LRT_PE;
     Spider::HWType spiderHWType_ = Spider::HWType::PHYS_PE;
     bool enabled_ = false;
@@ -229,8 +229,8 @@ Spider::HWType ProcessingElement::spiderHardwareType() const {
     return spiderHWType_;
 }
 
-std::uint32_t ProcessingElement::clusterIx() const {
-    return clusterIx_;
+std::uint32_t ProcessingElement::clusterPEIx() const {
+    return clusterPEIx_;
 }
 
 bool ProcessingElement::enabled() const {
@@ -242,7 +242,7 @@ bool ProcessingElement::isLRT() const {
 }
 
 void ProcessingElement::setClusterPEIx(std::uint32_t ix) {
-    clusterIx_ = ix;
+    clusterPEIx_ = ix;
 }
 
 void ProcessingElement::setName(const std::string &name) {
