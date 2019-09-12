@@ -42,8 +42,9 @@
 
 #include <memory/Allocator.h>
 #include <common/Logger.h>
-#include <graphs/pisdf/PiSDFGraph.h>
 #include <spider-api/general.h>
+#include <spider-api/archi.h>
+#include <archi/Platform.h>
 
 /* === Static variable(s) definition === */
 
@@ -128,6 +129,13 @@ void Spider::API::start() {
 }
 
 void Spider::API::quit() {
+    /* == Destroy the PiSDFGraph == */
+
+    /* == Destroy the Platform == */
+    auto *&platform = Spider::platform();
+    Spider::destroy(platform);
+    Spider::deallocate(platform);
+
     /* == Clear the stacks == */
     Spider::finalizeAllocators();
 }
