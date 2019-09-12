@@ -42,23 +42,92 @@
 
 /* === Include(s) === */
 
+#include <cstdint>
+#include <common/Exception.h>
 
 /* === Class definition === */
 
 class MemoryUnit {
 public:
 
+    MemoryUnit(char *base, std::uint64_t size);
+
+    ~MemoryUnit() = default;
+
     /* === Method(s) === */
+
+    inline void reset();
+
+    inline char *physicalAddress(std::uint64_t virtualAddress) const;
+
+    inline std::uint64_t allocate(std::uint64_t size);
 
     /* === Getter(s) === */
 
+    inline std::uint64_t size() const;
+
+    inline std::uint64_t used() const;
+
+    inline std::uint64_t available() const;
+
+    inline std::uint32_t ix() const;
+
     /* === Setter(s) === */
 
+    inline void setIx(std::uint32_t ix);
+
 private:
+
+    /* === Core properties === */
+
+    char *base_ = nullptr;
+    std::uint64_t size_ = 0;
+    std::uint64_t used_ = 0;
+    std::uint32_t ix_ = 0;
+
+    /* === Routines === */
 
     /* === Private method(s) === */
 };
 
 /* === Inline method(s) === */
+
+void MemoryUnit::reset() {
+    used_ = 0;
+}
+
+char *MemoryUnit::physicalAddress(std::uint64_t virtualAddress) const {
+    if (virtualAddress > size_) {
+        throwSpiderException("Invalid memory address!");
+    }
+    return base_ + virtualAddress;
+}
+
+std::uint64_t MemoryUnit::allocate(std::uint64_t size) {
+    // TODO: handle different scheme of allocation
+    auto address = used_;
+    used_ += size;
+    return address;
+}
+
+std::uint64_t MemoryUnit::size() const {
+    return size_;
+}
+
+std::uint64_t MemoryUnit::used() const {
+    return used_;
+}
+
+std::uint64_t MemoryUnit::available() const {
+    return size_ - used_;
+}
+
+std::uint32_t MemoryUnit::ix() const {
+    return ix_;
+}
+
+void MemoryUnit::setIx(std::uint32_t ix) {
+    ix_ = ix;
+}
 
 #endif //SPIDER2_MEMORYUNIT_H
