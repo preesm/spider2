@@ -42,7 +42,14 @@
 
 /* === Include(s) === */
 
+#include <containers/StlContainers.h>
+#include <scheduling/schedule/ScheduleJob.h>
+#include <functional>
+
 namespace Spider {
+
+    /* === Forward declarations === */
+
 
     /* === Class definition === */
 
@@ -55,11 +62,22 @@ namespace Spider {
 
         /* === Method(s) === */
 
+        inline void reset();
+
+        inline void addJob(ScheduleJob &job) {
+            jobs_.push_back(job);
+        }
+
         /* === Getter(s) === */
+
+        inline ScheduleJob &job(std::uint32_t ix) const;
+
+        inline const Spider::vector<std::reference_wrapper<ScheduleJob>> &jobs() const;
 
         /* === Setter(s) === */
 
     private:
+        Spider::vector<std::reference_wrapper<ScheduleJob>> jobs_;
 
         /* === Private method(s) === */
     };
