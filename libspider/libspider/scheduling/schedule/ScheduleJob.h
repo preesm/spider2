@@ -42,26 +42,177 @@
 
 /* === Include(s) === */
 
+#include <cstdint>
+#include <containers/StlContainers.h>
 
+/* === Forward declarations === */
 
-/* === Class definition === */
+namespace Spider {
 
-class ScheduleJob {
-public:
+    /* === Enumeration === */
 
-    /* === Method(s) === */
+    /**
+     * @brief State a scheduled job can take.
+     */
+    enum class JobState {
+        RUNNING,   /*!< Job is currently running */
+        PENDING,   /*!< Job is waiting to be run */
+        FINISHED   /*!< Job has finished its execution */
+    };
 
-    /* === Getter(s) === */
+    /**
+     * @brief Mapping information of the Job.
+     */
+    struct JobMappingInfo {
+        std::uint32_t PEIx = UINT32_MAX;        /*!< ix of the mapped PE in its cluster */
+        std::uint32_t clusterIx = UINT32_MAX;   /*!< ix of the mapped cluster */
+        std::uint32_t LRTIx = UINT32_MAX;       /*!< ix of the LRT handling the job */
+        std::uint64_t startTime = UINT64_MAX;   /*!< mapping start time */
+        std::uint64_t endTime = UINT64_MAX;     /*!< mapping end time */
+    };
 
-    /* === Setter(s) === */
+    /* === Class definition === */
 
-private:
+    class ScheduleJob {
+    public:
 
-    /* === Private method(s) === */
-};
+        ScheduleJob() = default;
 
-/* === Inline method(s) === */
+        explicit ScheduleJob(std::uint32_t ix);
 
+        ScheduleJob(std::uint32_t ix, std::uint32_t PEIx, std::uint32_t clusterIx, std::uint32_t LRTIx);
 
+        ~ScheduleJob() = default;
+
+        /* === Method(s) === */
+
+        // TODO add construction of ScheduleJobMessage
+
+        /**
+         * @brief Add a constraint on another @refitem ScheduleJob to current job.
+         * @param job Pointer to the job we are constrained on.
+         */
+        inline void addJobConstrain(ScheduleJob *job);
+
+        /* === Getter(s) === */
+
+        /**
+         * @brief Get the ix of the job.
+         * @return job ix.
+         */
+        inline std::uint32_t ix() const;
+
+        /**
+         * @brief Get the state of the job.
+         * @return @refitem Spider::JobState
+         */
+        inline JobState state() const;
+
+        /**
+         * @brief Get the mapping information of the job.
+         * @return const reference to the @refitem Spider::JobMappingInfo of the job.
+         */
+        inline const JobMappingInfo &mappingInfo() const;
+
+        /* === Setter(s) === */
+
+        /**
+         * @brief Set the ix of the job.
+         * @remark This method will overwrite current value.
+         * @param ix Ix to set.
+         */
+        inline void setIx(std::uint32_t ix);
+
+        /**
+         * @brief Set the state of the job.
+         * @remark This method will overwrite current value.
+         * @param state State to set.
+         */
+        inline void setState(JobState state);
+
+        /**
+        * @brief Set the processing element of the job.
+        * @remark This method will overwrite current values.
+        * @param PEIx      Processing element ix inside its cluster.
+        * @param clusterIx Cluster ix of the PE.
+        */
+        inline void setMappingPE(std::uint32_t PEIx, std::uint32_t clusterIx);
+
+        /**
+        * @brief Set the LRT ix of the LRT that will handle the job.
+        * @remark This method will overwrite current values.
+        * @param LRTIx  LRT ix.
+        */
+        inline void setMappingLRT(std::uint32_t LRTIx);
+
+        /**
+         * @brief Set the start time of the job.
+         * @remark This method will overwrite current value.
+         * @param time  Value to set.
+         */
+        inline void setMappingStartTime(std::uint64_t time);
+
+        /**
+         * @brief Set the end time of the job.
+         * @remark This method will overwrite current value.
+         * @param time  Value to set.
+         */
+        inline void setMappingEndTime(std::uint64_t time);
+
+    private:
+        std::uint32_t ix_ = UINT32_MAX;
+        JobState state_ = Spider::JobState::PENDING;
+        JobMappingInfo mappingInfo_;
+        Spider::vector<ScheduleJob *> constraints_;
+
+        /* === Private method(s) === */
+    };
+
+    /* === Inline method(s) === */
+
+    void ScheduleJob::addJobConstrain(ScheduleJob *job) {
+        if (job && job != this) {
+            constraints_.push_back(job);
+        }
+    }
+
+    std::uint32_t Spider::ScheduleJob::ix() const {
+        return ix_;
+    }
+
+    JobState ScheduleJob::state() const {
+        return state_;
+    }
+
+    const JobMappingInfo &ScheduleJob::mappingInfo() const {
+        return mappingInfo_;
+    }
+
+    void ScheduleJob::setIx(std::uint32_t ix) {
+        ix_ = ix;
+    }
+
+    void ScheduleJob::setState(JobState state) {
+        state_ = state;
+    }
+
+    void ScheduleJob::setMappingPE(std::uint32_t PEIx, std::uint32_t clusterIx) {
+        mappingInfo_.PEIx = PEIx;
+        mappingInfo_.clusterIx = clusterIx;
+    }
+
+    void ScheduleJob::setMappingLRT(std::uint32_t LRTIx) {
+        mappingInfo_.LRTIx = LRTIx;
+    }
+
+    void ScheduleJob::setMappingStartTime(std::uint64_t time) {
+        mappingInfo_.startTime = time;
+
+    }
+
+    void ScheduleJob::setMappingEndTime(std::uint64_t time) {
+        mappingInfo_.endTime = time;
+    }
+}
 
 #endif //SPIDER2_SCHEDULEJOB_H
