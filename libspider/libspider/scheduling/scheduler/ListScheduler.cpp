@@ -43,10 +43,44 @@
 #include <scheduling/scheduler/ListScheduler.h>
 #include <graphs/pisdf/PiSDFGraph.h>
 #include <graphs/pisdf/PiSDFVertex.h>
+#include <archi/Platform.h>
+#include <archi/Cluster.h>
 
 /* === Static variable(s) === */
 
 /* === Static function(s) === */
+
+std::int32_t Spider::ListScheduler::computeScheduleLevel(Platform *platform,
+                                                         ListVertex &listVertex,
+                                                         Spider::vector<ListVertex> &sortedVertexVector) {
+    if (listVertex.level < 0) {
+        auto *vertex = listVertex.vertex;
+        std::int32_t level = 0;
+        for (auto &edge : vertex->outputEdges()) {
+            auto *sink = edge->sink();
+            if (sink) {
+                // TODO add constraints of vertices
+                auto minExecutionTime = UINT64_MAX;
+                for (auto &cluster : platform->clusters()) {
+                    for (auto &pe : cluster->processingElements()) {
+                        // TODO if (platform->applicationConstraints()->isMappable(pe, vertex))
+                        // TODO auto executionTime = platform->applicationConstraints()->executionTime(pe, vertex)
+                        // TODO -> throw exception if null execution time
+                        // TODO minExecutionTime = std::min(minExecutionTime, executionTime);
+                    }
+                }
+                level = std::max(level, computeScheduleLevel(platform,
+                                                             sortedVertexVector[sink->ix()],
+                                                             sortedVertexVector) +
+                                        static_cast<std::int32_t >(minExecutionTime));
+            }
+        }
+        listVertex.level = level;
+        return level;
+    }
+
+    return listVertex.level;
+}
 
 /* === Method(s) implementation === */
 
@@ -57,4 +91,17 @@ Spider::ListScheduler::ListScheduler(PiSDFGraph *graph) : Scheduler(graph) {
         sortedVertexVector_.push_back(ListVertex(vertex, -1));
     }
 
+    /* == Compute the schedule level == */
+    for (auto &listVertex : sortedVertexVector_) {
+        computeScheduleLevel(platform_, listVertex, sortedVertexVector_);
+    }
+
+    /* == Sort the vector == */
+    std::sort(std::begin(sortedVertexVector_), std::end(sortedVertexVector_),
+              [](const ListVertex &A, const ListVertex &B) -> std::int32_t {
+//                  if (B.vertex->type() == PiSDFVertexType::NORMAL && A.level == B.level) {
+//                      return B.vertex->ix() - A.vertex->ix();
+//                  }
+                  return B.level - A.level;
+              });
 }

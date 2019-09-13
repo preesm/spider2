@@ -79,6 +79,11 @@ namespace Spider {
         Spider::vector<ListVertex> sortedVertexVector_;
 
         /* === Protected method(s) === */
+
+    private:
+        static std::int32_t computeScheduleLevel(Platform *platform,
+                                                 ListVertex &listVertex,
+                                                 Spider::vector<ListVertex> &sortedVertexVector);
     };
 
     /* === Inline method(s) === */
