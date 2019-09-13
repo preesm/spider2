@@ -40,10 +40,21 @@
 
 /* === Include(s) === */
 
-#include "ScheduleJob.h"
+#include <scheduling/schedule/ScheduleJob.h>
 
 /* === Static variable(s) === */
 
 /* === Static function(s) === */
 
 /* === Method(s) implementation === */
+
+Spider::ScheduleJob::ScheduleJob(std::uint32_t ix) : ix_{ix} {
+
+}
+
+Spider::ScheduleJob::ScheduleJob(std::uint32_t ix, std::uint32_t PEIx, std::uint32_t clusterIx, std::uint32_t LRTIx) :
+        ix_{ix} {
+    mappingInfo_.PEIx = PEIx;
+    mappingInfo_.clusterIx = clusterIx;
+    mappingInfo_.LRTIx = LRTIx;
+}
