@@ -128,6 +128,13 @@ public:
     inline const Spider::Array<Cluster *> &clusters() const;
 
     /**
+     * @brief Get a specific cluster in the platform.
+     * @param clusterIx Ix of the cluster to get.
+     * @return pointer to @refitem Spider::Cluster.
+     */
+    inline Cluster *cluster(std::uint32_t clusterIx) const;
+
+    /**
      * @brief Get the processing element on which the GRT runs (in master-slave mode).
      * @return pointer to the @refitem ProcessingElement of the GRT, nullptr if no GRT is set.
      */
@@ -192,8 +199,12 @@ private:
 
 /* === Inline method(s) === */
 
-const Spider::Array<Cluster*> &Platform::clusters() const {
+const Spider::Array<Cluster *> &Platform::clusters() const {
     return clusterArray_;
+}
+
+Cluster *Platform::cluster(std::uint32_t clusterIx) const {
+    return clusterArray_[clusterIx];
 }
 
 ProcessingElement *Platform::spiderGRTPE() const {

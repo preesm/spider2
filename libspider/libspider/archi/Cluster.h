@@ -45,6 +45,7 @@
 #include <cstdint>
 #include <containers/Array.h>
 #include <containers/StlContainers.h>
+#include <spider-api/archi.h>
 
 /* === Forward declaration(s) === */
 

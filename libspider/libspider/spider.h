@@ -46,6 +46,7 @@
 #include <spider-api/debug.h>
 #include <spider-api/general.h>
 #include <spider-api/pisdf.h>
+#include <spider-api/scenario.h>
 
 /* === Methods prototype === */
 
