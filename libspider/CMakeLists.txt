@@ -159,6 +159,7 @@ file(
         ${SPIDER_LIB_DIR}/graphs-tools/expression-parser/*.cpp
         ${SPIDER_LIB_DIR}/graphs-tools/transformation/*.cpp
         ${SPIDER_LIB_DIR}/graphs-tools/numerical/*.cpp
+        ${SPIDER_LIB_DIR}/scenario/*.cpp
         ${SPIDER_LIB_DIR}/scheduling/*.cpp
         ${SPIDER_LIB_DIR}/scheduling/allocator/*.cpp
         ${SPIDER_LIB_DIR}/scheduling/schedule/*.cpp
@@ -188,6 +189,7 @@ file(
         ${SPIDER_LIB_DIR}/runtime/*.h
         ${SPIDER_LIB_DIR}/runtime/distributed/*.h
         ${SPIDER_LIB_DIR}/runtime/master-slave/*.h
+        ${SPIDER_LIB_DIR}/scenario/*.h
         ${SPIDER_LIB_DIR}/scheduling/*.h
         ${SPIDER_LIB_DIR}/scheduling/allocator/*.h
         ${SPIDER_LIB_DIR}/scheduling/schedule/*.h
