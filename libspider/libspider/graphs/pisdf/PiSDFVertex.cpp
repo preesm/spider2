@@ -104,6 +104,24 @@ PiSDFVertex::PiSDFVertex(StackID stack,
     if (graph && type != PiSDFVertexType::INTERFACE) {
         graph->addVertex(this);
     }
+
+    /* == Set the reference as itself, it is not a copy == */
+    reference_ = this;
+}
+
+
+PiSDFVertex::PiSDFVertex(const PiSDFVertex &other, StackID stack) : PiSDFVertex(stack,
+                                                                                other.graph_,
+                                                                                other.name_ + "copy_" +
+                                                                                std::to_string(other.copyCount_),
+                                                                                other.type(),
+                                                                                other.nEdgesIN(),
+                                                                                other.nEdgesOUT(),
+                                                                                other.nParamsIN(),
+                                                                                other.nParamsOUT()) {
+
+    /* == Set the reference == */
+    setReference(other.reference_);
 }
 
 PiSDFVertex::PiSDFVertex(PiSDFGraph *graph,

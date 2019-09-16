@@ -79,6 +79,8 @@ public:
                 std::uint32_t nParamsIn = 0,
                 std::uint32_t nParamsOut = 0);
 
+    PiSDFVertex(const PiSDFVertex &other, StackID stack = StackID::PISDF);
+
     ~PiSDFVertex() = default;
 
     /* === Methods === */
@@ -155,6 +157,21 @@ public:
      * @param ix Ix to set.
      */
     inline void setIx(std::uint32_t ix);
+
+    /**
+     * @brief Set the name of the vertex.
+     * @remark This method will replace current name of the vertex.
+     * @warning No check on the name is performed to see if it is unique in the graph.
+     * @param name  Name to set.
+     */
+    inline void setName(const std::string &name);
+
+    /**
+     * @brief Set the reference of the vertex in case of manual copy.
+     * @remark This method will increase the copy count value of the reference.
+     * @param reference  Reference to set.
+     */
+    inline void setReference(PiSDFVertex *reference);
 
     /* === Getters ===  */
 
@@ -268,6 +285,19 @@ public:
      */
     inline std::uint32_t ix() const;
 
+    /**
+     * @brief Return the reference vertex attached to current copy.
+     * @remark If vertex is not a copy, this return the vertex itself.
+     * @return pointer to @refitem PiSDFVertex reference.
+     */
+    inline PiSDFVertex *reference() const;
+
+    /**
+     * @brief Get the copy count value of the vertex (0 for original).
+     * @return copy count value.
+     */
+    inline std::uint32_t copyCount() const;
+
 private:
     PiSDFGraph *graph_ = nullptr;
     std::string name_ = "unnamed-vertex";
@@ -286,6 +316,11 @@ private:
 
     std::uint32_t repetitionValue_ = 0;
     std::uint32_t ix_ = UINT32_MAX;
+
+    /* === Copy tracking reference === */
+
+    PiSDFVertex *reference_ = nullptr;
+    std::uint32_t copyCount_ = 0;
 
     /* === Private methods === */
 
@@ -383,6 +418,15 @@ void PiSDFVertex::setIx(std::uint32_t ix) {
     ix_ = ix;
 }
 
+void PiSDFVertex::setName(const std::string &name) {
+    name_ = name;
+}
+
+void PiSDFVertex::setReference(PiSDFVertex *reference) {
+    reference_ = reference;
+    reference->copyCount_ += 1;
+}
+
 PiSDFGraph *PiSDFVertex::containingGraph() const {
     return graph_;
 }
@@ -449,6 +493,14 @@ std::uint32_t PiSDFVertex::repetitionValue() const {
 
 std::uint32_t PiSDFVertex::ix() const {
     return ix_;
+}
+
+PiSDFVertex *PiSDFVertex::reference() const {
+    return reference_;
+}
+
+std::uint32_t PiSDFVertex::copyCount() const {
+    return copyCount_;
 }
 
 #endif //SPIDER2_PISDFVERTEX_H
