@@ -108,11 +108,11 @@ private:
 
     void checkPointerAddress(void *ptr);
 
-    constexpr FreeListAllocator::Node *cast_node(void *buffer) const {
+    static constexpr FreeListAllocator::Node *cast_node(void *buffer) {
         return static_cast<FreeListAllocator::Node *>(buffer);
     }
 
-    constexpr std::uint8_t *cast_buffer(void *node) const {
+    static constexpr std::uint8_t *cast_buffer(void *node) {
         return static_cast<std::uint8_t *>(node);
     }
 };

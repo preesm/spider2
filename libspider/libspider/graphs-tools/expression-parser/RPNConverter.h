@@ -113,9 +113,9 @@ enum class RPNOperatorType : std::uint32_t {
  */
 struct RPNOperator {
     RPNOperatorType type;      /*! Operator type (see @refitem RPNOperatorType) */
-    std::uint16_t precendence; /*! Precedence value level of the operator */
+    std::uint16_t precedence;  /*! Precedence value level of the operator */
     bool isRighAssociative;    /*! Right associativity property of the operator */
-    std::string label;      /*! Label of the operator */
+    std::string label;         /*! Label of the operator */
     evalFunction eval;         /*! Associated function of the operator */
 };
 

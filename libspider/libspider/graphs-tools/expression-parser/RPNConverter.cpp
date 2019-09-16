@@ -62,44 +62,44 @@ static const std::string &operators() {
  */
 static const RPNOperator &rpnOperators(std::uint32_t ix) {
     static RPNOperator rpnOperators[N_OPERATOR + N_FUNCTION]{
-            {.type = RPNOperatorType::ADD, .precendence = 2, .isRighAssociative = false,
-                    .label="+", .eval = Spider::add},          /*! ADD operator */
-            {.type = RPNOperatorType::SUB, .precendence = 2, .isRighAssociative = false,
-                    .label="-", .eval = Spider::sub},          /*! SUB operator */
-            {.type = RPNOperatorType::MUL, .precendence = 3, .isRighAssociative = false,
-                    .label="*", .eval = Spider::mul},          /*! MUL operator */
-            {.type = RPNOperatorType::DIV, .precendence = 3, .isRighAssociative = false,
-                    .label="/", .eval = Spider::div},          /*! DIV operator */
-            {.type = RPNOperatorType::MOD, .precendence = 4, .isRighAssociative = false,
-                    .label="%", .eval = Spider::mod},          /*! MOD operator */
-            {.type = RPNOperatorType::POW, .precendence = 4, .isRighAssociative = true,
-                    .label="^", .eval = Spider::pow},          /*! POW operator */
-            {.type = RPNOperatorType::MAX, .precendence = 3, .isRighAssociative = false,
-                    .label="max", .eval = Spider::max},        /*! MAX operator */
-            {.type = RPNOperatorType::MIN, .precendence = 3, .isRighAssociative = false,
-                    .label="min", .eval = Spider::min},        /*! MIN operator */
-            {.type = RPNOperatorType::LEFT_PAR, .precendence = 2, .isRighAssociative = false,
-                    .label="(", .eval = Spider::dummyEval},    /*! LEFT_PAR operator */
-            {.type = RPNOperatorType::RIGHT_PAR, .precendence = 2, .isRighAssociative = false,
-                    .label=")", .eval = Spider::dummyEval},    /*! RIGHT_PAR operator */
-            {.type = RPNOperatorType::COS, .precendence = 5, .isRighAssociative = false,
-                    .label="cos", .eval = Spider::cos},        /*! COS function */
-            {.type = RPNOperatorType::SIN, .precendence = 5, .isRighAssociative = false,
-                    .label="sin", .eval = Spider::sin},        /*! SIN function */
-            {.type = RPNOperatorType::TAN, .precendence = 5, .isRighAssociative = false,
-                    .label="tan", .eval = Spider::tan},        /*! TAN function */
-            {.type = RPNOperatorType::EXP, .precendence = 5, .isRighAssociative = false,
-                    .label="exp", .eval = Spider::exp},        /*! EXP function */
-            {.type = RPNOperatorType::LOG, .precendence = 5, .isRighAssociative = false,
-                    .label="log", .eval = Spider::log},        /*! LOG function */
-            {.type = RPNOperatorType::LOG2, .precendence = 5, .isRighAssociative = false,
-                    .label="log2", .eval = Spider::log2},      /*! LOG2 function */
-            {.type = RPNOperatorType::CEIL, .precendence = 5, .isRighAssociative = false,
-                    .label="ceil", .eval = Spider::ceil},      /*! CEIL function */
-            {.type = RPNOperatorType::FLOOR, .precendence = 5, .isRighAssociative = false,
-                    .label="floor", .eval = Spider::floor},    /*! FLOOR function */
-            {.type = RPNOperatorType::SQRT, .precendence = 5, .isRighAssociative = false,
-                    .label="sqrt", .eval = Spider::sqrt},    /*! SQRT function */
+            {RPNOperatorType::ADD, 2, false,
+                    "+", Spider::add},          /*! ADD operator */
+            {RPNOperatorType::SUB, 2, false,
+                    "-", Spider::sub},          /*! SUB operator */
+            {RPNOperatorType::MUL,3, false,
+                    "*", Spider::mul},          /*! MUL operator */
+            {RPNOperatorType::DIV, 3, false,
+                    "/", Spider::div},          /*! DIV operator */
+            {RPNOperatorType::MOD, 4, false,
+                    "%", Spider::mod},          /*! MOD operator */
+            {RPNOperatorType::POW, 4, true,
+                    "^", Spider::pow},          /*! POW operator */
+            {RPNOperatorType::MAX, 3, false,
+                    "max", Spider::max},        /*! MAX operator */
+            {RPNOperatorType::MIN, 3, false,
+                    "min", Spider::min},        /*! MIN operator */
+            {RPNOperatorType::LEFT_PAR, 2, false,
+                    "(", Spider::dummyEval},    /*! LEFT_PAR operator */
+            {RPNOperatorType::RIGHT_PAR, 2, false,
+                    ")", Spider::dummyEval},    /*! RIGHT_PAR operator */
+            {RPNOperatorType::COS, 5, false,
+                    "cos", Spider::cos},        /*! COS function */
+            {RPNOperatorType::SIN, 5, false,
+                    "sin", Spider::sin},        /*! SIN function */
+            {RPNOperatorType::TAN, 5, false,
+                    "tan", Spider::tan},        /*! TAN function */
+            {RPNOperatorType::EXP, 5, false,
+                    "exp", Spider::exp},        /*! EXP function */
+            {RPNOperatorType::LOG, 5, false,
+                    "log", Spider::log},        /*! LOG function */
+            {RPNOperatorType::LOG2, 5, false,
+                    "log2", Spider::log2},      /*! LOG2 function */
+            {RPNOperatorType::CEIL, 5, false,
+                    "ceil", Spider::ceil},      /*! CEIL function */
+            {RPNOperatorType::FLOOR, 5, false,
+                    "floor", Spider::floor},    /*! FLOOR function */
+            {RPNOperatorType::SQRT, 5, false,
+                    "sqrt", Spider::sqrt},    /*! SQRT function */
     };
     return rpnOperators[ix];
 }
@@ -380,8 +380,8 @@ void RPNConverter::buildPostFix() {
                     auto frontOPType = operatorStack.front();
                     auto frontOP = getOperator(frontOPType);
                     while (frontOPType != RPNOperatorType::LEFT_PAR &&
-                           (op.precendence < frontOP.precendence ||
-                            (op.precendence == frontOP.precendence && !frontOP.isRighAssociative))) {
+                           (op.precedence < frontOP.precedence ||
+                            (op.precedence == frontOP.precedence && !frontOP.isRighAssociative))) {
 
                         /* == Put operator to the output == */
                         RPNElement elt;

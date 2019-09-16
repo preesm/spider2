@@ -61,13 +61,19 @@ typedef struct AllocatorConfig {
     FreeListPolicy policy = FreeListPolicy::FIND_FIRST;
     char *baseAddr = nullptr;
 
-    AllocatorConfig() {
+    AllocatorConfig() = default;
 
-    }
-
-    AllocatorConfig(const std::string &name, AllocatorType type, std::uint64_t size, std::uint64_t alignment,
-                    FreeListPolicy policy, char *base) : name{name.c_str()}, allocatorType{type}, size{size},
-                                                         alignment{alignment}, policy{policy}, baseAddr{base} {
+    AllocatorConfig(std::string name,
+                    AllocatorType type,
+                    std::uint64_t size,
+                    std::uint64_t alignment,
+                    FreeListPolicy policy,
+                    char *base) : name{std::move(name)},
+                                  allocatorType{type},
+                                  size{size},
+                                  alignment{alignment},
+                                  policy{policy},
+                                  baseAddr{base} {
 
     }
 
@@ -81,7 +87,7 @@ namespace Spider {
 
     AbstractAllocator *&getAllocator(std::uint64_t stack);
 
-    void initAllocator(StackID stack, AllocatorConfig cfg);
+    void initAllocator(StackID stack, const AllocatorConfig &cfg);
 
     void finalizeAllocators();
 
@@ -185,7 +191,7 @@ namespace Spider {
         Allocator(const Allocator &) = default;
 
         template<class U>
-        explicit Allocator(const Allocator<U> &) { };
+        explicit Allocator(const Allocator<U> &) { }
 
         ~Allocator() = default;
 
