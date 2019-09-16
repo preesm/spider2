@@ -45,6 +45,11 @@
 
 /* === Static variable(s) === */
 
+static std::uint32_t spiderUniqueIx() {
+    static std::uint32_t ix = 0;
+    return ix++;
+}
+
 /* === Static function(s) === */
 
 /* === Method(s) implementation === */
@@ -61,8 +66,9 @@ ProcessingElement::ProcessingElement(std::uint32_t hwType,
                                                                     virtIx_{virtIx},
                                                                     name_{std::move(name)},
                                                                     cluster_{cluster},
+                                                                    spiderPEIx_{spiderUniqueIx()},
                                                                     spiderPEType_{spiderPEType},
-                                                                    spiderHWType_{spiderHWType} {
+                                                                    spiderHWType_{spiderHWType}{
     cluster->addPE(this);
 }
 
