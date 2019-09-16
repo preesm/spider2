@@ -57,7 +57,7 @@ AbstractAllocator *&Spider::getAllocator(std::uint64_t stack) {
     return allocatorArray[stack];
 }
 
-void Spider::initAllocator(StackID stack, AllocatorConfig cfg) {
+void Spider::initAllocator(StackID stack, const AllocatorConfig &cfg) {
     auto *&allocator = getAllocator(static_cast<std::uint64_t>(stack));
     if (!allocator) {
         switch (cfg.allocatorType) {
