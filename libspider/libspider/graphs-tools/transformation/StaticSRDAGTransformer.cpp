@@ -140,6 +140,7 @@ PiSDFVertex *StaticSRDAGTransformer::copyVertex(const PiSDFVertex *vertex,
                       vertex->nParamsIN(),
                       vertex->nParamsOUT());
     copyVertex->setRepetitionValue(1);
+    copyVertex->setReference(vertex->reference());
 
     /* == Add the job for later process == */
     if (vertex->isHierarchical()) {
