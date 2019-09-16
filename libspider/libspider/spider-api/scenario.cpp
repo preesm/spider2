@@ -40,6 +40,7 @@
 
 /* === Includes === */
 
+#include <spider-api/scenario.h>
 #include <spider-api/archi.h>
 #include <archi/Platform.h>
 #include <archi/Cluster.h>
@@ -48,78 +49,114 @@
 
 /* === Methods implementation === */
 
-/* === General Platform related API === */
+/* === General Scenario related API === */
 
-Platform *&Spider::platform() {
-    static Platform *platform = nullptr;
-    return platform;
+Spider::Scenario &Spider::scenario() {
+    static Spider::Scenario scenario;
+    return scenario;
 }
 
-Platform *Spider::API::createPlatform(std::uint32_t clusterCount) {
+void Spider::API::setVertexMappableOnCluster(const PiSDFVertex *vertex, const Cluster *cluster, bool value) {
+    auto &scenario = Spider::scenario();
+    for (auto &PE : cluster->processingElements()) {
+        scenario.setMappingConstraint(vertex, PE, value);
+    }
+}
+
+void Spider::API::setVertexMappableOnCluster(const PiSDFVertex *vertex, std::uint32_t clusterIx, bool value) {
     auto *&platform = Spider::platform();
-    platform = Spider::allocate<Platform>(StackID::ARCHI);
-    Spider::construct(platform, clusterCount);
-    return platform;
+    auto *cluster = platform->cluster(clusterIx);
+    Spider::API::setVertexMappableOnCluster(vertex, cluster, value);
 }
 
-void Spider::API::setSpiderGRTPE(ProcessingElement *grtPE) {
+void Spider::API::setVertexMappableOnPE(const PiSDFVertex *vertex, const ProcessingElement *PE, bool value) {
+    auto &scenario = Spider::scenario();
+    scenario.setMappingConstraint(vertex, PE, value);
+}
+
+void Spider::API::setVertexMappableOnPE(const PiSDFVertex *vertex, std::uint32_t spiderPEIx, bool value) {
+    auto &scenario = Spider::scenario();
+    scenario.setMappingConstraint(vertex, spiderPEIx, value);
+}
+
+void Spider::API::setVertexMappableOnAllPE(const PiSDFVertex *vertex, bool value) {
+    auto &scenario = Spider::scenario();
     auto *&platform = Spider::platform();
-    if (platform) {
-        platform->setSpiderGRTPE(grtPE);
+    for (const auto &cluster : platform->clusters()) {
+        for (const auto &PE : cluster->processingElements()) {
+            scenario.setMappingConstraint(vertex, PE, value);
+        }
     }
 }
 
-/* === Cluster related API === */
-
-Cluster *Spider::API::createCluster(std::uint32_t PECount, MemoryUnit *memoryUnit) {
-    auto *cluster = Spider::allocate<Cluster>(StackID::ARCHI);
-    Spider::construct(cluster, PECount, memoryUnit, Spider::platform());
-    return cluster;
-}
-
-/* === PE related API === */
-
-ProcessingElement *Spider::API::createPE(std::uint32_t hwType,
-                                         std::uint32_t hwID,
-                                         std::uint32_t virtID,
-                                         Cluster *cluster,
-                                         const std::string &name,
-                                         Spider::PEType spiderPEType,
-                                         Spider::HWType spiderHWType) {
-    auto *PE = Spider::allocate<ProcessingElement>(StackID::ARCHI);
-    Spider::construct(PE, hwType, hwID, virtID, cluster, name, spiderPEType, spiderHWType);
-    PE->enable();
-    return PE;
-}
-
-void Spider::API::setPESpiderPEType(ProcessingElement *PE, Spider::PEType type) {
-    PE->setSpiderPEType(type);
-}
-
-void Spider::API::setPESpiderHWType(ProcessingElement *PE, Spider::HWType type) {
-    PE->setSpiderHWType(type);
-}
-
-void Spider::API::setPEName(ProcessingElement *PE, const std::string &name) {
-    if (PE) {
-        PE->setName(name);
+void Spider::API::setVertexExecutionTimingOnCluster(const PiSDFVertex *vertex,
+                                                    const Cluster *cluster,
+                                                    const std::string &expression) {
+    auto &scenario = Spider::scenario();
+    for (auto &PE : cluster->processingElements()) {
+        scenario.setExecutionTiming(vertex, PE, expression);
     }
 }
 
-void Spider::API::enablePE(ProcessingElement *PE) {
-    if (PE) {
-        PE->enable();
+void Spider::API::setVertexExecutionTimingOnCluster(const PiSDFVertex *vertex,
+                                                    const Cluster *cluster,
+                                                    std::int64_t timing) {
+    auto &scenario = Spider::scenario();
+    for (auto &PE : cluster->processingElements()) {
+        scenario.setExecutionTiming(vertex, PE, timing);
     }
 }
 
-void Spider::API::disablePE(ProcessingElement *PE) {
-    if (PE) {
-        PE->disable();
-    }
+void Spider::API::setVertexExecutionTimingOnCluster(const PiSDFVertex *vertex,
+                                                    std::uint32_t clusterIx,
+                                                    const std::string &expression) {
+    auto *&platform = Spider::platform();
+    auto *cluster = platform->cluster(clusterIx);
+    setVertexExecutionTimingOnCluster(vertex, cluster, expression);
 }
 
-/* === MemoryUnit related API === */
+void Spider::API::setVertexExecutionTimingOnCluster(const PiSDFVertex *vertex,
+                                                    std::uint32_t clusterIx,
+                                                    std::int64_t timing) {
+    auto *&platform = Spider::platform();
+    auto *cluster = platform->cluster(clusterIx);
+    setVertexExecutionTimingOnCluster(vertex, cluster, timing);
+}
 
-MemoryUnit *Spider::API::createMemoryUnit(char *base, std::uint64_t size) {
-    return nullptr;
+void Spider::API::setVertexExecutionTimingOnPE(const PiSDFVertex *vertex,
+                                               const ProcessingElement *PE,
+                                               const std::string &expression) {
+    auto &scenario = Spider::scenario();
+    scenario.setExecutionTiming(vertex, PE, expression);
+}
+
+void Spider::API::setVertexExecutionTimingOnPE(const PiSDFVertex *vertex,
+                                               const ProcessingElement *PE,
+                                               std::int64_t timing) {
+    auto &scenario = Spider::scenario();
+    scenario.setExecutionTiming(vertex, PE, timing);
+}
+
+void Spider::API::setVertexExecutionTimingOnPE(const PiSDFVertex *vertex,
+                                               std::uint32_t spiderPEIx,
+                                               const std::string &expression) {
+    auto &scenario = Spider::scenario();
+    scenario.setExecutionTiming(vertex, spiderPEIx, expression);
+}
+
+void Spider::API::setVertexExecutionTimingOnPE(const PiSDFVertex *vertex,
+                                               std::uint32_t spiderPEIx,
+                                               std::int64_t timing) {
+    auto &scenario = Spider::scenario();
+    scenario.setExecutionTiming(vertex, spiderPEIx, timing);
+}
+
+void Spider::API::setVertexExecutionTimingOnAllPE(const PiSDFVertex *vertex, std::int64_t timing) {
+    auto &scenario = Spider::scenario();
+    auto *&platform = Spider::platform();
+    for (const auto &cluster : platform->clusters()) {
+        for (const auto &PE : cluster->processingElements()) {
+            scenario.setExecutionTiming(vertex, PE, timing);
+        }
+    }
 }

@@ -37,66 +37,24 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_ARCHI_H
-#define SPIDER2_ARCHI_H
+#ifndef SPIDER2_SCENARIO_API_H
+#define SPIDER2_SCENARIO_API_H
 
 /* === Includes === */
 
 #include <cstdint>
 #include <string>
+#include <scenario/Scenario.h>
 
 /* === Forward declaration(s) === */
-
-class Platform;
 
 class Cluster;
 
 class ProcessingElement;
 
-class MemoryUnit;
+class PiSDFVertex;
 
 namespace Spider {
-
-    /* === Routine(s) === */
-
-    using CommunicationCostRoutine = std::uint64_t (*)(
-            /* = Number of bytes  = */ std::uint64_t
-    );
-
-    inline std::uint64_t defaultZeroCommunicationCost(std::uint64_t) {
-        return 0;
-    }
-
-    inline std::uint64_t defaultInfiniteCommunicationCost(std::uint64_t) {
-        return UINT64_MAX;
-    }
-
-    /* === Enumeration(s) === */
-
-    /**
-     * @brief Spider Processing Element types.
-     */
-    enum class PEType {
-        LRT_ONLY, /*!< PE is used as an LRT and does not perform any computation */
-        LRT_PE,   /*!< PE is used as an LRT and can be used for computation (default) */
-        PE_ONLY,  /*!< PE is used for computation only and does not perform any job management */
-    };
-
-    /**
-     * @brief Hardware type used in Spider.
-     */
-    enum class HWType {
-        PHYS_PE,  /*!< PE is instantiated in Spider and run on a core (Spider::PEType::LRT_*) */
-        VIRT_PE,  /*!< PE is instantiated in Spider but fully managed by an LRT (Spider::PEType::PE_ONLY) */
-    };
-
-    /* === Structure(s) === */
-
-    struct PlatformConfig {
-        std::uint32_t PECount;
-        std::uint32_t PETypeCount;
-        std::uint32_t memoryUnitCount;
-    };
 
     /* === Function(s) prototype === */
 
@@ -104,100 +62,58 @@ namespace Spider {
      * @brief Get the unique platform of the Spider session.
      * @return reference pointer to the platform.
      */
-    Platform *&platform();
+    Scenario &scenario();
 
     namespace API {
 
-        /* === General Platform related API === */
+        /* === General Scenario related API === */
 
-        /**
-         * @brief Create a new Platform (only one is permitted)
-         * @param clusterCount   Number of cluster in the platform (1 by default)
-         * @return pointer to the newly created @refitem Platform
-         * @throws @refitem Spider::Exception if a platform already exists.
-         */
-        Platform *createPlatform(std::uint32_t clusterCount = 1);
+        void setVertexMappableOnCluster(const PiSDFVertex *vertex, const Cluster *cluster, bool value = true);
 
-        /**
-         * @brief Set the Global Run-Time (GRT) PE.
-         * @param grtPE  Processing Element of the GRT.
-         */
-        void setSpiderGRTPE(ProcessingElement *grtPE);
+        void setVertexMappableOnCluster(const PiSDFVertex *vertex, std::uint32_t clusterIx, bool value = true);
 
-        /* === Cluster related API === */
+        void setVertexMappableOnPE(const PiSDFVertex *vertex, const ProcessingElement *PE, bool value = true);
 
-        /**
-         * @brief Create a new Cluster. A cluster is a set of PE connected to a same memory unit.
-         * @param PECount      Number of PE in the cluster.
-         * @param memoryUnit   Memory unit of the cluster.
-         * @return pointer to the newly created @refitem Cluster.
-         */
-        Cluster *createCluster(std::uint32_t PECount, MemoryUnit *memoryUnit);
+        void setVertexMappableOnPE(const PiSDFVertex *vertex, std::uint32_t spiderPEIx, bool value = true);
 
-        /* === PE related API === */
+        void setVertexMappableOnAllPE(const PiSDFVertex *vertex, bool value = true);
 
-        /**
-         * @brief Create a new Processing Element (PE).
-         * @param hwType        S-LAM user defined hardware type.
-         * @param hwID          Physical hardware id of the PE (mainly used for thread affinity).
-         * @param virtID        S-LAM used defined PE id.
-         * @param cluster       Cluster of the PE.
-         * @param name          Name of the PE.
-         * @param spiderPEType  Spider PE type.
-         * @param spiderHWType  Spider hardware type.
-         * @return Pointer to newly created @refitem ProcessingElement, associated memory is handled by spider.
-         */
-        ProcessingElement *createPE(std::uint32_t hwType,
-                                    std::uint32_t hwID,
-                                    std::uint32_t virtID,
-                                    Cluster *cluster,
-                                    const std::string &name,
-                                    Spider::PEType spiderPEType = Spider::PEType::LRT_PE,
-                                    Spider::HWType spiderHWType = Spider::HWType::PHYS_PE);
 
-        /**
-         * @brief Set the SpiderPEType of a given PE.
-         * @param PE    Pointer to the PE.
-         * @param type  Spider::PEType to set.
-         */
-        void setPESpiderPEType(ProcessingElement *PE, Spider::PEType type);
+        void setVertexExecutionTimingOnCluster(const PiSDFVertex *vertex,
+                                               const Cluster *cluster,
+                                               const std::string &expression = "100");
 
-        /**
-         * @brief Set the SpiderHWType of a given PE.
-         * @param PE    Pointer to the PE.
-         * @param type  Spider::HWType to set.
-         */
-        void setPESpiderHWType(ProcessingElement *PE, Spider::HWType type);
+        void setVertexExecutionTimingOnCluster(const PiSDFVertex *vertex,
+                                               const Cluster *cluster,
+                                               std::int64_t timing = 100);
 
-        /**
-         * @brief Set the name of a given PE.
-         * @param PE    Pointer to the PE.
-         * @param name  Name of the PE to set.
-         */
-        void setPEName(ProcessingElement *PE, const std::string &name);
+        void setVertexExecutionTimingOnCluster(const PiSDFVertex *vertex,
+                                               std::uint32_t clusterIx,
+                                               const std::string &expression = "100");
 
-        /**
-         * @brief Enable a given PE (default).
-         * @param PE  Pointer to the PE.
-         */
-        void enablePE(ProcessingElement *PE);
+        void setVertexExecutionTimingOnCluster(const PiSDFVertex *vertex,
+                                               std::uint32_t clusterIx,
+                                               std::int64_t timing = 100);
 
-        /**
-         * @brief Disable a given PE.
-         * @param PE  Pointer to the PE.
-         */
-        void disablePE(ProcessingElement *PE);
+        void setVertexExecutionTimingOnPE(const PiSDFVertex *vertex,
+                                          const ProcessingElement *PE,
+                                          const std::string &expression = "100");
 
-        /* === MemoryUnit related API === */
+        void setVertexExecutionTimingOnPE(const PiSDFVertex *vertex,
+                                          const ProcessingElement *PE,
+                                          std::int64_t timing = 100);
 
-        /**
-         * @brief Create a new MemoryUnit.
-         * @param base  Base address of the MemoryUnit.
-         * @param size  Size of the MemoryUnit.
-         * @return Pointer to newly created @refitem MemoryUnit, associated memory is handled by spider.
-         */
-        MemoryUnit *createMemoryUnit(char *base, std::uint64_t size);
+        void setVertexExecutionTimingOnPE(const PiSDFVertex *vertex,
+                                          std::uint32_t spiderPEIx,
+                                          const std::string &expression = "100");
+
+        void setVertexExecutionTimingOnPE(const PiSDFVertex *vertex,
+                                          std::uint32_t spiderPEIx,
+                                          std::int64_t timing = 100);
+
+        void setVertexExecutionTimingOnAllPE(const PiSDFVertex *vertex,
+                                             std::int64_t timing = 100);
     }
 }
 
-#endif //SPIDER2_ARCHI_H
+#endif //SPIDER2_SCENARIO_H
