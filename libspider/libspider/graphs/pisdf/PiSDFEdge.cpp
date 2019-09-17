@@ -167,22 +167,6 @@ void PiSDFEdge::connectSink(PiSDFEdge *edge) {
     connectSink(sink, port, rate);
 }
 
-void PiSDFEdge::exportDot(FILE *file, const std::string &offset) const {
-    auto *source = source_->isHierarchical()
-                   ? dynamic_cast<PiSDFGraph *>(source_)->outputInterfaces()[sourcePort_->ix()] : source_;
-    auto *sink = sink_->isHierarchical()
-                 ? dynamic_cast<PiSDFGraph *>(sink_)->inputInterfaces()[sourcePort_->ix()] : sink_;
-    Spider::cxx11::fprintf(file,
-                           "%s\"%s\":out_%" PRIu16":e -> \"%s\":in_%" PRIu16":w [penwidth=3, "
-                           "color=\"#393c3c\", "
-                           "dir=forward];\n",
-                           offset.c_str(),
-                           source->name().c_str(),
-                           sourcePort_->ix(),
-                           sink->name().c_str(),
-                           sinkPort_->ix());
-}
-
 PiSDFVertex *PiSDFEdge::source(bool forward) const {
     if (forward && source_ && source_->isHierarchical()) {
         auto *graph = dynamic_cast<PiSDFGraph *>(source_);

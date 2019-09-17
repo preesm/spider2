@@ -40,9 +40,7 @@
 
 /* === Includes === */
 
-#include <fstream>
-#include <iostream>
-#include "PiSDFGraph.h"
+#include <graphs/pisdf/PiSDFGraph.h>
 
 /* === Static function(s) === */
 
@@ -206,73 +204,4 @@ void PiSDFGraph::removeParam(PiSDFParam *param) {
     paramVector_.pop_back();
     Spider::destroy(param);
     Spider::deallocate(param);
-}
-
-
-void PiSDFGraph::exportDot(const std::string &path) const {
-    auto *file = std::fopen(path.c_str(), "w+");
-
-    exportDotHelper(file, "\t");
-
-    std::fclose(file);
-}
-
-void PiSDFGraph::exportDOT(FILE *file, const std::string &offset) const {
-    exportDotHelper(file, offset);
-}
-
-/* === Private method(s) === */
-
-void PiSDFGraph::exportDotHelper(FILE *file, const std::string &offset) const {
-    auto fwOffset{offset};
-    if (containingGraph()) {
-        Spider::cxx11::fprintf(file, "%ssubgraph cluster {\n", fwOffset.c_str());
-        fwOffset += "\t";
-        Spider::cxx11::fprintf(file, "%slabel=<<font point-size=\"40\" face=\"inconsolata\">\"%s\"</font>>;\n", fwOffset.c_str(), name().c_str());
-        Spider::cxx11::fprintf(file, "%sstyle=dotted;\n", fwOffset.c_str());
-        Spider::cxx11::fprintf(file, "%sfillcolor=\"#ffffff\";\n", fwOffset.c_str());
-        Spider::cxx11::fprintf(file, "%scolor=\"#393c3c\";\n", fwOffset.c_str());
-        Spider::cxx11::fprintf(file, "%spenwidth=2;\n", fwOffset.c_str());
-    } else {
-        Spider::cxx11::fprintf(file, "digraph {\n");
-        Spider::cxx11::fprintf(file, "\tlabel=<<font point-size=\"40\" face=\"inconsolata\">topgraph</font>>;\n");
-        Spider::cxx11::fprintf(file, "\trankdir=LR;\n");
-        Spider::cxx11::fprintf(file, "\tranksep=\"2\";\n");
-    }
-
-    Spider::cxx11::fprintf(file, "\n%s// Vertices\n", fwOffset.c_str());
-    for (const auto &v:vertexVector_) {
-        if (!v->isHierarchical()) {
-            v->exportDOT(file, fwOffset);
-        }
-    }
-
-    if (containingGraph()) {
-        Spider::cxx11::fprintf(file, "\n%s// Interfaces\n", fwOffset.c_str());
-        for (const auto &i:inputInterfaceVector_) {
-            i->exportDOT(file, fwOffset);
-        }
-        for (const auto &o:outputInterfaceVector_) {
-            o->exportDOT(file, fwOffset);
-        }
-    }
-
-    if (!paramVector_.empty()) {
-        Spider::cxx11::fprintf(file, "\n%s// Parameters\n", fwOffset.c_str());
-        for (const auto &p:paramVector_) {
-            p->exportDOT(file, fwOffset);
-        }
-    }
-
-    Spider::cxx11::fprintf(file, "\n%s// Subgraphs\n", fwOffset.c_str());
-    for (const auto &subgraph:subgraphVector_) {
-        subgraph->exportDOT(file, fwOffset);
-    }
-
-    Spider::cxx11::fprintf(file, "\n%s// Vertex edges\n", fwOffset.c_str());
-    for (const auto &e:edgeVector_) {
-        e->exportDot(file, fwOffset);
-    }
-
-    Spider::cxx11::fprintf(file, "%s}\n", containingGraph() ? offset.c_str() : "");
 }

@@ -41,7 +41,7 @@
 /* === Includes === */
 
 #include <graphs/pisdf/PiSDFGraph.h>
-#include "PiSDFParam.h"
+#include <graphs/pisdf/PiSDFParam.h>
 
 /* === Methods implementation === */
 
@@ -103,9 +103,4 @@ PiSDFParam::PiSDFParam(PiSDFGraph *graph, std::string name, PiSDFVertex *setter)
 
     /* == Add the parameter to the graph == */
     graph->addParam(this);
-}
-
-void PiSDFParam::exportDOT(FILE *file, const std::string &offset) const {
-    Spider::cxx11::fprintf(file, "%s\"%s\"[shape=triangle, style=filled, fillcolor=\"#89c4f4\"]\n", offset.c_str(),
-                           (containingGraph()->name() + ":" + name_).c_str());
 }

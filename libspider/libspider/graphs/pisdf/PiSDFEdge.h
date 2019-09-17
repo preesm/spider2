@@ -81,12 +81,6 @@ public:
     /* === Methods === */
 
     /**
-     * @brief Export edge in the dot format to the given file.
-     * @param file   File to which the edge should be exported.
-     */
-    void exportDot(FILE *file, const std::string &offset) const;
-
-    /**
      * @brief Connect the source vertex of the edge.
      * @param vertex    Source vertex.
      * @param portIx    Output port ix on the vertex.

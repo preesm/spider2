@@ -41,21 +41,7 @@
 /* === Includes === */
 
 #include <graphs/pisdf/PiSDFGraph.h>
-#include "PiSDFInterface.h"
-
-/* === Static function(s) === */
-
-static const char *getBGColor(PiSDFInterfaceType type) {
-    switch (type) {
-        case PiSDFInterfaceType::INPUT:
-            return "#fff68f";
-        case PiSDFInterfaceType::OUTPUT:
-            return "#dcc6e0";
-        default:
-            return "eeeeee";
-    }
-}
-
+#include <graphs/pisdf/PiSDFInterface.h>
 
 /* === Methods implementation === */
 
@@ -74,56 +60,6 @@ PiSDFInterface::PiSDFInterface(PiSDFGraph *graph,
 
 std::uint16_t PiSDFInterface::correspondingPortIx() const {
     return ix();
-}
-
-void PiSDFInterface::exportDOT(FILE *file, const std::string &offset) const {
-    Spider::cxx11::fprintf(file,
-                           "%s\"%s\" [shape=plain, style=filled, fillcolor=\"%sff\", width=0, height=0, label = <\n",
-                           offset.c_str(), name().c_str(), getBGColor(interfaceType_));
-    Spider::cxx11::fprintf(file, "%s\t<table border=\"0\" fixedsize=\"false\" cellspacing=\"0\" cellpadding=\"0\">\n",
-                           offset.c_str());
-
-    /* == Vertex name == */
-    Spider::cxx11::fprintf(file,
-                           "%s\t\t<tr> <td border=\"1\" sides=\"lrt\" colspan=\"4\" fixedsize=\"false\" height=\"10\"></td></tr>\n",
-                           offset.c_str());
-    Spider::cxx11::fprintf(file,
-                           "%s\t\t<tr> <td border=\"1\" sides=\"lr\" colspan=\"4\"><font point-size=\"25\" face=\"inconsolata\">%s</font></td></tr>\n",
-                           offset.c_str(), name().c_str());
-
-    /* == Compute widths == */
-    auto n = name().size();
-    auto centerWidth = static_cast<std::uint32_t>(15. * (n - 8.) * (n > 8) +
-                                                  std::ceil(20. * (1 + 1. / (1 + std::exp(-10. * (n - 7.))))));
-    double longestRateLen = std::max(0., std::log10(inputEdge()->sinkRate()));
-    longestRateLen = std::max(longestRateLen, std::log10(outputEdge()->sourceRate()));
-    auto rateWidth = 32 + std::max(static_cast<std::int32_t>(longestRateLen) + 1 - 3, 0) * 8;
-
-    /* == Export data ports == */
-    Spider::cxx11::fprintf(file,
-                           "%s\t\t<tr> <td border=\"1\" sides=\"lr\" colspan=\"4\" fixedsize=\"false\" height=\"10\"></td></tr>\n",
-                           offset.c_str());
-    Spider::cxx11::fprintf(file, "%s\t\t<tr>\n", offset.c_str());
-
-    /* == Export input port == */
-    exportInputPortDOT(file, offset, rateWidth, inputEdge());
-
-    /* == Middle separation == */
-    Spider::cxx11::fprintf(file,
-                           "%s\t\t\t<td border=\"0\" colspan=\"2\" bgcolor=\"#00000000\" fixedsize=\"true\" width=\"%" PRIu32"\" height=\"20\"></td>\n",
-                           offset.c_str(), centerWidth);
-
-    /* == Export output port == */
-    exportOutputPortDOT(file, offset, rateWidth, outputEdge());
-
-    Spider::cxx11::fprintf(file, "%s\t\t</tr>\n", offset.c_str());
-
-    /* == Footer == */
-    Spider::cxx11::fprintf(file,
-                           "%s\t\t<tr> <td border=\"1\" colspan=\"4\" fixedsize=\"false\" height=\"10\" sides=\"lbr\"></td></tr>\n",
-                           offset.c_str());
-    Spider::cxx11::fprintf(file, "%s\t</table>>\n", offset.c_str());
-    Spider::cxx11::fprintf(file, "%s];\n\n", offset.c_str());
 }
 
 const PiSDFEdge *PiSDFInterface::inputEdge() const {

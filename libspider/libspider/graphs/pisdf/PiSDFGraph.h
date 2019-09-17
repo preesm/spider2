@@ -142,19 +142,6 @@ public:
     inline PiSDFParam *findParam(const std::string &name) const;
 
     /**
-     * @brief Export the graph to a dot file.
-     * @param path Path of the file.
-     */
-    void exportDot(const std::string &path = "./pisdf.dot") const;
-
-    /**
-     * @brief Export the graph to a dot file.
-     * @param file    File pointer to write to.
-     * @param offset  Tab offset in the file.
-     */
-    void exportDOT(FILE *file, const std::string &offset) const override;
-
-    /**
      * @brief Pre-cache space for storing vertices. Accelerate insertion after.
      * If (capacity - size) < n, the pre-cache space is added to current container size.
      * If (capacity - size) >= n, nothing happens, container already possess sufficient space.
@@ -317,13 +304,6 @@ private:
     bool static_ = true;
     bool hasDynamicParameters_ = false;
     std::uint32_t graphIx_ = 0;
-
-    /**
-     * @brief Export to DOT from a given FILE pointer.
-     * @param file     File to which to export.
-     * @param offset   TAB offset in the file.
-     */
-    void exportDotHelper(FILE *file, const std::string &offset) const;
 };
 
 /* === Inline methods === */
