@@ -171,6 +171,13 @@ public:
     std::uint32_t PECount() const;
 
     /**
+     * @brief Get the total number of PE type in the platform (go through each cluster).
+     * @remark This is equivalent to clusterCount() because all PE inside a cluster share the same PE type.
+     * @return total number of PE type in the platform.
+     */
+    inline std::uint32_t PETypeCount() const;
+
+    /**
      * @brief Get the total number of local runtimes in the platform (go though each cluster)
      * @return total number of @refitem ProcessingElement with the LRT_* @refitem Spider::PEType
      */
@@ -217,6 +224,10 @@ std::uint32_t Platform::clusterCount() const {
 
 std::uint32_t Platform::memUnitCount() const {
     return clusterCount_;
+}
+
+std::uint32_t Platform::PETypeCount() const {
+    return clusterCount();
 }
 
 void Platform::setSpiderGRTPE(ProcessingElement *PE) {
