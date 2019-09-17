@@ -78,23 +78,6 @@ namespace Spider {
 
         void setVertexMappableOnAllPE(const PiSDFVertex *vertex, bool value = true);
 
-
-        void setVertexExecutionTimingOnCluster(const PiSDFVertex *vertex,
-                                               const Cluster *cluster,
-                                               const std::string &expression = "100");
-
-        void setVertexExecutionTimingOnCluster(const PiSDFVertex *vertex,
-                                               const Cluster *cluster,
-                                               std::int64_t timing = 100);
-
-        void setVertexExecutionTimingOnCluster(const PiSDFVertex *vertex,
-                                               std::uint32_t clusterIx,
-                                               const std::string &expression = "100");
-
-        void setVertexExecutionTimingOnCluster(const PiSDFVertex *vertex,
-                                               std::uint32_t clusterIx,
-                                               std::int64_t timing = 100);
-
         void setVertexExecutionTimingOnPE(const PiSDFVertex *vertex,
                                           const ProcessingElement *PE,
                                           const std::string &expression = "100");
@@ -103,16 +86,16 @@ namespace Spider {
                                           const ProcessingElement *PE,
                                           std::int64_t timing = 100);
 
-        void setVertexExecutionTimingOnPE(const PiSDFVertex *vertex,
-                                          std::uint32_t spiderPEIx,
-                                          const std::string &expression = "100");
+        void setVertexExecutionTimingOnPEType(const PiSDFVertex *vertex,
+                                              std::uint32_t PEType,
+                                              const std::string &expression = "100");
 
-        void setVertexExecutionTimingOnPE(const PiSDFVertex *vertex,
-                                          std::uint32_t spiderPEIx,
-                                          std::int64_t timing = 100);
+        void setVertexExecutionTimingOnPEType(const PiSDFVertex *vertex,
+                                              std::uint32_t PEType,
+                                              std::int64_t timing = 100);
 
-        void setVertexExecutionTimingOnAllPE(const PiSDFVertex *vertex,
-                                             std::int64_t timing = 100);
+        void setVertexExecutionTimingOnAllPEType(const PiSDFVertex *vertex,
+                                                 std::int64_t timing = 100);
     }
 }
 

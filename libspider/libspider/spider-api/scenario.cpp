@@ -42,6 +42,7 @@
 
 #include <spider-api/scenario.h>
 #include <spider-api/archi.h>
+#include <spider-api/pisdf.h>
 #include <archi/Platform.h>
 #include <archi/Cluster.h>
 #include <archi/ProcessingElement.h>
@@ -52,7 +53,7 @@
 /* === General Scenario related API === */
 
 Spider::Scenario &Spider::scenario() {
-    static Spider::Scenario scenario;
+    static Spider::Scenario scenario{Spider::pisdfGraph()};
     return scenario;
 }
 
@@ -89,40 +90,6 @@ void Spider::API::setVertexMappableOnAllPE(const PiSDFVertex *vertex, bool value
     }
 }
 
-void Spider::API::setVertexExecutionTimingOnCluster(const PiSDFVertex *vertex,
-                                                    const Cluster *cluster,
-                                                    const std::string &expression) {
-    auto &scenario = Spider::scenario();
-    for (auto &PE : cluster->processingElements()) {
-        scenario.setExecutionTiming(vertex, PE, expression);
-    }
-}
-
-void Spider::API::setVertexExecutionTimingOnCluster(const PiSDFVertex *vertex,
-                                                    const Cluster *cluster,
-                                                    std::int64_t timing) {
-    auto &scenario = Spider::scenario();
-    for (auto &PE : cluster->processingElements()) {
-        scenario.setExecutionTiming(vertex, PE, timing);
-    }
-}
-
-void Spider::API::setVertexExecutionTimingOnCluster(const PiSDFVertex *vertex,
-                                                    std::uint32_t clusterIx,
-                                                    const std::string &expression) {
-    auto *&platform = Spider::platform();
-    auto *cluster = platform->cluster(clusterIx);
-    setVertexExecutionTimingOnCluster(vertex, cluster, expression);
-}
-
-void Spider::API::setVertexExecutionTimingOnCluster(const PiSDFVertex *vertex,
-                                                    std::uint32_t clusterIx,
-                                                    std::int64_t timing) {
-    auto *&platform = Spider::platform();
-    auto *cluster = platform->cluster(clusterIx);
-    setVertexExecutionTimingOnCluster(vertex, cluster, timing);
-}
-
 void Spider::API::setVertexExecutionTimingOnPE(const PiSDFVertex *vertex,
                                                const ProcessingElement *PE,
                                                const std::string &expression) {
@@ -137,21 +104,21 @@ void Spider::API::setVertexExecutionTimingOnPE(const PiSDFVertex *vertex,
     scenario.setExecutionTiming(vertex, PE, timing);
 }
 
-void Spider::API::setVertexExecutionTimingOnPE(const PiSDFVertex *vertex,
-                                               std::uint32_t spiderPEIx,
-                                               const std::string &expression) {
+void Spider::API::setVertexExecutionTimingOnPEType(const PiSDFVertex *vertex,
+                                                   std::uint32_t PEType,
+                                                   const std::string &expression) {
     auto &scenario = Spider::scenario();
-    scenario.setExecutionTiming(vertex, spiderPEIx, expression);
+    scenario.setExecutionTiming(vertex, PEType, expression);
 }
 
-void Spider::API::setVertexExecutionTimingOnPE(const PiSDFVertex *vertex,
-                                               std::uint32_t spiderPEIx,
-                                               std::int64_t timing) {
+void Spider::API::setVertexExecutionTimingOnPEType(const PiSDFVertex *vertex,
+                                                   std::uint32_t PEType,
+                                                   std::int64_t timing) {
     auto &scenario = Spider::scenario();
-    scenario.setExecutionTiming(vertex, spiderPEIx, timing);
+    scenario.setExecutionTiming(vertex, PEType, timing);
 }
 
-void Spider::API::setVertexExecutionTimingOnAllPE(const PiSDFVertex *vertex, std::int64_t timing) {
+void Spider::API::setVertexExecutionTimingOnAllPEType(const PiSDFVertex *vertex, std::int64_t timing) {
     auto &scenario = Spider::scenario();
     auto *&platform = Spider::platform();
     for (const auto &cluster : platform->clusters()) {
