@@ -45,7 +45,9 @@
 #include <graphs/pisdf/PiSDFVertex.h>
 #include <archi/Platform.h>
 #include <archi/Cluster.h>
+#include <archi/ProcessingElement.h>
 #include <spider-api/archi.h>
+#include <spider-api/scenario.h>
 
 /* === Static variable(s) === */
 
@@ -60,14 +62,19 @@ std::int32_t Spider::ListScheduler::computeScheduleLevel(ListVertex &listVertex,
         for (auto &edge : vertex->outputEdges()) {
             auto *sink = edge->sink();
             if (sink) {
-                // TODO add constraints of vertices
-                auto minExecutionTime = UINT64_MAX;
+                auto &scenario = Spider::scenario();
+                auto minExecutionTime = INT64_MAX;
                 for (auto &cluster : platform->clusters()) {
+                    auto executionTime = scenario.executionTiming(vertex, cluster->PEType());
                     for (auto &pe : cluster->processingElements()) {
-                        // TODO if (platform->applicationConstraints()->isMappable(pe, vertex))
-                        // TODO auto executionTime = platform->applicationConstraints()->executionTime(pe, vertex)
-                        // TODO -> throw exception if null execution time
-                        // TODO minExecutionTime = std::min(minExecutionTime, executionTime);
+                        if (scenario.mappingConstraint(vertex, pe)) {
+                            if (!executionTime) {
+                                throwSpiderException("Vertex [%s] has null execution time on mappable PE [%s].",
+                                                     vertex->name().c_str(), pe->name().c_str());
+                            }
+                            minExecutionTime = std::min(minExecutionTime, executionTime);
+                            break; /* = We can break because any other PE of the cluster will have the same timing = */
+                        }
                     }
                 }
                 level = std::max(level, computeScheduleLevel(sortedVertexVector[sink->ix()],
@@ -99,9 +106,11 @@ Spider::ListScheduler::ListScheduler(PiSDFGraph *graph) : Scheduler(graph) {
     /* == Sort the vector == */
     std::sort(std::begin(sortedVertexVector_), std::end(sortedVertexVector_),
               [](const ListVertex &A, const ListVertex &B) -> std::int32_t {
-//                  if (B.vertex->type() == PiSDFVertexType::NORMAL && A.level == B.level) {
-//                      return B.vertex->ix() - A.vertex->ix();
-//                  }
+                  if (B.vertex->type() == PiSDFVertexType::NORMAL &&
+                      A.vertex->reference() == B.vertex->reference() &&
+                      A.level == B.level) {
+                      return B.vertex->ix() - A.vertex->ix();
+                  }
                   return B.level - A.level;
               });
 }
