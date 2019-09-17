@@ -45,15 +45,16 @@
 #include <graphs/pisdf/PiSDFVertex.h>
 #include <archi/Platform.h>
 #include <archi/Cluster.h>
+#include <spider-api/archi.h>
 
 /* === Static variable(s) === */
 
 /* === Static function(s) === */
 
-std::int32_t Spider::ListScheduler::computeScheduleLevel(Platform *platform,
-                                                         ListVertex &listVertex,
+std::int32_t Spider::ListScheduler::computeScheduleLevel(ListVertex &listVertex,
                                                          Spider::vector<ListVertex> &sortedVertexVector) {
     if (listVertex.level < 0) {
+        auto *platform = Spider::platform();
         auto *vertex = listVertex.vertex;
         std::int32_t level = 0;
         for (auto &edge : vertex->outputEdges()) {
@@ -69,8 +70,7 @@ std::int32_t Spider::ListScheduler::computeScheduleLevel(Platform *platform,
                         // TODO minExecutionTime = std::min(minExecutionTime, executionTime);
                     }
                 }
-                level = std::max(level, computeScheduleLevel(platform,
-                                                             sortedVertexVector[sink->ix()],
+                level = std::max(level, computeScheduleLevel(sortedVertexVector[sink->ix()],
                                                              sortedVertexVector) +
                                         static_cast<std::int32_t >(minExecutionTime));
             }
@@ -93,7 +93,7 @@ Spider::ListScheduler::ListScheduler(PiSDFGraph *graph) : Scheduler(graph) {
 
     /* == Compute the schedule level == */
     for (auto &listVertex : sortedVertexVector_) {
-        computeScheduleLevel(platform_, listVertex, sortedVertexVector_);
+        computeScheduleLevel(listVertex, sortedVertexVector_);
     }
 
     /* == Sort the vector == */

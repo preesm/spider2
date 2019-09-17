@@ -81,8 +81,7 @@ namespace Spider {
         /* === Protected method(s) === */
 
     private:
-        static std::int32_t computeScheduleLevel(Platform *platform,
-                                                 ListVertex &listVertex,
+        static std::int32_t computeScheduleLevel(ListVertex &listVertex,
                                                  Spider::vector<ListVertex> &sortedVertexVector);
     };
 

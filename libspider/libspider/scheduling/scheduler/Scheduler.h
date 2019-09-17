@@ -56,7 +56,7 @@ namespace Spider {
     class Scheduler {
     public:
 
-        explicit inline Scheduler(PiSDFGraph *graph) : platform_{Spider::platform()}, graph_{graph} { };
+        explicit inline Scheduler(PiSDFGraph *graph) : graph_{graph} { };
 
         ~Scheduler() = default;
 
@@ -71,7 +71,6 @@ namespace Spider {
         /* === Setter(s) === */
 
     protected:
-        Platform *platform_ = nullptr;
         PiSDFGraph *graph_ = nullptr;
         Schedule schedule_;
 
