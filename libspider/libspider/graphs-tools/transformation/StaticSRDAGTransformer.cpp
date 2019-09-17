@@ -388,12 +388,16 @@ void StaticSRDAGTransformer::buildSourceLinkArray(StaticSRDAGTransformer::EdgeLi
 
     /* == Set the sources or sources-fork == */
     for (auto *src : sourceArray) {
-        auto lowerDep = Spider::computeProdLowerDep(edgeLinker.sinkRate, edgeLinker.sourceRate, edgeLinker.sourceCount,
-                                                    edgeLinker.delay,
-                                                    edgeLinker.sink->repetitionValue());
-        auto upperDep = Spider::computeProdUpperDep(edgeLinker.sinkRate, edgeLinker.sourceRate, edgeLinker.sourceCount,
-                                                    edgeLinker.delay,
-                                                    edgeLinker.sink->repetitionValue());
+        auto lowerDep = Spider::PiSDF::computeProdLowerDep(edgeLinker.sinkRate,
+                                                           edgeLinker.sourceRate,
+                                                           edgeLinker.sourceCount,
+                                                           edgeLinker.delay,
+                                                           edgeLinker.sink->repetitionValue());
+        auto upperDep = Spider::PiSDF::computeProdUpperDep(edgeLinker.sinkRate,
+                                                           edgeLinker.sourceRate,
+                                                           edgeLinker.sourceCount,
+                                                           edgeLinker.delay,
+                                                           edgeLinker.sink->repetitionValue());
         if (lowerDep == upperDep) {
             sourceLinkArray[edgeLinker.sourceCount + hasDelay] = src;
         } else {
@@ -420,8 +424,10 @@ void StaticSRDAGTransformer::buildSinkLinkArray(StaticSRDAGTransformer::EdgeLink
         lastSinkLinker.vertex = end;
         lastSinkLinker.sinkRate = edgeLinker.delay;
         lastSinkLinker.sinkPortIx = 0;
-        lastSinkLinker.lowerDep = Spider::computeConsLowerDep(edgeLinker.sinkRate, edgeLinker.sourceRate,
-                                                              edgeLinker.sink->repetitionValue(), edgeLinker.delay);
+        lastSinkLinker.lowerDep = Spider::PiSDF::computeConsLowerDep(edgeLinker.sinkRate,
+                                                                     edgeLinker.sourceRate,
+                                                                     edgeLinker.sink->repetitionValue(),
+                                                                     edgeLinker.delay);
         lastSinkLinker.upperDep = edgeLinker.source->repetitionValue() - 1;
     }
 
@@ -431,12 +437,14 @@ void StaticSRDAGTransformer::buildSinkLinkArray(StaticSRDAGTransformer::EdgeLink
         sinkLinker.vertex = snk;
         sinkLinker.sinkRate = edgeLinker.sinkRate;
         sinkLinker.sinkPortIx = edgeLinker.sinkPortIx;
-        sinkLinker.lowerDep = Spider::computeConsLowerDep(edgeLinker.sinkRate, edgeLinker.sourceRate,
-                                                          edgeLinker.sinkCount,
-                                                          edgeLinker.delay);
-        sinkLinker.upperDep = Spider::computeConsUpperDep(edgeLinker.sinkRate, edgeLinker.sourceRate,
-                                                          edgeLinker.sinkCount,
-                                                          edgeLinker.delay);
+        sinkLinker.lowerDep = Spider::PiSDF::computeConsLowerDep(edgeLinker.sinkRate,
+                                                                 edgeLinker.sourceRate,
+                                                                 edgeLinker.sinkCount,
+                                                                 edgeLinker.delay);
+        sinkLinker.upperDep = Spider::PiSDF::computeConsUpperDep(edgeLinker.sinkRate,
+                                                                 edgeLinker.sourceRate,
+                                                                 edgeLinker.sinkCount,
+                                                                 edgeLinker.delay);
         edgeLinker.sinkCount += 1;
     }
 }
