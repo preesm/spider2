@@ -81,3 +81,7 @@ void Cluster::addPE(ProcessingElement *PE) {
     PECount_ += 1;
     LRTCount_ += PE->isLRT();
 }
+
+std::uint32_t Cluster::PEType() const {
+    return PEArray_[0]->hardwareType();
+}

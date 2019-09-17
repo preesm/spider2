@@ -116,6 +116,13 @@ public:
     inline std::uint32_t LRTCount() const;
 
     /**
+     * @brief Get the PE type of the cluster.
+     * @remark This method return the value of @refitem ProcessingElement::hardwareType() method of the first PE.
+     * @return PE type of the cluster.
+     */
+    std::uint32_t PEType() const;
+
+    /**
      * @brief  Get the cluster ix (unique among clusters).
      * @return Ix of the cluster.
      */
