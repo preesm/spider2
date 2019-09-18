@@ -49,10 +49,10 @@
 /* === Methods implementation === */
 
 Expression::Expression(const PiSDFGraph *graph, std::string expression) : rpnConverter_{graph, std::move(expression)} {
-    const auto *expressionStack = &rpnConverter_.postfixStack();
+    const auto &expressionStack = rpnConverter_.postfixStack();
 
     /* == Check if expression is static == */
-    for (const auto &elt : *expressionStack) {
+    for (const auto &elt : expressionStack) {
         if (elt.subType == RPNElementSubType::PARAMETER) {
             static_ = false;
             break;
@@ -75,6 +75,20 @@ Expression::Expression(std::int64_t value) {
     value_ = value;
 }
 
+Expression::Expression(const Expression &other) : rpnConverter_{other.rpnConverter_},
+                                                  value_{other.value_},
+                                                  static_{other.static_} {
+    if (!static_) {
+        const auto &stack = rpnConverter_.postfixStack();
+        expressionTree_ = Spider::allocate<ExpressionTreeNode>(StackID::EXPR_PARSER, stack.size());
+        if (expressionTree_) {
+            for (size_t i = 0; i < stack.size(); ++i) {
+                expressionTree_[i] = other.expressionTree_[i];
+            }
+        }
+    }
+}
+
 Expression::~Expression() {
     if (expressionTree_) {
         Spider::deallocate(expressionTree_);
@@ -90,12 +104,12 @@ void Expression::printExpressionTree() {
 
 /* === Private method(s) === */
 
-void Expression::buildExpressionTree(const Spider::vector<RPNElement> *expressionStack) {
-    expressionTree_ = Spider::allocate<ExpressionTreeNode>(StackID::EXPR_PARSER, expressionStack->size());
+void Expression::buildExpressionTree(const Spider::vector<RPNElement> &expressionStack) {
+    expressionTree_ = Spider::allocate<ExpressionTreeNode>(StackID::EXPR_PARSER, expressionStack.size());
     Spider::construct(expressionTree_, 0, nullptr);
     std::uint16_t nodeIx = 1;
     auto *node = expressionTree_;
-    for (auto elt = expressionStack->rbegin(); elt != expressionStack->rend(); ++elt) {
+    for (auto elt = expressionStack.rbegin(); elt != expressionStack.rend(); ++elt) {
         node = insertExpressionTreeNode(node, *elt, nodeIx);
     }
 }

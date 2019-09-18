@@ -137,11 +137,40 @@ struct RPNElement {
 
 class RPNConverter {
 public:
-    RPNConverter(const PiSDFGraph *graph, std::string inFixExpr);
-
     RPNConverter() = default;
 
+    RPNConverter(const RPNConverter &other) = default;
+
+    inline RPNConverter(RPNConverter &&other) noexcept : RPNConverter() {
+        swap(*this, other);
+    }
+
+    RPNConverter(const PiSDFGraph *graph, std::string inFixExpr);
+
     ~RPNConverter() = default;
+
+    /* === Operators === */
+
+    inline friend void swap(RPNConverter &first, RPNConverter &second) noexcept {
+        /* == Enable ADL (not necessary in our case, but good practice) == */
+        using std::swap;
+
+        /* == Swap members of both objects == */
+        swap(first.graph_, second.graph_);
+        swap(first.infixExprString_, second.infixExprString_);
+        swap(first.postfixExprString_, second.postfixExprString_);
+        swap(first.postfixExprStack_, second.postfixExprStack_);
+    }
+
+    /**
+     * @brief Copy and swap idiom for the assignment operator.
+     * @param temp  Assigned object (will use copy or move constructor depending on context).
+     * @return *this
+     */
+    inline RPNConverter &operator=(RPNConverter temp) {
+        swap(*this, temp);
+        return *this;
+    }
 
     /* === Getters === */
 
@@ -187,9 +216,9 @@ public:
     static RPNOperatorType getOperatorTypeFromString(const std::string &operatorString);
 
 private:
+    const PiSDFGraph *graph_ = nullptr;
     std::string infixExprString_{""};
     std::string postfixExprString_{""};
-    const PiSDFGraph *graph_ = nullptr;
     Spider::vector<RPNElement> postfixExprStack_;
 
     /* === Private Methods === */

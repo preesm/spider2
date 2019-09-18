@@ -62,44 +62,44 @@ static const std::string &operators() {
  */
 static const RPNOperator &rpnOperators(std::uint32_t ix) {
     static RPNOperator rpnOperators[N_OPERATOR + N_FUNCTION]{
-            {RPNOperatorType::ADD, 2, false,
-                    "+", Spider::add},          /*! ADD operator */
-            {RPNOperatorType::SUB, 2, false,
-                    "-", Spider::sub},          /*! SUB operator */
-            {RPNOperatorType::MUL,3, false,
-                    "*", Spider::mul},          /*! MUL operator */
-            {RPNOperatorType::DIV, 3, false,
-                    "/", Spider::div},          /*! DIV operator */
-            {RPNOperatorType::MOD, 4, false,
-                    "%", Spider::mod},          /*! MOD operator */
-            {RPNOperatorType::POW, 4, true,
-                    "^", Spider::pow},          /*! POW operator */
-            {RPNOperatorType::MAX, 3, false,
-                    "max", Spider::max},        /*! MAX operator */
-            {RPNOperatorType::MIN, 3, false,
-                    "min", Spider::min},        /*! MIN operator */
-            {RPNOperatorType::LEFT_PAR, 2, false,
-                    "(", Spider::dummyEval},    /*! LEFT_PAR operator */
+            {RPNOperatorType::ADD,       2, false,
+                    "+",     Spider::add},          /*! ADD operator */
+            {RPNOperatorType::SUB,       2, false,
+                    "-",     Spider::sub},          /*! SUB operator */
+            {RPNOperatorType::MUL,       3, false,
+                    "*",     Spider::mul},          /*! MUL operator */
+            {RPNOperatorType::DIV,       3, false,
+                    "/",     Spider::div},          /*! DIV operator */
+            {RPNOperatorType::MOD,       4, false,
+                    "%",     Spider::mod},          /*! MOD operator */
+            {RPNOperatorType::POW,       4, true,
+                    "^",     Spider::pow},          /*! POW operator */
+            {RPNOperatorType::MAX,       3, false,
+                    "max",   Spider::max},        /*! MAX operator */
+            {RPNOperatorType::MIN,       3, false,
+                    "min",   Spider::min},        /*! MIN operator */
+            {RPNOperatorType::LEFT_PAR,  2, false,
+                    "(",     Spider::dummyEval},    /*! LEFT_PAR operator */
             {RPNOperatorType::RIGHT_PAR, 2, false,
-                    ")", Spider::dummyEval},    /*! RIGHT_PAR operator */
-            {RPNOperatorType::COS, 5, false,
-                    "cos", Spider::cos},        /*! COS function */
-            {RPNOperatorType::SIN, 5, false,
-                    "sin", Spider::sin},        /*! SIN function */
-            {RPNOperatorType::TAN, 5, false,
-                    "tan", Spider::tan},        /*! TAN function */
-            {RPNOperatorType::EXP, 5, false,
-                    "exp", Spider::exp},        /*! EXP function */
-            {RPNOperatorType::LOG, 5, false,
-                    "log", Spider::log},        /*! LOG function */
-            {RPNOperatorType::LOG2, 5, false,
-                    "log2", Spider::log2},      /*! LOG2 function */
-            {RPNOperatorType::CEIL, 5, false,
-                    "ceil", Spider::ceil},      /*! CEIL function */
-            {RPNOperatorType::FLOOR, 5, false,
+                    ")",     Spider::dummyEval},    /*! RIGHT_PAR operator */
+            {RPNOperatorType::COS,       5, false,
+                    "cos",   Spider::cos},        /*! COS function */
+            {RPNOperatorType::SIN,       5, false,
+                    "sin",   Spider::sin},        /*! SIN function */
+            {RPNOperatorType::TAN,       5, false,
+                    "tan",   Spider::tan},        /*! TAN function */
+            {RPNOperatorType::EXP,       5, false,
+                    "exp",   Spider::exp},        /*! EXP function */
+            {RPNOperatorType::LOG,       5, false,
+                    "log",   Spider::log},        /*! LOG function */
+            {RPNOperatorType::LOG2,      5, false,
+                    "log2",  Spider::log2},      /*! LOG2 function */
+            {RPNOperatorType::CEIL,      5, false,
+                    "ceil",  Spider::ceil},      /*! CEIL function */
+            {RPNOperatorType::FLOOR,     5, false,
                     "floor", Spider::floor},    /*! FLOOR function */
-            {RPNOperatorType::SQRT, 5, false,
-                    "sqrt", Spider::sqrt},    /*! SQRT function */
+            {RPNOperatorType::SQRT,      5, false,
+                    "sqrt",  Spider::sqrt},    /*! SQRT function */
     };
     return rpnOperators[ix];
 }
@@ -236,8 +236,8 @@ RPNOperatorType RPNConverter::getOperatorTypeFromString(const std::string &opera
 
 /* === Method(s) implementation === */
 
-RPNConverter::RPNConverter(const PiSDFGraph *graph, std::string inFixExpr) : infixExprString_{std::move(inFixExpr)},
-                                                                             graph_{graph} {
+RPNConverter::RPNConverter(const PiSDFGraph *graph, std::string inFixExpr) : graph_{graph},
+                                                                             infixExprString_{std::move(inFixExpr)} {
     if (missMatchParenthesis()) {
         throwSpiderException("Expression with miss matched parenthesis: %s", infixExprString_.c_str());
     }

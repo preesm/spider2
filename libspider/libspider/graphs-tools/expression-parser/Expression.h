@@ -75,7 +75,33 @@ public:
 
     explicit Expression(std::int64_t value);
 
+    Expression() = default;
+
+    Expression(const Expression &other);
+
+    inline Expression(Expression &&other) noexcept : Expression() {
+        swap(*this, other);
+    }
+
     ~Expression();
+
+    /* === Operator(s) === */
+
+    inline friend void swap(Expression &first, Expression &second) noexcept {
+        /* == Enable ADL == */
+        using std::swap;
+
+        /* == Swap members of both objects == */
+        swap(first.rpnConverter_, second.rpnConverter_);
+        swap(first.expressionTree_, second.expressionTree_);
+        swap(first.value_, second.value_);
+        swap(first.static_, second.static_);
+    }
+
+    inline Expression &operator=(Expression temp) {
+        swap(*this, temp);
+        return *this;
+    }
 
     /* === Methods === */
 
@@ -134,7 +160,7 @@ private:
      * @brief Build and reduce the expression tree parser.
      * @param expressionStack Stack of the postfix expression elements.
      */
-    void buildExpressionTree(const Spider::vector<RPNElement> *expressionStack);
+    void buildExpressionTree(const Spider::vector<RPNElement> &expressionStack);
 
     /**
      * @brief  Insert current node in the expression tree and reduce it if possible.
