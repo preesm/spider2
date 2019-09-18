@@ -69,13 +69,42 @@ namespace Spider {
          */
         inline Array(StackID stack, std::uint64_t size, T value);
 
+        inline Array() noexcept;
+
+        inline Array(const Array &other);
+
+        inline Array(Array &&other) noexcept;
+
         inline ~Array();
 
         /* === Operators === */
 
-        T &operator[](std::uint64_t ix);
+        inline T &operator[](std::uint64_t ix);
 
-        T &operator[](std::uint64_t ix) const;
+        inline T &operator[](std::uint64_t ix) const;
+
+        /**
+         * @brief use the "making new friends idiom" from
+         * https://en.wikibooks.org/wiki/More_C%2B%2B_Idioms/Making_New_Friends
+         * @param first   First element to swap.
+         * @param second  Second element to swap.
+         */
+        inline friend void swap(Array<T> &first, Array<T> &second) noexcept {
+            using std::swap;
+
+            /* == Do the swapping of the values == */
+            swap(first.array_, second.array_);
+            swap(first.size_, second.size_);
+            swap(first.arraySize_, second.arraySize_);
+        }
+
+        /**
+         * @brief Assignment operator. Use move constructor if used with an rvalue reference, copy constructor else.
+         * use the copy and swap idiom.
+         * @param temp
+         * @return
+         */
+        inline Array &operator=(Array temp);
 
         /* === Iterator methods === */
 
@@ -129,6 +158,21 @@ namespace Spider {
     /* === Inline methods === */
 
     template<typename T>
+    Array<T>::Array() noexcept : size_{0}, arraySize_{0}, array_{nullptr} {
+
+    }
+
+    template<typename T>
+    Array<T>::Array(const Array &other) : size_{other.size_}, arraySize_{other.arraySize_} {
+        array_ = Spider::allocate<T>(StackID::GENERAL, arraySize_);
+    }
+
+    template<typename T>
+    Array<T>::Array(Array &&other) noexcept : Array<T>() {
+        swap(*this, other);
+    }
+
+    template<typename T>
     Array<T>::Array(StackID stack, std::uint64_t size) : size_{size}, arraySize_{size + 1} {
         array_ = Spider::allocate<T>(stack, arraySize_);
         if (!array_) {
@@ -137,7 +181,7 @@ namespace Spider {
     }
 
     template<typename T>
-    Array<T>::Array(StackID stack, std::uint64_t size, T value) : Array(stack, size) {
+    Array<T>::Array(StackID stack, std::uint64_t size, T value) : Array<T>(stack, size) {
         std::fill(this->begin(), this->end(), value);
     }
 
@@ -154,6 +198,12 @@ namespace Spider {
     template<typename T>
     T &Array<T>::operator[](std::uint64_t ix) const {
         return array_[ix];
+    }
+
+    template<typename T>
+    Array<T> &Array<T>::operator=(Array temp) {
+        swap(*this, temp);
+        return *this;
     }
 
     template<typename T>
