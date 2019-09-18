@@ -169,7 +169,7 @@ void PiSDFEdge::connectSink(PiSDFEdge *edge) {
 
 PiSDFVertex *PiSDFEdge::source(bool forward) const {
     if (forward && source_ && source_->isHierarchical()) {
-        auto *graph = dynamic_cast<PiSDFGraph *>(source_);
+        auto *graph = static_cast<PiSDFGraph *>(source_);
         auto *interface = graph->outputInterfaces()[sourcePort_->ix()];
         return interface->inputEdge()->source(true);
     }
@@ -178,7 +178,7 @@ PiSDFVertex *PiSDFEdge::source(bool forward) const {
 
 PiSDFVertex *PiSDFEdge::sink(bool forward) const {
     if (forward && sink_ && sink_->isHierarchical()) {
-        auto *graph = dynamic_cast<PiSDFGraph *>(sink_);
+        auto *graph = static_cast<PiSDFGraph *>(sink_);
         auto *interface = graph->inputInterfaces()[sinkPort_->ix()];
         return interface->outputEdge()->sink(true);
     }

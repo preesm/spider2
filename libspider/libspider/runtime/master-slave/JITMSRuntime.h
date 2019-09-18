@@ -42,14 +42,22 @@
 
 /* === Include(s) === */
 
-
+#include <runtime/SpiderRuntime.h>
 
 /* === Class definition === */
 
-class JITMSRuntime {
+class JITMSRuntime : public SpiderRuntime {
 public:
 
+    explicit JITMSRuntime(PiSDFGraph *graph) : SpiderRuntime(graph) { };
+
+    ~JITMSRuntime() = default;
+
     /* === Method(s) === */
+
+    inline void setup() const override { };
+
+    bool execute() const override;
 
     /* === Getter(s) === */
 

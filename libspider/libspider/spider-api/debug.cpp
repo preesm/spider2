@@ -46,6 +46,7 @@
 #include <spider-api/pisdf.h>
 #include <graphs-tools/transformation/StaticSRDAGTransformer.h>
 #include <graphs-tools/transformation/optims/PiSDFGraphOptimizer.h>
+#include <graphs-tools/exporter/DOTExporter.h>
 
 /* === Methods implementation === */
 
@@ -85,7 +86,7 @@ void Spider::API::exportSRDAG(const std::string &path) {
     }
 
     /* == Print the SR-DAG == */
-    srdag->exportDot(path);
+    Spider::PiSDF::DOTExporter(srdag).print(path);
 }
 
 void Spider::API::enableLogger(LoggerType type) {

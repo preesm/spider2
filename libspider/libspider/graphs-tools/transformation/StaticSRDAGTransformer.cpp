@@ -144,7 +144,7 @@ PiSDFVertex *StaticSRDAGTransformer::copyVertex(const PiSDFVertex *vertex,
 
     /* == Add the job for later process == */
     if (vertex->isHierarchical()) {
-        jobs_.push_back(SRDAGTransfoJob{dynamic_cast<const PiSDFGraph *>(vertex),  /* = reference = */
+        jobs_.push_back(SRDAGTransfoJob{static_cast<const PiSDFGraph *>(vertex),  /* = reference = */
                                         copyVertex->ix(),                            /* = srdagIx = */
                                         instance});                                  /* = firingCount = */
     }

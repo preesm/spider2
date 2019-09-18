@@ -248,10 +248,10 @@ void Spider::PiSDF::DOTExporter::vertexPrinter(std::ofstream &file,
 
 void Spider::PiSDF::DOTExporter::edgePrinter(std::ofstream &file, const PiSDFEdge *edge, const std::string &offset) {
     auto *source = edge->source()->isHierarchical()
-                   ? dynamic_cast<PiSDFGraph *>(edge->source())->outputInterfaces()[edge->sourcePortIx()]
+                   ? static_cast<PiSDFGraph *>(edge->source())->outputInterfaces()[edge->sourcePortIx()]
                    : edge->source();
     auto *sink = edge->sink()->isHierarchical()
-                 ? dynamic_cast<PiSDFGraph *>(edge->sink())->inputInterfaces()[edge->sinkPortIx()]
+                 ? static_cast<PiSDFGraph *>(edge->sink())->inputInterfaces()[edge->sinkPortIx()]
                  : edge->sink();
     file << offset << R"(")" << source->name();
     file << R"(":out_)" << edge->sourcePortIx() << R"(:e -> ")" << sink->name() << R"(":in_)" << edge->sinkPortIx();
