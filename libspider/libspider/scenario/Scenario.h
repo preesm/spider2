@@ -257,8 +257,7 @@ namespace Spider {
     void Scenario::setExecutionTiming(const PiSDFVertex *vertex, std::uint32_t PEType, std::int64_t value) {
         auto &timings = vertexExecutionTimingsMap_.at(vertex);
         auto &timing = timings.at(PEType);
-        timing.~Expression();
-        Spider::construct(&timing, value);
+        timing = Expression(value);
     }
 }
 

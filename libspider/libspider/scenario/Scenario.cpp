@@ -84,8 +84,7 @@ void Spider::Scenario::setMappingConstraint(const PiSDFVertex *vertex, const Pro
 void Spider::Scenario::setExecutionTiming(const PiSDFVertex *vertex, const ProcessingElement *PE, std::int64_t value) {
     auto &timings = vertexExecutionTimingsMap_.at(vertex);
     auto &timing = timings.at(PE->hardwareType());
-    timing.~Expression();
-    Spider::construct(&timing, value);
+    timing = Expression(value);
 }
 
 void Spider::Scenario::setExecutionTiming(const PiSDFVertex *vertex,
@@ -93,8 +92,7 @@ void Spider::Scenario::setExecutionTiming(const PiSDFVertex *vertex,
                                           const std::string &expression) {
     auto &timings = vertexExecutionTimingsMap_.at(vertex);
     auto &timing = timings.at(PEType);
-    timing.~Expression();
-    Spider::construct(&timing, Spider::pisdfGraph(), expression);
+    timing = Expression(Spider::pisdfGraph(), expression);
 }
 
 void Spider::Scenario::setExecutionTiming(const PiSDFVertex *vertex,
@@ -102,6 +100,5 @@ void Spider::Scenario::setExecutionTiming(const PiSDFVertex *vertex,
                                           const std::string &expression) {
     auto &timings = vertexExecutionTimingsMap_.at(vertex);
     auto &timing = timings.at(PE->hardwareType());
-    timing.~Expression();
-    Spider::construct(&timing, Spider::pisdfGraph(), expression);
+    timing = Expression(Spider::pisdfGraph(), expression);
 }

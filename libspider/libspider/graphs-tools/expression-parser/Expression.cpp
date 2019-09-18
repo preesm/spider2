@@ -70,7 +70,7 @@ Expression::Expression(const PiSDFGraph *graph, std::string expression) : rpnCon
     }
 }
 
-Expression::Expression(std::int64_t value) {
+Expression::Expression(std::int64_t value) : Expression() {
     static_ = true;
     value_ = value;
 }
