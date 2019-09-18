@@ -165,6 +165,9 @@ namespace Spider {
     template<typename T>
     Array<T>::Array(const Array &other) : size_{other.size_}, arraySize_{other.arraySize_} {
         array_ = Spider::allocate<T>(StackID::GENERAL, arraySize_);
+        if (array_) {
+            std::copy(other.array_, other.array_ + other.size_, array_);
+        }
     }
 
     template<typename T>

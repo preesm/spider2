@@ -87,6 +87,12 @@ namespace Spider {
 
         Set(StackID stack, std::uint64_t size);
 
+        Set() = default;
+
+        Set(const Set &other);
+
+        Set(Set &&other) noexcept;
+
         ~Set() = default;
 
         /* === Operators === */
@@ -94,6 +100,24 @@ namespace Spider {
         inline virtual T &operator[](std::uint64_t ix);
 
         inline virtual T &operator[](std::uint64_t ix) const;
+
+        /**
+         * @brief use the "making new friends idiom" from
+         * https://en.wikibooks.org/wiki/More_C%2B%2B_Idioms/Making_New_Friends
+         * @param first   First element to swap.
+         * @param second  Second element to swap.
+         */
+        friend void swap(Set<T> &first, Set<T> &second) noexcept {
+            using std::swap;
+
+            swap(first.elements_, second.elements_);
+            swap(first.occupied_, second.occupied_);
+        }
+
+        inline Set &operator=(Set temp) {
+            swap(*this, temp);
+            return *this;
+        }
 
         /* === Methods === */
 
@@ -151,6 +175,11 @@ namespace Spider {
 
     template<class T>
     Set<T, Spider::EnableIfPolicy<T>>::Set(StackID stack, std::uint64_t size) : elements_(stack, size) {
+
+    }
+
+    template<class T>
+    Set<T, Spider::EnableIfPolicy<T>>::Set(const Set &other) : elements_{StackID::GENERAL, other.elements_.size()} {
 
     }
 
@@ -285,6 +314,7 @@ namespace Spider {
     const T *Set<T, Spider::EnableIfPolicy<T>>::data() const {
         return elements_.data();
     }
+
 }
 
 #endif //SPIDER2_SET_H
