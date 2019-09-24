@@ -49,65 +49,160 @@
 namespace Spider {
 
     template<class T>
-    struct GenericSetElement : public Spider::SetElement {
-    private:
-        T &elt;
-    public:
-        explicit GenericSetElement(const T &elt) : elt{elt} { };
+    struct GenericSetElement : SetElement {
 
-        GenericSetElement(GenericSetElement const &other) : elt{other.elt} { };
+        GenericSetElement() = default;
 
-        GenericSetElement(GenericSetElement &&other) noexcept : elt{other.elt} { };
+        explicit GenericSetElement(T &elt) : element_{elt} { }
 
-        GenericSetElement(std::initializer_list<T> l) noexcept : elt{*(l.begin())} { };
+        explicit GenericSetElement(const T &elt) : element_{elt} { }
 
-        GenericSetElement &operator=(GenericSetElement const &other) {
-            elt = other.elt;
-            setIx(other.getIx());
+        explicit GenericSetElement(T &&elt) : element_{elt} { }
+
+        /* === Operators === */
+
+        inline T &operator*() {
+            return element_;
+        }
+
+        inline T &operator->() {
+            return element_;
+        }
+
+        explicit operator T &() {
+            return element_;
+        }
+
+        explicit operator const T &() const {
+            return element_;
+        }
+
+        inline GenericSetElement &operator=(T element) {
+            using std::swap;
+            swap(element_, element);
             return *this;
         }
 
-        inline T &operator*() const {
-            return elt;
+        inline GenericSetElement &operator=(GenericSetElement temp) {
+            using std::swap;
+            swap(element_, temp.element_);
+            setIx(temp.ix());
+            return *this;
         }
 
-        inline T &operator->() const {
-            return elt;
+        inline bool operator==(const GenericSetElement &other) const {
+            return this == &other;
         }
 
-        inline T &element() {
-            return elt;
-        };
+    private:
+        T element_;
     };
 
     template<class T>
-    class GenericSet : public Spider::Set<GenericSetElement<T>> {
+    class GenericSet {
     public:
-        GenericSet(StackID stack, std::uint64_t size);
+
+        GenericSet() = default;
+
+        explicit GenericSet(std::uint64_t capacity) : set_{capacity} { }
+
+        GenericSet(const GenericSet &other) : set_{other.set_} { }
+
+        GenericSet(GenericSet &&other) noexcept : set_{std::move(other.set_)} { }
 
         ~GenericSet() = default;
 
+        /* === Operators === */
+
+        inline T &operator[](std::uint64_t ix) {
+            return static_cast<T &>(set_[ix]);
+        }
+
+        inline T &operator[](std::uint64_t ix) const {
+            return static_cast<const T &>(set_[ix]);
+        }
+
+        inline GenericSet &operator=(GenericSet other) {
+            swap(*this, other);
+            return *this;
+        }
+
+        /* === Iterator methods === */
+
+        typedef GenericSetElement<T> *iterator;
+        typedef const GenericSetElement<T> *const_iterator;
+
+        inline iterator begin() {
+            return set_.begin();
+        }
+
+        inline iterator end() {
+            return set_.end();
+        }
+
+        inline const_iterator begin() const {
+            return set_.begin();
+        }
+
+        inline const_iterator end() const {
+            return set_.end();
+        }
+
+
         /* === Method(s) === */
 
-        inline T &at(std::uint64_t ix);
+        inline friend void swap(GenericSet &first, GenericSet &second) noexcept {
+            using std::swap;
+            swap(first.set_, second.set_);
+        }
 
-        inline T &at(std::uint64_t ix) const;
+        inline T &at(std::uint64_t ix) {
+            return static_cast<T &>(set_.at(ix));
+        }
+
+        inline T &at(std::uint64_t ix) const {
+            return static_cast<const T &>(set_.at(ix));
+        }
+
+        inline T &front() const {
+            return static_cast<T &>(set_.front());
+        }
+
+        inline T &back() const {
+            return static_cast<T &>(set_.back());
+        }
+
+        inline void add(T &elt) {
+            set_.add(elt);
+        }
+
+        inline void add(T &&elt) {
+            set_.add(GenericSetElement<T>(elt));
+        }
+
+        inline void remove(GenericSetElement<T> &elt) {
+            set_.remove(elt);
+        }
+
+        /* === Getter(s) === */
+
+        inline std::uint64_t capacity() const {
+            return set_.capacity();
+        }
+
+        inline std::uint64_t occupied() const {
+            return set_.occupied();
+        }
+
+        inline const GenericSetElement<T> *data() const {
+            return set_.data();
+        }
+
+        /* === Setter(s) === */
+
+    private:
+        Set<GenericSetElement<T>> set_;
     };
-
-    template<class T>
-    GenericSet<T>::GenericSet(StackID stack, std::uint64_t size): Set<GenericSetElement<T>>(stack, size) {
-
-    }
-
-    template<class T>
-    T &GenericSet<T>::at(std::uint64_t ix) {
-        return *(Set<GenericSetElement<T>>::operator[](ix));
-    }
-
-    template<class T>
-    T &GenericSet<T>::at(std::uint64_t ix) const {
-        return *(Set<GenericSetElement<T>>::operator[](ix));
-    }
 }
 
 #endif //SPIDER2_GENERICSET_H
