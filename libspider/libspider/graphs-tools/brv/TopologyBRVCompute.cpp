@@ -55,12 +55,12 @@
 
 void TopologyBRVCompute::execute() {
     /* == Array of vertex ix in the matrix == */
-    Spider::Array<std::int32_t> vertexIxArray{StackID::TRANSFO, graph_->nVertices(), -1};
+    Spider::Array<std::int32_t> vertexIxArray{graph_->nVertices(), -1, StackID::TRANSFO};
 
     /* == Go through all connected components == */
     for (const auto &component : connectedComponents_) {
         /* == Extract the edges == */
-        Spider::Array<const PiSDFEdge *> edgeArray{StackID::TRANSFO, component.nEdges};
+        Spider::Array<const PiSDFEdge *> edgeArray{component.nEdges, StackID::TRANSFO};
         BRVCompute::extractEdges(edgeArray, component);
 
         /* == Set the ix of the corresponding vertices in the topology matrix == */
@@ -83,7 +83,7 @@ void TopologyBRVCompute::execute() {
         }
 
         /* == Fill the topology matrix == */
-        Spider::Array<std::int64_t> topologyMatrix{StackID::TRANSFO, nMatEdges * nMatVertices, 0};
+        Spider::Array<std::int64_t> topologyMatrix{nMatEdges * nMatVertices, 0, StackID::TRANSFO};
         std::uint32_t edgeRow = 0;
         for (const auto &edge : validEdgeVector) {
             auto edgeRowOffset = edgeRow * nMatVertices;
@@ -136,7 +136,7 @@ void TopologyBRVCompute::computeBRVFromNullSpace(Spider::Array<std::int64_t> &to
                                                  Spider::Array<std::int32_t> &vertexIxArray,
                                                  const BRVComponent &component) {
     /* == Copy topology matrix into the rational matrix == */
-    Spider::Array<Spider::Rational> rationalMatrix{StackID::TRANSFO, nMatVertices * nMatEdges};
+    Spider::Array<Spider::Rational> rationalMatrix{nMatVertices * nMatEdges, StackID::TRANSFO};
     auto *rationalMatrixIterator = rationalMatrix.begin();
     for (const auto &val : topologyMatrix) {
         (*(rationalMatrixIterator++)) = Spider::Rational{static_cast<std::int64_t>(val)};
@@ -183,7 +183,7 @@ void TopologyBRVCompute::computeBRVFromNullSpace(Spider::Array<std::int64_t> &to
     }
 
     /* == Scale the result == */
-    Spider::Array<Spider::Rational> rationalResult{StackID::TRANSFO, nMatVertices, Spider::Rational{1}};
+    Spider::Array<Spider::Rational> rationalResult{nMatVertices, Spider::Rational{1}, StackID::TRANSFO};
     for (std::int32_t i = nMatEdges - 1; i >= 0; i--) {
         auto val{Spider::Rational()};
         for (std::uint32_t k = i + 1; k < nMatVertices; ++k) {

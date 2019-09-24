@@ -55,12 +55,12 @@
 
 void LCMBRVCompute::execute() {
     /* == Initializes the Rational array == */
-    Spider::Array<Spider::Rational> reps{StackID::TRANSFO, graph_->nVertices(), Spider::Rational()};
+    Spider::Array<Spider::Rational> reps{graph_->nVertices(), Spider::Rational(), StackID::TRANSFO};
 
     /* == Go through all connected components == */
     for (const auto &component : connectedComponents_) {
         /* == Extract the edges == */
-        Spider::Array<const PiSDFEdge *> edgeArray{StackID::TRANSFO, component.nEdges};
+        Spider::Array<const PiSDFEdge *> edgeArray{component.nEdges, StackID::TRANSFO};
         BRVCompute::extractEdges(edgeArray, component);
 
         /* == Extract the rationals == */

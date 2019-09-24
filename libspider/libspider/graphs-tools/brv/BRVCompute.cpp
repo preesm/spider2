@@ -52,8 +52,8 @@
 /* === Method(s) implementation === */
 
 BRVCompute::BRVCompute(const PiSDFGraph *graph) : graph_{graph} {
-    Spider::Array<const PiSDFVertex *> connectedComponentsKeys{StackID::TRANSFO, graph->nVertices(), nullptr};
-    Spider::Array<const PiSDFVertex *> vertexArray{StackID::TRANSFO, graph->nVertices(), nullptr};
+    Spider::Array<const PiSDFVertex *> connectedComponentsKeys{graph->nVertices(), nullptr, StackID::TRANSFO};
+    Spider::Array<const PiSDFVertex *> vertexArray{graph->nVertices(), nullptr, StackID::TRANSFO};
     BRVComponent component;
     for (auto *v:graph->vertices()) {
         if (!connectedComponentsKeys[v->ix()]) {

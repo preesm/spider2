@@ -214,7 +214,7 @@ public:
      * @brief Get input edge connected to port Ix.
      * @param ix Index of the input port.
      * @return @refitem PiSDFEdge
-     * @throw @refitem SpiderException if out of bound
+     * @throw @refitem Spider::Exception if out of bound
      */
     inline PiSDFEdge *inputEdge(std::uint32_t ix) const;
 
@@ -222,7 +222,7 @@ public:
      * @brief Get input edge connected to port Ix.
      * @param ix Index of the output port.
      * @return @refitem PiSDFEdge
-     * @throw @refitem SpiderException if out of bound.
+     * @throw @refitem Spider::Exception if out of bound.
      */
     inline PiSDFEdge *outputEdge(std::uint32_t ix) const;
 

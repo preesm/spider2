@@ -162,16 +162,16 @@ void StaticSRDAGTransformer::extractAndLinkActors(SRDAGTransfoJob &job) {
     auto *graph = job.reference;
 
     /* == Array to keep track of who has been done == */
-    Spider::Array<Spider::Array<PiSDFVertex *>> vertex2Vertex{StackID::TRANSFO, graph->nVertices()};
+    Spider::Array<Spider::Array<PiSDFVertex *>> vertex2Vertex{graph->nVertices(), StackID::TRANSFO};
 
     /* == Dummy arrays for interfaces (if any) == */
-    Spider::Array<PiSDFVertex *> arrayInputInterface{StackID::TRANSFO, 1};
-    Spider::Array<PiSDFVertex *> arrayOutputInterface{StackID::TRANSFO, 1};
+    Spider::Array<PiSDFVertex *> arrayInputInterface{1, StackID::TRANSFO};
+    Spider::Array<PiSDFVertex *> arrayOutputInterface{1, StackID::TRANSFO};
 
     /* == Copy all vertices == */
     auto prefix = job.srdagIx != UINT32_MAX ? srdag_->vertices()[job.srdagIx]->name() + "-" : "";
     for (const auto *vertex : graph->vertices()) {
-        Spider::construct(&vertex2Vertex[vertex->ix()], StackID::TRANSFO, vertex->repetitionValue());
+        Spider::construct(&vertex2Vertex[vertex->ix()], vertex->repetitionValue(), StackID::TRANSFO);
         for (std::uint32_t i = 0; i < vertex->repetitionValue(); ++i) {
             vertex2Vertex[vertex->ix()][i] = copyVertex(vertex, i, prefix);
         }
@@ -271,14 +271,12 @@ void StaticSRDAGTransformer::extractAndLinkActors(SRDAGTransfoJob &job) {
 
 void StaticSRDAGTransformer::singleRateLinkage(StaticSRDAGTransformer::EdgeLinker &edgeLinker) {
     auto hasDelay = edgeLinker.delay != 0;
-    Spider::Array<PiSDFVertex *> sourceLinkArray{StackID::TRANSFO,
-                                                 edgeLinker.source->repetitionValue() + hasDelay};
+    Spider::Array<PiSDFVertex *> sourceLinkArray{edgeLinker.source->repetitionValue() + hasDelay, StackID::TRANSFO};
     /* == Build the sourceLinkArray == */
     buildSourceLinkArray(edgeLinker, sourceLinkArray);
 
     /* == Build the sinkLinkArray == */
-    Spider::Array<SinkLinker> sinkLinkArray{StackID::TRANSFO,
-                                            edgeLinker.sink->repetitionValue() + hasDelay};
+    Spider::Array<SinkLinker> sinkLinkArray{edgeLinker.sink->repetitionValue() + hasDelay, StackID::TRANSFO};
     buildSinkLinkArray(edgeLinker, sinkLinkArray);
 
     /* == Do the actual linkage == */

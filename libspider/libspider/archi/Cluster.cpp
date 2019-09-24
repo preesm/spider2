@@ -51,7 +51,7 @@
 
 /* === Method(s) implementation === */
 
-Cluster::Cluster(std::uint32_t PECount, MemoryUnit *memoryUnit, Platform *platform) : PEArray_{StackID::ARCHI, PECount},
+Cluster::Cluster(std::uint32_t PECount, MemoryUnit *memoryUnit, Platform *platform) : PEArray_{PECount, StackID::ARCHI},
                                                                                       PEEnabledVector_(PECount, false),
                                                                                       platform_{platform},
                                                                                       memoryUnit_{memoryUnit} {

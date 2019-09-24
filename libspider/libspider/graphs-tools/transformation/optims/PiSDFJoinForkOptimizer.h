@@ -93,8 +93,8 @@ bool PiSDFJoinForkOptimizer::operator()(PiSDFGraph *graph) const {
     for (auto &pair : verticesToOptimize) {
         auto *join = pair.first;
         auto *fork = pair.second;
-        Spider::Array<EdgeLinker> sourceArray{StackID::TRANSFO, join->nEdgesIN()};
-        Spider::Array<EdgeLinker> sinkArray{StackID::TRANSFO, fork->nEdgesOUT()};
+        Spider::Array<EdgeLinker> sourceArray{join->nEdgesIN(), StackID::TRANSFO};
+        Spider::Array<EdgeLinker> sinkArray{fork->nEdgesOUT(), StackID::TRANSFO};
 
         for (auto *edge : join->inputEdges()) {
             sourceArray[edge->sinkPortIx()] = EdgeLinker{edge->source(), edge->sourceRate(), edge->sourcePortIx()};

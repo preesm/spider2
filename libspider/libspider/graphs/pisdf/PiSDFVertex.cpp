@@ -61,10 +61,10 @@ PiSDFVertex::PiSDFVertex(StackID stack,
                                                      nEdgesOUT_{nEdgesOUT},
                                                      nParamsIN_{nParamsIn},
                                                      nParamsOUT_{nParamsOut},
-                                                     inputEdgeArray_(stack, nEdgesIN, nullptr),
-                                                     outputEdgeArray_(stack, nEdgesOUT, nullptr),
-                                                     inputParamArray_(stack, nParamsIn, nullptr),
-                                                     outputParamArray_(stack, nParamsOut, nullptr) {
+                                                     inputEdgeArray_{nEdgesIN, nullptr, stack},
+                                                     outputEdgeArray_{nEdgesOUT, nullptr, stack},
+                                                     inputParamArray_{nParamsIn, nullptr, stack},
+                                                     outputParamArray_{nParamsOut, nullptr, stack} {
     checkSubtypeConsistency();
 
     if (type == PiSDFVertexType::CONFIG ||

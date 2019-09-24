@@ -50,9 +50,9 @@
 
 /* === Method(s) implementation === */
 
-Platform::Platform(std::uint32_t clusterCount) : clusterArray_{StackID::ARCHI, clusterCount},
-                                                 cluster2ClusterComCostRoutines_{StackID::ARCHI,
-                                                                                 clusterCount * clusterCount} {
+Platform::Platform(std::uint32_t clusterCount) : clusterArray_{clusterCount, StackID::ARCHI},
+                                                 cluster2ClusterComCostRoutines_{clusterCount * clusterCount,
+                                                                                 StackID::ARCHI} {
     for (auto &func : cluster2ClusterComCostRoutines_) {
         func = Spider::CommunicationCostFunctor(Spider::defaultZeroCommunicationCost);
     }

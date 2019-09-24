@@ -59,7 +59,7 @@ namespace Spider {
          * @param stack  Stack on which the array should be allocated.
          * @param size   Size of the array.
          */
-        inline Array(StackID stack, std::uint64_t size);
+        inline Array(std::uint64_t size, StackID stack = StackID::GENERAL);
 
         /**
          * @brief Create an array of size size on stack stack with all values set to value;
@@ -67,7 +67,7 @@ namespace Spider {
          * @param size   Size of the array.
          * @param value  Value to set to all the elements of the array.
          */
-        inline Array(StackID stack, std::uint64_t size, T value);
+        inline Array(std::uint64_t size, T value, StackID stack = StackID::GENERAL);
 
         inline Array() noexcept;
 
@@ -186,7 +186,7 @@ namespace Spider {
     }
 
     template<typename T>
-    Array<T>::Array(StackID stack, std::uint64_t size) : size_{size}, arraySize_{size + 1} {
+    Array<T>::Array(std::uint64_t size, StackID stack) : size_{size}, arraySize_{size + 1} {
         array_ = Spider::allocate<T>(stack, arraySize_);
         if (!array_) {
             throwSpiderException("Failed to allocate array.");
@@ -194,7 +194,7 @@ namespace Spider {
     }
 
     template<typename T>
-    Array<T>::Array(StackID stack, std::uint64_t size, T value) : Array<T>(stack, size) {
+    Array<T>::Array(std::uint64_t size, T value, StackID stack) : Array<T>(size, stack) {
         std::fill(this->begin(), this->end(), value);
     }
 
