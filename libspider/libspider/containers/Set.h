@@ -45,6 +45,7 @@
 #include <type_traits>
 #include <cinttypes>
 #include <common/Exception.h>
+#include <memory/Allocator.h>
 #include <containers/SetElement.h>
 
 /* === Class definition === */
@@ -68,12 +69,16 @@ namespace Spider {
 
         Set() = default;
 
-        explicit Set(std::uint64_t capacity) : size_{capacity + 1}, capacity_{capacity}, occupied_{0} {
-            data_ = new T[size_];
+        explicit Set(std::uint64_t capacity, StackID stackId = StackID::GENERAL) : size_{capacity + 1},
+                                                                                   capacity_{capacity},
+                                                                                   occupied_{0} {
+            data_ = Spider::allocate<T>(stackId, size_);
         }
 
-        Set(const Set &other) : size_{other.size_}, capacity_{other.capacity_}, occupied_{0} {
-            data_ = new T[other.size_];
+        Set(const Set &other, StackID stackId = StackID::GENERAL) : size_{other.size_},
+                                                                    capacity_{other.capacity_},
+                                                                    occupied_{0} {
+            data_ = Spider::allocate<T>(stackId, other.size_);
             std::copy(other.data_, other.data_ + other.size_, data_);
         }
 
@@ -82,7 +87,7 @@ namespace Spider {
         }
 
         ~Set() {
-            delete[] data_;
+            Spider::deallocate(data_);
         }
 
         /* === Operators === */

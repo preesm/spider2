@@ -104,9 +104,9 @@ namespace Spider {
 
         GenericSet() = default;
 
-        explicit GenericSet(std::uint64_t capacity) : set_{capacity} { }
+        explicit GenericSet(std::uint64_t capacity, StackID stackId = StackID::GENERAL) : set_{capacity, stackId} { }
 
-        GenericSet(const GenericSet &other) : set_{other.set_} { }
+        GenericSet(const GenericSet &other, StackID stackId = StackID::GENERAL) : set_{other.set_, stackId} { }
 
         GenericSet(GenericSet &&other) noexcept : set_{std::move(other.set_)} { }
 
