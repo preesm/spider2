@@ -59,6 +59,22 @@ namespace Spider {
         T value;
         NodeList *next = nullptr;
         NodeList *previous = nullptr;
+
+        inline T &operator*() {
+            return value;
+        }
+
+        inline T &operator->() {
+            return value;
+        }
+
+        inline explicit operator T &() {
+            return value;
+        }
+
+        inline explicit operator const T &() const {
+            return value;
+        }
     };
 
     /* === Iterator definition === */
@@ -150,15 +166,15 @@ namespace Spider {
 
         LinkedList(const LinkedList &other, StackID stack = StackID::GENERAL);
 
-        LinkedList(LinkedList &&other) noexcept ;
+        LinkedList(LinkedList &&other) noexcept;
 
         inline ~LinkedList();
 
         /* === Operators === */
 
-        NodeList<T> *operator[](std::uint64_t ix);
+        T &operator[](std::uint64_t ix);
 
-        NodeList<T> *operator[](std::uint64_t ix) const;
+        T &operator[](std::uint64_t ix) const;
 
         /**
          * @brief use the "making new friends idiom" from
@@ -323,9 +339,9 @@ namespace Spider {
     }
 
     template<class T>
-    inline NodeList<T> *LinkedList<T>::operator[](std::uint64_t ix) {
+    inline T &LinkedList<T>::operator[](std::uint64_t ix) {
         if (ix >= size_) {
-            throwSpiderException("Accesing unitialized element. Ix = %"
+            throwSpiderException("Accessing uninitialized element. Ix = %"
                                          PRIu64
                                          " -- Size = %"
                                          PRIu64
@@ -337,11 +353,11 @@ namespace Spider {
             current = current->next;
             i++;
         }
-        return current;
+        return static_cast<T &>(current);
     }
 
     template<class T>
-    inline NodeList<T> *LinkedList<T>::operator[](std::uint64_t ix) const {
+    inline T &LinkedList<T>::operator[](std::uint64_t ix) const {
         return operator[](ix);
     }
 
