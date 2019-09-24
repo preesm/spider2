@@ -94,30 +94,30 @@ namespace Spider {
          * @brief Copy constructor for implicit conversion from regular iterator to const_iterator
          * @param tmp
          */
-        LinkedListIterator(const LinkedListIterator<T, false> &tmp) : itr{tmp.itr} {
+        explicit LinkedListIterator(const LinkedListIterator<T, false> &tmp) : itr{tmp.itr} {
 
         }
 
-        bool operator==(const LinkedListIterator &rhs) const {
+        inline bool operator==(const LinkedListIterator &rhs) const {
             return itr == rhs.itr;
         }
 
-        bool operator!=(const LinkedListIterator &rhs) const {
+        inline bool operator!=(const LinkedListIterator &rhs) const {
             return itr != rhs.itr;
         }
 
-        iteratorValueType &operator*() {
+        inline iteratorValueType &operator*() {
             assert(itr != nullptr && "Invalid iterator dereference!");
             return itr->value;
         }
 
-        iteratorValueType &operator->() {
+        inline iteratorValueType &operator->() {
             assert(itr != nullptr && "Invalid iterator dereference!");
             return itr->value;
         }
 
         /* == Post-increment == */
-        const LinkedListIterator operator++(int) {
+        inline LinkedListIterator<T, is_const_iterator> operator++(int) {
             assert(itr != nullptr && "Out-of-bounds iterator increment!");
             auto tmp = LinkedListIterator(*this);
             itr = itr->next;
@@ -125,7 +125,7 @@ namespace Spider {
         }
 
         /* == Pre-increment == */
-        const LinkedListIterator operator++() {
+        inline const LinkedListIterator &operator++() {
             assert(itr != nullptr && "Out-of-bounds iterator increment!");
             itr = itr->next;
             return *this;
@@ -144,7 +144,13 @@ namespace Spider {
     class LinkedList {
 
     public:
+        LinkedList() = default;
+
         explicit inline LinkedList(StackID stack = StackID::GENERAL);
+
+        LinkedList(const LinkedList &other, StackID stack = StackID::GENERAL);
+
+        LinkedList(LinkedList &&other) noexcept ;
 
         inline ~LinkedList();
 
@@ -153,6 +159,31 @@ namespace Spider {
         NodeList<T> *operator[](std::uint64_t ix);
 
         NodeList<T> *operator[](std::uint64_t ix) const;
+
+        /**
+         * @brief use the "making new friends idiom" from
+         * https://en.wikibooks.org/wiki/More_C%2B%2B_Idioms/Making_New_Friends
+         * @param first   First element to swap.
+         * @param second  Second element to swap.
+         */
+        inline friend void swap(LinkedList<T> &first, LinkedList<T> &second) noexcept {
+            using std::swap;
+
+            /* == Do the swapping of the values == */
+            swap(first.head_, second.head_);
+            swap(first.current_, second.current_);
+            swap(first.tail_, second.tail_);
+            swap(first.size_, second.size_);
+            swap(first.stack_, second.stack_);
+        }
+
+        /**
+         * @brief Assignment operator. Use move constructor if used with an rvalue reference, copy constructor else.
+         * Use the copy and swap idiom.
+         * @param temp
+         * @return reference to this.
+         */
+        inline LinkedList &operator=(LinkedList temp);
 
         /* === Methods === */
 
@@ -256,7 +287,7 @@ namespace Spider {
         NodeList<T> *current_ = nullptr;
         NodeList<T> *tail_ = nullptr;
 
-        StackID stack_;
+        StackID stack_ = StackID::GENERAL;
         std::uint64_t size_ = 0;
 
         inline NodeList<T> *newNodeList(T &val, NodeList<T> *prev = nullptr, NodeList<T> *next = nullptr) const;
@@ -268,6 +299,19 @@ namespace Spider {
     template<typename T>
     LinkedList<T>::LinkedList(StackID stack) : stack_{stack} {
 
+    }
+
+    template<typename T>
+    LinkedList<T>::LinkedList(const LinkedList &other, StackID stack) : size_{0}, stack_{stack} {
+        for (auto &val : other) {
+            addCurrent(val);
+        }
+        assert(size_ == other.size_ && "Copied LinkedList should have same size");
+    }
+
+    template<typename T>
+    LinkedList<T>::LinkedList(LinkedList &&other) noexcept : LinkedList() {
+        swap(*this, other);
     }
 
     template<typename T>
@@ -289,7 +333,7 @@ namespace Spider {
         }
         std::uint64_t i = 0;
         auto *current = head_;
-        while (i < ix) {
+        while (i < ix && current != tail_) {
             current = current->next;
             i++;
         }
@@ -299,6 +343,12 @@ namespace Spider {
     template<class T>
     inline NodeList<T> *LinkedList<T>::operator[](std::uint64_t ix) const {
         return operator[](ix);
+    }
+
+    template<typename T>
+    LinkedList<T> &LinkedList<T>::operator=(LinkedList temp) {
+        swap(*this, temp);
+        return *this;
     }
 
     template<typename T>
@@ -367,7 +417,6 @@ namespace Spider {
             }
         }
         size_++;
-
     }
 
     template<typename T>
