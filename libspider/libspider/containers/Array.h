@@ -71,7 +71,7 @@ namespace Spider {
 
         inline Array() noexcept;
 
-        inline Array(const Array &other);
+        inline Array(const Array &other, StackID stack = StackID::GENERAL);
 
         inline Array(Array &&other) noexcept;
 
@@ -100,9 +100,9 @@ namespace Spider {
 
         /**
          * @brief Assignment operator. Use move constructor if used with an rvalue reference, copy constructor else.
-         * use the copy and swap idiom.
+         * Use the copy and swap idiom.
          * @param temp
-         * @return
+         * @return reference to this.
          */
         inline Array &operator=(Array temp);
 
@@ -143,16 +143,26 @@ namespace Spider {
          */
         inline const T *data() const;
 
+        /**
+         * @brief Return element of the array at position ix with bound check.
+         * @param ix Index of the element.
+         * @return reference to the element
+         * @throws Spider::Exception if out of bound.
+         */
         inline T &at(std::uint64_t ix);
 
+        /**
+         * @brief Return element of the array at position ix with bound check.
+         * @param ix Index of the element.
+         * @return const reference to the element
+         * @throws Spider::Exception if out of bound.
+         */
         inline T &at(std::uint64_t ix) const;
 
     private:
         std::uint64_t size_;
         std::uint64_t arraySize_;
         T *array_;
-
-        bool copied_ = false;
     };
 
     /* === Inline methods === */
@@ -163,8 +173,8 @@ namespace Spider {
     }
 
     template<typename T>
-    Array<T>::Array(const Array &other) : size_{other.size_}, arraySize_{other.arraySize_} {
-        array_ = Spider::allocate<T>(StackID::GENERAL, arraySize_);
+    Array<T>::Array(const Array &other, StackID stack) : size_{other.size_}, arraySize_{other.arraySize_} {
+        array_ = Spider::allocate<T>(stack, arraySize_);
         if (array_) {
             std::copy(other.array_, other.array_ + other.size_, array_);
         }
@@ -223,14 +233,7 @@ namespace Spider {
 
     template<typename T>
     T &Array<T>::at(std::uint64_t ix) const {
-        if (ix >= size_) {
-            throwSpiderException("Index out of bound. Ix = %"
-                                         PRIu32
-                                         " -- Size = %"
-                                         PRIu32
-                                         "", ix, arraySize_);
-        }
-        return array_[ix];
+        return at(ix);
     }
 
     template<typename T>
