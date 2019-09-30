@@ -62,6 +62,8 @@ public:
 protected:
 
     inline explicit DynamicAllocator(std::string name, std::int32_t alignment = 0);
+
+    ~DynamicAllocator() override = default;
 };
 
 /* === Inline methods === */

@@ -66,7 +66,7 @@ namespace Spider {
 
             explicit DOTExporter(const PiSDFGraph *graph) : Exporter(), graph_{graph} { }
 
-            ~DOTExporter() = default;
+            ~DOTExporter() override = default;
 
             /* === Method(s) === */
 
