@@ -42,8 +42,19 @@
 
 /* === Include(s) === */
 
-#include <graphs-tools/exporter/Exporter.h>
+#include <common/Exporter.h>
 
+/* === Forward declaration(s) === */
+
+class PiSDFGraph;
+
+class PiSDFVertex;
+
+class PiSDFInterface;
+
+class PiSDFEdge;
+
+class PiSDFParam;
 
 namespace Spider {
     namespace PiSDF {
@@ -53,7 +64,7 @@ namespace Spider {
         class DOTExporter : public Exporter {
         public:
 
-            explicit DOTExporter(const PiSDFGraph *graph) : Exporter(graph) { }
+            explicit DOTExporter(const PiSDFGraph *graph) : Exporter(), graph_{graph} { }
 
             ~DOTExporter() = default;
 
@@ -66,6 +77,7 @@ namespace Spider {
             void print(std::ofstream &file) const override;
 
         private:
+            const PiSDFGraph *graph_ = nullptr;
 
             /* === Private static method(s) === */
 

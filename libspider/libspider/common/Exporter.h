@@ -46,18 +46,6 @@
 #include <fstream>
 #include <string>
 
-/* === Forward declaration(s) === */
-
-class PiSDFGraph;
-
-class PiSDFVertex;
-
-class PiSDFInterface;
-
-class PiSDFEdge;
-
-class PiSDFParam;
-
 namespace Spider {
     namespace PiSDF {
 
@@ -66,7 +54,7 @@ namespace Spider {
         class Exporter {
         public:
 
-            explicit Exporter(const PiSDFGraph *graph) : graph_{graph} { }
+            Exporter() = default;
 
             ~Exporter() = default;
 
@@ -89,8 +77,6 @@ namespace Spider {
              */
             virtual void print(std::ofstream &file) const = 0;
 
-        protected:
-            const PiSDFGraph *graph_ = nullptr;
         };
     }
 }
