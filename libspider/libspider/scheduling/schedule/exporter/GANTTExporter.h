@@ -37,45 +37,31 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_EXPORTER_H
-#define SPIDER2_EXPORTER_H
+#ifndef SPIDER2_GANTTEXPORTER_H
+#define SPIDER2_GANTTEXPORTER_H
 
 /* === Include(s) === */
 
-#include <iostream>
-#include <fstream>
-#include <string>
 
-namespace Spider {
-    /* === Class definition === */
 
-    class Exporter {
-    public:
+/* === Class definition === */
 
-        Exporter() = default;
+class GANTTExporter {
+public:
 
-        virtual ~Exporter() = default;
+    /* === Method(s) === */
+    
+    /* === Getter(s) === */
+    
+    /* === Setter(s) === */
 
-        /* === Method(s) === */
+private:
 
-        /**
-         * @brief Print the graph to default file -> ./pisdf-graph.*
-         */
-        virtual void print() const = 0;
+    /* === Private method(s) === */
+};
 
-        /**
-         * @brief Open file of path "path" and print the graph to the file.
-         * @param path   Path of the resulting file.
-         */
-        virtual void print(const std::string &path) const = 0;
+/* === Inline method(s) === */
 
-        /**
-         * @brief Print the graph to a given opened file.
-         * @param file File to which the graph will be printed.
-         */
-        virtual void print(std::ofstream &file) const = 0;
 
-    };
-}
 
-#endif //SPIDER2_EXPORTER_H
+#endif //SPIDER2_GANTTEXPORTER_H
