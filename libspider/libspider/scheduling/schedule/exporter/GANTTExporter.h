@@ -42,26 +42,37 @@
 
 /* === Include(s) === */
 
+#include <common/Exporter.h>
 
+namespace Spider {
 
-/* === Class definition === */
+    /* === Forward declaration(s) === */
 
-class GANTTExporter {
-public:
+    class Schedule;
 
-    /* === Method(s) === */
-    
-    /* === Getter(s) === */
-    
-    /* === Setter(s) === */
+    /* === Class definition === */
 
-private:
+    class GANTTExporter : public Exporter {
+    public:
 
-    /* === Private method(s) === */
-};
+        explicit GANTTExporter(const Schedule *schedule) : Exporter(), schedule_{schedule} { }
 
-/* === Inline method(s) === */
+        ~GANTTExporter() override = default;
 
+        /* === Method(s) === */
 
+        void print() const override;
 
+        void print(const std::string &path) const override;
+
+        void print(std::ofstream &file) const override;
+
+    private:
+        const Schedule *schedule_ = nullptr;
+
+        /* === Private method(s) === */
+    };
+
+    /* === Inline method(s) === */
+}
 #endif //SPIDER2_GANTTEXPORTER_H
