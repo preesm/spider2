@@ -63,7 +63,7 @@ if (NOT ${CMAKE_GENERATOR} MATCHES "Visual Studio.*")
         MESSAGE("Generate Release project")
         set(CMAKE_BUILD_TYPE Release)
         set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Release)
-        set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -Wall -Wextra")
+        set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O2 -Wall -Wextra")
         if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
             set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -flto")
         endif ()
@@ -155,6 +155,7 @@ file(
         ${SPIDER_LIB_DIR}/memory/dynamic-allocators/*.cpp
         ${SPIDER_LIB_DIR}/memory/static-allocators/*.cpp
         ${SPIDER_LIB_DIR}/graphs/pisdf/*.cpp
+        ${SPIDER_LIB_DIR}/graphs/tmp/*.cpp
         ${SPIDER_LIB_DIR}/graphs-tools/brv/*.cpp
         ${SPIDER_LIB_DIR}/graphs-tools/exporter/*.cpp
         ${SPIDER_LIB_DIR}/graphs-tools/expression-parser/*.cpp
@@ -182,6 +183,7 @@ file(
         ${SPIDER_LIB_DIR}/memory/dynamic-allocators/*.h
         ${SPIDER_LIB_DIR}/memory/static-allocators/*.h
         ${SPIDER_LIB_DIR}/graphs/pisdf/*.h
+        ${SPIDER_LIB_DIR}/graphs/tmp/*.h
         ${SPIDER_LIB_DIR}/graphs-tools/brv/*.h
         ${SPIDER_LIB_DIR}/graphs-tools/exporter/*.h
         ${SPIDER_LIB_DIR}/graphs-tools/expression-parser/*.h
