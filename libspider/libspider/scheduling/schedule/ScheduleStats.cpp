@@ -40,10 +40,38 @@
 
 /* === Include(s) === */
 
-#include "ScheduleStats.h"
+#include <scheduling/schedule/ScheduleStats.h>
+#include <spider-api/archi.h>
+#include <archi/Platform.h>
 
 /* === Static variable(s) === */
 
 /* === Static function(s) === */
 
 /* === Method(s) implementation === */
+
+
+Spider::ScheduleStats::ScheduleStats() {
+    auto *platform = Spider::platform();
+
+    /* == Init stat vectors == */
+    const auto &n = platform->PECount();
+    startTimeVector_ = Spider::vector<std::uint64_t>(n, 0);
+    endTimeVector_ = Spider::vector<std::uint64_t>(n, 0);
+    loadTimeVector_ = Spider::vector<std::uint64_t>(n, 0);
+    idleTimeVector_ = Spider::vector<std::uint64_t>(n, 0);
+    jobCountVector_ = Spider::vector<std::uint32_t>(n, 0);
+}
+
+void Spider::ScheduleStats::reset() {
+    /* == Clear all the vectors == */
+    std::fill(startTimeVector_.begin(), startTimeVector_.end(), 0);
+    std::fill(endTimeVector_.begin(), endTimeVector_.end(), 0);
+    std::fill(loadTimeVector_.begin(), loadTimeVector_.end(), 0);
+    std::fill(idleTimeVector_.begin(), idleTimeVector_.end(), 0);
+    std::fill(jobCountVector_.begin(), jobCountVector_.end(), 0);
+
+    /* == Reset min / max time == */
+    minStartTime_ = UINT64_MAX;
+    maxEndTime_ = 0;
+}

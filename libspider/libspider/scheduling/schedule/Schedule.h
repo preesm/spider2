@@ -44,6 +44,7 @@
 
 #include <containers/StlContainers.h>
 #include <scheduling/schedule/ScheduleJob.h>
+#include <scheduling/schedule/ScheduleStats.h>
 #include <functional>
 
 namespace Spider {
@@ -62,27 +63,67 @@ namespace Spider {
 
         /* === Method(s) === */
 
-        inline void reset();
+        /**
+         * @brief Add a job to the schedule.
+         * @param job  Job to add.
+         */
+        void add(ScheduleJob &&job);
 
-        inline void addJob(ScheduleJob &job) {
-            jobs_.push_back(job);
-        }
+        /**
+         * @brief Clear schedule jobs.
+         */
+        void clear();
+
+        /**
+         * @brief Reset schedule jobs.
+         * @remark Set all job state to @refitem Spider::JobState::PENDING.
+         * @remark Statistics of the platform are not modified.
+         */
+        void reset();
 
         /* === Getter(s) === */
 
-        inline ScheduleJob &job(std::uint32_t ix) const;
-
+        /**
+         * @brief Get the job vector of the schedule.
+         * @return const reference to the job vector
+         */
         inline const Spider::vector<std::reference_wrapper<ScheduleJob>> &jobs() const;
+
+        /**
+         * @brief Get a job from its ix.
+         * @param ix  Ix of the job to fetch.
+         * @return const reference to the job.
+         * @throws @refitem std::out_of_range if ix is out of range.
+         */
+        inline const ScheduleJob &job(std::uint32_t ix) const;
+
+        /**
+         * @brief Get the different statistics of the platform.
+         * @return const reference to @refitem ScheduleStats
+         */
+        inline const ScheduleStats &stats() const;
 
         /* === Setter(s) === */
 
     private:
         Spider::vector<std::reference_wrapper<ScheduleJob>> jobs_;
-
+        ScheduleStats stats_;
         /* === Private method(s) === */
     };
 
     /* === Inline method(s) === */
+
+    const Spider::vector<std::reference_wrapper<ScheduleJob>> &Schedule::jobs() const {
+        return jobs_;
+    }
+
+    const ScheduleJob &Spider::Schedule::job(std::uint32_t ix) const {
+        return jobs_.at(ix).get();
+    }
+
+    const ScheduleStats &Schedule::stats() const {
+        return stats_;
+    }
 }
 
 #endif //SPIDER2_SCHEDULE_H

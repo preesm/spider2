@@ -42,26 +42,198 @@
 
 /* === Include(s) === */
 
+#include <cstdint>
+#include <containers/StlContainers.h>
 
+namespace Spider {
 
 /* === Class definition === */
 
-class ScheduleStats {
-public:
+    class ScheduleStats {
+    public:
 
-    /* === Method(s) === */
+        ScheduleStats();
 
-    /* === Getter(s) === */
+        ~ScheduleStats() = default;
 
-    /* === Setter(s) === */
+        /* === Method(s) === */
 
-private:
+        /**
+         * @brief Reset all stats values to 0.
+         */
+        void reset();
 
-    /* === Private method(s) === */
-};
+        /**
+         * @brief Return the maximum span of all PE of the platform.
+         * @return max span of all PE
+         */
+        inline std::uint64_t makespan() const;
 
-/* === Inline method(s) === */
+        /**
+         * @brief Compute the utilization factor of a PE.
+         * @remark utilization factor is defined as (load(PE) / makespan())
+         * @param PE PE to evaluate.
+         * @return utilization factor of the PE.
+         * @throws @refitem std::out_of_range if PE out of range.
+         */
+        inline double utilizationFactor(std::uint32_t PE) const;
 
+        /* === Getter(s) === */
+
+        /**
+         * @brief Return the scheduled start time of a given PE.
+         * @param PE  PE to check.
+         * @return start time of given PE.
+         * @throws @refitem std::out_of_range if PE out of range.
+         */
+        inline std::uint64_t startTime(std::uint32_t PE) const;
+
+        /**
+         * @brief Return the scheduled end time of a given PE.
+         * @param PE  PE to check.
+         * @return end time of given PE.
+         * @throws @refitem std::out_of_range if PE out of range.
+         */
+        inline std::uint64_t endTime(std::uint32_t PE) const;
+
+        /**
+         * @brief Return the load time of a given PE.
+         * @param PE  PE to check.
+         * @return load time of given PE.
+         * @throws @refitem std::out_of_range if PE out of range.
+         */
+        inline std::uint32_t loadTime(std::uint32_t PE) const;
+
+        /**
+         * @brief Return the idle time of a given PE.
+         * @param PE  PE to check.
+         * @return idle time of given PE.
+         * @throws @refitem std::out_of_range if PE out of range.
+         */
+        inline std::uint32_t idleTime(std::uint32_t PE) const;
+
+        /**
+         * @brief Return the schedule span of a given PE.
+         * @param PE  PE to check.
+         * @return makespan of given PE.
+         * @throws @refitem std::out_of_range if PE out of range.
+         */
+        inline std::uint64_t makespan(std::uint32_t PE) const;
+
+        /**
+         * @brief Return the number job mapped on given PE.
+         * @param PE PE to evaluate.
+         * @return job count of the PE.
+         * @throws @refitem std::out_of_range if PE out of range.
+         */
+        inline std::uint32_t jobCount(std::uint32_t PE) const;
+
+        /**
+         * @brief Return the minimum start time among the different PE.
+         * @return min start time
+         */
+        inline std::uint64_t minStartTime() const;
+
+        /**
+         * @brief Return the maximum end time among the different PE.
+         * @return max end time
+         */
+        inline std::uint64_t maxEndTime() const;
+
+        /* === Setter(s) === */
+
+        inline void updateStartTime(std::uint32_t PE, std::uint64_t time);
+
+        inline void updateEndTime(std::uint32_t PE, std::uint64_t time);
+
+        inline void updateLoadTime(std::uint32_t PE, std::uint64_t time);
+
+        inline void updateIDLETime(std::uint32_t PE, std::uint64_t time);
+
+        inline void updateJobCount(std::uint32_t PE, std::uint32_t incValue = 1);
+
+    private:
+        Spider::vector<std::uint64_t> startTimeVector_;
+        Spider::vector<std::uint64_t> endTimeVector_;
+        Spider::vector<std::uint64_t> loadTimeVector_;
+        Spider::vector<std::uint64_t> idleTimeVector_;
+        Spider::vector<std::uint32_t> jobCountVector_;
+        std::uint64_t minStartTime_ = UINT64_MAX;
+        std::uint64_t maxEndTime_ = 0;
+
+        /* === Private method(s) === */
+    };
+
+    /* === Inline method(s) === */
+
+    std::uint64_t ScheduleStats::makespan() const {
+        return maxEndTime_ - minStartTime_;
+    }
+
+    double ScheduleStats::utilizationFactor(std::uint32_t PE) const {
+        const double &load = loadTime(PE);
+        return load / makespan();
+    }
+
+    std::uint64_t ScheduleStats::startTime(std::uint32_t PE) const {
+        return startTimeVector_.at(PE);
+    }
+
+    std::uint64_t ScheduleStats::endTime(std::uint32_t PE) const {
+        return endTimeVector_.at(PE);
+    }
+
+    std::uint32_t ScheduleStats::loadTime(std::uint32_t PE) const {
+        return loadTimeVector_.at(PE);
+    }
+
+    std::uint32_t ScheduleStats::idleTime(std::uint32_t PE) const {
+        return idleTimeVector_.at(PE);
+    }
+
+    std::uint64_t ScheduleStats::makespan(std::uint32_t PE) const {
+        /* == Here, we use the at method on the first vector to check the validity of PE value then we use
+         * random access operator on second vector due to it being faster. == */
+        return startTimeVector_.at(PE) - endTimeVector_[PE];
+    }
+
+    std::uint32_t ScheduleStats::jobCount(std::uint32_t PE) const {
+        return jobCountVector_.at(PE);
+    }
+
+    std::uint64_t ScheduleStats::minStartTime() const {
+        return minStartTime_;
+    }
+
+    std::uint64_t ScheduleStats::maxEndTime() const {
+        return maxEndTime_;
+    }
+
+    void ScheduleStats::updateStartTime(std::uint32_t PE, std::uint64_t time) {
+        auto &startTime = startTimeVector_.at(PE);
+        startTime = std::min(startTime, time);
+    }
+
+    void ScheduleStats::updateEndTime(std::uint32_t PE, std::uint64_t time) {
+        auto &endTime = endTimeVector_.at(PE);
+        endTime = std::max(endTime, time);
+    }
+
+    void ScheduleStats::updateLoadTime(std::uint32_t PE, std::uint64_t time) {
+        auto &loadTime = loadTimeVector_.at(PE);
+        loadTime += time;
+    }
+
+    void ScheduleStats::updateIDLETime(std::uint32_t PE, std::uint64_t time) {
+        auto &idleTime = idleTimeVector_.at(PE);
+        idleTime += time;
+    }
+
+    void ScheduleStats::updateJobCount(std::uint32_t PE, std::uint32_t incValue) {
+        auto &jobCount = jobCountVector_.at(PE);
+        jobCount += incValue;
+    }
+}
 
 
 #endif //SPIDER2_SCHEDULESTATS_H

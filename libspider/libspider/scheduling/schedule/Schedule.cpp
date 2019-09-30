@@ -40,10 +40,41 @@
 
 /* === Include(s) === */
 
-#include "Schedule.h"
+#include <scheduling/schedule/Schedule.h>
+#include <spider-api/archi.h>
+#include <archi/Platform.h>
+#include <archi/ProcessingElement.h>
 
 /* === Static variable(s) === */
 
 /* === Static function(s) === */
 
 /* === Method(s) implementation === */
+
+void Spider::Schedule::clear() {
+    jobs_.clear();
+
+    /* == Reset the stats the platform == */
+    stats_.reset();
+}
+
+void Spider::Schedule::reset() {
+    for (auto &job : jobs_) {
+        job.get().setState(Spider::JobState::PENDING);
+    }
+}
+
+void Spider::Schedule::add(ScheduleJob &&job) {
+    jobs_.push_back(job);
+
+    /* == Update stats of given PE == */
+    const auto *platform = Spider::platform();
+    const auto &st = job.mappingInfo().startTime;
+    const auto &et = job.mappingInfo().endTime;
+    const auto &PE = platform->findPE(job.mappingInfo().clusterIx, job.mappingInfo().PEIx).spiderPEIx();
+    stats_.updateStartTime(PE, st);
+    stats_.updateIDLETime(PE, st - stats_.endTime(PE));
+    stats_.updateEndTime(PE, et);
+    stats_.updateLoadTime(PE, et - st);
+    stats_.updateJobCount(PE);
+}
