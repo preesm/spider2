@@ -43,6 +43,7 @@
 /* === Includes === */
 
 #include <string>
+#include <spider-api/pisdf.h>
 
 /* === Enumeration(s) === */
 
@@ -74,11 +75,21 @@ namespace Spider {
         void exportPreExecGantt(const std::string &path);
 
         /**
-         * @brief Export the equivalent Single-Rate Directed Acyclic Graph (SR-DAG) of the application graph
+         * @brief Export the equivalent Single-Rate Directed Acyclic Graph (SR-DAG) of a graph
          * after one graph iteration to a .dot file.
-         * @param path  Path of the file.
+         * @remark This function consider that dynamic parameters have been resolved.
+         * @remark This function perform the SR-DAG transformation of the graph.
+         * @param path   Path of the file.
+         * @param graph  Graph to transform (default is the application graph).
          */
-        void exportSRDAG(const std::string &path = "./srdag.dot");
+        void exportSRDAG(const std::string &path = "./srdag.dot", const PiSDFGraph *graph = Spider::pisdfGraph());
+
+        /**
+         * @brief Export a PiSDF graph to a .dot file.
+         * @param path   Path of the file.
+         * @param graph  Graph to transform (default is the application graph).
+         */
+        void exportGraphToDOT(const std::string &path = "./graph.dot", const PiSDFGraph *graph  = Spider::pisdfGraph());
 
         /**
          * @brief Enable a given logger.
