@@ -208,7 +208,14 @@ namespace Spider {
 
     template<class T>
     T &Set<T, EnableIfPolicy<T>>::at(std::uint64_t ix) const {
-        return at(ix);
+        if (ix >= occupied_) {
+            throwSpiderException("Index of non-initialized element. Ix = %"
+                                         PRIu32
+                                         " -- Size = %"
+                                         PRIu32
+                                         "", ix, occupied_);
+        }
+        return data_[ix];
     }
 
     template<class T>

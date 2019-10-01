@@ -233,7 +233,14 @@ namespace Spider {
 
     template<typename T>
     T &Array<T>::at(std::uint64_t ix) const {
-        return at(ix);
+        if (ix >= size_) {
+            throwSpiderException("Index out of bound. Ix = %"
+                                         PRIu32
+                                         " -- Size = %"
+                                         PRIu32
+                                         "", ix, arraySize_);
+        }
+        return array_[ix];
     }
 
     template<typename T>
