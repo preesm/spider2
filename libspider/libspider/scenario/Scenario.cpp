@@ -65,7 +65,7 @@ Spider::Scenario::Scenario(const PiSDFGraph *graph) {
     }
 }
 
-bool Spider::Scenario::mappingConstraint(const PiSDFVertex *vertex, const ProcessingElement *PE) const {
+bool Spider::Scenario::isMappable(const PiSDFVertex *vertex, const ProcessingElement *PE) const {
     auto &contraints = vertexMappingConstraintsMap_.at(vertex);
     return contraints.at(PE->spiderPEIx());
 }

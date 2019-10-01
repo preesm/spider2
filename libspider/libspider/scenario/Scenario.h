@@ -93,7 +93,7 @@ namespace Spider {
          * @return true if vertex is mappable on PE, false else.
          * @throws @refitem std::out_of_range if vertex or PE do not exist in the lookup table.
          */
-        bool mappingConstraint(const PiSDFVertex *vertex, const ProcessingElement *PE) const;
+        bool isMappable(const PiSDFVertex *vertex, const ProcessingElement *PE) const;
 
         /**
          * @brief Get the execution timing of a given vertex on a specific PE type.
