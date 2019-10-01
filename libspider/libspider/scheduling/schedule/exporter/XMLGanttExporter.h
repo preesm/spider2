@@ -37,8 +37,8 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_GANTTEXPORTER_H
-#define SPIDER2_GANTTEXPORTER_H
+#ifndef SPIDER2_XMLGANTTEXPORTER_H
+#define SPIDER2_XMLGANTTEXPORTER_H
 
 /* === Include(s) === */
 
@@ -54,18 +54,18 @@ namespace Spider {
 
     /* === Class definition === */
 
-    class GANTTExporter : public Exporter {
+    class XMLGanttExporter : public Exporter {
     public:
 
-        explicit GANTTExporter(const Schedule *schedule) : Exporter(), schedule_{schedule} { }
+        explicit XMLGanttExporter(const Schedule *schedule) : Exporter(), schedule_{schedule} { }
 
-        ~GANTTExporter() override = default;
+        ~XMLGanttExporter() override = default;
 
         /* === Method(s) === */
 
         /**
          * @brief Print the graph to default file path.
-         * @remark default path: ./gantt.pgantt
+         * @remark default path: ./gantt.xml
          */
         void print() const override;
 
@@ -83,4 +83,4 @@ namespace Spider {
 
     /* === Inline method(s) === */
 }
-#endif //SPIDER2_GANTTEXPORTER_H
+#endif //SPIDER2_XMLGANTTEXPORTER_H

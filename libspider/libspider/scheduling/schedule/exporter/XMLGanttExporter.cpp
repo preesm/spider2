@@ -40,7 +40,7 @@
 
 /* === Include(s) === */
 
-#include <scheduling/schedule/exporter/GANTTExporter.h>
+#include <scheduling/schedule/exporter/XMLGanttExporter.h>
 #include <spider-api/archi.h>
 #include <spider-api/pisdf.h>
 #include <archi/Platform.h>
@@ -57,11 +57,11 @@
 
 /* === Method(s) implementation === */
 
-void Spider::GANTTExporter::print() const {
-    print("./gantt.pgantt");
+void Spider::XMLGanttExporter::print() const {
+    print("./gantt.xml");
 }
 
-void Spider::GANTTExporter::print(const std::string &path) const {
+void Spider::XMLGanttExporter::print(const std::string &path) const {
     std::ofstream file{path, std::ios::out};
     print(file);
 
@@ -69,7 +69,7 @@ void Spider::GANTTExporter::print(const std::string &path) const {
     file.close();
 }
 
-void Spider::GANTTExporter::print(std::ofstream &file) const {
+void Spider::XMLGanttExporter::print(std::ofstream &file) const {
     file << "<data>" << '\n';
     for (const auto &job : schedule_->jobs()) {
         jobPrinter(file, job);
@@ -77,7 +77,7 @@ void Spider::GANTTExporter::print(std::ofstream &file) const {
     file << "</data>" << '\n';
 }
 
-void Spider::GANTTExporter::jobPrinter(std::ofstream &file, const Spider::ScheduleJob &job) const {
+void Spider::XMLGanttExporter::jobPrinter(std::ofstream &file, const Spider::ScheduleJob &job) const {
     const auto &graph = Spider::pisdfGraph();
     const auto *vertex = graph->vertices()[job.vertexIx()];
     const auto *platform = Spider::platform();
