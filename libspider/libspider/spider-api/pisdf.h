@@ -69,6 +69,10 @@ using ParamInt32 = std::int32_t;
 
 namespace Spider {
 
+    /**
+     * @brief Get the user defined graph of the Spider session.
+     * @return
+     */
     PiSDFGraph *&pisdfGraph();
 
     namespace API {
