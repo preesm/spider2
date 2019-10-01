@@ -66,6 +66,8 @@ namespace Spider {
     private:
 
         /* === Private method(s) === */
+
+        void vertexMapper(const PiSDFVertex * vertex);
     };
 
     /* === Inline method(s) === */

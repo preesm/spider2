@@ -53,7 +53,7 @@ namespace Spider {
 
     /* === Class definition === */
 
-    class ListScheduler : Scheduler {
+    class ListScheduler : public Scheduler {
     public:
 
         explicit ListScheduler(PiSDFGraph *graph);
@@ -79,6 +79,8 @@ namespace Spider {
         Spider::vector<ListVertex> sortedVertexVector_;
 
         /* === Protected method(s) === */
+
+        std::uint64_t computeMinStartTime(ScheduleJob &job);
 
     private:
         static std::int32_t computeScheduleLevel(ListVertex &listVertex,

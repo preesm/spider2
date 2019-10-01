@@ -49,5 +49,5 @@
 /* === Method(s) implementation === */
 
 Spider::Schedule &Spider::RoundRobinScheduler::mappingScheduling(bool partial) {
-    return ListScheduler::mappingScheduling(partial);
+    return schedule_;
 }

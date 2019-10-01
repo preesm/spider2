@@ -60,7 +60,7 @@ void Spider::Schedule::clear() {
 
 void Spider::Schedule::reset() {
     for (auto &job : jobs_) {
-        job.get().setState(Spider::JobState::PENDING);
+        job.setState(Spider::JobState::PENDING);
     }
 }
 
@@ -77,4 +77,8 @@ void Spider::Schedule::add(ScheduleJob &&job) {
     stats_.updateEndTime(PE, et);
     stats_.updateLoadTime(PE, et - st);
     stats_.updateJobCount(PE);
+}
+
+void Spider::Schedule::setJobCount(std::uint32_t count) {
+    jobs_.reserve(count);
 }

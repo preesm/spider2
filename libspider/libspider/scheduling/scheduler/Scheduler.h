@@ -73,8 +73,6 @@ namespace Spider {
     protected:
         PiSDFGraph *graph_ = nullptr;
         Schedule schedule_;
-
-        /* === Private method(s) === */
     };
 
     /* === Inline method(s) === */

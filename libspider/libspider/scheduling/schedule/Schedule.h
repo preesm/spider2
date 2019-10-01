@@ -81,13 +81,17 @@ namespace Spider {
          */
         void reset();
 
+        void setJobCount(std::uint32_t count);
+
         /* === Getter(s) === */
+
+        inline std::uint64_t jobCount() const;
 
         /**
          * @brief Get the job vector of the schedule.
          * @return const reference to the job vector
          */
-        inline const Spider::vector<std::reference_wrapper<ScheduleJob>> &jobs() const;
+        inline const Spider::vector<ScheduleJob> &jobs() const;
 
         /**
          * @brief Get a job from its ix.
@@ -106,19 +110,24 @@ namespace Spider {
         /* === Setter(s) === */
 
     private:
-        Spider::vector<std::reference_wrapper<ScheduleJob>> jobs_;
+        Spider::vector<ScheduleJob> jobs_;
         ScheduleStats stats_;
+
         /* === Private method(s) === */
     };
 
     /* === Inline method(s) === */
 
-    const Spider::vector<std::reference_wrapper<ScheduleJob>> &Schedule::jobs() const {
+    std::uint64_t Schedule::jobCount() const {
+        return jobs_.size();
+    }
+
+    const Spider::vector<ScheduleJob> &Schedule::jobs() const {
         return jobs_;
     }
 
     const ScheduleJob &Spider::Schedule::job(std::uint32_t ix) const {
-        return jobs_.at(ix).get();
+        return jobs_.at(ix);
     }
 
     const ScheduleStats &Schedule::stats() const {

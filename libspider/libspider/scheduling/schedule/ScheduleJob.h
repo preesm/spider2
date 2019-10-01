@@ -96,7 +96,7 @@ namespace Spider {
          * @brief Add a constraint on another @refitem ScheduleJob to current job.
          * @param job Pointer to the job we are constrained on.
          */
-        inline void addJobConstrain(ScheduleJob *job);
+        inline void addConstrain(ScheduleJob *job);
 
         /* === Getter(s) === */
 
@@ -188,7 +188,7 @@ namespace Spider {
 
     /* === Inline method(s) === */
 
-    void ScheduleJob::addJobConstrain(ScheduleJob *job) {
+    void ScheduleJob::addConstrain(ScheduleJob *job) {
         if (job && job != this) {
             constraints_.push_back(job);
         }

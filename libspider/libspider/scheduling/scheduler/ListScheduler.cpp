@@ -67,7 +67,7 @@ std::int32_t Spider::ListScheduler::computeScheduleLevel(ListVertex &listVertex,
                 for (auto &cluster : platform->clusters()) {
                     auto executionTime = scenario.executionTiming(vertex, cluster->PEType());
                     for (auto &pe : cluster->processingElements()) {
-                        if (scenario.mappingConstraint(vertex, pe)) {
+                        if (scenario.isMappable(vertex, pe)) {
                             if (!executionTime) {
                                 throwSpiderException("Vertex [%s] has null execution time on mappable PE [%s].",
                                                      vertex->name().c_str(), pe->name().c_str());

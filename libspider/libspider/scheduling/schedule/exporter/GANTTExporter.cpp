@@ -72,21 +72,22 @@ void Spider::GANTTExporter::print(const std::string &path) const {
 void Spider::GANTTExporter::print(std::ofstream &file) const {
     file << "<data>" << '\n';
     for (const auto &job : schedule_->jobs()) {
-        jobPrinter(file, job.get());
+        jobPrinter(file, job);
     }
     file << "</data>" << '\n';
 }
 
 void Spider::GANTTExporter::jobPrinter(std::ofstream &file, const Spider::ScheduleJob &job) const {
     const auto &graph = Spider::pisdfGraph();
-    const auto *vertex = graph->vertices()[job.vertexIx()]->reference();
+    const auto *vertex = graph->vertices()[job.vertexIx()];
     const auto *platform = Spider::platform();
     auto PEIx = platform->findPE(job.mappingInfo().clusterIx, job.mappingInfo().PEIx).hardwareIx();
 
     /* == Let's compute a color based on the value of the pointer == */
-    std::int32_t red = (reinterpret_cast<std::uintptr_t>(vertex) & 3u) * 50 + 100;
-    std::int32_t green = (reinterpret_cast<std::uintptr_t>(vertex) >> 2u) * 50 + 100;
-    std::int32_t blue = (reinterpret_cast<std::uintptr_t>(vertex) >> 4u) * 50 + 100;
+    const auto *reference = vertex->reference();
+    std::int32_t red = (reinterpret_cast<std::uintptr_t>(reference) & 3u) * 50 + 100;
+    std::int32_t green = (reinterpret_cast<std::uintptr_t>(reference) >> 2u) * 50 + 100;
+    std::int32_t blue = (reinterpret_cast<std::uintptr_t>(reference) >> 4u) * 50 + 100;
     file << '\t' << "<event" << '\n';
     file << '\t' << '\t' << R"(start=")" << job.mappingInfo().startTime << R"(")" << '\n';
     file << '\t' << '\t' << R"(end=")" << job.mappingInfo().endTime << R"(")" << '\n';
