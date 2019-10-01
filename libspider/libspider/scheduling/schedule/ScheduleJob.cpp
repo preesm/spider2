@@ -52,8 +52,12 @@ Spider::ScheduleJob::ScheduleJob(std::uint32_t ix) : ix_{ix} {
 
 }
 
-Spider::ScheduleJob::ScheduleJob(std::uint32_t ix, std::uint32_t PEIx, std::uint32_t clusterIx, std::uint32_t LRTIx) :
-        ix_{ix} {
+Spider::ScheduleJob::ScheduleJob(std::uint32_t vertexIx,
+                                 std::uint32_t ix,
+                                 std::uint32_t PEIx,
+                                 std::uint32_t clusterIx,
+                                 std::uint32_t LRTIx) : vertexIx_{vertexIx},
+                                                        ix_{ix} {
     mappingInfo_.PEIx = PEIx;
     mappingInfo_.clusterIx = clusterIx;
     mappingInfo_.LRTIx = LRTIx;

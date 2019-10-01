@@ -80,7 +80,11 @@ namespace Spider {
 
         explicit ScheduleJob(std::uint32_t ix);
 
-        ScheduleJob(std::uint32_t ix, std::uint32_t PEIx, std::uint32_t clusterIx, std::uint32_t LRTIx);
+        ScheduleJob(std::uint32_t vertexIx,
+                    std::uint32_t ix,
+                    std::uint32_t PEIx,
+                    std::uint32_t clusterIx,
+                    std::uint32_t LRTIx);
 
         ~ScheduleJob() = default;
 
@@ -95,6 +99,12 @@ namespace Spider {
         inline void addJobConstrain(ScheduleJob *job);
 
         /* === Getter(s) === */
+
+        /**
+         * @brief Get the ix of the job.
+         * @return job ix.
+         */
+        inline std::uint32_t vertexIx() const;
 
         /**
          * @brief Get the ix of the job.
@@ -115,6 +125,13 @@ namespace Spider {
         inline const JobMappingInfo &mappingInfo() const;
 
         /* === Setter(s) === */
+
+        /**
+         * @brief Set the ix of the vertex of the job.
+         * @remark This method will overwrite current value.
+         * @param ix Ix to set.
+         */
+        inline void setVertexIx(std::uint32_t ix);
 
         /**
          * @brief Set the ix of the job.
@@ -160,6 +177,7 @@ namespace Spider {
         inline void setMappingEndTime(std::uint64_t time);
 
     private:
+        std::uint32_t vertexIx_ = UINT32_MAX;
         std::uint32_t ix_ = UINT32_MAX;
         JobState state_ = Spider::JobState::PENDING;
         JobMappingInfo mappingInfo_;
@@ -176,6 +194,10 @@ namespace Spider {
         }
     }
 
+    std::uint32_t Spider::ScheduleJob::vertexIx() const {
+        return vertexIx_;
+    }
+
     std::uint32_t Spider::ScheduleJob::ix() const {
         return ix_;
     }
@@ -186,6 +208,10 @@ namespace Spider {
 
     const JobMappingInfo &ScheduleJob::mappingInfo() const {
         return mappingInfo_;
+    }
+
+    void ScheduleJob::setVertexIx(std::uint32_t ix) {
+        vertexIx_ = ix;
     }
 
     void ScheduleJob::setIx(std::uint32_t ix) {
