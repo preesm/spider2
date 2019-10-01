@@ -41,7 +41,15 @@
 /* === Include(s) === */
 
 #include <scheduling/schedule/exporter/GANTTExporter.h>
+#include <spider-api/archi.h>
+#include <spider-api/pisdf.h>
+#include <archi/Platform.h>
+#include <archi/ProcessingElement.h>
+#include <graphs/pisdf/PiSDFVertex.h>
+#include <graphs/pisdf/PiSDFGraph.h>
 #include <scheduling/schedule/Schedule.h>
+#include <scheduling/schedule/ScheduleJob.h>
+#include <iomanip>
 
 /* === Static variable(s) === */
 
@@ -50,13 +58,43 @@
 /* === Method(s) implementation === */
 
 void Spider::GANTTExporter::print() const {
-
+    print("./gantt.pgantt");
 }
 
 void Spider::GANTTExporter::print(const std::string &path) const {
+    std::ofstream file{path, std::ios::out};
+    print(file);
 
+    /* == We should not do this manually but this will ensure that data are correctly written even if it crashes == */
+    file.close();
 }
 
 void Spider::GANTTExporter::print(std::ofstream &file) const {
+    file << "<data>" << '\n';
+    for (const auto &job : schedule_->jobs()) {
+        jobPrinter(file, job.get());
+    }
+    file << "</data>" << '\n';
+}
 
+void Spider::GANTTExporter::jobPrinter(std::ofstream &file, const Spider::ScheduleJob &job) const {
+    const auto &graph = Spider::pisdfGraph();
+    const auto *vertex = graph->vertices()[job.vertexIx()]->reference();
+    const auto *platform = Spider::platform();
+    auto PEIx = platform->findPE(job.mappingInfo().clusterIx, job.mappingInfo().PEIx).hardwareIx();
+
+    /* == Let's compute a color based on the value of the pointer == */
+    std::int32_t red = (reinterpret_cast<std::uintptr_t>(vertex) & 3u) * 50 + 100;
+    std::int32_t green = (reinterpret_cast<std::uintptr_t>(vertex) >> 2u) * 50 + 100;
+    std::int32_t blue = (reinterpret_cast<std::uintptr_t>(vertex) >> 4u) * 50 + 100;
+    file << '\t' << "<event" << '\n';
+    file << '\t' << '\t' << R"(start=")" << job.mappingInfo().startTime << R"(")" << '\n';
+    file << '\t' << '\t' << R"(end=")" << job.mappingInfo().endTime << R"(")" << '\n';
+    file << '\t' << '\t' << R"(title=")" << vertex->name() << R"(")" << '\n';
+    file << '\t' << '\t' << R"(mapping="PE)" << PEIx << R"(")" << '\n';
+    file << '\t' << '\t' << R"(color="#)"
+         << std::setw(2) << std::hex << red
+         << std::setw(2) << std::hex << green
+         << std::setw(2) << std::hex << blue << R"(")" << '\n';
+    file << '\t' << '\t' << ">" << vertex->name() << ".</event>" << '\n';
 }

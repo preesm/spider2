@@ -50,6 +50,8 @@ namespace Spider {
 
     class Schedule;
 
+    class ScheduleJob;
+
     /* === Class definition === */
 
     class GANTTExporter : public Exporter {
@@ -61,6 +63,10 @@ namespace Spider {
 
         /* === Method(s) === */
 
+        /**
+         * @brief Print the graph to default file path.
+         * @remark default path: ./gantt.pgantt
+         */
         void print() const override;
 
         void print(const std::string &path) const override;
@@ -71,6 +77,8 @@ namespace Spider {
         const Schedule *schedule_ = nullptr;
 
         /* === Private method(s) === */
+
+        void jobPrinter(std::ofstream &file, const ScheduleJob &job) const;
     };
 
     /* === Inline method(s) === */

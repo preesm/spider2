@@ -59,7 +59,7 @@ namespace Spider {
         /* === Method(s) === */
 
         /**
-         * @brief Print the graph to default file -> ./pisdf-graph.*
+         * @brief Print the graph to default file path.
          */
         virtual void print() const = 0;
 

@@ -70,6 +70,10 @@ namespace Spider {
 
             /* === Method(s) === */
 
+            /**
+             * @brief Print the graph to default file path.
+             * @remark default path: ./pisdf-graph.dot
+             */
             void print() const override;
 
             void print(const std::string &path) const override;
