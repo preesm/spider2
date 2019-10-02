@@ -57,7 +57,7 @@ namespace Spider {
     class SVGGanttExporter : public Exporter {
     public:
 
-        explicit SVGGanttExporter(const Schedule *schedule) : Exporter(), schedule_{schedule} { }
+        explicit SVGGanttExporter(const Schedule *schedule);
 
         ~SVGGanttExporter() override = default;
 
@@ -75,11 +75,16 @@ namespace Spider {
 
     private:
         const Schedule *schedule_ = nullptr;
+        std::uint32_t width_ = UINT32_MAX;
+        std::uint32_t height_ = UINT32_MAX;
+        std::uint32_t widthMin_ = 10;
+        std::uint32_t widthMax_ = 500;
+        double scaleFactor_ = 0.;
 
         /* === Private method(s) === */
 
         void headerPrinter(std::ofstream &file) const;
-        
+
         void axisPrinter(std::ofstream &file) const;
 
         void jobPrinter(std::ofstream &file, const ScheduleJob &job) const;

@@ -211,12 +211,14 @@ namespace Spider {
 
     void ScheduleStats::updateStartTime(std::uint32_t PE, std::uint64_t time) {
         auto &startTime = startTimeVector_.at(PE);
-        startTime = std::min(startTime, time);
+        startTime = time;
+        minStartTime_ = std::min(startTime, minStartTime_);
     }
 
     void ScheduleStats::updateEndTime(std::uint32_t PE, std::uint64_t time) {
         auto &endTime = endTimeVector_.at(PE);
-        endTime = std::max(endTime, time);
+        endTime = time;
+        maxEndTime_ = std::max(endTime, maxEndTime_);
     }
 
     void ScheduleStats::updateLoadTime(std::uint32_t PE, std::uint64_t time) {
