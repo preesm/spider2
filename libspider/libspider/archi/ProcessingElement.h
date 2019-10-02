@@ -45,6 +45,7 @@
 #include <cstdint>
 #include <string>
 #include <spider-api/archi.h>
+#include <ostream>
 
 /* === Forward declaration(s) === */
 
@@ -143,6 +144,12 @@ public:
      */
     MemoryUnit &memoryUnit() const;
 
+    /**
+     * @brief Get the LRT that manages this PE.
+     * @return pointer to managing LRT, nullptr if not set.
+     */
+    inline ProcessingElement *managingLRT() const;
+
     /* === Setter(s) === */
 
     /**
@@ -185,6 +192,8 @@ public:
      */
     inline void setSpiderHWType(Spider::HWType type);
 
+    inline void setManagingLRT(ProcessingElement *managingLrt);
+
 private:
 
     /* === Core properties === */
@@ -201,6 +210,7 @@ private:
     std::uint32_t spiderPEIx_ = 0;  /* = Unique Ix of the PE inside spider (used internally by spider) = */
     Spider::PEType spiderPEType_ = Spider::PEType::LRT_PE;
     Spider::HWType spiderHWType_ = Spider::HWType::PHYS_PE;
+    ProcessingElement *managingLRT_ = nullptr; /* == LRT handling this PE (self if PE is an LRT) == */
     bool enabled_ = false;
 
     /* === Private method(s) === */
@@ -252,6 +262,10 @@ bool ProcessingElement::isLRT() const {
     return spiderPEType_ != Spider::PEType::PE_ONLY;
 }
 
+ProcessingElement *ProcessingElement::managingLRT() const {
+    return managingLRT_;
+}
+
 void ProcessingElement::setClusterPEIx(std::uint32_t ix) {
     clusterPEIx_ = ix;
 }
@@ -266,6 +280,10 @@ void ProcessingElement::setSpiderPEType(Spider::PEType type) {
 
 void ProcessingElement::setSpiderHWType(Spider::HWType type) {
     spiderHWType_ = type;
+}
+
+void ProcessingElement::setManagingLRT(ProcessingElement *managingLrt) {
+    managingLRT_ = managingLrt;
 }
 
 #endif //SPIDER2_PROCESSINGELEMENT_H

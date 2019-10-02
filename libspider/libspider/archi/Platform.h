@@ -178,7 +178,7 @@ public:
     inline std::uint32_t PETypeCount() const;
 
     /**
-     * @brief Get the total number of local runtimes in the platform (go though each cluster)
+     * @brief Get the total number of local runtimes in the platform (go through each cluster)
      * @return total number of @refitem ProcessingElement with the LRT_* @refitem Spider::PEType
      */
     std::uint32_t LRTCount() const;

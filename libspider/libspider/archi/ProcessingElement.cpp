@@ -69,6 +69,9 @@ ProcessingElement::ProcessingElement(std::uint32_t hwType,
                                                                     spiderPEIx_{spiderUniqueIx()},
                                                                     spiderPEType_{spiderPEType},
                                                                     spiderHWType_{spiderHWType}{
+    if (isLRT()) {
+        managingLRT_ = this;
+    }
     cluster->addPE(this);
 }
 
