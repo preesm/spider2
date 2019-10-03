@@ -42,6 +42,7 @@
 
 #include <archi/ProcessingElement.h>
 #include <archi/Cluster.h>
+#include <archi/Platform.h>
 
 /* === Static variable(s) === */
 
@@ -71,6 +72,7 @@ ProcessingElement::ProcessingElement(std::uint32_t hwType,
                                                                     spiderHWType_{spiderHWType}{
     if (isLRT()) {
         managingLRT_ = this;
+        managingLRTIx_ = cluster->platform().LRTCount();
     }
     cluster->addPE(this);
 }

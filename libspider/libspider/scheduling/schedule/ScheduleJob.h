@@ -80,8 +80,8 @@ namespace Spider {
 
         explicit ScheduleJob(std::uint32_t ix);
 
-        ScheduleJob(std::uint32_t vertexIx,
-                    std::uint32_t ix,
+        ScheduleJob(std::uint32_t ix,
+                    std::uint32_t vertexIx,
                     std::uint32_t PEIx,
                     std::uint32_t clusterIx,
                     std::uint32_t LRTIx);

@@ -150,6 +150,12 @@ public:
      */
     inline ProcessingElement *managingLRT() const;
 
+    /**
+     * @brief IX of the LRT handling this PE.
+     * @return IX value.
+     */
+    inline std::uint32_t managingLRTIx() const;
+
     /* === Setter(s) === */
 
     /**
@@ -192,7 +198,7 @@ public:
      */
     inline void setSpiderHWType(Spider::HWType type);
 
-    inline void setManagingLRT(ProcessingElement *managingLrt);
+    inline void setManagingLRT(ProcessingElement *managingLRT);
 
 private:
 
@@ -211,6 +217,7 @@ private:
     Spider::PEType spiderPEType_ = Spider::PEType::LRT_PE;
     Spider::HWType spiderHWType_ = Spider::HWType::PHYS_PE;
     ProcessingElement *managingLRT_ = nullptr; /* == LRT handling this PE (self if PE is an LRT) == */
+    std::uint32_t managingLRTIx_ = UINT32_MAX; /* == Ix of the LRT handling this PE == */
     bool enabled_ = false;
 
     /* === Private method(s) === */
@@ -266,6 +273,10 @@ ProcessingElement *ProcessingElement::managingLRT() const {
     return managingLRT_;
 }
 
+std::uint32_t ProcessingElement::managingLRTIx() const {
+    return managingLRTIx_;
+}
+
 void ProcessingElement::setClusterPEIx(std::uint32_t ix) {
     clusterPEIx_ = ix;
 }
@@ -282,8 +293,9 @@ void ProcessingElement::setSpiderHWType(Spider::HWType type) {
     spiderHWType_ = type;
 }
 
-void ProcessingElement::setManagingLRT(ProcessingElement *managingLrt) {
-    managingLRT_ = managingLrt;
+void ProcessingElement::setManagingLRT(ProcessingElement *managingLRT) {
+    managingLRT_ = managingLRT;
+    managingLRTIx_ = managingLRT->managingLRTIx_;
 }
 
 #endif //SPIDER2_PROCESSINGELEMENT_H

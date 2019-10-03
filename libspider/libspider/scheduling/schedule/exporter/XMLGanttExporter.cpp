@@ -85,17 +85,20 @@ void Spider::XMLGanttExporter::jobPrinter(std::ofstream &file, const Spider::Sch
 
     /* == Let's compute a color based on the value of the pointer == */
     const auto *reference = vertex->reference();
-    std::int32_t red = (reinterpret_cast<std::uintptr_t>(reference) & 3u) * 50 + 100;
-    std::int32_t green = (reinterpret_cast<std::uintptr_t>(reference) >> 2u) * 50 + 100;
-    std::int32_t blue = (reinterpret_cast<std::uintptr_t>(reference) >> 4u) * 50 + 100;
+    std::int32_t red = static_cast<std::uint8_t>((reinterpret_cast<std::uintptr_t>(reference) >> 3u) * 50 + 100);
+    std::int32_t green = static_cast<std::uint8_t>((reinterpret_cast<std::uintptr_t>(reference) >> 2u) * 50 + 100);
+    std::int32_t blue = static_cast<std::uint8_t>((reinterpret_cast<std::uintptr_t>(reference) >> 4u) * 50 + 100);
     file << '\t' << "<event" << '\n';
     file << '\t' << '\t' << R"(start=")" << job.mappingInfo().startTime << R"(")" << '\n';
     file << '\t' << '\t' << R"(end=")" << job.mappingInfo().endTime << R"(")" << '\n';
     file << '\t' << '\t' << R"(title=")" << vertex->name() << R"(")" << '\n';
     file << '\t' << '\t' << R"(mapping="PE)" << PEIx << R"(")" << '\n';
+    std::ios savedFormat{nullptr};
+    savedFormat.copyfmt(file);
     file << '\t' << '\t' << R"(color="#)"
          << std::setw(2) << std::hex << red
          << std::setw(2) << std::hex << green
          << std::setw(2) << std::hex << blue << R"(")" << '\n';
+    file.copyfmt(savedFormat);
     file << '\t' << '\t' << ">" << vertex->name() << ".</event>" << '\n';
 }

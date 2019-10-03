@@ -130,9 +130,8 @@ void Spider::SVGGanttExporter::headerPrinter(std::ofstream &file) const {
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    id="svg0"
    version="1.1"
-   width=")" << width_ << R"(")"
-         << R"(height=")" << height_ << R"(">)"
-         << R"(
+   width=")" << width_ << R"("
+   height=")" << height_ << R"(">
    <metadata
      id="metadata5">
     <rdf:RDF>
@@ -153,7 +152,7 @@ void Spider::SVGGanttExporter::headerPrinter(std::ofstream &file) const {
 void Spider::SVGGanttExporter::axisPrinter(std::ofstream &file) const {
     const auto &color = "393c3c";
     /* == Print horizontal arrow == */
-    file << R"(<rect
+    file << R"(    <rect
        style="fill:#)" << color << ";fill-opacity:1;stroke:none;stroke-width:0;stroke-linejoin:round;"
                                    "stroke-miterlimit:0;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:0" << R"("
        id="rect_arrow_horizontal"
@@ -171,7 +170,8 @@ void Spider::SVGGanttExporter::axisPrinter(std::ofstream &file) const {
        inkscape:connector-curvature="0" />)";
 
     /* == Print vertical arrow == */
-    file << R"(<rect
+    file << R"(
+    <rect
        style="fill:#)" << color << ";fill-opacity:1;stroke:none;stroke-width:0;stroke-linejoin:round;"
                                    "stroke-miterlimit:0;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:0" << R"("
        id="rect_arrow_vertical"
@@ -196,9 +196,9 @@ void Spider::SVGGanttExporter::jobPrinter(std::ofstream &file, const Spider::Sch
     const auto *graph = Spider::pisdfGraph();
     const auto *vertex = graph->vertices()[job.vertexIx()];
     const auto *reference = vertex->reference();
-    std::int32_t red = (reinterpret_cast<std::uintptr_t>(reference) & 3u) * 50 + 100;
-    std::int32_t green = (reinterpret_cast<std::uintptr_t>(reference) >> 2u) * 50 + 100;
-    std::int32_t blue = (reinterpret_cast<std::uintptr_t>(reference) >> 4u) * 50 + 100;
+    std::int32_t red = static_cast<std::uint8_t>((reinterpret_cast<std::uintptr_t>(reference) >> 3u) * 50 + 100);
+    std::int32_t green = static_cast<std::uint8_t>((reinterpret_cast<std::uintptr_t>(reference) >> 2u) * 50 + 100);
+    std::int32_t blue = static_cast<std::uint8_t>((reinterpret_cast<std::uintptr_t>(reference) >> 4u) * 50 + 100);
     const auto &taskWidth = static_cast<double>(job.mappingInfo().endTime - job.mappingInfo().startTime) * scaleFactor_;
 
     /* == Compute coordinates == */
@@ -206,19 +206,20 @@ void Spider::SVGGanttExporter::jobPrinter(std::ofstream &file, const Spider::Sch
     const auto &PE = platform->findPE(job.mappingInfo().clusterIx, job.mappingInfo().PEIx);
     const auto &x = offset + arrowStroke + border;
     const auto &y = height_ - (offset + arrowStroke + (PE.spiderPEIx() + 1) * (taskHeight + border));
-    file << R"(    <rect
+    std::ios savedFormat{nullptr};
+    savedFormat.copyfmt(file);
+    file << R"(
+    <rect
        style="fill:#)"
          << std::setw(2) << std::hex << red
          << std::setw(2) << std::hex << green
-         << std::setw(2) << std::hex << blue
-         << R"(;fill-opacity:1;stroke:none;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
-       id=)" << "rect_" + vertex->name() << R"("
-       width=)" << taskWidth
-         << R"(
-       height=")" << taskHeight
-         << R"("
-       x=")" << x
-         << R"("
+         << std::setw(2) << std::hex << blue;
+    file.copyfmt(savedFormat);
+    file << R"(;fill-opacity:1;stroke:none;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id=)" << R"("rect_)" + vertex->name() << R"("
+       width=")" << taskWidth << R"("
+       height=")" << taskHeight << R"("
+       x=")" << x << R"("
        y=")" << y << R"(" />)";
 }
 

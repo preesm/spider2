@@ -81,6 +81,11 @@ namespace Spider {
          */
         void reset();
 
+        /**
+         * @brief Clear the job vector and initialize it with a given count of jobs.
+         * @remark This method is intended to be used with scheduler using SR-DAG representation.
+         * @param count Number of jobs to initialize.
+         */
         void setJobCount(std::uint32_t count);
 
         /* === Getter(s) === */

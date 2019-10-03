@@ -55,6 +55,7 @@
 /* === Method(s) implementation === */
 
 Spider::Schedule &Spider::BestFitScheduler::mappingScheduling(bool partial) {
+    schedule_.setJobCount(sortedVertexVector_.size());
     for (auto &listVertex : sortedVertexVector_) {
         vertexMapper(listVertex.vertex);
     }
@@ -114,7 +115,7 @@ void Spider::BestFitScheduler::vertexMapper(const PiSDFVertex *vertex) {
                            0);                   /* == LRT ix to which the PE is linked == */
     job.setMappingStartTime(bestStartTime);
     job.setMappingEndTime(bestEndTime);
-    job.setMappingLRT(0);
+    job.setMappingLRT(PE.managingLRTIx());
     job.setMappingPE(PE.clusterPEIx(), PE.cluster()->ix());
     schedule_.add(std::move(job));
 }

@@ -80,5 +80,9 @@ void Spider::Schedule::add(ScheduleJob &&job) {
 }
 
 void Spider::Schedule::setJobCount(std::uint32_t count) {
+    jobs_.clear();
     jobs_.reserve(count);
+    for (std::uint32_t i = 0; i < count; ++i) {
+        jobs_.push_back(ScheduleJob(i));
+    }
 }
