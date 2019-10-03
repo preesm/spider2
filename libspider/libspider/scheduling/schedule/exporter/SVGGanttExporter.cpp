@@ -80,8 +80,9 @@ Spider::SVGGanttExporter::SVGGanttExporter(const Schedule *schedule) : Exporter(
     scaleFactor_ = static_cast<double>(widthMax_) / static_cast<double>(maxExecTime);
 
     /* == Compute dimensions of the Gantt == */
-    width_ = schedule_->stats().makespan() * scaleFactor_;
-    width_ = width_ + 2 * border + offset + arrowStroke + arrowSize;
+    makespanWidth_ =
+            static_cast<double>(schedule_->stats().minStartTime() + schedule_->stats().makespan()) * scaleFactor_;
+    width_ = makespanWidth_ + 2 * border + offset + arrowStroke + arrowSize;
     const auto *platform = Spider::platform();
     const auto &PECount = platform->PECount();
     height_ = PECount * (taskHeight + taskSpace) + taskSpace + arrowStroke + arrowSize + offset;
@@ -150,45 +151,63 @@ void Spider::SVGGanttExporter::headerPrinter(std::ofstream &file) const {
 }
 
 void Spider::SVGGanttExporter::axisPrinter(std::ofstream &file) const {
-    const auto &color = "393c3c";
-    /* == Print horizontal arrow == */
-    file << R"(    <rect
-       style="fill:#)" << color << ";fill-opacity:1;stroke:none;stroke-width:0;stroke-linejoin:round;"
-                                   "stroke-miterlimit:0;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:0" << R"("
-       id="rect_arrow_horizontal"
-       width=")" << (width_ - (offset + (arrowSize - 1))) << R"("
-       height=")" << arrowStroke << R"("
-       x=")" << offset << R"("
-       y=")" << (height_ - (((arrowSize + arrowStroke) / 2))) << R"(" />
-    <path
-       style="display:inline;fill:#)" << color << ";fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0;"
-                                                  "stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0" << R"("
-       d="M )" << width_ << "," << (height_ - (arrowSize / 2)) << " "
-         << (width_ - arrowSize) << "," << height_ << " V "
-         << (height_ - arrowSize) << R"( Z"
-       id="path1"
-       inkscape:connector-curvature="0" />)";
 
     /* == Print vertical arrow == */
+    const auto &arrowColor = "393c3c";
+    const auto &verticalHeight = height_ - ((3 * arrowSize - 4) / 2);
     file << R"(
     <rect
-       style="fill:#)" << color << ";fill-opacity:1;stroke:none;stroke-width:0;stroke-linejoin:round;"
-                                   "stroke-miterlimit:0;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:0" << R"("
+       style="fill:#)" << arrowColor << ";fill-opacity:1;stroke:none;stroke-width:0;stroke-linejoin:round;"
+                                        "stroke-miterlimit:0;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:0"
+         << R"("
        id="rect_arrow_vertical"
        width=")" << arrowStroke << R"("
-       height=")" << (height_ - ((3 * arrowSize - 4) / 2)) << R"("
+       height=")" << verticalHeight << R"("
        x=")" << offset << R"("
        y=")" << (arrowSize - 1) << R"(" />
     <path
-       style="display:inline;fill:#)" << color << ";fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0;"
-                                                  "stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0" << R"("
+       style="display:inline;fill:#)" << arrowColor << ";fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0;"
+                                                       "stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0" << R"("
        d="M )" << (arrowSize / 2) << "," << 0 << " "
          << arrowSize << "," << arrowSize << " H "
          << 0 << R"( Z"
        id="path3"
        inkscape:connector-curvature="0" />)";
 
-    /* == Print axis scale == */
+    /* == Print vertical grid == */
+    const auto &gridColor = "e8e8e8";
+    const auto &gridCount = makespanWidth_ / 40;
+    for (std::uint32_t i = 0; i <= gridCount; ++i) {
+        file << R"(
+    <rect
+       style="fill:#)" << gridColor << ";fill-opacity:1;stroke:none;stroke-width:0;stroke-linejoin:round;"
+                                       "stroke-miterlimit:0;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:0"
+             << R"("
+       id="rect_grid"
+       width="1"
+       height=")" << verticalHeight << R"("
+       x=")" << (offset + arrowStroke + border + i * 40) << R"("
+       y=")" << (arrowSize - 1) << R"(" />)";
+    }
+
+    /* == Print horizontal arrow == */
+    file << R"(    <rect
+       style="fill:#)" << arrowColor << ";fill-opacity:1;stroke:none;stroke-width:0;stroke-linejoin:round;"
+                                        "stroke-miterlimit:0;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:0"
+         << R"("
+       id="rect_arrow_horizontal"
+       width=")" << (width_ - (offset + (arrowSize - 1))) << R"("
+       height=")" << arrowStroke << R"("
+       x=")" << offset << R"("
+       y=")" << (height_ - (((arrowSize + arrowStroke) / 2))) << R"(" />
+    <path
+       style="display:inline;fill:#)" << arrowColor << ";fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0;"
+                                                       "stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0" << R"("
+       d="M )" << width_ << "," << (height_ - (arrowSize / 2)) << " "
+         << (width_ - arrowSize) << "," << height_ << " V "
+         << (height_ - arrowSize) << R"( Z"
+       id="path1"
+       inkscape:connector-curvature="0" />)";
 }
 
 void Spider::SVGGanttExporter::jobPrinter(std::ofstream &file, const Spider::ScheduleJob &job) const {
@@ -204,23 +223,23 @@ void Spider::SVGGanttExporter::jobPrinter(std::ofstream &file, const Spider::Sch
     /* == Compute coordinates == */
     const auto *platform = Spider::platform();
     const auto &PE = platform->findPE(job.mappingInfo().clusterIx, job.mappingInfo().PEIx);
-    const auto &x = offset + arrowStroke + border;
+    const auto &x = offset + arrowStroke + border + job.mappingInfo().startTime * scaleFactor_;
     const auto &y = height_ - (offset + arrowStroke + (PE.spiderPEIx() + 1) * (taskHeight + border));
     std::ios savedFormat{nullptr};
     savedFormat.copyfmt(file);
     file << R"(
     <rect
-       style="fill:#)"
-         << std::setw(2) << std::hex << red
-         << std::setw(2) << std::hex << green
-         << std::setw(2) << std::hex << blue;
+       style="fill:#)";
+    file << std::setfill('0') << std::setbase(16);
+    file << std::setw(2) << red << std::setw(2) << green << std::setw(2) << blue;
     file.copyfmt(savedFormat);
     file << R"(;fill-opacity:1;stroke:none;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        id=)" << R"("rect_)" + vertex->name() << R"("
        width=")" << taskWidth << R"("
        height=")" << taskHeight << R"("
        x=")" << x << R"("
-       y=")" << y << R"(" />)";
+       y=")" << y << R"("
+       ry="4" />)";
 }
 
 

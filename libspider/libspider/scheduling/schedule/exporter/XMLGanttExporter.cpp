@@ -95,10 +95,9 @@ void Spider::XMLGanttExporter::jobPrinter(std::ofstream &file, const Spider::Sch
     file << '\t' << '\t' << R"(mapping="PE)" << PEIx << R"(")" << '\n';
     std::ios savedFormat{nullptr};
     savedFormat.copyfmt(file);
-    file << '\t' << '\t' << R"(color="#)"
-         << std::setw(2) << std::hex << red
-         << std::setw(2) << std::hex << green
-         << std::setw(2) << std::hex << blue << R"(")" << '\n';
+    file << '\t' << '\t' << R"(color="#)";
+    file << std::setfill('0') << std::setbase(16);
+    file << std::setw(2) << red << std::setw(2) << green << std::setw(2) << blue << '\"' << '\n';
     file.copyfmt(savedFormat);
     file << '\t' << '\t' << ">" << vertex->name() << ".</event>" << '\n';
 }

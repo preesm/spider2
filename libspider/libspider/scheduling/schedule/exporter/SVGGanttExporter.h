@@ -80,6 +80,7 @@ namespace Spider {
         std::uint32_t widthMin_ = 10;
         std::uint32_t widthMax_ = 500;
         double scaleFactor_ = 0.;
+        std::uint32_t makespanWidth_ = 0;
 
         /* === Private method(s) === */
 
