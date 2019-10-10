@@ -117,8 +117,7 @@ void Spider::SVGGanttExporter::print(std::ofstream &file) const {
 }
 
 void Spider::SVGGanttExporter::headerPrinter(std::ofstream &file) const {
-    file << R"(
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+    file << R"(<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!-- Created with Spider 2.0 (http://www.github.com/preesm/spider-2.0) -->
 
 <svg
@@ -157,21 +156,22 @@ void Spider::SVGGanttExporter::axisPrinter(std::ofstream &file) const {
     const auto &verticalHeight = height_ - ((3 * arrowSize - 4) / 2);
     file << R"(
     <rect
-       style="fill:#)" << arrowColor << ";fill-opacity:1;stroke:none;stroke-width:0;stroke-linejoin:round;"
-                                        "stroke-miterlimit:0;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:0"
-         << R"("
+       fill="#)" << arrowColor << R"("
+       stroke="none"
        id="rect_arrow_vertical"
        width=")" << arrowStroke << R"("
        height=")" << verticalHeight << R"("
        x=")" << offset << R"("
        y=")" << (arrowSize - 1) << R"(" />
     <path
-       style="display:inline;fill:#)" << arrowColor << ";fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0;"
-                                                       "stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0" << R"("
+       fill="#)" << arrowColor << R"("
+       display="inline"
+       stroke="none"
+       fill-rule="evenodd"
        d="M )" << (arrowSize / 2) << "," << 0 << " "
          << arrowSize << "," << arrowSize << " H "
          << 0 << R"( Z"
-       id="path3"
+       id="arrow_vertical_head"
        inkscape:connector-curvature="0" />)";
 
     /* == Print vertical grid == */
@@ -180,9 +180,8 @@ void Spider::SVGGanttExporter::axisPrinter(std::ofstream &file) const {
     for (std::uint32_t i = 0; i <= gridCount; ++i) {
         file << R"(
     <rect
-       style="fill:#)" << gridColor << ";fill-opacity:1;stroke:none;stroke-width:0;stroke-linejoin:round;"
-                                       "stroke-miterlimit:0;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:0"
-             << R"("
+       fill="#)" << gridColor << R"("
+       stroke="none"
        id="rect_grid"
        width="1"
        height=")" << verticalHeight << R"("
@@ -190,24 +189,26 @@ void Spider::SVGGanttExporter::axisPrinter(std::ofstream &file) const {
        y=")" << (arrowSize - 1) << R"(" />)";
     }
 
-    /* == Print horizontal arrow == */
-    file << R"(    <rect
-       style="fill:#)" << arrowColor << ";fill-opacity:1;stroke:none;stroke-width:0;stroke-linejoin:round;"
-                                        "stroke-miterlimit:0;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:0"
-         << R"("
+    file << R"(
+    <rect
+       fill="#)" << arrowColor << R"("
+       stroke="none"
        id="rect_arrow_horizontal"
        width=")" << (width_ - (offset + (arrowSize - 1))) << R"("
        height=")" << arrowStroke << R"("
        x=")" << offset << R"("
        y=")" << (height_ - (((arrowSize + arrowStroke) / 2))) << R"(" />
     <path
-       style="display:inline;fill:#)" << arrowColor << ";fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0;"
-                                                       "stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0" << R"("
+       fill="#)" << arrowColor << R"("
+       display="inline"
+       stroke="none"
+       fill-rule="evenodd"
        d="M )" << width_ << "," << (height_ - (arrowSize / 2)) << " "
          << (width_ - arrowSize) << "," << height_ << " V "
          << (height_ - arrowSize) << R"( Z"
-       id="path1"
+       id="arrow_horizontal_head"
        inkscape:connector-curvature="0" />)";
+    /* == Print horizontal arrow == */
 }
 
 void Spider::SVGGanttExporter::jobPrinter(std::ofstream &file, const Spider::ScheduleJob &job) const {
@@ -229,11 +230,12 @@ void Spider::SVGGanttExporter::jobPrinter(std::ofstream &file, const Spider::Sch
     savedFormat.copyfmt(file);
     file << R"(
     <rect
-       style="fill:#)";
+       fill="#)";
     file << std::setfill('0') << std::setbase(16);
     file << std::setw(2) << red << std::setw(2) << green << std::setw(2) << blue;
     file.copyfmt(savedFormat);
-    file << R"(;fill-opacity:1;stroke:none;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+    file << R"("
+       stroke="none"
        id=)" << R"("rect_)" + vertex->name() << R"("
        width=")" << taskWidth << R"("
        height=")" << taskHeight << R"("
