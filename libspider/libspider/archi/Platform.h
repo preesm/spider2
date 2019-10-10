@@ -46,7 +46,6 @@
 #include <containers/Array.h>
 #include <containers/StlContainers.h>
 #include <spider-api/archi.h>
-#include <archi/CommunicationCostFunctor.h>
 
 /* === Forward declaration(s) === */
 
@@ -192,6 +191,12 @@ public:
      */
     inline void setSpiderGRTPE(ProcessingElement *PE);
 
+    /**
+     * @brief Set the communication cost routine between clusters of the platform.
+     * @param routine Routine to set.
+     */
+    inline void setCluster2ClusterRoutine(Spider::CommunicationCostRoutineC2C routine);
+
 private:
     Spider::Array<Cluster *> clusterArray_;
     std::uint32_t clusterCount_ = 0;
@@ -199,7 +204,7 @@ private:
 
     /* === Routines === */
 
-    Spider::Array<Spider::CommunicationCostFunctor> cluster2ClusterComCostRoutines_;
+    Spider::CommunicationCostRoutineC2C cluster2ClusterComCostRoutine_ = Spider::defaultC2CZeroCommunicationCost;
 
     /* === Private method(s) === */
 };
@@ -232,6 +237,10 @@ std::uint32_t Platform::PETypeCount() const {
 
 void Platform::setSpiderGRTPE(ProcessingElement *PE) {
     grtPE_ = PE;
+}
+
+void Platform::setCluster2ClusterRoutine(Spider::CommunicationCostRoutineC2C routine) {
+    cluster2ClusterComCostRoutine_ = routine;
 }
 
 #endif //SPIDER2_PLATFORM_H

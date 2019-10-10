@@ -69,12 +69,24 @@ void Spider::API::setSpiderGRTPE(ProcessingElement *grtPE) {
     }
 }
 
+void Spider::API::setCluster2ClusterCommunicationCostRoutine(Spider::CommunicationCostRoutineC2C routine) {
+    platform()->setCluster2ClusterRoutine(routine);
+}
+
 /* === Cluster related API === */
 
 Cluster *Spider::API::createCluster(std::uint32_t PECount, MemoryUnit *memoryUnit) {
     auto *cluster = Spider::allocate<Cluster>(StackID::ARCHI);
-    Spider::construct(cluster, PECount, memoryUnit, Spider::platform());
+    Spider::construct(cluster, PECount, memoryUnit);
     return cluster;
+}
+
+void Spider::API::setClusterWriteCostRoutine(Cluster *cluster, Spider::CommunicationCostRoutine routine) {
+    cluster->setWriteCostRoutine(routine);
+}
+
+void Spider::API::setClusterReadCostRoutine(Cluster *cluster, Spider::CommunicationCostRoutine routine) {
+    cluster->setReadCostRoutine(routine);
 }
 
 /* === PE related API === */

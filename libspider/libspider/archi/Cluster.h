@@ -60,7 +60,7 @@ class MemoryUnit;
 class Cluster {
 public:
 
-    Cluster(std::uint32_t PECount, MemoryUnit *memoryUnit, Platform *platform);
+    Cluster(std::uint32_t PECount, MemoryUnit *memoryUnit);
 
     ~Cluster();
 

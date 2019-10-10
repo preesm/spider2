@@ -50,12 +50,7 @@
 
 /* === Method(s) implementation === */
 
-Platform::Platform(std::uint32_t clusterCount) : clusterArray_{clusterCount, StackID::ARCHI},
-                                                 cluster2ClusterComCostRoutines_{clusterCount * clusterCount,
-                                                                                 StackID::ARCHI} {
-    for (auto &func : cluster2ClusterComCostRoutines_) {
-        func = Spider::CommunicationCostFunctor(Spider::defaultZeroCommunicationCost);
-    }
+Platform::Platform(std::uint32_t clusterCount) : clusterArray_{clusterCount, StackID::ARCHI} {
 }
 
 Platform::~Platform() {
@@ -158,8 +153,8 @@ std::uint64_t Platform::dataCommunicationCostPEToPE(ProcessingElement *PESrc,
     /* == For inter cluster communication, cost is a bit more complicated to compute == */
     auto *clusterSrc = PESrc->cluster();
     auto *clusterSnk = PESnk->cluster();
-    auto readWriteCost = Spider::Math::saturateAdd(clusterSrc->writeCostRoutine()(dataSize),
-                                                   clusterSnk->readCostRoutine()(dataSize));
-    return Spider::Math::saturateAdd(readWriteCost, cluster2ClusterComCostRoutines_[clusterSrc->ix() * clusterCount_ +
-                                                                                    clusterSnk->ix()](dataSize));
+    const auto &readWriteCost = Spider::Math::saturateAdd(clusterSrc->writeCostRoutine()(dataSize),
+                                                          clusterSnk->readCostRoutine()(dataSize));
+    return Spider::Math::saturateAdd(readWriteCost,
+                                     cluster2ClusterComCostRoutine_(clusterSrc->ix(), clusterSnk->ix(), dataSize));
 }

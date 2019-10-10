@@ -63,6 +63,16 @@ namespace Spider {
             /* = Number of bytes  = */ std::uint64_t
     );
 
+    using CommunicationCostRoutineC2C = std::uint64_t (*)(
+            /* = Source Cluster ix  = */ std::uint32_t,
+            /* = Sink Cluster ix  = */ std::uint32_t,
+            /* = Number of bytes  = */ std::uint64_t
+    );
+
+    inline std::uint64_t defaultC2CZeroCommunicationCost(std::uint32_t, std::uint32_t, std::uint64_t) {
+        return 0;
+    }
+
     inline std::uint64_t defaultZeroCommunicationCost(std::uint64_t) {
         return 0;
     }
@@ -124,6 +134,12 @@ namespace Spider {
          */
         void setSpiderGRTPE(ProcessingElement *grtPE);
 
+        /**
+         * @brief Set the routine that will handle the cluster to cluster communication cost.
+         * @param routine  Routine to set.
+         */
+        void setCluster2ClusterCommunicationCostRoutine(CommunicationCostRoutineC2C routine);
+
         /* === Cluster related API === */
 
         /**
@@ -133,6 +149,20 @@ namespace Spider {
          * @return pointer to the newly created @refitem Cluster.
          */
         Cluster *createCluster(std::uint32_t PECount, MemoryUnit *memoryUnit);
+
+        /**
+         * @brief Set the write cost method for writing into cluster memory.
+         * @param cluster Cluster to which the routine is set.
+         * @param routine Routine to set.
+         */
+        void setClusterWriteCostRoutine(Cluster *cluster, CommunicationCostRoutine routine);
+
+        /**
+         * @brief Set the read cost method for writing into cluster memory.
+         * @param cluster Cluster to which the routine is set.
+         * @param routine Routine to set.
+         */
+        void setClusterReadCostRoutine(Cluster *cluster, CommunicationCostRoutine routine);
 
         /* === PE related API === */
 
