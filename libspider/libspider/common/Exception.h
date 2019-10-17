@@ -44,7 +44,7 @@
 
 #include <cstring>
 #include <stdexcept>
-#include <common/cxx11-printf/Printf.h>
+#include <common/Printer.h>
 
 /* === Defines === */
 
@@ -82,14 +82,14 @@ namespace Spider {
                            const char *msg, const Ts &...ts)
                 : exceptionMessage_{} {
             /* == Writes exception header == */
-            int n = Spider::cxx11::sprintf(exceptionMessage_, EXCEPTION_BUFFER_SIZE, "%s::%s(%d): ", fileName,
+            int n = Spider::printer::sprintf(exceptionMessage_, EXCEPTION_BUFFER_SIZE, "%s::%s(%d): ", fileName,
                                            fctName, lineNumber);
 
             /* == Write the actual exception message == */
-            n = Spider::cxx11::sprintf(exceptionMessage_ + n, EXCEPTION_BUFFER_SIZE, msg, ts...);
+            n = Spider::printer::sprintf(exceptionMessage_ + n, EXCEPTION_BUFFER_SIZE, msg, ts...);
             if (n > EXCEPTION_BUFFER_SIZE) {
-                Spider::cxx11::fprintf(stderr, "Exception: ERROR: exception message too big.\n");
-                Spider::cxx11::fprintf(stderr, "Partially recovered exception: %s\n", exceptionMessage_);
+                Spider::printer::fprintf(stderr, "Exception: ERROR: exception message too big.\n");
+                Spider::printer::fprintf(stderr, "Partially recovered exception: %s\n", exceptionMessage_);
                 fflush(stderr);
             }
         }

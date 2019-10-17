@@ -46,6 +46,7 @@
 #include <graphs/pisdf/PiSDFInterface.h>
 #include <graphs/pisdf/PiSDFEdge.h>
 #include <graphs/pisdf/PiSDFParam.h>
+#include <cmath>
 
 /* === Static variable(s) === */
 

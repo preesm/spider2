@@ -40,8 +40,7 @@
 
 /* === Includes === */
 
-#include "Expression.h"
-#include "RPNConverter.h"
+#include <graphs-tools/expression-parser/Expression.h>
 #include <graphs/pisdf/PiSDFParam.h>
 
 /* === Static method(s) === */

@@ -43,7 +43,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <mutex>
-#include <common/cxx11-printf/Printf.h>
+#include <common/Printer.h>
 #include <common/Exception.h>
 #include <spider-api/general.h>
 #include <spider-api/debug.h>
@@ -117,9 +117,9 @@ namespace Spider {
             };
             if (logger(type)) {
                 std::lock_guard<std::mutex> locker(mutex());
-                Spider::cxx11::fprintf(outputStream(), "%s[%s:%s]:", colorCode, loggersLiteral[type], level);
-                Spider::cxx11::fprintf(outputStream(), fmt, ts...);
-                Spider::cxx11::fprintf(outputStream(), LOG_NRM);
+                Spider::printer::fprintf(outputStream(), "%s[%s:%s]:", colorCode, loggersLiteral[type], level);
+                Spider::printer::fprintf(outputStream(), fmt, ts...);
+                Spider::printer::fprintf(outputStream(), LOG_NRM);
             }
         }
 

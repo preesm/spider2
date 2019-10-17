@@ -43,6 +43,7 @@
 /* === Include(s) === */
 
 #include <cstdint>
+#include <algorithm>
 #include <containers/Array.h>
 #include <containers/StlContainers.h>
 #include <spider-api/archi.h>
