@@ -1,7 +1,46 @@
 cmake_minimum_required(VERSION 3.1)
+project(Spider2)
+
+# Setting C++ standard to C++11
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Setting extra modules path
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/extras/cmake_modules/")
+
+# Setting build options
+if (NOT ${CMAKE_GENERATOR} MATCHES "Visual Studio.*")
+    if (${CMAKE_BUILD_TYPE} MATCHES Debug)
+        message("Generating Debug project")
+        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Debug)
+        set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -pg -Wall -Wextra -O0 -pedantic-errors")
+    else ()
+        message("Generating Release project")
+        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Release)
+        set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O2 -Wall -Wextra")
+        if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+            message("Using Link Time Optimization on GNU platforms. ")
+            set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -flto")
+        endif ()
+    endif ()
+else ()
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+endif ()
+
+
+# *******************************************
+# ************* CMake Content ***************
+# *******************************************
+# This CMake create a workspace containing the following projects
+# 
+# Programs
+#  - spider
+
+# CMake options
+option(TypeSafe "TypeSafe" OFF)
+option(Enable_PAPI "Enable_PAPI" ON)
+
+# CMake cross compilation stuff
 if (${CROSS_COMPILE_MINGW})
     set(CMAKE_SYSTEM_NAME Windows)
     set(TOOLCHAIN_PREFIX x86_64-w64-mingw32)
@@ -24,22 +63,14 @@ if (${CROSS_COMPILE_MINGW})
     set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 endif ()
 
-# *******************************************
-# ************* CMake Content ***************
-# *******************************************
-# This CMake create a workspace containing the following projects
-# 
-# Programs
-#  - spider
-
 # IDE dependent config
 if (${CMAKE_GENERATOR} MATCHES "Visual Studio.*")
-    MESSAGE("Add definition for ${CMAKE_GENERATOR}")
+    message("Add definition for ${CMAKE_GENERATOR}")
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 endif ()
 
 if (${CMAKE_GENERATOR} MATCHES "MinGW Makefiles")
-    MESSAGE("Add definition for ${CMAKE_GENERATOR}")
+    message("Add definition for ${CMAKE_GENERATOR}")
     #To prevent a redefinition conflict
     add_definitions(-D_TIMESPEC_DEFINED)
 endif ()
@@ -47,35 +78,29 @@ endif ()
 # Add definition for relative path into project
 add_definitions(-DPROJECT_ROOT_PATH="${CMAKE_CURRENT_SOURCE_DIR}")
 
-project(Spider2)
-
-# Set to 1 to activate debug compilation (0 for release)
-
-if (NOT ${CMAKE_GENERATOR} MATCHES "Visual Studio.*")
-    set(DEBUG 1)
-
-    if (${DEBUG})
-        MESSAGE("Generate Debug project")
-        set(CMAKE_BUILD_TYPE Debug)
-        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Debug)
-        set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -pg -Wall -Wextra -O0 -pedantic-errors")
-    else ()
-        MESSAGE("Generate Release project")
-        set(CMAKE_BUILD_TYPE Release)
-        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Release)
-        set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O2 -Wall -Wextra")
-        if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-            set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -flto")
-        endif ()
-    endif ()
+if (${TypeSafe} MATCHES OFF)
+    message("Using standard library printf without type checking.")
+    add_definitions(-D_SPIDER_NO_TYPESAFETY_PRINT)
 else ()
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+    message("Using type safe printf. (this will increase library binary size)")
 endif ()
+
+if (${Enable_PAPI} MATCHES ON)
+    message("Using PAPI library (if available).")
+    set(SKIP_PAPI 0)
+else ()
+    message("Discarding PAPI library.")
+    set(SKIP_PAPI 1)
+endif ()
+
+# Build specific options
+
 
 if (WIN32)
     set(LIBS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/extras/)
 endif ()
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/extras/cmake_modules/")
+
+# Searching external libraries
 
 # *******************************************
 # ************ Pthread LIBRARY **************
@@ -91,9 +116,8 @@ else ()
 endif ()
 
 if (NOT THREADS_FOUND)
-    MESSAGE(FATAL_ERROR "Pthread not found !")
+    message(FATAL_ERROR "Pthread not found !")
 endif ()
-
 
 if (WIN32)
     file(GLOB
@@ -101,7 +125,7 @@ if (WIN32)
             ${CMAKE_PREFIX_PATH}/lib/*.dll
             )
 
-    MESSAGE("Copy Pthreads DLLs into ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+    message("Copy Pthreads DLLs into ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
     if (NOT ${CMAKE_GENERATOR} MATCHES "Visual Studio.*")
         file(COPY ${PTHREADS_DLL} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
     else ()
@@ -113,11 +137,7 @@ endif ()
 # *******************************************
 # ************ PAPI LIBRARY *****************
 # *******************************************
-set(SKIP_PAPI 1)
-
-if (${SKIP_PAPI})
-    MESSAGE("Skipping Papi")
-else ()
+if (${SKIP_PAPI} MATCHES 1)
     find_package(PAPI)
 endif ()
 
