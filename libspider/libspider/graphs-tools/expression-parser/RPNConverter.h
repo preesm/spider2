@@ -145,7 +145,7 @@ public:
         swap(*this, other);
     }
 
-    RPNConverter(const PiSDFGraph *graph, std::string inFixExpr);
+    RPNConverter(std::string inFixExpr, const PiSDFGraph *graph);
 
     ~RPNConverter() = default;
 

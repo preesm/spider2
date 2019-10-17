@@ -92,7 +92,7 @@ void Spider::Scenario::setExecutionTiming(const PiSDFVertex *vertex,
                                           const std::string &expression) {
     auto &timings = vertexExecutionTimingsMap_.at(vertex);
     auto &timing = timings.at(PEType);
-    timing = Expression(Spider::pisdfGraph(), expression);
+    timing = Expression(expression);
 }
 
 void Spider::Scenario::setExecutionTiming(const PiSDFVertex *vertex,
@@ -100,5 +100,5 @@ void Spider::Scenario::setExecutionTiming(const PiSDFVertex *vertex,
                                           const std::string &expression) {
     auto &timings = vertexExecutionTimingsMap_.at(vertex);
     auto &timing = timings.at(PE->hardwareType());
-    timing = Expression(Spider::pisdfGraph(), expression);
+    timing = Expression(expression);
 }

@@ -45,7 +45,7 @@
 #include <cstdint>
 #include <string>
 #include <containers/Array.h>
-#include "RPNConverter.h"
+#include <graphs-tools/expression-parser/RPNConverter.h>
 
 /* === Forward declaration(s) === */
 
@@ -71,7 +71,7 @@ struct ExpressionTreeNode {
 class Expression {
 public:
 
-    Expression(const PiSDFGraph *graph, std::string expression);
+    explicit Expression(std::string expression, const PiSDFGraph *graph = Spider::pisdfGraph());
 
     explicit Expression(std::int64_t value);
 

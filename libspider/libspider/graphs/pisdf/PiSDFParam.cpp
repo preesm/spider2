@@ -49,7 +49,7 @@ PiSDFParam::PiSDFParam(PiSDFGraph *graph,
                        std::string name,
                        const std::string &expression) : graph_{graph},
                                                         name_{std::move(name)},
-                                                        expression_{graph, expression} {
+                                                        expression_{expression, graph} {
     if (expression_.isStatic()) {
         type_ = PiSDFParamType::STATIC;
     } else {

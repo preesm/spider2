@@ -62,7 +62,7 @@ PiSDFDelay::PiSDFDelay(PiSDFEdge *edge,
                                                      getter_{getter},
                                                      setterPortIx_{setterPortIx},
                                                      getterPortIx_{getterPortIx},
-                                                     expression_{edge->containingGraph(), expression},
+                                                     expression_{expression, edge->containingGraph()},
                                                      persistent_{persistent} {
     edge->setDelay(this);
 

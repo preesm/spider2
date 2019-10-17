@@ -48,7 +48,7 @@
 
 /* === Methods implementation === */
 
-Expression::Expression(const PiSDFGraph *graph, std::string expression) : rpnConverter_{graph, std::move(expression)} {
+Expression::Expression(std::string expression, const PiSDFGraph *graph) : rpnConverter_{std::move(expression), graph} {
     const auto &expressionStack = rpnConverter_.postfixStack();
 
     /* == Check if expression is static == */

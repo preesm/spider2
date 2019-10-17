@@ -46,7 +46,7 @@
 
 /* === Methods implementation === */
 
-PiSDFPort::PiSDFPort(PiSDFGraph *graph, const std::string &expression) : expression_{graph, expression} {
+PiSDFPort::PiSDFPort(PiSDFGraph *graph, const std::string &expression) : expression_{expression, graph} {
 }
 
 PiSDFPort::PiSDFPort(std::int64_t rate) : expression_{rate} {

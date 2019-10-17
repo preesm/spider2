@@ -236,7 +236,7 @@ RPNOperatorType RPNConverter::getOperatorTypeFromString(const std::string &opera
 
 /* === Method(s) implementation === */
 
-RPNConverter::RPNConverter(const PiSDFGraph *graph, std::string inFixExpr) : graph_{graph},
+RPNConverter::RPNConverter(std::string inFixExpr, const PiSDFGraph *graph) : graph_{graph},
                                                                              infixExprString_{std::move(inFixExpr)} {
     if (missMatchParenthesis()) {
         throwSpiderException("Expression with miss matched parenthesis: %s", infixExprString_.c_str());
