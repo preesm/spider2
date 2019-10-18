@@ -53,8 +53,7 @@ namespace Spider {
         class Interface : public Vertex {
         public:
 
-            explicit Interface(InterfaceType type,
-                               std::string name = "unnamed-interface",
+            explicit Interface(std::string name = "unnamed-interface",
                                std::uint32_t edgeINCount = 0,
                                std::uint32_t edgeOUTCount = 0,
                                Graph *graph = nullptr, //TODO: change to Spider::pisdfgraph() when this API replace old one
@@ -64,12 +63,13 @@ namespace Spider {
                                                                         edgeOUTCount,
                                                                         graph,
                                                                         stack) {
-                subtype_ = type;
             }
 
             /* === Method(s) === */
 
             inline Vertex *forwardEdge() override;
+
+            /* === Getter(s) === */
 
             /**
              * @brief Return vertex connected to interface.
@@ -79,27 +79,20 @@ namespace Spider {
              */
             virtual Vertex *opposite() const = 0;
 
-            /* === Getter(s) === */
-
-            inline InterfaceType subtype() const;
+            /**
+             * @brief Return the kind of the interface (@refitem InterfaceType)
+             * @return @refitem InputInterface type
+             */
+            virtual InterfaceType subtype() const = 0;
 
             /* === Setter(s) === */
 
-        protected:
-            InterfaceType subtype_;
-            Edge *edge_ = nullptr;
-
-            /* === Private method(s) === */
         };
 
         /* === Inline method(s) === */
 
         Vertex *Interface::forwardEdge() {
             return this->opposite()->forwardEdge();
-        }
-
-        InterfaceType Interface::subtype() const {
-            return subtype_;
         }
     }
 }

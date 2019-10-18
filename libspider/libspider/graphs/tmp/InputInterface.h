@@ -53,8 +53,7 @@ namespace Spider {
 
             explicit InputInterface(std::string name = "unnamed-interface",
                                     Graph *graph = nullptr, //TODO: change to Spider::pisdfgraph() when this API replace old one
-                                    StackID stack = StackID::PISDF) : Interface(InterfaceType::INPUT,
-                                                                                std::move(name),
+                                    StackID stack = StackID::PISDF) : Interface(std::move(name),
                                                                                 0,
                                                                                 1,
                                                                                 graph,
@@ -65,11 +64,11 @@ namespace Spider {
 
             inline void connectInputEdge(Spider::PiSDF::Edge *, std::uint32_t) override;
 
-            inline void connectOutputEdge(Spider::PiSDF::Edge *edge, std::uint32_t) override;
+            /* === Getter(s) === */
 
             inline Vertex *opposite() const override;
 
-            /* === Getter(s) === */
+            inline InterfaceType subtype() const override;
 
             /* === Setter(s) === */
 
@@ -78,20 +77,19 @@ namespace Spider {
             /* === Private method(s) === */
         };
 
+        /* === Inline method(s) === */
+
         void InputInterface::connectInputEdge(Spider::PiSDF::Edge *, std::uint32_t) {
             throwSpiderException("Can not connect input edge to input interface.");
         }
 
-        void InputInterface::connectOutputEdge(Spider::PiSDF::Edge *edge, std::uint32_t ix) {
-            Spider::PiSDF::Vertex::connectOutputEdge(edge, ix);
-            edge_ = outputEdgeArray_[0];
-        }
-
         Vertex *InputInterface::opposite() const {
-            return edge_->sink();
+            return outputEdgeArray_[0]->sink();
         }
 
-        /* === Inline method(s) === */
+        InterfaceType InputInterface::subtype() const {
+            return InterfaceType::INPUT;
+        }
     }
 }
 

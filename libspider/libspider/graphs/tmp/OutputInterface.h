@@ -53,8 +53,7 @@ namespace Spider {
 
             explicit OutputInterface(std::string name = "unnamed-interface",
                                      Graph *graph = nullptr, //TODO: change to Spider::pisdfgraph() when this API replace old one
-                                     StackID stack = StackID::PISDF) : Interface(InterfaceType::OUTPUT,
-                                                                                 std::move(name),
+                                     StackID stack = StackID::PISDF) : Interface(std::move(name),
                                                                                  1,
                                                                                  0,
                                                                                  graph,
@@ -63,13 +62,13 @@ namespace Spider {
 
             /* === Method(s) === */
 
-            inline void connectInputEdge(Spider::PiSDF::Edge *edge, std::uint32_t) override;
-
             inline void connectOutputEdge(Spider::PiSDF::Edge *, std::uint32_t) override;
+
+            /* === Getter(s) === */
 
             inline Vertex *opposite() const override;
 
-            /* === Getter(s) === */
+            inline InterfaceType subtype() const override;
 
             /* === Setter(s) === */
 
@@ -78,20 +77,19 @@ namespace Spider {
             /* === Private method(s) === */
         };
 
-        void OutputInterface::connectInputEdge(Spider::PiSDF::Edge *edge, std::uint32_t ix) {
-            Spider::PiSDF::Vertex::connectInputEdge(edge, ix);
-            edge_ = inputEdgeArray_[0];
-        }
+        /* === Inline method(s) === */
 
         void OutputInterface::connectOutputEdge(Spider::PiSDF::Edge *, std::uint32_t) {
             throwSpiderException("Can not connect output edge to output interface.");
         }
 
         Vertex *OutputInterface::opposite() const {
-            return edge_->source();
+            return inputEdgeArray_[0]->source();
         }
 
-        /* === Inline method(s) === */
+        InterfaceType OutputInterface::subtype() const {
+            return InterfaceType::OUTPUT;
+        }
     }
 }
 
