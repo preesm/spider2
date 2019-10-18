@@ -58,6 +58,14 @@ namespace Spider {
         class Graph : public Vertex {
         public:
 
+            explicit Graph(std::string name = "unnamed-graph",
+                           std::uint32_t edgeINCount = 0,
+                           std::uint32_t edgeOUTCount = 0,
+                           Graph *graph = nullptr,
+                           StackID stack = StackID::PISDF);
+
+            ~Graph();
+
             /* === Method(s) === */
 
             /**
@@ -177,6 +185,10 @@ namespace Spider {
              */
             void addInterface(Interface *interface);
 
+            /**
+             * @brief Add a subgraph to the graph.
+             * @param graph Subgraph to add.
+             */
             void addSubGraph(Graph *graph);
         };
 

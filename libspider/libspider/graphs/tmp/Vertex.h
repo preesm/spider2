@@ -71,7 +71,7 @@ namespace Spider {
 
             Vertex(const Vertex &other) = delete;
 
-            ~Vertex() = default;
+            virtual ~Vertex() = default;
 
             /* === Method(s) === */
 

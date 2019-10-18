@@ -56,10 +56,13 @@ Spider::PiSDF::Edge::Edge(Vertex *source,
                           std::uint32_t snkIx,
                           Expression &&snkExpr) : src_{source},
                                                   srcIx_{srcIx},
-                                                  srcExpression{srcExpr},
+                                                  srcExpression_{srcExpr},
                                                   snk_{sink},
                                                   snkIx_{snkIx},
-                                                  snkExpression{snkExpr} {
+                                                  snkExpression_{snkExpr} {
+    if (!source || !sink) {
+        throwSpiderException("nullptr vertex connected to Edge.");
+    }
 }
 
 std::string Spider::PiSDF::Edge::name() const {
@@ -76,31 +79,24 @@ Spider::PiSDF::Vertex *Spider::PiSDF::Edge::sink<true>() const {
     return snk_->forwardEdge();
 }
 
-void Spider::PiSDF::Edge::setSource(Vertex *vertex, std::uint32_t ix, const Expression &expr) {
-    src_->disconnectOutputEdge(ix);
-    src_ = vertex;
-    srcIx_ = ix;
-    srcExpression = expr;
-}
-
 void Spider::PiSDF::Edge::setSource(Vertex *vertex, std::uint32_t ix, Expression &&expr) {
+    if (!vertex) {
+        throwSpiderException("Can not set nullptr vertex on edge [%s].", name().c_str());
+    }
     src_->disconnectOutputEdge(ix);
     src_ = vertex;
     srcIx_ = ix;
-    srcExpression = std::move(expr);
-}
-
-void Spider::PiSDF::Edge::setSink(Vertex *vertex, std::uint32_t ix, const Expression &expr) {
-    snk_->disconnectInputEdge(ix);
-    snk_ = vertex;
-    snkIx_ = ix;
-    snkExpression = expr;
+    srcExpression_ = std::move(expr);
 }
 
 void Spider::PiSDF::Edge::setSink(Vertex *vertex, std::uint32_t ix, Expression &&expr) {
+    if (!vertex) {
+        throwSpiderException("Can not set nullptr vertex on edge [%s].", name().c_str());
+    }
     snk_->disconnectInputEdge(ix);
     snk_ = vertex;
     snkIx_ = ix;
-    snkExpression = std::move(expr);
+    snkExpression_ = std::move(expr);
 }
 
+/* === Private method(s) === */

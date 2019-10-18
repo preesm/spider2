@@ -90,6 +90,30 @@ namespace Spider {
             inline std::uint32_t ix() const;
 
             /**
+             * @brief Get the source port ix of the edge
+             * @return source port ix
+             */
+            inline std::uint32_t sourcePortIx() const;
+
+            /**
+             * @brief Get the sink port ix of the edge
+             * @return sink port ix
+             */
+            inline std::uint32_t sinkPortIx() const;
+
+            /**
+             * @brief Evaluate the expression rate of the source.
+             * @return @refitem Expression of the source rate .
+             */
+            inline const Expression &sourceRateExpression() const;
+
+            /**
+             * @brief Evaluate the expression rate of the sink.
+             * @return @refitem Expression of the sink rate.
+             */
+            inline const Expression &sinkRateExpression() const;
+
+            /**
              * @brief Get the source reference vertex.
              * @return reference to source
              */
@@ -112,11 +136,7 @@ namespace Spider {
              */
             inline void setIx(std::uint32_t ix);
 
-            void setSource(Vertex *vertex, std::uint32_t ix, const Expression &expr);
-
             void setSource(Vertex *vertex, std::uint32_t ix, Expression &&expr);
-
-            void setSink(Vertex *vertex, std::uint32_t ix, const Expression &expr);
 
             void setSink(Vertex *vertex, std::uint32_t ix, Expression &&expr);
 
@@ -126,10 +146,10 @@ namespace Spider {
 
             Vertex *src_;
             std::uint32_t srcIx_ = UINT32_MAX;
-            Expression srcExpression;
+            Expression srcExpression_;
             Vertex *snk_;
             std::uint32_t snkIx_ = UINT32_MAX;
-            Expression snkExpression;
+            Expression snkExpression_;
 
             /* === Private method(s) === */
         };
@@ -142,6 +162,22 @@ namespace Spider {
 
         std::uint32_t Edge::ix() const {
             return ix_;
+        }
+
+        std::uint32_t Edge::sourcePortIx() const {
+            return srcIx_;
+        }
+
+        std::uint32_t Edge::sinkPortIx() const {
+            return snkIx_;
+        }
+
+        const Expression &Edge::sourceRateExpression() const {
+            return srcExpression_;
+        }
+
+        const Expression &Edge::sinkRateExpression() const {
+            return snkExpression_;
         }
 
         template<bool>
@@ -157,7 +193,6 @@ namespace Spider {
         void Edge::setIx(std::uint32_t ix) {
             ix_ = ix;
         }
-
     }
 }
 #endif //SPIDER2_GRAPH_H

@@ -48,6 +48,54 @@
 
 /* === Method(s) implementation === */
 
+Spider::PiSDF::Graph::Graph(std::string name,
+                            std::uint32_t edgeINCount,
+                            std::uint32_t edgeOUTCount,
+                            Graph *graph,
+                            StackID stack) : Vertex(std::move(name),
+                                                    VertexType::INTERFACE,
+                                                    edgeINCount,
+                                                    edgeOUTCount,
+                                                    graph,
+                                                    stack) {
+    inputInterfaceVector_.reserve(edgeINCount);
+    outputInterfaceVector_.reserve(edgeOUTCount);
+}
+
+Spider::PiSDF::Graph::~Graph() {
+    /* == Destroy / deallocate subgraphs == */
+    for (auto &subgraph : subgraphVector_) {
+        Spider::destroy(subgraph);
+        Spider::deallocate(subgraph);
+    }
+
+    /* == Destroy / deallocate vertices == */
+    for (auto &vertex : vertexVector_) {
+        Spider::destroy(vertex);
+        Spider::deallocate(vertex);
+    }
+    for (auto &vertex : configVertexVector_) {
+        Spider::destroy(vertex);
+        Spider::deallocate(vertex);
+    }
+
+    /* == Destroy / deallocate interfaces == */
+    for (auto &interface : inputInterfaceVector_) {
+        Spider::destroy(interface);
+        Spider::deallocate(interface);
+    }
+    for (auto &interface : outputInterfaceVector_) {
+        Spider::destroy(interface);
+        Spider::deallocate(interface);
+    }
+
+    /* == Destroy / deallocate edges == */
+    for (auto &edge : edgeVector_) {
+        Spider::destroy(edge);
+        Spider::deallocate(edge);
+    }
+}
+
 void Spider::PiSDF::Graph::removeVertex(Vertex *vertex) {
     removeElement(vertexVector_, vertex);
 }
@@ -101,9 +149,15 @@ void Spider::PiSDF::Graph::addInterface(Interface *interface) {
     Spider::vector<Interface *> *interfaceVector = nullptr;
     switch (interface->subtype()) {
         case InterfaceType::INPUT:
+            if (inputInterfaceVector_.size() == edgesINCount()) {
+                throwSpiderException("Graph [%s]: can not have more interfaces than input edges.", name().c_str());
+            }
             interfaceVector = &inputInterfaceVector_;
             break;
         case InterfaceType::OUTPUT:
+            if (outputInterfaceVector_.size() == edgesOUTCount()) {
+                throwSpiderException("Graph [%s]: can not have more interfaces than output edges.", name().c_str());
+            }
             interfaceVector = &outputInterfaceVector_;
             break;
         default:
