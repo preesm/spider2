@@ -198,6 +198,8 @@ namespace Spider {
              */
             inline VertexType type() const;
 
+            inline virtual VertexType subtype() const;
+
             /* === Setter(s) === */
 
             /**
@@ -302,6 +304,10 @@ namespace Spider {
         }
 
         VertexType Vertex::type() const {
+            return type_;
+        }
+
+        VertexType Vertex::subtype() const {
             return type_;
         }
 

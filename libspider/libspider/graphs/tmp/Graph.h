@@ -64,7 +64,7 @@ namespace Spider {
                            Graph *graph = nullptr,
                            StackID stack = StackID::PISDF);
 
-            ~Graph();
+            ~Graph() override;
 
             /* === Method(s) === */
 
@@ -95,6 +95,26 @@ namespace Spider {
              * @throw @refitem Spider::Exception if edge does not exist in the graph.
              */
             void removeEdge(Edge *edge);
+
+            /**
+             * @brief Return the input interface corresponding to the port ix.
+             * @warning There is no consistency assured between input edges and input interfaces.
+             * It is up to the user to ensure this property.
+             * @warning This method does not check for out of bound error.
+             * @param ix  Ix of the port
+             * @return @refitem Interface
+             */
+            inline Interface *inputInterfaceFromIx(std::uint32_t ix) const;
+
+            /**
+             * @brief Return the output interface corresponding to the port ix.
+             * @warning There is no consistency assured between output edges and output interfaces.
+             * It is up to the user to ensure this property.
+             * @warning This method does not check for out of bound error.
+             * @param ix  Ix of the port
+             * @return @refitem Interface
+             */
+            inline Interface *outputInterfaceFromIx(std::uint32_t ix) const;
 
             /* === Getter(s) === */
 
@@ -241,6 +261,14 @@ namespace Spider {
 
         const Spider::vector<Edge *> &Graph::edges() const {
             return edgeVector_;
+        }
+
+        Interface *Graph::inputInterfaceFromIx(std::uint32_t ix) const {
+            return inputInterfaceVector_[ix];
+        }
+
+        Interface *Graph::outputInterfaceFromIx(std::uint32_t ix) const {
+            return outputInterfaceVector_[ix];
         }
     }
 }

@@ -53,7 +53,7 @@ Spider::PiSDF::Graph::Graph(std::string name,
                             std::uint32_t edgeOUTCount,
                             Graph *graph,
                             StackID stack) : Vertex(std::move(name),
-                                                    VertexType::INTERFACE,
+                                                    VertexType::GRAPH,
                                                     edgeINCount,
                                                     edgeOUTCount,
                                                     graph,
@@ -128,6 +128,7 @@ void Spider::PiSDF::Graph::removeElement(Spider::vector<T *> &eltVector, T *elt)
 
 void Spider::PiSDF::Graph::addVertex(Vertex *vertex) {
     switch (vertex->type()) {
+        case VertexType::SPECIAL:
         case VertexType::NORMAL:
             vertex->setIx(vertexVector_.size());
             vertexVector_.push_back(vertex);
@@ -142,19 +143,21 @@ void Spider::PiSDF::Graph::addVertex(Vertex *vertex) {
             break;
         case VertexType::DELAY:
             break;
+        default:
+            throwSpiderException("unsupported type of vertex.");
     }
 }
 
 void Spider::PiSDF::Graph::addInterface(Interface *interface) {
     Spider::vector<Interface *> *interfaceVector = nullptr;
     switch (interface->subtype()) {
-        case InterfaceType::INPUT:
+        case VertexType::INPUT:
             if (inputInterfaceVector_.size() == edgesINCount()) {
                 throwSpiderException("Graph [%s]: can not have more interfaces than input edges.", name().c_str());
             }
             interfaceVector = &inputInterfaceVector_;
             break;
-        case InterfaceType::OUTPUT:
+        case VertexType::OUTPUT:
             if (outputInterfaceVector_.size() == edgesOUTCount()) {
                 throwSpiderException("Graph [%s]: can not have more interfaces than output edges.", name().c_str());
             }

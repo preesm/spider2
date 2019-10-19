@@ -68,7 +68,11 @@ namespace Spider {
 
             inline Vertex *opposite() const override;
 
-            inline InterfaceType subtype() const override;
+            /**
+             * @brief Return the kind of the interface (@refitem InterfaceType)
+             * @return @refitem VertexType::INPUT
+             */
+            inline VertexType subtype() const override;
 
             /* === Setter(s) === */
 
@@ -87,8 +91,8 @@ namespace Spider {
             return outputEdgeArray_[0]->sink();
         }
 
-        InterfaceType InputInterface::subtype() const {
-            return InterfaceType::INPUT;
+        VertexType InputInterface::subtype() const {
+            return VertexType::INPUT;
         }
     }
 }

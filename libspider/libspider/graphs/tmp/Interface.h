@@ -79,12 +79,6 @@ namespace Spider {
              */
             virtual Vertex *opposite() const = 0;
 
-            /**
-             * @brief Return the kind of the interface (@refitem InterfaceType)
-             * @return @refitem InputInterface type
-             */
-            virtual InterfaceType subtype() const = 0;
-
             /* === Setter(s) === */
 
         };
