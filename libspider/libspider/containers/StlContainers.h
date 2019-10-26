@@ -56,33 +56,33 @@
 
 namespace Spider {
 
-    template<class T>
-    using vector = std::vector<T, Spider::Allocator<T>>;
+    template<class T, StackID stack = StackID::GENERAL>
+    using vector = std::vector<T, Spider::Allocator<T, stack>>;
 
-    template<class T>
-    using deque = std::deque<T, Spider::Allocator<T>>;
+    template<class T, StackID stack = StackID::GENERAL>
+    using deque = std::deque<T, Spider::Allocator<T, stack>>;
 
-    template<class T>
-    using queue = std::queue<T, Spider::deque<T>>;
+    template<class T, StackID stack = StackID::GENERAL>
+    using queue = std::queue<T, Spider::deque<T, stack>>;
 
-    template<class Key>
-    using unordered_set = std::unordered_set<Key, std::hash<Key>, std::equal_to<Key>, Spider::Allocator<Key>>;
+    template<class Key, StackID stack = StackID::GENERAL>
+    using unordered_set = std::unordered_set<Key, std::hash<Key>, std::equal_to<Key>, Spider::Allocator<Key, stack>>;
 
-    template<class Key>
-    using set = std::set<Key, std::less<Key>, Spider::Allocator<Key>>;
+    template<class Key, StackID stack = StackID::GENERAL>
+    using set = std::set<Key, std::less<Key>, Spider::Allocator<Key, stack>>;
 
-    template<class Key, class T>
+    template<class Key, class T, StackID stack = StackID::GENERAL>
     using unordered_map = std::unordered_map<Key,
             T,
             std::hash<Key>,
             std::equal_to<Key>,
-            Spider::Allocator<std::pair<const Key, T>>>;
+            Spider::Allocator<std::pair<const Key, T>, stack>>;
 
-    template<class Key, class T>
-    using map = std::map<Key, T, std::less<Key>, Spider::Allocator<std::pair<const Key, T>>>;
+    template<class Key, class T, StackID stack = StackID::GENERAL>
+    using map = std::map<Key, T, std::less<Key>, Spider::Allocator<std::pair<const Key, T>, stack>>;
 
-    template<class T>
-    using forward_list = std::forward_list<T, Spider::Allocator<T>>;
+    template<class T, StackID stack = StackID::GENERAL>
+    using forward_list = std::forward_list<T, Spider::Allocator<T, stack>>;
 }
 
 #endif //SPIDER2_STLCONTAINERS_H

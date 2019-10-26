@@ -154,7 +154,7 @@ namespace Spider {
 
     /* === Class definition of the Allocator for stl containers (use of GENERAL stack) === */
 
-    template<class T>
+    template<class T, StackID stack = StackID::GENERAL>
     class Allocator {
     public:
 
@@ -208,7 +208,7 @@ namespace Spider {
          * @return pointer to allocated buffer, nullptr if size is 0.
          */
         inline pointer allocate(size_type size) {
-            auto *&allocator = getAllocator(static_cast<std::uint64_t>(StackID::GENERAL));
+            auto *&allocator = getAllocator(static_cast<std::uint64_t>(stack));
             if (!allocator) {
                 throwSpiderException("Allocating memory with non-initialized allocator.");
             }
@@ -221,7 +221,7 @@ namespace Spider {
          * @param ptr Raw pointer to deallocate
          */
         inline void deallocate(pointer ptr, std::size_t) {
-            auto *&allocator = getAllocator(static_cast<std::uint64_t>(StackID::GENERAL));
+            auto *&allocator = getAllocator(static_cast<std::uint64_t>(stack));
             allocator->deallocate(ptr);
         }
 
