@@ -41,6 +41,8 @@
 /* === Include(s) === */
 
 #include <graphs/tmp/Graph.h>
+#include <graphs/tmp/ExecVertex.h>
+#include <graphs/tmp/Interface.h>
 
 /* === Static variable(s) === */
 
@@ -57,9 +59,9 @@ Spider::PiSDF::Graph::Graph(std::string name,
                                                     edgeINCount,
                                                     edgeOUTCount,
                                                     graph,
-                                                    stack) {
-    inputInterfaceVector_.reserve(edgeINCount);
-    outputInterfaceVector_.reserve(edgeOUTCount);
+                                                    stack),
+                                             inputInterfaceArray_{edgeINCount, stack},
+                                             outputInterfaceArray_{edgeOUTCount, stack} {
 }
 
 Spider::PiSDF::Graph::~Graph() {
@@ -80,11 +82,11 @@ Spider::PiSDF::Graph::~Graph() {
     }
 
     /* == Destroy / deallocate interfaces == */
-    for (auto &interface : inputInterfaceVector_) {
+    for (auto &interface : inputInterfaceArray_) {
         Spider::destroy(interface);
         Spider::deallocate(interface);
     }
-    for (auto &interface : outputInterfaceVector_) {
+    for (auto &interface : outputInterfaceArray_) {
         Spider::destroy(interface);
         Spider::deallocate(interface);
     }
@@ -96,7 +98,29 @@ Spider::PiSDF::Graph::~Graph() {
     }
 }
 
-void Spider::PiSDF::Graph::removeVertex(Vertex *vertex) {
+void Spider::PiSDF::Graph::addVertex(Vertex *vertex) {
+    switch (vertex->type()) {
+        case VertexType::SPECIAL:
+        case VertexType::NORMAL:
+            vertex->setIx(vertexVector_.size());
+            vertexVector_.push_back(dynamic_cast<ExecVertex *>(vertex));
+            break;
+        case VertexType::CONFIG:
+            break;
+        case VertexType::GRAPH:
+            addSubGraph(dynamic_cast<Graph *>(vertex));
+            break;
+        case VertexType::INTERFACE:
+            addInterface(dynamic_cast<Interface *>(vertex));
+            break;
+        case VertexType::DELAY:
+            break;
+        default:
+            throwSpiderException("unsupported type of vertex.");
+    }
+}
+
+void Spider::PiSDF::Graph::removeVertex(ExecVertex *vertex) {
     removeElement(vertexVector_, vertex);
 }
 
@@ -126,48 +150,31 @@ void Spider::PiSDF::Graph::removeElement(Spider::vector<T *> &eltVector, T *elt)
     Spider::deallocate(elt);
 }
 
-void Spider::PiSDF::Graph::addVertex(Vertex *vertex) {
-    switch (vertex->type()) {
-        case VertexType::SPECIAL:
-        case VertexType::NORMAL:
-            vertex->setIx(vertexVector_.size());
-            vertexVector_.push_back(vertex);
-            break;
-        case VertexType::CONFIG:
-            break;
-        case VertexType::GRAPH:
-            addSubGraph(dynamic_cast<Graph *>(vertex));
-            break;
-        case VertexType::INTERFACE:
-            addInterface(dynamic_cast<Interface *>(vertex));
-            break;
-        case VertexType::DELAY:
-            break;
-        default:
-            throwSpiderException("unsupported type of vertex.");
-    }
-}
-
 void Spider::PiSDF::Graph::addInterface(Interface *interface) {
-    Spider::vector<Interface *> *interfaceVector = nullptr;
+    static std::uint32_t indexIN = 0;
+    static std::uint32_t indexOUT = 0;
+    std::uint32_t *index = nullptr;
+    Spider::Array<Interface *> *interfaceArray = nullptr;
     switch (interface->subtype()) {
         case VertexType::INPUT:
-            if (inputInterfaceVector_.size() == edgesINCount()) {
+            if (indexIN == edgesINCount()) {
                 throwSpiderException("Graph [%s]: can not have more interfaces than input edges.", name().c_str());
             }
-            interfaceVector = &inputInterfaceVector_;
+            index = &indexIN;
+            interfaceArray = &inputInterfaceArray_;
             break;
         case VertexType::OUTPUT:
-            if (outputInterfaceVector_.size() == edgesOUTCount()) {
+            index = &indexOUT;
+            if (indexOUT == edgesOUTCount()) {
                 throwSpiderException("Graph [%s]: can not have more interfaces than output edges.", name().c_str());
             }
-            interfaceVector = &outputInterfaceVector_;
+            interfaceArray = &outputInterfaceArray_;
             break;
         default:
             throwSpiderException("Invalid interface type.");
     }
-    interface->setIx(interfaceVector->size());
-    interfaceVector->push_back(interface);
+    interface->setIx((*index));
+    (*interfaceArray)[(*index)++] = interface;
 }
 
 void Spider::PiSDF::Graph::addSubGraph(Graph *graph) {

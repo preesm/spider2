@@ -47,11 +47,14 @@
 #include <common/Exception.h>
 #include <containers/StlContainers.h>
 #include <graphs/tmp/Vertex.h>
-#include <graphs/tmp/Interface.h>
 #include <graphs/tmp/Edge.h>
 
 namespace Spider {
     namespace PiSDF {
+
+        /* === Forward declaration(s) === */
+        class ExecVertex;
+        class Interface;
 
         /* === Class definition === */
 
@@ -80,7 +83,7 @@ namespace Spider {
              * @param vertex Vertex to remove.
              * @throw @refitem Spider::Exception if vertex does not exist in the graph.
              */
-            void removeVertex(Vertex *vertex);
+            void removeVertex(ExecVertex *vertex);
 
             /**
              * @brief Add an edge to the graph.
@@ -155,7 +158,7 @@ namespace Spider {
             * @brief A const reference on the set of vertices. Useful for iterating on the vertices.
             * @return const reference to vertex set
             */
-            inline const Spider::vector<Vertex *> &vertices() const;
+            inline const Spider::vector<ExecVertex *> &vertices() const;
 
             /**
             * @brief A const reference on the set of vertices. Useful for iterating on the vertices.
@@ -167,13 +170,13 @@ namespace Spider {
             * @brief A const reference on the set of output interfaces. Useful for iterating on the input interfaces.
             * @return const reference to input interface set
             */
-            inline const Spider::vector<Interface *> &inputInterfaces() const;
+            inline const Spider::Array<Interface *> &inputInterfaces() const;
 
             /**
             * @brief A const reference on the set of output interfaces. Useful for iterating on the output interfaces.
             * @return const reference to output interface set
             */
-            inline const Spider::vector<Interface *> &outputInterfaces() const;
+            inline const Spider::Array<Interface *> &outputInterfaces() const;
 
             /**
             * @brief A const reference on the set of edges. Useful for iterating on the edges.
@@ -187,12 +190,12 @@ namespace Spider {
 
             /* === Contained elements of the graph === */
 
-            Spider::vector<Vertex *> vertexVector_;
+            Spider::vector<ExecVertex *> vertexVector_;
             Spider::vector<Vertex *> configVertexVector_;
             Spider::vector<Graph *> subgraphVector_;
             Spider::vector<Edge *> edgeVector_;
-            Spider::vector<Interface *> inputInterfaceVector_;
-            Spider::vector<Interface *> outputInterfaceVector_;
+            Spider::Array<Interface *> inputInterfaceArray_;
+            Spider::Array<Interface *> outputInterfaceArray_;
 
             /* === Private method(s) === */
 
@@ -236,14 +239,14 @@ namespace Spider {
         }
 
         std::uint64_t Graph::inputIFCount() const {
-            return inputInterfaceVector_.size();
+            return inputInterfaceArray_.size();
         }
 
         std::uint64_t Graph::outputIFCount() const {
-            return outputInterfaceVector_.size();
+            return outputInterfaceArray_.size();
         }
 
-        const Spider::vector<Vertex *> &Graph::vertices() const {
+        const Spider::vector<ExecVertex *> &Graph::vertices() const {
             return vertexVector_;
         }
 
@@ -251,12 +254,12 @@ namespace Spider {
             return configVertexVector_;
         }
 
-        const Spider::vector<Interface *> &Graph::inputInterfaces() const {
-            return inputInterfaceVector_;
+        const Spider::Array<Interface *> &Graph::inputInterfaces() const {
+            return inputInterfaceArray_;
         }
 
-        const Spider::vector<Interface *> &Graph::outputInterfaces() const {
-            return outputInterfaceVector_;
+        const Spider::Array<Interface *> &Graph::outputInterfaces() const {
+            return outputInterfaceArray_;
         }
 
         const Spider::vector<Edge *> &Graph::edges() const {
@@ -264,11 +267,11 @@ namespace Spider {
         }
 
         Interface *Graph::inputInterfaceFromIx(std::uint32_t ix) const {
-            return inputInterfaceVector_[ix];
+            return inputInterfaceArray_[ix];
         }
 
         Interface *Graph::outputInterfaceFromIx(std::uint32_t ix) const {
-            return outputInterfaceVector_[ix];
+            return outputInterfaceArray_[ix];
         }
     }
 }
