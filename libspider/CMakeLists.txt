@@ -140,12 +140,12 @@ endif ()
 # *******************************************
 # ************ PAPI LIBRARY *****************
 # *******************************************
-if (${SKIP_PAPI} MATCHES 1)
+if (${SKIP_PAPI} MATCHES 0)
     find_package(PAPI)
 endif ()
 
 if (PAPI_FOUND)
-    add_definitions(-DPAPI_AVAILABLE)
+    add_definitions(-D_SPIDER_PAPI_AVAILABLE)
     set(papify_sources
             libspider/papify/PapifyAction.cpp
             libspider/papify/PapifyAction.h
