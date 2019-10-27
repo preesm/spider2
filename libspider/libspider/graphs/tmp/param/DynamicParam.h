@@ -37,51 +37,63 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_TYPES_H
-#define SPIDER2_TYPES_H
+#ifndef SPIDER2_DYNAMICPARAM_H
+#define SPIDER2_DYNAMICPARAM_H
 
-/* === Includes === */
+/* === Include(s) === */
 
-#include <cstdint>
-
-/* === Methods prototype === */
+#include <graphs/tmp/param/Param.h>
 
 namespace Spider {
     namespace PiSDF {
 
-        /* === Enumeration(s) === */
+        /* ==+ Forward declaration(s) === */
 
-        /**
-         * @brief PiSDF parameter types
-         */
-        enum class ParamType : std::uint8_t {
-            STATIC,            /*! Static parameter: expression is evaluated at startup only once */
-            DYNAMIC,           /*! Dynamic parameter: value is set at runtime */
+        class Vertex;
+
+        /* === Class definition === */
+
+        class DynamicParam final : public Param {
+        public:
+
+            DynamicParam(Graph *graph, std::string name, Expression &&expression) : Param(graph, std::move(name)),
+                                                                                    expression_{expression} {
+
+            }
+
+            /* === Method(s) === */
+
+            /* === Getter(s) === */
+
+            inline std::int64_t value() const override;
+
+            inline ParamType type() const override;
+
+            /* === Setter(s) === */
+
+            inline void setValue(std::int64_t value) override;
+
+        private:
+            Expression expression_;
+
+            /* === Private method(s) === */
         };
 
-        /**
-         * @brief Type of PiSDF vertices
-         */
-        enum class VertexType : std::uint8_t {
-            NORMAL,         /*! Normal actor type */
-            SPECIAL,        /*! Special actor type */
-            CONFIG,         /*! Config vertex type */
-            GRAPH,          /*! Graph vertex type */
-            INTERFACE,      /*! Interface vertex type */
-            DELAY,          /*! Delay vertex type */
-            FORK,           /*! Fork actor subtype */
-            JOIN,           /*! Join actor subtype */
-            UPSAMPLE,       /*! Up-sample actor subtype */
-            DOWNSAMPLE,     /*! Down-sample actor subtype */
-            DUPLICATE,      /*! Duplicate actor subtype */
-            TAIL,           /*! Tail actor subtype */
-            HEAD,           /*! Head actor subtype */
-            INIT,           /*! Init actor subtype */
-            END,            /*! End actor subtype */
-            INPUT,          /*! Input interface type */
-            OUTPUT,         /*! Output interface type */
-        };
+        /* === Inline method(s) === */
+
+        std::int64_t DynamicParam::value() const {
+            return expression_.evaluate();
+        }
+
+        ParamType DynamicParam::type() const {
+            return ParamType::DYNAMIC;
+        }
+
+        void DynamicParam::setValue(std::int64_t value) {
+            expression_ = Expression(value);
+        }
+
     }
 }
 
-#endif //SPIDER2_TYPES_H
+#endif //SPIDER2_DYNAMICPARAM_H
