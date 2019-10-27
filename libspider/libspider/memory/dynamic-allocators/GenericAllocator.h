@@ -46,7 +46,7 @@
 
 /* === Class definition === */
 
-class GenericAllocator : public DynamicAllocator {
+class GenericAllocator final : public DynamicAllocator {
 public:
     explicit GenericAllocator(std::string name, std::int32_t alignment = sizeof(std::uint64_t));
 

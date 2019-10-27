@@ -49,7 +49,7 @@ namespace Spider {
 
         /* === Class definition === */
 
-        class HeadVertex : ExecVertex {
+        class HeadVertex final : public ExecVertex {
         public:
             explicit HeadVertex(std::string name = "unnamed-headvertex",
                                 std::uint32_t edgeINCount = 0,

@@ -51,7 +51,7 @@
 
 /* === Class definition === */
 
-class FreeListAllocator : public DynamicAllocator {
+class FreeListAllocator final : public DynamicAllocator {
 public:
     struct Node {
         std::uint64_t blockSize_ = 0;

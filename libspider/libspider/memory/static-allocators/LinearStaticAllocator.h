@@ -46,7 +46,7 @@
 
 /* === Class definition === */
 
-class LinearStaticAllocator : public StaticAllocator {
+class LinearStaticAllocator final : public StaticAllocator {
 public:
 
     explicit LinearStaticAllocator(std::string name, std::uint64_t totalSize,

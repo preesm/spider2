@@ -46,7 +46,7 @@
 
 /* === Class definition === */
 
-class LIFOStaticAllocator : public StaticAllocator {
+class LIFOStaticAllocator final : public StaticAllocator {
 public:
 
     explicit LIFOStaticAllocator(std::string name, std::uint64_t totalSize);

@@ -50,7 +50,7 @@
  * @brief Optimize Init -> End patterns in a PiSDFGraph.
  * @see: https://tel.archives-ouvertes.fr/tel-01301642
  */
-class PiSDFInitEndOptimizer : public PiSDFOptimizer {
+class PiSDFInitEndOptimizer final : public PiSDFOptimizer {
 public:
     inline bool operator()(PiSDFGraph *graph) const override;
 };

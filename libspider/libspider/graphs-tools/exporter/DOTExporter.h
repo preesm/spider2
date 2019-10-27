@@ -61,7 +61,7 @@ namespace Spider {
 
         /* === Class definition === */
 
-        class DOTExporter : public Exporter {
+        class DOTExporter final : public Exporter {
         public:
 
             explicit DOTExporter(const PiSDFGraph *graph) : Exporter(), graph_{graph} { }

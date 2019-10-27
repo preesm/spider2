@@ -80,7 +80,7 @@ namespace Spider {
     /* === Iterator definition === */
 
     template<typename T, bool is_const_iterator = true>
-    class LinkedListIterator : public std::iterator<std::forward_iterator_tag, T> {
+    class LinkedListIterator final : public std::iterator<std::forward_iterator_tag, T> {
     public:
         /**
          * For const_iterator:   define DataStructurePointerType to be a   const NodeList<T> *

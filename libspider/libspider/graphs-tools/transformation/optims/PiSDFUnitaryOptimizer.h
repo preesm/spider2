@@ -56,7 +56,7 @@
  *                   --> Downsample --> : removes downsample if rate_in == rate_out
  *                   --> Duplicate -->  : removes duplicate with 1 input edge if rate_in == rate_out
  */
-class PiSDFUnitaryOptimizer : public PiSDFOptimizer {
+class PiSDFUnitaryOptimizer final : public PiSDFOptimizer {
 public:
     inline bool operator()(PiSDFGraph *graph) const override;
 };

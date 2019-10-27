@@ -49,7 +49,7 @@ namespace Spider {
 
         /* === Class definition === */
 
-        class ForkVertex : ExecVertex {
+        class ForkVertex final : public ExecVertex {
         public:
             explicit ForkVertex(std::string name = "unnamed-forkvertex",
                                 std::uint32_t edgeOUTCount = 0,

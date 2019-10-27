@@ -52,7 +52,7 @@ namespace Spider {
 
     /* === Class definition === */
 
-    class StatsExporter : public Exporter {
+    class StatsExporter final : public Exporter {
     public:
 
         explicit StatsExporter(const Schedule *schedule) : Exporter(), schedule_{schedule} { }

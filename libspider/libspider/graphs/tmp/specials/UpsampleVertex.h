@@ -49,7 +49,7 @@ namespace Spider {
 
         /* === Class definition === */
 
-        class UpsampleVertex : ExecVertex {
+        class UpsampleVertex final : public ExecVertex {
         public:
             explicit UpsampleVertex(std::string name = "unnamed-upsamplevertex",
                                     Graph *graph = nullptr, //TODO: change to Spider::pisdfgraph() when this API replace old one

@@ -49,7 +49,7 @@ namespace Spider {
 
         /* === Class definition === */
 
-        class EndVertex : ExecVertex {
+        class EndVertex final : public ExecVertex {
         public:
             explicit EndVertex(std::string name = "unnamed-endvertex",
                                 Graph *graph = nullptr, //TODO: change to Spider::pisdfgraph() when this API replace old one

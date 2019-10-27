@@ -49,7 +49,7 @@ namespace Spider {
 
         /* === Class definition === */
 
-        class DuplicateVertex : ExecVertex {
+        class DuplicateVertex final : public ExecVertex {
         public:
             explicit DuplicateVertex(std::string name = "unnamed-duplicatevertex",
                                      std::uint32_t edgeOUTCount = 0,

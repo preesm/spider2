@@ -46,7 +46,7 @@
 
 /* === Class definition === */
 
-class JITMSRuntime : public SpiderRuntime {
+class JITMSRuntime final : public SpiderRuntime {
 public:
 
     explicit JITMSRuntime(PiSDFGraph *graph) : SpiderRuntime(graph) { };

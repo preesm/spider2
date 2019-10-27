@@ -47,7 +47,7 @@
 
 /* === Class definition === */
 
-class LCMBRVCompute : public BRVCompute {
+class LCMBRVCompute final : public BRVCompute {
 public:
 
     explicit LCMBRVCompute(const PiSDFGraph *graph) : BRVCompute(graph) { };

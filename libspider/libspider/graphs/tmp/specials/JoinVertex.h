@@ -49,7 +49,7 @@ namespace Spider {
 
         /* === Class definition === */
 
-        class JoinVertex : ExecVertex {
+        class JoinVertex final : public ExecVertex {
         public:
             explicit JoinVertex(std::string name = "unnamed-joinvertex",
                                 std::uint32_t edgeINCount = 0,

@@ -46,7 +46,7 @@
 
 /* === Class definition === */
 
-class FreeListStaticAllocator : public StaticAllocator {
+class FreeListStaticAllocator final : public StaticAllocator {
 public:
 
     explicit FreeListStaticAllocator(std::string name,

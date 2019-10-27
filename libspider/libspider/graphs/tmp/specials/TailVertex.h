@@ -49,7 +49,7 @@ namespace Spider {
 
         /* === Class definition === */
 
-        class TailVertex : ExecVertex {
+        class TailVertex final : public ExecVertex {
         public:
             explicit TailVertex(std::string name = "unnamed-tailvertex",
                                 std::uint32_t edgeINCount = 0,

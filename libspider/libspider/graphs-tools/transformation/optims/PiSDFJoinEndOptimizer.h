@@ -47,7 +47,7 @@
 
 /* === Class definition === */
 
-class PiSDFJoinEndOptimizer : public PiSDFOptimizer {
+class PiSDFJoinEndOptimizer final : public PiSDFOptimizer {
 public:
     inline bool operator()(PiSDFGraph *graph) const override;
 };

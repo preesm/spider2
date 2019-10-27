@@ -46,7 +46,7 @@
 
 /* === Class definition === */
 
-class TopologyBRVCompute : public BRVCompute {
+class TopologyBRVCompute final : public BRVCompute {
 public:
 
     explicit TopologyBRVCompute(PiSDFGraph *graph) : BRVCompute(graph) { };

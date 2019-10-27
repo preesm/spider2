@@ -52,7 +52,7 @@
  * @brief Optimize Join -> Fork patterns in a PiSDFGraph.
  * @see: https://tel.archives-ouvertes.fr/tel-01301642
  */
-class PiSDFJoinForkOptimizer : public PiSDFOptimizer {
+class PiSDFJoinForkOptimizer final : public PiSDFOptimizer {
 public:
     inline bool operator()(PiSDFGraph *graph) const override;
 

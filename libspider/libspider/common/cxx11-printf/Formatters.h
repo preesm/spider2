@@ -173,7 +173,7 @@ namespace Spider {
         /**
          * @brief Context to write to stdout stream
          */
-        struct stdout_writer : public stdio_writer {
+        struct stdout_writer final : public stdio_writer {
             stdout_writer() : stdio_writer(stdout) {
 
             }
@@ -182,7 +182,7 @@ namespace Spider {
         /**
          * @brief Context to write to stderr stream
          */
-        struct stderr_writer : public stdio_writer {
+        struct stderr_writer final : public stdio_writer {
             stderr_writer() : stdio_writer(stderr) {
 
             }

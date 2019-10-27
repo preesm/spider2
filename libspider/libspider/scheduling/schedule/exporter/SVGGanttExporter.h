@@ -54,7 +54,7 @@ namespace Spider {
 
     /* === Class definition === */
 
-    class SVGGanttExporter : public Exporter {
+    class SVGGanttExporter final : public Exporter {
     public:
 
         explicit SVGGanttExporter(const Schedule *schedule);

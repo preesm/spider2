@@ -58,7 +58,7 @@ namespace Spider {
 
         /* === Class definition === */
 
-        class Graph : public Vertex {
+        class Graph final : public Vertex {
         public:
 
             explicit Graph(std::string name = "unnamed-graph",
