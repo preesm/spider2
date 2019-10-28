@@ -44,27 +44,27 @@
 
 #include <common/Exporter.h>
 
-/* === Forward declaration(s) === */
-
-class PiSDFGraph;
-
-class PiSDFVertex;
-
-class PiSDFInterface;
-
-class PiSDFEdge;
-
-class PiSDFParam;
-
 namespace Spider {
     namespace PiSDF {
+
+        /* === Forward declaration(s) === */
+
+        class Graph;
+
+        class Vertex;
+
+        class Interface;
+
+        class Edge;
+
+        class Param;
 
         /* === Class definition === */
 
         class DOTExporter final : public Exporter {
         public:
 
-            explicit DOTExporter(const PiSDFGraph *graph) : Exporter(), graph_{graph} { }
+            explicit DOTExporter(const Graph *graph) : Exporter(), graph_{graph} { }
 
             ~DOTExporter() override = default;
 
@@ -81,44 +81,44 @@ namespace Spider {
             void print(std::ofstream &file) const override;
 
         private:
-            const PiSDFGraph *graph_ = nullptr;
+            const Graph *graph_ = nullptr;
 
             /* === Private static method(s) === */
 
-            static void graphPrinter(std::ofstream &file, const PiSDFGraph *graph, const std::string &offset = "\t");
+            static void graphPrinter(std::ofstream &file, const Graph *graph, const std::string &offset = "\t");
 
-            static void vertexPrinter(std::ofstream &file, const PiSDFVertex *vertex, const std::string &offset);
+            static void vertexPrinter(std::ofstream &file, const Vertex *vertex, const std::string &offset);
 
-            static void edgePrinter(std::ofstream &file, const PiSDFEdge *edge, const std::string &offset);
+            static void edgePrinter(std::ofstream &file, const Edge *edge, const std::string &offset);
 
-            static void paramPrinter(std::ofstream &file, const PiSDFParam *param, const std::string &offset);
+            static void paramPrinter(std::ofstream &file, const Param *param, const std::string &offset);
 
             static void inputIFPrinter(std::ofstream &file,
-                                       const PiSDFInterface *interface,
+                                       const Interface *interface,
                                        const std::string &offset);
 
             static void outputIFPrinter(std::ofstream &file,
-                                        const PiSDFInterface *interface,
+                                        const Interface *interface,
                                         const std::string &offset);
 
             static void interfacePrinter(std::ofstream &file,
-                                         const PiSDFInterface *interface,
+                                         const Interface *interface,
                                          const std::string &offset);
 
 
             static void dataPortPrinter(std::ofstream &file,
-                                        const PiSDFEdge *edge,
+                                        const Edge *edge,
                                         const std::string &offset,
                                         std::uint32_t width,
                                         bool input);
 
             static void inputDataPortPrinter(std::ofstream &file,
-                                             const PiSDFEdge *edge,
+                                             const Edge *edge,
                                              const std::string &offset,
                                              std::uint32_t width);
 
             static void outputDataPortPrinter(std::ofstream &file,
-                                              const PiSDFEdge *edge,
+                                              const Edge *edge,
                                               const std::string &offset,
                                               std::uint32_t width);
 
