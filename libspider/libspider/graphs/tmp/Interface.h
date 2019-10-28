@@ -67,7 +67,11 @@ namespace Spider {
 
             /* === Method(s) === */
 
-            inline Vertex *forwardEdge() override;
+            inline Vertex *forwardEdge(const Edge *) override;
+
+            inline virtual Edge *inputEdge() const = 0;
+
+            inline virtual Edge *outputEdge() const = 0;
 
             /* === Getter(s) === */
 
@@ -85,8 +89,8 @@ namespace Spider {
 
         /* === Inline method(s) === */
 
-        Vertex *Interface::forwardEdge() {
-            return this->opposite()->forwardEdge();
+        Vertex *Interface::forwardEdge(const Edge *) {
+            return this->opposite()->forwardEdge(nullptr);
         }
     }
 }

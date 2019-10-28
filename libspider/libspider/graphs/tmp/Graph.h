@@ -82,7 +82,7 @@ namespace Spider {
              * @brief Add a vertex to the graph.
              * @param vertex Vertex to add.
              */
-            inline void addVertex(Vertex *vertex);
+            void addVertex(Vertex *vertex);
 
             /**
              * @brief Remove a vertex from the graph.
@@ -140,6 +140,8 @@ namespace Spider {
              */
             inline Interface *outputInterfaceFromIx(std::uint32_t ix) const;
 
+            Vertex *forwardEdge(const Edge *e) override;
+
             /* === Getter(s) === */
 
             inline bool hierarchical() const override;
@@ -186,6 +188,12 @@ namespace Spider {
             * @return const reference to exec vertex vector
             */
             inline const Spider::vector<ExecVertex *> &vertices() const;
+
+            /**
+            * @brief A const reference on the set of subgraphs. Useful for iterating on the subgraphs.
+            * @return const reference to subgraph vector
+            */
+            inline const Spider::vector<Graph *> &subgraphs() const;
 
             /**
             * @brief A const reference on the set of vertices. Useful for iterating on the vertices.
@@ -281,6 +289,10 @@ namespace Spider {
 
         const Spider::vector<ExecVertex *> &Graph::vertices() const {
             return vertexVector_;
+        }
+
+        const Spider::vector<Graph *> &Graph::subgraphs() const {
+            return subgraphVector_;
         }
 
         const Spider::vector<Vertex *> &Graph::configActors() const {

@@ -109,7 +109,7 @@ namespace Spider {
              * @brief Forward the connection of an edge. It should return this except for @refitem Interface vertices.
              * @return this or vertex connected to edge.
              */
-            inline virtual Vertex *forwardEdge();
+            inline virtual Vertex *forwardEdge(const Edge *);
 
             /* === Getter(s) === */
 
@@ -251,7 +251,7 @@ namespace Spider {
 
         /* === Inline method(s) === */
 
-        Vertex *Vertex::forwardEdge() {
+        Vertex *Vertex::forwardEdge(const Edge *) {
             return this;
         }
 

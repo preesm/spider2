@@ -92,6 +92,7 @@ void Spider::PiSDF::Vertex::connectEdge(Spider::Array<Edge *> &edges, Edge *edge
     auto *&current = edges.at(ix);
     if (!current) {
         current = edge;
+        return;
     }
     throwSpiderException("Edge already exists at position: %"
                                  PRIu32

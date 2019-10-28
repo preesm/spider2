@@ -43,6 +43,7 @@
 /* === Include(s) === */
 
 #include <graphs/tmp/Interface.h>
+#include <graphs/tmp/Graph.h>
 
 namespace Spider {
     namespace PiSDF {
@@ -63,6 +64,10 @@ namespace Spider {
             /* === Method(s) === */
 
             inline void connectInputEdge(Spider::PiSDF::Edge *, std::uint32_t) override;
+
+            inline Edge *inputEdge() const override;
+
+            inline Edge *outputEdge() const override;
 
             /* === Getter(s) === */
 
@@ -85,6 +90,14 @@ namespace Spider {
 
         void InputInterface::connectInputEdge(Spider::PiSDF::Edge *, std::uint32_t) {
             throwSpiderException("Can not connect input edge to input interface.");
+        }
+
+        Edge *InputInterface::inputEdge() const {
+            return graph_->inputEdge(ix_);
+        }
+
+        Edge *InputInterface::outputEdge() const {
+            return outputEdgeArray_[0];
         }
 
         Vertex *InputInterface::opposite() const {

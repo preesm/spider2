@@ -58,10 +58,10 @@ bool JITMSRuntime::execute() const {
     auto *srdag = srdagTransfomer.srdag();
 
     /* == Apply graph optimizations == */
-    Spider::PiSDF::DOTExporter(srdag).print("/tmp/srdag.dot");
+//    Spider::PiSDF::DOTExporter(srdag).print("/tmp/srdag.dot");
     if (Spider::API::srdagOptim()) {
         PiSDFGraphOptimizer()(srdag);
     }
-    Spider::PiSDF::DOTExporter(srdag).print("/tmp/srdag-optims.dot");
+//    Spider::PiSDF::DOTExporter(srdag).print("/tmp/srdag-optims.dot");
     return true;
 }

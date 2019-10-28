@@ -63,6 +63,8 @@ Spider::PiSDF::Edge::Edge(Vertex *source,
     if (!source || !sink) {
         throwSpiderException("nullptr vertex connected to Edge.");
     }
+    source->connectOutputEdge(this, srcIx);
+    sink->connectInputEdge(this, snkIx);
 }
 
 std::string Spider::PiSDF::Edge::name() const {
@@ -71,19 +73,20 @@ std::string Spider::PiSDF::Edge::name() const {
 
 template<>
 Spider::PiSDF::Vertex *Spider::PiSDF::Edge::source<true>() const {
-    return src_->forwardEdge();
+    return src_->forwardEdge(this);
 }
 
 template<>
 Spider::PiSDF::Vertex *Spider::PiSDF::Edge::sink<true>() const {
-    return snk_->forwardEdge();
+    return snk_->forwardEdge(this);
 }
 
 void Spider::PiSDF::Edge::setSource(Vertex *vertex, std::uint32_t ix, Expression &&expr) {
     if (!vertex) {
         throwSpiderException("Can not set nullptr vertex on edge [%s].", name().c_str());
     }
-    src_->disconnectOutputEdge(ix);
+    vertex->connectOutputEdge(this, ix);
+    src_->disconnectOutputEdge(srcIx_);
     src_ = vertex;
     srcIx_ = ix;
     srcExpression_ = std::move(expr);
@@ -93,7 +96,8 @@ void Spider::PiSDF::Edge::setSink(Vertex *vertex, std::uint32_t ix, Expression &
     if (!vertex) {
         throwSpiderException("Can not set nullptr vertex on edge [%s].", name().c_str());
     }
-    snk_->disconnectInputEdge(ix);
+    vertex->connectInputEdge(this, ix);
+    snk_->disconnectInputEdge(snkIx_);
     snk_ = vertex;
     snkIx_ = ix;
     snkExpression_ = std::move(expr);

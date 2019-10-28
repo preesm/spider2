@@ -85,12 +85,12 @@ void Spider::API::exportSRDAG(const std::string &path, const PiSDFGraph *graph) 
     }
 
     /* == Print the SR-DAG == */
-    Spider::PiSDF::DOTExporter(srdag).print(path);
+//    Spider::PiSDF::DOTExporter(srdag).print(path);
 }
 
 void Spider::API::exportGraphToDOT(const std::string &path, const PiSDFGraph *graph) {
     /* == Print the Graph == */
-    Spider::PiSDF::DOTExporter(graph).print(path);
+//    Spider::PiSDF::DOTExporter(graph).print(path);
 }
 
 void Spider::API::enableLogger(LoggerType type) {
