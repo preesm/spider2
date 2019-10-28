@@ -149,6 +149,15 @@ void Spider::PiSDF::Graph::removeParam(Param *param) {
     removeElement(paramVector_, param);
 }
 
+Spider::PiSDF::Param *Spider::PiSDF::Graph::findParam(const std::string &name) const {
+    for (auto &p : paramVector_) {
+        if (p->name() == name) {
+            return p;
+        }
+    }
+    return nullptr;
+}
+
 Spider::PiSDF::Vertex *Spider::PiSDF::Graph::forwardEdge(const Edge *e) {
     if (e->source() == this) {
         return outputInterfaceArray_[e->sourcePortIx()];

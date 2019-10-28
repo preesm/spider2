@@ -121,6 +121,13 @@ namespace Spider {
             void removeParam(Param *param);
 
             /**
+             * @brief Retrieve a parameter from its name.
+             * @param name Name of the parameter.
+             * @return pointer to the @refitem Spider::PiSDF::Param if found, nullptr else.
+             */
+            Param *findParam(const std::string &name) const;
+
+            /**
              * @brief Return the input interface corresponding to the port ix.
              * @warning There is no consistency assured between input edges and input interfaces.
              * It is up to the user to ensure this property.

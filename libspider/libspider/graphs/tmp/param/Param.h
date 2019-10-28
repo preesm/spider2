@@ -60,13 +60,16 @@ namespace Spider {
 
             Param(Graph *graph, std::string name, std::int64_t value = 0) : graph_{graph},
                                                                             name_{std::move(name)},
-                                                                            value_{value} { }
+                                                                            value_{value} {
+                std::transform(name_.begin(), name_.end(), name_.begin(), ::tolower);
+            }
 
             Param(Graph *graph, std::string name, Expression &&expression) : graph_{graph},
                                                                              name_{std::move(name)} {
                 if (!expression.isStatic()) {
                     throwSpiderException("STATIC parameter should have static expression: %s.", expression.toString());
                 }
+                std::transform(name_.begin(), name_.end(), name_.begin(), ::tolower);
                 value_ = expression.value();
             }
 
