@@ -76,23 +76,23 @@ void Spider::BestFitScheduler::vertexMapper(const PiSDFVertex *vertex) {
     std::uint64_t bestStartTime = 0;
     std::uint64_t bestEndTime = UINT64_MAX;
     std::uint64_t bestScheduleCost = UINT64_MAX;
-    for (auto &cluster : platform->clusters()) {
-        for (auto &PE : cluster->processingElements()) {
+    for (const auto &cluster : platform->clusters()) {
+        for (const auto &PE : cluster->processingElements()) {
             /* == Check that PE is enabled and vertex is mappable on it == */
             if (PE->enabled() && scenario.isMappable(reference, PE)) {
                 /* == Retrieving information needed for scheduling cost == */
                 const auto &readyTime = platformStats.startTime(PE->spiderPEIx());
-                auto startTime = std::max(readyTime, minStartTime);
-                auto waitTime = startTime - readyTime;
-                auto execTime = scenario.executionTiming(reference, PE);
-                auto endTime = startTime + execTime;
+                const auto &startTime = std::max(readyTime, minStartTime);
+                const auto &waitTime = startTime - readyTime;
+                const auto &execTime = scenario.executionTiming(reference, PE);
+                const auto &endTime = startTime + execTime;
 
                 /* == Compute communication cost == */
                 std::uint64_t receiveCost = 0;
 
                 /* == Compute total schedule cost == */
-                auto scheduleCost = Spider::Math::saturateAdd(Spider::Math::saturateAdd(endTime, waitTime),
-                                                              receiveCost);
+                const auto &scheduleCost = Spider::Math::saturateAdd(Spider::Math::saturateAdd(endTime, waitTime),
+                                                                     receiveCost);
                 if (scheduleCost < bestScheduleCost) {
                     bestScheduleCost = scheduleCost;
                     bestStartTime = startTime;
@@ -108,8 +108,8 @@ void Spider::BestFitScheduler::vertexMapper(const PiSDFVertex *vertex) {
         throwSpiderException("Could not find suitable processing element for vertex: [%s]", vertex->name());
     }
     const auto &PE = platform->findPE(bestSlave.first, bestSlave.second);
-    auto job = ScheduleJob(vertex->ix(),         /* == Vertex ix == */
-                           schedule_.jobCount(), /* == Job ix == */
+    auto job = ScheduleJob(schedule_.jobCount(), /* == Job ix == */
+                           vertex->ix(),         /* == Vertex ix == */
                            PE.clusterPEIx(),     /* == PE ix inside the cluster == */
                            PE.cluster()->ix(),   /* == Cluster ix of the PE == */
                            0);                   /* == LRT ix to which the PE is linked == */
