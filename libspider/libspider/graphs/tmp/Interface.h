@@ -69,9 +69,9 @@ namespace Spider {
 
             inline Vertex *forwardEdge(const Edge *) override;
 
-            inline virtual Edge *inputEdge() const = 0;
+            virtual Edge *inputEdge() const = 0;
 
-            inline virtual Edge *outputEdge() const = 0;
+            virtual Edge *outputEdge() const = 0;
 
             /* === Getter(s) === */
 
