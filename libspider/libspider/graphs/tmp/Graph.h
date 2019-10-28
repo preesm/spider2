@@ -53,8 +53,12 @@ namespace Spider {
     namespace PiSDF {
 
         /* === Forward declaration(s) === */
+
         class ExecVertex;
+
         class Interface;
+
+        class Param;
 
         /* === Class definition === */
 
@@ -62,6 +66,9 @@ namespace Spider {
         public:
 
             explicit Graph(std::string name = "unnamed-graph",
+                           std::uint32_t vertexCount = 0,
+                           std::uint32_t edgeCount = 0,
+                           std::uint32_t paramCount = 0,
                            std::uint32_t edgeINCount = 0,
                            std::uint32_t edgeOUTCount = 0,
                            Graph *graph = nullptr,
@@ -89,7 +96,7 @@ namespace Spider {
              * @brief Add an edge to the graph.
              * @param edge Edge to add.
              */
-            inline void addEdge(Edge *edge);
+            void addEdge(Edge *edge);
 
             /**
              * @brief Remove an edge from the graph.
@@ -98,6 +105,20 @@ namespace Spider {
              * @throw @refitem Spider::Exception if edge does not exist in the graph.
              */
             void removeEdge(Edge *edge);
+
+            /**
+             * @brief Add an param to the graph.
+             * @param param Param to add.
+             */
+            void addParam(Param *param);
+
+            /**
+             * @brief Remove an param from the graph.
+             * @remark If param is nullptr, nothing happens.
+             * @param param Param to add.
+             * @throw @refitem Spider::Exception if param does not exist in the graph.
+             */
+            void removeParam(Param *param);
 
             /**
              * @brief Return the input interface corresponding to the port ix.
@@ -143,6 +164,12 @@ namespace Spider {
             inline std::uint64_t edgeCount() const;
 
             /**
+             * @brief Get the number of params contained in the graph.
+             * @return Number of params.
+             */
+            inline std::uint64_t paramCount() const;
+
+            /**
              * @brief Get the number of input interfaces.
              * @return Number of input interfaces.
              */
@@ -156,33 +183,39 @@ namespace Spider {
 
             /**
             * @brief A const reference on the set of vertices. Useful for iterating on the vertices.
-            * @return const reference to vertex set
+            * @return const reference to exec vertex vector
             */
             inline const Spider::vector<ExecVertex *> &vertices() const;
 
             /**
             * @brief A const reference on the set of vertices. Useful for iterating on the vertices.
-            * @return const reference to vertex set
+            * @return const reference to vertex vector
             */
             inline const Spider::vector<Vertex *> &configActors() const;
 
             /**
             * @brief A const reference on the set of output interfaces. Useful for iterating on the input interfaces.
-            * @return const reference to input interface set
+            * @return const reference to input interface array
             */
             inline const Spider::Array<Interface *> &inputInterfaces() const;
 
             /**
             * @brief A const reference on the set of output interfaces. Useful for iterating on the output interfaces.
-            * @return const reference to output interface set
+            * @return const reference to output interface array
             */
             inline const Spider::Array<Interface *> &outputInterfaces() const;
 
             /**
             * @brief A const reference on the set of edges. Useful for iterating on the edges.
-            * @return const reference to edge set
+            * @return const reference to edge vector
             */
             inline const Spider::vector<Edge *> &edges() const;
+
+            /**
+            * @brief A const reference on the set of params. Useful for iterating on the params.
+            * @return const reference to param vector
+            */
+            inline const Spider::vector<Param *> &params() const;
 
             /* === Setter(s) === */
 
@@ -196,6 +229,7 @@ namespace Spider {
             Spider::vector<Edge *> edgeVector_;
             Spider::Array<Interface *> inputInterfaceArray_;
             Spider::Array<Interface *> outputInterfaceArray_;
+            Spider::vector<Param *> paramVector_;
 
             /* === Private method(s) === */
 
@@ -217,11 +251,6 @@ namespace Spider {
 
         /* === Inline method(s) === */
 
-        void Graph::addEdge(Edge *edge) {
-            edge->setIx(edgeVector_.size());
-            edgeVector_.push_back(edge);
-        }
-
         bool Graph::hierarchical() const {
             return true;
         }
@@ -236,6 +265,10 @@ namespace Spider {
 
         std::uint64_t Graph::edgeCount() const {
             return edgeVector_.size();
+        }
+
+        std::uint64_t Graph::paramCount() const {
+            return paramVector_.size();
         }
 
         std::uint64_t Graph::inputIFCount() const {
@@ -264,6 +297,10 @@ namespace Spider {
 
         const Spider::vector<Edge *> &Graph::edges() const {
             return edgeVector_;
+        }
+
+        const Spider::vector<Param *> &Graph::params() const {
+            return paramVector_;
         }
 
         Interface *Graph::inputInterfaceFromIx(std::uint32_t ix) const {

@@ -43,6 +43,7 @@
 #include <graphs/tmp/Graph.h>
 #include <graphs/tmp/ExecVertex.h>
 #include <graphs/tmp/Interface.h>
+#include <graphs/tmp/param/Param.h>
 
 /* === Static variable(s) === */
 
@@ -51,6 +52,9 @@
 /* === Method(s) implementation === */
 
 Spider::PiSDF::Graph::Graph(std::string name,
+                            std::uint32_t vertexCount,
+                            std::uint32_t edgeCount,
+                            std::uint32_t paramCount,
                             std::uint32_t edgeINCount,
                             std::uint32_t edgeOUTCount,
                             Graph *graph,
@@ -62,6 +66,9 @@ Spider::PiSDF::Graph::Graph(std::string name,
                                                     stack),
                                              inputInterfaceArray_{edgeINCount, stack},
                                              outputInterfaceArray_{edgeOUTCount, stack} {
+    vertexVector_.reserve(vertexCount);
+    edgeVector_.reserve(edgeCount);
+    paramVector_.reserve(paramCount);
 }
 
 Spider::PiSDF::Graph::~Graph() {
@@ -124,8 +131,22 @@ void Spider::PiSDF::Graph::removeVertex(ExecVertex *vertex) {
     removeElement(vertexVector_, vertex);
 }
 
+void Spider::PiSDF::Graph::addEdge(Edge *edge) {
+    edge->setIx(edgeVector_.size());
+    edgeVector_.push_back(edge);
+}
+
 void Spider::PiSDF::Graph::removeEdge(Edge *edge) {
     removeElement(edgeVector_, edge);
+}
+
+void Spider::PiSDF::Graph::addParam(Param *param) {
+    param->setIx(paramVector_.size());
+    paramVector_.push_back(param);
+}
+
+void Spider::PiSDF::Graph::removeParam(Param *param) {
+    removeElement(paramVector_, param);
 }
 
 /* === Private method(s) === */

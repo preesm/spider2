@@ -76,7 +76,7 @@ namespace Spider {
 
             /* === Getter(s) === */
 
-            inline Graph *graph() const;
+            inline Graph *containingGraph() const;
 
             inline const std::string &name() const;
 
@@ -103,7 +103,7 @@ namespace Spider {
 
         /* === Inline method(s) === */
 
-        Graph *Param::graph() const {
+        Graph *Param::containingGraph() const {
             return graph_;
         }
 
