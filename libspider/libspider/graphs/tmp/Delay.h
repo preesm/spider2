@@ -42,26 +42,131 @@
 
 /* === Include(s) === */
 
+#include <string>
+#include <graphs-tools/expression-parser/Expression.h>
 
+namespace Spider {
+    namespace PiSDF {
 
-/* === Class definition === */
+        /* === Forward declaration(s) === */
 
-class Delay {
-public:
+        class Vertex;
 
-    /* === Method(s) === */
-    
-    /* === Getter(s) === */
-    
-    /* === Setter(s) === */
+        class Edge;
 
-private:
+        /* === Class definition === */
 
-    /* === Private method(s) === */
-};
+        class Delay {
+        public:
 
-/* === Inline method(s) === */
+            Delay(Expression &&expression,
+                  Edge *edge,
+                  Vertex *setter,
+                  std::uint32_t setterPortIx,
+                  Vertex *getter,
+                  std::uint32_t getterPortIx,
+                  bool persistent = false);
 
+            ~Delay() = default;
 
+            /* === Method(s) === */
+
+            /**
+             * @brief Get the edge of the delay.
+             * @return @refitem Spider::PiSDF::Edge associated to the delay.
+             */
+            std::string name() const;
+
+            /* === Getter(s) === */
+
+            inline Edge *edge() const;
+
+            /**
+             * @brief Get the setter vertex of the delay.
+             * @return @refitem Spider::PiSDF::Vertex connected to the delay.
+             */
+            inline Vertex *setter() const;
+
+            /**
+             * @brief Get the getter vertex of the delay.
+             * @return @refitem Spider::PiSDF::Vertex connected to the delay.
+             */
+            inline Vertex *getter() const;
+
+            /**
+             * @brief Return the port ix on which the delay is connected to the setter.
+             * @return setter output port ix.
+             */
+            inline std::uint32_t setterPortIx() const;
+
+            /**
+             * @brief Return the port ix on which the delay is connected to the getter.
+             * @return getter output port ix.
+             */
+            inline std::uint32_t getterPortIx() const;
+
+            /**
+             * @brief Get the virtual memory address (in the data memory space) of the delay.
+             * @return virtual memory address value.
+             */
+            inline std::uint64_t memoryAddress() const;
+
+            /* === Setter(s) === */
+
+            /**
+             * @brief Set the virtual memory address of the delay.
+             * @param address
+             * @remark Issue a warning if delay already has an address.
+             */
+            inline void setMemoryAddress(std::uint64_t address);
+
+        private:
+            Expression expression_;
+            Edge *edge_ = nullptr;
+            Vertex *setter_ = nullptr;
+            std::uint32_t setterPortIx_ = 0;
+            Vertex *getter_ = nullptr;
+            std::uint32_t getterPortIx_ = 0;
+
+            bool persistent_ = true;
+            std::uint64_t memoryAddress_ = UINT64_MAX;
+
+            /* === Private method(s) === */
+        };
+
+        /* === Inline method(s) === */
+
+        Edge *Delay::edge() const {
+            return edge_;
+        }
+
+        Vertex *Delay::setter() const {
+            return setter_;
+        }
+
+        Vertex *Delay::getter() const {
+            return getter_;
+        }
+
+        std::uint32_t Delay::setterPortIx() const {
+            return setterPortIx_;
+        }
+
+        std::uint32_t Delay::getterPortIx() const {
+            return getterPortIx_;
+        }
+
+        std::uint64_t Delay::memoryAddress() const {
+            return memoryAddress_;
+        }
+
+        void Delay::setMemoryAddress(std::uint64_t address) {
+            if (memoryAddress_ != UINT64_MAX) {
+                Spider::Logger::printWarning(LOG_GENERAL, "Delay already has a memory address.\n");
+            }
+            memoryAddress_ = address;
+        }
+    }
+}
 
 #endif //SPIDER2_DELAY_H

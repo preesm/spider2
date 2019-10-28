@@ -57,6 +57,8 @@ namespace Spider {
 
         class Vertex;
 
+        class Delay;
+
         class Edge {
         public:
 
@@ -127,6 +129,12 @@ namespace Spider {
             template<bool = false>
             inline Vertex *sink() const;
 
+            /**
+             * @brief Get the delay (if any) associated to the edge.
+             * @return @refitem PiSDFDelay of the edge.
+             */
+            inline const Delay *delay() const;
+
             /* === Setter(s) === */
 
             /**
@@ -140,6 +148,8 @@ namespace Spider {
 
             void setSink(Vertex *vertex, std::uint32_t ix, Expression &&expr);
 
+            void setDelay(Delay *delay);
+
         private:
             Graph *graph_ = nullptr;
             std::uint32_t ix_ = UINT32_MAX;
@@ -150,6 +160,8 @@ namespace Spider {
             Vertex *snk_;
             std::uint32_t snkIx_ = UINT32_MAX;
             Expression snkExpression_;
+
+            Delay *delay_ = nullptr;
 
             /* === Private method(s) === */
         };
@@ -190,8 +202,21 @@ namespace Spider {
             return snk_;
         }
 
+        const Delay *Edge::delay() const {
+            return delay_;
+        }
+
         void Edge::setIx(std::uint32_t ix) {
             ix_ = ix;
+        }
+
+        void Edge::setDelay(Delay *delay) {
+            if (!delay) {
+                return;
+            } else if (delay_) {
+                throwSpiderException("Cannot set delay. Edge [%s] already has a delay.", name().c_str());
+            }
+            delay_ = delay;
         }
     }
 }
