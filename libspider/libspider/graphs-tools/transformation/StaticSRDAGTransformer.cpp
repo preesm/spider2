@@ -105,9 +105,9 @@ void StaticSRDAGTransformer::execute() {
 
         /* == Compute BRV of the graph == */
         if (!job.reference->isStatic() || !job.firingCount) {
-            LCMBRVCompute lcmbrvCompute{job.reference};
+//            LCMBRVCompute lcmbrvCompute{job.reference};
             // TODO: use the firing count for the value of the parameter (even though they should be evaluated in order here)
-            lcmbrvCompute.execute();
+//            lcmbrvCompute.execute();
         }
 
         /* == Do the job == */

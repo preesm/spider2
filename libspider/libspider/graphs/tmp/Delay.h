@@ -37,67 +37,31 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_LCMBRVCOMPUTE_H
-#define SPIDER2_LCMBRVCOMPUTE_H
+#ifndef SPIDER2_DELAY_H
+#define SPIDER2_DELAY_H
 
 /* === Include(s) === */
 
-#include <graphs-tools/brv/BRVCompute.h>
-#include <common/Rational.h>
+
 
 /* === Class definition === */
 
-class LCMBRVCompute final : public BRVCompute {
+class Delay {
 public:
 
-    explicit LCMBRVCompute(const Spider::PiSDF::Graph *graph) : BRVCompute(graph) { };
-
-    ~LCMBRVCompute() = default;
-
     /* === Method(s) === */
-
-    void execute() override;
-
+    
     /* === Getter(s) === */
-
+    
     /* === Setter(s) === */
 
 private:
+
     /* === Private method(s) === */
-
-    /**
-     * Fill an array of Rational relations between the different vertices of a given connected components based on their
-     * production / consumption data rates.
-     *
-     * @param edgeArray Edge array of the connected component;
-     * @param reps      Array of Rational to be filled.
-     */
-    void extractRationals(Spider::Array<const Spider::PiSDF::Edge *> &edgeArray, Spider::Array<Spider::Rational> &reps) const;
-
-    /**
-     * @brief Compute the LCM factor of a connected component based on all Rationals.
-     * @param component Current connected component.
-     * @param reps      Array of Rationals.
-     */
-    static std::int64_t computeLCM(const BRVComponent &component, Spider::Array<Spider::Rational> &reps);
-
-    /**
-     * @brief Compute the repetition vector of a connected component based on all Rationals.
-     * @param component Current connected component.
-     * @param reps      Array of Rationals.
-     * @param lcmFactor LCM of the connected component rates.
-     */
-    void computeBRV(const BRVComponent &component, Spider::Array<Spider::Rational> &reps, std::int64_t lcmFactor) const;
-
-    /**
-     * Check the consistency of the connected components graph.
-     * @param edgeArray  Edge array of the connected component;
-     */
-    void checkValidity(Spider::Array<const Spider::PiSDF::Edge *> &edgeArray) const;
 };
 
 /* === Inline method(s) === */
 
 
 
-#endif //SPIDER2_LCMBRVCOMPUTE_H
+#endif //SPIDER2_DELAY_H

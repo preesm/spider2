@@ -41,10 +41,10 @@
 /* === Include(s) === */
 
 #include "LCMBRVCompute.h"
-#include <graphs/pisdf/PiSDFGraph.h>
-#include <graphs/pisdf/PiSDFVertex.h>
-#include <graphs/pisdf/PiSDFEdge.h>
-#include <graphs/pisdf/PiSDFDelay.h>
+#include <graphs/tmp/Graph.h>
+#include <graphs/tmp/Vertex.h>
+#include <graphs/tmp/Edge.h>
+//#include <graphs/tmp/Delay.h>
 #include <cstdint>
 
 /* === Static variable(s) === */
@@ -55,12 +55,12 @@
 
 void LCMBRVCompute::execute() {
     /* == Initializes the Rational array == */
-    Spider::Array<Spider::Rational> reps{graph_->nVertices(), Spider::Rational(), StackID::TRANSFO};
+    Spider::Array<Spider::Rational> reps{graph_->vertexCount(), Spider::Rational(), StackID::TRANSFO};
 
     /* == Go through all connected components == */
     for (const auto &component : connectedComponents_) {
         /* == Extract the edges == */
-        Spider::Array<const PiSDFEdge *> edgeArray{component.nEdges, StackID::TRANSFO};
+        Spider::Array<const Spider::PiSDF::Edge *> edgeArray{component.nEdges, StackID::TRANSFO};
         BRVCompute::extractEdges(edgeArray, component);
 
         /* == Extract the rationals == */
@@ -85,14 +85,14 @@ void LCMBRVCompute::execute() {
 
 /* === Private method(s) implementation === */
 
-void LCMBRVCompute::extractRationals(Spider::Array<const PiSDFEdge *> &edgeArray,
+void LCMBRVCompute::extractRationals(Spider::Array<const Spider::PiSDF::Edge *> &edgeArray,
                                      Spider::Array<Spider::Rational> &reps) const {
     auto dummyRational = Spider::Rational{1};
     for (const auto &edge:edgeArray) {
         const auto *source = edge->source();
         const auto *sink = edge->sink();
-        std::int64_t sourceRate = edge->sourceRate();
-        std::int64_t sinkRate = edge->sinkRate();
+        std::int64_t sourceRate = edge->sourceRateExpression().evaluate();
+        std::int64_t sinkRate = edge->sinkRateExpression().evaluate();
 
         /* == Check rates validity == */
         if ((!sinkRate && sourceRate) || (sinkRate && !sourceRate)) {
@@ -107,8 +107,8 @@ void LCMBRVCompute::extractRationals(Spider::Array<const PiSDFEdge *> &edgeArray
                                  sinkRate);
         }
 
-        auto &sourceRational = source->type() == PiSDFVertexType::INTERFACE ? dummyRational : reps[source->ix()];
-        auto &sinkRational = sink->type() == PiSDFVertexType::INTERFACE ? dummyRational : reps[sink->ix()];
+        auto &sourceRational = source->type() == Spider::PiSDF::VertexType::INTERFACE ? dummyRational : reps[source->ix()];
+        auto &sinkRational = sink->type() == Spider::PiSDF::VertexType::INTERFACE ? dummyRational : reps[sink->ix()];
 
         if (!sinkRational.nominator() && sinkRate) {
             sinkRational = Spider::Rational{sourceRate, sinkRate};
@@ -142,18 +142,18 @@ void LCMBRVCompute::computeBRV(const BRVComponent &component,
     }
 }
 
-void LCMBRVCompute::checkValidity(Spider::Array<const PiSDFEdge *> &edgeArray) const {
+void LCMBRVCompute::checkValidity(Spider::Array<const Spider::PiSDF::Edge *> &edgeArray) const {
     for (const auto &edge : edgeArray) {
-        if (edge->source()->type() == PiSDFVertexType::INTERFACE ||
-            edge->sink()->type() == PiSDFVertexType::INTERFACE) {
+        if (edge->source()->type() == Spider::PiSDF::VertexType::INTERFACE ||
+            edge->sink()->type() == Spider::PiSDF::VertexType::INTERFACE) {
             continue;
         }
-        auto sourceRate = edge->sourceRate();
-        auto sinkRate = edge->sinkRate();
+        auto sourceRate = edge->sourceRateExpression().evaluate();
+        auto sinkRate = edge->sinkRateExpression().evaluate();
         const auto *source = edge->source();
         const auto *sink = edge->sink();
 
-        if (sink->type() == PiSDFVertexType::DELAY) {
+        if (sink->type() == Spider::PiSDF::VertexType::DELAY) {
             if (sink->repetitionValue() != 1) {
                 throwSpiderException("Delay [%s] has repetition vector value of %"
                                              PRIu32

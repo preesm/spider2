@@ -49,7 +49,7 @@
 class TopologyBRVCompute final : public BRVCompute {
 public:
 
-    explicit TopologyBRVCompute(PiSDFGraph *graph) : BRVCompute(graph) { };
+    explicit TopologyBRVCompute(Spider::PiSDF::Graph *graph) : BRVCompute(graph) { };
 
     ~TopologyBRVCompute() = default;
 
@@ -70,7 +70,7 @@ private:
      * @param vertex  Vertex to test.
      * @return true if at least one rate is not null, false else.
      */
-    static bool isVertexExecutable(const PiSDFVertex *vertex);
+    static bool isVertexExecutable(const Spider::PiSDF::Vertex *vertex);
 
     /**
      * @brief Check if an edge is valid.
@@ -79,7 +79,7 @@ private:
      * @param vertexIxArray  Indexes in the topology matrix of the vertices of the graph.
      * @return true if edge is valid, false else.
      */
-    static bool isEdgeValid(const PiSDFEdge *edge, Spider::Array<std::int32_t> &vertexIxArray);
+    static bool isEdgeValid(const Spider::PiSDF::Edge *edge, Spider::Array<std::int32_t> &vertexIxArray);
 
     /**
      * @brief Compute the nullspace of the topology matrix using the pivot method.
