@@ -177,7 +177,6 @@ file(
         ${SPIDER_LIB_DIR}/memory/*.cpp
         ${SPIDER_LIB_DIR}/memory/dynamic-allocators/*.cpp
         ${SPIDER_LIB_DIR}/memory/static-allocators/*.cpp
-        ${SPIDER_LIB_DIR}/graphs/pisdf/*.cpp
         ${SPIDER_LIB_DIR}/graphs/tmp/*.cpp
         ${SPIDER_LIB_DIR}/graphs-tools/brv/*.cpp
         ${SPIDER_LIB_DIR}/graphs-tools/exporter/*.cpp
@@ -205,7 +204,6 @@ file(
         ${SPIDER_LIB_DIR}/memory/abstract-allocators/*.h
         ${SPIDER_LIB_DIR}/memory/dynamic-allocators/*.h
         ${SPIDER_LIB_DIR}/memory/static-allocators/*.h
-        ${SPIDER_LIB_DIR}/graphs/pisdf/*.h
         ${SPIDER_LIB_DIR}/graphs/tmp/*.h
         ${SPIDER_LIB_DIR}/graphs-tools/brv/*.h
         ${SPIDER_LIB_DIR}/graphs-tools/exporter/*.h
