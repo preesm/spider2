@@ -60,9 +60,9 @@ bool PiSDFInitEndOptimizer::operator()(PiSDFGraph *graph) const {
 
     /* == Retrieve the vertices to remove == */
     for (auto *vertex : graph->vertices()) {
-        if (vertex->type() == PiSDFVertexType::INIT) {
+        if (vertex->subtype() == PiSDFVertexType::INIT) {
             auto *sink = vertex->outputEdge(0)->sink();
-            if (sink->type() == PiSDFVertexType::END) {
+            if (sink->subtype() == PiSDFVertexType::END) {
                 verticesToOptimize.push_back(vertex);
             }
         }
@@ -71,7 +71,7 @@ bool PiSDFInitEndOptimizer::operator()(PiSDFGraph *graph) const {
     /* == Remove useless init / end connections == */
     for (auto *init : verticesToOptimize) {
         auto *edge = init->outputEdge(0);
-        auto *end = edge->sink();
+        auto *end = dynamic_cast<PiSDFEndVertex *>(edge->sink());
         graph->removeEdge(edge);
         Spider::Logger::printVerbose(LOG_OPTIMS, "InitEndOptimizer: removing init [%s] and end [%s] vertices.\n",
                                      init->name().c_str(), end->name().c_str());

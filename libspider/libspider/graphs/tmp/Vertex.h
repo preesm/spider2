@@ -45,11 +45,13 @@
 #include <cstdint>
 #include <string>
 #include <containers/Array.h>
-#include <spider-api/pisdf.h>
-#include <graphs/tmp/Types.h>
 
 namespace Spider {
     namespace PiSDF {
+
+        /* === Forward declaration(s) === */
+
+        class Graph;
 
         /* === Class definition === */
 
@@ -124,15 +126,6 @@ namespace Spider {
              * @return ix of the vertex (UINT32_MAX if no ix).
              */
             inline std::uint32_t ix() const;
-
-            /**
-             * @brief Return the reference vertex attached to current copy.
-             * @remark If vertex is not a copy, this return the vertex itself.
-             * @warning There is a potential risk here. If the reference is freed before the copy,
-             * there are no possibilities to know it.
-             * @return pointer to @refitem Vertex reference.
-             */
-            inline const Vertex *reference() const;
 
             /**
              * @brief Test if the vertex is a graph.
@@ -216,14 +209,6 @@ namespace Spider {
              */
             inline void setRepetitionValue(std::uint32_t rv);
 
-            /**
-             * @brief Set the reference vertex of this vertex.
-             * @remark This method override current value.
-             * @param vertex Vertex to set.
-             * @throws Spider::Exception if vertex is nullptr.
-             */
-            inline void setReferenceVertex(const Vertex *vertex);
-
         protected:
             Graph *graph_ = nullptr;
             std::string name_ = "unnamed-vertex";
@@ -259,10 +244,6 @@ namespace Spider {
 
         std::uint32_t Vertex::ix() const {
             return ix_;
-        }
-
-        const Vertex *Vertex::reference() const {
-            return reference_;
         }
 
         bool Vertex::hierarchical() const {
@@ -315,14 +296,6 @@ namespace Spider {
 
         void Vertex::setRepetitionValue(std::uint32_t rv) {
             repetitionValue_ = rv;
-        }
-
-        void Vertex::setReferenceVertex(const Vertex *vertex) {
-            if (vertex) {
-                reference_ = vertex;
-                return;
-            }
-            throwSpiderException("Reference of a vertex can not be nullptr. Vertex [%s]", name_.c_str());
         }
     }
 }

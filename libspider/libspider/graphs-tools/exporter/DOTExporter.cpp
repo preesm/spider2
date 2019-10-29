@@ -45,33 +45,33 @@
 #include <graphs/tmp/ExecVertex.h>
 #include <graphs/tmp/Interface.h>
 #include <graphs/tmp/Edge.h>
-#include <graphs/tmp/param/Param.h>
+#include <graphs/tmp/Param.h>
 #include <cmath>
 
 /* === Static variable(s) === */
 
 /* === Static function(s) === */
 
-static std::string vertexColor(Spider::PiSDF::VertexType type) {
+static std::string vertexColor(PiSDFVertexType type) {
     switch (type) {
-        case Spider::PiSDF::VertexType::DELAY:
-        case Spider::PiSDF::VertexType::NORMAL:
+        case PiSDFVertexType::DELAY:
+        case PiSDFVertexType::NORMAL:
             return "#eeeeeeff";
-        case Spider::PiSDF::VertexType::FORK:
+        case PiSDFVertexType::FORK:
             return "#fabe58ff";
-        case Spider::PiSDF::VertexType::JOIN:
+        case PiSDFVertexType::JOIN:
             return "#aea8d3ff";
-        case Spider::PiSDF::VertexType::DUPLICATE:
+        case PiSDFVertexType::DUPLICATE:
             return "#2c3e50ff";
-        case Spider::PiSDF::VertexType::TAIL:
+        case PiSDFVertexType::TAIL:
             return "#f1e7feff";
-        case Spider::PiSDF::VertexType::INIT:
+        case PiSDFVertexType::INIT:
             return "#c8f7c5ff";
-        case Spider::PiSDF::VertexType::END:
+        case PiSDFVertexType::END:
             return "#ff9478ff";
-        case Spider::PiSDF::VertexType::UPSAMPLE:
+        case PiSDFVertexType::UPSAMPLE:
             return "#fff68fff";
-        case Spider::PiSDF::VertexType::DOWNSAMPLE:
+        case PiSDFVertexType::DOWNSAMPLE:
             return "#dcc6e0ff";
         default:
             return "eeeeeeff";

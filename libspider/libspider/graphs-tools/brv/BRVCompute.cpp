@@ -40,9 +40,9 @@
 
 /* === Include(s) === */
 
-#include "BRVCompute.h"
+#include <graphs-tools/brv/BRVCompute.h>
 #include <graphs/tmp/Graph.h>
-#include <graphs/tmp/Vertex.h>
+#include <graphs/tmp/ExecVertex.h>
 #include <graphs/tmp/Edge.h>
 
 /* === Static variable(s) === */
@@ -51,9 +51,9 @@
 
 /* === Method(s) implementation === */
 
-BRVCompute::BRVCompute(const Spider::PiSDF::Graph *graph) : graph_{graph} {
-    Spider::Array<const Spider::PiSDF::Vertex *> connectedComponentsKeys{graph->vertexCount(), nullptr, StackID::TRANSFO};
-    Spider::Array<const Spider::PiSDF::Vertex *> vertexArray{graph->vertexCount(), nullptr, StackID::TRANSFO};
+BRVCompute::BRVCompute(const PiSDFGraph *graph) : graph_{graph} {
+    Spider::Array<const PiSDFAbstractVertex *> connectedComponentsKeys{graph->vertexCount(), nullptr, StackID::TRANSFO};
+    Spider::Array<const PiSDFAbstractVertex *> vertexArray{graph->vertexCount(), nullptr, StackID::TRANSFO};
     BRVComponent component;
     for (auto *v:graph->vertices()) {
         if (!connectedComponentsKeys[v->ix()]) {
@@ -73,7 +73,7 @@ BRVCompute::BRVCompute(const Spider::PiSDF::Graph *graph) : graph_{graph} {
 /* === Private Method(s) implementation === */
 
 void BRVCompute::extractConnectedComponent(BRVComponent &component,
-                                           Spider::Array<const Spider::PiSDF::Vertex *> &keyArray) {
+                                           Spider::Array<const PiSDFAbstractVertex *> &keyArray) {
     auto scannedIndex = component.vertices.size() - 1; /* = Index of current scanned vertex = */
     bool addedVertex;
     do {
@@ -116,7 +116,7 @@ void BRVCompute::extractConnectedComponent(BRVComponent &component,
     } while (addedVertex || scannedIndex != component.vertices.size());
 }
 
-void BRVCompute::extractEdges(Spider::Array<const Spider::PiSDF::Edge *> &edgeArray, const BRVComponent &component) {
+void BRVCompute::extractEdges(Spider::Array<const PiSDFEdge *> &edgeArray, const BRVComponent &component) {
     const auto &vertexArray = component.vertices;
     std::uint32_t index = 0;
     for (const auto &v: vertexArray) {
@@ -124,23 +124,23 @@ void BRVCompute::extractEdges(Spider::Array<const Spider::PiSDF::Edge *> &edgeAr
             edgeArray[index++] = edge;
         }
         for (const auto &edge: v->inputEdgeArray()) {
-            if (edge->source()->type() == Spider::PiSDF::VertexType::INTERFACE) {
+            if (edge->source()->type() == PiSDFVertexType::INTERFACE) {
                 edgeArray[index++] = edge;
             }
         }
     }
 }
 
-void BRVCompute::updateBRV(Spider::Array<const Spider::PiSDF::Edge *> &edgeArray, const BRVComponent &component) {
+void BRVCompute::updateBRV(Spider::Array<const PiSDFEdge *> &edgeArray, const BRVComponent &component) {
     std::uint64_t scaleRVFactor{1};
 
     /* == Compute the scale factor == */
     for (const auto &edge : edgeArray) {
-        if (edge->source()->type() == Spider::PiSDF::VertexType::INTERFACE) {
+        if (edge->source()->type() == PiSDFVertexType::INTERFACE) {
             scaleRVFactor *= updateBRVFromInputIF(edge, scaleRVFactor);
-        } else if (edge->sink()->type() == Spider::PiSDF::VertexType::INTERFACE) {
+        } else if (edge->sink()->type() == PiSDFVertexType::INTERFACE) {
             scaleRVFactor *= updateBRVFromOutputIF(edge, scaleRVFactor);
-        } else if (edge->source()->type() == Spider::PiSDF::VertexType::CONFIG) {
+        } else if (edge->source()->type() == PiSDFVertexType::CONFIG) {
             scaleRVFactor *= updateBRVFromCFGActor(edge, scaleRVFactor);
         }
     }
@@ -153,8 +153,8 @@ void BRVCompute::updateBRV(Spider::Array<const Spider::PiSDF::Edge *> &edgeArray
     }
 }
 
-std::uint64_t BRVCompute::updateBRVFromInputIF(const Spider::PiSDF::Edge *edge, std::uint64_t currentScaleFactor) {
-    if (edge->sink()->type() != Spider::PiSDF::VertexType::INTERFACE) {
+std::uint64_t BRVCompute::updateBRVFromInputIF(const PiSDFEdge *edge, std::uint64_t currentScaleFactor) {
+    if (edge->sink()->type() != PiSDFVertexType::INTERFACE) {
         std::uint64_t sourceRate = edge->sourceRateExpression().evaluate();
         std::uint64_t sinkRate = edge->sinkRateExpression().evaluate();
         auto totalCons = sinkRate * edge->sink()->repetitionValue() * currentScaleFactor;
@@ -166,8 +166,8 @@ std::uint64_t BRVCompute::updateBRVFromInputIF(const Spider::PiSDF::Edge *edge, 
     return 1;
 }
 
-std::uint64_t BRVCompute::updateBRVFromOutputIF(const Spider::PiSDF::Edge *edge, std::uint64_t currentScaleFactor) {
-    if (edge->source()->type() != Spider::PiSDF::VertexType::INTERFACE) {
+std::uint64_t BRVCompute::updateBRVFromOutputIF(const PiSDFEdge *edge, std::uint64_t currentScaleFactor) {
+    if (edge->source()->type() != PiSDFVertexType::INTERFACE) {
         std::uint64_t sourceRate = edge->sourceRateExpression().evaluate();
         std::uint64_t sinkRate = edge->sinkRateExpression().evaluate();
         auto totalProd = sourceRate * edge->source()->repetitionValue() * currentScaleFactor;
@@ -179,8 +179,8 @@ std::uint64_t BRVCompute::updateBRVFromOutputIF(const Spider::PiSDF::Edge *edge,
     return 1;
 }
 
-std::uint64_t BRVCompute::updateBRVFromCFGActor(const Spider::PiSDF::Edge *edge, std::uint64_t currentScaleFactor) {
-    if (edge->sink()->type() != Spider::PiSDF::VertexType::INTERFACE) {
+std::uint64_t BRVCompute::updateBRVFromCFGActor(const PiSDFEdge *edge, std::uint64_t currentScaleFactor) {
+    if (edge->sink()->type() != PiSDFVertexType::INTERFACE) {
         std::uint64_t sourceRate = edge->sourceRateExpression().evaluate();
         std::uint64_t sinkRate = edge->sinkRateExpression().evaluate();
         auto totalCons = sinkRate * edge->sink()->repetitionValue() * currentScaleFactor;

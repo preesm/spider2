@@ -45,10 +45,6 @@
 #include <scheduling/scheduler/Scheduler.h>
 #include <containers/StlContainers.h>
 
-/* === Forward declaration === */
-
-class PiSDFVertex;
-
 namespace Spider {
 
     /* === Class definition === */
@@ -80,7 +76,7 @@ namespace Spider {
 
         /* === Protected method(s) === */
 
-        std::uint64_t computeMinStartTime(ScheduleJob &job);
+        inline std::uint64_t computeMinStartTime(ScheduleJob &job) {};
 
     private:
         static std::int32_t computeScheduleLevel(ListVertex &listVertex,

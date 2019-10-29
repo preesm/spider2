@@ -46,7 +46,7 @@
 #include <archi/Cluster.h>
 #include <archi/ProcessingElement.h>
 #include <spider-api/scenario.h>
-#include <graphs/pisdf/PiSDFVertex.h>
+#include <graphs/tmp/ExecVertex.h>
 
 /* === Static variable(s) === */
 

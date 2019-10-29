@@ -44,6 +44,7 @@
 #include <common/Logger.h>
 #include <spider-api/general.h>
 #include <spider-api/archi.h>
+#include <spider-api/pisdf.h>
 #include <archi/Platform.h>
 
 /* === Static variable(s) definition === */

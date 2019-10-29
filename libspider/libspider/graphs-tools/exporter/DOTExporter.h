@@ -43,21 +43,10 @@
 /* === Include(s) === */
 
 #include <common/Exporter.h>
+#include <graphs/tmp/Types.h>
 
 namespace Spider {
     namespace PiSDF {
-
-        /* === Forward declaration(s) === */
-
-        class Graph;
-
-        class Vertex;
-
-        class Interface;
-
-        class Edge;
-
-        class Param;
 
         /* === Class definition === */
 

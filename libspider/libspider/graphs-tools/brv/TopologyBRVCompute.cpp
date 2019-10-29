@@ -40,9 +40,9 @@
 
 /* === Include(s) === */
 
-#include "TopologyBRVCompute.h"
+#include <graphs-tools/brv/TopologyBRVCompute.h>
 #include <graphs/tmp/Graph.h>
-#include <graphs/tmp/Vertex.h>
+#include <graphs/tmp/ExecVertex.h>
 #include <graphs/tmp/Edge.h>
 #include <cstdint>
 #include <common/Rational.h>
@@ -60,7 +60,7 @@ void TopologyBRVCompute::execute() {
     /* == Go through all connected components == */
     for (const auto &component : connectedComponents_) {
         /* == Extract the edges == */
-        Spider::Array<const Spider::PiSDF::Edge *> edgeArray{component.nEdges, StackID::TRANSFO};
+        Spider::Array<const PiSDFEdge *> edgeArray{component.nEdges, StackID::TRANSFO};
         BRVCompute::extractEdges(edgeArray, component);
 
         /* == Set the ix of the corresponding vertices in the topology matrix == */
@@ -72,7 +72,7 @@ void TopologyBRVCompute::execute() {
         }
 
         /* == Check the number of valid edges == */
-        Spider::vector<const Spider::PiSDF::Edge *> validEdgeVector;
+        Spider::vector<const PiSDFEdge *> validEdgeVector;
         validEdgeVector.reserve(component.nEdges); /* = Reserve the memory for the worst case = */
         std::uint32_t nMatEdges = 0;
         for (const auto &edge : edgeArray) {
@@ -103,7 +103,7 @@ void TopologyBRVCompute::execute() {
     BRVCompute::print();
 }
 
-bool TopologyBRVCompute::isVertexExecutable(const Spider::PiSDF::Vertex *vertex) {
+bool TopologyBRVCompute::isVertexExecutable(const PiSDFAbstractVertex *vertex) {
     /* == Check all input edges rate to 0 == */
     for (const auto &e:vertex->inputEdgeArray()) {
         if (e->sinkRateExpression().evaluate()) {
@@ -120,12 +120,12 @@ bool TopologyBRVCompute::isVertexExecutable(const Spider::PiSDF::Vertex *vertex)
     return false;
 }
 
-bool TopologyBRVCompute::isEdgeValid(const Spider::PiSDF::Edge *edge, Spider::Array<std::int32_t> &vertexIxArray) {
-    return edge->source()->type() != Spider::PiSDF::VertexType::INTERFACE &&
-           edge->sink()->type() != Spider::PiSDF::VertexType::INTERFACE &&
+bool TopologyBRVCompute::isEdgeValid(const PiSDFEdge *edge, Spider::Array<std::int32_t> &vertexIxArray) {
+    return edge->source()->type() != PiSDFVertexType::INTERFACE &&
+           edge->sink()->type() != PiSDFVertexType::INTERFACE &&
            edge->source() != edge->sink() &&
-           edge->source()->type() != Spider::PiSDF::VertexType::CONFIG &&
-           edge->sink()->type() != Spider::PiSDF::VertexType::CONFIG &&
+           edge->source()->type() != PiSDFVertexType::CONFIG &&
+           edge->sink()->type() != PiSDFVertexType::CONFIG &&
            vertexIxArray[edge->source()->ix()] >= 0 &&
            vertexIxArray[edge->sink()->ix()] >= 0;
 }

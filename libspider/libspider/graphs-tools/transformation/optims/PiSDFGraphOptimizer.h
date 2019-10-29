@@ -42,7 +42,6 @@
 
 /* === Includes === */
 
-#include <graphs/pisdf/PiSDFGraph.h>
 #include <graphs-tools/transformation/optims/PiSDFForkForkOptimizer.h>
 #include <graphs-tools/transformation/optims/PiSDFJoinJoinOptimizer.h>
 #include <graphs-tools/transformation/optims/PiSDFInitEndOptimizer.h>
@@ -63,10 +62,10 @@ public:
      * @param graph @refitem PiSDFGraph on which to apply the optimization.
      * @return true if no optimization was necessary, false else.
      */
-    inline void operator()(PiSDFGraph *graph);
+    inline void operator()(Spider::PiSDF::Graph *graph);
 };
 
-void PiSDFGraphOptimizer::operator()(PiSDFGraph *graph) {
+void PiSDFGraphOptimizer::operator()(Spider::PiSDF::Graph *graph) {
     PiSDFUnitaryOptimizer()(graph);
     bool done = false;
     while (!done) {

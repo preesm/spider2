@@ -41,8 +41,8 @@
 /* === Include(s) === */
 
 #include <scheduling/scheduler/ListScheduler.h>
-#include <graphs/pisdf/PiSDFGraph.h>
-#include <graphs/pisdf/PiSDFVertex.h>
+#include <graphs/tmp/Graph.h>
+#include <graphs/tmp/ExecVertex.h>
 #include <archi/Platform.h>
 #include <archi/Cluster.h>
 #include <archi/ProcessingElement.h>
@@ -59,7 +59,7 @@ std::int32_t Spider::ListScheduler::computeScheduleLevel(ListVertex &listVertex,
         auto *platform = Spider::platform();
         auto *vertex = listVertex.vertex;
         std::int32_t level = 0;
-        for (auto &edge : vertex->outputEdges()) {
+        for (auto &edge : vertex->outputEdgeArray()) {
             auto *sink = edge->sink();
             if (sink) {
                 auto &scenario = Spider::scenario();
@@ -93,7 +93,7 @@ std::int32_t Spider::ListScheduler::computeScheduleLevel(ListVertex &listVertex,
 
 Spider::ListScheduler::ListScheduler(PiSDFGraph *graph) : Scheduler(graph) {
     /* == Reserve and push the vertices into the vertex == */
-    sortedVertexVector_.reserve(graph_->nVertices());
+    sortedVertexVector_.reserve(graph_->vertexCount());
     for (auto *vertex : graph_->vertices()) {
         sortedVertexVector_.push_back(ListVertex(vertex, -1));
     }

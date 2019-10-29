@@ -44,10 +44,7 @@
 
 #include <spider-api/archi.h>
 #include <scheduling/schedule/Schedule.h>
-
-/* === Forward declaration === */
-
-class PiSDFGraph;
+#include <graphs/tmp/Types.h>
 
 namespace Spider {
 

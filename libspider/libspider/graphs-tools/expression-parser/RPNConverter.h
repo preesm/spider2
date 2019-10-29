@@ -42,22 +42,15 @@
 
 /* === Includes === */
 
-#include <containers/LinkedList.h>
-#include <containers/StlContainers.h>
 #include <algorithm>
 #include <cstdint>
+#include <containers/StlContainers.h>
 
 /* === Defines === */
 
 #define N_OPERATOR 10
 #define N_FUNCTION 9
 #define FUNCTION_OPERATOR_OFFSET (static_cast<std::uint32_t>(RPNOperatorType::COS)) /*! Value of the @refitem RPNOperatorType::COS */
-
-/* === Forward declaration(s) === */
-
-class PiSDFParam;
-
-class PiSDFGraph;
 
 /* === Function pointer declaration == */
 

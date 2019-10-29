@@ -41,13 +41,14 @@
 /* === Includes === */
 
 #include <graphs-tools/expression-parser/Expression.h>
-#include <graphs/pisdf/PiSDFParam.h>
+#include <graphs/tmp/Param.h>
 
 /* === Static method(s) === */
 
 /* === Methods implementation === */
 
-Expression::Expression(std::string expression, const PiSDFGraph *graph) : rpnConverter_{std::move(expression), graph} {
+Expression::Expression(std::string expression, const PiSDFGraph *graph) : rpnConverter_{std::move(expression),
+                                                                                                  graph} {
     const auto &expressionStack = rpnConverter_.postfixStack();
 
     /* == Check if expression is static == */

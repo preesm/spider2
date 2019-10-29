@@ -44,10 +44,13 @@
 
 #include <common/Exception.h>
 #include <graphs-tools/expression-parser/Expression.h>
-#include <graphs/tmp/Types.h>
 
 namespace Spider {
     namespace PiSDF {
+
+        /* === Forward declaration(s) === */
+
+        class Graph;
 
         /* === Class definition === */
 

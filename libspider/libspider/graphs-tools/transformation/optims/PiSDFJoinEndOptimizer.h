@@ -57,9 +57,9 @@ bool PiSDFJoinEndOptimizer::operator()(PiSDFGraph *graph) const {
 
     /* == Retrieve the vertices to remove == */
     for (auto *vertex : graph->vertices()) {
-        if (vertex->type() == PiSDFVertexType::JOIN) {
+        if (vertex->subtype() == PiSDFVertexType::JOIN) {
             auto *sink = vertex->outputEdge(0)->sink();
-            if (sink->type() == PiSDFVertexType::END) {
+            if (sink->subtype() == PiSDFVertexType::END) {
                 verticesToOptimize.push_back(vertex);
             }
         }
@@ -68,14 +68,13 @@ bool PiSDFJoinEndOptimizer::operator()(PiSDFGraph *graph) const {
     /* == Remove useless init / end connections == */
     for (auto *join : verticesToOptimize) {
         auto *edge = join->outputEdge(0);
-        auto *end = edge->sink();
+        auto *end = dynamic_cast<PiSDFEndVertex *>(edge->sink());
         graph->removeEdge(edge);
         // TODO: see how to deal with persistent delay memory allocation
-        for (auto *inputEdge : join->inputEdges()) {
-            auto rate = inputEdge->sinkRate();
+        for (auto *inputEdge : join->inputEdgeArray()) {
+            auto rate = inputEdge->sinkRateExpression().evaluate();
             auto *newEnd = Spider::API::createEnd(graph, "end-" + inputEdge->source()->name(), 0, StackID::TRANSFO);
-            inputEdge->disconnectSink();
-            inputEdge->connectSink(newEnd, 0, rate);
+            inputEdge->setSink(newEnd, 0, Expression(rate));
         }
 
         Spider::Logger::printVerbose(LOG_OPTIMS, "JoinEndOptimizer: removing join [%s] and end [%s] vertices.\n",

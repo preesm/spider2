@@ -42,6 +42,7 @@
 
 #include <graphs/tmp/Edge.h>
 #include <graphs/tmp/Vertex.h>
+#include <graphs/tmp/Graph.h>
 
 /* === Static variable(s) === */
 
@@ -63,8 +64,14 @@ Spider::PiSDF::Edge::Edge(Vertex *source,
     if (!source || !sink) {
         throwSpiderException("nullptr vertex connected to Edge.");
     }
+    if (source->containingGraph() != sink->containingGraph()) {
+        throwSpiderException("Can not create edge between [%s] and [%s]: not in the same graph.",
+                             source->name().c_str(), sink->name().c_str());
+    }
     source->connectOutputEdge(this, srcIx);
     sink->connectInputEdge(this, snkIx);
+    graph_ = source->containingGraph();
+    graph_->addEdge(this);
 }
 
 std::string Spider::PiSDF::Edge::name() const {
@@ -85,6 +92,7 @@ void Spider::PiSDF::Edge::setSource(Vertex *vertex, std::uint32_t ix, Expression
     if (!vertex) {
         throwSpiderException("Can not set nullptr vertex on edge [%s].", name().c_str());
     }
+    vertex->disconnectOutputEdge(ix);
     vertex->connectOutputEdge(this, ix);
     src_->disconnectOutputEdge(srcIx_);
     src_ = vertex;

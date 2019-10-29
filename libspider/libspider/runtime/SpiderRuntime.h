@@ -43,10 +43,7 @@
 /* === Includes === */
 
 #include <common/Exception.h>
-
-/* === Forward declaration(s) === */
-
-class PiSDFGraph;
+#include <graphs/tmp/Types.h>
 
 /* === Class definition === */
 

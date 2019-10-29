@@ -46,7 +46,7 @@
 #include <cstdint>
 #include <common/Exception.h>
 #include <containers/StlContainers.h>
-#include <graphs/tmp/Vertex.h>
+#include <graphs/tmp/ExecVertex.h>
 #include <graphs/tmp/Edge.h>
 
 namespace Spider {
@@ -146,6 +146,8 @@ namespace Spider {
 
             inline bool hierarchical() const override;
 
+            inline bool dynamic() const;
+
             /**
              * @brief Get the number of vertices in the graph.
              * @remark This method exclude the number of interfaces and the number of config actors.
@@ -228,6 +230,7 @@ namespace Spider {
             /* === Setter(s) === */
 
         private:
+            bool dynamic_ = false;
 
             /* === Contained elements of the graph === */
 
@@ -261,6 +264,10 @@ namespace Spider {
 
         bool Graph::hierarchical() const {
             return true;
+        }
+
+        bool Graph::dynamic() const {
+            return dynamic_;
         }
 
         std::uint64_t Graph::vertexCount() const {
@@ -322,6 +329,7 @@ namespace Spider {
         Interface *Graph::outputInterfaceFromIx(std::uint32_t ix) const {
             return outputInterfaceArray_[ix];
         }
+
     }
 }
 #endif //SPIDER2_GRAPH_H

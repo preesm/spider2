@@ -43,7 +43,7 @@
 /* === Includes === */
 
 #include <graphs-tools/transformation/optims/PiSDFOptimizer.h>
-#include <spider-api/pisdf.h>
+#include <graphs/tmp/specials/Specials.h>
 
 /* === Class definition === */
 
@@ -57,14 +57,17 @@ public:
 };
 
 bool PiSDFForkForkOptimizer::operator()(PiSDFGraph *graph) const {
-    Spider::vector<std::pair<PiSDFVertex *, PiSDFVertex *>> verticesToOptimize;
+    Spider::vector<std::pair<Spider::PiSDF::ForkVertex *, Spider::PiSDF::ForkVertex *>> verticesToOptimize;
 
     /* == Search for the pair of fork to optimize == */
-    for (auto &vertex : graph->vertices()) {
-        if (vertex->type() == PiSDFVertexType::FORK) {
+    for (const auto &v : graph->vertices()) {
+        if (v->subtype() == Spider::PiSDF::VertexType::FORK) {
+            /* == return itself, only way to suppress the warning for "probably incompatible type cast" == */
+            const auto &vertex = v->inputEdge(0)->sink();
             auto *source = vertex->inputEdge(0)->source();
-            if (source->type() == PiSDFVertexType::FORK) {
-                verticesToOptimize.push_back(std::make_pair(source, vertex));
+            if (source->subtype() == Spider::PiSDF::VertexType::FORK) {
+                verticesToOptimize.push_back(std::make_pair(dynamic_cast<Spider::PiSDF::ForkVertex *>(source),
+                                                            dynamic_cast<Spider::PiSDF::ForkVertex *>(vertex)));
             }
         }
     }
@@ -78,32 +81,29 @@ bool PiSDFForkForkOptimizer::operator()(PiSDFGraph *graph) const {
         /* == Create the new fork == */
         auto *fork = Spider::API::createFork(graph,
                                              "merged-" + source->name() + "-" + vertex->name(),
-                                             (source->nEdgesOUT() - 1) + vertex->nEdgesOUT(),
+                                             (source->edgesOUTCount() - 1) + vertex->edgesOUTCount(),
                                              0,
                                              StackID::TRANSFO);
         auto *edge = source->inputEdge(0);
-        auto rate = edge->sinkRate();
-        edge->disconnectSink();
-        edge->connectSink(fork, 0, rate);
+        auto rate = edge->sinkRateExpression().evaluate();
+        edge->setSource(fork, 0, Expression(rate));
 
         /* == Link the edges == */
         auto insertEdgeIx = vertex->inputEdge(0)->sourcePortIx();
         std::uint32_t offset = 0;
-        for (auto *sourceEdge : source->outputEdges()) {
+        for (auto *sourceEdge : source->outputEdgeArray()) {
             if (sourceEdge->sourcePortIx() == insertEdgeIx) {
                 graph->removeEdge(sourceEdge);
-                offset += vertex->nEdgesOUT() - 1;
-                for (auto *vertexEdge : vertex->outputEdges()) {
-                    rate = vertexEdge->sourceRate();
+                offset += vertex->edgesOUTCount() - 1;
+                for (auto *vertexEdge : vertex->outputEdgeArray()) {
+                    rate = vertexEdge->sourceRateExpression().evaluate();
                     auto ix = vertexEdge->sourcePortIx() + insertEdgeIx;
-                    vertexEdge->disconnectSource();
-                    vertexEdge->connectSource(fork, ix, rate);
+                    vertexEdge->setSource(fork, ix, Expression(rate));
                 }
             } else {
-                rate = sourceEdge->sourceRate();
+                rate = sourceEdge->sourceRateExpression().evaluate();
                 auto ix = sourceEdge->sourcePortIx() + offset;
-                sourceEdge->disconnectSource();
-                sourceEdge->connectSource(fork, ix, rate);
+                sourceEdge->setSource(fork, ix, Expression(rate));
             }
         }
 

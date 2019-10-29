@@ -52,8 +52,6 @@ class Cluster;
 
 class ProcessingElement;
 
-class PiSDFVertex;
-
 namespace Spider {
 
     /* === Function(s) prototype === */

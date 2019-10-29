@@ -41,6 +41,7 @@
 /* === Include(s) === */
 
 #include <graphs/tmp/Vertex.h>
+#include <graphs/tmp/Graph.h>
 
 /* === Static variable(s) === */
 
@@ -59,7 +60,10 @@ Spider::PiSDF::Vertex::Vertex(std::string name,
                                                inputEdgeArray_{edgeINCount, nullptr, stack},
                                                outputEdgeArray_{edgeOUTCount, nullptr, stack},
                                                reference_{this} {
-
+    if (!graph_) {
+        throwSpiderException("Vertex [%s] need to belong to a graph.", this->name().c_str());
+    }
+    graph_->addVertex(this);
 }
 
 void Spider::PiSDF::Vertex::connectInputEdge(Edge *edge, std::uint32_t ix) {

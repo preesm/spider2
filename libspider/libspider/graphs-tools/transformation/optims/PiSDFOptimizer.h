@@ -42,7 +42,7 @@
 
 /* === Includes === */
 
-#include <graphs/pisdf/PiSDFGraph.h>
+#include <graphs/tmp/Graph.h>
 
 /* === Class definition === */
 
@@ -57,7 +57,7 @@ public:
      * @param graph @refitem PiSDFGraph on which to apply the optimization.
      * @return true if no optimization was necessary, false else.
      */
-    virtual bool operator()(PiSDFGraph *graph) const = 0;
+    virtual bool operator()(Spider::PiSDF::Graph *graph) const = 0;
 };
 
 #endif //SPIDER2_PISDFOPTIMIZER_H

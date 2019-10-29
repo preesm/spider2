@@ -43,14 +43,8 @@
 /* === Include(s) === */
 
 #include <cstdint>
-#include <graphs/pisdf/PiSDFEdge.h>
-#include <graphs/pisdf/PiSDFDelay.h>
-
-/* === Forward declaration(s) === */
-
-class PiSDFGraph;
-
-class PiSDFVertex;
+#include <graphs/tmp/Edge.h>
+#include <graphs/tmp/Delay.h>
 
 /* === Class definition === */
 
@@ -112,11 +106,11 @@ private:
      * @brief Structure used during the SRLinkage containing every information of a given edge.
      */
     struct EdgeLinker {
-        PiSDFVertex *source = nullptr;
-        PiSDFVertex *sink = nullptr;
-        std::uint64_t sourceRate = 0;
-        std::uint64_t sinkRate = 0;
-        std::uint64_t delay = 0;
+        PiSDFAbstractVertex  *source = nullptr;
+        PiSDFAbstractVertex *sink = nullptr;
+        std::int64_t sourceRate = 0;
+        std::int64_t sinkRate = 0;
+        std::int64_t delay = 0;
         std::uint32_t sourceCount = 0;
         std::uint32_t sinkCount = 0;
         std::uint32_t sinkPortIx = 0;
@@ -127,14 +121,14 @@ private:
         EdgeLinker(const PiSDFEdge *edge,
                    Spider::Array<PiSDFVertex *> &sourceArray,
                    Spider::Array<PiSDFVertex *> &sinkArray,
-                   std::uint64_t sourceRate,
-                   std::uint64_t sinkRate) : source{edge->source()},
+                   std::int64_t sourceRate,
+                   std::int64_t sinkRate) : source{edge->source()},
                                              sink{edge->sink()},
                                              sourceRate{sourceRate},
                                              sinkRate{sinkRate},
                                              sourceArray{&sourceArray},
                                              sinkArray{&sinkArray} {
-            delay = edge->delayValue();
+            delay = edge->delay()->value();
             sourcePortIx = edge->sourcePortIx();
             sinkPortIx = edge->sinkPortIx();
         }
@@ -147,8 +141,8 @@ private:
      */
     struct SinkLinker {
         PiSDFVertex *vertex = nullptr;
-        std::uint32_t sinkPortIx = 0;
-        std::uint64_t sinkRate = 0;
+        std::int32_t sinkPortIx = 0;
+        std::int64_t sinkRate = 0;
         std::int64_t lowerDep = 0;
         std::int64_t upperDep = 0;
 

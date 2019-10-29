@@ -145,8 +145,24 @@ void Spider::PiSDF::Graph::removeEdge(Edge *edge) {
 }
 
 void Spider::PiSDF::Graph::addParam(Param *param) {
+    /* == Check if a parameter with the same name already exists in the scope of this graph == */
+    if (findParam(param->name())) {
+        throwSpiderException("Parameter [%s] already exist in graph [%s].", param->name().c_str(), name().c_str());
+    }
     param->setIx(paramVector_.size());
     paramVector_.push_back(param);
+    if (param->dynamic() && !dynamic_) {
+        /* == Set dynamic property of the graph to true == */
+        dynamic_ = true;
+
+        /* == We need to propagate this property up in the hierarchy == */
+        auto *parent = containingGraph();
+        while (parent && !parent->dynamic_) {
+            /* == If graph was already dynamic then information is already propagated == */
+            parent->dynamic_ = true;
+            parent = parent->containingGraph();
+        }
+    }
 }
 
 void Spider::PiSDF::Graph::removeParam(Param *param) {

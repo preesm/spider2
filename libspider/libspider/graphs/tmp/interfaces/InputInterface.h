@@ -63,7 +63,7 @@ namespace Spider {
 
             /* === Method(s) === */
 
-            inline void connectInputEdge(Spider::PiSDF::Edge *, std::uint32_t) override;
+            inline void connectInputEdge(Edge *, std::uint32_t) override;
 
             inline Edge *inputEdge() const override;
 
@@ -88,7 +88,7 @@ namespace Spider {
 
         /* === Inline method(s) === */
 
-        void InputInterface::connectInputEdge(Spider::PiSDF::Edge *, std::uint32_t) {
+        void InputInterface::connectInputEdge(Edge *, std::uint32_t) {
             throwSpiderException("Can not connect input edge to input interface.");
         }
 

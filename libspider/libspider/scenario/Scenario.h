@@ -46,12 +46,9 @@
 #include <cstdint>
 #include <vector>
 #include <graphs-tools/expression-parser/Expression.h>
+#include <graphs/tmp/Types.h>
 
 /* === Forward declaration(s) === */
-
-class PiSDFGraph;
-
-class PiSDFVertex;
 
 class ProcessingElement;
 

@@ -40,11 +40,11 @@
 
 /* === Include(s) === */
 
-#include "LCMBRVCompute.h"
+#include <graphs-tools/brv/LCMBRVCompute.h>
 #include <graphs/tmp/Graph.h>
-#include <graphs/tmp/Vertex.h>
+#include <graphs/tmp/ExecVertex.h>
 #include <graphs/tmp/Edge.h>
-//#include <graphs/tmp/Delay.h>
+#include <graphs/tmp/Delay.h>
 #include <cstdint>
 
 /* === Static variable(s) === */
@@ -60,7 +60,7 @@ void LCMBRVCompute::execute() {
     /* == Go through all connected components == */
     for (const auto &component : connectedComponents_) {
         /* == Extract the edges == */
-        Spider::Array<const Spider::PiSDF::Edge *> edgeArray{component.nEdges, StackID::TRANSFO};
+        Spider::Array<const PiSDFEdge *> edgeArray{component.nEdges, StackID::TRANSFO};
         BRVCompute::extractEdges(edgeArray, component);
 
         /* == Extract the rationals == */
@@ -85,7 +85,7 @@ void LCMBRVCompute::execute() {
 
 /* === Private method(s) implementation === */
 
-void LCMBRVCompute::extractRationals(Spider::Array<const Spider::PiSDF::Edge *> &edgeArray,
+void LCMBRVCompute::extractRationals(Spider::Array<const PiSDFEdge *> &edgeArray,
                                      Spider::Array<Spider::Rational> &reps) const {
     auto dummyRational = Spider::Rational{1};
     for (const auto &edge:edgeArray) {
@@ -107,8 +107,9 @@ void LCMBRVCompute::extractRationals(Spider::Array<const Spider::PiSDF::Edge *> 
                                  sinkRate);
         }
 
-        auto &sourceRational = source->type() == Spider::PiSDF::VertexType::INTERFACE ? dummyRational : reps[source->ix()];
-        auto &sinkRational = sink->type() == Spider::PiSDF::VertexType::INTERFACE ? dummyRational : reps[sink->ix()];
+        auto &sourceRational =
+                source->type() == PiSDFVertexType::INTERFACE ? dummyRational : reps[source->ix()];
+        auto &sinkRational = sink->type() == PiSDFVertexType::INTERFACE ? dummyRational : reps[sink->ix()];
 
         if (!sinkRational.nominator() && sinkRate) {
             sinkRational = Spider::Rational{sourceRate, sinkRate};
@@ -142,10 +143,10 @@ void LCMBRVCompute::computeBRV(const BRVComponent &component,
     }
 }
 
-void LCMBRVCompute::checkValidity(Spider::Array<const Spider::PiSDF::Edge *> &edgeArray) const {
+void LCMBRVCompute::checkValidity(Spider::Array<const PiSDFEdge *> &edgeArray) const {
     for (const auto &edge : edgeArray) {
-        if (edge->source()->type() == Spider::PiSDF::VertexType::INTERFACE ||
-            edge->sink()->type() == Spider::PiSDF::VertexType::INTERFACE) {
+        if (edge->source()->type() == PiSDFVertexType::INTERFACE ||
+            edge->sink()->type() == PiSDFVertexType::INTERFACE) {
             continue;
         }
         auto sourceRate = edge->sourceRateExpression().evaluate();
@@ -153,13 +154,18 @@ void LCMBRVCompute::checkValidity(Spider::Array<const Spider::PiSDF::Edge *> &ed
         const auto *source = edge->source();
         const auto *sink = edge->sink();
 
-        if (sink->type() == Spider::PiSDF::VertexType::DELAY) {
-            if (sink->repetitionValue() != 1) {
-                throwSpiderException("Delay [%s] has repetition vector value of %"
-                                             PRIu32
-                                             " instead of 1.", sink->name().c_str(),
-                                     sink->repetitionValue());
-            }
+        if (sink->type() == PiSDFVertexType::DELAY &&
+            sink->repetitionValue() != 1) {
+            throwSpiderException("Delay [%s] has repetition vector value of %"
+                                         PRIu32
+                                         " instead of 1.", sink->name().c_str(),
+                                 sink->repetitionValue());
+        } else if (source->type() == PiSDFVertexType::DELAY &&
+                   source->repetitionValue() != 1) {
+            throwSpiderException("Delay [%s] has repetition vector value of %"
+                                         PRIu32
+                                         " instead of 1.", source->name().c_str(),
+                                 source->repetitionValue());
         }
 
         if ((sourceRate * source->repetitionValue()) != (sinkRate * sink->repetitionValue())) {

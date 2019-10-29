@@ -40,13 +40,16 @@
 
 /* === Include(s) === */
 
-#include <memory/Allocator.h>
-#include <graphs/pisdf/PiSDFGraph.h>
-#include <graphs/pisdf/PiSDFVertex.h>
-#include <spider-api/pisdf.h>
-#include <graphs-tools/numerical/PiSDFAnalysis.h>
 #include <graphs-tools/transformation/StaticSRDAGTransformer.h>
+#include <memory/Allocator.h>
+#include <spider-api/pisdf.h>
 #include <graphs-tools/brv/LCMBRVCompute.h>
+#include <graphs/tmp/Graph.h>
+#include <graphs/tmp/ExecVertex.h>
+#include <graphs/tmp/interfaces/InputInterface.h>
+#include <graphs/tmp/interfaces/OutputInterface.h>
+#include <graphs/tmp/specials/Specials.h>
+#include <graphs-tools/numerical/PiSDFAnalysis.h>
 
 /* === Static variable(s) === */
 
@@ -77,21 +80,19 @@ void StaticSRDAGTransformer::execute() {
     }
     if (!piSdfGraph_) {
         throwSpiderException("Cannot transform nullptr PiSDFGraph.");
-    } else if (!piSdfGraph_->isStatic()) {
+    } else if (piSdfGraph_->dynamic()) {
         throwSpiderException("Cannot transform non-static graph.");
     }
 
     if (!srdag_) {
-        srdag_ = Spider::allocate<PiSDFGraph>(StackID::PISDF);
-        Spider::construct(srdag_,
-                          nullptr,
-                          "srdag-" + piSdfGraph_->name(),
-                          0, /* = nActors = */
-                          0, /* = nEdges = */
-                          0, /* = nParams = */
-                          0, /* = nInputInterfaces = */
-                          0, /* = nOutputInterfaces = */
-                          0  /* = nConfigActors = */);
+        srdag_ = Spider::API::createGraph("srdag-" + piSdfGraph_->name(),
+                                          0, /* = nActors = */
+                                          0, /* = nEdges = */
+                                          0, /* = nParams = */
+                                          0, /* = nInputInterfaces = */
+                                          0, /* = nOutputInterfaces = */
+                                          0  /* = nConfigActors = */,
+                                          StackID::TRANSFO);
     }
 
     /* == Extract the vertices from the top graph == */
@@ -104,10 +105,10 @@ void StaticSRDAGTransformer::execute() {
         auto job = jobs_[jobIx];
 
         /* == Compute BRV of the graph == */
-        if (!job.reference->isStatic() || !job.firingCount) {
-//            LCMBRVCompute lcmbrvCompute{job.reference};
+        if (job.reference->dynamic() || !job.firingCount) {
+            LCMBRVCompute lcmbrvCompute{job.reference};
             // TODO: use the firing count for the value of the parameter (even though they should be evaluated in order here)
-//            lcmbrvCompute.execute();
+            lcmbrvCompute.execute();
         }
 
         /* == Do the job == */
@@ -131,30 +132,29 @@ PiSDFVertex *StaticSRDAGTransformer::copyVertex(const PiSDFVertex *vertex,
                                                 const std::string &prefix) {
     auto *copyVertex = Spider::allocate<PiSDFVertex>(StackID::TRANSFO);
     Spider::construct(copyVertex,
-                      StackID::TRANSFO,
-                      srdag_,
                       prefix + std::string(vertex->name()) + "_" + std::to_string(instance),
                       vertex->type(),
-                      vertex->nEdgesIN(),
-                      vertex->nEdgesOUT(),
-                      vertex->nParamsIN(),
-                      vertex->nParamsOUT());
+                      vertex->edgesINCount(),
+                      vertex->edgesOUTCount(), // TODO: add function call
+                      srdag_,
+                      StackID::TRANSFO);
+
     copyVertex->setRepetitionValue(1);
-    copyVertex->setReference(vertex->reference());
+    copyVertex->setReferenceVertex(vertex->reference());
 
     /* == Add the job for later process == */
-    if (vertex->isHierarchical()) {
-        jobs_.push_back(SRDAGTransfoJob{static_cast<const PiSDFGraph *>(vertex),  /* = reference = */
-                                        copyVertex->ix(),                            /* = srdagIx = */
-                                        instance});                                  /* = firingCount = */
+    if (vertex->hierarchical()) {
+        jobs_.push_back(SRDAGTransfoJob{dynamic_cast<const PiSDFGraph *>(vertex->self()),  /* = reference = */
+                                        copyVertex->ix(),                          /* = srdagIx = */
+                                        instance});                                /* = firingCount = */
     }
 
     /* == Copy the input parameter == */
-    std::uint32_t ix = 0;
-    for (auto *param : vertex->inputParams()) {
-        copyVertex->setInputParam(param, ix);
-        ix += 1;
-    }
+//    std::uint32_t ix = 0;
+//    for (auto *param : vertex->inputParams()) {
+//        copyVertex->setInputParam(param, ix);
+//        ix += 1;
+//    }
     return copyVertex;
 }
 
@@ -162,7 +162,7 @@ void StaticSRDAGTransformer::extractAndLinkActors(SRDAGTransfoJob &job) {
     auto *graph = job.reference;
 
     /* == Array to keep track of who has been done == */
-    Spider::Array<Spider::Array<PiSDFVertex *>> vertex2Vertex{graph->nVertices(), StackID::TRANSFO};
+    Spider::Array<Spider::Array<PiSDFVertex *>> vertex2Vertex{graph->vertexCount(), StackID::TRANSFO};
 
     /* == Dummy arrays for interfaces (if any) == */
     Spider::Array<PiSDFVertex *> arrayInputInterface{1, StackID::TRANSFO};
@@ -181,15 +181,15 @@ void StaticSRDAGTransformer::extractAndLinkActors(SRDAGTransfoJob &job) {
     for (const auto *edge : graph->edges()) {
         auto *sourceArray = &vertex2Vertex[edge->source()->ix()];
         auto *sinkArray = &vertex2Vertex[edge->sink()->ix()];
-        auto sourceRate = edge->sourceRate();
-        auto sinkRate = edge->sinkRate();
+        auto sourceRate = edge->sourceRateExpression().evaluate();
+        auto sinkRate = edge->sinkRateExpression().evaluate();
 
         if (edge->source()->type() == PiSDFVertexType::INTERFACE) {
             sourceArray = &arrayInputInterface;
             arrayInputInterface[0] = Spider::API::createUpsample(srdag_, prefix + edge->source()->name());
             auto *graphVertex = srdag_->vertices()[job.srdagIx];
             auto *edge2Replace = graphVertex->inputEdge(edge->source()->ix());
-            auto rate = edge2Replace->sinkRate();
+            auto rate = edge2Replace->sinkRateExpression().evaluate();
             if (rate != sourceRate) {
                 throwSpiderException("Interface should have same rate inside and outside the graph. [%s] -> %"
                                              PRIu64
@@ -197,8 +197,7 @@ void StaticSRDAGTransformer::extractAndLinkActors(SRDAGTransfoJob &job) {
                                              PRIu64
                                              "", edge->source()->name().c_str(), rate, sourceRate);
             }
-            edge2Replace->disconnectSink();
-            edge2Replace->connectSink(arrayInputInterface[0], 0, rate);
+            edge2Replace->setSink(arrayInputInterface[0], 0, Expression(rate));
             sourceRate = sinkRate * edge->sink()->repetitionValue();
         }
         if (edge->sink()->type() == PiSDFVertexType::INTERFACE) {
@@ -206,7 +205,7 @@ void StaticSRDAGTransformer::extractAndLinkActors(SRDAGTransfoJob &job) {
             arrayOutputInterface[0] = Spider::API::createDownsample(srdag_, prefix + edge->sink()->name());
             auto *graphVertex = srdag_->vertices()[job.srdagIx];
             auto *edge2Replace = graphVertex->outputEdge(edge->sink()->ix());
-            auto rate = edge2Replace->sourceRate();
+            auto rate = edge2Replace->sourceRateExpression().evaluate();
             if (rate != sinkRate) {
                 throwSpiderException("Interface should have same rate inside and outside the graph. [%s] -> %"
                                              PRIu64
@@ -214,8 +213,7 @@ void StaticSRDAGTransformer::extractAndLinkActors(SRDAGTransfoJob &job) {
                                              PRIu64
                                              "", edge->sink()->name().c_str(), sinkRate, rate);
             }
-            edge2Replace->disconnectSource();
-            edge2Replace->connectSource(arrayOutputInterface[0], 0, rate);
+            edge2Replace->setSource(arrayOutputInterface[0], 0, Expression(rate));
             sinkRate = sourceRate * edge->source()->repetitionValue();
         }
 
@@ -241,27 +239,27 @@ void StaticSRDAGTransformer::extractAndLinkActors(SRDAGTransfoJob &job) {
     }
 
     /* == Reconnect setter / getter (if any) == */
-    for (const auto *edge : graph->edges()) {
-        if (edge->delay()) {
-            /* == Retrieve the virtual vertex (there can be only one) == */
-            auto *delayVertex = vertex2Vertex[edge->delay()->virtualVertex()->ix()][0];
-
-            if (edge->delay()->setter()) {
-                /* == Disconnect / reconnect setter == */
-                auto &sinkArray = vertex2Vertex[edge->sink()->ix()];
-                reconnectSetter(edge, delayVertex, sinkArray[0]);
-            }
-
-            if (edge->delay()->getter()) {
-                /* == Disconnect / reconnect getter == */
-                auto &sourceArray = vertex2Vertex[edge->source()->ix()];
-                reconnectGetter(edge, delayVertex, sourceArray[edge->source()->repetitionValue() - 1]);
-            }
-
-            /* == Remove the delay vertex == */
-            srdag_->removeVertex(delayVertex);
-        }
-    }
+//    for (const auto *edge : graph->edges()) {
+//        if (edge->delay()) {
+//            /* == Retrieve the virtual vertex (there can be only one) == */
+//            auto *delayVertex = vertex2Vertex[edge->delay()->virtualVertex()->ix()][0];
+//
+//            if (edge->delay()->setter()) {
+//                /* == Disconnect / reconnect setter == */
+//                auto &sinkArray = vertex2Vertex[edge->sink()->ix()];
+//                reconnectSetter(edge, delayVertex, sinkArray[0]);
+//            }
+//
+//            if (edge->delay()->getter()) {
+//                /* == Disconnect / reconnect getter == */
+//                auto &sourceArray = vertex2Vertex[edge->source()->ix()];
+//                reconnectGetter(edge, delayVertex, sourceArray[edge->source()->repetitionValue() - 1]);
+//            }
+//
+//            /* == Remove the delay vertex == */
+//            srdag_->removeVertex(delayVertex);
+//        }
+//    }
 
     /* == Free memory of the arrays == */
     for (auto &array : vertex2Vertex) {
@@ -290,17 +288,18 @@ void StaticSRDAGTransformer::singleRateLinkage(StaticSRDAGTransformer::EdgeLinke
             /* == Sink can be connected directly == */
             if (src->type() == PiSDFVertexType::INIT) {
                 /* == Case delay == sourceRate == */
-                Spider::API::createEdge(srdag_, src, 0, edgeLinker.sinkRate,
+                Spider::API::createEdge(src, 0, edgeLinker.sinkRate,
                                         snk, sinkLinker.sinkPortIx, edgeLinker.sinkRate, StackID::TRANSFO);
             } else if (edgeLinker.sourceRate == sinkLinker.sinkRate) {
                 /* == Case sinkRate == sourceRate == */
-                Spider::API::createEdge(srdag_, src, edgeLinker.sourcePortIx, edgeLinker.sourceRate,
+                Spider::API::createEdge(src, edgeLinker.sourcePortIx, edgeLinker.sourceRate,
                                         snk, sinkLinker.sinkPortIx, sinkLinker.sinkRate, StackID::TRANSFO);
             } else {
                 /* == Case sinkRate < sourceRate == */
-                Spider::API::createEdge(srdag_, src, forkPortIx, sinkLinker.sinkRate,
-                                        snk, sinkLinker.sinkPortIx, sinkLinker.sinkRate, StackID::TRANSFO);
-                forkPortIx = (forkPortIx + 1) % src->nEdgesOUT();
+                Spider::API::createEdge(src, forkPortIx, sinkLinker.sinkRate,
+                                        snk, sinkLinker.sinkPortIx, sinkLinker.sinkRate,
+                                        StackID::TRANSFO);
+                forkPortIx = (forkPortIx + 1) % src->edgesOUTCount();
                 forkConsumption += sinkLinker.sinkRate;
             }
         } else {
@@ -308,28 +307,29 @@ void StaticSRDAGTransformer::singleRateLinkage(StaticSRDAGTransformer::EdgeLinke
             auto nInput = (sinkLinker.upperDep - sinkLinker.lowerDep) + 1;
             auto *join = Spider::API::createJoin(srdag_,
                                                  "join-" + snk->name() + "-in" + std::to_string(edgeLinker.sinkPortIx),
-                                                 nInput, 0, StackID::TRANSFO);
-            Spider::API::createEdge(srdag_, join, 0, sinkLinker.sinkRate,
+                                                 nInput,
+                                                 StackID::TRANSFO);
+            Spider::API::createEdge(join, 0, sinkLinker.sinkRate,
                                     snk, sinkLinker.sinkPortIx, sinkLinker.sinkRate, StackID::TRANSFO);
             std::uint64_t firstEdgeConsumption = 0;
             switch (src->type()) {
                 case PiSDFVertexType::FORK:
                     /* == Case sinkRate < sourceRate == */
-                    firstEdgeConsumption = src->inputEdge(0)->sinkRate() - forkConsumption;
-                    Spider::API::createEdge(srdag_, src, (src->nEdgesOUT() - 1), firstEdgeConsumption,
+                    firstEdgeConsumption = src->inputEdge(0)->sinkRateExpression().evaluate() - forkConsumption;
+                    Spider::API::createEdge(src, (src->edgesOUTCount() - 1), firstEdgeConsumption,
                                             join, 0, firstEdgeConsumption, StackID::TRANSFO);
-                    forkPortIx = (forkPortIx + 1) % src->nEdgesOUT();
+                    forkPortIx = (forkPortIx + 1) % src->edgesOUTCount();
                     break;
                 case PiSDFVertexType::INIT:
                     /* == Case delay < sinkRate == */
                     firstEdgeConsumption = edgeLinker.delay;
-                    Spider::API::createEdge(srdag_, src, 0, firstEdgeConsumption,
+                    Spider::API::createEdge(src, 0, firstEdgeConsumption,
                                             join, 0, firstEdgeConsumption, StackID::TRANSFO);
                     break;
                 default:
                     /* == Case sinkRate > sourceRate == */
                     firstEdgeConsumption = edgeLinker.sourceRate;
-                    Spider::API::createEdge(srdag_, src, edgeLinker.sourcePortIx, firstEdgeConsumption,
+                    Spider::API::createEdge(src, edgeLinker.sourcePortIx, firstEdgeConsumption,
                                             join, 0, firstEdgeConsumption, StackID::TRANSFO);
                     break;
             }
@@ -344,7 +344,7 @@ void StaticSRDAGTransformer::singleRateLinkage(StaticSRDAGTransformer::EdgeLinke
             auto joinProduction = sinkLinker.sinkRate - firstEdgeConsumption;
             for (auto i = sinkLinker.lowerDep + hasDelay + 1; i < sinkLinker.upperDep + hasDelay; ++i) {
                 src = sourceLinkArray[i];
-                Spider::API::createEdge(srdag_, src, edgeLinker.sourcePortIx, edgeLinker.sourceRate,
+                Spider::API::createEdge(src, edgeLinker.sourcePortIx, edgeLinker.sourceRate,
                                         join, joinPortIx, edgeLinker.sourceRate, StackID::TRANSFO);
                 joinProduction -= edgeLinker.sourceRate;
                 joinPortIx += 1;
@@ -376,7 +376,7 @@ void StaticSRDAGTransformer::buildSourceLinkArray(StaticSRDAGTransformer::EdgeLi
             nConsumer = std::min(nConsumer, edgeLinker.sink->repetitionValue() + 1);
             auto *fork = Spider::API::createFork(srdag_, "fork-" + init->name(), nConsumer, 0, StackID::TRANSFO);
             sourceLinkArray[0] = fork;
-            Spider::API::createEdge(srdag_, init, 0, edgeLinker.delay,
+            Spider::API::createEdge(init, 0, edgeLinker.delay,
                                     fork, 0, edgeLinker.delay, StackID::TRANSFO);
         } else {
             sourceLinkArray[0] = init;
@@ -404,7 +404,7 @@ void StaticSRDAGTransformer::buildSourceLinkArray(StaticSRDAGTransformer::EdgeLi
                                                          std::to_string(edgeLinker.sourcePortIx),
                                                  nConsumer, 0, StackID::TRANSFO);
             sourceLinkArray[edgeLinker.sourceCount + hasDelay] = fork;
-            Spider::API::createEdge(srdag_, src, edgeLinker.sourcePortIx, edgeLinker.sourceRate,
+            Spider::API::createEdge(src, edgeLinker.sourcePortIx, edgeLinker.sourceRate,
                                     fork, 0, edgeLinker.sourceRate, StackID::TRANSFO);
         }
         edgeLinker.sourceCount += 1;
@@ -447,51 +447,51 @@ void StaticSRDAGTransformer::buildSinkLinkArray(StaticSRDAGTransformer::EdgeLink
     }
 }
 
-void StaticSRDAGTransformer::reconnectSetter(const PiSDFEdge *edge, PiSDFVertex *delayVertex, PiSDFVertex *sink) {
-    auto *setterEdge = delayVertex->inputEdge(0);
-    setterEdge->disconnectSink();
-    auto *inputEdge = sink->inputEdge(edge->sinkPortIx());
-    auto *firstSrc2Sink = inputEdge->source();
-    PiSDFVertex *init = nullptr;
-    if (firstSrc2Sink->type() == PiSDFVertexType::INIT) {
-        inputEdge->disconnectSink();
-        setterEdge->connectSink(sink, edge->sinkPortIx(), edge->delayValue());
-    } else if (firstSrc2Sink->type() == PiSDFVertexType::FORK ||
-               firstSrc2Sink->type() == PiSDFVertexType::JOIN) {
-        inputEdge = firstSrc2Sink->inputEdge(0);
-        inputEdge->disconnectSink();
-        setterEdge->connectSink(firstSrc2Sink, 0, edge->delayValue());
-    }
-
-    /* == Remove the edge and the init vertex == */
-    init = inputEdge->source();
-    inputEdge->disconnectSource();
-    srdag_->removeEdge(inputEdge);
-    srdag_->removeVertex(init);
+void StaticSRDAGTransformer::reconnectSetter(const PiSDFEdge *, PiSDFVertex *, PiSDFVertex *) {
+//    auto *setterEdge = delayVertex->inputEdge(0);
+//    setterEdge->disconnectSink();
+//    auto *inputEdge = sink->inputEdge(edge->sinkPortIx());
+//    auto *firstSrc2Sink = inputEdge->source();
+//    PiSDFVertex *init = nullptr;
+//    if (firstSrc2Sink->type() == PiSDFVertexType::INIT) {
+//        inputEdge->disconnectSink();
+//        setterEdge->connectSink(sink, edge->sinkPortIx(), edge->delay()->value());
+//    } else if (firstSrc2Sink->type() == PiSDFVertexType::FORK ||
+//               firstSrc2Sink->type() == PiSDFVertexType::JOIN) {
+//        inputEdge = firstSrc2Sink->inputEdge(0);
+//        inputEdge->disconnectSink();
+//        setterEdge->connectSink(firstSrc2Sink, 0, edge->delay()->value());
+//    }
+//
+//    /* == Remove the edge and the init vertex == */
+//    init = inputEdge->source();
+//    inputEdge->disconnectSource();
+//    srdag_->removeEdge(inputEdge);
+//    srdag_->removeVertex(init);
 }
 
-void StaticSRDAGTransformer::reconnectGetter(const PiSDFEdge *edge, PiSDFVertex *delayVertex, PiSDFVertex *source) {
-    auto *getterEdge = delayVertex->outputEdge(0);
-    getterEdge->disconnectSource();
-    auto *outputEdge = source->outputEdge(edge->sourcePortIx());
-    auto *lastSnk2Source = outputEdge->sink();
-    PiSDFVertex *end = nullptr;
-    if (lastSnk2Source->type() == PiSDFVertexType::END) {
-        outputEdge->disconnectSource();
-        getterEdge->connectSource(source, edge->sourcePortIx(), edge->delayValue());
-    } else if (lastSnk2Source->type() == PiSDFVertexType::FORK) {
-        outputEdge = lastSnk2Source->outputEdge(lastSnk2Source->nEdgesOUT() - 1);
-        outputEdge->disconnectSource();
-        getterEdge->connectSource(lastSnk2Source, lastSnk2Source->nEdgesOUT() - 1, edge->delayValue());
-    } else if (lastSnk2Source->type() == PiSDFVertexType::JOIN) {
-        outputEdge = lastSnk2Source->outputEdge(0);
-        outputEdge->disconnectSource();
-        getterEdge->connectSource(lastSnk2Source, 0, edge->delayValue());
-    }
-
-    /* == Remove the output edge and the end vertex == */
-    end = outputEdge->sink();
-    outputEdge->disconnectSink();
-    srdag_->removeEdge(outputEdge);
-    srdag_->removeVertex(end);
+void StaticSRDAGTransformer::reconnectGetter(const PiSDFEdge *, PiSDFVertex *, PiSDFVertex *) {
+//    auto *getterEdge = delayVertex->outputEdge(0);
+//    getterEdge->disconnectSource();
+//    auto *outputEdge = source->outputEdge(edge->sourcePortIx());
+//    auto *lastSnk2Source = outputEdge->sink();
+//    PiSDFVertex *end = nullptr;
+//    if (lastSnk2Source->type() == PiSDFVertexType::END) {
+//        outputEdge->disconnectSource();
+//        getterEdge->connectSource(source, edge->sourcePortIx(), edge->delayValue());
+//    } else if (lastSnk2Source->type() == PiSDFVertexType::FORK) {
+//        outputEdge = lastSnk2Source->outputEdge(lastSnk2Source->nEdgesOUT() - 1);
+//        outputEdge->disconnectSource();
+//        getterEdge->connectSource(lastSnk2Source, lastSnk2Source->nEdgesOUT() - 1, edge->delayValue());
+//    } else if (lastSnk2Source->type() == PiSDFVertexType::JOIN) {
+//        outputEdge = lastSnk2Source->outputEdge(0);
+//        outputEdge->disconnectSource();
+//        getterEdge->connectSource(lastSnk2Source, 0, edge->delayValue());
+//    }
+//
+//    /* == Remove the output edge and the end vertex == */
+//    end = outputEdge->sink();
+//    outputEdge->disconnectSink();
+//    srdag_->removeEdge(outputEdge);
+//    srdag_->removeVertex(end);
 }

@@ -47,10 +47,6 @@
 #include <containers/Array.h>
 #include <graphs-tools/expression-parser/RPNConverter.h>
 
-/* === Forward declaration(s) === */
-
-class PiSDFGraph;
-
 /* === Structure definition(s) === */
 
 struct ExpressionTreeNode {

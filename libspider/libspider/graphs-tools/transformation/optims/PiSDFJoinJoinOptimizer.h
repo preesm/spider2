@@ -61,10 +61,12 @@ bool PiSDFJoinJoinOptimizer::operator()(PiSDFGraph *graph) const {
 
     /* == Search for the pair of fork to optimize == */
     for (auto &vertex : graph->vertices()) {
-        if (vertex->type() == PiSDFVertexType::JOIN) {
+        if (vertex->subtype() == PiSDFVertexType::JOIN) {
             auto *sink = vertex->outputEdge(0)->sink();
-            if (sink->type() == PiSDFVertexType::JOIN) {
-                verticesToOptimize.push_back(std::make_pair(vertex, sink));
+            if (sink->subtype() == PiSDFVertexType::JOIN) {
+                verticesToOptimize.push_back(
+                        std::make_pair(dynamic_cast<PiSDFVertex *>(vertex->outputEdge(0)->source()),
+                                       dynamic_cast<PiSDFVertex *>(sink)));
             }
         }
     }
@@ -78,32 +80,28 @@ bool PiSDFJoinJoinOptimizer::operator()(PiSDFGraph *graph) const {
         /* == Create the new fork == */
         auto *join = Spider::API::createJoin(graph,
                                              "merged-" + vertex->name() + "-" + sink->name(),
-                                             vertex->nEdgesIN() + (sink->nEdgesIN() - 1),
-                                             0,
+                                             vertex->edgesINCount() + (sink->edgesINCount() - 1),
                                              StackID::TRANSFO);
         auto *edge = sink->outputEdge(0);
-        auto rate = edge->sourceRate();
-        edge->disconnectSource();
-        edge->connectSource(join, 0, rate);
+        auto rate = edge->sourceRateExpression().evaluate();
+        edge->setSource(join, 0, Expression(rate));
 
         /* == Link the edges == */
         auto insertEdgeIx = vertex->outputEdge(0)->sinkPortIx();
         std::uint32_t offset = 0;
-        for (auto *sinkEdge :sink->inputEdges()) {
+        for (auto *sinkEdge :sink->inputEdgeArray()) {
             if (sinkEdge->sinkPortIx() == insertEdgeIx) {
                 graph->removeEdge(sinkEdge);
-                offset += vertex->nEdgesIN() - 1;
-                for (auto *vertexEdge : vertex->inputEdges()) {
-                    rate = vertexEdge->sinkRate();
+                offset += vertex->edgesINCount() - 1;
+                for (auto *vertexEdge : vertex->inputEdgeArray()) {
+                    rate = vertexEdge->sinkRateExpression().evaluate();
                     auto ix = vertexEdge->sinkPortIx() + insertEdgeIx;
-                    vertexEdge->disconnectSink();
-                    vertexEdge->connectSink(join, ix, rate);
+                    vertexEdge->setSink(join, ix, Expression(rate));
                 }
             } else {
-                rate = sinkEdge->sinkRate();
+                rate = sinkEdge->sinkRateExpression().evaluate();
                 auto ix = sinkEdge->sinkPortIx() + offset;
-                sinkEdge->disconnectSink();
-                sinkEdge->connectSink(join, ix, rate);
+                sinkEdge->setSink(join, ix, Expression(rate));
             }
         }
 

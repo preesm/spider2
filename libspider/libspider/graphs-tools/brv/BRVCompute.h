@@ -45,24 +45,13 @@
 #include <containers/StlContainers.h>
 #include <containers/Array.h>
 #include <containers/Set.h>
-#include <graphs/tmp/ExecVertex.h>
-
-namespace Spider {
-    namespace PiSDF {
-
-        /* === Forward declaration(s) === */
-
-        class Graph;
-
-        class Edge;
-    }
-}
+#include <graphs/tmp/Types.h>
 
 /* === Struct definition === */
 
 struct BRVComponent {
     std::uint32_t nEdges = 0;
-    Spider::vector<Spider::PiSDF::Vertex *> vertices;
+    Spider::vector<PiSDFAbstractVertex *> vertices;
 
     BRVComponent() = default;
 };
@@ -82,7 +71,7 @@ enum class BRVMethod : std::uint8_t {
 class BRVCompute {
 public:
 
-    explicit BRVCompute(const Spider::PiSDF::Graph *graph);
+    explicit BRVCompute(const PiSDFGraph *graph);
 
     ~BRVCompute() = default;
 
@@ -98,7 +87,7 @@ public:
     /* === Setter(s) === */
 
 protected:
-    const Spider::PiSDF::Graph *graph_ = nullptr;
+    const PiSDFGraph *graph_ = nullptr;
     Spider::vector<BRVComponent> connectedComponents_;
 
     /* === Protected method(s) === */
@@ -115,20 +104,21 @@ protected:
      * @param component Reference to the connected component to be filled.
      * @param keyArray  Key array for fast information on which vertex have already been visited.
      */
-    static void extractConnectedComponent(BRVComponent &component, Spider::Array<const Spider::PiSDF::Vertex *> &keyArray);
+    static void
+    extractConnectedComponent(BRVComponent &component, Spider::Array<const PiSDFAbstractVertex *> &keyArray);
 
     /**
      * @brief Extract the edges of a given connected component.
      * @param edgeArray  Array of edges to be filled.
      * @param component  Connected component.
      */
-    static void extractEdges(Spider::Array<const Spider::PiSDF::Edge *> &edgeArray, const BRVComponent &component);
+    static void extractEdges(Spider::Array<const PiSDFEdge *> &edgeArray, const BRVComponent &component);
 
     /**
      * @brief Update the repetition vector values depending on interfaces and config actors rates.
      * @param edgeArray Edge array of the current connected components.
      */
-    static void updateBRV(Spider::Array<const Spider::PiSDF::Edge *> &edgeArray, const BRVComponent &component);
+    static void updateBRV(Spider::Array<const PiSDFEdge *> &edgeArray, const BRVComponent &component);
 
     /**
      * @brief Update the repetition vector based on the production of a given input interface.
@@ -136,7 +126,7 @@ protected:
      * @param currentScaleFactor   Current scaling factor of the repetition vector.
      * @return new value of the scaling factor (can be unchanged).
      */
-    static std::uint64_t updateBRVFromInputIF(const Spider::PiSDF::Edge *edge, std::uint64_t currentScaleFactor);
+    static std::uint64_t updateBRVFromInputIF(const PiSDFEdge *edge, std::uint64_t currentScaleFactor);
 
     /**
      * @brief Update the repetition vector based on the production of a given output interface.
@@ -144,7 +134,7 @@ protected:
      * @param currentScaleFactor   Current scaling factor of the repetition vector.
      * @return new value of the scaling factor (can be unchanged).
      */
-    static std::uint64_t updateBRVFromOutputIF(const Spider::PiSDF::Edge *edge, std::uint64_t currentScaleFactor);
+    static std::uint64_t updateBRVFromOutputIF(const PiSDFEdge *edge, std::uint64_t currentScaleFactor);
 
     /**
      * @brief Update the repetition vector based on the production rates of a given configuration actor.
@@ -152,7 +142,7 @@ protected:
      * @param currentScaleFactor   Current scaling factor of the repetition vector.
      * @return new value of the scaling factor (can be unchanged).
      */
-    static std::uint64_t updateBRVFromCFGActor(const Spider::PiSDF::Edge *edge, std::uint64_t currentScaleFactor);
+    static std::uint64_t updateBRVFromCFGActor(const PiSDFEdge *edge, std::uint64_t currentScaleFactor);
 
 };
 
