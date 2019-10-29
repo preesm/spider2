@@ -42,29 +42,25 @@
 
 /* === Include(s) === */
 
-#include <graphs/tmp/Types.h>
 #include <common/Exception.h>
 #include <graphs-tools/expression-parser/Expression.h>
+#include <graphs/tmp/Types.h>
 
 namespace Spider {
     namespace PiSDF {
-
-        /* === Forward declaration(s) === */
-
-        class Graph;
 
         /* === Class definition === */
 
         class Param {
         public:
 
-            Param(Graph *graph, std::string name, std::int64_t value = 0) : graph_{graph},
+            Param(std::string name, Graph *graph, std::int64_t value = 0) : graph_{graph},
                                                                             name_{std::move(name)},
                                                                             value_{value} {
                 std::transform(name_.begin(), name_.end(), name_.begin(), ::tolower);
             }
 
-            Param(Graph *graph, std::string name, Expression &&expression) : graph_{graph},
+            Param(std::string name, Graph *graph, Expression &&expression) : graph_{graph},
                                                                              name_{std::move(name)} {
                 if (!expression.isStatic()) {
                     throwSpiderException("STATIC parameter should have static expression: %s.", expression.toString());
@@ -88,6 +84,8 @@ namespace Spider {
             virtual inline std::int64_t value() const;
 
             virtual inline ParamType type() const;
+
+            virtual inline bool dynamic() const;
 
             /* === Setter(s) === */
 
@@ -124,6 +122,10 @@ namespace Spider {
 
         ParamType Param::type() const {
             return ParamType::STATIC;
+        }
+
+        bool Param::dynamic() const {
+            return false;
         }
 
         void Param::setIx(std::uint32_t ix) {

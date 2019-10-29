@@ -37,50 +37,69 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_UPSAMPLEVERTEX_H
-#define SPIDER2_UPSAMPLEVERTEX_H
+#ifndef SPIDER2_DYNAMICPARAM_H
+#define SPIDER2_DYNAMICPARAM_H
 
 /* === Include(s) === */
 
-#include <graphs/tmp/ExecVertex.h>
+#include <graphs/tmp/Param.h>
 
 namespace Spider {
     namespace PiSDF {
 
+        /* ==+ Forward declaration(s) === */
+
+        class Vertex;
+
         /* === Class definition === */
 
-        class UpsampleVertex final : public ExecVertex {
+        class DynamicParam final : public Param {
         public:
-            explicit UpsampleVertex(std::string name = "unnamed-upsamplevertex",
-                                    Graph *graph = nullptr, //TODO: change to Spider::pisdfgraph() when this API replace old one
-                                    StackID stack = StackID::PISDF) : ExecVertex(std::move(name),
-                                                                                 VertexType::SPECIAL,
-                                                                                 1,
-                                                                                 1,
-                                                                                 graph,
-                                                                                 stack) {
+
+            DynamicParam(std::string name, Graph *graph, Expression &&expression) : Param(std::move(name), graph),
+                                                                                    expression_{expression} {
+
             }
 
             /* === Method(s) === */
 
             /* === Getter(s) === */
 
-            inline VertexType subtype() const override;
+            inline std::int64_t value() const override;
+
+            inline ParamType type() const override;
+
+            inline bool dynamic() const override;
 
             /* === Setter(s) === */
 
-        private:
+            inline void setValue(std::int64_t value) override;
 
-            //TODO add function call
+        private:
+            Expression expression_;
 
             /* === Private method(s) === */
         };
 
-        VertexType UpsampleVertex::subtype() const {
-            return VertexType::UPSAMPLE;
+        /* === Inline method(s) === */
+
+        std::int64_t DynamicParam::value() const {
+            return expression_.evaluate();
         }
 
-        /* === Inline method(s) === */
+        ParamType DynamicParam::type() const {
+            return ParamType::DYNAMIC;
+        }
+
+        bool DynamicParam::dynamic() const {
+            return true;
+        }
+
+        void DynamicParam::setValue(std::int64_t value) {
+            expression_ = Expression(value);
+        }
+
     }
 }
-#endif //SPIDER2_UPSAMPLEVERTEX_H
+
+#endif //SPIDER2_DYNAMICPARAM_H

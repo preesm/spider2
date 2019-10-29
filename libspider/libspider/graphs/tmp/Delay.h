@@ -44,15 +44,10 @@
 
 #include <string>
 #include <graphs-tools/expression-parser/Expression.h>
+#include <graphs/tmp/Types.h>
 
 namespace Spider {
     namespace PiSDF {
-
-        /* === Forward declaration(s) === */
-
-        class Vertex;
-
-        class Edge;
 
         /* === Class definition === */
 
@@ -61,9 +56,9 @@ namespace Spider {
 
             Delay(Expression &&expression,
                   Edge *edge,
-                  Vertex *setter,
+                  ExecVertex *setter,
                   std::uint32_t setterPortIx,
-                  Vertex *getter,
+                  ExecVertex *getter,
                   std::uint32_t getterPortIx,
                   bool persistent = false);
 
@@ -83,15 +78,15 @@ namespace Spider {
 
             /**
              * @brief Get the setter vertex of the delay.
-             * @return @refitem Spider::PiSDF::Vertex connected to the delay.
+             * @return @refitem Spider::PiSDF::ExecVertex connected to the delay.
              */
-            inline Vertex *setter() const;
+            inline ExecVertex *setter() const;
 
             /**
              * @brief Get the getter vertex of the delay.
-             * @return @refitem Spider::PiSDF::Vertex connected to the delay.
+             * @return @refitem Spider::PiSDF::ExecVertex connected to the delay.
              */
-            inline Vertex *getter() const;
+            inline ExecVertex *getter() const;
 
             /**
              * @brief Return the port ix on which the delay is connected to the setter.
@@ -111,6 +106,14 @@ namespace Spider {
              */
             inline std::uint64_t memoryAddress() const;
 
+            /**
+             * @brief Return the value of the delay. Calls @refitem Expression::evaluate method.
+             * @return value of the delay.
+             * @warning If value of the delay is set by dynamic parameter, it is user responsability to ensure proper
+             * order of call.
+             */
+            inline std::int64_t value() const;
+
             /* === Setter(s) === */
 
             /**
@@ -123,9 +126,9 @@ namespace Spider {
         private:
             Expression expression_;
             Edge *edge_ = nullptr;
-            Vertex *setter_ = nullptr;
+            ExecVertex *setter_ = nullptr;
             std::uint32_t setterPortIx_ = 0;
-            Vertex *getter_ = nullptr;
+            ExecVertex *getter_ = nullptr;
             std::uint32_t getterPortIx_ = 0;
 
             bool persistent_ = true;
@@ -140,11 +143,11 @@ namespace Spider {
             return edge_;
         }
 
-        Vertex *Delay::setter() const {
+        ExecVertex *Delay::setter() const {
             return setter_;
         }
 
-        Vertex *Delay::getter() const {
+        ExecVertex *Delay::getter() const {
             return getter_;
         }
 
@@ -158,6 +161,10 @@ namespace Spider {
 
         std::uint64_t Delay::memoryAddress() const {
             return memoryAddress_;
+        }
+
+        std::int64_t Spider::PiSDF::Delay::value() const {
+            return expression_.evaluate();
         }
 
         void Delay::setMemoryAddress(std::uint64_t address) {

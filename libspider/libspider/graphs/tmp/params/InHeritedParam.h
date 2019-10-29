@@ -42,7 +42,7 @@
 
 /* === Include(s) === */
 
-#include <graphs/tmp/param/Param.h>
+#include <graphs/tmp/Param.h>
 
 namespace Spider {
     namespace PiSDF {
@@ -52,7 +52,7 @@ namespace Spider {
         class InHeritedParam final : public Param {
         public:
 
-            InHeritedParam(Graph *graph, std::string name, Param *parent) : Param(graph, std::move(name)),
+            InHeritedParam(std::string name, Graph *graph, Param *parent) : Param(std::move(name), graph),
                                                                             parent_{parent} {
 
             }

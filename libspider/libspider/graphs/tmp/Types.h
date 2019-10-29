@@ -81,7 +81,84 @@ namespace Spider {
             INPUT,          /*! Input interface type */
             OUTPUT,         /*! Output interface type */
         };
+
+        /* === Forward declaration(s) === */
+
+        class Vertex;
+
+        class ExecVertex;
+
+        class JoinVertex;
+
+        class ForkVertex;
+
+        class TailVertex;
+
+        class HeadVertex;
+
+        class DuplicateVertex;
+
+        class UpSampleVertex;
+
+        class DownSampleVertex;
+
+        class InitVertex;
+
+        class EndVertex;
+
+        class Graph;
+
+        class Param;
+
+        class DynamicParam;
+
+        class InHeritedParam;
+
+        class Edge;
+
+        class Delay;
+
+        class Interface;
+
+        class InputInterface;
+
+        class OutputInterface;
     }
 }
+
+/* === Simpler accessor to namespace === */
+
+/* == Vertex definitions == */
+using PiSDFAbstractVertex = Spider::PiSDF::Vertex;
+using PiSDFVertex = Spider::PiSDF::ExecVertex;
+using PiSDFJoinVertex = Spider::PiSDF::JoinVertex;
+using PiSDFForkVertex = Spider::PiSDF::ForkVertex;
+using PiSDFTailVertex = Spider::PiSDF::TailVertex;
+using PiSDFHeadVertex = Spider::PiSDF::HeadVertex;
+using PiSDFDuplicateVertex = Spider::PiSDF::DuplicateVertex;
+using PiSDFUpSampleVertex = Spider::PiSDF::UpSampleVertex;
+using PiSDFDownSampleVertex = Spider::PiSDF::DownSampleVertex;
+using PiSDFInitVertex = Spider::PiSDF::InitVertex;
+using PiSDFEndVertex = Spider::PiSDF::EndVertex;
+
+/* == Graph definition == */
+using PiSDFGraph = Spider::PiSDF::Graph;
+
+/* == Param definitions == */
+using PiSDFParam = Spider::PiSDF::Param;
+using PiSDFDynamicParam = Spider::PiSDF::DynamicParam;
+using PiSDFInHeritedParam = Spider::PiSDF::InHeritedParam;
+
+/* == Edge and Delay definitions == */
+using PiSDFEdge = Spider::PiSDF::Edge;
+using PiSDFDelay = Spider::PiSDF::Delay;
+
+/* == Interface definitions == */
+using PiSDFInterface = Spider::PiSDF::Interface;
+using PiSDFInputInterface = Spider::PiSDF::InputInterface;
+using PiSDFOutputInterface = Spider::PiSDF::OutputInterface;
+
+/* == VertexType definition == */
+using PiSDFVertexType = Spider::PiSDF::VertexType;
 
 #endif //SPIDER2_TYPES_H

@@ -43,7 +43,7 @@
 #include <graphs/tmp/Graph.h>
 #include <graphs/tmp/ExecVertex.h>
 #include <graphs/tmp/Interface.h>
-#include <graphs/tmp/param/Param.h>
+#include <graphs/tmp/Param.h>
 
 /* === Static variable(s) === */
 
@@ -57,6 +57,7 @@ Spider::PiSDF::Graph::Graph(std::string name,
                             std::uint32_t paramCount,
                             std::uint32_t edgeINCount,
                             std::uint32_t edgeOUTCount,
+                            std::uint32_t cfgVertexCount,
                             Graph *graph,
                             StackID stack) : Vertex(std::move(name),
                                                     VertexType::GRAPH,
@@ -69,6 +70,7 @@ Spider::PiSDF::Graph::Graph(std::string name,
     vertexVector_.reserve(vertexCount);
     edgeVector_.reserve(edgeCount);
     paramVector_.reserve(paramCount);
+    configVertexVector_.reserve(cfgVertexCount);
 }
 
 Spider::PiSDF::Graph::~Graph() {
@@ -113,6 +115,8 @@ void Spider::PiSDF::Graph::addVertex(Vertex *vertex) {
             vertexVector_.push_back(dynamic_cast<ExecVertex *>(vertex));
             break;
         case VertexType::CONFIG:
+            vertex->setIx(configVertexVector_.size());
+            configVertexVector_.push_back(vertex);
             break;
         case VertexType::GRAPH:
             addSubGraph(dynamic_cast<Graph *>(vertex));

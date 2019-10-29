@@ -37,8 +37,8 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_DOWNSAMPLEVERTEX_H
-#define SPIDER2_DOWNSAMPLEVERTEX_H
+#ifndef SPIDER2_UPSAMPLEVERTEX_H
+#define SPIDER2_UPSAMPLEVERTEX_H
 
 /* === Include(s) === */
 
@@ -49,16 +49,16 @@ namespace Spider {
 
         /* === Class definition === */
 
-        class DownsampleVertex final : public ExecVertex {
+        class UpSampleVertex final : public ExecVertex {
         public:
-            explicit DownsampleVertex(std::string name = "unnamed-downsamplevertex",
-                                      Graph *graph = nullptr, //TODO: change to Spider::pisdfgraph() when this API replace old one
-                                      StackID stack = StackID::PISDF) : ExecVertex(std::move(name),
-                                                                                   VertexType::SPECIAL,
-                                                                                   1,
-                                                                                   1,
-                                                                                   graph,
-                                                                                   stack) {
+            explicit UpSampleVertex(std::string name = "unnamed-upsamplevertex",
+                                    Graph *graph = nullptr, //TODO: change to Spider::pisdfgraph() when this API replace old one
+                                    StackID stack = StackID::PISDF) : ExecVertex(std::move(name),
+                                                                                 VertexType::SPECIAL,
+                                                                                 1,
+                                                                                 1,
+                                                                                 graph,
+                                                                                 stack) {
             }
 
             /* === Method(s) === */
@@ -76,11 +76,11 @@ namespace Spider {
             /* === Private method(s) === */
         };
 
-        VertexType DownsampleVertex::subtype() const {
-            return VertexType::DOWNSAMPLE;
+        VertexType UpSampleVertex::subtype() const {
+            return VertexType::UPSAMPLE;
         }
 
         /* === Inline method(s) === */
     }
 }
-#endif //SPIDER2_DOWNSAMPLEVERTEX_H
+#endif //SPIDER2_UPSAMPLEVERTEX_H

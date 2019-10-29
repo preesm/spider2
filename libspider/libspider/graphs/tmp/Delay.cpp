@@ -52,9 +52,9 @@
 
 Spider::PiSDF::Delay::Delay(Expression &&expression,
                             Edge *edge,
-                            Vertex *setter,
+                            ExecVertex *setter,
                             std::uint32_t setterPortIx,
-                            Vertex *getter,
+                            ExecVertex *getter,
                             std::uint32_t getterPortIx,
                             bool persistent) : expression_{std::move(expression)},
                                                edge_{edge},
@@ -64,6 +64,16 @@ Spider::PiSDF::Delay::Delay(Expression &&expression,
                                                getterPortIx_{getterPortIx},
                                                persistent_{persistent} {
 
+    /* == If no setter is provided then an INIT is created == */
+    if (!setter_) {
+        setterPortIx_ = 0; /* = Ensure the proper value of the port ix = */
+    }
+
+    /* == If no getter is provided then an END is created == */
+    if (!getter_) {
+        getterPortIx_ = 0; /* = Ensure the proper value of the port ix = */
+
+    }
 }
 
 std::string Spider::PiSDF::Delay::name() const {

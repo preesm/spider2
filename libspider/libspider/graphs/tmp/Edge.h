@@ -44,20 +44,13 @@
 
 #include <cstdint>
 #include <string>
+#include <functional>
 #include <memory/Allocator.h>
 #include <graphs-tools/expression-parser/Expression.h>
-#include <functional>
+#include <graphs/tmp/Types.h>
 
 namespace Spider {
     namespace PiSDF {
-
-        /* === Forward declaration(s) === */
-
-        class Graph;
-
-        class Vertex;
-
-        class Delay;
 
         class Edge {
         public:
@@ -148,7 +141,7 @@ namespace Spider {
 
             void setSink(Vertex *vertex, std::uint32_t ix, Expression &&expr);
 
-            void setDelay(Delay *delay);
+            inline void setDelay(Delay *delay);
 
         private:
             Graph *graph_ = nullptr;

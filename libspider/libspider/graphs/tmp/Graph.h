@@ -52,14 +52,6 @@
 namespace Spider {
     namespace PiSDF {
 
-        /* === Forward declaration(s) === */
-
-        class ExecVertex;
-
-        class Interface;
-
-        class Param;
-
         /* === Class definition === */
 
         class Graph final : public Vertex {
@@ -71,6 +63,7 @@ namespace Spider {
                            std::uint32_t paramCount = 0,
                            std::uint32_t edgeINCount = 0,
                            std::uint32_t edgeOUTCount = 0,
+                           std::uint32_t cfgVertexCount = 0,
                            Graph *graph = nullptr,
                            StackID stack = StackID::PISDF);
 

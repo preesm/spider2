@@ -51,12 +51,6 @@
 namespace Spider {
     namespace PiSDF {
 
-        /* === Forward declaration(s) === */
-
-        class Graph;
-
-        class Edge;
-
         /* === Class definition === */
 
         class Vertex {
