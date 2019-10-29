@@ -41,10 +41,29 @@
 /* === Include(s) === */
 
 #include <graphs/tmp/ExecVertex.h>
+#include <graphs/tmp/Graph.h>
+#include <graphs/tmp/Vertex.h>
 
 /* === Static variable(s) === */
 
 /* === Static function(s) === */
 
 /* === Method(s) implementation === */
+
+Spider::PiSDF::ExecVertex::ExecVertex(std::string name,
+                                      Spider::PiSDF::VertexType type,
+                                      std::uint32_t edgeINCount,
+                                      std::uint32_t edgeOUTCount,
+                                      Spider::PiSDF::Graph *graph,
+                                      StackID stack) : Vertex(std::move(name),
+                                                              type,
+                                                              edgeINCount,
+                                                              edgeOUTCount,
+                                                              graph,
+                                                              stack) {
+    if (!graph_) {
+        throwSpiderException("Vertex [%s] need to belong to a graph.", this->name().c_str());
+    }
+    graph_->addVertex(this);
+}
 

@@ -142,9 +142,27 @@ namespace Spider {
              */
             inline void setIx(std::uint32_t ix);
 
-            void setSource(Vertex *vertex, std::uint32_t ix, Expression &&expr);
+            /**
+             * @brief Set the source vertex of the edge.
+             * @remark This method disconnect any previous connected edge on vertex and disconnect current source.
+             * @param vertex  Vertex to connect to.
+             * @param ix      Output port ix.
+             * @param expr    Expression of the rate.
+             * @return pointer to the old output @refitem Edge of vertex, nullptr else.
+             * @throws @refitem Spider::Exception if vertex is nullptr.
+             */
+            Edge *setSource(Vertex *vertex, std::uint32_t ix, Expression &&expr);
 
-            void setSink(Vertex *vertex, std::uint32_t ix, Expression &&expr);
+            /**
+             * @brief Set the sink vertex of the edge.
+             * @remark This method disconnect any previous connected edge on vertex and disconnect current sink.
+             * @param vertex  Vertex to connect to.
+             * @param ix      Input port ix.
+             * @param expr    Expression of the rate.
+             * @return pointer to the old input @refitem Edge of vertex, nullptr else.
+             * @throws @refitem Spider::Exception if vertex is nullptr.
+             */
+            Edge *setSink(Vertex *vertex, std::uint32_t ix, Expression &&expr);
 
             inline void setDelay(Delay *delay);
 
@@ -153,10 +171,10 @@ namespace Spider {
             std::uint32_t ix_ = UINT32_MAX;
 
             Vertex *src_;
-            std::uint32_t srcIx_ = UINT32_MAX;
+            std::uint32_t srcPortIx_ = UINT32_MAX;
             Expression srcExpression_;
             Vertex *snk_;
-            std::uint32_t snkIx_ = UINT32_MAX;
+            std::uint32_t snkPortIx_ = UINT32_MAX;
             Expression snkExpression_;
 
             Delay *delay_ = nullptr;
@@ -175,11 +193,11 @@ namespace Spider {
         }
 
         std::uint32_t Edge::sourcePortIx() const {
-            return srcIx_;
+            return srcPortIx_;
         }
 
         std::uint32_t Edge::sinkPortIx() const {
-            return snkIx_;
+            return snkPortIx_;
         }
 
         const Expression &Edge::sourceRateExpression() const {

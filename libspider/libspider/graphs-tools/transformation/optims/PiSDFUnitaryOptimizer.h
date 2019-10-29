@@ -74,7 +74,9 @@ bool PiSDFUnitaryOptimizer::operator()(PiSDFGraph *graph) const {
                         throwSpiderException("Fork [%s] with 1 output edge should have the same input/output rates.",
                                              vertex->name().c_str());
                     }
-//                    inputEdge->connectSink(outputEdge);
+                    inputEdge->setSink(outputEdge->sink(),
+                                       outputEdge->sinkPortIx(),
+                                       Expression(outputEdge->sinkRateExpression()));
                     graph->removeEdge(outputEdge);
                     verticesToOptimize.push_back(vertex);
                 }
@@ -87,7 +89,9 @@ bool PiSDFUnitaryOptimizer::operator()(PiSDFGraph *graph) const {
                         throwSpiderException("Join [%s] with 1 input edge should have the same input/output rates.",
                                              vertex->name().c_str());
                     }
-//                    outputEdge->connectSource(inputEdge);
+                    outputEdge->setSource(inputEdge->sink(),
+                                          inputEdge->sinkPortIx(),
+                                          Expression(inputEdge->sinkRateExpression()));
                     graph->removeEdge(inputEdge);
                     verticesToOptimize.push_back(vertex);
                 }
@@ -98,7 +102,9 @@ bool PiSDFUnitaryOptimizer::operator()(PiSDFGraph *graph) const {
                     auto *inputEdge = vertex->inputEdge(0);
                     auto *outputEdge = vertex->outputEdge(0);
                     if (inputEdge->sinkRateExpression().evaluate() == outputEdge->sourceRateExpression().evaluate()) {
-//                        outputEdge->connectSource(inputEdge);
+                        outputEdge->setSource(inputEdge->sink(),
+                                              inputEdge->sinkPortIx(),
+                                              Expression(inputEdge->sinkRateExpression()));
                         graph->removeEdge(inputEdge);
                         verticesToOptimize.push_back(vertex);
                     }
@@ -109,7 +115,9 @@ bool PiSDFUnitaryOptimizer::operator()(PiSDFGraph *graph) const {
                     auto *inputEdge = vertex->inputEdge(0);
                     auto *outputEdge = vertex->outputEdge(0);
                     if (inputEdge->sinkRateExpression().evaluate() == outputEdge->sourceRateExpression().evaluate()) {
-//                        inputEdge->connectSink(outputEdge);
+                        inputEdge->setSink(outputEdge->sink(),
+                                           outputEdge->sinkPortIx(),
+                                           Expression(outputEdge->sinkRateExpression()));
                         graph->removeEdge(outputEdge);
                         verticesToOptimize.push_back(vertex);
                     }
@@ -120,7 +128,9 @@ bool PiSDFUnitaryOptimizer::operator()(PiSDFGraph *graph) const {
                 auto *inputEdge = vertex->inputEdge(0);
                 auto *outputEdge = vertex->outputEdge(0);
                 if (inputEdge->sinkRateExpression().evaluate() == outputEdge->sourceRateExpression().evaluate()) {
-//                    inputEdge->connectSink(outputEdge);
+                    inputEdge->setSink(outputEdge->sink(),
+                                       outputEdge->sinkPortIx(),
+                                       Expression(outputEdge->sinkRateExpression()));
                     graph->removeEdge(outputEdge);
                     verticesToOptimize.push_back(vertex);
                 }

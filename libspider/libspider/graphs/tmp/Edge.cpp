@@ -56,10 +56,10 @@ Spider::PiSDF::Edge::Edge(Vertex *source,
                           Vertex *sink,
                           std::uint32_t snkIx,
                           Expression &&snkExpr) : src_{source},
-                                                  srcIx_{srcIx},
+                                                  srcPortIx_{srcIx},
                                                   srcExpression_{srcExpr},
                                                   snk_{sink},
-                                                  snkIx_{snkIx},
+                                                  snkPortIx_{snkIx},
                                                   snkExpression_{snkExpr} {
     if (!source || !sink) {
         throwSpiderException("nullptr vertex connected to Edge.");
@@ -88,27 +88,30 @@ Spider::PiSDF::Vertex *Spider::PiSDF::Edge::sink<true>() const {
     return snk_->forwardEdge(this);
 }
 
-void Spider::PiSDF::Edge::setSource(Vertex *vertex, std::uint32_t ix, Expression &&expr) {
+Spider::PiSDF::Edge *Spider::PiSDF::Edge::setSource(Vertex *vertex, std::uint32_t ix, Expression &&expr) {
     if (!vertex) {
         throwSpiderException("Can not set nullptr vertex on edge [%s].", name().c_str());
     }
-    vertex->disconnectOutputEdge(ix);
+    auto *edge = vertex->disconnectOutputEdge(ix);
     vertex->connectOutputEdge(this, ix);
-    src_->disconnectOutputEdge(srcIx_);
+    src_->disconnectOutputEdge(srcPortIx_);
     src_ = vertex;
-    srcIx_ = ix;
+    srcPortIx_ = ix;
     srcExpression_ = std::move(expr);
+    return edge;
 }
 
-void Spider::PiSDF::Edge::setSink(Vertex *vertex, std::uint32_t ix, Expression &&expr) {
+Spider::PiSDF::Edge *Spider::PiSDF::Edge::setSink(Vertex *vertex, std::uint32_t ix, Expression &&expr) {
     if (!vertex) {
         throwSpiderException("Can not set nullptr vertex on edge [%s].", name().c_str());
     }
+    auto *edge = vertex->disconnectInputEdge(ix);
     vertex->connectInputEdge(this, ix);
-    snk_->disconnectInputEdge(snkIx_);
+    snk_->disconnectInputEdge(snkPortIx_);
     snk_ = vertex;
-    snkIx_ = ix;
+    snkPortIx_ = ix;
     snkExpression_ = std::move(expr);
+    return edge;
 }
 
 /* === Private method(s) === */

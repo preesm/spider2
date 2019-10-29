@@ -58,12 +58,7 @@ Spider::PiSDF::Vertex::Vertex(std::string name,
                                                name_{std::move(name)},
                                                type_{type},
                                                inputEdgeArray_{edgeINCount, nullptr, stack},
-                                               outputEdgeArray_{edgeOUTCount, nullptr, stack},
-                                               reference_{this} {
-    if (!graph_) {
-        throwSpiderException("Vertex [%s] need to belong to a graph.", this->name().c_str());
-    }
-    graph_->addVertex(this);
+                                               outputEdgeArray_{edgeOUTCount, nullptr, stack} {
 }
 
 void Spider::PiSDF::Vertex::connectInputEdge(Edge *edge, std::uint32_t ix) {
@@ -74,22 +69,23 @@ void Spider::PiSDF::Vertex::connectOutputEdge(Edge *edge, std::uint32_t ix) {
     connectEdge(outputEdgeArray_, edge, ix);
 }
 
-void Spider::PiSDF::Vertex::disconnectInputEdge(std::uint32_t ix) {
-    disconnectEdge(inputEdgeArray_, ix);
+Spider::PiSDF::Edge *Spider::PiSDF::Vertex::disconnectInputEdge(std::uint32_t ix) {
+    return disconnectEdge(inputEdgeArray_, ix);
 }
 
-void Spider::PiSDF::Vertex::disconnectOutputEdge(std::uint32_t ix) {
-    disconnectEdge(outputEdgeArray_, ix);
+Spider::PiSDF::Edge *Spider::PiSDF::Vertex::disconnectOutputEdge(std::uint32_t ix) {
+    return disconnectEdge(outputEdgeArray_, ix);
 }
 
 /* === Private method(s) === */
 
-void Spider::PiSDF::Vertex::disconnectEdge(Spider::Array<Edge *> &edges, std::uint32_t ix) {
+Spider::PiSDF::Edge *Spider::PiSDF::Vertex::disconnectEdge(Spider::Array<Edge *> &edges, std::uint32_t ix) {
     auto *&edge = edges.at(ix);
-    if (!edge) {
-        return;
+    Edge *ret = edge;
+    if (edge) {
+        edge = nullptr;
     }
-    edge = nullptr;
+    return ret;
 }
 
 void Spider::PiSDF::Vertex::connectEdge(Spider::Array<Edge *> &edges, Edge *edge, std::uint32_t ix) {

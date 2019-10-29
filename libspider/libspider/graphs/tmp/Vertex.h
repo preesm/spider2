@@ -92,14 +92,14 @@ namespace Spider {
              * @param ix  Index of the input edge to disconnect.
              * @throws @refitem Spider::Exception if index out of bound.
              */
-            virtual void disconnectInputEdge(std::uint32_t ix);
+            virtual Edge *disconnectInputEdge(std::uint32_t ix);
 
             /**
              * @brief Disconnect output edge on port ix. If no edge is connected, nothing happens
              * @param ix  Index of the output edge to disconnect.
              * @throws @refitem Spider::Exception if index out of bound.
              */
-            virtual void disconnectOutputEdge(std::uint32_t ix);
+            virtual Edge *disconnectOutputEdge(std::uint32_t ix);
 
             /**
              * @brief Forward the connection of an edge. It should return this except for @refitem Interface vertices.
@@ -219,11 +219,9 @@ namespace Spider {
             Spider::Array<Edge *> inputEdgeArray_;
             Spider::Array<Edge *> outputEdgeArray_;
 
-            const Vertex *reference_ = nullptr;
-
             /* === Private method(s) === */
 
-            static void disconnectEdge(Spider::Array<Edge *> &edges, std::uint32_t ix);
+            static Edge *disconnectEdge(Spider::Array<Edge *> &edges, std::uint32_t ix);
 
             static void connectEdge(Spider::Array<Edge *> &edges, Edge *edge, std::uint32_t ix);
         };
