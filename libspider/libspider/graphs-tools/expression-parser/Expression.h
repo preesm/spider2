@@ -53,10 +53,17 @@ struct ExpressionTreeNode {
     ExpressionTreeNode *left = nullptr;
     ExpressionTreeNode *right = nullptr;
     ExpressionTreeNode *parent = nullptr;
-    std::uint16_t ix = 0;
     RPNElement elt;
+    union {
+        RPNOperatorType operatorType;
+        double value = 0;
+        PiSDFParam *param;
+    } arg;
 
-    ExpressionTreeNode(std::uint16_t ix, ExpressionTreeNode *parent) : parent{parent}, ix{ix} {
+    ExpressionTreeNode(const ExpressionTreeNode &) = default;
+
+    ExpressionTreeNode(ExpressionTreeNode *parent, RPNElement elt) : parent{parent},
+                                                                     elt{std::move(elt)} {
         right = nullptr;
         left = nullptr;
     }
@@ -73,13 +80,13 @@ public:
 
     Expression() = default;
 
-    Expression(const Expression &other);
+    Expression(const Expression &other) = default;
 
     inline Expression(Expression &&other) noexcept : Expression() {
         swap(*this, other);
     }
 
-    ~Expression();
+    ~Expression() = default;
 
     /* === Operator(s) === */
 
@@ -88,7 +95,6 @@ public:
         using std::swap;
 
         /* == Swap members of both objects == */
-        swap(first.rpnConverter_, second.rpnConverter_);
         swap(first.expressionTree_, second.expressionTree_);
         swap(first.value_, second.value_);
         swap(first.static_, second.static_);
@@ -118,6 +124,18 @@ public:
      */
     void printExpressionTree();
 
+    /**
+     * @brief Get the infix expression string
+     * @return Clean infix expression string
+     */
+    inline std::string toString() const;
+
+    /**
+     * @brief Get the expression postfix string.
+     * @return postfix expression string.
+     */
+    inline std::string postfixString() const;
+
     /* === Getters === */
 
     /**
@@ -127,27 +145,14 @@ public:
     inline std::int64_t value() const;
 
     /**
-     * @brief Get the infix expression string
-     * @return Clean infix expression string
-     */
-    inline const std::string &toString() const;
-
-    /**
-     * @brief Get the expression postfix string.
-     * @return postfix expression string.
-     */
-    inline const std::string &postfixString() const;
-
-    /**
      * @brief Get the static property of the expression.
      * @return true if the expression is static, false else.
      */
     inline bool isStatic() const;
 
 private:
-    RPNConverter rpnConverter_;
-    ExpressionTreeNode *expressionTree_ = nullptr;
-    double value_ = 0;
+    Spider::vector<ExpressionTreeNode> expressionTree_;
+    double value_ = 0.;
     bool static_ = true;
 
     /* === Private method(s) === */
@@ -156,7 +161,7 @@ private:
      * @brief Build and reduce the expression tree parser.
      * @param expressionStack Stack of the postfix expression elements.
      */
-    void buildExpressionTree(const Spider::vector<RPNElement> &expressionStack);
+    void buildExpressionTree();
 
     /**
      * @brief  Insert current node in the expression tree and reduce it if possible.
@@ -165,9 +170,7 @@ private:
      * @param nodeIx  Index of the node in the global node array.
      * @return next node
      */
-    ExpressionTreeNode *insertExpressionTreeNode(ExpressionTreeNode *node,
-                                                 const RPNElement &elt,
-                                                 std::uint16_t &nodeIx);
+    ExpressionTreeNode *insertExpressionTreeNode(ExpressionTreeNode *node);
 
     /**
      * @brief Evaluate the value of a node in the ExpressionTree.
@@ -175,7 +178,7 @@ private:
      * @return value of the evaluated node.
      * @remark This is a recursive method.
      */
-    double evaluateNode(ExpressionTreeNode *node) const;
+    double evaluateNode(const ExpressionTreeNode *node) const;
 
     static void printExpressionTreeNode(ExpressionTreeNode *node, std::int32_t depth);
 };
@@ -186,26 +189,28 @@ std::int64_t Expression::value() const {
     return static_cast<std::int64_t>(value_);
 }
 
-const std::string &Expression::toString() const {
-    return rpnConverter_.infixString();
+std::string Expression::toString() const {
+//    return rpnConverter_.infixString();
+    return "not implemented yet";
 }
 
-const std::string &Expression::postfixString() const {
-    return rpnConverter_.postfixString();
+std::string Expression::postfixString() const {
+//    return rpnConverter_.postfixString();
+    return "not implemented yet";
 }
 
 std::int64_t Expression::evaluate() const {
     if (static_) {
         return static_cast<std::int64_t>(value_);
     }
-    return static_cast<std::int64_t>(evaluateNode(expressionTree_));
+    return static_cast<std::int64_t>(evaluateNode(&expressionTree_[0]));
 }
 
 double Expression::evaluateDBL() const {
     if (static_) {
         return value_;
     }
-    return evaluateNode(expressionTree_);
+    return evaluateNode(&expressionTree_[0]);
 }
 
 bool Expression::isStatic() const {

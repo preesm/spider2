@@ -48,75 +48,75 @@
 /* === Methods prototype === */
 
 namespace Spider {
-    inline double dummyEval(double &, double &) {
+    inline double dummyEval(const double &, const double &) {
         return 0.;
     }
 
-    inline double add(double &a, double &b) {
+    inline double add(const double &a, const double &b) {
         return a + b;
     }
 
-    inline double sub(double &a, double &b) {
+    inline double sub(const double &a, const double &b) {
         return a - b;
     }
 
-    inline double mul(double &a, double &b) {
+    inline double mul(const double &a, const double &b) {
         return a * b;
     }
 
-    inline double div(double &a, double &b) {
+    inline double div(const double &a, const double &b) {
         return a / b;
     }
 
-    inline double mod(double &a, double &b) {
+    inline double mod(const double &a, const double &b) {
         return static_cast<std::int64_t >(a) % static_cast<std::int64_t >(b);
     }
 
-    inline double pow(double &a, double &b) {
+    inline double pow(const double &a, const double &b) {
         return std::pow(a, b);
     }
 
-    inline double max(double &a, double &b) {
+    inline double max(const double &a, const double &b) {
         return std::max(a, b);
     }
 
-    inline double min(double &a, double &b) {
+    inline double min(const double &a, const double &b) {
         return std::min(a, b);
     }
 
-    inline double cos(double &a, double &) {
+    inline double cos(const double &a, const double &) {
         return std::cos(a);
     }
 
-    inline double sin(double &a, double &) {
+    inline double sin(const double &a, const double &) {
         return std::sin(a);
     }
 
-    inline double tan(double &a, double &) {
+    inline double tan(const double &a, const double &) {
         return std::tan(a);
     }
 
-    inline double exp(double &a, double &) {
+    inline double exp(const double &a, const double &) {
         return std::exp(a);
     }
 
-    inline double log(double &a, double &) {
+    inline double log(const double &a, const double &) {
         return std::log(a);
     }
 
-    inline double log2(double &a, double &) {
+    inline double log2(const double &a, const double &) {
         return std::log2(a);
     }
 
-    inline double ceil(double &a, double &) {
+    inline double ceil(const double &a, const double &) {
         return std::ceil(a);
     }
 
-    inline double floor(double &a, double &) {
+    inline double floor(const double &a, const double &) {
         return std::floor(a);
     }
 
-    inline double sqrt(double &a, double &) {
+    inline double sqrt(const double &a, const double &) {
         return std::sqrt(a);
     }
 }

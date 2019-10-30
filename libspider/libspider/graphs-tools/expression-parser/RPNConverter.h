@@ -54,7 +54,7 @@
 
 /* === Function pointer declaration == */
 
-using evalFunction = double (*)(double &, double &);
+using evalFunction = double (*)(const double &, const double &);
 
 /* === Enum declaration(s) === */
 
@@ -105,11 +105,12 @@ enum class RPNOperatorType : std::uint32_t {
  * @brief Operator structure.
  */
 struct RPNOperator {
-    RPNOperatorType type;      /*! Operator type (see @refitem RPNOperatorType) */
-    std::uint16_t precedence;  /*! Precedence value level of the operator */
-    bool isRighAssociative;    /*! Right associativity property of the operator */
-    std::string label;         /*! Label of the operator */
-    evalFunction eval;         /*! Associated function of the operator */
+    RPNOperatorType type;     /*! Operator type (see @refitem RPNOperatorType) */
+    std::uint16_t precedence; /*! Precedence value level of the operator */
+    bool isRighAssociative;   /*! Right associativity property of the operator */
+    std::string label;        /*! Label of the operator */
+    evalFunction eval;        /*! Associated function of the operator */
+    std::uint32_t argCount;   /*! Number of argument of the operator */
 };
 
 /* === Structure definition(s) === */
@@ -120,147 +121,88 @@ struct RPNOperator {
  */
 struct RPNElement {
     RPNElementType type = RPNElementType::OPERATOR;
-    RPNElementSubType subType = RPNElementSubType::OPERATOR;
-    double value = 0.;
-    PiSDFParam *param = nullptr;
-    RPNOperatorType op = RPNOperatorType::ADD;
+    RPNElementSubType subtype = RPNElementSubType::OPERATOR;
+    std::string token;
+//    RPNOperatorType op = RPNOperatorType::ADD;
+//    double value = 0.;
+//    PiSDFParam *param = nullptr;
+
+    RPNElement() = default;
+
+    RPNElement(const RPNElement &) = default;
+
+    RPNElement(RPNElementType type, RPNElementSubType subtype, std::string token) : type{type},
+                                                                                    subtype{subtype},
+                                                                                    token{std::move(token)} { }
+
+    RPNElement(RPNElement &&other) noexcept : RPNElement() {
+        std::swap(type, other.type);
+        std::swap(subtype, other.subtype);
+        std::swap(token, other.token);
+    }
 };
 
-/* === Class definition === */
-
-class RPNConverter {
-public:
-    RPNConverter() = default;
-
-    RPNConverter(const RPNConverter &other) = default;
-
-    inline RPNConverter(RPNConverter &&other) noexcept : RPNConverter() {
-        swap(*this, other);
-    }
-
-    RPNConverter(std::string inFixExpr, const PiSDFGraph *graph);
-
-    ~RPNConverter() = default;
-
-    /* === Operators === */
-
-    inline friend void swap(RPNConverter &first, RPNConverter &second) noexcept {
-        /* == Enable ADL (not necessary in our case, but good practice) == */
-        using std::swap;
-
-        /* == Swap members of both objects == */
-        swap(first.graph_, second.graph_);
-        swap(first.infixExprString_, second.infixExprString_);
-        swap(first.postfixExprString_, second.postfixExprString_);
-        swap(first.postfixExprStack_, second.postfixExprStack_);
-    }
+namespace RPNConverter {
 
     /**
-     * @brief Copy and swap idiom for the assignment operator.
-     * @param temp  Assigned object (will use copy or move constructor depending on context).
-     * @return *this
-     */
-    inline RPNConverter &operator=(RPNConverter temp) {
-        swap(*this, temp);
-        return *this;
-    }
-
-    /* === Getters === */
-
-    /**
-     * @brief Get the expression infix string.
+     * @brief Build the expression infix string from the stack of postfix elements.
+     * @param postfixStack  Stack of postfix elements.
      * @return infix expression string.
      */
-    inline const std::string &infixString() const;
+    std::string infixString(const Spider::vector<RPNElement> &postfixStack);
 
     /**
-     * @brief Get the expression postfix string.
+     * @brief Build the expression postfix string from the stack of postfix elements.
+     * @param postfixStack  Stack of postfix elements.
      * @return postfix expression string.
      */
-    inline const std::string &postfixString() const;
+    std::string postfixString(const Spider::vector<RPNElement> &postfixStack);
 
     /**
-     * @brief Get the expression postfix stack.
-     * @return postfix expression stack.
+     * @brief Extract the infix expression tokens.
+     * @remark This function will perform several checks on the input string and will clean it before treating it.
+     *         For instance: expr = "( sin(4pi))" will become cleanExpr = "(sin(4*3.1415926535))".
+     * @param inFixExpr  Infix expression to evaluate.
+     * @return vector of @refitem RPNElement in the infix order.
+     * @throws @refitem Spider::Exception if expression is ill formed.
      */
-    inline const Spider::vector<RPNElement> &postfixStack() const;
+    Spider::vector<RPNElement> extractInfixElements(std::string inFixExpr);
 
-    /* === Static method(s) === */
+    /**
+     * @brief Extract the different elements (operand and operators) and build the post fix elements stack.
+     * @remark This function calls @refitem extractInfixElements then build the postfix stack from its result.
+     * @param infixExpression   Input infix notation string.
+     * @return vector of @refitem RPNElement in the postfix order.
+     */
+    Spider::vector<RPNElement> extractPostfixElements(std::string infixExpression);
+
+    /**
+     * @brief Get the operator corresponding to the ix (value of the enum @refitem RPNOperatorType).
+     * @param ix  ix of the enum.
+     * @return @refitem RPNOperator.
+     * @throws std::out_of_range if bad ix is passed.
+     */
+    const RPNOperator &getOperator(std::uint32_t ix);
 
     /**
      * @brief Return the operator associated to the operator type.
      * @param type  Operator type.
      * @return Associated operator.
      */
-    static const RPNOperator &getOperator(RPNOperatorType type);
+    const RPNOperator &getOperatorFromOperatorType(RPNOperatorType type);
 
     /**
      * @brief Get the string label of an operator from its type.
      * @param type  Operator type.
      * @return string label of the operator.
      */
-    static const std::string &getStringFromOperatorType(RPNOperatorType type);
+    const std::string &getStringFromOperatorType(RPNOperatorType type);
 
     /**
      * @brief Retrieve the @refitem RPNOperatorType corresponding to a given string.
      * @param operatorString input string corresponding to the operator.
      * @return RPNOperatorType
      */
-    static RPNOperatorType getOperatorTypeFromString(const std::string &operatorString);
-
-private:
-    const PiSDFGraph *graph_ = nullptr;
-    std::string infixExprString_{""};
-    std::string postfixExprString_{""};
-    Spider::vector<RPNElement> postfixExprStack_;
-
-    /* === Private Methods === */
-
-    /**
-     * @brief Perform clean and reformatting operations on the original infix
-     * expression.
-     */
-    void cleanInfixExpression();
-
-    /**
-     * @brief Check for inconsistencies in the infix expression.
-     */
-    void checkInfixExpression() const;
-
-    /**
-     * @brief Build the postfix expression.
-     */
-    void buildPostFix();
-
-    /**
-     * @brief Check for miss match in the number of parenthesis
-     * @return true if there is a miss match, false else.
-     */
-    inline bool missMatchParenthesis() const;
-};
-
-/* === Inline methods === */
-
-bool RPNConverter::missMatchParenthesis() const {
-    std::uint32_t nLeftPar = 0;
-    std::uint32_t nRightPar = 0;
-    for (auto &t : infixExprString_) {
-        nLeftPar += (t == '(');
-        nRightPar += (t == ')');
-    }
-    return nLeftPar != nRightPar;
+    RPNOperatorType getOperatorTypeFromString(const std::string &operatorString);
 }
-
-const std::string &RPNConverter::infixString() const {
-    return infixExprString_;
-}
-
-const std::string &RPNConverter::postfixString() const {
-    return postfixExprString_;
-}
-
-const Spider::vector<RPNElement> &RPNConverter::postfixStack() const {
-    return postfixExprStack_;
-}
-
 #endif // SPIDER2_RPNCONVERTER_H
