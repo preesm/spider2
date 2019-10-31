@@ -66,7 +66,7 @@ namespace Spider {
             Param(std::string name, Graph *graph, Expression &&expression) : graph_{graph},
                                                                              name_{std::move(name)} {
                 if (!expression.isStatic()) {
-                    throwSpiderException("STATIC parameter should have static expression: %s.", expression.toString());
+                    throwSpiderException("STATIC parameter should have static expression: %s.", expression.string());
                 }
                 std::transform(name_.begin(), name_.end(), name_.begin(), ::tolower);
                 value_ = expression.value();
