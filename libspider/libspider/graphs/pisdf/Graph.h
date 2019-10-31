@@ -227,10 +227,28 @@ namespace Spider {
             */
             inline const Spider::vector<Param *> &params() const;
 
+            /**
+             * @brief Return the reference vertex attached to current copy.
+             * @remark If vertex is not a copy, this return the vertex itself.
+             * @warning There is a potential risk here. If the reference is freed before the copy,
+             * there are no possibilities to know it.
+             * @return pointer to @refitem Vertex reference.
+             */
+            inline const Graph *reference() const;
+
             /* === Setter(s) === */
+
+            /**
+             * @brief Set the reference vertex of this vertex.
+             * @remark This method override current value.
+             * @param vertex Vertex to set.
+             * @throws Spider::Exception if vertex is nullptr.
+             */
+            inline void setReferenceVertex(const Graph *vertex);
 
         private:
             bool dynamic_ = false;
+            const Graph *reference_ = this;
 
             /* === Contained elements of the graph === */
 
@@ -328,6 +346,18 @@ namespace Spider {
 
         Interface *Graph::outputInterfaceFromIx(std::uint32_t ix) const {
             return outputInterfaceArray_[ix];
+        }
+
+        const Graph *Graph::reference() const {
+            return reference_;
+        }
+
+        void Graph::setReferenceVertex(const Graph *vertex) {
+            if (vertex) {
+                reference_ = vertex;
+                return;
+            }
+            throwSpiderException("Reference of a vertex can not be nullptr. Vertex [%s]", name_.c_str());
         }
 
     }
