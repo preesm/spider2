@@ -144,7 +144,7 @@ public:
      * @brief Get the static property of the expression.
      * @return true if the expression is static, false else.
      */
-    inline bool isStatic() const;
+    inline bool dynamic() const;
 
 private:
     Spider::vector<ExpressionTreeNode> expressionTree_;
@@ -190,8 +190,8 @@ double Expression::evaluateDBL() const {
     return evaluateNode(&expressionTree_[0]);
 }
 
-bool Expression::isStatic() const {
-    return static_;
+bool Expression::dynamic() const {
+    return !static_;
 }
 
 #endif //SPIDER2_EXPRESSION_H

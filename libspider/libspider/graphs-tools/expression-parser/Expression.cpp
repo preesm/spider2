@@ -140,15 +140,21 @@ void Expression::buildExpressionTree() {
     if (expressionTree_.empty()) {
         return;
     }
-    std::int16_t nodeIx = 0;
+    std::size_t nodeIx = 0;
     auto *node = &expressionTree_[0];
     while (node) {
         if (!node->right && node->elt.type == RPNElementType::OPERATOR) {
+            if ((nodeIx + 1) >= expressionTree_.size()) {
+                throwSpiderException("operator [%s] missing operand.", node->elt.token.c_str());
+            }
             node->right = &expressionTree_[++nodeIx];
             node->right->parent = node;
             node = node->right;
         } else if (!node->left && node->elt.type != RPNElementType::OPERAND &&
                    RPNConverter::getOperatorFromOperatorType(node->arg.operatorType).argCount != 1) {
+            if ((nodeIx + 1) >= expressionTree_.size()) {
+                throwSpiderException("operator [%s] missing operand.", node->elt.token.c_str());
+            }
             node->left = &expressionTree_[++nodeIx];
             node->left->parent = node;
             node = node->left;

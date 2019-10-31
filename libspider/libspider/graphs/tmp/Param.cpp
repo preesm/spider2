@@ -54,7 +54,7 @@ Spider::PiSDF::Param::Param(std::string name, Graph *graph, std::int64_t value) 
 
 Spider::PiSDF::Param::Param(std::string name, Graph *graph, Expression &&expression) : graph_{graph},
                                                                                        name_{std::move(name)} {
-    if (!expression.isStatic()) {
+    if (expression.dynamic()) {
         throwSpiderException("STATIC parameter should have static expression: %s.", expression.string());
     }
     std::transform(name_.begin(), name_.end(), name_.begin(), ::tolower);
