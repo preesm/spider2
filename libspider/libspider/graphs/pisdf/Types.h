@@ -57,6 +57,7 @@ namespace Spider {
         enum class ParamType : std::uint8_t {
             STATIC,            /*! Static parameter: expression is evaluated at startup only once */
             DYNAMIC,           /*! Dynamic parameter: value is set at runtime */
+            INHERITED,         /*! Inherited parameter: value depend on parent */
         };
 
         /**
