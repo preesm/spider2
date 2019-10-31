@@ -40,9 +40,14 @@
 
 /* === Includes === */
 
+#include <cinttypes>
 #include <graphs-tools/transformation/SRDAGTransformation.h>
-#include <containers/Array.h>
 #include <graphs/pisdf/params/DynamicParam.h>
+#include <graphs/pisdf/Graph.h>
+#include <graphs/pisdf/Edge.h>
+#include <graphs/pisdf/ExecVertex.h>
+#include <graphs/pisdf/specials/Specials.h>
+#include <graphs-tools/brv/LCMBRVCompute.h>
 
 /* === Methods implementation === */
 
@@ -55,5 +60,26 @@ Spider::SRDAG::staticSingleRateTransformation(const Spider::SRDAG::Job &job, PiS
         throwSpiderException("nullptr for job.reference graph.");
     }
 
-    return std::pair<JobStack, JobStack>();
+    auto *srdagInstance = srdag;
+    if (job.srdagIx_ >= 0) {
+        // TODO: update parameters values of job.reference_ using the one of current instance
+        srdagInstance = srdag->subgraphs()[job.srdagIx_];
+        if (!srdagInstance || (srdagInstance->reference() != job.reference_)) {
+            throwSpiderException("could not find matching single rate instance [%"
+                                         PRIu32
+                                         "] of graph [%s]", job.instanceValue_, job.reference_->name().c_str());
+        }
+    }
+
+    /* == Compute the repetition values of the graph (if dynamic and/or first instance) == */
+    if (job.reference_->dynamic() || job.srdagIx_ <= 0) {
+        LCMBRVCompute brvTask{job.reference_};
+        brvTask.execute();
+    }
+
+    /* == Do the linkage for every edges of the graph == */
+    JobStack nextJobs;
+    JobStack dynaJobs;
+
+    return std::make_pair(std::move(nextJobs), std::move(dynaJobs));
 }

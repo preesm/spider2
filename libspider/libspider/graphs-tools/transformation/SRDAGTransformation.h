@@ -61,10 +61,12 @@ namespace Spider {
             std::int64_t upperDep_ = -1;
             std::int64_t rate_ = -1;
             PiSDFVertex *vertex_ = nullptr;
+            std::uint32_t portIx_ = UINT32_MAX;
         };
 
         struct SourceLinker {
             std::int64_t rate_ = -1;
+            std::uint32_t portIx_ = UINT32_MAX;
             PiSDFVertex *vertex_ = nullptr;
         };
 
@@ -74,7 +76,7 @@ namespace Spider {
 
         /* === Type definition(s) === */
 
-        using JobStack = Spider::stack<Spider::SRDAG::Job, StackID::TRANSFO>;
+        using JobStack = Spider::vector<Spider::SRDAG::Job, StackID::TRANSFO>;
 
         /* === Functions prototype === */
 
