@@ -61,14 +61,14 @@ static const std::string &supportedBasicOperators() {
 
 static bool isOperator(const std::string &s) {
     bool found = false;
-    for (std::uint32_t i = 0; !found && i < (N_OPERATOR + N_FUNCTION); ++i) {
+    for (std::uint32_t i = 0; !found && i < (RPNConverter::operator_count + RPNConverter::function_count); ++i) {
         found |= (RPNConverter::getOperator(i).label == s);
     }
     return found;
 }
 
 static bool isFunction(RPNOperatorType type) {
-    return static_cast<std::uint32_t >(type) >= FUNCTION_OFFSET;
+    return static_cast<std::uint32_t >(type) >= RPNConverter::function_offset;
 }
 
 /**
@@ -166,9 +166,6 @@ static void cleanInfixExpression(std::string &infixExprString) {
         /* == Replace "," by "),(" == */
         stringReplace(infixExprString, ",", "),(");
     }
-    if (missMatchParenthesis(infixExprString.begin(), infixExprString.end())) {
-        throwSpiderException("unbalanced parenthesis in expression: [%s].", infixExprString.c_str());
-    }
 
     /* == Clean the inFix expression by replacing every occurrence of PI to its value == */
     stringReplace(infixExprString, "pi", "3.1415926535");
@@ -213,19 +210,26 @@ std::string RPNConverter::infixString(const Spider::vector<RPNElement> &postfixS
             std::string builtInfix;
             if (element.subtype == RPNElementSubType::FUNCTION) {
                 builtInfix += (element.token + '(');
-                builtInfix += (stack.top());
-                stack.pop();
-                for (std::uint32_t i = 1; i < op.argCount; ++i) {
-                    builtInfix += (',' + stack.top());
+                Spider::stack<std::string> reverseStack;
+                for (std::uint32_t i = 0; i < op.argCount; ++i) {
+                    reverseStack.push(std::move(stack.top()));
                     stack.pop();
+                }
+                builtInfix += (reverseStack.top());
+                reverseStack.pop();
+                for (std::uint32_t i = 1; i < op.argCount; ++i) {
+                    builtInfix += (',' + reverseStack.top());
+                    reverseStack.pop();
                 }
                 builtInfix += ')';
             } else {
-                builtInfix += ('(' + stack.top());
+                auto op2 = stack.top();
                 stack.pop();
+                auto op1 = stack.top();
+                stack.pop();
+                builtInfix += ('(' + op1);
                 builtInfix += element.token;
-                builtInfix += (stack.top() + ')');
-                stack.pop();
+                builtInfix += (op2 + ')');
             }
             stack.push(builtInfix);
         }
@@ -350,7 +354,7 @@ Spider::vector<RPNElement> RPNConverter::extractPostfixElements(std::string infi
 }
 
 const RPNOperator &RPNConverter::getOperator(std::uint32_t ix) {
-    static std::array<RPNOperator, N_OPERATOR + N_FUNCTION>
+    static std::array<RPNOperator, (RPNConverter::operator_count + RPNConverter::function_count)>
             operatorArray{{
                                   {RPNOperatorType::ADD, 2, false,
                                           "+", Spider::add, 2},          /*! ADD operator */
@@ -405,7 +409,7 @@ const std::string &RPNConverter::getStringFromOperatorType(RPNOperatorType type)
 RPNOperatorType RPNConverter::getOperatorTypeFromString(const std::string &operatorString) {
     bool found = false;
     std::uint32_t i = 0;
-    for (i = 0; !found && i < (N_OPERATOR + N_FUNCTION); ++i) {
+    for (i = 0; !found && i < (RPNConverter::operator_count + RPNConverter::function_count); ++i) {
         found |= (getOperator(i).label == operatorString);
     }
     if (!found) {

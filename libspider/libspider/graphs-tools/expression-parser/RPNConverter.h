@@ -46,12 +46,6 @@
 #include <cstdint>
 #include <containers/StlContainers.h>
 
-/* === Defines === */
-
-#define N_OPERATOR (static_cast<std::uint32_t>(RPNOperatorType::RIGHT_PAR) + 1)
-#define FUNCTION_OFFSET (static_cast<std::uint32_t>(RPNOperatorType::COS)) /*! Value of the @refitem RPNOperatorType::COS (first function) */
-#define N_FUNCTION (static_cast<std::uint32_t>(RPNOperatorType::MIN) - FUNCTION_OFFSET + 1) /*! Value of the @refitem RPNOperatorType::MIN (last function) */
-
 /* === Function pointer declaration == */
 
 using evalFunction = double (*)(const double &, const double &);
@@ -136,6 +130,13 @@ struct RPNElement {
 };
 
 namespace RPNConverter {
+    constexpr auto operator_count = static_cast<std::uint32_t>(RPNOperatorType::RIGHT_PAR) + 1;
+
+    /* == Value of the @refitem RPNOperatorType::COS (first function) == */
+    constexpr auto function_offset = static_cast<std::uint32_t>(RPNOperatorType::COS);
+
+    /* == Value of the @refitem RPNOperatorType::MIN (last function) == */
+    constexpr auto function_count = static_cast<std::uint32_t>(RPNOperatorType::MIN) - function_offset + 1;
 
     /**
      * @brief Build the expression infix string from the stack of postfix elements.

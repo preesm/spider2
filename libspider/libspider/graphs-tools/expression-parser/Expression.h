@@ -46,6 +46,7 @@
 #include <string>
 #include <containers/Array.h>
 #include <graphs-tools/expression-parser/RPNConverter.h>
+#include <spider-api/pisdf.h>
 
 /* === Structure definition(s) === */
 

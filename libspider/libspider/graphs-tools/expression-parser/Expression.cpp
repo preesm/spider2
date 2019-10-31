@@ -61,6 +61,9 @@ Expression::Expression(std::string expression, const PiSDFGraph *graph) {
     for (auto elt = postfixStack.rbegin(); elt != postfixStack.rend(); ++elt) {
         auto exprNode = ExpressionTreeNode(nullptr, std::move((*elt)));
         if (exprNode.elt.subtype == RPNElementSubType::PARAMETER) {
+            if (!graph) {
+                throwSpiderException("nullptr graph in expression containing parameter.");
+            }
             auto *param = graph->findParam(exprNode.elt.token);
             if (!param) {
                 throwSpiderException("Did not find parameter [%s] for expression parsing.", exprNode.elt.token.c_str());
@@ -126,7 +129,7 @@ static std::string elementToString(const ExpressionTreeNode *node) {
 
 std::string Expression::string() const {
     if (expressionTree_.empty()) {
-        return "";
+        return std::to_string(value_);
     }
     return elementToString(&expressionTree_[0]);
 }
