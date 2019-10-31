@@ -24,7 +24,7 @@ include_directories(
 
 file(GLOB_RECURSE
         source_files
-        ${SPIDER_LIB_DIR}/graphs/tmp/*.cpp
+        ${SPIDER_LIB_DIR}/graphs/pisdf/*.cpp
         ${SPIDER_LIB_DIR}/graphs-tools/expression-parser/*.cpp
         ${SPIDER_LIB_DIR}/common/*.cpp
         ${SPIDER_LIB_DIR}/memory/*.cpp
@@ -36,7 +36,7 @@ file(GLOB_RECURSE
 
 file(GLOB_RECURSE
         header_files
-        ${SPIDER_LIB_DIR}/graphs/tmp/*.h
+        ${SPIDER_LIB_DIR}/graphs/pisdf/*.h
         ${SPIDER_LIB_DIR}/graphs-tools/expression-parser/*.h
         ${SPIDER_LIB_DIR}/common/*.h
         ${SPIDER_LIB_DIR}/memory/*.h
