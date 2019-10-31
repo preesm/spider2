@@ -52,6 +52,9 @@
 Expression::Expression(std::string expression, const PiSDFGraph *graph) {
     /* == Get the postfix expression stack == */
     auto postfixStack = RPNConverter::extractPostfixElements(std::move(expression));
+    // TODO make printVerbose call a no-op when disabled (use CMake option)
+//    Spider::Logger::printVerbose(LOG_GENERAL, "infix expression: [%s].\n", RPNConverter::infixString(postfixStack));
+//    Spider::Logger::printVerbose(LOG_GENERAL, "postfix expression: [%s].\n", RPNConverter::postfixString(postfixStack));
 
     /* == Build expression stack == */
     expressionTree_.reserve(postfixStack.size());
@@ -86,7 +89,7 @@ Expression::Expression(std::string expression, const PiSDFGraph *graph) {
     }
 }
 
-Expression::Expression(std::int64_t value) : Expression() {
+Expression::Expression(std::int64_t value) {
     static_ = true;
     value_ = value;
 }
@@ -95,6 +98,37 @@ void Expression::printExpressionTree() {
     if (!expressionTree_.empty()) {
         printExpressionTreeNode(&expressionTree_[0], 0);
     }
+}
+
+static std::string elementToString(const ExpressionTreeNode *node) {
+    if (!node) {
+        return "";
+    }
+    const auto &elt = node->elt;
+    if (elt.type == RPNElementType::OPERAND) {
+        if (elt.subtype == RPNElementSubType::PARAMETER) {
+            return elt.token;
+        }
+
+        /* == Due to the automatic reduction in the buildExpressionTree method, token might not correspond to actual value == */
+        return std::to_string(node->arg.value);
+    }
+    const auto &operatorType = RPNConverter::getOperatorTypeFromString(elt.token);
+    const auto &op = RPNConverter::getOperatorFromOperatorType(operatorType);
+    if (elt.subtype == RPNElementSubType::FUNCTION) {
+        if (op.argCount == 1) {
+            return elt.token + '(' + elementToString(node->right) + ')';
+        }
+        return elt.token + '(' + elementToString(node->left) + ',' + elementToString(node->right) + ')';
+    }
+    return '(' + elementToString(node->left) + elt.token + elementToString(node->right) + ')';
+}
+
+std::string Expression::string() const {
+    if (expressionTree_.empty()) {
+        return "";
+    }
+    return elementToString(&expressionTree_[0]);
 }
 
 /* === Private method(s) === */
@@ -132,46 +166,13 @@ void Expression::buildExpressionTree() {
             }
             node = node->parent;
         }
-        // return node;
     }
 }
 
-ExpressionTreeNode *Expression::insertExpressionTreeNode(ExpressionTreeNode *node) {
-//    node->elt = elt;
-//    while (node) {
-//        const auto &tmpElt = node->elt.elt;
-//        if (tmpElt.subtype == RPNElementSubType::OPERATOR && !node->right) {
-////            expressionTree_.push_back(ExpressionTreeNode(nodeIx + 1, node, std::move(elt)))
-//            node->right = &expressionTree_[nodeIx];
-//            Spider::construct(node->right, nodeIx++, node);
-//            return node->right;
-//        } else if (!node->left && (node->right || tmpElt.subtype == RPNElementSubType::FUNCTION)) {
-//            node->left = &expressionTree_[nodeIx];
-//            Spider::construct(node->left, nodeIx++, node);
-//            return node->left;
-//        } else {
-//            auto *left = node->left;
-//            auto *right = node->right;
-//            if (node->elt.type == RPNElementType::OPERATOR && left && left->elt.subtype == RPNElementSubType::VALUE) {
-//                auto valLeft = left->elt.value;
-//                if (!right || right->elt.subtype == RPNElementSubType::VALUE) {
-//                    auto valRight = right ? right->elt.value : 0.;
-//                    node->elt.type = RPNElementType::OPERAND;
-//                    node->elt.subtype = RPNElementSubType::VALUE;
-//                    node->elt.value = RPNConverter::getOperatorFromOperatorType(node->elt.op).eval(valLeft, valRight);
-//                    Spider::destroy(node->left);
-//                    node->left = nullptr;
-//                    Spider::destroy(node->right);
-//                    node->right = nullptr;
-//                }
-//            }
-//            node = node->parent;
-//        }
-//    }
-//    return node;
-}
-
 double Expression::evaluateNode(const ExpressionTreeNode *node) const {
+    if (!node) {
+        return 0.;
+    }
     auto &elt = node->elt;
     if (elt.type == RPNElementType::OPERAND) {
         if (elt.subtype == RPNElementSubType::PARAMETER) {
@@ -179,9 +180,8 @@ double Expression::evaluateNode(const ExpressionTreeNode *node) const {
         }
         return node->arg.value;
     }
-    const auto &valLeft = evaluateNode(node->left);
-    const auto &valRight = node->right ? evaluateNode(node->right) : 0.;
-    return RPNConverter::getOperatorFromOperatorType(node->arg.operatorType).eval(valLeft, valRight);
+    return RPNConverter::getOperatorFromOperatorType(node->arg.operatorType).eval(evaluateNode(node->left),
+                                                                                  evaluateNode(node->right));
 }
 
 void Expression::printExpressionTreeNode(ExpressionTreeNode *node, std::int32_t depth) {

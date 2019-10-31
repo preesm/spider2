@@ -48,9 +48,9 @@
 
 /* === Defines === */
 
-#define N_OPERATOR 10
-#define N_FUNCTION 9
-#define FUNCTION_OPERATOR_OFFSET (static_cast<std::uint32_t>(RPNOperatorType::COS)) /*! Value of the @refitem RPNOperatorType::COS */
+#define N_OPERATOR (static_cast<std::uint32_t>(RPNOperatorType::RIGHT_PAR) + 1)
+#define FUNCTION_OFFSET (static_cast<std::uint32_t>(RPNOperatorType::COS)) /*! Value of the @refitem RPNOperatorType::COS (first function) */
+#define N_FUNCTION (static_cast<std::uint32_t>(RPNOperatorType::MIN) - FUNCTION_OFFSET + 1) /*! Value of the @refitem RPNOperatorType::MIN (last function) */
 
 /* === Function pointer declaration == */
 
@@ -80,25 +80,25 @@ enum class RPNElementSubType : std::uint16_t {
  * @brief Enumeration of the supported operators by the parser.
  */
 enum class RPNOperatorType : std::uint32_t {
-    ADD = 0,        /*! Addition operator */
-    SUB = 1,        /*! Subtraction operator */
-    MUL = 2,        /*! Multiplication operator */
-    DIV = 3,        /*! Division operator */
-    MOD = 4,        /*! Modulo operator */
-    POW = 5,        /*! Power operator */
-    MAX = 6,        /*! Max operator */
-    MIN = 7,        /*! Min operator */
-    LEFT_PAR = 8,   /*! Left parenthesis */
-    RIGHT_PAR = 9,  /*! Right parenthesis */
-    COS = 10,       /*! Cosine function */
-    SIN = 11,       /*! Sinus function */
-    TAN = 12,       /*! Tangent function */
-    EXP = 13,       /*! Exponential function */
-    LOG = 14,       /*! Logarithm (base 10) function */
-    LOG2 = 15,      /*! Logarithm (base 2) function */
-    CEIL = 16,      /*! Ceil function */
-    FLOOR = 17,     /*! Floor function */
-    SQRT = 18,      /*! Square root function */
+    ADD,        /*! Addition operator */
+    SUB,        /*! Subtraction operator */
+    MUL,        /*! Multiplication operator */
+    DIV,        /*! Division operator */
+    MOD,        /*! Modulo operator */
+    POW,        /*! Power operator */
+    LEFT_PAR,   /*! Left parenthesis */
+    RIGHT_PAR,  /*! Right parenthesis */
+    COS,        /*! Cosine function */
+    SIN,        /*! Sinus function */
+    TAN,        /*! Tangent function */
+    EXP,        /*! Exponential function */
+    LOG,        /*! Logarithm (base 10) function */
+    LOG2,       /*! Logarithm (base 2) function */
+    CEIL,       /*! Ceil function */
+    FLOOR,      /*! Floor function */
+    SQRT,       /*! Square root function */
+    MAX,        /*! Max function */
+    MIN,        /*! Min function */
 };
 
 /**
@@ -123,23 +123,16 @@ struct RPNElement {
     RPNElementType type = RPNElementType::OPERATOR;
     RPNElementSubType subtype = RPNElementSubType::OPERATOR;
     std::string token;
-//    RPNOperatorType op = RPNOperatorType::ADD;
-//    double value = 0.;
-//    PiSDFParam *param = nullptr;
 
     RPNElement() = default;
 
-    RPNElement(const RPNElement &) = default;
+    RPNElement(const RPNElement &o) = default;
+
+    RPNElement(RPNElement &&other) noexcept = default;
 
     RPNElement(RPNElementType type, RPNElementSubType subtype, std::string token) : type{type},
                                                                                     subtype{subtype},
                                                                                     token{std::move(token)} { }
-
-    RPNElement(RPNElement &&other) noexcept : RPNElement() {
-        std::swap(type, other.type);
-        std::swap(subtype, other.subtype);
-        std::swap(token, other.token);
-    }
 };
 
 namespace RPNConverter {

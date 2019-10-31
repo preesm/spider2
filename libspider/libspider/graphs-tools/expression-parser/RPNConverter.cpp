@@ -44,8 +44,6 @@
 #include <graphs-tools/expression-parser/RPNConverter.h>
 #include <containers/StlContainers.h>
 #include <common/Exception.h>
-#include <graphs/tmp/Graph.h>
-#include <graphs/tmp/Param.h>
 #include <graphs-tools/expression-parser/ParserFunctions.h>
 
 /* === Static variable definition(s) === */
@@ -53,7 +51,7 @@
 /**
  * @brief String containing all supported operators (should not be edited).
  */
-static const std::string &operators() {
+static const std::string &supportedBasicOperators() {
     static std::string operators{"+-*/%^()"};
     return operators;
 }
@@ -63,30 +61,20 @@ static const std::string &operators() {
 
 static bool isOperator(const std::string &s) {
     bool found = false;
-    for (auto i = 0; !found && i < (N_OPERATOR + N_FUNCTION); ++i) {
+    for (std::uint32_t i = 0; !found && i < (N_OPERATOR + N_FUNCTION); ++i) {
         found |= (RPNConverter::getOperator(i).label == s);
     }
     return found;
 }
 
 static bool isFunction(RPNOperatorType type) {
-    return static_cast<std::uint32_t >(type) >= FUNCTION_OPERATOR_OFFSET;
+    return static_cast<std::uint32_t >(type) >= FUNCTION_OFFSET;
 }
 
 /**
  * @brief Check for miss match in the number of parenthesis
  * @return true if there is a miss match, false else.
  */
-static bool missMatchParenthesis(const std::string &infixExprString) {
-    std::uint32_t nLeftPar = 0;
-    std::uint32_t nRightPar = 0;
-    for (auto &t : infixExprString) {
-        nLeftPar += (t == '(');
-        nRightPar += (t == ')');
-    }
-    return nLeftPar != nRightPar;
-}
-
 template<class It1, class It2>
 static bool missMatchParenthesis(It1 first, It2 last) {
     std::uint32_t nLeftPar = 0;
@@ -178,6 +166,9 @@ static void cleanInfixExpression(std::string &infixExprString) {
         /* == Replace "," by "),(" == */
         stringReplace(infixExprString, ",", "),(");
     }
+    if (missMatchParenthesis(infixExprString.begin(), infixExprString.end())) {
+        throwSpiderException("unbalanced parenthesis in expression: [%s].", infixExprString.c_str());
+    }
 
     /* == Clean the inFix expression by replacing every occurrence of PI to its value == */
     stringReplace(infixExprString, "pi", "3.1415926535");
@@ -212,9 +203,34 @@ static void addElementFromToken(Spider::vector<RPNElement> &tokens, const std::s
 
 /* === Function(s) implementation === */
 
-std::string RPNConverter::infixString(const Spider::vector<RPNElement> &/* postfixStack */) {
-    //  TODO: build infix from postfix stack
-    return "not implemented yet";
+std::string RPNConverter::infixString(const Spider::vector<RPNElement> &postfixStack) {
+    Spider::stack<std::string> stack;
+    for (const auto &element : postfixStack) {
+        if (element.type == RPNElementType::OPERAND) {
+            stack.push(element.token);
+        } else {
+            const auto &op = getOperatorFromOperatorType(getOperatorTypeFromString(element.token));
+            std::string builtInfix;
+            if (element.subtype == RPNElementSubType::FUNCTION) {
+                builtInfix += (element.token + '(');
+                builtInfix += (stack.top());
+                stack.pop();
+                for (std::uint32_t i = 1; i < op.argCount; ++i) {
+                    builtInfix += (',' + stack.top());
+                    stack.pop();
+                }
+                builtInfix += ')';
+            } else {
+                builtInfix += ('(' + stack.top());
+                stack.pop();
+                builtInfix += element.token;
+                builtInfix += (stack.top() + ')');
+                stack.pop();
+            }
+            stack.push(builtInfix);
+        }
+    }
+    return stack.top();
 }
 
 std::string RPNConverter::postfixString(const Spider::vector<RPNElement> &postfixStack) {
@@ -228,7 +244,7 @@ std::string RPNConverter::postfixString(const Spider::vector<RPNElement> &postfi
 
 Spider::vector<RPNElement> RPNConverter::extractInfixElements(std::string infixExpression) {
     auto infixExpressionLocal = std::move(infixExpression);
-    if (missMatchParenthesis(infixExpressionLocal)) {
+    if (missMatchParenthesis(infixExpressionLocal.begin(), infixExpressionLocal.end())) {
         throwSpiderException("Expression with miss matched parenthesis: %s", infixExpressionLocal.c_str());
     }
 
@@ -240,7 +256,7 @@ Spider::vector<RPNElement> RPNConverter::extractInfixElements(std::string infixE
 
     /* == Extract the expression elements == */
     Spider::vector<RPNElement> tokens;
-    auto pos = infixExpressionLocal.find_first_of(operators(), 0);
+    auto pos = infixExpressionLocal.find_first_of(supportedBasicOperators(), 0);
     std::uint32_t lastPos = 0;
     while (pos != std::string::npos) {
         /* == Operand or Function token (can be empty) == */
@@ -253,7 +269,7 @@ Spider::vector<RPNElement> RPNConverter::extractInfixElements(std::string infixE
 
         /* == Update pos == */
         lastPos = pos;
-        pos = infixExpressionLocal.find_first_of(operators(), pos);
+        pos = infixExpressionLocal.find_first_of(supportedBasicOperators(), pos);
     }
 
     /* == Potential left over (if expression ends with an operand) == */
@@ -266,54 +282,47 @@ Spider::vector<RPNElement> RPNConverter::extractInfixElements(std::string infixE
 
 Spider::vector<RPNElement> RPNConverter::extractPostfixElements(std::string infixExpression) {
     /* == Retrieve tokens == */
-    auto tokens = extractInfixElements(std::move(infixExpression));
+    auto infixStack = extractInfixElements(std::move(infixExpression));
 
     /* == Build the postfix expression == */
-    Spider::deque<std::pair<RPNOperatorType, std::int32_t>> operatorStack;
+    Spider::deque<std::pair<RPNOperatorType, RPNElement>> operatorStack;
     Spider::vector<RPNElement> postfixStack;
-    postfixStack.reserve(tokens.size()); /* = Actually, size will probably be inferior but this will avoid realloc = */
-    std::int32_t index = 0;
-    for (auto &t : tokens) {
-        if (t.type == RPNElementType::OPERATOR) {
-            const auto &operatorType = getOperatorTypeFromString(t.token);
-            if (t.subtype == RPNElementSubType::FUNCTION ||
+    postfixStack.reserve(
+            infixStack.size()); /* = Actually, size will probably be inferior but this will avoid realloc = */
+    for (auto &element : infixStack) {
+        if (element.type == RPNElementType::OPERATOR) {
+            const auto &operatorType = getOperatorTypeFromString(element.token);
+            if (element.subtype == RPNElementSubType::FUNCTION ||
                 operatorType == RPNOperatorType::LEFT_PAR) {
                 /* == Handle function and left parenthesis case == */
-                operatorStack.push_front(std::make_pair(operatorType, index));
+                operatorStack.push_front(std::make_pair(operatorType, std::move(element)));
             } else if (operatorType == RPNOperatorType::RIGHT_PAR) {
                 /* == Handle right parenthesis case == */
-                auto frontOperatorType = operatorStack.front().first;
-
                 /* == This will not fail because miss match parenthesis is checked before == */
-                while (frontOperatorType != RPNOperatorType::LEFT_PAR) {
+                while (operatorStack.front().first != RPNOperatorType::LEFT_PAR) {
                     /* == Move element to output stack == */
-                    const auto &tokenIndex = operatorStack.front().second;
-                    postfixStack.push_back(std::move(tokens[tokenIndex]));
+                    postfixStack.push_back(std::move(operatorStack.front().second));
 
                     /* == Pop element from operator stack == */
                     operatorStack.pop_front();
-
-                    /* == Get front operator from the stack == */
-                    frontOperatorType = operatorStack.front().first;
                 }
 
                 /* == Pop left parenthesis == */
                 operatorStack.pop_front();
             } else {
                 /* == Handle general case == */
-                const auto &op = getOperatorFromOperatorType(operatorType);
+                const auto &currentOperator = getOperatorFromOperatorType(operatorType);
                 bool stop = operatorStack.empty();
                 while (!stop) {
                     stop = true;
                     const auto &frontOperatorType = operatorStack.front().first;
                     const auto &frontOP = getOperatorFromOperatorType(frontOperatorType);
                     if (frontOperatorType != RPNOperatorType::LEFT_PAR &&
-                        (op.precedence < frontOP.precedence ||
-                         (op.precedence == frontOP.precedence && !frontOP.isRighAssociative))) {
+                        (currentOperator.precedence < frontOP.precedence ||
+                         (currentOperator.precedence == frontOP.precedence && !frontOP.isRighAssociative))) {
 
                         /* == Move element to output stack == */
-                        const auto &tokenIndex = operatorStack.front().second;
-                        postfixStack.push_back(std::move(tokens[tokenIndex]));
+                        postfixStack.push_back(std::move(operatorStack.front().second));
 
                         /* == Pop element from operator stack == */
                         operatorStack.pop_front();
@@ -324,22 +333,18 @@ Spider::vector<RPNElement> RPNConverter::extractPostfixElements(std::string infi
                 }
 
                 /* == Push current operator to the stack == */
-                operatorStack.push_front(std::make_pair(operatorType, index));
+                operatorStack.push_front(std::make_pair(operatorType, std::move(element)));
             }
         } else {
             /* == Handle operand == */
-            postfixStack.push_back(std::move(t));
+            postfixStack.push_back(std::move(element));
         }
-        index += 1;
     }
 
-    while (!operatorStack.empty()) {
+    /* == Pop the remaining elements in the operator stack == */
+    for (auto &op : operatorStack) {
         /* == Move element to output stack == */
-        const auto &tokenIndex = operatorStack.front().second;
-        postfixStack.push_back(std::move(tokens[tokenIndex]));
-
-        /* == Pop element from operator stack == */
-        operatorStack.pop_front();
+        postfixStack.push_back(std::move(op.second));
     }
     return postfixStack;
 }
@@ -359,10 +364,6 @@ const RPNOperator &RPNConverter::getOperator(std::uint32_t ix) {
                                           "%", Spider::mod, 2},          /*! MOD operator */
                                   {RPNOperatorType::POW, 4, true,
                                           "^", Spider::pow, 2},          /*! POW operator */
-                                  {RPNOperatorType::MAX, 3, false,
-                                          "max", Spider::max, 2},        /*! MAX operator */
-                                  {RPNOperatorType::MIN, 3, false,
-                                          "min", Spider::min, 2},        /*! MIN operator */
                                   {RPNOperatorType::LEFT_PAR, 2, false,
                                           "(", Spider::dummyEval, 0},    /*! LEFT_PAR operator */
                                   {RPNOperatorType::RIGHT_PAR, 2, false,
@@ -384,7 +385,11 @@ const RPNOperator &RPNConverter::getOperator(std::uint32_t ix) {
                                   {RPNOperatorType::FLOOR, 5, false,
                                           "floor", Spider::floor, 1},    /*! FLOOR function */
                                   {RPNOperatorType::SQRT, 5, false,
-                                          "sqrt", Spider::sqrt, 1},    /*! SQRT function */
+                                          "sqrt", Spider::sqrt, 1},      /*! SQRT function */
+                                  {RPNOperatorType::MAX, 5, false,
+                                          "max", Spider::max, 2},        /*! MAX operator */
+                                  {RPNOperatorType::MIN, 5, false,
+                                          "min", Spider::min, 2},        /*! MIN operator */
                           }};
     return operatorArray.at(ix);
 }

@@ -60,12 +60,14 @@ struct ExpressionTreeNode {
         PiSDFParam *param;
     } arg;
 
+    ExpressionTreeNode() = default;
+
     ExpressionTreeNode(const ExpressionTreeNode &) = default;
+
+    ExpressionTreeNode(ExpressionTreeNode &&) noexcept = default;
 
     ExpressionTreeNode(ExpressionTreeNode *parent, RPNElement elt) : parent{parent},
                                                                      elt{std::move(elt)} {
-        right = nullptr;
-        left = nullptr;
     }
 };
 
@@ -82,9 +84,7 @@ public:
 
     Expression(const Expression &other) = default;
 
-    inline Expression(Expression &&other) noexcept : Expression() {
-        swap(*this, other);
-    }
+    inline Expression(Expression &&other) noexcept = default;
 
     ~Expression() = default;
 
@@ -125,16 +125,11 @@ public:
     void printExpressionTree();
 
     /**
-     * @brief Get the infix expression string
-     * @return Clean infix expression string
+     * @brief Get the expression string.
+     * @remark The obtained string does not necessarily to the input string due to optimizations.
+     * @return expression string.
      */
-    inline std::string toString() const;
-
-    /**
-     * @brief Get the expression postfix string.
-     * @return postfix expression string.
-     */
-    inline std::string postfixString() const;
+    std::string string() const;
 
     /* === Getters === */
 
@@ -164,15 +159,6 @@ private:
     void buildExpressionTree();
 
     /**
-     * @brief  Insert current node in the expression tree and reduce it if possible.
-     * @param node    Node to insert.
-     * @param elt     Associated element to be set in the node.
-     * @param nodeIx  Index of the node in the global node array.
-     * @return next node
-     */
-    ExpressionTreeNode *insertExpressionTreeNode(ExpressionTreeNode *node);
-
-    /**
      * @brief Evaluate the value of a node in the ExpressionTree.
      * @param node  Node to evaluate.
      * @return value of the evaluated node.
@@ -187,16 +173,6 @@ private:
 
 std::int64_t Expression::value() const {
     return static_cast<std::int64_t>(value_);
-}
-
-std::string Expression::toString() const {
-//    return rpnConverter_.infixString();
-    return "not implemented yet";
-}
-
-std::string Expression::postfixString() const {
-//    return rpnConverter_.postfixString();
-    return "not implemented yet";
 }
 
 std::int64_t Expression::evaluate() const {
