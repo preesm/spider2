@@ -37,33 +37,33 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_INPUTINTERFACE_H
-#define SPIDER2_INPUTINTERFACE_H
+#ifndef SPIDER2_OUTPUTINTERFACE_H
+#define SPIDER2_OUTPUTINTERFACE_H
 
 /* === Include(s) === */
 
-#include <graphs/tmp/Interface.h>
-#include <graphs/tmp/Graph.h>
+#include <graphs/pisdf/Interface.h>
+#include <graphs/pisdf/Graph.h>
 
 namespace Spider {
     namespace PiSDF {
         /* === Class definition === */
 
-        class InputInterface final : Interface {
+        class OutputInterface final : Interface {
         public:
 
-            explicit InputInterface(std::string name = "unnamed-interface",
-                                    Graph *graph = nullptr, //TODO: change to Spider::pisdfgraph() when this API replace old one
-                                    StackID stack = StackID::PISDF) : Interface(std::move(name),
-                                                                                0,
-                                                                                1,
-                                                                                graph,
-                                                                                stack) {
+            explicit OutputInterface(std::string name = "unnamed-interface",
+                                     Graph *graph = nullptr, //TODO: change to Spider::pisdfgraph() when this API replace old one
+                                     StackID stack = StackID::PISDF) : Interface(std::move(name),
+                                                                                 1,
+                                                                                 0,
+                                                                                 graph,
+                                                                                 stack) {
             }
 
             /* === Method(s) === */
 
-            inline void connectInputEdge(Edge *, std::uint32_t) override;
+            inline void connectOutputEdge(Edge *, std::uint32_t) override;
 
             inline Edge *inputEdge() const override;
 
@@ -75,7 +75,7 @@ namespace Spider {
 
             /**
              * @brief Return the kind of the interface (@refitem InterfaceType)
-             * @return @refitem VertexType::INPUT
+             * @return @refitem VertexType::OUTPUT
              */
             inline VertexType subtype() const override;
 
@@ -88,27 +88,27 @@ namespace Spider {
 
         /* === Inline method(s) === */
 
-        void InputInterface::connectInputEdge(Edge *, std::uint32_t) {
-            throwSpiderException("Can not connect input edge to input interface.");
+        void OutputInterface::connectOutputEdge(Edge *, std::uint32_t) {
+            throwSpiderException("Can not connect output edge to output interface.");
         }
 
-        Edge *InputInterface::inputEdge() const {
-            return graph_->inputEdge(ix_);
+        Edge *OutputInterface::inputEdge() const {
+            return inputEdgeArray_[0];
         }
 
-        Edge *InputInterface::outputEdge() const {
-            return outputEdgeArray_[0];
+        Edge *OutputInterface::outputEdge() const {
+            return graph_->outputEdge(ix_);
         }
 
-        Vertex *InputInterface::opposite() const {
-            return outputEdgeArray_[0]->sink();
+        Vertex *OutputInterface::opposite() const {
+            return inputEdgeArray_[0]->source();
         }
 
-        VertexType InputInterface::subtype() const {
-            return VertexType::INPUT;
+        VertexType OutputInterface::subtype() const {
+            return VertexType::OUTPUT;
         }
     }
 }
 
 
-#endif //SPIDER2_INPUTINTERFACE_H
+#endif //SPIDER2_OUTPUTINTERFACE_H

@@ -37,27 +37,26 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_JOINVERTEX_H
-#define SPIDER2_JOINVERTEX_H
+#ifndef SPIDER2_ENDVERTEX_H
+#define SPIDER2_ENDVERTEX_H
 
 /* === Include(s) === */
 
-#include <graphs/tmp/ExecVertex.h>
+#include <graphs/pisdf/ExecVertex.h>
 
 namespace Spider {
     namespace PiSDF {
 
         /* === Class definition === */
 
-        class JoinVertex final : public ExecVertex {
+        class EndVertex final : public ExecVertex {
         public:
-            explicit JoinVertex(std::string name = "unnamed-joinvertex",
-                                std::uint32_t edgeINCount = 0,
+            explicit EndVertex(std::string name = "unnamed-endvertex",
                                 Graph *graph = nullptr, //TODO: change to Spider::pisdfgraph() when this API replace old one
                                 StackID stack = StackID::PISDF) : ExecVertex(std::move(name),
                                                                              VertexType::SPECIAL,
-                                                                             edgeINCount,
                                                                              1,
+                                                                             0,
                                                                              graph,
                                                                              stack) {
             }
@@ -77,11 +76,11 @@ namespace Spider {
             /* === Private method(s) === */
         };
 
-        VertexType JoinVertex::subtype() const {
-            return VertexType::JOIN;
+        VertexType EndVertex::subtype() const {
+            return VertexType::END;
         }
 
         /* === Inline method(s) === */
     }
 }
-#endif //SPIDER2_JOINVERTEX_H
+#endif //SPIDER2_ENDVERTEX_H

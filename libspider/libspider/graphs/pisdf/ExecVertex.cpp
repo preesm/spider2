@@ -38,26 +38,32 @@
  * knowledge of the CeCILL license and that you accept its terms.
  */
 
-/* === Includes === */
+/* === Include(s) === */
 
-#include <graphs/tmp/Param.h>
-#include <graphs/tmp/Graph.h>
+#include <graphs/pisdf/ExecVertex.h>
+#include <graphs/pisdf/Graph.h>
+#include <graphs/pisdf/Vertex.h>
 
-/* === Methods implementation === */
+/* === Static variable(s) === */
 
-Spider::PiSDF::Param::Param(std::string name, Graph *graph, std::int64_t value) : graph_{graph},
-                                                                                  name_{std::move(name)},
-                                                                                  value_{value} {
-    std::transform(name_.begin(), name_.end(), name_.begin(), ::tolower);
-    graph_->addParam(this);
-}
+/* === Static function(s) === */
 
-Spider::PiSDF::Param::Param(std::string name, Graph *graph, Expression &&expression) : graph_{graph},
-                                                                                       name_{std::move(name)} {
-    if (expression.dynamic()) {
-        throwSpiderException("STATIC parameter should have static expression: %s.", expression.string());
+/* === Method(s) implementation === */
+
+Spider::PiSDF::ExecVertex::ExecVertex(std::string name,
+                                      Spider::PiSDF::VertexType type,
+                                      std::uint32_t edgeINCount,
+                                      std::uint32_t edgeOUTCount,
+                                      Spider::PiSDF::Graph *graph,
+                                      StackID stack) : Vertex(std::move(name),
+                                                              type,
+                                                              edgeINCount,
+                                                              edgeOUTCount,
+                                                              graph,
+                                                              stack) {
+    if (!graph_) {
+        throwSpiderException("Vertex [%s] need to belong to a graph.", this->name().c_str());
     }
-    std::transform(name_.begin(), name_.end(), name_.begin(), ::tolower);
-    value_ = expression.value();
-    graph_->addParam(this);
+    graph_->addVertex(this);
 }
+

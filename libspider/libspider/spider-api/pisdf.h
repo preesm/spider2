@@ -45,7 +45,7 @@
 #include <cstdint>
 #include <string>
 #include <spider-api/general.h>
-#include <graphs/tmp/Types.h>
+#include <graphs/pisdf/Types.h>
 
 /* === API methods === */
 

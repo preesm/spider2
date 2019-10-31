@@ -43,8 +43,8 @@
 /* === Include(s) === */
 
 #include <cstdint>
-#include <graphs/tmp/Edge.h>
-#include <graphs/tmp/Delay.h>
+#include <graphs/pisdf/Edge.h>
+#include <graphs/pisdf/Delay.h>
 
 /* === Class definition === */
 

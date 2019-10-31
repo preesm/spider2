@@ -37,28 +37,29 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_UPSAMPLEVERTEX_H
-#define SPIDER2_UPSAMPLEVERTEX_H
+#ifndef SPIDER2_HEADVERTEX_H
+#define SPIDER2_HEADVERTEX_H
 
 /* === Include(s) === */
 
-#include <graphs/tmp/ExecVertex.h>
+#include <graphs/pisdf/ExecVertex.h>
 
 namespace Spider {
     namespace PiSDF {
 
         /* === Class definition === */
 
-        class UpSampleVertex final : public ExecVertex {
+        class HeadVertex final : public ExecVertex {
         public:
-            explicit UpSampleVertex(std::string name = "unnamed-upsamplevertex",
-                                    Graph *graph = nullptr, //TODO: change to Spider::pisdfgraph() when this API replace old one
-                                    StackID stack = StackID::PISDF) : ExecVertex(std::move(name),
-                                                                                 VertexType::SPECIAL,
-                                                                                 1,
-                                                                                 1,
-                                                                                 graph,
-                                                                                 stack) {
+            explicit HeadVertex(std::string name = "unnamed-headvertex",
+                                std::uint32_t edgeINCount = 0,
+                                Graph *graph = nullptr, //TODO: change to Spider::pisdfgraph() when this API replace old one
+                                StackID stack = StackID::PISDF) : ExecVertex(std::move(name),
+                                                                             VertexType::SPECIAL,
+                                                                             edgeINCount,
+                                                                             1,
+                                                                             graph,
+                                                                             stack) {
             }
 
             /* === Method(s) === */
@@ -76,11 +77,11 @@ namespace Spider {
             /* === Private method(s) === */
         };
 
-        VertexType UpSampleVertex::subtype() const {
-            return VertexType::UPSAMPLE;
+        VertexType HeadVertex::subtype() const {
+            return VertexType::HEAD;
         }
 
         /* === Inline method(s) === */
     }
 }
-#endif //SPIDER2_UPSAMPLEVERTEX_H
+#endif //SPIDER2_HEADVERTEX_H

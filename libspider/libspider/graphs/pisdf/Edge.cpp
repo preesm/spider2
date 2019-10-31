@@ -40,9 +40,10 @@
 
 /* === Include(s) === */
 
-#include <graphs/tmp/Edge.h>
-#include <graphs/tmp/Vertex.h>
-#include <graphs/tmp/Graph.h>
+#include <graphs/pisdf/Edge.h>
+#include <graphs/pisdf/Vertex.h>
+#include <graphs/pisdf/Graph.h>
+#include <graphs/pisdf/Delay.h>
 
 /* === Static variable(s) === */
 
@@ -72,6 +73,13 @@ Spider::PiSDF::Edge::Edge(Vertex *source,
     sink->connectInputEdge(this, snkIx);
     graph_ = source->containingGraph();
     graph_->addEdge(this);
+}
+
+Spider::PiSDF::Edge::~Edge() {
+    if (delay_) {
+        Spider::destroy(delay_);
+        Spider::deallocate(delay_);
+    }
 }
 
 std::string Spider::PiSDF::Edge::name() const {

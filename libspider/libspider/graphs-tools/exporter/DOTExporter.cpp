@@ -41,11 +41,11 @@
 /* === Include(s) === */
 
 #include <graphs-tools/exporter/DOTExporter.h>
-#include <graphs/tmp/Graph.h>
-#include <graphs/tmp/ExecVertex.h>
-#include <graphs/tmp/Interface.h>
-#include <graphs/tmp/Edge.h>
-#include <graphs/tmp/Param.h>
+#include <graphs/pisdf/Graph.h>
+#include <graphs/pisdf/ExecVertex.h>
+#include <graphs/pisdf/Interface.h>
+#include <graphs/pisdf/Edge.h>
+#include <graphs/pisdf/Param.h>
 #include <cmath>
 
 /* === Static variable(s) === */

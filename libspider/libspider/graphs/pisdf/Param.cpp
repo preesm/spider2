@@ -37,51 +37,27 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_FORKVERTEX_H
-#define SPIDER2_FORKVERTEX_H
 
-/* === Include(s) === */
+/* === Includes === */
 
-#include <graphs/tmp/ExecVertex.h>
+#include <graphs/pisdf/Param.h>
+#include <graphs/pisdf/Graph.h>
 
-namespace Spider {
-    namespace PiSDF {
+/* === Methods implementation === */
 
-        /* === Class definition === */
-
-        class ForkVertex final : public ExecVertex {
-        public:
-            explicit ForkVertex(std::string name = "unnamed-forkvertex",
-                                std::uint32_t edgeOUTCount = 0,
-                                Graph *graph = nullptr, //TODO: change to Spider::pisdfgraph() when this API replace old one
-                                StackID stack = StackID::PISDF) : ExecVertex(std::move(name),
-                                                                             VertexType::SPECIAL,
-                                                                             1,
-                                                                             edgeOUTCount,
-                                                                             graph,
-                                                                             stack) {
-            }
-
-            /* === Method(s) === */
-
-            /* === Getter(s) === */
-
-            inline VertexType subtype() const override;
-
-            /* === Setter(s) === */
-
-        private:
-
-            //TODO add function call
-
-            /* === Private method(s) === */
-        };
-
-        VertexType ForkVertex::subtype() const {
-            return VertexType::FORK;
-        }
-
-        /* === Inline method(s) === */
-    }
+Spider::PiSDF::Param::Param(std::string name, Graph *graph, std::int64_t value) : graph_{graph},
+                                                                                  name_{std::move(name)},
+                                                                                  value_{value} {
+    std::transform(name_.begin(), name_.end(), name_.begin(), ::tolower);
+    graph_->addParam(this);
 }
-#endif //SPIDER2_FORKVERTEX_H
+
+Spider::PiSDF::Param::Param(std::string name, Graph *graph, Expression &&expression) : graph_{graph},
+                                                                                       name_{std::move(name)} {
+    if (expression.dynamic()) {
+        throwSpiderException("STATIC parameter should have static expression: %s.", expression.string());
+    }
+    std::transform(name_.begin(), name_.end(), name_.begin(), ::tolower);
+    value_ = expression.value();
+    graph_->addParam(this);
+}

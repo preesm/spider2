@@ -44,11 +44,11 @@
 #include <memory/Allocator.h>
 #include <spider-api/pisdf.h>
 #include <graphs-tools/brv/LCMBRVCompute.h>
-#include <graphs/tmp/Graph.h>
-#include <graphs/tmp/ExecVertex.h>
-#include <graphs/tmp/interfaces/InputInterface.h>
-#include <graphs/tmp/interfaces/OutputInterface.h>
-#include <graphs/tmp/specials/Specials.h>
+#include <graphs/pisdf/Graph.h>
+#include <graphs/pisdf/ExecVertex.h>
+#include <graphs/pisdf/interfaces/InputInterface.h>
+#include <graphs/pisdf/interfaces/OutputInterface.h>
+#include <graphs/pisdf/specials/Specials.h>
 #include <graphs-tools/numerical/PiSDFAnalysis.h>
 
 /* === Static variable(s) === */
@@ -145,8 +145,8 @@ PiSDFVertex *StaticSRDAGTransformer::copyVertex(const PiSDFVertex *vertex,
     /* == Add the job for later process == */
     if (vertex->hierarchical()) {
         jobs_.push_back(SRDAGTransfoJob{dynamic_cast<const PiSDFGraph *>(vertex->self()),  /* = reference = */
-                                        copyVertex->ix(),                          /* = srdagIx = */
-                                        instance});                                /* = firingCount = */
+                                        copyVertex->ix(),                                  /* = srdagIx = */
+                                        instance});                                        /* = firingCount = */
     }
 
     /* == Copy the input parameter == */
@@ -184,38 +184,38 @@ void StaticSRDAGTransformer::extractAndLinkActors(SRDAGTransfoJob &job) {
         auto sourceRate = edge->sourceRateExpression().evaluate();
         auto sinkRate = edge->sinkRateExpression().evaluate();
 
-        if (edge->source()->type() == PiSDFVertexType::INTERFACE) {
-            sourceArray = &arrayInputInterface;
-            arrayInputInterface[0] = Spider::API::createUpsample(srdag_, prefix + edge->source()->name());
-            auto *graphVertex = srdag_->vertices()[job.srdagIx];
-            auto *edge2Replace = graphVertex->inputEdge(edge->source()->ix());
-            auto rate = edge2Replace->sinkRateExpression().evaluate();
-            if (rate != sourceRate) {
-                throwSpiderException("Interface should have same rate inside and outside the graph. [%s] -> %"
-                                             PRIu64
-                                             " != %"
-                                             PRIu64
-                                             "", edge->source()->name().c_str(), rate, sourceRate);
-            }
-            edge2Replace->setSink(arrayInputInterface[0], 0, Expression(rate));
-            sourceRate = sinkRate * edge->sink()->repetitionValue();
-        }
-        if (edge->sink()->type() == PiSDFVertexType::INTERFACE) {
-            sinkArray = &arrayOutputInterface;
-            arrayOutputInterface[0] = Spider::API::createDownsample(srdag_, prefix + edge->sink()->name());
-            auto *graphVertex = srdag_->vertices()[job.srdagIx];
-            auto *edge2Replace = graphVertex->outputEdge(edge->sink()->ix());
-            auto rate = edge2Replace->sourceRateExpression().evaluate();
-            if (rate != sinkRate) {
-                throwSpiderException("Interface should have same rate inside and outside the graph. [%s] -> %"
-                                             PRIu64
-                                             " != %"
-                                             PRIu64
-                                             "", edge->sink()->name().c_str(), sinkRate, rate);
-            }
-            edge2Replace->setSource(arrayOutputInterface[0], 0, Expression(rate));
-            sinkRate = sourceRate * edge->source()->repetitionValue();
-        }
+//        if (edge->source()->type() == PiSDFVertexType::INTERFACE) {
+//            sourceArray = &arrayInputInterface;
+//            arrayInputInterface[0] = Spider::API::createUpsample(srdag_, prefix + edge->source()->name());
+//            auto *graphVertex = srdag_->vertices()[job.srdagIx];
+//            auto *edge2Replace = graphVertex->inputEdge(edge->source()->ix());
+//            auto rate = edge2Replace->sinkRateExpression().evaluate();
+//            if (rate != sourceRate) {
+//                throwSpiderException("Interface should have same rate inside and outside the graph. [%s] -> %"
+//                                             PRIu64
+//                                             " != %"
+//                                             PRIu64
+//                                             "", edge->source()->name().c_str(), rate, sourceRate);
+//            }
+//            edge2Replace->setSink(arrayInputInterface[0], 0, Expression(rate));
+//            sourceRate = sinkRate * edge->sink()->repetitionValue();
+//        }
+//        if (edge->sink()->type() == PiSDFVertexType::INTERFACE) {
+//            sinkArray = &arrayOutputInterface;
+//            arrayOutputInterface[0] = Spider::API::createDownsample(srdag_, prefix + edge->sink()->name());
+//            auto *graphVertex = srdag_->vertices()[job.srdagIx];
+//            auto *edge2Replace = graphVertex->outputEdge(edge->sink()->ix());
+//            auto rate = edge2Replace->sourceRateExpression().evaluate();
+//            if (rate != sinkRate) {
+//                throwSpiderException("Interface should have same rate inside and outside the graph. [%s] -> %"
+//                                             PRIu64
+//                                             " != %"
+//                                             PRIu64
+//                                             "", edge->sink()->name().c_str(), sinkRate, rate);
+//            }
+//            edge2Replace->setSource(arrayOutputInterface[0], 0, Expression(rate));
+//            sinkRate = sourceRate * edge->source()->repetitionValue();
+//        }
 
         /* == Do the linkage == */
         auto edgeLinker = EdgeLinker{edge, *sourceArray, *sinkArray, sourceRate, sinkRate};

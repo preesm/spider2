@@ -37,78 +37,78 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_EXECVERTEX_H
-#define SPIDER2_EXECVERTEX_H
+#ifndef SPIDER2_INPUTINTERFACE_H
+#define SPIDER2_INPUTINTERFACE_H
 
 /* === Include(s) === */
 
-#include <cstdint>
-#include <string>
-#include <containers/Array.h>
-#include <spider-api/general.h>
-#include <graphs/tmp/Vertex.h>
+#include <graphs/pisdf/Interface.h>
+#include <graphs/pisdf/Graph.h>
 
 namespace Spider {
     namespace PiSDF {
-
         /* === Class definition === */
 
-        class ExecVertex : public Vertex {
+        class InputInterface final : Interface {
         public:
-            explicit ExecVertex(std::string name = "unnamed-execvertex",
-                                VertexType type = VertexType::NORMAL,
-                                std::uint32_t edgeINCount = 0,
-                                std::uint32_t edgeOUTCount = 0,
-                                Graph *graph = nullptr, //TODO: change to Spider::pisdfgraph() when this API replace old one
-                                StackID stack = StackID::PISDF);
 
-            ExecVertex(const ExecVertex &) = delete;
+            explicit InputInterface(std::string name = "unnamed-interface",
+                                    Graph *graph = nullptr, //TODO: change to Spider::pisdfgraph() when this API replace old one
+                                    StackID stack = StackID::PISDF) : Interface(std::move(name),
+                                                                                0,
+                                                                                1,
+                                                                                graph,
+                                                                                stack) {
+            }
+
+            /* === Method(s) === */
+
+            inline void connectInputEdge(Edge *, std::uint32_t) override;
+
+            inline Edge *inputEdge() const override;
+
+            inline Edge *outputEdge() const override;
 
             /* === Getter(s) === */
 
-            /**
-             * @brief Return the reference vertex attached to current copy.
-             * @remark If vertex is not a copy, this return the vertex itself.
-             * @warning There is a potential risk here. If the reference is freed before the copy,
-             * there are no possibilities to know it.
-             * @return pointer to @refitem Vertex reference.
-             */
-            inline const ExecVertex *reference() const;
+            inline Vertex *opposite() const override;
 
-            inline const ExecVertex *self() const;
+            /**
+             * @brief Return the kind of the interface (@refitem InterfaceType)
+             * @return @refitem VertexType::INPUT
+             */
+            inline VertexType subtype() const override;
 
             /* === Setter(s) === */
 
-            /**
-             * @brief Set the reference vertex of this vertex.
-             * @remark This method override current value.
-             * @param vertex Vertex to set.
-             * @throws Spider::Exception if vertex is nullptr.
-             */
-            inline void setReferenceVertex(const ExecVertex *vertex);
-
         private:
-            const ExecVertex *reference_ = this;
 
-            //TODO add function call
+            /* === Private method(s) === */
         };
 
+        /* === Inline method(s) === */
 
-        const Spider::PiSDF::ExecVertex *Spider::PiSDF::ExecVertex::reference() const {
-            return reference_;
+        void InputInterface::connectInputEdge(Edge *, std::uint32_t) {
+            throwSpiderException("Can not connect input edge to input interface.");
         }
 
-        const ExecVertex *ExecVertex::self() const {
-            return this;
+        Edge *InputInterface::inputEdge() const {
+            return graph_->inputEdge(ix_);
         }
 
-        void ExecVertex::setReferenceVertex(const ExecVertex *vertex) {
-            if (vertex) {
-                reference_ = vertex;
-                return;
-            }
-            throwSpiderException("Reference of a vertex can not be nullptr. Vertex [%s]", name_.c_str());
+        Edge *InputInterface::outputEdge() const {
+            return outputEdgeArray_[0];
+        }
+
+        Vertex *InputInterface::opposite() const {
+            return outputEdgeArray_[0]->sink();
+        }
+
+        VertexType InputInterface::subtype() const {
+            return VertexType::INPUT;
         }
     }
 }
-#endif //SPIDER2_EXECVERTEX_H
+
+
+#endif //SPIDER2_INPUTINTERFACE_H

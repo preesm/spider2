@@ -37,65 +37,69 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_INTERFACE_H
-#define SPIDER2_INTERFACE_H
+#ifndef SPIDER2_DYNAMICPARAM_H
+#define SPIDER2_DYNAMICPARAM_H
 
 /* === Include(s) === */
 
-#include <graphs/tmp/Vertex.h>
-#include <graphs/tmp/Edge.h>
+#include <graphs/pisdf/Param.h>
 
 namespace Spider {
     namespace PiSDF {
 
+        /* ==+ Forward declaration(s) === */
+
+        class Vertex;
+
         /* === Class definition === */
 
-        class Interface : public Vertex {
+        class DynamicParam final : public Param {
         public:
 
-            explicit Interface(std::string name = "unnamed-interface",
-                               std::uint32_t edgeINCount = 0,
-                               std::uint32_t edgeOUTCount = 0,
-                               Graph *graph = nullptr, //TODO: change to Spider::pisdfgraph() when this API replace old one
-                               StackID stack = StackID::PISDF) : Vertex(std::move(name),
-                                                                        VertexType::INTERFACE,
-                                                                        edgeINCount,
-                                                                        edgeOUTCount,
-                                                                        graph,
-                                                                        stack) {
-                if (!graph_) {
-                    throwSpiderException("Interface [%s] need to belong to a graph.", this->name().c_str());
-                }
-                graph_->addVertex(this);
+            DynamicParam(std::string name, Graph *graph, Expression &&expression) : Param(std::move(name), graph),
+                                                                                    expression_{expression} {
+
             }
 
             /* === Method(s) === */
 
-            inline Vertex *forwardEdge(const Edge *) override;
-
-            virtual Edge *inputEdge() const = 0;
-
-            virtual Edge *outputEdge() const = 0;
-
             /* === Getter(s) === */
 
-            /**
-             * @brief Return vertex connected to interface.
-             * @remark return source vertex for output IF, sink vertex for input IF
-             * @warning no check is performed on validity of connected edge.
-             * @return opposite vertex
-             */
-            virtual Vertex *opposite() const = 0;
+            inline std::int64_t value() const override;
+
+            inline ParamType type() const override;
+
+            inline bool dynamic() const override;
 
             /* === Setter(s) === */
 
+            inline void setValue(std::int64_t value) override;
+
+        private:
+            Expression expression_;
+
+            /* === Private method(s) === */
         };
 
         /* === Inline method(s) === */
 
-        Vertex *Interface::forwardEdge(const Edge *) {
-            return this->opposite()->forwardEdge(nullptr);
+        std::int64_t DynamicParam::value() const {
+            return expression_.evaluate();
         }
+
+        ParamType DynamicParam::type() const {
+            return ParamType::DYNAMIC;
+        }
+
+        bool DynamicParam::dynamic() const {
+            return true;
+        }
+
+        void DynamicParam::setValue(std::int64_t value) {
+            expression_ = Expression(value);
+        }
+
     }
 }
-#endif //SPIDER2_GRAPH_H
+
+#endif //SPIDER2_DYNAMICPARAM_H

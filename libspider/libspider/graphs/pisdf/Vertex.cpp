@@ -40,9 +40,8 @@
 
 /* === Include(s) === */
 
-#include <graphs/tmp/ExecVertex.h>
-#include <graphs/tmp/Graph.h>
-#include <graphs/tmp/Vertex.h>
+#include <graphs/pisdf/Vertex.h>
+#include <graphs/pisdf/Graph.h>
 
 /* === Static variable(s) === */
 
@@ -50,20 +49,52 @@
 
 /* === Method(s) implementation === */
 
-Spider::PiSDF::ExecVertex::ExecVertex(std::string name,
-                                      Spider::PiSDF::VertexType type,
-                                      std::uint32_t edgeINCount,
-                                      std::uint32_t edgeOUTCount,
-                                      Spider::PiSDF::Graph *graph,
-                                      StackID stack) : Vertex(std::move(name),
-                                                              type,
-                                                              edgeINCount,
-                                                              edgeOUTCount,
-                                                              graph,
-                                                              stack) {
-    if (!graph_) {
-        throwSpiderException("Vertex [%s] need to belong to a graph.", this->name().c_str());
-    }
-    graph_->addVertex(this);
+Spider::PiSDF::Vertex::Vertex(std::string name,
+                              Spider::PiSDF::VertexType type,
+                              std::uint32_t edgeINCount,
+                              std::uint32_t edgeOUTCount,
+                              Graph *graph,
+                              StackID stack) : graph_{graph},
+                                               name_{std::move(name)},
+                                               type_{type},
+                                               inputEdgeArray_{edgeINCount, nullptr, stack},
+                                               outputEdgeArray_{edgeOUTCount, nullptr, stack} {
 }
 
+void Spider::PiSDF::Vertex::connectInputEdge(Edge *edge, std::uint32_t ix) {
+    connectEdge(inputEdgeArray_, edge, ix);
+}
+
+void Spider::PiSDF::Vertex::connectOutputEdge(Edge *edge, std::uint32_t ix) {
+    connectEdge(outputEdgeArray_, edge, ix);
+}
+
+Spider::PiSDF::Edge *Spider::PiSDF::Vertex::disconnectInputEdge(std::uint32_t ix) {
+    return disconnectEdge(inputEdgeArray_, ix);
+}
+
+Spider::PiSDF::Edge *Spider::PiSDF::Vertex::disconnectOutputEdge(std::uint32_t ix) {
+    return disconnectEdge(outputEdgeArray_, ix);
+}
+
+/* === Private method(s) === */
+
+Spider::PiSDF::Edge *Spider::PiSDF::Vertex::disconnectEdge(Spider::Array<Edge *> &edges, std::uint32_t ix) {
+    auto *&edge = edges.at(ix);
+    Edge *ret = edge;
+    if (edge) {
+        edge = nullptr;
+    }
+    return ret;
+}
+
+void Spider::PiSDF::Vertex::connectEdge(Spider::Array<Edge *> &edges, Edge *edge, std::uint32_t ix) {
+    auto *&current = edges.at(ix);
+    if (!current) {
+        current = edge;
+        return;
+    }
+    throwSpiderException("Edge already exists at position: %"
+                                 PRIu32
+                                 "", ix);
+}

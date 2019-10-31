@@ -37,51 +37,19 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_TAILVERTEX_H
-#define SPIDER2_TAILVERTEX_H
+#ifndef SPIDER2_SPECIALS_H
+#define SPIDER2_SPECIALS_H
 
-/* === Include(s) === */
+/* === Includes === */
 
-#include <graphs/tmp/ExecVertex.h>
+#include <graphs/pisdf/specials/JoinVertex.h>
+#include <graphs/pisdf/specials/ForkVertex.h>
+#include <graphs/pisdf/specials/TailVertex.h>
+#include <graphs/pisdf/specials/HeadVertex.h>
+#include <graphs/pisdf/specials/DuplicateVertex.h>
+#include <graphs/pisdf/specials/UpSampleVertex.h>
+#include <graphs/pisdf/specials/DownSampleVertex.h>
+#include <graphs/pisdf/specials/InitVertex.h>
+#include <graphs/pisdf/specials/EndVertex.h>
 
-namespace Spider {
-    namespace PiSDF {
-
-        /* === Class definition === */
-
-        class TailVertex final : public ExecVertex {
-        public:
-            explicit TailVertex(std::string name = "unnamed-tailvertex",
-                                std::uint32_t edgeINCount = 0,
-                                Graph *graph = nullptr, //TODO: change to Spider::pisdfgraph() when this API replace old one
-                                StackID stack = StackID::PISDF) : ExecVertex(std::move(name),
-                                                                             VertexType::SPECIAL,
-                                                                             edgeINCount,
-                                                                             1,
-                                                                             graph,
-                                                                             stack) {
-            }
-
-            /* === Method(s) === */
-
-            /* === Getter(s) === */
-
-            inline VertexType subtype() const override;
-
-            /* === Setter(s) === */
-
-        private:
-
-            //TODO add function call
-
-            /* === Private method(s) === */
-        };
-
-        VertexType TailVertex::subtype() const {
-            return VertexType::TAIL;
-        }
-
-        /* === Inline method(s) === */
-    }
-}
-#endif //SPIDER2_TAILVERTEX_H
+#endif //SPIDER2_SPECIALS_H

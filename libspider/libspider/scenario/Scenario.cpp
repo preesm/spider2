@@ -45,7 +45,7 @@
 #include <spider-api/pisdf.h>
 #include <archi/ProcessingElement.h>
 #include <archi/Platform.h>
-#include <graphs/tmp/Graph.h>
+#include <graphs/pisdf/Graph.h>
 
 /* === Static variable(s) === */
 

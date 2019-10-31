@@ -40,10 +40,10 @@
 
 /* === Include(s) === */
 
-#include <graphs/tmp/Graph.h>
-#include <graphs/tmp/ExecVertex.h>
-#include <graphs/tmp/Interface.h>
-#include <graphs/tmp/Param.h>
+#include <graphs/pisdf/Graph.h>
+#include <graphs/pisdf/ExecVertex.h>
+#include <graphs/pisdf/Interface.h>
+#include <graphs/pisdf/Param.h>
 
 /* === Static variable(s) === */
 

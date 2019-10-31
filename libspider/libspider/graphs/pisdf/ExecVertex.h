@@ -37,69 +37,78 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_DYNAMICPARAM_H
-#define SPIDER2_DYNAMICPARAM_H
+#ifndef SPIDER2_EXECVERTEX_H
+#define SPIDER2_EXECVERTEX_H
 
 /* === Include(s) === */
 
-#include <graphs/tmp/Param.h>
+#include <cstdint>
+#include <string>
+#include <containers/Array.h>
+#include <spider-api/general.h>
+#include <graphs/pisdf/Vertex.h>
 
 namespace Spider {
     namespace PiSDF {
 
-        /* ==+ Forward declaration(s) === */
-
-        class Vertex;
-
         /* === Class definition === */
 
-        class DynamicParam final : public Param {
+        class ExecVertex : public Vertex {
         public:
+            explicit ExecVertex(std::string name = "unnamed-execvertex",
+                                VertexType type = VertexType::NORMAL,
+                                std::uint32_t edgeINCount = 0,
+                                std::uint32_t edgeOUTCount = 0,
+                                Graph *graph = nullptr, //TODO: change to Spider::pisdfgraph() when this API replace old one
+                                StackID stack = StackID::PISDF);
 
-            DynamicParam(std::string name, Graph *graph, Expression &&expression) : Param(std::move(name), graph),
-                                                                                    expression_{expression} {
-
-            }
-
-            /* === Method(s) === */
+            ExecVertex(const ExecVertex &) = delete;
 
             /* === Getter(s) === */
 
-            inline std::int64_t value() const override;
+            /**
+             * @brief Return the reference vertex attached to current copy.
+             * @remark If vertex is not a copy, this return the vertex itself.
+             * @warning There is a potential risk here. If the reference is freed before the copy,
+             * there are no possibilities to know it.
+             * @return pointer to @refitem Vertex reference.
+             */
+            inline const ExecVertex *reference() const;
 
-            inline ParamType type() const override;
-
-            inline bool dynamic() const override;
+            inline const ExecVertex *self() const;
 
             /* === Setter(s) === */
 
-            inline void setValue(std::int64_t value) override;
+            /**
+             * @brief Set the reference vertex of this vertex.
+             * @remark This method override current value.
+             * @param vertex Vertex to set.
+             * @throws Spider::Exception if vertex is nullptr.
+             */
+            inline void setReferenceVertex(const ExecVertex *vertex);
 
         private:
-            Expression expression_;
+            const ExecVertex *reference_ = this;
 
-            /* === Private method(s) === */
+            //TODO add function call
         };
 
-        /* === Inline method(s) === */
 
-        std::int64_t DynamicParam::value() const {
-            return expression_.evaluate();
+        const Spider::PiSDF::ExecVertex *Spider::PiSDF::ExecVertex::reference() const {
+            return reference_;
         }
 
-        ParamType DynamicParam::type() const {
-            return ParamType::DYNAMIC;
+        const ExecVertex *ExecVertex::self() const {
+            return this;
         }
 
-        bool DynamicParam::dynamic() const {
-            return true;
+        void ExecVertex::setReferenceVertex(const ExecVertex *vertex) {
+            if (vertex) {
+                reference_ = vertex;
+                return;
+            }
+            throwSpiderException("Reference of a vertex can not be nullptr. Vertex [%s]", name_.c_str());
         }
-
-        void DynamicParam::setValue(std::int64_t value) {
-            expression_ = Expression(value);
-        }
-
     }
 }
-
-#endif //SPIDER2_DYNAMICPARAM_H
+#endif //SPIDER2_EXECVERTEX_H

@@ -37,78 +37,51 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_OUTPUTINTERFACE_H
-#define SPIDER2_OUTPUTINTERFACE_H
+#ifndef SPIDER2_FORKVERTEX_H
+#define SPIDER2_FORKVERTEX_H
 
 /* === Include(s) === */
 
-#include <graphs/tmp/Interface.h>
-#include <graphs/tmp/Graph.h>
+#include <graphs/pisdf/ExecVertex.h>
 
 namespace Spider {
     namespace PiSDF {
+
         /* === Class definition === */
 
-        class OutputInterface final : Interface {
+        class ForkVertex final : public ExecVertex {
         public:
-
-            explicit OutputInterface(std::string name = "unnamed-interface",
-                                     Graph *graph = nullptr, //TODO: change to Spider::pisdfgraph() when this API replace old one
-                                     StackID stack = StackID::PISDF) : Interface(std::move(name),
-                                                                                 1,
-                                                                                 0,
-                                                                                 graph,
-                                                                                 stack) {
+            explicit ForkVertex(std::string name = "unnamed-forkvertex",
+                                std::uint32_t edgeOUTCount = 0,
+                                Graph *graph = nullptr, //TODO: change to Spider::pisdfgraph() when this API replace old one
+                                StackID stack = StackID::PISDF) : ExecVertex(std::move(name),
+                                                                             VertexType::SPECIAL,
+                                                                             1,
+                                                                             edgeOUTCount,
+                                                                             graph,
+                                                                             stack) {
             }
 
             /* === Method(s) === */
 
-            inline void connectOutputEdge(Edge *, std::uint32_t) override;
-
-            inline Edge *inputEdge() const override;
-
-            inline Edge *outputEdge() const override;
-
             /* === Getter(s) === */
 
-            inline Vertex *opposite() const override;
-
-            /**
-             * @brief Return the kind of the interface (@refitem InterfaceType)
-             * @return @refitem VertexType::OUTPUT
-             */
             inline VertexType subtype() const override;
 
             /* === Setter(s) === */
 
         private:
 
+            //TODO add function call
+
             /* === Private method(s) === */
         };
 
+        VertexType ForkVertex::subtype() const {
+            return VertexType::FORK;
+        }
+
         /* === Inline method(s) === */
-
-        void OutputInterface::connectOutputEdge(Edge *, std::uint32_t) {
-            throwSpiderException("Can not connect output edge to output interface.");
-        }
-
-        Edge *OutputInterface::inputEdge() const {
-            return inputEdgeArray_[0];
-        }
-
-        Edge *OutputInterface::outputEdge() const {
-            return graph_->outputEdge(ix_);
-        }
-
-        Vertex *OutputInterface::opposite() const {
-            return inputEdgeArray_[0]->source();
-        }
-
-        VertexType OutputInterface::subtype() const {
-            return VertexType::OUTPUT;
-        }
     }
 }
-
-
-#endif //SPIDER2_OUTPUTINTERFACE_H
+#endif //SPIDER2_FORKVERTEX_H

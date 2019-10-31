@@ -37,54 +37,51 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_INHERITEDPARAM_H
-#define SPIDER2_INHERITEDPARAM_H
+#ifndef SPIDER2_JOINVERTEX_H
+#define SPIDER2_JOINVERTEX_H
 
 /* === Include(s) === */
 
-#include <graphs/tmp/Param.h>
+#include <graphs/pisdf/ExecVertex.h>
 
 namespace Spider {
     namespace PiSDF {
 
         /* === Class definition === */
 
-        class InHeritedParam final : public Param {
+        class JoinVertex final : public ExecVertex {
         public:
-
-            InHeritedParam(std::string name, Graph *graph, Param *parent) : Param(std::move(name), graph),
-                                                                            parent_{parent} {
-
+            explicit JoinVertex(std::string name = "unnamed-joinvertex",
+                                std::uint32_t edgeINCount = 0,
+                                Graph *graph = nullptr, //TODO: change to Spider::pisdfgraph() when this API replace old one
+                                StackID stack = StackID::PISDF) : ExecVertex(std::move(name),
+                                                                             VertexType::SPECIAL,
+                                                                             edgeINCount,
+                                                                             1,
+                                                                             graph,
+                                                                             stack) {
             }
 
             /* === Method(s) === */
 
             /* === Getter(s) === */
 
-            inline std::int64_t value() const override;
-
-            inline ParamType type() const override;
+            inline VertexType subtype() const override;
 
             /* === Setter(s) === */
 
         private:
-            Param *parent_ = nullptr;
+
+            //TODO add function call
 
             /* === Private method(s) === */
         };
 
+        VertexType JoinVertex::subtype() const {
+            return VertexType::JOIN;
+        }
+
         /* === Inline method(s) === */
-
-        std::int64_t InHeritedParam::value() const {
-            return parent_->value();
-        }
-
-        ParamType InHeritedParam::type() const {
-            return parent_->type();
-        }
-
     }
 }
-
-
-#endif //SPIDER2_INHERITEDPARAM_H
+#endif //SPIDER2_JOINVERTEX_H

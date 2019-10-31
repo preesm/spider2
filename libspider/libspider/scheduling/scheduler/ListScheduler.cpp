@@ -41,8 +41,8 @@
 /* === Include(s) === */
 
 #include <scheduling/scheduler/ListScheduler.h>
-#include <graphs/tmp/Graph.h>
-#include <graphs/tmp/ExecVertex.h>
+#include <graphs/pisdf/Graph.h>
+#include <graphs/pisdf/ExecVertex.h>
 #include <archi/Platform.h>
 #include <archi/Cluster.h>
 #include <archi/ProcessingElement.h>

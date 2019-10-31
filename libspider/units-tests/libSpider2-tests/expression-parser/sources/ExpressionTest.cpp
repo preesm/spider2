@@ -45,7 +45,7 @@
 #include <graphs-tools/expression-parser/Expression.h>
 #include <spider-api/general.h>
 #include <spider-api/pisdf.h>
-#include <graphs/tmp/Graph.h>
+#include <graphs/pisdf/Graph.h>
 #include <cmath>
 
 /* === Methods implementation === */

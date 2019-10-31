@@ -40,9 +40,11 @@
 
 /* === Include(s) === */
 
-#include <graphs/tmp/Delay.h>
-#include <graphs/tmp/Edge.h>
-#include <graphs/tmp/ExecVertex.h>
+#include <graphs/pisdf/Delay.h>
+#include <graphs/pisdf/Edge.h>
+#include <graphs/pisdf/ExecVertex.h>
+#include <graphs/pisdf/specials/Specials.h>
+#include <spider-api/pisdf.h>
 
 /* === Static variable(s) === */
 
@@ -56,28 +58,59 @@ Spider::PiSDF::Delay::Delay(Expression &&expression,
                             std::uint32_t setterPortIx,
                             ExecVertex *getter,
                             std::uint32_t getterPortIx,
-                            bool persistent) : expression_{std::move(expression)},
-                                               edge_{edge},
-                                               setter_{setter},
-                                               setterPortIx_{setterPortIx},
-                                               getter_{getter},
-                                               getterPortIx_{getterPortIx},
-                                               persistent_{persistent} {
+                            bool persistent,
+                            StackID stack) : expression_{std::move(expression)},
+                                             edge_{edge},
+                                             setter_{setter},
+                                             setterPortIx_{setterPortIx},
+                                             getter_{getter},
+                                             getterPortIx_{getterPortIx},
+                                             persistent_{persistent} {
+    if (!edge_) {
+        throwSpiderException("Delay can not be created on nullptr edge.");
+    }
 
     /* == If no setter is provided then an INIT is created == */
     if (!setter_) {
         setterPortIx_ = 0; /* = Ensure the proper value of the port ix = */
+        setter_ = Spider::API::createInit(edge->containingGraph(),
+                                          "init-" + edge->sink()->name() + "_" + std::to_string(edge->sinkPortIx()),
+                                          0, stack);
     }
 
     /* == If no getter is provided then an END is created == */
     if (!getter_) {
         getterPortIx_ = 0; /* = Ensure the proper value of the port ix = */
+        getter_ = Spider::API::createEnd(edge->containingGraph(),
+                                         "end-" + edge->source()->name() + "_" + std::to_string(edge->sourcePortIx()),
+                                         0, stack);
+    }
 
+    /* == Create virtual vertex and connect it to setter / getter == */
+    vertex_ = Spider::allocate<ExecVertex>(stack);
+    Spider::construct(vertex_, this->name(), VertexType::DELAY, 1, 1, edge->containingGraph(), stack);
+    if (expression_.dynamic()) {
+        const auto &rateExpression = expression_.string();
+        Spider::API::createEdge(setter_, setterPortIx_, rateExpression, vertex_, 0, rateExpression);
+        Spider::API::createEdge(vertex_, 0, rateExpression, getter_, getterPortIx_, rateExpression);
+    } else {
+        const auto &value = expression_.value();
+        Spider::API::createEdge(setter_, setterPortIx_, value, vertex_, 0, value);
+        Spider::API::createEdge(vertex_, 0, value, getter_, getterPortIx_, value);
+    }
+}
+
+Spider::PiSDF::Delay::~Delay() {
+    if (vertex_) {
+        Spider::destroy(vertex_);
+        Spider::deallocate(vertex_);
     }
 }
 
 std::string Spider::PiSDF::Delay::name() const {
-    return "delay-" + edge_->source()->name() + "--" + edge_->sink()->name();
+    return "delay-" +
+           edge_->source()->name() + "_" + std::to_string(edge_->sourcePortIx()) + "--" +
+           edge_->sink()->name() + "_" + std::to_string(edge_->sinkPortIx());
 }
 
 /* === Private method(s) === */

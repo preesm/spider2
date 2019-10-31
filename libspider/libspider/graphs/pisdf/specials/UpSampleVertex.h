@@ -37,29 +37,28 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_DUPLICATEVERTEX_H
-#define SPIDER2_DUPLICATEVERTEX_H
+#ifndef SPIDER2_UPSAMPLEVERTEX_H
+#define SPIDER2_UPSAMPLEVERTEX_H
 
 /* === Include(s) === */
 
-#include <graphs/tmp/ExecVertex.h>
+#include <graphs/pisdf/ExecVertex.h>
 
 namespace Spider {
     namespace PiSDF {
 
         /* === Class definition === */
 
-        class DuplicateVertex final : public ExecVertex {
+        class UpSampleVertex final : public ExecVertex {
         public:
-            explicit DuplicateVertex(std::string name = "unnamed-duplicatevertex",
-                                     std::uint32_t edgeOUTCount = 0,
-                                     Graph *graph = nullptr, //TODO: change to Spider::pisdfgraph() when this API replace old one
-                                     StackID stack = StackID::PISDF) : ExecVertex(std::move(name),
-                                                                                  VertexType::SPECIAL,
-                                                                                  1,
-                                                                                  edgeOUTCount,
-                                                                                  graph,
-                                                                                  stack) {
+            explicit UpSampleVertex(std::string name = "unnamed-upsamplevertex",
+                                    Graph *graph = nullptr, //TODO: change to Spider::pisdfgraph() when this API replace old one
+                                    StackID stack = StackID::PISDF) : ExecVertex(std::move(name),
+                                                                                 VertexType::SPECIAL,
+                                                                                 1,
+                                                                                 1,
+                                                                                 graph,
+                                                                                 stack) {
             }
 
             /* === Method(s) === */
@@ -77,11 +76,11 @@ namespace Spider {
             /* === Private method(s) === */
         };
 
-        VertexType DuplicateVertex::subtype() const {
-            return VertexType::DUPLICATE;
+        VertexType UpSampleVertex::subtype() const {
+            return VertexType::UPSAMPLE;
         }
 
         /* === Inline method(s) === */
     }
 }
-#endif //SPIDER2_DUPLICATEVERTEX_H
+#endif //SPIDER2_UPSAMPLEVERTEX_H

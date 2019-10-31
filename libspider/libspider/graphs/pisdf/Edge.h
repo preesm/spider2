@@ -67,6 +67,8 @@ namespace Spider {
                  std::uint32_t snkIx,
                  Expression &&snkExpr);
 
+            ~Edge();
+
             /* === Method(s) === */
 
             /**

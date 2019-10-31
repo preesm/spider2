@@ -41,9 +41,9 @@
 /* === Include(s) === */
 
 #include <graphs-tools/brv/TopologyBRVCompute.h>
-#include <graphs/tmp/Graph.h>
-#include <graphs/tmp/ExecVertex.h>
-#include <graphs/tmp/Edge.h>
+#include <graphs/pisdf/Graph.h>
+#include <graphs/pisdf/ExecVertex.h>
+#include <graphs/pisdf/Edge.h>
 #include <cstdint>
 #include <common/Rational.h>
 

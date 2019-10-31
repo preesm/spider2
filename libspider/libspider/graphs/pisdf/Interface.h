@@ -37,51 +37,65 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_HEADVERTEX_H
-#define SPIDER2_HEADVERTEX_H
+#ifndef SPIDER2_INTERFACE_H
+#define SPIDER2_INTERFACE_H
 
 /* === Include(s) === */
 
-#include <graphs/tmp/ExecVertex.h>
+#include <graphs/pisdf/Vertex.h>
+#include <graphs/pisdf/Edge.h>
 
 namespace Spider {
     namespace PiSDF {
 
         /* === Class definition === */
 
-        class HeadVertex final : public ExecVertex {
+        class Interface : public Vertex {
         public:
-            explicit HeadVertex(std::string name = "unnamed-headvertex",
-                                std::uint32_t edgeINCount = 0,
-                                Graph *graph = nullptr, //TODO: change to Spider::pisdfgraph() when this API replace old one
-                                StackID stack = StackID::PISDF) : ExecVertex(std::move(name),
-                                                                             VertexType::SPECIAL,
-                                                                             edgeINCount,
-                                                                             1,
-                                                                             graph,
-                                                                             stack) {
+
+            explicit Interface(std::string name = "unnamed-interface",
+                               std::uint32_t edgeINCount = 0,
+                               std::uint32_t edgeOUTCount = 0,
+                               Graph *graph = nullptr, //TODO: change to Spider::pisdfgraph() when this API replace old one
+                               StackID stack = StackID::PISDF) : Vertex(std::move(name),
+                                                                        VertexType::INTERFACE,
+                                                                        edgeINCount,
+                                                                        edgeOUTCount,
+                                                                        graph,
+                                                                        stack) {
+                if (!graph_) {
+                    throwSpiderException("Interface [%s] need to belong to a graph.", this->name().c_str());
+                }
+                graph_->addVertex(this);
             }
 
             /* === Method(s) === */
 
+            inline Vertex *forwardEdge(const Edge *) override;
+
+            virtual Edge *inputEdge() const = 0;
+
+            virtual Edge *outputEdge() const = 0;
+
             /* === Getter(s) === */
 
-            inline VertexType subtype() const override;
+            /**
+             * @brief Return vertex connected to interface.
+             * @remark return source vertex for output IF, sink vertex for input IF
+             * @warning no check is performed on validity of connected edge.
+             * @return opposite vertex
+             */
+            virtual Vertex *opposite() const = 0;
 
             /* === Setter(s) === */
 
-        private:
-
-            //TODO add function call
-
-            /* === Private method(s) === */
         };
 
-        VertexType HeadVertex::subtype() const {
-            return VertexType::HEAD;
-        }
-
         /* === Inline method(s) === */
+
+        Vertex *Interface::forwardEdge(const Edge *) {
+            return this->opposite()->forwardEdge(nullptr);
+        }
     }
 }
-#endif //SPIDER2_HEADVERTEX_H
+#endif //SPIDER2_GRAPH_H

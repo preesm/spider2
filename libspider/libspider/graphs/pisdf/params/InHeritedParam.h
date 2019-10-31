@@ -37,64 +37,54 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
+#ifndef SPIDER2_INHERITEDPARAM_H
+#define SPIDER2_INHERITEDPARAM_H
 
 /* === Include(s) === */
 
-#include <graphs/tmp/Vertex.h>
-#include <graphs/tmp/Graph.h>
+#include <graphs/pisdf/Param.h>
 
-/* === Static variable(s) === */
+namespace Spider {
+    namespace PiSDF {
 
-/* === Static function(s) === */
+        /* === Class definition === */
 
-/* === Method(s) implementation === */
+        class InHeritedParam final : public Param {
+        public:
 
-Spider::PiSDF::Vertex::Vertex(std::string name,
-                              Spider::PiSDF::VertexType type,
-                              std::uint32_t edgeINCount,
-                              std::uint32_t edgeOUTCount,
-                              Graph *graph,
-                              StackID stack) : graph_{graph},
-                                               name_{std::move(name)},
-                                               type_{type},
-                                               inputEdgeArray_{edgeINCount, nullptr, stack},
-                                               outputEdgeArray_{edgeOUTCount, nullptr, stack} {
-}
+            InHeritedParam(std::string name, Graph *graph, Param *parent) : Param(std::move(name), graph),
+                                                                            parent_{parent} {
 
-void Spider::PiSDF::Vertex::connectInputEdge(Edge *edge, std::uint32_t ix) {
-    connectEdge(inputEdgeArray_, edge, ix);
-}
+            }
 
-void Spider::PiSDF::Vertex::connectOutputEdge(Edge *edge, std::uint32_t ix) {
-    connectEdge(outputEdgeArray_, edge, ix);
-}
+            /* === Method(s) === */
 
-Spider::PiSDF::Edge *Spider::PiSDF::Vertex::disconnectInputEdge(std::uint32_t ix) {
-    return disconnectEdge(inputEdgeArray_, ix);
-}
+            /* === Getter(s) === */
 
-Spider::PiSDF::Edge *Spider::PiSDF::Vertex::disconnectOutputEdge(std::uint32_t ix) {
-    return disconnectEdge(outputEdgeArray_, ix);
-}
+            inline std::int64_t value() const override;
 
-/* === Private method(s) === */
+            inline ParamType type() const override;
 
-Spider::PiSDF::Edge *Spider::PiSDF::Vertex::disconnectEdge(Spider::Array<Edge *> &edges, std::uint32_t ix) {
-    auto *&edge = edges.at(ix);
-    Edge *ret = edge;
-    if (edge) {
-        edge = nullptr;
+            /* === Setter(s) === */
+
+        private:
+            Param *parent_ = nullptr;
+
+            /* === Private method(s) === */
+        };
+
+        /* === Inline method(s) === */
+
+        std::int64_t InHeritedParam::value() const {
+            return parent_->value();
+        }
+
+        ParamType InHeritedParam::type() const {
+            return parent_->type();
+        }
+
     }
-    return ret;
 }
 
-void Spider::PiSDF::Vertex::connectEdge(Spider::Array<Edge *> &edges, Edge *edge, std::uint32_t ix) {
-    auto *&current = edges.at(ix);
-    if (!current) {
-        current = edge;
-        return;
-    }
-    throwSpiderException("Edge already exists at position: %"
-                                 PRIu32
-                                 "", ix);
-}
+
+#endif //SPIDER2_INHERITEDPARAM_H

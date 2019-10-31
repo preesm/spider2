@@ -41,10 +41,10 @@
 /* === Include(s) === */
 
 #include <graphs-tools/brv/LCMBRVCompute.h>
-#include <graphs/tmp/Graph.h>
-#include <graphs/tmp/ExecVertex.h>
-#include <graphs/tmp/Edge.h>
-#include <graphs/tmp/Delay.h>
+#include <graphs/pisdf/Graph.h>
+#include <graphs/pisdf/ExecVertex.h>
+#include <graphs/pisdf/Edge.h>
+#include <graphs/pisdf/Delay.h>
 #include <cstdint>
 
 /* === Static variable(s) === */

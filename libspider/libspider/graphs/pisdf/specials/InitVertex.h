@@ -37,19 +37,50 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_SPECIALS_H
-#define SPIDER2_SPECIALS_H
+#ifndef SPIDER2_INITVERTEX_H
+#define SPIDER2_INITVERTEX_H
 
-/* === Includes === */
+/* === Include(s) === */
 
-#include <graphs/tmp/specials/JoinVertex.h>
-#include <graphs/tmp/specials/ForkVertex.h>
-#include <graphs/tmp/specials/TailVertex.h>
-#include <graphs/tmp/specials/HeadVertex.h>
-#include <graphs/tmp/specials/DuplicateVertex.h>
-#include <graphs/tmp/specials/UpSampleVertex.h>
-#include <graphs/tmp/specials/DownSampleVertex.h>
-#include <graphs/tmp/specials/InitVertex.h>
-#include <graphs/tmp/specials/EndVertex.h>
+#include <graphs/pisdf/ExecVertex.h>
 
-#endif //SPIDER2_SPECIALS_H
+namespace Spider {
+    namespace PiSDF {
+
+        /* === Class definition === */
+
+        class InitVertex final : public ExecVertex {
+        public:
+            explicit InitVertex(std::string name = "unnamed-initvertex",
+                                Graph *graph = nullptr, //TODO: change to Spider::pisdfgraph() when this API replace old one
+                                StackID stack = StackID::PISDF) : ExecVertex(std::move(name),
+                                                                             VertexType::SPECIAL,
+                                                                             0,
+                                                                             1,
+                                                                             graph,
+                                                                             stack) {
+            }
+
+            /* === Method(s) === */
+
+            /* === Getter(s) === */
+
+            inline VertexType subtype() const override;
+
+            /* === Setter(s) === */
+
+        private:
+
+            //TODO add function call
+
+            /* === Private method(s) === */
+        };
+
+        VertexType InitVertex::subtype() const {
+            return VertexType::INIT;
+        }
+
+        /* === Inline method(s) === */
+    }
+}
+#endif //SPIDER2_INITVERTEX_H

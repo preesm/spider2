@@ -46,8 +46,8 @@
 #include <cstdint>
 #include <common/Exception.h>
 #include <containers/StlContainers.h>
-#include <graphs/tmp/ExecVertex.h>
-#include <graphs/tmp/Edge.h>
+#include <graphs/pisdf/ExecVertex.h>
+#include <graphs/pisdf/Edge.h>
 
 namespace Spider {
     namespace PiSDF {

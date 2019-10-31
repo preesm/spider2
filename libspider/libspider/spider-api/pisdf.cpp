@@ -41,16 +41,16 @@
 /* === Includes === */
 
 #include <spider-api/pisdf.h>
-#include <graphs/tmp/Graph.h>
-#include <graphs/tmp/Param.h>
-#include <graphs/tmp/Edge.h>
-#include <graphs/tmp/Delay.h>
-#include <graphs/tmp/ExecVertex.h>
-#include <graphs/tmp/specials/Specials.h>
-#include <graphs/tmp/params/DynamicParam.h>
-#include <graphs/tmp/params/InHeritedParam.h>
-#include <graphs/tmp/interfaces/InputInterface.h>
-#include <graphs/tmp/interfaces/OutputInterface.h>
+#include <graphs/pisdf/Graph.h>
+#include <graphs/pisdf/Param.h>
+#include <graphs/pisdf/Edge.h>
+#include <graphs/pisdf/Delay.h>
+#include <graphs/pisdf/ExecVertex.h>
+#include <graphs/pisdf/specials/Specials.h>
+#include <graphs/pisdf/params/DynamicParam.h>
+#include <graphs/pisdf/params/InHeritedParam.h>
+#include <graphs/pisdf/interfaces/InputInterface.h>
+#include <graphs/pisdf/interfaces/OutputInterface.h>
 
 /* === Methods implementation === */
 

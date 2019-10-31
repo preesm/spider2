@@ -63,9 +63,10 @@ namespace Spider {
                   std::uint32_t setterPortIx,
                   ExecVertex *getter,
                   std::uint32_t getterPortIx,
-                  bool persistent = false);
+                  bool persistent = false,
+                  StackID stack = StackID::PISDF);
 
-            ~Delay() = default;
+            ~Delay();
 
             /* === Method(s) === */
 
@@ -104,6 +105,12 @@ namespace Spider {
             inline std::uint32_t getterPortIx() const;
 
             /**
+             * @brief Get the virtual vertex associated to the Delay.
+             * @return @refitem ExecVertex.
+             */
+            inline const ExecVertex *vertex() const;
+
+            /**
              * @brief Get the virtual memory address (in the data memory space) of the delay.
              * @return virtual memory address value.
              */
@@ -133,6 +140,7 @@ namespace Spider {
             std::uint32_t setterPortIx_ = 0;
             ExecVertex *getter_ = nullptr;
             std::uint32_t getterPortIx_ = 0;
+            ExecVertex *vertex_ = nullptr;
 
             bool persistent_ = true;
             std::uint64_t memoryAddress_ = UINT64_MAX;
@@ -160,6 +168,10 @@ namespace Spider {
 
         std::uint32_t Delay::getterPortIx() const {
             return getterPortIx_;
+        }
+
+        const ExecVertex *Delay::vertex() const {
+            return vertex_;
         }
 
         std::uint64_t Delay::memoryAddress() const {

@@ -41,8 +41,8 @@
 /* === Includes === */
 
 #include <graphs-tools/expression-parser/Expression.h>
-#include <graphs/tmp/Param.h>
-#include <graphs/tmp/Graph.h>
+#include <graphs/pisdf/Param.h>
+#include <graphs/pisdf/Graph.h>
 #include "Expression.h"
 
 /* === Static method(s) === */
