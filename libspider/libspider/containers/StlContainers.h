@@ -85,9 +85,11 @@ namespace Spider {
     template<class T, StackID stack_t = StackID::GENERAL>
     using forward_list = std::forward_list<T, Spider::Allocator<T, stack_t>>;
 
-
     template<class T, StackID stack_t = StackID::GENERAL>
     using stack = std::stack<T, Spider::deque<T, stack_t>>;
+
+    template<StackID stack_t = StackID::GENERAL>
+    using string = std::basic_string<char, std::char_traits<char>, Spider::Allocator<char, stack_t>>;
 }
 
 #endif //SPIDER2_STLCONTAINERS_H
