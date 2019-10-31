@@ -42,18 +42,17 @@
 
 #include "ExpressionTest.h"
 #include <memory/Allocator.h>
-#include <graphs-tools/expression-parser/RPNConverter.h>
 #include <graphs-tools/expression-parser/Expression.h>
 #include <spider-api/general.h>
+#include <spider-api/pisdf.h>
+#include <graphs/tmp/Graph.h>
 #include <cmath>
 
 /* === Methods implementation === */
 
-ExpressionTest::ExpressionTest() {
-}
+ExpressionTest::ExpressionTest() = default;
 
-ExpressionTest::~ExpressionTest() {
-}
+ExpressionTest::~ExpressionTest() = default;
 
 void ExpressionTest::SetUp() {
     AllocatorConfig cfg = AllocatorConfig();
@@ -61,53 +60,97 @@ void ExpressionTest::SetUp() {
     cfg.size = 512;
     Spider::initAllocator(StackID::GENERAL, cfg);
     Spider::initAllocator(StackID::EXPR_PARSER, cfg);
+    Spider::initAllocator(StackID::PISDF, cfg);
 }
 
 void ExpressionTest::TearDown() {
     Spider::finalizeAllocators();
 }
 
+TEST_F(ExpressionTest, TestCreation) {
+    EXPECT_NO_THROW(Expression(4));
+    EXPECT_NO_THROW(Expression(""));
+    Spider::PiSDF::Graph *graph = Spider::API::createGraph("test");
+    EXPECT_THROW(Expression("width", graph), Spider::Exception);
+    EXPECT_THROW(Expression("width"), Spider::Exception);
+    ASSERT_EQ(Expression(4).value(), 4);
+}
+
+TEST_F(ExpressionTest, TestString) {
+    ASSERT_EQ(Expression(4).string(), "4.000000");
+    ASSERT_EQ(Expression("").string(), "0.000000");
+    ASSERT_EQ(Expression("4cos(0)").string(), "4.000000");
+    Spider::PiSDF::Graph *graph = Spider::API::createGraph("test", 0, 0, 1);
+    Spider::API::createStaticParam(graph, "width", 0);
+    ASSERT_EQ(Expression("4cos(width)", graph).string(), "4.000000");
+    Spider::API::createDynamicParam(graph, "height");
+    ASSERT_EQ(Expression("cos(height)", graph).string(), "cos(height)");
+    ASSERT_EQ(Expression("4min(1,height)", graph).string(), "(4.000000*min(1.000000,height))");
+    Spider::destroy(graph);
+    Spider::deallocate(graph);
+}
+
 TEST_F(ExpressionTest, TestEvaluationOperators) {
-    ASSERT_EQ(Expression(nullptr, "4*3").evaluateDBL(), 12.);
-    ASSERT_EQ(Expression(nullptr, "4+ 3").evaluateDBL(), 7.);
-    ASSERT_EQ(Expression(nullptr, "4/3").evaluateDBL(), 4. / 3);
-    ASSERT_EQ(Expression(nullptr, "4/3").evaluate(), 1);
-    ASSERT_EQ(Expression(nullptr, "4^3").evaluateDBL(), std::pow(4, 3));
-    ASSERT_EQ(Expression(nullptr, "4+4^3").evaluateDBL(), 68);
-    ASSERT_EQ(Expression(nullptr, "4*4^3").evaluateDBL(), 256);
-    ASSERT_EQ(Expression(nullptr, "5%3").evaluateDBL(), 2);
-    ASSERT_EQ(Expression(nullptr, "(4*5)%3").evaluateDBL(), 2);
-    ASSERT_EQ(Expression(nullptr, "4*5%3").evaluateDBL(), 8);
-    ASSERT_EQ(Expression(nullptr, "4*(5%3)").evaluateDBL(), 8);
-    ASSERT_EQ(Expression(nullptr, "4*(3 + 5)").evaluateDBL(), 32.);
-    ASSERT_EQ(Expression(nullptr, "4*3 + 5").evaluateDBL(), 17.);
-    ASSERT_EQ(Expression(nullptr, "(2+2)(2 + 2)").evaluateDBL(), 16.);
-    ASSERT_EQ(Expression(nullptr, "max(0.2, 0.21)").evaluateDBL(), 0.21);
-    ASSERT_EQ(Expression(nullptr, "max(max(0.2,0.3*2), 0.21)").evaluateDBL(), 0.3 * 2.);
-    ASSERT_EQ(Expression(nullptr, "min(min(0.2,0.1), 0.21)").evaluateDBL(), 0.1);
-    ASSERT_EQ(Expression(nullptr, "min(0.2, 0.21)").evaluateDBL(), 0.2);
-    ASSERT_EQ(Expression(nullptr, "min((0.2 + 0.1), 0.21)").evaluateDBL(), 0.21);
-    ASSERT_EQ(Expression(nullptr, "min((0.2 * 0.1), 0.21)").evaluateDBL(), 0.2 * 0.1);
-    ASSERT_EQ(Expression(nullptr, "min(0.2 * 0.1, 0.21)").evaluateDBL(), 0.2 * 0.1);
+    ASSERT_EQ(Expression("4*3").evaluateDBL(), 12.);
+    ASSERT_EQ(Expression("4-3").evaluate(), 1);
+    ASSERT_EQ(Expression("3-4").evaluate(), -1);
+    ASSERT_EQ(Expression("4+ 3").evaluateDBL(), 7.);
+    ASSERT_EQ(Expression("4/3").evaluateDBL(), 4. / 3);
+    ASSERT_EQ(Expression("4/3").evaluate(), 1);
+    ASSERT_EQ(Expression("4^3").evaluateDBL(), std::pow(4, 3));
+    ASSERT_EQ(Expression("4+4^3").evaluateDBL(), 68);
+    ASSERT_EQ(Expression("4*4^3").evaluateDBL(), 256);
+    ASSERT_EQ(Expression("5%3").evaluateDBL(), 2);
+    ASSERT_EQ(Expression("(4*5)%3").evaluateDBL(), 2);
+    ASSERT_EQ(Expression("4*5%3").evaluateDBL(), 8);
+    ASSERT_EQ(Expression("4*(5%3)").evaluateDBL(), 8);
+    ASSERT_EQ(Expression("4*(3 + 5)").evaluateDBL(), 32.);
+    ASSERT_EQ(Expression("4*3 + 5").evaluateDBL(), 17.);
+    ASSERT_EQ(Expression("(2+2)(2 + 2)").evaluateDBL(), 16.);
 }
 
 TEST_F(ExpressionTest, TestEvaluationFunctions) {
-    ASSERT_NEAR(Expression(nullptr, "cos(pi)").evaluateDBL(), -1., 0.000001);
-    ASSERT_NEAR(Expression(nullptr, "cos(0)").evaluateDBL(), 1., 0.000001);
-    ASSERT_NEAR(Expression(nullptr, "sin(Pi)").evaluateDBL(), 0., 0.000001);
-    ASSERT_NEAR(Expression(nullptr, "sin(PI/2)").evaluateDBL(), 1., 0.000001);
-    ASSERT_NEAR(Expression(nullptr, "tan(4)").evaluateDBL(), Expression(nullptr, "sin(4) / cos(4)").evaluateDBL(),
+    ASSERT_NEAR(Expression("cos(pi)").evaluateDBL(), -1., 0.000001);
+    ASSERT_NEAR(Expression("cos(0)").evaluateDBL(), 1., 0.000001);
+    ASSERT_NEAR(Expression("sin(Pi)").evaluateDBL(), 0., 0.000001);
+    ASSERT_NEAR(Expression("sin(PI/2)").evaluateDBL(), 1., 0.000001);
+    ASSERT_NEAR(Expression("tan(4)").evaluateDBL(), Expression("sin(4) / cos(4)").evaluateDBL(),
                 0.000001);
-    ASSERT_NEAR(Expression(nullptr, "tan((8/2))").evaluateDBL(), Expression(nullptr, "sin((8/2)) / cos((2^2))").evaluateDBL(),
+    ASSERT_NEAR(Expression("tan((8/2))").evaluateDBL(),
+                Expression("sin((8/2)) / cos((2^2))").evaluateDBL(),
                 0.000001);
-    ASSERT_NEAR(Expression(nullptr, "floor(1.2)").evaluateDBL(), 1., 0.000001);
-    ASSERT_NEAR(Expression(nullptr, "ceil(0.2)").evaluateDBL(), 1., 0.000001);
-    ASSERT_NEAR(Expression(nullptr, "log(0.2)").evaluateDBL(), std::log(0.2), 0.000001);
-    ASSERT_NEAR(Expression(nullptr, "log2(0.2)").evaluateDBL(), std::log2(0.2), 0.000001);
-    ASSERT_NEAR(Expression(nullptr, "4log2(0.2)").evaluateDBL(), 4 * std::log2(0.2), 0.000001);
-    ASSERT_NEAR(Expression(nullptr, "4cos(0.2)4").evaluateDBL(), 16 * std::cos(0.2), 0.000001);
-    ASSERT_NEAR(Expression(nullptr, "exp(0.2)").evaluateDBL(), std::exp(0.2), 0.000001);
-    ASSERT_NEAR(Expression(nullptr, "exp(log(0.2))").evaluateDBL(), 0.2, 0.000001);
-    ASSERT_NEAR(Expression(nullptr, "log(exp(0.2))").evaluateDBL(), 0.2, 0.000001);
-    ASSERT_NEAR(Expression(nullptr, "sqrt(4)").evaluateDBL(), 2., 0.000001);
+    ASSERT_NEAR(Expression("floor(1.2)").evaluateDBL(), 1., 0.000001);
+    ASSERT_NEAR(Expression("ceil(0.2)").evaluateDBL(), 1., 0.000001);
+    ASSERT_NEAR(Expression("log(0.2)").evaluateDBL(), std::log(0.2), 0.000001);
+    ASSERT_NEAR(Expression("log2(0.2)").evaluateDBL(), std::log2(0.2), 0.000001);
+    ASSERT_NEAR(Expression("4log2(0.2)").evaluateDBL(), 4 * std::log2(0.2), 0.000001);
+    ASSERT_NEAR(Expression("4cos(0.2)4").evaluateDBL(), 16 * std::cos(0.2), 0.000001);
+    ASSERT_NEAR(Expression("exp(0.2)").evaluateDBL(), std::exp(0.2), 0.000001);
+    ASSERT_NEAR(Expression("exp(log(0.2))").evaluateDBL(), 0.2, 0.000001);
+    ASSERT_NEAR(Expression("log(exp(0.2))").evaluateDBL(), 0.2, 0.000001);
+    ASSERT_NEAR(Expression("sqrt(4)").evaluateDBL(), 2., 0.000001);
+    ASSERT_EQ(Expression("max(0.2, 0.21)").evaluateDBL(), 0.21);
+    ASSERT_EQ(Expression("max(max(0.2,0.3*2), 0.21)").evaluateDBL(), 0.3 * 2.);
+    ASSERT_EQ(Expression("min(min(0.2,0.1), 0.21)").evaluateDBL(), 0.1);
+    ASSERT_EQ(Expression("min(0.2, 0.21)").evaluateDBL(), 0.2);
+    ASSERT_EQ(Expression("min((0.2 + 0.1), 0.21)").evaluateDBL(), 0.21);
+    ASSERT_EQ(Expression("min((0.2 * 0.1), 0.21)").evaluateDBL(), 0.2 * 0.1);
+    ASSERT_EQ(Expression("min(0.2 * 0.1, 0.21)").evaluateDBL(), 0.2 * 0.1);
+    ASSERT_EQ(Expression("min(0.2 * 0.1, 0.21)").isStatic(), true);
+    Spider::PiSDF::Graph *graph = Spider::API::createGraph("test", 0, 0, 1);
+    Spider::API::createDynamicParam(graph, "height");
+    ASSERT_EQ(Expression("cos(height)", graph).evaluateDBL(), 1.);
+    ASSERT_EQ(Expression("cos(height)", graph).evaluate(), 1);
+    ASSERT_EQ(Expression("cos(height)", graph).isStatic(), false);
+    Spider::destroy(graph);
+    Spider::deallocate(graph);
+}
+
+TEST_F(ExpressionTest, TestPrintTree) {
+    Spider::PiSDF::Graph *graph = Spider::API::createGraph("test", 0, 0, 1);
+    Spider::API::createDynamicParam(graph, "height");
+    EXPECT_NO_THROW(Expression("4*cos(height)", graph).printExpressionTree());
+    Spider::destroy(graph);
+    Spider::deallocate(graph);
+
 }

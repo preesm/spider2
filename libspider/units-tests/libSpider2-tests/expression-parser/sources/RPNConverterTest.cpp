@@ -48,11 +48,9 @@
 
 /* === Methods implementation === */
 
-RPNConverterTest::RPNConverterTest() {
-}
+RPNConverterTest::RPNConverterTest() = default;
 
-RPNConverterTest::~RPNConverterTest() {
-}
+RPNConverterTest::~RPNConverterTest() = default;
 
 void RPNConverterTest::SetUp() {
     AllocatorConfig cfg = AllocatorConfig();
@@ -68,17 +66,93 @@ void RPNConverterTest::TearDown() {
 
 
 TEST_F(RPNConverterTest, TestCreation) {
-    EXPECT_THROW(RPNConverter(nullptr, "4*((4+3)"), SpiderException);
-    EXPECT_THROW(RPNConverter(nullptr, "4**3"), SpiderException);
-    EXPECT_THROW(RPNConverter(nullptr, ""), SpiderException);
-    EXPECT_NO_THROW(RPNConverter(nullptr, "(4)*3"));
-    EXPECT_NO_THROW(RPNConverter(nullptr, "4*(3)"));
+    EXPECT_THROW(RPNConverter::extractPostfixElements("4*((4+3)"), Spider::Exception);
+    EXPECT_THROW(RPNConverter::extractPostfixElements("4**3"), Spider::Exception);
+    EXPECT_THROW(RPNConverter::extractPostfixElements("4*"), Spider::Exception);
+    EXPECT_THROW(RPNConverter::extractPostfixElements("*4"), Spider::Exception);
+    EXPECT_NO_THROW(RPNConverter::extractPostfixElements(""));
+    EXPECT_NO_THROW(RPNConverter::extractPostfixElements("(4)*3"));
+    EXPECT_NO_THROW(RPNConverter::extractPostfixElements("4*(3)"));
 }
 
 TEST_F(RPNConverterTest, TestString) {
-    ASSERT_EQ(RPNConverter(nullptr, "exp(log(0.2))").postfixString(), "0.200000 log exp ");
-    ASSERT_EQ(RPNConverter(nullptr, "exp(log(0.2))").infixString(), "exp(log(0.2))");
-    ASSERT_EQ(RPNConverter(nullptr, "exp( log ( 0.2) )").infixString(), "exp(log(0.2))");
-    ASSERT_EQ(RPNConverter(nullptr, "4cos(PI/2)").infixString(), "4*cos(3.1415926535/2)");
+    ASSERT_EQ(RPNConverter::postfixString(RPNConverter::extractPostfixElements("exp(log(0.2))")), "0.2 log exp ");
+    ASSERT_EQ(RPNConverter::infixString(RPNConverter::extractPostfixElements("exp(log(0.2))")), "exp(log(0.2))");
+    ASSERT_EQ(RPNConverter::infixString(RPNConverter::extractPostfixElements("exp( log ( 0.2) )")), "exp(log(0.2))");
+    ASSERT_EQ(RPNConverter::infixString(RPNConverter::extractPostfixElements("4cos(PI/2)")), "(4*cos((3.1415926535/2)))");
+    ASSERT_EQ(RPNConverter::infixString(RPNConverter::extractPostfixElements("4max(4,cos(PI))")), "(4*max(4,cos(3.1415926535)))");
+}
+
+TEST_F(RPNConverterTest, TestGetStringFunctions) {
+    EXPECT_NO_THROW(RPNConverter::getOperatorTypeFromString("+"));
+    EXPECT_NO_THROW(RPNConverter::getOperatorTypeFromString("-"));
+    EXPECT_NO_THROW(RPNConverter::getOperatorTypeFromString("*"));
+    EXPECT_NO_THROW(RPNConverter::getOperatorTypeFromString("/"));
+    EXPECT_NO_THROW(RPNConverter::getOperatorTypeFromString("%"));
+    EXPECT_NO_THROW(RPNConverter::getOperatorTypeFromString("^"));
+    EXPECT_NO_THROW(RPNConverter::getOperatorTypeFromString("("));
+    EXPECT_NO_THROW(RPNConverter::getOperatorTypeFromString(")"));
+    EXPECT_NO_THROW(RPNConverter::getOperatorTypeFromString("cos"));
+    EXPECT_NO_THROW(RPNConverter::getOperatorTypeFromString("sin"));
+    EXPECT_NO_THROW(RPNConverter::getOperatorTypeFromString("tan"));
+    EXPECT_NO_THROW(RPNConverter::getOperatorTypeFromString("exp"));
+    EXPECT_NO_THROW(RPNConverter::getOperatorTypeFromString("log"));
+    EXPECT_NO_THROW(RPNConverter::getOperatorTypeFromString("log2"));
+    EXPECT_NO_THROW(RPNConverter::getOperatorTypeFromString("ceil"));
+    EXPECT_NO_THROW(RPNConverter::getOperatorTypeFromString("floor"));
+    EXPECT_NO_THROW(RPNConverter::getOperatorTypeFromString("sqrt"));
+    EXPECT_NO_THROW(RPNConverter::getOperatorTypeFromString("min"));
+    EXPECT_NO_THROW(RPNConverter::getOperatorTypeFromString("max"));
+    EXPECT_THROW(RPNConverter::getOperatorTypeFromString("dummy"), Spider::Exception);
+}
+
+TEST_F(RPNConverterTest, TestGetOperator) {
+    EXPECT_NO_THROW(RPNConverter::getOperatorFromOperatorType(RPNOperatorType::ADD));
+    EXPECT_NO_THROW(RPNConverter::getOperatorFromOperatorType(RPNOperatorType::SUB));
+    EXPECT_NO_THROW(RPNConverter::getOperatorFromOperatorType(RPNOperatorType::MUL));
+    EXPECT_NO_THROW(RPNConverter::getOperatorFromOperatorType(RPNOperatorType::DIV));
+    EXPECT_NO_THROW(RPNConverter::getOperatorFromOperatorType(RPNOperatorType::MOD));
+    EXPECT_NO_THROW(RPNConverter::getOperatorFromOperatorType(RPNOperatorType::POW));
+    EXPECT_NO_THROW(RPNConverter::getOperatorFromOperatorType(RPNOperatorType::LEFT_PAR));
+    EXPECT_NO_THROW(RPNConverter::getOperatorFromOperatorType(RPNOperatorType::RIGHT_PAR));
+    EXPECT_NO_THROW(RPNConverter::getOperatorFromOperatorType(RPNOperatorType::COS));
+    EXPECT_NO_THROW(RPNConverter::getOperatorFromOperatorType(RPNOperatorType::SIN));
+    EXPECT_NO_THROW(RPNConverter::getOperatorFromOperatorType(RPNOperatorType::TAN));
+    EXPECT_NO_THROW(RPNConverter::getOperatorFromOperatorType(RPNOperatorType::LOG));
+    EXPECT_NO_THROW(RPNConverter::getOperatorFromOperatorType(RPNOperatorType::LOG2));
+    EXPECT_NO_THROW(RPNConverter::getOperatorFromOperatorType(RPNOperatorType::EXP));
+    EXPECT_NO_THROW(RPNConverter::getOperatorFromOperatorType(RPNOperatorType::CEIL));
+    EXPECT_NO_THROW(RPNConverter::getOperatorFromOperatorType(RPNOperatorType::FLOOR));
+    EXPECT_NO_THROW(RPNConverter::getOperatorFromOperatorType(RPNOperatorType::SQRT));
+    EXPECT_NO_THROW(RPNConverter::getOperatorFromOperatorType(RPNOperatorType::MIN));
+    EXPECT_NO_THROW(RPNConverter::getOperatorFromOperatorType(RPNOperatorType::MAX));
+    for (std::uint32_t i = 0; i < (RPNConverter::operator_count + RPNConverter::function_count); ++i) {
+        EXPECT_NO_THROW(RPNConverter::getOperator(i));
+    }
+    EXPECT_THROW(RPNConverter::getOperator(-1), std::out_of_range);
+}
+
+
+
+TEST_F(RPNConverterTest, TestGetFunctionString) {
+    EXPECT_NO_THROW(RPNConverter::getStringFromOperatorType(RPNOperatorType::ADD));
+    EXPECT_NO_THROW(RPNConverter::getStringFromOperatorType(RPNOperatorType::SUB));
+    EXPECT_NO_THROW(RPNConverter::getStringFromOperatorType(RPNOperatorType::MUL));
+    EXPECT_NO_THROW(RPNConverter::getStringFromOperatorType(RPNOperatorType::DIV));
+    EXPECT_NO_THROW(RPNConverter::getStringFromOperatorType(RPNOperatorType::MOD));
+    EXPECT_NO_THROW(RPNConverter::getStringFromOperatorType(RPNOperatorType::POW));
+    EXPECT_NO_THROW(RPNConverter::getStringFromOperatorType(RPNOperatorType::LEFT_PAR));
+    EXPECT_NO_THROW(RPNConverter::getStringFromOperatorType(RPNOperatorType::RIGHT_PAR));
+    EXPECT_NO_THROW(RPNConverter::getStringFromOperatorType(RPNOperatorType::COS));
+    EXPECT_NO_THROW(RPNConverter::getStringFromOperatorType(RPNOperatorType::SIN));
+    EXPECT_NO_THROW(RPNConverter::getStringFromOperatorType(RPNOperatorType::TAN));
+    EXPECT_NO_THROW(RPNConverter::getStringFromOperatorType(RPNOperatorType::LOG));
+    EXPECT_NO_THROW(RPNConverter::getStringFromOperatorType(RPNOperatorType::LOG2));
+    EXPECT_NO_THROW(RPNConverter::getStringFromOperatorType(RPNOperatorType::EXP));
+    EXPECT_NO_THROW(RPNConverter::getStringFromOperatorType(RPNOperatorType::CEIL));
+    EXPECT_NO_THROW(RPNConverter::getStringFromOperatorType(RPNOperatorType::FLOOR));
+    EXPECT_NO_THROW(RPNConverter::getStringFromOperatorType(RPNOperatorType::SQRT));
+    EXPECT_NO_THROW(RPNConverter::getStringFromOperatorType(RPNOperatorType::MIN));
+    EXPECT_NO_THROW(RPNConverter::getStringFromOperatorType(RPNOperatorType::MAX));
 }
 

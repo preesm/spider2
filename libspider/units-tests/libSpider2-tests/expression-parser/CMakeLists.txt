@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.1)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+
 # Locate GTest
 find_package(GTest REQUIRED)
 
@@ -23,23 +24,26 @@ include_directories(
 
 file(GLOB_RECURSE
         source_files
+        ${SPIDER_LIB_DIR}/graphs/tmp/*.cpp
         ${SPIDER_LIB_DIR}/graphs-tools/expression-parser/*.cpp
         ${SPIDER_LIB_DIR}/common/*.cpp
         ${SPIDER_LIB_DIR}/memory/*.cpp
         ${SPIDER_LIB_DIR}/memory/static-allocators/*.cpp
         ${SPIDER_LIB_DIR}/memory/dynamic-allocators/*.cpp
+        ${SPIDER_LIB_DIR}/spider-api/pisdf.cpp
         sources/*.cpp
     )
 
 file(GLOB_RECURSE
         header_files
+        ${SPIDER_LIB_DIR}/graphs/tmp/*.h
         ${SPIDER_LIB_DIR}/graphs-tools/expression-parser/*.h
         ${SPIDER_LIB_DIR}/common/*.h
         ${SPIDER_LIB_DIR}/memory/*.h
         ${SPIDER_LIB_DIR}/memory/abstract-allocators/*.h
         ${SPIDER_LIB_DIR}/memory/static-allocators/*.h
         ${SPIDER_LIB_DIR}/memory/dynamic-allocators/*.h
-        ${SPIDER_LIB_DIR}/spider-api/*.h
+        ${SPIDER_LIB_DIR}/spider-api/pisdf.h
         sources/*.h
         )
 
