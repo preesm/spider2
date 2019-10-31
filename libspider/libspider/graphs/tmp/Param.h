@@ -57,20 +57,9 @@ namespace Spider {
         class Param {
         public:
 
-            Param(std::string name, Graph *graph, std::int64_t value = 0) : graph_{graph},
-                                                                            name_{std::move(name)},
-                                                                            value_{value} {
-                std::transform(name_.begin(), name_.end(), name_.begin(), ::tolower);
-            }
+            Param(std::string name, Graph *graph, std::int64_t value = 0);
 
-            Param(std::string name, Graph *graph, Expression &&expression) : graph_{graph},
-                                                                             name_{std::move(name)} {
-                if (!expression.isStatic()) {
-                    throwSpiderException("STATIC parameter should have static expression: %s.", expression.string());
-                }
-                std::transform(name_.begin(), name_.end(), name_.begin(), ::tolower);
-                value_ = expression.value();
-            }
+            Param(std::string name, Graph *graph, Expression &&expression);
 
             virtual ~Param() = default;
 
