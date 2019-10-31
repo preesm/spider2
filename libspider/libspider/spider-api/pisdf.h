@@ -167,6 +167,10 @@ namespace Spider {
 
         PiSDFDynamicParam *createDynamicParam(PiSDFGraph *graph,
                                               std::string name,
+                                              StackID stack = StackID::PISDF);
+
+        PiSDFDynamicParam *createDynamicParam(PiSDFGraph *graph,
+                                              std::string name,
                                               std::string expression,
                                               StackID stack = StackID::PISDF);
 
@@ -177,8 +181,7 @@ namespace Spider {
 
         /* === Edge API === */
 
-        PiSDFEdge *createEdge(PiSDFGraph *graph,
-                              PiSDFVertex *source,
+        PiSDFEdge *createEdge(PiSDFVertex *source,
                               std::uint16_t srcPortIx,
                               std::string srcRateExpression,
                               PiSDFVertex *sink,

@@ -42,6 +42,7 @@
 
 #include <spider-api/pisdf.h>
 #include <graphs/tmp/Graph.h>
+#include <graphs/tmp/Param.h>
 #include <graphs/tmp/Edge.h>
 #include <graphs/tmp/Delay.h>
 #include <graphs/tmp/ExecVertex.h>
@@ -304,6 +305,17 @@ PiSDFParam *Spider::API::createStaticParam(PiSDFGraph *graph,
 
 PiSDFDynamicParam *Spider::API::createDynamicParam(PiSDFGraph *graph,
                                                    std::string name,
+                                                   StackID stack) {
+    auto *param = Spider::allocate<PiSDFDynamicParam>(stack);
+    Spider::construct(param,
+                      std::move(name),
+                      graph,
+                      Expression(0));
+    return param;
+}
+
+PiSDFDynamicParam *Spider::API::createDynamicParam(PiSDFGraph *graph,
+                                                   std::string name,
                                                    std::string expression,
                                                    StackID stack) {
     auto *param = Spider::allocate<PiSDFDynamicParam>(stack);
@@ -331,8 +343,7 @@ PiSDFInHeritedParam *Spider::API::createInheritedParam(PiSDFGraph *graph,
 
 /* === Edge API === */
 
-PiSDFEdge *Spider::API::createEdge(PiSDFGraph *graph,
-                                   PiSDFVertex *source,
+PiSDFEdge *Spider::API::createEdge(PiSDFVertex *source,
                                    std::uint16_t srcPortIx,
                                    std::string srcRateExpression,
                                    PiSDFVertex *sink,
@@ -343,10 +354,10 @@ PiSDFEdge *Spider::API::createEdge(PiSDFGraph *graph,
     Spider::construct(edge,
                       source,
                       srcPortIx,
-                      Expression(std::move(srcRateExpression), graph),
+                      Expression(std::move(srcRateExpression), source->containingGraph()),
                       sink,
                       snkPortIx,
-                      Expression(std::move(snkRateExpression), graph));
+                      Expression(std::move(snkRateExpression), sink->containingGraph()));
     return edge;
 }
 
