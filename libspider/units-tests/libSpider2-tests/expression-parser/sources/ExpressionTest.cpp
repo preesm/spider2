@@ -73,6 +73,9 @@ TEST_F(ExpressionTest, TestCreation) {
     Spider::PiSDF::Graph *graph = Spider::API::createGraph("test");
     EXPECT_THROW(Expression("width", graph), Spider::Exception);
     EXPECT_THROW(Expression("width"), Spider::Exception);
+    EXPECT_THROW(Expression("cos"), Spider::Exception);
+    EXPECT_THROW(Expression("+"), Spider::Exception);
+    EXPECT_THROW(Expression("max(1,)"), Spider::Exception);
     ASSERT_EQ(Expression(4).value(), 4);
 }
 
@@ -136,12 +139,12 @@ TEST_F(ExpressionTest, TestEvaluationFunctions) {
     ASSERT_EQ(Expression("min((0.2 + 0.1), 0.21)").evaluateDBL(), 0.21);
     ASSERT_EQ(Expression("min((0.2 * 0.1), 0.21)").evaluateDBL(), 0.2 * 0.1);
     ASSERT_EQ(Expression("min(0.2 * 0.1, 0.21)").evaluateDBL(), 0.2 * 0.1);
-    ASSERT_EQ(Expression("min(0.2 * 0.1, 0.21)").isStatic(), true);
+    ASSERT_EQ(Expression("min(0.2 * 0.1, 0.21)").dynamic(), false);
     Spider::PiSDF::Graph *graph = Spider::API::createGraph("test", 0, 0, 1);
     Spider::API::createDynamicParam(graph, "height");
     ASSERT_EQ(Expression("cos(height)", graph).evaluateDBL(), 1.);
     ASSERT_EQ(Expression("cos(height)", graph).evaluate(), 1);
-    ASSERT_EQ(Expression("cos(height)", graph).isStatic(), false);
+    ASSERT_EQ(Expression("cos(height)", graph).dynamic(), true);
     Spider::destroy(graph);
     Spider::deallocate(graph);
 }
