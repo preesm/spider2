@@ -45,6 +45,7 @@
 #include <containers/StlContainers.h>
 #include <common/Exception.h>
 #include <graphs-tools/expression-parser/ParserFunctions.h>
+#include <iostream>
 
 /* === Static variable definition(s) === */
 
@@ -140,7 +141,7 @@ static void cleanInfixExpression(std::string &infixExprString) {
     /* == Clean the inFix expression by adding '*' for #valueY -> #value * Y  == */
     std::string tmp{std::move(infixExprString)};
     infixExprString = std::string();
-    infixExprString.reserve(tmp.size() * 2); /*= Worst case is actually 1.5 = */
+    infixExprString.reserve(tmp.size() * 2); /*= Worst case is actually (tmp.size() - 1) = */
     std::uint32_t i = 0;
     bool ignore = false;
     for (const auto &c:tmp) {
@@ -260,6 +261,7 @@ Spider::vector<RPNElement> RPNConverter::extractInfixElements(std::string infixE
 
     /* == Extract the expression elements == */
     Spider::vector<RPNElement> tokens;
+    tokens.reserve(infixExpressionLocal.size());
     auto pos = infixExpressionLocal.find_first_of(supportedBasicOperators(), 0);
     std::uint32_t lastPos = 0;
     while (pos != std::string::npos) {
@@ -289,47 +291,48 @@ Spider::vector<RPNElement> RPNConverter::extractPostfixElements(std::string infi
     auto infixStack = extractInfixElements(std::move(infixExpression));
 
     /* == Build the postfix expression == */
-    Spider::deque<std::pair<RPNOperatorType, RPNElement>> operatorStack;
+    Spider::vector<std::pair<RPNOperatorType, RPNElement>> operatorStack;
+
+    /* == Actually, size will probably be inferior but this will avoid realloc == */
     Spider::vector<RPNElement> postfixStack;
-    postfixStack.reserve(
-            infixStack.size()); /* = Actually, size will probably be inferior but this will avoid realloc = */
+    postfixStack.reserve(infixStack.size());
     for (auto &element : infixStack) {
         if (element.type == RPNElementType::OPERATOR) {
             const auto &operatorType = getOperatorTypeFromString(element.token);
             if (element.subtype == RPNElementSubType::FUNCTION ||
                 operatorType == RPNOperatorType::LEFT_PAR) {
                 /* == Handle function and left parenthesis case == */
-                operatorStack.push_front(std::make_pair(operatorType, std::move(element)));
+                operatorStack.push_back(std::make_pair(operatorType, std::move(element)));
             } else if (operatorType == RPNOperatorType::RIGHT_PAR) {
                 /* == Handle right parenthesis case == */
                 /* == This will not fail because miss match parenthesis is checked before == */
-                while (operatorStack.front().first != RPNOperatorType::LEFT_PAR) {
+                while (operatorStack.back().first != RPNOperatorType::LEFT_PAR) {
                     /* == Move element to output stack == */
-                    postfixStack.push_back(std::move(operatorStack.front().second));
+                    postfixStack.push_back(std::move(operatorStack.back().second));
 
                     /* == Pop element from operator stack == */
-                    operatorStack.pop_front();
+                    operatorStack.pop_back();
                 }
 
                 /* == Pop left parenthesis == */
-                operatorStack.pop_front();
+                operatorStack.pop_back();
             } else {
                 /* == Handle general case == */
                 const auto &currentOperator = getOperatorFromOperatorType(operatorType);
                 bool stop = operatorStack.empty();
                 while (!stop) {
                     stop = true;
-                    const auto &frontOperatorType = operatorStack.front().first;
+                    const auto &frontOperatorType = operatorStack.back().first;
                     const auto &frontOP = getOperatorFromOperatorType(frontOperatorType);
                     if (frontOperatorType != RPNOperatorType::LEFT_PAR &&
                         (currentOperator.precedence < frontOP.precedence ||
                          (currentOperator.precedence == frontOP.precedence && !frontOP.isRighAssociative))) {
 
                         /* == Move element to output stack == */
-                        postfixStack.push_back(std::move(operatorStack.front().second));
+                        postfixStack.push_back(std::move(operatorStack.back().second));
 
                         /* == Pop element from operator stack == */
-                        operatorStack.pop_front();
+                        operatorStack.pop_back();
 
                         /* == Update stop condition == */
                         stop = operatorStack.empty();
@@ -337,7 +340,7 @@ Spider::vector<RPNElement> RPNConverter::extractPostfixElements(std::string infi
                 }
 
                 /* == Push current operator to the stack == */
-                operatorStack.push_front(std::make_pair(operatorType, std::move(element)));
+                operatorStack.push_back(std::make_pair(operatorType, std::move(element)));
             }
         } else {
             /* == Handle operand == */
@@ -346,9 +349,9 @@ Spider::vector<RPNElement> RPNConverter::extractPostfixElements(std::string infi
     }
 
     /* == Pop the remaining elements in the operator stack == */
-    for (auto &op : operatorStack) {
+    for (auto it = operatorStack.rbegin(); it != operatorStack.rend(); ++it) {
         /* == Move element to output stack == */
-        postfixStack.push_back(std::move(op.second));
+        postfixStack.push_back(std::move((*it).second));
     }
     return postfixStack;
 }
