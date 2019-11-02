@@ -45,9 +45,50 @@
 #include <graphs/pisdf/params/DynamicParam.h>
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/Edge.h>
+#include <graphs/pisdf/Delay.h>
 #include <graphs/pisdf/ExecVertex.h>
 #include <graphs/pisdf/specials/Specials.h>
 #include <graphs-tools/brv/LCMBRVCompute.h>
+
+/* === Static function(s) === */
+
+
+static Spider::vector<Spider::SRDAG::VertexLinker, StackID::TRANSFO>
+buildSourceLinkerVector(const PiSDFEdge *edge,
+                        const Spider::SRDAG::Job &job,
+                        PiSDFGraph *srdag,
+                        Spider::SRDAG::JobStack &nextJobs,
+                        Spider::SRDAG::JobStack &dynaJobs) {
+    const auto *source = edge->source();
+    const auto *delay = edge->delay();
+    Spider::vector<Spider::SRDAG::VertexLinker, StackID::TRANSFO> sourceVector;
+    if (delay) {
+        sourceVector.reserve(delay->setter()->repetitionValue() + source->repetitionValue());
+        for (auto i = 0; i < delay->setter()->repetitionValue(); ++i) {
+            // todo: push_back
+        }
+    } else {
+        sourceVector.reserve(source->repetitionValue());
+    }
+    return sourceVector;
+}
+
+static Spider::vector<Spider::SRDAG::VertexLinker, StackID::TRANSFO>
+buildSinkLinkerVector(const PiSDFEdge *edge,
+                      const Spider::SRDAG::Job &job,
+                      PiSDFGraph *srdag,
+                      Spider::SRDAG::JobStack &nextJobs,
+                      Spider::SRDAG::JobStack &dynaJobs) {
+    const auto *sink = edge->sink();
+    const auto *delay = edge->delay();
+    Spider::vector<Spider::SRDAG::VertexLinker, StackID::TRANSFO> sinkVector;
+    if (delay) {
+        sinkVector.reserve(delay->getter()->repetitionValue() + sink->repetitionValue());
+    } else {
+        sinkVector.reserve(sink->repetitionValue());
+    }
+    return sinkVector;
+}
 
 /* === Methods implementation === */
 
@@ -77,9 +118,68 @@ Spider::SRDAG::staticSingleRateTransformation(const Spider::SRDAG::Job &job, PiS
         brvTask.execute();
     }
 
-    /* == Do the linkage for every edges of the graph == */
     JobStack nextJobs;
     JobStack dynaJobs;
+    /* == Do the linkage for every edges of the graph == */
+    std::vector<bool> vertexStatusVector(job.reference_->vertexCount(), false);
+    for (const auto &edge : job.reference_->edges()) {
+        //TODO: make copies of source and sink, setter and getter
+        staticEdgeSingleRateLinkage(edge, job, srdag, nextJobs, dynaJobs);
+        vertexStatusVector[edge->source()->ix()] = true;
+        vertexStatusVector[edge->sink()->ix()] = true;
+    }
+
+    /* == Check for non-connected vertices == */
+    for (const auto &vertex : job.reference_->vertices()) {
+        if (!vertexStatusVector[vertex->ix()]) {
+            //TODO: copy the vertex into the srdag
+        }
+    }
 
     return std::make_pair(std::move(nextJobs), std::move(dynaJobs));
+}
+
+void Spider::SRDAG::staticEdgeSingleRateLinkage(PiSDFEdge *edge,
+                                                const Spider::SRDAG::Job &job,
+                                                PiSDFGraph *srdag,
+                                                Spider::SRDAG::JobStack &nextJobs,
+                                                Spider::SRDAG::JobStack &dynaJobs) {
+
+    auto sourceVector = buildSourceLinkerVector(edge, job, srdag, nextJobs, dynaJobs);
+    auto sinkVector = buildSinkLinkerVector(edge, job, srdag, nextJobs, dynaJobs);
+
+    /* == Iterate over sinks == */
+    while (!sinkVector.empty()) {
+
+    }
+
+    /* == Left overs == */
+    while (!sourceVector.empty()) {
+
+    }
+
+    // for (sink : sinks) {
+    //      sink.lower==sink.upper ?
+    //          source.lower == source.upper?
+    //              connect source.ix->sink.ix;
+    //          else: label=create_fork
+    //              create fork;
+    //              connect source.ix->fork.0
+    //              sources.pop()
+    //              for (out : fork.count - 1) {
+    //                  connect fork.out->sink.ix;
+    //                  sinks.pop();
+    //                  sink = sinks.next
+    //              }
+    //              source.push(fork, fork.count, remaining)
+    //      else: label=create_join
+    //          create join;
+    //          connect join.0->sink.ix;
+    //          sinks.pop()
+    //          for (in : join.in - 1) {
+    //              connect source.ix->join.in;
+    //              sources.pop();
+    //              source = sources.next;
+    //          }
+    //          sinks.push(join, join.count, remaining)
 }

@@ -57,17 +57,15 @@ namespace Spider {
         };
 
         struct SinkLinker {
-            std::int64_t lowerDep_ = -1;
-            std::int64_t upperDep_ = -1;
             std::int64_t rate_ = -1;
-            PiSDFVertex *vertex_ = nullptr;
             std::uint32_t portIx_ = UINT32_MAX;
+            PiSDFAbstractVertex *vertex_ = nullptr;
         };
 
-        struct SourceLinker {
+        struct VertexLinker {
             std::int64_t rate_ = -1;
             std::uint32_t portIx_ = UINT32_MAX;
-            PiSDFVertex *vertex_ = nullptr;
+            PiSDFAbstractVertex *vertex_ = nullptr;
         };
 
         struct EdgeLinker {
@@ -80,7 +78,6 @@ namespace Spider {
 
         /* === Functions prototype === */
 
-
         /**
          * @brief Perform static single rate transformation for a given input job.
          * @remark If one of the subgraph of the job is dynamic then it is automatically split into two graphs.
@@ -92,7 +89,11 @@ namespace Spider {
          */
         std::pair<JobStack, JobStack> staticSingleRateTransformation(const Job &job, PiSDFGraph *srdag);
 
-
+        void staticEdgeSingleRateLinkage(PiSDFEdge *edge,
+                                         const Job &job,
+                                         PiSDFGraph *srdag,
+                                         JobStack &nextJobs,
+                                         JobStack &dynaJobs);
     }
 }
 
