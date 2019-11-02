@@ -52,16 +52,18 @@ namespace Spider {
         class EndVertex final : public ExecVertex {
         public:
             explicit EndVertex(std::string name = "unnamed-endvertex",
-                                Graph *graph = nullptr, //TODO: change to Spider::pisdfgraph() when this API replace old one
-                                StackID stack = StackID::PISDF) : ExecVertex(std::move(name),
-                                                                             VertexType::SPECIAL,
-                                                                             1,
-                                                                             0,
-                                                                             graph,
-                                                                             stack) {
+                               Graph *graph = nullptr, //TODO: change to Spider::pisdfgraph() when this API replace old one
+                               StackID stack = StackID::PISDF) : ExecVertex(std::move(name),
+                                                                            VertexType::SPECIAL,
+                                                                            1,
+                                                                            0,
+                                                                            graph,
+                                                                            stack) {
             }
 
             /* === Method(s) === */
+
+            inline Vertex *clone(StackID stack, Graph *graph) const override;
 
             /* === Getter(s) === */
 
@@ -78,6 +80,16 @@ namespace Spider {
 
         VertexType EndVertex::subtype() const {
             return VertexType::END;
+        }
+
+        Vertex *EndVertex::clone(StackID stack, Graph *graph) const {
+            auto *result = Spider::API::createEnd(graph ? graph : this->graph_,
+                                                  "clone-" + this->name_,
+                                                  0,
+                                                  stack);
+            result->reference_ = this;
+            this->copyCount_ += 1;
+            return result;
         }
 
         /* === Inline method(s) === */

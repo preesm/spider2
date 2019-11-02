@@ -67,7 +67,7 @@ namespace Spider {
 
             Vertex(const Vertex &other) = delete;
 
-            virtual ~Vertex() = default;
+            virtual ~Vertex();
 
             /* === Method(s) === */
 
@@ -106,6 +106,20 @@ namespace Spider {
              * @return this or vertex connected to edge.
              */
             inline virtual Vertex *forwardEdge(const Edge *);
+
+            /**
+             * @brief Clone the vertex.
+             * @param stack Stack on which to clone the vertex.
+             * @param Graph Graph to which the clone is added (if nullptr, @refitem graph_ is used).
+             * @return Clone instance of the vertex.
+             */
+            virtual Vertex *clone(StackID, Graph *) const = 0;
+
+            /**
+             * @brief Return a const pointer to this.
+             * @return this.
+             */
+            inline const Vertex *self() const;
 
             /* === Getter(s) === */
 
@@ -185,7 +199,20 @@ namespace Spider {
              */
             inline VertexType type() const;
 
+            /**
+             * @brief Get the subtype of the vertex.
+             * @return @refitem Spider::PiSDF::VertexType corresponding to the subtype
+             */
             inline virtual VertexType subtype() const;
+
+            /**
+             * @brief Return the reference vertex attached to current copy.
+             * @remark If vertex is not a copy, this return the vertex itself.
+             * @warning There is a potential risk here. If the reference is freed before the copy,
+             * there are no possibilities to know it.
+             * @return pointer to @refitem Vertex reference.
+             */
+            inline const Vertex *reference() const;
 
             /* === Setter(s) === */
 
@@ -212,9 +239,11 @@ namespace Spider {
         protected:
             Graph *graph_ = nullptr;
             std::string name_ = "unnamed-vertex";
-            std::uint32_t repetitionValue_ = 0;
             std::uint32_t ix_ = UINT32_MAX;
             VertexType type_ = VertexType::NORMAL;
+            std::uint32_t repetitionValue_ = 0;
+            mutable std::uint32_t copyCount_ = 0;
+            const Vertex *reference_ = this;
 
             Spider::Array<Edge *> inputEdgeArray_;
             Spider::Array<Edge *> outputEdgeArray_;
@@ -282,6 +311,14 @@ namespace Spider {
 
         VertexType Vertex::subtype() const {
             return type_;
+        }
+
+        const Vertex *Vertex::reference() const {
+            return reference_;
+        }
+
+        const Vertex *Vertex::self() const {
+            return this;
         }
 
         void Vertex::setName(const std::string &name) {

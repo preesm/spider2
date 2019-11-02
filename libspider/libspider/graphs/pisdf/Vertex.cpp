@@ -61,6 +61,14 @@ Spider::PiSDF::Vertex::Vertex(std::string name,
                                                outputEdgeArray_{edgeOUTCount, nullptr, stack} {
 }
 
+
+Spider::PiSDF::Vertex::~Vertex() {
+    if (copyCount_) {
+        Spider::Logger::printError(LOG_GENERAL, "Removing vertex [%s] with clones out there.", name().c_str());
+    }
+    this->reference_->copyCount_ -= 1;
+}
+
 void Spider::PiSDF::Vertex::connectInputEdge(Edge *edge, std::uint32_t ix) {
     connectEdge(inputEdgeArray_, edge, ix);
 }

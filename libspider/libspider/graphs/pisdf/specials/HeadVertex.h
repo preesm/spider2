@@ -64,6 +64,8 @@ namespace Spider {
 
             /* === Method(s) === */
 
+            inline Vertex *clone(StackID stack, Graph *graph) const override;
+
             /* === Getter(s) === */
 
             inline VertexType subtype() const override;
@@ -79,6 +81,17 @@ namespace Spider {
 
         VertexType HeadVertex::subtype() const {
             return VertexType::HEAD;
+        }
+
+        Vertex *HeadVertex::clone(StackID stack, Graph *graph) const {
+            auto *result = Spider::API::createHead(graph ? graph : this->graph_,
+                                                   "clone-" + this->name_,
+                                                   this->edgesINCount(),
+                                                   0,
+                                                   stack);
+            result->reference_ = this;
+            this->copyCount_ += 1;
+            return result;
         }
 
         /* === Inline method(s) === */

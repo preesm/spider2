@@ -66,49 +66,14 @@ namespace Spider {
 
             /* === Getter(s) === */
 
-            /**
-             * @brief Return the reference vertex attached to current copy.
-             * @remark If vertex is not a copy, this return the vertex itself.
-             * @warning There is a potential risk here. If the reference is freed before the copy,
-             * there are no possibilities to know it.
-             * @return pointer to @refitem Vertex reference.
-             */
-            inline const ExecVertex *reference() const;
-
-            inline const ExecVertex *self() const;
+            Vertex *clone(StackID stack, Graph *graph) const override;
 
             /* === Setter(s) === */
 
-            /**
-             * @brief Set the reference vertex of this vertex.
-             * @remark This method override current value.
-             * @param vertex Vertex to set.
-             * @throws Spider::Exception if vertex is nullptr.
-             */
-            inline void setReferenceVertex(const ExecVertex *vertex);
-
         private:
-            const ExecVertex *reference_ = this;
 
             //TODO add function call
         };
-
-
-        const Spider::PiSDF::ExecVertex *Spider::PiSDF::ExecVertex::reference() const {
-            return reference_;
-        }
-
-        const ExecVertex *ExecVertex::self() const {
-            return this;
-        }
-
-        void ExecVertex::setReferenceVertex(const ExecVertex *vertex) {
-            if (vertex) {
-                reference_ = vertex;
-                return;
-            }
-            throwSpiderException("Reference of a vertex can not be nullptr. Vertex [%s]", name_.c_str());
-        }
     }
 }
 #endif //SPIDER2_EXECVERTEX_H

@@ -64,6 +64,8 @@ namespace Spider {
 
             /* === Method(s) === */
 
+            inline Vertex *clone(StackID stack, Graph *graph) const override;
+
             /* === Getter(s) === */
 
             inline VertexType subtype() const override;
@@ -79,6 +81,16 @@ namespace Spider {
 
         VertexType JoinVertex::subtype() const {
             return VertexType::JOIN;
+        }
+
+        Vertex *JoinVertex::clone(StackID stack, Graph *graph) const {
+            auto *result = Spider::API::createJoin(graph ? graph : this->graph_,
+                                                   "clone-" + this->name_,
+                                                   this->edgesINCount(),
+                                                   stack);
+            result->reference_ = this;
+            this->copyCount_ += 1;
+            return result;
         }
 
         /* === Inline method(s) === */

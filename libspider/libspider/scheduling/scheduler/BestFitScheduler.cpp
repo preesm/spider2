@@ -69,7 +69,7 @@ void Spider::BestFitScheduler::vertexMapper(const PiSDFVertex *vertex) {
     /* == Search for the best slave possible == */
     const auto *platform = Spider::platform();
     const auto &scenario = Spider::scenario();
-    const auto *reference = vertex->reference();
+    const auto *reference = dynamic_cast<const PiSDFVertex *>(vertex->reference());
     const auto &platformStats = schedule_.stats();
 
     std::pair<std::uint32_t, std::uint32_t> bestSlave{UINT32_MAX, UINT32_MAX};

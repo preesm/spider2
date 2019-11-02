@@ -69,6 +69,8 @@ namespace Spider {
 
             inline Edge *outputEdge() const override;
 
+            inline Vertex *clone(StackID stack, Graph *graph) const override;
+
             /* === Getter(s) === */
 
             inline Vertex *opposite() const override;
@@ -106,6 +108,13 @@ namespace Spider {
 
         VertexType OutputInterface::subtype() const {
             return VertexType::OUTPUT;
+        }
+
+        Vertex *OutputInterface::clone(StackID stack, Graph *graph) const {
+            auto *result = Spider::API::createOutputInterface(graph, "clone-" + this->name_, stack);
+            result->reference_ = this;
+            this->copyCount_ += 1;
+            return result;
         }
     }
 }

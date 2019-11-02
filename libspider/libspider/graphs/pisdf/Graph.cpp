@@ -187,6 +187,24 @@ Spider::PiSDF::Vertex *Spider::PiSDF::Graph::forwardEdge(const Edge *e) {
 
 /* === Private method(s) === */
 
+
+
+Spider::PiSDF::Vertex *Spider::PiSDF::Graph::clone(StackID stack, Graph *graph) const {
+    auto *result = Spider::API::createSubraph(graph ? graph : graph_,
+                                              "clone-" + this->name_,
+                                              this->vertexCount(),
+                                              this->edgeCount(),
+                                              this->paramCount(),
+                                              this->edgesINCount(),
+                                              this->edgesOUTCount(),
+                                              this->configVertexCount(),
+                                              stack);
+    result->dynamic_ = this->dynamic_;
+    result->reference_ = this;
+    this->copyCount_ += 1;
+    return result;
+}
+
 template<class T>
 void Spider::PiSDF::Graph::removeElement(Spider::vector<T *> &eltVector, T *elt) {
     if (!elt) {

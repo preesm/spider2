@@ -63,6 +63,8 @@ namespace Spider {
 
             /* === Method(s) === */
 
+            inline Vertex *clone(StackID stack, Graph *graph) const override;
+
             /* === Getter(s) === */
 
             inline VertexType subtype() const override;
@@ -78,6 +80,16 @@ namespace Spider {
 
         VertexType DownSampleVertex::subtype() const {
             return VertexType::DOWNSAMPLE;
+        }
+
+        Vertex *DownSampleVertex::clone(StackID stack, Graph *graph) const {
+            auto *result = Spider::API::createDownsample(graph ? graph : this->graph_,
+                                                     "clone-" + this->name_,
+                                                     0,
+                                                     stack);
+            result->reference_ = this;
+            this->copyCount_ += 1;
+            return result;
         }
 
         /* === Inline method(s) === */
