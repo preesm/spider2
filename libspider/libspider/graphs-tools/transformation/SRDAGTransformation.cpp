@@ -49,6 +49,7 @@
 #include <graphs/pisdf/ExecVertex.h>
 #include <graphs/pisdf/specials/Specials.h>
 #include <graphs-tools/brv/LCMBRVCompute.h>
+#include <graphs-tools/numerical/PiSDFAnalysis.h>
 
 /* === Static function(s) === */
 
@@ -84,7 +85,7 @@ static void pushReverseVertexLinkerVector(Spider::SRDAG::LinkerVector &vector,
     using Spider::SRDAG::VertexLinker;
     const auto &cloneIx = fetchOrClone(reference, linker)->ix();
     for (auto i = (cloneIx + reference->repetitionValue() - 1); i >= cloneIx; --i) {
-        vector.push_back(VertexLinker{rate, portIx, linker.srdag_->vertices()[i]});
+        vector.emplace_back(rate, portIx, linker.srdag_->vertices()[i]);
     }
 }
 
@@ -194,13 +195,65 @@ Spider::SRDAG::staticSingleRateTransformation(const Spider::SRDAG::Job &job, PiS
 }
 
 void Spider::SRDAG::staticEdgeSingleRateLinkage(EdgeLinker &linker) {
-
     auto sourceVector = buildSourceLinkerVector(linker);
     auto sinkVector = buildSinkLinkerVector(linker);
 
     /* == Iterate over sinks == */
+    const auto &delay = linker.edge_->delay() ? linker.edge_->delay()->value() : 0;
+    std::int32_t snkFiring = 0;
+    std::int32_t srcFiring = 0;
+    //TODO: ùanage values of srcFiring / snkFiring and check that everything hold with fork / join / setter / getter.
     while (!sinkVector.empty()) {
+        auto snkLnk = sinkVector.back();
+        const auto &srcLnk = sourceVector.back();
+        const auto &snkLowerDep = Spider::PiSDF::computeConsLowerDep(snkLnk.rate_, srcLnk.rate_, snkFiring, delay);
+        const auto &snkUpperDep = Spider::PiSDF::computeConsUpperDep(snkLnk.rate_, srcLnk.rate_, snkFiring, delay);
+        if (snkLowerDep == snkUpperDep) {
+            /* == Check if source need a fork == */
+            const auto &srcLowerDep = Spider::PiSDF::computeProdLowerDep(snkLnk.rate_,
+                                                                         srcLnk.rate_,
+                                                                         srcFiring,
+                                                                         delay,
+                                                                         snkLnk.vertex_->reference()->repetitionValue());
+            const auto &srcUpperDep = Spider::PiSDF::computeProdUpperDep(snkLnk.rate_,
+                                                                         srcLnk.rate_,
+                                                                         srcFiring,
+                                                                         delay,
+                                                                         snkLnk.vertex_->reference()->repetitionValue());
+            if (srcLowerDep == srcUpperDep) {
+                /* == Create an edge between source and link == */
+                Spider::API::createEdge(srcLnk.vertex_, srcLnk.portIx_, srcLnk.rate_,
+                                        snkLnk.vertex_, snkLnk.portIx_, snkLnk.rate_, StackID::TRANSFO);
+                sourceVector.pop_back();
+            } else {
+                /* == Source need a fork == */
+                auto *fork = Spider::API::createFork(linker.srdag_,
+                                                     "fork-" + srcLnk.vertex_->name() + "_out-" +
+                                                     std::to_string(srcLnk.portIx_),
+                                                     (srcUpperDep - srcLowerDep) + 1,
+                                                     0,
+                                                     StackID::TRANSFO);
 
+                /* == Create an edge between source and fork == */
+                Spider::API::createEdge(srcLnk.vertex_, srcLnk.portIx_, srcLnk.rate_,
+                                        fork, 0, srcLnk.rate_, StackID::TRANSFO);
+
+                /* == Connect out of fork == */
+                std::int64_t remaining = srcLnk.rate_;
+                for (std::uint32_t i = 0; i < fork->edgesOUTCount() - 1; ++i) {
+                    remaining -= snkLnk.rate_;
+                    Spider::API::createEdge(fork, i, snkLnk.rate_,
+                                            snkLnk.vertex_, snkLnk.portIx_, snkLnk.rate_, StackID::TRANSFO);
+                    sinkVector.pop_back();
+                    snkLnk = sinkVector.back();
+                }
+                sourceVector.pop_back();
+                sourceVector.emplace_back(remaining, fork->edgesOUTCount() - 1, fork);
+            }
+
+        } else {
+            /* == Need a join == */
+        }
     }
 
     /* == Left overs == */
