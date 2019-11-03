@@ -190,8 +190,9 @@ Spider::PiSDF::Vertex *Spider::PiSDF::Graph::forwardEdge(const Edge *e) {
 
 
 Spider::PiSDF::Vertex *Spider::PiSDF::Graph::clone(StackID stack, Graph *graph) const {
-    auto *result = Spider::API::createSubraph(graph ? graph : graph_,
-                                              "clone-" + this->name_,
+    graph = graph ? graph : this->graph_;
+    auto *result = Spider::API::createSubraph(graph,
+                                              "cpy-" + graph->name() + "-" + this->name_,
                                               this->vertexCount(),
                                               this->edgeCount(),
                                               this->paramCount(),

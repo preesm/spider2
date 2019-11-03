@@ -83,8 +83,9 @@ namespace Spider {
         }
 
         Vertex *DownSampleVertex::clone(StackID stack, Graph *graph) const {
-            auto *result = Spider::API::createDownsample(graph ? graph : this->graph_,
-                                                     "clone-" + this->name_,
+            graph = graph ? graph : this->graph_;
+            auto *result = Spider::API::createDownsample(graph,
+                                                         "cpy-" + graph->name() + "-" + this->name_,
                                                      0,
                                                      stack);
             result->reference_ = this;

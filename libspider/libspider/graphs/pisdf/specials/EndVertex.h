@@ -83,8 +83,9 @@ namespace Spider {
         }
 
         Vertex *EndVertex::clone(StackID stack, Graph *graph) const {
-            auto *result = Spider::API::createEnd(graph ? graph : this->graph_,
-                                                  "clone-" + this->name_,
+            graph = graph ? graph : this->graph_;
+            auto *result = Spider::API::createEnd(graph,
+                                                  "cpy-" + graph->name() + "-" + this->name_,
                                                   0,
                                                   stack);
             result->reference_ = this;

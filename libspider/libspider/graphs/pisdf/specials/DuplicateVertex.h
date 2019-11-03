@@ -84,8 +84,9 @@ namespace Spider {
         }
 
         Vertex *DuplicateVertex::clone(StackID stack, Graph *graph) const {
-            auto *result = Spider::API::createDuplicate(graph ? graph : this->graph_,
-                                                         "clone-" + this->name_,
+            graph = graph ? graph : this->graph_;
+            auto *result = Spider::API::createDuplicate(graph,
+                                                        "cpy-" + graph->name() + "-" + this->name_,
                                                          this->edgesOUTCount(),
                                                          0,
                                                          stack);

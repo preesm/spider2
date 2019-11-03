@@ -84,8 +84,9 @@ namespace Spider {
         }
 
         Vertex *TailVertex::clone(StackID stack, Graph *graph) const {
-            auto *result = Spider::API::createTail(graph ? graph : this->graph_,
-                                                   "clone-" + this->name_,
+            graph = graph ? graph : this->graph_;
+            auto *result = Spider::API::createTail(graph,
+                                                   "cpy-" + graph->name() + "-" + this->name_,
                                                    this->edgesINCount(),
                                                    0,
                                                    stack);

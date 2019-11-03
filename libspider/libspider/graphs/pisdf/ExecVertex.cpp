@@ -68,8 +68,9 @@ Spider::PiSDF::ExecVertex::ExecVertex(std::string name,
 }
 
 Spider::PiSDF::Vertex *Spider::PiSDF::ExecVertex::clone(StackID stack, Graph *graph) const {
-    auto *result = Spider::API::createVertex(graph ? graph : this->graph_,
-                                             "clone-" + this->name_,
+    graph = graph ? graph : this->graph_;
+    auto *result = Spider::API::createVertex(graph,
+                                             "cpy-" + graph->name() + "-" + this->name_,
                                              this->edgesINCount(),
                                              this->edgesOUTCount(),
                                              stack);
