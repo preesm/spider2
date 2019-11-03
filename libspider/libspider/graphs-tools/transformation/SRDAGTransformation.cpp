@@ -52,41 +52,95 @@
 
 /* === Static function(s) === */
 
+static PiSDFAbstractVertex *
+fetchOrClone(const PiSDFAbstractVertex *reference, Spider::SRDAG::EdgeLinker &linker) {
+    if (!reference) {
+        throwSpiderException("Trying to clone nullptr vertex.");
+    }
+    auto &index = linker.tracker_[reference->ix()];
 
-static Spider::vector<Spider::SRDAG::VertexLinker, StackID::TRANSFO>
-buildSourceLinkerVector(const PiSDFEdge *edge,
-                        const Spider::SRDAG::Job &job,
-                        PiSDFGraph *srdag,
-                        Spider::SRDAG::JobStack &nextJobs,
-                        Spider::SRDAG::JobStack &dynaJobs) {
+    // TODO: handle the split of dynamic graphs
+
+    /* == If vertex has already been cloned return the first one == */
+    if (index != UINT32_MAX) {
+        return linker.srdag_->vertices()[index];
+    }
+
+    /* == Clone the vertex N times and return the first one == */
+    auto *clone = reference->clone(StackID::TRANSFO, linker.srdag_);
+    index = clone->ix();
+    for (std::uint32_t it = 1; it < reference->repetitionValue(); ++it) {
+        auto *vertex = reference->clone(StackID::TRANSFO, linker.srdag_);
+        vertex->setName(vertex->name() + "_" + std::to_string(it));
+    }
+    return clone;
+}
+
+static void pushReverseVertexLinkerVector(Spider::SRDAG::LinkerVector &vector,
+                                          const PiSDFAbstractVertex *reference,
+                                          const std::int64_t &rate,
+                                          const std::uint32_t portIx,
+                                          Spider::SRDAG::EdgeLinker &linker) {
+    using Spider::SRDAG::VertexLinker;
+    const auto &cloneIx = fetchOrClone(reference, linker)->ix();
+    for (auto i = (cloneIx + reference->repetitionValue() - 1); i >= cloneIx; --i) {
+        vector.push_back(VertexLinker{rate, portIx, linker.srdag_->vertices()[i]});
+    }
+}
+
+static Spider::SRDAG::LinkerVector
+buildSourceLinkerVector(Spider::SRDAG::EdgeLinker &linker) {
+    const auto &edge = linker.edge_;
     const auto *source = edge->source();
     const auto *delay = edge->delay();
-    Spider::vector<Spider::SRDAG::VertexLinker, StackID::TRANSFO> sourceVector;
+    Spider::SRDAG::LinkerVector sourceVector;
+    sourceVector.reserve(source->repetitionValue() +
+                         (delay ? delay->setter()->repetitionValue() : 0));
+
+    /* == Populate first the source clones in reverse order == */
+    pushReverseVertexLinkerVector(sourceVector,
+                                  source,
+                                  edge->sourceRateExpression().evaluate(),
+                                  edge->sourcePortIx(),
+                                  linker);
+
+    /* == If delay, populate the setter clones in reverse order == */
     if (delay) {
-        sourceVector.reserve(delay->setter()->repetitionValue() + source->repetitionValue());
-        for (auto i = 0; i < delay->setter()->repetitionValue(); ++i) {
-            // todo: push_back
-        }
-    } else {
-        sourceVector.reserve(source->repetitionValue());
+        const auto &setterEdge = delay->vertex()->inputEdge(0);
+        pushReverseVertexLinkerVector(sourceVector,
+                                      delay->setter(),
+                                      setterEdge->sourceRateExpression().evaluate(),
+                                      setterEdge->sourcePortIx(),
+                                      linker);
     }
     return sourceVector;
 }
 
 static Spider::vector<Spider::SRDAG::VertexLinker, StackID::TRANSFO>
-buildSinkLinkerVector(const PiSDFEdge *edge,
-                      const Spider::SRDAG::Job &job,
-                      PiSDFGraph *srdag,
-                      Spider::SRDAG::JobStack &nextJobs,
-                      Spider::SRDAG::JobStack &dynaJobs) {
+buildSinkLinkerVector(Spider::SRDAG::EdgeLinker &linker) {
+    const auto &edge = linker.edge_;
     const auto *sink = edge->sink();
     const auto *delay = edge->delay();
     Spider::vector<Spider::SRDAG::VertexLinker, StackID::TRANSFO> sinkVector;
+    sinkVector.reserve(sink->repetitionValue() +
+                       (delay ? delay->getter()->repetitionValue() : 0));
+
+    /* == First, if delay, populate the getter clones in reverse order == */
     if (delay) {
-        sinkVector.reserve(delay->getter()->repetitionValue() + sink->repetitionValue());
-    } else {
-        sinkVector.reserve(sink->repetitionValue());
+        const auto &getterEdge = delay->vertex()->outputEdge(0);
+        pushReverseVertexLinkerVector(sinkVector,
+                                      delay->getter(),
+                                      getterEdge->sinkRateExpression().evaluate(),
+                                      getterEdge->sinkPortIx(),
+                                      linker);
     }
+
+    /* == Populate the sink clones in reverse order == */
+    pushReverseVertexLinkerVector(sinkVector,
+                                  sink,
+                                  edge->sinkRateExpression().evaluate(),
+                                  edge->sinkPortIx(),
+                                  linker);
     return sinkVector;
 }
 
@@ -121,32 +175,28 @@ Spider::SRDAG::staticSingleRateTransformation(const Spider::SRDAG::Job &job, PiS
     JobStack nextJobs;
     JobStack dynaJobs;
     /* == Do the linkage for every edges of the graph == */
-    std::vector<bool> vertexStatusVector(job.reference_->vertexCount(), false);
+    TransfoTracker vertexTransfoTracker;
+    vertexTransfoTracker.reserve(job.reference_->vertexCount());
+    std::fill(vertexTransfoTracker.begin(), vertexTransfoTracker.end(), UINT32_MAX);
+    auto linker = EdgeLinker{nullptr, srdag, job, nextJobs, dynaJobs, vertexTransfoTracker};
     for (const auto &edge : job.reference_->edges()) {
-        //TODO: make copies of source and sink, setter and getter
-        staticEdgeSingleRateLinkage(edge, job, srdag, nextJobs, dynaJobs);
-        vertexStatusVector[edge->source()->ix()] = true;
-        vertexStatusVector[edge->sink()->ix()] = true;
+        linker.edge_ = edge;
+        staticEdgeSingleRateLinkage(linker);
     }
 
     /* == Check for non-connected vertices == */
+    linker.edge_ = nullptr;
     for (const auto &vertex : job.reference_->vertices()) {
-        if (!vertexStatusVector[vertex->ix()]) {
-            //TODO: copy the vertex into the srdag
-        }
+        fetchOrClone(vertex, linker);
     }
 
     return std::make_pair(std::move(nextJobs), std::move(dynaJobs));
 }
 
-void Spider::SRDAG::staticEdgeSingleRateLinkage(PiSDFEdge *edge,
-                                                const Spider::SRDAG::Job &job,
-                                                PiSDFGraph *srdag,
-                                                Spider::SRDAG::JobStack &nextJobs,
-                                                Spider::SRDAG::JobStack &dynaJobs) {
+void Spider::SRDAG::staticEdgeSingleRateLinkage(EdgeLinker &linker) {
 
-    auto sourceVector = buildSourceLinkerVector(edge, job, srdag, nextJobs, dynaJobs);
-    auto sinkVector = buildSinkLinkerVector(edge, job, srdag, nextJobs, dynaJobs);
+    auto sourceVector = buildSourceLinkerVector(linker);
+    auto sinkVector = buildSinkLinkerVector(linker);
 
     /* == Iterate over sinks == */
     while (!sinkVector.empty()) {

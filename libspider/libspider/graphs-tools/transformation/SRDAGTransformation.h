@@ -48,6 +48,20 @@
 namespace Spider {
     namespace SRDAG {
 
+        /* === Forward declaration(s) === */
+
+        struct Job;
+
+        struct VertexLinker;
+
+        /* === Type definition(s) === */
+
+        using JobStack = Spider::vector<Job, StackID::TRANSFO>;
+
+        using TransfoTracker = Spider::vector<std::uint32_t, StackID::TRANSFO>;
+
+        using LinkerVector = Spider::vector<VertexLinker, StackID::TRANSFO>;
+
         /* === Structure definition(s) === */
 
         struct Job {
@@ -56,25 +70,34 @@ namespace Spider {
             std::uint32_t instanceValue_ = 0;
         };
 
-        struct SinkLinker {
-            std::int64_t rate_ = -1;
-            std::uint32_t portIx_ = UINT32_MAX;
-            PiSDFAbstractVertex *vertex_ = nullptr;
-        };
-
         struct VertexLinker {
             std::int64_t rate_ = -1;
             std::uint32_t portIx_ = UINT32_MAX;
             PiSDFAbstractVertex *vertex_ = nullptr;
+
+            VertexLinker() = default;
+
+            VertexLinker(std::int64_t rate, std::uint32_t portIx, PiSDFAbstractVertex *vertex) : rate_{rate},
+                                                                                                 portIx_{portIx},
+                                                                                                 vertex_{vertex} { }
         };
 
         struct EdgeLinker {
             const PiSDFEdge *edge_ = nullptr;
+            PiSDFGraph *srdag_ = nullptr;
+            const Job &job_;
+            JobStack &nextJobs_;
+            JobStack &dynaJobs_;
+            TransfoTracker &tracker_;
+
+            EdgeLinker() = delete;
+
+            EdgeLinker(const PiSDFEdge *edge, PiSDFGraph *graph,
+                       const Job &job, JobStack &nextJobs, JobStack &dynaJobs,
+                       TransfoTracker &tracker) : edge_{edge}, srdag_{graph},
+                                                  job_{job}, nextJobs_{nextJobs}, dynaJobs_{dynaJobs},
+                                                  tracker_{tracker} { }
         };
-
-        /* === Type definition(s) === */
-
-        using JobStack = Spider::vector<Spider::SRDAG::Job, StackID::TRANSFO>;
 
         /* === Functions prototype === */
 
@@ -89,11 +112,7 @@ namespace Spider {
          */
         std::pair<JobStack, JobStack> staticSingleRateTransformation(const Job &job, PiSDFGraph *srdag);
 
-        void staticEdgeSingleRateLinkage(PiSDFEdge *edge,
-                                         const Job &job,
-                                         PiSDFGraph *srdag,
-                                         JobStack &nextJobs,
-                                         JobStack &dynaJobs);
+        void staticEdgeSingleRateLinkage(EdgeLinker &linker);
     }
 }
 
