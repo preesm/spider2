@@ -43,6 +43,7 @@
 /* === Include(s) === */
 
 #include <graphs/pisdf/ExecVertex.h>
+#include <graphs/pisdf/Graph.h>
 
 namespace Spider {
     namespace PiSDF {

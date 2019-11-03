@@ -43,6 +43,7 @@
 /* === Include(s) === */
 
 #include <graphs/pisdf/ExecVertex.h>
+#include <graphs/pisdf/Graph.h>
 
 namespace Spider {
     namespace PiSDF {
@@ -85,7 +86,7 @@ namespace Spider {
         Vertex *InitVertex::clone(StackID stack, Graph *graph) const {
             graph = graph ? graph : this->graph_;
             auto *result = Spider::API::createInit(graph,
-                                                   "cpy-" + graph->name() + "-" + this->name_,_,
+                                                   "cpy-" + graph->name() + "-" + this->name_,
                                                    0,
                                                    stack);
             result->reference_ = this;
