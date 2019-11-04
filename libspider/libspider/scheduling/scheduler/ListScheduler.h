@@ -66,17 +66,18 @@ namespace Spider {
 
     protected:
         struct ListVertex {
-            PiSDFVertex *vertex = nullptr;
+            PiSDFAbstractVertex *vertex = nullptr;
             std::int32_t level = -1;
 
-            explicit ListVertex(PiSDFVertex *vertex, std::int32_t level = -1) : vertex{vertex}, level{level} { };
+            explicit ListVertex(PiSDFAbstractVertex *vertex, std::int32_t level = -1) : vertex{vertex},
+                                                                                        level{level} { };
         };
 
         Spider::vector<ListVertex> sortedVertexVector_;
 
         /* === Protected method(s) === */
 
-        inline std::uint64_t computeMinStartTime(ScheduleJob &job) {};
+        inline std::uint64_t computeMinStartTime(ScheduleJob &job) { };
 
     private:
         static std::int32_t computeScheduleLevel(ListVertex &listVertex,

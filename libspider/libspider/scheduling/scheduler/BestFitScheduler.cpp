@@ -62,7 +62,7 @@ Spider::Schedule &Spider::BestFitScheduler::mappingScheduling(bool partial) {
     return schedule_;
 }
 
-void Spider::BestFitScheduler::vertexMapper(const PiSDFVertex *vertex) {
+void Spider::BestFitScheduler::vertexMapper(const PiSDFAbstractVertex *vertex) {
     /* == Compute the minimum start time possible for vertex == */
     std::uint64_t minStartTime = 0;
 

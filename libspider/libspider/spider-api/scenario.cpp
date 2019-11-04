@@ -57,30 +57,30 @@ Spider::Scenario &Spider::scenario() {
     return scenario;
 }
 
-void Spider::API::setVertexMappableOnCluster(const PiSDFVertex *vertex, const Cluster *cluster, bool value) {
+void Spider::API::setVertexMappableOnCluster(const PiSDFAbstractVertex *vertex, const Cluster *cluster, bool value) {
     auto &scenario = Spider::scenario();
     for (auto &PE : cluster->processingElements()) {
         scenario.setMappingConstraint(vertex, PE, value);
     }
 }
 
-void Spider::API::setVertexMappableOnCluster(const PiSDFVertex *vertex, std::uint32_t clusterIx, bool value) {
+void Spider::API::setVertexMappableOnCluster(const PiSDFAbstractVertex *vertex, std::uint32_t clusterIx, bool value) {
     auto *&platform = Spider::platform();
     auto *cluster = platform->cluster(clusterIx);
     Spider::API::setVertexMappableOnCluster(vertex, cluster, value);
 }
 
-void Spider::API::setVertexMappableOnPE(const PiSDFVertex *vertex, const ProcessingElement *PE, bool value) {
+void Spider::API::setVertexMappableOnPE(const PiSDFAbstractVertex *vertex, const ProcessingElement *PE, bool value) {
     auto &scenario = Spider::scenario();
     scenario.setMappingConstraint(vertex, PE, value);
 }
 
-void Spider::API::setVertexMappableOnPE(const PiSDFVertex *vertex, std::uint32_t spiderPEIx, bool value) {
+void Spider::API::setVertexMappableOnPE(const PiSDFAbstractVertex *vertex, std::uint32_t spiderPEIx, bool value) {
     auto &scenario = Spider::scenario();
     scenario.setMappingConstraint(vertex, spiderPEIx, value);
 }
 
-void Spider::API::setVertexMappableOnAllPE(const PiSDFVertex *vertex, bool value) {
+void Spider::API::setVertexMappableOnAllPE(const PiSDFAbstractVertex *vertex, bool value) {
     auto &scenario = Spider::scenario();
     auto *&platform = Spider::platform();
     for (const auto &cluster : platform->clusters()) {
@@ -90,35 +90,35 @@ void Spider::API::setVertexMappableOnAllPE(const PiSDFVertex *vertex, bool value
     }
 }
 
-void Spider::API::setVertexExecutionTimingOnPE(const PiSDFVertex *vertex,
+void Spider::API::setVertexExecutionTimingOnPE(const PiSDFAbstractVertex *vertex,
                                                const ProcessingElement *PE,
                                                const std::string &expression) {
     auto &scenario = Spider::scenario();
     scenario.setExecutionTiming(vertex, PE, expression);
 }
 
-void Spider::API::setVertexExecutionTimingOnPE(const PiSDFVertex *vertex,
+void Spider::API::setVertexExecutionTimingOnPE(const PiSDFAbstractVertex *vertex,
                                                const ProcessingElement *PE,
                                                std::int64_t timing) {
     auto &scenario = Spider::scenario();
     scenario.setExecutionTiming(vertex, PE, timing);
 }
 
-void Spider::API::setVertexExecutionTimingOnPEType(const PiSDFVertex *vertex,
+void Spider::API::setVertexExecutionTimingOnPEType(const PiSDFAbstractVertex *vertex,
                                                    std::uint32_t PEType,
                                                    const std::string &expression) {
     auto &scenario = Spider::scenario();
     scenario.setExecutionTiming(vertex, PEType, expression);
 }
 
-void Spider::API::setVertexExecutionTimingOnPEType(const PiSDFVertex *vertex,
+void Spider::API::setVertexExecutionTimingOnPEType(const PiSDFAbstractVertex *vertex,
                                                    std::uint32_t PEType,
                                                    std::int64_t timing) {
     auto &scenario = Spider::scenario();
     scenario.setExecutionTiming(vertex, PEType, timing);
 }
 
-void Spider::API::setVertexExecutionTimingOnAllPEType(const PiSDFVertex *vertex, std::int64_t timing) {
+void Spider::API::setVertexExecutionTimingOnAllPEType(const PiSDFAbstractVertex *vertex, std::int64_t timing) {
     auto &scenario = Spider::scenario();
     auto *&platform = Spider::platform();
     for (const auto &cluster : platform->clusters()) {

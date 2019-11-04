@@ -62,7 +62,7 @@ public:
 };
 
 bool PiSDFUnitaryOptimizer::operator()(PiSDFGraph *graph) const {
-    Spider::vector<PiSDFVertex *> verticesToOptimize;
+    Spider::vector<PiSDFAbstractVertex *> verticesToOptimize;
 
     for (auto *vertex : graph->vertices()) {
         switch (vertex->type()) {

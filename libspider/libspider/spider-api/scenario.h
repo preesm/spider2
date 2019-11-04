@@ -66,33 +66,33 @@ namespace Spider {
 
         /* === General Scenario related API === */
 
-        void setVertexMappableOnCluster(const PiSDFVertex *vertex, const Cluster *cluster, bool value = true);
+        void setVertexMappableOnCluster(const PiSDFAbstractVertex *vertex, const Cluster *cluster, bool value = true);
 
-        void setVertexMappableOnCluster(const PiSDFVertex *vertex, std::uint32_t clusterIx, bool value = true);
+        void setVertexMappableOnCluster(const PiSDFAbstractVertex *vertex, std::uint32_t clusterIx, bool value = true);
 
-        void setVertexMappableOnPE(const PiSDFVertex *vertex, const ProcessingElement *PE, bool value = true);
+        void setVertexMappableOnPE(const PiSDFAbstractVertex *vertex, const ProcessingElement *PE, bool value = true);
 
-        void setVertexMappableOnPE(const PiSDFVertex *vertex, std::uint32_t spiderPEIx, bool value = true);
+        void setVertexMappableOnPE(const PiSDFAbstractVertex *vertex, std::uint32_t spiderPEIx, bool value = true);
 
-        void setVertexMappableOnAllPE(const PiSDFVertex *vertex, bool value = true);
+        void setVertexMappableOnAllPE(const PiSDFAbstractVertex *vertex, bool value = true);
 
-        void setVertexExecutionTimingOnPE(const PiSDFVertex *vertex,
+        void setVertexExecutionTimingOnPE(const PiSDFAbstractVertex *vertex,
                                           const ProcessingElement *PE,
                                           const std::string &expression = "100");
 
-        void setVertexExecutionTimingOnPE(const PiSDFVertex *vertex,
+        void setVertexExecutionTimingOnPE(const PiSDFAbstractVertex *vertex,
                                           const ProcessingElement *PE,
                                           std::int64_t timing = 100);
 
-        void setVertexExecutionTimingOnPEType(const PiSDFVertex *vertex,
+        void setVertexExecutionTimingOnPEType(const PiSDFAbstractVertex *vertex,
                                               std::uint32_t PEType,
                                               const std::string &expression = "100");
 
-        void setVertexExecutionTimingOnPEType(const PiSDFVertex *vertex,
+        void setVertexExecutionTimingOnPEType(const PiSDFAbstractVertex *vertex,
                                               std::uint32_t PEType,
                                               std::int64_t timing = 100);
 
-        void setVertexExecutionTimingOnAllPEType(const PiSDFVertex *vertex,
+        void setVertexExecutionTimingOnAllPEType(const PiSDFAbstractVertex *vertex,
                                                  std::int64_t timing = 100);
     }
 }

@@ -76,13 +76,13 @@ Spider::PiSDF::Graph::Graph(std::string name,
 }
 
 Spider::PiSDF::Graph::~Graph() {
-    /* == Destroy / deallocate subgraphs == */
-    for (auto &subgraph : subgraphVector_) {
-        Spider::destroy(subgraph);
-        Spider::deallocate(subgraph);
-    }
+//    /* == Destroy / deallocate subgraphs == */
+//    for (auto &subgraph : subgraphVector_) {
+//        Spider::destroy(subgraph);
+//        Spider::deallocate(subgraph);
+//    }
 
-    /* == Destroy / deallocate vertices == */
+    /* == Destroy / deallocate vertices (subgraphs included) == */
     for (auto &vertex : vertexVector_) {
         Spider::destroy(vertex);
         Spider::deallocate(vertex);
@@ -115,7 +115,7 @@ void Spider::PiSDF::Graph::addVertex(Vertex *vertex) {
         case VertexType::DELAY:
         case VertexType::NORMAL:
             vertex->setIx(vertexVector_.size());
-            vertexVector_.push_back(dynamic_cast<ExecVertex *>(vertex));
+            vertexVector_.push_back(vertex);
             break;
         case VertexType::CONFIG:
             vertex->setIx(configVertexVector_.size());
@@ -123,6 +123,8 @@ void Spider::PiSDF::Graph::addVertex(Vertex *vertex) {
             break;
         case VertexType::GRAPH:
             addSubGraph(dynamic_cast<Graph *>(vertex));
+            vertex->setIx(vertexVector_.size());
+            vertexVector_.push_back(vertex);
             break;
         case VertexType::INTERFACE:
             addInterface(vertex);
@@ -132,8 +134,22 @@ void Spider::PiSDF::Graph::addVertex(Vertex *vertex) {
     }
 }
 
-void Spider::PiSDF::Graph::removeVertex(ExecVertex *vertex) {
+void Spider::PiSDF::Graph::removeVertex(Vertex *vertex) {
+    if (vertex->subtype() == VertexType::GRAPH) {
+        throwSpiderException("removing subgraph using removeVertex. Use removeSubgraph instead.");
+    }
     removeElement(vertexVector_, vertex);
+}
+
+void Spider::PiSDF::Graph::removeSubgraph(Graph *subgraph) {
+    if (!subgraph) {
+        return;
+    }
+    auto ix = subgraph->subIx_;
+    removeElement(vertexVector_, static_cast<Vertex *>(subgraph));
+    subgraphVector_[ix] = subgraphVector_.back();
+    subgraphVector_[ix]->subIx_ = ix;
+    subgraphVector_.pop_back();
 }
 
 void Spider::PiSDF::Graph::addEdge(Edge *edge) {
@@ -251,6 +267,6 @@ void Spider::PiSDF::Graph::addInterface(Vertex *interface) {
 }
 
 void Spider::PiSDF::Graph::addSubGraph(Graph *graph) {
-    graph->setIx(subgraphVector_.size());
+    graph->subIx_ = subgraphVector_.size();
     subgraphVector_.push_back(graph);
 }

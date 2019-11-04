@@ -53,7 +53,7 @@ public:
 };
 
 bool PiSDFJoinEndOptimizer::operator()(PiSDFGraph *graph) const {
-    Spider::vector<PiSDFVertex *> verticesToOptimize;
+    Spider::vector<PiSDFAbstractVertex *> verticesToOptimize;
 
     /* == Retrieve the vertices to remove == */
     for (auto *vertex : graph->vertices()) {

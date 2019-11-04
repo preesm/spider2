@@ -83,7 +83,16 @@ namespace Spider {
              * @param vertex Vertex to remove.
              * @throw @refitem Spider::Exception if vertex does not exist in the graph.
              */
-            void removeVertex(ExecVertex *vertex);
+            void removeVertex(Vertex *vertex);
+
+            /**
+             * @brief Remove a subgraph from the graph.
+             * @remark If subgraph is nullptr, nothing happens.
+             * @remark This method also removes the graph from the vertexVector.
+             * @param subgraph Subgraph to remove.
+             * @throw @refitem Spider::Exception if subgraph does not exist in the graph.
+             */
+            void removeSubgraph(Graph *subgraph);
 
             /**
              * @brief Add an edge to the graph.
@@ -192,10 +201,16 @@ namespace Spider {
             inline std::uint64_t outputIFCount() const;
 
             /**
+             * @brief Get the number of subgraphs.
+             * @return Number of subgraphs.
+             */
+            inline std::uint64_t subgraphCount() const;
+
+            /**
             * @brief A const reference on the set of vertices. Useful for iterating on the vertices.
             * @return const reference to exec vertex vector
             */
-            inline const Spider::vector<ExecVertex *> &vertices() const;
+            inline const Spider::vector<Vertex *> &vertices() const;
 
             /**
             * @brief A const reference on the set of subgraphs. Useful for iterating on the subgraphs.
@@ -237,10 +252,11 @@ namespace Spider {
 
         private:
             bool dynamic_ = false;
+            std::uint32_t subIx_ = UINT32_MAX;
 
             /* === Contained elements of the graph === */
 
-            Spider::vector<ExecVertex *> vertexVector_;
+            Spider::vector<Vertex *> vertexVector_;
             Spider::vector<Vertex *> configVertexVector_;
             Spider::vector<Graph *> subgraphVector_;
             Spider::vector<Edge *> edgeVector_;
@@ -300,7 +316,11 @@ namespace Spider {
             return outputInterfaceArray_.size();
         }
 
-        const Spider::vector<ExecVertex *> &Graph::vertices() const {
+        std::uint64_t Graph::subgraphCount() const {
+            return subgraphVector_.size();
+        }
+
+        const Spider::vector<Vertex *> &Graph::vertices() const {
             return vertexVector_;
         }
 
