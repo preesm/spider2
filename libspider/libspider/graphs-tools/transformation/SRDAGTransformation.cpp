@@ -160,6 +160,7 @@ static void computeDependencies(Spider::SRDAG::LinkerVector &srcVector,
     std::uint32_t firing = 0;
     for (auto it = snkVector.rbegin(); it < snkVector.rend(); ++it) {
         if (it == snkVector.rbegin() + sinkRepetitionValue) {
+            /* == We've reached the end / getter vertices == */
             delay = delay - snkRate * sinkRepetitionValue;
             snkRate = getterRate;
             firing = 0;
@@ -191,6 +192,65 @@ static void computeDependencies(Spider::SRDAG::LinkerVector &srcVector,
         srcVector[upperIndex].upperDep_ = std::max(srcVector[upperIndex].upperDep_, firing);
         firing += 1;
     }
+}
+
+static void addForkVertex(Spider::SRDAG::LinkerVector &srcVector,
+                          Spider::SRDAG::LinkerVector &snkVector,
+                          PiSDFGraph *srdag) {
+    const auto &sourceLinker = srcVector.back();
+    auto *fork = Spider::API::createFork(srdag,
+                                         "fork-" + sourceLinker.vertex_->name() + "_out-" +
+                                         std::to_string(sourceLinker.portIx_),
+                                         (sourceLinker.upperDep_ - sourceLinker.lowerDep_) + 1,
+                                         0,
+                                         StackID::TRANSFO);
+
+    /* == Create an edge between source and fork == */
+    Spider::API::createEdge(sourceLinker.vertex_, sourceLinker.portIx_, sourceLinker.rate_,
+                            fork, 0, sourceLinker.rate_, StackID::TRANSFO);
+    srcVector.pop_back();
+
+    /* == Connect out of fork == */
+    auto remaining = sourceLinker.rate_;
+    for (std::uint32_t i = 0; i < fork->edgesOUTCount() - 1; ++i) {
+        const auto &sinkLinker = snkVector.back();
+        remaining -= sinkLinker.rate_;
+        Spider::API::createEdge(fork, i, sinkLinker.rate_,
+                                sinkLinker.vertex_, sinkLinker.portIx_, sinkLinker.rate_, StackID::TRANSFO);
+        snkVector.pop_back();
+    }
+    srcVector.emplace_back(remaining, fork->edgesOUTCount() - 1, fork);
+    srcVector.back().lowerDep_ = sourceLinker.upperDep_;
+    srcVector.back().upperDep_ = sourceLinker.upperDep_;
+}
+
+static void addJoinVertex(Spider::SRDAG::LinkerVector &srcVector,
+                          Spider::SRDAG::LinkerVector &snkVector,
+                          PiSDFGraph *srdag) {
+    const auto &sinkLinker = snkVector.back();
+    auto *join = Spider::API::createJoin(srdag,
+                                         "join-" + sinkLinker.vertex_->name() + "_in-" +
+                                         std::to_string(sinkLinker.portIx_),
+                                         (sinkLinker.upperDep_ - sinkLinker.lowerDep_) + 1,
+                                         StackID::TRANSFO);
+
+    /* == Create an edge between source and fork == */
+    Spider::API::createEdge(join, 0, sinkLinker.rate_,
+                            sinkLinker.vertex_, sinkLinker.portIx_, sinkLinker.rate_, StackID::TRANSFO);
+    snkVector.pop_back();
+
+    /* == Connect in of join == */
+    auto remaining = sinkLinker.rate_;
+    for (std::uint32_t i = 0; i < join->edgesINCount() - 1; ++i) {
+        const auto &sourceLinker = srcVector.back();
+        remaining -= sourceLinker.rate_;
+        Spider::API::createEdge(sourceLinker.vertex_, sourceLinker.portIx_, sourceLinker.rate_,
+                                join, i, sourceLinker.rate_, StackID::TRANSFO);
+        srcVector.pop_back();
+    }
+    snkVector.emplace_back(remaining, join->edgesINCount() - 1, join);
+    snkVector.back().lowerDep_ = sinkLinker.upperDep_;
+    snkVector.back().upperDep_ = sinkLinker.upperDep_;
 }
 
 /* === Methods implementation === */
@@ -256,78 +316,35 @@ void Spider::SRDAG::staticEdgeSingleRateLinkage(EdgeLinker &linker) {
         } else if (linker.edge_->delay()->value() < linker.edge_->sinkRateExpression().evaluate()) {
             throwSpiderException("Insufficient delay [%"
                                          PRIu32
-                                         "] on edge [%s].", linker.edge_->delay()->value(), linker.edge_->name().c_str());
+                                         "] on edge [%s].", linker.edge_->delay()->value(),
+                                 linker.edge_->name().c_str());
         }
     }
 
     auto sourceVector = buildSourceLinkerVector(linker);
     auto sinkVector = buildSinkLinkerVector(linker);
 
+    /* == Compute the different dependencies of sinks over sources == */
     computeDependencies(sourceVector, sinkVector, linker.edge_);
 
     /* == Iterate over sinks == */
     while (!sinkVector.empty()) {
-        auto snkLnk = sinkVector.back();
-        auto srcLnk = sourceVector.back();
+        const auto &snkLnk = sinkVector.back();
+        const auto &srcLnk = sourceVector.back();
         if (snkLnk.lowerDep_ == snkLnk.upperDep_) {
             if (srcLnk.lowerDep_ == srcLnk.upperDep_) {
-                /* == Create an edge between source and link == */
+                /* == Forward link between source and sink == */
                 Spider::API::createEdge(srcLnk.vertex_, srcLnk.portIx_, srcLnk.rate_,
                                         snkLnk.vertex_, snkLnk.portIx_, snkLnk.rate_, StackID::TRANSFO);
                 sourceVector.pop_back();
                 sinkVector.pop_back();
             } else {
                 /* == Source need a fork == */
-                auto *fork = Spider::API::createFork(linker.srdag_,
-                                                     "fork-" + srcLnk.vertex_->name() + "_out-" +
-                                                     std::to_string(srcLnk.portIx_),
-                                                     (srcLnk.upperDep_ - srcLnk.lowerDep_) + 1,
-                                                     0,
-                                                     StackID::TRANSFO);
-
-                /* == Create an edge between source and fork == */
-                Spider::API::createEdge(srcLnk.vertex_, srcLnk.portIx_, srcLnk.rate_,
-                                        fork, 0, srcLnk.rate_, StackID::TRANSFO);
-                sourceVector.pop_back();
-
-                /* == Connect out of fork == */
-                auto remaining = srcLnk.rate_;
-                for (std::uint32_t i = 0; i < fork->edgesOUTCount() - 1; ++i) {
-                    remaining -= snkLnk.rate_;
-                    Spider::API::createEdge(fork, i, snkLnk.rate_,
-                                            snkLnk.vertex_, snkLnk.portIx_, snkLnk.rate_, StackID::TRANSFO);
-                    sinkVector.pop_back();
-                    snkLnk = sinkVector.back();
-                }
-                sourceVector.emplace_back(remaining, fork->edgesOUTCount() - 1, fork);
-                sourceVector.back().lowerDep_ = srcLnk.upperDep_;
-                sourceVector.back().upperDep_ = srcLnk.upperDep_;
+                addForkVertex(sourceVector, sinkVector, linker.srdag_);
             }
         } else {
             /* == Sink need a join == */
-            auto *join = Spider::API::createJoin(linker.srdag_,
-                                                 "join-" + snkLnk.vertex_->name() + "_in-" +
-                                                 std::to_string(snkLnk.portIx_),
-                                                 (snkLnk.upperDep_ - snkLnk.lowerDep_) + 1,
-                                                 StackID::TRANSFO);
-
-            /* == Create an edge between source and fork == */
-            Spider::API::createEdge(join, 0, snkLnk.rate_,
-                                    snkLnk.vertex_, snkLnk.portIx_, snkLnk.rate_, StackID::TRANSFO);
-            sinkVector.pop_back();
-
-            /* == Connect in of join == */
-            auto remaining = snkLnk.rate_;
-            for (std::uint32_t i = 0; i < join->edgesINCount() - 1; ++i) {
-                remaining -= srcLnk.rate_;
-                Spider::API::createEdge(srcLnk.vertex_, srcLnk.portIx_, srcLnk.rate_,
-                                        join, i, srcLnk.rate_, StackID::TRANSFO);
-                sourceVector.pop_back();
-                srcLnk = sourceVector.back();
-            }
-            sinkVector.emplace_back(remaining, join->edgesINCount() - 1, join);
-            sinkVector.back().lowerDep_ = snkLnk.upperDep_;
-            sinkVector.back().upperDep_ = snkLnk.upperDep_;
+            addJoinVertex(sourceVector, sinkVector, linker.srdag_);
         }
     }
 
