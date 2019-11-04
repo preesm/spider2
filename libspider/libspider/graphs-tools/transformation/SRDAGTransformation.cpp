@@ -117,12 +117,12 @@ buildSourceLinkerVector(Spider::SRDAG::EdgeLinker &linker) {
     return sourceVector;
 }
 
-static Spider::vector<Spider::SRDAG::VertexLinker, StackID::TRANSFO>
+static Spider::SRDAG::LinkerVector
 buildSinkLinkerVector(Spider::SRDAG::EdgeLinker &linker) {
     const auto &edge = linker.edge_;
     const auto *sink = edge->sink();
     const auto *delay = edge->delay();
-    Spider::vector<Spider::SRDAG::VertexLinker, StackID::TRANSFO> sinkVector;
+    Spider::SRDAG::LinkerVector sinkVector;
     sinkVector.reserve(sink->repetitionValue() +
                        (delay ? delay->getter()->repetitionValue() : 0));
 
@@ -143,6 +143,54 @@ buildSinkLinkerVector(Spider::SRDAG::EdgeLinker &linker) {
                                   edge->sinkPortIx(),
                                   linker);
     return sinkVector;
+}
+
+static void computeDependencies(Spider::SRDAG::LinkerVector &srcVector,
+                                Spider::SRDAG::LinkerVector &snkVector,
+                                const PiSDFEdge *edge) {
+    auto &&delay = edge->delay() ? edge->delay()->value() : 0;
+    const auto &srcRate = edge->sourceRateExpression().evaluate();
+    auto &&snkRate = edge->sinkRateExpression().evaluate();
+    const auto &setterRate = edge->delay() ? srcVector.back().rate_ : 0;
+    const auto &getterRate = edge->delay() ? snkVector[0].rate_ : 0;
+    const auto &sinkRepetitionValue = edge->sink()->repetitionValue();
+    const auto &setterOffset = edge->delay() ? edge->delay()->setter()->repetitionValue() : 0;
+
+    /* == Compute dependencies for sinks == */
+    std::uint32_t firing = 0;
+    for (auto it = snkVector.rbegin(); it < snkVector.rend(); ++it) {
+        if (it == snkVector.rbegin() + sinkRepetitionValue) {
+            delay = delay - snkRate * sinkRepetitionValue;
+            snkRate = getterRate;
+            firing = 0;
+        }
+        auto &&snkLowerDep = Spider::PiSDF::computeConsLowerDep(snkRate, srcRate, firing, delay);
+        auto &&snkUpperDep = Spider::PiSDF::computeConsUpperDep(snkRate, srcRate, firing, delay);
+        if (snkLowerDep < 0) {
+            /* == Update dependencies for init / setter == */
+            snkLowerDep -= Spider::PiSDF::computeConsLowerDep(snkRate, setterRate, firing, 0);
+            if (snkUpperDep < 0) {
+                snkUpperDep -= Spider::PiSDF::computeConsUpperDep(snkRate, setterRate, firing, 0);
+            }
+        }
+        snkLowerDep += setterOffset;
+        snkUpperDep += setterOffset;
+        (*it).lowerDep_ = snkLowerDep;
+        (*it).upperDep_ = snkUpperDep;
+        firing += 1;
+    }
+
+    /* == Update source vector with proper dependencies == */
+    firing = 0;
+    for (auto it = snkVector.rbegin(); it < snkVector.rend(); ++it) {
+        const auto &lowerIndex = srcVector.size() - 1 - (*it).lowerDep_;
+        const auto &upperIndex = srcVector.size() - 1 - (*it).upperDep_;
+        srcVector[lowerIndex].lowerDep_ = std::min(srcVector[lowerIndex].lowerDep_, firing);
+        srcVector[lowerIndex].upperDep_ = std::max(srcVector[lowerIndex].upperDep_, firing);
+        srcVector[upperIndex].lowerDep_ = std::min(srcVector[upperIndex].lowerDep_, firing);
+        srcVector[upperIndex].upperDep_ = std::max(srcVector[upperIndex].upperDep_, firing);
+        firing += 1;
+    }
 }
 
 /* === Methods implementation === */
@@ -184,53 +232,48 @@ Spider::SRDAG::staticSingleRateTransformation(const Spider::SRDAG::Job &job, PiS
     auto linker = EdgeLinker{nullptr, srdag, job, nextJobs, dynaJobs, vertexTransfoTracker};
     for (const auto &edge : job.reference_->edges()) {
         linker.edge_ = edge;
-        staticEdgeSingleRateLinkage(linker);
+        if (edge->source()->type() != PiSDF::VertexType::DELAY &&
+            edge->sink()->type() != PiSDF::VertexType::DELAY) {
+            staticEdgeSingleRateLinkage(linker);
+        }
     }
 
     /* == Check for non-connected vertices == */
     linker.edge_ = nullptr;
     for (const auto &vertex : job.reference_->vertices()) {
-        fetchOrClone(vertex, linker);
+        if (vertex->type() != PiSDF::VertexType::DELAY) {
+            fetchOrClone(vertex, linker);
+        }
     }
 
     return std::make_pair(std::move(nextJobs), std::move(dynaJobs));
 }
 
 void Spider::SRDAG::staticEdgeSingleRateLinkage(EdgeLinker &linker) {
+    if ((linker.edge_->source() == linker.edge_->sink())) {
+        if (!linker.edge_->delay()) {
+            throwSpiderException("No delay on edge with self loop.");
+        } else if (linker.edge_->delay()->value() < linker.edge_->sinkRateExpression().evaluate()) {
+            throwSpiderException("Insufficient delay [%"
+                                         PRIu32
+                                         "] on edge [%s].", linker.edge_->delay()->value(), linker.edge_->name().c_str());
+        }
+    }
+
     auto sourceVector = buildSourceLinkerVector(linker);
     auto sinkVector = buildSinkLinkerVector(linker);
 
+    computeDependencies(sourceVector, sinkVector, linker.edge_);
+
     /* == Iterate over sinks == */
-    const auto &edge = linker.edge_;
-    const auto &delay = edge->delay() ? edge->delay()->value() : 0;
-    const auto &srcRate = edge->sourceRateExpression().evaluate();
-    const auto &snkRate = edge->sinkRateExpression().evaluate();
-    std::int32_t snkFiring = 0;
-    std::int32_t srcFiring = 0;
-    //TODO: manage values of srcFiring / snkFiring and check that everything hold with fork / join / setter / getter.
     while (!sinkVector.empty()) {
         auto snkLnk = sinkVector.back();
         auto srcLnk = sourceVector.back();
-        const auto &snkLowerDep = Spider::PiSDF::computeConsLowerDep(snkLnk.rate_, srcRate, snkFiring, delay);
-        const auto &snkUpperDep = Spider::PiSDF::computeConsUpperDep(snkLnk.rate_, srcRate, snkFiring, delay);
-        if (snkLowerDep == snkUpperDep) {
-            /* == Check if source need a fork == */
-            const auto &srcLowerDep = Spider::PiSDF::computeProdLowerDep(snkRate,
-                                                                         srcLnk.rate_,
-                                                                         srcFiring,
-                                                                         delay,
-                                                                         edge->sink()->repetitionValue());
-            const auto &srcUpperDep = Spider::PiSDF::computeProdUpperDep(snkRate,
-                                                                         srcLnk.rate_,
-                                                                         srcFiring,
-                                                                         delay,
-                                                                         edge->sink()->reference()->repetitionValue());
-            if (srcLowerDep == srcUpperDep) {
+        if (snkLnk.lowerDep_ == snkLnk.upperDep_) {
+            if (srcLnk.lowerDep_ == srcLnk.upperDep_) {
                 /* == Create an edge between source and link == */
                 Spider::API::createEdge(srcLnk.vertex_, srcLnk.portIx_, srcLnk.rate_,
                                         snkLnk.vertex_, snkLnk.portIx_, snkLnk.rate_, StackID::TRANSFO);
-                srcFiring += 1;
-                snkFiring += 1;
                 sourceVector.pop_back();
                 sinkVector.pop_back();
             } else {
@@ -238,7 +281,7 @@ void Spider::SRDAG::staticEdgeSingleRateLinkage(EdgeLinker &linker) {
                 auto *fork = Spider::API::createFork(linker.srdag_,
                                                      "fork-" + srcLnk.vertex_->name() + "_out-" +
                                                      std::to_string(srcLnk.portIx_),
-                                                     (srcUpperDep - srcLowerDep) + 1,
+                                                     (srcLnk.upperDep_ - srcLnk.lowerDep_) + 1,
                                                      0,
                                                      StackID::TRANSFO);
 
@@ -253,18 +296,19 @@ void Spider::SRDAG::staticEdgeSingleRateLinkage(EdgeLinker &linker) {
                     remaining -= snkLnk.rate_;
                     Spider::API::createEdge(fork, i, snkLnk.rate_,
                                             snkLnk.vertex_, snkLnk.portIx_, snkLnk.rate_, StackID::TRANSFO);
-                    snkFiring += 1;
                     sinkVector.pop_back();
                     snkLnk = sinkVector.back();
                 }
                 sourceVector.emplace_back(remaining, fork->edgesOUTCount() - 1, fork);
+                sourceVector.back().lowerDep_ = srcLnk.upperDep_;
+                sourceVector.back().upperDep_ = srcLnk.upperDep_;
             }
         } else {
             /* == Sink need a join == */
             auto *join = Spider::API::createJoin(linker.srdag_,
                                                  "join-" + snkLnk.vertex_->name() + "_in-" +
                                                  std::to_string(snkLnk.portIx_),
-                                                 (snkUpperDep - snkLowerDep) + 1,
+                                                 (snkLnk.upperDep_ - snkLnk.lowerDep_) + 1,
                                                  StackID::TRANSFO);
 
             /* == Create an edge between source and fork == */
@@ -278,42 +322,18 @@ void Spider::SRDAG::staticEdgeSingleRateLinkage(EdgeLinker &linker) {
                 remaining -= srcLnk.rate_;
                 Spider::API::createEdge(srcLnk.vertex_, srcLnk.portIx_, srcLnk.rate_,
                                         join, i, srcLnk.rate_, StackID::TRANSFO);
-                srcFiring += 1;
                 sourceVector.pop_back();
                 srcLnk = sourceVector.back();
             }
             sinkVector.emplace_back(remaining, join->edgesINCount() - 1, join);
+            sinkVector.back().lowerDep_ = snkLnk.upperDep_;
+            sinkVector.back().upperDep_ = snkLnk.upperDep_;
         }
     }
 
     /* == Sanity check == */
     if (!sourceVector.empty()) {
         throwSpiderException("remaining sources to link after single rate transformation on edge: [%s].",
-                             edge->name().c_str());
+                             linker.edge_->name().c_str());
     }
-
-    // for (sink : sinks) {
-    //      sink.lower==sink.upper ?
-    //          source.lower == source.upper?
-    //              connect source.ix->sink.ix;
-    //          else: label=create_fork
-    //              create fork;
-    //              connect source.ix->fork.0
-    //              sources.pop()
-    //              for (out : fork.count - 1) {
-    //                  connect fork.out->sink.ix;
-    //                  sinks.pop();
-    //                  sink = sinks.next
-    //              }
-    //              source.push(fork, fork.count, remaining)
-    //      else: label=create_join
-    //          create join;
-    //          connect join.0->sink.ix;
-    //          sinks.pop()
-    //          for (in : join.in - 1) {
-    //              connect source.ix->join.in;
-    //              sources.pop();
-    //              source = sources.next;
-    //          }
-    //          sinks.push(join, join.count, remaining)
 }

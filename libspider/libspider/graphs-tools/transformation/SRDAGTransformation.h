@@ -80,6 +80,8 @@ namespace Spider {
             std::int64_t rate_ = -1;
             std::uint32_t portIx_ = UINT32_MAX;
             PiSDFAbstractVertex *vertex_ = nullptr;
+            std::uint32_t lowerDep_ = UINT32_MAX;
+            std::uint32_t upperDep_ = 0;
 
             VertexLinker() = default;
 
