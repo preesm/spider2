@@ -74,22 +74,40 @@ namespace Spider {
 
         inline std::int64_t computeProdLowerDep(std::int64_t sinkRate,
                                                 std::int64_t sourceRate,
-                                                std::uint32_t instance,
+                                                std::int32_t instance,
                                                 std::int64_t delay,
                                                 std::int64_t sinkRepetitionValue) {
             auto produced = instance * sourceRate + delay;
-            auto lowerDep = produced / sinkRate;
+            auto lowerDep = Spider::Math::floorDiv(produced, sinkRate);
             return std::min(sinkRepetitionValue, lowerDep);
         }
 
         inline std::int64_t computeProdUpperDep(std::int64_t sinkRate,
                                                 std::int64_t sourceRate,
-                                                std::uint32_t instance,
+                                                std::int32_t instance,
                                                 std::int64_t delay,
                                                 std::int64_t sinkRepetitionValue) {
             auto produced = (instance + 1) * sourceRate + delay - 1;
+            auto upperDep = Spider::Math::floorDiv(produced, sinkRate);
+            return std::min(sinkRepetitionValue, upperDep);
+        }
+
+        inline std::int64_t computeProdLowerDep(std::int64_t sinkRate,
+                                                std::int64_t sourceRate,
+                                                std::uint32_t instance,
+                                                std::int64_t delay) {
+            auto produced = instance * sourceRate + delay;
             auto lowerDep = produced / sinkRate;
-            return std::min(sinkRepetitionValue, lowerDep);
+            return lowerDep;
+        }
+
+        inline std::int64_t computeProdUpperDep(std::int64_t sinkRate,
+                                                std::int64_t sourceRate,
+                                                std::uint32_t instance,
+                                                std::int64_t delay) {
+            auto produced = (instance + 1) * sourceRate + delay - 1;
+            auto upperDep = produced / sinkRate;
+            return upperDep;
         }
     }
 }
