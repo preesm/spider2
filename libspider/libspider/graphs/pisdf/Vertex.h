@@ -139,7 +139,7 @@ namespace Spider {
              * @brief Get the ix of the vertex in the containing graph.
              * @return ix of the vertex (UINT32_MAX if no ix).
              */
-            inline std::uint32_t ix() const;
+            inline const std::uint32_t &ix() const;
 
             /**
              * @brief Test if the vertex is a graph.
@@ -269,7 +269,7 @@ namespace Spider {
             return name_;
         }
 
-        std::uint32_t Vertex::ix() const {
+        const std::uint32_t &Vertex::ix() const {
             return ix_;
         }
 
