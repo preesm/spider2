@@ -83,11 +83,11 @@ namespace Spider {
             static void paramPrinter(std::ofstream &file, const Param *param, const std::string &offset);
 
             static void inputIFPrinter(std::ofstream &file,
-                                       const Interface *interface,
+                                       const InputInterface *interface,
                                        const std::string &offset);
 
             static void outputIFPrinter(std::ofstream &file,
-                                        const Interface *interface,
+                                        const OutputInterface *interface,
                                         const std::string &offset);
 
             static void interfacePrinter(std::ofstream &file,

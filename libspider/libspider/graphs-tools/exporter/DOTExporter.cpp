@@ -44,6 +44,8 @@
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/ExecVertex.h>
 #include <graphs/pisdf/Interface.h>
+#include <graphs/pisdf/interfaces/InputInterface.h>
+#include <graphs/pisdf/interfaces/OutputInterface.h>
 #include <graphs/pisdf/Edge.h>
 #include <graphs/pisdf/Param.h>
 #include <cmath>
@@ -246,8 +248,8 @@ void Spider::PiSDF::DOTExporter::vertexPrinter(std::ofstream &file,
 }
 
 void Spider::PiSDF::DOTExporter::edgePrinter(std::ofstream &file, const Edge *edge, const std::string &offset) {
-    auto *source = edge->source<true>();
-    auto *sink = edge->sink<true>();
+    auto *source = edge->source()->type() == Spider::PiSDF::VertexType::GRAPH ? edge->source<true>() : edge->source();
+    auto *sink = edge->sink()->type() == Spider::PiSDF::VertexType::GRAPH ? edge->sink<true>() : edge->sink();
     file << offset << R"(")" << source->name();
     file << R"(":out_)" << edge->sourcePortIx() << R"(:e -> ")" << sink->name() << R"(":in_)" << edge->sinkPortIx();
     file << R"(:w [penwidth=3, color="#393c3c", dir=forward];)" << '\n';
@@ -259,7 +261,7 @@ void Spider::PiSDF::DOTExporter::paramPrinter(std::ofstream &file, const Param *
 }
 
 void Spider::PiSDF::DOTExporter::inputIFPrinter(std::ofstream &file,
-                                                const Interface *interface,
+                                                const InputInterface *interface,
                                                 const std::string &offset) {
     file << offset << R"(")" << interface->name()
          << R"(" [shape=plain, style=filled, fillcolor="#fff68fff", width=0, height=0, label = <)" << '\n';
@@ -267,7 +269,7 @@ void Spider::PiSDF::DOTExporter::inputIFPrinter(std::ofstream &file,
 }
 
 void Spider::PiSDF::DOTExporter::outputIFPrinter(std::ofstream &file,
-                                                 const Interface *interface,
+                                                 const OutputInterface *interface,
                                                  const std::string &offset) {
     file << offset << R"(")" << interface->name()
          << R"(" [shape=plain, style=filled, fillcolor="#dcc6e0ff", width=0, height=0, label = <)" << '\n';
