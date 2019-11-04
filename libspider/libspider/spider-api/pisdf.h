@@ -181,18 +181,18 @@ namespace Spider {
 
         /* === Edge API === */
 
-        PiSDFEdge *createEdge(PiSDFVertex *source,
+        PiSDFEdge *createEdge(PiSDFAbstractVertex *source,
                               std::uint16_t srcPortIx,
                               std::string srcRateExpression,
-                              PiSDFVertex *sink,
+                              PiSDFAbstractVertex *sink,
                               std::uint16_t snkPortIx,
                               std::string snkRateExpression,
                               StackID stack = StackID::PISDF);
 
-        PiSDFEdge *createEdge(PiSDFVertex *source,
+        PiSDFEdge *createEdge(PiSDFAbstractVertex *source,
                               std::uint16_t srcPortIx,
                               std::int64_t srcRate,
-                              PiSDFVertex *sink,
+                              PiSDFAbstractVertex *sink,
                               std::uint16_t snkPortIx,
                               std::int64_t snkRate,
                               StackID stack = StackID::PISDF);
