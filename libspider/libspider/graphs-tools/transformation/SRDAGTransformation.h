@@ -66,14 +66,13 @@ namespace Spider {
 
         struct Job {
             const PiSDFGraph *reference_ = nullptr;
-            std::int64_t srdagIx_ = -1;
+            const std::uint32_t &srdagIx_;
             std::uint32_t instanceValue_ = 0;
 
-            Job() = default;
-
-            Job(const PiSDFGraph *graph, std::int64_t srdagIx, std::uint32_t instance) : reference_{graph},
-                                                                                         srdagIx_{srdagIx},
-                                                                                         instanceValue_{instance} { }
+            Job(const PiSDFGraph *graph, const std::uint32_t &srdagIx, std::uint32_t instance) : reference_{graph},
+                                                                                                 srdagIx_{srdagIx},
+                                                                                                 instanceValue_{
+                                                                                                         instance} { }
         };
 
         struct VertexLinker {
