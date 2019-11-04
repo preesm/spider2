@@ -110,6 +110,7 @@ Spider::PiSDF::Graph::~Graph() {
 void Spider::PiSDF::Graph::addVertex(Vertex *vertex) {
     switch (vertex->type()) {
         case VertexType::SPECIAL:
+        case VertexType::DELAY:
         case VertexType::NORMAL:
             vertex->setIx(vertexVector_.size());
             vertexVector_.push_back(dynamic_cast<ExecVertex *>(vertex));
@@ -123,8 +124,6 @@ void Spider::PiSDF::Graph::addVertex(Vertex *vertex) {
             break;
         case VertexType::INTERFACE:
             addInterface(dynamic_cast<Interface *>(vertex));
-            break;
-        case VertexType::DELAY:
             break;
         default:
             throwSpiderException("unsupported type of vertex.");
