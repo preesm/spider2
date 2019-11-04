@@ -383,18 +383,27 @@ PiSDFDelay *Spider::API::createDelay(PiSDFEdge *edge,
                                      std::string delayExpression,
                                      PiSDFVertex *setter,
                                      std::uint32_t setterPortIx,
+                                     const std::string &setterRateExpression,
                                      PiSDFVertex *getter,
                                      std::uint32_t getterPortIx,
+                                     const std::string &getterRateExpression,
                                      bool persistent,
                                      StackID stack) {
+    if (delayExpression == "0") {
+        Spider::Logger::printWarning(LOG_GENERAL, "delay with null value on edge [%s] ignored.\n", edge->name().c_str());
+        return nullptr;
+    }
     auto *delay = Spider::allocate<PiSDFDelay>(stack);
+    const auto expression = delayExpression;
     Spider::construct(delay,
                       Expression(std::move(delayExpression), edge->containingGraph()),
                       edge,
                       setter,
                       setterPortIx,
+                      Expression(setter ? setterRateExpression : expression, edge->containingGraph()),
                       getter,
                       getterPortIx,
+                      Expression(getter ? getterRateExpression : expression, edge->containingGraph()),
                       persistent);
     return delay;
 }
@@ -403,18 +412,26 @@ PiSDFDelay *Spider::API::createDelay(PiSDFEdge *edge,
                                      std::int64_t value,
                                      PiSDFVertex *setter,
                                      std::uint32_t setterPortIx,
+                                     std::int64_t setterRate,
                                      PiSDFVertex *getter,
                                      std::uint32_t getterPortIx,
+                                     std::int64_t getterRate,
                                      bool persistent,
                                      StackID stack) {
+    if (!value) {
+        Spider::Logger::printWarning(LOG_GENERAL, "delay with null value on edge [%s] ignored.\n", edge->name().c_str());
+        return nullptr;
+    }
     auto *delay = Spider::allocate<PiSDFDelay>(stack);
     Spider::construct(delay,
                       Expression(value),
                       edge,
                       setter,
                       setterPortIx,
+                      Expression(setter ? setterRate : value),
                       getter,
                       getterPortIx,
+                      Expression(getter ? getterRate : value),
                       persistent);
     return delay;
 }

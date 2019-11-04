@@ -61,12 +61,14 @@ namespace Spider {
                   Edge *edge,
                   ExecVertex *setter,
                   std::uint32_t setterPortIx,
+                  Expression &&setterRateExpression,
                   ExecVertex *getter,
                   std::uint32_t getterPortIx,
+                  Expression &&getterRateExpression,
                   bool persistent = false,
                   StackID stack = StackID::PISDF);
 
-            ~Delay();
+            ~Delay() = default;
 
             /* === Method(s) === */
 

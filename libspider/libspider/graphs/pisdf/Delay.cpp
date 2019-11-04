@@ -56,8 +56,10 @@ Spider::PiSDF::Delay::Delay(Expression &&expression,
                             Edge *edge,
                             ExecVertex *setter,
                             std::uint32_t setterPortIx,
+                            Expression &&setterRateExpression,
                             ExecVertex *getter,
                             std::uint32_t getterPortIx,
+                            Expression &&getterRateExpression,
                             bool persistent,
                             StackID stack) : expression_{std::move(expression)},
                                              edge_{edge},
@@ -89,22 +91,16 @@ Spider::PiSDF::Delay::Delay(Expression &&expression,
     /* == Create virtual vertex and connect it to setter / getter == */
     vertex_ = Spider::allocate<ExecVertex>(stack);
     Spider::construct(vertex_, this->name(), VertexType::DELAY, 1, 1, edge->containingGraph(), stack);
-    if (expression_.dynamic()) {
-        const auto &rateExpression = expression_.string();
-        Spider::API::createEdge(setter_, setterPortIx_, rateExpression, vertex_, 0, rateExpression);
-        Spider::API::createEdge(vertex_, 0, rateExpression, getter_, getterPortIx_, rateExpression);
-    } else {
-        const auto &value = expression_.value();
-        Spider::API::createEdge(setter_, setterPortIx_, value, vertex_, 0, value);
-        Spider::API::createEdge(vertex_, 0, value, getter_, getterPortIx_, value);
-    }
-}
 
-Spider::PiSDF::Delay::~Delay() {
-    if (vertex_) {
-        Spider::destroy(vertex_);
-        Spider::deallocate(vertex_);
-    }
+    auto *setterEdge = Spider::allocate<PiSDFEdge>(stack);
+    Spider::construct(setterEdge,
+                      setter_, setterPortIx_, std::move(setterRateExpression),
+                      vertex_, 0, Expression(expression_));
+    auto *getterEdge = Spider::allocate<PiSDFEdge>(stack);
+    Spider::construct(getterEdge,
+                      vertex_, 0, Expression(expression_),
+                      getter_, getterPortIx_, std::move(getterRateExpression));
+    edge_->setDelay(this);
 }
 
 std::string Spider::PiSDF::Delay::name() const {

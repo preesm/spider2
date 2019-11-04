@@ -201,8 +201,10 @@ namespace Spider {
                                 std::string delayExpression,
                                 PiSDFVertex *setter = nullptr,
                                 std::uint32_t setterPortIx = 0,
+                                const std::string &setterRateExpression = "0",
                                 PiSDFVertex *getter = nullptr,
                                 std::uint32_t getterPortIx = 0,
+                                const std::string &getterRateExpression = "0",
                                 bool persistent = true,
                                 StackID stack = StackID::PISDF);
 
@@ -210,8 +212,10 @@ namespace Spider {
                                 std::int64_t delayValue,
                                 PiSDFVertex *setter = nullptr,
                                 std::uint32_t setterPortIx = 0,
+                                std::int64_t setterRate = 0,
                                 PiSDFVertex *getter = nullptr,
                                 std::uint32_t getterPortIx = 0,
+                                std::int64_t getterRate = 0,
                                 bool persistent = true,
                                 StackID stack = StackID::PISDF);
     }
