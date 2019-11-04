@@ -54,7 +54,7 @@ namespace Spider {
 
         /* === Class definition === */
 
-        class Graph final : public Vertex {
+        class Graph final : virtual public Vertex {
         public:
 
             explicit Graph(std::string name = "unnamed-graph",
@@ -128,7 +128,7 @@ namespace Spider {
              * @param ix  Ix of the port
              * @return @refitem Interface
              */
-            inline Interface *inputInterfaceFromIx(std::uint32_t ix) const;
+            inline InputInterface *inputInterfaceFromIx(std::uint32_t ix) const;
 
             /**
              * @brief Return the output interface corresponding to the port ix.
@@ -138,7 +138,7 @@ namespace Spider {
              * @param ix  Ix of the port
              * @return @refitem Interface
              */
-            inline Interface *outputInterfaceFromIx(std::uint32_t ix) const;
+            inline OutputInterface *outputInterfaceFromIx(std::uint32_t ix) const;
 
             Vertex *forwardEdge(const Edge *e) override;
 
@@ -213,13 +213,13 @@ namespace Spider {
             * @brief A const reference on the set of output interfaces. Useful for iterating on the input interfaces.
             * @return const reference to input interface array
             */
-            inline const Spider::Array<Interface *> &inputInterfaces() const;
+            inline const Spider::Array<InputInterface *> &inputInterfaces() const;
 
             /**
             * @brief A const reference on the set of output interfaces. Useful for iterating on the output interfaces.
             * @return const reference to output interface array
             */
-            inline const Spider::Array<Interface *> &outputInterfaces() const;
+            inline const Spider::Array<OutputInterface *> &outputInterfaces() const;
 
             /**
             * @brief A const reference on the set of edges. Useful for iterating on the edges.
@@ -244,8 +244,8 @@ namespace Spider {
             Spider::vector<Vertex *> configVertexVector_;
             Spider::vector<Graph *> subgraphVector_;
             Spider::vector<Edge *> edgeVector_;
-            Spider::Array<Interface *> inputInterfaceArray_;
-            Spider::Array<Interface *> outputInterfaceArray_;
+            Spider::Array<InputInterface *> inputInterfaceArray_;
+            Spider::Array<OutputInterface *> outputInterfaceArray_;
             Spider::vector<Param *> paramVector_;
 
             /* === Private method(s) === */
@@ -257,7 +257,7 @@ namespace Spider {
              * @brief Add an interface to the graph.
              * @param interface Interface to add.
              */
-            void addInterface(Interface *interface);
+            void addInterface(Vertex *interface);
 
             /**
              * @brief Add a subgraph to the graph.
@@ -312,11 +312,11 @@ namespace Spider {
             return configVertexVector_;
         }
 
-        const Spider::Array<Interface *> &Graph::inputInterfaces() const {
+        const Spider::Array<InputInterface *> &Graph::inputInterfaces() const {
             return inputInterfaceArray_;
         }
 
-        const Spider::Array<Interface *> &Graph::outputInterfaces() const {
+        const Spider::Array<OutputInterface *> &Graph::outputInterfaces() const {
             return outputInterfaceArray_;
         }
 
@@ -328,11 +328,11 @@ namespace Spider {
             return paramVector_;
         }
 
-        Interface *Graph::inputInterfaceFromIx(std::uint32_t ix) const {
+        InputInterface *Graph::inputInterfaceFromIx(std::uint32_t ix) const {
             return inputInterfaceArray_[ix];
         }
 
-        Interface *Graph::outputInterfaceFromIx(std::uint32_t ix) const {
+        OutputInterface *Graph::outputInterfaceFromIx(std::uint32_t ix) const {
             return outputInterfaceArray_[ix];
         }
 

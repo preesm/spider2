@@ -64,7 +64,6 @@ Spider::PiSDF::ExecVertex::ExecVertex(std::string name,
     if (!graph_) {
         throwSpiderException("Vertex [%s] need to belong to a graph.", this->name().c_str());
     }
-    graph_->addVertex(this);
 }
 
 Spider::PiSDF::Vertex *Spider::PiSDF::ExecVertex::clone(StackID stack, Graph *graph) const {

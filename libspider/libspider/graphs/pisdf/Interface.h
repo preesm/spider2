@@ -66,7 +66,6 @@ namespace Spider {
                 if (!graph_) {
                     throwSpiderException("Interface [%s] need to belong to a graph.", this->name().c_str());
                 }
-                graph_->addVertex(this);
             }
 
             /* === Method(s) === */

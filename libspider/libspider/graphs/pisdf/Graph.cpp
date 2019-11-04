@@ -43,6 +43,8 @@
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/ExecVertex.h>
 #include <graphs/pisdf/Interface.h>
+#include <graphs/pisdf/interfaces/InputInterface.h>
+#include <graphs/pisdf/interfaces/OutputInterface.h>
 #include <graphs/pisdf/Param.h>
 
 /* === Static variable(s) === */
@@ -123,7 +125,7 @@ void Spider::PiSDF::Graph::addVertex(Vertex *vertex) {
             addSubGraph(dynamic_cast<Graph *>(vertex));
             break;
         case VertexType::INTERFACE:
-            addInterface(dynamic_cast<Interface *>(vertex));
+            addInterface(vertex);
             break;
         default:
             throwSpiderException("unsupported type of vertex.");
@@ -225,31 +227,27 @@ void Spider::PiSDF::Graph::removeElement(Spider::vector<T *> &eltVector, T *elt)
     Spider::deallocate(elt);
 }
 
-void Spider::PiSDF::Graph::addInterface(Interface *interface) {
+void Spider::PiSDF::Graph::addInterface(Vertex *interface) {
     static std::uint32_t indexIN = 0;
     static std::uint32_t indexOUT = 0;
-    std::uint32_t *index = nullptr;
-    Spider::Array<Interface *> *interfaceArray = nullptr;
     switch (interface->subtype()) {
         case VertexType::INPUT:
             if (indexIN == edgesINCount()) {
                 throwSpiderException("Graph [%s]: can not have more interfaces than input edges.", name().c_str());
             }
-            index = &indexIN;
-            interfaceArray = &inputInterfaceArray_;
+            interface->setIx(indexIN);
+            inputInterfaceArray_[indexIN++] = dynamic_cast<InputInterface *>(interface);
             break;
         case VertexType::OUTPUT:
-            index = &indexOUT;
             if (indexOUT == edgesOUTCount()) {
                 throwSpiderException("Graph [%s]: can not have more interfaces than output edges.", name().c_str());
             }
-            interfaceArray = &outputInterfaceArray_;
+            interface->setIx(indexOUT);
+            outputInterfaceArray_[indexOUT++] = dynamic_cast<OutputInterface *>(interface);
             break;
         default:
             throwSpiderException("Invalid interface type.");
     }
-    interface->setIx((*index));
-    (*interfaceArray)[(*index)++] = interface;
 }
 
 void Spider::PiSDF::Graph::addSubGraph(Graph *graph) {

@@ -101,6 +101,7 @@ PiSDFGraph *Spider::API::createSubraph(PiSDFGraph *graph,
                       cfgActorCount,
                       graph,
                       stack);
+    graph->addVertex(subgraph);
     return subgraph;
 }
 
@@ -117,6 +118,7 @@ PiSDFVertex *Spider::API::createVertex(PiSDFGraph *graph,
                       edgeOUTCount,
                       graph,
                       stack);
+    graph->addVertex(vertex);
     return vertex;
 }
 
@@ -130,6 +132,7 @@ PiSDFJoinVertex *Spider::API::createJoin(PiSDFGraph *graph,
                       edgeINCount,
                       graph,
                       stack);
+    graph->addVertex(vertex);
     return vertex;
 }
 
@@ -144,6 +147,7 @@ PiSDFForkVertex *Spider::API::createFork(PiSDFGraph *graph,
                       edgeOUTCount,
                       graph,
                       stack);
+    graph->addVertex(vertex);
     return vertex;
 }
 
@@ -158,6 +162,7 @@ PiSDFTailVertex *Spider::API::createTail(PiSDFGraph *graph,
                       edgeINCount,
                       graph,
                       stack);
+    graph->addVertex(vertex);
     return vertex;
 }
 
@@ -172,6 +177,7 @@ PiSDFHeadVertex *Spider::API::createHead(PiSDFGraph *graph,
                       edgeINCount,
                       graph,
                       stack);
+    graph->addVertex(vertex);
     return vertex;
 }
 
@@ -186,6 +192,7 @@ PiSDFDuplicateVertex *Spider::API::createDuplicate(PiSDFGraph *graph,
                       edgeOUTCount,
                       graph,
                       stack);
+    graph->addVertex(vertex);
     return vertex;
 }
 
@@ -198,6 +205,7 @@ PiSDFUpSampleVertex *Spider::API::createUpsample(PiSDFGraph *graph,
                       std::move(name),
                       graph,
                       stack);
+    graph->addVertex(vertex);
     return vertex;
 }
 
@@ -210,6 +218,7 @@ PiSDFDownSampleVertex *Spider::API::createDownsample(PiSDFGraph *graph,
                       std::move(name),
                       graph,
                       stack);
+    graph->addVertex(vertex);
     return vertex;
 }
 
@@ -222,6 +231,7 @@ PiSDFInitVertex *Spider::API::createInit(PiSDFGraph *graph,
                       std::move(name),
                       graph,
                       stack);
+    graph->addVertex(vertex);
     return vertex;
 }
 
@@ -234,6 +244,7 @@ PiSDFEndVertex *Spider::API::createEnd(PiSDFGraph *graph,
                       std::move(name),
                       graph,
                       stack);
+    graph->addVertex(vertex);
     return vertex;
 }
 
@@ -252,6 +263,7 @@ PiSDFVertex *Spider::API::createConfigActor(PiSDFGraph *graph,
                       edgeOUTCount,
                       graph,
                       stack);
+    graph->addVertex(vertex);
     return vertex;
 }
 
@@ -263,6 +275,7 @@ PiSDFInputInterface *Spider::API::createInputInterface(PiSDFGraph *graph,
                       std::move(name),
                       graph,
                       stack);
+    graph->addVertex(interface);
     return interface;
 }
 
@@ -274,6 +287,7 @@ PiSDFOutputInterface *Spider::API::createOutputInterface(PiSDFGraph *graph,
                       std::move(name),
                       graph,
                       stack);
+    graph->addVertex(interface);
     return interface;
 }
 
@@ -288,6 +302,7 @@ PiSDFParam *Spider::API::createStaticParam(PiSDFGraph *graph,
                       std::move(name),
                       graph,
                       value);
+    graph->addParam(param);
     return param;
 }
 
@@ -300,6 +315,7 @@ PiSDFParam *Spider::API::createStaticParam(PiSDFGraph *graph,
                       std::move(name),
                       graph,
                       Expression(std::move(expression), graph));
+    graph->addParam(param);
     return param;
 }
 
@@ -311,6 +327,7 @@ PiSDFDynamicParam *Spider::API::createDynamicParam(PiSDFGraph *graph,
                       std::move(name),
                       graph,
                       Expression(0));
+    graph->addParam(param);
     return param;
 }
 
@@ -323,6 +340,7 @@ PiSDFDynamicParam *Spider::API::createDynamicParam(PiSDFGraph *graph,
                       std::move(name),
                       graph,
                       Expression(std::move(expression), graph));
+    graph->addParam(param);
     return param;
 }
 
@@ -338,6 +356,7 @@ PiSDFInHeritedParam *Spider::API::createInheritedParam(PiSDFGraph *graph,
                       std::move(name),
                       graph,
                       parent);
+    graph->addParam(param);
     return param;
 }
 
@@ -358,6 +377,7 @@ PiSDFEdge *Spider::API::createEdge(PiSDFAbstractVertex *source,
                       sink,
                       snkPortIx,
                       Expression(std::move(snkRateExpression), sink->containingGraph()));
+    source->containingGraph()->addEdge(edge);
     return edge;
 }
 
@@ -376,6 +396,7 @@ PiSDFEdge *Spider::API::createEdge(PiSDFAbstractVertex *source,
                       sink,
                       snkPortIx,
                       Expression(snkRate));
+    source->containingGraph()->addEdge(edge);
     return edge;
 }
 

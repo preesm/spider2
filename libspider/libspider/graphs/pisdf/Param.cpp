@@ -49,7 +49,6 @@ Spider::PiSDF::Param::Param(std::string name, Graph *graph, std::int64_t value) 
                                                                                   name_{std::move(name)},
                                                                                   value_{value} {
     std::transform(name_.begin(), name_.end(), name_.begin(), ::tolower);
-    graph_->addParam(this);
 }
 
 Spider::PiSDF::Param::Param(std::string name, Graph *graph, Expression &&expression) : graph_{graph},
@@ -59,5 +58,4 @@ Spider::PiSDF::Param::Param(std::string name, Graph *graph, Expression &&express
     }
     std::transform(name_.begin(), name_.end(), name_.begin(), ::tolower);
     value_ = expression.value();
-    graph_->addParam(this);
 }

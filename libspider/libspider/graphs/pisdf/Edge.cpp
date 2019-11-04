@@ -72,7 +72,6 @@ Spider::PiSDF::Edge::Edge(Vertex *source,
     source->connectOutputEdge(this, srcIx);
     sink->connectInputEdge(this, snkIx);
     graph_ = source->containingGraph();
-    graph_->addEdge(this);
 }
 
 Spider::PiSDF::Edge::~Edge() {

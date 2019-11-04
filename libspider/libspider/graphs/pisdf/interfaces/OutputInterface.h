@@ -49,7 +49,7 @@ namespace Spider {
     namespace PiSDF {
         /* === Class definition === */
 
-        class OutputInterface final : Interface {
+        class OutputInterface final : public Interface {
         public:
 
             explicit OutputInterface(std::string name = "unnamed-interface",
