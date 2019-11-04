@@ -241,7 +241,7 @@ namespace Spider {
             std::string name_ = "unnamed-vertex";
             std::uint32_t ix_ = UINT32_MAX;
             VertexType type_ = VertexType::NORMAL;
-            std::uint32_t repetitionValue_ = 0;
+            std::uint32_t repetitionValue_ = 1;
             mutable std::uint32_t copyCount_ = 0;
             const Vertex *reference_ = this;
 
@@ -290,7 +290,7 @@ namespace Spider {
         }
 
         std::uint32_t Vertex::edgesINCount() const {
-            return outputEdgeArray_.size();
+            return inputEdgeArray_.size();
         }
 
         const Spider::Array<Edge *> &Vertex::outputEdgeArray() const {
