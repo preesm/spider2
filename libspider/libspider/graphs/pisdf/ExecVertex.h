@@ -68,12 +68,18 @@ namespace Spider {
 
             Vertex *clone(StackID stack, Graph *graph) const override;
 
+            inline bool executable() const override;
+
             /* === Setter(s) === */
 
         private:
 
             //TODO add function call
         };
+
+        bool ExecVertex::executable() const {
+            return true;
+        }
     }
 }
 #endif //SPIDER2_EXECVERTEX_H

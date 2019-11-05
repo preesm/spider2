@@ -214,6 +214,12 @@ namespace Spider {
              */
             inline const Vertex *reference() const;
 
+            /**
+             * @brief Return the executable property of a vertex.
+             * @return true if vertex is executable, false else.
+             */
+            inline virtual bool executable() const;
+
             /* === Setter(s) === */
 
             /**
@@ -307,6 +313,10 @@ namespace Spider {
 
         VertexType Vertex::type() const {
             return type_;
+        }
+
+        bool Vertex::executable() const {
+            return false;
         }
 
         VertexType Vertex::subtype() const {
