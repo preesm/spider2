@@ -214,7 +214,7 @@ void Spider::SVGGanttExporter::axisPrinter(std::ofstream &file) const {
 void Spider::SVGGanttExporter::jobPrinter(std::ofstream &file, const Spider::ScheduleJob &job) const {
     /* == Compute color and width == */
     const auto *graph = Spider::pisdfGraph();
-    const auto *vertex = graph->vertices()[job.vertexIx()];
+    const auto *vertex = graph->vertex(job.vertexIx());
     const auto *reference = vertex->reference();
     std::int32_t red = static_cast<std::uint8_t>((reinterpret_cast<std::uintptr_t>(reference) >> 3u) * 50 + 100);
     std::int32_t green = static_cast<std::uint8_t>((reinterpret_cast<std::uintptr_t>(reference) >> 2u) * 50 + 100);

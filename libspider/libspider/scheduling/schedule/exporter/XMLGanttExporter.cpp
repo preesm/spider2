@@ -79,7 +79,7 @@ void Spider::XMLGanttExporter::print(std::ofstream &file) const {
 
 void Spider::XMLGanttExporter::jobPrinter(std::ofstream &file, const Spider::ScheduleJob &job) const {
     const auto &graph = Spider::pisdfGraph();
-    const auto *vertex = graph->vertices()[job.vertexIx()];
+    const auto *vertex = graph->vertex(job.vertexIx());
     const auto *platform = Spider::platform();
     auto PEIx = platform->findPE(job.mappingInfo().clusterIx, job.mappingInfo().PEIx).hardwareIx();
 
