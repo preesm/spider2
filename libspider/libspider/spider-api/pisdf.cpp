@@ -270,7 +270,7 @@ PiSDFVertex *Spider::API::createConfigActor(PiSDFGraph *graph,
 PiSDFInputInterface *Spider::API::setInputInterfaceName(PiSDFGraph *graph,
                                                         std::uint32_t ix,
                                                         std::string name) {
-    auto *interface = graph->inputInterfaceFromIx(ix);
+    auto *interface = graph->inputInterface(ix);
     if (!interface) {
         throwSpiderException("no input interface at index %"
                                      PRIu32
@@ -283,7 +283,7 @@ PiSDFInputInterface *Spider::API::setInputInterfaceName(PiSDFGraph *graph,
 PiSDFOutputInterface *Spider::API::setOutputInterfaceName(PiSDFGraph *graph,
                                                           std::uint32_t ix,
                                                           std::string name) {
-    auto *interface = graph->outputInterfaceFromIx(ix);
+    auto *interface = graph->outputInterface(ix);
     if (!interface) {
         throwSpiderException("no output interface at index %"
                                      PRIu32

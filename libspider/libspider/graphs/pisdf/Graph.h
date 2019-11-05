@@ -130,6 +130,14 @@ namespace Spider {
             Param *findParam(const std::string &name) const;
 
             /**
+             * @brief Return the vertex corresponding to the ix.
+             * @warning This method does not check for out of bound error.
+             * @param ix  Ix of the vertex.
+             * @return @refitem Vertex
+             */
+            inline Vertex *vertex(std::uint32_t ix) const;
+
+            /**
              * @brief Return the input interface corresponding to the port ix.
              * @warning There is no consistency assured between input edges and input interfaces.
              * It is up to the user to ensure this property.
@@ -137,7 +145,7 @@ namespace Spider {
              * @param ix  Ix of the port
              * @return @refitem Interface
              */
-            inline InputInterface *inputInterfaceFromIx(std::uint32_t ix) const;
+            inline InputInterface *inputInterface(std::uint32_t ix) const;
 
             /**
              * @brief Return the output interface corresponding to the port ix.
@@ -147,7 +155,7 @@ namespace Spider {
              * @param ix  Ix of the port
              * @return @refitem Interface
              */
-            inline OutputInterface *outputInterfaceFromIx(std::uint32_t ix) const;
+            inline OutputInterface *outputInterface(std::uint32_t ix) const;
 
             Vertex *forwardEdge(const Edge *e) override;
 
@@ -270,12 +278,6 @@ namespace Spider {
             void removeElement(Spider::vector<T *> &eltVector, T *elt);
 
             /**
-             * @brief Add an interface to the graph.
-             * @param interface Interface to add.
-             */
-            void addInterface(Vertex *interface);
-
-            /**
              * @brief Add a subgraph to the graph.
              * @param graph Subgraph to add.
              */
@@ -354,11 +356,15 @@ namespace Spider {
             return paramVector_;
         }
 
-        InputInterface *Graph::inputInterfaceFromIx(std::uint32_t ix) const {
+        Vertex *Graph::vertex(std::uint32_t ix) const {
+            return vertexVector_[ix];
+        }
+
+        InputInterface *Graph::inputInterface(std::uint32_t ix) const {
             return inputInterfaceArray_[ix];
         }
 
-        OutputInterface *Graph::outputInterfaceFromIx(std::uint32_t ix) const {
+        OutputInterface *Graph::outputInterface(std::uint32_t ix) const {
             return outputInterfaceArray_[ix];
         }
 
