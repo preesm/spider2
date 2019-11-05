@@ -145,13 +145,13 @@ namespace Spider {
                                        std::uint32_t nParamsOUT = 0,
                                        StackID stack = StackID::PISDF);
 
-        PiSDFInputInterface *createInputInterface(PiSDFGraph *graph,
-                                                  std::string name,
-                                                  StackID stack = StackID::PISDF);
+        PiSDFInputInterface *setInputInterfaceName(PiSDFGraph *graph,
+                                                   std::uint32_t ix,
+                                                   std::string name);
 
-        PiSDFOutputInterface *createOutputInterface(PiSDFGraph *graph,
-                                                    std::string name,
-                                                    StackID stack = StackID::PISDF);
+        PiSDFOutputInterface *setOutputInterfaceName(PiSDFGraph *graph,
+                                                     std::uint32_t ix,
+                                                     std::string name);
 
         /* === Param API === */
 

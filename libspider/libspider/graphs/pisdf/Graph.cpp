@@ -74,6 +74,22 @@ Spider::PiSDF::Graph::Graph(std::string name,
     edgeVector_.reserve(edgeCount);
     paramVector_.reserve(paramCount);
     configVertexVector_.reserve(cfgVertexCount);
+
+    /* == Create the input interfaces == */
+    for (std::uint32_t i = 0; i < edgeINCount; ++i) {
+        auto *interface = Spider::allocate<PiSDFInputInterface>(stack);
+        Spider::construct(interface, "in_" + std::to_string(i), this, stack);
+        interface->setIx(i);
+        inputInterfaceArray_[i] = interface;
+    }
+
+    /* == Create the output interfaces == */
+    for (std::uint32_t i = 0; i < edgeOUTCount; ++i) {
+        auto *interface = Spider::allocate<PiSDFOutputInterface>(stack);
+        Spider::construct(interface, "out_" + std::to_string(i), this, stack);
+        interface->setIx(i);
+        outputInterfaceArray_[i] = interface;
+    }
 }
 
 Spider::PiSDF::Graph::~Graph() {
@@ -121,8 +137,7 @@ void Spider::PiSDF::Graph::addVertex(Vertex *vertex) {
             vertexVector_.push_back(vertex);
             break;
         case VertexType::INTERFACE:
-            addInterface(vertex);
-            break;
+            throwSpiderException("can not add interface to graph %s", name().c_str());
         default:
             throwSpiderException("unsupported type of vertex.");
     }

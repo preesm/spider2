@@ -267,27 +267,29 @@ PiSDFVertex *Spider::API::createConfigActor(PiSDFGraph *graph,
     return vertex;
 }
 
-PiSDFInputInterface *Spider::API::createInputInterface(PiSDFGraph *graph,
-                                                       std::string name,
-                                                       StackID stack) {
-    auto *interface = Spider::allocate<PiSDFInputInterface>(stack);
-    Spider::construct(interface,
-                      std::move(name),
-                      graph,
-                      stack);
-    graph->addVertex(interface);
+PiSDFInputInterface *Spider::API::setInputInterfaceName(PiSDFGraph *graph,
+                                                        std::uint32_t ix,
+                                                        std::string name) {
+    auto *interface = graph->inputInterfaceFromIx(ix);
+    if (!interface) {
+        throwSpiderException("no input interface at index %"
+                                     PRIu32
+                                     " in graph [%s]", graph->name().c_str());
+    }
+    interface->setName(std::move(name));
     return interface;
 }
 
-PiSDFOutputInterface *Spider::API::createOutputInterface(PiSDFGraph *graph,
-                                                         std::string name,
-                                                         StackID stack) {
-    auto *interface = Spider::allocate<PiSDFOutputInterface>(stack);
-    Spider::construct(interface,
-                      std::move(name),
-                      graph,
-                      stack);
-    graph->addVertex(interface);
+PiSDFOutputInterface *Spider::API::setOutputInterfaceName(PiSDFGraph *graph,
+                                                          std::uint32_t ix,
+                                                          std::string name) {
+    auto *interface = graph->outputInterfaceFromIx(ix);
+    if (!interface) {
+        throwSpiderException("no output interface at index %"
+                                     PRIu32
+                                     " in graph [%s]", graph->name().c_str());
+    }
+    interface->setName(std::move(name));
     return interface;
 }
 
@@ -411,7 +413,8 @@ PiSDFDelay *Spider::API::createDelay(PiSDFEdge *edge,
                                      bool persistent,
                                      StackID stack) {
     if (delayExpression == "0") {
-        Spider::Logger::printWarning(LOG_GENERAL, "delay with null value on edge [%s] ignored.\n", edge->name().c_str());
+        Spider::Logger::printWarning(LOG_GENERAL, "delay with null value on edge [%s] ignored.\n",
+                                     edge->name().c_str());
         return nullptr;
     }
     auto *delay = Spider::allocate<PiSDFDelay>(stack);
@@ -440,7 +443,8 @@ PiSDFDelay *Spider::API::createDelay(PiSDFEdge *edge,
                                      bool persistent,
                                      StackID stack) {
     if (!value) {
-        Spider::Logger::printWarning(LOG_GENERAL, "delay with null value on edge [%s] ignored.\n", edge->name().c_str());
+        Spider::Logger::printWarning(LOG_GENERAL, "delay with null value on edge [%s] ignored.\n",
+                                     edge->name().c_str());
         return nullptr;
     }
     auto *delay = Spider::allocate<PiSDFDelay>(stack);

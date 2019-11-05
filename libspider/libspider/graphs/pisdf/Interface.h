@@ -76,6 +76,8 @@ namespace Spider {
 
             virtual Edge *outputEdge() const = 0;
 
+            inline Vertex *clone(StackID, Graph *) const override;
+
             /* === Getter(s) === */
 
             /**
@@ -94,6 +96,10 @@ namespace Spider {
 
         Vertex *Interface::forwardEdge(const Edge *) {
             return this->opposite()->forwardEdge(nullptr);
+        }
+
+        Vertex *Interface::clone(StackID, Graph *) const {
+            throwSpiderException("can not clone interfaces");
         }
     }
 }
