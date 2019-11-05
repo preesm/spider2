@@ -69,6 +69,10 @@ namespace Spider {
             const std::uint32_t &srdagIx_;
             std::uint32_t instanceValue_ = 0;
 
+            Job(Job &&) = default;
+
+            Job(const Job &) = default;
+
             Job(const PiSDFGraph *graph, const std::uint32_t &srdagIx, std::uint32_t instance) : reference_{graph},
                                                                                                  srdagIx_{srdagIx},
                                                                                                  instanceValue_{

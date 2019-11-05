@@ -179,8 +179,8 @@ static void computeDependencies(Spider::SRDAG::LinkerVector &srcVector,
                                 Spider::SRDAG::LinkerVector &snkVector,
                                 const PiSDFEdge *edge) {
     auto &&delay = edge->delay() ? edge->delay()->value() : 0;
-    const auto &srcRate = srcVector[0].rate_; /* = This should be the proper source rate of the edge = */
-    auto &&snkRate = snkVector.back().rate_;  /* = This should be the proper sink rate of the edge = */
+    const auto &srcRate = srcVector[0].rate_;     /* = This should be the proper source rate of the edge = */
+    const auto &snkRate = snkVector.back().rate_; /* = This should be the proper sink rate of the edge = */
     const auto &setterRate = edge->delay() ? srcVector.back().rate_ : 0;
     const auto &getterRate = edge->delay() ? snkVector[0].rate_ : 0;
     const auto &sinkRepetitionValue = edge->sink()->repetitionValue();
@@ -188,15 +188,16 @@ static void computeDependencies(Spider::SRDAG::LinkerVector &srcVector,
 
     /* == Compute dependencies for sinks == */
     std::uint32_t firing = 0;
+    auto currentSinkRate = snkRate;
     for (auto it = snkVector.rbegin(); it < snkVector.rend(); ++it) {
         if (it == snkVector.rbegin() + sinkRepetitionValue) {
             /* == We've reached the end / getter vertices == */
             delay = delay - snkRate * sinkRepetitionValue;
-            snkRate = getterRate;
+            currentSinkRate = getterRate;
             firing = 0;
         }
-        auto &&snkLowerDep = Spider::PiSDF::computeConsLowerDep(snkRate, srcRate, firing, delay);
-        auto &&snkUpperDep = Spider::PiSDF::computeConsUpperDep(snkRate, srcRate, firing, delay);
+        auto snkLowerDep = Spider::PiSDF::computeConsLowerDep(currentSinkRate, srcRate, firing, delay);
+        auto snkUpperDep = Spider::PiSDF::computeConsUpperDep(currentSinkRate, srcRate, firing, delay);
         if (snkLowerDep < 0) {
             /* == Update dependencies for init / setter == */
             snkLowerDep -= Spider::PiSDF::computeConsLowerDep(snkRate, setterRate, firing, 0);
@@ -204,6 +205,8 @@ static void computeDependencies(Spider::SRDAG::LinkerVector &srcVector,
                 snkUpperDep -= Spider::PiSDF::computeConsUpperDep(snkRate, setterRate, firing, 0);
             }
         }
+
+        /* == Adjust the values to match the actual position in the source vector == */
         snkLowerDep += setterOffset;
         snkUpperDep += setterOffset;
         (*it).lowerDep_ = snkLowerDep;
