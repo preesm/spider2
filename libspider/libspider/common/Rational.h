@@ -115,6 +115,8 @@ namespace Spider {
 
         inline std::int64_t nominator() const;
 
+        friend std::ostream &operator<<(std::ostream &, const Rational &);
+
     private:
         std::int64_t n_;
         std::int64_t d_;
@@ -125,6 +127,11 @@ namespace Spider {
     };
 
     /* === Inline method(s) === */
+
+    inline std::ostream &operator<<(std::ostream &stream, const Rational &r) {
+        stream << "[" << r.nominator() << " / " << r.denominator() << "]";
+        return stream;
+    }
 
     Rational::Rational(int64_t n, int64_t d) : n_{n}, d_{d} {
         if (d_ == 0) {
