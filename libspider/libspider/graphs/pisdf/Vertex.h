@@ -228,7 +228,7 @@ namespace Spider {
              * @warning No check on the name is performed to see if it is unique in the graph.
              * @param name  Name to set.
              */
-            inline void setName(const std::string &name);
+            inline void setName(std::string name);
 
             /**
              * @brief Set the ix of the vertex in the containing graph.
@@ -331,8 +331,8 @@ namespace Spider {
             return this;
         }
 
-        void Vertex::setName(const std::string &name) {
-            name_ = name;
+        void Vertex::setName(std::string name) {
+            name_ = std::move(name);
         }
 
         void Vertex::setIx(std::uint32_t ix) {
