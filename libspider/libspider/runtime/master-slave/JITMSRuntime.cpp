@@ -41,7 +41,6 @@
 /* === Include(s) === */
 
 #include <runtime/master-slave/JITMSRuntime.h>
-#include <graphs-tools/transformation/StaticSRDAGTransformer.h>
 #include <graphs-tools/transformation/optims/PiSDFGraphOptimizer.h>
 #include <graphs-tools/exporter/DOTExporter.h>
 
@@ -53,15 +52,12 @@
 
 bool JITMSRuntime::execute() const {
     /* == Transform into srdag == */
-    auto srdagTransfomer = StaticSRDAGTransformer{graph_};
-    srdagTransfomer.execute();
-    auto *srdag = srdagTransfomer.srdag();
 
     /* == Apply graph optimizations == */
 //    Spider::PiSDF::DOTExporter(srdag).print("/tmp/srdag.dot");
-    if (Spider::API::srdagOptim()) {
-        PiSDFGraphOptimizer()(srdag);
-    }
+//    if (Spider::API::srdagOptim()) {
+//        PiSDFGraphOptimizer()(srdag);
+//    }
 //    Spider::PiSDF::DOTExporter(srdag).print("/tmp/srdag-optims.dot");
     return true;
 }

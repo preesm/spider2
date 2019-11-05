@@ -44,13 +44,12 @@
 #include <common/Exception.h>
 #include <spider-api/debug.h>
 #include <spider-api/pisdf.h>
-#include <graphs-tools/transformation/StaticSRDAGTransformer.h>
 #include <graphs-tools/transformation/optims/PiSDFGraphOptimizer.h>
 #include <graphs-tools/exporter/DOTExporter.h>
 
 /* === Methods implementation === */
 
-void Spider::API::exportPostExecGantt(const std::string &path) {
+void Spider::API::exportPostExecGantt(const std::string &) {
     if (!Spider::API::trace()) {
         throwSpiderException("Can not export graph if traces are disable. Use Spider::enableTrace().");
     }
@@ -64,7 +63,7 @@ void Spider::API::exportPostExecGantt(const std::string &path) {
     /* == Close the file == */
 }
 
-void Spider::API::exportPreExecGantt(const std::string &path) {
+void Spider::API::exportPreExecGantt(const std::string &) {
     /* == Open the file for the gantt == */
 
     /* == Get the schedule == */
@@ -74,23 +73,20 @@ void Spider::API::exportPreExecGantt(const std::string &path) {
     /* == Close the file == */
 }
 
-void Spider::API::exportSRDAG(const std::string &path, const PiSDFGraph *graph) {
+void Spider::API::exportSRDAG(const std::string &, const PiSDFGraph *) {
     /* == Get the PiSDF graph and transform it to SR-DAG == */
-    auto srdagTransfomer = StaticSRDAGTransformer{graph};
-    srdagTransfomer.execute();
-    auto *srdag = srdagTransfomer.srdag();
 
-    if (Spider::API::srdagOptim()) {
-        PiSDFGraphOptimizer()(srdag);
-    }
-
-    /* == Print the SR-DAG == */
+//    if (Spider::API::srdagOptim()) {
+//        PiSDFGraphOptimizer()(srdag);
+//    }
+//
+//    /* == Print the SR-DAG == */
 //    Spider::PiSDF::DOTExporter(srdag).print(path);
 }
 
 void Spider::API::exportGraphToDOT(const std::string &path, const PiSDFGraph *graph) {
     /* == Print the Graph == */
-//    Spider::PiSDF::DOTExporter(graph).print(path);
+    Spider::PiSDF::DOTExporter(graph).print(path);
 }
 
 void Spider::API::enableLogger(LoggerType type) {
