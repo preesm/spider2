@@ -45,6 +45,7 @@
 #include <graphs/pisdf/Interface.h>
 #include <graphs/pisdf/interfaces/InputInterface.h>
 #include <graphs/pisdf/interfaces/OutputInterface.h>
+#include <graphs/pisdf/specials/Specials.h>
 #include <graphs/pisdf/Param.h>
 
 /* === Static variable(s) === */
@@ -76,16 +77,9 @@ Spider::PiSDF::Graph::Graph(std::string name,
 }
 
 Spider::PiSDF::Graph::~Graph() {
-//    /* == Destroy / deallocate subgraphs == */
-//    for (auto &subgraph : subgraphVector_) {
-//        Spider::destroy(subgraph);
-//        Spider::deallocate(subgraph);
-//    }
-
     /* == Destroy / deallocate vertices (subgraphs included) == */
     for (auto &vertex : vertexVector_) {
-        Spider::destroy(vertex);
-        Spider::deallocate(vertex);
+        destroyVertex(vertex);
     }
     for (auto &vertex : configVertexVector_) {
         Spider::destroy(vertex);
@@ -139,17 +133,19 @@ void Spider::PiSDF::Graph::removeVertex(Vertex *vertex) {
         throwSpiderException("removing subgraph using removeVertex. Use removeSubgraph instead.");
     }
     removeElement(vertexVector_, vertex);
+    destroyVertex(vertex);
 }
 
 void Spider::PiSDF::Graph::removeSubgraph(Graph *subgraph) {
     if (!subgraph) {
         return;
     }
-    auto ix = subgraph->subIx_;
     removeElement(vertexVector_, static_cast<Vertex *>(subgraph));
+    auto ix = subgraph->subIx_;
     subgraphVector_[ix] = subgraphVector_.back();
     subgraphVector_[ix]->subIx_ = ix;
     subgraphVector_.pop_back();
+    destroyVertex(subgraph);
 }
 
 void Spider::PiSDF::Graph::addEdge(Edge *edge) {
@@ -159,6 +155,8 @@ void Spider::PiSDF::Graph::addEdge(Edge *edge) {
 
 void Spider::PiSDF::Graph::removeEdge(Edge *edge) {
     removeElement(edgeVector_, edge);
+    Spider::destroy(edge);
+    Spider::deallocate(edge);
 }
 
 void Spider::PiSDF::Graph::addParam(Param *param) {
@@ -184,6 +182,8 @@ void Spider::PiSDF::Graph::addParam(Param *param) {
 
 void Spider::PiSDF::Graph::removeParam(Param *param) {
     removeElement(paramVector_, param);
+    Spider::destroy(param);
+    Spider::deallocate(param);
 }
 
 Spider::PiSDF::Param *Spider::PiSDF::Graph::findParam(const std::string &name) const {
@@ -203,8 +203,6 @@ Spider::PiSDF::Vertex *Spider::PiSDF::Graph::forwardEdge(const Edge *e) {
 }
 
 /* === Private method(s) === */
-
-
 
 Spider::PiSDF::Vertex *Spider::PiSDF::Graph::clone(StackID stack, Graph *graph) const {
     graph = graph ? graph : this->graph_;
@@ -239,8 +237,6 @@ void Spider::PiSDF::Graph::removeElement(Spider::vector<T *> &eltVector, T *elt)
     eltVector[ix] = eltVector.back();
     eltVector[ix]->setIx(ix);
     eltVector.pop_back();
-    Spider::destroy(elt);
-    Spider::deallocate(elt);
 }
 
 void Spider::PiSDF::Graph::addInterface(Vertex *interface) {
@@ -269,4 +265,91 @@ void Spider::PiSDF::Graph::addInterface(Vertex *interface) {
 void Spider::PiSDF::Graph::addSubGraph(Graph *graph) {
     graph->subIx_ = subgraphVector_.size();
     subgraphVector_.push_back(graph);
+}
+
+void Spider::PiSDF::Graph::destroyVertex(Vertex *vertex) {
+    switch (vertex->subtype()) {
+        case VertexType::CONFIG:
+        case VertexType::DELAY:
+        case VertexType::NORMAL: {
+            auto *tmp = dynamic_cast<ExecVertex *>(vertex);
+            Spider::destroy(tmp);
+            Spider::deallocate(tmp);
+        }
+            break;
+        case VertexType::GRAPH: {
+            auto *tmp = dynamic_cast<Graph *>(vertex);
+            Spider::destroy(tmp);
+            Spider::deallocate(tmp);
+        }
+            break;
+        case VertexType::FORK: {
+            auto *tmp = dynamic_cast<ForkVertex *>(vertex);
+            Spider::destroy(tmp);
+            Spider::deallocate(tmp);
+        }
+            break;
+        case VertexType::JOIN: {
+            auto *tmp = dynamic_cast<JoinVertex *>(vertex);
+            Spider::destroy(tmp);
+            Spider::deallocate(tmp);
+        }
+            break;
+        case VertexType::UPSAMPLE: {
+            auto *tmp = dynamic_cast<UpSampleVertex *>(vertex);
+            Spider::destroy(tmp);
+            Spider::deallocate(tmp);
+        }
+            break;
+        case VertexType::DOWNSAMPLE: {
+            auto *tmp = dynamic_cast<DownSampleVertex *>(vertex);
+            Spider::destroy(tmp);
+            Spider::deallocate(tmp);
+        }
+            break;
+        case VertexType::DUPLICATE: {
+            auto *tmp = dynamic_cast<DuplicateVertex *>(vertex);
+            Spider::destroy(tmp);
+            Spider::deallocate(tmp);
+        }
+            break;
+        case VertexType::TAIL: {
+            auto *tmp = dynamic_cast<TailVertex *>(vertex);
+            Spider::destroy(tmp);
+            Spider::deallocate(tmp);
+        }
+            break;
+        case VertexType::HEAD: {
+            auto *tmp = dynamic_cast<HeadVertex *>(vertex);
+            Spider::destroy(tmp);
+            Spider::deallocate(tmp);
+        }
+            break;
+        case VertexType::INIT: {
+            auto *tmp = dynamic_cast<InitVertex *>(vertex);
+            Spider::destroy(tmp);
+            Spider::deallocate(tmp);
+        }
+            break;
+        case VertexType::END: {
+            auto *tmp = dynamic_cast<EndVertex *>(vertex);
+            Spider::destroy(tmp);
+            Spider::deallocate(tmp);
+        }
+            break;
+        case VertexType::INPUT: {
+            auto *tmp = dynamic_cast<InputInterface *>(vertex);
+            Spider::destroy(tmp);
+            Spider::deallocate(tmp);
+        }
+            break;
+        case VertexType::OUTPUT: {
+            auto *tmp = dynamic_cast<OutputInterface *>(vertex);
+            Spider::destroy(tmp);
+            Spider::deallocate(tmp);
+        }
+            break;
+        default:
+            throwSpiderException("failed to destroy vertex [%s]", vertex->name().c_str());
+    }
 }

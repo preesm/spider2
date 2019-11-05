@@ -100,6 +100,11 @@ Spider::PiSDF::Delay::Delay(Expression &&expression,
     Spider::construct(getterEdge,
                       vertex_, 0, Expression(expression_),
                       getter_, getterPortIx_, std::move(getterRateExpression));
+
+    /* == Add things to the graph == */
+    edge->containingGraph()->addVertex(vertex_);
+    edge->containingGraph()->addEdge(setterEdge);
+    edge->containingGraph()->addEdge(getterEdge);
     edge_->setDelay(this);
 }
 

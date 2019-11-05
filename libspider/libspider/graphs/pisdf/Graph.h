@@ -280,6 +280,12 @@ namespace Spider {
              * @param graph Subgraph to add.
              */
             void addSubGraph(Graph *graph);
+
+            /**
+             * @brief Destroy and deallocate a vertex with dynamic_cast to proper type (needed for proper deallocation).
+             * @param vertex Vertex to destroy.
+             */
+            static void destroyVertex(Vertex *vertex);
         };
 
         /* === Inline method(s) === */
