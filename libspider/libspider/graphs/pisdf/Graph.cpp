@@ -254,29 +254,6 @@ void Spider::PiSDF::Graph::removeElement(Spider::vector<T *> &eltVector, T *elt)
     eltVector.pop_back();
 }
 
-void Spider::PiSDF::Graph::addInterface(Vertex *interface) {
-    static std::uint32_t indexIN = 0;
-    static std::uint32_t indexOUT = 0;
-    switch (interface->subtype()) {
-        case VertexType::INPUT:
-            if (indexIN == edgesINCount()) {
-                throwSpiderException("Graph [%s]: can not have more interfaces than input edges.", name().c_str());
-            }
-            interface->setIx(indexIN);
-            inputInterfaceArray_[indexIN++] = dynamic_cast<InputInterface *>(interface);
-            break;
-        case VertexType::OUTPUT:
-            if (indexOUT == edgesOUTCount()) {
-                throwSpiderException("Graph [%s]: can not have more interfaces than output edges.", name().c_str());
-            }
-            interface->setIx(indexOUT);
-            outputInterfaceArray_[indexOUT++] = dynamic_cast<OutputInterface *>(interface);
-            break;
-        default:
-            throwSpiderException("Invalid interface type.");
-    }
-}
-
 void Spider::PiSDF::Graph::addSubGraph(Graph *graph) {
     graph->subIx_ = subgraphVector_.size();
     subgraphVector_.push_back(graph);

@@ -197,18 +197,6 @@ namespace Spider {
             inline std::uint64_t paramCount() const;
 
             /**
-             * @brief Get the number of input interfaces.
-             * @return Number of input interfaces.
-             */
-            inline std::uint64_t inputIFCount() const;
-
-            /**
-             * @brief Get the number of output interfaces.
-             * @return Number of output interfaces.
-             */
-            inline std::uint64_t outputIFCount() const;
-
-            /**
              * @brief Get the number of subgraphs.
              * @return Number of subgraphs.
              */
@@ -314,14 +302,6 @@ namespace Spider {
 
         std::uint64_t Graph::paramCount() const {
             return paramVector_.size();
-        }
-
-        std::uint64_t Graph::inputIFCount() const {
-            return inputInterfaceArray_.size();
-        }
-
-        std::uint64_t Graph::outputIFCount() const {
-            return outputInterfaceArray_.size();
         }
 
         std::uint64_t Graph::subgraphCount() const {
