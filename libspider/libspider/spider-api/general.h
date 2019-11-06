@@ -42,13 +42,9 @@
 
 /* === Includes === */
 
-/* === Forward declaration(s) === */
-
-class PiSDFGraph;
-
 /* === Define(s) === */
 
-#define NB_ALLOCATORS 7
+#define NB_ALLOCATORS 8
 
 /* === Enumeration(s) === */
 
@@ -63,6 +59,7 @@ enum class StackID : std::uint64_t {
     LRT = 4,           /*!< Stack used by LRTs */
     EXPR_PARSER = 5,   /*!< Stack used by the expression parser */
     GENERAL = 6,       /*!< General stack used for classic new / delete */
+    SCENARIO = 7,      /*!< Stack used for the scenario (application constraints) */
 };
 
 /**
