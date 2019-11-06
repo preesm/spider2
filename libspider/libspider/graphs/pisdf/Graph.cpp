@@ -176,7 +176,7 @@ void Spider::PiSDF::Graph::removeEdge(Edge *edge) {
 
 void Spider::PiSDF::Graph::addParam(Param *param) {
     /* == Check if a parameter with the same name already exists in the scope of this graph == */
-    if (findParam(param->name())) {
+    if (param(param->name())) {
         throwSpiderException("Parameter [%s] already exist in graph [%s].", param->name().c_str(), name().c_str());
     }
     param->setIx(paramVector_.size());
@@ -201,7 +201,7 @@ void Spider::PiSDF::Graph::removeParam(Param *param) {
     Spider::deallocate(param);
 }
 
-Spider::PiSDF::Param *Spider::PiSDF::Graph::findParam(const std::string &name) const {
+Spider::PiSDF::Param *Spider::PiSDF::Graph::param(const std::string &name) const {
     for (auto &p : paramVector_) {
         if (p->name() == name) {
             return p;

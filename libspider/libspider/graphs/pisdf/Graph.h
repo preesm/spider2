@@ -122,41 +122,6 @@ namespace Spider {
              */
             void removeParam(Param *param);
 
-            /**
-             * @brief Retrieve a parameter from its name.
-             * @param name Name of the parameter.
-             * @return pointer to the @refitem Spider::PiSDF::Param if found, nullptr else.
-             */
-            Param *findParam(const std::string &name) const;
-
-            /**
-             * @brief Return the vertex corresponding to the ix.
-             * @warning This method does not check for out of bound error.
-             * @param ix  Ix of the vertex.
-             * @return @refitem Vertex
-             */
-            inline Vertex *vertex(std::uint32_t ix) const;
-
-            /**
-             * @brief Return the input interface corresponding to the port ix.
-             * @warning There is no consistency assured between input edges and input interfaces.
-             * It is up to the user to ensure this property.
-             * @warning This method does not check for out of bound error.
-             * @param ix  Ix of the port
-             * @return @refitem Interface
-             */
-            inline InputInterface *inputInterface(std::uint32_t ix) const;
-
-            /**
-             * @brief Return the output interface corresponding to the port ix.
-             * @warning There is no consistency assured between output edges and output interfaces.
-             * It is up to the user to ensure this property.
-             * @warning This method does not check for out of bound error.
-             * @param ix  Ix of the port
-             * @return @refitem Interface
-             */
-            inline OutputInterface *outputInterface(std::uint32_t ix) const;
-
             Vertex *forwardEdge(const Edge *e) override;
 
             Vertex *clone(StackID stack, Graph *graph) const override;
@@ -243,6 +208,49 @@ namespace Spider {
             * @return const reference to param vector
             */
             inline const Spider::vector<Param *> &params() const;
+
+            /**
+             * @brief Retrieve a parameter from its name.
+             * @param name Name of the parameter.
+             * @return pointer to the @refitem Spider::PiSDF::Param if found, nullptr else.
+             */
+            Param *param(const std::string &name) const;
+
+            /**
+             * @brief Return the parameter corresponding to the ix.
+             * @warning This method does not check for out of bound error.
+             * @param ix Ix of the param.
+             * @return @refitem Param pointer
+             */
+            Param *param(std::uint32_t ix) const;
+
+            /**
+             * @brief Return the vertex corresponding to the ix.
+             * @warning This method does not check for out of bound error.
+             * @param ix  Ix of the vertex.
+             * @return @refitem Vertex pointer
+             */
+            inline Vertex *vertex(std::uint32_t ix) const;
+
+            /**
+             * @brief Return the input interface corresponding to the port ix.
+             * @warning There is no consistency assured between input edges and input interfaces.
+             * It is up to the user to ensure this property.
+             * @warning This method does not check for out of bound error.
+             * @param ix  Ix of the port
+             * @return @refitem InputInterface pointer
+             */
+            inline InputInterface *inputInterface(std::uint32_t ix) const;
+
+            /**
+             * @brief Return the output interface corresponding to the port ix.
+             * @warning There is no consistency assured between output edges and output interfaces.
+             * It is up to the user to ensure this property.
+             * @warning This method does not check for out of bound error.
+             * @param ix  Ix of the port
+             * @return @refitem OutputInterface pointer
+             */
+            inline OutputInterface *outputInterface(std::uint32_t ix) const;
 
             /* === Setter(s) === */
 
@@ -334,6 +342,10 @@ namespace Spider {
 
         const Spider::vector<Param *> &Graph::params() const {
             return paramVector_;
+        }
+
+        Param *Graph::param(std::uint32_t ix) const {
+            return paramVector_[ix];
         }
 
         Vertex *Graph::vertex(std::uint32_t ix) const {

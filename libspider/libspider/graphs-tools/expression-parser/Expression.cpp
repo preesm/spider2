@@ -64,7 +64,7 @@ Expression::Expression(std::string expression, const PiSDFGraph *graph) {
             if (!graph) {
                 throwSpiderException("nullptr graph in expression containing parameter.");
             }
-            auto *param = graph->findParam(exprNode.elt.token);
+            auto *param = graph->param(exprNode.elt.token);
             if (!param) {
                 throwSpiderException("Did not find parameter [%s] for expression parsing.", exprNode.elt.token.c_str());
             }
