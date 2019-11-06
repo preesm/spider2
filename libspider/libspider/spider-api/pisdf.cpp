@@ -304,7 +304,9 @@ PiSDFParam *Spider::API::createStaticParam(PiSDFGraph *graph,
                       std::move(name),
                       graph,
                       value);
-    graph->addParam(param);
+    if (graph) {
+        graph->addParam(param);
+    }
     return param;
 }
 
@@ -316,8 +318,10 @@ PiSDFParam *Spider::API::createStaticParam(PiSDFGraph *graph,
     Spider::construct(param,
                       std::move(name),
                       graph,
-                      Expression(std::move(expression), graph));
-    graph->addParam(param);
+                      Expression(std::move(expression), graph->params()));
+    if (graph) {
+        graph->addParam(param);
+    }
     return param;
 }
 
@@ -329,7 +333,9 @@ PiSDFDynamicParam *Spider::API::createDynamicParam(PiSDFGraph *graph,
                       std::move(name),
                       graph,
                       Expression(0));
-    graph->addParam(param);
+    if (graph) {
+        graph->addParam(param);
+    }
     return param;
 }
 
@@ -341,8 +347,10 @@ PiSDFDynamicParam *Spider::API::createDynamicParam(PiSDFGraph *graph,
     Spider::construct(param,
                       std::move(name),
                       graph,
-                      Expression(std::move(expression), graph));
-    graph->addParam(param);
+                      Expression(std::move(expression), graph->params()));
+    if (graph) {
+        graph->addParam(param);
+    }
     return param;
 }
 
@@ -361,7 +369,9 @@ PiSDFParam *Spider::API::createInheritedParam(PiSDFGraph *graph,
                       std::move(name),
                       graph,
                       parent);
-    graph->addParam(param);
+    if (graph) {
+        graph->addParam(param);
+    }
     return param;
 }
 
@@ -378,10 +388,10 @@ PiSDFEdge *Spider::API::createEdge(PiSDFAbstractVertex *source,
     Spider::construct(edge,
                       source,
                       srcPortIx,
-                      Expression(std::move(srcRateExpression), source->containingGraph()),
+                      Expression(std::move(srcRateExpression), source->containingGraph()->params()),
                       sink,
                       snkPortIx,
-                      Expression(std::move(snkRateExpression), sink->containingGraph()));
+                      Expression(std::move(snkRateExpression), sink->containingGraph()->params()));
     source->containingGraph()->addEdge(edge);
     return edge;
 }
@@ -423,14 +433,14 @@ PiSDFDelay *Spider::API::createDelay(PiSDFEdge *edge,
     auto *delay = Spider::allocate<PiSDFDelay>(stack);
     const auto expression = delayExpression;
     Spider::construct(delay,
-                      Expression(std::move(delayExpression), edge->containingGraph()),
+                      Expression(std::move(delayExpression), edge->containingGraph()->params()),
                       edge,
                       setter,
                       setterPortIx,
-                      Expression(setter ? setterRateExpression : expression, edge->containingGraph()),
+                      Expression(setter ? setterRateExpression : expression, edge->containingGraph()->params()),
                       getter,
                       getterPortIx,
-                      Expression(getter ? getterRateExpression : expression, edge->containingGraph()),
+                      Expression(getter ? getterRateExpression : expression, edge->containingGraph()->params()),
                       persistent);
     return delay;
 }
