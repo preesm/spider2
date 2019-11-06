@@ -222,7 +222,7 @@ namespace Spider {
              * @param ix Ix of the param.
              * @return @refitem Param pointer
              */
-            Param *param(std::uint32_t ix) const;
+            inline Param *param(std::uint32_t ix) const;
 
             /**
              * @brief Return the vertex corresponding to the ix.

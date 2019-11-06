@@ -176,7 +176,7 @@ void Spider::PiSDF::Graph::removeEdge(Edge *edge) {
 
 void Spider::PiSDF::Graph::addParam(Param *param) {
     /* == Check if a parameter with the same name already exists in the scope of this graph == */
-    if (param(param->name())) {
+    if (this->param(param->name())) {
         throwSpiderException("Parameter [%s] already exist in graph [%s].", param->name().c_str(), name().c_str());
     }
     param->setIx(paramVector_.size());
