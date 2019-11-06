@@ -174,10 +174,10 @@ namespace Spider {
                                               std::string expression,
                                               StackID stack = StackID::PISDF);
 
-        PiSDFInHeritedParam *createInheritedParam(PiSDFGraph *graph,
-                                                  std::string name,
-                                                  PiSDFParam *parent,
-                                                  StackID stack = StackID::PISDF);
+        PiSDFParam *createInheritedParam(PiSDFGraph *graph,
+                                         std::string name,
+                                         PiSDFParam *parent,
+                                         StackID stack = StackID::PISDF);
 
         /* === Edge API === */
 

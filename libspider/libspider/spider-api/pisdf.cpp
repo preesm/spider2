@@ -346,12 +346,15 @@ PiSDFDynamicParam *Spider::API::createDynamicParam(PiSDFGraph *graph,
     return param;
 }
 
-PiSDFInHeritedParam *Spider::API::createInheritedParam(PiSDFGraph *graph,
-                                                       std::string name,
-                                                       PiSDFParam *parent,
-                                                       StackID stack) {
+PiSDFParam *Spider::API::createInheritedParam(PiSDFGraph *graph,
+                                              std::string name,
+                                              PiSDFParam *parent,
+                                              StackID stack) {
     if (!parent) {
         throwSpiderException("Cannot instantiate inherited parameter with null parent.");
+    }
+    if (!parent->dynamic()) {
+        return Spider::API::createStaticParam(graph, name, parent->value(), stack);
     }
     auto *param = Spider::allocate<PiSDFInHeritedParam>(stack);
     Spider::construct(param,
