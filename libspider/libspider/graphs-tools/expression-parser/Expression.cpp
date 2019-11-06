@@ -58,6 +58,43 @@ findParam(const Spider::vector<PiSDFParam *> &params, const std::string &name) {
     return std::make_pair(nullptr, 0);
 }
 
+static bool trySwap(Spider::vector<ExpressionElt> &stack,
+                    const Spider::vector<int> &left,
+                    const Spider::vector<int> &right) {
+    return true;
+}
+
+static void reduceExpression(Spider::vector<ExpressionElt> &stack) {
+    Spider::vector<int> leftStack;
+    Spider::vector<int> rightStack;
+    leftStack.reserve(6);
+    rightStack.reserve(6);
+
+    int i = 0;
+    bool fillLeft = true;
+    bool reduce = false;
+    /* == Try to swap element in operations == */
+    for (auto &elt : stack) {
+        if (fillLeft) {
+            leftStack.emplace_back(i++);
+            fillLeft = !(elt.elt_.type == RPNElementType::OPERATOR);
+        } else {
+            rightStack.emplace_back(i++);
+            fillLeft = (elt.elt_.type == RPNElementType::OPERATOR);
+            if (fillLeft) {
+                reduce |= trySwap(stack, leftStack, rightStack);
+                leftStack.clear();
+                rightStack.clear();
+            }
+        }
+    }
+
+    /* == Reduce the expression (if possible) == */
+    if (reduce) {
+
+    }
+}
+
 /* === Methods implementation === */
 
 Expression::Expression(std::string expression, const Spider::vector<PiSDFParam *> &params) {
