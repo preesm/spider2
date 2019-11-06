@@ -73,6 +73,8 @@ public:
 
     explicit BRVCompute(const PiSDFGraph *graph);
 
+    BRVCompute(const PiSDFGraph *graph, const Spider::vector<PiSDFParam *> &params);
+
     ~BRVCompute() = default;
 
     /* === Method(s) === */
@@ -88,6 +90,7 @@ public:
 
 protected:
     const PiSDFGraph *graph_ = nullptr;
+    const Spider::vector<PiSDFParam *> &params_;
     Spider::vector<BRVComponent> connectedComponents_;
 
     /* === Protected method(s) === */
@@ -118,7 +121,7 @@ protected:
      * @brief Update the repetition vector values depending on interfaces and config actors rates.
      * @param edgeArray Edge array of the current connected components.
      */
-    static void updateBRV(Spider::Array<const PiSDFEdge *> &edgeArray, const BRVComponent &component);
+    void updateBRV(Spider::Array<const PiSDFEdge *> &edgeArray, const BRVComponent &component);
 
     /**
      * @brief Update the repetition vector based on the production of a given input interface.
@@ -126,7 +129,7 @@ protected:
      * @param currentScaleFactor   Current scaling factor of the repetition vector.
      * @return new value of the scaling factor (can be unchanged).
      */
-    static std::uint64_t updateBRVFromInputIF(const PiSDFEdge *edge, std::uint64_t currentScaleFactor);
+    std::uint64_t updateBRVFromInputIF(const PiSDFEdge *edge, std::uint64_t currentScaleFactor) const;
 
     /**
      * @brief Update the repetition vector based on the production of a given output interface.
@@ -134,7 +137,7 @@ protected:
      * @param currentScaleFactor   Current scaling factor of the repetition vector.
      * @return new value of the scaling factor (can be unchanged).
      */
-    static std::uint64_t updateBRVFromOutputIF(const PiSDFEdge *edge, std::uint64_t currentScaleFactor);
+    std::uint64_t updateBRVFromOutputIF(const PiSDFEdge *edge, std::uint64_t currentScaleFactor) const;
 
     /**
      * @brief Update the repetition vector based on the production rates of a given configuration actor.
@@ -142,7 +145,7 @@ protected:
      * @param currentScaleFactor   Current scaling factor of the repetition vector.
      * @return new value of the scaling factor (can be unchanged).
      */
-    static std::uint64_t updateBRVFromCFGActor(const PiSDFEdge *edge, std::uint64_t currentScaleFactor);
+    std::uint64_t updateBRVFromCFGActor(const PiSDFEdge *edge, std::uint64_t currentScaleFactor) const;
 
 };
 

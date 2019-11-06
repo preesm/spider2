@@ -114,4 +114,13 @@ std::string Spider::PiSDF::Delay::name() const {
            edge_->sink()->name() + "_" + std::to_string(edge_->sinkPortIx());
 }
 
+
+std::int64_t Spider::PiSDF::Delay::value() const {
+    return expression_.evaluate(edge_->containingGraph()->params());
+}
+
+std::int64_t Spider::PiSDF::Delay::value(const Spider::vector<Param *> &params) const {
+    return expression_.evaluate(params);
+}
+
 /* === Private method(s) === */

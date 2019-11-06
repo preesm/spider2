@@ -120,11 +120,21 @@ namespace Spider {
 
             /**
              * @brief Return the value of the delay. Calls @refitem Expression::evaluate method.
+             * @remark by default, this method use the containing graph parameters of the delay to evaluate.
              * @return value of the delay.
              * @warning If value of the delay is set by dynamic parameter, it is user responsability to ensure proper
              * order of call.
              */
-            inline std::int64_t value() const;
+            std::int64_t value() const;
+
+            /**
+             * @brief Return the value of the delay. Calls @refitem Expression::evaluate method.
+             * @param params Vector of parameters.
+             * @return value of the delay.
+             * @warning If value of the delay is set by dynamic parameter, it is user responsability to ensure proper
+             * order of call.
+             */
+            std::int64_t value(const Spider::vector<Param *> &params) const;
 
             /* === Setter(s) === */
 
@@ -178,10 +188,6 @@ namespace Spider {
 
         std::uint64_t Delay::memoryAddress() const {
             return memoryAddress_;
-        }
-
-        std::int64_t Spider::PiSDF::Delay::value() const {
-            return expression_.evaluate();
         }
 
         void Delay::setMemoryAddress(std::uint64_t address) {

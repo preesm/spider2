@@ -46,6 +46,8 @@
 #include <spider-api/general.h>
 #include <spider-api/pisdf.h>
 #include <graphs/pisdf/Graph.h>
+#include <graphs/pisdf/Param.h>
+#include <graphs/pisdf/params/DynamicParam.h>
 #include <cmath>
 
 /* === Methods implementation === */
@@ -57,7 +59,7 @@ ExpressionTest::~ExpressionTest() = default;
 void ExpressionTest::SetUp() {
     AllocatorConfig cfg = AllocatorConfig();
     cfg.allocatorType = AllocatorType::FREELIST;
-    cfg.size = 512;
+    cfg.size = 4096;
     Spider::initAllocator(StackID::GENERAL, cfg);
     Spider::initAllocator(StackID::EXPR_PARSER, cfg);
     Spider::initAllocator(StackID::PISDF, cfg);
@@ -71,7 +73,7 @@ TEST_F(ExpressionTest, TestCreation) {
     EXPECT_NO_THROW(Expression(4));
     EXPECT_NO_THROW(Expression(""));
     Spider::PiSDF::Graph *graph = Spider::API::createGraph("test");
-    EXPECT_THROW(Expression("width", graph), Spider::Exception);
+    EXPECT_THROW(Expression("width", graph->params()), Spider::Exception);
     EXPECT_THROW(Expression("width"), Spider::Exception);
     EXPECT_THROW(Expression("cos"), Spider::Exception);
     EXPECT_THROW(Expression("+"), Spider::Exception);
@@ -82,15 +84,16 @@ TEST_F(ExpressionTest, TestCreation) {
 TEST_F(ExpressionTest, TestString) {
     ASSERT_EQ(Expression(4).string(), "4.000000");
     ASSERT_EQ(Expression("").string(), "0.000000");
-    ASSERT_EQ(Expression("4cos(0)").string(), "4.000000");
-    Spider::PiSDF::Graph *graph = Spider::API::createGraph("test", 0, 0, 1);
-    Spider::API::createStaticParam(graph, "width", 0);
-    ASSERT_EQ(Expression("4cos(width)", graph).string(), "4.000000");
-    Spider::API::createDynamicParam(graph, "height");
-    ASSERT_EQ(Expression("cos(height)", graph).string(), "cos(height)");
-    ASSERT_EQ(Expression("4min(1,height)", graph).string(), "(4.000000*min(1.000000,height))");
-    Spider::destroy(graph);
-    Spider::deallocate(graph);
+    ASSERT_EQ(Expression("4cos(0)").string(), "4.000000 ");
+    auto *width = Spider::API::createStaticParam(nullptr, "width", 0);
+    ASSERT_EQ(Expression("4cos(width)", {width}).string(), "4.000000 ");
+    auto *height = Spider::API::createDynamicParam(nullptr, "height");
+    ASSERT_EQ(Expression("cos(height)", {width, height}).string(), "height cos ");
+    ASSERT_EQ(Expression("4min(1,height)", {width, height}).string(), "4 1 height min * ");
+    Spider::destroy(width);
+    Spider::deallocate(width);
+    Spider::destroy(height);
+    Spider::deallocate(height);
 }
 
 TEST_F(ExpressionTest, TestEvaluationOperators) {
@@ -142,18 +145,9 @@ TEST_F(ExpressionTest, TestEvaluationFunctions) {
     ASSERT_EQ(Expression("min(0.2 * 0.1, 0.21)").dynamic(), false);
     Spider::PiSDF::Graph *graph = Spider::API::createGraph("test", 0, 0, 1);
     Spider::API::createDynamicParam(graph, "height");
-    ASSERT_EQ(Expression("cos(height)", graph).evaluateDBL(), 1.);
-    ASSERT_EQ(Expression("cos(height)", graph).evaluate(), 1);
-    ASSERT_EQ(Expression("cos(height)", graph).dynamic(), true);
+    ASSERT_EQ(Expression("cos(height)", graph->params()).evaluateDBL(graph->params()), 1.);
+    ASSERT_EQ(Expression("cos(height)", graph->params()).evaluate(graph->params()), 1);
+    ASSERT_EQ(Expression("cos(height)", graph->params()).dynamic(), true);
     Spider::destroy(graph);
     Spider::deallocate(graph);
-}
-
-TEST_F(ExpressionTest, TestPrintTree) {
-    Spider::PiSDF::Graph *graph = Spider::API::createGraph("test", 0, 0, 1);
-    Spider::API::createDynamicParam(graph, "height");
-    EXPECT_NO_THROW(Expression("4*cos(height)", graph).printExpressionTree());
-    Spider::destroy(graph);
-    Spider::deallocate(graph);
-
 }

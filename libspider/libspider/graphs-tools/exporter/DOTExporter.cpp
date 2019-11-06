@@ -100,7 +100,8 @@ void Spider::PiSDF::DOTExporter::print(std::ofstream &file) const {
 
 /* === Private method(s) === */
 
-void Spider::PiSDF::DOTExporter::graphPrinter(std::ofstream &file, const Graph *graph, const std::string &offset) {
+void
+Spider::PiSDF::DOTExporter::graphPrinter(std::ofstream &file, const Graph *graph, const std::string &offset) const {
     auto fwOffset{offset};
     if (graph->containingGraph()) {
         file << fwOffset << "subgraph cluster {" << '\n';
@@ -167,7 +168,7 @@ void Spider::PiSDF::DOTExporter::graphPrinter(std::ofstream &file, const Graph *
 
 void Spider::PiSDF::DOTExporter::vertexPrinter(std::ofstream &file,
                                                const Vertex *vertex,
-                                               const std::string &offset) {
+                                               const std::string &offset) const {
     file << offset << R"(")" << vertex->name()
          << R"(" [shape=plain, style=filled, fillcolor=")" << vertexColor(vertex->subtype())
          << R"(", width=0, height=0, label = <)" << '\n';
@@ -186,10 +187,10 @@ void Spider::PiSDF::DOTExporter::vertexPrinter(std::ofstream &file,
                                                   std::ceil(20. * (1 + 1. / (1 + std::exp(-10. * (n - 7.))))));
     double longestRateLen = 0;
     for (const auto &e: vertex->inputEdgeArray()) {
-        longestRateLen = std::max(longestRateLen, std::log10(e->sinkRateExpression().evaluate()));
+        longestRateLen = std::max(longestRateLen, std::log10(e->sinkRateExpression().evaluate(params_)));
     }
     for (const auto &e: vertex->outputEdgeArray()) {
-        longestRateLen = std::max(longestRateLen, std::log10(e->sourceRateExpression().evaluate()));
+        longestRateLen = std::max(longestRateLen, std::log10(e->sourceRateExpression().evaluate(params_)));
     }
     auto rateWidth = 32 + std::max(static_cast<std::int32_t>(longestRateLen) + 1 - 3, 0) * 8;
 
@@ -247,7 +248,7 @@ void Spider::PiSDF::DOTExporter::vertexPrinter(std::ofstream &file,
     file << offset << "];" << '\n' << '\n';
 }
 
-void Spider::PiSDF::DOTExporter::edgePrinter(std::ofstream &file, const Edge *edge, const std::string &offset) {
+void Spider::PiSDF::DOTExporter::edgePrinter(std::ofstream &file, const Edge *edge, const std::string &offset) const {
     auto *source = edge->source()->type() == Spider::PiSDF::VertexType::GRAPH ? edge->source<true>() : edge->source();
     auto *sink = edge->sink()->type() == Spider::PiSDF::VertexType::GRAPH ? edge->sink<true>() : edge->sink();
     file << offset << R"(")" << source->name();
@@ -255,14 +256,15 @@ void Spider::PiSDF::DOTExporter::edgePrinter(std::ofstream &file, const Edge *ed
     file << R"(:w [penwidth=3, color="#393c3c", dir=forward];)" << '\n';
 }
 
-void Spider::PiSDF::DOTExporter::paramPrinter(std::ofstream &file, const Param *param, const std::string &offset) {
+void
+Spider::PiSDF::DOTExporter::paramPrinter(std::ofstream &file, const Param *param, const std::string &offset) const {
     file << offset << R"(")" << param->containingGraph()->name() + ":" + param->name()
          << R"("[shape=triangle, style=filled, fillcolor="#89c4f4"])" << '\n';
 }
 
 void Spider::PiSDF::DOTExporter::inputIFPrinter(std::ofstream &file,
                                                 const InputInterface *interface,
-                                                const std::string &offset) {
+                                                const std::string &offset) const {
     file << offset << R"(")" << interface->name()
          << R"(" [shape=plain, style=filled, fillcolor="#fff68fff", width=0, height=0, label = <)" << '\n';
     interfacePrinter(file, interface, offset);
@@ -270,7 +272,7 @@ void Spider::PiSDF::DOTExporter::inputIFPrinter(std::ofstream &file,
 
 void Spider::PiSDF::DOTExporter::outputIFPrinter(std::ofstream &file,
                                                  const OutputInterface *interface,
-                                                 const std::string &offset) {
+                                                 const std::string &offset) const {
     file << offset << R"(")" << interface->name()
          << R"(" [shape=plain, style=filled, fillcolor="#dcc6e0ff", width=0, height=0, label = <)" << '\n';
     interfacePrinter(file, interface, offset);
@@ -278,7 +280,7 @@ void Spider::PiSDF::DOTExporter::outputIFPrinter(std::ofstream &file,
 
 void Spider::PiSDF::DOTExporter::interfacePrinter(std::ofstream &file,
                                                   const Interface *interface,
-                                                  const std::string &offset) {
+                                                  const std::string &offset) const {
     file << offset << '\t' << R"(<table border="0" fixedsize="false" cellspacing="0" cellpadding="0">)" << '\n';
 
     /* == Vertex name == */
@@ -292,8 +294,9 @@ void Spider::PiSDF::DOTExporter::interfacePrinter(std::ofstream &file,
     auto n = interface->name().size();
     auto centerWidth = static_cast<std::uint32_t>(15. * (n - 8.) * (n > 8) +
                                                   std::ceil(20. * (1 + 1. / (1 + std::exp(-10. * (n - 7.))))));
-    double longestRateLen = std::max(0., std::log10(interface->inputEdge()->sinkRateExpression().evaluate()));
-    longestRateLen = std::max(longestRateLen, std::log10(interface->outputEdge()->sourceRateExpression().evaluate()));
+    double longestRateLen = std::max(0., std::log10(interface->inputEdge()->sinkRateExpression().evaluate(params_)));
+    longestRateLen = std::max(longestRateLen,
+                              std::log10(interface->outputEdge()->sourceRateExpression().evaluate(params_)));
     auto rateWidth = 32 + std::max(static_cast<std::int32_t>(longestRateLen) + 1 - 3, 0) * 8;
 
     /* == Export data ports == */
@@ -325,7 +328,7 @@ void Spider::PiSDF::DOTExporter::dataPortPrinter(std::ofstream &file,
                                                  const Edge *edge,
                                                  const std::string &offset,
                                                  std::uint32_t width,
-                                                 bool input) {
+                                                 bool input) const {
     /* == Header == */
     file << offset << '\t' << '\t' << '\t' << R"(<td border="0" colspan="1" align="left">)" << '\n';
     file << offset << '\t' << '\t' << '\t' << '\t' << R"(<table border="0" cellpadding="0" cellspacing="0">)" << '\n';
@@ -339,12 +342,14 @@ void Spider::PiSDF::DOTExporter::dataPortPrinter(std::ofstream &file,
              << '\n';
         file << offset << '\t' << '\t' << '\t' << '\t' << '\t' << '\t'
              << R"(<td border="0" align="left" bgcolor="#00000000" fixedsize="true" width=")" << width
-             << R"(" height="20"><font point-size="12" face="inconsolata"> )" << edge->sinkRateExpression().evaluate()
+             << R"(" height="20"><font point-size="12" face="inconsolata"> )"
+             << edge->sinkRateExpression().evaluate(params_)
              << R"(</font></td>)" << '\n';
     } else {
         file << offset << '\t' << '\t' << '\t' << '\t' << '\t' << '\t'
              << R"(<td border="0" align="right" bgcolor="#00000000" fixedsize="true" width=")" << width
-             << R"(" height="20"><font point-size="12" face="inconsolata">)" << edge->sourceRateExpression().evaluate()
+             << R"(" height="20"><font point-size="12" face="inconsolata">)"
+             << edge->sourceRateExpression().evaluate(params_)
              << R"( </font></td>)" << '\n';
         file << offset << '\t' << '\t' << '\t' << '\t' << '\t' << '\t'
              << R"(<td port="out_)" << edge->sourcePortIx()
@@ -361,21 +366,21 @@ void Spider::PiSDF::DOTExporter::dataPortPrinter(std::ofstream &file,
 void Spider::PiSDF::DOTExporter::inputDataPortPrinter(std::ofstream &file,
                                                       const Edge *edge,
                                                       const std::string &offset,
-                                                      std::uint32_t width) {
+                                                      std::uint32_t width) const {
     dataPortPrinter(file, edge, offset, width, true);
 }
 
 void Spider::PiSDF::DOTExporter::outputDataPortPrinter(std::ofstream &file,
                                                        const Edge *edge,
                                                        const std::string &offset,
-                                                       std::uint32_t width) {
+                                                       std::uint32_t width) const {
     dataPortPrinter(file, edge, offset, width, false);
 }
 
 void Spider::PiSDF::DOTExporter::dummyDataPortPrinter(std::ofstream &file,
                                                       const std::string &offset,
                                                       std::uint32_t width,
-                                                      bool input) {
+                                                      bool input) const {
     /* == Header == */
     file << offset << '\t' << '\t' << '\t' << R"(<td border="0" colspan="1" align="left">)" << '\n';
     file << offset << '\t' << '\t' << '\t' << '\t' << R"(<table border="0" cellpadding="0" cellspacing="0">)" << '\n';

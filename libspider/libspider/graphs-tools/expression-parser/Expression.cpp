@@ -43,52 +43,41 @@
 #include <graphs-tools/expression-parser/Expression.h>
 #include <graphs/pisdf/Param.h>
 #include <graphs/pisdf/Graph.h>
-#include "Expression.h"
 
 /* === Static method(s) === */
 
+static std::pair<PiSDFParam *, std::uint32_t>
+findParam(const Spider::vector<PiSDFParam *> &params, const std::string &name) {
+    std::uint32_t ix = 0;
+    for (const auto &p : params) {
+        if (p->name() == name) {
+            return std::make_pair(p, ix);
+        }
+        ix += 1;
+    }
+    return std::make_pair(nullptr, 0);
+}
+
 /* === Methods implementation === */
 
-Expression::Expression(std::string expression, const PiSDFGraph *graph) {
+Expression::Expression(std::string expression, const Spider::vector<PiSDFParam *> &params) {
     /* == Get the postfix expression stack == */
     auto postfixStack = RPNConverter::extractPostfixElements(std::move(expression));
     // TODO make printVerbose call a no-op when disabled (use CMake option)
 //    Spider::Logger::printVerbose(LOG_GENERAL, "infix expression: [%s].\n", RPNConverter::infixString(postfixStack));
 //    Spider::Logger::printVerbose(LOG_GENERAL, "postfix expression: [%s].\n", RPNConverter::postfixString(postfixStack));
 
-    /* == Build expression stack == */
-    expressionTree_.reserve(postfixStack.size());
-    for (auto elt = postfixStack.rbegin(); elt != postfixStack.rend(); ++elt) {
-        auto exprNode = ExpressionTreeNode(nullptr, std::move((*elt)));
-        if (exprNode.elt.subtype == RPNElementSubType::PARAMETER) {
-            if (!graph) {
-                throwSpiderException("nullptr graph in expression containing parameter.");
-            }
-            auto *param = graph->param(exprNode.elt.token);
-            if (!param) {
-                throwSpiderException("Did not find parameter [%s] for expression parsing.", exprNode.elt.token.c_str());
-            }
-            if (param->dynamic()) {
-                static_ = false;
-                exprNode.arg.param = param;
-            } else {
-                exprNode.elt.subtype = RPNElementSubType::VALUE;
-                exprNode.arg.value = param->value();
-            }
-        } else if (exprNode.elt.subtype == RPNElementSubType::VALUE) {
-            exprNode.arg.value = std::strtod(exprNode.elt.token.c_str(), nullptr);
-        } else {
-            exprNode.arg.operatorType = RPNConverter::getOperatorTypeFromString(exprNode.elt.token);
-        }
-        expressionTree_.push_back(std::move(exprNode));
-    }
+    /* == Build the expression stack == */
+    expressionStack_.reserve(postfixStack.size());
+    buildExpressionStack(postfixStack, params);
 
-    /* == Build and reduce the expression tree for fast resolving == */
-    buildExpressionTree();
-
-    /* == If static, evaluate and delete the expression == */
+    /* == Reduce expression == */
+    // TODO: see how to reduce expression to the smallest dynamic form
+    // TODO: ((2+w)+6)*(20) -> [2 w + 6 + 20 *] -> [8 w + 20 *]
+    // TODO: (w*2)*(4*h) -> [w 2 * 4 h * *] -> [w h * 8 *]
+    // TODO: (4/w)/2 -> [4 w / 2 /] -> [4 2 / w /]  -> [2 w /]
     if (static_) {
-        value_ = evaluateNode(&expressionTree_[0]);
+        value_ = expressionStack_.empty() ? 0. : expressionStack_.back().arg.value_;
     }
 }
 
@@ -97,124 +86,112 @@ Expression::Expression(std::int64_t value) {
     value_ = value;
 }
 
-void Expression::printExpressionTree() {
-    if (!expressionTree_.empty()) {
-        printExpressionTreeNode(&expressionTree_[0], 0);
-    }
-}
-
-static std::string elementToString(const ExpressionTreeNode *node) {
-    if (!node) {
-        return "";
-    }
-    const auto &elt = node->elt;
-    if (elt.type == RPNElementType::OPERAND) {
-        if (elt.subtype == RPNElementSubType::PARAMETER) {
-            return elt.token;
-        }
-
-        /* == Due to the automatic reduction in the buildExpressionTree method, token might not correspond to actual value == */
-        return std::to_string(node->arg.value);
-    }
-    const auto &operatorType = RPNConverter::getOperatorTypeFromString(elt.token);
-    const auto &op = RPNConverter::getOperatorFromOperatorType(operatorType);
-    if (elt.subtype == RPNElementSubType::FUNCTION) {
-        if (op.argCount == 1) {
-            return elt.token + '(' + elementToString(node->right) + ')';
-        }
-        return elt.token + '(' + elementToString(node->left) + ',' + elementToString(node->right) + ')';
-    }
-    return '(' + elementToString(node->left) + elt.token + elementToString(node->right) + ')';
-}
-
 std::string Expression::string() const {
-    if (expressionTree_.empty()) {
-        return std::to_string(value_);
+    /* == Build the postfix string expression == */
+    std::string postfixExpr;
+    if (expressionStack_.empty()) {
+        postfixExpr = std::to_string(value_);
     }
-    return elementToString(&expressionTree_[0]);
+    for (auto &t : expressionStack_) {
+        postfixExpr += t.elt_.token + " ";
+    }
+    return postfixExpr;
 }
 
 /* === Private method(s) === */
 
-void Expression::buildExpressionTree() {
-    if (expressionTree_.empty()) {
-        return;
-    }
-    std::size_t nodeIx = 0;
-    auto *node = &expressionTree_[0];
-    while (node) {
-        if (!node->right && node->elt.type == RPNElementType::OPERATOR) {
-            if ((nodeIx + 1) >= expressionTree_.size()) {
-                throwSpiderException("operator [%s] missing operand.", node->elt.token.c_str());
+void Expression::buildExpressionStack(Spider::vector<RPNElement> &postfixStack,
+                                      const Spider::vector<PiSDFParam *> &params) {
+    Spider::vector<ExpressionElt> evalStack;
+    evalStack.reserve(6); /* = In practice, the evalStack will most likely not exceed 3 values = */
+    bool skipEval = false;
+    for (auto &elt : postfixStack) {
+        if (elt.type == RPNElementType::OPERAND) {
+            if (elt.subtype == RPNElementSubType::PARAMETER) {
+                const auto &pair = findParam(params, elt.token);
+                const auto &param = pair.first;
+                if (!param) {
+                    throwSpiderException("Did not find parameter [%s] for expression parsing.", elt.token.c_str());
+                }
+                evalStack.emplace_back(std::move(elt));
+                if (param->dynamic()) {
+                    static_ = false;
+                    skipEval = true;
+                    evalStack.back().arg.paramIx_ = pair.second;
+                } else {
+                    evalStack.back().arg.value_ = param->value();
+                }
+            } else {
+                const auto &value = std::strtod(elt.token.c_str(), nullptr);
+                evalStack.emplace_back(std::move(elt));
+                evalStack.back().arg.value_ = value;
             }
-            node->right = &expressionTree_[++nodeIx];
-            node->right->parent = node;
-            node = node->right;
-        } else if (!node->left && node->elt.type != RPNElementType::OPERAND &&
-                   RPNConverter::getOperatorFromOperatorType(node->arg.operatorType).argCount != 1) {
-            if ((nodeIx + 1) >= expressionTree_.size()) {
-                throwSpiderException("operator [%s] missing operand.", node->elt.token.c_str());
-            }
-            node->left = &expressionTree_[++nodeIx];
-            node->left->parent = node;
-            node = node->left;
         } else {
-            auto *left = node->left;
-            auto *right = node->right;
-            if (node->elt.type == RPNElementType::OPERATOR && right && right->elt.subtype == RPNElementSubType::VALUE) {
-                auto valRight = right->arg.value;
-                if (!left || left->elt.subtype == RPNElementSubType::VALUE) {
-                    auto valLeft = left ? left->arg.value : 0.;
-                    node->elt.type = RPNElementType::OPERAND;
-                    node->elt.subtype = RPNElementSubType::VALUE;
-                    node->arg.value = RPNConverter::getOperatorFromOperatorType(node->arg.operatorType).eval(valLeft,
-                                                                                                             valRight);
-                    node->left = nullptr;
-                    node->right = nullptr;
+            const auto &opType = RPNConverter::getOperatorTypeFromString(elt.token);
+            const auto &op = RPNConverter::getOperatorFromOperatorType(opType);
+            if (evalStack.size() < op.argCount && elt.subtype == RPNElementSubType::FUNCTION) {
+                throwSpiderException("Function [%s] expecting argument !", elt.token.c_str());
+            }
+            if (skipEval || evalStack.size() < op.argCount) {
+                /* == Push elements in expression stack == */
+                for (auto &e : evalStack) {
+                    expressionStack_.emplace_back(std::move(e));
+                }
+                evalStack.clear();
+                expressionStack_.emplace_back(std::move(elt));
+                expressionStack_.back().arg.opType_ = opType;
+            } else {
+                /* == Do in-place eval == */
+                if (op.argCount == 2) {
+                    auto &arg1 = evalStack.back();
+                    evalStack.pop_back();
+                    auto &arg2 = evalStack.back();
+                    evalStack.pop_back();
+                    const auto &value = op.eval(arg2.arg.value_, arg1.arg.value_);
+                    evalStack.emplace_back(RPNElement(RPNElementType::OPERAND,
+                                                      RPNElementSubType::VALUE,
+                                                      std::to_string(value)));
+                    evalStack.back().arg.value_ = value;
+                } else {
+                    const auto &arg1 = evalStack.back();
+                    evalStack.pop_back();
+                    const auto &value = op.eval(arg1.arg.value_, 0);
+                    evalStack.emplace_back(RPNElement(RPNElementType::OPERAND,
+                                                      RPNElementSubType::VALUE,
+                                                      std::to_string(value)));
+                    evalStack.back().arg.value_ = value;
                 }
             }
-            node = node->parent;
+            skipEval = false;
         }
+    }
+    for (auto &e : evalStack) {
+        expressionStack_.emplace_back(std::move(e));
     }
 }
 
-double Expression::evaluateNode(const ExpressionTreeNode *node) const {
-    if (!node) {
-        return 0.;
-    }
-    auto &elt = node->elt;
-    if (elt.type == RPNElementType::OPERAND) {
-        if (elt.subtype == RPNElementSubType::PARAMETER) {
-            return node->arg.param->value();
-        }
-        return node->arg.value;
-    }
-    return RPNConverter::getOperatorFromOperatorType(node->arg.operatorType).eval(evaluateNode(node->left),
-                                                                                  evaluateNode(node->right));
-}
-
-void Expression::printExpressionTreeNode(ExpressionTreeNode *node, std::int32_t depth) {
-    if (!node) {
-        return;
-    }
-    auto &elt = node->elt;
-    if (depth) {
-        Spider::Logger::printInfo(LOG_GENERAL, "|");
-        for (auto i = 0; i < depth; ++i) {
-            Spider::Logger::printInfo(LOG_GENERAL, "-");
-        }
-        Spider::Logger::printInfo(LOG_GENERAL, ">");
-    }
-    if (elt.type == RPNElementType::OPERATOR) {
-        Spider::Logger::printInfo(LOG_GENERAL, "%s\n",
-                                  RPNConverter::getStringFromOperatorType(node->arg.operatorType).c_str());
-    } else {
-        if (elt.subtype == RPNElementSubType::PARAMETER) {
-            Spider::Logger::printInfo(LOG_GENERAL, "%s\n", node->arg.param->name().c_str());
+double Expression::evaluateStack(const Spider::vector<PiSDFParam *> &params) const {
+    Spider::vector<double> evalStack;
+    evalStack.reserve(6); /* = In practice, the evalStack will most likely not exceed 3 values = */
+    for (auto &elt : expressionStack_) {
+        if (elt.elt_.type == RPNElementType::OPERAND) {
+            if (elt.elt_.subtype == RPNElementSubType::PARAMETER) {
+                evalStack.push_back(params[elt.arg.paramIx_]->value());
+            } else {
+                evalStack.push_back(elt.arg.value_);
+            }
         } else {
-            Spider::Logger::printInfo(LOG_GENERAL, "%lf\n", node->arg.value);
+            const auto &op = RPNConverter::getOperatorFromOperatorType(elt.arg.opType_);
+            if (op.argCount == 2) {
+                auto &arg1 = evalStack.back();
+                evalStack.pop_back();
+                auto &arg2 = evalStack.back();
+                arg2 = op.eval(arg2, arg1);
+            } else {
+                auto &arg1 = evalStack.back();
+                arg1 = (op.eval(arg1, 0));
+            }
         }
     }
-    printExpressionTreeNode(node->right, depth + 1);
-    printExpressionTreeNode(node->left, depth + 1);
+    return evalStack.back();
 }

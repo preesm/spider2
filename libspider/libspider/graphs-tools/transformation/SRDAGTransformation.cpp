@@ -121,16 +121,17 @@ static Spider::SRDAG::LinkerVector buildSourceLinkerVector(Spider::SRDAG::EdgeLi
     sourceVector.reserve(source->repetitionValue() + (delay ? delay->setter()->repetitionValue() : 0));
 
     /* == Populate first the source clones in reverse order == */
-    const auto &rate = source->type() == PiSDFVertexType::INTERFACE ? edge->sinkRateExpression().evaluate() *
+    const auto &params = linker.job_.reference_->params();
+    const auto &rate = source->type() == PiSDFVertexType::INTERFACE ? edge->sinkRateExpression().evaluate(params) *
                                                                       edge->sink()->repetitionValue()
-                                                                    : edge->sourceRateExpression().evaluate();
+                                                                    : edge->sourceRateExpression().evaluate(params);
     pushReverseVertexLinkerVector(sourceVector, source, rate, edge->sourcePortIx(), linker);
 
     /* == If delay, populate the setter clones in reverse order == */
     if (delay) {
         const auto &setterEdge = delay->vertex()->inputEdge(0);
         const auto &setter = delay->setter();
-        const auto &setterRate = setterEdge->sourceRateExpression().evaluate();
+        const auto &setterRate = setterEdge->sourceRateExpression().evaluate(params);
         pushReverseVertexLinkerVector(sourceVector, setter, setterRate, setterEdge->sourcePortIx(), linker);
     }
     return sourceVector;
@@ -145,25 +146,32 @@ static Spider::SRDAG::LinkerVector buildSinkLinkerVector(Spider::SRDAG::EdgeLink
     sinkVector.reserve(sink->repetitionValue() + (delay ? delay->getter()->repetitionValue() : 0));
 
     /* == First, if delay, populate the getter clones in reverse order == */
+    const auto &params = linker.job_.reference_->params();
     if (delay) {
+        if (delay->value(params) < edge->sinkRateExpression().evaluate(params)) {
+            throwSpiderException("Insufficient delay [%"
+                                         PRIu32
+                                         "] on edge [%s].", delay->value(params), edge->name().c_str());
+        }
         const auto &getterEdge = delay->vertex()->outputEdge(0);
         const auto &getter = delay->getter();
-        const auto &getterRate = getterEdge->sinkRateExpression().evaluate();
+        const auto &getterRate = getterEdge->sinkRateExpression().evaluate(params);
         pushReverseVertexLinkerVector(sinkVector, getter, getterRate, getterEdge->sinkPortIx(), linker);
     }
 
     /* == Populate the sink clones in reverse order == */
-    const auto &rate = sink->type() == PiSDFVertexType::INTERFACE ? edge->sourceRateExpression().evaluate() *
+    const auto &rate = sink->type() == PiSDFVertexType::INTERFACE ? edge->sourceRateExpression().evaluate(params) *
                                                                     edge->source()->repetitionValue()
-                                                                  : edge->sinkRateExpression().evaluate();
+                                                                  : edge->sinkRateExpression().evaluate(params);
     pushReverseVertexLinkerVector(sinkVector, sink, rate, edge->sinkPortIx(), linker);
     return sinkVector;
 }
 
 static void computeDependencies(Spider::SRDAG::LinkerVector &srcVector,
                                 Spider::SRDAG::LinkerVector &snkVector,
-                                const PiSDFEdge *edge) {
-    auto &&delay = edge->delay() ? edge->delay()->value() : 0;
+                                Spider::SRDAG::EdgeLinker &linker) {
+    const auto &edge = linker.edge_;
+    auto &&delay = edge->delay() ? edge->delay()->value(linker.job_.reference_->params()) : 0;
     const auto &srcRate = srcVector[0].rate_;     /* = This should be the proper source rate of the edge = */
     const auto &snkRate = snkVector.back().rate_; /* = This should be the proper sink rate of the edge = */
     const auto &setterRate = edge->delay() ? srcVector.back().rate_ : 0;
@@ -370,11 +378,6 @@ void Spider::SRDAG::staticEdgeSingleRateLinkage(EdgeLinker &linker) {
     if ((linker.edge_->source() == linker.edge_->sink())) {
         if (!linker.edge_->delay()) {
             throwSpiderException("No delay on edge with self loop.");
-        } else if (linker.edge_->delay()->value() < linker.edge_->sinkRateExpression().evaluate()) {
-            throwSpiderException("Insufficient delay [%"
-                                         PRIu32
-                                         "] on edge [%s].", linker.edge_->delay()->value(),
-                                 linker.edge_->name().c_str());
         }
     }
 
@@ -382,7 +385,7 @@ void Spider::SRDAG::staticEdgeSingleRateLinkage(EdgeLinker &linker) {
     auto sinkVector = buildSinkLinkerVector(linker);
 
     /* == Compute the different dependencies of sinks over sources == */
-    computeDependencies(sourceVector, sinkVector, linker.edge_);
+    computeDependencies(sourceVector, sinkVector, linker);
 
     /* == Iterate over sinks == */
     while (!sinkVector.empty()) {

@@ -410,6 +410,7 @@ const std::string &RPNConverter::getStringFromOperatorType(RPNOperatorType type)
 }
 
 RPNOperatorType RPNConverter::getOperatorTypeFromString(const std::string &operatorString) {
+    // TODO: implement it with a std::map<std::string, OperatorType> and try - catch block. see: Zero-Cost Exception model.
     bool found = false;
     std::uint32_t i = 0;
     for (i = 0; !found && i < (RPNConverter::operator_count + RPNConverter::function_count); ++i) {

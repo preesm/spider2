@@ -73,7 +73,7 @@ bool Spider::Scenario::isMappable(const PiSDFAbstractVertex *vertex, const Proce
 std::int64_t Spider::Scenario::executionTiming(const PiSDFAbstractVertex *vertex, const ProcessingElement *PE) const {
     auto &timings = vertexExecutionTimingsMap_.at(vertex);
     auto &timing = timings.at(PE->hardwareType());
-    return timing.evaluate();
+    return timing.evaluate(vertex->containingGraph()->params());
 }
 
 void
@@ -94,7 +94,7 @@ void Spider::Scenario::setExecutionTiming(const PiSDFAbstractVertex *vertex,
                                           const std::string &expression) {
     auto &timings = vertexExecutionTimingsMap_.at(vertex);
     auto &timing = timings.at(PEType);
-    timing = Expression(expression);
+    timing = Expression(expression, vertex->containingGraph()->params());
 }
 
 void Spider::Scenario::setExecutionTiming(const PiSDFAbstractVertex *vertex,
@@ -102,5 +102,5 @@ void Spider::Scenario::setExecutionTiming(const PiSDFAbstractVertex *vertex,
                                           const std::string &expression) {
     auto &timings = vertexExecutionTimingsMap_.at(vertex);
     auto &timing = timings.at(PE->hardwareType());
-    timing = Expression(expression);
+    timing = Expression(expression, vertex->containingGraph()->params());
 }

@@ -52,6 +52,8 @@ public:
 
     explicit LCMBRVCompute(const PiSDFGraph *graph) : BRVCompute(graph) { };
 
+    LCMBRVCompute(const PiSDFGraph *graph, const Spider::vector<PiSDFParam *> &params) : BRVCompute(graph, params) { };
+
     ~LCMBRVCompute() = default;
 
     /* === Method(s) === */

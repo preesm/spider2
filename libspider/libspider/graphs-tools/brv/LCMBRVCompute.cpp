@@ -91,8 +91,8 @@ void LCMBRVCompute::extractRationals(Spider::Array<const PiSDFEdge *> &edgeArray
     for (const auto &edge:edgeArray) {
         const auto *source = edge->source();
         const auto *sink = edge->sink();
-        std::int64_t sourceRate = edge->sourceRateExpression().evaluate();
-        std::int64_t sinkRate = edge->sinkRateExpression().evaluate();
+        std::int64_t sourceRate = edge->sourceRateExpression().evaluate(params_);
+        std::int64_t sinkRate = edge->sinkRateExpression().evaluate(params_);
 
         /* == Check rates validity == */
         if ((!sinkRate && sourceRate) || (sinkRate && !sourceRate)) {
@@ -149,8 +149,8 @@ void LCMBRVCompute::checkValidity(Spider::Array<const PiSDFEdge *> &edgeArray) c
             edge->sink()->type() == PiSDFVertexType::INTERFACE) {
             continue;
         }
-        auto sourceRate = edge->sourceRateExpression().evaluate();
-        auto sinkRate = edge->sinkRateExpression().evaluate();
+        auto sourceRate = edge->sourceRateExpression().evaluate(params_);
+        auto sinkRate = edge->sinkRateExpression().evaluate(params_);
         const auto *source = edge->source();
         const auto *sink = edge->sink();
 

@@ -75,6 +75,8 @@ namespace Spider {
 
             virtual inline std::int64_t value() const;
 
+            virtual inline std::int64_t value(const Spider::vector<Param *> &) const;
+
             virtual inline ParamType type() const;
 
             virtual inline bool dynamic() const;
@@ -109,6 +111,10 @@ namespace Spider {
         }
 
         std::int64_t Param::value() const {
+            return value_;
+        }
+
+        std::int64_t Param::value(const Spider::vector<Param *> &) const {
             return value_;
         }
 

@@ -51,6 +51,8 @@ public:
 
     explicit TopologyBRVCompute(PiSDFGraph *graph) : BRVCompute(graph) { };
 
+    TopologyBRVCompute(PiSDFGraph *graph, const Spider::vector<PiSDFParam *> &params) : BRVCompute(graph, params) { };
+
     ~TopologyBRVCompute() = default;
 
     /* === Method(s) === */
@@ -70,7 +72,7 @@ private:
      * @param vertex  Vertex to test.
      * @return true if at least one rate is not null, false else.
      */
-    static bool isVertexExecutable(const PiSDFAbstractVertex *vertex);
+    bool isVertexExecutable(const PiSDFAbstractVertex *vertex) const;
 
     /**
      * @brief Check if an edge is valid.

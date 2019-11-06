@@ -104,7 +104,7 @@ struct RPNOperator {
     bool isRighAssociative;   /*! Right associativity property of the operator */
     std::string label;        /*! Label of the operator */
     evalFunction eval;        /*! Associated function of the operator */
-    std::uint32_t argCount;   /*! Number of argument of the operator */
+    std::uint8_t argCount;    /*! Number of argument of the operator */
 };
 
 /* === Structure definition(s) === */
@@ -124,9 +124,9 @@ struct RPNElement {
 
     RPNElement(RPNElement &&other) noexcept = default;
 
-    RPNElement(RPNElementType type, RPNElementSubType subtype, std::string token) : type{type},
-                                                                                    subtype{subtype},
-                                                                                    token{std::move(token)} { }
+    RPNElement(RPNElementType type, RPNElementSubType subtype, std::string token = "") : type{type},
+                                                                                         subtype{subtype},
+                                                                                         token{std::move(token)} { }
 };
 
 namespace RPNConverter {

@@ -66,13 +66,14 @@ bool PiSDFJoinEndOptimizer::operator()(PiSDFGraph *graph) const {
     }
 
     /* == Remove useless init / end connections == */
+    const auto &params = graph->params();
     for (auto *join : verticesToOptimize) {
         auto *edge = join->outputEdge(0);
         auto *end = dynamic_cast<PiSDFEndVertex *>(edge->sink());
         graph->removeEdge(edge);
         // TODO: see how to deal with persistent delay memory allocation
         for (auto *inputEdge : join->inputEdgeArray()) {
-            auto rate = inputEdge->sinkRateExpression().evaluate();
+            auto rate = inputEdge->sinkRateExpression().evaluate(params);
             auto *newEnd = Spider::API::createEnd(graph, "end-" + inputEdge->source()->name(), 0, StackID::TRANSFO);
             inputEdge->setSink(newEnd, 0, Expression(rate));
         }

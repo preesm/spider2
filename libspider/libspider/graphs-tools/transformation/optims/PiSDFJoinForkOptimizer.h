@@ -92,6 +92,7 @@ bool PiSDFJoinForkOptimizer::operator()(PiSDFGraph *graph) const {
     }
 
     /* == Go through the different pair to optimize == */
+    const auto &params = graph->params();
     for (auto &pair : verticesToOptimize) {
         auto *join = pair.first;
         auto *fork = pair.second;
@@ -100,14 +101,14 @@ bool PiSDFJoinForkOptimizer::operator()(PiSDFGraph *graph) const {
 
         for (auto *edge : join->inputEdgeArray()) {
             sourceArray[edge->sinkPortIx()] = EdgeLinker{dynamic_cast<PiSDFVertex *>(edge->source()),
-                                                         edge->sourceRateExpression().evaluate(),
+                                                         edge->sourceRateExpression().evaluate(params),
                                                          edge->sourcePortIx()};
             graph->removeEdge(edge);
         }
         graph->removeEdge(join->outputEdge(0));
         for (auto *edge : fork->outputEdgeArray()) {
             sinkArray[edge->sourcePortIx()] = EdgeLinker{dynamic_cast<PiSDFVertex *>(edge->sink()),
-                                                         edge->sinkRateExpression().evaluate(),
+                                                         edge->sinkRateExpression().evaluate(params),
                                                          edge->sinkPortIx()};
             graph->removeEdge(edge);
         }

@@ -87,8 +87,8 @@ void TopologyBRVCompute::execute() {
         std::uint32_t edgeRow = 0;
         for (const auto &edge : validEdgeVector) {
             auto edgeRowOffset = edgeRow * nMatVertices;
-            topologyMatrix[edgeRowOffset + vertexIxArray[edge->source()->ix()]] = edge->sourceRateExpression().evaluate();
-            topologyMatrix[edgeRowOffset + vertexIxArray[edge->sink()->ix()]] = -edge->sinkRateExpression().evaluate();
+            topologyMatrix[edgeRowOffset + vertexIxArray[edge->source()->ix()]] = edge->sourceRateExpression().evaluate(params_);
+            topologyMatrix[edgeRowOffset + vertexIxArray[edge->sink()->ix()]] = -edge->sinkRateExpression().evaluate(params_);
             edgeRow += 1;
         }
 
@@ -103,17 +103,17 @@ void TopologyBRVCompute::execute() {
     BRVCompute::print();
 }
 
-bool TopologyBRVCompute::isVertexExecutable(const PiSDFAbstractVertex *vertex) {
+bool TopologyBRVCompute::isVertexExecutable(const PiSDFAbstractVertex *vertex) const {
     /* == Check all input edges rate to 0 == */
     for (const auto &e:vertex->inputEdgeArray()) {
-        if (e->sinkRateExpression().evaluate()) {
+        if (e->sinkRateExpression().evaluate(params_)) {
             return true;
         }
     }
 
     /* == Check all output edges rate to 0 == */
     for (const auto &e:vertex->outputEdgeArray()) {
-        if (e->sourceRateExpression().evaluate()) {
+        if (e->sourceRateExpression().evaluate(params_)) {
             return true;
         }
     }

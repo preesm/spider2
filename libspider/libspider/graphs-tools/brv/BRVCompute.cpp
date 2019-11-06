@@ -51,7 +51,11 @@
 
 /* === Method(s) implementation === */
 
-BRVCompute::BRVCompute(const PiSDFGraph *graph) : graph_{graph} {
+BRVCompute::BRVCompute(const PiSDFGraph *graph) : BRVCompute(graph, graph->params()) {
+}
+
+BRVCompute::BRVCompute(const PiSDFGraph *graph, const Spider::vector<PiSDFParam *> &params) : graph_{graph},
+                                                                                              params_{params} {
     Spider::Array<const PiSDFAbstractVertex *> connectedComponentsKeys{graph->vertexCount(), nullptr, StackID::TRANSFO};
     Spider::Array<const PiSDFAbstractVertex *> vertexArray{graph->vertexCount(), nullptr, StackID::TRANSFO};
     BRVComponent component;
@@ -153,10 +157,10 @@ void BRVCompute::updateBRV(Spider::Array<const PiSDFEdge *> &edgeArray, const BR
     }
 }
 
-std::uint64_t BRVCompute::updateBRVFromInputIF(const PiSDFEdge *edge, std::uint64_t currentScaleFactor) {
+std::uint64_t BRVCompute::updateBRVFromInputIF(const PiSDFEdge *edge, std::uint64_t currentScaleFactor) const {
     if (edge->sink()->type() != PiSDFVertexType::INTERFACE) {
-        std::uint64_t sourceRate = edge->sourceRateExpression().evaluate();
-        std::uint64_t sinkRate = edge->sinkRateExpression().evaluate();
+        std::uint64_t sourceRate = edge->sourceRateExpression().evaluate(params_);
+        std::uint64_t sinkRate = edge->sinkRateExpression().evaluate(params_);
         auto totalCons = sinkRate * edge->sink()->repetitionValue() * currentScaleFactor;
         if (totalCons && totalCons < sourceRate) {
             /* == Return ceil(interfaceProd / vertexCons) == */
@@ -166,10 +170,10 @@ std::uint64_t BRVCompute::updateBRVFromInputIF(const PiSDFEdge *edge, std::uint6
     return 1;
 }
 
-std::uint64_t BRVCompute::updateBRVFromOutputIF(const PiSDFEdge *edge, std::uint64_t currentScaleFactor) {
+std::uint64_t BRVCompute::updateBRVFromOutputIF(const PiSDFEdge *edge, std::uint64_t currentScaleFactor) const {
     if (edge->source()->type() != PiSDFVertexType::INTERFACE) {
-        std::uint64_t sourceRate = edge->sourceRateExpression().evaluate();
-        std::uint64_t sinkRate = edge->sinkRateExpression().evaluate();
+        std::uint64_t sourceRate = edge->sourceRateExpression().evaluate(params_);
+        std::uint64_t sinkRate = edge->sinkRateExpression().evaluate(params_);
         auto totalProd = sourceRate * edge->source()->repetitionValue() * currentScaleFactor;
         if (totalProd && totalProd < sinkRate) {
             /* == Return ceil(vertexProd / interfaceCons) == */
@@ -179,10 +183,10 @@ std::uint64_t BRVCompute::updateBRVFromOutputIF(const PiSDFEdge *edge, std::uint
     return 1;
 }
 
-std::uint64_t BRVCompute::updateBRVFromCFGActor(const PiSDFEdge *edge, std::uint64_t currentScaleFactor) {
+std::uint64_t BRVCompute::updateBRVFromCFGActor(const PiSDFEdge *edge, std::uint64_t currentScaleFactor) const {
     if (edge->sink()->type() != PiSDFVertexType::INTERFACE) {
-        std::uint64_t sourceRate = edge->sourceRateExpression().evaluate();
-        std::uint64_t sinkRate = edge->sinkRateExpression().evaluate();
+        std::uint64_t sourceRate = edge->sourceRateExpression().evaluate(params_);
+        std::uint64_t sinkRate = edge->sinkRateExpression().evaluate(params_);
         auto totalCons = sinkRate * edge->sink()->repetitionValue() * currentScaleFactor;
         if (totalCons && totalCons < sourceRate) {
             /* == Return ceil(cfgActorProd / vertexCons) == */

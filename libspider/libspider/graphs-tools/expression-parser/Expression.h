@@ -50,26 +50,21 @@
 
 /* === Structure definition(s) === */
 
-struct ExpressionTreeNode {
-    ExpressionTreeNode *left = nullptr;
-    ExpressionTreeNode *right = nullptr;
-    ExpressionTreeNode *parent = nullptr;
-    RPNElement elt;
+struct ExpressionElt {
+    RPNElement elt_;
     union {
-        RPNOperatorType operatorType;
-        double value = 0;
-        PiSDFParam *param;
+        double value_ = 0;
+        std::uint32_t paramIx_;
+        RPNOperatorType opType_;
     } arg;
 
-    ExpressionTreeNode() = default;
+    ExpressionElt() = default;
 
-    ExpressionTreeNode(const ExpressionTreeNode &) = default;
+    ExpressionElt(const ExpressionElt &) = default;
 
-    ExpressionTreeNode(ExpressionTreeNode &&) noexcept = default;
+    ExpressionElt(ExpressionElt &&) noexcept = default;
 
-    ExpressionTreeNode(ExpressionTreeNode *parent, RPNElement elt) : parent{parent},
-                                                                     elt{std::move(elt)} {
-    }
+    explicit ExpressionElt(RPNElement elt) : elt_{std::move(elt)} { }
 };
 
 /* === Class definition === */
@@ -77,7 +72,7 @@ struct ExpressionTreeNode {
 class Expression {
 public:
 
-    explicit Expression(std::string expression, const PiSDFGraph *graph = Spider::pisdfGraph());
+    explicit Expression(std::string expression, const Spider::vector<PiSDFParam *> &params = {});
 
     explicit Expression(std::int64_t value);
 
@@ -96,7 +91,7 @@ public:
         using std::swap;
 
         /* == Swap members of both objects == */
-        swap(first.expressionTree_, second.expressionTree_);
+        swap(first.expressionStack_, second.expressionStack_);
         swap(first.value_, second.value_);
         swap(first.static_, second.static_);
     }
@@ -112,18 +107,13 @@ public:
      * @brief Evaluate the expression and return the value and cast result in int64_.
      * @return Evaluated value of the expression.
      */
-    inline std::int64_t evaluate() const;
+    inline std::int64_t evaluate(const Spider::vector<PiSDFParam *> &params = {}) const;
 
     /**
      * @brief Evaluate the expression and return the value.
      * @return Evaluated value of the expression.
      */
-    inline double evaluateDBL() const;
-
-    /**
-     * @brief Print the ExpressionTree (debug only).
-     */
-    void printExpressionTree();
+    inline double evaluateDBL(const Spider::vector<PiSDFParam *> &params = {}) const;
 
     /**
      * @brief Get the expression string.
@@ -147,8 +137,8 @@ public:
     inline bool dynamic() const;
 
 private:
-    Spider::vector<ExpressionTreeNode> expressionTree_;
-    double value_ = 0.;
+    Spider::vector<ExpressionElt> expressionStack_;
+    double value_ = 0;
     bool static_ = true;
 
     /* === Private method(s) === */
@@ -157,17 +147,15 @@ private:
      * @brief Build and reduce the expression tree parser.
      * @param expressionStack Stack of the postfix expression elements.
      */
-    void buildExpressionTree();
+    void buildExpressionStack(Spider::vector<RPNElement> &postfixStack, const Spider::vector<PiSDFParam *> &params);
 
     /**
-     * @brief Evaluate the value of a node in the ExpressionTree.
-     * @param node  Node to evaluate.
-     * @return value of the evaluated node.
-     * @remark This is a recursive method.
+     * @brief Evaluate the expression (if dynamic)
+     * @warning There is no check for the presence of the parameters in the params vector.
+     * @param params  Vector of parameters needed for the eval.
+     * @return evaluated value
      */
-    double evaluateNode(const ExpressionTreeNode *node) const;
-
-    static void printExpressionTreeNode(ExpressionTreeNode *node, std::int32_t depth);
+    double evaluateStack(const Spider::vector<PiSDFParam *> &params) const;
 };
 
 /* === Inline methods === */
@@ -176,18 +164,12 @@ std::int64_t Expression::value() const {
     return static_cast<std::int64_t>(value_);
 }
 
-std::int64_t Expression::evaluate() const {
-    if (static_) {
-        return static_cast<std::int64_t>(value_);
-    }
-    return static_cast<std::int64_t>(evaluateNode(&expressionTree_[0]));
+std::int64_t Expression::evaluate(const Spider::vector<PiSDFParam *> &params) const {
+    return static_ ? static_cast<std::int64_t>(value_) : static_cast<std::int64_t>(evaluateStack(params));
 }
 
-double Expression::evaluateDBL() const {
-    if (static_) {
-        return value_;
-    }
-    return evaluateNode(&expressionTree_[0]);
+double Expression::evaluateDBL(const Spider::vector<PiSDFParam *> &params) const {
+    return static_ ? value_ : evaluateStack(params);
 }
 
 bool Expression::dynamic() const {

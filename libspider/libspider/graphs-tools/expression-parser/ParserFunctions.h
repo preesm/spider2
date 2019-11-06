@@ -84,40 +84,40 @@ namespace Spider {
         return std::min(a, b);
     }
 
-    inline double cos(const double &, const double &b) {
-        return std::cos(b);
+    inline double cos(const double &a, const double &) {
+        return std::cos(a);
     }
 
-    inline double sin(const double &, const double &b) {
-        return std::sin(b);
+    inline double sin(const double &a, const double &) {
+        return std::sin(a);
     }
 
-    inline double tan(const double &, const double &b) {
-        return std::tan(b);
+    inline double tan(const double &a, const double &) {
+        return std::tan(a);
     }
 
-    inline double exp(const double &, const double &b) {
-        return std::exp(b);
+    inline double exp(const double &a, const double &) {
+        return std::exp(a);
     }
 
-    inline double log(const double &, const double &b) {
-        return std::log(b);
+    inline double log(const double &a, const double &) {
+        return std::log(a);
     }
 
-    inline double log2(const double &, const double &b) {
-        return std::log2(b);
+    inline double log2(const double &a, const double &) {
+        return std::log2(a);
     }
 
-    inline double ceil(const double &, const double &b) {
-        return std::ceil(b);
+    inline double ceil(const double &a, const double &) {
+        return std::ceil(a);
     }
 
-    inline double floor(const double &, const double &b) {
-        return std::floor(b);
+    inline double floor(const double &a, const double &) {
+        return std::floor(a);
     }
 
-    inline double sqrt(const double &, const double &b) {
-        return std::sqrt(b);
+    inline double sqrt(const double &a, const double &) {
+        return std::sqrt(a);
     }
 }
 

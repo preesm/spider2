@@ -47,6 +47,7 @@
 #include <vector>
 #include <graphs-tools/expression-parser/Expression.h>
 #include <graphs/pisdf/Types.h>
+#include <graphs/pisdf/Graph.h>
 
 /* === Forward declaration(s) === */
 
@@ -220,7 +221,7 @@ namespace Spider {
 
     std::int64_t Scenario::executionTiming(const PiSDFAbstractVertex *vertex, std::uint32_t PEType) const {
         auto &timings = vertexExecutionTimingsMap_.at(vertex);
-        return timings.at(PEType).evaluate();
+        return timings.at(PEType).evaluate(vertex->containingGraph()->params());
     }
 
     void Scenario::setMappingConstraints(const PiSDFAbstractVertex *vertex,
