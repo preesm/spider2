@@ -54,7 +54,6 @@ struct ExpressionElt {
     RPNElement elt_;
     union {
         double value_ = 0;
-        std::uint32_t paramIx_;
         RPNOperatorType opType_;
     } arg;
 
@@ -154,7 +153,8 @@ private:
      * @brief Build and reduce the expression tree parser.
      * @param expressionStack Stack of the postfix expression elements.
      */
-    void buildExpressionStack(Spider::vector<RPNElement> &postfixStack, const Spider::vector<PiSDFParam *> &params);
+    Spider::vector<ExpressionElt>
+    buildExpressionStack(Spider::vector<RPNElement> &postfixStack, const Spider::vector<PiSDFParam *> &params);
 
     /**
      * @brief Evaluate the expression (if dynamic)

@@ -56,7 +56,66 @@ findParam(const Spider::vector<PiSDFParam *> &params, const std::string &name) {
         }
         ix += 1;
     }
-    return std::make_pair(nullptr, 0);
+    throwSpiderException("Did not find parameter [%s] for expression parsing.", name.c_str());
+}
+
+static bool trySwap(Spider::vector<RPNElement> &stack,
+                    const Spider::vector<int> &left,
+                    const Spider::vector<int> &right) {
+    if (stack[left.back()].token != stack[right.back()].token) {
+        return false;
+    }
+    const auto &token = stack[left.back()].token;
+    if (std::string("+-/*^").find(token) == std::string::npos) {
+        return false;
+    }
+    bool swaped = false;
+
+    /* == Operators "-/^" can not swap the most left elements == */
+    auto it = left.begin() + (std::string("-/^").find(token) != std::string::npos);
+    for (; it != left.end(); ++it) {
+        if (stack[*it].subtype == RPNElementSubType::PARAMETER) {
+            for (const auto &ixr: right) {
+                if (stack[ixr].subtype == RPNElementSubType::VALUE) {
+                    std::swap(stack[*it], stack[ixr]);
+                    swaped = true;
+                    break;
+                }
+            }
+        }
+    }
+    return swaped;
+}
+
+static void reorderPostfixStack(Spider::vector<RPNElement> &postfixStack) {
+    Spider::vector<Spider::vector<int>> operationStackVector;
+    operationStackVector.push_back({});
+    operationStackVector[0].reserve(6);
+
+    /* == Fill up the operation stack once == */
+    int i = 0;
+    for (const auto &elt : postfixStack) {
+        operationStackVector.back().emplace_back(i++);
+        if (elt.type == RPNElementType::OPERATOR) {
+            if (operationStackVector.back().size() == 1) {
+                break;
+            }
+            operationStackVector.push_back({});
+            operationStackVector.back().reserve(6);
+        }
+    }
+
+    /* == Iteratively try to reorder postfix expression stack based on operation stack == */
+    bool swapped;
+    do {
+        swapped = false;
+
+        /* == Try to swap element in operations == */
+        auto it = operationStackVector.begin();
+        for (; it != (operationStackVector.end() - 1); ++it) {
+            swapped |= trySwap(postfixStack, (*it), (*(it + 1)));
+        }
+    } while (swapped);
 }
 
 template<class StartIterator>
@@ -102,7 +161,6 @@ static double applyOperator(StartIterator start, RPNOperatorType type) {
     return 0;
 }
 
-
 /* === Methods implementation === */
 
 Expression::Expression(std::string expression, const Spider::vector<PiSDFParam *> &params) {
@@ -112,16 +170,14 @@ Expression::Expression(std::string expression, const Spider::vector<PiSDFParam *
 //    Spider::Logger::printVerbose(LOG_GENERAL, "infix expression: [%s].\n", RPNConverter::infixString(postfixStack));
 //    Spider::Logger::printVerbose(LOG_GENERAL, "postfix expression: [%s].\n", RPNConverter::postfixString(postfixStack));
 
-    /* == Build the expression stack == */
-    expressionStack_.reserve(postfixStack.size());
-    buildExpressionStack(postfixStack, params);
+    /* == Reorder the postfix stack elements to increase the number of static evaluation done on construction == */
+    /* == ((2+w)+6)*(20) -> [2 w + 6 + 20 *] -> [8 w + 20 *] == */
+    /* == (w*2)*(4*h) -> [w 2 * 4 h * *] -> [8 w h * *] == */
+    /* == (4/w)/2 -> [4 w / 2 /] -> [4 2 / w /]  -> [2 w /] == */
+    reorderPostfixStack(postfixStack);
 
-    /* == Reduce expression == */
-    // TODO: see how to reduce expression to the smallest dynamic form
-    // TODO: ((2+w)+6)*(20) -> [2 w + 6 + 20 *] -> [8 w + 20 *]
-    // TODO: (w*2)*(4*h) -> [w 2 * 4 h * *] -> [w h * 8 *]
-    // TODO: (4/w)/2 -> [4 w / 2 /] -> [4 2 / w /]  -> [2 w /]
-//    reduceExpression(expressionStack_);
+    /* == Build the expression stack == */
+    expressionStack_ = buildExpressionStack(postfixStack, params);
 
     if (static_) {
         value_ = expressionStack_.empty() ? 0. : expressionStack_.back().arg.value_;
@@ -147,8 +203,10 @@ std::string Expression::string() const {
 
 /* === Private method(s) === */
 
-void Expression::buildExpressionStack(Spider::vector<RPNElement> &postfixStack,
-                                      const Spider::vector<PiSDFParam *> &params) {
+Spider::vector<ExpressionElt> Expression::buildExpressionStack(Spider::vector<RPNElement> &postfixStack,
+                                                               const Spider::vector<PiSDFParam *> &params) {
+    Spider::vector<ExpressionElt> stack;
+    stack.reserve(postfixStack.size());
     Spider::vector<double> evalStack;
     evalStack.reserve(6); /* = In practice, the evalStack will most likely not exceed 3 values = */
     bool skipEval = false;
@@ -159,23 +217,20 @@ void Expression::buildExpressionStack(Spider::vector<RPNElement> &postfixStack,
             if (elt.subtype == RPNElementSubType::PARAMETER) {
                 const auto &pair = findParam(params, elt.token);
                 const auto &param = pair.first;
-                if (!param) {
-                    throwSpiderException("Did not find parameter [%s] for expression parsing.", elt.token.c_str());
-                }
                 const auto &dynamic = param->dynamic();
                 const auto &value = param->value();
-                expressionStack_.emplace_back(std::move(elt));
-                static_ &= (!dynamic);
-                skipEval |= dynamic;
+                evalStack.push_back(value);
 
                 /* == By default, dynamic parameters have 0 value and dynamic expression are necessary built on startup == */
-                expressionStack_.back().arg.value_ = static_cast<double>(dynamic & pair.second) + value;
-                evalStack.push_back(value);
+                static_ &= (!dynamic);
+                skipEval |= dynamic;
+                stack.emplace_back(std::move(elt));
+                stack.back().arg.value_ = static_cast<double>(dynamic & pair.second) + value;
             } else {
                 const auto &value = std::strtod(elt.token.c_str(), nullptr);
-                expressionStack_.emplace_back(std::move(elt));
-                expressionStack_.back().arg.value_ = value;
                 evalStack.push_back(value);
+                stack.emplace_back(std::move(elt));
+                stack.back().arg.value_ = value;
             }
         } else {
             const auto &opType = RPNConverter::getOperatorTypeFromString(elt.token);
@@ -183,18 +238,18 @@ void Expression::buildExpressionStack(Spider::vector<RPNElement> &postfixStack,
             if (elt.subtype == RPNElementSubType::FUNCTION && argCount < op.argCount) {
                 throwSpiderException("Function [%s] expecting argument !", elt.token.c_str());
             }
-            expressionStack_.emplace_back(std::move(elt));
-            expressionStack_.back().arg.opType_ = opType;
+            stack.emplace_back(std::move(elt));
+            stack.back().arg.opType_ = opType;
             if (!skipEval && evalStack.size() >= op.argCount) {
                 auto &&result = applyOperator(evalStack.begin() + (evalStack.size() - op.argCount), op.type);
                 for (std::uint8_t i = 0; i < op.argCount; ++i) {
-                    expressionStack_.pop_back();
+                    stack.pop_back();
                     evalStack.pop_back();
                 }
-                expressionStack_.back().elt_.type = RPNElementType::OPERAND;
-                expressionStack_.back().elt_.subtype = RPNElementSubType::VALUE;
-                expressionStack_.back().elt_.token = std::to_string(result);
-                expressionStack_.back().arg.value_ = result;
+                stack.back().elt_.type = RPNElementType::OPERAND;
+                stack.back().elt_.subtype = RPNElementSubType::VALUE;
+                stack.back().elt_.token = std::to_string(result);
+                stack.back().arg.value_ = result;
                 evalStack.push_back(result);
             } else {
                 for (std::uint8_t i = 0; !evalStack.empty() && i < op.argCount; ++i) {
@@ -205,6 +260,7 @@ void Expression::buildExpressionStack(Spider::vector<RPNElement> &postfixStack,
             skipEval = false;
         }
     }
+    return stack;
 }
 
 double Expression::evaluateStack(const Spider::vector<PiSDFParam *> &params) const {
