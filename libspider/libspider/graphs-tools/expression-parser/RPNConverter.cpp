@@ -60,13 +60,18 @@ static const std::string &supportedBasicOperators() {
 /* === Static Function(s) === */
 
 static bool isOperator(const std::string &s) {
-    bool found = false;
-    for (std::uint32_t i = 0; !found && i < (RPNConverter::operator_count + RPNConverter::function_count); ++i) {
+    bool found = supportedBasicOperators().find_first_of(s) != std::string::npos;
+    for (auto i = RPNConverter::function_offset; !found && i < RPNConverter::operator_count; ++i) {
         found |= (RPNConverter::getOperator(i).label == s);
     }
     return found;
 }
 
+/**
+ * @brief Check if an @refitem RPNOperatorType is a function or a base operator (ie. +,-,*,/,%,^)
+ * @param type  Operator type.
+ * @return true if type is a function, false else.
+ */
 static bool isFunction(RPNOperatorType type) {
     return static_cast<std::uint32_t >(type) >= RPNConverter::function_offset;
 }
@@ -88,6 +93,7 @@ static bool missMatchParenthesis(It1 first, It2 last) {
 
 /**
  * @brief Check for inconsistencies in the infix expression.
+ * @param infixExprString String to evaluate.
  */
 static void checkInfixExpression(const std::string &infixExprString) {
     static const auto &restrictedOperators = std::string{"*/+-%^"};
@@ -124,8 +130,8 @@ static std::string &stringReplace(std::string &s, const std::string &pattern, co
 }
 
 /**
- * @brief Perform clean and reformatting operations on the original infix
- * expression.
+ * @brief Perform clean and reformatting operations on the original infix expression.
+ * @param infixExprString String to reformat.
  */
 static void cleanInfixExpression(std::string &infixExprString) {
     if (infixExprString.empty()) {
@@ -171,7 +177,12 @@ static void cleanInfixExpression(std::string &infixExprString) {
     stringReplace(infixExprString, "pi", "3.1415926535");
 }
 
-static void addElementFromToken(Spider::vector<RPNElement> &tokens, const std::string &token) {
+/**
+ * @brief Add an @refitem RPNElement element to the current stack based on string token.
+ * @param tokenStack Token stack.
+ * @param token      String token to evaluate.
+ */
+static void addElementFromToken(Spider::vector<RPNElement> &tokenStack, const std::string &token) {
     if (token.empty()) {
         return;
     }
@@ -180,22 +191,50 @@ static void addElementFromToken(Spider::vector<RPNElement> &tokens, const std::s
         const auto &opType = RPNConverter::getOperatorTypeFromString(token);
         const auto &subtype = isFunction(opType) ? RPNElementSubType::FUNCTION
                                                  : RPNElementSubType::OPERATOR;
-        tokens.push_back(RPNElement(RPNElementType::OPERATOR, subtype, token));
+        tokenStack.push_back(RPNElement(RPNElementType::OPERATOR, subtype, token));
     } else {
         auto pos = token.find_first_of(',', 0);
         if (pos != std::string::npos) {
             /* == Double operand case == */
-            addElementFromToken(tokens, token.substr(0, pos++));
-            addElementFromToken(tokens, token.substr(pos, (token.size() - pos)));
+            addElementFromToken(tokenStack, token.substr(0, pos++));
+            addElementFromToken(tokenStack, token.substr(pos, (token.size() - pos)));
         } else {
             /* == Operand case == */
             char *end;
             std::strtod(token.c_str(), &end);
             auto subtype = (end == token.c_str() || (*end) != '\0') ? RPNElementSubType::PARAMETER
                                                                     : RPNElementSubType::VALUE;
-            tokens.push_back(RPNElement(RPNElementType::OPERAND, subtype, token));
+            tokenStack.push_back(RPNElement(RPNElementType::OPERAND, subtype, token));
         }
     }
+}
+
+static bool trySwap(Spider::vector<RPNElement> &stack,
+                    const Spider::vector<int> &left,
+                    const Spider::vector<int> &right) {
+    if (stack[left.back()].token != stack[right.back()].token) {
+        return false;
+    }
+    const auto &token = stack[left.back()].token;
+    if (std::string("+-/*^").find(token) == std::string::npos) {
+        return false;
+    }
+    bool swaped = false;
+
+    /* == Operators "-/^" can not swap the most left elements == */
+    auto it = left.begin() + (std::string("-/^").find(token) != std::string::npos);
+    for (; it != left.end(); ++it) {
+        if (stack[*it].subtype == RPNElementSubType::PARAMETER) {
+            for (const auto &ixr: right) {
+                if (stack[ixr].subtype == RPNElementSubType::VALUE) {
+                    std::swap(stack[*it], stack[ixr]);
+                    swaped = true;
+                    break;
+                }
+            }
+        }
+    }
+    return swaped;
 }
 
 /* === Function(s) implementation === */
@@ -258,9 +297,10 @@ Spider::vector<RPNElement> RPNConverter::extractInfixElements(std::string infixE
     /* == Check for incoherence(s) == */
     checkInfixExpression(infixExpressionLocal);
 
-    /* == Extract the expression elements == */
     Spider::vector<RPNElement> tokens;
     tokens.reserve(infixExpressionLocal.size());
+
+    /* == Extract the expression elements == */
     auto pos = infixExpressionLocal.find_first_of(supportedBasicOperators(), 0);
     std::uint32_t lastPos = 0;
     while (pos != std::string::npos) {
@@ -355,8 +395,39 @@ Spider::vector<RPNElement> RPNConverter::extractPostfixElements(std::string infi
     return postfixStack;
 }
 
+void RPNConverter::reorderPostfixStack(Spider::vector<RPNElement> &postfixStack) {
+    Spider::vector<Spider::vector<int>> operationStackVector;
+    operationStackVector.push_back({});
+    operationStackVector[0].reserve(6);
+
+    /* == Fill up the operation stack once == */
+    int i = 0;
+    for (const auto &elt : postfixStack) {
+        operationStackVector.back().emplace_back(i++);
+        if (elt.type == RPNElementType::OPERATOR) {
+            if (operationStackVector.back().size() == 1) {
+                break;
+            }
+            operationStackVector.push_back({});
+            operationStackVector.back().reserve(6);
+        }
+    }
+
+    /* == Iteratively try to reorder postfix expression stack based on operation stack == */
+    bool swapped;
+    do {
+        swapped = false;
+
+        /* == Try to swap element in operations == */
+        auto it = operationStackVector.begin();
+        for (; it != (operationStackVector.end() - 1); ++it) {
+            swapped |= trySwap(postfixStack, (*it), (*(it + 1)));
+        }
+    } while (swapped);
+}
+
 const RPNOperator &RPNConverter::getOperator(std::uint32_t ix) {
-    static std::array<RPNOperator, (RPNConverter::operator_count + RPNConverter::function_count)>
+    static std::array<RPNOperator, RPNConverter::operator_count>
             operatorArray{{
                                   {RPNOperatorType::ADD, 2, false, "+", 2},          /*! ADD operator */
                                   {RPNOperatorType::SUB, 2, false, "-", 2},          /*! SUB operator */
@@ -385,15 +456,11 @@ const RPNOperator &RPNConverter::getOperatorFromOperatorType(RPNOperatorType typ
     return getOperator(static_cast<std::uint32_t >(type));
 }
 
-const std::string &RPNConverter::getStringFromOperatorType(RPNOperatorType type) {
-    return getOperatorFromOperatorType(type).label;
-}
-
 RPNOperatorType RPNConverter::getOperatorTypeFromString(const std::string &operatorString) {
     // TODO: implement it with a std::map<std::string, OperatorType> and try - catch block. see: Zero-Cost Exception model.
     bool found = false;
     std::uint32_t i = 0;
-    for (i = 0; !found && i < (RPNConverter::operator_count + RPNConverter::function_count); ++i) {
+    for (; !found && i < RPNConverter::operator_count; ++i) {
         found |= (getOperator(i).label == operatorString);
     }
     if (!found) {

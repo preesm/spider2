@@ -126,33 +126,8 @@ TEST_F(RPNConverterTest, TestGetOperator) {
     EXPECT_NO_THROW(RPNConverter::getOperatorFromOperatorType(RPNOperatorType::SQRT));
     EXPECT_NO_THROW(RPNConverter::getOperatorFromOperatorType(RPNOperatorType::MIN));
     EXPECT_NO_THROW(RPNConverter::getOperatorFromOperatorType(RPNOperatorType::MAX));
-    for (std::uint32_t i = 0; i < (RPNConverter::operator_count + RPNConverter::function_count); ++i) {
+    for (std::uint32_t i = 0; i < (RPNConverter::operator_count); ++i) {
         EXPECT_NO_THROW(RPNConverter::getOperator(i));
     }
     EXPECT_THROW(RPNConverter::getOperator(-1), std::out_of_range);
 }
-
-
-
-TEST_F(RPNConverterTest, TestGetFunctionString) {
-    EXPECT_NO_THROW(RPNConverter::getStringFromOperatorType(RPNOperatorType::ADD));
-    EXPECT_NO_THROW(RPNConverter::getStringFromOperatorType(RPNOperatorType::SUB));
-    EXPECT_NO_THROW(RPNConverter::getStringFromOperatorType(RPNOperatorType::MUL));
-    EXPECT_NO_THROW(RPNConverter::getStringFromOperatorType(RPNOperatorType::DIV));
-    EXPECT_NO_THROW(RPNConverter::getStringFromOperatorType(RPNOperatorType::MOD));
-    EXPECT_NO_THROW(RPNConverter::getStringFromOperatorType(RPNOperatorType::POW));
-    EXPECT_NO_THROW(RPNConverter::getStringFromOperatorType(RPNOperatorType::LEFT_PAR));
-    EXPECT_NO_THROW(RPNConverter::getStringFromOperatorType(RPNOperatorType::RIGHT_PAR));
-    EXPECT_NO_THROW(RPNConverter::getStringFromOperatorType(RPNOperatorType::COS));
-    EXPECT_NO_THROW(RPNConverter::getStringFromOperatorType(RPNOperatorType::SIN));
-    EXPECT_NO_THROW(RPNConverter::getStringFromOperatorType(RPNOperatorType::TAN));
-    EXPECT_NO_THROW(RPNConverter::getStringFromOperatorType(RPNOperatorType::LOG));
-    EXPECT_NO_THROW(RPNConverter::getStringFromOperatorType(RPNOperatorType::LOG2));
-    EXPECT_NO_THROW(RPNConverter::getStringFromOperatorType(RPNOperatorType::EXP));
-    EXPECT_NO_THROW(RPNConverter::getStringFromOperatorType(RPNOperatorType::CEIL));
-    EXPECT_NO_THROW(RPNConverter::getStringFromOperatorType(RPNOperatorType::FLOOR));
-    EXPECT_NO_THROW(RPNConverter::getStringFromOperatorType(RPNOperatorType::SQRT));
-    EXPECT_NO_THROW(RPNConverter::getStringFromOperatorType(RPNOperatorType::MIN));
-    EXPECT_NO_THROW(RPNConverter::getStringFromOperatorType(RPNOperatorType::MAX));
-}
-

@@ -127,13 +127,20 @@ struct RPNElement {
 };
 
 namespace RPNConverter {
-    constexpr auto operator_count = static_cast<std::uint32_t>(RPNOperatorType::RIGHT_PAR) + 1;
+    /**
+     * @brief number of operators (based on the value of @refitem RPNOperatorType::COS (i.e last function)
+     */
+    constexpr auto operator_count = static_cast<std::uint32_t>(RPNOperatorType::MIN) + 1;
 
-    /* == Value of the @refitem RPNOperatorType::COS (first function) == */
+    /**
+     * @brief Value of the @refitem RPNOperatorType::COS (first function)
+     */
     constexpr auto function_offset = static_cast<std::uint32_t>(RPNOperatorType::COS);
 
-    /* == Value of the @refitem RPNOperatorType::MIN (last function) == */
-    constexpr auto function_count = static_cast<std::uint32_t>(RPNOperatorType::MIN) - function_offset + 1;
+    /**
+     * @brief Number of function (not basic operators)
+     */
+    constexpr auto function_count = operator_count - function_offset;
 
     /**
      * @brief Build the expression infix string from the stack of postfix elements.
@@ -168,6 +175,22 @@ namespace RPNConverter {
     Spider::vector<RPNElement> extractPostfixElements(std::string infixExpression);
 
     /**
+     * @brief Re-order symbols in the postfix stack in order to maximize static evaluation.
+     * @remark Swapping is done using move semantic in-place of the input vector.
+     * @example input infix:       ((2+w)+6)*(20)
+     *          postfix:           [2 w + 6 + 20 *]   -> no static evaluation possible
+     *          reordered postfix: [2 6 + w + 20 *]   -> static evaluate to [8 w + 20 *]
+     * @example input infix:       (w*2)*(4*h)
+     *          postfix:           [w 2 * 4 h * *]   -> no static evaluation possible
+     *          reordered postfix: [2 4 * w h * *]   -> static evaluate to [8 w h * *]
+     * @example input infix:       (4/w)/2
+     *          postfix:           [4 w / 2 /]       -> no static evaluation possible
+     *          reordered postfix: [4 2 / w /]       -> static evaluate to [2 w /]
+     * @param postfixStack Input postfix stack.
+     */
+    void reorderPostfixStack(Spider::vector<RPNElement> &postfixStack);
+
+    /**
      * @brief Get the operator corresponding to the ix (value of the enum @refitem RPNOperatorType).
      * @param ix  ix of the enum.
      * @return @refitem RPNOperator.
@@ -181,13 +204,6 @@ namespace RPNConverter {
      * @return Associated operator.
      */
     const RPNOperator &getOperatorFromOperatorType(RPNOperatorType type);
-
-    /**
-     * @brief Get the string label of an operator from its type.
-     * @param type  Operator type.
-     * @return string label of the operator.
-     */
-    const std::string &getStringFromOperatorType(RPNOperatorType type);
 
     /**
      * @brief Retrieve the @refitem RPNOperatorType corresponding to a given string.
