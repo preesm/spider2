@@ -102,6 +102,8 @@ TEST_F(ExpressionTest, TestEvaluationOperators) {
     ASSERT_EQ(Expression("3-4").evaluate(), -1);
     ASSERT_EQ(Expression("4+ 3").evaluateDBL(), 7.);
     ASSERT_EQ(Expression("4/3").evaluateDBL(), 4. / 3);
+    ASSERT_EQ(Expression("4/3*3").evaluateDBL(), 4.);
+    ASSERT_EQ(Expression("4*4/3").evaluateDBL(), 16. / 3);
     ASSERT_EQ(Expression("4/3").evaluate(), 1);
     ASSERT_EQ(Expression("4^3").evaluateDBL(), std::pow(4, 3));
     ASSERT_EQ(Expression("4+4^3").evaluateDBL(), 68);
