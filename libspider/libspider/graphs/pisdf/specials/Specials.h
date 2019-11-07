@@ -48,7 +48,6 @@
 #include <graphs/pisdf/specials/HeadVertex.h>
 #include <graphs/pisdf/specials/DuplicateVertex.h>
 #include <graphs/pisdf/specials/UpSampleVertex.h>
-#include <graphs/pisdf/specials/DownSampleVertex.h>
 #include <graphs/pisdf/specials/InitVertex.h>
 #include <graphs/pisdf/specials/EndVertex.h>
 

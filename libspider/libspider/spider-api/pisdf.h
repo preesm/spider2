@@ -121,11 +121,6 @@ namespace Spider {
                                             std::uint32_t nParamsIN = 0,
                                             StackID stack = StackID::PISDF);
 
-        PiSDFDownSampleVertex *createDownsample(PiSDFGraph *graph,
-                                                std::string name,
-                                                std::uint32_t nParamsIN = 0,
-                                                StackID stack = StackID::PISDF);
-
         PiSDFInitVertex *createInit(PiSDFGraph *graph,
                                     std::string name,
                                     std::uint32_t nParamsIN = 0,

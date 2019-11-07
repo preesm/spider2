@@ -293,12 +293,6 @@ void Spider::PiSDF::Graph::destroyVertex(Vertex *vertex) {
             Spider::deallocate(tmp);
         }
             break;
-        case VertexType::DOWNSAMPLE: {
-            auto *tmp = dynamic_cast<DownSampleVertex *>(vertex);
-            Spider::destroy(tmp);
-            Spider::deallocate(tmp);
-        }
-            break;
         case VertexType::DUPLICATE: {
             auto *tmp = dynamic_cast<DuplicateVertex *>(vertex);
             Spider::destroy(tmp);

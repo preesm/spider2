@@ -67,14 +67,14 @@ static std::string vertexColor(PiSDFVertexType type) {
             return "#2c3e50ff";
         case PiSDFVertexType::TAIL:
             return "#f1e7feff";
+        case PiSDFVertexType::HEAD:
+            return "#dcc6e0ff";
         case PiSDFVertexType::INIT:
             return "#c8f7c5ff";
         case PiSDFVertexType::END:
             return "#ff9478ff";
         case PiSDFVertexType::UPSAMPLE:
             return "#fff68fff";
-        case PiSDFVertexType::DOWNSAMPLE:
-            return "#dcc6e0ff";
         default:
             return "eeeeeeff";
     }

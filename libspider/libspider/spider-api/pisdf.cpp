@@ -209,19 +209,6 @@ PiSDFUpSampleVertex *Spider::API::createUpsample(PiSDFGraph *graph,
     return vertex;
 }
 
-PiSDFDownSampleVertex *Spider::API::createDownsample(PiSDFGraph *graph,
-                                                     std::string name,
-                                                     std::uint32_t nParamsIN,
-                                                     StackID stack) {
-    auto *vertex = Spider::allocate<PiSDFDownSampleVertex>(stack);
-    Spider::construct(vertex,
-                      std::move(name),
-                      graph,
-                      stack);
-    graph->addVertex(vertex);
-    return vertex;
-}
-
 PiSDFInitVertex *Spider::API::createInit(PiSDFGraph *graph,
                                          std::string name,
                                          uint32_t nParamsIN,

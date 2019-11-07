@@ -73,7 +73,6 @@ namespace Spider {
             FORK,           /*! Fork actor subtype */
             JOIN,           /*! Join actor subtype */
             UPSAMPLE,       /*! Up-sample actor subtype */
-            DOWNSAMPLE,     /*! Down-sample actor subtype */
             DUPLICATE,      /*! Duplicate actor subtype */
             TAIL,           /*! Tail actor subtype */
             HEAD,           /*! Head actor subtype */
