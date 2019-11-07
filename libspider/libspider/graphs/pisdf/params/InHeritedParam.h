@@ -67,6 +67,8 @@ namespace Spider {
 
             inline bool dynamic() const override;
 
+            inline Param *parent() const;
+
             /* === Setter(s) === */
 
         private:
@@ -87,6 +89,10 @@ namespace Spider {
 
         bool InHeritedParam::dynamic() const {
             return parent_->dynamic();
+        }
+
+        Param *InHeritedParam::parent() const {
+            return parent_;
         }
 
     }

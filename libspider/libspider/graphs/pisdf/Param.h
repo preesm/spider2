@@ -81,6 +81,8 @@ namespace Spider {
 
             virtual inline bool dynamic() const;
 
+            inline const Param *self() const;
+
             /* === Setter(s) === */
 
             inline void setIx(std::uint32_t ix);
@@ -124,6 +126,10 @@ namespace Spider {
 
         bool Param::dynamic() const {
             return false;
+        }
+
+        const Spider::PiSDF::Param *Spider::PiSDF::Param::self() const {
+            return this;
         }
 
         void Param::setIx(std::uint32_t ix) {

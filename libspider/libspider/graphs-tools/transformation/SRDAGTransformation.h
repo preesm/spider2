@@ -43,7 +43,8 @@
 /* === Includes === */
 
 #include <containers/StlContainers.h>
-#include <graphs/pisdf/Types.h>
+#include <graphs/pisdf/Graph.h>
+#include <graphs/pisdf/Param.h>
 
 namespace Spider {
     namespace SRDAG {
@@ -68,6 +69,7 @@ namespace Spider {
             const PiSDFGraph *reference_ = nullptr;
             const std::uint32_t &srdagIx_;
             std::uint32_t instanceValue_ = 0;
+            Spider::vector<PiSDFParam *> params_;
 
             Job(Job &&) = default;
 
@@ -76,7 +78,18 @@ namespace Spider {
             Job(const PiSDFGraph *graph, const std::uint32_t &srdagIx, std::uint32_t instance) : reference_{graph},
                                                                                                  srdagIx_{srdagIx},
                                                                                                  instanceValue_{
-                                                                                                         instance} { }
+                                                                                                         instance} {
+                params_.reserve(graph->paramCount());
+            }
+
+            ~Job() {
+                for (auto &param : params_) {
+                    if (!param->containingGraph()) {
+                        Spider::destroy(param);
+                        Spider::deallocate(param);
+                    }
+                }
+            }
         };
 
         struct VertexLinker {
@@ -93,7 +106,7 @@ namespace Spider {
                                                                                                  vertex_{vertex} { }
         };
 
-        struct EdgeLinker {
+        struct JobLinker {
             const PiSDFEdge *edge_ = nullptr;
             PiSDFGraph *srdag_ = nullptr;
             const Job &job_;
@@ -101,13 +114,13 @@ namespace Spider {
             JobStack &dynaJobs_;
             TransfoTracker &tracker_;
 
-            EdgeLinker() = delete;
+            JobLinker() = delete;
 
-            EdgeLinker(const PiSDFEdge *edge, PiSDFGraph *graph,
-                       const Job &job, JobStack &nextJobs, JobStack &dynaJobs,
-                       TransfoTracker &tracker) : edge_{edge}, srdag_{graph},
-                                                  job_{job}, nextJobs_{nextJobs}, dynaJobs_{dynaJobs},
-                                                  tracker_{tracker} { }
+            JobLinker(const PiSDFEdge *edge, PiSDFGraph *graph,
+                      const Job &job, JobStack &nextJobs, JobStack &dynaJobs,
+                      TransfoTracker &tracker) : edge_{edge}, srdag_{graph},
+                                                 job_{job}, nextJobs_{nextJobs}, dynaJobs_{dynaJobs},
+                                                 tracker_{tracker} { }
         };
 
         /* === Functions prototype === */
@@ -123,7 +136,7 @@ namespace Spider {
          */
         std::pair<JobStack, JobStack> staticSingleRateTransformation(const Job &job, PiSDFGraph *srdag);
 
-        void staticEdgeSingleRateLinkage(EdgeLinker &linker);
+        void staticEdgeSingleRateLinkage(JobLinker &linker);
     }
 }
 

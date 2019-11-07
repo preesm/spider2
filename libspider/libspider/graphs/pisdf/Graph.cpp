@@ -181,7 +181,7 @@ void Spider::PiSDF::Graph::addParam(Param *param) {
     }
     param->setIx(paramVector_.size());
     paramVector_.push_back(param);
-    if (param->dynamic() && !dynamic_) {
+    if (param->type() != ParamType::INHERITED && param->dynamic() && !dynamic_) {
         /* == Set dynamic property of the graph to true == */
         dynamic_ = true;
 
