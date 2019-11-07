@@ -83,7 +83,7 @@ namespace Spider {
                 : exceptionMessage_{} {
             /* == Writes exception header == */
             int n = Spider::printer::sprintf(exceptionMessage_, EXCEPTION_BUFFER_SIZE, "%s::%s(%d): ", fileName,
-                                           fctName, lineNumber);
+                                             fctName, lineNumber);
 
             /* == Write the actual exception message == */
             n = Spider::printer::sprintf(exceptionMessage_ + n, EXCEPTION_BUFFER_SIZE, msg, ts...);

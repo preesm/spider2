@@ -88,8 +88,8 @@ namespace Spider {
             graph = graph ? graph : this->graph_;
             auto *result = Spider::API::createDuplicate(graph,
                                                         "cpy-" + graph->name() + "-" + this->name_,
-                                                         this->edgesOUTCount(),
-                                                         stack);
+                                                        this->edgesOUTCount(),
+                                                        stack);
             result->reference_ = this;
             this->copyCount_ += 1;
             return result;

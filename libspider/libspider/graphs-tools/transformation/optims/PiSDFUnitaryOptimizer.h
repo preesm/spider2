@@ -71,7 +71,8 @@ bool PiSDFUnitaryOptimizer::operator()(PiSDFGraph *graph) const {
                 if (vertex->edgesOUTCount() == 1) {
                     auto *inputEdge = vertex->inputEdge(0);
                     auto *outputEdge = vertex->outputEdge(0);
-                    if (inputEdge->sinkRateExpression().evaluate(params) != outputEdge->sourceRateExpression().evaluate(params)) {
+                    if (inputEdge->sinkRateExpression().evaluate(params) !=
+                        outputEdge->sourceRateExpression().evaluate(params)) {
                         throwSpiderException("Fork [%s] with 1 output edge should have the same input/output rates.",
                                              vertex->name().c_str());
                     }
@@ -86,7 +87,8 @@ bool PiSDFUnitaryOptimizer::operator()(PiSDFGraph *graph) const {
                 if (vertex->edgesINCount() == 1) {
                     auto *inputEdge = vertex->inputEdge(0);
                     auto *outputEdge = vertex->outputEdge(0);
-                    if (inputEdge->sinkRateExpression().evaluate(params) != outputEdge->sourceRateExpression().evaluate(params)) {
+                    if (inputEdge->sinkRateExpression().evaluate(params) !=
+                        outputEdge->sourceRateExpression().evaluate(params)) {
                         throwSpiderException("Join [%s] with 1 input edge should have the same input/output rates.",
                                              vertex->name().c_str());
                     }
@@ -102,7 +104,8 @@ bool PiSDFUnitaryOptimizer::operator()(PiSDFGraph *graph) const {
                 if (vertex->edgesINCount() == 1) {
                     auto *inputEdge = vertex->inputEdge(0);
                     auto *outputEdge = vertex->outputEdge(0);
-                    if (inputEdge->sinkRateExpression().evaluate(params) == outputEdge->sourceRateExpression().evaluate(params)) {
+                    if (inputEdge->sinkRateExpression().evaluate(params) ==
+                        outputEdge->sourceRateExpression().evaluate(params)) {
                         outputEdge->setSource(inputEdge->sink(),
                                               inputEdge->sinkPortIx(),
                                               Expression(inputEdge->sinkRateExpression()));
@@ -115,7 +118,8 @@ bool PiSDFUnitaryOptimizer::operator()(PiSDFGraph *graph) const {
                 if (vertex->edgesOUTCount() == 1) {
                     auto *inputEdge = vertex->inputEdge(0);
                     auto *outputEdge = vertex->outputEdge(0);
-                    if (inputEdge->sinkRateExpression().evaluate(params) == outputEdge->sourceRateExpression().evaluate(params)) {
+                    if (inputEdge->sinkRateExpression().evaluate(params) ==
+                        outputEdge->sourceRateExpression().evaluate(params)) {
                         inputEdge->setSink(outputEdge->sink(),
                                            outputEdge->sinkPortIx(),
                                            Expression(outputEdge->sinkRateExpression()));
@@ -127,7 +131,8 @@ bool PiSDFUnitaryOptimizer::operator()(PiSDFGraph *graph) const {
             case PiSDFVertexType::UPSAMPLE: {
                 auto *inputEdge = vertex->inputEdge(0);
                 auto *outputEdge = vertex->outputEdge(0);
-                if (inputEdge->sinkRateExpression().evaluate(params) == outputEdge->sourceRateExpression().evaluate(params)) {
+                if (inputEdge->sinkRateExpression().evaluate(params) ==
+                    outputEdge->sourceRateExpression().evaluate(params)) {
                     inputEdge->setSink(outputEdge->sink(),
                                        outputEdge->sinkPortIx(),
                                        Expression(outputEdge->sinkRateExpression()));

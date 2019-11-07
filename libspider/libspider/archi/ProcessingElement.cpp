@@ -69,7 +69,7 @@ ProcessingElement::ProcessingElement(std::uint32_t hwType,
                                                                     cluster_{cluster},
                                                                     spiderPEIx_{spiderUniqueIx()},
                                                                     spiderPEType_{spiderPEType},
-                                                                    spiderHWType_{spiderHWType}{
+                                                                    spiderHWType_{spiderHWType} {
     if (isLRT()) {
         managingLRT_ = this;
         managingLRTIx_ = cluster->platform().LRTCount();

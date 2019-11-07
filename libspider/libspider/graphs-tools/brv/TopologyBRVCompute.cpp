@@ -87,8 +87,10 @@ void TopologyBRVCompute::execute() {
         std::uint32_t edgeRow = 0;
         for (const auto &edge : validEdgeVector) {
             auto edgeRowOffset = edgeRow * nMatVertices;
-            topologyMatrix[edgeRowOffset + vertexIxArray[edge->source()->ix()]] = edge->sourceRateExpression().evaluate(params_);
-            topologyMatrix[edgeRowOffset + vertexIxArray[edge->sink()->ix()]] = -edge->sinkRateExpression().evaluate(params_);
+            topologyMatrix[edgeRowOffset + vertexIxArray[edge->source()->ix()]] = edge->sourceRateExpression().evaluate(
+                    params_);
+            topologyMatrix[edgeRowOffset + vertexIxArray[edge->sink()->ix()]] = -edge->sinkRateExpression().evaluate(
+                    params_);
             edgeRow += 1;
         }
 

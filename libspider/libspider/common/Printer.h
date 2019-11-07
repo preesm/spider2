@@ -84,7 +84,7 @@ namespace Spider {
 
         template<class... Ts>
         int sprintf(char *str, size_t size, const char *format, const Ts &... ts) {
-            return  Spider::cxx11::sprintf(str, size, format, ts...);
+            return Spider::cxx11::sprintf(str, size, format, ts...);
         }
 
         template<class... Ts>
