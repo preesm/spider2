@@ -271,7 +271,6 @@ static void addForkVertex(Spider::SRDAG::LinkerVector &srcVector,
                                          "fork-" + sourceLinker.vertex_->name() + "_out-" +
                                          std::to_string(sourceLinker.portIx_),
                                          (sourceLinker.upperDep_ - sourceLinker.lowerDep_) + 1,
-                                         0,
                                          StackID::TRANSFO);
 
     /* == Create an edge between source and fork == */
@@ -339,7 +338,6 @@ static void replaceJobInterfaces(Spider::SRDAG::JobLinker &linker) {
         auto *edge = srdagInstance->inputEdge(interface->ix());
         auto *vertex = Spider::API::createUpsample(linker.srdag_,
                                                    srdagInstance->name() + "_" + interface->name(),
-                                                   0,
                                                    StackID::TRANSFO);
         edge->setSink(vertex, 0, Expression(edge->sinkRateExpression()));
         linker.tracker_[linker.job_.reference_->vertexCount() + interface->ix()] = vertex->ix();
@@ -351,7 +349,6 @@ static void replaceJobInterfaces(Spider::SRDAG::JobLinker &linker) {
         auto *vertex = Spider::API::createTail(linker.srdag_,
                                                srdagInstance->name() + "_" + interface->name(),
                                                1,
-                                               0,
                                                StackID::TRANSFO);
         edge->setSource(vertex, 0, Expression(edge->sourceRateExpression()));
         linker.tracker_[linker.job_.reference_->vertexCount() +

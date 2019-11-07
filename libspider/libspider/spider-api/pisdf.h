@@ -95,40 +95,33 @@ namespace Spider {
         PiSDFForkVertex *createFork(PiSDFGraph *graph,
                                     std::string name,
                                     std::uint32_t edgeOUTCount = 0,
-                                    std::uint32_t nParamsIN = 0,
                                     StackID stack = StackID::PISDF);
 
         PiSDFTailVertex *createTail(PiSDFGraph *graph,
                                     std::string name,
                                     std::uint32_t edgeINCount = 0,
-                                    std::uint32_t nParamsIN = 0,
                                     StackID stack = StackID::PISDF);
 
         PiSDFHeadVertex *createHead(PiSDFGraph *graph,
                                     std::string name,
                                     std::uint32_t edgeINCount = 0,
-                                    std::uint32_t nParamsIN = 0,
                                     StackID stack = StackID::PISDF);
 
         PiSDFDuplicateVertex *createDuplicate(PiSDFGraph *graph,
                                               std::string name,
                                               std::uint32_t edgeOUTCount = 0,
-                                              std::uint32_t nParamsIN = 0,
                                               StackID stack = StackID::PISDF);
 
         PiSDFUpSampleVertex *createUpsample(PiSDFGraph *graph,
                                             std::string name,
-                                            std::uint32_t nParamsIN = 0,
                                             StackID stack = StackID::PISDF);
 
         PiSDFInitVertex *createInit(PiSDFGraph *graph,
                                     std::string name,
-                                    std::uint32_t nParamsIN = 0,
                                     StackID stack = StackID::PISDF);
 
         PiSDFEndVertex *createEnd(PiSDFGraph *graph,
                                   std::string name,
-                                  std::uint32_t nParamsIN = 0,
                                   StackID stack = StackID::PISDF);
 
         // TODO: add function call
@@ -136,8 +129,6 @@ namespace Spider {
                                        std::string name,
                                        std::uint32_t edgeINCount = 0,
                                        std::uint32_t edgeOUTCount = 0,
-                                       std::uint32_t nParamsIN = 0,
-                                       std::uint32_t nParamsOUT = 0,
                                        StackID stack = StackID::PISDF);
 
         PiSDFInputInterface *setInputInterfaceName(PiSDFGraph *graph,

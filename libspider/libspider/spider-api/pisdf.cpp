@@ -139,7 +139,6 @@ PiSDFJoinVertex *Spider::API::createJoin(PiSDFGraph *graph,
 PiSDFForkVertex *Spider::API::createFork(PiSDFGraph *graph,
                                          std::string name,
                                          std::uint32_t edgeOUTCount,
-                                         std::uint32_t nParamsIN,
                                          StackID stack) {
     auto *vertex = Spider::allocate<PiSDFForkVertex>(stack);
     Spider::construct(vertex,
@@ -154,7 +153,6 @@ PiSDFForkVertex *Spider::API::createFork(PiSDFGraph *graph,
 PiSDFTailVertex *Spider::API::createTail(PiSDFGraph *graph,
                                          std::string name,
                                          std::uint32_t edgeINCount,
-                                         std::uint32_t nParamsIN,
                                          StackID stack) {
     auto *vertex = Spider::allocate<PiSDFTailVertex>(stack);
     Spider::construct(vertex,
@@ -169,7 +167,6 @@ PiSDFTailVertex *Spider::API::createTail(PiSDFGraph *graph,
 PiSDFHeadVertex *Spider::API::createHead(PiSDFGraph *graph,
                                          std::string name,
                                          std::uint32_t edgeINCount,
-                                         std::uint32_t nParamsIN,
                                          StackID stack) {
     auto *vertex = Spider::allocate<PiSDFHeadVertex>(stack);
     Spider::construct(vertex,
@@ -184,7 +181,6 @@ PiSDFHeadVertex *Spider::API::createHead(PiSDFGraph *graph,
 PiSDFDuplicateVertex *Spider::API::createDuplicate(PiSDFGraph *graph,
                                                    std::string name,
                                                    std::uint32_t edgeOUTCount,
-                                                   std::uint32_t nParamsIN,
                                                    StackID stack) {
     auto *vertex = Spider::allocate<PiSDFDuplicateVertex>(stack);
     Spider::construct(vertex,
@@ -198,7 +194,6 @@ PiSDFDuplicateVertex *Spider::API::createDuplicate(PiSDFGraph *graph,
 
 PiSDFUpSampleVertex *Spider::API::createUpsample(PiSDFGraph *graph,
                                                  std::string name,
-                                                 std::uint32_t nParamsIN,
                                                  StackID stack) {
     auto *vertex = Spider::allocate<PiSDFUpSampleVertex>(stack);
     Spider::construct(vertex,
@@ -211,7 +206,6 @@ PiSDFUpSampleVertex *Spider::API::createUpsample(PiSDFGraph *graph,
 
 PiSDFInitVertex *Spider::API::createInit(PiSDFGraph *graph,
                                          std::string name,
-                                         uint32_t nParamsIN,
                                          StackID stack) {
     auto *vertex = Spider::allocate<PiSDFInitVertex>(stack);
     Spider::construct(vertex,
@@ -224,7 +218,6 @@ PiSDFInitVertex *Spider::API::createInit(PiSDFGraph *graph,
 
 PiSDFEndVertex *Spider::API::createEnd(PiSDFGraph *graph,
                                        std::string name,
-                                       uint32_t nParamsIN,
                                        StackID stack) {
     auto *vertex = Spider::allocate<PiSDFEndVertex>(stack);
     Spider::construct(vertex,
@@ -239,13 +232,11 @@ PiSDFVertex *Spider::API::createConfigActor(PiSDFGraph *graph,
                                             std::string name,
                                             std::uint32_t edgeINCount,
                                             std::uint32_t edgeOUTCount,
-                                            std::uint32_t nParamsIN,
-                                            std::uint32_t nParamsOUT,
                                             StackID stack) {
     auto *vertex = Spider::allocate<PiSDFVertex>(stack);
     Spider::construct(vertex,
                       std::move(name),
-                      PiSDFVertexType::NORMAL,
+                      PiSDFVertexType::CONFIG,
                       edgeINCount,
                       edgeOUTCount,
                       graph,

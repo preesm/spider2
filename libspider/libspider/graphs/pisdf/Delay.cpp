@@ -77,7 +77,7 @@ Spider::PiSDF::Delay::Delay(Expression &&expression,
         setterPortIx_ = 0; /* = Ensure the proper value of the port ix = */
         setter_ = Spider::API::createInit(edge->containingGraph(),
                                           "init-" + edge->sink()->name() + "_" + std::to_string(edge->sinkPortIx()),
-                                          0, stack);
+                                          stack);
     }
 
     /* == If no getter is provided then an END is created == */
@@ -85,7 +85,7 @@ Spider::PiSDF::Delay::Delay(Expression &&expression,
         getterPortIx_ = 0; /* = Ensure the proper value of the port ix = */
         getter_ = Spider::API::createEnd(edge->containingGraph(),
                                          "end-" + edge->source()->name() + "_" + std::to_string(edge->sourcePortIx()),
-                                         0, stack);
+                                         stack);
     }
 
     /* == Create virtual vertex and connect it to setter / getter == */

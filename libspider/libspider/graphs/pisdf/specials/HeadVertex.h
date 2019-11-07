@@ -89,7 +89,6 @@ namespace Spider {
             auto *result = Spider::API::createHead(graph,
                                                    "cpy-" + graph->name() + "-" + this->name_,
                                                    this->edgesINCount(),
-                                                   0,
                                                    stack);
             result->reference_ = this;
             this->copyCount_ += 1;

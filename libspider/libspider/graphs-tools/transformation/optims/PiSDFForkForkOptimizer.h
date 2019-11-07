@@ -83,7 +83,6 @@ bool PiSDFForkForkOptimizer::operator()(PiSDFGraph *graph) const {
         auto *fork = Spider::API::createFork(graph,
                                              "merged-" + source->name() + "-" + vertex->name(),
                                              (source->edgesOUTCount() - 1) + vertex->edgesOUTCount(),
-                                             0,
                                              StackID::TRANSFO);
         auto *edge = source->inputEdge(0);
         auto rate = edge->sinkRateExpression().evaluate(params);

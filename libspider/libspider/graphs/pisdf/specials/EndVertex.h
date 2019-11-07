@@ -87,7 +87,6 @@ namespace Spider {
             graph = graph ? graph : this->graph_;
             auto *result = Spider::API::createEnd(graph,
                                                   "cpy-" + graph->name() + "-" + this->name_,
-                                                  0,
                                                   stack);
             result->reference_ = this;
             this->copyCount_ += 1;

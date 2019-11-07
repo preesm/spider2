@@ -144,7 +144,7 @@ bool PiSDFJoinForkOptimizer::operator()(PiSDFGraph *graph) const {
                                                               "fork-" + source.vertex->name() + "-out" +
                                                               std::to_string(source.portIx),
                                                               nForkEdge,
-                                                              0, StackID::TRANSFO);
+                                                              StackID::TRANSFO);
                     Spider::API::createEdge(source.vertex, source.portIx, source.rate,
                                             addedFork, 0, source.rate,
                                             StackID::TRANSFO);
