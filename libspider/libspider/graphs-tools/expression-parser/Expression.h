@@ -64,6 +64,13 @@ struct ExpressionElt {
 
     ExpressionElt(ExpressionElt &&) noexcept = default;
 
+    ExpressionElt &operator=(ExpressionElt elt) {
+        using std::swap;
+        swap(this->elt_, elt.elt_);
+        swap(this->arg, elt.arg);
+        return *this;
+    }
+
     explicit ExpressionElt(RPNElement elt) : elt_{std::move(elt)} { }
 };
 

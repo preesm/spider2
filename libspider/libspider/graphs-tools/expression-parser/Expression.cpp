@@ -43,6 +43,7 @@
 #include <graphs-tools/expression-parser/Expression.h>
 #include <graphs/pisdf/Param.h>
 #include <graphs/pisdf/Graph.h>
+#include <algorithm>
 
 /* === Static method(s) === */
 
@@ -58,42 +59,49 @@ findParam(const Spider::vector<PiSDFParam *> &params, const std::string &name) {
     return std::make_pair(nullptr, 0);
 }
 
-static bool trySwap(Spider::vector<ExpressionElt> &stack,
-                    const Spider::vector<int> &left,
-                    const Spider::vector<int> &right) {
-    return true;
+template<class StartIterator>
+static double applyOperator(StartIterator start, RPNOperatorType type) {
+    switch (type) {
+        case RPNOperatorType::ADD:
+            return (*start) + (*(start + 1));
+        case RPNOperatorType::SUB:
+            return (*start) - (*(start + 1));
+        case RPNOperatorType::MUL:
+            return (*start) * (*(start + 1));
+        case RPNOperatorType::DIV:
+            return (*start) / (*(start + 1));
+        case RPNOperatorType::MOD:
+            return static_cast<std::int64_t>((*start)) % static_cast<std::int64_t>((*(start + 1)));
+        case RPNOperatorType::POW:
+            return std::pow((*start), (*(start + 1)));
+        case RPNOperatorType::COS:
+            return std::cos((*start));
+        case RPNOperatorType::SIN:
+            return std::sin((*start));
+        case RPNOperatorType::TAN:
+            return std::tan((*start));
+        case RPNOperatorType::EXP:
+            return std::exp((*start));
+        case RPNOperatorType::LOG:
+            return std::log((*start));
+        case RPNOperatorType::LOG2:
+            return std::log2((*start));
+        case RPNOperatorType::CEIL:
+            return std::ceil((*start));
+        case RPNOperatorType::FLOOR:
+            return std::floor((*start));
+        case RPNOperatorType::SQRT:
+            return std::sqrt((*start));
+        case RPNOperatorType::MAX:
+            return std::max((*start), (*(start + 1)));
+        case RPNOperatorType::MIN:
+            return std::min((*start), (*(start + 1)));
+        default:
+            Spider::Logger::printError(LOG_GENERAL, "Unsupported operation.\n");
+    }
+    return 0;
 }
 
-static void reduceExpression(Spider::vector<ExpressionElt> &stack) {
-    Spider::vector<int> leftStack;
-    Spider::vector<int> rightStack;
-    leftStack.reserve(6);
-    rightStack.reserve(6);
-
-    int i = 0;
-    bool fillLeft = true;
-    bool reduce = false;
-    /* == Try to swap element in operations == */
-    for (auto &elt : stack) {
-        if (fillLeft) {
-            leftStack.emplace_back(i++);
-            fillLeft = !(elt.elt_.type == RPNElementType::OPERATOR);
-        } else {
-            rightStack.emplace_back(i++);
-            fillLeft = (elt.elt_.type == RPNElementType::OPERATOR);
-            if (fillLeft) {
-                reduce |= trySwap(stack, leftStack, rightStack);
-                leftStack.clear();
-                rightStack.clear();
-            }
-        }
-    }
-
-    /* == Reduce the expression (if possible) == */
-    if (reduce) {
-
-    }
-}
 
 /* === Methods implementation === */
 
@@ -113,6 +121,8 @@ Expression::Expression(std::string expression, const Spider::vector<PiSDFParam *
     // TODO: ((2+w)+6)*(20) -> [2 w + 6 + 20 *] -> [8 w + 20 *]
     // TODO: (w*2)*(4*h) -> [w 2 * 4 h * *] -> [w h * 8 *]
     // TODO: (4/w)/2 -> [4 w / 2 /] -> [4 2 / w /]  -> [2 w /]
+//    reduceExpression(expressionStack_);
+
     if (static_) {
         value_ = expressionStack_.empty() ? 0. : expressionStack_.back().arg.value_;
     }
@@ -139,71 +149,61 @@ std::string Expression::string() const {
 
 void Expression::buildExpressionStack(Spider::vector<RPNElement> &postfixStack,
                                       const Spider::vector<PiSDFParam *> &params) {
-    Spider::vector<ExpressionElt> evalStack;
+    Spider::vector<double> evalStack;
     evalStack.reserve(6); /* = In practice, the evalStack will most likely not exceed 3 values = */
     bool skipEval = false;
+    std::uint8_t argCount = 0;
     for (auto &elt : postfixStack) {
         if (elt.type == RPNElementType::OPERAND) {
+            argCount += 1;
             if (elt.subtype == RPNElementSubType::PARAMETER) {
                 const auto &pair = findParam(params, elt.token);
                 const auto &param = pair.first;
                 if (!param) {
                     throwSpiderException("Did not find parameter [%s] for expression parsing.", elt.token.c_str());
                 }
-                evalStack.emplace_back(std::move(elt));
-                if (param->dynamic()) {
-                    static_ = false;
-                    skipEval = true;
-                    evalStack.back().arg.paramIx_ = pair.second;
-                } else {
-                    evalStack.back().arg.value_ = param->value();
-                }
+                const auto &dynamic = param->dynamic();
+                const auto &value = param->value();
+                expressionStack_.emplace_back(std::move(elt));
+                static_ &= (!dynamic);
+                skipEval |= dynamic;
+
+                /* == By default, dynamic parameters have 0 value and dynamic expression are necessary built on startup == */
+                expressionStack_.back().arg.value_ = static_cast<double>(dynamic & pair.second) + value;
+                evalStack.push_back(value);
             } else {
                 const auto &value = std::strtod(elt.token.c_str(), nullptr);
-                evalStack.emplace_back(std::move(elt));
-                evalStack.back().arg.value_ = value;
+                expressionStack_.emplace_back(std::move(elt));
+                expressionStack_.back().arg.value_ = value;
+                evalStack.push_back(value);
             }
         } else {
             const auto &opType = RPNConverter::getOperatorTypeFromString(elt.token);
             const auto &op = RPNConverter::getOperatorFromOperatorType(opType);
-            if (evalStack.size() < op.argCount && elt.subtype == RPNElementSubType::FUNCTION) {
+            if (elt.subtype == RPNElementSubType::FUNCTION && argCount < op.argCount) {
                 throwSpiderException("Function [%s] expecting argument !", elt.token.c_str());
             }
-            if (skipEval || evalStack.size() < op.argCount) {
-                /* == Push elements in expression stack == */
-                for (auto &e : evalStack) {
-                    expressionStack_.emplace_back(std::move(e));
+            expressionStack_.emplace_back(std::move(elt));
+            expressionStack_.back().arg.opType_ = opType;
+            if (!skipEval && evalStack.size() >= op.argCount) {
+                auto &&result = applyOperator(evalStack.begin() + (evalStack.size() - op.argCount), op.type);
+                for (std::uint8_t i = 0; i < op.argCount; ++i) {
+                    expressionStack_.pop_back();
+                    evalStack.pop_back();
                 }
-                evalStack.clear();
-                expressionStack_.emplace_back(std::move(elt));
-                expressionStack_.back().arg.opType_ = opType;
+                expressionStack_.back().elt_.type = RPNElementType::OPERAND;
+                expressionStack_.back().elt_.subtype = RPNElementSubType::VALUE;
+                expressionStack_.back().elt_.token = std::to_string(result);
+                expressionStack_.back().arg.value_ = result;
+                evalStack.push_back(result);
             } else {
-                /* == Do in-place eval == */
-                if (op.argCount == 2) {
-                    auto &arg1 = evalStack.back();
+                for (std::uint8_t i = 0; !evalStack.empty() && i < op.argCount; ++i) {
                     evalStack.pop_back();
-                    auto &arg2 = evalStack.back();
-                    evalStack.pop_back();
-                    const auto &value = op.eval(arg2.arg.value_, arg1.arg.value_);
-                    evalStack.emplace_back(RPNElement(RPNElementType::OPERAND,
-                                                      RPNElementSubType::VALUE,
-                                                      std::to_string(value)));
-                    evalStack.back().arg.value_ = value;
-                } else {
-                    const auto &arg1 = evalStack.back();
-                    evalStack.pop_back();
-                    const auto &value = op.eval(arg1.arg.value_, 0);
-                    evalStack.emplace_back(RPNElement(RPNElementType::OPERAND,
-                                                      RPNElementSubType::VALUE,
-                                                      std::to_string(value)));
-                    evalStack.back().arg.value_ = value;
                 }
             }
+            argCount = evalStack.size();
             skipEval = false;
         }
-    }
-    for (auto &e : evalStack) {
-        expressionStack_.emplace_back(std::move(e));
     }
 }
 
@@ -213,21 +213,17 @@ double Expression::evaluateStack(const Spider::vector<PiSDFParam *> &params) con
     for (auto &elt : expressionStack_) {
         if (elt.elt_.type == RPNElementType::OPERAND) {
             if (elt.elt_.subtype == RPNElementSubType::PARAMETER) {
-                evalStack.push_back(params[elt.arg.paramIx_]->value());
+                evalStack.push_back(params[elt.arg.value_]->value());
             } else {
                 evalStack.push_back(elt.arg.value_);
             }
         } else {
             const auto &op = RPNConverter::getOperatorFromOperatorType(elt.arg.opType_);
-            if (op.argCount == 2) {
-                auto &arg1 = evalStack.back();
+            auto &&result = applyOperator(evalStack.begin() + (evalStack.size() - op.argCount), op.type);
+            for (std::uint8_t i = 0; i < op.argCount - 1; ++i) {
                 evalStack.pop_back();
-                auto &arg2 = evalStack.back();
-                arg2 = op.eval(arg2, arg1);
-            } else {
-                auto &arg1 = evalStack.back();
-                arg1 = (op.eval(arg1, 0));
             }
+            evalStack.back() = result;
         }
     }
     return evalStack.back();

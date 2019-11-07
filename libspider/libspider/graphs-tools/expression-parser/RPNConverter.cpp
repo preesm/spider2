@@ -44,7 +44,6 @@
 #include <graphs-tools/expression-parser/RPNConverter.h>
 #include <containers/StlContainers.h>
 #include <common/Exception.h>
-#include <graphs-tools/expression-parser/ParserFunctions.h>
 #include <iostream>
 
 /* === Static variable definition(s) === */
@@ -359,44 +358,25 @@ Spider::vector<RPNElement> RPNConverter::extractPostfixElements(std::string infi
 const RPNOperator &RPNConverter::getOperator(std::uint32_t ix) {
     static std::array<RPNOperator, (RPNConverter::operator_count + RPNConverter::function_count)>
             operatorArray{{
-                                  {RPNOperatorType::ADD, 2, false,
-                                          "+", Spider::add, 2},          /*! ADD operator */
-                                  {RPNOperatorType::SUB, 2, false,
-                                          "-", Spider::sub, 2},          /*! SUB operator */
-                                  {RPNOperatorType::MUL, 3, false,
-                                          "*", Spider::mul, 2},          /*! MUL operator */
-                                  {RPNOperatorType::DIV, 3, false,
-                                          "/", Spider::div, 2},          /*! DIV operator */
-                                  {RPNOperatorType::MOD, 4, false,
-                                          "%", Spider::mod, 2},          /*! MOD operator */
-                                  {RPNOperatorType::POW, 4, true,
-                                          "^", Spider::pow, 2},          /*! POW operator */
-                                  {RPNOperatorType::LEFT_PAR, 2, false,
-                                          "(", Spider::dummyEval, 0},    /*! LEFT_PAR operator */
-                                  {RPNOperatorType::RIGHT_PAR, 2, false,
-                                          ")", Spider::dummyEval, 0},    /*! RIGHT_PAR operator */
-                                  {RPNOperatorType::COS, 5, false,
-                                          "cos", Spider::cos, 1},        /*! COS function */
-                                  {RPNOperatorType::SIN, 5, false,
-                                          "sin", Spider::sin, 1},        /*! SIN function */
-                                  {RPNOperatorType::TAN, 5, false,
-                                          "tan", Spider::tan, 1},        /*! TAN function */
-                                  {RPNOperatorType::EXP, 5, false,
-                                          "exp", Spider::exp, 1},        /*! EXP function */
-                                  {RPNOperatorType::LOG, 5, false,
-                                          "log", Spider::log, 1},        /*! LOG function */
-                                  {RPNOperatorType::LOG2, 5, false,
-                                          "log2", Spider::log2, 1},      /*! LOG2 function */
-                                  {RPNOperatorType::CEIL, 5, false,
-                                          "ceil", Spider::ceil, 1},      /*! CEIL function */
-                                  {RPNOperatorType::FLOOR, 5, false,
-                                          "floor", Spider::floor, 1},    /*! FLOOR function */
-                                  {RPNOperatorType::SQRT, 5, false,
-                                          "sqrt", Spider::sqrt, 1},      /*! SQRT function */
-                                  {RPNOperatorType::MAX, 5, false,
-                                          "max", Spider::max, 2},        /*! MAX operator */
-                                  {RPNOperatorType::MIN, 5, false,
-                                          "min", Spider::min, 2},        /*! MIN operator */
+                                  {RPNOperatorType::ADD, 2, false, "+", 2},          /*! ADD operator */
+                                  {RPNOperatorType::SUB, 2, false, "-", 2},          /*! SUB operator */
+                                  {RPNOperatorType::MUL, 3, false, "*", 2},          /*! MUL operator */
+                                  {RPNOperatorType::DIV, 3, false, "/", 2},          /*! DIV operator */
+                                  {RPNOperatorType::MOD, 4, false, "%", 2},          /*! MOD operator */
+                                  {RPNOperatorType::POW, 4, true, "^", 2},           /*! POW operator */
+                                  {RPNOperatorType::LEFT_PAR, 2, false, "(", 0},     /*! LEFT_PAR operator */
+                                  {RPNOperatorType::RIGHT_PAR, 2, false, ")", 0},    /*! RIGHT_PAR operator */
+                                  {RPNOperatorType::COS, 5, false, "cos", 1},        /*! COS function */
+                                  {RPNOperatorType::SIN, 5, false, "sin", 1},        /*! SIN function */
+                                  {RPNOperatorType::TAN, 5, false, "tan", 1},        /*! TAN function */
+                                  {RPNOperatorType::EXP, 5, false, "exp", 1},        /*! EXP function */
+                                  {RPNOperatorType::LOG, 5, false, "log", 1},        /*! LOG function */
+                                  {RPNOperatorType::LOG2, 5, false, "log2", 1},      /*! LOG2 function */
+                                  {RPNOperatorType::CEIL, 5, false, "ceil", 1},      /*! CEIL function */
+                                  {RPNOperatorType::FLOOR, 5, false, "floor", 1},    /*! FLOOR function */
+                                  {RPNOperatorType::SQRT, 5, false, "sqrt", 1},      /*! SQRT function */
+                                  {RPNOperatorType::MAX, 5, false, "max", 2},        /*! MAX operator */
+                                  {RPNOperatorType::MIN, 5, false, "min", 2},        /*! MIN operator */
                           }};
     return operatorArray.at(ix);
 }
