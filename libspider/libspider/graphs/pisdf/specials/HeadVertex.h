@@ -48,6 +48,16 @@
 namespace Spider {
     namespace PiSDF {
 
+        inline void head(std::int64_t *paramsIn[], std::int64_t *[], void *in[], void *out[]) {
+            const auto &inputEnd = *(paramsIn[0]);
+            std::int64_t offset = 0;
+            for (auto i = 0; i < inputEnd; ++i) {
+                const auto &inputSize = *(paramsIn[i + 1]);
+                std::memcpy(reinterpret_cast<char *>(out[0]) + offset, in[i], inputSize);
+                offset += inputSize;
+            }
+        }
+
         /* === Class definition === */
 
         class HeadVertex final : public ExecVertex {
@@ -61,6 +71,7 @@ namespace Spider {
                                                                              1,
                                                                              graph,
                                                                              stack) {
+                refinement_ = head;
             }
 
             /* === Method(s) === */

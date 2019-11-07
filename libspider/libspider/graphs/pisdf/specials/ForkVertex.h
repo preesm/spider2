@@ -43,10 +43,19 @@
 /* === Include(s) === */
 
 #include <graphs/pisdf/ExecVertex.h>
-#include <graphs/pisdf/Graph.h>
 
 namespace Spider {
     namespace PiSDF {
+
+        inline void fork(std::int64_t *paramsIn[], std::int64_t *[], void *in[], void *out[]) {
+            const auto &outputCount = *(paramsIn[0]);
+            std::int64_t offset = 0;
+            for (std::int64_t i = 0; i < outputCount; ++i) {
+                const auto &outputSize = *(paramsIn[i + 1]);
+                std::memcpy(out[i], reinterpret_cast<char *>(in[i]) + offset, outputSize);
+                offset += outputSize;
+            }
+        }
 
         /* === Class definition === */
 
@@ -61,6 +70,7 @@ namespace Spider {
                                                                              edgeOUTCount,
                                                                              graph,
                                                                              stack) {
+                refinement_ = fork;
             }
 
             /* === Method(s) === */

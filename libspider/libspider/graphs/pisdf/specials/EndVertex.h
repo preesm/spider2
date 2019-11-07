@@ -48,6 +48,10 @@
 namespace Spider {
     namespace PiSDF {
 
+        inline void end(std::int64_t *[], std::int64_t *[], void *[], void *[]) {
+
+        }
+
         /* === Class definition === */
 
         class EndVertex final : public ExecVertex {
@@ -60,6 +64,7 @@ namespace Spider {
                                                                             0,
                                                                             graph,
                                                                             stack) {
+                refinement_ = end;
             }
 
             /* === Method(s) === */

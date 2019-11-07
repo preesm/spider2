@@ -48,6 +48,16 @@
 namespace Spider {
     namespace PiSDF {
 
+        inline void join(std::int64_t *paramsIn[], std::int64_t *[], void *in[], void *out[]) {
+            const auto &inputCount = *(paramsIn[0]);
+            std::int64_t offset = 0;
+            for (std::int64_t i = 0; i < inputCount; ++i) {
+                const auto &inputSize = *(paramsIn[i + 1]);
+                std::memcpy(reinterpret_cast<char *>(out[0]) + offset, in[i], inputSize);
+                offset += inputSize;
+            }
+        }
+
         /* === Class definition === */
 
         class JoinVertex final : public ExecVertex {
@@ -61,6 +71,7 @@ namespace Spider {
                                                                              1,
                                                                              graph,
                                                                              stack) {
+                refinement_ = join;
             }
 
             /* === Method(s) === */

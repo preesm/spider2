@@ -48,6 +48,10 @@
 namespace Spider {
     namespace PiSDF {
 
+        inline void init(std::int64_t *[], std::int64_t *[], void *[], void *[]) {
+
+        }
+
         /* === Class definition === */
 
         class InitVertex final : public ExecVertex {
@@ -60,6 +64,7 @@ namespace Spider {
                                                                              1,
                                                                              graph,
                                                                              stack) {
+                refinement_ = init;
             }
 
             /* === Method(s) === */

@@ -44,9 +44,8 @@
 
 #include <cstdint>
 #include <string>
-#include <containers/Array.h>
 #include <graphs-tools/expression-parser/RPNConverter.h>
-#include <spider-api/pisdf.h>
+#include <graphs/pisdf/Types.h>
 
 /* === Structure definition(s) === */
 

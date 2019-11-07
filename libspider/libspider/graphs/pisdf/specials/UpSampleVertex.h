@@ -48,6 +48,23 @@
 namespace Spider {
     namespace PiSDF {
 
+        inline void upsample(std::int64_t *paramsIn[], std::int64_t *[], void *in[], void *out[]) {
+            const auto &inputSize = *(paramsIn[0]);
+            const auto &outputSize = *(paramsIn[1]);
+            if (inputSize == outputSize) {
+                std::memcpy(out[0], in[0], outputSize);
+            } else {
+                const auto &repeatCount = outputSize / inputSize;
+                const auto &rest = outputSize % inputSize;
+                for (std::int32_t i = 0; i < repeatCount; ++i) {
+                    std::memcpy(reinterpret_cast<char *>(out[0]) + i * inputSize, in[0], inputSize);
+                }
+                if (rest) {
+                    std::memcpy(reinterpret_cast<char *>(out[0]) + inputSize * repeatCount, in[0], rest);
+                }
+            }
+        }
+
         /* === Class definition === */
 
         class UpSampleVertex final : public ExecVertex {
@@ -60,6 +77,7 @@ namespace Spider {
                                                                                  1,
                                                                                  graph,
                                                                                  stack) {
+                refinement_ = upsample;
             }
 
             /* === Method(s) === */

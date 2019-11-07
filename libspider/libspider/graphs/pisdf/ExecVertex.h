@@ -47,6 +47,7 @@
 #include <containers/Array.h>
 #include <spider-api/general.h>
 #include <graphs/pisdf/Vertex.h>
+#include <graphs/pisdf/Refinement.h>
 
 namespace Spider {
     namespace PiSDF {
@@ -70,15 +71,26 @@ namespace Spider {
 
             inline bool executable() const override;
 
+            inline Refinement &refinement();
+
             /* === Setter(s) === */
 
-        private:
+            inline void setRefinement(Refinement refinement);
 
-            //TODO add function call
+        protected:
+            Refinement *refinement_ = nullptr;
         };
 
         bool ExecVertex::executable() const {
             return true;
+        }
+
+        Refinement &ExecVertex::refinement() {
+            return *refinement_;
+        }
+
+        void Spider::PiSDF::ExecVertex::setRefinement(Spider::PiSDF::Refinement refinement) {
+            refinement_ = std::move(refinement);
         }
     }
 }

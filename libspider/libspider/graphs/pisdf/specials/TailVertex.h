@@ -48,6 +48,17 @@
 namespace Spider {
     namespace PiSDF {
 
+        inline void tail(std::int64_t *paramsIn[], std::int64_t *[], void *in[], void *out[]) {
+            const auto &inputCount = *(paramsIn[0]);
+            const auto &inputStart = *(paramsIn[1]);
+            std::int64_t offset = 0;
+            for (auto i = inputStart; i < inputCount; ++i) {
+                const auto &inputSize = *(paramsIn[i + 2]);
+                std::memcpy(reinterpret_cast<char *>(out[0]) + offset, in[i], inputSize);
+                offset += inputSize;
+            }
+        }
+
         /* === Class definition === */
 
         class TailVertex final : public ExecVertex {
@@ -61,6 +72,7 @@ namespace Spider {
                                                                              1,
                                                                              graph,
                                                                              stack) {
+                refinement_ = tail;
             }
 
             /* === Method(s) === */

@@ -48,6 +48,14 @@
 namespace Spider {
     namespace PiSDF {
 
+        inline void duplicate(std::int64_t *paramsIn[], std::int64_t *[], void *in[], void *out[]) {
+            const auto &outputCount = *(paramsIn[0]);
+            const auto &inputSize = *(paramsIn[1]);
+            for (std::int64_t i = 0; i < outputCount; ++i) {
+                std::memcpy(out[i], in[i], inputSize);
+            }
+        }
+
         /* === Class definition === */
 
         class DuplicateVertex final : public ExecVertex {
@@ -61,6 +69,7 @@ namespace Spider {
                                                                                   edgeOUTCount,
                                                                                   graph,
                                                                                   stack) {
+                refinement_ = duplicate;
             }
 
             /* === Method(s) === */

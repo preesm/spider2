@@ -82,14 +82,14 @@ namespace Spider {
          * @param path   Path of the file.
          * @param graph  Graph to transform (default is the application graph).
          */
-        void exportSRDAG(const std::string &path = "./srdag.dot", const PiSDFGraph *graph = Spider::pisdfGraph());
+        void exportSRDAG(const std::string &path = "./srdag.dot", const PiSDF::Graph *graph = Spider::pisdfGraph());
 
         /**
          * @brief Export a PiSDF graph to a .dot file.
          * @param path   Path of the file.
          * @param graph  Graph to transform (default is the application graph).
          */
-        void exportGraphToDOT(const std::string &path = "./graph.dot", const PiSDFGraph *graph = Spider::pisdfGraph());
+        void exportGraphToDOT(const std::string &path = "./graph.dot", const PiSDF::Graph *graph = Spider::pisdfGraph());
 
         /**
          * @brief Enable a given logger.

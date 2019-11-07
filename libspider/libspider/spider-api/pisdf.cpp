@@ -41,6 +41,7 @@
 /* === Includes === */
 
 #include <spider-api/pisdf.h>
+#include <graphs/pisdf/Refinement.h>
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/Param.h>
 #include <graphs/pisdf/Edge.h>
@@ -450,6 +451,16 @@ PiSDFDelay *Spider::API::createDelay(PiSDFEdge *edge,
                       Expression(getter ? getterRate : value),
                       persistent);
     return delay;
+}
+
+Spider::PiSDF::Refinement *Spider::API::createRefinement(callback fct,
+                                                         std::string name,
+                                                         std::uint32_t paramINCount,
+                                                         std::uint32_t paramOUTCount,
+                                                         StackID stack) {
+    auto *refinement = Spider::allocate<Spider::PiSDF::Refinement>(stack);
+    Spider::construct(refinement, paramINCount, paramOUTCount, fct, std::move(name));
+    return refinement;
 }
 
 
