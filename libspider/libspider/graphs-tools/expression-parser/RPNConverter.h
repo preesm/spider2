@@ -46,10 +46,6 @@
 #include <cstdint>
 #include <containers/StlContainers.h>
 
-/* === Function pointer declaration == */
-
-using evalFunction = double (*)(const double &, const double &);
-
 /* === Enum declaration(s) === */
 
 /**
