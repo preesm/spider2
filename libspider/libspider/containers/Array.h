@@ -161,20 +161,19 @@ namespace Spider {
 
     private:
         std::uint64_t size_;
-        std::uint64_t arraySize_;
         T *array_;
     };
 
     /* === Inline methods === */
 
     template<typename T>
-    Array<T>::Array() noexcept : size_{0}, arraySize_{0}, array_{nullptr} {
+    Array<T>::Array() noexcept : size_{0}, array_{nullptr} {
 
     }
 
     template<typename T>
-    Array<T>::Array(const Array &other, StackID stack) : size_{other.size_}, arraySize_{other.arraySize_} {
-        array_ = Spider::allocate<T>(stack, arraySize_);
+    Array<T>::Array(const Array &other, StackID stack) : size_{other.size_} {
+        array_ = Spider::allocate<T>(stack, size_ + 1);
         if (array_) {
             std::copy(other.array_, other.array_ + other.size_, array_);
         }
@@ -186,8 +185,8 @@ namespace Spider {
     }
 
     template<typename T>
-    Array<T>::Array(std::uint64_t size, StackID stack) : size_{size}, arraySize_{size + 1} {
-        array_ = Spider::allocate<T>(stack, arraySize_);
+    Array<T>::Array(std::uint64_t size, StackID stack) : size_{size} {
+        array_ = Spider::allocate<T>(stack, size_ + 1);
         if (!array_) {
             throwSpiderException("Failed to allocate array.");
         }
@@ -226,7 +225,7 @@ namespace Spider {
                                          PRIu32
                                          " -- Size = %"
                                          PRIu32
-                                         "", ix, arraySize_);
+                                         "", ix, size_ + 1);
         }
         return array_[ix];
     }
@@ -238,7 +237,7 @@ namespace Spider {
                                          PRIu32
                                          " -- Size = %"
                                          PRIu32
-                                         "", ix, arraySize_);
+                                         "", ix, size_ + 1);
         }
         return array_[ix];
     }
