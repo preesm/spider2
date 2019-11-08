@@ -40,6 +40,7 @@
 /* === Includes === */
 
 #include <cstdint>
+#include <iostream>
 #include <common/Math.h>
 #include <common/Exception.h>
 

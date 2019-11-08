@@ -44,6 +44,7 @@
 #include <graphs/pisdf/Param.h>
 #include <graphs/pisdf/Graph.h>
 #include <algorithm>
+#include <cmath>
 
 /* === Static method(s) === */
 
