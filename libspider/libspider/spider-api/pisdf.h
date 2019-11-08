@@ -96,12 +96,6 @@ namespace Spider {
         class Refinement;
     }
 
-
-    /**
-     * @brief Generic refinement used by Spider for the actors.
-     */
-    using callback = void (*)(std::int64_t *[], std::int64_t *[], void *[], void *[]);
-
     /**
      * @brief Get the user defined graph of the Spider session.
      * @return
@@ -253,14 +247,6 @@ namespace Spider {
                                   std::int64_t getterRate = 0,
                                   bool persistent = true,
                                   StackID stack = StackID::PISDF);
-
-        /* === Refinement API === */
-
-        PiSDF::Refinement *createRefinement(callback fct,
-                                            std::string name = "unnamed-refinement",
-                                            std::uint32_t paramINCount = 0,
-                                            std::uint32_t paramOUTCount = 0,
-                                            StackID stack = StackID::PISDF);
     }
 }
 

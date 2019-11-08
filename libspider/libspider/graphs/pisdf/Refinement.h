@@ -43,7 +43,7 @@
 /* === Include(s) === */
 
 #include <containers/StlContainers.h>
-#include <spider-api/pisdf.h>
+#include <spider-api/refinement.h>
 
 namespace Spider {
     namespace PiSDF {
@@ -52,7 +52,7 @@ namespace Spider {
 
         class Param;
 
-        inline void dummy(std::int64_t *[], std::int64_t *[], void *[], void *[]) { }
+        inline void dummy(const std::int64_t *, std::int64_t *[], void *[], void *[]) { }
 
         /* === Class definition === */
 
@@ -65,10 +65,10 @@ namespace Spider {
 
             Refinement(Refinement &&) = default;
 
-            Refinement(std::uint32_t paramINCount,
-                       std::uint32_t paramOUTCount,
+            Refinement(std::string name,
                        callback fct,
-                       std::string name = "unnamed-fct") : name_{std::move(name)}, fct_{fct} {
+                       std::uint32_t paramINCount,
+                       std::uint32_t paramOUTCount) : name_{ std::move(name) }, fct_{ fct } {
                 inputParamsValue_.reserve(paramINCount);
                 outputParamsValue_.reserve(paramOUTCount);
             }
@@ -77,8 +77,11 @@ namespace Spider {
 
             /* === Method(s) === */
 
-            inline void operator()(Spider::vector<void *> &fifosIN, Spider::vector<void *> &fifosOUT) {
-                fct_(inputParamsValue_.data(), outputParamsValue_.data(), fifosIN.data(), fifosOUT.data());
+            inline void operator()(const Spider::vector<std::int64_t> &paramsINVector,
+                                   Spider::vector<std::int64_t *> &paramsOUTVector,
+                                   Spider::vector<void *> &fifosIN,
+                                   Spider::vector<void *> &fifosOUT) {
+                fct_(paramsINVector.data(), paramsOUTVector.data(), fifosIN.data(), fifosOUT.data());
             }
 
             /* === Getter(s) === */

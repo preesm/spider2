@@ -452,17 +452,3 @@ PiSDFDelay *Spider::API::createDelay(PiSDFEdge *edge,
                       persistent);
     return delay;
 }
-
-/* === Refinement API === */
-
-Spider::PiSDF::Refinement *Spider::API::createRefinement(callback fct,
-                                                         std::string name,
-                                                         std::uint32_t paramINCount,
-                                                         std::uint32_t paramOUTCount,
-                                                         StackID stack) {
-    auto *refinement = Spider::allocate<Spider::PiSDF::Refinement>(stack);
-    Spider::construct(refinement, paramINCount, paramOUTCount, fct, std::move(name));
-    return refinement;
-}
-
-
