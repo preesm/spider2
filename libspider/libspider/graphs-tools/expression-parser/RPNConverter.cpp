@@ -449,6 +449,26 @@ const RPNOperator &RPNConverter::getOperator(std::uint32_t ix) {
                                   {RPNOperatorType::MAX, 5, false, "max", 2},        /*! MAX operator */
                                   {RPNOperatorType::MIN, 5, false, "min", 2},        /*! MIN operator */
                           }};
+//    static const std::map<RPNOperatorType, RPNOperator> operatorMap = {
+//            {RPNOperatorType::ADD,       {RPNOperatorType::ADD,       2, false, "+",     2}},
+//            {RPNOperatorType::SUB,       {RPNOperatorType::SUB,       2, false, "-",     2}},
+//            {RPNOperatorType::MUL,       {RPNOperatorType::MUL,       3, false, "*",     2}},
+//            {RPNOperatorType::DIV,       {RPNOperatorType::DIV,       3, false, "/",     2}},
+//            {RPNOperatorType::MOD,       {RPNOperatorType::MOD,       4, false, "%",     2}},
+//            {RPNOperatorType::POW,       {RPNOperatorType::POW,       4, true,  "^",     2}},
+//            {RPNOperatorType::LEFT_PAR,  {RPNOperatorType::LEFT_PAR,  2, false, "(",     0}},
+//            {RPNOperatorType::RIGHT_PAR, {RPNOperatorType::RIGHT_PAR, 2, false, ")",     0}},
+//            {RPNOperatorType::COS,       {RPNOperatorType::COS,       5, false, "cos",   1}},
+//            {RPNOperatorType::SIN,       {RPNOperatorType::SIN,       5, false, "sin",   1}},
+//            {RPNOperatorType::TAN,       {RPNOperatorType::TAN,       5, false, "tan",   1}},
+//            {RPNOperatorType::EXP,       {RPNOperatorType::EXP,       5, false, "exp",   1}},
+//            {RPNOperatorType::LOG,       {RPNOperatorType::LOG,       5, false, "log",   1}},
+//            {RPNOperatorType::LOG2,      {RPNOperatorType::LOG2,      5, false, "log2",  1}},
+//            {RPNOperatorType::CEIL,      {RPNOperatorType::CEIL,      5, false, "ceil",  1}},
+//            {RPNOperatorType::FLOOR,     {RPNOperatorType::FLOOR,     5, false, "floor", 1}},
+//            {RPNOperatorType::SQRT,      {RPNOperatorType::SQRT,      5, false, "sqrt",  1}},
+//            {RPNOperatorType::MAX,       {RPNOperatorType::MAX,       5, false, "max",   2}},
+//            {RPNOperatorType::MIN,       {RPNOperatorType::MIN,       5, false, "min",   2}}};
     return operatorArray.at(ix);
 }
 
