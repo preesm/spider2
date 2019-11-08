@@ -71,6 +71,9 @@ Spider::PiSDF::Delay::Delay(Expression &&expression,
     if (!edge_) {
         throwSpiderException("Delay can not be created on nullptr edge.");
     }
+    if (persistent && (setter || getter)) {
+        throwSpiderException("Persistent delay on edge [%s] can not have setter nor getter.", edge->name().c_str());
+    }
 
     /* == If no setter is provided then an INIT is created == */
     if (!setter_) {
