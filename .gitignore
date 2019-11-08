@@ -86,8 +86,7 @@ configure
 # Clion Project files #
 #######################
 .idea/
-cmake-build-release/
-cmake-build-debug/
+cmake-build-*/
 configure.scan
 depcomp
 install-sh
