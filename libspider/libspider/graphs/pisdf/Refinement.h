@@ -86,28 +86,50 @@ namespace Spider {
 
             /* === Getter(s) === */
 
-            inline const Spider::vector<std::int64_t *> &inputParamsValue() const;
+            /**
+             * @brief Retrieve the list of input param ix used by this refinement.
+             * @return @refitem Spider::vector of ix
+             */
+            inline const Spider::vector<std::uint32_t> &inputParamsValue() const;
 
-            inline const Spider::vector<std::int64_t *> &outputParamsValue() const;
+            /**
+             * @brief Retrieve the list of output param ix set by this refinement.
+             * @return @refitem Spider::vector of ix
+             */
+            inline const Spider::vector<std::uint32_t> &outputParamsValue() const;
+
+            /**
+             * @brief Get the ix of the refinement.
+             * @return refinement ix.
+             */
+            inline std::uint32_t ix() const;
 
             /* === Setter(s) === */
 
             /**
-             * @brief Add a parameter at the end of the input param vector.
-             * @param param  Param to add.
+             * @brief Add a parameter ix at the end of the input param vector.
+             * @param ix  Ix of the @refitem Param to add.
              */
-            inline void addInputParam(std::int64_t *param);
+            inline void addInputParam(std::uint32_t ix);
 
             /**
-             * @brief Add a parameter at the end of the output param vector.
-             * @param param  Param to add.
+             * @brief Add a parameter ix at the end of the output param vector.
+             * @param ix  PIx of the @refitem Param to add.
              */
-            inline void addOutputParam(std::int64_t *param);
+            inline void addOutputParam(std::uint32_t ix);
+
+            /**
+             * @brief Set the ix of the refinement.
+             * @remark This method replace current value.
+             * @param ix Value of the ix to set.
+             */
+            inline void setIx(std::uint32_t ix);
 
         private:
-            Spider::vector<std::int64_t *> inputParamsValue_;
-            Spider::vector<std::int64_t *> outputParamsValue_;
+            Spider::vector<std::uint32_t> inputParamsValue_;
+            Spider::vector<std::uint32_t> outputParamsValue_;
             std::string name_ = "unnamed-refinement";
+            std::uint32_t ix_ = 0;
 
             callback fct_ = dummy;
 
@@ -116,26 +138,34 @@ namespace Spider {
 
         /* === Inline method(s) === */
 
-        const Spider::vector<std::int64_t *> &Refinement::inputParamsValue() const {
+        const Spider::vector<std::uint32_t> &Refinement::inputParamsValue() const {
             return inputParamsValue_;
         }
 
-        const Spider::vector<std::int64_t *> &Refinement::outputParamsValue() const {
+        const Spider::vector<std::uint32_t> &Refinement::outputParamsValue() const {
             return outputParamsValue_;
         }
 
-        void Refinement::addInputParam(std::int64_t *param) {
+        std::uint32_t Refinement::ix() const {
+            return ix_;
+        }
+
+        void Refinement::addInputParam(std::uint32_t ix) {
             if (inputParamsValue_.size() == inputParamsValue_.capacity()) {
                 throwSpiderException("refinement [%s]: too many input params.", name_.c_str());
             }
-            inputParamsValue_.emplace_back(param);
+            inputParamsValue_.emplace_back(ix);
         }
 
-        void Refinement::addOutputParam(std::int64_t *param) {
+        void Refinement::addOutputParam(std::uint32_t ix) {
             if (outputParamsValue_.size() == outputParamsValue_.capacity()) {
                 throwSpiderException("refinement [%s]: too many output params.", name_.c_str());
             }
-            outputParamsValue_.emplace_back(param);
+            outputParamsValue_.emplace_back(ix);
+        }
+
+        void Refinement::setIx(std::uint32_t ix) {
+            ix_ = ix;
         }
 
     }

@@ -53,6 +53,25 @@ Spider::PiSDF::Refinement *Spider::API::createRefinement(std::string name,
                                                          std::uint32_t paramOUTCount,
                                                          StackID stack) {
     auto *refinement = Spider::allocate<Spider::PiSDF::Refinement>(stack);
-    Spider::construct(refinement, name, function, paramINCount, paramOUTCount);
+    Spider::construct(refinement, std::move(name), function, paramINCount, paramOUTCount);
     return refinement;
+}
+
+std::uint32_t Spider::API::registerRefinement(Spider::PiSDF::Refinement *refinement) {
+    return 0;
+}
+
+void Spider::API::setRefinementInputParams(Spider::PiSDF::Refinement *refinement,
+                                           std::initializer_list<std::int32_t> list) {
+    for (const auto &value : list) {
+        refinement->addInputParam(value);
+    }
+}
+
+void Spider::API::setRefinementOutputParams(Spider::PiSDF::Refinement *refinement,
+                                            std::initializer_list<std::int32_t> list) {
+    for (const auto &value : list) {
+        refinement->addOutputParam(value);
+    }
+
 }

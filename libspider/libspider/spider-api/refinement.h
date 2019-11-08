@@ -69,6 +69,12 @@ namespace Spider {
                                             std::uint32_t paramINCount = 0,
                                             std::uint32_t paramOUTCount = 0,
                                             StackID stack = StackID::PISDF);
+
+        std::uint32_t registerRefinement(PiSDF::Refinement *refinement);
+
+        void setRefinementInputParams(PiSDF::Refinement *refinement, std::initializer_list<std::int32_t> list);
+
+        void setRefinementOutputParams(PiSDF::Refinement *refinement, std::initializer_list<std::int32_t> list);
     }
 }
 
