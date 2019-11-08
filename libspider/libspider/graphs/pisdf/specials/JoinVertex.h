@@ -71,7 +71,7 @@ namespace Spider {
                                                                              1,
                                                                              graph,
                                                                              stack) {
-                refinement_ = join;
+//                refinement_ = join;
             }
 
             /* === Method(s) === */

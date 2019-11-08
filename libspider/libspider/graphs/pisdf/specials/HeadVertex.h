@@ -71,7 +71,7 @@ namespace Spider {
                                                                              1,
                                                                              graph,
                                                                              stack) {
-                refinement_ = head;
+//                refinement_ = head;
             }
 
             /* === Method(s) === */

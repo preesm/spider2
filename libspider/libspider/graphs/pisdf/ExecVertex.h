@@ -65,6 +65,8 @@ namespace Spider {
 
             ExecVertex(const ExecVertex &) = delete;
 
+            ~ExecVertex() override;
+
             /* === Getter(s) === */
 
             Vertex *clone(StackID stack, Graph *graph) const override;
@@ -75,7 +77,7 @@ namespace Spider {
 
             /* === Setter(s) === */
 
-            inline void setRefinement(Refinement refinement);
+            inline void setRefinement(Spider::PiSDF::Refinement * refinement);
 
         protected:
             Refinement *refinement_ = nullptr;
@@ -89,8 +91,8 @@ namespace Spider {
             return *refinement_;
         }
 
-        void Spider::PiSDF::ExecVertex::setRefinement(Spider::PiSDF::Refinement refinement) {
-            refinement_ = std::move(refinement);
+        void Spider::PiSDF::ExecVertex::setRefinement(Spider::PiSDF::Refinement *refinement) {
+            refinement_ = refinement;
         }
     }
 }

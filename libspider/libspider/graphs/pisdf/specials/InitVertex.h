@@ -64,7 +64,7 @@ namespace Spider {
                                                                              1,
                                                                              graph,
                                                                              stack) {
-                refinement_ = init;
+//                refinement_ = init;
             }
 
             /* === Method(s) === */

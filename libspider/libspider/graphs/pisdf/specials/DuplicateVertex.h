@@ -69,7 +69,7 @@ namespace Spider {
                                                                                   edgeOUTCount,
                                                                                   graph,
                                                                                   stack) {
-                refinement_ = duplicate;
+//                refinement_ = duplicate;
             }
 
             /* === Method(s) === */
