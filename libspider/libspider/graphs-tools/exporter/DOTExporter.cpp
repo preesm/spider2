@@ -58,6 +58,7 @@
 static std::string vertexColor(PiSDFVertexType type) {
     switch (type) {
         case PiSDFVertexType::DELAY:
+        case PiSDFVertexType::CONFIG:
         case PiSDFVertexType::NORMAL:
             return "#eeeeeeff";
         case PiSDFVertexType::FORK:
@@ -105,7 +106,7 @@ void
 Spider::PiSDF::DOTExporter::graphPrinter(std::ofstream &file, const Graph *graph, const std::string &offset) const {
     auto fwOffset{ offset };
     if (graph->containingGraph()) {
-        file << fwOffset << "subgraph cluster_" << graph->name() << " {" << '\n';
+        file << fwOffset << "subgraph \"cluster_" << graph->name() << "\" {" << '\n';
         fwOffset += '\t';
         file << fwOffset << R"(label=<<font point-size="40" face="inconsolata">")" << graph->name()
              << R"("</font>>;)" << '\n';
@@ -258,30 +259,35 @@ void Spider::PiSDF::DOTExporter::edgePrinter(std::ofstream &file, const Edge *ed
     const auto *delay = edge->delay();
     const auto &srcPortIx = edge->sourcePortIx();
     const auto &snkPortIx = edge->sinkPortIx();
+    const auto &srcName = source->subtype() == VertexType::OUTPUT ? ("output-" + source->name()) :
+                          (source->subtype() == VertexType::INPUT ? "input-" + source->name() : source->name());
+    const auto &snkName =
+            sink->subtype() == VertexType::INPUT ? ("input-" + sink->name()) :
+            (sink->subtype() == VertexType::OUTPUT ? ("output-" + sink->name()) : sink->name());
     if (delay) {
         /* == Draw circle of the delay == */
         file << offset << R"(")" << delay->name() << R"(" [shape=circle, style=filled, fillcolor="#393c3c", label=""])"
              << '\n';
 
         /* == Connect source to delay == */
-        file << offset << R"(")" << source->name() << R"(":out_)" << srcPortIx << R"(:e -> ")";
+        file << offset << R"(")" << srcName << R"(":out_)" << srcPortIx << R"(:e -> ")";
         file << delay->name() << R"(":w [penwidth=3, color="#393c3c", arrowhead=none];)" << '\n';
 
         /* == Connect delay to sink == */
         file << offset << R"(")" << delay->name() << R"(":e -> ")";
-        file << sink->name() << R"(":in_)" << snkPortIx << R"(:w [penwidth=3, color="#393c3c", dir=forward];)" << '\n';
+        file << snkName << R"(":in_)" << snkPortIx << R"(:w [penwidth=3, color="#393c3c", dir=forward];)" << '\n';
     } else if (sink->type() == VertexType::DELAY) {
         /* == Connect setter to delay == */
-        file << offset << R"(")" << source->name() << R"(":out_)" << srcPortIx << R"(:e -> ")";
-        file << sink->name() << R"(":sw [penwidth=3, style=dotted, color="#393c3c", dir=forward];)" << '\n';
+        file << offset << R"(")" << srcName << R"(":out_)" << srcPortIx << R"(:e -> ")";
+        file << snkName << R"(":sw [penwidth=3, style=dotted, color="#393c3c", dir=forward];)" << '\n';
     } else if (source->type() == VertexType::DELAY) {
         /* == Connect delay to getter == */
-        file << offset << R"(")" << source->name() << R"(":se -> ")";
-        file << sink->name() << R"(":in_)" << snkPortIx << R"(:w [penwidth=3, color="#393c3c", dir=forward];)" << '\n';
+        file << offset << R"(")" << srcName << R"(":se -> ")";
+        file << snkName << R"(":in_)" << snkPortIx << R"(:w [penwidth=3, color="#393c3c", dir=forward];)" << '\n';
     } else {
         /* == General case == */
-        file << offset << R"(")" << source->name() << R"(":out_)" << srcPortIx << R"(:e -> ")";
-        file << sink->name() << R"(":in_)" << snkPortIx << R"(:w [penwidth=3, color="#393c3c", dir=forward];)" << '\n';
+        file << offset << R"(")" << srcName << R"(":out_)" << srcPortIx << R"(:e -> ")";
+        file << snkName << R"(":in_)" << snkPortIx << R"(:w [penwidth=3, color="#393c3c", dir=forward];)" << '\n';
     }
 }
 
@@ -303,7 +309,7 @@ Spider::PiSDF::DOTExporter::paramPrinter(std::ofstream &file, const Param *param
 void Spider::PiSDF::DOTExporter::inputIFPrinter(std::ofstream &file,
                                                 const InputInterface *interface,
                                                 const std::string &offset) const {
-    file << offset << R"(")" << interface->name()
+    file << offset << R"(")" << "input-" + interface->name()
          << R"(" [shape=plain, style=filled, fillcolor="#fff68fff", width=0, height=0, label=<)" << '\n';
     interfacePrinter(file, interface, offset);
 }
@@ -311,7 +317,7 @@ void Spider::PiSDF::DOTExporter::inputIFPrinter(std::ofstream &file,
 void Spider::PiSDF::DOTExporter::outputIFPrinter(std::ofstream &file,
                                                  const OutputInterface *interface,
                                                  const std::string &offset) const {
-    file << offset << R"(")" << interface->name()
+    file << offset << R"(")" << "output-" + interface->name()
          << R"(" [shape=plain, style=filled, fillcolor="#dcc6e0ff", width=0, height=0, label=<)" << '\n';
     interfacePrinter(file, interface, offset);
 }
