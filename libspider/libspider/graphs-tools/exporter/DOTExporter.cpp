@@ -47,6 +47,7 @@
 #include <graphs/pisdf/interfaces/InputInterface.h>
 #include <graphs/pisdf/interfaces/OutputInterface.h>
 #include <graphs/pisdf/Edge.h>
+#include <graphs/pisdf/Delay.h>
 #include <graphs/pisdf/Param.h>
 #include <cmath>
 
@@ -122,9 +123,7 @@ Spider::PiSDF::DOTExporter::graphPrinter(std::ofstream &file, const Graph *graph
     /* == Write vertices == */
     file << '\n' << fwOffset << R"(// Vertices)" << '\n';
     for (const auto &vertex : graph->vertices()) {
-        if (!vertex->hierarchical()) {
-            vertexPrinter(file, vertex, fwOffset);
-        }
+        vertexPrinter(file, vertex, fwOffset);
     }
 
     /* == Write interfaces in case of hierarchical graphs == */
@@ -170,6 +169,9 @@ Spider::PiSDF::DOTExporter::graphPrinter(std::ofstream &file, const Graph *graph
 void Spider::PiSDF::DOTExporter::vertexPrinter(std::ofstream &file,
                                                const Vertex *vertex,
                                                const std::string &offset) const {
+    if (vertex->type() == VertexType::DELAY || vertex->hierarchical()) {
+        return;
+    }
     file << offset << R"(")" << vertex->name()
          << R"(" [shape=plain, style=filled, fillcolor=")" << vertexColor(vertex->subtype())
          << R"(", width=0, height=0, label=<)" << '\n';
@@ -252,9 +254,34 @@ void Spider::PiSDF::DOTExporter::vertexPrinter(std::ofstream &file,
 void Spider::PiSDF::DOTExporter::edgePrinter(std::ofstream &file, const Edge *edge, const std::string &offset) {
     auto *source = edge->source()->type() == Spider::PiSDF::VertexType::GRAPH ? edge->source<true>() : edge->source();
     auto *sink = edge->sink()->type() == Spider::PiSDF::VertexType::GRAPH ? edge->sink<true>() : edge->sink();
-    file << offset << R"(")" << source->name();
-    file << R"(":out_)" << edge->sourcePortIx() << R"(:e -> ")" << sink->name() << R"(":in_)" << edge->sinkPortIx();
-    file << R"(:w [penwidth=3, color="#393c3c", dir=forward];)" << '\n';
+    const auto *delay = edge->delay();
+    const auto &srcPortIx = edge->sourcePortIx();
+    const auto &snkPortIx = edge->sinkPortIx();
+    if (delay) {
+        /* == Draw circle of the delay == */
+        file << offset << R"(")" << delay->name() << R"(" [shape=circle, style=filled, fillcolor="#393c3c", label=""])"
+             << '\n';
+
+        /* == Connect source to delay == */
+        file << offset << R"(")" << source->name() << R"(":out_)" << srcPortIx << R"(:e -> ")";
+        file << delay->name() << R"(":w [penwidth=3, color="#393c3c", arrowhead=none];)" << '\n';
+
+        /* == Connect delay to sink == */
+        file << offset << R"(")" << delay->name() << R"(":e -> ")";
+        file << sink->name() << R"(":in_)" << snkPortIx << R"(:w [penwidth=3, color="#393c3c", dir=forward];)" << '\n';
+    } else if (sink->type() == VertexType::DELAY) {
+        /* == Connect setter to delay == */
+        file << offset << R"(")" << source->name() << R"(":out_)" << srcPortIx << R"(:e -> ")";
+        file << sink->name() << R"(":sw [penwidth=3, style=dotted, color="#393c3c", dir=forward];)" << '\n';
+    } else if (source->type() == VertexType::DELAY) {
+        /* == Connect delay to getter == */
+        file << offset << R"(")" << source->name() << R"(":se -> ")";
+        file << sink->name() << R"(":in_)" << snkPortIx << R"(:w [penwidth=3, color="#393c3c", dir=forward];)" << '\n';
+    } else {
+        /* == General case == */
+        file << offset << R"(")" << source->name() << R"(":out_)" << srcPortIx << R"(:e -> ")";
+        file << sink->name() << R"(":in_)" << snkPortIx << R"(:w [penwidth=3, color="#393c3c", dir=forward];)" << '\n';
+    }
 }
 
 void
