@@ -54,11 +54,11 @@ Spider::PiSDF::Vertex::Vertex(std::string name,
                               std::uint32_t edgeINCount,
                               std::uint32_t edgeOUTCount,
                               Graph *graph,
-                              StackID stack) : graph_{graph},
-                                               name_{std::move(name)},
-                                               type_{type},
-                                               inputEdgeArray_{edgeINCount, nullptr, stack},
-                                               outputEdgeArray_{edgeOUTCount, nullptr, stack} {
+                              StackID stack) : graph_{ graph },
+                                               name_{ std::move(name) },
+                                               type_{ type },
+                                               inputEdgeArray_{ edgeINCount, nullptr, stack },
+                                               outputEdgeArray_{ edgeOUTCount, nullptr, stack } {
 }
 
 
@@ -105,4 +105,11 @@ void Spider::PiSDF::Vertex::connectEdge(Spider::Array<Edge *> &edges, Edge *edge
     throwSpiderException("Edge already exists at position: %"
                                  PRIu32
                                  "", ix);
+}
+
+
+void Spider::PiSDF::Vertex::setGraph(Graph *graph) {
+    if (graph) {
+        graph_ = graph;
+    }
 }

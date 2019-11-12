@@ -89,6 +89,14 @@ namespace Spider {
 
             virtual inline void setValue(std::int64_t);
 
+            /**
+             * @brief Set the graph of the param.
+             * @remark This method changes current value.
+             * @remark If graph is nullptr, nothing happen.
+             * @param graph  Graph to set.
+             */
+            void setGraph(Graph *graph);
+
         protected:
             Graph *graph_ = nullptr;
             std::uint32_t ix_ = UINT32_MAX;

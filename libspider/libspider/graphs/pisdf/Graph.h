@@ -122,6 +122,30 @@ namespace Spider {
              */
             void removeParam(Param *param);
 
+            /**
+             * @brief Move vertex ownership from this graph to another graph.
+             * @remark If graph is nullptr, nothing happen.
+             * @param elt    Vertex to move.
+             * @param graph  Graph to move to.
+             */
+            inline void moveVertex(Vertex *elt, Graph *graph);
+
+            /**
+             * @brief Move param ownership from this graph to another graph.
+             * @remark If graph is nullptr, nothing happen.
+             * @param elt    Param to move.
+             * @param graph  Graph to move to.
+             */
+            inline void moveParam(Param *elt, Graph *graph);
+
+            /**
+             * @brief Move edge ownership from this graph to another graph.
+             * @remark If graph is nullptr, nothing happen.
+             * @param elt    Edge to move.
+             * @param graph  Graph to move to.
+             */
+            inline void moveEdge(Edge *elt, Graph *graph);
+
             Vertex *forwardEdge(const Edge *e) override;
 
             Vertex *clone(StackID stack, Graph *graph) const override;
@@ -189,13 +213,13 @@ namespace Spider {
             * @brief A const reference on the set of output interfaces. Useful for iterating on the input interfaces.
             * @return const reference to input interface array
             */
-            inline const Spider::Array<InputInterface *> &inputInterfaces() const;
+            inline const Spider::Array<InputInterface *> &inputInterfaceArray() const;
 
             /**
             * @brief A const reference on the set of output interfaces. Useful for iterating on the output interfaces.
             * @return const reference to output interface array
             */
-            inline const Spider::Array<OutputInterface *> &outputInterfaces() const;
+            inline const Spider::Array<OutputInterface *> &outputInterfaceArray() const;
 
             /**
             * @brief A const reference on the set of edges. Useful for iterating on the edges.
@@ -288,6 +312,27 @@ namespace Spider {
 
         /* === Inline method(s) === */
 
+        void Graph::moveVertex(Vertex *elt, Graph *graph) {
+            if (graph) {
+                removeElement(vertexVector_, elt);
+                graph->addVertex(elt);
+            }
+        }
+
+        void Graph::moveParam(Param *elt, Graph *graph) {
+            if (graph) {
+                removeElement(paramVector_, elt);
+                graph->addParam(elt);
+            }
+        }
+
+        void Graph::moveEdge(Edge *elt, Graph *graph) {
+            if (graph) {
+                removeElement(edgeVector_, elt);
+                graph->addEdge(elt);
+            }
+        }
+
         bool Graph::hierarchical() const {
             return true;
         }
@@ -328,11 +373,11 @@ namespace Spider {
             return configVertexVector_;
         }
 
-        const Spider::Array<InputInterface *> &Graph::inputInterfaces() const {
+        const Spider::Array<InputInterface *> &Graph::inputInterfaceArray() const {
             return inputInterfaceArray_;
         }
 
-        const Spider::Array<OutputInterface *> &Graph::outputInterfaces() const {
+        const Spider::Array<OutputInterface *> &Graph::outputInterfaceArray() const {
             return outputInterfaceArray_;
         }
 
@@ -359,7 +404,6 @@ namespace Spider {
         OutputInterface *Graph::outputInterface(std::uint32_t ix) const {
             return outputInterfaceArray_[ix];
         }
-
     }
 }
 #endif //SPIDER2_GRAPH_H

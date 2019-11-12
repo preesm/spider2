@@ -109,7 +109,7 @@ namespace Spider {
             inline virtual Vertex *forwardEdge(const Edge *);
 
             /**
-             * @brief Clone the vertex.
+             * @brief Clone the vertex. In the case of Graph, the clone is shallow.
              * @param stack Stack on which to clone the vertex.
              * @param Graph Graph to which the clone is added (if nullptr, @refitem graph_ is used).
              * @return Clone instance of the vertex.
@@ -242,6 +242,14 @@ namespace Spider {
              * @param rv Repetition value to set.
              */
             inline void setRepetitionValue(std::uint32_t rv);
+
+            /**
+             * @brief Set the graph of the vertex.
+             * @remark This method changes current value.
+             * @remark If graph is nullptr, nothing happen.
+             * @param graph  Graph to set.
+             */
+            void setGraph(Graph *graph);
 
         protected:
             Graph *graph_ = nullptr;

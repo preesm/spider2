@@ -45,17 +45,23 @@
 
 /* === Methods implementation === */
 
-Spider::PiSDF::Param::Param(std::string name, Graph *graph, std::int64_t value) : graph_{graph},
-                                                                                  name_{std::move(name)},
-                                                                                  value_{value} {
+Spider::PiSDF::Param::Param(std::string name, Graph *graph, std::int64_t value) : graph_{ graph },
+                                                                                  name_{ std::move(name) },
+                                                                                  value_{ value } {
     std::transform(name_.begin(), name_.end(), name_.begin(), ::tolower);
 }
 
-Spider::PiSDF::Param::Param(std::string name, Graph *graph, Expression &&expression) : graph_{graph},
-                                                                                       name_{std::move(name)} {
+Spider::PiSDF::Param::Param(std::string name, Graph *graph, Expression &&expression) : graph_{ graph },
+                                                                                       name_{ std::move(name) } {
     if (expression.dynamic()) {
-        throwSpiderException("STATIC parameter should have static expression: %s.", expression.string());
+        throwSpiderException("STATIC parameter should have static expression: %s.", expression.string().c_str());
     }
     std::transform(name_.begin(), name_.end(), name_.begin(), ::tolower);
     value_ = expression.value();
+}
+
+void Spider::PiSDF::Param::setGraph(Spider::PiSDF::Graph *graph) {
+    if (graph) {
+        graph_ = graph;
+    }
 }

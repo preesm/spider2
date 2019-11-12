@@ -130,10 +130,10 @@ Spider::PiSDF::DOTExporter::graphPrinter(std::ofstream &file, const Graph *graph
     /* == Write interfaces in case of hierarchical graphs == */
     if (graph->containingGraph()) {
         file << '\n' << fwOffset << R"(// Interfaces)" << '\n';
-        for (const auto &inputIF : graph->inputInterfaces()) {
+        for (const auto &inputIF : graph->inputInterfaceArray()) {
             inputIFPrinter(file, inputIF, fwOffset);
         }
-        for (const auto &outputIF : graph->outputInterfaces()) {
+        for (const auto &outputIF : graph->outputInterfaceArray()) {
             outputIFPrinter(file, outputIF, fwOffset);
         }
     }
