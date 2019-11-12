@@ -363,133 +363,173 @@ bool Spider::SRDAG::splitDynamicGraph(PiSDFGraph *subgraph) {
     if (!subgraph->dynamic()) {
         return false;
     }
-
-    /* == Compute the input interface count for both graphs == */
-    std::uint32_t initInputIFCount = 0;
-    std::uint32_t runInputIFCount = 0;
-    for (const auto &interface : subgraph->inputInterfaceArray()) {
-        const auto &edge = interface->outputEdge();
-        const auto &sink = edge->sink();
-        if (sink->type() == Spider::PiSDF::VertexType::CONFIG) {
-            initInputIFCount += 1;
-        } else {
-            runInputIFCount += 1;
-        }
-    }
-
-    /* == Compute the output interface count for both graphs == */
-    std::uint32_t initOutputIFCount = 0;
-    std::uint32_t runOutputIFCount = 0;
-    for (const auto &interface : subgraph->outputInterfaceArray()) {
-        const auto &edge = interface->outputEdge();
-        const auto &source = edge->source();
-        if (source->type() == PiSDF::VertexType::CONFIG) {
-            initOutputIFCount += 1;
-        } else {
-            runOutputIFCount += 1;
-        }
-    }
-
-    /* == Go through cfg vertices to determine how many interfaces have to be added == */
-    Spider::vector<std::uint32_t, StackID::TRANSFO> cfg2OutputIF;
-    cfg2OutputIF.reserve(subgraph->configVertexCount());
-    Spider::vector<std::uint32_t, StackID::TRANSFO> cfg2InputIF;
-    cfg2InputIF.reserve(subgraph->configVertexCount());
-    for (const auto &cfgVertex : subgraph->configActors()) {
-        cfg2InputIF.emplace_back(initOutputIFCount);
-        cfg2OutputIF.emplace_back(runInputIFCount);
-        for (const auto &edge : cfgVertex->outputEdgeArray()) {
-            const auto &sink = edge->sink();
-            if (sink->type() != PiSDF::VertexType::INTERFACE) {
-                initOutputIFCount += 1;
-                runInputIFCount += 1;
-            }
-        }
-    }
-
-    /* == Create the init subgraph == */
-    auto *initGraph = Spider::API::createSubraph(subgraph->containingGraph(),
-                                                 "ginit-" + subgraph->name(),
-                                                 0,
-                                                 0,
-                                                 0,
-                                                 initInputIFCount,
-                                                 initOutputIFCount,
-                                                 subgraph->configVertexCount(), StackID::TRANSFO);
-    std::uint32_t inputCFGOffset = subgraph->edgesINCount();
-    std::uint32_t outputCFGOffset = subgraph->edgesOUTCount();
-    for (auto &cfgVertex : subgraph->configActors()) {
-        for (auto &edge : cfgVertex->inputEdgeArray()) {
-            const auto source = edge->source();
-            if (source->type() != PiSDF::VertexType::INTERFACE) {
-                throwSpiderException("Config vertex can not have source of type other than interface.");
-            }
-            edge->setSource(initGraph->inputInterface(source->ix()), 0, Expression(edge->sourceRateExpression()));
-            edge->source()->setName(source->name());
-            subgraph->moveEdge(edge, initGraph);
-        }
-        inputCFGOffset += cfgVertex->edgesOUTCount();
-        outputCFGOffset += cfgVertex->edgesOUTCount();
-        subgraph->moveVertex(cfgVertex, initGraph);
-    }
-
-    /* == Create the run subgraph == */
-    auto *runGraph = Spider::API::createSubraph(subgraph->containingGraph(),
-                                                "grun-" + subgraph->name(),
-                                                subgraph->vertexCount(),
-                                                subgraph->edgeCount(),
-                                                subgraph->paramCount(),
-                                                runInputIFCount,
-                                                runOutputIFCount,
-                                                0, StackID::TRANSFO);
-
-    /* == Move the params == */
-    for (auto &param : subgraph->params()) {
-        subgraph->moveParam(param, runGraph);
-    }
-
-    /* == Move the vertices == */
-    for (auto &vertex : subgraph->vertices()) {
-        /* == Move the output edges == */
-        for (auto &edge : vertex->outputEdgeArray()) {
-            const auto sink = edge->sink();
-            if (sink->type() == PiSDF::VertexType::INTERFACE) {
-                edge->setSink(runGraph->outputInterface(sink->ix()), 0, Expression(edge->sinkRateExpression()));
-                edge->sink()->setName(sink->name());
-            }
-            subgraph->moveEdge(edge, runGraph);
-        }
-
-        /* == Move and set input edges connected to interfaces == */
-        for (auto &edge : vertex->inputEdgeArray()) {
-            auto *source = edge->source();
-            if (source->type() == PiSDF::VertexType::INTERFACE) {
-                edge->setSource(runGraph->inputInterface(source->ix()), 0, Expression(edge->sourceRateExpression()));
-                edge->source()->setName(source->name());
-                subgraph->moveEdge(edge, runGraph);
-            } else if (source->type() == PiSDF::VertexType::CONFIG) {
-                const auto &sourcePortIx = edge->sourcePortIx();
-                const auto &rate = edge->sourceRateExpression().evaluate();
-
-                /* == Move the edge in run graph and connect it == */
-                auto *inputIF = runGraph->inputInterface(cfg2InputIF[source->ix()] + sourcePortIx);
-                inputIF->setName("in_" + source->name() + "_out-" + std::to_string(sourcePortIx));
-                edge->setSource(inputIF, 0, Expression(rate));
-                subgraph->moveEdge(edge, runGraph);
-
-                /* == Create edge for the cfg vertex in init graph == */
-                auto *outputIF = initGraph->outputInterface(cfg2OutputIF[source->ix()] + sourcePortIx);
-                outputIF->setName("out_" + source->name() + "_out-" + std::to_string(sourcePortIx));
-                auto *outEdge = Spider::API::createEdge(source, sourcePortIx, rate, outputIF, 0, rate,
-                                                        StackID::TRANSFO);
-                initGraph->addEdge(outEdge);
-            }
-        }
-        subgraph->moveVertex(vertex, runGraph);
-    }
-
-    /* == Destroy the subgraph == */
-    subgraph->containingGraph()->removeSubgraph(subgraph);
+//
+//    {
+//        /* == Compute the input interface count for both graphs == */
+//        std::uint32_t initInputIFCount = 0;
+//        std::uint32_t initOutputIFCount = 0;
+//        std::uint32_t cfgInputIFCount = 0;
+//        for (const auto &cfg : subgraph->configActors()) {
+//            for (const auto &edge : cfg->inputEdgeArray()) {
+//                const auto &source = edge->source();
+//                if (source->type() != PiSDF::VertexType::INTERFACE) {
+//                    throwSpiderException("Config vertex can not have source of type other than interface.");
+//                }
+//                initInputIFCount += 1;
+//            }
+//            for (const auto &edge : cfg->outputEdgeArray()) {
+//                const auto &sink = edge->sink();
+//                cfgInputIFCount += (sink->type() != PiSDF::VertexType::INTERFACE);
+//                initOutputIFCount += (sink->type() == PiSDF::VertexType::INTERFACE);
+//            }
+//        }
+//        auto *initGraph = Spider::API::createSubraph(subgraph->containingGraph(),
+//                                                     "ginit-" + subgraph->name(),
+//                                                     0,
+//                                                     0,
+//                                                     0,
+//                                                     initInputIFCount,
+//                                                     initOutputIFCount + cfgInputIFCount,
+//                                                     subgraph->configVertexCount(), StackID::TRANSFO);
+//
+//        const auto &runInputIFCount = subgraph->edgesINCount() + cfgInputIFCount - initInputIFCount;
+//        const auto &runOutputIFCount = subgraph->edgesOUTCount() - initOutputIFCount;
+//
+//
+//    }
+//
+//    /* == Compute the input interface count for both graphs == */
+//    std::uint32_t initInputIFCount = 0;
+//    std::uint32_t runInputIFCount = 0;
+//    for (const auto &interface : subgraph->inputInterfaceArray()) {
+//        const auto &edge = interface->outputEdge();
+//        const auto &sink = edge->sink();
+//        if (sink->type() == Spider::PiSDF::VertexType::CONFIG) {
+//            initInputIFCount += 1;
+//        } else {
+//            runInputIFCount += 1;
+//        }
+//    }
+//
+//    /* == Compute the output interface count for both graphs == */
+//    std::uint32_t initOutputIFCount = 0;
+//    std::uint32_t runOutputIFCount = 0;
+//    for (const auto &interface : subgraph->outputInterfaceArray()) {
+//        const auto &edge = interface->outputEdge();
+//        const auto &source = edge->source();
+//        if (source->type() == PiSDF::VertexType::CONFIG) {
+//            initOutputIFCount += 1;
+//        } else {
+//            runOutputIFCount += 1;
+//        }
+//    }
+//
+//    /* == Go through cfg vertices to determine how many interfaces have to be added == */
+//    Spider::vector<std::uint32_t, StackID::TRANSFO> cfg2OutputIF;
+//    cfg2OutputIF.reserve(subgraph->configVertexCount());
+//    Spider::vector<std::uint32_t, StackID::TRANSFO> cfg2InputIF;
+//    cfg2InputIF.reserve(subgraph->configVertexCount());
+//    for (const auto &cfgVertex : subgraph->configActors()) {
+//        cfg2InputIF.emplace_back(initOutputIFCount);
+//        cfg2OutputIF.emplace_back(runInputIFCount);
+//        for (const auto &edge : cfgVertex->outputEdgeArray()) {
+//            const auto &sink = edge->sink();
+//            if (sink->type() != PiSDF::VertexType::INTERFACE) {
+//                initOutputIFCount += 1;
+//                runInputIFCount += 1;
+//            }
+//        }
+//    }
+//
+//    /* == Create the init subgraph == */
+//    auto *initGraph = Spider::API::createSubraph(subgraph->containingGraph(),
+//                                                 "ginit-" + subgraph->name(),
+//                                                 0,
+//                                                 0,
+//                                                 0,
+//                                                 initInputIFCount,
+//                                                 initOutputIFCount,
+//                                                 subgraph->configVertexCount(), StackID::TRANSFO);
+//    for (auto &cfgVertex : subgraph->configActors()) {
+//        subgraph->moveVertex(cfgVertex, initGraph);
+//        for (auto &edge : cfgVertex->inputEdgeArray()) {
+//            const auto *source = edge->source();
+//            if (source->type() != PiSDF::VertexType::INTERFACE) {
+//                throwSpiderException("Config vertex can not have source of type other than interface.");
+//            }
+//            /* == Change the edge source to the interface of the new init graph and move it == */
+//            edge->setSource(initGraph->inputInterface(source->ix()), 0, Expression(edge->sourceRateExpression()));
+//            edge->source()->setName(source->name());
+//            subgraph->moveEdge(edge, initGraph);
+//
+//            /* == Reconnect the sink of the input edge of subgraph to input edge of init graph == */
+//            auto *inputEdge = subgraph->inputEdge(source->ix());
+//            inputEdge->setSink(initGraph, edge->sink()->ix(), Expression(inputEdge->sinkRateExpression()));
+//        }
+//    }
+//
+//    /* == Create the run subgraph == */
+//    auto *runGraph = Spider::API::createSubraph(subgraph->containingGraph(),
+//                                                "grun-" + subgraph->name(),
+//                                                subgraph->vertexCount(),
+//                                                subgraph->edgeCount(),
+//                                                subgraph->paramCount(),
+//                                                runInputIFCount,
+//                                                runOutputIFCount,
+//                                                0, StackID::TRANSFO);
+//
+//    /* == Move the params == */
+//    for (auto &param : subgraph->params()) {
+//        subgraph->moveParam(param, runGraph);
+//    }
+//
+//    /* == Move the vertices == */
+//    for (auto &vertex : subgraph->vertices()) {
+//        /* == Move the output edges == */
+//        for (auto &edge : vertex->outputEdgeArray()) {
+//            const auto sink = edge->sink();
+//            if (sink->type() == PiSDF::VertexType::INTERFACE) {
+//                edge->setSink(runGraph->outputInterface(sink->ix()), 0, Expression(edge->sinkRateExpression()));
+//                edge->sink()->setName(sink->name());
+//            }
+//            subgraph->moveEdge(edge, runGraph);
+//        }
+//
+//        /* == Move and set input edges connected to interfaces == */
+//        for (auto &edge : vertex->inputEdgeArray()) {
+//            auto *source = edge->source();
+//            if (source->type() == PiSDF::VertexType::INTERFACE) {
+//                /* == Change the edge source to the interface of the new init graph and move it == */
+//                edge->setSource(runGraph->inputInterface(source->ix()), 0, Expression(edge->sourceRateExpression()));
+//                edge->source()->setName(source->name());
+//                subgraph->moveEdge(edge, runGraph);
+//
+//                /* == Reconnect the sink of the input edge of subgraph to input edge of run graph == */
+//                auto *inputEdge = subgraph->inputEdge(edge->source()->ix());
+//                inputEdge->setSink(runGraph, edge->sink()->ix(), Expression(inputEdge->sinkRateExpression()));
+//            } else if (source->type() == PiSDF::VertexType::CONFIG) {
+//                const auto &sourcePortIx = edge->sourcePortIx();
+//                const auto &rate = edge->sourceRateExpression().evaluate();
+//
+//                /* == Move the edge in run graph and connect it == */
+//                auto *inputIF = runGraph->inputInterface(cfg2InputIF[source->ix()] + sourcePortIx);
+//                inputIF->setName("in_" + source->name() + "_out-" + std::to_string(sourcePortIx));
+//                edge->setSource(inputIF, 0, Expression(rate));
+//                subgraph->moveEdge(edge, runGraph);
+//
+//                /* == Create edge for the cfg vertex in init graph == */
+//                auto *outputIF = initGraph->outputInterface(cfg2OutputIF[source->ix()] + sourcePortIx);
+//                outputIF->setName("out_" + source->name() + "_out-" + std::to_string(sourcePortIx));
+//                auto *outEdge = Spider::API::createEdge(source, sourcePortIx, rate, outputIF, 0, rate,
+//                                                        StackID::TRANSFO);
+//                initGraph->addEdge(outEdge);
+//            }
+//        }
+//        subgraph->moveVertex(vertex, runGraph);
+//    }
+//
+//    /* == Destroy the subgraph == */
+//    subgraph->containingGraph()->removeSubgraph(subgraph);
     return true;
 }
 
