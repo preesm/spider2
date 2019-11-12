@@ -113,15 +113,24 @@ Spider::PiSDF::Graph::~Graph() {
         Spider::destroy(edge);
         Spider::deallocate(edge);
     }
+
+    /* == Destroy / deallocate edges == */
+    for (auto &param : paramVector_) {
+        Spider::destroy(param);
+        Spider::deallocate(param);
+    }
 }
 
 void Spider::PiSDF::Graph::addVertex(Vertex *vertex) {
     switch (vertex->type()) {
-        case VertexType::CONFIG:
-            configVertexVector_.emplace_back(vertex);
         case VertexType::SPECIAL:
         case VertexType::DELAY:
         case VertexType::NORMAL:
+            vertex->setIx(vertexVector_.size());
+            vertexVector_.emplace_back(vertex);
+            break;
+        case VertexType::CONFIG:
+            configVertexVector_.emplace_back(vertex);
             vertex->setIx(vertexVector_.size());
             vertexVector_.emplace_back(vertex);
             break;
