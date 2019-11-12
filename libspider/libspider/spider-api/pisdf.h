@@ -131,22 +131,29 @@ namespace Spider {
                                         std::uint32_t edgeOUTCount = 0,
                                         StackID stack = StackID::PISDF);
 
-        PiSDF::JoinVertex *createJoin(PiSDF::Graph *graph,
-                                      std::string name,
-                                      std::uint32_t edgeINCount = 0,
-                                      StackID stack = StackID::PISDF);
+        PiSDF::ExecVertex *createVertex(PiSDF::Graph *graph,
+                                        std::uint32_t refinementIx,
+                                        std::string name,
+                                        std::uint32_t edgeINCount = 0,
+                                        std::uint32_t edgeOUTCount = 0,
+                                        StackID stack = StackID::PISDF);
 
         PiSDF::ForkVertex *createFork(PiSDF::Graph *graph,
                                       std::string name,
                                       std::uint32_t edgeOUTCount = 0,
                                       StackID stack = StackID::PISDF);
 
-        PiSDF::TailVertex *createTail(PiSDF::Graph *graph,
+        PiSDF::JoinVertex *createJoin(PiSDF::Graph *graph,
                                       std::string name,
                                       std::uint32_t edgeINCount = 0,
                                       StackID stack = StackID::PISDF);
 
         PiSDF::HeadVertex *createHead(PiSDF::Graph *graph,
+                                      std::string name,
+                                      std::uint32_t edgeINCount = 0,
+                                      StackID stack = StackID::PISDF);
+
+        PiSDF::TailVertex *createTail(PiSDF::Graph *graph,
                                       std::string name,
                                       std::uint32_t edgeINCount = 0,
                                       StackID stack = StackID::PISDF);

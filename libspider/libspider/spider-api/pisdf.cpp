@@ -123,17 +123,14 @@ PiSDFVertex *Spider::API::createVertex(PiSDFGraph *graph,
     return vertex;
 }
 
-PiSDFJoinVertex *Spider::API::createJoin(PiSDFGraph *graph,
-                                         std::string name,
-                                         std::uint32_t edgeINCount,
-                                         StackID stack) {
-    auto *vertex = Spider::allocate<PiSDFJoinVertex>(stack);
-    Spider::construct(vertex,
-                      std::move(name),
-                      edgeINCount,
-                      graph,
-                      stack);
-    graph->addVertex(vertex);
+PiSDFVertex *Spider::API::createVertex(PiSDFGraph *graph,
+                                       std::uint32_t refinementIx,
+                                       std::string name,
+                                       std::uint32_t edgeINCount,
+                                       std::uint32_t edgeOUTCount,
+                                       StackID stack) {
+    auto *vertex = Spider::API::createVertex(graph, std::move(name), edgeINCount, edgeOUTCount, stack);
+    vertex->setRefinementIx(refinementIx);
     return vertex;
 }
 
@@ -147,20 +144,22 @@ PiSDFForkVertex *Spider::API::createFork(PiSDFGraph *graph,
                       edgeOUTCount,
                       graph,
                       stack);
+    vertex->setRefinementIx(0);
     graph->addVertex(vertex);
     return vertex;
 }
 
-PiSDFTailVertex *Spider::API::createTail(PiSDFGraph *graph,
+PiSDFJoinVertex *Spider::API::createJoin(PiSDFGraph *graph,
                                          std::string name,
                                          std::uint32_t edgeINCount,
                                          StackID stack) {
-    auto *vertex = Spider::allocate<PiSDFTailVertex>(stack);
+    auto *vertex = Spider::allocate<PiSDFJoinVertex>(stack);
     Spider::construct(vertex,
                       std::move(name),
                       edgeINCount,
                       graph,
                       stack);
+    vertex->setRefinementIx(1);
     graph->addVertex(vertex);
     return vertex;
 }
@@ -175,6 +174,22 @@ PiSDFHeadVertex *Spider::API::createHead(PiSDFGraph *graph,
                       edgeINCount,
                       graph,
                       stack);
+    vertex->setRefinementIx(2);
+    graph->addVertex(vertex);
+    return vertex;
+}
+
+PiSDFTailVertex *Spider::API::createTail(PiSDFGraph *graph,
+                                         std::string name,
+                                         std::uint32_t edgeINCount,
+                                         StackID stack) {
+    auto *vertex = Spider::allocate<PiSDFTailVertex>(stack);
+    Spider::construct(vertex,
+                      std::move(name),
+                      edgeINCount,
+                      graph,
+                      stack);
+    vertex->setRefinementIx(3);
     graph->addVertex(vertex);
     return vertex;
 }
@@ -189,6 +204,7 @@ PiSDFDuplicateVertex *Spider::API::createDuplicate(PiSDFGraph *graph,
                       edgeOUTCount,
                       graph,
                       stack);
+    vertex->setRefinementIx(4);
     graph->addVertex(vertex);
     return vertex;
 }
@@ -201,6 +217,7 @@ PiSDFUpSampleVertex *Spider::API::createUpsample(PiSDFGraph *graph,
                       std::move(name),
                       graph,
                       stack);
+    vertex->setRefinementIx(5);
     graph->addVertex(vertex);
     return vertex;
 }
@@ -213,6 +230,7 @@ PiSDFInitVertex *Spider::API::createInit(PiSDFGraph *graph,
                       std::move(name),
                       graph,
                       stack);
+    vertex->setRefinementIx(6);
     graph->addVertex(vertex);
     return vertex;
 }
@@ -225,6 +243,7 @@ PiSDFEndVertex *Spider::API::createEnd(PiSDFGraph *graph,
                       std::move(name),
                       graph,
                       stack);
+    vertex->setRefinementIx(7);
     graph->addVertex(vertex);
     return vertex;
 }

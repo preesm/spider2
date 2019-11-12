@@ -46,6 +46,7 @@
 #include <spider-api/archi.h>
 #include <spider-api/pisdf.h>
 #include <spider-api/refinement.h>
+#include <graphs/pisdf/Graph.h>
 #include <archi/Platform.h>
 
 /* === Static variable(s) definition === */
