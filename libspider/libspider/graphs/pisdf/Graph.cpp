@@ -68,8 +68,8 @@ Spider::PiSDF::Graph::Graph(std::string name,
                                                     edgeOUTCount,
                                                     graph,
                                                     stack),
-                                             inputInterfaceArray_{edgeINCount, stack},
-                                             outputInterfaceArray_{edgeOUTCount, stack} {
+                                             inputInterfaceArray_{ edgeINCount, stack },
+                                             outputInterfaceArray_{ edgeOUTCount, stack } {
     vertexVector_.reserve(vertexCount);
     edgeVector_.reserve(edgeCount);
     paramVector_.reserve(paramCount);
@@ -97,10 +97,6 @@ Spider::PiSDF::Graph::~Graph() {
     for (auto &vertex : vertexVector_) {
         destroyVertex(vertex);
     }
-    for (auto &vertex : configVertexVector_) {
-        Spider::destroy(vertex);
-        Spider::deallocate(vertex);
-    }
 
     /* == Destroy / deallocate interfaces == */
     for (auto &interface : inputInterfaceArray_) {
@@ -121,20 +117,18 @@ Spider::PiSDF::Graph::~Graph() {
 
 void Spider::PiSDF::Graph::addVertex(Vertex *vertex) {
     switch (vertex->type()) {
+        case VertexType::CONFIG:
+            configVertexVector_.emplace_back(vertex);
         case VertexType::SPECIAL:
         case VertexType::DELAY:
         case VertexType::NORMAL:
             vertex->setIx(vertexVector_.size());
-            vertexVector_.push_back(vertex);
-            break;
-        case VertexType::CONFIG:
-            vertex->setIx(configVertexVector_.size());
-            configVertexVector_.push_back(vertex);
+            vertexVector_.emplace_back(vertex);
             break;
         case VertexType::GRAPH:
             addSubGraph(dynamic_cast<Graph *>(vertex));
             vertex->setIx(vertexVector_.size());
-            vertexVector_.push_back(vertex);
+            vertexVector_.emplace_back(vertex);
             break;
         case VertexType::INTERFACE:
             throwSpiderException("can not add interface to graph %s", name().c_str());
@@ -146,6 +140,15 @@ void Spider::PiSDF::Graph::addVertex(Vertex *vertex) {
 void Spider::PiSDF::Graph::removeVertex(Vertex *vertex) {
     if (vertex->subtype() == VertexType::GRAPH) {
         throwSpiderException("removing subgraph using removeVertex. Use removeSubgraph instead.");
+    } else if (vertex->type() == VertexType::CONFIG) {
+        /* == configVertexVector_ is just a "viewer" for config vertices so we need to find manually == */
+        for (auto &cfg : configVertexVector_) {
+            if (cfg == vertex) {
+                cfg = configVertexVector_.back();
+                configVertexVector_.pop_back();
+                break;
+            }
+        }
     }
     removeElement(vertexVector_, vertex);
     destroyVertex(vertex);
