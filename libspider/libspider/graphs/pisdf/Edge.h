@@ -168,6 +168,8 @@ namespace Spider {
 
             inline void setDelay(Delay *delay);
 
+            inline void setGraph(Graph *graph);
+
         private:
             Graph *graph_ = nullptr;
             std::uint32_t ix_ = UINT32_MAX;
@@ -235,6 +237,12 @@ namespace Spider {
                 throwSpiderException("Cannot set delay. Edge [%s] already has a delay.", name().c_str());
             }
             delay_ = delay;
+        }
+
+        void Edge::setGraph(Graph *graph) {
+            if (graph) {
+                graph_ = graph;
+            }
         }
     }
 }

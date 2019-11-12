@@ -194,18 +194,6 @@ void Spider::PiSDF::Graph::addParam(Param *param) {
     param->setIx(paramVector_.size());
     paramVector_.push_back(param);
     dynamic_ |= (param->dynamic() && param->type() != ParamType::INHERITED);
-//    if (param->type() != ParamType::INHERITED && param->dynamic()) {
-//        /* == Set dynamic property of the graph to true == */
-//        dynamic_ = true;
-//
-//        /* == We need to propagate this property up in the hierarchy == */
-//        auto *parent = containingGraph();
-//        while (parent && !parent->dynamic_) {
-//            /* == If graph was already dynamic then information is already propagated == */
-//            parent->dynamic_ = true;
-//            parent = parent->containingGraph();
-//        }
-//    }
 }
 
 void Spider::PiSDF::Graph::removeParam(Param *param) {
@@ -213,6 +201,24 @@ void Spider::PiSDF::Graph::removeParam(Param *param) {
     Spider::destroy(param);
     Spider::deallocate(param);
 }
+
+
+void Spider::PiSDF::Graph::moveParam(Param *elt, Graph *graph) {
+    if (graph) {
+        removeElement(paramVector_, elt);
+        graph->addParam(elt);
+        elt->setGraph(graph);
+    }
+}
+
+void Spider::PiSDF::Graph::moveEdge(Edge *elt, Graph *graph) {
+    if (graph) {
+        removeElement(edgeVector_, elt);
+        graph->addEdge(elt);
+        elt->setGraph(graph);
+    }
+}
+
 
 Spider::PiSDF::Param *Spider::PiSDF::Graph::param(const std::string &name) const {
     for (auto &p : paramVector_) {

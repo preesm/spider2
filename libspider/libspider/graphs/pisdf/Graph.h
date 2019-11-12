@@ -136,7 +136,7 @@ namespace Spider {
              * @param elt    Param to move.
              * @param graph  Graph to move to.
              */
-            inline void moveParam(Param *elt, Graph *graph);
+            void moveParam(Param *elt, Graph *graph);
 
             /**
              * @brief Move edge ownership from this graph to another graph.
@@ -144,7 +144,7 @@ namespace Spider {
              * @param elt    Edge to move.
              * @param graph  Graph to move to.
              */
-            inline void moveEdge(Edge *elt, Graph *graph);
+            void moveEdge(Edge *elt, Graph *graph);
 
             Vertex *forwardEdge(const Edge *e) override;
 
@@ -207,7 +207,7 @@ namespace Spider {
             * @brief A const reference on the set of vertices. Useful for iterating on the vertices.
             * @return const reference to vertex vector
             */
-            inline const Spider::vector<Vertex *> &configActors() const;
+            inline const Spider::vector<Vertex *> &configVertices() const;
 
             /**
             * @brief A const reference on the set of output interfaces. Useful for iterating on the input interfaces.
@@ -316,20 +316,7 @@ namespace Spider {
             if (graph) {
                 removeElement(vertexVector_, elt);
                 graph->addVertex(elt);
-            }
-        }
-
-        void Graph::moveParam(Param *elt, Graph *graph) {
-            if (graph) {
-                removeElement(paramVector_, elt);
-                graph->addParam(elt);
-            }
-        }
-
-        void Graph::moveEdge(Edge *elt, Graph *graph) {
-            if (graph) {
-                removeElement(edgeVector_, elt);
-                graph->addEdge(elt);
+                elt->setGraph(graph);
             }
         }
 
@@ -369,7 +356,7 @@ namespace Spider {
             return subgraphVector_;
         }
 
-        const Spider::vector<Vertex *> &Graph::configActors() const {
+        const Spider::vector<Vertex *> &Graph::configVertices() const {
             return configVertexVector_;
         }
 
