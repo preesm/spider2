@@ -87,7 +87,7 @@ static Spider::vector<Spider::PiSDF::Refinement *> specialActorRefinements() {
 
 /* === Function definition(s) === */
 
-Spider::vector<Spider::PiSDF::Refinement *> &refinementsRegister() {
+Spider::vector<Spider::PiSDF::Refinement *> &Spider::refinementsRegister() {
     static auto refinementVector = specialActorRefinements();
     return refinementVector;
 }
