@@ -85,9 +85,9 @@ namespace Spider {
 
             void vertexPrinter(std::ofstream &file, const Vertex *vertex, const std::string &offset) const;
 
-            void edgePrinter(std::ofstream &file, const Edge *edge, const std::string &offset) const;
+            static void edgePrinter(std::ofstream &file, const Edge *edge, const std::string &offset) ;
 
-            void paramPrinter(std::ofstream &file, const Param *param, const std::string &offset) const;
+            static void paramPrinter(std::ofstream &file, const Param *param, const std::string &offset) ;
 
             void inputIFPrinter(std::ofstream &file,
                                 const InputInterface *interface,
@@ -118,10 +118,10 @@ namespace Spider {
                                        const std::string &offset,
                                        std::uint32_t width) const;
 
-            void dummyDataPortPrinter(std::ofstream &file,
+            static void dummyDataPortPrinter(std::ofstream &file,
                                       const std::string &offset,
                                       std::uint32_t width,
-                                      bool input) const;
+                                      bool input) ;
         };
     }
 }

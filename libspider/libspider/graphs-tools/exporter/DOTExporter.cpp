@@ -87,7 +87,7 @@ void Spider::PiSDF::DOTExporter::print() const {
 }
 
 void Spider::PiSDF::DOTExporter::print(const std::string &path) const {
-    std::ofstream file{path, std::ios::out};
+    std::ofstream file{ path, std::ios::out };
     print(file);
 
     /* == We should not do this manually but this will ensure that data are correctly written even if it crashes == */
@@ -102,7 +102,7 @@ void Spider::PiSDF::DOTExporter::print(std::ofstream &file) const {
 
 void
 Spider::PiSDF::DOTExporter::graphPrinter(std::ofstream &file, const Graph *graph, const std::string &offset) const {
-    auto fwOffset{offset};
+    auto fwOffset{ offset };
     if (graph->containingGraph()) {
         file << fwOffset << "subgraph cluster {" << '\n';
         fwOffset += '\t';
@@ -155,6 +155,7 @@ Spider::PiSDF::DOTExporter::graphPrinter(std::ofstream &file, const Graph *graph
     }
 
     /* == Write edges == */
+    file << '\n' << fwOffset << R"(// Edges)" << '\n';
     for (const auto &edge : graph->edges()) {
         edgePrinter(file, edge, fwOffset);
     }
@@ -171,7 +172,7 @@ void Spider::PiSDF::DOTExporter::vertexPrinter(std::ofstream &file,
                                                const std::string &offset) const {
     file << offset << R"(")" << vertex->name()
          << R"(" [shape=plain, style=filled, fillcolor=")" << vertexColor(vertex->subtype())
-         << R"(", width=0, height=0, label = <)" << '\n';
+         << R"(", width=0, height=0, label=<)" << '\n';
     file << offset << '\t' << R"(<table border="0" fixedsize="false" cellspacing="0" cellpadding="0">)" << '\n';
 
     /* == Vertex name == */
@@ -248,7 +249,7 @@ void Spider::PiSDF::DOTExporter::vertexPrinter(std::ofstream &file,
     file << offset << "];" << '\n' << '\n';
 }
 
-void Spider::PiSDF::DOTExporter::edgePrinter(std::ofstream &file, const Edge *edge, const std::string &offset) const {
+void Spider::PiSDF::DOTExporter::edgePrinter(std::ofstream &file, const Edge *edge, const std::string &offset) {
     auto *source = edge->source()->type() == Spider::PiSDF::VertexType::GRAPH ? edge->source<true>() : edge->source();
     auto *sink = edge->sink()->type() == Spider::PiSDF::VertexType::GRAPH ? edge->sink<true>() : edge->sink();
     file << offset << R"(")" << source->name();
@@ -257,16 +258,24 @@ void Spider::PiSDF::DOTExporter::edgePrinter(std::ofstream &file, const Edge *ed
 }
 
 void
-Spider::PiSDF::DOTExporter::paramPrinter(std::ofstream &file, const Param *param, const std::string &offset) const {
+Spider::PiSDF::DOTExporter::paramPrinter(std::ofstream &file, const Param *param, const std::string &offset) {
     file << offset << R"(")" << param->containingGraph()->name() + ":" + param->name()
-         << R"("[shape=triangle, style=filled, fillcolor="#89c4f4"])" << '\n';
+         << R"("[shape=house, style=filled, fillcolor="#89c4f4", width=0, height=0, label=<)" << '\n';
+    file << offset << '\t' << R"(<table border="0" fixedsize="false" cellspacing="0" cellpadding="0">)" << '\n';
+    file << offset << '\t' << '\t'
+         << R"(<tr> <td border="0" fixedsize="false" height="20"></td></tr>)" << '\n';
+    file << offset << '\t' << '\t'
+         << R"(<tr> <td border="0"><font point-size="20" face="inconsolata">)"
+         << param->name() << "</font></td></tr>" << '\n';
+    file << offset << '\t' << R"(</table>>];)" << '\n';
+
 }
 
 void Spider::PiSDF::DOTExporter::inputIFPrinter(std::ofstream &file,
                                                 const InputInterface *interface,
                                                 const std::string &offset) const {
     file << offset << R"(")" << interface->name()
-         << R"(" [shape=plain, style=filled, fillcolor="#fff68fff", width=0, height=0, label = <)" << '\n';
+         << R"(" [shape=plain, style=filled, fillcolor="#fff68fff", width=0, height=0, label=<)" << '\n';
     interfacePrinter(file, interface, offset);
 }
 
@@ -274,7 +283,7 @@ void Spider::PiSDF::DOTExporter::outputIFPrinter(std::ofstream &file,
                                                  const OutputInterface *interface,
                                                  const std::string &offset) const {
     file << offset << R"(")" << interface->name()
-         << R"(" [shape=plain, style=filled, fillcolor="#dcc6e0ff", width=0, height=0, label = <)" << '\n';
+         << R"(" [shape=plain, style=filled, fillcolor="#dcc6e0ff", width=0, height=0, label=<)" << '\n';
     interfacePrinter(file, interface, offset);
 }
 
@@ -380,7 +389,7 @@ void Spider::PiSDF::DOTExporter::outputDataPortPrinter(std::ofstream &file,
 void Spider::PiSDF::DOTExporter::dummyDataPortPrinter(std::ofstream &file,
                                                       const std::string &offset,
                                                       std::uint32_t width,
-                                                      bool input) const {
+                                                      bool input) {
     /* == Header == */
     file << offset << '\t' << '\t' << '\t' << R"(<td border="0" colspan="1" align="left">)" << '\n';
     file << offset << '\t' << '\t' << '\t' << '\t' << R"(<table border="0" cellpadding="0" cellspacing="0">)" << '\n';
