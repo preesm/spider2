@@ -115,7 +115,8 @@ Spider::PiSDF::DOTExporter::graphPrinter(std::ofstream &file, const Graph *graph
         file << fwOffset << "penwidth=2;" << '\n';
     } else {
         file << "digraph {\n";
-        file << '\t' << R"(label=<<font point-size="40" face="inconsolata">topgraph</font>>;)" << '\n';
+        file << '\t' << R"(label=<<font point-size="40" face="inconsolata">")" << graph->name() << R"("</font>>;)"
+             << '\n';
         file << '\t' << "rankdir=LR;" << '\n';
         file << '\t' << R"(ranksep="2";)" << '\n';
     }
