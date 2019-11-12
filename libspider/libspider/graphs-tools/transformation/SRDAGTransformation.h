@@ -75,10 +75,10 @@ namespace Spider {
 
             Job(const Job &) = default;
 
-            Job(const PiSDFGraph *graph, const std::uint32_t &srdagIx, std::uint32_t instance) : reference_{graph},
-                                                                                                 srdagIx_{srdagIx},
+            Job(const PiSDFGraph *graph, const std::uint32_t &srdagIx, std::uint32_t instance) : reference_{ graph },
+                                                                                                 srdagIx_{ srdagIx },
                                                                                                  instanceValue_{
-                                                                                                         instance} {
+                                                                                                         instance } {
                 params_.reserve(graph->paramCount());
             }
 
@@ -101,9 +101,9 @@ namespace Spider {
 
             VertexLinker() = default;
 
-            VertexLinker(std::int64_t rate, std::uint32_t portIx, PiSDFAbstractVertex *vertex) : rate_{rate},
-                                                                                                 portIx_{portIx},
-                                                                                                 vertex_{vertex} { }
+            VertexLinker(std::int64_t rate, std::uint32_t portIx, PiSDFAbstractVertex *vertex) : rate_{ rate },
+                                                                                                 portIx_{ portIx },
+                                                                                                 vertex_{ vertex } { }
         };
 
         struct JobLinker {
@@ -118,16 +118,25 @@ namespace Spider {
 
             JobLinker(const PiSDFEdge *edge, PiSDFGraph *graph,
                       const Job &job, JobStack &nextJobs, JobStack &dynaJobs,
-                      TransfoTracker &tracker) : edge_{edge}, srdag_{graph},
-                                                 job_{job}, nextJobs_{nextJobs}, dynaJobs_{dynaJobs},
-                                                 tracker_{tracker} { }
+                      TransfoTracker &tracker) : edge_{ edge }, srdag_{ graph },
+                                                 job_{ job }, nextJobs_{ nextJobs }, dynaJobs_{ dynaJobs },
+                                                 tracker_{ tracker } { }
         };
 
         /* === Functions prototype === */
 
         /**
+         * @brief Split dynamic graphs into two subgraphs: an init graph and a run graph.
+         * @remark This method changes original graph.
+         * @param subgraph  Subgraph to split (if static nothing happen).
+         * @return true if subgraph was split, false else.
+         */
+        bool splitDynamicGraph(PiSDFGraph *subgraph);
+
+        /**
          * @brief Perform static single rate transformation for a given input job.
          * @remark If one of the subgraph of the job is dynamic then it is automatically split into two graphs.
+         * @warning This function expect that dynamic graphs have been split using @refitem splitDynamicGraph before hand.
          * @param job    Job containing information on the transformation to perform.
          * @param srdag  Graph to append result of the transformation.
          * @return a pair of @refitem JobStack, the first one containing future static jobs, second one containing
@@ -136,6 +145,10 @@ namespace Spider {
          */
         std::pair<JobStack, JobStack> staticSingleRateTransformation(const Job &job, PiSDFGraph *srdag);
 
+        /**
+         * @brief Perform single rate transformation for a given edge.
+         * @param linker Job information.
+         */
         void staticEdgeSingleRateLinkage(JobLinker &linker);
     }
 }

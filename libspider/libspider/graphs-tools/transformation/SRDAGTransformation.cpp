@@ -53,6 +53,7 @@
 #include <graphs/pisdf/interfaces/OutputInterface.h>
 #include <graphs-tools/brv/LCMBRVCompute.h>
 #include <graphs-tools/numerical/PiSDFAnalysis.h>
+#include <graphs-tools/expression-parser/Expression.h>
 
 /* === Static function(s) === */
 
@@ -87,7 +88,7 @@ static inline std::uint32_t cloneVertex(const PiSDFAbstractVertex *vertex, Spide
 
 static inline std::uint32_t cloneGraph(const PiSDFAbstractVertex *vertex, Spider::SRDAG::JobLinker &linker) {
     std::uint32_t ix = 0;
-    // TODO split dynamic graphs
+
     /* == Clone the vertex == */
     for (std::uint32_t it = 0; it < vertex->repetitionValue(); ++it) {
         const auto *clone = Spider::API::createVertex(linker.srdag_,
@@ -98,7 +99,6 @@ static inline std::uint32_t cloneGraph(const PiSDFAbstractVertex *vertex, Spider
         ix = clone->ix();
     }
     ix = ix - (vertex->repetitionValue() - 1);
-
 
     /* == Push the jobs == */
     const auto *graph = dynamic_cast<const PiSDFGraph *>(vertex);
@@ -334,7 +334,7 @@ static void replaceJobInterfaces(Spider::SRDAG::JobLinker &linker) {
     }
 
     /* == Replace the input interfaces == */
-    for (const auto &interface : linker.job_.reference_->inputInterfaces()) {
+    for (const auto &interface : linker.job_.reference_->inputInterfaceArray()) {
         auto *edge = srdagInstance->inputEdge(interface->ix());
         auto *vertex = Spider::API::createUpsample(linker.srdag_,
                                                    srdagInstance->name() + "_" + interface->name(),
@@ -344,7 +344,7 @@ static void replaceJobInterfaces(Spider::SRDAG::JobLinker &linker) {
     }
 
     /* == Replace the output interfaces == */
-    for (const auto &interface : linker.job_.reference_->outputInterfaces()) {
+    for (const auto &interface : linker.job_.reference_->outputInterfaceArray()) {
         auto *edge = srdagInstance->outputEdge(interface->ix());
         auto *vertex = Spider::API::createTail(linker.srdag_,
                                                srdagInstance->name() + "_" + interface->name(),
@@ -359,6 +359,140 @@ static void replaceJobInterfaces(Spider::SRDAG::JobLinker &linker) {
 
 /* === Methods implementation === */
 
+bool Spider::SRDAG::splitDynamicGraph(PiSDFGraph *subgraph) {
+    if (!subgraph->dynamic()) {
+        return false;
+    }
+
+    /* == Compute the input interface count for both graphs == */
+    std::uint32_t initInputIFCount = 0;
+    std::uint32_t runInputIFCount = 0;
+    for (const auto &interface : subgraph->inputInterfaceArray()) {
+        const auto &edge = interface->outputEdge();
+        const auto &sink = edge->sink();
+        if (sink->type() == Spider::PiSDF::VertexType::CONFIG) {
+            initInputIFCount += 1;
+        } else {
+            runInputIFCount += 1;
+        }
+    }
+
+    /* == Compute the output interface count for both graphs == */
+    std::uint32_t initOutputIFCount = 0;
+    std::uint32_t runOutputIFCount = 0;
+    for (const auto &interface : subgraph->outputInterfaceArray()) {
+        const auto &edge = interface->outputEdge();
+        const auto &source = edge->source();
+        if (source->type() == PiSDF::VertexType::CONFIG) {
+            initOutputIFCount += 1;
+        } else {
+            runOutputIFCount += 1;
+        }
+    }
+
+    /* == Go through cfg vertices to determine how many interfaces have to be added == */
+    Spider::vector<std::uint32_t, StackID::TRANSFO> cfg2OutputIF;
+    cfg2OutputIF.reserve(subgraph->configVertexCount());
+    Spider::vector<std::uint32_t, StackID::TRANSFO> cfg2InputIF;
+    cfg2InputIF.reserve(subgraph->configVertexCount());
+    for (const auto &cfgVertex : subgraph->configActors()) {
+        cfg2InputIF.emplace_back(initOutputIFCount);
+        cfg2OutputIF.emplace_back(runInputIFCount);
+        for (const auto &edge : cfgVertex->outputEdgeArray()) {
+            const auto &sink = edge->sink();
+            if (sink->type() != PiSDF::VertexType::INTERFACE) {
+                initOutputIFCount += 1;
+                runInputIFCount += 1;
+            }
+        }
+    }
+
+    /* == Create the init subgraph == */
+    auto *initGraph = Spider::API::createSubraph(subgraph->containingGraph(),
+                                                 "ginit-" + subgraph->name(),
+                                                 0,
+                                                 0,
+                                                 0,
+                                                 initInputIFCount,
+                                                 initOutputIFCount,
+                                                 subgraph->configVertexCount(), StackID::TRANSFO);
+    std::uint32_t inputCFGOffset = subgraph->edgesINCount();
+    std::uint32_t outputCFGOffset = subgraph->edgesOUTCount();
+    for (auto &cfgVertex : subgraph->configActors()) {
+        for (auto &edge : cfgVertex->inputEdgeArray()) {
+            const auto source = edge->source();
+            if (source->type() != PiSDF::VertexType::INTERFACE) {
+                throwSpiderException("Config vertex can not have source of type other than interface.");
+            }
+            edge->setSource(initGraph->inputInterface(source->ix()), 0, Expression(edge->sourceRateExpression()));
+            edge->source()->setName(source->name());
+            subgraph->moveEdge(edge, initGraph);
+        }
+        inputCFGOffset += cfgVertex->edgesOUTCount();
+        outputCFGOffset += cfgVertex->edgesOUTCount();
+        subgraph->moveVertex(cfgVertex, initGraph);
+    }
+
+    /* == Create the run subgraph == */
+    auto *runGraph = Spider::API::createSubraph(subgraph->containingGraph(),
+                                                "grun-" + subgraph->name(),
+                                                subgraph->vertexCount(),
+                                                subgraph->edgeCount(),
+                                                subgraph->paramCount(),
+                                                runInputIFCount,
+                                                runOutputIFCount,
+                                                0, StackID::TRANSFO);
+
+    /* == Move the params == */
+    for (auto &param : subgraph->params()) {
+        subgraph->moveParam(param, runGraph);
+    }
+
+    /* == Move the vertices == */
+    for (auto &vertex : subgraph->vertices()) {
+        /* == Move the output edges == */
+        for (auto &edge : vertex->outputEdgeArray()) {
+            const auto sink = edge->sink();
+            if (sink->type() == PiSDF::VertexType::INTERFACE) {
+                edge->setSink(runGraph->outputInterface(sink->ix()), 0, Expression(edge->sinkRateExpression()));
+                edge->sink()->setName(sink->name());
+            }
+            subgraph->moveEdge(edge, runGraph);
+        }
+
+        /* == Move and set input edges connected to interfaces == */
+        for (auto &edge : vertex->inputEdgeArray()) {
+            auto *source = edge->source();
+            if (source->type() == PiSDF::VertexType::INTERFACE) {
+                edge->setSource(runGraph->inputInterface(source->ix()), 0, Expression(edge->sourceRateExpression()));
+                edge->source()->setName(source->name());
+                subgraph->moveEdge(edge, runGraph);
+            } else if (source->type() == PiSDF::VertexType::CONFIG) {
+                const auto &sourcePortIx = edge->sourcePortIx();
+                const auto &rate = edge->sourceRateExpression().evaluate();
+
+                /* == Move the edge in run graph and connect it == */
+                auto *inputIF = runGraph->inputInterface(cfg2InputIF[source->ix()] + sourcePortIx);
+                inputIF->setName("in_" + source->name() + "_out-" + std::to_string(sourcePortIx));
+                edge->setSource(inputIF, 0, Expression(rate));
+                subgraph->moveEdge(edge, runGraph);
+
+                /* == Create edge for the cfg vertex in init graph == */
+                auto *outputIF = initGraph->outputInterface(cfg2OutputIF[source->ix()] + sourcePortIx);
+                outputIF->setName("out_" + source->name() + "_out-" + std::to_string(sourcePortIx));
+                auto *outEdge = Spider::API::createEdge(source, sourcePortIx, rate, outputIF, 0, rate,
+                                                        StackID::TRANSFO);
+                initGraph->addEdge(outEdge);
+            }
+        }
+        subgraph->moveVertex(vertex, runGraph);
+    }
+
+    /* == Destroy the subgraph == */
+    subgraph->containingGraph()->removeSubgraph(subgraph);
+    return true;
+}
+
 std::pair<Spider::SRDAG::JobStack, Spider::SRDAG::JobStack>
 Spider::SRDAG::staticSingleRateTransformation(const Spider::SRDAG::Job &job, PiSDFGraph *srdag) {
     if (!srdag) {
@@ -370,7 +504,7 @@ Spider::SRDAG::staticSingleRateTransformation(const Spider::SRDAG::Job &job, PiS
 
     /* == Compute the repetition values of the graph (if dynamic and/or first instance) == */
     if (job.reference_->dynamic() || job.instanceValue_ == 0 || job.instanceValue_ == UINT32_MAX) {
-        LCMBRVCompute brvTask{job.reference_, job.params_};
+        LCMBRVCompute brvTask{ job.reference_, job.params_ };
         brvTask.execute();
     }
 
@@ -383,7 +517,7 @@ Spider::SRDAG::staticSingleRateTransformation(const Spider::SRDAG::Job &job, PiS
     }
     JobStack nextJobs;
     JobStack dynaJobs;
-    auto linker = JobLinker{nullptr, srdag, job, nextJobs, dynaJobs, vertexTransfoTracker};
+    auto linker = JobLinker{ nullptr, srdag, job, nextJobs, dynaJobs, vertexTransfoTracker };
 
     /* == Replace the interfaces of the graph and remove the vertex == */
     replaceJobInterfaces(linker);
