@@ -40,36 +40,96 @@
 
 /* === Include(s) === */
 
+#include <memory/Allocator.h>
 #include <spider-api/refinement.h>
 #include <graphs/pisdf/Refinement.h>
-#include <memory/Allocator.h>
+#include <graphs/pisdf/specials/Specials.h>
+
+static Spider::vector<Spider::PiSDF::Refinement *> specialActorRefinements() {
+    Spider::vector<Spider::PiSDF::Refinement *> specialRefinements;
+    specialRefinements.reserve(specialActorCount);
+
+    /* == Create the special actor refinements == */
+    auto *forkRefinement = Spider::API::createRefinement("fork", Spider::PiSDF::fork);
+    Spider::API::registerRefinement(forkRefinement);
+    specialRefinements.push_back(forkRefinement);
+
+    auto *joinRefinement = Spider::API::createRefinement("join", Spider::PiSDF::join);
+    Spider::API::registerRefinement(joinRefinement);
+    specialRefinements.emplace_back(joinRefinement);
+
+    auto *headRefinement = Spider::API::createRefinement("head", Spider::PiSDF::head);
+    Spider::API::registerRefinement(headRefinement);
+    specialRefinements.emplace_back(headRefinement);
+
+    auto *tailRefinement = Spider::API::createRefinement("tail", Spider::PiSDF::tail);
+    Spider::API::registerRefinement(tailRefinement);
+    specialRefinements.emplace_back(tailRefinement);
+
+    auto *duplicateRefinement = Spider::API::createRefinement("duplicate", Spider::PiSDF::duplicate);
+    Spider::API::registerRefinement(duplicateRefinement);
+    specialRefinements.emplace_back(duplicateRefinement);
+
+    auto *upsampleRefinement = Spider::API::createRefinement("upsample", Spider::PiSDF::upsample);
+    Spider::API::registerRefinement(upsampleRefinement);
+    specialRefinements.emplace_back(upsampleRefinement);
+
+    auto *initRefinement = Spider::API::createRefinement("init", Spider::PiSDF::init);
+    Spider::API::registerRefinement(initRefinement);
+    specialRefinements.emplace_back(initRefinement);
+
+    auto *endRefinement = Spider::API::createRefinement("end", Spider::PiSDF::end);
+    Spider::API::registerRefinement(endRefinement);
+    specialRefinements.emplace_back(endRefinement);
+
+    return specialRefinements;
+}
 
 /* === Function definition(s) === */
 
+Spider::vector<Spider::PiSDF::Refinement *> &refinementsRegister() {
+    static auto refinementVector = specialActorRefinements();
+    return refinementVector;
+}
+
+void Spider::API::precacheRefinementRegister(std::uint32_t refinementCount) {
+    auto &refinements = refinementsRegister();
+    refinements.reserve(refinements.size() + refinementCount);
+}
 
 Spider::PiSDF::Refinement *Spider::API::createRefinement(std::string name,
                                                          Spider::callback function,
                                                          std::uint32_t paramINCount,
-                                                         std::uint32_t paramOUTCount,
-                                                         StackID stack) {
-    auto *refinement = Spider::allocate<Spider::PiSDF::Refinement>(stack);
+                                                         std::uint32_t paramOUTCount) {
+    auto *refinement = Spider::allocate<Spider::PiSDF::Refinement>(StackID::PISDF);
     Spider::construct(refinement, std::move(name), function, paramINCount, paramOUTCount);
     return refinement;
 }
 
 std::uint32_t Spider::API::registerRefinement(Spider::PiSDF::Refinement *refinement) {
-    return 0;
+    if (refinement->ix() == UINT32_MAX) {
+        auto &refinements = Spider::refinementsRegister();
+        refinement->setIx(refinements.size());
+        refinements.emplace_back(refinement);
+    }
+    return refinement->ix();
 }
 
 void Spider::API::setRefinementInputParams(Spider::PiSDF::Refinement *refinement,
-                                           std::initializer_list<std::int32_t> list) {
+                                           std::initializer_list<std::uint32_t> list) {
+    if (!refinement) {
+        return;
+    }
     for (const auto &value : list) {
         refinement->addInputParam(value);
     }
 }
 
 void Spider::API::setRefinementOutputParams(Spider::PiSDF::Refinement *refinement,
-                                            std::initializer_list<std::int32_t> list) {
+                                            std::initializer_list<std::uint32_t> list) {
+    if (!refinement) {
+        return;
+    }
     for (const auto &value : list) {
         refinement->addOutputParam(value);
     }

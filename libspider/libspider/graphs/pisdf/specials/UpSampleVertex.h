@@ -48,9 +48,9 @@
 namespace Spider {
     namespace PiSDF {
 
-        inline void upsample(std::int64_t *paramsIn[], std::int64_t *[], void *in[], void *out[]) {
-            const auto &inputSize = *(paramsIn[0]);
-            const auto &outputSize = *(paramsIn[1]);
+        inline void upsample(const std::int64_t *paramsIn, std::int64_t *[], void *in[], void *out[]) {
+            const auto &inputSize = paramsIn[0];  /* = Rate of the input port = */
+            const auto &outputSize = paramsIn[1]; /* = Rate of the output port = */
             if (inputSize == outputSize) {
                 std::memcpy(out[0], in[0], outputSize);
             } else {

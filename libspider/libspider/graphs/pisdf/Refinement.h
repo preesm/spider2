@@ -129,7 +129,7 @@ namespace Spider {
             Spider::vector<std::uint32_t> inputParamsValue_;
             Spider::vector<std::uint32_t> outputParamsValue_;
             std::string name_ = "unnamed-refinement";
-            std::uint32_t ix_ = 0;
+            std::uint32_t ix_ = UINT32_MAX;
 
             callback fct_ = dummy;
 

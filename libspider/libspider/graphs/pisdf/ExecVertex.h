@@ -65,34 +65,32 @@ namespace Spider {
 
             ExecVertex(const ExecVertex &) = delete;
 
-            ~ExecVertex() override;
-
             /* === Getter(s) === */
 
             Vertex *clone(StackID stack, Graph *graph) const override;
 
             inline bool executable() const override;
 
-            inline Refinement &refinement();
+            inline std::uint32_t refinementIx() const;
 
             /* === Setter(s) === */
 
-            inline void setRefinement(Spider::PiSDF::Refinement * refinement);
+            inline void setRefinementIx(std::uint32_t ix);
 
         protected:
-            Refinement *refinement_ = nullptr;
+            std::uint32_t refinementIx_ = UINT32_MAX;
         };
 
         bool ExecVertex::executable() const {
             return true;
         }
 
-        Refinement &ExecVertex::refinement() {
-            return *refinement_;
+        std::uint32_t ExecVertex::refinementIx() const {
+            return refinementIx_;
         }
 
-        void Spider::PiSDF::ExecVertex::setRefinement(Spider::PiSDF::Refinement *refinement) {
-            refinement_ = refinement;
+        void Spider::PiSDF::ExecVertex::setRefinementIx(std::uint32_t ix) {
+            refinementIx_ = ix;
         }
     }
 }

@@ -51,4 +51,6 @@
 #include <graphs/pisdf/specials/InitVertex.h>
 #include <graphs/pisdf/specials/EndVertex.h>
 
+constexpr auto specialActorCount = 8;
+
 #endif //SPIDER2_SPECIALS_H

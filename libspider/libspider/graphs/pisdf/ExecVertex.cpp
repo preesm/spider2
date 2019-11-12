@@ -66,13 +66,6 @@ Spider::PiSDF::ExecVertex::ExecVertex(std::string name,
     }
 }
 
-Spider::PiSDF::ExecVertex::~ExecVertex() {
-    if (refinement_) {
-        Spider::destroy(refinement_);
-        Spider::deallocate(refinement_);
-    }
-}
-
 Spider::PiSDF::Vertex *Spider::PiSDF::ExecVertex::clone(StackID stack, Graph *graph) const {
     graph = graph ? graph : this->graph_;
     auto *result = Spider::API::createVertex(graph,

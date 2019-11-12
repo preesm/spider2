@@ -48,11 +48,11 @@
 namespace Spider {
     namespace PiSDF {
 
-        inline void head(std::int64_t *paramsIn[], std::int64_t *[], void *in[], void *out[]) {
-            const auto &inputEnd = *(paramsIn[0]);
+        inline void head(const std::int64_t *paramsIn, std::int64_t *[], void *in[], void *out[]) {
+            const auto &inputEnd = paramsIn[0]; /* = Number of input to consider = */
             std::int64_t offset = 0;
             for (auto i = 0; i < inputEnd; ++i) {
-                const auto &inputSize = *(paramsIn[i + 1]);
+                const auto &inputSize = paramsIn[i + 1]; /* = Size to copy for current input = */
                 std::memcpy(reinterpret_cast<char *>(out[0]) + offset, in[i], inputSize);
                 offset += inputSize;
             }

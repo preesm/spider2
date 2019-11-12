@@ -47,13 +47,21 @@
 namespace Spider {
     namespace PiSDF {
 
-        inline void fork(std::int64_t *paramsIn[], std::int64_t *[], void *in[], void *out[]) {
-            const auto &outputCount = *(paramsIn[0]);
+        inline void fork(const std::int64_t *paramsIn, std::int64_t *[], void *in[], void *out[]) {
+            const auto &inputRate = paramsIn[0];   /* = Rate of the input port (used for sanity check) = */
+            const auto &outputCount = paramsIn[1]; /* = Number of output = */
             std::int64_t offset = 0;
             for (std::int64_t i = 0; i < outputCount; ++i) {
-                const auto &outputSize = *(paramsIn[i + 1]);
+                const auto &outputSize = paramsIn[i + 2]; /* = Size of the current output to copy = */
                 std::memcpy(out[i], reinterpret_cast<char *>(in[i]) + offset, outputSize);
                 offset += outputSize;
+            }
+            if (offset != inputRate) {
+                throwSpiderException("Fork has different rates: input[%"
+                                             PRId64
+                                             "] | output[%"
+                                             PRId64
+                                             "]", inputRate, offset);
             }
         }
 

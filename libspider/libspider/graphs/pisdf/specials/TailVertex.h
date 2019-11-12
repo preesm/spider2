@@ -48,12 +48,20 @@
 namespace Spider {
     namespace PiSDF {
 
-        inline void tail(std::int64_t *paramsIn[], std::int64_t *[], void *in[], void *out[]) {
-            const auto &inputCount = *(paramsIn[0]);
-            const auto &inputStart = *(paramsIn[1]);
-            std::int64_t offset = 0;
-            for (auto i = inputStart; i < inputCount; ++i) {
-                const auto &inputSize = *(paramsIn[i + 2]);
+        inline void tail(const std::int64_t *paramsIn, std::int64_t *[], void *in[], void *out[]) {
+            const auto &inputCount = paramsIn[0];  /* = Number of input = */
+            const auto &inputStart = paramsIn[1];  /* = First input to be considered = */
+            const auto &inputOffset = paramsIn[2]; /* = Offset in the first buffer if any = */
+
+            /* == Copy the first input with the offset == */
+            std::memcpy(reinterpret_cast<char *>(out[0]),
+                        reinterpret_cast<char *>(in[inputStart]) + inputOffset,
+                        paramsIn[3]);
+
+            /* == Do the general case == */
+            std::int64_t offset = inputOffset + paramsIn[3];
+            for (auto i = inputStart + 1; i < inputCount; ++i) {
+                const auto &inputSize = paramsIn[i + 4];
                 std::memcpy(reinterpret_cast<char *>(out[0]) + offset, in[i], inputSize);
                 offset += inputSize;
             }

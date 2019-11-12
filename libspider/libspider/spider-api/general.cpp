@@ -45,6 +45,7 @@
 #include <spider-api/general.h>
 #include <spider-api/archi.h>
 #include <spider-api/pisdf.h>
+#include <spider-api/refinement.h>
 #include <archi/Platform.h>
 
 /* === Static variable(s) definition === */
@@ -87,7 +88,7 @@ void Spider::API::initStack(StackID stackId,
     }
 
     /* == Create the corresponding AllocatorConfig == */
-    auto cfg = AllocatorConfig{name, type, size, alignment, FreeListPolicy::FIND_FIRST, baseAddr};
+    auto cfg = AllocatorConfig{ name, type, size, alignment, FreeListPolicy::FIND_FIRST, baseAddr };
 
     /* == Do the actual init of the allocator == */
     Spider::initAllocator(stackId, cfg);
@@ -106,7 +107,7 @@ void Spider::API::initStack(StackID stackId,
     }
 
     /* == Create the corresponding AllocatorConfig == */
-    auto cfg = AllocatorConfig{name, type, size, alignment, policy, baseAddr};
+    auto cfg = AllocatorConfig{ name, type, size, alignment, policy, baseAddr };
 
     /* == Do the actual init of the allocator == */
     Spider::initAllocator(stackId, cfg);
@@ -114,12 +115,12 @@ void Spider::API::initStack(StackID stackId,
 
 void Spider::API::start() {
     /* == General stack initialization == */
-    auto cfg = AllocatorConfig{"general-allocator",
-                               AllocatorType::FREELIST,
-                               16392,
-                               sizeof(std::uint64_t),
-                               FreeListPolicy::FIND_FIRST,
-                               nullptr};
+    auto cfg = AllocatorConfig{ "general-allocator",
+                                AllocatorType::FREELIST,
+                                16392,
+                                sizeof(std::uint64_t),
+                                FreeListPolicy::FIND_FIRST,
+                                nullptr };
     Spider::initAllocator(StackID::GENERAL, cfg);
 
     /* == Init the Logger and enable the GENERAL Logger == */
@@ -131,11 +132,25 @@ void Spider::API::start() {
 
 void Spider::API::quit() {
     /* == Destroy the PiSDFGraph == */
+    auto *&applicationGraph = Spider::pisdfGraph();
+    if (applicationGraph) {
+        Spider::destroy(applicationGraph);
+        Spider::deallocate(applicationGraph);
+    }
 
     /* == Destroy the Platform == */
     auto *&platform = Spider::platform();
-    Spider::destroy(platform);
-    Spider::deallocate(platform);
+    if (platform) {
+        Spider::destroy(platform);
+        Spider::deallocate(platform);
+    }
+
+    /* == Destroy the refinement == */
+    auto &refinementVector = Spider::refinementsRegister();
+    for (auto &refinement : refinementVector) {
+        Spider::destroy(refinement);
+        Spider::deallocate(refinement);
+    }
 
     /* == Clear the stacks == */
     Spider::finalizeAllocators();

@@ -48,7 +48,7 @@
 namespace Spider {
     namespace PiSDF {
 
-        inline void init(std::int64_t *[], std::int64_t *[], void *[], void *[]) {
+        inline void init(const std::int64_t *, std::int64_t *[], void *[], void *[]) {
 
         }
 
