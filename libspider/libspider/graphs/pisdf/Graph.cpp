@@ -193,18 +193,19 @@ void Spider::PiSDF::Graph::addParam(Param *param) {
     }
     param->setIx(paramVector_.size());
     paramVector_.push_back(param);
-    if (param->type() != ParamType::INHERITED && param->dynamic() && !dynamic_) {
-        /* == Set dynamic property of the graph to true == */
-        dynamic_ = true;
-
-        /* == We need to propagate this property up in the hierarchy == */
-        auto *parent = containingGraph();
-        while (parent && !parent->dynamic_) {
-            /* == If graph was already dynamic then information is already propagated == */
-            parent->dynamic_ = true;
-            parent = parent->containingGraph();
-        }
-    }
+    dynamic_ |= (param->dynamic() && param->type() != ParamType::INHERITED);
+//    if (param->type() != ParamType::INHERITED && param->dynamic()) {
+//        /* == Set dynamic property of the graph to true == */
+//        dynamic_ = true;
+//
+//        /* == We need to propagate this property up in the hierarchy == */
+//        auto *parent = containingGraph();
+//        while (parent && !parent->dynamic_) {
+//            /* == If graph was already dynamic then information is already propagated == */
+//            parent->dynamic_ = true;
+//            parent = parent->containingGraph();
+//        }
+//    }
 }
 
 void Spider::PiSDF::Graph::removeParam(Param *param) {

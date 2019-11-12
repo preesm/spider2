@@ -105,7 +105,7 @@ void
 Spider::PiSDF::DOTExporter::graphPrinter(std::ofstream &file, const Graph *graph, const std::string &offset) const {
     auto fwOffset{ offset };
     if (graph->containingGraph()) {
-        file << fwOffset << "subgraph cluster {" << '\n';
+        file << fwOffset << "subgraph cluster_" << graph->name() << " {" << '\n';
         fwOffset += '\t';
         file << fwOffset << R"(label=<<font point-size="40" face="inconsolata">")" << graph->name()
              << R"("</font>>;)" << '\n';
@@ -287,7 +287,8 @@ void Spider::PiSDF::DOTExporter::edgePrinter(std::ofstream &file, const Edge *ed
 void
 Spider::PiSDF::DOTExporter::paramPrinter(std::ofstream &file, const Param *param, const std::string &offset) {
     file << offset << R"(")" << param->containingGraph()->name() + ":" + param->name()
-         << R"("[shape=house, style=filled, fillcolor="#89c4f4", width=0, height=0, label=<)" << '\n';
+         << R"("[shape=house, style=filled, fillcolor=")" << (param->dynamic() ? "#19b5fe" : "#89c4f4")
+         << R"(", margin=0, width=0, height=0, label=<)" << '\n';
     file << offset << '\t' << R"(<table border="0" fixedsize="false" cellspacing="0" cellpadding="0">)" << '\n';
     file << offset << '\t' << '\t'
          << R"(<tr> <td border="0" fixedsize="false" height="20"></td></tr>)" << '\n';
