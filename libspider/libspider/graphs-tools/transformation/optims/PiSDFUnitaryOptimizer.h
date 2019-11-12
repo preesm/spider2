@@ -66,7 +66,7 @@ bool PiSDFUnitaryOptimizer::operator()(PiSDFGraph *graph) const {
 
     const auto &params = graph->params();
     for (auto *vertex : graph->vertices()) {
-        switch (vertex->type()) {
+        switch (vertex->subtype()) {
             case PiSDFVertexType::FORK:
                 if (vertex->edgesOUTCount() == 1) {
                     auto *inputEdge = vertex->inputEdge(0);
@@ -106,9 +106,9 @@ bool PiSDFUnitaryOptimizer::operator()(PiSDFGraph *graph) const {
                     auto *outputEdge = vertex->outputEdge(0);
                     if (inputEdge->sinkRateExpression().evaluate(params) ==
                         outputEdge->sourceRateExpression().evaluate(params)) {
-                        outputEdge->setSource(inputEdge->sink(),
-                                              inputEdge->sinkPortIx(),
-                                              Expression(inputEdge->sinkRateExpression()));
+                        outputEdge->setSource(inputEdge->source(),
+                                              inputEdge->sourcePortIx(),
+                                              Expression(inputEdge->sourceRateExpression()));
                         graph->removeEdge(inputEdge);
                         verticesToOptimize.push_back(vertex);
                     }
