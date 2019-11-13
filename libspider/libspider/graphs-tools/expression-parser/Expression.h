@@ -69,7 +69,7 @@ struct ExpressionElt {
         return *this;
     }
 
-    explicit ExpressionElt(RPNElement elt) : elt_{std::move(elt)} { }
+    explicit ExpressionElt(RPNElement elt) : elt_{ std::move(elt) } { }
 };
 
 /* === Class definition === */
@@ -77,7 +77,7 @@ struct ExpressionElt {
 class Expression {
 public:
 
-    explicit Expression(std::string expression, const Spider::vector<PiSDFParam *> &params = {});
+    explicit Expression(std::string expression, const Spider::vector<PiSDFParam *> &params = { });
 
     explicit Expression(std::int64_t value);
 
@@ -112,13 +112,13 @@ public:
      * @brief Evaluate the expression and return the value and cast result in int64_.
      * @return Evaluated value of the expression.
      */
-    inline std::int64_t evaluate(const Spider::vector<PiSDFParam *> &params = {}) const;
+    inline std::int64_t evaluate(const Spider::vector<PiSDFParam *> &params = { }) const;
 
     /**
      * @brief Evaluate the expression and return the value.
      * @return Evaluated value of the expression.
      */
-    inline double evaluateDBL(const Spider::vector<PiSDFParam *> &params = {}) const;
+    inline double evaluateDBL(const Spider::vector<PiSDFParam *> &params = { }) const;
 
     /**
      * @brief Get the expression string.

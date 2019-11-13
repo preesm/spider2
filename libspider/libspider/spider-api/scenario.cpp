@@ -53,7 +53,7 @@
 /* === General Scenario related API === */
 
 Spider::Scenario &Spider::scenario() {
-    static Spider::Scenario scenario{Spider::pisdfGraph()};
+    static Spider::Scenario scenario{ Spider::pisdfGraph() };
     return scenario;
 }
 

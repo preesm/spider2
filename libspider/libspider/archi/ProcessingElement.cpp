@@ -62,14 +62,14 @@ ProcessingElement::ProcessingElement(std::uint32_t hwType,
                                      Cluster *cluster,
                                      std::string name,
                                      Spider::PEType spiderPEType,
-                                     Spider::HWType spiderHWType) : hwType_{hwType},
-                                                                    hwIx_{hwIx},
-                                                                    virtIx_{virtIx},
-                                                                    name_{std::move(name)},
-                                                                    cluster_{cluster},
-                                                                    spiderPEIx_{spiderUniqueIx()},
-                                                                    spiderPEType_{spiderPEType},
-                                                                    spiderHWType_{spiderHWType} {
+                                     Spider::HWType spiderHWType) : hwType_{ hwType },
+                                                                    hwIx_{ hwIx },
+                                                                    virtIx_{ virtIx },
+                                                                    name_{ std::move(name) },
+                                                                    cluster_{ cluster },
+                                                                    spiderPEIx_{ spiderUniqueIx() },
+                                                                    spiderPEType_{ spiderPEType },
+                                                                    spiderHWType_{ spiderHWType } {
     if (isLRT()) {
         managingLRT_ = this;
         managingLRTIx_ = cluster->platform().LRTCount();

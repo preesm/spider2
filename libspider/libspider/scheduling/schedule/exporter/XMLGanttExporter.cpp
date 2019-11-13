@@ -62,7 +62,7 @@ void Spider::XMLGanttExporter::print() const {
 }
 
 void Spider::XMLGanttExporter::print(const std::string &path) const {
-    std::ofstream file{path, std::ios::out};
+    std::ofstream file{ path, std::ios::out };
     print(file);
 
     /* == We should not do this manually but this will ensure that data are correctly written even if it crashes == */
@@ -93,7 +93,7 @@ void Spider::XMLGanttExporter::jobPrinter(std::ofstream &file, const Spider::Sch
     file << '\t' << '\t' << R"(end=")" << job.mappingInfo().endTime << R"(")" << '\n';
     file << '\t' << '\t' << R"(title=")" << vertex->name() << R"(")" << '\n';
     file << '\t' << '\t' << R"(mapping="PE)" << PEIx << R"(")" << '\n';
-    std::ios savedFormat{nullptr};
+    std::ios savedFormat{ nullptr };
     savedFormat.copyfmt(file);
     file << '\t' << '\t' << R"(color="#)";
     file << std::setfill('0') << std::setbase(16);

@@ -72,7 +72,7 @@ void Spider::BestFitScheduler::vertexMapper(const PiSDFAbstractVertex *vertex) {
     const auto *reference = dynamic_cast<const PiSDFVertex *>(vertex->reference());
     const auto &platformStats = schedule_.stats();
 
-    std::pair<std::uint32_t, std::uint32_t> bestSlave{UINT32_MAX, UINT32_MAX};
+    std::pair<std::uint32_t, std::uint32_t> bestSlave{ UINT32_MAX, UINT32_MAX };
     std::uint64_t bestStartTime = 0;
     std::uint64_t bestEndTime = UINT64_MAX;
     std::uint64_t bestScheduleCost = UINT64_MAX;

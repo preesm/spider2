@@ -50,7 +50,7 @@
 
 /* === Method(s) implementation === */
 
-Platform::Platform(std::uint32_t clusterCount) : clusterArray_{clusterCount, StackID::ARCHI} {
+Platform::Platform(std::uint32_t clusterCount) : clusterArray_{ clusterCount, StackID::ARCHI } {
 }
 
 Platform::~Platform() {

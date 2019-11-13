@@ -58,7 +58,7 @@ namespace Spider {
         public:
 
             DynamicParam(std::string name, Graph *graph, Expression &&expression) : Param(std::move(name), graph),
-                                                                                    expression_{expression} {
+                                                                                    expression_{ expression } {
 
             }
 

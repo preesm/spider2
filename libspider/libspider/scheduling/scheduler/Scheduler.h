@@ -53,7 +53,7 @@ namespace Spider {
     class Scheduler {
     public:
 
-        explicit inline Scheduler(PiSDFGraph *graph) : graph_{graph} { };
+        explicit inline Scheduler(PiSDFGraph *graph) : graph_{ graph } { };
 
         ~Scheduler() = default;
 

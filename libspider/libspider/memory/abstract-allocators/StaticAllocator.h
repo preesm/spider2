@@ -79,8 +79,8 @@ StaticAllocator::~StaticAllocator() {
 
 StaticAllocator::StaticAllocator(std::string name, std::uint64_t totalSize, std::int32_t alignment) :
         AbstractAllocator(std::move(name), alignment),
-        totalSize_{totalSize},
-        startPtr_{nullptr} {
+        totalSize_{ totalSize },
+        startPtr_{ nullptr } {
     if (!totalSize) {
         throwSpiderException("Allocator size should be >= 0.\n");
     }
@@ -91,8 +91,8 @@ StaticAllocator::StaticAllocator(std::string name, std::uint64_t totalSize, std:
 StaticAllocator::StaticAllocator(std::string name, std::uint64_t totalSize, char *externalBase,
                                  std::int32_t alignment) :
         AbstractAllocator(std::move(name), alignment),
-        totalSize_{totalSize},
-        startPtr_{nullptr} {
+        totalSize_{ totalSize },
+        startPtr_{ nullptr } {
     if (!totalSize) {
         throwSpiderException("Allocator size should be >= 0.\n");
     }

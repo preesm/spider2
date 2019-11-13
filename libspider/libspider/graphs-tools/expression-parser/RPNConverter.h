@@ -121,9 +121,9 @@ struct RPNElement {
 
     RPNElement &operator=(const RPNElement &) = default;
 
-    RPNElement(RPNElementType type, RPNElementSubType subtype, std::string token = "") : type{type},
-                                                                                         subtype{subtype},
-                                                                                         token{std::move(token)} { }
+    RPNElement(RPNElementType type, RPNElementSubType subtype, std::string token = "") : type{ type },
+                                                                                         subtype{ subtype },
+                                                                                         token{ std::move(token) } { }
 };
 
 namespace RPNConverter {

@@ -51,10 +51,10 @@
 
 /* === Method(s) implementation === */
 
-Cluster::Cluster(std::uint32_t PECount, MemoryUnit *memoryUnit) : PEArray_{PECount, StackID::ARCHI},
+Cluster::Cluster(std::uint32_t PECount, MemoryUnit *memoryUnit) : PEArray_{ PECount, StackID::ARCHI },
                                                                   PEEnabledVector_(PECount, false),
-                                                                  platform_{Spider::platform()},
-                                                                  memoryUnit_{memoryUnit} {
+                                                                  platform_{ Spider::platform() },
+                                                                  memoryUnit_{ memoryUnit } {
     /* == Add the cluster to the platform == */
     platform_->addCluster(this);
 

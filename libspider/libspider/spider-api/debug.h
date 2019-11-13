@@ -105,7 +105,8 @@ namespace Spider {
          * @param path   Path of the file.
          * @param graph  Graph to transform (default is the application graph).
          */
-        void exportGraphToDOT(const std::string &path = "./graph.dot", const PiSDF::Graph *graph = Spider::pisdfGraph());
+        void
+        exportGraphToDOT(const std::string &path = "./graph.dot", const PiSDF::Graph *graph = Spider::pisdfGraph());
 
         /**
          * @brief Enable a given logger.

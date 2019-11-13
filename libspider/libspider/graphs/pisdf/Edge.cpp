@@ -56,12 +56,12 @@ Spider::PiSDF::Edge::Edge(Vertex *source,
                           Expression &&srcExpr,
                           Vertex *sink,
                           std::uint32_t snkIx,
-                          Expression &&snkExpr) : src_{source},
-                                                  srcPortIx_{srcIx},
-                                                  srcExpression_{srcExpr},
-                                                  snk_{sink},
-                                                  snkPortIx_{snkIx},
-                                                  snkExpression_{snkExpr} {
+                          Expression &&snkExpr) : src_{ source },
+                                                  srcPortIx_{ srcIx },
+                                                  srcExpression_{ srcExpr },
+                                                  snk_{ sink },
+                                                  snkPortIx_{ snkIx },
+                                                  snkExpression_{ snkExpr } {
     if (!source || !sink) {
         throwSpiderException("nullptr vertex connected to Edge.");
     }

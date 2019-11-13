@@ -80,7 +80,7 @@ namespace Spider {
         template<class... Ts>
         explicit Exception(const char *fileName, const char *fctName, int lineNumber,
                            const char *msg, const Ts &...ts)
-                : exceptionMessage_{} {
+                : exceptionMessage_{ } {
             /* == Writes exception header == */
             int n = Spider::printer::sprintf(exceptionMessage_, EXCEPTION_BUFFER_SIZE, "%s::%s(%d): ", fileName,
                                              fctName, lineNumber);

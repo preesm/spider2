@@ -57,7 +57,7 @@ namespace Spider {
     class XMLGanttExporter final : public Exporter {
     public:
 
-        explicit XMLGanttExporter(const Schedule *schedule) : Exporter(), schedule_{schedule} { }
+        explicit XMLGanttExporter(const Schedule *schedule) : Exporter(), schedule_{ schedule } { }
 
         ~XMLGanttExporter() override = default;
 

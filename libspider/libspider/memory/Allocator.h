@@ -68,12 +68,12 @@ typedef struct AllocatorConfig {
                     std::uint64_t size,
                     std::uint64_t alignment,
                     FreeListPolicy policy,
-                    char *base) : name{std::move(name)},
-                                  allocatorType{type},
-                                  size{size},
-                                  alignment{alignment},
-                                  policy{policy},
-                                  baseAddr{base} {
+                    char *base) : name{ std::move(name) },
+                                  allocatorType{ type },
+                                  size{ size },
+                                  alignment{ alignment },
+                                  policy{ policy },
+                                  baseAddr{ base } {
 
     }
 

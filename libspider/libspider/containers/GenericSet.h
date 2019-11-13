@@ -53,11 +53,11 @@ namespace Spider {
 
         GenericSetElement() = default;
 
-        explicit GenericSetElement(T &elt) : element_{elt} { }
+        explicit GenericSetElement(T &elt) : element_{ elt } { }
 
-        explicit GenericSetElement(const T &elt) : element_{elt} { }
+        explicit GenericSetElement(const T &elt) : element_{ elt } { }
 
-        explicit GenericSetElement(T &&elt) : element_{elt} { }
+        explicit GenericSetElement(T &&elt) : element_{ elt } { }
 
         /* === Operators === */
 
@@ -104,11 +104,11 @@ namespace Spider {
 
         GenericSet() = default;
 
-        explicit GenericSet(std::uint64_t capacity, StackID stackId = StackID::GENERAL) : set_{capacity, stackId} { }
+        explicit GenericSet(std::uint64_t capacity, StackID stackId = StackID::GENERAL) : set_{ capacity, stackId } { }
 
-        GenericSet(const GenericSet &other, StackID stackId = StackID::GENERAL) : set_{other.set_, stackId} { }
+        GenericSet(const GenericSet &other, StackID stackId = StackID::GENERAL) : set_{ other.set_, stackId } { }
 
-        GenericSet(GenericSet &&other) noexcept : set_{std::move(other.set_)} { }
+        GenericSet(GenericSet &&other) noexcept : set_{ std::move(other.set_) } { }
 
         ~GenericSet() = default;
 

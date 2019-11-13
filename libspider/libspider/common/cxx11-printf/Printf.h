@@ -515,7 +515,7 @@ namespace Spider {
             template<class Context, class... Ts>
             int get_flags(Context &ctx, const char *format, const Ts &... ts) {
 
-                Flags f = {0, 0, 0, 0, 0, 0};
+                Flags f = { 0, 0, 0, 0, 0, 0 };
                 bool done = false;
 
                 // skip past the % char

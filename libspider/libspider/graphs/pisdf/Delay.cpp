@@ -61,13 +61,13 @@ Spider::PiSDF::Delay::Delay(Expression &&expression,
                             std::uint32_t getterPortIx,
                             Expression &&getterRateExpression,
                             bool persistent,
-                            StackID stack) : expression_{std::move(expression)},
-                                             edge_{edge},
-                                             setter_{setter},
-                                             setterPortIx_{setterPortIx},
-                                             getter_{getter},
-                                             getterPortIx_{getterPortIx},
-                                             persistent_{persistent} {
+                            StackID stack) : expression_{ std::move(expression) },
+                                             edge_{ edge },
+                                             setter_{ setter },
+                                             setterPortIx_{ setterPortIx },
+                                             getter_{ getter },
+                                             getterPortIx_{ getterPortIx },
+                                             persistent_{ persistent } {
     if (!edge_) {
         throwSpiderException("Delay can not be created on nullptr edge.");
     }

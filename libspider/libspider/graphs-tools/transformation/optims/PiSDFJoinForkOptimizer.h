@@ -62,9 +62,9 @@ private:
         std::int64_t rate = 0;
         std::uint32_t portIx = 0;
 
-        EdgeLinker(PiSDFVertex *vertex, std::int64_t rate, std::uint32_t portIx) : vertex{vertex},
-                                                                                   rate{rate},
-                                                                                   portIx{portIx} { };
+        EdgeLinker(PiSDFVertex *vertex, std::int64_t rate, std::uint32_t portIx) : vertex{ vertex },
+                                                                                   rate{ rate },
+                                                                                   portIx{ portIx } { };
     };
 
     inline std::uint32_t computeNJoinEdge(std::uint64_t sinkRate,
@@ -96,20 +96,20 @@ bool PiSDFJoinForkOptimizer::operator()(PiSDFGraph *graph) const {
     for (auto &pair : verticesToOptimize) {
         auto *join = pair.first;
         auto *fork = pair.second;
-        Spider::Array<EdgeLinker> sourceArray{join->edgesINCount(), StackID::TRANSFO};
-        Spider::Array<EdgeLinker> sinkArray{fork->edgesOUTCount(), StackID::TRANSFO};
+        Spider::Array<EdgeLinker> sourceArray{ join->edgesINCount(), StackID::TRANSFO };
+        Spider::Array<EdgeLinker> sinkArray{ fork->edgesOUTCount(), StackID::TRANSFO };
 
         for (auto *edge : join->inputEdgeArray()) {
-            sourceArray[edge->sinkPortIx()] = EdgeLinker{dynamic_cast<PiSDFVertex *>(edge->source()),
-                                                         edge->sourceRateExpression().evaluate(params),
-                                                         edge->sourcePortIx()};
+            sourceArray[edge->sinkPortIx()] = EdgeLinker{ dynamic_cast<PiSDFVertex *>(edge->source()),
+                                                          edge->sourceRateExpression().evaluate(params),
+                                                          edge->sourcePortIx() };
             graph->removeEdge(edge);
         }
         graph->removeEdge(join->outputEdge(0));
         for (auto *edge : fork->outputEdgeArray()) {
-            sinkArray[edge->sourcePortIx()] = EdgeLinker{dynamic_cast<PiSDFVertex *>(edge->sink()),
-                                                         edge->sinkRateExpression().evaluate(params),
-                                                         edge->sinkPortIx()};
+            sinkArray[edge->sourcePortIx()] = EdgeLinker{ dynamic_cast<PiSDFVertex *>(edge->sink()),
+                                                          edge->sinkRateExpression().evaluate(params),
+                                                          edge->sinkPortIx() };
             graph->removeEdge(edge);
         }
 

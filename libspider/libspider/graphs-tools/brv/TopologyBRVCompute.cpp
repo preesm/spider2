@@ -55,12 +55,12 @@
 
 void TopologyBRVCompute::execute() {
     /* == Array of vertex ix in the matrix == */
-    Spider::Array<std::int32_t> vertexIxArray{graph_->vertexCount(), -1, StackID::TRANSFO};
+    Spider::Array<std::int32_t> vertexIxArray{ graph_->vertexCount(), -1, StackID::TRANSFO };
 
     /* == Go through all connected components == */
     for (const auto &component : connectedComponents_) {
         /* == Extract the edges == */
-        Spider::Array<const PiSDFEdge *> edgeArray{component.nEdges, StackID::TRANSFO};
+        Spider::Array<const PiSDFEdge *> edgeArray{ component.nEdges, StackID::TRANSFO };
         BRVCompute::extractEdges(edgeArray, component);
 
         /* == Set the ix of the corresponding vertices in the topology matrix == */
@@ -83,7 +83,7 @@ void TopologyBRVCompute::execute() {
         }
 
         /* == Fill the topology matrix == */
-        Spider::Array<std::int64_t> topologyMatrix{nMatEdges * nMatVertices, 0, StackID::TRANSFO};
+        Spider::Array<std::int64_t> topologyMatrix{ nMatEdges * nMatVertices, 0, StackID::TRANSFO };
         std::uint32_t edgeRow = 0;
         for (const auto &edge : validEdgeVector) {
             auto edgeRowOffset = edgeRow * nMatVertices;
@@ -138,18 +138,18 @@ void TopologyBRVCompute::computeBRVFromNullSpace(Spider::Array<std::int64_t> &to
                                                  Spider::Array<std::int32_t> &vertexIxArray,
                                                  const BRVComponent &component) {
     /* == Copy topology matrix into the rational matrix == */
-    Spider::Array<Spider::Rational> rationalMatrix{nMatVertices * nMatEdges, StackID::TRANSFO};
+    Spider::Array<Spider::Rational> rationalMatrix{ nMatVertices * nMatEdges, StackID::TRANSFO };
     auto *rationalMatrixIterator = rationalMatrix.begin();
     for (const auto &val : topologyMatrix) {
-        (*(rationalMatrixIterator++)) = Spider::Rational{static_cast<std::int64_t>(val)};
+        (*(rationalMatrixIterator++)) = Spider::Rational{ static_cast<std::int64_t>(val) };
     }
 
     for (std::uint32_t i = 0; i < nMatEdges; ++i) {
-        auto pivotMax{rationalMatrix[i * nMatVertices + i].abs()};
+        auto pivotMax{ rationalMatrix[i * nMatVertices + i].abs() };
         std::uint32_t maxIndex = i;
 
         for (std::uint32_t t = i + 1; t < nMatEdges; ++t) {
-            auto newPivot{rationalMatrix[t * nMatVertices + i].abs()};
+            auto newPivot{ rationalMatrix[t * nMatVertices + i].abs() };
             if (newPivot > pivotMax) {
                 maxIndex = t;
                 pivotMax = newPivot;
@@ -159,8 +159,8 @@ void TopologyBRVCompute::computeBRVFromNullSpace(Spider::Array<std::int64_t> &to
         if (pivotMax && maxIndex != i) {
             /* == Switch rows == */
             for (std::uint32_t t = 0; t < nMatVertices; ++t) {
-                auto temp{rationalMatrix[maxIndex * nMatVertices + t]};
-                rationalMatrix[maxIndex * nMatVertices + t] = Spider::Rational{rationalMatrix[i * nMatVertices + t]};
+                auto temp{ rationalMatrix[maxIndex * nMatVertices + t] };
+                rationalMatrix[maxIndex * nMatVertices + t] = Spider::Rational{ rationalMatrix[i * nMatVertices + t] };
                 rationalMatrix[i * nMatVertices + t] = temp;
             }
         } else if (maxIndex == i && pivotMax) {
@@ -169,13 +169,13 @@ void TopologyBRVCompute::computeBRVFromNullSpace(Spider::Array<std::int64_t> &to
             break;
         }
 
-        auto oldPivot{rationalMatrix[i * nMatVertices + i]};
+        auto oldPivot{ rationalMatrix[i * nMatVertices + i] };
         for (std::uint32_t t = i; t < nMatVertices; ++t) {
             rationalMatrix[i * nMatVertices + t] /= oldPivot;
         }
 
         for (std::uint32_t j = i + 1; j < nMatEdges; ++j) {
-            auto oldElementJI{rationalMatrix[j * nMatVertices + i]};
+            auto oldElementJI{ rationalMatrix[j * nMatVertices + i] };
             if (oldElementJI) {
                 for (std::uint32_t k = 0; k < nMatVertices; ++k) {
                     rationalMatrix[j * nMatVertices + k] -= (oldElementJI * rationalMatrix[i * nMatVertices + k]);
@@ -185,9 +185,9 @@ void TopologyBRVCompute::computeBRVFromNullSpace(Spider::Array<std::int64_t> &to
     }
 
     /* == Scale the result == */
-    Spider::Array<Spider::Rational> rationalResult{nMatVertices, Spider::Rational{1}, StackID::TRANSFO};
+    Spider::Array<Spider::Rational> rationalResult{ nMatVertices, Spider::Rational{ 1 }, StackID::TRANSFO };
     for (std::int32_t i = nMatEdges - 1; i >= 0; i--) {
-        auto val{Spider::Rational()};
+        auto val{ Spider::Rational() };
         for (std::uint32_t k = i + 1; k < nMatVertices; ++k) {
             val += (rationalResult[k] * rationalMatrix[i * nMatVertices + k]);
         }

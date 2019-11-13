@@ -53,7 +53,7 @@ namespace Spider {
         public:
 
             InHeritedParam(std::string name, Graph *graph, Param *parent) : Param(std::move(name), graph),
-                                                                            parent_{parent} {
+                                                                            parent_{ parent } {
 
             }
 

@@ -64,7 +64,7 @@ static const std::uint32_t &taskSpace = 5;
 
 /* === Method(s) implementation === */
 
-Spider::SVGGanttExporter::SVGGanttExporter(const Schedule *schedule) : Exporter(), schedule_{schedule} {
+Spider::SVGGanttExporter::SVGGanttExporter(const Schedule *schedule) : Exporter(), schedule_{ schedule } {
     /* == Compute values needed for printing == */
     std::uint32_t minExecTime = UINT32_MAX;
     std::uint32_t maxExecTime = 0;
@@ -93,7 +93,7 @@ void Spider::SVGGanttExporter::print() const {
 }
 
 void Spider::SVGGanttExporter::print(const std::string &path) const {
-    std::ofstream file{path, std::ios::out};
+    std::ofstream file{ path, std::ios::out };
     print(file);
 
     /* == We should not do this manually but this will ensure that data are correctly written even if it crashes == */
@@ -226,7 +226,7 @@ void Spider::SVGGanttExporter::jobPrinter(std::ofstream &file, const Spider::Sch
     const auto &PE = platform->findPE(job.mappingInfo().clusterIx, job.mappingInfo().PEIx);
     const auto &x = offset + arrowStroke + border + job.mappingInfo().startTime * scaleFactor_;
     const auto &y = height_ - (offset + arrowStroke + (PE.spiderPEIx() + 1) * (taskHeight + border));
-    std::ios savedFormat{nullptr};
+    std::ios savedFormat{ nullptr };
     savedFormat.copyfmt(file);
     file << R"(
     <rect

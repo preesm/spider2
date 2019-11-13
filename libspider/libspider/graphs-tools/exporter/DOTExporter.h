@@ -58,8 +58,8 @@ namespace Spider {
             explicit DOTExporter(const Graph *graph) : DOTExporter(graph, graph->params()) { }
 
             DOTExporter(const Graph *graph, const Spider::vector<Param *> &params) : Exporter(),
-                                                                                     graph_{graph},
-                                                                                     params_{params} { }
+                                                                                     graph_{ graph },
+                                                                                     params_{ params } { }
 
             ~DOTExporter() override = default;
 
@@ -85,9 +85,9 @@ namespace Spider {
 
             void vertexPrinter(std::ofstream &file, const Vertex *vertex, const std::string &offset) const;
 
-            static void edgePrinter(std::ofstream &file, const Edge *edge, const std::string &offset) ;
+            static void edgePrinter(std::ofstream &file, const Edge *edge, const std::string &offset);
 
-            static void paramPrinter(std::ofstream &file, const Param *param, const std::string &offset) ;
+            static void paramPrinter(std::ofstream &file, const Param *param, const std::string &offset);
 
             void inputIFPrinter(std::ofstream &file,
                                 const InputInterface *interface,
@@ -119,9 +119,9 @@ namespace Spider {
                                        std::uint32_t width) const;
 
             static void dummyDataPortPrinter(std::ofstream &file,
-                                      const std::string &offset,
-                                      std::uint32_t width,
-                                      bool input) ;
+                                             const std::string &offset,
+                                             std::uint32_t width,
+                                             bool input);
         };
     }
 }

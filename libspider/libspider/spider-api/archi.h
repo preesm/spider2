@@ -61,13 +61,13 @@ namespace Spider {
 
     using CommunicationCostRoutine = std::uint64_t (*)(
             /* = Number of bytes  = */ std::uint64_t
-    );
+                                                      );
 
     using CommunicationCostRoutineC2C = std::uint64_t (*)(
             /* = Source Cluster ix  = */ std::uint32_t,
             /* = Sink Cluster ix  = */ std::uint32_t,
             /* = Number of bytes  = */ std::uint64_t
-    );
+                                                         );
 
     inline std::uint64_t defaultC2CZeroCommunicationCost(std::uint32_t, std::uint32_t, std::uint64_t) {
         return 0;

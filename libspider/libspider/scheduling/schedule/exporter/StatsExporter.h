@@ -55,7 +55,7 @@ namespace Spider {
     class StatsExporter final : public Exporter {
     public:
 
-        explicit StatsExporter(const Schedule *schedule) : Exporter(), schedule_{schedule} { }
+        explicit StatsExporter(const Schedule *schedule) : Exporter(), schedule_{ schedule } { }
 
         ~StatsExporter() override = default;
 

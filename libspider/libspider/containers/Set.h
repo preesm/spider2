@@ -69,15 +69,15 @@ namespace Spider {
 
         Set() = default;
 
-        explicit Set(std::uint64_t capacity, StackID stackId = StackID::GENERAL) : size_{capacity + 1},
-                                                                                   capacity_{capacity},
-                                                                                   occupied_{0} {
+        explicit Set(std::uint64_t capacity, StackID stackId = StackID::GENERAL) : size_{ capacity + 1 },
+                                                                                   capacity_{ capacity },
+                                                                                   occupied_{ 0 } {
             data_ = Spider::allocate<T>(stackId, size_);
         }
 
-        Set(const Set &other, StackID stackId = StackID::GENERAL) : size_{other.size_},
-                                                                    capacity_{other.capacity_},
-                                                                    occupied_{0} {
+        Set(const Set &other, StackID stackId = StackID::GENERAL) : size_{ other.size_ },
+                                                                    capacity_{ other.capacity_ },
+                                                                    occupied_{ 0 } {
             data_ = Spider::allocate<T>(stackId, other.size_);
             std::copy(other.data_, other.data_ + other.size_, data_);
         }

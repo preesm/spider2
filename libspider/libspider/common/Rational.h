@@ -134,14 +134,14 @@ namespace Spider {
         return stream;
     }
 
-    Rational::Rational(int64_t n, int64_t d) : n_{n}, d_{d} {
+    Rational::Rational(int64_t n, int64_t d) : n_{ n }, d_{ d } {
         if (d_ == 0) {
             throwSpiderException("Fraction with zero denominator not allowed.");
         }
         reduce();
     }
 
-    Rational::Rational(const Rational &r) : Rational{r.n_, r.d_} {
+    Rational::Rational(const Rational &r) : Rational{ r.n_, r.d_ } {
 
     }
 
@@ -177,35 +177,35 @@ namespace Spider {
     }
 
     Rational Rational::operator+(const Rational &b) const {
-        return Rational{*this} += b;
+        return Rational{ *this } += b;
     }
 
     Rational Rational::operator-(const Rational &b) const {
-        return Rational{*this} -= b;
+        return Rational{ *this } -= b;
     }
 
     Rational Rational::operator*(const Rational &b) const {
-        return Rational{*this} *= b;
+        return Rational{ *this } *= b;
     }
 
     Rational Rational::operator/(const Rational &b) const {
-        return Rational{*this} /= b;
+        return Rational{ *this } /= b;
     }
 
     Rational Rational::operator+(const std::int64_t &b) const {
-        return *this + Rational{b};
+        return *this + Rational{ b };
     }
 
     Rational Rational::operator-(const std::int64_t &b) const {
-        return *this - Rational{b};
+        return *this - Rational{ b };
     }
 
     Rational Rational::operator*(const std::int64_t &b) const {
-        return *this * Rational{b};
+        return *this * Rational{ b };
     }
 
     Rational Rational::operator/(const std::int64_t &b) const {
-        return *this / Rational{b};
+        return *this / Rational{ b };
     }
 
     bool Rational::operator==(const Rational &b) const {
@@ -263,7 +263,7 @@ namespace Spider {
     }
 
     Rational Rational::abs() const {
-        return Rational{Spider::Math::abs((*this).n_), Spider::Math::abs((*this).d_)};
+        return Rational{ Spider::Math::abs((*this).n_), Spider::Math::abs((*this).d_) };
     }
 
     std::int64_t Rational::denominator() const {

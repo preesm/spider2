@@ -94,7 +94,7 @@ namespace Spider {
          */
         typedef typename std::conditional<is_const_iterator, const T &, T &>::type iteratorValueType;
 
-        explicit LinkedListIterator() : itr{nullptr} {
+        explicit LinkedListIterator() : itr{ nullptr } {
 
         }
 
@@ -102,7 +102,7 @@ namespace Spider {
          * @brief Regular constructor
          * @param tmp
          */
-        explicit LinkedListIterator(iteratorPointerType tmp) : itr{tmp} {
+        explicit LinkedListIterator(iteratorPointerType tmp) : itr{ tmp } {
 
         }
 
@@ -110,7 +110,7 @@ namespace Spider {
          * @brief Copy constructor for implicit conversion from regular iterator to const_iterator
          * @param tmp
          */
-        explicit LinkedListIterator(const LinkedListIterator<T, false> &tmp) : itr{tmp.itr} {
+        explicit LinkedListIterator(const LinkedListIterator<T, false> &tmp) : itr{ tmp.itr } {
 
         }
 
@@ -313,12 +313,12 @@ namespace Spider {
 
 
     template<typename T>
-    LinkedList<T>::LinkedList(StackID stack) : stack_{stack} {
+    LinkedList<T>::LinkedList(StackID stack) : stack_{ stack } {
 
     }
 
     template<typename T>
-    LinkedList<T>::LinkedList(const LinkedList &other, StackID stack) : size_{0}, stack_{stack} {
+    LinkedList<T>::LinkedList(const LinkedList &other, StackID stack) : size_{ 0 }, stack_{ stack } {
         for (auto &val : other) {
             addCurrent(val);
         }

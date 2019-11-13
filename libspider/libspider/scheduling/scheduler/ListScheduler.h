@@ -69,8 +69,8 @@ namespace Spider {
             PiSDFAbstractVertex *vertex = nullptr;
             std::int32_t level = -1;
 
-            explicit ListVertex(PiSDFAbstractVertex *vertex, std::int32_t level = -1) : vertex{vertex},
-                                                                                        level{level} { };
+            explicit ListVertex(PiSDFAbstractVertex *vertex, std::int32_t level = -1) : vertex{ vertex },
+                                                                                        level{ level } { };
         };
 
         Spider::vector<ListVertex> sortedVertexVector_;

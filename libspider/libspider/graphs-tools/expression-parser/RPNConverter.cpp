@@ -52,7 +52,7 @@
  * @brief String containing all supported operators (should not be edited).
  */
 static const std::string &supportedBasicOperators() {
-    static std::string operators{"+-*/%^()"};
+    static std::string operators{ "+-*/%^()" };
     return operators;
 }
 
@@ -96,7 +96,7 @@ static bool missMatchParenthesis(It1 first, It2 last) {
  * @param infixExprString String to evaluate.
  */
 static void checkInfixExpression(const std::string &infixExprString) {
-    static const auto &restrictedOperators = std::string{"*/+-%^"};
+    static const auto &restrictedOperators = std::string{ "*/+-%^" };
     std::uint32_t i = 0;
     for (const auto &c: infixExprString) {
         i += 1;
@@ -144,7 +144,7 @@ static void cleanInfixExpression(std::string &infixExprString) {
     std::transform(infixExprString.begin(), infixExprString.end(), infixExprString.begin(), ::tolower);
 
     /* == Clean the inFix expression by adding '*' for #valueY -> #value * Y  == */
-    std::string tmp{std::move(infixExprString)};
+    std::string tmp{ std::move(infixExprString) };
     infixExprString = std::string();
     infixExprString.reserve(tmp.size() * 2); /*= Worst case is actually (tmp.size() - 1) = */
     std::uint32_t i = 0;
@@ -397,7 +397,7 @@ Spider::vector<RPNElement> RPNConverter::extractPostfixElements(std::string infi
 
 void RPNConverter::reorderPostfixStack(Spider::vector<RPNElement> &postfixStack) {
     Spider::vector<Spider::vector<int>> operationStackVector;
-    operationStackVector.push_back({});
+    operationStackVector.push_back({ });
     operationStackVector[0].reserve(6);
 
     /* == Fill up the operation stack once == */
@@ -408,7 +408,7 @@ void RPNConverter::reorderPostfixStack(Spider::vector<RPNElement> &postfixStack)
             if (operationStackVector.back().size() == 1) {
                 break;
             }
-            operationStackVector.push_back({});
+            operationStackVector.push_back({ });
             operationStackVector.back().reserve(6);
         }
     }
@@ -429,25 +429,25 @@ void RPNConverter::reorderPostfixStack(Spider::vector<RPNElement> &postfixStack)
 const RPNOperator &RPNConverter::getOperator(std::uint32_t ix) {
     static std::array<RPNOperator, RPNConverter::operator_count>
             operatorArray{{
-                                  {RPNOperatorType::ADD, 2, false, "+", 2},          /*! ADD operator */
-                                  {RPNOperatorType::SUB, 2, false, "-", 2},          /*! SUB operator */
-                                  {RPNOperatorType::MUL, 3, false, "*", 2},          /*! MUL operator */
-                                  {RPNOperatorType::DIV, 3, false, "/", 2},          /*! DIV operator */
-                                  {RPNOperatorType::MOD, 4, false, "%", 2},          /*! MOD operator */
-                                  {RPNOperatorType::POW, 4, true, "^", 2},           /*! POW operator */
-                                  {RPNOperatorType::LEFT_PAR, 2, false, "(", 0},     /*! LEFT_PAR operator */
-                                  {RPNOperatorType::RIGHT_PAR, 2, false, ")", 0},    /*! RIGHT_PAR operator */
-                                  {RPNOperatorType::COS, 5, false, "cos", 1},        /*! COS function */
-                                  {RPNOperatorType::SIN, 5, false, "sin", 1},        /*! SIN function */
-                                  {RPNOperatorType::TAN, 5, false, "tan", 1},        /*! TAN function */
-                                  {RPNOperatorType::EXP, 5, false, "exp", 1},        /*! EXP function */
-                                  {RPNOperatorType::LOG, 5, false, "log", 1},        /*! LOG function */
-                                  {RPNOperatorType::LOG2, 5, false, "log2", 1},      /*! LOG2 function */
-                                  {RPNOperatorType::CEIL, 5, false, "ceil", 1},      /*! CEIL function */
-                                  {RPNOperatorType::FLOOR, 5, false, "floor", 1},    /*! FLOOR function */
-                                  {RPNOperatorType::SQRT, 5, false, "sqrt", 1},      /*! SQRT function */
-                                  {RPNOperatorType::MAX, 5, false, "max", 2},        /*! MAX operator */
-                                  {RPNOperatorType::MIN, 5, false, "min", 2},        /*! MIN operator */
+                                  { RPNOperatorType::ADD, 2, false, "+", 2 },          /*! ADD operator */
+                                  { RPNOperatorType::SUB, 2, false, "-", 2 },          /*! SUB operator */
+                                  { RPNOperatorType::MUL, 3, false, "*", 2 },          /*! MUL operator */
+                                  { RPNOperatorType::DIV, 3, false, "/", 2 },          /*! DIV operator */
+                                  { RPNOperatorType::MOD, 4, false, "%", 2 },          /*! MOD operator */
+                                  { RPNOperatorType::POW, 4, true, "^", 2 },           /*! POW operator */
+                                  { RPNOperatorType::LEFT_PAR, 2, false, "(", 0 },     /*! LEFT_PAR operator */
+                                  { RPNOperatorType::RIGHT_PAR, 2, false, ")", 0 },    /*! RIGHT_PAR operator */
+                                  { RPNOperatorType::COS, 5, false, "cos", 1 },        /*! COS function */
+                                  { RPNOperatorType::SIN, 5, false, "sin", 1 },        /*! SIN function */
+                                  { RPNOperatorType::TAN, 5, false, "tan", 1 },        /*! TAN function */
+                                  { RPNOperatorType::EXP, 5, false, "exp", 1 },        /*! EXP function */
+                                  { RPNOperatorType::LOG, 5, false, "log", 1 },        /*! LOG function */
+                                  { RPNOperatorType::LOG2, 5, false, "log2", 1 },      /*! LOG2 function */
+                                  { RPNOperatorType::CEIL, 5, false, "ceil", 1 },      /*! CEIL function */
+                                  { RPNOperatorType::FLOOR, 5, false, "floor", 1 },    /*! FLOOR function */
+                                  { RPNOperatorType::SQRT, 5, false, "sqrt", 1 },      /*! SQRT function */
+                                  { RPNOperatorType::MAX, 5, false, "max", 2 },        /*! MAX operator */
+                                  { RPNOperatorType::MIN, 5, false, "min", 2 },        /*! MIN operator */
                           }};
 //    static const std::map<RPNOperatorType, RPNOperator> operatorMap = {
 //            {RPNOperatorType::ADD,       {RPNOperatorType::ADD,       2, false, "+",     2}},

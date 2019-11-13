@@ -50,7 +50,7 @@
 class SpiderRuntime {
 public:
 
-    explicit SpiderRuntime(PiSDFGraph *graph) : graph_{graph} {
+    explicit SpiderRuntime(PiSDFGraph *graph) : graph_{ graph } {
         if (!graph_) {
             throwSpiderException("nullptr graph.");
         }

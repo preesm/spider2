@@ -132,12 +132,12 @@ private:
 
 /* === Inline methods === */
 
-AbstractAllocator::AbstractAllocator(std::string name, std::int32_t alignment) : used_{0},
-                                                                                 peak_{0},
-                                                                                 averageUse_{0},
-                                                                                 numberAverage_{0},
-                                                                                 alignment_{alignment},
-                                                                                 name_{std::move(name)} {
+AbstractAllocator::AbstractAllocator(std::string name, std::int32_t alignment) : used_{ 0 },
+                                                                                 peak_{ 0 },
+                                                                                 averageUse_{ 0 },
+                                                                                 numberAverage_{ 0 },
+                                                                                 alignment_{ alignment },
+                                                                                 name_{ std::move(name) } {
 
 }
 
