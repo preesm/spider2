@@ -89,10 +89,37 @@ void Spider::API::exportGraphToDOT(const std::string &path, const PiSDFGraph *gr
     Spider::PiSDF::DOTExporter(graph).print(path);
 }
 
-void Spider::API::enableLogger(LoggerType type) {
-    Spider::Logger::enable(type);
+template<Spider::Logger::Type type>
+void Spider::API::enableLogger() {
+    Spider::Logger::enable<type>();
 }
 
-void Spider::API::disableLogger(LoggerType type) {
-    Spider::Logger::disable(type);
+template<Spider::Logger::Type type>
+void Spider::API::disableLogger() {
+    Spider::Logger::disable<type>();
+}
+
+
+/**
+ * @brief This method should never be called.
+ * The purpose of this method is to allow the compiler to know about the template values of
+ * @refitem Spider::API::enableLogger and @refitem Spider::API::disableLogger.
+ */
+void loggerTemplateResolver() {
+    Spider::API::enableLogger<LOG_LRT>();
+    Spider::API::enableLogger<LOG_TIME>();
+    Spider::API::enableLogger<LOG_GENERAL>();
+    Spider::API::enableLogger<LOG_MEMORY>();
+    Spider::API::enableLogger<LOG_SCHEDULE>();
+    Spider::API::enableLogger<LOG_TRANSFO>();
+    Spider::API::enableLogger<LOG_OPTIMS>();
+    Spider::API::enableLogger<LOG_EXPR>();
+    Spider::API::disableLogger<LOG_LRT>();
+    Spider::API::disableLogger<LOG_TIME>();
+    Spider::API::disableLogger<LOG_GENERAL>();
+    Spider::API::disableLogger<LOG_MEMORY>();
+    Spider::API::disableLogger<LOG_SCHEDULE>();
+    Spider::API::disableLogger<LOG_TRANSFO>();
+    Spider::API::disableLogger<LOG_OPTIMS>();
+    Spider::API::disableLogger<LOG_EXPR>();
 }

@@ -63,8 +63,8 @@ Spider::PiSDF::Vertex::Vertex(std::string name,
 
 
 Spider::PiSDF::Vertex::~Vertex() {
-    if (copyCount_) {
-        Spider::Logger::error(LOG_GENERAL, "Removing vertex [%s] with clones out there.", name().c_str());
+    if (copyCount_ && log_enabled()) {
+        Spider::Logger::error("Removing vertex [%s] with clones out there.", name().c_str());
     }
     this->reference_->copyCount_ -= 1;
 }

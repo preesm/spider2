@@ -98,7 +98,9 @@ static double applyOperator(StartIterator start, RPNOperatorType type) {
         case RPNOperatorType::MIN:
             return std::min((*start), (*(start + 1)));
         default:
-            Spider::Logger::error(LOG_GENERAL, "Unsupported operation.\n");
+            if (log_enabled<LOG_EXPR>()) {
+                Spider::Logger::error<LOG_EXPR>("Unsupported operation.\n");
+            }
     }
     return 0;
 }
@@ -108,9 +110,11 @@ static double applyOperator(StartIterator start, RPNOperatorType type) {
 Expression::Expression(std::string expression, const Spider::vector<PiSDFParam *> &params) {
     /* == Get the postfix expression stack == */
     auto postfixStack = RPNConverter::extractPostfixElements(std::move(expression));
-    // TODO make printVerbose call a no-op when disabled (use CMake option)
-//    Spider::Logger::printVerbose(LOG_GENERAL, "infix expression: [%s].\n", RPNConverter::infixString(postfixStack));
-//    Spider::Logger::printVerbose(LOG_GENERAL, "postfix expression: [%s].\n", RPNConverter::postfixString(postfixStack));
+    if (Spider::API::verbose() && log_enabled<LOG_EXPR>()) {
+        Spider::Logger::verbose<LOG_EXPR>("infix expression: [%s].\n", RPNConverter::infixString(postfixStack).c_str());
+        Spider::Logger::verbose<LOG_EXPR>("postfix expression: [%s].\n",
+                                          RPNConverter::postfixString(postfixStack).c_str());
+    }
 
     /* == Reorder the postfix stack elements to increase the number of static evaluation done on construction == */
     RPNConverter::reorderPostfixStack(postfixStack);

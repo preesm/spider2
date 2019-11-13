@@ -106,7 +106,7 @@ void Spider::start() {
     Spider::initAllocator(StackID::GENERAL, cfg);
 
     /* == Init the Logger and enable the GENERAL Logger == */
-    Logger::enable(LoggerType::LOG_GENERAL);
+    Logger::enable<LOG_GENERAL>();
 
     /* == Enable the config flag == */
     startFlag() = true;

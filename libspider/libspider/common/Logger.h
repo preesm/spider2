@@ -50,7 +50,6 @@
 
 /* === Define(s) === */
 
-#define N_LOGGER 7
 #define LOG_RED "\x1B[31m"
 #define LOG_GRN "\x1B[32m"
 #define LOG_YEL "\x1B[33m"
@@ -80,47 +79,31 @@ namespace Spider {
             outputStream() = stream;
         }
 
-        inline bool &logger(std::uint8_t ix) {
-            static bool loggers[N_LOGGER] = { false };
-            return loggers[ix];
+        template<Logger::Type type>
+        inline constexpr Logger::Log &logger() {
+            return loggers().at(static_cast<std::uint8_t >(type));
         }
 
-        inline void enable(LoggerType type) {
-            if (type >= N_LOGGER || type < 0) {
-                throwSpiderException("Invalid logger type: %d", type);
-            }
+        template<Logger::Type type>
+        inline void enable() {
             std::lock_guard<std::mutex> locker(mutex());
-            logger(type) = true;
+            logger<type>().enabled_ = true;
         }
 
-        inline void disable(LoggerType type) {
-            if (type >= N_LOGGER || type < 0) {
-                throwSpiderException("Invalid logger type: %d", type);
-            }
+        template<Logger::Type type>
+        inline void disable() {
             std::lock_guard<std::mutex> locker(mutex());
-            logger(type) = false;
+            logger<type>().enabled_ = false;
         }
 
-        template<class... Ts>
-        inline void print(LoggerType type,
-                          const char *colorCode,
+        template<Logger::Type type = Logger::Type::GENERAL, class... Ts>
+        inline void print(const char *colorCode,
                           const char *level,
                           const char *fmt, const Ts &... ts) {
-            constexpr const char *loggersLiteral[N_LOGGER] = {
-                    "LRT",
-                    "TIME",
-                    "GENERAL",
-                    "SCHEDULE",
-                    "MEMORY",
-                    "TRANSFO",
-                    "OPTIMS",
-            };
-            if (logger(type)) {
-                std::lock_guard<std::mutex> locker(mutex());
-                Spider::printer::fprintf(outputStream(), "%s[%s:%s]:", colorCode, loggersLiteral[type], level);
-                Spider::printer::fprintf(outputStream(), fmt, ts...);
-                Spider::printer::fprintf(outputStream(), LOG_NRM);
-            }
+            std::lock_guard<std::mutex> locker(mutex());
+            Spider::printer::fprintf(outputStream(), "%s[%s:%s]:", colorCode, logger<type>().litteral_, level);
+            Spider::printer::fprintf(outputStream(), fmt, ts...);
+            Spider::printer::fprintf(outputStream(), LOG_NRM);
         }
 
         /**
@@ -130,9 +113,9 @@ namespace Spider {
          * @param fmt    Formatted string to print.
          * @param ts     Arguments to be printed.
          */
-        template<class... Args>
-        inline void info(LoggerType type, const char *fmt, const Args &...ts) {
-            print(type, LOG_NRM, "INFO", fmt, ts...);
+        template<Logger::Type type = Logger::Type::GENERAL, class... Args>
+        inline void info(const char *fmt, const Args &...ts) {
+            print<type>(LOG_NRM, "INFO", fmt, ts...);
         }
 
         /**
@@ -142,9 +125,9 @@ namespace Spider {
          * @param fmt    Formatted string to print.
          * @param ts     Arguments to be printed.
          */
-        template<class... Args>
-        inline void warning(LoggerType type, const char *fmt, const Args &...ts) {
-            print(type, LOG_YEL, "WARN", fmt, ts...);
+        template<Logger::Type type = Logger::Type::GENERAL, class... Args>
+        inline void warning(const char *fmt, const Args &...ts) {
+            print<type>(LOG_YEL, "WARN", fmt, ts...);
         }
 
         /**
@@ -154,9 +137,9 @@ namespace Spider {
          * @param fmt    Formatted string to print.
          * @param ts     Arguments to be printed.
          */
-        template<class... Args>
-        inline void error(LoggerType type, const char *fmt, const Args &...ts) {
-            print(type, LOG_RED, "ERR ", fmt, ts...);
+        template<Logger::Type type = Logger::Type::GENERAL, class... Args>
+        inline void error(const char *fmt, const Args &...ts) {
+            print<type>(LOG_RED, "ERR ", fmt, ts...);
         }
 
         /**
@@ -166,13 +149,25 @@ namespace Spider {
          * @param fmt    Formatted string to print.
          * @param ts     Arguments to be printed.
          */
-        template<class... Args>
-        inline void verbose(LoggerType type, const char *fmt, const Args &...ts) {
-            print(type, LOG_GRN, "VERB", fmt, ts...);
+        template<Logger::Type type = Logger::Type::GENERAL, class... Args>
+        inline void verbose(const char *fmt, const Args &...ts) {
+            print<type>(LOG_GRN, "VERB", fmt, ts...);
         }
     }
 }
 
-#define log_enabled(type) (Spider::Logger::logger(type))
+constexpr auto LOG_LRT = Spider::Logger::Type::LRT;
+constexpr auto LOG_TIME = Spider::Logger::Type::TIME;
+constexpr auto LOG_GENERAL = Spider::Logger::Type::GENERAL;
+constexpr auto LOG_MEMORY = Spider::Logger::Type::MEMORY;
+constexpr auto LOG_SCHEDULE = Spider::Logger::Type::SCHEDULE;
+constexpr auto LOG_TRANSFO = Spider::Logger::Type::TRANSFO;
+constexpr auto LOG_OPTIMS = Spider::Logger::Type::OPTIMS;
+constexpr auto LOG_EXPR = Spider::Logger::Type::EXPR;
+
+template<Spider::Logger::Type type = Spider::Logger::Type::GENERAL>
+inline constexpr bool log_enabled() {
+    return Spider::Logger::logger<type>().enabled_;
+}
 
 #endif // SPIDER2_LOGGER_H

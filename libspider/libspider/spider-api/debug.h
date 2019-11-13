@@ -45,24 +45,12 @@
 #include <string>
 #include <spider-api/pisdf.h>
 
-/* === Enumeration(s) === */
-
-typedef enum {
-    LOG_LRT = 0,        /*! LRT logger. When enabled, this will print LRT logged information. */
-    LOG_TIME = 1,       /*! TIME logger. When enabled this will print time logged information */
-    LOG_GENERAL = 2,    /*! GENERAL purpose logger, used for information about almost everything */
-    LOG_SCHEDULE = 3,   /*! SCHEDULE logger. When enabled, this will print Schedule logged information. */
-    LOG_MEMORY = 4,     /*! MEMORY logger. When enabled, this will print Memory logged information. */
-    LOG_TRANSFO = 5,    /*! TRANSFO logger. When enabled, this will print transformation logged information. */
-    LOG_OPTIMS = 6,     /*! OPTIMS logger. When enabled, this will print transformation logged information. */
-} LoggerType;
-
 namespace Spider {
 
     /* === Enumeration(s) === */
 
     namespace Logger {
-        enum class Type {
+        enum class Type : std::uint8_t {
             LRT,        /*! LRT logger. When enabled, this will print LRT logged information. */
             TIME,       /*! TIME logger. When enabled this will print time logged information */
             GENERAL,    /*! GENERAL purpose logger, used for information about almost everything */
@@ -70,7 +58,28 @@ namespace Spider {
             MEMORY,     /*! MEMORY logger. When enabled, this will print Memory logged information. */
             TRANSFO,    /*! TRANSFO logger. When enabled, this will print transformation logged information. */
             OPTIMS,     /*! OPTIMS logger. When enabled, this will print transformation logged information. */
+            EXPR,       /*! EXPRESSION logger. When enabled, this will print expression-parser logged information. */
         };
+
+        class Log {
+        public:
+            const char *litteral_;
+            bool enabled_;
+        };
+
+        constexpr auto loggerCount = static_cast<std::uint8_t >(Type::EXPR) + 1;
+
+        inline std::array<Log, loggerCount> &loggers() {
+            static std::array<Log, loggerCount> loggerArray = {{{ "LRT", false },
+                                                                       { "TIME", false },
+                                                                       { "GENERAL", false },
+                                                                       { "SCHEDULE", false },
+                                                                       { "MEMORY", false },
+                                                                       { "TRANSFO", false },
+                                                                       { "OPTIMS", false },
+                                                                       { "EXPR", false }}};
+            return loggerArray;
+        }
     }
 
     namespace API {
@@ -112,13 +121,15 @@ namespace Spider {
          * @brief Enable a given logger.
          * @param type @refitem LoggerType to enable.
          */
-        void enableLogger(LoggerType type);
+        template<Logger::Type type>
+        void enableLogger();
 
         /**
          * @brief Disable a given logger.
          * @param type @refitem LoggerType to disable.
          */
-        void disableLogger(LoggerType type);
+        template<Spider::Logger::Type type>
+        void disableLogger();
     }
 }
 

@@ -118,8 +118,10 @@ bool PiSDFJoinJoinOptimizer::operator()(PiSDFGraph *graph) const {
         }
 
         /* == Remove the vertices == */
-        Spider::Logger::verbose(LOG_OPTIMS, "JoinJoinOptimizer: removing [%s] and [%s] join vertices.\n",
-                                vertex->name().c_str(), sink->name().c_str());
+        if (Spider::API::verbose() && log_enabled<LOG_OPTIMS>()) {
+            Spider::Logger::verbose<LOG_OPTIMS>("JoinJoinOptimizer: removing [%s] and [%s] join vertices.\n",
+                                                vertex->name().c_str(), sink->name().c_str());
+        }
         graph->removeVertex(vertex);
         graph->removeVertex(sink);
     }

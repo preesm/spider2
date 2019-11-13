@@ -198,12 +198,11 @@ std::uint64_t BRVCompute::updateBRVFromCFGActor(const PiSDFEdge *edge, std::uint
 }
 
 void BRVCompute::print() const {
-    using namespace Spider;
-    if (API::verbose()) {
-        Logger::verbose(LOG_TRANSFO, "BRV values for graph [%s]\n", graph_->name().c_str());
+    if (Spider::API::verbose() && log_enabled<LOG_TRANSFO>()) {
+        Spider::Logger::verbose<LOG_TRANSFO>("BRV values for graph [%s]\n", graph_->name().c_str());
         for (const auto &vertex : graph_->vertices()) {
-            Logger::verbose(LOG_TRANSFO, ">> Vertex: %-20s --> RV[%" PRIu32"]\n", vertex->name().c_str(),
-                            vertex->repetitionValue());
+            Spider::Logger::verbose<LOG_TRANSFO>(">> Vertex: %-20s --> RV[%" PRIu32"]\n", vertex->name().c_str(),
+                                                 vertex->repetitionValue());
         }
     }
 }

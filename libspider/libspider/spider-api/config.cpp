@@ -84,11 +84,11 @@ void Spider::API::disableVerbose() {
 }
 
 void Spider::API::enableJobLogs() {
-    Logger::enable(LoggerType::LOG_LRT);
+    Logger::enable<LOG_LRT>();
 }
 
 void Spider::API::disableJobLogs() {
-    Logger::disable(LoggerType::LOG_LRT);
+    Logger::disable<LOG_LRT>();
 }
 
 void Spider::API::enableStaticScheduleOptim() {

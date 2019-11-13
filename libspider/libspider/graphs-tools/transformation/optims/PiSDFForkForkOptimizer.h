@@ -119,8 +119,10 @@ bool PiSDFForkForkOptimizer::operator()(PiSDFGraph *graph) const {
         }
 
         /* == Remove the vertices == */
-        Spider::Logger::verbose(LOG_OPTIMS, "ForkForkOptimizer: removing [%s] and [%s] fork vertices.\n",
-                                vertex->name().c_str(), source->name().c_str());
+        if (Spider::API::verbose() && log_enabled<LOG_OPTIMS>()) {
+            Spider::Logger::verbose<LOG_OPTIMS>("ForkForkOptimizer: removing [%s] and [%s] fork vertices.\n",
+                                                vertex->name().c_str(), source->name().c_str());
+        }
         graph->removeVertex(vertex);
         graph->removeVertex(source);
     }

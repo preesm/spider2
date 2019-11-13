@@ -423,8 +423,8 @@ PiSDFDelay *Spider::API::createDelay(PiSDFEdge *edge,
                                      const std::string &getterRateExpression,
                                      bool persistent,
                                      StackID stack) {
-    if (delayExpression == "0") {
-        Spider::Logger::warning(LOG_GENERAL, "delay with null value on edge [%s] ignored.\n",
+    if (delayExpression == "0" && log_enabled()) {
+        Spider::Logger::warning("delay with null value on edge [%s] ignored.\n",
                                 edge->name().c_str());
         return nullptr;
     }
@@ -453,8 +453,8 @@ PiSDFDelay *Spider::API::createDelay(PiSDFEdge *edge,
                                      std::int64_t getterRate,
                                      bool persistent,
                                      StackID stack) {
-    if (!value) {
-        Spider::Logger::warning(LOG_GENERAL, "delay with null value on edge [%s] ignored.\n",
+    if (!value && log_enabled()) {
+        Spider::Logger::warning("delay with null value on edge [%s] ignored.\n",
                                 edge->name().c_str());
         return nullptr;
     }
