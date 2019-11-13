@@ -95,7 +95,6 @@ namespace Spider {
             /* == Do the swapping of the values == */
             swap(first.array_, second.array_);
             swap(first.size_, second.size_);
-            swap(first.arraySize_, second.arraySize_);
         }
 
         /**

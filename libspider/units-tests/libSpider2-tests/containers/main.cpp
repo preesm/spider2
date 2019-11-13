@@ -36,7 +36,6 @@
 
 #include "sources/ArrayTest.h"
 #include "sources/LinkedListTest.h"
-#include "sources/SetTest.h"
 #include <gtest/gtest.h>
 
 int main(int argc, char **argv) {

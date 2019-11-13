@@ -44,7 +44,6 @@
 
 #include <containers/StlContainers.h>
 #include <containers/Array.h>
-#include <containers/Set.h>
 #include <graphs/pisdf/Types.h>
 
 /* === Struct definition === */

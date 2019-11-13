@@ -79,22 +79,22 @@ namespace Spider {
 
     /* === Iterator definition === */
 
-    template<typename T, bool is_const_iterator = true>
+    template<typename T, bool is_const>
     class LinkedListIterator final : public std::iterator<std::forward_iterator_tag, T> {
     public:
         /**
          * For const_iterator:   define DataStructurePointerType to be a   const NodeList<T> *
          * For regular iterator: define DataStructurePointerType to be a   NodeList<T> *
          */
-        typedef typename std::conditional<is_const_iterator, const NodeList<T> *, NodeList<T> *>::type iteratorPointerType;
+        typedef typename std::conditional<is_const, const NodeList<T> *, NodeList<T> *>::type pointer_type;
 
         /**
          * For const_iterator:   define ValueReferenceType to be a   const ValueType&
          * For regular iterator: define ValueReferenceType to be a   ValueType&
          */
-        typedef typename std::conditional<is_const_iterator, const T &, T &>::type iteratorValueType;
+        typedef typename std::conditional<is_const, const T &, T &>::type iteratorValueType;
 
-        explicit LinkedListIterator() : itr{ nullptr } {
+        LinkedListIterator() : itr{ nullptr } {
 
         }
 
@@ -102,7 +102,7 @@ namespace Spider {
          * @brief Regular constructor
          * @param tmp
          */
-        explicit LinkedListIterator(iteratorPointerType tmp) : itr{ tmp } {
+        LinkedListIterator(pointer_type tmp) : itr{ tmp } {
 
         }
 
@@ -110,7 +110,7 @@ namespace Spider {
          * @brief Copy constructor for implicit conversion from regular iterator to const_iterator
          * @param tmp
          */
-        explicit LinkedListIterator(const LinkedListIterator<T, false> &tmp) : itr{ tmp.itr } {
+        LinkedListIterator(const LinkedListIterator<T, false> &tmp) : itr{ tmp.itr } {
 
         }
 
@@ -133,7 +133,7 @@ namespace Spider {
         }
 
         /* == Post-increment == */
-        inline LinkedListIterator<T, is_const_iterator> operator++(int) {
+        inline LinkedListIterator<T, is_const> operator++(int) {
             assert(itr != nullptr && "Out-of-bounds iterator increment!");
             auto tmp = LinkedListIterator(*this);
             itr = itr->next;
@@ -151,7 +151,7 @@ namespace Spider {
         friend class LinkedListIterator<T, true>;
 
     private:
-        iteratorPointerType itr;
+        pointer_type itr;
     };
 
     /* === Class definition === */
@@ -162,7 +162,7 @@ namespace Spider {
     public:
         LinkedList() = default;
 
-        explicit inline LinkedList(StackID stack = StackID::GENERAL);
+        explicit inline LinkedList(StackID stack);
 
         LinkedList(const LinkedList &other, StackID stack = StackID::GENERAL);
 
@@ -353,7 +353,7 @@ namespace Spider {
             current = current->next;
             i++;
         }
-        return static_cast<T &>(current);
+        return current->value;
     }
 
     template<class T>

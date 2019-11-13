@@ -138,9 +138,9 @@ TEST(LinkedListTest, TestRandomAccessOperator) {
     EXPECT_NO_THROW(testList.addHead(3.14159265358));
     EXPECT_NO_THROW(testList.addCurrent(2.71));
     EXPECT_NO_THROW(testList[2]);
-    EXPECT_THROW(testList[3], SpiderException);
-    EXPECT_EQ(testList[2]->value, 2.71);
-    EXPECT_EQ(testList[1]->value, 10.2);
+    EXPECT_THROW(testList[3], Spider::Exception);
+    EXPECT_EQ(testList[2], 2.71);
+    EXPECT_EQ(testList[1], 10.2);
     EXPECT_EQ(testList.current()->value, 2.71);
     EXPECT_NO_THROW(testList.~LinkedList());
     Spider::finalizeAllocators();
