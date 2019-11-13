@@ -353,6 +353,10 @@ namespace Spider {
                 throwSpiderException("Delay [%s] has repetition vector value of %"
                                              PRIu32
                                              " instead of 1.", name().c_str(), rv);
+            } else if (type_ == VertexType::CONFIG && rv > 1) {
+                throwSpiderException("Configure actor [%s] has repetition vector value of %"
+                                             PRIu32
+                                             " instead of 1.", name().c_str(), rv);
             }
             repetitionValue_ = rv;
         }
