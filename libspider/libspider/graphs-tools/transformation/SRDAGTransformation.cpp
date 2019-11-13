@@ -57,6 +57,13 @@
 
 /* === Static function(s) === */
 
+static std::string
+buildCloneName(const PiSDFAbstractVertex *vertex, std::uint32_t instance, Spider::SRDAG::JobLinker &linker) {
+    const auto *graphRef = linker.job_.instanceValue_ == UINT32_MAX ? linker.job_.reference_ :
+                           linker.srdag_->vertex(linker.job_.srdagIx_);
+    return graphRef->name() + "-" + vertex->name() + "_" + std::to_string(instance);
+}
+
 static void cloneParams(Spider::SRDAG::Job &job, const PiSDFGraph *graph, const Spider::SRDAG::Job &parentJob) {
     for (const auto &param : graph->params()) {
         if (param->type() == Spider::PiSDF::ParamType::INHERITED) {
@@ -80,41 +87,65 @@ static inline std::uint32_t cloneVertex(const PiSDFAbstractVertex *vertex, Spide
     std::uint32_t ix = 0;
     for (std::uint32_t it = 0; it < vertex->repetitionValue(); ++it) {
         auto *clone = vertex->clone(StackID::TRANSFO, linker.srdag_);
-        clone->setName(clone->name() + "_" + std::to_string(it));
+        clone->setName(buildCloneName(vertex, it, linker));
         ix = clone->ix();
     }
     return ix - (vertex->repetitionValue() - 1);
 }
 
-static inline std::uint32_t cloneGraph(const PiSDFAbstractVertex *vertex, Spider::SRDAG::JobLinker &linker) {
+static inline std::uint32_t cloneGraph(const PiSDFGraph *graph, Spider::SRDAG::JobLinker &linker) {
     std::uint32_t ix = 0;
+    /* == Split the graph == */
 
     /* == Clone the vertex == */
-    for (std::uint32_t it = 0; it < vertex->repetitionValue(); ++it) {
+    for (std::uint32_t it = 0; it < graph->repetitionValue(); ++it) {
         const auto *clone = Spider::API::createVertex(linker.srdag_,
-                                                      vertex->name() + "_" + std::to_string(it),
-                                                      vertex->edgesINCount(),
-                                                      vertex->edgesOUTCount(),
+                                                      buildCloneName(graph, it, linker),
+                                                      graph->edgesINCount(),
+                                                      graph->edgesOUTCount(),
                                                       StackID::TRANSFO);
         ix = clone->ix();
     }
-    ix = ix - (vertex->repetitionValue() - 1);
+    ix = ix - (graph->repetitionValue() - 1);
 
     /* == Push the jobs == */
-    const auto *graph = dynamic_cast<const PiSDFGraph *>(vertex);
-    if (!graph->dynamic()) {
-        for (auto srdagIx = ix; srdagIx < ix + vertex->repetitionValue(); ++srdagIx) {
-            linker.nextJobs_.emplace_back(graph, linker.srdag_->vertex(srdagIx)->ix(), srdagIx - ix);
+    const auto &runGraphSubIx = linker.dynamic2init_[graph->subIx()];
+    if (runGraphSubIx != UINT32_MAX) {
+        auto *runGraph = graph->containingGraph()->subgraphs()[runGraphSubIx];
 
-            /* == Copy the params == */
-            cloneParams(linker.nextJobs_.back(), graph, linker.job_);
+        /* == Find the first job corresponding to the init graph == */
+        auto it = linker.dynaJobs_.begin();
+        while ((it != linker.dynaJobs_.end()) && ((*it).reference_ != runGraph)) { it++; }
+        if (it == linker.dynaJobs_.end()) {
+            const auto &offset = linker.dynaJobs_.size();
+            /* == Seems like run counter part of the graph has not been cloned yet == */
+            cloneGraph(runGraph, linker);
+            it = linker.dynaJobs_.begin() + offset;
+            if (it == linker.dynaJobs_.end()) {
+                throwSpiderException("Init graph [%s] did not find run counter part [%s].",
+                                     graph->name().c_str(),
+                                     runGraph->name().c_str());
+            }
+        }
+
+        /* == Push the jobs == */
+        for (auto srdagIx = ix; srdagIx < ix + graph->repetitionValue(); ++srdagIx) {
+            linker.nextJobs_.emplace_back(graph, linker.srdag_->vertex(srdagIx)->ix(), srdagIx - ix);
+            linker.nextJobs_.back().params_.reserve(runGraph->paramCount());
+
+            /* == Copy the params pointer == */
+            for (auto &param : (*it).params_) {
+                linker.nextJobs_.back().params_.emplace_back(param);
+            }
+            it++;
         }
     } else {
-        for (auto srdagIx = ix; srdagIx < ix + vertex->repetitionValue(); ++srdagIx) {
-            linker.dynaJobs_.emplace_back(graph, linker.srdag_->vertex(srdagIx)->ix(), srdagIx - ix);
+        auto &jobStack = graph->dynamic() ? linker.dynaJobs_ : linker.nextJobs_;
+        for (auto srdagIx = ix; srdagIx < ix + graph->repetitionValue(); ++srdagIx) {
+            jobStack.emplace_back(graph, linker.srdag_->vertex(srdagIx)->ix(), srdagIx - ix);
 
             /* == Copy the params == */
-            cloneParams(linker.dynaJobs_.back(), graph, linker.job_);
+            cloneParams(jobStack.back(), graph, linker.job_);
         }
     }
     return ix;
@@ -136,7 +167,7 @@ static PiSDFAbstractVertex *fetchOrClone(const PiSDFAbstractVertex *vertex, Spid
     if (linker.tracker_[vertexUniformIx] == UINT32_MAX) {
         if (vertex->subtype() == PiSDFVertexType::GRAPH) {
             /* == Clone the graph N times and create the different jobs == */
-            linker.tracker_[vertexUniformIx] = cloneGraph(vertex, linker);
+            linker.tracker_[vertexUniformIx] = cloneGraph(dynamic_cast<const PiSDFGraph *>(vertex), linker);
         } else {
             /* == Clone the vertex N times and return the first one == */
             linker.tracker_[vertexUniformIx] = cloneVertex(vertex, linker);
@@ -359,9 +390,9 @@ static void replaceJobInterfaces(Spider::SRDAG::JobLinker &linker) {
 
 /* === Methods implementation === */
 
-bool Spider::SRDAG::splitDynamicGraph(PiSDFGraph *subgraph) {
+std::pair<PiSDFGraph *, PiSDFGraph *> Spider::SRDAG::splitDynamicGraph(PiSDFGraph *subgraph) {
     if (!subgraph->dynamic()) {
-        return false;
+        return std::make_pair(nullptr, nullptr);
     }
 
     /* == Compute the input interface count for both graphs == */
@@ -388,8 +419,8 @@ bool Spider::SRDAG::splitDynamicGraph(PiSDFGraph *subgraph) {
     /* == Create the init subgraph == */
     auto *initGraph = Spider::API::createSubraph(subgraph->containingGraph(),
                                                  "ginit-" + subgraph->name(),
-                                                 0,
-                                                 0,
+                                                 subgraph->configVertexCount(),
+                                                 initInputIFCount + initOutputIFCount + cfgInputIFCount,
                                                  0,
                                                  initInputIFCount,
                                                  initOutputIFCount + cfgInputIFCount,
@@ -493,7 +524,7 @@ bool Spider::SRDAG::splitDynamicGraph(PiSDFGraph *subgraph) {
         }
     }
 
-    /* == Move the params == */
+    /* == Move the params to the run graph (init job will use the one of the dyna) == */
     for (auto &param : subgraph->params()) {
         subgraph->moveParam(param, runGraph);
     }
@@ -510,7 +541,8 @@ bool Spider::SRDAG::splitDynamicGraph(PiSDFGraph *subgraph) {
 
     /* == Destroy the subgraph == */
     subgraph->containingGraph()->removeSubgraph(subgraph);
-    return true;
+
+    return std::make_pair(initGraph, runGraph);
 }
 
 std::pair<Spider::SRDAG::JobStack, Spider::SRDAG::JobStack>
@@ -520,6 +552,23 @@ Spider::SRDAG::staticSingleRateTransformation(const Spider::SRDAG::Job &job, PiS
     }
     if (!job.reference_) {
         throwSpiderException("nullptr for job.reference graph.");
+    }
+
+    /* == Split subgraphs if needed == */
+    TransfoTracker init2dynamic_;
+    const auto &subgraphCount = job.reference_->subgraphCount();
+    init2dynamic_.resize(subgraphCount, UINT32_MAX);
+    auto it = job.reference_->subgraphs().begin();
+    std::uint64_t i = 0;
+    while (i < subgraphCount) {
+        auto &subgraph = (*it);
+        auto &&result = splitDynamicGraph(subgraph);
+        if (result.first) {
+            init2dynamic_[result.first->subIx()] = result.second->subIx();
+        } else {
+            it++;
+        }
+        i++;
     }
 
     /* == Compute the repetition values of the graph (if dynamic and/or first instance) == */
@@ -537,7 +586,7 @@ Spider::SRDAG::staticSingleRateTransformation(const Spider::SRDAG::Job &job, PiS
     }
     JobStack nextJobs;
     JobStack dynaJobs;
-    auto linker = JobLinker{ nullptr, srdag, job, nextJobs, dynaJobs, vertexTransfoTracker };
+    auto &&linker = JobLinker{ job, nullptr, srdag, nextJobs, dynaJobs, vertexTransfoTracker, init2dynamic_ };
 
     /* == Replace the interfaces of the graph and remove the vertex == */
     replaceJobInterfaces(linker);

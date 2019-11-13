@@ -107,20 +107,29 @@ namespace Spider {
         };
 
         struct JobLinker {
+            const Job &job_;
             const PiSDFEdge *edge_ = nullptr;
             PiSDFGraph *srdag_ = nullptr;
-            const Job &job_;
             JobStack &nextJobs_;
             JobStack &dynaJobs_;
             TransfoTracker &tracker_;
+            TransfoTracker &dynamic2init_;
 
             JobLinker() = delete;
 
-            JobLinker(const PiSDFEdge *edge, PiSDFGraph *graph,
-                      const Job &job, JobStack &nextJobs, JobStack &dynaJobs,
-                      TransfoTracker &tracker) : edge_{ edge }, srdag_{ graph },
-                                                 job_{ job }, nextJobs_{ nextJobs }, dynaJobs_{ dynaJobs },
-                                                 tracker_{ tracker } { }
+            JobLinker(const Job &job,
+                      const PiSDFEdge *edge,
+                      PiSDFGraph *graph,
+                      JobStack &nextJobs,
+                      JobStack &dynaJobs,
+                      TransfoTracker &tracker,
+                      TransfoTracker &init2dynamic) : job_{ job },
+                                                      edge_{ edge },
+                                                      srdag_{ graph },
+                                                      nextJobs_{ nextJobs },
+                                                      dynaJobs_{ dynaJobs },
+                                                      tracker_{ tracker },
+                                                      dynamic2init_{ init2dynamic } { }
         };
 
         /* === Functions prototype === */
@@ -131,7 +140,7 @@ namespace Spider {
          * @param subgraph  Subgraph to split (if static nothing happen).
          * @return true if subgraph was split, false else.
          */
-        bool splitDynamicGraph(PiSDFGraph *subgraph);
+        std::pair<PiSDFGraph *, PiSDFGraph *> splitDynamicGraph(PiSDFGraph *subgraph);
 
         /**
          * @brief Perform static single rate transformation for a given input job.
