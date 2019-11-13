@@ -54,7 +54,6 @@
 bool JITMSRuntime::execute() const {
     // TODO: put root graph into a top graph
     auto *graph = Spider::pisdfGraph();
-    Spider::SRDAG::splitDynamicGraph(graph->subgraphs()[0]);
 
     /* == Create the Single-Rate graph == */
     auto *srdag = Spider::API::createGraph("srdag-" + graph->name(),
@@ -150,8 +149,7 @@ bool JITMSRuntime::execute() const {
     // TODO: add schedule
     // TODO: run graph
 
-    Spider::PiSDF::DOTExporter(srdag).print("/tmp/srdag.dot");
-//    Spider::PiSDF::DOTExporter(srdag).print("/tmp/srdag-optims.dot");
+    Spider::PiSDF::DOTExporter(srdag).print("./srdag.dot");
 
     /* == Destroy the sr-dag == */
     Spider::destroy(srdag);
