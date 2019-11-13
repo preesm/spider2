@@ -106,7 +106,7 @@ namespace Spider {
         Vertex *JoinVertex::clone(StackID stack, Graph *graph) const {
             graph = graph ? graph : this->graph_;
             auto *result = Spider::API::createJoin(graph,
-                                                   "cpy-" + graph->name() + "-" + this->name_,
+                                                   this->name_,
                                                    this->edgesINCount(),
                                                    stack);
             result->reference_ = this;

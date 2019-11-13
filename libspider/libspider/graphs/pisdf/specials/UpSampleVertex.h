@@ -104,7 +104,7 @@ namespace Spider {
         Vertex *UpSampleVertex::clone(StackID stack, Graph *graph) const {
             graph = graph ? graph : this->graph_;
             auto *result = Spider::API::createUpsample(graph,
-                                                       "cpy-" + graph->name() + "-" + this->name_,
+                                                       this->name_,
                                                        stack);
             result->reference_ = this;
             this->copyCount_ += 1;

@@ -98,7 +98,7 @@ namespace Spider {
         Vertex *HeadVertex::clone(StackID stack, Graph *graph) const {
             graph = graph ? graph : this->graph_;
             auto *result = Spider::API::createHead(graph,
-                                                   "cpy-" + graph->name() + "-" + this->name_,
+                                                   this->name_,
                                                    this->edgesINCount(),
                                                    stack);
             result->reference_ = this;

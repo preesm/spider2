@@ -276,6 +276,8 @@ namespace Spider {
              */
             inline OutputInterface *outputInterface(std::uint32_t ix) const;
 
+            inline std::uint32_t subIx() const;
+
             /* === Setter(s) === */
 
         private:
@@ -390,6 +392,10 @@ namespace Spider {
 
         OutputInterface *Graph::outputInterface(std::uint32_t ix) const {
             return outputInterfaceArray_[ix];
+        }
+
+        std::uint32_t Graph::subIx() const {
+            return subIx_;
         }
     }
 }

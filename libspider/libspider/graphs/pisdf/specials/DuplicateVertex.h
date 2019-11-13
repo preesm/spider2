@@ -96,7 +96,7 @@ namespace Spider {
         Vertex *DuplicateVertex::clone(StackID stack, Graph *graph) const {
             graph = graph ? graph : this->graph_;
             auto *result = Spider::API::createDuplicate(graph,
-                                                        "cpy-" + graph->name() + "-" + this->name_,
+                                                        this->name_,
                                                         this->edgesOUTCount(),
                                                         stack);
             result->reference_ = this;

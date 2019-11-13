@@ -107,7 +107,7 @@ namespace Spider {
         Vertex *TailVertex::clone(StackID stack, Graph *graph) const {
             graph = graph ? graph : this->graph_;
             auto *result = Spider::API::createTail(graph,
-                                                   "cpy-" + graph->name() + "-" + this->name_,
+                                                   this->name_,
                                                    this->edgesINCount(),
                                                    stack);
             result->reference_ = this;
