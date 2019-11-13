@@ -55,12 +55,12 @@
 
 void LCMBRVCompute::execute() {
     /* == Initializes the Rational array == */
-    Spider::Array<Spider::Rational> reps{graph_->vertexCount(), Spider::Rational(), StackID::TRANSFO};
+    Spider::Array<Spider::Rational> reps{ graph_->vertexCount(), Spider::Rational(), StackID::TRANSFO };
 
     /* == Go through all connected components == */
     for (const auto &component : connectedComponents_) {
         /* == Extract the edges == */
-        Spider::Array<const PiSDFEdge *> edgeArray{component.nEdges, StackID::TRANSFO};
+        Spider::Array<const PiSDFEdge *> edgeArray{ component.nEdges, StackID::TRANSFO };
         BRVCompute::extractEdges(edgeArray, component);
 
         /* == Extract the rationals == */
@@ -87,7 +87,7 @@ void LCMBRVCompute::execute() {
 
 void LCMBRVCompute::extractRationals(Spider::Array<const PiSDFEdge *> &edgeArray,
                                      Spider::Array<Spider::Rational> &reps) const {
-    auto dummyRational = Spider::Rational{1};
+    auto dummyRational = Spider::Rational{ 1 };
     for (const auto &edge:edgeArray) {
         const auto *source = edge->source();
         const auto *sink = edge->sink();
@@ -112,14 +112,14 @@ void LCMBRVCompute::extractRationals(Spider::Array<const PiSDFEdge *> &edgeArray
         auto &sinkRational = sink->type() == PiSDFVertexType::INTERFACE ? dummyRational : reps[sink->ix()];
 
         if (!sinkRational.nominator() && sinkRate) {
-            sinkRational = Spider::Rational{sourceRate, sinkRate};
+            sinkRational = Spider::Rational{ sourceRate, sinkRate };
             if (sourceRational.nominator()) {
                 sinkRational *= sourceRational;
             }
         }
 
         if (!sourceRational.nominator() && sourceRate) {
-            sourceRational = Spider::Rational{sinkRate, sourceRate};
+            sourceRational = Spider::Rational{ sinkRate, sourceRate };
             if (sinkRational.nominator()) {
                 sourceRational *= sinkRational;
             }
@@ -137,9 +137,9 @@ std::int64_t LCMBRVCompute::computeLCM(const BRVComponent &component, Spider::Ar
 
 void LCMBRVCompute::computeBRV(const BRVComponent &component,
                                Spider::Array<Spider::Rational> &reps,
-                               std::int64_t lcmFactor) const {
+                               std::int64_t lcmFactor) {
     for (const auto &v : component.vertices) {
-        v->setRepetitionValue(Spider::Rational{reps[v->ix()] * lcmFactor}.toInt32());
+        v->setRepetitionValue(Spider::Rational{ reps[v->ix()] * lcmFactor }.toInt32());
     }
 }
 
@@ -149,37 +149,22 @@ void LCMBRVCompute::checkValidity(Spider::Array<const PiSDFEdge *> &edgeArray) c
             edge->sink()->type() == PiSDFVertexType::INTERFACE) {
             continue;
         }
-        auto sourceRate = edge->sourceRateExpression().evaluate(params_);
-        auto sinkRate = edge->sinkRateExpression().evaluate(params_);
+        const auto &sourceRate = edge->sourceRateExpression().evaluate(params_);
+        const auto &sinkRate = edge->sinkRateExpression().evaluate(params_);
         const auto *source = edge->source();
         const auto *sink = edge->sink();
 
-        if (sink->type() == PiSDFVertexType::DELAY &&
-            sink->repetitionValue() != 1) {
-            throwSpiderException("Delay [%s] has repetition vector value of %"
-                                         PRIu32
-                                         " instead of 1.", sink->name().c_str(),
-                                 sink->repetitionValue());
-        } else if (source->type() == PiSDFVertexType::DELAY &&
-                   source->repetitionValue() != 1) {
-            throwSpiderException("Delay [%s] has repetition vector value of %"
-                                         PRIu32
-                                         " instead of 1.", source->name().c_str(),
-                                 source->repetitionValue());
-        }
-
         if ((sourceRate * source->repetitionValue()) != (sinkRate * sink->repetitionValue())) {
-            throwSpiderException("Edge [%s] -> [%s]. prod(%"
-                                         PRIu64
+            throwSpiderException("Edge [%s]: prod(%"
+                                         PRId64
                                          ") * sourceRV(%"
                                          PRIu32
                                          ") != cons(%"
-                                         PRIu64
+                                         PRId64
                                          ") * sinkRV(%"
                                          PRIu32
                                          ").",
-                                 source->name().c_str(),
-                                 sink->name().c_str(),
+                                 edge->name().c_str(),
                                  sourceRate,
                                  source->repetitionValue(),
                                  sinkRate,

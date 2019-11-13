@@ -89,7 +89,7 @@ private:
      * @param reps      Array of Rationals.
      * @param lcmFactor LCM of the connected component rates.
      */
-    void computeBRV(const BRVComponent &component, Spider::Array<Spider::Rational> &reps, std::int64_t lcmFactor) const;
+    static void computeBRV(const BRVComponent &component, Spider::Array<Spider::Rational> &reps, std::int64_t lcmFactor) ;
 
     /**
      * Check the consistency of the connected components graph.

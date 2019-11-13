@@ -349,6 +349,11 @@ namespace Spider {
         }
 
         void Vertex::setRepetitionValue(std::uint32_t rv) {
+            if (type_ == VertexType::DELAY && rv > 1) {
+                throwSpiderException("Delay [%s] has repetition vector value of %"
+                                             PRIu32
+                                             " instead of 1.", name().c_str(), rv);
+            }
             repetitionValue_ = rv;
         }
     }
