@@ -27,4 +27,13 @@ test-containers:
     - "rm -rf report/"
   artifacts:
     reports:
-      junit: libspider/units-tests/libSpider2-tests/memory/report-containers.xml
+      junit: libspider/units-tests/libSpider2-tests/containers/report-containers.xml
+test-expression: 
+  stage: test
+  script: 
+    - "cd libspider/units-tests/libSpider2-tests/expression-parser"
+    - ./run-expression-parser-test.sh
+    - "rm -rf report/"
+  artifacts:
+    reports:
+      junit: libspider/units-tests/libSpider2-tests/expression-parser/report-expression-parser.xml
