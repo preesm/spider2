@@ -45,7 +45,7 @@
 #include <cstdint>
 #include <string>
 #include <containers/Array.h>
-#include <spider-api/general.h>
+#include <spider-api/config.h>
 #include <graphs/pisdf/Vertex.h>
 #include <graphs/pisdf/Refinement.h>
 

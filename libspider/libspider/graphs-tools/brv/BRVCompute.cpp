@@ -54,10 +54,11 @@
 BRVCompute::BRVCompute(const PiSDFGraph *graph) : BRVCompute(graph, graph->params()) {
 }
 
-BRVCompute::BRVCompute(const PiSDFGraph *graph, const Spider::vector<PiSDFParam *> &params) : graph_{graph},
-                                                                                              params_{params} {
-    Spider::Array<const PiSDFAbstractVertex *> connectedComponentsKeys{graph->vertexCount(), nullptr, StackID::TRANSFO};
-    Spider::Array<const PiSDFAbstractVertex *> vertexArray{graph->vertexCount(), nullptr, StackID::TRANSFO};
+BRVCompute::BRVCompute(const PiSDFGraph *graph, const Spider::vector<PiSDFParam *> &params) : graph_{ graph },
+                                                                                              params_{ params } {
+    Spider::Array<const PiSDFAbstractVertex *> connectedComponentsKeys{ graph->vertexCount(), nullptr,
+                                                                        StackID::TRANSFO };
+    Spider::Array<const PiSDFAbstractVertex *> vertexArray{ graph->vertexCount(), nullptr, StackID::TRANSFO };
     BRVComponent component;
     for (auto *v:graph->vertices()) {
         if (!connectedComponentsKeys[v->ix()]) {
@@ -136,7 +137,7 @@ void BRVCompute::extractEdges(Spider::Array<const PiSDFEdge *> &edgeArray, const
 }
 
 void BRVCompute::updateBRV(Spider::Array<const PiSDFEdge *> &edgeArray, const BRVComponent &component) {
-    std::uint64_t scaleRVFactor{1};
+    std::uint64_t scaleRVFactor{ 1 };
 
     /* == Compute the scale factor == */
     for (const auto &edge : edgeArray) {
@@ -197,10 +198,12 @@ std::uint64_t BRVCompute::updateBRVFromCFGActor(const PiSDFEdge *edge, std::uint
 }
 
 void BRVCompute::print() const {
-    Spider::Logger::printVerbose(LOG_TRANSFO, "BRV values for graph [%s]\n", graph_->name().c_str());
-    for (const auto &vertex : graph_->vertices()) {
-        Spider::Logger::printVerbose(LOG_TRANSFO, ">> Vertex: %-20s --> RV[%" PRIu32"]\n",
-                                     vertex->name().c_str(),
-                                     vertex->repetitionValue());
+    using namespace Spider;
+    if (API::verbose()) {
+        Logger::verbose(LOG_TRANSFO, "BRV values for graph [%s]\n", graph_->name().c_str());
+        for (const auto &vertex : graph_->vertices()) {
+            Logger::verbose(LOG_TRANSFO, ">> Vertex: %-20s --> RV[%" PRIu32"]\n", vertex->name().c_str(),
+                            vertex->repetitionValue());
+        }
     }
 }

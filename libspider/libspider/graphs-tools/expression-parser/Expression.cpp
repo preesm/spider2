@@ -98,7 +98,7 @@ static double applyOperator(StartIterator start, RPNOperatorType type) {
         case RPNOperatorType::MIN:
             return std::min((*start), (*(start + 1)));
         default:
-            Spider::Logger::printError(LOG_GENERAL, "Unsupported operation.\n");
+            Spider::Logger::error(LOG_GENERAL, "Unsupported operation.\n");
     }
     return 0;
 }

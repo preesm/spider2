@@ -57,10 +57,26 @@ typedef enum {
     LOG_OPTIMS = 6,     /*! OPTIMS logger. When enabled, this will print transformation logged information. */
 } LoggerType;
 
-/* === Methods prototype === */
-
 namespace Spider {
+
+    /* === Enumeration(s) === */
+
+    namespace Logger {
+        enum class Type {
+            LRT,        /*! LRT logger. When enabled, this will print LRT logged information. */
+            TIME,       /*! TIME logger. When enabled this will print time logged information */
+            GENERAL,    /*! GENERAL purpose logger, used for information about almost everything */
+            SCHEDULE,   /*! SCHEDULE logger. When enabled, this will print Schedule logged information. */
+            MEMORY,     /*! MEMORY logger. When enabled, this will print Memory logged information. */
+            TRANSFO,    /*! TRANSFO logger. When enabled, this will print transformation logged information. */
+            OPTIMS,     /*! OPTIMS logger. When enabled, this will print transformation logged information. */
+        };
+    }
+
     namespace API {
+
+        /* === Function(s) prototype === */
+
         /**
          * @brief Export the Gantt of the real execution trace of the application for 1 graph iteration.
          * @remark Requires to have enable the execution traces with @refitem Spider::enableTrace.

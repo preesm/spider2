@@ -45,7 +45,7 @@
 #include <cstdint>
 #include <limits>
 #include <memory/abstract-allocators/AbstractAllocator.h>
-#include <spider-api/general.h>
+#include <spider-api/config.h>
 
 /* === Define(s) === */
 

@@ -44,10 +44,51 @@
 
 #include <spider-api/archi.h>
 #include <spider-api/debug.h>
-#include <spider-api/general.h>
+#include <spider-api/config.h>
 #include <spider-api/pisdf.h>
 #include <spider-api/scenario.h>
+#include <spider-api/refinement.h>
 
 /* === Methods prototype === */
+
+namespace Spider {
+
+    void start();
+
+    void quit();
+
+
+    namespace API {
+
+        /**
+         * @brief Initialize a given stack.
+         * @param stackId   Id of the stack to init (see @refitem StackID)
+         * @param name      Name to set to the stack.
+         * @param type      Type of memory allocator used for the stack (see @refitem AllocatorType)
+         * @param size      Size of the memory stack (size of the base static memory for non-static allocators)
+         * @param baseAddr  Base address provided by user instead of the default one. (for static allocators only)
+         * @param alignment Alignment base used (default alignment is sizeof(std::uint64_t) = 64bits).
+         */
+        void initStack(StackID stackId, const std::string &name, AllocatorType type, std::uint64_t size,
+                       char *baseAddr = nullptr,
+                       std::uint64_t alignment = sizeof(std::uint64_t));
+
+        /**
+         * @brief Initialize a given stack (specialized version for FreeList and FreeListStatic allocators).
+         * @param stackId   Id of the stack to init (see @refitem StackID)
+         * @param name      Name to set to the stack.
+         * @param type      Type of memory allocator used for the stack (see @refitem AllocatorType)
+         * @param size      Size of the memory stack (size of the base static memory for non-static allocators)
+         * @param policy    Policy of search of the memory block in the FreeList allocators (default is FIND_FIRST).
+         * @param baseAddr  Base address provided by user instead of the default one. (for static allocators only)
+         * @param alignment Alignment base used (default alignment is sizeof(std::uint64_t) = 64bits).
+         */
+        void
+        initStack(StackID stackId, const std::string &name, AllocatorType type, std::uint64_t size,
+                  FreeListPolicy policy,
+                  char *baseAddr = nullptr, std::uint64_t alignment = sizeof(std::uint64_t));
+    }
+
+}
 
 #endif //SPIDER2_SPIDER_H

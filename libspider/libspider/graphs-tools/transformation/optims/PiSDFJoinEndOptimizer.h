@@ -78,8 +78,8 @@ bool PiSDFJoinEndOptimizer::operator()(PiSDFGraph *graph) const {
             inputEdge->setSink(newEnd, 0, Expression(rate));
         }
 
-        Spider::Logger::printVerbose(LOG_OPTIMS, "JoinEndOptimizer: removing join [%s] and end [%s] vertices.\n",
-                                     join->name().c_str(), end->name().c_str());
+        Spider::Logger::verbose(LOG_OPTIMS, "JoinEndOptimizer: removing join [%s] and end [%s] vertices.\n",
+                                join->name().c_str(), end->name().c_str());
         graph->removeVertex(join);
         graph->removeVertex(end);
     }

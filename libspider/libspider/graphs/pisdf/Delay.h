@@ -192,7 +192,7 @@ namespace Spider {
 
         void Delay::setMemoryAddress(std::uint64_t address) {
             if (memoryAddress_ != UINT64_MAX) {
-                Spider::Logger::printWarning(LOG_GENERAL, "Delay already has a memory address.\n");
+                Spider::Logger::warning(LOG_GENERAL, "Delay already has a memory address.\n");
             }
             memoryAddress_ = address;
         }

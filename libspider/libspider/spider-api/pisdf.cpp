@@ -424,8 +424,8 @@ PiSDFDelay *Spider::API::createDelay(PiSDFEdge *edge,
                                      bool persistent,
                                      StackID stack) {
     if (delayExpression == "0") {
-        Spider::Logger::printWarning(LOG_GENERAL, "delay with null value on edge [%s] ignored.\n",
-                                     edge->name().c_str());
+        Spider::Logger::warning(LOG_GENERAL, "delay with null value on edge [%s] ignored.\n",
+                                edge->name().c_str());
         return nullptr;
     }
     auto *delay = Spider::allocate<PiSDFDelay>(stack);
@@ -454,8 +454,8 @@ PiSDFDelay *Spider::API::createDelay(PiSDFEdge *edge,
                                      bool persistent,
                                      StackID stack) {
     if (!value) {
-        Spider::Logger::printWarning(LOG_GENERAL, "delay with null value on edge [%s] ignored.\n",
-                                     edge->name().c_str());
+        Spider::Logger::warning(LOG_GENERAL, "delay with null value on edge [%s] ignored.\n",
+                                edge->name().c_str());
         return nullptr;
     }
     auto *delay = Spider::allocate<PiSDFDelay>(stack);

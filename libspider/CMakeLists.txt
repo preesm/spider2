@@ -191,6 +191,7 @@ file(
         ${SPIDER_LIB_DIR}/runtime/distributed/*.cpp
         ${SPIDER_LIB_DIR}/runtime/master-slave/*.cpp
         ${SPIDER_LIB_DIR}/spider-api/*.cpp
+        ${SPIDER_LIB_DIR}/spider.cpp
 )
 
 file(

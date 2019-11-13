@@ -44,7 +44,7 @@
 
 #include <cstdint>
 #include <string>
-#include <spider-api/general.h>
+#include <spider-api/config.h>
 
 /* === API methods === */
 

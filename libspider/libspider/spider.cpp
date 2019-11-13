@@ -42,12 +42,9 @@
 
 #include <memory/Allocator.h>
 #include <common/Logger.h>
-#include <spider-api/general.h>
-#include <spider-api/archi.h>
-#include <spider-api/pisdf.h>
-#include <spider-api/refinement.h>
 #include <graphs/pisdf/Graph.h>
 #include <archi/Platform.h>
+#include <spider.h>
 
 /* === Static variable(s) definition === */
 
@@ -56,27 +53,7 @@ static bool &startFlag() {
     return startFlag;
 }
 
-static bool &traceFlag() {
-    static bool traceFlag = false;
-    return traceFlag;
-}
-
-static bool &verboseFlag() {
-    static bool verboseFlag = false;
-    return verboseFlag;
-}
-
-static bool &staticOptimFlag() {
-    static bool staticOptimFlag = true;
-    return staticOptimFlag;
-}
-
-static bool &srdagOptimFlag() {
-    static bool srdagOptim = true;
-    return srdagOptim;
-}
-
-/* === Methods implementation === */
+/* === Function(s) definition === */
 
 void Spider::API::initStack(StackID stackId,
                             const std::string &name,
@@ -114,7 +91,11 @@ void Spider::API::initStack(StackID stackId,
     Spider::initAllocator(stackId, cfg);
 }
 
-void Spider::API::start() {
+
+void Spider::start() {
+    if (startFlag()) {
+        throwSpiderException("Spider::start() function should be called only once.");
+    }
     /* == General stack initialization == */
     auto cfg = AllocatorConfig{ "general-allocator",
                                 AllocatorType::FREELIST,
@@ -127,11 +108,11 @@ void Spider::API::start() {
     /* == Init the Logger and enable the GENERAL Logger == */
     Logger::enable(LoggerType::LOG_GENERAL);
 
-    /* == Update startFlag == */
+    /* == Enable the config flag == */
     startFlag() = true;
 }
 
-void Spider::API::quit() {
+void Spider::quit() {
     /* == Destroy the PiSDFGraph == */
     auto *&applicationGraph = Spider::pisdfGraph();
     if (applicationGraph) {
@@ -146,7 +127,7 @@ void Spider::API::quit() {
         Spider::deallocate(platform);
     }
 
-    /* == Destroy the refinement == */
+    /* == Destroy the refinement(s) == */
     auto &refinementVector = Spider::refinementsRegister();
     for (auto &refinement : refinementVector) {
         Spider::destroy(refinement);
@@ -155,60 +136,4 @@ void Spider::API::quit() {
 
     /* == Clear the stacks == */
     Spider::finalizeAllocators();
-}
-
-void Spider::API::enableTrace() {
-    traceFlag() = true;
-}
-
-void Spider::API::disableTrace() {
-    traceFlag() = false;
-}
-
-void Spider::API::enableVerbose() {
-    verboseFlag() = true;
-}
-
-void Spider::API::disableVerbose() {
-    verboseFlag() = false;
-}
-
-void Spider::API::enableJobLogs() {
-    Logger::enable(LoggerType::LOG_LRT);
-}
-
-void Spider::API::disableJobLogs() {
-    Logger::disable(LoggerType::LOG_LRT);
-}
-
-void Spider::API::enableStaticScheduleOptim() {
-    staticOptimFlag() = true;
-}
-
-void Spider::API::disableStaticScheduleOptim() {
-    staticOptimFlag() = false;
-}
-
-void Spider::API::enableSRDAGOptims() {
-    srdagOptimFlag() = true;
-}
-
-void Spider::API::disableSRDAGOptims() {
-    srdagOptimFlag() = false;
-}
-
-bool Spider::API::trace() {
-    return traceFlag();
-}
-
-bool Spider::API::verbose() {
-    return verboseFlag();
-}
-
-bool Spider::API::staticOptim() {
-    return staticOptimFlag();
-}
-
-bool Spider::API::srdagOptim() {
-    return srdagOptimFlag();
 }

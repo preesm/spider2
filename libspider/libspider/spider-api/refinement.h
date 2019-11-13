@@ -43,7 +43,7 @@
 /* === Include(s) === */
 
 #include <string>
-#include <spider-api/general.h>
+#include <spider-api/config.h>
 #include <array>
 #include <containers/StlContainers.h>
 

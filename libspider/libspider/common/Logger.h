@@ -45,7 +45,7 @@
 #include <mutex>
 #include <common/Printer.h>
 #include <common/Exception.h>
-#include <spider-api/general.h>
+#include <spider-api/config.h>
 #include <spider-api/debug.h>
 
 /* === Define(s) === */
@@ -81,7 +81,7 @@ namespace Spider {
         }
 
         inline bool &logger(std::uint8_t ix) {
-            static bool loggers[N_LOGGER] = {false};
+            static bool loggers[N_LOGGER] = { false };
             return loggers[ix];
         }
 
@@ -125,54 +125,54 @@ namespace Spider {
 
         /**
          * @brief Print information.
-         * @tparam Ts    Variadic parameters.
+         * @tparam Args    Variadic parameters.
          * @param type   @refitem LoggerType -> type of the logger.
          * @param fmt    Formatted string to print.
          * @param ts     Arguments to be printed.
          */
-        template<class... Ts>
-        inline void printInfo(LoggerType type, const char *fmt, const Ts &...ts) {
+        template<class... Args>
+        inline void info(LoggerType type, const char *fmt, const Args &...ts) {
             print(type, LOG_NRM, "INFO", fmt, ts...);
         }
 
         /**
          * @brief Print non-critical information. However, these should be looked up as they indicate mis-behavior.
-         * @tparam Ts    Variadic parameters.
+         * @tparam Args    Variadic parameters.
          * @param type   @refitem LoggerType -> type of the logger.
          * @param fmt    Formatted string to print.
          * @param ts     Arguments to be printed.
          */
-        template<class... Ts>
-        inline void printWarning(LoggerType type, const char *fmt, const Ts &...ts) {
+        template<class... Args>
+        inline void warning(LoggerType type, const char *fmt, const Args &...ts) {
             print(type, LOG_YEL, "WARN", fmt, ts...);
         }
 
         /**
          * @brief Print critical information. Usually application will fail after.
-         * @tparam Ts    Variadic parameters.
+         * @tparam Args    Variadic parameters.
          * @param type   @refitem LoggerType -> type of the logger.
          * @param fmt    Formatted string to print.
          * @param ts     Arguments to be printed.
          */
-        template<class... Ts>
-        inline void printError(LoggerType type, const char *fmt, const Ts &...ts) {
+        template<class... Args>
+        inline void error(LoggerType type, const char *fmt, const Args &...ts) {
             print(type, LOG_RED, "ERR ", fmt, ts...);
         }
 
         /**
          * @brief Print information only when using the verbose mode of spider.
-         * @tparam Ts    Variadic parameters.
+         * @tparam Args    Variadic parameters.
          * @param type   @refitem LoggerType -> type of the logger.
          * @param fmt    Formatted string to print.
          * @param ts     Arguments to be printed.
          */
-        template<class... Ts>
-        inline void printVerbose(LoggerType type, const char *fmt, const Ts &...ts) {
-            if (Spider::API::verbose()) {
-                print(type, LOG_GRN, "VERB", fmt, ts...);
-            }
+        template<class... Args>
+        inline void verbose(LoggerType type, const char *fmt, const Args &...ts) {
+            print(type, LOG_GRN, "VERB", fmt, ts...);
         }
     }
 }
+
+#define log_enabled(type) (Spider::Logger::logger(type))
 
 #endif // SPIDER2_LOGGER_H
