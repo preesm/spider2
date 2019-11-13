@@ -119,7 +119,7 @@ static inline std::uint32_t cloneGraph(const PiSDFGraph *graph, Spider::SRDAG::J
         if (it == linker.dynaJobs_.end()) {
             const auto &offset = linker.dynaJobs_.size();
             /* == Seems like run counter part of the graph has not been cloned yet == */
-            cloneGraph(runGraph, linker);
+            linker.tracker_[runGraph->ix()] = cloneGraph(runGraph, linker);
             it = linker.dynaJobs_.begin() + offset;
             if (it == linker.dynaJobs_.end()) {
                 throwSpiderException("Init graph [%s] did not find run counter part [%s].",
@@ -371,7 +371,7 @@ static void replaceJobInterfaces(Spider::SRDAG::JobLinker &linker) {
                                                    srdagInstance->name() + "_" + interface->name(),
                                                    StackID::TRANSFO);
         edge->setSink(vertex, 0, Expression(edge->sinkRateExpression()));
-        linker.tracker_[linker.job_.reference_->vertexCount() + interface->ix()] = vertex->ix();
+        linker.tracker_[uniformIx(interface, linker.job_.reference_)] = vertex->ix();
     }
 
     /* == Replace the output interfaces == */
@@ -382,9 +382,7 @@ static void replaceJobInterfaces(Spider::SRDAG::JobLinker &linker) {
                                                1,
                                                StackID::TRANSFO);
         edge->setSource(vertex, 0, Expression(edge->sourceRateExpression()));
-        linker.tracker_[linker.job_.reference_->vertexCount() +
-                        linker.job_.reference_->edgesINCount() +
-                        interface->ix()] = vertex->ix();
+        linker.tracker_[uniformIx(interface, linker.job_.reference_)] = vertex->ix();
     }
 }
 
