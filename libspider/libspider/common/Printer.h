@@ -61,34 +61,34 @@ namespace Spider {
 #ifdef _SPIDER_NO_TYPESAFETY_PRINT
 
         template<class... Ts>
-        int fprintf(_IO_FILE *stream, const char *format, const Ts &... ts) {
+        inline int fprintf(_IO_FILE *stream, const char *format, const Ts &... ts) {
             return std::fprintf(stream, format, ts...);
         }
 
         template<class... Ts>
-        int sprintf(char *str, size_t size, const char *format, const Ts &... ts) {
+        inline int sprintf(char *str, size_t size, const char *format, const Ts &... ts) {
             return std::snprintf(str, size, format, ts...);
         }
 
         template<class... Ts>
-        int printf(const char *format, const Ts &... ts) {
+        inline int printf(const char *format, const Ts &... ts) {
             return std::printf(format, ts...);
         }
 
 #else
 
         template<class... Ts>
-        int fprintf(FILE *stream, const char *format, const Ts &... ts) {
+        inline int fprintf(FILE *stream, const char *format, const Ts &... ts) {
             return Spider::cxx11::fprintf(stream, format, ts...);
         }
 
         template<class... Ts>
-        int sprintf(char *str, size_t size, const char *format, const Ts &... ts) {
+        inline int sprintf(char *str, size_t size, const char *format, const Ts &... ts) {
             return Spider::cxx11::sprintf(str, size, format, ts...);
         }
 
         template<class... Ts>
-        int printf(const char *format, const Ts &... ts) {
+        inline int printf(const char *format, const Ts &... ts) {
             return Spider::cxx11::printf(format, ts...);
         }
 
