@@ -48,21 +48,19 @@
 #include <spider-api/config.h>
 #include <spider-api/debug.h>
 
-/* === Define(s) === */
-
-#define LOG_RED "\x1B[31m"
-#define LOG_GRN "\x1B[32m"
-#define LOG_YEL "\x1B[33m"
-#define LOG_BLU "\x1B[34m"
-#define LOG_MAG "\x1B[35m"
-#define LOG_CYN "\x1B[36m"
-#define LOG_WHT "\x1B[37m"
-#define LOG_NRM "\x1B[0m"
-
 /* === Namespace === */
 
 namespace Spider {
     namespace Logger {
+
+        constexpr const char red[] = "\x1B[31m";
+        constexpr const char green[] = "\x1B[32m";
+        constexpr const char yellow[] = "\x1B[33m";
+        constexpr const char blue[] = "\x1B[34m";
+        constexpr const char magenta[] = "\x1B[35m";
+        constexpr const char cyan[] = "\x1B[36m";
+        constexpr const char white[] = "\x1B[37m";
+        constexpr const char normal[] = "\x1B[0m";
 
         inline std::mutex &mutex() {
             static std::mutex lock;
@@ -96,14 +94,12 @@ namespace Spider {
             logger<type>().enabled_ = false;
         }
 
-        template<Logger::Type type = Logger::Type::GENERAL, class... Ts>
-        inline void print(const char *colorCode,
-                          const char *level,
-                          const char *fmt, const Ts &... ts) {
+        template<Logger::Type type, const char *color, const char *level, class... Args>
+        inline void print(const char *fmt, const Args &... ts) {
             std::lock_guard<std::mutex> locker(mutex());
-            Spider::printer::fprintf(outputStream(), "%s[%s:%s]:", colorCode, logger<type>().litteral_, level);
+            Spider::printer::fprintf(outputStream(), "%s[%s:%s]:", color, logger<type>().litteral_, level);
             Spider::printer::fprintf(outputStream(), fmt, ts...);
-            Spider::printer::fprintf(outputStream(), LOG_NRM);
+            Spider::printer::fprintf(outputStream(), normal);
         }
 
         /**
@@ -115,7 +111,8 @@ namespace Spider {
          */
         template<Logger::Type type = Logger::Type::GENERAL, class... Args>
         inline void info(const char *fmt, const Args &...ts) {
-            print<type>(LOG_NRM, "INFO", fmt, ts...);
+            constexpr static const char lvl[] = "INFO";
+            print<type, white, lvl>(fmt, ts...);
         }
 
         /**
@@ -127,7 +124,8 @@ namespace Spider {
          */
         template<Logger::Type type = Logger::Type::GENERAL, class... Args>
         inline void warning(const char *fmt, const Args &...ts) {
-            print<type>(LOG_YEL, "WARN", fmt, ts...);
+            constexpr static const char lvl[] = "WARN";
+            print<type, yellow, lvl>(fmt, ts...);
         }
 
         /**
@@ -139,7 +137,8 @@ namespace Spider {
          */
         template<Logger::Type type = Logger::Type::GENERAL, class... Args>
         inline void error(const char *fmt, const Args &...ts) {
-            print<type>(LOG_RED, "ERR ", fmt, ts...);
+            constexpr static const char lvl[] = "ERR";
+            print<type, red, lvl>(fmt, ts...);
         }
 
         /**
@@ -151,7 +150,8 @@ namespace Spider {
          */
         template<Logger::Type type = Logger::Type::GENERAL, class... Args>
         inline void verbose(const char *fmt, const Args &...ts) {
-            print<type>(LOG_GRN, "VERB", fmt, ts...);
+            constexpr static const char lvl[] = "VERB";
+            print<type, green, lvl>(fmt, ts...);
         }
     }
 }
