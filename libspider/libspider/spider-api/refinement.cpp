@@ -43,52 +43,11 @@
 #include <memory/Allocator.h>
 #include <spider-api/refinement.h>
 #include <graphs/pisdf/Refinement.h>
-#include <graphs/pisdf/specials/Specials.h>
-
-static Spider::vector<Spider::PiSDF::Refinement *> specialActorRefinements() {
-    Spider::vector<Spider::PiSDF::Refinement *> specialRefinements;
-    specialRefinements.reserve(specialActorCount);
-
-    /* == Create the special actor refinements == */
-    auto *forkRefinement = Spider::API::createRefinement("fork", Spider::PiSDF::fork);
-    Spider::API::registerRefinement(forkRefinement);
-    specialRefinements.push_back(forkRefinement);
-
-    auto *joinRefinement = Spider::API::createRefinement("join", Spider::PiSDF::join);
-    Spider::API::registerRefinement(joinRefinement);
-    specialRefinements.emplace_back(joinRefinement);
-
-    auto *headRefinement = Spider::API::createRefinement("head", Spider::PiSDF::head);
-    Spider::API::registerRefinement(headRefinement);
-    specialRefinements.emplace_back(headRefinement);
-
-    auto *tailRefinement = Spider::API::createRefinement("tail", Spider::PiSDF::tail);
-    Spider::API::registerRefinement(tailRefinement);
-    specialRefinements.emplace_back(tailRefinement);
-
-    auto *duplicateRefinement = Spider::API::createRefinement("duplicate", Spider::PiSDF::duplicate);
-    Spider::API::registerRefinement(duplicateRefinement);
-    specialRefinements.emplace_back(duplicateRefinement);
-
-    auto *upsampleRefinement = Spider::API::createRefinement("upsample", Spider::PiSDF::upsample);
-    Spider::API::registerRefinement(upsampleRefinement);
-    specialRefinements.emplace_back(upsampleRefinement);
-
-    auto *initRefinement = Spider::API::createRefinement("init", Spider::PiSDF::init);
-    Spider::API::registerRefinement(initRefinement);
-    specialRefinements.emplace_back(initRefinement);
-
-    auto *endRefinement = Spider::API::createRefinement("end", Spider::PiSDF::end);
-    Spider::API::registerRefinement(endRefinement);
-    specialRefinements.emplace_back(endRefinement);
-
-    return specialRefinements;
-}
 
 /* === Function definition(s) === */
 
-Spider::vector<Spider::PiSDF::Refinement *> &Spider::refinementsRegister() {
-    static Spider::vector<Spider::PiSDF::Refinement *> refinementVector;// = specialActorRefinements();
+std::vector<Spider::PiSDF::Refinement *> &Spider::refinementsRegister() {
+    static std::vector<Spider::PiSDF::Refinement *> refinementVector;
     return refinementVector;
 }
 
@@ -100,8 +59,9 @@ void Spider::API::precacheRefinementRegister(std::uint32_t refinementCount) {
 Spider::PiSDF::Refinement *Spider::API::createRefinement(std::string name,
                                                          Spider::callback function,
                                                          std::uint32_t paramINCount,
-                                                         std::uint32_t paramOUTCount) {
-    auto *refinement = Spider::allocate<Spider::PiSDF::Refinement>(StackID::PISDF);
+                                                         std::uint32_t paramOUTCount,
+                                                         StackID stack) {
+    auto *refinement = Spider::allocate<Spider::PiSDF::Refinement>(stack);
     Spider::construct(refinement, std::move(name), function, paramINCount, paramOUTCount);
     return refinement;
 }

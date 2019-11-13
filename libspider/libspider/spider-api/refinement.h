@@ -66,7 +66,7 @@ namespace Spider {
      * @brief Get the refinement register containing all refinement of the application.
      * @return Reference to the vector.
      */
-    Spider::vector<PiSDF::Refinement *> &refinementsRegister();
+    std::vector<PiSDF::Refinement *> &refinementsRegister();
 
     namespace API {
 
@@ -89,7 +89,8 @@ namespace Spider {
         PiSDF::Refinement *createRefinement(std::string name,
                                             callback function,
                                             std::uint32_t paramINCount = 0,
-                                            std::uint32_t paramOUTCount = 0);
+                                            std::uint32_t paramOUTCount = 0,
+                                            StackID stack = StackID::PISDF);
 
         /**
          * @brief Register a refinement into Spider runtime.

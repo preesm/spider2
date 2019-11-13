@@ -45,12 +45,58 @@
 #include <graphs/pisdf/Graph.h>
 #include <archi/Platform.h>
 #include <spider.h>
+#include <graphs/pisdf/specials/Specials.h>
 
 /* === Static variable(s) definition === */
 
 static bool &startFlag() {
     static bool startFlag = false;
     return startFlag;
+}
+
+/* === Static function(s) === */
+
+
+static std::vector<Spider::PiSDF::Refinement *> specialActorRefinements() {
+    std::vector<Spider::PiSDF::Refinement *> specialRefinements;
+    specialRefinements.reserve(specialActorCount);
+
+    /* == Create the special actor refinements == */
+    auto *forkRefinement = Spider::API::createRefinement("fork", Spider::PiSDF::fork, 0, 0, StackID::GENERAL);
+    Spider::API::registerRefinement(forkRefinement);
+    specialRefinements.push_back(forkRefinement);
+
+    auto *joinRefinement = Spider::API::createRefinement("join", Spider::PiSDF::join, 0, 0, StackID::GENERAL);
+    Spider::API::registerRefinement(joinRefinement);
+    specialRefinements.emplace_back(joinRefinement);
+
+    auto *headRefinement = Spider::API::createRefinement("head", Spider::PiSDF::head, 0, 0, StackID::GENERAL);
+    Spider::API::registerRefinement(headRefinement);
+    specialRefinements.emplace_back(headRefinement);
+
+    auto *tailRefinement = Spider::API::createRefinement("tail", Spider::PiSDF::tail, 0, 0, StackID::GENERAL);
+    Spider::API::registerRefinement(tailRefinement);
+    specialRefinements.emplace_back(tailRefinement);
+
+    auto *duplicateRefinement = Spider::API::createRefinement("duplicate", Spider::PiSDF::duplicate, 0, 0,
+                                                              StackID::GENERAL);
+    Spider::API::registerRefinement(duplicateRefinement);
+    specialRefinements.emplace_back(duplicateRefinement);
+
+    auto *upsampleRefinement = Spider::API::createRefinement("upsample", Spider::PiSDF::upsample, 0, 0,
+                                                             StackID::GENERAL);
+    Spider::API::registerRefinement(upsampleRefinement);
+    specialRefinements.emplace_back(upsampleRefinement);
+
+    auto *initRefinement = Spider::API::createRefinement("init", Spider::PiSDF::init, 0, 0, StackID::GENERAL);
+    Spider::API::registerRefinement(initRefinement);
+    specialRefinements.emplace_back(initRefinement);
+
+    auto *endRefinement = Spider::API::createRefinement("end", Spider::PiSDF::end, 0, 0, StackID::GENERAL);
+    Spider::API::registerRefinement(endRefinement);
+    specialRefinements.emplace_back(endRefinement);
+
+    return specialRefinements;
 }
 
 /* === Function(s) definition === */
@@ -108,31 +154,41 @@ void Spider::start() {
     /* == Init the Logger and enable the GENERAL Logger == */
     Logger::enable<LOG_GENERAL>();
 
+    /* == Init the special actor refinements == */
+    Spider::refinementsRegister() = specialActorRefinements();
+
     /* == Enable the config flag == */
     startFlag() = true;
 }
 
 void Spider::quit() {
     /* == Destroy the PiSDFGraph == */
-    auto *&applicationGraph = Spider::pisdfGraph();
-    if (applicationGraph) {
-        Spider::destroy(applicationGraph);
-        Spider::deallocate(applicationGraph);
+    {
+        auto *&applicationGraph = Spider::pisdfGraph();
+        if (applicationGraph) {
+            Spider::destroy(applicationGraph);
+            Spider::deallocate(applicationGraph);
+        }
     }
 
     /* == Destroy the Platform == */
-    auto *&platform = Spider::platform();
-    if (platform) {
-        Spider::destroy(platform);
-        Spider::deallocate(platform);
+    {
+        auto *&platform = Spider::platform();
+        if (platform) {
+            Spider::destroy(platform);
+            Spider::deallocate(platform);
+        }
     }
 
     /* == Destroy the refinement(s) == */
-    auto &refinementVector = Spider::refinementsRegister();
-    for (auto &refinement : refinementVector) {
-        Spider::destroy(refinement);
-        Spider::deallocate(refinement);
+    {
+        const auto &refinementVector = Spider::refinementsRegister();
+        for (auto &refinement : refinementVector) {
+            Spider::destroy(refinement);
+            Spider::deallocate(refinement);
+        }
     }
+
 
     /* == Clear the stacks == */
     Spider::finalizeAllocators();
