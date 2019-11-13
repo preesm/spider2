@@ -31,6 +31,7 @@ file(GLOB_RECURSE
         ${SPIDER_LIB_DIR}/memory/static-allocators/*.cpp
         ${SPIDER_LIB_DIR}/memory/dynamic-allocators/*.cpp
         ${SPIDER_LIB_DIR}/spider-api/pisdf.cpp
+        ${SPIDER_LIB_DIR}/spider-api/config.cpp
         sources/*.cpp
     )
 
@@ -44,6 +45,7 @@ file(GLOB_RECURSE
         ${SPIDER_LIB_DIR}/memory/static-allocators/*.h
         ${SPIDER_LIB_DIR}/memory/dynamic-allocators/*.h
         ${SPIDER_LIB_DIR}/spider-api/pisdf.h
+        ${SPIDER_LIB_DIR}/spider-api/config.h
         sources/*.h
         )
 

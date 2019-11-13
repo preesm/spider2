@@ -41,6 +41,7 @@
 /* === Includes === */
 
 #include <graphs-tools/expression-parser/Expression.h>
+#include <spider-api/config.h>
 #include <graphs/pisdf/Param.h>
 #include <graphs/pisdf/Graph.h>
 #include <algorithm>
