@@ -48,10 +48,11 @@ FreeListStaticAllocator::FreeListStaticAllocator(std::string name,
                                                  std::uint64_t totalSize,
                                                  FreeListPolicy policy,
                                                  std::int32_t alignment) :
-        StaticAllocator(std::move(name), totalSize + sizeof(FreeListStaticAllocator::Header) + sizeof(Node),
+        StaticAllocator(std::move(name),
+                        totalSize + sizeof(FreeListStaticAllocator::Header) + sizeof(Node),
                         alignment) {
     if (alignment < 8) {
-        throwSpiderException("Memory alignment should be at least of size sizeof(std::int64_t) = 8 bytes.");
+        throwSpiderException("Memory alignment should be at least of size sizeof(std::uint64_t) = 8 bytes.");
     }
     this->reset();
     if (policy == FreeListPolicy::FIND_FIRST) {
@@ -61,8 +62,11 @@ FreeListStaticAllocator::FreeListStaticAllocator(std::string name,
     }
 }
 
-FreeListStaticAllocator::FreeListStaticAllocator(std::string name, std::uint64_t totalSize, char *externalBase,
-                                                 FreeListPolicy policy, int32_t alignment) :
+FreeListStaticAllocator::FreeListStaticAllocator(std::string name,
+                                                 std::uint64_t totalSize,
+                                                 char *externalBase,
+                                                 FreeListPolicy policy,
+                                                 int32_t alignment) :
         StaticAllocator(std::move(name), totalSize + sizeof(FreeListStaticAllocator::Header), externalBase, alignment) {
     if (alignment < 8) {
         throwSpiderException("Memory alignment should be at least of size sizeof(std::int64_t) = 8 bytes.");
@@ -79,12 +83,13 @@ void *FreeListStaticAllocator::allocate(std::uint64_t size) {
     if (!size) {
         return nullptr;
     }
-    if ((std::size_t) size < sizeof(Node)) {
+    if (size < sizeof(Node)) {
         size += sizeof(Node);
     }
     std::int32_t padding = 0;
     Node *baseNode = list_;
     Node *memoryNode = nullptr;
+
     /* == Find first / best node fitting memory requirement == */
     method_(size, padding, alignment_, baseNode, memoryNode);
     std::int32_t paddingWithoutHeader = padding - sizeof(FreeListStaticAllocator::Header);
@@ -92,36 +97,38 @@ void *FreeListStaticAllocator::allocate(std::uint64_t size) {
     std::uint64_t leftOverMemory = memoryNode->blockSize_ - requiredSize;
     if (leftOverMemory) {
         /* == We split block to limit waste memory space == */
-        auto *freeNode = (Node *) (((char *) memoryNode) + requiredSize);
+        auto *freeNode = reinterpret_cast<Node *>(reinterpret_cast<std::uintptr_t>(memoryNode) + requiredSize);
         freeNode->blockSize_ = leftOverMemory;
         insert(memoryNode, freeNode);
     }
+
+    /* == Remove current node from the list == */
     remove(baseNode, memoryNode);
+
     /* == Computing header and data address == */
-    char *headerAddress = (char *) (memoryNode) + paddingWithoutHeader;
-    char *dataAddress = (char *) (memoryNode) + padding;
+    const auto &headerAddress = reinterpret_cast<std::uintptr_t>(memoryNode) + paddingWithoutHeader;
+    const auto &dataAddress = reinterpret_cast<std::uintptr_t>(memoryNode) + padding;
 
     /* == Write header info == */
-    auto *header = (Header *) (headerAddress);
+    auto *header = reinterpret_cast<Header *>(headerAddress);
     header->size_ = requiredSize;
     header->padding_ = static_cast<uint64_t>(paddingWithoutHeader);
 
     /* == Updating usage stats == */
     used_ += requiredSize;
     peak_ = std::max(peak_, used_);
-    return dataAddress;
+    return reinterpret_cast<void *>(dataAddress);
 }
 
 void FreeListStaticAllocator::deallocate(void *ptr) {
     if (!ptr) {
         return;
     }
-    auto *currentAddress = static_cast<char *>(ptr);
-    char *headerAddress = currentAddress - sizeof(FreeListStaticAllocator::Header);
+    const auto &headerAddress = reinterpret_cast<std::uintptr_t>(ptr) - sizeof(FreeListStaticAllocator::Header);
 
     /* == Read header info == */
-    auto *header = (Header *) (headerAddress);
-    auto *freeNode = (Node *) (headerAddress - header->padding_);
+    auto *header = reinterpret_cast<Header *>(headerAddress);
+    auto *freeNode = reinterpret_cast<Node *>(headerAddress - header->padding_);
     /* == Check address == */
     StaticAllocator::checkPointerAddress(freeNode);
     freeNode->blockSize_ = header->size_;
@@ -147,11 +154,13 @@ void FreeListStaticAllocator::deallocate(void *ptr) {
     used_ -= freeNode->blockSize_;
 
     /* == Look for contiguous block to merge (coalescence) == */
-    if (freeNode->next_ && ((char *) freeNode + freeNode->blockSize_) == ((char *) freeNode->next_)) {
+    if (freeNode->next_ && (reinterpret_cast<std::uintptr_t>(freeNode) + freeNode->blockSize_ ==
+                            reinterpret_cast<std::uintptr_t>(freeNode->next_))) {
         freeNode->blockSize_ += freeNode->next_->blockSize_;
         remove(freeNode, freeNode->next_);
     }
-    if (itPrev && ((char *) itPrev + itPrev->blockSize_) == ((char *) freeNode)) {
+    if (itPrev && (reinterpret_cast<std::uintptr_t>(itPrev) + itPrev->blockSize_ ==
+                   reinterpret_cast<std::uintptr_t>(freeNode))) {
         itPrev->blockSize_ += freeNode->blockSize_;
         remove(itPrev, freeNode);
     }
@@ -162,7 +171,7 @@ void FreeListStaticAllocator::reset() {
     averageUse_ += used_;
     numberAverage_++;
     used_ = 0;
-    list_ = (Node *) (startPtr_);
+    list_ = reinterpret_cast<Node *>(startPtr_);
     list_->blockSize_ = totalSize_;
     list_->next_ = nullptr;
 }
@@ -190,10 +199,11 @@ void FreeListStaticAllocator::remove(Node *baseNode, Node *removedNode) {
     }
 }
 
-void
-FreeListStaticAllocator::findFirst(std::uint64_t &size, std::int32_t &padding, std::int32_t &alignment,
-                                   Node *&baseNode,
-                                   Node *&foundNode) {
+void FreeListStaticAllocator::findFirst(std::uint64_t &size,
+                                        std::int32_t &padding,
+                                        std::int32_t &alignment,
+                                        Node *&baseNode,
+                                        Node *&foundNode) {
     Node *it = baseNode;
     baseNode = nullptr;
     constexpr std::int32_t overheadSize = sizeof(FreeListStaticAllocator::Header);

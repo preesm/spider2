@@ -80,7 +80,7 @@ private:
         std::uint64_t padding_;
     } Header;
 
-    Node *list_;
+    Node *list_ = nullptr;
 
     void insert(Node *baseNode, Node *newNode);
 

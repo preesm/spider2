@@ -47,8 +47,6 @@
 
 /* === Defines === */
 
-#define MIN_CHUNK_SIZE 8192
-
 /* === Class definition === */
 
 class FreeListAllocator final : public DynamicAllocator {
@@ -72,21 +70,29 @@ public:
     void reset() override;
 
 private:
-    typedef struct Header {
+    struct Header {
         std::uint64_t size_;
         std::uint64_t padding_;
-    } Header;
+    };
 
-    typedef struct Buffer {
+    struct Buffer {
         std::uint64_t size_ = 0;
-        std::uint8_t *bufferPtr_ = nullptr;
-    } Buffer;
+        void *bufferPtr_ = nullptr;
+    };
 
     Node *list_ = nullptr;
 
-    std::uint8_t *staticBufferPtr_ = nullptr;
+    void *staticBufferPtr_ = nullptr;
     std::vector<Buffer> extraBuffers_;
     std::uint64_t staticBufferSize_ = 0;
+
+
+    using FreeListPolicyMethod = std::pair<Node *, Node *> (*)(const std::uint64_t &,
+                                                               std::int32_t &,
+                                                               const std::uint64_t &,
+                                                               Node *);
+
+    FreeListPolicyMethod findNode_;
 
     void insert(Node *baseNode, Node *newNode);
 
@@ -96,25 +102,18 @@ private:
 
     void updateFreeNodeList(Node *baseNode, Node *memoryNode, std::uint64_t requiredSize);
 
-    using policyMethod = void (*)(std::uint64_t &, std::int32_t &, std::int32_t &, Node *&, Node *&);
+    static std::pair<Node *, Node *>
+    findFirst(const std::uint64_t &size, std::int32_t &padding, const std::uint64_t &alignment, Node *baseNode);
 
-    policyMethod method_;
+    static std::pair<Node *, Node *>
+    findBest(const std::uint64_t &size, std::int32_t &padding, const std::uint64_t &alignment, Node *baseNode);
 
-    static void
-    findFirst(std::uint64_t &size, std::int32_t &padding, std::int32_t &alignment, Node *&baseNode, Node *&foundNode);
-
-    static void
-    findBest(std::uint64_t &size, std::int32_t &padding, std::int32_t &alignment, Node *&baseNode, Node *&foundNode);
-
-    void checkPointerAddress(void *ptr);
-
-    static constexpr FreeListAllocator::Node *cast_node(void *buffer) {
-        return static_cast<FreeListAllocator::Node *>(buffer);
-    }
-
-    static constexpr std::uint8_t *cast_buffer(void *node) {
-        return static_cast<std::uint8_t *>(node);
-    }
+    /**
+     * @brief Check the pointer address to be sure we are deallocating memory we allocated.
+     * @param ptr  Pointer to check.
+     * @return true if address is valid, false else.
+     */
+    bool validAddress(void *ptr);
 };
 
 #endif //SPIDER2_FREELISTALLOCATOR_H

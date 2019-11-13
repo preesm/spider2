@@ -68,10 +68,10 @@ void *LIFOStaticAllocator::allocate(std::uint64_t size) {
                                      PRIu64
                                      "", getName(), totalSize_, alignedSize);
     }
-    char *alignedAllocatedAddress = startPtr_ + used_ - size;
+    const auto &alignedAllocatedAddress = reinterpret_cast<std::uintptr_t>(startPtr_) + used_ - size;
     used_ = alignedSize;
     peak_ = std::max(peak_, used_);
-    return alignedAllocatedAddress;
+    return reinterpret_cast<void *>(alignedAllocatedAddress);
 }
 
 void LIFOStaticAllocator::deallocate(void *ptr) {
@@ -79,13 +79,13 @@ void LIFOStaticAllocator::deallocate(void *ptr) {
         return;
     }
     StaticAllocator::checkPointerAddress(ptr);
-    auto *currentAddress = static_cast<char *>(ptr);
-    if (currentAddress > (used_ + startPtr_)) {
+    const auto &currentAddress = reinterpret_cast<std::uintptr_t >(ptr);
+    if (currentAddress > (used_ + reinterpret_cast<std::uintptr_t>(startPtr_))) {
         throwSpiderException(
                 "Allocator: %s -- LIFO allocator should deallocate element in reverse order of allocation.",
                 getName());
     }
-    used_ = currentAddress - startPtr_;
+    used_ = currentAddress - reinterpret_cast<std::uintptr_t>(startPtr_);
 }
 
 void LIFOStaticAllocator::reset() {

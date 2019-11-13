@@ -42,26 +42,22 @@
 
 /* === Includes === */
 
-
-/* === Define(s) === */
-
-#define NB_ALLOCATORS 8
-
 /* === Enumeration(s) === */
 
 /**
  * @brief Stack ids
  */
 enum class StackID : std::uint64_t {
-    PISDF = 0,         /*!< Stack used for PISDF graph (should be static) */
-    ARCHI = 1,         /*!< Stack used for architecture (should be static) */
-    TRANSFO = 2,       /*!< Stack used for graph transformations */
-    SCHEDULE = 3,      /*!< Stack used for scheduling */
-    LRT = 4,           /*!< Stack used by LRTs */
-    EXPR_PARSER = 5,   /*!< Stack used by the expression parser */
-    GENERAL = 6,       /*!< General stack used for classic new / delete */
-    SCENARIO = 7,      /*!< Stack used for the scenario (application constraints) */
+    PISDF = 0,     /*!< Stack used for PISDF graph (should be static) */
+    ARCHI,         /*!< Stack used for architecture (should be static) */
+    TRANSFO,       /*!< Stack used for graph transformations */
+    SCHEDULE,      /*!< Stack used for scheduling */
+    LRT,           /*!< Stack used by LRTs */
+    GENERAL,       /*!< General stack used for classic new / delete */
+    SCENARIO,      /*!< Stack used for the scenario (application constraints) */
 };
+
+constexpr std::uint8_t allocatorCount = static_cast<std::uint8_t>(StackID::SCENARIO) + 1;
 
 /**
  * @brief Allocator types

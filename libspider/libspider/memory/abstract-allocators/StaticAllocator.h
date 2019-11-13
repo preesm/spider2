@@ -57,12 +57,11 @@ public:
 protected:
     std::uint64_t totalSize_;
     bool externalBase_;
-    char *startPtr_;
+    void *startPtr_;
 
     inline StaticAllocator(std::string name, std::uint64_t totalSize, std::int32_t alignment = 0);
 
-    inline StaticAllocator(std::string name, std::uint64_t totalSize, char *externalBase,
-                           std::int32_t alignment = 0);
+    inline StaticAllocator(std::string name, std::uint64_t totalSize, void *externalBase, std::int32_t alignment = 0);
 
     inline ~StaticAllocator() override;
 
@@ -84,11 +83,11 @@ StaticAllocator::StaticAllocator(std::string name, std::uint64_t totalSize, std:
     if (!totalSize) {
         throwSpiderException("Allocator size should be >= 0.\n");
     }
-    startPtr_ = (char *) std::malloc(totalSize_);
+    startPtr_ = std::malloc(totalSize_);
     externalBase_ = false;
 }
 
-StaticAllocator::StaticAllocator(std::string name, std::uint64_t totalSize, char *externalBase,
+StaticAllocator::StaticAllocator(std::string name, std::uint64_t totalSize, void *externalBase,
                                  std::int32_t alignment) :
         AbstractAllocator(std::move(name), alignment),
         totalSize_{ totalSize },
@@ -104,11 +103,12 @@ StaticAllocator::StaticAllocator(std::string name, std::uint64_t totalSize, char
 }
 
 void StaticAllocator::checkPointerAddress(void *ptr) const {
-    if ((char *) (ptr) < startPtr_) {
+    const auto &uintPtr = reinterpret_cast<std::uintptr_t >(ptr);
+    if (uintPtr < reinterpret_cast<std::uintptr_t>(startPtr_)) {
         throwSpiderException("Trying to deallocate unallocated memory block.");
     }
 
-    if ((char *) (ptr) > startPtr_ + totalSize_) {
+    if (uintPtr > (reinterpret_cast<std::uintptr_t>(startPtr_) + totalSize_)) {
         throwSpiderException("Trying to deallocate memory block out of memory space.");
     }
 }

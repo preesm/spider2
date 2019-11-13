@@ -77,10 +77,10 @@ void *LinearStaticAllocator::allocate(std::uint64_t size) {
                                      " -- Requested: %"
                                      PRIu64, getName(), totalSize_, requestedSize);
     }
-    char *alignedAllocatedAddress = startPtr_ + used_ + padding;
+    const auto &alignedAllocatedAddress = reinterpret_cast<std::uintptr_t>(startPtr_) + used_ + padding;
     used_ += (size + padding);
     peak_ = std::max(peak_, used_);
-    return alignedAllocatedAddress;
+    return reinterpret_cast<void *>(alignedAllocatedAddress);
 }
 
 void LinearStaticAllocator::deallocate(void *ptr) {

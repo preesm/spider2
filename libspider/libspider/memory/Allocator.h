@@ -85,7 +85,7 @@ namespace Spider {
 
     /* === Static methods for allocating memory === */
 
-    AbstractAllocator *&getAllocator(std::uint64_t stack);
+    AbstractAllocator *&getAllocator(StackID stack);
 
     void initAllocator(StackID stack, const AllocatorConfig &cfg);
 
@@ -102,7 +102,7 @@ namespace Spider {
     template<typename T, class... Args>
     inline void construct(T *ptr, Args &&... args) {
         if (ptr) {
-            new((void *) ptr) T(std::forward<Args>(args)...);
+            new(ptr) T(std::forward<Args>(args)...);
         }
     }
 
@@ -126,22 +126,23 @@ namespace Spider {
      * @param stack Stack on which the buffer should be allocated, see #SpiderStack
      * @return pointer to allocated buffer, nullptr if size is 0.
      */
+     // TODO: merge this with Allocator
     template<typename T>
     inline T *allocate(StackID stack, std::uint64_t size = 1) {
-        /* 0. Allocate buffer with (size + 1) to store stack identifier */
+        /* == Allocate buffer with (size + 1) to store stack identifier == */
         size = size * sizeof(T);
-        char *buffer = nullptr;
-        auto *&allocator = getAllocator(static_cast<std::uint64_t>(stack));
+        auto *&allocator = getAllocator(stack);
         if (!allocator) {
             throwSpiderException("Allocating memory with non-initialized allocator.");
         }
-        buffer = (char *) allocator->allocate(size + sizeof(std::uint64_t));
-        /* 1. Return allocated buffer */
+        auto buffer = reinterpret_cast<uintptr_t>(allocator->allocate(size + sizeof(std::uint64_t)));
+
+        /* == Return allocated buffer == */
         if (buffer) {
-            ((std::uint64_t *) (buffer))[0] = static_cast<std::uint64_t>(stack);
+            reinterpret_cast<std::uint64_t *>(buffer)[0] = static_cast<std::uint64_t>(stack);
             buffer = buffer + sizeof(std::uint64_t);
         }
-        return (T *) buffer;
+         return reinterpret_cast<T *>(buffer);
     }
 
     /**
@@ -162,9 +163,9 @@ namespace Spider {
 
         typedef size_t size_type;
         typedef ptrdiff_t difference_type;
-        typedef T *pointer;
+        typedef T *pointer_type;
         typedef const T *const_pointer;
-        typedef T &reference;
+        typedef T &reference_type;
         typedef const T &const_reference;
         typedef T value_type;
 
@@ -175,7 +176,7 @@ namespace Spider {
         };
 
         /* == Return address of value == */
-        inline pointer address(reference value) const {
+        inline pointer_type address(reference_type value) const {
             return &value;
         }
 
@@ -207,12 +208,12 @@ namespace Spider {
          * @param stack Stack on which the buffer should be allocated, see #SpiderStack
          * @return pointer to allocated buffer, nullptr if size is 0.
          */
-        inline pointer allocate(size_type size) {
-            auto *&allocator = getAllocator(static_cast<std::uint64_t>(stack));
+        inline pointer_type allocate(size_type size) {
+            auto *&allocator = getAllocator(stack);
             if (!allocator) {
                 throwSpiderException("Allocating memory with non-initialized allocator.");
             }
-            return static_cast<pointer >(allocator->allocate(size * sizeof(T)));
+            return static_cast<pointer_type >(allocator->allocate(size * sizeof(T)));
         }
 
         /**
@@ -220,8 +221,8 @@ namespace Spider {
          * @attention This method does not destroy the object, use @refitem Allocator::destroy
          * @param ptr Raw pointer to deallocate
          */
-        inline void deallocate(pointer ptr, std::size_t) {
-            auto *&allocator = getAllocator(static_cast<std::uint64_t>(stack));
+        inline void deallocate(pointer_type ptr, std::size_t) {
+            auto *&allocator = getAllocator(stack);
             allocator->deallocate(ptr);
         }
 
@@ -232,8 +233,8 @@ namespace Spider {
          * @param ptr    Reference pointer of the object to be constructed
          * @param value  Arguments use for by the constructor of the object
          */
-        inline void construct(pointer ptr, const T &value) {
-            new((void *) ptr) T(value);
+        inline void construct(pointer_type ptr, const T &value) {
+            new (ptr) T(value);
         }
 
         /**
@@ -245,9 +246,9 @@ namespace Spider {
          * @param args   Arguments use for by the constructor of the object
          */
         template<class ...Args>
-        inline void construct(pointer ptr, Args &&... args) {
+        inline void construct(pointer_type ptr, Args &&... args) {
             if (ptr) {
-                new((void *) ptr) T(std::forward<Args>(args)...);
+                new(ptr) T(std::forward<Args>(args)...);
             }
         }
 
@@ -257,7 +258,7 @@ namespace Spider {
          * @tparam T  Type of the object to destroy
          * @param ptr Reference pointer to the object to destroy
          */
-        inline void destroy(pointer ptr) {
+        inline void destroy(pointer_type ptr) {
             ptr->~T();
         }
     };

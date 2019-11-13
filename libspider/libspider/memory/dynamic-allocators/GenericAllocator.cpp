@@ -55,30 +55,30 @@ void *GenericAllocator::allocate(std::uint64_t size) {
     if (!size) {
         return nullptr;
     }
-    std::uint64_t requiredSize = size + sizeof(std::uint64_t);
-    auto alignedSize = AbstractAllocator::computeAlignedSize(requiredSize, alignment_);
+    const auto &requiredSize = size + sizeof(std::uint64_t);
+    const auto &alignedSize = AbstractAllocator::computeAlignedSize(requiredSize, alignment_);
 
-    auto *headerAddress = (char *) std::malloc(alignedSize);
+    auto *headerAddress = std::malloc(alignedSize);
     if (!headerAddress) {
         throwSpiderException("Failed to allocate %lf %s",
                              AbstractAllocator::getByteNormalizedSize(alignedSize),
                              AbstractAllocator::getByteUnitString(alignedSize));
     }
-    auto *header = (std::uint64_t *) (headerAddress);
+    auto *header = reinterpret_cast<std::uint64_t *>(headerAddress);
     (*header) = alignedSize;
     used_ += alignedSize;
     peak_ = std::max(peak_, used_);
-    return headerAddress + sizeof(std::uint64_t);
+    return reinterpret_cast<void *>(reinterpret_cast<std::uintptr_t>(headerAddress) + sizeof(std::uint64_t));
 }
 
 void GenericAllocator::deallocate(void *ptr) {
     if (!ptr) {
         return;
     }
-    auto *headerAddress = ((char *) ptr) - sizeof(std::uint64_t);
-    auto *header = (std::uint64_t *) (headerAddress);
+    const auto &headerAddress = reinterpret_cast<std::uintptr_t>(ptr) - sizeof(std::uint64_t);
+    auto *header = reinterpret_cast<std::uint64_t *>(headerAddress);
     used_ -= (*header);
-    std::free(headerAddress);
+    std::free(reinterpret_cast<void *>(headerAddress));
 }
 
 void GenericAllocator::reset() {

@@ -136,7 +136,7 @@ TEST(FreeListAllocatorTest, MemoryAllocFindBest) {
     EXPECT_NO_THROW(allocator->allocate(MAX_SIZE));
     EXPECT_NO_THROW(allocator->allocate(sizeof(std::int32_t)));
     EXPECT_NO_THROW(allocator->reset());
-    EXPECT_NO_THROW(array = (double *) allocator->allocate(MIN_CHUNK_SIZE));
+    EXPECT_NO_THROW(array = (double *) allocator->allocate(8192));
     EXPECT_NO_THROW(allocator->deallocate(array));
     EXPECT_NO_THROW(allocator->allocate(MAX_SIZE));
 
