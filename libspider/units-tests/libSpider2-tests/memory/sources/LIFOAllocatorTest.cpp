@@ -63,7 +63,7 @@ TEST_F(LIFOAllocatorTest, GetName) {
 
 TEST_F(LIFOAllocatorTest, ThrowSizeException) {
     std::uint64_t size = MAX_SIZE + 1;
-    EXPECT_THROW(allocator.allocate(size), SpiderException);
+    EXPECT_THROW(allocator.allocate(size), Spider::Exception);
 }
 
 TEST_F(LIFOAllocatorTest, MemoryAlloc) {
@@ -74,7 +74,7 @@ TEST_F(LIFOAllocatorTest, MemoryAlloc) {
     ASSERT_EQ(array[0], 1);
     ASSERT_EQ(array[1], 2);
     ASSERT_EQ(nullptr, allocator.allocate(0));
-    EXPECT_THROW(allocator.allocate(MAX_SIZE), SpiderException);
+    EXPECT_THROW(allocator.allocate(MAX_SIZE), Spider::Exception);
     EXPECT_NO_THROW(allocator.reset());
     EXPECT_NO_THROW(allocator.allocate(MAX_SIZE));
     EXPECT_NO_THROW(allocator.deallocate(array));
@@ -98,7 +98,7 @@ TEST_F(LIFOAllocatorTest, FreeUnordered) {
     auto *dblArray = (double *) allocator.allocate(2 * sizeof(double));
     ASSERT_NE(dblArray, nullptr);
     EXPECT_NO_THROW(allocator.deallocate(charArray));
-    EXPECT_THROW(allocator.deallocate(dblArray), SpiderException);
+    EXPECT_THROW(allocator.deallocate(dblArray), Spider::Exception);
 }
 
 TEST_F(LIFOAllocatorTest, FreeOrdered) {
@@ -113,9 +113,9 @@ TEST_F(LIFOAllocatorTest, FreeOrdered) {
 
 TEST_F(LIFOAllocatorTest, FreeOutOfScope) {
     char *charArray = new char[8];
-    EXPECT_THROW(allocator.deallocate(charArray), SpiderException);
+    EXPECT_THROW(allocator.deallocate(charArray), Spider::Exception);
     delete[] charArray;
     auto *dblArray = (double *) allocator.allocate(2 * sizeof(double));
     ASSERT_NE(dblArray, nullptr);
-    EXPECT_THROW(allocator.deallocate(dblArray + MAX_SIZE), SpiderException);
+    EXPECT_THROW(allocator.deallocate(dblArray + MAX_SIZE), Spider::Exception);
 }

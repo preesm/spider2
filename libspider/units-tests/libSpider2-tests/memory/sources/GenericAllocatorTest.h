@@ -53,7 +53,7 @@ TEST(GenericAllocatorTest, GetName) {
 }
 
 TEST(GenericAllocatorTest, MinAlignmentSize) {
-    EXPECT_THROW(GenericAllocator(ALLOCATOR_NAME, -1), SpiderException);
+    EXPECT_THROW(GenericAllocator(ALLOCATOR_NAME, -1), Spider::Exception);
 }
 
 TEST(GenericAllocatorTest, MemoryAlloc) {

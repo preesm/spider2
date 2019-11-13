@@ -50,11 +50,11 @@ TEST(AllocatorTest, TryAlloc) {
     cfg.allocatorType = AllocatorType::FREELIST;
     cfg.size = 512;
     Spider::initAllocator(StackID::PISDF, cfg);
-    EXPECT_THROW(Spider::allocate<double>(StackID::SCHEDULE, 10), SpiderException);
+    EXPECT_THROW(Spider::allocate<double>(StackID::SCHEDULE, 10), Spider::Exception);
     cfg.allocatorType = AllocatorType::FREELIST_STATIC;
     cfg.size = 0;
-    Spider::initAllocator(StackID::SRDAG, cfg);
-    EXPECT_THROW(Spider::allocate<double>(StackID::SRDAG, 10), SpiderException);
+    Spider::initAllocator(StackID::TRANSFO, cfg);
+    EXPECT_THROW(Spider::allocate<double>(StackID::TRANSFO, 10), Spider::Exception);
     EXPECT_NO_THROW(Spider::allocate<double>(StackID::PISDF, 10));
     Spider::finalizeAllocators();
 }
