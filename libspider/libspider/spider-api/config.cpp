@@ -40,21 +40,10 @@
 
 /* === Includes === */
 
-#include <memory/Allocator.h>
 #include <common/Logger.h>
-#include <spider-api/general.h>
-#include <spider-api/archi.h>
-#include <spider-api/pisdf.h>
-#include <spider-api/refinement.h>
-#include <graphs/pisdf/Graph.h>
-#include <archi/Platform.h>
+#include <spider-api/config.h>
 
 /* === Static variable(s) definition === */
-
-static bool &startFlag() {
-    static bool startFlag = false;
-    return startFlag;
-}
 
 static bool &traceFlag() {
     static bool traceFlag = false;
@@ -77,85 +66,6 @@ static bool &srdagOptimFlag() {
 }
 
 /* === Methods implementation === */
-
-void Spider::API::initStack(StackID stackId,
-                            const std::string &name,
-                            AllocatorType type,
-                            std::uint64_t size,
-                            char *baseAddr,
-                            std::uint64_t alignment) {
-    if (!startFlag()) {
-        throwSpiderException("Method Spider::start() should be called first.");
-    }
-
-    /* == Create the corresponding AllocatorConfig == */
-    auto cfg = AllocatorConfig{ name, type, size, alignment, FreeListPolicy::FIND_FIRST, baseAddr };
-
-    /* == Do the actual init of the allocator == */
-    Spider::initAllocator(stackId, cfg);
-}
-
-void Spider::API::initStack(StackID stackId,
-                            const std::string &name,
-                            AllocatorType type,
-                            std::uint64_t size,
-                            FreeListPolicy policy,
-                            char *baseAddr,
-                            std::uint64_t alignment) {
-
-    if (!startFlag()) {
-        throwSpiderException("Method Spider::start() should be called first.");
-    }
-
-    /* == Create the corresponding AllocatorConfig == */
-    auto cfg = AllocatorConfig{ name, type, size, alignment, policy, baseAddr };
-
-    /* == Do the actual init of the allocator == */
-    Spider::initAllocator(stackId, cfg);
-}
-
-void Spider::API::start() {
-    /* == General stack initialization == */
-    auto cfg = AllocatorConfig{ "general-allocator",
-                                AllocatorType::FREELIST,
-                                16392,
-                                sizeof(std::uint64_t),
-                                FreeListPolicy::FIND_FIRST,
-                                nullptr };
-    Spider::initAllocator(StackID::GENERAL, cfg);
-
-    /* == Init the Logger and enable the GENERAL Logger == */
-    Logger::enable(LoggerType::LOG_GENERAL);
-
-    /* == Update startFlag == */
-    startFlag() = true;
-}
-
-void Spider::API::quit() {
-    /* == Destroy the PiSDFGraph == */
-    auto *&applicationGraph = Spider::pisdfGraph();
-    if (applicationGraph) {
-        Spider::destroy(applicationGraph);
-        Spider::deallocate(applicationGraph);
-    }
-
-    /* == Destroy the Platform == */
-    auto *&platform = Spider::platform();
-    if (platform) {
-        Spider::destroy(platform);
-        Spider::deallocate(platform);
-    }
-
-    /* == Destroy the refinement(s) == */
-    auto &refinementVector = Spider::refinementsRegister();
-    for (auto &refinement : refinementVector) {
-        Spider::destroy(refinement);
-        Spider::deallocate(refinement);
-    }
-
-    /* == Clear the stacks == */
-    Spider::finalizeAllocators();
-}
 
 void Spider::API::enableTrace() {
     traceFlag() = true;

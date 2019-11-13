@@ -37,10 +37,11 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_GENERAL_H
-#define SPIDER2_GENERAL_H
+#ifndef SPIDER2_CONFIG_H
+#define SPIDER2_CONFIG_H
 
 /* === Includes === */
+
 
 /* === Define(s) === */
 
@@ -80,39 +81,8 @@ enum class FreeListPolicy;
 /* === Methods prototype === */
 
 namespace Spider {
+
     namespace API {
-
-        /**
-         * @brief Initialize a given stack.
-         * @param stackId   Id of the stack to init (see @refitem StackID)
-         * @param name      Name to set to the stack.
-         * @param type      Type of memory allocator used for the stack (see @refitem AllocatorType)
-         * @param size      Size of the memory stack (size of the base static memory for non-static allocators)
-         * @param baseAddr  Base address provided by user instead of the default one. (for static allocators only)
-         * @param alignment Alignment base used (default alignment is sizeof(std::uint64_t) = 64bits).
-         */
-        void initStack(StackID stackId, const std::string &name, AllocatorType type, std::uint64_t size,
-                       char *baseAddr = nullptr,
-                       std::uint64_t alignment = sizeof(std::uint64_t));
-
-        /**
-         * @brief Initialize a given stack (specialized version for FreeList and FreeListStatic allocators).
-         * @param stackId   Id of the stack to init (see @refitem StackID)
-         * @param name      Name to set to the stack.
-         * @param type      Type of memory allocator used for the stack (see @refitem AllocatorType)
-         * @param size      Size of the memory stack (size of the base static memory for non-static allocators)
-         * @param policy    Policy of search of the memory block in the FreeList allocators (default is FIND_FIRST).
-         * @param baseAddr  Base address provided by user instead of the default one. (for static allocators only)
-         * @param alignment Alignment base used (default alignment is sizeof(std::uint64_t) = 64bits).
-         */
-        void
-        initStack(StackID stackId, const std::string &name, AllocatorType type, std::uint64_t size,
-                  FreeListPolicy policy,
-                  char *baseAddr = nullptr, std::uint64_t alignment = sizeof(std::uint64_t));
-
-        void start();
-
-        void quit();
 
         /* === Methods for setting flags value in Spider === */
 
@@ -194,4 +164,4 @@ namespace Spider {
     }
 }
 
-#endif //SPIDER2_GENERAL_H
+#endif //SPIDER2_CONFIG_H
