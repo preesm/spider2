@@ -1,9 +1,9 @@
 stages: 
-  - build
+  - build-spider
   - build-test
   - test
 job-build: 
-  stage: build
+  stage: build-spider
   script: 
     - "mkdir libspider/bin/"
     - "mkdir libspider/bin/make"
@@ -14,32 +14,36 @@ job-build:
 build-test-memory: 
   stage: build-test
   script: 
-    - "cd libspider/units-tests/libSpider2-tests/memory"
-    - ./build-memory-test.sh
+    - "cd libspider/units-tests/libSpider2-tests/"
+    - ./build-test.sh memory
+build-test-containers: 
+  stage: build-test
+  script: 
+    - "cd libspider/units-tests/libSpider2-tests/"
+    - ./build-test.sh containers
+build-test-expression: 
+  stage: build-test
+  script: 
+    - "cd libspider/units-tests/libSpider2-tests/"
+    - ./build-test.sh expression-parser
 test-memory: 
   stage: test
   script: 
-    - "cd libspider/units-tests/libSpider2-tests/memory"
-    - ./run-memory-test.sh
-    - "rm -rf report/"
+    - ./run-test.sh memory
   artifacts:
     reports:
       junit: libspider/units-tests/libSpider2-tests/memory/report-memory.xml
 test-containers: 
   stage: test
   script: 
-    - "cd libspider/units-tests/libSpider2-tests/containers"
-    - ./run-containers-test.sh
-    - "rm -rf report/"
+    - ./run-test.sh containers
   artifacts:
     reports:
       junit: libspider/units-tests/libSpider2-tests/containers/report-containers.xml
 test-expression: 
   stage: test
   script: 
-    - "cd libspider/units-tests/libSpider2-tests/expression-parser"
-    - ./run-expression-parser-test.sh
-    - "rm -rf report/"
+    - ./run-test.sh expression-parser
   artifacts:
     reports:
       junit: libspider/units-tests/libSpider2-tests/expression-parser/report-expression-parser.xml
