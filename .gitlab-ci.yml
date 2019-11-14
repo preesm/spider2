@@ -16,40 +16,37 @@ build-test-memory:
   script: 
     - "cd libspider/units-tests/libSpider2-tests/"
     - ./build-test.sh memory
+  artifacts:
+    path:
+        - "libspider/units-tests/libSpider2-tests/memory/bin"
 build-test-containers: 
   stage: build-test
   script: 
     - "cd libspider/units-tests/libSpider2-tests/"
     - ./build-test.sh containers
+  artifacts:
+    path:
+        - "libspider/units-tests/libSpider2-tests/containers/bin"
 build-test-expression: 
   stage: build-test
   script: 
     - "cd libspider/units-tests/libSpider2-tests/"
     - ./build-test.sh expression-parser
+  artifacts:
+    path:
+        - "libspider/units-tests/libSpider2-tests/expression-parser/bin"
 test-memory: 
   stage: test
   script: 
     - "cd libspider/units-tests/libSpider2-tests/"
-    - ./build-test.sh memory
     - ./run-test.sh memory
-  artifacts:
-    reports:
-      junit: libspider/units-tests/libSpider2-tests/memory/report-memory.xml
 test-containers: 
   stage: test
   script: 
     - "cd libspider/units-tests/libSpider2-tests/"
-    - ./build-test.sh containers
     - ./run-test.sh containers
-  artifacts:
-    reports:
-      junit: libspider/units-tests/libSpider2-tests/containers/report-containers.xml
 test-expression: 
   stage: test
   script: 
     - "cd libspider/units-tests/libSpider2-tests/"
-    - ./build-test.sh expression-parser
     - ./run-test.sh expression-parser
-  artifacts:
-    reports:
-      junit: libspider/units-tests/libSpider2-tests/expression-parser/report-expression-parser.xml
