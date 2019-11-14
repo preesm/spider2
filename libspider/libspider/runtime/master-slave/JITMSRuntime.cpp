@@ -51,7 +51,7 @@
 
 /* === Method(s) implementation === */
 
-bool JITMSRuntime::execute() const {
+bool Spider::JITMSRuntime::execute() const {
     // TODO: put root graph into a top graph
     auto *graph = Spider::pisdfGraph();
 

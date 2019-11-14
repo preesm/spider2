@@ -45,32 +45,35 @@
 #include <common/Exception.h>
 #include <graphs/pisdf/Types.h>
 
-/* === Class definition === */
+namespace Spider {
+    /* === Class definition === */
 
-class SpiderRuntime {
-public:
+    class SpiderRuntime {
+    public:
 
-    explicit SpiderRuntime(PiSDFGraph *graph) : graph_{ graph } {
-        if (!graph_) {
-            throwSpiderException("nullptr graph.");
-        }
+        explicit SpiderRuntime(PiSDFGraph *graph) : graph_{ graph } {
+            if (!graph_) {
+                throwSpiderException("nullptr graph.");
+            }
+        };
+
+        ~SpiderRuntime() = default;
+
+        /**
+         * @brief Setup method of the runtime (maybe empty)
+         */
+        virtual void setup() const = 0;
+
+        /**
+         * @brief Main method of the runtime, do a graph iteration.
+         * @return true if iteration was successful, false else.
+         */
+        virtual bool execute() const = 0;
+
+    protected:
+        PiSDFGraph *graph_ = nullptr;
     };
+}
 
-    ~SpiderRuntime() = default;
-
-    /**
-     * @brief Setup method of the runtime (maybe empty)
-     */
-    virtual void setup() const = 0;
-
-    /**
-     * @brief Main method of the runtime, do a graph iteration.
-     * @return true if iteration was successful, false else.
-     */
-    virtual bool execute() const = 0;
-
-protected:
-    PiSDFGraph *graph_ = nullptr;
-};
 
 #endif //SPIDER2_SPIDERRUNTIME_H

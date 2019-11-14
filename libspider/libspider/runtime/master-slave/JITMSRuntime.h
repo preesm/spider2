@@ -42,34 +42,35 @@
 
 /* === Include(s) === */
 
-#include <runtime/SpiderRuntime.h>
+#include <runtime/Runtime.h>
 
-/* === Class definition === */
+namespace Spider {
 
-class JITMSRuntime final : public SpiderRuntime {
-public:
+    /* === Class definition === */
 
-    explicit JITMSRuntime(PiSDFGraph *graph) : SpiderRuntime(graph) { };
+    class JITMSRuntime final : public Runtime {
+    public:
 
-    ~JITMSRuntime() = default;
+        explicit JITMSRuntime(PiSDFGraph *graph) : Runtime(graph) { };
 
-    /* === Method(s) === */
+        ~JITMSRuntime() = default;
 
-    inline void setup() const override { };
+        /* === Method(s) === */
 
-    bool execute() const override;
+        inline void setup() const override { };
 
-    /* === Getter(s) === */
+        bool execute() const override;
 
-    /* === Setter(s) === */
+        /* === Getter(s) === */
 
-private:
+        /* === Setter(s) === */
 
-    /* === Private method(s) === */
-};
+    private:
 
-/* === Inline method(s) === */
+        /* === Private method(s) === */
+    };
 
+    /* === Inline method(s) === */
 
-
+}
 #endif //SPIDER2_JITMSRUNTIME_H
