@@ -30,6 +30,7 @@ test-memory:
   stage: test
   script: 
     - "cd libspider/units-tests/libSpider2-tests/"
+    - ./build-test.sh memory
     - ./run-test.sh memory
   artifacts:
     reports:
@@ -38,6 +39,7 @@ test-containers:
   stage: test
   script: 
     - "cd libspider/units-tests/libSpider2-tests/"
+    - ./build-test.sh containers
     - ./run-test.sh containers
   artifacts:
     reports:
@@ -46,6 +48,7 @@ test-expression:
   stage: test
   script: 
     - "cd libspider/units-tests/libSpider2-tests/"
+    - ./build-test.sh expression-parser
     - ./run-test.sh expression-parser
   artifacts:
     reports:
