@@ -52,9 +52,9 @@ namespace Spider {
 
         struct Job;
 
-        struct VertexLinker;
+        struct TransfoVertex;
 
-        struct JobLinker;
+        struct TransfoJob;
 
         /* === Type definition(s) === */
 
@@ -62,48 +62,54 @@ namespace Spider {
 
         using TransfoTracker = Spider::vector<std::uint32_t, StackID::TRANSFO>;
 
-        using LinkerVector = Spider::vector<VertexLinker, StackID::TRANSFO>;
+        using TransfoStack = Spider::vector<TransfoVertex, StackID::TRANSFO>;
 
         /* === Function(s) prototype === */
 
-        PiSDFAbstractVertex *fetchOrClone(const PiSDFAbstractVertex *vertex, JobLinker &linker);
+        /**
+         * @brief
+         * @param vertex
+         * @param transfoJob
+         * @return
+         */
+        PiSDFAbstractVertex *fetchOrClone(PiSDFAbstractVertex *vertex, TransfoJob &transfoJob);
 
-        void fillLinkerVector(LinkerVector &vector,
-                              const PiSDFAbstractVertex *reference,
+        void fillLinkerVector(TransfoStack &vector,
+                              PiSDFAbstractVertex *reference,
                               std::int64_t rate,
                               std::uint32_t portIx,
-                              JobLinker &linker);
+                              TransfoJob &transfoJob);
 
         /**
          * @brief Add a @refitem ForkVertex into the single-rate graph and connect it.
-         * @param srcVector   Vector of @refitem VertexLinker.
-         * @param snkVector   Vector of @refitem VertexLinker.
+         * @param srcVector   Vector of @refitem TransfoVertex.
+         * @param snkVector   Vector of @refitem TransfoVertex.
          * @param srdag       Single-Rate graph.
          */
-        void addForkVertex(LinkerVector &srcVector, LinkerVector &snkVector, PiSDFGraph *srdag);
+        void addForkVertex(TransfoStack &srcVector, TransfoStack &snkVector, PiSDFGraph *srdag);
 
         /**
          * @brief Add a @refitem JoinVertex into the single-rate graph and connect it.
-         * @param srcVector   Vector of @refitem VertexLinker.
-         * @param snkVector   Vector of @refitem VertexLinker.
+         * @param srcVector   Vector of @refitem TransfoVertex.
+         * @param snkVector   Vector of @refitem TransfoVertex.
          * @param srdag       Single-Rate graph.
          */
-        void addJoinVertex(LinkerVector &srcVector, LinkerVector &snkVector, PiSDFGraph *srdag);
+        void addJoinVertex(TransfoStack &srcVector, TransfoStack &snkVector, PiSDFGraph *srdag);
 
         /**
          * @brief Insert @refitem UpSampleVertex for every input interface and @refitem TailVertex for
          *        every output interface of current job.
-         * @param linker Current @refitem JobLinker.
+         * @param transfoJob Current @refitem JobLinker.
          */
-        void replaceJobInterfaces(JobLinker &linker);
+        void replaceJobInterfaces(TransfoJob &transfoJob);
 
         /**
          * @brief Compute all real dependencies of current instances of source / sink of the edge.
          * @param srcVector  Vector of @refitem VertexLinker corresponding to the sources of the edge of the job.
          * @param snkVector  Vector of @refitem VertexLinker corresponding to the sinks of the edge of the job.
-         * @param linker     Current @refitem JobLinker.
+         * @param transfoJob     Current @refitem JobLinker.
          */
-        void computeEdgeDependencies(LinkerVector &srcVector, LinkerVector &snkVector, JobLinker &linker);
+        void computeEdgeDependencies(TransfoStack &srcVector, TransfoStack &snkVector, TransfoJob &transfoJob);
     }
 }
 

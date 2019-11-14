@@ -55,7 +55,7 @@ namespace Spider {
 
         struct Job;
 
-        struct VertexLinker;
+        struct TransfoVertex;
 
         /* === Type definition(s) === */
 
@@ -63,7 +63,7 @@ namespace Spider {
 
         using TransfoTracker = Spider::vector<std::uint32_t, StackID::TRANSFO>;
 
-        using LinkerVector = Spider::vector<VertexLinker, StackID::TRANSFO>;
+        using TransfoStack = Spider::vector<TransfoVertex, StackID::TRANSFO>;
 
         /* === Structure definition(s) === */
 
@@ -96,21 +96,21 @@ namespace Spider {
             }
         };
 
-        struct VertexLinker {
+        struct TransfoVertex {
             std::int64_t rate_ = -1;
             std::uint32_t portIx_ = UINT32_MAX;
             PiSDFAbstractVertex *vertex_ = nullptr;
             std::uint32_t lowerDep_ = UINT32_MAX;
             std::uint32_t upperDep_ = 0;
 
-            VertexLinker() = default;
+            TransfoVertex() = default;
 
-            VertexLinker(std::int64_t rate, std::uint32_t portIx, PiSDFAbstractVertex *vertex) : rate_{ rate },
-                                                                                                 portIx_{ portIx },
-                                                                                                 vertex_{ vertex } { }
+            TransfoVertex(std::int64_t rate, std::uint32_t portIx, PiSDFAbstractVertex *vertex) : rate_{ rate },
+                                                                                                  portIx_{ portIx },
+                                                                                                  vertex_{ vertex } { }
         };
 
-        struct JobLinker {
+        struct TransfoJob {
             const Job &job_;
             const PiSDFEdge *edge_ = nullptr;
             PiSDFGraph *srdag_ = nullptr;
@@ -119,15 +119,15 @@ namespace Spider {
             TransfoTracker &tracker_;
             TransfoTracker &init2dynamic_;
 
-            JobLinker() = delete;
+            TransfoJob() = delete;
 
-            JobLinker(const Job &job,
-                      const PiSDFEdge *edge,
-                      PiSDFGraph *graph,
-                      JobStack &nextJobs,
-                      JobStack &dynaJobs,
-                      TransfoTracker &tracker,
-                      TransfoTracker &init2dynamic) : job_{ job },
+            TransfoJob(const Job &job,
+                       const PiSDFEdge *edge,
+                       PiSDFGraph *graph,
+                       JobStack &nextJobs,
+                       JobStack &dynaJobs,
+                       TransfoTracker &tracker,
+                       TransfoTracker &init2dynamic) : job_{ job },
                                                       edge_{ edge },
                                                       srdag_{ graph },
                                                       nextJobs_{ nextJobs },
@@ -160,9 +160,9 @@ namespace Spider {
 
         /**
          * @brief Perform single rate transformation for a given edge.
-         * @param linker Job information.
+         * @param transfoJob Job information.
          */
-        void staticEdgeSingleRateLinkage(JobLinker &linker);
+        void staticEdgeSingleRateLinkage(TransfoJob &transfoJob);
     }
 }
 

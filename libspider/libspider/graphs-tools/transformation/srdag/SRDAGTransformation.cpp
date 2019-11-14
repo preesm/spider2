@@ -53,11 +53,11 @@
 
 /* === Static function(s) === */
 
-static Spider::SRDAG::LinkerVector buildSourceLinkerVector(Spider::SRDAG::JobLinker &linker) {
+static Spider::SRDAG::TransfoStack buildSourceLinkerVector(Spider::SRDAG::TransfoJob &linker) {
     const auto &edge = linker.edge_;
     const auto &source = edge->source();
     const auto &delay = edge->delay();
-    Spider::SRDAG::LinkerVector sourceVector;
+    Spider::SRDAG::TransfoStack sourceVector;
     sourceVector.reserve(source->repetitionValue() + (delay ? delay->setter()->repetitionValue() : 0));
 
     /* == Populate first the source clones in reverse order == */
@@ -77,12 +77,12 @@ static Spider::SRDAG::LinkerVector buildSourceLinkerVector(Spider::SRDAG::JobLin
     return sourceVector;
 }
 
-static Spider::SRDAG::LinkerVector buildSinkLinkerVector(Spider::SRDAG::JobLinker &linker) {
+static Spider::SRDAG::TransfoStack buildSinkLinkerVector(Spider::SRDAG::TransfoJob &linker) {
     const auto &edge = linker.edge_;
     const auto &sink = edge->sink();
     const auto &delay = edge->delay();
 
-    Spider::SRDAG::LinkerVector sinkVector;
+    Spider::SRDAG::TransfoStack sinkVector;
     sinkVector.reserve(sink->repetitionValue() + (delay ? delay->getter()->repetitionValue() : 0));
 
     /* == First, if delay, populate the getter clones in reverse order == */
@@ -304,7 +304,7 @@ Spider::SRDAG::staticSingleRateTransformation(const Spider::SRDAG::Job &job, PiS
     JobStack dynaJobs;
 
     /* == Replace the interfaces of the graph and remove the vertex == */
-    auto &&linker = JobLinker{ job, nullptr, srdag, nextJobs, dynaJobs, vertexTransfoTracker, init2dynamic_ };
+    auto &&linker = TransfoJob{ job, nullptr, srdag, nextJobs, dynaJobs, vertexTransfoTracker, init2dynamic_ };
     replaceJobInterfaces(linker);
 
     /* == Clone the vertices == */
@@ -329,8 +329,8 @@ Spider::SRDAG::staticSingleRateTransformation(const Spider::SRDAG::Job &job, PiS
     return std::make_pair(std::move(nextJobs), std::move(dynaJobs));
 }
 
-void Spider::SRDAG::staticEdgeSingleRateLinkage(JobLinker &linker) {
-    const auto &edge = linker.edge_;
+void Spider::SRDAG::staticEdgeSingleRateLinkage(TransfoJob &transfoJob) {
+    const auto &edge = transfoJob.edge_;
     if ((edge->source()->type() == PiSDFVertexType::DELAY) ||
         (edge->sink()->type() == PiSDFVertexType::DELAY)) {
         return;
@@ -341,11 +341,11 @@ void Spider::SRDAG::staticEdgeSingleRateLinkage(JobLinker &linker) {
         }
     }
 
-    auto sourceVector = buildSourceLinkerVector(linker);
-    auto sinkVector = buildSinkLinkerVector(linker);
+    auto sourceVector = buildSourceLinkerVector(transfoJob);
+    auto sinkVector = buildSinkLinkerVector(transfoJob);
 
     /* == Compute the different dependencies of sinks over sources == */
-    Spider::SRDAG::computeEdgeDependencies(sourceVector, sinkVector, linker);
+    Spider::SRDAG::computeEdgeDependencies(sourceVector, sinkVector, transfoJob);
 
     /* == Iterate over sinks == */
     while (!sinkVector.empty()) {
@@ -360,11 +360,11 @@ void Spider::SRDAG::staticEdgeSingleRateLinkage(JobLinker &linker) {
                 sinkVector.pop_back();
             } else {
                 /* == Source need a fork == */
-                Spider::SRDAG::addForkVertex(sourceVector, sinkVector, linker.srdag_);
+                Spider::SRDAG::addForkVertex(sourceVector, sinkVector, transfoJob.srdag_);
             }
         } else {
             /* == Sink need a join == */
-            Spider::SRDAG::addJoinVertex(sourceVector, sinkVector, linker.srdag_);
+            Spider::SRDAG::addJoinVertex(sourceVector, sinkVector, transfoJob.srdag_);
         }
     }
 
