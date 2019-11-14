@@ -55,9 +55,8 @@
 
 /* == Static function(s) === */
 
-static std::string buildCloneName(const PiSDFAbstractVertex *vertex,
-                                  const std::uint32_t &instance,
-                                  Spider::SRDAG::JobLinker &linker) {
+static std::string
+buildCloneName(const PiSDFAbstractVertex *vertex, std::uint32_t instance, Spider::SRDAG::JobLinker &linker) {
     const auto *graphRef = linker.job_.instanceValue_ == UINT32_MAX ? linker.job_.reference_ :
                            linker.srdag_->vertex(linker.job_.srdagIx_);
     return graphRef->name() + "-" + vertex->name() + "_" + std::to_string(instance);
@@ -178,8 +177,8 @@ PiSDFAbstractVertex *Spider::SRDAG::fetchOrClone(const PiSDFAbstractVertex *vert
 
 void Spider::SRDAG::fillLinkerVector(LinkerVector &vector,
                                      const PiSDFAbstractVertex *reference,
-                                     const std::int64_t &rate,
-                                     const std::uint32_t &portIx,
+                                     std::int64_t rate,
+                                     std::uint32_t portIx,
                                      JobLinker &linker) {
     const auto &clone = fetchOrClone(reference, linker);
     const auto &cloneIx = clone->ix();

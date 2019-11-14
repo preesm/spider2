@@ -70,8 +70,8 @@ namespace Spider {
 
         void fillLinkerVector(LinkerVector &vector,
                               const PiSDFAbstractVertex *reference,
-                              const std::int64_t &rate,
-                              const std::uint32_t &portIx,
+                              std::int64_t rate,
+                              std::uint32_t portIx,
                               JobLinker &linker);
 
         /**

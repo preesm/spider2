@@ -240,10 +240,7 @@ FreeListAllocator::Node *FreeListAllocator::createExtraBuffer(std::uint64_t size
 }
 
 std::pair<FreeListAllocator::Node *, FreeListAllocator::Node *>
-FreeListAllocator::findFirst(const std::uint64_t &size,
-                             std::int32_t &padding,
-                             const std::uint64_t &alignment,
-                             Node *base) {
+FreeListAllocator::findFirst(std::uint64_t size, std::int32_t &padding, std::uint64_t alignment, Node *base) {
     padding = AbstractAllocator::computePaddingWithHeader(size, alignment, sizeof(FreeListAllocator::Header));
     const auto &requiredSize = size + padding;
     Node *previousNode = nullptr;
@@ -259,10 +256,7 @@ FreeListAllocator::findFirst(const std::uint64_t &size,
 }
 
 std::pair<FreeListAllocator::Node *, FreeListAllocator::Node *>
-FreeListAllocator::findBest(const std::uint64_t &size,
-                            std::int32_t &padding,
-                            const std::uint64_t &alignment,
-                            Node *base) {
+FreeListAllocator::findBest(std::uint64_t size, std::int32_t &padding, std::uint64_t alignment, Node *base) {
     padding = AbstractAllocator::computePaddingWithHeader(size, alignment, sizeof(FreeListAllocator::Header));
     auto &&minFit = UINT64_MAX;
     const auto &requiredSize = size + padding;

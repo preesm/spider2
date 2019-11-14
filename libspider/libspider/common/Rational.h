@@ -72,21 +72,21 @@ namespace Spider {
 
         inline Rational operator/(const Rational &b) const;
 
-        inline Rational operator+(const std::int64_t &b) const;
+        inline Rational operator+(std::int64_t b) const;
 
-        inline Rational operator-(const std::int64_t &b) const;
+        inline Rational operator-(std::int64_t b) const;
 
-        inline Rational operator*(const std::int64_t &b) const;
+        inline Rational operator*(std::int64_t b) const;
 
-        inline Rational operator/(const std::int64_t &b) const;
+        inline Rational operator/(std::int64_t b) const;
 
         inline bool operator==(const Rational &b) const;
 
-        inline bool operator==(const std::int64_t &a) const;
+        inline bool operator==(std::int64_t a) const;
 
         inline bool operator!=(const Rational &b) const;
 
-        inline bool operator!=(const std::int64_t &a) const;
+        inline bool operator!=(std::int64_t a) const;
 
         inline bool operator!() const;
 
@@ -192,19 +192,19 @@ namespace Spider {
         return Rational{ *this } /= b;
     }
 
-    Rational Rational::operator+(const std::int64_t &b) const {
+    Rational Rational::operator+(std::int64_t b) const {
         return *this + Rational{ b };
     }
 
-    Rational Rational::operator-(const std::int64_t &b) const {
+    Rational Rational::operator-(std::int64_t b) const {
         return *this - Rational{ b };
     }
 
-    Rational Rational::operator*(const std::int64_t &b) const {
+    Rational Rational::operator*(std::int64_t b) const {
         return *this * Rational{ b };
     }
 
-    Rational Rational::operator/(const std::int64_t &b) const {
+    Rational Rational::operator/(std::int64_t b) const {
         return *this / Rational{ b };
     }
 
@@ -212,7 +212,7 @@ namespace Spider {
         return n_ == b.n_ && d_ == b.d_;
     }
 
-    bool Rational::operator==(const std::int64_t &a) const {
+    bool Rational::operator==(std::int64_t a) const {
         return this->toDouble() == static_cast<double >(a);
     }
 
@@ -220,7 +220,7 @@ namespace Spider {
         return !(*this == b);
     }
 
-    bool Rational::operator!=(const std::int64_t &a) const {
+    bool Rational::operator!=(std::int64_t a) const {
         return !(*this == a);
     }
 

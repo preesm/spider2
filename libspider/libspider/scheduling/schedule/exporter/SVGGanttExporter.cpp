@@ -53,12 +53,12 @@
 
 /* === Static variable(s) === */
 
-static const std::uint32_t &offset = 3;
-static const std::uint32_t &border = 5;
-static const std::uint32_t &arrowSize = 8;
-static const std::uint32_t &arrowStroke = 2;
-static const std::uint32_t &taskHeight = 50;
-static const std::uint32_t &taskSpace = 5;
+static constexpr std::uint32_t offset = 3;
+static constexpr std::uint32_t border = 5;
+static constexpr std::uint32_t arrowSize = 8;
+static constexpr std::uint32_t arrowStroke = 2;
+static constexpr std::uint32_t taskHeight = 50;
+static constexpr std::uint32_t taskSpace = 5;
 
 /* === Static function(s) === */
 

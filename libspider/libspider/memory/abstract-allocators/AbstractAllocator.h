@@ -114,17 +114,16 @@ protected:
     std::uint64_t numberAverage_ = 0;
     std::int32_t alignment_ = 0;
 
-    static inline std::uint64_t computeAlignedSize(const std::uint64_t &size, const std::uint64_t &alignment = 4096);
+    static inline std::uint64_t computeAlignedSize(std::uint64_t size, std::uint64_t alignment = 4096);
 
-    static inline std::uint64_t computePadding(const std::uint64_t &base, const std::uint64_t &alignment);
+    static inline std::uint64_t computePadding(std::uint64_t base, std::uint64_t alignment);
 
-    static inline std::uint64_t computePaddingWithHeader(const std::uint64_t &base,
-                                                         const std::uint64_t &alignment,
-                                                         const std::uint64_t &headerSize);
+    static inline std::uint64_t
+    computePaddingWithHeader(std::uint64_t base, std::uint64_t alignment, std::uint64_t headerSize);
 
-    static inline const char *getByteUnitString(const std::uint64_t &size);
+    static inline const char *getByteUnitString(std::uint64_t size);
 
-    static inline double getByteNormalizedSize(const std::uint64_t &size);
+    static inline double getByteNormalizedSize(std::uint64_t size);
 
 private:
     std::string name_;
@@ -173,19 +172,17 @@ void AbstractAllocator::printStats() const {
     }
 }
 
-std::uint64_t AbstractAllocator::computeAlignedSize(const std::uint64_t &size,
-                                                    const std::uint64_t &alignment /* = 4096 */) {
+std::uint64_t AbstractAllocator::computeAlignedSize(std::uint64_t size, std::uint64_t alignment /* = 4096 */) {
     const auto &alignFactor = Spider::Math::ceilDiv(size, alignment);
     return alignFactor * alignment;
 }
 
-std::uint64_t AbstractAllocator::computePadding(const std::uint64_t &base, const std::uint64_t &alignment) {
+std::uint64_t AbstractAllocator::computePadding(std::uint64_t base, std::uint64_t alignment) {
     return computeAlignedSize(base, alignment) - base;
 }
 
-std::uint64_t AbstractAllocator::computePaddingWithHeader(const std::uint64_t &base,
-                                                          const std::uint64_t &alignment,
-                                                          const std::uint64_t &headerSize) {
+std::uint64_t
+AbstractAllocator::computePaddingWithHeader(std::uint64_t base, std::uint64_t alignment, std::uint64_t headerSize) {
     auto &&padding = computePadding(base, alignment);
     if (padding < headerSize) {
         const auto &neededSpace = headerSize - padding;
@@ -197,7 +194,7 @@ std::uint64_t AbstractAllocator::computePaddingWithHeader(const std::uint64_t &b
     return padding;
 }
 
-const char *AbstractAllocator::getByteUnitString(const std::uint64_t &size) {
+const char *AbstractAllocator::getByteUnitString(std::uint64_t size) {
     constexpr std::uint64_t sizeGB = 1024 * 1024 * 1024;
     constexpr std::uint64_t sizeMB = 1024 * 1024;
     constexpr std::uint64_t sizeKB = 1024;
@@ -211,7 +208,7 @@ const char *AbstractAllocator::getByteUnitString(const std::uint64_t &size) {
     return "B";
 }
 
-double AbstractAllocator::getByteNormalizedSize(const std::uint64_t &size) {
+double AbstractAllocator::getByteNormalizedSize(std::uint64_t size) {
     constexpr double sizeGB = 1024 * 1024 * 1024;
     constexpr double sizeMB = 1024 * 1024;
     constexpr double sizeKB = 1024;

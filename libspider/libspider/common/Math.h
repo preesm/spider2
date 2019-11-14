@@ -51,55 +51,55 @@
 namespace Spider {
     namespace Math {
 
-        inline std::uint16_t ceilDiv(const std::uint16_t &x, const std::uint16_t &y) {
+        inline std::uint16_t ceilDiv(std::uint16_t x, std::uint16_t y) {
             return x / y + (x % y != 0);
         }
 
-        inline std::uint32_t ceilDiv(const std::uint32_t &x, const std::uint32_t &y) {
+        inline std::uint32_t ceilDiv(std::uint32_t x, std::uint32_t y) {
             return x / y + (x % y != 0);
         }
 
-        inline std::uint64_t ceilDiv(const std::uint64_t &x, const std::uint64_t &y) {
+        inline std::uint64_t ceilDiv(std::uint64_t x, std::uint64_t y) {
             return x / y + (x % y != 0);
         }
 
-        inline std::int32_t ceilDiv(const std::int32_t &x, const std::int32_t &y) {
+        inline std::int32_t ceilDiv(std::int32_t x, std::int32_t y) {
             auto neg = (x < 0 && y > 0) || (x > 0 && y < 0);
             std::uint64_t a = x < 0 ? (-x) : x;
             std::uint64_t b = y < 0 ? (-y) : y;
             return neg ? -(a / b) : ceilDiv(a, b);
         }
 
-        inline std::int64_t ceilDiv(const std::int64_t &x, const std::int64_t &y) {
+        inline std::int64_t ceilDiv(std::int64_t x, std::int64_t y) {
             auto neg = (x < 0 && y > 0) || (x > 0 && y < 0);
             std::uint64_t a = x < 0 ? (-x) : x;
             std::uint64_t b = y < 0 ? (-y) : y;
             return neg ? -(a / b) : ceilDiv(a, b);
         }
 
-        inline std::int64_t floorDiv(const std::int64_t &x, const std::int64_t &y) {
+        inline std::int64_t floorDiv(std::int64_t x, std::int64_t y) {
             auto neg = (x < 0 && y > 0) || (x > 0 && y < 0);
             std::uint64_t a = x < 0 ? (-x) : x;
             std::uint64_t b = y < 0 ? (-y) : y;
             return neg ? -ceilDiv(a, b) : a / b;
         }
 
-        inline std::int32_t floorDiv(const std::int32_t &x, const std::int32_t &y) {
+        inline std::int32_t floorDiv(std::int32_t x, std::int32_t y) {
             auto neg = (x < 0 && y > 0) || (x > 0 && y < 0);
             std::uint32_t a = x < 0 ? (-x) : x;
             std::uint32_t b = y < 0 ? (-y) : y;
             return neg ? -ceilDiv(a, b) : a / b;
         }
 
-        inline std::int16_t abs(const std::int16_t &x) {
+        inline std::int16_t abs(std::int16_t x) {
             return x < 0 ? -x : x;
         }
 
-        inline std::int32_t abs(const std::int32_t &x) {
+        inline std::int32_t abs(std::int32_t x) {
             return x < 0 ? -x : x;
         }
 
-        inline std::int64_t abs(const std::int64_t &x) {
+        inline std::int64_t abs(std::int64_t x) {
             return x < 0 ? -x : x;
         }
 
