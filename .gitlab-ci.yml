@@ -17,24 +17,24 @@ build-test-memory:
     - "cd libspider/units-tests/libSpider2-tests/"
     - ./build-test.sh memory
   artifacts:
-    path:
-        - "libspider/units-tests/libSpider2-tests/memory/bin"
+    paths:
+    - "libspider/units-tests/libSpider2-tests/memory/bin"
 build-test-containers: 
   stage: build-test
   script: 
     - "cd libspider/units-tests/libSpider2-tests/"
     - ./build-test.sh containers
   artifacts:
-    path:
-        - "libspider/units-tests/libSpider2-tests/containers/bin"
+    paths:
+    - "libspider/units-tests/libSpider2-tests/containers/bin"
 build-test-expression: 
   stage: build-test
   script: 
     - "cd libspider/units-tests/libSpider2-tests/"
     - ./build-test.sh expression-parser
   artifacts:
-    path:
-        - "libspider/units-tests/libSpider2-tests/expression-parser/bin"
+    paths:
+    - "libspider/units-tests/libSpider2-tests/expression-parser/bin"
 test-memory: 
   stage: test
   script: 
