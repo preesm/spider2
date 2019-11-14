@@ -43,4 +43,4 @@ file(GLOB_RECURSE
         )
 
 add_executable(test-containers main.cpp ${source_files} ${header_files})
-target_link_libraries(test-containers ${GTEST_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(test-containers ${GTEST_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} gcov)

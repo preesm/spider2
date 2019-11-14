@@ -40,6 +40,5 @@
 
 int main(int argc, char **argv) {
     testing::InitGoogleTest(&argc, argv);
-    exit(1);
     return RUN_ALL_TESTS();
 }

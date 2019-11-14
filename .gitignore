@@ -104,3 +104,4 @@ build/
 # Unit tests generated files #
 ##############################
 report/
+*.info

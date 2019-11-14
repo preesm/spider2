@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 if [ "$#" -ne 1 ]; then
     echo "Expecting one argument."
     echo "usage: ./build-test.sh FOLDER_NAME"

@@ -1,4 +1,5 @@
 #!/bin/sh
+set -e
 
 which lcov 1>/dev/null 2>&1
 if [ $? != 0 ]
@@ -20,10 +21,8 @@ cd $1/bin
 ./test-$1 --gtest_output="xml:../report-$1.xml"
 
 # Generate html report
-mv CMakeFiles/runtime.dir/main.gcda .
-mv CMakeFiles/runtime.dir/main.gcno .
 rm -f $1/$1_test.info
-lcov --base-directory . --directory . -c -o $1_test.info
+lcov -c -d . -o $1_test.info
 lcov --remove $1_test.info "/usr*" -o $1_test.info # remove output for external libraries
 rm -rf ../report
 
