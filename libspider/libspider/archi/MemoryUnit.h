@@ -50,7 +50,7 @@
 class MemoryUnit {
 public:
 
-    MemoryUnit(char *base, std::uint64_t size);
+    MemoryUnit(void *base, std::uint64_t size);
 
     ~MemoryUnit() = default;
 
@@ -58,7 +58,7 @@ public:
 
     inline void reset();
 
-    inline char *physicalAddress(std::uint64_t virtualAddress) const;
+    inline void *physicalAddress(std::uintptr_t virtualAddress) const;
 
     inline std::uint64_t allocate(std::uint64_t size);
 
@@ -80,7 +80,7 @@ private:
 
     /* === Core properties === */
 
-    char *base_ = nullptr;
+    void *base_ = nullptr;
     std::uint64_t size_ = 0;
     std::uint64_t used_ = 0;
     std::uint32_t ix_ = 0;
@@ -96,11 +96,12 @@ void MemoryUnit::reset() {
     used_ = 0;
 }
 
-char *MemoryUnit::physicalAddress(std::uint64_t virtualAddress) const {
+void *MemoryUnit::physicalAddress(std::uint64_t virtualAddress) const {
     if (virtualAddress > size_) {
         throwSpiderException("Invalid memory address!");
     }
-    return base_ + virtualAddress;
+    const auto &physical = reinterpret_cast<std::uintptr_t>(base_) + virtualAddress;
+    return reinterpret_cast<void *>(physical);
 }
 
 std::uint64_t MemoryUnit::allocate(std::uint64_t size) {

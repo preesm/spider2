@@ -132,6 +132,8 @@ void Spider::API::disablePE(ProcessingElement *PE) {
 
 /* === MemoryUnit related API === */
 
-MemoryUnit *Spider::API::createMemoryUnit(char *base, std::uint64_t size) {
-    return nullptr;
+MemoryUnit *Spider::API::createMemoryUnit(void *base, std::uint64_t size) {
+    auto *unit = Spider::allocate<MemoryUnit>(StackID::ARCHI);
+    Spider::construct(unit, base, size);
+    return unit;
 }

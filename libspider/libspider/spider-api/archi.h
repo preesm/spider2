@@ -226,7 +226,7 @@ namespace Spider {
          * @param size  Size of the MemoryUnit.
          * @return Pointer to newly created @refitem MemoryUnit, associated memory is handled by spider.
          */
-        MemoryUnit *createMemoryUnit(char *base, std::uint64_t size);
+        MemoryUnit *createMemoryUnit(void *base, std::uint64_t size);
     }
 }
 

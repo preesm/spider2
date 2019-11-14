@@ -48,7 +48,7 @@
 
 /* === Method(s) implementation === */
 
-MemoryUnit::MemoryUnit(char *base, std::uint64_t size) : base_{ base },
+MemoryUnit::MemoryUnit(void *base, std::uint64_t size) : base_{ base },
                                                          size_{ size } {
 
 }
