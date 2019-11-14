@@ -54,7 +54,7 @@
 
 /* === Method(s) implementation === */
 
-Spider::Schedule &Spider::BestFitScheduler::mappingScheduling(bool partial) {
+Spider::Schedule &Spider::BestFitScheduler::mappingScheduling() {
     schedule_.setJobCount(sortedVertexVector_.size());
     for (auto &listVertex : sortedVertexVector_) {
         vertexMapper(listVertex.vertex);

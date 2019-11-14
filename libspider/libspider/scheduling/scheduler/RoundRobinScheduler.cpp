@@ -48,6 +48,6 @@
 
 /* === Method(s) implementation === */
 
-Spider::Schedule &Spider::RoundRobinScheduler::mappingScheduling(bool partial) {
+Spider::Schedule &Spider::RoundRobinScheduler::mappingScheduling() {
     return schedule_;
 }

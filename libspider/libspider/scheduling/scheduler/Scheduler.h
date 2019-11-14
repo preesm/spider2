@@ -59,7 +59,7 @@ namespace Spider {
 
         /* === Method(s) === */
 
-        virtual Schedule &mappingScheduling(bool partial) = 0;
+        virtual Schedule &mappingScheduling() = 0;
 
         /* === Getter(s) === */
 
