@@ -61,7 +61,6 @@ void ExpressionTest::SetUp() {
     cfg.allocatorType = AllocatorType::FREELIST;
     cfg.size = 4096;
     Spider::initAllocator(StackID::GENERAL, cfg);
-    Spider::initAllocator(StackID::EXPR_PARSER, cfg);
     Spider::initAllocator(StackID::PISDF, cfg);
 }
 

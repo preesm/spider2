@@ -57,11 +57,13 @@
 #include <cstdint>
 
 #ifdef __APPLE__
+
 /* === MacOSX does not implement semaphores (use dispatch instead) === */
 
 #include <dispatch/dispatch.h>
 
 #else
+
 /* === Windows / Unix (use POSIX semaphores) === */
 
 #include <semaphore.h>
@@ -69,6 +71,7 @@
 /* === semaphore.h includes _ptw32.h that redefines types int64_t and uint64_t on Visual Studio, === */
 /* === making compilation error with the IDE's own declaration of said types === */
 #ifdef _MSC_VER
+
 #ifdef int64_t
 #undef int64_t
 #endif
@@ -76,11 +79,11 @@
 #ifdef uint64_t
 #undef uint64_t
 #endif
+
 #endif
 #endif
 
 /* === Methods prototype === */
-
 
 namespace Spider {
     namespace Semaphore {

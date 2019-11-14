@@ -1,0 +1,8 @@
+//
+// Created by farresti on 14/11/2019.
+//
+
+#ifndef SPIDER2_SRDAGTRANSFOHELPER_H
+#define SPIDER2_SRDAGTRANSFOHELPER_H
+
+#endif //SPIDER2_SRDAGTRANSFOHELPER_H

@@ -57,7 +57,6 @@ void RPNConverterTest::SetUp() {
     cfg.allocatorType = AllocatorType::FREELIST;
     cfg.size = 512;
     Spider::initAllocator(StackID::GENERAL, cfg);
-    Spider::initAllocator(StackID::EXPR_PARSER, cfg);
 }
 
 void RPNConverterTest::TearDown() {
