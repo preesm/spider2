@@ -71,7 +71,7 @@ TEST_F(ArrayTest, TestCreation) {
 
 TEST_F(ArrayTest, TestAssignation) {
     auto testArray = Spider::Array<double>(10);
-    EXPECT_NO_THROW(testArray[0] =  4.1415926535);
+    EXPECT_NO_THROW(testArray[0] =  3.1415926535);
     EXPECT_EQ(testArray[0], 3.1415926535);
     EXPECT_THROW(testArray.at(10) =  3.141592, Spider::Exception);
     EXPECT_THROW(testArray.at(-1) =  3.141592, Spider::Exception);
