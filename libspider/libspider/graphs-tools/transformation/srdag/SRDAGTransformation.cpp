@@ -41,7 +41,7 @@
 /* === Includes === */
 
 #include <cinttypes>
-#include <graphs-tools/transformation/SRDAGTransformation.h>
+#include <graphs-tools/transformation/srdag/SRDAGTransformation.h>
 #include <graphs-tools/transformation/srdag/SRDAGTransfoHelper.h>
 #include <graphs/pisdf/Delay.h>
 #include <graphs/pisdf/Interface.h>
