@@ -1,5 +1,6 @@
 stages: 
   - build
+  - build-test
   - test
 job-build: 
   stage: build
@@ -10,6 +11,11 @@ job-build:
     - "cmake ../.."
     - "make VERBOSE=1"
     - "cd ../../.."
+build-test-memory: 
+  stage: build-test
+  script: 
+    - "cd libspider/units-tests/libSpider2-tests/memory"
+    - ./build-memory-test.sh
 test-memory: 
   stage: test
   script: 
