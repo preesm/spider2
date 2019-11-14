@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.12)
 project(Spider2)
 
 # Setting C++ standard to C++11
@@ -190,6 +190,7 @@ file(
         ${SPIDER_LIB_DIR}/scheduling/scheduler/*.cpp
         ${SPIDER_LIB_DIR}/runtime/distributed/*.cpp
         ${SPIDER_LIB_DIR}/runtime/master-slave/*.cpp
+        ${SPIDER_LIB_DIR}/runtime/runner/*.cpp
         ${SPIDER_LIB_DIR}/spider-api/*.cpp
         ${SPIDER_LIB_DIR}/spider.cpp
 )
@@ -215,6 +216,7 @@ file(
         ${SPIDER_LIB_DIR}/runtime/*.h
         ${SPIDER_LIB_DIR}/runtime/distributed/*.h
         ${SPIDER_LIB_DIR}/runtime/master-slave/*.h
+        ${SPIDER_LIB_DIR}/runtime/runner/*.h
         ${SPIDER_LIB_DIR}/scenario/*.h
         ${SPIDER_LIB_DIR}/scheduling/*.h
         ${SPIDER_LIB_DIR}/scheduling/allocator/*.h
@@ -226,8 +228,8 @@ file(
 
 set(ALL_MY_SOURCE_FILES ${source_files} ${header_files})
 add_custom_target(
-        clang-tidy
-        COMMAND /usr/bin/clang-tidy
+        clang-tidy-8
+        COMMAND /usr/bin/clang-tidy-8
         ${ALL_MY_SOURCE_FILES}
         -config=''
         -fix-errors

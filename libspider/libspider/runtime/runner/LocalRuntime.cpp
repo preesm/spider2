@@ -37,42 +37,13 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_RUNTIME_H
-#define SPIDER2_RUNTIME_H
 
-/* === Includes === */
+/* === Include(s) === */
 
-#include <common/Exception.h>
-#include <graphs/pisdf/Types.h>
+#include <runtime/runner/LocalRuntime.h>
 
-namespace Spider {
+/* === Static function === */
 
-    /* === Class definition === */
+/* === Method(s) implementation === */
 
-    class Runtime {
-    public:
-
-        explicit Runtime(PiSDFGraph *graph) : graph_{ graph } {
-            if (!graph_) {
-                throwSpiderException("nullptr graph.");
-            }
-        };
-
-        ~Runtime() = default;
-
-        /**
-         * @brief Setup method of the runtime (maybe empty)
-         */
-        virtual void setup() const = 0;
-
-        /**
-         * @brief Main method of the runtime, do a graph iteration.
-         * @return true if iteration was successful, false else.
-         */
-        virtual bool execute() const = 0;
-
-    protected:
-        PiSDFGraph *graph_ = nullptr;
-    };
-}
-#endif //SPIDER2_RUNTIME_H
+/* === Private method(s) implementation === */
