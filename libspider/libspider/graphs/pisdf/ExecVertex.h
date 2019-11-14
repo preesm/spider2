@@ -71,14 +71,36 @@ namespace Spider {
 
             inline bool executable() const override;
 
+            /**
+             * @brief Get the refinement index in the global register associated to this vertex.
+             * @return index of the refinement, UINT32_MAX if not set.
+             */
             inline std::uint32_t refinementIx() const;
+
+            /**
+             * @brief Get the job ix associated to this vertex.
+             * @remark In the case of @refitem VertexType::CONFIG, the value match the one of the corresponding dynamic job.
+             * @return ix of the job, UINT32_MAX if not set.
+             */
+            inline std::uint32_t jobIx() const;
 
             /* === Setter(s) === */
 
+            /**
+             * @brief Set the refinement index of the vertex.
+             * @param ix  Index to set.
+             */
             inline void setRefinementIx(std::uint32_t ix);
+
+            /**
+             * @brief Set the job ix of the vertex.
+             * @param ix  Ix to set.
+             */
+            inline void setJobIx(std::uint32_t ix);
 
         protected:
             std::uint32_t refinementIx_ = UINT32_MAX;
+            std::uint32_t jobIx_ = UINT32_MAX;
         };
 
         bool ExecVertex::executable() const {
@@ -89,8 +111,16 @@ namespace Spider {
             return refinementIx_;
         }
 
+        std::uint32_t ExecVertex::jobIx() const {
+            return jobIx_;
+        }
+
         void Spider::PiSDF::ExecVertex::setRefinementIx(std::uint32_t ix) {
             refinementIx_ = ix;
+        }
+
+        void Spider::PiSDF::ExecVertex::setJobIx(std::uint32_t ix) {
+            jobIx_ = ix;
         }
     }
 }

@@ -45,6 +45,8 @@
 #include <containers/StlContainers.h>
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/Param.h>
+#include <graphs-tools/transformation/srdag/SRDAGTransfoHelper.h>
+
 
 namespace Spider {
     namespace SRDAG {
@@ -83,10 +85,12 @@ namespace Spider {
             }
 
             ~Job() {
-                for (auto &param : params_) {
-                    if (!param->containingGraph()) {
-                        Spider::destroy(param);
-                        Spider::deallocate(param);
+                if (reference_ && reference_->dynamic()) {
+                    for (auto &param : params_) {
+                        if (!param->containingGraph()) {
+                            Spider::destroy(param);
+                            Spider::deallocate(param);
+                        }
                     }
                 }
             }
@@ -113,7 +117,7 @@ namespace Spider {
             JobStack &nextJobs_;
             JobStack &dynaJobs_;
             TransfoTracker &tracker_;
-            TransfoTracker &dynamic2init_;
+            TransfoTracker &init2dynamic_;
 
             JobLinker() = delete;
 
@@ -129,7 +133,7 @@ namespace Spider {
                                                       nextJobs_{ nextJobs },
                                                       dynaJobs_{ dynaJobs },
                                                       tracker_{ tracker },
-                                                      dynamic2init_{ init2dynamic } { }
+                                                      init2dynamic_{ init2dynamic } { }
         };
 
         /* === Functions prototype === */
