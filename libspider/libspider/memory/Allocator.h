@@ -126,7 +126,7 @@ namespace Spider {
      * @param stack Stack on which the buffer should be allocated, see #SpiderStack
      * @return pointer to allocated buffer, nullptr if size is 0.
      */
-     // TODO: merge this with Allocator
+    // TODO: merge this with Allocator
     template<typename T>
     inline T *allocate(StackID stack, std::uint64_t size = 1) {
         /* == Allocate buffer with (size + 1) to store stack identifier == */
@@ -142,7 +142,7 @@ namespace Spider {
             reinterpret_cast<std::uint64_t *>(buffer)[0] = static_cast<std::uint64_t>(stack);
             buffer = buffer + sizeof(std::uint64_t);
         }
-         return reinterpret_cast<T *>(buffer);
+        return reinterpret_cast<T *>(buffer);
     }
 
     /**
@@ -234,7 +234,7 @@ namespace Spider {
          * @param value  Arguments use for by the constructor of the object
          */
         inline void construct(pointer_type ptr, const T &value) {
-            new (ptr) T(value);
+            new(ptr) T(value);
         }
 
         /**
