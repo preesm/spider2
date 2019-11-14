@@ -43,11 +43,7 @@
 #include <cinttypes>
 #include <graphs-tools/transformation/SRDAGTransformation.h>
 #include <graphs-tools/transformation/srdag/SRDAGTransfoHelper.h>
-#include <graphs/pisdf/params/DynamicParam.h>
-#include <graphs/pisdf/params/InHeritedParam.h>
 #include <graphs/pisdf/Delay.h>
-#include <graphs/pisdf/ExecVertex.h>
-#include <graphs/pisdf/specials/Specials.h>
 #include <graphs/pisdf/Interface.h>
 #include <graphs/pisdf/interfaces/InputInterface.h>
 #include <graphs/pisdf/interfaces/OutputInterface.h>
@@ -56,49 +52,6 @@
 #include <graphs-tools/expression-parser/Expression.h>
 
 /* === Static function(s) === */
-
-//static std::string
-//buildCloneName(const PiSDFAbstractVertex *vertex, std::uint32_t instance, Spider::SRDAG::JobLinker &linker) {
-//    const auto *graphRef = linker.job_.instanceValue_ == UINT32_MAX ? linker.job_.reference_ :
-//                           linker.srdag_->vertex(linker.job_.srdagIx_);
-//    return graphRef->name() + "-" + vertex->name() + "_" + std::to_string(instance);
-//}
-
-//static inline std::uint32_t uniformIx(const PiSDFAbstractVertex *vertex, const PiSDFGraph *graph) {
-//    return vertex->ix() +
-//           ((vertex->type() == PiSDFVertexType::INTERFACE) * graph->vertexCount()) +
-//           ((vertex->subtype() == PiSDFVertexType::OUTPUT) * graph->edgesINCount());
-//}
-
-//static PiSDFAbstractVertex *fetchOrClone(const PiSDFAbstractVertex *vertex, Spider::SRDAG::JobLinker &linker) {
-//    if (!vertex) {
-//        throwSpiderException("Trying to clone nullptr vertex.");
-//    }
-//    const auto &vertexUniformIx = uniformIx(vertex, linker.job_.reference_);
-//
-//    /* == If vertex has already been cloned return the first one == */
-//    if (linker.tracker_[vertexUniformIx] == UINT32_MAX) {
-//        if (vertex->subtype() == PiSDFVertexType::GRAPH) {
-//            /* == Clone the graph N times and create the different jobs == */
-//            linker.tracker_[vertexUniformIx] = cloneGraph(dynamic_cast<const PiSDFGraph *>(vertex), linker);
-//        } else {
-//            /* == Clone the vertex N times and return the first one == */
-//            linker.tracker_[vertexUniformIx] = cloneVertex(vertex, linker);
-//        }
-//    }
-//    return linker.srdag_->vertex(linker.tracker_[vertexUniformIx]);
-//}
-
-//static void pushReverseVertexLinkerVector(Spider::SRDAG::LinkerVector &vector,
-//                                          const PiSDFAbstractVertex *reference,
-//                                          const std::int64_t &rate,
-//                                          const std::uint32_t portIx,
-//                                          Spider::SRDAG::JobLinker &linker) {
-//    const auto &cloneIx = fetchOrClone(reference, linker)->ix();
-//    for (auto i = (cloneIx + reference->repetitionValue()); i != cloneIx; --i) {
-//        vector.emplace_back(rate, portIx, linker.srdag_->vertex(i - 1));
-//    }
-//}
 
 static Spider::SRDAG::LinkerVector buildSourceLinkerVector(Spider::SRDAG::JobLinker &linker) {
     const auto &edge = linker.edge_;

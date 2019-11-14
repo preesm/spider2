@@ -41,7 +41,7 @@
 /* === Include(s) === */
 
 #include <graphs-tools/transformation/srdag/SRDAGTransfoHelper.h>
-#include <graphs-tools/transformation/SRDAGTransformation.h>
+#include <graphs-tools/transformation/srdag/SRDAGTransformation.h>
 #include <spider-api/pisdf.h>
 #include <graphs/pisdf/params/DynamicParam.h>
 #include <graphs/pisdf/params/InHeritedParam.h>
@@ -57,11 +57,10 @@
 
 static std::string
 buildCloneName(const PiSDFAbstractVertex *vertex, std::uint32_t instance, Spider::SRDAG::JobLinker &linker) {
-    const auto *graphRef = linker.job_.instanceValue_ == UINT32_MAX ? linker.job_.reference_ :
-                           linker.srdag_->vertex(linker.job_.srdagIx_);
+    const auto *graphRef = linker.job_.instanceValue_ == UINT32_MAX ?
+                           linker.job_.reference_ : linker.srdag_->vertex(linker.job_.srdagIx_);
     return graphRef->name() + "-" + vertex->name() + "_" + std::to_string(instance);
 }
-
 
 static inline std::uint32_t uniformIx(const PiSDFAbstractVertex *vertex, const PiSDFGraph *graph) {
     return vertex->ix() +
@@ -74,10 +73,7 @@ static void cloneParams(Spider::SRDAG::Job &job, const PiSDFGraph *graph, const 
         if (param->type() == Spider::PiSDF::ParamType::INHERITED) {
             const auto &inheritedParamIx = dynamic_cast<const PiSDFInHeritedParam *>(param->self())->parent()->ix();
             const auto &inheritedParam = parentJob.params_[inheritedParamIx];
-            auto *p = Spider::API::createStaticParam(nullptr,
-                                                     param->name(),
-                                                     inheritedParam->value(),
-                                                     StackID::TRANSFO);
+            auto *p = Spider::API::createStaticParam(nullptr, param->name(), inheritedParam->value(), StackID::TRANSFO);
             job.params_.push_back(p);
         } else if (!param->dynamic()) {
             job.params_.push_back(param);
@@ -88,7 +84,7 @@ static void cloneParams(Spider::SRDAG::Job &job, const PiSDFGraph *graph, const 
     }
 }
 
-static inline std::uint32_t cloneVertex(const PiSDFAbstractVertex *vertex, Spider::SRDAG::JobLinker &linker) {
+static std::uint32_t cloneVertex(const PiSDFAbstractVertex *vertex, Spider::SRDAG::JobLinker &linker) {
     std::uint32_t ix = 0;
     for (std::uint32_t it = 0; it < vertex->repetitionValue(); ++it) {
         auto *clone = vertex->clone(StackID::TRANSFO, linker.srdag_);
@@ -98,7 +94,7 @@ static inline std::uint32_t cloneVertex(const PiSDFAbstractVertex *vertex, Spide
     return ix - (vertex->repetitionValue() - 1);
 }
 
-static inline std::uint32_t cloneGraph(const PiSDFGraph *graph, Spider::SRDAG::JobLinker &linker) {
+static std::uint32_t cloneGraph(const PiSDFGraph *graph, Spider::SRDAG::JobLinker &linker) {
     /* == Clone the vertex == */
     std::uint32_t ix = 0;
     for (std::uint32_t it = 0; it < graph->repetitionValue(); ++it) {
@@ -253,7 +249,8 @@ void Spider::SRDAG::addJoinVertex(LinkerVector &srcVector, LinkerVector &snkVect
 }
 
 void Spider::SRDAG::replaceJobInterfaces(JobLinker &linker) {
-    if (linker.job_.instanceValue_ == UINT32_MAX) {
+    if (!linker.job_.reference_->edgesINCount() &&
+        !linker.job_.reference_->edgesOUTCount()) {
         return;
     }
     auto *srdagInstance = linker.srdag_->vertex(linker.job_.srdagIx_);
