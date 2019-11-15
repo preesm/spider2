@@ -37,8 +37,8 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_UPSAMPLEVERTEX_H
-#define SPIDER2_UPSAMPLEVERTEX_H
+#ifndef SPIDER2_REPEATVERTEX_H
+#define SPIDER2_REPEATVERTEX_H
 
 /* === Include(s) === */
 
@@ -48,7 +48,7 @@
 namespace Spider {
     namespace PiSDF {
 
-        inline void upsample(const std::int64_t *paramsIn, std::int64_t *[], void *in[], void *out[]) {
+        inline void repeat(const std::int64_t *paramsIn, int64_t *[], void **in, void **out) {
             const auto &inputSize = paramsIn[0];  /* = Rate of the input port = */
             const auto &outputSize = paramsIn[1]; /* = Rate of the output port = */
             if (inputSize == outputSize) {
@@ -67,16 +67,16 @@ namespace Spider {
 
         /* === Class definition === */
 
-        class UpSampleVertex final : public ExecVertex {
+        class RepeatVertex final : public ExecVertex {
         public:
-            explicit UpSampleVertex(std::string name = "unnamed-upsamplevertex",
-                                    Graph *graph = nullptr, //TODO: change to Spider::pisdfgraph() when this API replace old one
-                                    StackID stack = StackID::PISDF) : ExecVertex(std::move(name),
-                                                                                 VertexType::SPECIAL,
-                                                                                 1,
-                                                                                 1,
-                                                                                 graph,
-                                                                                 stack) {
+            explicit RepeatVertex(std::string name = "unnamed-upsamplevertex",
+                                  Graph *graph = nullptr, //TODO: change to Spider::pisdfgraph() when this API replace old one
+                                  StackID stack = StackID::PISDF) : ExecVertex(std::move(name),
+                                                                               VertexType::SPECIAL,
+                                                                               1,
+                                                                               1,
+                                                                               graph,
+                                                                               stack) {
 //                refinement_ = upsample;
             }
 
@@ -97,15 +97,15 @@ namespace Spider {
             /* === Private method(s) === */
         };
 
-        VertexType UpSampleVertex::subtype() const {
-            return VertexType::UPSAMPLE;
+        VertexType RepeatVertex::subtype() const {
+            return VertexType::REPEAT;
         }
 
-        Vertex *UpSampleVertex::clone(StackID stack, Graph *graph) const {
+        Vertex *RepeatVertex::clone(StackID stack, Graph *graph) const {
             graph = graph ? graph : this->graph_;
-            auto *result = Spider::API::createUpsample(graph,
-                                                       this->name_,
-                                                       stack);
+            auto *result = Spider::API::createRepeat(graph,
+                                                     this->name_,
+                                                     stack);
             result->reference_ = this;
             this->copyCount_ += 1;
             return result;
@@ -114,4 +114,4 @@ namespace Spider {
         /* === Inline method(s) === */
     }
 }
-#endif //SPIDER2_UPSAMPLEVERTEX_H
+#endif //SPIDER2_REPEATVERTEX_H
