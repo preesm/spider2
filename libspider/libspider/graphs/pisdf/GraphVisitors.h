@@ -56,13 +56,13 @@ namespace Spider {
             /* === Method(s) === */
 
             inline void visit(ExecVertex *vertex) override {
-                vertex->setIx(graph_->vertexVector_.size());
-                graph_->vertexVector_.emplace_back(vertex);
+                /* == Add vertex to vertexVector_ == */
+                addVertex(vertex);
             }
 
             inline void visit(ConfigVertex *vertex) override {
-                vertex->setIx(graph_->vertexVector_.size());
-                graph_->vertexVector_.emplace_back(vertex);
+                /* == Add vertex to vertexVector_ == */
+                addVertex(vertex);
 
                 /* == Add config vertex to the "viewer" vector == */
                 graph_->configVertexVector_.emplace_back(vertex);
@@ -70,8 +70,7 @@ namespace Spider {
 
             inline void visit(Graph *subgraph) override {
                 /* == Add the subgraph as Vertex == */
-                subgraph->setIx(graph_->vertexVector_.size());
-                graph_->vertexVector_.emplace_back(subgraph);
+                addVertex(subgraph);
 
                 /* == Add the subgraph in the "viewer" vector == */
                 subgraph->subIx_ = graph_->subgraphVector_.size();
@@ -80,6 +79,101 @@ namespace Spider {
 
             /* == Graph to add vertex to == */
             Graph *graph_ = nullptr;
+        private:
+            template<class T>
+            void addVertex(T *vertex) {
+                vertex->setIx(graph_->vertexVector_.size());
+                graph_->vertexVector_.emplace_back(vertex);
+                vertex->setGraph(graph_);
+            }
+        };
+
+        struct RemoveVertexVisitor : public DefaultToExecVisitor {
+
+            explicit RemoveVertexVisitor(Graph *graph) : graph_{ graph } { }
+
+            /* === Method(s) === */
+
+            inline void visit(Graph *subgraph) override {
+                /* == Remove the vertex and destroy it == */
+                auto ix = subgraph->subIx_; /* = Save the index in the subgraphVector_ = */
+                destroyVertex(subgraph);
+
+                /* == Remove the subgraph from the subgraph vector == */
+                graph_->subgraphVector_[ix] = graph_->subgraphVector_.back();
+                graph_->subgraphVector_[ix]->subIx_ = ix;
+                graph_->subgraphVector_.pop_back();
+            }
+
+            inline void visit(ExecVertex *vertex) override {
+                /* == Remove the vertex and destroy it == */
+                destroyVertex(vertex);
+            }
+
+            inline void visit(ConfigVertex *vertex) override {
+                /* == configVertexVector_ is just a "viewer" for config vertices so we need to find manually == */
+                for (auto &cfg : graph_->configVertexVector_) {
+                    if (cfg == vertex) {
+                        cfg = graph_->configVertexVector_.back();
+                        graph_->configVertexVector_.pop_back();
+                        break;
+                    }
+                }
+
+                /* == Remove the vertex and destroy it == */
+                destroyVertex(vertex);
+            }
+
+            inline void visit(ForkVertex *vertex) override {
+                /* == Remove the vertex and destroy it == */
+                destroyVertex(vertex);
+            }
+
+            inline void visit(JoinVertex *vertex) override {
+                /* == Remove the vertex and destroy it == */
+                destroyVertex(vertex);
+            }
+
+            inline void visit(HeadVertex *vertex) override {
+                /* == Remove the vertex and destroy it == */
+                destroyVertex(vertex);
+            }
+
+            inline void visit(TailVertex *vertex) override {
+                /* == Remove the vertex and destroy it == */
+                destroyVertex(vertex);
+            }
+
+            inline void visit(DuplicateVertex *vertex) override {
+                /* == Remove the vertex and destroy it == */
+                destroyVertex(vertex);
+            }
+
+            inline void visit(RepeatVertex *vertex) override {
+                /* == Remove the vertex and destroy it == */
+                destroyVertex(vertex);
+            }
+
+            inline void visit(InitVertex *vertex) override {
+                /* == Remove the vertex and destroy it == */
+                destroyVertex(vertex);
+            }
+
+            inline void visit(EndVertex *vertex) override {
+                /* == Remove the vertex and destroy it == */
+                destroyVertex(vertex);
+            }
+
+            /* == Graph to add vertex to == */
+            Graph *graph_ = nullptr;
+
+        private:
+            template<class T>
+            inline void destroyVertex(T *vertex) {
+                graph_->removeElement(graph_->vertexVector_, static_cast<Vertex *>(vertex));
+                Spider::destroy(vertex);
+                Spider::deallocate(vertex);
+            }
         };
 
     }

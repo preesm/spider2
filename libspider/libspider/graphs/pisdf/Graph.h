@@ -56,6 +56,8 @@ namespace Spider {
 
         struct AddVertexVisitor;
 
+        struct RemoveVertexVisitor;
+
         /* === Class definition === */
 
         class Graph final : virtual public Vertex {
@@ -75,6 +77,8 @@ namespace Spider {
 
             friend AddVertexVisitor;
 
+            friend RemoveVertexVisitor;
+
             /* === Method(s) === */
 
             /**
@@ -90,15 +94,6 @@ namespace Spider {
              * @throw @refitem Spider::Exception if vertex does not exist in the graph.
              */
             void removeVertex(Vertex *vertex);
-
-            /**
-             * @brief Remove a subgraph from the graph.
-             * @remark If subgraph is nullptr, nothing happens.
-             * @remark This method also removes the graph from the vertexVector.
-             * @param subgraph Subgraph to remove.
-             * @throw @refitem Spider::Exception if subgraph does not exist in the graph.
-             */
-            void removeSubgraph(Graph *subgraph);
 
             /**
              * @brief Add an edge to the graph.
@@ -306,18 +301,6 @@ namespace Spider {
 
             template<class T>
             void removeElement(Spider::vector<T *> &eltVector, T *elt);
-
-            /**
-             * @brief Add a subgraph to the graph.
-             * @param graph Subgraph to add.
-             */
-            void addSubGraph(Graph *graph);
-
-            /**
-             * @brief Destroy and deallocate a vertex with dynamic_cast to proper type (needed for proper deallocation).
-             * @param vertex Vertex to destroy.
-             */
-            static void destroyVertex(Vertex *vertex);
         };
 
         /* === Inline method(s) === */

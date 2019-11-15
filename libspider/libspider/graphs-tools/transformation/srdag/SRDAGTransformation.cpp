@@ -259,7 +259,7 @@ std::pair<PiSDFGraph *, PiSDFGraph *> Spider::SRDAG::splitDynamicGraph(PiSDFGrap
     }
 
     /* == Destroy the subgraph == */
-    subgraph->containingGraph()->removeSubgraph(subgraph);
+    subgraph->containingGraph()->removeVertex(subgraph);
 
     return std::make_pair(initGraph, runGraph);
 }
