@@ -112,12 +112,6 @@ namespace Spider {
              */
             inline virtual Vertex *forwardEdge(const Edge *);
 
-            /**
-             * @brief Return a const pointer to this.
-             * @return this.
-             */
-            inline const Vertex *self() const;
-
             virtual void visit(Visitor *) = 0;
 
             /* === Getter(s) === */
@@ -332,10 +326,6 @@ namespace Spider {
 
         const Vertex *Vertex::reference() const {
             return reference_;
-        }
-
-        const Vertex *Vertex::self() const {
-            return this;
         }
 
         void Vertex::setName(std::string name) {
