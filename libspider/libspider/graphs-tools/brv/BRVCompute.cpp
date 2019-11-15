@@ -120,7 +120,8 @@ void BRVCompute::extractConnectedComponent(BRVComponent &component,
     } while (addedVertex || scannedIndex != component.vertices.size());
 }
 
-void BRVCompute::extractEdges(Spider::Array<const PiSDFEdge *> &edgeArray, const BRVComponent &component) {
+Spider::Array<const PiSDFEdge *> BRVCompute::extractEdges(const BRVComponent &component) {
+    Spider::Array<const PiSDFEdge *> edgeArray{ component.nEdges, StackID::TRANSFO };
     const auto &vertexArray = component.vertices;
     std::uint32_t index = 0;
     for (const auto &v: vertexArray) {
@@ -133,6 +134,7 @@ void BRVCompute::extractEdges(Spider::Array<const PiSDFEdge *> &edgeArray, const
             }
         }
     }
+    return edgeArray;
 }
 
 void BRVCompute::updateBRV(const BRVComponent &component) {

@@ -60,8 +60,7 @@ void LCMBRVCompute::execute() {
     /* == Go through all connected components == */
     for (const auto &component : connectedComponents_) {
         /* == Extract the edges == */
-        Spider::Array<const PiSDFEdge *> edgeArray{ component.nEdges, StackID::TRANSFO };
-        BRVCompute::extractEdges(edgeArray, component);
+        auto edgeArray = extractEdges(component);
 
         /* == Extract the rationals == */
         extractRationals(edgeArray, reps);

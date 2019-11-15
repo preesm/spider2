@@ -111,10 +111,9 @@ protected:
 
     /**
      * @brief Extract the edges of a given connected component.
-     * @param edgeArray  Array of edges to be filled.
      * @param component  Connected component.
      */
-    static void extractEdges(Spider::Array<const PiSDFEdge *> &edgeArray, const BRVComponent &component);
+    static Spider::Array<const PiSDFEdge *> extractEdges(const BRVComponent &component);
 
     /**
      * @brief Update the repetition vector values depending on interfaces and config actors rates.
