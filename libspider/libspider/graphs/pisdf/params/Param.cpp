@@ -40,7 +40,7 @@
 
 /* === Includes === */
 
-#include <graphs/pisdf/Param.h>
+#include <graphs/pisdf/params/Param.h>
 #include <graphs/pisdf/Graph.h>
 
 /* === Methods implementation === */
