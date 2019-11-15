@@ -53,11 +53,9 @@ namespace Spider {
         public:
 
             explicit InputInterface(std::string name = "unnamed-interface",
-                                    Graph *graph = nullptr,
                                     StackID stack = StackID::PISDF) : Interface(std::move(name),
                                                                                 0,
                                                                                 1,
-                                                                                graph,
                                                                                 stack) {
             }
 

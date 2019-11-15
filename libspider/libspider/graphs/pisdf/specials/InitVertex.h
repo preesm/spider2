@@ -57,17 +57,13 @@ namespace Spider {
         class InitVertex final : public VertexInterface<InitVertex> {
         public:
             explicit InitVertex(std::string name = "unnamed-initvertex",
-                                Graph *graph = nullptr,
                                 StackID stack = StackID::PISDF) : VertexInterface<InitVertex>(std::move(name),
                                                                                               VertexType::SPECIAL,
                                                                                               0,
                                                                                               1,
-                                                                                              graph,
                                                                                               stack) { }
 
             /* === Method(s) === */
-
-            inline Vertex *clone(StackID stack, Graph *graph) const override;
 
             /* === Getter(s) === */
 
@@ -84,16 +80,6 @@ namespace Spider {
 
         VertexType InitVertex::subtype() const {
             return VertexType::INIT;
-        }
-
-        Vertex *InitVertex::clone(StackID stack, Graph *graph) const {
-            graph = graph ? graph : this->graph_;
-            auto *result = Spider::API::createInit(graph,
-                                                   this->name_,
-                                                   stack);
-            result->reference_ = this;
-            this->copyCount_ += 1;
-            return result;
         }
 
         /* === Inline method(s) === */

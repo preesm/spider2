@@ -57,14 +57,17 @@ namespace Spider {
                                 VertexType type = VertexType::NORMAL,
                                 std::uint32_t edgeINCount = 0,
                                 std::uint32_t edgeOUTCount = 0,
-                                Graph *graph = nullptr,
-                                StackID stack = StackID::PISDF);
+                                StackID stack = StackID::PISDF) : Vertex(std::move(name),
+                                                                         type,
+                                                                         edgeINCount,
+                                                                         edgeOUTCount,
+                                                                         stack) { }
 
             ExecVertex(const ExecVertex &) = delete;
 
-            /* === Method(s) === */
+            friend CloneVertexVisitor;
 
-            Vertex *clone(StackID stack, Graph *graph) const override;
+            /* === Method(s) === */
 
             inline void visit(Visitor *visitor) override;
 

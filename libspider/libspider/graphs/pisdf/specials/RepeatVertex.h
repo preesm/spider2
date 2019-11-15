@@ -70,17 +70,13 @@ namespace Spider {
         class RepeatVertex final : public VertexInterface<RepeatVertex> {
         public:
             explicit RepeatVertex(std::string name = "unnamed-upsamplevertex",
-                                  Graph *graph = nullptr,
                                   StackID stack = StackID::PISDF) : VertexInterface<RepeatVertex>(std::move(name),
                                                                                                   VertexType::SPECIAL,
                                                                                                   1,
                                                                                                   1,
-                                                                                                  graph,
                                                                                                   stack) { }
 
             /* === Method(s) === */
-
-            inline Vertex *clone(StackID stack, Graph *graph) const override;
 
             /* === Getter(s) === */
 
@@ -97,16 +93,6 @@ namespace Spider {
 
         VertexType RepeatVertex::subtype() const {
             return VertexType::REPEAT;
-        }
-
-        Vertex *RepeatVertex::clone(StackID stack, Graph *graph) const {
-            graph = graph ? graph : this->graph_;
-            auto *result = Spider::API::createRepeat(graph,
-                                                     this->name_,
-                                                     stack);
-            result->reference_ = this;
-            this->copyCount_ += 1;
-            return result;
         }
 
         /* === Inline method(s) === */

@@ -55,6 +55,8 @@ namespace Spider {
 
         class Graph;
 
+        struct CloneVertexVisitor;
+
         /* === Class definition === */
 
         class Vertex {
@@ -64,12 +66,13 @@ namespace Spider {
                             VertexType type = VertexType::NORMAL,
                             std::uint32_t edgeINCount = 0,
                             std::uint32_t edgeOUTCount = 0,
-                            Graph *graph = nullptr,
                             StackID stack = StackID::PISDF);
 
             Vertex(const Vertex &other) = delete;
 
             virtual ~Vertex();
+
+            friend CloneVertexVisitor;
 
             /* === Method(s) === */
 
@@ -108,14 +111,6 @@ namespace Spider {
              * @return this or vertex connected to edge.
              */
             inline virtual Vertex *forwardEdge(const Edge *);
-
-            /**
-             * @brief Clone the vertex. In the case of Graph, the clone is shallow.
-             * @param stack Stack on which to clone the vertex.
-             * @param Graph Graph to which the clone is added (if nullptr, @refitem graph_ is used).
-             * @return Clone instance of the vertex.
-             */
-            virtual Vertex *clone(StackID, Graph *) const = 0;
 
             /**
              * @brief Return a const pointer to this.
@@ -260,8 +255,8 @@ namespace Spider {
             std::uint32_t ix_ = UINT32_MAX;
             VertexType type_ = VertexType::NORMAL;
             std::uint32_t repetitionValue_ = 1;
-            mutable std::uint32_t copyCount_ = 0;
-            const Vertex *reference_ = this;
+            std::uint32_t copyCount_ = 0;
+            Vertex *reference_ = this;
 
             Spider::Array<Edge *> inputEdgeArray_;
             Spider::Array<Edge *> outputEdgeArray_;

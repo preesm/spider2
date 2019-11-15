@@ -71,17 +71,13 @@ namespace Spider {
         public:
             explicit ForkVertex(std::string name = "unnamed-forkvertex",
                                 std::uint32_t edgeOUTCount = 0,
-                                Graph *graph = nullptr,
                                 StackID stack = StackID::PISDF) : VertexInterface<ForkVertex>(std::move(name),
                                                                                               VertexType::SPECIAL,
                                                                                               1,
                                                                                               edgeOUTCount,
-                                                                                              graph,
                                                                                               stack) { }
 
             /* === Method(s) === */
-
-            inline Vertex *clone(StackID stack, Graph *graph) const override;
 
             /* === Getter(s) === */
 
@@ -98,17 +94,6 @@ namespace Spider {
 
         VertexType ForkVertex::subtype() const {
             return VertexType::FORK;
-        }
-
-        Vertex *ForkVertex::clone(StackID stack, Graph *graph) const {
-            graph = graph ? graph : this->graph_;
-            auto *result = Spider::API::createFork(graph,
-                                                   this->name_,
-                                                   this->edgesOUTCount(),
-                                                   stack);
-            result->reference_ = this;
-            this->copyCount_ += 1;
-            return result;
         }
 
         /* === Inline method(s) === */

@@ -56,23 +56,15 @@ namespace Spider {
             explicit Interface(std::string name = "unnamed-interface",
                                std::uint32_t edgeINCount = 0,
                                std::uint32_t edgeOUTCount = 0,
-                               Graph *graph = nullptr,
                                StackID stack = StackID::PISDF) : Vertex(std::move(name),
                                                                         VertexType::INTERFACE,
                                                                         edgeINCount,
                                                                         edgeOUTCount,
-                                                                        graph,
-                                                                        stack) {
-                if (!graph_) {
-                    throwSpiderException("Interface [%s] need to belong to a graph.", this->name().c_str());
-                }
-            }
+                                                                        stack) { }
 
             /* === Method(s) === */
 
             inline Vertex *forwardEdge(const Edge *) override;
-
-            inline Vertex *clone(StackID, Graph *) const override;
 
             inline void visit(Visitor *visitor) override;
 
@@ -98,10 +90,6 @@ namespace Spider {
 
         Vertex *Interface::forwardEdge(const Edge *) {
             return this->opposite()->forwardEdge(nullptr);
-        }
-
-        Vertex *Interface::clone(StackID, Graph *) const {
-            throwSpiderException("can not clone interfaces");
         }
 
         void Interface::visit(Visitor *visitor) {

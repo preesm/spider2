@@ -73,17 +73,13 @@ namespace Spider {
         public:
             explicit TailVertex(std::string name = "unnamed-tailvertex",
                                 std::uint32_t edgeINCount = 0,
-                                Graph *graph = nullptr,
                                 StackID stack = StackID::PISDF) : VertexInterface<TailVertex>(std::move(name),
                                                                                               VertexType::SPECIAL,
                                                                                               edgeINCount,
                                                                                               1,
-                                                                                              graph,
                                                                                               stack) { }
 
             /* === Method(s) === */
-
-            inline Vertex *clone(StackID stack, Graph *graph) const override;
 
             /* === Getter(s) === */
 
@@ -100,17 +96,6 @@ namespace Spider {
 
         VertexType TailVertex::subtype() const {
             return VertexType::TAIL;
-        }
-
-        Vertex *TailVertex::clone(StackID stack, Graph *graph) const {
-            graph = graph ? graph : this->graph_;
-            auto *result = Spider::API::createTail(graph,
-                                                   this->name_,
-                                                   this->edgesINCount(),
-                                                   stack);
-            result->reference_ = this;
-            this->copyCount_ += 1;
-            return result;
         }
 
         /* === Inline method(s) === */

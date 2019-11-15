@@ -93,7 +93,7 @@ Spider::PiSDF::Delay::Delay(Expression &&expression,
 
     /* == Create virtual vertex and connect it to setter / getter == */
     vertex_ = Spider::allocate<ExecVertex>(stack);
-    Spider::construct(vertex_, this->name(), VertexType::DELAY, 1, 1, edge->containingGraph(), stack);
+    Spider::construct(vertex_, this->name(), VertexType::DELAY, 1, 1, stack);
 
     auto *setterEdge = Spider::allocate<PiSDFEdge>(stack);
     Spider::construct(setterEdge,

@@ -54,12 +54,10 @@ namespace Spider {
             explicit ConfigVertex(std::string name = "unnamed-forkvertex",
                                   std::uint32_t edgeINCount = 0,
                                   std::uint32_t edgeOUTCount = 0,
-                                  Graph *graph = nullptr,
                                   StackID stack = StackID::PISDF) : VertexInterface<ConfigVertex>(std::move(name),
                                                                                                   VertexType::CONFIG,
                                                                                                   edgeINCount,
                                                                                                   edgeOUTCount,
-                                                                                                  graph,
                                                                                                   stack) { }
 
             /* === Method(s) === */

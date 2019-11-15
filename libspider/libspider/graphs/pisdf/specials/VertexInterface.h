@@ -57,12 +57,10 @@ namespace Spider {
                             VertexType type,
                             std::uint32_t edgeINCount,
                             std::uint32_t edgeOUTCount,
-                            Graph *graph,
                             StackID stack) : ExecVertex(std::move(name),
                                                         type,
                                                         edgeINCount,
                                                         edgeOUTCount,
-                                                        graph,
                                                         stack) { }
 
             ~VertexInterface() override = default;

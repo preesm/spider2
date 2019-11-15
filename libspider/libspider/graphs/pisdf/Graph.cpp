@@ -59,12 +59,10 @@ Spider::PiSDF::Graph::Graph(std::string name,
                             std::uint32_t edgeINCount,
                             std::uint32_t edgeOUTCount,
                             std::uint32_t cfgVertexCount,
-                            Graph *graph,
                             StackID stack) : Vertex(std::move(name),
                                                     VertexType::GRAPH,
                                                     edgeINCount,
                                                     edgeOUTCount,
-                                                    graph,
                                                     stack),
                                              inputInterfaceArray_{ edgeINCount, stack },
                                              outputInterfaceArray_{ edgeOUTCount, stack } {
@@ -76,17 +74,19 @@ Spider::PiSDF::Graph::Graph(std::string name,
     /* == Create the input interfaces == */
     for (std::uint32_t i = 0; i < edgeINCount; ++i) {
         auto *interface = Spider::allocate<PiSDFInputInterface>(stack);
-        Spider::construct(interface, "in_" + std::to_string(i), this, stack);
+        Spider::construct(interface, "in_" + std::to_string(i), stack);
         interface->setIx(i);
         inputInterfaceArray_[i] = interface;
+        interface->setGraph(this);
     }
 
     /* == Create the output interfaces == */
     for (std::uint32_t i = 0; i < edgeOUTCount; ++i) {
         auto *interface = Spider::allocate<PiSDFOutputInterface>(stack);
-        Spider::construct(interface, "out_" + std::to_string(i), this, stack);
+        Spider::construct(interface, "out_" + std::to_string(i), stack);
         interface->setIx(i);
         outputInterfaceArray_[i] = interface;
+        interface->setGraph(this);
     }
 }
 
@@ -133,6 +133,7 @@ void Spider::PiSDF::Graph::removeVertex(Vertex *vertex) {
 void Spider::PiSDF::Graph::addEdge(Edge *edge) {
     edge->setIx(edgeVector_.size());
     edgeVector_.push_back(edge);
+    edge->setGraph(this);
 }
 
 void Spider::PiSDF::Graph::removeEdge(Edge *edge) {
@@ -141,12 +142,20 @@ void Spider::PiSDF::Graph::removeEdge(Edge *edge) {
     Spider::deallocate(edge);
 }
 
+void Spider::PiSDF::Graph::moveEdge(Edge *elt, Graph *graph) {
+    if (graph) {
+        removeElement(edgeVector_, elt);
+        graph->addEdge(elt);
+    }
+}
+
 void Spider::PiSDF::Graph::addParam(Param *param) {
     /* == Check if a parameter with the same name already exists in the scope of this graph == */
     if (this->param(param->name())) {
         throwSpiderException("Parameter [%s] already exist in graph [%s].", param->name().c_str(), name().c_str());
     }
     param->setIx(paramVector_.size());
+    param->setGraph(this);
     paramVector_.push_back(param);
     dynamic_ |= (param->dynamic() && param->type() != ParamType::INHERITED);
 }
@@ -161,18 +170,8 @@ void Spider::PiSDF::Graph::moveParam(Param *elt, Graph *graph) {
     if (graph) {
         removeElement(paramVector_, elt);
         graph->addParam(elt);
-        elt->setGraph(graph);
     }
 }
-
-void Spider::PiSDF::Graph::moveEdge(Edge *elt, Graph *graph) {
-    if (graph) {
-        removeElement(edgeVector_, elt);
-        graph->addEdge(elt);
-        elt->setGraph(graph);
-    }
-}
-
 
 Spider::PiSDF::Param *Spider::PiSDF::Graph::param(const std::string &name) const {
     for (auto &p : paramVector_) {
@@ -191,23 +190,6 @@ Spider::PiSDF::Vertex *Spider::PiSDF::Graph::forwardEdge(const Edge *e) {
 }
 
 /* === Private method(s) === */
-
-Spider::PiSDF::Vertex *Spider::PiSDF::Graph::clone(StackID stack, Graph *graph) const {
-    graph = graph ? graph : this->graph_;
-    auto *result = Spider::API::createSubraph(graph,
-                                              this->name_,
-                                              this->vertexCount(),
-                                              this->edgeCount(),
-                                              this->paramCount(),
-                                              this->edgesINCount(),
-                                              this->edgesOUTCount(),
-                                              this->configVertexCount(),
-                                              stack);
-    result->dynamic_ = this->dynamic_;
-    result->reference_ = this;
-    this->copyCount_ += 1;
-    return result;
-}
 
 template<class T>
 void Spider::PiSDF::Graph::removeElement(Spider::vector<T *> &eltVector, T *elt) {

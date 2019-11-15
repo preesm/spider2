@@ -72,17 +72,13 @@ namespace Spider {
         public:
             explicit JoinVertex(std::string name = "unnamed-joinvertex",
                                 std::uint32_t edgeINCount = 0,
-                                Graph *graph = nullptr,
                                 StackID stack = StackID::PISDF) : VertexInterface<JoinVertex>(std::move(name),
                                                                                               VertexType::SPECIAL,
                                                                                               edgeINCount,
                                                                                               1,
-                                                                                              graph,
                                                                                               stack) { }
 
             /* === Method(s) === */
-
-            inline Vertex *clone(StackID stack, Graph *graph) const override;
 
             /* === Getter(s) === */
 
@@ -99,17 +95,6 @@ namespace Spider {
 
         VertexType JoinVertex::subtype() const {
             return VertexType::JOIN;
-        }
-
-        Vertex *JoinVertex::clone(StackID stack, Graph *graph) const {
-            graph = graph ? graph : this->graph_;
-            auto *result = Spider::API::createJoin(graph,
-                                                   this->name_,
-                                                   this->edgesINCount(),
-                                                   stack);
-            result->reference_ = this;
-            this->copyCount_ += 1;
-            return result;
         }
 
         /* === Inline method(s) === */

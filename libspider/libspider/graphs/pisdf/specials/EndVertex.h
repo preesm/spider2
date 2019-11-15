@@ -57,17 +57,13 @@ namespace Spider {
         class EndVertex final : public VertexInterface<EndVertex> {
         public:
             explicit EndVertex(std::string name = "unnamed-endvertex",
-                               Graph *graph = nullptr,
                                StackID stack = StackID::PISDF) : VertexInterface<EndVertex>(std::move(name),
                                                                                             VertexType::SPECIAL,
                                                                                             1,
                                                                                             0,
-                                                                                            graph,
                                                                                             stack) { }
 
             /* === Method(s) === */
-
-            inline Vertex *clone(StackID stack, Graph *graph) const override;
 
             /* === Getter(s) === */
 
@@ -84,16 +80,6 @@ namespace Spider {
 
         VertexType EndVertex::subtype() const {
             return VertexType::END;
-        }
-
-        Vertex *EndVertex::clone(StackID stack, Graph *graph) const {
-            graph = graph ? graph : this->graph_;
-            auto *result = Spider::API::createEnd(graph,
-                                                  this->name_,
-                                                  stack);
-            result->reference_ = this;
-            this->copyCount_ += 1;
-            return result;
         }
 
         /* === Inline method(s) === */

@@ -51,6 +51,7 @@
 #include <graphs/pisdf/interfaces/Interface.h>
 #include <graphs/pisdf/interfaces/InputInterface.h>
 #include <graphs/pisdf/interfaces/OutputInterface.h>
+#include <graphs/pisdf/visitors/CloneVertexVisitor.h>
 #include <graphs-tools/numerical/PiSDFAnalysis.h>
 
 /* == Static function(s) === */
@@ -85,17 +86,15 @@ static void cloneParams(Spider::SRDAG::Job &job, const PiSDFGraph *graph, const 
 }
 
 static std::uint32_t cloneVertex(PiSDFAbstractVertex *vertex, Spider::SRDAG::TransfoJob &transfoJob) {
-    std::uint32_t ix = 0;
+    Spider::PiSDF::CloneVertexVisitor cloneVisitor{ transfoJob.srdag_, StackID::TRANSFO };
     for (std::uint32_t it = 0; it < vertex->repetitionValue(); ++it) {
-        auto *clone = vertex->clone(StackID::TRANSFO, transfoJob.srdag_);
+        vertex->visit(&cloneVisitor);
+
+        /* == Change the name of the clone == */
+        auto *clone = transfoJob.srdag_->vertices().back();
         clone->setName(buildCloneName(vertex, it, transfoJob));
-        ix = clone->ix();
     }
-    auto *execVertex = dynamic_cast<PiSDFVertex *>(vertex);
-    if (execVertex) {
-        execVertex->setJobIx(transfoJob.job_.instanceValue_);
-    }
-    return ix - (vertex->repetitionValue() - 1);
+    return (transfoJob.srdag_->vertexCount() - 1) - (vertex->repetitionValue() - 1);
 }
 
 static std::uint32_t cloneGraph(const PiSDFGraph *graph, Spider::SRDAG::TransfoJob &linker) {
@@ -144,7 +143,7 @@ static std::uint32_t cloneGraph(const PiSDFGraph *graph, Spider::SRDAG::TransfoJ
         }
     } else {
         auto &jobStack = graph->dynamic() ? linker.dynaJobs_ : linker.nextJobs_;
-        for (auto srdagIx = ix; srdagIx < ix + graph->repetitionValue(); ++srdagIx) {
+        for (auto srdagIx = ix + graph->repetitionValue() - 1; srdagIx >= ix; --srdagIx) {
             jobStack.emplace_back(graph, linker.srdag_->vertex(srdagIx)->ix(), srdagIx - ix);
 
             /* == Copy the params == */

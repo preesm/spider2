@@ -64,17 +64,13 @@ namespace Spider {
         public:
             explicit HeadVertex(std::string name = "unnamed-headvertex",
                                 std::uint32_t edgeINCount = 0,
-                                Graph *graph = nullptr,
                                 StackID stack = StackID::PISDF) : VertexInterface<HeadVertex>(std::move(name),
                                                                                               VertexType::SPECIAL,
                                                                                               edgeINCount,
                                                                                               1,
-                                                                                              graph,
                                                                                               stack) { }
 
             /* === Method(s) === */
-
-            inline Vertex *clone(StackID stack, Graph *graph) const override;
 
             /* === Getter(s) === */
 
@@ -91,17 +87,6 @@ namespace Spider {
 
         VertexType HeadVertex::subtype() const {
             return VertexType::HEAD;
-        }
-
-        Vertex *HeadVertex::clone(StackID stack, Graph *graph) const {
-            graph = graph ? graph : this->graph_;
-            auto *result = Spider::API::createHead(graph,
-                                                   this->name_,
-                                                   this->edgesINCount(),
-                                                   stack);
-            result->reference_ = this;
-            this->copyCount_ += 1;
-            return result;
         }
 
         /* === Inline method(s) === */

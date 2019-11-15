@@ -60,7 +60,7 @@ namespace Spider {
 
         /* === Class definition === */
 
-        class Graph final : virtual public Vertex {
+        class Graph final : public Vertex {
         public:
 
             explicit Graph(std::string name = "unnamed-graph",
@@ -70,7 +70,6 @@ namespace Spider {
                            std::uint32_t edgeINCount = 0,
                            std::uint32_t edgeOUTCount = 0,
                            std::uint32_t cfgVertexCount = 0,
-                           Graph *graph = nullptr,
                            StackID stack = StackID::PISDF);
 
             ~Graph() override;
@@ -78,6 +77,8 @@ namespace Spider {
             friend AddVertexVisitor;
 
             friend RemoveVertexVisitor;
+
+            friend CloneVertexVisitor;
 
             /* === Method(s) === */
 
@@ -148,8 +149,6 @@ namespace Spider {
             void moveEdge(Edge *elt, Graph *graph);
 
             Vertex *forwardEdge(const Edge *e) override;
-
-            Vertex *clone(StackID stack, Graph *graph) const override;
 
             inline void visit(Visitor *visitor) override;
 
@@ -309,7 +308,6 @@ namespace Spider {
             if (graph) {
                 removeElement(vertexVector_, elt);
                 graph->addVertex(elt);
-                elt->setGraph(graph);
             }
         }
 
