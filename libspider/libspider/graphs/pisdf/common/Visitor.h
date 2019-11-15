@@ -43,9 +43,11 @@
 /* === Include(s) === */
 
 #include <graphs/pisdf/common/Types.h>
+#include <common/Exception.h>
 
 namespace Spider {
     namespace PiSDF {
+
         /* === Class definition === */
 
         class Visitor {
@@ -86,7 +88,49 @@ namespace Spider {
 
         };
 
-        /* === Inline method(s) === */
+        class DefaultToExecVisitor : public Visitor {
+        public:
+
+            /* === Method(s) === */
+
+            inline void visit(Graph *) override {
+                throwSpiderException("unsupported visitor type: Graph.");
+            }
+
+            void visit(ExecVertex *) override = 0;
+
+            void visit(ForkVertex *vertex) override;
+
+            void visit(JoinVertex *vertex) override;
+
+            void visit(HeadVertex *vertex) override;
+
+            void visit(TailVertex *vertex) override;
+
+            void visit(DuplicateVertex *vertex) override;
+
+            void visit(RepeatVertex *vertex) override;
+
+            void visit(InitVertex *vertex) override;
+
+            void visit(EndVertex *vertex) override;
+
+            inline void visit(Interface *) override {
+                throwSpiderException("unsupported visitor type: Interface.");
+            }
+
+            inline void visit(InputInterface *) override {
+                throwSpiderException("unsupported visitor type: InputInterface.");
+            }
+
+            inline void visit(OutputInterface *) override {
+                throwSpiderException("unsupported visitor type: OutputInterface.");
+            }
+
+        private:
+
+        };
+
     }
 }
 #endif //SPIDER2_VISITOR_H
