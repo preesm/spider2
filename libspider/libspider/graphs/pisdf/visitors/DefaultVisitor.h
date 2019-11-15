@@ -37,63 +37,71 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_VISITOR_H
-#define SPIDER2_VISITOR_H
+#ifndef SPIDER2_DEFAULTVISITOR_H
+#define SPIDER2_DEFAULTVISITOR_H
 
 /* === Include(s) === */
 
-#include <graphs/pisdf/common/Types.h>
+#include <graphs/pisdf/visitors/Visitor.h>
+#include <common/Exception.h>
 
 namespace Spider {
     namespace PiSDF {
 
-        /* === Class definition === */
-
-        class Visitor {
+        class DefaultVisitor : public Visitor {
         public:
-            Visitor() = default;
-
-            ~Visitor() = default;
-
             /* === Method(s) === */
 
-            virtual void visit(Graph *) = 0;
+            inline void visit(Graph *) override {
+                throwSpiderException("unsupported visitor type: Graph.");
+            }
 
-            virtual void visit(ExecVertex *) = 0;
+            void visit(ExecVertex *) override = 0;
 
-            virtual void visit(ConfigVertex *) = 0;
+            void visit(ConfigVertex *vertex) override;
 
-            virtual void visit(ForkVertex *) = 0;
+            void visit(ForkVertex *vertex) override;
 
-            virtual void visit(JoinVertex *) = 0;
+            void visit(JoinVertex *vertex) override;
 
-            virtual void visit(HeadVertex *) = 0;
+            void visit(HeadVertex *vertex) override;
 
-            virtual void visit(TailVertex *) = 0;
+            void visit(TailVertex *vertex) override;
 
-            virtual void visit(DuplicateVertex *) = 0;
+            void visit(DuplicateVertex *vertex) override;
 
-            virtual void visit(RepeatVertex *) = 0;
+            void visit(RepeatVertex *vertex) override;
 
-            virtual void visit(InitVertex *) = 0;
+            void visit(InitVertex *vertex) override;
 
-            virtual void visit(EndVertex *) = 0;
+            void visit(EndVertex *vertex) override;
 
-            virtual void visit(Interface *) = 0;
+            inline void visit(Interface *) override {
+                throwSpiderException("unsupported visitor type: Interface.");
+            }
 
-            virtual void visit(InputInterface *) = 0;
+            inline void visit(InputInterface *) override {
+                throwSpiderException("unsupported visitor type: InputInterface.");
+            }
 
-            virtual void visit(OutputInterface *) = 0;
+            inline void visit(OutputInterface *) override {
+                throwSpiderException("unsupported visitor type: OutputInterface.");
+            }
 
-            virtual void visit(Param *) = 0;
+            inline void visit(Param *) override {
+                throwSpiderException("unsupported visitor type: Param.");
+            }
 
-            virtual void visit(DynamicParam *) = 0;
+            inline void visit(DynamicParam *) override {
+                throwSpiderException("unsupported visitor type: DynamicParam.");
+            }
 
-            virtual void visit(InHeritedParam *) = 0;
-
-        private:
-
+            inline void visit(InHeritedParam *) override {
+                throwSpiderException("unsupported visitor type: InHeritedParam.");
+            }
         };
     }
 }
-#endif //SPIDER2_VISITOR_H
+
+
+#endif //SPIDER2_DEFAULTVISITOR_H
