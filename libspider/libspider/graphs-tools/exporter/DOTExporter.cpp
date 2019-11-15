@@ -75,7 +75,7 @@ static std::string vertexColor(PiSDFVertexType type) {
             return "#c8f7c5ff";
         case PiSDFVertexType::END:
             return "#ff9478ff";
-        case PiSDFVertexType::UPSAMPLE:
+        case PiSDFVertexType::REPEAT:
             return "#fff68fff";
         default:
             return "eeeeeeff";

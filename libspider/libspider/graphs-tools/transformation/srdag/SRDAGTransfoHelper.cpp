@@ -268,9 +268,9 @@ void Spider::SRDAG::replaceJobInterfaces(TransfoJob &transfoJob) {
     /* == Replace the input interfaces == */
     for (const auto &interface : transfoJob.job_.reference_->inputInterfaceArray()) {
         auto *edge = srdagInstance->inputEdge(interface->ix());
-        auto *vertex = Spider::API::createUpsample(transfoJob.srdag_,
-                                                   srdagInstance->name() + "_" + interface->name(),
-                                                   StackID::TRANSFO);
+        auto *vertex = Spider::API::createRepeat(transfoJob.srdag_,
+                                                 srdagInstance->name() + "_" + interface->name(),
+                                                 StackID::TRANSFO);
         edge->setSink(vertex, 0, Expression(edge->sinkRateExpression()));
         transfoJob.tracker_[uniformIx(interface, transfoJob.job_.reference_)] = vertex->ix();
     }

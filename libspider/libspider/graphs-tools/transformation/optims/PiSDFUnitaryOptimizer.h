@@ -128,7 +128,7 @@ bool PiSDFUnitaryOptimizer::operator()(PiSDFGraph *graph) const {
                     }
                 }
                 break;
-            case PiSDFVertexType::UPSAMPLE: {
+            case PiSDFVertexType::REPEAT: {
                 auto *inputEdge = vertex->inputEdge(0);
                 auto *outputEdge = vertex->outputEdge(0);
                 if (inputEdge->sinkRateExpression().evaluate(params) ==
