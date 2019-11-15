@@ -44,7 +44,7 @@
 
 #include <containers/StlContainers.h>
 #include <graphs/pisdf/Graph.h>
-#include <graphs/pisdf/Param.h>
+#include <graphs/pisdf/params/Param.h>
 #include <graphs-tools/transformation/srdag/SRDAGTransfoHelper.h>
 
 

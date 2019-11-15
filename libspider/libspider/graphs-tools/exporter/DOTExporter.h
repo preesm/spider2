@@ -43,7 +43,7 @@
 /* === Include(s) === */
 
 #include <common/Exporter.h>
-#include <graphs/pisdf/Types.h>
+#include <graphs/pisdf/common/Types.h>
 #include <containers/StlContainers.h>
 #include <graphs/pisdf/Graph.h>
 

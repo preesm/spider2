@@ -43,12 +43,12 @@
 #include <graphs-tools/exporter/DOTExporter.h>
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/ExecVertex.h>
-#include <graphs/pisdf/Interface.h>
+#include <graphs/pisdf/interfaces/Interface.h>
 #include <graphs/pisdf/interfaces/InputInterface.h>
 #include <graphs/pisdf/interfaces/OutputInterface.h>
 #include <graphs/pisdf/Edge.h>
 #include <graphs/pisdf/Delay.h>
-#include <graphs/pisdf/Param.h>
+#include <graphs/pisdf/params/Param.h>
 #include <cmath>
 
 /* === Static variable(s) === */

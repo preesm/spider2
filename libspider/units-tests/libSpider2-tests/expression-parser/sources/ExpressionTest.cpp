@@ -46,7 +46,7 @@
 #include <spider-api/config.h>
 #include <spider-api/pisdf.h>
 #include <graphs/pisdf/Graph.h>
-#include <graphs/pisdf/Param.h>
+#include <graphs/pisdf/params/Param.h>
 #include <graphs/pisdf/params/DynamicParam.h>
 #include <cmath>
 

@@ -42,7 +42,7 @@
 
 #include <memory/Allocator.h>
 #include <spider-api/refinement.h>
-#include <graphs/pisdf/Refinement.h>
+#include <graphs/pisdf/common/Refinement.h>
 
 /* === Function definition(s) === */
 

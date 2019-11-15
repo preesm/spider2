@@ -48,7 +48,7 @@
 #include <graphs/pisdf/Delay.h>
 #include <graphs/pisdf/ExecVertex.h>
 #include <graphs/pisdf/specials/Specials.h>
-#include <graphs/pisdf/Interface.h>
+#include <graphs/pisdf/interfaces/Interface.h>
 #include <graphs/pisdf/interfaces/InputInterface.h>
 #include <graphs/pisdf/interfaces/OutputInterface.h>
 #include <graphs-tools/numerical/PiSDFAnalysis.h>

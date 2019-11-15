@@ -44,7 +44,7 @@
 
 #include <spider-api/archi.h>
 #include <scheduling/schedule/Schedule.h>
-#include <graphs/pisdf/Types.h>
+#include <graphs/pisdf/common/Types.h>
 
 namespace Spider {
 

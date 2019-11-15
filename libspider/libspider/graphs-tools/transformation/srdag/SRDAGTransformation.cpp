@@ -44,7 +44,7 @@
 #include <graphs-tools/transformation/srdag/SRDAGTransformation.h>
 #include <graphs-tools/transformation/srdag/SRDAGTransfoHelper.h>
 #include <graphs/pisdf/Delay.h>
-#include <graphs/pisdf/Interface.h>
+#include <graphs/pisdf/interfaces/Interface.h>
 #include <graphs/pisdf/interfaces/InputInterface.h>
 #include <graphs/pisdf/interfaces/OutputInterface.h>
 #include <graphs-tools/brv/LCMBRVCompute.h>

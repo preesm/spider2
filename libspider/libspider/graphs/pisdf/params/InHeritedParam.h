@@ -42,7 +42,7 @@
 
 /* === Include(s) === */
 
-#include <graphs/pisdf/Param.h>
+#include <graphs/pisdf/params/Param.h>
 
 namespace Spider {
     namespace PiSDF {

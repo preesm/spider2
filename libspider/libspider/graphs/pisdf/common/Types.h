@@ -100,8 +100,6 @@ namespace Spider {
 
         class UpSampleVertex;
 
-        class DownSampleVertex;
-
         class InitVertex;
 
         class EndVertex;
@@ -137,7 +135,6 @@ using PiSDFTailVertex = Spider::PiSDF::TailVertex;
 using PiSDFHeadVertex = Spider::PiSDF::HeadVertex;
 using PiSDFDuplicateVertex = Spider::PiSDF::DuplicateVertex;
 using PiSDFUpSampleVertex = Spider::PiSDF::UpSampleVertex;
-using PiSDFDownSampleVertex = Spider::PiSDF::DownSampleVertex;
 using PiSDFInitVertex = Spider::PiSDF::InitVertex;
 using PiSDFEndVertex = Spider::PiSDF::EndVertex;
 

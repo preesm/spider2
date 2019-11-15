@@ -47,7 +47,7 @@
 #include <containers/Array.h>
 #include <spider-api/config.h>
 #include <graphs/pisdf/Vertex.h>
-#include <graphs/pisdf/Refinement.h>
+#include <graphs/pisdf/common/Refinement.h>
 
 namespace Spider {
     namespace PiSDF {

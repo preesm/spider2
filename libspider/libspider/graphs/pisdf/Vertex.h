@@ -45,7 +45,7 @@
 #include <cstdint>
 #include <string>
 #include <containers/Array.h>
-#include <graphs/pisdf/Types.h>
+#include <graphs/pisdf/common/Types.h>
 
 namespace Spider {
     namespace PiSDF {

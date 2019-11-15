@@ -42,7 +42,7 @@
 
 /* === Include(s) === */
 
-#include <graphs/pisdf/Interface.h>
+#include <graphs/pisdf/interfaces/Interface.h>
 #include <graphs/pisdf/Graph.h>
 
 namespace Spider {

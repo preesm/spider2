@@ -46,7 +46,7 @@
 #include <cstdint>
 #include <vector>
 #include <graphs-tools/expression-parser/Expression.h>
-#include <graphs/pisdf/Types.h>
+#include <graphs/pisdf/common/Types.h>
 #include <graphs/pisdf/Graph.h>
 
 /* === Forward declaration(s) === */
