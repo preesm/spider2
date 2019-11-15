@@ -40,7 +40,7 @@
 
 /* === Include(s) === */
 
-#include <graphs/pisdf/visitors/Visitor.h>
+#include <graphs/pisdf/visitors/DefaultVisitor.h>
 #include <graphs/pisdf/specials/Specials.h>
 
 /* === Function(s) definition === */
