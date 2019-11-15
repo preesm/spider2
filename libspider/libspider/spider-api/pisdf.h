@@ -57,6 +57,8 @@ namespace Spider {
 
         class ExecVertex;
 
+        class ConfigVertex;
+
         class JoinVertex;
 
         class ForkVertex;
@@ -167,11 +169,11 @@ namespace Spider {
 
         PiSDF::EndVertex *createEnd(PiSDF::Graph *graph, std::string name, StackID stack = StackID::PISDF);
 
-        PiSDF::ExecVertex *createConfigActor(PiSDF::Graph *graph,
-                                             std::string name,
-                                             std::uint32_t edgeINCount = 0,
-                                             std::uint32_t edgeOUTCount = 0,
-                                             StackID stack = StackID::PISDF);
+        PiSDF::ConfigVertex *createConfigActor(PiSDF::Graph *graph,
+                                               std::string name,
+                                               std::uint32_t edgeINCount = 0,
+                                               std::uint32_t edgeOUTCount = 0,
+                                               StackID stack = StackID::PISDF);
 
         PiSDF::InputInterface *setInputInterfaceName(PiSDF::Graph *graph, std::uint32_t ix, std::string name);
 

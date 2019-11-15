@@ -206,13 +206,13 @@ PiSDFEndVertex *Spider::API::createEnd(PiSDFGraph *graph, std::string name, Stac
     return vertex;
 }
 
-PiSDFVertex *Spider::API::createConfigActor(PiSDFGraph *graph,
-                                            std::string name,
-                                            std::uint32_t edgeINCount,
-                                            std::uint32_t edgeOUTCount,
-                                            StackID stack) {
-    auto *vertex = Spider::allocate<PiSDFVertex>(stack);
-    Spider::construct(vertex, std::move(name), PiSDFVertexType::CONFIG, edgeINCount, edgeOUTCount, graph, stack);
+PiSDFCFGVertex *Spider::API::createConfigActor(PiSDFGraph *graph,
+                                               std::string name,
+                                               std::uint32_t edgeINCount,
+                                               std::uint32_t edgeOUTCount,
+                                               StackID stack) {
+    auto *vertex = Spider::allocate<PiSDFCFGVertex>(stack);
+    Spider::construct(vertex, std::move(name), edgeINCount, edgeOUTCount, graph, stack);
     graph->addVertex(vertex);
     return vertex;
 }
