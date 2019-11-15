@@ -44,6 +44,7 @@
 
 #include <common/Exception.h>
 #include <graphs-tools/expression-parser/Expression.h>
+#include <graphs/pisdf/common/Visitor.h>
 
 namespace Spider {
     namespace PiSDF {
@@ -65,6 +66,8 @@ namespace Spider {
 
             /* === Method(s) === */
 
+            inline virtual void visit(Visitor *visitor);
+
             /* === Getter(s) === */
 
             inline Graph *containingGraph() const;
@@ -75,13 +78,9 @@ namespace Spider {
 
             virtual inline std::int64_t value() const;
 
-            virtual inline std::int64_t value(const Spider::vector<Param *> &) const;
-
             virtual inline ParamType type() const;
 
             virtual inline bool dynamic() const;
-
-            inline const Param *self() const;
 
             /* === Setter(s) === */
 
@@ -108,6 +107,10 @@ namespace Spider {
 
         /* === Inline method(s) === */
 
+        void Param::visit(Visitor *visitor) {
+            visitor->visit(this);
+        }
+
         Graph *Param::containingGraph() const {
             return graph_;
         }
@@ -124,20 +127,12 @@ namespace Spider {
             return value_;
         }
 
-        std::int64_t Param::value(const Spider::vector<Param *> &) const {
-            return value_;
-        }
-
         ParamType Param::type() const {
             return ParamType::STATIC;
         }
 
         bool Param::dynamic() const {
             return false;
-        }
-
-        const Spider::PiSDF::Param *Spider::PiSDF::Param::self() const {
-            return this;
         }
 
         void Param::setIx(std::uint32_t ix) {

@@ -64,15 +64,19 @@ namespace Spider {
 
             /* === Method(s) === */
 
+            inline void visit(Visitor *visitor) override;
+
             /* === Getter(s) === */
 
             inline std::int64_t value() const override;
 
-            inline std::int64_t value(const Spider::vector<Param *> &params) const override;
+            inline std::int64_t value(const Spider::vector<Param *> &params) const;
 
             inline ParamType type() const override;
 
             inline bool dynamic() const override;
+
+            inline const Expression &expression() const;
 
             /* === Setter(s) === */
 
@@ -85,6 +89,10 @@ namespace Spider {
         };
 
         /* === Inline method(s) === */
+
+        void DynamicParam::visit(Visitor *visitor) {
+            visitor->visit(this);
+        }
 
         std::int64_t DynamicParam::value() const {
             return expression_.evaluate(graph_->params());
@@ -104,6 +112,10 @@ namespace Spider {
 
         void DynamicParam::setValue(std::int64_t value) {
             expression_ = Expression(value);
+        }
+
+        const Expression &DynamicParam::expression() const {
+            return expression_;
         }
 
     }

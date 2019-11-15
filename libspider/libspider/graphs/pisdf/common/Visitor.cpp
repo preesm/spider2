@@ -45,38 +45,38 @@
 
 /* === Function(s) definition === */
 
-void Spider::PiSDF::DefaultToExecVisitor::visit(ConfigVertex *vertex) {
+void Spider::PiSDF::DefaultVisitor::visit(ConfigVertex *vertex) {
     this->visit(static_cast<ExecVertex *>(vertex));
 }
 
-void Spider::PiSDF::DefaultToExecVisitor::visit(ForkVertex *vertex) {
+void Spider::PiSDF::DefaultVisitor::visit(ForkVertex *vertex) {
     this->visit(static_cast<ExecVertex *>(vertex));
 }
 
-void Spider::PiSDF::DefaultToExecVisitor::visit(JoinVertex *vertex) {
+void Spider::PiSDF::DefaultVisitor::visit(JoinVertex *vertex) {
     this->visit(static_cast<ExecVertex *>(vertex));
 }
 
-void Spider::PiSDF::DefaultToExecVisitor::visit(HeadVertex *vertex) {
+void Spider::PiSDF::DefaultVisitor::visit(HeadVertex *vertex) {
     this->visit(static_cast<ExecVertex *>(vertex));
 }
 
-void Spider::PiSDF::DefaultToExecVisitor::visit(TailVertex *vertex) {
+void Spider::PiSDF::DefaultVisitor::visit(TailVertex *vertex) {
     this->visit(static_cast<ExecVertex *>(vertex));
 }
 
-void Spider::PiSDF::DefaultToExecVisitor::visit(DuplicateVertex *vertex) {
+void Spider::PiSDF::DefaultVisitor::visit(DuplicateVertex *vertex) {
     this->visit(static_cast<ExecVertex *>(vertex));
 }
 
-void Spider::PiSDF::DefaultToExecVisitor::visit(RepeatVertex *vertex) {
+void Spider::PiSDF::DefaultVisitor::visit(RepeatVertex *vertex) {
     this->visit(static_cast<ExecVertex *>(vertex));
 }
 
-void Spider::PiSDF::DefaultToExecVisitor::visit(InitVertex *vertex) {
+void Spider::PiSDF::DefaultVisitor::visit(InitVertex *vertex) {
     this->visit(static_cast<ExecVertex *>(vertex));
 }
 
-void Spider::PiSDF::DefaultToExecVisitor::visit(EndVertex *vertex) {
+void Spider::PiSDF::DefaultVisitor::visit(EndVertex *vertex) {
     this->visit(static_cast<ExecVertex *>(vertex));
 }

@@ -54,6 +54,34 @@
 #include <graphs/pisdf/visitors/CloneVertexVisitor.h>
 #include <graphs-tools/numerical/PiSDFAnalysis.h>
 
+struct CopyParamVisitor : public Spider::PiSDF::DefaultVisitor {
+    explicit CopyParamVisitor(Spider::vector<PiSDFParam *> &paramVector,
+                              const Spider::vector<PiSDFParam *> &parentParamVector) : paramVector_{ paramVector },
+                                                                                       parentParamVector_{
+                                                                                               parentParamVector } { }
+
+    inline void visit(Spider::PiSDF::ExecVertex *) override { }
+
+    inline void visit(Spider::PiSDF::Param *param) override {
+        paramVector_.push_back(param);
+    }
+
+    inline void visit(Spider::PiSDF::DynamicParam *param) override {
+        auto *p = Spider::allocate<PiSDFDynamicParam>(StackID::TRANSFO);
+        Spider::construct(p, param->name(), nullptr, Expression(param->expression()));
+        paramVector_.push_back(p);
+    }
+
+    inline void visit(Spider::PiSDF::InHeritedParam *param) override {
+        const auto &inheritedParam = parentParamVector_[param->parent()->ix()];
+        auto *p = Spider::API::createStaticParam(nullptr, param->name(), inheritedParam->value(), StackID::TRANSFO);
+        paramVector_.push_back(p);
+    }
+
+    Spider::vector<PiSDFParam *> &paramVector_;
+    const Spider::vector<PiSDFParam *> &parentParamVector_;
+};
+
 /* == Static function(s) === */
 
 static std::string
@@ -70,18 +98,9 @@ static inline std::uint32_t uniformIx(const PiSDFAbstractVertex *vertex, const P
 }
 
 static void cloneParams(Spider::SRDAG::Job &job, const PiSDFGraph *graph, const Spider::SRDAG::Job &parentJob) {
+    CopyParamVisitor cpyVisitor{ job.params_, parentJob.params_ };
     for (const auto &param : graph->params()) {
-        if (param->type() == Spider::PiSDF::ParamType::INHERITED) {
-            const auto &inheritedParamIx = dynamic_cast<const PiSDFInHeritedParam *>(param->self())->parent()->ix();
-            const auto &inheritedParam = parentJob.params_[inheritedParamIx];
-            auto *p = Spider::API::createStaticParam(nullptr, param->name(), inheritedParam->value(), StackID::TRANSFO);
-            job.params_.push_back(p);
-        } else if (!param->dynamic()) {
-            job.params_.push_back(param);
-        } else {
-            auto *p = Spider::API::createDynamicParam(nullptr, param->name(), "", StackID::TRANSFO);
-            job.params_.push_back(p);
-        }
+        param->visit(&cpyVisitor);
     }
 }
 
@@ -259,9 +278,9 @@ void Spider::SRDAG::replaceJobInterfaces(TransfoJob &transfoJob) {
     auto *srdagInstance = transfoJob.srdag_->vertex(transfoJob.job_.srdagIx_);
     if (!srdagInstance) {
         throwSpiderException("could not find matching single rate instance [%"
-                                     PRIu32
-                                     "] of graph [%s]", transfoJob.job_.instanceValue_,
-                             transfoJob.job_.reference_->name().c_str());
+        PRIu32
+        "] of graph [%s]", transfoJob.job_.instanceValue_,
+                transfoJob.job_.reference_->name().c_str());
     }
 
     /* == Replace the input interfaces == */

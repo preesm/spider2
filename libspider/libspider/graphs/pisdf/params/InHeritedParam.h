@@ -59,6 +59,8 @@ namespace Spider {
 
             /* === Method(s) === */
 
+            inline void visit(Visitor *visitor) override;
+
             /* === Getter(s) === */
 
             inline std::int64_t value() const override;
@@ -78,6 +80,10 @@ namespace Spider {
         };
 
         /* === Inline method(s) === */
+
+        void InHeritedParam::visit(Visitor *visitor) {
+            visitor->visit(this);
+        }
 
         std::int64_t InHeritedParam::value() const {
             return parent_->value();

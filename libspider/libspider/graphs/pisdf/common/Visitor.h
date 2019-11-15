@@ -86,13 +86,18 @@ namespace Spider {
 
             virtual void visit(OutputInterface *) = 0;
 
+            virtual void visit(Param *) = 0;
+
+            virtual void visit(DynamicParam *) = 0;
+
+            virtual void visit(InHeritedParam *) = 0;
+
         private:
 
         };
 
-        class DefaultToExecVisitor : public Visitor {
+        class DefaultVisitor : public Visitor {
         public:
-
             /* === Method(s) === */
 
             inline void visit(Graph *) override {
@@ -131,8 +136,17 @@ namespace Spider {
                 throwSpiderException("unsupported visitor type: OutputInterface.");
             }
 
-        private:
+            inline void visit(Param *) override {
+                throwSpiderException("unsupported visitor type: Param.");
+            }
 
+            inline void visit(DynamicParam *) override {
+                throwSpiderException("unsupported visitor type: DynamicParam.");
+            }
+
+            inline void visit(InHeritedParam *) override {
+                throwSpiderException("unsupported visitor type: InHeritedParam.");
+            }
         };
 
     }
