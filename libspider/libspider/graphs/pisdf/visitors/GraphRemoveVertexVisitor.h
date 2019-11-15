@@ -43,54 +43,15 @@
 /* === Include(s) === */
 
 #include <graphs/pisdf/visitors/DefaultVisitor.h>
-#include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/specials/Specials.h>
+#include <graphs/pisdf/Graph.h>
 
 namespace Spider {
     namespace PiSDF {
 
-        struct AddVertexVisitor : public DefaultVisitor {
+        struct GraphRemoveVertexVisitor : public DefaultVisitor {
 
-            explicit AddVertexVisitor(Graph *graph) : graph_{ graph } { }
-
-            /* === Method(s) === */
-
-            inline void visit(ExecVertex *vertex) override {
-                /* == Add vertex to vertexVector_ == */
-                addVertex(vertex);
-            }
-
-            inline void visit(ConfigVertex *vertex) override {
-                /* == Add vertex to vertexVector_ == */
-                addVertex(vertex);
-
-                /* == Add config vertex to the "viewer" vector == */
-                graph_->configVertexVector_.emplace_back(vertex);
-            }
-
-            inline void visit(Graph *subgraph) override {
-                /* == Add the subgraph as Vertex == */
-                addVertex(subgraph);
-
-                /* == Add the subgraph in the "viewer" vector == */
-                subgraph->subIx_ = graph_->subgraphVector_.size();
-                graph_->subgraphVector_.emplace_back(subgraph);
-            }
-
-            /* == Graph to add vertex to == */
-            Graph *graph_ = nullptr;
-        private:
-            template<class T>
-            void addVertex(T *vertex) {
-                vertex->setIx(graph_->vertexVector_.size());
-                graph_->vertexVector_.emplace_back(vertex);
-                vertex->setGraph(graph_);
-            }
-        };
-
-        struct RemoveVertexVisitor : public DefaultVisitor {
-
-            explicit RemoveVertexVisitor(Graph *graph) : graph_{ graph } { }
+            explicit GraphRemoveVertexVisitor(Graph *graph) : graph_{ graph } { }
 
             /* === Method(s) === */
 

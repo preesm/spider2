@@ -54,9 +54,9 @@ namespace Spider {
 
         /* === Forward declaration(s) === */
 
-        struct AddVertexVisitor;
+        struct GraphAddVertexVisitor;
 
-        struct RemoveVertexVisitor;
+        struct GraphRemoveVertexVisitor;
 
         /* === Class definition === */
 
@@ -74,9 +74,9 @@ namespace Spider {
 
             ~Graph() override;
 
-            friend AddVertexVisitor;
+            friend GraphAddVertexVisitor;
 
-            friend RemoveVertexVisitor;
+            friend GraphRemoveVertexVisitor;
 
             friend CloneVertexVisitor;
 

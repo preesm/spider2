@@ -41,7 +41,8 @@
 /* === Include(s) === */
 
 #include <graphs/pisdf/Graph.h>
-#include <graphs/pisdf/visitors/GraphVisitors.h>
+#include <graphs/pisdf/visitors/GraphAddVertexVisitor.h>
+#include <graphs/pisdf/visitors/GraphRemoveVertexVisitor.h>
 #include <graphs/pisdf/ExecVertex.h>
 #include <graphs/pisdf/interfaces/Interface.h>
 #include <graphs/pisdf/interfaces/InputInterface.h>
@@ -91,7 +92,7 @@ Spider::PiSDF::Graph::Graph(std::string name,
 }
 
 Spider::PiSDF::Graph::~Graph() {
-    RemoveVertexVisitor rmVertexVisitor{ this };
+    GraphRemoveVertexVisitor rmVertexVisitor{ this };
     /* == Destroy / deallocate vertices (subgraphs included) == */
     for (auto &vertex : vertexVector_) {
         vertex->visit(&rmVertexVisitor);
@@ -121,12 +122,12 @@ Spider::PiSDF::Graph::~Graph() {
 }
 
 void Spider::PiSDF::Graph::addVertex(Vertex *vertex) {
-    AddVertexVisitor addVertexVisitor{ this };
+    GraphAddVertexVisitor addVertexVisitor{ this };
     vertex->visit(&addVertexVisitor);
 }
 
 void Spider::PiSDF::Graph::removeVertex(Vertex *vertex) {
-    RemoveVertexVisitor rmVertexVisitor{ this };
+    GraphRemoveVertexVisitor rmVertexVisitor{ this };
     vertex->visit(&rmVertexVisitor);
 }
 
