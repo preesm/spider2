@@ -42,7 +42,7 @@
 
 /* === Include(s) === */
 
-#include <graphs/pisdf/common/VertexInterface.h>
+#include <graphs/pisdf/specials/VertexInterface.h>
 
 namespace Spider {
     namespace PiSDF {
