@@ -37,66 +37,52 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_ENDVERTEX_H
-#define SPIDER2_ENDVERTEX_H
+#ifndef SPIDER2_GRAPHVISITORS_H
+#define SPIDER2_GRAPHVISITORS_H
 
 /* === Include(s) === */
 
-#include <graphs/pisdf/common/VertexInterface.h>
+#include <graphs/pisdf/common/Visitor.h>
 #include <graphs/pisdf/Graph.h>
+#include <graphs/pisdf/specials/Specials.h>
 
 namespace Spider {
     namespace PiSDF {
 
-        inline void end(const std::int64_t *, std::int64_t *[], void *[], void *[]) {
+        struct AddVertexVisitor : public DefaultToExecVisitor {
 
-        }
-
-        /* === Class definition === */
-
-        class EndVertex final : public VertexInterface<EndVertex> {
-        public:
-            explicit EndVertex(std::string name = "unnamed-endvertex",
-                               Graph *graph = nullptr,
-                               StackID stack = StackID::PISDF) : VertexInterface<EndVertex>(std::move(name),
-                                                                                            VertexType::SPECIAL,
-                                                                                            1,
-                                                                                            0,
-                                                                                            graph,
-                                                                                            stack) { }
+            explicit AddVertexVisitor(Graph *graph) : graph_{ graph } { }
 
             /* === Method(s) === */
 
-            inline Vertex *clone(StackID stack, Graph *graph) const override;
+            inline void visit(ExecVertex *vertex) override {
+                vertex->setIx(graph_->vertexVector_.size());
+                graph_->vertexVector_.emplace_back(vertex);
+            }
 
-            /* === Getter(s) === */
+            inline void visit(ConfigVertex *vertex) override {
+                vertex->setIx(graph_->vertexVector_.size());
+                graph_->vertexVector_.emplace_back(vertex);
 
-            inline VertexType subtype() const override;
+                /* == Add config vertex to the "viewer" vector == */
+                graph_->configVertexVector_.emplace_back(vertex);
+            }
 
-            /* === Setter(s) === */
+            inline void visit(Graph *subgraph) override {
+                /* == Add the subgraph as Vertex == */
+                subgraph->setIx(graph_->vertexVector_.size());
+                graph_->vertexVector_.emplace_back(subgraph);
 
-        private:
+                /* == Add the subgraph in the "viewer" vector == */
+                subgraph->subIx_ = graph_->subgraphVector_.size();
+                graph_->subgraphVector_.emplace_back(subgraph);
+            }
 
-            //TODO add function call
-
-            /* === Private method(s) === */
+            /* == Graph to add vertex to == */
+            Graph *graph_ = nullptr;
         };
 
-        VertexType EndVertex::subtype() const {
-            return VertexType::END;
-        }
-
-        Vertex *EndVertex::clone(StackID stack, Graph *graph) const {
-            graph = graph ? graph : this->graph_;
-            auto *result = Spider::API::createEnd(graph,
-                                                  this->name_,
-                                                  stack);
-            result->reference_ = this;
-            this->copyCount_ += 1;
-            return result;
-        }
-
-        /* === Inline method(s) === */
     }
 }
-#endif //SPIDER2_ENDVERTEX_H
+
+#endif //SPIDER2_GRAPHVISITORS_H

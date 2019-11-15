@@ -37,74 +37,44 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_HEADVERTEX_H
-#define SPIDER2_HEADVERTEX_H
+#ifndef SPIDER2_CONFIGVERTEX_H
+#define SPIDER2_CONFIGVERTEX_H
 
 /* === Include(s) === */
 
 #include <graphs/pisdf/common/VertexInterface.h>
-#include <graphs/pisdf/Graph.h>
 
 namespace Spider {
     namespace PiSDF {
 
-        inline void head(const std::int64_t *paramsIn, std::int64_t *[], void *in[], void *out[]) {
-            const auto &inputEnd = paramsIn[0]; /* = Number of input to consider = */
-            std::int64_t offset = 0;
-            for (auto i = 0; i < inputEnd; ++i) {
-                const auto &inputSize = paramsIn[i + 1]; /* = Size to copy for current input = */
-                std::memcpy(reinterpret_cast<char *>(out[0]) + offset, in[i], inputSize);
-                offset += inputSize;
-            }
-        }
-
         /* === Class definition === */
 
-        class HeadVertex final : public VertexInterface<HeadVertex> {
+        class ConfigVertex final : public VertexInterface<ConfigVertex> {
         public:
-            explicit HeadVertex(std::string name = "unnamed-headvertex",
-                                std::uint32_t edgeINCount = 0,
-                                Graph *graph = nullptr,
-                                StackID stack = StackID::PISDF) : VertexInterface<HeadVertex>(std::move(name),
-                                                                                              VertexType::SPECIAL,
-                                                                                              edgeINCount,
-                                                                                              1,
-                                                                                              graph,
-                                                                                              stack) { }
+            explicit ConfigVertex(std::string name = "unnamed-forkvertex",
+                                  std::uint32_t edgeINCount = 0,
+                                  std::uint32_t edgeOUTCount = 0,
+                                  Graph *graph = nullptr,
+                                  StackID stack = StackID::PISDF) : VertexInterface<ConfigVertex>(std::move(name),
+                                                                                                  VertexType::CONFIG,
+                                                                                                  edgeINCount,
+                                                                                                  edgeOUTCount,
+                                                                                                  graph,
+                                                                                                  stack) { }
 
             /* === Method(s) === */
 
-            inline Vertex *clone(StackID stack, Graph *graph) const override;
-
             /* === Getter(s) === */
-
-            inline VertexType subtype() const override;
 
             /* === Setter(s) === */
 
         private:
 
-            //TODO add function call
-
-            /* === Private method(s) === */
         };
-
-        VertexType HeadVertex::subtype() const {
-            return VertexType::HEAD;
-        }
-
-        Vertex *HeadVertex::clone(StackID stack, Graph *graph) const {
-            graph = graph ? graph : this->graph_;
-            auto *result = Spider::API::createHead(graph,
-                                                   this->name_,
-                                                   this->edgesINCount(),
-                                                   stack);
-            result->reference_ = this;
-            this->copyCount_ += 1;
-            return result;
-        }
 
         /* === Inline method(s) === */
     }
 }
-#endif //SPIDER2_HEADVERTEX_H
+
+
+#endif //SPIDER2_CONFIGVERTEX_H

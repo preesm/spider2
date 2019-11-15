@@ -42,7 +42,7 @@
 
 /* === Include(s) === */
 
-#include <graphs/pisdf/common/Types.h>
+#include <graphs/pisdf/specials/Specials.h>
 #include <containers/StlContainers.h>
 
 namespace Spider {

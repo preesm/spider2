@@ -62,7 +62,7 @@ namespace Spider {
         public:
             explicit DuplicateVertex(std::string name = "unnamed-duplicatevertex",
                                      std::uint32_t edgeOUTCount = 0,
-                                     Graph *graph = nullptr, //TODO: change to Spider::pisdfgraph() when this API replace old one
+                                     Graph *graph = nullptr,
                                      StackID stack = StackID::PISDF) : VertexInterface<DuplicateVertex>(std::move(name),
                                                                                                         VertexType::SPECIAL,
                                                                                                         1,

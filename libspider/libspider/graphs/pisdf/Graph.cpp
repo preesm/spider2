@@ -41,6 +41,7 @@
 /* === Include(s) === */
 
 #include <graphs/pisdf/Graph.h>
+#include <graphs/pisdf/GraphVisitors.h>
 #include <graphs/pisdf/ExecVertex.h>
 #include <graphs/pisdf/interfaces/Interface.h>
 #include <graphs/pisdf/interfaces/InputInterface.h>
@@ -48,9 +49,6 @@
 #include <graphs/pisdf/specials/Specials.h>
 #include <graphs/pisdf/params/Param.h>
 
-/* === Static variable(s) === */
-
-/* === Static function(s) === */
 
 /* === Method(s) implementation === */
 
@@ -122,28 +120,8 @@ Spider::PiSDF::Graph::~Graph() {
 }
 
 void Spider::PiSDF::Graph::addVertex(Vertex *vertex) {
-    switch (vertex->type()) {
-        case VertexType::SPECIAL:
-        case VertexType::DELAY:
-        case VertexType::NORMAL:
-            vertex->setIx(vertexVector_.size());
-            vertexVector_.emplace_back(vertex);
-            break;
-        case VertexType::CONFIG:
-            configVertexVector_.emplace_back(vertex);
-            vertex->setIx(vertexVector_.size());
-            vertexVector_.emplace_back(vertex);
-            break;
-        case VertexType::GRAPH:
-            addSubGraph(dynamic_cast<Graph *>(vertex));
-            vertex->setIx(vertexVector_.size());
-            vertexVector_.emplace_back(vertex);
-            break;
-        case VertexType::INTERFACE:
-            throwSpiderException("can not add interface to graph %s", name().c_str());
-        default:
-            throwSpiderException("unsupported type of vertex.");
-    }
+    AddVertexVisitor addVertexVisitor{ this };
+    vertex->visit(&addVertexVisitor);
 }
 
 void Spider::PiSDF::Graph::removeVertex(Vertex *vertex) {

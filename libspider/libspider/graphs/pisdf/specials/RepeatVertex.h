@@ -70,7 +70,7 @@ namespace Spider {
         class RepeatVertex final : public VertexInterface<RepeatVertex> {
         public:
             explicit RepeatVertex(std::string name = "unnamed-upsamplevertex",
-                                  Graph *graph = nullptr, //TODO: change to Spider::pisdfgraph() when this API replace old one
+                                  Graph *graph = nullptr,
                                   StackID stack = StackID::PISDF) : VertexInterface<RepeatVertex>(std::move(name),
                                                                                                   VertexType::SPECIAL,
                                                                                                   1,

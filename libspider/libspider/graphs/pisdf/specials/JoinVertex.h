@@ -72,7 +72,7 @@ namespace Spider {
         public:
             explicit JoinVertex(std::string name = "unnamed-joinvertex",
                                 std::uint32_t edgeINCount = 0,
-                                Graph *graph = nullptr, //TODO: change to Spider::pisdfgraph() when this API replace old one
+                                Graph *graph = nullptr,
                                 StackID stack = StackID::PISDF) : VertexInterface<JoinVertex>(std::move(name),
                                                                                               VertexType::SPECIAL,
                                                                                               edgeINCount,

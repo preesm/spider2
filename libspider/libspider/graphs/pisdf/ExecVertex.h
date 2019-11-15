@@ -57,7 +57,7 @@ namespace Spider {
                                 VertexType type = VertexType::NORMAL,
                                 std::uint32_t edgeINCount = 0,
                                 std::uint32_t edgeOUTCount = 0,
-                                Graph *graph = nullptr, //TODO: change to Spider::pisdfgraph() when this API replace old one
+                                Graph *graph = nullptr,
                                 StackID stack = StackID::PISDF);
 
             ExecVertex(const ExecVertex &) = delete;

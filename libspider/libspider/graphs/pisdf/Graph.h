@@ -52,6 +52,10 @@
 namespace Spider {
     namespace PiSDF {
 
+        /* === Forward declaration(s) === */
+
+        struct AddVertexVisitor;
+
         /* === Class definition === */
 
         class Graph final : virtual public Vertex {
@@ -68,6 +72,8 @@ namespace Spider {
                            StackID stack = StackID::PISDF);
 
             ~Graph() override;
+
+            friend AddVertexVisitor;
 
             /* === Method(s) === */
 
@@ -209,7 +215,7 @@ namespace Spider {
             * @brief A const reference on the set of vertices. Useful for iterating on the vertices.
             * @return const reference to vertex vector
             */
-            inline const Spider::vector<Vertex *> &configVertices() const;
+            inline const Spider::vector<ConfigVertex *> &configVertices() const;
 
             /**
             * @brief A const reference on the set of output interfaces. Useful for iterating on the input interfaces.
@@ -289,7 +295,7 @@ namespace Spider {
             /* === Contained elements of the graph === */
 
             Spider::vector<Vertex *> vertexVector_;
-            Spider::vector<Vertex *> configVertexVector_;
+            Spider::vector<ConfigVertex *> configVertexVector_;
             Spider::vector<Graph *> subgraphVector_;
             Spider::vector<Edge *> edgeVector_;
             Spider::Array<InputInterface *> inputInterfaceArray_;
@@ -364,7 +370,7 @@ namespace Spider {
             return subgraphVector_;
         }
 
-        const Spider::vector<Vertex *> &Graph::configVertices() const {
+        const Spider::vector<ConfigVertex *> &Graph::configVertices() const {
             return configVertexVector_;
         }
 

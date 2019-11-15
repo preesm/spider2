@@ -57,7 +57,7 @@ namespace Spider {
         class InitVertex final : public VertexInterface<InitVertex> {
         public:
             explicit InitVertex(std::string name = "unnamed-initvertex",
-                                Graph *graph = nullptr, //TODO: change to Spider::pisdfgraph() when this API replace old one
+                                Graph *graph = nullptr,
                                 StackID stack = StackID::PISDF) : VertexInterface<InitVertex>(std::move(name),
                                                                                               VertexType::SPECIAL,
                                                                                               0,

@@ -88,6 +88,8 @@ namespace Spider {
 
         class ExecVertex;
 
+        class ConfigVertex;
+
         class JoinVertex;
 
         class ForkVertex;
@@ -129,6 +131,7 @@ namespace Spider {
 /* == Vertex definitions == */
 using PiSDFAbstractVertex = Spider::PiSDF::Vertex;
 using PiSDFVertex = Spider::PiSDF::ExecVertex;
+using PiSDFCFGVertex = Spider::PiSDF::ConfigVertex;
 using PiSDFJoinVertex = Spider::PiSDF::JoinVertex;
 using PiSDFForkVertex = Spider::PiSDF::ForkVertex;
 using PiSDFTailVertex = Spider::PiSDF::TailVertex;

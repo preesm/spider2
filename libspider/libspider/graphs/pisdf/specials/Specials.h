@@ -42,8 +42,9 @@
 
 /* === Includes === */
 
-#include <graphs/pisdf/specials/JoinVertex.h>
+#include <graphs/pisdf/specials/ConfigVertex.h>
 #include <graphs/pisdf/specials/ForkVertex.h>
+#include <graphs/pisdf/specials/JoinVertex.h>
 #include <graphs/pisdf/specials/TailVertex.h>
 #include <graphs/pisdf/specials/HeadVertex.h>
 #include <graphs/pisdf/specials/DuplicateVertex.h>

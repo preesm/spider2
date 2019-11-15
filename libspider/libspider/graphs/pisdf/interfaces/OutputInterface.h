@@ -53,7 +53,7 @@ namespace Spider {
         public:
 
             explicit OutputInterface(std::string name = "unnamed-interface",
-                                     Graph *graph = nullptr, //TODO: change to Spider::pisdfgraph() when this API replace old one
+                                     Graph *graph = nullptr,
                                      StackID stack = StackID::PISDF) : Interface(std::move(name),
                                                                                  1,
                                                                                  0,

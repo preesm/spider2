@@ -62,6 +62,8 @@ namespace Spider {
 
             virtual void visit(ExecVertex *) = 0;
 
+            virtual void visit(ConfigVertex *) = 0;
+
             virtual void visit(ForkVertex *) = 0;
 
             virtual void visit(JoinVertex *) = 0;
@@ -98,6 +100,8 @@ namespace Spider {
             }
 
             void visit(ExecVertex *) override = 0;
+
+            void visit(ConfigVertex *vertex) override;
 
             void visit(ForkVertex *vertex) override;
 

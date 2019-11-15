@@ -45,6 +45,10 @@
 
 /* === Function(s) definition === */
 
+void Spider::PiSDF::DefaultToExecVisitor::visit(ConfigVertex *vertex) {
+    this->visit(static_cast<ExecVertex *>(vertex));
+}
+
 void Spider::PiSDF::DefaultToExecVisitor::visit(ForkVertex *vertex) {
     this->visit(static_cast<ExecVertex *>(vertex));
 }

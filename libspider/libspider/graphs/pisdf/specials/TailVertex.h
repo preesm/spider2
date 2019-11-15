@@ -73,7 +73,7 @@ namespace Spider {
         public:
             explicit TailVertex(std::string name = "unnamed-tailvertex",
                                 std::uint32_t edgeINCount = 0,
-                                Graph *graph = nullptr, //TODO: change to Spider::pisdfgraph() when this API replace old one
+                                Graph *graph = nullptr,
                                 StackID stack = StackID::PISDF) : VertexInterface<TailVertex>(std::move(name),
                                                                                               VertexType::SPECIAL,
                                                                                               edgeINCount,
