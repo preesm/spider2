@@ -94,8 +94,7 @@ namespace Spider {
     using semaphore = basic_semaphore<std::mutex, std::condition_variable>;
 
     template<typename Mutex, typename CondVar>
-    basic_semaphore<Mutex, CondVar>::basic_semaphore(size_t count)
-            : mCount{ count } { }
+    basic_semaphore<Mutex, CondVar>::basic_semaphore(size_t count) : mCount{ count } { }
 
     template<typename Mutex, typename CondVar>
     void basic_semaphore<Mutex, CondVar>::notify() {
@@ -114,12 +113,10 @@ namespace Spider {
     template<typename Mutex, typename CondVar>
     bool basic_semaphore<Mutex, CondVar>::try_wait() {
         std::lock_guard<Mutex> lock{ mMutex };
-
         if (mCount > 0) {
             --mCount;
             return true;
         }
-
         return false;
     }
 
@@ -128,11 +125,9 @@ namespace Spider {
     bool basic_semaphore<Mutex, CondVar>::wait_for(const std::chrono::duration<Rep, Period> &d) {
         std::unique_lock<Mutex> lock{ mMutex };
         auto finished = mCv.wait_for(lock, d, [&] { return mCount > 0; });
-
         if (finished) {
             --mCount;
         }
-
         return finished;
     }
 
@@ -141,11 +136,9 @@ namespace Spider {
     bool basic_semaphore<Mutex, CondVar>::wait_until(const std::chrono::time_point<Clock, Duration> &t) {
         std::unique_lock<Mutex> lock{ mMutex };
         auto finished = mCv.wait_until(lock, t, [&] { return mCount > 0; });
-
         if (finished) {
             --mCount;
         }
-
         return finished;
     }
 
