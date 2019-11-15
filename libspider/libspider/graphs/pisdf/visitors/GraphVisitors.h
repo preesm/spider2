@@ -42,7 +42,7 @@
 
 /* === Include(s) === */
 
-#include <graphs/pisdf/common/Visitor.h>
+#include <graphs/pisdf/visitors/Visitor.h>
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/specials/Specials.h>
 

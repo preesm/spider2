@@ -46,7 +46,7 @@
 #include <string>
 #include <containers/Array.h>
 #include <graphs/pisdf/common/Types.h>
-#include <graphs/pisdf/common/Visitor.h>
+#include <graphs/pisdf/visitors/Visitor.h>
 
 namespace Spider {
     namespace PiSDF {
