@@ -120,7 +120,7 @@ protected:
      * @brief Update the repetition vector values depending on interfaces and config actors rates.
      * @param edgeArray Edge array of the current connected components.
      */
-    void updateBRV(Spider::Array<const PiSDFEdge *> &edgeArray, const BRVComponent &component);
+    void updateBRV(const BRVComponent &component);
 
     /**
      * @brief Update the repetition vector based on the production of a given input interface.

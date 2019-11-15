@@ -98,7 +98,7 @@ void TopologyBRVCompute::execute() {
         computeBRVFromNullSpace(topologyMatrix, nMatVertices, nMatEdges, vertexIxArray, component);
 
         /* == Update the repetition vector values using the interfaces of the graph == */
-        updateBRV(edgeArray, component);
+        updateBRV(component);
     }
 
     /* == Print the BRV (in VERBOSE mode only) == */

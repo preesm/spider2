@@ -73,7 +73,7 @@ void LCMBRVCompute::execute() {
         computeBRV(component, reps, lcmFactor);
 
         /* == Update the repetition vector values using the interfaces of the graph == */
-        updateBRV(edgeArray, component);
+        updateBRV(component);
 
         /* == Check validity of the obtained repetition vector == */
         checkValidity(edgeArray);

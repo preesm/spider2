@@ -41,9 +41,8 @@
 /* === Include(s) === */
 
 #include <graphs-tools/brv/BRVCompute.h>
-#include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/ExecVertex.h>
-#include <graphs/pisdf/Edge.h>
+#include <graphs-tools/brv/UpdateBRVVisitor.h>
 
 /* === Static variable(s) === */
 
@@ -136,18 +135,13 @@ void BRVCompute::extractEdges(Spider::Array<const PiSDFEdge *> &edgeArray, const
     }
 }
 
-void BRVCompute::updateBRV(Spider::Array<const PiSDFEdge *> &edgeArray, const BRVComponent &component) {
+void BRVCompute::updateBRV(const BRVComponent &component) {
     std::uint64_t scaleRVFactor{ 1 };
 
     /* == Compute the scale factor == */
-    for (const auto &edge : edgeArray) {
-        if (edge->source()->type() == PiSDFVertexType::INTERFACE) {
-            scaleRVFactor *= updateBRVFromInputIF(edge, scaleRVFactor);
-        } else if (edge->sink()->type() == PiSDFVertexType::INTERFACE) {
-            scaleRVFactor *= updateBRVFromOutputIF(edge, scaleRVFactor);
-        } else if (edge->source()->type() == PiSDFVertexType::CONFIG) {
-            scaleRVFactor *= updateBRVFromCFGActor(edge, scaleRVFactor);
-        }
+    Spider::UpdateBRVVisitor brvVisitor{ scaleRVFactor, params_ };
+    for (const auto &v : component.vertices) {
+        v->visit(&brvVisitor);
     }
 
     /* == Apply the scale factor (if needed) == */
@@ -156,45 +150,6 @@ void BRVCompute::updateBRV(Spider::Array<const PiSDFEdge *> &edgeArray, const BR
             v->setRepetitionValue(v->repetitionValue() * scaleRVFactor);
         }
     }
-}
-
-std::uint64_t BRVCompute::updateBRVFromInputIF(const PiSDFEdge *edge, std::uint64_t currentScaleFactor) const {
-    if (edge->sink()->type() != PiSDFVertexType::INTERFACE) {
-        std::uint64_t sourceRate = edge->sourceRateExpression().evaluate(params_);
-        std::uint64_t sinkRate = edge->sinkRateExpression().evaluate(params_);
-        auto totalCons = sinkRate * edge->sink()->repetitionValue() * currentScaleFactor;
-        if (totalCons && totalCons < sourceRate) {
-            /* == Return ceil(interfaceProd / vertexCons) == */
-            return Spider::Math::ceilDiv(sourceRate, totalCons);
-        }
-    }
-    return 1;
-}
-
-std::uint64_t BRVCompute::updateBRVFromOutputIF(const PiSDFEdge *edge, std::uint64_t currentScaleFactor) const {
-    if (edge->source()->type() != PiSDFVertexType::INTERFACE) {
-        std::uint64_t sourceRate = edge->sourceRateExpression().evaluate(params_);
-        std::uint64_t sinkRate = edge->sinkRateExpression().evaluate(params_);
-        auto totalProd = sourceRate * edge->source()->repetitionValue() * currentScaleFactor;
-        if (totalProd && totalProd < sinkRate) {
-            /* == Return ceil(vertexProd / interfaceCons) == */
-            return Spider::Math::ceilDiv(sinkRate, totalProd);
-        }
-    }
-    return 1;
-}
-
-std::uint64_t BRVCompute::updateBRVFromCFGActor(const PiSDFEdge *edge, std::uint64_t currentScaleFactor) const {
-    if (edge->sink()->type() != PiSDFVertexType::INTERFACE) {
-        std::uint64_t sourceRate = edge->sourceRateExpression().evaluate(params_);
-        std::uint64_t sinkRate = edge->sinkRateExpression().evaluate(params_);
-        auto totalCons = sinkRate * edge->sink()->repetitionValue() * currentScaleFactor;
-        if (totalCons && totalCons < sourceRate) {
-            /* == Return ceil(cfgActorProd / vertexCons) == */
-            return Spider::Math::ceilDiv(sourceRate, totalCons);
-        }
-    }
-    return 1;
 }
 
 void BRVCompute::print() const {
