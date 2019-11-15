@@ -42,7 +42,7 @@
 
 /* === Include(s) === */
 
-#include <graphs/pisdf/ExecVertex.h>
+#include <graphs/pisdf/common/VertexInterface.h>
 #include <graphs/pisdf/Graph.h>
 
 namespace Spider {
@@ -54,18 +54,16 @@ namespace Spider {
 
         /* === Class definition === */
 
-        class InitVertex final : public ExecVertex {
+        class InitVertex final : public VertexInterface<InitVertex> {
         public:
             explicit InitVertex(std::string name = "unnamed-initvertex",
                                 Graph *graph = nullptr, //TODO: change to Spider::pisdfgraph() when this API replace old one
-                                StackID stack = StackID::PISDF) : ExecVertex(std::move(name),
-                                                                             VertexType::SPECIAL,
-                                                                             0,
-                                                                             1,
-                                                                             graph,
-                                                                             stack) {
-//                refinement_ = init;
-            }
+                                StackID stack = StackID::PISDF) : VertexInterface<InitVertex>(std::move(name),
+                                                                                              VertexType::SPECIAL,
+                                                                                              0,
+                                                                                              1,
+                                                                                              graph,
+                                                                                              stack) { }
 
             /* === Method(s) === */
 

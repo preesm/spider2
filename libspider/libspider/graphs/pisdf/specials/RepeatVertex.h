@@ -42,7 +42,7 @@
 
 /* === Include(s) === */
 
-#include <graphs/pisdf/ExecVertex.h>
+#include <graphs/pisdf/common/VertexInterface.h>
 #include <graphs/pisdf/Graph.h>
 
 namespace Spider {
@@ -67,18 +67,16 @@ namespace Spider {
 
         /* === Class definition === */
 
-        class RepeatVertex final : public ExecVertex {
+        class RepeatVertex final : public VertexInterface<RepeatVertex> {
         public:
             explicit RepeatVertex(std::string name = "unnamed-upsamplevertex",
                                   Graph *graph = nullptr, //TODO: change to Spider::pisdfgraph() when this API replace old one
-                                  StackID stack = StackID::PISDF) : ExecVertex(std::move(name),
-                                                                               VertexType::SPECIAL,
-                                                                               1,
-                                                                               1,
-                                                                               graph,
-                                                                               stack) {
-//                refinement_ = upsample;
-            }
+                                  StackID stack = StackID::PISDF) : VertexInterface<RepeatVertex>(std::move(name),
+                                                                                                  VertexType::SPECIAL,
+                                                                                                  1,
+                                                                                                  1,
+                                                                                                  graph,
+                                                                                                  stack) { }
 
             /* === Method(s) === */
 

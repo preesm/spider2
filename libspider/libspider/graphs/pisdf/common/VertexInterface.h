@@ -42,7 +42,7 @@
 
 /* === Include(s) === */
 
-#include <graphs/pisdf/Vertex.h>
+#include <graphs/pisdf/ExecVertex.h>
 #include <graphs/pisdf/common/Visitor.h>
 
 namespace Spider {
@@ -51,25 +51,25 @@ namespace Spider {
         /* === Class definition === */
 
         template<class T>
-        class VertexInterface : public Vertex {
+        class VertexInterface : public ExecVertex {
         public:
             VertexInterface(std::string name,
                             VertexType type,
                             std::uint32_t edgeINCount,
                             std::uint32_t edgeOUTCount,
                             Graph *graph,
-                            StackID stack) : Vertex(std::move(name),
-                                                    type,
-                                                    edgeINCount,
-                                                    edgeOUTCount,
-                                                    graph,
-                                                    stack) { }
+                            StackID stack) : ExecVertex(std::move(name),
+                                                        type,
+                                                        edgeINCount,
+                                                        edgeOUTCount,
+                                                        graph,
+                                                        stack) { }
 
             ~VertexInterface() override = default;
 
             /* === Method(s) === */
 
-            inline void visit(Visitor *visitor) {
+            inline void visit(Visitor *visitor) override {
                 visitor->visit(static_cast<T *>(this));
             }
 

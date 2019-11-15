@@ -42,7 +42,7 @@
 
 /* === Include(s) === */
 
-#include <graphs/pisdf/ExecVertex.h>
+#include <graphs/pisdf/common/VertexInterface.h>
 #include <graphs/pisdf/Graph.h>
 
 namespace Spider {
@@ -58,17 +58,17 @@ namespace Spider {
 
         /* === Class definition === */
 
-        class DuplicateVertex final : public ExecVertex {
+        class DuplicateVertex final : public VertexInterface<DuplicateVertex> {
         public:
             explicit DuplicateVertex(std::string name = "unnamed-duplicatevertex",
                                      std::uint32_t edgeOUTCount = 0,
                                      Graph *graph = nullptr, //TODO: change to Spider::pisdfgraph() when this API replace old one
-                                     StackID stack = StackID::PISDF) : ExecVertex(std::move(name),
-                                                                                  VertexType::SPECIAL,
-                                                                                  1,
-                                                                                  edgeOUTCount,
-                                                                                  graph,
-                                                                                  stack) {
+                                     StackID stack = StackID::PISDF) : VertexInterface<DuplicateVertex>(std::move(name),
+                                                                                                        VertexType::SPECIAL,
+                                                                                                        1,
+                                                                                                        edgeOUTCount,
+                                                                                                        graph,
+                                                                                                        stack) {
 //                refinement_ = duplicate;
             }
 

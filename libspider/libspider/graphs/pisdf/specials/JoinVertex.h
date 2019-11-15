@@ -42,7 +42,7 @@
 
 /* === Include(s) === */
 
-#include <graphs/pisdf/ExecVertex.h>
+#include <graphs/pisdf/common/VertexInterface.h>
 #include <graphs/pisdf/Graph.h>
 
 namespace Spider {
@@ -68,19 +68,17 @@ namespace Spider {
 
         /* === Class definition === */
 
-        class JoinVertex final : public ExecVertex {
+        class JoinVertex final : public VertexInterface<JoinVertex> {
         public:
             explicit JoinVertex(std::string name = "unnamed-joinvertex",
                                 std::uint32_t edgeINCount = 0,
                                 Graph *graph = nullptr, //TODO: change to Spider::pisdfgraph() when this API replace old one
-                                StackID stack = StackID::PISDF) : ExecVertex(std::move(name),
-                                                                             VertexType::SPECIAL,
-                                                                             edgeINCount,
-                                                                             1,
-                                                                             graph,
-                                                                             stack) {
-//                refinement_ = join;
-            }
+                                StackID stack = StackID::PISDF) : VertexInterface<JoinVertex>(std::move(name),
+                                                                                              VertexType::SPECIAL,
+                                                                                              edgeINCount,
+                                                                                              1,
+                                                                                              graph,
+                                                                                              stack) { }
 
             /* === Method(s) === */
 
