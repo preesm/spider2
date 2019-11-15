@@ -42,99 +42,116 @@
 
 /**
  *
- * Custom semaphore wrapper:
- * uses POSIX Semaphores on Windows / Linux
- * uses dispatch Semaphores on MacOSX
+ * Custom semaphore using std::condition_variable and std::mutex
  *
- * Strongly inspired from https://stackoverflow.com/questions/27736618/why-are-sem-init-sem-getvalue-sem-destroy-deprecated-on-mac-os-x-and-w
- *
- * Note: dispatch is not async safe: https://github.com/adrienverge/openfortivpn/issues/105
+ * The source code comes from https://stackoverflow.com/questions/4792449/c0x-has-no-semaphores-how-to-synchronize-threads
  *
  **/
 
 /* === Includes === */
 
 #include <cstdint>
-
-#ifdef __APPLE__
-
-/* === MacOSX does not implement semaphores (use dispatch instead) === */
-
-#include <dispatch/dispatch.h>
-
-#else
-
-/* === Windows / Unix (use POSIX semaphores) === */
-
-#include <semaphore.h>
-
-/* === semaphore.h includes _ptw32.h that redefines types int64_t and uint64_t on Visual Studio, === */
-/* === making compilation error with the IDE's own declaration of said types === */
-#ifdef _MSC_VER
-
-#ifdef int64_t
-#undef int64_t
-#endif
-
-#ifdef uint64_t
-#undef uint64_t
-#endif
-
-#endif
-#endif
-
-/* === Methods prototype === */
+#include <mutex>
+#include <condition_variable>
 
 namespace Spider {
-    namespace Semaphore {
-#ifdef __APPLE__
-        using Semaphore = dispatch_semaphore_t;
 
-        static inline Semaphore init(std::uint64_t value) {
-            return dispatch_semaphore_create(value);
+    template<typename Mutex, typename CondVar>
+    class basic_semaphore {
+    public:
+        using native_handle_type = typename CondVar::native_handle_type;
+
+        explicit basic_semaphore(size_t count = 0);
+
+        basic_semaphore(const basic_semaphore &) = delete;
+
+        basic_semaphore(basic_semaphore &&) = delete;
+
+        basic_semaphore &operator=(const basic_semaphore &) = delete;
+
+        basic_semaphore &operator=(basic_semaphore &&) = delete;
+
+        void notify();
+
+        void wait();
+
+        bool try_wait();
+
+        template<class Rep, class Period>
+        bool wait_for(const std::chrono::duration<Rep, Period> &d);
+
+        template<class Clock, class Duration>
+        bool wait_until(const std::chrono::time_point<Clock, Duration> &t);
+
+        native_handle_type native_handle();
+
+    private:
+        Mutex mMutex;
+        CondVar mCv;
+        size_t mCount;
+    };
+
+    using semaphore = basic_semaphore<std::mutex, std::condition_variable>;
+
+    template<typename Mutex, typename CondVar>
+    basic_semaphore<Mutex, CondVar>::basic_semaphore(size_t count)
+            : mCount{ count } { }
+
+    template<typename Mutex, typename CondVar>
+    void basic_semaphore<Mutex, CondVar>::notify() {
+        std::lock_guard<Mutex> lock{ mMutex };
+        ++mCount;
+        mCv.notify_one();
+    }
+
+    template<typename Mutex, typename CondVar>
+    void basic_semaphore<Mutex, CondVar>::wait() {
+        std::unique_lock<Mutex> lock{ mMutex };
+        mCv.wait(lock, [&] { return mCount > 0; });
+        --mCount;
+    }
+
+    template<typename Mutex, typename CondVar>
+    bool basic_semaphore<Mutex, CondVar>::try_wait() {
+        std::lock_guard<Mutex> lock{ mMutex };
+
+        if (mCount > 0) {
+            --mCount;
+            return true;
         }
 
-        static inline std::int64_t wait(Semaphore &sem) {
-            return dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER);
+        return false;
+    }
+
+    template<typename Mutex, typename CondVar>
+    template<class Rep, class Period>
+    bool basic_semaphore<Mutex, CondVar>::wait_for(const std::chrono::duration<Rep, Period> &d) {
+        std::unique_lock<Mutex> lock{ mMutex };
+        auto finished = mCv.wait_for(lock, d, [&] { return mCount > 0; });
+
+        if (finished) {
+            --mCount;
         }
 
-        static inline std::int64_t tryWait(Semaphore &sem) {
-            return dispatch_semaphore_wait(sem, DISPATCH_TIME_NOW);
+        return finished;
+    }
+
+    template<typename Mutex, typename CondVar>
+    template<class Clock, class Duration>
+    bool basic_semaphore<Mutex, CondVar>::wait_until(const std::chrono::time_point<Clock, Duration> &t) {
+        std::unique_lock<Mutex> lock{ mMutex };
+        auto finished = mCv.wait_until(lock, t, [&] { return mCount > 0; });
+
+        if (finished) {
+            --mCount;
         }
 
-        static inline void post(Semaphore &sem) {
-            dispatch_semaphore_signal(sem);
-        }
+        return finished;
+    }
 
-        static inline void destroy(Semaphore &sem) {
-            dispatch_release(sem);
-        }
-#else
-        using Semaphore = sem_t;
-
-        static inline Semaphore init(std::uint64_t value) {
-            Semaphore sem;
-            sem_init(&sem, 0, value);
-            return sem;
-        }
-
-        static inline std::int64_t wait(Semaphore &sem) {
-            return sem_wait(&sem);
-        }
-
-        static inline std::int64_t tryWait(Semaphore &sem) {
-            return sem_trywait(&sem);
-        }
-
-        static inline void post(Semaphore &sem) {
-            sem_post(&sem);
-        }
-
-        static inline void destroy(Semaphore &sem) {
-            sem_destroy(&sem);
-        }
-
-#endif
+    template<typename Mutex, typename CondVar>
+    typename basic_semaphore<Mutex, CondVar>::native_handle_type basic_semaphore<Mutex, CondVar>::native_handle() {
+        return mCv.native_handle();
     }
 }
 
