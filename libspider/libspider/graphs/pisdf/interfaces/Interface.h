@@ -72,13 +72,15 @@ namespace Spider {
 
             inline Vertex *forwardEdge(const Edge *) override;
 
+            inline Vertex *clone(StackID, Graph *) const override;
+
+            inline void visit(Visitor *visitor) override;
+
+            /* === Getter(s) === */
+
             virtual Edge *inputEdge() const = 0;
 
             virtual Edge *outputEdge() const = 0;
-
-            inline Vertex *clone(StackID, Graph *) const override;
-
-            /* === Getter(s) === */
 
             /**
              * @brief Return vertex connected to interface.
@@ -100,6 +102,10 @@ namespace Spider {
 
         Vertex *Interface::clone(StackID, Graph *) const {
             throwSpiderException("can not clone interfaces");
+        }
+
+        void Interface::visit(Visitor *visitor) {
+            visitor->visit(this);
         }
     }
 }

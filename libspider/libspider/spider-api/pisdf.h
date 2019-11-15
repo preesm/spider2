@@ -67,9 +67,7 @@ namespace Spider {
 
         class DuplicateVertex;
 
-        class UpSampleVertex;
-
-        class DownSampleVertex;
+        class RepeatVertex;
 
         class InitVertex;
 
@@ -163,17 +161,11 @@ namespace Spider {
                                                 std::uint32_t edgeOUTCount = 0,
                                                 StackID stack = StackID::PISDF);
 
-        PiSDF::UpSampleVertex *createUpsample(PiSDF::Graph *graph,
-                                              std::string name,
-                                              StackID stack = StackID::PISDF);
+        PiSDF::RepeatVertex *createRepeat(PiSDF::Graph *graph, std::string name, StackID stack = StackID::PISDF);
 
-        PiSDF::InitVertex *createInit(PiSDF::Graph *graph,
-                                      std::string name,
-                                      StackID stack = StackID::PISDF);
+        PiSDF::InitVertex *createInit(PiSDF::Graph *graph, std::string name, StackID stack = StackID::PISDF);
 
-        PiSDF::EndVertex *createEnd(PiSDF::Graph *graph,
-                                    std::string name,
-                                    StackID stack = StackID::PISDF);
+        PiSDF::EndVertex *createEnd(PiSDF::Graph *graph, std::string name, StackID stack = StackID::PISDF);
 
         PiSDF::ExecVertex *createConfigActor(PiSDF::Graph *graph,
                                              std::string name,
@@ -181,13 +173,9 @@ namespace Spider {
                                              std::uint32_t edgeOUTCount = 0,
                                              StackID stack = StackID::PISDF);
 
-        PiSDF::InputInterface *setInputInterfaceName(PiSDF::Graph *graph,
-                                                     std::uint32_t ix,
-                                                     std::string name);
+        PiSDF::InputInterface *setInputInterfaceName(PiSDF::Graph *graph, std::uint32_t ix, std::string name);
 
-        PiSDF::OutputInterface *setOutputInterfaceName(PiSDF::Graph *graph,
-                                                       std::uint32_t ix,
-                                                       std::string name);
+        PiSDF::OutputInterface *setOutputInterfaceName(PiSDF::Graph *graph, std::uint32_t ix, std::string name);
 
         /* === Param API === */
 

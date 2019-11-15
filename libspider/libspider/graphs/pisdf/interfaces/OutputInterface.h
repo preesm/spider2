@@ -65,11 +65,13 @@ namespace Spider {
 
             inline void connectOutputEdge(Edge *, std::uint32_t) override;
 
+            inline void visit(Visitor *visitor) override;
+
+            /* === Getter(s) === */
+
             inline Edge *inputEdge() const override;
 
             inline Edge *outputEdge() const override;
-
-            /* === Getter(s) === */
 
             inline Vertex *opposite() const override;
 
@@ -90,6 +92,10 @@ namespace Spider {
 
         void OutputInterface::connectOutputEdge(Edge *, std::uint32_t) {
             throwSpiderException("Can not connect output edge to output interface.");
+        }
+
+        void OutputInterface::visit(Visitor *visitor) {
+            visitor->visit(this);
         }
 
         Edge *OutputInterface::inputEdge() const {

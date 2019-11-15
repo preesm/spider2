@@ -40,12 +40,12 @@
 
 /* === Includes === */
 
+#include <spider.h>
 #include <memory/Allocator.h>
 #include <common/Logger.h>
-#include <graphs/pisdf/Graph.h>
 #include <archi/Platform.h>
-#include <spider.h>
 #include <graphs/pisdf/specials/Specials.h>
+#include <graphs/pisdf/common/Refinement.h>
 
 /* === Static variable(s) definition === */
 
@@ -83,10 +83,10 @@ static std::vector<Spider::PiSDF::Refinement *> specialActorRefinements() {
     Spider::API::registerRefinement(duplicateRefinement);
     specialRefinements.emplace_back(duplicateRefinement);
 
-    auto *upsampleRefinement = Spider::API::createRefinement("upsample", Spider::PiSDF::upsample, 0, 0,
-                                                             StackID::GENERAL);
-    Spider::API::registerRefinement(upsampleRefinement);
-    specialRefinements.emplace_back(upsampleRefinement);
+    auto *repeatRefinement = Spider::API::createRefinement("repeat", Spider::PiSDF::repeat, 0, 0,
+                                                           StackID::GENERAL);
+    Spider::API::registerRefinement(repeatRefinement);
+    specialRefinements.emplace_back(repeatRefinement);
 
     auto *initRefinement = Spider::API::createRefinement("init", Spider::PiSDF::init, 0, 0, StackID::GENERAL);
     Spider::API::registerRefinement(initRefinement);

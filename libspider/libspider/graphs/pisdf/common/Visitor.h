@@ -37,20 +37,56 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_SPECIALS_H
-#define SPIDER2_SPECIALS_H
+#ifndef SPIDER2_VISITOR_H
+#define SPIDER2_VISITOR_H
 
-/* === Includes === */
+/* === Include(s) === */
 
-#include <graphs/pisdf/specials/JoinVertex.h>
-#include <graphs/pisdf/specials/ForkVertex.h>
-#include <graphs/pisdf/specials/TailVertex.h>
-#include <graphs/pisdf/specials/HeadVertex.h>
-#include <graphs/pisdf/specials/DuplicateVertex.h>
-#include <graphs/pisdf/specials/RepeatVertex.h>
-#include <graphs/pisdf/specials/InitVertex.h>
-#include <graphs/pisdf/specials/EndVertex.h>
+#include <graphs/pisdf/common/Types.h>
 
-constexpr auto specialActorCount = 8;
+namespace Spider {
+    namespace PiSDF {
+        /* === Class definition === */
 
-#endif //SPIDER2_SPECIALS_H
+        class Visitor {
+        public:
+            Visitor() = default;
+
+            ~Visitor() = default;
+
+            /* === Method(s) === */
+
+            virtual void visit(Graph *) = 0;
+
+            virtual void visit(ExecVertex *) = 0;
+
+            virtual void visit(ForkVertex *) = 0;
+
+            virtual void visit(JoinVertex *) = 0;
+
+            virtual void visit(HeadVertex *) = 0;
+
+            virtual void visit(TailVertex *) = 0;
+
+            virtual void visit(DuplicateVertex *) = 0;
+
+            virtual void visit(RepeatVertex *) = 0;
+
+            virtual void visit(InitVertex *) = 0;
+
+            virtual void visit(EndVertex *) = 0;
+
+            virtual void visit(Interface *) = 0;
+
+            virtual void visit(InputInterface *) = 0;
+
+            virtual void visit(OutputInterface *) = 0;
+
+        private:
+
+        };
+
+        /* === Inline method(s) === */
+    }
+}
+#endif //SPIDER2_VISITOR_H

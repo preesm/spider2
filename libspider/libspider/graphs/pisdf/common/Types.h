@@ -72,7 +72,7 @@ namespace Spider {
             DELAY,          /*! Delay vertex type */
             FORK,           /*! Fork actor subtype */
             JOIN,           /*! Join actor subtype */
-            UPSAMPLE,       /*! Up-sample actor subtype */
+            REPEAT,         /*! Repeat actor subtype */
             DUPLICATE,      /*! Duplicate actor subtype */
             TAIL,           /*! Tail actor subtype */
             HEAD,           /*! Head actor subtype */
@@ -98,7 +98,7 @@ namespace Spider {
 
         class DuplicateVertex;
 
-        class UpSampleVertex;
+        class RepeatVertex;
 
         class InitVertex;
 
@@ -134,7 +134,7 @@ using PiSDFForkVertex = Spider::PiSDF::ForkVertex;
 using PiSDFTailVertex = Spider::PiSDF::TailVertex;
 using PiSDFHeadVertex = Spider::PiSDF::HeadVertex;
 using PiSDFDuplicateVertex = Spider::PiSDF::DuplicateVertex;
-using PiSDFUpSampleVertex = Spider::PiSDF::UpSampleVertex;
+using PiSDFRepeatVertex = Spider::PiSDF::RepeatVertex;
 using PiSDFInitVertex = Spider::PiSDF::InitVertex;
 using PiSDFEndVertex = Spider::PiSDF::EndVertex;
 

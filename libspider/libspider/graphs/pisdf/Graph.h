@@ -150,6 +150,8 @@ namespace Spider {
 
             Vertex *clone(StackID stack, Graph *graph) const override;
 
+            inline void visit(Visitor *visitor) override;
+
             /* === Getter(s) === */
 
             inline bool hierarchical() const override;
@@ -320,6 +322,10 @@ namespace Spider {
                 graph->addVertex(elt);
                 elt->setGraph(graph);
             }
+        }
+
+        void Graph::visit(Visitor *visitor) {
+            visitor->visit(this);
         }
 
         bool Graph::hierarchical() const {

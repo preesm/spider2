@@ -42,8 +42,8 @@
 
 /* === Includes === */
 
-#include <string>
 #include <spider-api/pisdf.h>
+#include <array>
 
 namespace Spider {
 

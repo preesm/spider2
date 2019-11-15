@@ -306,8 +306,8 @@ void Spider::PiSDF::Graph::destroyVertex(Vertex *vertex) {
             Spider::deallocate(tmp);
         }
             break;
-        case VertexType::UPSAMPLE: {
-            auto *tmp = dynamic_cast<UpSampleVertex *>(vertex);
+        case VertexType::REPEAT: {
+            auto *tmp = dynamic_cast<RepeatVertex *>(vertex);
             Spider::destroy(tmp);
             Spider::deallocate(tmp);
         }

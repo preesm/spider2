@@ -44,10 +44,7 @@
 
 #include <cstdint>
 #include <string>
-#include <containers/Array.h>
-#include <spider-api/config.h>
 #include <graphs/pisdf/Vertex.h>
-#include <graphs/pisdf/common/Refinement.h>
 
 namespace Spider {
     namespace PiSDF {
@@ -65,9 +62,13 @@ namespace Spider {
 
             ExecVertex(const ExecVertex &) = delete;
 
-            /* === Getter(s) === */
+            /* === Method(s) === */
 
             Vertex *clone(StackID stack, Graph *graph) const override;
+
+            inline void visit(Visitor *visitor) override;
+
+            /* === Getter(s) === */
 
             inline bool executable() const override;
 
@@ -102,6 +103,12 @@ namespace Spider {
             std::uint32_t refinementIx_ = UINT32_MAX;
             std::uint32_t jobIx_ = UINT32_MAX;
         };
+
+        /* === Inline method(s) === */
+
+        void ExecVertex::visit(Visitor *visitor) {
+            visitor->visit(this);
+        }
 
         bool ExecVertex::executable() const {
             return true;

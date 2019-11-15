@@ -46,6 +46,7 @@
 #include <string>
 #include <containers/Array.h>
 #include <graphs/pisdf/common/Types.h>
+#include <graphs/pisdf/common/Visitor.h>
 
 namespace Spider {
     namespace PiSDF {
@@ -121,6 +122,8 @@ namespace Spider {
              * @return this.
              */
             inline const Vertex *self() const;
+
+            inline virtual void visit(Visitor *) = 0;
 
             /* === Getter(s) === */
 

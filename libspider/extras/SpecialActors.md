@@ -119,16 +119,16 @@ digraph structs {
 *    output is WRITE_ONLY
 
 
-#### Upsample
+#### Repeat
 
 ```graphviz
 digraph structs {
 	node[shape=record]
     rankdir=LR;
-	upsample [label="Upsample Actor|{{<i1> i1|<i2> i2|...|<in> in}||<out> out}" shape=Mrecord];
-	input1 -> upsample:i1[headlabel = "ri1   "];
-	input2 -> upsample:i2[headlabel = "ri2   "];
-	inputn -> upsample:in[headlabel = "rin   "];
+	repeat [label="Upsample Actor|{{<i1> i1|<i2> i2|...|<in> in}||<out> out}" shape=Mrecord];
+	input1 -> repeat:i1[headlabel = "ri1   "];
+	input2 -> repeat:i2[headlabel = "ri2   "];
+	inputn -> repeat:in[headlabel = "rin   "];
     
 	upsample:out -> output[taillabel = "  ro"];
 }
