@@ -112,6 +112,7 @@ protected:
     /**
      * @brief Extract the edges of a given connected component.
      * @param component  Connected component.
+     * @return Array of Edge of the connected component.
      */
     static Spider::Array<const PiSDFEdge *> extractEdges(const BRVComponent &component);
 
@@ -120,31 +121,6 @@ protected:
      * @param edgeArray Edge array of the current connected components.
      */
     void updateBRV(const BRVComponent &component);
-
-    /**
-     * @brief Update the repetition vector based on the production of a given input interface.
-     * @param edge                 Edge connected to the interface.
-     * @param currentScaleFactor   Current scaling factor of the repetition vector.
-     * @return new value of the scaling factor (can be unchanged).
-     */
-    std::uint64_t updateBRVFromInputIF(const PiSDFEdge *edge, std::uint64_t currentScaleFactor) const;
-
-    /**
-     * @brief Update the repetition vector based on the production of a given output interface.
-     * @param edge                 Edge connected to the interface.
-     * @param currentScaleFactor   Current scaling factor of the repetition vector.
-     * @return new value of the scaling factor (can be unchanged).
-     */
-    std::uint64_t updateBRVFromOutputIF(const PiSDFEdge *edge, std::uint64_t currentScaleFactor) const;
-
-    /**
-     * @brief Update the repetition vector based on the production rates of a given configuration actor.
-     * @param edge                 Edge connected to the config actor.
-     * @param currentScaleFactor   Current scaling factor of the repetition vector.
-     * @return new value of the scaling factor (can be unchanged).
-     */
-    std::uint64_t updateBRVFromCFGActor(const PiSDFEdge *edge, std::uint64_t currentScaleFactor) const;
-
 };
 
 /* === Inline method(s) === */

@@ -59,16 +59,28 @@ namespace Spider {
 
         inline void visit(Spider::PiSDF::ExecVertex *) override { }
 
+        /**
+         * @brief Update the repetition vector based on the production rates of a given configuration actor.
+         * @param vertex  Config vertex evaluated.
+         */
         inline void visit(Spider::PiSDF::ConfigVertex *vertex) override {
             for (const auto &edge : vertex->outputEdgeArray()) {
                 updateFromInputIf(edge);
             }
         }
 
+        /**
+         * @brief Update the repetition vector based on the production of a given input interface.
+         * @param interface Interface to evaluate.
+         */
         inline void visit(Spider::PiSDF::InputInterface *interface) override {
             updateFromInputIf(interface->outputEdge());
         }
 
+        /**
+         * @brief Update the repetition vector based on the production of a given output interface.
+         * @param interface Interface to evaluate.
+         */
         inline void visit(Spider::PiSDF::OutputInterface *interface) override {
             const auto &edge = interface->inputEdge();
             std::uint64_t sourceRate = edge->sourceRateExpression().evaluate(paramVector_);
