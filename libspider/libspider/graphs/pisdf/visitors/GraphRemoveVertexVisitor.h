@@ -49,7 +49,7 @@
 namespace Spider {
     namespace PiSDF {
 
-        struct GraphRemoveVertexVisitor : public DefaultVisitor {
+        struct GraphRemoveVertexVisitor final : public DefaultVisitor {
 
             explicit GraphRemoveVertexVisitor(Graph *graph) : graph_{ graph } { }
 

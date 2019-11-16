@@ -51,7 +51,7 @@ namespace Spider {
 
     /* === Class definition === */
 
-    struct UpdateBRVVisitor : public Spider::PiSDF::DefaultVisitor {
+    struct UpdateBRVVisitor final : public Spider::PiSDF::DefaultVisitor {
 
         explicit UpdateBRVVisitor(std::uint64_t &scaleFactor,
                                   const Spider::vector<PiSDFParam *> &paramVector) : scaleFactor_{ scaleFactor },

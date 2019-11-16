@@ -243,9 +243,6 @@ add_custom_target(
         -I${MY_VTK_INCLUDE_DIR}
 )
 
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive")
-
 add_library(Spider2 SHARED ${source_files} ${header_files})
 target_link_libraries(Spider2 ${CMAKE_THREAD_LIBS_INIT} ${PAPI_LIBRARIES})
 

@@ -58,7 +58,7 @@ namespace Spider {
          * @param Graph Graph to which the clone is added (if nullptr, @refitem graph_ is used).
          * @return Clone instance of the vertex.
          */
-        struct CloneVertexVisitor : public DefaultVisitor {
+        struct CloneVertexVisitor final : public DefaultVisitor {
             explicit CloneVertexVisitor(Graph *graph, StackID stack = StackID::PISDF) : graph_{ graph },
                                                                                         stack_{ stack } { }
 
