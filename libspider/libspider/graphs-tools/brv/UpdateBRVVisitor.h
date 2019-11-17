@@ -57,8 +57,6 @@ namespace Spider {
                                   const Spider::vector<PiSDFParam *> &paramVector) : scaleFactor_{ scaleFactor },
                                                                                      paramVector_{ paramVector } { }
 
-        inline void visit(Spider::PiSDF::ExecVertex *) override { }
-
         /**
          * @brief Update the repetition vector based on the production rates of a given configuration actor.
          * @param vertex  Config vertex evaluated.

@@ -69,7 +69,7 @@ void Spider::BestFitScheduler::vertexMapper(const PiSDFAbstractVertex *vertex) {
     /* == Search for the best slave possible == */
     const auto *platform = Spider::platform();
     const auto &scenario = Spider::scenario();
-    const auto *reference = dynamic_cast<const PiSDFVertex *>(vertex->reference());
+    const auto *reference = vertex->reference();
     const auto &platformStats = schedule_.stats();
 
     std::pair<std::uint32_t, std::uint32_t> bestSlave{ UINT32_MAX, UINT32_MAX };
@@ -105,7 +105,7 @@ void Spider::BestFitScheduler::vertexMapper(const PiSDFAbstractVertex *vertex) {
     }
 
     if (bestSlave.first == UINT32_MAX) {
-        throwSpiderException("Could not find suitable processing element for vertex: [%s]", vertex->name());
+        throwSpiderException("Could not find suitable processing element for vertex: [%s]", vertex->name().c_str());
     }
     const auto &PE = platform->findPE(bestSlave.first, bestSlave.second);
     auto job = ScheduleJob(schedule_.jobCount(), /* == Job ix == */

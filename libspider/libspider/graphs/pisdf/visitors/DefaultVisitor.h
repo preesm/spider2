@@ -56,7 +56,7 @@ namespace Spider {
                 throwSpiderException("unsupported visitor type: Graph.");
             }
 
-            void visit(ExecVertex *) override = 0;
+            inline void visit(ExecVertex *) override { };
 
             void visit(ConfigVertex *vertex) override;
 

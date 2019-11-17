@@ -66,8 +66,8 @@ bool PiSDFForkForkOptimizer::operator()(PiSDFGraph *graph) const {
             const auto &vertex = v->inputEdge(0)->sink();
             auto *source = vertex->inputEdge(0)->source();
             if (source->subtype() == Spider::PiSDF::VertexType::FORK) {
-                verticesToOptimize.push_back(std::make_pair(dynamic_cast<Spider::PiSDF::ForkVertex *>(source),
-                                                            dynamic_cast<Spider::PiSDF::ForkVertex *>(vertex)));
+                verticesToOptimize.push_back(std::make_pair(static_cast<Spider::PiSDF::ForkVertex *>(source),
+                                                            static_cast<Spider::PiSDF::ForkVertex *>(vertex)));
             }
         }
     }

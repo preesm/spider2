@@ -57,16 +57,14 @@ public:
 };
 
 bool PiSDFJoinJoinOptimizer::operator()(PiSDFGraph *graph) const {
-    Spider::vector<std::pair<PiSDFVertex *, PiSDFVertex *>> verticesToOptimize;
+    Spider::vector<std::pair<PiSDFAbstractVertex *, PiSDFAbstractVertex *>> verticesToOptimize;
 
     /* == Search for the pair of fork to optimize == */
     for (auto &vertex : graph->vertices()) {
         if (vertex->subtype() == PiSDFVertexType::JOIN) {
             auto *sink = vertex->outputEdge(0)->sink();
             if (sink->subtype() == PiSDFVertexType::JOIN) {
-                verticesToOptimize.push_back(
-                        std::make_pair(dynamic_cast<PiSDFVertex *>(vertex->outputEdge(0)->source()),
-                                       dynamic_cast<PiSDFVertex *>(sink)));
+                verticesToOptimize.push_back(std::make_pair(vertex, sink));
             }
         }
     }

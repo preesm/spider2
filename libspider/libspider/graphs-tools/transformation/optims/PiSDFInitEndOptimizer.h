@@ -71,7 +71,7 @@ bool PiSDFInitEndOptimizer::operator()(PiSDFGraph *graph) const {
     /* == Remove useless init / end connections == */
     for (auto *init : verticesToOptimize) {
         auto *edge = init->outputEdge(0);
-        auto *end = dynamic_cast<PiSDFEndVertex *>(edge->sink());
+        auto *end = edge->sink();
         graph->removeEdge(edge);
         if (Spider::API::verbose() && log_enabled<LOG_OPTIMS>()) {
             Spider::Logger::verbose<LOG_OPTIMS>("InitEndOptimizer: removing init [%s] and end [%s] vertices.\n",

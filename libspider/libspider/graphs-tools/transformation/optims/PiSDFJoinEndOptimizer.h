@@ -69,7 +69,7 @@ bool PiSDFJoinEndOptimizer::operator()(PiSDFGraph *graph) const {
     const auto &params = graph->params();
     for (auto *join : verticesToOptimize) {
         auto *edge = join->outputEdge(0);
-        auto *end = dynamic_cast<PiSDFEndVertex *>(edge->sink());
+        auto *end = edge->sink();
         graph->removeEdge(edge);
         // TODO: see how to deal with persistent delay memory allocation
         for (auto *inputEdge : join->inputEdgeArray()) {
