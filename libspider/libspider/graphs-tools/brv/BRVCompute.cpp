@@ -143,7 +143,12 @@ void BRVCompute::updateBRV(const BRVComponent &component) {
     /* == Compute the scale factor == */
     Spider::UpdateBRVVisitor brvVisitor{ scaleRVFactor, params_ };
     for (const auto &v : component.vertices) {
-        v->visit(&brvVisitor);
+        for (const auto &edge : v->inputEdgeArray()) {
+            edge->source()->visit(&brvVisitor);
+        }
+        for (const auto &edge : v->outputEdgeArray()) {
+            edge->sink()->visit(&brvVisitor);
+        }
     }
 
     /* == Apply the scale factor (if needed) == */
