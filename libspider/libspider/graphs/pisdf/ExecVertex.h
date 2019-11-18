@@ -73,6 +73,8 @@ namespace Spider {
 
             /* === Getter(s) === */
 
+            inline VertexType subtype() const override;
+
             inline bool executable() const override;
 
             /**
@@ -111,6 +113,10 @@ namespace Spider {
 
         void ExecVertex::visit(Visitor *visitor) {
             visitor->visit(this);
+        }
+
+        VertexType ExecVertex::subtype() const {
+            return VertexType::NORMAL;
         }
 
         bool ExecVertex::executable() const {

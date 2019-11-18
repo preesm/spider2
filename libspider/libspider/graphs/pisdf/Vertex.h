@@ -187,12 +187,6 @@ namespace Spider {
             inline std::uint32_t edgesOUTCount() const;
 
             /**
-             * @brief Get the type of the vertex.
-             * @return @refitem Spider::PiSDF::VertexType of the vertex.
-             */
-            inline VertexType type() const;
-
-            /**
              * @brief Get the subtype of the vertex.
              * @return @refitem Spider::PiSDF::VertexType corresponding to the subtype
              */
@@ -310,10 +304,6 @@ namespace Spider {
 
         std::uint32_t Vertex::edgesOUTCount() const {
             return outputEdgeArray_.size();
-        }
-
-        VertexType Vertex::type() const {
-            return type_;
         }
 
         bool Vertex::executable() const {

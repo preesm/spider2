@@ -64,6 +64,8 @@ namespace Spider {
 
             /* === Getter(s) === */
 
+            inline VertexType subtype() const override;
+
             /* === Setter(s) === */
 
         private:
@@ -71,6 +73,10 @@ namespace Spider {
         };
 
         /* === Inline method(s) === */
+
+        VertexType ConfigVertex::subtype() const {
+            return VertexType::CONFIG;
+        }
     }
 }
 

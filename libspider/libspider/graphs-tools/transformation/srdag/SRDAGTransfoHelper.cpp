@@ -172,9 +172,12 @@ private:
 /* == Static function(s) === */
 
 static inline std::uint32_t uniformIx(const PiSDFAbstractVertex *vertex, const PiSDFGraph *graph) {
-    return vertex->ix() +
-           ((vertex->subtype() == PiSDFVertexType::INPUT) * graph->vertexCount()) +
-           ((vertex->subtype() == PiSDFVertexType::OUTPUT) * graph->edgesINCount());
+    if (vertex->subtype() == PiSDFVertexType::INPUT) {
+        return vertex->ix() + graph->vertexCount();
+    } else if (vertex->subtype() == PiSDFVertexType::OUTPUT) {
+        return vertex->ix() + graph->vertexCount() + graph->edgesINCount();
+    }
+    return vertex->ix();
 }
 
 /* === Function(s) definition === */
