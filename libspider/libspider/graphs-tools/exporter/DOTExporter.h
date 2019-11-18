@@ -50,18 +50,24 @@
 namespace Spider {
     namespace PiSDF {
 
+        /* === Forward declaration(s) === */
+
+        struct DOTExporterVisitor;
+
         /* === Class definition === */
 
         class DOTExporter final : public Exporter {
         public:
 
-            explicit DOTExporter(const Graph *graph) : DOTExporter(graph, graph->params()) { }
+            explicit DOTExporter(Graph *graph) : DOTExporter(graph, graph->params()) { }
 
-            DOTExporter(const Graph *graph, const Spider::vector<Param *> &params) : Exporter(),
-                                                                                     graph_{ graph },
-                                                                                     params_{ params } { }
+            DOTExporter(Graph *graph, const Spider::vector<Param *> &params) : Exporter(),
+                                                                               graph_{ graph },
+                                                                               params_{ params } { }
 
             ~DOTExporter() override = default;
+
+            friend DOTExporterVisitor;
 
             /* === Method(s) === */
 
@@ -76,53 +82,8 @@ namespace Spider {
             void print(std::ofstream &file) const override;
 
         private:
-            const Graph *graph_ = nullptr;
+            Graph *graph_ = nullptr;
             const Spider::vector<Param *> &params_;
-
-            /* === Private static method(s) === */
-
-            void graphPrinter(std::ofstream &file, const Graph *graph, const std::string &offset = "\t") const;
-
-            void vertexPrinter(std::ofstream &file, const Vertex *vertex, const std::string &offset) const;
-
-            static void edgePrinter(std::ofstream &file, const Edge *edge, const std::string &offset);
-
-            static void paramPrinter(std::ofstream &file, const Param *param, const std::string &offset);
-
-            void inputIFPrinter(std::ofstream &file,
-                                const InputInterface *interface,
-                                const std::string &offset) const;
-
-            void outputIFPrinter(std::ofstream &file,
-                                 const OutputInterface *interface,
-                                 const std::string &offset) const;
-
-            void interfacePrinter(std::ofstream &file,
-                                  const Interface *interface,
-                                  const std::string &offset,
-                                  const std::string &color) const;
-
-
-            void dataPortPrinter(std::ofstream &file,
-                                 const Edge *edge,
-                                 const std::string &offset,
-                                 std::uint32_t width,
-                                 bool input) const;
-
-            void inputDataPortPrinter(std::ofstream &file,
-                                      const Edge *edge,
-                                      const std::string &offset,
-                                      std::uint32_t width) const;
-
-            void outputDataPortPrinter(std::ofstream &file,
-                                       const Edge *edge,
-                                       const std::string &offset,
-                                       std::uint32_t width) const;
-
-            static void dummyDataPortPrinter(std::ofstream &file,
-                                             const std::string &offset,
-                                             std::uint32_t width,
-                                             bool input);
         };
     }
 }
