@@ -99,7 +99,8 @@ namespace Spider {
 
             void interfacePrinter(std::ofstream &file,
                                   const Interface *interface,
-                                  const std::string &offset) const;
+                                  const std::string &offset,
+                                  const std::string &color) const;
 
 
             void dataPortPrinter(std::ofstream &file,

@@ -186,10 +186,18 @@ void Spider::PiSDF::DOTExporter::vertexPrinter(std::ofstream &file,
          << R"(<tr> <td border="1" sides="lr" colspan="4"><font point-size="25" face="inconsolata">)"
          << vertex->name() << "</font></td></tr>" << '\n';
 
-    /* == Compute widths == */
+    /* == Compute widths (based on empirical measurements)       == */
+    /* ==                           _                        _   == */
+    /* ==                          |               1          |  == */
+    /* == w(n) = 15*(n-8)*U(n-8) + |20*(1 + ------------------|  == */
+    /* ==                          |        1 + exp(-10*(n-7))|  == */
+    /* ==                                                        == */
+    /* == with U(x) the Heaviside function                       == */
     auto n = vertex->name().size();
     auto centerWidth = static_cast<std::uint32_t>(15. * (n - 8.) * (n > 8) +
                                                   std::ceil(20. * (1 + 1. / (1 + std::exp(-10. * (n - 7.))))));
+
+    /* == Get the maximum number of digits == */
     double longestRateLen = 0;
     for (const auto &e: vertex->inputEdgeArray()) {
         longestRateLen = std::max(longestRateLen, std::log10(e->sinkRateExpression().evaluate(params_)));
@@ -310,59 +318,76 @@ void Spider::PiSDF::DOTExporter::inputIFPrinter(std::ofstream &file,
                                                 const InputInterface *interface,
                                                 const std::string &offset) const {
     file << offset << R"(")" << "input-" + interface->name()
-         << R"(" [shape=plain, style=filled, fillcolor="#fff68fff", width=0, height=0, label=<)" << '\n';
-    interfacePrinter(file, interface, offset);
+         << R"(" [shape=plain, style=filled, fillcolor="#ffffff00", width=0, height=0, label=<)" << '\n';
+    file << offset << '\t' << R"(<table border="0" fixedsize="false" cellspacing="0" cellpadding="0">)" << '\n';
+    interfacePrinter(file, interface, offset, "#87d37cff");
+
 }
 
 void Spider::PiSDF::DOTExporter::outputIFPrinter(std::ofstream &file,
                                                  const OutputInterface *interface,
                                                  const std::string &offset) const {
     file << offset << R"(")" << "output-" + interface->name()
-         << R"(" [shape=plain, style=filled, fillcolor="#dcc6e0ff", width=0, height=0, label=<)" << '\n';
-    interfacePrinter(file, interface, offset);
+         << R"(" [shape=plain, style=filled, fillcolor="#ffffff00", width=0, height=0, label=<)" << '\n';
+    file << offset << '\t' << R"(<table border="0" fixedsize="false" cellspacing="0" cellpadding="0">)" << '\n';
+    interfacePrinter(file, interface, offset, "#ec644bff");
 }
 
 void Spider::PiSDF::DOTExporter::interfacePrinter(std::ofstream &file,
                                                   const Interface *interface,
-                                                  const std::string &offset) const {
-    file << offset << '\t' << R"(<table border="0" fixedsize="false" cellspacing="0" cellpadding="0">)" << '\n';
-
-    /* == Vertex name == */
+                                                  const std::string &offset,
+                                                  const std::string &color) const {
+    /* == Interface name == */
     file << offset << '\t' << '\t'
-         << R"(<tr> <td border="1" sides="lrt" colspan="4" fixedsize="false" height="10"></td></tr>)" << '\n';
-    file << offset << '\t' << '\t'
-         << R"(<tr> <td border="1" sides="lr" colspan="4"><font point-size="25" face="inconsolata">)"
+         << R"(<tr> <td border="0" colspan="5" bgcolor="#ffffff00"><font point-size="25" face="inconsolata">)"
          << interface->name() << "</font></td></tr>" << '\n';
 
     /* == Compute widths == */
     auto n = interface->name().size();
-    auto centerWidth = static_cast<std::uint32_t>(15. * (n - 8.) * (n > 8) +
-                                                  std::ceil(20. * (1 + 1. / (1 + std::exp(-10. * (n - 7.))))));
+    auto balanceWidth = static_cast<std::uint32_t>(15. * (n - 8.) * (n > 8) +
+                                                   std::ceil(20. * (1 + 1. / (1 + std::exp(-10. * (n - 7.)))))) / 2;
     double longestRateLen = std::max(0., std::log10(interface->inputEdge()->sinkRateExpression().evaluate(params_)));
     longestRateLen = std::max(longestRateLen,
                               std::log10(interface->outputEdge()->sourceRateExpression().evaluate(params_)));
     auto rateWidth = 32 + std::max(static_cast<std::int32_t>(longestRateLen) + 1 - 3, 0) * 8;
 
-    /* == Export data ports == */
     file << offset << '\t' << '\t'
-         << R"(<tr> <td border="1" sides="lr" colspan="4" fixedsize="false" height="10"></td></tr>)" << '\n';
-    file << offset << '\t' << '\t' << "<tr>" << '\n';
+         << R"(<tr>
+				    <td border="0" bgcolor="#ffffff00" fixedsize="true" width=")" << balanceWidth << R"(" height="20"></td>
+				    <td border="0" bgcolor="#ffffff00" fixedsize="true" width=")" << rateWidth << R"(" height="20"></td>
+					<td border="1" sides="ltr" bgcolor=")" << color << R"(" fixedsize="true" width="20" height="20"></td>
+				    <td border="0" bgcolor="#ffffff00" fixedsize="true" width=")" << rateWidth << R"(" height="20"></td>
+					<td border="0" bgcolor="#ffffff00" fixedsize="true" width=")" << balanceWidth << R"(" height="20"></td>
+				</tr>)" << '\n';
 
-    /* == Export input port == */
-    inputDataPortPrinter(file, interface->inputEdge(), offset, rateWidth);
+    const auto &inIx = interface->inputEdge()->sinkPortIx();
+    const auto &outIx = interface->outputEdge()->sourcePortIx();
 
-    /* == Middle separation == */
-    file << offset << '\t' << '\t' << '\t'
-         << R"(<td border="0" colspan="2" bgcolor="#00000000" fixedsize="true" width=")" << centerWidth
-         << R"(" height="20"></td>)" << '\n';
+    file << offset << '\t' << '\t'
+         << R"(<tr>
+				    <td border="0" bgcolor="#ffffff00" fixedsize="true" width=")" << balanceWidth << R"(" height="20"></td>
+				    <td port="in_)" << inIx << R"(" align="right" border="0" bgcolor="#ffffff00" fixedsize="true" width="0" height="20"></td>
+					<td border="1" sides="lr" bgcolor=")" << color << R"(" fixedsize="true" width="20" height="20"></td>
+				    <td port="out_)" << outIx << R"(" align="left" border="0" bgcolor="#00000000" fixedsize="true" width="0" height="20"></td>
+					<td border="0" bgcolor="#ffffff00" fixedsize="true" width=")" << balanceWidth << R"(" height="20"></td>
+				</tr>)" << '\n';
 
-    /* == Export output port == */
-    outputDataPortPrinter(file, interface->outputEdge(), offset, rateWidth);
-    file << offset << '\t' << '\t' << "</tr>" << '\n';
+    const auto &inRate = interface->inputEdge()->sinkRateExpression().evaluate(params_);
+    const auto &outRate = interface->outputEdge()->sourceRateExpression().evaluate(params_);
+    file << offset << '\t' << '\t'
+         << R"(<tr>
+				    <td border="0" bgcolor="#ffffff00" fixedsize="true" width=")" << balanceWidth << R"(" height="20"></td>
+				    <td border="0" align="right" bgcolor="#ffffff00" fixedsize="true" width=")" << rateWidth
+         << R"(" height="20"><font point-size="12" face="inconsolata">)" << inRate << R"( </font></td>
+					<td border="1" sides="lbr" bgcolor=")" << color << R"(" fixedsize="true" width="20" height="20"></td>
+				    <td border="0" align="left" bgcolor="#ffffff00" fixedsize="true" width=")" << rateWidth
+         << R"(" height="20"><font point-size="12" face="inconsolata"> )" << outRate << R"(</font></td>
+					<td border="0" bgcolor="#ffffff00" fixedsize="true" width=")" << balanceWidth << R"(" height="20"></td>
+				</tr>)" << '\n';
 
     /* == Footer == */
     file << offset << '\t' << '\t'
-         << R"(<tr> <td border="1" colspan="4" fixedsize="false" height="10" sides="lbr"></td></tr>)" << '\n';
+         << R"(<tr> <td border="0" colspan="5" fixedsize="false" height="10"></td></tr>)" << '\n';
     file << offset << '\t' << "</table>>" << '\n';
     file << offset << "];" << '\n' << '\n';
 }
