@@ -48,8 +48,8 @@
 #include <memory/Allocator.h>
 #include <graphs-tools/expression-parser/Expression.h>
 
-namespace Spider {
-    namespace PiSDF {
+namespace spider {
+    namespace pisdf {
 
         /* === Forward declaration(s) === */
 

@@ -52,7 +52,7 @@ class Cluster;
 
 class ProcessingElement;
 
-namespace Spider {
+namespace spider {
 
     /* === Function(s) prototype === */
 
@@ -62,7 +62,7 @@ namespace Spider {
      */
     Scenario &scenario();
 
-    namespace API {
+    namespace api {
 
         /* === General Scenario related API === */
 

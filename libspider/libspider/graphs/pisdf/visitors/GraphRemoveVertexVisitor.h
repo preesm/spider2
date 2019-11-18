@@ -46,8 +46,8 @@
 #include <graphs/pisdf/specials/Specials.h>
 #include <graphs/pisdf/Graph.h>
 
-namespace Spider {
-    namespace PiSDF {
+namespace spider {
+    namespace pisdf {
 
         struct GraphRemoveVertexVisitor final : public DefaultVisitor {
 
@@ -137,8 +137,8 @@ namespace Spider {
             template<class T>
             inline void destroyVertex(T *vertex) {
                 graph_->removeElement(graph_->vertexVector_, static_cast<Vertex *>(vertex));
-                Spider::destroy(vertex);
-                Spider::deallocate(vertex);
+                spider::destroy(vertex);
+                spider::deallocate(vertex);
             }
         };
 

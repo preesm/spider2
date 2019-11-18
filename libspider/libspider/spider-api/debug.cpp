@@ -49,8 +49,8 @@
 
 /* === Methods implementation === */
 
-void Spider::API::exportPostExecGantt(const std::string &) {
-    if (!Spider::API::trace()) {
+void spider::api::exportPostExecGantt(const std::string &) {
+    if (!spider::api::trace()) {
         throwSpiderException("Can not export graph if traces are disable. Use Spider::enableTrace().");
     }
 
@@ -63,7 +63,7 @@ void Spider::API::exportPostExecGantt(const std::string &) {
     /* == Close the file == */
 }
 
-void Spider::API::exportPreExecGantt(const std::string &) {
+void spider::api::exportPreExecGantt(const std::string &) {
     /* == Open the file for the gantt == */
 
     /* == Get the schedule == */
@@ -73,7 +73,7 @@ void Spider::API::exportPreExecGantt(const std::string &) {
     /* == Close the file == */
 }
 
-void Spider::API::exportSRDAG(const std::string &, PiSDFGraph *) {
+void spider::api::exportSRDAG(const std::string &, PiSDFGraph *) {
     /* == Get the PiSDF graph and transform it to SR-DAG == */
 
 //    if (Spider::API::srdagOptim()) {
@@ -84,19 +84,19 @@ void Spider::API::exportSRDAG(const std::string &, PiSDFGraph *) {
 //    Spider::PiSDF::DOTExporter(srdag).print(path);
 }
 
-void Spider::API::exportGraphToDOT(const std::string &path, PiSDFGraph *graph) {
+void spider::api::exportGraphToDOT(const std::string &path, PiSDFGraph *graph) {
     /* == Print the Graph == */
-    Spider::PiSDF::DOTExporter(graph).print(path);
+    spider::pisdf::DOTExporter(graph).print(path);
 }
 
-template<Spider::Logger::Type type>
-void Spider::API::enableLogger() {
-    Spider::Logger::enable<type>();
+template<spider::log::Type type>
+void spider::api::enableLogger() {
+    spider::log::enable<type>();
 }
 
-template<Spider::Logger::Type type>
-void Spider::API::disableLogger() {
-    Spider::Logger::disable<type>();
+template<spider::log::Type type>
+void spider::api::disableLogger() {
+    spider::log::disable<type>();
 }
 
 
@@ -106,20 +106,20 @@ void Spider::API::disableLogger() {
  * @refitem Spider::API::enableLogger and @refitem Spider::API::disableLogger.
  */
 void loggerTemplateResolver() {
-    Spider::API::enableLogger<LOG_LRT>();
-    Spider::API::enableLogger<LOG_TIME>();
-    Spider::API::enableLogger<LOG_GENERAL>();
-    Spider::API::enableLogger<LOG_MEMORY>();
-    Spider::API::enableLogger<LOG_SCHEDULE>();
-    Spider::API::enableLogger<LOG_TRANSFO>();
-    Spider::API::enableLogger<LOG_OPTIMS>();
-    Spider::API::enableLogger<LOG_EXPR>();
-    Spider::API::disableLogger<LOG_LRT>();
-    Spider::API::disableLogger<LOG_TIME>();
-    Spider::API::disableLogger<LOG_GENERAL>();
-    Spider::API::disableLogger<LOG_MEMORY>();
-    Spider::API::disableLogger<LOG_SCHEDULE>();
-    Spider::API::disableLogger<LOG_TRANSFO>();
-    Spider::API::disableLogger<LOG_OPTIMS>();
-    Spider::API::disableLogger<LOG_EXPR>();
+    spider::api::enableLogger<LOG_LRT>();
+    spider::api::enableLogger<LOG_TIME>();
+    spider::api::enableLogger<LOG_GENERAL>();
+    spider::api::enableLogger<LOG_MEMORY>();
+    spider::api::enableLogger<LOG_SCHEDULE>();
+    spider::api::enableLogger<LOG_TRANSFO>();
+    spider::api::enableLogger<LOG_OPTIMS>();
+    spider::api::enableLogger<LOG_EXPR>();
+    spider::api::disableLogger<LOG_LRT>();
+    spider::api::disableLogger<LOG_TIME>();
+    spider::api::disableLogger<LOG_GENERAL>();
+    spider::api::disableLogger<LOG_MEMORY>();
+    spider::api::disableLogger<LOG_SCHEDULE>();
+    spider::api::disableLogger<LOG_TRANSFO>();
+    spider::api::disableLogger<LOG_OPTIMS>();
+    spider::api::disableLogger<LOG_EXPR>();
 }

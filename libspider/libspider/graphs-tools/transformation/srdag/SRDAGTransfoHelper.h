@@ -45,8 +45,8 @@
 #include <graphs/pisdf/specials/Specials.h>
 #include <containers/StlContainers.h>
 
-namespace Spider {
-    namespace SRDAG {
+namespace spider {
+    namespace srdag {
 
         /* === Forward declaration(s) === */
 
@@ -58,11 +58,11 @@ namespace Spider {
 
         /* === Type definition(s) === */
 
-        using JobStack = Spider::vector<Job, StackID::TRANSFO>;
+        using JobStack = spider::vector<Job, StackID::TRANSFO>;
 
-        using TransfoTracker = Spider::vector<std::uint32_t, StackID::TRANSFO>;
+        using TransfoTracker = spider::vector<std::uint32_t, StackID::TRANSFO>;
 
-        using TransfoStack = Spider::vector<TransfoVertex, StackID::TRANSFO>;
+        using TransfoStack = spider::vector<TransfoVertex, StackID::TRANSFO>;
 
         /* === Function(s) prototype === */
 

@@ -45,8 +45,8 @@
 #include <graphs/pisdf/specials/VertexInterface.h>
 #include <graphs/pisdf/Graph.h>
 
-namespace Spider {
-    namespace PiSDF {
+namespace spider {
+    namespace pisdf {
 
         inline void join(const std::int64_t *paramsIn, std::int64_t *[], void *in[], void *out[]) {
             const auto &outputRate = paramsIn[0]; /* = Rate of the output port (used for sanity check) = */

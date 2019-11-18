@@ -46,8 +46,8 @@
 #include <string>
 #include <graphs/pisdf/Vertex.h>
 
-namespace Spider {
-    namespace PiSDF {
+namespace spider {
+    namespace pisdf {
 
         /* === Class definition === */
 
@@ -129,11 +129,11 @@ namespace Spider {
             return jobIx_;
         }
 
-        void Spider::PiSDF::ExecVertex::setRefinementIx(std::uint32_t ix) {
+        void spider::pisdf::ExecVertex::setRefinementIx(std::uint32_t ix) {
             refinementIx_ = ix;
         }
 
-        void Spider::PiSDF::ExecVertex::setJobIx(std::uint32_t ix) {
+        void spider::pisdf::ExecVertex::setJobIx(std::uint32_t ix) {
             jobIx_ = ix;
         }
     }

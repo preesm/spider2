@@ -57,7 +57,7 @@ public:
 };
 
 bool PiSDFJoinJoinOptimizer::operator()(PiSDFGraph *graph) const {
-    Spider::vector<std::pair<PiSDFAbstractVertex *, PiSDFAbstractVertex *>> verticesToOptimize;
+    spider::vector<std::pair<PiSDFAbstractVertex *, PiSDFAbstractVertex *>> verticesToOptimize;
 
     /* == Search for the pair of fork to optimize == */
     for (auto &vertex : graph->vertices()) {
@@ -77,7 +77,7 @@ bool PiSDFJoinJoinOptimizer::operator()(PiSDFGraph *graph) const {
         auto *sink = pair.second;
 
         /* == Create the new fork == */
-        auto *join = Spider::API::createJoin(graph,
+        auto *join = spider::api::createJoin(graph,
                                              "merged-" + vertex->name() + "-" + sink->name(),
                                              vertex->edgesINCount() + (sink->edgesINCount() - 1),
                                              StackID::TRANSFO);
@@ -116,9 +116,9 @@ bool PiSDFJoinJoinOptimizer::operator()(PiSDFGraph *graph) const {
         }
 
         /* == Remove the vertices == */
-        if (Spider::API::verbose() && log_enabled<LOG_OPTIMS>()) {
-            Spider::Logger::verbose<LOG_OPTIMS>("JoinJoinOptimizer: removing [%s] and [%s] join vertices.\n",
-                                                vertex->name().c_str(), sink->name().c_str());
+        if (spider::api::verbose() && log_enabled<LOG_OPTIMS>()) {
+            spider::log::verbose<LOG_OPTIMS>("JoinJoinOptimizer: removing [%s] and [%s] join vertices.\n",
+                                             vertex->name().c_str(), sink->name().c_str());
         }
         graph->removeVertex(vertex);
         graph->removeVertex(sink);

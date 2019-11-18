@@ -53,7 +53,7 @@
 
 #endif
 
-namespace Spider {
+namespace spider {
     namespace printer {
 
         /* === Methods prototype === */

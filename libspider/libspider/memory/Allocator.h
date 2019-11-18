@@ -81,7 +81,7 @@ typedef struct AllocatorConfig {
 
 /* === Namespace === */
 
-namespace Spider {
+namespace spider {
 
     /* === Static methods for allocating memory === */
 

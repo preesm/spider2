@@ -46,7 +46,7 @@
 #include <scheduling/schedule/Schedule.h>
 #include <graphs/pisdf/common/Types.h>
 
-namespace Spider {
+namespace spider {
 
     /* === Class definition === */
 

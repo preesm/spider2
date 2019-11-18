@@ -55,7 +55,7 @@ class ProcessingElement;
 
 class MemoryUnit;
 
-namespace Spider {
+namespace spider {
 
     /* === Routine(s) === */
 
@@ -116,7 +116,7 @@ namespace Spider {
      */
     Platform *&platform();
 
-    namespace API {
+    namespace api {
 
         /* === General Platform related API === */
 
@@ -182,22 +182,22 @@ namespace Spider {
                                     std::uint32_t virtID,
                                     Cluster *cluster,
                                     const std::string &name,
-                                    Spider::PEType spiderPEType = Spider::PEType::LRT_PE,
-                                    Spider::HWType spiderHWType = Spider::HWType::PHYS_PE);
+                                    spider::PEType spiderPEType = spider::PEType::LRT_PE,
+                                    spider::HWType spiderHWType = spider::HWType::PHYS_PE);
 
         /**
          * @brief Set the SpiderPEType of a given PE.
          * @param PE    Pointer to the PE.
          * @param type  Spider::PEType to set.
          */
-        void setPESpiderPEType(ProcessingElement *PE, Spider::PEType type);
+        void setPESpiderPEType(ProcessingElement *PE, spider::PEType type);
 
         /**
          * @brief Set the SpiderHWType of a given PE.
          * @param PE    Pointer to the PE.
          * @param type  Spider::HWType to set.
          */
-        void setPESpiderHWType(ProcessingElement *PE, Spider::HWType type);
+        void setPESpiderHWType(ProcessingElement *PE, spider::HWType type);
 
         /**
          * @brief Set the name of a given PE.

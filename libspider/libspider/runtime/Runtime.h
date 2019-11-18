@@ -45,7 +45,7 @@
 #include <common/Exception.h>
 #include <graphs/pisdf/common/Types.h>
 
-namespace Spider {
+namespace spider {
 
     /* === Class definition === */
 

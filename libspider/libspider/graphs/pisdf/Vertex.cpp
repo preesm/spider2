@@ -49,7 +49,7 @@
 
 /* === Method(s) implementation === */
 
-Spider::PiSDF::Vertex::Vertex(std::string name,
+spider::pisdf::Vertex::Vertex(std::string name,
                               std::uint32_t edgeINCount,
                               std::uint32_t edgeOUTCount,
                               StackID stack) : name_{ std::move(name) },
@@ -58,32 +58,32 @@ Spider::PiSDF::Vertex::Vertex(std::string name,
 }
 
 
-Spider::PiSDF::Vertex::~Vertex() {
+spider::pisdf::Vertex::~Vertex() {
     if (copyCount_ && log_enabled()) {
-        Spider::Logger::error("Removing vertex [%s] with clones out there.", name().c_str());
+        spider::log::error("Removing vertex [%s] with clones out there.", name().c_str());
     }
     this->reference_->copyCount_ -= 1;
 }
 
-void Spider::PiSDF::Vertex::connectInputEdge(Edge *edge, std::uint32_t ix) {
+void spider::pisdf::Vertex::connectInputEdge(Edge *edge, std::uint32_t ix) {
     connectEdge(inputEdgeArray_, edge, ix);
 }
 
-void Spider::PiSDF::Vertex::connectOutputEdge(Edge *edge, std::uint32_t ix) {
+void spider::pisdf::Vertex::connectOutputEdge(Edge *edge, std::uint32_t ix) {
     connectEdge(outputEdgeArray_, edge, ix);
 }
 
-Spider::PiSDF::Edge *Spider::PiSDF::Vertex::disconnectInputEdge(std::uint32_t ix) {
+spider::pisdf::Edge *spider::pisdf::Vertex::disconnectInputEdge(std::uint32_t ix) {
     return disconnectEdge(inputEdgeArray_, ix);
 }
 
-Spider::PiSDF::Edge *Spider::PiSDF::Vertex::disconnectOutputEdge(std::uint32_t ix) {
+spider::pisdf::Edge *spider::pisdf::Vertex::disconnectOutputEdge(std::uint32_t ix) {
     return disconnectEdge(outputEdgeArray_, ix);
 }
 
 /* === Private method(s) === */
 
-Spider::PiSDF::Edge *Spider::PiSDF::Vertex::disconnectEdge(Spider::Array<Edge *> &edges, std::uint32_t ix) {
+spider::pisdf::Edge *spider::pisdf::Vertex::disconnectEdge(spider::Array<Edge *> &edges, std::uint32_t ix) {
     auto *&edge = edges.at(ix);
     Edge *ret = edge;
     if (edge) {
@@ -92,7 +92,7 @@ Spider::PiSDF::Edge *Spider::PiSDF::Vertex::disconnectEdge(Spider::Array<Edge *>
     return ret;
 }
 
-void Spider::PiSDF::Vertex::connectEdge(Spider::Array<Edge *> &edges, Edge *edge, std::uint32_t ix) {
+void spider::pisdf::Vertex::connectEdge(spider::Array<Edge *> &edges, Edge *edge, std::uint32_t ix) {
     auto *&current = edges.at(ix);
     if (!current) {
         current = edge;
@@ -104,7 +104,7 @@ void Spider::PiSDF::Vertex::connectEdge(Spider::Array<Edge *> &edges, Edge *edge
 }
 
 
-void Spider::PiSDF::Vertex::setGraph(Graph *graph) {
+void spider::pisdf::Vertex::setGraph(Graph *graph) {
     if (graph) {
         graph_ = graph;
     }

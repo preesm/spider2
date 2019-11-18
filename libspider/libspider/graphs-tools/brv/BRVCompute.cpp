@@ -53,11 +53,11 @@
 BRVCompute::BRVCompute(const PiSDFGraph *graph) : BRVCompute(graph, graph->params()) {
 }
 
-BRVCompute::BRVCompute(const PiSDFGraph *graph, const Spider::vector<PiSDFParam *> &params) : graph_{ graph },
+BRVCompute::BRVCompute(const PiSDFGraph *graph, const spider::vector<PiSDFParam *> &params) : graph_{ graph },
                                                                                               params_{ params } {
-    Spider::Array<const PiSDFAbstractVertex *> connectedComponentsKeys{ graph->vertexCount(), nullptr,
+    spider::Array<const PiSDFAbstractVertex *> connectedComponentsKeys{ graph->vertexCount(), nullptr,
                                                                         StackID::TRANSFO };
-    Spider::Array<const PiSDFAbstractVertex *> vertexArray{ graph->vertexCount(), nullptr, StackID::TRANSFO };
+    spider::Array<const PiSDFAbstractVertex *> vertexArray{ graph->vertexCount(), nullptr, StackID::TRANSFO };
     BRVComponent component;
     for (auto *v:graph->vertices()) {
         if (!connectedComponentsKeys[v->ix()]) {
@@ -77,7 +77,7 @@ BRVCompute::BRVCompute(const PiSDFGraph *graph, const Spider::vector<PiSDFParam 
 /* === Private Method(s) implementation === */
 
 void BRVCompute::extractConnectedComponent(BRVComponent &component,
-                                           Spider::Array<const PiSDFAbstractVertex *> &keyArray) {
+                                           spider::Array<const PiSDFAbstractVertex *> &keyArray) {
     auto scannedIndex = component.vertices.size() - 1; /* = Index of current scanned vertex = */
     bool addedVertex;
     do {
@@ -90,7 +90,7 @@ void BRVCompute::extractConnectedComponent(BRVComponent &component,
                 throwSpiderException("Vertex [%s] has null edge.", currentVertex->name().c_str());
             }
             auto *sink = edge->sink();
-            if (sink->subtype() != Spider::PiSDF::VertexType::OUTPUT &&
+            if (sink->subtype() != spider::pisdf::VertexType::OUTPUT &&
                 !keyArray[sink->ix()]) {
                 /* == Register the vertex == */
                 component.vertices.push_back(sink);
@@ -106,13 +106,13 @@ void BRVCompute::extractConnectedComponent(BRVComponent &component,
                 throwSpiderException("Vertex [%s] has null edge.", currentVertex->name().c_str());
             }
             auto *source = edge->source();
-            if (source->subtype() != Spider::PiSDF::VertexType::INPUT &&
+            if (source->subtype() != spider::pisdf::VertexType::INPUT &&
                 !keyArray[source->ix()]) {
                 /* == Register the vertex == */
                 component.vertices.push_back(source);
                 keyArray[source->ix()] = source;
                 addedVertex = true;
-            } else if (source->subtype() == Spider::PiSDF::VertexType::INPUT) {
+            } else if (source->subtype() == spider::pisdf::VertexType::INPUT) {
                 component.nEdges += 1;
             }
         }
@@ -120,8 +120,8 @@ void BRVCompute::extractConnectedComponent(BRVComponent &component,
     } while (addedVertex || scannedIndex != component.vertices.size());
 }
 
-Spider::Array<const PiSDFEdge *> BRVCompute::extractEdges(const BRVComponent &component) {
-    Spider::Array<const PiSDFEdge *> edgeArray{ component.nEdges, StackID::TRANSFO };
+spider::Array<const PiSDFEdge *> BRVCompute::extractEdges(const BRVComponent &component) {
+    spider::Array<const PiSDFEdge *> edgeArray{ component.nEdges, StackID::TRANSFO };
     const auto &vertexArray = component.vertices;
     std::uint32_t index = 0;
     for (const auto &v: vertexArray) {
@@ -141,7 +141,7 @@ void BRVCompute::updateBRV(const BRVComponent &component) {
     std::uint64_t scaleRVFactor{ 1 };
 
     /* == Compute the scale factor == */
-    Spider::UpdateBRVVisitor brvVisitor{ scaleRVFactor, params_ };
+    spider::UpdateBRVVisitor brvVisitor{ scaleRVFactor, params_ };
     for (const auto &v : component.vertices) {
         for (const auto &edge : v->inputEdgeArray()) {
             edge->source()->visit(&brvVisitor);
@@ -160,11 +160,11 @@ void BRVCompute::updateBRV(const BRVComponent &component) {
 }
 
 void BRVCompute::print() const {
-    if (Spider::API::verbose() && log_enabled<LOG_TRANSFO>()) {
-        Spider::Logger::verbose<LOG_TRANSFO>("BRV values for graph [%s]\n", graph_->name().c_str());
+    if (spider::api::verbose() && log_enabled<LOG_TRANSFO>()) {
+        spider::log::verbose<LOG_TRANSFO>("BRV values for graph [%s]\n", graph_->name().c_str());
         for (const auto &vertex : graph_->vertices()) {
-            Spider::Logger::verbose<LOG_TRANSFO>(">> Vertex: %-20s --> RV[%" PRIu32"]\n", vertex->name().c_str(),
-                                                 vertex->repetitionValue());
+            spider::log::verbose<LOG_TRANSFO>(">> Vertex: %-20s --> RV[%" PRIu32"]\n", vertex->name().c_str(),
+                                              vertex->repetitionValue());
         }
     }
 }

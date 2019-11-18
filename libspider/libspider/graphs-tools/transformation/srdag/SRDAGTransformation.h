@@ -48,8 +48,8 @@
 #include <graphs-tools/transformation/srdag/SRDAGTransfoHelper.h>
 
 
-namespace Spider {
-    namespace SRDAG {
+namespace spider {
+    namespace srdag {
 
         /* === Forward declaration(s) === */
 
@@ -59,11 +59,11 @@ namespace Spider {
 
         /* === Type definition(s) === */
 
-        using JobStack = Spider::vector<Job, StackID::TRANSFO>;
+        using JobStack = spider::vector<Job, StackID::TRANSFO>;
 
-        using TransfoTracker = Spider::vector<std::uint32_t, StackID::TRANSFO>;
+        using TransfoTracker = spider::vector<std::uint32_t, StackID::TRANSFO>;
 
-        using TransfoStack = Spider::vector<TransfoVertex, StackID::TRANSFO>;
+        using TransfoStack = spider::vector<TransfoVertex, StackID::TRANSFO>;
 
         /* === Structure definition(s) === */
 
@@ -71,7 +71,7 @@ namespace Spider {
             const PiSDFGraph *reference_ = nullptr;
             const std::uint32_t &srdagIx_;
             std::uint32_t instanceValue_ = 0;
-            Spider::vector<PiSDFParam *> params_;
+            spider::vector<PiSDFParam *> params_;
 
             Job(Job &&) = default;
 
@@ -88,8 +88,8 @@ namespace Spider {
                 if (reference_ && reference_->dynamic()) {
                     for (auto &param : params_) {
                         if (!param->containingGraph()) {
-                            Spider::destroy(param);
-                            Spider::deallocate(param);
+                            spider::destroy(param);
+                            spider::deallocate(param);
                         }
                     }
                 }

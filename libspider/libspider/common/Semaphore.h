@@ -54,7 +54,7 @@
 #include <mutex>
 #include <condition_variable>
 
-namespace Spider {
+namespace spider {
 
     template<typename Mutex, typename CondVar>
     class basic_semaphore {

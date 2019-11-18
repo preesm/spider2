@@ -45,7 +45,7 @@
 
 /* === Function(s) definition === */
 
-void Spider::PiSDF::DOTExporterVisitor::visit(Graph *graph) {
+void spider::pisdf::DOTExporterVisitor::visit(Graph *graph) {
     if (graph->containingGraph()) {
         file_ << offset_ << "subgraph \"cluster_" << graph->name() << "\" {" << '\n';
         offset_ += "\t";
@@ -102,7 +102,7 @@ void Spider::PiSDF::DOTExporterVisitor::visit(Graph *graph) {
 
 /* === Private method(s) === */
 
-std::pair<std::int32_t, std::int32_t> Spider::PiSDF::DOTExporterVisitor::computeConstantWidth(Vertex *vertex) const {
+std::pair<std::int32_t, std::int32_t> spider::pisdf::DOTExporterVisitor::computeConstantWidth(Vertex *vertex) const {
     /* == Compute widths (based on empirical measurements)       == */
     /* ==                           _                        _   == */
     /* ==                          |               1          |  == */
@@ -130,7 +130,7 @@ std::pair<std::int32_t, std::int32_t> Spider::PiSDF::DOTExporterVisitor::compute
     return std::make_pair(centerWidth, rateWidth);
 }
 
-void Spider::PiSDF::DOTExporterVisitor::vertexPrinter(ExecVertex *vertex, const std::string &color) const {
+void spider::pisdf::DOTExporterVisitor::vertexPrinter(ExecVertex *vertex, const std::string &color) const {
     /* == Header == */
     vertexHeaderPrinter(vertex->name(), color);
 
@@ -203,7 +203,7 @@ void Spider::PiSDF::DOTExporterVisitor::vertexPrinter(ExecVertex *vertex, const 
     file_ << offset_ << "];" << '\n' << '\n';
 }
 
-void Spider::PiSDF::DOTExporterVisitor::interfaceBodyPrinter(Interface *interface, const std::string &color) const {
+void spider::pisdf::DOTExporterVisitor::interfaceBodyPrinter(Interface *interface, const std::string &color) const {
     /* == Interface name == */
     file_ << offset_ << '\t' << '\t'
           << R"(<tr> <td border="0" colspan="5" bgcolor="#ffffff00"><font point-size="25" face="inconsolata">)"
@@ -259,10 +259,10 @@ void Spider::PiSDF::DOTExporterVisitor::interfaceBodyPrinter(Interface *interfac
     file_ << offset_ << "];" << '\n' << '\n';
 }
 
-void Spider::PiSDF::DOTExporterVisitor::edgePrinter(Spider::PiSDF::Edge *edge) const {
+void spider::pisdf::DOTExporterVisitor::edgePrinter(spider::pisdf::Edge *edge) const {
     auto *source =
-            edge->source()->subtype() == Spider::PiSDF::VertexType::GRAPH ? edge->source<true>() : edge->source();
-    auto *sink = edge->sink()->subtype() == Spider::PiSDF::VertexType::GRAPH ? edge->sink<true>() : edge->sink();
+            edge->source()->subtype() == spider::pisdf::VertexType::GRAPH ? edge->source<true>() : edge->source();
+    auto *sink = edge->sink()->subtype() == spider::pisdf::VertexType::GRAPH ? edge->sink<true>() : edge->sink();
     const auto *delay = edge->delay();
     const auto &srcPortIx = edge->sourcePortIx();
     const auto &snkPortIx = edge->sinkPortIx();
@@ -299,7 +299,7 @@ void Spider::PiSDF::DOTExporterVisitor::edgePrinter(Spider::PiSDF::Edge *edge) c
     }
 }
 
-void Spider::PiSDF::DOTExporterVisitor::paramPrinter(Param *param) const {
+void spider::pisdf::DOTExporterVisitor::paramPrinter(Param *param) const {
     file_ << offset_ << R"(")" << param->containingGraph()->name() + ":" + param->name()
           << R"("[shape=house, style=filled, fillcolor=")" << (param->dynamic() ? "#19b5fe" : "#89c4f4")
           << R"(", margin=0, width=0, height=0, label=<)" << '\n';

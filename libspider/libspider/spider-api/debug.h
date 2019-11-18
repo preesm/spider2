@@ -45,11 +45,11 @@
 #include <spider-api/pisdf.h>
 #include <array>
 
-namespace Spider {
+namespace spider {
 
     /* === Enumeration(s) === */
 
-    namespace Logger {
+    namespace log {
         enum class Type : std::uint8_t {
             LRT,        /*! LRT logger. When enabled, this will print LRT logged information. */
             TIME,       /*! TIME logger. When enabled this will print time logged information */
@@ -82,7 +82,7 @@ namespace Spider {
         }
     }
 
-    namespace API {
+    namespace api {
 
         /* === Function(s) prototype === */
 
@@ -107,7 +107,7 @@ namespace Spider {
          * @param path   Path of the file.
          * @param graph  Graph to transform (default is the application graph).
          */
-        void exportSRDAG(const std::string &path = "./srdag.dot", PiSDF::Graph *graph = Spider::pisdfGraph());
+        void exportSRDAG(const std::string &path = "./srdag.dot", pisdf::Graph *graph = spider::pisdfGraph());
 
         /**
          * @brief Export a PiSDF graph to a .dot file.
@@ -115,20 +115,20 @@ namespace Spider {
          * @param graph  Graph to transform (default is the application graph).
          */
         void
-        exportGraphToDOT(const std::string &path = "./graph.dot", PiSDF::Graph *graph = Spider::pisdfGraph());
+        exportGraphToDOT(const std::string &path = "./graph.dot", pisdf::Graph *graph = spider::pisdfGraph());
 
         /**
          * @brief Enable a given logger.
          * @param type @refitem LoggerType to enable.
          */
-        template<Logger::Type type>
+        template<log::Type type>
         void enableLogger();
 
         /**
          * @brief Disable a given logger.
          * @param type @refitem LoggerType to disable.
          */
-        template<Spider::Logger::Type type>
+        template<spider::log::Type type>
         void disableLogger();
     }
 }

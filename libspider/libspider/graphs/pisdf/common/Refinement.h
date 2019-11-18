@@ -45,8 +45,8 @@
 #include <containers/StlContainers.h>
 #include <spider-api/refinement.h>
 
-namespace Spider {
-    namespace PiSDF {
+namespace spider {
+    namespace pisdf {
 
         /* === Forward declaration(s) === */
 
@@ -77,10 +77,10 @@ namespace Spider {
 
             /* === Method(s) === */
 
-            inline void operator()(const Spider::vector<std::int64_t> &paramsINVector,
-                                   Spider::vector<std::int64_t *> &paramsOUTVector,
-                                   Spider::vector<void *> &fifosIN,
-                                   Spider::vector<void *> &fifosOUT) {
+            inline void operator()(const spider::vector<std::int64_t> &paramsINVector,
+                                   spider::vector<std::int64_t *> &paramsOUTVector,
+                                   spider::vector<void *> &fifosIN,
+                                   spider::vector<void *> &fifosOUT) {
                 fct_(paramsINVector.data(), paramsOUTVector.data(), fifosIN.data(), fifosOUT.data());
             }
 
@@ -90,13 +90,13 @@ namespace Spider {
              * @brief Retrieve the list of input param ix used by this refinement.
              * @return @refitem Spider::vector of ix
              */
-            inline const Spider::vector<std::uint32_t> &inputParamsValue() const;
+            inline const spider::vector<std::uint32_t> &inputParamsValue() const;
 
             /**
              * @brief Retrieve the list of output param ix set by this refinement.
              * @return @refitem Spider::vector of ix
              */
-            inline const Spider::vector<std::uint32_t> &outputParamsValue() const;
+            inline const spider::vector<std::uint32_t> &outputParamsValue() const;
 
             /**
              * @brief Get the ix of the refinement.
@@ -126,8 +126,8 @@ namespace Spider {
             inline void setIx(std::uint32_t ix);
 
         private:
-            Spider::vector<std::uint32_t> inputParamsValue_;
-            Spider::vector<std::uint32_t> outputParamsValue_;
+            spider::vector<std::uint32_t> inputParamsValue_;
+            spider::vector<std::uint32_t> outputParamsValue_;
             std::string name_ = "unnamed-refinement";
             std::uint32_t ix_ = UINT32_MAX;
 
@@ -138,11 +138,11 @@ namespace Spider {
 
         /* === Inline method(s) === */
 
-        const Spider::vector<std::uint32_t> &Refinement::inputParamsValue() const {
+        const spider::vector<std::uint32_t> &Refinement::inputParamsValue() const {
             return inputParamsValue_;
         }
 
-        const Spider::vector<std::uint32_t> &Refinement::outputParamsValue() const {
+        const spider::vector<std::uint32_t> &Refinement::outputParamsValue() const {
             return outputParamsValue_;
         }
 

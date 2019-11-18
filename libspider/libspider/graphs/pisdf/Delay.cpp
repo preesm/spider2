@@ -51,7 +51,7 @@
 
 /* === Method(s) implementation === */
 
-Spider::PiSDF::Delay::Delay(Expression &&expression,
+spider::pisdf::Delay::Delay(Expression &&expression,
                             Edge *edge,
                             ExecVertex *setter,
                             std::uint32_t setterPortIx,
@@ -77,7 +77,7 @@ Spider::PiSDF::Delay::Delay(Expression &&expression,
     /* == If no setter is provided then an INIT is created == */
     if (!setter_) {
         setterPortIx_ = 0; /* = Ensure the proper value of the port ix = */
-        setter_ = Spider::API::createInit(edge->containingGraph(),
+        setter_ = spider::api::createInit(edge->containingGraph(),
                                           "init-" + edge->sink()->name() + "_" + std::to_string(edge->sinkPortIx()),
                                           stack);
     }
@@ -85,22 +85,22 @@ Spider::PiSDF::Delay::Delay(Expression &&expression,
     /* == If no getter is provided then an END is created == */
     if (!getter_) {
         getterPortIx_ = 0; /* = Ensure the proper value of the port ix = */
-        getter_ = Spider::API::createEnd(edge->containingGraph(),
+        getter_ = spider::api::createEnd(edge->containingGraph(),
                                          "end-" + edge->source()->name() + "_" + std::to_string(edge->sourcePortIx()),
                                          stack);
     }
 
     /* == Create virtual vertex and connect it to setter / getter == */
-    vertex_ = Spider::allocate<DelayVertex>(stack);
-    Spider::construct(vertex_, this->name(), stack);
+    vertex_ = spider::allocate<DelayVertex>(stack);
+    spider::construct(vertex_, this->name(), stack);
     edge->containingGraph()->addVertex(vertex_);
 
-    auto *setterEdge = Spider::allocate<PiSDFEdge>(stack);
-    Spider::construct(setterEdge,
+    auto *setterEdge = spider::allocate<PiSDFEdge>(stack);
+    spider::construct(setterEdge,
                       setter_, setterPortIx_, std::move(setterRateExpression),
                       vertex_, 0, Expression(expression_));
-    auto *getterEdge = Spider::allocate<PiSDFEdge>(stack);
-    Spider::construct(getterEdge,
+    auto *getterEdge = spider::allocate<PiSDFEdge>(stack);
+    spider::construct(getterEdge,
                       vertex_, 0, Expression(expression_),
                       getter_, getterPortIx_, std::move(getterRateExpression));
 
@@ -110,18 +110,18 @@ Spider::PiSDF::Delay::Delay(Expression &&expression,
     edge_->setDelay(this);
 }
 
-std::string Spider::PiSDF::Delay::name() const {
+std::string spider::pisdf::Delay::name() const {
     return "delay-" +
            edge_->source()->name() + "_" + std::to_string(edge_->sourcePortIx()) + "--" +
            edge_->sink()->name() + "_" + std::to_string(edge_->sinkPortIx());
 }
 
 
-std::int64_t Spider::PiSDF::Delay::value() const {
+std::int64_t spider::pisdf::Delay::value() const {
     return expression_.evaluate(edge_->containingGraph()->params());
 }
 
-std::int64_t Spider::PiSDF::Delay::value(const Spider::vector<Param *> &params) const {
+std::int64_t spider::pisdf::Delay::value(const spider::vector<Param *> &params) const {
     return expression_.evaluate(params);
 }
 

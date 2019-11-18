@@ -46,8 +46,8 @@
 
 /* === Methods prototype === */
 
-namespace Spider {
-    namespace PiSDF {
+namespace spider {
+    namespace pisdf {
 
         /* === Enumeration(s) === */
 
@@ -129,37 +129,37 @@ namespace Spider {
 /* === Simpler accessor to namespace === */
 
 /* == Vertex definitions == */
-using PiSDFAbstractVertex = Spider::PiSDF::Vertex;
-using PiSDFVertex = Spider::PiSDF::ExecVertex;
-using PiSDFCFGVertex = Spider::PiSDF::ConfigVertex;
-using PiSDFDelayVertex = Spider::PiSDF::DelayVertex;
-using PiSDFJoinVertex = Spider::PiSDF::JoinVertex;
-using PiSDFForkVertex = Spider::PiSDF::ForkVertex;
-using PiSDFTailVertex = Spider::PiSDF::TailVertex;
-using PiSDFHeadVertex = Spider::PiSDF::HeadVertex;
-using PiSDFDuplicateVertex = Spider::PiSDF::DuplicateVertex;
-using PiSDFRepeatVertex = Spider::PiSDF::RepeatVertex;
-using PiSDFInitVertex = Spider::PiSDF::InitVertex;
-using PiSDFEndVertex = Spider::PiSDF::EndVertex;
+using PiSDFAbstractVertex = spider::pisdf::Vertex;
+using PiSDFVertex = spider::pisdf::ExecVertex;
+using PiSDFCFGVertex = spider::pisdf::ConfigVertex;
+using PiSDFDelayVertex = spider::pisdf::DelayVertex;
+using PiSDFJoinVertex = spider::pisdf::JoinVertex;
+using PiSDFForkVertex = spider::pisdf::ForkVertex;
+using PiSDFTailVertex = spider::pisdf::TailVertex;
+using PiSDFHeadVertex = spider::pisdf::HeadVertex;
+using PiSDFDuplicateVertex = spider::pisdf::DuplicateVertex;
+using PiSDFRepeatVertex = spider::pisdf::RepeatVertex;
+using PiSDFInitVertex = spider::pisdf::InitVertex;
+using PiSDFEndVertex = spider::pisdf::EndVertex;
 
 /* == Graph definition == */
-using PiSDFGraph = Spider::PiSDF::Graph;
+using PiSDFGraph = spider::pisdf::Graph;
 
 /* == Param definitions == */
-using PiSDFParam = Spider::PiSDF::Param;
-using PiSDFDynamicParam = Spider::PiSDF::DynamicParam;
-using PiSDFInHeritedParam = Spider::PiSDF::InHeritedParam;
+using PiSDFParam = spider::pisdf::Param;
+using PiSDFDynamicParam = spider::pisdf::DynamicParam;
+using PiSDFInHeritedParam = spider::pisdf::InHeritedParam;
 
 /* == Edge and Delay definitions == */
-using PiSDFEdge = Spider::PiSDF::Edge;
-using PiSDFDelay = Spider::PiSDF::Delay;
+using PiSDFEdge = spider::pisdf::Edge;
+using PiSDFDelay = spider::pisdf::Delay;
 
 /* == Interface definitions == */
-using PiSDFInterface = Spider::PiSDF::Interface;
-using PiSDFInputInterface = Spider::PiSDF::InputInterface;
-using PiSDFOutputInterface = Spider::PiSDF::OutputInterface;
+using PiSDFInterface = spider::pisdf::Interface;
+using PiSDFInputInterface = spider::pisdf::InputInterface;
+using PiSDFOutputInterface = spider::pisdf::OutputInterface;
 
 /* == VertexType definition == */
-using PiSDFVertexType = Spider::PiSDF::VertexType;
+using PiSDFVertexType = spider::pisdf::VertexType;
 
 #endif //SPIDER2_TYPES_H

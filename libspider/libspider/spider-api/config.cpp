@@ -67,58 +67,58 @@ static bool &srdagOptimFlag() {
 
 /* === Methods implementation === */
 
-void Spider::API::enableTrace() {
+void spider::api::enableTrace() {
     traceFlag() = true;
 }
 
-void Spider::API::disableTrace() {
+void spider::api::disableTrace() {
     traceFlag() = false;
 }
 
-void Spider::API::enableVerbose() {
+void spider::api::enableVerbose() {
     verboseFlag() = true;
 }
 
-void Spider::API::disableVerbose() {
+void spider::api::disableVerbose() {
     verboseFlag() = false;
 }
 
-void Spider::API::enableJobLogs() {
-    Logger::enable<LOG_LRT>();
+void spider::api::enableJobLogs() {
+    log::enable<LOG_LRT>();
 }
 
-void Spider::API::disableJobLogs() {
-    Logger::disable<LOG_LRT>();
+void spider::api::disableJobLogs() {
+    log::disable<LOG_LRT>();
 }
 
-void Spider::API::enableStaticScheduleOptim() {
+void spider::api::enableStaticScheduleOptim() {
     staticOptimFlag() = true;
 }
 
-void Spider::API::disableStaticScheduleOptim() {
+void spider::api::disableStaticScheduleOptim() {
     staticOptimFlag() = false;
 }
 
-void Spider::API::enableSRDAGOptims() {
+void spider::api::enableSRDAGOptims() {
     srdagOptimFlag() = true;
 }
 
-void Spider::API::disableSRDAGOptims() {
+void spider::api::disableSRDAGOptims() {
     srdagOptimFlag() = false;
 }
 
-bool Spider::API::trace() {
+bool spider::api::trace() {
     return traceFlag();
 }
 
-bool Spider::API::verbose() {
+bool spider::api::verbose() {
     return verboseFlag();
 }
 
-bool Spider::API::staticOptim() {
+bool spider::api::staticOptim() {
     return staticOptimFlag();
 }
 
-bool Spider::API::srdagOptim() {
+bool spider::api::srdagOptim() {
     return srdagOptimFlag();
 }

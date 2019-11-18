@@ -44,7 +44,7 @@
 
 #include <common/Exporter.h>
 
-namespace Spider {
+namespace spider {
 
     /* === Forward declaration(s) === */
 

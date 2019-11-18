@@ -124,7 +124,7 @@ public:
      * @brief Get the clusters of the platform.
      * @return const reference to the @refitem Spider::Array of clusters.
      */
-    inline const Spider::Array<Cluster *> &clusters() const;
+    inline const spider::Array<Cluster *> &clusters() const;
 
     /**
      * @brief Get a specific cluster in the platform.
@@ -195,23 +195,23 @@ public:
      * @brief Set the communication cost routine between clusters of the platform.
      * @param routine Routine to set.
      */
-    inline void setCluster2ClusterRoutine(Spider::CommunicationCostRoutineC2C routine);
+    inline void setCluster2ClusterRoutine(spider::CommunicationCostRoutineC2C routine);
 
 private:
-    Spider::Array<Cluster *> clusterArray_;
+    spider::Array<Cluster *> clusterArray_;
     std::uint32_t clusterCount_ = 0;
     ProcessingElement *grtPE_ = nullptr;
 
     /* === Routines === */
 
-    Spider::CommunicationCostRoutineC2C cluster2ClusterComCostRoutine_ = Spider::defaultC2CZeroCommunicationCost;
+    spider::CommunicationCostRoutineC2C cluster2ClusterComCostRoutine_ = spider::defaultC2CZeroCommunicationCost;
 
     /* === Private method(s) === */
 };
 
 /* === Inline method(s) === */
 
-const Spider::Array<Cluster *> &Platform::clusters() const {
+const spider::Array<Cluster *> &Platform::clusters() const {
     return clusterArray_;
 }
 
@@ -239,7 +239,7 @@ void Platform::setSpiderGRTPE(ProcessingElement *PE) {
     grtPE_ = PE;
 }
 
-void Platform::setCluster2ClusterRoutine(Spider::CommunicationCostRoutineC2C routine) {
+void Platform::setCluster2ClusterRoutine(spider::CommunicationCostRoutineC2C routine) {
     cluster2ClusterComCostRoutine_ = routine;
 }
 

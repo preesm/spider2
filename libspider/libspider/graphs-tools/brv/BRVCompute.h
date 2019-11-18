@@ -50,7 +50,7 @@
 
 struct BRVComponent {
     std::uint32_t nEdges = 0;
-    Spider::vector<PiSDFAbstractVertex *> vertices;
+    spider::vector<PiSDFAbstractVertex *> vertices;
 
     BRVComponent() = default;
 };
@@ -72,7 +72,7 @@ public:
 
     explicit BRVCompute(const PiSDFGraph *graph);
 
-    BRVCompute(const PiSDFGraph *graph, const Spider::vector<PiSDFParam *> &params);
+    BRVCompute(const PiSDFGraph *graph, const spider::vector<PiSDFParam *> &params);
 
     ~BRVCompute() = default;
 
@@ -89,8 +89,8 @@ public:
 
 protected:
     const PiSDFGraph *graph_ = nullptr;
-    const Spider::vector<PiSDFParam *> &params_;
-    Spider::vector<BRVComponent> connectedComponents_;
+    const spider::vector<PiSDFParam *> &params_;
+    spider::vector<BRVComponent> connectedComponents_;
 
     /* === Protected method(s) === */
 
@@ -107,14 +107,14 @@ protected:
      * @param keyArray  Key array for fast information on which vertex have already been visited.
      */
     static void
-    extractConnectedComponent(BRVComponent &component, Spider::Array<const PiSDFAbstractVertex *> &keyArray);
+    extractConnectedComponent(BRVComponent &component, spider::Array<const PiSDFAbstractVertex *> &keyArray);
 
     /**
      * @brief Extract the edges of a given connected component.
      * @param component  Connected component.
      * @return Array of Edge of the connected component.
      */
-    static Spider::Array<const PiSDFEdge *> extractEdges(const BRVComponent &component);
+    static spider::Array<const PiSDFEdge *> extractEdges(const BRVComponent &component);
 
     /**
      * @brief Update the repetition vector values depending on interfaces and config actors rates.

@@ -52,7 +52,7 @@ public:
 
     explicit LCMBRVCompute(const PiSDFGraph *graph) : BRVCompute(graph) { };
 
-    LCMBRVCompute(const PiSDFGraph *graph, const Spider::vector<PiSDFParam *> &params) : BRVCompute(graph, params) { };
+    LCMBRVCompute(const PiSDFGraph *graph, const spider::vector<PiSDFParam *> &params) : BRVCompute(graph, params) { };
 
     ~LCMBRVCompute() = default;
 
@@ -74,14 +74,14 @@ private:
      * @param edgeArray Edge array of the connected component;
      * @param reps      Array of Rational to be filled.
      */
-    void extractRationals(Spider::Array<const PiSDFEdge *> &edgeArray, Spider::Array<Spider::Rational> &reps) const;
+    void extractRationals(spider::Array<const PiSDFEdge *> &edgeArray, spider::Array<spider::Rational> &reps) const;
 
     /**
      * @brief Compute the LCM factor of a connected component based on all Rationals.
      * @param component Current connected component.
      * @param reps      Array of Rationals.
      */
-    static std::int64_t computeLCM(const BRVComponent &component, Spider::Array<Spider::Rational> &reps);
+    static std::int64_t computeLCM(const BRVComponent &component, spider::Array<spider::Rational> &reps);
 
     /**
      * @brief Compute the repetition vector of a connected component based on all Rationals.
@@ -90,13 +90,13 @@ private:
      * @param lcmFactor LCM of the connected component rates.
      */
     static void
-    computeBRV(const BRVComponent &component, Spider::Array<Spider::Rational> &reps, std::int64_t lcmFactor);
+    computeBRV(const BRVComponent &component, spider::Array<spider::Rational> &reps, std::int64_t lcmFactor);
 
     /**
      * Check the consistency of the connected components graph.
      * @param edgeArray  Edge array of the connected component;
      */
-    void checkValidity(Spider::Array<const PiSDFEdge *> &edgeArray) const;
+    void checkValidity(spider::Array<const PiSDFEdge *> &edgeArray) const;
 };
 
 /* === Inline method(s) === */

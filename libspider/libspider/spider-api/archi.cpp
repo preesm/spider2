@@ -50,81 +50,81 @@
 
 /* === General Platform related API === */
 
-Platform *&Spider::platform() {
+Platform *&spider::platform() {
     static Platform *platform = nullptr;
     return platform;
 }
 
-Platform *Spider::API::createPlatform(std::uint32_t clusterCount) {
-    auto *&platform = Spider::platform();
-    platform = Spider::allocate<Platform>(StackID::ARCHI);
-    Spider::construct(platform, clusterCount);
+Platform *spider::api::createPlatform(std::uint32_t clusterCount) {
+    auto *&platform = spider::platform();
+    platform = spider::allocate<Platform>(StackID::ARCHI);
+    spider::construct(platform, clusterCount);
     return platform;
 }
 
-void Spider::API::setSpiderGRTPE(ProcessingElement *grtPE) {
-    auto *&platform = Spider::platform();
+void spider::api::setSpiderGRTPE(ProcessingElement *grtPE) {
+    auto *&platform = spider::platform();
     if (platform) {
         platform->setSpiderGRTPE(grtPE);
     }
 }
 
-void Spider::API::setCluster2ClusterCommunicationCostRoutine(Spider::CommunicationCostRoutineC2C routine) {
+void spider::api::setCluster2ClusterCommunicationCostRoutine(spider::CommunicationCostRoutineC2C routine) {
     platform()->setCluster2ClusterRoutine(routine);
 }
 
 /* === Cluster related API === */
 
-Cluster *Spider::API::createCluster(std::uint32_t PECount, MemoryUnit *memoryUnit) {
-    auto *cluster = Spider::allocate<Cluster>(StackID::ARCHI);
-    Spider::construct(cluster, PECount, memoryUnit);
+Cluster *spider::api::createCluster(std::uint32_t PECount, MemoryUnit *memoryUnit) {
+    auto *cluster = spider::allocate<Cluster>(StackID::ARCHI);
+    spider::construct(cluster, PECount, memoryUnit);
     return cluster;
 }
 
-void Spider::API::setClusterWriteCostRoutine(Cluster *cluster, Spider::CommunicationCostRoutine routine) {
+void spider::api::setClusterWriteCostRoutine(Cluster *cluster, spider::CommunicationCostRoutine routine) {
     cluster->setWriteCostRoutine(routine);
 }
 
-void Spider::API::setClusterReadCostRoutine(Cluster *cluster, Spider::CommunicationCostRoutine routine) {
+void spider::api::setClusterReadCostRoutine(Cluster *cluster, spider::CommunicationCostRoutine routine) {
     cluster->setReadCostRoutine(routine);
 }
 
 /* === PE related API === */
 
-ProcessingElement *Spider::API::createPE(std::uint32_t hwType,
+ProcessingElement *spider::api::createPE(std::uint32_t hwType,
                                          std::uint32_t hwID,
                                          std::uint32_t virtID,
                                          Cluster *cluster,
                                          const std::string &name,
-                                         Spider::PEType spiderPEType,
-                                         Spider::HWType spiderHWType) {
-    auto *PE = Spider::allocate<ProcessingElement>(StackID::ARCHI);
-    Spider::construct(PE, hwType, hwID, virtID, cluster, name, spiderPEType, spiderHWType);
+                                         spider::PEType spiderPEType,
+                                         spider::HWType spiderHWType) {
+    auto *PE = spider::allocate<ProcessingElement>(StackID::ARCHI);
+    spider::construct(PE, hwType, hwID, virtID, cluster, name, spiderPEType, spiderHWType);
     PE->enable();
     return PE;
 }
 
-void Spider::API::setPESpiderPEType(ProcessingElement *PE, Spider::PEType type) {
+void spider::api::setPESpiderPEType(ProcessingElement *PE, spider::PEType type) {
     PE->setSpiderPEType(type);
 }
 
-void Spider::API::setPESpiderHWType(ProcessingElement *PE, Spider::HWType type) {
+void spider::api::setPESpiderHWType(ProcessingElement *PE, spider::HWType type) {
     PE->setSpiderHWType(type);
 }
 
-void Spider::API::setPEName(ProcessingElement *PE, const std::string &name) {
+void spider::api::setPEName(ProcessingElement *PE, const std::string &name) {
     if (PE) {
         PE->setName(name);
     }
 }
 
-void Spider::API::enablePE(ProcessingElement *PE) {
+void spider::api::enablePE(ProcessingElement *PE) {
     if (PE) {
         PE->enable();
     }
 }
 
-void Spider::API::disablePE(ProcessingElement *PE) {
+void spider::api::disablePE(ProcessingElement *PE) {
     if (PE) {
         PE->disable();
     }
@@ -132,8 +132,8 @@ void Spider::API::disablePE(ProcessingElement *PE) {
 
 /* === MemoryUnit related API === */
 
-MemoryUnit *Spider::API::createMemoryUnit(void *base, std::uint64_t size) {
-    auto *unit = Spider::allocate<MemoryUnit>(StackID::ARCHI);
-    Spider::construct(unit, base, size);
+MemoryUnit *spider::api::createMemoryUnit(void *base, std::uint64_t size) {
+    auto *unit = spider::allocate<MemoryUnit>(StackID::ARCHI);
+    spider::construct(unit, base, size);
     return unit;
 }

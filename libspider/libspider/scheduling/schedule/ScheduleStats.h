@@ -45,7 +45,7 @@
 #include <cstdint>
 #include <containers/StlContainers.h>
 
-namespace Spider {
+namespace spider {
 
 /* === Class definition === */
 
@@ -153,11 +153,11 @@ namespace Spider {
         inline void updateJobCount(std::uint32_t PE, std::uint32_t incValue = 1);
 
     private:
-        Spider::vector<std::uint64_t> startTimeVector_;
-        Spider::vector<std::uint64_t> endTimeVector_;
-        Spider::vector<std::uint64_t> loadTimeVector_;
-        Spider::vector<std::uint64_t> idleTimeVector_;
-        Spider::vector<std::uint32_t> jobCountVector_;
+        spider::vector<std::uint64_t> startTimeVector_;
+        spider::vector<std::uint64_t> endTimeVector_;
+        spider::vector<std::uint64_t> loadTimeVector_;
+        spider::vector<std::uint64_t> idleTimeVector_;
+        spider::vector<std::uint32_t> jobCountVector_;
         std::uint64_t minStartTime_ = UINT64_MAX;
         std::uint64_t maxEndTime_ = 0;
 

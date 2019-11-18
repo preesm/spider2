@@ -45,8 +45,8 @@
 #include <graphs/pisdf/params/Param.h>
 #include <graphs/pisdf/Graph.h>
 
-namespace Spider {
-    namespace PiSDF {
+namespace spider {
+    namespace pisdf {
 
         /* ==+ Forward declaration(s) === */
 
@@ -70,7 +70,7 @@ namespace Spider {
 
             inline std::int64_t value() const override;
 
-            inline std::int64_t value(const Spider::vector<Param *> &params) const;
+            inline std::int64_t value(const spider::vector<Param *> &params) const;
 
             inline ParamType type() const override;
 
@@ -98,7 +98,7 @@ namespace Spider {
             return expression_.evaluate(graph_->params());
         }
 
-        std::int64_t DynamicParam::value(const Spider::vector<Param *> &params) const {
+        std::int64_t DynamicParam::value(const spider::vector<Param *> &params) const {
             return expression_.evaluate(params);
         }
 

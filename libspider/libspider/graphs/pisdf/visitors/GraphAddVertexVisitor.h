@@ -46,8 +46,8 @@
 #include <graphs/pisdf/specials/Specials.h>
 #include <graphs/pisdf/Graph.h>
 
-namespace Spider {
-    namespace PiSDF {
+namespace spider {
+    namespace pisdf {
         struct GraphAddVertexVisitor final : public DefaultVisitor {
 
             explicit GraphAddVertexVisitor(Graph *graph) : graph_{ graph } { }

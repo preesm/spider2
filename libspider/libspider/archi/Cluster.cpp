@@ -53,25 +53,25 @@
 
 Cluster::Cluster(std::uint32_t PECount, MemoryUnit *memoryUnit) : PEArray_{ PECount, StackID::ARCHI },
                                                                   PEEnabledVector_(PECount, false),
-                                                                  platform_{ Spider::platform() },
+                                                                  platform_{ spider::platform() },
                                                                   memoryUnit_{ memoryUnit } {
     /* == Add the cluster to the platform == */
     platform_->addCluster(this);
 
     /* == Set default read / write to the memory cost routine == */
-    writeCostRoutine_ = Spider::defaultZeroCommunicationCost;
-    readCostRoutine_ = Spider::defaultZeroCommunicationCost;
+    writeCostRoutine_ = spider::defaultZeroCommunicationCost;
+    readCostRoutine_ = spider::defaultZeroCommunicationCost;
 }
 
 Cluster::~Cluster() {
     for (auto &pe : PEArray_) {
-        Spider::destroy(pe);
-        Spider::deallocate(pe);
+        spider::destroy(pe);
+        spider::deallocate(pe);
     }
 
     if (memoryUnit_) {
-        Spider::destroy(memoryUnit_);
-        Spider::deallocate(memoryUnit_);
+        spider::destroy(memoryUnit_);
+        spider::deallocate(memoryUnit_);
     }
 }
 

@@ -44,7 +44,7 @@
 
 #include <scheduling/scheduler/ListScheduler.h>
 
-namespace Spider {
+namespace spider {
 
     /* === Class definition === */
 

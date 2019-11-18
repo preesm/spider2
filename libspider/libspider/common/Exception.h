@@ -53,9 +53,9 @@
 
 /* === Macros === */
 
-#define throwSpiderException(...) throw Spider::Exception(Spider::getFileName(__FILE__), __func__, __LINE__, __VA_ARGS__)
+#define throwSpiderException(...) throw spider::Exception(spider::getFileName(__FILE__), __func__, __LINE__, __VA_ARGS__)
 
-namespace Spider {
+namespace spider {
 
     constexpr const char *str_end(const char *str) {
         return *str ? str_end(str + 1) : str;
@@ -82,14 +82,14 @@ namespace Spider {
                            const char *msg, const Ts &...ts)
                 : exceptionMessage_{ } {
             /* == Writes exception header == */
-            int n = Spider::printer::sprintf(exceptionMessage_, EXCEPTION_BUFFER_SIZE, "%s::%s(%d): ", fileName,
+            int n = spider::printer::sprintf(exceptionMessage_, EXCEPTION_BUFFER_SIZE, "%s::%s(%d): ", fileName,
                                              fctName, lineNumber);
 
             /* == Write the actual exception message == */
-            n = Spider::printer::sprintf(exceptionMessage_ + n, EXCEPTION_BUFFER_SIZE, msg, ts...);
+            n = spider::printer::sprintf(exceptionMessage_ + n, EXCEPTION_BUFFER_SIZE, msg, ts...);
             if (n > EXCEPTION_BUFFER_SIZE) {
-                Spider::printer::fprintf(stderr, "Exception: ERROR: exception message too big.\n");
-                Spider::printer::fprintf(stderr, "Partially recovered exception: %s\n", exceptionMessage_);
+                spider::printer::fprintf(stderr, "Exception: ERROR: exception message too big.\n");
+                spider::printer::fprintf(stderr, "Partially recovered exception: %s\n", exceptionMessage_);
                 fflush(stderr);
             }
         }

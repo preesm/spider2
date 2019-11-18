@@ -53,16 +53,16 @@
 
 /* === Static function(s) === */
 
-std::int32_t Spider::ListScheduler::computeScheduleLevel(ListVertex &listVertex,
-                                                         Spider::vector<ListVertex> &sortedVertexVector) {
+std::int32_t spider::ListScheduler::computeScheduleLevel(ListVertex &listVertex,
+                                                         spider::vector<ListVertex> &sortedVertexVector) {
     if (listVertex.level < 0) {
-        auto *platform = Spider::platform();
+        auto *platform = spider::platform();
         auto *vertex = listVertex.vertex;
         std::int32_t level = 0;
         for (auto &edge : vertex->outputEdgeArray()) {
             auto *sink = edge->sink();
             if (sink) {
-                auto &scenario = Spider::scenario();
+                auto &scenario = spider::scenario();
                 auto minExecutionTime = INT64_MAX;
                 for (auto &cluster : platform->clusters()) {
                     auto executionTime = scenario.executionTiming(vertex, cluster->PEType());
@@ -91,7 +91,7 @@ std::int32_t Spider::ListScheduler::computeScheduleLevel(ListVertex &listVertex,
 
 /* === Method(s) implementation === */
 
-Spider::ListScheduler::ListScheduler(PiSDFGraph *graph) : Scheduler(graph) {
+spider::ListScheduler::ListScheduler(PiSDFGraph *graph) : Scheduler(graph) {
     /* == Reserve and push the vertices into the vertex == */
     sortedVertexVector_.reserve(graph_->vertexCount());
     for (auto *vertex : graph_->vertices()) {

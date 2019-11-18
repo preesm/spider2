@@ -42,7 +42,7 @@
 
 /* === Include(s) === */
 
-namespace Spider {
+namespace spider {
     /* === Class definition === */
 
     class LocalRuntime {

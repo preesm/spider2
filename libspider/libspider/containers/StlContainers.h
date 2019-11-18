@@ -55,41 +55,41 @@
 
 /* === Namespace === */
 
-namespace Spider {
+namespace spider {
 
     template<class T, StackID stack_t = StackID::GENERAL>
-    using vector = std::vector<T, Spider::Allocator<T, stack_t>>;
+    using vector = std::vector<T, spider::Allocator<T, stack_t>>;
 
     template<class T, StackID stack_t = StackID::GENERAL>
-    using deque = std::deque<T, Spider::Allocator<T, stack_t>>;
+    using deque = std::deque<T, spider::Allocator<T, stack_t>>;
 
     template<class T, StackID stack_t = StackID::GENERAL>
-    using queue = std::queue<T, Spider::deque<T, stack_t>>;
+    using queue = std::queue<T, spider::deque<T, stack_t>>;
 
     template<class Key, StackID stack_t = StackID::GENERAL>
-    using unordered_set = std::unordered_set<Key, std::hash<Key>, std::equal_to<Key>, Spider::Allocator<Key, stack_t>>;
+    using unordered_set = std::unordered_set<Key, std::hash<Key>, std::equal_to<Key>, spider::Allocator<Key, stack_t>>;
 
     template<class Key, StackID stack_t = StackID::GENERAL>
-    using set = std::set<Key, std::less<Key>, Spider::Allocator<Key, stack_t>>;
+    using set = std::set<Key, std::less<Key>, spider::Allocator<Key, stack_t>>;
 
     template<class Key, class T, StackID stack_t = StackID::GENERAL>
     using unordered_map = std::unordered_map<Key,
             T,
             std::hash<Key>,
             std::equal_to<Key>,
-            Spider::Allocator<std::pair<const Key, T>, stack_t>>;
+            spider::Allocator<std::pair<const Key, T>, stack_t>>;
 
     template<class Key, class T, StackID stack_t = StackID::GENERAL>
-    using map = std::map<Key, T, std::less<Key>, Spider::Allocator<std::pair<const Key, T>, stack_t>>;
+    using map = std::map<Key, T, std::less<Key>, spider::Allocator<std::pair<const Key, T>, stack_t>>;
 
     template<class T, StackID stack_t = StackID::GENERAL>
-    using forward_list = std::forward_list<T, Spider::Allocator<T, stack_t>>;
+    using forward_list = std::forward_list<T, spider::Allocator<T, stack_t>>;
 
     template<class T, StackID stack_t = StackID::GENERAL>
-    using stack = std::stack<T, Spider::deque<T, stack_t>>;
+    using stack = std::stack<T, spider::deque<T, stack_t>>;
 
     template<StackID stack_t = StackID::GENERAL>
-    using string = std::basic_string<char, std::char_traits<char>, Spider::Allocator<char, stack_t>>;
+    using string = std::basic_string<char, std::char_traits<char>, spider::Allocator<char, stack_t>>;
 }
 
 #endif //SPIDER2_STLCONTAINERS_H

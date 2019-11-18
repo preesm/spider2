@@ -55,8 +55,8 @@ Platform::Platform(std::uint32_t clusterCount) : clusterArray_{ clusterCount, St
 
 Platform::~Platform() {
     for (auto &cluster : clusterArray_) {
-        Spider::destroy(cluster);
-        Spider::deallocate(cluster);
+        spider::destroy(cluster);
+        spider::deallocate(cluster);
     }
 }
 
@@ -147,14 +147,14 @@ std::uint64_t Platform::dataCommunicationCostPEToPE(ProcessingElement *PESrc,
     if (PESrc->cluster()->ix() == PESnk->cluster()->ix()) {
         /* == Intra cluster, communication cost is the read / write to the cluster memory cost == */
         auto *cluster = PESrc->cluster();
-        return Spider::Math::saturateAdd(cluster->writeCostRoutine()(dataSize), cluster->readCostRoutine()(dataSize));
+        return spider::math::saturateAdd(cluster->writeCostRoutine()(dataSize), cluster->readCostRoutine()(dataSize));
     }
 
     /* == For inter cluster communication, cost is a bit more complicated to compute == */
     auto *clusterSrc = PESrc->cluster();
     auto *clusterSnk = PESnk->cluster();
-    const auto &readWriteCost = Spider::Math::saturateAdd(clusterSrc->writeCostRoutine()(dataSize),
+    const auto &readWriteCost = spider::math::saturateAdd(clusterSrc->writeCostRoutine()(dataSize),
                                                           clusterSnk->readCostRoutine()(dataSize));
-    return Spider::Math::saturateAdd(readWriteCost,
+    return spider::math::saturateAdd(readWriteCost,
                                      cluster2ClusterComCostRoutine_(clusterSrc->ix(), clusterSnk->ix(), dataSize));
 }

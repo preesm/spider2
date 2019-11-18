@@ -51,19 +51,19 @@
 /* === Method(s) implementation === */
 
 
-Spider::ScheduleStats::ScheduleStats() {
-    auto *platform = Spider::platform();
+spider::ScheduleStats::ScheduleStats() {
+    auto *platform = spider::platform();
 
     /* == Init stat vectors == */
     const auto &n = platform->PECount();
-    startTimeVector_ = Spider::vector<std::uint64_t>(n, 0);
-    endTimeVector_ = Spider::vector<std::uint64_t>(n, 0);
-    loadTimeVector_ = Spider::vector<std::uint64_t>(n, 0);
-    idleTimeVector_ = Spider::vector<std::uint64_t>(n, 0);
-    jobCountVector_ = Spider::vector<std::uint32_t>(n, 0);
+    startTimeVector_ = spider::vector<std::uint64_t>(n, 0);
+    endTimeVector_ = spider::vector<std::uint64_t>(n, 0);
+    loadTimeVector_ = spider::vector<std::uint64_t>(n, 0);
+    idleTimeVector_ = spider::vector<std::uint64_t>(n, 0);
+    jobCountVector_ = spider::vector<std::uint32_t>(n, 0);
 }
 
-void Spider::ScheduleStats::reset() {
+void spider::ScheduleStats::reset() {
     /* == Clear all the vectors == */
     std::fill(startTimeVector_.begin(), startTimeVector_.end(), 0);
     std::fill(endTimeVector_.begin(), endTimeVector_.end(), 0);

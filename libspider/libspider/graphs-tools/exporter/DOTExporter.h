@@ -47,8 +47,8 @@
 #include <containers/StlContainers.h>
 #include <graphs/pisdf/Graph.h>
 
-namespace Spider {
-    namespace PiSDF {
+namespace spider {
+    namespace pisdf {
 
         /* === Forward declaration(s) === */
 
@@ -61,7 +61,7 @@ namespace Spider {
 
             explicit DOTExporter(Graph *graph) : DOTExporter(graph, graph->params()) { }
 
-            DOTExporter(Graph *graph, const Spider::vector<Param *> &params) : Exporter(),
+            DOTExporter(Graph *graph, const spider::vector<Param *> &params) : Exporter(),
                                                                                graph_{ graph },
                                                                                params_{ params } { }
 
@@ -83,7 +83,7 @@ namespace Spider {
 
         private:
             Graph *graph_ = nullptr;
-            const Spider::vector<Param *> &params_;
+            const spider::vector<Param *> &params_;
         };
     }
 }

@@ -45,8 +45,8 @@
 #include <graphs/pisdf/ExecVertex.h>
 #include <graphs/pisdf/visitors/Visitor.h>
 
-namespace Spider {
-    namespace PiSDF {
+namespace spider {
+    namespace pisdf {
 
         /* === Class definition === */
 

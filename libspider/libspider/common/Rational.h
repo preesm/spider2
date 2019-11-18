@@ -46,7 +46,7 @@
 
 /* === Class definition === */
 
-namespace Spider {
+namespace spider {
 
     class Rational {
     public:
@@ -263,7 +263,7 @@ namespace Spider {
     }
 
     Rational Rational::abs() const {
-        return Rational{ Spider::Math::abs((*this).n_), Spider::Math::abs((*this).d_) };
+        return Rational{ spider::math::abs((*this).n_), spider::math::abs((*this).d_) };
     }
 
     std::int64_t Rational::denominator() const {
@@ -275,7 +275,7 @@ namespace Spider {
     }
 
     void Rational::reduce() {
-        auto gcd = Spider::Math::gcd(n_, d_);
+        auto gcd = spider::math::gcd(n_, d_);
         n_ /= gcd;
         d_ /= gcd;
         if (d_ < 0) {

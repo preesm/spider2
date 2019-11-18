@@ -52,8 +52,8 @@
 #include <cmath>
 #include <utility>
 
-namespace Spider {
-    namespace PiSDF {
+namespace spider {
+    namespace pisdf {
 
         /* === Class definition === */
 

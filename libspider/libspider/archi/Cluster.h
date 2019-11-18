@@ -88,7 +88,7 @@ public:
      * @brief Get the array of processing element of the cluster.
      * @return const reference to the @refitem Spider::Array of @refitem ProcessingElement of the cluster.
      */
-    inline const Spider::Array<ProcessingElement *> &processingElements() const;
+    inline const spider::Array<ProcessingElement *> &processingElements() const;
 
     /**
      * @brief Get the memory unit of the cluster.
@@ -145,13 +145,13 @@ public:
      * @brief Get the write cost routine.
      * @return const reference to @refitem Spider::CommunicationCostRoutine
      */
-    inline const Spider::CommunicationCostRoutine &writeCostRoutine() const;
+    inline const spider::CommunicationCostRoutine &writeCostRoutine() const;
 
     /**
      * @brief Get the read cost routine.
      * @return const reference to @refitem Spider::CommunicationCostRoutine
      */
-    inline const Spider::CommunicationCostRoutine &readCostRoutine() const;
+    inline const spider::CommunicationCostRoutine &readCostRoutine() const;
 
     /* === Setter(s) === */
 
@@ -165,19 +165,19 @@ public:
      * @brief Set the cost routine for writing in cluster memory.
      * @param routine  Routine used for computing the cost to write in cluster memory.
      */
-    inline void setWriteCostRoutine(Spider::CommunicationCostRoutine routine);
+    inline void setWriteCostRoutine(spider::CommunicationCostRoutine routine);
 
     /**
      * @brief Set the cost routine for reading from cluster memory.
      * @param routine  Routine used for computing the cost to read from cluster memory.
      */
-    inline void setReadCostRoutine(Spider::CommunicationCostRoutine routine);
+    inline void setReadCostRoutine(spider::CommunicationCostRoutine routine);
 
 private:
 
     /* === Core properties === */
 
-    Spider::Array<ProcessingElement *> PEArray_;
+    spider::Array<ProcessingElement *> PEArray_;
     std::vector<bool> PEEnabledVector_;
     Platform *platform_ = nullptr;
     MemoryUnit *memoryUnit_ = nullptr;
@@ -188,8 +188,8 @@ private:
     std::uint32_t LRTCount_ = 0;
     std::uint32_t enabledPECount_ = 0;
     std::uint32_t ix_ = 0;
-    Spider::CommunicationCostRoutine writeCostRoutine_;
-    Spider::CommunicationCostRoutine readCostRoutine_;
+    spider::CommunicationCostRoutine writeCostRoutine_;
+    spider::CommunicationCostRoutine readCostRoutine_;
 
     /* === Private method(s) === */
 };
@@ -201,7 +201,7 @@ void Cluster::setPEStatus(std::uint32_t ix, bool status) {
     enabledPECount_ = std::count(PEEnabledVector_.begin(), PEEnabledVector_.end(), true);
 }
 
-const Spider::Array<ProcessingElement *> &Cluster::processingElements() const {
+const spider::Array<ProcessingElement *> &Cluster::processingElements() const {
     return PEArray_;
 }
 
@@ -233,11 +233,11 @@ std::uint32_t Cluster::enabledPECount() const {
     return enabledPECount_;
 }
 
-const Spider::CommunicationCostRoutine &Cluster::writeCostRoutine() const {
+const spider::CommunicationCostRoutine &Cluster::writeCostRoutine() const {
     return writeCostRoutine_;
 }
 
-const Spider::CommunicationCostRoutine &Cluster::readCostRoutine() const {
+const spider::CommunicationCostRoutine &Cluster::readCostRoutine() const {
     return readCostRoutine_;
 }
 
@@ -245,11 +245,11 @@ void Cluster::setIx(std::uint32_t ix) {
     ix_ = ix;
 }
 
-void Cluster::setWriteCostRoutine(Spider::CommunicationCostRoutine routine) {
+void Cluster::setWriteCostRoutine(spider::CommunicationCostRoutine routine) {
     writeCostRoutine_ = routine;
 }
 
-void Cluster::setReadCostRoutine(Spider::CommunicationCostRoutine routine) {
+void Cluster::setReadCostRoutine(spider::CommunicationCostRoutine routine) {
     readCostRoutine_ = routine;
 }
 

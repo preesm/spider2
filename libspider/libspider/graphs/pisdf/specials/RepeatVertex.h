@@ -45,8 +45,8 @@
 #include <graphs/pisdf/specials/VertexInterface.h>
 #include <graphs/pisdf/Graph.h>
 
-namespace Spider {
-    namespace PiSDF {
+namespace spider {
+    namespace pisdf {
 
         inline void repeat(const std::int64_t *paramsIn, int64_t *[], void **in, void **out) {
             const auto &inputSize = paramsIn[0];  /* = Rate of the input port = */

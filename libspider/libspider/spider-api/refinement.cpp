@@ -46,36 +46,36 @@
 
 /* === Function definition(s) === */
 
-std::vector<Spider::PiSDF::Refinement *> &Spider::refinementsRegister() {
-    static std::vector<Spider::PiSDF::Refinement *> refinementVector;
+std::vector<spider::pisdf::Refinement *> &spider::refinementsRegister() {
+    static std::vector<spider::pisdf::Refinement *> refinementVector;
     return refinementVector;
 }
 
-void Spider::API::precacheRefinementRegister(std::uint32_t refinementCount) {
+void spider::api::precacheRefinementRegister(std::uint32_t refinementCount) {
     auto &refinements = refinementsRegister();
     refinements.reserve(refinements.size() + refinementCount);
 }
 
-Spider::PiSDF::Refinement *Spider::API::createRefinement(std::string name,
-                                                         Spider::callback function,
+spider::pisdf::Refinement *spider::api::createRefinement(std::string name,
+                                                         spider::callback function,
                                                          std::uint32_t paramINCount,
                                                          std::uint32_t paramOUTCount,
                                                          StackID stack) {
-    auto *refinement = Spider::allocate<Spider::PiSDF::Refinement>(stack);
-    Spider::construct(refinement, std::move(name), function, paramINCount, paramOUTCount);
+    auto *refinement = spider::allocate<spider::pisdf::Refinement>(stack);
+    spider::construct(refinement, std::move(name), function, paramINCount, paramOUTCount);
     return refinement;
 }
 
-std::uint32_t Spider::API::registerRefinement(Spider::PiSDF::Refinement *refinement) {
+std::uint32_t spider::api::registerRefinement(spider::pisdf::Refinement *refinement) {
     if (refinement->ix() == UINT32_MAX) {
-        auto &refinements = Spider::refinementsRegister();
+        auto &refinements = spider::refinementsRegister();
         refinement->setIx(refinements.size());
         refinements.emplace_back(refinement);
     }
     return refinement->ix();
 }
 
-void Spider::API::setRefinementInputParams(Spider::PiSDF::Refinement *refinement,
+void spider::api::setRefinementInputParams(spider::pisdf::Refinement *refinement,
                                            std::initializer_list<std::uint32_t> list) {
     if (!refinement) {
         return;
@@ -85,7 +85,7 @@ void Spider::API::setRefinementInputParams(Spider::PiSDF::Refinement *refinement
     }
 }
 
-void Spider::API::setRefinementOutputParams(Spider::PiSDF::Refinement *refinement,
+void spider::api::setRefinementOutputParams(spider::pisdf::Refinement *refinement,
                                             std::initializer_list<std::uint32_t> list) {
     if (!refinement) {
         return;

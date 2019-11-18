@@ -51,7 +51,7 @@ public:
 
     explicit TopologyBRVCompute(PiSDFGraph *graph) : BRVCompute(graph) { };
 
-    TopologyBRVCompute(PiSDFGraph *graph, const Spider::vector<PiSDFParam *> &params) : BRVCompute(graph, params) { };
+    TopologyBRVCompute(PiSDFGraph *graph, const spider::vector<PiSDFParam *> &params) : BRVCompute(graph, params) { };
 
     ~TopologyBRVCompute() = default;
 
@@ -81,7 +81,7 @@ private:
      * @param vertexIxArray  Indexes in the topology matrix of the vertices of the graph.
      * @return true if edge is valid, false else.
      */
-    static bool isEdgeValid(const PiSDFEdge *edge, Spider::Array<std::int32_t> &vertexIxArray);
+    static bool isEdgeValid(const PiSDFEdge *edge, spider::Array<std::int32_t> &vertexIxArray);
 
     /**
      * @brief Compute the nullspace of the topology matrix using the pivot method.
@@ -94,10 +94,10 @@ private:
      *
      * @throw @refitem SpiderException if nullspace can not be computed.
      */
-    static void computeBRVFromNullSpace(Spider::Array<std::int64_t> &topologyMatrix,
+    static void computeBRVFromNullSpace(spider::Array<std::int64_t> &topologyMatrix,
                                         std::uint32_t nMatVertices,
                                         std::uint32_t nMatEdges,
-                                        Spider::Array<std::int32_t> &vertexIxArray,
+                                        spider::Array<std::int32_t> &vertexIxArray,
                                         const BRVComponent &component);
 };
 

@@ -45,8 +45,8 @@
 #include <graphs/pisdf/visitors/Visitor.h>
 #include <common/Exception.h>
 
-namespace Spider {
-    namespace PiSDF {
+namespace spider {
+    namespace pisdf {
 
         class DefaultVisitor : public Visitor {
         public:

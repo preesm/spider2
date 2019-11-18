@@ -51,7 +51,7 @@
 
 /* === Method(s) implementation === */
 
-Spider::PiSDF::Edge::Edge(Vertex *source,
+spider::pisdf::Edge::Edge(Vertex *source,
                           std::uint32_t srcIx,
                           Expression &&srcExpr,
                           Vertex *sink,
@@ -74,28 +74,28 @@ Spider::PiSDF::Edge::Edge(Vertex *source,
     graph_ = source->containingGraph();
 }
 
-Spider::PiSDF::Edge::~Edge() {
+spider::pisdf::Edge::~Edge() {
     if (delay_) {
-        Spider::destroy(delay_);
-        Spider::deallocate(delay_);
+        spider::destroy(delay_);
+        spider::deallocate(delay_);
     }
 }
 
-std::string Spider::PiSDF::Edge::name() const {
+std::string spider::pisdf::Edge::name() const {
     return "edge_" + src_->name() + "-" + snk_->name();
 }
 
 template<>
-Spider::PiSDF::Vertex *Spider::PiSDF::Edge::source<true>() const {
+spider::pisdf::Vertex *spider::pisdf::Edge::source<true>() const {
     return src_->forwardEdge(this);
 }
 
 template<>
-Spider::PiSDF::Vertex *Spider::PiSDF::Edge::sink<true>() const {
+spider::pisdf::Vertex *spider::pisdf::Edge::sink<true>() const {
     return snk_->forwardEdge(this);
 }
 
-Spider::PiSDF::Edge *Spider::PiSDF::Edge::setSource(Vertex *vertex, std::uint32_t ix, Expression &&expr) {
+spider::pisdf::Edge *spider::pisdf::Edge::setSource(Vertex *vertex, std::uint32_t ix, Expression &&expr) {
     if (!vertex) {
         throwSpiderException("Can not set nullptr vertex on edge [%s].", name().c_str());
     }
@@ -108,7 +108,7 @@ Spider::PiSDF::Edge *Spider::PiSDF::Edge::setSource(Vertex *vertex, std::uint32_
     return edge;
 }
 
-Spider::PiSDF::Edge *Spider::PiSDF::Edge::setSink(Vertex *vertex, std::uint32_t ix, Expression &&expr) {
+spider::pisdf::Edge *spider::pisdf::Edge::setSink(Vertex *vertex, std::uint32_t ix, Expression &&expr) {
     if (!vertex) {
         throwSpiderException("Can not set nullptr vertex on edge [%s].", name().c_str());
     }

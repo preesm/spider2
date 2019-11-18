@@ -50,8 +50,8 @@
 
 /* === Namespace === */
 
-namespace Spider {
-    namespace Logger {
+namespace spider {
+    namespace log {
 
         constexpr const char red[] = "\x1B[31m";
         constexpr const char green[] = "\x1B[32m";
@@ -77,29 +77,29 @@ namespace Spider {
             outputStream() = stream;
         }
 
-        template<Logger::Type type>
-        inline constexpr Logger::Log &logger() {
+        template<log::Type type>
+        inline constexpr log::Log &logger() {
             return loggers().at(static_cast<std::uint8_t >(type));
         }
 
-        template<Logger::Type type>
+        template<log::Type type>
         inline void enable() {
             std::lock_guard<std::mutex> locker(mutex());
             logger<type>().enabled_ = true;
         }
 
-        template<Logger::Type type>
+        template<log::Type type>
         inline void disable() {
             std::lock_guard<std::mutex> locker(mutex());
             logger<type>().enabled_ = false;
         }
 
-        template<Logger::Type type, const char *color, const char *level, class... Args>
+        template<log::Type type, const char *color, const char *level, class... Args>
         inline void print(const char *fmt, const Args &... ts) {
             std::lock_guard<std::mutex> locker(mutex());
-            Spider::printer::fprintf(outputStream(), "%s[%s:%s]:", color, logger<type>().litteral_, level);
-            Spider::printer::fprintf(outputStream(), fmt, ts...);
-            Spider::printer::fprintf(outputStream(), normal);
+            spider::printer::fprintf(outputStream(), "%s[%s:%s]:", color, logger<type>().litteral_, level);
+            spider::printer::fprintf(outputStream(), fmt, ts...);
+            spider::printer::fprintf(outputStream(), normal);
         }
 
         /**
@@ -109,7 +109,7 @@ namespace Spider {
          * @param fmt    Formatted string to print.
          * @param ts     Arguments to be printed.
          */
-        template<Logger::Type type = Logger::Type::GENERAL, class... Args>
+        template<log::Type type = log::Type::GENERAL, class... Args>
         inline void info(const char *fmt, const Args &...ts) {
             constexpr static const char lvl[] = "INFO";
             print<type, white, lvl>(fmt, ts...);
@@ -122,7 +122,7 @@ namespace Spider {
          * @param fmt    Formatted string to print.
          * @param ts     Arguments to be printed.
          */
-        template<Logger::Type type = Logger::Type::GENERAL, class... Args>
+        template<log::Type type = log::Type::GENERAL, class... Args>
         inline void warning(const char *fmt, const Args &...ts) {
             constexpr static const char lvl[] = "WARN";
             print<type, yellow, lvl>(fmt, ts...);
@@ -135,7 +135,7 @@ namespace Spider {
          * @param fmt    Formatted string to print.
          * @param ts     Arguments to be printed.
          */
-        template<Logger::Type type = Logger::Type::GENERAL, class... Args>
+        template<log::Type type = log::Type::GENERAL, class... Args>
         inline void error(const char *fmt, const Args &...ts) {
             constexpr static const char lvl[] = "ERR";
             print<type, red, lvl>(fmt, ts...);
@@ -148,7 +148,7 @@ namespace Spider {
          * @param fmt    Formatted string to print.
          * @param ts     Arguments to be printed.
          */
-        template<Logger::Type type = Logger::Type::GENERAL, class... Args>
+        template<log::Type type = log::Type::GENERAL, class... Args>
         inline void verbose(const char *fmt, const Args &...ts) {
             constexpr static const char lvl[] = "VERB";
             print<type, green, lvl>(fmt, ts...);
@@ -156,18 +156,18 @@ namespace Spider {
     }
 }
 
-constexpr auto LOG_LRT = Spider::Logger::Type::LRT;
-constexpr auto LOG_TIME = Spider::Logger::Type::TIME;
-constexpr auto LOG_GENERAL = Spider::Logger::Type::GENERAL;
-constexpr auto LOG_MEMORY = Spider::Logger::Type::MEMORY;
-constexpr auto LOG_SCHEDULE = Spider::Logger::Type::SCHEDULE;
-constexpr auto LOG_TRANSFO = Spider::Logger::Type::TRANSFO;
-constexpr auto LOG_OPTIMS = Spider::Logger::Type::OPTIMS;
-constexpr auto LOG_EXPR = Spider::Logger::Type::EXPR;
+constexpr auto LOG_LRT = spider::log::Type::LRT;
+constexpr auto LOG_TIME = spider::log::Type::TIME;
+constexpr auto LOG_GENERAL = spider::log::Type::GENERAL;
+constexpr auto LOG_MEMORY = spider::log::Type::MEMORY;
+constexpr auto LOG_SCHEDULE = spider::log::Type::SCHEDULE;
+constexpr auto LOG_TRANSFO = spider::log::Type::TRANSFO;
+constexpr auto LOG_OPTIMS = spider::log::Type::OPTIMS;
+constexpr auto LOG_EXPR = spider::log::Type::EXPR;
 
-template<Spider::Logger::Type type = Spider::Logger::Type::GENERAL>
+template<spider::log::Type type = spider::log::Type::GENERAL>
 inline constexpr bool log_enabled() {
-    return Spider::Logger::logger<type>().enabled_;
+    return spider::log::logger<type>().enabled_;
 }
 
 #endif // SPIDER2_LOGGER_H

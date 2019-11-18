@@ -53,11 +53,11 @@ static AbstractAllocator *allocatorArray[allocatorCount] = { nullptr };
 
 /* === Methods implementation === */
 
-AbstractAllocator *&Spider::getAllocator(StackID stack) {
+AbstractAllocator *&spider::getAllocator(StackID stack) {
     return allocatorArray[static_cast<std::uint64_t>(stack)];
 }
 
-void Spider::initAllocator(StackID stack, const AllocatorConfig &cfg) {
+void spider::initAllocator(StackID stack, const AllocatorConfig &cfg) {
     auto *&allocator = getAllocator(stack);
     if (!allocator) {
         switch (cfg.allocatorType) {
@@ -92,14 +92,14 @@ void Spider::initAllocator(StackID stack, const AllocatorConfig &cfg) {
     }
 }
 
-void Spider::finalizeAllocators() {
+void spider::finalizeAllocators() {
     for (auto *&allocator : allocatorArray) {
         delete allocator;
         allocator = nullptr;
     }
 }
 
-void Spider::deallocate(void *ptr) {
+void spider::deallocate(void *ptr) {
     if (ptr) {
         /* == Retrieve stack id == */
         auto *originalPtr = (reinterpret_cast<char *>(ptr) - sizeof(std::uint64_t));

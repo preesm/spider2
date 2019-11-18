@@ -48,7 +48,7 @@
 
 /* === Class definition === */
 
-namespace Spider {
+namespace spider {
 
     template<typename T>
     class Array {
@@ -172,7 +172,7 @@ namespace Spider {
 
     template<typename T>
     Array<T>::Array(const Array &other, StackID stack) : size_{ other.size_ } {
-        array_ = Spider::allocate<T>(stack, size_ + 1);
+        array_ = spider::allocate<T>(stack, size_ + 1);
         if (array_) {
             std::copy(other.array_, other.array_ + other.size_, array_);
         }
@@ -185,7 +185,7 @@ namespace Spider {
 
     template<typename T>
     Array<T>::Array(std::uint64_t size, StackID stack) : size_{ size } {
-        array_ = Spider::allocate<T>(stack, size_ + 1);
+        array_ = spider::allocate<T>(stack, size_ + 1);
         if (!array_) {
             throwSpiderException("Failed to allocate array.");
         }
@@ -198,7 +198,7 @@ namespace Spider {
 
     template<typename T>
     Array<T>::~Array() {
-        Spider::deallocate(array_);
+        spider::deallocate(array_);
     }
 
     template<typename T>

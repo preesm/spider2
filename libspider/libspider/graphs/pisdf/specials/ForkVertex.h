@@ -44,8 +44,8 @@
 
 #include <graphs/pisdf/specials/VertexInterface.h>
 
-namespace Spider {
-    namespace PiSDF {
+namespace spider {
+    namespace pisdf {
 
         inline void fork(const std::int64_t *paramsIn, std::int64_t *[], void *in[], void *out[]) {
             const auto &inputRate = paramsIn[0];   /* = Rate of the input port (used for sanity check) = */

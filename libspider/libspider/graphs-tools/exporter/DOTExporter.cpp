@@ -49,11 +49,11 @@
 
 /* === Method(s) implementation === */
 
-void Spider::PiSDF::DOTExporter::print() const {
+void spider::pisdf::DOTExporter::print() const {
     print("./pisdf-graph.dot");
 }
 
-void Spider::PiSDF::DOTExporter::print(const std::string &path) const {
+void spider::pisdf::DOTExporter::print(const std::string &path) const {
     std::ofstream file{ path, std::ios::out };
     print(file);
 
@@ -61,7 +61,7 @@ void Spider::PiSDF::DOTExporter::print(const std::string &path) const {
     file.close();
 }
 
-void Spider::PiSDF::DOTExporter::print(std::ofstream &file) const {
+void spider::pisdf::DOTExporter::print(std::ofstream &file) const {
     DOTExporterVisitor visitor{ this, file, "\t" };
     graph_->visit(&visitor);
 }

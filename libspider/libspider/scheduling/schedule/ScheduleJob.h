@@ -47,7 +47,7 @@
 
 /* === Forward declarations === */
 
-namespace Spider {
+namespace spider {
 
     /* === Enumeration === */
 
@@ -179,9 +179,9 @@ namespace Spider {
     private:
         std::uint32_t vertexIx_ = UINT32_MAX;
         std::uint32_t ix_ = UINT32_MAX;
-        JobState state_ = Spider::JobState::PENDING;
+        JobState state_ = spider::JobState::PENDING;
         JobMappingInfo mappingInfo_;
-        Spider::vector<ScheduleJob *> constraints_;
+        spider::vector<ScheduleJob *> constraints_;
 
         /* === Private method(s) === */
     };
@@ -194,11 +194,11 @@ namespace Spider {
         }
     }
 
-    std::uint32_t Spider::ScheduleJob::vertexIx() const {
+    std::uint32_t spider::ScheduleJob::vertexIx() const {
         return vertexIx_;
     }
 
-    std::uint32_t Spider::ScheduleJob::ix() const {
+    std::uint32_t spider::ScheduleJob::ix() const {
         return ix_;
     }
 

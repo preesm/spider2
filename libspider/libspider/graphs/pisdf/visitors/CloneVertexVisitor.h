@@ -47,8 +47,8 @@
 #include <graphs/pisdf/specials/Specials.h>
 #include <graphs/pisdf/visitors/DefaultVisitor.h>
 
-namespace Spider {
-    namespace PiSDF {
+namespace spider {
+    namespace pisdf {
 
         /* === Class definition === */
 
@@ -65,7 +65,7 @@ namespace Spider {
             /* === Method(s) === */
 
             inline void visit(Graph *graph) override {
-                auto *clone = Spider::API::createSubraph(graph_,
+                auto *clone = spider::api::createSubraph(graph_,
                                                          graph->name_,
                                                          graph->vertexCount(),
                                                          graph->edgeCount(),
@@ -79,7 +79,7 @@ namespace Spider {
             }
 
             inline void visit(ExecVertex *vertex) override {
-                auto *clone = Spider::API::createVertex(graph_,
+                auto *clone = spider::api::createVertex(graph_,
                                                         vertex->name_,
                                                         vertex->edgesINCount(),
                                                         vertex->edgesOUTCount(),
@@ -89,13 +89,13 @@ namespace Spider {
             }
 
             inline void visit(DelayVertex *vertex) override {
-                auto *clone = Spider::allocate<DelayVertex>(stack_);
-                Spider::construct(clone, vertex->name(), stack_);
+                auto *clone = spider::allocate<DelayVertex>(stack_);
+                spider::construct(clone, vertex->name(), stack_);
                 setRef(vertex, clone);
             }
 
             inline void visit(ConfigVertex *vertex) override {
-                auto *clone = Spider::API::createConfigActor(graph_,
+                auto *clone = spider::api::createConfigActor(graph_,
                                                              vertex->name_,
                                                              vertex->edgesINCount(),
                                                              vertex->edgesOUTCount(),
@@ -105,7 +105,7 @@ namespace Spider {
             }
 
             inline void visit(ForkVertex *vertex) override {
-                auto *clone = Spider::API::createFork(graph_,
+                auto *clone = spider::api::createFork(graph_,
                                                       vertex->name_,
                                                       vertex->edgesOUTCount(),
                                                       stack_);
@@ -113,7 +113,7 @@ namespace Spider {
             }
 
             inline void visit(JoinVertex *vertex) override {
-                auto *clone = Spider::API::createJoin(graph_,
+                auto *clone = spider::api::createJoin(graph_,
                                                       vertex->name_,
                                                       vertex->edgesINCount(),
                                                       stack_);
@@ -121,7 +121,7 @@ namespace Spider {
             }
 
             inline void visit(HeadVertex *vertex) override {
-                auto *clone = Spider::API::createHead(graph_,
+                auto *clone = spider::api::createHead(graph_,
                                                       vertex->name_,
                                                       vertex->edgesINCount(),
                                                       stack_);
@@ -129,7 +129,7 @@ namespace Spider {
             }
 
             inline void visit(TailVertex *vertex) override {
-                auto *clone = Spider::API::createTail(graph_,
+                auto *clone = spider::api::createTail(graph_,
                                                       vertex->name_,
                                                       vertex->edgesINCount(),
                                                       stack_);
@@ -137,7 +137,7 @@ namespace Spider {
             }
 
             inline void visit(DuplicateVertex *vertex) override {
-                auto *clone = Spider::API::createDuplicate(graph_,
+                auto *clone = spider::api::createDuplicate(graph_,
                                                            vertex->name_,
                                                            vertex->edgesOUTCount(),
                                                            stack_);
@@ -145,21 +145,21 @@ namespace Spider {
             }
 
             inline void visit(RepeatVertex *vertex) override {
-                auto *clone = Spider::API::createRepeat(graph_,
+                auto *clone = spider::api::createRepeat(graph_,
                                                         vertex->name_,
                                                         stack_);
                 setRef(vertex, clone);
             }
 
             inline void visit(InitVertex *vertex) override {
-                auto *clone = Spider::API::createInit(graph_,
+                auto *clone = spider::api::createInit(graph_,
                                                       vertex->name_,
                                                       stack_);
                 setRef(vertex, clone);
             }
 
             inline void visit(EndVertex *vertex) override {
-                auto *clone = Spider::API::createEnd(graph_,
+                auto *clone = spider::api::createEnd(graph_,
                                                      vertex->name_,
                                                      stack_);
                 setRef(vertex, clone);

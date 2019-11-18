@@ -51,24 +51,24 @@
 
 /* === Method(s) implementation === */
 
-void Spider::Schedule::clear() {
+void spider::Schedule::clear() {
     jobs_.clear();
 
     /* == Reset the stats the platform == */
     stats_.reset();
 }
 
-void Spider::Schedule::reset() {
+void spider::Schedule::reset() {
     for (auto &job : jobs_) {
-        job.setState(Spider::JobState::PENDING);
+        job.setState(spider::JobState::PENDING);
     }
 }
 
-void Spider::Schedule::add(ScheduleJob &&job) {
+void spider::Schedule::add(ScheduleJob &&job) {
     jobs_.push_back(job);
 
     /* == Update stats of given PE == */
-    const auto *platform = Spider::platform();
+    const auto *platform = spider::platform();
     const auto &st = job.mappingInfo().startTime;
     const auto &et = job.mappingInfo().endTime;
     const auto &PE = platform->findPE(job.mappingInfo().clusterIx, job.mappingInfo().PEIx).spiderPEIx();
@@ -79,7 +79,7 @@ void Spider::Schedule::add(ScheduleJob &&job) {
     stats_.updateJobCount(PE);
 }
 
-void Spider::Schedule::setJobCount(std::uint32_t count) {
+void spider::Schedule::setJobCount(std::uint32_t count) {
     jobs_.clear();
     jobs_.reserve(count);
     for (std::uint32_t i = 0; i < count; ++i) {

@@ -45,8 +45,8 @@
 #include <string>
 #include <graphs-tools/expression-parser/Expression.h>
 
-namespace Spider {
-    namespace PiSDF {
+namespace spider {
+    namespace pisdf {
 
         /* === Forward declaration(s) === */
 
@@ -134,7 +134,7 @@ namespace Spider {
              * @warning If value of the delay is set by dynamic parameter, it is user responsability to ensure proper
              * order of call.
              */
-            std::int64_t value(const Spider::vector<Param *> &params) const;
+            std::int64_t value(const spider::vector<Param *> &params) const;
 
             /* === Setter(s) === */
 
@@ -192,7 +192,7 @@ namespace Spider {
 
         void Delay::setMemoryAddress(std::uint64_t address) {
             if (memoryAddress_ != UINT64_MAX && log_enabled()) {
-                Spider::Logger::warning("Delay [%s] already has a memory address.\n", name().c_str());
+                spider::log::warning("Delay [%s] already has a memory address.\n", name().c_str());
             }
             memoryAddress_ = address;
         }

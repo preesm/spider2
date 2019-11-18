@@ -57,17 +57,17 @@ public:
 };
 
 bool PiSDFForkForkOptimizer::operator()(PiSDFGraph *graph) const {
-    Spider::vector<std::pair<Spider::PiSDF::ForkVertex *, Spider::PiSDF::ForkVertex *>> verticesToOptimize;
+    spider::vector<std::pair<spider::pisdf::ForkVertex *, spider::pisdf::ForkVertex *>> verticesToOptimize;
 
     /* == Search for the pair of fork to optimize == */
     for (const auto &v : graph->vertices()) {
-        if (v->subtype() == Spider::PiSDF::VertexType::FORK) {
+        if (v->subtype() == spider::pisdf::VertexType::FORK) {
             /* == return itself, only way to suppress the warning for "probably incompatible type cast" == */
             const auto &vertex = v->inputEdge(0)->sink();
             auto *source = vertex->inputEdge(0)->source();
-            if (source->subtype() == Spider::PiSDF::VertexType::FORK) {
-                verticesToOptimize.push_back(std::make_pair(static_cast<Spider::PiSDF::ForkVertex *>(source),
-                                                            static_cast<Spider::PiSDF::ForkVertex *>(vertex)));
+            if (source->subtype() == spider::pisdf::VertexType::FORK) {
+                verticesToOptimize.push_back(std::make_pair(static_cast<spider::pisdf::ForkVertex *>(source),
+                                                            static_cast<spider::pisdf::ForkVertex *>(vertex)));
             }
         }
     }
@@ -80,7 +80,7 @@ bool PiSDFForkForkOptimizer::operator()(PiSDFGraph *graph) const {
         auto *vertex = pair.second;
 
         /* == Create the new fork == */
-        auto *fork = Spider::API::createFork(graph,
+        auto *fork = spider::api::createFork(graph,
                                              "merged-" + source->name() + "-" + vertex->name(),
                                              (source->edgesOUTCount() - 1) + vertex->edgesOUTCount(),
                                              StackID::TRANSFO);
@@ -119,9 +119,9 @@ bool PiSDFForkForkOptimizer::operator()(PiSDFGraph *graph) const {
         }
 
         /* == Remove the vertices == */
-        if (Spider::API::verbose() && log_enabled<LOG_OPTIMS>()) {
-            Spider::Logger::verbose<LOG_OPTIMS>("ForkForkOptimizer: removing [%s] and [%s] fork vertices.\n",
-                                                vertex->name().c_str(), source->name().c_str());
+        if (spider::api::verbose() && log_enabled<LOG_OPTIMS>()) {
+            spider::log::verbose<LOG_OPTIMS>("ForkForkOptimizer: removing [%s] and [%s] fork vertices.\n",
+                                             vertex->name().c_str(), source->name().c_str());
         }
         graph->removeVertex(vertex);
         graph->removeVertex(source);

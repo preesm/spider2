@@ -53,7 +53,7 @@
 
 class ProcessingElement;
 
-namespace Spider {
+namespace spider {
 
     /* === Class definition === */
 
@@ -82,7 +82,7 @@ namespace Spider {
          * @return execution timings vector.
          * @throws @refitem std::out_of_range if vertex does not exist in the lookup table.
          */
-        inline const Spider::vector<Expression> &executionTimings(const PiSDFAbstractVertex *vertex) const;
+        inline const spider::vector<Expression> &executionTimings(const PiSDFAbstractVertex *vertex) const;
 
         /**
          * @brief Get the mappable constraint of a vertex on a given PE.
@@ -203,7 +203,7 @@ namespace Spider {
     private:
 
         std::unordered_map<const PiSDFAbstractVertex *, std::vector<bool>> vertexMappingConstraintsMap_;
-        std::unordered_map<const PiSDFAbstractVertex *, Spider::vector<Expression>> vertexExecutionTimingsMap_;
+        std::unordered_map<const PiSDFAbstractVertex *, spider::vector<Expression>> vertexExecutionTimingsMap_;
 
 
         /* === Private method(s) === */
@@ -215,7 +215,7 @@ namespace Spider {
         return vertexMappingConstraintsMap_.at(vertex);
     }
 
-    const Spider::vector<Expression> &Scenario::executionTimings(const PiSDFAbstractVertex *vertex) const {
+    const spider::vector<Expression> &Scenario::executionTimings(const PiSDFAbstractVertex *vertex) const {
         return vertexExecutionTimingsMap_.at(vertex);
     }
 
@@ -257,7 +257,7 @@ namespace Spider {
     void Scenario::setExecutionTimings(const PiSDFAbstractVertex *vertex,
                                        std::uint32_t PETypeCount,
                                        std::int64_t value) {
-        vertexExecutionTimingsMap_[vertex] = Spider::vector<Expression>(PETypeCount, Expression(value));
+        vertexExecutionTimingsMap_[vertex] = spider::vector<Expression>(PETypeCount, Expression(value));
     }
 
     void Scenario::setExecutionTiming(const PiSDFAbstractVertex *vertex, std::uint32_t PEType, std::int64_t value) {

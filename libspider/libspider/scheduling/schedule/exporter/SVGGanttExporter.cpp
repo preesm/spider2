@@ -64,7 +64,7 @@ static constexpr std::uint32_t taskSpace = 5;
 
 /* === Method(s) implementation === */
 
-Spider::SVGGanttExporter::SVGGanttExporter(const Schedule *schedule) : Exporter(), schedule_{ schedule } {
+spider::SVGGanttExporter::SVGGanttExporter(const Schedule *schedule) : Exporter(), schedule_{ schedule } {
     /* == Compute values needed for printing == */
     std::uint32_t minExecTime = UINT32_MAX;
     std::uint32_t maxExecTime = 0;
@@ -83,16 +83,16 @@ Spider::SVGGanttExporter::SVGGanttExporter(const Schedule *schedule) : Exporter(
     makespanWidth_ =
             static_cast<double>(schedule_->stats().minStartTime() + schedule_->stats().makespan()) * scaleFactor_;
     width_ = makespanWidth_ + 2 * border + offset + arrowStroke + arrowSize;
-    const auto *platform = Spider::platform();
+    const auto *platform = spider::platform();
     const auto &PECount = platform->PECount();
     height_ = PECount * (taskHeight + taskSpace) + taskSpace + arrowStroke + arrowSize + offset;
 }
 
-void Spider::SVGGanttExporter::print() const {
+void spider::SVGGanttExporter::print() const {
     print("./gantt.svg");
 }
 
-void Spider::SVGGanttExporter::print(const std::string &path) const {
+void spider::SVGGanttExporter::print(const std::string &path) const {
     std::ofstream file{ path, std::ios::out };
     print(file);
 
@@ -100,7 +100,7 @@ void Spider::SVGGanttExporter::print(const std::string &path) const {
     file.close();
 }
 
-void Spider::SVGGanttExporter::print(std::ofstream &file) const {
+void spider::SVGGanttExporter::print(std::ofstream &file) const {
     /* == Print header == */
     headerPrinter(file);
 
@@ -116,7 +116,7 @@ void Spider::SVGGanttExporter::print(std::ofstream &file) const {
     file << "</svg>" << std::endl;
 }
 
-void Spider::SVGGanttExporter::headerPrinter(std::ofstream &file) const {
+void spider::SVGGanttExporter::headerPrinter(std::ofstream &file) const {
     file << R"(<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!-- Created with Spider 2.0 (http://www.github.com/preesm/spider-2.0) -->
 
@@ -149,7 +149,7 @@ void Spider::SVGGanttExporter::headerPrinter(std::ofstream &file) const {
      inkscape:groupmode="layer">)" << '\n';
 }
 
-void Spider::SVGGanttExporter::axisPrinter(std::ofstream &file) const {
+void spider::SVGGanttExporter::axisPrinter(std::ofstream &file) const {
 
     /* == Print vertical arrow == */
     const auto &arrowColor = "393c3c";
@@ -211,9 +211,9 @@ void Spider::SVGGanttExporter::axisPrinter(std::ofstream &file) const {
     /* == Print horizontal arrow == */
 }
 
-void Spider::SVGGanttExporter::jobPrinter(std::ofstream &file, const Spider::ScheduleJob &job) const {
+void spider::SVGGanttExporter::jobPrinter(std::ofstream &file, const spider::ScheduleJob &job) const {
     /* == Compute color and width == */
-    const auto *graph = Spider::pisdfGraph();
+    const auto *graph = spider::pisdfGraph();
     const auto *vertex = graph->vertex(job.vertexIx());
     const auto *reference = vertex->reference();
     std::int32_t red = static_cast<std::uint8_t>((reinterpret_cast<std::uintptr_t>(reference) >> 3u) * 50 + 100);
@@ -222,7 +222,7 @@ void Spider::SVGGanttExporter::jobPrinter(std::ofstream &file, const Spider::Sch
     const auto &taskWidth = static_cast<double>(job.mappingInfo().endTime - job.mappingInfo().startTime) * scaleFactor_;
 
     /* == Compute coordinates == */
-    const auto *platform = Spider::platform();
+    const auto *platform = spider::platform();
     const auto &PE = platform->findPE(job.mappingInfo().clusterIx, job.mappingInfo().PEIx);
     const auto &x = offset + arrowStroke + border + job.mappingInfo().startTime * scaleFactor_;
     const auto &y = height_ - (offset + arrowStroke + (PE.spiderPEIx() + 1) * (taskHeight + border));

@@ -48,8 +48,8 @@
 
 #include <stdint-gcc.h>
 
-namespace Spider {
-    namespace Math {
+namespace spider {
+    namespace math {
 
         inline std::uint16_t ceilDiv(std::uint16_t x, std::uint16_t y) {
             return x / y + (x % y != 0);
@@ -124,11 +124,11 @@ namespace Spider {
         }
 
         inline std::int64_t lcm(std::int64_t a, std::int64_t b) {
-            return Spider::Math::abs(a * b) / Spider::Math::gcd(a, b);
+            return spider::math::abs(a * b) / spider::math::gcd(a, b);
         }
 
         inline std::uint64_t lcm(std::uint64_t a, std::uint64_t b) {
-            return (a * b) / Spider::Math::gcd(a, b);
+            return (a * b) / spider::math::gcd(a, b);
         }
 
         inline std::uint64_t saturateAdd(std::uint64_t a, std::uint64_t b) {

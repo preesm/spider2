@@ -46,7 +46,7 @@
 #include <cassert>
 #include <memory/Allocator.h>
 
-namespace Spider {
+namespace spider {
 
     /* === Structure definition === */
 
@@ -471,7 +471,7 @@ namespace Spider {
             } else {
                 current_ = head_;
             }
-            Spider::deallocate(node);
+            spider::deallocate(node);
             size_--;
             if (!size_) {
                 head_ = current_ = tail_ = nullptr;
@@ -523,8 +523,8 @@ namespace Spider {
      */
     template<typename T>
     NodeList<T> *LinkedList<T>::newNodeList(T &val, NodeList<T> *prev, NodeList<T> *next) const {
-        auto *node = Spider::allocate<NodeList<T> >(stack_);
-        Spider::construct(node);
+        auto *node = spider::allocate<NodeList<T> >(stack_);
+        spider::construct(node);
         node->value = val;
         node->previous = prev;
         node->next = next;

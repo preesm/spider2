@@ -57,11 +57,11 @@
 
 /* === Method(s) implementation === */
 
-void Spider::XMLGanttExporter::print() const {
+void spider::XMLGanttExporter::print() const {
     print("./gantt.xml");
 }
 
-void Spider::XMLGanttExporter::print(const std::string &path) const {
+void spider::XMLGanttExporter::print(const std::string &path) const {
     std::ofstream file{ path, std::ios::out };
     print(file);
 
@@ -69,7 +69,7 @@ void Spider::XMLGanttExporter::print(const std::string &path) const {
     file.close();
 }
 
-void Spider::XMLGanttExporter::print(std::ofstream &file) const {
+void spider::XMLGanttExporter::print(std::ofstream &file) const {
     file << "<data>" << '\n';
     for (const auto &job : schedule_->jobs()) {
         jobPrinter(file, job);
@@ -77,10 +77,10 @@ void Spider::XMLGanttExporter::print(std::ofstream &file) const {
     file << "</data>" << '\n';
 }
 
-void Spider::XMLGanttExporter::jobPrinter(std::ofstream &file, const Spider::ScheduleJob &job) const {
-    const auto &graph = Spider::pisdfGraph();
+void spider::XMLGanttExporter::jobPrinter(std::ofstream &file, const spider::ScheduleJob &job) const {
+    const auto &graph = spider::pisdfGraph();
     const auto *vertex = graph->vertex(job.vertexIx());
-    const auto *platform = Spider::platform();
+    const auto *platform = spider::platform();
     auto PEIx = platform->findPE(job.mappingInfo().clusterIx, job.mappingInfo().PEIx).hardwareIx();
 
     /* == Let's compute a color based on the value of the pointer == */

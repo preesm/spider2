@@ -50,7 +50,7 @@
 /* === Static method(s) === */
 
 static std::pair<PiSDFParam *, std::uint32_t>
-findParam(const Spider::vector<PiSDFParam *> &params, const std::string &name) {
+findParam(const spider::vector<PiSDFParam *> &params, const std::string &name) {
     std::uint32_t ix = 0;
     for (const auto &p : params) {
         if (p->name() == name) {
@@ -100,7 +100,7 @@ static double applyOperator(StartIterator start, RPNOperatorType type) {
             return std::min((*start), (*(start + 1)));
         default:
             if (log_enabled<LOG_EXPR>()) {
-                Spider::Logger::error<LOG_EXPR>("Unsupported operation.\n");
+                spider::log::error<LOG_EXPR>("Unsupported operation.\n");
             }
     }
     return 0;
@@ -108,17 +108,17 @@ static double applyOperator(StartIterator start, RPNOperatorType type) {
 
 /* === Methods implementation === */
 
-Expression::Expression(std::string expression, const Spider::vector<PiSDFParam *> &params) {
+Expression::Expression(std::string expression, const spider::vector<PiSDFParam *> &params) {
     /* == Get the postfix expression stack == */
-    auto postfixStack = RPNConverter::extractPostfixElements(std::move(expression));
-    if (Spider::API::verbose() && log_enabled<LOG_EXPR>()) {
-        Spider::Logger::verbose<LOG_EXPR>("infix expression: [%s].\n", RPNConverter::infixString(postfixStack).c_str());
-        Spider::Logger::verbose<LOG_EXPR>("postfix expression: [%s].\n",
-                                          RPNConverter::postfixString(postfixStack).c_str());
+    auto postfixStack = rpn::extractPostfixElements(std::move(expression));
+    if (spider::api::verbose() && log_enabled<LOG_EXPR>()) {
+        spider::log::verbose<LOG_EXPR>("infix expression: [%s].\n", rpn::infixString(postfixStack).c_str());
+        spider::log::verbose<LOG_EXPR>("postfix expression: [%s].\n",
+                                       rpn::postfixString(postfixStack).c_str());
     }
 
     /* == Reorder the postfix stack elements to increase the number of static evaluation done on construction == */
-    RPNConverter::reorderPostfixStack(postfixStack);
+    rpn::reorderPostfixStack(postfixStack);
 
     /* == Build the expression stack == */
     expressionStack_ = buildExpressionStack(postfixStack, params);
@@ -147,11 +147,11 @@ std::string Expression::string() const {
 
 /* === Private method(s) === */
 
-Spider::vector<ExpressionElt> Expression::buildExpressionStack(Spider::vector<RPNElement> &postfixStack,
-                                                               const Spider::vector<PiSDFParam *> &params) {
-    Spider::vector<ExpressionElt> stack;
+spider::vector<ExpressionElt> Expression::buildExpressionStack(spider::vector<RPNElement> &postfixStack,
+                                                               const spider::vector<PiSDFParam *> &params) {
+    spider::vector<ExpressionElt> stack;
     stack.reserve(postfixStack.size());
-    Spider::vector<double> evalStack;
+    spider::vector<double> evalStack;
     evalStack.reserve(6); /* = In practice, the evalStack will most likely not exceed 3 values = */
     bool skipEval = false;
     std::uint8_t argCount = 0;
@@ -177,8 +177,8 @@ Spider::vector<ExpressionElt> Expression::buildExpressionStack(Spider::vector<RP
                 stack.back().arg.value_ = value;
             }
         } else {
-            const auto &opType = RPNConverter::getOperatorTypeFromString(elt.token);
-            const auto &op = RPNConverter::getOperatorFromOperatorType(opType);
+            const auto &opType = rpn::getOperatorTypeFromString(elt.token);
+            const auto &op = rpn::getOperatorFromOperatorType(opType);
             if (elt.subtype == RPNElementSubType::FUNCTION && argCount < op.argCount) {
                 throwSpiderException("Function [%s] expecting argument !", elt.token.c_str());
             }
@@ -207,8 +207,8 @@ Spider::vector<ExpressionElt> Expression::buildExpressionStack(Spider::vector<RP
     return stack;
 }
 
-double Expression::evaluateStack(const Spider::vector<PiSDFParam *> &params) const {
-    Spider::vector<double> evalStack;
+double Expression::evaluateStack(const spider::vector<PiSDFParam *> &params) const {
+    spider::vector<double> evalStack;
     evalStack.reserve(6); /* = In practice, the evalStack will most likely not exceed 3 values = */
     for (const auto &elt : expressionStack_) {
         if (elt.elt_.type == RPNElementType::OPERAND) {
@@ -218,7 +218,7 @@ double Expression::evaluateStack(const Spider::vector<PiSDFParam *> &params) con
                 evalStack.push_back(elt.arg.value_);
             }
         } else {
-            const auto &op = RPNConverter::getOperatorFromOperatorType(elt.arg.opType_);
+            const auto &op = rpn::getOperatorFromOperatorType(elt.arg.opType_);
             auto &&result = applyOperator(evalStack.begin() + (evalStack.size() - op.argCount), op.type);
             for (std::uint8_t i = 0; i < op.argCount - 1; ++i) {
                 evalStack.pop_back();

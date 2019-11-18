@@ -47,7 +47,7 @@
 #include <scheduling/schedule/ScheduleStats.h>
 #include <functional>
 
-namespace Spider {
+namespace spider {
 
     /* === Forward declarations === */
 
@@ -96,7 +96,7 @@ namespace Spider {
          * @brief Get the job vector of the schedule.
          * @return const reference to the job vector
          */
-        inline const Spider::vector<ScheduleJob> &jobs() const;
+        inline const spider::vector<ScheduleJob> &jobs() const;
 
         /**
          * @brief Get a job from its ix.
@@ -115,7 +115,7 @@ namespace Spider {
         /* === Setter(s) === */
 
     private:
-        Spider::vector<ScheduleJob> jobs_;
+        spider::vector<ScheduleJob> jobs_;
         ScheduleStats stats_;
 
         /* === Private method(s) === */
@@ -127,11 +127,11 @@ namespace Spider {
         return jobs_.size();
     }
 
-    const Spider::vector<ScheduleJob> &Schedule::jobs() const {
+    const spider::vector<ScheduleJob> &Schedule::jobs() const {
         return jobs_;
     }
 
-    const ScheduleJob &Spider::Schedule::job(std::uint32_t ix) const {
+    const ScheduleJob &spider::Schedule::job(std::uint32_t ix) const {
         return jobs_.at(ix);
     }
 

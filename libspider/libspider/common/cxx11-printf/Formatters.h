@@ -57,7 +57,7 @@
 #include <cstring>
 #include <iterator>
 
-namespace Spider {
+namespace spider {
     namespace cxx11 {
 
         /**

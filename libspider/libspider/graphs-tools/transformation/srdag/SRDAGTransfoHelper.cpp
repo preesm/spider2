@@ -55,40 +55,40 @@
 
 /* === Visitor(s) === */
 
-struct CopyParamVisitor final : public Spider::PiSDF::DefaultVisitor {
-    explicit CopyParamVisitor(Spider::vector<PiSDFParam *> &paramVector,
-                              const Spider::vector<PiSDFParam *> &parentParamVector) : paramVector_{ paramVector },
+struct CopyParamVisitor final : public spider::pisdf::DefaultVisitor {
+    explicit CopyParamVisitor(spider::vector<PiSDFParam *> &paramVector,
+                              const spider::vector<PiSDFParam *> &parentParamVector) : paramVector_{ paramVector },
                                                                                        parentParamVector_{
                                                                                                parentParamVector } { }
 
-    inline void visit(Spider::PiSDF::Param *param) override {
+    inline void visit(spider::pisdf::Param *param) override {
         paramVector_.push_back(param);
     }
 
-    inline void visit(Spider::PiSDF::DynamicParam *param) override {
-        auto *p = Spider::allocate<PiSDFDynamicParam>(StackID::TRANSFO);
-        Spider::construct(p, param->name(), nullptr, Expression(param->expression()));
+    inline void visit(spider::pisdf::DynamicParam *param) override {
+        auto *p = spider::allocate<PiSDFDynamicParam>(StackID::TRANSFO);
+        spider::construct(p, param->name(), nullptr, Expression(param->expression()));
         paramVector_.push_back(p);
     }
 
-    inline void visit(Spider::PiSDF::InHeritedParam *param) override {
+    inline void visit(spider::pisdf::InHeritedParam *param) override {
         const auto &inheritedParam = parentParamVector_[param->parent()->ix()];
-        auto *p = Spider::API::createStaticParam(nullptr, param->name(), inheritedParam->value(), StackID::TRANSFO);
+        auto *p = spider::api::createStaticParam(nullptr, param->name(), inheritedParam->value(), StackID::TRANSFO);
         paramVector_.push_back(p);
     }
 
-    Spider::vector<PiSDFParam *> &paramVector_;
-    const Spider::vector<PiSDFParam *> &parentParamVector_;
+    spider::vector<PiSDFParam *> &paramVector_;
+    const spider::vector<PiSDFParam *> &parentParamVector_;
 };
 
-struct CloneVisitor final : public Spider::PiSDF::DefaultVisitor {
+struct CloneVisitor final : public spider::pisdf::DefaultVisitor {
 
-    explicit CloneVisitor(Spider::SRDAG::TransfoJob &transfoJob) : transfoJob_{ transfoJob } { }
+    explicit CloneVisitor(spider::srdag::TransfoJob &transfoJob) : transfoJob_{ transfoJob } { }
 
-    inline void visit(Spider::PiSDF::DelayVertex *) override { }
+    inline void visit(spider::pisdf::DelayVertex *) override { }
 
-    inline void visit(Spider::PiSDF::ExecVertex *vertex) override {
-        Spider::PiSDF::CloneVertexVisitor cloneVisitor{ transfoJob_.srdag_, StackID::TRANSFO };
+    inline void visit(spider::pisdf::ExecVertex *vertex) override {
+        spider::pisdf::CloneVertexVisitor cloneVisitor{ transfoJob_.srdag_, StackID::TRANSFO };
         for (std::uint32_t it = 0; it < vertex->repetitionValue(); ++it) {
             /* == Change the name of the clone == */
             vertex->visit(&cloneVisitor);
@@ -98,11 +98,11 @@ struct CloneVisitor final : public Spider::PiSDF::DefaultVisitor {
         ix_ = (transfoJob_.srdag_->vertexCount() - 1) - (vertex->repetitionValue() - 1);
     }
 
-    inline void visit(Spider::PiSDF::Graph *graph) override {
+    inline void visit(spider::pisdf::Graph *graph) override {
         /* == Clone the vertex == */
         ix_ = 0;
         for (std::uint32_t it = 0; it < graph->repetitionValue(); ++it) {
-            const auto *clone = Spider::API::createVertex(transfoJob_.srdag_,
+            const auto *clone = spider::api::createVertex(transfoJob_.srdag_,
                                                           buildCloneName(graph, it, transfoJob_),
                                                           graph->edgesINCount(),
                                                           graph->edgesOUTCount(),
@@ -158,13 +158,13 @@ struct CloneVisitor final : public Spider::PiSDF::DefaultVisitor {
         }
     }
 
-    Spider::SRDAG::TransfoJob &transfoJob_;
+    spider::srdag::TransfoJob &transfoJob_;
     std::uint32_t ix_ = UINT32_MAX;
 
 private:
     std::string buildCloneName(const PiSDFAbstractVertex *vertex,
                                std::uint32_t instance,
-                               Spider::SRDAG::TransfoJob &transfoJob) {
+                               spider::srdag::TransfoJob &transfoJob) {
         const auto *graphRef = transfoJob.job_.instanceValue_ == UINT32_MAX ?
                                transfoJob.job_.reference_ : transfoJob.srdag_->vertex(transfoJob.job_.srdagIx_);
         return graphRef->name() + "-" + vertex->name() + "_" + std::to_string(instance);
@@ -184,7 +184,7 @@ static inline std::uint32_t uniformIx(const PiSDFAbstractVertex *vertex, const P
 
 /* === Function(s) definition === */
 
-PiSDFAbstractVertex *Spider::SRDAG::fetchOrClone(PiSDFAbstractVertex *vertex, TransfoJob &transfoJob) {
+PiSDFAbstractVertex *spider::srdag::fetchOrClone(PiSDFAbstractVertex *vertex, TransfoJob &transfoJob) {
     if (!vertex) {
         throwSpiderException("Trying to clone nullptr vertex.");
     }
@@ -200,7 +200,7 @@ PiSDFAbstractVertex *Spider::SRDAG::fetchOrClone(PiSDFAbstractVertex *vertex, Tr
     return indexRef == UINT32_MAX ? nullptr : transfoJob.srdag_->vertex(indexRef);
 }
 
-void Spider::SRDAG::fillLinkerVector(TransfoStack &vector,
+void spider::srdag::fillLinkerVector(TransfoStack &vector,
                                      PiSDFAbstractVertex *reference,
                                      std::int64_t rate,
                                      std::uint32_t portIx,
@@ -212,16 +212,16 @@ void Spider::SRDAG::fillLinkerVector(TransfoStack &vector,
     }
 }
 
-void Spider::SRDAG::addForkVertex(TransfoStack &srcVector, TransfoStack &snkVector, PiSDFGraph *srdag) {
+void spider::srdag::addForkVertex(TransfoStack &srcVector, TransfoStack &snkVector, PiSDFGraph *srdag) {
     const auto &sourceLinker = srcVector.back();
-    auto *fork = Spider::API::createFork(srdag,
+    auto *fork = spider::api::createFork(srdag,
                                          "fork-" + sourceLinker.vertex_->name() + "_out-" +
                                          std::to_string(sourceLinker.portIx_),
                                          (sourceLinker.upperDep_ - sourceLinker.lowerDep_) + 1,
                                          StackID::TRANSFO);
 
     /* == Create an edge between source and fork == */
-    Spider::API::createEdge(sourceLinker.vertex_,  /* = Vertex that need to explode = */
+    spider::api::createEdge(sourceLinker.vertex_,  /* = Vertex that need to explode = */
                             sourceLinker.portIx_,  /* = Source port ix = */
                             sourceLinker.rate_,    /* = Source rate = */
                             fork,                  /* = Added fork = */
@@ -235,7 +235,7 @@ void Spider::SRDAG::addForkVertex(TransfoStack &srcVector, TransfoStack &snkVect
     for (std::uint32_t i = 0; i < fork->edgesOUTCount() - 1; ++i) {
         const auto &sinkLinker = snkVector.back();
         remaining -= sinkLinker.rate_;
-        Spider::API::createEdge(fork,               /* = Fork vertex = */
+        spider::api::createEdge(fork,               /* = Fork vertex = */
                                 i,                  /* = Fork output to connect = */
                                 sinkLinker.rate_,   /* = Sink rate = */
                                 sinkLinker.vertex_, /* = Sink to connect to fork = */
@@ -249,16 +249,16 @@ void Spider::SRDAG::addForkVertex(TransfoStack &srcVector, TransfoStack &snkVect
     srcVector.back().upperDep_ = sourceLinker.upperDep_;
 }
 
-void Spider::SRDAG::addJoinVertex(TransfoStack &srcVector, TransfoStack &snkVector, PiSDFGraph *srdag) {
+void spider::srdag::addJoinVertex(TransfoStack &srcVector, TransfoStack &snkVector, PiSDFGraph *srdag) {
     const auto &sinkLinker = snkVector.back();
-    auto *join = Spider::API::createJoin(srdag,
+    auto *join = spider::api::createJoin(srdag,
                                          "join-" + sinkLinker.vertex_->name() + "_in-" +
                                          std::to_string(sinkLinker.portIx_),
                                          (sinkLinker.upperDep_ - sinkLinker.lowerDep_) + 1,
                                          StackID::TRANSFO);
 
     /* == Create an edge between source and fork == */
-    Spider::API::createEdge(join, 0, sinkLinker.rate_,
+    spider::api::createEdge(join, 0, sinkLinker.rate_,
                             sinkLinker.vertex_, sinkLinker.portIx_, sinkLinker.rate_, StackID::TRANSFO);
     snkVector.pop_back();
 
@@ -267,7 +267,7 @@ void Spider::SRDAG::addJoinVertex(TransfoStack &srcVector, TransfoStack &snkVect
     for (std::uint32_t i = 0; i < join->edgesINCount() - 1; ++i) {
         const auto &sourceLinker = srcVector.back();
         remaining -= sourceLinker.rate_;
-        Spider::API::createEdge(sourceLinker.vertex_, sourceLinker.portIx_, sourceLinker.rate_,
+        spider::api::createEdge(sourceLinker.vertex_, sourceLinker.portIx_, sourceLinker.rate_,
                                 join, i, sourceLinker.rate_, StackID::TRANSFO);
         srcVector.pop_back();
     }
@@ -277,7 +277,7 @@ void Spider::SRDAG::addJoinVertex(TransfoStack &srcVector, TransfoStack &snkVect
 
 }
 
-void Spider::SRDAG::replaceJobInterfaces(TransfoJob &transfoJob) {
+void spider::srdag::replaceJobInterfaces(TransfoJob &transfoJob) {
     if (!transfoJob.job_.reference_->edgesINCount() &&
         !transfoJob.job_.reference_->edgesOUTCount()) {
         return;
@@ -293,7 +293,7 @@ void Spider::SRDAG::replaceJobInterfaces(TransfoJob &transfoJob) {
     /* == Replace the input interfaces == */
     for (const auto &interface : transfoJob.job_.reference_->inputInterfaceArray()) {
         auto *edge = srdagInstance->inputEdge(interface->ix());
-        auto *vertex = Spider::API::createRepeat(transfoJob.srdag_,
+        auto *vertex = spider::api::createRepeat(transfoJob.srdag_,
                                                  srdagInstance->name() + "_" + interface->name(),
                                                  StackID::TRANSFO);
         edge->setSink(vertex, 0, Expression(edge->sinkRateExpression()));
@@ -303,7 +303,7 @@ void Spider::SRDAG::replaceJobInterfaces(TransfoJob &transfoJob) {
     /* == Replace the output interfaces == */
     for (const auto &interface : transfoJob.job_.reference_->outputInterfaceArray()) {
         auto *edge = srdagInstance->outputEdge(interface->ix());
-        auto *vertex = Spider::API::createTail(transfoJob.srdag_,
+        auto *vertex = spider::api::createTail(transfoJob.srdag_,
                                                srdagInstance->name() + "_" + interface->name(),
                                                1,
                                                StackID::TRANSFO);
@@ -312,7 +312,7 @@ void Spider::SRDAG::replaceJobInterfaces(TransfoJob &transfoJob) {
     }
 }
 
-void Spider::SRDAG::computeEdgeDependencies(TransfoStack &srcVector, TransfoStack &snkVector, TransfoJob &transfoJob) {
+void spider::srdag::computeEdgeDependencies(TransfoStack &srcVector, TransfoStack &snkVector, TransfoJob &transfoJob) {
     const auto &edge = transfoJob.edge_;
     auto &&delay = edge->delay() ? edge->delay()->value(transfoJob.job_.params_) : 0;
     const auto &srcRate = srcVector[0].rate_;     /* = This should be the proper source rate of the edge = */
@@ -332,13 +332,13 @@ void Spider::SRDAG::computeEdgeDependencies(TransfoStack &srcVector, TransfoStac
             currentSinkRate = getterRate;
             firing = 0;
         }
-        auto snkLowerDep = Spider::PiSDF::computeConsLowerDep(currentSinkRate, srcRate, firing, delay);
-        auto snkUpperDep = Spider::PiSDF::computeConsUpperDep(currentSinkRate, srcRate, firing, delay);
+        auto snkLowerDep = spider::pisdf::computeConsLowerDep(currentSinkRate, srcRate, firing, delay);
+        auto snkUpperDep = spider::pisdf::computeConsUpperDep(currentSinkRate, srcRate, firing, delay);
         if (snkLowerDep < 0) {
             /* == Update dependencies for init / setter == */
-            snkLowerDep -= Spider::PiSDF::computeConsLowerDep(snkRate, setterRate, firing, 0);
+            snkLowerDep -= spider::pisdf::computeConsLowerDep(snkRate, setterRate, firing, 0);
             if (snkUpperDep < 0) {
-                snkUpperDep -= Spider::PiSDF::computeConsUpperDep(snkRate, setterRate, firing, 0);
+                snkUpperDep -= spider::pisdf::computeConsUpperDep(snkRate, setterRate, firing, 0);
             }
         }
 

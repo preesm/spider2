@@ -62,57 +62,57 @@ public:
 
 private:
 
-    struct OptimizerVisitor final : public Spider::PiSDF::DefaultVisitor {
+    struct OptimizerVisitor final : public spider::pisdf::DefaultVisitor {
 
         explicit OptimizerVisitor(PiSDFGraph *graph) : graph_{ graph }, params_{ graph->params() } { }
 
-        inline void visit(Spider::PiSDF::ExecVertex *) override { removed_ = false; }
+        inline void visit(spider::pisdf::ExecVertex *) override { removed_ = false; }
 
-        inline void visit(Spider::PiSDF::ForkVertex *vertex) override {
+        inline void visit(spider::pisdf::ForkVertex *vertex) override {
             removed_ = false;
             if (vertex->edgesOUTCount() == 1) {
                 tryRemoveOutputEdge(vertex);
             }
         }
 
-        inline void visit(Spider::PiSDF::JoinVertex *vertex) override {
+        inline void visit(spider::pisdf::JoinVertex *vertex) override {
             removed_ = false;
             if (vertex->edgesINCount() == 1) {
                 tryRemoveOutputEdge(vertex);
             }
         }
 
-        inline void visit(Spider::PiSDF::HeadVertex *vertex) override {
+        inline void visit(spider::pisdf::HeadVertex *vertex) override {
             removed_ = false;
             if (vertex->edgesINCount() == 1) {
                 tryRemoveOutputEdge(vertex);
             }
         }
 
-        inline void visit(Spider::PiSDF::TailVertex *vertex) override {
+        inline void visit(spider::pisdf::TailVertex *vertex) override {
             removed_ = false;
             if (vertex->edgesINCount() == 1) {
                 tryRemoveOutputEdge(vertex);
             }
         }
 
-        inline void visit(Spider::PiSDF::DuplicateVertex *vertex) override {
+        inline void visit(spider::pisdf::DuplicateVertex *vertex) override {
             removed_ = false;
             if (vertex->edgesOUTCount() == 1) {
                 tryRemoveOutputEdge(vertex);
             }
         }
 
-        inline void visit(Spider::PiSDF::RepeatVertex *vertex) override {
+        inline void visit(spider::pisdf::RepeatVertex *vertex) override {
             removed_ = false;
             tryRemoveOutputEdge(vertex);
         }
 
         PiSDFGraph *graph_ = nullptr;
-        const Spider::vector<Spider::PiSDF::Param *> &params_;
+        const spider::vector<spider::pisdf::Param *> &params_;
         bool removed_ = false;
     private:
-        void tryRemoveOutputEdge(Spider::PiSDF::Vertex *vertex) {
+        void tryRemoveOutputEdge(spider::pisdf::Vertex *vertex) {
             auto *inputEdge = vertex->inputEdge(0);
             auto *outputEdge = vertex->outputEdge(0);
             if (inputEdge->sinkRateExpression().evaluate(params_) ==
@@ -129,7 +129,7 @@ private:
 };
 
 bool PiSDFUnitaryOptimizer::operator()(PiSDFGraph *graph) const {
-    Spider::vector<PiSDFAbstractVertex *> verticesToOptimize;
+    spider::vector<PiSDFAbstractVertex *> verticesToOptimize;
 
     OptimizerVisitor optimizer{ graph };
     auto it = graph->vertices().begin();

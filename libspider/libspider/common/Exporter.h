@@ -46,7 +46,7 @@
 #include <fstream>
 #include <string>
 
-namespace Spider {
+namespace spider {
     /* === Class definition === */
 
     class Exporter {

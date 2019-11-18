@@ -76,9 +76,9 @@ enum class FreeListPolicy;
 
 /* === Methods prototype === */
 
-namespace Spider {
+namespace spider {
 
-    namespace API {
+    namespace api {
 
         /* === Methods for setting flags value in Spider === */
 

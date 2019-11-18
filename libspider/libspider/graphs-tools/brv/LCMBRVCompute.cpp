@@ -55,7 +55,7 @@
 
 void LCMBRVCompute::execute() {
     /* == Initializes the Rational array == */
-    Spider::Array<Spider::Rational> reps{ graph_->vertexCount(), Spider::Rational(), StackID::TRANSFO };
+    spider::Array<spider::Rational> reps{ graph_->vertexCount(), spider::Rational(), StackID::TRANSFO };
 
     /* == Go through all connected components == */
     for (const auto &component : connectedComponents_) {
@@ -84,9 +84,9 @@ void LCMBRVCompute::execute() {
 
 /* === Private method(s) implementation === */
 
-void LCMBRVCompute::extractRationals(Spider::Array<const PiSDFEdge *> &edgeArray,
-                                     Spider::Array<Spider::Rational> &reps) const {
-    auto dummyRational = Spider::Rational{ 1 };
+void LCMBRVCompute::extractRationals(spider::Array<const PiSDFEdge *> &edgeArray,
+                                     spider::Array<spider::Rational> &reps) const {
+    auto dummyRational = spider::Rational{ 1 };
     for (const auto &edge:edgeArray) {
         const auto *source = edge->source();
         const auto *sink = edge->sink();
@@ -110,14 +110,14 @@ void LCMBRVCompute::extractRationals(Spider::Array<const PiSDFEdge *> &edgeArray
         auto &sinkRational = sink->subtype() == PiSDFVertexType::OUTPUT ? dummyRational : reps[sink->ix()];
 
         if (!sinkRational.nominator() && sinkRate) {
-            sinkRational = Spider::Rational{ sourceRate, sinkRate };
+            sinkRational = spider::Rational{ sourceRate, sinkRate };
             if (sourceRational.nominator()) {
                 sinkRational *= sourceRational;
             }
         }
 
         if (!sourceRational.nominator() && sourceRate) {
-            sourceRational = Spider::Rational{ sinkRate, sourceRate };
+            sourceRational = spider::Rational{ sinkRate, sourceRate };
             if (sinkRational.nominator()) {
                 sourceRational *= sinkRational;
             }
@@ -125,23 +125,23 @@ void LCMBRVCompute::extractRationals(Spider::Array<const PiSDFEdge *> &edgeArray
     }
 }
 
-std::int64_t LCMBRVCompute::computeLCM(const BRVComponent &component, Spider::Array<Spider::Rational> &reps) {
+std::int64_t LCMBRVCompute::computeLCM(const BRVComponent &component, spider::Array<spider::Rational> &reps) {
     std::int64_t lcmFactor = 1;
     for (const auto &v : component.vertices) {
-        lcmFactor = Spider::Math::lcm(lcmFactor, reps[v->ix()].denominator());
+        lcmFactor = spider::math::lcm(lcmFactor, reps[v->ix()].denominator());
     }
     return lcmFactor;
 }
 
 void LCMBRVCompute::computeBRV(const BRVComponent &component,
-                               Spider::Array<Spider::Rational> &reps,
+                               spider::Array<spider::Rational> &reps,
                                std::int64_t lcmFactor) {
     for (const auto &v : component.vertices) {
-        v->setRepetitionValue(Spider::Rational{ reps[v->ix()] * lcmFactor }.toInt32());
+        v->setRepetitionValue(spider::Rational{ reps[v->ix()] * lcmFactor }.toInt32());
     }
 }
 
-void LCMBRVCompute::checkValidity(Spider::Array<const PiSDFEdge *> &edgeArray) const {
+void LCMBRVCompute::checkValidity(spider::Array<const PiSDFEdge *> &edgeArray) const {
     for (const auto &edge : edgeArray) {
         if (edge->source()->subtype() == PiSDFVertexType::INPUT ||
             edge->sink()->subtype() == PiSDFVertexType::OUTPUT) {

@@ -51,12 +51,12 @@
 
 /* === Method(s) implementation === */
 
-bool Spider::JITMSRuntime::execute() const {
+bool spider::JITMSRuntime::execute() const {
     // TODO: put root graph into a top graph
-    auto *graph = Spider::pisdfGraph();
+    auto *graph = spider::pisdfGraph();
 
     /* == Create the Single-Rate graph == */
-    auto *srdag = Spider::API::createGraph("srdag-" + graph->name(),
+    auto *srdag = spider::api::createGraph("srdag-" + graph->name(),
                                            0, /* = Number of actors = */
                                            0, /* = Number of edges = */
                                            0, /* = Number of parameters = */
@@ -66,13 +66,13 @@ bool Spider::JITMSRuntime::execute() const {
                                            StackID::TRANSFO);
 
     /* == Apply first transformation of root graph == */
-    auto &&rootJob = Spider::SRDAG::Job(graph, 0, UINT32_MAX);
+    auto &&rootJob = spider::srdag::Job(graph, 0, UINT32_MAX);
     rootJob.params_ = graph->params();
-    auto &&resultRootJob = Spider::SRDAG::staticSingleRateTransformation(rootJob, srdag);
+    auto &&resultRootJob = spider::srdag::staticSingleRateTransformation(rootJob, srdag);
 
     /* == Initialize the job stacks == */
-    Spider::SRDAG::JobStack staticJobStack;
-    Spider::SRDAG::JobStack dynamicJobStack;
+    spider::srdag::JobStack staticJobStack;
+    spider::srdag::JobStack dynamicJobStack;
     staticJobStack.swap(resultRootJob.first);
     dynamicJobStack.swap(resultRootJob.second);
 
@@ -81,24 +81,24 @@ bool Spider::JITMSRuntime::execute() const {
         while (!staticJobStack.empty()) {
             /* == Transform static graphs == */
             // TODO: add time monitoring
-            auto &&result = Spider::SRDAG::staticSingleRateTransformation(staticJobStack.back(), srdag);
+            auto &&result = spider::srdag::staticSingleRateTransformation(staticJobStack.back(), srdag);
 
             /* == Pop the job == */
             staticJobStack.pop_back();
 
             /* == Move static Job into static JobStack == */
-            std::for_each(result.first.begin(), result.first.end(), [&](Spider::SRDAG::Job &job) {
+            std::for_each(result.first.begin(), result.first.end(), [&](spider::srdag::Job &job) {
                 staticJobStack.emplace_back(std::move(job));
             });
 
             /* == Move dynamic Job into dynamic JobStack == */
-            std::for_each(result.second.begin(), result.second.end(), [&](Spider::SRDAG::Job &job) {
+            std::for_each(result.second.begin(), result.second.end(), [&](spider::srdag::Job &job) {
                 dynamicJobStack.emplace_back(std::move(job));
             });
         }
 
         /* == Apply graph optimizations == */
-        if (Spider::API::srdagOptim()) {
+        if (spider::api::srdagOptim()) {
             // TODO: add time monitoring
             PiSDFGraphOptimizer()(srdag);
         }
@@ -108,38 +108,38 @@ bool Spider::JITMSRuntime::execute() const {
         // TODO: add schedule
 
         /* == Run graph for dynamic params to be resolved == */
-        if (!dynamicJobStack.empty() && Spider::API::verbose() && log_enabled<LOG_TRANSFO>()) {
-            Spider::Logger::verbose<LOG_TRANSFO>("Running graph with config actors..\n");
+        if (!dynamicJobStack.empty() && spider::api::verbose() && log_enabled<LOG_TRANSFO>()) {
+            spider::log::verbose<LOG_TRANSFO>("Running graph with config actors..\n");
         }
         // TODO: run graph
 
         /* == Transform dynamic graphs == */
         while (!dynamicJobStack.empty()) {
-            if (Spider::API::verbose() && log_enabled<LOG_TRANSFO>()) {
-                Spider::Logger::verbose<LOG_TRANSFO>("Resolved parameters.\n");
+            if (spider::api::verbose() && log_enabled<LOG_TRANSFO>()) {
+                spider::log::verbose<LOG_TRANSFO>("Resolved parameters.\n");
             }
             /* == Transform dynamic graphs == */
             // TODO: add time monitoring
             const auto &job = dynamicJobStack.back();
-            auto &&result = Spider::SRDAG::staticSingleRateTransformation(job, srdag);
+            auto &&result = spider::srdag::staticSingleRateTransformation(job, srdag);
 
             /* == Pop the job == */
             dynamicJobStack.pop_back();
 
             /* == Move static Job into static JobStack == */
-            std::for_each(result.first.begin(), result.first.end(), [&](Spider::SRDAG::Job &job) {
+            std::for_each(result.first.begin(), result.first.end(), [&](spider::srdag::Job &job) {
                 staticJobStack.emplace_back(std::move(job));
             });
 
             /* == Move dynamic Job into dynamic JobStack == */
-            std::for_each(result.second.begin(), result.second.end(), [&](Spider::SRDAG::Job &job) {
+            std::for_each(result.second.begin(), result.second.end(), [&](spider::srdag::Job &job) {
                 dynamicJobStack.emplace_back(std::move(job));
             });
         }
     }
 
     /* == Apply graph optimizations == */
-    if (Spider::API::srdagOptim()) {
+    if (spider::api::srdagOptim()) {
         // TODO: add time monitoring
         PiSDFGraphOptimizer()(srdag);
     }
@@ -149,10 +149,10 @@ bool Spider::JITMSRuntime::execute() const {
     // TODO: add schedule
     // TODO: run graph
 
-    Spider::PiSDF::DOTExporter(srdag).print("./srdag.dot");
+    spider::pisdf::DOTExporter(srdag).print("./srdag.dot");
 
     /* == Destroy the sr-dag == */
-    Spider::destroy(srdag);
-    Spider::deallocate(srdag);
+    spider::destroy(srdag);
+    spider::deallocate(srdag);
     return true;
 }

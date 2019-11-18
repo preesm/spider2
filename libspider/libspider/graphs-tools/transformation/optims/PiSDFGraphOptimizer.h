@@ -62,10 +62,10 @@ public:
      * @param graph @refitem PiSDFGraph on which to apply the optimization.
      * @return true if no optimization was necessary, false else.
      */
-    inline void operator()(Spider::PiSDF::Graph *graph);
+    inline void operator()(spider::pisdf::Graph *graph);
 };
 
-void PiSDFGraphOptimizer::operator()(Spider::PiSDF::Graph *graph) {
+void PiSDFGraphOptimizer::operator()(spider::pisdf::Graph *graph) {
     PiSDFUnitaryOptimizer()(graph);
     bool done = false;
     while (!done) {

@@ -154,26 +154,26 @@ const char *AbstractAllocator::getName() const {
 
 void AbstractAllocator::printStats() const {
     if (log_enabled()) {
-        Spider::Logger::info("Allocator: %s\n", getName());
-        Spider::Logger::info("       ==> max usage:    %" PRIu64" B (%.6lf %s)\n",
-                             peak_,
-                             getByteNormalizedSize(peak_),
-                             getByteUnitString(peak_));
+        spider::log::info("Allocator: %s\n", getName());
+        spider::log::info("       ==> max usage:    %" PRIu64" B (%.6lf %s)\n",
+                          peak_,
+                          getByteNormalizedSize(peak_),
+                          getByteUnitString(peak_));
         if (averageUse_) {
-            Spider::Logger::info("       ==> avg usage:    %" PRIu64" B (%.6lf %s)\n",
+            spider::log::info("       ==> avg usage:    %" PRIu64" B (%.6lf %s)\n",
                                  averageUse_ / numberAverage_,
-                                 getByteNormalizedSize(averageUse_ / numberAverage_),
-                                 getByteUnitString(averageUse_ / numberAverage_));
+                              getByteNormalizedSize(averageUse_ / numberAverage_),
+                              getByteUnitString(averageUse_ / numberAverage_));
         }
-        Spider::Logger::info("       ==> still in use: %" PRIu64" B (%.6lf %s)\n",
-                             used_,
-                             getByteNormalizedSize(used_),
-                             getByteUnitString(used_));
+        spider::log::info("       ==> still in use: %" PRIu64" B (%.6lf %s)\n",
+                          used_,
+                          getByteNormalizedSize(used_),
+                          getByteUnitString(used_));
     }
 }
 
 std::uint64_t AbstractAllocator::computeAlignedSize(std::uint64_t size, std::uint64_t alignment /* = 4096 */) {
-    const auto &alignFactor = Spider::Math::ceilDiv(size, alignment);
+    const auto &alignFactor = spider::math::ceilDiv(size, alignment);
     return alignFactor * alignment;
 }
 
@@ -225,10 +225,10 @@ double AbstractAllocator::getByteNormalizedSize(std::uint64_t size) {
 
 AbstractAllocator::~AbstractAllocator() {
     if (used_ > 0 && log_enabled()) {
-        Spider::Logger::error("Allocator: %s -- Still has %lf %s in use.\n",
-                              getName(),
-                              AbstractAllocator::getByteNormalizedSize(used_),
-                              AbstractAllocator::getByteUnitString(used_));
+        spider::log::error("Allocator: %s -- Still has %lf %s in use.\n",
+                           getName(),
+                           AbstractAllocator::getByteNormalizedSize(used_),
+                           AbstractAllocator::getByteUnitString(used_));
     }
     printStats();
 }

@@ -45,8 +45,8 @@
 #include <graphs/pisdf/specials/VertexInterface.h>
 #include <graphs/pisdf/Graph.h>
 
-namespace Spider {
-    namespace PiSDF {
+namespace spider {
+    namespace pisdf {
 
         inline void head(const std::int64_t *paramsIn, std::int64_t *[], void *in[], void *out[]) {
             const auto &inputEnd = paramsIn[0]; /* = Number of input to consider = */

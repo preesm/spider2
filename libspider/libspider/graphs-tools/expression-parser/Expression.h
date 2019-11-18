@@ -77,7 +77,7 @@ struct ExpressionElt {
 class Expression {
 public:
 
-    explicit Expression(std::string expression, const Spider::vector<PiSDFParam *> &params = { });
+    explicit Expression(std::string expression, const spider::vector<PiSDFParam *> &params = { });
 
     explicit Expression(std::int64_t value);
 
@@ -112,13 +112,13 @@ public:
      * @brief Evaluate the expression and return the value and cast result in int64_.
      * @return Evaluated value of the expression.
      */
-    inline std::int64_t evaluate(const Spider::vector<PiSDFParam *> &params = { }) const;
+    inline std::int64_t evaluate(const spider::vector<PiSDFParam *> &params = { }) const;
 
     /**
      * @brief Evaluate the expression and return the value.
      * @return Evaluated value of the expression.
      */
-    inline double evaluateDBL(const Spider::vector<PiSDFParam *> &params = { }) const;
+    inline double evaluateDBL(const spider::vector<PiSDFParam *> &params = { }) const;
 
     /**
      * @brief Get the expression string.
@@ -142,7 +142,7 @@ public:
     inline bool dynamic() const;
 
 private:
-    Spider::vector<ExpressionElt> expressionStack_;
+    spider::vector<ExpressionElt> expressionStack_;
     double value_ = 0;
     bool static_ = true;
 
@@ -152,8 +152,8 @@ private:
      * @brief Build and reduce the expression tree parser.
      * @param expressionStack Stack of the postfix expression elements.
      */
-    Spider::vector<ExpressionElt>
-    buildExpressionStack(Spider::vector<RPNElement> &postfixStack, const Spider::vector<PiSDFParam *> &params);
+    spider::vector<ExpressionElt>
+    buildExpressionStack(spider::vector<RPNElement> &postfixStack, const spider::vector<PiSDFParam *> &params);
 
     /**
      * @brief Evaluate the expression (if dynamic)
@@ -161,7 +161,7 @@ private:
      * @param params  Vector of parameters needed for the eval.
      * @return evaluated value
      */
-    double evaluateStack(const Spider::vector<PiSDFParam *> &params) const;
+    double evaluateStack(const spider::vector<PiSDFParam *> &params) const;
 };
 
 /* === Inline methods === */
@@ -170,11 +170,11 @@ std::int64_t Expression::value() const {
     return static_cast<std::int64_t>(value_);
 }
 
-std::int64_t Expression::evaluate(const Spider::vector<PiSDFParam *> &params) const {
+std::int64_t Expression::evaluate(const spider::vector<PiSDFParam *> &params) const {
     return static_ ? static_cast<std::int64_t>(value_) : static_cast<std::int64_t>(evaluateStack(params));
 }
 
-double Expression::evaluateDBL(const Spider::vector<PiSDFParam *> &params) const {
+double Expression::evaluateDBL(const spider::vector<PiSDFParam *> &params) const {
     return static_ ? value_ : evaluateStack(params);
 }
 

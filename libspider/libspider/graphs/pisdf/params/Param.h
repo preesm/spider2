@@ -46,8 +46,8 @@
 #include <graphs-tools/expression-parser/Expression.h>
 #include <graphs/pisdf/visitors/Visitor.h>
 
-namespace Spider {
-    namespace PiSDF {
+namespace spider {
+    namespace pisdf {
 
         /* === Forward declaration(s) === */
 

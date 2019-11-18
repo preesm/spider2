@@ -44,8 +44,8 @@
 
 #include <graphs/pisdf/specials/VertexInterface.h>
 
-namespace Spider {
-    namespace PiSDF {
+namespace spider {
+    namespace pisdf {
 
         /* === Class definition === */
 

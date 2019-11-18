@@ -56,7 +56,7 @@ public:
 };
 
 bool PiSDFInitEndOptimizer::operator()(PiSDFGraph *graph) const {
-    Spider::vector<PiSDFAbstractVertex *> verticesToOptimize;
+    spider::vector<PiSDFAbstractVertex *> verticesToOptimize;
 
     /* == Retrieve the vertices to remove == */
     for (auto *vertex : graph->vertices()) {
@@ -73,9 +73,9 @@ bool PiSDFInitEndOptimizer::operator()(PiSDFGraph *graph) const {
         auto *edge = init->outputEdge(0);
         auto *end = edge->sink();
         graph->removeEdge(edge);
-        if (Spider::API::verbose() && log_enabled<LOG_OPTIMS>()) {
-            Spider::Logger::verbose<LOG_OPTIMS>("InitEndOptimizer: removing init [%s] and end [%s] vertices.\n",
-                                                init->name().c_str(), end->name().c_str());
+        if (spider::api::verbose() && log_enabled<LOG_OPTIMS>()) {
+            spider::log::verbose<LOG_OPTIMS>("InitEndOptimizer: removing init [%s] and end [%s] vertices.\n",
+                                             init->name().c_str(), end->name().c_str());
         }
         graph->removeVertex(init);
         graph->removeVertex(end);

@@ -47,8 +47,8 @@
 #include <array>
 #include <containers/StlContainers.h>
 
-namespace Spider {
-    namespace PiSDF {
+namespace spider {
+    namespace pisdf {
 
         /* === Forward declaration(s) === */
 
@@ -66,9 +66,9 @@ namespace Spider {
      * @brief Get the refinement register containing all refinement of the application.
      * @return Reference to the vector.
      */
-    std::vector<PiSDF::Refinement *> &refinementsRegister();
+    std::vector<pisdf::Refinement *> &refinementsRegister();
 
-    namespace API {
+    namespace api {
 
         /* === Refinement API === */
 
@@ -86,7 +86,7 @@ namespace Spider {
          * @param paramOUTCount  Number of graph parameter set by the function.
          * @return pointer to newly created @refitem Refinement.
          */
-        PiSDF::Refinement *createRefinement(std::string name,
+        pisdf::Refinement *createRefinement(std::string name,
                                             callback function,
                                             std::uint32_t paramINCount = 0,
                                             std::uint32_t paramOUTCount = 0,
@@ -97,21 +97,21 @@ namespace Spider {
          * @param refinement  Refinement to register.
          * @return Index in the refinement register of Spider.
          */
-        std::uint32_t registerRefinement(PiSDF::Refinement *refinement);
+        std::uint32_t registerRefinement(pisdf::Refinement *refinement);
 
         /**
          * @brief Set the list of the graph parameter indexes used as input parameter.
          * @param refinement  Refinement to evaluate.
          * @param list        List of parameter indexes.
          */
-        void setRefinementInputParams(PiSDF::Refinement *refinement, std::initializer_list<std::uint32_t> list);
+        void setRefinementInputParams(pisdf::Refinement *refinement, std::initializer_list<std::uint32_t> list);
 
         /**
          * @brief Set the list of the graph parameter indexes used as output parameter.
          * @param refinement  Refinement to evaluate.
          * @param list        List of parameter indexes.
          */
-        void setRefinementOutputParams(PiSDF::Refinement *refinement, std::initializer_list<std::uint32_t> list);
+        void setRefinementOutputParams(pisdf::Refinement *refinement, std::initializer_list<std::uint32_t> list);
     }
 }
 

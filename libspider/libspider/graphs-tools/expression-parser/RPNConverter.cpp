@@ -61,8 +61,8 @@ static const std::string &supportedBasicOperators() {
 
 static bool isOperator(const std::string &s) {
     bool found = supportedBasicOperators().find_first_of(s) != std::string::npos;
-    for (auto i = RPNConverter::function_offset; !found && i < RPNConverter::operator_count; ++i) {
-        found |= (RPNConverter::getOperator(i).label == s);
+    for (auto i = rpn::function_offset; !found && i < rpn::operator_count; ++i) {
+        found |= (rpn::getOperator(i).label == s);
     }
     return found;
 }
@@ -73,7 +73,7 @@ static bool isOperator(const std::string &s) {
  * @return true if type is a function, false else.
  */
 static bool isFunction(RPNOperatorType type) {
-    return static_cast<std::uint32_t >(type) >= RPNConverter::function_offset;
+    return static_cast<std::uint32_t >(type) >= rpn::function_offset;
 }
 
 /**
@@ -182,13 +182,13 @@ static void cleanInfixExpression(std::string &infixExprString) {
  * @param tokenStack Token stack.
  * @param token      String token to evaluate.
  */
-static void addElementFromToken(Spider::vector<RPNElement> &tokenStack, const std::string &token) {
+static void addElementFromToken(spider::vector<RPNElement> &tokenStack, const std::string &token) {
     if (token.empty()) {
         return;
     }
     if (isOperator(token)) {
         /* == Function case == */
-        const auto &opType = RPNConverter::getOperatorTypeFromString(token);
+        const auto &opType = rpn::getOperatorTypeFromString(token);
         const auto &subtype = isFunction(opType) ? RPNElementSubType::FUNCTION
                                                  : RPNElementSubType::OPERATOR;
         tokenStack.push_back(RPNElement(RPNElementType::OPERATOR, subtype, token));
@@ -209,9 +209,9 @@ static void addElementFromToken(Spider::vector<RPNElement> &tokenStack, const st
     }
 }
 
-static bool trySwap(Spider::vector<RPNElement> &stack,
-                    const Spider::vector<int> &left,
-                    const Spider::vector<int> &right) {
+static bool trySwap(spider::vector<RPNElement> &stack,
+                    const spider::vector<int> &left,
+                    const spider::vector<int> &right) {
     if (stack[left.back()].token != stack[right.back()].token) {
         return false;
     }
@@ -239,8 +239,8 @@ static bool trySwap(Spider::vector<RPNElement> &stack,
 
 /* === Function(s) implementation === */
 
-std::string RPNConverter::infixString(const Spider::vector<RPNElement> &postfixStack) {
-    Spider::stack<std::string> stack;
+std::string rpn::infixString(const spider::vector<RPNElement> &postfixStack) {
+    spider::stack<std::string> stack;
     for (const auto &element : postfixStack) {
         if (element.type == RPNElementType::OPERAND) {
             stack.push(element.token);
@@ -249,7 +249,7 @@ std::string RPNConverter::infixString(const Spider::vector<RPNElement> &postfixS
             std::string builtInfix;
             if (element.subtype == RPNElementSubType::FUNCTION) {
                 builtInfix += (element.token + '(');
-                Spider::stack<std::string> reverseStack;
+                spider::stack<std::string> reverseStack;
                 for (std::uint32_t i = 0; i < op.argCount; ++i) {
                     reverseStack.push(std::move(stack.top()));
                     stack.pop();
@@ -276,7 +276,7 @@ std::string RPNConverter::infixString(const Spider::vector<RPNElement> &postfixS
     return stack.top();
 }
 
-std::string RPNConverter::postfixString(const Spider::vector<RPNElement> &postfixStack) {
+std::string rpn::postfixString(const spider::vector<RPNElement> &postfixStack) {
     /* == Build the postfix string expression == */
     std::string postfixExpr;
     for (auto &t : postfixStack) {
@@ -285,7 +285,7 @@ std::string RPNConverter::postfixString(const Spider::vector<RPNElement> &postfi
     return postfixExpr;
 }
 
-Spider::vector<RPNElement> RPNConverter::extractInfixElements(std::string infixExpression) {
+spider::vector<RPNElement> rpn::extractInfixElements(std::string infixExpression) {
     auto infixExpressionLocal = std::move(infixExpression);
     if (missMatchParenthesis(infixExpressionLocal.begin(), infixExpressionLocal.end())) {
         throwSpiderException("Expression with miss matched parenthesis: %s", infixExpressionLocal.c_str());
@@ -297,7 +297,7 @@ Spider::vector<RPNElement> RPNConverter::extractInfixElements(std::string infixE
     /* == Check for incoherence(s) == */
     checkInfixExpression(infixExpressionLocal);
 
-    Spider::vector<RPNElement> tokens;
+    spider::vector<RPNElement> tokens;
     tokens.reserve(infixExpressionLocal.size());
 
     /* == Extract the expression elements == */
@@ -325,15 +325,15 @@ Spider::vector<RPNElement> RPNConverter::extractInfixElements(std::string infixE
     return tokens;
 }
 
-Spider::vector<RPNElement> RPNConverter::extractPostfixElements(std::string infixExpression) {
+spider::vector<RPNElement> rpn::extractPostfixElements(std::string infixExpression) {
     /* == Retrieve tokens == */
     auto infixStack = extractInfixElements(std::move(infixExpression));
 
     /* == Build the postfix expression == */
-    Spider::vector<std::pair<RPNOperatorType, RPNElement>> operatorStack;
+    spider::vector<std::pair<RPNOperatorType, RPNElement>> operatorStack;
 
     /* == Actually, size will probably be inferior but this will avoid realloc == */
-    Spider::vector<RPNElement> postfixStack;
+    spider::vector<RPNElement> postfixStack;
     postfixStack.reserve(infixStack.size());
     for (auto &element : infixStack) {
         if (element.type == RPNElementType::OPERATOR) {
@@ -395,8 +395,8 @@ Spider::vector<RPNElement> RPNConverter::extractPostfixElements(std::string infi
     return postfixStack;
 }
 
-void RPNConverter::reorderPostfixStack(Spider::vector<RPNElement> &postfixStack) {
-    Spider::vector<Spider::vector<int>> operationStackVector;
+void rpn::reorderPostfixStack(spider::vector<RPNElement> &postfixStack) {
+    spider::vector<spider::vector<int>> operationStackVector;
     operationStackVector.push_back({ });
     operationStackVector[0].reserve(6);
 
@@ -426,8 +426,8 @@ void RPNConverter::reorderPostfixStack(Spider::vector<RPNElement> &postfixStack)
     } while (swapped);
 }
 
-const RPNOperator &RPNConverter::getOperator(std::uint32_t ix) {
-    static std::array<RPNOperator, RPNConverter::operator_count>
+const RPNOperator &rpn::getOperator(std::uint32_t ix) {
+    static std::array<RPNOperator, rpn::operator_count>
             operatorArray{{
                                   { RPNOperatorType::ADD, 2, false, "+", 2 },          /*! ADD operator */
                                   { RPNOperatorType::SUB, 2, false, "-", 2 },          /*! SUB operator */
@@ -472,15 +472,15 @@ const RPNOperator &RPNConverter::getOperator(std::uint32_t ix) {
     return operatorArray.at(ix);
 }
 
-const RPNOperator &RPNConverter::getOperatorFromOperatorType(RPNOperatorType type) {
+const RPNOperator &rpn::getOperatorFromOperatorType(RPNOperatorType type) {
     return getOperator(static_cast<std::uint32_t >(type));
 }
 
-RPNOperatorType RPNConverter::getOperatorTypeFromString(const std::string &operatorString) {
+RPNOperatorType rpn::getOperatorTypeFromString(const std::string &operatorString) {
     // TODO: implement it with a std::map<std::string, OperatorType> and try - catch block. see: Zero-Cost Exception model.
     bool found = false;
     std::uint32_t i = 0;
-    for (; !found && i < RPNConverter::operator_count; ++i) {
+    for (; !found && i < rpn::operator_count; ++i) {
         found |= (getOperator(i).label == operatorString);
     }
     if (!found) {

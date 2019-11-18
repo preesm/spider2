@@ -49,8 +49,8 @@
 #include <graphs/pisdf/ExecVertex.h>
 #include <graphs/pisdf/Edge.h>
 
-namespace Spider {
-    namespace PiSDF {
+namespace spider {
+    namespace pisdf {
 
         /* === Forward declaration(s) === */
 
@@ -199,43 +199,43 @@ namespace Spider {
             * @brief A const reference on the set of vertices. Useful for iterating on the vertices.
             * @return const reference to exec vertex vector
             */
-            inline const Spider::vector<Vertex *> &vertices() const;
+            inline const spider::vector<Vertex *> &vertices() const;
 
             /**
             * @brief A const reference on the set of subgraphs. Useful for iterating on the subgraphs.
             * @return const reference to subgraph vector
             */
-            inline const Spider::vector<Graph *> &subgraphs() const;
+            inline const spider::vector<Graph *> &subgraphs() const;
 
             /**
             * @brief A const reference on the set of vertices. Useful for iterating on the vertices.
             * @return const reference to vertex vector
             */
-            inline const Spider::vector<ConfigVertex *> &configVertices() const;
+            inline const spider::vector<ConfigVertex *> &configVertices() const;
 
             /**
             * @brief A const reference on the set of output interfaces. Useful for iterating on the input interfaces.
             * @return const reference to input interface array
             */
-            inline const Spider::Array<InputInterface *> &inputInterfaceArray() const;
+            inline const spider::Array<InputInterface *> &inputInterfaceArray() const;
 
             /**
             * @brief A const reference on the set of output interfaces. Useful for iterating on the output interfaces.
             * @return const reference to output interface array
             */
-            inline const Spider::Array<OutputInterface *> &outputInterfaceArray() const;
+            inline const spider::Array<OutputInterface *> &outputInterfaceArray() const;
 
             /**
             * @brief A const reference on the set of edges. Useful for iterating on the edges.
             * @return const reference to edge vector
             */
-            inline const Spider::vector<Edge *> &edges() const;
+            inline const spider::vector<Edge *> &edges() const;
 
             /**
             * @brief A const reference on the set of params. Useful for iterating on the params.
             * @return const reference to param vector
             */
-            inline const Spider::vector<Param *> &params() const;
+            inline const spider::vector<Param *> &params() const;
 
             /**
              * @brief Retrieve a parameter from its name.
@@ -290,18 +290,18 @@ namespace Spider {
 
             /* === Contained elements of the graph === */
 
-            Spider::vector<Vertex *> vertexVector_;
-            Spider::vector<ConfigVertex *> configVertexVector_;
-            Spider::vector<Graph *> subgraphVector_;
-            Spider::vector<Edge *> edgeVector_;
-            Spider::Array<InputInterface *> inputInterfaceArray_;
-            Spider::Array<OutputInterface *> outputInterfaceArray_;
-            Spider::vector<Param *> paramVector_;
+            spider::vector<Vertex *> vertexVector_;
+            spider::vector<ConfigVertex *> configVertexVector_;
+            spider::vector<Graph *> subgraphVector_;
+            spider::vector<Edge *> edgeVector_;
+            spider::Array<InputInterface *> inputInterfaceArray_;
+            spider::Array<OutputInterface *> outputInterfaceArray_;
+            spider::vector<Param *> paramVector_;
 
             /* === Private method(s) === */
 
             template<class T>
-            void removeElement(Spider::vector<T *> &eltVector, T *elt);
+            void removeElement(spider::vector<T *> &eltVector, T *elt);
         };
 
         /* === Inline method(s) === */
@@ -349,31 +349,31 @@ namespace Spider {
             return subgraphVector_.size();
         }
 
-        const Spider::vector<Vertex *> &Graph::vertices() const {
+        const spider::vector<Vertex *> &Graph::vertices() const {
             return vertexVector_;
         }
 
-        const Spider::vector<Graph *> &Graph::subgraphs() const {
+        const spider::vector<Graph *> &Graph::subgraphs() const {
             return subgraphVector_;
         }
 
-        const Spider::vector<ConfigVertex *> &Graph::configVertices() const {
+        const spider::vector<ConfigVertex *> &Graph::configVertices() const {
             return configVertexVector_;
         }
 
-        const Spider::Array<InputInterface *> &Graph::inputInterfaceArray() const {
+        const spider::Array<InputInterface *> &Graph::inputInterfaceArray() const {
             return inputInterfaceArray_;
         }
 
-        const Spider::Array<OutputInterface *> &Graph::outputInterfaceArray() const {
+        const spider::Array<OutputInterface *> &Graph::outputInterfaceArray() const {
             return outputInterfaceArray_;
         }
 
-        const Spider::vector<Edge *> &Graph::edges() const {
+        const spider::vector<Edge *> &Graph::edges() const {
             return edgeVector_;
         }
 
-        const Spider::vector<Param *> &Graph::params() const {
+        const spider::vector<Param *> &Graph::params() const {
             return paramVector_;
         }
 

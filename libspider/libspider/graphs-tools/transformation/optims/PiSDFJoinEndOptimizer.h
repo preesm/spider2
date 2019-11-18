@@ -53,7 +53,7 @@ public:
 };
 
 bool PiSDFJoinEndOptimizer::operator()(PiSDFGraph *graph) const {
-    Spider::vector<PiSDFAbstractVertex *> verticesToOptimize;
+    spider::vector<PiSDFAbstractVertex *> verticesToOptimize;
 
     /* == Retrieve the vertices to remove == */
     for (auto *vertex : graph->vertices()) {
@@ -74,13 +74,13 @@ bool PiSDFJoinEndOptimizer::operator()(PiSDFGraph *graph) const {
         // TODO: see how to deal with persistent delay memory allocation
         for (auto *inputEdge : join->inputEdgeArray()) {
             auto rate = inputEdge->sinkRateExpression().evaluate(params);
-            auto *newEnd = Spider::API::createEnd(graph, "end-" + inputEdge->source()->name(), StackID::TRANSFO);
+            auto *newEnd = spider::api::createEnd(graph, "end-" + inputEdge->source()->name(), StackID::TRANSFO);
             inputEdge->setSink(newEnd, 0, Expression(rate));
         }
 
-        if (Spider::API::verbose() && log_enabled<LOG_OPTIMS>()) {
-            Spider::Logger::verbose<LOG_OPTIMS>("JoinEndOptimizer: removing join [%s] and end [%s] vertices.\n",
-                                                join->name().c_str(), end->name().c_str());
+        if (spider::api::verbose() && log_enabled<LOG_OPTIMS>()) {
+            spider::log::verbose<LOG_OPTIMS>("JoinEndOptimizer: removing join [%s] and end [%s] vertices.\n",
+                                             join->name().c_str(), end->name().c_str());
         }
         graph->removeVertex(join);
         graph->removeVertex(end);

@@ -44,7 +44,7 @@
 
 #include <runtime/Runtime.h>
 
-namespace Spider {
+namespace spider {
 
     /* === Class definition === */
 

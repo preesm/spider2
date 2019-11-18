@@ -45,7 +45,7 @@
 #include <scheduling/scheduler/Scheduler.h>
 #include <containers/StlContainers.h>
 
-namespace Spider {
+namespace spider {
 
     /* === Class definition === */
 
@@ -73,7 +73,7 @@ namespace Spider {
                                                                                         level{ level } { };
         };
 
-        Spider::vector<ListVertex> sortedVertexVector_;
+        spider::vector<ListVertex> sortedVertexVector_;
 
         /* === Protected method(s) === */
 
@@ -81,7 +81,7 @@ namespace Spider {
 
     private:
         static std::int32_t computeScheduleLevel(ListVertex &listVertex,
-                                                 Spider::vector<ListVertex> &sortedVertexVector);
+                                                 spider::vector<ListVertex> &sortedVertexVector);
     };
 
     /* === Inline method(s) === */

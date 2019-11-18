@@ -45,8 +45,8 @@
 #include <graphs/pisdf/Vertex.h>
 #include <graphs/pisdf/Edge.h>
 
-namespace Spider {
-    namespace PiSDF {
+namespace spider {
+    namespace pisdf {
 
         /* === Class definition === */
 

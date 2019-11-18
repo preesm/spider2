@@ -45,8 +45,8 @@
 #include <graphs/pisdf/interfaces/Interface.h>
 #include <graphs/pisdf/Graph.h>
 
-namespace Spider {
-    namespace PiSDF {
+namespace spider {
+    namespace pisdf {
         /* === Class definition === */
 
         class InputInterface final : public Interface {

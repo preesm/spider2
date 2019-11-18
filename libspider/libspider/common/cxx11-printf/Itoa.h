@@ -66,7 +66,7 @@
 
 /* === Methods prototype === */
 
-namespace Spider {
+namespace spider {
     namespace cxx11 {
         namespace detail {
             enum class Modifiers {

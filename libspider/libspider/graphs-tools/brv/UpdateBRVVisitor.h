@@ -47,23 +47,23 @@
 #include <graphs/pisdf/interfaces/InputInterface.h>
 #include <graphs/pisdf/interfaces/OutputInterface.h>
 
-namespace Spider {
+namespace spider {
 
     /* === Class definition === */
 
-    struct UpdateBRVVisitor final : public Spider::PiSDF::DefaultVisitor {
+    struct UpdateBRVVisitor final : public spider::pisdf::DefaultVisitor {
 
         explicit UpdateBRVVisitor(std::uint64_t &scaleFactor,
-                                  const Spider::vector<PiSDFParam *> &paramVector) : scaleFactor_{ scaleFactor },
+                                  const spider::vector<PiSDFParam *> &paramVector) : scaleFactor_{ scaleFactor },
                                                                                      paramVector_{ paramVector } { }
 
-        inline void visit(Spider::PiSDF::Graph *) override { }
+        inline void visit(spider::pisdf::Graph *) override { }
 
         /**
          * @brief Update the repetition vector based on the production rates of a given configuration actor.
          * @param vertex  Config vertex evaluated.
          */
-        inline void visit(Spider::PiSDF::ConfigVertex *vertex) override {
+        inline void visit(spider::pisdf::ConfigVertex *vertex) override {
             for (const auto &edge : vertex->outputEdgeArray()) {
                 updateFromInputIf(edge);
             }
@@ -73,7 +73,7 @@ namespace Spider {
          * @brief Update the repetition vector based on the production of a given input interface.
          * @param interface Interface to evaluate.
          */
-        inline void visit(Spider::PiSDF::InputInterface *interface) override {
+        inline void visit(spider::pisdf::InputInterface *interface) override {
             updateFromInputIf(interface->outputEdge());
         }
 
@@ -81,19 +81,19 @@ namespace Spider {
          * @brief Update the repetition vector based on the production of a given output interface.
          * @param interface Interface to evaluate.
          */
-        inline void visit(Spider::PiSDF::OutputInterface *interface) override {
+        inline void visit(spider::pisdf::OutputInterface *interface) override {
             const auto &edge = interface->inputEdge();
             std::uint64_t sourceRate = edge->sourceRateExpression().evaluate(paramVector_);
             std::uint64_t sinkRate = edge->sinkRateExpression().evaluate(paramVector_);
             auto totalProd = sourceRate * edge->source()->repetitionValue() * scaleFactor_;
             if (totalProd && totalProd < sinkRate) {
                 /* == Return ceil(interfaceCons / vertexProd) == */
-                scaleFactor_ *= Spider::Math::ceilDiv(sinkRate, totalProd);
+                scaleFactor_ *= spider::math::ceilDiv(sinkRate, totalProd);
             }
         }
 
         std::uint64_t &scaleFactor_;
-        const Spider::vector<PiSDFParam *> &paramVector_;
+        const spider::vector<PiSDFParam *> &paramVector_;
     private:
         inline void updateFromInputIf(const PiSDFEdge *edge) {
             std::uint64_t sourceRate = edge->sourceRateExpression().evaluate(paramVector_);
@@ -101,7 +101,7 @@ namespace Spider {
             const auto &totalCons = sinkRate * edge->sink()->repetitionValue() * scaleFactor_;
             if (totalCons && totalCons < sourceRate) {
                 /* == Return ceil( prod / vertexCons) == */
-                scaleFactor_ *= Spider::Math::ceilDiv(sourceRate, totalCons);
+                scaleFactor_ *= spider::math::ceilDiv(sourceRate, totalCons);
             }
         }
     };

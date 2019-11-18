@@ -50,14 +50,14 @@
 
 /* === Inline function(s) === */
 
-namespace Spider {
-    namespace PiSDF {
+namespace spider {
+    namespace pisdf {
         inline std::int64_t computeConsLowerDep(std::int64_t sinkRate,
                                                 std::int64_t sourceRate,
                                                 std::uint32_t instance,
                                                 std::int64_t delay) {
             auto consumed = instance * sinkRate - delay;
-            auto lowerDep = Spider::Math::floorDiv(consumed, sourceRate);
+            auto lowerDep = spider::math::floorDiv(consumed, sourceRate);
             constexpr std::int64_t initBound = -1;
             return std::max(initBound, lowerDep);
         }
@@ -67,7 +67,7 @@ namespace Spider {
                                                 std::uint32_t instance,
                                                 std::int64_t delay) {
             auto consumed = (instance + 1) * sinkRate - delay - 1;
-            auto lowerDep = Spider::Math::floorDiv(consumed, sourceRate);
+            auto lowerDep = spider::math::floorDiv(consumed, sourceRate);
             constexpr std::int64_t initBound = -1;
             return std::max(initBound, lowerDep);
         }
@@ -78,7 +78,7 @@ namespace Spider {
                                                 std::int64_t delay,
                                                 std::int64_t sinkRepetitionValue) {
             auto produced = instance * sourceRate + delay;
-            auto lowerDep = Spider::Math::floorDiv(produced, sinkRate);
+            auto lowerDep = spider::math::floorDiv(produced, sinkRate);
             return std::min(sinkRepetitionValue, lowerDep);
         }
 
@@ -88,7 +88,7 @@ namespace Spider {
                                                 std::int64_t delay,
                                                 std::int64_t sinkRepetitionValue) {
             auto produced = (instance + 1) * sourceRate + delay - 1;
-            auto upperDep = Spider::Math::floorDiv(produced, sinkRate);
+            auto upperDep = spider::math::floorDiv(produced, sinkRate);
             return std::min(sinkRepetitionValue, upperDep);
         }
 

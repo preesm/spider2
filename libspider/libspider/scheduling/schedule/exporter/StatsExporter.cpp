@@ -49,14 +49,14 @@
 
 /* === Method(s) implementation === */
 
-void Spider::StatsExporter::print() const {
+void spider::StatsExporter::print() const {
 
 }
 
-void Spider::StatsExporter::print(const std::string &path) const {
+void spider::StatsExporter::print(const std::string &path) const {
 
 }
 
-void Spider::StatsExporter::print(std::ofstream &file) const {
+void spider::StatsExporter::print(std::ofstream &file) const {
 
 }

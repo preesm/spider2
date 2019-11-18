@@ -54,7 +54,7 @@
 
 /* === Method(s) implementation === */
 
-Spider::Schedule &Spider::BestFitScheduler::mappingScheduling() {
+spider::Schedule &spider::BestFitScheduler::mappingScheduling() {
     schedule_.setJobCount(sortedVertexVector_.size());
     for (auto &listVertex : sortedVertexVector_) {
         vertexMapper(listVertex.vertex);
@@ -62,13 +62,13 @@ Spider::Schedule &Spider::BestFitScheduler::mappingScheduling() {
     return schedule_;
 }
 
-void Spider::BestFitScheduler::vertexMapper(const PiSDFAbstractVertex *vertex) {
+void spider::BestFitScheduler::vertexMapper(const PiSDFAbstractVertex *vertex) {
     /* == Compute the minimum start time possible for vertex == */
     std::uint64_t minStartTime = 0;
 
     /* == Search for the best slave possible == */
-    const auto *platform = Spider::platform();
-    const auto &scenario = Spider::scenario();
+    const auto *platform = spider::platform();
+    const auto &scenario = spider::scenario();
     const auto *reference = vertex->reference();
     const auto &platformStats = schedule_.stats();
 
@@ -91,7 +91,7 @@ void Spider::BestFitScheduler::vertexMapper(const PiSDFAbstractVertex *vertex) {
                 std::uint64_t receiveCost = 0;
 
                 /* == Compute total schedule cost == */
-                const auto &scheduleCost = Spider::Math::saturateAdd(Spider::Math::saturateAdd(endTime, waitTime),
+                const auto &scheduleCost = spider::math::saturateAdd(spider::math::saturateAdd(endTime, waitTime),
                                                                      receiveCost);
                 if (scheduleCost < bestScheduleCost) {
                     bestScheduleCost = scheduleCost;

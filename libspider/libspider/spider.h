@@ -51,14 +51,14 @@
 
 /* === Methods prototype === */
 
-namespace Spider {
+namespace spider {
 
     void start();
 
     void quit();
 
 
-    namespace API {
+    namespace api {
 
         /**
          * @brief Initialize a given stack.
