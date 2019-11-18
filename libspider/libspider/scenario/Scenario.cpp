@@ -65,24 +65,24 @@ spider::Scenario::Scenario(const PiSDFGraph *graph) {
     }
 }
 
-bool spider::Scenario::isMappable(const PiSDFAbstractVertex *vertex, const ProcessingElement *PE) const {
+bool spider::Scenario::isMappable(const PiSDFAbstractVertex *vertex, const spider::PE *PE) const {
     auto &contraints = vertexMappingConstraintsMap_.at(vertex);
     return contraints.at(PE->spiderPEIx());
 }
 
-std::int64_t spider::Scenario::executionTiming(const PiSDFAbstractVertex *vertex, const ProcessingElement *PE) const {
+std::int64_t spider::Scenario::executionTiming(const PiSDFAbstractVertex *vertex, const spider::PE *PE) const {
     auto &timings = vertexExecutionTimingsMap_.at(vertex);
     auto &timing = timings.at(PE->hardwareType());
     return timing.evaluate(vertex->containingGraph()->params());
 }
 
 void
-spider::Scenario::setMappingConstraint(const PiSDFAbstractVertex *vertex, const ProcessingElement *PE, bool value) {
+spider::Scenario::setMappingConstraint(const PiSDFAbstractVertex *vertex, const spider::PE *PE, bool value) {
     auto &contraints = vertexMappingConstraintsMap_.at(vertex);
     contraints.at(PE->spiderPEIx()) = value;
 }
 
-void spider::Scenario::setExecutionTiming(const PiSDFAbstractVertex *vertex, const ProcessingElement *PE,
+void spider::Scenario::setExecutionTiming(const PiSDFAbstractVertex *vertex, const spider::PE *PE,
                                           std::int64_t value) {
     auto &timings = vertexExecutionTimingsMap_.at(vertex);
     auto &timing = timings.at(PE->hardwareType());
@@ -98,7 +98,7 @@ void spider::Scenario::setExecutionTiming(const PiSDFAbstractVertex *vertex,
 }
 
 void spider::Scenario::setExecutionTiming(const PiSDFAbstractVertex *vertex,
-                                          const ProcessingElement *PE,
+                                          const spider::PE *PE,
                                           const std::string &expression) {
     auto &timings = vertexExecutionTimingsMap_.at(vertex);
     auto &timing = timings.at(PE->hardwareType());

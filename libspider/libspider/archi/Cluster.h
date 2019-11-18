@@ -48,209 +48,211 @@
 #include <containers/StlContainers.h>
 #include <spider-api/archi.h>
 
-/* === Forward declaration(s) === */
+namespace spider {
 
-class Platform;
+    /* === Forward declaration(s) === */
 
-class ProcessingElement;
+    class Platform;
 
-class MemoryUnit;
+    class PE;
 
-/* === Class definition === */
+    class MemoryUnit;
 
-class Cluster {
-public:
+    /* === Class definition === */
 
-    Cluster(std::uint32_t PECount, MemoryUnit *memoryUnit);
+    class Cluster {
+    public:
 
-    ~Cluster();
+        Cluster(std::uint32_t PECount, MemoryUnit *memoryUnit);
 
-    /* === Method(s) === */
+        ~Cluster();
 
-    /**
-     * @brief Add a processing element to the cluster.
-     * @param PE Processing element to add.
-     * @throws @refitem Spider::Exception if cluster is already full.
-     */
-    void addPE(ProcessingElement *PE);
+        /* === Method(s) === */
 
-    /**
-     * @brief Set the state (enabled or disabled) of a processing element in the cluster.
-     * @param ix      Ix of the processing element.
-     * @param status  Status of the PE to set (true = enabled, false = disabled).
-     * @throws Spider::Exception if PE ix is out of bound.
-     */
-    inline void setPEStatus(std::uint32_t ix, bool status);
+        /**
+         * @brief Add a processing element to the cluster.
+         * @param PE Processing element to add.
+         * @throws @refitem Spider::Exception if cluster is already full.
+         */
+        void addPE(PE *PE);
 
-    /* === Getter(s) === */
+        /**
+         * @brief Set the state (enabled or disabled) of a processing element in the cluster.
+         * @param ix      Ix of the processing element.
+         * @param status  Status of the PE to set (true = enabled, false = disabled).
+         * @throws Spider::Exception if PE ix is out of bound.
+         */
+        inline void setPEStatus(std::uint32_t ix, bool status);
 
-    /**
-     * @brief Get the array of processing element of the cluster.
-     * @return const reference to the @refitem Spider::Array of @refitem ProcessingElement of the cluster.
-     */
-    inline const spider::Array<ProcessingElement *> &processingElements() const;
+        /* === Getter(s) === */
 
-    /**
-     * @brief Get the memory unit of the cluster.
-     * @return reference to the @refitem MemoryUnit of the cluster.
-     */
-    inline MemoryUnit &memoryUnit() const;
+        /**
+         * @brief Get the array of processing element of the cluster.
+         * @return const reference to the @refitem Spider::Array of @refitem ProcessingElement of the cluster.
+         */
+        inline const spider::Array<PE *> &processingElements() const;
 
-    /**
-     * @brief Get a given processing element from the cluster.
-     * @param ix  Ix of the processing element in the cluster.
-     * @return const reference of the @refitem ProcessingElement
-     * @throws @refitem Spider::Exception if ix is out of bound
-     */
-    inline const ProcessingElement &processingElement(std::uint32_t ix) const;
+        /**
+         * @brief Get the memory unit of the cluster.
+         * @return reference to the @refitem MemoryUnit of the cluster.
+         */
+        inline MemoryUnit &memoryUnit() const;
 
-    /**
-     * @brief Get the number of processing element inside the cluster.
-     * @return number of @refitem ProcessingElement inside the cluster.
-     */
-    inline std::uint32_t PECount() const;
+        /**
+         * @brief Get a given processing element from the cluster.
+         * @param ix  Ix of the processing element in the cluster.
+         * @return const reference of the @refitem ProcessingElement
+         * @throws @refitem Spider::Exception if ix is out of bound
+         */
+        inline const PE &processingElement(std::uint32_t ix) const;
 
-    /**
-     * @brief Get the number of local runtime in the cluster.
-     * @return number of local runtime inside the cluster.
-     */
-    inline std::uint32_t LRTCount() const;
+        /**
+         * @brief Get the number of processing element inside the cluster.
+         * @return number of @refitem ProcessingElement inside the cluster.
+         */
+        inline std::uint32_t PECount() const;
 
-    /**
-     * @brief Get the PE type of the cluster.
-     * @remark This method return the value of @refitem ProcessingElement::hardwareType() method of the first PE.
-     * @return PE type of the cluster.
-     */
-    std::uint32_t PEType() const;
+        /**
+         * @brief Get the number of local runtime in the cluster.
+         * @return number of local runtime inside the cluster.
+         */
+        inline std::uint32_t LRTCount() const;
 
-    /**
-     * @brief  Get the cluster ix (unique among clusters).
-     * @return Ix of the cluster.
-     */
-    inline std::uint32_t ix() const;
+        /**
+         * @brief Get the PE type of the cluster.
+         * @remark This method return the value of @refitem ProcessingElement::hardwareType() method of the first PE.
+         * @return PE type of the cluster.
+         */
+        std::uint32_t PEType() const;
 
-    /**
-     * @brief Get the platform of the cluster.
-     * @return @refitem Platform of the cluster.
-     */
-    inline Platform &platform() const;
+        /**
+         * @brief  Get the cluster ix (unique among clusters).
+         * @return Ix of the cluster.
+         */
+        inline std::uint32_t ix() const;
 
-    /**
-     * @brief Get the number of processing element enabled in the cluster.
-     * @return number of enabled PE.
-     */
-    inline std::uint32_t enabledPECount() const;
+        /**
+         * @brief Get the platform of the cluster.
+         * @return @refitem Platform of the cluster.
+         */
+        inline Platform &platform() const;
 
-    /**
-     * @brief Get the write cost routine.
-     * @return const reference to @refitem Spider::CommunicationCostRoutine
-     */
-    inline const spider::CommunicationCostRoutine &writeCostRoutine() const;
+        /**
+         * @brief Get the number of processing element enabled in the cluster.
+         * @return number of enabled PE.
+         */
+        inline std::uint32_t enabledPECount() const;
 
-    /**
-     * @brief Get the read cost routine.
-     * @return const reference to @refitem Spider::CommunicationCostRoutine
-     */
-    inline const spider::CommunicationCostRoutine &readCostRoutine() const;
+        /**
+         * @brief Get the write cost routine.
+         * @return const reference to @refitem Spider::CommunicationCostRoutine
+         */
+        inline const spider::CommunicationCostRoutine &writeCostRoutine() const;
 
-    /* === Setter(s) === */
+        /**
+         * @brief Get the read cost routine.
+         * @return const reference to @refitem Spider::CommunicationCostRoutine
+         */
+        inline const spider::CommunicationCostRoutine &readCostRoutine() const;
 
-    /**
-     * @brief Set the cluster ix inside the Platform.
-     * @param ix Ix to set.
-     */
-    inline void setIx(std::uint32_t ix);
+        /* === Setter(s) === */
 
-    /**
-     * @brief Set the cost routine for writing in cluster memory.
-     * @param routine  Routine used for computing the cost to write in cluster memory.
-     */
-    inline void setWriteCostRoutine(spider::CommunicationCostRoutine routine);
+        /**
+         * @brief Set the cluster ix inside the Platform.
+         * @param ix Ix to set.
+         */
+        inline void setIx(std::uint32_t ix);
 
-    /**
-     * @brief Set the cost routine for reading from cluster memory.
-     * @param routine  Routine used for computing the cost to read from cluster memory.
-     */
-    inline void setReadCostRoutine(spider::CommunicationCostRoutine routine);
+        /**
+         * @brief Set the cost routine for writing in cluster memory.
+         * @param routine  Routine used for computing the cost to write in cluster memory.
+         */
+        inline void setWriteCostRoutine(spider::CommunicationCostRoutine routine);
 
-private:
+        /**
+         * @brief Set the cost routine for reading from cluster memory.
+         * @param routine  Routine used for computing the cost to read from cluster memory.
+         */
+        inline void setReadCostRoutine(spider::CommunicationCostRoutine routine);
 
-    /* === Core properties === */
+    private:
 
-    spider::Array<ProcessingElement *> PEArray_;
-    std::vector<bool> PEEnabledVector_;
-    Platform *platform_ = nullptr;
-    MemoryUnit *memoryUnit_ = nullptr;
-    std::uint32_t PECount_ = 0;
+        /* === Core properties === */
 
-    /* === Spider properties === */
+        spider::Array<PE *> PEArray_;
+        std::vector<bool> PEEnabledVector_;
+        Platform *platform_ = nullptr;
+        MemoryUnit *memoryUnit_ = nullptr;
+        std::uint32_t PECount_ = 0;
 
-    std::uint32_t LRTCount_ = 0;
-    std::uint32_t enabledPECount_ = 0;
-    std::uint32_t ix_ = 0;
-    spider::CommunicationCostRoutine writeCostRoutine_;
-    spider::CommunicationCostRoutine readCostRoutine_;
+        /* === Spider properties === */
 
-    /* === Private method(s) === */
-};
+        std::uint32_t LRTCount_ = 0;
+        std::uint32_t enabledPECount_ = 0;
+        std::uint32_t ix_ = 0;
+        spider::CommunicationCostRoutine writeCostRoutine_;
+        spider::CommunicationCostRoutine readCostRoutine_;
 
-/* === Inline method(s) === */
+        /* === Private method(s) === */
+    };
 
-void Cluster::setPEStatus(std::uint32_t ix, bool status) {
-    PEEnabledVector_.at(ix) = status;
-    enabledPECount_ = std::count(PEEnabledVector_.begin(), PEEnabledVector_.end(), true);
+    /* === Inline method(s) === */
+
+    void Cluster::setPEStatus(std::uint32_t ix, bool status) {
+        PEEnabledVector_.at(ix) = status;
+        enabledPECount_ = std::count(PEEnabledVector_.begin(), PEEnabledVector_.end(), true);
+    }
+
+    const spider::Array<PE *> &Cluster::processingElements() const {
+        return PEArray_;
+    }
+
+    MemoryUnit &Cluster::memoryUnit() const {
+        return *memoryUnit_;
+    }
+
+    const PE &Cluster::processingElement(std::uint32_t ix) const {
+        return *PEArray_.at(ix);
+    }
+
+    std::uint32_t Cluster::PECount() const {
+        return PEArray_.size();
+    }
+
+    std::uint32_t Cluster::LRTCount() const {
+        return LRTCount_;
+    }
+
+    std::uint32_t Cluster::ix() const {
+        return ix_;
+    }
+
+    Platform &Cluster::platform() const {
+        return *platform_;
+    }
+
+    std::uint32_t Cluster::enabledPECount() const {
+        return enabledPECount_;
+    }
+
+    const spider::CommunicationCostRoutine &Cluster::writeCostRoutine() const {
+        return writeCostRoutine_;
+    }
+
+    const spider::CommunicationCostRoutine &Cluster::readCostRoutine() const {
+        return readCostRoutine_;
+    }
+
+    void Cluster::setIx(std::uint32_t ix) {
+        ix_ = ix;
+    }
+
+    void Cluster::setWriteCostRoutine(spider::CommunicationCostRoutine routine) {
+        writeCostRoutine_ = routine;
+    }
+
+    void Cluster::setReadCostRoutine(spider::CommunicationCostRoutine routine) {
+        readCostRoutine_ = routine;
+    }
 }
-
-const spider::Array<ProcessingElement *> &Cluster::processingElements() const {
-    return PEArray_;
-}
-
-MemoryUnit &Cluster::memoryUnit() const {
-    return *memoryUnit_;
-}
-
-const ProcessingElement &Cluster::processingElement(std::uint32_t ix) const {
-    return *PEArray_.at(ix);
-}
-
-std::uint32_t Cluster::PECount() const {
-    return PEArray_.size();
-}
-
-std::uint32_t Cluster::LRTCount() const {
-    return LRTCount_;
-}
-
-std::uint32_t Cluster::ix() const {
-    return ix_;
-}
-
-Platform &Cluster::platform() const {
-    return *platform_;
-}
-
-std::uint32_t Cluster::enabledPECount() const {
-    return enabledPECount_;
-}
-
-const spider::CommunicationCostRoutine &Cluster::writeCostRoutine() const {
-    return writeCostRoutine_;
-}
-
-const spider::CommunicationCostRoutine &Cluster::readCostRoutine() const {
-    return readCostRoutine_;
-}
-
-void Cluster::setIx(std::uint32_t ix) {
-    ix_ = ix;
-}
-
-void Cluster::setWriteCostRoutine(spider::CommunicationCostRoutine routine) {
-    writeCostRoutine_ = routine;
-}
-
-void Cluster::setReadCostRoutine(spider::CommunicationCostRoutine routine) {
-    readCostRoutine_ = routine;
-}
-
 #endif //SPIDER2_CLUSTER_H

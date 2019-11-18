@@ -56,20 +56,20 @@ static std::uint32_t spiderUniqueIx() {
 /* === Method(s) implementation === */
 
 
-ProcessingElement::ProcessingElement(std::uint32_t hwType,
-                                     std::uint32_t hwIx,
-                                     std::uint32_t virtIx,
-                                     Cluster *cluster,
-                                     std::string name,
-                                     spider::PEType spiderPEType,
-                                     spider::HWType spiderHWType) : hwType_{ hwType },
-                                                                    hwIx_{ hwIx },
-                                                                    virtIx_{ virtIx },
-                                                                    name_{ std::move(name) },
-                                                                    cluster_{ cluster },
-                                                                    spiderPEIx_{ spiderUniqueIx() },
-                                                                    spiderPEType_{ spiderPEType },
-                                                                    spiderHWType_{ spiderHWType } {
+spider::PE::PE(std::uint32_t hwType,
+               std::uint32_t hwIx,
+               std::uint32_t virtIx,
+               Cluster *cluster,
+               std::string name,
+               spider::PEType spiderPEType,
+               spider::HWType spiderHWType) : hwType_{ hwType },
+                                              hwIx_{ hwIx },
+                                              virtIx_{ virtIx },
+                                              name_{ std::move(name) },
+                                              cluster_{ cluster },
+                                              spiderPEIx_{ spiderUniqueIx() },
+                                              spiderPEType_{ spiderPEType },
+                                              spiderHWType_{ spiderHWType } {
     if (isLRT()) {
         managingLRT_ = this;
         managingLRTIx_ = cluster->platform().LRTCount();
@@ -77,16 +77,16 @@ ProcessingElement::ProcessingElement(std::uint32_t hwType,
     cluster->addPE(this);
 }
 
-void ProcessingElement::enable() {
+void spider::PE::enable() {
     enabled_ = true;
     cluster_->setPEStatus(clusterPEIx_, true);
 }
 
-void ProcessingElement::disable() {
+void spider::PE::disable() {
     enabled_ = false;
     cluster_->setPEStatus(clusterPEIx_, false);
 }
 
-MemoryUnit &ProcessingElement::memoryUnit() const {
+spider::MemoryUnit &spider::PE::memoryUnit() const {
     return cluster()->memoryUnit();
 }

@@ -50,19 +50,19 @@
 
 /* === General Platform related API === */
 
-Platform *&spider::platform() {
+spider::Platform *&spider::platform() {
     static Platform *platform = nullptr;
     return platform;
 }
 
-Platform *spider::api::createPlatform(std::uint32_t clusterCount) {
+spider::Platform *spider::api::createPlatform(std::uint32_t clusterCount) {
     auto *&platform = spider::platform();
     platform = spider::allocate<Platform>(StackID::ARCHI);
     spider::construct(platform, clusterCount);
     return platform;
 }
 
-void spider::api::setSpiderGRTPE(ProcessingElement *grtPE) {
+void spider::api::setSpiderGRTPE(PE *grtPE) {
     auto *&platform = spider::platform();
     if (platform) {
         platform->setSpiderGRTPE(grtPE);
@@ -75,7 +75,7 @@ void spider::api::setCluster2ClusterCommunicationCostRoutine(spider::Communicati
 
 /* === Cluster related API === */
 
-Cluster *spider::api::createCluster(std::uint32_t PECount, MemoryUnit *memoryUnit) {
+spider::Cluster *spider::api::createCluster(std::uint32_t PECount, MemoryUnit *memoryUnit) {
     auto *cluster = spider::allocate<Cluster>(StackID::ARCHI);
     spider::construct(cluster, PECount, memoryUnit);
     return cluster;
@@ -91,40 +91,40 @@ void spider::api::setClusterReadCostRoutine(Cluster *cluster, spider::Communicat
 
 /* === PE related API === */
 
-ProcessingElement *spider::api::createPE(std::uint32_t hwType,
-                                         std::uint32_t hwID,
-                                         std::uint32_t virtID,
-                                         Cluster *cluster,
-                                         const std::string &name,
-                                         spider::PEType spiderPEType,
-                                         spider::HWType spiderHWType) {
-    auto *PE = spider::allocate<ProcessingElement>(StackID::ARCHI);
+spider::PE *spider::api::createPE(std::uint32_t hwType,
+                                  std::uint32_t hwID,
+                                  std::uint32_t virtID,
+                                  Cluster *cluster,
+                                  const std::string &name,
+                                  spider::PEType spiderPEType,
+                                  spider::HWType spiderHWType) {
+    auto *PE = spider::allocate<spider::PE>(StackID::ARCHI);
     spider::construct(PE, hwType, hwID, virtID, cluster, name, spiderPEType, spiderHWType);
     PE->enable();
     return PE;
 }
 
-void spider::api::setPESpiderPEType(ProcessingElement *PE, spider::PEType type) {
+void spider::api::setPESpiderPEType(PE *PE, spider::PEType type) {
     PE->setSpiderPEType(type);
 }
 
-void spider::api::setPESpiderHWType(ProcessingElement *PE, spider::HWType type) {
+void spider::api::setPESpiderHWType(PE *PE, spider::HWType type) {
     PE->setSpiderHWType(type);
 }
 
-void spider::api::setPEName(ProcessingElement *PE, const std::string &name) {
+void spider::api::setPEName(PE *PE, const std::string &name) {
     if (PE) {
         PE->setName(name);
     }
 }
 
-void spider::api::enablePE(ProcessingElement *PE) {
+void spider::api::enablePE(PE *PE) {
     if (PE) {
         PE->enable();
     }
 }
 
-void spider::api::disablePE(ProcessingElement *PE) {
+void spider::api::disablePE(PE *PE) {
     if (PE) {
         PE->disable();
     }
@@ -132,7 +132,7 @@ void spider::api::disablePE(ProcessingElement *PE) {
 
 /* === MemoryUnit related API === */
 
-MemoryUnit *spider::api::createMemoryUnit(void *base, std::uint64_t size) {
+spider::MemoryUnit *spider::api::createMemoryUnit(void *base, std::uint64_t size) {
     auto *unit = spider::allocate<MemoryUnit>(StackID::ARCHI);
     spider::construct(unit, base, size);
     return unit;

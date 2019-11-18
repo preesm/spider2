@@ -49,11 +49,11 @@
 #include <graphs/pisdf/common/Types.h>
 #include <graphs/pisdf/Graph.h>
 
-/* === Forward declaration(s) === */
-
-class ProcessingElement;
-
 namespace spider {
+
+    /* === Forward declaration(s) === */
+
+    class PE;
 
     /* === Class definition === */
 
@@ -91,7 +91,7 @@ namespace spider {
          * @return true if vertex is mappable on PE, false else.
          * @throws @refitem std::out_of_range if vertex or PE do not exist in the lookup table.
          */
-        bool isMappable(const PiSDFAbstractVertex *vertex, const ProcessingElement *PE) const;
+        bool isMappable(const PiSDFAbstractVertex *vertex, const PE *PE) const;
 
         /**
          * @brief Get the execution timing of a given vertex on a specific PE type.
@@ -110,7 +110,7 @@ namespace spider {
          * @return execution timing.
          * @throws @refitem std::out_of_range if vertex or PEType do not exist in the lookup table.
          */
-        std::int64_t executionTiming(const PiSDFAbstractVertex *vertex, const ProcessingElement *PE) const;
+        std::int64_t executionTiming(const PiSDFAbstractVertex *vertex, const PE *PE) const;
 
         /* === Setter(s) === */
 
@@ -144,7 +144,7 @@ namespace spider {
          * @param PE      Processing element.
          * @param value   Constraint to set (true if mappable, false else)
          */
-        void setMappingConstraint(const PiSDFAbstractVertex *vertex, const ProcessingElement *PE, bool value);
+        void setMappingConstraint(const PiSDFAbstractVertex *vertex, const PE *PE, bool value);
 
         /**
          * @brief Set the execution timings of a given vertex for all possible processing elements of the platform.
@@ -170,7 +170,7 @@ namespace spider {
          * @param PE      Processing element.
          * @param value   Timing to set.
          */
-        void setExecutionTiming(const PiSDFAbstractVertex *vertex, const ProcessingElement *PE, std::int64_t value);
+        void setExecutionTiming(const PiSDFAbstractVertex *vertex, const PE *PE, std::int64_t value);
 
         /**
          * @brief Set the execution timing of a given vertex for a given processing element type of the platform.
@@ -179,7 +179,8 @@ namespace spider {
          * @param PE         Processing element.
          * @param expression Expression of the timing to set.
          */
-        void setExecutionTiming(const PiSDFAbstractVertex *vertex, const ProcessingElement *PE,
+        void setExecutionTiming(const PiSDFAbstractVertex *vertex,
+                                const PE *PE,
                                 const std::string &expression);
 
         /**

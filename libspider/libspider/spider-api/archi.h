@@ -45,17 +45,17 @@
 #include <cstdint>
 #include <string>
 
-/* === Forward declaration(s) === */
-
-class Platform;
-
-class Cluster;
-
-class ProcessingElement;
-
-class MemoryUnit;
-
 namespace spider {
+
+    /* === Forward declaration(s) === */
+
+    class Platform;
+
+    class Cluster;
+
+    class PE;
+
+    class MemoryUnit;
 
     /* === Routine(s) === */
 
@@ -132,7 +132,7 @@ namespace spider {
          * @brief Set the Global Run-Time (GRT) PE.
          * @param grtPE  Processing Element of the GRT.
          */
-        void setSpiderGRTPE(ProcessingElement *grtPE);
+        void setSpiderGRTPE(PE *grtPE);
 
         /**
          * @brief Set the routine that will handle the cluster to cluster communication cost.
@@ -177,46 +177,46 @@ namespace spider {
          * @param spiderHWType  Spider hardware type.
          * @return Pointer to newly created @refitem ProcessingElement, associated memory is handled by spider.
          */
-        ProcessingElement *createPE(std::uint32_t hwType,
-                                    std::uint32_t hwID,
-                                    std::uint32_t virtID,
-                                    Cluster *cluster,
-                                    const std::string &name,
-                                    spider::PEType spiderPEType = spider::PEType::LRT_PE,
-                                    spider::HWType spiderHWType = spider::HWType::PHYS_PE);
+        PE *createPE(std::uint32_t hwType,
+                     std::uint32_t hwID,
+                     std::uint32_t virtID,
+                     Cluster *cluster,
+                     const std::string &name,
+                     spider::PEType spiderPEType = spider::PEType::LRT_PE,
+                     spider::HWType spiderHWType = spider::HWType::PHYS_PE);
 
         /**
          * @brief Set the SpiderPEType of a given PE.
          * @param PE    Pointer to the PE.
          * @param type  Spider::PEType to set.
          */
-        void setPESpiderPEType(ProcessingElement *PE, spider::PEType type);
+        void setPESpiderPEType(PE *PE, spider::PEType type);
 
         /**
          * @brief Set the SpiderHWType of a given PE.
          * @param PE    Pointer to the PE.
          * @param type  Spider::HWType to set.
          */
-        void setPESpiderHWType(ProcessingElement *PE, spider::HWType type);
+        void setPESpiderHWType(PE *PE, spider::HWType type);
 
         /**
          * @brief Set the name of a given PE.
          * @param PE    Pointer to the PE.
          * @param name  Name of the PE to set.
          */
-        void setPEName(ProcessingElement *PE, const std::string &name);
+        void setPEName(PE *PE, const std::string &name);
 
         /**
          * @brief Enable a given PE (default).
          * @param PE  Pointer to the PE.
          */
-        void enablePE(ProcessingElement *PE);
+        void enablePE(PE *PE);
 
         /**
          * @brief Disable a given PE.
          * @param PE  Pointer to the PE.
          */
-        void disablePE(ProcessingElement *PE);
+        void disablePE(PE *PE);
 
         /* === MemoryUnit related API === */
 

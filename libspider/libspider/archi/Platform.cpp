@@ -50,23 +50,23 @@
 
 /* === Method(s) implementation === */
 
-Platform::Platform(std::uint32_t clusterCount) : clusterArray_{ clusterCount, StackID::ARCHI } {
+spider::Platform::Platform(std::uint32_t clusterCount) : clusterArray_{ clusterCount, StackID::ARCHI } {
 }
 
-Platform::~Platform() {
+spider::Platform::~Platform() {
     for (auto &cluster : clusterArray_) {
         spider::destroy(cluster);
         spider::deallocate(cluster);
     }
 }
 
-void Platform::addCluster(Cluster *cluster) {
+void spider::Platform::addCluster(Cluster *cluster) {
     clusterArray_.at(clusterCount_) = cluster;
     cluster->setIx(clusterCount_);
     clusterCount_ += 1;
 }
 
-ProcessingElement &Platform::findPE(const std::string &name) const {
+spider::PE &spider::Platform::findPE(const std::string &name) const {
     for (const auto &cluster : clusterArray_) {
         for (auto &pe : cluster->processingElements()) {
             if (pe->name() == name) {
@@ -77,7 +77,7 @@ ProcessingElement &Platform::findPE(const std::string &name) const {
     throwSpiderException("Unable to find PE of name: %s in any of the platform clusters.", name.c_str());
 }
 
-ProcessingElement &Platform::findPE(std::uint32_t virtualIx) const {
+spider::PE &spider::Platform::findPE(std::uint32_t virtualIx) const {
     for (const auto &cluster : clusterArray_) {
         for (auto &pe : cluster->processingElements()) {
             if (pe->virtualIx() == virtualIx) {
@@ -90,12 +90,12 @@ ProcessingElement &Platform::findPE(std::uint32_t virtualIx) const {
                                  " in any of the platform clusters.", virtualIx);
 }
 
-ProcessingElement &Platform::findPE(std::uint32_t clusterIx, std::uint32_t PEIx) const {
+spider::PE &spider::Platform::findPE(std::uint32_t clusterIx, std::uint32_t PEIx) const {
     auto *cluster = clusterArray_.at(clusterIx);
     return *(cluster->processingElements().at(PEIx));
 }
 
-std::uint32_t Platform::PECount() const {
+std::uint32_t spider::Platform::PECount() const {
     std::uint32_t PECount = 0;
     for (auto &cluster : clusterArray_) {
         PECount += cluster->PECount();
@@ -103,7 +103,7 @@ std::uint32_t Platform::PECount() const {
     return PECount;
 }
 
-std::uint32_t Platform::LRTCount() const {
+std::uint32_t spider::Platform::LRTCount() const {
     std::uint32_t LRTCount = 0;
     for (auto &cluster : clusterArray_) {
         LRTCount += cluster->LRTCount();
@@ -111,27 +111,27 @@ std::uint32_t Platform::LRTCount() const {
     return LRTCount;
 }
 
-std::int32_t Platform::spiderGRTClusterIx() const {
+std::int32_t spider::Platform::spiderGRTClusterIx() const {
     if (grtPE_) {
         return grtPE_->cluster()->ix();
     }
     return -1;
 }
 
-std::int32_t Platform::spiderGRTPEIx() const {
+std::int32_t spider::Platform::spiderGRTPEIx() const {
     if (grtPE_) {
         return grtPE_->clusterPEIx();
     }
     return -1;
 }
 
-void Platform::enablePE(ProcessingElement *const PE) const {
+void spider::Platform::enablePE(PE *const PE) const {
     if (PE) {
         PE->enable();
     }
 }
 
-void Platform::disablePE(ProcessingElement *const PE) const {
+void spider::Platform::disablePE(PE *const PE) const {
     if (PE && PE == grtPE_) {
         throwSpiderException("Can not disable GRT PE: %s.", PE->name().c_str());
     }
@@ -140,9 +140,9 @@ void Platform::disablePE(ProcessingElement *const PE) const {
     }
 }
 
-std::uint64_t Platform::dataCommunicationCostPEToPE(ProcessingElement *PESrc,
-                                                    ProcessingElement *PESnk,
-                                                    std::uint64_t dataSize) {
+std::uint64_t spider::Platform::dataCommunicationCostPEToPE(PE *PESrc,
+                                                            PE *PESnk,
+                                                            std::uint64_t dataSize) {
     /* == Test if it is an intra or inter cluster communication == */
     if (PESrc->cluster()->ix() == PESnk->cluster()->ix()) {
         /* == Intra cluster, communication cost is the read / write to the cluster memory cost == */

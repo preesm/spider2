@@ -51,10 +51,10 @@
 
 /* === Method(s) implementation === */
 
-Cluster::Cluster(std::uint32_t PECount, MemoryUnit *memoryUnit) : PEArray_{ PECount, StackID::ARCHI },
-                                                                  PEEnabledVector_(PECount, false),
-                                                                  platform_{ spider::platform() },
-                                                                  memoryUnit_{ memoryUnit } {
+spider::Cluster::Cluster(std::uint32_t PECount, MemoryUnit *memoryUnit) : PEArray_{ PECount, StackID::ARCHI },
+                                                                          PEEnabledVector_(PECount, false),
+                                                                          platform_{ spider::platform() },
+                                                                          memoryUnit_{ memoryUnit } {
     /* == Add the cluster to the platform == */
     platform_->addCluster(this);
 
@@ -63,7 +63,7 @@ Cluster::Cluster(std::uint32_t PECount, MemoryUnit *memoryUnit) : PEArray_{ PECo
     readCostRoutine_ = spider::defaultZeroCommunicationCost;
 }
 
-Cluster::~Cluster() {
+spider::Cluster::~Cluster() {
     for (auto &pe : PEArray_) {
         spider::destroy(pe);
         spider::deallocate(pe);
@@ -75,13 +75,13 @@ Cluster::~Cluster() {
     }
 }
 
-void Cluster::addPE(ProcessingElement *PE) {
+void spider::Cluster::addPE(PE *PE) {
     PEArray_.at(PECount_) = PE;
     PE->setClusterPEIx(PECount_);
     PECount_ += 1;
     LRTCount_ += PE->isLRT();
 }
 
-std::uint32_t Cluster::PEType() const {
+std::uint32_t spider::Cluster::PEType() const {
     return PEArray_[0]->hardwareType();
 }

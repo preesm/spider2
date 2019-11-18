@@ -45,90 +45,92 @@
 #include <cstdint>
 #include <common/Exception.h>
 
-/* === Class definition === */
+namespace spider {
 
-class MemoryUnit {
-public:
+    /* === Class definition === */
 
-    MemoryUnit(void *base, std::uint64_t size);
+    class MemoryUnit {
+    public:
 
-    ~MemoryUnit() = default;
+        MemoryUnit(void *base, std::uint64_t size);
 
-    /* === Method(s) === */
+        ~MemoryUnit() = default;
 
-    inline void reset();
+        /* === Method(s) === */
 
-    inline void *physicalAddress(std::uintptr_t virtualAddress) const;
+        inline void reset();
 
-    inline std::uint64_t allocate(std::uint64_t size);
+        inline void *physicalAddress(std::uintptr_t virtualAddress) const;
 
-    /* === Getter(s) === */
+        inline std::uint64_t allocate(std::uint64_t size);
 
-    inline std::uint64_t size() const;
+        /* === Getter(s) === */
 
-    inline std::uint64_t used() const;
+        inline std::uint64_t size() const;
 
-    inline std::uint64_t available() const;
+        inline std::uint64_t used() const;
 
-    inline std::uint32_t ix() const;
+        inline std::uint64_t available() const;
 
-    /* === Setter(s) === */
+        inline std::uint32_t ix() const;
 
-    inline void setIx(std::uint32_t ix);
+        /* === Setter(s) === */
 
-private:
+        inline void setIx(std::uint32_t ix);
 
-    /* === Core properties === */
+    private:
 
-    void *base_ = nullptr;
-    std::uint64_t size_ = 0;
-    std::uint64_t used_ = 0;
-    std::uint32_t ix_ = 0;
+        /* === Core properties === */
 
-    /* === Routines === */
+        void *base_ = nullptr;
+        std::uint64_t size_ = 0;
+        std::uint64_t used_ = 0;
+        std::uint32_t ix_ = 0;
 
-    /* === Private method(s) === */
-};
+        /* === Routines === */
 
-/* === Inline method(s) === */
+        /* === Private method(s) === */
+    };
 
-void MemoryUnit::reset() {
-    used_ = 0;
-}
+    /* === Inline method(s) === */
 
-void *MemoryUnit::physicalAddress(std::uint64_t virtualAddress) const {
-    if (virtualAddress > size_) {
-        throwSpiderException("Invalid memory address!");
+    void MemoryUnit::reset() {
+        used_ = 0;
     }
-    const auto &physical = reinterpret_cast<std::uintptr_t>(base_) + virtualAddress;
-    return reinterpret_cast<void *>(physical);
-}
 
-std::uint64_t MemoryUnit::allocate(std::uint64_t size) {
-    // TODO: handle different scheme of allocation
-    auto address = used_;
-    used_ += size;
-    return address;
-}
+    void *MemoryUnit::physicalAddress(std::uint64_t virtualAddress) const {
+        if (virtualAddress > size_) {
+            throwSpiderException("Invalid memory address!");
+        }
+        const auto &physical = reinterpret_cast<std::uintptr_t>(base_) + virtualAddress;
+        return reinterpret_cast<void *>(physical);
+    }
 
-std::uint64_t MemoryUnit::size() const {
-    return size_;
-}
+    std::uint64_t MemoryUnit::allocate(std::uint64_t size) {
+        // TODO: handle different scheme of allocation
+        auto address = used_;
+        used_ += size;
+        return address;
+    }
 
-std::uint64_t MemoryUnit::used() const {
-    return used_;
-}
+    std::uint64_t MemoryUnit::size() const {
+        return size_;
+    }
 
-std::uint64_t MemoryUnit::available() const {
-    return size_ - used_;
-}
+    std::uint64_t MemoryUnit::used() const {
+        return used_;
+    }
 
-std::uint32_t MemoryUnit::ix() const {
-    return ix_;
-}
+    std::uint64_t MemoryUnit::available() const {
+        return size_ - used_;
+    }
 
-void MemoryUnit::setIx(std::uint32_t ix) {
-    ix_ = ix;
-}
+    std::uint32_t MemoryUnit::ix() const {
+        return ix_;
+    }
 
+    void MemoryUnit::setIx(std::uint32_t ix) {
+        ix_ = ix;
+    }
+}
 #endif //SPIDER2_MEMORYUNIT_H

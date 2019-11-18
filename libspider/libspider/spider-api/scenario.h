@@ -46,13 +46,13 @@
 #include <string>
 #include <scenario/Scenario.h>
 
-/* === Forward declaration(s) === */
-
-class Cluster;
-
-class ProcessingElement;
-
 namespace spider {
+
+    /* === Forward declaration(s) === */
+
+    class Cluster;
+
+    class PE;
 
     /* === Function(s) prototype === */
 
@@ -70,18 +70,18 @@ namespace spider {
 
         void setVertexMappableOnCluster(const PiSDFAbstractVertex *vertex, std::uint32_t clusterIx, bool value = true);
 
-        void setVertexMappableOnPE(const PiSDFAbstractVertex *vertex, const ProcessingElement *PE, bool value = true);
+        void setVertexMappableOnPE(const PiSDFAbstractVertex *vertex, const PE *PE, bool value = true);
 
         void setVertexMappableOnPE(const PiSDFAbstractVertex *vertex, std::uint32_t spiderPEIx, bool value = true);
 
         void setVertexMappableOnAllPE(const PiSDFAbstractVertex *vertex, bool value = true);
 
         void setVertexExecutionTimingOnPE(const PiSDFAbstractVertex *vertex,
-                                          const ProcessingElement *PE,
+                                          const PE *PE,
                                           const std::string &expression = "100");
 
         void setVertexExecutionTimingOnPE(const PiSDFAbstractVertex *vertex,
-                                          const ProcessingElement *PE,
+                                          const PE *PE,
                                           std::int64_t timing = 100);
 
         void setVertexExecutionTimingOnPEType(const PiSDFAbstractVertex *vertex,
