@@ -73,7 +73,6 @@ namespace Spider {
             explicit JoinVertex(std::string name = "unnamed-joinvertex",
                                 std::uint32_t edgeINCount = 0,
                                 StackID stack = StackID::PISDF) : VertexInterface<JoinVertex>(std::move(name),
-                                                                                              VertexType::SPECIAL,
                                                                                               edgeINCount,
                                                                                               1,
                                                                                               stack) { }

@@ -85,6 +85,8 @@ struct CloneVisitor final : public Spider::PiSDF::DefaultVisitor {
 
     explicit CloneVisitor(Spider::SRDAG::TransfoJob &transfoJob) : transfoJob_{ transfoJob } { }
 
+    inline void visit(Spider::PiSDF::DelayVertex *) override { }
+
     inline void visit(Spider::PiSDF::ExecVertex *vertex) override {
         Spider::PiSDF::CloneVertexVisitor cloneVisitor{ transfoJob_.srdag_, StackID::TRANSFO };
         for (std::uint32_t it = 0; it < vertex->repetitionValue(); ++it) {
@@ -189,12 +191,13 @@ PiSDFAbstractVertex *Spider::SRDAG::fetchOrClone(PiSDFAbstractVertex *vertex, Tr
     const auto &vertexUniformIx = uniformIx(vertex, transfoJob.job_.reference_);
 
     /* == If vertex has already been cloned return the first one == */
-    if (transfoJob.tracker_[vertexUniformIx] == UINT32_MAX) {
+    auto &indexRef = transfoJob.tracker_[vertexUniformIx];
+    if (indexRef == UINT32_MAX) {
         CloneVisitor visitor{ transfoJob };
         vertex->visit(&visitor);
-        transfoJob.tracker_[vertexUniformIx] = visitor.ix_;
+        indexRef = visitor.ix_;
     }
-    return transfoJob.srdag_->vertex(transfoJob.tracker_[vertexUniformIx]);
+    return indexRef == UINT32_MAX ? nullptr : transfoJob.srdag_->vertex(indexRef);
 }
 
 void Spider::SRDAG::fillLinkerVector(TransfoStack &vector,

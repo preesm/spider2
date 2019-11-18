@@ -58,7 +58,6 @@ namespace Spider {
         public:
             explicit EndVertex(std::string name = "unnamed-endvertex",
                                StackID stack = StackID::PISDF) : VertexInterface<EndVertex>(std::move(name),
-                                                                                            VertexType::SPECIAL,
                                                                                             1,
                                                                                             0,
                                                                                             stack) { }

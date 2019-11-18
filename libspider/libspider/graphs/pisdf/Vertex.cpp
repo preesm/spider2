@@ -50,11 +50,9 @@
 /* === Method(s) implementation === */
 
 Spider::PiSDF::Vertex::Vertex(std::string name,
-                              Spider::PiSDF::VertexType type,
                               std::uint32_t edgeINCount,
                               std::uint32_t edgeOUTCount,
                               StackID stack) : name_{ std::move(name) },
-                                               type_{ type },
                                                inputEdgeArray_{ edgeINCount, nullptr, stack },
                                                outputEdgeArray_{ edgeOUTCount, nullptr, stack } {
 }

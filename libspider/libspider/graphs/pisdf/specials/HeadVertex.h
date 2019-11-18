@@ -65,7 +65,6 @@ namespace Spider {
             explicit HeadVertex(std::string name = "unnamed-headvertex",
                                 std::uint32_t edgeINCount = 0,
                                 StackID stack = StackID::PISDF) : VertexInterface<HeadVertex>(std::move(name),
-                                                                                              VertexType::SPECIAL,
                                                                                               edgeINCount,
                                                                                               1,
                                                                                               stack) { }

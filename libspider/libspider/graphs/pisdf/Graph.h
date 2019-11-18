@@ -154,6 +154,8 @@ namespace Spider {
 
             /* === Getter(s) === */
 
+            inline VertexType subtype() const override;
+
             inline bool hierarchical() const override;
 
             /**
@@ -313,6 +315,10 @@ namespace Spider {
 
         void Graph::visit(Visitor *visitor) {
             visitor->visit(this);
+        }
+
+        VertexType Graph::subtype() const {
+            return VertexType::GRAPH;
         }
 
         bool Graph::hierarchical() const {

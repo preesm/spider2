@@ -58,7 +58,6 @@ namespace Spider {
         public:
             explicit InitVertex(std::string name = "unnamed-initvertex",
                                 StackID stack = StackID::PISDF) : VertexInterface<InitVertex>(std::move(name),
-                                                                                              VertexType::SPECIAL,
                                                                                               0,
                                                                                               1,
                                                                                               stack) { }

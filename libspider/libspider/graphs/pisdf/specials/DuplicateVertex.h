@@ -63,7 +63,6 @@ namespace Spider {
             explicit DuplicateVertex(std::string name = "unnamed-duplicatevertex",
                                      std::uint32_t edgeOUTCount = 0,
                                      StackID stack = StackID::PISDF) : VertexInterface<DuplicateVertex>(std::move(name),
-                                                                                                        VertexType::SPECIAL,
                                                                                                         1,
                                                                                                         edgeOUTCount,
                                                                                                         stack) {

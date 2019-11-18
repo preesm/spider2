@@ -88,7 +88,7 @@ static Spider::SRDAG::TransfoStack buildSinkLinkerVector(Spider::SRDAG::TransfoJ
     /* == First, if delay, populate the getter clones in reverse order == */
     const auto &params = linker.job_.params_;
     if (delay) {
-        if (delay->value(params) < edge->sinkRateExpression().evaluate(params)) {
+        if ((sink == edge->source()) && delay->value(params) < edge->sinkRateExpression().evaluate(params)) {
             throwSpiderException("Insufficient delay [%"
                                          PRIu32
                                          "] on edge [%s].", delay->value(params), edge->name().c_str());
@@ -310,9 +310,7 @@ Spider::SRDAG::staticSingleRateTransformation(const Spider::SRDAG::Job &job, PiS
     /* == Clone the vertices == */
     linker.edge_ = nullptr;
     for (const auto &vertex : job.reference_->vertices()) {
-        if (vertex->subtype() != PiSDFVertexType::DELAY) {
-            Spider::SRDAG::fetchOrClone(vertex, linker);
-        }
+        Spider::SRDAG::fetchOrClone(vertex, linker);
     }
 
     /* == Do the linkage for every edges of the graph == */

@@ -65,10 +65,8 @@ namespace Spider {
          */
         enum class VertexType : std::uint8_t {
             NORMAL,         /*! Normal actor type */
-            SPECIAL,        /*! Special actor type */
             CONFIG,         /*! Config vertex type */
             GRAPH,          /*! Graph vertex type */
-            INTERFACE,      /*! Interface vertex type */
             DELAY,          /*! Delay vertex type */
             FORK,           /*! Fork actor subtype */
             JOIN,           /*! Join actor subtype */

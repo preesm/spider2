@@ -49,16 +49,15 @@ void Spider::PiSDF::DOTExporterVisitor::visit(Graph *graph) {
     if (graph->containingGraph()) {
         file_ << offset_ << "subgraph \"cluster_" << graph->name() << "\" {" << '\n';
         offset_ += "\t";
-        file_ << offset_ << R"(label=<<font point-size="40" face="inconsolata">")" << graph->name()
-              << R"("</font>>;)" << '\n';
+        file_ << offset_ << R"(label=<<font point-size="40" face="inconsolata">)" << graph->name() << R"(</font>>;)"
+              << '\n';
         file_ << offset_ << "style=dotted;" << '\n';
         file_ << offset_ << R"(fillcolor="#ffffff")" << '\n';
         file_ << offset_ << R"(color="#393c3c";)" << '\n';
         file_ << offset_ << "penwidth=2;" << '\n';
     } else {
         file_ << "digraph {\n";
-        file_ << '\t' << R"(label=<<font point-size="40" face="inconsolata">")" << graph->name()
-              << R"("</font>>;)"
+        file_ << '\t' << R"(label=<<font point-size="40" face="inconsolata">)" << graph->name() << R"(</font>>;)"
               << '\n';
         file_ << '\t' << "rankdir=LR;" << '\n';
         file_ << '\t' << R"(ranksep="2";)" << '\n';

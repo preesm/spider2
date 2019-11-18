@@ -72,7 +72,6 @@ namespace Spider {
             explicit ForkVertex(std::string name = "unnamed-forkvertex",
                                 std::uint32_t edgeOUTCount = 0,
                                 StackID stack = StackID::PISDF) : VertexInterface<ForkVertex>(std::move(name),
-                                                                                              VertexType::SPECIAL,
                                                                                               1,
                                                                                               edgeOUTCount,
                                                                                               stack) { }

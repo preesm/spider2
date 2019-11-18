@@ -53,7 +53,6 @@ namespace Spider {
         public:
             explicit DelayVertex(std::string name = "unnamed-delayvertex",
                                  StackID stack = StackID::PISDF) : VertexInterface<DelayVertex>(std::move(name),
-                                                                                                VertexType::DELAY,
                                                                                                 1,
                                                                                                 1,
                                                                                                 stack) { }
@@ -65,12 +64,23 @@ namespace Spider {
 
             /* === Setter(s) === */
 
+            inline void setRepetitionValue(std::uint32_t rv) override;
+
         private:
 
         };
 
         VertexType DelayVertex::subtype() const {
             return VertexType::DELAY;
+        }
+
+        void DelayVertex::setRepetitionValue(std::uint32_t rv) {
+            if (rv > 1) {
+                throwSpiderException("Delay [%s] has repetition vector value of %"
+                                             PRIu32
+                                             " instead of 1.", name().c_str(), rv);
+            }
+            repetitionValue_ = rv;
         }
 
         /* === Inline method(s) === */

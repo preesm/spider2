@@ -57,7 +57,6 @@ namespace Spider {
                                std::uint32_t edgeINCount = 0,
                                std::uint32_t edgeOUTCount = 0,
                                StackID stack = StackID::PISDF) : Vertex(std::move(name),
-                                                                        VertexType::INTERFACE,
                                                                         edgeINCount,
                                                                         edgeOUTCount,
                                                                         stack) { }

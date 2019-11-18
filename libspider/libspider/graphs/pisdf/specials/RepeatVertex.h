@@ -71,7 +71,6 @@ namespace Spider {
         public:
             explicit RepeatVertex(std::string name = "unnamed-upsamplevertex",
                                   StackID stack = StackID::PISDF) : VertexInterface<RepeatVertex>(std::move(name),
-                                                                                                  VertexType::SPECIAL,
                                                                                                   1,
                                                                                                   1,
                                                                                                   stack) { }

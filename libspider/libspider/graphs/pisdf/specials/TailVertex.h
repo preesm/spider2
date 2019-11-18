@@ -74,7 +74,6 @@ namespace Spider {
             explicit TailVertex(std::string name = "unnamed-tailvertex",
                                 std::uint32_t edgeINCount = 0,
                                 StackID stack = StackID::PISDF) : VertexInterface<TailVertex>(std::move(name),
-                                                                                              VertexType::SPECIAL,
                                                                                               edgeINCount,
                                                                                               1,
                                                                                               stack) { }

@@ -42,7 +42,6 @@
 
 #include <graphs/pisdf/Delay.h>
 #include <graphs/pisdf/Edge.h>
-#include <graphs/pisdf/ExecVertex.h>
 #include <graphs/pisdf/specials/Specials.h>
 #include <spider-api/pisdf.h>
 
@@ -92,8 +91,8 @@ Spider::PiSDF::Delay::Delay(Expression &&expression,
     }
 
     /* == Create virtual vertex and connect it to setter / getter == */
-    vertex_ = Spider::allocate<ExecVertex>(stack);
-    Spider::construct(vertex_, this->name(), VertexType::DELAY, 1, 1, stack);
+    vertex_ = Spider::allocate<DelayVertex>(stack);
+    Spider::construct(vertex_, this->name(), stack);
     edge->containingGraph()->addVertex(vertex_);
 
     auto *setterEdge = Spider::allocate<PiSDFEdge>(stack);

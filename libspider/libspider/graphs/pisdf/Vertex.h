@@ -63,7 +63,6 @@ namespace Spider {
         public:
 
             explicit Vertex(std::string name = "unnamed-vertex",
-                            VertexType type = VertexType::NORMAL,
                             std::uint32_t edgeINCount = 0,
                             std::uint32_t edgeOUTCount = 0,
                             StackID stack = StackID::PISDF);
@@ -190,7 +189,7 @@ namespace Spider {
              * @brief Get the subtype of the vertex.
              * @return @refitem Spider::PiSDF::VertexType corresponding to the subtype
              */
-            inline virtual VertexType subtype() const;
+            virtual VertexType subtype() const = 0;
 
             /**
              * @brief Return the reference vertex attached to current copy.
@@ -227,7 +226,7 @@ namespace Spider {
              * @brief Set the repetition vector value of the vertex;
              * @param rv Repetition value to set.
              */
-            inline void setRepetitionValue(std::uint32_t rv);
+            inline virtual void setRepetitionValue(std::uint32_t rv);
 
             /**
              * @brief Set the graph of the vertex.
@@ -241,7 +240,6 @@ namespace Spider {
             Graph *graph_ = nullptr;
             std::string name_ = "unnamed-vertex";
             std::uint32_t ix_ = UINT32_MAX;
-            VertexType type_ = VertexType::NORMAL;
             std::uint32_t repetitionValue_ = 1;
             std::uint32_t copyCount_ = 0;
             Vertex *reference_ = this;
@@ -310,10 +308,6 @@ namespace Spider {
             return false;
         }
 
-        VertexType Vertex::subtype() const {
-            return type_;
-        }
-
         const Vertex *Vertex::reference() const {
             return reference_;
         }
@@ -327,15 +321,6 @@ namespace Spider {
         }
 
         void Vertex::setRepetitionValue(std::uint32_t rv) {
-            if (type_ == VertexType::DELAY && rv > 1) {
-                throwSpiderException("Delay [%s] has repetition vector value of %"
-                                             PRIu32
-                                             " instead of 1.", name().c_str(), rv);
-            } else if (type_ == VertexType::CONFIG && rv > 1) {
-                throwSpiderException("Configure actor [%s] has repetition vector value of %"
-                                             PRIu32
-                                             " instead of 1.", name().c_str(), rv);
-            }
             repetitionValue_ = rv;
         }
     }

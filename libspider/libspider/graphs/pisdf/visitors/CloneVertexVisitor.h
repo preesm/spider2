@@ -88,6 +88,12 @@ namespace Spider {
                 setRef(vertex, clone);
             }
 
+            inline void visit(DelayVertex *vertex) override {
+                auto *clone = Spider::allocate<DelayVertex>(stack_);
+                Spider::construct(clone, vertex->name(), stack_);
+                setRef(vertex, clone);
+            }
+
             inline void visit(ConfigVertex *vertex) override {
                 auto *clone = Spider::API::createConfigActor(graph_,
                                                              vertex->name_,

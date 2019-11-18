@@ -110,12 +110,7 @@ PiSDFVertex *Spider::API::createVertex(PiSDFGraph *graph,
                                        std::uint32_t edgeOUTCount,
                                        StackID stack) {
     auto *vertex = Spider::allocate<PiSDFVertex>(stack);
-    Spider::construct(vertex,
-                      std::move(name),
-                      PiSDFVertexType::NORMAL,
-                      edgeINCount,
-                      edgeOUTCount,
-                      stack);
+    Spider::construct(vertex, std::move(name), edgeINCount, edgeOUTCount, stack);
     graph->addVertex(vertex);
     return vertex;
 }

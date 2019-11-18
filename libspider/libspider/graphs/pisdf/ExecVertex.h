@@ -54,11 +54,9 @@ namespace Spider {
         class ExecVertex : public Vertex {
         public:
             explicit ExecVertex(std::string name = "unnamed-execvertex",
-                                VertexType type = VertexType::NORMAL,
                                 std::uint32_t edgeINCount = 0,
                                 std::uint32_t edgeOUTCount = 0,
                                 StackID stack = StackID::PISDF) : Vertex(std::move(name),
-                                                                         type,
                                                                          edgeINCount,
                                                                          edgeOUTCount,
                                                                          stack) { }

@@ -85,6 +85,11 @@ namespace Spider {
                 destroyVertex(vertex);
             }
 
+            inline void visit(DelayVertex *vertex) override {
+                /* == Remove the vertex and destroy it == */
+                destroyVertex(vertex);
+            }
+
             inline void visit(ForkVertex *vertex) override {
                 /* == Remove the vertex and destroy it == */
                 destroyVertex(vertex);

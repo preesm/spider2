@@ -55,7 +55,6 @@ namespace Spider {
                                   std::uint32_t edgeINCount = 0,
                                   std::uint32_t edgeOUTCount = 0,
                                   StackID stack = StackID::PISDF) : VertexInterface<ConfigVertex>(std::move(name),
-                                                                                                  VertexType::CONFIG,
                                                                                                   edgeINCount,
                                                                                                   edgeOUTCount,
                                                                                                   stack) { }
@@ -68,6 +67,8 @@ namespace Spider {
 
             /* === Setter(s) === */
 
+            inline void setRepetitionValue(std::uint32_t rv) override;
+
         private:
 
         };
@@ -76,6 +77,15 @@ namespace Spider {
 
         VertexType ConfigVertex::subtype() const {
             return VertexType::CONFIG;
+        }
+
+        void ConfigVertex::setRepetitionValue(std::uint32_t rv) {
+            if (rv > 1) {
+                throwSpiderException("Configure actor [%s] has repetition vector value of %"
+                                             PRIu32
+                                             " instead of 1.", name().c_str(), rv);
+            }
+            repetitionValue_ = rv;
         }
     }
 }
