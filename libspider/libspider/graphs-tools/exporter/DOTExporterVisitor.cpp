@@ -131,7 +131,10 @@ std::pair<std::int32_t, std::int32_t> Spider::PiSDF::DOTExporterVisitor::compute
     return std::make_pair(centerWidth, rateWidth);
 }
 
-void Spider::PiSDF::DOTExporterVisitor::vertexBodyPrinter(ExecVertex *vertex) const {
+void Spider::PiSDF::DOTExporterVisitor::vertexPrinter(ExecVertex *vertex, const std::string &color) const {
+    /* == Header == */
+    vertexHeaderPrinter(vertex->name(), color);
+
     /* == Vertex name == */
     file_ << offset_ << '\t' << '\t'
           << R"(<tr> <td border="1" sides="lrt" colspan="4" fixedsize="false" height="10"></td></tr>)"
@@ -154,18 +157,18 @@ void Spider::PiSDF::DOTExporterVisitor::vertexBodyPrinter(ExecVertex *vertex) co
         file_ << offset_ << '\t' << '\t' << R"(<tr>)" << '\n';
 
         /* == Export input port == */
-        portPrinter<true>(edge, rateWidth);
+        portPrinter<true>(edge, rateWidth, color);
 
         /* == Middle separation == */
         file_ << offset_ << '\t' << '\t' << '\t'
-              << R"(<td border="0" colspan="2" bgcolor="#ffffff00" fixedsize="true" width=")" << centerWidth
+              << R"(<td border="0" colspan="2" bgcolor=")" << color << R"(" fixedsize="true" width=")" << centerWidth
               << R"(" height="20"></td>)" << '\n';
 
         /* == Export output port == */
         if (nOutput < vertex->edgesOUTCount()) {
-            portPrinter<false>(vertex->outputEdge(nOutput), rateWidth);
+            portPrinter<false>(vertex->outputEdge(nOutput), rateWidth, color);
         } else {
-            dummyPortPrinter<false>(rateWidth);
+            dummyPortPrinter<false>(rateWidth, color);
         }
 
         file_ << offset_ << '\t' << '\t' << R"(</tr>)" << '\n';
@@ -181,15 +184,15 @@ void Spider::PiSDF::DOTExporterVisitor::vertexBodyPrinter(ExecVertex *vertex) co
         file_ << offset_ << '\t' << '\t' << R"(<tr>)" << '\n';
 
         /* == Export dummy input port == */
-        dummyPortPrinter<true>(rateWidth);
+        dummyPortPrinter<true>(rateWidth, color);
 
         /* == Middle separation == */
         file_ << offset_ << '\t' << '\t' << '\t'
-              << R"(<td border="0" colspan="2" bgcolor="#ffffff00" fixedsize="true" width=")" << centerWidth
+              << R"(<td border="0" colspan="2" bgcolor=")" << color << R"(" fixedsize="true" width=")" << centerWidth
               << R"(" height="20"></td>)" << '\n';
 
         /* == Export output port == */
-        portPrinter<false>(edge, rateWidth);
+        portPrinter<false>(edge, rateWidth, color);
         file_ << offset_ << '\t' << '\t' << R"(</tr>)" << '\n';
     }
 
@@ -218,7 +221,7 @@ void Spider::PiSDF::DOTExporterVisitor::interfaceBodyPrinter(Interface *interfac
                     <td border="0" bgcolor="#ffffff00" fixedsize="true" width=")" << balanceWidth << R"(" height="20"></td>
                     <td border="0" bgcolor="#ffffff00" fixedsize="true" width=")" << rateWidth << R"(" height="20"></td>
                     <td border="1" sides="ltr" bgcolor=")" << color << R"(" fixedsize="true" width="20" height="20"></td>
-                    <td border="0" bgcolor="#ffffff00" fixedsize="true" width=")" << rateWidth << R"(" height="20"></td>
+                    <td border="1" sides="l" bgcolor="#ffffff00" fixedsize="true" width=")" << rateWidth << R"(" height="20"></td>
                     <td border="0" bgcolor="#ffffff00" fixedsize="true" width=")" << balanceWidth << R"(" height="20"></td>
                 </tr>)" << '\n';
 
@@ -231,7 +234,7 @@ void Spider::PiSDF::DOTExporterVisitor::interfaceBodyPrinter(Interface *interfac
                     <td border="0" bgcolor="#ffffff00" fixedsize="true" width=")" << balanceWidth << R"(" height="20"></td>
                     <td port="in_)" << inIx << R"(" align="right" border="0" bgcolor="#ffffff00" fixedsize="true" width="0" height="20"></td>
                     <td border="1" sides="lr" bgcolor=")" << color << R"(" fixedsize="true" width="20" height="20"></td>
-                    <td port="out_)" << outIx << R"(" align="left" border="0" bgcolor="#00000000" fixedsize="true" width="0" height="20"></td>
+                    <td port="out_)" << outIx << R"(" align="left" border="0" bgcolor="#ffffff00" fixedsize="true" width="0" height="20"></td>
                     <td border="0" bgcolor="#ffffff00" fixedsize="true" width=")" << balanceWidth << R"(" height="20"></td>
                 </tr>)" << '\n';
 
@@ -258,7 +261,8 @@ void Spider::PiSDF::DOTExporterVisitor::interfaceBodyPrinter(Interface *interfac
 }
 
 void Spider::PiSDF::DOTExporterVisitor::edgePrinter(Spider::PiSDF::Edge *edge) const {
-    auto *source = edge->source()->subtype() == Spider::PiSDF::VertexType::GRAPH ? edge->source<true>() : edge->source();
+    auto *source =
+            edge->source()->subtype() == Spider::PiSDF::VertexType::GRAPH ? edge->source<true>() : edge->source();
     auto *sink = edge->sink()->subtype() == Spider::PiSDF::VertexType::GRAPH ? edge->sink<true>() : edge->sink();
     const auto *delay = edge->delay();
     const auto &srcPortIx = edge->sourcePortIx();

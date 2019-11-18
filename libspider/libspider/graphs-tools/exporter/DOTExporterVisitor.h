@@ -48,7 +48,9 @@
 #include <graphs/pisdf/interfaces/OutputInterface.h>
 #include <graphs/pisdf/params/InHeritedParam.h>
 #include <graphs/pisdf/params/DynamicParam.h>
+#include <graphs/pisdf/specials/Specials.h>
 #include <cmath>
+#include <utility>
 
 namespace Spider {
     namespace PiSDF {
@@ -60,23 +62,59 @@ namespace Spider {
 
             explicit DOTExporterVisitor(const DOTExporter *exporter,
                                         std::ofstream &file,
-                                        const std::string &offset) : exporter_{ exporter },
-                                                                     file_{ file },
-                                                                     offset_{ offset } { }
+                                        std::string offset) : exporter_{ exporter },
+                                                              file_{ file },
+                                                              offset_{ std::move(offset) } { }
 
             /* === Method(s) === */
 
             void visit(Graph *graph) override;
 
-            inline void visit(ExecVertex *vertex) override {
-                if (vertex->subtype() == VertexType::DELAY) {
-                    return;
-                }
-                /* == Header == */
-                vertexHeaderPrinter(vertex->name(), vertexColor(vertex));
+            inline void visit(DelayVertex *) override { }
 
+            inline void visit(ExecVertex *vertex) override {
                 /* == Vertex printer == */
-                vertexBodyPrinter(vertex);
+                vertexPrinter(vertex, "#eeeeeeff");
+            }
+
+            inline void visit(ForkVertex *vertex) override {
+                /* == Vertex printer == */
+                vertexPrinter(vertex, "#fabe58ff");
+            }
+
+            inline void visit(JoinVertex *vertex) override {
+                /* == Vertex printer == */
+                vertexPrinter(vertex, "#aea8d3ff");
+            }
+
+            inline void visit(HeadVertex *vertex) override {
+                /* == Vertex printer == */
+                vertexPrinter(vertex, "#dcc6e0ff");
+            }
+
+            inline void visit(TailVertex *vertex) override {
+                /* == Vertex printer == */
+                vertexPrinter(vertex, "#f1e7feff");
+            }
+
+            inline void visit(DuplicateVertex *vertex) override {
+                /* == Vertex printer == */
+                vertexPrinter(vertex, "#2c3e50ff");
+            }
+
+            inline void visit(RepeatVertex *vertex) override {
+                /* == Vertex printer == */
+                vertexPrinter(vertex, "#fff68fff");
+            }
+
+            inline void visit(InitVertex *vertex) override {
+                /* == Vertex printer == */
+                vertexPrinter(vertex, "#c8f7c5ff");
+            }
+
+            inline void visit(EndVertex *vertex) override {
+                /* == Vertex printer == */
+                vertexPrinter(vertex, "#ff9478ff");
             }
 
             inline void visit(InputInterface *interface) override {
@@ -112,33 +150,6 @@ namespace Spider {
             std::ofstream &file_;
             std::string offset_;
 
-            static std::string vertexColor(ExecVertex *vertex) {
-                switch (vertex->subtype()) {
-                    case PiSDFVertexType::DELAY:
-                    case PiSDFVertexType::CONFIG:
-                    case PiSDFVertexType::NORMAL:
-                        return "#eeeeeeff";
-                    case PiSDFVertexType::FORK:
-                        return "#fabe58ff";
-                    case PiSDFVertexType::JOIN:
-                        return "#aea8d3ff";
-                    case PiSDFVertexType::DUPLICATE:
-                        return "#2c3e50ff";
-                    case PiSDFVertexType::TAIL:
-                        return "#f1e7feff";
-                    case PiSDFVertexType::HEAD:
-                        return "#dcc6e0ff";
-                    case PiSDFVertexType::INIT:
-                        return "#c8f7c5ff";
-                    case PiSDFVertexType::END:
-                        return "#ff9478ff";
-                    case PiSDFVertexType::REPEAT:
-                        return "#fff68fff";
-                    default:
-                        return "eeeeeeff";
-                }
-            }
-
             inline void vertexHeaderPrinter(const std::string &name, const std::string &color = "#ffffff00") const {
                 file_ << offset_ << R"(")" << name
                       << R"(" [shape=plain, style=filled, fillcolor=")" << color << R"(", width=0, height=0, label=<)"
@@ -150,7 +161,7 @@ namespace Spider {
 
             std::pair<std::int32_t, std::int32_t> computeConstantWidth(Vertex *vertex) const;
 
-            void vertexBodyPrinter(ExecVertex *vertex) const;
+            void vertexPrinter(ExecVertex *vertex, const std::string &color) const;
 
             void interfaceBodyPrinter(Interface *interface, const std::string &color) const;
 
@@ -159,17 +170,19 @@ namespace Spider {
             void paramPrinter(Param *param) const;
 
             template<bool = true>
-            inline void dummyPortPrinter(std::uint32_t width) const {
+            inline void dummyPortPrinter(std::uint32_t width, const std::string &color) const {
                 /* == Header == */
                 portHeaderPrinter();
 
                 /* == Direction specific export == */
                 file_ << offset_ << '\t' << '\t' << '\t' << '\t' << '\t' << '\t'
-                      << R"(<td border="1" sides="l" bgcolor="#ffffff00" align="left" fixedsize="true" width="20" height="20"></td>)"
+                      << R"(<td border="1" sides="l" bgcolor=")" << color
+                      << R"(" align="left" fixedsize="true" width="20" height="20"></td>)"
                       << '\n';
                 file_ << offset_ << '\t' << '\t' << '\t' << '\t' << '\t' << '\t'
-                      << R"(<td border="0" align="left" bgcolor="#ffffff00" fixedsize="true" width=")" << width
-                      << R"(" height="20"><font color="#ffffff00" point-size="12" face="inconsolata"> 0</font></td>)"
+                      << R"(<td border="0" align="left" bgcolor=")" << color << R"(" fixedsize="true" width=")" << width
+                      << R"(" height="20"><font color=")" << color
+                      << R"(" point-size="12" face="inconsolata"> 0</font></td>)"
                       << '\n';
 
                 /* == Footer == */
@@ -177,7 +190,7 @@ namespace Spider {
             }
 
             template<bool>
-            inline void portPrinter(const Edge *edge, std::uint32_t width) const {
+            inline void portPrinter(const Edge *edge, std::uint32_t width, const std::string &color) const {
                 /* == Header == */
                 portHeaderPrinter();
 
@@ -187,7 +200,8 @@ namespace Spider {
                       << R"(" border="1" bgcolor="#87d37cff" align="left" fixedsize="true" width="20" height="20"></td>)"
                       << '\n';
                 file_ << offset_ << '\t' << '\t' << '\t' << '\t' << '\t' << '\t'
-                      << R"(<td border="0" align="left" bgcolor="#ffffff00" fixedsize="true" width=")" << width
+                      << R"(<td border="1" sides="l" align="left" bgcolor=")" << color
+                      << R"(" fixedsize="true" width=")" << width
                       << R"(" height="20"><font point-size="12" face="inconsolata"> )"
                       << edge->sinkRateExpression().evaluate(exporter_->params_)
                       << R"(</font></td>)" << '\n';
@@ -213,17 +227,19 @@ namespace Spider {
         /* === Inline method(s) === */
 
         template<>
-        inline void DOTExporterVisitor::dummyPortPrinter<false>(std::uint32_t width) const {
+        inline void DOTExporterVisitor::dummyPortPrinter<false>(std::uint32_t width, const std::string &color) const {
             /* == Header == */
             portHeaderPrinter();
 
             /* == Direction specific export == */
             file_ << offset_ << '\t' << '\t' << '\t' << '\t' << '\t' << '\t'
-                  << R"(<td border="0" align="right" bgcolor="#ffffff00" fixedsize="true" width=")" << width
-                  << R"(" height="20"><font color="#00000000" point-size="12" face="inconsolata">0 </font></td>)"
+                  << R"(<td border="0" align="right" bgcolor=")" << color << R"(" fixedsize="true" width=")" << width
+                  << R"(" height="20"><font color=")" << color
+                  << R"(" point-size="12" face="inconsolata">0 </font></td>)"
                   << '\n';
             file_ << offset_ << '\t' << '\t' << '\t' << '\t' << '\t' << '\t'
-                  << R"(<td border="1" sides="r" bgcolor="#ffffff00" align="left" fixedsize="true" width="20" height="20"></td>)"
+                  << R"(<td border="1" sides="r" bgcolor=")" << color
+                  << R"(" align="left" fixedsize="true" width="20" height="20"></td>)"
                   << '\n';
 
             /* == Footer == */
@@ -231,13 +247,14 @@ namespace Spider {
         }
 
         template<>
-        inline void DOTExporterVisitor::portPrinter<false>(const Edge *edge, std::uint32_t width) const {
+        inline void
+        DOTExporterVisitor::portPrinter<false>(const Edge *edge, std::uint32_t width, const std::string &color) const {
             /* == Header == */
             portHeaderPrinter();
 
             /* == Direction specific export == */
             file_ << offset_ << '\t' << '\t' << '\t' << '\t' << '\t' << '\t'
-                  << R"(<td border="0" align="right" bgcolor="#ffffff00" fixedsize="true" width=")" << width
+                  << R"(<td border="0" align="right" bgcolor=")" << color << R"(" fixedsize="true" width=")" << width
                   << R"(" height="20"><font point-size="12" face="inconsolata">)"
                   << edge->sourceRateExpression().evaluate(exporter_->params_)
                   << R"( </font></td>)" << '\n';

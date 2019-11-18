@@ -43,6 +43,7 @@
 /* === Includes === */
 
 #include <graphs/pisdf/specials/ConfigVertex.h>
+#include <graphs/pisdf/specials/DelayVertex.h>
 #include <graphs/pisdf/specials/ForkVertex.h>
 #include <graphs/pisdf/specials/JoinVertex.h>
 #include <graphs/pisdf/specials/TailVertex.h>

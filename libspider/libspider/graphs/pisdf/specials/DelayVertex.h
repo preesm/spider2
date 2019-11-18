@@ -37,8 +37,8 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_CONFIGVERTEX_H
-#define SPIDER2_CONFIGVERTEX_H
+#ifndef SPIDER2_DELAYVERTEX_H
+#define SPIDER2_DELAYVERTEX_H
 
 /* === Include(s) === */
 
@@ -49,17 +49,14 @@ namespace Spider {
 
         /* === Class definition === */
 
-        class ConfigVertex final : public VertexInterface<ConfigVertex> {
+        class DelayVertex final : public VertexInterface<DelayVertex> {
         public:
-            explicit ConfigVertex(std::string name = "unnamed-cfgvertex",
-                                  std::uint32_t edgeINCount = 0,
-                                  std::uint32_t edgeOUTCount = 0,
-                                  StackID stack = StackID::PISDF) : VertexInterface<ConfigVertex>(std::move(name),
-                                                                                                  VertexType::CONFIG,
-                                                                                                  edgeINCount,
-                                                                                                  edgeOUTCount,
-                                                                                                  stack) { }
-
+            explicit DelayVertex(std::string name = "unnamed-delayvertex",
+                                 StackID stack = StackID::PISDF) : VertexInterface<DelayVertex>(std::move(name),
+                                                                                                VertexType::DELAY,
+                                                                                                1,
+                                                                                                1,
+                                                                                                stack) { }
             /* === Method(s) === */
 
             /* === Getter(s) === */
@@ -72,13 +69,11 @@ namespace Spider {
 
         };
 
-        /* === Inline method(s) === */
-
-        VertexType ConfigVertex::subtype() const {
-            return VertexType::CONFIG;
+        VertexType DelayVertex::subtype() const {
+            return VertexType::DELAY;
         }
+
+        /* === Inline method(s) === */
     }
 }
-
-
-#endif //SPIDER2_CONFIGVERTEX_H
+#endif //SPIDER2_DELAYVERTEX_H

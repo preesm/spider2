@@ -61,6 +61,8 @@ namespace Spider {
 
             virtual void visit(ExecVertex *) = 0;
 
+            virtual void visit(DelayVertex *) = 0;
+
             virtual void visit(ConfigVertex *) = 0;
 
             virtual void visit(ForkVertex *) = 0;

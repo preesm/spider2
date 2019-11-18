@@ -58,6 +58,8 @@ namespace Spider {
 
             inline void visit(ExecVertex *) override { };
 
+            void visit(DelayVertex *vertex) override;
+
             void visit(ConfigVertex *vertex) override;
 
             void visit(ForkVertex *vertex) override;
