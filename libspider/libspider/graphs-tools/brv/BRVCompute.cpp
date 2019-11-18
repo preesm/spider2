@@ -90,7 +90,7 @@ void BRVCompute::extractConnectedComponent(BRVComponent &component,
                 throwSpiderException("Vertex [%s] has null edge.", currentVertex->name().c_str());
             }
             auto *sink = edge->sink();
-            if (sink->type() != Spider::PiSDF::VertexType::INTERFACE &&
+            if (sink->subtype() != Spider::PiSDF::VertexType::OUTPUT &&
                 !keyArray[sink->ix()]) {
                 /* == Register the vertex == */
                 component.vertices.push_back(sink);
@@ -106,13 +106,13 @@ void BRVCompute::extractConnectedComponent(BRVComponent &component,
                 throwSpiderException("Vertex [%s] has null edge.", currentVertex->name().c_str());
             }
             auto *source = edge->source();
-            if (source->type() != Spider::PiSDF::VertexType::INTERFACE &&
+            if (source->subtype() != Spider::PiSDF::VertexType::INPUT &&
                 !keyArray[source->ix()]) {
                 /* == Register the vertex == */
                 component.vertices.push_back(source);
                 keyArray[source->ix()] = source;
                 addedVertex = true;
-            } else if (source->type() == Spider::PiSDF::VertexType::INTERFACE) {
+            } else if (source->subtype() == Spider::PiSDF::VertexType::INPUT) {
                 component.nEdges += 1;
             }
         }
@@ -129,7 +129,7 @@ Spider::Array<const PiSDFEdge *> BRVCompute::extractEdges(const BRVComponent &co
             edgeArray[index++] = edge;
         }
         for (const auto &edge: v->inputEdgeArray()) {
-            if (edge->source()->type() == PiSDFVertexType::INTERFACE) {
+            if (edge->source()->subtype() == PiSDFVertexType::INPUT) {
                 edgeArray[index++] = edge;
             }
         }

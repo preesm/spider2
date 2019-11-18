@@ -122,11 +122,11 @@ bool TopologyBRVCompute::isVertexExecutable(const PiSDFAbstractVertex *vertex) c
 }
 
 bool TopologyBRVCompute::isEdgeValid(const PiSDFEdge *edge, Spider::Array<std::int32_t> &vertexIxArray) {
-    return edge->source()->type() != PiSDFVertexType::INTERFACE &&
-           edge->sink()->type() != PiSDFVertexType::INTERFACE &&
+    return edge->source()->subtype() != PiSDFVertexType::INPUT &&
+           edge->sink()->subtype() != PiSDFVertexType::OUTPUT &&
            edge->source() != edge->sink() &&
-           edge->source()->type() != PiSDFVertexType::CONFIG &&
-           edge->sink()->type() != PiSDFVertexType::CONFIG &&
+           edge->source()->subtype() != PiSDFVertexType::CONFIG &&
+           edge->sink()->subtype() != PiSDFVertexType::CONFIG &&
            vertexIxArray[edge->source()->ix()] >= 0 &&
            vertexIxArray[edge->sink()->ix()] >= 0;
 }

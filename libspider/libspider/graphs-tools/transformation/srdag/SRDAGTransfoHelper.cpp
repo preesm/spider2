@@ -173,7 +173,7 @@ private:
 
 static inline std::uint32_t uniformIx(const PiSDFAbstractVertex *vertex, const PiSDFGraph *graph) {
     return vertex->ix() +
-           ((vertex->type() == PiSDFVertexType::INTERFACE) * graph->vertexCount()) +
+           ((vertex->subtype() == PiSDFVertexType::INPUT) * graph->vertexCount()) +
            ((vertex->subtype() == PiSDFVertexType::OUTPUT) * graph->edgesINCount());
 }
 

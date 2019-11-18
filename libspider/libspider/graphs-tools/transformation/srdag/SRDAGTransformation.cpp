@@ -62,9 +62,9 @@ static Spider::SRDAG::TransfoStack buildSourceLinkerVector(Spider::SRDAG::Transf
 
     /* == Populate first the source clones in reverse order == */
     const auto &params = linker.job_.params_;
-    const auto &rate = source->type() == PiSDFVertexType::INTERFACE ? edge->sinkRateExpression().evaluate(params) *
-                                                                      edge->sink()->repetitionValue()
-                                                                    : edge->sourceRateExpression().evaluate(params);
+    const auto &rate = source->subtype() == PiSDFVertexType::INPUT ? edge->sinkRateExpression().evaluate(params) *
+                                                                     edge->sink()->repetitionValue()
+                                                                   : edge->sourceRateExpression().evaluate(params);
     fillLinkerVector(sourceVector, source, rate, edge->sourcePortIx(), linker);
 
     /* == If delay, populate the setter clones in reverse order == */
@@ -100,7 +100,7 @@ static Spider::SRDAG::TransfoStack buildSinkLinkerVector(Spider::SRDAG::TransfoJ
     }
 
     /* == Populate the sink clones in reverse order == */
-    const auto &rate = sink->type() == PiSDFVertexType::INTERFACE ? edge->sourceRateExpression().evaluate(params) *
+    const auto &rate = sink->subtype() == PiSDFVertexType::OUTPUT ? edge->sourceRateExpression().evaluate(params) *
                                                                     edge->source()->repetitionValue()
                                                                   : edge->sinkRateExpression().evaluate(params);
     fillLinkerVector(sinkVector, sink, rate, edge->sinkPortIx(), linker);
@@ -121,15 +121,15 @@ std::pair<PiSDFGraph *, PiSDFGraph *> Spider::SRDAG::splitDynamicGraph(PiSDFGrap
     for (const auto &cfg : subgraph->configVertices()) {
         for (const auto &edge : cfg->inputEdgeArray()) {
             const auto &source = edge->source();
-            if (source->type() != PiSDF::VertexType::INTERFACE) {
+            if (source->subtype() != PiSDF::VertexType::INPUT) {
                 throwSpiderException("Config vertex can not have source of type other than interface.");
             }
             initInputIFCount += 1;
         }
         for (const auto &edge : cfg->outputEdgeArray()) {
             const auto &sink = edge->sink();
-            cfgInputIFCount += (sink->type() != PiSDF::VertexType::INTERFACE);
-            initOutputIFCount += (sink->type() == PiSDF::VertexType::INTERFACE);
+            cfgInputIFCount += (sink->subtype() != PiSDF::VertexType::OUTPUT);
+            initOutputIFCount += (sink->subtype() == PiSDF::VertexType::OUTPUT);
         }
     }
     const auto &runInputIFCount = subgraph->edgesINCount() + cfgInputIFCount - initInputIFCount;
@@ -159,7 +159,7 @@ std::pair<PiSDFGraph *, PiSDFGraph *> Spider::SRDAG::splitDynamicGraph(PiSDFGrap
     std::uint32_t inputRunIx = 0;
     for (const auto &input : subgraph->inputInterfaceArray()) {
         const auto &sink = input->opposite();
-        if (sink->type() == PiSDF::VertexType::CONFIG) {
+        if (sink->subtype() == PiSDF::VertexType::CONFIG) {
             /* == Reconnect and move inner edge in init graph == */
             auto *edge = input->outputEdge();
             edge->setSource(initGraph->inputInterface(inputInitIx), 0, Expression(edge->sourceRateExpression()));
@@ -188,7 +188,7 @@ std::pair<PiSDFGraph *, PiSDFGraph *> Spider::SRDAG::splitDynamicGraph(PiSDFGrap
     std::uint32_t outputRunIx = 0;
     for (const auto &output : subgraph->outputInterfaceArray()) {
         const auto &source = output->opposite();
-        if (source->type() == PiSDF::VertexType::CONFIG) {
+        if (source->subtype() == PiSDF::VertexType::CONFIG) {
             /* == Reconnect and move inner edge in init graph == */
             auto *edge = output->inputEdge();
             edge->setSink(initGraph->outputInterface(outputInitIx), 0, Expression(edge->sinkRateExpression()));
@@ -217,7 +217,7 @@ std::pair<PiSDFGraph *, PiSDFGraph *> Spider::SRDAG::splitDynamicGraph(PiSDFGrap
         subgraph->moveVertex(cfg, initGraph);
         for (auto edge : cfg->outputEdgeArray()) {
             const auto &sink = edge->sink();
-            if (sink->type() != PiSDF::VertexType::INTERFACE) {
+            if (sink->subtype() != PiSDF::VertexType::OUTPUT) {
                 const auto &srcRate = edge->sourceRateExpression().evaluate(subgraph->params());
                 const auto &srcPortIx = edge->sourcePortIx();
                 const auto &name = cfg->name() + "_out-" + std::to_string(srcPortIx);
@@ -310,7 +310,7 @@ Spider::SRDAG::staticSingleRateTransformation(const Spider::SRDAG::Job &job, PiS
     /* == Clone the vertices == */
     linker.edge_ = nullptr;
     for (const auto &vertex : job.reference_->vertices()) {
-        if (vertex->type() != PiSDFVertexType::DELAY) {
+        if (vertex->subtype() != PiSDFVertexType::DELAY) {
             Spider::SRDAG::fetchOrClone(vertex, linker);
         }
     }
@@ -331,8 +331,8 @@ Spider::SRDAG::staticSingleRateTransformation(const Spider::SRDAG::Job &job, PiS
 
 void Spider::SRDAG::staticEdgeSingleRateLinkage(TransfoJob &transfoJob) {
     const auto &edge = transfoJob.edge_;
-    if ((edge->source()->type() == PiSDFVertexType::DELAY) ||
-        (edge->sink()->type() == PiSDFVertexType::DELAY)) {
+    if ((edge->source()->subtype() == PiSDFVertexType::DELAY) ||
+        (edge->sink()->subtype() == PiSDFVertexType::DELAY)) {
         return;
     }
     if ((edge->source() == edge->sink())) {

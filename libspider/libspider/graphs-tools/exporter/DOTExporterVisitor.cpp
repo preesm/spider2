@@ -258,8 +258,8 @@ void Spider::PiSDF::DOTExporterVisitor::interfaceBodyPrinter(Interface *interfac
 }
 
 void Spider::PiSDF::DOTExporterVisitor::edgePrinter(Spider::PiSDF::Edge *edge) const {
-    auto *source = edge->source()->type() == Spider::PiSDF::VertexType::GRAPH ? edge->source<true>() : edge->source();
-    auto *sink = edge->sink()->type() == Spider::PiSDF::VertexType::GRAPH ? edge->sink<true>() : edge->sink();
+    auto *source = edge->source()->subtype() == Spider::PiSDF::VertexType::GRAPH ? edge->source<true>() : edge->source();
+    auto *sink = edge->sink()->subtype() == Spider::PiSDF::VertexType::GRAPH ? edge->sink<true>() : edge->sink();
     const auto *delay = edge->delay();
     const auto &srcPortIx = edge->sourcePortIx();
     const auto &snkPortIx = edge->sinkPortIx();
@@ -281,11 +281,11 @@ void Spider::PiSDF::DOTExporterVisitor::edgePrinter(Spider::PiSDF::Edge *edge) c
         /* == Connect delay to sink == */
         file_ << offset_ << R"(")" << delay->name() << R"(":e -> ")";
         file_ << snkName << R"(":in_)" << snkPortIx << R"(:w [penwidth=3, color="#393c3c", dir=forward];)" << '\n';
-    } else if (sink->type() == VertexType::DELAY) {
+    } else if (sink->subtype() == VertexType::DELAY) {
         /* == Connect setter to delay == */
         file_ << offset_ << R"(")" << srcName << R"(":out_)" << srcPortIx << R"(:e -> ")";
         file_ << snkName << R"(":sw [penwidth=3, style=dotted, color="#393c3c", dir=forward];)" << '\n';
-    } else if (source->type() == VertexType::DELAY) {
+    } else if (source->subtype() == VertexType::DELAY) {
         /* == Connect delay to getter == */
         file_ << offset_ << R"(")" << srcName << R"(":se -> ")";
         file_ << snkName << R"(":in_)" << snkPortIx << R"(:w [penwidth=3, color="#393c3c", dir=forward];)" << '\n';

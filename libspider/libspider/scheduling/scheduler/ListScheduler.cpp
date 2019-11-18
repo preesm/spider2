@@ -106,7 +106,7 @@ Spider::ListScheduler::ListScheduler(PiSDFGraph *graph) : Scheduler(graph) {
     /* == Sort the vector == */
     std::sort(std::begin(sortedVertexVector_), std::end(sortedVertexVector_),
               [](const ListVertex &A, const ListVertex &B) -> std::int32_t {
-                  if (B.vertex->type() == PiSDFVertexType::NORMAL &&
+                  if (B.vertex->subtype() == PiSDFVertexType::NORMAL &&
                       A.vertex->reference() == B.vertex->reference() &&
                       A.level == B.level) {
                       return B.vertex->ix() - A.vertex->ix();
