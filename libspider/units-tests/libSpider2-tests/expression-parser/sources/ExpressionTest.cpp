@@ -60,23 +60,23 @@ void ExpressionTest::SetUp() {
     AllocatorConfig cfg = AllocatorConfig();
     cfg.allocatorType = AllocatorType::FREELIST;
     cfg.size = 4096;
-    Spider::initAllocator(StackID::GENERAL, cfg);
-    Spider::initAllocator(StackID::PISDF, cfg);
+    spider::initAllocator(StackID::GENERAL, cfg);
+    spider::initAllocator(StackID::PISDF, cfg);
 }
 
 void ExpressionTest::TearDown() {
-    Spider::finalizeAllocators();
+    spider::finalizeAllocators();
 }
 
 TEST_F(ExpressionTest, TestCreation) {
     EXPECT_NO_THROW(Expression(4));
     EXPECT_NO_THROW(Expression(""));
-    Spider::PiSDF::Graph *graph = Spider::API::createGraph("test");
-    EXPECT_THROW(Expression("width", graph->params()), Spider::Exception);
-    EXPECT_THROW(Expression("width"), Spider::Exception);
-    EXPECT_THROW(Expression("cos"), Spider::Exception);
-    EXPECT_THROW(Expression("+"), Spider::Exception);
-    EXPECT_THROW(Expression("max(1,)"), Spider::Exception);
+    spider::pisdf::Graph *graph = spider::api::createGraph("test");
+    EXPECT_THROW(Expression("width", graph->params()), spider::Exception);
+    EXPECT_THROW(Expression("width"), spider::Exception);
+    EXPECT_THROW(Expression("cos"), spider::Exception);
+    EXPECT_THROW(Expression("+"), spider::Exception);
+    EXPECT_THROW(Expression("max(1,)"), spider::Exception);
     ASSERT_EQ(Expression(4).value(), 4);
 }
 
@@ -84,15 +84,15 @@ TEST_F(ExpressionTest, TestString) {
     ASSERT_EQ(Expression(4).string(), "4.000000");
     ASSERT_EQ(Expression("").string(), "0.000000");
     ASSERT_EQ(Expression("4cos(0)").string(), "4.000000 ");
-    auto *width = Spider::API::createStaticParam(nullptr, "width", 0);
+    auto *width = spider::api::createStaticParam(nullptr, "width", 0);
     ASSERT_EQ(Expression("4cos(width)", {width}).string(), "4.000000 ");
-    auto *height = Spider::API::createDynamicParam(nullptr, "height");
+    auto *height = spider::api::createDynamicParam(nullptr, "height");
     ASSERT_EQ(Expression("cos(height)", {width, height}).string(), "height cos ");
     ASSERT_EQ(Expression("4min(1,height)", {width, height}).string(), "4 1 height min * ");
-    Spider::destroy(width);
-    Spider::deallocate(width);
-    Spider::destroy(height);
-    Spider::deallocate(height);
+    spider::destroy(width);
+    spider::deallocate(width);
+    spider::destroy(height);
+    spider::deallocate(height);
 }
 
 TEST_F(ExpressionTest, TestEvaluationOperators) {
@@ -144,11 +144,11 @@ TEST_F(ExpressionTest, TestEvaluationFunctions) {
     ASSERT_EQ(Expression("min((0.2 * 0.1), 0.21)").evaluateDBL(), 0.2 * 0.1);
     ASSERT_EQ(Expression("min(0.2 * 0.1, 0.21)").evaluateDBL(), 0.2 * 0.1);
     ASSERT_EQ(Expression("min(0.2 * 0.1, 0.21)").dynamic(), false);
-    Spider::PiSDF::Graph *graph = Spider::API::createGraph("test", 0, 0, 1);
-    Spider::API::createDynamicParam(graph, "height");
+    spider::pisdf::Graph *graph = spider::api::createGraph("test", 0, 0, 1);
+    spider::api::createDynamicParam(graph, "height");
     ASSERT_EQ(Expression("cos(height)", graph->params()).evaluateDBL(graph->params()), 1.);
     ASSERT_EQ(Expression("cos(height)", graph->params()).evaluate(graph->params()), 1);
     ASSERT_EQ(Expression("cos(height)", graph->params()).dynamic(), true);
-    Spider::destroy(graph);
-    Spider::deallocate(graph);
+    spider::destroy(graph);
+    spider::deallocate(graph);
 }

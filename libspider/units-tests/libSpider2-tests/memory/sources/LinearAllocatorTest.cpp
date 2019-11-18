@@ -57,7 +57,7 @@ TEST_F(LinearAllocatorTest, GetName) {
 
 TEST_F(LinearAllocatorTest, ThrowSizeException) {
     std::uint64_t size = MAX_SIZE + 1;
-    EXPECT_THROW(allocator.allocate(size), Spider::Exception);
+    EXPECT_THROW(allocator.allocate(size), spider::Exception);
 }
 
 TEST_F(LinearAllocatorTest, MemoryAlloc) {
@@ -68,7 +68,7 @@ TEST_F(LinearAllocatorTest, MemoryAlloc) {
     ASSERT_EQ(array[0], 1);
     ASSERT_EQ(array[1], 2);
     ASSERT_EQ(nullptr, allocator.allocate(0));
-    EXPECT_THROW(allocator.allocate(MAX_SIZE), Spider::Exception);
+    EXPECT_THROW(allocator.allocate(MAX_SIZE), spider::Exception);
     EXPECT_NO_THROW(allocator.reset());
     EXPECT_NO_THROW(allocator.allocate(MAX_SIZE));
     EXPECT_NO_THROW(allocator.deallocate(array));
@@ -84,11 +84,11 @@ TEST_F(LinearAllocatorTest, MemoryAllocDefaultAlignment) {
 
 TEST_F(LinearAllocatorTest, FreeOutOfScope) {
     char *charArray = new char[8];
-    EXPECT_THROW(allocator.deallocate(charArray), Spider::Exception);
+    EXPECT_THROW(allocator.deallocate(charArray), spider::Exception);
     delete[] charArray;
     auto *dblArray = (double *) allocator.allocate(2 * sizeof(double));
     ASSERT_NE(dblArray, nullptr);
-    EXPECT_THROW(allocator.deallocate(dblArray + MAX_SIZE), Spider::Exception);
+    EXPECT_THROW(allocator.deallocate(dblArray + MAX_SIZE), spider::Exception);
 }
 
 TEST(LinearStaticAllocatorTest, MemoryAllocUserAlignment) {
@@ -111,5 +111,5 @@ TEST(LinearStaticAllocatorTest, MemoryAllocNoPaddingRequired) {
 }
 
 TEST(LinearStaticAllocatorTest, MinimumAlignment) {
-    EXPECT_THROW(LinearStaticAllocator("", 0, 2), Spider::Exception);
+    EXPECT_THROW(LinearStaticAllocator("", 0, 2), spider::Exception);
 }

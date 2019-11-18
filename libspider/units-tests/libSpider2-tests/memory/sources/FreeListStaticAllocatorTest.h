@@ -56,7 +56,7 @@ TEST(FreeListStaticAllocatorTest, GetName) {
 TEST(FreeListStaticAllocatorTest, ThrowSizeException) {
     auto *allocator = new FreeListStaticAllocator(ALLOCATOR_NAME, MAX_SIZE);
     std::uint64_t size = MAX_SIZE + 1;
-    EXPECT_THROW(allocator->allocate(size), Spider::Exception);
+    EXPECT_THROW(allocator->allocate(size), spider::Exception);
     delete allocator;
 }
 
@@ -69,7 +69,7 @@ TEST(FreeListStaticAllocatorTest, MemoryAllocFindFirst) {
     ASSERT_EQ(array[0], 1);
     ASSERT_EQ(array[1], 2);
     ASSERT_EQ(nullptr, allocator->allocate(0));
-    EXPECT_THROW(allocator->allocate(MAX_SIZE), Spider::Exception);
+    EXPECT_THROW(allocator->allocate(MAX_SIZE), spider::Exception);
     EXPECT_NO_THROW(allocator->allocate(sizeof(std::int32_t)));
     EXPECT_NO_THROW(allocator->reset());
     EXPECT_NO_THROW(allocator->allocate(MAX_SIZE));
@@ -100,11 +100,11 @@ TEST(FreeListStaticAllocatorTest, FreeNull) {
 TEST(FreeListStaticAllocatorTest, FreeOutOfScope) {
     auto *allocator = new FreeListStaticAllocator(ALLOCATOR_NAME, MAX_SIZE);
     char *charArray = new char[8];
-    EXPECT_THROW(allocator->deallocate(charArray), Spider::Exception);
+    EXPECT_THROW(allocator->deallocate(charArray), spider::Exception);
     delete[] charArray;
     auto *dblArray = (double *) allocator->allocate(2 * sizeof(double));
     ASSERT_NE(dblArray, nullptr);
-    EXPECT_THROW(allocator->deallocate(dblArray + MAX_SIZE), Spider::Exception);
+    EXPECT_THROW(allocator->deallocate(dblArray + MAX_SIZE), spider::Exception);
     delete allocator;
 }
 
@@ -117,7 +117,7 @@ TEST(FreeListStaticAllocatorTest, MemoryAllocFindBest) {
     ASSERT_EQ(array[0], 1);
     ASSERT_EQ(array[1], 2);
     ASSERT_EQ(nullptr, allocator->allocate(0));
-    EXPECT_THROW(allocator->allocate(MAX_SIZE), Spider::Exception);
+    EXPECT_THROW(allocator->allocate(MAX_SIZE), spider::Exception);
     EXPECT_NO_THROW(allocator->allocate(sizeof(std::int32_t)));
     EXPECT_NO_THROW(allocator->reset());
     EXPECT_NO_THROW(allocator->allocate(MAX_SIZE));
@@ -156,7 +156,7 @@ TEST(FreeListStaticAllocatorTest, Free) {
 
 TEST(FreeListStaticAllocatorTest, MinAlignmentSize) {
     EXPECT_THROW(FreeListStaticAllocator(ALLOCATOR_NAME, MAX_SIZE, FreeListPolicy::FIND_FIRST, 0),
-                 Spider::Exception);
+                 spider::Exception);
 }
 
 #endif //SPIDER2_MEMORY_TEST_FREELIST_ALLOCATOR_H

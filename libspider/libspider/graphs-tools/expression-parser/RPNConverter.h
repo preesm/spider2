@@ -126,90 +126,92 @@ struct RPNElement {
                                                                                          token{ std::move(token) } { }
 };
 
-namespace rpn {
-    /**
-     * @brief number of operators (based on the value of @refitem RPNOperatorType::COS (i.e last function)
-     */
-    constexpr auto operator_count = static_cast<std::uint32_t>(RPNOperatorType::MIN) + 1;
+namespace spider {
+    namespace rpn {
+        /**
+         * @brief number of operators (based on the value of @refitem RPNOperatorType::COS (i.e last function)
+         */
+        constexpr auto operator_count = static_cast<std::uint32_t>(RPNOperatorType::MIN) + 1;
 
-    /**
-     * @brief Value of the @refitem RPNOperatorType::COS (first function)
-     */
-    constexpr auto function_offset = static_cast<std::uint32_t>(RPNOperatorType::COS);
+        /**
+         * @brief Value of the @refitem RPNOperatorType::COS (first function)
+         */
+        constexpr auto function_offset = static_cast<std::uint32_t>(RPNOperatorType::COS);
 
-    /**
-     * @brief Number of function (not basic operators)
-     */
-    constexpr auto function_count = operator_count - function_offset;
+        /**
+         * @brief Number of function (not basic operators)
+         */
+        constexpr auto function_count = operator_count - function_offset;
 
-    /**
-     * @brief Build the expression infix string from the stack of postfix elements.
-     * @param postfixStack  Stack of postfix elements.
-     * @return infix expression string.
-     */
-    std::string infixString(const spider::vector<RPNElement> &postfixStack);
+        /**
+         * @brief Build the expression infix string from the stack of postfix elements.
+         * @param postfixStack  Stack of postfix elements.
+         * @return infix expression string.
+         */
+        std::string infixString(const spider::vector<RPNElement> &postfixStack);
 
-    /**
-     * @brief Build the expression postfix string from the stack of postfix elements.
-     * @param postfixStack  Stack of postfix elements.
-     * @return postfix expression string.
-     */
-    std::string postfixString(const spider::vector<RPNElement> &postfixStack);
+        /**
+         * @brief Build the expression postfix string from the stack of postfix elements.
+         * @param postfixStack  Stack of postfix elements.
+         * @return postfix expression string.
+         */
+        std::string postfixString(const spider::vector<RPNElement> &postfixStack);
 
-    /**
-     * @brief Extract the infix expression tokens.
-     * @remark This function will perform several checks on the input string and will clean it before treating it.
-     *         For instance: expr = "( sin(4pi))" will become cleanExpr = "(sin(4*3.1415926535))".
-     * @param inFixExpr  Infix expression to evaluate.
-     * @return vector of @refitem RPNElement in the infix order.
-     * @throws @refitem Spider::Exception if expression is ill formed.
-     */
-    spider::vector<RPNElement> extractInfixElements(std::string inFixExpr);
+        /**
+         * @brief Extract the infix expression tokens.
+         * @remark This function will perform several checks on the input string and will clean it before treating it.
+         *         For instance: expr = "( sin(4pi))" will become cleanExpr = "(sin(4*3.1415926535))".
+         * @param inFixExpr  Infix expression to evaluate.
+         * @return vector of @refitem RPNElement in the infix order.
+         * @throws @refitem Spider::Exception if expression is ill formed.
+         */
+        spider::vector<RPNElement> extractInfixElements(std::string inFixExpr);
 
-    /**
-     * @brief Extract the different elements (operand and operators) and build the post fix elements stack.
-     * @remark This function calls @refitem extractInfixElements then build the postfix stack from its result.
-     * @param infixExpression   Input infix notation string.
-     * @return vector of @refitem RPNElement in the postfix order.
-     */
-    spider::vector<RPNElement> extractPostfixElements(std::string infixExpression);
+        /**
+         * @brief Extract the different elements (operand and operators) and build the post fix elements stack.
+         * @remark This function calls @refitem extractInfixElements then build the postfix stack from its result.
+         * @param infixExpression   Input infix notation string.
+         * @return vector of @refitem RPNElement in the postfix order.
+         */
+        spider::vector<RPNElement> extractPostfixElements(std::string infixExpression);
 
-    /**
-     * @brief Re-order symbols in the postfix stack in order to maximize static evaluation.
-     * @remark Swapping is done using move semantic in-place of the input vector.
-     * @example input infix:       ((2+w)+6)*(20)
-     *          postfix:           [2 w + 6 + 20 *]   -> no static evaluation possible
-     *          reordered postfix: [2 6 + w + 20 *]   -> static evaluate to [8 w + 20 *]
-     * @example input infix:       (w*2)*(4*h)
-     *          postfix:           [w 2 * 4 h * *]   -> no static evaluation possible
-     *          reordered postfix: [2 4 * w h * *]   -> static evaluate to [8 w h * *]
-     * @example input infix:       (4/w)/2
-     *          postfix:           [4 w / 2 /]       -> no static evaluation possible
-     *          reordered postfix: [4 2 / w /]       -> static evaluate to [2 w /]
-     * @param postfixStack Input postfix stack.
-     */
-    void reorderPostfixStack(spider::vector<RPNElement> &postfixStack);
+        /**
+         * @brief Re-order symbols in the postfix stack in order to maximize static evaluation.
+         * @remark Swapping is done using move semantic in-place of the input vector.
+         * @example input infix:       ((2+w)+6)*(20)
+         *          postfix:           [2 w + 6 + 20 *]   -> no static evaluation possible
+         *          reordered postfix: [2 6 + w + 20 *]   -> static evaluate to [8 w + 20 *]
+         * @example input infix:       (w*2)*(4*h)
+         *          postfix:           [w 2 * 4 h * *]   -> no static evaluation possible
+         *          reordered postfix: [2 4 * w h * *]   -> static evaluate to [8 w h * *]
+         * @example input infix:       (4/w)/2
+         *          postfix:           [4 w / 2 /]       -> no static evaluation possible
+         *          reordered postfix: [4 2 / w /]       -> static evaluate to [2 w /]
+         * @param postfixStack Input postfix stack.
+         */
+        void reorderPostfixStack(spider::vector<RPNElement> &postfixStack);
 
-    /**
-     * @brief Get the operator corresponding to the ix (value of the enum @refitem RPNOperatorType).
-     * @param ix  ix of the enum.
-     * @return @refitem RPNOperator.
-     * @throws std::out_of_range if bad ix is passed.
-     */
-    const RPNOperator &getOperator(std::uint32_t ix);
+        /**
+         * @brief Get the operator corresponding to the ix (value of the enum @refitem RPNOperatorType).
+         * @param ix  ix of the enum.
+         * @return @refitem RPNOperator.
+         * @throws std::out_of_range if bad ix is passed.
+         */
+        const RPNOperator &getOperator(std::uint32_t ix);
 
-    /**
-     * @brief Return the operator associated to the operator type.
-     * @param type  Operator type.
-     * @return Associated operator.
-     */
-    const RPNOperator &getOperatorFromOperatorType(RPNOperatorType type);
+        /**
+         * @brief Return the operator associated to the operator type.
+         * @param type  Operator type.
+         * @return Associated operator.
+         */
+        const RPNOperator &getOperatorFromOperatorType(RPNOperatorType type);
 
-    /**
-     * @brief Retrieve the @refitem RPNOperatorType corresponding to a given string.
-     * @param operatorString input string corresponding to the operator.
-     * @return RPNOperatorType
-     */
-    RPNOperatorType getOperatorTypeFromString(const std::string &operatorString);
+        /**
+         * @brief Retrieve the @refitem RPNOperatorType corresponding to a given string.
+         * @param operatorString input string corresponding to the operator.
+         * @return RPNOperatorType
+         */
+        RPNOperatorType getOperatorTypeFromString(const std::string &operatorString);
+    }
 }
 #endif // SPIDER2_RPNCONVERTER_H

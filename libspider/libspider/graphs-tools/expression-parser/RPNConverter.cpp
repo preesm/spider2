@@ -61,8 +61,8 @@ static const std::string &supportedBasicOperators() {
 
 static bool isOperator(const std::string &s) {
     bool found = supportedBasicOperators().find_first_of(s) != std::string::npos;
-    for (auto i = rpn::function_offset; !found && i < rpn::operator_count; ++i) {
-        found |= (rpn::getOperator(i).label == s);
+    for (auto i = spider::rpn::function_offset; !found && i < spider::rpn::operator_count; ++i) {
+        found |= (spider::rpn::getOperator(i).label == s);
     }
     return found;
 }
@@ -73,7 +73,7 @@ static bool isOperator(const std::string &s) {
  * @return true if type is a function, false else.
  */
 static bool isFunction(RPNOperatorType type) {
-    return static_cast<std::uint32_t >(type) >= rpn::function_offset;
+    return static_cast<std::uint32_t >(type) >= spider::rpn::function_offset;
 }
 
 /**
@@ -188,7 +188,7 @@ static void addElementFromToken(spider::vector<RPNElement> &tokenStack, const st
     }
     if (isOperator(token)) {
         /* == Function case == */
-        const auto &opType = rpn::getOperatorTypeFromString(token);
+        const auto &opType = spider::rpn::getOperatorTypeFromString(token);
         const auto &subtype = isFunction(opType) ? RPNElementSubType::FUNCTION
                                                  : RPNElementSubType::OPERATOR;
         tokenStack.push_back(RPNElement(RPNElementType::OPERATOR, subtype, token));
@@ -239,7 +239,7 @@ static bool trySwap(spider::vector<RPNElement> &stack,
 
 /* === Function(s) implementation === */
 
-std::string rpn::infixString(const spider::vector<RPNElement> &postfixStack) {
+std::string spider::rpn::infixString(const spider::vector<RPNElement> &postfixStack) {
     spider::stack<std::string> stack;
     for (const auto &element : postfixStack) {
         if (element.type == RPNElementType::OPERAND) {
@@ -276,7 +276,7 @@ std::string rpn::infixString(const spider::vector<RPNElement> &postfixStack) {
     return stack.top();
 }
 
-std::string rpn::postfixString(const spider::vector<RPNElement> &postfixStack) {
+std::string spider::rpn::postfixString(const spider::vector<RPNElement> &postfixStack) {
     /* == Build the postfix string expression == */
     std::string postfixExpr;
     for (auto &t : postfixStack) {
@@ -285,7 +285,7 @@ std::string rpn::postfixString(const spider::vector<RPNElement> &postfixStack) {
     return postfixExpr;
 }
 
-spider::vector<RPNElement> rpn::extractInfixElements(std::string infixExpression) {
+spider::vector<RPNElement> spider::rpn::extractInfixElements(std::string infixExpression) {
     auto infixExpressionLocal = std::move(infixExpression);
     if (missMatchParenthesis(infixExpressionLocal.begin(), infixExpressionLocal.end())) {
         throwSpiderException("Expression with miss matched parenthesis: %s", infixExpressionLocal.c_str());
@@ -325,7 +325,7 @@ spider::vector<RPNElement> rpn::extractInfixElements(std::string infixExpression
     return tokens;
 }
 
-spider::vector<RPNElement> rpn::extractPostfixElements(std::string infixExpression) {
+spider::vector<RPNElement> spider::rpn::extractPostfixElements(std::string infixExpression) {
     /* == Retrieve tokens == */
     auto infixStack = extractInfixElements(std::move(infixExpression));
 
@@ -395,7 +395,7 @@ spider::vector<RPNElement> rpn::extractPostfixElements(std::string infixExpressi
     return postfixStack;
 }
 
-void rpn::reorderPostfixStack(spider::vector<RPNElement> &postfixStack) {
+void spider::rpn::reorderPostfixStack(spider::vector<RPNElement> &postfixStack) {
     spider::vector<spider::vector<int>> operationStackVector;
     operationStackVector.push_back({ });
     operationStackVector[0].reserve(6);
@@ -426,7 +426,7 @@ void rpn::reorderPostfixStack(spider::vector<RPNElement> &postfixStack) {
     } while (swapped);
 }
 
-const RPNOperator &rpn::getOperator(std::uint32_t ix) {
+const RPNOperator &spider::rpn::getOperator(std::uint32_t ix) {
     static std::array<RPNOperator, rpn::operator_count>
             operatorArray{{
                                   { RPNOperatorType::ADD, 2, false, "+", 2 },          /*! ADD operator */
@@ -472,11 +472,11 @@ const RPNOperator &rpn::getOperator(std::uint32_t ix) {
     return operatorArray.at(ix);
 }
 
-const RPNOperator &rpn::getOperatorFromOperatorType(RPNOperatorType type) {
+const RPNOperator &spider::rpn::getOperatorFromOperatorType(RPNOperatorType type) {
     return getOperator(static_cast<std::uint32_t >(type));
 }
 
-RPNOperatorType rpn::getOperatorTypeFromString(const std::string &operatorString) {
+RPNOperatorType spider::rpn::getOperatorTypeFromString(const std::string &operatorString) {
     // TODO: implement it with a std::map<std::string, OperatorType> and try - catch block. see: Zero-Cost Exception model.
     bool found = false;
     std::uint32_t i = 0;

@@ -110,15 +110,15 @@ static double applyOperator(StartIterator start, RPNOperatorType type) {
 
 Expression::Expression(std::string expression, const spider::vector<PiSDFParam *> &params) {
     /* == Get the postfix expression stack == */
-    auto postfixStack = rpn::extractPostfixElements(std::move(expression));
+    auto postfixStack = spider::rpn::extractPostfixElements(std::move(expression));
     if (spider::api::verbose() && log_enabled<LOG_EXPR>()) {
-        spider::log::verbose<LOG_EXPR>("infix expression: [%s].\n", rpn::infixString(postfixStack).c_str());
+        spider::log::verbose<LOG_EXPR>("infix expression: [%s].\n", spider::rpn::infixString(postfixStack).c_str());
         spider::log::verbose<LOG_EXPR>("postfix expression: [%s].\n",
-                                       rpn::postfixString(postfixStack).c_str());
+                                       spider::rpn::postfixString(postfixStack).c_str());
     }
 
     /* == Reorder the postfix stack elements to increase the number of static evaluation done on construction == */
-    rpn::reorderPostfixStack(postfixStack);
+    spider::rpn::reorderPostfixStack(postfixStack);
 
     /* == Build the expression stack == */
     expressionStack_ = buildExpressionStack(postfixStack, params);
@@ -177,8 +177,8 @@ spider::vector<ExpressionElt> Expression::buildExpressionStack(spider::vector<RP
                 stack.back().arg.value_ = value;
             }
         } else {
-            const auto &opType = rpn::getOperatorTypeFromString(elt.token);
-            const auto &op = rpn::getOperatorFromOperatorType(opType);
+            const auto &opType = spider::rpn::getOperatorTypeFromString(elt.token);
+            const auto &op = spider::rpn::getOperatorFromOperatorType(opType);
             if (elt.subtype == RPNElementSubType::FUNCTION && argCount < op.argCount) {
                 throwSpiderException("Function [%s] expecting argument !", elt.token.c_str());
             }
@@ -218,7 +218,7 @@ double Expression::evaluateStack(const spider::vector<PiSDFParam *> &params) con
                 evalStack.push_back(elt.arg.value_);
             }
         } else {
-            const auto &op = rpn::getOperatorFromOperatorType(elt.arg.opType_);
+            const auto &op = spider::rpn::getOperatorFromOperatorType(elt.arg.opType_);
             auto &&result = applyOperator(evalStack.begin() + (evalStack.size() - op.argCount), op.type);
             for (std::uint8_t i = 0; i < op.argCount - 1; ++i) {
                 evalStack.pop_back();

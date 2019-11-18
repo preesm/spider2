@@ -79,17 +79,17 @@ namespace spider {
 
         template<class... Ts>
         inline int fprintf(FILE *stream, const char *format, const Ts &... ts) {
-            return Spider::cxx11::fprintf(stream, format, ts...);
+            return spider::cxx11::fprintf(stream, format, ts...);
         }
 
         template<class... Ts>
         inline int sprintf(char *str, size_t size, const char *format, const Ts &... ts) {
-            return Spider::cxx11::sprintf(str, size, format, ts...);
+            return spider::cxx11::sprintf(str, size, format, ts...);
         }
 
         template<class... Ts>
         inline int printf(const char *format, const Ts &... ts) {
-            return Spider::cxx11::printf(format, ts...);
+            return spider::cxx11::printf(format, ts...);
         }
 
 

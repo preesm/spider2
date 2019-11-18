@@ -116,11 +116,11 @@ TEST(FreeListAllocatorTest, FreeNull) {
 TEST(FreeListAllocatorTest, FreeOutOfScope) {
     auto *allocator = new FreeListAllocator(ALLOCATOR_NAME, MAX_SIZE);
     char *charArray = new char[8];
-    EXPECT_THROW(allocator->deallocate(charArray), Spider::Exception);
+    EXPECT_THROW(allocator->deallocate(charArray), spider::Exception);
     delete[] charArray;
     auto *dblArray = (double *) allocator->allocate(2 * sizeof(double));
     ASSERT_NE(dblArray, nullptr);
-    EXPECT_THROW(allocator->deallocate(dblArray + 3 * MAX_SIZE), Spider::Exception);
+    EXPECT_THROW(allocator->deallocate(dblArray + 3 * MAX_SIZE), spider::Exception);
     delete allocator;
 }
 
@@ -173,7 +173,7 @@ TEST(FreeListAllocatorTest, Free) {
 
 TEST(FreeListAllocatorTest, MinAlignmentSize) {
     EXPECT_THROW(FreeListAllocator(ALLOCATOR_NAME, MAX_SIZE, FreeListPolicy::FIND_FIRST, 0),
-                 Spider::Exception);
+                 spider::Exception);
 }
 
 #endif //SPIDER2_MEMORY_TEST_FREELISTDYNAMIC_ALLOCATOR_H
