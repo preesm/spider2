@@ -53,6 +53,10 @@ namespace spider {
 
         explicit BestFitScheduler(PiSDFGraph *graph) : ListScheduler(graph) { };
 
+        BestFitScheduler(PiSDFGraph *graph, const spider::vector<PiSDFParam *> &params) : ListScheduler(graph, params) {
+
+        };
+
         ~BestFitScheduler() override = default;
 
         /* === Method(s) === */
@@ -66,8 +70,6 @@ namespace spider {
     private:
 
         /* === Private method(s) === */
-
-        void vertexMapper(const PiSDFAbstractVertex *vertex);
     };
 
     /* === Inline method(s) === */

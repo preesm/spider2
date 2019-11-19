@@ -115,23 +115,3 @@ spider::ListScheduler::ListScheduler(PiSDFGraph *graph,
                   return B.level_ < A.level_;
               });
 }
-
-std::uint64_t spider::ListScheduler::computeMinStartTime(const PiSDFAbstractVertex *vertex) {
-    std::uint64_t minimumStartTime = 0;
-    auto &job = schedule_.job(vertex->ix());
-    job.setVertexIx(vertex->ix());
-    for (const auto &edge : vertex->inputEdgeArray()) {
-        const auto &rate = edge->sinkRateExpression().evaluate(params_);
-        if (rate) {
-            const auto &src = edge->source();
-            auto &srcJob = schedule_.job(src->ix());
-            const auto &lrtIx = srcJob.mappingInfo().LRTIx;
-            auto *currentConstraint = job.constraint(lrtIx);
-            if (!currentConstraint || (srcJob.ix() > currentConstraint->ix())) {
-                job.setConstraint(&srcJob);
-            }
-            minimumStartTime = std::max(minimumStartTime, srcJob.mappingInfo().endTime);
-        }
-    }
-    return minimumStartTime;
-}

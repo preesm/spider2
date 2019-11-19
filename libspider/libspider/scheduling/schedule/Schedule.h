@@ -107,6 +107,14 @@ namespace spider {
         inline ScheduleJob &job(std::uint32_t ix);
 
         /**
+         * @brief Get a job from its ix.
+         * @param ix  Ix of the job to fetch.
+         * @return const reference to the job.
+         * @throws @refitem std::out_of_range if ix is out of range.
+         */
+        inline const ScheduleJob &job(std::uint32_t ix) const;
+
+        /**
          * @brief Get the different statistics of the platform.
          * @return const reference to @refitem ScheduleStats
          */
@@ -132,6 +140,10 @@ namespace spider {
     }
 
     ScheduleJob &spider::Schedule::job(std::uint32_t ix) {
+        return jobs_.at(ix);
+    }
+
+    const ScheduleJob &spider::Schedule::job(std::uint32_t ix) const {
         return jobs_.at(ix);
     }
 

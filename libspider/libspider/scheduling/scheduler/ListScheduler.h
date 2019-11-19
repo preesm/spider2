@@ -52,10 +52,6 @@ namespace spider {
     class ListScheduler : public Scheduler {
     public:
 
-        explicit ListScheduler(PiSDFGraph *graph) : ListScheduler(graph, graph->params()) { };
-
-        ListScheduler(PiSDFGraph *graph, const spider::vector<PiSDFParam *> &params);
-
         ~ListScheduler() override = default;
 
         /* === Method(s) === */
@@ -67,6 +63,11 @@ namespace spider {
         /* === Setter(s) === */
 
     protected:
+
+        explicit ListScheduler(PiSDFGraph *graph) : ListScheduler(graph, graph->params()) { };
+
+        ListScheduler(PiSDFGraph *graph, const spider::vector<PiSDFParam *> &params);
+
         struct ListVertex {
             PiSDFAbstractVertex *vertex_ = nullptr;
             std::int64_t level_ = -1;
@@ -78,8 +79,6 @@ namespace spider {
         spider::vector<ListVertex> sortedVertexVector_;
 
         /* === Protected method(s) === */
-
-        std::uint64_t computeMinStartTime(const PiSDFAbstractVertex *vertex);
 
     private:
         static std::int64_t

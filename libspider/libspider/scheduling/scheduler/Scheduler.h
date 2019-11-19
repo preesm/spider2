@@ -42,9 +42,7 @@
 
 /* === Include(s) === */
 
-#include <spider-api/archi.h>
 #include <scheduling/schedule/Schedule.h>
-#include <graphs/pisdf/common/Types.h>
 #include <graphs/pisdf/Graph.h>
 
 namespace spider {
@@ -57,18 +55,26 @@ namespace spider {
         explicit Scheduler(PiSDFGraph *graph) : graph_{ graph },
                                                 params_{ graph->params() } { };
 
-        explicit Scheduler(PiSDFGraph *graph,
-                           const spider::vector<PiSDFParam *> &params) : graph_{ graph },
-                                                                         params_{ params } { };
+        Scheduler(PiSDFGraph *graph,
+                  const spider::vector<PiSDFParam *> &params) : graph_{ graph },
+                                                                params_{ params } { };
 
         virtual ~Scheduler() = default;
 
         /* === Method(s) === */
 
+        /**
+         * @brief Perform the mapping and scheduling of a given graph.
+         * @return @refitem Schedule.
+         */
         virtual Schedule &mappingScheduling() = 0;
 
         /* === Getter(s) === */
 
+        /**
+         * @brief Return the @refitem Schedule owned by the Scheduler.
+         * @return @refitem Schedule
+         */
         inline const Schedule &schedule() const;
 
         /* === Setter(s) === */
@@ -77,6 +83,32 @@ namespace spider {
         PiSDFGraph *graph_ = nullptr;
         const spider::vector<PiSDFParam *> &params_;
         Schedule schedule_;
+
+        /**
+         * @brief Set the different information of a @refitem ScheduleJob.
+         * @remark This method also update the schedule_ based on Job information.
+         * @param job         Job to evaluate.
+         * @param slave       Slave (cluster and pe) to execute on.
+         * @param startTime   Start time of the job.
+         * @param endTime     End time of the job.
+         */
+        void setJobInformation(ScheduleJob *job,
+                               std::pair<std::uint32_t, std::uint32_t> slave,
+                               std::uint64_t startTime,
+                               std::uint64_t endTime);
+
+        /**
+         * @brief Compute the minimum start time possible for a given vertex.
+         * @param vertex  Vertex to evaluate.
+         * @return Minimum start time for the vertex.
+         */
+        std::uint64_t computeMinStartTime(const PiSDFAbstractVertex *vertex);
+
+        /**
+         * @brief Default vertex mapper that try to best fit.
+         * @param vertex Vertex to map.
+         */
+        virtual void vertexMapper(const PiSDFAbstractVertex *vertex);
     };
 
     /* === Inline method(s) === */

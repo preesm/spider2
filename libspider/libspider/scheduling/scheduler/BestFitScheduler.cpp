@@ -41,12 +41,7 @@
 /* === Include(s) === */
 
 #include <scheduling/scheduler/BestFitScheduler.h>
-#include <spider-api/archi.h>
-#include <archi/Platform.h>
-#include <archi/Cluster.h>
-#include <archi/ProcessingElement.h>
 #include <scenario/Scenario.h>
-#include <graphs/pisdf/ExecVertex.h>
 
 /* === Static variable(s) === */
 
@@ -57,60 +52,7 @@
 spider::Schedule &spider::BestFitScheduler::mappingScheduling() {
     schedule_.setJobCount(sortedVertexVector_.size());
     for (auto &listVertex : sortedVertexVector_) {
-        vertexMapper(listVertex.vertex_);
+        Scheduler::vertexMapper(listVertex.vertex_);
     }
     return schedule_;
-}
-
-void spider::BestFitScheduler::vertexMapper(const PiSDFAbstractVertex *vertex) {
-    /* == Compute the minimum start time possible for vertex == */
-    std::uint64_t minStartTime = computeMinStartTime(vertex);
-
-    /* == Search for the best slave possible == */
-    const auto *platform = spider::platform();
-    const auto *scenario = vertex->containingGraph()->scenario();
-    const auto &platformStats = schedule_.stats();
-
-    std::pair<std::uint32_t, std::uint32_t> bestSlave{ UINT32_MAX, UINT32_MAX };
-    std::uint64_t bestStartTime = 0;
-    std::uint64_t bestEndTime = UINT64_MAX;
-    std::uint64_t bestScheduleCost = UINT64_MAX;
-    for (const auto &cluster : platform->clusters()) {
-        for (const auto &PE : cluster->processingElements()) {
-            /* == Check that PE is enabled and vertex is mappable on it == */
-            if (PE->enabled() && scenario->isMappable(vertex, PE)) {
-                /* == Retrieving information needed for scheduling cost == */
-                const auto &PEReadyTime = platformStats.endTime(PE->spiderPEIx());
-                const auto &JobStartTime = std::max(PEReadyTime, minStartTime);
-                const auto &execTime = scenario->executionTiming(vertex, PE);
-                const auto &endTime = execTime + JobStartTime;
-
-                /* == Compute communication cost == */
-                std::uint64_t receiveCost = 0;
-
-                /* == Compute total schedule cost == */
-                const auto &scheduleCost = spider::math::saturateAdd(endTime, receiveCost);
-                if (scheduleCost < bestScheduleCost) {
-                    bestScheduleCost = scheduleCost;
-                    bestStartTime = JobStartTime;
-                    bestEndTime = endTime;
-                    bestSlave.first = cluster->ix();
-                    bestSlave.second = PE->clusterPEIx();
-                }
-            }
-        }
-    }
-
-    if (bestSlave.first == UINT32_MAX) {
-        throwSpiderException("Could not find suitable processing element for vertex: [%s]", vertex->name().c_str());
-    }
-    const auto &PE = platform->findPE(bestSlave.first, bestSlave.second);
-    auto &job = schedule_.job(vertex->ix());
-    job.setMappingLRT(PE.managingLRTIx());
-    job.setMappingPE(PE.clusterPEIx(), PE.cluster()->ix());
-    job.setMappingStartTime(bestStartTime);
-    job.setMappingEndTime(bestEndTime);
-    job.setMappingLRT(PE.managingLRTIx());
-    job.setMappingPE(PE.clusterPEIx(), PE.cluster()->ix());
-    schedule_.update(job);
 }
