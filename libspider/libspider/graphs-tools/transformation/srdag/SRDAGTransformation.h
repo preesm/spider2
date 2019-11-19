@@ -59,11 +59,11 @@ namespace spider {
 
         /* === Type definition(s) === */
 
-        using JobStack = spider::vector<Job, StackID::TRANSFO>;
+        using JobStack = spider::vector<Job>;
 
-        using TransfoTracker = spider::vector<std::uint32_t, StackID::TRANSFO>;
+        using TransfoTracker = spider::vector<std::uint32_t>;
 
-        using TransfoStack = spider::vector<TransfoVertex, StackID::TRANSFO>;
+        using TransfoStack = spider::vector<TransfoVertex>;
 
         /* === Structure definition(s) === */
 
