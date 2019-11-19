@@ -57,7 +57,7 @@
 spider::Schedule &spider::BestFitScheduler::mappingScheduling() {
     schedule_.setJobCount(sortedVertexVector_.size());
     for (auto &listVertex : sortedVertexVector_) {
-        vertexMapper(listVertex.vertex);
+        vertexMapper(listVertex.vertex_);
     }
     return schedule_;
 }
@@ -79,23 +79,21 @@ void spider::BestFitScheduler::vertexMapper(const PiSDFAbstractVertex *vertex) {
     for (const auto &cluster : platform->clusters()) {
         for (const auto &PE : cluster->processingElements()) {
             /* == Check that PE is enabled and vertex is mappable on it == */
-            if (PE->enabled() && scenario->isMappable(reference, PE)) {
+            if (PE->enabled() && scenario->isMappable(vertex, PE)) {
                 /* == Retrieving information needed for scheduling cost == */
-                const auto &readyTime = platformStats.startTime(PE->spiderPEIx());
-                const auto &startTime = std::max(readyTime, minStartTime);
-                const auto &waitTime = startTime - readyTime;
-                const auto &execTime = scenario->executionTiming(reference, PE);
-                const auto &endTime = startTime + execTime;
+                const auto &PEReadyTime = platformStats.endTime(PE->spiderPEIx());
+                const auto &JobStartTime = std::max(PEReadyTime, minStartTime);
+                const auto &execTime = scenario->executionTiming(vertex, PE);
+                const auto &endTime = execTime + JobStartTime;
 
                 /* == Compute communication cost == */
                 std::uint64_t receiveCost = 0;
 
                 /* == Compute total schedule cost == */
-                const auto &scheduleCost = spider::math::saturateAdd(spider::math::saturateAdd(endTime, waitTime),
-                                                                     receiveCost);
+                const auto &scheduleCost = spider::math::saturateAdd(endTime, receiveCost);
                 if (scheduleCost < bestScheduleCost) {
                     bestScheduleCost = scheduleCost;
-                    bestStartTime = startTime;
+                    bestStartTime = JobStartTime;
                     bestEndTime = endTime;
                     bestSlave.first = cluster->ix();
                     bestSlave.second = PE->clusterPEIx();
@@ -108,14 +106,12 @@ void spider::BestFitScheduler::vertexMapper(const PiSDFAbstractVertex *vertex) {
         throwSpiderException("Could not find suitable processing element for vertex: [%s]", vertex->name().c_str());
     }
     const auto &PE = platform->findPE(bestSlave.first, bestSlave.second);
-    auto job = ScheduleJob(schedule_.jobCount(), /* == Job ix == */
-                           vertex->ix(),         /* == Vertex ix == */
-                           PE.clusterPEIx(),     /* == PE ix inside the cluster == */
-                           PE.cluster()->ix(),   /* == Cluster ix of the PE == */
-                           0);                   /* == LRT ix to which the PE is linked == */
+    auto &job = schedule_.job(vertex->ix());
+    job.setMappingLRT(PE.managingLRTIx());
+    job.setMappingPE(PE.clusterPEIx(), PE.cluster()->ix());
     job.setMappingStartTime(bestStartTime);
     job.setMappingEndTime(bestEndTime);
     job.setMappingLRT(PE.managingLRTIx());
     job.setMappingPE(PE.clusterPEIx(), PE.cluster()->ix());
-    schedule_.add(std::move(job));
+    schedule_.update(job);
 }

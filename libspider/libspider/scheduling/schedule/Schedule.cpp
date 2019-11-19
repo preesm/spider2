@@ -64,10 +64,8 @@ void spider::Schedule::reset() {
     }
 }
 
-void spider::Schedule::add(ScheduleJob &&job) {
-    jobs_.push_back(job);
-
-    /* == Update stats of given PE == */
+void spider::Schedule::update(ScheduleJob &job) {
+    /* == Update stats of given PE based on current Job == */
     const auto *platform = spider::platform();
     const auto &st = job.mappingInfo().startTime;
     const auto &et = job.mappingInfo().endTime;

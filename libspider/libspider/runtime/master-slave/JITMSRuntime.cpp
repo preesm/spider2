@@ -154,7 +154,7 @@ bool spider::JITMSRuntime::execute() const {
     // TODO: run graph
     spider::BestFitScheduler scheduler{srdag};
     scheduler.mappingScheduling();
-    spider::SVGGanttExporter ganttExporter{&scheduler.schedule()};
+    spider::SVGGanttExporter ganttExporter{&scheduler.schedule(), srdag};
     ganttExporter.print();
 
     spider::pisdf::DOTExporter(srdag).print("./srdag.dot");

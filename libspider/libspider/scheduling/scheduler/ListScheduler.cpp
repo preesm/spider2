@@ -54,21 +54,21 @@
 
 /* === Static function(s) === */
 
-std::int32_t spider::ListScheduler::computeScheduleLevel(ListVertex &listVertex,
+std::int64_t spider::ListScheduler::computeScheduleLevel(ListVertex &listVertex,
                                                          spider::vector<ListVertex> &sortedVertexVector) {
-    if (listVertex.level < 0) {
+    if (listVertex.level_ < 0) {
         auto *platform = spider::platform();
-        auto *vertex = listVertex.vertex;
-        std::int32_t level = 0;
+        auto *vertex = listVertex.vertex_;
+        std::int64_t level = 0;
         for (auto &edge : vertex->outputEdgeArray()) {
             auto *sink = edge->sink();
             if (sink) {
                 auto *scenario = vertex->containingGraph()->scenario();
                 auto minExecutionTime = INT64_MAX;
                 for (auto &cluster : platform->clusters()) {
-                    auto executionTime = scenario->executionTiming(vertex, cluster->PEType());
                     for (auto &pe : cluster->processingElements()) {
-                        if (scenario->isMappable(vertex, pe)) {
+                        if (scenario->isMappable(sink, pe)) {
+                            auto executionTime = scenario->executionTiming(sink, cluster->PEType());
                             if (!executionTime) {
                                 throwSpiderException("Vertex [%s] has null execution time on mappable PE [%s].",
                                                      vertex->name().c_str(), pe->name().c_str());
@@ -78,16 +78,15 @@ std::int32_t spider::ListScheduler::computeScheduleLevel(ListVertex &listVertex,
                         }
                     }
                 }
-                level = std::max(level, computeScheduleLevel(sortedVertexVector[sink->ix()],
-                                                             sortedVertexVector) +
-                                        static_cast<std::int32_t >(minExecutionTime));
+                level = std::max(level, computeScheduleLevel(sortedVertexVector[sink->ix()], sortedVertexVector) +
+                                        minExecutionTime);
             }
         }
-        listVertex.level = level;
+        listVertex.level_ = level;
         return level;
     }
 
-    return listVertex.level;
+    return listVertex.level_;
 }
 
 /* === Method(s) implementation === */
@@ -108,12 +107,12 @@ spider::ListScheduler::ListScheduler(PiSDFGraph *graph,
     /* == Sort the vector == */
     std::sort(std::begin(sortedVertexVector_), std::end(sortedVertexVector_),
               [](const ListVertex &A, const ListVertex &B) -> std::int32_t {
-                  if (B.vertex->subtype() == PiSDFVertexType::NORMAL &&
-                      A.vertex->reference() == B.vertex->reference() &&
-                      A.level == B.level) {
-                      return B.vertex->ix() - A.vertex->ix();
+                  if (B.vertex_->subtype() == PiSDFVertexType::NORMAL &&
+                      A.vertex_->reference() == B.vertex_->reference() &&
+                      A.level_ == B.level_) {
+                      return B.vertex_->ix() > A.vertex_->ix();
                   }
-                  return B.level - A.level;
+                  return B.level_ < A.level_;
               });
 }
 

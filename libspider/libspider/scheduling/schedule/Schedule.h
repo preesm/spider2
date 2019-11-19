@@ -64,10 +64,10 @@ namespace spider {
         /* === Method(s) === */
 
         /**
-         * @brief Add a job to the schedule.
-         * @param job  Job to add.
+         * @brief Update schedule stats based on given Job.
+         * @param job  Job to evaluate.
          */
-        void add(ScheduleJob &&job);
+        void update(ScheduleJob &job);
 
         /**
          * @brief Clear schedule jobs.

@@ -64,7 +64,9 @@ static constexpr std::uint32_t taskSpace = 5;
 
 /* === Method(s) implementation === */
 
-spider::SVGGanttExporter::SVGGanttExporter(const Schedule *schedule) : Exporter(), schedule_{ schedule } {
+spider::SVGGanttExporter::SVGGanttExporter(const Schedule *schedule, const pisdf::Graph *graph) : Exporter(),
+                                                                                                  schedule_{ schedule },
+                                                                                                  graph_{ graph } {
     /* == Compute values needed for printing == */
     std::uint32_t minExecTime = UINT32_MAX;
     std::uint32_t maxExecTime = 0;
@@ -213,8 +215,7 @@ void spider::SVGGanttExporter::axisPrinter(std::ofstream &file) const {
 
 void spider::SVGGanttExporter::jobPrinter(std::ofstream &file, const spider::ScheduleJob &job) const {
     /* == Compute color and width == */
-    const auto *graph = spider::pisdfGraph();
-    const auto *vertex = graph->vertex(job.vertexIx());
+    const auto *vertex = graph_->vertex(job.vertexIx());
     const auto *reference = vertex->reference();
     std::int32_t red = static_cast<std::uint8_t>((reinterpret_cast<std::uintptr_t>(reference) >> 3u) * 50 + 100);
     std::int32_t green = static_cast<std::uint8_t>((reinterpret_cast<std::uintptr_t>(reference) >> 2u) * 50 + 100);

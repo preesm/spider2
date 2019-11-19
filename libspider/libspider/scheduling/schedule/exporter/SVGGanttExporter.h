@@ -52,12 +52,16 @@ namespace spider {
 
     class ScheduleJob;
 
+    namespace pisdf {
+        class Graph;
+    }
+
     /* === Class definition === */
 
     class SVGGanttExporter final : public Exporter {
     public:
 
-        explicit SVGGanttExporter(const Schedule *schedule);
+        explicit SVGGanttExporter(const Schedule *schedule, const pisdf::Graph *graph);
 
         ~SVGGanttExporter() override = default;
 
@@ -75,6 +79,7 @@ namespace spider {
 
     private:
         const Schedule *schedule_ = nullptr;
+        const pisdf::Graph *graph_ = nullptr;
         std::uint32_t width_ = UINT32_MAX;
         std::uint32_t height_ = UINT32_MAX;
         std::uint32_t widthMin_ = 10;
