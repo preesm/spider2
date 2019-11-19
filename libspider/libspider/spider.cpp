@@ -144,7 +144,7 @@ void spider::start() {
     }
     /* == General stack initialization == */
     auto cfg = AllocatorConfig{ "general-allocator",
-                                AllocatorType::FREELIST,
+                                AllocatorType::GENERIC,
                                 16392,
                                 sizeof(std::uint64_t),
                                 FreeListPolicy::FIND_FIRST,

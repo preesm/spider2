@@ -56,7 +56,9 @@ public:
                                    char *externalBase,
                                    std::int32_t alignment = sizeof(std::int64_t));
 
-    ~LinearStaticAllocator() override = default;
+    ~LinearStaticAllocator() override {
+        reset();
+    };
 
     void *allocate(std::uint64_t size) override;
 

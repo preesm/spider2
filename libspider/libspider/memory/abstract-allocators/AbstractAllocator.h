@@ -60,9 +60,22 @@ enum class FreeListPolicy {
 
 class AbstractAllocator {
 public:
-    explicit inline AbstractAllocator(std::string name, std::int32_t alignment = 0);
+    explicit AbstractAllocator(std::string name, std::int32_t alignment = 0) : used_{ 0 },
+                                                                               peak_{ 0 },
+                                                                               averageUse_{ 0 },
+                                                                               numberAverage_{ 0 },
+                                                                               alignment_{ alignment },
+                                                                               name_{ std::move(name) } { }
 
-    virtual inline ~AbstractAllocator();
+    virtual ~AbstractAllocator() {
+        if (used_ > 0 && log_enabled()) {
+            spider::log::error("Allocator: %s -- Still has %lf %s in use.\n",
+                               getName(),
+                               AbstractAllocator::getByteNormalizedSize(used_),
+                               AbstractAllocator::getByteUnitString(used_));
+        }
+        printStats();
+    }
 
     /**
      * @brief Allocate a memory buffer.
@@ -131,15 +144,6 @@ private:
 
 /* === Inline methods === */
 
-AbstractAllocator::AbstractAllocator(std::string name, std::int32_t alignment) : used_{ 0 },
-                                                                                 peak_{ 0 },
-                                                                                 averageUse_{ 0 },
-                                                                                 numberAverage_{ 0 },
-                                                                                 alignment_{ alignment },
-                                                                                 name_{ std::move(name) } {
-
-}
-
 void AbstractAllocator::setAllocationAlignment(std::int32_t alignment) {
     alignment_ = alignment;
 }
@@ -161,7 +165,7 @@ void AbstractAllocator::printStats() const {
                           getByteUnitString(peak_));
         if (averageUse_) {
             spider::log::info("       ==> avg usage:    %" PRIu64" B (%.6lf %s)\n",
-                                 averageUse_ / numberAverage_,
+                              averageUse_ / numberAverage_,
                               getByteNormalizedSize(averageUse_ / numberAverage_),
                               getByteUnitString(averageUse_ / numberAverage_));
         }
@@ -223,14 +227,5 @@ double AbstractAllocator::getByteNormalizedSize(std::uint64_t size) {
     return dblSize;
 }
 
-AbstractAllocator::~AbstractAllocator() {
-    if (used_ > 0 && log_enabled()) {
-        spider::log::error("Allocator: %s -- Still has %lf %s in use.\n",
-                           getName(),
-                           AbstractAllocator::getByteNormalizedSize(used_),
-                           AbstractAllocator::getByteUnitString(used_));
-    }
-    printStats();
-}
 
 #endif //SPIDER2_ABSTRACTALLOCATOR_H

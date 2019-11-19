@@ -223,7 +223,7 @@ FreeListAllocator::Node *FreeListAllocator::createExtraBuffer(std::uint64_t size
     /* == Allocate new buffer with size aligned to MIN_CHUNK == */
     const auto &sizeWithHeader = size + sizeof(FreeListAllocator::Header);
     FreeListAllocator::Buffer buffer;
-    buffer.size_ = AbstractAllocator::computeAlignedSize(sizeWithHeader, min_chunk_size);
+    buffer.size_ = AbstractAllocator::computeAlignedSize(sizeWithHeader, min_chunk_size * allocScale_);
     buffer.bufferPtr_ = std::malloc(buffer.size_ + sizeof(Node));
 
     /* == Initialize memoryNode == */
@@ -236,6 +236,8 @@ FreeListAllocator::Node *FreeListAllocator::createExtraBuffer(std::uint64_t size
 
     /* == Push buffer into vector to keep track of it == */
     extraBuffers_.push_back(buffer);
+
+    allocScale_ *= 2;
     return node;
 }
 

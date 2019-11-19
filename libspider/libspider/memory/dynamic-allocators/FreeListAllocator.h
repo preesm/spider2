@@ -85,6 +85,7 @@ private:
     void *staticBufferPtr_ = nullptr;
     std::vector<Buffer> extraBuffers_;
     std::uint64_t staticBufferSize_ = 0;
+    std::uint32_t  allocScale_ = 1;
 
 
     using FreeListPolicyMethod = std::pair<Node *, Node *> (*)(std::uint64_t, std::int32_t &, std::uint64_t, Node *);
