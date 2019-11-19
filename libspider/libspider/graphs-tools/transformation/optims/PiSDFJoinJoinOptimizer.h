@@ -79,7 +79,7 @@ bool PiSDFJoinJoinOptimizer::operator()(PiSDFGraph *graph) const {
         /* == Create the new fork == */
         auto *join = spider::api::createJoin(graph,
                                              "merged-" + vertex->name() + "-" + sink->name(),
-                                             vertex->edgesINCount() + (sink->edgesINCount() - 1),
+                                             vertex->inputEdgeCount() + (sink->inputEdgeCount() - 1),
                                              StackID::TRANSFO);
         auto *edge = sink->outputEdge(0);
         auto rate = edge->sourceRateExpression().evaluate(params);
@@ -91,7 +91,7 @@ bool PiSDFJoinJoinOptimizer::operator()(PiSDFGraph *graph) const {
         for (auto *sinkEdge :sink->inputEdgeArray()) {
             if (sinkEdge->sinkPortIx() == insertEdgeIx) {
                 graph->removeEdge(sinkEdge);
-                offset += vertex->edgesINCount() - 1;
+                offset += vertex->inputEdgeCount() - 1;
                 for (auto *vertexEdge : vertex->inputEdgeArray()) {
                     rate = vertexEdge->sinkRateExpression().evaluate(params);
                     auto ix = vertexEdge->sinkPortIx() + insertEdgeIx;

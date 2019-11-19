@@ -70,8 +70,8 @@ namespace spider {
                                                          graph->vertexCount(),
                                                          graph->edgeCount(),
                                                          graph->paramCount(),
-                                                         graph->edgesINCount(),
-                                                         graph->edgesOUTCount(),
+                                                         graph->inputEdgeCount(),
+                                                         graph->outputEdgeCount(),
                                                          graph->configVertexCount(),
                                                          stack_);
                 clone->dynamic_ = graph->dynamic_;
@@ -81,8 +81,8 @@ namespace spider {
             inline void visit(ExecVertex *vertex) override {
                 auto *clone = spider::api::createVertex(graph_,
                                                         vertex->name_,
-                                                        vertex->edgesINCount(),
-                                                        vertex->edgesOUTCount(),
+                                                        vertex->inputEdgeCount(),
+                                                        vertex->outputEdgeCount(),
                                                         stack_);
                 clone->refinementIx_ = vertex->refinementIx_;
                 setRef(vertex, clone);
@@ -97,8 +97,8 @@ namespace spider {
             inline void visit(ConfigVertex *vertex) override {
                 auto *clone = spider::api::createConfigActor(graph_,
                                                              vertex->name_,
-                                                             vertex->edgesINCount(),
-                                                             vertex->edgesOUTCount(),
+                                                             vertex->inputEdgeCount(),
+                                                             vertex->outputEdgeCount(),
                                                              stack_);
                 setRef(vertex, clone);
 
@@ -107,7 +107,7 @@ namespace spider {
             inline void visit(ForkVertex *vertex) override {
                 auto *clone = spider::api::createFork(graph_,
                                                       vertex->name_,
-                                                      vertex->edgesOUTCount(),
+                                                      vertex->outputEdgeCount(),
                                                       stack_);
                 setRef(vertex, clone);
             }
@@ -115,7 +115,7 @@ namespace spider {
             inline void visit(JoinVertex *vertex) override {
                 auto *clone = spider::api::createJoin(graph_,
                                                       vertex->name_,
-                                                      vertex->edgesINCount(),
+                                                      vertex->inputEdgeCount(),
                                                       stack_);
                 setRef(vertex, clone);
             }
@@ -123,7 +123,7 @@ namespace spider {
             inline void visit(HeadVertex *vertex) override {
                 auto *clone = spider::api::createHead(graph_,
                                                       vertex->name_,
-                                                      vertex->edgesINCount(),
+                                                      vertex->inputEdgeCount(),
                                                       stack_);
                 setRef(vertex, clone);
             }
@@ -131,7 +131,7 @@ namespace spider {
             inline void visit(TailVertex *vertex) override {
                 auto *clone = spider::api::createTail(graph_,
                                                       vertex->name_,
-                                                      vertex->edgesINCount(),
+                                                      vertex->inputEdgeCount(),
                                                       stack_);
                 setRef(vertex, clone);
             }
@@ -139,7 +139,7 @@ namespace spider {
             inline void visit(DuplicateVertex *vertex) override {
                 auto *clone = spider::api::createDuplicate(graph_,
                                                            vertex->name_,
-                                                           vertex->edgesOUTCount(),
+                                                           vertex->outputEdgeCount(),
                                                            stack_);
                 setRef(vertex, clone);
             }

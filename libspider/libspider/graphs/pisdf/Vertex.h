@@ -163,7 +163,7 @@ namespace spider {
              * @brief Get the number of input edges connected to the vertex.
              * @return number of input edges.
              */
-            inline std::uint32_t edgesINCount() const;
+            inline std::uint32_t inputEdgeCount() const;
 
             /**
              * @brief A const reference on the array of output edges. Useful for iterating on the edges.
@@ -183,7 +183,7 @@ namespace spider {
              * @brief Get the number of output edges connected to the vertex.
              * @return number of output edges.
              */
-            inline std::uint32_t edgesOUTCount() const;
+            inline std::uint32_t outputEdgeCount() const;
 
             /**
              * @brief Get the subtype of the vertex.
@@ -288,7 +288,7 @@ namespace spider {
             return inputEdgeArray_.at(ix);
         }
 
-        std::uint32_t Vertex::edgesINCount() const {
+        std::uint32_t Vertex::inputEdgeCount() const {
             return inputEdgeArray_.size();
         }
 
@@ -300,7 +300,7 @@ namespace spider {
             return outputEdgeArray_.at(ix);
         }
 
-        std::uint32_t Vertex::edgesOUTCount() const {
+        std::uint32_t Vertex::outputEdgeCount() const {
             return outputEdgeArray_.size();
         }
 

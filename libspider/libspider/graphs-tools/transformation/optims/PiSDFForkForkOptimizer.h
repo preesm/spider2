@@ -82,7 +82,7 @@ bool PiSDFForkForkOptimizer::operator()(PiSDFGraph *graph) const {
         /* == Create the new fork == */
         auto *fork = spider::api::createFork(graph,
                                              "merged-" + source->name() + "-" + vertex->name(),
-                                             (source->edgesOUTCount() - 1) + vertex->edgesOUTCount(),
+                                             (source->outputEdgeCount() - 1) + vertex->outputEdgeCount(),
                                              StackID::TRANSFO);
         auto *edge = source->inputEdge(0);
         auto rate = edge->sinkRateExpression().evaluate(params);
@@ -94,7 +94,7 @@ bool PiSDFForkForkOptimizer::operator()(PiSDFGraph *graph) const {
         for (auto *sourceEdge : source->outputEdgeArray()) {
             if (sourceEdge->sourcePortIx() == insertEdgeIx) {
                 graph->removeEdge(sourceEdge);
-                offset += vertex->edgesOUTCount() - 1;
+                offset += vertex->outputEdgeCount() - 1;
                 for (auto *vertexEdge : vertex->outputEdgeArray()) {
                     rate = vertexEdge->sourceRateExpression().evaluate(params);
                     auto ix = vertexEdge->sourcePortIx() + insertEdgeIx;

@@ -94,8 +94,8 @@ bool PiSDFJoinForkOptimizer::operator()(PiSDFGraph *graph) const {
     for (auto &pair : verticesToOptimize) {
         auto *join = pair.first;
         auto *fork = pair.second;
-        spider::Array<EdgeLinker> sourceArray{ join->edgesINCount(), StackID::TRANSFO };
-        spider::Array<EdgeLinker> sinkArray{ fork->edgesOUTCount(), StackID::TRANSFO };
+        spider::Array<EdgeLinker> sourceArray{ join->inputEdgeCount(), StackID::TRANSFO };
+        spider::Array<EdgeLinker> sinkArray{ fork->outputEdgeCount(), StackID::TRANSFO };
 
         for (auto *edge : join->inputEdgeArray()) {
             sourceArray[edge->sinkPortIx()] = EdgeLinker{ edge->source(),
@@ -167,7 +167,7 @@ bool PiSDFJoinForkOptimizer::operator()(PiSDFGraph *graph) const {
                 spider::api::createEdge(addedJoin, 0, sink.rate,
                                         sink.vertex, sink.portIx, sink.rate,
                                         StackID::TRANSFO);
-                for (std::uint64_t joinPortIx = 0; joinPortIx < addedJoin->edgesINCount(); ++joinPortIx) {
+                for (std::uint64_t joinPortIx = 0; joinPortIx < addedJoin->inputEdgeCount(); ++joinPortIx) {
                     source = sourceArray[sourceIx];
                     if (source.rate <= sink.rate) {
                         auto sourcePortIx = source.portIx == UINT32_MAX ? forkEdgeIx : source.portIx;

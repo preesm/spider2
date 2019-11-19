@@ -132,8 +132,8 @@ std::pair<PiSDFGraph *, PiSDFGraph *> spider::srdag::splitDynamicGraph(PiSDFGrap
             initOutputIFCount += (sink->subtype() == pisdf::VertexType::OUTPUT);
         }
     }
-    const auto &runInputIFCount = subgraph->edgesINCount() + cfgInputIFCount - initInputIFCount;
-    const auto &runOutputIFCount = subgraph->edgesOUTCount() - initOutputIFCount;
+    const auto &runInputIFCount = subgraph->inputEdgeCount() + cfgInputIFCount - initInputIFCount;
+    const auto &runOutputIFCount = subgraph->outputEdgeCount() - initOutputIFCount;
 
     /* == Create the init subgraph == */
     auto *initGraph = spider::api::createSubraph(subgraph->containingGraph(),
@@ -298,8 +298,8 @@ spider::srdag::staticSingleRateTransformation(const spider::srdag::Job &job, PiS
 
     TransfoTracker vertexTransfoTracker;
     vertexTransfoTracker.resize(job.reference_->vertexCount() +
-                                job.reference_->edgesINCount() +
-                                job.reference_->edgesOUTCount(), UINT32_MAX);
+                                        job.reference_->inputEdgeCount() +
+                                        job.reference_->outputEdgeCount(), UINT32_MAX);
     JobStack nextJobs;
     JobStack dynaJobs;
 

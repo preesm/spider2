@@ -104,8 +104,8 @@ struct CloneVisitor final : public spider::pisdf::DefaultVisitor {
         for (std::uint32_t it = 0; it < graph->repetitionValue(); ++it) {
             const auto *clone = spider::api::createVertex(transfoJob_.srdag_,
                                                           buildCloneName(graph, it, transfoJob_),
-                                                          graph->edgesINCount(),
-                                                          graph->edgesOUTCount(),
+                                                          graph->inputEdgeCount(),
+                                                          graph->outputEdgeCount(),
                                                           StackID::TRANSFO);
             ix_ = clone->ix();
         }
@@ -177,7 +177,7 @@ static inline std::uint32_t uniformIx(const PiSDFAbstractVertex *vertex, const P
     if (vertex->subtype() == PiSDFVertexType::INPUT) {
         return vertex->ix() + graph->vertexCount();
     } else if (vertex->subtype() == PiSDFVertexType::OUTPUT) {
-        return vertex->ix() + graph->vertexCount() + graph->edgesINCount();
+        return vertex->ix() + graph->vertexCount() + graph->inputEdgeCount();
     }
     return vertex->ix();
 }
@@ -232,7 +232,7 @@ void spider::srdag::addForkVertex(TransfoStack &srcVector, TransfoStack &snkVect
 
     /* == Connect out of fork == */
     auto remaining = sourceLinker.rate_;
-    for (std::uint32_t i = 0; i < fork->edgesOUTCount() - 1; ++i) {
+    for (std::uint32_t i = 0; i < fork->outputEdgeCount() - 1; ++i) {
         const auto &sinkLinker = snkVector.back();
         remaining -= sinkLinker.rate_;
         spider::api::createEdge(fork,               /* = Fork vertex = */
@@ -244,7 +244,7 @@ void spider::srdag::addForkVertex(TransfoStack &srcVector, TransfoStack &snkVect
                                 StackID::TRANSFO);
         snkVector.pop_back();
     }
-    srcVector.emplace_back(remaining, fork->edgesOUTCount() - 1, fork);
+    srcVector.emplace_back(remaining, fork->outputEdgeCount() - 1, fork);
     srcVector.back().lowerDep_ = sourceLinker.upperDep_;
     srcVector.back().upperDep_ = sourceLinker.upperDep_;
 }
@@ -264,22 +264,22 @@ void spider::srdag::addJoinVertex(TransfoStack &srcVector, TransfoStack &snkVect
 
     /* == Connect in of join == */
     auto remaining = sinkLinker.rate_;
-    for (std::uint32_t i = 0; i < join->edgesINCount() - 1; ++i) {
+    for (std::uint32_t i = 0; i < join->inputEdgeCount() - 1; ++i) {
         const auto &sourceLinker = srcVector.back();
         remaining -= sourceLinker.rate_;
         spider::api::createEdge(sourceLinker.vertex_, sourceLinker.portIx_, sourceLinker.rate_,
                                 join, i, sourceLinker.rate_, StackID::TRANSFO);
         srcVector.pop_back();
     }
-    snkVector.emplace_back(remaining, join->edgesINCount() - 1, join);
+    snkVector.emplace_back(remaining, join->inputEdgeCount() - 1, join);
     snkVector.back().lowerDep_ = sinkLinker.upperDep_;
     snkVector.back().upperDep_ = sinkLinker.upperDep_;
 
 }
 
 void spider::srdag::replaceJobInterfaces(TransfoJob &transfoJob) {
-    if (!transfoJob.job_.reference_->edgesINCount() &&
-        !transfoJob.job_.reference_->edgesOUTCount()) {
+    if (!transfoJob.job_.reference_->inputEdgeCount() &&
+        !transfoJob.job_.reference_->outputEdgeCount()) {
         return;
     }
     auto *srdagInstance = transfoJob.srdag_->vertex(transfoJob.job_.srdagIx_);

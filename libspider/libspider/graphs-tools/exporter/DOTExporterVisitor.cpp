@@ -166,7 +166,7 @@ void spider::pisdf::DOTExporterVisitor::vertexPrinter(ExecVertex *vertex,
               << R"(" height="20"></td>)" << '\n';
 
         /* == Export output port == */
-        if (nOutput < vertex->edgesOUTCount()) {
+        if (nOutput < vertex->outputEdgeCount()) {
             portPrinter<false>(vertex->outputEdge(nOutput), rateWidth, color);
         } else {
             dummyPortPrinter<false>(rateWidth, color);
@@ -177,7 +177,7 @@ void spider::pisdf::DOTExporterVisitor::vertexPrinter(ExecVertex *vertex,
     }
 
     /* == Trailing output ports == */
-    for (std::uint32_t i = nOutput; i < vertex->edgesOUTCount(); ++i) {
+    for (std::uint32_t i = nOutput; i < vertex->outputEdgeCount(); ++i) {
         auto *edge = vertex->outputEdge(i);
         file_ << offset_ << '\t' << '\t'
               << R"(<tr> <td border="0" style="invis" colspan="4" fixedsize="false" height="10"></td></tr>)"

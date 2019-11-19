@@ -70,35 +70,35 @@ private:
 
         inline void visit(spider::pisdf::ForkVertex *vertex) override {
             removed_ = false;
-            if (vertex->edgesOUTCount() == 1) {
+            if (vertex->outputEdgeCount() == 1) {
                 tryRemoveOutputEdge(vertex);
             }
         }
 
         inline void visit(spider::pisdf::JoinVertex *vertex) override {
             removed_ = false;
-            if (vertex->edgesINCount() == 1) {
+            if (vertex->inputEdgeCount() == 1) {
                 tryRemoveOutputEdge(vertex);
             }
         }
 
         inline void visit(spider::pisdf::HeadVertex *vertex) override {
             removed_ = false;
-            if (vertex->edgesINCount() == 1) {
+            if (vertex->inputEdgeCount() == 1) {
                 tryRemoveOutputEdge(vertex);
             }
         }
 
         inline void visit(spider::pisdf::TailVertex *vertex) override {
             removed_ = false;
-            if (vertex->edgesINCount() == 1) {
+            if (vertex->inputEdgeCount() == 1) {
                 tryRemoveOutputEdge(vertex);
             }
         }
 
         inline void visit(spider::pisdf::DuplicateVertex *vertex) override {
             removed_ = false;
-            if (vertex->edgesOUTCount() == 1) {
+            if (vertex->outputEdgeCount() == 1) {
                 tryRemoveOutputEdge(vertex);
             }
         }
