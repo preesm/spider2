@@ -52,12 +52,18 @@ namespace spider {
 
     class ScheduleJob;
 
+    namespace pisdf {
+        class Graph;
+    }
+
     /* === Class definition === */
 
     class XMLGanttExporter final : public Exporter {
     public:
 
-        explicit XMLGanttExporter(const Schedule *schedule) : Exporter(), schedule_{ schedule } { }
+        explicit XMLGanttExporter(const Schedule *schedule, const pisdf::Graph *graph) : Exporter(),
+                                                                                         schedule_{ schedule },
+                                                                                         graph_{ graph } { }
 
         ~XMLGanttExporter() override = default;
 
@@ -75,6 +81,7 @@ namespace spider {
 
     private:
         const Schedule *schedule_ = nullptr;
+        const pisdf::Graph *graph_ = nullptr;
 
         /* === Private method(s) === */
 

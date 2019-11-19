@@ -78,8 +78,7 @@ void spider::XMLGanttExporter::print(std::ofstream &file) const {
 }
 
 void spider::XMLGanttExporter::jobPrinter(std::ofstream &file, const spider::ScheduleJob &job) const {
-    const auto &graph = spider::pisdfGraph();
-    const auto *vertex = graph->vertex(job.vertexIx());
+    const auto *vertex = graph_->vertex(job.vertexIx());
     const auto *platform = spider::platform();
     auto PEIx = platform->findPE(job.mappingInfo().clusterIx, job.mappingInfo().PEIx).hardwareIx();
 

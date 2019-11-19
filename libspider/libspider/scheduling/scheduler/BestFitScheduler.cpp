@@ -69,7 +69,6 @@ void spider::BestFitScheduler::vertexMapper(const PiSDFAbstractVertex *vertex) {
     /* == Search for the best slave possible == */
     const auto *platform = spider::platform();
     const auto *scenario = vertex->containingGraph()->scenario();
-    const auto *reference = vertex->reference();
     const auto &platformStats = schedule_.stats();
 
     std::pair<std::uint32_t, std::uint32_t> bestSlave{ UINT32_MAX, UINT32_MAX };
