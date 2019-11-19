@@ -44,7 +44,7 @@
 
 #include <cstdint>
 #include <string>
-#include <scenario/Scenario.h>
+#include <spider-api/config.h>
 
 namespace spider {
 
@@ -54,45 +54,51 @@ namespace spider {
 
     class PE;
 
-    /* === Function(s) prototype === */
+    namespace pisdf {
 
-    /**
-     * @brief Get the unique platform of the Spider session.
-     * @return reference pointer to the platform.
-     */
-    Scenario &scenario();
+        class Graph;
+
+        class Vertex;
+
+    }
+
+    class Scenario;
+
+    /* === Function(s) prototype === */
 
     namespace api {
 
         /* === General Scenario related API === */
 
-        void setVertexMappableOnCluster(const PiSDFAbstractVertex *vertex, const Cluster *cluster, bool value = true);
+        Scenario *createScenario(pisdf::Graph *graph, StackID stack = StackID::PISDF);
 
-        void setVertexMappableOnCluster(const PiSDFAbstractVertex *vertex, std::uint32_t clusterIx, bool value = true);
+        void setVertexMappableOnCluster(const pisdf::Vertex *vertex, const Cluster *cluster, bool value = true);
 
-        void setVertexMappableOnPE(const PiSDFAbstractVertex *vertex, const PE *PE, bool value = true);
+        void setVertexMappableOnCluster(const pisdf::Vertex *vertex, std::uint32_t clusterIx, bool value = true);
 
-        void setVertexMappableOnPE(const PiSDFAbstractVertex *vertex, std::uint32_t spiderPEIx, bool value = true);
+        void setVertexMappableOnPE(const pisdf::Vertex *vertex, const PE *PE, bool value = true);
 
-        void setVertexMappableOnAllPE(const PiSDFAbstractVertex *vertex, bool value = true);
+        void setVertexMappableOnPE(const pisdf::Vertex *vertex, std::uint32_t spiderPEIx, bool value = true);
 
-        void setVertexExecutionTimingOnPE(const PiSDFAbstractVertex *vertex,
+        void setVertexMappableOnAllPE(const pisdf::Vertex *vertex, bool value = true);
+
+        void setVertexExecutionTimingOnPE(const pisdf::Vertex *vertex,
                                           const PE *PE,
                                           const std::string &expression = "100");
 
-        void setVertexExecutionTimingOnPE(const PiSDFAbstractVertex *vertex,
+        void setVertexExecutionTimingOnPE(const pisdf::Vertex *vertex,
                                           const PE *PE,
                                           std::int64_t timing = 100);
 
-        void setVertexExecutionTimingOnPEType(const PiSDFAbstractVertex *vertex,
+        void setVertexExecutionTimingOnPEType(const pisdf::Vertex *vertex,
                                               std::uint32_t PEType,
                                               const std::string &expression = "100");
 
-        void setVertexExecutionTimingOnPEType(const PiSDFAbstractVertex *vertex,
+        void setVertexExecutionTimingOnPEType(const pisdf::Vertex *vertex,
                                               std::uint32_t PEType,
                                               std::int64_t timing = 100);
 
-        void setVertexExecutionTimingOnAllPEType(const PiSDFAbstractVertex *vertex,
+        void setVertexExecutionTimingOnAllPEType(const pisdf::Vertex *vertex,
                                                  std::int64_t timing = 100);
     }
 }

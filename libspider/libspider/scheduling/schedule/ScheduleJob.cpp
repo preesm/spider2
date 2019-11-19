@@ -41,6 +41,8 @@
 /* === Include(s) === */
 
 #include <scheduling/schedule/ScheduleJob.h>
+#include <spider-api/archi.h>
+#include <archi/Platform.h>
 
 /* === Static variable(s) === */
 
@@ -49,15 +51,16 @@
 /* === Method(s) implementation === */
 
 spider::ScheduleJob::ScheduleJob(std::uint32_t ix) : ix_{ ix } {
-
+    auto *&platform = spider::platform();
+    constraints_.resize(platform->LRTCount(), nullptr);
 }
 
 spider::ScheduleJob::ScheduleJob(std::uint32_t ix,
                                  std::uint32_t vertexIx,
                                  std::uint32_t PEIx,
                                  std::uint32_t clusterIx,
-                                 std::uint32_t LRTIx) : vertexIx_{ vertexIx },
-                                                        ix_{ ix } {
+                                 std::uint32_t LRTIx) : ScheduleJob(ix) {
+    vertexIx_ = vertexIx;
     mappingInfo_.PEIx = PEIx;
     mappingInfo_.clusterIx = clusterIx;
     mappingInfo_.LRTIx = LRTIx;

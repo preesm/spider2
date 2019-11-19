@@ -42,12 +42,9 @@
 
 /* === Include(s) === */
 
-#include <unordered_map>
 #include <cstdint>
-#include <vector>
 #include <graphs-tools/expression-parser/Expression.h>
-#include <graphs/pisdf/common/Types.h>
-#include <graphs/pisdf/Graph.h>
+#include <containers/StlContainers.h>
 
 namespace spider {
 
@@ -55,14 +52,31 @@ namespace spider {
 
     class PE;
 
+    namespace pisdf {
+
+        class Vertex;
+
+        struct GraphAddVertexVisitor;
+
+        struct GraphRemoveVertexVisitor;
+    }
+
     /* === Class definition === */
 
     class Scenario {
     public:
 
-        explicit Scenario(const PiSDFGraph *graph);
+        Scenario() = default;
+
+        Scenario(const Scenario &) = default;
+
+        Scenario(Scenario &&) = default;
 
         ~Scenario() = default;
+
+        friend spider::pisdf::GraphAddVertexVisitor;
+
+        friend spider::pisdf::GraphRemoveVertexVisitor;
 
         /* === Method(s) === */
 
@@ -74,7 +88,7 @@ namespace spider {
          * @return mapping constraints vector.
          * @throws @refitem std::out_of_range if vertex does not exist in the lookup table.
          */
-        inline const std::vector<bool> &mappingConstraints(const PiSDFAbstractVertex *vertex) const;
+        const std::vector<bool> &mappingConstraints(const spider::pisdf::Vertex *vertex) const;
 
         /**
          * @brief Get the execution timings of a given vertex for all PE type in the platform.
@@ -82,7 +96,7 @@ namespace spider {
          * @return execution timings vector.
          * @throws @refitem std::out_of_range if vertex does not exist in the lookup table.
          */
-        inline const spider::vector<Expression> &executionTimings(const PiSDFAbstractVertex *vertex) const;
+        const spider::vector<Expression> &executionTimings(const spider::pisdf::Vertex *vertex) const;
 
         /**
          * @brief Get the mappable constraint of a vertex on a given PE.
@@ -91,7 +105,7 @@ namespace spider {
          * @return true if vertex is mappable on PE, false else.
          * @throws @refitem std::out_of_range if vertex or PE do not exist in the lookup table.
          */
-        bool isMappable(const PiSDFAbstractVertex *vertex, const PE *PE) const;
+        bool isMappable(const spider::pisdf::Vertex *vertex, const PE *PE) const;
 
         /**
          * @brief Get the execution timing of a given vertex on a specific PE type.
@@ -100,7 +114,7 @@ namespace spider {
          * @return execution timing.
          * @throws @refitem std::out_of_range if vertex or PEType do not exist in the lookup table.
          */
-        inline std::int64_t executionTiming(const PiSDFAbstractVertex *vertex, std::uint32_t PEType) const;
+        std::int64_t executionTiming(const spider::pisdf::Vertex *vertex, std::uint32_t PEType) const;
 
         /**
          * @brief Get the execution timing of a given vertex on a specific PE.
@@ -110,7 +124,7 @@ namespace spider {
          * @return execution timing.
          * @throws @refitem std::out_of_range if vertex or PEType do not exist in the lookup table.
          */
-        std::int64_t executionTiming(const PiSDFAbstractVertex *vertex, const PE *PE) const;
+        std::int64_t executionTiming(const spider::pisdf::Vertex *vertex, const PE *PE) const;
 
         /* === Setter(s) === */
 
@@ -119,8 +133,7 @@ namespace spider {
          * @param vertex        Vertex for which constraints are set.
          * @param constraints   Constraints to set (as initialization list).
          */
-        inline void
-        setMappingConstraints(const PiSDFAbstractVertex *vertex, const std::initializer_list<bool> &constraints);
+        void setMappingConstraints(const spider::pisdf::Vertex *vertex, const std::initializer_list<bool> &constraints);
 
         /**
          * @brief Set the mapping constraints of a given vertex for all possible processing elements of the platform.
@@ -128,7 +141,7 @@ namespace spider {
          * @param PECount   Number of PE in the platform.
          * @param value     Constraint value to set (true if mappable, false else).
          */
-        inline void setMappingConstraints(const PiSDFAbstractVertex *vertex, std::uint32_t PECount, bool value);
+        void setMappingConstraints(const spider::pisdf::Vertex *vertex, std::uint32_t PECount, bool value);
 
         /**
          * @brief Set the mapping constraint of a given vertex for a given processing element of the platform.
@@ -136,7 +149,7 @@ namespace spider {
          * @param spiderPEIx   Ix of the PE in spider.
          * @param value        Constraint to set (true if mappable, false else)
          */
-        inline void setMappingConstraint(const PiSDFAbstractVertex *vertex, std::uint32_t spiderPEIx, bool value);
+        void setMappingConstraint(const spider::pisdf::Vertex *vertex, std::uint32_t spiderPEIx, bool value);
 
         /**
          * @brief Set the mapping constraint of a given vertex for a given processing element of the platform.
@@ -144,15 +157,15 @@ namespace spider {
          * @param PE      Processing element.
          * @param value   Constraint to set (true if mappable, false else)
          */
-        void setMappingConstraint(const PiSDFAbstractVertex *vertex, const PE *PE, bool value);
+        void setMappingConstraint(const spider::pisdf::Vertex *vertex, const PE *PE, bool value);
 
         /**
          * @brief Set the execution timings of a given vertex for all possible processing elements of the platform.
          * @param vertex    Vertex for which constraints are set.
          * @param timings   Timings to set (as initialization list).
          */
-        inline void
-        setExecutionTimings(const PiSDFAbstractVertex *vertex, const std::initializer_list<std::int64_t> &timings);
+        void
+        setExecutionTimings(const spider::pisdf::Vertex *vertex, const std::initializer_list<std::int64_t> &timings);
 
         /**
          * @brief Set the execution timings of a given vertex for all possible processing elements of the platform.
@@ -160,8 +173,7 @@ namespace spider {
          * @param PETypeCount   Number of PE in the platform.
          * @param value     Constraint value to set (true if mappable, false else).
          */
-        inline void
-        setExecutionTimings(const PiSDFAbstractVertex *vertex, std::uint32_t PETypeCount, std::int64_t value);
+        void setExecutionTimings(const spider::pisdf::Vertex *vertex, std::uint32_t PETypeCount, std::int64_t value);
 
         /**
          * @brief Set the execution timing of a given vertex for a given processing element type of the platform.
@@ -170,7 +182,7 @@ namespace spider {
          * @param PE      Processing element.
          * @param value   Timing to set.
          */
-        void setExecutionTiming(const PiSDFAbstractVertex *vertex, const PE *PE, std::int64_t value);
+        void setExecutionTiming(const spider::pisdf::Vertex *vertex, const PE *PE, std::int64_t value);
 
         /**
          * @brief Set the execution timing of a given vertex for a given processing element type of the platform.
@@ -179,9 +191,7 @@ namespace spider {
          * @param PE         Processing element.
          * @param expression Expression of the timing to set.
          */
-        void setExecutionTiming(const PiSDFAbstractVertex *vertex,
-                                const PE *PE,
-                                const std::string &expression);
+        void setExecutionTiming(const spider::pisdf::Vertex *vertex, const PE *PE, const std::string &expression);
 
         /**
          * @brief Set the execution timing of a given vertex for a given processing element type of the platform.
@@ -190,7 +200,7 @@ namespace spider {
          * @param PEType  Processing element type (i.e the type of the cluster it belongs. ex: ARM_A7).
          * @param value   Timing to set.
          */
-        inline void setExecutionTiming(const PiSDFAbstractVertex *vertex, std::uint32_t PEType, std::int64_t value);
+        void setExecutionTiming(const spider::pisdf::Vertex *vertex, std::uint32_t PEType, std::int64_t value);
 
         /**
          * @brief Set the execution timing of a given vertex for a given processing element type of the platform.
@@ -199,73 +209,16 @@ namespace spider {
          * @param PEType     Processing element type (i.e the type of the cluster it belongs. ex: ARM_A7).
          * @param expression Expression of the timing to set.
          */
-        void setExecutionTiming(const PiSDFAbstractVertex *vertex, std::uint32_t PEType, const std::string &expression);
+        void
+        setExecutionTiming(const spider::pisdf::Vertex *vertex, std::uint32_t PEType, const std::string &expression);
 
     private:
 
-        std::unordered_map<const PiSDFAbstractVertex *, std::vector<bool>> vertexMappingConstraintsMap_;
-        std::unordered_map<const PiSDFAbstractVertex *, spider::vector<Expression>> vertexExecutionTimingsMap_;
-
+        std::vector<std::vector<bool>> mappingConstraintsVector_;
+        spider::vector<spider::vector<Expression>> executionTimingsVector_;
 
         /* === Private method(s) === */
     };
-
-    /* === Inline method(s) === */
-
-    const std::vector<bool> &Scenario::mappingConstraints(const PiSDFAbstractVertex *vertex) const {
-        return vertexMappingConstraintsMap_.at(vertex);
-    }
-
-    const spider::vector<Expression> &Scenario::executionTimings(const PiSDFAbstractVertex *vertex) const {
-        return vertexExecutionTimingsMap_.at(vertex);
-    }
-
-    std::int64_t Scenario::executionTiming(const PiSDFAbstractVertex *vertex, std::uint32_t PEType) const {
-        auto &timings = vertexExecutionTimingsMap_.at(vertex);
-        return timings.at(PEType).evaluate(vertex->containingGraph()->params());
-    }
-
-    void Scenario::setMappingConstraints(const PiSDFAbstractVertex *vertex,
-                                         const std::initializer_list<bool> &constraints) {
-        if (vertexMappingConstraintsMap_.size() != constraints.size()) {
-            throwSpiderException("Initialization list of constraints should be of size: %u",
-                                 vertexMappingConstraintsMap_.size());
-        }
-        vertexMappingConstraintsMap_[vertex] = constraints;
-    }
-
-    void Scenario::setMappingConstraints(const PiSDFAbstractVertex *vertex, std::uint32_t PECount, bool value) {
-        vertexMappingConstraintsMap_[vertex] = std::vector<bool>(PECount, value);
-    }
-
-    void Scenario::setMappingConstraint(const PiSDFAbstractVertex *vertex, std::uint32_t spiderPEIx, bool value) {
-        auto &contraints = vertexMappingConstraintsMap_.at(vertex);
-        contraints.at(spiderPEIx) = value;
-    }
-
-    void Scenario::setExecutionTimings(const PiSDFAbstractVertex *vertex,
-                                       const std::initializer_list<std::int64_t> &timings) {
-        if (vertexExecutionTimingsMap_.size() != timings.size()) {
-            throwSpiderException("Initialization list of timings should be of size: %u",
-                                 vertexExecutionTimingsMap_.size());
-        }
-        vertexExecutionTimingsMap_[vertex].clear();
-        for (const auto &timing : timings) {
-            vertexExecutionTimingsMap_[vertex].push_back(Expression(timing));
-        }
-    }
-
-    void Scenario::setExecutionTimings(const PiSDFAbstractVertex *vertex,
-                                       std::uint32_t PETypeCount,
-                                       std::int64_t value) {
-        vertexExecutionTimingsMap_[vertex] = spider::vector<Expression>(PETypeCount, Expression(value));
-    }
-
-    void Scenario::setExecutionTiming(const PiSDFAbstractVertex *vertex, std::uint32_t PEType, std::int64_t value) {
-        auto &timings = vertexExecutionTimingsMap_.at(vertex);
-        auto &timing = timings.at(PEType);
-        timing = Expression(value);
-    }
 }
 
 #endif //SPIDER2_SCENARIO_H

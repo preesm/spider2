@@ -52,9 +52,11 @@ namespace spider {
     class ListScheduler : public Scheduler {
     public:
 
-        explicit ListScheduler(PiSDFGraph *graph);
+        explicit ListScheduler(PiSDFGraph *graph) : ListScheduler(graph, graph->params()) { };
 
-        ~ListScheduler() = default;
+        ListScheduler(PiSDFGraph *graph, const spider::vector<PiSDFParam*> &params);
+
+        ~ListScheduler() override = default;
 
         /* === Method(s) === */
 
@@ -77,7 +79,7 @@ namespace spider {
 
         /* === Protected method(s) === */
 
-        inline std::uint64_t computeMinStartTime(ScheduleJob &job) { };
+        std::uint64_t computeMinStartTime(const PiSDFAbstractVertex *vertex);
 
     private:
         static std::int32_t computeScheduleLevel(ListVertex &listVertex,

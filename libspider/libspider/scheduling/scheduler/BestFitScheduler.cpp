@@ -45,7 +45,7 @@
 #include <archi/Platform.h>
 #include <archi/Cluster.h>
 #include <archi/ProcessingElement.h>
-#include <spider-api/scenario.h>
+#include <scenario/Scenario.h>
 #include <graphs/pisdf/ExecVertex.h>
 
 /* === Static variable(s) === */
@@ -64,11 +64,11 @@ spider::Schedule &spider::BestFitScheduler::mappingScheduling() {
 
 void spider::BestFitScheduler::vertexMapper(const PiSDFAbstractVertex *vertex) {
     /* == Compute the minimum start time possible for vertex == */
-    std::uint64_t minStartTime = 0;
+    std::uint64_t minStartTime = computeMinStartTime(vertex);
 
     /* == Search for the best slave possible == */
     const auto *platform = spider::platform();
-    const auto &scenario = spider::scenario();
+    const auto *scenario = vertex->containingGraph()->scenario();
     const auto *reference = vertex->reference();
     const auto &platformStats = schedule_.stats();
 
@@ -79,12 +79,12 @@ void spider::BestFitScheduler::vertexMapper(const PiSDFAbstractVertex *vertex) {
     for (const auto &cluster : platform->clusters()) {
         for (const auto &PE : cluster->processingElements()) {
             /* == Check that PE is enabled and vertex is mappable on it == */
-            if (PE->enabled() && scenario.isMappable(reference, PE)) {
+            if (PE->enabled() && scenario->isMappable(reference, PE)) {
                 /* == Retrieving information needed for scheduling cost == */
                 const auto &readyTime = platformStats.startTime(PE->spiderPEIx());
                 const auto &startTime = std::max(readyTime, minStartTime);
                 const auto &waitTime = startTime - readyTime;
-                const auto &execTime = scenario.executionTiming(reference, PE);
+                const auto &execTime = scenario->executionTiming(reference, PE);
                 const auto &endTime = startTime + execTime;
 
                 /* == Compute communication cost == */

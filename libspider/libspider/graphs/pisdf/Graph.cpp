@@ -49,6 +49,7 @@
 #include <graphs/pisdf/interfaces/OutputInterface.h>
 #include <graphs/pisdf/specials/Specials.h>
 #include <graphs/pisdf/params/Param.h>
+#include <scenario/Scenario.h>
 
 
 /* === Method(s) implementation === */
@@ -117,6 +118,12 @@ spider::pisdf::Graph::~Graph() {
     for (auto &param : paramVector_) {
         spider::destroy(param);
         spider::deallocate(param);
+    }
+
+    /* == Destroy the scenario (if any) == */
+    if (scenario_) {
+        spider::destroy(scenario_);
+        spider::deallocate(scenario_);
     }
 }
 
@@ -187,6 +194,13 @@ spider::pisdf::Vertex *spider::pisdf::Graph::forwardEdge(const Edge *e) {
         return outputInterfaceArray_[e->sourcePortIx()];
     }
     return inputInterfaceArray_[e->sinkPortIx()];
+}
+
+void spider::pisdf::Graph::createScenario(StackID stack) {
+    if (!scenario_) {
+        scenario_ = spider::allocate<Scenario>(stack);
+        spider::construct(scenario_);
+    }
 }
 
 /* === Private method(s) === */

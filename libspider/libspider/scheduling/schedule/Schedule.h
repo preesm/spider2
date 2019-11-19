@@ -104,7 +104,7 @@ namespace spider {
          * @return const reference to the job.
          * @throws @refitem std::out_of_range if ix is out of range.
          */
-        inline const ScheduleJob &job(std::uint32_t ix) const;
+        inline ScheduleJob &job(std::uint32_t ix);
 
         /**
          * @brief Get the different statistics of the platform.
@@ -131,7 +131,7 @@ namespace spider {
         return jobs_;
     }
 
-    const ScheduleJob &spider::Schedule::job(std::uint32_t ix) const {
+    ScheduleJob &spider::Schedule::job(std::uint32_t ix) {
         return jobs_.at(ix);
     }
 

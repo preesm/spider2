@@ -41,11 +41,9 @@
 /* === Include(s) === */
 
 #include <scenario/Scenario.h>
-#include <spider-api/archi.h>
-#include <spider-api/pisdf.h>
 #include <archi/ProcessingElement.h>
-#include <archi/Platform.h>
 #include <graphs/pisdf/Graph.h>
+#include <graphs/pisdf/Vertex.h>
 
 /* === Static variable(s) === */
 
@@ -53,54 +51,90 @@
 
 /* === Method(s) implementation === */
 
-spider::Scenario::Scenario(const PiSDFGraph *graph) {
-    auto *&platform = spider::platform();
-
-    /* == For all vertex inside the graph, we create an entry in the map == */
-    auto PECount = platform->PECount();
-    auto PETypeCount = platform->PETypeCount();
-    for (const auto &vertex : graph->vertices()) {
-        vertexMappingConstraintsMap_[vertex] = std::vector<bool>(PECount, true);
-        vertexExecutionTimingsMap_[vertex] = spider::vector<Expression>(PETypeCount, Expression(100));
-    }
+const std::vector<bool> &spider::Scenario::mappingConstraints(const spider::pisdf::Vertex *vertex) const {
+    return mappingConstraintsVector_.at(vertex->ix());
 }
 
-bool spider::Scenario::isMappable(const PiSDFAbstractVertex *vertex, const spider::PE *PE) const {
-    auto &contraints = vertexMappingConstraintsMap_.at(vertex);
+const spider::vector<Expression> &spider::Scenario::executionTimings(const spider::pisdf::Vertex *vertex) const {
+    return executionTimingsVector_.at(vertex->ix());
+}
+
+std::int64_t spider::Scenario::executionTiming(const spider::pisdf::Vertex *vertex, std::uint32_t PEType) const {
+    auto &timings = executionTimings(vertex);
+    return timings.at(PEType).evaluate(vertex->containingGraph()->params());
+}
+
+void spider::Scenario::setMappingConstraints(const spider::pisdf::Vertex *vertex,
+                                             const std::initializer_list<bool> &constraints) {
+    mappingConstraintsVector_.at(vertex->ix()) = constraints;
+}
+
+void spider::Scenario::setMappingConstraints(const spider::pisdf::Vertex *vertex, std::uint32_t PECount, bool value) {
+    mappingConstraintsVector_.at(vertex->ix()) = std::vector<bool>(PECount, value);
+}
+
+void spider::Scenario::setMappingConstraint(const spider::pisdf::Vertex *vertex, std::uint32_t spiderPEIx, bool value) {
+    auto &contraints = mappingConstraintsVector_.at(vertex->ix());
+    contraints.at(spiderPEIx) = value;
+}
+
+bool spider::Scenario::isMappable(const spider::pisdf::Vertex *vertex, const spider::PE *PE) const {
+    auto &contraints = mappingConstraintsVector_.at(vertex->ix());
     return contraints.at(PE->spiderPEIx());
 }
 
-std::int64_t spider::Scenario::executionTiming(const PiSDFAbstractVertex *vertex, const spider::PE *PE) const {
-    auto &timings = vertexExecutionTimingsMap_.at(vertex);
+std::int64_t spider::Scenario::executionTiming(const spider::pisdf::Vertex *vertex, const spider::PE *PE) const {
+    auto &timings = executionTimingsVector_.at(vertex->ix());
     auto &timing = timings.at(PE->hardwareType());
     return timing.evaluate(vertex->containingGraph()->params());
 }
 
 void
-spider::Scenario::setMappingConstraint(const PiSDFAbstractVertex *vertex, const spider::PE *PE, bool value) {
-    auto &contraints = vertexMappingConstraintsMap_.at(vertex);
+spider::Scenario::setMappingConstraint(const spider::pisdf::Vertex *vertex, const spider::PE *PE, bool value) {
+    auto &contraints = mappingConstraintsVector_.at(vertex->ix());
     contraints.at(PE->spiderPEIx()) = value;
 }
 
-void spider::Scenario::setExecutionTiming(const PiSDFAbstractVertex *vertex, const spider::PE *PE,
+void spider::Scenario::setExecutionTimings(const spider::pisdf::Vertex *vertex,
+                                           const std::initializer_list<std::int64_t> &timings) {
+    executionTimingsVector_.at(vertex->ix()).clear();
+    for (const auto &timing : timings) {
+        executionTimingsVector_.at(vertex->ix()).emplace_back(timing);
+    }
+}
+
+void spider::Scenario::setExecutionTimings(const spider::pisdf::Vertex *vertex,
+                                           std::uint32_t PETypeCount,
+                                           std::int64_t value) {
+    executionTimingsVector_.at(vertex->ix()) = spider::vector<Expression>(PETypeCount, Expression(value));
+}
+
+void
+spider::Scenario::setExecutionTiming(const spider::pisdf::Vertex *vertex, std::uint32_t PEType, std::int64_t value) {
+    auto &timings = executionTimingsVector_.at(vertex->ix());
+    auto &timing = timings.at(PEType);
+    timing = Expression(value);
+}
+
+void spider::Scenario::setExecutionTiming(const spider::pisdf::Vertex *vertex, const spider::PE *PE,
                                           std::int64_t value) {
-    auto &timings = vertexExecutionTimingsMap_.at(vertex);
+    auto &timings = executionTimingsVector_.at(vertex->ix());
     auto &timing = timings.at(PE->hardwareType());
     timing = Expression(value);
 }
 
-void spider::Scenario::setExecutionTiming(const PiSDFAbstractVertex *vertex,
+void spider::Scenario::setExecutionTiming(const spider::pisdf::Vertex *vertex,
                                           std::uint32_t PEType,
                                           const std::string &expression) {
-    auto &timings = vertexExecutionTimingsMap_.at(vertex);
+    auto &timings = executionTimingsVector_.at(vertex->ix());
     auto &timing = timings.at(PEType);
     timing = Expression(expression, vertex->containingGraph()->params());
 }
 
-void spider::Scenario::setExecutionTiming(const PiSDFAbstractVertex *vertex,
+void spider::Scenario::setExecutionTiming(const spider::pisdf::Vertex *vertex,
                                           const spider::PE *PE,
                                           const std::string &expression) {
-    auto &timings = vertexExecutionTimingsMap_.at(vertex);
+    auto &timings = executionTimingsVector_.at(vertex->ix());
     auto &timing = timings.at(PE->hardwareType());
     timing = Expression(expression, vertex->containingGraph()->params());
 }

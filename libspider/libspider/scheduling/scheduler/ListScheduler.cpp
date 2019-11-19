@@ -47,7 +47,8 @@
 #include <archi/Cluster.h>
 #include <archi/ProcessingElement.h>
 #include <spider-api/archi.h>
-#include <spider-api/scenario.h>
+#include <scenario/Scenario.h>
+#include <scheduling/schedule/ScheduleJob.h>
 
 /* === Static variable(s) === */
 
@@ -62,12 +63,12 @@ std::int32_t spider::ListScheduler::computeScheduleLevel(ListVertex &listVertex,
         for (auto &edge : vertex->outputEdgeArray()) {
             auto *sink = edge->sink();
             if (sink) {
-                auto &scenario = spider::scenario();
+                auto *scenario = vertex->containingGraph()->scenario();
                 auto minExecutionTime = INT64_MAX;
                 for (auto &cluster : platform->clusters()) {
-                    auto executionTime = scenario.executionTiming(vertex, cluster->PEType());
+                    auto executionTime = scenario->executionTiming(vertex, cluster->PEType());
                     for (auto &pe : cluster->processingElements()) {
-                        if (scenario.isMappable(vertex, pe)) {
+                        if (scenario->isMappable(vertex, pe)) {
                             if (!executionTime) {
                                 throwSpiderException("Vertex [%s] has null execution time on mappable PE [%s].",
                                                      vertex->name().c_str(), pe->name().c_str());
@@ -91,7 +92,8 @@ std::int32_t spider::ListScheduler::computeScheduleLevel(ListVertex &listVertex,
 
 /* === Method(s) implementation === */
 
-spider::ListScheduler::ListScheduler(PiSDFGraph *graph) : Scheduler(graph) {
+spider::ListScheduler::ListScheduler(PiSDFGraph *graph,
+                                     const spider::vector<PiSDFParam *> &params) : Scheduler(graph, params) {
     /* == Reserve and push the vertices into the vertex == */
     sortedVertexVector_.reserve(graph_->vertexCount());
     for (auto *vertex : graph_->vertices()) {
@@ -113,4 +115,24 @@ spider::ListScheduler::ListScheduler(PiSDFGraph *graph) : Scheduler(graph) {
                   }
                   return B.level - A.level;
               });
+}
+
+std::uint64_t spider::ListScheduler::computeMinStartTime(const PiSDFAbstractVertex *vertex) {
+    std::uint64_t minimumStartTime = 0;
+    auto &job = schedule_.job(vertex->ix());
+    job.setVertexIx(vertex->ix());
+    for (const auto &edge : vertex->inputEdgeArray()) {
+        const auto &rate = edge->sinkRateExpression().evaluate(params_);
+        if (rate) {
+            const auto &src = edge->source();
+            auto &srcJob = schedule_.job(src->ix());
+            const auto &lrtIx = srcJob.mappingInfo().LRTIx;
+            auto *currentConstraint = job.constraint(lrtIx);
+            if (!currentConstraint || (srcJob.ix() > currentConstraint->ix())) {
+                job.setConstraint(&srcJob);
+            }
+            minimumStartTime = std::max(minimumStartTime, srcJob.mappingInfo().endTime);
+        }
+    }
+    return minimumStartTime;
 }

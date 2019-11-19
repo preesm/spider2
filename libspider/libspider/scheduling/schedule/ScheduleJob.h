@@ -76,7 +76,7 @@ namespace spider {
     class ScheduleJob {
     public:
 
-        ScheduleJob() = default;
+        ScheduleJob() = delete;
 
         explicit ScheduleJob(std::uint32_t ix);
 
@@ -96,9 +96,11 @@ namespace spider {
          * @brief Add a constraint on another @refitem ScheduleJob to current job.
          * @param job Pointer to the job we are constrained on.
          */
-        inline void addConstrain(ScheduleJob *job);
+        inline void setConstraint(ScheduleJob *job);
 
         /* === Getter(s) === */
+
+        inline ScheduleJob *constraint(std::uint32_t lrtIx) const;
 
         /**
          * @brief Get the ix of the job.
@@ -188,10 +190,14 @@ namespace spider {
 
     /* === Inline method(s) === */
 
-    void ScheduleJob::addConstrain(ScheduleJob *job) {
+    void ScheduleJob::setConstraint(ScheduleJob *job) {
         if (job && job != this) {
-            constraints_.push_back(job);
+            constraints_.at(job->mappingInfo().LRTIx) = job;
         }
+    }
+
+    ScheduleJob *ScheduleJob::constraint(std::uint32_t lrtIx) const {
+        return constraints_.at(lrtIx);
     }
 
     std::uint32_t spider::ScheduleJob::vertexIx() const {

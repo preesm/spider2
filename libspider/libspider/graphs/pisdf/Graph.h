@@ -50,6 +50,11 @@
 #include <graphs/pisdf/Edge.h>
 
 namespace spider {
+
+    /* === Forward declaration(s) === */
+
+    class Scenario;
+
     namespace pisdf {
 
         /* === Forward declaration(s) === */
@@ -151,6 +156,12 @@ namespace spider {
             Vertex *forwardEdge(const Edge *e) override;
 
             inline void visit(Visitor *visitor) override;
+
+            /**
+             * @brief Create a scenario for the given graph.
+             * @param stack Stack on which to create the scenario.
+             */
+            void createScenario(StackID stack = StackID::PISDF);
 
             /* === Getter(s) === */
 
@@ -280,7 +291,18 @@ namespace spider {
              */
             inline OutputInterface *outputInterface(std::uint32_t ix) const;
 
+            /**
+             * @brief Get the ix of the graph inside its containing graph subgraphVector_.
+             * @return subgraph ix of the graph.
+             */
             inline std::uint32_t subIx() const;
+
+            /**
+             * @brief Get the scenario of the graph.
+             * @remark a Graph is not required to have a scenario and thus it may be nullptr.
+             * @return scenario of the graph.
+             */
+            inline Scenario *scenario() const;
 
             /* === Setter(s) === */
 
@@ -297,6 +319,10 @@ namespace spider {
             spider::Array<InputInterface *> inputInterfaceArray_;
             spider::Array<OutputInterface *> outputInterfaceArray_;
             spider::vector<Param *> paramVector_;
+
+            /* === Scenario related to this graph === */
+
+            Scenario *scenario_ = nullptr;
 
             /* === Private method(s) === */
 
@@ -395,6 +421,10 @@ namespace spider {
 
         std::uint32_t Graph::subIx() const {
             return subIx_;
+        }
+
+        Scenario *Graph::scenario() const {
+            return scenario_;
         }
     }
 }

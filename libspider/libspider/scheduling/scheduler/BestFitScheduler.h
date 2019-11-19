@@ -48,12 +48,12 @@ namespace spider {
 
     /* === Class definition === */
 
-    class BestFitScheduler : public ListScheduler {
+    class BestFitScheduler final : public ListScheduler {
     public:
 
         explicit BestFitScheduler(PiSDFGraph *graph) : ListScheduler(graph) { };
 
-        ~BestFitScheduler() = default;
+        ~BestFitScheduler() override = default;
 
         /* === Method(s) === */
 

@@ -57,8 +57,10 @@ spider::Platform *&spider::platform() {
 
 spider::Platform *spider::api::createPlatform(std::uint32_t clusterCount) {
     auto *&platform = spider::platform();
-    platform = spider::allocate<Platform>(StackID::ARCHI);
-    spider::construct(platform, clusterCount);
+    if (!platform) {
+        platform = spider::allocate<Platform>(StackID::ARCHI);
+        spider::construct(platform, clusterCount);
+    }
     return platform;
 }
 

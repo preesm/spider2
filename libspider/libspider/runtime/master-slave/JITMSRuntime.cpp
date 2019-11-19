@@ -44,6 +44,9 @@
 #include <graphs-tools/transformation/srdag/SRDAGTransformation.h>
 #include <graphs-tools/transformation/optims/PiSDFGraphOptimizer.h>
 #include <graphs-tools/exporter/DOTExporter.h>
+#include <scheduling/schedule/exporter/SVGGanttExporter.h>
+#include <scheduling/scheduler/BestFitScheduler.h>
+#include <spider-api/scenario.h>
 
 /* === Static variable(s) === */
 
@@ -64,6 +67,7 @@ bool spider::JITMSRuntime::execute() const {
                                            0, /* = Number of output interfaces = */
                                            0, /* = Number of config actors = */
                                            StackID::TRANSFO);
+    spider::api::createScenario(srdag, StackID::SCENARIO);
 
     /* == Apply first transformation of root graph == */
     auto &&rootJob = spider::srdag::Job(graph, 0, UINT32_MAX);
@@ -148,6 +152,10 @@ bool spider::JITMSRuntime::execute() const {
     // TODO: add time monitoring
     // TODO: add schedule
     // TODO: run graph
+    spider::BestFitScheduler scheduler{srdag};
+    scheduler.mappingScheduling();
+    spider::SVGGanttExporter ganttExporter{&scheduler.schedule()};
+    ganttExporter.print();
 
     spider::pisdf::DOTExporter(srdag).print("./srdag.dot");
 

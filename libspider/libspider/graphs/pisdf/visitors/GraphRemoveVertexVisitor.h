@@ -45,6 +45,7 @@
 #include <graphs/pisdf/visitors/DefaultVisitor.h>
 #include <graphs/pisdf/specials/Specials.h>
 #include <graphs/pisdf/Graph.h>
+#include <scenario/Scenario.h>
 
 namespace spider {
     namespace pisdf {
@@ -136,9 +137,21 @@ namespace spider {
         private:
             template<class T>
             inline void destroyVertex(T *vertex) {
+                if (vertex->subtype() != VertexType::GRAPH) {
+                    removeScenarioConstraints(vertex->ix());
+                }
                 graph_->removeElement(graph_->vertexVector_, static_cast<Vertex *>(vertex));
                 spider::destroy(vertex);
                 spider::deallocate(vertex);
+            }
+
+            inline void removeScenarioConstraints(std::uint32_t ix) {
+                if (graph_->scenario_) {
+                    graph_->scenario_->mappingConstraintsVector_[ix] = graph_->scenario_->mappingConstraintsVector_.back();
+                    graph_->scenario_->mappingConstraintsVector_.pop_back();
+                    graph_->scenario_->executionTimingsVector_[ix] = graph_->scenario_->executionTimingsVector_.back();
+                    graph_->scenario_->executionTimingsVector_.pop_back();
+                }
             }
         };
 

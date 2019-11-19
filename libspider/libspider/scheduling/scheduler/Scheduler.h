@@ -45,6 +45,7 @@
 #include <spider-api/archi.h>
 #include <scheduling/schedule/Schedule.h>
 #include <graphs/pisdf/common/Types.h>
+#include <graphs/pisdf/Graph.h>
 
 namespace spider {
 
@@ -53,9 +54,14 @@ namespace spider {
     class Scheduler {
     public:
 
-        explicit inline Scheduler(PiSDFGraph *graph) : graph_{ graph } { };
+        explicit Scheduler(PiSDFGraph *graph) : graph_{ graph },
+                                                params_{ graph->params() } { };
 
-        ~Scheduler() = default;
+        explicit Scheduler(PiSDFGraph *graph,
+                           const spider::vector<PiSDFParam *> &params) : graph_{ graph },
+                                                                         params_{ params } { };
+
+        virtual ~Scheduler() = default;
 
         /* === Method(s) === */
 
@@ -69,6 +75,7 @@ namespace spider {
 
     protected:
         PiSDFGraph *graph_ = nullptr;
+        const spider::vector<PiSDFParam *> &params_;
         Schedule schedule_;
     };
 
