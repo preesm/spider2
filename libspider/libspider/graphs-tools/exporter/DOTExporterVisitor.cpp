@@ -126,32 +126,34 @@ std::pair<std::int32_t, std::int32_t> spider::pisdf::DOTExporterVisitor::compute
         const auto &rate = e->sourceRateExpression().evaluate(exporter_->params_);
         longestRateLen = std::max(longestRateLen, std::log10(rate));
     }
-    const auto &rateWidth = 32 + std::max(static_cast<std::int32_t>(longestRateLen) + 1 - 3, 0) * 8;
-    return std::make_pair(centerWidth, rateWidth);
+    return std::make_pair(centerWidth, static_cast<std::int32_t>(longestRateLen));
 }
 
-void spider::pisdf::DOTExporterVisitor::vertexPrinter(ExecVertex *vertex, const std::string &color) const {
+void spider::pisdf::DOTExporterVisitor::vertexPrinter(ExecVertex *vertex,
+                                                      const std::string &color,
+                                                      std::int32_t border,
+                                                      const std::string &style) const {
     /* == Header == */
-    vertexHeaderPrinter(vertex->name(), color);
+    vertexHeaderPrinter(vertex->name(), color, border, style);
 
     /* == Vertex name == */
     file_ << offset_ << '\t' << '\t'
-          << R"(<tr> <td border="1" sides="lrt" colspan="4" fixedsize="false" height="10"></td></tr>)"
+          << R"(<tr> <td border="0" colspan="4" fixedsize="false" height="10"></td></tr>)"
           << '\n';
     file_ << offset_ << '\t' << '\t'
-          << R"(<tr> <td border="1" sides="lr" colspan="4"><font point-size="25" face="inconsolata">)"
+          << R"(<tr> <td border="0" colspan="4"><font point-size="25" face="inconsolata">)"
           << vertex->name() << "</font></td></tr>" << '\n';
 
     /* == Get widths == */
     const auto &widthPair = computeConstantWidth(vertex);
     const auto &centerWidth = widthPair.first;
-    const auto &rateWidth = widthPair.second;
+    const auto &rateWidth = 32 + std::max(widthPair.second + 1 - 3, 0) * 8;
 
     /* == Export data ports == */
     std::uint32_t nOutput = 0;
     for (const auto &edge : vertex->inputEdgeArray()) {
         file_ << offset_ << '\t' << '\t'
-              << R"(<tr> <td border="1" sides="lr" colspan="4" fixedsize="false" height="10"></td></tr>)"
+              << R"(<tr> <td border="0" style="invis" colspan="4" fixedsize="false" height="10"></td></tr>)"
               << '\n';
         file_ << offset_ << '\t' << '\t' << R"(<tr>)" << '\n';
 
@@ -160,7 +162,7 @@ void spider::pisdf::DOTExporterVisitor::vertexPrinter(ExecVertex *vertex, const 
 
         /* == Middle separation == */
         file_ << offset_ << '\t' << '\t' << '\t'
-              << R"(<td border="0" colspan="2" bgcolor=")" << color << R"(" fixedsize="true" width=")" << centerWidth
+              << R"(<td border="0" style="invis" colspan="2" bgcolor=")" << color << R"(" fixedsize="true" width=")" << centerWidth
               << R"(" height="20"></td>)" << '\n';
 
         /* == Export output port == */
@@ -178,7 +180,7 @@ void spider::pisdf::DOTExporterVisitor::vertexPrinter(ExecVertex *vertex, const 
     for (std::uint32_t i = nOutput; i < vertex->edgesOUTCount(); ++i) {
         auto *edge = vertex->outputEdge(i);
         file_ << offset_ << '\t' << '\t'
-              << R"(<tr> <td border="1" sides="lr" colspan="4" fixedsize="false" height="10"></td></tr>)"
+              << R"(<tr> <td border="0" style="invis" colspan="4" fixedsize="false" height="10"></td></tr>)"
               << '\n';
         file_ << offset_ << '\t' << '\t' << R"(<tr>)" << '\n';
 
@@ -187,7 +189,7 @@ void spider::pisdf::DOTExporterVisitor::vertexPrinter(ExecVertex *vertex, const 
 
         /* == Middle separation == */
         file_ << offset_ << '\t' << '\t' << '\t'
-              << R"(<td border="0" colspan="2" bgcolor=")" << color << R"(" fixedsize="true" width=")" << centerWidth
+              << R"(<td border="0" style="invis" colspan="2" bgcolor=")" << color << R"(" fixedsize="true" width=")" << centerWidth
               << R"(" height="20"></td>)" << '\n';
 
         /* == Export output port == */
@@ -197,7 +199,7 @@ void spider::pisdf::DOTExporterVisitor::vertexPrinter(ExecVertex *vertex, const 
 
     /* == Footer == */
     file_ << offset_ << '\t' << '\t'
-          << R"(<tr> <td border="1" sides="lbr" colspan="4" fixedsize="false" height="10"></td></tr>)"
+          << R"(<tr> <td border="0" style="invis" colspan="4" fixedsize="false" height="10"></td></tr>)"
           << '\n';
     file_ << offset_ << '\t' << "</table>>" << '\n';
     file_ << offset_ << "];" << '\n' << '\n';
@@ -211,50 +213,26 @@ void spider::pisdf::DOTExporterVisitor::interfaceBodyPrinter(Interface *interfac
 
     /* == Get widths == */
     const auto &widthPair = computeConstantWidth(interface);
-    const auto &balanceWidth = widthPair.first / 2;
-    const auto &rateWidth = widthPair.second;
-
-    /* == First stage for symmetry == */
-    file_ << offset_ << '\t' << '\t'
-          << R"(<tr>
-                    <td border="0" bgcolor="#ffffff00" fixedsize="true" width=")" << balanceWidth << R"(" height="20"></td>
-                    <td border="0" bgcolor="#ffffff00" fixedsize="true" width=")" << rateWidth << R"(" height="20"></td>
-                    <td border="1" sides="ltr" bgcolor=")" << color << R"(" fixedsize="true" width="20" height="20"></td>
-                    <td border="1" sides="l" bgcolor="#ffffff00" fixedsize="true" width=")" << rateWidth << R"(" height="20"></td>
-                    <td border="0" bgcolor="#ffffff00" fixedsize="true" width=")" << balanceWidth << R"(" height="20"></td>
-                </tr>)" << '\n';
-
-    /* == Middle stage with port connections == */
+    const auto &balanceWidth = widthPair.first;
+    const auto &rateWidth = 24 + std::max(widthPair.second + 1 - 1, 0) * 6;
     const auto &inIx = interface->inputEdge()->sinkPortIx();
     const auto &outIx = interface->outputEdge()->sourcePortIx();
-
-    file_ << offset_ << '\t' << '\t'
-          << R"(<tr>
-                    <td border="0" bgcolor="#ffffff00" fixedsize="true" width=")" << balanceWidth << R"(" height="20"></td>
-                    <td port="in_)" << inIx << R"(" align="right" border="0" bgcolor="#ffffff00" fixedsize="true" width="0" height="20"></td>
-                    <td border="1" sides="lr" bgcolor=")" << color << R"(" fixedsize="true" width="20" height="20"></td>
-                    <td port="out_)" << outIx << R"(" align="left" border="0" bgcolor="#ffffff00" fixedsize="true" width="0" height="20"></td>
-                    <td border="0" bgcolor="#ffffff00" fixedsize="true" width=")" << balanceWidth << R"(" height="20"></td>
-                </tr>)" << '\n';
-
-    /* == Last stage with rates == */
     const auto &inRate = interface->inputEdge()->sinkRateExpression().evaluate(exporter_->params_);
     const auto &outRate = interface->outputEdge()->sourceRateExpression().evaluate(exporter_->params_);
     file_ << offset_ << '\t' << '\t'
           << R"(<tr>
-                    <td border="0" bgcolor="#ffffff00" fixedsize="true" width=")" << balanceWidth << R"(" height="20"></td>
-                    <td border="0" align="right" bgcolor="#ffffff00" fixedsize="true" width=")" << rateWidth
-          << R"(" height="20"><font point-size="12" face="inconsolata">)" << inRate << R"( </font></td>
-					<td border="1" sides="lbr" bgcolor=")" << color << R"(" fixedsize="true" width="20" height="20"></td>
-					<td border="0" align="left" bgcolor="#ffffff00" fixedsize="true" width=")" << rateWidth
-          << R"(" height="20"><font point-size="12" face="inconsolata"> )" << outRate << R"(</font></td>
-					<td border="0" bgcolor="#ffffff00" fixedsize="true" width=")" << balanceWidth << R"(" height="20"></td>
-				</tr>)" << '\n';
+                    <td border="0" bgcolor="#ffffff00" fixedsize="true" width=")" << balanceWidth << R"(" height="60"></td>
+                    <td port="in_)" << inIx
+          << R"(" align="left" border="0" bgcolor="#ffffff00" fixedsize="true" width=")" << rateWidth
+          << R"(" height="60"><font point-size="12" face="inconsolata"> )" << inRate << R"(</font></td>
+                    <td border="1" bgcolor=")" << color << R"(" fixedsize="true" width="20" height="60"></td>
+                    <td port="out_)" << outIx
+          << R"(" align="right" border="0" bgcolor="#ffffff00" fixedsize="true" width=")" << rateWidth
+          << R"(" height="60"><font point-size="12" face="inconsolata">)" << outRate << R"( </font></td>
+                    <td border="0" bgcolor="#ffffff00" fixedsize="true" width=")" << balanceWidth << R"(" height="60"></td>
+                </tr>)" << '\n';
 
     /* == Footer == */
-    file_ << offset_ << '\t' << '\t'
-          << R"(<tr> <td border="0" colspan="5" fixedsize="false" height="10"></td></tr>)"
-          << '\n';
     file_ << offset_ << '\t' << "</table>>" << '\n';
     file_ << offset_ << "];" << '\n' << '\n';
 }
@@ -274,7 +252,7 @@ void spider::pisdf::DOTExporterVisitor::edgePrinter(spider::pisdf::Edge *edge) c
     if (delay) {
         /* == Draw circle of the delay == */
         file_ << offset_ << R"(")" << delay->name()
-              << R"(" [shape=circle, style=filled, fillcolor="#393c3c", label=""])"
+              << R"(" [shape=circle, style=filled, color="#393c3c", fillcolor="#393c3c", label=""])"
               << '\n';
 
         /* == Connect source to delay == */

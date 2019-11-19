@@ -77,6 +77,11 @@ namespace spider {
                 vertexPrinter(vertex, "#eeeeeeff");
             }
 
+            inline void visit(ConfigVertex *vertex) override {
+                /* == Vertex printer == */
+                vertexPrinter(vertex, "#ffffccff", 2, "rounded");
+            }
+
             inline void visit(ForkVertex *vertex) override {
                 /* == Vertex printer == */
                 vertexPrinter(vertex, "#fabe58ff");
@@ -119,7 +124,7 @@ namespace spider {
 
             inline void visit(InputInterface *interface) override {
                 /* == Header == */
-                vertexHeaderPrinter("input-" + interface->name());
+                vertexHeaderPrinter("input-" + interface->name(), "#ffffff00", 0);
 
                 /* == Interface printer == */
                 interfaceBodyPrinter(interface, "#87d37cff");
@@ -127,7 +132,7 @@ namespace spider {
 
             inline void visit(OutputInterface *interface) override {
                 /* == Header == */
-                vertexHeaderPrinter("output-" + interface->name());
+                vertexHeaderPrinter("output-" + interface->name(), "#ffffff00", 0);
 
                 /* == Interface printer == */
                 interfaceBodyPrinter(interface, "#ec644bff");
@@ -150,18 +155,24 @@ namespace spider {
             std::ofstream &file_;
             std::string offset_;
 
-            inline void vertexHeaderPrinter(const std::string &name, const std::string &color = "#ffffff00") const {
+            inline void vertexHeaderPrinter(const std::string &name,
+                                            const std::string &color = "#ffffff00",
+                                            std::int32_t border = 2,
+                                            const std::string &style = "") const {
                 file_ << offset_ << R"(")" << name
-                      << R"(" [shape=plain, style=filled, fillcolor=")" << color << R"(", width=0, height=0, label=<)"
+                      << R"(" [shape=plain, color="#393c3c", width=0, height=0, label=<)"
                       << '\n';
-                file_ << offset_ << '\t' << R"(<table border="0" fixedsize="false" cellspacing="0" cellpadding="0">)"
-                      << '\n';
+                file_ << offset_ << '\t' << R"(<table border=")" << border << R"(" style=")" << style
+                      << R"(" bgcolor=")" << color << R"(" fixedsize="false" cellspacing="0" cellpadding="0">)" << '\n';
 
             }
 
             std::pair<std::int32_t, std::int32_t> computeConstantWidth(Vertex *vertex) const;
 
-            void vertexPrinter(ExecVertex *vertex, const std::string &color) const;
+            void vertexPrinter(ExecVertex *vertex,
+                               const std::string &color,
+                               std::int32_t border = 2,
+                               const std::string &style = "") const;
 
             void interfaceBodyPrinter(Interface *interface, const std::string &color) const;
 
@@ -176,11 +187,12 @@ namespace spider {
 
                 /* == Direction specific export == */
                 file_ << offset_ << '\t' << '\t' << '\t' << '\t' << '\t' << '\t'
-                      << R"(<td border="1" sides="l" bgcolor=")" << color
+                      << R"(<td border="0" style="invis" bgcolor=")" << color
                       << R"(" align="left" fixedsize="true" width="20" height="20"></td>)"
                       << '\n';
                 file_ << offset_ << '\t' << '\t' << '\t' << '\t' << '\t' << '\t'
-                      << R"(<td border="0" align="left" bgcolor=")" << color << R"(" fixedsize="true" width=")" << width
+                      << R"(<td border="0" style="invis" align="left" bgcolor=")" << color
+                      << R"(" fixedsize="true" width=")" << width
                       << R"(" height="20"><font color=")" << color
                       << R"(" point-size="12" face="inconsolata"> 0</font></td>)"
                       << '\n';
@@ -197,7 +209,7 @@ namespace spider {
                 /* == Direction specific export == */
                 file_ << offset_ << '\t' << '\t' << '\t' << '\t' << '\t' << '\t'
                       << R"(<td port="in_)" << edge->sinkPortIx()
-                      << R"(" border="1" bgcolor="#87d37cff" align="left" fixedsize="true" width="20" height="20"></td>)"
+                      << R"(" border="1" sides="rtb" bgcolor="#87d37cff" align="left" fixedsize="true" width="20" height="20"></td>)"
                       << '\n';
                 file_ << offset_ << '\t' << '\t' << '\t' << '\t' << '\t' << '\t'
                       << R"(<td border="1" sides="l" align="left" bgcolor=")" << color
@@ -233,12 +245,13 @@ namespace spider {
 
             /* == Direction specific export == */
             file_ << offset_ << '\t' << '\t' << '\t' << '\t' << '\t' << '\t'
-                  << R"(<td border="0" align="right" bgcolor=")" << color << R"(" fixedsize="true" width=")" << width
+                  << R"(<td border="0" style="invis" align="right" bgcolor=")" << color
+                  << R"(" fixedsize="true" width=")" << width
                   << R"(" height="20"><font color=")" << color
                   << R"(" point-size="12" face="inconsolata">0 </font></td>)"
                   << '\n';
             file_ << offset_ << '\t' << '\t' << '\t' << '\t' << '\t' << '\t'
-                  << R"(<td border="1" sides="r" bgcolor=")" << color
+                  << R"(<td border="0" style="invis" bgcolor=")" << color
                   << R"(" align="left" fixedsize="true" width="20" height="20"></td>)"
                   << '\n';
 
@@ -254,13 +267,14 @@ namespace spider {
 
             /* == Direction specific export == */
             file_ << offset_ << '\t' << '\t' << '\t' << '\t' << '\t' << '\t'
-                  << R"(<td border="0" align="right" bgcolor=")" << color << R"(" fixedsize="true" width=")" << width
+                  << R"(<td border="1" sides="r" align="right" bgcolor=")" << color << R"(" fixedsize="true" width=")"
+                  << width
                   << R"(" height="20"><font point-size="12" face="inconsolata">)"
                   << edge->sourceRateExpression().evaluate(exporter_->params_)
                   << R"( </font></td>)" << '\n';
             file_ << offset_ << '\t' << '\t' << '\t' << '\t' << '\t' << '\t'
                   << R"(<td port="out_)" << edge->sourcePortIx()
-                  << R"(" border="1" bgcolor="#ec644bff" align="left" fixedsize="true" width="20" height="20"></td>)"
+                  << R"(" border="1" sides="ltb" bgcolor="#ec644bff" align="left" fixedsize="true" width="20" height="20"></td>)"
                   << '\n';
 
             /* == Footer == */
