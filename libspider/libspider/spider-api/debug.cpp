@@ -89,37 +89,60 @@ void spider::api::exportGraphToDOT(const std::string &path, PiSDFGraph *graph) {
     spider::pisdf::DOTExporter(graph).print(path);
 }
 
-template<spider::log::Type type>
-void spider::api::enableLogger() {
-    spider::log::enable<type>();
+void spider::api::enableLogger(spider::log::Type type) {
+    switch (type) {
+        case log::Type::LRT:
+            spider::log::enable<LOG_LRT>();
+            break;
+        case log::Type::TIME:
+            spider::log::enable<LOG_TIME>();
+            break;
+        case log::Type::GENERAL:
+            spider::log::enable<LOG_GENERAL>();
+            break;
+        case log::Type::SCHEDULE:
+            spider::log::enable<LOG_SCHEDULE>();
+            break;
+        case log::Type::MEMORY:
+            spider::log::enable<LOG_MEMORY>();
+            break;
+        case log::Type::TRANSFO:
+            spider::log::enable<LOG_TRANSFO>();
+            break;
+        case log::Type::OPTIMS:
+            spider::log::enable<LOG_OPTIMS>();
+            break;
+        case log::Type::EXPR:
+            spider::log::enable<LOG_EXPR>();
+            break;
+    }
 }
 
-template<spider::log::Type type>
-void spider::api::disableLogger() {
-    spider::log::disable<type>();
-}
-
-
-/**
- * @brief This method should never be called.
- * The purpose of this method is to allow the compiler to know about the template values of
- * @refitem Spider::API::enableLogger and @refitem Spider::API::disableLogger.
- */
-void loggerTemplateResolver() {
-    spider::api::enableLogger<LOG_LRT>();
-    spider::api::enableLogger<LOG_TIME>();
-    spider::api::enableLogger<LOG_GENERAL>();
-    spider::api::enableLogger<LOG_MEMORY>();
-    spider::api::enableLogger<LOG_SCHEDULE>();
-    spider::api::enableLogger<LOG_TRANSFO>();
-    spider::api::enableLogger<LOG_OPTIMS>();
-    spider::api::enableLogger<LOG_EXPR>();
-    spider::api::disableLogger<LOG_LRT>();
-    spider::api::disableLogger<LOG_TIME>();
-    spider::api::disableLogger<LOG_GENERAL>();
-    spider::api::disableLogger<LOG_MEMORY>();
-    spider::api::disableLogger<LOG_SCHEDULE>();
-    spider::api::disableLogger<LOG_TRANSFO>();
-    spider::api::disableLogger<LOG_OPTIMS>();
-    spider::api::disableLogger<LOG_EXPR>();
+void spider::api::disableLogger(spider::log::Type type) {
+    switch (type) {
+        case log::Type::LRT:
+            spider::log::disable<LOG_LRT>();
+            break;
+        case log::Type::TIME:
+            spider::log::disable<LOG_TIME>();
+            break;
+        case log::Type::GENERAL:
+            spider::log::disable<LOG_GENERAL>();
+            break;
+        case log::Type::SCHEDULE:
+            spider::log::disable<LOG_SCHEDULE>();
+            break;
+        case log::Type::MEMORY:
+            spider::log::disable<LOG_MEMORY>();
+            break;
+        case log::Type::TRANSFO:
+            spider::log::disable<LOG_TRANSFO>();
+            break;
+        case log::Type::OPTIMS:
+            spider::log::disable<LOG_OPTIMS>();
+            break;
+        case log::Type::EXPR:
+            spider::log::disable<LOG_EXPR>();
+            break;
+    }
 }

@@ -121,15 +121,15 @@ namespace spider {
          * @brief Enable a given logger.
          * @param type @refitem LoggerType to enable.
          */
-        template<log::Type type>
-        void enableLogger();
+        void enableLogger(spider::log::Type type);
 
         /**
          * @brief Disable a given logger.
          * @param type @refitem LoggerType to disable.
          */
-        template<spider::log::Type type>
-        void disableLogger();
+        void disableLogger(spider::log::Type type);
+
+        void loggerTemplateResolver();
     }
 }
 
