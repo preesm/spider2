@@ -97,6 +97,7 @@ void spider::Scheduler::vertexMapper(const PiSDFAbstractVertex *vertex) {
     std::pair<std::uint32_t, std::uint32_t> bestSlave{ UINT32_MAX, UINT32_MAX };
     std::uint64_t bestStartTime = 0;
     std::uint64_t bestEndTime = UINT64_MAX;
+    std::uint64_t bestWaitTime = UINT64_MAX;
     std::uint64_t bestScheduleCost = UINT64_MAX;
     for (const auto &cluster : platform->clusters()) {
         for (const auto &PE : cluster->processingElements()) {
@@ -105,6 +106,7 @@ void spider::Scheduler::vertexMapper(const PiSDFAbstractVertex *vertex) {
                 /* == Retrieving information needed for scheduling cost == */
                 const auto &PEReadyTime = platformStats.endTime(PE->spiderPEIx());
                 const auto &JobStartTime = std::max(PEReadyTime, minStartTime);
+                const auto &waitTime = JobStartTime - PEReadyTime;
                 const auto &execTime = scenario->executionTiming(vertex, PE);
                 const auto &endTime = execTime + JobStartTime;
 
@@ -113,10 +115,11 @@ void spider::Scheduler::vertexMapper(const PiSDFAbstractVertex *vertex) {
 
                 /* == Compute total schedule cost == */
                 const auto &scheduleCost = spider::math::saturateAdd(endTime, receiveCost);
-                if (scheduleCost < bestScheduleCost) {
+                if (scheduleCost < bestScheduleCost || (scheduleCost == bestScheduleCost && waitTime < bestWaitTime)) {
                     bestScheduleCost = scheduleCost;
                     bestStartTime = JobStartTime;
                     bestEndTime = endTime;
+                    bestWaitTime = waitTime;
                     bestSlave.first = cluster->ix();
                     bestSlave.second = PE->clusterPEIx();
                 }
