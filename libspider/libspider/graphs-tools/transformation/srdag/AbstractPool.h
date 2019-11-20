@@ -37,50 +37,36 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_VERTEXPOOL_H
-#define SPIDER2_VERTEXPOOL_H
+#ifndef SPIDER2_ABSTRACTPOOL_H
+#define SPIDER2_ABSTRACTPOOL_H
 
 /* === Include(s) === */
 
-#include <cstdint>
-#include <common/Exception.h>
-#include <memory/Allocator.h>
-#include <graphs-tools/transformation/srdag/AbstractVertexPool.h>
-#include <graphs/pisdf/specials/Specials.h>
 
 namespace spider {
-    namespace srdag {
 
+    namespace pisdf {
+        class Vertex;
+    }
+
+    namespace srdag {
         /* === Class definition === */
 
-        template<class T>
-        class VertexPool final : public AbstractVertexPool {
+        class AbstractPool {
         public:
+            AbstractPool() = default;
 
-            explicit VertexPool(std::uint64_t size) : size_{ size } {
-                buffer_ = spider::allocate<T>(StackID::TRANSFO, size);
-            }
-
-            ~VertexPool() override = default;
+            virtual ~AbstractPool() = default;
 
             /* === Method(s) === */
-
-            inline T *get() {
-                if (count_ >= size_) {
-                    throwSpiderException("pool is out of pre-allocated elements.");
-                }
-                return buffer_ + count_++;
-            }
 
             /* === Getter(s) === */
 
             /* === Setter(s) === */
 
         private:
-            T *buffer_ = nullptr;
-            std::uint64_t size_ = 0;
-            std::uint64_t count_ = 0;
+
         };
     }
 }
-#endif //SPIDER2_VERTEXPOOL_H
+#endif //SPIDER2_ABSTRACTPOOL_H
