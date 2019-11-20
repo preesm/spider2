@@ -67,7 +67,7 @@ namespace spider {
          * @brief Perform the mapping and scheduling of a given graph.
          * @return @refitem Schedule.
          */
-        virtual Schedule &mappingScheduling() = 0;
+        virtual sched::Schedule &mappingScheduling() = 0;
 
         /* === Getter(s) === */
 
@@ -75,14 +75,14 @@ namespace spider {
          * @brief Return the @refitem Schedule owned by the Scheduler.
          * @return @refitem Schedule
          */
-        inline const Schedule &schedule() const;
+        inline const sched::Schedule &schedule() const;
 
         /* === Setter(s) === */
 
     protected:
         PiSDFGraph *graph_ = nullptr;
         const spider::vector<PiSDFParam *> &params_;
-        Schedule schedule_;
+        sched::Schedule schedule_;
 
         /**
          * @brief Set the different information of a @refitem ScheduleJob.
@@ -113,7 +113,7 @@ namespace spider {
 
     /* === Inline method(s) === */
 
-    const Schedule &Scheduler::schedule() const {
+    const sched::Schedule &Scheduler::schedule() const {
         return schedule_;
     }
 }

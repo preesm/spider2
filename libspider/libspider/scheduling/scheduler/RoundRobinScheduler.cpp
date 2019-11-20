@@ -48,6 +48,6 @@
 
 /* === Method(s) implementation === */
 
-spider::Schedule &spider::RoundRobinScheduler::mappingScheduling() {
+spider::sched::Schedule &spider::RoundRobinScheduler::mappingScheduling() {
     return schedule_;
 }

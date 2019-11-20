@@ -49,106 +49,106 @@
 
 namespace spider {
 
-    /* === Forward declarations === */
+    namespace sched {
 
+        /* === Class definition === */
 
-    /* === Class definition === */
+        class Schedule {
+        public:
 
-    class Schedule {
-    public:
+            Schedule() = default;
 
-        Schedule() = default;
+            ~Schedule() = default;
 
-        ~Schedule() = default;
+            /* === Method(s) === */
 
-        /* === Method(s) === */
+            /**
+             * @brief Update schedule stats based on given Job.
+             * @param job  Job to evaluate.
+             */
+            void update(sched::Job &job);
 
-        /**
-         * @brief Update schedule stats based on given Job.
-         * @param job  Job to evaluate.
-         */
-        void update(sched::Job &job);
+            /**
+             * @brief Clear schedule jobs.
+             */
+            void clear();
 
-        /**
-         * @brief Clear schedule jobs.
-         */
-        void clear();
+            /**
+             * @brief Reset schedule jobs.
+             * @remark Set all job state to @refitem Spider::JobState::PENDING.
+             * @remark Statistics of the platform are not modified.
+             */
+            void reset();
 
-        /**
-         * @brief Reset schedule jobs.
-         * @remark Set all job state to @refitem Spider::JobState::PENDING.
-         * @remark Statistics of the platform are not modified.
-         */
-        void reset();
+            /**
+             * @brief Clear the job vector and initialize it with a given count of jobs.
+             * @remark This method is intended to be used with scheduler using SR-DAG representation.
+             * @param count Number of jobs to initialize.
+             */
+            void setJobCount(std::uint32_t count);
 
-        /**
-         * @brief Clear the job vector and initialize it with a given count of jobs.
-         * @remark This method is intended to be used with scheduler using SR-DAG representation.
-         * @param count Number of jobs to initialize.
-         */
-        void setJobCount(std::uint32_t count);
+            /* === Getter(s) === */
 
-        /* === Getter(s) === */
+            inline std::uint64_t jobCount() const;
 
-        inline std::uint64_t jobCount() const;
+            /**
+             * @brief Get the job vector of the schedule.
+             * @return const reference to the job vector
+             */
+            inline const spider::vector<sched::Job> &jobs() const;
 
-        /**
-         * @brief Get the job vector of the schedule.
-         * @return const reference to the job vector
-         */
-        inline const spider::vector<sched::Job> &jobs() const;
+            /**
+             * @brief Get a job from its ix.
+             * @param ix  Ix of the job to fetch.
+             * @return const reference to the job.
+             * @throws @refitem std::out_of_range if ix is out of range.
+             */
+            inline sched::Job &job(std::uint32_t ix);
 
-        /**
-         * @brief Get a job from its ix.
-         * @param ix  Ix of the job to fetch.
-         * @return const reference to the job.
-         * @throws @refitem std::out_of_range if ix is out of range.
-         */
-        inline sched::Job &job(std::uint32_t ix);
+            /**
+             * @brief Get a job from its ix.
+             * @param ix  Ix of the job to fetch.
+             * @return const reference to the job.
+             * @throws @refitem std::out_of_range if ix is out of range.
+             */
+            inline const sched::Job &job(std::uint32_t ix) const;
 
-        /**
-         * @brief Get a job from its ix.
-         * @param ix  Ix of the job to fetch.
-         * @return const reference to the job.
-         * @throws @refitem std::out_of_range if ix is out of range.
-         */
-        inline const sched::Job &job(std::uint32_t ix) const;
+            /**
+             * @brief Get the different statistics of the platform.
+             * @return const reference to @refitem Stats
+             */
+            inline const sched::Stats &stats() const;
 
-        /**
-         * @brief Get the different statistics of the platform.
-         * @return const reference to @refitem Stats
-         */
-        inline const sched::Stats &stats() const;
+            /* === Setter(s) === */
 
-        /* === Setter(s) === */
+        private:
+            spider::vector<sched::Job> jobs_;
+            sched::Stats stats_;
 
-    private:
-        spider::vector<sched::Job> jobs_;
-        sched::Stats stats_;
+            /* === Private method(s) === */
+        };
 
-        /* === Private method(s) === */
-    };
+        /* === Inline method(s) === */
 
-    /* === Inline method(s) === */
+        std::uint64_t Schedule::jobCount() const {
+            return jobs_.size();
+        }
 
-    std::uint64_t Schedule::jobCount() const {
-        return jobs_.size();
-    }
+        const spider::vector<sched::Job> &Schedule::jobs() const {
+            return jobs_;
+        }
 
-    const spider::vector<sched::Job> &Schedule::jobs() const {
-        return jobs_;
-    }
+        sched::Job &Schedule::job(std::uint32_t ix) {
+            return jobs_.at(ix);
+        }
 
-    sched::Job &spider::Schedule::job(std::uint32_t ix) {
-        return jobs_.at(ix);
-    }
+        const sched::Job &Schedule::job(std::uint32_t ix) const {
+            return jobs_.at(ix);
+        }
 
-    const sched::Job &spider::Schedule::job(std::uint32_t ix) const {
-        return jobs_.at(ix);
-    }
-
-    const sched::Stats &Schedule::stats() const {
-        return stats_;
+        const sched::Stats &Schedule::stats() const {
+            return stats_;
+        }
     }
 }
 

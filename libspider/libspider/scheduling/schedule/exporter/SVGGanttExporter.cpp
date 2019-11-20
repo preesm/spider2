@@ -64,9 +64,10 @@ static constexpr std::uint32_t taskSpace = 5;
 
 /* === Method(s) implementation === */
 
-spider::SVGGanttExporter::SVGGanttExporter(const Schedule *schedule, const pisdf::Graph *graph) : Exporter(),
-                                                                                                  schedule_{ schedule },
-                                                                                                  graph_{ graph } {
+spider::SVGGanttExporter::SVGGanttExporter(const sched::Schedule *schedule,
+                                           const pisdf::Graph *graph) : Exporter(),
+                                                                        schedule_{ schedule },
+                                                                        graph_{ graph } {
     /* == Compute values needed for printing == */
     std::uint32_t minExecTime = UINT32_MAX;
     std::uint32_t maxExecTime = 0;

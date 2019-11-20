@@ -51,20 +51,20 @@
 
 /* === Method(s) implementation === */
 
-void spider::Schedule::clear() {
+void spider::sched::Schedule::clear() {
     jobs_.clear();
 
     /* == Reset the stats the platform == */
     stats_.reset();
 }
 
-void spider::Schedule::reset() {
+void spider::sched::Schedule::reset() {
     for (auto &job : jobs_) {
         job.setState(sched::JobState::PENDING);
     }
 }
 
-void spider::Schedule::update(sched::Job &job) {
+void spider::sched::Schedule::update(sched::Job &job) {
     /* == Update stats of given PE based on current Job == */
     const auto *platform = spider::platform();
     const auto &st = job.mappingInfo().startTime;
@@ -77,7 +77,7 @@ void spider::Schedule::update(sched::Job &job) {
     stats_.updateJobCount(PE);
 }
 
-void spider::Schedule::setJobCount(std::uint32_t count) {
+void spider::sched::Schedule::setJobCount(std::uint32_t count) {
     jobs_.clear();
     jobs_.reserve(count);
     for (std::uint32_t i = 0; i < count; ++i) {

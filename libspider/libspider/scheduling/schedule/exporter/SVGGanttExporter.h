@@ -48,9 +48,9 @@ namespace spider {
 
     /* === Forward declaration(s) === */
 
-    class Schedule;
-
     namespace sched {
+        class Schedule;
+
         class Job;
     }
 
@@ -63,7 +63,7 @@ namespace spider {
     class SVGGanttExporter final : public Exporter {
     public:
 
-        explicit SVGGanttExporter(const Schedule *schedule, const pisdf::Graph *graph);
+        explicit SVGGanttExporter(const sched::Schedule *schedule, const pisdf::Graph *graph);
 
         ~SVGGanttExporter() override = default;
 
@@ -80,7 +80,7 @@ namespace spider {
         void print(std::ofstream &file) const override;
 
     private:
-        const Schedule *schedule_ = nullptr;
+        const sched::Schedule *schedule_ = nullptr;
         const pisdf::Graph *graph_ = nullptr;
         std::uint32_t width_ = UINT32_MAX;
         std::uint32_t height_ = UINT32_MAX;

@@ -49,7 +49,7 @@
 
 /* === Method(s) implementation === */
 
-spider::Schedule &spider::BestFitScheduler::mappingScheduling() {
+spider::sched::Schedule &spider::BestFitScheduler::mappingScheduling() {
     schedule_.setJobCount(sortedVertexVector_.size());
     for (auto &listVertex : sortedVertexVector_) {
         Scheduler::vertexMapper(listVertex.vertex_);

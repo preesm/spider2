@@ -48,10 +48,10 @@ namespace spider {
 
     /* === Forward declaration(s) === */
 
-    class Schedule;
-
     namespace sched {
         class Job;
+
+        class Schedule;
     }
 
     namespace pisdf {
@@ -63,9 +63,9 @@ namespace spider {
     class XMLGanttExporter final : public Exporter {
     public:
 
-        explicit XMLGanttExporter(const Schedule *schedule, const pisdf::Graph *graph) : Exporter(),
-                                                                                         schedule_{ schedule },
-                                                                                         graph_{ graph } { }
+        explicit XMLGanttExporter(const sched::Schedule *schedule, const pisdf::Graph *graph) : Exporter(),
+                                                                                                schedule_{ schedule },
+                                                                                                graph_{ graph } { }
 
         ~XMLGanttExporter() override = default;
 
@@ -82,7 +82,7 @@ namespace spider {
         void print(std::ofstream &file) const override;
 
     private:
-        const Schedule *schedule_ = nullptr;
+        const sched::Schedule *schedule_ = nullptr;
         const pisdf::Graph *graph_ = nullptr;
 
         /* === Private method(s) === */

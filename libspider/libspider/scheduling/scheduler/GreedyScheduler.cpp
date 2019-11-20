@@ -50,7 +50,7 @@
 
 /* === Private method(s) implementation === */
 
-spider::Schedule &spider::GreedyScheduler::mappingScheduling() {
+spider::sched::Schedule &spider::GreedyScheduler::mappingScheduling() {
     spider::vector<spider::pisdf::Vertex *> vertexVector;
     vertexVector.reserve(graph_->vertexCount());
 
