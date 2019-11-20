@@ -48,7 +48,7 @@
 #include <graphs/pisdf/ExecVertex.h>
 #include <graphs/pisdf/Graph.h>
 #include <scheduling/schedule/Schedule.h>
-#include <scheduling/schedule/Job.h>
+#include <scheduling/schedule/ScheduleJob.h>
 #include <iomanip>
 
 /* === Static variable(s) === */

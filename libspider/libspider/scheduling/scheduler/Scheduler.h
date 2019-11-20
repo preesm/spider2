@@ -86,8 +86,8 @@ namespace spider {
 
         /**
          * @brief Set the different information of a @refitem ScheduleJob.
-         * @remark This method also update the schedule_ based on Job information.
-         * @param job         Job to evaluate.
+         * @remark This method also update the schedule_ based on TransfoJob information.
+         * @param job         TransfoJob to evaluate.
          * @param slave       Slave (cluster and pe) to execute on.
          * @param startTime   Start time of the job.
          * @param endTime     End time of the job.

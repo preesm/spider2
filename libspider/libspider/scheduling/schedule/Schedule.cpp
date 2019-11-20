@@ -65,7 +65,7 @@ void spider::sched::Schedule::reset() {
 }
 
 void spider::sched::Schedule::update(sched::Job &job) {
-    /* == Update stats of given PE based on current Job == */
+    /* == Update stats of given PE based on current TransfoJob == */
     const auto *platform = spider::platform();
     const auto &st = job.mappingInfo().startTime;
     const auto &et = job.mappingInfo().endTime;
