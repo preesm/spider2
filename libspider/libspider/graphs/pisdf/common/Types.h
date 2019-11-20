@@ -78,6 +78,8 @@ namespace spider {
             END,            /*! End actor subtype */
             INPUT,          /*! Input interface type */
             OUTPUT,         /*! Output interface type */
+            First = NORMAL,
+            Last = OUTPUT,
         };
 
         /* === Forward declaration(s) === */
@@ -126,7 +128,7 @@ namespace spider {
 
         /* == Vertex type count == */
         constexpr auto SPECIAL_ACTOR_COUNT = 8;
-        constexpr auto VERTEX_TYPE_COUNT = 10;
+        constexpr auto VERTEX_TYPE_COUNT = 11;
     }
 }
 
