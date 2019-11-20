@@ -67,12 +67,54 @@ namespace spider {
                 return static_cast<T>(value_);
             }
 
+            inline T operator->() const {
+                return static_cast<T>(value_);
+            }
+
             void operator++() {
                 ++value_;
             }
 
+            void operator--() {
+                --value_;
+            }
+
             bool operator!=(const Iterator &other) {
                 return value_ != other.value_;
+            }
+
+            bool operator<(const Iterator &other) {
+                return value_ < other.value_;
+            }
+
+            bool operator>(const Iterator &other) {
+                return value_ < other.value_;
+            }
+
+            bool operator<=(const Iterator &other) {
+                return !(*this > other);
+            }
+
+            bool operator>=(const Iterator &other) {
+                return !(*this < other);
+            }
+
+            Iterator &operator-=(int a) {
+                value_ -= a;
+                return *this;
+            }
+
+            Iterator &operator+=(int a) {
+                value_ += a;
+                return *this;
+            }
+
+            Iterator operator-(int a) {
+                return Iterator(value_ - a);
+            }
+
+            Iterator operator+(int a) {
+                return Iterator(value_ + a);
             }
 
         private:
