@@ -44,7 +44,7 @@
 
 #include <containers/StlContainers.h>
 #include <scheduling/schedule/Job.h>
-#include <scheduling/schedule/ScheduleStats.h>
+#include <scheduling/schedule/Stats.h>
 #include <functional>
 
 namespace spider {
@@ -116,15 +116,15 @@ namespace spider {
 
         /**
          * @brief Get the different statistics of the platform.
-         * @return const reference to @refitem ScheduleStats
+         * @return const reference to @refitem Stats
          */
-        inline const ScheduleStats &stats() const;
+        inline const sched::Stats &stats() const;
 
         /* === Setter(s) === */
 
     private:
         spider::vector<sched::Job> jobs_;
-        ScheduleStats stats_;
+        sched::Stats stats_;
 
         /* === Private method(s) === */
     };
@@ -147,7 +147,7 @@ namespace spider {
         return jobs_.at(ix);
     }
 
-    const ScheduleStats &Schedule::stats() const {
+    const sched::Stats &Schedule::stats() const {
         return stats_;
     }
 }

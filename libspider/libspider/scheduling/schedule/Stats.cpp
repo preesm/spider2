@@ -40,7 +40,7 @@
 
 /* === Include(s) === */
 
-#include <scheduling/schedule/ScheduleStats.h>
+#include <scheduling/schedule/Stats.h>
 #include <spider-api/archi.h>
 #include <archi/Platform.h>
 
@@ -51,7 +51,7 @@
 /* === Method(s) implementation === */
 
 
-spider::ScheduleStats::ScheduleStats() {
+spider::sched::Stats::Stats() {
     auto *platform = spider::platform();
 
     /* == Init stat vectors == */
@@ -63,7 +63,7 @@ spider::ScheduleStats::ScheduleStats() {
     jobCountVector_ = spider::vector<std::uint32_t>(n, 0);
 }
 
-void spider::ScheduleStats::reset() {
+void spider::sched::Stats::reset() {
     /* == Clear all the vectors == */
     std::fill(startTimeVector_.begin(), startTimeVector_.end(), 0);
     std::fill(endTimeVector_.begin(), endTimeVector_.end(), 0);
