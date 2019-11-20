@@ -43,6 +43,9 @@
 /* === Include(s) === */
 
 #include <graphs/pisdf/common/Types.h>
+#include <typeinfo>
+#include <string>
+#include <stdexcept>
 
 namespace spider {
     namespace pisdf {
@@ -56,6 +59,11 @@ namespace spider {
             virtual ~Visitor() = default;
 
             /* === Method(s) === */
+
+            template<class T>
+            inline void visit(T *) {
+               throw std::runtime_error("unsupported type:" + std::string(typeid(T).name()));
+            }
 
             virtual void visit(Graph *) = 0;
 
