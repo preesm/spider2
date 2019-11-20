@@ -49,6 +49,7 @@
 #include <graphs/pisdf/visitors/Visitor.h>
 
 namespace spider {
+
     namespace pisdf {
 
         /* === Forward declaration(s) === */

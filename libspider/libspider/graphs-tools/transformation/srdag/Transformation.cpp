@@ -53,7 +53,7 @@
 
 /* === Static function(s) === */
 
-static spider::srdag::TransfoStack buildSourceLinkerVector(spider::srdag::TransfoJob &linker) {
+static spider::srdag::TransfoStack buildSourceLinkerVector(spider::srdag::TransfoData &linker) {
     const auto &edge = linker.edge_;
     const auto &source = edge->source();
     const auto &delay = edge->delay();
@@ -77,7 +77,7 @@ static spider::srdag::TransfoStack buildSourceLinkerVector(spider::srdag::Transf
     return sourceVector;
 }
 
-static spider::srdag::TransfoStack buildSinkLinkerVector(spider::srdag::TransfoJob &linker) {
+static spider::srdag::TransfoStack buildSinkLinkerVector(spider::srdag::TransfoData &linker) {
     const auto &edge = linker.edge_;
     const auto &sink = edge->sink();
     const auto &delay = edge->delay();
@@ -107,12 +107,64 @@ static spider::srdag::TransfoStack buildSinkLinkerVector(spider::srdag::TransfoJ
     return sinkVector;
 }
 
+/**
+ * @brief Perform single rate transformation for a given edge.
+ * @param transfoData TransfoData information.
+ */
+static void staticEdgeSingleRateLinkage(spider::srdag::TransfoData &transfoData) {
+    const auto &edge = transfoData.edge_;
+    if ((edge->source()->subtype() == PiSDFVertexType::DELAY) ||
+        (edge->sink()->subtype() == PiSDFVertexType::DELAY)) {
+        return;
+    }
+    if ((edge->source() == edge->sink())) {
+        if (!edge->delay()) {
+            throwSpiderException("No delay on edge with self loop.");
+        }
+    }
+
+    auto sourceVector = buildSourceLinkerVector(transfoData);
+    auto sinkVector = buildSinkLinkerVector(transfoData);
+
+    /* == Compute the different dependencies of sinks over sources == */
+    spider::srdag::computeEdgeDependencies(sourceVector, sinkVector, transfoData);
+
+    /* == Iterate over sinks == */
+    while (!sinkVector.empty()) {
+        const auto &snkLnk = sinkVector.back();
+        const auto &srcLnk = sourceVector.back();
+        if (snkLnk.lowerDep_ == snkLnk.upperDep_) {
+            if (srcLnk.lowerDep_ == srcLnk.upperDep_) {
+                /* == Forward link between source and sink == */
+                spider::api::createEdge(srcLnk.vertex_, srcLnk.portIx_, srcLnk.rate_,
+                                        snkLnk.vertex_, snkLnk.portIx_, snkLnk.rate_, StackID::TRANSFO);
+                sourceVector.pop_back();
+                sinkVector.pop_back();
+            } else {
+                /* == Source need a fork == */
+                spider::srdag::addForkVertex(sourceVector, sinkVector, transfoData.srdag_);
+            }
+        } else {
+            /* == Sink need a join == */
+            spider::srdag::addJoinVertex(sourceVector, sinkVector, transfoData.srdag_);
+        }
+    }
+
+    /* == Sanity check == */
+    if (!sourceVector.empty()) {
+        throwSpiderException("remaining sources to link after single rate transformation on edge: [%s].",
+                             edge->name().c_str());
+    }
+}
+
 /* === Methods implementation === */
 
 std::pair<PiSDFGraph *, PiSDFGraph *> spider::srdag::splitDynamicGraph(PiSDFGraph *subgraph) {
     if (!subgraph->dynamic()) {
         return std::make_pair(nullptr, nullptr);
     }
+
+    using spider::pisdf::VertexType;
 
     /* == Compute the input interface count for both graphs == */
     std::uint32_t initInputIFCount = 0;
@@ -121,15 +173,15 @@ std::pair<PiSDFGraph *, PiSDFGraph *> spider::srdag::splitDynamicGraph(PiSDFGrap
     for (const auto &cfg : subgraph->configVertices()) {
         for (const auto &edge : cfg->inputEdgeArray()) {
             const auto &source = edge->source();
-            if (source->subtype() != pisdf::VertexType::INPUT) {
+            if (source->subtype() != VertexType::INPUT) {
                 throwSpiderException("Config vertex can not have source of type other than interface.");
             }
             initInputIFCount += 1;
         }
         for (const auto &edge : cfg->outputEdgeArray()) {
             const auto &sink = edge->sink();
-            cfgInputIFCount += (sink->subtype() != pisdf::VertexType::OUTPUT);
-            initOutputIFCount += (sink->subtype() == pisdf::VertexType::OUTPUT);
+            cfgInputIFCount += (sink->subtype() != VertexType::OUTPUT);
+            initOutputIFCount += (sink->subtype() == VertexType::OUTPUT);
         }
     }
     const auto &runInputIFCount = subgraph->inputEdgeCount() + cfgInputIFCount - initInputIFCount;
@@ -159,7 +211,7 @@ std::pair<PiSDFGraph *, PiSDFGraph *> spider::srdag::splitDynamicGraph(PiSDFGrap
     std::uint32_t inputRunIx = 0;
     for (const auto &input : subgraph->inputInterfaceArray()) {
         const auto &sink = input->opposite();
-        if (sink->subtype() == pisdf::VertexType::CONFIG) {
+        if (sink->subtype() == VertexType::CONFIG) {
             /* == Reconnect and move inner edge in init graph == */
             auto *edge = input->outputEdge();
             edge->setSource(initGraph->inputInterface(inputInitIx), 0, Expression(edge->sourceRateExpression()));
@@ -188,7 +240,7 @@ std::pair<PiSDFGraph *, PiSDFGraph *> spider::srdag::splitDynamicGraph(PiSDFGrap
     std::uint32_t outputRunIx = 0;
     for (const auto &output : subgraph->outputInterfaceArray()) {
         const auto &source = output->opposite();
-        if (source->subtype() == pisdf::VertexType::CONFIG) {
+        if (source->subtype() == VertexType::CONFIG) {
             /* == Reconnect and move inner edge in init graph == */
             auto *edge = output->inputEdge();
             edge->setSink(initGraph->outputInterface(outputInitIx), 0, Expression(edge->sinkRateExpression()));
@@ -217,7 +269,7 @@ std::pair<PiSDFGraph *, PiSDFGraph *> spider::srdag::splitDynamicGraph(PiSDFGrap
         subgraph->moveVertex(cfg, initGraph);
         for (auto edge : cfg->outputEdgeArray()) {
             const auto &sink = edge->sink();
-            if (sink->subtype() != pisdf::VertexType::OUTPUT) {
+            if (sink->subtype() != VertexType::OUTPUT) {
                 const auto &srcRate = edge->sourceRateExpression().evaluate(subgraph->params());
                 const auto &srcPortIx = edge->sourcePortIx();
                 const auto &name = cfg->name() + "_out-" + std::to_string(srcPortIx);
@@ -265,7 +317,7 @@ std::pair<PiSDFGraph *, PiSDFGraph *> spider::srdag::splitDynamicGraph(PiSDFGrap
 }
 
 std::pair<spider::srdag::JobStack, spider::srdag::JobStack>
-spider::srdag::staticSingleRateTransformation(const spider::srdag::Job &job, PiSDFGraph *srdag) {
+spider::srdag::staticSingleRateTransformation(const spider::srdag::TransfoJob &job, PiSDFGraph *srdag) {
     if (!srdag) {
         throwSpiderException("nullptr for single rate graph.");
     }
@@ -296,79 +348,29 @@ spider::srdag::staticSingleRateTransformation(const spider::srdag::Job &job, PiS
         brvTask.execute();
     }
 
-    TransfoTracker vertexTransfoTracker;
-    vertexTransfoTracker.resize(job.reference_->vertexCount() +
-                                        job.reference_->inputEdgeCount() +
-                                        job.reference_->outputEdgeCount(), UINT32_MAX);
-    JobStack nextJobs;
-    JobStack dynaJobs;
+    /* == Create TransfoData structure == */
+    auto &&transfoData = TransfoData{ job, nullptr, srdag, init2dynamic_ };
 
     /* == Replace the interfaces of the graph and remove the vertex == */
-    auto &&linker = TransfoJob{ job, nullptr, srdag, nextJobs, dynaJobs, vertexTransfoTracker, init2dynamic_ };
-    replaceJobInterfaces(linker);
+    spider::srdag::replaceJobInterfaces(transfoData);
 
     /* == Clone the vertices == */
-    linker.edge_ = nullptr;
+    transfoData.edge_ = nullptr;
     for (const auto &vertex : job.reference_->vertices()) {
-        spider::srdag::fetchOrClone(vertex, linker);
+        spider::srdag::copyFromRV(vertex, transfoData);
     }
 
     /* == Do the linkage for every edges of the graph == */
     for (const auto &edge : job.reference_->edges()) {
-        linker.edge_ = edge;
-        staticEdgeSingleRateLinkage(linker);
+        transfoData.edge_ = edge;
+        staticEdgeSingleRateLinkage(transfoData);
     }
 
     /* == Remove the vertex from the srdag == */
     if (job.instanceValue_ != UINT32_MAX) {
-        auto *srdagInstance = linker.srdag_->vertex(linker.job_.srdagIx_);
-        linker.srdag_->removeVertex(srdagInstance);
+        auto *srdagInstance = transfoData.srdag_->vertex(transfoData.job_.srdagIx_);
+        transfoData.srdag_->removeVertex(srdagInstance);
     }
-    return std::make_pair(std::move(nextJobs), std::move(dynaJobs));
+    return std::make_pair(std::move(transfoData.nextJobs_), std::move(transfoData.dynaJobs_));
 }
 
-void spider::srdag::staticEdgeSingleRateLinkage(TransfoJob &transfoJob) {
-    const auto &edge = transfoJob.edge_;
-    if ((edge->source()->subtype() == PiSDFVertexType::DELAY) ||
-        (edge->sink()->subtype() == PiSDFVertexType::DELAY)) {
-        return;
-    }
-    if ((edge->source() == edge->sink())) {
-        if (!edge->delay()) {
-            throwSpiderException("No delay on edge with self loop.");
-        }
-    }
-
-    auto sourceVector = buildSourceLinkerVector(transfoJob);
-    auto sinkVector = buildSinkLinkerVector(transfoJob);
-
-    /* == Compute the different dependencies of sinks over sources == */
-    spider::srdag::computeEdgeDependencies(sourceVector, sinkVector, transfoJob);
-
-    /* == Iterate over sinks == */
-    while (!sinkVector.empty()) {
-        const auto &snkLnk = sinkVector.back();
-        const auto &srcLnk = sourceVector.back();
-        if (snkLnk.lowerDep_ == snkLnk.upperDep_) {
-            if (srcLnk.lowerDep_ == srcLnk.upperDep_) {
-                /* == Forward link between source and sink == */
-                spider::api::createEdge(srcLnk.vertex_, srcLnk.portIx_, srcLnk.rate_,
-                                        snkLnk.vertex_, snkLnk.portIx_, snkLnk.rate_, StackID::TRANSFO);
-                sourceVector.pop_back();
-                sinkVector.pop_back();
-            } else {
-                /* == Source need a fork == */
-                spider::srdag::addForkVertex(sourceVector, sinkVector, transfoJob.srdag_);
-            }
-        } else {
-            /* == Sink need a join == */
-            spider::srdag::addJoinVertex(sourceVector, sinkVector, transfoJob.srdag_);
-        }
-    }
-
-    /* == Sanity check == */
-    if (!sourceVector.empty()) {
-        throwSpiderException("remaining sources to link after single rate transformation on edge: [%s].",
-                             edge->name().c_str());
-    }
-}

@@ -42,8 +42,6 @@
 
 /* === Include(s) === */
 
-#include <graphs-tools/transformation/srdag/Precacher.h>
-
 namespace spider {
     namespace srdag {
 
@@ -67,7 +65,6 @@ namespace spider {
             JobStack dynaJobs_;
             TransfoTracker tracker_;
             TransfoTracker &init2dynamic_;
-//            Precacher precacher_;
 
             TransfoData() = delete;
 
@@ -77,8 +74,7 @@ namespace spider {
                         TransfoTracker &init2dynamic) : job_{ job },
                                                         edge_{ edge },
                                                         srdag_{ srdag },
-                                                        init2dynamic_{ init2dynamic }/*,
-                                                        precacher_{ job.reference_, srdag }*/ {
+                                                        init2dynamic_{ init2dynamic } {
                 tracker_.resize(job.reference_->vertexCount() +
                                 job.reference_->inputEdgeCount() +
                                 job.reference_->outputEdgeCount(), UINT32_MAX);

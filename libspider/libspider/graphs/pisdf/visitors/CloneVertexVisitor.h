@@ -80,7 +80,7 @@ namespace spider {
 
             inline void visit(ExecVertex *vertex) override {
                 auto *clone = spider::api::createVertex(graph_,
-                                                        vertex->name_,
+                                                        vertex->name(),
                                                         vertex->inputEdgeCount(),
                                                         vertex->outputEdgeCount(),
                                                         stack_);
@@ -96,7 +96,7 @@ namespace spider {
 
             inline void visit(ConfigVertex *vertex) override {
                 auto *clone = spider::api::createConfigActor(graph_,
-                                                             vertex->name_,
+                                                             vertex->name(),
                                                              vertex->inputEdgeCount(),
                                                              vertex->outputEdgeCount(),
                                                              stack_);
@@ -106,7 +106,7 @@ namespace spider {
 
             inline void visit(ForkVertex *vertex) override {
                 auto *clone = spider::api::createFork(graph_,
-                                                      vertex->name_,
+                                                      vertex->name(),
                                                       vertex->outputEdgeCount(),
                                                       stack_);
                 setRef(vertex, clone);
@@ -114,7 +114,7 @@ namespace spider {
 
             inline void visit(JoinVertex *vertex) override {
                 auto *clone = spider::api::createJoin(graph_,
-                                                      vertex->name_,
+                                                      vertex->name(),
                                                       vertex->inputEdgeCount(),
                                                       stack_);
                 setRef(vertex, clone);
@@ -122,7 +122,7 @@ namespace spider {
 
             inline void visit(HeadVertex *vertex) override {
                 auto *clone = spider::api::createHead(graph_,
-                                                      vertex->name_,
+                                                      vertex->name(),
                                                       vertex->inputEdgeCount(),
                                                       stack_);
                 setRef(vertex, clone);
@@ -130,7 +130,7 @@ namespace spider {
 
             inline void visit(TailVertex *vertex) override {
                 auto *clone = spider::api::createTail(graph_,
-                                                      vertex->name_,
+                                                      vertex->name(),
                                                       vertex->inputEdgeCount(),
                                                       stack_);
                 setRef(vertex, clone);
@@ -138,7 +138,7 @@ namespace spider {
 
             inline void visit(DuplicateVertex *vertex) override {
                 auto *clone = spider::api::createDuplicate(graph_,
-                                                           vertex->name_,
+                                                           vertex->name(),
                                                            vertex->outputEdgeCount(),
                                                            stack_);
                 setRef(vertex, clone);
@@ -146,21 +146,21 @@ namespace spider {
 
             inline void visit(RepeatVertex *vertex) override {
                 auto *clone = spider::api::createRepeat(graph_,
-                                                        vertex->name_,
+                                                        vertex->name(),
                                                         stack_);
                 setRef(vertex, clone);
             }
 
             inline void visit(InitVertex *vertex) override {
                 auto *clone = spider::api::createInit(graph_,
-                                                      vertex->name_,
+                                                      vertex->name(),
                                                       stack_);
                 setRef(vertex, clone);
             }
 
             inline void visit(EndVertex *vertex) override {
                 auto *clone = spider::api::createEnd(graph_,
-                                                     vertex->name_,
+                                                     vertex->name(),
                                                      stack_);
                 setRef(vertex, clone);
             }

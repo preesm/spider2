@@ -42,7 +42,6 @@
 
 #include <graphs-tools/transformation/srdag/Helper.h>
 #include <graphs-tools/transformation/srdag/Transformation.h>
-#include <graphs-tools/transformation/srdag/PrecacherVisitor.h>
 #include <spider-api/pisdf.h>
 #include <graphs/pisdf/params/DynamicParam.h>
 #include <graphs/pisdf/params/InHeritedParam.h>
