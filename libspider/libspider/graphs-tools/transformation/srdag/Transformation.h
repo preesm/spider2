@@ -37,15 +37,15 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_SRDAGTRANSFORMATION_H
-#define SPIDER2_SRDAGTRANSFORMATION_H
+#ifndef SPIDER2_TRANSFORMATION_H
+#define SPIDER2_TRANSFORMATION_H
 
 /* === Includes === */
 
 #include <containers/StlContainers.h>
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/params/Param.h>
-#include <graphs-tools/transformation/srdag/SRDAGTransfoHelper.h>
+#include <graphs-tools/transformation/srdag/Helper.h>
 
 
 namespace spider {
@@ -167,4 +167,4 @@ namespace spider {
 }
 
 
-#endif //SPIDER2_SRDAGTRANSFORMATION_H
+#endif //SPIDER2_TRANSFORMATION_H

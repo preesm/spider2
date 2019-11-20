@@ -41,8 +41,8 @@
 /* === Includes === */
 
 #include <cinttypes>
-#include <graphs-tools/transformation/srdag/SRDAGTransformation.h>
-#include <graphs-tools/transformation/srdag/SRDAGTransfoHelper.h>
+#include <graphs-tools/transformation/srdag/Transformation.h>
+#include <graphs-tools/transformation/srdag/Helper.h>
 #include <graphs/pisdf/Delay.h>
 #include <graphs/pisdf/interfaces/Interface.h>
 #include <graphs/pisdf/interfaces/InputInterface.h>
