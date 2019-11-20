@@ -66,7 +66,6 @@ namespace spider {
         enum class VertexType : std::uint8_t {
             NORMAL,         /*! Normal actor type */
             CONFIG,         /*! Config vertex type */
-            GRAPH,          /*! Graph vertex type */
             DELAY,          /*! Delay vertex type */
             FORK,           /*! Fork actor subtype */
             JOIN,           /*! Join actor subtype */
@@ -76,6 +75,7 @@ namespace spider {
             HEAD,           /*! Head actor subtype */
             INIT,           /*! Init actor subtype */
             END,            /*! End actor subtype */
+            GRAPH,          /*! Graph vertex type */
             INPUT,          /*! Input interface type */
             OUTPUT,         /*! Output interface type */
             First = NORMAL,
@@ -128,7 +128,7 @@ namespace spider {
 
         /* == Vertex type count == */
         constexpr auto SPECIAL_ACTOR_COUNT = 8;
-        constexpr auto VERTEX_TYPE_COUNT = 11;
+        constexpr auto VERTEX_TYPE_COUNT = 12;
     }
 }
 

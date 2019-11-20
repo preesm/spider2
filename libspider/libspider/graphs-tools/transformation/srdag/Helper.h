@@ -44,41 +44,46 @@
 
 #include <graphs/pisdf/specials/Specials.h>
 #include <containers/StlContainers.h>
+#include <graphs-tools/transformation/srdag/TransfoJob.h>
+#include <graphs-tools/transformation/srdag/TransfoData.h>
 
 namespace spider {
     namespace srdag {
 
-        /* === Forward declaration(s) === */
+        /* === Structure definition(s) === */
 
-        struct Job;
+        struct TransfoVertex {
+            std::int64_t rate_ = -1;
+            std::uint32_t portIx_ = UINT32_MAX;
+            PiSDFAbstractVertex *vertex_ = nullptr;
+            std::uint32_t lowerDep_ = UINT32_MAX;
+            std::uint32_t upperDep_ = 0;
 
-        struct TransfoVertex;
+            TransfoVertex() = default;
 
-        struct TransfoJob;
+            TransfoVertex(std::int64_t rate, std::uint32_t portIx, PiSDFAbstractVertex *vertex) : rate_{ rate },
+                                                                                                  portIx_{ portIx },
+                                                                                                  vertex_{ vertex } { }
+        };
 
         /* === Type definition(s) === */
-
-        using JobStack = spider::vector<Job>;
-
-        using TransfoTracker = spider::vector<std::uint32_t>;
 
         using TransfoStack = spider::vector<TransfoVertex>;
 
         /* === Function(s) prototype === */
 
         /**
-         * @brief
-         * @param vertex
-         * @param transfoJob
-         * @return
+         * @brief  Copy a vertex in the srdag as many times as its repetition value.
+         * @param vertex      Vertex to copy.
+         * @param transfoData  Current transformation job.
          */
-        PiSDFAbstractVertex *fetchOrClone(PiSDFAbstractVertex *vertex, TransfoJob &transfoJob);
+        void copyFromRV(PiSDFAbstractVertex *vertex, TransfoData &transfoData);
 
         void fillLinkerVector(TransfoStack &vector,
                               PiSDFAbstractVertex *reference,
                               std::int64_t rate,
                               std::uint32_t portIx,
-                              TransfoJob &transfoJob);
+                              TransfoData &transfoData);
 
         /**
          * @brief Add a @refitem ForkVertex into the single-rate graph and connect it.
@@ -99,17 +104,17 @@ namespace spider {
         /**
          * @brief Insert @refitem UpSampleVertex for every input interface and @refitem TailVertex for
          *        every output interface of current job.
-         * @param transfoJob Current @refitem JobLinker.
+         * @param transfoData Current @refitem TransfoData.
          */
-        void replaceJobInterfaces(TransfoJob &transfoJob);
+        void replaceJobInterfaces(TransfoData &transfoData);
 
         /**
          * @brief Compute all real dependencies of current instances of source / sink of the edge.
-         * @param srcVector  Vector of @refitem VertexLinker corresponding to the sources of the edge of the job.
-         * @param snkVector  Vector of @refitem VertexLinker corresponding to the sinks of the edge of the job.
-         * @param transfoJob     Current @refitem JobLinker.
+         * @param srcVector   Vector of @refitem TransfoVertex corresponding to the sources of the edge of the job.
+         * @param snkVector   Vector of @refitem TransfoVertex corresponding to the sinks of the edge of the job.
+         * @param transfoData Current @refitem TransfoData.
          */
-        void computeEdgeDependencies(TransfoStack &srcVector, TransfoStack &snkVector, TransfoJob &transfoJob);
+        void computeEdgeDependencies(TransfoStack &srcVector, TransfoStack &snkVector, TransfoData &transfoData);
     }
 }
 

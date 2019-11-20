@@ -37,41 +37,55 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_TRANSFORMATION_H
-#define SPIDER2_TRANSFORMATION_H
+#ifndef SPIDER2_TRANSFODATA_H
+#define SPIDER2_TRANSFODATA_H
 
-/* === Includes === */
+/* === Include(s) === */
 
-#include <containers/StlContainers.h>
-#include <graphs-tools/transformation/srdag/Helper.h>
-
+#include <graphs-tools/transformation/srdag/Precacher.h>
 
 namespace spider {
     namespace srdag {
 
-        /* === Functions prototype === */
+        /* === Forward declaration(s) === */
 
-        /**
-         * @brief Split dynamic graphs into two subgraphs: an init graph and a run graph.
-         * @remark This method changes original graph.
-         * @param subgraph  Subgraph to split (if static nothing happen).
-         * @return true if subgraph was split, false else.
-         */
-        std::pair<PiSDFGraph *, PiSDFGraph *> splitDynamicGraph(PiSDFGraph *subgraph);
+        struct TransfoJob;
 
-        /**
-         * @brief Perform static single rate transformation for a given input job.
-         * @remark If one of the subgraph of the job is dynamic then it is automatically split into two graphs.
-         * @warning This function expect that dynamic graphs have been split using @refitem splitDynamicGraph before hand.
-         * @param job    TransfoJob containing information on the transformation to perform.
-         * @param srdag  Graph to append result of the transformation.
-         * @return a pair of @refitem JobStack, the first one containing future static jobs, second one containing
-         * jobs of dynamic graphs.
-         * @throws @refitem Spider::Exception if srdag is nullptr
-         */
-        std::pair<JobStack, JobStack> staticSingleRateTransformation(const TransfoJob &job, PiSDFGraph *srdag);
+        /* === Type definition(s) === */
+
+        using JobStack = spider::vector<TransfoJob>;
+
+        using TransfoTracker = spider::vector<std::uint32_t>;
+
+        /* === Struct definition === */
+
+        struct TransfoData {
+            const TransfoJob &job_;
+            const PiSDFEdge *edge_ = nullptr;
+            PiSDFGraph *srdag_ = nullptr;
+            JobStack nextJobs_;
+            JobStack dynaJobs_;
+            TransfoTracker tracker_;
+            TransfoTracker &init2dynamic_;
+//            Precacher precacher_;
+
+            TransfoData() = delete;
+
+            TransfoData(const TransfoJob &job,
+                        const PiSDFEdge *edge,
+                        PiSDFGraph *srdag,
+                        TransfoTracker &init2dynamic) : job_{ job },
+                                                        edge_{ edge },
+                                                        srdag_{ srdag },
+                                                        init2dynamic_{ init2dynamic }/*,
+                                                        precacher_{ job.reference_, srdag }*/ {
+                tracker_.resize(job.reference_->vertexCount() +
+                                job.reference_->inputEdgeCount() +
+                                job.reference_->outputEdgeCount(), UINT32_MAX);
+            }
+
+            ~TransfoData() = default;
+        };
     }
 }
-
-
-#endif //SPIDER2_TRANSFORMATION_H
+#endif //SPIDER2_TRANSFODATA_H

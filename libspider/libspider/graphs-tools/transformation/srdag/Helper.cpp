@@ -42,6 +42,7 @@
 
 #include <graphs-tools/transformation/srdag/Helper.h>
 #include <graphs-tools/transformation/srdag/Transformation.h>
+#include <graphs-tools/transformation/srdag/PrecacherVisitor.h>
 #include <spider-api/pisdf.h>
 #include <graphs/pisdf/params/DynamicParam.h>
 #include <graphs/pisdf/params/InHeritedParam.h>
@@ -81,29 +82,30 @@ struct CopyParamVisitor final : public spider::pisdf::DefaultVisitor {
     const spider::vector<PiSDFParam *> &parentParamVector_;
 };
 
-struct CloneVisitor final : public spider::pisdf::DefaultVisitor {
+struct CopyVisitor final : public spider::pisdf::DefaultVisitor {
 
-    explicit CloneVisitor(spider::srdag::TransfoJob &transfoJob) : transfoJob_{ transfoJob } { }
+    explicit CopyVisitor(spider::srdag::TransfoData &transfoJob) : transfoData_{ transfoJob } { }
 
     inline void visit(spider::pisdf::DelayVertex *) override { }
 
     inline void visit(spider::pisdf::ExecVertex *vertex) override {
-        spider::pisdf::CloneVertexVisitor cloneVisitor{ transfoJob_.srdag_, StackID::TRANSFO };
+//        spider::srdag::PrecacherVisitor cloneVisitor{ transfoData_.srdag_, &transfoData_.precacher_ };
+        spider::pisdf::CloneVertexVisitor cloneVisitor{ transfoData_.srdag_, StackID::TRANSFO };
         for (std::uint32_t it = 0; it < vertex->repetitionValue(); ++it) {
             /* == Change the name of the clone == */
             vertex->visit(&cloneVisitor);
-            auto *clone = transfoJob_.srdag_->vertices().back();
-            clone->setName(buildCloneName(vertex, it, transfoJob_));
+            auto *clone = transfoData_.srdag_->vertices().back();
+            clone->setName(buildCloneName(vertex, it, transfoData_));
         }
-        ix_ = (transfoJob_.srdag_->vertexCount() - 1) - (vertex->repetitionValue() - 1);
+        ix_ = (transfoData_.srdag_->vertexCount() - 1) - (vertex->repetitionValue() - 1);
     }
 
     inline void visit(spider::pisdf::Graph *graph) override {
         /* == Clone the vertex == */
         ix_ = 0;
         for (std::uint32_t it = 0; it < graph->repetitionValue(); ++it) {
-            const auto *clone = spider::api::createVertex(transfoJob_.srdag_,
-                                                          buildCloneName(graph, it, transfoJob_),
+            const auto *clone = spider::api::createVertex(transfoData_.srdag_,
+                                                          buildCloneName(graph, it, transfoData_),
                                                           graph->inputEdgeCount(),
                                                           graph->outputEdgeCount(),
                                                           StackID::TRANSFO);
@@ -112,21 +114,21 @@ struct CloneVisitor final : public spider::pisdf::DefaultVisitor {
         ix_ = ix_ - (graph->repetitionValue() - 1);
 
         /* == Push the jobs == */
-        const auto &runGraphSubIx = transfoJob_.init2dynamic_[graph->subIx()];
+        const auto &runGraphSubIx = transfoData_.init2dynamic_[graph->subIx()];
         if (runGraphSubIx != UINT32_MAX) {
             auto *runGraph = graph->containingGraph()->subgraphs()[runGraphSubIx];
 
             /* == Find the first job corresponding to the init graph == */
-            auto it = transfoJob_.dynaJobs_.begin();
-            while ((it != transfoJob_.dynaJobs_.end()) && ((*it).reference_ != runGraph)) { it++; }
-            if (it == transfoJob_.dynaJobs_.end()) {
+            auto it = transfoData_.dynaJobs_.begin();
+            while ((it != transfoData_.dynaJobs_.end()) && ((*it).reference_ != runGraph)) { it++; }
+            if (it == transfoData_.dynaJobs_.end()) {
                 /* == Seems like run counter part of the graph has not been cloned yet == */
-                const auto &offset = transfoJob_.dynaJobs_.size();
-                CloneVisitor visitor{ transfoJob_ };
+                const auto &offset = transfoData_.dynaJobs_.size();
+                CopyVisitor visitor{ transfoData_ };
                 runGraph->visit(&visitor);
-                transfoJob_.tracker_[runGraph->ix()] = visitor.ix_;
-                it = transfoJob_.dynaJobs_.begin() + offset;
-                if (it == transfoJob_.dynaJobs_.end()) {
+                transfoData_.tracker_[runGraph->ix()] = visitor.ix_;
+                it = transfoData_.dynaJobs_.begin() + offset;
+                if (it == transfoData_.dynaJobs_.end()) {
                     throwSpiderException("Init graph [%s] did not find run counter part [%s].",
                                          graph->name().c_str(),
                                          runGraph->name().c_str());
@@ -135,22 +137,22 @@ struct CloneVisitor final : public spider::pisdf::DefaultVisitor {
 
             /* == Push the jobs == */
             for (auto srdagIx = ix_; srdagIx < ix_ + graph->repetitionValue(); ++srdagIx) {
-                transfoJob_.nextJobs_.emplace_back(graph, transfoJob_.srdag_->vertex(srdagIx)->ix(), srdagIx - ix_);
-                transfoJob_.nextJobs_.back().params_.reserve(runGraph->paramCount());
+                transfoData_.nextJobs_.emplace_back(graph, transfoData_.srdag_->vertex(srdagIx)->ix(), srdagIx - ix_);
+                transfoData_.nextJobs_.back().params_.reserve(runGraph->paramCount());
 
                 /* == Copy the params pointer == */
                 for (auto &param : (*it).params_) {
-                    transfoJob_.nextJobs_.back().params_.emplace_back(param);
+                    transfoData_.nextJobs_.back().params_.emplace_back(param);
                 }
                 it++;
             }
         } else {
-            auto &jobStack = graph->dynamic() ? transfoJob_.dynaJobs_ : transfoJob_.nextJobs_;
+            auto &jobStack = graph->dynamic() ? transfoData_.dynaJobs_ : transfoData_.nextJobs_;
             for (auto srdagIx = ix_ + graph->repetitionValue() - 1; srdagIx >= ix_; --srdagIx) {
-                jobStack.emplace_back(graph, transfoJob_.srdag_->vertex(srdagIx)->ix(), srdagIx - ix_);
+                jobStack.emplace_back(graph, transfoData_.srdag_->vertex(srdagIx)->ix(), srdagIx - ix_);
 
                 /* == Copy the params == */
-                CopyParamVisitor cpyVisitor{ jobStack.back().params_, transfoJob_.job_.params_ };
+                CopyParamVisitor cpyVisitor{ jobStack.back().params_, transfoData_.job_.params_ };
                 for (const auto &param : graph->params()) {
                     param->visit(&cpyVisitor);
                 }
@@ -158,15 +160,15 @@ struct CloneVisitor final : public spider::pisdf::DefaultVisitor {
         }
     }
 
-    spider::srdag::TransfoJob &transfoJob_;
+    spider::srdag::TransfoData &transfoData_;
     std::uint32_t ix_ = UINT32_MAX;
 
 private:
     std::string buildCloneName(const PiSDFAbstractVertex *vertex,
                                std::uint32_t instance,
-                               spider::srdag::TransfoJob &transfoJob) {
-        const auto *graphRef = transfoJob.job_.instanceValue_ == UINT32_MAX ?
-                               transfoJob.job_.reference_ : transfoJob.srdag_->vertex(transfoJob.job_.srdagIx_);
+                               spider::srdag::TransfoData &transfoData) {
+        const auto *graphRef = transfoData.job_.instanceValue_ == UINT32_MAX ?
+                               transfoData.job_.reference_ : transfoData.srdag_->vertex(transfoData.job_.srdagIx_);
         return graphRef->name() + "-" + vertex->name() + "_" + std::to_string(instance);
     }
 };
@@ -184,31 +186,31 @@ static inline std::uint32_t uniformIx(const PiSDFAbstractVertex *vertex, const P
 
 /* === Function(s) definition === */
 
-PiSDFAbstractVertex *spider::srdag::fetchOrClone(PiSDFAbstractVertex *vertex, TransfoJob &transfoJob) {
+void spider::srdag::copyFromRV(PiSDFAbstractVertex *vertex, TransfoData &transfoData) {
     if (!vertex) {
         throwSpiderException("Trying to clone nullptr vertex.");
     }
-    const auto &vertexUniformIx = uniformIx(vertex, transfoJob.job_.reference_);
+    const auto &vertexUniformIx = uniformIx(vertex, transfoData.job_.reference_);
 
     /* == If vertex has already been cloned return the first one == */
-    auto &indexRef = transfoJob.tracker_[vertexUniformIx];
+    auto &indexRef = transfoData.tracker_[vertexUniformIx];
     if (indexRef == UINT32_MAX) {
-        CloneVisitor visitor{ transfoJob };
+        CopyVisitor visitor{ transfoData };
         vertex->visit(&visitor);
         indexRef = visitor.ix_;
     }
-    return indexRef == UINT32_MAX ? nullptr : transfoJob.srdag_->vertex(indexRef);
 }
 
 void spider::srdag::fillLinkerVector(TransfoStack &vector,
                                      PiSDFAbstractVertex *reference,
                                      std::int64_t rate,
                                      std::uint32_t portIx,
-                                     TransfoJob &transfoJob) {
-    const auto &clone = fetchOrClone(reference, transfoJob);
+                                     TransfoData &transfoData) {
+    const auto &vertexUniformIx = uniformIx(reference, transfoData.job_.reference_);
+    const auto &clone = transfoData.srdag_->vertex(transfoData.tracker_[vertexUniformIx]);
     const auto &cloneIx = clone->ix();
     for (auto i = (cloneIx + reference->repetitionValue()); i != cloneIx; --i) {
-        vector.emplace_back(rate, portIx, transfoJob.srdag_->vertex(i - 1));
+        vector.emplace_back(rate, portIx, transfoData.srdag_->vertex(i - 1));
     }
 }
 
@@ -277,44 +279,45 @@ void spider::srdag::addJoinVertex(TransfoStack &srcVector, TransfoStack &snkVect
 
 }
 
-void spider::srdag::replaceJobInterfaces(TransfoJob &transfoJob) {
-    if (!transfoJob.job_.reference_->inputEdgeCount() &&
-        !transfoJob.job_.reference_->outputEdgeCount()) {
+void spider::srdag::replaceJobInterfaces(TransfoData &transfoData) {
+    if (!transfoData.job_.reference_->inputEdgeCount() &&
+        !transfoData.job_.reference_->outputEdgeCount()) {
         return;
     }
-    auto *srdagInstance = transfoJob.srdag_->vertex(transfoJob.job_.srdagIx_);
+    auto *srdagInstance = transfoData.srdag_->vertex(transfoData.job_.srdagIx_);
     if (!srdagInstance) {
         throwSpiderException("could not find matching single rate instance [%"
                                      PRIu32
-                                     "] of graph [%s]", transfoJob.job_.instanceValue_,
-                             transfoJob.job_.reference_->name().c_str());
+                                     "] of graph [%s]", transfoData.job_.instanceValue_,
+                             transfoData.job_.reference_->name().c_str());
     }
 
     /* == Replace the input interfaces == */
-    for (const auto &interface : transfoJob.job_.reference_->inputInterfaceArray()) {
+    for (const auto &interface : transfoData.job_.reference_->inputInterfaceArray()) {
         auto *edge = srdagInstance->inputEdge(interface->ix());
-        auto *vertex = spider::api::createRepeat(transfoJob.srdag_,
+        auto *vertex = spider::api::createRepeat(transfoData.srdag_,
                                                  srdagInstance->name() + "_" + interface->name(),
                                                  StackID::TRANSFO);
         edge->setSink(vertex, 0, Expression(edge->sinkRateExpression()));
-        transfoJob.tracker_[uniformIx(interface, transfoJob.job_.reference_)] = vertex->ix();
+        transfoData.tracker_[uniformIx(interface, transfoData.job_.reference_)] = vertex->ix();
     }
 
     /* == Replace the output interfaces == */
-    for (const auto &interface : transfoJob.job_.reference_->outputInterfaceArray()) {
+    for (const auto &interface : transfoData.job_.reference_->outputInterfaceArray()) {
         auto *edge = srdagInstance->outputEdge(interface->ix());
-        auto *vertex = spider::api::createTail(transfoJob.srdag_,
+        auto *vertex = spider::api::createTail(transfoData.srdag_,
                                                srdagInstance->name() + "_" + interface->name(),
                                                1,
                                                StackID::TRANSFO);
         edge->setSource(vertex, 0, Expression(edge->sourceRateExpression()));
-        transfoJob.tracker_[uniformIx(interface, transfoJob.job_.reference_)] = vertex->ix();
+        transfoData.tracker_[uniformIx(interface, transfoData.job_.reference_)] = vertex->ix();
     }
 }
 
-void spider::srdag::computeEdgeDependencies(TransfoStack &srcVector, TransfoStack &snkVector, TransfoJob &transfoJob) {
-    const auto &edge = transfoJob.edge_;
-    auto &&delay = edge->delay() ? edge->delay()->value(transfoJob.job_.params_) : 0;
+void
+spider::srdag::computeEdgeDependencies(TransfoStack &srcVector, TransfoStack &snkVector, TransfoData &transfoData) {
+    const auto &edge = transfoData.edge_;
+    auto &&delay = edge->delay() ? edge->delay()->value(transfoData.job_.params_) : 0;
     const auto &srcRate = srcVector[0].rate_;     /* = This should be the proper source rate of the edge = */
     const auto &snkRate = snkVector.back().rate_; /* = This should be the proper sink rate of the edge = */
     const auto &setterRate = edge->delay() ? srcVector.back().rate_ : 0;

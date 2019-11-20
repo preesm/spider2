@@ -43,8 +43,8 @@
 /* === Include(s) === */
 
 #include <containers/StlContainers.h>
-#include <scheduling/schedule/Job.h>
-#include <scheduling/schedule/Stats.h>
+#include <scheduling/schedule/ScheduleJob.h>
+#include <scheduling/schedule/ScheduleStats.h>
 #include <functional>
 
 namespace spider {
@@ -63,8 +63,8 @@ namespace spider {
             /* === Method(s) === */
 
             /**
-             * @brief Update schedule stats based on given Job.
-             * @param job  Job to evaluate.
+             * @brief Update schedule stats based on given TransfoJob.
+             * @param job  TransfoJob to evaluate.
              */
             void update(sched::Job &job);
 

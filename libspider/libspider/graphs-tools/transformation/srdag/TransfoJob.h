@@ -37,41 +37,50 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_TRANSFORMATION_H
-#define SPIDER2_TRANSFORMATION_H
+#ifndef SPIDER2_SRDAGJOB_H
+#define SPIDER2_SRDAGJOB_H
 
-/* === Includes === */
+/* === Include(s) === */
 
-#include <containers/StlContainers.h>
-#include <graphs-tools/transformation/srdag/Helper.h>
-
+#include <cstdint>
+#include <graphs/pisdf/Graph.h>
+#include <graphs/pisdf/params/Param.h>
 
 namespace spider {
+
     namespace srdag {
 
-        /* === Functions prototype === */
+        /* === Struct definition === */
 
-        /**
-         * @brief Split dynamic graphs into two subgraphs: an init graph and a run graph.
-         * @remark This method changes original graph.
-         * @param subgraph  Subgraph to split (if static nothing happen).
-         * @return true if subgraph was split, false else.
-         */
-        std::pair<PiSDFGraph *, PiSDFGraph *> splitDynamicGraph(PiSDFGraph *subgraph);
+        struct TransfoJob {
+            const pisdf::Graph *reference_ = nullptr;
+            spider::vector<pisdf::Param *> params_;
+            const std::uint32_t &srdagIx_;
+            std::uint32_t instanceValue_ = 0;
 
-        /**
-         * @brief Perform static single rate transformation for a given input job.
-         * @remark If one of the subgraph of the job is dynamic then it is automatically split into two graphs.
-         * @warning This function expect that dynamic graphs have been split using @refitem splitDynamicGraph before hand.
-         * @param job    TransfoJob containing information on the transformation to perform.
-         * @param srdag  Graph to append result of the transformation.
-         * @return a pair of @refitem JobStack, the first one containing future static jobs, second one containing
-         * jobs of dynamic graphs.
-         * @throws @refitem Spider::Exception if srdag is nullptr
-         */
-        std::pair<JobStack, JobStack> staticSingleRateTransformation(const TransfoJob &job, PiSDFGraph *srdag);
+            TransfoJob(TransfoJob &&) = default;
+
+            TransfoJob(const TransfoJob &) = default;
+
+            TransfoJob(const PiSDFGraph *graph,
+                       const std::uint32_t &srdagIx,
+                       std::uint32_t instance) : reference_{ graph },
+                                          srdagIx_{ srdagIx },
+                                          instanceValue_{ instance } {
+                params_.reserve(graph->paramCount());
+            }
+
+            ~TransfoJob() {
+                if (reference_ && reference_->dynamic()) {
+                    for (auto &param : params_) {
+                        if (!param->containingGraph()) {
+                            spider::destroy(param);
+                            spider::deallocate(param);
+                        }
+                    }
+                }
+            }
+        };
     }
 }
-
-
-#endif //SPIDER2_TRANSFORMATION_H
+#endif //SPIDER2_JOB_H
