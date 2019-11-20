@@ -53,7 +53,7 @@ public:
 
     TopologyBRVCompute(PiSDFGraph *graph, const spider::vector<PiSDFParam *> &params) : BRVCompute(graph, params) { };
 
-    ~TopologyBRVCompute() = default;
+    ~TopologyBRVCompute() override = default;
 
     /* === Method(s) === */
 

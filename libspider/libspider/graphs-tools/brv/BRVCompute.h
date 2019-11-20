@@ -74,7 +74,7 @@ public:
 
     BRVCompute(const PiSDFGraph *graph, const spider::vector<PiSDFParam *> &params);
 
-    ~BRVCompute() = default;
+    virtual ~BRVCompute() = default;
 
     /* === Method(s) === */
 

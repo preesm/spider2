@@ -53,7 +53,7 @@ namespace spider {
         public:
             Visitor() = default;
 
-            ~Visitor() = default;
+            virtual ~Visitor() = default;
 
             /* === Method(s) === */
 

@@ -10,14 +10,15 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/extras/c
 
 # Setting build options
 if (NOT ${CMAKE_GENERATOR} MATCHES "Visual Studio.*")
+    set(SPIDER_WARNING_FLAGS "-Wall -Wextra -pedantic-errors -Wnon-virtual-dtor")
     if (${CMAKE_BUILD_TYPE} MATCHES Debug)
         message("Generating Debug project")
         set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Debug)
-        set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -pg -Wall -Wextra -O0 -pedantic-errors")
+        set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -pg -O0 ${SPIDER_WARNING_FLAGS}")
     else ()
         message("Generating Release project")
         set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Release)
-        set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O2 -Wall -Wextra")
+        set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O2 ${SPIDER_WARNING_FLAGS}")
         if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
             message("Using Link Time Optimization on GNU platforms. ")
             set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -flto")
