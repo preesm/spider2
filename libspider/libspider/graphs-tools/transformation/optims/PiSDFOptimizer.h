@@ -50,7 +50,7 @@ class PiSDFOptimizer {
 public:
     PiSDFOptimizer() = default;
 
-    ~PiSDFOptimizer() = default;
+    virtual ~PiSDFOptimizer() = default;
 
     /**
      * @brief Apply the given optimization.

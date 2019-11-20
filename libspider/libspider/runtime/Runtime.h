@@ -58,7 +58,7 @@ namespace spider {
             }
         };
 
-        ~Runtime() = default;
+        virtual ~Runtime() = default;
 
         /**
          * @brief Setup method of the runtime (maybe empty)
