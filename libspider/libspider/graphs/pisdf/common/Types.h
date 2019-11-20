@@ -123,6 +123,10 @@ namespace spider {
         class InputInterface;
 
         class OutputInterface;
+
+        /* == Vertex type count == */
+        constexpr auto SPECIAL_ACTOR_COUNT = 8;
+        constexpr auto VERTEX_TYPE_COUNT = 10;
     }
 }
 

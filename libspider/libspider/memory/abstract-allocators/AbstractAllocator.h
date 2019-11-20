@@ -199,30 +199,30 @@ AbstractAllocator::computePaddingWithHeader(std::uint64_t base, std::uint64_t al
 }
 
 const char *AbstractAllocator::getByteUnitString(std::uint64_t size) {
-    constexpr std::uint64_t sizeGB = 1024 * 1024 * 1024;
-    constexpr std::uint64_t sizeMB = 1024 * 1024;
-    constexpr std::uint64_t sizeKB = 1024;
-    if (size / sizeGB) {
+    constexpr std::uint64_t SIZE_GB = 1024 * 1024 * 1024;
+    constexpr std::uint64_t SIZE_MB = 1024 * 1024;
+    constexpr std::uint64_t SIZE_KB = 1024;
+    if (size / SIZE_GB) {
         return "GB";
-    } else if (size / sizeMB) {
+    } else if (size / SIZE_MB) {
         return "MB";
-    } else if (size / sizeKB) {
+    } else if (size / SIZE_KB) {
         return "KB";
     }
     return "B";
 }
 
 double AbstractAllocator::getByteNormalizedSize(std::uint64_t size) {
-    constexpr double sizeGB = 1024 * 1024 * 1024;
-    constexpr double sizeMB = 1024 * 1024;
-    constexpr double sizeKB = 1024;
+    constexpr double SIZE_GB = 1024 * 1024 * 1024;
+    constexpr double SIZE_MB = 1024 * 1024;
+    constexpr double SIZE_KB = 1024;
     const auto dblSize = (double) size;
-    if (dblSize / sizeGB >= 1.) {
-        return dblSize / sizeGB;
-    } else if (dblSize / sizeMB >= 1.) {
-        return dblSize / sizeMB;
-    } else if (dblSize / sizeKB >= 1.) {
-        return dblSize / sizeKB;
+    if (dblSize / SIZE_GB >= 1.) {
+        return dblSize / SIZE_GB;
+    } else if (dblSize / SIZE_MB >= 1.) {
+        return dblSize / SIZE_MB;
+    } else if (dblSize / SIZE_KB >= 1.) {
+        return dblSize / SIZE_KB;
     }
     return dblSize;
 }

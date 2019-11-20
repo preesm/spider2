@@ -61,7 +61,7 @@ static const std::string &supportedBasicOperators() {
 
 static bool isOperator(const std::string &s) {
     bool found = supportedBasicOperators().find_first_of(s) != std::string::npos;
-    for (auto i = spider::rpn::function_offset; !found && i < spider::rpn::operator_count; ++i) {
+    for (auto i = spider::rpn::FUNCTION_OFFSET; !found && i < spider::rpn::OPERATOR_COUNT; ++i) {
         found |= (spider::rpn::getOperator(i).label == s);
     }
     return found;
@@ -73,7 +73,7 @@ static bool isOperator(const std::string &s) {
  * @return true if type is a function, false else.
  */
 static bool isFunction(RPNOperatorType type) {
-    return static_cast<std::uint32_t >(type) >= spider::rpn::function_offset;
+    return static_cast<std::uint32_t >(type) >= spider::rpn::FUNCTION_OFFSET;
 }
 
 /**
@@ -427,7 +427,7 @@ void spider::rpn::reorderPostfixStack(spider::vector<RPNElement> &postfixStack) 
 }
 
 const RPNOperator &spider::rpn::getOperator(std::uint32_t ix) {
-    static std::array<RPNOperator, rpn::operator_count>
+    static std::array<RPNOperator, rpn::OPERATOR_COUNT>
             operatorArray{{
                                   { RPNOperatorType::ADD, 2, false, "+", 2 },          /*! ADD operator */
                                   { RPNOperatorType::SUB, 2, false, "-", 2 },          /*! SUB operator */
@@ -480,7 +480,7 @@ RPNOperatorType spider::rpn::getOperatorTypeFromString(const std::string &operat
     // TODO: implement it with a std::map<std::string, OperatorType> and try - catch block. see: Zero-Cost Exception model.
     bool found = false;
     std::uint32_t i = 0;
-    for (; !found && i < rpn::operator_count; ++i) {
+    for (; !found && i < rpn::OPERATOR_COUNT; ++i) {
         found |= (getOperator(i).label == operatorString);
     }
     if (!found) {

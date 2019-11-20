@@ -53,12 +53,12 @@
 
 /* === Static variable(s) === */
 
-static constexpr std::uint32_t offset = 3;
-static constexpr std::uint32_t border = 5;
-static constexpr std::uint32_t arrowSize = 8;
-static constexpr std::uint32_t arrowStroke = 2;
-static constexpr std::uint32_t taskHeight = 50;
-static constexpr std::uint32_t taskSpace = 5;
+static constexpr std::uint32_t OFFSET = 3;
+static constexpr std::uint32_t BORDER = 5;
+static constexpr std::uint32_t ARROW_SIZE = 8;
+static constexpr std::uint32_t ARROW_STROKE = 2;
+static constexpr std::uint32_t TASK_HEIGHT = 50;
+static constexpr std::uint32_t TASK_SPACE = 5;
 
 /* === Static function(s) === */
 
@@ -85,10 +85,10 @@ spider::SVGGanttExporter::SVGGanttExporter(const sched::Schedule *schedule,
     /* == Compute dimensions of the Gantt == */
     makespanWidth_ =
             static_cast<double>(schedule_->stats().minStartTime() + schedule_->stats().makespan()) * scaleFactor_;
-    width_ = makespanWidth_ + 2 * border + offset + arrowStroke + arrowSize;
+    width_ = makespanWidth_ + 2 * BORDER + OFFSET + ARROW_STROKE + ARROW_SIZE;
     const auto *platform = spider::platform();
     const auto &PECount = platform->PECount();
-    height_ = PECount * (taskHeight + taskSpace) + taskSpace + arrowStroke + arrowSize + offset;
+    height_ = PECount * (TASK_HEIGHT + TASK_SPACE) + TASK_SPACE + ARROW_STROKE + ARROW_SIZE + OFFSET;
 }
 
 void spider::SVGGanttExporter::print() const {
@@ -156,23 +156,23 @@ void spider::SVGGanttExporter::axisPrinter(std::ofstream &file) const {
 
     /* == Print vertical arrow == */
     const auto &arrowColor = "393c3c";
-    const auto &verticalHeight = height_ - ((3 * arrowSize - 4) / 2);
+    const auto &verticalHeight = height_ - ((3 * ARROW_SIZE - 4) / 2);
     file << R"(
     <rect
        fill="#)" << arrowColor << R"("
        stroke="none"
        id="rect_arrow_vertical"
-       width=")" << arrowStroke << R"("
+       width=")" << ARROW_STROKE << R"("
        height=")" << verticalHeight << R"("
-       x=")" << offset << R"("
-       y=")" << (arrowSize - 1) << R"(" />
+       x=")" << OFFSET << R"("
+       y=")" << (ARROW_SIZE - 1) << R"(" />
     <path
        fill="#)" << arrowColor << R"("
        display="inline"
        stroke="none"
        fill-rule="evenodd"
-       d="M )" << (arrowSize / 2) << "," << 0 << " "
-         << arrowSize << "," << arrowSize << " H "
+       d="M )" << (ARROW_SIZE / 2) << "," << 0 << " "
+         << ARROW_SIZE << "," << ARROW_SIZE << " H "
          << 0 << R"( Z"
        id="arrow_vertical_head"
        inkscape:connector-curvature="0" />)";
@@ -188,8 +188,8 @@ void spider::SVGGanttExporter::axisPrinter(std::ofstream &file) const {
        id="rect_grid"
        width="1"
        height=")" << verticalHeight << R"("
-       x=")" << (offset + arrowStroke + border + i * 40) << R"("
-       y=")" << (arrowSize - 1) << R"(" />)";
+       x=")" << (OFFSET + ARROW_STROKE + BORDER + i * 40) << R"("
+       y=")" << (ARROW_SIZE - 1) << R"(" />)";
     }
 
     file << R"(
@@ -197,18 +197,18 @@ void spider::SVGGanttExporter::axisPrinter(std::ofstream &file) const {
        fill="#)" << arrowColor << R"("
        stroke="none"
        id="rect_arrow_horizontal"
-       width=")" << (width_ - (offset + (arrowSize - 1))) << R"("
-       height=")" << arrowStroke << R"("
-       x=")" << offset << R"("
-       y=")" << (height_ - (((arrowSize + arrowStroke) / 2))) << R"(" />
+       width=")" << (width_ - (OFFSET + (ARROW_SIZE - 1))) << R"("
+       height=")" << ARROW_STROKE << R"("
+       x=")" << OFFSET << R"("
+       y=")" << (height_ - (((ARROW_SIZE + ARROW_STROKE) / 2))) << R"(" />
     <path
        fill="#)" << arrowColor << R"("
        display="inline"
        stroke="none"
        fill-rule="evenodd"
-       d="M )" << width_ << "," << (height_ - (arrowSize / 2)) << " "
-         << (width_ - arrowSize) << "," << height_ << " V "
-         << (height_ - arrowSize) << R"( Z"
+       d="M )" << width_ << "," << (height_ - (ARROW_SIZE / 2)) << " "
+         << (width_ - ARROW_SIZE) << "," << height_ << " V "
+         << (height_ - ARROW_SIZE) << R"( Z"
        id="arrow_horizontal_head"
        inkscape:connector-curvature="0" />)";
     /* == Print horizontal arrow == */
@@ -226,8 +226,8 @@ void spider::SVGGanttExporter::jobPrinter(std::ofstream &file, const sched::Job 
     /* == Compute coordinates == */
     const auto *platform = spider::platform();
     const auto &PE = platform->findPE(job.mappingInfo().clusterIx, job.mappingInfo().PEIx);
-    const auto &x = offset + arrowStroke + border + job.mappingInfo().startTime * scaleFactor_;
-    const auto &y = height_ - (offset + arrowStroke + (PE.spiderPEIx() + 1) * (taskHeight + border));
+    const auto &x = OFFSET + ARROW_STROKE + BORDER + job.mappingInfo().startTime * scaleFactor_;
+    const auto &y = height_ - (OFFSET + ARROW_STROKE + (PE.spiderPEIx() + 1) * (TASK_HEIGHT + BORDER));
     std::ios savedFormat{ nullptr };
     savedFormat.copyfmt(file);
     file << R"(
@@ -240,7 +240,7 @@ void spider::SVGGanttExporter::jobPrinter(std::ofstream &file, const sched::Job 
        stroke="none"
        id=)" << R"("rect_)" + vertex->name() << R"("
        width=")" << taskWidth << R"("
-       height=")" << taskHeight << R"("
+       height=")" << TASK_HEIGHT << R"("
        x=")" << x << R"("
        y=")" << y << R"("
        ry="4" />)";

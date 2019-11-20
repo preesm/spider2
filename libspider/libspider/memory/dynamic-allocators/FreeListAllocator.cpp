@@ -44,7 +44,7 @@
 
 /* === Constant(s) === */
 
-constexpr auto min_chunk_size = 8192;
+constexpr auto MIN_CHUNK_SIZE = 8192;
 
 /* === Methods implementation === */
 
@@ -53,7 +53,7 @@ FreeListAllocator::FreeListAllocator(std::string name,
                                      FreeListPolicy policy,
                                      std::int32_t alignment) :
         DynamicAllocator(std::move(name), alignment),
-        staticBufferSize_{ std::max(staticBufferSize, static_cast<std::uint64_t >(min_chunk_size)) } {
+        staticBufferSize_{ std::max(staticBufferSize, static_cast<std::uint64_t >(MIN_CHUNK_SIZE)) } {
     if (alignment < 8) {
         throwSpiderException("Memory alignment should be at least of size sizeof(std::uint64_t) = 8 bytes.");
     }
@@ -223,7 +223,7 @@ FreeListAllocator::Node *FreeListAllocator::createExtraBuffer(std::uint64_t size
     /* == Allocate new buffer with size aligned to MIN_CHUNK == */
     const auto &sizeWithHeader = size + sizeof(FreeListAllocator::Header);
     FreeListAllocator::Buffer buffer;
-    buffer.size_ = AbstractAllocator::computeAlignedSize(sizeWithHeader, min_chunk_size * allocScale_);
+    buffer.size_ = AbstractAllocator::computeAlignedSize(sizeWithHeader, MIN_CHUNK_SIZE * allocScale_);
     buffer.bufferPtr_ = std::malloc(buffer.size_ + sizeof(Node));
 
     /* == Initialize memoryNode == */

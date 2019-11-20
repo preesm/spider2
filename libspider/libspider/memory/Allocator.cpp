@@ -49,7 +49,7 @@
 
 /* === Static variables === */
 
-static AbstractAllocator *allocatorArray[allocatorCount] = { nullptr };
+static AbstractAllocator *allocatorArray[ALLOCATOR_COUNT] = { nullptr };
 
 /* === Methods implementation === */
 

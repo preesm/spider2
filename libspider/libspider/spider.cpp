@@ -56,10 +56,9 @@ static bool &startFlag() {
 
 /* === Static function(s) === */
 
-
 static std::vector<spider::pisdf::Refinement *> specialActorRefinements() {
     std::vector<spider::pisdf::Refinement *> specialRefinements;
-    specialRefinements.reserve(specialActorCount);
+    specialRefinements.reserve(spider::pisdf::SPECIAL_ACTOR_COUNT);
 
     /* == Create the special actor refinements == */
     auto *forkRefinement = spider::api::createRefinement("fork", spider::pisdf::fork, 0, 0, StackID::GENERAL);

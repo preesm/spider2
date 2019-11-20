@@ -67,17 +67,17 @@ namespace spider {
             bool enabled_;
         };
 
-        constexpr auto loggerCount = static_cast<std::uint8_t >(Type::EXPR) + 1;
+        constexpr auto LOGGER_COUNT = static_cast<std::uint8_t >(Type::EXPR) + 1;
 
-        inline std::array<Log, loggerCount> &loggers() {
-            static std::array<Log, loggerCount> loggerArray = {{{ "LRT", false },
-                                                                       { "TIME", false },
-                                                                       { "GENERAL", false },
-                                                                       { "SCHEDULE", false },
-                                                                       { "MEMORY", false },
-                                                                       { "TRANSFO", false },
-                                                                       { "OPTIMS", false },
-                                                                       { "EXPR", false }}};
+        inline std::array<Log, LOGGER_COUNT> &loggers() {
+            static std::array<Log, LOGGER_COUNT> loggerArray = {{{ "LRT", false },
+                                                                        { "TIME", false },
+                                                                        { "GENERAL", false },
+                                                                        { "SCHEDULE", false },
+                                                                        { "MEMORY", false },
+                                                                        { "TRANSFO", false },
+                                                                        { "OPTIMS", false },
+                                                                        { "EXPR", false }}};
             return loggerArray;
         }
     }

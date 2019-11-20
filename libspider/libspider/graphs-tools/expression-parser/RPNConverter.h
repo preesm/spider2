@@ -131,17 +131,17 @@ namespace spider {
         /**
          * @brief number of operators (based on the value of @refitem RPNOperatorType::COS (i.e last function)
          */
-        constexpr auto operator_count = static_cast<std::uint32_t>(RPNOperatorType::MIN) + 1;
+        constexpr auto OPERATOR_COUNT = static_cast<std::uint32_t>(RPNOperatorType::MIN) + 1;
 
         /**
          * @brief Value of the @refitem RPNOperatorType::COS (first function)
          */
-        constexpr auto function_offset = static_cast<std::uint32_t>(RPNOperatorType::COS);
+        constexpr auto FUNCTION_OFFSET = static_cast<std::uint32_t>(RPNOperatorType::COS);
 
         /**
          * @brief Number of function (not basic operators)
          */
-        constexpr auto function_count = operator_count - function_offset;
+        constexpr auto FUNCTION_COUNT = OPERATOR_COUNT - FUNCTION_OFFSET;
 
         /**
          * @brief Build the expression infix string from the stack of postfix elements.

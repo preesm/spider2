@@ -57,7 +57,7 @@ enum class StackID : std::uint64_t {
     SCENARIO,      /*!< Stack used for the scenario (application constraints) */
 };
 
-constexpr std::uint8_t allocatorCount = static_cast<std::uint8_t>(StackID::SCENARIO) + 1;
+constexpr std::uint8_t ALLOCATOR_COUNT = static_cast<std::uint8_t>(StackID::SCENARIO) + 1;
 
 /**
  * @brief Allocator types
