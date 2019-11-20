@@ -60,11 +60,11 @@ void spider::Schedule::clear() {
 
 void spider::Schedule::reset() {
     for (auto &job : jobs_) {
-        job.setState(spider::JobState::PENDING);
+        job.setState(sched::JobState::PENDING);
     }
 }
 
-void spider::Schedule::update(ScheduleJob &job) {
+void spider::Schedule::update(sched::Job &job) {
     /* == Update stats of given PE based on current Job == */
     const auto *platform = spider::platform();
     const auto &st = job.mappingInfo().startTime;
@@ -81,6 +81,6 @@ void spider::Schedule::setJobCount(std::uint32_t count) {
     jobs_.clear();
     jobs_.reserve(count);
     for (std::uint32_t i = 0; i < count; ++i) {
-        jobs_.push_back(ScheduleJob(i));
+        jobs_.emplace_back(i);
     }
 }

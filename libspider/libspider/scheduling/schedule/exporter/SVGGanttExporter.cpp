@@ -48,7 +48,7 @@
 #include <graphs/pisdf/ExecVertex.h>
 #include <graphs/pisdf/Graph.h>
 #include <scheduling/schedule/Schedule.h>
-#include <scheduling/schedule/ScheduleJob.h>
+#include <scheduling/schedule/Job.h>
 #include <iomanip>
 
 /* === Static variable(s) === */
@@ -213,7 +213,7 @@ void spider::SVGGanttExporter::axisPrinter(std::ofstream &file) const {
     /* == Print horizontal arrow == */
 }
 
-void spider::SVGGanttExporter::jobPrinter(std::ofstream &file, const spider::ScheduleJob &job) const {
+void spider::SVGGanttExporter::jobPrinter(std::ofstream &file, const sched::Job &job) const {
     /* == Compute color and width == */
     const auto *vertex = graph_->vertex(job.vertexIx());
     const auto *reference = vertex->reference();

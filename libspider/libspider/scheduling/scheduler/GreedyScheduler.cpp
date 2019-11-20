@@ -42,7 +42,6 @@
 
 #include <scheduling/scheduler/GreedyScheduler.h>
 #include <scheduling/schedule/Schedule.h>
-#include <scheduling/schedule/ScheduleJob.h>
 #include <containers/StlContainers.h>
 
 /* === Static function === */

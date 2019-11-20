@@ -42,13 +42,12 @@
 
 #include <scheduling/schedule/exporter/XMLGanttExporter.h>
 #include <spider-api/archi.h>
-#include <spider-api/pisdf.h>
 #include <archi/Platform.h>
 #include <archi/ProcessingElement.h>
 #include <graphs/pisdf/ExecVertex.h>
 #include <graphs/pisdf/Graph.h>
 #include <scheduling/schedule/Schedule.h>
-#include <scheduling/schedule/ScheduleJob.h>
+#include <scheduling/schedule/Job.h>
 #include <iomanip>
 
 /* === Static variable(s) === */
@@ -77,7 +76,7 @@ void spider::XMLGanttExporter::print(std::ofstream &file) const {
     file << "</data>" << '\n';
 }
 
-void spider::XMLGanttExporter::jobPrinter(std::ofstream &file, const spider::ScheduleJob &job) const {
+void spider::XMLGanttExporter::jobPrinter(std::ofstream &file, const sched::Job &job) const {
     const auto *vertex = graph_->vertex(job.vertexIx());
     const auto *platform = spider::platform();
     auto PEIx = platform->findPE(job.mappingInfo().clusterIx, job.mappingInfo().PEIx).hardwareIx();

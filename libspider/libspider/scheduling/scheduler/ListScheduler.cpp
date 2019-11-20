@@ -41,14 +41,12 @@
 /* === Include(s) === */
 
 #include <scheduling/scheduler/ListScheduler.h>
-#include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/ExecVertex.h>
 #include <archi/Platform.h>
 #include <archi/Cluster.h>
 #include <archi/ProcessingElement.h>
 #include <spider-api/archi.h>
 #include <scenario/Scenario.h>
-#include <scheduling/schedule/ScheduleJob.h>
 
 /* === Static variable(s) === */
 

@@ -92,7 +92,7 @@ namespace spider {
          * @param startTime   Start time of the job.
          * @param endTime     End time of the job.
          */
-        void setJobInformation(ScheduleJob *job,
+        void setJobInformation(sched::Job *job,
                                std::pair<std::uint32_t, std::uint32_t> slave,
                                std::uint64_t startTime,
                                std::uint64_t endTime);

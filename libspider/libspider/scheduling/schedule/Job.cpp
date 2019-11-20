@@ -40,7 +40,7 @@
 
 /* === Include(s) === */
 
-#include <scheduling/schedule/ScheduleJob.h>
+#include <scheduling/schedule/Job.h>
 #include <spider-api/archi.h>
 #include <archi/Platform.h>
 
@@ -50,16 +50,16 @@
 
 /* === Method(s) implementation === */
 
-spider::ScheduleJob::ScheduleJob(std::uint32_t ix) : ix_{ ix } {
+spider::sched::Job::Job(std::uint32_t ix) : ix_{ ix } {
     auto *&platform = spider::platform();
     constraints_.resize(platform->LRTCount(), nullptr);
 }
 
-spider::ScheduleJob::ScheduleJob(std::uint32_t ix,
-                                 std::uint32_t vertexIx,
-                                 std::uint32_t PEIx,
-                                 std::uint32_t clusterIx,
-                                 std::uint32_t LRTIx) : ScheduleJob(ix) {
+spider::sched::Job::Job(std::uint32_t ix,
+                        std::uint32_t vertexIx,
+                        std::uint32_t PEIx,
+                        std::uint32_t clusterIx,
+                        std::uint32_t LRTIx) : Job(ix) {
     vertexIx_ = vertexIx;
     mappingInfo_.PEIx = PEIx;
     mappingInfo_.clusterIx = clusterIx;

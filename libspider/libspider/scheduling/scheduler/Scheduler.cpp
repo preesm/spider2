@@ -50,7 +50,7 @@
 /* === Function(s) definition === */
 
 
-void spider::Scheduler::setJobInformation(ScheduleJob *job,
+void spider::Scheduler::setJobInformation(sched::Job *job,
                                           std::pair<std::uint32_t, std::uint32_t> slave,
                                           std::uint64_t startTime,
                                           std::uint64_t endTime) {

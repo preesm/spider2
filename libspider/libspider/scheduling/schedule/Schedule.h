@@ -43,7 +43,7 @@
 /* === Include(s) === */
 
 #include <containers/StlContainers.h>
-#include <scheduling/schedule/ScheduleJob.h>
+#include <scheduling/schedule/Job.h>
 #include <scheduling/schedule/ScheduleStats.h>
 #include <functional>
 
@@ -67,7 +67,7 @@ namespace spider {
          * @brief Update schedule stats based on given Job.
          * @param job  Job to evaluate.
          */
-        void update(ScheduleJob &job);
+        void update(sched::Job &job);
 
         /**
          * @brief Clear schedule jobs.
@@ -96,7 +96,7 @@ namespace spider {
          * @brief Get the job vector of the schedule.
          * @return const reference to the job vector
          */
-        inline const spider::vector<ScheduleJob> &jobs() const;
+        inline const spider::vector<sched::Job> &jobs() const;
 
         /**
          * @brief Get a job from its ix.
@@ -104,7 +104,7 @@ namespace spider {
          * @return const reference to the job.
          * @throws @refitem std::out_of_range if ix is out of range.
          */
-        inline ScheduleJob &job(std::uint32_t ix);
+        inline sched::Job &job(std::uint32_t ix);
 
         /**
          * @brief Get a job from its ix.
@@ -112,7 +112,7 @@ namespace spider {
          * @return const reference to the job.
          * @throws @refitem std::out_of_range if ix is out of range.
          */
-        inline const ScheduleJob &job(std::uint32_t ix) const;
+        inline const sched::Job &job(std::uint32_t ix) const;
 
         /**
          * @brief Get the different statistics of the platform.
@@ -123,7 +123,7 @@ namespace spider {
         /* === Setter(s) === */
 
     private:
-        spider::vector<ScheduleJob> jobs_;
+        spider::vector<sched::Job> jobs_;
         ScheduleStats stats_;
 
         /* === Private method(s) === */
@@ -135,15 +135,15 @@ namespace spider {
         return jobs_.size();
     }
 
-    const spider::vector<ScheduleJob> &Schedule::jobs() const {
+    const spider::vector<sched::Job> &Schedule::jobs() const {
         return jobs_;
     }
 
-    ScheduleJob &spider::Schedule::job(std::uint32_t ix) {
+    sched::Job &spider::Schedule::job(std::uint32_t ix) {
         return jobs_.at(ix);
     }
 
-    const ScheduleJob &spider::Schedule::job(std::uint32_t ix) const {
+    const sched::Job &spider::Schedule::job(std::uint32_t ix) const {
         return jobs_.at(ix);
     }
 
