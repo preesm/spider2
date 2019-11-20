@@ -43,7 +43,7 @@
 /* === Include(s) === */
 
 #include <graphs/pisdf/common/Types.h>
-#include <graphs-tools/transformation/srdag/VertexPool.h>
+#include <graphs-tools/transformation/srdag/Pool.h>
 
 namespace spider {
 
@@ -54,6 +54,8 @@ namespace spider {
         class Precacher {
         public:
             Precacher(const pisdf::Graph *graph, pisdf::Graph *srdag);
+
+            Precacher(const pisdf::Edge *edge, pisdf::Graph *srdag);
 
             ~Precacher();
 
@@ -66,18 +68,23 @@ namespace spider {
                 return obj;
             }
 
+            template<pisdf::VertexType type, class... Args>
+            inline pisdf::Edge *make(Args &&...args) {
+                pisdf::Edge *obj;
+                spider::construct(obj, std::forward<Args>(args)...);
+                return obj;
+            }
+
             /* === Getter(s) === */
 
             /* === Setter(s) === */
 
         private:
-            const pisdf::Graph *graph_ = nullptr;
-            pisdf::Graph *srdag_ = nullptr;
-            std::array<AbstractVertexPool *, pisdf::VERTEX_TYPE_COUNT> poolArray_;
+            std::array<AbstractPool *, pisdf::VERTEX_TYPE_COUNT> poolArray_ = { nullptr };
 
             template<class T, pisdf::VertexType type>
-            inline constexpr VertexPool<T> *pool() const {
-                return static_cast<VertexPool<T> *>(poolArray_.at(static_cast<std::uint8_t>(type)));
+            inline constexpr Pool<T> *pool() const {
+                return static_cast<Pool<T> *>(poolArray_.at(static_cast<std::int32_t>(type)));
             }
         };
 

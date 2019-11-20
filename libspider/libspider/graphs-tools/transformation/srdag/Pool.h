@@ -57,10 +57,10 @@ namespace spider {
         class Pool final : public AbstractPool {
         public:
 
-            explicit Pool(std::uint64_t size) : buffer_(size, nullptr) {
-                for (auto &elt : buffer_) {
-                    elt = spider::allocate<T>(StackID::TRANSFO);
-                }
+            explicit Pool(std::uint64_t size) {
+                buffer_.reserve(size);
+                std::generate_n(std::back_inserter(buffer_), size,
+                                [] { return spider::allocate<T>(StackID::TRANSFO); });
             }
 
             ~Pool() override = default;

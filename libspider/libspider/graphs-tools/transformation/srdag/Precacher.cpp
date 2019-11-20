@@ -45,65 +45,63 @@
 
 /* === Static function === */
 
-spider::srdag::AbstractVertexPool *makePool(spider::pisdf::VertexType type, std::int32_t size) {
+spider::srdag::AbstractPool *makePool(spider::pisdf::VertexType type, std::int32_t size) {
+    using spider::srdag::Pool;
     switch (type) {
         case spider::pisdf::VertexType::NORMAL: {
-            auto *pool = spider::allocate<spider::srdag::VertexPool<PiSDFVertex>>(StackID::TRANSFO);
+            auto *pool = spider::allocate<Pool<PiSDFVertex>>(StackID::TRANSFO);
             spider::construct(pool, size);
             return pool;
         }
         case spider::pisdf::VertexType::CONFIG: {
-            auto *pool = spider::allocate<spider::srdag::VertexPool<PiSDFCFGVertex>>(StackID::TRANSFO);
+            auto *pool = spider::allocate<Pool<PiSDFCFGVertex>>(StackID::TRANSFO);
             spider::construct(pool, size);
             return pool;
         }
-        case spider::pisdf::VertexType::DELAY: {
-            auto *pool = spider::allocate<spider::srdag::VertexPool<PiSDFDelayVertex>>(StackID::TRANSFO);
-            spider::construct(pool, size);
-            return pool;
-        }
+        case spider::pisdf::VertexType::DELAY:
+            return nullptr;
         case spider::pisdf::VertexType::FORK: {
-            auto *pool = spider::allocate<spider::srdag::VertexPool<PiSDFForkVertex>>(StackID::TRANSFO);
+            auto *pool = spider::allocate<Pool<PiSDFForkVertex>>(StackID::TRANSFO);
             spider::construct(pool, size);
             return pool;
         }
         case spider::pisdf::VertexType::JOIN: {
-            auto *pool = spider::allocate<spider::srdag::VertexPool<PiSDFJoinVertex>>(StackID::TRANSFO);
+            auto *pool = spider::allocate<Pool<PiSDFJoinVertex>>(StackID::TRANSFO);
             spider::construct(pool, size);
             return pool;
         }
         case spider::pisdf::VertexType::REPEAT: {
-            auto *pool = spider::allocate<spider::srdag::VertexPool<PiSDFRepeatVertex>>(StackID::TRANSFO);
+            auto *pool = spider::allocate<Pool<PiSDFRepeatVertex>>(StackID::TRANSFO);
             spider::construct(pool, size);
             return pool;
         }
         case spider::pisdf::VertexType::DUPLICATE: {
-            auto *pool = spider::allocate<spider::srdag::VertexPool<PiSDFDuplicateVertex>>(StackID::TRANSFO);
+            auto *pool = spider::allocate<Pool<PiSDFDuplicateVertex>>(StackID::TRANSFO);
             spider::construct(pool, size);
             return pool;
         }
         case spider::pisdf::VertexType::TAIL: {
-            auto *pool = spider::allocate<spider::srdag::VertexPool<PiSDFTailVertex>>(StackID::TRANSFO);
+            auto *pool = spider::allocate<Pool<PiSDFTailVertex>>(StackID::TRANSFO);
             spider::construct(pool, size);
             return pool;
         }
         case spider::pisdf::VertexType::HEAD: {
-            auto *pool = spider::allocate<spider::srdag::VertexPool<PiSDFHeadVertex>>(StackID::TRANSFO);
+            auto *pool = spider::allocate<spider::srdag::Pool<PiSDFHeadVertex>>(StackID::TRANSFO);
             spider::construct(pool, size);
             return pool;
         }
         case spider::pisdf::VertexType::INIT: {
-            auto *pool = spider::allocate<spider::srdag::VertexPool<PiSDFInitVertex>>(StackID::TRANSFO);
+            auto *pool = spider::allocate<spider::srdag::Pool<PiSDFInitVertex>>(StackID::TRANSFO);
             spider::construct(pool, size);
             return pool;
         }
         case spider::pisdf::VertexType::END: {
-            auto *pool = spider::allocate<spider::srdag::VertexPool<PiSDFEndVertex>>(StackID::TRANSFO);
+            auto *pool = spider::allocate<spider::srdag::Pool<PiSDFEndVertex>>(StackID::TRANSFO);
             spider::construct(pool, size);
             return pool;
         }
         default:
-            throwSpiderException("unsupported pool type: %d", type);
+            throwSpiderException("unsupported pool type: %d", static_cast<std::int32_t>(type));
     }
     return nullptr;
 }
@@ -113,25 +111,40 @@ spider::srdag::AbstractVertexPool *makePool(spider::pisdf::VertexType type, std:
 /* === Private method(s) implementation === */
 
 spider::srdag::Precacher::Precacher(const spider::pisdf::Graph *graph, spider::pisdf::Graph *srdag) {
+    if (!graph) {
+        return;
+    }
     std::array<std::int32_t, pisdf::VERTEX_TYPE_COUNT> typeCountArray = { 0 };
     /* == Count vertex for every type == */
     for (const auto &vertex : graph->vertices()) {
-        typeCountArray[static_cast<std::int32_t>(vertex->subtype())] += 1;
+        typeCountArray[static_cast<std::int32_t>(vertex->subtype())] += vertex->repetitionValue();
     }
 
     /* == Add Tail and Repeat count based on interfaces == */
+    typeCountArray[static_cast<std::int32_t>(pisdf::VertexType::NORMAL)] += typeCountArray[static_cast<std::int32_t>(pisdf::VertexType::GRAPH)];
+    typeCountArray[static_cast<std::int32_t>(pisdf::VertexType::GRAPH)] = 0;
     typeCountArray[static_cast<std::int32_t>(pisdf::VertexType::REPEAT)] += graph->inputEdgeCount();
     typeCountArray[static_cast<std::int32_t>(pisdf::VertexType::TAIL)] += graph->outputEdgeCount();
 
     /* == Allocate array == */
+    auto vertexCount = 0;
     for (auto type : spider::EnumIterator<pisdf::VertexType>()) {
+        if ((type == pisdf::VertexType::INPUT) ||
+            (type == pisdf::VertexType::OUTPUT)) {
+            continue;
+        }
         const auto &typeIx = static_cast<std::int32_t>(type);
         auto &&count = typeCountArray[typeIx];
         poolArray_[typeIx] = count ? makePool(type, count) : nullptr;
+        vertexCount += (poolArray_[typeIx] ? count : 0);
     }
 
     /* == Reserve size in srdag == */
-    // TODO: srdag_.vertices().reserve(srdag_.vertices().size() + graph->vertexCount() + graph->inputEdgeCount() + graph->outputEdgeCount());
+    srdag->precacheVertex(vertexCount);
+}
+
+spider::srdag::Precacher::Precacher(const spider::pisdf::Edge *edge, spider::pisdf::Graph *srdag) {
+
 }
 
 spider::srdag::Precacher::~Precacher() {
@@ -139,6 +152,9 @@ spider::srdag::Precacher::~Precacher() {
         if (pool) {
             spider::destroy(pool);
             spider::deallocate(pool);
+            pool = nullptr;
         }
     }
 }
+
+
