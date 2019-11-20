@@ -57,13 +57,13 @@ namespace spider {
          * @brief State a scheduled job can take.
          */
         enum class JobState {
-            RUNNING,   /*!< Job is currently running */
-            PENDING,   /*!< Job is waiting to be run */
-            FINISHED   /*!< Job has finished its execution */
+            RUNNING,   /*!< TransfoJob is currently running */
+            PENDING,   /*!< TransfoJob is waiting to be run */
+            FINISHED   /*!< TransfoJob has finished its execution */
         };
 
         /**
-         * @brief Mapping information of the Job.
+         * @brief Mapping information of the TransfoJob.
          */
         struct JobMappingInfo {
             std::uint32_t PEIx = UINT32_MAX;        /*!< ix of the mapped PE in its cluster */

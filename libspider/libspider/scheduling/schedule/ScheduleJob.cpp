@@ -40,7 +40,7 @@
 
 /* === Include(s) === */
 
-#include <scheduling/schedule/Stats.h>
+#include <scheduling/schedule/ScheduleJob.h>
 #include <spider-api/archi.h>
 #include <archi/Platform.h>
 
@@ -50,28 +50,18 @@
 
 /* === Method(s) implementation === */
 
-
-spider::sched::Stats::Stats() {
-    auto *platform = spider::platform();
-
-    /* == Init stat vectors == */
-    const auto &n = platform->PECount();
-    startTimeVector_ = spider::vector<std::uint64_t>(n, 0);
-    endTimeVector_ = spider::vector<std::uint64_t>(n, 0);
-    loadTimeVector_ = spider::vector<std::uint64_t>(n, 0);
-    idleTimeVector_ = spider::vector<std::uint64_t>(n, 0);
-    jobCountVector_ = spider::vector<std::uint32_t>(n, 0);
+spider::sched::Job::Job(std::uint32_t ix) : ix_{ ix } {
+    auto *&platform = spider::platform();
+    constraints_.resize(platform->LRTCount(), nullptr);
 }
 
-void spider::sched::Stats::reset() {
-    /* == Clear all the vectors == */
-    std::fill(startTimeVector_.begin(), startTimeVector_.end(), 0);
-    std::fill(endTimeVector_.begin(), endTimeVector_.end(), 0);
-    std::fill(loadTimeVector_.begin(), loadTimeVector_.end(), 0);
-    std::fill(idleTimeVector_.begin(), idleTimeVector_.end(), 0);
-    std::fill(jobCountVector_.begin(), jobCountVector_.end(), 0);
-
-    /* == Reset min / max time == */
-    minStartTime_ = UINT64_MAX;
-    maxEndTime_ = 0;
+spider::sched::Job::Job(std::uint32_t ix,
+                        std::uint32_t vertexIx,
+                        std::uint32_t PEIx,
+                        std::uint32_t clusterIx,
+                        std::uint32_t LRTIx) : Job(ix) {
+    vertexIx_ = vertexIx;
+    mappingInfo_.PEIx = PEIx;
+    mappingInfo_.clusterIx = clusterIx;
+    mappingInfo_.LRTIx = LRTIx;
 }
