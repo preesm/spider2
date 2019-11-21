@@ -85,8 +85,8 @@ namespace spider {
     template<class T>
     using forward_list = std::forward_list<T, spider::STLAllocator<T>>;
 
-    template<class T>
-    using stack = std::stack<T, spider::deque<T>>;
+    template<class T, class Container = spider::deque<T>>
+    using stack = std::stack<T, Container>;
 
     using string = std::basic_string<char, std::char_traits<char>, spider::STLAllocator<char>>;
 }
