@@ -175,6 +175,11 @@ namespace spider {
                 vertex->copyCount_ += 1;
             }
 
+            inline void setRef(ExecVertex *vertex, ExecVertex *clone) {
+                clone->refinementIx_ = vertex->refinementIx_;
+                setRef(static_cast<Vertex *>(vertex), static_cast<Vertex *>(clone));
+            }
+
         };
     }
 }
