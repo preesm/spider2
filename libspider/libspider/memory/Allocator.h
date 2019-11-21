@@ -85,9 +85,18 @@ namespace spider {
     struct type {
     };
 
-    inline AbstractAllocator *&allocator(StackID stack) {
+    inline std::array<AbstractAllocator *, ALLOCATOR_COUNT> &allocatorArray() {
         static std::array<AbstractAllocator *, ALLOCATOR_COUNT> allocatorArray = { nullptr };
-        return allocatorArray[static_cast<std::int32_t>(stack)];
+        return allocatorArray;
+    }
+
+    inline AbstractAllocator *&allocator(StackID stack) {
+        return allocatorArray()[static_cast<std::int32_t>(stack)];
+    }
+
+    template<StackID stack>
+    constexpr inline AbstractAllocator *&allocator() {
+        return allocatorArray()[static_cast<std::int32_t>(stack)];
     }
 
     template<AllocatorType Type, class ...Args>
@@ -146,32 +155,31 @@ namespace spider {
      * @param stack Stack on which the buffer should be allocated, see #SpiderStack
      * @return pointer to allocated buffer, nullptr if size is 0.
      */
-    // TODO: merge this with Allocator
     template<typename T>
     inline T *allocate(StackID stack, std::uint64_t size = 1) {
-        /* == Allocate buffer with (size + 1) to store stack identifier == */
-        size = size * sizeof(T);
         auto *&worker = allocator(stack);
         if (!worker) {
             throwSpiderException("Allocating memory with non-initialized allocator.");
         }
-        auto buffer = reinterpret_cast<uintptr_t>(worker->allocate(size + sizeof(std::uint64_t)));
+        /* == Allocate buffer with (size + 1) to store stack identifier == */
+        auto buffer = reinterpret_cast<uintptr_t>(worker->allocate(size * sizeof(T) + sizeof(std::uint64_t)));
 
         /* == Return allocated buffer == */
         if (buffer) {
             reinterpret_cast<std::uint64_t *>(buffer)[0] = static_cast<std::uint64_t>(stack);
             buffer = buffer + sizeof(std::uint64_t);
+            return reinterpret_cast<T *>(buffer);
         }
-        return reinterpret_cast<T *>(buffer);
+        return nullptr;
     }
 
     /**
      * @brief  Construct a previously allocated object
-     * @attention This method does not allocate memory, use @refitem Allocator::allocate first
+     * @attention This method does not allocate memory, use @refitem spider::allocate first
      * @tparam T     Type of the object to construct
      * @tparam Args  Packed arguments list for construction
      * @param ptr    Reference pointer of the object to be constructed
-     * @param args   Arguments use for by the constructor of the object
+     * @param args   Arguments used by the constructor of the object
      */
     template<typename T, class... Args>
     inline void construct(T *ptr, Args &&... args) {
@@ -180,7 +188,7 @@ namespace spider {
 
     /**
      * @brief Destroy an object
-     * @attention This method does not deallocate memory of the pointer, use @refitem Allocator::deallocate
+     * @attention This method does not deallocate memory of the pointer, use @refitem spider::deallocate
      * @tparam T  Type of the object to destroy
      * @param ptr Reference pointer to the object to destroy
      */
@@ -193,7 +201,7 @@ namespace spider {
 
     /**
      * @brief Deallocate raw memory pointer
-     * @attention This method does not destroy the object, use @refitem Allocator::destroy
+     * @attention This method does not destroy the object, use @refitem spider::destroy
      * @param ptr Raw pointer to deallocate
      */
     inline void deallocate(void *ptr) {

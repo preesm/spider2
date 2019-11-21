@@ -109,11 +109,10 @@ namespace spider {
          * @return pointer to allocated buffer, nullptr if size is 0.
          */
         inline pointer_type allocate(size_type size) {
-            auto *&worker = allocator(stack);
-            if (!worker) {
+            if (!allocator<stack>()) {
                 throwSpiderException("Allocating memory with non-initialized allocator.");
             }
-            return static_cast<pointer_type >(worker->allocate(size * sizeof(T)));
+            return static_cast<pointer_type >(allocator<stack>()->allocate(size * sizeof(T)));
         }
 
         /**
@@ -122,7 +121,7 @@ namespace spider {
          * @param ptr Raw pointer to deallocate
          */
         inline void deallocate(pointer_type ptr, std::size_t) {
-            allocator(stack)->deallocate(ptr);
+            allocator<stack>()->deallocate(ptr);
         }
 
         /**
@@ -146,9 +145,7 @@ namespace spider {
          */
         template<class ...Args>
         inline void construct(pointer_type ptr, Args &&... args) {
-            if (ptr) {
-                new(ptr) T(std::forward<Args>(args)...);
-            }
+            new(ptr) T(std::forward<Args>(args)...);
         }
 
         /**
