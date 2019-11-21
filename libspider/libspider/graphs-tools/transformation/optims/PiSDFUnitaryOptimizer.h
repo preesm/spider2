@@ -129,7 +129,7 @@ private:
 };
 
 bool PiSDFUnitaryOptimizer::operator()(PiSDFGraph *graph) const {
-    spider::vector<PiSDFAbstractVertex *> verticesToOptimize;
+    bool optimized = true;
 
     OptimizerVisitor optimizer{ graph };
     auto it = graph->vertices().begin();
@@ -139,9 +139,10 @@ bool PiSDFUnitaryOptimizer::operator()(PiSDFGraph *graph) const {
         if (!optimizer.removed_) {
             it++;
         }
+        optimized &= (!optimizer.removed_);
     }
 
-    return verticesToOptimize.empty();
+    return optimized;
 }
 
 #endif //SPIDER2_PISDFUNITARYOPTIMIZER_H
