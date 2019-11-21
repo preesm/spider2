@@ -62,21 +62,21 @@ void ArrayTest::TearDown() {
 }
 
 TEST_F(ArrayTest, TestCreation) {
-    auto testArray = spider::Array<double>(10);
+    auto testArray = spider::array<double>(10);
 }
 
 
 TEST_F(ArrayTest, TestAssignation) {
-    auto testArray = spider::Array<double>(10);
+    auto testArray = spider::array<double>(10);
     EXPECT_NO_THROW(testArray[0] =  3.1415926535);
     EXPECT_EQ(testArray[0], 3.1415926535);
-    EXPECT_THROW(testArray.at(10) =  3.141592, spider::Exception);
-    EXPECT_THROW(testArray.at(-1) =  3.141592, spider::Exception);
+    EXPECT_THROW(testArray.at(10) =  3.141592, std::out_of_range);
+    EXPECT_THROW(testArray.at(-1) =  3.141592, std::out_of_range);
 }
 
 
 TEST_F(ArrayTest, TestIteration) {
-    auto testArray = spider::Array<double>(10);
+    auto testArray = spider::array<double>(10);
     double count = 1.;
     for (auto &val : testArray) {
         val = 3.1415926535 + count;

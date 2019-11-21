@@ -51,6 +51,7 @@ enum class StackID : std::uint64_t {
     PISDF = 0,       /*!< Stack used for PISDF graph (should be static) */
     ARCHI,           /*!< Stack used for architecture (should be static) */
     TRANSFO,         /*!< Stack used for graph transformations */
+    EXPRESSION,      /*!< Stack used for handling expression */
     SCHEDULE,        /*!< Stack used for scheduling */
     LRT,             /*!< Stack used by LRTs */
     GENERAL,         /*!< General stack used for classic new / delete */

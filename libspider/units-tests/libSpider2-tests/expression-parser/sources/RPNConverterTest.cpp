@@ -54,6 +54,7 @@ RPNConverterTest::~RPNConverterTest() = default;
 
 void RPNConverterTest::SetUp() {
     spider::createAllocator(spider::type<spider::AllocatorType::FREELIST>{ }, StackID::GENERAL, "", 512);
+    spider::createAllocator(spider::type<spider::AllocatorType::FREELIST>{ }, StackID::EXPRESSION, "", 4096);
 }
 
 void RPNConverterTest::TearDown() {

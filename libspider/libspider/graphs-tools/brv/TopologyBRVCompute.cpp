@@ -71,13 +71,12 @@ void TopologyBRVCompute::execute() {
         }
 
         /* == Check the number of valid edges == */
-        spider::vector<const PiSDFEdge *> validEdgeVector;
-        validEdgeVector.reserve(component.nEdges); /* = Reserve the memory for the worst case = */
+        spider::vector<const PiSDFEdge *> validEdgeVector(component.nEdges); /* = Reserve the memory for the worst case = */
         std::uint32_t nMatEdges = 0;
         for (const auto &edge : edgeArray) {
             if (isEdgeValid(edge, vertexIxArray)) {
                 nMatEdges += 1;
-                validEdgeVector.push_back(edge);
+                validEdgeVector[nMatEdges] = edge;
             }
         }
 

@@ -333,7 +333,7 @@ spider::vector<RPNElement> spider::rpn::extractPostfixElements(std::string infix
     spider::vector<std::pair<RPNOperatorType, RPNElement>> operatorStack;
 
     /* == Actually, size will probably be inferior but this will avoid realloc == */
-    spider::vector<RPNElement> postfixStack;
+    spider::vector<RPNElement> postfixStack{ spider::Allocator<RPNElement>(StackID::EXPRESSION) };
     postfixStack.reserve(infixStack.size());
     for (auto &element : infixStack) {
         if (element.type == RPNElementType::OPERATOR) {
@@ -341,13 +341,13 @@ spider::vector<RPNElement> spider::rpn::extractPostfixElements(std::string infix
             if (element.subtype == RPNElementSubType::FUNCTION ||
                 operatorType == RPNOperatorType::LEFT_PAR) {
                 /* == Handle function and left parenthesis case == */
-                operatorStack.push_back(std::make_pair(operatorType, std::move(element)));
+                operatorStack.emplace_back(std::make_pair(operatorType, std::move(element)));
             } else if (operatorType == RPNOperatorType::RIGHT_PAR) {
                 /* == Handle right parenthesis case == */
                 /* == This will not fail because miss match parenthesis is checked before == */
                 while (operatorStack.back().first != RPNOperatorType::LEFT_PAR) {
                     /* == Move element to output stack == */
-                    postfixStack.push_back(std::move(operatorStack.back().second));
+                    postfixStack.emplace_back(std::move(operatorStack.back().second));
 
                     /* == Pop element from operator stack == */
                     operatorStack.pop_back();
@@ -368,7 +368,7 @@ spider::vector<RPNElement> spider::rpn::extractPostfixElements(std::string infix
                          (currentOperator.precedence == frontOP.precedence && !frontOP.isRighAssociative))) {
 
                         /* == Move element to output stack == */
-                        postfixStack.push_back(std::move(operatorStack.back().second));
+                        postfixStack.emplace_back(std::move(operatorStack.back().second));
 
                         /* == Pop element from operator stack == */
                         operatorStack.pop_back();
@@ -379,25 +379,26 @@ spider::vector<RPNElement> spider::rpn::extractPostfixElements(std::string infix
                 }
 
                 /* == Push current operator to the stack == */
-                operatorStack.push_back(std::make_pair(operatorType, std::move(element)));
+                operatorStack.emplace_back(std::make_pair(operatorType, std::move(element)));
             }
         } else {
             /* == Handle operand == */
-            postfixStack.push_back(std::move(element));
+            postfixStack.emplace_back(std::move(element));
         }
     }
 
     /* == Pop the remaining elements in the operator stack == */
     for (auto it = operatorStack.rbegin(); it != operatorStack.rend(); ++it) {
         /* == Move element to output stack == */
-        postfixStack.push_back(std::move((*it).second));
+        postfixStack.emplace_back(std::move((*it).second));
     }
     return postfixStack;
 }
 
 void spider::rpn::reorderPostfixStack(spider::vector<RPNElement> &postfixStack) {
-    spider::vector<spider::vector<int>> operationStackVector;
-    operationStackVector.push_back({ });
+    using stack_type = spider::vector<spider::vector<int>>;
+    stack_type operationStackVector{ spider::Allocator<spider::vector<int>>(StackID::EXPRESSION) };
+    operationStackVector.emplace_back(spider::vector<int>{ spider::Allocator<int>(StackID::EXPRESSION) });
     operationStackVector[0].reserve(6);
 
     /* == Fill up the operation stack once == */
@@ -408,7 +409,7 @@ void spider::rpn::reorderPostfixStack(spider::vector<RPNElement> &postfixStack) 
             if (operationStackVector.back().size() == 1) {
                 break;
             }
-            operationStackVector.push_back({ });
+            operationStackVector.emplace_back(spider::vector<int>{ spider::Allocator<int>(StackID::EXPRESSION) });
             operationStackVector.back().reserve(6);
         }
     }

@@ -46,6 +46,11 @@
 
 /* === Function definition(s) === */
 
+/**
+ * @brief Use a static variable to hold the different refinement used by the actors.
+ * @remark Due to the static lifetime of variable, can not use spider::vector.
+ * @return
+ */
 std::vector<spider::pisdf::Refinement *> &spider::refinementsRegister() {
     static std::vector<spider::pisdf::Refinement *> refinementVector;
     return refinementVector;

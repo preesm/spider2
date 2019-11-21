@@ -108,7 +108,8 @@ static double applyOperator(StartIterator start, RPNOperatorType type) {
 
 /* === Methods implementation === */
 
-Expression::Expression(std::string expression, const spider::vector<PiSDFParam *> &params) {
+Expression::Expression(std::string expression, const spider::vector<PiSDFParam *> &params) :
+        expressionStack_{ spider::Allocator<ExpressionElt>(StackID::EXPRESSION) } {
     /* == Get the postfix expression stack == */
     auto postfixStack = spider::rpn::extractPostfixElements(std::move(expression));
     if (spider::api::verbose() && log_enabled<LOG_EXPR>()) {
@@ -149,9 +150,9 @@ std::string Expression::string() const {
 
 spider::vector<ExpressionElt> Expression::buildExpressionStack(spider::vector<RPNElement> &postfixStack,
                                                                const spider::vector<PiSDFParam *> &params) {
-    spider::vector<ExpressionElt> stack;
+    spider::vector<ExpressionElt> stack{ spider::Allocator<ExpressionElt>(StackID::EXPRESSION) };
     stack.reserve(postfixStack.size());
-    spider::vector<double> evalStack;
+    spider::vector<double> evalStack{ spider::Allocator<double>(StackID::EXPRESSION) };
     evalStack.reserve(6); /* = In practice, the evalStack will most likely not exceed 3 values = */
     bool skipEval = false;
     std::uint8_t argCount = 0;
@@ -208,14 +209,14 @@ spider::vector<ExpressionElt> Expression::buildExpressionStack(spider::vector<RP
 }
 
 double Expression::evaluateStack(const spider::vector<PiSDFParam *> &params) const {
-    spider::vector<double> evalStack;
+    spider::vector<double> evalStack{ spider::Allocator<double>(StackID::GENERAL) };
     evalStack.reserve(6); /* = In practice, the evalStack will most likely not exceed 3 values = */
     for (const auto &elt : expressionStack_) {
         if (elt.elt_.type == RPNElementType::OPERAND) {
             if (elt.elt_.subtype == RPNElementSubType::PARAMETER) {
-                evalStack.push_back(params[elt.arg.value_]->value());
+                evalStack.emplace_back(params[elt.arg.value_]->value());
             } else {
-                evalStack.push_back(elt.arg.value_);
+                evalStack.emplace_back(elt.arg.value_);
             }
         } else {
             const auto &op = spider::rpn::getOperatorFromOperatorType(elt.arg.opType_);

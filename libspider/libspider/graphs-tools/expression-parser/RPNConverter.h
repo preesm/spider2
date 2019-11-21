@@ -115,9 +115,9 @@ struct RPNElement {
 
     RPNElement() = default;
 
-    RPNElement(const RPNElement &o) = default;
+    RPNElement(const RPNElement &) = default;
 
-    RPNElement(RPNElement &&other) noexcept = default;
+    RPNElement(RPNElement &&) noexcept = default;
 
     RPNElement &operator=(const RPNElement &) = default;
 
