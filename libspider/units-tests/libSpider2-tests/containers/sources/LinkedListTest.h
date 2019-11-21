@@ -48,10 +48,8 @@
 /* === Methods prototype === */
 
 TEST(LinkedListTest, TestAdd) {
-    AllocatorConfig cfg;
-    cfg.allocatorType = AllocatorType::FREELIST;
-    cfg.size = 512;
-    spider::initAllocator(StackID::GENERAL, cfg);
+    spider::createAllocator(spider::type<spider::AllocatorType::FREELIST>{ }, StackID::GENERAL, "", 512);
+
     auto testList = spider::LinkedList<double>(StackID::GENERAL);
     EXPECT_NO_THROW(testList.addHead(10.2));
     EXPECT_EQ(testList.tail(), testList.head());
@@ -61,14 +59,11 @@ TEST(LinkedListTest, TestAdd) {
     EXPECT_NO_THROW(testList.remove(testList.head()));
     EXPECT_NO_THROW(testList.addCurrent(2.71));
     EXPECT_NO_THROW(testList.~LinkedList());
-    spider::finalizeAllocators();
+    spider::freeAllocators();
 }
 
 TEST(LinkedListTest, TestEqValue) {
-    AllocatorConfig cfg;
-    cfg.allocatorType = AllocatorType::FREELIST;
-    cfg.size = 512;
-    spider::initAllocator(StackID::GENERAL, cfg);
+    spider::createAllocator(spider::type<spider::AllocatorType::FREELIST>{ }, StackID::GENERAL, "", 512);
     auto testList = spider::LinkedList<double>(StackID::GENERAL);
     EXPECT_NO_THROW(testList.addHead(10.2));
     EXPECT_NO_THROW(testList.addHead(3.14159265358));
@@ -82,14 +77,11 @@ TEST(LinkedListTest, TestEqValue) {
     testList.previous();
     EXPECT_EQ(testList.current()->value, 3.14159265358);
     EXPECT_NO_THROW(testList.~LinkedList());
-    spider::finalizeAllocators();
+    spider::freeAllocators();
 }
 
 TEST(LinkedListTest, TestRemove) {
-    AllocatorConfig cfg;
-    cfg.allocatorType = AllocatorType::FREELIST;
-    cfg.size = 512;
-    spider::initAllocator(StackID::GENERAL, cfg);
+    spider::createAllocator(spider::type<spider::AllocatorType::FREELIST>{ }, StackID::GENERAL, "", 512);
     auto testList = spider::LinkedList<double>(StackID::GENERAL);
     EXPECT_NO_THROW(testList.addHead(10.2));
     EXPECT_NO_THROW(testList.addHead(3.14159265358));
@@ -104,14 +96,11 @@ TEST(LinkedListTest, TestRemove) {
     EXPECT_NO_THROW(testList.remove(testList.current()));
     EXPECT_EQ(testList.size(), 0);
     EXPECT_NO_THROW(testList.~LinkedList());
-    spider::finalizeAllocators();
+    spider::freeAllocators();
 }
 
 TEST(LinkedListTest, TestIterator) {
-    AllocatorConfig cfg;
-    cfg.allocatorType = AllocatorType::FREELIST;
-    cfg.size = 512;
-    spider::initAllocator(StackID::GENERAL, cfg);
+    spider::createAllocator(spider::type<spider::AllocatorType::FREELIST>{ }, StackID::GENERAL, "", 512);
     auto testList = spider::LinkedList<double>(StackID::GENERAL);
     EXPECT_NO_THROW(testList.addHead(10.2));
     EXPECT_NO_THROW(testList.addHead(3.14159265358));
@@ -129,10 +118,7 @@ TEST(LinkedListTest, TestIterator) {
 }
 
 TEST(LinkedListTest, TestRandomAccessOperator) {
-    AllocatorConfig cfg;
-    cfg.allocatorType = AllocatorType::FREELIST;
-    cfg.size = 512;
-    spider::initAllocator(StackID::GENERAL, cfg);
+    spider::createAllocator(spider::type<spider::AllocatorType::FREELIST>{ }, StackID::GENERAL, "", 512);
     auto testList = spider::LinkedList<double>(StackID::GENERAL);
     EXPECT_NO_THROW(testList.addHead(10.2));
     EXPECT_NO_THROW(testList.addHead(3.14159265358));
@@ -143,7 +129,7 @@ TEST(LinkedListTest, TestRandomAccessOperator) {
     EXPECT_EQ(testList[1], 10.2);
     EXPECT_EQ(testList.current()->value, 2.71);
     EXPECT_NO_THROW(testList.~LinkedList());
-    spider::finalizeAllocators();
+    spider::freeAllocators();
 }
 
 #endif //CONTAINERS_LINKEDLISTTEST_H

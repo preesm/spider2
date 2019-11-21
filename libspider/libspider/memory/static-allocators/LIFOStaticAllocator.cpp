@@ -49,7 +49,7 @@ LIFOStaticAllocator::LIFOStaticAllocator(std::string name, std::uint64_t totalSi
 
 }
 
-LIFOStaticAllocator::LIFOStaticAllocator(std::string name, std::uint64_t totalSize, char *externalBase) :
+LIFOStaticAllocator::LIFOStaticAllocator(std::string name, std::uint64_t totalSize, void *externalBase) :
         StaticAllocator(std::move(name), totalSize, externalBase, sizeof(std::uint64_t)) {
 
 }

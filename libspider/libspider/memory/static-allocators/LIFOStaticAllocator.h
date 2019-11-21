@@ -51,7 +51,7 @@ public:
 
     explicit LIFOStaticAllocator(std::string name, std::uint64_t totalSize);
 
-    explicit LIFOStaticAllocator(std::string name, std::uint64_t totalSize, char *externalBase);
+    explicit LIFOStaticAllocator(std::string name, std::uint64_t totalSize, void *externalBase);
 
     ~LIFOStaticAllocator() override = default;
 

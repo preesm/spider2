@@ -55,20 +55,12 @@ enum class StackID : std::uint64_t {
     LRT,           /*!< Stack used by LRTs */
     GENERAL,       /*!< General stack used for classic new / delete */
     SCENARIO,      /*!< Stack used for the scenario (application constraints) */
+    First = PISDF,   /*!< Sentry used for EnumIterator::begin*/
+    Last = SCENARIO, /*!< Sentry used for EnumIterator::end */
 };
 
-constexpr std::uint8_t ALLOCATOR_COUNT = static_cast<std::uint8_t>(StackID::SCENARIO) + 1;
+constexpr std::int32_t ALLOCATOR_COUNT = static_cast<std::int32_t>(StackID::Last) + 1;
 
-/**
- * @brief Allocator types
- */
-enum class AllocatorType {
-    FREELIST,        /*!< (Dynamic) FreeList type allocator */
-    GENERIC,         /*!< (Dynamic) Generic type allocator (=malloc) */
-    LIFO_STATIC,     /*!< (Static) LIFO type allocator */
-    FREELIST_STATIC, /*!< (Static) FreeList type allocator */
-    LINEAR_STATIC    /*!< (Static) Linear type allocator */
-};
 
 /* === Forward declaration(s) === */
 

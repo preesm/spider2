@@ -87,7 +87,9 @@ StaticAllocator::StaticAllocator(std::string name, std::uint64_t totalSize, std:
     externalBase_ = false;
 }
 
-StaticAllocator::StaticAllocator(std::string name, std::uint64_t totalSize, void *externalBase,
+StaticAllocator::StaticAllocator(std::string name,
+                                 std::uint64_t totalSize,
+                                 void *externalBase,
                                  std::int32_t alignment) :
         AbstractAllocator(std::move(name), alignment),
         totalSize_{ totalSize },

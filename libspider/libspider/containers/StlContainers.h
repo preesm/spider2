@@ -51,44 +51,44 @@
 #include <unordered_set>
 #include <unordered_map>
 #include <stack>
-#include <memory/Allocator.h>
+#include <memory/STLAllocator.h>
 
 /* === Namespace === */
 
 namespace spider {
 
     template<class T>
-    using vector = std::vector<T, spider::Allocator<T>>;
+    using vector = std::vector<T, spider::STLAllocator<T>>;
 
     template<class T>
-    using deque = std::deque<T, spider::Allocator<T>>;
+    using deque = std::deque<T, spider::STLAllocator<T>>;
 
     template<class T>
     using queue = std::queue<T, spider::deque<T>>;
 
     template<class Key>
-    using unordered_set = std::unordered_set<Key, std::hash<Key>, std::equal_to<Key>, spider::Allocator<Key>>;
+    using unordered_set = std::unordered_set<Key, std::hash<Key>, std::equal_to<Key>, spider::STLAllocator<Key>>;
 
     template<class Key>
-    using set = std::set<Key, std::less<Key>, spider::Allocator<Key>>;
+    using set = std::set<Key, std::less<Key>, spider::STLAllocator<Key>>;
 
     template<class Key, class T>
     using unordered_map = std::unordered_map<Key,
             T,
             std::hash<Key>,
             std::equal_to<Key>,
-            spider::Allocator<std::pair<const Key, T>>>;
+            spider::STLAllocator<std::pair<const Key, T>>>;
 
     template<class Key, class T>
-    using map = std::map<Key, T, std::less<Key>, spider::Allocator<std::pair<const Key, T>>>;
+    using map = std::map<Key, T, std::less<Key>, spider::STLAllocator<std::pair<const Key, T>>>;
 
     template<class T>
-    using forward_list = std::forward_list<T, spider::Allocator<T>>;
+    using forward_list = std::forward_list<T, spider::STLAllocator<T>>;
 
     template<class T>
     using stack = std::stack<T, spider::deque<T>>;
 
-    using string = std::basic_string<char, std::char_traits<char>, spider::Allocator<char>>;
+    using string = std::basic_string<char, std::char_traits<char>, spider::STLAllocator<char>>;
 }
 
 #endif //SPIDER2_STLCONTAINERS_H

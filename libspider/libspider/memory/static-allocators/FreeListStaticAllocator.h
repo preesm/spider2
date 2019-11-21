@@ -57,7 +57,7 @@ public:
 
     explicit FreeListStaticAllocator(std::string name,
                                      std::uint64_t totalSize,
-                                     char *externalBase,
+                                     void *externalBase,
                                      FreeListPolicy policy = FreeListPolicy::FIND_FIRST,
                                      std::int32_t alignment = sizeof(std::int64_t));
 

@@ -64,7 +64,7 @@ FreeListStaticAllocator::FreeListStaticAllocator(std::string name,
 
 FreeListStaticAllocator::FreeListStaticAllocator(std::string name,
                                                  std::uint64_t totalSize,
-                                                 char *externalBase,
+                                                 void *externalBase,
                                                  FreeListPolicy policy,
                                                  int32_t alignment) :
         StaticAllocator(std::move(name), totalSize + sizeof(FreeListStaticAllocator::Header), externalBase, alignment) {

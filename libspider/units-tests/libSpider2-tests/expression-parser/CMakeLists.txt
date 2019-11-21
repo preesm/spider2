@@ -27,11 +27,13 @@ file(GLOB_RECURSE
         ${SPIDER_LIB_DIR}/graphs/pisdf/*.cpp
         ${SPIDER_LIB_DIR}/graphs-tools/expression-parser/*.cpp
         ${SPIDER_LIB_DIR}/common/*.cpp
+        ${SPIDER_LIB_DIR}/archi/*.cpp
         ${SPIDER_LIB_DIR}/memory/*.cpp
         ${SPIDER_LIB_DIR}/memory/static-allocators/*.cpp
         ${SPIDER_LIB_DIR}/memory/dynamic-allocators/*.cpp
         ${SPIDER_LIB_DIR}/spider-api/pisdf.cpp
         ${SPIDER_LIB_DIR}/spider-api/config.cpp
+        ${SPIDER_LIB_DIR}/spider-api/archi.cpp
         sources/*.cpp
     )
 
@@ -40,12 +42,14 @@ file(GLOB_RECURSE
         ${SPIDER_LIB_DIR}/graphs/pisdf/*.h
         ${SPIDER_LIB_DIR}/graphs-tools/expression-parser/*.h
         ${SPIDER_LIB_DIR}/common/*.h
+        ${SPIDER_LIB_DIR}/archi/*.h
         ${SPIDER_LIB_DIR}/memory/*.h
         ${SPIDER_LIB_DIR}/memory/abstract-allocators/*.h
         ${SPIDER_LIB_DIR}/memory/static-allocators/*.h
         ${SPIDER_LIB_DIR}/memory/dynamic-allocators/*.h
         ${SPIDER_LIB_DIR}/spider-api/pisdf.h
         ${SPIDER_LIB_DIR}/spider-api/config.h
+        ${SPIDER_LIB_DIR}/spider-api/archi.cpp
         sources/*.h
         )
 

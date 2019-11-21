@@ -54,14 +54,11 @@ ArrayTest::~ArrayTest() {
 }
 
 void ArrayTest::SetUp() {
-    AllocatorConfig cfg;
-    cfg.allocatorType = AllocatorType::FREELIST;
-    cfg.size = 512;
-    spider::initAllocator(StackID::GENERAL, cfg);
+    spider::createAllocator(spider::type<spider::AllocatorType::FREELIST>{ }, StackID::GENERAL, "", 512);
 }
 
 void ArrayTest::TearDown() {
-    spider::finalizeAllocators();
+    spider::freeAllocators();
 }
 
 TEST_F(ArrayTest, TestCreation) {

@@ -57,15 +57,12 @@ ExpressionTest::ExpressionTest() = default;
 ExpressionTest::~ExpressionTest() = default;
 
 void ExpressionTest::SetUp() {
-    AllocatorConfig cfg = AllocatorConfig();
-    cfg.allocatorType = AllocatorType::FREELIST;
-    cfg.size = 4096;
-    spider::initAllocator(StackID::GENERAL, cfg);
-    spider::initAllocator(StackID::PISDF, cfg);
+    spider::createAllocator(spider::type<spider::AllocatorType::FREELIST>{ }, StackID::GENERAL, "", 4096);
+    spider::createAllocator(spider::type<spider::AllocatorType::FREELIST>{ }, StackID::PISDF, "", 4096);
 }
 
 void ExpressionTest::TearDown() {
-    spider::finalizeAllocators();
+    spider::freeAllocators();
 }
 
 TEST_F(ExpressionTest, TestCreation) {

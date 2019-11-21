@@ -51,7 +51,9 @@ LinearStaticAllocator::LinearStaticAllocator(std::string name, std::uint64_t tot
     }
 }
 
-LinearStaticAllocator::LinearStaticAllocator(std::string name, std::uint64_t totalSize, char *externalBase,
+LinearStaticAllocator::LinearStaticAllocator(std::string name,
+                                             std::uint64_t totalSize,
+                                             void *externalBase,
                                              int32_t alignment) : StaticAllocator(std::move(name), totalSize,
                                                                                   externalBase,
                                                                                   alignment) {

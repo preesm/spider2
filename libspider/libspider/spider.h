@@ -73,6 +73,42 @@ namespace spider {
                        char *baseAddr = nullptr,
                        std::uint64_t alignment = sizeof(std::uint64_t));
 
+        void createGenericStack(StackID stack, const std::string &name, std::int32_t alignment = sizeof(std::uint64_t));
+
+        void createFreeListStack(StackID stack,
+                                 const std::string &name,
+                                 std::uint64_t staticBufferSize,
+                                 FreeListPolicy policy = FreeListPolicy::FIND_FIRST,
+                                 std::int32_t alignment = sizeof(std::uint64_t));
+
+        void createFreeListStaticStack(StackID stack,
+                                       const std::string &name,
+                                       std::uint64_t totalSize,
+                                       FreeListPolicy policy = FreeListPolicy::FIND_FIRST,
+                                       std::int32_t alignment = sizeof(std::uint64_t));
+
+        void createFreeListStaticStack(StackID stack,
+                                       const std::string &name,
+                                       std::uint64_t totalSize,
+                                       void *base,
+                                       FreeListPolicy policy = FreeListPolicy::FIND_FIRST,
+                                       std::int32_t alignment = sizeof(std::uint64_t));
+
+        void createLinearStaticStack(StackID stack,
+                                     const std::string &name,
+                                     std::uint64_t totalSize,
+                                     std::int32_t alignment = sizeof(std::uint64_t));
+
+        void createLinearStaticStack(StackID stack,
+                                     const std::string &name,
+                                     std::uint64_t totalSize,
+                                     void *base,
+                                     std::int32_t alignment = sizeof(std::uint64_t));
+
+        void createLIFOStaticStack(StackID stack, const std::string &name, std::uint64_t totalSize);
+
+        void createLIFOStaticStack(StackID stack, const std::string &name, std::uint64_t totalSize, void *base);
+
         /**
          * @brief Initialize a given stack (specialized version for FreeList and FreeListStatic allocators).
          * @param stackId   Id of the stack to init (see @refitem StackID)
