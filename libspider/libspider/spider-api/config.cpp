@@ -45,42 +45,47 @@
 
 /* === Static variable(s) definition === */
 
-static bool &traceFlag() {
-    static bool traceFlag = false;
-    return traceFlag;
-}
+struct SpiderConfiguration {
+    bool staticSchedule_ = true;
+    bool optimizeSRDAG_ = true;
+    bool verbose_ = false;
+    bool exportTrace_ = false;
+};
 
-static bool &verboseFlag() {
-    static bool verboseFlag = false;
-    return verboseFlag;
-}
-
-static bool &staticOptimFlag() {
-    static bool staticOptimFlag = true;
-    return staticOptimFlag;
-}
-
-static bool &srdagOptimFlag() {
-    static bool srdagOptim = true;
-    return srdagOptim;
-}
+static SpiderConfiguration config_;
 
 /* === Methods implementation === */
 
-void spider::api::enableTrace() {
-    traceFlag() = true;
+void spider::api::enableExportTrace() {
+    config_.exportTrace_ = true;
 }
 
-void spider::api::disableTrace() {
-    traceFlag() = false;
+void spider::api::disableExportTrace() {
+    config_.exportTrace_ = false;
 }
 
 void spider::api::enableVerbose() {
-    verboseFlag() = true;
+    config_.verbose_ = true;
 }
 
 void spider::api::disableVerbose() {
-    verboseFlag() = false;
+    config_.verbose_ = false;
+}
+
+void spider::api::enableStaticScheduleOptim() {
+    config_.staticSchedule_ = true;
+}
+
+void spider::api::disableStaticScheduleOptim() {
+    config_.staticSchedule_ = false;
+}
+
+void spider::api::enableSRDAGOptims() {
+    config_.optimizeSRDAG_ = true;
+}
+
+void spider::api::disableSRDAGOptims() {
+    config_.optimizeSRDAG_ = false;
 }
 
 void spider::api::enableJobLogs() {
@@ -91,34 +96,18 @@ void spider::api::disableJobLogs() {
     log::disable<LOG_LRT>();
 }
 
-void spider::api::enableStaticScheduleOptim() {
-    staticOptimFlag() = true;
-}
-
-void spider::api::disableStaticScheduleOptim() {
-    staticOptimFlag() = false;
-}
-
-void spider::api::enableSRDAGOptims() {
-    srdagOptimFlag() = true;
-}
-
-void spider::api::disableSRDAGOptims() {
-    srdagOptimFlag() = false;
-}
-
-bool spider::api::trace() {
-    return traceFlag();
+bool spider::api::exportTrace() {
+    return config_.exportTrace_;
 }
 
 bool spider::api::verbose() {
-    return verboseFlag();
+    return config_.verbose_;
 }
 
 bool spider::api::staticOptim() {
-    return staticOptimFlag();
+    return config_.staticSchedule_;
 }
 
-bool spider::api::srdagOptim() {
-    return srdagOptimFlag();
+bool spider::api::optimizeSRDAG() {
+    return config_.optimizeSRDAG_;
 }

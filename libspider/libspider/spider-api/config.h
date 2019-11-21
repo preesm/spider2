@@ -77,12 +77,12 @@ namespace spider {
         /**
          * @brief Enable the traces in Spider.
          */
-        void enableTrace();
+        void enableExportTrace();
 
         /**
          * @brief Disable the traces in Spider (default behavior).
          */
-        void disableTrace();
+        void disableExportTrace();
 
         /**
          * @brief Enable the Verbose mode in Spider.
@@ -130,7 +130,7 @@ namespace spider {
          * @brief Get the trace flag value.
          * @return value of trace flag.
          */
-        bool trace();
+        bool exportTrace();
 
         /**
          * @brief Get the verbose flag value.
@@ -148,7 +148,7 @@ namespace spider {
          * @brief Get the srdagOptim flag value.
          * @return value of srdagOptim flag.
          */
-        bool srdagOptim();
+        bool optimizeSRDAG();
     }
 }
 

@@ -156,6 +156,8 @@ namespace spider {
     }
 }
 
+/* === Aliases for logger === */
+
 constexpr auto LOG_LRT = spider::log::Type::LRT;
 constexpr auto LOG_TIME = spider::log::Type::TIME;
 constexpr auto LOG_GENERAL = spider::log::Type::GENERAL;

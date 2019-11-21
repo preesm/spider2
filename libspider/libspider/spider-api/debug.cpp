@@ -50,7 +50,7 @@
 /* === Methods implementation === */
 
 void spider::api::exportPostExecGantt(const std::string &) {
-    if (!spider::api::trace()) {
+    if (!spider::api::exportTrace()) {
         throwSpiderException("Can not export graph if traces are disable. Use Spider::enableTrace().");
     }
 
