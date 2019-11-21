@@ -55,7 +55,7 @@ namespace spider {
      * @tparam T      Type to allocate.
      * @tparam stack  Stack used by the STLAllocator class (default is StackID::GENERAL)
      */
-    template<class T, StackID stack = StackID::GENERAL>
+    template<class T>
     class Allocator {
     public:
 
@@ -72,7 +72,7 @@ namespace spider {
         /* == Rebind SpiderAllocator to type U == */
         template<class U>
         struct rebind {
-            typedef Allocator<U, stack> other;
+            typedef Allocator<U> other;
         };
 
         /* == Return address of value == */
@@ -87,12 +87,18 @@ namespace spider {
 
         /* === Constructors / Destructors === */
 
-        explicit Allocator() = default;
+        explicit Allocator() : allocator_{ spider::allocator<StackID::GENERAL>() } { };
 
-        Allocator(const Allocator &) = default;
+        explicit Allocator(StackID stack) : allocator_{ spider::allocator(stack) } {
+            if (!allocator_) {
+                throwSpiderException("trying to use non-initialized allocator.");
+            }
+        }
+
+        Allocator(const Allocator &other) : allocator_{ other.allocator_ } { };
 
         template<class U>
-        explicit Allocator(const Allocator<U> &) { }
+        explicit Allocator(const Allocator<U> &other) : allocator_{ other.allocator() } { }
 
         ~Allocator() = default;
 
@@ -101,18 +107,20 @@ namespace spider {
             return std::numeric_limits<size_t>::max() / sizeof(T);
         }
 
+        inline AbstractAllocator *allocator() const {
+            return allocator_;
+        }
+
         /**
          * @brief Allocate raw memory buffer on given stack.
          * @tparam T    Type of the pointer to allocate.
-         * @param size  Size of the buffer to allocate.
+         * @param size  Size of the buffer to allocate (i.e allocate size * sizeof(T)).
+         * @param extra Extra size to allocate independent of sizeof(T) -> allocate size * sizeof(T) + extra.
          * @param stack Stack on which the buffer should be allocated, see #SpiderStack
          * @return pointer to allocated buffer, nullptr if size is 0.
          */
-        inline pointer_type allocate(size_type size) {
-            if (!allocator<stack>()) {
-                throwSpiderException("Allocating memory with non-initialized allocator.");
-            }
-            return static_cast<pointer_type >(allocator<stack>()->allocate(size * sizeof(T)));
+        inline pointer_type allocate(size_type size, size_type extra = 0) {
+            return static_cast<pointer_type >(allocator_->allocate(size * sizeof(T) + extra));
         }
 
         /**
@@ -121,7 +129,7 @@ namespace spider {
          * @param ptr Raw pointer to deallocate
          */
         inline void deallocate(pointer_type ptr, std::size_t) {
-            allocator<stack>()->deallocate(ptr);
+            allocator_->deallocate(ptr);
         }
 
         /**
@@ -165,7 +173,7 @@ namespace spider {
         friend bool operator!=(const Allocator<T1> &, const Allocator<T2> &);
 
     private:
-
+        AbstractAllocator *allocator_ = nullptr;
     };
 
     template<class T1, class T2>
