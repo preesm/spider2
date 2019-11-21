@@ -180,8 +180,9 @@ std::pair<PiSDFGraph *, PiSDFGraph *> spider::srdag::splitDynamicGraph(PiSDFGrap
         }
         for (const auto &edge : cfg->outputEdgeArray()) {
             const auto &sink = edge->sink();
-            cfgInputIFCount += (sink->subtype() != VertexType::OUTPUT);
-            initOutputIFCount += (sink->subtype() == VertexType::OUTPUT);
+            auto isOutputIF = sink->subtype() == VertexType::OUTPUT;
+            cfgInputIFCount += (!isOutputIF);
+            initOutputIFCount += (isOutputIF);
         }
     }
     const auto &runInputIFCount = subgraph->inputEdgeCount() + cfgInputIFCount - initInputIFCount;
@@ -281,8 +282,7 @@ std::pair<PiSDFGraph *, PiSDFGraph *> spider::srdag::splitDynamicGraph(PiSDFGrap
 
                 /* == Connect cfg to output interface in init graph == */
                 auto *output = initGraph->outputInterface(outputInitIx);
-                spider::api::createEdge(cfg, srcPortIx, srcRate, output, 0, srcRate,
-                                        StackID::PISDF);
+                spider::api::createEdge(cfg, srcPortIx, srcRate, output, 0, srcRate, StackID::PISDF);
 
                 /* == Connect init graph to run graph == */
                 spider::api::createEdge(initGraph, outputInitIx, srcRate, runGraph, inputRunIx, srcRate,
@@ -317,12 +317,12 @@ std::pair<PiSDFGraph *, PiSDFGraph *> spider::srdag::splitDynamicGraph(PiSDFGrap
 }
 
 std::pair<spider::srdag::JobStack, spider::srdag::JobStack>
-spider::srdag::staticSingleRateTransformation(const spider::srdag::TransfoJob &job, PiSDFGraph *srdag) {
+spider::srdag::singleRateTransformation(const spider::srdag::TransfoJob &job, PiSDFGraph *srdag) {
     if (!srdag) {
         throwSpiderException("nullptr for single rate graph.");
     }
     if (!job.reference_) {
-        throwSpiderException("nullptr for job.reference graph.");
+        throwSpiderException("nullptr for reference graph.");
     }
 
     /* == Split subgraphs if needed == */

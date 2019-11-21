@@ -54,7 +54,7 @@ namespace spider {
          * @brief Split dynamic graphs into two subgraphs: an init graph and a run graph.
          * @remark This method changes original graph.
          * @param subgraph  Subgraph to split (if static nothing happen).
-         * @return true if subgraph was split, false else.
+         * @return pair composed of init graph and run graph, pair of nullptr if subgraph is static.
          */
         std::pair<PiSDFGraph *, PiSDFGraph *> splitDynamicGraph(PiSDFGraph *subgraph);
 
@@ -68,9 +68,8 @@ namespace spider {
          * jobs of dynamic graphs.
          * @throws @refitem Spider::Exception if srdag is nullptr
          */
-        std::pair<JobStack, JobStack> staticSingleRateTransformation(const TransfoJob &job, PiSDFGraph *srdag);
+        std::pair<JobStack, JobStack> singleRateTransformation(const TransfoJob &job, PiSDFGraph *srdag);
     }
 }
-
 
 #endif //SPIDER2_TRANSFORMATION_H
