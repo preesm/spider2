@@ -175,9 +175,7 @@ namespace spider {
      */
     template<typename T, class... Args>
     inline void construct(T *ptr, Args &&... args) {
-        if (ptr) {
-            new(ptr) T(std::forward<Args>(args)...);
-        }
+        new(ptr) T(std::forward<Args>(args)...);
     }
 
     /**

@@ -154,8 +154,7 @@ void spider::start() {
         throwSpiderException("spider::start() function should be called only once.");
     }
     /* == General stack initialization == */
-//    spider::api::createGenericStack(StackID::GENERAL, "general-allocator");
-    spider::api::createLinearStaticStack(StackID::GENERAL, "general-allocator", 1024 * 1024);
+    spider::api::createGenericStack(StackID::GENERAL, "general-allocator");
 
     /* == Init the Logger and enable the GENERAL Logger == */
     log::enable<LOG_GENERAL>();
