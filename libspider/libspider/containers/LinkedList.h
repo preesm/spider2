@@ -44,7 +44,7 @@
 
 #include <cstdint>
 #include <cassert>
-#include <memory/Allocator.h>
+#include <memory/allocator.h>
 
 namespace spider {
 

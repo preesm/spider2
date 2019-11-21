@@ -40,7 +40,7 @@
 
 /* === Include(s) === */
 
-#include <memory/Allocator.h>
+#include <memory/allocator.h>
 #include <spider-api/refinement.h>
 #include <graphs/pisdf/common/Refinement.h>
 

@@ -41,7 +41,7 @@
 /* === Includes === */
 
 #include "ExpressionTest.h"
-#include <memory/Allocator.h>
+#include <memory/allocator.h>
 #include <graphs-tools/expression-parser/Expression.h>
 #include <spider-api/config.h>
 #include <spider-api/pisdf.h>

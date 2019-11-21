@@ -42,7 +42,7 @@
 
 
 #include <gtest/gtest.h>
-#include <memory/Allocator.h>
+#include <memory/allocator.h>
 
 
 TEST(AllocatorTest, TryAlloc) {

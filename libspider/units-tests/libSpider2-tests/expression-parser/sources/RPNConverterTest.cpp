@@ -41,7 +41,7 @@
 /* === Includes === */
 
 #include "RPNConverterTest.h"
-#include <memory/Allocator.h>
+#include <memory/allocator.h>
 #include <graphs-tools/expression-parser/RPNConverter.h>
 #include <spider-api/config.h>
 #include <cmath>

@@ -44,7 +44,7 @@
 
 #include <cstdint>
 #include <vector>
-#include <memory/Allocator.h>
+#include <memory/allocator.h>
 
 /* === Class definition === */
 

@@ -45,7 +45,7 @@
 #include <cstdint>
 #include <string>
 #include <functional>
-#include <memory/Allocator.h>
+#include <memory/allocator.h>
 #include <graphs-tools/expression-parser/Expression.h>
 
 namespace spider {

@@ -41,7 +41,7 @@
 /* === Includes === */
 
 #include <spider.h>
-#include <memory/Allocator.h>
+#include <memory/allocator.h>
 #include <common/Logger.h>
 #include <archi/Platform.h>
 #include <graphs/pisdf/specials/Specials.h>
@@ -77,8 +77,7 @@ static std::vector<spider::pisdf::Refinement *> specialActorRefinements() {
     spider::api::registerRefinement(duplicateRefinement);
     specialRefinements.emplace_back(duplicateRefinement);
 
-    auto *repeatRefinement = spider::api::createRefinement("repeat", spider::pisdf::repeat, 0, 0,
-                                                           StackID::GENERAL);
+    auto *repeatRefinement = spider::api::createRefinement("repeat", spider::pisdf::repeat, 0, 0, StackID::GENERAL);
     spider::api::registerRefinement(repeatRefinement);
     specialRefinements.emplace_back(repeatRefinement);
 

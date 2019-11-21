@@ -44,7 +44,7 @@
 
 #include <cstdint>
 #include <limits>
-#include <memory/Allocator.h>
+#include <memory/allocator.h>
 
 namespace spider {
 
@@ -56,7 +56,7 @@ namespace spider {
      * @tparam stack  Stack used by the STLAllocator class (default is StackID::GENERAL)
      */
     template<class T, StackID stack = StackID::GENERAL>
-    class STLAllocator {
+    class Allocator {
     public:
 
         /* === Type definitions === */
@@ -72,7 +72,7 @@ namespace spider {
         /* == Rebind SpiderAllocator to type U == */
         template<class U>
         struct rebind {
-            typedef STLAllocator<U, stack> other;
+            typedef Allocator<U, stack> other;
         };
 
         /* == Return address of value == */
@@ -87,14 +87,14 @@ namespace spider {
 
         /* === Constructors / Destructors === */
 
-        explicit STLAllocator() = default;
+        explicit Allocator() = default;
 
-        STLAllocator(const STLAllocator &) = default;
+        Allocator(const Allocator &) = default;
 
         template<class U>
-        explicit STLAllocator(const STLAllocator<U> &) { }
+        explicit Allocator(const Allocator<U> &) { }
 
-        ~STLAllocator() = default;
+        ~Allocator() = default;
 
         /* == Maximum size elements that can be allocated == */
         inline size_type max_size() const {
@@ -159,22 +159,22 @@ namespace spider {
         }
 
         template<class T1, class T2>
-        friend bool operator==(const STLAllocator<T1> &, const STLAllocator<T2> &);
+        friend bool operator==(const Allocator<T1> &, const Allocator<T2> &);
 
         template<class T1, class T2>
-        friend bool operator!=(const STLAllocator<T1> &, const STLAllocator<T2> &);
+        friend bool operator!=(const Allocator<T1> &, const Allocator<T2> &);
 
     private:
 
     };
 
     template<class T1, class T2>
-    inline bool operator==(const STLAllocator<T1> &, const STLAllocator<T2> &) {
+    inline bool operator==(const Allocator<T1> &, const Allocator<T2> &) {
         return true;
     }
 
     template<class T1, class T2>
-    inline bool operator!=(const STLAllocator<T1> &, const STLAllocator<T2> &) {
+    inline bool operator!=(const Allocator<T1> &, const Allocator<T2> &) {
         return false;
     }
 }

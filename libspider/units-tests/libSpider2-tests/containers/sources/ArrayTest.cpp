@@ -40,7 +40,7 @@
 
 /* === Includes === */
 
-#include <memory/Allocator.h>
+#include <memory/allocator.h>
 #include <containers/Array.h>
 #include "ArrayTest.h"
 
