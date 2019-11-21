@@ -71,7 +71,7 @@
 #define MASK(id) (0x00000001 << affinity_id)
 
 bool spider::thread::set_affinity(std::int32_t affinity_id) {
-    auto ret = SetThreadAffinityMask(this->native_handle(), MASK(static_cast<std::uint32_t>(affinity_id)));
+    auto ret = SetThreadAffinityMask(spider::this_thread::native_handle(), MASK(static_cast<std::uint32_t>(affinity_id)));
     if (ret != 0) {
         affinity_ = affinity_id;
         return true;
@@ -100,16 +100,34 @@ bool spider::thread::set_affinity(std::int32_t affinity_id) {
     CPU_ZERO(&cpu_set);
     CPU_SET(affinity_id, &cpu_set);
     this->native_handle();
-    auto ret = pthread_setaffinity_np(this->native_handle(), sizeof(cpu_set_t), &cpu_set);
+    auto ret = pthread_setaffinity_np(spider::this_thread::native_handle(), sizeof(cpu_set_t), &cpu_set);
     if (ret != 0) {
         affinity_ = affinity_id;
         return true;
     }
+    std::this_thread::get_id();
     return false;
 }
 
-std::int32_t spider::thread::affinity() const {
-    return affinity_;
+#endif
+
+#ifdef _WIN32
+
+std::thread::native_handle_type spider::this_thread::native_handle() {
+    return GetCurrentThread();
+}
+
+#elif __APPLE__
+
+std::thread::native_handle_type spider::this_thread::native_handle() {
+    spider::log::warning("native_handle not supported on apple platform.\n");
+    return 0;
+}
+
+#elif (defined __linux__ || defined BSD4_4) && !(defined ANDROID)
+
+std::thread::native_handle_type spider::this_thread::native_handle() {
+    return pthread_self();
 }
 
 #endif

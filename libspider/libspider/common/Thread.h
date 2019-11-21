@@ -66,13 +66,14 @@ namespace spider {
 
         /* === Getter(s) === */
 
-        std::int32_t affinity() const;
+        inline std::int32_t affinity() const;
 
         /* === Setter(s) === */
 
         /**
          * @brief Set the affinity of the thread (i.e which physical resource it runs on)
          * @note This implementation is strongly inspired by https://searchcode.com/file/92960692/Source/Core/Common/Thread.cpp
+         *       and https://gist.github.com/Coneko/4234842
          * @param affinity_id Mask to use.
          * @return true if it was successful, false else
          */
@@ -83,6 +84,20 @@ namespace spider {
     };
 
     /* === Inline method(s) === */
+
+
+    std::int32_t spider::thread::affinity() const {
+        return affinity_;
+    }
+
+    namespace this_thread {
+
+        /**
+         * @brief Return current native handle automatically from the thread.
+         * @return native_handle_type
+         */
+        std::thread::native_handle_type native_handle();
+    }
 
 }
 
