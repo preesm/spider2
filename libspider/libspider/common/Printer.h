@@ -60,36 +60,36 @@ namespace spider {
 
 #ifdef _SPIDER_NO_TYPESAFETY_PRINT
 
-        template<class... Ts>
-        inline int fprintf(_IO_FILE *stream, const char *format, const Ts &... ts) {
-            return std::fprintf(stream, format, ts...);
+        template<class... Args>
+        inline int fprintf(_IO_FILE *stream, const char *format, Args &&... args) {
+            return std::fprintf(stream, format, std::forward<Args>(args)...);
         }
 
-        template<class... Ts>
-        inline int sprintf(char *str, size_t size, const char *format, const Ts &... ts) {
-            return std::snprintf(str, size, format, ts...);
+        template<class... Args>
+        inline int sprintf(char *str, size_t size, const char *format, Args &&... args) {
+            return std::snprintf(str, size, format, std::forward<Args>(args)...);
         }
 
-        template<class... Ts>
-        inline int printf(const char *format, const Ts &... ts) {
-            return std::printf(format, ts...);
+        template<class... Args>
+        inline int printf(const char *format, Args &&... args) {
+            return std::printf(format, std::forward<Args>(args)...);
         }
 
 #else
 
-        template<class... Ts>
-        inline int fprintf(FILE *stream, const char *format, const Ts &... ts) {
-            return spider::cxx11::fprintf(stream, format, ts...);
+        template<class... Args>
+        inline int fprintf(FILE *stream, const char *format, Args &&... args) {
+            return spider::cxx11::fprintf(stream, format, std::forward<Args>(args)...);
         }
 
-        template<class... Ts>
-        inline int sprintf(char *str, size_t size, const char *format, const Ts &... ts) {
-            return spider::cxx11::sprintf(str, size, format, ts...);
+        template<class... Args>
+        inline int sprintf(char *str, size_t size, const char *format, Args &&... args) {
+            return spider::cxx11::sprintf(str, size, format, std::forward<Args>(args)...);
         }
 
-        template<class... Ts>
-        inline int printf(const char *format, const Ts &... ts) {
-            return spider::cxx11::printf(format, ts...);
+        template<class... Args>
+        inline int printf(const char *format, Args &&... args) {
+            return spider::cxx11::printf(format, std::forward<Args>(args)...);
         }
 
 

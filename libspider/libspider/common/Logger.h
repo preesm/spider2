@@ -53,14 +53,14 @@
 namespace spider {
     namespace log {
 
-        constexpr const char red[] = "\x1B[31m";
-        constexpr const char green[] = "\x1B[32m";
-        constexpr const char yellow[] = "\x1B[33m";
-        constexpr const char blue[] = "\x1B[34m";
-        constexpr const char magenta[] = "\x1B[35m";
-        constexpr const char cyan[] = "\x1B[36m";
-        constexpr const char white[] = "\x1B[37m";
-        constexpr const char normal[] = "\x1B[0m";
+        constexpr static const char green[] = "\x1B[32m";
+        constexpr static const char red[] = "\x1B[31m";
+        constexpr static const char yellow[] = "\x1B[33m";
+        constexpr static const char blue[] = "\x1B[34m";
+        constexpr static const char magenta[] = "\x1B[35m";
+        constexpr static const char cyan[] = "\x1B[36m";
+        constexpr static const char white[] = "\x1B[37m";
+        constexpr static const char normal[] = "\x1B[0m";
 
         inline std::mutex &mutex() {
             static std::mutex lock;
@@ -79,7 +79,7 @@ namespace spider {
 
         template<log::Type type>
         inline constexpr log::Log &logger() {
-            return loggers().at(static_cast<std::uint8_t >(type));
+            return loggers().at(type);
         }
 
         template<log::Type type>
@@ -94,25 +94,25 @@ namespace spider {
             logger<type>().enabled_ = false;
         }
 
-        template<log::Type type, const char *color, const char *level, class... Args>
-        inline void print(const char *fmt, const Args &... ts) {
+        template<log::Type type, const char color[], const char level[], class... Args>
+        inline void print(const char *fmt, Args &&... args) {
             std::lock_guard<std::mutex> locker(mutex());
             spider::printer::fprintf(outputStream(), "%s[%s:%s]:", color, logger<type>().litteral_, level);
-            spider::printer::fprintf(outputStream(), fmt, ts...);
+            spider::printer::fprintf(outputStream(), fmt, std::forward<Args>(args)...);
             spider::printer::fprintf(outputStream(), normal);
         }
 
         /**
          * @brief Print information.
-         * @tparam Args    Variadic parameters.
+         * @tparam Args  Variadic parameters.
          * @param type   @refitem LoggerType -> type of the logger.
          * @param fmt    Formatted string to print.
          * @param ts     Arguments to be printed.
          */
         template<log::Type type = log::Type::GENERAL, class... Args>
-        inline void info(const char *fmt, const Args &...ts) {
+        inline void info(const char *fmt, Args &&...args) {
             constexpr static const char lvl[] = "INFO";
-            print<type, white, lvl>(fmt, ts...);
+            print<type, white, lvl>(fmt, std::forward<Args>(args)...);
         }
 
         /**
@@ -123,9 +123,9 @@ namespace spider {
          * @param ts     Arguments to be printed.
          */
         template<log::Type type = log::Type::GENERAL, class... Args>
-        inline void warning(const char *fmt, const Args &...ts) {
+        inline void warning(const char *fmt, Args &&...args) {
             constexpr static const char lvl[] = "WARN";
-            print<type, yellow, lvl>(fmt, ts...);
+            print<type, yellow, lvl>(fmt, std::forward<Args>(args)...);
         }
 
         /**
@@ -136,9 +136,9 @@ namespace spider {
          * @param ts     Arguments to be printed.
          */
         template<log::Type type = log::Type::GENERAL, class... Args>
-        inline void error(const char *fmt, const Args &...ts) {
+        inline void error(const char *fmt, Args &&...args) {
             constexpr static const char lvl[] = "ERR";
-            print<type, red, lvl>(fmt, ts...);
+            print<type, red, lvl>(fmt, std::forward<Args>(args)...);
         }
 
         /**
@@ -149,9 +149,9 @@ namespace spider {
          * @param ts     Arguments to be printed.
          */
         template<log::Type type = log::Type::GENERAL, class... Args>
-        inline void verbose(const char *fmt, const Args &...ts) {
+        inline void verbose(const char *fmt, Args &&...args) {
             constexpr static const char lvl[] = "VERB";
-            print<type, green, lvl>(fmt, ts...);
+            print<type, green, lvl>(fmt, std::forward<Args>(args)...);
         }
     }
 }
