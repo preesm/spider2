@@ -5,8 +5,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 project(sandbox)
 
 # Set flags
-set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_BUILD_TYPE Release)
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -pedantic-errors -Wall -Wextra -coverage -ftest-coverage -fprofile-arcs")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O2 -pedantic-errors -Wall -Wextra")
 
 
 # Link runTests with what we want to test and the GTest and pthread library
@@ -38,6 +39,7 @@ file(GLOB_RECURSE
         ${SPIDER_LIB_DIR}/spider-api/*.cpp
         ${SPIDER_LIB_DIR}/scheduling/*.cpp
         ${SPIDER_LIB_DIR}/scenario/*.cpp
+        ${SPIDER_LIB_DIR}/spider.cpp
         )
 
 file(GLOB_RECURSE
@@ -64,7 +66,8 @@ file(GLOB_RECURSE
         ${SPIDER_LIB_DIR}/scheduling/*.h
         ${SPIDER_LIB_DIR}/scenario/*.h
         ${SPIDER_LIB_DIR}/spider.h
+        ./*.h
         )
 
-add_executable(sandbox main.cpp Test.h ${source_files} ${header_files})
+add_executable(sandbox main.cpp ${source_files} ${header_files})
 target_link_libraries(sandbox ${GTEST_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
