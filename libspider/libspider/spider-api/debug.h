@@ -50,19 +50,20 @@ namespace spider {
     /* === Enumeration(s) === */
 
     namespace log {
-        enum class Type : std::uint8_t {
-            LRT,        /*! LRT logger. When enabled, this will print LRT logged information. */
-            TIME,       /*! TIME logger. When enabled this will print time logged information */
-            GENERAL,    /*! GENERAL purpose logger, used for information about almost everything */
-            SCHEDULE,   /*! SCHEDULE logger. When enabled, this will print Schedule logged information. */
-            MEMORY,     /*! MEMORY logger. When enabled, this will print Memory logged information. */
-            TRANSFO,    /*! TRANSFO logger. When enabled, this will print transformation logged information. */
-            OPTIMS,     /*! OPTIMS logger. When enabled, this will print transformation logged information. */
-            EXPR,       /*! EXPRESSION logger. When enabled, this will print expression-parser logged information. */
+        enum Type : std::int32_t {
+            LRT = 0,        /*! LRT logger. When enabled, this will print LRT logged information. */
+            TIME,           /*! TIME logger. When enabled this will print time logged information */
+            GENERAL,        /*! GENERAL purpose logger, used for information about almost everything */
+            SCHEDULE,       /*! SCHEDULE logger. When enabled, this will print Schedule logged information. */
+            MEMORY,         /*! MEMORY logger. When enabled, this will print Memory logged information. */
+            TRANSFO,        /*! TRANSFO logger. When enabled, this will print transformation logged information. */
+            OPTIMS,         /*! OPTIMS logger. When enabled, this will print transformation logged information. */
+            EXPR,           /*! EXPRESSION logger. When enabled, this will print expression-parser logged information. */
+            First = LRT,    /*!< Sentry for EnumIterator::begin */
+            Last = EXPR,    /*!< Sentry for EnumIterator::end */
         };
 
-        class Log {
-        public:
+        struct Log {
             const char *litteral_;
             bool enabled_;
         };
@@ -128,8 +129,6 @@ namespace spider {
          * @param type @refitem LoggerType to disable.
          */
         void disableLogger(spider::log::Type type);
-
-        void loggerTemplateResolver();
     }
 }
 
