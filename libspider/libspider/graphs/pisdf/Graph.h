@@ -228,13 +228,13 @@ namespace spider {
             * @brief A const reference on the set of output interfaces. Useful for iterating on the input interfaces.
             * @return const reference to input interface array
             */
-            inline const spider::Array<InputInterface *> &inputInterfaceArray() const;
+            inline const spider::array<InputInterface *> &inputInterfaceArray() const;
 
             /**
             * @brief A const reference on the set of output interfaces. Useful for iterating on the output interfaces.
             * @return const reference to output interface array
             */
-            inline const spider::Array<OutputInterface *> &outputInterfaceArray() const;
+            inline const spider::array<OutputInterface *> &outputInterfaceArray() const;
 
             /**
             * @brief A const reference on the set of edges. Useful for iterating on the edges.
@@ -316,8 +316,8 @@ namespace spider {
             spider::vector<ConfigVertex *> configVertexVector_;
             spider::vector<Graph *> subgraphVector_;
             spider::vector<Edge *> edgeVector_;
-            spider::Array<InputInterface *> inputInterfaceArray_;
-            spider::Array<OutputInterface *> outputInterfaceArray_;
+            spider::array<InputInterface *> inputInterfaceArray_;
+            spider::array<OutputInterface *> outputInterfaceArray_;
             spider::vector<Param *> paramVector_;
 
             /* === Scenario related to this graph === */
@@ -387,11 +387,11 @@ namespace spider {
             return configVertexVector_;
         }
 
-        const spider::Array<InputInterface *> &Graph::inputInterfaceArray() const {
+        const spider::array<InputInterface *> &Graph::inputInterfaceArray() const {
             return inputInterfaceArray_;
         }
 
-        const spider::Array<OutputInterface *> &Graph::outputInterfaceArray() const {
+        const spider::array<OutputInterface *> &Graph::outputInterfaceArray() const {
             return outputInterfaceArray_;
         }
 

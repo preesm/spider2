@@ -55,9 +55,9 @@ BRVCompute::BRVCompute(const PiSDFGraph *graph) : BRVCompute(graph, graph->param
 
 BRVCompute::BRVCompute(const PiSDFGraph *graph, const spider::vector<PiSDFParam *> &params) : graph_{ graph },
                                                                                               params_{ params } {
-    spider::Array<const PiSDFAbstractVertex *> connectedComponentsKeys{ graph->vertexCount(), nullptr,
+    spider::array<const PiSDFAbstractVertex *> connectedComponentsKeys{ graph->vertexCount(), nullptr,
                                                                         StackID::TRANSFO };
-    spider::Array<const PiSDFAbstractVertex *> vertexArray{ graph->vertexCount(), nullptr, StackID::TRANSFO };
+    spider::array<const PiSDFAbstractVertex *> vertexArray{ graph->vertexCount(), nullptr, StackID::TRANSFO };
     BRVComponent component;
     for (auto *v:graph->vertices()) {
         if (!connectedComponentsKeys[v->ix()]) {
@@ -77,7 +77,7 @@ BRVCompute::BRVCompute(const PiSDFGraph *graph, const spider::vector<PiSDFParam 
 /* === Private Method(s) implementation === */
 
 void BRVCompute::extractConnectedComponent(BRVComponent &component,
-                                           spider::Array<const PiSDFAbstractVertex *> &keyArray) {
+                                           spider::array<const PiSDFAbstractVertex *> &keyArray) {
     auto scannedIndex = component.vertices.size() - 1; /* = Index of current scanned vertex = */
     bool addedVertex;
     do {
@@ -120,8 +120,8 @@ void BRVCompute::extractConnectedComponent(BRVComponent &component,
     } while (addedVertex || scannedIndex != component.vertices.size());
 }
 
-spider::Array<const PiSDFEdge *> BRVCompute::extractEdges(const BRVComponent &component) {
-    spider::Array<const PiSDFEdge *> edgeArray{ component.nEdges, StackID::TRANSFO };
+spider::array<const PiSDFEdge *> BRVCompute::extractEdges(const BRVComponent &component) {
+    spider::array<const PiSDFEdge *> edgeArray{ component.nEdges, StackID::TRANSFO };
     const auto &vertexArray = component.vertices;
     std::uint32_t index = 0;
     for (const auto &v: vertexArray) {

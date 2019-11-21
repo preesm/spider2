@@ -55,7 +55,7 @@
 
 void LCMBRVCompute::execute() {
     /* == Initializes the Rational array == */
-    spider::Array<spider::Rational> reps{ graph_->vertexCount(), spider::Rational(), StackID::TRANSFO };
+    spider::array<spider::Rational> reps{ graph_->vertexCount(), spider::Rational(), StackID::TRANSFO };
 
     /* == Go through all connected components == */
     for (const auto &component : connectedComponents_) {
@@ -84,8 +84,8 @@ void LCMBRVCompute::execute() {
 
 /* === Private method(s) implementation === */
 
-void LCMBRVCompute::extractRationals(spider::Array<const PiSDFEdge *> &edgeArray,
-                                     spider::Array<spider::Rational> &reps) const {
+void LCMBRVCompute::extractRationals(spider::array<const PiSDFEdge *> &edgeArray,
+                                     spider::array<spider::Rational> &reps) const {
     auto dummyRational = spider::Rational{ 1 };
     for (const auto &edge:edgeArray) {
         const auto *source = edge->source();
@@ -125,7 +125,7 @@ void LCMBRVCompute::extractRationals(spider::Array<const PiSDFEdge *> &edgeArray
     }
 }
 
-std::int64_t LCMBRVCompute::computeLCM(const BRVComponent &component, spider::Array<spider::Rational> &reps) {
+std::int64_t LCMBRVCompute::computeLCM(const BRVComponent &component, spider::array<spider::Rational> &reps) {
     std::int64_t lcmFactor = 1;
     for (const auto &v : component.vertices) {
         lcmFactor = spider::math::lcm(lcmFactor, reps[v->ix()].denominator());
@@ -134,14 +134,14 @@ std::int64_t LCMBRVCompute::computeLCM(const BRVComponent &component, spider::Ar
 }
 
 void LCMBRVCompute::computeBRV(const BRVComponent &component,
-                               spider::Array<spider::Rational> &reps,
+                               spider::array<spider::Rational> &reps,
                                std::int64_t lcmFactor) {
     for (const auto &v : component.vertices) {
         v->setRepetitionValue(spider::Rational{ reps[v->ix()] * lcmFactor }.toInt32());
     }
 }
 
-void LCMBRVCompute::checkValidity(spider::Array<const PiSDFEdge *> &edgeArray) const {
+void LCMBRVCompute::checkValidity(spider::array<const PiSDFEdge *> &edgeArray) const {
     for (const auto &edge : edgeArray) {
         if (edge->source()->subtype() == PiSDFVertexType::INPUT ||
             edge->sink()->subtype() == PiSDFVertexType::OUTPUT) {

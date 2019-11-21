@@ -43,7 +43,7 @@
 /* === Include(s) === */
 
 #include <cstdint>
-#include <containers/Array.h>
+#include <containers/array.h>
 #include <containers/containers.h>
 #include <spider-api/archi.h>
 
@@ -126,7 +126,7 @@ namespace spider {
          * @brief Get the clusters of the platform.
          * @return const reference to the @refitem Spider::Array of clusters.
          */
-        inline const spider::Array<Cluster *> &clusters() const;
+        inline const spider::array<Cluster *> &clusters() const;
 
         /**
          * @brief Get a specific cluster in the platform.
@@ -200,7 +200,7 @@ namespace spider {
         inline void setCluster2ClusterRoutine(spider::CommunicationCostRoutineC2C routine);
 
     private:
-        spider::Array<Cluster *> clusterArray_;
+        spider::array<Cluster *> clusterArray_;
         std::uint32_t clusterCount_ = 0;
         PE *grtPE_ = nullptr;
 
@@ -213,7 +213,7 @@ namespace spider {
 
     /* === Inline method(s) === */
 
-    const spider::Array<Cluster *> &Platform::clusters() const {
+    const spider::array<Cluster *> &Platform::clusters() const {
         return clusterArray_;
     }
 

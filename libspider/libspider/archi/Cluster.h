@@ -44,7 +44,7 @@
 
 #include <cstdint>
 #include <algorithm>
-#include <containers/Array.h>
+#include <containers/array.h>
 #include <containers/containers.h>
 #include <spider-api/archi.h>
 
@@ -90,7 +90,7 @@ namespace spider {
          * @brief Get the array of processing element of the cluster.
          * @return const reference to the @refitem Spider::Array of @refitem ProcessingElement of the cluster.
          */
-        inline const spider::Array<PE *> &processingElements() const;
+        inline const spider::array<PE *> &processingElements() const;
 
         /**
          * @brief Get the memory unit of the cluster.
@@ -179,7 +179,7 @@ namespace spider {
 
         /* === Core properties === */
 
-        spider::Array<PE *> PEArray_;
+        spider::array<PE *> PEArray_;
         std::vector<bool> PEEnabledVector_;
         Platform *platform_ = nullptr;
         MemoryUnit *memoryUnit_ = nullptr;
@@ -203,7 +203,7 @@ namespace spider {
         enabledPECount_ = std::count(PEEnabledVector_.begin(), PEEnabledVector_.end(), true);
     }
 
-    const spider::Array<PE *> &Cluster::processingElements() const {
+    const spider::array<PE *> &Cluster::processingElements() const {
         return PEArray_;
     }
 

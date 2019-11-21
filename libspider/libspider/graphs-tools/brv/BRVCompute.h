@@ -43,7 +43,7 @@
 /* === Include(s) === */
 
 #include <containers/containers.h>
-#include <containers/Array.h>
+#include <containers/array.h>
 #include <graphs/pisdf/common/Types.h>
 
 /* === Struct definition === */
@@ -107,14 +107,14 @@ protected:
      * @param keyArray  Key array for fast information on which vertex have already been visited.
      */
     static void
-    extractConnectedComponent(BRVComponent &component, spider::Array<const PiSDFAbstractVertex *> &keyArray);
+    extractConnectedComponent(BRVComponent &component, spider::array<const PiSDFAbstractVertex *> &keyArray);
 
     /**
      * @brief Extract the edges of a given connected component.
      * @param component  Connected component.
      * @return Array of Edge of the connected component.
      */
-    static spider::Array<const PiSDFEdge *> extractEdges(const BRVComponent &component);
+    static spider::array<const PiSDFEdge *> extractEdges(const BRVComponent &component);
 
     /**
      * @brief Update the repetition vector values depending on interfaces and config actors rates.

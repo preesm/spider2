@@ -41,7 +41,7 @@
 /* === Includes === */
 
 #include <memory/allocator.h>
-#include <containers/Array.h>
+#include <containers/array.h>
 #include "ArrayTest.h"
 
 /* === Methods implementation === */

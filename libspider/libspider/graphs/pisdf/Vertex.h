@@ -44,7 +44,7 @@
 
 #include <cstdint>
 #include <string>
-#include <containers/Array.h>
+#include <containers/array.h>
 #include <graphs/pisdf/common/Types.h>
 #include <graphs/pisdf/visitors/Visitor.h>
 
@@ -150,7 +150,7 @@ namespace spider {
              * @brief A const reference on the array of input edges. Useful for iterating on the edges.
              * @return const reference to input edge array
              */
-            inline const spider::Array<Edge *> &inputEdgeArray() const;
+            inline const spider::array<Edge *> &inputEdgeArray() const;
 
             /**
              * @brief Get input edge connected to port Ix.
@@ -170,7 +170,7 @@ namespace spider {
              * @brief A const reference on the array of output edges. Useful for iterating on the edges.
              * @return const reference to output edge array
              */
-            inline const spider::Array<Edge *> &outputEdgeArray() const;
+            inline const spider::array<Edge *> &outputEdgeArray() const;
 
             /**
              * @brief Get input edge connected to port Ix.
@@ -245,14 +245,14 @@ namespace spider {
             std::uint32_t copyCount_ = 0;
             Vertex *reference_ = this;
 
-            spider::Array<Edge *> inputEdgeArray_;
-            spider::Array<Edge *> outputEdgeArray_;
+            spider::array<Edge *> inputEdgeArray_;
+            spider::array<Edge *> outputEdgeArray_;
 
             /* === Private method(s) === */
 
-            static Edge *disconnectEdge(spider::Array<Edge *> &edges, std::uint32_t ix);
+            static Edge *disconnectEdge(spider::array<Edge *> &edges, std::uint32_t ix);
 
-            static void connectEdge(spider::Array<Edge *> &edges, Edge *edge, std::uint32_t ix);
+            static void connectEdge(spider::array<Edge *> &edges, Edge *edge, std::uint32_t ix);
         };
 
         /* === Inline method(s) === */
@@ -281,7 +281,7 @@ namespace spider {
             return repetitionValue_;
         }
 
-        const spider::Array<Edge *> &Vertex::inputEdgeArray() const {
+        const spider::array<Edge *> &Vertex::inputEdgeArray() const {
             return inputEdgeArray_;
         }
 
@@ -293,7 +293,7 @@ namespace spider {
             return inputEdgeArray_.size();
         }
 
-        const spider::Array<Edge *> &Vertex::outputEdgeArray() const {
+        const spider::array<Edge *> &Vertex::outputEdgeArray() const {
             return outputEdgeArray_;
         }
 

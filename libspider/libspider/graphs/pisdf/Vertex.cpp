@@ -83,7 +83,7 @@ spider::pisdf::Edge *spider::pisdf::Vertex::disconnectOutputEdge(std::uint32_t i
 
 /* === Private method(s) === */
 
-spider::pisdf::Edge *spider::pisdf::Vertex::disconnectEdge(spider::Array<Edge *> &edges, std::uint32_t ix) {
+spider::pisdf::Edge *spider::pisdf::Vertex::disconnectEdge(spider::array<Edge *> &edges, std::uint32_t ix) {
     auto *&edge = edges.at(ix);
     Edge *ret = edge;
     if (edge) {
@@ -92,7 +92,7 @@ spider::pisdf::Edge *spider::pisdf::Vertex::disconnectEdge(spider::Array<Edge *>
     return ret;
 }
 
-void spider::pisdf::Vertex::connectEdge(spider::Array<Edge *> &edges, Edge *edge, std::uint32_t ix) {
+void spider::pisdf::Vertex::connectEdge(spider::array<Edge *> &edges, Edge *edge, std::uint32_t ix) {
     auto *&current = edges.at(ix);
     if (!current) {
         current = edge;
