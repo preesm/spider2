@@ -97,6 +97,14 @@ namespace spider {
          * @return native_handle_type
          */
         std::thread::native_handle_type native_handle();
+
+        /**
+         * @brief Interface wrapper to std::this_thread::get_id function to have uniform API in spider::thread.
+         * @return std::thread::id value of this_thread.
+         */
+        inline std::thread::id get_id() {
+            return std::this_thread::get_id();
+        }
     }
 
 }
