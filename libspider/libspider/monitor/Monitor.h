@@ -37,47 +37,59 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_RUNTIME_H
-#define SPIDER2_RUNTIME_H
+#ifndef SPIDER2_MONITOR_H
+#define SPIDER2_MONITOR_H
 
-/* === Includes === */
+/* === Include(s) === */
 
-#include <common/Exception.h>
-#include <graphs/pisdf/common/Types.h>
+#include <string>
+#include <map>
 
 namespace spider {
 
-    /* === Forward declaration(s) === */
-
-    class Monitor;
-
     /* === Class definition === */
 
-    class Runtime {
+    class Monitor {
     public:
+        Monitor() = default;
 
-        explicit Runtime(PiSDFGraph *graph) : graph_{ graph } {
-            if (!graph_) {
-                throwSpiderException("nullptr graph.");
+        virtual ~Monitor() = default;
+
+        /* === Method(s) === */
+
+        inline bool registerEvent(const std::string &name, std::uint32_t ix) {
+            if (events_[ix].empty()) {
+                events_[ix] = name;
+                return true;
             }
-        };
+            return false;
+        }
 
-        virtual ~Runtime() = default;
+        virtual void startSampling() = 0;
 
-        /**
-         * @brief Setup method of the runtime (maybe empty)
-         */
-        virtual void setup() const = 0;
+        virtual void endSampling() = 0;
 
-        /**
-         * @brief Main method of the runtime, do a graph iteration.
-         * @return true if iteration was successful, false else.
-         */
-        virtual bool execute() const = 0;
+        /* === Getter(s) === */
 
-    protected:
-        PiSDFGraph *graph_ = nullptr;
-        Monitor *monitor_ = nullptr;
+        inline const std::string &eventName(std::uint32_t ix) const;
+
+        inline const std::map<std::uint32_t, std::string> &events() const;
+
+        /* === Setter(s) === */
+
+    private:
+        std::map<std::uint32_t, std::string> events_;
     };
+
+    /* === Inline method(s) === */
+
+    const std::string &Monitor::eventName(std::uint32_t ix) const {
+        return events_.at(ix);
+    }
+
+    const std::map<std::uint32_t, std::string> &Monitor::events() const {
+        return events_;
+    }
 }
-#endif //SPIDER2_RUNTIME_H
+
+#endif //SPIDER2_MONITOR_H

@@ -37,47 +37,37 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_RUNTIME_H
-#define SPIDER2_RUNTIME_H
+#ifndef SPIDER2_TIMEMONITOR_H
+#define SPIDER2_TIMEMONITOR_H
 
-/* === Includes === */
+/* === Include(s) === */
 
-#include <common/Exception.h>
-#include <graphs/pisdf/common/Types.h>
+#include <monitor/Monitor.h>
 
 namespace spider {
 
-    /* === Forward declaration(s) === */
-
-    class Monitor;
-
     /* === Class definition === */
 
-    class Runtime {
+    class TimeMonitor final : public Monitor {
     public:
+        TimeMonitor() = default;
 
-        explicit Runtime(PiSDFGraph *graph) : graph_{ graph } {
-            if (!graph_) {
-                throwSpiderException("nullptr graph.");
-            }
-        };
+        ~TimeMonitor() override = default;
 
-        virtual ~Runtime() = default;
+        /* === Method(s) === */
 
-        /**
-         * @brief Setup method of the runtime (maybe empty)
-         */
-        virtual void setup() const = 0;
+        void startSampling() override;
 
-        /**
-         * @brief Main method of the runtime, do a graph iteration.
-         * @return true if iteration was successful, false else.
-         */
-        virtual bool execute() const = 0;
+        void endSampling() override;
 
-    protected:
-        PiSDFGraph *graph_ = nullptr;
-        Monitor *monitor_ = nullptr;
+        /* === Getter(s) === */
+
+        /* === Setter(s) === */
+
+    private:
+
     };
+
+    /* === Inline method(s) === */
 }
-#endif //SPIDER2_RUNTIME_H
+#endif //SPIDER2_TIMEMONITOR_H
