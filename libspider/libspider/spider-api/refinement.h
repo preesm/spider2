@@ -45,7 +45,7 @@
 #include <string>
 #include <spider-api/config.h>
 #include <array>
-#include <containers/StlContainers.h>
+#include <containers/containers.h>
 
 namespace spider {
     namespace pisdf {

@@ -44,7 +44,7 @@
 
 #include <common/Exporter.h>
 #include <graphs/pisdf/common/Types.h>
-#include <containers/StlContainers.h>
+#include <containers/containers.h>
 #include <graphs/pisdf/Graph.h>
 
 namespace spider {

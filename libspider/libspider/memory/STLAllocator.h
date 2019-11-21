@@ -72,7 +72,7 @@ namespace spider {
         /* == Rebind SpiderAllocator to type U == */
         template<class U>
         struct rebind {
-            typedef STLAllocator<U> other;
+            typedef STLAllocator<U, stack> other;
         };
 
         /* == Return address of value == */

@@ -42,7 +42,7 @@
 
 /* === Include(s) === */
 
-#include <containers/StlContainers.h>
+#include <containers/containers.h>
 #include <spider-api/refinement.h>
 
 namespace spider {

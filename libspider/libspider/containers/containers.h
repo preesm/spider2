@@ -37,8 +37,8 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_STLCONTAINERS_H
-#define SPIDER2_STLCONTAINERS_H
+#ifndef SPIDER2_CONTAINERS_H
+#define SPIDER2_CONTAINERS_H
 
 /* === Includes === */
 
@@ -91,4 +91,4 @@ namespace spider {
     using string = std::basic_string<char, std::char_traits<char>, spider::STLAllocator<char>>;
 }
 
-#endif //SPIDER2_STLCONTAINERS_H
+#endif //SPIDER2_CONTAINERS_H

@@ -43,7 +43,7 @@
 /* === Include(s) === */
 
 #include <graphs/pisdf/specials/Specials.h>
-#include <containers/StlContainers.h>
+#include <containers/containers.h>
 #include <graphs-tools/transformation/srdag/TransfoJob.h>
 #include <graphs-tools/transformation/srdag/TransfoData.h>
 

@@ -42,7 +42,7 @@
 
 /* === Includes === */
 
-#include <containers/StlContainers.h>
+#include <containers/containers.h>
 #include <graphs-tools/transformation/srdag/Helper.h>
 
 namespace spider {

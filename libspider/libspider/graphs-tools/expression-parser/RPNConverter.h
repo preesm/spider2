@@ -44,7 +44,7 @@
 
 #include <algorithm>
 #include <cstdint>
-#include <containers/StlContainers.h>
+#include <containers/containers.h>
 
 /* === Enum declaration(s) === */
 

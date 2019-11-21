@@ -44,7 +44,7 @@
 
 #include <cstdint>
 #include <containers/Array.h>
-#include <containers/StlContainers.h>
+#include <containers/containers.h>
 #include <spider-api/archi.h>
 
 namespace spider {

@@ -43,7 +43,7 @@
 /* === Include(s) === */
 
 #include <scheduling/scheduler/Scheduler.h>
-#include <containers/StlContainers.h>
+#include <containers/containers.h>
 
 namespace spider {
 

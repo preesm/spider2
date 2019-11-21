@@ -44,7 +44,7 @@
 
 #include <cstdint>
 #include <graphs-tools/expression-parser/Expression.h>
-#include <containers/StlContainers.h>
+#include <containers/containers.h>
 
 namespace spider {
 
