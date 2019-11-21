@@ -40,7 +40,7 @@
 
 /* === Include(s) === */
 
-#include <common/Thread.h>
+#include <thread/Thread.h>
 
 #ifdef _WIN32
 

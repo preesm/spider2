@@ -194,6 +194,7 @@ file(
         ${SPIDER_LIB_DIR}/scheduling/schedule/*.cpp
         ${SPIDER_LIB_DIR}/scheduling/scheduler/*.cpp
         ${SPIDER_LIB_DIR}/spider-api/*.cpp
+        ${SPIDER_LIB_DIR}/thread/*.cpp
         ${SPIDER_LIB_DIR}/spider.cpp
 )
 
@@ -226,6 +227,7 @@ file(
         ${SPIDER_LIB_DIR}/scheduling/schedule/*.h
         ${SPIDER_LIB_DIR}/scheduling/scheduler/*.h
         ${SPIDER_LIB_DIR}/spider-api/*.h
+        ${SPIDER_LIB_DIR}/thread/*.h
         ${SPIDER_LIB_DIR}/spider.h
 )
 
