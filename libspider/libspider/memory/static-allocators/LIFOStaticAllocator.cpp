@@ -44,23 +44,23 @@
 
 /* === Methods implementation === */
 
-LIFOStaticAllocator::LIFOStaticAllocator(std::string name, std::uint64_t totalSize) :
+LIFOStaticAllocator::LIFOStaticAllocator(std::string name, std::size_t totalSize) :
         StaticAllocator(std::move(name), totalSize, sizeof(std::uint64_t)) {
 
 }
 
-LIFOStaticAllocator::LIFOStaticAllocator(std::string name, std::uint64_t totalSize, void *externalBase) :
+LIFOStaticAllocator::LIFOStaticAllocator(std::string name, std::size_t totalSize, void *externalBase) :
         StaticAllocator(std::move(name), totalSize, externalBase, sizeof(std::uint64_t)) {
 
 }
 
-void *LIFOStaticAllocator::allocate(std::uint64_t size) {
+void *LIFOStaticAllocator::allocate(std::size_t size) {
     if (!size) {
         return nullptr;
     }
     used_ += size;
     /*! We assume alignment on 64 bits */
-    std::uint64_t alignedSize = AbstractAllocator::computeAlignedSize(used_, alignment_);
+    const auto &alignedSize = AbstractAllocator::computeAlignedSize(used_, alignment_);
     if (alignedSize > totalSize_) {
         throwSpiderException("Memory request exceed memory available. Stack: %s -- Size: %"
                                      PRIu64

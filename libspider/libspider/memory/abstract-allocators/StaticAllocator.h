@@ -48,18 +48,18 @@
 
 class StaticAllocator : public AbstractAllocator {
 public:
-    void *allocate(std::uint64_t size) override = 0;
+    void *allocate(std::size_t size) override = 0;
 
     void deallocate(void *ptr) override = 0;
 
     virtual void reset() = 0;
 
 protected:
-    std::uint64_t totalSize_;
+    std::size_t totalSize_;
     bool externalBase_;
     void *startPtr_;
 
-    StaticAllocator(std::string name, std::uint64_t totalSize, std::uint64_t alignment = 0) :
+    StaticAllocator(std::string name, std::size_t totalSize, std::size_t alignment = 0) :
             AbstractAllocator(std::move(name), alignment),
             totalSize_{ totalSize },
             startPtr_{ nullptr } {
@@ -70,7 +70,7 @@ protected:
         externalBase_ = false;
     }
 
-    StaticAllocator(std::string name, std::uint64_t totalSize, void *externalBase, std::uint64_t alignment = 0) :
+    StaticAllocator(std::string name, std::size_t totalSize, void *externalBase, std::size_t alignment = 0) :
             AbstractAllocator(std::move(name), alignment),
             totalSize_{ totalSize },
             startPtr_{ nullptr } {

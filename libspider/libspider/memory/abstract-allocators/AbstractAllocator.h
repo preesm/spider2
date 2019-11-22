@@ -60,12 +60,12 @@ enum class FreeListPolicy {
 
 class AbstractAllocator {
 public:
-    explicit AbstractAllocator(std::string name, std::uint64_t alignment = 0) : used_{ 0 },
-                                                                                peak_{ 0 },
-                                                                                averageUse_{ 0 },
-                                                                                numberAverage_{ 0 },
-                                                                                alignment_{ alignment },
-                                                                                name_{ std::move(name) } { }
+    explicit AbstractAllocator(std::string name, std::size_t alignment = 0) : used_{ 0 },
+                                                                              peak_{ 0 },
+                                                                              averageUse_{ 0 },
+                                                                              numberAverage_{ 0 },
+                                                                              alignment_{ alignment },
+                                                                              name_{ std::move(name) } { }
 
     virtual ~AbstractAllocator() {
         if (used_ > 0 && log_enabled()) {
@@ -82,7 +82,7 @@ public:
      * @param size Size of the buffer to allocate
      * @return pointer to allocated memory, nullptr on failure or if size is 0
      */
-    virtual void *allocate(std::uint64_t size) = 0;
+    virtual void *allocate(std::size_t size) = 0;
 
     /**
      * @brief Free a memory buffer.
@@ -97,7 +97,7 @@ public:
      *        All new allocation made after this call result in allocation aligned to new value.
      * @param alignment  New allocation value.
      */
-    inline void setAllocationAlignment(std::uint64_t alignment);
+    inline void setAllocationAlignment(std::size_t alignment);
 
     /* Getters */
 
@@ -105,7 +105,7 @@ public:
      * @brief Fetch current memory allocation alignment
      * @return current allocation alignment
      */
-    inline std::uint64_t getAllocationAlignment() const;
+    inline std::size_t getAllocationAlignment() const;
 
     /**
      * @brief Return name of the allocator.
@@ -127,12 +127,12 @@ protected:
     std::uint64_t numberAverage_ = 0;
     std::uint64_t alignment_ = 0;
 
-    static inline std::uint64_t computeAlignedSize(std::uint64_t size, std::uint64_t alignment = 4096);
+    static inline std::size_t computeAlignedSize(std::size_t size, std::size_t alignment = 4096);
 
-    static inline std::uint64_t computePadding(std::uint64_t base, std::uint64_t alignment);
+    static inline std::size_t computePadding(std::size_t base, std::size_t alignment);
 
-    static inline std::uint64_t
-    computePaddingWithHeader(std::uint64_t base, std::uint64_t alignment, std::uint64_t headerSize);
+    static inline std::size_t
+    computePaddingWithHeader(std::size_t base, std::size_t alignment, std::size_t headerSize);
 
     static inline const char *getByteUnitString(std::uint64_t size);
 
@@ -176,17 +176,17 @@ void AbstractAllocator::printStats() const {
     }
 }
 
-std::uint64_t AbstractAllocator::computeAlignedSize(std::uint64_t size, std::uint64_t alignment /* = 4096 */) {
+std::size_t AbstractAllocator::computeAlignedSize(std::size_t size, std::size_t alignment /* = 4096 */) {
     const auto &alignFactor = spider::math::ceilDiv(size, alignment);
     return alignFactor * alignment;
 }
 
-std::uint64_t AbstractAllocator::computePadding(std::uint64_t base, std::uint64_t alignment) {
+std::size_t AbstractAllocator::computePadding(std::size_t base, std::size_t alignment) {
     return computeAlignedSize(base, alignment) - base;
 }
 
-std::uint64_t
-AbstractAllocator::computePaddingWithHeader(std::uint64_t base, std::uint64_t alignment, std::uint64_t headerSize) {
+std::size_t
+AbstractAllocator::computePaddingWithHeader(std::size_t base, std::size_t alignment, std::size_t headerSize) {
     auto &&padding = computePadding(base, alignment);
     if (padding < headerSize) {
         const auto &neededSpace = headerSize - padding;

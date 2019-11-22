@@ -44,16 +44,16 @@
 
 /* === Constant(s) === */
 
-constexpr auto MIN_CHUNK_SIZE = 8192;
+constexpr std::size_t MIN_CHUNK_SIZE = 8192;
 
 /* === Methods implementation === */
 
 FreeListAllocator::FreeListAllocator(std::string name,
-                                     std::uint64_t staticBufferSize,
+                                     std::size_t staticBufferSize,
                                      FreeListPolicy policy,
-                                     std::uint64_t alignment) :
+                                     std::size_t alignment) :
         DynamicAllocator(std::move(name), alignment),
-        staticBufferSize_{ std::max(staticBufferSize, static_cast<std::uint64_t >(MIN_CHUNK_SIZE)) } {
+        staticBufferSize_{ std::max(staticBufferSize, MIN_CHUNK_SIZE) } {
     if (alignment < 8) {
         throwSpiderException("Memory alignment should be at least of size sizeof(std::uint64_t) = 8 bytes.");
     }
@@ -77,17 +77,17 @@ FreeListAllocator::~FreeListAllocator() {
     }
 }
 
-void *FreeListAllocator::allocate(std::uint64_t size) {
+void *FreeListAllocator::allocate(std::size_t size) {
     if (!size) {
         return nullptr;
     }
     if (size < sizeof(Node)) {
         size = size + sizeof(Node);
     }
-    std::uint64_t padding = 0;
+    std::size_t padding = 0;
 
     /* == Find first / best node fitting memory requirement == */
-    const auto &result = findNode_(size, padding, alignment_, list_);
+    const auto &result = findNode_(size, &padding, alignment_, list_);
     auto *memoryNode = result.first;
     auto *baseNode = result.second;
     if (!memoryNode) {
@@ -122,8 +122,8 @@ void *FreeListAllocator::allocate(std::uint64_t size) {
 
 void FreeListAllocator::updateFreeNodeList(FreeListAllocator::Node *baseNode,
                                            FreeListAllocator::Node *memoryNode,
-                                           std::uint64_t requiredSize) {
-    uint64_t leftOverMemory = memoryNode->blockSize_ - requiredSize;
+                                           std::size_t requiredSize) {
+    const auto &leftOverMemory = memoryNode->blockSize_ - requiredSize;
     if (leftOverMemory) {
         /* == We split block to limit waste memory space == */
         auto *freeNode = reinterpret_cast<Node *>(reinterpret_cast<std::uintptr_t>(memoryNode) + requiredSize);
@@ -219,7 +219,7 @@ void FreeListAllocator::remove(Node *baseNode, Node *removedNode) {
     }
 }
 
-FreeListAllocator::Node *FreeListAllocator::createExtraBuffer(std::uint64_t size, FreeListAllocator::Node *base) {
+FreeListAllocator::Node *FreeListAllocator::createExtraBuffer(std::size_t size, FreeListAllocator::Node *base) {
     /* == Allocate new buffer with size aligned to MIN_CHUNK == */
     const auto &sizeWithHeader = size + sizeof(FreeListAllocator::Header);
     FreeListAllocator::Buffer buffer;
@@ -242,9 +242,9 @@ FreeListAllocator::Node *FreeListAllocator::createExtraBuffer(std::uint64_t size
 }
 
 std::pair<FreeListAllocator::Node *, FreeListAllocator::Node *>
-FreeListAllocator::findFirst(std::uint64_t size, std::uint64_t &padding, std::uint64_t alignment, Node *base) {
-    padding = AbstractAllocator::computePaddingWithHeader(size, alignment, sizeof(FreeListAllocator::Header));
-    const auto &requiredSize = size + padding;
+FreeListAllocator::findFirst(std::size_t size, std::size_t *padding, std::size_t alignment, Node *base) {
+    (*padding) = AbstractAllocator::computePaddingWithHeader(size, alignment, sizeof(FreeListAllocator::Header));
+    const auto &requiredSize = size + (*padding);
     Node *previousNode = nullptr;
     auto *freeNode = base;
     while (freeNode) {
@@ -258,10 +258,10 @@ FreeListAllocator::findFirst(std::uint64_t size, std::uint64_t &padding, std::ui
 }
 
 std::pair<FreeListAllocator::Node *, FreeListAllocator::Node *>
-FreeListAllocator::findBest(std::uint64_t size, std::uint64_t &padding, std::uint64_t alignment, Node *base) {
-    padding = AbstractAllocator::computePaddingWithHeader(size, alignment, sizeof(FreeListAllocator::Header));
-    auto &&minFit = UINT64_MAX;
-    const auto &requiredSize = size + padding;
+FreeListAllocator::findBest(std::size_t size, std::size_t *padding, std::size_t alignment, Node *base) {
+    (*padding) = AbstractAllocator::computePaddingWithHeader(size, alignment, sizeof(FreeListAllocator::Header));
+    auto &&minFit = SIZE_MAX;
+    const auto &requiredSize = size + (*padding);
     auto *it = base;
     Node *previousNode = nullptr;
     Node *bestNode = nullptr;

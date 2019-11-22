@@ -50,34 +50,34 @@ class FreeListStaticAllocator final : public StaticAllocator {
 public:
 
     explicit FreeListStaticAllocator(std::string name,
-                                     std::uint64_t totalSize,
+                                     std::size_t totalSize,
                                      FreeListPolicy policy = FreeListPolicy::FIND_FIRST,
-                                     std::uint64_t alignment = sizeof(std::int64_t));
+                                     std::size_t alignment = sizeof(std::int64_t));
 
 
     explicit FreeListStaticAllocator(std::string name,
-                                     std::uint64_t totalSize,
+                                     std::size_t totalSize,
                                      void *externalBase,
                                      FreeListPolicy policy = FreeListPolicy::FIND_FIRST,
-                                     std::uint64_t alignment = sizeof(std::int64_t));
+                                     std::size_t alignment = sizeof(std::int64_t));
 
     ~FreeListStaticAllocator() override = default;
 
-    void *allocate(std::uint64_t size) override;
+    void *allocate(std::size_t size) override;
 
     void deallocate(void *ptr) override;
 
     void reset() override;
 
     typedef struct Node {
-        std::uint64_t blockSize_;
+        std::size_t blockSize_;
         Node *next_;
     } Node;
 
 private:
     typedef struct Header {
-        std::uint64_t size_;
-        std::uint64_t padding_;
+        std::size_t size_;
+        std::size_t padding_;
     } Header;
 
     Node *list_ = nullptr;
@@ -86,15 +86,15 @@ private:
 
     void remove(Node *baseNode, Node *removedNode);
 
-    using policyMethod = void (*)(std::uint64_t &, std::uint64_t &, std::uint64_t &, Node *&, Node *&);
+    using policyMethod = void (*)(std::size_t &, std::size_t &, std::size_t &, Node *&, Node *&);
 
     policyMethod method_;
 
     static void
-    findFirst(std::uint64_t &size, std::uint64_t &padding, std::uint64_t &alignment, Node *&baseNode, Node *&foundNode);
+    findFirst(std::size_t &size, std::size_t &padding, std::size_t &alignment, Node *&baseNode, Node *&foundNode);
 
     static void
-    findBest(std::uint64_t &size, std::uint64_t &padding, std::uint64_t &alignment, Node *&baseNode, Node *&foundNode);
+    findBest(std::size_t &size, std::size_t &padding, std::size_t &alignment, Node *&baseNode, Node *&foundNode);
 };
 
 #endif //SPIDER2_FREELISTSTATICALLOCATOR_H

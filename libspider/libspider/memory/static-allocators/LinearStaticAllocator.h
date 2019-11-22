@@ -50,19 +50,19 @@ class LinearStaticAllocator final : public StaticAllocator {
 public:
 
     explicit LinearStaticAllocator(std::string name,
-                                   std::uint64_t totalSize,
-                                   std::uint64_t alignment = sizeof(std::int64_t));
+                                   std::size_t totalSize,
+                                   std::size_t alignment = sizeof(std::int64_t));
 
     explicit LinearStaticAllocator(std::string name,
-                                   std::uint64_t totalSize,
+                                   std::size_t totalSize,
                                    void *externalBase,
-                                   std::uint64_t alignment = sizeof(std::int64_t));
+                                   std::size_t alignment = sizeof(std::int64_t));
 
     ~LinearStaticAllocator() override {
         reset();
     };
 
-    void *allocate(std::uint64_t size) override;
+    void *allocate(std::size_t size) override;
 
     void deallocate(void *ptr) override;
 

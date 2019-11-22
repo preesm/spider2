@@ -44,7 +44,7 @@
 
 /* === Methods implementation === */
 
-LinearStaticAllocator::LinearStaticAllocator(std::string name, std::uint64_t totalSize, std::uint64_t alignment) :
+LinearStaticAllocator::LinearStaticAllocator(std::string name, std::size_t totalSize, std::size_t alignment) :
         StaticAllocator(std::move(name), totalSize, alignment) {
     if (alignment < 8) {
         throwSpiderException("Memory alignment should be at least of size sizeof(std::int64_t) = 8 bytes.");
@@ -52,27 +52,27 @@ LinearStaticAllocator::LinearStaticAllocator(std::string name, std::uint64_t tot
 }
 
 LinearStaticAllocator::LinearStaticAllocator(std::string name,
-                                             std::uint64_t totalSize,
+                                             std::size_t totalSize,
                                              void *externalBase,
-                                             uint64_t alignment) : StaticAllocator(std::move(name), totalSize,
-                                                                                  externalBase,
-                                                                                  alignment) {
+                                             size_t alignment) : StaticAllocator(std::move(name), totalSize,
+                                                                                 externalBase,
+                                                                                 alignment) {
     if (alignment < 8) {
         throwSpiderException("Memory alignment should be at least of size sizeof(std::int64_t) = 8 bytes.");
     }
 }
 
-void *LinearStaticAllocator::allocate(std::uint64_t size) {
+void *LinearStaticAllocator::allocate(std::size_t size) {
     if (!size) {
         return nullptr;
     }
-    std::uint64_t padding = 0;
+    std::size_t padding = 0;
     if (alignment_ && used_ % alignment_ != 0) {
         /*!< Compute next aligned address padding */
         padding = AbstractAllocator::computePadding(used_, alignment_);
     }
 
-    std::uint64_t requestedSize = used_ + padding + size;
+    const auto &requestedSize = used_ + padding + size;
     if (requestedSize > totalSize_) {
         throwSpiderException("Memory request exceed memory available. Stack: %s -- Size: %"
                                      PRIu64

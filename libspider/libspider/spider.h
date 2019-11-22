@@ -60,69 +60,41 @@ namespace spider {
 
     namespace api {
 
-        /**
-         * @brief Initialize a given stack.
-         * @param stackId   Id of the stack to init (see @refitem StackID)
-         * @param name      Name to set to the stack.
-         * @param type      Type of memory allocator used for the stack (see @refitem AllocatorType)
-         * @param size      Size of the memory stack (size of the base static memory for non-static allocators)
-         * @param baseAddr  Base address provided by user instead of the default one. (for static allocators only)
-         * @param alignment Alignment base used (default alignment is sizeof(std::uint64_t) = 64bits).
-         */
-        void initStack(StackID stackId, const std::string &name, AllocatorType type, std::uint64_t size,
-                       char *baseAddr = nullptr,
-                       std::uint64_t alignment = sizeof(std::uint64_t));
-
-        void createGenericStack(StackID stack, const std::string &name, std::uint64_t alignment = sizeof(std::uint64_t));
+        void createGenericStack(StackID stack, const std::string &name, std::size_t alignment = sizeof(std::uint64_t));
 
         void createFreeListStack(StackID stack,
                                  const std::string &name,
-                                 std::uint64_t staticBufferSize,
+                                 std::size_t staticBufferSize,
                                  FreeListPolicy policy = FreeListPolicy::FIND_FIRST,
-                                 std::uint64_t alignment = sizeof(std::uint64_t));
+                                 std::size_t alignment = sizeof(std::uint64_t));
 
         void createFreeListStaticStack(StackID stack,
                                        const std::string &name,
                                        std::uint64_t totalSize,
                                        FreeListPolicy policy = FreeListPolicy::FIND_FIRST,
-                                       std::uint64_t alignment = sizeof(std::uint64_t));
+                                       std::size_t alignment = sizeof(std::uint64_t));
 
         void createFreeListStaticStack(StackID stack,
                                        const std::string &name,
-                                       std::uint64_t totalSize,
+                                       std::size_t totalSize,
                                        void *base,
                                        FreeListPolicy policy = FreeListPolicy::FIND_FIRST,
-                                       std::uint64_t alignment = sizeof(std::uint64_t));
+                                       std::size_t alignment = sizeof(std::uint64_t));
 
         void createLinearStaticStack(StackID stack,
                                      const std::string &name,
-                                     std::uint64_t totalSize,
-                                     std::uint64_t alignment = sizeof(std::uint64_t));
+                                     std::size_t totalSize,
+                                     std::size_t alignment = sizeof(std::uint64_t));
 
         void createLinearStaticStack(StackID stack,
                                      const std::string &name,
-                                     std::uint64_t totalSize,
+                                     std::size_t totalSize,
                                      void *base,
-                                     std::uint64_t alignment = sizeof(std::uint64_t));
+                                     std::size_t alignment = sizeof(std::uint64_t));
 
-        void createLIFOStaticStack(StackID stack, const std::string &name, std::uint64_t totalSize);
+        void createLIFOStaticStack(StackID stack, const std::string &name, std::size_t totalSize);
 
-        void createLIFOStaticStack(StackID stack, const std::string &name, std::uint64_t totalSize, void *base);
-
-        /**
-         * @brief Initialize a given stack (specialized version for FreeList and FreeListStatic allocators).
-         * @param stackId   Id of the stack to init (see @refitem StackID)
-         * @param name      Name to set to the stack.
-         * @param type      Type of memory allocator used for the stack (see @refitem AllocatorType)
-         * @param size      Size of the memory stack (size of the base static memory for non-static allocators)
-         * @param policy    Policy of search of the memory block in the FreeList allocators (default is FIND_FIRST).
-         * @param baseAddr  Base address provided by user instead of the default one. (for static allocators only)
-         * @param alignment Alignment base used (default alignment is sizeof(std::uint64_t) = 64bits).
-         */
-        void
-        initStack(StackID stackId, const std::string &name, AllocatorType type, std::uint64_t size,
-                  FreeListPolicy policy,
-                  char *baseAddr = nullptr, std::uint64_t alignment = sizeof(std::uint64_t));
+        void createLIFOStaticStack(StackID stack, const std::string &name, std::size_t totalSize, void *base);
     }
 
 }

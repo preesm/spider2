@@ -45,10 +45,10 @@
 
 /* === Methods implementation === */
 
-GenericAllocator::GenericAllocator(std::string name, std::uint64_t alignment) : DynamicAllocator(std::move(name),
-                                                                                                 alignment) { }
+GenericAllocator::GenericAllocator(std::string name, std::size_t alignment) : DynamicAllocator(std::move(name),
+                                                                                               alignment) { }
 
-void *GenericAllocator::allocate(std::uint64_t size) {
+void *GenericAllocator::allocate(std::size_t size) {
     if (!size) {
         return nullptr;
     }

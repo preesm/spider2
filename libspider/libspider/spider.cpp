@@ -94,56 +94,56 @@ static std::vector<spider::pisdf::Refinement *> specialActorRefinements() {
 
 /* === Function(s) definition === */
 
-void spider::api::createGenericStack(StackID stack, const std::string &name, std::uint64_t alignment) {
+void spider::api::createGenericStack(StackID stack, const std::string &name, std::size_t alignment) {
     createAllocator(spider::type<AllocatorType::GENERIC>{ }, stack, name, alignment);
 }
 
 void spider::api::createFreeListStack(StackID stack,
                                       const std::string &name,
-                                      std::uint64_t staticBufferSize,
+                                      std::size_t staticBufferSize,
                                       FreeListPolicy policy,
-                                      std::uint64_t alignment) {
+                                      std::size_t alignment) {
     createAllocator(spider::type<AllocatorType::FREELIST>{ }, stack, name, staticBufferSize, policy, alignment);
 }
 
 void spider::api::createFreeListStaticStack(StackID stack,
                                             const std::string &name,
-                                            std::uint64_t totalSize,
+                                            std::size_t totalSize,
                                             FreeListPolicy policy,
-                                            std::uint64_t alignment) {
+                                            std::size_t alignment) {
     createAllocator(spider::type<AllocatorType::FREELIST_STATIC>{ }, stack, name, totalSize, policy, alignment);
 }
 
 void spider::api::createFreeListStaticStack(StackID stack,
                                             const std::string &name,
-                                            std::uint64_t totalSize,
+                                            std::size_t totalSize,
                                             void *base,
                                             FreeListPolicy policy,
-                                            std::uint64_t alignment) {
+                                            std::size_t alignment) {
     createAllocator(spider::type<AllocatorType::FREELIST_STATIC>{ }, stack, name, totalSize, base, policy, alignment);
 }
 
 void spider::api::createLinearStaticStack(StackID stack,
                                           const std::string &name,
-                                          std::uint64_t totalSize,
-                                          std::uint64_t alignment) {
+                                          std::size_t totalSize,
+                                          std::size_t alignment) {
     createAllocator(spider::type<AllocatorType::LINEAR_STATIC>{ }, stack, name, totalSize, alignment);
 }
 
 void spider::api::createLinearStaticStack(StackID stack,
                                           const std::string &name,
-                                          std::uint64_t totalSize,
+                                          std::size_t totalSize,
                                           void *base,
-                                          std::uint64_t alignment) {
+                                          std::size_t alignment) {
     createAllocator(spider::type<AllocatorType::LINEAR_STATIC>{ }, stack, name, totalSize, base, alignment);
 }
 
-void spider::api::createLIFOStaticStack(StackID stack, const std::string &name, std::uint64_t totalSize) {
+void spider::api::createLIFOStaticStack(StackID stack, const std::string &name, std::size_t totalSize) {
     createAllocator(spider::type<AllocatorType::LIFO_STATIC>{ }, stack, name, totalSize);
 
 }
 
-void spider::api::createLIFOStaticStack(StackID stack, const std::string &name, std::uint64_t totalSize, void *base) {
+void spider::api::createLIFOStaticStack(StackID stack, const std::string &name, std::size_t totalSize, void *base) {
     createAllocator(spider::type<AllocatorType::LIFO_STATIC>{ }, stack, name, totalSize, base);
 }
 
