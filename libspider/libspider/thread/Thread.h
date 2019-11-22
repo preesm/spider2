@@ -66,8 +66,6 @@ namespace spider {
 
         /* === Getter(s) === */
 
-        inline std::int32_t affinity() const;
-
         /* === Setter(s) === */
 
         /**
@@ -77,18 +75,13 @@ namespace spider {
          * @param affinity_id Mask to use.
          * @return true if it was successful, false else
          */
-        bool set_affinity(std::int32_t affinity_id);
+        static bool set_affinity(std::int32_t affinity_id);
 
     private:
-        std::int32_t affinity_ = -1;
     };
 
     /* === Inline method(s) === */
 
-
-    std::int32_t spider::thread::affinity() const {
-        return affinity_;
-    }
 
     namespace this_thread {
 

@@ -73,7 +73,6 @@
 bool spider::thread::set_affinity(std::int32_t affinity_id) {
     auto ret = SetThreadAffinityMask(spider::this_thread::native_handle(), MASK(static_cast<std::uint32_t>(affinity_id)));
     if (ret != 0) {
-        affinity_ = affinity_id;
         return true;
     }
     return false;
@@ -83,11 +82,10 @@ bool spider::thread::set_affinity(std::int32_t affinity_id) {
 
 bool spider::thread::set_affinity(std::int32_t affinity_id) {
     spider::log::warning("Thread affinity is not guaranteed on OSX platform..\n");
-    auto mac_thread = pthread_mach_thread_np(this->native_handle());
+    auto mac_thread = pthread_mach_thread_np(spider::this_thread::native_handle());
     thread_affinity_policy_data_t policyData = { affinity_id };
     auto ret = thread_policy_set(mach_thread1, THREAD_AFFINITY_POLICY, (thread_policy_t) &policyData, 1);
     if (ret == KERN_SUCCESS) {
-        affinity_ = affinity_id;
         return true;
     }
     return false;
@@ -99,10 +97,8 @@ bool spider::thread::set_affinity(std::int32_t affinity_id) {
     cpu_set_t cpu_set;
     CPU_ZERO(&cpu_set);
     CPU_SET(affinity_id, &cpu_set);
-    this->native_handle();
     auto ret = pthread_setaffinity_np(spider::this_thread::native_handle(), sizeof(cpu_set_t), &cpu_set);
     if (ret != 0) {
-        affinity_ = affinity_id;
         return true;
     }
     std::this_thread::get_id();
