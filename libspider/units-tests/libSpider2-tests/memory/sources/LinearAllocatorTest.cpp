@@ -36,7 +36,7 @@
 #include "LinearAllocatorTest.h"
 #include <common/Exception.h>
 
-LinearAllocatorTest::LinearAllocatorTest() : allocator(ALLOCATOR_NAME, MAX_SIZE, sizeof(std::uint64_t)) {
+LinearAllocatorTest::LinearAllocatorTest() : allocator(ALLOCATOR_NAME, MAX_SIZE, sizeof(uint64_t)) {
 }
 
 LinearAllocatorTest::~LinearAllocatorTest() {
@@ -56,7 +56,7 @@ TEST_F(LinearAllocatorTest, GetName) {
 }
 
 TEST_F(LinearAllocatorTest, ThrowSizeException) {
-    std::uint64_t size = MAX_SIZE + 1;
+    uint64_t size = MAX_SIZE + 1;
     EXPECT_THROW(allocator.allocate(size), spider::Exception);
 }
 
@@ -79,7 +79,7 @@ TEST_F(LinearAllocatorTest, MemoryAllocDefaultAlignment) {
     ASSERT_NE(charArray, nullptr);
     auto *dblArray = (double *) allocator.allocate(2 * sizeof(double));
     ASSERT_NE(dblArray, nullptr);
-    ASSERT_EQ(charArray + 2 * sizeof(std::uint64_t), (char*) dblArray);
+    ASSERT_EQ(charArray + 2 * sizeof(uint64_t), (char*) dblArray);
 }
 
 TEST_F(LinearAllocatorTest, FreeOutOfScope) {
@@ -92,7 +92,7 @@ TEST_F(LinearAllocatorTest, FreeOutOfScope) {
 }
 
 TEST(LinearStaticAllocatorTest, MemoryAllocUserAlignment) {
-    std::int32_t sizeAlign = 2* sizeof(std::uint64_t);
+    int32_t sizeAlign = 2* sizeof(uint64_t);
     auto allocator = LinearStaticAllocator("", MAX_SIZE, sizeAlign);
     auto *charArray = (char *) allocator.allocate(9 * sizeof(char));
     ASSERT_NE(charArray, nullptr);

@@ -50,8 +50,8 @@
 /* === Method(s) implementation === */
 
 spider::pisdf::Vertex::Vertex(std::string name,
-                              std::uint32_t edgeINCount,
-                              std::uint32_t edgeOUTCount,
+                              uint32_t edgeINCount,
+                              uint32_t edgeOUTCount,
                               StackID stack) : name_{ std::move(name) },
                                                inputEdgeArray_{ edgeINCount, nullptr, stack },
                                                outputEdgeArray_{ edgeOUTCount, nullptr, stack } {
@@ -65,25 +65,25 @@ spider::pisdf::Vertex::~Vertex() {
     this->reference_->copyCount_ -= 1;
 }
 
-void spider::pisdf::Vertex::connectInputEdge(Edge *edge, std::uint32_t ix) {
+void spider::pisdf::Vertex::connectInputEdge(Edge *edge, uint32_t ix) {
     connectEdge(inputEdgeArray_, edge, ix);
 }
 
-void spider::pisdf::Vertex::connectOutputEdge(Edge *edge, std::uint32_t ix) {
+void spider::pisdf::Vertex::connectOutputEdge(Edge *edge, uint32_t ix) {
     connectEdge(outputEdgeArray_, edge, ix);
 }
 
-spider::pisdf::Edge *spider::pisdf::Vertex::disconnectInputEdge(std::uint32_t ix) {
+spider::pisdf::Edge *spider::pisdf::Vertex::disconnectInputEdge(uint32_t ix) {
     return disconnectEdge(inputEdgeArray_, ix);
 }
 
-spider::pisdf::Edge *spider::pisdf::Vertex::disconnectOutputEdge(std::uint32_t ix) {
+spider::pisdf::Edge *spider::pisdf::Vertex::disconnectOutputEdge(uint32_t ix) {
     return disconnectEdge(outputEdgeArray_, ix);
 }
 
 /* === Private method(s) === */
 
-spider::pisdf::Edge *spider::pisdf::Vertex::disconnectEdge(spider::array<Edge *> &edges, std::uint32_t ix) {
+spider::pisdf::Edge *spider::pisdf::Vertex::disconnectEdge(spider::array<Edge *> &edges, uint32_t ix) {
     auto *&edge = edges.at(ix);
     Edge *ret = edge;
     if (edge) {
@@ -92,7 +92,7 @@ spider::pisdf::Edge *spider::pisdf::Vertex::disconnectEdge(spider::array<Edge *>
     return ret;
 }
 
-void spider::pisdf::Vertex::connectEdge(spider::array<Edge *> &edges, Edge *edge, std::uint32_t ix) {
+void spider::pisdf::Vertex::connectEdge(spider::array<Edge *> &edges, Edge *edge, uint32_t ix) {
     auto *&current = edges.at(ix);
     if (!current) {
         current = edge;

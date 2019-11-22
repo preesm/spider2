@@ -63,7 +63,7 @@ namespace spider {
 
             /* === Getter(s) === */
 
-            inline std::int64_t value() const override;
+            inline int64_t value() const override;
 
             inline ParamType type() const override;
 
@@ -85,7 +85,7 @@ namespace spider {
             visitor->visit(this);
         }
 
-        std::int64_t InHeritedParam::value() const {
+        int64_t InHeritedParam::value() const {
             return parent_->value();
         }
 

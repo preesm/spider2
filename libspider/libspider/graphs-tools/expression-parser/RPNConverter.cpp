@@ -73,7 +73,7 @@ static bool isOperator(const std::string &s) {
  * @return true if type is a function, false else.
  */
 static bool isFunction(RPNOperatorType type) {
-    return static_cast<std::uint32_t >(type) >= spider::rpn::FUNCTION_OFFSET;
+    return static_cast<uint32_t >(type) >= spider::rpn::FUNCTION_OFFSET;
 }
 
 /**
@@ -82,8 +82,8 @@ static bool isFunction(RPNOperatorType type) {
  */
 template<class It1, class It2>
 static bool missMatchParenthesis(It1 first, It2 last) {
-    std::uint32_t nLeftPar = 0;
-    std::uint32_t nRightPar = 0;
+    uint32_t nLeftPar = 0;
+    uint32_t nRightPar = 0;
     for (; first != last; ++first) {
         nLeftPar += ((*first) == '(');
         nRightPar += ((*first) == ')');
@@ -97,7 +97,7 @@ static bool missMatchParenthesis(It1 first, It2 last) {
  */
 static void checkInfixExpression(const std::string &infixExprString) {
     static const auto &restrictedOperators = std::string{ "*/+-%^" };
-    std::uint32_t i = 0;
+    uint32_t i = 0;
     for (const auto &c: infixExprString) {
         i += 1;
         if (restrictedOperators.find(c) != std::string::npos) {
@@ -147,7 +147,7 @@ static void cleanInfixExpression(std::string &infixExprString) {
     std::string tmp{ std::move(infixExprString) };
     infixExprString = std::string();
     infixExprString.reserve(tmp.size() * 2); /*= Worst case is actually (tmp.size() - 1) = */
-    std::uint32_t i = 0;
+    uint32_t i = 0;
     bool ignore = false;
     for (const auto &c:tmp) {
         infixExprString += c;
@@ -250,13 +250,13 @@ std::string spider::rpn::infixString(const spider::vector<RPNElement> &postfixSt
             if (element.subtype == RPNElementSubType::FUNCTION) {
                 builtInfix += (element.token + '(');
                 spider::stack<std::string> reverseStack;
-                for (std::uint32_t i = 0; i < op.argCount; ++i) {
+                for (uint32_t i = 0; i < op.argCount; ++i) {
                     reverseStack.push(std::move(stack.top()));
                     stack.pop();
                 }
                 builtInfix += (reverseStack.top());
                 reverseStack.pop();
-                for (std::uint32_t i = 1; i < op.argCount; ++i) {
+                for (uint32_t i = 1; i < op.argCount; ++i) {
                     builtInfix += (',' + reverseStack.top());
                     reverseStack.pop();
                 }
@@ -427,7 +427,7 @@ void spider::rpn::reorderPostfixStack(spider::vector<RPNElement> &postfixStack) 
     } while (swapped);
 }
 
-const RPNOperator &spider::rpn::getOperator(std::uint32_t ix) {
+const RPNOperator &spider::rpn::getOperator(uint32_t ix) {
     static std::array<RPNOperator, rpn::OPERATOR_COUNT>
             operatorArray{{
                                   { RPNOperatorType::ADD, 2, false, "+", 2 },          /*! ADD operator */
@@ -474,13 +474,13 @@ const RPNOperator &spider::rpn::getOperator(std::uint32_t ix) {
 }
 
 const RPNOperator &spider::rpn::getOperatorFromOperatorType(RPNOperatorType type) {
-    return getOperator(static_cast<std::uint32_t >(type));
+    return getOperator(static_cast<uint32_t >(type));
 }
 
 RPNOperatorType spider::rpn::getOperatorTypeFromString(const std::string &operatorString) {
     // TODO: implement it with a std::map<std::string, OperatorType> and try - catch block. see: Zero-Cost Exception model.
     bool found = false;
-    std::uint32_t i = 0;
+    uint32_t i = 0;
     for (; !found && i < rpn::OPERATOR_COUNT; ++i) {
         found |= (getOperator(i).label == operatorString);
     }

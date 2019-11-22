@@ -48,7 +48,7 @@
 
 class DynamicAllocator : public AbstractAllocator {
 public:
-    void *allocate(std::size_t size) override = 0;
+    void *allocate(size_t size) override = 0;
 
     void deallocate(void *ptr) override = 0;
 
@@ -61,8 +61,8 @@ public:
 
 protected:
 
-    explicit DynamicAllocator(std::string name, std::size_t alignment = 0) : AbstractAllocator(std::move(name),
-                                                                                               alignment) { }
+    explicit DynamicAllocator(std::string name, size_t alignment = 0) : AbstractAllocator(std::move(name),
+                                                                                          alignment) { }
 
     ~DynamicAllocator() override = default;
 };

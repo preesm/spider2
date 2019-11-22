@@ -54,8 +54,8 @@ namespace spider {
         class VertexInterface : public ExecVertex {
         public:
             VertexInterface(std::string name,
-                            std::uint32_t edgeINCount,
-                            std::uint32_t edgeOUTCount,
+                            uint32_t edgeINCount,
+                            uint32_t edgeOUTCount,
                             StackID stack) : ExecVertex(std::move(name),
                                                         edgeINCount,
                                                         edgeOUTCount,

@@ -81,7 +81,7 @@ private:
      * @param vertexIxArray  Indexes in the topology matrix of the vertices of the graph.
      * @return true if edge is valid, false else.
      */
-    static bool isEdgeValid(const PiSDFEdge *edge, spider::array<std::int32_t> &vertexIxArray);
+    static bool isEdgeValid(const PiSDFEdge *edge, spider::array<int32_t> &vertexIxArray);
 
     /**
      * @brief Compute the nullspace of the topology matrix using the pivot method.
@@ -94,10 +94,10 @@ private:
      *
      * @throw @refitem SpiderException if nullspace can not be computed.
      */
-    static void computeBRVFromNullSpace(spider::array<std::int64_t> &topologyMatrix,
-                                        std::uint32_t nMatVertices,
-                                        std::uint32_t nMatEdges,
-                                        spider::array<std::int32_t> &vertexIxArray,
+    static void computeBRVFromNullSpace(spider::array<int64_t> &topologyMatrix,
+                                        uint32_t nMatVertices,
+                                        uint32_t nMatEdges,
+                                        spider::array<int32_t> &vertexIxArray,
                                         const BRVComponent &component);
 };
 

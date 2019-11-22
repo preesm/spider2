@@ -60,9 +60,9 @@ namespace spider {
     class PE {
     public:
 
-        PE(std::uint32_t hwType,
-           std::uint32_t hwIx,
-           std::uint32_t virtIx,
+        PE(uint32_t hwType,
+           uint32_t hwIx,
+           uint32_t virtIx,
            Cluster *cluster,
            std::string name = "unnamed-PE",
            spider::PEType spiderPEType = spider::PEType::LRT_PE,
@@ -78,19 +78,19 @@ namespace spider {
          * @brief Hardware type of the PE.
          * @return hardware type.
          */
-        inline std::uint32_t hardwareType() const;
+        inline uint32_t hardwareType() const;
 
         /**
          * @brief Hardware ix on which the PE runs.
          * @return hardward ix.
          */
-        inline std::uint32_t hardwareIx() const;
+        inline uint32_t hardwareIx() const;
 
         /**
          * @brief Ix set by the user in the architecture description of the platform.
          * @return virtual ix.
          */
-        inline std::uint32_t virtualIx() const;
+        inline uint32_t virtualIx() const;
 
         /**
          * @brief Get the name of the processing element.
@@ -120,13 +120,13 @@ namespace spider {
          * @brief Get the ix of the PE inside its cluster.
          * @return ix of the PE inside the cluster.
          */
-        inline std::uint32_t clusterPEIx() const;
+        inline uint32_t clusterPEIx() const;
 
         /**
          * @brief Get the unique ix of the PE in Spider.
          * @return ix of the PE in Spider.
          */
-        inline std::uint32_t spiderPEIx() const;
+        inline uint32_t spiderPEIx() const;
 
         /**
          * @brief Get the state of the PE.
@@ -156,7 +156,7 @@ namespace spider {
          * @brief IX of the LRT handling this PE.
          * @return IX value.
          */
-        inline std::uint32_t managingLRTIx() const;
+        inline uint32_t managingLRTIx() const;
 
         /* === Setter(s) === */
 
@@ -177,7 +177,7 @@ namespace spider {
          * @remark This method override current value. It is up to the user to ensure consistency in the index.
          * @param ix  Ix to set.
          */
-        inline void setClusterPEIx(std::uint32_t ix);
+        inline void setClusterPEIx(uint32_t ix);
 
         /**
          * @brief Set the name of the Processing Element.
@@ -206,20 +206,20 @@ namespace spider {
 
         /* === Core properties === */
 
-        std::uint32_t hwType_ = 0;        /* = S-LAM user hardware type = */
-        std::uint32_t hwIx_ = 0;          /* = Hardware on which PE runs (core ix) = */
-        std::uint32_t virtIx_ = 0;        /* = S-LAM user ix = */
+        uint32_t hwType_ = 0;        /* = S-LAM user hardware type = */
+        uint32_t hwIx_ = 0;          /* = Hardware on which PE runs (core ix) = */
+        uint32_t virtIx_ = 0;        /* = S-LAM user ix = */
         std::string name_ = "unnamed-pe"; /* = S-LAM user name of the PE = */
 
         /* === Spider properties === */
 
         Cluster *cluster_ = nullptr;    /* = Cluster to which the PE belong = */
-        std::uint32_t clusterPEIx_ = 0; /* = Ix inside the cluster (used internally by spider) = */
-        std::uint32_t spiderPEIx_ = 0;  /* = Unique Ix of the PE inside spider (used internally by spider) = */
+        uint32_t clusterPEIx_ = 0; /* = Ix inside the cluster (used internally by spider) = */
+        uint32_t spiderPEIx_ = 0;  /* = Unique Ix of the PE inside spider (used internally by spider) = */
         spider::PEType spiderPEType_ = spider::PEType::LRT_PE;
         spider::HWType spiderHWType_ = spider::HWType::PHYS_PE;
         PE *managingLRT_ = nullptr; /* == LRT handling this PE (self if PE is an LRT) == */
-        std::uint32_t managingLRTIx_ = UINT32_MAX; /* == Ix of the LRT handling this PE == */
+        uint32_t managingLRTIx_ = UINT32_MAX; /* == Ix of the LRT handling this PE == */
         bool enabled_ = false;
 
         /* === Private method(s) === */
@@ -227,15 +227,15 @@ namespace spider {
 
     /* === Inline method(s) === */
 
-    std::uint32_t PE::hardwareType() const {
+    uint32_t PE::hardwareType() const {
         return hwType_;
     }
 
-    std::uint32_t PE::hardwareIx() const {
+    uint32_t PE::hardwareIx() const {
         return hwIx_;
     }
 
-    std::uint32_t PE::virtualIx() const {
+    uint32_t PE::virtualIx() const {
         return virtIx_;
     }
 
@@ -255,11 +255,11 @@ namespace spider {
         return spiderHWType_;
     }
 
-    std::uint32_t PE::clusterPEIx() const {
+    uint32_t PE::clusterPEIx() const {
         return clusterPEIx_;
     }
 
-    std::uint32_t PE::spiderPEIx() const {
+    uint32_t PE::spiderPEIx() const {
         return spiderPEIx_;
     }
 
@@ -275,11 +275,11 @@ namespace spider {
         return managingLRT_;
     }
 
-    std::uint32_t PE::managingLRTIx() const {
+    uint32_t PE::managingLRTIx() const {
         return managingLRTIx_;
     }
 
-    void PE::setClusterPEIx(std::uint32_t ix) {
+    void PE::setClusterPEIx(uint32_t ix) {
         clusterPEIx_ = ix;
     }
 

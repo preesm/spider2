@@ -94,39 +94,39 @@ static std::vector<spider::pisdf::Refinement *> specialActorRefinements() {
 
 /* === Function(s) definition === */
 
-void spider::api::createGenericStack(StackID stack, const std::string &name, std::size_t alignment) {
+void spider::api::createGenericStack(StackID stack, const std::string &name, size_t alignment) {
     createAllocator(spider::type<AllocatorType::GENERIC>{ }, stack, name, alignment);
 }
 
 void spider::api::createFreeListStack(StackID stack,
                                       const std::string &name,
-                                      std::size_t staticBufferSize,
+                                      size_t staticBufferSize,
                                       FreeListPolicy policy,
-                                      std::size_t alignment) {
+                                      size_t alignment) {
     createAllocator(spider::type<AllocatorType::FREELIST>{ }, stack, name, staticBufferSize, policy, alignment);
 }
 
 void spider::api::createLinearStaticStack(StackID stack,
                                           const std::string &name,
-                                          std::size_t totalSize,
-                                          std::size_t alignment) {
+                                          size_t totalSize,
+                                          size_t alignment) {
     createAllocator(spider::type<AllocatorType::LINEAR_STATIC>{ }, stack, name, totalSize, alignment);
 }
 
 void spider::api::createLinearStaticStack(StackID stack,
                                           const std::string &name,
-                                          std::size_t totalSize,
+                                          size_t totalSize,
                                           void *base,
-                                          std::size_t alignment) {
+                                          size_t alignment) {
     createAllocator(spider::type<AllocatorType::LINEAR_STATIC>{ }, stack, name, totalSize, base, alignment);
 }
 
-void spider::api::createLIFOStaticStack(StackID stack, const std::string &name, std::size_t totalSize) {
+void spider::api::createLIFOStaticStack(StackID stack, const std::string &name, size_t totalSize) {
     createAllocator(spider::type<AllocatorType::LIFO_STATIC>{ }, stack, name, totalSize);
 
 }
 
-void spider::api::createLIFOStaticStack(StackID stack, const std::string &name, std::size_t totalSize, void *base) {
+void spider::api::createLIFOStaticStack(StackID stack, const std::string &name, size_t totalSize, void *base) {
     createAllocator(spider::type<AllocatorType::LIFO_STATIC>{ }, stack, name, totalSize, base);
 }
 

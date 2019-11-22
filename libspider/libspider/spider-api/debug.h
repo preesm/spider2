@@ -50,7 +50,7 @@ namespace spider {
     /* === Enumeration(s) === */
 
     namespace log {
-        enum Type : std::int32_t {
+        enum Type : int32_t {
             LRT = 0,        /*! LRT logger. When enabled, this will print LRT logged information. */
             TIME,           /*! TIME logger. When enabled this will print time logged information */
             GENERAL,        /*! GENERAL purpose logger, used for information about almost everything */
@@ -68,7 +68,7 @@ namespace spider {
             bool enabled_;
         };
 
-        constexpr auto LOGGER_COUNT = static_cast<std::uint8_t >(Type::EXPR) + 1;
+        constexpr auto LOGGER_COUNT = static_cast<uint8_t >(Type::EXPR) + 1;
 
         inline std::array<Log, LOGGER_COUNT> &loggers() {
             static std::array<Log, LOGGER_COUNT> loggerArray = {{{ "LRT", false },

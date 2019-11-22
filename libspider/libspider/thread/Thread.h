@@ -83,13 +83,13 @@ namespace spider {
          * @param affinity_id Mask to use.
          * @return true if it was successful, false else
          */
-        bool set_affinity(std::int32_t affinity_id);
+        bool set_affinity(int32_t affinity_id);
 
         /**
          * @brief Retrieve the Thread core affinity
          * @return affinity of the Thread (if possible), -1 else.
          */
-        std::int32_t get_affinity();
+        int32_t get_affinity();
 
         /**
          * @brief Return current native handle automatically from the thread.

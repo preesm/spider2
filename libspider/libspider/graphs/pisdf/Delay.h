@@ -60,10 +60,10 @@ namespace spider {
             Delay(Expression &&expression,
                   Edge *edge,
                   ExecVertex *setter,
-                  std::uint32_t setterPortIx,
+                  uint32_t setterPortIx,
                   Expression &&setterRateExpression,
                   ExecVertex *getter,
-                  std::uint32_t getterPortIx,
+                  uint32_t getterPortIx,
                   Expression &&getterRateExpression,
                   bool persistent = false,
                   StackID stack = StackID::PISDF);
@@ -98,13 +98,13 @@ namespace spider {
              * @brief Return the port ix on which the delay is connected to the setter.
              * @return setter output port ix.
              */
-            inline std::uint32_t setterPortIx() const;
+            inline uint32_t setterPortIx() const;
 
             /**
              * @brief Return the port ix on which the delay is connected to the getter.
              * @return getter output port ix.
              */
-            inline std::uint32_t getterPortIx() const;
+            inline uint32_t getterPortIx() const;
 
             /**
              * @brief Get the virtual vertex associated to the Delay.
@@ -116,7 +116,7 @@ namespace spider {
              * @brief Get the virtual memory address (in the data memory space) of the delay.
              * @return virtual memory address value.
              */
-            inline std::uint64_t memoryAddress() const;
+            inline uint64_t memoryAddress() const;
 
             /**
              * @brief Return the value of the delay. Calls @refitem Expression::evaluate method.
@@ -125,7 +125,7 @@ namespace spider {
              * @warning If value of the delay is set by dynamic parameter, it is user responsability to ensure proper
              * order of call.
              */
-            std::int64_t value() const;
+            int64_t value() const;
 
             /**
              * @brief Return the value of the delay. Calls @refitem Expression::evaluate method.
@@ -134,7 +134,7 @@ namespace spider {
              * @warning If value of the delay is set by dynamic parameter, it is user responsability to ensure proper
              * order of call.
              */
-            std::int64_t value(const spider::vector<Param *> &params) const;
+            int64_t value(const spider::vector<Param *> &params) const;
 
             /* === Setter(s) === */
 
@@ -143,19 +143,19 @@ namespace spider {
              * @param address
              * @remark Issue a warning if delay already has an address.
              */
-            inline void setMemoryAddress(std::uint64_t address);
+            inline void setMemoryAddress(uint64_t address);
 
         private:
             Expression expression_;
             Edge *edge_ = nullptr;
             ExecVertex *setter_ = nullptr;
-            std::uint32_t setterPortIx_ = 0;
+            uint32_t setterPortIx_ = 0;
             ExecVertex *getter_ = nullptr;
-            std::uint32_t getterPortIx_ = 0;
+            uint32_t getterPortIx_ = 0;
             DelayVertex *vertex_ = nullptr;
 
             bool persistent_ = true;
-            std::uint64_t memoryAddress_ = UINT64_MAX;
+            uint64_t memoryAddress_ = UINT64_MAX;
 
             /* === Private method(s) === */
         };
@@ -174,11 +174,11 @@ namespace spider {
             return getter_;
         }
 
-        std::uint32_t Delay::setterPortIx() const {
+        uint32_t Delay::setterPortIx() const {
             return setterPortIx_;
         }
 
-        std::uint32_t Delay::getterPortIx() const {
+        uint32_t Delay::getterPortIx() const {
             return getterPortIx_;
         }
 
@@ -186,11 +186,11 @@ namespace spider {
             return vertex_;
         }
 
-        std::uint64_t Delay::memoryAddress() const {
+        uint64_t Delay::memoryAddress() const {
             return memoryAddress_;
         }
 
-        void Delay::setMemoryAddress(std::uint64_t address) {
+        void Delay::setMemoryAddress(uint64_t address) {
             if (memoryAddress_ != UINT64_MAX && log_enabled()) {
                 spider::log::warning("Delay [%s] already has a memory address.\n", name().c_str());
             }

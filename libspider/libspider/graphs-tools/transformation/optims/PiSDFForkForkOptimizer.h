@@ -79,8 +79,8 @@ bool PiSDFForkForkOptimizer::operator()(PiSDFGraph *graph) const {
         auto *vertex = pair.second;
 
         /* == Create the new fork == */
-        const auto &outputCount = static_cast<std::uint32_t>((source->outputEdgeCount() - 1) +
-                                                             vertex->outputEdgeCount());
+        const auto &outputCount = static_cast<uint32_t>((source->outputEdgeCount() - 1) +
+                                                        vertex->outputEdgeCount());
         auto *fork = spider::api::createFork(graph,
                                              "merged-" + source->name() + "-" + vertex->name(),
                                              outputCount,
@@ -91,7 +91,7 @@ bool PiSDFForkForkOptimizer::operator()(PiSDFGraph *graph) const {
 
         /* == Link the edges == */
         auto insertEdgeIx = vertex->inputEdge(0)->sourcePortIx();
-        std::uint64_t offset = 0;
+        uint64_t offset = 0;
         for (auto *sourceEdge : source->outputEdgeArray()) {
             if (sourceEdge->sourcePortIx() == insertEdgeIx) {
                 graph->removeEdge(sourceEdge);
@@ -103,7 +103,7 @@ bool PiSDFForkForkOptimizer::operator()(PiSDFGraph *graph) const {
                 }
             } else {
                 rate = sourceEdge->sourceRateExpression().evaluate(params);
-                auto ix = static_cast<std::uint32_t>(sourceEdge->sourcePortIx() + offset);
+                auto ix = static_cast<uint32_t>(sourceEdge->sourcePortIx() + offset);
                 sourceEdge->setSource(fork, ix, Expression(rate));
             }
         }

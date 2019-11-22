@@ -69,12 +69,12 @@ namespace spider {
         public:
 
             explicit Graph(std::string name = "unnamed-graph",
-                           std::uint32_t vertexCount = 0,
-                           std::uint32_t edgeCount = 0,
-                           std::uint32_t paramCount = 0,
-                           std::uint32_t edgeINCount = 0,
-                           std::uint32_t edgeOUTCount = 0,
-                           std::uint32_t cfgVertexCount = 0,
+                           uint32_t vertexCount = 0,
+                           uint32_t edgeCount = 0,
+                           uint32_t paramCount = 0,
+                           uint32_t edgeINCount = 0,
+                           uint32_t edgeOUTCount = 0,
+                           uint32_t cfgVertexCount = 0,
                            StackID stack = StackID::PISDF);
 
             ~Graph() override;
@@ -180,31 +180,31 @@ namespace spider {
              * @remark This method exclude the number of interfaces and the number of config actors.
              * @return Total number of vertices.
              */
-            inline std::size_t vertexCount() const;
+            inline size_t vertexCount() const;
 
             /**
              * @brief Get the number of config actors in the graph.
              * @return Total number of config actors.
              */
-            inline std::size_t configVertexCount() const;
+            inline size_t configVertexCount() const;
 
             /**
              * @brief Get the number of edges contained in the graph.
              * @return Number of edges.
              */
-            inline std::size_t edgeCount() const;
+            inline size_t edgeCount() const;
 
             /**
              * @brief Get the number of params contained in the graph.
              * @return Number of params.
              */
-            inline std::size_t paramCount() const;
+            inline size_t paramCount() const;
 
             /**
              * @brief Get the number of subgraphs.
              * @return Number of subgraphs.
              */
-            inline std::size_t subgraphCount() const;
+            inline size_t subgraphCount() const;
 
             /**
             * @brief A const reference on the set of vertices. Useful for iterating on the vertices.
@@ -261,7 +261,7 @@ namespace spider {
              * @param ix Ix of the param.
              * @return @refitem Param pointer
              */
-            inline Param *param(std::size_t ix) const;
+            inline Param *param(size_t ix) const;
 
             /**
              * @brief Return the vertex corresponding to the ix.
@@ -269,7 +269,7 @@ namespace spider {
              * @param ix  Ix of the vertex.
              * @return @refitem Vertex pointer
              */
-            inline Vertex *vertex(std::size_t ix) const;
+            inline Vertex *vertex(size_t ix) const;
 
             /**
              * @brief Return the input interface corresponding to the port ix.
@@ -279,7 +279,7 @@ namespace spider {
              * @param ix  Ix of the port
              * @return @refitem InputInterface pointer
              */
-            inline InputInterface *inputInterface(std::size_t ix) const;
+            inline InputInterface *inputInterface(size_t ix) const;
 
             /**
              * @brief Return the output interface corresponding to the port ix.
@@ -289,13 +289,13 @@ namespace spider {
              * @param ix  Ix of the port
              * @return @refitem OutputInterface pointer
              */
-            inline OutputInterface *outputInterface(std::size_t ix) const;
+            inline OutputInterface *outputInterface(size_t ix) const;
 
             /**
              * @brief Get the ix of the graph inside its containing graph subgraphVector_.
              * @return subgraph ix of the graph.
              */
-            inline std::uint32_t subIx() const;
+            inline uint32_t subIx() const;
 
             /**
              * @brief Get the scenario of the graph.
@@ -308,7 +308,7 @@ namespace spider {
 
         private:
             bool dynamic_ = false;
-            std::uint32_t subIx_ = UINT32_MAX;
+            uint32_t subIx_ = UINT32_MAX;
 
             /* === Contained elements of the graph === */
 
@@ -355,23 +355,23 @@ namespace spider {
             return dynamic_;
         }
 
-        std::size_t Graph::vertexCount() const {
+        size_t Graph::vertexCount() const {
             return vertexVector_.size();
         }
 
-        std::size_t Graph::configVertexCount() const {
+        size_t Graph::configVertexCount() const {
             return configVertexVector_.size();
         }
 
-        std::size_t Graph::edgeCount() const {
+        size_t Graph::edgeCount() const {
             return edgeVector_.size();
         }
 
-        std::size_t Graph::paramCount() const {
+        size_t Graph::paramCount() const {
             return paramVector_.size();
         }
 
-        std::size_t Graph::subgraphCount() const {
+        size_t Graph::subgraphCount() const {
             return subgraphVector_.size();
         }
 
@@ -403,23 +403,23 @@ namespace spider {
             return paramVector_;
         }
 
-        Param *Graph::param(std::size_t ix) const {
+        Param *Graph::param(size_t ix) const {
             return paramVector_[ix];
         }
 
-        Vertex *Graph::vertex(std::size_t ix) const {
+        Vertex *Graph::vertex(size_t ix) const {
             return vertexVector_[ix];
         }
 
-        InputInterface *Graph::inputInterface(std::size_t ix) const {
+        InputInterface *Graph::inputInterface(size_t ix) const {
             return inputInterfaceArray_[ix];
         }
 
-        OutputInterface *Graph::outputInterface(std::size_t ix) const {
+        OutputInterface *Graph::outputInterface(size_t ix) const {
             return outputInterfaceArray_[ix];
         }
 
-        std::uint32_t Graph::subIx() const {
+        uint32_t Graph::subIx() const {
             return subIx_;
         }
 

@@ -79,7 +79,7 @@ public:
 
     explicit Expression(std::string expression, const spider::vector<PiSDFParam *> &params = { });
 
-    explicit Expression(std::int64_t value);
+    explicit Expression(int64_t value);
 
     Expression() = default;
 
@@ -112,7 +112,7 @@ public:
      * @brief Evaluate the expression and return the value and cast result in int64_.
      * @return Evaluated value of the expression.
      */
-    inline std::int64_t evaluate(const spider::vector<PiSDFParam *> &params = { }) const;
+    inline int64_t evaluate(const spider::vector<PiSDFParam *> &params = { }) const;
 
     /**
      * @brief Evaluate the expression and return the value.
@@ -133,7 +133,7 @@ public:
      * @brief Get the last evaluated value (faster than evaluated on static expressions)
      * @return last evaluated value (default value, i.e no evaluation done, is 0)
      */
-    inline std::int64_t value() const;
+    inline int64_t value() const;
 
     /**
      * @brief Get the static property of the expression.
@@ -166,12 +166,12 @@ private:
 
 /* === Inline methods === */
 
-std::int64_t Expression::value() const {
-    return static_cast<std::int64_t>(value_);
+int64_t Expression::value() const {
+    return static_cast<int64_t>(value_);
 }
 
-std::int64_t Expression::evaluate(const spider::vector<PiSDFParam *> &params) const {
-    return static_ ? static_cast<std::int64_t>(value_) : static_cast<std::int64_t>(evaluateStack(params));
+int64_t Expression::evaluate(const spider::vector<PiSDFParam *> &params) const {
+    return static_ ? static_cast<int64_t>(value_) : static_cast<int64_t>(evaluateStack(params));
 }
 
 double Expression::evaluateDBL(const spider::vector<PiSDFParam *> &params) const {

@@ -54,10 +54,10 @@
 spider::pisdf::Delay::Delay(Expression &&expression,
                             Edge *edge,
                             ExecVertex *setter,
-                            std::uint32_t setterPortIx,
+                            uint32_t setterPortIx,
                             Expression &&setterRateExpression,
                             ExecVertex *getter,
-                            std::uint32_t getterPortIx,
+                            uint32_t getterPortIx,
                             Expression &&getterRateExpression,
                             bool persistent,
                             StackID stack) : expression_{ std::move(expression) },
@@ -117,11 +117,11 @@ std::string spider::pisdf::Delay::name() const {
 }
 
 
-std::int64_t spider::pisdf::Delay::value() const {
+int64_t spider::pisdf::Delay::value() const {
     return expression_.evaluate(edge_->containingGraph()->params());
 }
 
-std::int64_t spider::pisdf::Delay::value(const spider::vector<Param *> &params) const {
+int64_t spider::pisdf::Delay::value(const spider::vector<Param *> &params) const {
     return expression_.evaluate(params);
 }
 

@@ -83,9 +83,9 @@ void spider::XMLGanttExporter::jobPrinter(std::ofstream &file, const sched::Job 
 
     /* == Let's compute a color based on the value of the pointer == */
     const auto *reference = vertex->reference();
-    std::int32_t red = static_cast<std::uint8_t>((reinterpret_cast<std::uintptr_t>(reference) >> 3u) * 50 + 100);
-    std::int32_t green = static_cast<std::uint8_t>((reinterpret_cast<std::uintptr_t>(reference) >> 2u) * 50 + 100);
-    std::int32_t blue = static_cast<std::uint8_t>((reinterpret_cast<std::uintptr_t>(reference) >> 4u) * 50 + 100);
+    int32_t red = static_cast<uint8_t>((reinterpret_cast<uintptr_t>(reference) >> 3u) * 50 + 100);
+    int32_t green = static_cast<uint8_t>((reinterpret_cast<uintptr_t>(reference) >> 2u) * 50 + 100);
+    int32_t blue = static_cast<uint8_t>((reinterpret_cast<uintptr_t>(reference) >> 4u) * 50 + 100);
     file << '\t' << "<event" << '\n';
     file << '\t' << '\t' << R"(start=")" << job.mappingInfo().startTime << R"(")" << '\n';
     file << '\t' << '\t' << R"(end=")" << job.mappingInfo().endTime << R"(")" << '\n';

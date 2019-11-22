@@ -56,11 +56,11 @@ spider::sched::Stats::Stats() {
 
     /* == Init stat vectors == */
     const auto &n = platform->PECount();
-    startTimeVector_ = spider::vector<std::uint64_t>(n, 0);
-    endTimeVector_ = spider::vector<std::uint64_t>(n, 0);
-    loadTimeVector_ = spider::vector<std::uint64_t>(n, 0);
-    idleTimeVector_ = spider::vector<std::uint64_t>(n, 0);
-    jobCountVector_ = spider::vector<std::uint32_t>(n, 0);
+    startTimeVector_ = spider::vector<uint64_t>(n, 0);
+    endTimeVector_ = spider::vector<uint64_t>(n, 0);
+    loadTimeVector_ = spider::vector<uint64_t>(n, 0);
+    idleTimeVector_ = spider::vector<uint64_t>(n, 0);
+    jobCountVector_ = spider::vector<uint32_t>(n, 0);
 }
 
 void spider::sched::Stats::reset() {

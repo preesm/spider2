@@ -52,12 +52,12 @@
 
 /* === Static function(s) === */
 
-std::int64_t spider::ListScheduler::computeScheduleLevel(ListVertex &listVertex,
-                                                         spider::vector<ListVertex> &sortedVertexVector) {
+int64_t spider::ListScheduler::computeScheduleLevel(ListVertex &listVertex,
+                                                    spider::vector<ListVertex> &sortedVertexVector) {
     if (listVertex.level_ < 0) {
         auto *platform = spider::platform();
         auto *vertex = listVertex.vertex_;
-        std::int64_t level = 0;
+        int64_t level = 0;
         for (auto &edge : vertex->outputEdgeArray()) {
             auto *sink = edge->sink();
             if (sink) {
@@ -104,7 +104,7 @@ spider::ListScheduler::ListScheduler(PiSDFGraph *graph,
 
     /* == Sort the vector == */
     std::sort(std::begin(sortedVertexVector_), std::end(sortedVertexVector_),
-              [](const ListVertex &A, const ListVertex &B) -> std::int32_t {
+              [](const ListVertex &A, const ListVertex &B) -> int32_t {
                   if (B.vertex_->subtype() == PiSDFVertexType::NORMAL &&
                       A.vertex_->reference() == B.vertex_->reference() &&
                       A.level_ == B.level_) {

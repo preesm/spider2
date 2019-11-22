@@ -61,7 +61,7 @@ namespace spider {
         class DuplicateVertex final : public VertexInterface<DuplicateVertex> {
         public:
             explicit DuplicateVertex(std::string name = "unnamed-duplicatevertex",
-                                     std::uint32_t edgeOUTCount = 0,
+                                     uint32_t edgeOUTCount = 0,
                                      StackID stack = StackID::PISDF) : VertexInterface<DuplicateVertex>(std::move(name),
                                                                                                         1,
                                                                                                         edgeOUTCount,

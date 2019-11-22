@@ -52,7 +52,7 @@ namespace spider {
     class MemoryUnit {
     public:
 
-        MemoryUnit(void *base, std::uint64_t size);
+        MemoryUnit(void *base, uint64_t size);
 
         ~MemoryUnit() = default;
 
@@ -60,32 +60,32 @@ namespace spider {
 
         inline void reset();
 
-        inline void *physicalAddress(std::uintptr_t virtualAddress) const;
+        inline void *physicalAddress(uintptr_t virtualAddress) const;
 
-        inline std::uint64_t allocate(std::uint64_t size);
+        inline uint64_t allocate(uint64_t size);
 
         /* === Getter(s) === */
 
-        inline std::uint64_t size() const;
+        inline uint64_t size() const;
 
-        inline std::uint64_t used() const;
+        inline uint64_t used() const;
 
-        inline std::uint64_t available() const;
+        inline uint64_t available() const;
 
-        inline std::uint32_t ix() const;
+        inline uint32_t ix() const;
 
         /* === Setter(s) === */
 
-        inline void setIx(std::uint32_t ix);
+        inline void setIx(uint32_t ix);
 
     private:
 
         /* === Core properties === */
 
         void *base_ = nullptr;
-        std::uint64_t size_ = 0;
-        std::uint64_t used_ = 0;
-        std::uint32_t ix_ = 0;
+        uint64_t size_ = 0;
+        uint64_t used_ = 0;
+        uint32_t ix_ = 0;
 
         /* === Routines === */
 
@@ -98,38 +98,38 @@ namespace spider {
         used_ = 0;
     }
 
-    void *MemoryUnit::physicalAddress(std::uintptr_t virtualAddress) const {
+    void *MemoryUnit::physicalAddress(uintptr_t virtualAddress) const {
         if (virtualAddress > size_) {
             throwSpiderException("Invalid memory address!");
         }
-        const auto &physical = reinterpret_cast<std::uintptr_t>(base_) + virtualAddress;
+        const auto &physical = reinterpret_cast<uintptr_t>(base_) + virtualAddress;
         return reinterpret_cast<void *>(physical);
     }
 
-    std::uint64_t MemoryUnit::allocate(std::uint64_t size) {
+    uint64_t MemoryUnit::allocate(uint64_t size) {
         // TODO: handle different scheme of allocation
         auto address = used_;
         used_ += size;
         return address;
     }
 
-    std::uint64_t MemoryUnit::size() const {
+    uint64_t MemoryUnit::size() const {
         return size_;
     }
 
-    std::uint64_t MemoryUnit::used() const {
+    uint64_t MemoryUnit::used() const {
         return used_;
     }
 
-    std::uint64_t MemoryUnit::available() const {
+    uint64_t MemoryUnit::available() const {
         return size_ - used_;
     }
 
-    std::uint32_t MemoryUnit::ix() const {
+    uint32_t MemoryUnit::ix() const {
         return ix_;
     }
 
-    void MemoryUnit::setIx(std::uint32_t ix) {
+    void MemoryUnit::setIx(uint32_t ix) {
         ix_ = ix;
     }
 }

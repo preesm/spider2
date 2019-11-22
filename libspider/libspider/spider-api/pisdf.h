@@ -107,60 +107,60 @@ namespace spider {
         /* === Graph API === */
 
         pisdf::Graph *createGraph(std::string name,
-                                  std::uint32_t actorCount = 0,
-                                  std::uint32_t edgeCount = 0,
-                                  std::uint32_t paramCount = 0,
-                                  std::uint32_t inIFCount = 0,
-                                  std::uint32_t outIFCount = 0,
-                                  std::uint32_t cfgActorCount = 0,
+                                  uint32_t actorCount = 0,
+                                  uint32_t edgeCount = 0,
+                                  uint32_t paramCount = 0,
+                                  uint32_t inIFCount = 0,
+                                  uint32_t outIFCount = 0,
+                                  uint32_t cfgActorCount = 0,
                                   StackID stack = StackID::PISDF);
 
         pisdf::Graph *createSubraph(pisdf::Graph *graph,
                                     std::string name,
-                                    std::uint32_t actorCount = 0,
-                                    std::uint32_t edgeCount = 0,
-                                    std::uint32_t paramCount = 0,
-                                    std::uint32_t inIFCount = 0,
-                                    std::uint32_t outIFCount = 0,
-                                    std::uint32_t cfgActorCount = 0,
+                                    uint32_t actorCount = 0,
+                                    uint32_t edgeCount = 0,
+                                    uint32_t paramCount = 0,
+                                    uint32_t inIFCount = 0,
+                                    uint32_t outIFCount = 0,
+                                    uint32_t cfgActorCount = 0,
                                     StackID stack = StackID::PISDF);
 
         pisdf::ExecVertex *createVertex(pisdf::Graph *graph,
                                         std::string name,
-                                        std::uint32_t edgeINCount = 0,
-                                        std::uint32_t edgeOUTCount = 0,
+                                        uint32_t edgeINCount = 0,
+                                        uint32_t edgeOUTCount = 0,
                                         StackID stack = StackID::PISDF);
 
         pisdf::ExecVertex *createVertex(pisdf::Graph *graph,
-                                        std::uint32_t refinementIx,
+                                        uint32_t refinementIx,
                                         std::string name,
-                                        std::uint32_t edgeINCount = 0,
-                                        std::uint32_t edgeOUTCount = 0,
+                                        uint32_t edgeINCount = 0,
+                                        uint32_t edgeOUTCount = 0,
                                         StackID stack = StackID::PISDF);
 
         pisdf::ForkVertex *createFork(pisdf::Graph *graph,
                                       std::string name,
-                                      std::uint32_t edgeOUTCount = 0,
+                                      uint32_t edgeOUTCount = 0,
                                       StackID stack = StackID::PISDF);
 
         pisdf::JoinVertex *createJoin(pisdf::Graph *graph,
                                       std::string name,
-                                      std::uint32_t edgeINCount = 0,
+                                      uint32_t edgeINCount = 0,
                                       StackID stack = StackID::PISDF);
 
         pisdf::HeadVertex *createHead(pisdf::Graph *graph,
                                       std::string name,
-                                      std::uint32_t edgeINCount = 0,
+                                      uint32_t edgeINCount = 0,
                                       StackID stack = StackID::PISDF);
 
         pisdf::TailVertex *createTail(pisdf::Graph *graph,
                                       std::string name,
-                                      std::uint32_t edgeINCount = 0,
+                                      uint32_t edgeINCount = 0,
                                       StackID stack = StackID::PISDF);
 
         pisdf::DuplicateVertex *createDuplicate(pisdf::Graph *graph,
                                                 std::string name,
-                                                std::uint32_t edgeOUTCount = 0,
+                                                uint32_t edgeOUTCount = 0,
                                                 StackID stack = StackID::PISDF);
 
         pisdf::RepeatVertex *createRepeat(pisdf::Graph *graph, std::string name, StackID stack = StackID::PISDF);
@@ -171,19 +171,19 @@ namespace spider {
 
         pisdf::ConfigVertex *createConfigActor(pisdf::Graph *graph,
                                                std::string name,
-                                               std::uint32_t edgeINCount = 0,
-                                               std::uint32_t edgeOUTCount = 0,
+                                               uint32_t edgeINCount = 0,
+                                               uint32_t edgeOUTCount = 0,
                                                StackID stack = StackID::PISDF);
 
-        pisdf::InputInterface *setInputInterfaceName(pisdf::Graph *graph, std::uint32_t ix, std::string name);
+        pisdf::InputInterface *setInputInterfaceName(pisdf::Graph *graph, uint32_t ix, std::string name);
 
-        pisdf::OutputInterface *setOutputInterfaceName(pisdf::Graph *graph, std::uint32_t ix, std::string name);
+        pisdf::OutputInterface *setOutputInterfaceName(pisdf::Graph *graph, uint32_t ix, std::string name);
 
         /* === Param API === */
 
         pisdf::Param *createStaticParam(pisdf::Graph *graph,
                                         std::string name,
-                                        std::int64_t value,
+                                        int64_t value,
                                         StackID stack = StackID::PISDF);
 
         pisdf::Param *createStaticParam(pisdf::Graph *graph,
@@ -208,40 +208,40 @@ namespace spider {
         /* === Edge API === */
 
         pisdf::Edge *createEdge(pisdf::Vertex *source,
-                                std::uint32_t srcPortIx,
+                                uint32_t srcPortIx,
                                 std::string srcRateExpression,
                                 pisdf::Vertex *sink,
-                                std::uint32_t snkPortIx,
+                                uint32_t snkPortIx,
                                 std::string snkRateExpression,
                                 StackID stack = StackID::PISDF);
 
         pisdf::Edge *createEdge(pisdf::Vertex *source,
-                                std::uint32_t srcPortIx,
-                                std::int64_t srcRate,
+                                uint32_t srcPortIx,
+                                int64_t srcRate,
                                 pisdf::Vertex *sink,
-                                std::uint32_t snkPortIx,
-                                std::int64_t snkRate,
+                                uint32_t snkPortIx,
+                                int64_t snkRate,
                                 StackID stack = StackID::PISDF);
 
         pisdf::Delay *createDelay(pisdf::Edge *edge,
                                   std::string delayExpression,
                                   pisdf::ExecVertex *setter = nullptr,
-                                  std::uint32_t setterPortIx = 0,
+                                  uint32_t setterPortIx = 0,
                                   const std::string &setterRateExpression = "0",
                                   pisdf::ExecVertex *getter = nullptr,
-                                  std::uint32_t getterPortIx = 0,
+                                  uint32_t getterPortIx = 0,
                                   const std::string &getterRateExpression = "0",
                                   bool persistent = true,
                                   StackID stack = StackID::PISDF);
 
         pisdf::Delay *createDelay(pisdf::Edge *edge,
-                                  std::int64_t delayValue,
+                                  int64_t delayValue,
                                   pisdf::ExecVertex *setter = nullptr,
-                                  std::uint32_t setterPortIx = 0,
-                                  std::int64_t setterRate = 0,
+                                  uint32_t setterPortIx = 0,
+                                  int64_t setterRate = 0,
                                   pisdf::ExecVertex *getter = nullptr,
-                                  std::uint32_t getterPortIx = 0,
-                                  std::int64_t getterRate = 0,
+                                  uint32_t getterPortIx = 0,
+                                  int64_t getterRate = 0,
                                   bool persistent = true,
                                   StackID stack = StackID::PISDF);
     }

@@ -60,12 +60,12 @@ enum class FreeListPolicy {
 
 class AbstractAllocator {
 public:
-    explicit AbstractAllocator(std::string name, std::size_t alignment = 0) : used_{ 0 },
-                                                                              peak_{ 0 },
-                                                                              averageUse_{ 0 },
-                                                                              numberAverage_{ 0 },
-                                                                              alignment_{ alignment },
-                                                                              name_{ std::move(name) } { }
+    explicit AbstractAllocator(std::string name, size_t alignment = 0) : used_{ 0 },
+                                                                         peak_{ 0 },
+                                                                         averageUse_{ 0 },
+                                                                         numberAverage_{ 0 },
+                                                                         alignment_{ alignment },
+                                                                         name_{ std::move(name) } { }
 
     virtual ~AbstractAllocator() {
         if (used_ > 0 && log_enabled()) {
@@ -82,7 +82,7 @@ public:
      * @param size Size of the buffer to allocate
      * @return pointer to allocated memory, nullptr on failure or if size is 0
      */
-    virtual void *allocate(std::size_t size) = 0;
+    virtual void *allocate(size_t size) = 0;
 
     /**
      * @brief Free a memory buffer.
@@ -97,7 +97,7 @@ public:
      *        All new allocation made after this call result in allocation aligned to new value.
      * @param alignment  New allocation value.
      */
-    inline void setAllocationAlignment(std::size_t alignment);
+    inline void setAllocationAlignment(size_t alignment);
 
     /* Getters */
 
@@ -105,7 +105,7 @@ public:
      * @brief Fetch current memory allocation alignment
      * @return current allocation alignment
      */
-    inline std::size_t getAllocationAlignment() const;
+    inline size_t getAllocationAlignment() const;
 
     /**
      * @brief Return name of the allocator.
@@ -121,22 +121,22 @@ public:
     inline void printStats() const;
 
 protected:
-    std::uint64_t used_ = 0;
-    std::uint64_t peak_ = 0;
-    std::uint64_t averageUse_ = 0;
-    std::uint64_t numberAverage_ = 0;
-    std::size_t alignment_ = 0;
+    uint64_t used_ = 0;
+    uint64_t peak_ = 0;
+    uint64_t averageUse_ = 0;
+    uint64_t numberAverage_ = 0;
+    size_t alignment_ = 0;
 
-    static inline std::size_t computeAlignedSize(std::size_t size, std::size_t alignment = 4096);
+    static inline size_t computeAlignedSize(size_t size, size_t alignment = 4096);
 
-    static inline std::size_t computePadding(std::size_t base, std::size_t alignment);
+    static inline size_t computePadding(size_t base, size_t alignment);
 
-    static inline std::size_t
-    computePaddingWithHeader(std::size_t base, std::size_t alignment, std::size_t headerSize);
+    static inline size_t
+    computePaddingWithHeader(size_t base, size_t alignment, size_t headerSize);
 
-    static inline const char *getByteUnitString(std::uint64_t size);
+    static inline const char *getByteUnitString(uint64_t size);
 
-    static inline double getByteNormalizedSize(std::uint64_t size);
+    static inline double getByteNormalizedSize(uint64_t size);
 
 private:
     std::string name_;
@@ -144,11 +144,11 @@ private:
 
 /* === Inline methods === */
 
-void AbstractAllocator::setAllocationAlignment(std::size_t alignment) {
+void AbstractAllocator::setAllocationAlignment(size_t alignment) {
     alignment_ = alignment;
 }
 
-std::size_t AbstractAllocator::getAllocationAlignment() const {
+size_t AbstractAllocator::getAllocationAlignment() const {
     return alignment_;
 }
 
@@ -176,17 +176,17 @@ void AbstractAllocator::printStats() const {
     }
 }
 
-std::size_t AbstractAllocator::computeAlignedSize(std::size_t size, std::size_t alignment /* = 4096 */) {
+size_t AbstractAllocator::computeAlignedSize(size_t size, size_t alignment /* = 4096 */) {
     const auto &alignFactor = spider::math::ceilDiv(size, alignment);
     return alignFactor * alignment;
 }
 
-std::size_t AbstractAllocator::computePadding(std::size_t base, std::size_t alignment) {
+size_t AbstractAllocator::computePadding(size_t base, size_t alignment) {
     return computeAlignedSize(base, alignment) - base;
 }
 
-std::size_t
-AbstractAllocator::computePaddingWithHeader(std::size_t base, std::size_t alignment, std::size_t headerSize) {
+size_t
+AbstractAllocator::computePaddingWithHeader(size_t base, size_t alignment, size_t headerSize) {
     auto &&padding = computePadding(base, alignment);
     if (padding < headerSize) {
         const auto &neededSpace = headerSize - padding;
@@ -198,10 +198,10 @@ AbstractAllocator::computePaddingWithHeader(std::size_t base, std::size_t alignm
     return padding;
 }
 
-const char *AbstractAllocator::getByteUnitString(std::uint64_t size) {
-    constexpr std::uint64_t SIZE_GB = 1024 * 1024 * 1024;
-    constexpr std::uint64_t SIZE_MB = 1024 * 1024;
-    constexpr std::uint64_t SIZE_KB = 1024;
+const char *AbstractAllocator::getByteUnitString(uint64_t size) {
+    constexpr uint64_t SIZE_GB = 1024 * 1024 * 1024;
+    constexpr uint64_t SIZE_MB = 1024 * 1024;
+    constexpr uint64_t SIZE_KB = 1024;
     if (size / SIZE_GB) {
         return "GB";
     } else if (size / SIZE_MB) {
@@ -212,7 +212,7 @@ const char *AbstractAllocator::getByteUnitString(std::uint64_t size) {
     return "B";
 }
 
-double AbstractAllocator::getByteNormalizedSize(std::uint64_t size) {
+double AbstractAllocator::getByteNormalizedSize(uint64_t size) {
     constexpr double SIZE_GB = 1024 * 1024 * 1024;
     constexpr double SIZE_MB = 1024 * 1024;
     constexpr double SIZE_KB = 1024;

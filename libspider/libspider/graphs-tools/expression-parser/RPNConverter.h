@@ -51,7 +51,7 @@
 /**
  * @brief Primary type of an @refitem RPNElement.
  */
-enum class RPNElementType : std::uint16_t {
+enum class RPNElementType : uint16_t {
     OPERATOR, /*! Operator element */
     OPERAND,  /*! Operand element */
 };
@@ -59,7 +59,7 @@ enum class RPNElementType : std::uint16_t {
 /**
  * @brief Secondary type of an @refitem RPNElement
  */
-enum class RPNElementSubType : std::uint16_t {
+enum class RPNElementSubType : uint16_t {
     VALUE,      /*! Value (digit) */
     PARAMETER,  /*! Value coming from a parameter */
     FUNCTION,   /*! Operator is a function */
@@ -69,7 +69,7 @@ enum class RPNElementSubType : std::uint16_t {
 /**
  * @brief Enumeration of the supported operators by the parser.
  */
-enum class RPNOperatorType : std::uint32_t {
+enum class RPNOperatorType : uint32_t {
     ADD,        /*! Addition operator */
     SUB,        /*! Subtraction operator */
     MUL,        /*! Multiplication operator */
@@ -96,10 +96,10 @@ enum class RPNOperatorType : std::uint32_t {
  */
 struct RPNOperator {
     RPNOperatorType type;     /*! Operator type (see @refitem RPNOperatorType) */
-    std::uint16_t precedence; /*! Precedence value level of the operator */
+    uint16_t precedence; /*! Precedence value level of the operator */
     bool isRighAssociative;   /*! Right associativity property of the operator */
     std::string label;        /*! Label of the operator */
-    std::uint8_t argCount;    /*! Number of argument of the operator */
+    uint8_t argCount;    /*! Number of argument of the operator */
 };
 
 /* === Structure definition(s) === */
@@ -131,12 +131,12 @@ namespace spider {
         /**
          * @brief number of operators (based on the value of @refitem RPNOperatorType::COS (i.e last function)
          */
-        constexpr auto OPERATOR_COUNT = static_cast<std::uint32_t>(RPNOperatorType::MIN) + 1;
+        constexpr auto OPERATOR_COUNT = static_cast<uint32_t>(RPNOperatorType::MIN) + 1;
 
         /**
          * @brief Value of the @refitem RPNOperatorType::COS (first function)
          */
-        constexpr auto FUNCTION_OFFSET = static_cast<std::uint32_t>(RPNOperatorType::COS);
+        constexpr auto FUNCTION_OFFSET = static_cast<uint32_t>(RPNOperatorType::COS);
 
         /**
          * @brief Number of function (not basic operators)
@@ -197,7 +197,7 @@ namespace spider {
          * @return @refitem RPNOperator.
          * @throws std::out_of_range if bad ix is passed.
          */
-        const RPNOperator &getOperator(std::uint32_t ix);
+        const RPNOperator &getOperator(uint32_t ix);
 
         /**
          * @brief Return the operator associated to the operator type.

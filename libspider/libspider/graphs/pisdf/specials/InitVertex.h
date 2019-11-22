@@ -48,7 +48,7 @@
 namespace spider {
     namespace pisdf {
 
-        inline void init(const std::int64_t *, std::int64_t *[], void *[], void *[]) {
+        inline void init(const int64_t *, int64_t *[], void *[], void *[]) {
 
         }
 

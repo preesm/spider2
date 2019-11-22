@@ -54,7 +54,7 @@ namespace spider {
         /**
          * @brief PiSDF parameter types
          */
-        enum class ParamType : std::uint8_t {
+        enum class ParamType : uint8_t {
             STATIC,            /*! Static parameter: expression is evaluated at startup only once */
             DYNAMIC,           /*! Dynamic parameter: value is set at runtime */
             INHERITED,         /*! Inherited parameter: value depend on parent */
@@ -63,7 +63,7 @@ namespace spider {
         /**
          * @brief Type of PiSDF vertices
          */
-        enum class VertexType : std::uint8_t {
+        enum class VertexType : uint8_t {
             NORMAL,         /*! Normal actor type */
             CONFIG,         /*! Config vertex type */
             DELAY,          /*! Delay vertex type */

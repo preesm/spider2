@@ -123,7 +123,7 @@ TEST_F(RPNConverterTest, TestGetOperator) {
     EXPECT_NO_THROW(spider::rpn::getOperatorFromOperatorType(RPNOperatorType::SQRT));
     EXPECT_NO_THROW(spider::rpn::getOperatorFromOperatorType(RPNOperatorType::MIN));
     EXPECT_NO_THROW(spider::rpn::getOperatorFromOperatorType(RPNOperatorType::MAX));
-    for (std::uint32_t i = 0; i < (spider::rpn::OPERATOR_COUNT); ++i) {
+    for (uint32_t i = 0; i < (spider::rpn::OPERATOR_COUNT); ++i) {
         EXPECT_NO_THROW(spider::rpn::getOperator(i));
     }
     EXPECT_THROW(spider::rpn::getOperator(-1), std::out_of_range);

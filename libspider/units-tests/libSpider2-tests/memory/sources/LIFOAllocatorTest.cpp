@@ -62,7 +62,7 @@ TEST_F(LIFOAllocatorTest, GetName) {
 }
 
 TEST_F(LIFOAllocatorTest, ThrowSizeException) {
-    std::uint64_t size = MAX_SIZE + 1;
+    uint64_t size = MAX_SIZE + 1;
     EXPECT_THROW(allocator.allocate(size), spider::Exception);
 }
 
@@ -85,7 +85,7 @@ TEST_F(LIFOAllocatorTest, MemoryAllocAlignment) {
     ASSERT_NE(charArray, nullptr);
     auto *dblArray = (double *) allocator.allocate(2 * sizeof(double));
     ASSERT_NE(dblArray, nullptr);
-    ASSERT_EQ(charArray + 2 * sizeof(std::uint64_t), (char*) dblArray);
+    ASSERT_EQ(charArray + 2 * sizeof(uint64_t), (char*) dblArray);
 }
 
 TEST_F(LIFOAllocatorTest, FreeNull) {

@@ -64,7 +64,7 @@ namespace spider {
 
             /* === Setter(s) === */
 
-            inline void setRepetitionValue(std::uint32_t rv) override;
+            inline void setRepetitionValue(uint32_t rv) override;
 
         private:
 
@@ -74,7 +74,7 @@ namespace spider {
             return VertexType::DELAY;
         }
 
-        void DelayVertex::setRepetitionValue(std::uint32_t rv) {
+        void DelayVertex::setRepetitionValue(uint32_t rv) {
             if (rv > 1) {
                 throwSpiderException("Delay [%s] has repetition vector value of %"
                                              PRIu32

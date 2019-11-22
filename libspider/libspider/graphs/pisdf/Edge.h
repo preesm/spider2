@@ -61,10 +61,10 @@ namespace spider {
         public:
 
             Edge(Vertex *source,
-                 std::uint32_t srcIx,
+                 uint32_t srcIx,
                  Expression &&srcExpr,
                  Vertex *sink,
-                 std::uint32_t snkIx,
+                 uint32_t snkIx,
                  Expression &&snkExpr);
 
             ~Edge();
@@ -89,19 +89,19 @@ namespace spider {
              * @brief Get the ix of the edge in the containing graph.
              * @return ix of the edge (UINT32_MAX if no ix).
              */
-            inline std::uint32_t ix() const;
+            inline uint32_t ix() const;
 
             /**
              * @brief Get the source port ix of the edge
              * @return source port ix
              */
-            inline std::uint32_t sourcePortIx() const;
+            inline uint32_t sourcePortIx() const;
 
             /**
              * @brief Get the sink port ix of the edge
              * @return sink port ix
              */
-            inline std::uint32_t sinkPortIx() const;
+            inline uint32_t sinkPortIx() const;
 
             /**
              * @brief Evaluate the expression rate of the source.
@@ -144,7 +144,7 @@ namespace spider {
              * @remark This method will override current value.
              * @param ix Ix to set.
              */
-            inline void setIx(std::uint32_t ix);
+            inline void setIx(uint32_t ix);
 
             /**
              * @brief Set the source vertex of the edge.
@@ -155,7 +155,7 @@ namespace spider {
              * @return pointer to the old output @refitem Edge of vertex, nullptr else.
              * @throws @refitem Spider::Exception if vertex is nullptr.
              */
-            Edge *setSource(Vertex *vertex, std::uint32_t ix, Expression &&expr);
+            Edge *setSource(Vertex *vertex, uint32_t ix, Expression &&expr);
 
             /**
              * @brief Set the sink vertex of the edge.
@@ -166,7 +166,7 @@ namespace spider {
              * @return pointer to the old input @refitem Edge of vertex, nullptr else.
              * @throws @refitem Spider::Exception if vertex is nullptr.
              */
-            Edge *setSink(Vertex *vertex, std::uint32_t ix, Expression &&expr);
+            Edge *setSink(Vertex *vertex, uint32_t ix, Expression &&expr);
 
             inline void setDelay(Delay *delay);
 
@@ -174,13 +174,13 @@ namespace spider {
 
         private:
             Graph *graph_ = nullptr;
-            std::uint32_t ix_ = UINT32_MAX;
+            uint32_t ix_ = UINT32_MAX;
 
             Vertex *src_;
-            std::uint32_t srcPortIx_ = UINT32_MAX;
+            uint32_t srcPortIx_ = UINT32_MAX;
             Expression srcExpression_;
             Vertex *snk_;
-            std::uint32_t snkPortIx_ = UINT32_MAX;
+            uint32_t snkPortIx_ = UINT32_MAX;
             Expression snkExpression_;
 
             Delay *delay_ = nullptr;
@@ -194,15 +194,15 @@ namespace spider {
             return graph_;
         }
 
-        std::uint32_t Edge::ix() const {
+        uint32_t Edge::ix() const {
             return ix_;
         }
 
-        std::uint32_t Edge::sourcePortIx() const {
+        uint32_t Edge::sourcePortIx() const {
             return srcPortIx_;
         }
 
-        std::uint32_t Edge::sinkPortIx() const {
+        uint32_t Edge::sinkPortIx() const {
             return snkPortIx_;
         }
 
@@ -226,7 +226,7 @@ namespace spider {
             return delay_;
         }
 
-        void Edge::setIx(std::uint32_t ix) {
+        void Edge::setIx(uint32_t ix) {
             ix_ = ix;
         }
 

@@ -70,10 +70,10 @@ namespace spider {
 
         struct ListVertex {
             PiSDFAbstractVertex *vertex_ = nullptr;
-            std::int64_t level_ = -1;
+            int64_t level_ = -1;
 
-            explicit ListVertex(PiSDFAbstractVertex *vertex, std::int32_t level = -1) : vertex_{ vertex },
-                                                                                        level_{ level } { };
+            explicit ListVertex(PiSDFAbstractVertex *vertex, int32_t level = -1) : vertex_{ vertex },
+                                                                                   level_{ level } { };
         };
 
         spider::vector<ListVertex> sortedVertexVector_;
@@ -81,7 +81,7 @@ namespace spider {
         /* === Protected method(s) === */
 
     private:
-        static std::int64_t
+        static int64_t
         computeScheduleLevel(ListVertex &listVertex, spider::vector<ListVertex> &sortedVertexVector);
     };
 

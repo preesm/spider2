@@ -53,12 +53,12 @@
 
 /* === Static variable(s) === */
 
-static constexpr std::uint32_t OFFSET = 3;
-static constexpr std::uint32_t BORDER = 5;
-static constexpr std::uint32_t ARROW_SIZE = 8;
-static constexpr std::uint32_t ARROW_STROKE = 2;
-static constexpr std::uint32_t TASK_HEIGHT = 50;
-static constexpr std::uint32_t TASK_SPACE = 5;
+static constexpr uint32_t OFFSET = 3;
+static constexpr uint32_t BORDER = 5;
+static constexpr uint32_t ARROW_SIZE = 8;
+static constexpr uint32_t ARROW_STROKE = 2;
+static constexpr uint32_t TASK_HEIGHT = 50;
+static constexpr uint32_t TASK_SPACE = 5;
 
 /* === Static function(s) === */
 
@@ -69,8 +69,8 @@ spider::SVGGanttExporter::SVGGanttExporter(const sched::Schedule *schedule,
                                                                         schedule_{ schedule },
                                                                         graph_{ graph } {
     /* == Compute values needed for printing == */
-    std::uint64_t minExecTime = UINT64_MAX;
-    std::uint64_t maxExecTime = 0;
+    uint64_t minExecTime = UINT64_MAX;
+    uint64_t maxExecTime = 0;
     for (auto &job : schedule_->jobs()) {
         const auto &execTime = job.mappingInfo().endTime - job.mappingInfo().startTime;
         minExecTime = std::min(execTime, minExecTime);
@@ -84,7 +84,7 @@ spider::SVGGanttExporter::SVGGanttExporter(const sched::Schedule *schedule,
 
     /* == Compute dimensions of the Gantt == */
     const auto &endPoint = static_cast<double>(schedule_->stats().minStartTime() + schedule_->stats().makespan());
-    makespanWidth_ = static_cast<std::uint64_t>(endPoint * scaleFactor_);
+    makespanWidth_ = static_cast<uint64_t>(endPoint * scaleFactor_);
     width_ = makespanWidth_ + 2 * BORDER + OFFSET + ARROW_STROKE + ARROW_SIZE;
     const auto *platform = spider::platform();
     const auto &PECount = platform->PECount();
@@ -180,7 +180,7 @@ void spider::SVGGanttExporter::axisPrinter(std::ofstream &file) const {
     /* == Print vertical grid == */
     const auto &gridColor = "e8e8e8";
     const auto &gridCount = makespanWidth_ / 40;
-    for (std::uint32_t i = 0; i <= gridCount; ++i) {
+    for (uint32_t i = 0; i <= gridCount; ++i) {
         file << R"(
     <rect
        fill="#)" << gridColor << R"("
@@ -218,9 +218,9 @@ void spider::SVGGanttExporter::jobPrinter(std::ofstream &file, const sched::Job 
     /* == Compute color and width == */
     const auto *vertex = graph_->vertex(job.vertexIx());
     const auto *reference = vertex->reference();
-    std::int32_t red = static_cast<std::uint8_t>((reinterpret_cast<std::uintptr_t>(reference) >> 3u) * 50 + 100);
-    std::int32_t green = static_cast<std::uint8_t>((reinterpret_cast<std::uintptr_t>(reference) >> 2u) * 50 + 100);
-    std::int32_t blue = static_cast<std::uint8_t>((reinterpret_cast<std::uintptr_t>(reference) >> 4u) * 50 + 100);
+    int32_t red = static_cast<uint8_t>((reinterpret_cast<uintptr_t>(reference) >> 3u) * 50 + 100);
+    int32_t green = static_cast<uint8_t>((reinterpret_cast<uintptr_t>(reference) >> 2u) * 50 + 100);
+    int32_t blue = static_cast<uint8_t>((reinterpret_cast<uintptr_t>(reference) >> 4u) * 50 + 100);
     const auto &taskWidth = static_cast<double>(job.mappingInfo().endTime - job.mappingInfo().startTime) * scaleFactor_;
 
     /* == Compute coordinates == */

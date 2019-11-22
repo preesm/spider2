@@ -61,7 +61,7 @@ namespace spider {
 
             /* === Method(s) === */
 
-            inline void connectOutputEdge(Edge *, std::uint32_t) override;
+            inline void connectOutputEdge(Edge *, uint32_t) override;
 
             inline void visit(Visitor *visitor) override;
 
@@ -88,7 +88,7 @@ namespace spider {
 
         /* === Inline method(s) === */
 
-        void OutputInterface::connectOutputEdge(Edge *, std::uint32_t) {
+        void OutputInterface::connectOutputEdge(Edge *, uint32_t) {
             throwSpiderException("Can not connect output edge to output interface.");
         }
 

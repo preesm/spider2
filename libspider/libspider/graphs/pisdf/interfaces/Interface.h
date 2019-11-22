@@ -54,8 +54,8 @@ namespace spider {
         public:
 
             explicit Interface(std::string name = "unnamed-interface",
-                               std::uint32_t edgeINCount = 0,
-                               std::uint32_t edgeOUTCount = 0,
+                               uint32_t edgeINCount = 0,
+                               uint32_t edgeOUTCount = 0,
                                StackID stack = StackID::PISDF) : Vertex(std::move(name),
                                                                         edgeINCount,
                                                                         edgeOUTCount,

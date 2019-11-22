@@ -167,9 +167,9 @@ std::pair<PiSDFGraph *, PiSDFGraph *> spider::srdag::splitDynamicGraph(PiSDFGrap
     using spider::pisdf::VertexType;
 
     /* == Compute the input interface count for both graphs == */
-    std::uint32_t initInputIFCount = 0;
-    std::uint32_t initOutputIFCount = 0;
-    std::uint32_t cfgInputIFCount = 0;
+    uint32_t initInputIFCount = 0;
+    uint32_t initOutputIFCount = 0;
+    uint32_t cfgInputIFCount = 0;
     for (const auto &cfg : subgraph->configVertices()) {
         for (const auto &edge : cfg->inputEdgeArray()) {
             const auto &source = edge->source();
@@ -191,26 +191,26 @@ std::pair<PiSDFGraph *, PiSDFGraph *> spider::srdag::splitDynamicGraph(PiSDFGrap
     /* == Create the init subgraph == */
     auto *initGraph = spider::api::createSubraph(subgraph->containingGraph(),
                                                  "ginit-" + subgraph->name(),
-                                                 static_cast<std::uint32_t>(subgraph->configVertexCount()),
+                                                 static_cast<uint32_t>(subgraph->configVertexCount()),
                                                  initInputIFCount + initOutputIFCount + cfgInputIFCount,
                                                  0,
                                                  initInputIFCount,
                                                  initOutputIFCount + cfgInputIFCount,
-                                                 static_cast<std::uint32_t>(subgraph->configVertexCount()),
+                                                 static_cast<uint32_t>(subgraph->configVertexCount()),
                                                  StackID::PISDF);
 
     /* == Create the run subgraph == */
     auto *runGraph = spider::api::createSubraph(subgraph->containingGraph(),
                                                 "grun-" + subgraph->name(),
-                                                static_cast<std::uint32_t>(subgraph->vertexCount()),
-                                                static_cast<std::uint32_t>(subgraph->edgeCount()),
-                                                static_cast<std::uint32_t>(subgraph->paramCount()),
-                                                static_cast<std::uint32_t>(runInputIFCount),
-                                                static_cast<std::uint32_t>(runOutputIFCount),
+                                                static_cast<uint32_t>(subgraph->vertexCount()),
+                                                static_cast<uint32_t>(subgraph->edgeCount()),
+                                                static_cast<uint32_t>(subgraph->paramCount()),
+                                                static_cast<uint32_t>(runInputIFCount),
+                                                static_cast<uint32_t>(runOutputIFCount),
                                                 0, StackID::PISDF);
 
-    std::uint32_t inputInitIx = 0;
-    std::uint32_t inputRunIx = 0;
+    uint32_t inputInitIx = 0;
+    uint32_t inputRunIx = 0;
     for (const auto &input : subgraph->inputInterfaceArray()) {
         const auto &sink = input->opposite();
         if (sink->subtype() == VertexType::CONFIG) {
@@ -238,8 +238,8 @@ std::pair<PiSDFGraph *, PiSDFGraph *> spider::srdag::splitDynamicGraph(PiSDFGrap
         }
     }
 
-    std::uint32_t outputInitIx = 0;
-    std::uint32_t outputRunIx = 0;
+    uint32_t outputInitIx = 0;
+    uint32_t outputRunIx = 0;
     for (const auto &output : subgraph->outputInterfaceArray()) {
         const auto &source = output->opposite();
         if (source->subtype() == VertexType::CONFIG) {
@@ -331,7 +331,7 @@ spider::srdag::singleRateTransformation(const spider::srdag::TransfoJob &job, Pi
     const auto &subgraphCount = job.reference_->subgraphCount();
     init2dynamic_.resize(subgraphCount, UINT32_MAX);
     auto it = job.reference_->subgraphs().begin();
-    std::uint64_t i = 0;
+    uint64_t i = 0;
     while (i < subgraphCount) {
         auto &subgraph = (*it);
         auto &&result = splitDynamicGraph(subgraph);

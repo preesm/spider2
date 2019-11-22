@@ -62,7 +62,7 @@ namespace spider {
     class Platform {
     public:
 
-        explicit Platform(std::uint32_t clusterCount);
+        explicit Platform(uint32_t clusterCount);
 
         ~Platform();
 
@@ -84,7 +84,7 @@ namespace spider {
          * @return reference to the @refitem ProcessingElement found.
          * @throws Spider::Exception if there is no PE with given virtual ix in the platform.
          */
-        PE &findPE(std::uint32_t virtualIx) const;
+        PE &findPE(uint32_t virtualIx) const;
 
         /**
          * @brief Find the processing element in the platform from its cluster ix and its PE ix.
@@ -93,7 +93,7 @@ namespace spider {
          * @return reference to the @refitem ProcessingElement found.
          * @throws Spider::Exception if there is no PE with given cluster and PE ix in the platform.
          */
-        PE &findPE(std::uint32_t clusterIx, std::uint32_t PEIx) const;
+        PE &findPE(uint32_t clusterIx, uint32_t PEIx) const;
 
         /**
          * @brief Compute the data communication cost between two processing elements.
@@ -102,9 +102,9 @@ namespace spider {
          * @param dataSize   Size (in byte) of the data to send / receive.
          * @return communication cost (UINT64_MAX if communication is not possible).
          */
-        std::uint64_t dataCommunicationCostPEToPE(PE *PESrc,
-                                                  PE *PESnk,
-                                                  std::uint64_t dataSize);
+        uint64_t dataCommunicationCostPEToPE(PE *PESrc,
+                                             PE *PESnk,
+                                             uint64_t dataSize);
 
         /**
          * @brief Activate a processing element.
@@ -133,7 +133,7 @@ namespace spider {
          * @param clusterIx Ix of the cluster to get.
          * @return pointer to @refitem Spider::Cluster.
          */
-        inline Cluster *cluster(std::uint32_t clusterIx) const;
+        inline Cluster *cluster(uint32_t clusterIx) const;
 
         /**
          * @brief Get the processing element on which the GRT runs (in master-slave mode).
@@ -145,44 +145,44 @@ namespace spider {
          * @brief Get the cluster ix of the GRT.
          * @return ix of the cluster of the GRT PE, -1 if no GRT is set.
          */
-        std::int32_t spiderGRTClusterIx() const;
+        int32_t spiderGRTClusterIx() const;
 
         /**
          * @brief Get the ix of the GRT PE inside its cluster.
          * @return ix of the PE inside its cluster, -1 if no GRT is set.
          */
-        std::int32_t spiderGRTPEIx() const;
+        int32_t spiderGRTPEIx() const;
 
         /**
          * @brief Get the number of cluster in the platform.
          * @return Number of @refitem Cluster.
          */
-        inline std::uint32_t clusterCount() const;
+        inline uint32_t clusterCount() const;
 
         /**
          * @brief Get the number of memory unit in the platform (equivalent to the cluster count)
          * @return Number of @refitem MemoryUnit
          */
-        inline std::uint32_t memUnitCount() const;
+        inline uint32_t memUnitCount() const;
 
         /**
          * @brief Get the total number of PE in the platform (go through each cluster)
          * @return total number of @refitem ProcessingElement in the platform.
          */
-        std::size_t PECount() const;
+        size_t PECount() const;
 
         /**
          * @brief Get the total number of PE type in the platform (go through each cluster).
          * @remark This is equivalent to clusterCount() because all PE inside a cluster share the same PE type.
          * @return total number of PE type in the platform.
          */
-        inline std::uint32_t PETypeCount() const;
+        inline uint32_t PETypeCount() const;
 
         /**
          * @brief Get the total number of local runtimes in the platform (go through each cluster)
          * @return total number of @refitem ProcessingElement with the LRT_* @refitem Spider::PEType
          */
-        std::uint32_t LRTCount() const;
+        uint32_t LRTCount() const;
 
         /* === Setter(s) === */
 
@@ -201,7 +201,7 @@ namespace spider {
 
     private:
         spider::array<Cluster *> clusterArray_;
-        std::uint32_t clusterCount_ = 0;
+        uint32_t clusterCount_ = 0;
         PE *grtPE_ = nullptr;
 
         /* === Routines === */
@@ -217,7 +217,7 @@ namespace spider {
         return clusterArray_;
     }
 
-    Cluster *Platform::cluster(std::uint32_t clusterIx) const {
+    Cluster *Platform::cluster(uint32_t clusterIx) const {
         return clusterArray_[clusterIx];
     }
 
@@ -225,15 +225,15 @@ namespace spider {
         return grtPE_;
     }
 
-    std::uint32_t Platform::clusterCount() const {
+    uint32_t Platform::clusterCount() const {
         return clusterCount_;
     }
 
-    std::uint32_t Platform::memUnitCount() const {
+    uint32_t Platform::memUnitCount() const {
         return clusterCount_;
     }
 
-    std::uint32_t Platform::PETypeCount() const {
+    uint32_t Platform::PETypeCount() const {
         return clusterCount();
     }
 

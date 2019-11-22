@@ -49,60 +49,60 @@
 namespace spider {
     namespace math {
 
-        inline std::uint16_t ceilDiv(std::uint16_t x, std::uint16_t y) {
-            return static_cast<std::uint16_t>(x / y + (x % y != 0));
+        inline uint16_t ceilDiv(uint16_t x, uint16_t y) {
+            return static_cast<uint16_t>(x / y + (x % y != 0));
         }
 
-        inline std::uint32_t ceilDiv(std::uint32_t x, std::uint32_t y) {
+        inline uint32_t ceilDiv(uint32_t x, uint32_t y) {
             return x / y + (x % y != 0);
         }
 
-        inline std::uint64_t ceilDiv(std::uint64_t x, std::uint64_t y) {
+        inline uint64_t ceilDiv(uint64_t x, uint64_t y) {
             return x / y + (x % y != 0);
         }
 
-        inline std::int32_t ceilDiv(std::int32_t x, std::int32_t y) {
+        inline int32_t ceilDiv(int32_t x, int32_t y) {
             auto neg = (x < 0 && y > 0) || (x > 0 && y < 0);
             auto a = static_cast<uint32_t>((x < 0 ? (-x) : x));
             auto b = static_cast<uint32_t>((y < 0 ? (-y) : y));
             return neg ? -static_cast<int32_t>(a / b) : static_cast<int32_t>(ceilDiv(a, b));
         }
 
-        inline std::int64_t ceilDiv(std::int64_t x, std::int64_t y) {
+        inline int64_t ceilDiv(int64_t x, int64_t y) {
             auto neg = (x < 0 && y > 0) || (x > 0 && y < 0);
             auto a = static_cast<uint64_t>((x < 0 ? (-x) : x));
             auto b = static_cast<uint64_t>((y < 0 ? (-y) : y));
             return neg ? -static_cast<int64_t>(a / b) : static_cast<int64_t>(ceilDiv(a, b));
         }
 
-        inline std::int64_t floorDiv(std::int64_t x, std::int64_t y) {
+        inline int64_t floorDiv(int64_t x, int64_t y) {
             auto neg = (x < 0 && y > 0) || (x > 0 && y < 0);
             auto a = static_cast<uint64_t>((x < 0 ? (-x) : x));
             auto b = static_cast<uint64_t>((y < 0 ? (-y) : y));
             return neg ? -static_cast<int64_t>(ceilDiv(a, b)) : static_cast<int64_t>(a / b);
         }
 
-        inline std::int32_t floorDiv(std::int32_t x, std::int32_t y) {
+        inline int32_t floorDiv(int32_t x, int32_t y) {
             auto neg = (x < 0 && y > 0) || (x > 0 && y < 0);
             auto a = static_cast<uint32_t>((x < 0 ? (-x) : x));
             auto b = static_cast<uint32_t>((y < 0 ? (-y) : y));
             return neg ? -static_cast<int32_t>(ceilDiv(a, b)) : static_cast<int32_t>(a / b);
         }
 
-        inline std::int16_t abs(std::int16_t x) {
-            return static_cast<std::int16_t>(x < 0 ? -x : x);
+        inline int16_t abs(int16_t x) {
+            return static_cast<int16_t>(x < 0 ? -x : x);
         }
 
-        inline std::int32_t abs(std::int32_t x) {
+        inline int32_t abs(int32_t x) {
             return x < 0 ? -x : x;
         }
 
-        inline std::int64_t abs(std::int64_t x) {
+        inline int64_t abs(int64_t x) {
             return x < 0 ? -x : x;
         }
 
-        inline std::int64_t gcd(std::int64_t x, std::int64_t y) {
-            std::int64_t t;
+        inline int64_t gcd(int64_t x, int64_t y) {
+            int64_t t;
             while (y != 0) {
                 t = y;
                 y = x % y;
@@ -111,8 +111,8 @@ namespace spider {
             return x;
         }
 
-        inline std::uint64_t gcd(std::uint64_t x, std::uint64_t y) {
-            std::uint64_t t;
+        inline uint64_t gcd(uint64_t x, uint64_t y) {
+            uint64_t t;
             while (y != 0) {
                 t = y;
                 y = x % y;
@@ -121,19 +121,19 @@ namespace spider {
             return x;
         }
 
-        inline std::int64_t lcm(std::int64_t a, std::int64_t b) {
+        inline int64_t lcm(int64_t a, int64_t b) {
             return spider::math::abs(a * b) / spider::math::gcd(a, b);
         }
 
-        inline std::uint64_t lcm(std::uint64_t a, std::uint64_t b) {
+        inline uint64_t lcm(uint64_t a, uint64_t b) {
             return (a * b) / spider::math::gcd(a, b);
         }
 
-        inline std::uint64_t saturateAdd(std::uint64_t a, std::uint64_t b) {
+        inline uint64_t saturateAdd(uint64_t a, uint64_t b) {
             return b > (UINT64_MAX - a) ? UINT64_MAX : a + b;
         }
 
-        inline std::uint32_t saturateAdd(std::uint32_t a, std::uint32_t b) {
+        inline uint32_t saturateAdd(uint32_t a, uint32_t b) {
             return b > (UINT32_MAX - a) ? UINT32_MAX : a + b;
         }
     }

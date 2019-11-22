@@ -50,7 +50,7 @@
 
 /* === Method(s) implementation === */
 
-spider::Platform::Platform(std::uint32_t clusterCount) : clusterArray_{ clusterCount, StackID::ARCHI } {
+spider::Platform::Platform(uint32_t clusterCount) : clusterArray_{ clusterCount, StackID::ARCHI } {
 }
 
 spider::Platform::~Platform() {
@@ -77,7 +77,7 @@ spider::PE &spider::Platform::findPE(const std::string &name) const {
     throwSpiderException("Unable to find PE of name: %s in any of the platform clusters.", name.c_str());
 }
 
-spider::PE &spider::Platform::findPE(std::uint32_t virtualIx) const {
+spider::PE &spider::Platform::findPE(uint32_t virtualIx) const {
     for (const auto &cluster : clusterArray_) {
         for (auto &pe : cluster->processingElements()) {
             if (pe->virtualIx() == virtualIx) {
@@ -90,12 +90,12 @@ spider::PE &spider::Platform::findPE(std::uint32_t virtualIx) const {
                                  " in any of the platform clusters.", virtualIx);
 }
 
-spider::PE &spider::Platform::findPE(std::uint32_t clusterIx, std::uint32_t PEIx) const {
+spider::PE &spider::Platform::findPE(uint32_t clusterIx, uint32_t PEIx) const {
     auto *cluster = clusterArray_.at(clusterIx);
     return *(cluster->processingElements().at(PEIx));
 }
 
-std::size_t spider::Platform::PECount() const {
+size_t spider::Platform::PECount() const {
     size_t PECount = 0;
     for (auto &cluster : clusterArray_) {
         PECount += cluster->PECount();
@@ -103,22 +103,22 @@ std::size_t spider::Platform::PECount() const {
     return PECount;
 }
 
-std::uint32_t spider::Platform::LRTCount() const {
-    std::uint32_t LRTCount = 0;
+uint32_t spider::Platform::LRTCount() const {
+    uint32_t LRTCount = 0;
     for (auto &cluster : clusterArray_) {
         LRTCount += cluster->LRTCount();
     }
     return LRTCount;
 }
 
-std::int32_t spider::Platform::spiderGRTClusterIx() const {
+int32_t spider::Platform::spiderGRTClusterIx() const {
     if (grtPE_) {
         return static_cast<int32_t>(grtPE_->cluster()->ix());
     }
     return -1;
 }
 
-std::int32_t spider::Platform::spiderGRTPEIx() const {
+int32_t spider::Platform::spiderGRTPEIx() const {
     if (grtPE_) {
         return static_cast<int32_t>(grtPE_->clusterPEIx());
     }
@@ -140,9 +140,9 @@ void spider::Platform::disablePE(PE *const PE) const {
     }
 }
 
-std::uint64_t spider::Platform::dataCommunicationCostPEToPE(PE *PESrc,
-                                                            PE *PESnk,
-                                                            std::uint64_t dataSize) {
+uint64_t spider::Platform::dataCommunicationCostPEToPE(PE *PESrc,
+                                                       PE *PESnk,
+                                                       uint64_t dataSize) {
     /* == Test if it is an intra or inter cluster communication == */
     if (PESrc->cluster()->ix() == PESnk->cluster()->ix()) {
         /* == Intra cluster, communication cost is the read / write to the cluster memory cost == */

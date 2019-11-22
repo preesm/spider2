@@ -53,7 +53,7 @@ namespace spider {
 
         using JobStack = spider::vector<TransfoJob>;
 
-        using TransfoTracker = spider::vector<std::uint32_t>;
+        using TransfoTracker = spider::vector<uint32_t>;
 
         /* === Struct definition === */
 

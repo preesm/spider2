@@ -59,23 +59,23 @@ public:
 private:
     struct EdgeLinker {
         PiSDFAbstractVertex *vertex = nullptr;
-        std::uint64_t rate = 0;
-        std::uint32_t portIx = 0;
+        uint64_t rate = 0;
+        uint32_t portIx = 0;
 
         EdgeLinker() = default;
 
-        EdgeLinker(PiSDFAbstractVertex *vertex, std::uint64_t rate, std::uint32_t portIx) : vertex{ vertex },
-                                                                                            rate{ rate },
-                                                                                            portIx{ portIx } { };
+        EdgeLinker(PiSDFAbstractVertex *vertex, uint64_t rate, uint32_t portIx) : vertex{ vertex },
+                                                                                  rate{ rate },
+                                                                                  portIx{ portIx } { };
     };
 
-    inline std::uint32_t computeNJoinEdge(std::uint64_t sinkRate,
-                                          spider::array<EdgeLinker> &sourceArray,
-                                          std::size_t sourceIx) const;
+    inline uint32_t computeNJoinEdge(uint64_t sinkRate,
+                                     spider::array<EdgeLinker> &sourceArray,
+                                     size_t sourceIx) const;
 
-    inline std::uint32_t computeNForkEdge(std::uint64_t sourceRate,
-                                          spider::array<EdgeLinker> &sinkArray,
-                                          std::size_t sinkIx) const;
+    inline uint32_t computeNForkEdge(uint64_t sourceRate,
+                                     spider::array<EdgeLinker> &sinkArray,
+                                     size_t sinkIx) const;
 };
 
 bool PiSDFJoinForkOptimizer::operator()(PiSDFGraph *graph) const {
@@ -100,13 +100,13 @@ bool PiSDFJoinForkOptimizer::operator()(PiSDFGraph *graph) const {
         spider::array<EdgeLinker> sinkArray{ fork->outputEdgeCount(), StackID::TRANSFO };
 
         for (auto *edge : join->inputEdgeArray()) {
-            const auto &rate = static_cast<std::uint64_t>(edge->sourceRateExpression().evaluate(params));
+            const auto &rate = static_cast<uint64_t>(edge->sourceRateExpression().evaluate(params));
             sourceArray[edge->sinkPortIx()] = EdgeLinker{ edge->source(), rate, edge->sourcePortIx() };
             graph->removeEdge(edge);
         }
         graph->removeEdge(join->outputEdge(0));
         for (auto *edge : fork->outputEdgeArray()) {
-            const auto &rate = static_cast<std::uint64_t>(edge->sinkRateExpression().evaluate(params));
+            const auto &rate = static_cast<uint64_t>(edge->sinkRateExpression().evaluate(params));
             sinkArray[edge->sourcePortIx()] = EdgeLinker{ edge->sink(), rate, edge->sinkPortIx() };
             graph->removeEdge(edge);
         }
@@ -116,22 +116,22 @@ bool PiSDFJoinForkOptimizer::operator()(PiSDFGraph *graph) const {
         graph->removeVertex(fork);
 
         /* == Re-do the linking == */
-        std::uint32_t sourceIx = 0;
-        std::uint32_t forkEdgeIx = 0;
-        for (std::size_t sinkIx = 0; sinkIx < sinkArray.size(); ++sinkIx) {
+        uint32_t sourceIx = 0;
+        uint32_t forkEdgeIx = 0;
+        for (size_t sinkIx = 0; sinkIx < sinkArray.size(); ++sinkIx) {
             auto &sink = sinkArray[sinkIx];
             auto &source = sourceArray[sourceIx];
             if (sink.rate == source.rate) {
                 auto sourcePortIx = source.portIx == UINT32_MAX ? forkEdgeIx : source.portIx;
-                const auto &srcRate = static_cast<std::int64_t>(source.rate);
-                const auto &snkRate = static_cast<std::int64_t>(sink.rate);
+                const auto &srcRate = static_cast<int64_t>(source.rate);
+                const auto &snkRate = static_cast<int64_t>(sink.rate);
                 spider::api::createEdge(source.vertex, sourcePortIx, srcRate, sink.vertex, sink.portIx, snkRate,
                                         StackID::TRANSFO);
                 sourceIx += 1;
             } else if (source.rate > sink.rate) {
                 if (source.portIx == UINT32_MAX) {
                     /* == Case of added Fork == */
-                    const auto &snkRate = static_cast<std::int64_t>(sink.rate);
+                    const auto &snkRate = static_cast<int64_t>(sink.rate);
                     spider::api::createEdge(source.vertex, forkEdgeIx, snkRate, sink.vertex, sink.portIx, snkRate,
                                             StackID::TRANSFO);
                     source.rate -= sink.rate;
@@ -144,10 +144,10 @@ bool PiSDFJoinForkOptimizer::operator()(PiSDFGraph *graph) const {
                                                               std::to_string(source.portIx),
                                                               nForkEdge,
                                                               StackID::TRANSFO);
-                    const auto &srcRate = static_cast<std::int64_t>(source.rate);
+                    const auto &srcRate = static_cast<int64_t>(source.rate);
                     spider::api::createEdge(source.vertex, source.portIx, srcRate, addedFork, 0, srcRate,
                                             StackID::TRANSFO);
-                    const auto &snkRate = static_cast<std::int64_t>(sink.rate);
+                    const auto &snkRate = static_cast<int64_t>(sink.rate);
                     spider::api::createEdge(addedFork, 0, snkRate, sink.vertex, sink.portIx, snkRate,
                                             StackID::TRANSFO);
                     source.vertex = addedFork;
@@ -165,26 +165,26 @@ bool PiSDFJoinForkOptimizer::operator()(PiSDFGraph *graph) const {
                                                           std::to_string(sink.portIx),
                                                           nJoinEdge,
                                                           StackID::TRANSFO);
-                const auto &snkRate = static_cast<std::int64_t>(sink.rate);
+                const auto &snkRate = static_cast<int64_t>(sink.rate);
                 spider::api::createEdge(addedJoin, 0, snkRate, sink.vertex, sink.portIx, snkRate,
                                         StackID::TRANSFO);
-                for (std::uint64_t joinPortIx = 0; joinPortIx < addedJoin->inputEdgeCount(); ++joinPortIx) {
+                for (uint64_t joinPortIx = 0; joinPortIx < addedJoin->inputEdgeCount(); ++joinPortIx) {
                     source = sourceArray[sourceIx];
                     if (source.rate <= sink.rate) {
                         auto sourcePortIx = source.portIx == UINT32_MAX ? forkEdgeIx : source.portIx;
-                        const auto &srcRate = static_cast<std::int64_t>(source.rate);
+                        const auto &srcRate = static_cast<int64_t>(source.rate);
                         spider::api::createEdge(source.vertex,
                                                 sourcePortIx,
                                                 srcRate,
                                                 addedJoin,
-                                                static_cast<std::uint32_t >(joinPortIx),
+                                                static_cast<uint32_t >(joinPortIx),
                                                 srcRate,
                                                 StackID::TRANSFO);
                         sink.rate -= source.rate;
                         sourceIx += 1;
                     } else {
                         sink.vertex = addedJoin;
-                        sink.portIx = static_cast<std::uint32_t >(joinPortIx);
+                        sink.portIx = static_cast<uint32_t >(joinPortIx);
                         sinkIx -= 1;
                     }
                 }
@@ -194,11 +194,11 @@ bool PiSDFJoinForkOptimizer::operator()(PiSDFGraph *graph) const {
     return verticesToOptimize.empty();
 }
 
-std::uint32_t PiSDFJoinForkOptimizer::computeNJoinEdge(std::uint64_t sinkRate,
-                                                       spider::array<EdgeLinker> &sourceArray,
-                                                       std::size_t sourceIx) const {
-    std::uint32_t nJoinEdge = 0;
-    std::uint64_t totalRate = 0;
+uint32_t PiSDFJoinForkOptimizer::computeNJoinEdge(uint64_t sinkRate,
+                                                  spider::array<EdgeLinker> &sourceArray,
+                                                  size_t sourceIx) const {
+    uint32_t nJoinEdge = 0;
+    uint64_t totalRate = 0;
     while (sinkRate > totalRate) {
         totalRate += sourceArray[sourceIx].rate;
         nJoinEdge += 1;
@@ -207,11 +207,11 @@ std::uint32_t PiSDFJoinForkOptimizer::computeNJoinEdge(std::uint64_t sinkRate,
     return nJoinEdge;
 }
 
-std::uint32_t PiSDFJoinForkOptimizer::computeNForkEdge(std::uint64_t sourceRate,
-                                                       spider::array<EdgeLinker> &sinkArray,
-                                                       std::size_t sinkIx) const {
-    std::uint32_t nForkEdge = 0;
-    std::uint64_t totalRate = 0;
+uint32_t PiSDFJoinForkOptimizer::computeNForkEdge(uint64_t sourceRate,
+                                                  spider::array<EdgeLinker> &sinkArray,
+                                                  size_t sinkIx) const {
+    uint32_t nForkEdge = 0;
+    uint64_t totalRate = 0;
     while (sourceRate > totalRate) {
         totalRate += sinkArray[sinkIx].rate;
         nForkEdge += 1;

@@ -59,25 +59,25 @@ namespace spider {
 
     /* === Routine(s) === */
 
-    using CommunicationCostRoutine = std::uint64_t (*)(
-            /* = Number of bytes  = */ std::uint64_t
-                                                      );
+    using CommunicationCostRoutine = uint64_t (*)(
+            /* = Number of bytes  = */ uint64_t
+                                                 );
 
-    using CommunicationCostRoutineC2C = std::uint64_t (*)(
-            /* = Source Cluster ix  = */ std::uint32_t,
-            /* = Sink Cluster ix  = */ std::uint32_t,
-            /* = Number of bytes  = */ std::uint64_t
-                                                         );
+    using CommunicationCostRoutineC2C = uint64_t (*)(
+            /* = Source Cluster ix  = */ uint32_t,
+            /* = Sink Cluster ix  = */ uint32_t,
+            /* = Number of bytes  = */ uint64_t
+                                                    );
 
-    inline std::uint64_t defaultC2CZeroCommunicationCost(std::uint32_t, std::uint32_t, std::uint64_t) {
+    inline uint64_t defaultC2CZeroCommunicationCost(uint32_t, uint32_t, uint64_t) {
         return 0;
     }
 
-    inline std::uint64_t defaultZeroCommunicationCost(std::uint64_t) {
+    inline uint64_t defaultZeroCommunicationCost(uint64_t) {
         return 0;
     }
 
-    inline std::uint64_t defaultInfiniteCommunicationCost(std::uint64_t) {
+    inline uint64_t defaultInfiniteCommunicationCost(uint64_t) {
         return UINT64_MAX;
     }
 
@@ -103,9 +103,9 @@ namespace spider {
     /* === Structure(s) === */
 
     struct PlatformConfig {
-        std::uint32_t PECount;
-        std::uint32_t PETypeCount;
-        std::uint32_t memoryUnitCount;
+        uint32_t PECount;
+        uint32_t PETypeCount;
+        uint32_t memoryUnitCount;
     };
 
     /* === Function(s) prototype === */
@@ -126,7 +126,7 @@ namespace spider {
          * @return pointer to the newly created @refitem Platform
          * @throws @refitem Spider::Exception if a platform already exists.
          */
-        Platform *createPlatform(std::uint32_t clusterCount = 1);
+        Platform *createPlatform(uint32_t clusterCount = 1);
 
         /**
          * @brief Set the Global Run-Time (GRT) PE.
@@ -148,7 +148,7 @@ namespace spider {
          * @param memoryUnit   Memory unit of the cluster.
          * @return pointer to the newly created @refitem Cluster.
          */
-        Cluster *createCluster(std::uint32_t PECount, MemoryUnit *memoryUnit);
+        Cluster *createCluster(uint32_t PECount, MemoryUnit *memoryUnit);
 
         /**
          * @brief Set the write cost method for writing into cluster memory.
@@ -177,9 +177,9 @@ namespace spider {
          * @param spiderHWType  Spider hardware type.
          * @return Pointer to newly created @refitem ProcessingElement, associated memory is handled by spider.
          */
-        PE *createPE(std::uint32_t hwType,
-                     std::uint32_t hwID,
-                     std::uint32_t virtID,
+        PE *createPE(uint32_t hwType,
+                     uint32_t hwID,
+                     uint32_t virtID,
                      Cluster *cluster,
                      const std::string &name,
                      spider::PEType spiderPEType = spider::PEType::LRT_PE,
@@ -226,7 +226,7 @@ namespace spider {
          * @param size  Size of the MemoryUnit.
          * @return Pointer to newly created @refitem MemoryUnit, associated memory is handled by spider.
          */
-        MemoryUnit *createMemoryUnit(void *base, std::uint64_t size);
+        MemoryUnit *createMemoryUnit(void *base, uint64_t size);
     }
 }
 

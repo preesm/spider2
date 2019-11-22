@@ -157,7 +157,7 @@ namespace spider {
 
             inline void vertexHeaderPrinter(const std::string &name,
                                             const std::string &color = "#ffffff00",
-                                            std::int32_t border = 2,
+                                            int32_t border = 2,
                                             const std::string &style = "") const {
                 file_ << offset_ << R"(")" << name
                       << R"(" [shape=plain, color="#393c3c", width=0, height=0, label=<)"
@@ -167,11 +167,11 @@ namespace spider {
 
             }
 
-            std::pair<std::int32_t, std::int32_t> computeConstantWidth(Vertex *vertex) const;
+            std::pair<int32_t, int32_t> computeConstantWidth(Vertex *vertex) const;
 
             void vertexPrinter(ExecVertex *vertex,
                                const std::string &color,
-                               std::int32_t border = 2,
+                               int32_t border = 2,
                                const std::string &style = "") const;
 
             void interfaceBodyPrinter(Interface *interface, const std::string &color) const;
@@ -181,7 +181,7 @@ namespace spider {
             void paramPrinter(Param *param) const;
 
             template<bool = true>
-            inline void dummyPortPrinter(std::uint32_t width, const std::string &color) const {
+            inline void dummyPortPrinter(uint32_t width, const std::string &color) const {
                 /* == Header == */
                 portHeaderPrinter();
 
@@ -202,7 +202,7 @@ namespace spider {
             }
 
             template<bool>
-            inline void portPrinter(const Edge *edge, std::uint32_t width, const std::string &color) const {
+            inline void portPrinter(const Edge *edge, uint32_t width, const std::string &color) const {
                 /* == Header == */
                 portHeaderPrinter();
 
@@ -239,7 +239,7 @@ namespace spider {
         /* === Inline method(s) === */
 
         template<>
-        inline void DOTExporterVisitor::dummyPortPrinter<false>(std::uint32_t width, const std::string &color) const {
+        inline void DOTExporterVisitor::dummyPortPrinter<false>(uint32_t width, const std::string &color) const {
             /* == Header == */
             portHeaderPrinter();
 
@@ -261,7 +261,7 @@ namespace spider {
 
         template<>
         inline void
-        DOTExporterVisitor::portPrinter<false>(const Edge *edge, std::uint32_t width, const std::string &color) const {
+        DOTExporterVisitor::portPrinter<false>(const Edge *edge, uint32_t width, const std::string &color) const {
             /* == Header == */
             portHeaderPrinter();
 

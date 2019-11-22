@@ -114,7 +114,7 @@ namespace spider {
          * @return execution timing.
          * @throws @refitem std::out_of_range if vertex or PEType do not exist in the lookup table.
          */
-        std::int64_t executionTiming(const spider::pisdf::Vertex *vertex, std::uint32_t PEType) const;
+        int64_t executionTiming(const spider::pisdf::Vertex *vertex, uint32_t PEType) const;
 
         /**
          * @brief Get the execution timing of a given vertex on a specific PE.
@@ -124,7 +124,7 @@ namespace spider {
          * @return execution timing.
          * @throws @refitem std::out_of_range if vertex or PEType do not exist in the lookup table.
          */
-        std::int64_t executionTiming(const spider::pisdf::Vertex *vertex, const PE *PE) const;
+        int64_t executionTiming(const spider::pisdf::Vertex *vertex, const PE *PE) const;
 
         /* === Setter(s) === */
 
@@ -141,7 +141,7 @@ namespace spider {
          * @param PECount   Number of PE in the platform.
          * @param value     Constraint value to set (true if mappable, false else).
          */
-        void setMappingConstraints(const spider::pisdf::Vertex *vertex, std::uint32_t PECount, bool value);
+        void setMappingConstraints(const spider::pisdf::Vertex *vertex, uint32_t PECount, bool value);
 
         /**
          * @brief Set the mapping constraint of a given vertex for a given processing element of the platform.
@@ -149,7 +149,7 @@ namespace spider {
          * @param spiderPEIx   Ix of the PE in spider.
          * @param value        Constraint to set (true if mappable, false else)
          */
-        void setMappingConstraint(const spider::pisdf::Vertex *vertex, std::uint32_t spiderPEIx, bool value);
+        void setMappingConstraint(const spider::pisdf::Vertex *vertex, uint32_t spiderPEIx, bool value);
 
         /**
          * @brief Set the mapping constraint of a given vertex for a given processing element of the platform.
@@ -165,7 +165,7 @@ namespace spider {
          * @param timings   Timings to set (as initialization list).
          */
         void
-        setExecutionTimings(const spider::pisdf::Vertex *vertex, const std::initializer_list<std::int64_t> &timings);
+        setExecutionTimings(const spider::pisdf::Vertex *vertex, const std::initializer_list<int64_t> &timings);
 
         /**
          * @brief Set the execution timings of a given vertex for all possible processing elements of the platform.
@@ -173,7 +173,7 @@ namespace spider {
          * @param PETypeCount   Number of PE in the platform.
          * @param value     Constraint value to set (true if mappable, false else).
          */
-        void setExecutionTimings(const spider::pisdf::Vertex *vertex, std::uint32_t PETypeCount, std::int64_t value);
+        void setExecutionTimings(const spider::pisdf::Vertex *vertex, uint32_t PETypeCount, int64_t value);
 
         /**
          * @brief Set the execution timing of a given vertex for a given processing element type of the platform.
@@ -182,7 +182,7 @@ namespace spider {
          * @param PE      Processing element.
          * @param value   Timing to set.
          */
-        void setExecutionTiming(const spider::pisdf::Vertex *vertex, const PE *PE, std::int64_t value);
+        void setExecutionTiming(const spider::pisdf::Vertex *vertex, const PE *PE, int64_t value);
 
         /**
          * @brief Set the execution timing of a given vertex for a given processing element type of the platform.
@@ -200,7 +200,7 @@ namespace spider {
          * @param PEType  Processing element type (i.e the type of the cluster it belongs. ex: ARM_A7).
          * @param value   Timing to set.
          */
-        void setExecutionTiming(const spider::pisdf::Vertex *vertex, std::uint32_t PEType, std::int64_t value);
+        void setExecutionTiming(const spider::pisdf::Vertex *vertex, uint32_t PEType, int64_t value);
 
         /**
          * @brief Set the execution timing of a given vertex for a given processing element type of the platform.
@@ -210,7 +210,7 @@ namespace spider {
          * @param expression Expression of the timing to set.
          */
         void
-        setExecutionTiming(const spider::pisdf::Vertex *vertex, std::uint32_t PEType, const std::string &expression);
+        setExecutionTiming(const spider::pisdf::Vertex *vertex, uint32_t PEType, const std::string &expression);
 
     private:
 

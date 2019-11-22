@@ -64,7 +64,7 @@ int print() {
 std::mutex mutex_;
 
 
-void fn(std::int32_t id, std::int32_t affinity) {
+void fn(int32_t id, int32_t affinity) {
     spider::this_thread::set_affinity(affinity);
     std::lock_guard<std::mutex> loc{ mutex_ };
     std::cout << "Thread #" << id << ": on CPU " << spider::this_thread::get_affinity() << "\n";

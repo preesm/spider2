@@ -128,7 +128,7 @@ namespace spider {
          * @attention This method does not destroy the object, use @refitem Allocator::destroy
          * @param ptr Raw pointer to deallocate
          */
-        inline void deallocate(pointer_type ptr, std::size_t) {
+        inline void deallocate(pointer_type ptr, size_t) {
             allocator_->deallocate(ptr);
         }
 

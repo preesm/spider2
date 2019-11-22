@@ -74,7 +74,7 @@ namespace spider {
         Last = LINEAR_STATIC, /*!< Sentry for EnumIterator::end */
     };
 
-    constexpr std::size_t ALLOCATOR_COUNT = static_cast<std::size_t>(AllocatorType::Last) + 1;
+    constexpr size_t ALLOCATOR_COUNT = static_cast<size_t>(AllocatorType::Last) + 1;
 
     /* == Functions used for creating / destroying allocators == */
 
@@ -93,12 +93,12 @@ namespace spider {
     }
 
     inline AbstractAllocator *&allocator(StackID stack) {
-        return allocatorArray()[static_cast<std::size_t>(stack)];
+        return allocatorArray()[static_cast<size_t>(stack)];
     }
 
     template<StackID stack>
     constexpr inline AbstractAllocator *&allocator() {
-        return allocatorArray()[static_cast<std::int32_t>(stack)];
+        return allocatorArray()[static_cast<int32_t>(stack)];
     }
 
     template<AllocatorType Type, class ...Args>
@@ -151,18 +151,18 @@ namespace spider {
      * @return pointer to allocated buffer, nullptr if size is 0.
      */
     template<typename T>
-    inline T *allocate(StackID stack, std::size_t size = 1) {
+    inline T *allocate(StackID stack, size_t size = 1) {
         auto *&worker = allocator(stack);
         if (!worker) {
             throwSpiderException("Allocating memory with non-initialized allocator.");
         }
         /* == Allocate buffer with (size + 1) to store stack identifier == */
-        auto buffer = reinterpret_cast<uintptr_t>(worker->allocate(size * sizeof(T) + sizeof(std::uint64_t)));
+        auto buffer = reinterpret_cast<uintptr_t>(worker->allocate(size * sizeof(T) + sizeof(uint64_t)));
 
         /* == Return allocated buffer == */
         if (buffer) {
-            reinterpret_cast<std::uint64_t *>(buffer)[0] = static_cast<std::uint64_t>(stack);
-            buffer = buffer + sizeof(std::uint64_t);
+            reinterpret_cast<uint64_t *>(buffer)[0] = static_cast<uint64_t>(stack);
+            buffer = buffer + sizeof(uint64_t);
             return reinterpret_cast<T *>(buffer);
         }
         return nullptr;
@@ -204,7 +204,7 @@ namespace spider {
             return;
         }
         /* == Retrieve stack id == */
-        auto *originalPtr = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(ptr) - sizeof(std::uint64_t));
+        auto *originalPtr = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(ptr) - sizeof(uint64_t));
         auto stackId = static_cast<StackID>(reinterpret_cast<uint64_t *>(originalPtr)[0]);
 
         /* == Deallocate the pointer == */

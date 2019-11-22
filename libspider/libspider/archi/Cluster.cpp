@@ -51,10 +51,10 @@
 
 /* === Method(s) implementation === */
 
-spider::Cluster::Cluster(std::uint32_t PECount, MemoryUnit *memoryUnit) : PEArray_{ PECount, StackID::ARCHI },
-                                                                          PEEnabledVector_(PECount, false),
-                                                                          platform_{ spider::platform() },
-                                                                          memoryUnit_{ memoryUnit } {
+spider::Cluster::Cluster(uint32_t PECount, MemoryUnit *memoryUnit) : PEArray_{ PECount, StackID::ARCHI },
+                                                                     PEEnabledVector_(PECount, false),
+                                                                     platform_{ spider::platform() },
+                                                                     memoryUnit_{ memoryUnit } {
     /* == Add the cluster to the platform == */
     platform_->addCluster(this);
 
@@ -82,6 +82,6 @@ void spider::Cluster::addPE(PE *PE) {
     LRTCount_ += PE->isLRT();
 }
 
-std::uint32_t spider::Cluster::PEType() const {
+uint32_t spider::Cluster::PEType() const {
     return PEArray_[0]->hardwareType();
 }

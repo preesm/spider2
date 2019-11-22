@@ -93,16 +93,16 @@ namespace spider {
          * @param endTime     End time of the job.
          */
         void setJobInformation(sched::Job *job,
-                               std::pair<std::uint32_t, std::uint32_t> slave,
-                               std::uint64_t startTime,
-                               std::uint64_t endTime);
+                               std::pair<uint32_t, uint32_t> slave,
+                               uint64_t startTime,
+                               uint64_t endTime);
 
         /**
          * @brief Compute the minimum start time possible for a given vertex.
          * @param vertex  Vertex to evaluate.
          * @return Minimum start time for the vertex.
          */
-        std::uint64_t computeMinStartTime(const PiSDFAbstractVertex *vertex);
+        uint64_t computeMinStartTime(const PiSDFAbstractVertex *vertex);
 
         /**
          * @brief Default vertex mapper that try to best fit.

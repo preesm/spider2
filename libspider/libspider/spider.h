@@ -60,28 +60,28 @@ namespace spider {
 
     namespace api {
 
-        void createGenericStack(StackID stack, const std::string &name, std::size_t alignment = sizeof(std::uint64_t));
+        void createGenericStack(StackID stack, const std::string &name, size_t alignment = sizeof(uint64_t));
 
         void createFreeListStack(StackID stack,
                                  const std::string &name,
-                                 std::size_t staticBufferSize,
+                                 size_t staticBufferSize,
                                  FreeListPolicy policy = FreeListPolicy::FIND_FIRST,
-                                 std::size_t alignment = sizeof(std::uint64_t));
+                                 size_t alignment = sizeof(uint64_t));
 
         void createLinearStaticStack(StackID stack,
                                      const std::string &name,
-                                     std::size_t totalSize,
-                                     std::size_t alignment = sizeof(std::uint64_t));
+                                     size_t totalSize,
+                                     size_t alignment = sizeof(uint64_t));
 
         void createLinearStaticStack(StackID stack,
                                      const std::string &name,
-                                     std::size_t totalSize,
+                                     size_t totalSize,
                                      void *base,
-                                     std::size_t alignment = sizeof(std::uint64_t));
+                                     size_t alignment = sizeof(uint64_t));
 
-        void createLIFOStaticStack(StackID stack, const std::string &name, std::size_t totalSize);
+        void createLIFOStaticStack(StackID stack, const std::string &name, size_t totalSize);
 
-        void createLIFOStaticStack(StackID stack, const std::string &name, std::size_t totalSize, void *base);
+        void createLIFOStaticStack(StackID stack, const std::string &name, size_t totalSize, void *base);
     }
 
 }

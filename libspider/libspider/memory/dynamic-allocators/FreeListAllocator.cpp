@@ -44,18 +44,18 @@
 
 /* === Constant(s) === */
 
-constexpr std::size_t MIN_CHUNK_SIZE = 8192;
+constexpr size_t MIN_CHUNK_SIZE = 8192;
 
 /* === Methods implementation === */
 
 FreeListAllocator::FreeListAllocator(std::string name,
-                                     std::size_t staticBufferSize,
+                                     size_t staticBufferSize,
                                      FreeListPolicy policy,
-                                     std::size_t alignment) :
+                                     size_t alignment) :
         DynamicAllocator(std::move(name), alignment),
         staticBufferSize_{ std::max(staticBufferSize, MIN_CHUNK_SIZE) } {
     if (alignment < 8) {
-        throwSpiderException("Memory alignment should be at least of size sizeof(std::uint64_t) = 8 bytes.");
+        throwSpiderException("Memory alignment should be at least of size sizeof(uint64_t) = 8 bytes.");
     }
 
     /* == We need extra space for the Node structure == */
@@ -77,14 +77,14 @@ FreeListAllocator::~FreeListAllocator() {
     }
 }
 
-void *FreeListAllocator::allocate(std::size_t size) {
+void *FreeListAllocator::allocate(size_t size) {
     if (!size) {
         return nullptr;
     }
     if (size < sizeof(Node)) {
         size = size + sizeof(Node);
     }
-    std::size_t padding = 0;
+    size_t padding = 0;
 
     /* == Find first / best node fitting memory requirement == */
     const auto &result = findNode_(size, &padding, alignment_, list_);
@@ -106,8 +106,8 @@ void *FreeListAllocator::allocate(std::size_t size) {
 
     /* == Computing header and data address == */
     const auto &paddingWithoutHeader = padding - sizeof(FreeListAllocator::Header);
-    const auto &headerAddress = reinterpret_cast<std::uintptr_t>(memoryNode) + paddingWithoutHeader;
-    const auto &dataAddress = reinterpret_cast<std::uintptr_t>(memoryNode) + padding;
+    const auto &headerAddress = reinterpret_cast<uintptr_t>(memoryNode) + paddingWithoutHeader;
+    const auto &dataAddress = reinterpret_cast<uintptr_t>(memoryNode) + padding;
 
     /* == Write header info == */
     auto *header = reinterpret_cast<Header *>(headerAddress);
@@ -122,11 +122,11 @@ void *FreeListAllocator::allocate(std::size_t size) {
 
 void FreeListAllocator::updateFreeNodeList(FreeListAllocator::Node *baseNode,
                                            FreeListAllocator::Node *memoryNode,
-                                           std::size_t requiredSize) {
+                                           size_t requiredSize) {
     const auto &leftOverMemory = memoryNode->blockSize_ - requiredSize;
     if (leftOverMemory) {
         /* == We split block to limit waste memory space == */
-        auto *freeNode = reinterpret_cast<Node *>(reinterpret_cast<std::uintptr_t>(memoryNode) + requiredSize);
+        auto *freeNode = reinterpret_cast<Node *>(reinterpret_cast<uintptr_t>(memoryNode) + requiredSize);
         freeNode->blockSize_ = leftOverMemory;
         insert(memoryNode, freeNode);
     }
@@ -141,7 +141,7 @@ void FreeListAllocator::deallocate(void *ptr) {
     }
 
     /* == Read header info == */
-    const auto &headerAddress = reinterpret_cast<std::uintptr_t>(ptr) - sizeof(FreeListAllocator::Header);
+    const auto &headerAddress = reinterpret_cast<uintptr_t>(ptr) - sizeof(FreeListAllocator::Header);
     auto *header = reinterpret_cast<Header *>(headerAddress);
     auto *freeNode = reinterpret_cast<Node *>(headerAddress - header->padding_);
 
@@ -155,7 +155,7 @@ void FreeListAllocator::deallocate(void *ptr) {
     Node *it = list_;
     Node *itPrev = nullptr;
     while (it) {
-        if (reinterpret_cast<std::uintptr_t>(freeNode) < reinterpret_cast<std::uintptr_t>(it)) {
+        if (reinterpret_cast<uintptr_t>(freeNode) < reinterpret_cast<uintptr_t>(it)) {
             insert(itPrev, freeNode);
             break;
         }
@@ -167,13 +167,13 @@ void FreeListAllocator::deallocate(void *ptr) {
     used_ -= freeNode->blockSize_;
 
     /* == Look for contiguous block to merge (coalescence) == */
-    if (freeNode->next_ && (reinterpret_cast<std::uintptr_t>(freeNode) + freeNode->blockSize_ ==
-                            reinterpret_cast<std::uintptr_t>(freeNode->next_))) {
+    if (freeNode->next_ && (reinterpret_cast<uintptr_t>(freeNode) + freeNode->blockSize_ ==
+                            reinterpret_cast<uintptr_t>(freeNode->next_))) {
         freeNode->blockSize_ += freeNode->next_->blockSize_;
         remove(freeNode, freeNode->next_);
     }
-    if (itPrev && (reinterpret_cast<std::uintptr_t>(itPrev) + itPrev->blockSize_ ==
-                   reinterpret_cast<std::uintptr_t>(freeNode))) {
+    if (itPrev && (reinterpret_cast<uintptr_t>(itPrev) + itPrev->blockSize_ ==
+                   reinterpret_cast<uintptr_t>(freeNode))) {
         itPrev->blockSize_ += freeNode->blockSize_;
         remove(itPrev, freeNode);
     }
@@ -219,7 +219,7 @@ void FreeListAllocator::remove(Node *baseNode, Node *removedNode) {
     }
 }
 
-FreeListAllocator::Node *FreeListAllocator::createExtraBuffer(std::size_t size, FreeListAllocator::Node *base) {
+FreeListAllocator::Node *FreeListAllocator::createExtraBuffer(size_t size, FreeListAllocator::Node *base) {
     /* == Allocate new buffer with size aligned to MIN_CHUNK == */
     const auto &sizeWithHeader = size + sizeof(FreeListAllocator::Header);
     FreeListAllocator::Buffer buffer;
@@ -242,7 +242,7 @@ FreeListAllocator::Node *FreeListAllocator::createExtraBuffer(std::size_t size, 
 }
 
 std::pair<FreeListAllocator::Node *, FreeListAllocator::Node *>
-FreeListAllocator::findFirst(std::size_t size, std::size_t *padding, std::size_t alignment, Node *base) {
+FreeListAllocator::findFirst(size_t size, size_t *padding, size_t alignment, Node *base) {
     (*padding) = AbstractAllocator::computePaddingWithHeader(size, alignment, sizeof(FreeListAllocator::Header));
     const auto &requiredSize = size + (*padding);
     Node *previousNode = nullptr;
@@ -258,7 +258,7 @@ FreeListAllocator::findFirst(std::size_t size, std::size_t *padding, std::size_t
 }
 
 std::pair<FreeListAllocator::Node *, FreeListAllocator::Node *>
-FreeListAllocator::findBest(std::size_t size, std::size_t *padding, std::size_t alignment, Node *base) {
+FreeListAllocator::findBest(size_t size, size_t *padding, size_t alignment, Node *base) {
     (*padding) = AbstractAllocator::computePaddingWithHeader(size, alignment, sizeof(FreeListAllocator::Header));
     auto &&minFit = SIZE_MAX;
     const auto &requiredSize = size + (*padding);
@@ -286,12 +286,12 @@ FreeListAllocator::findBest(std::size_t size, std::size_t *padding, std::size_t 
 }
 
 bool FreeListAllocator::validAddress(void *ptr) {
-    const auto &uintptr = reinterpret_cast<std::uintptr_t>(ptr);
-    const auto &staticBufferUintptr = reinterpret_cast<std::uintptr_t>(staticBufferPtr_);
+    const auto &uintptr = reinterpret_cast<uintptr_t>(ptr);
+    const auto &staticBufferUintptr = reinterpret_cast<uintptr_t>(staticBufferPtr_);
     auto found = ((uintptr >= staticBufferUintptr) && (uintptr < (staticBufferUintptr + staticBufferSize_)));
     if (!found) {
         for (auto &it: extraBuffers_) {
-            const auto &bufferUintptr = reinterpret_cast<std::uintptr_t>(it.bufferPtr_);
+            const auto &bufferUintptr = reinterpret_cast<uintptr_t>(it.bufferPtr_);
             found = ((uintptr >= bufferUintptr) && (uintptr < (bufferUintptr + it.size_)));
             if (found) {
                 return true;

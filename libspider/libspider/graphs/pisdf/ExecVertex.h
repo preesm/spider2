@@ -54,8 +54,8 @@ namespace spider {
         class ExecVertex : public Vertex {
         public:
             explicit ExecVertex(std::string name = "unnamed-execvertex",
-                                std::uint32_t edgeINCount = 0,
-                                std::uint32_t edgeOUTCount = 0,
+                                uint32_t edgeINCount = 0,
+                                uint32_t edgeOUTCount = 0,
                                 StackID stack = StackID::PISDF) : Vertex(std::move(name),
                                                                          edgeINCount,
                                                                          edgeOUTCount,
@@ -79,14 +79,14 @@ namespace spider {
              * @brief Get the refinement index in the global register associated to this vertex.
              * @return index of the refinement, UINT32_MAX if not set.
              */
-            inline std::uint32_t refinementIx() const;
+            inline uint32_t refinementIx() const;
 
             /**
              * @brief Get the job ix associated to this vertex.
              * @remark In the case of @refitem VertexType::CONFIG, the value match the one of the corresponding dynamic job.
              * @return ix of the job, UINT32_MAX if not set.
              */
-            inline std::uint32_t jobIx() const;
+            inline uint32_t jobIx() const;
 
             /* === Setter(s) === */
 
@@ -94,17 +94,17 @@ namespace spider {
              * @brief Set the refinement index of the vertex.
              * @param ix  Index to set.
              */
-            inline void setRefinementIx(std::uint32_t ix);
+            inline void setRefinementIx(uint32_t ix);
 
             /**
              * @brief Set the job ix of the vertex.
              * @param ix  Ix to set.
              */
-            inline void setJobIx(std::uint32_t ix);
+            inline void setJobIx(uint32_t ix);
 
         protected:
-            std::uint32_t refinementIx_ = UINT32_MAX;
-            std::uint32_t jobIx_ = UINT32_MAX;
+            uint32_t refinementIx_ = UINT32_MAX;
+            uint32_t jobIx_ = UINT32_MAX;
         };
 
         /* === Inline method(s) === */
@@ -121,19 +121,19 @@ namespace spider {
             return true;
         }
 
-        std::uint32_t ExecVertex::refinementIx() const {
+        uint32_t ExecVertex::refinementIx() const {
             return refinementIx_;
         }
 
-        std::uint32_t ExecVertex::jobIx() const {
+        uint32_t ExecVertex::jobIx() const {
             return jobIx_;
         }
 
-        void spider::pisdf::ExecVertex::setRefinementIx(std::uint32_t ix) {
+        void spider::pisdf::ExecVertex::setRefinementIx(uint32_t ix) {
             refinementIx_ = ix;
         }
 
-        void spider::pisdf::ExecVertex::setJobIx(std::uint32_t ix) {
+        void spider::pisdf::ExecVertex::setJobIx(uint32_t ix) {
             jobIx_ = ix;
         }
     }

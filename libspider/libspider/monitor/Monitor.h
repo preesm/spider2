@@ -57,7 +57,7 @@ namespace spider {
 
         /* === Method(s) === */
 
-        inline bool registerEvent(const std::string &name, std::uint32_t ix) {
+        inline bool registerEvent(const std::string &name, uint32_t ix) {
             if (events_[ix].empty()) {
                 events_[ix] = name;
                 return true;
@@ -71,23 +71,23 @@ namespace spider {
 
         /* === Getter(s) === */
 
-        inline const std::string &eventName(std::uint32_t ix) const;
+        inline const std::string &eventName(uint32_t ix) const;
 
-        inline const std::map<std::uint32_t, std::string> &events() const;
+        inline const std::map<uint32_t, std::string> &events() const;
 
         /* === Setter(s) === */
 
     private:
-        std::map<std::uint32_t, std::string> events_;
+        std::map<uint32_t, std::string> events_;
     };
 
     /* === Inline method(s) === */
 
-    const std::string &Monitor::eventName(std::uint32_t ix) const {
+    const std::string &Monitor::eventName(uint32_t ix) const {
         return events_.at(ix);
     }
 
-    const std::map<std::uint32_t, std::string> &Monitor::events() const {
+    const std::map<uint32_t, std::string> &Monitor::events() const {
         return events_;
     }
 }

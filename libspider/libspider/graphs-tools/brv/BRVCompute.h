@@ -49,7 +49,7 @@
 /* === Struct definition === */
 
 struct BRVComponent {
-    std::uint32_t nEdges = 0;
+    uint32_t nEdges = 0;
     spider::vector<PiSDFAbstractVertex *> vertices;
 
     BRVComponent() = default;
@@ -60,7 +60,7 @@ struct BRVComponent {
 /**
  * @brief BRV compute methods enumeration.
  */
-enum class BRVMethod : std::uint8_t {
+enum class BRVMethod : uint8_t {
     LCM_BASED,      /*! The LCM based method of computing the BRV (default) */
     TOPOLOGY_BASED, /*! The Topology matrix based method of computing the BRV (legacy) */
 };

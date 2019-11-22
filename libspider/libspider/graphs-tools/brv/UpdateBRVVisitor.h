@@ -55,7 +55,7 @@ namespace spider {
 
         struct UpdateBRVVisitor final : public DefaultVisitor {
 
-            explicit UpdateBRVVisitor(std::uint32_t &scaleFactor,
+            explicit UpdateBRVVisitor(uint32_t &scaleFactor,
                                       const spider::vector<PiSDFParam *> &paramVector) : scaleFactor_{ scaleFactor },
                                                                                          paramVector_{ paramVector } { }
 
@@ -90,11 +90,11 @@ namespace spider {
                 const auto &totalProd = sourceRate * edge->source()->repetitionValue() * scaleFactor_;
                 if (totalProd && totalProd < sinkRate) {
                     /* == Return ceil(interfaceCons / vertexProd) == */
-                    scaleFactor_ *= static_cast<std::uint32_t>(spider::math::ceilDiv(sinkRate, totalProd));
+                    scaleFactor_ *= static_cast<uint32_t>(spider::math::ceilDiv(sinkRate, totalProd));
                 }
             }
 
-            std::uint32_t &scaleFactor_;
+            uint32_t &scaleFactor_;
             const spider::vector<PiSDFParam *> &paramVector_;
         private:
             inline void updateFromInputIf(const PiSDFEdge *edge) {
@@ -103,7 +103,7 @@ namespace spider {
                 const auto &totalCons = sinkRate * edge->sink()->repetitionValue() * scaleFactor_;
                 if (totalCons && totalCons < sourceRate) {
                     /* == Return ceil( prod / vertexCons) == */
-                    scaleFactor_ *= static_cast<std::uint32_t>(spider::math::ceilDiv(sourceRate, totalCons));
+                    scaleFactor_ *= static_cast<uint32_t>(spider::math::ceilDiv(sourceRate, totalCons));
                 }
             }
         };

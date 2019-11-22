@@ -48,7 +48,7 @@
 
 /* === Method(s) implementation === */
 
-spider::MemoryUnit::MemoryUnit(void *base, std::uint64_t size) : base_{ base },
-                                                                 size_{ size } {
+spider::MemoryUnit::MemoryUnit(void *base, uint64_t size) : base_{ base },
+                                                            size_{ size } {
 
 }

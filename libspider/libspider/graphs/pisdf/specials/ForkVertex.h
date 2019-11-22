@@ -72,7 +72,7 @@ namespace spider {
         class ForkVertex final : public VertexInterface<ForkVertex> {
         public:
             explicit ForkVertex(std::string name = "unnamed-forkvertex",
-                                std::uint32_t edgeOUTCount = 0,
+                                uint32_t edgeOUTCount = 0,
                                 StackID stack = StackID::PISDF) : VertexInterface<ForkVertex>(std::move(name),
                                                                                               1,
                                                                                               edgeOUTCount,

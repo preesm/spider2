@@ -66,11 +66,11 @@ namespace spider {
          * @brief Mapping information of the TransfoJob.
          */
         struct JobMappingInfo {
-            std::uint32_t PEIx = UINT32_MAX;        /*!< ix of the mapped PE in its cluster */
-            std::uint32_t clusterIx = UINT32_MAX;   /*!< ix of the mapped cluster */
-            std::uint32_t LRTIx = UINT32_MAX;       /*!< ix of the LRT handling the job */
-            std::uint64_t startTime = UINT64_MAX;   /*!< mapping start time */
-            std::uint64_t endTime = UINT64_MAX;     /*!< mapping end time */
+            uint32_t PEIx = UINT32_MAX;        /*!< ix of the mapped PE in its cluster */
+            uint32_t clusterIx = UINT32_MAX;   /*!< ix of the mapped cluster */
+            uint32_t LRTIx = UINT32_MAX;       /*!< ix of the LRT handling the job */
+            uint64_t startTime = UINT64_MAX;   /*!< mapping start time */
+            uint64_t endTime = UINT64_MAX;     /*!< mapping end time */
         };
 
         /* === Class definition === */
@@ -80,13 +80,13 @@ namespace spider {
 
             Job() = delete;
 
-            explicit Job(std::uint32_t ix);
+            explicit Job(uint32_t ix);
 
-            Job(std::uint32_t ix,
-                std::uint32_t vertexIx,
-                std::uint32_t PEIx,
-                std::uint32_t clusterIx,
-                std::uint32_t LRTIx);
+            Job(uint32_t ix,
+                uint32_t vertexIx,
+                uint32_t PEIx,
+                uint32_t clusterIx,
+                uint32_t LRTIx);
 
             ~Job() = default;
 
@@ -102,19 +102,19 @@ namespace spider {
 
             /* === Getter(s) === */
 
-            inline spider::sched::Job *constraint(std::uint32_t lrtIx) const;
+            inline spider::sched::Job *constraint(uint32_t lrtIx) const;
 
             /**
              * @brief Get the ix of the job.
              * @return job ix.
              */
-            inline std::uint32_t vertexIx() const;
+            inline uint32_t vertexIx() const;
 
             /**
              * @brief Get the ix of the job.
              * @return job ix.
              */
-            inline std::uint32_t ix() const;
+            inline uint32_t ix() const;
 
             /**
              * @brief Get the state of the job.
@@ -135,14 +135,14 @@ namespace spider {
              * @remark This method will overwrite current value.
              * @param ix Ix to set.
              */
-            inline void setVertexIx(std::uint32_t ix);
+            inline void setVertexIx(uint32_t ix);
 
             /**
              * @brief Set the ix of the job.
              * @remark This method will overwrite current value.
              * @param ix Ix to set.
              */
-            inline void setIx(std::uint32_t ix);
+            inline void setIx(uint32_t ix);
 
             /**
              * @brief Set the state of the job.
@@ -157,32 +157,32 @@ namespace spider {
             * @param PEIx      Processing element ix inside its cluster.
             * @param clusterIx Cluster ix of the PE.
             */
-            inline void setMappingPE(std::uint32_t PEIx, std::uint32_t clusterIx);
+            inline void setMappingPE(uint32_t PEIx, uint32_t clusterIx);
 
             /**
             * @brief Set the LRT ix of the LRT that will handle the job.
             * @remark This method will overwrite current values.
             * @param LRTIx  LRT ix.
             */
-            inline void setMappingLRT(std::uint32_t LRTIx);
+            inline void setMappingLRT(uint32_t LRTIx);
 
             /**
              * @brief Set the start time of the job.
              * @remark This method will overwrite current value.
              * @param time  Value to set.
              */
-            inline void setMappingStartTime(std::uint64_t time);
+            inline void setMappingStartTime(uint64_t time);
 
             /**
              * @brief Set the end time of the job.
              * @remark This method will overwrite current value.
              * @param time  Value to set.
              */
-            inline void setMappingEndTime(std::uint64_t time);
+            inline void setMappingEndTime(uint64_t time);
 
         private:
-            std::uint32_t vertexIx_ = UINT32_MAX;
-            std::uint32_t ix_ = UINT32_MAX;
+            uint32_t vertexIx_ = UINT32_MAX;
+            uint32_t ix_ = UINT32_MAX;
             JobState state_ = spider::sched::JobState::PENDING;
             JobMappingInfo mappingInfo_;
             spider::vector<spider::sched::Job *> constraints_;
@@ -198,15 +198,15 @@ namespace spider {
             }
         }
 
-        spider::sched::Job *spider::sched::Job::constraint(std::uint32_t lrtIx) const {
+        spider::sched::Job *spider::sched::Job::constraint(uint32_t lrtIx) const {
             return constraints_.at(lrtIx);
         }
 
-        std::uint32_t spider::sched::Job::vertexIx() const {
+        uint32_t spider::sched::Job::vertexIx() const {
             return vertexIx_;
         }
 
-        std::uint32_t spider::sched::Job::ix() const {
+        uint32_t spider::sched::Job::ix() const {
             return ix_;
         }
 
@@ -218,11 +218,11 @@ namespace spider {
             return mappingInfo_;
         }
 
-        void spider::sched::Job::setVertexIx(std::uint32_t ix) {
+        void spider::sched::Job::setVertexIx(uint32_t ix) {
             vertexIx_ = ix;
         }
 
-        void spider::sched::Job::setIx(std::uint32_t ix) {
+        void spider::sched::Job::setIx(uint32_t ix) {
             ix_ = ix;
         }
 
@@ -230,21 +230,21 @@ namespace spider {
             state_ = state;
         }
 
-        void spider::sched::Job::setMappingPE(std::uint32_t PEIx, std::uint32_t clusterIx) {
+        void spider::sched::Job::setMappingPE(uint32_t PEIx, uint32_t clusterIx) {
             mappingInfo_.PEIx = PEIx;
             mappingInfo_.clusterIx = clusterIx;
         }
 
-        void spider::sched::Job::setMappingLRT(std::uint32_t LRTIx) {
+        void spider::sched::Job::setMappingLRT(uint32_t LRTIx) {
             mappingInfo_.LRTIx = LRTIx;
         }
 
-        void spider::sched::Job::setMappingStartTime(std::uint64_t time) {
+        void spider::sched::Job::setMappingStartTime(uint64_t time) {
             mappingInfo_.startTime = time;
 
         }
 
-        void spider::sched::Job::setMappingEndTime(std::uint64_t time) {
+        void spider::sched::Job::setMappingEndTime(uint64_t time) {
             mappingInfo_.endTime = time;
         }
     }

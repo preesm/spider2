@@ -52,10 +52,10 @@
 /* === Method(s) implementation === */
 
 spider::pisdf::Edge::Edge(Vertex *source,
-                          std::uint32_t srcIx,
+                          uint32_t srcIx,
                           Expression &&srcExpr,
                           Vertex *sink,
-                          std::uint32_t snkIx,
+                          uint32_t snkIx,
                           Expression &&snkExpr) : src_{ source },
                                                   srcPortIx_{ srcIx },
                                                   srcExpression_{ srcExpr },
@@ -93,7 +93,7 @@ spider::pisdf::Vertex *spider::pisdf::Edge::sinkFw() const {
     return snk_->forwardEdge(this);
 }
 
-spider::pisdf::Edge *spider::pisdf::Edge::setSource(Vertex *vertex, std::uint32_t ix, Expression &&expr) {
+spider::pisdf::Edge *spider::pisdf::Edge::setSource(Vertex *vertex, uint32_t ix, Expression &&expr) {
     if (!vertex) {
         throwSpiderException("Can not set nullptr vertex on edge [%s].", name().c_str());
     }
@@ -106,7 +106,7 @@ spider::pisdf::Edge *spider::pisdf::Edge::setSource(Vertex *vertex, std::uint32_
     return edge;
 }
 
-spider::pisdf::Edge *spider::pisdf::Edge::setSink(Vertex *vertex, std::uint32_t ix, Expression &&expr) {
+spider::pisdf::Edge *spider::pisdf::Edge::setSink(Vertex *vertex, uint32_t ix, Expression &&expr) {
     if (!vertex) {
         throwSpiderException("Can not set nullptr vertex on edge [%s].", name().c_str());
     }

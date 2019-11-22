@@ -52,18 +52,18 @@
 class FreeListAllocator final : public DynamicAllocator {
 public:
     struct Node {
-        std::size_t blockSize_ = 0;
+        size_t blockSize_ = 0;
         Node *next_ = nullptr;
     };
 
     explicit FreeListAllocator(std::string name,
-                               std::size_t staticBufferSize,
+                               size_t staticBufferSize,
                                FreeListPolicy policy = FreeListPolicy::FIND_FIRST,
-                               std::size_t alignment = sizeof(std::int64_t));
+                               size_t alignment = sizeof(int64_t));
 
     ~FreeListAllocator() override;
 
-    void *allocate(std::size_t size) override;
+    void *allocate(size_t size) override;
 
     void deallocate(void *ptr) override;
 
@@ -71,12 +71,12 @@ public:
 
 private:
     struct Header {
-        std::size_t size_;
-        std::size_t padding_;
+        size_t size_;
+        size_t padding_;
     };
 
     struct Buffer {
-        std::size_t size_ = 0;
+        size_t size_ = 0;
         void *bufferPtr_ = nullptr;
     };
 
@@ -84,11 +84,11 @@ private:
 
     void *staticBufferPtr_ = nullptr;
     std::vector<Buffer> extraBuffers_;
-    std::size_t staticBufferSize_ = 0;
-    std::size_t allocScale_ = 1;
+    size_t staticBufferSize_ = 0;
+    size_t allocScale_ = 1;
 
 
-    using FreeListPolicyMethod = std::pair<Node *, Node *> (*)(std::size_t, std::size_t *, std::size_t, Node *);
+    using FreeListPolicyMethod = std::pair<Node *, Node *> (*)(size_t, size_t *, size_t, Node *);
 
     FreeListPolicyMethod findNode_;
 
@@ -96,15 +96,15 @@ private:
 
     void remove(Node *baseNode, Node *removedNode);
 
-    Node *createExtraBuffer(std::size_t size, Node *base);
+    Node *createExtraBuffer(size_t size, Node *base);
 
-    void updateFreeNodeList(Node *baseNode, Node *memoryNode, std::size_t requiredSize);
-
-    static std::pair<Node *, Node *>
-    findFirst(std::size_t size, std::size_t *padding, std::size_t alignment, Node *baseNode);
+    void updateFreeNodeList(Node *baseNode, Node *memoryNode, size_t requiredSize);
 
     static std::pair<Node *, Node *>
-    findBest(std::size_t size, std::size_t *padding, std::size_t alignment, Node *baseNode);
+    findFirst(size_t size, size_t *padding, size_t alignment, Node *baseNode);
+
+    static std::pair<Node *, Node *>
+    findBest(size_t size, size_t *padding, size_t alignment, Node *baseNode);
 
     /**
      * @brief Check the pointer address to be sure we are deallocating memory we allocated.

@@ -55,12 +55,12 @@
 /* === Method(s) implementation === */
 
 spider::pisdf::Graph::Graph(std::string name,
-                            std::uint32_t vertexCount,
-                            std::uint32_t edgeCount,
-                            std::uint32_t paramCount,
-                            std::uint32_t edgeINCount,
-                            std::uint32_t edgeOUTCount,
-                            std::uint32_t cfgVertexCount,
+                            uint32_t vertexCount,
+                            uint32_t edgeCount,
+                            uint32_t paramCount,
+                            uint32_t edgeINCount,
+                            uint32_t edgeOUTCount,
+                            uint32_t cfgVertexCount,
                             StackID stack) : Vertex(std::move(name),
                                                     edgeINCount,
                                                     edgeOUTCount,
@@ -73,7 +73,7 @@ spider::pisdf::Graph::Graph(std::string name,
     configVertexVector_.reserve(cfgVertexCount);
 
     /* == Create the input interfaces == */
-    for (std::uint32_t i = 0; i < edgeINCount; ++i) {
+    for (uint32_t i = 0; i < edgeINCount; ++i) {
         auto *interface = spider::allocate<PiSDFInputInterface>(stack);
         spider::construct(interface, "in_" + std::to_string(i), stack);
         interface->setIx(i);
@@ -82,7 +82,7 @@ spider::pisdf::Graph::Graph(std::string name,
     }
 
     /* == Create the output interfaces == */
-    for (std::uint32_t i = 0; i < edgeOUTCount; ++i) {
+    for (uint32_t i = 0; i < edgeOUTCount; ++i) {
         auto *interface = spider::allocate<PiSDFOutputInterface>(stack);
         spider::construct(interface, "out_" + std::to_string(i), stack);
         interface->setIx(i);
@@ -138,7 +138,7 @@ void spider::pisdf::Graph::removeVertex(Vertex *vertex) {
 }
 
 void spider::pisdf::Graph::addEdge(Edge *edge) {
-    edge->setIx(static_cast<std::uint32_t>(edgeVector_.size()));
+    edge->setIx(static_cast<uint32_t>(edgeVector_.size()));
     edgeVector_.push_back(edge);
     edge->setGraph(this);
 }
@@ -161,7 +161,7 @@ void spider::pisdf::Graph::addParam(Param *param) {
     if (this->param(param->name())) {
         throwSpiderException("Parameter [%s] already exist in graph [%s].", param->name().c_str(), name().c_str());
     }
-    param->setIx(static_cast<std::uint32_t>(paramVector_.size()));
+    param->setIx(static_cast<uint32_t>(paramVector_.size()));
     param->setGraph(this);
     paramVector_.push_back(param);
     dynamic_ |= (param->dynamic() && param->type() != ParamType::INHERITED);

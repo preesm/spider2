@@ -50,7 +50,7 @@ namespace spider {
 
     class Rational {
     public:
-        inline explicit Rational(std::int64_t n = 0, std::int64_t d = 1);
+        inline explicit Rational(int64_t n = 0, int64_t d = 1);
 
         inline Rational(const Rational &r);
 
@@ -72,21 +72,21 @@ namespace spider {
 
         inline Rational operator/(const Rational &b) const;
 
-        inline Rational operator+(std::int64_t b) const;
+        inline Rational operator+(int64_t b) const;
 
-        inline Rational operator-(std::int64_t b) const;
+        inline Rational operator-(int64_t b) const;
 
-        inline Rational operator*(std::int64_t b) const;
+        inline Rational operator*(int64_t b) const;
 
-        inline Rational operator/(std::int64_t b) const;
+        inline Rational operator/(int64_t b) const;
 
         inline bool operator==(const Rational &b) const;
 
-        inline bool operator==(std::int64_t a) const;
+        inline bool operator==(int64_t a) const;
 
         inline bool operator!=(const Rational &b) const;
 
-        inline bool operator!=(std::int64_t a) const;
+        inline bool operator!=(int64_t a) const;
 
         inline bool operator!() const;
 
@@ -104,23 +104,23 @@ namespace spider {
 
         inline Rational abs() const;
 
-        inline std::int64_t toInt64() const;
+        inline int64_t toInt64() const;
 
-        inline std::int32_t toInt32() const;
+        inline int32_t toInt32() const;
 
         inline double toDouble() const;
 
         /* === Getters === */
 
-        inline std::int64_t denominator() const;
+        inline int64_t denominator() const;
 
-        inline std::int64_t nominator() const;
+        inline int64_t nominator() const;
 
         friend std::ostream &operator<<(std::ostream &, const Rational &);
 
     private:
-        std::int64_t n_;
-        std::int64_t d_;
+        int64_t n_;
+        int64_t d_;
 
         /* === Private method(s) === */
 
@@ -192,19 +192,19 @@ namespace spider {
         return Rational{ *this } /= b;
     }
 
-    Rational Rational::operator+(std::int64_t b) const {
+    Rational Rational::operator+(int64_t b) const {
         return *this + Rational{ b };
     }
 
-    Rational Rational::operator-(std::int64_t b) const {
+    Rational Rational::operator-(int64_t b) const {
         return *this - Rational{ b };
     }
 
-    Rational Rational::operator*(std::int64_t b) const {
+    Rational Rational::operator*(int64_t b) const {
         return *this * Rational{ b };
     }
 
-    Rational Rational::operator/(std::int64_t b) const {
+    Rational Rational::operator/(int64_t b) const {
         return *this / Rational{ b };
     }
 
@@ -212,7 +212,7 @@ namespace spider {
         return n_ == b.n_ && d_ == b.d_;
     }
 
-    bool Rational::operator==(std::int64_t a) const {
+    bool Rational::operator==(int64_t a) const {
         return this->toDouble() == static_cast<double >(a);
     }
 
@@ -220,7 +220,7 @@ namespace spider {
         return !(*this == b);
     }
 
-    bool Rational::operator!=(std::int64_t a) const {
+    bool Rational::operator!=(int64_t a) const {
         return !(*this == a);
     }
 
@@ -250,12 +250,12 @@ namespace spider {
         return !(*this > b);
     }
 
-    std::int64_t Rational::toInt64() const {
-        return static_cast<std::int64_t >(n_ / d_);
+    int64_t Rational::toInt64() const {
+        return static_cast<int64_t >(n_ / d_);
     }
 
-    std::int32_t Rational::toInt32() const {
-        return static_cast<std::int32_t >(n_ / d_);
+    int32_t Rational::toInt32() const {
+        return static_cast<int32_t >(n_ / d_);
     }
 
     double Rational::toDouble() const {
@@ -266,11 +266,11 @@ namespace spider {
         return Rational{ spider::math::abs((*this).n_), spider::math::abs((*this).d_) };
     }
 
-    std::int64_t Rational::denominator() const {
+    int64_t Rational::denominator() const {
         return d_;
     }
 
-    std::int64_t Rational::nominator() const {
+    int64_t Rational::nominator() const {
         return n_;
     }
 

@@ -48,7 +48,7 @@
 namespace spider {
     namespace pisdf {
 
-        inline void tail(const std::int64_t *paramsIn, std::int64_t *[], void *in[], void *out[]) {
+        inline void tail(const int64_t *paramsIn, int64_t *[], void *in[], void *out[]) {
             const auto &inputCount = static_cast<size_t>(paramsIn[0]);  /* = Number of input = */
             const auto &inputStart = static_cast<size_t>(paramsIn[1]);  /* = First input to be considered = */
             const auto &inputOffset = static_cast<size_t>(paramsIn[2]); /* = Offset in the first buffer if any = */
@@ -72,7 +72,7 @@ namespace spider {
         class TailVertex final : public VertexInterface<TailVertex> {
         public:
             explicit TailVertex(std::string name = "unnamed-tailvertex",
-                                std::uint32_t edgeINCount = 0,
+                                uint32_t edgeINCount = 0,
                                 StackID stack = StackID::PISDF) : VertexInterface<TailVertex>(std::move(name),
                                                                                               edgeINCount,
                                                                                               1,

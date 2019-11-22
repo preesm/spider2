@@ -90,8 +90,8 @@ void LCMBRVCompute::extractRationals(spider::array<const PiSDFEdge *> &edgeArray
     for (const auto &edge:edgeArray) {
         const auto *source = edge->source();
         const auto *sink = edge->sink();
-        std::int64_t sourceRate = edge->sourceRateExpression().evaluate(params_);
-        std::int64_t sinkRate = edge->sinkRateExpression().evaluate(params_);
+        int64_t sourceRate = edge->sourceRateExpression().evaluate(params_);
+        int64_t sinkRate = edge->sinkRateExpression().evaluate(params_);
 
         /* == Check rates validity == */
         if ((!sinkRate && sourceRate) || (sinkRate && !sourceRate)) {
@@ -125,8 +125,8 @@ void LCMBRVCompute::extractRationals(spider::array<const PiSDFEdge *> &edgeArray
     }
 }
 
-std::int64_t LCMBRVCompute::computeLCM(const BRVComponent &component, spider::array<spider::Rational> &reps) {
-    std::int64_t lcmFactor = 1;
+int64_t LCMBRVCompute::computeLCM(const BRVComponent &component, spider::array<spider::Rational> &reps) {
+    int64_t lcmFactor = 1;
     for (const auto &v : component.vertices) {
         lcmFactor = spider::math::lcm(lcmFactor, reps[v->ix()].denominator());
     }
@@ -135,7 +135,7 @@ std::int64_t LCMBRVCompute::computeLCM(const BRVComponent &component, spider::ar
 
 void LCMBRVCompute::computeBRV(const BRVComponent &component,
                                spider::array<spider::Rational> &reps,
-                               std::int64_t lcmFactor) {
+                               int64_t lcmFactor) {
     for (const auto &v : component.vertices) {
         v->setRepetitionValue(spider::Rational{ reps[v->ix()] * lcmFactor }.toInt32());
     }

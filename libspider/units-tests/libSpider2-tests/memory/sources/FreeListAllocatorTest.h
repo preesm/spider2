@@ -55,7 +55,7 @@ TEST(FreeListAllocatorTest, GetName) {
 
 TEST(FreeListAllocatorTest, ThrowSizeException) {
     auto *allocator = new FreeListAllocator(ALLOCATOR_NAME, MAX_SIZE);
-    std::uint64_t size = MAX_SIZE + 1;
+    uint64_t size = MAX_SIZE + 1;
     EXPECT_NO_THROW(allocator->allocate(size));
     delete allocator;
 }
@@ -88,7 +88,7 @@ TEST(FreeListAllocatorTest, MemoryAllocAlignmentFindFirst) {
     ASSERT_NE(charArray, nullptr);
     auto *dblArray = (double *) allocator->allocate(2 * sizeof(double));
     ASSERT_NE(dblArray, nullptr);
-    std::int32_t headerSize = 2 * sizeof(std::uint64_t);
+    int32_t headerSize = 2 * sizeof(uint64_t);
     ASSERT_EQ(charArray + 17 + headerSize, (char *) dblArray);
     delete allocator;
 }
@@ -99,8 +99,8 @@ TEST(FreeListAllocatorTest, MemoryAllocAlignmentChunks) {
     ASSERT_NE(charArray, nullptr);
     auto *dblArray = (double *) allocator->allocate(MAX_SIZE);
     ASSERT_NE(dblArray, nullptr);
-    std::int32_t paddingSize = 0;
-    std::int32_t headerSize = 2 * sizeof(std::uint64_t);
+    int32_t paddingSize = 0;
+    int32_t headerSize = 2 * sizeof(uint64_t);
     ASSERT_EQ(charArray + MAX_SIZE + paddingSize + headerSize, (char *) dblArray);
     auto *ptr = (char *) allocator->allocate(17 * sizeof(char));
     ASSERT_NE(ptr + 2 * MAX_SIZE + 2 * headerSize, (char *) dblArray);
@@ -134,7 +134,7 @@ TEST(FreeListAllocatorTest, MemoryAllocFindBest) {
     ASSERT_EQ(array[1], 2);
     ASSERT_EQ(nullptr, allocator->allocate(0));
     EXPECT_NO_THROW(allocator->allocate(MAX_SIZE));
-    EXPECT_NO_THROW(allocator->allocate(sizeof(std::int32_t)));
+    EXPECT_NO_THROW(allocator->allocate(sizeof(int32_t)));
     EXPECT_NO_THROW(allocator->reset());
     EXPECT_NO_THROW(array = (double *) allocator->allocate(8192));
     EXPECT_NO_THROW(allocator->deallocate(array));
@@ -149,7 +149,7 @@ TEST(FreeListAllocatorTest, MemoryAllocAlignmentFindBest) {
     ASSERT_NE(charArray, nullptr);
     auto *dblArray = (double *) allocator->allocate(2 * sizeof(double));
     ASSERT_NE(dblArray, nullptr);
-    std::int32_t headerSize = 2 * sizeof(std::uint64_t);
+    int32_t headerSize = 2 * sizeof(uint64_t);
     ASSERT_EQ(charArray + 17 + headerSize, (char *) dblArray);
     delete allocator;
 }

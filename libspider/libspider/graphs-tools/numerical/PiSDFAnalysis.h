@@ -52,59 +52,59 @@
 
 namespace spider {
     namespace pisdf {
-        inline std::int64_t computeConsLowerDep(std::int64_t sinkRate,
-                                                std::int64_t sourceRate,
-                                                std::uint32_t instance,
-                                                std::int64_t delay) {
+        inline int64_t computeConsLowerDep(int64_t sinkRate,
+                                           int64_t sourceRate,
+                                           uint32_t instance,
+                                           int64_t delay) {
             auto consumed = instance * sinkRate - delay;
             auto lowerDep = spider::math::floorDiv(consumed, sourceRate);
-            constexpr std::int64_t initBound = -1;
+            constexpr int64_t initBound = -1;
             return std::max(initBound, lowerDep);
         }
 
-        inline std::int64_t computeConsUpperDep(std::int64_t sinkRate,
-                                                std::int64_t sourceRate,
-                                                std::uint32_t instance,
-                                                std::int64_t delay) {
+        inline int64_t computeConsUpperDep(int64_t sinkRate,
+                                           int64_t sourceRate,
+                                           uint32_t instance,
+                                           int64_t delay) {
             auto consumed = (instance + 1) * sinkRate - delay - 1;
             auto lowerDep = spider::math::floorDiv(consumed, sourceRate);
-            constexpr std::int64_t initBound = -1;
+            constexpr int64_t initBound = -1;
             return std::max(initBound, lowerDep);
         }
 
-        inline std::int64_t computeProdLowerDep(std::int64_t sinkRate,
-                                                std::int64_t sourceRate,
-                                                std::int32_t instance,
-                                                std::int64_t delay,
-                                                std::int64_t sinkRepetitionValue) {
+        inline int64_t computeProdLowerDep(int64_t sinkRate,
+                                           int64_t sourceRate,
+                                           int32_t instance,
+                                           int64_t delay,
+                                           int64_t sinkRepetitionValue) {
             auto produced = instance * sourceRate + delay;
             auto lowerDep = spider::math::floorDiv(produced, sinkRate);
             return std::min(sinkRepetitionValue, lowerDep);
         }
 
-        inline std::int64_t computeProdUpperDep(std::int64_t sinkRate,
-                                                std::int64_t sourceRate,
-                                                std::int32_t instance,
-                                                std::int64_t delay,
-                                                std::int64_t sinkRepetitionValue) {
+        inline int64_t computeProdUpperDep(int64_t sinkRate,
+                                           int64_t sourceRate,
+                                           int32_t instance,
+                                           int64_t delay,
+                                           int64_t sinkRepetitionValue) {
             auto produced = (instance + 1) * sourceRate + delay - 1;
             auto upperDep = spider::math::floorDiv(produced, sinkRate);
             return std::min(sinkRepetitionValue, upperDep);
         }
 
-        inline std::int64_t computeProdLowerDep(std::int64_t sinkRate,
-                                                std::int64_t sourceRate,
-                                                std::uint32_t instance,
-                                                std::int64_t delay) {
+        inline int64_t computeProdLowerDep(int64_t sinkRate,
+                                           int64_t sourceRate,
+                                           uint32_t instance,
+                                           int64_t delay) {
             auto produced = instance * sourceRate + delay;
             auto lowerDep = produced / sinkRate;
             return lowerDep;
         }
 
-        inline std::int64_t computeProdUpperDep(std::int64_t sinkRate,
-                                                std::int64_t sourceRate,
-                                                std::uint32_t instance,
-                                                std::int64_t delay) {
+        inline int64_t computeProdUpperDep(int64_t sinkRate,
+                                           int64_t sourceRate,
+                                           uint32_t instance,
+                                           int64_t delay) {
             auto produced = (instance + 1) * sourceRate + delay - 1;
             auto upperDep = produced / sinkRate;
             return upperDep;

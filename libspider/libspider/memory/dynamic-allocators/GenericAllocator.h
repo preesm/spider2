@@ -48,11 +48,11 @@
 
 class GenericAllocator final : public DynamicAllocator {
 public:
-    explicit GenericAllocator(std::string name, std::size_t alignment = sizeof(std::uint64_t));
+    explicit GenericAllocator(std::string name, size_t alignment = sizeof(uint64_t));
 
     ~GenericAllocator() override = default;
 
-    void *allocate(std::size_t size) override;
+    void *allocate(size_t size) override;
 
     void deallocate(void *ptr) override;
 

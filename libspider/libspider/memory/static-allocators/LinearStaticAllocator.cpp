@@ -44,29 +44,29 @@
 
 /* === Methods implementation === */
 
-LinearStaticAllocator::LinearStaticAllocator(std::string name, std::size_t totalSize, std::size_t alignment) :
+LinearStaticAllocator::LinearStaticAllocator(std::string name, size_t totalSize, size_t alignment) :
         StaticAllocator(std::move(name), totalSize, alignment) {
     if (alignment < 8) {
-        throwSpiderException("Memory alignment should be at least of size sizeof(std::int64_t) = 8 bytes.");
+        throwSpiderException("Memory alignment should be at least of size sizeof(int64_t) = 8 bytes.");
     }
 }
 
 LinearStaticAllocator::LinearStaticAllocator(std::string name,
-                                             std::size_t totalSize,
+                                             size_t totalSize,
                                              void *externalBase,
                                              size_t alignment) : StaticAllocator(std::move(name), totalSize,
                                                                                  externalBase,
                                                                                  alignment) {
     if (alignment < 8) {
-        throwSpiderException("Memory alignment should be at least of size sizeof(std::int64_t) = 8 bytes.");
+        throwSpiderException("Memory alignment should be at least of size sizeof(int64_t) = 8 bytes.");
     }
 }
 
-void *LinearStaticAllocator::allocate(std::size_t size) {
+void *LinearStaticAllocator::allocate(size_t size) {
     if (!size) {
         return nullptr;
     }
-    std::size_t padding = 0;
+    size_t padding = 0;
     if (alignment_ && used_ % alignment_ != 0) {
         /*!< Compute next aligned address padding */
         padding = AbstractAllocator::computePadding(static_cast<size_t>(used_), alignment_);
@@ -79,7 +79,7 @@ void *LinearStaticAllocator::allocate(std::size_t size) {
                                      " -- Requested: %"
                                      PRIu64, getName(), totalSize_, requestedSize);
     }
-    const auto &alignedAllocatedAddress = reinterpret_cast<std::uintptr_t>(startPtr_) + used_ + padding;
+    const auto &alignedAllocatedAddress = reinterpret_cast<uintptr_t>(startPtr_) + used_ + padding;
     used_ += (size + padding);
     peak_ = std::max(peak_, used_);
     return reinterpret_cast<void *>(alignedAllocatedAddress);

@@ -102,7 +102,7 @@ void spider::pisdf::DOTExporterVisitor::visit(Graph *graph) {
 
 /* === Private method(s) === */
 
-std::pair<std::int32_t, std::int32_t> spider::pisdf::DOTExporterVisitor::computeConstantWidth(Vertex *vertex) const {
+std::pair<int32_t, int32_t> spider::pisdf::DOTExporterVisitor::computeConstantWidth(Vertex *vertex) const {
     /* == Compute widths (based on empirical measurements)       == */
     /* ==                           _                        _   == */
     /* ==                          |               1          |  == */
@@ -111,10 +111,10 @@ std::pair<std::int32_t, std::int32_t> spider::pisdf::DOTExporterVisitor::compute
     /* ==                                                        == */
     /* == with U(x) the Heaviside function                       == */
     auto n = static_cast<double>(vertex->name().size());
-    const auto &centerWidth = static_cast<std::int32_t>(15. * (n - 8.) * (n > 8) +
-                                                        std::ceil(20. *
-                                                                  (1 +
-                                                                   1. / (1 + std::exp(-10. * (n - 7.))))));
+    const auto &centerWidth = static_cast<int32_t>(15. * (n - 8.) * (n > 8) +
+                                                   std::ceil(20. *
+                                                             (1 +
+                                                              1. / (1 + std::exp(-10. * (n - 7.))))));
 
     /* == Get the maximum number of digits == */
     double longestRateLen = 0;
@@ -126,12 +126,12 @@ std::pair<std::int32_t, std::int32_t> spider::pisdf::DOTExporterVisitor::compute
         const auto &rate = e->sourceRateExpression().evaluate(exporter_->params_);
         longestRateLen = std::max(longestRateLen, std::log10(rate));
     }
-    return std::make_pair(centerWidth, static_cast<std::int32_t>(longestRateLen));
+    return std::make_pair(centerWidth, static_cast<int32_t>(longestRateLen));
 }
 
 void spider::pisdf::DOTExporterVisitor::vertexPrinter(ExecVertex *vertex,
                                                       const std::string &color,
-                                                      std::int32_t border,
+                                                      int32_t border,
                                                       const std::string &style) const {
     /* == Header == */
     vertexHeaderPrinter(vertex->name(), color, border, style);
@@ -150,7 +150,7 @@ void spider::pisdf::DOTExporterVisitor::vertexPrinter(ExecVertex *vertex,
     const auto &rateWidth = 32 + std::max(widthPair.second + 1 - 3, 0) * 8;
 
     /* == Export data ports == */
-    std::uint32_t nOutput = 0;
+    uint32_t nOutput = 0;
     for (const auto &edge : vertex->inputEdgeArray()) {
         file_ << offset_ << '\t' << '\t'
               << R"(<tr> <td border="0" style="invis" colspan="4" fixedsize="false" height="10"></td></tr>)"
@@ -178,7 +178,7 @@ void spider::pisdf::DOTExporterVisitor::vertexPrinter(ExecVertex *vertex,
     }
 
     /* == Trailing output ports == */
-    for (std::uint32_t i = nOutput; i < vertex->outputEdgeCount(); ++i) {
+    for (uint32_t i = nOutput; i < vertex->outputEdgeCount(); ++i) {
         auto *edge = vertex->outputEdge(i);
         file_ << offset_ << '\t' << '\t'
               << R"(<tr> <td border="0" style="invis" colspan="4" fixedsize="false" height="10"></td></tr>)"

@@ -55,18 +55,18 @@ namespace spider {
         struct TransfoJob {
             const pisdf::Graph *reference_ = nullptr;
             spider::vector<pisdf::Param *> params_;
-            const std::uint32_t &srdagIx_;
-            std::uint32_t instanceValue_ = 0;
+            const uint32_t &srdagIx_;
+            uint32_t instanceValue_ = 0;
 
             TransfoJob(TransfoJob &&) = default;
 
             TransfoJob(const TransfoJob &) = default;
 
             TransfoJob(const PiSDFGraph *graph,
-                       const std::uint32_t &srdagIx,
-                       std::uint32_t instance) : reference_{ graph },
-                                          srdagIx_{ srdagIx },
-                                          instanceValue_{ instance } {
+                       const uint32_t &srdagIx,
+                       uint32_t instance) : reference_{ graph },
+                                            srdagIx_{ srdagIx },
+                                            instanceValue_{ instance } {
                 params_.reserve(graph->paramCount());
             }
 

@@ -57,7 +57,7 @@ namespace spider {
     public:
         class Iterator {
         public:
-            explicit Iterator(std::int32_t value) : value_{ value } { }
+            explicit Iterator(int32_t value) : value_{ value } { }
 
             ~Iterator() = default;
 
@@ -118,15 +118,15 @@ namespace spider {
             }
 
         private:
-            std::int32_t value_;
+            int32_t value_;
         };
 
         inline typename EnumIterator<T>::Iterator begin() {
-            return typename EnumIterator<T>::Iterator(static_cast<std::int32_t>(T::First));
+            return typename EnumIterator<T>::Iterator(static_cast<int32_t>(T::First));
         }
 
         inline typename EnumIterator<T>::Iterator end() {
-            return typename EnumIterator<T>::Iterator(static_cast<std::int32_t>(T::Last) + 1);
+            return typename EnumIterator<T>::Iterator(static_cast<int32_t>(T::Last) + 1);
         }
     };
 }

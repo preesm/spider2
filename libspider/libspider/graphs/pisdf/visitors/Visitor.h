@@ -62,7 +62,7 @@ namespace spider {
 
             template<class T>
             inline void visit(T *) {
-               throw std::runtime_error("unsupported type:" + std::string(typeid(T).name()));
+                throw std::runtime_error("unsupported type:" + std::string(typeid(T).name()));
             }
 
             virtual void visit(Graph *) = 0;

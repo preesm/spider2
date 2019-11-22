@@ -58,7 +58,7 @@ namespace spider {
         class Param {
         public:
 
-            Param(std::string name, Graph *graph, std::int64_t value = 0);
+            Param(std::string name, Graph *graph, int64_t value = 0);
 
             Param(std::string name, Graph *graph, Expression &&expression);
 
@@ -74,9 +74,9 @@ namespace spider {
 
             inline const std::string &name() const;
 
-            inline std::uint32_t ix() const;
+            inline uint32_t ix() const;
 
-            virtual inline std::int64_t value() const;
+            virtual inline int64_t value() const;
 
             virtual inline ParamType type() const;
 
@@ -84,9 +84,9 @@ namespace spider {
 
             /* === Setter(s) === */
 
-            inline void setIx(std::uint32_t ix);
+            inline void setIx(uint32_t ix);
 
-            virtual inline void setValue(std::int64_t);
+            virtual inline void setValue(int64_t);
 
             /**
              * @brief Set the graph of the param.
@@ -98,9 +98,9 @@ namespace spider {
 
         protected:
             Graph *graph_ = nullptr;
-            std::uint32_t ix_ = UINT32_MAX;
+            uint32_t ix_ = UINT32_MAX;
             std::string name_ = "";
-            std::int64_t value_ = 0;
+            int64_t value_ = 0;
 
             /* === Private method(s) === */
         };
@@ -119,11 +119,11 @@ namespace spider {
             return name_;
         }
 
-        std::uint32_t Param::ix() const {
+        uint32_t Param::ix() const {
             return ix_;
         }
 
-        std::int64_t Param::value() const {
+        int64_t Param::value() const {
             return value_;
         }
 
@@ -135,11 +135,11 @@ namespace spider {
             return false;
         }
 
-        void Param::setIx(std::uint32_t ix) {
+        void Param::setIx(uint32_t ix) {
             ix_ = ix;
         }
 
-        void Param::setValue(std::int64_t) {
+        void Param::setValue(int64_t) {
             throwSpiderException("Can not set value on non-DYNAMIC parameter type.");
         }
 

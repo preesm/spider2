@@ -145,7 +145,7 @@ namespace spider {
                 spider::deallocate(vertex);
             }
 
-            inline void removeScenarioConstraints(std::uint32_t ix) {
+            inline void removeScenarioConstraints(uint32_t ix) {
                 if (graph_->scenario_) {
                     graph_->scenario_->mappingConstraintsVector_[ix] = graph_->scenario_->mappingConstraintsVector_.back();
                     graph_->scenario_->mappingConstraintsVector_.pop_back();

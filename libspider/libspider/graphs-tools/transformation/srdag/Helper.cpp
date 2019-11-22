@@ -89,23 +89,23 @@ struct CopyVisitor final : public spider::pisdf::DefaultVisitor {
 
     inline void visit(spider::pisdf::ExecVertex *vertex) override {
         spider::pisdf::CloneVertexVisitor cloneVisitor{ transfoData_.srdag_, StackID::TRANSFO };
-        for (std::uint32_t it = 0; it < vertex->repetitionValue(); ++it) {
+        for (uint32_t it = 0; it < vertex->repetitionValue(); ++it) {
             /* == Change the name of the clone == */
             vertex->visit(&cloneVisitor);
             auto *clone = transfoData_.srdag_->vertices().back();
             clone->setName(buildCloneName(vertex, it, transfoData_));
         }
-        ix_ = static_cast<std::uint32_t>((transfoData_.srdag_->vertexCount() - 1) - (vertex->repetitionValue() - 1));
+        ix_ = static_cast<uint32_t>((transfoData_.srdag_->vertexCount() - 1) - (vertex->repetitionValue() - 1));
     }
 
     inline void visit(spider::pisdf::Graph *graph) override {
         /* == Clone the vertex == */
         ix_ = 0;
-        for (std::uint32_t it = 0; it < graph->repetitionValue(); ++it) {
+        for (uint32_t it = 0; it < graph->repetitionValue(); ++it) {
             const auto *clone = spider::api::createVertex(transfoData_.srdag_,
                                                           buildCloneName(graph, it, transfoData_),
-                                                          static_cast<std::uint32_t>(graph->inputEdgeCount()),
-                                                          static_cast<std::uint32_t>(graph->outputEdgeCount()),
+                                                          static_cast<uint32_t>(graph->inputEdgeCount()),
+                                                          static_cast<uint32_t>(graph->outputEdgeCount()),
                                                           StackID::TRANSFO);
             ix_ = clone->ix();
         }
@@ -159,11 +159,11 @@ struct CopyVisitor final : public spider::pisdf::DefaultVisitor {
     }
 
     spider::srdag::TransfoData &transfoData_;
-    std::uint32_t ix_ = UINT32_MAX;
+    uint32_t ix_ = UINT32_MAX;
 
 private:
     std::string buildCloneName(const PiSDFAbstractVertex *vertex,
-                               std::uint32_t instance,
+                               uint32_t instance,
                                spider::srdag::TransfoData &transfoData) {
         const auto *graphRef = transfoData.job_.instanceValue_ == UINT32_MAX ?
                                transfoData.job_.reference_ : transfoData.srdag_->vertex(transfoData.job_.srdagIx_);
@@ -173,11 +173,11 @@ private:
 
 /* == Static function(s) === */
 
-static inline std::uint32_t uniformIx(const PiSDFAbstractVertex *vertex, const PiSDFGraph *graph) {
+static inline uint32_t uniformIx(const PiSDFAbstractVertex *vertex, const PiSDFGraph *graph) {
     if (vertex->subtype() == PiSDFVertexType::INPUT) {
-        return static_cast<std::uint32_t>(vertex->ix() + graph->vertexCount());
+        return static_cast<uint32_t>(vertex->ix() + graph->vertexCount());
     } else if (vertex->subtype() == PiSDFVertexType::OUTPUT) {
-        return static_cast<std::uint32_t>(vertex->ix() + graph->vertexCount() + graph->inputEdgeCount());
+        return static_cast<uint32_t>(vertex->ix() + graph->vertexCount() + graph->inputEdgeCount());
     }
     return vertex->ix();
 }
@@ -201,8 +201,8 @@ void spider::srdag::copyFromRV(PiSDFAbstractVertex *vertex, TransfoData &transfo
 
 void spider::srdag::fillLinkerVector(TransfoStack &vector,
                                      PiSDFAbstractVertex *reference,
-                                     std::int64_t rate,
-                                     std::uint32_t portIx,
+                                     int64_t rate,
+                                     uint32_t portIx,
                                      TransfoData &transfoData) {
     const auto &vertexUniformIx = uniformIx(reference, transfoData.job_.reference_);
     const auto &clone = transfoData.srdag_->vertex(transfoData.tracker_[vertexUniformIx]);
@@ -232,7 +232,7 @@ void spider::srdag::addForkVertex(TransfoStack &srcVector, TransfoStack &snkVect
 
     /* == Connect out of fork == */
     auto remaining = sourceLinker.rate_;
-    for (std::uint32_t i = 0; i < fork->outputEdgeCount() - 1; ++i) {
+    for (uint32_t i = 0; i < fork->outputEdgeCount() - 1; ++i) {
         const auto &sinkLinker = snkVector.back();
         remaining -= sinkLinker.rate_;
         spider::api::createEdge(fork,               /* = Fork vertex = */
@@ -244,7 +244,7 @@ void spider::srdag::addForkVertex(TransfoStack &srcVector, TransfoStack &snkVect
                                 StackID::TRANSFO);
         snkVector.pop_back();
     }
-    srcVector.emplace_back(remaining, static_cast<std::uint32_t>(fork->outputEdgeCount() - 1), fork);
+    srcVector.emplace_back(remaining, static_cast<uint32_t>(fork->outputEdgeCount() - 1), fork);
     srcVector.back().lowerDep_ = sourceLinker.upperDep_;
     srcVector.back().upperDep_ = sourceLinker.upperDep_;
 }
@@ -264,14 +264,14 @@ void spider::srdag::addJoinVertex(TransfoStack &srcVector, TransfoStack &snkVect
 
     /* == Connect in of join == */
     auto remaining = sinkLinker.rate_;
-    for (std::uint32_t i = 0; i < join->inputEdgeCount() - 1; ++i) {
+    for (uint32_t i = 0; i < join->inputEdgeCount() - 1; ++i) {
         const auto &sourceLinker = srcVector.back();
         remaining -= sourceLinker.rate_;
         spider::api::createEdge(sourceLinker.vertex_, sourceLinker.portIx_, sourceLinker.rate_,
                                 join, i, sourceLinker.rate_, StackID::TRANSFO);
         srcVector.pop_back();
     }
-    snkVector.emplace_back(remaining, static_cast<std::uint32_t>(join->inputEdgeCount() - 1), join);
+    snkVector.emplace_back(remaining, static_cast<uint32_t>(join->inputEdgeCount() - 1), join);
     snkVector.back().lowerDep_ = sinkLinker.upperDep_;
     snkVector.back().upperDep_ = sinkLinker.upperDep_;
 
@@ -324,7 +324,7 @@ spider::srdag::computeEdgeDependencies(TransfoStack &srcVector, TransfoStack &sn
     const auto &setterOffset = edge->delay() ? edge->delay()->setter()->repetitionValue() : 0;
 
     /* == Compute dependencies for sinks == */
-    std::uint32_t firing = 0;
+    uint32_t firing = 0;
     auto currentSinkRate = snkRate;
     for (auto it = snkVector.rbegin(); it < snkVector.rend(); ++it) {
         if (it == snkVector.rbegin() + sinkRepetitionValue) {
@@ -346,8 +346,8 @@ spider::srdag::computeEdgeDependencies(TransfoStack &srcVector, TransfoStack &sn
         /* == Adjust the values to match the actual position in the source vector == */
         snkLowerDep += setterOffset;
         snkUpperDep += setterOffset;
-        (*it).lowerDep_ = static_cast<std::uint32_t>(snkLowerDep);
-        (*it).upperDep_ = static_cast<std::uint32_t>(snkUpperDep);
+        (*it).lowerDep_ = static_cast<uint32_t>(snkLowerDep);
+        (*it).upperDep_ = static_cast<uint32_t>(snkUpperDep);
         firing += 1;
     }
 

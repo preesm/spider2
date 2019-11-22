@@ -48,18 +48,18 @@
 
 class StaticAllocator : public AbstractAllocator {
 public:
-    void *allocate(std::size_t size) override = 0;
+    void *allocate(size_t size) override = 0;
 
     void deallocate(void *ptr) override = 0;
 
     virtual void reset() = 0;
 
 protected:
-    std::size_t totalSize_;
+    size_t totalSize_;
     bool externalBase_;
     void *startPtr_;
 
-    StaticAllocator(std::string name, std::size_t totalSize, std::size_t alignment = 0) :
+    StaticAllocator(std::string name, size_t totalSize, size_t alignment = 0) :
             AbstractAllocator(std::move(name), alignment),
             totalSize_{ totalSize },
             startPtr_{ nullptr } {
@@ -70,7 +70,7 @@ protected:
         externalBase_ = false;
     }
 
-    StaticAllocator(std::string name, std::size_t totalSize, void *externalBase, std::size_t alignment = 0) :
+    StaticAllocator(std::string name, size_t totalSize, void *externalBase, size_t alignment = 0) :
             AbstractAllocator(std::move(name), alignment),
             totalSize_{ totalSize },
             startPtr_{ nullptr } {
@@ -96,12 +96,12 @@ protected:
 /* === Inline methods === */
 
 void StaticAllocator::checkPointerAddress(void *ptr) const {
-    const auto &uintPtr = reinterpret_cast<std::uintptr_t >(ptr);
-    if (uintPtr < reinterpret_cast<std::uintptr_t>(startPtr_)) {
+    const auto &uintPtr = reinterpret_cast<uintptr_t >(ptr);
+    if (uintPtr < reinterpret_cast<uintptr_t>(startPtr_)) {
         throwSpiderException("Trying to deallocate unallocated memory block.");
     }
 
-    if (uintPtr > (reinterpret_cast<std::uintptr_t>(startPtr_) + totalSize_)) {
+    if (uintPtr > (reinterpret_cast<uintptr_t>(startPtr_) + totalSize_)) {
         throwSpiderException("Trying to deallocate memory block out of memory space.");
     }
 }

@@ -77,7 +77,7 @@ bool PiSDFJoinJoinOptimizer::operator()(PiSDFGraph *graph) const {
         auto *sink = pair.second;
 
         /* == Create the new join == */
-        const auto &inputCount = static_cast<std::uint32_t>(vertex->inputEdgeCount() + (sink->inputEdgeCount() - 1));
+        const auto &inputCount = static_cast<uint32_t>(vertex->inputEdgeCount() + (sink->inputEdgeCount() - 1));
         auto *join = spider::api::createJoin(graph,
                                              "merged-" + vertex->name() + "-" + sink->name(),
                                              inputCount,
@@ -88,7 +88,7 @@ bool PiSDFJoinJoinOptimizer::operator()(PiSDFGraph *graph) const {
 
         /* == Link the edges == */
         auto insertEdgeIx = vertex->outputEdge(0)->sinkPortIx();
-        std::uint64_t offset = 0;
+        uint64_t offset = 0;
         for (auto *sinkEdge :sink->inputEdgeArray()) {
             if (sinkEdge->sinkPortIx() == insertEdgeIx) {
                 graph->removeEdge(sinkEdge);
@@ -100,7 +100,7 @@ bool PiSDFJoinJoinOptimizer::operator()(PiSDFGraph *graph) const {
                 }
             } else {
                 rate = sinkEdge->sinkRateExpression().evaluate(params);
-                auto ix = static_cast<std::uint32_t>(sinkEdge->sinkPortIx() + offset);
+                auto ix = static_cast<uint32_t>(sinkEdge->sinkPortIx() + offset);
                 sinkEdge->setSink(join, ix, Expression(rate));
             }
         }

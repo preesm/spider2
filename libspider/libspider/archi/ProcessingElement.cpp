@@ -46,8 +46,8 @@
 
 /* === Static variable(s) === */
 
-static std::uint32_t spiderUniqueIx() {
-    static std::uint32_t ix = 0;
+static uint32_t spiderUniqueIx() {
+    static uint32_t ix = 0;
     return ix++;
 }
 
@@ -56,9 +56,9 @@ static std::uint32_t spiderUniqueIx() {
 /* === Method(s) implementation === */
 
 
-spider::PE::PE(std::uint32_t hwType,
-               std::uint32_t hwIx,
-               std::uint32_t virtIx,
+spider::PE::PE(uint32_t hwType,
+               uint32_t hwIx,
+               uint32_t virtIx,
                Cluster *cluster,
                std::string name,
                spider::PEType spiderPEType,

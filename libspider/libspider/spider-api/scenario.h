@@ -74,11 +74,11 @@ namespace spider {
 
         void setVertexMappableOnCluster(const pisdf::Vertex *vertex, const Cluster *cluster, bool value = true);
 
-        void setVertexMappableOnCluster(const pisdf::Vertex *vertex, std::uint32_t clusterIx, bool value = true);
+        void setVertexMappableOnCluster(const pisdf::Vertex *vertex, uint32_t clusterIx, bool value = true);
 
         void setVertexMappableOnPE(const pisdf::Vertex *vertex, const PE *PE, bool value = true);
 
-        void setVertexMappableOnPE(const pisdf::Vertex *vertex, std::uint32_t spiderPEIx, bool value = true);
+        void setVertexMappableOnPE(const pisdf::Vertex *vertex, uint32_t spiderPEIx, bool value = true);
 
         void setVertexMappableOnAllPE(const pisdf::Vertex *vertex, bool value = true);
 
@@ -88,18 +88,18 @@ namespace spider {
 
         void setVertexExecutionTimingOnPE(const pisdf::Vertex *vertex,
                                           const PE *PE,
-                                          std::int64_t timing = 100);
+                                          int64_t timing = 100);
 
         void setVertexExecutionTimingOnPEType(const pisdf::Vertex *vertex,
-                                              std::uint32_t PEType,
+                                              uint32_t PEType,
                                               const std::string &expression = "100");
 
         void setVertexExecutionTimingOnPEType(const pisdf::Vertex *vertex,
-                                              std::uint32_t PEType,
-                                              std::int64_t timing = 100);
+                                              uint32_t PEType,
+                                              int64_t timing = 100);
 
         void setVertexExecutionTimingOnAllPEType(const pisdf::Vertex *vertex,
-                                                 std::int64_t timing = 100);
+                                                 int64_t timing = 100);
     }
 }
 

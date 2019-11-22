@@ -53,17 +53,17 @@ namespace spider {
         /* === Structure definition(s) === */
 
         struct TransfoVertex {
-            std::int64_t rate_ = -1;
-            std::uint32_t portIx_ = UINT32_MAX;
+            int64_t rate_ = -1;
+            uint32_t portIx_ = UINT32_MAX;
             PiSDFAbstractVertex *vertex_ = nullptr;
-            std::uint32_t lowerDep_ = UINT32_MAX;
-            std::uint32_t upperDep_ = 0;
+            uint32_t lowerDep_ = UINT32_MAX;
+            uint32_t upperDep_ = 0;
 
             TransfoVertex() = default;
 
-            TransfoVertex(std::int64_t rate, std::uint32_t portIx, PiSDFAbstractVertex *vertex) : rate_{ rate },
-                                                                                                  portIx_{ portIx },
-                                                                                                  vertex_{ vertex } { }
+            TransfoVertex(int64_t rate, uint32_t portIx, PiSDFAbstractVertex *vertex) : rate_{ rate },
+                                                                                        portIx_{ portIx },
+                                                                                        vertex_{ vertex } { }
         };
 
         /* === Type definition(s) === */
@@ -81,8 +81,8 @@ namespace spider {
 
         void fillLinkerVector(TransfoStack &vector,
                               PiSDFAbstractVertex *reference,
-                              std::int64_t rate,
-                              std::uint32_t portIx,
+                              int64_t rate,
+                              uint32_t portIx,
                               TransfoData &transfoData);
 
         /**

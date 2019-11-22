@@ -44,17 +44,17 @@
 
 /* === Methods implementation === */
 
-LIFOStaticAllocator::LIFOStaticAllocator(std::string name, std::size_t totalSize) :
-        StaticAllocator(std::move(name), totalSize, sizeof(std::uint64_t)) {
+LIFOStaticAllocator::LIFOStaticAllocator(std::string name, size_t totalSize) :
+        StaticAllocator(std::move(name), totalSize, sizeof(uint64_t)) {
 
 }
 
-LIFOStaticAllocator::LIFOStaticAllocator(std::string name, std::size_t totalSize, void *externalBase) :
-        StaticAllocator(std::move(name), totalSize, externalBase, sizeof(std::uint64_t)) {
+LIFOStaticAllocator::LIFOStaticAllocator(std::string name, size_t totalSize, void *externalBase) :
+        StaticAllocator(std::move(name), totalSize, externalBase, sizeof(uint64_t)) {
 
 }
 
-void *LIFOStaticAllocator::allocate(std::size_t size) {
+void *LIFOStaticAllocator::allocate(size_t size) {
     if (!size) {
         return nullptr;
     }
@@ -68,7 +68,7 @@ void *LIFOStaticAllocator::allocate(std::size_t size) {
                                      PRIu64
                                      "", getName(), totalSize_, alignedSize);
     }
-    const auto &alignedAllocatedAddress = reinterpret_cast<std::uintptr_t>(startPtr_) + used_ - size;
+    const auto &alignedAllocatedAddress = reinterpret_cast<uintptr_t>(startPtr_) + used_ - size;
     used_ = alignedSize;
     peak_ = std::max(peak_, used_);
     return reinterpret_cast<void *>(alignedAllocatedAddress);
@@ -79,13 +79,13 @@ void LIFOStaticAllocator::deallocate(void *ptr) {
         return;
     }
     StaticAllocator::checkPointerAddress(ptr);
-    const auto &currentAddress = reinterpret_cast<std::uintptr_t >(ptr);
-    if (currentAddress > (used_ + reinterpret_cast<std::uintptr_t>(startPtr_))) {
+    const auto &currentAddress = reinterpret_cast<uintptr_t >(ptr);
+    if (currentAddress > (used_ + reinterpret_cast<uintptr_t>(startPtr_))) {
         throwSpiderException(
                 "Allocator: %s -- LIFO allocator should deallocate element in reverse order of allocation.",
                 getName());
     }
-    used_ = currentAddress - reinterpret_cast<std::uintptr_t>(startPtr_);
+    used_ = currentAddress - reinterpret_cast<uintptr_t>(startPtr_);
 }
 
 void LIFOStaticAllocator::reset() {

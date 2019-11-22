@@ -45,9 +45,9 @@
 
 /* === Methods implementation === */
 
-spider::pisdf::Param::Param(std::string name, Graph *graph, std::int64_t value) : graph_{ graph },
-                                                                                  name_{ std::move(name) },
-                                                                                  value_{ value } {
+spider::pisdf::Param::Param(std::string name, Graph *graph, int64_t value) : graph_{ graph },
+                                                                             name_{ std::move(name) },
+                                                                             value_{ value } {
     std::transform(name_.begin(), name_.end(), name_.begin(), ::tolower);
 }
 

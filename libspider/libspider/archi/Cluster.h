@@ -63,7 +63,7 @@ namespace spider {
     class Cluster {
     public:
 
-        Cluster(std::uint32_t PECount, MemoryUnit *memoryUnit);
+        Cluster(uint32_t PECount, MemoryUnit *memoryUnit);
 
         ~Cluster();
 
@@ -82,7 +82,7 @@ namespace spider {
          * @param status  Status of the PE to set (true = enabled, false = disabled).
          * @throws Spider::Exception if PE ix is out of bound.
          */
-        inline void setPEStatus(std::uint32_t ix, bool status);
+        inline void setPEStatus(uint32_t ix, bool status);
 
         /* === Getter(s) === */
 
@@ -104,32 +104,32 @@ namespace spider {
          * @return const reference of the @refitem ProcessingElement
          * @throws @refitem Spider::Exception if ix is out of bound
          */
-        inline const PE &processingElement(std::uint32_t ix) const;
+        inline const PE &processingElement(uint32_t ix) const;
 
         /**
          * @brief Get the number of processing element inside the cluster.
          * @return number of @refitem ProcessingElement inside the cluster.
          */
-        inline std::size_t PECount() const;
+        inline size_t PECount() const;
 
         /**
          * @brief Get the number of local runtime in the cluster.
          * @return number of local runtime inside the cluster.
          */
-        inline std::uint32_t LRTCount() const;
+        inline uint32_t LRTCount() const;
 
         /**
          * @brief Get the PE type of the cluster.
          * @remark This method return the value of @refitem ProcessingElement::hardwareType() method of the first PE.
          * @return PE type of the cluster.
          */
-        std::uint32_t PEType() const;
+        uint32_t PEType() const;
 
         /**
          * @brief  Get the cluster ix (unique among clusters).
          * @return Ix of the cluster.
          */
-        inline std::uint32_t ix() const;
+        inline uint32_t ix() const;
 
         /**
          * @brief Get the platform of the cluster.
@@ -141,7 +141,7 @@ namespace spider {
          * @brief Get the number of processing element enabled in the cluster.
          * @return number of enabled PE.
          */
-        inline std::uint32_t enabledPECount() const;
+        inline uint32_t enabledPECount() const;
 
         /**
          * @brief Get the write cost routine.
@@ -161,7 +161,7 @@ namespace spider {
          * @brief Set the cluster ix inside the Platform.
          * @param ix Ix to set.
          */
-        inline void setIx(std::uint32_t ix);
+        inline void setIx(uint32_t ix);
 
         /**
          * @brief Set the cost routine for writing in cluster memory.
@@ -183,13 +183,13 @@ namespace spider {
         std::vector<bool> PEEnabledVector_;
         Platform *platform_ = nullptr;
         MemoryUnit *memoryUnit_ = nullptr;
-        std::uint32_t PECount_ = 0;
+        uint32_t PECount_ = 0;
 
         /* === Spider properties === */
 
-        std::uint32_t LRTCount_ = 0;
-        std::uint32_t enabledPECount_ = 0;
-        std::uint32_t ix_ = 0;
+        uint32_t LRTCount_ = 0;
+        uint32_t enabledPECount_ = 0;
+        uint32_t ix_ = 0;
         spider::CommunicationCostRoutine writeCostRoutine_;
         spider::CommunicationCostRoutine readCostRoutine_;
 
@@ -198,10 +198,10 @@ namespace spider {
 
     /* === Inline method(s) === */
 
-    void Cluster::setPEStatus(std::uint32_t ix, bool status) {
+    void Cluster::setPEStatus(uint32_t ix, bool status) {
         PEEnabledVector_.at(ix) = status;
-        enabledPECount_ = static_cast<std::uint32_t>(std::count(PEEnabledVector_.begin(), PEEnabledVector_.end(),
-                                                                true));
+        enabledPECount_ = static_cast<uint32_t>(std::count(PEEnabledVector_.begin(), PEEnabledVector_.end(),
+                                                           true));
     }
 
     const spider::array<PE *> &Cluster::processingElements() const {
@@ -212,19 +212,19 @@ namespace spider {
         return *memoryUnit_;
     }
 
-    const PE &Cluster::processingElement(std::uint32_t ix) const {
+    const PE &Cluster::processingElement(uint32_t ix) const {
         return *PEArray_.at(ix);
     }
 
-    std::size_t Cluster::PECount() const {
+    size_t Cluster::PECount() const {
         return PEArray_.size();
     }
 
-    std::uint32_t Cluster::LRTCount() const {
+    uint32_t Cluster::LRTCount() const {
         return LRTCount_;
     }
 
-    std::uint32_t Cluster::ix() const {
+    uint32_t Cluster::ix() const {
         return ix_;
     }
 
@@ -232,7 +232,7 @@ namespace spider {
         return *platform_;
     }
 
-    std::uint32_t Cluster::enabledPECount() const {
+    uint32_t Cluster::enabledPECount() const {
         return enabledPECount_;
     }
 
@@ -244,7 +244,7 @@ namespace spider {
         return readCostRoutine_;
     }
 
-    void Cluster::setIx(std::uint32_t ix) {
+    void Cluster::setIx(uint32_t ix) {
         ix_ = ix;
     }
 

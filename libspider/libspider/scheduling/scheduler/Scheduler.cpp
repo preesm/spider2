@@ -51,9 +51,9 @@
 
 
 void spider::Scheduler::setJobInformation(sched::Job *job,
-                                          std::pair<std::uint32_t, std::uint32_t> slave,
-                                          std::uint64_t startTime,
-                                          std::uint64_t endTime) {
+                                          std::pair<uint32_t, uint32_t> slave,
+                                          uint64_t startTime,
+                                          uint64_t endTime) {
     auto *platform = spider::platform();
     const auto &PE = platform->findPE(slave.first, slave.second);
     job->setMappingLRT(PE.managingLRTIx());
@@ -65,8 +65,8 @@ void spider::Scheduler::setJobInformation(sched::Job *job,
     schedule_.update(*job);
 }
 
-std::uint64_t spider::Scheduler::computeMinStartTime(const PiSDFAbstractVertex *vertex) {
-    std::uint64_t minimumStartTime = 0;
+uint64_t spider::Scheduler::computeMinStartTime(const PiSDFAbstractVertex *vertex) {
+    uint64_t minimumStartTime = 0;
     auto &job = schedule_.job(vertex->ix());
     job.setVertexIx(vertex->ix());
     for (const auto &edge : vertex->inputEdgeArray()) {
@@ -87,18 +87,18 @@ std::uint64_t spider::Scheduler::computeMinStartTime(const PiSDFAbstractVertex *
 
 void spider::Scheduler::vertexMapper(const PiSDFAbstractVertex *vertex) {
     /* == Compute the minimum start time possible for vertex == */
-    std::uint64_t minStartTime = Scheduler::computeMinStartTime(vertex);
+    uint64_t minStartTime = Scheduler::computeMinStartTime(vertex);
 
     /* == Search for the best slave possible == */
     const auto *platform = spider::platform();
     const auto *scenario = vertex->containingGraph()->scenario();
     const auto &platformStats = schedule_.stats();
 
-    std::pair<std::uint32_t, std::uint32_t> bestSlave{ UINT32_MAX, UINT32_MAX };
-    std::uint64_t bestStartTime = 0;
-    std::uint64_t bestEndTime = UINT64_MAX;
-    std::uint64_t bestWaitTime = UINT64_MAX;
-    std::uint64_t bestScheduleCost = UINT64_MAX;
+    std::pair<uint32_t, uint32_t> bestSlave{ UINT32_MAX, UINT32_MAX };
+    uint64_t bestStartTime = 0;
+    uint64_t bestEndTime = UINT64_MAX;
+    uint64_t bestWaitTime = UINT64_MAX;
+    uint64_t bestScheduleCost = UINT64_MAX;
     for (const auto &cluster : platform->clusters()) {
         for (const auto &PE : cluster->processingElements()) {
             /* == Check that PE is enabled and vertex is mappable on it == */
@@ -111,7 +111,7 @@ void spider::Scheduler::vertexMapper(const PiSDFAbstractVertex *vertex) {
                 const auto &endTime = execTime + JobStartTime;
 
                 /* == Compute communication cost == */
-                std::uint64_t receiveCost = 0;
+                uint64_t receiveCost = 0;
 
                 /* == Compute total schedule cost == */
                 const auto &scheduleCost = spider::math::saturateAdd(endTime, receiveCost);

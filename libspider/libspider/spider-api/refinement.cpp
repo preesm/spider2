@@ -56,32 +56,32 @@ std::vector<spider::pisdf::Refinement *> &spider::refinementsRegister() {
     return refinementVector;
 }
 
-void spider::api::precacheRefinementRegister(std::uint32_t refinementCount) {
+void spider::api::precacheRefinementRegister(uint32_t refinementCount) {
     auto &refinements = refinementsRegister();
     refinements.reserve(refinements.size() + refinementCount);
 }
 
 spider::pisdf::Refinement *spider::api::createRefinement(std::string name,
                                                          spider::callback function,
-                                                         std::uint32_t paramINCount,
-                                                         std::uint32_t paramOUTCount,
+                                                         uint32_t paramINCount,
+                                                         uint32_t paramOUTCount,
                                                          StackID stack) {
     auto *refinement = spider::allocate<spider::pisdf::Refinement>(stack);
     spider::construct(refinement, std::move(name), function, paramINCount, paramOUTCount);
     return refinement;
 }
 
-std::uint32_t spider::api::registerRefinement(spider::pisdf::Refinement *refinement) {
+uint32_t spider::api::registerRefinement(spider::pisdf::Refinement *refinement) {
     if (refinement->ix() == UINT32_MAX) {
         auto &refinements = spider::refinementsRegister();
-        refinement->setIx(static_cast<std::uint32_t>(refinements.size()));
+        refinement->setIx(static_cast<uint32_t>(refinements.size()));
         refinements.emplace_back(refinement);
     }
     return refinement->ix();
 }
 
 void spider::api::setRefinementInputParams(spider::pisdf::Refinement *refinement,
-                                           std::initializer_list<std::uint32_t> list) {
+                                           std::initializer_list<uint32_t> list) {
     if (!refinement) {
         return;
     }
@@ -91,7 +91,7 @@ void spider::api::setRefinementInputParams(spider::pisdf::Refinement *refinement
 }
 
 void spider::api::setRefinementOutputParams(spider::pisdf::Refinement *refinement,
-                                            std::initializer_list<std::uint32_t> list) {
+                                            std::initializer_list<uint32_t> list) {
     if (!refinement) {
         return;
     }

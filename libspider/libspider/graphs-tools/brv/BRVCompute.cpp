@@ -124,7 +124,7 @@ void BRVCompute::extractConnectedComponent(BRVComponent &component,
 spider::array<const PiSDFEdge *> BRVCompute::extractEdges(const BRVComponent &component) {
     spider::array<const PiSDFEdge *> edgeArray{ component.nEdges, StackID::TRANSFO };
     const auto &vertexArray = component.vertices;
-    std::uint32_t index = 0;
+    uint32_t index = 0;
     for (const auto &v: vertexArray) {
         for (const auto &edge: v->outputEdgeArray()) {
             edgeArray[index++] = edge;
@@ -139,7 +139,7 @@ spider::array<const PiSDFEdge *> BRVCompute::extractEdges(const BRVComponent &co
 }
 
 void BRVCompute::updateBRV(const BRVComponent &component) {
-    std::uint32_t scaleRVFactor{ 1 };
+    uint32_t scaleRVFactor{ 1 };
 
     /* == Compute the scale factor == */
     spider::pisdf::UpdateBRVVisitor brvVisitor{ scaleRVFactor, params_ };

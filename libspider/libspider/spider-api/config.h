@@ -47,7 +47,7 @@
 /**
  * @brief Stack ids
  */
-enum class StackID : std::uint64_t {
+enum class StackID : uint64_t {
     PISDF = 0,       /*!< Stack used for PISDF graph (should be static) */
     ARCHI,           /*!< Stack used for architecture (should be static) */
     TRANSFO,         /*!< Stack used for graph transformations */
@@ -60,7 +60,7 @@ enum class StackID : std::uint64_t {
     Last = SCENARIO, /*!< Sentry for EnumIterator::end */
 };
 
-constexpr std::size_t STACK_COUNT = static_cast<std::size_t>(StackID::Last) + 1;
+constexpr size_t STACK_COUNT = static_cast<size_t>(StackID::Last) + 1;
 
 
 /* === Forward declaration(s) === */

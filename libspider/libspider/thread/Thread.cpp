@@ -78,8 +78,8 @@
 
 #define MASK(id) (0x00000001 << affinity_id)
 
-bool spider::this_thread::set_affinity(std::int32_t affinity_id) {
-    auto ret = SetThreadAffinityMask(GetCurrentThread(), MASK(static_cast<std::uint32_t>(affinity_id)));
+bool spider::this_thread::set_affinity(int32_t affinity_id) {
+    auto ret = SetThreadAffinityMask(GetCurrentThread(), MASK(static_cast<uint32_t>(affinity_id)));
     return ret != 0;
 }
 
@@ -89,7 +89,7 @@ std::thread::native_handle_type spider::this_thread::native_handle() {
     return GetCurrentThread();
 }
 
-std::int32_t spider::this_thread::get_affinity() {
+int32_t spider::this_thread::get_affinity() {
     return GetCurrentProcessorNumber();
 }
 
@@ -99,11 +99,11 @@ std::thread::native_handle_type spider::this_thread::native_handle() {
     return pthread_self();
 }
 
-std::int32_t spider::this_thread::get_affinity() {
-    std::uint32_t CPUInfo[4];
+int32_t spider::this_thread::get_affinity() {
+    uint32_t CPUInfo[4];
     __cpuid(1, CPUInfo[0], CPUInfo[1], CPUInfo[2], CPUInfo[3]);
     /* CPUInfo[1] is EBX, bits 24-31 are APIC ID */
-    std::int32_t cpu = (CPUInfo[3] & (1u << 9u)) == 0 ? -1 : CPUInfo[1] >> 24u;
+    int32_t cpu = (CPUInfo[3] & (1u << 9u)) == 0 ? -1 : CPUInfo[1] >> 24u;
     return cpu < 0 ? 0 : cpu;
 }
 
@@ -111,7 +111,7 @@ std::int32_t spider::this_thread::get_affinity() {
 
 #elif (defined __APPLE__)
 
-bool spider::this_thread::set_affinity(std::int32_t affinity_id) {
+bool spider::this_thread::set_affinity(int32_t affinity_id) {
     spider::log::warning("Thread affinity is not guaranteed on OSX platform..\n");
     auto mac_thread = pthread_mach_thread_np(spider::this_thread::native_handle());
     thread_affinity_policy_data_t policyData = { affinity_id };
@@ -134,11 +134,11 @@ std::thread::native_handle_type spider::this_thread::native_handle() {
  */
 #define CPUID(INFO, LEAF, SUBLEAF) __cpuid_count(LEAF, SUBLEAF, (INFO)[0], (INFO)[1], (INFO)[2], (INFO)[3])
 
-std::int32_t spider::this_thread::get_affinity() {
-    std::uint32_t CPUInfo[4];
+int32_t spider::this_thread::get_affinity() {
+    uint32_t CPUInfo[4];
     CPUID(CPUInfo, 1, 0);
     /* CPUInfo[1] is EBX, bits 24-31 are APIC ID */
-    std::int32_t cpu = (CPUInfo[3] & (1u << 9u)) == 0 ? -1 : CPUInfo[1] >> 24u;
+    int32_t cpu = (CPUInfo[3] & (1u << 9u)) == 0 ? -1 : CPUInfo[1] >> 24u;
     return cpu < 0 ? 0 : cpu;
 }
 
@@ -147,7 +147,7 @@ std::int32_t spider::this_thread::get_affinity() {
 /* For android support, see this post: https://stackoverflow.com/questions/16319725/android-set-thread-affinity */
 /* Only defining these macro should be enough */
 
-bool spider::this_thread::set_affinity(std::int32_t affinity_id) {
+bool spider::this_thread::set_affinity(int32_t affinity_id) {
     cpu_set_t cpu_set;
     CPU_ZERO(&cpu_set);
     CPU_SET(affinity_id, &cpu_set);
@@ -159,7 +159,7 @@ std::thread::native_handle_type spider::this_thread::native_handle() {
     return pthread_self();
 }
 
-std::int32_t spider::this_thread::get_affinity() {
+int32_t spider::this_thread::get_affinity() {
     return sched_getcpu();
 }
 

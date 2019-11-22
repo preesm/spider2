@@ -172,9 +172,9 @@ namespace spider {
 
         /* === Operators === */
 
-        T &operator[](std::uint64_t ix);
+        T &operator[](uint64_t ix);
 
-        T &operator[](std::uint64_t ix) const;
+        T &operator[](uint64_t ix) const;
 
         /**
          * @brief use the "making new friends idiom" from
@@ -296,7 +296,7 @@ namespace spider {
          * @brief Get the size of the LinkedList.
          * @return size of the list.
          */
-        inline std::uint64_t size() const;
+        inline uint64_t size() const;
 
     private:
         NodeList<T> *head_ = nullptr;
@@ -304,7 +304,7 @@ namespace spider {
         NodeList<T> *tail_ = nullptr;
 
         StackID stack_ = StackID::GENERAL;
-        std::uint64_t size_ = 0;
+        uint64_t size_ = 0;
 
         inline NodeList<T> *newNodeList(T &val, NodeList<T> *prev = nullptr, NodeList<T> *next = nullptr) const;
     };
@@ -339,7 +339,7 @@ namespace spider {
     }
 
     template<class T>
-    inline T &LinkedList<T>::operator[](std::uint64_t ix) {
+    inline T &LinkedList<T>::operator[](uint64_t ix) {
         if (ix >= size_) {
             throwSpiderException("Accessing uninitialized element. Ix = %"
                                          PRIu64
@@ -347,7 +347,7 @@ namespace spider {
                                          PRIu64
                                          "", ix, size_);
         }
-        std::uint64_t i = 0;
+        uint64_t i = 0;
         auto *current = head_;
         while (i < ix && current != tail_) {
             current = current->next;
@@ -357,7 +357,7 @@ namespace spider {
     }
 
     template<class T>
-    inline T &LinkedList<T>::operator[](std::uint64_t ix) const {
+    inline T &LinkedList<T>::operator[](uint64_t ix) const {
         return operator[](ix);
     }
 
@@ -507,7 +507,7 @@ namespace spider {
     }
 
     template<typename T>
-    std::uint64_t LinkedList<T>::size() const {
+    uint64_t LinkedList<T>::size() const {
         return size_;
     }
 

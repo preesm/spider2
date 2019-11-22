@@ -45,14 +45,14 @@
 
 /* === Methods implementation === */
 
-GenericAllocator::GenericAllocator(std::string name, std::size_t alignment) : DynamicAllocator(std::move(name),
-                                                                                               alignment) { }
+GenericAllocator::GenericAllocator(std::string name, size_t alignment) : DynamicAllocator(std::move(name),
+                                                                                          alignment) { }
 
-void *GenericAllocator::allocate(std::size_t size) {
+void *GenericAllocator::allocate(size_t size) {
     if (!size) {
         return nullptr;
     }
-    const auto &requiredSize = size + sizeof(std::uint64_t);
+    const auto &requiredSize = size + sizeof(uint64_t);
     const auto &alignedSize = AbstractAllocator::computeAlignedSize(requiredSize, alignment_);
 
     auto *headerAddress = std::malloc(alignedSize);
@@ -61,19 +61,19 @@ void *GenericAllocator::allocate(std::size_t size) {
                              AbstractAllocator::getByteNormalizedSize(alignedSize),
                              AbstractAllocator::getByteUnitString(alignedSize));
     }
-    auto *header = reinterpret_cast<std::uint64_t *>(headerAddress);
+    auto *header = reinterpret_cast<uint64_t *>(headerAddress);
     (*header) = alignedSize;
     used_ += alignedSize;
     peak_ = std::max(peak_, used_);
-    return reinterpret_cast<void *>(reinterpret_cast<std::uintptr_t>(headerAddress) + sizeof(std::uint64_t));
+    return reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(headerAddress) + sizeof(uint64_t));
 }
 
 void GenericAllocator::deallocate(void *ptr) {
     if (!ptr) {
         return;
     }
-    const auto &headerAddress = reinterpret_cast<std::uintptr_t>(ptr) - sizeof(std::uint64_t);
-    auto *header = reinterpret_cast<std::uint64_t *>(headerAddress);
+    const auto &headerAddress = reinterpret_cast<uintptr_t>(ptr) - sizeof(uint64_t);
+    auto *header = reinterpret_cast<uint64_t *>(headerAddress);
     used_ -= (*header);
     std::free(reinterpret_cast<void *>(headerAddress));
 }
