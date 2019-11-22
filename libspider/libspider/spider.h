@@ -68,19 +68,6 @@ namespace spider {
                                  FreeListPolicy policy = FreeListPolicy::FIND_FIRST,
                                  std::size_t alignment = sizeof(std::uint64_t));
 
-        void createFreeListStaticStack(StackID stack,
-                                       const std::string &name,
-                                       std::uint64_t totalSize,
-                                       FreeListPolicy policy = FreeListPolicy::FIND_FIRST,
-                                       std::size_t alignment = sizeof(std::uint64_t));
-
-        void createFreeListStaticStack(StackID stack,
-                                       const std::string &name,
-                                       std::size_t totalSize,
-                                       void *base,
-                                       FreeListPolicy policy = FreeListPolicy::FIND_FIRST,
-                                       std::size_t alignment = sizeof(std::uint64_t));
-
         void createLinearStaticStack(StackID stack,
                                      const std::string &name,
                                      std::size_t totalSize,

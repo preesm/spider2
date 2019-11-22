@@ -60,7 +60,7 @@ enum class StackID : std::uint64_t {
     Last = SCENARIO, /*!< Sentry for EnumIterator::end */
 };
 
-constexpr std::int32_t ALLOCATOR_COUNT = static_cast<std::int32_t>(StackID::Last) + 1;
+constexpr std::size_t STACK_COUNT = static_cast<std::size_t>(StackID::Last) + 1;
 
 
 /* === Forward declaration(s) === */

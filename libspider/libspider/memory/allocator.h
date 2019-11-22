@@ -45,7 +45,6 @@
 #include <cstdint>
 #include <limits>
 #include <memory/abstract-allocators/AbstractAllocator.h>
-#include <memory/static-allocators/FreeListStaticAllocator.h>
 #include <memory/static-allocators/LIFOStaticAllocator.h>
 #include <memory/static-allocators/LinearStaticAllocator.h>
 #include <memory/dynamic-allocators/FreeListAllocator.h>
@@ -67,12 +66,15 @@ namespace spider {
      * @brief Allocator types
      */
     enum class AllocatorType {
-        FREELIST,        /*!< (Dynamic) FreeList type allocator */
-        GENERIC,         /*!< (Dynamic) Generic type allocator (=malloc) */
-        LIFO_STATIC,     /*!< (Static) LIFO type allocator */
-        FREELIST_STATIC, /*!< (Static) FreeList type allocator */
-        LINEAR_STATIC    /*!< (Static) Linear type allocator */
+        FREELIST,             /*!< (Dynamic) FreeList type allocator */
+        GENERIC,              /*!< (Dynamic) Generic type allocator (=malloc) */
+        LIFO_STATIC,          /*!< (Static) LIFO type allocator */
+        LINEAR_STATIC,        /*!< (Static) Linear type allocator */
+        First = FREELIST,     /*!< Sentry for EnumIterator::begin */
+        Last = LINEAR_STATIC, /*!< Sentry for EnumIterator::end */
     };
+
+    constexpr std::size_t ALLOCATOR_COUNT = static_cast<std::size_t>(AllocatorType::Last) + 1;
 
     /* == Functions used for creating / destroying allocators == */
 
@@ -85,8 +87,8 @@ namespace spider {
     struct type {
     };
 
-    inline std::array<AbstractAllocator *, ALLOCATOR_COUNT> &allocatorArray() {
-        static std::array<AbstractAllocator *, ALLOCATOR_COUNT> allocatorArray = { nullptr };
+    inline std::array<AbstractAllocator *, STACK_COUNT> &allocatorArray() {
+        static std::array<AbstractAllocator *, STACK_COUNT> allocatorArray = { nullptr };
         return allocatorArray;
     }
 
@@ -115,13 +117,6 @@ namespace spider {
     inline void createAllocator(type<AllocatorType::FREELIST>, StackID stack, Args &&... args) {
         if (!allocator(stack)) {
             allocator(stack) = new FreeListAllocator(std::forward<Args>(args)...);
-        }
-    }
-
-    template<class ...Args>
-    inline void createAllocator(type<AllocatorType::FREELIST_STATIC>, StackID stack, Args &&... args) {
-        if (!allocator(stack)) {
-            allocator(stack) = new FreeListStaticAllocator(std::forward<Args>(args)...);
         }
     }
 

@@ -106,23 +106,6 @@ void spider::api::createFreeListStack(StackID stack,
     createAllocator(spider::type<AllocatorType::FREELIST>{ }, stack, name, staticBufferSize, policy, alignment);
 }
 
-void spider::api::createFreeListStaticStack(StackID stack,
-                                            const std::string &name,
-                                            std::size_t totalSize,
-                                            FreeListPolicy policy,
-                                            std::size_t alignment) {
-    createAllocator(spider::type<AllocatorType::FREELIST_STATIC>{ }, stack, name, totalSize, policy, alignment);
-}
-
-void spider::api::createFreeListStaticStack(StackID stack,
-                                            const std::string &name,
-                                            std::size_t totalSize,
-                                            void *base,
-                                            FreeListPolicy policy,
-                                            std::size_t alignment) {
-    createAllocator(spider::type<AllocatorType::FREELIST_STATIC>{ }, stack, name, totalSize, base, policy, alignment);
-}
-
 void spider::api::createLinearStaticStack(StackID stack,
                                           const std::string &name,
                                           std::size_t totalSize,
