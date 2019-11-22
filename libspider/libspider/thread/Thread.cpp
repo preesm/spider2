@@ -47,6 +47,12 @@
 #include <windows.h>
 #include <process.h>
 
+#if (defined __MINGW64__ || defined __MINGW32__)
+
+#include <pthread.h>
+
+#endif
+
 #elif defined __APPLE__
 
 #include <mach/mach.h>
@@ -72,12 +78,11 @@
 #define MASK(id) (0x00000001 << affinity_id)
 
 bool spider::this_thread::set_affinity(std::int32_t affinity_id) {
-    auto ret = SetThreadAffinityMask(spider::this_thread::native_handle(), MASK(static_cast<std::uint32_t>(affinity_id)));
-    if (ret != 0) {
-        return true;
-    }
-    return false;
+    auto ret = SetThreadAffinityMask(GetCurrentThread(), MASK(static_cast<std::uint32_t>(affinity_id)));
+    return ret != 0;
 }
+
+#ifdef _MSC_VER
 
 std::thread::native_handle_type spider::this_thread::native_handle() {
     return GetCurrentThread();
@@ -86,6 +91,22 @@ std::thread::native_handle_type spider::this_thread::native_handle() {
 std::int32_t spider::this_thread::get_affinity() {
     return GetCurrentProcessorNumber();
 }
+
+#elif (defined __MINGW64__ || defined __MINGW32__)
+
+std::thread::native_handle_type spider::this_thread::native_handle() {
+    return pthread_self();
+}
+
+std::int32_t spider::this_thread::get_affinity() {
+    std::uint32_t CPUInfo[4];
+    __cpuid(CPUInfo, 1);
+    /* CPUInfo[1] is EBX, bits 24-31 are APIC ID */
+    std::int32_t cpu = (CPUInfo[3] & (1u << 9u)) == 0 ? -1 : CPUInfo[1] >> 24u;
+    return cpu < 0 ? 0 : cpu;
+}
+
+#endif
 
 #elif (defined __APPLE__)
 
