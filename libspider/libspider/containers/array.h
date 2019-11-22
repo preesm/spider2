@@ -76,17 +76,33 @@ namespace spider {
         array(size_t size, T value, StackID stack = StackID::GENERAL) : data_(size, value,
                                                                               spider::Allocator<T>(stack)) { }
 
-        array() = default;
+        array() noexcept : data_() { };
 
         array(const array &) = default;
 
-        array(array &&) noexcept = default;
+        array(array &&other) noexcept : array() { swap(*this, other); }
 
         ~array() = default;
 
-        array &operator=(const array &) = default;
+        array &operator=(array tmp) {
+            swap(*this, tmp);
+            return *this;
+        }
 
-        array &operator=(array &&) = default;
+        /* === Swap method === */
+
+        /**
+         * @brief use the "making new friends idiom" from
+         * https://en.wikibooks.org/wiki/More_C%2B%2B_Idioms/Making_New_Friends
+         * @param first   First element to swap.
+         * @param second  Second element to swap.
+         */
+        inline friend void swap(spider::array<T> &first, spider::array<T> &second) noexcept {
+            /* == Do the swapping of the values == */
+            using std::swap;
+            swap(first.data_, second.data_);
+        }
+
 
         /* === Operators === */
 

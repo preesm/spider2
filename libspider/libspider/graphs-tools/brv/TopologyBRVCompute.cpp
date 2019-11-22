@@ -184,7 +184,7 @@ void TopologyBRVCompute::computeBRVFromNullSpace(spider::array<int64_t> &topolog
 
     /* == Scale the result == */
     spider::array<spider::Rational> rationalResult{ nMatVertices, spider::Rational{ 1 }, StackID::TRANSFO };
-    for (uint32_t i = nMatEdges - 1; i >= 0; i--) {
+    for (uint32_t i = nMatEdges - 1; i != UINT32_MAX; i--) {
         auto val{ spider::Rational() };
         for (uint32_t k = i + 1; k < nMatVertices; ++k) {
             val += (rationalResult[k] * rationalMatrix[i * nMatVertices + k]);

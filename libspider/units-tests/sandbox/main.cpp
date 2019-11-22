@@ -71,7 +71,7 @@ void fn(int32_t id, int32_t affinity) {
 }
 
 int main(int, char **) {
-//    spiderTest();
+    spiderTest();
 
     spider::thread t1(fn, 0, 3);
     spider::thread t2(fn, 1, 5);
