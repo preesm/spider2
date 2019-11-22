@@ -46,12 +46,13 @@
 #include <map>
 #include <deque>
 #include <queue>
+#include <stack>
 #include <vector>
 #include <forward_list>
 #include <unordered_set>
 #include <unordered_map>
-#include <stack>
 #include <memory/STLAllocator.h>
+#include <spider-api/config.h>
 
 /* === Namespace === */
 
@@ -59,6 +60,16 @@ namespace spider {
 
     template<class T>
     using vector = std::vector<T, spider::Allocator<T>>;
+
+    template<class T, StackID stack = StackID::GENERAL>
+    inline spider::vector<T> make_vector(size_t size) {
+        return spider::vector<T>(size, spider::Allocator<T>(stack));
+    }
+
+    template<class T, StackID stack = StackID::GENERAL>
+    inline spider::vector<T> make_vector() {
+        return spider::vector<T>(spider::Allocator<T>(stack));
+    }
 
     template<class T>
     using deque = std::deque<T, spider::Allocator<T>>;

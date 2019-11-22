@@ -136,6 +136,8 @@ namespace spider {
              */
             int64_t value(const spider::vector<Param *> &params) const;
 
+            inline bool isPersistent() const;
+
             /* === Setter(s) === */
 
             /**
@@ -188,6 +190,10 @@ namespace spider {
 
         uint64_t Delay::memoryAddress() const {
             return memoryAddress_;
+        }
+
+        bool Delay::isPersistent() const {
+            return persistent_;
         }
 
         void Delay::setMemoryAddress(uint64_t address) {

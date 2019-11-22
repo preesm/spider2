@@ -50,8 +50,7 @@
 
 /* === Method(s) implementation === */
 
-BRVCompute::BRVCompute(const PiSDFGraph *graph) : BRVCompute(graph, graph->params()) {
-}
+BRVCompute::BRVCompute(const PiSDFGraph *graph) : BRVCompute(graph, graph->params()) { }
 
 BRVCompute::BRVCompute(const PiSDFGraph *graph, const spider::vector<PiSDFParam *> &params) : graph_{ graph },
                                                                                               params_{ params } {
@@ -59,18 +58,16 @@ BRVCompute::BRVCompute(const PiSDFGraph *graph, const spider::vector<PiSDFParam 
                                                                         nullptr,
                                                                         StackID::TRANSFO };
     spider::array<const PiSDFAbstractVertex *> vertexArray{ graph->vertexCount(), nullptr, StackID::TRANSFO };
-    BRVComponent component;
     for (auto *v:graph->vertices()) {
         if (!connectedComponentsKeys[v->ix()]) {
-            component.nEdges = 0;
-            component.vertices.clear();
+            BRVComponent component;
             /* == Register current vertex == */
             connectedComponentsKeys[v->ix()] = v;
-            component.vertices.push_back(v);
+            component.vertices.emplace_back(v);
 
             /* == Extract the connected component vertices == */
             extractConnectedComponent(component, connectedComponentsKeys);
-            connectedComponents_.push_back((component));
+            connectedComponents_.emplace_back(std::move(component));
         }
     }
 }

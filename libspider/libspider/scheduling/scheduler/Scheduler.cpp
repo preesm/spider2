@@ -108,7 +108,7 @@ void spider::Scheduler::vertexMapper(const PiSDFAbstractVertex *vertex) {
                 const auto &JobStartTime = std::max(PEReadyTime, minStartTime);
                 const auto &waitTime = JobStartTime - PEReadyTime;
                 const auto &execTime = scenario->executionTiming(vertex, PE);
-                const auto &endTime = execTime + JobStartTime;
+                const auto &endTime = static_cast<uint64_t>(execTime) + JobStartTime;
 
                 /* == Compute communication cost == */
                 uint64_t receiveCost = 0;

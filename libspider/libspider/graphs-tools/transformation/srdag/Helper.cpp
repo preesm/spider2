@@ -125,7 +125,7 @@ struct CopyVisitor final : public spider::pisdf::DefaultVisitor {
                 CopyVisitor visitor{ transfoData_ };
                 runGraph->visit(&visitor);
                 transfoData_.tracker_[runGraph->ix()] = visitor.ix_;
-                it = transfoData_.dynaJobs_.begin() + offset;
+                it = transfoData_.dynaJobs_.begin() + static_cast<std::make_signed<size_t>::type>(offset);
                 if (it == transfoData_.dynaJobs_.end()) {
                     throwSpiderException("Init graph [%s] did not find run counter part [%s].",
                                          graph->name().c_str(),

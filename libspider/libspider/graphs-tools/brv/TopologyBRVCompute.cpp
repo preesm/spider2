@@ -66,13 +66,12 @@ void TopologyBRVCompute::execute() {
         uint32_t nMatVertices = 0;
         for (const auto &vertex : component.vertices) {
             if (isVertexExecutable(vertex)) {
-                vertexIxArray[vertex->ix()] = nMatVertices++;
+                vertexIxArray[vertex->ix()] = static_cast<int32_t>(nMatVertices++);
             }
         }
 
         /* == Check the number of valid edges == */
-        spider::vector<const PiSDFEdge *> validEdgeVector(
-                component.nEdges); /* = Reserve the memory for the worst case = */
+        auto validEdgeVector = spider::make_vector<const PiSDFEdge *, StackID::TRANSFO>(component.nEdges);
         uint32_t nMatEdges = 0;
         for (const auto &edge : edgeArray) {
             if (isEdgeValid(edge, vertexIxArray)) {
@@ -86,10 +85,10 @@ void TopologyBRVCompute::execute() {
         uint32_t edgeRow = 0;
         for (const auto &edge : validEdgeVector) {
             auto edgeRowOffset = edgeRow * nMatVertices;
-            topologyMatrix[edgeRowOffset + vertexIxArray[edge->source()->ix()]] = edge->sourceRateExpression().evaluate(
-                    params_);
-            topologyMatrix[edgeRowOffset + vertexIxArray[edge->sink()->ix()]] = -edge->sinkRateExpression().evaluate(
-                    params_);
+            const auto &srcRate = edge->sourceRateExpression().evaluate(params_);
+            topologyMatrix[edgeRowOffset + static_cast<uint32_t>(vertexIxArray[edge->source()->ix()])] = srcRate;
+            const auto &snkRate = edge->sinkRateExpression().evaluate(params_);
+            topologyMatrix[edgeRowOffset + static_cast<uint32_t>(vertexIxArray[edge->sink()->ix()])] = -snkRate;
             edgeRow += 1;
         }
 
@@ -185,7 +184,7 @@ void TopologyBRVCompute::computeBRVFromNullSpace(spider::array<int64_t> &topolog
 
     /* == Scale the result == */
     spider::array<spider::Rational> rationalResult{ nMatVertices, spider::Rational{ 1 }, StackID::TRANSFO };
-    for (int32_t i = nMatEdges - 1; i >= 0; i--) {
+    for (uint32_t i = nMatEdges - 1; i >= 0; i--) {
         auto val{ spider::Rational() };
         for (uint32_t k = i + 1; k < nMatVertices; ++k) {
             val += (rationalResult[k] * rationalMatrix[i * nMatVertices + k]);
@@ -212,8 +211,8 @@ void TopologyBRVCompute::computeBRVFromNullSpace(spider::array<int64_t> &topolog
     uint32_t vertexIx = 0;
     for (const auto &vertex : component.vertices) {
         if (vertexIxArray[vertex->ix()] >= 0) {
-            auto rv = (rationalResult[vertexIx] * lcm).abs().toInt32();
-            vertex->setRepetitionValue(rv);
+            auto rv = ((rationalResult[vertexIx] * lcm).abs().toInt32());
+            vertex->setRepetitionValue(static_cast<uint32_t>(rv));
             vertexIx += 1;
         }
     }

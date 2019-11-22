@@ -98,10 +98,10 @@ spider::pisdf::Delay::Delay(Expression &&expression,
     auto *setterEdge = spider::allocate<PiSDFEdge>(stack);
     spider::construct(setterEdge,
                       setter_, setterPortIx_, std::move(setterRateExpression),
-                      vertex_, 0, Expression(expression_));
+                      vertex_, 0u, Expression(expression_));
     auto *getterEdge = spider::allocate<PiSDFEdge>(stack);
     spider::construct(getterEdge,
-                      vertex_, 0, Expression(expression_),
+                      vertex_, 0u, Expression(expression_),
                       getter_, getterPortIx_, std::move(getterRateExpression));
 
     /* == Add things to the graph == */

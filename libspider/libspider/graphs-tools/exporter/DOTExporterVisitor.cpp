@@ -147,7 +147,7 @@ void spider::pisdf::DOTExporterVisitor::vertexPrinter(ExecVertex *vertex,
     /* == Get widths == */
     const auto &widthPair = computeConstantWidth(vertex);
     const auto &centerWidth = widthPair.first;
-    const auto &rateWidth = 32 + std::max(widthPair.second + 1 - 3, 0) * 8;
+    const auto &rateWidth = static_cast<uint32_t>(32 + std::max(widthPair.second + 1 - 3, 0) * 8);
 
     /* == Export data ports == */
     uint32_t nOutput = 0;

@@ -50,7 +50,7 @@
 
 struct BRVComponent {
     uint32_t nEdges = 0;
-    spider::vector<PiSDFAbstractVertex *> vertices;
+    spider::vector<PiSDFAbstractVertex *> vertices{ spider::Allocator<PiSDFAbstractVertex *>(StackID::TRANSFO) };
 
     BRVComponent() = default;
 };
@@ -90,7 +90,7 @@ public:
 protected:
     const PiSDFGraph *graph_ = nullptr;
     const spider::vector<PiSDFParam *> &params_;
-    spider::vector<BRVComponent> connectedComponents_;
+    spider::vector<BRVComponent> connectedComponents_{ spider::Allocator<BRVComponent>(StackID::TRANSFO) };
 
     /* === Protected method(s) === */
 

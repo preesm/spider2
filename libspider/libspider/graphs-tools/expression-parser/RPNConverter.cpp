@@ -210,8 +210,8 @@ static void addElementFromToken(spider::vector<RPNElement> &tokenStack, const st
 }
 
 static bool trySwap(spider::vector<RPNElement> &stack,
-                    const spider::vector<int> &left,
-                    const spider::vector<int> &right) {
+                    const spider::vector<uint32_t> &left,
+                    const spider::vector<uint32_t> &right) {
     if (stack[left.back()].token != stack[right.back()].token) {
         return false;
     }
@@ -396,20 +396,19 @@ spider::vector<RPNElement> spider::rpn::extractPostfixElements(std::string infix
 }
 
 void spider::rpn::reorderPostfixStack(spider::vector<RPNElement> &postfixStack) {
-    using stack_type = spider::vector<spider::vector<int>>;
-    stack_type operationStackVector{ spider::Allocator<spider::vector<int>>(StackID::EXPRESSION) };
-    operationStackVector.emplace_back(spider::vector<int>{ spider::Allocator<int>(StackID::EXPRESSION) });
+    auto operationStackVector = spider::make_vector<spider::vector<uint32_t>, StackID::EXPRESSION>();
+    operationStackVector.emplace_back(spider::make_vector<uint32_t, StackID::EXPRESSION>());
     operationStackVector[0].reserve(6);
 
     /* == Fill up the operation stack once == */
-    int i = 0;
+    uint32_t i = 0;
     for (const auto &elt : postfixStack) {
         operationStackVector.back().emplace_back(i++);
         if (elt.type == RPNElementType::OPERATOR) {
             if (operationStackVector.back().size() == 1) {
                 break;
             }
-            operationStackVector.emplace_back(spider::vector<int>{ spider::Allocator<int>(StackID::EXPRESSION) });
+            operationStackVector.emplace_back(spider::make_vector<uint32_t, StackID::EXPRESSION>());
             operationStackVector.back().reserve(6);
         }
     }

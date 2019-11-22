@@ -76,7 +76,7 @@ namespace spider {
         array(size_t size, T value, StackID stack = StackID::GENERAL) : data_(size, value,
                                                                               spider::Allocator<T>(stack)) { }
 
-        array() noexcept = default;
+        array() = default;
 
         array(const array &) = default;
 
@@ -86,7 +86,7 @@ namespace spider {
 
         array &operator=(const array &) = default;
 
-        array &operator=(array &&) noexcept = default;
+        array &operator=(array &&) = default;
 
         /* === Operators === */
 

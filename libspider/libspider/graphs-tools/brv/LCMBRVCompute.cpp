@@ -137,7 +137,7 @@ void LCMBRVCompute::computeBRV(const BRVComponent &component,
                                spider::array<spider::Rational> &reps,
                                int64_t lcmFactor) {
     for (const auto &v : component.vertices) {
-        v->setRepetitionValue(spider::Rational{ reps[v->ix()] * lcmFactor }.toInt32());
+        v->setRepetitionValue(static_cast<uint32_t>(spider::Rational{ reps[v->ix()] * lcmFactor }.toInt32()));
     }
 }
 
