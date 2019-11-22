@@ -81,7 +81,7 @@ namespace spider {
             //------------------------------------------------------------------------------
             template<class Context>
             void
-            output_string(char ch, const char *s_ptr, int precision, long int width, Flags flags, int len,
+            output_string(char ch, const char *s_ptr, int32_t precision, int32_t width, Flags flags, int32_t len,
                           Context &ctx) {
 
                 if ((ch == 's' && precision >= 0 && precision < len)) {
@@ -234,7 +234,7 @@ namespace spider {
 //       recursively continue processing the string
 //------------------------------------------------------------------------------
             template<class Context, class T, class... Ts>
-            int process_format(Context &ctx, const char *format, Flags flags, long int width, long int precision,
+            int process_format(Context &ctx, const char *format, Flags flags, int32_t width, int32_t precision,
                                Modifiers modifier, const T &arg, const Ts &... ts) {
 
                 // enough to contain a 128-bit number in bin notation + optional prefix
@@ -272,7 +272,7 @@ namespace spider {
                                              flags, &slen);
                                 break;
                         }
-                        output_string(ch, s_ptr, precision, width, flags, slen, ctx);
+                        output_string(ch, s_ptr, precision, width, flags, static_cast<int32_t>(slen), ctx);
                         return Printf(ctx, format + 1, ts...);
 
                     case 'p':
@@ -282,7 +282,7 @@ namespace spider {
                         // NOTE(eteran): GNU printf prints "(nil)" for NULL pointers, we print 0x0
                         s_ptr = itoa(num_buf, ch, precision, formatted_pointer<uintptr_t>(arg), width, flags, &slen);
 
-                        output_string(ch, s_ptr, precision, width, flags, slen, ctx);
+                        output_string(ch, s_ptr, precision, width, flags, static_cast<int32_t>(slen), ctx);
                         return Printf(ctx, format + 1, ts...);
 
                     case 'x':
@@ -334,7 +334,7 @@ namespace spider {
                                 break;
                         }
 
-                        output_string(ch, s_ptr, precision, width, flags, slen, ctx);
+                        output_string(ch, s_ptr, precision, width, flags, static_cast<int32_t>(slen), ctx);
                         return Printf(ctx, format + 1, ts...);
 
                     case 'i':
@@ -379,7 +379,7 @@ namespace spider {
                                 break;
                         }
 
-                        output_string(ch, s_ptr, precision, width, flags, slen, ctx);
+                        output_string(ch, s_ptr, precision, width, flags, static_cast<int32_t>(slen), ctx);
                         return Printf(ctx, format + 1, ts...);
 
                     case 'c':
@@ -395,13 +395,13 @@ namespace spider {
                         if (!s_ptr) {
                             s_ptr = "(null)";
                         }
-                        output_string('s', s_ptr, precision, width, flags, strlen(s_ptr), ctx);
+                        output_string('s', s_ptr, precision, width, flags, static_cast<int32_t>(strlen(s_ptr)), ctx);
                         return Printf(ctx, format + 1, ts...);
 
 #ifdef CXX11_PRINTF_EXTENSIONS
                     case '?': {
                         std::string s = formatted_object(arg);
-                        output_string('s', s.data(), precision, width, flags, s.size(), ctx);
+                        output_string('s', s.data(), precision, width, flags, static_cast<int32_t>(s.size()), ctx);
                     }
                         return Printf(ctx, format + 1, ts...);
 #endif
@@ -409,28 +409,28 @@ namespace spider {
                     case 'n':
                         switch (modifier) {
                             case Modifiers::MOD_CHAR:
-                                *formatted_pointer<signed char *>(arg) = ctx.written;
+                                *formatted_pointer<signed char *>(arg) = static_cast<signed char>(ctx.written);
                                 break;
                             case Modifiers::MOD_SHORT:
-                                *formatted_pointer<short int *>(arg) = ctx.written;
+                                *formatted_pointer<short int *>(arg) = static_cast<short int>(ctx.written);
                                 break;
                             case Modifiers::MOD_LONG:
-                                *formatted_pointer<long int *>(arg) = ctx.written;
+                                *formatted_pointer<long int *>(arg) = static_cast<long int>(ctx.written);
                                 break;
                             case Modifiers::MOD_LONG_LONG:
-                                *formatted_pointer<long long int *>(arg) = ctx.written;
+                                *formatted_pointer<long long int *>(arg) = static_cast<long long int>(ctx.written);
                                 break;
                             case Modifiers::MOD_INTMAX_T:
-                                *formatted_pointer<intmax_t *>(arg) = ctx.written;
+                                *formatted_pointer<intmax_t *>(arg) = static_cast<intmax_t>(ctx.written);
                                 break;
                             case Modifiers::MOD_SIZE_T:
                                 *formatted_pointer<std::make_signed<size_t>::type *>(arg) = ctx.written;
                                 break;
                             case Modifiers::MOD_PTRDIFF_T:
-                                *formatted_pointer<ptrdiff_t *>(arg) = ctx.written;
+                                *formatted_pointer<ptrdiff_t *>(arg) = (ctx.written);
                                 break;
                             default:
-                                *formatted_pointer<int *>(arg) = ctx.written;
+                                *formatted_pointer<int *>(arg) = static_cast<int32_t>(ctx.written);
                                 break;
                         }
 
@@ -454,8 +454,8 @@ namespace spider {
 //       process_format
 //------------------------------------------------------------------------------
             template<class Context, class T, class... Ts>
-            int
-            get_modifier(Context &ctx, const char *format, Flags flags, long int width, long int precision,
+            int32_t
+            get_modifier(Context &ctx, const char *format, Flags flags, int32_t width, int32_t precision,
                          const T &arg,
                          const Ts &... ts) {
 
@@ -508,12 +508,12 @@ namespace spider {
 //       as needed, then calls get_modifier
 //------------------------------------------------------------------------------
             template<class Context, class T, class... Ts>
-            int
-            get_precision(Context &ctx, const char *format, Flags flags, long int width, const T &arg,
+            int32_t
+            get_precision(Context &ctx, const char *format, Flags flags, int32_t width, const T &arg,
                           const Ts &... ts) {
 
                 // default to non-existant
-                long int p = -1;
+                int32_t p = -1;
 
                 if (*format == '.') {
 
@@ -521,11 +521,11 @@ namespace spider {
                     if (*format == '*') {
                         ++format;
                         // pull an int off the stack for processing
-                        p = formatted_integer<long int>(arg);
+                        p = formatted_integer<int32_t>(arg);
                         return get_modifier(ctx, format, flags, width, p, ts...);
                     } else {
                         char *endptr;
-                        p = strtol(format, &endptr, 10);
+                        p = static_cast<int32_t>(strtol(format, &endptr, 10));
                         format = endptr;
                         return get_modifier(ctx, format, flags, width, p, arg, ts...);
                     }
@@ -547,12 +547,12 @@ namespace spider {
                 if (*format == '*') {
                     ++format;
                     // pull an int off the stack for processing
-                    width = formatted_integer<long int>(arg);
+                    width = formatted_integer<int32_t>(arg);
 
                     return get_precision(ctx, format, flags, width, ts...);
                 } else {
                     char *endptr;
-                    width = strtol(format, &endptr, 10);
+                    width = static_cast<int32_t>(strtol(format, &endptr, 10));
                     format = endptr;
 
                     return get_precision(ctx, format, flags, width, arg, ts...);
@@ -632,7 +632,7 @@ namespace spider {
             ctx.done();
 
             // return the amount of bytes that should have been written if there was sufficient space
-            return ctx.written;
+            return static_cast<int>(ctx.written);
         }
 
 //------------------------------------------------------------------------------

@@ -91,12 +91,12 @@ namespace spider {
             };
 
             // NOTE(eteran): by placing this in a class, it allows us to do things like specialization a lot easier
-            template<unsigned int Divisor>
+            template<uint32_t Divisor>
             struct itoa_helper;
 
             template<>
             struct itoa_helper<10> {
-                static constexpr int Divisor = 10;
+                static constexpr uint32_t Divisor = 10;
 
             public:
                 //------------------------------------------------------------------------------
@@ -106,7 +106,7 @@ namespace spider {
                 //------------------------------------------------------------------------------
                 template<class T, size_t N>
                 static const char *
-                format(char (&buf)[N], T d, int width, Flags flags, const char *alphabet, size_t *rlen) {
+                format(char (&buf)[N], T d, int32_t width, Flags flags, const char *alphabet, size_t *rlen) {
 
                     typename std::make_unsigned<T>::type ud = d;
 
@@ -116,7 +116,8 @@ namespace spider {
                     // reserve space for leading chars as needed
                     // and if necessary negate the value in ud
                     if (d < 0) {
-                        ud = -d;
+                        d = static_cast<T>(-d);
+                        ud = static_cast<typename std::make_unsigned<T>::type>(d);
                         width -= 1;
                     } else if (flags.space) {
                         width -= 1;
@@ -125,14 +126,15 @@ namespace spider {
                     }
 
                     // Divide UD by Divisor until UD == 0.
-                    int digits = 0;
+                    int32_t digits = 0;
                     if (!ud) {
                         *--p = '0';
                     } else {
-                        for (; ud; ud /= Divisor) {
-                            const int remainder = (ud % Divisor);
+                        while (ud) {
+                            const auto remainder = static_cast<int32_t>(ud % Divisor);
                             *--p = alphabet[remainder];
                             ++digits;
+                            ud = static_cast<typename std::make_unsigned<T>::type>(ud / Divisor);
                         }
                     }
 
@@ -160,8 +162,8 @@ namespace spider {
 // Specialization for base 16 so we can make some assumptions
             template<>
             struct itoa_helper<16> {
-                static constexpr int Shift = 4;
-                static constexpr int Mask = 0x0f;
+                static constexpr uint32_t Shift = 4;
+                static constexpr uint32_t Mask = 0x0f;
 
             public:
                 //------------------------------------------------------------------------------
@@ -171,7 +173,7 @@ namespace spider {
                 //------------------------------------------------------------------------------
                 template<class T, size_t N>
                 static const char *
-                format(char (&buf)[N], T d, int width, Flags flags, const char *alphabet, size_t *rlen) {
+                format(char (&buf)[N], T d, int32_t width, Flags flags, const char *alphabet, size_t *rlen) {
 
                     typename std::make_unsigned<T>::type ud = d;
 
@@ -184,11 +186,12 @@ namespace spider {
                     }
 
                     // Divide UD by Divisor until UD == 0.
-                    int digits = 0;
-                    for (; ud; ud >>= Shift) {
-                        const int remainder = (ud & Mask);
+                    int32_t digits = 0;
+                    while (ud) {
+                        const int32_t remainder = (ud & Mask);
                         *--p = alphabet[remainder];
                         ++digits;
+                        ud = static_cast<typename std::make_unsigned<T>::type>(ud >> Shift);
                     }
 
                     // add in any necessary padding
@@ -212,8 +215,8 @@ namespace spider {
 // Specialization for base 8 so we can make some assumptions
             template<>
             struct itoa_helper<8> {
-                static constexpr int Shift = 3;
-                static constexpr int Mask = 0x07;
+                static constexpr uint32_t Shift = 3;
+                static constexpr uint32_t Mask = 0x07;
 
             public:
                 //------------------------------------------------------------------------------
@@ -223,9 +226,9 @@ namespace spider {
                 //------------------------------------------------------------------------------
                 template<class T, size_t N>
                 static const char *
-                format(char (&buf)[N], T d, int width, Flags flags, const char *alphabet, size_t *rlen) {
+                format(char (&buf)[N], T d, int32_t width, Flags flags, const char *alphabet, size_t *rlen) {
 
-                    typename std::make_unsigned<T>::type ud = d;
+                    auto ud = static_cast<typename std::make_unsigned<T>::type>(d);
 
                     char *p = buf + N;
                     *--p = '\0';
@@ -236,11 +239,13 @@ namespace spider {
                     }
 
                     // Divide UD by Divisor until UD == 0.
-                    int digits = 0;
-                    for (; ud; ud >>= Shift) {
-                        const int remainder = (ud & Mask);
+                    int32_t digits = 0;
+                    while (ud) {
+                        const int32_t remainder = (ud & Mask);
                         *--p = alphabet[remainder];
                         ++digits;
+                        auto newi = ud >> Shift;
+                        ud = static_cast<typename std::make_unsigned<T>::type>(newi);
                     }
 
                     // add in any necessary padding
@@ -263,8 +268,8 @@ namespace spider {
 // Specialization for base 2 so we can make some assumptions
             template<>
             struct itoa_helper<2> {
-                static constexpr int Shift = 1;
-                static constexpr int Mask = 0x01;
+                static constexpr uint32_t Shift = 1;
+                static constexpr uint32_t Mask = 0x01;
 
             public:
                 //------------------------------------------------------------------------------
@@ -274,7 +279,7 @@ namespace spider {
                 //------------------------------------------------------------------------------
                 template<class T, size_t N>
                 static const char *
-                format(char (&buf)[N], T d, int width, Flags flags, const char *alphabet, size_t *rlen) {
+                format(char (&buf)[N], T d, int32_t width, Flags flags, const char *alphabet, size_t *rlen) {
 
                     typename std::make_unsigned<T>::type ud = d;
 
@@ -287,11 +292,12 @@ namespace spider {
                     }
 
                     // Divide UD by Divisor until UD == 0.
-                    int digits = 0;
-                    for (; ud; ud >>= Shift) {
-                        const int remainder = (ud & Mask);
+                    int32_t digits = 0;
+                    while (ud) {
+                        const int32_t remainder = (ud & Mask);
                         *--p = alphabet[remainder];
                         ++digits;
+                        ud = static_cast<typename std::make_unsigned<T>::type>(ud >> Shift);
                     }
 
                     // add in any necessary padding
@@ -319,7 +325,8 @@ namespace spider {
 //       when the division can use more efficient operations
 //------------------------------------------------------------------------------
             template<class T, size_t N>
-            const char *itoa(char (&buf)[N], char base, int precision, T d, int width, Flags flags, size_t *rlen) {
+            const char *
+            itoa(char (&buf)[N], char base, int32_t precision, T d, int32_t width, Flags flags, size_t *rlen) {
 
                 if (d == 0 && precision == 0) {
                     *buf = '\0';

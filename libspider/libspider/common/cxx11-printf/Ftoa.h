@@ -59,7 +59,7 @@ namespace spider {
             public:
                 template<class T, size_t N>
                 static const char *
-                format(char (&buf)[N], T f, int width, int precision, Flags flags, const char *alphabet, size_t *rlen) {
+                format(char (&buf)[N], T f, int32_t width, int32_t precision, Flags flags, const char *alphabet, size_t *rlen) {
                     auto negValue = f < 0;
                     if (negValue) {
                         f = -f;
@@ -69,31 +69,31 @@ namespace spider {
                     } else if (flags.sign) {
                         width -= 1;
                     }
-                    int digits = 0;
+                    int32_t digits = 0;
                     char *p = buf;
                     if (f == 0.) {
                         digits = precision ? precision + 2 : 1;
                         p = buf + N;
                         *--p = '\0';
                         if (precision) {
-                            for (int i = 0; i < precision; ++i) {
+                            for (int32_t i = 0; i < precision; ++i) {
                                 *--p = '0';
                             }
                             *--p = '.';
                         }
                         *--p = '0';
                     } else {
-                        int exp = std::log10(f);
+                        auto exp = static_cast<int32_t>(std::log10(f));
                         if (exp < 0) {
                             exp = 0;
                         }
-                        int currentPrecision = 0;
+                        int32_t currentPrecision = 0;
                         while (exp >= 0 || currentPrecision < precision) {
                             auto weight = std::pow(10, exp);
 
                             /* == Add current digit == */
                             if (weight > 0 && !std::isinf(weight)) {
-                                const int div = std::floor(f / weight);
+                                const auto div = static_cast<int32_t>(std::floor(f / weight));
                                 auto digit = alphabet[div];
                                 *(p++) = digit;
                                 f -= (weight * div);
@@ -117,7 +117,7 @@ namespace spider {
                         /* == Reverse the notation to match itoa == */
                         p = buf + N;
                         *--p = '\0';
-                        for (int i = digits - 1; i >= 0; --i) {
+                        for (int32_t i = digits - 1; i >= 0; --i) {
                             *--p = buf[i];
                         }
                     }
@@ -148,8 +148,8 @@ namespace spider {
             public:
                 template<class T, size_t N>
                 static const char *
-                format(char (&buf)[N], T f, int width, int precision, Flags flags, const char *alphabet, size_t *rlen) {
-                    int exp = std::log10(f);
+                format(char (&buf)[N], T f, int32_t width, int32_t precision, Flags flags, const char *alphabet, size_t *rlen) {
+                    auto exp = static_cast<int32_t>(std::log10(f));
                     T val = f / std::pow(10., exp);
                     ftoa_helper<'f'>::format(buf, val, width, precision, flags, alphabet, rlen);
                     /* == We assume that we have the space for writing the exponent == */
@@ -161,13 +161,13 @@ namespace spider {
                     } else {
                         *(r_p++) = '+';
                     }
-                    int ud = std::abs(exp);
+                    int32_t ud = std::abs(exp);
 
                     /* == Write the exponent == */
-                    int digits = 2;
+                    int32_t digits = 2;
                     if (ud > 9) {
                         for (; ud; ud /= 10) {
-                            const int remainder = (ud % 10);
+                            const int32_t remainder = (ud % 10);
                             *(r_p++) = alphabet[remainder];
                             digits += 1;
                         }
@@ -181,7 +181,7 @@ namespace spider {
                     char *p = buf + N - 1 - *rlen;
                     std::memmove(p - digits, p, (*rlen) * sizeof(char));
                     p = buf + N - 1;
-                    for (int i = digits - 1; i >= 0; --i) {
+                    for (int32_t i = digits - 1; i >= 0; --i) {
                         *--p = buf[i];
                     }
 
@@ -195,7 +195,7 @@ namespace spider {
             public:
                 template<class T, size_t N>
                 static const char *
-                format(char (&buf)[N], T f, int width, int precision, Flags flags, const char *alphabet, size_t *rlen) {
+                format(char (&buf)[N], T f, int32_t width, int32_t precision, Flags flags, const char *alphabet, size_t *rlen) {
                     if (precision == 0) {
                         precision = 1;
                     }
@@ -207,7 +207,7 @@ namespace spider {
                         return p;
                     }
 
-                    auto exp = std::log10(f);
+                    auto exp = static_cast<int32_t>(std::log10(f));
 
                     /* == Exponential notation is NOT used if given precision P and exponent X:  -4 <= X < P == */
                     bool useExpNotation = !((exp < precision) && (exp >= -4));
@@ -221,12 +221,13 @@ namespace spider {
                             /* == Remove trailing '0' == */
                             ftoa_helper<'f'>::format(buf, f, width, precision - (exp + 1), flags, alphabet, rlen);
                             char *p = buf + N - 1 - *rlen;
-                            int zeros = 0;
+                            size_t zeros = 0;
                             char *rp = buf + N - 1;
                             while (*(--rp) == '0') {
                                 zeros += 1;
                             }
-                            std::memmove(p + *(rlen) - zeros, p, (*(rlen) - zeros) * sizeof(char));
+                            auto *dest = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(p) + *(rlen) - zeros);
+                            std::memmove(dest, p, (*(rlen) - zeros) * sizeof(char));
                             (*rlen) = (*rlen) - zeros;
                             return buf + N - 1 - *(rlen);
                         }
@@ -239,7 +240,7 @@ namespace spider {
 
 
             template<class T, size_t N>
-            const char *ftoa(char (&buf)[N], char base, int precision, T f, int width, Flags flags, size_t *rlen) {
+            const char *ftoa(char (&buf)[N], char base, int32_t precision, T f, int32_t width, Flags flags, size_t *rlen) {
                 if (std::isnan(f)) {
                     if (base == 'f' || base == 'g' || base == 'e') {
                         buf[0] = 'n';
