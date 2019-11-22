@@ -48,11 +48,11 @@
 namespace spider {
     namespace pisdf {
 
-        inline void duplicate(const std::int64_t *paramsIn, std::int64_t *[], void *in[], void *out[]) {
+        inline void duplicate(const int64_t *paramsIn, int64_t *[], void *in[], void *out[]) {
             const auto &outputCount = paramsIn[0]; /* = Number of output = */
             const auto &inputSize = paramsIn[1];   /* = Rate of the input port = */
-            for (std::int64_t i = 0; i < outputCount; ++i) {
-                std::memcpy(out[i], in[i], inputSize);
+            for (int64_t i = 0; i < outputCount; ++i) {
+                std::memcpy(out[i], in[0], static_cast<size_t>(inputSize));
             }
         }
 

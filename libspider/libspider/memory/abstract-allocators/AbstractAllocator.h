@@ -144,11 +144,11 @@ private:
 
 /* === Inline methods === */
 
-void AbstractAllocator::setAllocationAlignment(std::uint64_t alignment) {
+void AbstractAllocator::setAllocationAlignment(std::size_t alignment) {
     alignment_ = alignment;
 }
 
-std::uint64_t AbstractAllocator::getAllocationAlignment() const {
+std::size_t AbstractAllocator::getAllocationAlignment() const {
     return alignment_;
 }
 

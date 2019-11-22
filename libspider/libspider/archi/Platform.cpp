@@ -95,8 +95,8 @@ spider::PE &spider::Platform::findPE(std::uint32_t clusterIx, std::uint32_t PEIx
     return *(cluster->processingElements().at(PEIx));
 }
 
-std::uint64_t spider::Platform::PECount() const {
-    std::uint64_t PECount = 0;
+std::size_t spider::Platform::PECount() const {
+    size_t PECount = 0;
     for (auto &cluster : clusterArray_) {
         PECount += cluster->PECount();
     }

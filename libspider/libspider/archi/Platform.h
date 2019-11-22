@@ -169,7 +169,7 @@ namespace spider {
          * @brief Get the total number of PE in the platform (go through each cluster)
          * @return total number of @refitem ProcessingElement in the platform.
          */
-        std::uint64_t PECount() const;
+        std::size_t PECount() const;
 
         /**
          * @brief Get the total number of PE type in the platform (go through each cluster).
