@@ -52,6 +52,7 @@
 #include <mach/mach.h>
 #include <mach/thread_policy.h>
 #include <common/Logger.h>
+#include <cpuid.h>
 
 #else
 
@@ -70,7 +71,7 @@
 
 #define MASK(id) (0x00000001 << affinity_id)
 
-bool spider::thread::set_affinity(std::int32_t affinity_id) {
+bool spider::this_thread::set_affinity(std::int32_t affinity_id) {
     auto ret = SetThreadAffinityMask(spider::this_thread::native_handle(), MASK(static_cast<std::uint32_t>(affinity_id)));
     if (ret != 0) {
         return true;
@@ -78,9 +79,17 @@ bool spider::thread::set_affinity(std::int32_t affinity_id) {
     return false;
 }
 
+std::thread::native_handle_type spider::this_thread::native_handle() {
+    return GetCurrentThread();
+}
+
+std::int32_t spider::this_thread::get_affinity() {
+    return GetCurrentProcessorNumber();
+}
+
 #elif (defined __APPLE__)
 
-bool spider::thread::set_affinity(std::int32_t affinity_id) {
+bool spider::this_thread::set_affinity(std::int32_t affinity_id) {
     spider::log::warning("Thread affinity is not guaranteed on OSX platform..\n");
     auto mac_thread = pthread_mach_thread_np(spider::this_thread::native_handle());
     thread_affinity_policy_data_t policyData = { affinity_id };
@@ -91,39 +100,45 @@ bool spider::thread::set_affinity(std::int32_t affinity_id) {
     return false;
 }
 
-#elif (defined __linux__ || defined BSD4_4) && !(defined ANDROID)
-
-bool spider::thread::set_affinity(std::int32_t affinity_id) {
-    cpu_set_t cpu_set;
-    CPU_ZERO(&cpu_set);
-    CPU_SET(affinity_id, &cpu_set);
-    auto ret = pthread_setaffinity_np(spider::this_thread::native_handle(), sizeof(cpu_set_t), &cpu_set);
-    if (ret != 0) {
-        return true;
-    }
-    std::this_thread::get_id();
-    return false;
-}
-
-#endif
-
-#ifdef _WIN32
-
-std::thread::native_handle_type spider::this_thread::native_handle() {
-    return GetCurrentThread();
-}
-
-#elif __APPLE__
-
 std::thread::native_handle_type spider::this_thread::native_handle() {
     spider::log::warning("native_handle not supported on apple platform.\n");
     return 0;
 }
 
-#elif (defined __linux__ || defined BSD4_4) && !(defined ANDROID)
+/**
+ * This method is implemented following https://stackoverflow.com/questions/33745364/sched-getcpu-equivalent-for-os-x?rq=1
+ *
+ *  APIC id does not necessarly math the one of Kernel but since LRTs are registering themself, it should not matter.
+ */
+#define CPUID(INFO, LEAF, SUBLEAF) __cpuid_count(LEAF, SUBLEAF, (INFO)[0], (INFO)[1], (INFO)[2], (INFO)[3])
+
+std::int32_t spider::this_thread::get_affinity() {
+    std::uint32_t CPUInfo[4];
+    CPUID(CPUInfo, 1, 0);
+    /* CPUInfo[1] is EBX, bits 24-31 are APIC ID */
+    std::int32_t cpu = (CPUInfo[3] & (1u << 9u)) == 0 ? -1 : CPUInfo[1] >> 24u;
+    return cpu < 0 ? 0 : cpu;
+}
+
+#elif (defined __linux__ || defined BSD4_4 ) && !(defined ANDROID)
+
+/* For android support, see this post: https://stackoverflow.com/questions/16319725/android-set-thread-affinity */
+/* Only defining these macro should be enough */
+
+bool spider::this_thread::set_affinity(std::int32_t affinity_id) {
+    cpu_set_t cpu_set;
+    CPU_ZERO(&cpu_set);
+    CPU_SET(affinity_id, &cpu_set);
+    auto ret = pthread_setaffinity_np(spider::this_thread::native_handle(), sizeof(cpu_set_t), &cpu_set);
+    return ret != 0;
+}
 
 std::thread::native_handle_type spider::this_thread::native_handle() {
     return pthread_self();
+}
+
+std::int32_t spider::this_thread::get_affinity() {
+    return sched_getcpu();
 }
 
 #endif

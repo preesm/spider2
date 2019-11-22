@@ -68,15 +68,6 @@ namespace spider {
 
         /* === Setter(s) === */
 
-        /**
-         * @brief Set the affinity of the thread (i.e which physical resource it runs on)
-         * @note This implementation is strongly inspired by https://searchcode.com/file/92960692/Source/Core/Common/Thread.cpp
-         *       and https://gist.github.com/Coneko/4234842
-         * @param affinity_id Mask to use.
-         * @return true if it was successful, false else
-         */
-        static bool set_affinity(std::int32_t affinity_id);
-
     private:
     };
 
@@ -84,6 +75,21 @@ namespace spider {
 
 
     namespace this_thread {
+
+        /**
+         * @brief Set the affinity of the thread (i.e which physical resource it runs on)
+         * @note This implementation is strongly inspired by https://searchcode.com/file/92960692/Source/Core/Common/Thread.cpp
+         *       and https://gist.github.com/Coneko/4234842
+         * @param affinity_id Mask to use.
+         * @return true if it was successful, false else
+         */
+        bool set_affinity(std::int32_t affinity_id);
+
+        /**
+         * @brief Retrieve the Thread core affinity
+         * @return affinity of the Thread (if possible), -1 else.
+         */
+        std::int32_t get_affinity();
 
         /**
          * @brief Return current native handle automatically from the thread.
