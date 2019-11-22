@@ -48,19 +48,22 @@
 namespace spider {
     namespace pisdf {
 
-        inline void repeat(const std::int64_t *paramsIn, int64_t *[], void **in, void **out) {
-            const auto &inputSize = paramsIn[0];  /* = Rate of the input port = */
-            const auto &outputSize = paramsIn[1]; /* = Rate of the output port = */
+        inline void repeat(const int64_t *paramsIn, int64_t *[], void **in, void **out) {
+            const auto &inputSize = static_cast<size_t>(paramsIn[0]);  /* = Rate of the input port = */
+            const auto &outputSize = static_cast<size_t>(paramsIn[1]); /* = Rate of the output port = */
             if (inputSize == outputSize) {
                 std::memcpy(out[0], in[0], outputSize);
             } else {
-                const auto &repeatCount = outputSize / inputSize;
-                const auto &rest = outputSize % inputSize;
-                for (std::int32_t i = 0; i < repeatCount; ++i) {
-                    std::memcpy(reinterpret_cast<char *>(out[0]) + i * inputSize, in[0], inputSize);
+                const auto &repeatCount = static_cast<size_t>(outputSize / inputSize);
+                const auto &rest = static_cast<size_t>(outputSize % inputSize);
+                for (size_t i = 0; i < repeatCount; ++i) {
+                    auto *output = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(out[0]) + i * inputSize);
+                    std::memcpy(output, in[0], inputSize);
                 }
                 if (rest) {
-                    std::memcpy(reinterpret_cast<char *>(out[0]) + inputSize * repeatCount, in[0], rest);
+                    auto *output = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(out[0]) +
+                                                            inputSize * repeatCount);
+                    std::memcpy(output, in[0], rest);
                 }
             }
         }

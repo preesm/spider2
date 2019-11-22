@@ -49,20 +49,20 @@ namespace spider {
     namespace pisdf {
 
         inline void tail(const std::int64_t *paramsIn, std::int64_t *[], void *in[], void *out[]) {
-            const auto &inputCount = paramsIn[0];  /* = Number of input = */
-            const auto &inputStart = paramsIn[1];  /* = First input to be considered = */
-            const auto &inputOffset = paramsIn[2]; /* = Offset in the first buffer if any = */
+            const auto &inputCount = static_cast<size_t>(paramsIn[0]);  /* = Number of input = */
+            const auto &inputStart = static_cast<size_t>(paramsIn[1]);  /* = First input to be considered = */
+            const auto &inputOffset = static_cast<size_t>(paramsIn[2]); /* = Offset in the first buffer if any = */
 
             /* == Copy the first input with the offset == */
-            std::memcpy(reinterpret_cast<char *>(out[0]),
-                        reinterpret_cast<char *>(in[inputStart]) + inputOffset,
-                        paramsIn[3]);
+            auto *input = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(in[inputStart]) + inputOffset);
+            std::memcpy(out[0], input, static_cast<size_t>(paramsIn[3]));
 
             /* == Do the general case == */
-            std::int64_t offset = inputOffset + paramsIn[3];
-            for (auto i = inputStart + 1; i < inputCount; ++i) {
-                const auto &inputSize = paramsIn[i + 4];
-                std::memcpy(reinterpret_cast<char *>(out[0]) + offset, in[i], inputSize);
+            size_t offset = inputOffset + static_cast<size_t>(paramsIn[3]);
+            for (size_t i = inputStart + 1; i < inputCount; ++i) {
+                const auto &inputSize = static_cast<size_t>(paramsIn[i + 4]);
+                auto *output = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(out[0]) + offset);
+                std::memcpy(output, in[i], inputSize);
                 offset += inputSize;
             }
         }

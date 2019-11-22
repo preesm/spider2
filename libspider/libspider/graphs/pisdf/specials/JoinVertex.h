@@ -48,16 +48,18 @@
 namespace spider {
     namespace pisdf {
 
-        inline void join(const std::int64_t *paramsIn, std::int64_t *[], void *in[], void *out[]) {
+        inline void join(const int64_t *paramsIn, int64_t *[], void *in[], void *out[]) {
             const auto &outputRate = paramsIn[0]; /* = Rate of the output port (used for sanity check) = */
             const auto &inputCount = paramsIn[1]; /* = Number of input = */
-            std::int64_t offset = 0;
-            for (std::int64_t i = 0; i < inputCount; ++i) {
-                const auto &inputSize = paramsIn[i + 1]; /* = Size to copy for current input = */
-                std::memcpy(reinterpret_cast<char *>(out[0]) + offset, in[i], inputSize);
+            size_t offset = 0;
+            for (int64_t i = 0; i < inputCount; ++i) {
+                /* == Size to copy for current input == */
+                const auto &inputSize = static_cast<size_t>(paramsIn[i + 1]);
+                auto *output = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(out[i]) + offset);
+                std::memcpy(output, in[i], inputSize);
                 offset += inputSize;
             }
-            if (offset != outputRate) {
+            if (offset != static_cast<size_t>(outputRate)) {
                 throwSpiderException("Join has different rates: input[%"
                                              PRId64
                                              "] | output[%"

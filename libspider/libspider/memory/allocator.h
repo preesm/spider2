@@ -204,8 +204,8 @@ namespace spider {
             return;
         }
         /* == Retrieve stack id == */
-        auto *originalPtr = (reinterpret_cast<char *>(ptr) - sizeof(std::uint64_t));
-        auto stackId = static_cast<StackID>(((std::uint64_t *) (originalPtr))[0]);
+        auto *originalPtr = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(ptr) - sizeof(std::uint64_t));
+        auto stackId = static_cast<StackID>(reinterpret_cast<uint64_t *>(originalPtr)[0]);
 
         /* == Deallocate the pointer == */
         allocator(stackId)->deallocate(originalPtr);
