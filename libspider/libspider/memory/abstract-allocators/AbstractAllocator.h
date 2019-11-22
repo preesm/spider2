@@ -125,7 +125,7 @@ protected:
     std::uint64_t peak_ = 0;
     std::uint64_t averageUse_ = 0;
     std::uint64_t numberAverage_ = 0;
-    std::uint64_t alignment_ = 0;
+    std::size_t alignment_ = 0;
 
     static inline std::size_t computeAlignedSize(std::size_t size, std::size_t alignment = 4096);
 

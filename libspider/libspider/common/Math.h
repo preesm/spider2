@@ -65,7 +65,7 @@ namespace spider {
             auto neg = (x < 0 && y > 0) || (x > 0 && y < 0);
             auto a = static_cast<uint32_t>((x < 0 ? (-x) : x));
             auto b = static_cast<uint32_t>((y < 0 ? (-y) : y));
-            return static_cast<int32_t>((neg ? -(a / b) : ceilDiv(a, b)));
+            return neg ? -static_cast<int32_t>(a / b) : static_cast<int32_t>(ceilDiv(a, b));
         }
 
         inline std::int64_t ceilDiv(std::int64_t x, std::int64_t y) {
