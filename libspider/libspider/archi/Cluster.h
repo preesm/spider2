@@ -110,7 +110,7 @@ namespace spider {
          * @brief Get the number of processing element inside the cluster.
          * @return number of @refitem ProcessingElement inside the cluster.
          */
-        inline std::uint64_t PECount() const;
+        inline std::size_t PECount() const;
 
         /**
          * @brief Get the number of local runtime in the cluster.
@@ -216,7 +216,7 @@ namespace spider {
         return *PEArray_.at(ix);
     }
 
-    std::uint64_t Cluster::PECount() const {
+    std::size_t Cluster::PECount() const {
         return PEArray_.size();
     }
 

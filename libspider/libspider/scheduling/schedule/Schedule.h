@@ -89,7 +89,7 @@ namespace spider {
 
             /* === Getter(s) === */
 
-            inline std::uint64_t jobCount() const;
+            inline std::size_t jobCount() const;
 
             /**
              * @brief Get the job vector of the schedule.
@@ -103,7 +103,7 @@ namespace spider {
              * @return const reference to the job.
              * @throws @refitem std::out_of_range if ix is out of range.
              */
-            inline sched::Job &job(std::uint32_t ix);
+            inline sched::Job &job(std::size_t ix);
 
             /**
              * @brief Get a job from its ix.
@@ -111,7 +111,7 @@ namespace spider {
              * @return const reference to the job.
              * @throws @refitem std::out_of_range if ix is out of range.
              */
-            inline const sched::Job &job(std::uint32_t ix) const;
+            inline const sched::Job &job(std::size_t ix) const;
 
             /**
              * @brief Get the different statistics of the platform.
@@ -130,7 +130,7 @@ namespace spider {
 
         /* === Inline method(s) === */
 
-        std::uint64_t Schedule::jobCount() const {
+        std::size_t Schedule::jobCount() const {
             return jobs_.size();
         }
 
@@ -138,11 +138,11 @@ namespace spider {
             return jobs_;
         }
 
-        sched::Job &Schedule::job(std::uint32_t ix) {
+        sched::Job &Schedule::job(std::size_t ix) {
             return jobs_.at(ix);
         }
 
-        const sched::Job &Schedule::job(std::uint32_t ix) const {
+        const sched::Job &Schedule::job(std::size_t ix) const {
             return jobs_.at(ix);
         }
 

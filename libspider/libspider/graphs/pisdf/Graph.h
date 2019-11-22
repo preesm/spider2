@@ -180,31 +180,31 @@ namespace spider {
              * @remark This method exclude the number of interfaces and the number of config actors.
              * @return Total number of vertices.
              */
-            inline std::uint64_t vertexCount() const;
+            inline std::size_t vertexCount() const;
 
             /**
              * @brief Get the number of config actors in the graph.
              * @return Total number of config actors.
              */
-            inline std::uint64_t configVertexCount() const;
+            inline std::size_t configVertexCount() const;
 
             /**
              * @brief Get the number of edges contained in the graph.
              * @return Number of edges.
              */
-            inline std::uint64_t edgeCount() const;
+            inline std::size_t edgeCount() const;
 
             /**
              * @brief Get the number of params contained in the graph.
              * @return Number of params.
              */
-            inline std::uint64_t paramCount() const;
+            inline std::size_t paramCount() const;
 
             /**
              * @brief Get the number of subgraphs.
              * @return Number of subgraphs.
              */
-            inline std::uint64_t subgraphCount() const;
+            inline std::size_t subgraphCount() const;
 
             /**
             * @brief A const reference on the set of vertices. Useful for iterating on the vertices.
@@ -261,7 +261,7 @@ namespace spider {
              * @param ix Ix of the param.
              * @return @refitem Param pointer
              */
-            inline Param *param(std::uint32_t ix) const;
+            inline Param *param(std::size_t ix) const;
 
             /**
              * @brief Return the vertex corresponding to the ix.
@@ -269,7 +269,7 @@ namespace spider {
              * @param ix  Ix of the vertex.
              * @return @refitem Vertex pointer
              */
-            inline Vertex *vertex(std::uint32_t ix) const;
+            inline Vertex *vertex(std::size_t ix) const;
 
             /**
              * @brief Return the input interface corresponding to the port ix.
@@ -279,7 +279,7 @@ namespace spider {
              * @param ix  Ix of the port
              * @return @refitem InputInterface pointer
              */
-            inline InputInterface *inputInterface(std::uint32_t ix) const;
+            inline InputInterface *inputInterface(std::size_t ix) const;
 
             /**
              * @brief Return the output interface corresponding to the port ix.
@@ -289,7 +289,7 @@ namespace spider {
              * @param ix  Ix of the port
              * @return @refitem OutputInterface pointer
              */
-            inline OutputInterface *outputInterface(std::uint32_t ix) const;
+            inline OutputInterface *outputInterface(std::size_t ix) const;
 
             /**
              * @brief Get the ix of the graph inside its containing graph subgraphVector_.
@@ -355,23 +355,23 @@ namespace spider {
             return dynamic_;
         }
 
-        std::uint64_t Graph::vertexCount() const {
+        std::size_t Graph::vertexCount() const {
             return vertexVector_.size();
         }
 
-        std::uint64_t Graph::configVertexCount() const {
+        std::size_t Graph::configVertexCount() const {
             return configVertexVector_.size();
         }
 
-        std::uint64_t Graph::edgeCount() const {
+        std::size_t Graph::edgeCount() const {
             return edgeVector_.size();
         }
 
-        std::uint64_t Graph::paramCount() const {
+        std::size_t Graph::paramCount() const {
             return paramVector_.size();
         }
 
-        std::uint64_t Graph::subgraphCount() const {
+        std::size_t Graph::subgraphCount() const {
             return subgraphVector_.size();
         }
 
@@ -403,19 +403,19 @@ namespace spider {
             return paramVector_;
         }
 
-        Param *Graph::param(std::uint32_t ix) const {
+        Param *Graph::param(std::size_t ix) const {
             return paramVector_[ix];
         }
 
-        Vertex *Graph::vertex(std::uint32_t ix) const {
+        Vertex *Graph::vertex(std::size_t ix) const {
             return vertexVector_[ix];
         }
 
-        InputInterface *Graph::inputInterface(std::uint32_t ix) const {
+        InputInterface *Graph::inputInterface(std::size_t ix) const {
             return inputInterfaceArray_[ix];
         }
 
-        OutputInterface *Graph::outputInterface(std::uint32_t ix) const {
+        OutputInterface *Graph::outputInterface(std::size_t ix) const {
             return outputInterfaceArray_[ix];
         }
 

@@ -67,14 +67,14 @@ namespace spider {
          * @param load  Pointer to the load to push.
          * @return Index of the item pushed in the queue (for latter retrieval).
          */
-        inline std::int32_t push(T *load);
+        inline std::size_t push(T *load);
 
         /**
          * @brief Push data through move ctor (if available) into the queue.
          * @param load  Pointer to the load to push.
          * @return Index of the item pushed in the queue (for latter retrieval).
          */
-        inline std::int32_t push_mv(T *load);
+        inline std::size_t push_mv(T *load);
 
         /**
          * @brief Pop element and move it to (*load) using std::move (if move assignment is available).
@@ -82,14 +82,14 @@ namespace spider {
          * @param ix    Ix of the item to fetch in the queue
          * @return true on success, false if ix < 0 || ix >= queue_.size().
          */
-        inline bool pop(T *load, std::int32_t ix);
+        inline bool pop(T *load, std::size_t ix);
 
         /* === Getter(s) === */
 
         /* === Setter(s) === */
 
     private:
-        spider::queue<std::int32_t> freeIndexQueue_; /* = Keeping track of available space in vector = */
+        spider::queue<std::size_t> freeIndexQueue_; /* = Keeping track of available space in vector = */
         spider::vector<T> queue_;                    /* = Actual queue = */
         std::mutex mutex_;
 
@@ -105,7 +105,7 @@ namespace spider {
     /* === Inline method(s) === */
 
     template<class T>
-    std::int32_t IndexedQueue<T>::push(T *load) {
+    std::size_t IndexedQueue<T>::push(T *load) {
         std::lock_guard<std::mutex> lock{ mutex_ };
         auto &&index = getFreeIndex();
         if (index < 0) {
@@ -117,10 +117,10 @@ namespace spider {
     }
 
     template<class T>
-    std::int32_t IndexedQueue<T>::push_mv(T *load) {
+    std::size_t IndexedQueue<T>::push_mv(T *load) {
         std::lock_guard<std::mutex> lock{ mutex_ };
         auto &&index = getFreeIndex();
-        if (index < 0) {
+        if (index == SIZE_MAX) {
             queue_.emplace_back(std::move((*load)));
             return queue_.size() - 1;
         }
@@ -129,11 +129,8 @@ namespace spider {
     }
 
     template<class T>
-    bool IndexedQueue<T>::pop(T *load, std::int32_t ix) {
+    bool IndexedQueue<T>::pop(T *load, std::size_t ix) {
         std::lock_guard<std::mutex> lock{ mutex_ };
-        if (ix < 0 || ix >= queue_.size()) {
-            return false;
-        }
         /* == std::vector are thread-safe in read-only only if no other thread is writing == */
         (*load) = std::move(queue_.at(ix)); /* = use move assignment if available = */
 
@@ -143,13 +140,13 @@ namespace spider {
     }
 
     template<class T>
-    std::int32_t IndexedQueue<T>::getFreeIndex() {
+    std::size_t IndexedQueue<T>::getFreeIndex() {
         if (!freeIndexQueue_.empty()) {
             auto &&front = freeIndexQueue_.front();
             freeIndexQueue_.pop();
             return front;
         }
-        return -1;
+        return SIZE_MAX;
     }
 
 }

@@ -158,13 +158,13 @@ namespace spider {
              * @return @refitem Spider::PiSDF::Edge
              * @throw @refitem Spider::Exception if out of bound
              */
-            inline Edge *inputEdge(std::uint32_t ix) const;
+            inline Edge *inputEdge(std::size_t ix) const;
 
             /**
              * @brief Get the number of input edges connected to the vertex.
              * @return number of input edges.
              */
-            inline std::uint64_t inputEdgeCount() const;
+            inline std::size_t inputEdgeCount() const;
 
             /**
              * @brief A const reference on the array of output edges. Useful for iterating on the edges.
@@ -178,13 +178,13 @@ namespace spider {
              * @return @refitem Spider::PiSDF::Edge
              * @throw @refitem Spider::Exception if out of bound.
              */
-            inline Edge *outputEdge(std::uint32_t ix) const;
+            inline Edge *outputEdge(std::size_t ix) const;
 
             /**
              * @brief Get the number of output edges connected to the vertex.
              * @return number of output edges.
              */
-            inline std::uint64_t outputEdgeCount() const;
+            inline std::size_t outputEdgeCount() const;
 
             /**
              * @brief Get the subtype of the vertex.
@@ -285,11 +285,11 @@ namespace spider {
             return inputEdgeArray_;
         }
 
-        Edge *Vertex::inputEdge(std::uint32_t ix) const {
+        Edge *Vertex::inputEdge(std::size_t ix) const {
             return inputEdgeArray_.at(ix);
         }
 
-        std::uint64_t Vertex::inputEdgeCount() const {
+        std::size_t Vertex::inputEdgeCount() const {
             return inputEdgeArray_.size();
         }
 
@@ -297,11 +297,11 @@ namespace spider {
             return outputEdgeArray_;
         }
 
-        Edge *Vertex::outputEdge(std::uint32_t ix) const {
+        Edge *Vertex::outputEdge(std::size_t ix) const {
             return outputEdgeArray_.at(ix);
         }
 
-        std::uint64_t Vertex::outputEdgeCount() const {
+        std::size_t Vertex::outputEdgeCount() const {
             return outputEdgeArray_.size();
         }
 

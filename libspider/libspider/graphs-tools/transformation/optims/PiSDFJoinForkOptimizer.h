@@ -71,11 +71,11 @@ private:
 
     inline std::uint32_t computeNJoinEdge(std::uint64_t sinkRate,
                                           spider::array<EdgeLinker> &sourceArray,
-                                          std::uint64_t sourceIx) const;
+                                          std::size_t sourceIx) const;
 
     inline std::uint32_t computeNForkEdge(std::uint64_t sourceRate,
                                           spider::array<EdgeLinker> &sinkArray,
-                                          std::uint64_t sinkIx) const;
+                                          std::size_t sinkIx) const;
 };
 
 bool PiSDFJoinForkOptimizer::operator()(PiSDFGraph *graph) const {
@@ -118,7 +118,7 @@ bool PiSDFJoinForkOptimizer::operator()(PiSDFGraph *graph) const {
         /* == Re-do the linking == */
         std::uint32_t sourceIx = 0;
         std::uint32_t forkEdgeIx = 0;
-        for (std::uint64_t sinkIx = 0; sinkIx < sinkArray.size(); ++sinkIx) {
+        for (std::size_t sinkIx = 0; sinkIx < sinkArray.size(); ++sinkIx) {
             auto &sink = sinkArray[sinkIx];
             auto &source = sourceArray[sourceIx];
             if (sink.rate == source.rate) {
@@ -196,7 +196,7 @@ bool PiSDFJoinForkOptimizer::operator()(PiSDFGraph *graph) const {
 
 std::uint32_t PiSDFJoinForkOptimizer::computeNJoinEdge(std::uint64_t sinkRate,
                                                        spider::array<EdgeLinker> &sourceArray,
-                                                       std::uint64_t sourceIx) const {
+                                                       std::size_t sourceIx) const {
     std::uint32_t nJoinEdge = 0;
     std::uint64_t totalRate = 0;
     while (sinkRate > totalRate) {
@@ -209,7 +209,7 @@ std::uint32_t PiSDFJoinForkOptimizer::computeNJoinEdge(std::uint64_t sinkRate,
 
 std::uint32_t PiSDFJoinForkOptimizer::computeNForkEdge(std::uint64_t sourceRate,
                                                        spider::array<EdgeLinker> &sinkArray,
-                                                       std::uint64_t sinkIx) const {
+                                                       std::size_t sinkIx) const {
     std::uint32_t nForkEdge = 0;
     std::uint64_t totalRate = 0;
     while (sourceRate > totalRate) {

@@ -91,7 +91,7 @@ namespace spider {
     }
 
     inline AbstractAllocator *&allocator(StackID stack) {
-        return allocatorArray()[static_cast<std::int32_t>(stack)];
+        return allocatorArray()[static_cast<std::size_t>(stack)];
     }
 
     template<StackID stack>
@@ -156,7 +156,7 @@ namespace spider {
      * @return pointer to allocated buffer, nullptr if size is 0.
      */
     template<typename T>
-    inline T *allocate(StackID stack, std::uint64_t size = 1) {
+    inline T *allocate(StackID stack, std::size_t size = 1) {
         auto *&worker = allocator(stack);
         if (!worker) {
             throwSpiderException("Allocating memory with non-initialized allocator.");

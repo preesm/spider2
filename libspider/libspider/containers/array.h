@@ -64,8 +64,8 @@ namespace spider {
          * @param stack  Stack on which the array should be allocated.
          * @param size   Size of the array.
          */
-        explicit array(std::uint64_t size, StackID stack = StackID::GENERAL) : data_(size,
-                                                                                     spider::Allocator<T>(stack)) { }
+        explicit array(std::size_t size, StackID stack = StackID::GENERAL) : data_(size,
+                                                                                   spider::Allocator<T>(stack)) { }
 
         /**
          * @brief Create an array of size size on stack stack with all values set to value;
@@ -73,8 +73,8 @@ namespace spider {
          * @param size   Size of the array.
          * @param value  Value to set to all the elements of the array.
          */
-        array(std::uint64_t size, T value, StackID stack = StackID::GENERAL) : data_(size, value,
-                                                                                     spider::Allocator<T>(stack)) { }
+        array(std::size_t size, T value, StackID stack = StackID::GENERAL) : data_(size, value,
+                                                                                   spider::Allocator<T>(stack)) { }
 
         array() noexcept = default;
 
@@ -90,9 +90,9 @@ namespace spider {
 
         /* === Operators === */
 
-        inline T &operator[](std::uint64_t ix);
+        inline T &operator[](std::size_t ix);
 
-        inline const T &operator[](std::uint64_t ix) const;
+        inline const T &operator[](std::size_t ix) const;
 
         /* === Iterator methods === */
 
@@ -114,7 +114,7 @@ namespace spider {
          * @brief  Return the size of the Array.
          * @return size of the array
          */
-        inline std::uint64_t size() const;
+        inline std::size_t size() const;
 
         /**
          * @brief Return the raw array pointer.
@@ -128,7 +128,7 @@ namespace spider {
          * @return reference to the element
          * @throws Spider::Exception if out of bound.
          */
-        inline T &at(std::uint64_t ix);
+        inline T &at(std::size_t ix);
 
         /**
          * @brief Return element of the array at position ix with bound check.
@@ -136,7 +136,7 @@ namespace spider {
          * @return const reference to the element
          * @throws Spider::Exception if out of bound.
          */
-        inline const T &at(std::uint64_t ix) const;
+        inline const T &at(std::size_t ix) const;
 
     private:
         spider::vector<T> data_;
@@ -145,22 +145,22 @@ namespace spider {
     /* === Inline methods === */
 
     template<typename T>
-    T &array<T>::operator[](std::uint64_t ix) {
+    T &array<T>::operator[](std::size_t ix) {
         return data_[ix];
     }
 
     template<typename T>
-    const T &array<T>::operator[](std::uint64_t ix) const {
+    const T &array<T>::operator[](std::size_t ix) const {
         return data_[ix];
     }
 
     template<typename T>
-    T &array<T>::at(std::uint64_t ix) {
+    T &array<T>::at(std::size_t ix) {
         return data_.at(ix);
     }
 
     template<typename T>
-    const T &array<T>::at(std::uint64_t ix) const {
+    const T &array<T>::at(std::size_t ix) const {
         return data_.at(ix);
     }
 
@@ -185,7 +185,7 @@ namespace spider {
     }
 
     template<typename T>
-    std::uint64_t array<T>::size() const {
+    std::size_t array<T>::size() const {
         return data_.size();
     }
 
