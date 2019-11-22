@@ -94,8 +94,8 @@ namespace spider {
             logger<type>().enabled_ = false;
         }
 
-        template<log::Type type, const char color[], const char level[], class... Args>
-        inline void print(const char *fmt, Args &&... args) {
+        template<log::Type type, class... Args>
+        inline void print(const char color[], const char level[], const char *fmt, Args &&... args) {
             std::lock_guard<std::mutex> locker(mutex());
             spider::printer::fprintf(outputStream(), "%s[%s:%s]:", color, logger<type>().litteral_, level);
             spider::printer::fprintf(outputStream(), fmt, std::forward<Args>(args)...);
@@ -112,7 +112,7 @@ namespace spider {
         template<log::Type type = log::Type::GENERAL, class... Args>
         inline void info(const char *fmt, Args &&...args) {
             constexpr static const char lvl[] = "INFO";
-            print<type, white, lvl>(fmt, std::forward<Args>(args)...);
+            print<type>(white, lvl, fmt, std::forward<Args>(args)...);
         }
 
         /**
@@ -125,7 +125,7 @@ namespace spider {
         template<log::Type type = log::Type::GENERAL, class... Args>
         inline void warning(const char *fmt, Args &&...args) {
             constexpr static const char lvl[] = "WARN";
-            print<type, yellow, lvl>(fmt, std::forward<Args>(args)...);
+            print<type>(yellow, lvl, fmt, std::forward<Args>(args)...);
         }
 
         /**
@@ -138,7 +138,7 @@ namespace spider {
         template<log::Type type = log::Type::GENERAL, class... Args>
         inline void error(const char *fmt, Args &&...args) {
             constexpr static const char lvl[] = "ERR";
-            print<type, red, lvl>(fmt, std::forward<Args>(args)...);
+            print<type>(red, lvl, fmt, std::forward<Args>(args)...);
         }
 
         /**
@@ -151,7 +151,7 @@ namespace spider {
         template<log::Type type = log::Type::GENERAL, class... Args>
         inline void verbose(const char *fmt, Args &&...args) {
             constexpr static const char lvl[] = "VERB";
-            print<type, green, lvl>(fmt, std::forward<Args>(args)...);
+            print<type>(green, lvl, fmt, std::forward<Args>(args)...);
         }
     }
 }

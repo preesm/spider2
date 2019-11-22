@@ -138,7 +138,7 @@ void spider::pisdf::Graph::removeVertex(Vertex *vertex) {
 }
 
 void spider::pisdf::Graph::addEdge(Edge *edge) {
-    edge->setIx(edgeVector_.size());
+    edge->setIx(static_cast<std::uint32_t>(edgeVector_.size()));
     edgeVector_.push_back(edge);
     edge->setGraph(this);
 }
@@ -161,7 +161,7 @@ void spider::pisdf::Graph::addParam(Param *param) {
     if (this->param(param->name())) {
         throwSpiderException("Parameter [%s] already exist in graph [%s].", param->name().c_str(), name().c_str());
     }
-    param->setIx(paramVector_.size());
+    param->setIx(static_cast<std::uint32_t>(paramVector_.size()));
     param->setGraph(this);
     paramVector_.push_back(param);
     dynamic_ |= (param->dynamic() && param->type() != ParamType::INHERITED);

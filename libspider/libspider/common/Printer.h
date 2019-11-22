@@ -61,7 +61,7 @@ namespace spider {
 #ifdef _SPIDER_NO_TYPESAFETY_PRINT
 
         template<class... Args>
-        inline int fprintf(_IO_FILE *stream, const char *format, Args &&... args) {
+        inline int fprintf(FILE *stream, const char *format, Args &&... args) {
             return std::fprintf(stream, format, std::forward<Args>(args)...);
         }
 

@@ -59,7 +59,7 @@ public:
     explicit FreeListAllocator(std::string name,
                                std::uint64_t staticBufferSize,
                                FreeListPolicy policy = FreeListPolicy::FIND_FIRST,
-                               std::int32_t alignment = sizeof(std::int64_t));
+                               std::uint64_t alignment = sizeof(std::int64_t));
 
     ~FreeListAllocator() override;
 
@@ -88,7 +88,7 @@ private:
     std::uint32_t  allocScale_ = 1;
 
 
-    using FreeListPolicyMethod = std::pair<Node *, Node *> (*)(std::uint64_t, std::int32_t &, std::uint64_t, Node *);
+    using FreeListPolicyMethod = std::pair<Node *, Node *> (*)(std::uint64_t, std::uint64_t &, std::uint64_t, Node *);
 
     FreeListPolicyMethod findNode_;
 
@@ -101,10 +101,10 @@ private:
     void updateFreeNodeList(Node *baseNode, Node *memoryNode, std::uint64_t requiredSize);
 
     static std::pair<Node *, Node *>
-    findFirst(std::uint64_t size, std::int32_t &padding, std::uint64_t alignment, Node *baseNode);
+    findFirst(std::uint64_t size, std::uint64_t &padding, std::uint64_t alignment, Node *baseNode);
 
     static std::pair<Node *, Node *>
-    findBest(std::uint64_t size, std::int32_t &padding, std::uint64_t alignment, Node *baseNode);
+    findBest(std::uint64_t size, std::uint64_t &padding, std::uint64_t alignment, Node *baseNode);
 
     /**
      * @brief Check the pointer address to be sure we are deallocating memory we allocated.

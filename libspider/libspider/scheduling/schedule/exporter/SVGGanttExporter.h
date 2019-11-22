@@ -82,12 +82,12 @@ namespace spider {
     private:
         const sched::Schedule *schedule_ = nullptr;
         const pisdf::Graph *graph_ = nullptr;
-        std::uint32_t width_ = UINT32_MAX;
-        std::uint32_t height_ = UINT32_MAX;
-        std::uint32_t widthMin_ = 10;
-        std::uint32_t widthMax_ = 500;
+        std::uint64_t width_ = UINT32_MAX;
+        std::uint64_t height_ = UINT32_MAX;
+        double widthMin_ = 10;
+        double widthMax_ = 500;
         double scaleFactor_ = 0.;
-        std::uint32_t makespanWidth_ = 0;
+        std::uint64_t makespanWidth_ = 0;
 
         /* === Private method(s) === */
 

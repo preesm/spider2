@@ -191,21 +191,22 @@ std::pair<PiSDFGraph *, PiSDFGraph *> spider::srdag::splitDynamicGraph(PiSDFGrap
     /* == Create the init subgraph == */
     auto *initGraph = spider::api::createSubraph(subgraph->containingGraph(),
                                                  "ginit-" + subgraph->name(),
-                                                 subgraph->configVertexCount(),
+                                                 static_cast<std::uint32_t>(subgraph->configVertexCount()),
                                                  initInputIFCount + initOutputIFCount + cfgInputIFCount,
                                                  0,
                                                  initInputIFCount,
                                                  initOutputIFCount + cfgInputIFCount,
-                                                 subgraph->configVertexCount(), StackID::PISDF);
+                                                 static_cast<std::uint32_t>(subgraph->configVertexCount()),
+                                                 StackID::PISDF);
 
     /* == Create the run subgraph == */
     auto *runGraph = spider::api::createSubraph(subgraph->containingGraph(),
                                                 "grun-" + subgraph->name(),
-                                                subgraph->vertexCount(),
-                                                subgraph->edgeCount(),
-                                                subgraph->paramCount(),
-                                                runInputIFCount,
-                                                runOutputIFCount,
+                                                static_cast<std::uint32_t>(subgraph->vertexCount()),
+                                                static_cast<std::uint32_t>(subgraph->edgeCount()),
+                                                static_cast<std::uint32_t>(subgraph->paramCount()),
+                                                static_cast<std::uint32_t>(runInputIFCount),
+                                                static_cast<std::uint32_t>(runOutputIFCount),
                                                 0, StackID::PISDF);
 
     std::uint32_t inputInitIx = 0;

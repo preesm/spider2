@@ -60,12 +60,12 @@ enum class FreeListPolicy {
 
 class AbstractAllocator {
 public:
-    explicit AbstractAllocator(std::string name, std::int32_t alignment = 0) : used_{ 0 },
-                                                                               peak_{ 0 },
-                                                                               averageUse_{ 0 },
-                                                                               numberAverage_{ 0 },
-                                                                               alignment_{ alignment },
-                                                                               name_{ std::move(name) } { }
+    explicit AbstractAllocator(std::string name, std::uint64_t alignment = 0) : used_{ 0 },
+                                                                                peak_{ 0 },
+                                                                                averageUse_{ 0 },
+                                                                                numberAverage_{ 0 },
+                                                                                alignment_{ alignment },
+                                                                                name_{ std::move(name) } { }
 
     virtual ~AbstractAllocator() {
         if (used_ > 0 && log_enabled()) {
@@ -97,7 +97,7 @@ public:
      *        All new allocation made after this call result in allocation aligned to new value.
      * @param alignment  New allocation value.
      */
-    inline void setAllocationAlignment(std::int32_t alignment);
+    inline void setAllocationAlignment(std::uint64_t alignment);
 
     /* Getters */
 
@@ -105,7 +105,7 @@ public:
      * @brief Fetch current memory allocation alignment
      * @return current allocation alignment
      */
-    inline std::int32_t getAllocationAlignment() const;
+    inline std::uint64_t getAllocationAlignment() const;
 
     /**
      * @brief Return name of the allocator.
@@ -125,7 +125,7 @@ protected:
     std::uint64_t peak_ = 0;
     std::uint64_t averageUse_ = 0;
     std::uint64_t numberAverage_ = 0;
-    std::int32_t alignment_ = 0;
+    std::uint64_t alignment_ = 0;
 
     static inline std::uint64_t computeAlignedSize(std::uint64_t size, std::uint64_t alignment = 4096);
 
@@ -144,11 +144,11 @@ private:
 
 /* === Inline methods === */
 
-void AbstractAllocator::setAllocationAlignment(std::int32_t alignment) {
+void AbstractAllocator::setAllocationAlignment(std::uint64_t alignment) {
     alignment_ = alignment;
 }
 
-std::int32_t AbstractAllocator::getAllocationAlignment() const {
+std::uint64_t AbstractAllocator::getAllocationAlignment() const {
     return alignment_;
 }
 

@@ -55,7 +55,8 @@ BRVCompute::BRVCompute(const PiSDFGraph *graph) : BRVCompute(graph, graph->param
 
 BRVCompute::BRVCompute(const PiSDFGraph *graph, const spider::vector<PiSDFParam *> &params) : graph_{ graph },
                                                                                               params_{ params } {
-    spider::array<const PiSDFAbstractVertex *> connectedComponentsKeys{ graph->vertexCount(), nullptr,
+    spider::array<const PiSDFAbstractVertex *> connectedComponentsKeys{ graph->vertexCount(),
+                                                                        nullptr,
                                                                         StackID::TRANSFO };
     spider::array<const PiSDFAbstractVertex *> vertexArray{ graph->vertexCount(), nullptr, StackID::TRANSFO };
     BRVComponent component;
@@ -138,7 +139,7 @@ spider::array<const PiSDFEdge *> BRVCompute::extractEdges(const BRVComponent &co
 }
 
 void BRVCompute::updateBRV(const BRVComponent &component) {
-    std::uint64_t scaleRVFactor{ 1 };
+    std::uint32_t scaleRVFactor{ 1 };
 
     /* == Compute the scale factor == */
     spider::pisdf::UpdateBRVVisitor brvVisitor{ scaleRVFactor, params_ };

@@ -59,50 +59,41 @@ protected:
     bool externalBase_;
     void *startPtr_;
 
-    inline StaticAllocator(std::string name, std::uint64_t totalSize, std::int32_t alignment = 0);
+    StaticAllocator(std::string name, std::uint64_t totalSize, std::uint64_t alignment = 0) :
+            AbstractAllocator(std::move(name), alignment),
+            totalSize_{ totalSize },
+            startPtr_{ nullptr } {
+        if (!totalSize) {
+            throwSpiderException("Allocator size should be >= 0.\n");
+        }
+        startPtr_ = std::malloc(totalSize_);
+        externalBase_ = false;
+    }
 
-    inline StaticAllocator(std::string name, std::uint64_t totalSize, void *externalBase, std::int32_t alignment = 0);
+    StaticAllocator(std::string name, std::uint64_t totalSize, void *externalBase, std::uint64_t alignment = 0) :
+            AbstractAllocator(std::move(name), alignment),
+            totalSize_{ totalSize },
+            startPtr_{ nullptr } {
+        if (!totalSize) {
+            throwSpiderException("Allocator size should be >= 0.\n");
+        }
+        if (!externalBase) {
+            throwSpiderException("External base address should not be null.");
+        }
+        startPtr_ = externalBase;
+        externalBase_ = true;
+    }
 
-    inline ~StaticAllocator() override;
+    ~StaticAllocator() override {
+        if (!externalBase_) {
+            std::free(startPtr_);
+        }
+    }
 
     inline void checkPointerAddress(void *ptr) const;
 };
 
 /* === Inline methods === */
-
-StaticAllocator::~StaticAllocator() {
-    if (!externalBase_) {
-        std::free(startPtr_);
-    }
-}
-
-StaticAllocator::StaticAllocator(std::string name, std::uint64_t totalSize, std::int32_t alignment) :
-        AbstractAllocator(std::move(name), alignment),
-        totalSize_{ totalSize },
-        startPtr_{ nullptr } {
-    if (!totalSize) {
-        throwSpiderException("Allocator size should be >= 0.\n");
-    }
-    startPtr_ = std::malloc(totalSize_);
-    externalBase_ = false;
-}
-
-StaticAllocator::StaticAllocator(std::string name,
-                                 std::uint64_t totalSize,
-                                 void *externalBase,
-                                 std::int32_t alignment) :
-        AbstractAllocator(std::move(name), alignment),
-        totalSize_{ totalSize },
-        startPtr_{ nullptr } {
-    if (!totalSize) {
-        throwSpiderException("Allocator size should be >= 0.\n");
-    }
-    if (!externalBase) {
-        throwSpiderException("External base address should not be null.");
-    }
-    startPtr_ = externalBase;
-    externalBase_ = true;
-}
 
 void StaticAllocator::checkPointerAddress(void *ptr) const {
     const auto &uintPtr = reinterpret_cast<std::uintptr_t >(ptr);

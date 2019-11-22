@@ -46,13 +46,11 @@
 
 /* === Methods prototype === */
 
-#include <stdint-gcc.h>
-
 namespace spider {
     namespace math {
 
         inline std::uint16_t ceilDiv(std::uint16_t x, std::uint16_t y) {
-            return x / y + (x % y != 0);
+            return static_cast<std::uint16_t>(x / y + (x % y != 0));
         }
 
         inline std::uint32_t ceilDiv(std::uint32_t x, std::uint32_t y) {
@@ -65,34 +63,34 @@ namespace spider {
 
         inline std::int32_t ceilDiv(std::int32_t x, std::int32_t y) {
             auto neg = (x < 0 && y > 0) || (x > 0 && y < 0);
-            std::uint64_t a = x < 0 ? (-x) : x;
-            std::uint64_t b = y < 0 ? (-y) : y;
-            return neg ? -(a / b) : ceilDiv(a, b);
+            auto a = static_cast<uint32_t>((x < 0 ? (-x) : x));
+            auto b = static_cast<uint32_t>((y < 0 ? (-y) : y));
+            return static_cast<int32_t>((neg ? -(a / b) : ceilDiv(a, b)));
         }
 
         inline std::int64_t ceilDiv(std::int64_t x, std::int64_t y) {
             auto neg = (x < 0 && y > 0) || (x > 0 && y < 0);
-            std::uint64_t a = x < 0 ? (-x) : x;
-            std::uint64_t b = y < 0 ? (-y) : y;
-            return neg ? -(a / b) : ceilDiv(a, b);
+            auto a = static_cast<uint64_t>((x < 0 ? (-x) : x));
+            auto b = static_cast<uint64_t>((y < 0 ? (-y) : y));
+            return static_cast<int64_t>((neg ? -(a / b) : ceilDiv(a, b)));
         }
 
         inline std::int64_t floorDiv(std::int64_t x, std::int64_t y) {
             auto neg = (x < 0 && y > 0) || (x > 0 && y < 0);
-            std::uint64_t a = x < 0 ? (-x) : x;
-            std::uint64_t b = y < 0 ? (-y) : y;
-            return neg ? -ceilDiv(a, b) : a / b;
+            auto a = static_cast<uint64_t>((x < 0 ? (-x) : x));
+            auto b = static_cast<uint64_t>((y < 0 ? (-y) : y));
+            return static_cast<int64_t>((neg ? -ceilDiv(a, b) : a / b));
         }
 
         inline std::int32_t floorDiv(std::int32_t x, std::int32_t y) {
             auto neg = (x < 0 && y > 0) || (x > 0 && y < 0);
-            std::uint32_t a = x < 0 ? (-x) : x;
-            std::uint32_t b = y < 0 ? (-y) : y;
-            return neg ? -ceilDiv(a, b) : a / b;
+            auto a = static_cast<uint32_t>((x < 0 ? (-x) : x));
+            auto b = static_cast<uint32_t>((y < 0 ? (-y) : y));
+            return static_cast<int32_t>((neg ? -ceilDiv(a, b) : a / b));
         }
 
         inline std::int16_t abs(std::int16_t x) {
-            return x < 0 ? -x : x;
+            return static_cast<std::int16_t>(x < 0 ? -x : x);
         }
 
         inline std::int32_t abs(std::int32_t x) {

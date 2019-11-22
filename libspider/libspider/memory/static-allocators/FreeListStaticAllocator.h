@@ -52,14 +52,14 @@ public:
     explicit FreeListStaticAllocator(std::string name,
                                      std::uint64_t totalSize,
                                      FreeListPolicy policy = FreeListPolicy::FIND_FIRST,
-                                     std::int32_t alignment = sizeof(std::int64_t));
+                                     std::uint64_t alignment = sizeof(std::int64_t));
 
 
     explicit FreeListStaticAllocator(std::string name,
                                      std::uint64_t totalSize,
                                      void *externalBase,
                                      FreeListPolicy policy = FreeListPolicy::FIND_FIRST,
-                                     std::int32_t alignment = sizeof(std::int64_t));
+                                     std::uint64_t alignment = sizeof(std::int64_t));
 
     ~FreeListStaticAllocator() override = default;
 
@@ -86,15 +86,15 @@ private:
 
     void remove(Node *baseNode, Node *removedNode);
 
-    using policyMethod = void (*)(std::uint64_t &, std::int32_t &, std::int32_t &, Node *&, Node *&);
+    using policyMethod = void (*)(std::uint64_t &, std::uint64_t &, std::uint64_t &, Node *&, Node *&);
 
     policyMethod method_;
 
     static void
-    findFirst(std::uint64_t &size, std::int32_t &padding, std::int32_t &alignment, Node *&baseNode, Node *&foundNode);
+    findFirst(std::uint64_t &size, std::uint64_t &padding, std::uint64_t &alignment, Node *&baseNode, Node *&foundNode);
 
     static void
-    findBest(std::uint64_t &size, std::int32_t &padding, std::int32_t &alignment, Node *&baseNode, Node *&foundNode);
+    findBest(std::uint64_t &size, std::uint64_t &padding, std::uint64_t &alignment, Node *&baseNode, Node *&foundNode);
 };
 
 #endif //SPIDER2_FREELISTSTATICALLOCATOR_H

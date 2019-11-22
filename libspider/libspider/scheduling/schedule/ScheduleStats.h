@@ -104,7 +104,7 @@ namespace spider {
              * @return load time of given PE.
              * @throws @refitem std::out_of_range if PE out of range.
              */
-            inline std::uint32_t loadTime(std::uint32_t PE) const;
+            inline std::uint64_t loadTime(std::uint32_t PE) const;
 
             /**
              * @brief Return the idle time of a given PE.
@@ -112,7 +112,7 @@ namespace spider {
              * @return idle time of given PE.
              * @throws @refitem std::out_of_range if PE out of range.
              */
-            inline std::uint32_t idleTime(std::uint32_t PE) const;
+            inline std::uint64_t idleTime(std::uint32_t PE) const;
 
             /**
              * @brief Return the schedule span of a given PE.
@@ -173,8 +173,9 @@ namespace spider {
         }
 
         double Stats::utilizationFactor(std::uint32_t PE) const {
-            const double &load = loadTime(PE);
-            return load / makespan();
+            const auto &load = static_cast<double>(loadTime(PE));
+            const auto &span = static_cast<double>(makespan());
+            return load / span;
         }
 
         std::uint64_t Stats::startTime(std::uint32_t PE) const {
@@ -185,11 +186,11 @@ namespace spider {
             return endTimeVector_.at(PE);
         }
 
-        std::uint32_t Stats::loadTime(std::uint32_t PE) const {
+        std::uint64_t Stats::loadTime(std::uint32_t PE) const {
             return loadTimeVector_.at(PE);
         }
 
-        std::uint32_t Stats::idleTime(std::uint32_t PE) const {
+        std::uint64_t Stats::idleTime(std::uint32_t PE) const {
             return idleTimeVector_.at(PE);
         }
 

@@ -302,7 +302,7 @@ spider::vector<RPNElement> spider::rpn::extractInfixElements(std::string infixEx
 
     /* == Extract the expression elements == */
     auto pos = infixExpressionLocal.find_first_of(supportedBasicOperators(), 0);
-    std::uint32_t lastPos = 0;
+    std::string::size_type lastPos = 0;
     while (pos != std::string::npos) {
         /* == Operand or Function token (can be empty) == */
         auto token = infixExpressionLocal.substr(lastPos, pos - lastPos);

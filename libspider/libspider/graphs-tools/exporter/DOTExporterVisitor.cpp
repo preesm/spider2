@@ -110,7 +110,7 @@ std::pair<std::int32_t, std::int32_t> spider::pisdf::DOTExporterVisitor::compute
     /* ==                          |        1 + exp(-10*(n-7))|  == */
     /* ==                                                        == */
     /* == with U(x) the Heaviside function                       == */
-    auto n = vertex->name().size();
+    auto n = static_cast<double>(vertex->name().size());
     const auto &centerWidth = static_cast<std::int32_t>(15. * (n - 8.) * (n > 8) +
                                                         std::ceil(20. *
                                                                   (1 +
@@ -162,7 +162,8 @@ void spider::pisdf::DOTExporterVisitor::vertexPrinter(ExecVertex *vertex,
 
         /* == Middle separation == */
         file_ << offset_ << '\t' << '\t' << '\t'
-              << R"(<td border="0" style="invis" colspan="2" bgcolor=")" << color << R"(" fixedsize="true" width=")" << centerWidth
+              << R"(<td border="0" style="invis" colspan="2" bgcolor=")" << color << R"(" fixedsize="true" width=")"
+              << centerWidth
               << R"(" height="20"></td>)" << '\n';
 
         /* == Export output port == */
@@ -189,7 +190,8 @@ void spider::pisdf::DOTExporterVisitor::vertexPrinter(ExecVertex *vertex,
 
         /* == Middle separation == */
         file_ << offset_ << '\t' << '\t' << '\t'
-              << R"(<td border="0" style="invis" colspan="2" bgcolor=")" << color << R"(" fixedsize="true" width=")" << centerWidth
+              << R"(<td border="0" style="invis" colspan="2" bgcolor=")" << color << R"(" fixedsize="true" width=")"
+              << centerWidth
               << R"(" height="20"></td>)" << '\n';
 
         /* == Export output port == */
@@ -239,8 +241,8 @@ void spider::pisdf::DOTExporterVisitor::interfaceBodyPrinter(Interface *interfac
 
 void spider::pisdf::DOTExporterVisitor::edgePrinter(spider::pisdf::Edge *edge) const {
     auto *source =
-            edge->source()->subtype() == spider::pisdf::VertexType::GRAPH ? edge->source<true>() : edge->source();
-    auto *sink = edge->sink()->subtype() == spider::pisdf::VertexType::GRAPH ? edge->sink<true>() : edge->sink();
+            edge->source()->subtype() == spider::pisdf::VertexType::GRAPH ? edge->sourceFw() : edge->source();
+    auto *sink = edge->sink()->subtype() == spider::pisdf::VertexType::GRAPH ? edge->sinkFw() : edge->sink();
     const auto *delay = edge->delay();
     const auto &srcPortIx = edge->sourcePortIx();
     const auto &snkPortIx = edge->sinkPortIx();

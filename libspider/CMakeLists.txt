@@ -10,7 +10,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/extras/c
 
 # Setting build options
 if (NOT ${CMAKE_GENERATOR} MATCHES "Visual Studio.*")
-    set(SPIDER_WARNING_FLAGS "-Wall -Wextra -pedantic-errors -Wnon-virtual-dtor")
+    set(SPIDER_WARNING_FLAGS "-Wall -Wextra -pedantic-errors -Wnon-virtual-dtor -Wconversion ")
     if (${CMAKE_BUILD_TYPE} MATCHES Debug)
         message("Generating Debug project")
         set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Debug)

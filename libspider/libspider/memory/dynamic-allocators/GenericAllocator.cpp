@@ -45,11 +45,8 @@
 
 /* === Methods implementation === */
 
-GenericAllocator::GenericAllocator(std::string name, int32_t alignment) : DynamicAllocator(std::move(name), alignment) {
-    if (alignment < 0) {
-        throwSpiderException("Memory alignment should be positive integer.");
-    }
-}
+GenericAllocator::GenericAllocator(std::string name, std::uint64_t alignment) : DynamicAllocator(std::move(name),
+                                                                                                 alignment) { }
 
 void *GenericAllocator::allocate(std::uint64_t size) {
     if (!size) {

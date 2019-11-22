@@ -85,13 +85,11 @@ std::string spider::pisdf::Edge::name() const {
     return "edge_" + src_->name() + "-" + snk_->name();
 }
 
-template<>
-spider::pisdf::Vertex *spider::pisdf::Edge::source<true>() const {
+spider::pisdf::Vertex *spider::pisdf::Edge::sourceFw() const {
     return src_->forwardEdge(this);
 }
 
-template<>
-spider::pisdf::Vertex *spider::pisdf::Edge::sink<true>() const {
+spider::pisdf::Vertex *spider::pisdf::Edge::sinkFw() const {
     return snk_->forwardEdge(this);
 }
 

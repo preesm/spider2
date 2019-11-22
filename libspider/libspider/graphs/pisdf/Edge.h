@@ -119,15 +119,17 @@ namespace spider {
              * @brief Get the source reference vertex.
              * @return reference to source
              */
-            template<bool = false>
             inline Vertex *source() const;
+
+            Vertex *sourceFw() const;
 
             /**
              * @brief Get the sink reference vertex.
              * @return reference to sink
              */
-            template<bool = false>
             inline Vertex *sink() const;
+
+            Vertex *sinkFw() const;
 
             /**
              * @brief Get the delay (if any) associated to the edge.
@@ -212,12 +214,10 @@ namespace spider {
             return snkExpression_;
         }
 
-        template<bool>
         Vertex *Edge::source() const {
             return src_;
         }
 
-        template<bool>
         Vertex *Edge::sink() const {
             return snk_;
         }

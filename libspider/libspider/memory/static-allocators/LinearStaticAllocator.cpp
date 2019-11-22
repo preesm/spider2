@@ -44,7 +44,7 @@
 
 /* === Methods implementation === */
 
-LinearStaticAllocator::LinearStaticAllocator(std::string name, std::uint64_t totalSize, std::int32_t alignment) :
+LinearStaticAllocator::LinearStaticAllocator(std::string name, std::uint64_t totalSize, std::uint64_t alignment) :
         StaticAllocator(std::move(name), totalSize, alignment) {
     if (alignment < 8) {
         throwSpiderException("Memory alignment should be at least of size sizeof(std::int64_t) = 8 bytes.");
@@ -54,7 +54,7 @@ LinearStaticAllocator::LinearStaticAllocator(std::string name, std::uint64_t tot
 LinearStaticAllocator::LinearStaticAllocator(std::string name,
                                              std::uint64_t totalSize,
                                              void *externalBase,
-                                             int32_t alignment) : StaticAllocator(std::move(name), totalSize,
+                                             uint64_t alignment) : StaticAllocator(std::move(name), totalSize,
                                                                                   externalBase,
                                                                                   alignment) {
     if (alignment < 8) {
@@ -66,7 +66,7 @@ void *LinearStaticAllocator::allocate(std::uint64_t size) {
     if (!size) {
         return nullptr;
     }
-    std::int32_t padding = 0;
+    std::uint64_t padding = 0;
     if (alignment_ && used_ % alignment_ != 0) {
         /*!< Compute next aligned address padding */
         padding = AbstractAllocator::computePadding(used_, alignment_);

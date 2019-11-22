@@ -51,12 +51,12 @@ public:
 
     explicit LinearStaticAllocator(std::string name,
                                    std::uint64_t totalSize,
-                                   std::int32_t alignment = sizeof(std::int64_t));
+                                   std::uint64_t alignment = sizeof(std::int64_t));
 
     explicit LinearStaticAllocator(std::string name,
                                    std::uint64_t totalSize,
                                    void *externalBase,
-                                   std::int32_t alignment = sizeof(std::int64_t));
+                                   std::uint64_t alignment = sizeof(std::int64_t));
 
     ~LinearStaticAllocator() override {
         reset();

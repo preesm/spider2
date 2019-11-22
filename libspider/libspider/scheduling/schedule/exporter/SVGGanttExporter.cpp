@@ -69,10 +69,10 @@ spider::SVGGanttExporter::SVGGanttExporter(const sched::Schedule *schedule,
                                                                         schedule_{ schedule },
                                                                         graph_{ graph } {
     /* == Compute values needed for printing == */
-    std::uint32_t minExecTime = UINT32_MAX;
-    std::uint32_t maxExecTime = 0;
+    std::uint64_t minExecTime = UINT64_MAX;
+    std::uint64_t maxExecTime = 0;
     for (auto &job : schedule_->jobs()) {
-        const std::uint32_t &execTime = job.mappingInfo().endTime - job.mappingInfo().startTime;
+        const auto &execTime = job.mappingInfo().endTime - job.mappingInfo().startTime;
         minExecTime = std::min(execTime, minExecTime);
         maxExecTime = std::max(execTime, maxExecTime);
     }
@@ -80,11 +80,11 @@ spider::SVGGanttExporter::SVGGanttExporter(const sched::Schedule *schedule,
     if (widthMin_ * ratio > widthMax_) {
         widthMax_ = widthMin_ * ratio;
     }
-    scaleFactor_ = static_cast<double>(widthMax_) / static_cast<double>(maxExecTime);
+    scaleFactor_ = widthMax_ / static_cast<double>(maxExecTime);
 
     /* == Compute dimensions of the Gantt == */
-    makespanWidth_ =
-            static_cast<double>(schedule_->stats().minStartTime() + schedule_->stats().makespan()) * scaleFactor_;
+    const auto &endPoint = static_cast<double>(schedule_->stats().minStartTime() + schedule_->stats().makespan());
+    makespanWidth_ = static_cast<std::uint64_t>(endPoint * scaleFactor_);
     width_ = makespanWidth_ + 2 * BORDER + OFFSET + ARROW_STROKE + ARROW_SIZE;
     const auto *platform = spider::platform();
     const auto &PECount = platform->PECount();
@@ -226,7 +226,7 @@ void spider::SVGGanttExporter::jobPrinter(std::ofstream &file, const sched::Job 
     /* == Compute coordinates == */
     const auto *platform = spider::platform();
     const auto &PE = platform->findPE(job.mappingInfo().clusterIx, job.mappingInfo().PEIx);
-    const auto &x = OFFSET + ARROW_STROKE + BORDER + job.mappingInfo().startTime * scaleFactor_;
+    const auto &x = OFFSET + ARROW_STROKE + BORDER + static_cast<double>(job.mappingInfo().startTime) * scaleFactor_;
     const auto &y = height_ - (OFFSET + ARROW_STROKE + (PE.spiderPEIx() + 1) * (TASK_HEIGHT + BORDER));
     std::ios savedFormat{ nullptr };
     savedFormat.copyfmt(file);

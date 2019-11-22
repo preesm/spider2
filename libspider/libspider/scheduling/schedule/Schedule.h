@@ -85,7 +85,7 @@ namespace spider {
              * @remark This method is intended to be used with scheduler using SR-DAG representation.
              * @param count Number of jobs to initialize.
              */
-            void setJobCount(std::uint32_t count);
+            void setJobCount(std::size_t count);
 
             /* === Getter(s) === */
 

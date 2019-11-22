@@ -81,7 +81,7 @@ namespace spider {
                 addVertex(subgraph);
 
                 /* == Add the subgraph in the "viewer" vector == */
-                subgraph->subIx_ = graph_->subgraphVector_.size();
+                subgraph->subIx_ = static_cast<std::uint32_t>(graph_->subgraphVector_.size());
                 graph_->subgraphVector_.emplace_back(subgraph);
             }
 
@@ -90,7 +90,7 @@ namespace spider {
         private:
             template<class T>
             void addVertex(T *vertex) {
-                vertex->setIx(graph_->vertexVector_.size());
+                vertex->setIx(static_cast<std::uint32_t>(graph_->vertexVector_.size()));
                 graph_->vertexVector_.emplace_back(vertex);
                 vertex->setGraph(graph_);
             }

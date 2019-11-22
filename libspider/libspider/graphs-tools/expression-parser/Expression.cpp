@@ -73,7 +73,7 @@ static double applyOperator(StartIterator start, RPNOperatorType type) {
         case RPNOperatorType::DIV:
             return (*start) / (*(start + 1));
         case RPNOperatorType::MOD:
-            return static_cast<std::int64_t>((*start)) % static_cast<std::int64_t>((*(start + 1)));
+            return static_cast<double>(static_cast<std::int64_t>((*start)) % static_cast<std::int64_t>((*(start + 1))));
         case RPNOperatorType::POW:
             return std::pow((*start), (*(start + 1)));
         case RPNOperatorType::COS:
@@ -131,7 +131,7 @@ Expression::Expression(std::string expression, const spider::vector<PiSDFParam *
 
 Expression::Expression(std::int64_t value) {
     static_ = true;
-    value_ = value;
+    value_ = static_cast<double>(value);
 }
 
 std::string Expression::string() const {
@@ -155,7 +155,7 @@ spider::vector<ExpressionElt> Expression::buildExpressionStack(spider::vector<RP
     spider::vector<double> evalStack{ spider::Allocator<double>(StackID::EXPRESSION) };
     evalStack.reserve(6); /* = In practice, the evalStack will most likely not exceed 3 values = */
     bool skipEval = false;
-    std::uint8_t argCount = 0;
+    std::size_t argCount = 0;
     for (auto &elt : postfixStack) {
         if (elt.type == RPNElementType::OPERAND) {
             argCount += 1;
@@ -163,8 +163,8 @@ spider::vector<ExpressionElt> Expression::buildExpressionStack(spider::vector<RP
                 const auto &pair = findParam(params, elt.token);
                 const auto &param = pair.first;
                 const auto &dynamic = param->dynamic();
-                const auto &value = param->value();
-                evalStack.push_back(value);
+                const auto &value = static_cast<double>(param->value());
+                evalStack.emplace_back(value);
 
                 /* == By default, dynamic parameters have 0 value and dynamic expression are necessary built on startup == */
                 static_ &= (!dynamic);
@@ -173,7 +173,7 @@ spider::vector<ExpressionElt> Expression::buildExpressionStack(spider::vector<RP
                 stack.back().arg.value_ = static_cast<double>(dynamic & pair.second) + value;
             } else {
                 const auto &value = std::strtod(elt.token.c_str(), nullptr);
-                evalStack.push_back(value);
+                evalStack.emplace_back(value);
                 stack.emplace_back(std::move(elt));
                 stack.back().arg.value_ = value;
             }
@@ -186,7 +186,8 @@ spider::vector<ExpressionElt> Expression::buildExpressionStack(spider::vector<RP
             stack.emplace_back(std::move(elt));
             stack.back().arg.opType_ = opType;
             if (!skipEval && evalStack.size() >= op.argCount) {
-                auto &&result = applyOperator(evalStack.begin() + (evalStack.size() - op.argCount), op.type);
+                auto &&result = applyOperator(
+                        evalStack.begin() + (static_cast<std::int64_t>(evalStack.size() - op.argCount)), op.type);
                 for (std::uint8_t i = 0; i < op.argCount; ++i) {
                     stack.pop_back();
                     evalStack.pop_back();
@@ -195,7 +196,7 @@ spider::vector<ExpressionElt> Expression::buildExpressionStack(spider::vector<RP
                 stack.back().elt_.subtype = RPNElementSubType::VALUE;
                 stack.back().elt_.token = std::to_string(result);
                 stack.back().arg.value_ = result;
-                evalStack.push_back(result);
+                evalStack.emplace_back(result);
             } else {
                 for (std::uint8_t i = 0; !evalStack.empty() && i < op.argCount; ++i) {
                     evalStack.pop_back();
@@ -214,13 +215,14 @@ double Expression::evaluateStack(const spider::vector<PiSDFParam *> &params) con
     for (const auto &elt : expressionStack_) {
         if (elt.elt_.type == RPNElementType::OPERAND) {
             if (elt.elt_.subtype == RPNElementSubType::PARAMETER) {
-                evalStack.emplace_back(params[elt.arg.value_]->value());
+                evalStack.emplace_back(static_cast<double>(params[static_cast<std::size_t>(elt.arg.value_)]->value()));
             } else {
                 evalStack.emplace_back(elt.arg.value_);
             }
         } else {
             const auto &op = spider::rpn::getOperatorFromOperatorType(elt.arg.opType_);
-            auto &&result = applyOperator(evalStack.begin() + (evalStack.size() - op.argCount), op.type);
+            auto &&result = applyOperator(
+                    evalStack.begin() + (static_cast<std::int64_t>(evalStack.size() - op.argCount)), op.type);
             for (std::uint8_t i = 0; i < op.argCount - 1; ++i) {
                 evalStack.pop_back();
             }

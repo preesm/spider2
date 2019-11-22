@@ -57,7 +57,7 @@ public:
 };
 
 bool PiSDFForkForkOptimizer::operator()(PiSDFGraph *graph) const {
-    spider::vector<std::pair<spider::pisdf::ForkVertex *, spider::pisdf::ForkVertex *>> verticesToOptimize;
+    spider::vector<std::pair<spider::pisdf::Vertex *, spider::pisdf::Vertex *>> verticesToOptimize;
 
     /* == Search for the pair of fork to optimize == */
     for (const auto &v : graph->vertices()) {
@@ -66,8 +66,7 @@ bool PiSDFForkForkOptimizer::operator()(PiSDFGraph *graph) const {
             const auto &vertex = v->inputEdge(0)->sink();
             auto *source = vertex->inputEdge(0)->source();
             if (source->subtype() == spider::pisdf::VertexType::FORK) {
-                verticesToOptimize.push_back(std::make_pair(static_cast<spider::pisdf::ForkVertex *>(source),
-                                                            static_cast<spider::pisdf::ForkVertex *>(vertex)));
+                verticesToOptimize.push_back(std::make_pair(source, vertex));
             }
         }
     }
@@ -80,9 +79,11 @@ bool PiSDFForkForkOptimizer::operator()(PiSDFGraph *graph) const {
         auto *vertex = pair.second;
 
         /* == Create the new fork == */
+        const auto &outputCount = static_cast<std::uint32_t>((source->outputEdgeCount() - 1) +
+                                                             vertex->outputEdgeCount());
         auto *fork = spider::api::createFork(graph,
                                              "merged-" + source->name() + "-" + vertex->name(),
-                                             (source->outputEdgeCount() - 1) + vertex->outputEdgeCount(),
+                                             outputCount,
                                              StackID::TRANSFO);
         auto *edge = source->inputEdge(0);
         auto rate = edge->sinkRateExpression().evaluate(params);
@@ -90,7 +91,7 @@ bool PiSDFForkForkOptimizer::operator()(PiSDFGraph *graph) const {
 
         /* == Link the edges == */
         auto insertEdgeIx = vertex->inputEdge(0)->sourcePortIx();
-        std::uint32_t offset = 0;
+        std::uint64_t offset = 0;
         for (auto *sourceEdge : source->outputEdgeArray()) {
             if (sourceEdge->sourcePortIx() == insertEdgeIx) {
                 graph->removeEdge(sourceEdge);
@@ -102,7 +103,7 @@ bool PiSDFForkForkOptimizer::operator()(PiSDFGraph *graph) const {
                 }
             } else {
                 rate = sourceEdge->sourceRateExpression().evaluate(params);
-                auto ix = sourceEdge->sourcePortIx() + offset;
+                auto ix = static_cast<std::uint32_t>(sourceEdge->sourcePortIx() + offset);
                 sourceEdge->setSource(fork, ix, Expression(rate));
             }
         }

@@ -51,7 +51,7 @@ constexpr auto MIN_CHUNK_SIZE = 8192;
 FreeListAllocator::FreeListAllocator(std::string name,
                                      std::uint64_t staticBufferSize,
                                      FreeListPolicy policy,
-                                     std::int32_t alignment) :
+                                     std::uint64_t alignment) :
         DynamicAllocator(std::move(name), alignment),
         staticBufferSize_{ std::max(staticBufferSize, static_cast<std::uint64_t >(MIN_CHUNK_SIZE)) } {
     if (alignment < 8) {
@@ -84,7 +84,7 @@ void *FreeListAllocator::allocate(std::uint64_t size) {
     if (size < sizeof(Node)) {
         size = size + sizeof(Node);
     }
-    std::int32_t padding = 0;
+    std::uint64_t padding = 0;
 
     /* == Find first / best node fitting memory requirement == */
     const auto &result = findNode_(size, padding, alignment_, list_);
@@ -242,7 +242,7 @@ FreeListAllocator::Node *FreeListAllocator::createExtraBuffer(std::uint64_t size
 }
 
 std::pair<FreeListAllocator::Node *, FreeListAllocator::Node *>
-FreeListAllocator::findFirst(std::uint64_t size, std::int32_t &padding, std::uint64_t alignment, Node *base) {
+FreeListAllocator::findFirst(std::uint64_t size, std::uint64_t &padding, std::uint64_t alignment, Node *base) {
     padding = AbstractAllocator::computePaddingWithHeader(size, alignment, sizeof(FreeListAllocator::Header));
     const auto &requiredSize = size + padding;
     Node *previousNode = nullptr;
@@ -258,7 +258,7 @@ FreeListAllocator::findFirst(std::uint64_t size, std::int32_t &padding, std::uin
 }
 
 std::pair<FreeListAllocator::Node *, FreeListAllocator::Node *>
-FreeListAllocator::findBest(std::uint64_t size, std::int32_t &padding, std::uint64_t alignment, Node *base) {
+FreeListAllocator::findBest(std::uint64_t size, std::uint64_t &padding, std::uint64_t alignment, Node *base) {
     padding = AbstractAllocator::computePaddingWithHeader(size, alignment, sizeof(FreeListAllocator::Header));
     auto &&minFit = UINT64_MAX;
     const auto &requiredSize = size + padding;

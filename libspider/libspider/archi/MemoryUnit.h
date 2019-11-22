@@ -98,7 +98,7 @@ namespace spider {
         used_ = 0;
     }
 
-    void *MemoryUnit::physicalAddress(std::uint64_t virtualAddress) const {
+    void *MemoryUnit::physicalAddress(std::uintptr_t virtualAddress) const {
         if (virtualAddress > size_) {
             throwSpiderException("Invalid memory address!");
         }

@@ -55,7 +55,7 @@ namespace spider {
 
         struct UpdateBRVVisitor final : public DefaultVisitor {
 
-            explicit UpdateBRVVisitor(std::uint64_t &scaleFactor,
+            explicit UpdateBRVVisitor(std::uint32_t &scaleFactor,
                                       const spider::vector<PiSDFParam *> &paramVector) : scaleFactor_{ scaleFactor },
                                                                                          paramVector_{ paramVector } { }
 
@@ -85,25 +85,25 @@ namespace spider {
              */
             inline void visit(spider::pisdf::OutputInterface *interface) override {
                 const auto &edge = interface->inputEdge();
-                std::uint64_t sourceRate = edge->sourceRateExpression().evaluate(paramVector_);
-                std::uint64_t sinkRate = edge->sinkRateExpression().evaluate(paramVector_);
-                auto totalProd = sourceRate * edge->source()->repetitionValue() * scaleFactor_;
+                const auto &sourceRate = edge->sourceRateExpression().evaluate(paramVector_);
+                const auto &sinkRate = edge->sinkRateExpression().evaluate(paramVector_);
+                const auto &totalProd = sourceRate * edge->source()->repetitionValue() * scaleFactor_;
                 if (totalProd && totalProd < sinkRate) {
                     /* == Return ceil(interfaceCons / vertexProd) == */
-                    scaleFactor_ *= spider::math::ceilDiv(sinkRate, totalProd);
+                    scaleFactor_ *= static_cast<std::uint32_t>(spider::math::ceilDiv(sinkRate, totalProd));
                 }
             }
 
-            std::uint64_t &scaleFactor_;
+            std::uint32_t &scaleFactor_;
             const spider::vector<PiSDFParam *> &paramVector_;
         private:
             inline void updateFromInputIf(const PiSDFEdge *edge) {
-                std::uint64_t sourceRate = edge->sourceRateExpression().evaluate(paramVector_);
-                std::uint64_t sinkRate = edge->sinkRateExpression().evaluate(paramVector_);
+                const auto &sourceRate = edge->sourceRateExpression().evaluate(paramVector_);
+                const auto &sinkRate = edge->sinkRateExpression().evaluate(paramVector_);
                 const auto &totalCons = sinkRate * edge->sink()->repetitionValue() * scaleFactor_;
                 if (totalCons && totalCons < sourceRate) {
                     /* == Return ceil( prod / vertexCons) == */
-                    scaleFactor_ *= spider::math::ceilDiv(sourceRate, totalCons);
+                    scaleFactor_ *= static_cast<std::uint32_t>(spider::math::ceilDiv(sourceRate, totalCons));
                 }
             }
         };

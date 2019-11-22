@@ -88,7 +88,6 @@ struct CopyVisitor final : public spider::pisdf::DefaultVisitor {
     inline void visit(spider::pisdf::DelayVertex *) override { }
 
     inline void visit(spider::pisdf::ExecVertex *vertex) override {
-//        spider::srdag::PrecacherVisitor cloneVisitor{ transfoData_.srdag_, &transfoData_.precacher_ };
         spider::pisdf::CloneVertexVisitor cloneVisitor{ transfoData_.srdag_, StackID::TRANSFO };
         for (std::uint32_t it = 0; it < vertex->repetitionValue(); ++it) {
             /* == Change the name of the clone == */
@@ -96,7 +95,7 @@ struct CopyVisitor final : public spider::pisdf::DefaultVisitor {
             auto *clone = transfoData_.srdag_->vertices().back();
             clone->setName(buildCloneName(vertex, it, transfoData_));
         }
-        ix_ = (transfoData_.srdag_->vertexCount() - 1) - (vertex->repetitionValue() - 1);
+        ix_ = static_cast<std::uint32_t>((transfoData_.srdag_->vertexCount() - 1) - (vertex->repetitionValue() - 1));
     }
 
     inline void visit(spider::pisdf::Graph *graph) override {
@@ -105,8 +104,8 @@ struct CopyVisitor final : public spider::pisdf::DefaultVisitor {
         for (std::uint32_t it = 0; it < graph->repetitionValue(); ++it) {
             const auto *clone = spider::api::createVertex(transfoData_.srdag_,
                                                           buildCloneName(graph, it, transfoData_),
-                                                          graph->inputEdgeCount(),
-                                                          graph->outputEdgeCount(),
+                                                          static_cast<std::uint32_t>(graph->inputEdgeCount()),
+                                                          static_cast<std::uint32_t>(graph->outputEdgeCount()),
                                                           StackID::TRANSFO);
             ix_ = clone->ix();
         }
@@ -176,9 +175,9 @@ private:
 
 static inline std::uint32_t uniformIx(const PiSDFAbstractVertex *vertex, const PiSDFGraph *graph) {
     if (vertex->subtype() == PiSDFVertexType::INPUT) {
-        return vertex->ix() + graph->vertexCount();
+        return static_cast<std::uint32_t>(vertex->ix() + graph->vertexCount());
     } else if (vertex->subtype() == PiSDFVertexType::OUTPUT) {
-        return vertex->ix() + graph->vertexCount() + graph->inputEdgeCount();
+        return static_cast<std::uint32_t>(vertex->ix() + graph->vertexCount() + graph->inputEdgeCount());
     }
     return vertex->ix();
 }
@@ -245,7 +244,7 @@ void spider::srdag::addForkVertex(TransfoStack &srcVector, TransfoStack &snkVect
                                 StackID::TRANSFO);
         snkVector.pop_back();
     }
-    srcVector.emplace_back(remaining, fork->outputEdgeCount() - 1, fork);
+    srcVector.emplace_back(remaining, static_cast<std::uint32_t>(fork->outputEdgeCount() - 1), fork);
     srcVector.back().lowerDep_ = sourceLinker.upperDep_;
     srcVector.back().upperDep_ = sourceLinker.upperDep_;
 }
@@ -272,7 +271,7 @@ void spider::srdag::addJoinVertex(TransfoStack &srcVector, TransfoStack &snkVect
                                 join, i, sourceLinker.rate_, StackID::TRANSFO);
         srcVector.pop_back();
     }
-    snkVector.emplace_back(remaining, join->inputEdgeCount() - 1, join);
+    snkVector.emplace_back(remaining, static_cast<std::uint32_t>(join->inputEdgeCount() - 1), join);
     snkVector.back().lowerDep_ = sinkLinker.upperDep_;
     snkVector.back().upperDep_ = sinkLinker.upperDep_;
 
@@ -347,8 +346,8 @@ spider::srdag::computeEdgeDependencies(TransfoStack &srcVector, TransfoStack &sn
         /* == Adjust the values to match the actual position in the source vector == */
         snkLowerDep += setterOffset;
         snkUpperDep += setterOffset;
-        (*it).lowerDep_ = snkLowerDep;
-        (*it).upperDep_ = snkUpperDep;
+        (*it).lowerDep_ = static_cast<std::uint32_t>(snkLowerDep);
+        (*it).upperDep_ = static_cast<std::uint32_t>(snkUpperDep);
         firing += 1;
     }
 

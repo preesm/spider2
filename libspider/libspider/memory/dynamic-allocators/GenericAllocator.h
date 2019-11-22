@@ -48,7 +48,7 @@
 
 class GenericAllocator final : public DynamicAllocator {
 public:
-    explicit GenericAllocator(std::string name, std::int32_t alignment = sizeof(std::uint64_t));
+    explicit GenericAllocator(std::string name, std::uint64_t alignment = sizeof(std::uint64_t));
 
     ~GenericAllocator() override = default;
 

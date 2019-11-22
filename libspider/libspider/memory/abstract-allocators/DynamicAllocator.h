@@ -61,16 +61,10 @@ public:
 
 protected:
 
-    inline explicit DynamicAllocator(std::string name, std::int32_t alignment = 0);
+    explicit DynamicAllocator(std::string name, std::uint64_t alignment = 0) : AbstractAllocator(std::move(name),
+                                                                                                 alignment) { }
 
     ~DynamicAllocator() override = default;
 };
-
-/* === Inline methods === */
-
-DynamicAllocator::DynamicAllocator(std::string name, int32_t alignment) : AbstractAllocator(std::move(name),
-                                                                                            alignment) {
-
-}
 
 #endif //SPIDER2_DYNAMICALLOCATOR_H

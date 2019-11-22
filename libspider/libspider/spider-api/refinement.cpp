@@ -74,7 +74,7 @@ spider::pisdf::Refinement *spider::api::createRefinement(std::string name,
 std::uint32_t spider::api::registerRefinement(spider::pisdf::Refinement *refinement) {
     if (refinement->ix() == UINT32_MAX) {
         auto &refinements = spider::refinementsRegister();
-        refinement->setIx(refinements.size());
+        refinement->setIx(static_cast<std::uint32_t>(refinements.size()));
         refinements.emplace_back(refinement);
     }
     return refinement->ix();

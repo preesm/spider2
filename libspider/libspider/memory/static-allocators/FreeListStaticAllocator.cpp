@@ -47,7 +47,7 @@
 FreeListStaticAllocator::FreeListStaticAllocator(std::string name,
                                                  std::uint64_t totalSize,
                                                  FreeListPolicy policy,
-                                                 std::int32_t alignment) :
+                                                 std::uint64_t alignment) :
         StaticAllocator(std::move(name),
                         totalSize + sizeof(FreeListStaticAllocator::Header) + sizeof(Node),
                         alignment) {
@@ -66,7 +66,7 @@ FreeListStaticAllocator::FreeListStaticAllocator(std::string name,
                                                  std::uint64_t totalSize,
                                                  void *externalBase,
                                                  FreeListPolicy policy,
-                                                 int32_t alignment) :
+                                                 uint64_t alignment) :
         StaticAllocator(std::move(name), totalSize + sizeof(FreeListStaticAllocator::Header), externalBase, alignment) {
     if (alignment < 8) {
         throwSpiderException("Memory alignment should be at least of size sizeof(std::int64_t) = 8 bytes.");
@@ -86,13 +86,13 @@ void *FreeListStaticAllocator::allocate(std::uint64_t size) {
     if (size < sizeof(Node)) {
         size += sizeof(Node);
     }
-    std::int32_t padding = 0;
+    std::uint64_t padding = 0;
     Node *baseNode = list_;
     Node *memoryNode = nullptr;
 
     /* == Find first / best node fitting memory requirement == */
     method_(size, padding, alignment_, baseNode, memoryNode);
-    std::int32_t paddingWithoutHeader = padding - sizeof(FreeListStaticAllocator::Header);
+    const auto &paddingWithoutHeader = padding - sizeof(FreeListStaticAllocator::Header);
     std::uint64_t requiredSize = size + padding;
     std::uint64_t leftOverMemory = memoryNode->blockSize_ - requiredSize;
     if (leftOverMemory) {
@@ -200,8 +200,8 @@ void FreeListStaticAllocator::remove(Node *baseNode, Node *removedNode) {
 }
 
 void FreeListStaticAllocator::findFirst(std::uint64_t &size,
-                                        std::int32_t &padding,
-                                        std::int32_t &alignment,
+                                        std::uint64_t &padding,
+                                        std::uint64_t &alignment,
                                         Node *&baseNode,
                                         Node *&foundNode) {
     Node *it = baseNode;
@@ -223,8 +223,8 @@ void FreeListStaticAllocator::findFirst(std::uint64_t &size,
 }
 
 void FreeListStaticAllocator::findBest(std::uint64_t &size,
-                                       std::int32_t &padding,
-                                       std::int32_t &alignment,
+                                       std::uint64_t &padding,
+                                       std::uint64_t &alignment,
                                        Node *&baseNode,
                                        Node *&foundNode) {
     Node *head = baseNode;

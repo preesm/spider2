@@ -77,7 +77,7 @@ void spider::sched::Schedule::update(sched::Job &job) {
     stats_.updateJobCount(PE);
 }
 
-void spider::sched::Schedule::setJobCount(std::uint32_t count) {
+void spider::sched::Schedule::setJobCount(std::size_t count) {
     jobs_.clear();
     jobs_.reserve(count);
     for (std::uint32_t i = 0; i < count; ++i) {
