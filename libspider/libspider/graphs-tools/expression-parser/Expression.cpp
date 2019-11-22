@@ -168,9 +168,9 @@ spider::vector<ExpressionElt> Expression::buildExpressionStack(spider::vector<RP
 
                 /* == By default, dynamic parameters have 0 value and dynamic expression are necessary built on startup == */
                 static_ &= (!dynamic);
-                skipEval |= dynamic;
+                skipEval = skipEval | dynamic;
                 stack.emplace_back(std::move(elt));
-                stack.back().arg.value_ = static_cast<double>(dynamic & pair.second) + value;
+                stack.back().arg.value_ = dynamic ? static_cast<double>(pair.second) : value;
             } else {
                 const auto &value = std::strtod(elt.token.c_str(), nullptr);
                 evalStack.emplace_back(value);

@@ -60,7 +60,7 @@ void *LIFOStaticAllocator::allocate(std::size_t size) {
     }
     used_ += size;
     /*! We assume alignment on 64 bits */
-    const auto &alignedSize = AbstractAllocator::computeAlignedSize(used_, alignment_);
+    const auto &alignedSize = AbstractAllocator::computeAlignedSize(static_cast<size_t>(used_), alignment_);
     if (alignedSize > totalSize_) {
         throwSpiderException("Memory request exceed memory available. Stack: %s -- Size: %"
                                      PRIu64

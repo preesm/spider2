@@ -113,14 +113,14 @@ std::uint32_t spider::Platform::LRTCount() const {
 
 std::int32_t spider::Platform::spiderGRTClusterIx() const {
     if (grtPE_) {
-        return grtPE_->cluster()->ix();
+        return static_cast<int32_t>(grtPE_->cluster()->ix());
     }
     return -1;
 }
 
 std::int32_t spider::Platform::spiderGRTPEIx() const {
     if (grtPE_) {
-        return grtPE_->clusterPEIx();
+        return static_cast<int32_t>(grtPE_->clusterPEIx());
     }
     return -1;
 }
