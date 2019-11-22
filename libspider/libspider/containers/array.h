@@ -64,8 +64,7 @@ namespace spider {
          * @param stack  Stack on which the array should be allocated.
          * @param size   Size of the array.
          */
-        explicit array(size_t size, StackID stack = StackID::GENERAL) : data_(size,
-                                                                              spider::Allocator<T>(stack)) { }
+        explicit array(size_t size, StackID stack = StackID::GENERAL) : data_(size, spider::Allocator<T>(stack)) { }
 
         /**
          * @brief Create an array of size size on stack stack with all values set to value;
@@ -73,8 +72,8 @@ namespace spider {
          * @param size   Size of the array.
          * @param value  Value to set to all the elements of the array.
          */
-        array(size_t size, T value, StackID stack = StackID::GENERAL) : data_(size, value,
-                                                                              spider::Allocator<T>(stack)) { }
+        array(size_t size, const T &value, StackID stack = StackID::GENERAL) : data_(size, value,
+                                                                                     spider::Allocator<T>(stack)) { }
 
         array() noexcept : data_() { };
 

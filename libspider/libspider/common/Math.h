@@ -43,22 +43,17 @@
 /* === Includes === */
 
 #include <cstdint>
+#include <type_traits>
 
 /* === Methods prototype === */
 
 namespace spider {
     namespace math {
 
-        inline uint16_t ceilDiv(uint16_t x, uint16_t y) {
-            return static_cast<uint16_t>(x / y + (x % y != 0));
-        }
-
-        inline uint32_t ceilDiv(uint32_t x, uint32_t y) {
-            return x / y + (x % y != 0);
-        }
-
-        inline uint64_t ceilDiv(uint64_t x, uint64_t y) {
-            return x / y + (x % y != 0);
+        template<class T>
+        inline T ceilDiv(T x, T y) {
+            static_assert(std::is_unsigned<T>::value && std::is_integral<T>::value, "ceilDiv expect unsigned integer");
+            return static_cast<T>((x / y + (x % y != 0)));
         }
 
         inline int32_t ceilDiv(int32_t x, int32_t y) {
@@ -75,18 +70,14 @@ namespace spider {
             return neg ? -static_cast<int64_t>(a / b) : static_cast<int64_t>(ceilDiv(a, b));
         }
 
-        inline int64_t floorDiv(int64_t x, int64_t y) {
+        template<class T>
+        inline T floorDiv(T x, T y) {
+            static_assert(std::is_signed<T>::value && std::is_integral<T>::value,
+                          "floorDiv should be used with signed integer only");
             auto neg = (x < 0 && y > 0) || (x > 0 && y < 0);
-            auto a = static_cast<uint64_t>((x < 0 ? (-x) : x));
-            auto b = static_cast<uint64_t>((y < 0 ? (-y) : y));
-            return neg ? -static_cast<int64_t>(ceilDiv(a, b)) : static_cast<int64_t>(a / b);
-        }
-
-        inline int32_t floorDiv(int32_t x, int32_t y) {
-            auto neg = (x < 0 && y > 0) || (x > 0 && y < 0);
-            auto a = static_cast<uint32_t>((x < 0 ? (-x) : x));
-            auto b = static_cast<uint32_t>((y < 0 ? (-y) : y));
-            return neg ? -static_cast<int32_t>(ceilDiv(a, b)) : static_cast<int32_t>(a / b);
+            auto a = static_cast<typename std::make_unsigned<T>::type>((x < 0 ? (-x) : x));
+            auto b = static_cast<typename std::make_unsigned<T>::type>((y < 0 ? (-y) : y));
+            return neg ? -static_cast<T>(ceilDiv(a, b)) : static_cast<T>(a / b);
         }
 
         inline int16_t abs(int16_t x) {

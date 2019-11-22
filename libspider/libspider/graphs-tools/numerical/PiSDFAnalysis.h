@@ -56,8 +56,8 @@ namespace spider {
                                            int64_t sourceRate,
                                            uint32_t instance,
                                            int64_t delay) {
-            auto consumed = instance * sinkRate - delay;
-            auto lowerDep = spider::math::floorDiv(consumed, sourceRate);
+            int64_t consumed = instance * sinkRate - delay;
+            int64_t lowerDep = spider::math::floorDiv(consumed, sourceRate);
             constexpr int64_t initBound = -1;
             return std::max(initBound, lowerDep);
         }
@@ -66,8 +66,8 @@ namespace spider {
                                            int64_t sourceRate,
                                            uint32_t instance,
                                            int64_t delay) {
-            auto consumed = (instance + 1) * sinkRate - delay - 1;
-            auto lowerDep = spider::math::floorDiv(consumed, sourceRate);
+            int64_t consumed = (instance + 1) * sinkRate - delay - 1;
+            int64_t lowerDep = spider::math::floorDiv(consumed, sourceRate);
             constexpr int64_t initBound = -1;
             return std::max(initBound, lowerDep);
         }
@@ -77,8 +77,8 @@ namespace spider {
                                            int32_t instance,
                                            int64_t delay,
                                            int64_t sinkRepetitionValue) {
-            auto produced = instance * sourceRate + delay;
-            auto lowerDep = spider::math::floorDiv(produced, sinkRate);
+            int64_t produced = instance * sourceRate + delay;
+            int64_t lowerDep = spider::math::floorDiv(produced, sinkRate);
             return std::min(sinkRepetitionValue, lowerDep);
         }
 
@@ -87,8 +87,8 @@ namespace spider {
                                            int32_t instance,
                                            int64_t delay,
                                            int64_t sinkRepetitionValue) {
-            auto produced = (instance + 1) * sourceRate + delay - 1;
-            auto upperDep = spider::math::floorDiv(produced, sinkRate);
+            int64_t produced = (instance + 1) * sourceRate + delay - 1;
+            int64_t upperDep = spider::math::floorDiv(produced, sinkRate);
             return std::min(sinkRepetitionValue, upperDep);
         }
 
@@ -96,8 +96,8 @@ namespace spider {
                                            int64_t sourceRate,
                                            uint32_t instance,
                                            int64_t delay) {
-            auto produced = instance * sourceRate + delay;
-            auto lowerDep = produced / sinkRate;
+            int64_t produced = instance * sourceRate + delay;
+            int64_t lowerDep = produced / sinkRate;
             return lowerDep;
         }
 
@@ -105,8 +105,8 @@ namespace spider {
                                            int64_t sourceRate,
                                            uint32_t instance,
                                            int64_t delay) {
-            auto produced = (instance + 1) * sourceRate + delay - 1;
-            auto upperDep = produced / sinkRate;
+            int64_t produced = (instance + 1) * sourceRate + delay - 1;
+            int64_t upperDep = produced / sinkRate;
             return upperDep;
         }
     }
