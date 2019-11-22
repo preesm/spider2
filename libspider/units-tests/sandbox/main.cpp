@@ -46,9 +46,11 @@
 #include <spider.h>
 #include <graphs-tools/exporter/DOTExporter.h>
 #include <runtime/master-slave/JITMSRuntime.h>
+#include <scheduling/schedule/Schedule.h>
+#include <scheduling/schedule/exporter/SVGGanttExporter.h>
+#include <scheduling/scheduler/BestFitScheduler.h>
 
-#include "Test.h"
-#include "exp.h"
+#include <thread/Thread.h>
 
 void createArchi();
 
@@ -59,25 +61,43 @@ int print() {
     return 0;
 }
 
+std::mutex mutex_;
+
+
+void fn(std::int32_t id, std::int32_t affinity) {
+    spider::this_thread::set_affinity(affinity);
+    std::lock_guard<std::mutex> loc{ mutex_ };
+    std::cout << "Thread #" << id << ": on CPU " << spider::this_thread::get_affinity() << "\n";
+}
+
 int main(int, char **) {
-    spiderTest();
+//    spiderTest();
+
+    spider::thread t1(fn, 0, 3);
+    spider::thread t2(fn, 1, 5);
+
+    t1.join();
+    t2.join();
     return 0;
 }
 
 void spiderTest() {
     spider::start();
-    spider::api::initStack(StackID::PISDF, "pisdf-stack", AllocatorType::FREELIST, 16392, FreeListPolicy::FIND_FIRST);
-    spider::api::initStack(StackID::TRANSFO, "transfo-stack", AllocatorType::FREELIST, 16392,
-                           FreeListPolicy::FIND_FIRST);
-    spider::api::initStack(StackID::ARCHI, "archi-stack", AllocatorType::FREELIST, 16392,
-                           FreeListPolicy::FIND_FIRST);
-    spider::api::enableLogger<LOG_TRANSFO>();
-    spider::api::enableLogger<LOG_OPTIMS>();
+    spider::api::createLinearStaticStack(StackID::PISDF, "pisdf-stack", 16392);
+//    spider::api::createLinearStaticStack(StackID::TRANSFO, "transfo-stack", 1024*1024);
+    spider::api::createGenericStack(StackID::TRANSFO, "transfo-stack");
+    spider::api::createGenericStack(StackID::EXPRESSION, "expression-stack");
+    spider::api::createGenericStack(StackID::ARCHI, "archi-stack");
+    spider::api::createGenericStack(StackID::SCENARIO, "scenario-stack");
+    spider::api::createGenericStack(StackID::SCHEDULE, "schedule-stack");
+    spider::api::enableLogger(spider::log::Type::TRANSFO);
+    spider::api::enableLogger(spider::log::Type::OPTIMS);
     spider::api::enableVerbose();
 
-//    createArchi();
+//    if (0)
+    {
+        createArchi();
 
-    for (std::uint32_t i = 0; i < 1; ++i) {
         auto *&graph = spider::pisdfGraph();
         graph = spider::api::createGraph("topgraph", 15, 15, 1);
 
@@ -88,53 +108,51 @@ void spiderTest() {
         auto *subgraph = spider::api::createSubraph(graph, "subgraph", 3, 4, 2, 1, 1);
         auto *input = spider::api::setInputInterfaceName(subgraph, 0, "input");
         auto *output = spider::api::setOutputInterfaceName(subgraph, 0, "output");
-        auto *vertex_2 = spider::api::createVertex(subgraph, "vertex_2", 2, 1);
+        auto *vertex_2 = spider::api::createVertex(subgraph, "vertex_2", 1, 1);
         auto *vertex_3 = spider::api::createVertex(subgraph, "vertex_3", 1, 1);
         auto *vertex_4 = spider::api::createVertex(graph, "vertex_4", 1);
 
-        auto *cfg = spider::api::createConfigActor(subgraph, "cfg", 0, 1);
+//        auto *cfg = spider::api::createConfigActor(subgraph, "cfg", 0, 1);
 
         /* === Creating param === */
 
 
         /* === Creating edges === */
 
-        auto *edge = spider::api::createEdge(vertex_0, 0, 5, vertex_1, 0, 5);
-        spider::api::createEdge(vertex_1, 0, 2, subgraph, 0, 1);
-        spider::api::createEdge(input, 0, 1, vertex_2, 0, 5);
+        spider::api::createEdge(vertex_0, 0, 1, vertex_1, 0, 1);
+        spider::api::createEdge(vertex_1, 0, "10 * 20", subgraph, 0, "1");
+//        spider::api::createEdge(vertex_1, 0, 500, vertex_2, 0, 1);
+        spider::api::createEdge(input, 0, 5, vertex_2, 0, 1);
         spider::api::createEdge(vertex_2, 0, 1, vertex_3, 0, 5);
-        spider::api::createEdge(vertex_3, 0, 2, output, 0, 5);
+//        spider::api::createEdge(vertex_3, 0, 1, vertex_4, 0, 1);
+        spider::api::createEdge(vertex_3, 0, 1, output, 0, 1);
         spider::api::createEdge(subgraph, 0, 5, vertex_4, 0, 5);
-        spider::api::createEdge(cfg, 0, 15, vertex_2, 1, 1);
-        spider::api::createDelay(edge, 3);
+//        spider::api::createEdge(cfg, 0, 15, vertex_2, 1, 1);
 
         /* === Creating param === */
 
-        spider::api::createStaticParam(graph, "width", 10);
-        spider::api::createStaticParam(subgraph, "height", 10);
-        spider::api::createDynamicParam(subgraph, "width");
-
+//        spider::api::createStaticParam(graph, "width", 10);
+//        spider::api::createStaticParam(subgraph, "height", 10);
+//        spider::api::createDynamicParam(subgraph, "width");
+//        for (auto j = 0; j < 10; ++j)
         {
+            const auto &start = std::chrono::steady_clock::now();
             spider::JITMSRuntime runtime(graph);
             runtime.execute();
+            const auto &end = std::chrono::steady_clock::now();
+            std::cout << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << std::endl;
         }
 
         /* === Export dot === */
 
         {
-            auto exporter = spider::pisdf::DOTExporter{ graph };
-            exporter.print("./new.dot");
+//            auto exporter = spider::pisdf::DOTExporter{ graph };
+//            exporter.print("./new.dot");
         }
 
-//        {
-//            spider::SRDAG::splitDynamicGraph(subgraph);
-//            auto exporter = spider::PiSDF::DOTExporter{ graph };
-//            exporter.print("./split.dot");
-//        }
 
-
-//        {
-//            using namespace Spider;
+        {
+            using namespace spider;
 //            Schedule schedule;
 //            auto job = ScheduleJob(0, 0, 0, 0, 0);
 //            job.setMappingStartTime(15);
@@ -152,12 +170,13 @@ void spiderTest() {
 //            job.setMappingStartTime(0);
 //            job.setMappingEndTime(700);
 //            schedule.add(std::move(job));
-//
-//            pisdfGraph() = graph;
-//
-//            SVGGanttExporter ganttExporter{&schedule};
+
+
+//            BestFitScheduler scheduler{graph};
+//            scheduler.mappingScheduling();
+//            spider::SVGGanttExporter ganttExporter{&scheduler.schedule()};
 //            ganttExporter.print();
-//        }
+        }
     }
     spider::quit();
 }

@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 project(sandbox)
 
 # Set flags
-set(CMAKE_BUILD_TYPE Release)
+set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -pedantic-errors -Wall -Wextra -coverage -ftest-coverage -fprofile-arcs")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O2 -pedantic-errors -Wall -Wextra")
 
@@ -19,6 +19,7 @@ include_directories(
         ${SPIDER_LIB_DIR}/
 )
 
+Find_Package(Threads REQUIRED)
 
 file(GLOB_RECURSE
         source_files
@@ -39,6 +40,7 @@ file(GLOB_RECURSE
         ${SPIDER_LIB_DIR}/spider-api/*.cpp
         ${SPIDER_LIB_DIR}/scheduling/*.cpp
         ${SPIDER_LIB_DIR}/scenario/*.cpp
+        ${SPIDER_LIB_DIR}/thread/*.cpp
         ${SPIDER_LIB_DIR}/spider.cpp
         )
 
@@ -65,6 +67,7 @@ file(GLOB_RECURSE
         ${SPIDER_LIB_DIR}/spider-api/*.h
         ${SPIDER_LIB_DIR}/scheduling/*.h
         ${SPIDER_LIB_DIR}/scenario/*.h
+        ${SPIDER_LIB_DIR}/thread/*.h
         ${SPIDER_LIB_DIR}/spider.h
         ./*.h
         )
