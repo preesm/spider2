@@ -50,6 +50,7 @@
 #if (defined __MINGW64__ || defined __MINGW32__)
 
 #include <pthread.h>
+#include <cpuid.h>
 
 #endif
 
@@ -100,7 +101,7 @@ std::thread::native_handle_type spider::this_thread::native_handle() {
 
 std::int32_t spider::this_thread::get_affinity() {
     std::uint32_t CPUInfo[4];
-    __cpuid(CPUInfo, 1);
+    __cpuid(1, CPUInfo[0], CPUInfo[1], CPUInfo[2], CPUInfo[3]);
     /* CPUInfo[1] is EBX, bits 24-31 are APIC ID */
     std::int32_t cpu = (CPUInfo[3] & (1u << 9u)) == 0 ? -1 : CPUInfo[1] >> 24u;
     return cpu < 0 ? 0 : cpu;

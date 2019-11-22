@@ -44,7 +44,7 @@
 #include <graphs-tools/expression-parser/RPNConverter.h>
 #include <containers/containers.h>
 #include <common/Exception.h>
-#include <iostream>
+#include <cctype>
 
 /* === Static variable definition(s) === */
 
