@@ -523,8 +523,7 @@ namespace spider {
      */
     template<typename T>
     NodeList<T> *LinkedList<T>::newNodeList(T &val, NodeList<T> *prev, NodeList<T> *next) const {
-        auto *node = spider::allocate<NodeList<T> >(stack_);
-        spider::construct(node);
+        auto *node = spider::make<NodeList<T>, stack_>();
         node->value = val;
         node->previous = prev;
         node->next = next;

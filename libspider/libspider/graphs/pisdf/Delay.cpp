@@ -91,18 +91,23 @@ spider::pisdf::Delay::Delay(Expression &&expression,
     }
 
     /* == Create virtual vertex and connect it to setter / getter == */
-    vertex_ = spider::allocate<DelayVertex>(stack);
-    spider::construct(vertex_, this->name(), stack);
+    vertex_ = spider::make<DelayVertex>(stack, this->name(), stack);
     edge->containingGraph()->addVertex(vertex_);
 
-    auto *setterEdge = spider::allocate<PiSDFEdge>(stack);
-    spider::construct(setterEdge,
-                      setter_, setterPortIx_, std::move(setterRateExpression),
-                      vertex_, 0u, Expression(expression_));
-    auto *getterEdge = spider::allocate<PiSDFEdge>(stack);
-    spider::construct(getterEdge,
-                      vertex_, 0u, Expression(expression_),
-                      getter_, getterPortIx_, std::move(getterRateExpression));
+    auto *setterEdge = spider::make<PiSDFEdge>(stack,
+                                               setter_,
+                                               setterPortIx_,
+                                               std::move(setterRateExpression),
+                                               vertex_,
+                                               0u,
+                                               Expression(expression_));
+    auto *getterEdge = spider::make<PiSDFEdge>(stack,
+                                               vertex_,
+                                               0u,
+                                               Expression(expression_),
+                                               getter_,
+                                               getterPortIx_,
+                                               std::move(getterRateExpression));
 
     /* == Add things to the graph == */
     edge->containingGraph()->addEdge(setterEdge);

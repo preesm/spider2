@@ -89,8 +89,7 @@ namespace spider {
             }
 
             inline void visit(DelayVertex *vertex) override {
-                auto *clone = spider::allocate<DelayVertex>(stack_);
-                spider::construct(clone, vertex->name(), stack_);
+                auto *clone = spider::make<DelayVertex>(stack_, vertex->name(), stack_);
                 setRef(vertex, clone);
             }
 

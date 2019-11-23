@@ -66,9 +66,7 @@ spider::pisdf::Refinement *spider::api::createRefinement(std::string name,
                                                          uint32_t paramINCount,
                                                          uint32_t paramOUTCount,
                                                          StackID stack) {
-    auto *refinement = spider::allocate<spider::pisdf::Refinement>(stack);
-    spider::construct(refinement, std::move(name), function, paramINCount, paramOUTCount);
-    return refinement;
+    return spider::make<spider::pisdf::Refinement>(stack, std::move(name), function, paramINCount, paramOUTCount);
 }
 
 uint32_t spider::api::registerRefinement(spider::pisdf::Refinement *refinement) {

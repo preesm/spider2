@@ -74,7 +74,7 @@ namespace spider {
                 if (reference_ && reference_->dynamic()) {
                     for (auto &param : params_) {
                         if (!param->containingGraph()) {
-                            spider::destroy(param);
+                            spider::destruct(param);
                             spider::deallocate(param);
                         }
                     }

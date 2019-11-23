@@ -54,9 +54,8 @@
 
 /* === General Scenario related API === */
 
-spider::Scenario *spider::api::createScenario(spider::pisdf::Graph *graph, StackID stack) {
-    graph->createScenario(stack);
-    return graph->scenario();
+spider::Scenario *spider::api::createScenario(spider::pisdf::Graph *graph) {
+    return graph->createScenario();
 }
 
 void

@@ -62,19 +62,20 @@ struct CopyParamVisitor final : public spider::pisdf::DefaultVisitor {
                                                                                                parentParamVector } { }
 
     inline void visit(spider::pisdf::Param *param) override {
-        paramVector_.push_back(param);
+        paramVector_.emplace_back(param);
     }
 
     inline void visit(spider::pisdf::DynamicParam *param) override {
-        auto *p = spider::allocate<PiSDFDynamicParam>(StackID::TRANSFO);
-        spider::construct(p, param->name(), nullptr, Expression(param->expression()));
-        paramVector_.push_back(p);
+        auto *p = spider::make<PiSDFDynamicParam, StackID::TRANSFO>(param->name(),
+                                                                    nullptr,
+                                                                    Expression(param->expression()));
+        paramVector_.emplace_back(p);
     }
 
     inline void visit(spider::pisdf::InHeritedParam *param) override {
         const auto &inheritedParam = parentParamVector_[param->parent()->ix()];
-        auto *p = spider::api::createStaticParam(nullptr, param->name(), inheritedParam->value(), StackID::TRANSFO);
-        paramVector_.push_back(p);
+        auto *p = spider::make<PiSDFParam, StackID::TRANSFO>(param->name(), nullptr, inheritedParam->value());
+        paramVector_.emplace_back(p);
     }
 
     spider::vector<PiSDFParam *> &paramVector_;

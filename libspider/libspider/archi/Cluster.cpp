@@ -65,12 +65,12 @@ spider::Cluster::Cluster(uint32_t PECount, MemoryUnit *memoryUnit) : PEArray_{ P
 
 spider::Cluster::~Cluster() {
     for (auto &pe : PEArray_) {
-        spider::destroy(pe);
+        spider::destruct(pe);
         spider::deallocate(pe);
     }
 
     if (memoryUnit_) {
-        spider::destroy(memoryUnit_);
+        spider::destruct(memoryUnit_);
         spider::deallocate(memoryUnit_);
     }
 }

@@ -152,12 +152,22 @@ namespace spider {
      */
     template<typename T>
     inline T *allocate(StackID stack, size_t size = 1) {
-        auto *&worker = allocator(stack);
-        if (!worker) {
-            throwSpiderException("Allocating memory with non-initialized allocator.");
-        }
         /* == Allocate buffer with (size + 1) to store stack identifier == */
-        auto buffer = reinterpret_cast<uintptr_t>(worker->allocate(size * sizeof(T) + sizeof(uint64_t)));
+        auto buffer = reinterpret_cast<uintptr_t>(allocator(stack)->allocate(size * sizeof(T) + sizeof(uint64_t)));
+
+        /* == Return allocated buffer == */
+        if (buffer) {
+            reinterpret_cast<uint64_t *>(buffer)[0] = static_cast<uint64_t>(stack);
+            buffer = buffer + sizeof(uint64_t);
+            return reinterpret_cast<T *>(buffer);
+        }
+        return nullptr;
+    }
+
+    template<typename T, StackID stack = StackID::GENERAL>
+    inline T *allocate(size_t size = 1) {
+        /* == Allocate buffer with (size + 1) to store stack identifier == */
+        auto buffer = reinterpret_cast<uintptr_t>(allocator<stack>()->allocate(size * sizeof(T) + sizeof(uint64_t)));
 
         /* == Return allocated buffer == */
         if (buffer) {
@@ -188,7 +198,7 @@ namespace spider {
      * @param ptr Reference pointer to the object to destroy
      */
     template<typename T>
-    inline void destroy(T *ptr) {
+    inline void destruct(T *ptr) {
         if (ptr) {
             ptr->~T();
         }
@@ -209,6 +219,55 @@ namespace spider {
 
         /* == Deallocate the pointer == */
         allocator(stackId)->deallocate(originalPtr);
+    }
+
+    /**
+     * @brief Allocate an object on a given stack and construct it.
+     * @remark this function is a shortcut to allocate<T> + construct().
+     * @tparam T      Type of the object.
+     * @tparam stack  Stack to which the object is to be allocated on (default is GENERAL).
+     * @tparam Args   Variadic templates for the ctor arguments.
+     * @param args    Ctor arguments.
+     * @return pointer to the newly constructed object.
+     */
+    template<class T, StackID stack = StackID::GENERAL, class ...Args>
+    inline T *make(Args &&... args) {
+        auto *ptr = spider::allocate<T, stack>();
+        spider::construct(ptr, std::forward<Args>(args)...);
+        return ptr;
+    }
+
+    template<class T, class ...Args>
+    inline T *make(StackID stack, Args &&... args) {
+        auto *ptr = spider::allocate<T>(stack);
+        spider::construct(ptr, std::forward<Args>(args)...);
+        return ptr;
+    }
+
+    /**
+     * @brief Create a c-style array of type T with default value.
+     * @tparam T      Type of the array.
+     * @tparam stack  Stack on which the array is to be allocated on (default is GENERAL).
+     * @param count   Size of the array.
+     * @param value   Value to be set in the array.
+     * @return pointer to the array.
+     */
+    template<class T, StackID stack = StackID::GENERAL>
+    inline T *make_n(size_t count, const T &value = T()) {
+        auto *ptr = spider::allocate<T, stack>(count);
+        for (size_t i = 0; i < count; ++i) {
+            spider::construct(&ptr[i], value);
+        }
+        return ptr;
+    }
+
+    template<class T>
+    inline T *make_n(StackID stack, size_t count, const T &value = T()) {
+        auto *ptr = spider::allocate<T>(stack, count);
+        for (size_t i = 0; i < count; ++i) {
+            spider::construct(&ptr[i], value);
+        }
+        return ptr;
     }
 }
 

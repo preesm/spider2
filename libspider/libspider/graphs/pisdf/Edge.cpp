@@ -76,7 +76,7 @@ spider::pisdf::Edge::Edge(Vertex *source,
 
 spider::pisdf::Edge::~Edge() {
     if (delay_) {
-        spider::destroy(delay_);
+        spider::destruct(delay_);
         spider::deallocate(delay_);
     }
 }

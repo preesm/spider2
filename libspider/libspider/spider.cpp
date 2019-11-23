@@ -153,7 +153,7 @@ void spider::quit() {
     {
         auto *&applicationGraph = spider::pisdfGraph();
         if (applicationGraph) {
-            spider::destroy(applicationGraph);
+            spider::destruct(applicationGraph);
             spider::deallocate(applicationGraph);
         }
     }
@@ -162,7 +162,7 @@ void spider::quit() {
     {
         auto *&platform = spider::platform();
         if (platform) {
-            spider::destroy(platform);
+            spider::destruct(platform);
             spider::deallocate(platform);
         }
     }
@@ -171,7 +171,7 @@ void spider::quit() {
     {
         const auto &refinementVector = spider::refinementsRegister();
         for (auto &refinement : refinementVector) {
-            spider::destroy(refinement);
+            spider::destruct(refinement);
             spider::deallocate(refinement);
         }
     }

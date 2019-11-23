@@ -74,8 +74,7 @@ spider::pisdf::Graph::Graph(std::string name,
 
     /* == Create the input interfaces == */
     for (uint32_t i = 0; i < edgeINCount; ++i) {
-        auto *interface = spider::allocate<PiSDFInputInterface>(stack);
-        spider::construct(interface, "in_" + std::to_string(i), stack);
+        auto *interface = spider::make<InputInterface>(stack, "in_" + std::to_string(i), stack);
         interface->setIx(i);
         inputInterfaceArray_[i] = interface;
         interface->setGraph(this);
@@ -83,8 +82,7 @@ spider::pisdf::Graph::Graph(std::string name,
 
     /* == Create the output interfaces == */
     for (uint32_t i = 0; i < edgeOUTCount; ++i) {
-        auto *interface = spider::allocate<PiSDFOutputInterface>(stack);
-        spider::construct(interface, "out_" + std::to_string(i), stack);
+        auto *interface = spider::make<OutputInterface>(stack, "out_" + std::to_string(i), stack);
         interface->setIx(i);
         outputInterfaceArray_[i] = interface;
         interface->setGraph(this);
@@ -100,29 +98,29 @@ spider::pisdf::Graph::~Graph() {
 
     /* == Destroy / deallocate interfaces == */
     for (auto &interface : inputInterfaceArray_) {
-        spider::destroy(interface);
+        spider::destruct(interface);
         spider::deallocate(interface);
     }
     for (auto &interface : outputInterfaceArray_) {
-        spider::destroy(interface);
+        spider::destruct(interface);
         spider::deallocate(interface);
     }
 
     /* == Destroy / deallocate edges == */
     for (auto &edge : edgeVector_) {
-        spider::destroy(edge);
+        spider::destruct(edge);
         spider::deallocate(edge);
     }
 
     /* == Destroy / deallocate edges == */
     for (auto &param : paramVector_) {
-        spider::destroy(param);
+        spider::destruct(param);
         spider::deallocate(param);
     }
 
     /* == Destroy the scenario (if any) == */
     if (scenario_) {
-        spider::destroy(scenario_);
+        spider::destruct(scenario_);
         spider::deallocate(scenario_);
     }
 }
@@ -145,7 +143,7 @@ void spider::pisdf::Graph::addEdge(Edge *edge) {
 
 void spider::pisdf::Graph::removeEdge(Edge *edge) {
     removeElement(edgeVector_, edge);
-    spider::destroy(edge);
+    spider::destruct(edge);
     spider::deallocate(edge);
 }
 
@@ -169,7 +167,7 @@ void spider::pisdf::Graph::addParam(Param *param) {
 
 void spider::pisdf::Graph::removeParam(Param *param) {
     removeElement(paramVector_, param);
-    spider::destroy(param);
+    spider::destruct(param);
     spider::deallocate(param);
 }
 
@@ -196,11 +194,11 @@ spider::pisdf::Vertex *spider::pisdf::Graph::forwardEdge(const Edge *e) {
     return inputInterfaceArray_[e->sinkPortIx()];
 }
 
-void spider::pisdf::Graph::createScenario(StackID stack) {
+spider::Scenario *spider::pisdf::Graph::createScenario() {
     if (!scenario_) {
-        scenario_ = spider::allocate<Scenario>(stack);
-        spider::construct(scenario_);
+        scenario_ = spider::make<Scenario, StackID::SCENARIO>();
     }
+    return scenario_;
 }
 
 /* === Private method(s) === */

@@ -159,9 +159,10 @@ namespace spider {
 
             /**
              * @brief Create a scenario for the given graph.
-             * @param stack Stack on which to create the scenario.
+             * @remark Scenario are always allocated on StackID:SCENARIO stack.
+             * @return newly created scenario.
              */
-            void createScenario(StackID stack = StackID::PISDF);
+            Scenario *createScenario();
 
             /* === Getter(s) === */
 

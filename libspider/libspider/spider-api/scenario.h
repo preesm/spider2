@@ -70,7 +70,7 @@ namespace spider {
 
         /* === General Scenario related API === */
 
-        Scenario *createScenario(pisdf::Graph *graph, StackID stack = StackID::PISDF);
+        Scenario *createScenario(pisdf::Graph *graph);
 
         void setVertexMappableOnCluster(const pisdf::Vertex *vertex, const Cluster *cluster, bool value = true);
 
