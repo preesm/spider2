@@ -269,6 +269,27 @@ namespace spider {
         }
         return ptr;
     }
+
+    /**
+     * @brief Wrapper to de-construct and deallocate an object
+     * @remark If ptr is nullptr, nothing happen. This function does not reset the value of ptr to nullptr.
+     * @tparam T    Type of the object (inferred by the call in most case)
+     * @param ptr   Pointer to the object.
+     */
+    template<class T>
+    inline void destroy(T *ptr) {
+        if (ptr) {
+            /* == Destruct the object pointed by ptr == */
+            ptr->~T();
+
+            /* == Retrieve stack id == */
+            auto *originalPtr = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(ptr) - sizeof(uint64_t));
+            auto stackId = static_cast<StackID>(reinterpret_cast<uint64_t *>(originalPtr)[0]);
+
+            /* == Deallocate the pointer == */
+            allocator(stackId)->deallocate(originalPtr);
+        }
+    }
 }
 
 #endif /* SPIDER_STACKALLOCATOR_H */

@@ -150,30 +150,15 @@ void spider::start() {
 
 void spider::quit() {
     /* == Destroy the PiSDFGraph == */
-    {
-        auto *&applicationGraph = spider::pisdfGraph();
-        if (applicationGraph) {
-            spider::destruct(applicationGraph);
-            spider::deallocate(applicationGraph);
-        }
-    }
+    spider::destroy(spider::pisdfGraph());
 
     /* == Destroy the Platform == */
-    {
-        auto *&platform = spider::platform();
-        if (platform) {
-            spider::destruct(platform);
-            spider::deallocate(platform);
-        }
-    }
+    spider::destroy(spider::platform());
 
     /* == Destroy the refinement(s) == */
-    {
-        const auto &refinementVector = spider::refinementsRegister();
-        for (auto &refinement : refinementVector) {
-            spider::destruct(refinement);
-            spider::deallocate(refinement);
-        }
+    const auto &refinementVector = spider::refinementsRegister();
+    for (auto &refinement : refinementVector) {
+        spider::destroy(refinement);
     }
 
 

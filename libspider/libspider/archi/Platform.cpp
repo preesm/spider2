@@ -55,8 +55,7 @@ spider::Platform::Platform(uint32_t clusterCount) : clusterArray_{ clusterCount,
 
 spider::Platform::~Platform() {
     for (auto &cluster : clusterArray_) {
-        spider::destruct(cluster);
-        spider::deallocate(cluster);
+        spider::destroy(cluster);
     }
 }
 

@@ -141,8 +141,7 @@ namespace spider {
                     removeScenarioConstraints(vertex->ix());
                 }
                 graph_->removeElement(graph_->vertexVector_, static_cast<Vertex *>(vertex));
-                spider::destruct(vertex);
-                spider::deallocate(vertex);
+                spider::destroy(vertex);
             }
 
             inline void removeScenarioConstraints(uint32_t ix) {

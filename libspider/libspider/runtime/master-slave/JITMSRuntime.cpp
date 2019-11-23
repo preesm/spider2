@@ -170,7 +170,6 @@ bool spider::JITMSRuntime::execute() const {
 //    spider::pisdf::DOTExporter(srdag).print("./srdag.dot");
 
     /* == Destroy the sr-dag == */
-    spider::destruct(srdag);
-    spider::deallocate(srdag);
+    spider::destroy(srdag);
     return true;
 }

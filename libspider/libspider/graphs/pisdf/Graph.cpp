@@ -98,31 +98,24 @@ spider::pisdf::Graph::~Graph() {
 
     /* == Destroy / deallocate interfaces == */
     for (auto &interface : inputInterfaceArray_) {
-        spider::destruct(interface);
-        spider::deallocate(interface);
+        spider::destroy(interface);
     }
     for (auto &interface : outputInterfaceArray_) {
-        spider::destruct(interface);
-        spider::deallocate(interface);
+        spider::destroy(interface);
     }
 
     /* == Destroy / deallocate edges == */
     for (auto &edge : edgeVector_) {
-        spider::destruct(edge);
-        spider::deallocate(edge);
+        spider::destroy(edge);
     }
 
-    /* == Destroy / deallocate edges == */
+    /* == Destroy / deallocate params == */
     for (auto &param : paramVector_) {
-        spider::destruct(param);
-        spider::deallocate(param);
+        spider::destroy(param);
     }
 
     /* == Destroy the scenario (if any) == */
-    if (scenario_) {
-        spider::destruct(scenario_);
-        spider::deallocate(scenario_);
-    }
+    spider::destroy(scenario_);
 }
 
 void spider::pisdf::Graph::addVertex(Vertex *vertex) {
@@ -143,8 +136,7 @@ void spider::pisdf::Graph::addEdge(Edge *edge) {
 
 void spider::pisdf::Graph::removeEdge(Edge *edge) {
     removeElement(edgeVector_, edge);
-    spider::destruct(edge);
-    spider::deallocate(edge);
+    spider::destroy(edge);
 }
 
 void spider::pisdf::Graph::moveEdge(Edge *elt, Graph *graph) {
@@ -167,8 +159,7 @@ void spider::pisdf::Graph::addParam(Param *param) {
 
 void spider::pisdf::Graph::removeParam(Param *param) {
     removeElement(paramVector_, param);
-    spider::destruct(param);
-    spider::deallocate(param);
+    spider::destroy(param);
 }
 
 void spider::pisdf::Graph::moveParam(Param *elt, Graph *graph) {
