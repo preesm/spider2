@@ -58,20 +58,32 @@ namespace spider {
             return std::chrono::steady_clock::now();
         }
 
-        inline long ellapsed_s(spider::time::time_point first, spider::time::time_point second) noexcept {
-            return std::chrono::duration_cast<std::chrono::seconds>(second - first).count();
-        }
+        namespace duration {
 
-        inline long ellapsed_ms(spider::time::time_point first, spider::time::time_point second) noexcept {
-            return std::chrono::duration_cast<std::chrono::milliseconds>(second - first).count();
-        }
+            inline long hours(spider::time::time_point first, spider::time::time_point second) noexcept {
+                return std::chrono::duration_cast<std::chrono::hours>(second - first).count();
+            }
 
-        inline long ellapsed_us(spider::time::time_point first, spider::time::time_point second) noexcept {
-            return std::chrono::duration_cast<std::chrono::microseconds>(second - first).count();
-        }
+            inline long minutes(spider::time::time_point first, spider::time::time_point second) noexcept {
+                return std::chrono::duration_cast<std::chrono::minutes>(second - first).count();
+            }
 
-        inline long ellapsed_ns(spider::time::time_point first, spider::time::time_point second) noexcept {
-            return std::chrono::duration_cast<std::chrono::nanoseconds>(second - first).count();
+            inline long seconds(spider::time::time_point first, spider::time::time_point second) noexcept {
+                return std::chrono::duration_cast<std::chrono::seconds>(second - first).count();
+            }
+
+            inline long milliseconds(spider::time::time_point first, spider::time::time_point second) noexcept {
+                return std::chrono::duration_cast<std::chrono::milliseconds>(second - first).count();
+            }
+
+            inline long microseconds(spider::time::time_point first, spider::time::time_point second) noexcept {
+                return std::chrono::duration_cast<std::chrono::microseconds>(second - first).count();
+            }
+
+            inline long nanoseconds(spider::time::time_point first, spider::time::time_point second) noexcept {
+                return std::chrono::duration_cast<std::chrono::nanoseconds>(second - first).count();
+            }
+
         }
 
     }
