@@ -70,10 +70,6 @@ public:
     void reset() override;
 
 private:
-    struct Header {
-        size_t size_;
-        size_t padding_;
-    };
 
     struct Buffer {
         size_t size_ = 0;

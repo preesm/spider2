@@ -36,7 +36,6 @@
 #include <gtest/gtest.h>
 #include "LinearAllocatorTest.h"
 #include "LIFOAllocatorTest.h"
-#include "FreeListStaticAllocatorTest.h"
 #include "FreeListAllocatorTest.h"
 #include "GenericAllocatorTest.h"
 #include "AllocatorTest.h"

@@ -67,19 +67,19 @@ void *LinearStaticAllocator::allocate(size_t size) {
         return nullptr;
     }
     size_t padding = 0;
-    if (alignment_ && used_ % alignment_ != 0) {
+    if (alignment_ && size % alignment_ != 0) {
         /*!< Compute next aligned address padding */
-        padding = AbstractAllocator::computePadding(static_cast<size_t>(used_), alignment_);
+        padding = AbstractAllocator::computePadding(static_cast<size_t>(size), alignment_);
     }
 
-    const auto &requestedSize = used_ + padding + size;
+    const auto &requestedSize = padding + size;
     if (requestedSize > totalSize_) {
         throwSpiderException("Memory request exceed memory available. Stack: %s -- Size: %"
                                      PRIu64
                                      " -- Requested: %"
                                      PRIu64, getName(), totalSize_, requestedSize);
     }
-    const auto &alignedAllocatedAddress = reinterpret_cast<uintptr_t>(startPtr_) + used_ + padding;
+    const auto &alignedAllocatedAddress = reinterpret_cast<uintptr_t>(startPtr_) + used_;
     used_ += (size + padding);
     peak_ = std::max(peak_, used_);
     return reinterpret_cast<void *>(alignedAllocatedAddress);

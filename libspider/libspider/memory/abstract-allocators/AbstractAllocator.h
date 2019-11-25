@@ -127,12 +127,12 @@ protected:
     uint64_t numberAverage_ = 0;
     size_t alignment_ = 0;
 
-    static inline size_t computeAlignedSize(size_t size, size_t alignment = 4096);
+    static inline size_t computeAlignedSize(size_t size, size_t alignment);
 
-    static inline size_t computePadding(size_t base, size_t alignment);
+    static inline size_t computePadding(size_t size, size_t alignment);
 
     static inline size_t
-    computePaddingWithHeader(size_t base, size_t alignment, size_t headerSize);
+    computePaddingWithHeader(size_t size, size_t alignment, size_t headerSize);
 
     static inline const char *getByteUnitString(uint64_t size);
 
@@ -176,26 +176,18 @@ void AbstractAllocator::printStats() const {
     }
 }
 
-size_t AbstractAllocator::computeAlignedSize(size_t size, size_t alignment /* = 4096 */) {
-    const auto &alignFactor = spider::math::ceilDiv(size, alignment);
-    return alignFactor * alignment;
+size_t AbstractAllocator::computeAlignedSize(size_t size, size_t alignment) {
+    return size + computePadding(size, alignment);
 }
 
-size_t AbstractAllocator::computePadding(size_t base, size_t alignment) {
-    return computeAlignedSize(base, alignment) - base;
+size_t AbstractAllocator::computePadding(size_t size, size_t alignment) {
+    const auto &byteAlignment = (size % alignment);
+    return byteAlignment ? alignment - byteAlignment : 0;
 }
 
 size_t
-AbstractAllocator::computePaddingWithHeader(size_t base, size_t alignment, size_t headerSize) {
-    auto &&padding = computePadding(base, alignment);
-    if (padding < headerSize) {
-        const auto &neededSpace = headerSize - padding;
-        padding += (alignment * (neededSpace / alignment));
-        if (neededSpace % alignment > 0) {
-            padding += alignment;
-        }
-    }
-    return padding;
+AbstractAllocator::computePaddingWithHeader(size_t size, size_t alignment, size_t headerSize) {
+    return computePadding(size + headerSize, alignment);
 }
 
 const char *AbstractAllocator::getByteUnitString(uint64_t size) {

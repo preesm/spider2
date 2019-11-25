@@ -52,10 +52,6 @@ TEST(GenericAllocatorTest, GetName) {
     delete allocator;
 }
 
-TEST(GenericAllocatorTest, MinAlignmentSize) {
-    EXPECT_THROW(GenericAllocator(ALLOCATOR_NAME, -1), spider::Exception);
-}
-
 TEST(GenericAllocatorTest, MemoryAlloc) {
     auto *allocator = new GenericAllocator(ALLOCATOR_NAME);
     auto *array = (double *) allocator->allocate(2 * sizeof(double));

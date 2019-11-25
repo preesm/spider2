@@ -84,26 +84,29 @@ TEST(FreeListAllocatorTest, MemoryAllocFindFirst) {
 
 TEST(FreeListAllocatorTest, MemoryAllocAlignmentFindFirst) {
     auto *allocator = new FreeListAllocator(ALLOCATOR_NAME, MAX_SIZE);
+
+    /* == Should allocate 32 bytes (17 of char + sizeof(size_t) of header + 7 of padding) == */
     auto *charArray = (char *) allocator->allocate(17 * sizeof(char));
     ASSERT_NE(charArray, nullptr);
+
+    /* == Should allocate 24 bytes (16 of dbl + sizeof(size_t) of header) == */
     auto *dblArray = (double *) allocator->allocate(2 * sizeof(double));
     ASSERT_NE(dblArray, nullptr);
-    int32_t headerSize = 2 * sizeof(uint64_t);
-    ASSERT_EQ(charArray + 17 + headerSize, (char *) dblArray);
+    ASSERT_EQ(charArray + (32 - sizeof(size_t)) + sizeof(size_t), (char *) dblArray);
     delete allocator;
 }
 
 TEST(FreeListAllocatorTest, MemoryAllocAlignmentChunks) {
     auto *allocator = new FreeListAllocator(ALLOCATOR_NAME, MAX_SIZE);
+
+    /* == Should allocate 520 bytes (512 of char + sizeof(size_t) of header) == */
     auto *charArray = (char *) allocator->allocate(MAX_SIZE);
     ASSERT_NE(charArray, nullptr);
+
+    /* == Should allocate 520 bytes (512 of dbl + sizeof(size_t) of header) == */
     auto *dblArray = (double *) allocator->allocate(MAX_SIZE);
     ASSERT_NE(dblArray, nullptr);
-    int32_t paddingSize = 0;
-    int32_t headerSize = 2 * sizeof(uint64_t);
-    ASSERT_EQ(charArray + MAX_SIZE + paddingSize + headerSize, (char *) dblArray);
-    auto *ptr = (char *) allocator->allocate(17 * sizeof(char));
-    ASSERT_NE(ptr + 2 * MAX_SIZE + 2 * headerSize, (char *) dblArray);
+    ASSERT_EQ(charArray + MAX_SIZE + sizeof(size_t), (char *) dblArray);
     delete allocator;
 }
 
@@ -149,8 +152,7 @@ TEST(FreeListAllocatorTest, MemoryAllocAlignmentFindBest) {
     ASSERT_NE(charArray, nullptr);
     auto *dblArray = (double *) allocator->allocate(2 * sizeof(double));
     ASSERT_NE(dblArray, nullptr);
-    int32_t headerSize = 2 * sizeof(uint64_t);
-    ASSERT_EQ(charArray + 17 + headerSize, (char *) dblArray);
+    ASSERT_EQ(charArray + (32 - sizeof(size_t)) + sizeof(size_t), (char *) dblArray);
     delete allocator;
 }
 

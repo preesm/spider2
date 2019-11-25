@@ -68,18 +68,18 @@ TEST_F(LinearAllocatorTest, MemoryAlloc) {
     ASSERT_EQ(array[0], 1);
     ASSERT_EQ(array[1], 2);
     ASSERT_EQ(nullptr, allocator.allocate(0));
-    EXPECT_THROW(allocator.allocate(MAX_SIZE), spider::Exception);
+    EXPECT_THROW(allocator.allocate(MAX_SIZE + 1), spider::Exception);
     EXPECT_NO_THROW(allocator.reset());
     EXPECT_NO_THROW(allocator.allocate(MAX_SIZE));
     EXPECT_NO_THROW(allocator.deallocate(array));
 }
 
 TEST_F(LinearAllocatorTest, MemoryAllocDefaultAlignment) {
-    auto *charArray = (char *) allocator.allocate(9 * sizeof(char));
+    auto *charArray = (char *) allocator.allocate(9 * sizeof(char)); /* = should be 16 allocated = */
     ASSERT_NE(charArray, nullptr);
     auto *dblArray = (double *) allocator.allocate(2 * sizeof(double));
     ASSERT_NE(dblArray, nullptr);
-    ASSERT_EQ(charArray + 2 * sizeof(uint64_t), (char*) dblArray);
+    ASSERT_EQ(charArray + 16, (char *) dblArray);
 }
 
 TEST_F(LinearAllocatorTest, FreeOutOfScope) {
@@ -92,13 +92,13 @@ TEST_F(LinearAllocatorTest, FreeOutOfScope) {
 }
 
 TEST(LinearStaticAllocatorTest, MemoryAllocUserAlignment) {
-    int32_t sizeAlign = 2* sizeof(uint64_t);
+    int32_t sizeAlign = 2 * sizeof(uint64_t);
     auto allocator = LinearStaticAllocator("", MAX_SIZE, sizeAlign);
     auto *charArray = (char *) allocator.allocate(9 * sizeof(char));
     ASSERT_NE(charArray, nullptr);
     auto *dblArray = (double *) allocator.allocate(2 * sizeof(double));
     ASSERT_NE(dblArray, nullptr);
-    ASSERT_EQ(charArray + sizeAlign, (char*) dblArray);
+    ASSERT_EQ(charArray + sizeAlign, (char *) dblArray);
 }
 
 TEST(LinearStaticAllocatorTest, MemoryAllocNoPaddingRequired) {
@@ -107,7 +107,7 @@ TEST(LinearStaticAllocatorTest, MemoryAllocNoPaddingRequired) {
     ASSERT_NE(charArray, nullptr);
     auto *dblArray = (double *) allocator.allocate(2 * sizeof(double));
     ASSERT_NE(dblArray, nullptr);
-    ASSERT_EQ(charArray + 8, (char*) dblArray);
+    ASSERT_EQ(charArray + 8, (char *) dblArray);
 }
 
 TEST(LinearStaticAllocatorTest, MinimumAlignment) {
