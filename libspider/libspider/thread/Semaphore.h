@@ -61,7 +61,7 @@ namespace spider {
     public:
         using native_handle_type = typename CondVar::native_handle_type;
 
-        explicit basic_semaphore(size_t count = 0);
+        explicit inline basic_semaphore(size_t count = 0);
 
         basic_semaphore(const basic_semaphore &) = delete;
 
@@ -71,19 +71,19 @@ namespace spider {
 
         basic_semaphore &operator=(basic_semaphore &&) = delete;
 
-        void notify();
+        inline void notify();
 
-        void wait();
+        inline void wait();
 
-        bool try_wait();
+        inline bool try_wait();
 
         template<class Rep, class Period>
-        bool wait_for(const std::chrono::duration<Rep, Period> &d);
+        inline bool wait_for(const std::chrono::duration<Rep, Period> &d);
 
         template<class Clock, class Duration>
-        bool wait_until(const std::chrono::time_point<Clock, Duration> &t);
+        inline bool wait_until(const std::chrono::time_point<Clock, Duration> &t);
 
-        native_handle_type native_handle();
+        inline native_handle_type native_handle();
 
     private:
         Mutex mMutex;
