@@ -81,32 +81,30 @@ namespace spider {
 
         /**
          * @brief Pop an element from the queue.
-         * @remark Standard call to pop will block until an element is pushed in the queue.
+         * @remark Call to pop will block until an element is pushed in the queue.
          * @param data Pointer to be filled with front element of the queue.
          * @return true if success, nothing it would just hang in spider::basic_semaphore::wait().
          */
-        template<bool = true>
-        inline bool pop(T *data) {
+        inline bool pop(T &data) {
             sem_.wait();
             std::lock_guard<std::mutex> lock{ mutex_ };
-            (*data) = static_cast<T>(queue_.front());
+            data = std::move(static_cast<T>(queue_.front()));
             queue_.pop();
             return true;
         }
 
         /**
          * @brief Pop an element from the queue.
-         * @remark Standard call to pop will block until an element is pushed in the queue.
+         * @remark If queue is empty, function calls return immediately with value false.
          * @param data Pointer to be filled with front element of the queue.
          * @return true if success, false if try_wait() failed.
          */
-        template<>
-        inline bool pop<false>(T *data) {
+        inline bool try_pop(T &data) {
             if (!sem_.try_wait()) {
                 return false;
             }
             std::lock_guard<std::mutex> lock{ mutex_ };
-            (*data) = static_cast<T>(queue_.front());
+            data = std::move(static_cast<T>(queue_.front()));
             queue_.pop();
             return true;
         }
@@ -116,19 +114,9 @@ namespace spider {
          * @brief Push data into the queue.
          * @param data Pointer to the data to be pushed (call copy ctor of T)
          */
-        inline void push(T *data) {
+        inline void push(T data) {
             std::lock_guard<std::mutex> lock{ mutex_ };
-            queue_.push((*data));
-            sem_.notify();
-        }
-
-        /**
-         * @brief Push data into the queue.
-         * @param data Pointer to the data to be pushed (use std::move(T)).
-         */
-        inline void push_mv(T *data) {
-            std::lock_guard<std::mutex> lock{ mutex_ };
-            queue_.push(std::move((*data)));
+            queue_.push(data);
             sem_.notify();
         }
 
