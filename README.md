@@ -59,8 +59,6 @@ cd spider-2.0/libspider/build-scripts/linux
    ./CMakeVS2017.bat
    ```
 
-
-
 ### System wide installation
 
 * Linux platforms:
@@ -71,6 +69,11 @@ cd spider-2.0/libspider/build-scripts/linux
    ```
 
 * Windows platforms:
+
+__(coming soon...)__
+
+
+### Generating the Doxygen documentation
 
 __(coming soon...)__
 
