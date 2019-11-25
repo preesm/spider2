@@ -60,6 +60,9 @@ namespace spider {
 
 #ifdef _SPIDER_NO_TYPESAFETY_PRINT
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-security"
+
         template<class... Args>
         inline int fprintf(FILE *stream, const char *format, Args &&... args) {
             return std::fprintf(stream, format, std::forward<Args>(args)...);
@@ -74,6 +77,8 @@ namespace spider {
         inline int printf(const char *format, Args &&... args) {
             return std::printf(format, std::forward<Args>(args)...);
         }
+
+#pragma GCC diagnostic pop
 
 #else
 
