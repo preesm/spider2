@@ -59,23 +59,23 @@ namespace spider {
 
         /* === Method(s) === */
 
-        void push(Notification notification, uint32_t receiver) override;
+        void push(Notification notification, size_t receiver) override;
 
-        bool pop(Notification &notification, uint32_t receiver) override;
+        bool pop(Notification &notification, size_t receiver) override;
 
-        bool try_pop(Notification &notification, uint32_t receiver) override;
+        bool try_pop(Notification &notification, size_t receiver) override;
 
-        size_t push(JobMessage message, uint32_t receiver) override;
+        size_t push(JobMessage message, size_t receiver) override;
 
-        bool pop(JobMessage &message, uint32_t receiver, size_t ix) override;
+        bool pop(JobMessage &message, size_t receiver, size_t ix) override;
 
-        size_t push(ParameterMessage message, uint32_t receiver) override;
+        size_t push(ParameterMessage message, size_t receiver) override;
 
-        bool pop(ParameterMessage &message, uint32_t receiver, size_t ix) override;
+        bool pop(ParameterMessage &message, size_t receiver, size_t ix) override;
 
-        size_t push(TraceMessage message, uint32_t receiver) override;
+        size_t push(TraceMessage message, size_t receiver) override;
 
-        bool pop(TraceMessage &message, uint32_t receiver, size_t ix) override;
+        bool pop(TraceMessage &message, size_t receiver, size_t ix) override;
 
     private:
         spider::array<spider::Queue<Notification>> notificationQueueArray_;

@@ -53,7 +53,7 @@ enum class StackID : uint64_t {
     TRANSFO,         /*!< Stack used for graph transformations */
     EXPRESSION,      /*!< Stack used for handling expression */
     SCHEDULE,        /*!< Stack used for scheduling */
-    LRT,             /*!< Stack used by LRTs */
+    RUNTIME,             /*!< Stack used by LRTs */
     GENERAL,         /*!< General stack used for classic new / delete */
     SCENARIO,        /*!< Stack used for the scenario (application constraints) */
     First = PISDF,   /*!< Sentry for EnumIterator::begin */

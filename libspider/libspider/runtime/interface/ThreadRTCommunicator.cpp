@@ -49,44 +49,44 @@
 /* === Private method(s) implementation === */
 
 spider::ThreadRTCommunicator::ThreadRTCommunicator(size_t lrtCount) :
-        notificationQueueArray_{ lrtCount, StackID::LRT },
-        jobMessageQueueArray_{ lrtCount, StackID::LRT },
-        paramMessageQueueArray_{ lrtCount, StackID::LRT },
-        traceMessageQueueArray_{ lrtCount, StackID::LRT } { }
+        notificationQueueArray_{ lrtCount, StackID::RUNTIME },
+        jobMessageQueueArray_{ lrtCount, StackID::RUNTIME },
+        paramMessageQueueArray_{ lrtCount, StackID::RUNTIME },
+        traceMessageQueueArray_{ lrtCount, StackID::RUNTIME } { }
 
-void spider::ThreadRTCommunicator::push(spider::Notification notification, uint32_t receiver) {
+void spider::ThreadRTCommunicator::push(spider::Notification notification, size_t receiver) {
     notificationQueueArray_.at(receiver).push(notification);
 }
 
-bool spider::ThreadRTCommunicator::pop(spider::Notification &notification, uint32_t receiver) {
+bool spider::ThreadRTCommunicator::pop(spider::Notification &notification, size_t receiver) {
     return notificationQueueArray_.at(receiver).pop(notification);
 }
 
-bool spider::ThreadRTCommunicator::try_pop(spider::Notification &notification, uint32_t receiver) {
+bool spider::ThreadRTCommunicator::try_pop(spider::Notification &notification, size_t receiver) {
     return notificationQueueArray_.at(receiver).try_pop(notification);
 }
 
-size_t spider::ThreadRTCommunicator::push(spider::JobMessage message, uint32_t receiver) {
+size_t spider::ThreadRTCommunicator::push(spider::JobMessage message, size_t receiver) {
     return jobMessageQueueArray_.at(receiver).push(std::move(message));
 }
 
-bool spider::ThreadRTCommunicator::pop(spider::JobMessage &message, uint32_t receiver, size_t ix) {
+bool spider::ThreadRTCommunicator::pop(spider::JobMessage &message, size_t receiver, size_t ix) {
     return jobMessageQueueArray_.at(receiver).pop(message, ix);
 }
 
-size_t spider::ThreadRTCommunicator::push(spider::ParameterMessage message, uint32_t receiver) {
+size_t spider::ThreadRTCommunicator::push(spider::ParameterMessage message, size_t receiver) {
     return paramMessageQueueArray_.at(receiver).push(std::move(message));
 }
 
-bool spider::ThreadRTCommunicator::pop(spider::ParameterMessage &message, uint32_t receiver, size_t ix) {
+bool spider::ThreadRTCommunicator::pop(spider::ParameterMessage &message, size_t receiver, size_t ix) {
     return paramMessageQueueArray_.at(receiver).pop(message, ix);
 }
 
-size_t spider::ThreadRTCommunicator::push(spider::TraceMessage message, uint32_t receiver) {
+size_t spider::ThreadRTCommunicator::push(spider::TraceMessage message, size_t receiver) {
     return traceMessageQueueArray_.at(receiver).push(std::move(message));
 }
 
-bool spider::ThreadRTCommunicator::pop(spider::TraceMessage &message, uint32_t receiver, size_t ix) {
+bool spider::ThreadRTCommunicator::pop(spider::TraceMessage &message, size_t receiver, size_t ix) {
     return traceMessageQueueArray_.at(receiver).pop(message, ix);
 }
 

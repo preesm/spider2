@@ -37,25 +37,27 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_THREADLRT_H
-#define SPIDER2_THREADLRT_H
+#ifndef SPIDER2_JITMSRTRUNNER_H
+#define SPIDER2_JITMSRTRUNNER_H
 
 /* === Include(s) === */
 
 #include <runtime/runner/RTRunner.h>
+#include <runtime/interface/Notification.h>
 
 namespace spider {
 
     /* === Class definition === */
 
-    class ThreadLRT final : public RTRunner {
+    class JITMSRTRunner final : public RTRunner {
     public:
 
-        ThreadLRT() = default;
+        JITMSRTRunner(PE *pe, size_t ix) : RTRunner(pe, ix) { }
 
-        ~ThreadLRT() override = default;
+        ~JITMSRTRunner() override = default;
 
         /* === Method(s) === */
+
         void run(bool infiniteLoop) override;
 
         /* === Getter(s) === */
@@ -63,20 +65,16 @@ namespace spider {
         /* === Setter(s) === */
 
     private:
+        uint32_t lastJobIx_ = UINT32_MAX;
+        bool shouldBroadcast_ = false;
 
+        void readJobNotification(spider::Notification &notification);
+
+        void readRuntimeNotification(spider::Notification &notification);
+
+        void readTraceNotification(spider::Notification &notification);
     };
-
-    /* === Inline method(s) === */
-
-    namespace this_lrt {
-
-        /**
-         * @brief Return the handle to the current LRT.
-         * @return Pointer to current LRT.
-         */
-        ThreadLRT *runtime_handle();
-    }
 }
 
 
-#endif //SPIDER2_THREADLRT_H
+#endif //SPIDER2_JITMSRTRUNNER_H

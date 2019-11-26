@@ -128,6 +128,10 @@ namespace spider {
 
         const_iterator end() const;
 
+        /* === Method(s) === */
+
+        inline void set(const T &value = T());
+
 
         /* === Getters === */
 
@@ -173,6 +177,11 @@ namespace spider {
     template<typename T>
     const T &array<T>::operator[](size_t ix) const {
         return data_[ix];
+    }
+
+    template<typename T>
+    void array<T>::set(const T &value) {
+        data_.assign(data_.size(), value);
     }
 
     template<typename T>

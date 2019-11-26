@@ -42,15 +42,34 @@
 
 /* === Include(s) === */
 
+#include <cstdint>
+#include <cstddef>
+#include <containers/containers.h>
+#include <thread/Thread.h>
+#include <containers/array.h>
+#include <spider-api/archi.h>
+#include <archi/Platform.h>
+#include <runtime/platform/RTPlatform.h>
+#include <runtime/interface/RTCommunicator.h>
+#include <runtime/interface/Message.h>
+#include <runtime/interface/Notification.h>
+
 namespace spider {
 
+    /* === Forward declaration(s) === */
 
+    class PE;
 
     /* === Class definition === */
 
     class RTRunner {
     public:
-        RTRunner() = default;
+
+        RTRunner(PE *pe, size_t ix) : runningPE_{ pe }, runnerIx_{ ix } {
+            auto *platform = spider::platform();
+            localJobStampsArray_ = spider::array<uint32_t>{ platform->LRTCount(), UINT32_MAX, StackID::RUNTIME };
+            jobQueue_ = spider::make_vector<JobMessage>(StackID::RUNTIME);
+        }
 
         virtual ~RTRunner() = default;
 
@@ -60,13 +79,40 @@ namespace spider {
 
         /* === Getter(s) === */
 
+        inline size_t ix() const {
+            return runnerIx_;
+        }
+
+        inline PE *pe() const {
+            return runningPE_;
+        }
+
         /* === Setter(s) === */
 
-    private:
+    protected:
+        PE *runningPE_ = nullptr;
+        size_t runnerIx_ = SIZE_MAX;
+        spider::array<uint32_t> localJobStampsArray_;
+        spider::vector<JobMessage> jobQueue_;
+        size_t jobQueueCurrentPos_ = 0;
 
+        inline void clearLocalJobStamps() {
+            jobQueueCurrentPos_ = 0;
+            jobQueue_.clear();
+        }
+
+        inline void broadcastJobStamps() {
+            spider::Notification broadcastNotification{ spider::NotificationType::JOB,
+                                                        spider::JobNotification::UPDATE_JOBSTAMP,
+                                                        static_cast<int32_t >(ix()),
+                                                        static_cast<int32_t>(jobQueueCurrentPos_) };
+            for (size_t i = 0; i < spider::platform()->LRTCount(); ++i) {
+                if (i != ix()) {
+                    spider::rtPlatform()->communicator()->push(broadcastNotification, i);
+                }
+            }
+        }
     };
-
-    /* === Inline method(s) === */
 }
 
 #endif //SPIDER2_RTRUNNER_H

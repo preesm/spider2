@@ -62,7 +62,7 @@ namespace spider {
          * @param notification  Notification to push.
          * @param receiver      Receiver of the notification.
          */
-        virtual void push(Notification notification, uint32_t receiver) = 0;
+        virtual void push(Notification notification, size_t receiver) = 0;
 
         /**
          * @brief Blocking pop to get notification.
@@ -70,7 +70,7 @@ namespace spider {
          * @param receiver      Receiver of the notification.
          * @return true.
          */
-        virtual bool pop(Notification &notification, uint32_t receiver) = 0;
+        virtual bool pop(Notification &notification, size_t receiver) = 0;
 
         /**
          * @brief Non-blocking pop to get notification.
@@ -78,7 +78,7 @@ namespace spider {
          * @param receiver      Receiver of the notification.
          * @return true if succeed in pop, false else.
          */
-        virtual bool try_pop(Notification &notification, uint32_t receiver) = 0;
+        virtual bool try_pop(Notification &notification, size_t receiver) = 0;
 
         /**
          * @brief Push a JobMessage for a given target LRT.
@@ -86,7 +86,7 @@ namespace spider {
          * @param receiver Receiver of the notification.
          * @return Index of the pushed message in the queue.
          */
-        virtual size_t push(JobMessage message, uint32_t receiver) = 0;
+        virtual size_t push(JobMessage message, size_t receiver) = 0;
 
         /**
          * @brief Pop a JobMessage.
@@ -95,7 +95,7 @@ namespace spider {
          * @param ix       Index of the message in the queue.
          * @return true on success, false else.
          */
-        virtual bool pop(JobMessage &message, uint32_t receiver, size_t ix) = 0;
+        virtual bool pop(JobMessage &message, size_t receiver, size_t ix) = 0;
 
         /**
          * @brief Push a ParameterMessage for a given target LRT.
@@ -103,7 +103,7 @@ namespace spider {
          * @param receiver Receiver of the notification.
          * @return Index of the pushed message in the queue.
          */
-        virtual size_t push(ParameterMessage message, uint32_t receiver) = 0;
+        virtual size_t push(ParameterMessage message, size_t receiver) = 0;
 
         /**
          * @brief Pop a ParameterMessage.
@@ -112,7 +112,7 @@ namespace spider {
          * @param ix       Index of the message in the queue.
          * @return true on success, false else.
          */
-        virtual bool pop(ParameterMessage &message, uint32_t receiver, size_t ix) = 0;
+        virtual bool pop(ParameterMessage &message, size_t receiver, size_t ix) = 0;
 
         /**
          * @brief Push a TraceMessage for a given target LRT.
@@ -120,7 +120,7 @@ namespace spider {
          * @param receiver Receiver of the notification.
          * @return Index of the pushed message in the queue.
          */
-        virtual size_t push(TraceMessage message, uint32_t receiver) = 0;
+        virtual size_t push(TraceMessage message, size_t receiver) = 0;
 
         /**
          * @brief Pop a TraceMessage.
@@ -129,7 +129,7 @@ namespace spider {
          * @param ix       Index of the message in the queue.
          * @return true on success, false else.
          */
-        virtual bool pop(TraceMessage &message, uint32_t receiver, size_t ix) = 0;
+        virtual bool pop(TraceMessage &message, size_t receiver, size_t ix) = 0;
     };
 }
 #endif //SPIDER2_RTCOMMUNICATOR_H

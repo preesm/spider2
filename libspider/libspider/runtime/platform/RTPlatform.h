@@ -42,33 +42,50 @@
 
 /* === Include(s) === */
 
+#include <containers/array.h>
+
 namespace spider {
+
+    /* === Forward declaration(s) === */
+
+    class RTRunner;
+
+    class RTCommunicator;
 
     /* === Class definition === */
 
     class RTPlatform {
     public:
 
-        RTPlatform() = default;
+        explicit RTPlatform(size_t runnerCount = 0) : runnerArray_{ runnerCount, StackID::RUNTIME } { }
 
         virtual ~RTPlatform() = default;
 
         /* === Method(s) === */
 
-        static inline RTPlatform *&platform() {
-            static RTPlatform *platform = nullptr;
-            return platform;
+        /* === Getter(s) === */
+
+        inline RTRunner *runner(size_t ix) const {
+            return runnerArray_.at(ix);
         }
 
-        /* === Getter(s) === */
+        inline RTCommunicator *communicator() const {
+            return communicator_;
+        }
 
         /* === Setter(s) === */
 
     private:
-
+        spider::array<RTRunner *> runnerArray_;
+        RTCommunicator *communicator_ = nullptr;
     };
 
     /* === Inline method(s) === */
+
+    inline RTPlatform *&rtPlatform() {
+        static RTPlatform *platform = nullptr;
+        return platform;
+    }
 
 }
 
