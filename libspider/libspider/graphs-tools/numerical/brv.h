@@ -115,13 +115,14 @@ namespace spider {
 
         /**
          * @brief Extract Rationals of rates of a connected component using its edges.
-         * @param edgeArray  Edges of the connected component we are evaluating.
-         * @param params     Parameters used for rate evaluation.
-         * @return  array of @refitem Rational.
+         * @param rationalArray Array of @refitem Rational to be set.
+         * @param edgeArray     Edges of the connected component we are evaluating.
+         * @param params        Parameters used for rate evaluation.
          * @throws @refitem spider::Exception
          */
-        spider::array<spider::Rational> extractRationalsFromEdges(const spider::array<const pisdf::Edge *> &edgeArray,
-                                                                  const spider::vector<pisdf::Param *> &params);
+        void extractRationalsFromEdges(spider::array<spider::Rational> &rationalArray,
+                                       const spider::array<const pisdf::Edge *> &edgeArray,
+                                       const spider::vector<pisdf::Param *> &params);
 
         /**
          * @brief Update repetition values of a given connected component.

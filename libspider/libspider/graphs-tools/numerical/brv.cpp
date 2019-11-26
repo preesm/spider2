@@ -53,12 +53,13 @@ void spider::brv::compute(const spider::pisdf::Graph *graph, const spider::vecto
     const auto &connectedComponents = extractConnectedComponents(graph);
 
     /* == 1. For each connected component compute LCM and RV == */
+    spider::array<spider::Rational> rationalArray{ graph->vertexCount(), spider::Rational(), StackID::TRANSFO };
     for (const auto &component : connectedComponents) {
         /* == 1.1 Extract the edges == */
         auto edgeArray = extractEdgesFromComponent(component);
 
         /* == 1.2 Compute the Rationals == */
-        auto rationalArray = extractRationalsFromEdges(edgeArray, params);
+        extractRationalsFromEdges(rationalArray, edgeArray, params);
 
         /* == 1.3 Compute the LCM factor for the current component == */
         int64_t lcmFactor = 1;
@@ -101,6 +102,7 @@ spider::brv::extractConnectedComponents(const spider::pisdf::Graph *graph) {
             /* == Initiate a new connected component == */
             ConnectedComponent component;
             component.vertexVector_ = spider::make_vector<pisdf::Vertex *>(StackID::TRANSFO);
+            component.vertexVector_.emplace_back(vertex);
 
             /* == Extract every vertices of the connected component using a non-recursive BFS algorithm == */
             size_t scannedIndex = 0;
@@ -168,10 +170,9 @@ spider::brv::extractEdgesFromComponent(const spider::brv::ConnectedComponent &co
     return edgeArray;
 }
 
-spider::array<spider::Rational>
-spider::brv::extractRationalsFromEdges(const spider::array<const pisdf::Edge *> &edgeArray,
-                                       const spider::vector<pisdf::Param *> &params) {
-    spider::array<spider::Rational> rationalArray{ edgeArray.size(), StackID::TRANSFO };
+void spider::brv::extractRationalsFromEdges(spider::array<spider::Rational> &rationalArray,
+                                            const spider::array<const pisdf::Edge *> &edgeArray,
+                                            const spider::vector<pisdf::Param *> &params) {
     auto dummyRational = spider::Rational{ 1 };
     for (const auto &edge : edgeArray) {
         const auto *source = edge->source();
@@ -211,7 +212,6 @@ spider::brv::extractRationalsFromEdges(const spider::array<const pisdf::Edge *> 
             }
         }
     }
-    return rationalArray;
 }
 
 void spider::brv::updateBRV(const ConnectedComponent &component, const spider::vector<pisdf::Param *> &params) {

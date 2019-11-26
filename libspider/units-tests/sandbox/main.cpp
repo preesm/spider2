@@ -49,8 +49,12 @@
 #include <scheduling/schedule/Schedule.h>
 #include <scheduling/schedule/exporter/SVGGanttExporter.h>
 #include <scheduling/scheduler/BestFitScheduler.h>
+#include <runtime/interface/Notification.h>
+#include <runtime/interface/Message.h>
 
 #include <thread/Thread.h>
+#include <thread/Barrier.h>
+#include <common/Time.h>
 
 void createArchi();
 
@@ -62,10 +66,29 @@ int print() {
 }
 
 std::mutex mutex_;
-
+spider::barrier barrier{ 3 };
 
 void fn(int32_t id, int32_t affinity) {
     spider::this_thread::set_affinity(affinity);
+    barrier.wait();
+    {
+        std::lock_guard<std::mutex> loc{ mutex_ };
+        std::cout << "Thread #" << id << ": on CPU " << spider::this_thread::get_affinity() << "\n";
+    }
+    barrier.wait();
+    std::lock_guard<std::mutex> loc{ mutex_ };
+    std::cout << "Thread #" << id << ": on CPU " << spider::this_thread::get_affinity() << "\n";
+}
+
+void fn2(int32_t id, int32_t affinity) {
+    spider::this_thread::set_affinity(affinity);
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+    barrier.wait();
+    {
+        std::lock_guard<std::mutex> loc{ mutex_ };
+        std::cout << "Thread #" << id << ": on CPU " << spider::this_thread::get_affinity() << "\n";
+    }
+    barrier.wait();
     std::lock_guard<std::mutex> loc{ mutex_ };
     std::cout << "Thread #" << id << ": on CPU " << spider::this_thread::get_affinity() << "\n";
 }
@@ -73,11 +96,13 @@ void fn(int32_t id, int32_t affinity) {
 int main(int, char **) {
     spiderTest();
 
-    spider::thread t1(fn, 0, 3);
-    spider::thread t2(fn, 1, 5);
-
-    t1.join();
-    t2.join();
+//    spider::thread t1(fn, 0, 3);
+//    spider::thread t2(fn2, 1, 5);
+//    spider::thread t3(fn, 2, 1);
+//
+//    t1.join();
+//    t2.join();
+//    t3.join();
     return 0;
 }
 
@@ -136,11 +161,11 @@ void spiderTest() {
 //        spider::api::createDynamicParam(subgraph, "width");
 //        for (auto j = 0; j < 10; ++j)
         {
-            const auto &start = std::chrono::steady_clock::now();
+            const auto &start = spider::time::now();
             spider::JITMSRuntime runtime(graph);
             runtime.execute();
-            const auto &end = std::chrono::steady_clock::now();
-            std::cout << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << std::endl;
+            const auto &end = spider::time::now();
+            std::cout << spider::time::duration::milliseconds(start, end) << std::endl;
         }
 
         /* === Export dot === */

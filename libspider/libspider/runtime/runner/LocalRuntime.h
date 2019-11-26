@@ -43,15 +43,18 @@
 /* === Include(s) === */
 
 namespace spider {
+
     /* === Class definition === */
 
     class LocalRuntime {
     public:
         LocalRuntime() = default;
 
-        ~LocalRuntime() = default;
+        virtual ~LocalRuntime() = default;
 
         /* === Method(s) === */
+
+        virtual void run(bool infiniteLoop) = 0;
 
         /* === Getter(s) === */
 
