@@ -62,7 +62,11 @@ namespace spider {
 
         inline Rational &operator*=(const Rational &b);
 
+        inline Rational &operator*=(int64_t b);
+
         inline Rational &operator/=(const Rational &b);
+
+        inline Rational &operator/=(int64_t b);
 
         inline Rational operator+(const Rational &b) const;
 
@@ -166,12 +170,27 @@ namespace spider {
         return *this;
     }
 
+    Rational &Rational::operator*=(int64_t b) {
+        n_ *= b;
+        reduce();
+        return *this;
+    }
+
     Rational &Rational::operator/=(const Rational &b) {
-        if (b.n_ == 0) {
+        if (!b.n_) {
             throwSpiderException("Fraction with zero denominator not allowed.");
         }
         n_ *= b.d_;
         d_ *= b.n_;
+        reduce();
+        return *this;
+    }
+
+    Rational &Rational::operator/=(int64_t b) {
+        if (!b) {
+            throwSpiderException("Fraction with zero denominator not allowed.");
+        }
+        d_ *= b;
         reduce();
         return *this;
     }
