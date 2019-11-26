@@ -59,6 +59,10 @@ namespace spider {
         Last = UNDEFINED, /*!< Sentry for EnumIterator::end */
     };
 
+
+    /**
+     * @brief All notification are NOT needed to be supported by ALL runtime.
+     */
     enum LRTNotifification : uint16_t {
         END_ITERATION = 0,    /*!< Cross-check signal sent after last JOB (if JOB_LAST_ID was not received) */
         REPEAT_ITERATION_EN,  /*!< Signal LRT to repeat its complete iteration (indefinitely) */
@@ -81,10 +85,10 @@ namespace spider {
     };
 
     enum TraceNotification : uint16_t {
-        TRACE_ENABLE = 0,    /*!< Signal LRT to enable its trace */
-        TRACE_DISABLE,       /*!< Signal LRT to disable its trace */
-        TRACE_RST,           /*!< Signal LRT to reset its trace */
-        TRACE_SENT,          /*!< Signal that a trace has been sent */
+        ENABLE = 0,    /*!< Signal LRT to enable its trace */
+        DISABLE,       /*!< Signal LRT to disable its trace */
+        RST,           /*!< Signal LRT to reset its trace */
+        SENT,          /*!< Signal that a trace has been sent */
     };
 
 

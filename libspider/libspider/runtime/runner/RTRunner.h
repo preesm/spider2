@@ -95,6 +95,7 @@ namespace spider {
         spider::array<uint32_t> localJobStampsArray_;
         spider::vector<JobMessage> jobQueue_;
         size_t jobQueueCurrentPos_ = 0;
+        bool stop_ = false;
 
         inline void clearLocalJobStamps() {
             jobQueueCurrentPos_ = 0;
