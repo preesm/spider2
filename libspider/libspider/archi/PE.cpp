@@ -40,7 +40,7 @@
 
 /* === Include(s) === */
 
-#include <archi/ProcessingElement.h>
+#include <archi/PE.h>
 #include <archi/Cluster.h>
 #include <archi/Platform.h>
 

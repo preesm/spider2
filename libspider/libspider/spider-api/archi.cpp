@@ -43,7 +43,7 @@
 #include <spider-api/archi.h>
 #include <archi/Platform.h>
 #include <archi/Cluster.h>
-#include <archi/ProcessingElement.h>
+#include <archi/PE.h>
 #include <archi/MemoryUnit.h>
 
 /* === Methods implementation === */

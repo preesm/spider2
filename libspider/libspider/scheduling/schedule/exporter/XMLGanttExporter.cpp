@@ -43,7 +43,7 @@
 #include <scheduling/schedule/exporter/XMLGanttExporter.h>
 #include <spider-api/archi.h>
 #include <archi/Platform.h>
-#include <archi/ProcessingElement.h>
+#include <archi/PE.h>
 #include <graphs/pisdf/ExecVertex.h>
 #include <graphs/pisdf/Graph.h>
 #include <scheduling/schedule/Schedule.h>

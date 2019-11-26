@@ -37,8 +37,8 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_PROCESSINGELEMENT_H
-#define SPIDER2_PROCESSINGELEMENT_H
+#ifndef SPIDER2_PE_H
+#define SPIDER2_PE_H
 
 /* === Include(s) === */
 
@@ -301,4 +301,4 @@ namespace spider {
     }
 }
 
-#endif //SPIDER2_PROCESSINGELEMENT_H
+#endif //SPIDER2_PE_H

@@ -43,7 +43,7 @@
 #include <scheduling/schedule/Schedule.h>
 #include <spider-api/archi.h>
 #include <archi/Platform.h>
-#include <archi/ProcessingElement.h>
+#include <archi/PE.h>
 
 /* === Static variable(s) === */
 

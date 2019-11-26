@@ -44,7 +44,7 @@
 #include <spider-api/archi.h>
 #include <spider-api/pisdf.h>
 #include <archi/Platform.h>
-#include <archi/ProcessingElement.h>
+#include <archi/PE.h>
 #include <graphs/pisdf/ExecVertex.h>
 #include <graphs/pisdf/Graph.h>
 #include <scheduling/schedule/Schedule.h>

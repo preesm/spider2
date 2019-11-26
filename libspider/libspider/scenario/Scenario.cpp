@@ -41,7 +41,7 @@
 /* === Include(s) === */
 
 #include <scenario/Scenario.h>
-#include <archi/ProcessingElement.h>
+#include <archi/PE.h>
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/Vertex.h>
 

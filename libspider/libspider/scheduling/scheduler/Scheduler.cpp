@@ -45,7 +45,7 @@
 #include <spider-api/archi.h>
 #include <archi/Platform.h>
 #include <archi/Cluster.h>
-#include <archi/ProcessingElement.h>
+#include <archi/PE.h>
 
 /* === Function(s) definition === */
 
