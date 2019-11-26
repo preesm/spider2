@@ -51,7 +51,7 @@
 #include <graphs/pisdf/interfaces/InputInterface.h>
 #include <graphs/pisdf/interfaces/OutputInterface.h>
 #include <graphs/pisdf/visitors/CloneVertexVisitor.h>
-#include <graphs-tools/numerical/PiSDFAnalysis.h>
+#include <graphs-tools/numerical/dependencies.h>
 
 /* === Visitor(s) === */
 
