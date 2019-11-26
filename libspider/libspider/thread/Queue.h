@@ -59,15 +59,15 @@ namespace spider {
 
         Queue() = default;
 
-        Queue(const Queue &) = delete;
+        Queue(const Queue<T> &) = delete;
 
-        Queue(Queue &&) = delete;
+        Queue(Queue<T> &&) noexcept = delete;
 
         ~Queue() = default;
 
-        Queue &operator=(const Queue &) = delete;
+        Queue &operator=(const Queue<T> &) = delete;
 
-        Queue &operator=(Queue &&) = delete;
+        Queue &operator=(Queue<T> &&) noexcept = delete;
 
         /* === Method(s) === */
 

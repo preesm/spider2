@@ -58,6 +58,14 @@ namespace spider {
     public:
         IndexedQueue() = default;
 
+        IndexedQueue(const IndexedQueue<T> &) = delete;
+
+        IndexedQueue(IndexedQueue<T> &&) noexcept = delete;
+
+        IndexedQueue &operator=(const IndexedQueue<T> &) = delete;
+
+        IndexedQueue &operator=(IndexedQueue<T> &&) noexcept = delete;
+
         ~IndexedQueue() = default;
 
         /* === Method(s) === */
@@ -109,7 +117,7 @@ namespace spider {
          * @brief Get an index of free location in the queue (if any).
          * @return index of available location, -1 if none
          */
-        inline int32_t getFreeIndex() {
+        inline size_t getFreeIndex() {
             if (!freeIndexQueue_.empty()) {
                 auto &&front = freeIndexQueue_.front();
                 freeIndexQueue_.pop();
