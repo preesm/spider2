@@ -47,9 +47,9 @@
 #include <graphs/pisdf/interfaces/Interface.h>
 #include <graphs/pisdf/interfaces/InputInterface.h>
 #include <graphs/pisdf/interfaces/OutputInterface.h>
-#include <graphs-tools/brv/LCMBRVCompute.h>
 #include <graphs-tools/numerical/PiSDFAnalysis.h>
 #include <graphs-tools/expression-parser/Expression.h>
+#include <graphs-tools/numerical/brv.h>
 
 /* === Static function(s) === */
 
@@ -345,8 +345,7 @@ spider::srdag::singleRateTransformation(const spider::srdag::TransfoJob &job, Pi
 
     /* == Compute the repetition values of the graph (if dynamic and/or first instance) == */
     if (job.reference_->dynamic() || job.instanceValue_ == 0 || job.instanceValue_ == UINT32_MAX) {
-        LCMBRVCompute brvTask{ job.reference_, job.params_ };
-        brvTask.execute();
+        spider::brv::compute(job.reference_, job.params_);
     }
 
     /* == Create TransfoData structure == */
