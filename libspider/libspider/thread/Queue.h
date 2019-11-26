@@ -116,7 +116,7 @@ namespace spider {
          */
         inline void push(T data) {
             std::lock_guard<std::mutex> lock{ mutex_ };
-            queue_.push(data);
+            queue_.push(std::move(data));
             sem_.notify();
         }
 
