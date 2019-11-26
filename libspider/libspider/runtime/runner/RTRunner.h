@@ -37,8 +37,8 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_LOCALRUNTIME_H
-#define SPIDER2_LOCALRUNTIME_H
+#ifndef SPIDER2_RTRUNNER_H
+#define SPIDER2_RTRUNNER_H
 
 /* === Include(s) === */
 
@@ -46,11 +46,11 @@ namespace spider {
 
     /* === Class definition === */
 
-    class LocalRuntime {
+    class RTRunner {
     public:
-        LocalRuntime() = default;
+        RTRunner() = default;
 
-        virtual ~LocalRuntime() = default;
+        virtual ~RTRunner() = default;
 
         /* === Method(s) === */
 
@@ -67,4 +67,4 @@ namespace spider {
     /* === Inline method(s) === */
 }
 
-#endif //SPIDER2_LOCALRUNTIME_H
+#endif //SPIDER2_RTRUNNER_H

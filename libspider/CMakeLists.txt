@@ -182,10 +182,7 @@ file(
         ${SPIDER_LIB_DIR}/memory/dynamic-allocators/*.cpp
         ${SPIDER_LIB_DIR}/memory/static-allocators/*.cpp
         ${SPIDER_LIB_DIR}/monitor/*.cpp
-        ${SPIDER_LIB_DIR}/runtime/distributed/*.cpp
-        ${SPIDER_LIB_DIR}/runtime/interface/*.cpp
-        ${SPIDER_LIB_DIR}/runtime/master-slave/*.cpp
-        ${SPIDER_LIB_DIR}/runtime/runner/*.cpp
+        ${SPIDER_LIB_DIR}/runtime/*.cpp
         ${SPIDER_LIB_DIR}/scenario/*.cpp
         ${SPIDER_LIB_DIR}/scheduling/*.cpp
         ${SPIDER_LIB_DIR}/scheduling/allocator/*.cpp
@@ -216,10 +213,6 @@ file(
         ${SPIDER_LIB_DIR}/memory/static-allocators/*.h
         ${SPIDER_LIB_DIR}/monitor/*.h
         ${SPIDER_LIB_DIR}/runtime/*.h
-        ${SPIDER_LIB_DIR}/runtime/distributed/*.h
-        ${SPIDER_LIB_DIR}/runtime/interface/*.h
-        ${SPIDER_LIB_DIR}/runtime/master-slave/*.h
-        ${SPIDER_LIB_DIR}/runtime/runner/*.h
         ${SPIDER_LIB_DIR}/scenario/*.h
         ${SPIDER_LIB_DIR}/scheduling/*.h
         ${SPIDER_LIB_DIR}/scheduling/allocator/*.h

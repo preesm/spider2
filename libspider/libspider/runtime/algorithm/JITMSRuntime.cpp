@@ -40,7 +40,7 @@
 
 /* === Include(s) === */
 
-#include <runtime/master-slave/JITMSRuntime.h>
+#include <runtime/algorithm/JITMSRuntime.h>
 #include <graphs-tools/transformation/srdag/Transformation.h>
 #include <graphs-tools/transformation/optims/PiSDFGraphOptimizer.h>
 #include <graphs-tools/exporter/DOTExporter.h>
