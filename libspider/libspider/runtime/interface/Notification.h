@@ -96,7 +96,7 @@ namespace spider {
 
         Notification(const Notification &) = default;
 
-        Notification(Notification &&) = default;
+        Notification(Notification &&) noexcept = default;
 
         explicit Notification(NotificationType type,
                               uint16_t subtype = UINT16_MAX,
@@ -107,6 +107,10 @@ namespace spider {
                                                              notificationIx_{ notificationIx } {
 
         }
+
+        Notification &operator=(const Notification &) = default;
+
+        Notification &operator=(Notification &&) noexcept = default;
 
         ~Notification() = default;
 

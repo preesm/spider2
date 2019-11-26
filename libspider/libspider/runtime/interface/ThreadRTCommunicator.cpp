@@ -41,8 +41,6 @@
 /* === Include(s) === */
 
 #include <runtime/interface/ThreadRTCommunicator.h>
-#include <thread/Queue.h>
-#include <thread/IndexedQueue.h>
 
 /* === Static function === */
 
@@ -50,38 +48,59 @@
 
 /* === Private method(s) implementation === */
 
-void spider::ThreadRTCommunicator::push(spider::Notification notification, uint32_t receiver) {
+spider::ThreadRTCommunicator::ThreadRTCommunicator(size_t lrtCount) :
+        notificationQueueArray_{ lrtCount, StackID::LRT },
+        jobMessageQueueArray_{ lrtCount, StackID::LRT },
+        paramMessageQueueArray_{ lrtCount, StackID::LRT },
+        traceMessageQueueArray_{ lrtCount, StackID::LRT } { }
 
+void spider::ThreadRTCommunicator::push(spider::Notification notification, uint32_t receiver) {
+    notificationQueueArray_.at(receiver).push(notification);
 }
 
 bool spider::ThreadRTCommunicator::pop(spider::Notification &notification, uint32_t receiver) {
-    return false;
+    return notificationQueueArray_.at(receiver).pop(notification);
 }
 
 bool spider::ThreadRTCommunicator::try_pop(spider::Notification &notification, uint32_t receiver) {
-    return false;
+    return notificationQueueArray_.at(receiver).try_pop(notification);
 }
 
 size_t spider::ThreadRTCommunicator::push(spider::JobMessage message, uint32_t receiver) {
-    return 0;
+    return jobMessageQueueArray_.at(receiver).push(std::move(message));
 }
 
-void spider::ThreadRTCommunicator::pop(spider::JobMessage &message, uint32_t receiver, size_t ix) {
-
+bool spider::ThreadRTCommunicator::pop(spider::JobMessage &message, uint32_t receiver, size_t ix) {
+    return jobMessageQueueArray_.at(receiver).pop(message, ix);
 }
 
 size_t spider::ThreadRTCommunicator::push(spider::ParameterMessage message, uint32_t receiver) {
-    return 0;
+    return paramMessageQueueArray_.at(receiver).push(std::move(message));
 }
 
-void spider::ThreadRTCommunicator::pop(spider::ParameterMessage &message, uint32_t receiver, size_t ix) {
-
+bool spider::ThreadRTCommunicator::pop(spider::ParameterMessage &message, uint32_t receiver, size_t ix) {
+    return paramMessageQueueArray_.at(receiver).pop(message, ix);
 }
 
 size_t spider::ThreadRTCommunicator::push(spider::TraceMessage message, uint32_t receiver) {
-    return 0;
+    return traceMessageQueueArray_.at(receiver).push(std::move(message));
 }
 
-void spider::ThreadRTCommunicator::pop(spider::TraceMessage &message, uint32_t receiver, size_t ix) {
-
+bool spider::ThreadRTCommunicator::pop(spider::TraceMessage &message, uint32_t receiver, size_t ix) {
+    return traceMessageQueueArray_.at(receiver).pop(message, ix);
 }
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-function"
+
+/**
+ * @brief Trick to pre-declare template specialization.
+ */
+static void foo() {
+    spider::Queue<spider::Notification> a;
+    spider::IndexedQueue<spider::JobMessage> b;
+    spider::IndexedQueue<spider::ParameterMessage> c;
+    spider::IndexedQueue<spider::TraceMessage> d;
+}
+
+#pragma GCC diagnostic pop

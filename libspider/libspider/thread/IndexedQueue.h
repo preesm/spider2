@@ -58,9 +58,21 @@ namespace spider {
     public:
         IndexedQueue() = default;
 
-        IndexedQueue(const IndexedQueue<T> &) = delete;
+        /**
+         * @brief Copy constructor. mutex state of the queue will NOT be copied.
+         */
+        IndexedQueue(const IndexedQueue<T> &other) : IndexedQueue() {
+            queue_ = other.queue_;
+            freeIndexQueue_ = other.freeIndexQueue_;
+        }
 
-        IndexedQueue(IndexedQueue<T> &&) noexcept = delete;
+        /**
+         * @brief Move constructor. mutex state of the queue will NOT be moved.
+         */
+        IndexedQueue(IndexedQueue<T> &&other) noexcept : IndexedQueue() {
+            queue_.swap(other.queue_);
+            freeIndexQueue_.swap(other.freeIndexQueue_);
+        }
 
         IndexedQueue &operator=(const IndexedQueue<T> &) = delete;
 

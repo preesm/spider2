@@ -59,9 +59,19 @@ namespace spider {
 
         Queue() = default;
 
-        Queue(const Queue<T> &) = delete;
+        /**
+         * @brief Copy constructor. mutex state of the queue will NOT be copied.
+         */
+        Queue(const Queue<T> &other) : Queue() {
+            queue_ = other.queue_;
+        };
 
-        Queue(Queue<T> &&) noexcept = delete;
+        /**
+         * @brief Move constructor. mutex state of the queue will NOT be moved.
+         */
+        Queue(Queue<T> &&other) noexcept : Queue() {
+            queue_.swap(other.queue_);
+        }
 
         ~Queue() = default;
 

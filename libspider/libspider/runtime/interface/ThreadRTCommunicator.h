@@ -43,6 +43,9 @@
 /* === Include(s) === */
 
 #include <runtime/interface/RTCommunicator.h>
+#include <thread/Queue.h>
+#include <thread/IndexedQueue.h>
+#include <containers/array.h>
 
 namespace spider {
 
@@ -50,7 +53,7 @@ namespace spider {
 
     class ThreadRTCommunicator final : public RTCommunicator {
     public:
-        ThreadRTCommunicator() = default;
+        explicit ThreadRTCommunicator(size_t lrtCount);
 
         ~ThreadRTCommunicator() override = default;
 
@@ -64,18 +67,21 @@ namespace spider {
 
         size_t push(JobMessage message, uint32_t receiver) override;
 
-        void pop(JobMessage &message, uint32_t receiver, size_t ix) override;
+        bool pop(JobMessage &message, uint32_t receiver, size_t ix) override;
 
         size_t push(ParameterMessage message, uint32_t receiver) override;
 
-        void pop(ParameterMessage &message, uint32_t receiver, size_t ix) override;
+        bool pop(ParameterMessage &message, uint32_t receiver, size_t ix) override;
 
         size_t push(TraceMessage message, uint32_t receiver) override;
 
-        void pop(TraceMessage &message, uint32_t receiver, size_t ix) override;
+        bool pop(TraceMessage &message, uint32_t receiver, size_t ix) override;
 
     private:
-
+        spider::array<spider::Queue<Notification>> notificationQueueArray_;
+        spider::array<spider::IndexedQueue<JobMessage>> jobMessageQueueArray_;
+        spider::array<spider::IndexedQueue<ParameterMessage>> paramMessageQueueArray_;
+        spider::array<spider::IndexedQueue<TraceMessage>> traceMessageQueueArray_;
     };
 
     /* === Inline method(s) === */

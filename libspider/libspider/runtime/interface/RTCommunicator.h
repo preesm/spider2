@@ -93,8 +93,9 @@ namespace spider {
          * @param message  Message structure to be filled.
          * @param receiver Receiver of the message.
          * @param ix       Index of the message in the queue.
+         * @return true on success, false else.
          */
-        virtual void pop(JobMessage &message, uint32_t receiver, size_t ix) = 0;
+        virtual bool pop(JobMessage &message, uint32_t receiver, size_t ix) = 0;
 
         /**
          * @brief Push a ParameterMessage for a given target LRT.
@@ -109,8 +110,9 @@ namespace spider {
          * @param message  Message structure to be filled.
          * @param receiver Receiver of the message.
          * @param ix       Index of the message in the queue.
+         * @return true on success, false else.
          */
-        virtual void pop(ParameterMessage &message, uint32_t receiver, size_t ix) = 0;
+        virtual bool pop(ParameterMessage &message, uint32_t receiver, size_t ix) = 0;
 
         /**
          * @brief Push a TraceMessage for a given target LRT.
@@ -125,8 +127,9 @@ namespace spider {
          * @param message  Message structure to be filled.
          * @param receiver Receiver of the message.
          * @param ix       Index of the message in the queue.
+         * @return true on success, false else.
          */
-        virtual void pop(TraceMessage &message, uint32_t receiver, size_t ix) = 0;
+        virtual bool pop(TraceMessage &message, uint32_t receiver, size_t ix) = 0;
     };
 }
 #endif //SPIDER2_RTCOMMUNICATOR_H

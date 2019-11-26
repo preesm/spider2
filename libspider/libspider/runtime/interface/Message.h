@@ -61,7 +61,11 @@ namespace spider {
 
         JobMessage(const JobMessage &) = default;
 
-        JobMessage(JobMessage &&) = default;
+        JobMessage(JobMessage &&) noexcept = default;
+
+        JobMessage &operator=(const JobMessage &) = default;
+
+        JobMessage &operator=(JobMessage &&) noexcept = default;
 
         ~JobMessage() = default;
 
@@ -82,12 +86,16 @@ namespace spider {
 
         ParameterMessage(const ParameterMessage &) = default;
 
-        ParameterMessage(ParameterMessage &&) = default;
+        ParameterMessage(ParameterMessage &&) noexcept = default;
 
         ParameterMessage(uint32_t vertexIx, spider::vector<int64_t> params) : vertexIx_{ vertexIx },
                                                                               params_{ std::move(params) } {
 
         }
+
+        ParameterMessage &operator=(const ParameterMessage &) = default;
+
+        ParameterMessage &operator=(ParameterMessage &&) noexcept = default;
 
         ~ParameterMessage() = default;
 
@@ -108,7 +116,11 @@ namespace spider {
 
         TraceMessage(const TraceMessage &) = default;
 
-        TraceMessage(TraceMessage &&) = default;
+        TraceMessage(TraceMessage &&) noexcept = default;
+
+        TraceMessage &operator=(const TraceMessage &) = default;
+
+        TraceMessage &operator=(TraceMessage &&) noexcept = default;
 
         ~TraceMessage() = default;
 
