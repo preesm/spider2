@@ -396,8 +396,8 @@ spider::vector<RPNElement> spider::rpn::extractPostfixElements(std::string infix
 }
 
 void spider::rpn::reorderPostfixStack(spider::vector<RPNElement> &postfixStack) {
-    auto operationStackVector = spider::make_vector<spider::vector<uint32_t>, StackID::EXPRESSION>();
-    operationStackVector.emplace_back(spider::make_vector<uint32_t, StackID::EXPRESSION>());
+    auto operationStackVector = spider::make_vector<spider::vector<uint32_t>>(StackID::EXPRESSION);
+    operationStackVector.emplace_back(spider::make_vector<uint32_t>(StackID::EXPRESSION));
     operationStackVector[0].reserve(6);
 
     /* == Fill up the operation stack once == */
@@ -408,7 +408,7 @@ void spider::rpn::reorderPostfixStack(spider::vector<RPNElement> &postfixStack) 
             if (operationStackVector.back().size() == 1) {
                 break;
             }
-            operationStackVector.emplace_back(spider::make_vector<uint32_t, StackID::EXPRESSION>());
+            operationStackVector.emplace_back(spider::make_vector<uint32_t>(StackID::EXPRESSION));
             operationStackVector.back().reserve(6);
         }
     }

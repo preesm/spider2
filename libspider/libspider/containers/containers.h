@@ -61,13 +61,13 @@ namespace spider {
     template<class T>
     using vector = std::vector<T, spider::Allocator<T>>;
 
-    template<class T, StackID stack = StackID::GENERAL>
-    inline spider::vector<T> make_vector(size_t size) {
+    template<class T>
+    inline spider::vector<T> make_vector(size_t size, StackID stack = StackID::GENERAL) {
         return spider::vector<T>(size, spider::Allocator<T>(stack));
     }
 
-    template<class T, StackID stack = StackID::GENERAL>
-    inline spider::vector<T> make_vector() {
+    template<class T>
+    inline spider::vector<T> make_vector(StackID stack = StackID::GENERAL) {
         return spider::vector<T>(spider::Allocator<T>(stack));
     }
 
