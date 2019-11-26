@@ -55,7 +55,7 @@ void spider::JITMSRTRunner::run(bool infiniteLoop) {
     bool canRun = true;
     while (run && !stop_) {
         /* == Check for notifications == */
-        bool blockingPop = (infiniteLoop && (jobQueueCurrentPos_ == (jobQueue_.size() - 1))) || !canRun;
+        bool blockingPop = (infiniteLoop && (jobQueueCurrentPos_ < jobQueue_.size())) || !canRun;
         while (readNotification(blockingPop)) {
             blockingPop = false;
         }
@@ -82,6 +82,7 @@ void spider::JITMSRTRunner::run(bool infiniteLoop) {
                     spider::log::info("Runner #%zu -> starting job %" PRId32"\n ", ix(), jobQueueCurrentPos_);
                 }
                 /* == Run the job == */
+                runJob(job);
 
                 /* == Update current position in job queue == */
                 if (log_enabled<LOG_LRT>()) {
@@ -120,8 +121,25 @@ void spider::JITMSRTRunner::run(bool infiniteLoop) {
 
 /* === Private method(s) implementation === */
 
-void spider::JITMSRTRunner::runJob(const spider::JobMessage &message) {
+void spider::JITMSRTRunner::runJob(const spider::JobMessage &job) {
+    /* == Fetch input memory == */
 
+    /* == Allocate output memory == */
+
+    /* == Run the job == */
+
+    /* == Send output data == */
+
+    /* == Send output parameters == */
+
+    /* == Notify other runtimes that need to know == */
+    for (const auto &shouldNotify : job.LRTs2Notify_) {
+        if (shouldNotify) {
+
+        }
+    }
+
+    /* == Send traces == */
 }
 
 bool spider::JITMSRTRunner::isJobRunnable(const JobMessage &job) const {

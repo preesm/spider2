@@ -68,7 +68,7 @@ namespace spider {
         uint32_t lastJobIx_ = UINT32_MAX;
         bool shouldBroadcast_ = false;
 
-        void runJob(const JobMessage &message);
+        void runJob(const JobMessage &job);
 
         bool isJobRunnable(const JobMessage &message) const;
 
