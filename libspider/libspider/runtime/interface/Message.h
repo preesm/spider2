@@ -43,6 +43,7 @@
 /* === Include(s) === */
 
 #include <containers/containers.h>
+#include <containers/array.h>
 
 namespace spider {
 
@@ -71,10 +72,10 @@ namespace spider {
 
         /* === Struct member(s) === */
 
-        spider::vector<bool> LRTs2Notify_;         /*!< Vector of LRT to notify after job completion (size IS equal to the number of LRT) */
-        spider::vector<JobConstraint> jobs2Wait_;  /*!< Vector of jobs this job has to wait before running (size is inferior or equal to the number of LRT) */
+        spider::array<bool> LRTs2Notify_;         /*!< Vector of LRT to notify after job completion (size IS equal to the number of LRT) */
+        spider::array<JobConstraint> jobs2Wait_;  /*!< Vector of jobs this job has to wait before running (size is inferior or equal to the number of LRT) */
+        spider::array<int64_t> inputParams_;
         // TODO: add other job description.
-
     };
 
     /**

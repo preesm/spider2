@@ -64,10 +64,8 @@ namespace spider {
          * @param stack  Stack on which the array should be allocated.
          * @param size   Size of the array.
          */
-        explicit array(size_t size, StackID stack = StackID::GENERAL) : data_(spider::Allocator<T>(stack)) {
-            /* == This avoid using std::vector( size_type count, const Allocator& alloc = Allocator() );
-             * == which is introduced in C++14 and still get default-inserted elements instead of copy constructed == */
-            data_.resize(size);
+        explicit array(size_t size, StackID stack = StackID::GENERAL) : size_{ size } {
+            data_ = spider::allocate<T>(stack, size + 1);
         }
 
         /**
@@ -76,17 +74,19 @@ namespace spider {
          * @param size   Size of the array.
          * @param value  Value to set to all the elements of the array.
          */
-        array(size_t size, const T &value, StackID stack = StackID::GENERAL) : data_(size,
-                                                                                     value,
-                                                                                     spider::Allocator<T>(stack)) { }
+        explicit array(size_t size, const T &value, StackID stack = StackID::GENERAL) : array(size, stack) {
+            set(value);
+        }
 
         array() noexcept : data_() { };
 
-        array(const array &) = default;
+        array(const array &other) : size_{ other.size_ } { };
 
         array(array &&other) noexcept : array() { swap(*this, other); }
 
-        ~array() = default;
+        ~array() {
+            spider::deallocate(data_);
+        }
 
         array &operator=(array tmp) {
             swap(*this, tmp);
@@ -106,6 +106,7 @@ namespace spider {
             /* == Do the swapping of the values == */
             using std::swap;
             swap(first.data_, second.data_);
+            swap(first.size_, second.size_);
         }
 
 
@@ -117,8 +118,8 @@ namespace spider {
 
         /* === Iterator methods === */
 
-        typedef typename spider::vector<T>::iterator iterator;
-        typedef typename spider::vector<T>::const_iterator const_iterator;
+        typedef T *iterator;
+        typedef const T *const_iterator;
 
         iterator begin();
 
@@ -164,7 +165,8 @@ namespace spider {
         inline const T &at(size_t ix) const;
 
     private:
-        spider::vector<T> data_;
+        T *data_ = nullptr;
+        size_t size_ = 0;
     };
 
     /* === Inline methods === */
@@ -181,47 +183,53 @@ namespace spider {
 
     template<typename T>
     void array<T>::set(const T &value) {
-        data_.assign(data_.size(), value);
+        std::fill(begin(), end(), value);
     }
 
     template<typename T>
     T &array<T>::at(size_t ix) {
-        return data_.at(ix);
+        if (ix >= size_) {
+            throw std::out_of_range("array out of bound.");
+        }
+        return data_[ix];
     }
 
     template<typename T>
     const T &array<T>::at(size_t ix) const {
-        return data_.at(ix);
+        if (ix >= size_) {
+            throw std::out_of_range("array out of bound.");
+        }
+        return data_[ix];
     }
 
     template<typename T>
     typename array<T>::iterator array<T>::begin() {
-        return data_.begin();
+        return data_;
     }
 
     template<typename T>
     typename array<T>::iterator array<T>::end() {
-        return data_.end();
+        return data_ + size_;
     }
 
     template<typename T>
     typename array<T>::const_iterator array<T>::begin() const {
-        return data_.begin();
+        return data_;
     }
 
     template<typename T>
     typename array<T>::const_iterator array<T>::end() const {
-        return data_.end();
+        return data_ + size_;
     }
 
     template<typename T>
     size_t array<T>::size() const {
-        return data_.size();
+        return size_;
     }
 
     template<typename T>
     const T *array<T>::data() const {
-        return data_.data();
+        return data_;
     }
 }
 #endif //SPIDER2_ARRAY_H

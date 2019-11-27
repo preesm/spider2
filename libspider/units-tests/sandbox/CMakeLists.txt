@@ -35,8 +35,7 @@ file(GLOB_RECURSE
         ${SPIDER_LIB_DIR}/graphs-tools/expression-parser/*.cpp
         ${SPIDER_LIB_DIR}/graphs-tools/transformation/*.cpp
         ${SPIDER_LIB_DIR}/graphs-tools/numerical/*.cpp
-        ${SPIDER_LIB_DIR}/runtime/distributed/*.cpp
-        ${SPIDER_LIB_DIR}/runtime/master-slave/*.cpp
+        ${SPIDER_LIB_DIR}/runtime/*.cpp
         ${SPIDER_LIB_DIR}/spider-api/*.cpp
         ${SPIDER_LIB_DIR}/scheduling/*.cpp
         ${SPIDER_LIB_DIR}/scenario/*.cpp
@@ -62,8 +61,6 @@ file(GLOB_RECURSE
         ${SPIDER_LIB_DIR}/graphs-tools/transformation/optims/*.h
         ${SPIDER_LIB_DIR}/graphs-tools/numerical/*.h
         ${SPIDER_LIB_DIR}/runtime/*.h
-        ${SPIDER_LIB_DIR}/runtime/distributed/*.h
-        ${SPIDER_LIB_DIR}/runtime/master-slave/*.h
         ${SPIDER_LIB_DIR}/spider-api/*.h
         ${SPIDER_LIB_DIR}/scheduling/*.h
         ${SPIDER_LIB_DIR}/scenario/*.h
