@@ -94,14 +94,14 @@ spider::brv::extractConnectedComponents(const spider::pisdf::Graph *graph) {
     spider::array<const pisdf::Vertex *> keyArray{ graph->vertexCount(), nullptr, StackID::TRANSFO };
 
     /* == Iterate over every vertex and assign it to a connected component == */
-    auto connectedComponents = spider::make_vector<ConnectedComponent>(1, StackID::TRANSFO);
+    auto connectedComponents = spider::containers::vector<ConnectedComponent>(1, StackID::TRANSFO);
     for (const auto &vertex : graph->vertices()) {
         if (!keyArray[vertex->ix()]) {
             keyArray[vertex->ix()] = vertex;
 
             /* == Initiate a new connected component == */
             ConnectedComponent component;
-            component.vertexVector_ = spider::make_vector<pisdf::Vertex *>(StackID::TRANSFO);
+            component.vertexVector_ = spider::containers::vector<pisdf::Vertex *>(StackID::TRANSFO);
             component.vertexVector_.emplace_back(vertex);
 
             /* == Extract every vertices of the connected component using a non-recursive BFS algorithm == */
