@@ -79,9 +79,9 @@ namespace spider {
 
     private:
         spider::array<spider::Queue<Notification>> notificationQueueArray_;
-        spider::array<spider::IndexedQueue<JobMessage>> jobMessageQueueArray_;
-        spider::array<spider::IndexedQueue<ParameterMessage>> paramMessageQueueArray_;
-        spider::array<spider::IndexedQueue<TraceMessage>> traceMessageQueueArray_;
+        spider::IndexedQueue<JobMessage> jobMessageQueueArray_;
+        spider::IndexedQueue<ParameterMessage> paramMessageQueueArray_;
+        spider::IndexedQueue<TraceMessage> traceMessageQueueArray_;
     };
 
     /* === Inline method(s) === */
