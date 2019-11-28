@@ -10,21 +10,24 @@ fi
 
 if [ "$#" -ne 1 ]; then
     echo "Expecting one argument."
-    echo "usage: ./run-test.sh FOLDER_NAME"
+    echo "usage: ./run-test.sh TEST_NAME"
     exit 1
 fi
 
-# Move to folder
-cd $1/bin
+# Creates output binary folder
+rm -rf bin 
+mkdir bin
+cd bin
+
+# Configure project with cmake
+cmake ..
+
+# Compile project
+mkdir $1
+cmake --build . --target $1-spider2.0-tests -- -j$(nproc) 
 
 # Run test
-./test-$1 --gtest_output="xml:../report-$1.xml"
-
-# Generate html report
-rm -f $1/$1_test.info
-lcov -c -d . -o $1_test.info
-lcov --remove $1_test.info "/usr*" -o $1_test.info # remove output for external libraries
-rm -rf ../report
+./$1-spider2.0-tests --gtest_output="xml:../report-$1-spider2.0-tests.xml"
 
 # Clean work space
 rm -rf ../bin

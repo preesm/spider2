@@ -30,12 +30,12 @@ cmake --build . --target $1-spider2.0-tests -- -j$(nproc)
 ./$1-spider2.0-tests --gtest_output="xml:../report-$1-spider2.0-tests.xml"
 
 # Generate html report
-cp -R ../../../cmake-build-debug/CMakeFiles/Spider2.dir/libspider/*.gcda .
-cp -R ../../../cmake-build-debug/CMakeFiles/Spider2.dir/libspider/**/*.gcda .
-cp -R ../../../cmake-build-debug/CMakeFiles/Spider2.dir/libspider/**/**/*.gcda .
-cp -R ../../../cmake-build-debug/CMakeFiles/Spider2.dir/libspider/*.gcno .
-cp -R ../../../cmake-build-debug/CMakeFiles/Spider2.dir/libspider/**/*.gcno .
-cp -R ../../../cmake-build-debug/CMakeFiles/Spider2.dir/libspider/**/**/*.gcno .
+cp -R ../../../bin/CMakeFiles/Spider2.dir/libspider/*.gcda .
+cp -R ../../../bin/CMakeFiles/Spider2.dir/libspider/**/*.gcda .
+cp -R ../../../bin/CMakeFiles/Spider2.dir/libspider/**/**/*.gcda .
+cp -R ../../../bin/CMakeFiles/Spider2.dir/libspider/*.gcno .
+cp -R ../../../bin/CMakeFiles/Spider2.dir/libspider/**/*.gcno .
+cp -R ../../../bin/CMakeFiles/Spider2.dir/libspider/**/**/*.gcno .
 mv CMakeFiles/$1-spider2.0-tests.dir/source/*.gcda .
 mv CMakeFiles/$1-spider2.0-tests.dir/source/*.gcno .
 lcov -c -d . -o $1-spider2.0-tests_test.info

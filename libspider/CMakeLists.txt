@@ -39,7 +39,7 @@ endif ()
 
 # CMake options
 option(TypeSafe "TypeSafe" OFF)
-option(Enable_PAPI "Enable_PAPI" ON)
+option(Enable_PAPI "Enable_PAPI" OFF)
 
 # CMake cross compilation stuff
 if (${CROSS_COMPILE_MINGW})

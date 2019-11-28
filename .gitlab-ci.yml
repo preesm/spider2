@@ -1,6 +1,5 @@
 stages: 
   - build-spider
-  - build-test
   - test
 job-build: 
   stage: build-spider
@@ -11,35 +10,14 @@ job-build:
     - "cmake ../.."
     - "make VERBOSE=1"
     - "cd ../../.."
-build-test-memory: 
-  stage: build-test
-  script: 
-    - "cd libspider/units-tests/libSpider2-tests/"
-    - ./build-test.sh memory
   artifacts:
     paths:
-    - "libspider/units-tests/libSpider2-tests/memory/bin"
-build-test-containers: 
-  stage: build-test
-  script: 
-    - "cd libspider/units-tests/libSpider2-tests/"
-    - ./build-test.sh containers
-  artifacts:
-    paths:
-    - "libspider/units-tests/libSpider2-tests/containers/bin"
-build-test-expression: 
-  stage: build-test
-  script: 
-    - "cd libspider/units-tests/libSpider2-tests/"
-    - ./build-test.sh expression-parser
-  artifacts:
-    paths:
-    - "libspider/units-tests/libSpider2-tests/expression-parser/bin"
-test-memory: 
+    - "libspider/bin"
+test-allocator: 
   stage: test
   script: 
     - "cd libspider/units-tests/libSpider2-tests/"
-    - ./run-test.sh memory
+    - ./run-test.sh allocator
 test-containers: 
   stage: test
   script: 
@@ -49,4 +27,4 @@ test-expression:
   stage: test
   script: 
     - "cd libspider/units-tests/libSpider2-tests/"
-    - ./run-test.sh expression-parser
+    - ./run-test.sh expression
