@@ -57,14 +57,14 @@ public:
      * @remark Memory should be deallocated before calling reset.
      * @remark Behavior is undefined for memory block deallocated after reset call.
      */
-    virtual void reset() = 0;
+    virtual void reset() noexcept = 0;
 
 protected:
 
     explicit DynamicAllocator(std::string name, size_t alignment = 0) : AbstractAllocator(std::move(name),
                                                                                           alignment) { }
 
-    ~DynamicAllocator() override = default;
+    ~DynamicAllocator() noexcept override = default;
 };
 
 #endif //SPIDER2_DYNAMICALLOCATOR_H

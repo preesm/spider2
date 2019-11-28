@@ -88,7 +88,7 @@ void LIFOStaticAllocator::deallocate(void *ptr) {
     used_ = currentAddress - reinterpret_cast<uintptr_t>(startPtr_);
 }
 
-void LIFOStaticAllocator::reset() {
+void LIFOStaticAllocator::reset() noexcept {
     averageUse_ += used_;
     numberAverage_++;
     used_ = 0;

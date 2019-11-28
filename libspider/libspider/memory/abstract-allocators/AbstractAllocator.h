@@ -67,7 +67,7 @@ public:
                                                                          alignment_{ alignment },
                                                                          name_{ std::move(name) } { }
 
-    virtual ~AbstractAllocator() {
+    virtual ~AbstractAllocator() noexcept {
         if (used_ > 0 && log_enabled()) {
             spider::log::error("Allocator: %s -- Still has %lf %s in use.\n",
                                name(),
@@ -90,35 +90,59 @@ public:
      */
     virtual void deallocate(void *ptr) = 0;
 
-    /* Setters */
+    /* === Setter(s) === */
 
     /**
      * @brief Set memory allocation alignment.
      *        All new allocation made after this call result in allocation aligned to new value.
      * @param alignment  New allocation value.
      */
-    inline void setAllocationAlignment(size_t alignment);
+    inline void setAllocationAlignment(size_t alignment) noexcept {
+        alignment_ = alignment;
+    }
 
-    /* Getters */
+    /* === Getter(s) === */
 
     /**
      * @brief Fetch current memory allocation alignment
      * @return current allocation alignment
      */
-    inline size_t getAllocationAlignment() const;
+    inline size_t getAllocationAlignment() const noexcept {
+        return alignment_;
+    }
 
     /**
      * @brief Return name of the allocator.
      * @return name of the allocator
      */
-    inline const char *name() const;
+    inline const char *name() const noexcept {
+        return name_.c_str();
+    }
 
-    /* Methods */
+    /* ===  Methods === */
 
     /**
      * @brief Print allocator usage statistics (peak usage, average usage)
      */
-    inline void printStats() const;
+    inline void printStats() const noexcept {
+        if (log_enabled()) {
+            spider::log::info("Allocator: %s\n", name());
+            spider::log::info("       ==> max usage:    %" PRIu64" B (%.6lf %s)\n",
+                              peak_,
+                              getByteNormalizedSize(peak_),
+                              getByteUnitString(peak_));
+            if (averageUse_) {
+                spider::log::info("       ==> avg usage:    %" PRIu64" B (%.6lf %s)\n",
+                                  averageUse_ / numberAverage_,
+                                  getByteNormalizedSize(averageUse_ / numberAverage_),
+                                  getByteUnitString(averageUse_ / numberAverage_));
+            }
+            spider::log::info("       ==> still in use: %" PRIu64" B (%.6lf %s)\n",
+                              used_,
+                              getByteNormalizedSize(used_),
+                              getByteUnitString(used_));
+        }
+    }
 
 protected:
     uint64_t used_ = 0;
@@ -127,97 +151,51 @@ protected:
     uint64_t numberAverage_ = 0;
     size_t alignment_ = 0;
 
-    static inline size_t computeAlignedSize(size_t size, size_t alignment);
+    static inline size_t computeAlignedSize(size_t size, size_t alignment) noexcept {
+        return size + computePadding(size, alignment);
+    }
 
-    static inline size_t computePadding(size_t size, size_t alignment);
+    static inline size_t computePadding(size_t size, size_t alignment) noexcept {
+        const auto &byteAlignment = (size % alignment);
+        return byteAlignment ? alignment - byteAlignment : 0;
+    }
 
     static inline size_t
-    computePaddingWithHeader(size_t size, size_t alignment, size_t headerSize);
+    computePaddingWithHeader(size_t size, size_t alignment, size_t headerSize) noexcept {
+        return computePadding(size + headerSize, alignment);
+    }
 
-    static inline const char *getByteUnitString(uint64_t size);
+    static inline const char *getByteUnitString(uint64_t size) noexcept {
+        constexpr uint64_t SIZE_GB = 1024 * 1024 * 1024;
+        constexpr uint64_t SIZE_MB = 1024 * 1024;
+        constexpr uint64_t SIZE_KB = 1024;
+        if (size / SIZE_GB) {
+            return "GB";
+        } else if (size / SIZE_MB) {
+            return "MB";
+        } else if (size / SIZE_KB) {
+            return "KB";
+        }
+        return "B";
+    }
 
-    static inline double getByteNormalizedSize(uint64_t size);
+    static inline double getByteNormalizedSize(uint64_t size) noexcept {
+        constexpr double SIZE_GB = 1024 * 1024 * 1024;
+        constexpr double SIZE_MB = 1024 * 1024;
+        constexpr double SIZE_KB = 1024;
+        const auto dblSize = (double) size;
+        if (dblSize / SIZE_GB >= 1.) {
+            return dblSize / SIZE_GB;
+        } else if (dblSize / SIZE_MB >= 1.) {
+            return dblSize / SIZE_MB;
+        } else if (dblSize / SIZE_KB >= 1.) {
+            return dblSize / SIZE_KB;
+        }
+        return dblSize;
+    }
 
 private:
     std::string name_;
 };
-
-/* === Inline methods === */
-
-void AbstractAllocator::setAllocationAlignment(size_t alignment) {
-    alignment_ = alignment;
-}
-
-size_t AbstractAllocator::getAllocationAlignment() const {
-    return alignment_;
-}
-
-const char *AbstractAllocator::name() const {
-    return name_.c_str();
-}
-
-void AbstractAllocator::printStats() const {
-    if (log_enabled()) {
-        spider::log::info("Allocator: %s\n", name());
-        spider::log::info("       ==> max usage:    %" PRIu64" B (%.6lf %s)\n",
-                          peak_,
-                          getByteNormalizedSize(peak_),
-                          getByteUnitString(peak_));
-        if (averageUse_) {
-            spider::log::info("       ==> avg usage:    %" PRIu64" B (%.6lf %s)\n",
-                              averageUse_ / numberAverage_,
-                              getByteNormalizedSize(averageUse_ / numberAverage_),
-                              getByteUnitString(averageUse_ / numberAverage_));
-        }
-        spider::log::info("       ==> still in use: %" PRIu64" B (%.6lf %s)\n",
-                          used_,
-                          getByteNormalizedSize(used_),
-                          getByteUnitString(used_));
-    }
-}
-
-size_t AbstractAllocator::computeAlignedSize(size_t size, size_t alignment) {
-    return size + computePadding(size, alignment);
-}
-
-size_t AbstractAllocator::computePadding(size_t size, size_t alignment) {
-    const auto &byteAlignment = (size % alignment);
-    return byteAlignment ? alignment - byteAlignment : 0;
-}
-
-size_t
-AbstractAllocator::computePaddingWithHeader(size_t size, size_t alignment, size_t headerSize) {
-    return computePadding(size + headerSize, alignment);
-}
-
-const char *AbstractAllocator::getByteUnitString(uint64_t size) {
-    constexpr uint64_t SIZE_GB = 1024 * 1024 * 1024;
-    constexpr uint64_t SIZE_MB = 1024 * 1024;
-    constexpr uint64_t SIZE_KB = 1024;
-    if (size / SIZE_GB) {
-        return "GB";
-    } else if (size / SIZE_MB) {
-        return "MB";
-    } else if (size / SIZE_KB) {
-        return "KB";
-    }
-    return "B";
-}
-
-double AbstractAllocator::getByteNormalizedSize(uint64_t size) {
-    constexpr double SIZE_GB = 1024 * 1024 * 1024;
-    constexpr double SIZE_MB = 1024 * 1024;
-    constexpr double SIZE_KB = 1024;
-    const auto dblSize = (double) size;
-    if (dblSize / SIZE_GB >= 1.) {
-        return dblSize / SIZE_GB;
-    } else if (dblSize / SIZE_MB >= 1.) {
-        return dblSize / SIZE_MB;
-    } else if (dblSize / SIZE_KB >= 1.) {
-        return dblSize / SIZE_KB;
-    }
-    return dblSize;
-}
-
 
 #endif //SPIDER2_ABSTRACTALLOCATOR_H

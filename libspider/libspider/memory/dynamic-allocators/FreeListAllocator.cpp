@@ -44,7 +44,7 @@
 
 /* === Constant(s) === */
 
-constexpr size_t MIN_CHUNK_SIZE = 8192;
+size_t FreeListAllocator::MIN_CHUNK_SIZE = 8192;
 
 /* === Methods implementation === */
 
@@ -69,7 +69,7 @@ FreeListAllocator::FreeListAllocator(std::string name,
 }
 
 
-FreeListAllocator::~FreeListAllocator() {
+FreeListAllocator::~FreeListAllocator() noexcept {
     std::free(staticBufferPtr_);
     for (auto &it: extraBuffers_) {
         std::free(it.bufferPtr_);
@@ -177,7 +177,7 @@ void FreeListAllocator::deallocate(void *ptr) {
     }
 }
 
-void FreeListAllocator::reset() {
+void FreeListAllocator::reset() noexcept {
     averageUse_ += used_;
     numberAverage_++;
     used_ = 0;
@@ -261,28 +261,26 @@ FreeListAllocator::findBest(size_t size, size_t *padding, size_t alignment, Node
     const auto &requiredSize = size + (*padding);
     auto *it = base;
     Node *previousNode = nullptr;
+    Node *bestPreviousNode = nullptr;
     Node *bestNode = nullptr;
     while (it) {
         if ((it->blockSize_ >= requiredSize) &&
             ((it->blockSize_ - requiredSize) < minFit)) {
             minFit = it->blockSize_ - requiredSize;
+            bestPreviousNode = previousNode;
+            bestNode = it;
             if (!minFit) {
                 /* == We won't find better fit == */
-                return std::make_pair(it, previousNode);
+                return std::make_pair(bestNode, bestPreviousNode);
             }
-            bestNode = it;
-        } else {
-            previousNode = it;
         }
+        previousNode = it;
         it = it->next_;
     }
-    if (previousNode == base && !base->next_) {
-        return std::make_pair(bestNode, nullptr);
-    }
-    return std::make_pair(bestNode, previousNode);
+    return std::make_pair(bestNode, bestPreviousNode);
 }
 
-bool FreeListAllocator::validAddress(void *ptr) {
+bool FreeListAllocator::validAddress(void *ptr) noexcept {
     const auto &uintptr = reinterpret_cast<uintptr_t>(ptr);
     const auto &staticBufferUintptr = reinterpret_cast<uintptr_t>(staticBufferPtr_);
     auto found = ((uintptr >= staticBufferUintptr) && (uintptr < (staticBufferUintptr + staticBufferSize_)));

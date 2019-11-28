@@ -78,7 +78,7 @@ void GenericAllocator::deallocate(void *ptr) {
     std::free(reinterpret_cast<void *>(headerAddress));
 }
 
-void GenericAllocator::reset() {
+void GenericAllocator::reset() noexcept {
     averageUse_ += used_;
     numberAverage_++;
     used_ = 0;

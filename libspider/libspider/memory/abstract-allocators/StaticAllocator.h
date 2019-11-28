@@ -52,7 +52,7 @@ public:
 
     void deallocate(void *ptr) override = 0;
 
-    virtual void reset() = 0;
+    virtual void reset() noexcept = 0;
 
 protected:
     size_t totalSize_;
@@ -84,26 +84,22 @@ protected:
         externalBase_ = true;
     }
 
-    ~StaticAllocator() override {
+    ~StaticAllocator() noexcept override {
         if (!externalBase_) {
             std::free(startPtr_);
         }
     }
 
-    inline void checkPointerAddress(void *ptr) const;
+    inline void checkPointerAddress(void *ptr) const {
+        const auto &uintPtr = reinterpret_cast<uintptr_t >(ptr);
+        if (uintPtr < reinterpret_cast<uintptr_t>(startPtr_)) {
+            throwSpiderException("Trying to deallocate unallocated memory block.");
+        }
+
+        if (uintPtr > (reinterpret_cast<uintptr_t>(startPtr_) + totalSize_)) {
+            throwSpiderException("Trying to deallocate memory block out of memory space.");
+        }
+    }
 };
-
-/* === Inline methods === */
-
-void StaticAllocator::checkPointerAddress(void *ptr) const {
-    const auto &uintPtr = reinterpret_cast<uintptr_t >(ptr);
-    if (uintPtr < reinterpret_cast<uintptr_t>(startPtr_)) {
-        throwSpiderException("Trying to deallocate unallocated memory block.");
-    }
-
-    if (uintPtr > (reinterpret_cast<uintptr_t>(startPtr_) + totalSize_)) {
-        throwSpiderException("Trying to deallocate memory block out of memory space.");
-    }
-}
 
 #endif //SPIDER2_STATICALLOCATOR_H

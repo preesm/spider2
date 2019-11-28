@@ -53,13 +53,13 @@ public:
 
     explicit LIFOStaticAllocator(std::string name, size_t totalSize, void *externalBase);
 
-    ~LIFOStaticAllocator() override = default;
+    ~LIFOStaticAllocator() noexcept override = default;
 
     void *allocate(size_t size) override;
 
     void deallocate(void *ptr) override;
 
-    void reset() override;
+    void reset() noexcept override;
 };
 
 #endif //SPIDER2_LIFOSTATICALLOCATOR_H

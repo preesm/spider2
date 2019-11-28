@@ -93,7 +93,7 @@ void LinearStaticAllocator::deallocate(void *ptr) {
     /*!< LinearStaticAllocator does not free memory per block */
 }
 
-void LinearStaticAllocator::reset() {
+void LinearStaticAllocator::reset() noexcept {
     averageUse_ += used_;
     numberAverage_++;
     used_ = 0;

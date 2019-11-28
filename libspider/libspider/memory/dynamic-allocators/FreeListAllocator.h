@@ -61,14 +61,15 @@ public:
                                FreeListPolicy policy = FreeListPolicy::FIND_FIRST,
                                size_t alignment = sizeof(int64_t));
 
-    ~FreeListAllocator() override;
+    ~FreeListAllocator() noexcept override;
 
     void *allocate(size_t size) override;
 
     void deallocate(void *ptr) override;
 
-    void reset() override;
+    void reset() noexcept override;
 
+    static size_t MIN_CHUNK_SIZE;
 private:
 
     struct Buffer {
@@ -107,7 +108,7 @@ private:
      * @param ptr  Pointer to check.
      * @return true if address is valid, false else.
      */
-    bool validAddress(void *ptr);
+    bool validAddress(void *ptr) noexcept;
 };
 
 #endif //SPIDER2_FREELISTALLOCATOR_H

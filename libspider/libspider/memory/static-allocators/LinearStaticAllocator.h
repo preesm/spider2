@@ -66,7 +66,7 @@ public:
 
     void deallocate(void *ptr) override;
 
-    void reset() override;
+    void reset() noexcept override;
 
 };
 
