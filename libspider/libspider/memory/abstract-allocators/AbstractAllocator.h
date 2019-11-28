@@ -70,7 +70,7 @@ public:
     virtual ~AbstractAllocator() {
         if (used_ > 0 && log_enabled()) {
             spider::log::error("Allocator: %s -- Still has %lf %s in use.\n",
-                               getName(),
+                               name(),
                                AbstractAllocator::getByteNormalizedSize(used_),
                                AbstractAllocator::getByteUnitString(used_));
         }
@@ -111,7 +111,7 @@ public:
      * @brief Return name of the allocator.
      * @return name of the allocator
      */
-    inline const char *getName() const;
+    inline const char *name() const;
 
     /* Methods */
 
@@ -152,13 +152,13 @@ size_t AbstractAllocator::getAllocationAlignment() const {
     return alignment_;
 }
 
-const char *AbstractAllocator::getName() const {
+const char *AbstractAllocator::name() const {
     return name_.c_str();
 }
 
 void AbstractAllocator::printStats() const {
     if (log_enabled()) {
-        spider::log::info("Allocator: %s\n", getName());
+        spider::log::info("Allocator: %s\n", name());
         spider::log::info("       ==> max usage:    %" PRIu64" B (%.6lf %s)\n",
                           peak_,
                           getByteNormalizedSize(peak_),

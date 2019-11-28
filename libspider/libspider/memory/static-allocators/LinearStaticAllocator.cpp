@@ -77,7 +77,7 @@ void *LinearStaticAllocator::allocate(size_t size) {
         throwSpiderException("Memory request exceed memory available. Stack: %s -- Size: %"
                                      PRIu64
                                      " -- Requested: %"
-                                     PRIu64, getName(), totalSize_, requestedSize);
+                                     PRIu64, name(), totalSize_, requestedSize);
     }
     const auto &alignedAllocatedAddress = reinterpret_cast<uintptr_t>(startPtr_) + used_;
     used_ += (size + padding);
@@ -86,6 +86,9 @@ void *LinearStaticAllocator::allocate(size_t size) {
 }
 
 void LinearStaticAllocator::deallocate(void *ptr) {
+    if (!ptr) {
+        return;
+    }
     StaticAllocator::checkPointerAddress(ptr);
     /*!< LinearStaticAllocator does not free memory per block */
 }

@@ -66,7 +66,7 @@ void *LIFOStaticAllocator::allocate(size_t size) {
                                      PRIu64
                                      " -- Requested: %"
                                      PRIu64
-                                     "", getName(), totalSize_, alignedSize);
+                                     "", name(), totalSize_, alignedSize);
     }
     const auto &alignedAllocatedAddress = reinterpret_cast<uintptr_t>(startPtr_) + used_ - size;
     used_ = alignedSize;
@@ -83,7 +83,7 @@ void LIFOStaticAllocator::deallocate(void *ptr) {
     if (currentAddress > (used_ + reinterpret_cast<uintptr_t>(startPtr_))) {
         throwSpiderException(
                 "Allocator: %s -- LIFO allocator should deallocate element in reverse order of allocation.",
-                getName());
+                name());
     }
     used_ = currentAddress - reinterpret_cast<uintptr_t>(startPtr_);
 }
