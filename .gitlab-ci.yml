@@ -8,7 +8,7 @@ job-build:
     - "mkdir libspider/bin/make"
     - "cd libspider/bin/make"
     - "cmake ../.."
-    - "make VERBOSE=1"
+    - "make VERBOSE=1 -j$(nproc)"
     - "cd ../../.."
   artifacts:
     paths:
@@ -28,3 +28,8 @@ test-expression:
   script: 
     - "cd libspider/units-tests/libSpider2-tests/"
     - ./run-test.sh expression
+test-rpnconverter: 
+  stage: test
+  script: 
+    - "cd libspider/units-tests/libSpider2-tests/"
+    - ./run-test.sh rpnconverter
