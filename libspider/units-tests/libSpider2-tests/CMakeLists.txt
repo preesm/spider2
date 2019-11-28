@@ -17,7 +17,7 @@ find_package(GTest REQUIRED)
 
 # Set flags
 set(CMAKE_BUILD_TYPE Debug)
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -pg -Wall -Wextra -coverage -ftest-coverage -fprofile-arcs")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -pg -Wall -Wextra --coverage -ftest-coverage -fprofile-arcs")
 
 
 # Link runTests with what we want to test and the GTest and pthread library
@@ -61,3 +61,6 @@ target_link_libraries(allocator-spider2.0-tests ${GTEST_LIBRARIES} ${CMAKE_THREA
 
 add_executable(expression-spider2.0-tests source/main.cpp source/expressionTest.cpp ${header_files})
 target_link_libraries(expression-spider2.0-tests ${GTEST_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${SPIDER_LIBRARY} gcov)
+
+add_executable(rpnconverter-spider2.0-tests source/main.cpp source/rpnconverterTest.cpp ${header_files})
+target_link_libraries(rpnconverter-spider2.0-tests ${GTEST_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${SPIDER_LIBRARY} gcov)

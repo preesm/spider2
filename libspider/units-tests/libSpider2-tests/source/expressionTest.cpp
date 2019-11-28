@@ -64,6 +64,9 @@ protected:
 TEST_F(expressionTest, expressionCtorTest) {
     ASSERT_NO_THROW(Expression(4)) << "Expression(int64_t) failed.";
     ASSERT_NO_THROW(Expression("")) << "Expression(std::string, {}) failed.";
+    ASSERT_NO_THROW(Expression(Expression(10))) << "Expression(Expression &&) failed.";
+    auto tmp = Expression("10 * 10");
+    ASSERT_NO_THROW(Expression(tmp)) << "Expression(const Expression &) failed.";
     spider::pisdf::Graph *graph = spider::api::createGraph("test");
     ASSERT_THROW(Expression("width", graph->params()), spider::Exception) << "Parameterized Expression should throw when parameter is not found.";
     ASSERT_THROW(Expression("width"), spider::Exception) << "Parameterized Expression should throw when no parameter is given.";
@@ -107,7 +110,7 @@ TEST_F(expressionTest, expressionOperatorsTest) {
     ASSERT_EQ(Expression("(2+2)(2 + 2)").evaluateDBL(), 16.) << "Expression: parenthesis implicit multiplication failed.";
 }
 
-TEST_F(expressionTest, stdContainersCtorTest) {
+TEST_F(expressionTest, expressionFunctionsTest) {
     ASSERT_NEAR(Expression("cos(pi)").evaluateDBL(), -1., 0.000001) << "Expression: cos(pi) failed.";
     ASSERT_NEAR(Expression("cos(0)").evaluateDBL(), 1., 0.000001) << "Expression: cos(0) failed.";
     ASSERT_NEAR(Expression("sin(Pi)").evaluateDBL(), 0., 0.000001) << "Expression: sin(Pi) failed.";
@@ -134,7 +137,7 @@ TEST_F(expressionTest, stdContainersCtorTest) {
     ASSERT_EQ(Expression("min(0.2 * 0.1, 0.21)").dynamic(), false) << "Expression: dynamic() should evaluate to false for static expression.";
     spider::pisdf::Graph *graph = spider::api::createGraph("test", 0, 0, 1);
     auto *height =spider::api::createDynamicParam(graph, "height");
-    ASSERT_EQ(Expression("cos(height)", graph->params()).evaluateDBL(graph->params()), 1.) << "Expression: parameterized function evaluation failed.";
+    ASSERT_EQ(Expression("1cos(height)", graph->params()).evaluateDBL(graph->params()), 1.) << "Expression: parameterized function evaluation failed.";
     ASSERT_EQ(Expression("cos(height)", graph->params()).evaluate(graph->params()), 1) << "Expression: parameterized function evaluation to int64_t failed.";
     height->setValue(3);
     ASSERT_NEAR(Expression("cos(height)", graph->params()).evaluateDBL(graph->params()), -0.989992497, 0.001) << "Expression: parameterized function evaluation failed.";

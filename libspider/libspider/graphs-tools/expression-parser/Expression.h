@@ -62,12 +62,9 @@ struct ExpressionElt {
 
     ExpressionElt(ExpressionElt &&) noexcept = default;
 
-    ExpressionElt &operator=(ExpressionElt elt) {
-        using std::swap;
-        swap(this->elt_, elt.elt_);
-        swap(this->arg, elt.arg);
-        return *this;
-    }
+    ExpressionElt &operator=(ExpressionElt &&) = default;
+
+    ExpressionElt &operator=(const ExpressionElt &) = default;
 
     explicit ExpressionElt(RPNElement elt) : elt_{ std::move(elt) } { }
 };
@@ -83,9 +80,9 @@ public:
 
     Expression() = default;
 
-    Expression(const Expression &other) = default;
+    Expression(const Expression &) = default;
 
-    inline Expression(Expression &&other) noexcept = default;
+    Expression(Expression &&) noexcept = default;
 
     ~Expression() = default;
 
