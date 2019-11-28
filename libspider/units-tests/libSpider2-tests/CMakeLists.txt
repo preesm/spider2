@@ -22,7 +22,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -pg -Wall -Wextra -cover
 
 # Link runTests with what we want to test and the GTest and pthread library
 set(SPIDER_INCLUDE_DIR "../../libspider")
-set(SPIDER_LIB_DIR "../../cmake-build-debug")
+set(SPIDER_LIB_DIR "../../bin")
 
 include_directories(
         ${GTEST_INCLUDE_DIRS}
