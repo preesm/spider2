@@ -78,11 +78,15 @@ namespace spider {
             set(value);
         }
 
-        array() noexcept : data_() { };
+        array() noexcept = default;
 
-        array(const array &other) : size_{ other.size_ } { };
+        array(const array &other) : array(other.size_) {
+            std::copy(other.begin(), other.end(), begin());
+        };
 
-        array(array &&other) noexcept : array() { swap(*this, other); }
+        array(array &&other) noexcept : array() {
+            swap(*this, other);
+        }
 
         ~array() {
             spider::deallocate(data_);

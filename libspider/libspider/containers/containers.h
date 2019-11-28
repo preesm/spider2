@@ -82,8 +82,8 @@ namespace spider {
 
     /* === Unordered associative containers === */
 
-    template<class Key>
-    using unordered_set = std::unordered_set<Key, std::hash<Key>, std::equal_to<Key>, spider::Allocator<Key>>;
+    template<class Key, class Hash = std::hash<Key>, class KeyEqual = std::equal_to<Key>>
+    using unordered_set = std::unordered_set<Key, Hash, KeyEqual, spider::Allocator<Key>>;
 
     template<class Key, class T>
     using unordered_map = std::unordered_map<Key, T, std::hash<Key>, std::equal_to<Key>, spider::Allocator<std::pair<const Key, T>>>;
@@ -230,38 +230,57 @@ namespace spider {
 
         template<class Key, class T, class Compare = std::less<Key>>
         inline spider::map<Key, T, Compare> map(StackID stack = StackID::GENERAL) {
-            return spider::map<Key, T, Compare>(spider::Allocator<T>(stack));
+            return spider::map<Key, T, Compare>(spider::Allocator<std::pair<const Key, T>>(stack));
         }
 
         template<class Key, class T, class Compare = std::less<Key>>
         inline spider::map<Key, T, Compare>
         map(const spider::map<Key, T, Compare> &other, StackID stack = StackID::GENERAL) {
-            return spider::map<Key, T, Compare>(other, spider::Allocator<T>(stack));
+            return spider::map<Key, T, Compare>(other, spider::Allocator<std::pair<const Key, T>>(stack));
         }
 
         template<class Key, class T, class Compare = std::less<Key>>
         inline spider::map<Key, T, Compare>
         map(spider::map<Key, T, Compare> &&other, StackID stack = StackID::GENERAL) {
-            return spider::map<Key, T, Compare>(other, spider::Allocator<T>(stack));
+            return spider::map<Key, T, Compare>(other, spider::Allocator<std::pair<const Key, T>>(stack));
+        }
+
+        /* === std::unordered_set === */
+
+        template<class Key>
+        inline spider::unordered_set<Key> unordered_set(StackID stack = StackID::GENERAL) {
+            return spider::unordered_set<Key>(spider::Allocator<Key>(stack));
+        }
+
+        template<class Key>
+        inline spider::unordered_set<Key>
+        unordered_set(const spider::unordered_set<Key> &other, StackID stack = StackID::GENERAL) {
+            return spider::unordered_set<Key>(other, spider::Allocator<Key>(stack));
+        }
+
+        template<class Key>
+        inline spider::unordered_set<Key>
+        unordered_set(spider::unordered_set<Key> &&other, StackID stack = StackID::GENERAL) {
+            return spider::unordered_set<Key>(other, spider::Allocator<Key>(stack));
         }
 
         /* === std::unordered_map === */
 
         template<class Key, class T>
         inline spider::unordered_map<Key, T> unordered_map(StackID stack = StackID::GENERAL) {
-            return spider::unordered_map<Key, T>(spider::Allocator<T>(stack));
+            return spider::unordered_map<Key, T>(spider::Allocator<std::pair<const Key, T>>(stack));
         }
 
         template<class Key, class T>
         inline spider::unordered_map<Key, T>
         unordered_map(const spider::unordered_map<Key, T> &other, StackID stack = StackID::GENERAL) {
-            return spider::unordered_map<Key, T>(other, spider::Allocator<T>(stack));
+            return spider::unordered_map<Key, T>(other, spider::Allocator<std::pair<const Key, T>>(stack));
         }
 
         template<class Key, class T>
         inline spider::unordered_map<Key, T>
         unordered_map(spider::unordered_map<Key, T> &&other, StackID stack = StackID::GENERAL) {
-            return spider::unordered_map<Key, T>(other, spider::Allocator<T>(stack));
+            return spider::unordered_map<Key, T>(other, spider::Allocator<std::pair<const Key, T>>(stack));
         }
     }
 }
