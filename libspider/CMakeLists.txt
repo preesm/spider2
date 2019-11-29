@@ -38,9 +38,9 @@ endif ()
 #  - spider
 
 # CMake options
-option(CMAKE_TYPE_SAFE "TYPE_SAFE" OFF)
-option(CMAKE_ENABLE_PAPI "ENABLE_PAPI" OFF)
-option(CMAKE_CHECK_ALLOCATOR "CHECK_ALLOCATOR" OFF)
+option(CMAKE_TYPE_SAFE "CMAKE_TYPE_SAFE" OFF)
+option(CMAKE_ENABLE_PAPI "CMAKE_ENABLE_PAPI" OFF)
+option(CMAKE_CHECK_ALLOCATOR "CMAKE_CHECK_ALLOCATOR" OFF)
 
 # CMake cross compilation stuff
 if (${CROSS_COMPILE_MINGW})
@@ -80,14 +80,14 @@ endif ()
 # Add definition for relative path into project
 add_definitions(-DPROJECT_ROOT_PATH="${CMAKE_CURRENT_SOURCE_DIR}")
 
-if (${TYPE_SAFE} MATCHES OFF)
+if (${CMAKE_TYPE_SAFE} MATCHES OFF)
     message("Using standard library printf without type checking.")
     add_definitions(-D_SPIDER_NO_TYPESAFETY_PRINT)
 else ()
     message("Using type safe printf. (this will increase library binary size)")
 endif ()
 
-if (${ENABLE_PAPI} MATCHES ON)
+if (${CMAKE_ENABLE_PAPI} MATCHES ON)
     message("Using PAPI library (if available).")
     set(SKIP_PAPI 0)
 else ()
@@ -95,7 +95,7 @@ else ()
     set(SKIP_PAPI 1)
 endif ()
 
-if (${CHECK_ALLOCATOR} MATCHES ON)
+if (${CMAKE_CHECK_ALLOCATOR} MATCHES ON)
     message("Enabling allocator check. This may slow down execution")
     add_definitions(-D_SPIDER_CHECK_ALLOCATOR)
 endif()
