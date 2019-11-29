@@ -79,7 +79,8 @@ private:
 };
 
 bool PiSDFJoinForkOptimizer::operator()(PiSDFGraph *graph) const {
-    spider::vector<std::pair<PiSDFAbstractVertex *, PiSDFAbstractVertex *>> verticesToOptimize;
+    auto verticesToOptimize = spider::containers::vector<std::pair<PiSDFAbstractVertex *, PiSDFAbstractVertex *>>(
+            StackID::TRANSFO);
 
     /* == Search for the pair of join / fork to optimize == */
     for (auto &vertex : graph->vertices()) {

@@ -57,7 +57,7 @@ static spider::srdag::TransfoStack buildSourceLinkerVector(spider::srdag::Transf
     const auto &edge = linker.edge_;
     const auto &source = edge->source();
     const auto &delay = edge->delay();
-    spider::srdag::TransfoStack sourceVector;
+    auto sourceVector = spider::containers::vector<spider::srdag::TransfoVertex>(StackID::TRANSFO);
     sourceVector.reserve(source->repetitionValue() + (delay ? delay->setter()->repetitionValue() : 0));
 
     /* == Populate first the source clones in reverse order == */
@@ -81,8 +81,7 @@ static spider::srdag::TransfoStack buildSinkLinkerVector(spider::srdag::TransfoD
     const auto &edge = linker.edge_;
     const auto &sink = edge->sink();
     const auto &delay = edge->delay();
-
-    spider::srdag::TransfoStack sinkVector;
+    auto sinkVector = spider::containers::vector<spider::srdag::TransfoVertex>(StackID::TRANSFO);
     sinkVector.reserve(sink->repetitionValue() + (delay ? delay->getter()->repetitionValue() : 0));
 
     /* == First, if delay, populate the getter clones in reverse order == */

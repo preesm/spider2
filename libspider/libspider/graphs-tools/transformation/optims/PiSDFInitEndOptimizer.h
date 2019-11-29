@@ -56,7 +56,7 @@ public:
 };
 
 bool PiSDFInitEndOptimizer::operator()(PiSDFGraph *graph) const {
-    spider::vector<PiSDFAbstractVertex *> verticesToOptimize;
+    auto verticesToOptimize = spider::containers::vector<PiSDFAbstractVertex *>(StackID::TRANSFO);
 
     /* == Retrieve the vertices to remove == */
     for (auto *vertex : graph->vertices()) {

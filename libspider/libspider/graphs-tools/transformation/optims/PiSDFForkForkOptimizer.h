@@ -57,7 +57,8 @@ public:
 };
 
 bool PiSDFForkForkOptimizer::operator()(PiSDFGraph *graph) const {
-    spider::vector<std::pair<spider::pisdf::Vertex *, spider::pisdf::Vertex *>> verticesToOptimize;
+    auto verticesToOptimize = spider::containers::vector<std::pair<spider::pisdf::Vertex *, spider::pisdf::Vertex *>>(
+            StackID::TRANSFO);
 
     /* == Search for the pair of fork to optimize == */
     for (const auto &v : graph->vertices()) {
@@ -66,7 +67,7 @@ bool PiSDFForkForkOptimizer::operator()(PiSDFGraph *graph) const {
             const auto &vertex = v->inputEdge(0)->sink();
             auto *source = vertex->inputEdge(0)->source();
             if (source->subtype() == spider::pisdf::VertexType::FORK) {
-                verticesToOptimize.push_back(std::make_pair(source, vertex));
+                verticesToOptimize.emplace_back(source, vertex);
             }
         }
     }
