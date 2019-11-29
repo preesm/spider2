@@ -81,6 +81,6 @@ void spider::sched::Schedule::setJobCount(size_t count) {
     jobs_.clear();
     jobs_.reserve(count);
     for (size_t i = 0; i < count; ++i) {
-        jobs_.emplace_back(i);
+        jobs_.emplace_back(static_cast<uint32_t>(i));
     }
 }
