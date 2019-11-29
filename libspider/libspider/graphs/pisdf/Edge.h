@@ -173,17 +173,15 @@ namespace spider {
             inline void setGraph(Graph *graph);
 
         private:
-            Graph *graph_ = nullptr;
-            uint32_t ix_ = UINT32_MAX;
-
-            Vertex *src_;
-            uint32_t srcPortIx_ = UINT32_MAX;
             Expression srcExpression_;
-            Vertex *snk_;
-            uint32_t snkPortIx_ = UINT32_MAX;
             Expression snkExpression_;
-
+            Graph *graph_ = nullptr;
+            Vertex *src_ = nullptr;
+            Vertex *snk_ = nullptr;
             Delay *delay_ = nullptr;
+            uint32_t ix_ = UINT32_MAX;
+            uint32_t srcPortIx_ = UINT32_MAX;
+            uint32_t snkPortIx_ = UINT32_MAX;
 
             /* === Private method(s) === */
         };
