@@ -61,8 +61,6 @@ namespace spider {
                                                                          edgeOUTCount,
                                                                          stack) { }
 
-            ExecVertex(const ExecVertex &) = delete;
-
             friend CloneVertexVisitor;
 
             /* === Method(s) === */

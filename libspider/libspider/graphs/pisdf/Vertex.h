@@ -68,7 +68,13 @@ namespace spider {
                             uint32_t edgeOUTCount = 0,
                             StackID stack = StackID::PISDF);
 
-            Vertex(const Vertex &other) = delete;
+            Vertex(const Vertex &) = delete;
+
+            Vertex(Vertex &&) = delete;
+
+            Vertex &operator=(const Vertex &) = delete;
+
+            Vertex &operator=(Vertex &&) = delete;
 
             virtual ~Vertex();
 
