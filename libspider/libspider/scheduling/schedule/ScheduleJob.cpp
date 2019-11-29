@@ -52,6 +52,7 @@
 
 spider::sched::Job::Job(uint32_t ix) : ix_{ ix } {
     auto *&platform = spider::platform();
+    constraints_ = spider::containers::vector<spider::sched::Job *>(StackID::SCHEDULE);
     constraints_.resize(platform->LRTCount(), nullptr);
 }
 
