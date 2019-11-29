@@ -297,7 +297,8 @@ spider::vector<RPNElement> spider::rpn::extractInfixElements(std::string infixEx
     /* == Check for incoherence(s) == */
     checkInfixExpression(infixExpressionLocal);
 
-    auto tokens = spider::containers::vector<RPNElement>(infixExpressionLocal.size(), StackID::EXPRESSION);
+    auto tokens = spider::containers::vector<RPNElement>(StackID::EXPRESSION);
+    tokens.reserve(infixExpressionLocal.size());
 
     /* == Extract the expression elements == */
     auto pos = infixExpressionLocal.find_first_of(supportedBasicOperators(), 0);
