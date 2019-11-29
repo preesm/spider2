@@ -119,7 +119,7 @@ private:
                 outputEdge->sourceRateExpression().evaluate(params_)) {
                 inputEdge->setSink(outputEdge->sink(),
                                    outputEdge->sinkPortIx(),
-                                   Expression(outputEdge->sinkRateExpression()));
+                                   spider::Expression(outputEdge->sinkRateExpression()));
                 graph_->removeEdge(outputEdge);
                 graph_->removeVertex(vertex);
                 removed_ = true;

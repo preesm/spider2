@@ -108,7 +108,7 @@ static double applyOperator(StartIterator start, RPNOperatorType type) {
 
 /* === Methods implementation === */
 
-Expression::Expression(std::string expression, const spider::vector<PiSDFParam *> &params) :
+spider::Expression::Expression(std::string expression, const spider::vector<PiSDFParam *> &params) :
         expressionStack_{ spider::Allocator<ExpressionElt>(StackID::EXPRESSION) } {
     /* == Get the postfix expression stack == */
     auto postfixStack = spider::rpn::extractPostfixElements(std::move(expression));
@@ -129,12 +129,12 @@ Expression::Expression(std::string expression, const spider::vector<PiSDFParam *
     }
 }
 
-Expression::Expression(int64_t value) {
+spider::Expression::Expression(int64_t value) {
     static_ = true;
     value_ = static_cast<double>(value);
 }
 
-std::string Expression::string() const {
+std::string spider::Expression::string() const {
     /* == Build the postfix string expression == */
     std::string postfixExpr;
     if (expressionStack_.empty()) {
@@ -148,8 +148,8 @@ std::string Expression::string() const {
 
 /* === Private method(s) === */
 
-spider::vector<ExpressionElt> Expression::buildExpressionStack(spider::vector<RPNElement> &postfixStack,
-                                                               const spider::vector<PiSDFParam *> &params) {
+spider::vector<spider::ExpressionElt> spider::Expression::buildExpressionStack(spider::vector<RPNElement> &postfixStack,
+                                                                               const spider::vector<PiSDFParam *> &params) {
     spider::vector<ExpressionElt> stack{ spider::Allocator<ExpressionElt>(StackID::EXPRESSION) };
     stack.reserve(postfixStack.size());
     spider::vector<double> evalStack{ spider::Allocator<double>(StackID::EXPRESSION) };
@@ -209,7 +209,7 @@ spider::vector<ExpressionElt> Expression::buildExpressionStack(spider::vector<RP
     return stack;
 }
 
-double Expression::evaluateStack(const spider::vector<PiSDFParam *> &params) const {
+double spider::Expression::evaluateStack(const spider::vector<PiSDFParam *> &params) const {
     spider::vector<double> evalStack{ spider::Allocator<double>(StackID::GENERAL) };
     evalStack.reserve(6); /* = In practice, the evalStack will most likely not exceed 3 values = */
     for (const auto &elt : expressionStack_) {

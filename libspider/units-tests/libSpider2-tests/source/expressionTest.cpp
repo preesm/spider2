@@ -61,6 +61,8 @@ protected:
     }
 };
 
+using spider::Expression;
+
 TEST_F(expressionTest, expressionCtorTest) {
     ASSERT_NO_THROW(Expression(4)) << "Expression(int64_t) failed.";
     ASSERT_NO_THROW(Expression("")) << "Expression(std::string, {}) failed.";

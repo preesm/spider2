@@ -68,7 +68,7 @@ struct CopyParamVisitor final : public spider::pisdf::DefaultVisitor {
     inline void visit(spider::pisdf::DynamicParam *param) override {
         auto *p = spider::make<PiSDFDynamicParam, StackID::TRANSFO>(param->name(),
                                                                     nullptr,
-                                                                    Expression(param->expression()));
+                                                                    spider::Expression(param->expression()));
         paramVector_.emplace_back(p);
     }
 
@@ -135,7 +135,6 @@ struct CopyVisitor final : public spider::pisdf::DefaultVisitor {
             }
 
             /* == Push the jobs == */
-            volatile auto tmp = ix_ + graph->repetitionValue() - 1;
             for (auto srdagIx = ix_ + graph->repetitionValue() - 1; srdagIx >= ix_; --srdagIx) {
                 transfoData_.nextJobs_.emplace_back(graph, transfoData_.srdag_->vertex(srdagIx)->ix(), srdagIx - ix_);
                 transfoData_.nextJobs_.back().params_.reserve(runGraph->paramCount());

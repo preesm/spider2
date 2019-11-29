@@ -84,7 +84,7 @@ bool PiSDFJoinJoinOptimizer::operator()(PiSDFGraph *graph) const {
                                              StackID::TRANSFO);
         auto *edge = sink->outputEdge(0);
         auto rate = edge->sourceRateExpression().evaluate(params);
-        edge->setSource(join, 0, Expression(rate));
+        edge->setSource(join, 0, spider::Expression(rate));
 
         /* == Link the edges == */
         auto insertEdgeIx = vertex->outputEdge(0)->sinkPortIx();
@@ -96,12 +96,12 @@ bool PiSDFJoinJoinOptimizer::operator()(PiSDFGraph *graph) const {
                 for (auto *vertexEdge : vertex->inputEdgeArray()) {
                     rate = vertexEdge->sinkRateExpression().evaluate(params);
                     auto ix = vertexEdge->sinkPortIx() + insertEdgeIx;
-                    vertexEdge->setSink(join, ix, Expression(rate));
+                    vertexEdge->setSink(join, ix, spider::Expression(rate));
                 }
             } else {
                 rate = sinkEdge->sinkRateExpression().evaluate(params);
                 auto ix = static_cast<uint32_t>(sinkEdge->sinkPortIx() + offset);
-                sinkEdge->setSink(join, ix, Expression(rate));
+                sinkEdge->setSink(join, ix, spider::Expression(rate));
             }
         }
 

@@ -47,136 +47,140 @@
 #include <graphs-tools/expression-parser/RPNConverter.h>
 #include <graphs/pisdf/common/Types.h>
 
-/* === Structure definition(s) === */
+namespace spider {
 
-struct ExpressionElt {
-    RPNElement elt_;
-    union {
+    /* === Structure definition(s) === */
+
+    struct ExpressionElt {
+        RPNElement elt_;
+        union {
+            double value_ = 0;
+            RPNOperatorType opType_;
+        } arg;
+
+        ExpressionElt() = default;
+
+        ExpressionElt(const ExpressionElt &) = default;
+
+        ExpressionElt(ExpressionElt &&) noexcept = default;
+
+        ExpressionElt &operator=(ExpressionElt &&) = default;
+
+        ExpressionElt &operator=(const ExpressionElt &) = default;
+
+        explicit ExpressionElt(RPNElement elt) : elt_{ std::move(elt) } { }
+    };
+
+    /* === Class definition === */
+
+    class Expression {
+    public:
+
+        explicit Expression(std::string expression, const spider::vector<PiSDFParam *> &params = { });
+
+        explicit Expression(int64_t value);
+
+        Expression() = default;
+
+        Expression(const Expression &) = default;
+
+        Expression(Expression &&) noexcept = default;
+
+        ~Expression() = default;
+
+        /* === Operator(s) === */
+
+        inline friend void swap(Expression &first, Expression &second) noexcept {
+            /* == Enable ADL == */
+            using std::swap;
+
+            /* == Swap members of both objects == */
+            swap(first.expressionStack_, second.expressionStack_);
+            swap(first.value_, second.value_);
+            swap(first.static_, second.static_);
+        }
+
+        inline Expression &operator=(Expression temp) {
+            swap(*this, temp);
+            return *this;
+        }
+
+        /* === Methods === */
+
+        /**
+         * @brief Evaluate the expression and return the value and cast result in int64_.
+         * @return Evaluated value of the expression.
+         */
+        inline int64_t evaluate(const spider::vector<PiSDFParam *> &params = { }) const;
+
+        /**
+         * @brief Evaluate the expression and return the value.
+         * @return Evaluated value of the expression.
+         */
+        inline double evaluateDBL(const spider::vector<PiSDFParam *> &params = { }) const;
+
+        /**
+         * @brief Get the expression string.
+         * @remark The obtained string does not necessarily to the input string due to optimizations.
+         * @return expression string.
+         */
+        std::string string() const;
+
+        /* === Getters === */
+
+        /**
+         * @brief Get the last evaluated value (faster than evaluated on static expressions)
+         * @return last evaluated value (default value, i.e no evaluation done, is 0)
+         */
+        inline int64_t value() const;
+
+        /**
+         * @brief Get the static property of the expression.
+         * @return true if the expression is static, false else.
+         */
+        inline bool dynamic() const;
+
+    private:
+        spider::vector<ExpressionElt> expressionStack_;
         double value_ = 0;
-        RPNOperatorType opType_;
-    } arg;
+        bool static_ = true;
 
-    ExpressionElt() = default;
+        /* === Private method(s) === */
 
-    ExpressionElt(const ExpressionElt &) = default;
+        /**
+         * @brief Build and reduce the expression tree parser.
+         * @param expressionStack Stack of the postfix expression elements.
+         */
+        spider::vector<ExpressionElt>
+        buildExpressionStack(spider::vector<RPNElement> &postfixStack, const spider::vector<PiSDFParam *> &params);
 
-    ExpressionElt(ExpressionElt &&) noexcept = default;
-
-    ExpressionElt &operator=(ExpressionElt &&) = default;
-
-    ExpressionElt &operator=(const ExpressionElt &) = default;
-
-    explicit ExpressionElt(RPNElement elt) : elt_{ std::move(elt) } { }
-};
-
-/* === Class definition === */
-
-class Expression {
-public:
-
-    explicit Expression(std::string expression, const spider::vector<PiSDFParam *> &params = { });
-
-    explicit Expression(int64_t value);
-
-    Expression() = default;
-
-    Expression(const Expression &) = default;
-
-    Expression(Expression &&) noexcept = default;
-
-    ~Expression() = default;
-
-    /* === Operator(s) === */
-
-    inline friend void swap(Expression &first, Expression &second) noexcept {
-        /* == Enable ADL == */
-        using std::swap;
-
-        /* == Swap members of both objects == */
-        swap(first.expressionStack_, second.expressionStack_);
-        swap(first.value_, second.value_);
-        swap(first.static_, second.static_);
-    }
-
-    inline Expression &operator=(Expression temp) {
-        swap(*this, temp);
-        return *this;
-    }
-
-    /* === Methods === */
-
-    /**
-     * @brief Evaluate the expression and return the value and cast result in int64_.
-     * @return Evaluated value of the expression.
-     */
-    inline int64_t evaluate(const spider::vector<PiSDFParam *> &params = { }) const;
-
-    /**
-     * @brief Evaluate the expression and return the value.
-     * @return Evaluated value of the expression.
-     */
-    inline double evaluateDBL(const spider::vector<PiSDFParam *> &params = { }) const;
-
-    /**
-     * @brief Get the expression string.
-     * @remark The obtained string does not necessarily to the input string due to optimizations.
-     * @return expression string.
-     */
-    std::string string() const;
-
-    /* === Getters === */
-
-    /**
-     * @brief Get the last evaluated value (faster than evaluated on static expressions)
-     * @return last evaluated value (default value, i.e no evaluation done, is 0)
-     */
-    inline int64_t value() const;
-
-    /**
-     * @brief Get the static property of the expression.
-     * @return true if the expression is static, false else.
-     */
-    inline bool dynamic() const;
-
-private:
-    spider::vector<ExpressionElt> expressionStack_;
-    double value_ = 0;
-    bool static_ = true;
-
-    /* === Private method(s) === */
-
-    /**
-     * @brief Build and reduce the expression tree parser.
-     * @param expressionStack Stack of the postfix expression elements.
-     */
-    spider::vector<ExpressionElt>
-    buildExpressionStack(spider::vector<RPNElement> &postfixStack, const spider::vector<PiSDFParam *> &params);
-
-    /**
-     * @brief Evaluate the expression (if dynamic)
-     * @warning There is no check for the presence of the parameters in the params vector.
-     * @param params  Vector of parameters needed for the eval.
-     * @return evaluated value
-     */
-    double evaluateStack(const spider::vector<PiSDFParam *> &params) const;
-};
+        /**
+         * @brief Evaluate the expression (if dynamic)
+         * @warning There is no check for the presence of the parameters in the params vector.
+         * @param params  Vector of parameters needed for the eval.
+         * @return evaluated value
+         */
+        double evaluateStack(const spider::vector<PiSDFParam *> &params) const;
+    };
 
 /* === Inline methods === */
 
-int64_t Expression::value() const {
-    return static_cast<int64_t>(value_);
-}
+    int64_t Expression::value() const {
+        return static_cast<int64_t>(value_);
+    }
 
-int64_t Expression::evaluate(const spider::vector<PiSDFParam *> &params) const {
-    return static_ ? static_cast<int64_t>(value_) : static_cast<int64_t>(evaluateStack(params));
-}
+    int64_t Expression::evaluate(const spider::vector<PiSDFParam *> &params) const {
+        return static_ ? static_cast<int64_t>(value_) : static_cast<int64_t>(evaluateStack(params));
+    }
 
-double Expression::evaluateDBL(const spider::vector<PiSDFParam *> &params) const {
-    return static_ ? value_ : evaluateStack(params);
-}
+    double Expression::evaluateDBL(const spider::vector<PiSDFParam *> &params) const {
+        return static_ ? value_ : evaluateStack(params);
+    }
 
-bool Expression::dynamic() const {
-    return !static_;
+    bool Expression::dynamic() const {
+        return !static_;
+    }
+
 }
 
 #endif //SPIDER2_EXPRESSION_H

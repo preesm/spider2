@@ -87,7 +87,7 @@ bool PiSDFForkForkOptimizer::operator()(PiSDFGraph *graph) const {
                                              StackID::TRANSFO);
         auto *edge = source->inputEdge(0);
         auto rate = edge->sinkRateExpression().evaluate(params);
-        edge->setSource(fork, 0, Expression(rate));
+        edge->setSource(fork, 0, spider::Expression(rate));
 
         /* == Link the edges == */
         auto insertEdgeIx = vertex->inputEdge(0)->sourcePortIx();
@@ -99,12 +99,12 @@ bool PiSDFForkForkOptimizer::operator()(PiSDFGraph *graph) const {
                 for (auto *vertexEdge : vertex->outputEdgeArray()) {
                     rate = vertexEdge->sourceRateExpression().evaluate(params);
                     auto ix = vertexEdge->sourcePortIx() + insertEdgeIx;
-                    vertexEdge->setSource(fork, ix, Expression(rate));
+                    vertexEdge->setSource(fork, ix, spider::Expression(rate));
                 }
             } else {
                 rate = sourceEdge->sourceRateExpression().evaluate(params);
                 auto ix = static_cast<uint32_t>(sourceEdge->sourcePortIx() + offset);
-                sourceEdge->setSource(fork, ix, Expression(rate));
+                sourceEdge->setSource(fork, ix, spider::Expression(rate));
             }
         }
 

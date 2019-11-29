@@ -55,7 +55,8 @@ const std::vector<bool> &spider::Scenario::mappingConstraints(const spider::pisd
     return mappingConstraintsVector_.at(vertex->ix());
 }
 
-const spider::vector<Expression> &spider::Scenario::executionTimings(const spider::pisdf::Vertex *vertex) const {
+const spider::vector<spider::Expression> &
+spider::Scenario::executionTimings(const spider::pisdf::Vertex *vertex) const {
     return executionTimingsVector_.at(vertex->ix());
 }
 

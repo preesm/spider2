@@ -75,7 +75,7 @@ bool PiSDFJoinEndOptimizer::operator()(PiSDFGraph *graph) const {
         for (auto *inputEdge : join->inputEdgeArray()) {
             auto rate = inputEdge->sinkRateExpression().evaluate(params);
             auto *newEnd = spider::api::createEnd(graph, "end-" + inputEdge->source()->name(), StackID::TRANSFO);
-            inputEdge->setSink(newEnd, 0, Expression(rate));
+            inputEdge->setSink(newEnd, 0, spider::Expression(rate));
         }
 
         if (spider::api::verbose() && log_enabled<LOG_OPTIMS>()) {
