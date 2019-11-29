@@ -80,7 +80,7 @@ void spider::sched::Schedule::update(sched::Job &job) {
 void spider::sched::Schedule::setJobCount(size_t count) {
     jobs_.clear();
     jobs_.reserve(count);
-    for (uint32_t i = 0; i < count; ++i) {
+    for (size_t i = 0; i < count; ++i) {
         jobs_.emplace_back(i);
     }
 }

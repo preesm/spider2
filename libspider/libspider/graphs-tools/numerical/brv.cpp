@@ -101,7 +101,6 @@ spider::brv::extractConnectedComponents(const spider::pisdf::Graph *graph) {
 
             /* == Initiate a new connected component == */
             ConnectedComponent component;
-            component.vertexVector_ = spider::containers::vector<pisdf::Vertex *>(StackID::TRANSFO);
             component.vertexVector_.emplace_back(vertex);
 
             /* == Extract every vertices of the connected component using a non-recursive BFS algorithm == */

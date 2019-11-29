@@ -155,11 +155,11 @@ namespace spider {
             inline void updateJobCount(uint32_t PE, uint32_t incValue = 1);
 
         private:
-            spider::vector<uint64_t> startTimeVector_;
-            spider::vector<uint64_t> endTimeVector_;
-            spider::vector<uint64_t> loadTimeVector_;
-            spider::vector<uint64_t> idleTimeVector_;
-            spider::vector<uint32_t> jobCountVector_;
+            spider::vector<uint64_t> startTimeVector_{ spider::Allocator<uint64_t>(StackID::SCHEDULE) };
+            spider::vector<uint64_t> endTimeVector_{ spider::Allocator<uint64_t>(StackID::SCHEDULE) };
+            spider::vector<uint64_t> loadTimeVector_{ spider::Allocator<uint64_t>(StackID::SCHEDULE) };
+            spider::vector<uint64_t> idleTimeVector_{ spider::Allocator<uint64_t>(StackID::SCHEDULE) };
+            spider::vector<uint32_t> jobCountVector_{ spider::Allocator<uint32_t>(StackID::SCHEDULE) };
             uint64_t minStartTime_ = UINT64_MAX;
             uint64_t maxEndTime_ = 0;
 

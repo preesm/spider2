@@ -76,7 +76,7 @@ namespace spider {
 
             /* === Member(s) === */
 
-            spider::vector<pisdf::Vertex *> vertexVector_;
+            spider::vector<pisdf::Vertex *> vertexVector_{spider::Allocator<pisdf::Vertex*>(StackID::TRANSFO)};
             uint32_t edgeCount_ = 0;
         };
 

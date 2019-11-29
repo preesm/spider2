@@ -56,11 +56,16 @@ spider::sched::Stats::Stats() {
 
     /* == Init stat vectors == */
     const auto &n = platform->PECount();
-    startTimeVector_ = spider::containers::vector<uint64_t>(n, 0, StackID::SCHEDULE);
-    endTimeVector_ = spider::containers::vector<uint64_t>(n, 0, StackID::SCHEDULE);
-    loadTimeVector_ = spider::containers::vector<uint64_t>(n, 0, StackID::SCHEDULE);
-    idleTimeVector_ = spider::containers::vector<uint64_t>(n, 0, StackID::SCHEDULE);
-    jobCountVector_ = spider::containers::vector<uint32_t>(n, 0, StackID::SCHEDULE);
+//    startTimeVector_ = spider::containers::vector<uint64_t>(n, 0, StackID::SCHEDULE);
+//    endTimeVector_ = spider::containers::vector<uint64_t>(n, 0, StackID::SCHEDULE);
+//    loadTimeVector_ = spider::containers::vector<uint64_t>(n, 0, StackID::SCHEDULE);
+//    idleTimeVector_ = spider::containers::vector<uint64_t>(n, 0, StackID::SCHEDULE);
+//    jobCountVector_ = spider::containers::vector<uint32_t>(n, 0, StackID::SCHEDULE);
+    startTimeVector_.resize(n, 0);
+    endTimeVector_.resize(n, 0);
+    loadTimeVector_.resize(n, 0);
+    idleTimeVector_.resize(n, 0);
+    jobCountVector_.resize(n, 0);
 }
 
 void spider::sched::Stats::reset() {

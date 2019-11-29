@@ -54,7 +54,7 @@ namespace spider {
 
         struct TransfoJob {
             const pisdf::Graph *reference_ = nullptr;
-            spider::vector<pisdf::Param *> params_;
+            spider::vector<pisdf::Param *> params_{ spider::Allocator<pisdf::Param *>(StackID::TRANSFO) };
             const uint32_t &srdagIx_;
             uint32_t instanceValue_ = 0;
 
