@@ -45,7 +45,7 @@
 #include <graphs/pisdf/params/DynamicParam.h>
 #include <spider.h>
 #include <graphs-tools/exporter/DOTExporter.h>
-#include <runtime/master-slave/JITMSRuntime.h>
+#include <runtime/algorithm/JITMSRuntime.h>
 #include <scheduling/schedule/Schedule.h>
 #include <scheduling/schedule/exporter/SVGGanttExporter.h>
 #include <scheduling/scheduler/BestFitScheduler.h>
@@ -95,21 +95,12 @@ void fn2(int32_t id, int32_t affinity) {
 
 int main(int, char **) {
     spiderTest();
-
-//    spider::thread t1(fn, 0, 3);
-//    spider::thread t2(fn2, 1, 5);
-//    spider::thread t3(fn, 2, 1);
-//
-//    t1.join();
-//    t2.join();
-//    t3.join();
     return 0;
 }
 
 void spiderTest() {
     spider::start();
     spider::api::createLinearStaticStack(StackID::PISDF, "pisdf-stack", 16392);
-//    spider::api::createLinearStaticStack(StackID::TRANSFO, "transfo-stack", 1024*1024);
     spider::api::createGenericStack(StackID::TRANSFO, "transfo-stack");
     spider::api::createGenericStack(StackID::EXPRESSION, "expression-stack");
     spider::api::createGenericStack(StackID::ARCHI, "archi-stack");
@@ -119,7 +110,7 @@ void spiderTest() {
     spider::api::enableLogger(spider::log::Type::OPTIMS);
     spider::api::enableVerbose();
 
-//    if (0)
+    if (0)
     {
         createArchi();
 
@@ -133,11 +124,11 @@ void spiderTest() {
         auto *subgraph = spider::api::createSubraph(graph, "subgraph", 3, 4, 2, 1, 1);
         auto *input = spider::api::setInputInterfaceName(subgraph, 0, "input");
         auto *output = spider::api::setOutputInterfaceName(subgraph, 0, "output");
-        auto *vertex_2 = spider::api::createVertex(subgraph, "vertex_2", 1, 1);
+        auto *vertex_2 = spider::api::createVertex(subgraph, "vertex_2", 2, 1);
         auto *vertex_3 = spider::api::createVertex(subgraph, "vertex_3", 1, 1);
         auto *vertex_4 = spider::api::createVertex(graph, "vertex_4", 1);
 
-//        auto *cfg = spider::api::createConfigActor(subgraph, "cfg", 0, 1);
+        auto *cfg = spider::api::createConfigActor(subgraph, "cfg", 0, 1);
 
         /* === Creating param === */
 
@@ -145,34 +136,44 @@ void spiderTest() {
         /* === Creating edges === */
 
         spider::api::createEdge(vertex_0, 0, 1, vertex_1, 0, 1);
-        spider::api::createEdge(vertex_1, 0, "10 * 20", subgraph, 0, "1");
+        spider::api::createEdge(vertex_1, 0, "10", subgraph, 0, "1");
 //        spider::api::createEdge(vertex_1, 0, 500, vertex_2, 0, 1);
         spider::api::createEdge(input, 0, 5, vertex_2, 0, 1);
         spider::api::createEdge(vertex_2, 0, 1, vertex_3, 0, 5);
 //        spider::api::createEdge(vertex_3, 0, 1, vertex_4, 0, 1);
         spider::api::createEdge(vertex_3, 0, 1, output, 0, 1);
         spider::api::createEdge(subgraph, 0, 5, vertex_4, 0, 5);
-//        spider::api::createEdge(cfg, 0, 15, vertex_2, 1, 1);
+        spider::api::createEdge(cfg, 0, 15, vertex_2, 1, 1);
 
         /* === Creating param === */
 
-//        spider::api::createStaticParam(graph, "width", 10);
-//        spider::api::createStaticParam(subgraph, "height", 10);
-//        spider::api::createDynamicParam(subgraph, "width");
+        spider::api::createStaticParam(graph, "width", 10);
+        spider::api::createStaticParam(subgraph, "height", 10);
+        spider::api::createDynamicParam(subgraph, "width");
+
+
+
+        /* === Export dot === */
+
+        {
+            auto exporter = spider::pisdf::DOTExporter{ graph };
+            exporter.print("./original.dot");
+        }
+
 //        for (auto j = 0; j < 10; ++j)
         {
             const auto &start = spider::time::now();
             spider::JITMSRuntime runtime(graph);
             runtime.execute();
             const auto &end = spider::time::now();
-            std::cout << spider::time::duration::milliseconds(start, end) << std::endl;
+            std::cout << spider::time::duration::microseconds(start, end) << std::endl;
         }
 
         /* === Export dot === */
 
         {
-//            auto exporter = spider::pisdf::DOTExporter{ graph };
-//            exporter.print("./new.dot");
+            auto exporter = spider::pisdf::DOTExporter{ graph };
+            exporter.print("./new.dot");
         }
 
 
