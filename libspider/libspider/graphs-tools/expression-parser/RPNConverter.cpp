@@ -282,6 +282,7 @@ std::string spider::rpn::postfixString(const spider::vector<RPNElement> &postfix
     for (auto &t : postfixStack) {
         postfixExpr += t.token + " ";
     }
+    postfixExpr.pop_back();
     return postfixExpr;
 }
 

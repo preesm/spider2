@@ -69,7 +69,7 @@ TEST_F(rpnconverterTest, rpnconverterCtorTest) {
 }
 
 TEST_F(rpnconverterTest, rpnconverter2StringTest) {
-    ASSERT_EQ(spider::rpn::postfixString(spider::rpn::extractPostfixElements("exp(log(0.2))")), "0.2 log exp ");
+    ASSERT_EQ(spider::rpn::postfixString(spider::rpn::extractPostfixElements("exp(log(0.2))")), "0.2 log exp");
     ASSERT_EQ(spider::rpn::infixString(spider::rpn::extractPostfixElements("exp(log(0.2))")), "exp(log(0.2))");
     ASSERT_EQ(spider::rpn::infixString(spider::rpn::extractPostfixElements("exp( log ( 0.2) )")), "exp(log(0.2))");
     ASSERT_EQ(spider::rpn::infixString(spider::rpn::extractPostfixElements("4cos(PI/2)")), "(4*cos((3.1415926535/2)))");
@@ -128,21 +128,21 @@ TEST_F(rpnconverterTest, rpnconverterGetOperatorTest) {
 TEST_F(rpnconverterTest, rpnconverterReorderTest) {
     {
         auto stack = spider::rpn::extractPostfixElements("((2+w)+6)*(20)");
-        ASSERT_EQ(spider::rpn::postfixString(stack), "2 w + 6 + 20 * ");
+        ASSERT_EQ(spider::rpn::postfixString(stack), "2 w + 6 + 20 *");
         ASSERT_NO_THROW(spider::rpn::reorderPostfixStack(stack)) << "RPNConverter: stack reordering should not throw.";
-        ASSERT_EQ(spider::rpn::postfixString(stack), "2 6 + w + 20 * ");
+        ASSERT_EQ(spider::rpn::postfixString(stack), "2 6 + w + 20 *");
     }
     {
         auto stack = spider::rpn::extractPostfixElements("(w*2)*(4*h)");
-        ASSERT_EQ(spider::rpn::postfixString(stack), "w 2 * 4 h * * ");
+        ASSERT_EQ(spider::rpn::postfixString(stack), "w 2 * 4 h * *");
         ASSERT_NO_THROW(spider::rpn::reorderPostfixStack(stack)) << "RPNConverter: stack reordering should not throw.";
-        ASSERT_EQ(spider::rpn::postfixString(stack), "4 2 * w h * * ");
+        ASSERT_EQ(spider::rpn::postfixString(stack), "4 2 * w h * *");
     }
     {
         auto stack = spider::rpn::extractPostfixElements("(4/w)/2");
-        ASSERT_EQ(spider::rpn::postfixString(stack), "4 w / 2 / ");
+        ASSERT_EQ(spider::rpn::postfixString(stack), "4 w / 2 /");
         ASSERT_NO_THROW(spider::rpn::reorderPostfixStack(stack)) << "RPNConverter: stack reordering should not throw.";
-        ASSERT_EQ(spider::rpn::postfixString(stack), "4 2 / w / ");
+        ASSERT_EQ(spider::rpn::postfixString(stack), "4 2 / w /");
     }
 }
 

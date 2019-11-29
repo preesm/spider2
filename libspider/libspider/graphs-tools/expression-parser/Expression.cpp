@@ -141,14 +141,15 @@ spider::Expression::~Expression() {
 }
 
 std::string spider::Expression::string() const {
+    if (!expressionStack_ || expressionStack_->empty()) {
+        return std::to_string(value_);
+    }
     /* == Build the postfix string expression == */
     std::string postfixExpr;
-    if (expressionStack_->empty()) {
-        postfixExpr = std::to_string(value_);
-    }
     for (auto &t : *(expressionStack_)) {
         postfixExpr += t.elt_.token + " ";
     }
+    postfixExpr.pop_back();
     return postfixExpr;
 }
 

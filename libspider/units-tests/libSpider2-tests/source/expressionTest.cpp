@@ -81,12 +81,12 @@ TEST_F(expressionTest, expressionCtorTest) {
 TEST_F(expressionTest, expression2StringTest) {
     ASSERT_EQ(Expression(4).string(), "4.000000") << "Expression to string from simple value failed.";
     ASSERT_EQ(Expression("").string(), "0.000000") << "Empty Expression should convert to 0.000000";
-    ASSERT_EQ(Expression("4cos(0)").string(), "4.000000 ") << "Static Expression to string failed.";
+    ASSERT_EQ(Expression("4cos(0)").string(), "4.000000") << "Static Expression to string failed.";
     auto *width = spider::api::createStaticParam(nullptr, "width", 0);
-    ASSERT_EQ(Expression("4cos(width)", {width}).string(), "4.000000 ") << "Static parameterized Expression to string failed";
+    ASSERT_EQ(Expression("4cos(width)", {width}).string(), "4.000000") << "Static parameterized Expression to string failed";
     auto *height = spider::api::createDynamicParam(nullptr, "height");
-    ASSERT_EQ(Expression("cos(height)", {width, height}).string(), "height cos ") << "Dynamic parameterized Expression to string failed.";
-    ASSERT_EQ(Expression("4min(1,height)", {width, height}).string(), "4 1 height min * ") << "Dynamic parameterized Expression to string failed.";;
+    ASSERT_EQ(Expression("cos(height)", {width, height}).string(), "height cos") << "Dynamic parameterized Expression to string failed.";
+    ASSERT_EQ(Expression("4min(1,height)", {width, height}).string(), "4 1 height min *") << "Dynamic parameterized Expression to string failed.";;
     spider::destroy(width);
     spider::destroy(height);
 }
