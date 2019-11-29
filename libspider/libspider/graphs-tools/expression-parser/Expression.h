@@ -86,7 +86,7 @@ namespace spider {
 
         Expression(Expression &&) noexcept = default;
 
-        ~Expression() = default;
+        ~Expression();
 
         /* === Operator(s) === */
 
@@ -141,7 +141,7 @@ namespace spider {
         inline bool dynamic() const;
 
     private:
-        spider::vector<ExpressionElt> expressionStack_;
+        spider::vector<ExpressionElt> *expressionStack_ = nullptr;
         double value_ = 0;
         bool static_ = true;
 
@@ -180,7 +180,6 @@ namespace spider {
     bool Expression::dynamic() const {
         return !static_;
     }
-
 }
 
 #endif //SPIDER2_EXPRESSION_H
