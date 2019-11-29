@@ -118,7 +118,12 @@ namespace spider {
              */
             inline virtual Vertex *forwardEdge(const Edge *);
 
-            virtual void visit(Visitor *) = 0;
+            /**
+             * @brief Generic method that accept a visitor for class specific treatments.
+             * @remark This implement a double-dispatch visitor pattern.
+             * @param visitor  Visitor to accept.
+             */
+            virtual void visit(Visitor *visitor) = 0;
 
             /* === Getter(s) === */
 
