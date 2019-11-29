@@ -121,8 +121,8 @@ spider::Expression::Expression(std::string expression, const spider::vector<PiSD
     spider::rpn::reorderPostfixStack(postfixStack);
 
     /* == Build the expression stack == */
-    expressionStack_ = spider::make<spider::vector<ExpressionElt>>(StackID::EXPRESSION,
-                                                                   buildExpressionStack(postfixStack, params));
+    expressionStack_ = spider::make<spider::vector<ExpressionElt>, StackID::EXPRESSION>(
+            buildExpressionStack(postfixStack, params));
 
     if (static_) {
         value_ = expressionStack_->empty() ? 0. : expressionStack_->back().arg.value_;
@@ -156,9 +156,9 @@ std::string spider::Expression::string() const {
 
 spider::vector<spider::ExpressionElt> spider::Expression::buildExpressionStack(spider::vector<RPNElement> &postfixStack,
                                                                                const spider::vector<PiSDFParam *> &params) {
-    spider::vector<ExpressionElt> stack{ spider::Allocator<ExpressionElt>(StackID::EXPRESSION) };
+    auto stack = spider::containers::vector<ExpressionElt>(StackID::EXPRESSION);
     stack.reserve(postfixStack.size());
-    spider::vector<double> evalStack{ spider::Allocator<double>(StackID::EXPRESSION) };
+    auto evalStack = spider::containers::vector<double>(StackID::EXPRESSION);
     evalStack.reserve(6); /* = In practice, the evalStack will most likely not exceed 3 values = */
     bool skipEval = false;
     size_t argCount = 0;
@@ -216,7 +216,7 @@ spider::vector<spider::ExpressionElt> spider::Expression::buildExpressionStack(s
 }
 
 double spider::Expression::evaluateStack(const spider::vector<PiSDFParam *> &params) const {
-    spider::vector<double> evalStack{ spider::Allocator<double>(StackID::GENERAL) };
+    auto evalStack = spider::containers::vector<double>(StackID::EXPRESSION);
     evalStack.reserve(6); /* = In practice, the evalStack will most likely not exceed 3 values = */
     for (const auto &elt : *(expressionStack_)) {
         if (elt.elt_.type == RPNElementType::OPERAND) {

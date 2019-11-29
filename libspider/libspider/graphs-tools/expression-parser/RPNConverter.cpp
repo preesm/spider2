@@ -333,7 +333,7 @@ spider::vector<RPNElement> spider::rpn::extractPostfixElements(std::string infix
     spider::vector<std::pair<RPNOperatorType, RPNElement>> operatorStack;
 
     /* == Actually, size will probably be inferior but this will avoid realloc == */
-    spider::vector<RPNElement> postfixStack{ spider::Allocator<RPNElement>(StackID::EXPRESSION) };
+    auto postfixStack = spider::containers::vector<RPNElement>(StackID::EXPRESSION);
     postfixStack.reserve(infixStack.size());
     for (auto &element : infixStack) {
         if (element.type == RPNElementType::OPERATOR) {
