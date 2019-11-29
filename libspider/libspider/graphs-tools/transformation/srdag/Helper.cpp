@@ -135,7 +135,8 @@ struct CopyVisitor final : public spider::pisdf::DefaultVisitor {
             }
 
             /* == Push the jobs == */
-            for (auto srdagIx = ix_; srdagIx < ix_ + graph->repetitionValue(); ++srdagIx) {
+            volatile auto tmp = ix_ + graph->repetitionValue() - 1;
+            for (auto srdagIx = ix_ + graph->repetitionValue() - 1; srdagIx >= ix_; --srdagIx) {
                 transfoData_.nextJobs_.emplace_back(graph, transfoData_.srdag_->vertex(srdagIx)->ix(), srdagIx - ix_);
                 transfoData_.nextJobs_.back().params_.reserve(runGraph->paramCount());
 

@@ -94,7 +94,7 @@ spider::brv::extractConnectedComponents(const spider::pisdf::Graph *graph) {
     spider::array<const pisdf::Vertex *> keyArray{ graph->vertexCount(), nullptr, StackID::TRANSFO };
 
     /* == Iterate over every vertex and assign it to a connected component == */
-    auto connectedComponents = spider::containers::vector<ConnectedComponent>(1, StackID::TRANSFO);
+    auto connectedComponents = spider::containers::vector<ConnectedComponent>(StackID::TRANSFO);
     for (const auto &vertex : graph->vertices()) {
         if (!keyArray[vertex->ix()]) {
             keyArray[vertex->ix()] = vertex;
@@ -193,9 +193,8 @@ void spider::brv::extractRationalsFromEdges(spider::array<spider::Rational> &rat
                                  sinkRate);
         }
 
-        auto &sourceRational = (source->subtype() == PiSDFVertexType::CONFIG ||
-                                source->subtype() == PiSDFVertexType::INPUT) ?
-                               dummyRational : rationalArray[source->ix()];
+        auto &sourceRational =
+                source->subtype() == PiSDFVertexType::INPUT ? dummyRational : rationalArray[source->ix()];
         auto &sinkRational = sink->subtype() == PiSDFVertexType::OUTPUT ? dummyRational : rationalArray[sink->ix()];
 
         if (!sinkRational.nominator() && sinkRate) {
