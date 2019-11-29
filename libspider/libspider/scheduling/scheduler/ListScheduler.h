@@ -76,7 +76,7 @@ namespace spider {
                                                                                    level_{ level } { };
         };
 
-        spider::vector<ListVertex> sortedVertexVector_;
+        stack_vector(sortedVertexVector_, ListVertex, StackID::SCHEDULE);
 
         /* === Protected method(s) === */
 

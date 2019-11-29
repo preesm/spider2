@@ -54,6 +54,13 @@
 #include <queue>
 #include <stack>
 
+/* === Macro to make stack_vector with proper stack Allocator in declaration,    === */
+/* === avoiding useless copies from one stack to another.                        === */
+/* === Basically just a wrapper calling default ctor with Allocator<type>(stack) === */
+/* === (I know it is ugly AF but still better than letting it clearly)           === */
+
+#define stack_vector(name, type, stack) spider::vector<type> (name){spider::Allocator<type>(stack)}
+
 /* === Namespace === */
 
 namespace spider {

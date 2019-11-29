@@ -181,7 +181,7 @@ namespace spider {
             inline void setMappingEndTime(uint64_t time);
 
         private:
-            spider::vector<spider::sched::Job *> constraints_;
+            stack_vector(constraints_, sched::Job *, StackID::SCHEDULE);
             uint32_t vertexIx_ = UINT32_MAX;
             uint32_t ix_ = UINT32_MAX;
             JobState state_ = spider::sched::JobState::PENDING;

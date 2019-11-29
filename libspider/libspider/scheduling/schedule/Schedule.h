@@ -122,7 +122,7 @@ namespace spider {
             /* === Setter(s) === */
 
         private:
-            spider::vector<sched::Job> jobs_{ spider::Allocator<sched::Job>(StackID::SCHEDULE) };
+            stack_vector(jobs_, sched::Job, StackID::SCHEDULE);
             sched::Stats stats_;
 
             /* === Private method(s) === */

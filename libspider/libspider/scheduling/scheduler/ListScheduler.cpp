@@ -92,7 +92,6 @@ int64_t spider::ListScheduler::computeScheduleLevel(ListVertex &listVertex,
 spider::ListScheduler::ListScheduler(PiSDFGraph *graph,
                                      const spider::vector<PiSDFParam *> &params) : Scheduler(graph, params) {
     /* == Reserve and push the vertices into the vertex == */
-    sortedVertexVector_ = spider::containers::vector<ListVertex>(StackID::SCHEDULE);
     sortedVertexVector_.reserve(graph_->vertexCount());
     for (auto *vertex : graph_->vertices()) {
         sortedVertexVector_.push_back(ListVertex(vertex, -1));

@@ -90,7 +90,7 @@ namespace spider {
         /* === Setter(s) === */
 
     protected:
-        spider::vector<JobMessage> jobQueue_{ spider::Allocator<JobMessage>(StackID::RUNTIME) };
+        stack_vector(jobQueue_, JobMessage, StackID::RUNTIME);
         spider::array<uint32_t> localJobStampsArray_;
         PE *runningPE_ = nullptr;
         size_t runnerIx_ = SIZE_MAX;

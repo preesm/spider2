@@ -61,9 +61,9 @@ namespace spider {
             const TransfoJob &job_;
             const PiSDFEdge *edge_ = nullptr;
             PiSDFGraph *srdag_ = nullptr;
-            JobStack nextJobs_{ spider::Allocator<TransfoJob>(StackID::TRANSFO) };
-            JobStack dynaJobs_{ spider::Allocator<TransfoJob>(StackID::TRANSFO) };
-            TransfoTracker tracker_{ spider::Allocator<uint32_t>(StackID::TRANSFO) };
+            stack_vector(nextJobs_, TransfoJob, StackID::TRANSFO);
+            stack_vector(dynaJobs_, TransfoJob, StackID::TRANSFO);
+            stack_vector(tracker_, uint32_t, StackID::TRANSFO);
             TransfoTracker &init2dynamic_;
 
             TransfoData() = delete;

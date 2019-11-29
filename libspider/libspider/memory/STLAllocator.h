@@ -177,13 +177,13 @@ namespace spider {
     };
 
     template<class T1, class T2>
-    inline bool operator==(const Allocator<T1> &, const Allocator<T2> &) {
-        return true;
+    inline bool operator==(const Allocator<T1> &a, const Allocator<T2> &b) {
+        return a.allocator_ == b.allocator_;
     }
 
     template<class T1, class T2>
-    inline bool operator!=(const Allocator<T1> &, const Allocator<T2> &) {
-        return false;
+    inline bool operator!=(const Allocator<T1> &a, const Allocator<T2> &b) {
+        return !(a == b);
     }
 }
 

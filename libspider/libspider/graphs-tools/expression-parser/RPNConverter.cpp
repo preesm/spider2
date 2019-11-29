@@ -297,8 +297,7 @@ spider::vector<RPNElement> spider::rpn::extractInfixElements(std::string infixEx
     /* == Check for incoherence(s) == */
     checkInfixExpression(infixExpressionLocal);
 
-    spider::vector<RPNElement> tokens;
-    tokens.reserve(infixExpressionLocal.size());
+    auto tokens = spider::containers::vector<RPNElement>(infixExpressionLocal.size(), StackID::EXPRESSION);
 
     /* == Extract the expression elements == */
     auto pos = infixExpressionLocal.find_first_of(supportedBasicOperators(), 0);
@@ -330,7 +329,7 @@ spider::vector<RPNElement> spider::rpn::extractPostfixElements(std::string infix
     auto infixStack = extractInfixElements(std::move(infixExpression));
 
     /* == Build the postfix expression == */
-    spider::vector<std::pair<RPNOperatorType, RPNElement>> operatorStack;
+    auto operatorStack = spider::containers::vector<std::pair<RPNOperatorType, RPNElement>>(StackID::EXPRESSION);
 
     /* == Actually, size will probably be inferior but this will avoid realloc == */
     auto postfixStack = spider::containers::vector<RPNElement>(StackID::EXPRESSION);
