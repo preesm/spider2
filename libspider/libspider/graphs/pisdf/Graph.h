@@ -317,9 +317,9 @@ namespace spider {
             spider::vector<ConfigVertex *> configVertexVector_;
             spider::vector<Graph *> subgraphVector_;
             spider::vector<Edge *> edgeVector_;
+            spider::vector<Param *> paramVector_;
             spider::array<InputInterface *> inputInterfaceArray_;
             spider::array<OutputInterface *> outputInterfaceArray_;
-            spider::vector<Param *> paramVector_;
 
             /* === Scenario related to this graph === */
 

@@ -67,6 +67,14 @@ spider::pisdf::Graph::Graph(std::string name,
                                                     stack),
                                              inputInterfaceArray_{ edgeINCount, stack },
                                              outputInterfaceArray_{ edgeOUTCount, stack } {
+    /* == Create the vectors on corresponding stack == */
+    vertexVector_ = spider::containers::vector<Vertex *>(stack);
+    configVertexVector_ = spider::containers::vector<ConfigVertex *>(stack);
+    subgraphVector_ = spider::containers::vector<Graph *>(stack);
+    edgeVector_ = spider::containers::vector<Edge *>(stack);
+    paramVector_ = spider::containers::vector<Param *>(stack);
+
+    /* == Reserve the memory == */
     vertexVector_.reserve(vertexCount);
     edgeVector_.reserve(edgeCount);
     paramVector_.reserve(paramCount);
