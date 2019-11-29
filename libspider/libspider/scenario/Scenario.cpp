@@ -61,7 +61,7 @@ const spider::vector<Expression> &spider::Scenario::executionTimings(const spide
 
 int64_t spider::Scenario::executionTiming(const spider::pisdf::Vertex *vertex, uint32_t PEType) const {
     auto &timings = executionTimings(vertex);
-    return timings.at(PEType).evaluate(vertex->containingGraph()->params());
+    return timings.at(PEType).evaluate(vertex->graph()->params());
 }
 
 void spider::Scenario::setMappingConstraints(const spider::pisdf::Vertex *vertex,
@@ -86,7 +86,7 @@ bool spider::Scenario::isMappable(const spider::pisdf::Vertex *vertex, const spi
 int64_t spider::Scenario::executionTiming(const spider::pisdf::Vertex *vertex, const spider::PE *PE) const {
     auto &timings = executionTimingsVector_.at(vertex->ix());
     auto &timing = timings.at(PE->hardwareType());
-    return timing.evaluate(vertex->containingGraph()->params());
+    return timing.evaluate(vertex->graph()->params());
 }
 
 void
@@ -128,7 +128,7 @@ void spider::Scenario::setExecutionTiming(const spider::pisdf::Vertex *vertex,
                                           const std::string &expression) {
     auto &timings = executionTimingsVector_.at(vertex->ix());
     auto &timing = timings.at(PEType);
-    timing = Expression(expression, vertex->containingGraph()->params());
+    timing = Expression(expression, vertex->graph()->params());
 }
 
 void spider::Scenario::setExecutionTiming(const spider::pisdf::Vertex *vertex,
@@ -136,5 +136,5 @@ void spider::Scenario::setExecutionTiming(const spider::pisdf::Vertex *vertex,
                                           const std::string &expression) {
     auto &timings = executionTimingsVector_.at(vertex->ix());
     auto &timing = timings.at(PE->hardwareType());
-    timing = Expression(expression, vertex->containingGraph()->params());
+    timing = Expression(expression, vertex->graph()->params());
 }

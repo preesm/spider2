@@ -189,7 +189,7 @@ std::pair<PiSDFGraph *, PiSDFGraph *> spider::srdag::splitDynamicGraph(PiSDFGrap
     const auto &runOutputIFCount = subgraph->outputEdgeCount() - initOutputIFCount;
 
     /* == Create the init subgraph == */
-    auto *initGraph = spider::api::createSubraph(subgraph->containingGraph(),
+    auto *initGraph = spider::api::createSubraph(subgraph->graph(),
                                                  "ginit-" + subgraph->name(),
                                                  static_cast<uint32_t>(subgraph->configVertexCount()),
                                                  initInputIFCount + initOutputIFCount + cfgInputIFCount,
@@ -200,7 +200,7 @@ std::pair<PiSDFGraph *, PiSDFGraph *> spider::srdag::splitDynamicGraph(PiSDFGrap
                                                  StackID::PISDF);
 
     /* == Create the run subgraph == */
-    auto *runGraph = spider::api::createSubraph(subgraph->containingGraph(),
+    auto *runGraph = spider::api::createSubraph(subgraph->graph(),
                                                 "grun-" + subgraph->name(),
                                                 static_cast<uint32_t>(subgraph->vertexCount()),
                                                 static_cast<uint32_t>(subgraph->edgeCount()),
@@ -312,7 +312,7 @@ std::pair<PiSDFGraph *, PiSDFGraph *> spider::srdag::splitDynamicGraph(PiSDFGrap
     }
 
     /* == Destroy the subgraph == */
-    subgraph->containingGraph()->removeVertex(subgraph);
+    subgraph->graph()->removeVertex(subgraph);
 
     return std::make_pair(initGraph, runGraph);
 }

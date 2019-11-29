@@ -65,13 +65,13 @@ spider::pisdf::Edge::Edge(Vertex *source,
     if (!source || !sink) {
         throwSpiderException("nullptr vertex connected to Edge.");
     }
-    if (source->containingGraph() != sink->containingGraph()) {
+    if (source->graph() != sink->graph()) {
         throwSpiderException("Can not create edge between [%s] and [%s]: not in the same graph.",
                              source->name().c_str(), sink->name().c_str());
     }
     source->connectOutputEdge(this, srcIx);
     sink->connectInputEdge(this, snkIx);
-    graph_ = source->containingGraph();
+    graph_ = source->graph();
 }
 
 spider::pisdf::Edge::~Edge() {

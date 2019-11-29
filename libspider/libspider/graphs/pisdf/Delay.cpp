@@ -77,7 +77,7 @@ spider::pisdf::Delay::Delay(Expression &&expression,
     /* == If no setter is provided then an INIT is created == */
     if (!setter_) {
         setterPortIx_ = 0; /* = Ensure the proper value of the port ix = */
-        setter_ = spider::api::createInit(edge->containingGraph(),
+        setter_ = spider::api::createInit(edge->graph(),
                                           "init-" + edge->sink()->name() + "_" + std::to_string(edge->sinkPortIx()),
                                           stack);
     }
@@ -85,14 +85,14 @@ spider::pisdf::Delay::Delay(Expression &&expression,
     /* == If no getter is provided then an END is created == */
     if (!getter_) {
         getterPortIx_ = 0; /* = Ensure the proper value of the port ix = */
-        getter_ = spider::api::createEnd(edge->containingGraph(),
+        getter_ = spider::api::createEnd(edge->graph(),
                                          "end-" + edge->source()->name() + "_" + std::to_string(edge->sourcePortIx()),
                                          stack);
     }
 
     /* == Create virtual vertex and connect it to setter / getter == */
     vertex_ = spider::make<DelayVertex>(stack, this->name(), stack);
-    edge->containingGraph()->addVertex(vertex_);
+    edge->graph()->addVertex(vertex_);
 
     auto *setterEdge = spider::make<PiSDFEdge>(stack,
                                                setter_,
@@ -110,8 +110,8 @@ spider::pisdf::Delay::Delay(Expression &&expression,
                                                std::move(getterRateExpression));
 
     /* == Add things to the graph == */
-    edge->containingGraph()->addEdge(setterEdge);
-    edge->containingGraph()->addEdge(getterEdge);
+    edge->graph()->addEdge(setterEdge);
+    edge->graph()->addEdge(getterEdge);
     edge_->setDelay(this);
 }
 
@@ -123,7 +123,7 @@ std::string spider::pisdf::Delay::name() const {
 
 
 int64_t spider::pisdf::Delay::value() const {
-    return expression_.evaluate(edge_->containingGraph()->params());
+    return expression_.evaluate(edge_->graph()->params());
 }
 
 int64_t spider::pisdf::Delay::value(const spider::vector<Param *> &params) const {

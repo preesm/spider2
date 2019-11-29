@@ -83,7 +83,7 @@ namespace spider {
              * @brief Get the containing @refitem PiSDFGraph of the edge.
              * @return containing @refitem PiSDFGraph
              */
-            inline Graph *containingGraph() const;
+            inline Graph *graph() const;
 
             /**
              * @brief Get the ix of the edge in the containing graph.
@@ -190,7 +190,7 @@ namespace spider {
 
         /* === Inline method(s) === */
 
-        Graph *Edge::containingGraph() const {
+        Graph *Edge::graph() const {
             return graph_;
         }
 

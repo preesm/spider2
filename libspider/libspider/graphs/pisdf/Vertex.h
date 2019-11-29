@@ -126,7 +126,7 @@ namespace spider {
              * @brief Get the containing @refitem Graph of the vertex.
              * @return containing @refitem Graph
              */
-            inline Graph *containingGraph() const;
+            inline Graph *graph() const;
 
             /**
              * @brief Get the name string of the vertex.
@@ -267,7 +267,7 @@ namespace spider {
             return this;
         }
 
-        Graph *Vertex::containingGraph() const {
+        Graph *Vertex::graph() const {
             return graph_;
         }
 

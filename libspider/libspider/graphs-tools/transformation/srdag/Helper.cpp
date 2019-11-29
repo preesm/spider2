@@ -115,7 +115,7 @@ struct CopyVisitor final : public spider::pisdf::DefaultVisitor {
         /* == Push the jobs == */
         const auto &runGraphSubIx = transfoData_.init2dynamic_[graph->subIx()];
         if (runGraphSubIx != UINT32_MAX) {
-            auto *runGraph = graph->containingGraph()->subgraphs()[runGraphSubIx];
+            auto *runGraph = graph->graph()->subgraphs()[runGraphSubIx];
 
             /* == Find the first job corresponding to the init graph == */
             auto it = transfoData_.dynaJobs_.begin();

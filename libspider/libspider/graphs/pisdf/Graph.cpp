@@ -199,7 +199,7 @@ void spider::pisdf::Graph::removeElement(spider::vector<T *> &eltVector, T *elt)
     if (!elt) {
         return;
     }
-    if (elt->containingGraph() != this) {
+    if (elt->graph() != this) {
         throwSpiderException("Trying to remove an element not from this graph.");
     }
     auto ix = elt->ix();

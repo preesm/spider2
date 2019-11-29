@@ -278,11 +278,11 @@ PiSDFEdge *spider::api::createEdge(PiSDFAbstractVertex *source,
     auto *edge = spider::make<PiSDFEdge>(stack,
                                          source,
                                          srcPortIx,
-                                         Expression(std::move(srcRateExpression), source->containingGraph()->params()),
+                                         Expression(std::move(srcRateExpression), source->graph()->params()),
                                          sink,
                                          snkPortIx,
-                                         Expression(std::move(snkRateExpression), sink->containingGraph()->params()));
-    source->containingGraph()->addEdge(edge);
+                                         Expression(std::move(snkRateExpression), sink->graph()->params()));
+    source->graph()->addEdge(edge);
     return edge;
 }
 
@@ -300,7 +300,7 @@ PiSDFEdge *spider::api::createEdge(PiSDFAbstractVertex *source,
                                          sink,
                                          snkPortIx,
                                          Expression(snkRate));
-    source->containingGraph()->addEdge(edge);
+    source->graph()->addEdge(edge);
     return edge;
 }
 
@@ -321,16 +321,16 @@ PiSDFDelay *spider::api::createDelay(PiSDFEdge *edge,
     }
     const auto expression = delayExpression;
     auto *delay = spider::make<PiSDFDelay>(stack,
-                                           Expression(std::move(delayExpression), edge->containingGraph()->params()),
+                                           Expression(std::move(delayExpression), edge->graph()->params()),
                                            edge,
                                            setter,
                                            setterPortIx,
                                            Expression(setter ? setterRateExpression : expression,
-                                                      edge->containingGraph()->params()),
+                                                      edge->graph()->params()),
                                            getter,
                                            getterPortIx,
                                            Expression(getter ? getterRateExpression : expression,
-                                                      edge->containingGraph()->params()),
+                                                      edge->graph()->params()),
                                            persistent);
     return delay;
 }

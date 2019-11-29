@@ -46,7 +46,7 @@
 /* === Function(s) definition === */
 
 void spider::pisdf::DOTExporterVisitor::visit(Graph *graph) {
-    if (graph->containingGraph()) {
+    if (graph->graph()) {
         file_ << offset_ << "subgraph \"cluster_" << graph->name() << "\" {" << '\n';
         offset_ += "\t";
         file_ << offset_ << R"(label=<<font point-size="40" face="inconsolata">)" << graph->name() << R"(</font>>;)"
@@ -93,7 +93,7 @@ void spider::pisdf::DOTExporterVisitor::visit(Graph *graph) {
     }
 
     /* == Footer == */
-    if (graph->containingGraph()) {
+    if (graph->graph()) {
         offset_.pop_back();
         file_ << offset_;
     }
@@ -280,7 +280,7 @@ void spider::pisdf::DOTExporterVisitor::edgePrinter(spider::pisdf::Edge *edge) c
 }
 
 void spider::pisdf::DOTExporterVisitor::paramPrinter(Param *param) const {
-    file_ << offset_ << R"(")" << param->containingGraph()->name() + ":" + param->name()
+    file_ << offset_ << R"(")" << param->graph()->name() + ":" + param->name()
           << R"("[shape=house, style=filled, fillcolor=")" << (param->dynamic() ? "#19b5fe" : "#89c4f4")
           << R"(", margin=0, width=0, height=0, label=<)" << '\n';
     file_ << offset_ << '\t' << R"(<table border="0" fixedsize="false" cellspacing="0" cellpadding="0">)"

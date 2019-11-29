@@ -61,7 +61,7 @@ int64_t spider::ListScheduler::computeScheduleLevel(ListVertex &listVertex,
         for (auto &edge : vertex->outputEdgeArray()) {
             auto *sink = edge->sink();
             if (sink) {
-                auto *scenario = vertex->containingGraph()->scenario();
+                auto *scenario = vertex->graph()->scenario();
                 auto minExecutionTime = INT64_MAX;
                 for (auto &cluster : platform->clusters()) {
                     for (auto &pe : cluster->processingElements()) {

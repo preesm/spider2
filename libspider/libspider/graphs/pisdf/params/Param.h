@@ -70,7 +70,7 @@ namespace spider {
 
             /* === Getter(s) === */
 
-            inline Graph *containingGraph() const;
+            inline Graph *graph() const;
 
             inline const std::string &name() const;
 
@@ -111,7 +111,7 @@ namespace spider {
             visitor->visit(this);
         }
 
-        Graph *Param::containingGraph() const {
+        Graph *Param::graph() const {
             return graph_;
         }
 
