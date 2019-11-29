@@ -78,10 +78,8 @@ bool spider::JITMSRuntime::execute() const {
     auto &&resultRootJob = spider::srdag::singleRateTransformation(rootJob, srdag);
 
     /* == Initialize the job stacks == */
-    spider::srdag::JobStack staticJobStack;
-    spider::srdag::JobStack dynamicJobStack;
-    staticJobStack.swap(resultRootJob.first);
-    dynamicJobStack.swap(resultRootJob.second);
+    auto staticJobStack{ std::move(resultRootJob.first) };
+    auto dynamicJobStack{ std::move(resultRootJob.second) };
 
     while (!staticJobStack.empty()) {
         //monitor_->startSampling();
