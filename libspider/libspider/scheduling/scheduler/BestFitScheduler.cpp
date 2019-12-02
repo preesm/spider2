@@ -41,7 +41,6 @@
 /* === Include(s) === */
 
 #include <scheduling/scheduler/BestFitScheduler.h>
-#include <scenario/Scenario.h>
 
 /* === Static variable(s) === */
 

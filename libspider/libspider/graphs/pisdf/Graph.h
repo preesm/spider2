@@ -157,13 +157,6 @@ namespace spider {
 
             inline void visit(Visitor *visitor) override;
 
-            /**
-             * @brief Create a scenario for the given graph.
-             * @remark Scenario are always allocated on StackID:SCENARIO stack.
-             * @return newly created scenario.
-             */
-            Scenario *createScenario();
-
             /* === Getter(s) === */
 
             inline VertexType subtype() const override;
@@ -298,13 +291,6 @@ namespace spider {
              */
             inline uint32_t subIx() const;
 
-            /**
-             * @brief Get the scenario of the graph.
-             * @remark a Graph is not required to have a scenario and thus it may be nullptr.
-             * @return scenario of the graph.
-             */
-            inline Scenario *scenario() const;
-
             /* === Setter(s) === */
 
         private:
@@ -320,10 +306,6 @@ namespace spider {
             spider::vector<Param *> paramVector_;
             spider::array<InputInterface *> inputInterfaceArray_;
             spider::array<OutputInterface *> outputInterfaceArray_;
-
-            /* === Scenario related to this graph === */
-
-            Scenario *scenario_ = nullptr;
 
             /* === Private method(s) === */
 
@@ -422,10 +404,6 @@ namespace spider {
 
         uint32_t Graph::subIx() const {
             return subIx_;
-        }
-
-        Scenario *Graph::scenario() const {
-            return scenario_;
         }
     }
 }

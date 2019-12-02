@@ -46,7 +46,6 @@
 #include <archi/Cluster.h>
 #include <archi/PE.h>
 #include <spider-api/archi.h>
-#include <scenario/Scenario.h>
 
 /* === Static variable(s) === */
 
@@ -61,19 +60,19 @@ int64_t spider::ListScheduler::computeScheduleLevel(ListVertex &listVertex,
         for (auto &edge : vertex->outputEdgeArray()) {
             auto *sink = edge->sink();
             if (sink) {
-                auto *scenario = vertex->graph()->scenario();
+//                auto *scenario = vertex->graph()->scenario();
                 auto minExecutionTime = INT64_MAX;
                 for (auto &cluster : platform->clusters()) {
-                    for (auto &pe : cluster->processingElements()) {
-                        if (scenario->isMappable(sink, pe)) {
-                            auto executionTime = scenario->executionTiming(sink, cluster->PEType());
-                            if (!executionTime) {
-                                throwSpiderException("Vertex [%s] has null execution time on mappable PE [%s].",
-                                                     vertex->name().c_str(), pe->name().c_str());
-                            }
-                            minExecutionTime = std::min(minExecutionTime, executionTime);
-                            break; /* = We can break because any other PE of the cluster will have the same timing = */
-                        }
+                    for (auto &pe : cluster->peArray()) {
+//                        if (scenario->isMappable(sink, pe)) {
+//                            auto executionTime = scenario->executionTiming(sink, cluster->PEType());
+//                            if (!executionTime) {
+//                                throwSpiderException("Vertex [%s] has null execution time on mappable PE [%s].",
+//                                                     vertex->name().c_str(), pe->name().c_str());
+//                            }
+//                            minExecutionTime = std::min(minExecutionTime, executionTime);
+//                            break; /* = We can break because any other PE of the cluster will have the same timing = */
+//                        }
                     }
                 }
                 level = std::max(level, computeScheduleLevel(sortedVertexVector[sink->ix()], sortedVertexVector) +

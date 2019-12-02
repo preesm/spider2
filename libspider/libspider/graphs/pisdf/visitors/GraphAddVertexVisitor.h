@@ -45,7 +45,6 @@
 #include <graphs/pisdf/visitors/DefaultVisitor.h>
 #include <graphs/pisdf/specials/Specials.h>
 #include <graphs/pisdf/Graph.h>
-#include <scenario/Scenario.h>
 #include <spider-api/archi.h>
 #include <archi/Platform.h>
 
@@ -60,9 +59,6 @@ namespace spider {
             inline void visit(ExecVertex *vertex) override {
                 /* == Add vertex to vertexVector_ == */
                 addVertex(vertex);
-
-                /* == Create default constraints == */
-                addScenarioConstraint();
             }
 
             inline void visit(ConfigVertex *vertex) override {
@@ -71,9 +67,6 @@ namespace spider {
 
                 /* == Add config vertex to the "viewer" vector == */
                 graph_->configVertexVector_.emplace_back(vertex);
-
-                /* == Create default constraints == */
-                addScenarioConstraint();
             }
 
             inline void visit(Graph *subgraph) override {
@@ -93,15 +86,6 @@ namespace spider {
                 vertex->setIx(static_cast<uint32_t>(graph_->vertexVector_.size()));
                 graph_->vertexVector_.emplace_back(vertex);
                 vertex->setGraph(graph_);
-            }
-
-            void addScenarioConstraint() {
-                if (graph_->scenario_) {
-                    const auto &peCount = spider::platform()->PECount();
-                    graph_->scenario_->mappingConstraintsVector_.emplace_back(std::vector<bool>(peCount, true));
-                    graph_->scenario_->executionTimingsVector_.emplace_back(
-                            spider::vector<Expression>(peCount, Expression(100)));
-                }
             }
         };
     }
