@@ -71,8 +71,48 @@ namespace spider {
 
         /**
          * @brief Evaluate if vertex associated to this RTConstraints is mappable at PE level.
+         * @param pe PE to evaluate.
+         * @return true if mappable, false else. If pe is nullptr, return false.
+         * @throws std::out_of_range
+         */
+        inline bool isPEMappable(const PE *pe) const {
+            if (!pe) {
+                return false;
+            }
+            return peMappableVector_.at(pe->spiderPEIx());
+        }
+
+        /**
+         * @brief Evaluate if vertex associated to this RTConstraints is mappable at cluster level.
+         * @param cluster Cluster to evaluate.
+         * @return true if mappable, false else. If cluster is nullptr, return false.
+         * @throws std::out_of_range
+         */
+        inline bool isClusterMappable(const Cluster *cluster) const {
+            if (!cluster) {
+                return false;
+            }
+            return clusterMappableVector_.at(cluster->ix());
+        }
+
+        /**
+         * @brief Evaluate the timing of vertex associated to this RTConstraints on given PE.
+         * @param pe PE to evaluate.
+         * @param params  Extra parameters in case timing is parameterized.
+         * @return timing on given PE (100 by default). If pe is nullptr, return INT64_MAX.
+         * @throws std::out_of_range
+         */
+        inline int64_t timingOnPE(const PE *pe, const spider::vector<pisdf::Param *> &params = { }) const {
+            if (!pe) {
+                return INT64_MAX;
+            }
+            return timingVector_.at(pe->spiderPEIx()).evaluate(params);
+        }
+
+        /**
+         * @brief Evaluate if vertex associated to this RTConstraints is mappable at PE level.
          * @param ix Spider pe ix to evaluate.
-         * @return true if mappable, false else
+         * @return true if mappable, false else.
          * @throws std::out_of_range
          */
         inline bool isPEMappable(size_t ix) const {
@@ -82,7 +122,7 @@ namespace spider {
         /**
          * @brief Evaluate if vertex associated to this RTConstraints is mappable at cluster level.
          * @param ix Spider cluster ix to evaluate.
-         * @return true if mappable, false else
+         * @return true if mappable, false else.
          * @throws std::out_of_range
          */
         inline bool isClusterMappable(size_t ix) const {
@@ -127,6 +167,34 @@ namespace spider {
         inline void setMappableConstraintOnAllPE(bool mappable = true) {
             std::fill(peMappableVector_.begin(), peMappableVector_.end(), mappable);
             std::fill(clusterMappableVector_.begin(), clusterMappableVector_.end(), mappable);
+        }
+
+        /**
+         * @brief Set timing on a given PE by value.
+         * @remark If pe is nullptr, nothing happens.
+         * @param pe     PE to evaluate.
+         * @param value  Value to set (default is 100).
+         * @throws std::out_of_range
+         */
+        inline void setTimingOnPE(const PE* pe, int64_t value = 100) {
+            if (!pe) {
+                return;
+            }
+            timingVector_.at(pe->spiderPEIx()) = Expression(value);
+        }
+
+        /**
+         * @brief Set timing on a given PE by Expression.
+         * @remark If pe is nullptr, nothing happens.
+         * @param pe          PE to evaluate.
+         * @param expression  Expression to set.
+         * @throws std::out_of_range
+         */
+        inline void setTimingOnPE(const PE* pe, Expression &&expression) {
+            if (!pe) {
+                return;
+            }
+            timingVector_.at(pe->spiderPEIx()) = std::move(expression);
         }
 
         /**
