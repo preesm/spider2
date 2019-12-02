@@ -46,7 +46,7 @@
 #include <graphs-tools/exporter/DOTExporter.h>
 #include <scheduling/schedule/exporter/SVGGanttExporter.h>
 #include <scheduling/scheduler/BestFitScheduler.h>
-#include <spider-api/scenario.h>
+#include <spider-api/constraints.h>
 #include <scheduling/schedule/exporter/XMLGanttExporter.h>
 #include <scheduling/scheduler/GreedyScheduler.h>
 #include <monitor/Monitor.h>
@@ -70,7 +70,6 @@ bool spider::JITMSRuntime::execute() const {
                                            0, /* = Number of output interfaces = */
                                            0, /* = Number of config actors = */
                                            StackID::TRANSFO);
-//    spider::api::createScenario(srdag, StackID::SCENARIO);
 
     /* == Apply first transformation of root graph == */
     auto &&rootJob = spider::srdag::TransfoJob(graph, 0, UINT32_MAX);

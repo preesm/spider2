@@ -76,7 +76,7 @@ spider::PE &spider::Platform::findPE(const std::string &name) const {
     throwSpiderException("Unable to find PE of name: %s in any of the platform clusters.", name.c_str());
 }
 
-spider::PE &spider::Platform::findPE(uint32_t virtualIx) const {
+spider::PE &spider::Platform::findPE(size_t virtualIx) const {
     for (const auto &cluster : clusterArray_) {
         for (auto &pe : cluster->peArray()) {
             if (pe->virtualIx() == virtualIx) {
@@ -89,7 +89,7 @@ spider::PE &spider::Platform::findPE(uint32_t virtualIx) const {
                                  " in any of the platform clusters.", virtualIx);
 }
 
-spider::PE &spider::Platform::findPE(uint32_t clusterIx, uint32_t PEIx) const {
+spider::PE &spider::Platform::findPE(size_t clusterIx, size_t PEIx) const {
     auto *cluster = clusterArray_.at(clusterIx);
     return *(cluster->peArray().at(PEIx));
 }

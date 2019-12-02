@@ -65,6 +65,14 @@ namespace spider {
             timingVector_.resize(peCount, Expression(100));
         }
 
+        RTConstraints(const RTConstraints &) = default;
+
+        RTConstraints(RTConstraints &&) = default;
+
+        RTConstraints &operator=(const RTConstraints &) = default;
+
+        RTConstraints &operator=(RTConstraints &&) = default;
+
         ~RTConstraints() = default;
 
         /* === Getter(s) === */
@@ -176,7 +184,7 @@ namespace spider {
          * @param value  Value to set (default is 100).
          * @throws std::out_of_range
          */
-        inline void setTimingOnPE(const PE* pe, int64_t value = 100) {
+        inline void setTimingOnPE(const PE *pe, int64_t value = 100) {
             if (!pe) {
                 return;
             }
@@ -190,7 +198,7 @@ namespace spider {
          * @param expression  Expression to set.
          * @throws std::out_of_range
          */
-        inline void setTimingOnPE(const PE* pe, Expression &&expression) {
+        inline void setTimingOnPE(const PE *pe, Expression &&expression) {
             if (!pe) {
                 return;
             }

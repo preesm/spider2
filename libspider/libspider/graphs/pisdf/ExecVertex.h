@@ -45,8 +45,10 @@
 #include <cstdint>
 #include <string>
 #include <graphs/pisdf/Vertex.h>
+#include <runtime/constraints/RTConstraints.h>
 
 namespace spider {
+
     namespace pisdf {
 
         /* === Class definition === */
@@ -63,9 +65,17 @@ namespace spider {
 
             friend CloneVertexVisitor;
 
+            ~ExecVertex() override  {
+                if (reference() == this) {
+                    spider::destroy(constraints_);
+                }
+            }
+
             /* === Method(s) === */
 
             inline void visit(Visitor *visitor) override;
+
+            inline RTConstraints *createConstraints();
 
             /* === Getter(s) === */
 
@@ -86,6 +96,8 @@ namespace spider {
              */
             inline uint32_t jobIx() const;
 
+            inline RTConstraints *constraints() const;
+
             /* === Setter(s) === */
 
             /**
@@ -100,15 +112,32 @@ namespace spider {
              */
             inline void setJobIx(uint32_t ix);
 
+            /**
+             * @brief Set RTConstraints of this vertex.
+             * @remark if nullptr, nothing happens.
+             * @remark if vertex already has constraints, nothing happens.
+             * @param constraints Constraints to set.
+             */
+            inline void setConstraints(RTConstraints *constraints);
+
         protected:
             uint32_t refinementIx_ = UINT32_MAX;
             uint32_t jobIx_ = UINT32_MAX;
+            RTConstraints *constraints_ = nullptr;
+
         };
 
         /* === Inline method(s) === */
 
         void ExecVertex::visit(Visitor *visitor) {
             visitor->visit(this);
+        }
+
+        RTConstraints *ExecVertex::createConstraints() {
+            if (!constraints_) {
+                constraints_ = spider::make<RTConstraints>();
+            }
+            return constraints_;
         }
 
         VertexType ExecVertex::subtype() const {
@@ -127,12 +156,23 @@ namespace spider {
             return jobIx_;
         }
 
+        RTConstraints *ExecVertex::constraints() const {
+            return constraints_;
+        }
+
         void spider::pisdf::ExecVertex::setRefinementIx(uint32_t ix) {
             refinementIx_ = ix;
         }
 
         void spider::pisdf::ExecVertex::setJobIx(uint32_t ix) {
             jobIx_ = ix;
+        }
+
+        void ExecVertex::setConstraints(RTConstraints *constraints) {
+            if (!constraints || constraints_) {
+                return;
+            }
+            constraints_ = constraints;
         }
     }
 }

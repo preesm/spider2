@@ -104,7 +104,7 @@ namespace spider {
          * @return const reference of the @refitem ProcessingElement
          * @throws @refitem Spider::Exception if ix is out of bound
          */
-        inline const PE &processingElement(uint32_t ix) const;
+        inline const PE &processingElement(size_t ix) const;
 
         /**
          * @brief Get the number of processing element inside the cluster.
@@ -212,7 +212,7 @@ namespace spider {
         return *memoryUnit_;
     }
 
-    const PE &Cluster::processingElement(uint32_t ix) const {
+    const PE &Cluster::processingElement(size_t ix) const {
         return *PEArray_.at(ix);
     }
 

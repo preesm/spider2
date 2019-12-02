@@ -58,7 +58,7 @@ namespace spider {
 
         class Graph;
 
-        class Vertex;
+        class ExecVertex;
 
     }
 
@@ -70,36 +70,25 @@ namespace spider {
 
         /* === General Scenario related API === */
 
-        Scenario *createScenario(pisdf::Graph *graph);
+        void setVertexMappableOnCluster(pisdf::ExecVertex *vertex, const Cluster *cluster, bool value = true);
 
-        void setVertexMappableOnCluster(const pisdf::Vertex *vertex, const Cluster *cluster, bool value = true);
+        void setVertexMappableOnCluster(pisdf::ExecVertex *vertex, uint32_t clusterIx, bool value = true);
 
-        void setVertexMappableOnCluster(const pisdf::Vertex *vertex, uint32_t clusterIx, bool value = true);
+        void setVertexMappableOnPE(pisdf::ExecVertex *vertex, const PE *pe, bool value = true);
 
-        void setVertexMappableOnPE(const pisdf::Vertex *vertex, const PE *PE, bool value = true);
+        void setVertexMappableOnPE(pisdf::ExecVertex *vertex, size_t ix, bool value = true);
 
-        void setVertexMappableOnPE(const pisdf::Vertex *vertex, uint32_t spiderPEIx, bool value = true);
+        void setVertexMappableOnAllPE(pisdf::ExecVertex *vertex, bool value = true);
 
-        void setVertexMappableOnAllPE(const pisdf::Vertex *vertex, bool value = true);
+        void setVertexExecutionTimingOnPE(pisdf::ExecVertex *vertex,
+                                          const PE *pe,
+                                          const std::string &timingExpression = "100");
 
-        void setVertexExecutionTimingOnPE(const pisdf::Vertex *vertex,
-                                          const PE *PE,
-                                          const std::string &expression = "100");
+        void setVertexExecutionTimingOnPE(pisdf::ExecVertex *vertex, const PE *pe, int64_t timing = 100);
 
-        void setVertexExecutionTimingOnPE(const pisdf::Vertex *vertex,
-                                          const PE *PE,
-                                          int64_t timing = 100);
+        void setVertexExecutionTimingOnAllPE(pisdf::ExecVertex *vertex, int64_t timing = 100);
 
-        void setVertexExecutionTimingOnPEType(const pisdf::Vertex *vertex,
-                                              uint32_t PEType,
-                                              const std::string &expression = "100");
-
-        void setVertexExecutionTimingOnPEType(const pisdf::Vertex *vertex,
-                                              uint32_t PEType,
-                                              int64_t timing = 100);
-
-        void setVertexExecutionTimingOnAllPEType(const pisdf::Vertex *vertex,
-                                                 int64_t timing = 100);
+        void setVertexExecutionTimingOnAllPE(pisdf::ExecVertex *vertex, const std::string &timingExpression);
     }
 }
 

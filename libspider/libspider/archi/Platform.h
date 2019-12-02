@@ -84,7 +84,7 @@ namespace spider {
          * @return reference to the @refitem ProcessingElement found.
          * @throws Spider::Exception if there is no PE with given virtual ix in the platform.
          */
-        PE &findPE(uint32_t virtualIx) const;
+        PE &findPE(size_t virtualIx) const;
 
         /**
          * @brief Find the processing element in the platform from its cluster ix and its PE ix.
@@ -93,7 +93,7 @@ namespace spider {
          * @return reference to the @refitem ProcessingElement found.
          * @throws Spider::Exception if there is no PE with given cluster and PE ix in the platform.
          */
-        PE &findPE(uint32_t clusterIx, uint32_t PEIx) const;
+        PE &findPE(size_t clusterIx, size_t PEIx) const;
 
         /**
          * @brief Compute the data communication cost between two processing elements.
@@ -130,10 +130,10 @@ namespace spider {
 
         /**
          * @brief Get a specific cluster in the platform.
-         * @param clusterIx Ix of the cluster to get.
+         * @param ix Ix of the cluster to get.
          * @return pointer to @refitem Spider::Cluster.
          */
-        inline Cluster *cluster(uint32_t clusterIx) const;
+        inline Cluster *cluster(size_t ix) const;
 
         /**
          * @brief Get the processing element on which the GRT runs (in master-slave mode).
@@ -217,8 +217,8 @@ namespace spider {
         return clusterArray_;
     }
 
-    Cluster *Platform::cluster(uint32_t clusterIx) const {
-        return clusterArray_[clusterIx];
+    Cluster *Platform::cluster(size_t ix) const {
+        return clusterArray_[ix];
     }
 
     PE *Platform::spiderGRTPE() const {
