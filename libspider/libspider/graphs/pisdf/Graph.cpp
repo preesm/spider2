@@ -138,48 +138,17 @@ void spider::pisdf::Graph::addEdge(Edge *edge) {
     edge->setGraph(this);
 }
 
-void spider::pisdf::Graph::removeEdge(Edge *edge) {
-    removeElement(edgeVector_, edge);
-    spider::destroy(edge);
-}
-
-void spider::pisdf::Graph::moveEdge(Edge *elt, Graph *graph) {
-    if (graph) {
-        removeElement(edgeVector_, elt);
-        graph->addEdge(elt);
-    }
-}
-
 void spider::pisdf::Graph::addParam(Param *param) {
     /* == Check if a parameter with the same name already exists in the scope of this graph == */
-    if (this->param(param->name())) {
-        throwSpiderException("Parameter [%s] already exist in graph [%s].", param->name().c_str(), name().c_str());
+    for (auto &p : paramVector_) {
+        if (p->name() == param->name()) {
+            throwSpiderException("Parameter [%s] already exist in graph [%s].", param->name().c_str(), name().c_str());
+        }
     }
     param->setIx(static_cast<uint32_t>(paramVector_.size()));
     param->setGraph(this);
     paramVector_.push_back(param);
     dynamic_ |= (param->dynamic() && param->type() != ParamType::INHERITED);
-}
-
-void spider::pisdf::Graph::removeParam(Param *param) {
-    removeElement(paramVector_, param);
-    spider::destroy(param);
-}
-
-void spider::pisdf::Graph::moveParam(Param *elt, Graph *graph) {
-    if (graph) {
-        removeElement(paramVector_, elt);
-        graph->addParam(elt);
-    }
-}
-
-spider::pisdf::Param *spider::pisdf::Graph::param(const std::string &name) const {
-    for (auto &p : paramVector_) {
-        if (p->name() == name) {
-            return p;
-        }
-    }
-    return nullptr;
 }
 
 spider::pisdf::Vertex *spider::pisdf::Graph::forwardEdge(const Edge *e) {

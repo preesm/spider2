@@ -48,12 +48,9 @@
 #include <containers/containers.h>
 #include <graphs/pisdf/ExecVertex.h>
 #include <graphs/pisdf/Edge.h>
+#include <graphs/pisdf/params/Param.h>
 
 namespace spider {
-
-    /* === Forward declaration(s) === */
-
-    class Scenario;
 
     namespace pisdf {
 
@@ -113,7 +110,10 @@ namespace spider {
              * @param edge Edge to remove.
              * @throw @refitem Spider::Exception if edge does not exist in the graph.
              */
-            void removeEdge(Edge *edge);
+            void removeEdge(Edge *edge) {
+                removeElement(edgeVector_, edge);
+                spider::destroy(edge);
+            }
 
             /**
              * @brief Add an param to the graph.
@@ -127,7 +127,10 @@ namespace spider {
              * @param param Param to add.
              * @throw @refitem Spider::Exception if param does not exist in the graph.
              */
-            void removeParam(Param *param);
+            inline void removeParam(Param *param) {
+                removeElement(paramVector_, param);
+                spider::destroy(param);
+            }
 
             /**
              * @brief Move vertex ownership from this graph to another graph.
@@ -135,7 +138,13 @@ namespace spider {
              * @param elt    Vertex to move.
              * @param graph  Graph to move to.
              */
-            inline void moveVertex(Vertex *elt, Graph *graph);
+            inline void moveVertex(Vertex *elt, Graph *graph) {
+                if (!graph) {
+                    return;
+                }
+                removeElement(vertexVector_, elt);
+                graph->addVertex(elt);
+            }
 
             /**
              * @brief Move param ownership from this graph to another graph.
@@ -143,7 +152,13 @@ namespace spider {
              * @param elt    Param to move.
              * @param graph  Graph to move to.
              */
-            void moveParam(Param *elt, Graph *graph);
+            inline void moveParam(Param *elt, Graph *graph) {
+                if (!graph) {
+                    return;
+                }
+                removeElement(paramVector_, elt);
+                graph->addParam(elt);
+            }
 
             /**
              * @brief Move edge ownership from this graph to another graph.
@@ -151,103 +166,134 @@ namespace spider {
              * @param elt    Edge to move.
              * @param graph  Graph to move to.
              */
-            void moveEdge(Edge *elt, Graph *graph);
+            inline void moveEdge(Edge *elt, Graph *graph) {
+                if (!graph) {
+                    return;
+                }
+                removeElement(edgeVector_, elt);
+                graph->addEdge(elt);
+            }
 
             Vertex *forwardEdge(const Edge *e) override;
 
-            inline void visit(Visitor *visitor) override;
+            inline void visit(Visitor *visitor) override {
+                visitor->visit(this);
+            }
 
             /* === Getter(s) === */
 
-            inline VertexType subtype() const override;
+            inline VertexType subtype() const override {
+                return VertexType::GRAPH;
+            }
 
-            inline bool hierarchical() const override;
+            inline bool hierarchical() const override {
+                return true;
+            }
 
             /**
              * @brief Return dynamic property of the graph.
              * @return true if graph is dynamic, false else.
              */
-            inline bool dynamic() const;
+            inline bool dynamic() const {
+                return dynamic_;
+            }
 
             /**
              * @brief Get the number of vertices in the graph.
              * @remark This method exclude the number of interfaces and the number of config actors.
              * @return Total number of vertices.
              */
-            inline size_t vertexCount() const;
+            inline size_t vertexCount() const {
+                return vertexVector_.size();
+            }
 
             /**
              * @brief Get the number of config actors in the graph.
              * @return Total number of config actors.
              */
-            inline size_t configVertexCount() const;
+            inline size_t configVertexCount() const {
+                return configVertexVector_.size();
+            }
 
             /**
              * @brief Get the number of edges contained in the graph.
              * @return Number of edges.
              */
-            inline size_t edgeCount() const;
+            inline size_t edgeCount() const {
+                return edgeVector_.size();
+            }
 
             /**
              * @brief Get the number of params contained in the graph.
              * @return Number of params.
              */
-            inline size_t paramCount() const;
+            inline size_t paramCount() const {
+                return paramVector_.size();
+            }
 
             /**
              * @brief Get the number of subgraphs.
              * @return Number of subgraphs.
              */
-            inline size_t subgraphCount() const;
+            inline size_t subgraphCount() const {
+                return subgraphVector_.size();
+            }
 
             /**
             * @brief A const reference on the set of vertices. Useful for iterating on the vertices.
             * @return const reference to exec vertex vector
             */
-            inline const spider::vector<Vertex *> &vertices() const;
+            inline const spider::vector<Vertex *> &vertices() const {
+                return vertexVector_;
+            }
 
             /**
             * @brief A const reference on the set of subgraphs. Useful for iterating on the subgraphs.
             * @return const reference to subgraph vector
             */
-            inline const spider::vector<Graph *> &subgraphs() const;
+            inline const spider::vector<Graph *> &subgraphs() const {
+                return subgraphVector_;
+            }
 
             /**
             * @brief A const reference on the set of vertices. Useful for iterating on the vertices.
             * @return const reference to vertex vector
             */
-            inline const spider::vector<ConfigVertex *> &configVertices() const;
+            inline const spider::vector<ConfigVertex *> &configVertices() const {
+                return configVertexVector_;
+            }
 
             /**
             * @brief A const reference on the set of output interfaces. Useful for iterating on the input interfaces.
             * @return const reference to input interface array
             */
-            inline const spider::array<InputInterface *> &inputInterfaceArray() const;
+            inline const spider::array<InputInterface *> &inputInterfaceArray() const {
+                return inputInterfaceArray_;
+            }
 
             /**
             * @brief A const reference on the set of output interfaces. Useful for iterating on the output interfaces.
             * @return const reference to output interface array
             */
-            inline const spider::array<OutputInterface *> &outputInterfaceArray() const;
+            inline const spider::array<OutputInterface *> &outputInterfaceArray() const {
+                return outputInterfaceArray_;
+            }
 
             /**
             * @brief A const reference on the set of edges. Useful for iterating on the edges.
             * @return const reference to edge vector
             */
-            inline const spider::vector<Edge *> &edges() const;
+            inline const spider::vector<Edge *> &edges() const {
+                return edgeVector_;
+            }
 
             /**
             * @brief A const reference on the set of params. Useful for iterating on the params.
             * @return const reference to param vector
             */
-            inline const spider::vector<Param *> &params() const;
-
-            /**
-             * @brief Retrieve a parameter from its name.
-             * @param name Name of the parameter.
-             * @return pointer to the @refitem Spider::PiSDF::Param if found, nullptr else.
-             */
-            Param *param(const std::string &name) const;
+            inline const spider::vector<Param *> &params() const {
+                return paramVector_;
+            }
 
             /**
              * @brief Return the parameter corresponding to the ix.
@@ -255,7 +301,9 @@ namespace spider {
              * @param ix Ix of the param.
              * @return @refitem Param pointer
              */
-            inline Param *param(size_t ix) const;
+            inline Param *param(size_t ix) const {
+                return paramVector_[ix];
+            }
 
             /**
              * @brief Return the vertex corresponding to the ix.
@@ -263,7 +311,9 @@ namespace spider {
              * @param ix  Ix of the vertex.
              * @return @refitem Vertex pointer
              */
-            inline Vertex *vertex(size_t ix) const;
+            inline Vertex *vertex(size_t ix) const {
+                return vertexVector_[ix];
+            }
 
             /**
              * @brief Return the input interface corresponding to the port ix.
@@ -273,7 +323,9 @@ namespace spider {
              * @param ix  Ix of the port
              * @return @refitem InputInterface pointer
              */
-            inline InputInterface *inputInterface(size_t ix) const;
+            inline InputInterface *inputInterface(size_t ix) const {
+                return inputInterfaceArray_[ix];
+            }
 
             /**
              * @brief Return the output interface corresponding to the port ix.
@@ -283,13 +335,17 @@ namespace spider {
              * @param ix  Ix of the port
              * @return @refitem OutputInterface pointer
              */
-            inline OutputInterface *outputInterface(size_t ix) const;
+            inline OutputInterface *outputInterface(size_t ix) const {
+                return outputInterfaceArray_[ix];
+            }
 
             /**
              * @brief Get the ix of the graph inside its containing graph subgraphVector_.
              * @return subgraph ix of the graph.
              */
-            inline uint32_t subIx() const;
+            inline uint32_t subIx() const {
+                return subIx_;
+            }
 
             /* === Setter(s) === */
 
@@ -312,99 +368,6 @@ namespace spider {
             template<class T>
             void removeElement(spider::vector<T *> &eltVector, T *elt);
         };
-
-        /* === Inline method(s) === */
-
-        void Graph::moveVertex(Vertex *elt, Graph *graph) {
-            if (graph) {
-                removeElement(vertexVector_, elt);
-                graph->addVertex(elt);
-            }
-        }
-
-        void Graph::visit(Visitor *visitor) {
-            visitor->visit(this);
-        }
-
-        VertexType Graph::subtype() const {
-            return VertexType::GRAPH;
-        }
-
-        bool Graph::hierarchical() const {
-            return true;
-        }
-
-        bool Graph::dynamic() const {
-            return dynamic_;
-        }
-
-        size_t Graph::vertexCount() const {
-            return vertexVector_.size();
-        }
-
-        size_t Graph::configVertexCount() const {
-            return configVertexVector_.size();
-        }
-
-        size_t Graph::edgeCount() const {
-            return edgeVector_.size();
-        }
-
-        size_t Graph::paramCount() const {
-            return paramVector_.size();
-        }
-
-        size_t Graph::subgraphCount() const {
-            return subgraphVector_.size();
-        }
-
-        const spider::vector<Vertex *> &Graph::vertices() const {
-            return vertexVector_;
-        }
-
-        const spider::vector<Graph *> &Graph::subgraphs() const {
-            return subgraphVector_;
-        }
-
-        const spider::vector<ConfigVertex *> &Graph::configVertices() const {
-            return configVertexVector_;
-        }
-
-        const spider::array<InputInterface *> &Graph::inputInterfaceArray() const {
-            return inputInterfaceArray_;
-        }
-
-        const spider::array<OutputInterface *> &Graph::outputInterfaceArray() const {
-            return outputInterfaceArray_;
-        }
-
-        const spider::vector<Edge *> &Graph::edges() const {
-            return edgeVector_;
-        }
-
-        const spider::vector<Param *> &Graph::params() const {
-            return paramVector_;
-        }
-
-        Param *Graph::param(size_t ix) const {
-            return paramVector_[ix];
-        }
-
-        Vertex *Graph::vertex(size_t ix) const {
-            return vertexVector_[ix];
-        }
-
-        InputInterface *Graph::inputInterface(size_t ix) const {
-            return inputInterfaceArray_[ix];
-        }
-
-        OutputInterface *Graph::outputInterface(size_t ix) const {
-            return outputInterfaceArray_[ix];
-        }
-
-        uint32_t Graph::subIx() const {
-            return subIx_;
-        }
     }
 }
 #endif //SPIDER2_GRAPH_H

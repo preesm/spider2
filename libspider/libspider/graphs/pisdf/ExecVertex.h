@@ -65,7 +65,7 @@ namespace spider {
 
             friend CloneVertexVisitor;
 
-            ~ExecVertex() override  {
+            ~ExecVertex() override {
                 if (reference() == this) {
                     spider::destroy(constraints_);
                 }
@@ -73,30 +73,47 @@ namespace spider {
 
             /* === Method(s) === */
 
-            inline void visit(Visitor *visitor) override;
+            inline void visit(Visitor *visitor) override {
+                visitor->visit(this);
+            }
 
-            inline RTConstraints *createConstraints();
+            inline RTConstraints *createConstraints() {
+                if (!constraints_) {
+                    constraints_ = spider::make<RTConstraints>();
+                }
+                return constraints_;
+            }
 
             /* === Getter(s) === */
 
-            inline VertexType subtype() const override;
+            inline VertexType subtype() const override {
+                return VertexType::NORMAL;
+            }
 
-            inline bool executable() const override;
+            inline bool executable() const override {
+                return true;
+            }
 
             /**
              * @brief Get the refinement index in the global register associated to this vertex.
              * @return index of the refinement, UINT32_MAX if not set.
              */
-            inline uint32_t refinementIx() const;
+            inline uint32_t refinementIx() const {
+                return refinementIx_;
+            }
 
             /**
              * @brief Get the job ix associated to this vertex.
              * @remark In the case of @refitem VertexType::CONFIG, the value match the one of the corresponding dynamic job.
              * @return ix of the job, UINT32_MAX if not set.
              */
-            inline uint32_t jobIx() const;
+            inline uint32_t jobIx() const {
+                return jobIx_;
+            }
 
-            inline RTConstraints *constraints() const;
+            inline RTConstraints *constraints() const {
+                return constraints_;
+            }
 
             /* === Setter(s) === */
 
@@ -104,13 +121,17 @@ namespace spider {
              * @brief Set the refinement index of the vertex.
              * @param ix  Index to set.
              */
-            inline void setRefinementIx(uint32_t ix);
+            inline void setRefinementIx(uint32_t ix) {
+                refinementIx_ = ix;
+            }
 
             /**
              * @brief Set the job ix of the vertex.
              * @param ix  Ix to set.
              */
-            inline void setJobIx(uint32_t ix);
+            inline void setJobIx(uint32_t ix) {
+                jobIx_ = ix;
+            }
 
             /**
              * @brief Set RTConstraints of this vertex.
@@ -118,7 +139,12 @@ namespace spider {
              * @remark if vertex already has constraints, nothing happens.
              * @param constraints Constraints to set.
              */
-            inline void setConstraints(RTConstraints *constraints);
+            inline void setConstraints(RTConstraints *constraints) {
+                if (!constraints || constraints_) {
+                    return;
+                }
+                constraints_ = constraints;
+            }
 
         protected:
             uint32_t refinementIx_ = UINT32_MAX;
@@ -126,54 +152,6 @@ namespace spider {
             RTConstraints *constraints_ = nullptr;
 
         };
-
-        /* === Inline method(s) === */
-
-        void ExecVertex::visit(Visitor *visitor) {
-            visitor->visit(this);
-        }
-
-        RTConstraints *ExecVertex::createConstraints() {
-            if (!constraints_) {
-                constraints_ = spider::make<RTConstraints>();
-            }
-            return constraints_;
-        }
-
-        VertexType ExecVertex::subtype() const {
-            return VertexType::NORMAL;
-        }
-
-        bool ExecVertex::executable() const {
-            return true;
-        }
-
-        uint32_t ExecVertex::refinementIx() const {
-            return refinementIx_;
-        }
-
-        uint32_t ExecVertex::jobIx() const {
-            return jobIx_;
-        }
-
-        RTConstraints *ExecVertex::constraints() const {
-            return constraints_;
-        }
-
-        void spider::pisdf::ExecVertex::setRefinementIx(uint32_t ix) {
-            refinementIx_ = ix;
-        }
-
-        void spider::pisdf::ExecVertex::setJobIx(uint32_t ix) {
-            jobIx_ = ix;
-        }
-
-        void ExecVertex::setConstraints(RTConstraints *constraints) {
-            if (!constraints || constraints_) {
-                return;
-            }
-            constraints_ = constraints;
-        }
     }
 }
 #endif //SPIDER2_EXECVERTEX_H
