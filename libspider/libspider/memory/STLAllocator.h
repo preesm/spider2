@@ -44,7 +44,7 @@
 
 #include <cstdint>
 #include <limits>
-#include <memory/allocator.h>
+#include <memory/alloc.h>
 
 namespace spider {
 
@@ -87,9 +87,12 @@ namespace spider {
 
         /* === Constructors / Destructors === */
 
-        explicit Allocator() : allocator_{ spider::allocator<StackID::GENERAL>() } { };
+        Allocator() : allocator_{ spider::getStackAllocator<StackID::GENERAL>() } { };
 
-        explicit Allocator(StackID stack) : allocator_{ spider::allocator(stack) } {
+        template<class U>
+        Allocator(const Allocator<U> &other) : allocator_{ other.allocator() } { }
+
+        explicit Allocator(StackID stack) : allocator_{ spider::getStackAllocator(stack) } {
             if (!allocator_) {
                 throwSpiderException("trying to use non-initialized allocator.");
             }
@@ -97,8 +100,6 @@ namespace spider {
 
         Allocator(const Allocator &other) : allocator_{ other.allocator_ } { };
 
-        template<class U>
-        explicit Allocator(const Allocator<U> &other) : allocator_{ other.allocator() } { }
 
         ~Allocator() = default;
 

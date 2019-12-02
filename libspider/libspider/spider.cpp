@@ -41,7 +41,7 @@
 /* === Includes === */
 
 #include <spider.h>
-#include <memory/allocator.h>
+#include <memory/alloc.h>
 #include <common/Logger.h>
 #include <archi/Platform.h>
 #include <graphs/pisdf/specials/Specials.h>
@@ -142,7 +142,7 @@ void spider::start() {
     log::enable<LOG_GENERAL>();
 
     /* == Init the special actor refinements == */
-    spider::refinementsRegister() = specialActorRefinements();
+//    spider::refinementsRegister() = specialActorRefinements();
 
     /* == Enable the config flag == */
     start = true;

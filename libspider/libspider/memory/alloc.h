@@ -87,18 +87,18 @@ namespace spider {
     struct type {
     };
 
-    inline std::array<AbstractAllocator *, STACK_COUNT> &allocatorArray() {
-        static std::array<AbstractAllocator *, STACK_COUNT> allocatorArray = { nullptr };
-        return allocatorArray;
+    inline std::array<AbstractAllocator *, STACK_COUNT> &stackAllocatorArray() {
+        static std::array<AbstractAllocator *, STACK_COUNT> stackAllocatorArray = { nullptr };
+        return stackAllocatorArray;
     }
 
-    inline AbstractAllocator *&allocator(StackID stack) {
-        return allocatorArray()[static_cast<size_t>(stack)];
+    inline AbstractAllocator *&getStackAllocator(StackID stack) {
+        return stackAllocatorArray()[static_cast<size_t>(stack)];
     }
 
     template<StackID stack>
-    constexpr inline AbstractAllocator *&allocator() {
-        return allocatorArray()[static_cast<int32_t>(stack)];
+    constexpr inline AbstractAllocator *&getStackAllocator() {
+        return stackAllocatorArray()[static_cast<int32_t>(stack)];
     }
 
     template<AllocatorType Type, class ...Args>
@@ -108,36 +108,36 @@ namespace spider {
 
     template<class ...Args>
     inline void createAllocator(type<AllocatorType::GENERIC>, StackID stack, Args &&... args) {
-        if (!allocator(stack)) {
-            allocator(stack) = new GenericAllocator(std::forward<Args>(args)...);
+        if (!getStackAllocator(stack)) {
+            getStackAllocator(stack) = new GenericAllocator(std::forward<Args>(args)...);
         }
     }
 
     template<class ...Args>
     inline void createAllocator(type<AllocatorType::FREELIST>, StackID stack, Args &&... args) {
-        if (!allocator(stack)) {
-            allocator(stack) = new FreeListAllocator(std::forward<Args>(args)...);
+        if (!getStackAllocator(stack)) {
+            getStackAllocator(stack) = new FreeListAllocator(std::forward<Args>(args)...);
         }
     }
 
     template<class ...Args>
     inline void createAllocator(type<AllocatorType::LINEAR_STATIC>, StackID stack, Args &&... args) {
-        if (!allocator(stack)) {
-            allocator(stack) = new LinearStaticAllocator(std::forward<Args>(args)...);
+        if (!getStackAllocator(stack)) {
+            getStackAllocator(stack) = new LinearStaticAllocator(std::forward<Args>(args)...);
         }
     }
 
     template<class ...Args>
     inline void createAllocator(type<AllocatorType::LIFO_STATIC>, StackID stack, Args &&... args) {
-        if (!allocator(stack)) {
-            allocator(stack) = new LIFOStaticAllocator(std::forward<Args>(args)...);
+        if (!getStackAllocator(stack)) {
+            getStackAllocator(stack) = new LIFOStaticAllocator(std::forward<Args>(args)...);
         }
     }
 
     inline void freeAllocators() {
         for (auto stack : spider::EnumIterator<StackID>()) {
-            delete allocator(stack);
-            allocator(stack) = nullptr;
+            delete getStackAllocator(stack);
+            getStackAllocator(stack) = nullptr;
         }
     }
 
@@ -161,7 +161,7 @@ namespace spider {
         auto buffer = reinterpret_cast<uintptr_t>(alloc->allocate(size * sizeof(T) + sizeof(uint64_t)));
 #else
         /* == Allocate buffer with (size + 1) to store stack identifier == */
-        auto buffer = reinterpret_cast<uintptr_t>(allocator(stack)->allocate(size * sizeof(T) + sizeof(uint64_t)));
+        auto buffer = reinterpret_cast<uintptr_t>(getStackAllocator(stack)->allocate(size * sizeof(T) + sizeof(uint64_t)));
 #endif
         /* == Return allocated buffer == */
         if (buffer) {
@@ -183,7 +183,7 @@ namespace spider {
         auto buffer = reinterpret_cast<uintptr_t>(alloc->allocate(size * sizeof(T) + sizeof(uint64_t)));
 #else
         /* == Allocate buffer with (size + 1) to store stack identifier == */
-        auto buffer = reinterpret_cast<uintptr_t>(allocator<stack>()->allocate(size * sizeof(T) + sizeof(uint64_t)));
+        auto buffer = reinterpret_cast<uintptr_t>(getStackAllocator<stack>()->allocate(size * sizeof(T) + sizeof(uint64_t)));
 #endif
 
         /* == Return allocated buffer == */
@@ -235,7 +235,7 @@ namespace spider {
         auto stackId = static_cast<StackID>(reinterpret_cast<uint64_t *>(originalPtr)[0]);
 
         /* == Deallocate the pointer == */
-        allocator(stackId)->deallocate(originalPtr);
+        getStackAllocator(stackId)->deallocate(originalPtr);
     }
 
     /**
@@ -304,7 +304,7 @@ namespace spider {
             auto stackId = static_cast<StackID>(reinterpret_cast<uint64_t *>(originalPtr)[0]);
 
             /* == Deallocate the pointer == */
-            allocator(stackId)->deallocate(originalPtr);
+            getStackAllocator(stackId)->deallocate(originalPtr);
         }
     }
 }

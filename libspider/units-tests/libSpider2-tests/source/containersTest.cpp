@@ -41,7 +41,7 @@
 /* === Include(s) === */
 
 #include <gtest/gtest.h>
-#include <memory/allocator.h>
+#include <memory/alloc.h>
 #include <containers/array.h>
 #include <containers/containers.h>
 

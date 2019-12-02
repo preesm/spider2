@@ -42,7 +42,7 @@
 
 #include <gtest/gtest.h>
 #include <common/Exception.h>
-#include <memory/allocator.h>
+#include <memory/alloc.h>
 #include <memory/dynamic-allocators/FreeListAllocator.h>
 
 class allocatorTest : public ::testing::Test {
