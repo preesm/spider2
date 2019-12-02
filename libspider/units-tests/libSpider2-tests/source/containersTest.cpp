@@ -57,9 +57,11 @@ protected:
 };
 
 TEST_F(containersTest, arrayCtorTest) {
-    ASSERT_NO_THROW(auto arr = spider::array<double>()) << "spider::array() failed.";
-    ASSERT_NO_THROW(auto arr = spider::array<double>(10)) << "spider::array(size_t) failed.";
-    ASSERT_NO_THROW(auto arr = spider::array<double>(10, 3.1415)) << "spider::array(size_t, const T&) failed.";
+    ASSERT_NO_THROW(spider::array<double>()) << "spider::array() failed.";
+    ASSERT_NO_THROW(spider::array<double>(10)) << "spider::array(size_t) failed.";
+    ASSERT_NO_THROW(spider::array<double>(10, 3.1415)) << "spider::array(size_t, const T&) failed.";
+    ASSERT_NO_THROW(spider::array<double>(0)) << "spider::array(size_t = 0) failed.";
+    ASSERT_NO_THROW(spider::array<double>(0, 3.1415)) << "spider::array(size_t = 0, const T&) failed.";
     auto arr = spider::array<double>(10, 3.1415);
     ASSERT_NO_THROW(auto test_cpy(arr)) << "spider::array(const spider::array&) failed.";
     auto test(arr);

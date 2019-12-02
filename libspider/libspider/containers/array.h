@@ -65,7 +65,9 @@ namespace spider {
          * @param size   Size of the array.
          */
         explicit array(size_t size, StackID stack = StackID::GENERAL) : size_{ size } {
-            data_ = spider::allocate<T>(stack, size + 1);
+            if (size) {
+                data_ = spider::allocate<T>(stack, size + 1);
+            }
         }
 
         /**
