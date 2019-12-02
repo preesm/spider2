@@ -44,25 +44,9 @@
 
 #include <cstdint>
 #include <string>
-#include <spider-api/config.h>
+#include <spider-api/global.h>
 
 namespace spider {
-
-    /* === Forward declaration(s) === */
-
-    class Cluster;
-
-    class PE;
-
-    namespace pisdf {
-
-        class Graph;
-
-        class ExecVertex;
-
-    }
-
-    class Scenario;
 
     /* === Function(s) prototype === */
 

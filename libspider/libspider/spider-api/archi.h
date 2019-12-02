@@ -44,30 +44,9 @@
 
 #include <cstdint>
 #include <string>
+#include <spider-api/global.h>
 
 namespace spider {
-
-    /* === Forward declaration(s) === */
-
-    class Platform;
-
-    class Cluster;
-
-    class PE;
-
-    class MemoryUnit;
-
-    /* === Routine(s) === */
-
-    using CommunicationCostRoutine = uint64_t (*)(
-            /* = Number of bytes  = */   uint64_t
-                                                 );
-
-    using CommunicationCostRoutineC2C = uint64_t (*)(
-            /* = Source Cluster ix  = */ uint32_t,
-            /* = Sink Cluster ix  = */   uint32_t,
-            /* = Number of bytes  = */   uint64_t
-                                                    );
 
     inline uint64_t defaultC2CZeroCommunicationCost(uint32_t, uint32_t, uint64_t) {
         return 0;
@@ -80,33 +59,6 @@ namespace spider {
     inline uint64_t defaultInfiniteCommunicationCost(uint64_t) {
         return UINT64_MAX;
     }
-
-    /* === Enumeration(s) === */
-
-    /**
-     * @brief Spider Processing Element types.
-     */
-    enum class PEType {
-        LRT_ONLY, /*!< PE is used as an LRT and does not perform any computation */
-        LRT_PE,   /*!< PE is used as an LRT and can be used for computation (default) */
-        PE_ONLY,  /*!< PE is used for computation only and does not perform any job management */
-    };
-
-    /**
-     * @brief Hardware type used in Spider.
-     */
-    enum class HWType {
-        PHYS_PE,  /*!< PE is instantiated in Spider and run on a core (Spider::PEType::LRT_*) */
-        VIRT_PE,  /*!< PE is instantiated in Spider but fully managed by an LRT (Spider::PEType::PE_ONLY) */
-    };
-
-    /* === Structure(s) === */
-
-    struct PlatformConfig {
-        uint32_t PECount;
-        uint32_t PETypeCount;
-        uint32_t memoryUnitCount;
-    };
 
     /* === Function(s) prototype === */
 

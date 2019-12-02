@@ -42,30 +42,7 @@
 
 /* === Includes === */
 
-/* === Enumeration(s) === */
-
-/**
- * @brief Stack ids
- */
-enum class StackID : uint64_t {
-    PISDF = 0,       /*!< Stack used for PISDF graph (should be static) */
-    ARCHI,           /*!< Stack used for architecture (should be static) */
-    TRANSFO,         /*!< Stack used for graph transformations */
-    EXPRESSION,      /*!< Stack used for handling expression */
-    SCHEDULE,        /*!< Stack used for scheduling */
-    RUNTIME,         /*!< Stack used by LRTs */
-    GENERAL,         /*!< General stack used for classic new / delete */
-    CONSTRAINTS,     /*!< Stack used for the scenario (application constraints) */
-    First = PISDF,   /*!< Sentry for EnumIterator::begin */
-    Last = CONSTRAINTS, /*!< Sentry for EnumIterator::end */
-};
-
-constexpr size_t STACK_COUNT = static_cast<size_t>(StackID::Last) + 1;
-
-
-/* === Forward declaration(s) === */
-
-enum class FreeListPolicy;
+#include <spider-api/global.h>
 
 /* === Methods prototype === */
 

@@ -42,45 +42,23 @@
 
 /* === Includes === */
 
-#include <spider-api/pisdf.h>
+#include <spider-api/global.h>
 #include <array>
 
 namespace spider {
 
-    /* === Enumeration(s) === */
+    /* === const-array(s) === */
 
-    namespace log {
-        enum Type : int32_t {
-            LRT = 0,        /*! LRT logger. When enabled, this will print LRT logged information. */
-            TIME,           /*! TIME logger. When enabled this will print time logged information */
-            GENERAL,        /*! GENERAL purpose logger, used for information about almost everything */
-            SCHEDULE,       /*! SCHEDULE logger. When enabled, this will print Schedule logged information. */
-            MEMORY,         /*! MEMORY logger. When enabled, this will print Memory logged information. */
-            TRANSFO,        /*! TRANSFO logger. When enabled, this will print transformation logged information. */
-            OPTIMS,         /*! OPTIMS logger. When enabled, this will print transformation logged information. */
-            EXPR,           /*! EXPRESSION logger. When enabled, this will print expression-parser logged information. */
-            First = LRT,    /*!< Sentry for EnumIterator::begin */
-            Last = EXPR,    /*!< Sentry for EnumIterator::end */
-        };
-
-        struct Log {
-            const char *litteral_;
-            bool enabled_;
-        };
-
-        constexpr auto LOGGER_COUNT = static_cast<uint8_t >(Type::EXPR) + 1;
-
-        inline std::array<Log, LOGGER_COUNT> &loggers() {
-            static std::array<Log, LOGGER_COUNT> loggerArray = {{{ "LRT", false },
-                                                                        { "TIME", false },
-                                                                        { "GENERAL", false },
-                                                                        { "SCHEDULE", false },
-                                                                        { "MEMORY", false },
-                                                                        { "TRANSFO", false },
-                                                                        { "OPTIMS", false },
-                                                                        { "EXPR", false }}};
-            return loggerArray;
-        }
+    inline std::array<spider::log::Log, spider::log::LOGGER_COUNT> &loggers() {
+        static std::array<spider::log::Log, spider::log::LOGGER_COUNT> loggerArray = {{{ "LRT", false },
+                                                                                              { "TIME", false },
+                                                                                              { "GENERAL", false },
+                                                                                              { "SCHEDULE", false },
+                                                                                              { "MEMORY", false },
+                                                                                              { "TRANSFO", false },
+                                                                                              { "OPTIMS", false },
+                                                                                              { "EXPR", false }}};
+        return loggerArray;
     }
 
     namespace api {
@@ -108,7 +86,7 @@ namespace spider {
          * @param path   Path of the file.
          * @param graph  Graph to transform (default is the application graph).
          */
-        void exportSRDAG(const std::string &path = "./srdag.dot", pisdf::Graph *graph = spider::pisdfGraph());
+        void exportSRDAG(const std::string &path = "./srdag.dot", pisdf::Graph *graph = nullptr);
 
         /**
          * @brief Export a PiSDF graph to a .dot file.
@@ -116,7 +94,7 @@ namespace spider {
          * @param graph  Graph to transform (default is the application graph).
          */
         void
-        exportGraphToDOT(const std::string &path = "./graph.dot", pisdf::Graph *graph = spider::pisdfGraph());
+        exportGraphToDOT(const std::string &path = "./graph.dot", pisdf::Graph *graph = nullptr);
 
         /**
          * @brief Enable a given logger.

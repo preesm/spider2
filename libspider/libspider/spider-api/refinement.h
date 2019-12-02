@@ -43,24 +43,11 @@
 /* === Include(s) === */
 
 #include <string>
-#include <spider-api/config.h>
 #include <array>
+#include <spider-api/global.h>
 #include <containers/containers.h>
 
 namespace spider {
-    namespace pisdf {
-
-        /* === Forward declaration(s) === */
-
-        class Refinement;
-
-        class Param;
-    }
-
-    /**
-     * @brief Generic refinement used by Spider for the actors.
-     */
-    using callback = void (*)(const int64_t *, int64_t *[], void *[], void *[]);
 
     /**
      * @brief Get the refinement register containing all refinement of the application.

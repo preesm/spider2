@@ -44,57 +44,11 @@
 
 #include <cstdint>
 #include <string>
-#include <spider-api/config.h>
+#include <spider-api/global.h>
 
 /* === API methods === */
 
 namespace spider {
-
-    /* === Forward declare graph names === */
-
-    namespace pisdf {
-        class Vertex;
-
-        class ExecVertex;
-
-        class ConfigVertex;
-
-        class JoinVertex;
-
-        class ForkVertex;
-
-        class TailVertex;
-
-        class HeadVertex;
-
-        class DuplicateVertex;
-
-        class RepeatVertex;
-
-        class InitVertex;
-
-        class EndVertex;
-
-        class Graph;
-
-        class Param;
-
-        class DynamicParam;
-
-        class InHeritedParam;
-
-        class Edge;
-
-        class Delay;
-
-        class Interface;
-
-        class InputInterface;
-
-        class OutputInterface;
-
-        class Refinement;
-    }
 
     /**
      * @brief Get the user defined graph of the Spider session.
