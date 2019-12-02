@@ -78,10 +78,6 @@ namespace spider {
                                      size_t totalSize,
                                      void *base,
                                      size_t alignment = sizeof(uint64_t));
-
-        void createLIFOStaticStack(StackID stack, const std::string &name, size_t totalSize);
-
-        void createLIFOStaticStack(StackID stack, const std::string &name, size_t totalSize, void *base);
     }
 
 }

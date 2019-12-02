@@ -77,6 +77,12 @@ TEST_F(allocatorTest, abstractAllocUsageTest) {
         ASSERT_NO_THROW(allocator.deallocate(buffer)) << "Allocator: deallocation failed";
         allocator.printStats();
     }
+    {
+        auto allocator = GenericAllocator("alloc", 8);
+        auto *buffer = allocator.allocate(1024);
+        ASSERT_NE(buffer, nullptr) << "Allocator: failed to allocated 1KB";
+        allocator.printStats();
+    }
     spider::api::disableLogger(spider::log::GENERAL);
 }
 
@@ -151,11 +157,6 @@ TEST_F(allocatorTest, linearAlignTest) {
     allocator.reset();
     allocator.printStats();
     spider::api::disableLogger(spider::log::GENERAL);
-}
-
-TEST_F(allocatorTest, LIFOAlignTest) {
-    auto allocator = LIFOStaticAllocator("alloc", 512);
-    staticAllocAlignTest(allocator);
 }
 
 void freeListAlignTest(FreeListAllocator &allocator) {
@@ -272,7 +273,6 @@ TEST_F(allocatorTest, createStackAllocators) {
     ASSERT_NO_THROW((spider::createAllocator(spider::type<spider::AllocatorType::GENERIC>(), StackID::GENERAL,"alloc", 8)));
     ASSERT_NO_THROW((spider::createAllocator(spider::type<spider::AllocatorType::GENERIC>(), StackID::GENERAL,"alloc", 8)));
     ASSERT_NO_THROW((spider::createAllocator(spider::type<spider::AllocatorType::FREELIST>(), StackID::PISDF,"alloc", 8)));
-    ASSERT_NO_THROW((spider::createAllocator(spider::type<spider::AllocatorType::LIFO_STATIC>(), StackID::TRANSFO,"alloc", 8)));
     ASSERT_NO_THROW((spider::createAllocator(spider::type<spider::AllocatorType::LINEAR_STATIC>(), StackID::SCHEDULE,"alloc", 8)));
     ASSERT_NO_THROW((spider::freeAllocators()));
 }
@@ -280,17 +280,14 @@ TEST_F(allocatorTest, createStackAllocators) {
 TEST_F(allocatorTest, allocTest) {
     ASSERT_NO_THROW((spider::createAllocator(spider::type<spider::AllocatorType::GENERIC>(), StackID::GENERAL,"alloc", 8)));
     ASSERT_NO_THROW((spider::createAllocator(spider::type<spider::AllocatorType::FREELIST>(), StackID::PISDF,"alloc", 4096)));
-    ASSERT_NO_THROW((spider::createAllocator(spider::type<spider::AllocatorType::LIFO_STATIC>(), StackID::TRANSFO,"alloc", 16384)));
     ASSERT_NO_THROW((spider::createAllocator(spider::type<spider::AllocatorType::LINEAR_STATIC>(), StackID::SCHEDULE,"alloc", 16384)));
     ASSERT_NO_THROW(spider::allocate<double>(StackID::GENERAL, 0));
     ASSERT_EQ(spider::allocate<double>(StackID::GENERAL, 0), nullptr) << "alloc: 0-size allocation should return nullptr.";
     ASSERT_EQ(spider::allocate<double>(0), nullptr) << "alloc: 0-size allocation should return nullptr.";
     ASSERT_EQ(spider::allocate<double>(StackID::PISDF, 0), nullptr) << "alloc: 0-size allocation should return nullptr.";
-    ASSERT_EQ(spider::allocate<double>(StackID::TRANSFO, 0), nullptr) << "alloc: 0-size allocation should return nullptr.";
     ASSERT_EQ(spider::allocate<double>(StackID::SCHEDULE, 0), nullptr) << "alloc: 0-size allocation should return nullptr.";
     ASSERT_NE(spider::allocate<double>(StackID::GENERAL, 256), nullptr) << "alloc: non null-size allocation should not return nullptr.";
     ASSERT_NE(spider::allocate<double>(StackID::PISDF, 256), nullptr) << "alloc: non null-size allocation should not return nullptr.";
-    ASSERT_NE(spider::allocate<double>(StackID::TRANSFO, 256), nullptr) << "alloc: non null-size allocation should not return nullptr.";
     ASSERT_NE(spider::allocate<double>(StackID::SCHEDULE, 256), nullptr) << "alloc: non null-size allocation should not return nullptr.";
     ASSERT_NO_THROW((spider::freeAllocators()));
 }

@@ -45,7 +45,6 @@
 #include <cstdint>
 #include <limits>
 #include <memory/abstract-allocators/AbstractAllocator.h>
-#include <memory/static-allocators/LIFOStaticAllocator.h>
 #include <memory/static-allocators/LinearStaticAllocator.h>
 #include <memory/dynamic-allocators/FreeListAllocator.h>
 #include <memory/dynamic-allocators/GenericAllocator.h>
@@ -68,7 +67,6 @@ namespace spider {
     enum class AllocatorType {
         FREELIST,             /*!< (Dynamic) FreeList type allocator */
         GENERIC,              /*!< (Dynamic) Generic type allocator (=malloc) */
-        LIFO_STATIC,          /*!< (Static) LIFO type allocator */
         LINEAR_STATIC,        /*!< (Static) Linear type allocator */
         First = FREELIST,     /*!< Sentry for EnumIterator::begin */
         Last = LINEAR_STATIC, /*!< Sentry for EnumIterator::end */
@@ -124,13 +122,6 @@ namespace spider {
     inline void createAllocator(type<AllocatorType::LINEAR_STATIC>, StackID stack, Args &&... args) {
         if (!getStackAllocator(stack)) {
             getStackAllocator(stack) = new LinearStaticAllocator(std::forward<Args>(args)...);
-        }
-    }
-
-    template<class ...Args>
-    inline void createAllocator(type<AllocatorType::LIFO_STATIC>, StackID stack, Args &&... args) {
-        if (!getStackAllocator(stack)) {
-            getStackAllocator(stack) = new LIFOStaticAllocator(std::forward<Args>(args)...);
         }
     }
 

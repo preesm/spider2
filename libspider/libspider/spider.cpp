@@ -121,15 +121,6 @@ void spider::api::createLinearStaticStack(StackID stack,
     createAllocator(spider::type<AllocatorType::LINEAR_STATIC>{ }, stack, name, totalSize, base, alignment);
 }
 
-void spider::api::createLIFOStaticStack(StackID stack, const std::string &name, size_t totalSize) {
-    createAllocator(spider::type<AllocatorType::LIFO_STATIC>{ }, stack, name, totalSize);
-
-}
-
-void spider::api::createLIFOStaticStack(StackID stack, const std::string &name, size_t totalSize, void *base) {
-    createAllocator(spider::type<AllocatorType::LIFO_STATIC>{ }, stack, name, totalSize, base);
-}
-
 void spider::start() {
     static bool start = false;
     if (start) {
