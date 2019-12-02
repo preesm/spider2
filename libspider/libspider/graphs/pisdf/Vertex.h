@@ -47,6 +47,7 @@
 #include <containers/array.h>
 #include <graphs/pisdf/common/Types.h>
 #include <graphs/pisdf/visitors/Visitor.h>
+#include <runtime/constraints/RTConstraints.h>
 
 namespace spider {
 
@@ -142,6 +143,18 @@ namespace spider {
              * @param visitor  Visitor to accept.
              */
             virtual void visit(Visitor *visitor) = 0;
+
+            /**
+             * @brief Create a runtime constraints structure for current vertex.
+             * @remark if vertex already has constraints, nothing happens.
+             * @return Created @refitem RTConstraints.
+             */
+            inline RTConstraints *createConstraints() {
+                if (!constraints_) {
+                    constraints_ = spider::make<RTConstraints>();
+                }
+                return constraints_;
+            }
 
             /* === Getter(s) === */
 
@@ -262,6 +275,10 @@ namespace spider {
                 return false;
             }
 
+            inline RTConstraints *constraints() const {
+                return constraints_;
+            }
+
             /* === Setter(s) === */
 
             /**
@@ -302,12 +319,26 @@ namespace spider {
                 }
             }
 
+            /**
+             * @brief Set RTConstraints of this vertex.
+             * @remark if nullptr, nothing happens.
+             * @remark if vertex already has constraints, nothing happens.
+             * @param constraints Constraints to set.
+             */
+            inline void setConstraints(RTConstraints *constraints) {
+                if (!constraints || constraints_) {
+                    return;
+                }
+                constraints_ = constraints;
+            }
+
         protected:
             std::string name_ = "unnamed-vertex";
             spider::array<Edge *> inputEdgeArray_;
             spider::array<Edge *> outputEdgeArray_;
             Vertex *reference_ = this;
             Graph *graph_ = nullptr;
+            RTConstraints *constraints_ = nullptr;
             uint32_t ix_ = UINT32_MAX;
             uint32_t repetitionValue_ = 1;
             uint32_t copyCount_ = 0;

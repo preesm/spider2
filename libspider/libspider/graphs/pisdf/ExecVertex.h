@@ -45,7 +45,6 @@
 #include <cstdint>
 #include <string>
 #include <graphs/pisdf/Vertex.h>
-#include <runtime/constraints/RTConstraints.h>
 
 namespace spider {
 
@@ -77,13 +76,6 @@ namespace spider {
                 visitor->visit(this);
             }
 
-            inline RTConstraints *createConstraints() {
-                if (!constraints_) {
-                    constraints_ = spider::make<RTConstraints>();
-                }
-                return constraints_;
-            }
-
             /* === Getter(s) === */
 
             inline VertexType subtype() const override {
@@ -111,10 +103,6 @@ namespace spider {
                 return jobIx_;
             }
 
-            inline RTConstraints *constraints() const {
-                return constraints_;
-            }
-
             /* === Setter(s) === */
 
             /**
@@ -133,23 +121,9 @@ namespace spider {
                 jobIx_ = ix;
             }
 
-            /**
-             * @brief Set RTConstraints of this vertex.
-             * @remark if nullptr, nothing happens.
-             * @remark if vertex already has constraints, nothing happens.
-             * @param constraints Constraints to set.
-             */
-            inline void setConstraints(RTConstraints *constraints) {
-                if (!constraints || constraints_) {
-                    return;
-                }
-                constraints_ = constraints;
-            }
-
         protected:
             uint32_t refinementIx_ = UINT32_MAX;
             uint32_t jobIx_ = UINT32_MAX;
-            RTConstraints *constraints_ = nullptr;
 
         };
     }
