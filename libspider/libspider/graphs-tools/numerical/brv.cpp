@@ -91,59 +91,51 @@ void spider::brv::compute(const spider::pisdf::Graph *graph) {
 spider::vector<spider::brv::ConnectedComponent>
 spider::brv::extractConnectedComponents(const spider::pisdf::Graph *graph) {
     /* == Keys used to check if a vertex has already be assigned to a connected component == */
-    spider::array<const pisdf::Vertex *> keyArray{ graph->vertexCount(), nullptr, StackID::TRANSFO };
+    auto visited = spider::containers::vector<bool>(graph->vertexCount(), false, StackID::TRANSFO);
 
     /* == Iterate over every vertex and assign it to a connected component == */
     auto connectedComponents = spider::containers::vector<ConnectedComponent>(StackID::TRANSFO);
     for (const auto &vertex : graph->vertices()) {
-        if (!keyArray[vertex->ix()]) {
-            keyArray[vertex->ix()] = vertex;
-
+        if (!visited[vertex->ix()]) {
             /* == Initiate a new connected component == */
+            visited[vertex->ix()] = true;
             ConnectedComponent component;
             component.vertexVector_.emplace_back(vertex);
 
             /* == Extract every vertices of the connected component using a non-recursive BFS algorithm == */
-            size_t scannedIndex = 0;
-            bool addedVertex;
-            do {
-                addedVertex = false;
-                auto *currentVertex = component.vertexVector_[scannedIndex];
+            size_t visitedIndex = 0;
+            while (visitedIndex != component.vertexVector_.size()) {
+                auto *currentVertex = component.vertexVector_[visitedIndex++];
 
                 /* == Scan output edges == */
+                component.edgeCount_ += currentVertex->outputEdgeCount();
                 for (const auto *edge : currentVertex->outputEdgeArray()) {
                     if (!edge) {
                         throwSpiderException("Vertex [%s] has null output edge.", currentVertex->name().c_str());
                     }
                     auto *sink = edge->sink();
-                    if (sink->subtype() != spider::pisdf::VertexType::OUTPUT &&
-                        !keyArray[sink->ix()]) {
+                    if (sink->subtype() != spider::pisdf::VertexType::OUTPUT && !visited[sink->ix()]) {
                         /* == Register the vertex == */
                         component.vertexVector_.emplace_back(sink);
-                        keyArray[sink->ix()] = sink;
-                        addedVertex = true;
+                        visited[sink->ix()] = true;
                     }
-                    component.edgeCount_ += 1;
                 }
 
                 /* == Scan input edges == */
                 for (const auto *edge : currentVertex->inputEdgeArray()) {
                     if (!edge) {
-                        throwSpiderException("Vertex [%s] has null edge.", currentVertex->name().c_str());
+                        throwSpiderException("Vertex [%s] has null input edge.", currentVertex->name().c_str());
                     }
                     auto *source = edge->source();
-                    if (source->subtype() != spider::pisdf::VertexType::INPUT &&
-                        !keyArray[source->ix()]) {
+                    if (source->subtype() != spider::pisdf::VertexType::INPUT && !visited[source->ix()]) {
                         /* == Register the vertex == */
                         component.vertexVector_.emplace_back(source);
-                        keyArray[source->ix()] = source;
-                        addedVertex = true;
+                        visited[source->ix()] = true;
                     } else if (source->subtype() == spider::pisdf::VertexType::INPUT) {
                         component.edgeCount_ += 1;
                     }
                 }
-                scannedIndex += 1;
-            } while (addedVertex || scannedIndex != component.vertexVector_.size());
+            }
 
             /* == Move the component into output vector == */
             connectedComponents.emplace_back(std::move(component));

@@ -77,7 +77,7 @@ namespace spider {
             /* === Member(s) === */
 
             stack_vector(vertexVector_, pisdf::Vertex*, StackID::TRANSFO);
-            uint32_t edgeCount_ = 0;
+            size_t edgeCount_ = 0;
         };
 
 
