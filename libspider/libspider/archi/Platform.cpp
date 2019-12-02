@@ -67,7 +67,7 @@ void spider::Platform::addCluster(Cluster *cluster) {
 
 spider::PE &spider::Platform::findPE(const std::string &name) const {
     for (const auto &cluster : clusterArray_) {
-        for (auto &pe : cluster->processingElements()) {
+        for (auto &pe : cluster->peArray()) {
             if (pe->name() == name) {
                 return *pe;
             }
@@ -78,7 +78,7 @@ spider::PE &spider::Platform::findPE(const std::string &name) const {
 
 spider::PE &spider::Platform::findPE(uint32_t virtualIx) const {
     for (const auto &cluster : clusterArray_) {
-        for (auto &pe : cluster->processingElements()) {
+        for (auto &pe : cluster->peArray()) {
             if (pe->virtualIx() == virtualIx) {
                 return *pe;
             }
@@ -91,7 +91,7 @@ spider::PE &spider::Platform::findPE(uint32_t virtualIx) const {
 
 spider::PE &spider::Platform::findPE(uint32_t clusterIx, uint32_t PEIx) const {
     auto *cluster = clusterArray_.at(clusterIx);
-    return *(cluster->processingElements().at(PEIx));
+    return *(cluster->peArray().at(PEIx));
 }
 
 size_t spider::Platform::PECount() const {

@@ -55,9 +55,9 @@ enum class StackID : uint64_t {
     SCHEDULE,        /*!< Stack used for scheduling */
     RUNTIME,         /*!< Stack used by LRTs */
     GENERAL,         /*!< General stack used for classic new / delete */
-    SCENARIO,        /*!< Stack used for the scenario (application constraints) */
+    CONSTRAINTS,     /*!< Stack used for the scenario (application constraints) */
     First = PISDF,   /*!< Sentry for EnumIterator::begin */
-    Last = SCENARIO, /*!< Sentry for EnumIterator::end */
+    Last = CONSTRAINTS, /*!< Sentry for EnumIterator::end */
 };
 
 constexpr size_t STACK_COUNT = static_cast<size_t>(StackID::Last) + 1;

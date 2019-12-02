@@ -90,7 +90,7 @@ namespace spider {
          * @brief Get the array of processing element of the cluster.
          * @return const reference to the @refitem Spider::Array of @refitem ProcessingElement of the cluster.
          */
-        inline const spider::array<PE *> &processingElements() const;
+        inline const spider::array<PE *> &peArray() const;
 
         /**
          * @brief Get the memory unit of the cluster.
@@ -204,7 +204,7 @@ namespace spider {
                                                            true));
     }
 
-    const spider::array<PE *> &Cluster::processingElements() const {
+    const spider::array<PE *> &Cluster::peArray() const {
         return PEArray_;
     }
 
