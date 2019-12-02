@@ -64,10 +64,6 @@ namespace spider {
 
     protected:
 
-        explicit ListScheduler(PiSDFGraph *graph) : ListScheduler(graph, graph->params()) { };
-
-        ListScheduler(PiSDFGraph *graph, const spider::vector<PiSDFParam *> &params);
-
         struct ListVertex {
             PiSDFAbstractVertex *vertex_ = nullptr;
             int64_t level_ = -1;
@@ -76,13 +72,16 @@ namespace spider {
                                                                                    level_{ level } { };
         };
 
+        explicit ListScheduler(PiSDFGraph *graph) : ListScheduler(graph, graph->params()) { };
+
+        ListScheduler(PiSDFGraph *graph, const spider::vector<PiSDFParam *> &params);
+
         stack_vector(sortedVertexVector_, ListVertex, StackID::SCHEDULE);
 
         /* === Protected method(s) === */
 
     private:
-        static int64_t
-        computeScheduleLevel(ListVertex &listVertex, spider::vector<ListVertex> &sortedVertexVector);
+        int64_t computeScheduleLevel(ListVertex &listVertex, spider::vector<ListVertex> &sortedVertexVector) const;
     };
 
     /* === Inline method(s) === */

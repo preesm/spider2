@@ -90,7 +90,7 @@ void spider::Scheduler::vertexMapper(const PiSDFAbstractVertex *vertex) {
 
     /* == Search for the best slave possible == */
     const auto *platform = spider::platform();
-//    const auto *scenario = vertex->graph()->scenario();
+    const auto *constraints = vertex->constraints();
     const auto &platformStats = schedule_.stats();
 
     std::pair<uint32_t, uint32_t> bestSlave{ UINT32_MAX, UINT32_MAX };
@@ -99,30 +99,34 @@ void spider::Scheduler::vertexMapper(const PiSDFAbstractVertex *vertex) {
     uint64_t bestWaitTime = UINT64_MAX;
     uint64_t bestScheduleCost = UINT64_MAX;
     for (const auto &cluster : platform->clusters()) {
-        for (const auto &PE : cluster->peArray()) {
+        /* == Fast check to discard entire cluster == */
+        if (!constraints->isClusterMappable(cluster)) {
+            continue;
+        }
+        for (const auto &pe : cluster->peArray()) {
             /* == Check that PE is enabled and vertex is mappable on it == */
-//            if (PE->enabled() && scenario->isMappable(vertex, PE)) {
-//                /* == Retrieving information needed for scheduling cost == */
-//                const auto &PEReadyTime = platformStats.endTime(PE->spiderPEIx());
-//                const auto &JobStartTime = std::max(PEReadyTime, minStartTime);
-//                const auto &waitTime = JobStartTime - PEReadyTime;
-//                const auto &execTime = scenario->executionTiming(vertex, PE);
-//                const auto &endTime = static_cast<uint64_t>(execTime) + JobStartTime;
-//
-//                /* == Compute communication cost == */
-//                uint64_t receiveCost = 0;
-//
-//                /* == Compute total schedule cost == */
-//                const auto &scheduleCost = spider::math::saturateAdd(endTime, receiveCost);
-//                if (scheduleCost < bestScheduleCost || (scheduleCost == bestScheduleCost && waitTime < bestWaitTime)) {
-//                    bestScheduleCost = scheduleCost;
-//                    bestStartTime = JobStartTime;
-//                    bestEndTime = endTime;
-//                    bestWaitTime = waitTime;
-//                    bestSlave.first = cluster->ix();
-//                    bestSlave.second = PE->clusterPEIx();
-//                }
-//            }
+            if (pe->enabled() && constraints->isPEMappable(pe)) {
+                /* == Retrieving information needed for scheduling cost == */
+                const auto &PEReadyTime = platformStats.endTime(pe->spiderPEIx());
+                const auto &JobStartTime = std::max(PEReadyTime, minStartTime);
+                const auto &waitTime = JobStartTime - PEReadyTime;
+                const auto &execTime = constraints->timingOnPE(pe, params_);
+                const auto &endTime = static_cast<uint64_t>(execTime) + JobStartTime;
+
+                /* == Compute communication cost == */
+                uint64_t receiveCost = 0;
+
+                /* == Compute total schedule cost == */
+                const auto &scheduleCost = spider::math::saturateAdd(endTime, receiveCost);
+                if (scheduleCost < bestScheduleCost || (scheduleCost == bestScheduleCost && waitTime < bestWaitTime)) {
+                    bestScheduleCost = scheduleCost;
+                    bestStartTime = JobStartTime;
+                    bestEndTime = endTime;
+                    bestWaitTime = waitTime;
+                    bestSlave.first = cluster->ix();
+                    bestSlave.second = pe->clusterPEIx();
+                }
+            }
         }
     }
 

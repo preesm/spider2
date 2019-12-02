@@ -46,33 +46,34 @@
 #include <archi/Cluster.h>
 #include <archi/PE.h>
 #include <spider-api/archi.h>
+#include <graphs/pisdf/visitors/DefaultVisitor.h>
 
 /* === Static variable(s) === */
 
 /* === Static function(s) === */
 
 int64_t spider::ListScheduler::computeScheduleLevel(ListVertex &listVertex,
-                                                    spider::vector<ListVertex> &sortedVertexVector) {
+                                                    spider::vector<ListVertex> &sortedVertexVector) const {
     if (listVertex.level_ < 0) {
         auto *platform = spider::platform();
         auto *vertex = listVertex.vertex_;
         int64_t level = 0;
         for (auto &edge : vertex->outputEdgeArray()) {
             auto *sink = edge->sink();
-            if (sink) {
-//                auto *scenario = vertex->graph()->scenario();
+            if (sink && sink->executable()) {
+                auto *constraints = sink->constraints();
                 auto minExecutionTime = INT64_MAX;
                 for (auto &cluster : platform->clusters()) {
                     for (auto &pe : cluster->peArray()) {
-//                        if (scenario->isMappable(sink, pe)) {
-//                            auto executionTime = scenario->executionTiming(sink, cluster->PEType());
-//                            if (!executionTime) {
-//                                throwSpiderException("Vertex [%s] has null execution time on mappable PE [%s].",
-//                                                     vertex->name().c_str(), pe->name().c_str());
-//                            }
-//                            minExecutionTime = std::min(minExecutionTime, executionTime);
-//                            break; /* = We can break because any other PE of the cluster will have the same timing = */
-//                        }
+                        if (constraints->isPEMappable(pe)) {
+                            auto executionTime = constraints->timingOnPE(pe, params_);
+                            if (!executionTime) {
+                                throwSpiderException("Vertex [%s] has null execution time on mappable PE [%s].",
+                                                     vertex->name().c_str(), pe->name().c_str());
+                            }
+                            minExecutionTime = std::min(minExecutionTime, executionTime);
+                            break; /* = We can break because any other PE of the cluster will have the same timing = */
+                        }
                     }
                 }
                 level = std::max(level, computeScheduleLevel(sortedVertexVector[sink->ix()], sortedVertexVector) +
@@ -93,7 +94,7 @@ spider::ListScheduler::ListScheduler(PiSDFGraph *graph,
     /* == Reserve and push the vertices into the vertex == */
     sortedVertexVector_.reserve(graph_->vertexCount());
     for (auto *vertex : graph_->vertices()) {
-        sortedVertexVector_.push_back(ListVertex(vertex, -1));
+        sortedVertexVector_.emplace_back(ListVertex(vertex, -1));
     }
 
     /* == Compute the schedule level == */
