@@ -110,10 +110,7 @@ namespace spider {
              * @param edge Edge to remove.
              * @throw @refitem Spider::Exception if edge does not exist in the graph.
              */
-            void removeEdge(Edge *edge) {
-                removeElement(edgeVector_, edge);
-                spider::destroy(edge);
-            }
+            void removeEdge(Edge *edge);
 
             /**
              * @brief Add an param to the graph.
@@ -127,10 +124,7 @@ namespace spider {
              * @param param Param to add.
              * @throw @refitem Spider::Exception if param does not exist in the graph.
              */
-            inline void removeParam(Param *param) {
-                removeElement(paramVector_, param);
-                spider::destroy(param);
-            }
+            void removeParam(Param *param);
 
             /**
              * @brief Move vertex ownership from this graph to another graph.

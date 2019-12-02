@@ -138,6 +138,11 @@ void spider::pisdf::Graph::addEdge(Edge *edge) {
     edge->setGraph(this);
 }
 
+void spider::pisdf::Graph::removeEdge(Edge *edge) {
+    removeElement(edgeVector_, edge);
+    spider::destroy(edge);
+}
+
 void spider::pisdf::Graph::addParam(Param *param) {
     /* == Check if a parameter with the same name already exists in the scope of this graph == */
     for (auto &p : paramVector_) {
@@ -149,6 +154,11 @@ void spider::pisdf::Graph::addParam(Param *param) {
     param->setGraph(this);
     paramVector_.push_back(param);
     dynamic_ |= (param->dynamic() && param->type() != ParamType::INHERITED);
+}
+
+void spider::pisdf::Graph::removeParam(Param *param) {
+    removeElement(paramVector_, param);
+    spider::destroy(param);
 }
 
 spider::pisdf::Vertex *spider::pisdf::Graph::forwardEdge(const Edge *e) {
