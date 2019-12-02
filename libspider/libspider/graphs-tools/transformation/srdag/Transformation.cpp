@@ -327,7 +327,7 @@ spider::srdag::singleRateTransformation(const spider::srdag::TransfoJob &job, Pi
 
     /* == Split subgraphs if needed == */
     const auto &subgraphCount = job.reference_->subgraphCount();
-    TransfoTracker init2dynamic_(subgraphCount, UINT32_MAX, spider::Allocator<uint32_t>(StackID::TRANSFO));
+    TransfoTracker init2dynamic_(subgraphCount, UINT32_MAX, spider::allocator<uint32_t>(StackID::TRANSFO));
     auto it = job.reference_->subgraphs().begin();
     uint64_t i = 0;
     while (i < subgraphCount) {

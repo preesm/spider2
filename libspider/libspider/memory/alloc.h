@@ -154,11 +154,11 @@ namespace spider {
     inline T *allocate(StackID stack, size_t size = 1) {
 #ifdef _SPIDER_CHECK_ALLOCATOR
         /* == Allocate buffer with (size + 1) to store stack identifier == */
-        auto *alloc = allocator(stack);
+        auto *allocator = getStackAllocator(stack);
         if (!alloc) {
             throwSpiderException("Trying to allocate memory with un-initialized allocator: %ld", static_cast<long>(stack));
         }
-        auto buffer = reinterpret_cast<uintptr_t>(alloc->allocate(size * sizeof(T) + sizeof(uint64_t)));
+        auto buffer = reinterpret_cast<uintptr_t>(allocator->allocate(size * sizeof(T) + sizeof(uint64_t)));
 #else
         /* == Allocate buffer with (size + 1) to store stack identifier == */
         auto buffer = reinterpret_cast<uintptr_t>(getStackAllocator(stack)->allocate(size * sizeof(T) + sizeof(uint64_t)));
@@ -176,11 +176,11 @@ namespace spider {
     inline T *allocate(size_t size = 1) {
 #ifdef _SPIDER_CHECK_ALLOCATOR
         /* == Allocate buffer with (size + 1) to store stack identifier == */
-        auto *alloc = allocator<stack>();
+        auto *allocator = getStackAllocator<stack>();
         if (!alloc) {
             throwSpiderException("Trying to allocate memory with un-initialized allocator: %ld", static_cast<long>(stack));
         }
-        auto buffer = reinterpret_cast<uintptr_t>(alloc->allocate(size * sizeof(T) + sizeof(uint64_t)));
+        auto buffer = reinterpret_cast<uintptr_t>(allocator->allocate(size * sizeof(T) + sizeof(uint64_t)));
 #else
         /* == Allocate buffer with (size + 1) to store stack identifier == */
         auto buffer = reinterpret_cast<uintptr_t>(getStackAllocator<stack>()->allocate(size * sizeof(T) + sizeof(uint64_t)));

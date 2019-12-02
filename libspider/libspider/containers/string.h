@@ -42,12 +42,12 @@
 
 /* === Include(s) === */
 
-#include <memory/STLAllocator.h>
+#include <memory/allocator.h>
 #include <string>
 
 namespace spider {
 
-    using string = std::basic_string<char, std::char_traits<char>, spider::Allocator<char>>;
+    using string = std::basic_string<char, std::char_traits<char>, spider::allocator<char>>;
 }
 
 #endif //SPIDER2_STRING_H

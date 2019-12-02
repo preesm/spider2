@@ -42,7 +42,7 @@
 
 /* === Includes === */
 
-#include <memory/STLAllocator.h>
+#include <memory/allocator.h>
 #include <vector>
 #include <deque>
 #include <forward_list>
@@ -59,7 +59,7 @@
 /* === Basically just a wrapper calling default ctor with Allocator<type>(stack) === */
 /* === (I know it is ugly AF but still better than letting it clearly)           === */
 
-#define stack_vector(name, type, stack) spider::vector<type> (name){spider::Allocator<type>(stack)}
+#define stack_vector(name, type, stack) spider::vector<type> (name){spider::allocator<type>(stack)}
 
 /* === Namespace === */
 
@@ -68,32 +68,32 @@ namespace spider {
     /* === Sequence containers === */
 
     template<class T>
-    using vector = std::vector<T, spider::Allocator<T>>;
+    using vector = std::vector<T, spider::allocator<T>>;
 
     template<class T>
-    using deque = std::deque<T, spider::Allocator<T>>;
+    using deque = std::deque<T, spider::allocator<T>>;
 
     template<class T>
-    using forward_list = std::forward_list<T, spider::Allocator<T>>;
+    using forward_list = std::forward_list<T, spider::allocator<T>>;
 
     template<class T>
-    using list = std::list<T, spider::Allocator<T>>;
+    using list = std::list<T, spider::allocator<T>>;
 
     /* === Associative containers === */
 
     template<class Key, class Compare = std::less<Key>>
-    using set = std::set<Key, Compare, spider::Allocator<Key>>;
+    using set = std::set<Key, Compare, spider::allocator<Key>>;
 
     template<class Key, class T, class Compare = std::less<Key>>
-    using map = std::map<Key, T, Compare, spider::Allocator<std::pair<const Key, T>>>;
+    using map = std::map<Key, T, Compare, spider::allocator<std::pair<const Key, T>>>;
 
     /* === Unordered associative containers === */
 
     template<class Key, class Hash = std::hash<Key>, class KeyEqual = std::equal_to<Key>>
-    using unordered_set = std::unordered_set<Key, Hash, KeyEqual, spider::Allocator<Key>>;
+    using unordered_set = std::unordered_set<Key, Hash, KeyEqual, spider::allocator<Key>>;
 
     template<class Key, class T>
-    using unordered_map = std::unordered_map<Key, T, std::hash<Key>, std::equal_to<Key>, spider::Allocator<std::pair<const Key, T>>>;
+    using unordered_map = std::unordered_map<Key, T, std::hash<Key>, std::equal_to<Key>, spider::allocator<std::pair<const Key, T>>>;
 
     /* === Container adaptors === */
 
@@ -111,183 +111,183 @@ namespace spider {
 
         template<class T>
         inline spider::vector<T> vector(StackID stack = StackID::GENERAL) {
-            return spider::vector<T>(spider::Allocator<T>(stack));
+            return spider::vector<T>(spider::allocator<T>(stack));
         }
 
         template<class T>
         inline spider::vector<T> vector(size_t count, StackID stack = StackID::GENERAL) {
-            return spider::vector<T>(count, T(), spider::Allocator<T>(stack));
+            return spider::vector<T>(count, T(), spider::allocator<T>(stack));
         }
 
         template<class T>
         inline spider::vector<T> vector(size_t count, const T &value, StackID stack = StackID::GENERAL) {
-            return spider::vector<T>(count, value, spider::Allocator<T>(stack));
+            return spider::vector<T>(count, value, spider::allocator<T>(stack));
         }
 
         template<class T>
         inline spider::vector<T> vector(const spider::vector<T> &other, StackID stack = StackID::GENERAL) {
-            return spider::vector<T>(other, spider::Allocator<T>(stack));
+            return spider::vector<T>(other, spider::allocator<T>(stack));
         }
 
         template<class T>
         inline spider::vector<T> vector(spider::vector<T> &&other, StackID stack = StackID::GENERAL) {
-            return spider::vector<T>(other, spider::Allocator<T>(stack));
+            return spider::vector<T>(other, spider::allocator<T>(stack));
         }
 
         template<class T>
         inline spider::vector<T> vector(std::initializer_list<T> init, StackID stack = StackID::GENERAL) {
-            return spider::vector<T>(std::move(init), spider::Allocator<T>(stack));
+            return spider::vector<T>(std::move(init), spider::allocator<T>(stack));
         }
 
         /* === std::deque === */
 
         template<class T>
         inline spider::deque<T> deque(StackID stack = StackID::GENERAL) {
-            return spider::deque<T>(spider::Allocator<T>(stack));
+            return spider::deque<T>(spider::allocator<T>(stack));
         }
 
         template<class T>
         inline spider::deque<T> deque(size_t count, StackID stack = StackID::GENERAL) {
-            return spider::deque<T>(count, T(), spider::Allocator<T>(stack));
+            return spider::deque<T>(count, T(), spider::allocator<T>(stack));
         }
 
         template<class T>
         inline spider::deque<T> deque(size_t count, const T &value, StackID stack = StackID::GENERAL) {
-            return spider::deque<T>(count, value, spider::Allocator<T>(stack));
+            return spider::deque<T>(count, value, spider::allocator<T>(stack));
         }
 
         template<class T>
         inline spider::deque<T> deque(const spider::deque<T> &other, StackID stack = StackID::GENERAL) {
-            return spider::deque<T>(other, spider::Allocator<T>(stack));
+            return spider::deque<T>(other, spider::allocator<T>(stack));
         }
 
         template<class T>
         inline spider::deque<T> deque(spider::deque<T> &&other, StackID stack = StackID::GENERAL) {
-            return spider::deque<T>(other, spider::Allocator<T>(stack));
+            return spider::deque<T>(other, spider::allocator<T>(stack));
         }
 
         template<class T>
         inline spider::deque<T> deque(std::initializer_list<T> init, StackID stack = StackID::GENERAL) {
-            return spider::deque<T>(std::move(init), spider::Allocator<T>(stack));
+            return spider::deque<T>(std::move(init), spider::allocator<T>(stack));
         }
 
         /* === std::forward_list === */
 
         template<class T>
         inline spider::forward_list<T> forward_list(StackID stack = StackID::GENERAL) {
-            return spider::forward_list<T>(spider::Allocator<T>(stack));
+            return spider::forward_list<T>(spider::allocator<T>(stack));
         }
 
         template<class T>
         inline spider::forward_list<T> forward_list(size_t count, const T &value, StackID stack = StackID::GENERAL) {
-            return spider::forward_list<T>(count, value, spider::Allocator<T>(stack));
+            return spider::forward_list<T>(count, value, spider::allocator<T>(stack));
         }
 
         template<class T>
         inline spider::forward_list<T>
         forward_list(const spider::forward_list<T> &other, StackID stack = StackID::GENERAL) {
-            return spider::forward_list<T>(other, spider::Allocator<T>(stack));
+            return spider::forward_list<T>(other, spider::allocator<T>(stack));
         }
 
         template<class T>
         inline spider::forward_list<T> forward_list(spider::forward_list<T> &&other, StackID stack = StackID::GENERAL) {
-            return spider::forward_list<T>(other, spider::Allocator<T>(stack));
+            return spider::forward_list<T>(other, spider::allocator<T>(stack));
         }
 
         /* === std::list === */
 
         template<class T>
         inline spider::list<T> list(StackID stack = StackID::GENERAL) {
-            return spider::list<T>(spider::Allocator<T>(stack));
+            return spider::list<T>(spider::allocator<T>(stack));
         }
 
         template<class T>
         inline spider::list<T> list(size_t count, const T &value, StackID stack = StackID::GENERAL) {
-            return spider::list<T>(count, value, spider::Allocator<T>(stack));
+            return spider::list<T>(count, value, spider::allocator<T>(stack));
         }
 
         template<class T>
         inline spider::list<T> list(const spider::list<T> &other, StackID stack = StackID::GENERAL) {
-            return spider::list<T>(other, spider::Allocator<T>(stack));
+            return spider::list<T>(other, spider::allocator<T>(stack));
         }
 
         template<class T>
         inline spider::list<T> list(spider::list<T> &&other, StackID stack = StackID::GENERAL) {
-            return spider::list<T>(other, spider::Allocator<T>(stack));
+            return spider::list<T>(other, spider::allocator<T>(stack));
         }
 
         /* === std::set === */
 
         template<class Key, class Compare = std::less<Key>>
         inline spider::set<Key, Compare> set(StackID stack = StackID::GENERAL) {
-            return spider::set<Key, Compare>(spider::Allocator<Key>(stack));
+            return spider::set<Key, Compare>(spider::allocator<Key>(stack));
         }
 
         template<class Key, class Compare = std::less<Key>>
         inline spider::set<Key, Compare> set(const spider::set<Key, Compare> &other, StackID stack = StackID::GENERAL) {
-            return spider::set<Key, Compare>(other, spider::Allocator<Key>(stack));
+            return spider::set<Key, Compare>(other, spider::allocator<Key>(stack));
         }
 
         template<class Key, class Compare = std::less<Key>>
         inline spider::set<Key, Compare> set(spider::map<Key, Compare> &&other, StackID stack = StackID::GENERAL) {
-            return spider::set<Key, Compare>(other, spider::Allocator<Key>(stack));
+            return spider::set<Key, Compare>(other, spider::allocator<Key>(stack));
         }
 
         /* === std::map === */
 
         template<class Key, class T, class Compare = std::less<Key>>
         inline spider::map<Key, T, Compare> map(StackID stack = StackID::GENERAL) {
-            return spider::map<Key, T, Compare>(spider::Allocator<std::pair<const Key, T>>(stack));
+            return spider::map<Key, T, Compare>(spider::allocator<std::pair<const Key, T>>(stack));
         }
 
         template<class Key, class T, class Compare = std::less<Key>>
         inline spider::map<Key, T, Compare>
         map(const spider::map<Key, T, Compare> &other, StackID stack = StackID::GENERAL) {
-            return spider::map<Key, T, Compare>(other, spider::Allocator<std::pair<const Key, T>>(stack));
+            return spider::map<Key, T, Compare>(other, spider::allocator<std::pair<const Key, T>>(stack));
         }
 
         template<class Key, class T, class Compare = std::less<Key>>
         inline spider::map<Key, T, Compare>
         map(spider::map<Key, T, Compare> &&other, StackID stack = StackID::GENERAL) {
-            return spider::map<Key, T, Compare>(other, spider::Allocator<std::pair<const Key, T>>(stack));
+            return spider::map<Key, T, Compare>(other, spider::allocator<std::pair<const Key, T>>(stack));
         }
 
         /* === std::unordered_set === */
 
         template<class Key>
         inline spider::unordered_set<Key> unordered_set(StackID stack = StackID::GENERAL) {
-            return spider::unordered_set<Key>(spider::Allocator<Key>(stack));
+            return spider::unordered_set<Key>(spider::allocator<Key>(stack));
         }
 
         template<class Key>
         inline spider::unordered_set<Key>
         unordered_set(const spider::unordered_set<Key> &other, StackID stack = StackID::GENERAL) {
-            return spider::unordered_set<Key>(other, spider::Allocator<Key>(stack));
+            return spider::unordered_set<Key>(other, spider::allocator<Key>(stack));
         }
 
         template<class Key>
         inline spider::unordered_set<Key>
         unordered_set(spider::unordered_set<Key> &&other, StackID stack = StackID::GENERAL) {
-            return spider::unordered_set<Key>(other, spider::Allocator<Key>(stack));
+            return spider::unordered_set<Key>(other, spider::allocator<Key>(stack));
         }
 
         /* === std::unordered_map === */
 
         template<class Key, class T>
         inline spider::unordered_map<Key, T> unordered_map(StackID stack = StackID::GENERAL) {
-            return spider::unordered_map<Key, T>(spider::Allocator<std::pair<const Key, T>>(stack));
+            return spider::unordered_map<Key, T>(spider::allocator<std::pair<const Key, T>>(stack));
         }
 
         template<class Key, class T>
         inline spider::unordered_map<Key, T>
         unordered_map(const spider::unordered_map<Key, T> &other, StackID stack = StackID::GENERAL) {
-            return spider::unordered_map<Key, T>(other, spider::Allocator<std::pair<const Key, T>>(stack));
+            return spider::unordered_map<Key, T>(other, spider::allocator<std::pair<const Key, T>>(stack));
         }
 
         template<class Key, class T>
         inline spider::unordered_map<Key, T>
         unordered_map(spider::unordered_map<Key, T> &&other, StackID stack = StackID::GENERAL) {
-            return spider::unordered_map<Key, T>(other, spider::Allocator<std::pair<const Key, T>>(stack));
+            return spider::unordered_map<Key, T>(other, spider::allocator<std::pair<const Key, T>>(stack));
         }
     }
 }
