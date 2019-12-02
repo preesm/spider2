@@ -53,31 +53,43 @@ namespace spider {
         public:
 
             explicit InputInterface(std::string name = "unnamed-interface",
-                                    StackID stack = StackID::PISDF) : Interface(std::move(name),
-                                                                                0,
-                                                                                1,
-                                                                                stack) {
-            }
+                                    StackID stack = StackID::PISDF) :
+                    Interface(std::move(name),
+                              0,
+                              1,
+                              stack) { }
 
             /* === Method(s) === */
 
-            inline void connectInputEdge(Edge *, uint32_t) override;
+            inline void connectInputEdge(Edge *, size_t) override {
+                throwSpiderException("Can not connect input edge to input interface.");
+            }
 
-            inline void visit(Visitor *visitor) override;
+            inline void visit(Visitor *visitor) override {
+                visitor->visit(this);
+            }
 
             /* === Getter(s) === */
 
-            inline Edge *inputEdge() const override;
+            inline Edge *inputEdge() const override {
+                return graph_->inputEdge(ix_);
+            }
 
-            inline Edge *outputEdge() const override;
+            inline Edge *outputEdge() const override {
+                return outputEdgeArray_[0];
+            }
 
-            inline Vertex *opposite() const override;
+            inline Vertex *opposite() const override {
+                return outputEdgeArray_[0]->sink();
+            }
 
             /**
              * @brief Return the kind of the interface (@refitem InterfaceType)
              * @return @refitem VertexType::INPUT
              */
-            inline VertexType subtype() const override;
+            inline VertexType subtype() const override {
+                return VertexType::INPUT;
+            }
 
             /* === Setter(s) === */
 
@@ -85,32 +97,6 @@ namespace spider {
 
             /* === Private method(s) === */
         };
-
-        /* === Inline method(s) === */
-
-        void InputInterface::connectInputEdge(Edge *, uint32_t) {
-            throwSpiderException("Can not connect input edge to input interface.");
-        }
-
-        void InputInterface::visit(Visitor *visitor) {
-            visitor->visit(this);
-        }
-
-        Edge *InputInterface::inputEdge() const {
-            return graph_->inputEdge(ix_);
-        }
-
-        Edge *InputInterface::outputEdge() const {
-            return outputEdgeArray_[0];
-        }
-
-        Vertex *InputInterface::opposite() const {
-            return outputEdgeArray_[0]->sink();
-        }
-
-        VertexType InputInterface::subtype() const {
-            return VertexType::INPUT;
-        }
     }
 }
 

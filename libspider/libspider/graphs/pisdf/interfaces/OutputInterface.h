@@ -53,31 +53,44 @@ namespace spider {
         public:
 
             explicit OutputInterface(std::string name = "unnamed-interface",
-                                     StackID stack = StackID::PISDF) : Interface(std::move(name),
-                                                                                 1,
-                                                                                 0,
-                                                                                 stack) {
-            }
+                                     StackID stack = StackID::PISDF) :
+                    Interface(std::move(name),
+                              1,
+                              0,
+                              stack) { }
 
             /* === Method(s) === */
 
-            inline void connectOutputEdge(Edge *, uint32_t) override;
+            inline void connectOutputEdge(Edge *, size_t) override {
+                throwSpiderException("Can not connect output edge to output interface.");
 
-            inline void visit(Visitor *visitor) override;
+            }
+
+            inline void visit(Visitor *visitor) override {
+                visitor->visit(this);
+            }
 
             /* === Getter(s) === */
 
-            inline Edge *inputEdge() const override;
+            inline Edge *inputEdge() const override {
+                return inputEdgeArray_[0];
+            }
 
-            inline Edge *outputEdge() const override;
+            inline Edge *outputEdge() const override {
+                return graph_->outputEdge(ix_);
+            }
 
-            inline Vertex *opposite() const override;
+            inline Vertex *opposite() const override {
+                return inputEdgeArray_[0]->source();
+            }
 
             /**
              * @brief Return the kind of the interface (@refitem InterfaceType)
              * @return @refitem VertexType::OUTPUT
              */
-            inline VertexType subtype() const override;
+            inline VertexType subtype() const override {
+                return VertexType::OUTPUT;
+            }
 
             /* === Setter(s) === */
 
@@ -85,32 +98,6 @@ namespace spider {
 
             /* === Private method(s) === */
         };
-
-        /* === Inline method(s) === */
-
-        void OutputInterface::connectOutputEdge(Edge *, uint32_t) {
-            throwSpiderException("Can not connect output edge to output interface.");
-        }
-
-        void OutputInterface::visit(Visitor *visitor) {
-            visitor->visit(this);
-        }
-
-        Edge *OutputInterface::inputEdge() const {
-            return inputEdgeArray_[0];
-        }
-
-        Edge *OutputInterface::outputEdge() const {
-            return graph_->outputEdge(ix_);
-        }
-
-        Vertex *OutputInterface::opposite() const {
-            return inputEdgeArray_[0]->source();
-        }
-
-        VertexType OutputInterface::subtype() const {
-            return VertexType::OUTPUT;
-        }
     }
 }
 

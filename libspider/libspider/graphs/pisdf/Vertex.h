@@ -64,9 +64,12 @@ namespace spider {
         public:
 
             explicit Vertex(std::string name = "unnamed-vertex",
-                            uint32_t edgeINCount = 0,
-                            uint32_t edgeOUTCount = 0,
-                            StackID stack = StackID::PISDF);
+                            size_t edgeINCount = 0,
+                            size_t edgeOUTCount = 0,
+                            StackID stack = StackID::PISDF) :
+                    name_{ std::move(name) },
+                    inputEdgeArray_{ edgeINCount, nullptr, stack },
+                    outputEdgeArray_{ edgeOUTCount, nullptr, stack } { }
 
             Vertex(const Vertex &) = delete;
 
@@ -76,7 +79,12 @@ namespace spider {
 
             Vertex &operator=(Vertex &&) = delete;
 
-            virtual ~Vertex();
+            virtual ~Vertex() {
+                if (copyCount_ && log_enabled()) {
+                    spider::log::error("Removing vertex [%s] with copies out there.", name().c_str());
+                }
+                this->reference_->copyCount_ -= 1;
+            }
 
             friend CloneVertexVisitor;
 
@@ -88,7 +96,9 @@ namespace spider {
              * @param ix  Index of the edge.
              * @throw @refitem Spide::rException if out of bound or already existing edge.
              */
-            virtual void connectInputEdge(Edge *edge, uint32_t ix);
+            inline virtual void connectInputEdge(Edge *edge, size_t ix) {
+                connectEdge(inputEdgeArray_, edge, ix);
+            }
 
             /**
              * @brief Set the output edge of index ix.
@@ -96,27 +106,35 @@ namespace spider {
              * @param ix  Index of the edge.
              * @throw @refitem Spider::Exception if out of bound or already existing edge.
              */
-            virtual void connectOutputEdge(Edge *edge, uint32_t ix);
+            inline virtual void connectOutputEdge(Edge *edge, size_t ix) {
+                connectEdge(outputEdgeArray_, edge, ix);
+            }
 
             /**
              * @brief Disconnect input edge on port ix. If no edge is connected, nothing happens
              * @param ix  Index of the input edge to disconnect.
              * @throws @refitem Spider::Exception if index out of bound.
              */
-            virtual Edge *disconnectInputEdge(uint32_t ix);
+            inline virtual Edge *disconnectInputEdge(size_t ix) {
+                return disconnectEdge(inputEdgeArray_, ix);
+            }
 
             /**
              * @brief Disconnect output edge on port ix. If no edge is connected, nothing happens
              * @param ix  Index of the output edge to disconnect.
              * @throws @refitem Spider::Exception if index out of bound.
              */
-            virtual Edge *disconnectOutputEdge(uint32_t ix);
+            inline virtual Edge *disconnectOutputEdge(size_t ix) {
+                return disconnectEdge(outputEdgeArray_, ix);
+            }
 
             /**
              * @brief Forward the connection of an edge. It should return this except for @refitem Interface vertices.
              * @return this or vertex connected to edge.
              */
-            inline virtual Vertex *forwardEdge(const Edge *);
+            inline virtual Vertex *forwardEdge(const Edge *) {
+                return this;
+            }
 
             /**
              * @brief Generic method that accept a visitor for class specific treatments.
@@ -131,37 +149,49 @@ namespace spider {
              * @brief Get the containing @refitem Graph of the vertex.
              * @return containing @refitem Graph
              */
-            inline Graph *graph() const;
+            inline Graph *graph() const {
+                return graph_;
+            }
 
             /**
              * @brief Get the name string of the vertex.
              * @return name of the vertex.
              */
-            inline const std::string &name() const;
+            inline const std::string &name() const {
+                return name_;
+            }
 
             /**
              * @brief Get the ix of the vertex in the containing graph.
              * @return ix of the vertex (UINT32_MAX if no ix).
              */
-            inline const uint32_t &ix() const;
+            inline const uint32_t &ix() const {
+                return ix_;
+            }
 
             /**
              * @brief Test if the vertex is a graph.
              * @return true if vertex is a graph, false else.
              */
-            inline virtual bool hierarchical() const;
+            inline virtual bool hierarchical() const {
+                return false;
+            }
 
             /**
              * @brief Get the repetition vector value of the vertex.
              * @return repetition vector value of the vertex. (UINT32_MAX if uninitialized)
              */
-            inline uint32_t repetitionValue() const;
+            inline uint32_t repetitionValue() const {
+                return repetitionValue_;
+            }
 
             /**
              * @brief A const reference on the array of input edges. Useful for iterating on the edges.
              * @return const reference to input edge array
              */
-            inline const spider::array<Edge *> &inputEdgeArray() const;
+            inline const spider::array<Edge *> &inputEdgeArray() const {
+                return inputEdgeArray_;
+            }
 
             /**
              * @brief Get input edge connected to port Ix.
@@ -169,19 +199,25 @@ namespace spider {
              * @return @refitem Spider::PiSDF::Edge
              * @throw @refitem Spider::Exception if out of bound
              */
-            inline Edge *inputEdge(size_t ix) const;
+            inline Edge *inputEdge(size_t ix) const {
+                return inputEdgeArray_.at(ix);
+            }
 
             /**
              * @brief Get the number of input edges connected to the vertex.
              * @return number of input edges.
              */
-            inline size_t inputEdgeCount() const;
+            inline size_t inputEdgeCount() const {
+                return inputEdgeArray_.size();
+            }
 
             /**
              * @brief A const reference on the array of output edges. Useful for iterating on the edges.
              * @return const reference to output edge array
              */
-            inline const spider::array<Edge *> &outputEdgeArray() const;
+            inline const spider::array<Edge *> &outputEdgeArray() const {
+                return outputEdgeArray_;
+            }
 
             /**
              * @brief Get input edge connected to port Ix.
@@ -189,13 +225,17 @@ namespace spider {
              * @return @refitem Spider::PiSDF::Edge
              * @throw @refitem Spider::Exception if out of bound.
              */
-            inline Edge *outputEdge(size_t ix) const;
+            inline Edge *outputEdge(size_t ix) const {
+                return outputEdgeArray_.at(ix);
+            }
 
             /**
              * @brief Get the number of output edges connected to the vertex.
              * @return number of output edges.
              */
-            inline size_t outputEdgeCount() const;
+            inline size_t outputEdgeCount() const {
+                return outputEdgeArray_.size();
+            }
 
             /**
              * @brief Get the subtype of the vertex.
@@ -210,13 +250,17 @@ namespace spider {
              * there are no possibilities to know it.
              * @return pointer to @refitem Vertex reference.
              */
-            inline const Vertex *reference() const;
+            inline const Vertex *reference() const {
+                return reference_;
+            }
 
             /**
              * @brief Return the executable property of a vertex.
              * @return true if vertex is executable, false else.
              */
-            inline virtual bool executable() const;
+            inline virtual bool executable() const {
+                return false;
+            }
 
             /* === Setter(s) === */
 
@@ -226,19 +270,25 @@ namespace spider {
              * @warning No check on the name is performed to see if it is unique in the graph.
              * @param name  Name to set.
              */
-            inline void setName(std::string name);
+            inline void setName(std::string name) {
+                name_ = std::move(name);
+            }
 
             /**
              * @brief Set the ix of the vertex in the containing graph.
              * @param ix Ix to set.
              */
-            inline void setIx(uint32_t ix);
+            inline void setIx(uint32_t ix) {
+                ix_ = ix;
+            }
 
             /**
              * @brief Set the repetition vector value of the vertex;
-             * @param rv Repetition value to set.
+             * @param value Repetition value to set.
              */
-            inline virtual void setRepetitionValue(uint32_t rv);
+            inline virtual void setRepetitionValue(uint32_t value) {
+                repetitionValue_ = value;
+            }
 
             /**
              * @brief Set the graph of the vertex.
@@ -246,7 +296,11 @@ namespace spider {
              * @remark If graph is nullptr, nothing happen.
              * @param graph  Graph to set.
              */
-            void setGraph(Graph *graph);
+            inline void setGraph(Graph *graph) {
+                if (graph) {
+                    graph_ = graph;
+                }
+            }
 
         protected:
             std::string name_ = "unnamed-vertex";
@@ -260,80 +314,24 @@ namespace spider {
 
             /* === Private method(s) === */
 
-            static Edge *disconnectEdge(spider::array<Edge *> &edges, uint32_t ix);
+            inline static Edge *disconnectEdge(spider::array<Edge *> &edges, size_t ix) {
+                auto *&edge = edges.at(ix);
+                Edge *ret = edge;
+                if (edge) {
+                    edge = nullptr;
+                }
+                return ret;
+            }
 
-            static void connectEdge(spider::array<Edge *> &edges, Edge *edge, uint32_t ix);
+            inline static void connectEdge(spider::array<Edge *> &edges, Edge *edge, size_t ix) {
+                auto *&current = edges.at(ix);
+                if (!current) {
+                    current = edge;
+                    return;
+                }
+                throwSpiderException("Edge already exists at position: %zu", ix);
+            }
         };
-
-        /* === Inline method(s) === */
-
-        Vertex *Vertex::forwardEdge(const Edge *) {
-            return this;
-        }
-
-        Graph *Vertex::graph() const {
-            return graph_;
-        }
-
-        const std::string &Vertex::name() const {
-            return name_;
-        }
-
-        const uint32_t &Vertex::ix() const {
-            return ix_;
-        }
-
-        bool Vertex::hierarchical() const {
-            return false;
-        }
-
-        uint32_t Vertex::repetitionValue() const {
-            return repetitionValue_;
-        }
-
-        const spider::array<Edge *> &Vertex::inputEdgeArray() const {
-            return inputEdgeArray_;
-        }
-
-        Edge *Vertex::inputEdge(size_t ix) const {
-            return inputEdgeArray_.at(ix);
-        }
-
-        size_t Vertex::inputEdgeCount() const {
-            return inputEdgeArray_.size();
-        }
-
-        const spider::array<Edge *> &Vertex::outputEdgeArray() const {
-            return outputEdgeArray_;
-        }
-
-        Edge *Vertex::outputEdge(size_t ix) const {
-            return outputEdgeArray_.at(ix);
-        }
-
-        size_t Vertex::outputEdgeCount() const {
-            return outputEdgeArray_.size();
-        }
-
-        bool Vertex::executable() const {
-            return false;
-        }
-
-        const Vertex *Vertex::reference() const {
-            return reference_;
-        }
-
-        void Vertex::setName(std::string name) {
-            name_ = std::move(name);
-        }
-
-        void Vertex::setIx(uint32_t ix) {
-            ix_ = ix;
-        }
-
-        void Vertex::setRepetitionValue(uint32_t rv) {
-            repetitionValue_ = rv;
-        }
     }
 }
 #endif //SPIDER2_VERTEX_H
