@@ -48,6 +48,7 @@
 #include <spider-api/pisdf.h>
 #include <spider-api/constraints.h>
 #include <spider-api/refinement.h>
+#include <spider-api/global.h>
 
 /* === Methods prototype === */
 

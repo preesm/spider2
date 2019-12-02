@@ -42,37 +42,16 @@
 
 /* === Includes === */
 
-#include <cstdint>
-#include <limits>
 #include <memory/abstract-allocators/AbstractAllocator.h>
 #include <memory/static-allocators/LinearStaticAllocator.h>
 #include <memory/dynamic-allocators/FreeListAllocator.h>
 #include <memory/dynamic-allocators/GenericAllocator.h>
-#include <spider-api/config.h>
+#include <spider-api/global.h>
 #include <common/EnumIterator.h>
-
-/* === Define(s) === */
-
-/* === Structure(s) === */
 
 /* === Namespace === */
 
 namespace spider {
-
-    /* === Enumeration(s) === */
-
-    /**
-     * @brief Allocator types
-     */
-    enum class AllocatorType {
-        FREELIST,             /*!< (Dynamic) FreeList type allocator */
-        GENERIC,              /*!< (Dynamic) Generic type allocator (=malloc) */
-        LINEAR_STATIC,        /*!< (Static) Linear type allocator */
-        First = FREELIST,     /*!< Sentry for EnumIterator::begin */
-        Last = LINEAR_STATIC, /*!< Sentry for EnumIterator::end */
-    };
-
-    constexpr size_t ALLOCATOR_COUNT = static_cast<size_t>(AllocatorType::Last) + 1;
 
     /* == Functions used for creating / destroying allocators == */
 

@@ -40,8 +40,8 @@
 
 /* === Includes === */
 
-#include <common/Logger.h>
 #include <spider-api/config.h>
+#include <common/Logger.h>
 
 /* === Static variable(s) definition === */
 

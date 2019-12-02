@@ -40,10 +40,6 @@
 #ifndef SPIDER2_CONFIG_H
 #define SPIDER2_CONFIG_H
 
-/* === Includes === */
-
-#include <spider-api/global.h>
-
 /* === Methods prototype === */
 
 namespace spider {

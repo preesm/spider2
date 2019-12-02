@@ -46,14 +46,10 @@
 #include <graphs-tools/exporter/DOTExporter.h>
 #include <scheduling/schedule/exporter/SVGGanttExporter.h>
 #include <scheduling/scheduler/BestFitScheduler.h>
-#include <spider-api/constraints.h>
 #include <scheduling/schedule/exporter/XMLGanttExporter.h>
 #include <scheduling/scheduler/GreedyScheduler.h>
 #include <monitor/Monitor.h>
 
-/* === Static variable(s) === */
-
-/* === Static function(s) === */
 
 /* === Method(s) implementation === */
 

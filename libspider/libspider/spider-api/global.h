@@ -164,6 +164,17 @@ namespace spider {
         };
     }
 
+    /**
+     * @brief Allocator types
+     */
+    enum class AllocatorType {
+        FREELIST,             /*!< (Dynamic) FreeList type allocator */
+        GENERIC,              /*!< (Dynamic) Generic type allocator (=malloc) */
+        LINEAR_STATIC,        /*!< (Static) Linear type allocator */
+        First = FREELIST,     /*!< Sentry for EnumIterator::begin */
+        Last = LINEAR_STATIC, /*!< Sentry for EnumIterator::end */
+    };
+
     /* === Structure(s) === */
 
     struct PlatformConfig {
@@ -184,6 +195,8 @@ namespace spider {
     namespace log {
         constexpr auto LOGGER_COUNT = static_cast<uint8_t >(Type::EXPR) + 1;
     }
+
+    constexpr size_t ALLOCATOR_COUNT = static_cast<size_t>(AllocatorType::Last) + 1;
 
     /* === Type definition(s) === */
 

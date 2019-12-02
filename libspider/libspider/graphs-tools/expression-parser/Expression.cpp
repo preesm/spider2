@@ -40,12 +40,11 @@
 
 /* === Includes === */
 
+#include <cmath>
 #include <graphs-tools/expression-parser/Expression.h>
-#include <spider-api/config.h>
 #include <graphs/pisdf/params/Param.h>
 #include <graphs/pisdf/Graph.h>
-#include <algorithm>
-#include <cmath>
+#include <spider-api/config.h>
 
 /* === Static method(s) === */
 

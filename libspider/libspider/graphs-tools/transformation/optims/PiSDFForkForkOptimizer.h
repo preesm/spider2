@@ -42,9 +42,10 @@
 
 /* === Includes === */
 
-#include <spider-api/pisdf.h>
 #include <graphs-tools/transformation/optims/PiSDFOptimizer.h>
 #include <graphs/pisdf/specials/Specials.h>
+#include <spider-api/pisdf.h>
+#include <spider-api/config.h>
 
 /* === Class definition === */
 
