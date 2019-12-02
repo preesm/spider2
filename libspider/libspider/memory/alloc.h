@@ -151,17 +151,17 @@ namespace spider {
      * @return pointer to allocated buffer, nullptr if size is 0.
      */
     template<typename T>
-    inline T *allocate(StackID stack, size_t size = 1) {
+    inline T *allocate(StackID stack, size_t n = 1) {
 #ifdef _SPIDER_CHECK_ALLOCATOR
         /* == Allocate buffer with (size + 1) to store stack identifier == */
         auto *allocator = getStackAllocator(stack);
         if (!alloc) {
             throwSpiderException("Trying to allocate memory with un-initialized allocator: %ld", static_cast<long>(stack));
         }
-        auto buffer = reinterpret_cast<uintptr_t>(allocator->allocate(size * sizeof(T) + sizeof(uint64_t)));
+        auto buffer = reinterpret_cast<uintptr_t>(allocator->allocate((n > 0 ? n * sizeof(T) + sizeof(uint64_t) : 0)));
 #else
         /* == Allocate buffer with (size + 1) to store stack identifier == */
-        auto buffer = reinterpret_cast<uintptr_t>(getStackAllocator(stack)->allocate(size * sizeof(T) + sizeof(uint64_t)));
+        auto buffer = reinterpret_cast<uintptr_t>(getStackAllocator(stack)->allocate((n > 0 ? n * sizeof(T) + sizeof(uint64_t) : 0)));
 #endif
         /* == Return allocated buffer == */
         if (buffer) {
@@ -173,17 +173,17 @@ namespace spider {
     }
 
     template<typename T, StackID stack = StackID::GENERAL>
-    inline T *allocate(size_t size = 1) {
+    inline T *allocate(size_t n = 1) {
 #ifdef _SPIDER_CHECK_ALLOCATOR
-        /* == Allocate buffer with (size + 1) to store stack identifier == */
+        /* == Allocate buffer with (n + 1) to store stack identifier == */
         auto *allocator = getStackAllocator<stack>();
         if (!alloc) {
             throwSpiderException("Trying to allocate memory with un-initialized allocator: %ld", static_cast<long>(stack));
         }
-        auto buffer = reinterpret_cast<uintptr_t>(allocator->allocate(size * sizeof(T) + sizeof(uint64_t)));
+        auto buffer = reinterpret_cast<uintptr_t>(allocator->allocate((n > 0 ? n * sizeof(T) + sizeof(uint64_t) : 0)));
 #else
         /* == Allocate buffer with (size + 1) to store stack identifier == */
-        auto buffer = reinterpret_cast<uintptr_t>(getStackAllocator<stack>()->allocate(size * sizeof(T) + sizeof(uint64_t)));
+        auto buffer = reinterpret_cast<uintptr_t>(getStackAllocator<stack>()->allocate((n > 0 ? n * sizeof(T) + sizeof(uint64_t) : 0)));
 #endif
 
         /* == Return allocated buffer == */
