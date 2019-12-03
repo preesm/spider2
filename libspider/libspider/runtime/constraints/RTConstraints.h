@@ -45,7 +45,7 @@
 #include <containers/containers.h>
 #include <graphs-tools/expression-parser/Expression.h>
 #include <archi/Platform.h>
-#include <spider-api/archi.h>
+#include <api/archi.h>
 #include <archi/Cluster.h>
 #include <archi/PE.h>
 

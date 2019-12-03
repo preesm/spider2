@@ -41,7 +41,7 @@
 /* === Include(s) === */
 
 #include <scheduling/schedule/ScheduleJob.h>
-#include <spider-api/archi.h>
+#include <api/archi.h>
 #include <archi/Platform.h>
 
 /* === Static variable(s) === */

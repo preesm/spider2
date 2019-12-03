@@ -40,7 +40,7 @@
 
 /* === Includes === */
 
-#include <spider.h>
+#include <api/spider.h>
 #include <memory/alloc.h>
 #include <common/Logger.h>
 #include <archi/Platform.h>

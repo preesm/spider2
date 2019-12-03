@@ -42,8 +42,8 @@
 
 #include <common/Logger.h>
 #include <common/Exception.h>
-#include <spider-api/debug.h>
-#include <spider-api/pisdf.h>
+#include <api/debug.h>
+#include <api/pisdf.h>
 #include <graphs-tools/transformation/optims/PiSDFGraphOptimizer.h>
 #include <graphs-tools/exporter/DOTExporter.h>
 

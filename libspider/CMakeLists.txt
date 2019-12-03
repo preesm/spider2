@@ -173,58 +173,13 @@ include_directories(
 file(
         GLOB_RECURSE
         source_files
-        ${SPIDER_LIB_DIR}/archi/*.cpp
-        ${SPIDER_LIB_DIR}/common/*.cpp
-        ${SPIDER_LIB_DIR}/containers/*.cpp
-        ${SPIDER_LIB_DIR}/graphs/pisdf/*.cpp
-        ${SPIDER_LIB_DIR}/graphs-tools/brv/*.cpp
-        ${SPIDER_LIB_DIR}/graphs-tools/exporter/*.cpp
-        ${SPIDER_LIB_DIR}/graphs-tools/expression-parser/*.cpp
-        ${SPIDER_LIB_DIR}/graphs-tools/transformation/*.cpp
-        ${SPIDER_LIB_DIR}/graphs-tools/numerical/*.cpp
-        ${SPIDER_LIB_DIR}/memory/*.cpp
-        ${SPIDER_LIB_DIR}/memory/dynamic-allocators/*.cpp
-        ${SPIDER_LIB_DIR}/memory/static-allocators/*.cpp
-        ${SPIDER_LIB_DIR}/monitor/*.cpp
-        ${SPIDER_LIB_DIR}/runtime/*.cpp
-        ${SPIDER_LIB_DIR}/scenario/*.cpp
-        ${SPIDER_LIB_DIR}/scheduling/*.cpp
-        ${SPIDER_LIB_DIR}/scheduling/allocator/*.cpp
-        ${SPIDER_LIB_DIR}/scheduling/schedule/*.cpp
-        ${SPIDER_LIB_DIR}/scheduling/scheduler/*.cpp
-        ${SPIDER_LIB_DIR}/spider-api/*.cpp
-        ${SPIDER_LIB_DIR}/thread/*.cpp
-        ${SPIDER_LIB_DIR}/spider.cpp
+        ${SPIDER_LIB_DIR}/*.cpp
 )
 
 file(
         GLOB_RECURSE
         header_files
-        ${SPIDER_LIB_DIR}/archi/*.h
-        ${SPIDER_LIB_DIR}/common/*.h
-        ${SPIDER_LIB_DIR}/common/cxx11-printf/*.h
-        ${SPIDER_LIB_DIR}/containers/*.h
-        ${SPIDER_LIB_DIR}/graphs/pisdf/*.h
-        ${SPIDER_LIB_DIR}/graphs-tools/brv/*.h
-        ${SPIDER_LIB_DIR}/graphs-tools/exporter/*.h
-        ${SPIDER_LIB_DIR}/graphs-tools/expression-parser/*.h
-        ${SPIDER_LIB_DIR}/graphs-tools/transformation/*.h
-        ${SPIDER_LIB_DIR}/graphs-tools/transformation/optims/*.h
-        ${SPIDER_LIB_DIR}/graphs-tools/numerical/*.h
-        ${SPIDER_LIB_DIR}/memory/*.h
-        ${SPIDER_LIB_DIR}/memory/abstract-allocators/*.h
-        ${SPIDER_LIB_DIR}/memory/dynamic-allocators/*.h
-        ${SPIDER_LIB_DIR}/memory/static-allocators/*.h
-        ${SPIDER_LIB_DIR}/monitor/*.h
-        ${SPIDER_LIB_DIR}/runtime/*.h
-        ${SPIDER_LIB_DIR}/scenario/*.h
-        ${SPIDER_LIB_DIR}/scheduling/*.h
-        ${SPIDER_LIB_DIR}/scheduling/allocator/*.h
-        ${SPIDER_LIB_DIR}/scheduling/schedule/*.h
-        ${SPIDER_LIB_DIR}/scheduling/scheduler/*.h
-        ${SPIDER_LIB_DIR}/spider-api/*.h
-        ${SPIDER_LIB_DIR}/thread/*.h
-        ${SPIDER_LIB_DIR}/spider.h
+        ${SPIDER_LIB_DIR}/*.h
 )
 
 set(ALL_MY_SOURCE_FILES ${source_files} ${header_files})

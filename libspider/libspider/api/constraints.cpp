@@ -40,8 +40,8 @@
 
 /* === Includes === */
 
-#include <spider-api/constraints.h>
-#include <spider-api/archi.h>
+#include <api/constraints.h>
+#include <api/archi.h>
 #include <archi/Platform.h>
 #include <archi/Cluster.h>
 #include <archi/PE.h>

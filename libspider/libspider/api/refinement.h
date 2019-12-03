@@ -44,7 +44,7 @@
 
 #include <string>
 #include <array>
-#include <spider-api/global.h>
+#include <api/global.h>
 #include <containers/containers.h>
 
 namespace spider {

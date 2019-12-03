@@ -45,7 +45,7 @@
 #include <graphs/pisdf/visitors/DefaultVisitor.h>
 #include <graphs/pisdf/specials/Specials.h>
 #include <graphs/pisdf/Graph.h>
-#include <spider-api/archi.h>
+#include <api/archi.h>
 #include <archi/Platform.h>
 
 namespace spider {

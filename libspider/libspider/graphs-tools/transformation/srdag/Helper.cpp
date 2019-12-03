@@ -42,7 +42,7 @@
 
 #include <graphs-tools/transformation/srdag/Helper.h>
 #include <graphs-tools/transformation/srdag/Transformation.h>
-#include <spider-api/pisdf.h>
+#include <api/pisdf.h>
 #include <graphs/pisdf/params/DynamicParam.h>
 #include <graphs/pisdf/params/InHeritedParam.h>
 #include <graphs/pisdf/Delay.h>

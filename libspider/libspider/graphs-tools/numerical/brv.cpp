@@ -45,7 +45,7 @@
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/Edge.h>
 #include <graphs/pisdf/params/Param.h>
-#include <spider-api/config.h>
+#include <api/config.h>
 
 /* === Function(s) definition === */
 

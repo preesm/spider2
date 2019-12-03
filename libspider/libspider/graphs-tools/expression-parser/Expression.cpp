@@ -44,7 +44,7 @@
 #include <graphs-tools/expression-parser/Expression.h>
 #include <graphs/pisdf/params/Param.h>
 #include <graphs/pisdf/Graph.h>
-#include <spider-api/config.h>
+#include <api/config.h>
 
 /* === Static method(s) === */
 

@@ -42,7 +42,7 @@
 
 /* === Includes === */
 
-#include <spider-api/global.h>
+#include <api/global.h>
 #include <array>
 
 namespace spider {

@@ -40,7 +40,7 @@
 
 /* === Includes === */
 
-#include <spider-api/archi.h>
+#include <api/archi.h>
 #include <archi/Platform.h>
 #include <archi/Cluster.h>
 #include <archi/PE.h>

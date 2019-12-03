@@ -44,7 +44,7 @@
 
 #include <cstdint>
 #include <string>
-#include <spider-api/archi.h>
+#include <api/archi.h>
 #include <ostream>
 
 namespace spider {

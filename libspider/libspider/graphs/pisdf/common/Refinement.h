@@ -43,7 +43,7 @@
 /* === Include(s) === */
 
 #include <containers/containers.h>
-#include <spider-api/refinement.h>
+#include <api/refinement.h>
 
 namespace spider {
     namespace pisdf {

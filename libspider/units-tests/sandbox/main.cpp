@@ -43,7 +43,7 @@
 #include <graphs/pisdf/interfaces/OutputInterface.h>
 #include <graphs/pisdf/params/InHeritedParam.h>
 #include <graphs/pisdf/params/DynamicParam.h>
-#include <spider.h>
+#include <api/spider.h>
 #include <graphs-tools/exporter/DOTExporter.h>
 #include <runtime/algorithm/JITMSRuntime.h>
 #include <scheduling/schedule/Schedule.h>
@@ -93,8 +93,21 @@ void fn2(int32_t id, int32_t affinity) {
     std::cout << "Thread #" << id << ": on CPU " << spider::this_thread::get_affinity() << "\n";
 }
 
+
 int main(int, char **) {
     spiderTest();
+
+    std::cout << sizeof(spider::pisdf::Vertex) << std::endl;
+    std::cout << sizeof(spider::pisdf::ExecVertex) << std::endl;
+    std::cout << sizeof(spider::pisdf::Graph) << std::endl;
+    std::cout << sizeof(spider::pisdf::Edge) << std::endl;
+    std::cout << sizeof(spider::Expression) << std::endl;
+    std::cout << sizeof(spider::ExpressionElt) << std::endl;
+    std::cout << sizeof(RPNElement) << std::endl;
+    std::cout << sizeof(RPNElementType) << std::endl;
+    std::cout << sizeof(RPNElementSubType) << std::endl;
+    std::cout << sizeof(std::string) << std::endl;
+
     return 0;
 }
 
@@ -104,13 +117,14 @@ void spiderTest() {
     spider::api::createGenericStack(StackID::TRANSFO, "transfo-stack");
     spider::api::createGenericStack(StackID::EXPRESSION, "expression-stack");
     spider::api::createGenericStack(StackID::ARCHI, "archi-stack");
-    spider::api::createGenericStack(StackID::SCENARIO, "scenario-stack");
+    spider::api::createGenericStack(StackID::CONSTRAINTS, "scenario-stack");
     spider::api::createGenericStack(StackID::SCHEDULE, "schedule-stack");
     spider::api::enableLogger(spider::log::Type::TRANSFO);
     spider::api::enableLogger(spider::log::Type::OPTIMS);
     spider::api::enableVerbose();
 
-    if (0)
+
+//    if (0)
     {
         createArchi();
 
@@ -136,7 +150,7 @@ void spiderTest() {
         /* === Creating edges === */
 
         spider::api::createEdge(vertex_0, 0, 1, vertex_1, 0, 1);
-        spider::api::createEdge(vertex_1, 0, "10", subgraph, 0, "1");
+        spider::api::createEdge(vertex_1, 0, "1", subgraph, 0, "1");
 //        spider::api::createEdge(vertex_1, 0, 500, vertex_2, 0, 1);
         spider::api::createEdge(input, 0, 5, vertex_2, 0, 1);
         spider::api::createEdge(vertex_2, 0, 1, vertex_3, 0, 5);
@@ -150,8 +164,6 @@ void spiderTest() {
         spider::api::createStaticParam(graph, "width", 10);
         spider::api::createStaticParam(subgraph, "height", 10);
         spider::api::createDynamicParam(subgraph, "width");
-
-
 
         /* === Export dot === */
 

@@ -44,7 +44,7 @@
 
 #include <graphs-tools/transformation/optims/PiSDFOptimizer.h>
 #include <common/Math.h>
-#include <spider-api/pisdf.h>
+#include <api/pisdf.h>
 
 /* === Class definition === */
 

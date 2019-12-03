@@ -43,7 +43,7 @@
 #include <graphs/pisdf/Delay.h>
 #include <graphs/pisdf/Edge.h>
 #include <graphs/pisdf/specials/Specials.h>
-#include <spider-api/pisdf.h>
+#include <api/pisdf.h>
 
 /* === Static variable(s) === */
 
