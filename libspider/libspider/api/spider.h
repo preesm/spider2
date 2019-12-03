@@ -42,13 +42,13 @@
 
 /* === Includes === */
 
-#include <api/archi.h>
-#include <api/debug.h>
-#include <api/config.h>
-#include <api/pisdf.h>
-#include <api/constraints.h>
-#include <api/refinement.h>
-#include <api/global.h>
+#include <api/archi-api.h>
+#include <api/debug-api.h>
+#include <api/config-api.h>
+#include <api/pisdf-api.h>
+#include <api/constraints-api.h>
+#include <api/refinement-api.h>
+#include <api/global-api.h>
 
 /* === Methods prototype === */
 

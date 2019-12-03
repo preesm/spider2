@@ -46,7 +46,7 @@
 #include <memory/static-allocators/LinearStaticAllocator.h>
 #include <memory/dynamic-allocators/FreeListAllocator.h>
 #include <memory/dynamic-allocators/GenericAllocator.h>
-#include <api/global.h>
+#include <api/global-api.h>
 #include <common/EnumIterator.h>
 
 /* === Namespace === */

@@ -37,14 +37,14 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_PISDF_H
-#define SPIDER2_PISDF_H
+#ifndef SPIDER2_PISDF_API_H
+#define SPIDER2_PISDF_API_H
 
 /* === Include(s) === */
 
 #include <cstdint>
 #include <string>
-#include <api/global.h>
+#include <api/global-api.h>
 
 /* === API methods === */
 
@@ -201,4 +201,4 @@ namespace spider {
     }
 }
 
-#endif //SPIDER2_PISDF_H
+#endif //SPIDER2_PISDF_API_H

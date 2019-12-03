@@ -45,7 +45,7 @@
 #include <mutex>
 #include <common/Printer.h>
 #include <common/Exception.h>
-#include <api/debug.h>
+#include <api/debug-api.h>
 
 /* === Namespace === */
 

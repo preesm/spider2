@@ -47,7 +47,7 @@
 #include <containers/containers.h>
 #include <thread/Thread.h>
 #include <containers/array.h>
-#include <api/archi.h>
+#include <api/archi-api.h>
 #include <archi/Platform.h>
 #include <runtime/platform/RTPlatform.h>
 #include <runtime/interface/RTCommunicator.h>

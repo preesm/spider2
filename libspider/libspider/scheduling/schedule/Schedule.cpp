@@ -41,7 +41,7 @@
 /* === Include(s) === */
 
 #include <scheduling/schedule/Schedule.h>
-#include <api/archi.h>
+#include <api/archi-api.h>
 #include <archi/Platform.h>
 #include <archi/PE.h>
 

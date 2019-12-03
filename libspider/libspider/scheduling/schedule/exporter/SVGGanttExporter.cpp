@@ -41,8 +41,8 @@
 /* === Include(s) === */
 
 #include <scheduling/schedule/exporter/SVGGanttExporter.h>
-#include <api/archi.h>
-#include <api/pisdf.h>
+#include <api/archi-api.h>
+#include <api/pisdf-api.h>
 #include <archi/Platform.h>
 #include <archi/PE.h>
 #include <graphs/pisdf/ExecVertex.h>

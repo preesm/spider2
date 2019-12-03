@@ -43,7 +43,7 @@
 /* === Includes === */
 
 #include <graphs-tools/transformation/optims/PiSDFOptimizer.h>
-#include <api/pisdf.h>
+#include <api/pisdf-api.h>
 
 /* === Class definition === */
 

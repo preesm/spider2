@@ -37,12 +37,12 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_DEBUG_H
-#define SPIDER2_DEBUG_H
+#ifndef SPIDER2_DEBUG_API_H
+#define SPIDER2_DEBUG_API_H
 
 /* === Includes === */
 
-#include <api/global.h>
+#include <api/global-api.h>
 #include <array>
 
 namespace spider {
@@ -110,4 +110,4 @@ namespace spider {
     }
 }
 
-#endif //SPIDER2_DEBUG_H
+#endif //SPIDER2_DEBUG_API_H

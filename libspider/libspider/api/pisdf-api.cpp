@@ -40,7 +40,7 @@
 
 /* === Includes === */
 
-#include <api/pisdf.h>
+#include <api/pisdf-api.h>
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/params/Param.h>
 #include <graphs/pisdf/Edge.h>

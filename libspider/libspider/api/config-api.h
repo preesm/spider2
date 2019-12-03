@@ -37,43 +37,93 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_SCENARIO_API_H
-#define SPIDER2_SCENARIO_API_H
+#ifndef SPIDER2_CONFIG_API_H
+#define SPIDER2_CONFIG_API_H
 
-/* === Includes === */
-
-#include <cstdint>
-#include <string>
-#include <api/global.h>
+/* === Methods prototype === */
 
 namespace spider {
 
-    /* === Function(s) prototype === */
-
     namespace api {
 
-        /* === General Scenario related API === */
+        /* === Methods for setting flags value in Spider === */
 
-        void setVertexMappableOnCluster(pisdf::ExecVertex *vertex, const Cluster *cluster, bool value = true);
+        /**
+         * @brief Enable the traces in Spider.
+         */
+        void enableExportTrace();
 
-        void setVertexMappableOnCluster(pisdf::ExecVertex *vertex, uint32_t clusterIx, bool value = true);
+        /**
+         * @brief Disable the traces in Spider (default behavior).
+         */
+        void disableExportTrace();
 
-        void setVertexMappableOnPE(pisdf::ExecVertex *vertex, const PE *pe, bool value = true);
+        /**
+         * @brief Enable the Verbose mode in Spider.
+         */
+        void enableVerbose();
 
-        void setVertexMappableOnPE(pisdf::ExecVertex *vertex, size_t ix, bool value = true);
+        /**
+         * @brief Disable the Verbose mode in Spider (default behavior).
+         */
+        void disableVerbose();
 
-        void setVertexMappableOnAllPE(pisdf::ExecVertex *vertex, bool value = true);
+        /**
+         * @brief Enable the Logs related to the JOBs.
+         */
+        void enableJobLogs();
 
-        void setVertexExecutionTimingOnPE(pisdf::ExecVertex *vertex,
-                                          const PE *pe,
-                                          const std::string &timingExpression = "100");
+        /**
+         * @brief Disable the Logs related to the JOBs (default behavior).
+         */
+        void disableJobLogs();
 
-        void setVertexExecutionTimingOnPE(pisdf::ExecVertex *vertex, const PE *pe, int64_t timing = 100);
+        /**
+         * @brief Enable the schedule optimization for static graphs (default behavior).
+         */
+        void enableStaticScheduleOptim();
 
-        void setVertexExecutionTimingOnAllPE(pisdf::ExecVertex *vertex, int64_t timing = 100);
+        /**
+         * @brief Disable the schedule optimization for static graphs (schedule will be recomputed every iteration).
+         */
+        void disableStaticScheduleOptim();
 
-        void setVertexExecutionTimingOnAllPE(pisdf::ExecVertex *vertex, const std::string &timingExpression);
+        /**
+         * @brief Enable the SRDAG optimizations (default behavior).
+         */
+        void enableSRDAGOptims();
+
+        /**
+         * @brief Disable the SRDAG optimizations.
+         */
+        void disableSRDAGOptims();
+
+        /* === Getters for static variables === */
+
+        /**
+         * @brief Get the trace flag value.
+         * @return value of trace flag.
+         */
+        bool exportTrace();
+
+        /**
+         * @brief Get the verbose flag value.
+         * @return value of verbose flag.
+         */
+        bool verbose();
+
+        /**
+         * @brief Get the staticOptims flag value.
+         * @return value of staticOptims flag.
+         */
+        bool staticOptim();
+
+        /**
+         * @brief Get the srdagOptim flag value.
+         * @return value of srdagOptim flag.
+         */
+        bool optimizeSRDAG();
     }
 }
 
-#endif //SPIDER2_SCENARIO_H
+#endif //SPIDER2_CONFIG_API_H

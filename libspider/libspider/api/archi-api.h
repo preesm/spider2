@@ -37,14 +37,14 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_ARCHI_H
-#define SPIDER2_ARCHI_H
+#ifndef SPIDER2_ARCHI_API_H
+#define SPIDER2_ARCHI_API_H
 
 /* === Includes === */
 
 #include <cstdint>
 #include <string>
-#include <api/global.h>
+#include <api/global-api.h>
 
 namespace spider {
 
@@ -182,4 +182,4 @@ namespace spider {
     }
 }
 
-#endif //SPIDER2_ARCHI_H
+#endif //SPIDER2_ARCHI_API_H

@@ -37,77 +37,43 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
+#ifndef SPIDER2_SCENARIO_API_H
+#define SPIDER2_SCENARIO_API_H
 
 /* === Includes === */
 
-#include <api/config.h>
-#include <common/Logger.h>
+#include <cstdint>
+#include <string>
+#include <api/global-api.h>
 
-/* === Static variable(s) definition === */
+namespace spider {
 
-struct SpiderConfiguration {
-    bool staticSchedule_ = true;
-    bool optimizeSRDAG_ = true;
-    bool verbose_ = false;
-    bool exportTrace_ = false;
-};
+    /* === Function(s) prototype === */
 
-static SpiderConfiguration config_;
+    namespace api {
 
-/* === Methods implementation === */
+        /* === General Scenario related API === */
 
-void spider::api::enableExportTrace() {
-    config_.exportTrace_ = true;
+        void setVertexMappableOnCluster(pisdf::ExecVertex *vertex, const Cluster *cluster, bool value = true);
+
+        void setVertexMappableOnCluster(pisdf::ExecVertex *vertex, uint32_t clusterIx, bool value = true);
+
+        void setVertexMappableOnPE(pisdf::ExecVertex *vertex, const PE *pe, bool value = true);
+
+        void setVertexMappableOnPE(pisdf::ExecVertex *vertex, size_t ix, bool value = true);
+
+        void setVertexMappableOnAllPE(pisdf::ExecVertex *vertex, bool value = true);
+
+        void setVertexExecutionTimingOnPE(pisdf::ExecVertex *vertex,
+                                          const PE *pe,
+                                          const std::string &timingExpression = "100");
+
+        void setVertexExecutionTimingOnPE(pisdf::ExecVertex *vertex, const PE *pe, int64_t timing = 100);
+
+        void setVertexExecutionTimingOnAllPE(pisdf::ExecVertex *vertex, int64_t timing = 100);
+
+        void setVertexExecutionTimingOnAllPE(pisdf::ExecVertex *vertex, const std::string &timingExpression);
+    }
 }
 
-void spider::api::disableExportTrace() {
-    config_.exportTrace_ = false;
-}
-
-void spider::api::enableVerbose() {
-    config_.verbose_ = true;
-}
-
-void spider::api::disableVerbose() {
-    config_.verbose_ = false;
-}
-
-void spider::api::enableStaticScheduleOptim() {
-    config_.staticSchedule_ = true;
-}
-
-void spider::api::disableStaticScheduleOptim() {
-    config_.staticSchedule_ = false;
-}
-
-void spider::api::enableSRDAGOptims() {
-    config_.optimizeSRDAG_ = true;
-}
-
-void spider::api::disableSRDAGOptims() {
-    config_.optimizeSRDAG_ = false;
-}
-
-void spider::api::enableJobLogs() {
-    log::enable<LOG_LRT>();
-}
-
-void spider::api::disableJobLogs() {
-    log::disable<LOG_LRT>();
-}
-
-bool spider::api::exportTrace() {
-    return config_.exportTrace_;
-}
-
-bool spider::api::verbose() {
-    return config_.verbose_;
-}
-
-bool spider::api::staticOptim() {
-    return config_.staticSchedule_;
-}
-
-bool spider::api::optimizeSRDAG() {
-    return config_.optimizeSRDAG_;
-}
+#endif //SPIDER2_SCENARIO_H

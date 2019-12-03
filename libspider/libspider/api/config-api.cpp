@@ -37,59 +37,77 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_GRAPHADDVERTEXVISITOR_H
-#define SPIDER2_GRAPHADDVERTEXVISITOR_H
 
-/* === Include(s) === */
+/* === Includes === */
 
-#include <graphs/pisdf/visitors/DefaultVisitor.h>
-#include <graphs/pisdf/specials/Specials.h>
-#include <graphs/pisdf/Graph.h>
-#include <api/archi-api.h>
-#include <archi/Platform.h>
+#include <api/config-api.h>
+#include <common/Logger.h>
 
-namespace spider {
-    namespace pisdf {
-        struct GraphAddVertexVisitor final : public DefaultVisitor {
+/* === Static variable(s) definition === */
 
-            explicit GraphAddVertexVisitor(Graph *graph) : graph_{ graph } { }
+struct SpiderConfiguration {
+    bool staticSchedule_ = true;
+    bool optimizeSRDAG_ = true;
+    bool verbose_ = false;
+    bool exportTrace_ = false;
+};
 
-            /* === Method(s) === */
+static SpiderConfiguration config_;
 
-            inline void visit(ExecVertex *vertex) override {
-                /* == Add vertex to vertexVector_ == */
-                addVertex(vertex);
-            }
+/* === Methods implementation === */
 
-            inline void visit(ConfigVertex *vertex) override {
-                /* == Add vertex to vertexVector_ == */
-                addVertex(vertex);
-
-                /* == Add config vertex to the "viewer" vector == */
-                graph_->configVertexVector_.emplace_back(vertex);
-            }
-
-            inline void visit(Graph *subgraph) override {
-                /* == Add the subgraph as Vertex == */
-                addVertex(subgraph);
-
-                /* == Add the subgraph in the "viewer" vector == */
-                subgraph->subIx_ = static_cast<uint32_t>(graph_->subgraphVector_.size());
-                graph_->subgraphVector_.emplace_back(subgraph);
-            }
-
-            /* == Graph to add vertex to == */
-            Graph *graph_ = nullptr;
-        private:
-            template<class T>
-            void addVertex(T *vertex) {
-                vertex->setIx(static_cast<uint32_t>(graph_->vertexVector_.size()));
-                graph_->vertexVector_.emplace_back(vertex);
-                vertex->setGraph(graph_);
-            }
-        };
-    }
+void spider::api::enableExportTrace() {
+    config_.exportTrace_ = true;
 }
 
+void spider::api::disableExportTrace() {
+    config_.exportTrace_ = false;
+}
 
-#endif //SPIDER2_GRAPHADDVERTEXVISITOR_H
+void spider::api::enableVerbose() {
+    config_.verbose_ = true;
+}
+
+void spider::api::disableVerbose() {
+    config_.verbose_ = false;
+}
+
+void spider::api::enableStaticScheduleOptim() {
+    config_.staticSchedule_ = true;
+}
+
+void spider::api::disableStaticScheduleOptim() {
+    config_.staticSchedule_ = false;
+}
+
+void spider::api::enableSRDAGOptims() {
+    config_.optimizeSRDAG_ = true;
+}
+
+void spider::api::disableSRDAGOptims() {
+    config_.optimizeSRDAG_ = false;
+}
+
+void spider::api::enableJobLogs() {
+    log::enable<LOG_LRT>();
+}
+
+void spider::api::disableJobLogs() {
+    log::disable<LOG_LRT>();
+}
+
+bool spider::api::exportTrace() {
+    return config_.exportTrace_;
+}
+
+bool spider::api::verbose() {
+    return config_.verbose_;
+}
+
+bool spider::api::staticOptim() {
+    return config_.staticSchedule_;
+}
+
+bool spider::api::optimizeSRDAG() {
+    return config_.optimizeSRDAG_;
+}

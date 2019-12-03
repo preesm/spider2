@@ -41,7 +41,7 @@
 /* === Include(s) === */
 
 #include <memory/alloc.h>
-#include <api/refinement.h>
+#include <api/refinement-api.h>
 #include <graphs/pisdf/common/Refinement.h>
 
 /* === Function definition(s) === */

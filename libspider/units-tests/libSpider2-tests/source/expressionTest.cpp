@@ -41,7 +41,7 @@
 /* === Include(s) === */
 
 #include <gtest/gtest.h>
-#include <api/pisdf.h>
+#include <api/pisdf-api.h>
 #include <memory/alloc.h>
 #include <common/Exception.h>
 #include <graphs/pisdf/Graph.h>

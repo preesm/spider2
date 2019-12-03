@@ -50,7 +50,7 @@
 #include <graphs-tools/numerical/dependencies.h>
 #include <graphs-tools/expression-parser/Expression.h>
 #include <graphs-tools/numerical/brv.h>
-#include <api/pisdf.h>
+#include <api/pisdf-api.h>
 
 /* === Static function(s) === */
 

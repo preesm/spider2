@@ -41,7 +41,7 @@
 /* === Include(s) === */
 
 #include <scheduling/schedule/exporter/XMLGanttExporter.h>
-#include <api/archi.h>
+#include <api/archi-api.h>
 #include <archi/Platform.h>
 #include <archi/PE.h>
 #include <graphs/pisdf/ExecVertex.h>
