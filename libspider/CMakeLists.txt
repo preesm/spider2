@@ -1,214 +1,132 @@
-cmake_minimum_required(VERSION 3.12)
-project(Spider2)
+# This is the "physical" (i.e. real) name of the library.
+# The actual file name of the library built is constructed based on conventions
+# of the native platform, such as lib<LIBRARY_TARGET_NAME>.a,
+# lib<LIBRARY_TARGET_NAME>.dylib or <LIBRARY_TARGET_NAME>.lib.
+#
+# In order to use a library name LIBRARY_TARGET_NAME that is not the same as the
+# `EXPORT` used in the `install` command (see the end of this file), it is
+# required to use `FIRST_TARGET` option of the `install_basic_package_files`
+# command in the main CMakeLists.txt file with the name of one of the exported
+# targets. `FIRST_TARGET` option defaults to LIBRARY_TARGET_NAME.
+# By using setting LIBRARY_TARGET_NAME to ${PROJECT_NAME} it is not necessary to
+# use `FIRST_TARGET` option in the main CMakeLists.txt.
+# In general, in a C++ project, there is at least one exported target whose
+# name is always know. Consequently, `FIRST_TARGET` option in the main
+# CMakeLists.txt can be statically set to such target name. In the context of
+# projects where users may choose what target to export, thus the name of a
+# target may change at configure time, you can use propagate back to parent
+# CMakeLists.txt, up to the main one, a variable containing the name of a
+# target. In order to do it, you can use `set` command with `PARENT_SCOPE`
+# option, see https://cmake.org/cmake/help/latest/command/set.html.
+set(LIBRARY_TARGET_NAME ${PROJECT_NAME})
 
-# Setting C++ standard to C++11
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+# List of CPP (source) library files.
+file(GLOB_RECURSE
+        ${LIBRARY_TARGET_NAME}_SRC
+        ./*.cpp
+        )
 
-# Setting extra modules path
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/extras/cmake_modules/")
-
-# Setting build options
-if (NOT ${CMAKE_GENERATOR} MATCHES "Visual Studio.*")
-    set(SPIDER_WARNING_FLAGS "-std=gnu++11 -Wall -Wextra -pedantic-errors -Wnon-virtual-dtor -Wconversion -Wformat")
-    if (${CMAKE_BUILD_TYPE} MATCHES Debug)
-        message("Generating Debug project")
-        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Debug)
-        set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -pg -O0 ${SPIDER_WARNING_FLAGS} --coverage")
-    else ()
-        message("Generating Release project")
-        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Release)
-        set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O2 ${SPIDER_WARNING_FLAGS}")
-        if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-            message("Using Link Time Optimization on GNU platforms. ")
-            set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -flto")
-        endif ()
-    endif ()
-else ()
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-endif ()
-
-
-# *******************************************
-# ************* CMake Content ***************
-# *******************************************
-# This CMake create a workspace containing the following projects
-# 
-# Programs
-#  - spider
-
-# CMake options
-option(CMAKE_TYPE_SAFE "CMAKE_TYPE_SAFE" OFF)
-option(CMAKE_ENABLE_PAPI "CMAKE_ENABLE_PAPI" OFF)
-option(CMAKE_CHECK_ALLOCATOR "CMAKE_CHECK_ALLOCATOR" OFF)
-
-# CMake cross compilation stuff
-if (${CROSS_COMPILE_MINGW})
-    set(CMAKE_SYSTEM_NAME Windows)
-    set(TOOLCHAIN_PREFIX x86_64-w64-mingw32)
-
-    # cross compilers to use for C and C++
-    set(CMAKE_C_COMPILER ${TOOLCHAIN_PREFIX}-gcc)
-    set(CMAKE_CXX_COMPILER ${TOOLCHAIN_PREFIX}-g++)
-    set(CMAKE_Fortran_COMPILER ${TOOLCHAIN_PREFIX}-gfortran)
-    set(CMAKE_RC_COMPILER ${TOOLCHAIN_PREFIX}-windres)
-
-    # target environment on the build host system
-    #   set 1st to dir with the cross compiler's C/C++ headers/libs
-    set(CMAKE_FIND_ROOT_PATH /usr/${TOOLCHAIN_PREFIX})
-
-    # modify default behavior of FIND_XXX() commands to
-    # search for headers/libs in the target environment and
-    # search for programs in the build host environment
-    set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
-    set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
-    set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
-endif ()
-
-# IDE dependent config
-if (${CMAKE_GENERATOR} MATCHES "Visual Studio.*")
-    message("Add definition for ${CMAKE_GENERATOR}")
-    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-endif ()
-
-if (${CMAKE_GENERATOR} MATCHES "MinGW Makefiles")
-    message("Add definition for ${CMAKE_GENERATOR}")
-    #To prevent a redefinition conflict
-    add_definitions(-D_TIMESPEC_DEFINED)
-endif ()
+# List of HPP (header) library files.
+file(GLOB_RECURSE
+        ${LIBRARY_TARGET_NAME}_HDR
+        ./*.h
+        )
 
 # Add definition for relative path into project
 add_definitions(-DPROJECT_ROOT_PATH="${CMAKE_CURRENT_SOURCE_DIR}")
 
-if (${CMAKE_TYPE_SAFE} MATCHES OFF)
-    message("Using standard library printf without type checking.")
-    add_definitions(-D_SPIDER_NO_TYPESAFETY_PRINT)
-else ()
-    message("Using type safe printf. (this will increase library binary size)")
-endif ()
-
-if (${CMAKE_ENABLE_PAPI} MATCHES ON)
-    message("Using PAPI library (if available).")
-    set(SKIP_PAPI 0)
-else ()
-    message("Discarding PAPI library.")
-    set(SKIP_PAPI 1)
-endif ()
-
-if (${CMAKE_CHECK_ALLOCATOR} MATCHES ON)
-    message("Enabling allocator check. This may slow down execution")
-    add_definitions(-D_SPIDER_CHECK_ALLOCATOR)
-endif()
-
-# Build specific options
-if (WIN32)
-    set(LIBS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/extras/)
-endif ()
-
-# Searching external libraries
-
-# *******************************************
-# ************ Pthread LIBRARY **************
-# *******************************************
-if (WIN32 AND NOT MINGW)
-    set(THREADS_USE_PTHREADS_WIN32 true)
-    # pthread included AFTER Sdl to avoid unnecessary warnings
-    file(GLOB PTHREADDIR "${LIBS_DIR}/pthread-[\\.|0-9]*")
-    set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${PTHREADDIR})
-    Find_Package(Threads REQUIRED)
-else ()
-    Find_Package(Threads REQUIRED)
-endif ()
-
-if (NOT THREADS_FOUND)
-    message(FATAL_ERROR "Pthread not found !")
-endif ()
-
-if (WIN32)
-    file(GLOB
-            PTHREADS_DLL
-            ${CMAKE_PREFIX_PATH}/lib/*.dll
-            )
-
-    message("Copy Pthreads DLLs into ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
-    if (NOT ${CMAKE_GENERATOR} MATCHES "Visual Studio.*")
-        file(COPY ${PTHREADS_DLL} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
-    else ()
-        file(COPY ${PTHREADS_DLL} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Debug)
-        file(COPY ${PTHREADS_DLL} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Release)
-    endif ()
-endif ()
-
-# *******************************************
-# ************ PAPI LIBRARY *****************
-# *******************************************
-if (${SKIP_PAPI} MATCHES 0)
-    find_package(PAPI)
-endif ()
-
-if (PAPI_FOUND)
-    add_definitions(-D_SPIDER_PAPI_AVAILABLE)
-    set(papify_sources
-            libspider/papify/PapifyAction.cpp
-            libspider/papify/PapifyAction.h
-            libspider/papify/PapifyEventLib.cpp
-            libspider/papify/PapifyEventLib.h)
-else ()
-    set(PAPI_LIBRARIES "")
-    set(PAPI_INCLUDE_DIRS "")
-endif ()
-
-
-# *******************************************
-# *************  spider.dll/a  **************
-# *******************************************
-set(SPIDER_LIB_DIR "./libspider/")
-
+# Set the include directories to use <> instead of ""
 include_directories(
         ${PAPI_INCLUDE_DIRS}
         ${PTHREADDIR}/include
-        ${SPIDER_LIB_DIR}/
+        ./
 )
 
-file(
-        GLOB_RECURSE
-        source_files
-        ${SPIDER_LIB_DIR}/*.cpp
-)
+# You can add an external dependency using the find_package() function call
+# See: https://cmake.org/cmake/help/latest/command/find_package.html
+# Note that the imported objects resulting from the find_package() depends upon
+# the configuration files generated by the developer of the library.
+# These imported objects can be either:
+#  - variables that must be used to include directories and/or link libraries
+#    with function calls like target_include_directories() and/or
+#    target_link_libraries();
+#  - a CMake target that must only be linked using target_link_libraries() and
+#    CMake will take care of including and/or linking the appropriate
+#    directories and/or libraries.
+# See: https://cmake.org/cmake/help/latest/command/target_include_directories.html
+# See: https://cmake.org/cmake/help/latest/command/target_link_libraries.html
+# For example:
+# find_package(FooPackage) may import either
+#  - variables: FooPackage_INCLUDE_DIRS and FooPackage_LIBRARIES
+#  - target: FooPackage::FooPackage
 
-file(
-        GLOB_RECURSE
-        header_files
-        ${SPIDER_LIB_DIR}/*.h
-)
+# Adds a library target called ${LIBRARY_TARGET_NAME} to be built from the
+# source and header files listed in the command invocation.
+add_library(${LIBRARY_TARGET_NAME} SHARED ${${LIBRARY_TARGET_NAME}_SRC} ${${LIBRARY_TARGET_NAME}_HDR})
 
-set(ALL_MY_SOURCE_FILES ${source_files} ${header_files})
-add_custom_target(
-        clang-tidy-8
-        COMMAND /usr/bin/clang-tidy-8
-        ${ALL_MY_SOURCE_FILES}
-        -config=''
-        -fix-errors
-        --
-        -std=c++11
-        -I${MY_SOURCE_INCLUDE_DIR}
-        -I${MY_MPI_INCLUDE_DIR1}
-        -I${MY_MPI_INCLUDE_DIR2}
-        -I${MY_MPI_INCLUDE_DIR3}
-        -I${MY_BOOST_INCLUDE_DIR}
-        -I${MY_VTK_INCLUDE_DIR}
-)
+# Within this project, you can link to this library by just specifing the name
+# of the target, i.e. ${LIBRARY_TARGET_NAME} = LibTemplateCMake. It is useful,
+# however, to define an alias of this library with the scope of the exported
+# library itself because (1) you will link against it with the exact same syntax
+# of an imported library and (2) because names having a double-colon (::) are
+# always treated as the name of either an alias or imported target. Any attempt
+# to use such a name for a different target type will result in an error.
+add_library(${PROJECT_NAME}::${LIBRARY_TARGET_NAME} ALIAS ${LIBRARY_TARGET_NAME})
 
-add_library(Spider2 SHARED ${source_files} ${header_files})
-target_link_libraries(Spider2 ${CMAKE_THREAD_LIBS_INIT} ${PAPI_LIBRARIES})
+# Set two minimum target properties for the library.
+# See https://cmake.org/cmake/help/latest/command/set_target_properties.html
+# Properties are: 1) Library version number 2) list of corresponding public headers
+set_target_properties(${LIBRARY_TARGET_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_VERSION})
+# 2) list of corresponding public headers
+# EDIT: Was removed, because hierarchy is not preserved.
+# Is replaced with install(DIRECTORY...) below
+#PUBLIC_HEADER "${${LIBRARY_TARGET_NAME}_HDR}")
 
-if (NOT MINGW AND NOT ${CMAKE_GENERATOR} MATCHES "Visual Studio.*")
-    set(CMAKE_CXX_FLAGS "-fPIC")
-    if (${32BITS})
-        set_target_properties(Spider2 PROPERTIES COMPILE_FLAGS "-m32" LINK_FLAGS "-m32")
-    else ()
-        if (${64BITS})
-            set_target_properties(Spider2 PROPERTIES COMPILE_FLAGS "-m64" LINK_FLAGS "-m64")
-        endif ()
-    endif ()
+# Specify include directories for both compilation and installation process.
+# The $<INSTALL_PREFIX> generator expression is useful to ensure to create
+# relocatable configuration files, see https://cmake.org/cmake/help/latest/manual/cmake-packages.7.html#creating-relocatable-packages
+target_include_directories(${LIBRARY_TARGET_NAME} PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/api/>"
+        "$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/${CMAKE_INSTALL_INCLUDEDIR}>")
+        
+# Add specific target library (on LINUX and for MinGW we need to link pthread)
+if (USE_PAPI AND PAPI_FOUND)
+    target_link_libraries(${LIBRARY_TARGET_NAME} ${PAPI_LIBRARIES})
 endif ()
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    find_package(Threads REQUIRED)    
+    target_link_libraries(${LIBRARY_TARGET_NAME} ${CMAKE_THREAD_LIBS_INIT})
+endif ()
+
+# If you used find_package() you need to use target_include_directories() and/or
+# target_link_libraries(). As explained previously, depending on the imported
+# objects, you may need to call either or both:
+# - with imported variable:
+#   target_include_directories(${LIBRARY_TARGET_NAME} ${FooPackage_INCLUDE_DIRS})
+#   target_link_libraries(${LIBRARY_TARGET_NAME} ${FooPackage_LIBRARIES})
+# - with imported target:
+#   target_link_libraries(${LIBRARY_TARGET_NAME} FooPackage_LIBRARIES::FooPackage_LIBRARIES)
+
+# Specify installation targets, typology and destination folders.
+install(TARGETS ${LIBRARY_TARGET_NAME}
+        EXPORT ${PROJECT_NAME}
+        LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}" COMPONENT shlib
+        ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}" COMPONENT lib
+        RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}" COMPONENT bin
+        PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/${LIBRARY_TARGET_NAME}" COMPONENT dev)
+
+# Doc installation
+if (WIN32)
+    install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include" # source directory
+            DESTINATION "." # Destination is CMAKE_BINARY_DIR
+            FILES_MATCHING # install only matched files
+            PATTERN "*.h" # select header files
+            )
+else ()
+    install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include" # source directory
+            DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${LIBRARY_TARGET_NAME}
+            FILES_MATCHING # install only matched files
+            PATTERN "*.h" # select header files
+            )
+endif ()
+
+message(STATUS "Created target ${LIBRARY_TARGET_NAME} for export ${PROJECT_NAME}.")
