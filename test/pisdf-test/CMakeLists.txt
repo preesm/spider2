@@ -7,6 +7,7 @@ find_package(GTest REQUIRED)
 set(${GRAPH_TARGET_NAME}_SRC
         ../main.cpp
         pisdfDelayTest.cpp
+        pisdfEdgeTest.cpp
         pisdfInterfaceTest.cpp
         pisdfParamTest.cpp)
 
