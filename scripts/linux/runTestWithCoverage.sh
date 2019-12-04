@@ -18,8 +18,8 @@ rm -rf gcov_files
 mkdir gcov_files
 find ./libspider/CMakeFiles/spider2.dir/ -name '*.gcda' -exec cp -prv '{}' './gcov_files/' ';'
 find ./libspider/CMakeFiles/spider2.dir/ -name '*.gcno' -exec cp -prv '{}' './gcov_files/' ';'
-cp test/CMakeFiles/all-spider2-test.dir/*.gcda gcov_files/
-cp test/CMakeFiles/all-spider2-test.dir/*.gcno gcov_files/
+find ./test/CMakeFiles/all-spider2-test.dir/ -name '*.gcda' -exec cp -prv '{}' './gcov_files/' ';'
+find ./test/CMakeFiles/all-spider2-test.dir/ -name '*.gcno' -exec cp -prv '{}' './gcov_files/' ';'
 
 # Generate html report
 lcov -c -d ./gcov_files -o all-spider2-test.info
