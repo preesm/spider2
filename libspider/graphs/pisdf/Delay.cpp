@@ -129,5 +129,3 @@ int64_t spider::pisdf::Delay::value() const {
 int64_t spider::pisdf::Delay::value(const spider::vector<Param *> &params) const {
     return expression_.evaluate(params);
 }
-
-/* === Private method(s) === */

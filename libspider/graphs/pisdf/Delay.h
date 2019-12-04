@@ -70,6 +70,8 @@ namespace spider {
 
             ~Delay() = default;
 
+            friend class Edge;
+
             /* === Method(s) === */
 
             /**
@@ -80,43 +82,57 @@ namespace spider {
 
             /* === Getter(s) === */
 
-            inline Edge *edge() const;
+            inline Edge *edge() const {
+                return edge_;
+            }
 
             /**
              * @brief Get the setter vertex of the delay.
              * @return @refitem Spider::PiSDF::ExecVertex connected to the delay.
              */
-            inline ExecVertex *setter() const;
+            inline ExecVertex *setter() const {
+                return setter_;
+            }
 
             /**
              * @brief Get the getter vertex of the delay.
              * @return @refitem Spider::PiSDF::ExecVertex connected to the delay.
              */
-            inline ExecVertex *getter() const;
+            inline ExecVertex *getter() const {
+                return getter_;
+            }
 
             /**
              * @brief Return the port ix on which the delay is connected to the setter.
              * @return setter output port ix.
              */
-            inline uint32_t setterPortIx() const;
+            inline uint32_t setterPortIx() const {
+                return setterPortIx_;
+            }
 
             /**
              * @brief Return the port ix on which the delay is connected to the getter.
              * @return getter output port ix.
              */
-            inline uint32_t getterPortIx() const;
+            inline uint32_t getterPortIx() const {
+                return getterPortIx_;
+            }
 
             /**
              * @brief Get the virtual vertex associated to the Delay.
              * @return @refitem ExecVertex.
              */
-            inline const DelayVertex *vertex() const;
+            inline const DelayVertex *vertex() const {
+                return vertex_;
+            }
 
             /**
              * @brief Get the virtual memory address (in the data memory space) of the delay.
              * @return virtual memory address value.
              */
-            inline uint64_t memoryAddress() const;
+            inline uint64_t memoryAddress() const {
+                return memoryAddress_;
+            }
 
             /**
              * @brief Return the value of the delay. Calls @refitem Expression::evaluate method.
@@ -136,7 +152,9 @@ namespace spider {
              */
             int64_t value(const spider::vector<Param *> &params) const;
 
-            inline bool isPersistent() const;
+            inline bool isPersistent() const {
+                return persistent_;
+            }
 
             /* === Setter(s) === */
 
@@ -145,7 +163,12 @@ namespace spider {
              * @param address
              * @remark Issue a warning if delay already has an address.
              */
-            inline void setMemoryAddress(uint64_t address);
+            inline void setMemoryAddress(uint64_t address) {
+                if (memoryAddress_ != UINT64_MAX && log_enabled()) {
+                    spider::log::warning("Delay [%s] already has a memory address.\n", name().c_str());
+                }
+                memoryAddress_ = address;
+            }
 
         private:
             Expression expression_;
@@ -158,50 +181,7 @@ namespace spider {
 
             bool persistent_ = true;
             uint64_t memoryAddress_ = UINT64_MAX;
-
-            /* === Private method(s) === */
         };
-
-        /* === Inline method(s) === */
-
-        Edge *Delay::edge() const {
-            return edge_;
-        }
-
-        ExecVertex *Delay::setter() const {
-            return setter_;
-        }
-
-        ExecVertex *Delay::getter() const {
-            return getter_;
-        }
-
-        uint32_t Delay::setterPortIx() const {
-            return setterPortIx_;
-        }
-
-        uint32_t Delay::getterPortIx() const {
-            return getterPortIx_;
-        }
-
-        const DelayVertex *Delay::vertex() const {
-            return vertex_;
-        }
-
-        uint64_t Delay::memoryAddress() const {
-            return memoryAddress_;
-        }
-
-        bool Delay::isPersistent() const {
-            return persistent_;
-        }
-
-        void Delay::setMemoryAddress(uint64_t address) {
-            if (memoryAddress_ != UINT64_MAX && log_enabled()) {
-                spider::log::warning("Delay [%s] already has a memory address.\n", name().c_str());
-            }
-            memoryAddress_ = address;
-        }
     }
 }
 
