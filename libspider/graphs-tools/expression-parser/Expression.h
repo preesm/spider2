@@ -82,9 +82,17 @@ namespace spider {
 
         Expression() = default;
 
-        Expression(const Expression &) = default;
+        Expression(const Expression &other) : value_{ other.value_ },
+                                              static_{ other.static_ } {
+            if (other.expressionStack_) {
+                expressionStack_ = spider::make<spider::vector<ExpressionElt>, StackID::EXPRESSION>(
+                        *(other.expressionStack_));
+            }
+        }
 
-        Expression(Expression &&) noexcept = default;
+        Expression(Expression &&other) noexcept : Expression() {
+            swap(*this, other);
+        };
 
         ~Expression();
 
