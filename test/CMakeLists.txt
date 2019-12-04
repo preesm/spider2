@@ -34,3 +34,24 @@ target_link_libraries(${ALL_TEST_TARGET_NAME} ${GTEST_LIBRARIES} ${PROJECT_NAME}
 # of the executable created at build time.
 add_test(NAME ${ALL_TEST_TARGET_NAME}
          COMMAND ${ALL_TEST_TARGET_NAME})
+         
+# Adding specific test targets
+set(EXPR_TARGET_NAME expression-${PROJECT_NAME}-test)
+set(${EXPR_TARGET_NAME}_SRC main.cpp expressionTest.cpp)
+add_executable(${EXPR_TARGET_NAME} ${${EXPR_TARGET_NAME}_SRC})
+target_link_libraries(${EXPR_TARGET_NAME} ${GTEST_LIBRARIES} ${PROJECT_NAME}::${PROJECT_NAME})
+
+set(CONTAINERS_TARGET_NAME containers-${PROJECT_NAME}-test)
+set(${CONTAINERS_TARGET_NAME}_SRC main.cpp containersTest.cpp)
+add_executable(${CONTAINERS_TARGET_NAME} ${${CONTAINERS_TARGET_NAME}_SRC})
+target_link_libraries(${CONTAINERS_TARGET_NAME} ${GTEST_LIBRARIES} ${PROJECT_NAME}::${PROJECT_NAME})
+
+set(RPNCONVERTER_TARGET_NAME rpnconverter-${PROJECT_NAME}-test)
+set(${RPNCONVERTER_TARGET_NAME}_SRC main.cpp rpnconverterTest.cpp)
+add_executable(${RPNCONVERTER_TARGET_NAME} ${${RPNCONVERTER_TARGET_NAME}_SRC})
+target_link_libraries(${RPNCONVERTER_TARGET_NAME} ${GTEST_LIBRARIES} ${PROJECT_NAME}::${PROJECT_NAME})
+
+set(ALLOCATOR_TARGET_NAME allocator-${PROJECT_NAME}-test)
+set(${ALLOCATOR_TARGET_NAME}_SRC main.cpp allocatorTest.cpp)
+add_executable(${ALLOCATOR_TARGET_NAME} ${${ALLOCATOR_TARGET_NAME}_SRC})
+target_link_libraries(${ALLOCATOR_TARGET_NAME} ${GTEST_LIBRARIES} ${PROJECT_NAME}::${PROJECT_NAME})
