@@ -57,6 +57,10 @@ namespace spider {
         class DynamicParam final : public Param {
         public:
 
+            DynamicParam(std::string name, Graph *graph) : Param(std::move(name), graph) {
+                expression_ = Expression(0);
+            }
+
             DynamicParam(std::string name, Graph *graph, Expression &&expression) : Param(std::move(name), graph),
                                                                                     expression_{ expression } {
 
@@ -64,60 +68,41 @@ namespace spider {
 
             /* === Method(s) === */
 
-            inline void visit(Visitor *visitor) override;
+            inline void visit(Visitor *visitor) override {
+                visitor->visit(this);
+            }
 
             /* === Getter(s) === */
 
-            inline int64_t value() const override;
+            inline int64_t value() const override {
+                return expression_.evaluate(graph_->params());
+            }
 
-            inline int64_t value(const spider::vector<Param *> &params) const;
+            inline int64_t value(const spider::vector<Param *> &params) const {
+                return expression_.evaluate(params);
+            }
 
-            inline ParamType type() const override;
+            inline ParamType type() const override {
+                return ParamType::DYNAMIC;
+            }
 
-            inline bool dynamic() const override;
+            inline bool dynamic() const override {
+                return true;
+            }
 
-            inline const Expression &expression() const;
+            inline const Expression &expression() const {
+                return expression_;
+            }
 
             /* === Setter(s) === */
 
-            inline void setValue(int64_t value) override;
+            inline void setValue(int64_t value) override {
+                expression_ = Expression(value);
+            }
 
         private:
             Expression expression_;
-
-            /* === Private method(s) === */
         };
-
-        /* === Inline method(s) === */
-
-        void DynamicParam::visit(Visitor *visitor) {
-            visitor->visit(this);
-        }
-
-        int64_t DynamicParam::value() const {
-            return expression_.evaluate(graph_->params());
-        }
-
-        int64_t DynamicParam::value(const spider::vector<Param *> &params) const {
-            return expression_.evaluate(params);
-        }
-
-        ParamType DynamicParam::type() const {
-            return ParamType::DYNAMIC;
-        }
-
-        bool DynamicParam::dynamic() const {
-            return true;
-        }
-
-        void DynamicParam::setValue(int64_t value) {
-            expression_ = Expression(value);
-        }
-
-        const Expression &DynamicParam::expression() const {
-            return expression_;
-        }
-
     }
 }
 

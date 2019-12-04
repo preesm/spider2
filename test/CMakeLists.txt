@@ -55,3 +55,8 @@ set(ALLOCATOR_TARGET_NAME allocator-${PROJECT_NAME}-test)
 set(${ALLOCATOR_TARGET_NAME}_SRC main.cpp allocatorTest.cpp)
 add_executable(${ALLOCATOR_TARGET_NAME} ${${ALLOCATOR_TARGET_NAME}_SRC})
 target_link_libraries(${ALLOCATOR_TARGET_NAME} ${GTEST_LIBRARIES} ${PROJECT_NAME}::${PROJECT_NAME})
+
+set(GRAPH_TARGET_NAME graph-${PROJECT_NAME}-test)
+set(${GRAPH_TARGET_NAME}_SRC main.cpp pisdfGraphTest.cpp)
+add_executable(${GRAPH_TARGET_NAME} ${${GRAPH_TARGET_NAME}_SRC})
+target_link_libraries(${GRAPH_TARGET_NAME} ${GTEST_LIBRARIES} ${PROJECT_NAME}::${PROJECT_NAME})

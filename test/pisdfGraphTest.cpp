@@ -1,0 +1,117 @@
+/*
+ * Copyright or © or Copr. IETR/INSA - Rennes (2013 - 2019) :
+ *
+ * Antoine Morvan <antoine.morvan@insa-rennes.fr> (2018)
+ * Clément Guy <clement.guy@insa-rennes.fr> (2014)
+ * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2017-2019)
+ * Hugo Miomandre <hugo.miomandre@insa-rennes.fr> (2017)
+ * Julien Heulot <julien.heulot@insa-rennes.fr> (2013 - 2015)
+ * Yaset Oliva <yaset.oliva@insa-rennes.fr> (2013 - 2014)
+ *
+ * Spider is a dataflow based runtime used to execute dynamic PiSDF
+ * applications. The Preesm tool may be used to design PiSDF applications.
+ *
+ * This software is governed by the CeCILL  license under French law and
+ * abiding by the rules of distribution of free software.  You can  use,
+ * modify and/ or redistribute the software under the terms of the CeCILL
+ * license as circulated by CEA, CNRS and INRIA at the following URL
+ * "http://www.cecill.info".
+ *
+ * As a counterpart to the access to the source code and  rights to copy,
+ * modify and redistribute granted by the license, users are provided only
+ * with a limited warranty  and the software's author,  the holder of the
+ * economic rights,  and the successive licensors  have only  limited
+ * liability.
+ *
+ * In this respect, the user's attention is drawn to the risks associated
+ * with loading,  using,  modifying and/or developing or reproducing the
+ * software by the user in light of its specific status of free software,
+ * that may mean  that it is complicated to manipulate,  and  that  also
+ * therefore means  that it is reserved for developers  and  experienced
+ * professionals having in-depth computer knowledge. Users are therefore
+ * encouraged to load and test the software's suitability as regards their
+ * requirements in conditions enabling the security of their systems and/or
+ * data to be ensured and,  more generally, to use and operate it in the
+ * same conditions as regards security.
+ *
+ * The fact that you are presently reading this means that you have had
+ * knowledge of the CeCILL license and that you accept its terms.
+ */
+
+/* === Include(s) === */
+
+#include <gtest/gtest.h>
+#include <common/Exception.h>
+#include <memory/alloc.h>
+#include <graphs/pisdf/common/Types.h>
+#include <graphs/pisdf/Graph.h>
+#include <graphs/pisdf/Edge.h>
+#include <graphs/pisdf/ExecVertex.h>
+#include <graphs/pisdf/specials/Specials.h>
+#include <graphs/pisdf/params/Param.h>
+#include <graphs/pisdf/params/DynamicParam.h>
+#include <graphs/pisdf/params/InHeritedParam.h>
+
+class pisdfGraphTest : public ::testing::Test {
+protected:
+    void SetUp() override {
+        spider::createAllocator(spider::type<spider::AllocatorType::GENERIC>{ }, StackID::GENERAL, "alloc-test");
+        spider::createAllocator(spider::type<spider::AllocatorType::GENERIC>{ }, StackID::EXPRESSION, "alloc-test");
+        spider::createAllocator(spider::type<spider::AllocatorType::GENERIC>{ }, StackID::PISDF, "alloc-test");
+    }
+
+    void TearDown() override {
+        spider::freeAllocators();
+    }
+};
+
+TEST_F(pisdfGraphTest, paramCreationTest) {
+    {
+        ASSERT_NO_THROW(spider::pisdf::Param("param", nullptr, 31415))
+                                    << "Param(std::string, Graph*, int64_t) should not throw";
+        ASSERT_NO_THROW(spider::pisdf::Param("param", nullptr, spider::Expression(31415)))
+                                    << "Param(std::string, Graph*, Expression &&) should not throw";
+        ASSERT_NO_THROW(spider::pisdf::Param("param", nullptr, spider::Expression("31415")))
+                                    << "Param(std::string, Graph*, Expression &&) should not throw";
+        ASSERT_THROW(spider::pisdf::Param("param", nullptr, spider::Expression("width*31415")), spider::Exception)
+                                    << "Param(std::string, Graph*, Expression &&) should throw with invalid parameter";
+        auto param = spider::pisdf::Param("param", nullptr, 31415);
+        ASSERT_EQ(param.type(), spider::pisdf::ParamType::STATIC) << "Param().type() should be equal to spider::pisdf::ParamType::STATIC";
+    }
+    {
+        ASSERT_NO_THROW(spider::pisdf::DynamicParam("param", nullptr))
+                                    << "DynamicParam(std::string, Graph*) should not throw";
+        ASSERT_NO_THROW(spider::pisdf::DynamicParam("param", nullptr, spider::Expression(0)))
+                                    << "DynamicParam(std::string, Graph*, Expression &&) should not throw";
+        ASSERT_NO_THROW(spider::pisdf::DynamicParam("param", nullptr, spider::Expression("31415")))
+                                    << "DynamicParam(std::string, Graph*, Expression &&) should not throw";
+        ASSERT_THROW(spider::pisdf::DynamicParam("param", nullptr, spider::Expression("width*31415")),
+                     spider::Exception)
+                                    << "DynamicParam(std::string, Graph*, Expression &&) should throw with invalid parameter";
+        auto param = spider::pisdf::DynamicParam("param", nullptr);
+        ASSERT_EQ(param.expression().evaluate(), 0) << "DynamicParam().expression().evaluate() should be equal to 0";
+        param.setValue(31415);
+        ASSERT_EQ(param.expression().evaluate(), 31415) << "DynamicParam().expression().evaluate() should be equal to 31415";
+        ASSERT_EQ(param.type(), spider::pisdf::ParamType::DYNAMIC) << "DynamicParam().type() should be equal to spider::pisdf::ParamType::DYNAMIC";
+    }
+    {
+        auto param = spider::pisdf::Param("param", nullptr, 31415);
+        ASSERT_NO_THROW(spider::pisdf::InHeritedParam("param", nullptr, &param))
+                                    << "InHeritedParam(std::string, Graph*, Param *) should not throw";
+        ASSERT_THROW(spider::pisdf::InHeritedParam("param", nullptr, nullptr), spider::Exception)
+                                    << "InHeritedParam(std::string, Graph*, Param *) should throw with nullptr parent.";
+        auto param2 = spider::pisdf::InHeritedParam("param", nullptr, &param);
+        ASSERT_EQ(param2.parent(), &param) << "InheritedParam.parent() failed.";
+        ASSERT_EQ(param2.dynamic(), false) << "InheritedParam with static parent should be static.";
+        ASSERT_EQ(param2.value(), param.value()) << "InheritedParam should have same value as parent.";
+        ASSERT_EQ(param2.type(), spider::pisdf::ParamType::INHERITED) << "InHeritedParam().type() should be equal to spider::pisdf::ParamType::INHERITED";
+    }
+    {
+        auto param = spider::pisdf::DynamicParam("width", nullptr);
+        ASSERT_THROW(spider::pisdf::Param("param", nullptr, spider::Expression("width*31415", { &param })),
+                     spider::Exception)
+                                    << "Param(std::string, Graph*, Expression &&) should throw with dynamic parameter";
+    }
+}
+
+/* === Function(s) definition === */

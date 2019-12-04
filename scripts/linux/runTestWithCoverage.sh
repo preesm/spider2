@@ -8,13 +8,26 @@ then
     exit 1
 fi
 
-# Warning user about the all test
-echo "Running all-spider2-test target to get full coverage.."
-
 # Run test
+echo "Running all-spider2-test target to get full coverage.."
 ./scripts/linux/runTest.sh all
 
-# Generate html report
+# Collect .gcda and .gcno files
 cd bin
+rm -rf gcov_files
+mkdir gcov_files
+find ./libspider/CMakeFiles/spider2.dir/ -name '*.gcda' -exec cp -prv '{}' './gcov_files/' ';'
+find ./libspider/CMakeFiles/spider2.dir/ -name '*.gcno' -exec cp -prv '{}' './gcov_files/' ';'
+cp test/CMakeFiles/all-spider2-test.dir/*.gcda gcov_files/
+cp test/CMakeFiles/all-spider2-test.dir/*.gcno gcov_files/
+
+# Generate html report
+lcov -c -d ./gcov_files -o all-spider2-test.info
+lcov --remove all-spider2-test.info "/usr*" -o all-spider2-test.info # Remove output for external libraries
+rm -rf coverage
 mkdir coverage
-gcovr -r .. -e 'test/.*' --html --html-details -s -o ./coverage/coverage.html
+genhtml -o coverage -t "libspider2 test coverage" --num-spaces 4 all-spider2-test.info 
+
+# Clean tmp folder and files
+rm -rf gcov_files
+rm all-spider2-test.info

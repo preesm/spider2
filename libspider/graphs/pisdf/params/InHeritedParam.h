@@ -54,53 +54,40 @@ namespace spider {
 
             InHeritedParam(std::string name, Graph *graph, Param *parent) : Param(std::move(name), graph),
                                                                             parent_{ parent } {
-
+                if (!parent) {
+                    throwSpiderException("Inherited parameter can not have nullptr parent.");
+                }
             }
 
             /* === Method(s) === */
 
-            inline void visit(Visitor *visitor) override;
+            inline void visit(Visitor *visitor) override {
+                visitor->visit(this);
+            }
 
             /* === Getter(s) === */
 
-            inline int64_t value() const override;
+            inline int64_t value() const override {
+                return parent_->value();
+            }
 
-            inline ParamType type() const override;
+            inline ParamType type() const override {
+                return ParamType::INHERITED;
+            }
 
-            inline bool dynamic() const override;
+            inline bool dynamic() const override {
+                return parent_->dynamic();
+            }
 
-            inline Param *parent() const;
+            inline Param *parent() const {
+                return parent_;
+            }
 
             /* === Setter(s) === */
 
         private:
             Param *parent_ = nullptr;
-
-            /* === Private method(s) === */
         };
-
-        /* === Inline method(s) === */
-
-        void InHeritedParam::visit(Visitor *visitor) {
-            visitor->visit(this);
-        }
-
-        int64_t InHeritedParam::value() const {
-            return parent_->value();
-        }
-
-        ParamType InHeritedParam::type() const {
-            return ParamType::INHERITED;
-        }
-
-        bool InHeritedParam::dynamic() const {
-            return parent_->dynamic();
-        }
-
-        Param *InHeritedParam::parent() const {
-            return parent_;
-        }
-
     }
 }
 

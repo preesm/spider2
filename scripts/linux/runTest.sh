@@ -23,4 +23,4 @@ cmake --build . --target spider2 -- -j$(nproc)
 cmake --build . --target $1-spider2-test -- -j$(nproc)
 
 # Run test
-./bin/$1-spider2-test
+./bin/$1-spider2-test --gtest_output="xml:./report-$1-spider2-test.xml"

@@ -58,35 +58,65 @@ namespace spider {
         class Param {
         public:
 
-            Param(std::string name, Graph *graph, int64_t value = 0);
+            Param(std::string name, Graph *graph, int64_t value = 0) : graph_{ graph },
+                                                                       name_{ std::move(name) },
+                                                                       value_{ value } {
+                std::transform(name_.begin(), name_.end(), name_.begin(), ::tolower);
+            }
 
-            Param(std::string name, Graph *graph, Expression &&expression);
+            Param(std::string name, Graph *graph, Expression &&expression) : graph_{ graph },
+                                                                             name_{ std::move(name) } {
+                if (expression.dynamic()) {
+                    throwSpiderException("STATIC parameter should have static expression: %s.",
+                                         expression.string().c_str());
+                }
+                std::transform(name_.begin(), name_.end(), name_.begin(), ::tolower);
+                value_ = expression.value();
+            }
 
             virtual ~Param() = default;
 
             /* === Method(s) === */
 
-            inline virtual void visit(Visitor *visitor);
+            inline virtual void visit(Visitor *visitor) {
+                visitor->visit(this);
+            }
 
             /* === Getter(s) === */
 
-            inline Graph *graph() const;
+            inline Graph *graph() const {
+                return graph_;
+            }
 
-            inline const std::string &name() const;
+            inline const std::string &name() const {
+                return name_;
+            }
 
-            inline uint32_t ix() const;
+            inline uint32_t ix() const {
+                return ix_;
+            }
 
-            virtual inline int64_t value() const;
+            virtual inline int64_t value() const {
+                return value_;
+            }
 
-            virtual inline ParamType type() const;
+            virtual inline ParamType type() const {
+                return ParamType::STATIC;
+            }
 
-            virtual inline bool dynamic() const;
+            virtual inline bool dynamic() const {
+                return false;
+            }
 
             /* === Setter(s) === */
 
-            inline void setIx(uint32_t ix);
+            inline void setIx(uint32_t ix) {
+                ix_ = ix;
+            }
 
-            virtual inline void setValue(int64_t);
+            virtual inline void setValue(int64_t) {
+                throwSpiderException("Can not set value on non-DYNAMIC parameter type.");
+            }
 
             /**
              * @brief Set the graph of the param.
@@ -94,57 +124,18 @@ namespace spider {
              * @remark If graph is nullptr, nothing happen.
              * @param graph  Graph to set.
              */
-            void setGraph(Graph *graph);
+            void setGraph(Graph *graph) {
+                if (graph) {
+                    graph_ = graph;
+                }
+            }
 
         protected:
             Graph *graph_ = nullptr;
             uint32_t ix_ = UINT32_MAX;
             std::string name_ = "";
             int64_t value_ = 0;
-
-            /* === Private method(s) === */
         };
-
-        /* === Inline method(s) === */
-
-        void Param::visit(Visitor *visitor) {
-            visitor->visit(this);
-        }
-
-        Graph *Param::graph() const {
-            return graph_;
-        }
-
-        const std::string &Param::name() const {
-            return name_;
-        }
-
-        uint32_t Param::ix() const {
-            return ix_;
-        }
-
-        int64_t Param::value() const {
-            return value_;
-        }
-
-        ParamType Param::type() const {
-            return ParamType::STATIC;
-        }
-
-        bool Param::dynamic() const {
-            return false;
-        }
-
-        void Param::setIx(uint32_t ix) {
-            ix_ = ix;
-        }
-
-        void Param::setValue(int64_t) {
-            throwSpiderException("Can not set value on non-DYNAMIC parameter type.");
-        }
-
     }
 }
-
-
 #endif //SPIDER2_PARAM_H
