@@ -40,5 +40,93 @@
 
 /* === Include(s) === */
 
+#include <gtest/gtest.h>
+#include <common/Exception.h>
+#include <memory/alloc.h>
+#include <graphs/pisdf/common/Types.h>
+#include <graphs/pisdf/Graph.h>
+#include <graphs/pisdf/ExecVertex.h>
+#include <graphs/pisdf/interfaces/InputInterface.h>
+#include <graphs/pisdf/interfaces/OutputInterface.h>
+#include <graphs/pisdf/visitors/DefaultVisitor.h>
+
+class pisdfInterfaceTest : public ::testing::Test {
+protected:
+    void SetUp() override {
+        spider::createAllocator(spider::type<spider::AllocatorType::GENERIC>{ }, StackID::GENERAL, "alloc-test");
+        spider::createAllocator(spider::type<spider::AllocatorType::GENERIC>{ }, StackID::EXPRESSION, "alloc-test");
+        spider::createAllocator(spider::type<spider::AllocatorType::GENERIC>{ }, StackID::PISDF, "alloc-test");
+    }
+
+    void TearDown() override {
+        spider::freeAllocators();
+    }
+};
 
 /* === Function(s) definition === */
+
+TEST_F(pisdfInterfaceTest, creationTest) {
+    {
+        ASSERT_NO_THROW(spider::pisdf::InputInterface()) << "InputInterface() should not throw";
+        ASSERT_NO_THROW(spider::pisdf::InputInterface("input")) << "InputInterface(std::string) should not throw";
+        ASSERT_NO_THROW(spider::pisdf::OutputInterface()) << "OutputInterface() should not throw";
+        ASSERT_NO_THROW(spider::pisdf::OutputInterface("output")) << "OutputInterface(std::string) should not throw";
+    }
+}
+
+struct InterfaceVisitorTest final : public spider::pisdf::DefaultVisitor {
+    int type = -1;
+
+    void visit(PiSDFInputInterface *) override {
+        type = 0;
+    }
+
+    void visit(PiSDFOutputInterface *) override {
+        type = 1;
+    }
+};
+
+TEST_F(pisdfInterfaceTest, usageTest) {
+    auto *graph = spider::make<spider::pisdf::Graph, StackID::PISDF>("graph", 1, 2, 0, 1, 1);
+    auto *vertex = spider::make<spider::pisdf::ExecVertex, StackID::PISDF>("vertex", 1, 1);
+    graph->addVertex(vertex);
+    graph->addEdge(spider::make<spider::pisdf::Edge, StackID::PISDF>(graph->inputInterface(0), 0, spider::Expression(1), vertex, 0, spider::Expression(1)));
+    graph->addEdge(spider::make<spider::pisdf::Edge, StackID::PISDF>(vertex, 0, spider::Expression(1), graph->outputInterface(0), 0, spider::Expression(1)));
+    auto *input = graph->inputInterface(0);
+    auto *output = graph->outputInterface(0);
+    ASSERT_EQ(input->opposite(), vertex) << "opposite of input interface failed.";
+    ASSERT_EQ(output->opposite(), vertex) << "opposite of output interface failed.";
+    ASSERT_EQ(input->forwardEdge(nullptr), vertex) << "forwardEdge of input interface failed.";
+    ASSERT_EQ(output->forwardEdge(nullptr), vertex) << "forwardEdge of output interface failed.";
+    ASSERT_EQ(input->subtype(), spider::pisdf::VertexType::INPUT) << "input interface subtype failed";
+    ASSERT_EQ(output->subtype(), spider::pisdf::VertexType::OUTPUT) << "output interface subtype failed";
+    auto *top = new spider::pisdf::Graph("top", 3, 2, 0);
+    top->addVertex(graph);
+    auto *v1 = spider::make<spider::pisdf::ExecVertex, StackID::PISDF>("v1", 0, 1);
+    top->addVertex(v1);
+    auto *v2 = spider::make<spider::pisdf::ExecVertex, StackID::PISDF>("v2", 1, 0);
+    top->addVertex(v2);
+    auto *e0 = spider::make<spider::pisdf::Edge, StackID::PISDF>(v1, 0, spider::Expression(1), graph, 0, spider::Expression(1));
+    top->addEdge(e0);
+    auto *e1 = spider::make<spider::pisdf::Edge, StackID::PISDF>(graph, 0, spider::Expression(1), v2, 0, spider::Expression(1));
+    top->addEdge(e1);
+    ASSERT_EQ(input->inputEdge(), e0) << "inputEdge of input interface failed";
+    ASSERT_EQ(output->outputEdge(), e1) << "outputEdge of output interface failed";
+    ASSERT_EQ(input->outputEdge(), graph->edges()[0]) << "outputEdge of input interface failed";
+    ASSERT_EQ(output->inputEdge(), graph->edges()[1]) << "inputEdge of input interface failed";
+    ASSERT_THROW(input->connectInputEdge(nullptr, 0), spider::Exception) << "input interface can not have input edge connected to it.";
+    ASSERT_THROW(output->connectOutputEdge(nullptr, 0), spider::Exception) << "output interface can not have output edge connected to it.";
+    {
+        auto visitor = InterfaceVisitorTest();
+        input->visit(&visitor);
+        ASSERT_EQ(visitor.type, 0) << "input interface visit failed";
+        output->visit(&visitor);
+        ASSERT_EQ(visitor.type, 1) << "output interface visit failed";
+    }
+    {
+        auto visitor = spider::pisdf::DefaultVisitor();
+        ASSERT_THROW(input->visit(&visitor), spider::Exception) << "DefaultVisitor should throw for input interface";
+        ASSERT_THROW(output->visit(&visitor), spider::Exception) << "DefaultVisitor should throw for output interface";
+    }
+    delete top;
+}

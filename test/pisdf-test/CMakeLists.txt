@@ -4,7 +4,11 @@ set(GRAPH_TARGET_NAME graph-${PROJECT_NAME}-test)
 find_package(GTest REQUIRED)
 
 # Add the test files
-set(${GRAPH_TARGET_NAME}_SRC ../main.cpp pisdfParamTest.cpp pisdfInterfaceTest.cpp)
+set(${GRAPH_TARGET_NAME}_SRC
+        ../main.cpp
+        pisdfDelayTest.cpp
+        pisdfInterfaceTest.cpp
+        pisdfParamTest.cpp)
 
 # Set the include directories to use <> instead of ""
 include_directories(
@@ -15,7 +19,7 @@ include_directories(
 
 # On GNU add compile flags
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-    set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -ftest-coverage -fprofile-arcs")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -ftest-coverage -fprofile-arcs")
 endif ()
 
 add_executable(${GRAPH_TARGET_NAME} ${${GRAPH_TARGET_NAME}_SRC})
@@ -28,4 +32,4 @@ target_link_libraries(${GRAPH_TARGET_NAME} ${GTEST_LIBRARIES} ${PROJECT_NAME}::$
 # created by add_executable(), it will automatically be replaced by the location
 # of the executable created at build time.
 add_test(NAME ${GRAPH_TARGET_NAME}
-         COMMAND ${GRAPH_TARGET_NAME})
+        COMMAND ${GRAPH_TARGET_NAME})
