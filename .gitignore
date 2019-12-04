@@ -93,13 +93,12 @@ install-sh
 missing
 stamp-h1
 
-# Build folder #
-################
-build/
+# Temporary files
+*~
 
-# Doxygen generated files #
-###########################
-*/doxygen-output/*
+# Content of these folders
+/bin
+/doc
 
 # Unit tests generated files #
 ##############################
