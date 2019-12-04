@@ -1,15 +1,18 @@
 #!/bin/bash
 
-cd ../..
-rm -rf bin
+if [ "$#" -ne 1 ]; then
+    echo "Expecting one argument."
+    echo "usage: ./scripts/linux/CMakeGCC.sh BUILD_TYPE"
+    exit 1
+fi
 
-mkdir bin
-mkdir bin/make
-cd bin/make
+rm -rf bin/*
+cd bin
+
 # Generating the Makefile
 # Run cmake gui to debug cmake problem
-cmake ../..
+cmake .. -DCMAKE_BUILD_TYPE=$1
 
-make VERBOSE=1 -j$(nproc)
+# Compile project
+cmake --build . --target spider2 -- -j$(nproc) VERBOSE=1
 
-cp ../../libspider/spider/spider.h ./
