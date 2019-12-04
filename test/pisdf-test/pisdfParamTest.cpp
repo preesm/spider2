@@ -70,7 +70,7 @@ TEST_F(pisdfParamTest, paramCreationTest) {
         ASSERT_NO_THROW(spider::pisdf::Param("param", nullptr, spider::Expression("31415"))) << "Param(std::string, Graph*, Expression &&) should not throw";
         ASSERT_THROW(spider::pisdf::Param("param", nullptr, spider::Expression("width*31415")), spider::Exception) << "Param(std::string, Graph*, Expression &&) should throw with invalid parameter";
         auto param = spider::pisdf::Param("param", nullptr, 31415);
-        ASSERT_EQ(param.type(), spider::pisdf::ParamType::STATIC) << "Param().type() should be equal to spider::pisdf::ParamType::STATIC";
+        ASSERT_EQ(param.type(), spider::pisdf::ParamType::STATIC) << "Param::type() should be equal to spider::pisdf::ParamType::STATIC";
     }
     {
         ASSERT_NO_THROW(spider::pisdf::DynamicParam("param", nullptr)) << "DynamicParam(std::string, Graph*) should not throw";
@@ -78,10 +78,10 @@ TEST_F(pisdfParamTest, paramCreationTest) {
         ASSERT_NO_THROW(spider::pisdf::DynamicParam("param", nullptr, spider::Expression("31415"))) << "DynamicParam(std::string, Graph*, Expression &&) should not throw";
         ASSERT_THROW(spider::pisdf::DynamicParam("param", nullptr, spider::Expression("width*31415")), spider::Exception) << "DynamicParam(std::string, Graph*, Expression &&) should throw with invalid parameter";
         auto param = spider::pisdf::DynamicParam("param", nullptr);
-        ASSERT_EQ(param.expression().evaluate(), 0) << "DynamicParam().expression().evaluate() should be equal to 0";
+        ASSERT_EQ(param.expression().evaluate(), 0) << "DynamicParam::expression().evaluate() should be equal to 0";
         param.setValue(31415);
-        ASSERT_EQ(param.expression().evaluate(), 31415) << "DynamicParam().expression().evaluate() should be equal to 31415";
-        ASSERT_EQ(param.type(), spider::pisdf::ParamType::DYNAMIC) << "DynamicParam().type() should be equal to spider::pisdf::ParamType::DYNAMIC";
+        ASSERT_EQ(param.expression().evaluate(), 31415) << "DynamicParam::expression().evaluate() should be equal to 31415";
+        ASSERT_EQ(param.type(), spider::pisdf::ParamType::DYNAMIC) << "DynamicParam::type() should be equal to spider::pisdf::ParamType::DYNAMIC";
     }
     {
         auto param = spider::pisdf::Param("param", nullptr, 31415);
@@ -119,19 +119,19 @@ TEST_F(pisdfParamTest, paramTest) {
         auto *graph = new spider::pisdf::Graph();
         auto *param = spider::make<spider::pisdf::Param>("PArAM", graph, 31415);
         ASSERT_EQ(param->name(), "param") << "name of param should be lower case converted.";
-        ASSERT_EQ(param->graph(), graph) << "param.graph() failed";
-        ASSERT_EQ(param->ix(), UINT32_MAX) << "param.ix() should be equal to UINT32_MAX on init.";
+        ASSERT_EQ(param->graph(), graph) << "param::graph() failed";
+        ASSERT_EQ(param->ix(), UINT32_MAX) << "param::ix() should be equal to UINT32_MAX on init.";
         graph->addParam(param);
-        ASSERT_EQ(param->ix(), 0) << "param.ix() failed";
+        ASSERT_EQ(param->ix(), 0) << "param::ix() failed";
         delete graph;
     }
     {
         auto param = spider::pisdf::Param("param", nullptr, 31415);
         auto param2 = spider::pisdf::InHeritedParam("param", nullptr, &param);
-        ASSERT_EQ(param2.parent(), &param) << "InheritedParam.parent() failed.";
+        ASSERT_EQ(param2.parent(), &param) << "InheritedParam::parent() failed.";
         ASSERT_EQ(param2.dynamic(), false) << "InheritedParam with static parent should be static.";
         ASSERT_EQ(param2.value(), param.value()) << "InheritedParam should have same value as parent.";
-        ASSERT_EQ(param2.type(), spider::pisdf::ParamType::INHERITED) << "InHeritedParam().type() should be equal to spider::pisdf::ParamType::INHERITED";
+        ASSERT_EQ(param2.type(), spider::pisdf::ParamType::INHERITED) << "InHeritedParam::type() should be equal to spider::pisdf::ParamType::INHERITED";
         auto visitor = ParamVisitorTest();
         param2.visit(&visitor);
         ASSERT_EQ(visitor.type, 2) << "Inherited param visitor failed.";

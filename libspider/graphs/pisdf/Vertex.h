@@ -84,6 +84,9 @@ namespace spider {
                 if (copyCount_ && log_enabled()) {
                     spider::log::error("Removing vertex [%s] with copies out there.", name().c_str());
                 }
+                if (reference() == this) {
+                    spider::destroy(constraints_);
+                }
                 this->reference_->copyCount_ -= 1;
             }
 

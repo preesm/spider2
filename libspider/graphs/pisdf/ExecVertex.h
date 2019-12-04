@@ -64,12 +64,6 @@ namespace spider {
 
             friend CloneVertexVisitor;
 
-            ~ExecVertex() override {
-                if (reference() == this) {
-                    spider::destroy(constraints_);
-                }
-            }
-
             /* === Method(s) === */
 
             inline void visit(Visitor *visitor) override {
@@ -101,6 +95,14 @@ namespace spider {
              */
             inline uint32_t jobIx() const {
                 return jobIx_;
+            }
+
+            /**
+             * @brief Ensure that no vertex inheriting from ExecVertex will override this method.
+             * @return false.
+             */
+            inline bool hierarchical() const final {
+                return false;
             }
 
             /* === Setter(s) === */

@@ -90,24 +90,24 @@ TEST_F(pisdfDelayTest, delayTest) {
     ASSERT_EQ(delay->name(), "delay-" +
     edge->source()->name() + "_" + std::to_string(edge->sourcePortIx()) + "--" +
     edge->sink()->name() + "_" + std::to_string(edge->sinkPortIx())) << "delay name failed";
-    ASSERT_EQ(delay->edge(), edge) << "delay.edge() failed.";
-    ASSERT_EQ(delay->setter(), setter) << "delay.setter() failed.";
-    ASSERT_EQ(delay->getter(), getter) << "delay.setter() failed.";
-    ASSERT_EQ(delay->setterPortIx(), 0) << "delay.setterPortIx() failed.";
-    ASSERT_EQ(delay->getterPortIx(), 0) << "delay.getterPortIx() failed.";
-    ASSERT_EQ(delay->memoryAddress(), UINT64_MAX) << "delay.memoryAddress() failed.";
+    ASSERT_EQ(delay->edge(), edge) << "delay::edge() failed.";
+    ASSERT_EQ(delay->setter(), setter) << "delay::setter() failed.";
+    ASSERT_EQ(delay->getter(), getter) << "delay::setter() failed.";
+    ASSERT_EQ(delay->setterPortIx(), 0) << "delay::setterPortIx() failed.";
+    ASSERT_EQ(delay->getterPortIx(), 0) << "delay::getterPortIx() failed.";
+    ASSERT_EQ(delay->memoryAddress(), UINT64_MAX) << "delay::memoryAddress() failed.";
     delay->setMemoryAddress(0);
     spider::api::enableLogger(spider::log::GENERAL);
     delay->setMemoryAddress(0); /* = this is just to have the warning covered... = */
     spider::api::disableLogger(spider::log::GENERAL);
-    ASSERT_EQ(delay->memoryAddress(), 0) << "delay.memoryAddress() failed.";
-    ASSERT_EQ(delay->isPersistent(), false) << "delay.isPersistent() failed.";
-    ASSERT_NE(delay->vertex(), nullptr) << "delay.vertex() should not return nullptr.";
+    ASSERT_EQ(delay->memoryAddress(), 0) << "delay::memoryAddress() failed.";
+    ASSERT_EQ(delay->isPersistent(), false) << "delay::isPersistent() failed.";
+    ASSERT_NE(delay->vertex(), nullptr) << "delay::vertex() should not return nullptr.";
 
     graph->addParam(spider::make<spider::pisdf::DynamicParam, StackID::PISDF>("width", graph));
     edge->removeDelay();
     auto *delay2 = spider::make<spider::pisdf::Delay, StackID::PISDF>(spider::Expression("10width", graph->params()), edge, nullptr, 0, spider::Expression(), nullptr, 0, spider::Expression(), true);
-    ASSERT_EQ(delay2->isPersistent(), true) << "delay.isPersistent() failed.";
+    ASSERT_EQ(delay2->isPersistent(), true) << "delay::isPersistent() failed.";
     graph->param(0)->setValue(10);
     ASSERT_EQ(delay2->value(graph->params()), 100) << "delay value failed";
     spider::destroy(graph);

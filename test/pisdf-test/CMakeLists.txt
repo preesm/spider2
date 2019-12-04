@@ -9,7 +9,8 @@ set(${GRAPH_TARGET_NAME}_SRC
         pisdfDelayTest.cpp
         pisdfEdgeTest.cpp
         pisdfInterfaceTest.cpp
-        pisdfParamTest.cpp)
+        pisdfParamTest.cpp
+        pisdfVertexTest.cpp)
 
 # Set the include directories to use <> instead of ""
 include_directories(
