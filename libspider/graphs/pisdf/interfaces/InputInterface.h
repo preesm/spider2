@@ -90,12 +90,6 @@ namespace spider {
             inline VertexType subtype() const override {
                 return VertexType::INPUT;
             }
-
-            /* === Setter(s) === */
-
-        private:
-
-            /* === Private method(s) === */
         };
     }
 }

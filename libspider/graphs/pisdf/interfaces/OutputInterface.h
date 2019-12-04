@@ -91,12 +91,6 @@ namespace spider {
             inline VertexType subtype() const override {
                 return VertexType::OUTPUT;
             }
-
-            /* === Setter(s) === */
-
-        private:
-
-            /* === Private method(s) === */
         };
     }
 }

@@ -78,10 +78,6 @@ namespace spider {
 
             void visit(EndVertex *vertex) override;
 
-            inline void visit(Interface *) override {
-                throwSpiderException("unsupported visitor type: Interface.");
-            }
-
             inline void visit(InputInterface *) override {
                 throwSpiderException("unsupported visitor type: InputInterface.");
             }

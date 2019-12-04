@@ -63,9 +63,9 @@ namespace spider {
 
             /* === Method(s) === */
 
-            inline Vertex *forwardEdge(const Edge *) override;
-
-            inline void visit(Visitor *visitor) override;
+            inline Vertex *forwardEdge(const Edge *) override {
+                return this->opposite()->forwardEdge(nullptr);
+            }
 
             /* === Getter(s) === */
 
@@ -80,20 +80,7 @@ namespace spider {
              * @return opposite vertex
              */
             virtual Vertex *opposite() const = 0;
-
-            /* === Setter(s) === */
-
         };
-
-        /* === Inline method(s) === */
-
-        Vertex *Interface::forwardEdge(const Edge *) {
-            return this->opposite()->forwardEdge(nullptr);
-        }
-
-        void Interface::visit(Visitor *visitor) {
-            visitor->visit(this);
-        }
     }
 }
 #endif //SPIDER2_GRAPH_H
