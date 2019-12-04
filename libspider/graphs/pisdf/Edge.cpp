@@ -44,6 +44,7 @@
 #include <graphs/pisdf/Vertex.h>
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/Delay.h>
+#include <graphs/pisdf/specials/DelayVertex.h>
 
 /* === Static variable(s) === */
 
@@ -76,10 +77,23 @@ spider::pisdf::Edge::Edge(Vertex *source,
 
 spider::pisdf::Edge::~Edge() {
     spider::destroy(delay_);
+    source()->disconnectOutputEdge(srcPortIx_);
+    sink()->disconnectInputEdge(snkPortIx_);
 }
 
 std::string spider::pisdf::Edge::name() const {
     return "edge_" + src_->name() + "-" + snk_->name();
+}
+
+void spider::pisdf::Edge::removeDelay() {
+    if (delay_) {
+        graph_->removeEdge(delay_->vertex_->inputEdge(0));
+        graph_->removeEdge(delay_->vertex_->outputEdge(0));
+        graph_->removeVertex(delay_->vertex_);
+        delay_->vertex_ = nullptr;
+    }
+    spider::destroy(delay_);
+    delay_ = nullptr;
 }
 
 spider::pisdf::Vertex *spider::pisdf::Edge::sourceFw() const {
@@ -115,5 +129,3 @@ spider::pisdf::Edge *spider::pisdf::Edge::setSink(Vertex *vertex, uint32_t ix, E
     snkExpression_ = std::move(expr);
     return edge;
 }
-
-/* === Private method(s) === */
