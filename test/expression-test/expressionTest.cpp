@@ -49,6 +49,7 @@
 #include <graphs/pisdf/params/Param.h>
 #include <graphs/pisdf/params/DynamicParam.h>
 #include <graphs-tools/expression-parser/Expression.h>
+#include <api/config-api.h>
 
 class expressionTest : public ::testing::Test {
 protected:
@@ -66,18 +67,22 @@ protected:
 using spider::Expression;
 
 TEST_F(expressionTest, expressionCtorTest) {
+    spider::api::enableVerbose();
+    spider::api::enableLogger(spider::log::EXPR);
     ASSERT_NO_THROW(Expression(4)) << "Expression(int64_t) failed.";
     ASSERT_NO_THROW(Expression("")) << "Expression(std::string, {}) failed.";
     ASSERT_NO_THROW(Expression(Expression(10))) << "Expression(Expression &&) failed.";
-    auto tmp = Expression("10 * 10");
-    ASSERT_NO_THROW(Expression(std::move(tmp))) << "Expression(const Expression &) failed.";
+    auto tmp = Expression("10 * 11");
+    ASSERT_NO_THROW(Expression(tmp)) << "Expression(const Expression &) failed.";
     spider::pisdf::Graph *graph = spider::api::createGraph("test");
     ASSERT_THROW(Expression("width", graph->params()), spider::Exception) << "Parameterized Expression should throw when parameter is not found.";
     ASSERT_THROW(Expression("width"), spider::Exception) << "Parameterized Expression should throw when no parameter is given.";
     ASSERT_THROW(Expression("cos"), spider::Exception) << "Expression should throw when function is ill-formed.";
     ASSERT_THROW(Expression("+"), spider::Exception) << "Expression should throw when operator is missing an operand.";
     ASSERT_THROW(Expression("max(1,)"), spider::Exception) << "Expression should throw when function is missing an operand.";
-    ASSERT_EQ(Expression(4).value(), 4) << "Expression evaluation failed.";
+    ASSERT_EQ(Expression(
+            4).value(), 4) << "Expression evaluation failed.";
+    spider::api::disableLogger(spider::log::EXPR);
 }
 
 TEST_F(expressionTest, expression2StringTest) {

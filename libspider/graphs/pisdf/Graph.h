@@ -74,7 +74,7 @@ namespace spider {
                            uint32_t cfgVertexCount = 0,
                            StackID stack = StackID::PISDF);
 
-            ~Graph() override;
+            ~Graph() noexcept override;
 
             friend GraphAddVertexVisitor;
 

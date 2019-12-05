@@ -80,7 +80,7 @@ namespace spider {
 
             Vertex &operator=(Vertex &&) = delete;
 
-            virtual ~Vertex() {
+            virtual ~Vertex() noexcept {
                 if (copyCount_ && log_enabled()) {
                     spider::log::error("Removing vertex [%s] with copies out there.", name().c_str());
                 }

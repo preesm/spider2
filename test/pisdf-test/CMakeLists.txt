@@ -8,6 +8,7 @@ set(${GRAPH_TARGET_NAME}_SRC
         ../main.cpp
         pisdfDelayTest.cpp
         pisdfEdgeTest.cpp
+        pisdfGraphTest.cpp
         pisdfInterfaceTest.cpp
         pisdfParamTest.cpp
         pisdfVertexTest.cpp)

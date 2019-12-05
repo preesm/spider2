@@ -57,12 +57,12 @@ namespace spider {
         class DynamicParam final : public Param {
         public:
 
-            DynamicParam(std::string name, Graph *graph) : Param(std::move(name), graph) {
+            explicit DynamicParam(std::string name) : Param(std::move(name)) {
                 expression_ = Expression(0);
             }
 
-            DynamicParam(std::string name, Graph *graph, Expression &&expression) : Param(std::move(name), graph),
-                                                                                    expression_{ expression } {
+            DynamicParam(std::string name, Expression &&expression) : Param(std::move(name)),
+                                                                      expression_{ expression } {
 
             }
 

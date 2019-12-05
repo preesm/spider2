@@ -52,8 +52,8 @@ namespace spider {
         class InHeritedParam final : public Param {
         public:
 
-            InHeritedParam(std::string name, Graph *graph, Param *parent) : Param(std::move(name), graph),
-                                                                            parent_{ parent } {
+            InHeritedParam(std::string name, Param *parent) : Param(std::move(name)),
+                                                              parent_{ parent } {
                 if (!parent) {
                     throwSpiderException("Inherited parameter can not have nullptr parent.");
                 }

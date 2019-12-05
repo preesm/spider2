@@ -217,7 +217,7 @@ PiSDFOutputInterface *spider::api::setOutputInterfaceName(PiSDFGraph *graph, uin
 /* === Param creation API === */
 
 PiSDFParam *spider::api::createStaticParam(PiSDFGraph *graph, std::string name, int64_t value, StackID stack) {
-    auto *param = spider::make<PiSDFParam>(stack, std::move(name), graph, value);
+    auto *param = spider::make<PiSDFParam>(stack, std::move(name), value);
     if (graph) {
         graph->addParam(param);
     }
@@ -225,16 +225,18 @@ PiSDFParam *spider::api::createStaticParam(PiSDFGraph *graph, std::string name, 
 }
 
 PiSDFParam *spider::api::createStaticParam(PiSDFGraph *graph, std::string name, std::string expression, StackID stack) {
-    auto *param = spider::make<PiSDFParam>(stack, std::move(name), graph,
-                                           Expression(std::move(expression), graph->params()));
     if (graph) {
+        auto *param = spider::make<PiSDFParam>(stack, std::move(name),
+                                               Expression(std::move(expression), graph->params()));
         graph->addParam(param);
+        return param;
     }
+    auto *param = spider::make<PiSDFParam>(stack, std::move(name), Expression(std::move(expression)));
     return param;
 }
 
 PiSDFDynamicParam *spider::api::createDynamicParam(PiSDFGraph *graph, std::string name, StackID stack) {
-    auto *param = spider::make<PiSDFDynamicParam>(stack, std::move(name), graph, Expression(0));
+    auto *param = spider::make<PiSDFDynamicParam>(stack, std::move(name), Expression(0));
     if (graph) {
         graph->addParam(param);
     }
@@ -243,11 +245,13 @@ PiSDFDynamicParam *spider::api::createDynamicParam(PiSDFGraph *graph, std::strin
 
 PiSDFDynamicParam *
 spider::api::createDynamicParam(PiSDFGraph *graph, std::string name, std::string expression, StackID stack) {
-    auto *param = spider::make<PiSDFDynamicParam>(stack, std::move(name), graph,
-                                                  Expression(std::move(expression), graph->params()));
     if (graph) {
+        auto *param = spider::make<PiSDFDynamicParam>(stack, std::move(name),
+                                                      Expression(std::move(expression), graph->params()));
         graph->addParam(param);
+        return param;
     }
+    auto *param = spider::make<PiSDFDynamicParam>(stack, std::move(name), Expression(std::move(expression)));
     return param;
 }
 
@@ -258,7 +262,7 @@ PiSDFParam *spider::api::createInheritedParam(PiSDFGraph *graph, std::string nam
     if (!parent->dynamic()) {
         return spider::api::createStaticParam(graph, std::move(name), parent->value(), stack);
     }
-    auto *param = spider::make<PiSDFInHeritedParam>(stack, std::move(name), graph, parent);
+    auto *param = spider::make<PiSDFInHeritedParam>(stack, std::move(name), parent);
     if (graph) {
         graph->addParam(param);
     }

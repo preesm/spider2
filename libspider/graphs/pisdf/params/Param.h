@@ -58,14 +58,12 @@ namespace spider {
         class Param {
         public:
 
-            Param(std::string name, Graph *graph, int64_t value = 0) : graph_{ graph },
-                                                                       name_{ std::move(name) },
-                                                                       value_{ value } {
+            explicit Param(std::string name, int64_t value = 0) : name_{ std::move(name) },
+                                                         value_{ value } {
                 std::transform(name_.begin(), name_.end(), name_.begin(), ::tolower);
             }
 
-            Param(std::string name, Graph *graph, Expression &&expression) : graph_{ graph },
-                                                                             name_{ std::move(name) } {
+            Param(std::string name, Expression &&expression) : name_{ std::move(name) } {
                 if (expression.dynamic()) {
                     throwSpiderException("STATIC parameter should have static expression: %s.",
                                          expression.string().c_str());

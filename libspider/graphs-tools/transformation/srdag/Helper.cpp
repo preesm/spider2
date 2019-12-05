@@ -67,14 +67,13 @@ struct CopyParamVisitor final : public spider::pisdf::DefaultVisitor {
 
     inline void visit(spider::pisdf::DynamicParam *param) override {
         auto *p = spider::make<PiSDFDynamicParam, StackID::TRANSFO>(param->name(),
-                                                                    nullptr,
                                                                     spider::Expression(param->expression()));
         paramVector_.emplace_back(p);
     }
 
     inline void visit(spider::pisdf::InHeritedParam *param) override {
         const auto &inheritedParam = parentParamVector_[param->parent()->ix()];
-        auto *p = spider::make<PiSDFParam, StackID::TRANSFO>(param->name(), nullptr, inheritedParam->value());
+        auto *p = spider::make<PiSDFParam, StackID::TRANSFO>(param->name(), inheritedParam->value());
         paramVector_.emplace_back(p);
     }
 

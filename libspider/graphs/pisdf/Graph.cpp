@@ -96,7 +96,7 @@ spider::pisdf::Graph::Graph(std::string name,
     }
 }
 
-spider::pisdf::Graph::~Graph() {
+spider::pisdf::Graph::~Graph() noexcept {
     GraphRemoveVertexVisitor rmVertexVisitor{ this };
     /* == Destroy / deallocate vertices (subgraphs included) == */
     for (auto &vertex : vertexVector_) {
