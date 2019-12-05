@@ -1,5 +1,5 @@
 # cmake minimum version
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.12)
 
 # This CMakeLists was freely adapted by Florian Arrestier from 
 # https://github.com/robotology/how-to-export-cpp-library and

@@ -2,7 +2,7 @@
 _Synchronous Parameterized and Interfaced Dataflow Embedded Runtime_
 
 
-SPIDER _\[spaɪdə\]_ is an open-source Dataflow based runtime for running signal processing applications based on the [Parameterized and Interfaced Based Synchronous Dataflow (PiSDF)](https://hal.inria.fr/hal-00877492) model.
+SPIDER is an open-source Dataflow based runtime for running signal processing applications based on the [Parameterized and Interfaced Based Synchronous Dataflow (PiSDF)](https://hal.inria.fr/hal-00877492) model.
 The purpose of this runtime is to provide rapid-prototyping capabilities to developpers to see how much parallelism they can leverage from their applications.
 The framework is developped as a C++ shared library and use as much as possible standard features of the language in order to provide stable experience on different platforms.
 Any compiler compliant with the C++11 standard should be able to compile the Spider 2.0 library.
