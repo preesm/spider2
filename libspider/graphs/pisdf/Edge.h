@@ -178,9 +178,8 @@ namespace spider {
              * @param ix      Output port ix.
              * @param expr    Expression of the rate.
              * @return pointer to the old output @refitem Edge of vertex, nullptr else.
-             * @throws @refitem Spider::Exception if vertex is nullptr.
              */
-            Edge *setSource(Vertex *vertex, uint32_t ix, Expression &&expr);
+            void setSource(Vertex *vertex, uint32_t ix, Expression &&expr);
 
             /**
              * @brief Set the sink vertex of the edge.
@@ -189,9 +188,8 @@ namespace spider {
              * @param ix      Input port ix.
              * @param expr    Expression of the rate.
              * @return pointer to the old input @refitem Edge of vertex, nullptr else.
-             * @throws @refitem Spider::Exception if vertex is nullptr.
              */
-            Edge *setSink(Vertex *vertex, uint32_t ix, Expression &&expr);
+            void setSink(Vertex *vertex, uint32_t ix, Expression &&expr);
 
             inline void setDelay(Delay *delay) {
                 if (!delay) {

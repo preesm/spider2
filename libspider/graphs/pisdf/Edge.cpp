@@ -97,7 +97,6 @@ void spider::pisdf::Edge::removeDelay() {
         delay_->vertex_ = nullptr;
     }
     spider::destroy(delay_);
-    delay_ = nullptr;
 }
 
 spider::pisdf::Vertex *spider::pisdf::Edge::sourceFw() const {
@@ -108,50 +107,48 @@ spider::pisdf::Vertex *spider::pisdf::Edge::sinkFw() const {
     return snk_->forwardEdge(this);
 }
 
-spider::pisdf::Edge *spider::pisdf::Edge::setSource(Vertex *vertex, uint32_t ix, Expression &&expr) {
-    if (!vertex) {
-        throwSpiderException("Can not set nullptr vertex on edge [%s].", name().c_str());
-    }
-    /* == Disconnect current output edge (if any) == */
-    auto *edge = vertex->disconnectOutputEdge(ix);
-    if (edge) {
-        edge->src_ = nullptr;
-        edge->srcPortIx_ = UINT32_MAX;
-        edge->srcExpression_ = Expression();
+void spider::pisdf::Edge::setSource(Vertex *vertex, uint32_t ix, Expression &&expr) {
+    if (vertex) {
+        /* == Disconnect current output edge (if any) == */
+        auto *edge = vertex->disconnectOutputEdge(ix);
+        if (edge) {
+            edge->setSource(nullptr, UINT32_MAX, Expression());
+        }
+
+        /* == Connect this edge == */
+        vertex->connectOutputEdge(this, ix);
     }
 
-    /* == Reset source of this edge == */
-    vertex->connectOutputEdge(this, ix);
-    auto *edgeCheck = src_->disconnectOutputEdge(srcPortIx_);
-    if (edgeCheck != this) {
-        throwSpiderException("disconnect edge does not match expected value.");
+    /* == Disconnect current src (if any) == */
+    if (src_) {
+        src_->disconnectOutputEdge(srcPortIx_);
     }
+
+    /* == Set source of this edge == */
     src_ = vertex;
     srcPortIx_ = ix;
     srcExpression_ = std::move(expr);
-    return edge;
 }
 
-spider::pisdf::Edge *spider::pisdf::Edge::setSink(Vertex *vertex, uint32_t ix, Expression &&expr) {
-    if (!vertex) {
-        throwSpiderException("Can not set nullptr vertex on edge [%s].", name().c_str());
-    }
-    /* == Disconnect current input edge (if any) == */
-    auto *edge = vertex->disconnectInputEdge(ix);
-    if (edge) {
-        edge->snk_ = nullptr;
-        edge->snkPortIx_ = UINT32_MAX;
-        edge->snkExpression_ = Expression();
+void spider::pisdf::Edge::setSink(Vertex *vertex, uint32_t ix, Expression &&expr) {
+    if (vertex) {
+        /* == Disconnect current input edge (if any) == */
+        auto *edge = vertex->disconnectInputEdge(ix);
+        if (edge) {
+            edge->setSink(nullptr, UINT32_MAX, Expression());
+        }
+
+        /* == Connect this edge == */
+        vertex->connectInputEdge(this, ix);
     }
 
-    /* == Reset sink of this edge == */
-    vertex->connectInputEdge(this, ix);
-    auto *edgeCheck = snk_->disconnectInputEdge(snkPortIx_);
-    if (edgeCheck != this) {
-        throwSpiderException("disconnect edge does not match expected value.");
+    /* == Disconnect current snk_ (if any) == */
+    if (snk_) {
+        snk_->disconnectInputEdge(snkPortIx_);
     }
+
+    /* == Set sink of this edge == */
     snk_ = vertex;
     snkPortIx_ = ix;
     snkExpression_ = std::move(expr);
-    return edge;
 }
