@@ -120,13 +120,13 @@ spider::Expression::Expression(std::string expression, const spider::vector<PiSD
     spider::rpn::reorderPostfixStack(postfixStack);
 
     /* == Build the expression stack == */
-    expressionStack_ = spider::make<spider::vector<ExpressionElt>, StackID::EXPRESSION>(
-            buildExpressionStack(postfixStack, params));
+    auto stack = buildExpressionStack(postfixStack, params);
 
     if (static_) {
-        value_ = expressionStack_->empty() ? 0. : expressionStack_->back().arg.value_;
-        spider::destroy(expressionStack_);
-        expressionStack_ = nullptr;
+        value_ = stack.empty() ? 0. : stack.back().arg.value_;
+    } else {
+        /* == Doing dynamic alloc of vector member if stack is not static == */
+        expressionStack_ = spider::make<spider::vector<ExpressionElt>, StackID::EXPRESSION>(std::move(stack));
     }
 }
 
