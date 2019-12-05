@@ -66,22 +66,10 @@ namespace spider {
 
             /* === Getter(s) === */
 
-            inline VertexType subtype() const override;
-
-            /* === Setter(s) === */
-
-        private:
-
-            //TODO add function call
-
-            /* === Private method(s) === */
+            inline VertexType subtype() const override {
+                return VertexType::END;
+            }
         };
-
-        VertexType EndVertex::subtype() const {
-            return VertexType::END;
-        }
-
-        /* === Inline method(s) === */
     }
 }
 #endif //SPIDER2_ENDVERTEX_H

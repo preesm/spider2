@@ -63,32 +63,22 @@ namespace spider {
 
             /* === Getter(s) === */
 
-            inline VertexType subtype() const override;
+            inline VertexType subtype() const override  {
+                return VertexType::CONFIG;
+            }
 
             /* === Setter(s) === */
 
-            inline void setRepetitionValue(uint32_t rv) override;
-
-        private:
-
-        };
-
-        /* === Inline method(s) === */
-
-        VertexType ConfigVertex::subtype() const {
-            return VertexType::CONFIG;
-        }
-
-        void ConfigVertex::setRepetitionValue(uint32_t rv) {
-            if (rv > 1) {
-                throwSpiderException("Configure actor [%s] has repetition vector value of %"
-                                             PRIu32
-                                             " instead of 1.", name().c_str(), rv);
+            inline void setRepetitionValue(uint32_t rv) override  {
+                if (rv > 1) {
+                    throwSpiderException("Configure actor [%s] has repetition vector value of %"
+                                                 PRIu32
+                                                 " instead of 1.", name().c_str(), rv);
+                }
+                repetitionValue_ = rv;
             }
-            repetitionValue_ = rv;
-        }
+        };
     }
 }
-
 
 #endif //SPIDER2_CONFIGVERTEX_H

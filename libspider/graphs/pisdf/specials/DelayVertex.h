@@ -60,30 +60,21 @@ namespace spider {
 
             /* === Getter(s) === */
 
-            inline VertexType subtype() const override;
+            inline VertexType subtype() const override {
+                return VertexType::DELAY;
+            }
 
             /* === Setter(s) === */
 
-            inline void setRepetitionValue(uint32_t rv) override;
-
-        private:
-
-        };
-
-        VertexType DelayVertex::subtype() const {
-            return VertexType::DELAY;
-        }
-
-        void DelayVertex::setRepetitionValue(uint32_t rv) {
-            if (rv > 1) {
-                throwSpiderException("Delay [%s] has repetition vector value of %"
-                                             PRIu32
-                                             " instead of 1.", name().c_str(), rv);
+            inline void setRepetitionValue(uint32_t rv) override  {
+                if (rv > 1) {
+                    throwSpiderException("Delay [%s] has repetition vector value of %"
+                                                 PRIu32
+                                                 " instead of 1.", name().c_str(), rv);
+                }
+                repetitionValue_ = rv;
             }
-            repetitionValue_ = rv;
-        }
-
-        /* === Inline method(s) === */
+        };
     }
 }
 #endif //SPIDER2_DELAYVERTEX_H

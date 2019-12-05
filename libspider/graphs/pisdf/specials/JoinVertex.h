@@ -83,22 +83,10 @@ namespace spider {
 
             /* === Getter(s) === */
 
-            inline VertexType subtype() const override;
-
-            /* === Setter(s) === */
-
-        private:
-
-            //TODO add function call
-
-            /* === Private method(s) === */
+            inline VertexType subtype() const override {
+                return VertexType::JOIN;
+            }
         };
-
-        VertexType JoinVertex::subtype() const {
-            return VertexType::JOIN;
-        }
-
-        /* === Inline method(s) === */
     }
 }
 #endif //SPIDER2_JOINVERTEX_H

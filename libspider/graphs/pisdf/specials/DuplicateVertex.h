@@ -73,22 +73,10 @@ namespace spider {
 
             /* === Getter(s) === */
 
-            inline VertexType subtype() const override;
-
-            /* === Setter(s) === */
-
-        private:
-
-            //TODO add function call
-
-            /* === Private method(s) === */
+            inline VertexType subtype() const override {
+                return VertexType::DUPLICATE;
+            }
         };
-
-        VertexType DuplicateVertex::subtype() const {
-            return VertexType::DUPLICATE;
-        }
-
-        /* === Inline method(s) === */
     }
 }
 #endif //SPIDER2_DUPLICATEVERTEX_H

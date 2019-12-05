@@ -48,10 +48,12 @@
 #include <graphs/pisdf/Edge.h>
 #include <graphs/pisdf/Delay.h>
 #include <graphs/pisdf/interfaces/InputInterface.h>
+#include <graphs/pisdf/interfaces/OutputInterface.h>
 #include <graphs/pisdf/params/DynamicParam.h>
 #include <graphs/pisdf/ExecVertex.h>
 #include <graphs/pisdf/specials/Specials.h>
 #include <api/spider.h>
+#include <graphs/pisdf/visitors/CloneVertexVisitor.h>
 
 class pisdVertexTest : public ::testing::Test {
 protected:
@@ -80,6 +82,46 @@ protected:
         spider::quit();
     }
 };
+
+void testHierarchical() {
+    ASSERT_EQ((spider::pisdf::ExecVertex().hierarchical()), false) << "Vertex::hierarchical() should be false except for graph.";
+    ASSERT_EQ((spider::pisdf::InputInterface().hierarchical()), false) << "Vertex::hierarchical() should be false except for graph.";
+    ASSERT_EQ((spider::pisdf::OutputInterface().hierarchical()), false) << "Vertex::hierarchical() should be false except for graph.";
+    ASSERT_EQ((spider::pisdf::Graph().hierarchical()), true) << "Graph::hierarchical() should be true.";
+}
+
+void testExecutable() {
+    ASSERT_EQ((spider::pisdf::ExecVertex().executable()), true) << "ExecVertex::executable() should be true.";
+    ASSERT_EQ((spider::pisdf::ForkVertex().executable()), true) << "ForkVertex::executable() should be true.";
+    ASSERT_EQ((spider::pisdf::JoinVertex().executable()), true) << "JoinVertex::executable() should be true.";
+    ASSERT_EQ((spider::pisdf::HeadVertex().executable()), true) << "HeadVertex::executable() should be true.";
+    ASSERT_EQ((spider::pisdf::TailVertex().executable()), true) << "TailVertex::executable() should be true.";
+    ASSERT_EQ((spider::pisdf::ConfigVertex().executable()), true) << "ConfigVertex::executable() should be true.";
+    ASSERT_EQ((spider::pisdf::RepeatVertex().executable()), true) << "RepeatVertex::executable() should be true.";
+    ASSERT_EQ((spider::pisdf::DuplicateVertex().executable()), true) << "DuplicateVertex::executable() should be true.";
+    ASSERT_EQ((spider::pisdf::InitVertex().executable()), true) << "InitVertex::executable() should be true.";
+    ASSERT_EQ((spider::pisdf::EndVertex().executable()), true) << "EndVertex::executable() should be true.";
+    ASSERT_EQ((spider::pisdf::InputInterface().executable()), false) << "Vertex::executable() should be false.";
+    ASSERT_EQ((spider::pisdf::OutputInterface().executable()), false) << "Vertex::executable() should be false.";
+    ASSERT_EQ((spider::pisdf::Graph().executable()), false) << "Vertex::executable() should be false.";
+}
+
+void testType() {
+    ASSERT_EQ((spider::pisdf::ExecVertex().subtype()), spider::pisdf::VertexType::NORMAL) << "ExecVertex::subtype() should be VertexType::NORMAL.";
+    ASSERT_EQ((spider::pisdf::ForkVertex().subtype()), spider::pisdf::VertexType::FORK) << "ForkVertex::subtype() should be VertexType::FORK.";
+    ASSERT_EQ((spider::pisdf::JoinVertex().subtype()), spider::pisdf::VertexType::JOIN) << "JoinVertex::subtype() should be VertexType::JOIN.";
+    ASSERT_EQ((spider::pisdf::HeadVertex().subtype()), spider::pisdf::VertexType::HEAD) << "HeadVertex::subtype() should be VertexType::HEAD.";
+    ASSERT_EQ((spider::pisdf::TailVertex().subtype()), spider::pisdf::VertexType::TAIL) << "TailVertex::subtype() should be VertexType::TAIL.";
+    ASSERT_EQ((spider::pisdf::ConfigVertex().subtype()), spider::pisdf::VertexType::CONFIG) << "ConfigVertex::subtype() should be VertexType::CONFIG.";
+    ASSERT_EQ((spider::pisdf::RepeatVertex().subtype()), spider::pisdf::VertexType::REPEAT) << "RepeatVertex::subtype() should be VertexType::REPEAT.";
+    ASSERT_EQ((spider::pisdf::DuplicateVertex().subtype()), spider::pisdf::VertexType::DUPLICATE) << "DuplicateVertex::subtype() should be VertexType::DUPLICATE.";
+    ASSERT_EQ((spider::pisdf::InitVertex().subtype()), spider::pisdf::VertexType::INIT) << "InitVertex::subtype() should be VertexType::INIT.";
+    ASSERT_EQ((spider::pisdf::EndVertex().subtype()), spider::pisdf::VertexType::END) << "EndVertex::subtype() should be VertexType::END.";
+    ASSERT_EQ((spider::pisdf::InputInterface().subtype()), spider::pisdf::VertexType::INPUT) << "InputInterface::subtype() should be VertexType::INPUT.";
+    ASSERT_EQ((spider::pisdf::OutputInterface().subtype()), spider::pisdf::VertexType::OUTPUT) << "OutputInterface::subtype() should be VertexType::OUTPUT.";
+    ASSERT_EQ((spider::pisdf::Graph().subtype()), spider::pisdf::VertexType::GRAPH) << "Graph::subtype() should be VertexType::GRAPH.";
+}
+
 
 TEST_F(pisdVertexTest, vertexTest) {
     {
@@ -136,14 +178,24 @@ TEST_F(pisdVertexTest, vertexTest) {
     auto *edge = spider::make<spider::pisdf::Edge, StackID::PISDF>(v0, 0, spider::Expression(), v1, 0, spider::Expression());
     ASSERT_EQ(v0->outputEdge(0), edge) << "Vertex::connectOutputEdge() failed.";
     ASSERT_EQ(v1->inputEdge(0), edge) << "Vertex::connectInputEdge() failed.";
-    ASSERT_EQ(v0->hierarchical(), false) << "Vertex::hierarchical() should be false except for graph.";
-    ASSERT_EQ(graph->hierarchical(), true) << "Vertex::hierarchical() should be true for graph.";
-    ASSERT_EQ(v0->executable(), true) << "Vertex::executable() should be true for ExecVertex.";
-    ASSERT_EQ(graph->executable(), false) << "Vertex::executable() should be false for Graph.";
-    {
-        ASSERT_EQ((spider::pisdf::InputInterface().hierarchical()), false) << "Vertex::hierarchical() should be false except for graph.";
-    }
+    ASSERT_EQ(v0->outputEdgeArray()[0], edge) << "Vertex::outputEdgeArray() failed.";
+    ASSERT_EQ(v1->inputEdgeArray()[0], edge) << "Vertex::inputEdgeArray() failed.";
+
+    /* == Test hierarchical property for every vertex == */
+    testHierarchical();
+
+    /* == Test executable property for every vertex == */
+    testExecutable();
+
+    /* == Test subtype property for every vertex == */
+    testType();
+
+    auto visitor = spider::pisdf::CloneVertexVisitor(graph);
+    spider::api::enableLogger(spider::log::GENERAL);
+    v0->visit(&visitor);
+
     ASSERT_NO_THROW(v0->setName("toto")) << "Vertex::setName() should never throw.";
     ASSERT_EQ(v0->name(), "toto") << "Vertex::setName() should never throw.";
     spider::destroy(graph);
+    spider::api::disableLogger(spider::log::GENERAL);
 }

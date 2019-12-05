@@ -82,22 +82,10 @@ namespace spider {
 
             /* === Getter(s) === */
 
-            inline VertexType subtype() const override;
-
-            /* === Setter(s) === */
-
-        private:
-
-            //TODO add function call
-
-            /* === Private method(s) === */
+            inline VertexType subtype() const override  {
+                return VertexType::FORK;
+            }
         };
-
-        VertexType ForkVertex::subtype() const {
-            return VertexType::FORK;
-        }
-
-        /* === Inline method(s) === */
     }
 }
 #endif //SPIDER2_FORKVERTEX_H

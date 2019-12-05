@@ -75,22 +75,10 @@ namespace spider {
 
             /* === Getter(s) === */
 
-            inline VertexType subtype() const override;
-
-            /* === Setter(s) === */
-
-        private:
-
-            //TODO add function call
-
-            /* === Private method(s) === */
+            inline VertexType subtype() const override {
+                return VertexType::HEAD;
+            }
         };
-
-        VertexType HeadVertex::subtype() const {
-            return VertexType::HEAD;
-        }
-
-        /* === Inline method(s) === */
     }
 }
 #endif //SPIDER2_HEADVERTEX_H
