@@ -26,7 +26,7 @@ lcov -c -d ./gcov_files -o all-spider2-test.info
 lcov --remove all-spider2-test.info "/usr*" -o all-spider2-test.info # Remove output for external libraries
 rm -rf coverage
 mkdir coverage
-genhtml -o coverage -t "libspider2 test coverage" --num-spaces 4 all-spider2-test.info 
+genhtml -o coverage -t "libspider2 test coverage" --num-spaces 4 --no-function-coverage all-spider2-test.info 
 
 # Clean tmp folder and files
 rm -rf gcov_files
