@@ -147,11 +147,9 @@ void spider::quit() {
     spider::destroy(spider::platform());
 
     /* == Destroy the refinement(s) == */
-    const auto &refinementVector = spider::refinementsRegister();
-    for (auto &refinement : refinementVector) {
+    for (auto &refinement : spider::refinementsRegister()) {
         spider::destroy(refinement);
     }
-
 
     /* == Clear the stacks == */
     spider::freeAllocators();

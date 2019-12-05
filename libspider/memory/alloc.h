@@ -264,7 +264,7 @@ namespace spider {
      * @param ptr   Pointer to the object.
      */
     template<class T>
-    inline void destroy(T *ptr) {
+    inline void destroy(T *&ptr) {
         if (ptr) {
             /* == Destruct the object pointed by ptr == */
             ptr->~T();
@@ -275,6 +275,9 @@ namespace spider {
 
             /* == Deallocate the pointer == */
             getStackAllocator(stackId)->deallocate(originalPtr);
+
+            /* == Reset pointer to nullptr == */
+            ptr = nullptr;
         }
     }
 }
