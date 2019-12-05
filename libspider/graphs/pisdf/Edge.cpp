@@ -77,8 +77,12 @@ spider::pisdf::Edge::Edge(Vertex *source,
 
 spider::pisdf::Edge::~Edge() {
     spider::destroy(delay_);
-    source()->disconnectOutputEdge(srcPortIx_);
-    sink()->disconnectInputEdge(snkPortIx_);
+    if (src_) {
+        src_->disconnectOutputEdge(srcPortIx_);
+    }
+    if (snk_) {
+        snk_->disconnectInputEdge(snkPortIx_);
+    }
 }
 
 std::string spider::pisdf::Edge::name() const {
@@ -108,9 +112,20 @@ spider::pisdf::Edge *spider::pisdf::Edge::setSource(Vertex *vertex, uint32_t ix,
     if (!vertex) {
         throwSpiderException("Can not set nullptr vertex on edge [%s].", name().c_str());
     }
+    /* == Disconnect current output edge (if any) == */
     auto *edge = vertex->disconnectOutputEdge(ix);
+    if (edge) {
+        edge->src_ = nullptr;
+        edge->srcPortIx_ = UINT32_MAX;
+        edge->srcExpression_ = Expression();
+    }
+
+    /* == Reset source of this edge == */
     vertex->connectOutputEdge(this, ix);
-    src_->disconnectOutputEdge(srcPortIx_);
+    auto *edgeCheck = src_->disconnectOutputEdge(srcPortIx_);
+    if (edgeCheck != this) {
+        throwSpiderException("disconnect edge does not match expected value.");
+    }
     src_ = vertex;
     srcPortIx_ = ix;
     srcExpression_ = std::move(expr);
@@ -121,9 +136,20 @@ spider::pisdf::Edge *spider::pisdf::Edge::setSink(Vertex *vertex, uint32_t ix, E
     if (!vertex) {
         throwSpiderException("Can not set nullptr vertex on edge [%s].", name().c_str());
     }
+    /* == Disconnect current input edge (if any) == */
     auto *edge = vertex->disconnectInputEdge(ix);
+    if (edge) {
+        edge->snk_ = nullptr;
+        edge->snkPortIx_ = UINT32_MAX;
+        edge->snkExpression_ = Expression();
+    }
+
+    /* == Reset sink of this edge == */
     vertex->connectInputEdge(this, ix);
-    snk_->disconnectInputEdge(snkPortIx_);
+    auto *edgeCheck = snk_->disconnectInputEdge(snkPortIx_);
+    if (edgeCheck != this) {
+        throwSpiderException("disconnect edge does not match expected value.");
+    }
     snk_ = vertex;
     snkPortIx_ = ix;
     snkExpression_ = std::move(expr);
