@@ -141,7 +141,6 @@ void spiderTest() {
         auto *vertex_2 = spider::api::createVertex(subgraph, "vertex_2", 2, 1);
         auto *vertex_3 = spider::api::createVertex(subgraph, "vertex_3", 1, 1);
         auto *vertex_4 = spider::api::createVertex(graph, "vertex_4", 1);
-
         auto *cfg = spider::api::createConfigActor(subgraph, "cfg", 0, 1);
 
         /* === Creating param === */
@@ -161,8 +160,8 @@ void spiderTest() {
 
         /* === Creating param === */
 
-        spider::api::createStaticParam(graph, "width", 10);
-        spider::api::createStaticParam(subgraph, "height", 10);
+//        spider::api::createStaticParam(graph, "width", 10);
+//        spider::api::createStaticParam(subgraph, "height", 10);
         spider::api::createDynamicParam(subgraph, "width");
 
         /* === Export dot === */

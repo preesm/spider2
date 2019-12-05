@@ -98,7 +98,82 @@ TEST_F(pisdfGraphTest, graphTest) {
     auto *graph = spider::make<spider::pisdf::Graph, StackID::PISDF>("graph", 4, 2, 3);
     /* == Param tests == */
     auto *param = spider::make<spider::pisdf::Param, StackID::PISDF>("width", spider::Expression(5));
+    ASSERT_NO_THROW(graph->addParam(param)) << "Graph::addParam() should not throw on valid value.";
+    ASSERT_THROW(graph->addParam(param), spider::Exception) << "Graph::addParam() should throw for pre-existing param.";
+    auto *param2 = spider::make<spider::pisdf::Param, StackID::PISDF>("WIDTH", spider::Expression(5));
+    ASSERT_THROW(graph->addParam(param2), spider::Exception) << "Graph::addParam() should throw for param with same name.";
+    ASSERT_NO_THROW(graph->removeParam(param)) << "Graph::removeParam() should not throw for valid param.";
+    ASSERT_NO_THROW(graph->removeParam(nullptr)) << "Graph::removeParam() should not throw for nullptr.";
+    ASSERT_THROW(graph->removeParam(param2), spider::Exception) << "Graph::removeParam() should throw for non-valid param.";
+    param = spider::make<spider::pisdf::Param, StackID::PISDF>("width", spider::Expression(5));
     graph->addParam(param);
+    graph->addParam(spider::make<spider::pisdf::Param, StackID::PISDF>("height", spider::Expression(1)));
+    auto ix = param->ix();
+    param->setIx(1);
+    ASSERT_THROW(graph->removeParam(param), spider::Exception) << "Graph::removeParam() should throw for invalid param-ix.";
+    param->setIx(ix);
+
+    /* == Getter(s) test == */
+    ASSERT_EQ(graph->vertexCount(), 0) << "Graph::vertexCount() failed.";
+    ASSERT_EQ(graph->edgeCount(), 0) << "Graph::edgeCount() failed.";
+    ASSERT_EQ(graph->paramCount(), 2) << "Graph::paramCount() failed.";
+    ASSERT_EQ(graph->configVertexCount(), 0) << "Graph::configVertexCount() failed.";
+    ASSERT_EQ(graph->subgraphCount(), 0) << "Graph::subgraphCount() failed.";
+    ASSERT_EQ(graph->dynamic(), false) << "Graph::dynamic() failed.";
+    ASSERT_EQ(graph->subIx(), UINT32_MAX) << "Graph::subIx() failed.";
+
+    /* == Test subgraph == */
+    auto *vertex_0 = spider::api::createVertex(graph, "vertex_0", 0, 1);
+    auto *vertex_1 = spider::api::createVertex(graph, "vertex_1", 1, 1);
+    auto *subgraph = spider::api::createSubraph(graph, "subgraph", 3, 4, 2, 1, 1);
+    auto *input = spider::api::setInputInterfaceName(subgraph, 0, "input");
+    auto *output = spider::api::setOutputInterfaceName(subgraph, 0, "output");
+    auto *vertex_2 = spider::api::createVertex(subgraph, "vertex_2", 2, 1);
+    auto *vertex_3 = spider::api::createVertex(subgraph, "vertex_3", 1, 1);
+    auto *vertex_4 = spider::api::createVertex(graph, "vertex_4", 1);
+    auto *cfg = spider::api::createConfigActor(subgraph, "cfg", 0, 1);
+    spider::api::createEdge(vertex_0, 0, 1, vertex_1, 0, 1);
+    spider::api::createEdge(vertex_1, 0, 1, subgraph, 0, 1);
+    spider::api::createEdge(input, 0, 5, vertex_2, 0, 1);
+    spider::api::createEdge(vertex_2, 0, 1, vertex_3, 0, 5);
+    spider::api::createEdge(vertex_3, 0, 1, output, 0, 1);
+    spider::api::createEdge(subgraph, 0, 5, vertex_4, 0, 5);
+    spider::api::createEdge(cfg, 0, 15, vertex_2, 1, 1);
+
+    ASSERT_EQ(graph->edges()[1]->sinkFw(), input) << "Graph::forwardEdge() failed";
+    ASSERT_EQ(graph->edges()[2]->sourceFw(), output) << "Graph::forwardEdge() failed";
+
+    ASSERT_EQ(graph->vertices().size(), 4) << "Graph::vertices() failed.";
+    ASSERT_EQ(graph->subgraphs().size(), 1) << "Graph::subgraphs() failed.";
+    ASSERT_EQ(subgraph->configVertices().size(), 1) << "Graph::configVertices() failed.";
+    ASSERT_EQ(subgraph->inputInterfaceArray().size(), subgraph->inputEdgeCount()) << "Graph::inputInterfaceArray() failed.";
+    ASSERT_EQ(subgraph->outputInterfaceArray().size(), subgraph->outputEdgeCount()) << "Graph::outputInterfaceArray() failed.";
+    ASSERT_EQ(graph->vertex(0), vertex_0) << "Graph::vertex(ix) failed";
+    ASSERT_EQ(graph->vertex(1), vertex_1) << "Graph::vertex(ix) failed";
+    ASSERT_EQ(graph->vertex(2), subgraph) << "Graph::vertex(ix) failed";
+    ASSERT_EQ(graph->vertex(3), vertex_4) << "Graph::vertex(ix) failed";
+    spider::api::createDynamicParam(subgraph, "width");
+    ASSERT_EQ(subgraph->dynamic(), true) << "Graph::dynamic() failed.";
+
+    ASSERT_NO_THROW(graph->moveParam(param, nullptr)) << "Graph::moveParam() should not throw for nullptr graph";
+    ASSERT_NO_THROW(graph->moveParam(nullptr, subgraph)) << "Graph::moveParam() should not throw for nullptr param";
+    ASSERT_THROW(graph->moveParam(param, subgraph), spider::Exception) << "Graph::moveParam() should throw if trying to move a param in a graph already containing one with same name.";
+    graph->addParam(param);
+    ASSERT_NO_THROW(graph->moveParam(param, graph)) << "Graph::moveParam() should not throw";
+
+    ASSERT_NO_THROW(graph->moveEdge(graph->edges()[0], nullptr)) << "Graph::moveEdge() should not throw for nullptr graph";
+    ASSERT_NO_THROW(graph->moveEdge(nullptr, subgraph)) << "Graph::moveEdge() should not throw for nullptr edge";
+    ASSERT_NO_THROW(graph->moveEdge(graph->edges()[0], subgraph)) << "Graph::moveEdge() should not throw";
+    ASSERT_NO_THROW(subgraph->moveEdge(subgraph->edges()[subgraph->edgeCount() - 1], graph)) << "Graph::moveEdge() should not throw";
+    ASSERT_NO_THROW(graph->moveEdge(graph->edges()[0], graph)) << "Graph::moveEdge() should not throw";
+
+    ASSERT_NO_THROW(graph->moveVertex(graph->vertex(0), nullptr)) << "Graph::moveVertex() should not throw for nullptr graph";
+    ASSERT_NO_THROW(graph->moveVertex(nullptr, subgraph)) << "Graph::moveVertex() should not throw for nullptr vertex";
+    ASSERT_NO_THROW(graph->moveVertex(graph->vertex(0), subgraph)) << "Graph::moveVertex() should not throw";
+    ASSERT_NO_THROW(subgraph->moveVertex(subgraph->vertex(subgraph->vertexCount() - 1), graph)) << "Graph::moveVertex() should not throw";
+    ASSERT_NO_THROW(graph->moveVertex(graph->vertex(0), graph)) << "Graph::moveVertex() should not throw";
+
+
 
     spider::destroy(graph);
 }

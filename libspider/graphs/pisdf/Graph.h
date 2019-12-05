@@ -128,12 +128,14 @@ namespace spider {
 
             /**
              * @brief Move vertex ownership from this graph to another graph.
-             * @remark If graph is nullptr, nothing happen.
+             * @remark If graph or vertex is nullptr, nothing happen.
              * @param elt    Vertex to move.
              * @param graph  Graph to move to.
+             * @throws spider::Exception if failed to remove vertex from current graph or failed to add it to new graph.
+             * Be aware that in the latter case the vertex has already been removed from the graph.
              */
             inline void moveVertex(Vertex *elt, Graph *graph) {
-                if (!graph) {
+                if (!graph || !elt) {
                     return;
                 }
                 removeElement(vertexVector_, elt);
@@ -142,12 +144,14 @@ namespace spider {
 
             /**
              * @brief Move param ownership from this graph to another graph.
-             * @remark If graph is nullptr, nothing happen.
+             * @remark If graph or param is nullptr, nothing happen.
              * @param elt    Param to move.
              * @param graph  Graph to move to.
+             * @throws spider::Exception if failed to remove param from current graph or failed to add it to new graph.
+             * Be aware that in the latter case the param has already been removed from the graph.
              */
             inline void moveParam(Param *elt, Graph *graph) {
-                if (!graph) {
+                if (!graph || !elt) {
                     return;
                 }
                 removeElement(paramVector_, elt);
@@ -156,12 +160,15 @@ namespace spider {
 
             /**
              * @brief Move edge ownership from this graph to another graph.
-             * @remark If graph is nullptr, nothing happen.
+             * @remark If graph or edge is nullptr, nothing happen.
+             * @warning This method simply moves ownership of the Edge, no check on src / snk are performed.
              * @param elt    Edge to move.
              * @param graph  Graph to move to.
+             * @throws spider::Exception if failed to remove edge from current graph or failed to add it to new graph.
+             * Be aware that in the latter case the edge has already been removed from the graph.
              */
             inline void moveEdge(Edge *elt, Graph *graph) {
-                if (!graph) {
+                if (!graph || !elt) {
                     return;
                 }
                 removeElement(edgeVector_, elt);
