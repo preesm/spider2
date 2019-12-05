@@ -241,6 +241,7 @@ static bool trySwap(spider::vector<RPNElement> &stack,
 
 std::string spider::rpn::infixString(const spider::vector<RPNElement> &postfixStack) {
     spider::stack<std::string> stack;
+    stack.push("");
     for (const auto &element : postfixStack) {
         if (element.type == RPNElementType::OPERAND) {
             stack.push(element.token);
