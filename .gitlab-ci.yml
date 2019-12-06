@@ -11,24 +11,24 @@ job-build:
     - "cd ../../"
   artifacts:
     paths:
-    - "libspider/bin"
+    - "bin"
 test-allocator: 
   stage: test
   script: 
-    - "cd libspider/units-tests/libSpider2-tests/"
-    - ./run-test.sh allocator
+    - ./script/linux/runTest.sh allocator
 test-containers: 
   stage: test
   script: 
-    - "cd libspider/units-tests/libSpider2-tests/"
-    - ./run-test.sh containers
+    - ./script/linux/runTest.sh containers
 test-expression: 
   stage: test
   script: 
-    - "cd libspider/units-tests/libSpider2-tests/"
-    - ./run-test.sh expression
+    - ./script/linux/runTest.sh expression
 test-rpnconverter: 
   stage: test
   script: 
-    - "cd libspider/units-tests/libSpider2-tests/"
-    - ./run-test.sh rpnconverter
+    - ./script/linux/runTest.sh rpnconverter
+test-graph: 
+  stage: test
+  script: 
+    - ./script/linux/runTest.sh graph

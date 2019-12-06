@@ -65,7 +65,7 @@ namespace spider {
         void createFreeListStack(StackID stack,
                                  const std::string &name,
                                  size_t staticBufferSize,
-                                 FreeListPolicy policy = FreeListPolicy::FIND_FIRST,
+                                 FreeListPolicy policy,
                                  size_t alignment = sizeof(uint64_t));
 
         void createLinearStaticStack(StackID stack,

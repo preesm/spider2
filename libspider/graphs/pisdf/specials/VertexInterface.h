@@ -68,16 +68,7 @@ namespace spider {
             inline void visit(Visitor *visitor) override {
                 visitor->visit(static_cast<T *>(this));
             }
-
-            /* === Getter(s) === */
-
-            /* === Setter(s) === */
-
-        private:
-
         };
-
-        /* === Inline method(s) === */
     }
 }
 

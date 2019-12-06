@@ -1,10 +1,10 @@
 #!/bin/sh
 set -e
 
-which gcovr 1>/dev/null 2>&1
+which lcov 1>/dev/null 2>&1
 if [ $? != 0 ]
 then
-    echo "You need to have gcovr installed in order to generate the test coverage report"
+    echo "You need to have lcov installed in order to generate the test coverage report"
     exit 1
 fi
 
