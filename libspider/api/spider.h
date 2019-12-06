@@ -47,7 +47,6 @@
 #include <api/config-api.h>
 #include <api/pisdf-api.h>
 #include <api/constraints-api.h>
-#include <api/refinement-api.h>
 #include <api/global-api.h>
 
 /* === Methods prototype === */

@@ -45,52 +45,51 @@
 #include <common/Logger.h>
 #include <archi/Platform.h>
 #include <graphs/pisdf/specials/Specials.h>
-#include <graphs/pisdf/common/Refinement.h>
 
 /* === Static variable(s) definition === */
 
 /* === Static function(s) === */
 
-static std::vector<spider::pisdf::Refinement *> specialActorRefinements() {
-    std::vector<spider::pisdf::Refinement *> specialRefinements;
-    specialRefinements.reserve(spider::pisdf::SPECIAL_ACTOR_COUNT);
-
-    /* == Create the special actor refinements == */
-    auto *forkRefinement = spider::api::createRefinement("fork", spider::pisdf::fork, 0, 0, StackID::GENERAL);
-    spider::api::registerRefinement(forkRefinement);
-    specialRefinements.push_back(forkRefinement);
-
-    auto *joinRefinement = spider::api::createRefinement("join", spider::pisdf::join, 0, 0, StackID::GENERAL);
-    spider::api::registerRefinement(joinRefinement);
-    specialRefinements.emplace_back(joinRefinement);
-
-    auto *headRefinement = spider::api::createRefinement("head", spider::pisdf::head, 0, 0, StackID::GENERAL);
-    spider::api::registerRefinement(headRefinement);
-    specialRefinements.emplace_back(headRefinement);
-
-    auto *tailRefinement = spider::api::createRefinement("tail", spider::pisdf::tail, 0, 0, StackID::GENERAL);
-    spider::api::registerRefinement(tailRefinement);
-    specialRefinements.emplace_back(tailRefinement);
-
-    auto *duplicateRefinement = spider::api::createRefinement("duplicate", spider::pisdf::duplicate, 0, 0,
-                                                              StackID::GENERAL);
-    spider::api::registerRefinement(duplicateRefinement);
-    specialRefinements.emplace_back(duplicateRefinement);
-
-    auto *repeatRefinement = spider::api::createRefinement("repeat", spider::pisdf::repeat, 0, 0, StackID::GENERAL);
-    spider::api::registerRefinement(repeatRefinement);
-    specialRefinements.emplace_back(repeatRefinement);
-
-    auto *initRefinement = spider::api::createRefinement("init", spider::pisdf::init, 0, 0, StackID::GENERAL);
-    spider::api::registerRefinement(initRefinement);
-    specialRefinements.emplace_back(initRefinement);
-
-    auto *endRefinement = spider::api::createRefinement("end", spider::pisdf::end, 0, 0, StackID::GENERAL);
-    spider::api::registerRefinement(endRefinement);
-    specialRefinements.emplace_back(endRefinement);
-
-    return specialRefinements;
-}
+//static std::vector<spider::pisdf::Refinement *> specialActorRefinements() {
+//    std::vector<spider::pisdf::Refinement *> specialRefinements;
+//    specialRefinements.reserve(spider::pisdf::SPECIAL_ACTOR_COUNT);
+//
+//    /* == Create the special actor refinements == */
+//    auto *forkRefinement = spider::api::createRefinement("fork", spider::pisdf::fork, 0, 0, StackID::GENERAL);
+//    spider::api::registerRefinement(forkRefinement);
+//    specialRefinements.push_back(forkRefinement);
+//
+//    auto *joinRefinement = spider::api::createRefinement("join", spider::pisdf::join, 0, 0, StackID::GENERAL);
+//    spider::api::registerRefinement(joinRefinement);
+//    specialRefinements.emplace_back(joinRefinement);
+//
+//    auto *headRefinement = spider::api::createRefinement("head", spider::pisdf::head, 0, 0, StackID::GENERAL);
+//    spider::api::registerRefinement(headRefinement);
+//    specialRefinements.emplace_back(headRefinement);
+//
+//    auto *tailRefinement = spider::api::createRefinement("tail", spider::pisdf::tail, 0, 0, StackID::GENERAL);
+//    spider::api::registerRefinement(tailRefinement);
+//    specialRefinements.emplace_back(tailRefinement);
+//
+//    auto *duplicateRefinement = spider::api::createRefinement("duplicate", spider::pisdf::duplicate, 0, 0,
+//                                                              StackID::GENERAL);
+//    spider::api::registerRefinement(duplicateRefinement);
+//    specialRefinements.emplace_back(duplicateRefinement);
+//
+//    auto *repeatRefinement = spider::api::createRefinement("repeat", spider::pisdf::repeat, 0, 0, StackID::GENERAL);
+//    spider::api::registerRefinement(repeatRefinement);
+//    specialRefinements.emplace_back(repeatRefinement);
+//
+//    auto *initRefinement = spider::api::createRefinement("init", spider::pisdf::init, 0, 0, StackID::GENERAL);
+//    spider::api::registerRefinement(initRefinement);
+//    specialRefinements.emplace_back(initRefinement);
+//
+//    auto *endRefinement = spider::api::createRefinement("end", spider::pisdf::end, 0, 0, StackID::GENERAL);
+//    spider::api::registerRefinement(endRefinement);
+//    specialRefinements.emplace_back(endRefinement);
+//
+//    return specialRefinements;
+//}
 
 /* === Function(s) definition === */
 
@@ -147,9 +146,9 @@ void spider::quit() {
     spider::destroy(spider::platform());
 
     /* == Destroy the refinement(s) == */
-    for (auto &refinement : spider::refinementsRegister()) {
-        spider::destroy(refinement);
-    }
+//    for (auto &refinement : spider::refinementsRegister()) {
+//        spider::destroy(refinement);
+//    }
 
     /* == Clear the stacks == */
     spider::freeAllocators();
