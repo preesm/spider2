@@ -125,7 +125,7 @@ namespace spider {
 #ifdef _SPIDER_CHECK_ALLOCATOR
         /* == Allocate buffer with (size + 1) to store stack identifier == */
         auto *allocator = getStackAllocator(stack);
-        if (!alloc) {
+        if (!allocator) {
             throwSpiderException("Trying to allocate memory with un-initialized allocator: %ld", static_cast<long>(stack));
         }
         auto buffer = reinterpret_cast<uintptr_t>(allocator->allocate((n > 0 ? n * sizeof(T) + sizeof(uint64_t) : 0)));
@@ -147,7 +147,7 @@ namespace spider {
 #ifdef _SPIDER_CHECK_ALLOCATOR
         /* == Allocate buffer with (n + 1) to store stack identifier == */
         auto *allocator = getStackAllocator<stack>();
-        if (!alloc) {
+        if (!allocator) {
             throwSpiderException("Trying to allocate memory with un-initialized allocator: %ld", static_cast<long>(stack));
         }
         auto buffer = reinterpret_cast<uintptr_t>(allocator->allocate((n > 0 ? n * sizeof(T) + sizeof(uint64_t) : 0)));

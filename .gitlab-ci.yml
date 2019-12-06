@@ -1,13 +1,36 @@
 stages: 
-  - build-spider
+  - build
   - test
-job-build: 
-  stage: build-spider
+build-typesafe: 
+  stage: build
+  script:
+    - cd bin
+    - cmake .. -DCMAKE_BUILD_TYPE=Release -DTYPE_SAFE=ON
+    - cmake --build . --target spider2 -- -j$(nproc) VERBOSE=1
+    - rm -rf ../bin/*
+    - cmake .. -DCMAKE_BUILD_TYPE=Debug -DTYPE_SAFE=ON
+    - cmake --build . --target spider2 -- -j$(nproc) VERBOSE=1
+build-allo-check: 
+  stage: build
+  script:
+    - cd bin
+    - cmake .. -DCMAKE_BUILD_TYPE=Release -DALLOCATOR_CHECKING=ON
+    - cmake --build . --target spider2 -- -j$(nproc) VERBOSE=1
+    - rm -rf ../bin/*
+    - cmake .. -DCMAKE_BUILD_TYPE=Debug -DALLOCATOR_CHECKING=ON
+    - cmake --build . --target spider2 -- -j$(nproc) VERBOSE=1
+build-release: 
+  stage: build
+  script:
+    - cd bin
+    - cmake .. -DCMAKE_BUILD_TYPE=Release
+    - cmake --build . --target spider2 -- -j$(nproc) VERBOSE=1
+build-debug: 
+  stage: build
   script: 
     - cd bin
-    - "cmake .. -DCMAKE_BUILD_TYPE=Debug"
-    - "make VERBOSE=1 -j$(nproc)"
-    - "cd ../"
+    - cmake .. -DCMAKE_BUILD_TYPE=Debug
+    - cmake --build . --target spider2 -- -j$(nproc) VERBOSE=1
   artifacts:
     paths:
     - "bin"

@@ -227,8 +227,8 @@ double spider::Expression::evaluateStack(const spider::vector<PiSDFParam *> &par
             }
         } else {
             const auto &op = spider::rpn::getOperatorFromOperatorType(elt.arg.opType_);
-            auto &&result = applyOperator(
-                    evalStack.begin() + (static_cast<int64_t>(evalStack.size() - op.argCount)), op.type);
+            auto &&result = applyOperator(evalStack.begin() + (static_cast<int64_t>(evalStack.size() - op.argCount)),
+                                          op.type);
             for (uint8_t i = 0; i < op.argCount - 1; ++i) {
                 evalStack.pop_back();
             }

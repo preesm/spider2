@@ -171,14 +171,14 @@ namespace spider {
         double evaluateStack(const spider::vector<PiSDFParam *> &params) const;
     };
 
-/* === Inline methods === */
+    /* === Inline methods === */
 
     int64_t Expression::value() const {
         return static_cast<int64_t>(value_);
     }
 
     int64_t Expression::evaluate(const spider::vector<PiSDFParam *> &params) const {
-        return static_ ? static_cast<int64_t>(value_) : static_cast<int64_t>(evaluateStack(params));
+        return static_ ? value() : static_cast<int64_t>(evaluateStack(params));
     }
 
     double Expression::evaluateDBL(const spider::vector<PiSDFParam *> &params) const {
