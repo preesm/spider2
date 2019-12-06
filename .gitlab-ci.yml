@@ -23,10 +23,6 @@ test-expression:
   stage: test
   script: 
     - ./scripts/linux/runTest.sh expression
-test-rpnconverter: 
-  stage: test
-  script: 
-    - ./scripts/linux/runTest.sh rpnconverter
 test-graph: 
   stage: test
   script: 
