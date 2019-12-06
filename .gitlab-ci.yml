@@ -14,20 +14,20 @@ job-build:
 test-allocator: 
   stage: test
   script: 
-    - ./script/linux/runTest.sh allocator
+    - ./scripts/linux/runTest.sh allocator
 test-containers: 
   stage: test
   script: 
-    - ./script/linux/runTest.sh containers
+    - ./scripts/linux/runTest.sh containers
 test-expression: 
   stage: test
   script: 
-    - ./script/linux/runTest.sh expression
+    - ./scripts/linux/runTest.sh expression
 test-rpnconverter: 
   stage: test
   script: 
-    - ./script/linux/runTest.sh rpnconverter
+    - ./scripts/linux/runTest.sh rpnconverter
 test-graph: 
   stage: test
   script: 
-    - ./script/linux/runTest.sh graph
+    - ./scripts/linux/runTest.sh graph
