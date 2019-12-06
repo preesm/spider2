@@ -40,7 +40,6 @@
 
 /* === Include(s) === */
 
-
 #include <gtest/gtest.h>
 #include <common/Exception.h>
 #include <memory/alloc.h>

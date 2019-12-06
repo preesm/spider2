@@ -55,6 +55,9 @@ void spider::pisdf::DOTExporter::print() const {
 
 void spider::pisdf::DOTExporter::print(const std::string &path) const {
     std::ofstream file{ path, std::ios::out };
+    if (file.fail()) {
+        throwSpiderException("Failed to open file with path [%s]", path.c_str());
+    }
     print(file);
 
     /* == We should not do this manually but this will ensure that data are correctly written even if it crashes == */
