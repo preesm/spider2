@@ -70,7 +70,7 @@ enum class RPNElementSubType : uint16_t {
  * @brief Enumeration of the supported operators by the parser.
  */
 enum class RPNOperatorType : uint32_t {
-    ADD,        /*! Addition operator */
+    ADD = 0,    /*! Addition operator */
     SUB,        /*! Subtraction operator */
     MUL,        /*! Multiplication operator */
     DIV,        /*! Division operator */
@@ -89,6 +89,8 @@ enum class RPNOperatorType : uint32_t {
     SQRT,       /*! Square root function */
     MAX,        /*! Max function */
     MIN,        /*! Min function */
+    First = ADD, /*!< Sentry for EnumIterator::begin */
+    Last = MIN,  /*!< Sentry for EnumIterator::end */
 };
 
 /**
@@ -131,7 +133,7 @@ namespace spider {
         /**
          * @brief number of operators (based on the value of @refitem RPNOperatorType::COS (i.e last function)
          */
-        constexpr auto OPERATOR_COUNT = static_cast<uint32_t>(RPNOperatorType::MIN) + 1;
+        constexpr auto OPERATOR_COUNT = static_cast<uint32_t>(RPNOperatorType::Last) + 1;
 
         /**
          * @brief Value of the @refitem RPNOperatorType::COS (first function)
