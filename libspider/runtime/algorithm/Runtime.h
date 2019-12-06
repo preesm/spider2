@@ -43,7 +43,7 @@
 /* === Includes === */
 
 #include <common/Exception.h>
-#include <graphs/pisdf/common/Types.h>
+#include <graphs/pisdf/Types.h>
 
 namespace spider {
 

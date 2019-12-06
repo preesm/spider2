@@ -45,7 +45,7 @@
 #include <cstdint>
 #include <string>
 #include <graphs-tools/expression-parser/RPNConverter.h>
-#include <graphs/pisdf/common/Types.h>
+#include <graphs/pisdf/Types.h>
 
 namespace spider {
 

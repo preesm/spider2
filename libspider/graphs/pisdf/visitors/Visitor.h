@@ -42,7 +42,7 @@
 
 /* === Include(s) === */
 
-#include <graphs/pisdf/common/Types.h>
+#include <graphs/pisdf/Types.h>
 #include <typeinfo>
 #include <string>
 #include <stdexcept>

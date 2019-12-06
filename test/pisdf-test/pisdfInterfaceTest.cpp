@@ -43,7 +43,7 @@
 #include <gtest/gtest.h>
 #include <common/Exception.h>
 #include <memory/alloc.h>
-#include <graphs/pisdf/common/Types.h>
+#include <graphs/pisdf/Types.h>
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/ExecVertex.h>
 #include <graphs/pisdf/interfaces/InputInterface.h>

@@ -43,7 +43,7 @@
 #include <gtest/gtest.h>
 #include <common/Exception.h>
 #include <memory/alloc.h>
-#include <graphs/pisdf/common/Types.h>
+#include <graphs/pisdf/Types.h>
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/Edge.h>
 #include <graphs/pisdf/Delay.h>
@@ -120,6 +120,7 @@ void testType() {
     ASSERT_EQ((spider::pisdf::InputInterface().subtype()), spider::pisdf::VertexType::INPUT) << "InputInterface::subtype() should be VertexType::INPUT.";
     ASSERT_EQ((spider::pisdf::OutputInterface().subtype()), spider::pisdf::VertexType::OUTPUT) << "OutputInterface::subtype() should be VertexType::OUTPUT.";
     ASSERT_EQ((spider::pisdf::Graph().subtype()), spider::pisdf::VertexType::GRAPH) << "Graph::subtype() should be VertexType::GRAPH.";
+    ASSERT_EQ((spider::pisdf::DelayVertex().subtype()), spider::pisdf::VertexType::DELAY) << "DelayVertex::subtype() should be VertexType::DELAY.";
 }
 
 
