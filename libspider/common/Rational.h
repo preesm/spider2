@@ -50,77 +50,187 @@ namespace spider {
 
     class Rational {
     public:
-        inline explicit Rational(int64_t n = 0, int64_t d = 1);
+        inline explicit Rational(int64_t n = 0, int64_t d = 1) : n_{ n }, d_{ d } {
+            if (d_ == 0) {
+                throwSpiderException("Fraction with zero denominator not allowed.");
+            }
+            reduce();
+        }
 
-        inline Rational(const Rational &r);
+        inline Rational(const Rational &r) : Rational{ r.n_, r.d_ } {
+
+        }
 
         /* === Operators overload === */
 
-        inline Rational &operator+=(const Rational &b);
+        inline Rational &operator+=(const Rational &b) {
+            n_ = (n_ * b.d_) + (b.n_ * d_);
+            d_ *= b.d_;
+            reduce();
+            return *this;
+        }
 
-        inline Rational &operator-=(const Rational &b);
+        inline Rational &operator-=(const Rational &b) {
+            n_ = (n_ * b.d_) - (b.n_ * d_);
+            d_ *= b.d_;
+            reduce();
+            return *this;
+        }
 
-        inline Rational &operator*=(const Rational &b);
 
-        inline Rational &operator*=(int64_t b);
+        inline Rational &operator*=(const Rational &b) {
+            n_ *= b.n_;
+            d_ *= b.d_;
+            reduce();
+            return *this;
+        }
 
-        inline Rational &operator/=(const Rational &b);
+        inline Rational &operator/=(const Rational &b) {
+            if (!b.n_) {
+                throwSpiderException("Fraction with zero denominator not allowed.");
+            }
+            n_ *= b.d_;
+            d_ *= b.n_;
+            reduce();
+            return *this;
+        }
 
-        inline Rational &operator/=(int64_t b);
+        inline Rational operator+(const Rational &b) const {
+            return Rational{ *this } += b;
+        }
 
-        inline Rational operator+(const Rational &b) const;
+        inline Rational operator-(const Rational &b) const {
+            return Rational{ *this } -= b;
+        }
 
-        inline Rational operator-(const Rational &b) const;
+        inline Rational operator*(const Rational &b) const {
+            return Rational{ *this } *= b;
+        }
 
-        inline Rational operator*(const Rational &b) const;
+        inline Rational operator/(const Rational &b) const {
+            return Rational{ *this } /= b;
+        }
 
-        inline Rational operator/(const Rational &b) const;
+        inline bool operator==(const Rational &b) const {
+            return n_ == b.n_ && d_ == b.d_;
+        }
 
-        inline Rational operator+(int64_t b) const;
+        inline bool operator!=(const Rational &b) const {
+            return !(*this == b);
+        }
 
-        inline Rational operator-(int64_t b) const;
+        inline bool operator!() const {
+            return n_ == 0;
+        }
 
-        inline Rational operator*(int64_t b) const;
+        inline explicit operator bool() const {
+            return n_ != 0;
+        }
 
-        inline Rational operator/(int64_t b) const;
+        inline bool operator>(const Rational &b) const {
+            auto diff = *this - b;
+            return diff.n_ > 0;
+        }
 
-        inline bool operator==(const Rational &b) const;
+        inline bool operator<(const Rational &b) const {
+            auto diff = *this - b;
+            return diff.n_ < 0;
+        }
 
-        inline bool operator==(int64_t a) const;
+        inline bool operator>=(const Rational &b) const {
+            return !(*this < b);
+        }
 
-        inline bool operator!=(const Rational &b) const;
+        inline bool operator<=(const Rational &b) const {
+            return !(*this > b);
+        }
 
-        inline bool operator!=(int64_t a) const;
+        /* === Overloads === */
 
-        inline bool operator!() const;
+        inline Rational operator+(int64_t b) const {
+            return Rational{ *this } += Rational{ b };
+        }
 
-        inline explicit operator bool() const;
+        inline Rational operator-(int64_t b) const {
+            return Rational{ *this } -= Rational{ b };
+        }
 
-        inline bool operator>(const Rational &b) const;
+        inline Rational operator*(int64_t b) const {
+            return Rational{ *this } *= Rational{ b };
+        }
 
-        inline bool operator<(const Rational &b) const;
+        inline Rational operator/(int64_t b) const {
+            return Rational{ *this } /= Rational{ b };
+        }
 
-        inline bool operator>=(const Rational &b) const;
+        inline Rational &operator+=(int64_t b) {
+            *this += Rational{ b };
+            return *this;
+        }
 
-        inline bool operator<=(const Rational &b) const;
+        inline Rational &operator-=(int64_t b) {
+            *this -= Rational{ b };
+            return *this;
+        }
+
+        inline Rational &operator*=(int64_t b) {
+            *this *= Rational{ b };
+            return *this;
+        }
+
+        inline Rational &operator/=(int64_t b) {
+            *this /= Rational{ b };
+            return *this;
+        }
+
+        inline bool operator>(double b) const {
+            return this->toDouble() > b;
+        }
+
+        inline bool operator<(double b) const {
+            return this->toDouble() < b;
+        }
+
+        inline bool operator>=(double b) const {
+            return !(*this < b);
+        }
+
+        inline bool operator<=(double b) const {
+            return !(*this > b);
+        }
 
         /* === Methods === */
 
-        inline Rational abs() const;
+        inline Rational abs() const {
+            return Rational{ spider::math::abs((*this).n_), spider::math::abs((*this).d_) };
+        }
 
-        inline int64_t toInt64() const;
+        inline int64_t toInt64() const {
+            return static_cast<int64_t >(n_ / d_);
+        }
 
-        inline int32_t toInt32() const;
+        inline uint64_t toUInt64() const {
+            return static_cast<uint64_t >(n_ / d_);
+        }
 
-        inline double toDouble() const;
+        inline double toDouble() const {
+            return static_cast<double >(n_) / static_cast<double >(d_);
+        }
 
         /* === Getters === */
 
-        inline int64_t denominator() const;
+        inline int64_t denominator() const {
+            return d_;
+        }
 
-        inline int64_t nominator() const;
+        inline int64_t nominator() const {
+            return n_;
+        }
 
-        friend std::ostream &operator<<(std::ostream &, const Rational &);
+        friend inline std::ostream &operator<<(std::ostream &stream, const Rational &r) {
+            stream << "[" << r.nominator() << " / " << r.denominator() << "]";
+            return stream;
+        }
 
     private:
         int64_t n_;
@@ -128,179 +238,15 @@ namespace spider {
 
         /* === Private method(s) === */
 
-        inline void reduce();
+        inline void reduce() {
+            auto gcd = spider::math::gcd(n_, d_);
+            n_ /= gcd;
+            d_ /= gcd;
+            if (d_ < 0) {
+                n_ = -n_;
+                d_ = -d_;
+            }
+        }
     };
-
-    /* === Inline method(s) === */
-
-    inline std::ostream &operator<<(std::ostream &stream, const Rational &r) {
-        stream << "[" << r.nominator() << " / " << r.denominator() << "]";
-        return stream;
-    }
-
-    Rational::Rational(int64_t n, int64_t d) : n_{ n }, d_{ d } {
-        if (d_ == 0) {
-            throwSpiderException("Fraction with zero denominator not allowed.");
-        }
-        reduce();
-    }
-
-    Rational::Rational(const Rational &r) : Rational{ r.n_, r.d_ } {
-
-    }
-
-    Rational &Rational::operator+=(const Rational &b) {
-        n_ = (n_ * b.d_) + (b.n_ * d_);
-        d_ *= b.d_;
-        reduce();
-        return *this;
-    }
-
-    Rational &Rational::operator-=(const Rational &b) {
-        n_ = (n_ * b.d_) - (b.n_ * d_);
-        d_ *= b.d_;
-        reduce();
-        return *this;
-    }
-
-    Rational &Rational::operator*=(const Rational &b) {
-        n_ *= b.n_;
-        d_ *= b.d_;
-        reduce();
-        return *this;
-    }
-
-    Rational &Rational::operator*=(int64_t b) {
-        n_ *= b;
-        reduce();
-        return *this;
-    }
-
-    Rational &Rational::operator/=(const Rational &b) {
-        if (!b.n_) {
-            throwSpiderException("Fraction with zero denominator not allowed.");
-        }
-        n_ *= b.d_;
-        d_ *= b.n_;
-        reduce();
-        return *this;
-    }
-
-    Rational &Rational::operator/=(int64_t b) {
-        if (!b) {
-            throwSpiderException("Fraction with zero denominator not allowed.");
-        }
-        d_ *= b;
-        reduce();
-        return *this;
-    }
-
-    Rational Rational::operator+(const Rational &b) const {
-        return Rational{ *this } += b;
-    }
-
-    Rational Rational::operator-(const Rational &b) const {
-        return Rational{ *this } -= b;
-    }
-
-    Rational Rational::operator*(const Rational &b) const {
-        return Rational{ *this } *= b;
-    }
-
-    Rational Rational::operator/(const Rational &b) const {
-        return Rational{ *this } /= b;
-    }
-
-    Rational Rational::operator+(int64_t b) const {
-        return *this + Rational{ b };
-    }
-
-    Rational Rational::operator-(int64_t b) const {
-        return *this - Rational{ b };
-    }
-
-    Rational Rational::operator*(int64_t b) const {
-        return *this * Rational{ b };
-    }
-
-    Rational Rational::operator/(int64_t b) const {
-        return *this / Rational{ b };
-    }
-
-    bool Rational::operator==(const Rational &b) const {
-        return n_ == b.n_ && d_ == b.d_;
-    }
-
-    bool Rational::operator==(int64_t a) const {
-        return this->toDouble() == static_cast<double >(a);
-    }
-
-    bool Rational::operator!=(const Rational &b) const {
-        return !(*this == b);
-    }
-
-    bool Rational::operator!=(int64_t a) const {
-        return !(*this == a);
-    }
-
-    bool Rational::operator!() const {
-        return n_ == 0;
-    }
-
-    Rational::operator bool() const {
-        return n_ != 0;
-    }
-
-    bool Rational::operator>(const Rational &b) const {
-        auto diff = *this - b;
-        return diff.n_ > 0;
-    }
-
-    bool Rational::operator<(const Rational &b) const {
-        auto diff = *this - b;
-        return diff.n_ < 0;
-    }
-
-    bool Rational::operator>=(const Rational &b) const {
-        return !(*this < b);
-    }
-
-    bool Rational::operator<=(const Rational &b) const {
-        return !(*this > b);
-    }
-
-    int64_t Rational::toInt64() const {
-        return static_cast<int64_t >(n_ / d_);
-    }
-
-    int32_t Rational::toInt32() const {
-        return static_cast<int32_t >(n_ / d_);
-    }
-
-    double Rational::toDouble() const {
-        return static_cast<double >(n_) / static_cast<double >(d_);
-    }
-
-    Rational Rational::abs() const {
-        return Rational{ spider::math::abs((*this).n_), spider::math::abs((*this).d_) };
-    }
-
-    int64_t Rational::denominator() const {
-        return d_;
-    }
-
-    int64_t Rational::nominator() const {
-        return n_;
-    }
-
-    void Rational::reduce() {
-        auto gcd = spider::math::gcd(n_, d_);
-        n_ /= gcd;
-        d_ /= gcd;
-        if (d_ < 0) {
-            n_ = -n_;
-            d_ = -d_;
-        }
-    }
 }
 #endif // SPIDER2_RATIONAL_H_

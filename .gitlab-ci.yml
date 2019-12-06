@@ -50,3 +50,7 @@ test-graph:
   stage: test
   script: 
     - ./scripts/linux/runTest.sh graph
+test-math: 
+  stage: test
+  script: 
+    - ./scripts/linux/runTest.sh math

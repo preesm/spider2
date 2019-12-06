@@ -71,7 +71,7 @@ void spider::brv::compute(const spider::pisdf::Graph *graph, const spider::vecto
         /* == 1.4 Compute the repetition value for vertices of the connected component == */
         for (auto &vertex : component.vertexVector_) {
             rationalArray[vertex->ix()] *= lcmFactor;
-            vertex->setRepetitionValue(static_cast<uint32_t>(rationalArray[vertex->ix()].toInt32()));
+            vertex->setRepetitionValue(static_cast<uint32_t>(rationalArray[vertex->ix()].toUInt64()));
         }
 
         /* == 1.5 Update repetition values based on PiSDF rules of input / output interfaces and config actors == */

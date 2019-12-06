@@ -50,82 +50,49 @@
 namespace spider {
     namespace math {
 
+        template <class T>
+        inline T abs(T x) {
+            return static_cast<T>((x < 0) ? (-x) : x);
+        }
+
         template<class T>
         inline T ceilDiv(T x, T y) {
-            static_assert(std::is_unsigned<T>::value && std::is_integral<T>::value, "ceilDiv expect unsigned integer");
-            return static_cast<T>((x / y + (x % y != 0)));
-        }
-
-        inline int32_t ceilDiv(int32_t x, int32_t y) {
-            auto neg = (x < 0 && y > 0) || (x > 0 && y < 0);
-            auto a = static_cast<uint32_t>((x < 0 ? (-x) : x));
-            auto b = static_cast<uint32_t>((y < 0 ? (-y) : y));
-            return neg ? -static_cast<int32_t>(a / b) : static_cast<int32_t>(ceilDiv(a, b));
-        }
-
-        inline int64_t ceilDiv(int64_t x, int64_t y) {
-            auto neg = (x < 0 && y > 0) || (x > 0 && y < 0);
-            auto a = static_cast<uint64_t>((x < 0 ? (-x) : x));
-            auto b = static_cast<uint64_t>((y < 0 ? (-y) : y));
-            return neg ? -static_cast<int64_t>(a / b) : static_cast<int64_t>(ceilDiv(a, b));
+            static_assert(std::is_integral<T>::value, "ceilDiv should be used with integer value");
+            T d = x / y;
+            T r = x % y; /* = Should be optimize into single division = */
+            return d + ((r != 0) & (d > 0));
         }
 
         template<class T>
         inline T floorDiv(T x, T y) {
-            static_assert(std::is_signed<T>::value && std::is_integral<T>::value,
-                          "floorDiv should be used with signed integer only");
-            auto neg = (x < 0 && y > 0) || (x > 0 && y < 0);
-            auto a = static_cast<typename std::make_unsigned<T>::type>((x < 0 ? (-x) : x));
-            auto b = static_cast<typename std::make_unsigned<T>::type>((y < 0 ? (-y) : y));
-            return neg ? -static_cast<T>(ceilDiv(a, b)) : static_cast<T>(a / b);
+            static_assert(std::is_integral<T>::value, "floorDiv should be used with integer only");
+            T d = x / y;
+            T r = x % y; /* = Should be optimize into single division = */
+            return r ? (d - (d < 0)) : d;
         }
 
-        inline int16_t abs(int16_t x) {
-            return static_cast<int16_t>(x < 0 ? -x : x);
-        }
-
-        inline int32_t abs(int32_t x) {
-            return x < 0 ? -x : x;
-        }
-
-        inline int64_t abs(int64_t x) {
-            return x < 0 ? -x : x;
-        }
-
-        inline int64_t gcd(int64_t x, int64_t y) {
-            int64_t t;
-            while (y != 0) {
-                t = y;
-                y = x % y;
-                x = t;
+        template<class T>
+        inline T gcd(T x, T y) {
+            static_assert(std::is_integral<T>::value, "GCD expect integral values.");
+            auto a = static_cast<typename std::make_unsigned<T>::type>(x);
+            auto b = static_cast<typename std::make_unsigned<T>::type>(y);
+            typename std::make_unsigned<T>::type t;
+            while (b != 0) {
+                t = b;
+                b = a % b;
+                a = t;
             }
-            return x;
+            return static_cast<T>(a);
         }
 
-        inline uint64_t gcd(uint64_t x, uint64_t y) {
-            uint64_t t;
-            while (y != 0) {
-                t = y;
-                y = x % y;
-                x = t;
-            }
-            return x;
-        }
-
-        inline int64_t lcm(int64_t a, int64_t b) {
+        template<class T>
+        inline T lcm(T a, T b) {
             return spider::math::abs(a * b) / spider::math::gcd(a, b);
         }
 
-        inline uint64_t lcm(uint64_t a, uint64_t b) {
-            return (a * b) / spider::math::gcd(a, b);
-        }
-
-        inline uint64_t saturateAdd(uint64_t a, uint64_t b) {
-            return b > (UINT64_MAX - a) ? UINT64_MAX : a + b;
-        }
-
-        inline uint32_t saturateAdd(uint32_t a, uint32_t b) {
-            return b > (UINT32_MAX - a) ? UINT32_MAX : a + b;
+        template <class T>
+        inline T saturateAdd(T a, T b) {
+            return b > (std::numeric_limits<T>::max() - a) ? std::numeric_limits<T>::max() : a + b;
         }
     }
 }
