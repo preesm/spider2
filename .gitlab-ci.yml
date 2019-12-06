@@ -4,11 +4,10 @@ stages:
 job-build: 
   stage: build-spider
   script: 
-    - "mkdir libspider/bin/"
-    - "cd libspider/bin"
-    - "cmake -DCMAKE_BUILD_TYPE=Debug .."
+    - cd bin
+    - "cmake .. -DCMAKE_BUILD_TYPE=Debug"
     - "make VERBOSE=1 -j$(nproc)"
-    - "cd ../../"
+    - "cd ../"
   artifacts:
     paths:
     - "bin"
