@@ -79,32 +79,32 @@ namespace spider {
     }
 
     template<AllocatorType Type, class ...Args>
-    inline StackID createAllocator(type<Type>, StackID, Args &&...) {
+    inline StackID createStackAllocator(type<Type>, StackID, Args &&...) {
         throwSpiderException("unsupported allocator type.");
     }
 
     template<class ...Args>
-    inline void createAllocator(type<AllocatorType::GENERIC>, StackID stack, Args &&... args) {
+    inline void createStackAllocator(type<AllocatorType::GENERIC>, StackID stack, Args &&... args) {
         if (!getStackAllocator(stack)) {
             getStackAllocator(stack) = new GenericAllocator(std::forward<Args>(args)...);
         }
     }
 
     template<class ...Args>
-    inline void createAllocator(type<AllocatorType::FREELIST>, StackID stack, Args &&... args) {
+    inline void createStackAllocator(type<AllocatorType::FREELIST>, StackID stack, Args &&... args) {
         if (!getStackAllocator(stack)) {
             getStackAllocator(stack) = new FreeListAllocator(std::forward<Args>(args)...);
         }
     }
 
     template<class ...Args>
-    inline void createAllocator(type<AllocatorType::LINEAR_STATIC>, StackID stack, Args &&... args) {
+    inline void createStackAllocator(type<AllocatorType::LINEAR_STATIC>, StackID stack, Args &&... args) {
         if (!getStackAllocator(stack)) {
             getStackAllocator(stack) = new LinearStaticAllocator(std::forward<Args>(args)...);
         }
     }
 
-    inline void freeAllocators() {
+    inline void freeStackAllocators() {
         for (auto stack : spider::EnumIterator<StackID>()) {
             delete getStackAllocator(stack);
             getStackAllocator(stack) = nullptr;
@@ -122,17 +122,9 @@ namespace spider {
      */
     template<typename T>
     inline T *allocate(StackID stack, size_t n = 1) {
-#ifdef _SPIDER_CHECK_ALLOCATOR
-        /* == Allocate buffer with (size + 1) to store stack identifier == */
-        auto *allocator = getStackAllocator(stack);
-        if (!allocator) {
-            throwSpiderException("Trying to allocate memory with un-initialized allocator: %ld", static_cast<long>(stack));
-        }
-        auto buffer = reinterpret_cast<uintptr_t>(allocator->allocate((n > 0 ? n * sizeof(T) + sizeof(uint64_t) : 0)));
-#else
         /* == Allocate buffer with (size + 1) to store stack identifier == */
         auto buffer = reinterpret_cast<uintptr_t>(getStackAllocator(stack)->allocate((n > 0 ? n * sizeof(T) + sizeof(uint64_t) : 0)));
-#endif
+
         /* == Return allocated buffer == */
         if (buffer) {
             reinterpret_cast<uint64_t *>(buffer)[0] = static_cast<uint64_t>(stack);
@@ -144,17 +136,34 @@ namespace spider {
 
     template<typename T, StackID stack = StackID::GENERAL>
     inline T *allocate(size_t n = 1) {
-#ifdef _SPIDER_CHECK_ALLOCATOR
-        /* == Allocate buffer with (n + 1) to store stack identifier == */
-        auto *allocator = getStackAllocator<stack>();
+        /* == Allocate buffer with (size + 1) to store stack identifier == */
+        auto buffer = reinterpret_cast<uintptr_t>(getStackAllocator<stack>()->allocate((n > 0 ? n * sizeof(T) + sizeof(uint64_t) : 0)));
+
+        /* == Return allocated buffer == */
+        if (buffer) {
+            reinterpret_cast<uint64_t *>(buffer)[0] = static_cast<uint64_t>(stack);
+            buffer = buffer + sizeof(uint64_t);
+            return reinterpret_cast<T *>(buffer);
+        }
+        return nullptr;
+    }
+
+    /**
+     * @brief Allocate raw memory buffer on given stack.
+     * @tparam T    Type of the pointer to allocate.
+     * @param size  Size of the buffer to allocate.
+     * @param stack Stack on which the buffer should be allocated, see #SpiderStack
+     * @return pointer to allocated buffer, nullptr if size is 0.
+     * @throws spider::Exception if stack allocator does not exist.
+     */
+    template<typename T>
+    inline T *safeAllocate(StackID stack, size_t n = 1) {
+        /* == Allocate buffer with (size + 1) to store stack identifier == */
+        auto *allocator = getStackAllocator(stack);
         if (!allocator) {
             throwSpiderException("Trying to allocate memory with un-initialized allocator: %ld", static_cast<long>(stack));
         }
         auto buffer = reinterpret_cast<uintptr_t>(allocator->allocate((n > 0 ? n * sizeof(T) + sizeof(uint64_t) : 0)));
-#else
-        /* == Allocate buffer with (size + 1) to store stack identifier == */
-        auto buffer = reinterpret_cast<uintptr_t>(getStackAllocator<stack>()->allocate((n > 0 ? n * sizeof(T) + sizeof(uint64_t) : 0)));
-#endif
 
         /* == Return allocated buffer == */
         if (buffer) {

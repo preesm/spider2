@@ -94,7 +94,7 @@
 /* === Function(s) definition === */
 
 void spider::api::createGenericStack(StackID stack, const std::string &name, size_t alignment) {
-    createAllocator(spider::type<AllocatorType::GENERIC>{ }, stack, name, alignment);
+    createStackAllocator(spider::type<AllocatorType::GENERIC>{ }, stack, name, alignment);
 }
 
 void spider::api::createFreeListStack(StackID stack,
@@ -102,14 +102,14 @@ void spider::api::createFreeListStack(StackID stack,
                                       size_t staticBufferSize,
                                       FreeListPolicy policy,
                                       size_t alignment) {
-    createAllocator(spider::type<AllocatorType::FREELIST>{ }, stack, name, staticBufferSize, policy, alignment);
+    createStackAllocator(spider::type<AllocatorType::FREELIST>{ }, stack, name, staticBufferSize, policy, alignment);
 }
 
 void spider::api::createLinearStaticStack(StackID stack,
                                           const std::string &name,
                                           size_t totalSize,
                                           size_t alignment) {
-    createAllocator(spider::type<AllocatorType::LINEAR_STATIC>{ }, stack, name, totalSize, alignment);
+    createStackAllocator(spider::type<AllocatorType::LINEAR_STATIC>{ }, stack, name, totalSize, alignment);
 }
 
 void spider::api::createLinearStaticStack(StackID stack,
@@ -117,7 +117,7 @@ void spider::api::createLinearStaticStack(StackID stack,
                                           size_t totalSize,
                                           void *base,
                                           size_t alignment) {
-    createAllocator(spider::type<AllocatorType::LINEAR_STATIC>{ }, stack, name, totalSize, base, alignment);
+    createStackAllocator(spider::type<AllocatorType::LINEAR_STATIC>{ }, stack, name, totalSize, base, alignment);
 }
 
 void spider::start() {
@@ -151,5 +151,5 @@ void spider::quit() {
 //    }
 
     /* == Clear the stacks == */
-    spider::freeAllocators();
+    spider::freeStackAllocators();
 }

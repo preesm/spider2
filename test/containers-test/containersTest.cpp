@@ -48,11 +48,11 @@
 class containersTest : public ::testing::Test {
 protected:
     void SetUp() override {
-        spider::createAllocator(spider::type<spider::AllocatorType::GENERIC>{ }, StackID::GENERAL, "alloc-test");
+        spider::createStackAllocator(spider::type<spider::AllocatorType::GENERIC>{ }, StackID::GENERAL, "alloc-test");
     }
 
     void TearDown() override {
-        spider::freeAllocators();
+        spider::freeStackAllocators();
     }
 };
 

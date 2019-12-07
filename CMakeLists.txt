@@ -185,13 +185,6 @@ if (USE_PAPI)
     endif ()
 endif ()
 
-# Allocator safety check?
-option(ALLOCATOR_CHECKING "Checking for non-null allocator" OFF)
-if (ALLOCATOR_CHECKING)
-    message(STATUS "Checking for non-null allocator may slow down application")
-    add_definitions(-D_SPIDER_CHECK_ALLOCATOR)
-endif ()
-
 # Encourage user to specify a build type (e.g. Release, Debug, etc.), otherwise set it to Release.
 if (NOT CMAKE_CONFIGURATION_TYPES)
     if (NOT CMAKE_BUILD_TYPE)
