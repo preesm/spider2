@@ -80,8 +80,11 @@ TEST_F(expressionTest, expressionCtorTest) {
     ASSERT_THROW(Expression("cos"), spider::Exception) << "Expression should throw when function is ill-formed.";
     ASSERT_THROW(Expression("+"), spider::Exception) << "Expression should throw when operator is missing an operand.";
     ASSERT_THROW(Expression("max(1,)"), spider::Exception) << "Expression should throw when function is missing an operand.";
-    ASSERT_EQ(Expression(
-            4).value(), 4) << "Expression evaluation failed.";
+    ASSERT_EQ(Expression(4).value(), 4) << "Expression evaluation failed.";
+    auto tmp2 = spider::ExpressionElt();
+    ASSERT_NO_THROW(spider::ExpressionElt());
+    ASSERT_NO_THROW(spider::ExpressionElt(tmp2));
+    ASSERT_NO_THROW(spider::ExpressionElt(std::move(tmp2)));
     spider::api::disableLogger(spider::log::EXPR);
 }
 
