@@ -52,45 +52,46 @@
  * @brief Primary type of an @refitem RPNElement.
  */
 enum class RPNElementType : uint16_t {
-    OPERATOR, /*! Operator element */
-    OPERAND,  /*! Operand element */
+    OPERATOR, /*!< Operator element */
+    OPERAND,  /*!< Operand element */
 };
 
 /**
  * @brief Secondary type of an @refitem RPNElement
  */
 enum class RPNElementSubType : uint16_t {
-    VALUE,      /*! Value (digit) */
-    PARAMETER,  /*! Value coming from a parameter */
-    FUNCTION,   /*! Operator is a function */
-    OPERATOR,   /*! Operator is an elementary operator */
+    VALUE,      /*!< Value (digit) */
+    PARAMETER,  /*!< Value coming from a parameter */
+    FUNCTION,   /*!< Operator is a function */
+    OPERATOR,   /*!< Operator is an elementary operator */
 };
 
 /**
  * @brief Enumeration of the supported operators by the parser.
  */
 enum class RPNOperatorType : uint32_t {
-    ADD = 0,    /*! Addition operator */
-    SUB,        /*! Subtraction operator */
-    MUL,        /*! Multiplication operator */
-    DIV,        /*! Division operator */
-    MOD,        /*! Modulo operator */
-    POW,        /*! Power operator */
-    LEFT_PAR,   /*! Left parenthesis */
-    RIGHT_PAR,  /*! Right parenthesis */
-    COS,        /*! Cosine function */
-    SIN,        /*! Sinus function */
-    TAN,        /*! Tangent function */
-    EXP,        /*! Exponential function */
-    LOG,        /*! Logarithm (base 10) function */
-    LOG2,       /*! Logarithm (base 2) function */
-    CEIL,       /*! Ceil function */
-    FLOOR,      /*! Floor function */
-    SQRT,       /*! Square root function */
-    MAX,        /*! Max function */
-    MIN,        /*! Min function */
-    First = ADD, /*!< Sentry for EnumIterator::begin */
-    Last = MIN,  /*!< Sentry for EnumIterator::end */
+    ADD = 0,    /*!< Addition operator */
+    SUB,        /*!< Subtraction operator */
+    MUL,        /*!< Multiplication operator */
+    DIV,        /*!< Division operator */
+    MOD,        /*!< Modulo operator */
+    POW,        /*!< Power operator */
+    LEFT_PAR,   /*!< Left parenthesis */
+    RIGHT_PAR,  /*!< Right parenthesis */
+    COS,        /*!< Cosine function */
+    SIN,        /*!< Sinus function */
+    TAN,        /*!< Tangent function */
+    EXP,        /*!< Exponential function */
+    LOG,        /*!< Logarithm (base 10) function */
+    LOG2,       /*!< Logarithm (base 2) function */
+    CEIL,       /*!< Ceil function */
+    FLOOR,      /*!< Floor function */
+    SQRT,       /*!< Square root function */
+    MAX,        /*!< Max function */
+    MIN,        /*!< Min function */
+    DUMMY,      /*!< Dummy function */
+    First = ADD,   /*!< Sentry for EnumIterator::begin */
+    Last = DUMMY,  /*!< Sentry for EnumIterator::end */
 };
 
 /**

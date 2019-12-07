@@ -85,6 +85,7 @@ TEST_F(expressionTest, expressionCtorTest) {
     ASSERT_NO_THROW(spider::ExpressionElt());
     ASSERT_NO_THROW(spider::ExpressionElt(tmp2));
     ASSERT_NO_THROW(spider::ExpressionElt(std::move(tmp2)));
+    ASSERT_NO_THROW(spider::Expression("dummy(1)")) << "Expression::Expression() should not throw with dummy operator.";
     spider::api::disableLogger(spider::log::EXPR);
 }
 

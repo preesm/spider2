@@ -450,6 +450,7 @@ const RPNOperator &spider::rpn::getOperator(uint32_t ix) {
                                   { RPNOperatorType::SQRT, 5, false, "sqrt", 1 },      /*! SQRT function */
                                   { RPNOperatorType::MAX, 5, false, "max", 2 },        /*! MAX operator */
                                   { RPNOperatorType::MIN, 5, false, "min", 2 },        /*! MIN operator */
+                                  { RPNOperatorType::DUMMY, 5, false, "dummy", 1 },    /*! Dummy operator */
                           }};
 //    static const std::map<RPNOperatorType, RPNOperator> operatorMap = {
 //            {RPNOperatorType::ADD,       {RPNOperatorType::ADD,       2, false, "+",     2}},

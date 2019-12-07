@@ -96,7 +96,7 @@ TEST_F(rpnconverterTest, rpnconverterGetStringFunctionsTest) {
     EXPECT_NO_THROW(spider::rpn::getOperatorTypeFromString("sqrt"));
     EXPECT_NO_THROW(spider::rpn::getOperatorTypeFromString("min"));
     EXPECT_NO_THROW(spider::rpn::getOperatorTypeFromString("max"));
-    EXPECT_THROW(spider::rpn::getOperatorTypeFromString("dummy"), spider::Exception);
+    EXPECT_THROW(spider::rpn::getOperatorTypeFromString("foo"), spider::Exception);
 }
 
 TEST_F(rpnconverterTest, rpnconverterGetOperatorTest) {
