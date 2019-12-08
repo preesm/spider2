@@ -184,7 +184,7 @@ TEST_F(pisdfBRVTest, brvTest) {
         spider::api::createVertex(graph, "valid", 0, 1);
         spider::api::createVertex(graph, "failure", 1, 0);
         spider::api::createEdge(graph->vertex(0), 0, 1, graph->vertex(1), 0, 0);
-        ASSERT_THROW(spider::brv::compute(graph), spider::Exception) << "spider::brv::comput should throw for edges != 0 -> edge == 0";
+        ASSERT_THROW(spider::brv::compute(graph), spider::Exception) << "spider::brv::compute should throw for edges != 0 -> edge == 0";
         spider::destroy(graph);
     }
     {
@@ -192,7 +192,16 @@ TEST_F(pisdfBRVTest, brvTest) {
         spider::api::createVertex(graph, "valid", 0, 1);
         spider::api::createVertex(graph, "failure", 1, 0);
         spider::api::createEdge(graph->vertex(0), 0, 0, graph->vertex(1), 0, 1);
-        ASSERT_THROW(spider::brv::compute(graph), spider::Exception) << "spider::brv::comput should throw for edges == 0 -> edge != 0";
+        ASSERT_THROW(spider::brv::compute(graph), spider::Exception) << "spider::brv::compute should throw for edges == 0 -> edge != 0";
+        spider::destroy(graph);
+    }
+    {
+        auto *graph = spider::api::createGraph("graph", 2, 1);
+        spider::api::createVertex(graph, "V0", 1, 1);
+        spider::api::createVertex(graph, "V1", 1, 1);
+        spider::api::createEdge(graph->vertex(0), 0, 1, graph->vertex(1), 0, 1);
+        spider::api::createEdge(graph->vertex(1), 0, 2, graph->vertex(0), 0, 1);
+        ASSERT_THROW(spider::brv::compute(graph), spider::Exception) << "spider::brv::compute should throw non consistent graph";
         spider::destroy(graph);
     }
     spider::api::disableVerbose();
