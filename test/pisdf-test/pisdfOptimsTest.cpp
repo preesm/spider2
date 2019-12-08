@@ -75,12 +75,27 @@ protected:
 
 
 TEST_F(pisdfOptimsTest, initEndTest) {
-    auto *graph = spider::api::createGraph("graph", 2, 1);
-    auto *init = spider::api::createInit(graph, "init");
-    auto *end = spider::api::createEnd(graph, "end");
-    spider::api::createEdge(init, 0, 1, end, 0, 1);
-    ASSERT_EQ(graph->vertexCount(), 2);
-    ASSERT_NO_THROW(PiSDFInitEndOptimizer()(graph));
-    ASSERT_EQ(graph->vertexCount(), 0);
-    spider::destroy(graph);
+   {
+       auto *graph = spider::api::createGraph("graph", 2, 1);
+       auto *init = spider::api::createInit(graph, "init");
+       auto *end = spider::api::createEnd(graph, "end");
+       spider::api::createEdge(init, 0, 1, end, 0, 1);
+       ASSERT_EQ(graph->vertexCount(), 2);
+       ASSERT_NO_THROW(PiSDFInitEndOptimizer()(graph));
+       ASSERT_EQ(graph->vertexCount(), 0);
+       spider::destroy(graph);
+   }
+   {
+       auto *graph = spider::api::createGraph("graph", 4, 1);
+       auto *init = spider::api::createInit(graph, "init");
+       auto *end = spider::api::createEnd(graph, "end");
+       auto *v = spider::api::createVertex(graph, "v", 1);
+       auto *v1 = spider::api::createVertex(graph, "v1", 0, 1);
+       spider::api::createEdge(init, 0, 1, v, 0, 1);
+       spider::api::createEdge(v1, 0, 1, end, 0, 1);
+       ASSERT_EQ(graph->vertexCount(), 4);
+       ASSERT_NO_THROW(PiSDFInitEndOptimizer()(graph));
+       ASSERT_EQ(graph->vertexCount(), 4);
+       spider::destroy(graph);
+   }
 }
