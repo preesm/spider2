@@ -12,6 +12,7 @@ set(${GRAPH_TARGET_NAME}_SRC
         pisdfEdgeTest.cpp
         pisdfGraphTest.cpp
         pisdfInterfaceTest.cpp
+        pisdfOptimsTest.cpp
         pisdfParamTest.cpp
         pisdfVertexTest.cpp)
 
