@@ -6,6 +6,7 @@ find_package(GTest REQUIRED)
 # Add the test files
 set(${GRAPH_TARGET_NAME}_SRC
         ../main.cpp
+        pisdfBRVTest.cpp
         pisdfDelayTest.cpp
         pisdfDOTExporterTest.cpp
         pisdfEdgeTest.cpp
