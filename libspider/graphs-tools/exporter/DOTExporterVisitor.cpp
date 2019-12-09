@@ -119,10 +119,16 @@ std::pair<int32_t, int32_t> spider::pisdf::DOTExporterVisitor::computeConstantWi
     /* == Get the maximum number of digits == */
     double longestRateLen = 0;
     for (const auto &e: vertex->inputEdgeArray()) {
+        if (!e) {
+            throwSpiderException("vertex [%s]: null input edge.", vertex->name().c_str());
+        }
         const auto &rate = e->sinkRateExpression().evaluate(exporter_->params_);
         longestRateLen = std::max(longestRateLen, std::log10(rate));
     }
     for (const auto &e: vertex->outputEdgeArray()) {
+        if (!e) {
+            throwSpiderException("vertex [%s]: null output edge.", vertex->name().c_str());
+        }
         const auto &rate = e->sourceRateExpression().evaluate(exporter_->params_);
         longestRateLen = std::max(longestRateLen, std::log10(rate));
     }

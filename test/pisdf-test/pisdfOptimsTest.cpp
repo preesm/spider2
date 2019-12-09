@@ -262,9 +262,7 @@ TEST_F(pisdfOptimsTest, forkForkTest2) {
     spider::api::createEdge(fork_2, 0, 1, v5, 0, 1);
     spider::api::createEdge(fork_2, 1, 1, v6, 0, 1);
     ASSERT_EQ(graph->vertexCount(), 11);
-    spider::api::exportGraphToDOT("./test_before.dot", graph);
     ASSERT_NO_THROW(PiSDFForkForkOptimizer()(graph));
-    spider::api::exportGraphToDOT("./test_after.dot", graph);
     ASSERT_EQ(graph->vertexCount(), 8);
     spider::destroy(graph);
 }
