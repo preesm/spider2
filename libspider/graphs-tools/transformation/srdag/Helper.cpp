@@ -85,7 +85,22 @@ struct CopyVisitor final : public spider::pisdf::DefaultVisitor {
 
     explicit CopyVisitor(spider::srdag::TransfoData &transfoJob) : transfoData_{ transfoJob } { }
 
-    inline void visit(spider::pisdf::DelayVertex *) override { }
+    inline void visit(spider::pisdf::DelayVertex *vertex) override {
+        /* == This a trick to ensure proper coherence even with recursive delay init == */
+        /* == For given scenario:   A -> | delay | -> B
+         *                         setter --^ --> getter
+         *    This will produce this:
+         *                          setter -> | delay | -> getter
+         *                               A -> |       | -> B
+         *    But in reality the vertex does not make it after the SR-Transformation.
+         */
+        spider::api::createVertex(transfoData_.srdag_,
+                                  buildCloneName(vertex, 0, transfoData_),
+                                  2,
+                                  2,
+                                  StackID::TRANSFO);
+        ix_ = static_cast<uint32_t>((transfoData_.srdag_->vertexCount() - 1));
+    }
 
     inline void visit(spider::pisdf::ExecVertex *vertex) override {
         spider::pisdf::CloneVertexVisitor cloneVisitor{ transfoData_.srdag_, StackID::TRANSFO };
@@ -199,11 +214,11 @@ void spider::srdag::copyFromRV(PiSDFAbstractVertex *vertex, TransfoData &transfo
     }
 }
 
-void spider::srdag::fillLinkerVector(TransfoStack &vector,
-                                     PiSDFAbstractVertex *reference,
-                                     int64_t rate,
-                                     size_t portIx,
-                                     TransfoData &transfoData) {
+void spider::srdag::populateTransfoStack(TransfoStack &vector,
+                                         const PiSDFAbstractVertex *reference,
+                                         int64_t rate,
+                                         size_t portIx,
+                                         TransfoData &transfoData) {
     const auto &vertexUniformIx = uniformIx(reference, transfoData.job_.reference_);
     const auto &clone = transfoData.srdag_->vertex(transfoData.tracker_[vertexUniformIx]);
     const auto &cloneIx = clone->ix();
@@ -318,10 +333,10 @@ spider::srdag::computeEdgeDependencies(TransfoStack &srcVector, TransfoStack &sn
     auto &&delay = edge->delay() ? edge->delay()->value(transfoData.job_.params_) : 0;
     const auto &srcRate = srcVector[0].rate_;     /* = This should be the proper source rate of the edge = */
     const auto &snkRate = snkVector.back().rate_; /* = This should be the proper sink rate of the edge = */
-    const auto &setterRate = edge->delay() ? srcVector.back().rate_ : 0;
     const auto &getterRate = edge->delay() ? snkVector[0].rate_ : 0;
     const auto &sinkRepetitionValue = edge->sink()->repetitionValue();
-    const auto &setterOffset = edge->delay() ? edge->delay()->setter()->repetitionValue() : 0;
+//    const auto &setterOffset = edge->delay() ? edge->delay()->setter()->repetitionValue() : 0;
+    const auto &setterOffset = edge->delay() ? 1 : 0;
 
     /* == Compute dependencies for sinks == */
     uint32_t firing = 0;
@@ -335,13 +350,6 @@ spider::srdag::computeEdgeDependencies(TransfoStack &srcVector, TransfoStack &sn
         }
         auto snkLowerDep = spider::pisdf::computeConsLowerDep(currentSinkRate, srcRate, firing, delay);
         auto snkUpperDep = spider::pisdf::computeConsUpperDep(currentSinkRate, srcRate, firing, delay);
-        if (snkLowerDep < 0) {
-            /* == Update dependencies for init / setter == */
-            snkLowerDep -= spider::pisdf::computeConsLowerDep(snkRate, setterRate, firing, 0);
-            if (snkUpperDep < 0) {
-                snkUpperDep -= spider::pisdf::computeConsUpperDep(snkRate, setterRate, firing, 0);
-            }
-        }
 
         /* == Adjust the values to match the actual position in the source vector == */
         snkLowerDep += setterOffset;

@@ -79,11 +79,11 @@ namespace spider {
          */
         void copyFromRV(PiSDFAbstractVertex *vertex, TransfoData &transfoData);
 
-        void fillLinkerVector(TransfoStack &vector,
-                              PiSDFAbstractVertex *reference,
-                              int64_t rate,
-                              size_t portIx,
-                              TransfoData &transfoData);
+        void populateTransfoStack(TransfoStack &vector,
+                                  const PiSDFAbstractVertex *reference,
+                                  int64_t rate,
+                                  size_t portIx,
+                                  TransfoData &transfoData);
 
         /**
          * @brief Add a @refitem ForkVertex into the single-rate graph and connect it.

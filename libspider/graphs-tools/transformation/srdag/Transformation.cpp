@@ -40,71 +40,26 @@
 
 /* === Includes === */
 
-#include <cinttypes>
 #include <graphs-tools/transformation/srdag/Transformation.h>
-#include <graphs-tools/transformation/srdag/Helper.h>
-#include <graphs/pisdf/Delay.h>
-#include <graphs/pisdf/interfaces/Interface.h>
+#include <graphs-tools/transformation/srdag/SnkTransfoVectorVisitor.h>
+#include <graphs-tools/transformation/srdag/SrcTransfoVectorVisitor.h>
 #include <graphs/pisdf/interfaces/InputInterface.h>
 #include <graphs/pisdf/interfaces/OutputInterface.h>
-#include <graphs-tools/numerical/dependencies.h>
-#include <graphs-tools/expression-parser/Expression.h>
 #include <graphs-tools/numerical/brv.h>
 #include <api/pisdf-api.h>
 
 /* === Static function(s) === */
 
-static spider::srdag::TransfoStack buildSourceLinkerVector(spider::srdag::TransfoData &linker) {
-    const auto &edge = linker.edge_;
-    const auto &source = edge->source();
-    const auto &delay = edge->delay();
-    auto sourceVector = spider::containers::vector<spider::srdag::TransfoVertex>(StackID::TRANSFO);
-    sourceVector.reserve(source->repetitionValue() + (delay ? delay->setter()->repetitionValue() : 0));
-
-    /* == Populate first the source clones in reverse order == */
-    const auto &params = linker.job_.params_;
-    const auto &rate = source->subtype() == PiSDFVertexType::INPUT ? edge->sinkRateExpression().evaluate(params) *
-                                                                     edge->sink()->repetitionValue()
-                                                                   : edge->sourceRateExpression().evaluate(params);
-    fillLinkerVector(sourceVector, source, rate, edge->sourcePortIx(), linker);
-
-    /* == If delay, populate the setter clones in reverse order == */
-    if (delay) {
-        const auto &setterEdge = delay->vertex()->inputEdge(0);
-        const auto &setter = delay->setter();
-        const auto &setterRate = setterEdge->sourceRateExpression().evaluate(params);
-        fillLinkerVector(sourceVector, setter, setterRate, setterEdge->sourcePortIx(), linker);
-    }
-    return sourceVector;
+static spider::srdag::TransfoStack buildSourceLinkerVector(spider::srdag::TransfoData &transfoData) {
+    SrcTransfoVectorVisitor visitor{ transfoData };
+    transfoData.edge_->source()->visit(&visitor);
+    return std::move(visitor.sourceVector_);
 }
 
-static spider::srdag::TransfoStack buildSinkLinkerVector(spider::srdag::TransfoData &linker) {
-    const auto &edge = linker.edge_;
-    const auto &sink = edge->sink();
-    const auto &delay = edge->delay();
-    auto sinkVector = spider::containers::vector<spider::srdag::TransfoVertex>(StackID::TRANSFO);
-    sinkVector.reserve(sink->repetitionValue() + (delay ? delay->getter()->repetitionValue() : 0));
-
-    /* == First, if delay, populate the getter clones in reverse order == */
-    const auto &params = linker.job_.params_;
-    if (delay) {
-        if ((sink == edge->source()) && delay->value(params) < edge->sinkRateExpression().evaluate(params)) {
-            throwSpiderException("Insufficient delay [%"
-                                         PRIu32
-                                         "] on edge [%s].", delay->value(params), edge->name().c_str());
-        }
-        const auto &getterEdge = delay->vertex()->outputEdge(0);
-        const auto &getter = delay->getter();
-        const auto &getterRate = getterEdge->sinkRateExpression().evaluate(params);
-        fillLinkerVector(sinkVector, getter, getterRate, getterEdge->sinkPortIx(), linker);
-    }
-
-    /* == Populate the sink clones in reverse order == */
-    const auto &rate = sink->subtype() == PiSDFVertexType::OUTPUT ? edge->sourceRateExpression().evaluate(params) *
-                                                                    edge->source()->repetitionValue()
-                                                                  : edge->sinkRateExpression().evaluate(params);
-    fillLinkerVector(sinkVector, sink, rate, edge->sinkPortIx(), linker);
-    return sinkVector;
+static spider::srdag::TransfoStack buildSinkLinkerVector(spider::srdag::TransfoData &transfoData) {
+    SnkTransfoVectorVisitor visitor{ transfoData };
+    transfoData.edge_->sink()->visit(&visitor);
+    return std::move(visitor.sinkVector_);
 }
 
 /**
@@ -113,10 +68,6 @@ static spider::srdag::TransfoStack buildSinkLinkerVector(spider::srdag::TransfoD
  */
 static void staticEdgeSingleRateLinkage(spider::srdag::TransfoData &transfoData) {
     const auto &edge = transfoData.edge_;
-    if ((edge->source()->subtype() == PiSDFVertexType::DELAY) ||
-        (edge->sink()->subtype() == PiSDFVertexType::DELAY)) {
-        return;
-    }
     if ((edge->source() == edge->sink())) {
         if (!edge->delay()) {
             throwSpiderException("No delay on edge with self loop.");

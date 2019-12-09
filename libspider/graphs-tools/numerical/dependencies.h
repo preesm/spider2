@@ -52,21 +52,54 @@
 
 namespace spider {
     namespace pisdf {
+
+        /**
+         * @brief Compute the upper consumption dependencies of a vertex in a flat graph.
+         * @remark edge: sourceRate -> delay -> sinkRate
+         *                   setterRate _^
+         * @remark If Dependency is inferior to 0, it will be bound to -1. In case the delay has a setter actor, first
+         * call the function with the direct edge information (sourceRate, delay, sinkRate), then
+         * call this function with the following parameters:
+         *   snkLowerDep  = spider::pisdf::computeConsLowerDep(sinkRate, sourceRate, firing, delay);
+         *   snkLowerDep -= spider::pisdf::computeConsLowerDep(sinkRate, setterRate, firing, 0);
+         *   snkLowerDep = abs(snkLowerDep) -> actual dependency on the setter vertex.
+         * @param sinkRate     Sink rate of the edge.
+         * @param sourceRate   Source rate of the edge.
+         * @param firing       Firing of the vertex to compute the dependency for.
+         * @param delay        Delay of the edge.
+         * @return value of the lower firing dependency on the producer.
+         */
         inline int64_t computeConsLowerDep(int64_t sinkRate,
                                            int64_t sourceRate,
-                                           uint32_t instance,
+                                           uint32_t firing,
                                            int64_t delay) {
-            int64_t consumed = instance * sinkRate - delay;
+            int64_t consumed = firing * sinkRate - delay;
             int64_t lowerDep = spider::math::floorDiv(consumed, sourceRate);
             constexpr int64_t initBound = -1;
             return std::max(initBound, lowerDep);
         }
 
+        /**
+         * @brief Compute the upper consumption dependencies of a vertex in a flat graph.
+         * @remark: edge: sourceRate -> delay -> sinkRate
+         *                   setterRate _^
+         * @remark If Dependency is inferior to 0, it will be bound to -1. In case the delay has a setter actor, first
+         * call the function with the direct edge information (sourceRate, delay, sinkRate), then
+         * call this function with the following parameters:
+         *   snkUpperDep  = spider::pisdf::computeConsUpperDep(sinkRate, sourceRate, firing, delay);
+         *   snkUpperDep -= spider::pisdf::computeConsUpperDep(sinkRate, setterRate, firing, 0);
+         *   snkUpperDep  = abs(snkLowerDep) -> actual dependency on the setter vertex.
+         * @param sinkRate     Sink rate of the edge.
+         * @param sourceRate   Source rate of the edge.
+         * @param firing       Firing of the vertex to compute the dependency for.
+         * @param delay        Delay of the edge.
+         * @return value of the upper firing dependency on the producer.
+         */
         inline int64_t computeConsUpperDep(int64_t sinkRate,
                                            int64_t sourceRate,
-                                           uint32_t instance,
+                                           uint32_t firing,
                                            int64_t delay) {
-            int64_t consumed = (instance + 1) * sinkRate - delay - 1;
+            int64_t consumed = (firing + 1) * sinkRate - delay - 1;
             int64_t lowerDep = spider::math::floorDiv(consumed, sourceRate);
             constexpr int64_t initBound = -1;
             return std::max(initBound, lowerDep);

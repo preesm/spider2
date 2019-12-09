@@ -154,6 +154,10 @@ bool PiSDFJoinForkOptimizer::operator()(PiSDFGraph *graph) const {
                         sinkIx -= 1;
                     }
                 }
+                if (source.vertex != addedFork) {
+                    sourceIx += 1;
+                    sinkIx -= 1; /* = sinkIx is going to be incremented by the for loop = */
+                }
             } else {
                 /* == Need for a Join == */
                 auto nJoinEdge = computeNJoinEdge(sink.rate, sourceArray, sourceIx);
