@@ -54,6 +54,23 @@
 class PiSDFJoinJoinOptimizer final : public PiSDFOptimizer {
 public:
     inline bool operator()(PiSDFGraph *graph) const override;
+
+private:
+    inline spider::pisdf::JoinVertex *createNewJoin(spider::pisdf::Vertex *firstJoin,
+                                                    spider::pisdf::Vertex *secondJoin) const {
+        auto *graph = firstJoin->graph();
+        const auto &inputCount = static_cast<uint32_t>(firstJoin->inputEdgeCount() +
+                                                       (secondJoin->inputEdgeCount() - 1));
+        auto *newJoin = spider::api::createJoin(graph,
+                                                "merged-" + firstJoin->name() + "-" + secondJoin->name(),
+                                                inputCount,
+                                                StackID::TRANSFO);
+
+        /* == Connect the output of the second Join to the new Join == */
+        auto *edge = secondJoin->outputEdge(0);
+        edge->setSource(newJoin, 0, spider::Expression(edge->sourceRateExpression()));
+        return newJoin;
+    }
 };
 
 bool PiSDFJoinJoinOptimizer::operator()(PiSDFGraph *graph) const {
@@ -65,65 +82,65 @@ bool PiSDFJoinJoinOptimizer::operator()(PiSDFGraph *graph) const {
         if (vertex->subtype() == PiSDFVertexType::JOIN) {
             auto *sink = vertex->outputEdge(0)->sink();
             if (sink->subtype() == PiSDFVertexType::JOIN) {
-                verticesToOptimize.push_back(std::make_pair(vertex, sink));
+                verticesToOptimize.emplace_back(vertex, sink);
             }
         }
     }
 
     /* == Do the optimization == */
-    const auto &params = graph->params();
     for (auto it = verticesToOptimize.begin(); it != verticesToOptimize.end(); ++it) {
         auto &pair = (*it);
-        auto *vertex = pair.first;
-        auto *sink = pair.second;
+        auto *firstJoin = pair.first;
+        auto *secondJoin = pair.second;
 
         /* == Create the new join == */
-        const auto &inputCount = static_cast<uint32_t>(vertex->inputEdgeCount() + (sink->inputEdgeCount() - 1));
-        auto *join = spider::api::createJoin(graph,
-                                             "merged-" + vertex->name() + "-" + sink->name(),
-                                             inputCount,
-                                             StackID::TRANSFO);
-        auto *edge = sink->outputEdge(0);
-        auto rate = edge->sourceRateExpression().evaluate(params);
-        edge->setSource(join, 0, spider::Expression(rate));
+        auto *newJoin = createNewJoin(firstJoin, secondJoin);
 
-        /* == Link the edges == */
-        auto insertEdgeIx = vertex->outputEdge(0)->sinkPortIx();
-        uint64_t offset = 0;
-        for (auto *sinkEdge :sink->inputEdgeArray()) {
-            if (sinkEdge->sinkPortIx() == insertEdgeIx) {
-                graph->removeEdge(sinkEdge);
-                offset += vertex->inputEdgeCount() - 1;
-                for (auto *vertexEdge : vertex->inputEdgeArray()) {
-                    rate = vertexEdge->sinkRateExpression().evaluate(params);
-                    auto ix = vertexEdge->sinkPortIx() + insertEdgeIx;
-                    vertexEdge->setSink(join, ix, spider::Expression(rate));
-                }
-            } else {
-                rate = sinkEdge->sinkRateExpression().evaluate(params);
-                auto ix = static_cast<uint32_t>(sinkEdge->sinkPortIx() + offset);
-                sinkEdge->setSink(join, ix, spider::Expression(rate));
-            }
+        /* === Link the edges === */
+
+        /* == Connect the output edges of the first Join into the new Join == */
+        auto firstJoinEdgeIx = firstJoin->outputEdge(0)->sinkPortIx();
+        for (size_t i = 0; i < firstJoinEdgeIx; ++i) {
+            auto *edge = secondJoin->inputEdge(i);
+            edge->setSink(newJoin, i, spider::Expression(edge->sinkRateExpression()));
+        }
+
+        /* == Remove the edge between the two Joins == */
+        graph->removeEdge(secondJoin->inputEdge(firstJoinEdgeIx));
+
+        /* == Connect the input edges of the first join into the new join == */
+        for (size_t i = 0; i < firstJoin->inputEdgeCount(); ++i) {
+            auto *edge = firstJoin->inputEdge(i);
+            const auto &ix = edge->sinkPortIx() + firstJoinEdgeIx;
+            edge->setSink(newJoin, ix, spider::Expression(edge->sinkRateExpression()));
+        }
+
+        /* == Connect the remaining output edges of the first Fork into the new Fork == */
+        const auto &offset = firstJoin->inputEdgeCount() - 1;
+        for (size_t i = firstJoinEdgeIx + 1; i < secondJoin->inputEdgeCount(); ++i) {
+            auto *edge = secondJoin->inputEdge(i);
+            const auto &ix = edge->sinkPortIx() + offset;
+            edge->setSink(newJoin, ix, spider::Expression(edge->sinkRateExpression()));
         }
 
         /* == Search for the pair to modify (if any) == */
         for (auto it2 = std::next(it); it2 != std::end(verticesToOptimize); ++it2) {
             auto &secPair = (*it2);
-            if (secPair.first == vertex || secPair.first == sink) {
-                secPair.first = join;
+            if (secPair.first == secondJoin) {
+                secPair.first = newJoin;
             }
-            if (secPair.second == sink || secPair.second == vertex) {
-                secPair.second = join;
+            if (secPair.second == firstJoin) {
+                secPair.second = newJoin;
             }
         }
 
         /* == Remove the vertices == */
         if (spider::api::verbose() && log_enabled<LOG_OPTIMS>()) {
             spider::log::verbose<LOG_OPTIMS>("JoinJoinOptimizer: removing [%s] and [%s] join vertices.\n",
-                                             vertex->name().c_str(), sink->name().c_str());
+                                             firstJoin->name().c_str(), secondJoin->name().c_str());
         }
-        graph->removeVertex(vertex);
-        graph->removeVertex(sink);
+        graph->removeVertex(firstJoin);
+        graph->removeVertex(secondJoin);
     }
     return verticesToOptimize.empty();
 }

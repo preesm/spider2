@@ -56,6 +56,23 @@
 class PiSDFForkForkOptimizer final : public PiSDFOptimizer {
 public:
     inline bool operator()(PiSDFGraph *graph) const override;
+
+private:
+    inline spider::pisdf::ForkVertex *createNewFork(spider::pisdf::Vertex *firstFork,
+                                                    spider::pisdf::Vertex *secondFork) const {
+        auto *graph = firstFork->graph();
+        const auto &outputCount = static_cast<uint32_t>((firstFork->outputEdgeCount() - 1) +
+                                                        secondFork->outputEdgeCount());
+        auto *newFork = spider::api::createFork(graph,
+                                                "merged-" + firstFork->name() + "-" + secondFork->name(),
+                                                outputCount,
+                                                StackID::TRANSFO);
+
+        /* == Connect the input of the first Fork to the new Fork == */
+        auto *edge = firstFork->inputEdge(0);
+        edge->setSink(newFork, 0, spider::Expression(edge->sinkRateExpression()));
+        return newFork;
+    }
 };
 
 bool PiSDFForkForkOptimizer::operator()(PiSDFGraph *graph) const {
@@ -63,10 +80,8 @@ bool PiSDFForkForkOptimizer::operator()(PiSDFGraph *graph) const {
             StackID::TRANSFO);
 
     /* == Search for the pair of fork to optimize == */
-    for (const auto &v : graph->vertices()) {
-        if (v->subtype() == spider::pisdf::VertexType::FORK) {
-            /* == return itself, only way to suppress the warning for "probably incompatible type cast" == */
-            const auto &vertex = v->inputEdge(0)->sink();
+    for (const auto &vertex : graph->vertices()) {
+        if (vertex->subtype() == spider::pisdf::VertexType::FORK) {
             auto *source = vertex->inputEdge(0)->source();
             if (source->subtype() == spider::pisdf::VertexType::FORK) {
                 verticesToOptimize.emplace_back(source, vertex);
@@ -75,60 +90,59 @@ bool PiSDFForkForkOptimizer::operator()(PiSDFGraph *graph) const {
     }
 
     /* == Do the optimization == */
-    const auto &params = graph->params();
     for (auto it = verticesToOptimize.begin(); it != verticesToOptimize.end(); ++it) {
         auto &pair = (*it);
-        auto *source = pair.first;
-        auto *vertex = pair.second;
+        auto *firstFork = pair.first;
+        auto *secondFork = pair.second;
 
         /* == Create the new fork == */
-        const auto &outputCount = static_cast<uint32_t>((source->outputEdgeCount() - 1) +
-                                                        vertex->outputEdgeCount());
-        auto *fork = spider::api::createFork(graph,
-                                             "merged-" + source->name() + "-" + vertex->name(),
-                                             outputCount,
-                                             StackID::TRANSFO);
-        auto *edge = source->inputEdge(0);
-        auto rate = edge->sinkRateExpression().evaluate(params);
-        edge->setSource(fork, 0, spider::Expression(rate));
+        auto *newFork = createNewFork(firstFork, secondFork);
 
-        /* == Link the edges == */
-        auto insertEdgeIx = vertex->inputEdge(0)->sourcePortIx();
-        uint64_t offset = 0;
-        for (auto *sourceEdge : source->outputEdgeArray()) {
-            if (sourceEdge->sourcePortIx() == insertEdgeIx) {
-                graph->removeEdge(sourceEdge);
-                offset += vertex->outputEdgeCount() - 1;
-                for (auto *vertexEdge : vertex->outputEdgeArray()) {
-                    rate = vertexEdge->sourceRateExpression().evaluate(params);
-                    auto ix = vertexEdge->sourcePortIx() + insertEdgeIx;
-                    vertexEdge->setSource(fork, ix, spider::Expression(rate));
-                }
-            } else {
-                rate = sourceEdge->sourceRateExpression().evaluate(params);
-                auto ix = static_cast<uint32_t>(sourceEdge->sourcePortIx() + offset);
-                sourceEdge->setSource(fork, ix, spider::Expression(rate));
-            }
+        /* === Link the edges === */
+
+        /* == Connect the output edges of the first Fork into the new Fork == */
+        auto secondForkEdgeIx = secondFork->inputEdge(0)->sourcePortIx();
+        for (size_t i = 0; i < secondForkEdgeIx; ++i) {
+            auto *edge = firstFork->outputEdge(i);
+            edge->setSource(newFork, i, spider::Expression(edge->sourceRateExpression()));
+        }
+
+        /* == Remove the edge between the two Forks == */
+        graph->removeEdge(firstFork->outputEdge(secondForkEdgeIx));
+
+        /* == Connect the output edges of the second fork into the new fork == */
+        for (size_t i = 0; i < secondFork->outputEdgeCount(); ++i) {
+            auto *edge = secondFork->outputEdge(i);
+            const auto &ix = edge->sourcePortIx() + secondForkEdgeIx;
+            edge->setSource(newFork, ix, spider::Expression(edge->sourceRateExpression()));
+        }
+
+        /* == Connect the remaining output edges of the first Fork into the new Fork == */
+        const auto &offset = secondFork->outputEdgeCount() - 1;
+        for (size_t i = secondForkEdgeIx + 1; i < firstFork->outputEdgeCount(); ++i) {
+            auto *edge = firstFork->outputEdge(i);
+            const auto &ix = edge->sourcePortIx() + offset;
+            edge->setSource(newFork, ix, spider::Expression(edge->sourceRateExpression()));
         }
 
         /* == Search for the pair to modify (if any) == */
         for (auto it2 = std::next(it); it2 != std::end(verticesToOptimize); ++it2) {
             auto &secPair = (*it2);
-            if (secPair.first == vertex || secPair.first == source) {
-                secPair.first = fork;
+            if (secPair.first == secondFork) {
+                secPair.first = newFork;
             }
-            if (secPair.second == source || secPair.second == vertex) {
-                secPair.second = fork;
+            if (secPair.second == firstFork) {
+                secPair.second = newFork;
             }
         }
 
         /* == Remove the vertices == */
         if (spider::api::verbose() && log_enabled<LOG_OPTIMS>()) {
             spider::log::verbose<LOG_OPTIMS>("ForkForkOptimizer: removing [%s] and [%s] fork vertices.\n",
-                                             vertex->name().c_str(), source->name().c_str());
+                                             secondFork->name().c_str(), firstFork->name().c_str());
         }
-        graph->removeVertex(vertex);
-        graph->removeVertex(source);
+        graph->removeVertex(secondFork);
+        graph->removeVertex(firstFork);
     }
 
     return verticesToOptimize.empty();

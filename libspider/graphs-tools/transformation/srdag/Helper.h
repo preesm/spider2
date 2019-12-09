@@ -82,7 +82,7 @@ namespace spider {
         void fillLinkerVector(TransfoStack &vector,
                               PiSDFAbstractVertex *reference,
                               int64_t rate,
-                              uint32_t portIx,
+                              size_t portIx,
                               TransfoData &transfoData);
 
         /**

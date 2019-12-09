@@ -202,7 +202,7 @@ void spider::srdag::copyFromRV(PiSDFAbstractVertex *vertex, TransfoData &transfo
 void spider::srdag::fillLinkerVector(TransfoStack &vector,
                                      PiSDFAbstractVertex *reference,
                                      int64_t rate,
-                                     uint32_t portIx,
+                                     size_t portIx,
                                      TransfoData &transfoData) {
     const auto &vertexUniformIx = uniformIx(reference, transfoData.job_.reference_);
     const auto &clone = transfoData.srdag_->vertex(transfoData.tracker_[vertexUniformIx]);
