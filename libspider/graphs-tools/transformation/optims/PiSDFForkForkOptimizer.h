@@ -128,10 +128,10 @@ bool PiSDFForkForkOptimizer::operator()(PiSDFGraph *graph) const {
         /* == Search for the pair to modify (if any) == */
         for (auto it2 = std::next(it); it2 != std::end(verticesToOptimize); ++it2) {
             auto &secPair = (*it2);
-            if (secPair.first == secondFork) {
+            if (secPair.first == firstFork || secPair.first == secondFork) {
                 secPair.first = newFork;
             }
-            if (secPair.second == firstFork) {
+            if (secPair.second == firstFork || secPair.second == secondFork) {
                 secPair.second = newFork;
             }
         }

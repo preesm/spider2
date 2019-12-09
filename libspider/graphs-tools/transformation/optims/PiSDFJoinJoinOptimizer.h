@@ -126,10 +126,10 @@ bool PiSDFJoinJoinOptimizer::operator()(PiSDFGraph *graph) const {
         /* == Search for the pair to modify (if any) == */
         for (auto it2 = std::next(it); it2 != std::end(verticesToOptimize); ++it2) {
             auto &secPair = (*it2);
-            if (secPair.first == secondJoin) {
+            if (secPair.first == firstJoin || secPair.first == secondJoin) {
                 secPair.first = newJoin;
             }
-            if (secPair.second == firstJoin) {
+            if (secPair.second == firstJoin || secPair.second == secondJoin) {
                 secPair.second = newJoin;
             }
         }
