@@ -80,15 +80,7 @@ namespace spider {
 
             Vertex &operator=(Vertex &&) = delete;
 
-            virtual ~Vertex() noexcept {
-                if (copyCount_ && log_enabled()) {
-                    spider::log::error("Removing vertex [%s] with copies out there.", name().c_str());
-                }
-                if (reference() == this) {
-                    spider::destroy(constraints_);
-                }
-                this->reference_->copyCount_ -= 1;
-            }
+            virtual ~Vertex() noexcept;
 
             friend CloneVertexVisitor;
 
@@ -119,18 +111,14 @@ namespace spider {
              * @param ix  Index of the input edge to disconnect.
              * @throws @refitem Spider::Exception if index out of bound.
              */
-            inline virtual Edge *disconnectInputEdge(size_t ix) {
-                return disconnectEdge(inputEdgeArray_, ix);
-            }
+            virtual Edge *disconnectInputEdge(size_t ix);
 
             /**
              * @brief Disconnect output edge on port ix. If no edge is connected, nothing happens
              * @param ix  Index of the output edge to disconnect.
              * @throws @refitem Spider::Exception if index out of bound.
              */
-            inline virtual Edge *disconnectOutputEdge(size_t ix) {
-                return disconnectEdge(outputEdgeArray_, ix);
-            }
+            virtual Edge *disconnectOutputEdge(size_t ix);
 
             /**
              * @brief Forward the connection of an edge. It should return this except for @refitem Interface vertices.
@@ -348,23 +336,9 @@ namespace spider {
 
             /* === Private method(s) === */
 
-            inline static Edge *disconnectEdge(spider::array<Edge *> &edges, size_t ix) {
-                auto *&edge = edges.at(ix);
-                Edge *ret = edge;
-                if (edge) {
-                    edge = nullptr;
-                }
-                return ret;
-            }
+            static Edge *disconnectEdge(spider::array<Edge *> &edges, size_t ix);
 
-            inline static void connectEdge(spider::array<Edge *> &edges, Edge *edge, size_t ix) {
-                auto *&current = edges.at(ix);
-                if (!current) {
-                    current = edge;
-                    return;
-                }
-                throwSpiderException("Edge already exists at position: %zu", ix);
-            }
+            static void connectEdge(spider::array<Edge *> &edges, Edge *edge, size_t ix);
         };
     }
 }

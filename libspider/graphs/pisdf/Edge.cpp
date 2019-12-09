@@ -110,10 +110,7 @@ spider::pisdf::Vertex *spider::pisdf::Edge::sinkFw() const {
 void spider::pisdf::Edge::setSource(Vertex *vertex, size_t ix, Expression &&expr) {
     if (vertex) {
         /* == Disconnect current output edge (if any) == */
-        auto *edge = vertex->disconnectOutputEdge(ix);
-        if (edge) {
-            edge->setSource(nullptr, UINT32_MAX, Expression());
-        }
+        vertex->disconnectOutputEdge(ix);
 
         /* == Connect this edge == */
         vertex->connectOutputEdge(this, ix);
@@ -133,10 +130,7 @@ void spider::pisdf::Edge::setSource(Vertex *vertex, size_t ix, Expression &&expr
 void spider::pisdf::Edge::setSink(Vertex *vertex, size_t ix, Expression &&expr) {
     if (vertex) {
         /* == Disconnect current input edge (if any) == */
-        auto *edge = vertex->disconnectInputEdge(ix);
-        if (edge) {
-            edge->setSink(nullptr, UINT32_MAX, Expression());
-        }
+        vertex->disconnectInputEdge(ix);
 
         /* == Connect this edge == */
         vertex->connectInputEdge(this, ix);
