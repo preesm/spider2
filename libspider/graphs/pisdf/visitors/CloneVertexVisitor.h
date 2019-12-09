@@ -90,6 +90,7 @@ namespace spider {
 
             inline void visit(DelayVertex *vertex) override {
                 auto *clone = spider::make<DelayVertex>(stack_, vertex->name(), stack_);
+                graph_->addVertex(clone);
                 setRef(vertex, clone);
             }
 
