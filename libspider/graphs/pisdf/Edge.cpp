@@ -53,10 +53,10 @@
 /* === Method(s) implementation === */
 
 spider::pisdf::Edge::Edge(Vertex *source,
-                          uint32_t srcIx,
+                          size_t srcIx,
                           Expression &&srcExpr,
                           Vertex *sink,
-                          uint32_t snkIx,
+                          size_t snkIx,
                           Expression &&snkExpr) : srcExpression_{ srcExpr },
                                                   snkExpression_{ snkExpr },
                                                   src_{ source },
@@ -107,7 +107,7 @@ spider::pisdf::Vertex *spider::pisdf::Edge::sinkFw() const {
     return snk_->forwardEdge(this);
 }
 
-void spider::pisdf::Edge::setSource(Vertex *vertex, uint32_t ix, Expression &&expr) {
+void spider::pisdf::Edge::setSource(Vertex *vertex, size_t ix, Expression &&expr) {
     if (vertex) {
         /* == Disconnect current output edge (if any) == */
         auto *edge = vertex->disconnectOutputEdge(ix);
@@ -130,7 +130,7 @@ void spider::pisdf::Edge::setSource(Vertex *vertex, uint32_t ix, Expression &&ex
     srcExpression_ = std::move(expr);
 }
 
-void spider::pisdf::Edge::setSink(Vertex *vertex, uint32_t ix, Expression &&expr) {
+void spider::pisdf::Edge::setSink(Vertex *vertex, size_t ix, Expression &&expr) {
     if (vertex) {
         /* == Disconnect current input edge (if any) == */
         auto *edge = vertex->disconnectInputEdge(ix);

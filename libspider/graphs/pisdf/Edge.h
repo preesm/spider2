@@ -61,10 +61,10 @@ namespace spider {
         public:
 
             Edge(Vertex *source,
-                 uint32_t srcIx,
+                 size_t srcIx,
                  Expression &&srcExpr,
                  Vertex *sink,
-                 uint32_t snkIx,
+                 size_t snkIx,
                  Expression &&snkExpr);
 
             ~Edge();
@@ -104,7 +104,7 @@ namespace spider {
              * @brief Get the source port ix of the edge
              * @return source port ix
              */
-            inline uint32_t sourcePortIx() const {
+            inline size_t sourcePortIx() const {
                 return srcPortIx_;
             }
 
@@ -112,7 +112,7 @@ namespace spider {
              * @brief Get the sink port ix of the edge
              * @return sink port ix
              */
-            inline uint32_t sinkPortIx() const {
+            inline size_t sinkPortIx() const {
                 return snkPortIx_;
             }
 
@@ -179,7 +179,7 @@ namespace spider {
              * @param expr    Expression of the rate.
              * @return pointer to the old output @refitem Edge of vertex, nullptr else.
              */
-            void setSource(Vertex *vertex, uint32_t ix, Expression &&expr);
+            void setSource(Vertex *vertex, size_t ix, Expression &&expr);
 
             /**
              * @brief Set the sink vertex of the edge.
@@ -189,7 +189,7 @@ namespace spider {
              * @param expr    Expression of the rate.
              * @return pointer to the old input @refitem Edge of vertex, nullptr else.
              */
-            void setSink(Vertex *vertex, uint32_t ix, Expression &&expr);
+            void setSink(Vertex *vertex, size_t ix, Expression &&expr);
 
             inline void setDelay(Delay *delay) {
                 if (!delay) {
@@ -214,8 +214,8 @@ namespace spider {
             Vertex *snk_ = nullptr;
             Delay *delay_ = nullptr;
             uint32_t ix_ = UINT32_MAX;
-            uint32_t srcPortIx_ = UINT32_MAX;
-            uint32_t snkPortIx_ = UINT32_MAX;
+            size_t srcPortIx_ = SIZE_MAX;
+            size_t snkPortIx_ = SIZE_MAX;
         };
     }
 }

@@ -162,18 +162,18 @@ namespace spider {
         /* === Edge API === */
 
         pisdf::Edge *createEdge(pisdf::Vertex *source,
-                                uint32_t srcPortIx,
+                                size_t srcPortIx,
                                 std::string srcRateExpression,
                                 pisdf::Vertex *sink,
-                                uint32_t snkPortIx,
+                                size_t snkPortIx,
                                 std::string snkRateExpression,
                                 StackID stack = StackID::PISDF);
 
         pisdf::Edge *createEdge(pisdf::Vertex *source,
-                                uint32_t srcPortIx,
+                                size_t srcPortIx,
                                 int64_t srcRate,
                                 pisdf::Vertex *sink,
-                                uint32_t snkPortIx,
+                                size_t snkPortIx,
                                 int64_t snkRate,
                                 StackID stack = StackID::PISDF);
 

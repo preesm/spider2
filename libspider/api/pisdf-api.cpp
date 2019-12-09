@@ -272,10 +272,10 @@ PiSDFParam *spider::api::createInheritedParam(PiSDFGraph *graph, std::string nam
 /* === Edge API === */
 
 PiSDFEdge *spider::api::createEdge(PiSDFAbstractVertex *source,
-                                   uint32_t srcPortIx,
+                                   size_t srcPortIx,
                                    std::string srcRateExpression,
                                    PiSDFAbstractVertex *sink,
-                                   uint32_t snkPortIx,
+                                   size_t snkPortIx,
                                    std::string snkRateExpression,
                                    StackID stack) {
     auto *edge = spider::make<PiSDFEdge>(stack,
@@ -290,10 +290,10 @@ PiSDFEdge *spider::api::createEdge(PiSDFAbstractVertex *source,
 }
 
 PiSDFEdge *spider::api::createEdge(PiSDFAbstractVertex *source,
-                                   uint32_t srcPortIx,
+                                   size_t srcPortIx,
                                    int64_t srcRate,
                                    PiSDFAbstractVertex *sink,
-                                   uint32_t snkPortIx,
+                                   size_t snkPortIx,
                                    int64_t snkRate,
                                    StackID stack) {
     auto *edge = spider::make<PiSDFEdge>(stack,
