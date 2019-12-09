@@ -60,7 +60,7 @@ namespace spider {
             static_assert(std::is_integral<T>::value, "ceilDiv should be used with integer value");
             T d = x / y;
             T r = x % y; /* = Should be optimize into single division = */
-            return d + ((r != 0) & (d > 0));
+            return r ? d + !((x < 0) ^ (y < 0)) : d;
         }
 
         template<class T>
@@ -68,7 +68,7 @@ namespace spider {
             static_assert(std::is_integral<T>::value, "floorDiv should be used with integer only");
             T d = x / y;
             T r = x % y; /* = Should be optimize into single division = */
-            return r ? (d - (d < 0)) : d;
+            return r ? (d - ((x < 0) ^ (y < 0))) : d;
         }
 
         template<class T>
