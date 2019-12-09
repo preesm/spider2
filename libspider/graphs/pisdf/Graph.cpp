@@ -97,6 +97,11 @@ spider::pisdf::Graph::Graph(std::string name,
 }
 
 spider::pisdf::Graph::~Graph() noexcept {
+    /* == Destroy / deallocate edges == */
+    for (auto &edge : edgeVector_) {
+        spider::destroy(edge);
+    }
+
     GraphRemoveVertexVisitor rmVertexVisitor{ this };
     /* == Destroy / deallocate vertices (subgraphs included) == */
     for (auto &vertex : vertexVector_) {
@@ -109,11 +114,6 @@ spider::pisdf::Graph::~Graph() noexcept {
     }
     for (auto &interface : outputInterfaceArray_) {
         spider::destroy(interface);
-    }
-
-    /* == Destroy / deallocate edges == */
-    for (auto &edge : edgeVector_) {
-        spider::destroy(edge);
     }
 
     /* == Destroy / deallocate params == */
