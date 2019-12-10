@@ -51,7 +51,6 @@
 #include <graphs/pisdf/Delay.h>
 #include <graphs/pisdf/interfaces/InputInterface.h>
 #include <graphs/pisdf/interfaces/OutputInterface.h>
-#include <graphs/pisdf/specials/Specials.h>
 #include <api/pisdf-api.h>
 
 /* === Static function(s) === */
@@ -62,12 +61,11 @@
  * @return @refitem spider::vector of index linking init to run subgraphs.
  */
 static spider::vector<size_t> splitSubgraphs(spider::pisdf::Graph *graph) {
+    /* == 0. Split the dynamic subgraphs into init and run subgraphs == */
     auto subgraph2RemoveVector = spider::containers::vector<PiSDFGraph *>(StackID::TRANSFO);
     auto subgraph2AddVector = spider::containers::vector<std::pair<PiSDFGraph *, PiSDFGraph *>>(StackID::TRANSFO);
     subgraph2RemoveVector.reserve(graph->subgraphCount());
     subgraph2AddVector.reserve(graph->subgraphCount());
-
-    /* == 0. Split the dynamic subgraphs into init and run subgraphs == */
     for (auto *subgraph : graph->subgraphs()) {
         auto &&result = spider::srdag::splitDynamicGraph(subgraph);
         if (result.first) {
@@ -82,7 +80,7 @@ static spider::vector<size_t> splitSubgraphs(spider::pisdf::Graph *graph) {
     }
 
     /* == 2. Set the link between init to run graphs == */
-    auto init2Run = spider::containers::vector<size_t>(graph->subgraphCount() * 2, SIZE_MAX, StackID::TRANSFO);
+    auto init2Run = spider::containers::vector<size_t>(graph->subgraphCount(), SIZE_MAX, StackID::TRANSFO);
     for (auto &pair : subgraph2AddVector) {
         auto *initGraph = pair.first;
         auto *runGraph = pair.second;
