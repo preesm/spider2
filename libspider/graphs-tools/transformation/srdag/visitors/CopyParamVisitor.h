@@ -44,8 +44,8 @@
 
 #include <graphs-tools/transformation/srdag/TransfoJob.h>
 #include <graphs/pisdf/visitors/DefaultVisitor.h>
-#include <graphs/pisdf/params/DynamicParam.h>
-#include <graphs/pisdf/params/InHeritedParam.h>
+#include <graphs/pisdf/DynamicParam.h>
+#include <graphs/pisdf/InHeritedParam.h>
 #include <api/pisdf-api.h>
 
 namespace spider {

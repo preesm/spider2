@@ -46,8 +46,8 @@
 #include <graphs-tools/exporter/DOTExporter.h>
 #include <graphs/pisdf/interfaces/InputInterface.h>
 #include <graphs/pisdf/interfaces/OutputInterface.h>
-#include <graphs/pisdf/params/InHeritedParam.h>
-#include <graphs/pisdf/params/DynamicParam.h>
+#include <graphs/pisdf/InHeritedParam.h>
+#include <graphs/pisdf/DynamicParam.h>
 #include <graphs/pisdf/specials/Specials.h>
 #include <cmath>
 #include <utility>

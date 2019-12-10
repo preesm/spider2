@@ -44,7 +44,7 @@
 
 #include <cstdint>
 #include <graphs/pisdf/Graph.h>
-#include <graphs/pisdf/params/Param.h>
+#include <graphs/pisdf/Param.h>
 
 namespace spider {
 

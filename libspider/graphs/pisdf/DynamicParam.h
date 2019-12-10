@@ -37,26 +37,33 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_INHERITEDPARAM_H
-#define SPIDER2_INHERITEDPARAM_H
+#ifndef SPIDER2_DYNAMICPARAM_H
+#define SPIDER2_DYNAMICPARAM_H
 
 /* === Include(s) === */
 
-#include <graphs/pisdf/params/Param.h>
+#include <graphs/pisdf/Param.h>
+#include <graphs/pisdf/Graph.h>
 
 namespace spider {
     namespace pisdf {
 
+        /* ==+ Forward declaration(s) === */
+
+        class Vertex;
+
         /* === Class definition === */
 
-        class InHeritedParam final : public Param {
+        class DynamicParam final : public Param {
         public:
 
-            InHeritedParam(std::string name, Param *parent) : Param(std::move(name)),
-                                                              parent_{ parent } {
-                if (!parent) {
-                    throwSpiderException("Inherited parameter can not have nullptr parent.");
-                }
+            explicit DynamicParam(std::string name) : Param(std::move(name)) {
+                expression_ = Expression(0);
+            }
+
+            DynamicParam(std::string name, Expression &&expression) : Param(std::move(name)),
+                                                                      expression_{ expression } {
+
             }
 
             /* === Method(s) === */
@@ -68,28 +75,35 @@ namespace spider {
             /* === Getter(s) === */
 
             inline int64_t value() const override {
-                return parent_->value();
+                return expression_.evaluate(graph_->params());
+            }
+
+            inline int64_t value(const spider::vector<Param *> &params) const {
+                return expression_.evaluate(params);
             }
 
             inline ParamType type() const override {
-                return ParamType::INHERITED;
+                return ParamType::DYNAMIC;
             }
 
             inline bool dynamic() const override {
-                return parent_->dynamic();
+                return true;
             }
 
-            inline Param *parent() const {
-                return parent_;
+            inline const Expression &expression() const {
+                return expression_;
             }
 
             /* === Setter(s) === */
 
+            inline void setValue(int64_t value) override {
+                expression_ = Expression(value);
+            }
+
         private:
-            Param *parent_ = nullptr;
+            Expression expression_;
         };
     }
 }
 
-
-#endif //SPIDER2_INHERITEDPARAM_H
+#endif //SPIDER2_DYNAMICPARAM_H

@@ -48,7 +48,7 @@
 #include <containers/containers.h>
 #include <graphs/pisdf/ExecVertex.h>
 #include <graphs/pisdf/Edge.h>
-#include <graphs/pisdf/params/Param.h>
+#include <graphs/pisdf/Param.h>
 
 namespace spider {
 

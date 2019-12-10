@@ -44,7 +44,7 @@
 #include <graphs-tools/numerical/UpdateBRVVisitor.h>
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/Edge.h>
-#include <graphs/pisdf/params/Param.h>
+#include <graphs/pisdf/Param.h>
 #include <api/config-api.h>
 
 /* === Function(s) definition === */

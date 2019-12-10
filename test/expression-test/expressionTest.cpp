@@ -46,8 +46,8 @@
 #include <memory/alloc.h>
 #include <common/Exception.h>
 #include <graphs/pisdf/Graph.h>
-#include <graphs/pisdf/params/Param.h>
-#include <graphs/pisdf/params/DynamicParam.h>
+#include <graphs/pisdf/Param.h>
+#include <graphs/pisdf/DynamicParam.h>
 #include <graphs-tools/expression-parser/Expression.h>
 #include <api/config-api.h>
 

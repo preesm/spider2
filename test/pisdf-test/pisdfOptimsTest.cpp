@@ -49,7 +49,7 @@
 #include <graphs/pisdf/Delay.h>
 #include <graphs/pisdf/interfaces/InputInterface.h>
 #include <graphs/pisdf/interfaces/OutputInterface.h>
-#include <graphs/pisdf/params/DynamicParam.h>
+#include <graphs/pisdf/DynamicParam.h>
 #include <graphs/pisdf/ExecVertex.h>
 #include <graphs/pisdf/specials/Specials.h>
 #include <api/spider.h>

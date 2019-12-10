@@ -45,9 +45,9 @@
 #include <memory/alloc.h>
 #include <graphs/pisdf/Types.h>
 #include <graphs/pisdf/Graph.h>
-#include <graphs/pisdf/params/Param.h>
-#include <graphs/pisdf/params/DynamicParam.h>
-#include <graphs/pisdf/params/InHeritedParam.h>
+#include <graphs/pisdf/Param.h>
+#include <graphs/pisdf/DynamicParam.h>
+#include <graphs/pisdf/InHeritedParam.h>
 #include <graphs/pisdf/visitors/DefaultVisitor.h>
 
 class pisdfParamTest : public ::testing::Test {

@@ -42,7 +42,7 @@
 
 #include <cmath>
 #include <graphs-tools/expression-parser/Expression.h>
-#include <graphs/pisdf/params/Param.h>
+#include <graphs/pisdf/Param.h>
 #include <graphs/pisdf/Graph.h>
 #include <api/config-api.h>
 

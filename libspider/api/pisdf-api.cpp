@@ -42,13 +42,13 @@
 
 #include <api/pisdf-api.h>
 #include <graphs/pisdf/Graph.h>
-#include <graphs/pisdf/params/Param.h>
+#include <graphs/pisdf/Param.h>
 #include <graphs/pisdf/Edge.h>
 #include <graphs/pisdf/Delay.h>
 #include <graphs/pisdf/ExecVertex.h>
 #include <graphs/pisdf/specials/Specials.h>
-#include <graphs/pisdf/params/DynamicParam.h>
-#include <graphs/pisdf/params/InHeritedParam.h>
+#include <graphs/pisdf/DynamicParam.h>
+#include <graphs/pisdf/InHeritedParam.h>
 #include <graphs/pisdf/interfaces/InputInterface.h>
 #include <graphs/pisdf/interfaces/OutputInterface.h>
 
@@ -348,11 +348,11 @@ PiSDFDelay *spider::api::createDelay(PiSDFEdge *edge,
                                      int64_t getterRate,
                                      bool persistent,
                                      StackID stack) {
-    if (!value && log_enabled()) {
-        spider::log::warning("delay with null value on edge [%s] ignored.\n",
-                             edge->name().c_str());
-        return nullptr;
-    }
+//    if (!value && log_enabled()) {
+//        spider::log::warning("delay with null value on edge [%s] ignored.\n",
+//                             edge->name().c_str());
+//        return nullptr;
+//    }
     return spider::make<PiSDFDelay>(stack,
                                     Expression(value),
                                     edge,

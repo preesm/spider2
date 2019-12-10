@@ -47,7 +47,7 @@
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/Edge.h>
 #include <graphs/pisdf/Delay.h>
-#include <graphs/pisdf/params/DynamicParam.h>
+#include <graphs/pisdf/DynamicParam.h>
 #include <graphs/pisdf/ExecVertex.h>
 
 class pisdfDelayTest : public ::testing::Test {
