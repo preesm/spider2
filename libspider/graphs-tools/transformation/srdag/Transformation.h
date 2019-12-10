@@ -43,7 +43,8 @@
 /* === Includes === */
 
 #include <containers/containers.h>
-#include <graphs-tools/transformation/srdag/Helper.h>
+#include <graphs-tools/transformation/srdag/SingleRateTransformer.h>
+#include <graphs/pisdf/Types.h>
 
 namespace spider {
     namespace srdag {

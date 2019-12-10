@@ -37,51 +37,53 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_TRANSFODATA_H
-#define SPIDER2_TRANSFODATA_H
+#ifndef SPIDER2_COPYPARAMVISITOR_H
+#define SPIDER2_COPYPARAMVISITOR_H
 
 /* === Include(s) === */
+
+#include <graphs-tools/transformation/srdag/TransfoJob.h>
+#include <graphs/pisdf/visitors/DefaultVisitor.h>
+#include <graphs/pisdf/params/DynamicParam.h>
+#include <graphs/pisdf/params/InHeritedParam.h>
+#include <api/pisdf-api.h>
 
 namespace spider {
     namespace srdag {
 
-        /* === Forward declaration(s) === */
-
-        struct TransfoJob;
-
-        /* === Type definition(s) === */
-
-        using JobStack = spider::vector<TransfoJob>;
-
-        using TransfoTracker = spider::vector<uint32_t>;
-
         /* === Struct definition === */
 
-        struct TransfoData {
-            const TransfoJob &job_;
-            const PiSDFEdge *edge_ = nullptr;
-            PiSDFGraph *srdag_ = nullptr;
-            stack_vector(nextJobs_, TransfoJob, StackID::TRANSFO);
-            stack_vector(dynaJobs_, TransfoJob, StackID::TRANSFO);
-            stack_vector(tracker_, uint32_t, StackID::TRANSFO);
-            TransfoTracker &init2dynamic_;
+        struct CopyParamVisitor final : public spider::pisdf::DefaultVisitor {
+        public:
+            CopyParamVisitor(const TransfoJob &job,
+                             spider::vector<pisdf::Param *> &cpyParamVec) : job_{ job },
+                                                                            copyParamVector_{ cpyParamVec } { };
 
-            TransfoData() = delete;
+            ~CopyParamVisitor() override = default;
 
-            TransfoData(const TransfoJob &job,
-                        const PiSDFEdge *edge,
-                        PiSDFGraph *srdag,
-                        TransfoTracker &init2dynamic) : job_{ job },
-                                                        edge_{ edge },
-                                                        srdag_{ srdag },
-                                                        init2dynamic_{ init2dynamic } {
-                tracker_.resize(job.reference_->vertexCount() +
-                                job.reference_->inputEdgeCount() +
-                                job.reference_->outputEdgeCount(), UINT32_MAX);
+            inline void visit(spider::pisdf::Param *param) override {
+                copyParamVector_.emplace_back(param);
             }
 
-            ~TransfoData() = default;
+            inline void visit(spider::pisdf::DynamicParam *param) override {
+                auto *p = spider::make<pisdf::DynamicParam, StackID::TRANSFO>(param->name(),
+                                                                              spider::Expression(param->expression()));
+                copyParamVector_.emplace_back(p);
+            }
+
+            inline void visit(spider::pisdf::InHeritedParam *param) override {
+                auto &parentJobParams = job_.params_;
+                const auto &inheritedParam = parentJobParams[param->parent()->ix()];
+                auto *p = spider::make<pisdf::Param, StackID::TRANSFO>(param->name(), inheritedParam->value());
+                copyParamVector_.emplace_back(p);
+            }
+
+        private:
+            const TransfoJob &job_;
+            spider::vector<pisdf::Param *> &copyParamVector_;
         };
     }
 }
-#endif //SPIDER2_TRANSFODATA_H
+
+
+#endif //SPIDER2_COPYPARAMVISITOR_H

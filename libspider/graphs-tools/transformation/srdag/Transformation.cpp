@@ -41,77 +41,15 @@
 /* === Includes === */
 
 #include <graphs-tools/transformation/srdag/Transformation.h>
-#include <graphs-tools/transformation/srdag/SnkTransfoVectorVisitor.h>
-#include <graphs-tools/transformation/srdag/SrcTransfoVectorVisitor.h>
 #include <graphs/pisdf/interfaces/InputInterface.h>
 #include <graphs/pisdf/interfaces/OutputInterface.h>
-#include <graphs-tools/numerical/brv.h>
+#include <graphs/pisdf/specials/Specials.h>
 #include <api/pisdf-api.h>
-
-/* === Static function(s) === */
-
-static spider::srdag::TransfoStack buildSourceLinkerVector(spider::srdag::TransfoData &transfoData) {
-    SrcTransfoVectorVisitor visitor{ transfoData };
-    transfoData.edge_->source()->visit(&visitor);
-    return std::move(visitor.sourceVector_);
-}
-
-static spider::srdag::TransfoStack buildSinkLinkerVector(spider::srdag::TransfoData &transfoData) {
-    SnkTransfoVectorVisitor visitor{ transfoData };
-    transfoData.edge_->sink()->visit(&visitor);
-    return std::move(visitor.sinkVector_);
-}
-
-/**
- * @brief Perform single rate transformation for a given edge.
- * @param transfoData TransfoData information.
- */
-static void staticEdgeSingleRateLinkage(spider::srdag::TransfoData &transfoData) {
-    const auto &edge = transfoData.edge_;
-    if ((edge->source() == edge->sink())) {
-        if (!edge->delay()) {
-            throwSpiderException("No delay on edge with self loop.");
-        }
-    }
-
-    auto sourceVector = buildSourceLinkerVector(transfoData);
-    auto sinkVector = buildSinkLinkerVector(transfoData);
-
-    /* == Compute the different dependencies of sinks over sources == */
-    spider::srdag::computeEdgeDependencies(sourceVector, sinkVector, transfoData);
-
-    /* == Iterate over sinks == */
-    while (!sinkVector.empty()) {
-        const auto &snkLnk = sinkVector.back();
-        const auto &srcLnk = sourceVector.back();
-        if (snkLnk.lowerDep_ == snkLnk.upperDep_) {
-            if (srcLnk.lowerDep_ == srcLnk.upperDep_) {
-                /* == Forward link between source and sink == */
-                spider::api::createEdge(srcLnk.vertex_, srcLnk.portIx_, srcLnk.rate_,
-                                        snkLnk.vertex_, snkLnk.portIx_, snkLnk.rate_, StackID::TRANSFO);
-                sourceVector.pop_back();
-                sinkVector.pop_back();
-            } else {
-                /* == Source need a fork == */
-                spider::srdag::addForkVertex(sourceVector, sinkVector, transfoData.srdag_);
-            }
-        } else {
-            /* == Sink need a join == */
-            spider::srdag::addJoinVertex(sourceVector, sinkVector, transfoData.srdag_);
-        }
-    }
-
-    /* == Sanity check == */
-    if (!sourceVector.empty()) {
-        throwSpiderException("remaining sources to link after single rate transformation on edge: [%s].",
-                             edge->name().c_str());
-    }
-}
 
 /* === Methods implementation === */
 
 std::pair<PiSDFGraph *, PiSDFGraph *> spider::srdag::splitDynamicGraph(PiSDFGraph *subgraph) {
-    if (!subgraph->dynamic()) {
+    if (!subgraph->dynamic() || !subgraph->configVertexCount()) {
         return std::make_pair(nullptr, nullptr);
     }
 
@@ -262,9 +200,6 @@ std::pair<PiSDFGraph *, PiSDFGraph *> spider::srdag::splitDynamicGraph(PiSDFGrap
         subgraph->moveVertex(vertex, runGraph);
     }
 
-    /* == Destroy the subgraph == */
-    subgraph->graph()->removeVertex(subgraph);
-
     return std::make_pair(initGraph, runGraph);
 }
 
@@ -276,51 +211,7 @@ spider::srdag::singleRateTransformation(const spider::srdag::TransfoJob &job, Pi
     if (!job.reference_) {
         throwSpiderException("nullptr for reference graph.");
     }
-
-    /* == Split subgraphs if needed == */
-    const auto &subgraphCount = job.reference_->subgraphCount();
-    TransfoTracker init2dynamic_(subgraphCount, UINT32_MAX, spider::allocator<uint32_t>(StackID::TRANSFO));
-    auto it = job.reference_->subgraphs().begin();
-    uint64_t i = 0;
-    while (i < subgraphCount) {
-        auto &subgraph = (*it);
-        auto &&result = splitDynamicGraph(subgraph);
-        if (result.first) {
-            init2dynamic_[result.first->subIx()] = result.second->subIx();
-        } else {
-            it++;
-        }
-        i++;
-    }
-
-    /* == Compute the repetition values of the graph (if dynamic and/or first instance) == */
-    if (job.reference_->dynamic() || job.instanceValue_ == 0 || job.instanceValue_ == UINT32_MAX) {
-        spider::brv::compute(job.reference_, job.params_);
-    }
-
-    /* == Create TransfoData structure == */
-    auto &&transfoData = TransfoData{ job, nullptr, srdag, init2dynamic_ };
-
-    /* == Replace the interfaces of the graph and remove the vertex == */
-    spider::srdag::replaceJobInterfaces(transfoData);
-
-    /* == Clone the vertices == */
-    transfoData.edge_ = nullptr;
-    for (const auto &vertex : job.reference_->vertices()) {
-        spider::srdag::copyFromRV(vertex, transfoData);
-    }
-
-    /* == Do the linkage for every edges of the graph == */
-    for (const auto &edge : job.reference_->edges()) {
-        transfoData.edge_ = edge;
-        staticEdgeSingleRateLinkage(transfoData);
-    }
-
-    /* == Remove the vertex from the srdag == */
-    if (job.instanceValue_ != UINT32_MAX) {
-        auto *srdagInstance = transfoData.srdag_->vertex(transfoData.job_.srdagIx_);
-        transfoData.srdag_->removeVertex(srdagInstance);
-    }
-    return std::make_pair(std::move(transfoData.nextJobs_), std::move(transfoData.dynaJobs_));
+    spider::srdag::SingleRateTransformer transformer{ job, srdag };
+    return transformer.execute();
 }
 
