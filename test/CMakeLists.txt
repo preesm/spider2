@@ -3,6 +3,7 @@ add_subdirectory(containers-test)
 add_subdirectory(expression-test)
 add_subdirectory(pisdf-test)
 add_subdirectory(math-test)
+add_subdirectory(srdag-test)
 
 # Set all-test name
 set(ALL_TEST_TARGET_NAME all-${PROJECT_NAME}-test)
