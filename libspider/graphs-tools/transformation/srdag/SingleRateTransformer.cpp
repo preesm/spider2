@@ -62,7 +62,6 @@
  * @return @refitem spider::vector of index linking init to run subgraphs.
  */
 static spider::vector<size_t> splitSubgraphs(spider::pisdf::Graph *graph) {
-    auto init2Run = spider::containers::vector<size_t>(graph->subgraphCount() * 2, SIZE_MAX, StackID::TRANSFO);
     auto subgraph2RemoveVector = spider::containers::vector<PiSDFGraph *>(StackID::TRANSFO);
     auto subgraph2AddVector = spider::containers::vector<std::pair<PiSDFGraph *, PiSDFGraph *>>(StackID::TRANSFO);
     subgraph2RemoveVector.reserve(graph->subgraphCount());
@@ -83,6 +82,7 @@ static spider::vector<size_t> splitSubgraphs(spider::pisdf::Graph *graph) {
     }
 
     /* == 2. Set the link between init to run graphs == */
+    auto init2Run = spider::containers::vector<size_t>(graph->subgraphCount() * 2, SIZE_MAX, StackID::TRANSFO);
     for (auto &pair : subgraph2AddVector) {
         auto *initGraph = pair.first;
         auto *runGraph = pair.second;
@@ -96,12 +96,12 @@ static spider::vector<size_t> splitSubgraphs(spider::pisdf::Graph *graph) {
 spider::srdag::SingleRateTransformer::SingleRateTransformer(const spider::srdag::TransfoJob &job,
                                                             pisdf::Graph *srdag) : job_{ job }, srdag_{ srdag } {
     auto *graph = job_.reference_;
-    ref2Clone_ = spider::containers::vector<size_t>(graph->vertexCount() +
-                                                    graph->inputEdgeCount() +
-                                                    graph->outputEdgeCount(), SIZE_MAX, StackID::TRANSFO);
 
     /* == 0. Split subgraphs == */
     init2run_ = splitSubgraphs(graph);
+    ref2Clone_ = spider::containers::vector<size_t>(graph->vertexCount() +
+                                                    graph->inputEdgeCount() +
+                                                    graph->outputEdgeCount(), SIZE_MAX, StackID::TRANSFO);
 
     /* == 1. Compute the repetition vector == */
     if (graph->dynamic() || (job_.firingValue_ == 0) || (job_.firingValue_ == UINT32_MAX)) {
@@ -216,7 +216,7 @@ std::pair<spider::srdag::JobStack, spider::srdag::JobStack> spider::srdag::Singl
         const auto &firstCloneIx = ref2Clone_[subgraph->ix()];
         for (auto ix = firstCloneIx + runGraph->repetitionValue() - 1; ix >= firstCloneIx; --ix) {
             auto *clone = srdag_->vertex(ix);
-            nextJobs.emplace_back(runGraph, clone->ix(), ix - firstCloneIx);
+            nextJobs.emplace_back(subgraph, clone->ix(), ix - firstCloneIx);
             nextJobs.back().params_.reserve(runGraph->paramCount());
             for (auto &param : (*it).params_) {
                 nextJobs.back().params_.emplace_back(param);
