@@ -359,6 +359,29 @@ TEST_F(pisdfOptimsTest, joinForkTest4) {
     spider::destroy(graph);
 }
 
+TEST_F(pisdfOptimsTest, joinForkTest5) {
+    auto *graph = spider::api::createGraph("graph", 2, 1);
+    auto *v = spider::api::createVertex(graph, "v", 0, 1);
+    auto *v1 = spider::api::createVertex(graph, "v1", 0, 1);
+    auto *v2 = spider::api::createVertex(graph, "v2", 1);
+    auto *v3 = spider::api::createVertex(graph, "v3", 1);
+    auto *v4 = spider::api::createVertex(graph, "v4", 1);
+    auto *v5 = spider::api::createVertex(graph, "v5", 1);
+    auto *fork_0 = spider::api::createFork(graph, "fork_0", 4);
+    auto *join_0 = spider::api::createJoin(graph, "join_0", 2);
+    spider::api::createEdge(v, 0, 2, join_0, 0, 2);
+    spider::api::createEdge(v1, 0, 2, join_0, 1, 2);
+    spider::api::createEdge(join_0, 0, 4, fork_0, 0, 4);
+    spider::api::createEdge(fork_0, 0, 1, v2, 0, 1);
+    spider::api::createEdge(fork_0, 1, 1, v3, 0, 1);
+    spider::api::createEdge(fork_0, 2, 1, v4, 0, 1);
+    spider::api::createEdge(fork_0, 3, 1, v5, 0, 1);
+    ASSERT_EQ(graph->vertexCount(), 8);
+    ASSERT_NO_THROW(PiSDFJoinForkOptimizer()(graph));
+    ASSERT_EQ(graph->vertexCount(), 8);
+    spider::destroy(graph);
+}
+
 TEST_F(pisdfOptimsTest, joinJoinTest) {
     auto *graph = spider::api::createGraph("graph", 2, 1);
     auto *v = spider::api::createVertex(graph, "v", 0, 1);
