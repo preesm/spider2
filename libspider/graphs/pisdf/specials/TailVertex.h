@@ -42,7 +42,6 @@
 
 /* === Include(s) === */
 
-#include <graphs/pisdf/specials/VertexInterface.h>
 #include <graphs/pisdf/Graph.h>
 
 namespace spider {
@@ -66,31 +65,6 @@ namespace spider {
                 offset += inputSize;
             }
         }
-
-        /* === Class definition === */
-
-        class TailVertex final : public VertexInterface<TailVertex> {
-        public:
-            explicit TailVertex(std::string name = "unnamed-tailvertex",
-                                uint32_t edgeINCount = 0,
-                                StackID stack = StackID::PISDF) : VertexInterface<TailVertex>(std::move(name),
-                                                                                              edgeINCount,
-                                                                                              1,
-                                                                                              stack) { };
-
-            TailVertex(const TailVertex &other,
-                       StackID stack = StackID::PISDF) : VertexInterface<TailVertex>(other, stack) { };
-
-            TailVertex(TailVertex &&other) noexcept : VertexInterface<TailVertex>(std::move(other)) { };
-
-            /* === Method(s) === */
-
-            /* === Getter(s) === */
-
-            inline VertexType subtype() const override {
-                return VertexType::TAIL;
-            }
-        };
     }
 }
 #endif //SPIDER2_TAILVERTEX_H

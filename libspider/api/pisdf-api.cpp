@@ -41,12 +41,13 @@
 /* === Includes === */
 
 #include <api/pisdf-api.h>
+#include <graphs/pisdf/Vertex.h>
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/Param.h>
 #include <graphs/pisdf/Edge.h>
 #include <graphs/pisdf/Delay.h>
 #include <graphs/pisdf/ExecVertex.h>
-#include <graphs/pisdf/specials/Specials.h>
+#include <graphs/pisdf/SpecialVertex.h>
 #include <graphs/pisdf/DynamicParam.h>
 #include <graphs/pisdf/InHeritedParam.h>
 #include <graphs/pisdf/interfaces/InputInterface.h>
@@ -121,7 +122,7 @@ PiSDFVertex *spider::api::createVertex(PiSDFGraph *graph,
     return vertex;
 }
 
-PiSDFForkVertex *
+PiSDFVertex *
 spider::api::createFork(PiSDFGraph *graph, std::string name, uint32_t edgeOUTCount, StackID stack) {
     auto *vertex = spider::make<PiSDFForkVertex>(stack, std::move(name), edgeOUTCount, stack);
     vertex->setRefinementIx(0);
@@ -129,7 +130,7 @@ spider::api::createFork(PiSDFGraph *graph, std::string name, uint32_t edgeOUTCou
     return vertex;
 }
 
-PiSDFJoinVertex *
+PiSDFVertex *
 spider::api::createJoin(PiSDFGraph *graph, std::string name, uint32_t edgeINCount, StackID stack) {
     auto *vertex = spider::make<PiSDFJoinVertex>(stack, std::move(name), edgeINCount, stack);
     vertex->setRefinementIx(1);
@@ -137,7 +138,7 @@ spider::api::createJoin(PiSDFGraph *graph, std::string name, uint32_t edgeINCoun
     return vertex;
 }
 
-PiSDFHeadVertex *
+PiSDFVertex *
 spider::api::createHead(PiSDFGraph *graph, std::string name, uint32_t edgeINCount, StackID stack) {
     auto *vertex = spider::make<PiSDFHeadVertex>(stack, std::move(name), edgeINCount, stack);
     vertex->setRefinementIx(2);
@@ -145,7 +146,7 @@ spider::api::createHead(PiSDFGraph *graph, std::string name, uint32_t edgeINCoun
     return vertex;
 }
 
-PiSDFTailVertex *
+PiSDFVertex *
 spider::api::createTail(PiSDFGraph *graph, std::string name, uint32_t edgeINCount, StackID stack) {
     auto *vertex = spider::make<PiSDFTailVertex>(stack, std::move(name), edgeINCount, stack);
     vertex->setRefinementIx(3);
@@ -153,7 +154,7 @@ spider::api::createTail(PiSDFGraph *graph, std::string name, uint32_t edgeINCoun
     return vertex;
 }
 
-PiSDFDuplicateVertex *
+PiSDFVertex *
 spider::api::createDuplicate(PiSDFGraph *graph, std::string name, uint32_t edgeOUTCount, StackID stack) {
     auto *vertex = spider::make<PiSDFDuplicateVertex>(stack, std::move(name), edgeOUTCount, stack);
     vertex->setRefinementIx(4);
@@ -161,32 +162,32 @@ spider::api::createDuplicate(PiSDFGraph *graph, std::string name, uint32_t edgeO
     return vertex;
 }
 
-PiSDFRepeatVertex *spider::api::createRepeat(PiSDFGraph *graph, std::string name, StackID stack) {
+PiSDFVertex *spider::api::createRepeat(PiSDFGraph *graph, std::string name, StackID stack) {
     auto *vertex = spider::make<PiSDFRepeatVertex>(stack, std::move(name), stack);
     vertex->setRefinementIx(5);
     graph->addVertex(vertex);
     return vertex;
 }
 
-PiSDFInitVertex *spider::api::createInit(PiSDFGraph *graph, std::string name, StackID stack) {
+PiSDFVertex *spider::api::createInit(PiSDFGraph *graph, std::string name, StackID stack) {
     auto *vertex = spider::make<PiSDFInitVertex>(stack, std::move(name), stack);
     vertex->setRefinementIx(6);
     graph->addVertex(vertex);
     return vertex;
 }
 
-PiSDFEndVertex *spider::api::createEnd(PiSDFGraph *graph, std::string name, StackID stack) {
+PiSDFVertex *spider::api::createEnd(PiSDFGraph *graph, std::string name, StackID stack) {
     auto *vertex = spider::make<PiSDFEndVertex>(stack, std::move(name), stack);
     vertex->setRefinementIx(7);
     graph->addVertex(vertex);
     return vertex;
 }
 
-PiSDFCFGVertex *spider::api::createConfigActor(PiSDFGraph *graph,
-                                               std::string name,
-                                               uint32_t edgeINCount,
-                                               uint32_t edgeOUTCount,
-                                               StackID stack) {
+PiSDFVertex *spider::api::createConfigActor(PiSDFGraph *graph,
+                                            std::string name,
+                                            uint32_t edgeINCount,
+                                            uint32_t edgeOUTCount,
+                                            StackID stack) {
     auto *vertex = spider::make<PiSDFCFGVertex>(stack, std::move(name), edgeINCount, edgeOUTCount, stack);
     graph->addVertex(vertex);
     return vertex;

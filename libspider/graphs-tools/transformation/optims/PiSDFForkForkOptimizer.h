@@ -43,7 +43,6 @@
 /* === Includes === */
 
 #include <graphs-tools/transformation/optims/PiSDFOptimizer.h>
-#include <graphs/pisdf/specials/Specials.h>
 #include <api/pisdf-api.h>
 #include <api/config-api.h>
 
@@ -58,7 +57,7 @@ public:
     inline bool operator()(PiSDFGraph *graph) const override;
 
 private:
-    inline spider::pisdf::ForkVertex *createNewFork(spider::pisdf::Vertex *firstFork,
+    inline spider::pisdf::ExecVertex *createNewFork(spider::pisdf::Vertex *firstFork,
                                                     spider::pisdf::Vertex *secondFork) const {
         auto *graph = firstFork->graph();
         const auto &outputCount = static_cast<uint32_t>((firstFork->outputEdgeCount() - 1) +

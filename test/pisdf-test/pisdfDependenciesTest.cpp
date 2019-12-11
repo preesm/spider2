@@ -52,7 +52,6 @@
 #include <graphs/pisdf/Param.h>
 #include <graphs/pisdf/DynamicParam.h>
 #include <graphs/pisdf/ExecVertex.h>
-#include <graphs/pisdf/specials/Specials.h>
 #include <graphs-tools/numerical/dependencies.h>
 #include <graphs-tools/numerical/brv.h>
 #include <api/spider.h>

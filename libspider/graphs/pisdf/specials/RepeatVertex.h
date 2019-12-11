@@ -42,7 +42,6 @@
 
 /* === Include(s) === */
 
-#include <graphs/pisdf/specials/VertexInterface.h>
 #include <graphs/pisdf/Graph.h>
 
 namespace spider {
@@ -67,31 +66,6 @@ namespace spider {
                 }
             }
         }
-
-        /* === Class definition === */
-
-        class RepeatVertex final : public VertexInterface<RepeatVertex> {
-        public:
-            explicit RepeatVertex(std::string name = "unnamed-upsamplevertex",
-                                  StackID stack = StackID::PISDF) : VertexInterface<RepeatVertex>(std::move(name),
-                                                                                                  1,
-                                                                                                  1,
-                                                                                                  stack) { };
-
-            RepeatVertex(const RepeatVertex &other,
-                         StackID stack = StackID::PISDF) : VertexInterface<RepeatVertex>(other,
-                                                                                         stack) { };
-
-            RepeatVertex(RepeatVertex &&other) noexcept : VertexInterface<RepeatVertex>(std::move(other)) { };
-
-            /* === Method(s) === */
-
-            /* === Getter(s) === */
-
-            inline VertexType subtype() const override {
-                return VertexType::REPEAT;
-            }
-        };
     }
 }
 #endif //SPIDER2_REPEATVERTEX_H

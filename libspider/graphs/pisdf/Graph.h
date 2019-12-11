@@ -74,7 +74,7 @@ namespace spider {
                            uint32_t cfgVertexCount = 0,
                            StackID stack = StackID::PISDF);
 
-            Graph(const Graph &other, StackID stack = StackID::PISDF) : Vertex(other) {
+            Graph(const Graph &other, StackID stack = StackID::PISDF) : Vertex(other, stack) {
                 dynamic_ = other.dynamic_;
                 vertexVector_ = spider::containers::vector(other.vertexVector_, stack);
                 configVertexVector_ = spider::containers::vector(other.configVertexVector_, stack);

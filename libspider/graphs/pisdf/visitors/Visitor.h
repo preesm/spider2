@@ -42,10 +42,10 @@
 
 /* === Include(s) === */
 
-#include <graphs/pisdf/Types.h>
 #include <typeinfo>
 #include <string>
 #include <stdexcept>
+#include <graphs/pisdf/Types.h>
 
 namespace spider {
     namespace pisdf {

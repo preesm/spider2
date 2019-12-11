@@ -35,14 +35,14 @@
  */
 
 #include <chrono>
-#include <graphs/pisdf/params/Param.h>
+#include <graphs/pisdf/Param.h>
 #include <graphs/pisdf/Delay.h>
 #include <graphs/pisdf/ExecVertex.h>
-#include <graphs/pisdf/specials/Specials.h>
 #include <graphs/pisdf/interfaces/InputInterface.h>
 #include <graphs/pisdf/interfaces/OutputInterface.h>
-#include <graphs/pisdf/params/InHeritedParam.h>
-#include <graphs/pisdf/params/DynamicParam.h>
+#include <graphs/pisdf/InHeritedParam.h>
+#include <graphs/pisdf/DynamicParam.h>
+#include <graphs/pisdf/SpecialVertex.h>
 #include <api/spider.h>
 #include <graphs-tools/exporter/DOTExporter.h>
 #include <runtime/algorithm/JITMSRuntime.h>
@@ -55,6 +55,7 @@
 #include <thread/Thread.h>
 #include <thread/Barrier.h>
 #include <common/Time.h>
+#include <graphs-tools/numerical/brv.h>
 
 void createArchi();
 
@@ -95,6 +96,7 @@ void fn2(int32_t id, int32_t affinity) {
 
 
 int main(int, char **) {
+
     spiderTest();
 
     std::cout << sizeof(spider::pisdf::Vertex) << std::endl;
@@ -122,10 +124,9 @@ void spiderTest() {
     spider::api::enableLogger(spider::log::Type::TRANSFO);
     spider::api::enableLogger(spider::log::Type::OPTIMS);
     spider::api::enableVerbose();
+//    spider::api::disableSRDAGOptims();
 
-
-//    if (0)
-    {
+    if (0) {
         createArchi();
 
         auto *&graph = spider::pisdfGraph();
@@ -141,6 +142,8 @@ void spiderTest() {
         auto *vertex_2 = spider::api::createVertex(subgraph, "vertex_2", 2, 1);
         auto *vertex_3 = spider::api::createVertex(subgraph, "vertex_3", 1, 1);
         auto *vertex_4 = spider::api::createVertex(graph, "vertex_4", 1);
+//        auto *setter = spider::api::createVertex(graph, "setter", 0, 1);
+//        auto *getter = spider::api::createVertex(graph, "getter", 1);
         auto *cfg = spider::api::createConfigActor(subgraph, "cfg", 0, 1);
 
         /* === Creating param === */
@@ -148,8 +151,14 @@ void spiderTest() {
 
         /* === Creating edges === */
 
-        spider::api::createEdge(vertex_0, 0, 1, vertex_1, 0, 1);
-        spider::api::createEdge(vertex_1, 0, "1", subgraph, 0, "1");
+        auto *edge = spider::api::createEdge(vertex_0, 0, 1, vertex_1, 0, 1);
+//        spider::api::createDelay(edge, 4, setter, 0, 1, getter, 0, 1, false);
+//        spider::api::createDelay(edge, 1, setter, 0, 1, nullptr, 0, 0, false);
+//        auto *edge2 = setter->outputEdge(0);
+//        spider::api::createDelay(edge2, 4);
+//        auto *edge3 = edge2->delay()->setter()->outputEdge(0);
+//        spider::api::createDelay(edge3, 1);
+        spider::api::createEdge(vertex_1, 0, 1, subgraph, 0, 1);
 //        spider::api::createEdge(vertex_1, 0, 500, vertex_2, 0, 1);
         spider::api::createEdge(input, 0, 5, vertex_2, 0, 1);
         spider::api::createEdge(vertex_2, 0, 1, vertex_3, 0, 5);
@@ -182,10 +191,10 @@ void spiderTest() {
 
         /* === Export dot === */
 
-        {
-            auto exporter = spider::pisdf::DOTExporter{ graph };
-            exporter.print("./new.dot");
-        }
+//        {
+//            auto exporter = spider::pisdf::DOTExporter{ graph };
+//            exporter.print("./new.dot");
+//        }
 
 
         {

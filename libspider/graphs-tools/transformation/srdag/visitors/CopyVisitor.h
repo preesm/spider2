@@ -44,7 +44,7 @@
 
 #include <graphs/pisdf/visitors/DefaultVisitor.h>
 #include <graphs/pisdf/visitors/CloneVertexVisitor.h>
-#include <graphs/pisdf/specials/DelayVertex.h>
+#include <graphs/pisdf/SpecialVertex.h>
 #include <api/pisdf-api.h>
 
 namespace spider {

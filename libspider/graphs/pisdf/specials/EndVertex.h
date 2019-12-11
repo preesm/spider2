@@ -42,7 +42,6 @@
 
 /* === Include(s) === */
 
-#include <graphs/pisdf/specials/VertexInterface.h>
 #include <graphs/pisdf/Graph.h>
 
 namespace spider {
@@ -51,30 +50,6 @@ namespace spider {
         inline void end(const int64_t *, int64_t *[], void *[], void *[]) {
 
         }
-
-        /* === Class definition === */
-
-        class EndVertex final : public VertexInterface<EndVertex> {
-        public:
-            explicit EndVertex(std::string name = "unnamed-endvertex",
-                               StackID stack = StackID::PISDF) : VertexInterface<EndVertex>(std::move(name),
-                                                                                            1,
-                                                                                            0,
-                                                                                            stack) { };
-
-            EndVertex(const EndVertex &other, StackID stack = StackID::PISDF) : VertexInterface<EndVertex>(other,
-                                                                                                           stack) { };
-
-            EndVertex(EndVertex &&other) noexcept : VertexInterface<EndVertex>(std::move(other)) { };
-
-            /* === Method(s) === */
-
-            /* === Getter(s) === */
-
-            inline VertexType subtype() const override {
-                return VertexType::END;
-            }
-        };
     }
 }
 #endif //SPIDER2_ENDVERTEX_H

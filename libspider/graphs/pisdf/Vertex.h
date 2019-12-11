@@ -64,8 +64,6 @@ namespace spider {
         class Vertex {
         public:
 
-            Vertex() = default;
-
             explicit Vertex(std::string name,
                             size_t edgeINCount = 0,
                             size_t edgeOUTCount = 0,

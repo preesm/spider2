@@ -56,7 +56,7 @@ public:
     inline bool operator()(PiSDFGraph *graph) const override;
 
 private:
-    inline spider::pisdf::JoinVertex *createNewJoin(spider::pisdf::Vertex *firstJoin,
+    inline spider::pisdf::ExecVertex *createNewJoin(spider::pisdf::Vertex *firstJoin,
                                                     spider::pisdf::Vertex *secondJoin) const {
         auto *graph = firstJoin->graph();
         const auto &inputCount = static_cast<uint32_t>(firstJoin->inputEdgeCount() +

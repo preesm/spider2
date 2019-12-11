@@ -42,7 +42,6 @@
 
 /* === Include(s) === */
 
-#include <graphs/pisdf/specials/VertexInterface.h>
 #include <graphs/pisdf/Graph.h>
 
 namespace spider {
@@ -55,33 +54,6 @@ namespace spider {
                 std::memcpy(out[i], in[0], static_cast<size_t>(inputSize));
             }
         }
-
-        /* === Class definition === */
-
-        class DuplicateVertex final : public VertexInterface<DuplicateVertex> {
-        public:
-            explicit DuplicateVertex(std::string name = "unnamed-duplicatevertex",
-                                     uint32_t edgeOUTCount = 0,
-                                     StackID stack = StackID::PISDF) : VertexInterface<DuplicateVertex>(std::move(name),
-                                                                                                        1,
-                                                                                                        edgeOUTCount,
-                                                                                                        stack) { };
-
-            DuplicateVertex(const DuplicateVertex &other,
-                            StackID stack = StackID::PISDF) : VertexInterface<DuplicateVertex>(other,
-                                                                                               stack) { };
-
-            DuplicateVertex(DuplicateVertex &&other) noexcept : VertexInterface<DuplicateVertex>(std::move(other)) { };
-
-
-            /* === Method(s) === */
-
-            /* === Getter(s) === */
-
-            inline VertexType subtype() const override {
-                return VertexType::DUPLICATE;
-            }
-        };
     }
 }
 #endif //SPIDER2_DUPLICATEVERTEX_H

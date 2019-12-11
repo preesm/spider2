@@ -92,42 +92,42 @@ namespace spider {
                                         uint32_t edgeOUTCount = 0,
                                         StackID stack = StackID::PISDF);
 
-        pisdf::ForkVertex *createFork(pisdf::Graph *graph,
+        pisdf::ExecVertex *createFork(pisdf::Graph *graph,
                                       std::string name,
                                       uint32_t edgeOUTCount = 0,
                                       StackID stack = StackID::PISDF);
 
-        pisdf::JoinVertex *createJoin(pisdf::Graph *graph,
+        pisdf::ExecVertex *createJoin(pisdf::Graph *graph,
                                       std::string name,
                                       uint32_t edgeINCount = 0,
                                       StackID stack = StackID::PISDF);
 
-        pisdf::HeadVertex *createHead(pisdf::Graph *graph,
+        pisdf::ExecVertex *createHead(pisdf::Graph *graph,
                                       std::string name,
                                       uint32_t edgeINCount = 0,
                                       StackID stack = StackID::PISDF);
 
-        pisdf::TailVertex *createTail(pisdf::Graph *graph,
+        pisdf::ExecVertex *createTail(pisdf::Graph *graph,
                                       std::string name,
                                       uint32_t edgeINCount = 0,
                                       StackID stack = StackID::PISDF);
 
-        pisdf::DuplicateVertex *createDuplicate(pisdf::Graph *graph,
-                                                std::string name,
-                                                uint32_t edgeOUTCount = 0,
-                                                StackID stack = StackID::PISDF);
+        pisdf::ExecVertex *createDuplicate(pisdf::Graph *graph,
+                                           std::string name,
+                                           uint32_t edgeOUTCount = 0,
+                                           StackID stack = StackID::PISDF);
 
-        pisdf::RepeatVertex *createRepeat(pisdf::Graph *graph, std::string name, StackID stack = StackID::PISDF);
+        pisdf::ExecVertex *createRepeat(pisdf::Graph *graph, std::string name, StackID stack = StackID::PISDF);
 
-        pisdf::InitVertex *createInit(pisdf::Graph *graph, std::string name, StackID stack = StackID::PISDF);
+        pisdf::ExecVertex *createInit(pisdf::Graph *graph, std::string name, StackID stack = StackID::PISDF);
 
-        pisdf::EndVertex *createEnd(pisdf::Graph *graph, std::string name, StackID stack = StackID::PISDF);
+        pisdf::ExecVertex *createEnd(pisdf::Graph *graph, std::string name, StackID stack = StackID::PISDF);
 
-        pisdf::ConfigVertex *createConfigActor(pisdf::Graph *graph,
-                                               std::string name,
-                                               uint32_t edgeINCount = 0,
-                                               uint32_t edgeOUTCount = 0,
-                                               StackID stack = StackID::PISDF);
+        pisdf::ExecVertex *createConfigActor(pisdf::Graph *graph,
+                                             std::string name,
+                                             uint32_t edgeINCount = 0,
+                                             uint32_t edgeOUTCount = 0,
+                                             StackID stack = StackID::PISDF);
 
         pisdf::InputInterface *setInputInterfaceName(pisdf::Graph *graph, uint32_t ix, std::string name);
 

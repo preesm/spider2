@@ -78,36 +78,37 @@ namespace spider {
             GRAPH,          /*! Graph vertex type */
             INPUT,          /*! Input interface type */
             OUTPUT,         /*! Output interface type */
-            TEST,           /*! Output interface type */
             First = NORMAL,
-            Last = TEST,
+            Last = OUTPUT,
         };
 
         /* === Forward declaration(s) === */
 
+        template<VertexType> class SpecialVertex;
+
+        using ConfigVertex = SpecialVertex<VertexType::CONFIG>;
+
+        using DelayVertex = SpecialVertex<VertexType::DELAY>;
+
+        using ForkVertex = SpecialVertex<VertexType::FORK>;
+
+        using JoinVertex = SpecialVertex<VertexType::JOIN>;
+
+        using HeadVertex = SpecialVertex<VertexType::HEAD>;
+
+        using TailVertex = SpecialVertex<VertexType::TAIL>;
+
+        using RepeatVertex = SpecialVertex<VertexType::REPEAT>;
+
+        using DuplicateVertex = SpecialVertex<VertexType::DUPLICATE>;
+
+        using InitVertex = SpecialVertex<VertexType::INIT>;
+
+        using EndVertex = SpecialVertex<VertexType::END>;
+
         class Vertex;
 
         class ExecVertex;
-
-        class ConfigVertex;
-
-        class DelayVertex;
-
-        class JoinVertex;
-
-        class ForkVertex;
-
-        class TailVertex;
-
-        class HeadVertex;
-
-        class DuplicateVertex;
-
-        class RepeatVertex;
-
-        class InitVertex;
-
-        class EndVertex;
 
         class Graph;
 
@@ -138,16 +139,16 @@ namespace spider {
 /* == Vertex definitions == */
 using PiSDFAbstractVertex = spider::pisdf::Vertex;
 using PiSDFVertex = spider::pisdf::ExecVertex;
-using PiSDFCFGVertex = spider::pisdf::ConfigVertex;
-using PiSDFDelayVertex = spider::pisdf::DelayVertex;
-using PiSDFJoinVertex = spider::pisdf::JoinVertex;
-using PiSDFForkVertex = spider::pisdf::ForkVertex;
-using PiSDFTailVertex = spider::pisdf::TailVertex;
-using PiSDFHeadVertex = spider::pisdf::HeadVertex;
-using PiSDFDuplicateVertex = spider::pisdf::DuplicateVertex;
-using PiSDFRepeatVertex = spider::pisdf::RepeatVertex;
-using PiSDFInitVertex = spider::pisdf::InitVertex;
-using PiSDFEndVertex = spider::pisdf::EndVertex;
+using PiSDFCFGVertex = spider::pisdf::SpecialVertex<spider::pisdf::VertexType::CONFIG>;
+using PiSDFDelayVertex = spider::pisdf::SpecialVertex<spider::pisdf::VertexType::DELAY>;
+using PiSDFJoinVertex = spider::pisdf::SpecialVertex<spider::pisdf::VertexType::JOIN>;
+using PiSDFForkVertex = spider::pisdf::SpecialVertex<spider::pisdf::VertexType::FORK>;
+using PiSDFTailVertex = spider::pisdf::SpecialVertex<spider::pisdf::VertexType::TAIL>;
+using PiSDFHeadVertex = spider::pisdf::SpecialVertex<spider::pisdf::VertexType::HEAD>;
+using PiSDFDuplicateVertex = spider::pisdf::SpecialVertex<spider::pisdf::VertexType::DUPLICATE>;
+using PiSDFRepeatVertex = spider::pisdf::SpecialVertex<spider::pisdf::VertexType::REPEAT>;
+using PiSDFInitVertex = spider::pisdf::SpecialVertex<spider::pisdf::VertexType::INIT>;
+using PiSDFEndVertex =spider::pisdf::SpecialVertex<spider::pisdf::VertexType::END>;
 
 /* == Graph definition == */
 using PiSDFGraph = spider::pisdf::Graph;

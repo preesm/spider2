@@ -47,7 +47,6 @@
 #include <graphs/pisdf/interfaces/Interface.h>
 #include <graphs/pisdf/interfaces/InputInterface.h>
 #include <graphs/pisdf/interfaces/OutputInterface.h>
-#include <graphs/pisdf/specials/Specials.h>
 #include <graphs/pisdf/Param.h>
 
 

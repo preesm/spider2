@@ -44,7 +44,7 @@
 #include <memory/alloc.h>
 #include <common/Logger.h>
 #include <archi/Platform.h>
-#include <graphs/pisdf/specials/Specials.h>
+#include <graphs/pisdf/Graph.h>
 
 /* === Static variable(s) definition === */
 

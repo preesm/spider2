@@ -42,7 +42,6 @@
 
 /* === Include(s) === */
 
-#include <graphs/pisdf/specials/VertexInterface.h>
 #include <graphs/pisdf/Graph.h>
 
 namespace spider {
@@ -59,31 +58,6 @@ namespace spider {
                 offset += inputSize;
             }
         }
-
-        /* === Class definition === */
-
-        class HeadVertex final : public VertexInterface<HeadVertex> {
-        public:
-            explicit HeadVertex(std::string name = "unnamed-headvertex",
-                                uint32_t edgeINCount = 0,
-                                StackID stack = StackID::PISDF) : VertexInterface<HeadVertex>(std::move(name),
-                                                                                              edgeINCount,
-                                                                                              1,
-                                                                                              stack) { };
-
-            HeadVertex(const HeadVertex &other,
-                       StackID stack = StackID::PISDF) : VertexInterface<HeadVertex>(other, stack) { };
-
-            HeadVertex(HeadVertex &&other) noexcept : VertexInterface<HeadVertex>(std::move(other)) { };
-
-            /* === Method(s) === */
-
-            /* === Getter(s) === */
-
-            inline VertexType subtype() const override {
-                return VertexType::HEAD;
-            }
-        };
     }
 }
 #endif //SPIDER2_HEADVERTEX_H

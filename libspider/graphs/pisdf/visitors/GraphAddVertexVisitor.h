@@ -43,7 +43,7 @@
 /* === Include(s) === */
 
 #include <graphs/pisdf/visitors/DefaultVisitor.h>
-#include <graphs/pisdf/specials/Specials.h>
+#include <graphs/pisdf/SpecialVertex.h>
 #include <graphs/pisdf/Graph.h>
 #include <api/archi-api.h>
 #include <archi/Platform.h>

@@ -42,7 +42,6 @@
 
 /* === Include(s) === */
 
-#include <graphs/pisdf/specials/VertexInterface.h>
 #include <graphs/pisdf/Graph.h>
 
 namespace spider {
@@ -51,31 +50,6 @@ namespace spider {
         inline void init(const int64_t *, int64_t *[], void *[], void *[]) {
 
         }
-
-        /* === Class definition === */
-
-        class InitVertex final : public VertexInterface<InitVertex> {
-        public:
-            explicit InitVertex(std::string name = "unnamed-initvertex",
-                                StackID stack = StackID::PISDF) : VertexInterface<InitVertex>(std::move(name),
-                                                                                              0,
-                                                                                              1,
-                                                                                              stack) { };
-
-            InitVertex(const InitVertex &other,
-                       StackID stack = StackID::PISDF) : VertexInterface<InitVertex>(other,
-                                                                                     stack) { };
-
-            InitVertex(InitVertex &&other) noexcept : VertexInterface<InitVertex>(std::move(other)) { };
-
-            /* === Method(s) === */
-
-            /* === Getter(s) === */
-
-            inline VertexType subtype() const override {
-                return VertexType::INIT;
-            }
-        };
     }
 }
 #endif //SPIDER2_INITVERTEX_H

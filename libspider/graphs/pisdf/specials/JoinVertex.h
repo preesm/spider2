@@ -42,7 +42,6 @@
 
 /* === Include(s) === */
 
-#include <graphs/pisdf/specials/VertexInterface.h>
 #include <graphs/pisdf/Graph.h>
 
 namespace spider {
@@ -67,31 +66,6 @@ namespace spider {
                                              "]", offset, outputRate);
             }
         }
-
-        /* === Class definition === */
-
-        class JoinVertex final : public VertexInterface<JoinVertex> {
-        public:
-            explicit JoinVertex(std::string name = "unnamed-joinvertex",
-                                uint32_t edgeINCount = 0,
-                                StackID stack = StackID::PISDF) : VertexInterface<JoinVertex>(std::move(name),
-                                                                                              edgeINCount,
-                                                                                              1,
-                                                                                              stack) { };
-
-            JoinVertex(const JoinVertex &other,
-                       StackID stack = StackID::PISDF) : VertexInterface<JoinVertex>(other, stack) { };
-
-            JoinVertex(JoinVertex &&other) noexcept : VertexInterface<JoinVertex>(std::move(other)) { };
-
-            /* === Method(s) === */
-
-            /* === Getter(s) === */
-
-            inline VertexType subtype() const override {
-                return VertexType::JOIN;
-            }
-        };
     }
 }
 #endif //SPIDER2_JOINVERTEX_H

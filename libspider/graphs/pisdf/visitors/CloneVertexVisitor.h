@@ -44,7 +44,7 @@
 
 #include <graphs/pisdf/Vertex.h>
 #include <graphs/pisdf/ExecVertex.h>
-#include <graphs/pisdf/specials/Specials.h>
+#include <graphs/pisdf/SpecialVertex.h>
 #include <graphs/pisdf/visitors/DefaultVisitor.h>
 #include <api/pisdf-api.h>
 

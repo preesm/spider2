@@ -42,7 +42,8 @@
 
 #include <graphs/pisdf/Delay.h>
 #include <graphs/pisdf/Edge.h>
-#include <graphs/pisdf/specials/Specials.h>
+#include <graphs/pisdf/Graph.h>
+#include <graphs/pisdf/SpecialVertex.h>
 #include <api/pisdf-api.h>
 
 /* === Static variable(s) === */

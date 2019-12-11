@@ -42,7 +42,11 @@
 
 /* === Include(s) === */
 
-#include <graphs/pisdf/specials/VertexInterface.h>
+#include <cstdint>
+#include <cinttypes>
+#include <cstdio>
+#include <cstring>
+#include <common/Exception.h>
 
 namespace spider {
     namespace pisdf {
@@ -66,31 +70,6 @@ namespace spider {
                                              "]", inputRate, offset);
             }
         }
-
-        /* === Class definition === */
-
-        class ForkVertex final : public VertexInterface<ForkVertex> {
-        public:
-            explicit ForkVertex(std::string name = "unnamed-forkvertex",
-                                uint32_t edgeOUTCount = 0,
-                                StackID stack = StackID::PISDF) : VertexInterface<ForkVertex>(std::move(name),
-                                                                                              1,
-                                                                                              edgeOUTCount,
-                                                                                              stack) { };
-
-            ForkVertex(const ForkVertex &other,
-                       StackID stack = StackID::PISDF) : VertexInterface<ForkVertex>(other, stack) { };
-
-            ForkVertex(ForkVertex &&other) noexcept : VertexInterface<ForkVertex>(std::move(other)) { };
-
-            /* === Method(s) === */
-
-            /* === Getter(s) === */
-
-            inline VertexType subtype() const override {
-                return VertexType::FORK;
-            }
-        };
     }
 }
 #endif //SPIDER2_FORKVERTEX_H

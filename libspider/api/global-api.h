@@ -86,24 +86,6 @@ namespace spider {
 
         class ExecVertex;
 
-        class ConfigVertex;
-
-        class JoinVertex;
-
-        class ForkVertex;
-
-        class TailVertex;
-
-        class HeadVertex;
-
-        class DuplicateVertex;
-
-        class RepeatVertex;
-
-        class InitVertex;
-
-        class EndVertex;
-
         class Graph;
 
         class Param;

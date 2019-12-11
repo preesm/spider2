@@ -48,7 +48,7 @@
 #include <graphs/pisdf/interfaces/OutputInterface.h>
 #include <graphs/pisdf/InHeritedParam.h>
 #include <graphs/pisdf/DynamicParam.h>
-#include <graphs/pisdf/specials/Specials.h>
+#include <graphs/pisdf/SpecialVertex.h>
 #include <cmath>
 #include <utility>
 
