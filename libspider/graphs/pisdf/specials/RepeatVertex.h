@@ -76,7 +76,13 @@ namespace spider {
                                   StackID stack = StackID::PISDF) : VertexInterface<RepeatVertex>(std::move(name),
                                                                                                   1,
                                                                                                   1,
-                                                                                                  stack) { }
+                                                                                                  stack) { };
+
+            RepeatVertex(const RepeatVertex &other,
+                         StackID stack = StackID::PISDF) : VertexInterface<RepeatVertex>(other,
+                                                                                         stack) { };
+
+            RepeatVertex(RepeatVertex &&other) noexcept : VertexInterface<RepeatVertex>(std::move(other)) { };
 
             /* === Method(s) === */
 

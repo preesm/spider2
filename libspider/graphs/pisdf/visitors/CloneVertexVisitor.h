@@ -65,116 +65,41 @@ namespace spider {
 
             /* === Method(s) === */
 
-            inline void visit(Graph *graph) override {
-                auto *clone = spider::api::createSubraph(graph_,
-                                                         graph->name_,
-                                                         static_cast<uint32_t>(graph->vertexCount()),
-                                                         static_cast<uint32_t>(graph->edgeCount()),
-                                                         static_cast<uint32_t>(graph->paramCount()),
-                                                         static_cast<uint32_t>(graph->inputEdgeCount()),
-                                                         static_cast<uint32_t>(graph->outputEdgeCount()),
-                                                         static_cast<uint32_t>(graph->configVertexCount()),
-                                                         stack_);
-                clone->dynamic_ = graph->dynamic_;
-                setRef(graph, clone);
-            }
+//            inline void visit(Graph *graph) override { clone(graph); }
 
-            inline void visit(ExecVertex *vertex) override {
-                auto *clone = spider::api::createVertex(graph_,
-                                                        vertex->name(),
-                                                        static_cast<uint32_t>(vertex->inputEdgeCount()),
-                                                        static_cast<uint32_t>(vertex->outputEdgeCount()),
-                                                        stack_);
-                clone->refinementIx_ = vertex->refinementIx_;
-                setRef(vertex, clone);
-            }
+            inline void visit(ExecVertex *vertex) override { clone(vertex); }
 
-            inline void visit(DelayVertex *vertex) override {
-                auto *clone = spider::make<DelayVertex>(stack_, vertex->name(), stack_);
-                graph_->addVertex(clone);
-                setRef(vertex, clone);
-            }
+            inline void visit(DelayVertex *vertex) override { clone(vertex); }
 
-            inline void visit(ConfigVertex *vertex) override {
-                auto *clone = spider::api::createConfigActor(graph_,
-                                                             vertex->name(),
-                                                             static_cast<uint32_t>(vertex->inputEdgeCount()),
-                                                             static_cast<uint32_t>(vertex->outputEdgeCount()),
-                                                             stack_);
-                setRef(vertex, clone);
+            inline void visit(ConfigVertex *vertex) override { clone(vertex); }
 
-            }
+            inline void visit(ForkVertex *vertex) override { clone(vertex); }
 
-            inline void visit(ForkVertex *vertex) override {
-                auto *clone = spider::api::createFork(graph_,
-                                                      vertex->name(),
-                                                      static_cast<uint32_t>(vertex->outputEdgeCount()),
-                                                      stack_);
-                setRef(vertex, clone);
-            }
+            inline void visit(JoinVertex *vertex) override { clone(vertex); }
 
-            inline void visit(JoinVertex *vertex) override {
-                auto *clone = spider::api::createJoin(graph_,
-                                                      vertex->name(),
-                                                      static_cast<uint32_t>(vertex->inputEdgeCount()),
-                                                      stack_);
-                setRef(vertex, clone);
-            }
+            inline void visit(HeadVertex *vertex) override { clone(vertex); }
 
-            inline void visit(HeadVertex *vertex) override {
-                auto *clone = spider::api::createHead(graph_,
-                                                      vertex->name(),
-                                                      static_cast<uint32_t>(vertex->inputEdgeCount()),
-                                                      stack_);
-                setRef(vertex, clone);
-            }
+            inline void visit(TailVertex *vertex) override { clone(vertex); }
 
-            inline void visit(TailVertex *vertex) override {
-                auto *clone = spider::api::createTail(graph_,
-                                                      vertex->name(),
-                                                      static_cast<uint32_t>(vertex->inputEdgeCount()),
-                                                      stack_);
-                setRef(vertex, clone);
-            }
+            inline void visit(DuplicateVertex *vertex) override { clone(vertex); }
 
-            inline void visit(DuplicateVertex *vertex) override {
-                auto *clone = spider::api::createDuplicate(graph_,
-                                                           vertex->name(),
-                                                           static_cast<uint32_t>(vertex->outputEdgeCount()),
-                                                           stack_);
-                setRef(vertex, clone);
-            }
+            inline void visit(RepeatVertex *vertex) override { clone(vertex); }
 
-            inline void visit(RepeatVertex *vertex) override {
-                auto *clone = spider::api::createRepeat(graph_, vertex->name(), stack_);
-                setRef(vertex, clone);
-            }
+            inline void visit(InitVertex *vertex) override { clone(vertex); }
 
-            inline void visit(InitVertex *vertex) override {
-                auto *clone = spider::api::createInit(graph_, vertex->name(), stack_);
-                setRef(vertex, clone);
-            }
-
-            inline void visit(EndVertex *vertex) override {
-                auto *clone = spider::api::createEnd(graph_, vertex->name(), stack_);
-                setRef(vertex, clone);
-            }
+            inline void visit(EndVertex *vertex) override { clone(vertex); }
 
             /* == Graph to add vertex to == */
             Graph *graph_ = nullptr;
             StackID stack_;
 
         private:
-            inline void setRef(Vertex *vertex, Vertex *clone) {
-                clone->reference_ = vertex;
+            template<class T>
+            inline void clone(T *vertex) {
+                auto *clone = spider::make<T>(stack_, (*vertex), stack_);
+                graph_->addVertex(clone);
                 vertex->copyCount_ += 1;
             }
-
-            inline void setRef(ExecVertex *vertex, ExecVertex *clone) {
-                clone->refinementIx_ = vertex->refinementIx_;
-                setRef(static_cast<Vertex *>(vertex), static_cast<Vertex *>(clone));
-            }
-
         };
     }
 }

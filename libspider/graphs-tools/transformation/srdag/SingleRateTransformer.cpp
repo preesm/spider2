@@ -215,9 +215,11 @@ std::pair<spider::srdag::JobStack, spider::srdag::JobStack> spider::srdag::Singl
         for (auto ix = firstCloneIx + runGraph->repetitionValue() - 1; ix >= firstCloneIx; --ix) {
             auto *clone = srdag_->vertex(ix);
             nextJobs.emplace_back(subgraph, clone->ix(), ix - firstCloneIx);
-            nextJobs.back().params_.reserve(runGraph->paramCount());
+
+            auto &job = nextJobs.back();
+            job.params_.reserve(runGraph->paramCount());
             for (auto &param : (*it).params_) {
-                nextJobs.back().params_.emplace_back(param);
+                job.params_.emplace_back(param);
             }
             it++;
         }

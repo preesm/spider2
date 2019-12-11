@@ -74,6 +74,20 @@ namespace spider {
                            uint32_t cfgVertexCount = 0,
                            StackID stack = StackID::PISDF);
 
+            Graph(const Graph &) = default;
+
+            Graph(Graph &&other) noexcept : Vertex(std::move(other)) {
+                std::swap(dynamic_, other.dynamic_);
+                std::swap(subIx_, other.subIx_);
+                std::swap(vertexVector_, other.vertexVector_);
+                std::swap(configVertexVector_, other.configVertexVector_);
+                std::swap(subgraphVector_, other.subgraphVector_);
+                std::swap(edgeVector_, other.edgeVector_);
+                std::swap(paramVector_, other.paramVector_);
+                std::swap(inputInterfaceArray_, other.inputInterfaceArray_);
+                std::swap(outputInterfaceArray_, other.outputInterfaceArray_);
+            };
+
             ~Graph() noexcept override;
 
             friend GraphAddVertexVisitor;

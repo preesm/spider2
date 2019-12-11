@@ -55,7 +55,14 @@ namespace spider {
                                  StackID stack = StackID::PISDF) : VertexInterface<DelayVertex>(std::move(name),
                                                                                                 1,
                                                                                                 1,
-                                                                                                stack) { }
+                                                                                                stack) { };
+
+            DelayVertex(const DelayVertex &other,
+                        StackID stack = StackID::PISDF) : VertexInterface<DelayVertex>(other,
+                                                                                       stack) { };
+
+            DelayVertex(DelayVertex &&other) noexcept : VertexInterface<DelayVertex>(std::move(other)) { };
+
             /* === Method(s) === */
 
             /* === Getter(s) === */
@@ -66,7 +73,7 @@ namespace spider {
 
             /* === Setter(s) === */
 
-            inline void setRepetitionValue(uint32_t rv) override  {
+            inline void setRepetitionValue(uint32_t rv) override {
                 if (rv > 1) {
                     throwSpiderException("Delay [%s] has repetition vector value of %"
                                                  PRIu32

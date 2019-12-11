@@ -62,6 +62,16 @@ namespace spider {
                                                                          edgeOUTCount,
                                                                          stack) { }
 
+            ExecVertex(const ExecVertex &other, StackID stack = StackID::PISDF) : Vertex(other, stack) {
+                refinementIx_ = other.refinementIx_;
+                jobIx_ = other.jobIx_;
+            }
+
+            ExecVertex(ExecVertex &&other) noexcept : Vertex(std::move(other)) {
+                std::swap(refinementIx_, other.refinementIx_);
+                std::swap(jobIx_, other.jobIx_);
+            }
+
             friend CloneVertexVisitor;
 
             /* === Method(s) === */

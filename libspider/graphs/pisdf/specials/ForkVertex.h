@@ -76,13 +76,18 @@ namespace spider {
                                 StackID stack = StackID::PISDF) : VertexInterface<ForkVertex>(std::move(name),
                                                                                               1,
                                                                                               edgeOUTCount,
-                                                                                              stack) { }
+                                                                                              stack) { };
+
+            ForkVertex(const ForkVertex &other,
+                       StackID stack = StackID::PISDF) : VertexInterface<ForkVertex>(other, stack) { };
+
+            ForkVertex(ForkVertex &&other) noexcept : VertexInterface<ForkVertex>(std::move(other)) { };
 
             /* === Method(s) === */
 
             /* === Getter(s) === */
 
-            inline VertexType subtype() const override  {
+            inline VertexType subtype() const override {
                 return VertexType::FORK;
             }
         };

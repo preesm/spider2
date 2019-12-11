@@ -60,7 +60,13 @@ namespace spider {
                                 StackID stack = StackID::PISDF) : VertexInterface<InitVertex>(std::move(name),
                                                                                               0,
                                                                                               1,
-                                                                                              stack) { }
+                                                                                              stack) { };
+
+            InitVertex(const InitVertex &other,
+                       StackID stack = StackID::PISDF) : VertexInterface<InitVertex>(other,
+                                                                                     stack) { };
+
+            InitVertex(InitVertex &&other) noexcept : VertexInterface<InitVertex>(std::move(other)) { };
 
             /* === Method(s) === */
 

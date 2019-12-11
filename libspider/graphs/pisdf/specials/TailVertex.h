@@ -76,7 +76,12 @@ namespace spider {
                                 StackID stack = StackID::PISDF) : VertexInterface<TailVertex>(std::move(name),
                                                                                               edgeINCount,
                                                                                               1,
-                                                                                              stack) { }
+                                                                                              stack) { };
+
+            TailVertex(const TailVertex &other,
+                       StackID stack = StackID::PISDF) : VertexInterface<TailVertex>(other, stack) { };
+
+            TailVertex(TailVertex &&other) noexcept : VertexInterface<TailVertex>(std::move(other)) { };
 
             /* === Method(s) === */
 

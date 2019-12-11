@@ -74,6 +74,7 @@ namespace spider {
 
             inline void visit(spider::pisdf::ExecVertex *vertex) override {
                 spider::pisdf::CloneVertexVisitor cloneVisitor{ srdag_, StackID::TRANSFO };
+                vertex->setJobIx(job_.firingValue_);
                 for (uint32_t it = 0; it < vertex->repetitionValue(); ++it) {
                     /* == Change the name of the clone == */
                     vertex->visit(&cloneVisitor);

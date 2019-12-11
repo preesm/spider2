@@ -64,7 +64,9 @@ namespace spider {
         class Vertex {
         public:
 
-            explicit Vertex(std::string name = "unnamed-vertex",
+            Vertex() = default;
+
+            explicit Vertex(std::string name,
                             size_t edgeINCount = 0,
                             size_t edgeOUTCount = 0,
                             StackID stack = StackID::PISDF) :
@@ -72,9 +74,9 @@ namespace spider {
                     inputEdgeArray_{ edgeINCount, nullptr, stack },
                     outputEdgeArray_{ edgeOUTCount, nullptr, stack } { }
 
-            Vertex(const Vertex &) = delete;
+            Vertex(const Vertex &other, StackID stack = StackID::PISDF);
 
-            Vertex(Vertex &&) = delete;
+            Vertex(Vertex &&other) noexcept = default;
 
             Vertex &operator=(const Vertex &) = delete;
 
@@ -327,12 +329,12 @@ namespace spider {
             std::string name_ = "unnamed-vertex";
             spider::array<Edge *> inputEdgeArray_;
             spider::array<Edge *> outputEdgeArray_;
-            Vertex *reference_ = this;
+            const Vertex *reference_ = this;
             Graph *graph_ = nullptr;
             RTConstraints *constraints_ = nullptr;
             uint32_t ix_ = UINT32_MAX;
             uint32_t repetitionValue_ = 1;
-            uint32_t copyCount_ = 0;
+            mutable uint32_t copyCount_ = 0;
 
             /* === Private method(s) === */
 

@@ -45,6 +45,18 @@
 
 /* === Function(s) definition === */
 
+spider::pisdf::Vertex::Vertex(const spider::pisdf::Vertex &other,
+                              StackID stack) : name_{ other.name_ },
+                                               inputEdgeArray_{ other.inputEdgeArray_.size(), nullptr, stack },
+                                               outputEdgeArray_{ other.outputEdgeArray_.size(), nullptr, stack },
+                                               reference_{ &other },
+                                               graph_{ other.graph_ },
+                                               constraints_{ other.constraints_ },
+                                               ix_{ other.ix_ },
+                                               repetitionValue_{ other.repetitionValue_ },
+                                               copyCount_{ 0 } {
+}
+
 
 spider::pisdf::Vertex::~Vertex() noexcept {
     if (copyCount_ && log_enabled()) {

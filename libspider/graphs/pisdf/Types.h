@@ -78,8 +78,9 @@ namespace spider {
             GRAPH,          /*! Graph vertex type */
             INPUT,          /*! Input interface type */
             OUTPUT,         /*! Output interface type */
+            TEST,           /*! Output interface type */
             First = NORMAL,
-            Last = OUTPUT,
+            Last = TEST,
         };
 
         /* === Forward declaration(s) === */

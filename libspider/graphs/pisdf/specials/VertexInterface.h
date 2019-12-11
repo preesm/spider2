@@ -59,7 +59,11 @@ namespace spider {
                             StackID stack) : ExecVertex(std::move(name),
                                                         edgeINCount,
                                                         edgeOUTCount,
-                                                        stack) { }
+                                                        stack) { };
+
+            VertexInterface(const VertexInterface &other, StackID stack = StackID::PISDF) : ExecVertex(other, stack) { };
+
+            VertexInterface(VertexInterface &&other) noexcept : ExecVertex(std::move(other)) { };
 
             ~VertexInterface() override = default;
 

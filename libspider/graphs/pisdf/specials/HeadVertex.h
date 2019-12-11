@@ -69,7 +69,12 @@ namespace spider {
                                 StackID stack = StackID::PISDF) : VertexInterface<HeadVertex>(std::move(name),
                                                                                               edgeINCount,
                                                                                               1,
-                                                                                              stack) { }
+                                                                                              stack) { };
+
+            HeadVertex(const HeadVertex &other,
+                       StackID stack = StackID::PISDF) : VertexInterface<HeadVertex>(other, stack) { };
+
+            HeadVertex(HeadVertex &&other) noexcept : VertexInterface<HeadVertex>(std::move(other)) { };
 
             /* === Method(s) === */
 

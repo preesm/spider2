@@ -77,7 +77,12 @@ namespace spider {
                                 StackID stack = StackID::PISDF) : VertexInterface<JoinVertex>(std::move(name),
                                                                                               edgeINCount,
                                                                                               1,
-                                                                                              stack) { }
+                                                                                              stack) { };
+
+            JoinVertex(const JoinVertex &other,
+                       StackID stack = StackID::PISDF) : VertexInterface<JoinVertex>(other, stack) { };
+
+            JoinVertex(JoinVertex &&other) noexcept : VertexInterface<JoinVertex>(std::move(other)) { };
 
             /* === Method(s) === */
 

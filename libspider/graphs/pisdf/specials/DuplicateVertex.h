@@ -65,9 +65,14 @@ namespace spider {
                                      StackID stack = StackID::PISDF) : VertexInterface<DuplicateVertex>(std::move(name),
                                                                                                         1,
                                                                                                         edgeOUTCount,
-                                                                                                        stack) {
-//                refinement_ = duplicate;
-            }
+                                                                                                        stack) { };
+
+            DuplicateVertex(const DuplicateVertex &other,
+                            StackID stack = StackID::PISDF) : VertexInterface<DuplicateVertex>(other,
+                                                                                               stack) { };
+
+            DuplicateVertex(DuplicateVertex &&other) noexcept : VertexInterface<DuplicateVertex>(std::move(other)) { };
+
 
             /* === Method(s) === */
 
