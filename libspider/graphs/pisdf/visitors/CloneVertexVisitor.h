@@ -65,7 +65,7 @@ namespace spider {
 
             /* === Method(s) === */
 
-//            inline void visit(Graph *graph) override { clone(graph); }
+            inline void visit(Graph *graph) override { clone(graph); }
 
             inline void visit(ExecVertex *vertex) override { clone(vertex); }
 
