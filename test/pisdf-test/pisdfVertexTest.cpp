@@ -124,6 +124,20 @@ void testType() {
     ASSERT_EQ((spider::pisdf::DelayVertex().subtype()), spider::pisdf::VertexType::DELAY) << "DelayVertex::subtype() should be VertexType::DELAY.";
 }
 
+void testCpyCtor() {
+    auto test = spider::pisdf::ExecVertex();
+    ASSERT_EQ((spider::pisdf::ExecVertex(test).subtype()), spider::pisdf::VertexType::NORMAL) << "ExecVertex::subtype() should be VertexType::NORMAL.";
+    auto test2 = spider::pisdf::ForkVertex();
+    ASSERT_EQ((spider::pisdf::ForkVertex(test2).subtype()), spider::pisdf::VertexType::FORK) << "ForkVertex::subtype() should be VertexType::FORK.";
+    ASSERT_EQ((spider::pisdf::DuplicateVertex(spider::pisdf::DuplicateVertex()).subtype()), spider::pisdf::VertexType::DUPLICATE) << "DuplicateVertex::subtype() should be VertexType::DUPLICATE.";
+    ASSERT_EQ((spider::pisdf::InitVertex(spider::pisdf::InitVertex()).subtype()), spider::pisdf::VertexType::INIT) << "InitVertex::subtype() should be VertexType::INIT.";
+    ASSERT_EQ((spider::pisdf::EndVertex(spider::pisdf::EndVertex()).subtype()), spider::pisdf::VertexType::END) << "EndVertex::subtype() should be VertexType::END.";
+    ASSERT_EQ((spider::pisdf::InputInterface(spider::pisdf::InputInterface()).subtype()), spider::pisdf::VertexType::INPUT) << "InputInterface::subtype() should be VertexType::INPUT.";
+    ASSERT_EQ((spider::pisdf::OutputInterface(spider::pisdf::OutputInterface()).subtype()), spider::pisdf::VertexType::OUTPUT) << "OutputInterface::subtype() should be VertexType::OUTPUT.";
+    ASSERT_EQ((spider::pisdf::Graph(spider::pisdf::Graph()).subtype()), spider::pisdf::VertexType::GRAPH) << "Graph::subtype() should be VertexType::GRAPH.";
+    ASSERT_EQ((spider::pisdf::DelayVertex(spider::pisdf::DelayVertex()).subtype()), spider::pisdf::VertexType::DELAY) << "DelayVertex::subtype() should be VertexType::DELAY.";
+}
+
 
 TEST_F(pisdVertexTest, vertexTest) {
     {
@@ -191,6 +205,17 @@ TEST_F(pisdVertexTest, vertexTest) {
 
     /* == Test subtype property for every vertex == */
     testType();
+
+    /* == Test setJobIx == */
+    {
+        PiSDFVertex vertex;
+        ASSERT_EQ(vertex.jobIx(), UINT32_MAX) << "ExecVertex::jobIx() should return UINT32_MAX as default value.";
+        ASSERT_NO_THROW(vertex.setJobIx(10)) << "ExecVertex::setJobIx() should never throw.";
+        ASSERT_EQ(vertex.jobIx(), 10) << "ExecVertex::jobIx() bad value.";
+    }
+
+    /* == Test cpy ctor of each subtype == */
+    testCpyCtor();
 
     auto visitor = spider::pisdf::CloneVertexVisitor(graph);
     spider::api::enableLogger(spider::log::GENERAL);

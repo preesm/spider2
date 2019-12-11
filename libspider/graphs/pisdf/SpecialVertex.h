@@ -55,7 +55,7 @@ namespace spider {
 
             SpecialVertex() = delete;
 
-            explicit SpecialVertex(std::string name, StackID stack = StackID::PISDF) = delete;
+            explicit SpecialVertex(std::string, StackID = StackID::PISDF) = delete;
 
             SpecialVertex(std::string, /* = Name = */
                           uint32_t,    /* = Input/Output edge count (depend on VertexType) = */
