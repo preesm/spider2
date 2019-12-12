@@ -43,6 +43,7 @@
 #include <archi/Platform.h>
 #include <archi/Cluster.h>
 #include <archi/PE.h>
+#include <numeric>
 
 /* === Static variable(s) === */
 
@@ -50,8 +51,9 @@
 
 /* === Method(s) implementation === */
 
-spider::Platform::Platform(uint32_t clusterCount) : clusterArray_{ clusterCount, StackID::ARCHI } {
-}
+spider::Platform::Platform(size_t clusterCount, size_t peCount) :
+        clusterArray_{ clusterCount, nullptr, StackID::ARCHI },
+        peArray_{ peCount, nullptr, StackID::ARCHI } { }
 
 spider::Platform::~Platform() {
     for (auto &cluster : clusterArray_) {
@@ -62,96 +64,33 @@ spider::Platform::~Platform() {
 void spider::Platform::addCluster(Cluster *cluster) {
     clusterArray_.at(clusterCount_) = cluster;
     cluster->setIx(clusterCount_);
-    clusterCount_ += 1;
-}
+    clusterCount_++;
 
-spider::PE &spider::Platform::findPE(const std::string &name) const {
-    for (const auto &cluster : clusterArray_) {
-        for (auto &pe : cluster->peArray()) {
-            if (pe->name() == name) {
-                return *pe;
-            }
-        }
-    }
-    throwSpiderException("Unable to find PE of name: %s in any of the platform clusters.", name.c_str());
-}
-
-spider::PE &spider::Platform::findPE(size_t virtualIx) const {
-    for (const auto &cluster : clusterArray_) {
-        for (auto &pe : cluster->peArray()) {
-            if (pe->virtualIx() == virtualIx) {
-                return *pe;
-            }
-        }
-    }
-    throwSpiderException("Unable to find PE of s-lam ix: %"
-                                 PRIu32
-                                 " in any of the platform clusters.", virtualIx);
-}
-
-spider::PE &spider::Platform::findPE(size_t clusterIx, size_t PEIx) const {
-    auto *cluster = clusterArray_.at(clusterIx);
-    return *(cluster->peArray().at(PEIx));
-}
-
-size_t spider::Platform::PECount() const {
-    size_t PECount = 0;
-    for (auto &cluster : clusterArray_) {
-        PECount += cluster->PECount();
-    }
-    return PECount;
-}
-
-uint32_t spider::Platform::LRTCount() const {
-    uint32_t LRTCount = 0;
-    for (auto &cluster : clusterArray_) {
-        LRTCount += cluster->LRTCount();
-    }
-    return LRTCount;
-}
-
-int32_t spider::Platform::spiderGRTClusterIx() const {
-    if (grtPE_) {
-        return static_cast<int32_t>(grtPE_->cluster()->ix());
-    }
-    return -1;
-}
-
-int32_t spider::Platform::spiderGRTPEIx() const {
-    if (grtPE_) {
-        return static_cast<int32_t>(grtPE_->clusterPEIx());
-    }
-    return -1;
-}
-
-void spider::Platform::enablePE(PE *const PE) const {
-    if (PE) {
-        PE->enable();
+    /* == Add the PE to the proper place in the global array == */
+    for (const auto &pe : cluster->array()) {
+        peArray_.at(pe->virtualIx()) = pe;
     }
 }
 
-void spider::Platform::disablePE(PE *const PE) const {
-    if (PE && PE == grtPE_) {
-        throwSpiderException("Can not disable GRT PE: %s.", PE->name().c_str());
-    }
-    if (PE) {
-        PE->disable();
-    }
+size_t spider::Platform::LRTCount() const {
+    return std::accumulate(clusterArray_.begin(), clusterArray_.end(), static_cast<size_t>(0),
+                           [&](size_t a, Cluster *cluster) -> size_t { return a + cluster->LRTCount(); });
 }
 
-uint64_t spider::Platform::dataCommunicationCostPEToPE(PE *PESrc, PE *PESnk, uint64_t dataSize) {
-    /* == Test if it is an intra or inter cluster communication == */
-    if (PESrc->cluster()->ix() == PESnk->cluster()->ix()) {
-        /* == Intra cluster, communication cost is the read / write to the cluster memory cost == */
-        auto *cluster = PESrc->cluster();
-        return math::saturateAdd(cluster->writeCostRoutine()(dataSize), cluster->readCostRoutine()(dataSize));
-    }
 
-    /* == For inter cluster communication, cost is a bit more complicated to compute == */
-    auto *clusterSrc = PESrc->cluster();
-    auto *clusterSnk = PESnk->cluster();
-    const auto &readWriteCost = math::saturateAdd(clusterSrc->writeCostRoutine()(dataSize),
-                                                  clusterSnk->readCostRoutine()(dataSize));
-    return math::saturateAdd(readWriteCost,
-                             cluster2ClusterComCostRoutine_(clusterSrc->ix(), clusterSnk->ix(), dataSize));
-}
+//uint64_t spider::Platform::dataCommunicationCostPEToPE(PE *PESrc, PE *PESnk, uint64_t dataSize) {
+//    /* == Test if it is an intra or inter cluster communication == */
+//    if (PESrc->cluster()->ix() == PESnk->cluster()->ix()) {
+//        /* == Intra cluster, communication cost is the read / write to the cluster memory cost == */
+//        auto *cluster = PESrc->cluster();
+//        return math::saturateAdd(cluster->writeCostRoutine()(dataSize), cluster->readCostRoutine()(dataSize));
+//    }
+//
+//    /* == For inter cluster communication, cost is a bit more complicated to compute == */
+//    auto *clusterSrc = PESrc->cluster();
+//    auto *clusterSnk = PESnk->cluster();
+//    const auto &readWriteCost = math::saturateAdd(clusterSrc->writeCostRoutine()(dataSize),
+//                                                  clusterSnk->readCostRoutine()(dataSize));
+//    return math::saturateAdd(readWriteCost,
+//                             cluster2ClusterComCostRoutine_(clusterSrc->ix(), clusterSnk->ix(), dataSize));
+//}

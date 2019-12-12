@@ -108,8 +108,8 @@ void spider::JITMSRTRunner::run(bool infiniteLoop) {
                 Notification notification{ NotificationType::LRT,
                                            LRTNotifification::FINISHED_ITERATION,
                                            static_cast<int32_t>(ix()) };
-                const auto &target = spider::platform()->spiderGRTPE()->managingLRTIx();
-                spider::rtPlatform()->communicator()->push(notification, static_cast<size_t>(target));
+                const auto *target = spider::platform()->spiderGRTPE()->attachedLRT();
+                spider::rtPlatform()->communicator()->push(notification, target->virtualIx());
             }
             if (shouldBroadcast_) {
                 shouldBroadcast_ = false;

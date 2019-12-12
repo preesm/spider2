@@ -52,85 +52,68 @@ namespace spider {
     class MemoryUnit {
     public:
 
-        MemoryUnit(void *base, uint64_t size);
+        explicit MemoryUnit(uint64_t size = 0) : size_{ size }, used_{ 0 } { };
 
         ~MemoryUnit() = default;
 
         /* === Method(s) === */
 
-        inline void reset();
+        /**
+         * @brief Allocate memory on the MemoryUnit (virtual allocation)
+         * @param size  Size (in bytes) to allocate.
+         * @return size value on success, UINT64_MAX on failure.
+         */
+        inline uint64_t allocate(uint64_t size) {
+            if (size >= available()) {
+                used_ += size_;
+                return size;
+            }
+            return UINT64_MAX;
+        }
 
-        inline void *physicalAddress(uintptr_t virtualAddress) const;
-
-        inline uint64_t allocate(uint64_t size);
+        /**
+         * @brief Deallocate memory on the MemoryUnit (virtual deallocation)
+         * @param size Size (in bytes) to deallocate.
+         * @return new available size.
+         * @throws spider::Exception if deallocating too much memory.
+         */
+        inline uint64_t deallocate(uint64_t size) {
+            if (size > used_) {
+                throwSpiderException("Deallocating more memory than used.");
+            }
+            used_ -= size;
+            return available();
+        }
 
         /* === Getter(s) === */
 
-        inline uint64_t size() const;
+        /**
+         * @brief Get the total available size (in bytes) of the MemoryUnit.
+         * @return total size in bytes.
+         */
+        inline uint64_t size() const {
+            return size_;
+        }
 
-        inline uint64_t used() const;
+        /**
+         * @brief Get the total current memory usage (in bytes) of the MemoryUnit.
+         * @return total current memory usage.
+         */
+        inline uint64_t used() const {
+            return used_;
+        }
 
-        inline uint64_t available() const;
-
-        inline uint32_t ix() const;
-
-        /* === Setter(s) === */
-
-        inline void setIx(uint32_t ix);
+        /**
+         * @brief Get the current available memory (in bytes) of the MemoryUnit.
+         * @return size() - used().
+         */
+        inline uint64_t available() const {
+            return size_ - used_;
+        }
 
     private:
-
-        /* === Core properties === */
-
-        void *base_ = nullptr;
         uint64_t size_ = 0;
         uint64_t used_ = 0;
-        uint32_t ix_ = 0;
-
-        /* === Routines === */
-
-        /* === Private method(s) === */
     };
-
-    /* === Inline method(s) === */
-
-    void MemoryUnit::reset() {
-        used_ = 0;
-    }
-
-    void *MemoryUnit::physicalAddress(uintptr_t virtualAddress) const {
-        if (virtualAddress > size_) {
-            throwSpiderException("Invalid memory address!");
-        }
-        const auto &physical = reinterpret_cast<uintptr_t>(base_) + virtualAddress;
-        return reinterpret_cast<void *>(physical);
-    }
-
-    uint64_t MemoryUnit::allocate(uint64_t size) {
-        // TODO: handle different scheme of allocation
-        auto address = used_;
-        used_ += size;
-        return address;
-    }
-
-    uint64_t MemoryUnit::size() const {
-        return size_;
-    }
-
-    uint64_t MemoryUnit::used() const {
-        return used_;
-    }
-
-    uint64_t MemoryUnit::available() const {
-        return size_ - used_;
-    }
-
-    uint32_t MemoryUnit::ix() const {
-        return ix_;
-    }
-
-    void MemoryUnit::setIx(uint32_t ix) {
-        ix_ = ix;
-    }
 }
 #endif //SPIDER2_MEMORYUNIT_H

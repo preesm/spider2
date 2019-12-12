@@ -41,10 +41,10 @@
 /* === Includes === */
 
 #include <api/archi-api.h>
+#include <archi/MemoryUnit.h>
 #include <archi/Platform.h>
 #include <archi/Cluster.h>
 #include <archi/PE.h>
-#include <archi/MemoryUnit.h>
 
 /* === Methods implementation === */
 
@@ -55,10 +55,12 @@ spider::Platform *&spider::platform() {
     return platform;
 }
 
-spider::Platform *spider::api::createPlatform(uint32_t clusterCount) {
+spider::Platform *spider::api::createPlatform(size_t clusterCount, size_t totalPECount) {
     auto *&platform = spider::platform();
     if (!platform) {
-        platform = make<Platform, StackID::ARCHI>(clusterCount);
+        platform = make<Platform, StackID::ARCHI>(clusterCount, totalPECount);
+    } else {
+        throwSpiderException("platform already exists!");
     }
     return platform;
 }
@@ -70,40 +72,21 @@ void spider::api::setSpiderGRTPE(PE *grtPE) {
     }
 }
 
-void spider::api::setCluster2ClusterCommunicationCostRoutine(spider::CommunicationCostRoutineC2C routine) {
-    platform()->setCluster2ClusterRoutine(routine);
-}
-
 /* === Cluster related API === */
 
-spider::Cluster *spider::api::createCluster(uint32_t PECount, MemoryUnit *memoryUnit) {
-    return make<Cluster, StackID::ARCHI>(PECount, memoryUnit);
-}
-
-void spider::api::setClusterWriteCostRoutine(Cluster *cluster, spider::CommunicationCostRoutine routine) {
-    cluster->setWriteCostRoutine(routine);
-}
-
-void spider::api::setClusterReadCostRoutine(Cluster *cluster, spider::CommunicationCostRoutine routine) {
-    cluster->setReadCostRoutine(routine);
+spider::Cluster *spider::api::createCluster(size_t PECount, MemoryUnit *memoryUnit) {
+    auto *&platform = spider::platform();
+    if (!platform) {
+        throwSpiderException("Can not create cluster for empty platform.");
+    }
+    auto *cluster = make<Cluster, StackID::ARCHI>(PECount, memoryUnit);
+    return cluster;
 }
 
 /* === PE related API === */
 
-spider::PE *spider::api::createPE(uint32_t hwType,
-                                  uint32_t hwID,
-                                  uint32_t virtID,
-                                  Cluster *cluster,
-                                  const std::string &name,
-                                  spider::PEType spiderPEType,
-                                  spider::HWType spiderHWType) {
-    auto *PE = make<spider::PE, StackID::ARCHI>(hwType,
-                                                hwID,
-                                                virtID,
-                                                cluster,
-                                                name,
-                                                spiderPEType,
-                                                spiderHWType);
+spider::PE *spider::api::createPE(uint32_t hwType, uint32_t hwID, Cluster *cluster, std::string name, PEType type) {
+    auto *PE = make<spider::PE, StackID::ARCHI>(hwType, hwID, cluster, std::move(name), type);
     PE->enable();
     return PE;
 }
@@ -112,13 +95,9 @@ void spider::api::setPESpiderPEType(PE *PE, spider::PEType type) {
     PE->setSpiderPEType(type);
 }
 
-void spider::api::setPESpiderHWType(PE *PE, spider::HWType type) {
-    PE->setSpiderHWType(type);
-}
-
-void spider::api::setPEName(PE *PE, const std::string &name) {
+void spider::api::setPEName(PE *PE, std::string name) {
     if (PE) {
-        PE->setName(name);
+        PE->setName(std::move(name));
     }
 }
 
@@ -136,6 +115,6 @@ void spider::api::disablePE(PE *PE) {
 
 /* === MemoryUnit related API === */
 
-spider::MemoryUnit *spider::api::createMemoryUnit(void *base, uint64_t size) {
-    return make<MemoryUnit, StackID::ARCHI>(base, size);
+spider::MemoryUnit *spider::api::createMemoryUnit(uint64_t size) {
+    return make<MemoryUnit, StackID::ARCHI>(size);
 }

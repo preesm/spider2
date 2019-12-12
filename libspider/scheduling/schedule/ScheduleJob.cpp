@@ -50,19 +50,17 @@
 
 /* === Method(s) implementation === */
 
-spider::sched::Job::Job(uint32_t ix) : ix_{ ix } {
+spider::sched::Job::Job(size_t ix) : ix_{ ix } {
     auto *&platform = spider::platform();
     constraints_ = containers::vector<Job *>(StackID::SCHEDULE);
     constraints_.resize(platform->LRTCount(), nullptr);
 }
 
-spider::sched::Job::Job(uint32_t ix,
-                        uint32_t vertexIx,
-                        uint32_t PEIx,
-                        uint32_t clusterIx,
-                        uint32_t LRTIx) : Job(ix) {
+spider::sched::Job::Job(size_t ix,
+                        size_t vertexIx,
+                        size_t PEIx,
+                        size_t LRTIx) : Job(ix) {
     vertexIx_ = vertexIx;
     mappingInfo_.PEIx = PEIx;
-    mappingInfo_.clusterIx = clusterIx;
     mappingInfo_.LRTIx = LRTIx;
 }

@@ -58,7 +58,7 @@ void spider::api::setVertexMappableOnCluster(pisdf::ExecVertex *vertex, const Cl
     if (!constraints) {
         constraints = vertex->createConstraints();
     }
-    for (auto &pe : cluster->peArray()) {
+    for (auto &pe : cluster->array()) {
         constraints->setMappableConstraintOnPE(pe, value);
     }
 }

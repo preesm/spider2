@@ -48,19 +48,13 @@
 
 /* === Function(s) definition === */
 
-
-void spider::Scheduler::setJobInformation(sched::Job *job,
-                                          std::pair<uint32_t, uint32_t> slave,
-                                          uint64_t startTime,
-                                          uint64_t endTime) {
+void spider::Scheduler::setJobInformation(sched::Job *job, size_t slave, uint64_t startTime, uint64_t endTime) {
     auto *platform = spider::platform();
-    const auto &PE = platform->findPE(slave.first, slave.second);
-    job->setMappingLRT(PE.managingLRTIx());
-    job->setMappingPE(PE.clusterPEIx(), PE.cluster()->ix());
+    const auto &pe = platform->peFromVirtualIx(slave);
+    job->setMappingLRT(pe->attachedLRT()->virtualIx());
+    job->setMappingPE(pe->virtualIx());
     job->setMappingStartTime(startTime);
     job->setMappingEndTime(endTime);
-    job->setMappingLRT(PE.managingLRTIx());
-    job->setMappingPE(PE.clusterPEIx(), PE.cluster()->ix());
     schedule_.update(*job);
 }
 
@@ -93,7 +87,7 @@ void spider::Scheduler::vertexMapper(const pisdf::Vertex *vertex) {
     const auto *constraints = vertex->constraints();
     const auto &platformStats = schedule_.stats();
 
-    std::pair<uint32_t, uint32_t> bestSlave{ UINT32_MAX, UINT32_MAX };
+    size_t bestSlave = SIZE_MAX;
     uint64_t bestStartTime = 0;
     uint64_t bestEndTime = UINT64_MAX;
     uint64_t bestWaitTime = UINT64_MAX;
@@ -103,11 +97,11 @@ void spider::Scheduler::vertexMapper(const pisdf::Vertex *vertex) {
         if (!constraints->isClusterMappable(cluster)) {
             continue;
         }
-        for (const auto &pe : cluster->peArray()) {
+        for (const auto &pe : cluster->array()) {
             /* == Check that PE is enabled and vertex is mappable on it == */
-            if (pe->enabled() && constraints->isPEMappable(pe)) {
+            if (pe->status() && constraints->isPEMappable(pe)) {
                 /* == Retrieving information needed for scheduling cost == */
-                const auto &PEReadyTime = platformStats.endTime(pe->spiderPEIx());
+                const auto &PEReadyTime = platformStats.endTime(pe->virtualIx());
                 const auto &JobStartTime = std::max(PEReadyTime, minStartTime);
                 const auto &waitTime = JobStartTime - PEReadyTime;
                 const auto &execTime = constraints->timingOnPE(pe, params_);
@@ -123,16 +117,15 @@ void spider::Scheduler::vertexMapper(const pisdf::Vertex *vertex) {
                     bestStartTime = JobStartTime;
                     bestEndTime = endTime;
                     bestWaitTime = waitTime;
-                    bestSlave.first = cluster->ix();
-                    bestSlave.second = pe->clusterPEIx();
+                    bestSlave = pe->virtualIx();
                 }
             }
         }
     }
 
-    if (bestSlave.first == UINT32_MAX) {
+    if (bestSlave == SIZE_MAX) {
         throwSpiderException("Could not find suitable processing element for vertex: [%s]", vertex->name().c_str());
     }
     /* == Set job information and update schedule == */
-    Scheduler::setJobInformation(&schedule_.job(vertex->ix()), std::move(bestSlave), bestStartTime, bestEndTime);
+    setJobInformation(&schedule_.job(vertex->ix()), bestSlave, bestStartTime, bestEndTime);
 }

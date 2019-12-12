@@ -62,7 +62,7 @@ namespace spider {
     class Platform {
     public:
 
-        explicit Platform(uint32_t clusterCount);
+        Platform(size_t clusterCount, size_t peCount);
 
         ~Platform();
 
@@ -71,179 +71,94 @@ namespace spider {
         void addCluster(Cluster *cluster);
 
         /**
-         * @brief Find a processing element in the platform from its name.
-         * @param name  Name of the PE to find.
-         * @return reference to the @refitem ProcessingElement found.
-         * @throws Spider::Exception if there is no PE with given name in the platform.
-         */
-        PE &findPE(const std::string &name) const;
-
-        /**
          * @brief Find a processing element in the platform from its virtual ix (S-LAM user ix).
          * @param virtualIx  Virtual ix of the PE to find.
-         * @return reference to the @refitem ProcessingElement found.
-         * @throws Spider::Exception if there is no PE with given virtual ix in the platform.
+         * @return pointer to the @refitem PE found.
+         * @throws std::out_of_range
          */
-        PE &findPE(size_t virtualIx) const;
-
-        /**
-         * @brief Find the processing element in the platform from its cluster ix and its PE ix.
-         * @param clusterIx   Ix of the cluster of the PE.
-         * @param PEIx        Ix of the PE inside the cluster.
-         * @return reference to the @refitem ProcessingElement found.
-         * @throws Spider::Exception if there is no PE with given cluster and PE ix in the platform.
-         */
-        PE &findPE(size_t clusterIx, size_t PEIx) const;
-
-        /**
-         * @brief Compute the data communication cost between two processing elements.
-         * @param PESrc      Processing Element sending the data.
-         * @param PESnk      Processing Element receiving the data.
-         * @param dataSize   Size (in byte) of the data to send / receive.
-         * @return communication cost (UINT64_MAX if communication is not possible).
-         */
-        uint64_t dataCommunicationCostPEToPE(PE *PESrc,
-                                             PE *PESnk,
-                                             uint64_t dataSize);
-
-        /**
-         * @brief Activate a processing element.
-         * @param pe Pointer to the PE to be enabled.
-         */
-        inline void enablePE(PE *PE) const;
-
-        /**
-         * @brief Deactivate a processing element.
-         * @param pe Pointer to the PE to be disabled.
-         * @throws Spider::Exception if PE is the GRT.
-         */
-        inline void disablePE(PE *PE) const;
-
+        inline PE *peFromVirtualIx(size_t virtualIx) const {
+            return peArray_.at(virtualIx);
+        }
 
         /* === Getter(s) === */
 
         /**
          * @brief Get the clusters of the platform.
-         * @return const reference to the @refitem Spider::Array of clusters.
+         * @return const reference to the @refitem spider::array of clusters.
          */
-        inline const spider::array<Cluster *> &clusters() const;
+        inline const spider::array<Cluster *> &clusters() const {
+            return clusterArray_;
+        }
 
         /**
          * @brief Get a specific cluster in the platform.
          * @param ix Ix of the cluster to get.
-         * @return pointer to @refitem Spider::Cluster.
+         * @return pointer to @refitem spider::Cluster.
+         * @throws std::out_of_range if ix is out of bound.
          */
-        inline Cluster *cluster(size_t ix) const;
+        inline Cluster *cluster(size_t ix) const {
+            return clusterArray_.at(ix);
+        }
 
         /**
          * @brief Get the processing element on which the GRT runs (in master-slave mode).
          * @return pointer to the @refitem ProcessingElement of the GRT, nullptr if no GRT is set.
          */
-        inline PE *spiderGRTPE() const;
-
-        /**
-         * @brief Get the cluster ix of the GRT.
-         * @return ix of the cluster of the GRT PE, -1 if no GRT is set.
-         */
-        int32_t spiderGRTClusterIx() const;
-
-        /**
-         * @brief Get the ix of the GRT PE inside its cluster.
-         * @return ix of the PE inside its cluster, -1 if no GRT is set.
-         */
-        int32_t spiderGRTPEIx() const;
+        inline PE *spiderGRTPE() const {
+            return grt_;
+        }
 
         /**
          * @brief Get the number of cluster in the platform.
          * @return Number of @refitem Cluster.
          */
-        inline uint32_t clusterCount() const;
-
-        /**
-         * @brief Get the number of memory unit in the platform (equivalent to the cluster count)
-         * @return Number of @refitem MemoryUnit
-         */
-        inline uint32_t memUnitCount() const;
+        inline size_t clusterCount() const {
+            return clusterArray_.size();
+        }
 
         /**
          * @brief Get the total number of PE in the platform (go through each cluster)
          * @return total number of @refitem ProcessingElement in the platform.
          */
-        size_t PECount() const;
+        inline size_t PECount() const {
+            return peCount_;
+        }
 
         /**
          * @brief Get the total number of PE type in the platform (go through each cluster).
          * @remark This is equivalent to clusterCount() because all PE inside a cluster share the same PE type.
          * @return total number of PE type in the platform.
          */
-        inline uint32_t PETypeCount() const;
+        inline size_t PETypeCount() const {
+            return clusterCount();
+        }
 
         /**
          * @brief Get the total number of local runtimes in the platform (go through each cluster)
          * @return total number of @refitem ProcessingElement with the LRT_* @refitem Spider::PEType
          */
-        uint32_t LRTCount() const;
+        size_t LRTCount() const;
 
         /* === Setter(s) === */
 
         /**
          * @brief Set the processing element of the GRT (in master-slave mode).
          * @remark This method replaces current GRT if it was set.
-         * @param PE  Processing element to set as GRT.
+         * @param pe  Processing element to set as GRT.
          */
-        inline void setSpiderGRTPE(PE *PE);
-
-        /**
-         * @brief Set the communication cost routine between clusters of the platform.
-         * @param routine Routine to set.
-         */
-        inline void setCluster2ClusterRoutine(CommunicationCostRoutineC2C routine);
+        inline void setSpiderGRTPE(PE *pe) {
+            if (pe) {
+                grt_ = pe;
+            }
+        }
 
     private:
         spider::array<Cluster *> clusterArray_;
-        uint32_t clusterCount_ = 0;
-        PE *grtPE_ = nullptr;
-
-        /* === Routines === */
-
-        CommunicationCostRoutineC2C cluster2ClusterComCostRoutine_ = defaultC2CZeroCommunicationCost;
-
-        /* === Private method(s) === */
+        spider::array<PE *> peArray_;
+        size_t clusterCount_ = 0;
+        size_t peCount_ = 0;
+        PE *grt_ = nullptr;
     };
-
-    /* === Inline method(s) === */
-
-    const spider::array<Cluster *> &Platform::clusters() const {
-        return clusterArray_;
-    }
-
-    Cluster *Platform::cluster(size_t ix) const {
-        return clusterArray_[ix];
-    }
-
-    PE *Platform::spiderGRTPE() const {
-        return grtPE_;
-    }
-
-    uint32_t Platform::clusterCount() const {
-        return clusterCount_;
-    }
-
-    uint32_t Platform::memUnitCount() const {
-        return clusterCount_;
-    }
-
-    uint32_t Platform::PETypeCount() const {
-        return clusterCount();
-    }
-
-    void Platform::setSpiderGRTPE(PE *PE) {
-        grtPE_ = PE;
-    }
-
-    void Platform::setCluster2ClusterRoutine(CommunicationCostRoutineC2C routine) {
-        cluster2ClusterComCostRoutine_ = routine;
-    }
 
 }
 #endif //SPIDER2_PLATFORM_H

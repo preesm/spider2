@@ -62,11 +62,15 @@ namespace spider {
 
         PE(uint32_t hwType,
            uint32_t hwIx,
-           uint32_t virtIx,
            Cluster *cluster,
            std::string name = "unnamed-PE",
-           spider::PEType spiderPEType = spider::PEType::LRT_PE,
-           spider::HWType spiderHWType = spider::HWType::PHYS_PE);
+           PEType type = PEType::LRT) : hwType_{ hwType },
+                                        hwIx_{ hwIx },
+                                        virtIx_{ getVirtualIx() },
+                                        name_{ std::move(name) },
+                                        type_{ type },
+                                        cluster_{ cluster },
+                                        attachedLRT_{ this } { };
 
         ~PE() = default;
 
@@ -78,227 +82,144 @@ namespace spider {
          * @brief Hardware type of the PE.
          * @return hardware type.
          */
-        inline uint32_t hardwareType() const;
+        inline uint32_t hardwareType() const {
+            return hwType_;
+        }
 
         /**
          * @brief Hardware ix on which the PE runs.
          * @return hardward ix.
          */
-        inline uint32_t hardwareIx() const;
-
-        /**
-         * @brief Ix set by the user in the architecture description of the platform.
-         * @return virtual ix.
-         */
-        inline uint32_t virtualIx() const;
+        inline uint32_t hardwareIx() const {
+            return hwIx_;
+        }
 
         /**
          * @brief Get the name of the processing element.
          * @return name of the processing element, "unnamed-pe" if no name was provided.
          */
-        inline std::string name() const;
-
-        /**
-         * @brief Get the cluster associated to the processing element.
-         * @return @refitem Cluster to which the PE belong.
-         */
-        inline Cluster *cluster() const;
-
-        /**
-         * @brief Get the type of PE (processing, LRT)
-         * @return @refitem Spider::PEType of the PE.
-         */
-        inline spider::PEType spiderPEType() const;
-
-        /**
-         * @brief Get the hw type of the PE (virtual or physical)
-         * @return @refitem Spider::HWType of the PE.
-         */
-        inline spider::HWType spiderHardwareType() const;
-
-        /**
-         * @brief Get the ix of the PE inside its cluster.
-         * @return ix of the PE inside the cluster.
-         */
-        inline uint32_t clusterPEIx() const;
+        inline std::string name() const {
+            return name_;
+        }
 
         /**
          * @brief Get the unique ix of the PE in Spider.
          * @return ix of the PE in Spider.
          */
-        inline uint32_t spiderPEIx() const;
-
-        /**
-         * @brief Get the state of the PE.
-         * @return true if the PE is enabled, false else.
-         */
-        inline bool enabled() const;
+        inline uint32_t virtualIx() const {
+            return virtIx_;
+        }
 
         /**
          * @brief Fetch the LRT property of the PE.
          * @return true if the PE is an LRT, false else.
          */
-        inline bool isLRT() const;
+        inline bool isLRT() const {
+            return type_ == PEType::LRT;
+        }
 
         /**
-         * @brief Get the memory unit attached to the cluster to which the PE belong.
-         * @return reference to the @refitem MemoryUnit of the PE.
+         * @brief Get the type of PE (processing, LRT)
+         * @return @refitem Spider::PEType of the PE.
          */
-        MemoryUnit &memoryUnit() const;
+        inline PEType spiderPEType() const {
+            return type_;
+        }
+
+        /**
+         * @brief Get the cluster associated to the processing element.
+         * @return @refitem Cluster to which the PE belong.
+         */
+        inline Cluster *cluster() const {
+            return cluster_;
+        }
 
         /**
          * @brief Get the LRT that manages this PE.
          * @return pointer to managing LRT, nullptr if not set.
          */
-        inline PE *managingLRT() const;
+        inline PE *attachedLRT() const {
+            return attachedLRT_;
+        }
 
         /**
-         * @brief IX of the LRT handling this PE.
-         * @return IX value.
+         * @brief Get the state of the PE.
+         * @return true if the PE is enabled, false else.
          */
-        inline uint32_t managingLRTIx() const;
+        inline bool status() const {
+            return status_;
+        }
+
 
         /* === Setter(s) === */
 
         /**
          * @brief Enable the PE.
-         * @remark update the number of enabled PE in the associated Cluster.
          */
-        void enable();
+        inline void enable() {
+            status_ = false;
+        }
 
         /**
          * @brief Disable the PE.
-         * @remark update the number of enabled PE in the associated Cluster.
          */
-        void disable();
-
-        /**
-         * @brief Set the Processing Element ix inside the associated cluster.
-         * @remark This method override current value. It is up to the user to ensure consistency in the index.
-         * @param ix  Ix to set.
-         */
-        inline void setClusterPEIx(uint32_t ix);
+        inline void disable() {
+            status_ = false;
+        }
 
         /**
          * @brief Set the name of the Processing Element.
          * @remark Calling this method will replace current name of the PE.
          * @param name  Name to set.
          */
-        inline void setName(const std::string &name);
+        inline void setName(std::string name) {
+            name_ = std::move(name);
+        }
 
         /**
          * @brief The Spider::PEType of the Processing Element.
          * @remark Calling this method will replace current PEType of the PE.
          * @param type Type to set.
          */
-        inline void setSpiderPEType(spider::PEType type);
+        inline void setSpiderPEType(PEType type) {
+            type_ = type;
+        }
 
         /**
-         * @brief The Spider::HWType of the Processing Element.
-         * @remark Calling this method will replace current HWType of the PE.
-         * @param type Type to set.
+         * @brief Set the LRT attached to this PE.
+         * @remark If lrt is nullptr, nothing happens.
+         * @param lrt PE to set.
          */
-        inline void setSpiderHWType(spider::HWType type);
-
-        inline void setManagingLRT(PE *managingLRT);
+        inline void setAttachedLRT(PE *lrt) {
+            if (lrt) {
+                attachedLRT_ = lrt;
+            }
+        }
 
     private:
 
         /* === Core properties === */
 
-        uint32_t hwType_ = 0;        /* = S-LAM user hardware type = */
-        uint32_t hwIx_ = 0;          /* = Hardware on which PE runs (core ix) = */
-        uint32_t virtIx_ = 0;        /* = S-LAM user ix = */
+        uint32_t hwType_ = 0;             /* = S-LAM user hardware type = */
+        uint32_t hwIx_ = 0;               /* = Hardware on which PE runs (core ix) = */
+        uint32_t virtIx_ = 0;             /* = Spider ID = */
         std::string name_ = "unnamed-pe"; /* = S-LAM user name of the PE = */
 
         /* === Spider properties === */
 
-        Cluster *cluster_ = nullptr;    /* = Cluster to which the PE belong = */
-        uint32_t clusterPEIx_ = 0; /* = Ix inside the cluster (used internally by spider) = */
-        uint32_t spiderPEIx_ = 0;  /* = Unique Ix of the PE inside spider (used internally by spider) = */
-        spider::PEType spiderPEType_ = spider::PEType::LRT_PE;
-        spider::HWType spiderHWType_ = spider::HWType::PHYS_PE;
-        PE *managingLRT_ = nullptr; /* == LRT handling this PE (self if PE is an LRT) == */
-        uint32_t managingLRTIx_ = UINT32_MAX; /* == Ix of the LRT handling this PE == */
-        bool enabled_ = false;
+        PEType type_ = PEType::LRT;      /* = PEType of the PE (see @refitem PEType) */
+        Cluster *cluster_ = nullptr;     /* = Cluster to which the PE belong = */
+        PE *attachedLRT_ = nullptr;      /* = LRT attached to the PE = */
+        bool status_ = true;             /* = Status of the PE (enabled = true, disabled = false) = */
 
         /* === Private method(s) === */
+
+        inline static uint32_t getVirtualIx() {
+            static uint32_t uniqueIx = 0;
+            return uniqueIx++;
+        }
+
     };
-
-    /* === Inline method(s) === */
-
-    uint32_t PE::hardwareType() const {
-        return hwType_;
-    }
-
-    uint32_t PE::hardwareIx() const {
-        return hwIx_;
-    }
-
-    uint32_t PE::virtualIx() const {
-        return virtIx_;
-    }
-
-    std::string PE::name() const {
-        return name_;
-    }
-
-    Cluster *PE::cluster() const {
-        return cluster_;
-    }
-
-    spider::PEType PE::spiderPEType() const {
-        return spiderPEType_;
-    }
-
-    spider::HWType PE::spiderHardwareType() const {
-        return spiderHWType_;
-    }
-
-    uint32_t PE::clusterPEIx() const {
-        return clusterPEIx_;
-    }
-
-    uint32_t PE::spiderPEIx() const {
-        return spiderPEIx_;
-    }
-
-    bool PE::enabled() const {
-        return enabled_;
-    }
-
-    bool PE::isLRT() const {
-        return spiderPEType_ != spider::PEType::PE_ONLY;
-    }
-
-    PE *PE::managingLRT() const {
-        return managingLRT_;
-    }
-
-    uint32_t PE::managingLRTIx() const {
-        return managingLRTIx_;
-    }
-
-    void PE::setClusterPEIx(uint32_t ix) {
-        clusterPEIx_ = ix;
-    }
-
-    void PE::setName(const std::string &name) {
-        name_ = name;
-    }
-
-    void PE::setSpiderPEType(spider::PEType type) {
-        spiderPEType_ = type;
-    }
-
-    void PE::setSpiderHWType(spider::HWType type) {
-        spiderHWType_ = type;
-    }
-
-    void PE::setManagingLRT(PE *managingLRT) {
-        managingLRT_ = managingLRT;
-        managingLRTIx_ = managingLRT->managingLRTIx_;
-    }
 }
 
 #endif //SPIDER2_PE_H

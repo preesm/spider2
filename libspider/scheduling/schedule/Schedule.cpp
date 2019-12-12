@@ -42,8 +42,6 @@
 
 #include <scheduling/schedule/Schedule.h>
 #include <api/archi-api.h>
-#include <archi/Platform.h>
-#include <archi/PE.h>
 
 /* === Static variable(s) === */
 
@@ -66,10 +64,9 @@ void spider::sched::Schedule::reset() {
 
 void spider::sched::Schedule::update(sched::Job &job) {
     /* == Update stats of given PE based on current TransfoJob == */
-    const auto *platform = spider::platform();
     const auto &st = job.mappingInfo().startTime;
     const auto &et = job.mappingInfo().endTime;
-    const auto &PE = platform->findPE(job.mappingInfo().clusterIx, job.mappingInfo().PEIx).spiderPEIx();
+    const auto &PE = job.mappingInfo().PEIx;
     stats_.updateStartTime(PE, st);
     stats_.updateIDLETime(PE, st - stats_.endTime(PE));
     stats_.updateEndTime(PE, et);

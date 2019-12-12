@@ -40,9 +40,8 @@
 
 /* === Include(s) === */
 
-#include <archi/Platform.h>
 #include <archi/Cluster.h>
-#include <archi/PE.h>
+#include <archi/Platform.h>
 #include <archi/MemoryUnit.h>
 
 /* === Static variable(s) === */
@@ -51,32 +50,13 @@
 
 /* === Method(s) implementation === */
 
-spider::Cluster::Cluster(uint32_t PECount, MemoryUnit *memoryUnit) : PEArray_{ PECount, StackID::ARCHI },
-                                                                     PEEnabledVector_(PECount, false),
+spider::Cluster::Cluster(size_t PECount, MemoryUnit *memoryUnit) : PEArray_{ PECount, StackID::ARCHI },
                                                                      platform_{ spider::platform() },
-                                                                     memoryUnit_{ memoryUnit } {
-    /* == Add the cluster to the platform == */
-    platform_->addCluster(this);
-
-    /* == Set default read / write to the memory cost routine == */
-    writeCostRoutine_ = defaultZeroCommunicationCost;
-    readCostRoutine_ = defaultZeroCommunicationCost;
-}
+                                                                     memoryUnit_{ memoryUnit } { }
 
 spider::Cluster::~Cluster() {
     for (auto &pe : PEArray_) {
         destroy(pe);
     }
     destroy(memoryUnit_);
-}
-
-void spider::Cluster::addPE(PE *PE) {
-    PEArray_.at(PECount_) = PE;
-    PE->setClusterPEIx(PECount_);
-    PECount_ += 1;
-    LRTCount_ += PE->isLRT();
-}
-
-uint32_t spider::Cluster::PEType() const {
-    return PEArray_[0]->hardwareType();
 }

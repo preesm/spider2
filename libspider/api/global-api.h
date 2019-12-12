@@ -167,21 +167,10 @@ namespace spider {
      * @brief Spider Processing Element types.
      */
     enum class PEType {
-        LRT_ONLY,         /*!< PE is used as an LRT and does not perform any computation */
-        LRT_PE,           /*!< PE is used as an LRT and can be used for computation (default) */
-        PE_ONLY,          /*!< PE is used for computation only and does not perform any job management */
-        First = LRT_ONLY, /*!< Sentry for EnumIterator::begin */
-        Last = PE_ONLY,   /*!< Sentry for EnumIterator::end */
-    };
-
-    /**
-     * @brief Hardware type used in Spider.
-     */
-    enum class HWType {
-        PHYS_PE,         /*!< PE is instantiated in Spider and run on a core (Spider::PEType::LRT_*) */
-        VIRT_PE,         /*!< PE is instantiated in Spider but fully managed by an LRT (Spider::PEType::PE_ONLY) */
-        First = PHYS_PE, /*!< Sentry for EnumIterator::begin */
-        Last = VIRT_PE,  /*!< Sentry for EnumIterator::end */
+        LRT,         /*!< PE is used as an LRT and does not perform any computation */
+        PE,          /*!< PE is used for computation only and does not perform any job management */
+        First = LRT, /*!< Sentry for EnumIterator::begin */
+        Last = PE,   /*!< Sentry for EnumIterator::end */
     };
 
     namespace log {

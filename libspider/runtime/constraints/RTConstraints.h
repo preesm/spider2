@@ -87,7 +87,7 @@ namespace spider {
             if (!pe) {
                 return false;
             }
-            return peMappableVector_.at(pe->spiderPEIx());
+            return peMappableVector_.at(pe->virtualIx());
         }
 
         /**
@@ -114,7 +114,7 @@ namespace spider {
             if (!pe) {
                 return INT64_MAX;
             }
-            return timingVector_.at(pe->spiderPEIx()).evaluate(params);
+            return timingVector_.at(pe->virtualIx()).evaluate(params);
         }
 
         /**
@@ -159,11 +159,11 @@ namespace spider {
          */
         inline void setMappableConstraintOnPE(const PE *pe, bool mappable = true) {
             auto *cluster = pe->cluster();
-            peMappableVector_.at(pe->spiderPEIx()) = mappable;
+            peMappableVector_.at(pe->virtualIx()) = mappable;
             auto clusterMappableValue = false;
-            std::for_each(cluster->peArray().begin(), cluster->peArray().end(),
+            std::for_each(cluster->array().begin(), cluster->array().end(),
                           [&clusterMappableValue, this](const PE *pe) {
-                              clusterMappableValue |= peMappableVector_.at(pe->spiderPEIx());
+                              clusterMappableValue |= peMappableVector_.at(pe->virtualIx());
                           });
             clusterMappableVector_.at(cluster->ix()) = clusterMappableValue;
         }
@@ -188,7 +188,7 @@ namespace spider {
             if (!pe) {
                 return;
             }
-            timingVector_.at(pe->spiderPEIx()) = Expression(value);
+            timingVector_.at(pe->virtualIx()) = Expression(value);
         }
 
         /**
@@ -202,7 +202,7 @@ namespace spider {
             if (!pe) {
                 return;
             }
-            timingVector_.at(pe->spiderPEIx()) = std::move(expression);
+            timingVector_.at(pe->virtualIx()) = std::move(expression);
         }
 
         /**

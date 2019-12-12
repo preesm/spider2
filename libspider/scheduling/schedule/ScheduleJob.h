@@ -66,9 +66,8 @@ namespace spider {
          * @brief Mapping information of the TransfoJob.
          */
         struct JobMappingInfo {
-            uint32_t PEIx = UINT32_MAX;        /*!< ix of the mapped PE in its cluster */
-            uint32_t clusterIx = UINT32_MAX;   /*!< ix of the mapped cluster */
-            uint32_t LRTIx = UINT32_MAX;       /*!< ix of the LRT handling the job */
+            size_t PEIx = UINT32_MAX;        /*!< ix of the mapped PE in its cluster */
+            size_t LRTIx = UINT32_MAX;       /*!< ix of the LRT handling the job */
             uint64_t startTime = UINT64_MAX;   /*!< mapping start time */
             uint64_t endTime = UINT64_MAX;     /*!< mapping end time */
         };
@@ -80,13 +79,12 @@ namespace spider {
 
             Job() = delete;
 
-            explicit Job(uint32_t ix);
+            explicit Job(size_t ix);
 
-            Job(uint32_t ix,
-                uint32_t vertexIx,
-                uint32_t PEIx,
-                uint32_t clusterIx,
-                uint32_t LRTIx);
+            Job(size_t ix,
+                size_t vertexIx,
+                size_t PEIx,
+                size_t LRTIx);
 
             ~Job() = default;
 
@@ -102,19 +100,24 @@ namespace spider {
 
             /* === Getter(s) === */
 
-            inline Job *constraint(uint32_t lrtIx) const;
+            /**
+             * @brief Return the job constraint associated to the LRT ix.
+             * @param lrtIx  Ix of the LRT.
+             * @return
+             */
+            inline Job *constraint(size_t lrtIx) const;
 
             /**
              * @brief Get the ix of the job.
              * @return job ix.
              */
-            inline uint32_t vertexIx() const;
+            inline size_t vertexIx() const;
 
             /**
              * @brief Get the ix of the job.
              * @return job ix.
              */
-            inline uint32_t ix() const;
+            inline size_t ix() const;
 
             /**
              * @brief Get the state of the job.
@@ -135,14 +138,14 @@ namespace spider {
              * @remark This method will overwrite current value.
              * @param ix Ix to set.
              */
-            inline void setVertexIx(uint32_t ix);
+            inline void setVertexIx(size_t ix);
 
             /**
              * @brief Set the ix of the job.
              * @remark This method will overwrite current value.
              * @param ix Ix to set.
              */
-            inline void setIx(uint32_t ix);
+            inline void setIx(size_t ix);
 
             /**
              * @brief Set the state of the job.
@@ -154,17 +157,16 @@ namespace spider {
             /**
             * @brief Set the processing element of the job.
             * @remark This method will overwrite current values.
-            * @param PEIx      Processing element ix inside its cluster.
-            * @param clusterIx Cluster ix of the PE.
+            * @param PEIx  PE ix inside spider.
             */
-            inline void setMappingPE(uint32_t PEIx, uint32_t clusterIx);
+            inline void setMappingPE(size_t PEIx);
 
             /**
             * @brief Set the LRT ix of the LRT that will handle the job.
             * @remark This method will overwrite current values.
             * @param LRTIx  LRT ix.
             */
-            inline void setMappingLRT(uint32_t LRTIx);
+            inline void setMappingLRT(size_t LRTIx);
 
             /**
              * @brief Set the start time of the job.
@@ -182,8 +184,8 @@ namespace spider {
 
         private:
             stack_vector(constraints_, Job *, StackID::SCHEDULE);
-            uint32_t vertexIx_ = UINT32_MAX;
-            uint32_t ix_ = UINT32_MAX;
+            size_t vertexIx_ = UINT32_MAX;
+            size_t ix_ = UINT32_MAX;
             JobState state_ = JobState::PENDING;
             JobMappingInfo mappingInfo_;
 
@@ -198,15 +200,15 @@ namespace spider {
             }
         }
 
-        Job *Job::constraint(uint32_t lrtIx) const {
+        Job *Job::constraint(size_t lrtIx) const {
             return constraints_.at(lrtIx);
         }
 
-        uint32_t Job::vertexIx() const {
+        size_t Job::vertexIx() const {
             return vertexIx_;
         }
 
-        uint32_t Job::ix() const {
+        size_t Job::ix() const {
             return ix_;
         }
 
@@ -218,11 +220,11 @@ namespace spider {
             return mappingInfo_;
         }
 
-        void Job::setVertexIx(uint32_t ix) {
+        void Job::setVertexIx(size_t ix) {
             vertexIx_ = ix;
         }
 
-        void Job::setIx(uint32_t ix) {
+        void Job::setIx(size_t ix) {
             ix_ = ix;
         }
 
@@ -230,12 +232,11 @@ namespace spider {
             state_ = state;
         }
 
-        void Job::setMappingPE(uint32_t PEIx, uint32_t clusterIx) {
+        void Job::setMappingPE(size_t PEIx) {
             mappingInfo_.PEIx = PEIx;
-            mappingInfo_.clusterIx = clusterIx;
         }
 
-        void Job::setMappingLRT(uint32_t LRTIx) {
+        void Job::setMappingLRT(size_t LRTIx) {
             mappingInfo_.LRTIx = LRTIx;
         }
 

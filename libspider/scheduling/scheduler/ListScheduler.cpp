@@ -64,7 +64,7 @@ int64_t spider::ListScheduler::computeScheduleLevel(ListVertex &listVertex,
                 auto *constraints = sink->constraints();
                 auto minExecutionTime = INT64_MAX;
                 for (auto &cluster : platform->clusters()) {
-                    for (auto &pe : cluster->peArray()) {
+                    for (auto &pe : cluster->array()) {
                         if (constraints->isPEMappable(pe)) {
                             auto executionTime = constraints->timingOnPE(pe, params_);
                             if (!executionTime) {

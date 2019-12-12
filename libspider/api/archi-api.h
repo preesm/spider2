@@ -63,7 +63,7 @@ namespace spider {
     /* === Function(s) prototype === */
 
     /**
-     * @brief Get the unique platform of the Spider session.
+     * @brief Get the unique platform of the spider session.
      * @return reference pointer to the platform.
      */
     Platform *&platform();
@@ -74,23 +74,18 @@ namespace spider {
 
         /**
          * @brief Create a new Platform (only one is permitted)
-         * @param clusterCount   Number of cluster in the platform (1 by default)
+         * @param clusterCount   Number of cluster in the platform (1 by default).
+         * @param totalPECount   Total number of PE in the platform (1 by default).
          * @return pointer to the newly created @refitem Platform
          * @throws @refitem Spider::Exception if a platform already exists.
          */
-        Platform *createPlatform(uint32_t clusterCount = 1);
+        Platform *createPlatform(size_t clusterCount = 1, size_t totalPECount = 1);
 
         /**
          * @brief Set the Global Run-Time (GRT) PE.
          * @param grtPE  Processing Element of the GRT.
          */
         void setSpiderGRTPE(PE *grtPE);
-
-        /**
-         * @brief Set the routine that will handle the cluster to cluster communication cost.
-         * @param routine  Routine to set.
-         */
-        void setCluster2ClusterCommunicationCostRoutine(CommunicationCostRoutineC2C routine);
 
         /* === Cluster related API === */
 
@@ -100,21 +95,7 @@ namespace spider {
          * @param memoryUnit   Memory unit of the cluster.
          * @return pointer to the newly created @refitem Cluster.
          */
-        Cluster *createCluster(uint32_t PECount, MemoryUnit *memoryUnit);
-
-        /**
-         * @brief Set the write cost method for writing into cluster memory.
-         * @param cluster Cluster to which the routine is set.
-         * @param routine Routine to set.
-         */
-        void setClusterWriteCostRoutine(Cluster *cluster, CommunicationCostRoutine routine);
-
-        /**
-         * @brief Set the read cost method for writing into cluster memory.
-         * @param cluster Cluster to which the routine is set.
-         * @param routine Routine to set.
-         */
-        void setClusterReadCostRoutine(Cluster *cluster, CommunicationCostRoutine routine);
+        Cluster *createCluster(size_t PECount, MemoryUnit *memoryUnit);
 
         /* === PE related API === */
 
@@ -129,13 +110,7 @@ namespace spider {
          * @param spiderHWType  Spider hardware type.
          * @return Pointer to newly created @refitem ProcessingElement, associated memory is handled by spider.
          */
-        PE *createPE(uint32_t hwType,
-                     uint32_t hwID,
-                     uint32_t virtID,
-                     Cluster *cluster,
-                     const std::string &name,
-                     PEType spiderPEType = PEType::LRT_PE,
-                     HWType spiderHWType = HWType::PHYS_PE);
+        PE *createPE(uint32_t hwType, uint32_t hwID, Cluster *cluster, std::string name, PEType type = PEType::LRT);
 
         /**
          * @brief Set the SpiderPEType of a given PE.
@@ -145,18 +120,11 @@ namespace spider {
         void setPESpiderPEType(PE *PE, PEType type);
 
         /**
-         * @brief Set the SpiderHWType of a given PE.
-         * @param PE    Pointer to the PE.
-         * @param type  Spider::HWType to set.
-         */
-        void setPESpiderHWType(PE *PE, HWType type);
-
-        /**
          * @brief Set the name of a given PE.
          * @param PE    Pointer to the PE.
          * @param name  Name of the PE to set.
          */
-        void setPEName(PE *PE, const std::string &name);
+        void setPEName(PE *PE, std::string name);
 
         /**
          * @brief Enable a given PE (default).
@@ -174,11 +142,10 @@ namespace spider {
 
         /**
          * @brief Create a new MemoryUnit.
-         * @param base  Base address of the MemoryUnit.
          * @param size  Size of the MemoryUnit.
          * @return Pointer to newly created @refitem MemoryUnit, associated memory is handled by spider.
          */
-        MemoryUnit *createMemoryUnit(void *base, uint64_t size);
+        MemoryUnit *createMemoryUnit(uint64_t size);
     }
 }
 

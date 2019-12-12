@@ -92,10 +92,7 @@ namespace spider {
          * @param startTime   Start time of the job.
          * @param endTime     End time of the job.
          */
-        void setJobInformation(sched::Job *job,
-                               std::pair<uint32_t, uint32_t> slave,
-                               uint64_t startTime,
-                               uint64_t endTime);
+        void setJobInformation(sched::Job *job, size_t slave, uint64_t startTime, uint64_t endTime);
 
         /**
          * @brief Compute the minimum start time possible for a given vertex.

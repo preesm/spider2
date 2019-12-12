@@ -57,24 +57,25 @@
 class pisdfGraphTest : public ::testing::Test {
 protected:
     void SetUp() override {
-        spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::GENERAL, "alloc-test");
-        spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::EXPRESSION, "alloc-test");
-        spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::PISDF, "alloc-test");
-        spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::ARCHI, "alloc-test");
+        spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::GENERAL,
+                                     "alloc-test");
+        spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::EXPRESSION,
+                                     "alloc-test");
+        spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::PISDF,
+                                     "alloc-test");
+        spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::ARCHI,
+                                     "alloc-test");
         spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::CONSTRAINTS,
                                      "alloc-test");
 
         spider::api::createPlatform();
 
-        auto *x86MemoryUnit = spider::api::createMemoryUnit(nullptr, 20000);
+        auto *x86MemoryUnit = spider::api::createMemoryUnit(20000);
 
         auto *x86Cluster = spider::api::createCluster(1, x86MemoryUnit);
 
-        auto x86PECore0 = spider::api::createPE(0, 0, 0,
-                                                x86Cluster,
-                                                "x86-Core0",
-                                                spider::PEType::LRT_PE,
-                                                spider::HWType::PHYS_PE);
+        auto x86PECore0 = spider::api::createPE(0, 0, x86Cluster, "x86-Core0", spider::PEType::LRT);
+
         spider::api::setSpiderGRTPE(x86PECore0);
     }
 
@@ -99,16 +100,19 @@ TEST_F(pisdfGraphTest, graphTest) {
     ASSERT_NO_THROW(graph->addParam(param)) << "Graph::addParam() should not throw on valid value.";
     ASSERT_THROW(graph->addParam(param), spider::Exception) << "Graph::addParam() should throw for pre-existing param.";
     auto *param2 = spider::make<spider::pisdf::Param, StackID::PISDF>("WIDTH", spider::Expression(5));
-    ASSERT_THROW(graph->addParam(param2), spider::Exception) << "Graph::addParam() should throw for param with same name.";
+    ASSERT_THROW(graph->addParam(param2), spider::Exception)
+                                << "Graph::addParam() should throw for param with same name.";
     ASSERT_NO_THROW(graph->removeParam(param)) << "Graph::removeParam() should not throw for valid param.";
     ASSERT_NO_THROW(graph->removeParam(nullptr)) << "Graph::removeParam() should not throw for nullptr.";
-    ASSERT_THROW(graph->removeParam(param2), spider::Exception) << "Graph::removeParam() should throw for non-valid param.";
+    ASSERT_THROW(graph->removeParam(param2), spider::Exception)
+                                << "Graph::removeParam() should throw for non-valid param.";
     param = spider::make<spider::pisdf::Param, StackID::PISDF>("width", spider::Expression(5));
     graph->addParam(param);
     graph->addParam(spider::make<spider::pisdf::Param, StackID::PISDF>("height", spider::Expression(1)));
     auto ix = param->ix();
     param->setIx(1);
-    ASSERT_THROW(graph->removeParam(param), spider::Exception) << "Graph::removeParam() should throw for invalid param-ix.";
+    ASSERT_THROW(graph->removeParam(param), spider::Exception)
+                                << "Graph::removeParam() should throw for invalid param-ix.";
     param->setIx(ix);
 
     /* == Getter(s) test == */
@@ -144,8 +148,10 @@ TEST_F(pisdfGraphTest, graphTest) {
     ASSERT_EQ(graph->vertices().size(), 4) << "Graph::vertices() failed.";
     ASSERT_EQ(graph->subgraphs().size(), 1) << "Graph::subgraphs() failed.";
     ASSERT_EQ(subgraph->configVertices().size(), 1) << "Graph::configVertices() failed.";
-    ASSERT_EQ(subgraph->inputInterfaceArray().size(), subgraph->inputEdgeCount()) << "Graph::inputInterfaceArray() failed.";
-    ASSERT_EQ(subgraph->outputInterfaceArray().size(), subgraph->outputEdgeCount()) << "Graph::outputInterfaceArray() failed.";
+    ASSERT_EQ(subgraph->inputInterfaceArray().size(), subgraph->inputEdgeCount())
+                                << "Graph::inputInterfaceArray() failed.";
+    ASSERT_EQ(subgraph->outputInterfaceArray().size(), subgraph->outputEdgeCount())
+                                << "Graph::outputInterfaceArray() failed.";
     ASSERT_EQ(graph->vertex(0), vertex_0) << "Graph::vertex(ix) failed";
     ASSERT_EQ(graph->vertex(1), vertex_1) << "Graph::vertex(ix) failed";
     ASSERT_EQ(graph->vertex(2), subgraph) << "Graph::vertex(ix) failed";
@@ -155,22 +161,26 @@ TEST_F(pisdfGraphTest, graphTest) {
 
     ASSERT_NO_THROW(graph->moveParam(param, nullptr)) << "Graph::moveParam() should not throw for nullptr graph";
     ASSERT_NO_THROW(graph->moveParam(nullptr, subgraph)) << "Graph::moveParam() should not throw for nullptr param";
-    ASSERT_THROW(graph->moveParam(param, subgraph), spider::Exception) << "Graph::moveParam() should throw if trying to move a param in a graph already containing one with same name.";
+    ASSERT_THROW(graph->moveParam(param, subgraph), spider::Exception)
+                                << "Graph::moveParam() should throw if trying to move a param in a graph already containing one with same name.";
     graph->addParam(param);
     ASSERT_NO_THROW(graph->moveParam(param, graph)) << "Graph::moveParam() should not throw";
 
-    ASSERT_NO_THROW(graph->moveEdge(graph->edges()[0], nullptr)) << "Graph::moveEdge() should not throw for nullptr graph";
+    ASSERT_NO_THROW(graph->moveEdge(graph->edges()[0], nullptr))
+                                << "Graph::moveEdge() should not throw for nullptr graph";
     ASSERT_NO_THROW(graph->moveEdge(nullptr, subgraph)) << "Graph::moveEdge() should not throw for nullptr edge";
     ASSERT_NO_THROW(graph->moveEdge(graph->edges()[0], subgraph)) << "Graph::moveEdge() should not throw";
-    ASSERT_NO_THROW(subgraph->moveEdge(subgraph->edges()[subgraph->edgeCount() - 1], graph)) << "Graph::moveEdge() should not throw";
+    ASSERT_NO_THROW(subgraph->moveEdge(subgraph->edges()[subgraph->edgeCount() - 1], graph))
+                                << "Graph::moveEdge() should not throw";
     ASSERT_NO_THROW(graph->moveEdge(graph->edges()[0], graph)) << "Graph::moveEdge() should not throw";
 
-    ASSERT_NO_THROW(graph->moveVertex(graph->vertex(0), nullptr)) << "Graph::moveVertex() should not throw for nullptr graph";
+    ASSERT_NO_THROW(graph->moveVertex(graph->vertex(0), nullptr))
+                                << "Graph::moveVertex() should not throw for nullptr graph";
     ASSERT_NO_THROW(graph->moveVertex(nullptr, subgraph)) << "Graph::moveVertex() should not throw for nullptr vertex";
     ASSERT_NO_THROW(graph->moveVertex(graph->vertex(0), subgraph)) << "Graph::moveVertex() should not throw";
-    ASSERT_NO_THROW(subgraph->moveVertex(subgraph->vertex(subgraph->vertexCount() - 1), graph)) << "Graph::moveVertex() should not throw";
+    ASSERT_NO_THROW(subgraph->moveVertex(subgraph->vertex(subgraph->vertexCount() - 1), graph))
+                                << "Graph::moveVertex() should not throw";
     ASSERT_NO_THROW(graph->moveVertex(graph->vertex(0), graph)) << "Graph::moveVertex() should not throw";
-
 
 
     spider::destroy(graph);

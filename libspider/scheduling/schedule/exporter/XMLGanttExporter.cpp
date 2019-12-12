@@ -79,7 +79,7 @@ void spider::XMLGanttExporter::print(std::ofstream &file) const {
 void spider::XMLGanttExporter::jobPrinter(std::ofstream &file, const sched::Job &job) const {
     const auto *vertex = graph_->vertex(job.vertexIx());
     const auto *platform = spider::platform();
-    auto PEIx = platform->findPE(job.mappingInfo().clusterIx, job.mappingInfo().PEIx).hardwareIx();
+    auto PEIx = platform->peFromVirtualIx(job.mappingInfo().PEIx)->hardwareIx();
 
     /* == Let's compute a color based on the value of the pointer == */
     const auto *reference = vertex->reference();

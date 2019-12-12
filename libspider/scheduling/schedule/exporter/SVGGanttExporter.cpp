@@ -42,10 +42,6 @@
 
 #include <scheduling/schedule/exporter/SVGGanttExporter.h>
 #include <api/archi-api.h>
-#include <api/pisdf-api.h>
-#include <archi/Platform.h>
-#include <archi/PE.h>
-#include <graphs/pisdf/ExecVertex.h>
 #include <graphs/pisdf/Graph.h>
 #include <scheduling/schedule/Schedule.h>
 #include <scheduling/schedule/ScheduleJob.h>
@@ -224,10 +220,8 @@ void spider::SVGGanttExporter::jobPrinter(std::ofstream &file, const sched::Job 
     const auto &taskWidth = static_cast<double>(job.mappingInfo().endTime - job.mappingInfo().startTime) * scaleFactor_;
 
     /* == Compute coordinates == */
-    const auto *platform = spider::platform();
-    const auto &PE = platform->findPE(job.mappingInfo().clusterIx, job.mappingInfo().PEIx);
     const auto &x = OFFSET + ARROW_STROKE + BORDER + static_cast<double>(job.mappingInfo().startTime) * scaleFactor_;
-    const auto &y = height_ - (OFFSET + ARROW_STROKE + (PE.spiderPEIx() + 1) * (TASK_HEIGHT + BORDER));
+    const auto &y = height_ - (OFFSET + ARROW_STROKE + (job.mappingInfo().PEIx + 1) * (TASK_HEIGHT + BORDER));
     std::ios savedFormat{ nullptr };
     savedFormat.copyfmt(file);
     file << R"(
