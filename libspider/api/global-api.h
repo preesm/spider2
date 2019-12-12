@@ -42,6 +42,9 @@
 
 /* === Include(s) === */
 
+#include <cstdint>
+#include <cstddef>
+
 /* === non-namespace forward declaration(s) === */
 
 enum class FreeListPolicy;
@@ -60,7 +63,7 @@ enum class StackID : uint64_t {
     RUNTIME,         /*!< Stack used by LRTs */
     GENERAL,         /*!< General stack used for classic new / delete */
     CONSTRAINTS,     /*!< Stack used for the scenario (application constraints) */
-    First = PISDF,   /*!< Sentry for EnumIterator::begin */
+    First = PISDF,      /*!< Sentry for EnumIterator::begin */
     Last = CONSTRAINTS, /*!< Sentry for EnumIterator::end */
 };
 
@@ -232,23 +235,22 @@ namespace spider {
     /* === Type definition(s) === */
 
     /**
-     * @brief overridable communication cost routine.
+     * @brief Memory exchange cost routine (overridable).
      */
-    using CommunicationCostRoutine = uint64_t (*)(
-            /* = Number of bytes  = */   uint64_t
-                                                 );
+    using MemoryExchangeCostRoutine = uint64_t (*)(uint64_t /* = Number of bytes = */);
 
     /**
-     * @brief cluster to cluster overridable cost routine.
+     * @brief Data memory allocation routine (overridable).
      */
-    using CommunicationCostRoutineC2C = uint64_t (*)(
-            /* = Source Cluster ix  = */   uint32_t,
-            /* = Sink Cluster ix    = */   uint32_t,
-            /* = Number of bytes    = */   uint64_t
-                                                    );
+    using MemoryAllocateRoutine = void *(*)(uint64_t /* = Number of bytes = */);
 
     /**
-     * @brief Generic refinement used by Spider for the actors.
+     * @brief Data memory deallocation routine (overridable).
+     */
+    using MemoryDeallocateRoutine = void (*)(void * /* = physical address to free = */);
+
+    /**
+     * @brief Generic refinement used by spider for the actors.
      */
     using callback = void (*)(const int64_t *, int64_t *[], void *[], void *[]);
 }
