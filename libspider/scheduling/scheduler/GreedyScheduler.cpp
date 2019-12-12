@@ -51,7 +51,7 @@
 /* === Private method(s) implementation === */
 
 spider::sched::Schedule &spider::GreedyScheduler::mappingScheduling() {
-    auto vertexVector = spider::containers::vector<spider::pisdf::Vertex *>(StackID::SCHEDULE);
+    auto vertexVector = containers::vector<pisdf::Vertex *>(StackID::SCHEDULE);
     vertexVector.reserve(graph_->vertexCount());
 
     /* == Initialize vector of vertex == */
@@ -85,7 +85,7 @@ spider::sched::Schedule &spider::GreedyScheduler::mappingScheduling() {
     return schedule_;
 }
 
-bool spider::GreedyScheduler::isSchedulable(spider::pisdf::Vertex *vertex) const {
+bool spider::GreedyScheduler::isSchedulable(pisdf::Vertex *vertex) const {
     if (!vertex->inputEdgeCount()) {
         return true;
     }

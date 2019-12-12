@@ -136,7 +136,7 @@ namespace spider {
             template<class T>
             inline void destroyVertex(T *vertex) {
                 graph_->removeElement(graph_->vertexVector_, static_cast<Vertex *>(vertex));
-                spider::destroy(vertex);
+                destroy(vertex);
             }
         };
 

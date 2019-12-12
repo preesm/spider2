@@ -52,12 +52,12 @@ namespace spider {
     class Scheduler {
     public:
 
-        explicit Scheduler(spider::pisdf::Graph *graph) : graph_{ graph },
-                                                          params_{ graph->params() } { };
+        explicit Scheduler(pisdf::Graph *graph) : graph_{ graph },
+                                                  params_{ graph->params() } { };
 
-        Scheduler(spider::pisdf::Graph *graph,
-                  const spider::vector<spider::pisdf::Param *> &params) : graph_{ graph },
-                                                                          params_{ params } { };
+        Scheduler(pisdf::Graph *graph,
+                  const spider::vector<pisdf::Param *> &params) : graph_{ graph },
+                                                                  params_{ params } { };
 
         virtual ~Scheduler() = default;
 
@@ -80,8 +80,8 @@ namespace spider {
         /* === Setter(s) === */
 
     protected:
-        spider::pisdf::Graph *graph_ = nullptr;
-        const spider::vector<spider::pisdf::Param *> &params_;
+        pisdf::Graph *graph_ = nullptr;
+        const spider::vector<pisdf::Param *> &params_;
         sched::Schedule schedule_;
 
         /**
@@ -102,13 +102,13 @@ namespace spider {
          * @param vertex  Vertex to evaluate.
          * @return Minimum start time for the vertex.
          */
-        uint64_t computeMinStartTime(const spider::pisdf::Vertex *vertex);
+        uint64_t computeMinStartTime(const pisdf::Vertex *vertex);
 
         /**
          * @brief Default vertex mapper that try to best fit.
          * @param vertex Vertex to map.
          */
-        virtual void vertexMapper(const spider::pisdf::Vertex *vertex);
+        virtual void vertexMapper(const pisdf::Vertex *vertex);
     };
 
     /* === Inline method(s) === */

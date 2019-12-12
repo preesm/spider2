@@ -134,22 +134,22 @@ namespace spider {
                      uint32_t virtID,
                      Cluster *cluster,
                      const std::string &name,
-                     spider::PEType spiderPEType = spider::PEType::LRT_PE,
-                     spider::HWType spiderHWType = spider::HWType::PHYS_PE);
+                     PEType spiderPEType = PEType::LRT_PE,
+                     HWType spiderHWType = HWType::PHYS_PE);
 
         /**
          * @brief Set the SpiderPEType of a given PE.
          * @param PE    Pointer to the PE.
          * @param type  Spider::PEType to set.
          */
-        void setPESpiderPEType(PE *PE, spider::PEType type);
+        void setPESpiderPEType(PE *PE, PEType type);
 
         /**
          * @brief Set the SpiderHWType of a given PE.
          * @param PE    Pointer to the PE.
          * @param type  Spider::HWType to set.
          */
-        void setPESpiderHWType(PE *PE, spider::HWType type);
+        void setPESpiderHWType(PE *PE, HWType type);
 
         /**
          * @brief Set the name of a given PE.

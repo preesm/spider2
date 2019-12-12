@@ -66,11 +66,11 @@ spider::pisdf::Graph::Graph(std::string name,
                                              inputInterfaceArray_{ edgeINCount, stack },
                                              outputInterfaceArray_{ edgeOUTCount, stack } {
     /* == Create the vectors on corresponding stack == */
-    vertexVector_ = spider::containers::vector<Vertex *>(stack);
-    configVertexVector_ = spider::containers::vector<ConfigVertex *>(stack);
-    subgraphVector_ = spider::containers::vector<Graph *>(stack);
-    edgeVector_ = spider::containers::vector<Edge *>(stack);
-    paramVector_ = spider::containers::vector<Param *>(stack);
+    vertexVector_ = containers::vector<Vertex *>(stack);
+    configVertexVector_ = containers::vector<ConfigVertex *>(stack);
+    subgraphVector_ = containers::vector<Graph *>(stack);
+    edgeVector_ = containers::vector<Edge *>(stack);
+    paramVector_ = containers::vector<Param *>(stack);
 
     /* == Reserve the memory == */
     vertexVector_.reserve(vertexCount);
@@ -80,7 +80,7 @@ spider::pisdf::Graph::Graph(std::string name,
 
     /* == Create the input interfaces == */
     for (uint32_t i = 0; i < edgeINCount; ++i) {
-        auto *interface = spider::make<InputInterface>(stack, "in_" + std::to_string(i), stack);
+        auto *interface = make<InputInterface>(stack, "in_" + std::to_string(i), stack);
         interface->setIx(i);
         inputInterfaceArray_[i] = interface;
         interface->setGraph(this);
@@ -88,7 +88,7 @@ spider::pisdf::Graph::Graph(std::string name,
 
     /* == Create the output interfaces == */
     for (uint32_t i = 0; i < edgeOUTCount; ++i) {
-        auto *interface = spider::make<OutputInterface>(stack, "out_" + std::to_string(i), stack);
+        auto *interface = make<OutputInterface>(stack, "out_" + std::to_string(i), stack);
         interface->setIx(i);
         outputInterfaceArray_[i] = interface;
         interface->setGraph(this);
@@ -104,20 +104,20 @@ spider::pisdf::Graph::~Graph() noexcept {
 
     /* == Destroy / deallocate interfaces == */
     for (auto &interface : inputInterfaceArray_) {
-        spider::destroy(interface);
+        destroy(interface);
     }
     for (auto &interface : outputInterfaceArray_) {
-        spider::destroy(interface);
+        destroy(interface);
     }
 
     /* == Destroy / deallocate edges == */
     for (auto &edge : edgeVector_) {
-        spider::destroy(edge);
+        destroy(edge);
     }
 
     /* == Destroy / deallocate params == */
     for (auto &param : paramVector_) {
-        spider::destroy(param);
+        destroy(param);
     }
 }
 
@@ -139,7 +139,7 @@ void spider::pisdf::Graph::addEdge(Edge *edge) {
 
 void spider::pisdf::Graph::removeEdge(Edge *edge) {
     removeElement(edgeVector_, edge);
-    spider::destroy(edge);
+    destroy(edge);
 }
 
 void spider::pisdf::Graph::addParam(Param *param) {
@@ -157,7 +157,7 @@ void spider::pisdf::Graph::addParam(Param *param) {
 
 void spider::pisdf::Graph::removeParam(Param *param) {
     removeElement(paramVector_, param);
-    spider::destroy(param);
+    destroy(param);
 }
 
 spider::pisdf::Vertex *spider::pisdf::Graph::forwardEdge(const Edge *e) {

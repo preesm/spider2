@@ -94,7 +94,7 @@
 /* === Function(s) definition === */
 
 void spider::api::createGenericStack(StackID stack, const std::string &name, size_t alignment) {
-    createStackAllocator(spider::type<AllocatorType::GENERIC>{ }, stack, name, alignment);
+    createStackAllocator(allocType<AllocatorType::GENERIC>{ }, stack, name, alignment);
 }
 
 void spider::api::createFreeListStack(StackID stack,
@@ -102,14 +102,14 @@ void spider::api::createFreeListStack(StackID stack,
                                       size_t staticBufferSize,
                                       FreeListPolicy policy,
                                       size_t alignment) {
-    createStackAllocator(spider::type<AllocatorType::FREELIST>{ }, stack, name, staticBufferSize, policy, alignment);
+    createStackAllocator(allocType<AllocatorType::FREELIST>{ }, stack, name, staticBufferSize, policy, alignment);
 }
 
 void spider::api::createLinearStaticStack(StackID stack,
                                           const std::string &name,
                                           size_t totalSize,
                                           size_t alignment) {
-    createStackAllocator(spider::type<AllocatorType::LINEAR_STATIC>{ }, stack, name, totalSize, alignment);
+    createStackAllocator(allocType<AllocatorType::LINEAR_STATIC>{ }, stack, name, totalSize, alignment);
 }
 
 void spider::api::createLinearStaticStack(StackID stack,
@@ -117,7 +117,7 @@ void spider::api::createLinearStaticStack(StackID stack,
                                           size_t totalSize,
                                           void *base,
                                           size_t alignment) {
-    createStackAllocator(spider::type<AllocatorType::LINEAR_STATIC>{ }, stack, name, totalSize, base, alignment);
+    createStackAllocator(allocType<AllocatorType::LINEAR_STATIC>{ }, stack, name, totalSize, base, alignment);
 }
 
 void spider::start() {
@@ -126,7 +126,7 @@ void spider::start() {
         throwSpiderException("spider::start() function should be called only once.");
     }
     /* == General stack initialization == */
-    spider::api::createGenericStack(StackID::GENERAL, "general-allocator");
+    api::createGenericStack(StackID::GENERAL, "general-allocator");
 
     /* == Init the Logger and enable the GENERAL Logger == */
     log::enable<LOG_GENERAL>();
@@ -140,10 +140,10 @@ void spider::start() {
 
 void spider::quit() {
     /* == Destroy the spider::pisdf::Graph == */
-    spider::destroy(spider::pisdfGraph());
+    destroy(spider::pisdfGraph());
 
     /* == Destroy the Platform == */
-    spider::destroy(spider::platform());
+    destroy(spider::platform());
 
     /* == Destroy the refinement(s) == */
 //    for (auto &refinement : spider::refinementsRegister()) {
@@ -151,5 +151,5 @@ void spider::quit() {
 //    }
 
     /* == Clear the stacks == */
-    spider::freeStackAllocators();
+    freeStackAllocators();
 }

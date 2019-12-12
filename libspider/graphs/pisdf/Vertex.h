@@ -141,7 +141,7 @@ namespace spider {
              */
             inline RTConstraints *createConstraints() {
                 if (!constraints_) {
-                    constraints_ = spider::make<RTConstraints>();
+                    constraints_ = make<RTConstraints>();
                 }
                 return constraints_;
             }

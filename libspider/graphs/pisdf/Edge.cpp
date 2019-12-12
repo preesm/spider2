@@ -76,7 +76,7 @@ spider::pisdf::Edge::Edge(Vertex *source,
 }
 
 spider::pisdf::Edge::~Edge() {
-    spider::destroy(delay_);
+    destroy(delay_);
     if (src_) {
         src_->disconnectOutputEdge(srcPortIx_);
     }
@@ -96,7 +96,7 @@ void spider::pisdf::Edge::removeDelay() {
         graph_->removeVertex(delay_->vertex_);
         delay_->vertex_ = nullptr;
     }
-    spider::destroy(delay_);
+    destroy(delay_);
 }
 
 spider::pisdf::Vertex *spider::pisdf::Edge::sourceFw() const {

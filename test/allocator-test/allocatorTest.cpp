@@ -270,21 +270,21 @@ TEST_F(allocatorTest, genericAllocTest) {
 }
 
 TEST_F(allocatorTest, createStackAllocators) {
-    ASSERT_NO_THROW((spider::createStackAllocator(spider::type<spider::AllocatorType::GENERIC>(), StackID::GENERAL,
+    ASSERT_NO_THROW((spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>(), StackID::GENERAL,
                                                   "alloc", 8)));
-    ASSERT_NO_THROW((spider::createStackAllocator(spider::type<spider::AllocatorType::GENERIC>(), StackID::GENERAL,
+    ASSERT_NO_THROW((spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>(), StackID::GENERAL,
                                                   "alloc", 8)));
-    ASSERT_NO_THROW((spider::createStackAllocator(spider::type<spider::AllocatorType::FREELIST>(), StackID::PISDF,
+    ASSERT_NO_THROW((spider::createStackAllocator(spider::allocType<spider::AllocatorType::FREELIST>(), StackID::PISDF,
                                                   "alloc", 8)));
-    ASSERT_NO_THROW((spider::createStackAllocator(spider::type<spider::AllocatorType::LINEAR_STATIC>(),
+    ASSERT_NO_THROW((spider::createStackAllocator(spider::allocType<spider::AllocatorType::LINEAR_STATIC>(),
                                                   StackID::SCHEDULE, "alloc", 8)));
     ASSERT_NO_THROW((spider::freeStackAllocators()));
 }
 
 TEST_F(allocatorTest, allocTest) {
-    ASSERT_NO_THROW((spider::createStackAllocator(spider::type<spider::AllocatorType::GENERIC>(), StackID::GENERAL,"alloc", 8)));
-    ASSERT_NO_THROW((spider::createStackAllocator(spider::type<spider::AllocatorType::FREELIST>(), StackID::PISDF, "alloc", 4096)));
-    ASSERT_NO_THROW((spider::createStackAllocator(spider::type<spider::AllocatorType::LINEAR_STATIC>(), StackID::SCHEDULE, "alloc", 16384)));
+    ASSERT_NO_THROW((spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>(), StackID::GENERAL, "alloc", 8)));
+    ASSERT_NO_THROW((spider::createStackAllocator(spider::allocType<spider::AllocatorType::FREELIST>(), StackID::PISDF, "alloc", 4096)));
+    ASSERT_NO_THROW((spider::createStackAllocator(spider::allocType<spider::AllocatorType::LINEAR_STATIC>(), StackID::SCHEDULE, "alloc", 16384)));
     ASSERT_NO_THROW(spider::allocate<double>(StackID::GENERAL, 0));
     ASSERT_EQ(spider::allocate<double>(StackID::GENERAL, 0), nullptr) << "alloc: 0-size allocation should return nullptr.";
     ASSERT_EQ(spider::allocate<double>(0), nullptr) << "alloc: 0-size allocation should return nullptr.";
@@ -301,8 +301,8 @@ TEST_F(allocatorTest, allocTest) {
 
 TEST_F(allocatorTest, allocatorTest) {
     ASSERT_THROW(spider::allocator<double>(StackID::GENERAL), spider::Exception);
-    ASSERT_NO_THROW((spider::createStackAllocator(spider::type<spider::AllocatorType::GENERIC>(), StackID::GENERAL, "alloc", 8)));
-    ASSERT_NO_THROW((spider::createStackAllocator(spider::type<spider::AllocatorType::LINEAR_STATIC>(), StackID::PISDF, "alloc", 8)));
+    ASSERT_NO_THROW((spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>(), StackID::GENERAL, "alloc", 8)));
+    ASSERT_NO_THROW((spider::createStackAllocator(spider::allocType<spider::AllocatorType::LINEAR_STATIC>(), StackID::PISDF, "alloc", 8)));
     ASSERT_NO_THROW(spider::allocator<double>(StackID::GENERAL));
     ASSERT_EQ(spider::allocator<double>(StackID::GENERAL), spider::allocator<double>());
     ASSERT_NE(spider::allocator<double>(StackID::PISDF), spider::allocator<double>());

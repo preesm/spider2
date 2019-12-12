@@ -72,8 +72,7 @@ namespace spider {
          * @return value of the lower firing dependency on the producer.
          */
         inline int64_t computeConsLowerDep(int64_t consumption, int64_t production, uint32_t firing, int64_t delay) {
-            return std::max(static_cast<int64_t>(-1), spider::math::floorDiv(firing * consumption - delay,
-                                                                             production));
+            return std::max(static_cast<int64_t>(-1), math::floorDiv(firing * consumption - delay, production));
         }
 
         /**
@@ -95,8 +94,8 @@ namespace spider {
          * @return value of the upper firing dependency on the producer.
          */
         inline int64_t computeConsUpperDep(int64_t consumption, int64_t production, uint32_t firing, int64_t delay) {
-            return std::max(static_cast<int64_t>(-1), spider::math::floorDiv((firing + 1) * consumption - delay - 1,
-                                                                             production));
+            return std::max(static_cast<int64_t>(-1), math::floorDiv((firing + 1) * consumption - delay - 1,
+                                                                     production));
         }
 
         inline int64_t computeProdLowerDep(int64_t sinkRate,
@@ -105,7 +104,7 @@ namespace spider {
                                            int64_t delay,
                                            int64_t sinkRepetitionValue) {
             int64_t produced = instance * sourceRate + delay;
-            int64_t lowerDep = spider::math::floorDiv(produced, sinkRate);
+            int64_t lowerDep = math::floorDiv(produced, sinkRate);
             return std::min(sinkRepetitionValue, lowerDep);
         }
 
@@ -115,7 +114,7 @@ namespace spider {
                                            int64_t delay,
                                            int64_t sinkRepetitionValue) {
             int64_t produced = (instance + 1) * sourceRate + delay - 1;
-            int64_t upperDep = spider::math::floorDiv(produced, sinkRate);
+            int64_t upperDep = math::floorDiv(produced, sinkRate);
             return std::min(sinkRepetitionValue, upperDep);
         }
 

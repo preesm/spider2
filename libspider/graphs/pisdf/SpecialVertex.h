@@ -120,7 +120,7 @@ namespace spider {
         /* === Define SpecialVertex specific override === */
 
         template<>
-        inline void spider::pisdf::ConfigVertex::setRepetitionValue(uint32_t value) {
+        inline void ConfigVertex::setRepetitionValue(uint32_t value) {
             if (value > 1) {
                 throwSpiderException("Configure actor [%s] has repetition vector value of %"
                                              PRIu32
@@ -130,7 +130,7 @@ namespace spider {
         }
 
         template<>
-        inline void spider::pisdf::DelayVertex::setRepetitionValue(uint32_t value) {
+        inline void DelayVertex::setRepetitionValue(uint32_t value) {
             if (value > 1) {
                 throwSpiderException("Delay actor [%s] has repetition vector value of %"
                                              PRIu32
@@ -147,101 +147,101 @@ namespace spider {
         /* === ConfigVertex === */
 
         template<>
-        inline spider::pisdf::ConfigVertex::SpecialVertex(std::string name, uint32_t edgeINCount, uint32_t edgeOUTCount, StackID stack) :
+        inline ConfigVertex::SpecialVertex(std::string name, uint32_t edgeINCount, uint32_t edgeOUTCount, StackID stack) :
                                             ExecVertex(std::move(name), edgeINCount, edgeOUTCount, stack) { }
 
         template<>
-        inline spider::pisdf::ConfigVertex::SpecialVertex() :
+        inline ConfigVertex::SpecialVertex() :
                 ConfigVertex("unnamed-cfg", 0, 0, StackID::PISDF) { }
 
         /* === DelayVertex === */
 
         template<>
-        inline spider::pisdf::DelayVertex::SpecialVertex(std::string name, StackID stack) :
+        inline DelayVertex::SpecialVertex(std::string name, StackID stack) :
                                            ExecVertex(std::move(name),1, 1, stack) { }
 
         template<>
-        inline spider::pisdf::DelayVertex::SpecialVertex() :
+        inline DelayVertex::SpecialVertex() :
                 DelayVertex("unnamed-delay", StackID::PISDF) { }
 
         /* === ForkVertex === */
 
         template<>
-        inline spider::pisdf::ForkVertex::SpecialVertex(std::string name, uint32_t edgeOUTCount, StackID stack) :
+        inline ForkVertex::SpecialVertex(std::string name, uint32_t edgeOUTCount, StackID stack) :
                                           ExecVertex(std::move(name), 1, edgeOUTCount, stack) { }
 
         template<>
-        inline spider::pisdf::ForkVertex::SpecialVertex() :
+        inline ForkVertex::SpecialVertex() :
                 ForkVertex("unnamed-fork", 0, StackID::PISDF) { }
 
         /* === JoinVertex === */
 
         template<>
-        inline spider::pisdf::JoinVertex::SpecialVertex(std::string name, uint32_t edgeINCount, StackID stack) :
+        inline JoinVertex::SpecialVertex(std::string name, uint32_t edgeINCount, StackID stack) :
                                           ExecVertex(std::move(name), edgeINCount, 1, stack) { }
 
         template<>
-        inline spider::pisdf::JoinVertex::SpecialVertex() :
+        inline JoinVertex::SpecialVertex() :
                 JoinVertex("unnamed-join", 0, StackID::PISDF) { }
 
         /* === HeadVertex === */
 
         template<>
-        inline spider::pisdf::HeadVertex::SpecialVertex(std::string name, uint32_t edgeINCount, StackID stack) :
+        inline HeadVertex::SpecialVertex(std::string name, uint32_t edgeINCount, StackID stack) :
                                           ExecVertex(std::move(name), edgeINCount, 1, stack) { }
 
         template<>
-        inline spider::pisdf::HeadVertex::SpecialVertex() :
+        inline HeadVertex::SpecialVertex() :
                 HeadVertex("unnamed-head", 0, StackID::PISDF) { }
 
         /* === TailVertex === */
 
         template<>
-        inline spider::pisdf::TailVertex::SpecialVertex(std::string name, uint32_t edgeINCount, StackID stack) :
+        inline TailVertex::SpecialVertex(std::string name, uint32_t edgeINCount, StackID stack) :
                                           ExecVertex(std::move(name), edgeINCount, 1, stack) { }
 
         template<>
-        inline spider::pisdf::TailVertex::SpecialVertex() :
+        inline TailVertex::SpecialVertex() :
                 TailVertex("unnamed-tail", 0, StackID::PISDF) { }
 
         /* === RepeatVertex === */
 
         template<>
-        inline spider::pisdf::RepeatVertex::SpecialVertex(std::string name, StackID stack) :
+        inline RepeatVertex::SpecialVertex(std::string name, StackID stack) :
                                             ExecVertex(std::move(name),1, 1, stack) { }
 
         template<>
-        inline spider::pisdf::RepeatVertex::SpecialVertex() :
+        inline RepeatVertex::SpecialVertex() :
                 RepeatVertex("unnamed-repeat", StackID::PISDF) { }
 
         /* === DuplicateVertex === */
 
         template<>
-        inline spider::pisdf::DuplicateVertex::SpecialVertex(std::string name, uint32_t edgeOUTCount, StackID stack) :
+        inline DuplicateVertex::SpecialVertex(std::string name, uint32_t edgeOUTCount, StackID stack) :
                                                ExecVertex(std::move(name),1, edgeOUTCount, stack) { }
 
         template<>
-        inline spider::pisdf::DuplicateVertex::SpecialVertex() :
+        inline DuplicateVertex::SpecialVertex() :
                 DuplicateVertex("unnamed-duplicate", 0, StackID::PISDF) { }
 
         /* === InitVertex === */
 
         template<>
-        inline spider::pisdf::InitVertex::SpecialVertex(std::string name, StackID stack) :
+        inline InitVertex::SpecialVertex(std::string name, StackID stack) :
                                           ExecVertex(std::move(name),0, 1, stack) { }
 
         template<>
-        inline spider::pisdf::InitVertex::SpecialVertex() :
+        inline InitVertex::SpecialVertex() :
                 InitVertex("unnamed-init", StackID::PISDF) { }
 
         /* === EndVertex === */
 
         template<>
-        inline spider::pisdf::EndVertex::SpecialVertex(std::string name, StackID stack) :
+        inline EndVertex::SpecialVertex(std::string name, StackID stack) :
                                          ExecVertex(std::move(name), 1, 0, stack) { }
 
         template<>
-        inline spider::pisdf::EndVertex::SpecialVertex() :
+        inline EndVertex::SpecialVertex() :
                 EndVertex("unnamed-end", StackID::PISDF) { }
     }
     // @formatter:on

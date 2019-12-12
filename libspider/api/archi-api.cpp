@@ -58,7 +58,7 @@ spider::Platform *&spider::platform() {
 spider::Platform *spider::api::createPlatform(uint32_t clusterCount) {
     auto *&platform = spider::platform();
     if (!platform) {
-        platform = spider::make<Platform, StackID::ARCHI>(clusterCount);
+        platform = make<Platform, StackID::ARCHI>(clusterCount);
     }
     return platform;
 }
@@ -77,7 +77,7 @@ void spider::api::setCluster2ClusterCommunicationCostRoutine(spider::Communicati
 /* === Cluster related API === */
 
 spider::Cluster *spider::api::createCluster(uint32_t PECount, MemoryUnit *memoryUnit) {
-    return spider::make<Cluster, StackID::ARCHI>(PECount, memoryUnit);
+    return make<Cluster, StackID::ARCHI>(PECount, memoryUnit);
 }
 
 void spider::api::setClusterWriteCostRoutine(Cluster *cluster, spider::CommunicationCostRoutine routine) {
@@ -97,13 +97,13 @@ spider::PE *spider::api::createPE(uint32_t hwType,
                                   const std::string &name,
                                   spider::PEType spiderPEType,
                                   spider::HWType spiderHWType) {
-    auto *PE = spider::make<spider::PE, StackID::ARCHI>(hwType,
-                                                        hwID,
-                                                        virtID,
-                                                        cluster,
-                                                        name,
-                                                        spiderPEType,
-                                                        spiderHWType);
+    auto *PE = make<spider::PE, StackID::ARCHI>(hwType,
+                                                hwID,
+                                                virtID,
+                                                cluster,
+                                                name,
+                                                spiderPEType,
+                                                spiderHWType);
     PE->enable();
     return PE;
 }
@@ -137,5 +137,5 @@ void spider::api::disablePE(PE *PE) {
 /* === MemoryUnit related API === */
 
 spider::MemoryUnit *spider::api::createMemoryUnit(void *base, uint64_t size) {
-    return spider::make<MemoryUnit, StackID::ARCHI>(base, size);
+    return make<MemoryUnit, StackID::ARCHI>(base, size);
 }

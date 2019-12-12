@@ -45,7 +45,7 @@
 
 /* === Function(s) definition === */
 
-spider::pisdf::Vertex::Vertex(const spider::pisdf::Vertex &other,
+spider::pisdf::Vertex::Vertex(const Vertex &other,
                               StackID stack) : name_{ other.name_ },
                                                inputEdgeArray_{ other.inputEdgeArray_.size(), nullptr, stack },
                                                outputEdgeArray_{ other.outputEdgeArray_.size(), nullptr, stack },
@@ -60,10 +60,10 @@ spider::pisdf::Vertex::Vertex(const spider::pisdf::Vertex &other,
 
 spider::pisdf::Vertex::~Vertex() noexcept {
     if (copyCount_ && log_enabled()) {
-        spider::log::error("Removing vertex [%s] with copies out there.", name().c_str());
+        log::error("Removing vertex [%s] with copies out there.", name().c_str());
     }
     if (reference() == this) {
-        spider::destroy(constraints_);
+        destroy(constraints_);
     }
     this->reference_->copyCount_ -= 1;
 
@@ -80,7 +80,7 @@ spider::pisdf::Edge *spider::pisdf::Vertex::disconnectInputEdge(size_t ix) {
     auto *edge = disconnectEdge(inputEdgeArray_, ix);
     if (edge) {
         /* == Reset the Edge == */
-        edge->setSink(nullptr, SIZE_MAX, spider::Expression());
+        edge->setSink(nullptr, SIZE_MAX, Expression());
     }
     return edge;
 }
@@ -89,7 +89,7 @@ spider::pisdf::Edge *spider::pisdf::Vertex::disconnectOutputEdge(size_t ix) {
     auto *edge = disconnectEdge(outputEdgeArray_, ix);
     if (edge) {
         /* == Reset the Edge == */
-        edge->setSource(nullptr, SIZE_MAX, spider::Expression());
+        edge->setSource(nullptr, SIZE_MAX, Expression());
     }
     return edge;
 }
@@ -103,7 +103,7 @@ spider::pisdf::Edge *spider::pisdf::Vertex::disconnectEdge(spider::array<Edge *>
     return ret;
 }
 
-void spider::pisdf::Vertex::connectEdge(spider::array<Edge *> &edges, spider::pisdf::Edge *edge, size_t ix) {
+void spider::pisdf::Vertex::connectEdge(spider::array<Edge *> &edges, Edge *edge, size_t ix) {
     auto *&current = edges.at(ix);
     if (!current) {
         current = edge;

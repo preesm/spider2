@@ -61,7 +61,7 @@ namespace spider {
      * @tparam T  Type of the partial specialization
      */
     template<AllocatorType T>
-    struct type {
+    struct allocType {
     };
 
     inline std::array<AbstractAllocator *, STACK_COUNT> &stackAllocatorArray() {
@@ -79,33 +79,33 @@ namespace spider {
     }
 
     template<AllocatorType Type, class ...Args>
-    inline StackID createStackAllocator(type<Type>, StackID, Args &&...) {
+    inline StackID createStackAllocator(allocType<Type>, StackID, Args &&...) {
         throwSpiderException("unsupported allocator type.");
     }
 
     template<class ...Args>
-    inline void createStackAllocator(type<AllocatorType::GENERIC>, StackID stack, Args &&... args) {
+    inline void createStackAllocator(allocType<AllocatorType::GENERIC>, StackID stack, Args &&... args) {
         if (!getStackAllocator(stack)) {
             getStackAllocator(stack) = new GenericAllocator(std::forward<Args>(args)...);
         }
     }
 
     template<class ...Args>
-    inline void createStackAllocator(type<AllocatorType::FREELIST>, StackID stack, Args &&... args) {
+    inline void createStackAllocator(allocType<AllocatorType::FREELIST>, StackID stack, Args &&... args) {
         if (!getStackAllocator(stack)) {
             getStackAllocator(stack) = new FreeListAllocator(std::forward<Args>(args)...);
         }
     }
 
     template<class ...Args>
-    inline void createStackAllocator(type<AllocatorType::LINEAR_STATIC>, StackID stack, Args &&... args) {
+    inline void createStackAllocator(allocType<AllocatorType::LINEAR_STATIC>, StackID stack, Args &&... args) {
         if (!getStackAllocator(stack)) {
             getStackAllocator(stack) = new LinearStaticAllocator(std::forward<Args>(args)...);
         }
     }
 
     inline void freeStackAllocators() {
-        for (auto stack : spider::EnumIterator<StackID>()) {
+        for (auto stack : EnumIterator<StackID>()) {
             delete getStackAllocator(stack);
             getStackAllocator(stack) = nullptr;
         }
@@ -123,7 +123,8 @@ namespace spider {
     template<typename T>
     inline T *allocate(StackID stack, size_t n = 1) {
         /* == Allocate buffer with (size + 1) to store stack identifier == */
-        auto buffer = reinterpret_cast<uintptr_t>(getStackAllocator(stack)->allocate((n > 0 ? n * sizeof(T) + sizeof(uint64_t) : 0)));
+        auto buffer = reinterpret_cast<uintptr_t>(getStackAllocator(stack)->allocate(
+                (n > 0 ? n * sizeof(T) + sizeof(uint64_t) : 0)));
 
         /* == Return allocated buffer == */
         if (buffer) {
@@ -137,7 +138,8 @@ namespace spider {
     template<typename T, StackID stack = StackID::GENERAL>
     inline T *allocate(size_t n = 1) {
         /* == Allocate buffer with (size + 1) to store stack identifier == */
-        auto buffer = reinterpret_cast<uintptr_t>(getStackAllocator<stack>()->allocate((n > 0 ? n * sizeof(T) + sizeof(uint64_t) : 0)));
+        auto buffer = reinterpret_cast<uintptr_t>(getStackAllocator<stack>()->allocate(
+                (n > 0 ? n * sizeof(T) + sizeof(uint64_t) : 0)));
 
         /* == Return allocated buffer == */
         if (buffer) {
@@ -161,7 +163,8 @@ namespace spider {
         /* == Allocate buffer with (size + 1) to store stack identifier == */
         auto *allocator = getStackAllocator(stack);
         if (!allocator) {
-            throwSpiderException("Trying to allocate memory with un-initialized allocator: %ld", static_cast<long>(stack));
+            throwSpiderException("Trying to allocate memory with un-initialized allocator: %ld",
+                                 static_cast<long>(stack));
         }
         auto buffer = reinterpret_cast<uintptr_t>(allocator->allocate((n > 0 ? n * sizeof(T) + sizeof(uint64_t) : 0)));
 
@@ -228,15 +231,15 @@ namespace spider {
      */
     template<class T, StackID stack = StackID::GENERAL, class ...Args>
     inline T *make(Args &&... args) {
-        auto *ptr = spider::allocate<T, stack>();
-        spider::construct(ptr, std::forward<Args>(args)...);
+        auto *ptr = allocate<T, stack>();
+        construct(ptr, std::forward<Args>(args)...);
         return ptr;
     }
 
     template<class T, class ...Args>
     inline T *make(StackID stack, Args &&... args) {
-        auto *ptr = spider::allocate<T>(stack);
-        spider::construct(ptr, std::forward<Args>(args)...);
+        auto *ptr = allocate<T>(stack);
+        construct(ptr, std::forward<Args>(args)...);
         return ptr;
     }
 
@@ -250,18 +253,18 @@ namespace spider {
      */
     template<class T, StackID stack = StackID::GENERAL>
     inline T *make_n(size_t count, const T &value = T()) {
-        auto *ptr = spider::allocate<T, stack>(count);
+        auto *ptr = allocate<T, stack>(count);
         for (size_t i = 0; i < count; ++i) {
-            spider::construct(&ptr[i], value);
+            construct(&ptr[i], value);
         }
         return ptr;
     }
 
     template<class T>
     inline T *make_n(StackID stack, size_t count, const T &value = T()) {
-        auto *ptr = spider::allocate<T>(stack, count);
+        auto *ptr = allocate<T>(stack, count);
         for (size_t i = 0; i < count; ++i) {
-            spider::construct(&ptr[i], value);
+            construct(&ptr[i], value);
         }
         return ptr;
     }

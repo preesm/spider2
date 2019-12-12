@@ -50,7 +50,7 @@
 namespace spider {
     namespace math {
 
-        template <class T>
+        template<class T>
         inline T abs(T x) {
             return static_cast<T>((x < 0) ? (-x) : x);
         }
@@ -87,10 +87,10 @@ namespace spider {
 
         template<class T>
         inline T lcm(T a, T b) {
-            return spider::math::abs(a * b) / spider::math::gcd(a, b);
+            return abs(a * b) / gcd(a, b);
         }
 
-        template <class T>
+        template<class T>
         inline T saturateAdd(T a, T b) {
             return b > (std::numeric_limits<T>::max() - a) ? std::numeric_limits<T>::max() : a + b;
         }

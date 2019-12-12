@@ -50,7 +50,7 @@
 /* === Methods implementation === */
 
 void spider::api::exportPostExecGantt(const std::string &) {
-    if (!spider::api::exportTrace()) {
+    if (!exportTrace()) {
         throwSpiderException("Can not export graph if traces are disable. Use Spider::enableTrace().");
     }
 
@@ -77,7 +77,7 @@ void spider::api::exportSRDAG(const std::string &, pisdf::Graph *) {
     /* == Get the PiSDF graph and transform it to SR-DAG == */
 
 //    if (Spider::API::srdagOptim()) {
-//        spider::pisdf::GraphOptimizer()(srdag);
+//        pisdf::GraphOptimizer()(srdag);
 //    }
 //
 //    /* == Print the SR-DAG == */

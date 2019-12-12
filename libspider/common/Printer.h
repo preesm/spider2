@@ -84,17 +84,17 @@ namespace spider {
 
         template<class... Args>
         inline int fprintf(FILE *stream, const char *format, Args &&... args) {
-            return spider::cxx11::fprintf(stream, format, std::forward<Args>(args)...);
+            return cxx11::fprintf(stream, format, std::forward<Args>(args)...);
         }
 
         template<class... Args>
         inline int sprintf(char *str, size_t size, const char *format, Args &&... args) {
-            return spider::cxx11::sprintf(str, size, format, std::forward<Args>(args)...);
+            return cxx11::sprintf(str, size, format, std::forward<Args>(args)...);
         }
 
         template<class... Args>
         inline int printf(const char *format, Args &&... args) {
-            return spider::cxx11::printf(format, std::forward<Args>(args)...);
+            return cxx11::printf(format, std::forward<Args>(args)...);
         }
 
 

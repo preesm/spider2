@@ -112,7 +112,7 @@ int32_t spider::this_thread::get_affinity() {
 #elif (defined __APPLE__)
 
 bool spider::this_thread::set_affinity(int32_t affinity_id) {
-    spider::log::warning("Thread affinity is not guaranteed on OSX platform..\n");
+    log::warning("Thread affinity is not guaranteed on OSX platform..\n");
     auto mac_thread = pthread_mach_thread_np(spider::this_thread::native_handle());
     thread_affinity_policy_data_t policyData = { affinity_id };
     auto ret = thread_policy_set(mach_thread1, THREAD_AFFINITY_POLICY, (thread_policy_t) &policyData, 1);
@@ -123,7 +123,7 @@ bool spider::this_thread::set_affinity(int32_t affinity_id) {
 }
 
 std::thread::native_handle_type spider::this_thread::native_handle() {
-    spider::log::warning("native_handle not supported on apple platform.\n");
+    log::warning("native_handle not supported on apple platform.\n");
     return 0;
 }
 

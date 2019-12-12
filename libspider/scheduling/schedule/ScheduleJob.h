@@ -98,11 +98,11 @@ namespace spider {
              * @brief Add a constraint on another @refitem ScheduleJob to current job.
              * @param job Pointer to the job we are constrained on.
              */
-            inline void setConstraint(spider::sched::Job *job);
+            inline void setConstraint(Job *job);
 
             /* === Getter(s) === */
 
-            inline spider::sched::Job *constraint(uint32_t lrtIx) const;
+            inline Job *constraint(uint32_t lrtIx) const;
 
             /**
              * @brief Get the ix of the job.
@@ -181,10 +181,10 @@ namespace spider {
             inline void setMappingEndTime(uint64_t time);
 
         private:
-            stack_vector(constraints_, sched::Job *, StackID::SCHEDULE);
+            stack_vector(constraints_, Job *, StackID::SCHEDULE);
             uint32_t vertexIx_ = UINT32_MAX;
             uint32_t ix_ = UINT32_MAX;
-            JobState state_ = spider::sched::JobState::PENDING;
+            JobState state_ = JobState::PENDING;
             JobMappingInfo mappingInfo_;
 
             /* === Private method(s) === */
@@ -192,59 +192,59 @@ namespace spider {
 
         /* === Inline method(s) === */
 
-        void spider::sched::Job::setConstraint(spider::sched::Job *job) {
+        void Job::setConstraint(Job *job) {
             if (job && job != this) {
                 constraints_.at(job->mappingInfo().LRTIx) = job;
             }
         }
 
-        spider::sched::Job *spider::sched::Job::constraint(uint32_t lrtIx) const {
+        Job *Job::constraint(uint32_t lrtIx) const {
             return constraints_.at(lrtIx);
         }
 
-        uint32_t spider::sched::Job::vertexIx() const {
+        uint32_t Job::vertexIx() const {
             return vertexIx_;
         }
 
-        uint32_t spider::sched::Job::ix() const {
+        uint32_t Job::ix() const {
             return ix_;
         }
 
-        JobState spider::sched::Job::state() const {
+        JobState Job::state() const {
             return state_;
         }
 
-        const JobMappingInfo &spider::sched::Job::mappingInfo() const {
+        const JobMappingInfo &Job::mappingInfo() const {
             return mappingInfo_;
         }
 
-        void spider::sched::Job::setVertexIx(uint32_t ix) {
+        void Job::setVertexIx(uint32_t ix) {
             vertexIx_ = ix;
         }
 
-        void spider::sched::Job::setIx(uint32_t ix) {
+        void Job::setIx(uint32_t ix) {
             ix_ = ix;
         }
 
-        void spider::sched::Job::setState(JobState state) {
+        void Job::setState(JobState state) {
             state_ = state;
         }
 
-        void spider::sched::Job::setMappingPE(uint32_t PEIx, uint32_t clusterIx) {
+        void Job::setMappingPE(uint32_t PEIx, uint32_t clusterIx) {
             mappingInfo_.PEIx = PEIx;
             mappingInfo_.clusterIx = clusterIx;
         }
 
-        void spider::sched::Job::setMappingLRT(uint32_t LRTIx) {
+        void Job::setMappingLRT(uint32_t LRTIx) {
             mappingInfo_.LRTIx = LRTIx;
         }
 
-        void spider::sched::Job::setMappingStartTime(uint64_t time) {
+        void Job::setMappingStartTime(uint64_t time) {
             mappingInfo_.startTime = time;
 
         }
 
-        void spider::sched::Job::setMappingEndTime(uint64_t time) {
+        void Job::setMappingEndTime(uint64_t time) {
             mappingInfo_.endTime = time;
         }
     }

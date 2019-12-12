@@ -109,15 +109,14 @@ static double applyOperator(StartIterator start, RPNOperatorType type) {
 
 spider::Expression::Expression(std::string expression, const spider::vector<pisdf::Param *> &params) {
     /* == Get the postfix expression stack == */
-    auto postfixStack = spider::rpn::extractPostfixElements(std::move(expression));
-    if (spider::api::verbose() && log_enabled<LOG_EXPR>()) {
-        spider::log::verbose<LOG_EXPR>("infix expression: [%s].\n", spider::rpn::infixString(postfixStack).c_str());
-        spider::log::verbose<LOG_EXPR>("postfix expression: [%s].\n",
-                                       spider::rpn::postfixString(postfixStack).c_str());
+    auto postfixStack = rpn::extractPostfixElements(std::move(expression));
+    if (api::verbose() && log_enabled<LOG_EXPR>()) {
+        log::verbose<LOG_EXPR>("infix expression: [%s].\n", rpn::infixString(postfixStack).c_str());
+        log::verbose<LOG_EXPR>("postfix expression: [%s].\n", rpn::postfixString(postfixStack).c_str());
     }
 
     /* == Reorder the postfix stack elements to increase the number of static evaluation done on construction == */
-    spider::rpn::reorderPostfixStack(postfixStack);
+    rpn::reorderPostfixStack(postfixStack);
 
     /* == Build the expression stack == */
     auto stack = buildExpressionStack(postfixStack, params);
@@ -126,7 +125,7 @@ spider::Expression::Expression(std::string expression, const spider::vector<pisd
         value_ = stack.empty() ? 0. : stack.back().arg.value_;
     } else {
         /* == Doing dynamic alloc of vector member if stack is not static == */
-        expressionStack_ = spider::make<spider::vector<ExpressionElt>, StackID::EXPRESSION>(std::move(stack));
+        expressionStack_ = make<spider::vector<ExpressionElt>, StackID::EXPRESSION>(std::move(stack));
     }
 }
 
@@ -136,7 +135,7 @@ spider::Expression::Expression(int64_t value) {
 }
 
 spider::Expression::~Expression() {
-    spider::destroy(expressionStack_);
+    destroy(expressionStack_);
 }
 
 std::string spider::Expression::string() const {
@@ -156,9 +155,9 @@ std::string spider::Expression::string() const {
 
 spider::vector<spider::ExpressionElt> spider::Expression::buildExpressionStack(spider::vector<RPNElement> &postfixStack,
                                                                                const spider::vector<pisdf::Param *> &params) {
-    auto stack = spider::containers::vector<ExpressionElt>(StackID::EXPRESSION);
+    auto stack = containers::vector<ExpressionElt>(StackID::EXPRESSION);
     stack.reserve(postfixStack.size());
-    auto evalStack = spider::containers::vector<double>(StackID::EXPRESSION);
+    auto evalStack = containers::vector<double>(StackID::EXPRESSION);
     evalStack.reserve(6); /* = In practice, the evalStack will most likely not exceed 3 values = */
     bool skipEval = false;
     size_t argCount = 0;
@@ -184,8 +183,8 @@ spider::vector<spider::ExpressionElt> spider::Expression::buildExpressionStack(s
                 stack.back().arg.value_ = value;
             }
         } else {
-            const auto &opType = spider::rpn::getOperatorTypeFromString(elt.token);
-            const auto &op = spider::rpn::getOperatorFromOperatorType(opType);
+            const auto &opType = rpn::getOperatorTypeFromString(elt.token);
+            const auto &op = rpn::getOperatorFromOperatorType(opType);
             if (elt.subtype == RPNElementSubType::FUNCTION && argCount < op.argCount) {
                 throwSpiderException("Function [%s] expecting argument !", elt.token.c_str());
             }
@@ -216,7 +215,7 @@ spider::vector<spider::ExpressionElt> spider::Expression::buildExpressionStack(s
 }
 
 double spider::Expression::evaluateStack(const spider::vector<pisdf::Param *> &params) const {
-    auto evalStack = spider::containers::vector<double>(StackID::EXPRESSION);
+    auto evalStack = containers::vector<double>(StackID::EXPRESSION);
     evalStack.reserve(6); /* = In practice, the evalStack will most likely not exceed 3 values = */
     for (const auto &elt : *(expressionStack_)) {
         if (elt.elt_.type == RPNElementType::OPERAND) {
@@ -226,7 +225,7 @@ double spider::Expression::evaluateStack(const spider::vector<pisdf::Param *> &p
                 evalStack.emplace_back(elt.arg.value_);
             }
         } else {
-            const auto &op = spider::rpn::getOperatorFromOperatorType(elt.arg.opType_);
+            const auto &op = rpn::getOperatorFromOperatorType(elt.arg.opType_);
             auto &&result = applyOperator(evalStack.begin() + (static_cast<int64_t>(evalStack.size() - op.argCount)),
                                           op.type);
             for (uint8_t i = 0; i < op.argCount - 1; ++i) {

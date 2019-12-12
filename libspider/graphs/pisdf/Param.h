@@ -59,7 +59,7 @@ namespace spider {
         public:
 
             explicit Param(std::string name, int64_t value = 0) : name_{ std::move(name) },
-                                                         value_{ value } {
+                                                                  value_{ value } {
                 std::transform(name_.begin(), name_.end(), name_.begin(), ::tolower);
             }
 

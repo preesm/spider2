@@ -96,7 +96,7 @@ namespace spider {
         private:
             template<class T>
             inline void clone(T *vertex) {
-                auto *clone = spider::make<T>(stack_, (*vertex), stack_);
+                auto *clone = make<T>(stack_, (*vertex), stack_);
                 graph_->addVertex(clone);
                 vertex->copyCount_ += 1;
             }

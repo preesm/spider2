@@ -66,7 +66,7 @@ namespace spider {
              * @brief Update schedule stats based on given TransfoJob.
              * @param job  TransfoJob to evaluate.
              */
-            void update(sched::Job &job);
+            void update(Job &job);
 
             /**
              * @brief Clear schedule jobs.
@@ -95,7 +95,7 @@ namespace spider {
              * @brief Get the job vector of the schedule.
              * @return const reference to the job vector
              */
-            inline const spider::vector<sched::Job> &jobs() const;
+            inline const spider::vector<Job> &jobs() const;
 
             /**
              * @brief Get a job from its ix.
@@ -103,7 +103,7 @@ namespace spider {
              * @return const reference to the job.
              * @throws @refitem std::out_of_range if ix is out of range.
              */
-            inline sched::Job &job(size_t ix);
+            inline Job &job(size_t ix);
 
             /**
              * @brief Get a job from its ix.
@@ -111,19 +111,19 @@ namespace spider {
              * @return const reference to the job.
              * @throws @refitem std::out_of_range if ix is out of range.
              */
-            inline const sched::Job &job(size_t ix) const;
+            inline const Job &job(size_t ix) const;
 
             /**
              * @brief Get the different statistics of the platform.
              * @return const reference to @refitem Stats
              */
-            inline const sched::Stats &stats() const;
+            inline const Stats &stats() const;
 
             /* === Setter(s) === */
 
         private:
-            stack_vector(jobs_, sched::Job, StackID::SCHEDULE);
-            sched::Stats stats_;
+            stack_vector(jobs_, Job, StackID::SCHEDULE);
+            Stats stats_;
 
             /* === Private method(s) === */
         };
@@ -134,19 +134,19 @@ namespace spider {
             return jobs_.size();
         }
 
-        const spider::vector<sched::Job> &Schedule::jobs() const {
+        const spider::vector<Job> &Schedule::jobs() const {
             return jobs_;
         }
 
-        sched::Job &Schedule::job(size_t ix) {
+        Job &Schedule::job(size_t ix) {
             return jobs_.at(ix);
         }
 
-        const sched::Job &Schedule::job(size_t ix) const {
+        const Job &Schedule::job(size_t ix) const {
             return jobs_.at(ix);
         }
 
-        const sched::Stats &Schedule::stats() const {
+        const Stats &Schedule::stats() const {
             return stats_;
         }
     }

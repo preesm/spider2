@@ -53,7 +53,7 @@
 
 /* === General Scenario related API === */
 
-void spider::api::setVertexMappableOnCluster(pisdf::ExecVertex *vertex, const spider::Cluster *cluster, bool value) {
+void spider::api::setVertexMappableOnCluster(pisdf::ExecVertex *vertex, const Cluster *cluster, bool value) {
     auto *constraints = vertex->constraints();
     if (!constraints) {
         constraints = vertex->createConstraints();

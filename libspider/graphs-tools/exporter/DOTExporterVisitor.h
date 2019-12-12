@@ -239,47 +239,50 @@ namespace spider {
         /* === Inline method(s) === */
 
         template<>
-        inline void DOTExporterVisitor::dummyPortPrinter<false>(uint32_t width, const std::string &color) const {
-            /* == Header == */
-            portHeaderPrinter();
+        inline void DOTExporterVisitor::dummyPortPrinter<false>(uint32_t
+        width,
+        const std::string &color
+        ) const {
+        /* == Header == */
+        portHeaderPrinter();
 
-            /* == Direction specific export == */
-            file_ << offset_ << '\t' << '\t' << '\t' << '\t' << '\t' << '\t'
-                  << R"(<td border="0" style="invis" align="right" bgcolor=")" << color
-                  << R"(" fixedsize="true" width=")" << width
-                  << R"(" height="20"><font color=")" << color
-                  << R"(" point-size="12" face="inconsolata">0 </font></td>)"
-                  << '\n';
-            file_ << offset_ << '\t' << '\t' << '\t' << '\t' << '\t' << '\t'
-                  << R"(<td border="0" style="invis" bgcolor=")" << color
-                  << R"(" align="left" fixedsize="true" width="20" height="20"></td>)"
-                  << '\n';
+        /* == Direction specific export == */
+        file_ << offset_ << '\t' << '\t' << '\t' << '\t' << '\t' << '\t'
+        << R"(<td border="0" style="invis" align="right" bgcolor=")" << color
+        << R"(" fixedsize="true" width=")" << width
+        << R"(" height="20"><font color=")" << color
+        << R"(" point-size="12" face="inconsolata">0 </font></td>)"
+        << '\n';
+        file_ << offset_ << '\t' << '\t' << '\t' << '\t' << '\t' << '\t'
+        << R"(<td border="0" style="invis" bgcolor=")" << color
+        << R"(" align="left" fixedsize="true" width="20" height="20"></td>)"
+        << '\n';
 
-            /* == Footer == */
-            portFooterPrinter();
-        }
-
-        template<>
-        inline void
-        DOTExporterVisitor::portPrinter<false>(const Edge *edge, uint32_t width, const std::string &color) const {
-            /* == Header == */
-            portHeaderPrinter();
-
-            /* == Direction specific export == */
-            file_ << offset_ << '\t' << '\t' << '\t' << '\t' << '\t' << '\t'
-                  << R"(<td border="1" sides="r" align="right" bgcolor=")" << color << R"(" fixedsize="true" width=")"
-                  << width
-                  << R"(" height="20"><font point-size="12" face="inconsolata">)"
-                  << edge->sourceRateExpression().evaluate(exporter_->params_)
-                  << R"( </font></td>)" << '\n';
-            file_ << offset_ << '\t' << '\t' << '\t' << '\t' << '\t' << '\t'
-                  << R"(<td port="out_)" << edge->sourcePortIx()
-                  << R"(" border="1" sides="ltb" bgcolor="#ec644bff" align="left" fixedsize="true" width="20" height="20"></td>)"
-                  << '\n';
-
-            /* == Footer == */
-            portFooterPrinter();
-        }
+        /* == Footer == */
+        portFooterPrinter();
     }
+
+    template<>
+    inline void
+    DOTExporterVisitor::portPrinter<false>(const Edge *edge, uint32_t width, const std::string &color) const {
+        /* == Header == */
+        portHeaderPrinter();
+
+        /* == Direction specific export == */
+        file_ << offset_ << '\t' << '\t' << '\t' << '\t' << '\t' << '\t'
+              << R"(<td border="1" sides="r" align="right" bgcolor=")" << color << R"(" fixedsize="true" width=")"
+              << width
+              << R"(" height="20"><font point-size="12" face="inconsolata">)"
+              << edge->sourceRateExpression().evaluate(exporter_->params_)
+              << R"( </font></td>)" << '\n';
+        file_ << offset_ << '\t' << '\t' << '\t' << '\t' << '\t' << '\t'
+              << R"(<td port="out_)" << edge->sourcePortIx()
+              << R"(" border="1" sides="ltb" bgcolor="#ec644bff" align="left" fixedsize="true" width="20" height="20"></td>)"
+              << '\n';
+
+        /* == Footer == */
+        portFooterPrinter();
+    }
+}
 }
 #endif //SPIDER2_DOTEXPORTERVISITOR_H

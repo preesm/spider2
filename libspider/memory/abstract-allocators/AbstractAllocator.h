@@ -71,8 +71,8 @@ public:
         if (used_ > 0 && log_enabled()) {
             spider::log::error("Allocator: %s -- Still has %lf %s in use.\n",
                                name(),
-                               AbstractAllocator::getByteNormalizedSize(used_),
-                               AbstractAllocator::getByteUnitString(used_));
+                               getByteNormalizedSize(used_),
+                               getByteUnitString(used_));
         }
         printStats();
     }

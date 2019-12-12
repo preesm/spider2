@@ -147,13 +147,13 @@ namespace spider {
          * @brief Get the write cost routine.
          * @return const reference to @refitem Spider::CommunicationCostRoutine
          */
-        inline const spider::CommunicationCostRoutine &writeCostRoutine() const;
+        inline const CommunicationCostRoutine &writeCostRoutine() const;
 
         /**
          * @brief Get the read cost routine.
          * @return const reference to @refitem Spider::CommunicationCostRoutine
          */
-        inline const spider::CommunicationCostRoutine &readCostRoutine() const;
+        inline const CommunicationCostRoutine &readCostRoutine() const;
 
         /* === Setter(s) === */
 
@@ -167,13 +167,13 @@ namespace spider {
          * @brief Set the cost routine for writing in cluster memory.
          * @param routine  Routine used for computing the cost to write in cluster memory.
          */
-        inline void setWriteCostRoutine(spider::CommunicationCostRoutine routine);
+        inline void setWriteCostRoutine(CommunicationCostRoutine routine);
 
         /**
          * @brief Set the cost routine for reading from cluster memory.
          * @param routine  Routine used for computing the cost to read from cluster memory.
          */
-        inline void setReadCostRoutine(spider::CommunicationCostRoutine routine);
+        inline void setReadCostRoutine(CommunicationCostRoutine routine);
 
     private:
 
@@ -190,8 +190,8 @@ namespace spider {
         uint32_t LRTCount_ = 0;
         uint32_t enabledPECount_ = 0;
         uint32_t ix_ = 0;
-        spider::CommunicationCostRoutine writeCostRoutine_;
-        spider::CommunicationCostRoutine readCostRoutine_;
+        CommunicationCostRoutine writeCostRoutine_;
+        CommunicationCostRoutine readCostRoutine_;
 
         /* === Private method(s) === */
     };
@@ -236,11 +236,11 @@ namespace spider {
         return enabledPECount_;
     }
 
-    const spider::CommunicationCostRoutine &Cluster::writeCostRoutine() const {
+    const CommunicationCostRoutine &Cluster::writeCostRoutine() const {
         return writeCostRoutine_;
     }
 
-    const spider::CommunicationCostRoutine &Cluster::readCostRoutine() const {
+    const CommunicationCostRoutine &Cluster::readCostRoutine() const {
         return readCostRoutine_;
     }
 
@@ -248,11 +248,11 @@ namespace spider {
         ix_ = ix;
     }
 
-    void Cluster::setWriteCostRoutine(spider::CommunicationCostRoutine routine) {
+    void Cluster::setWriteCostRoutine(CommunicationCostRoutine routine) {
         writeCostRoutine_ = routine;
     }
 
-    void Cluster::setReadCostRoutine(spider::CommunicationCostRoutine routine) {
+    void Cluster::setReadCostRoutine(CommunicationCostRoutine routine) {
         readCostRoutine_ = routine;
     }
 }

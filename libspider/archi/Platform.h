@@ -197,7 +197,7 @@ namespace spider {
          * @brief Set the communication cost routine between clusters of the platform.
          * @param routine Routine to set.
          */
-        inline void setCluster2ClusterRoutine(spider::CommunicationCostRoutineC2C routine);
+        inline void setCluster2ClusterRoutine(CommunicationCostRoutineC2C routine);
 
     private:
         spider::array<Cluster *> clusterArray_;
@@ -206,7 +206,7 @@ namespace spider {
 
         /* === Routines === */
 
-        spider::CommunicationCostRoutineC2C cluster2ClusterComCostRoutine_ = spider::defaultC2CZeroCommunicationCost;
+        CommunicationCostRoutineC2C cluster2ClusterComCostRoutine_ = defaultC2CZeroCommunicationCost;
 
         /* === Private method(s) === */
     };
@@ -241,7 +241,7 @@ namespace spider {
         grtPE_ = PE;
     }
 
-    void Platform::setCluster2ClusterRoutine(spider::CommunicationCostRoutineC2C routine) {
+    void Platform::setCluster2ClusterRoutine(CommunicationCostRoutineC2C routine) {
         cluster2ClusterComCostRoutine_ = routine;
     }
 

@@ -61,15 +61,15 @@ spider::PE::PE(uint32_t hwType,
                uint32_t virtIx,
                Cluster *cluster,
                std::string name,
-               spider::PEType spiderPEType,
-               spider::HWType spiderHWType) : hwType_{ hwType },
-                                              hwIx_{ hwIx },
-                                              virtIx_{ virtIx },
-                                              name_{ std::move(name) },
-                                              cluster_{ cluster },
-                                              spiderPEIx_{ spiderUniqueIx() },
-                                              spiderPEType_{ spiderPEType },
-                                              spiderHWType_{ spiderHWType } {
+               PEType spiderPEType,
+               HWType spiderHWType) : hwType_{ hwType },
+                                      hwIx_{ hwIx },
+                                      virtIx_{ virtIx },
+                                      name_{ std::move(name) },
+                                      cluster_{ cluster },
+                                      spiderPEIx_{ spiderUniqueIx() },
+                                      spiderPEType_{ spiderPEType },
+                                      spiderHWType_{ spiderHWType } {
     if (isLRT()) {
         managingLRT_ = this;
         managingLRTIx_ = cluster->platform().LRTCount();

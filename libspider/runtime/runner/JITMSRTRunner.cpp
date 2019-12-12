@@ -61,7 +61,7 @@ void spider::JITMSRTRunner::run(bool infiniteLoop) {
         }
         if (stop_) {
             if (log_enabled<LOG_LRT>()) {
-                spider::log::info("Runner #%zu -> exiting from notification.\n", ix());
+                log::info("Runner #%zu -> exiting from notification.\n", ix());
             }
             break;
         }
@@ -73,20 +73,20 @@ void spider::JITMSRTRunner::run(bool infiniteLoop) {
         /* == If there is a job available, do it == */
         if (jobQueueCurrentPos_ < jobQueue_.size()) {
             if (log_enabled<LOG_LRT>()) {
-                spider::log::info("Runner #%zu -> finished jobs.\n", ix());
+                log::info("Runner #%zu -> finished jobs.\n", ix());
             }
             auto &job = jobQueue_[jobQueueCurrentPos_];
             canRun = isJobRunnable(job);
             if (canRun) {
                 if (log_enabled<LOG_LRT>()) {
-                    spider::log::info("Runner #%zu -> starting job %" PRId32"\n ", ix(), jobQueueCurrentPos_);
+                    log::info("Runner #%zu -> starting job %" PRId32"\n ", ix(), jobQueueCurrentPos_);
                 }
                 /* == Run the job == */
                 runJob(job);
 
                 /* == Update current position in job queue == */
                 if (log_enabled<LOG_LRT>()) {
-                    spider::log::info("Runner #%zu -> finished job %" PRId32"\n ", ix(), jobQueueCurrentPos_);
+                    log::info("Runner #%zu -> finished job %" PRId32"\n ", ix(), jobQueueCurrentPos_);
                 }
                 jobQueueCurrentPos_++;
             }
@@ -97,7 +97,7 @@ void spider::JITMSRTRunner::run(bool infiniteLoop) {
         if (finishedIteration) {
             if (!infiniteLoop) {
                 if (log_enabled<LOG_LRT>()) {
-                    spider::log::info("Runner #%zu -> finished jobs.\n", ix());
+                    log::info("Runner #%zu -> finished jobs.\n", ix());
                 }
                 run = false;
             } else {
@@ -121,7 +121,7 @@ void spider::JITMSRTRunner::run(bool infiniteLoop) {
 
 /* === Private method(s) implementation === */
 
-void spider::JITMSRTRunner::runJob(const spider::JobMessage &job) {
+void spider::JITMSRTRunner::runJob(const JobMessage &job) {
     /* == Fetch input memory == */
 
     /* == Allocate output memory == */
@@ -149,17 +149,16 @@ bool spider::JITMSRTRunner::isJobRunnable(const JobMessage &job) const {
         if (localJobStampsArray_[runnerIx] < static_cast<uint32_t>(job2Wait)) {
             if (runnerIx == ix()) {
                 if (log_enabled<LOG_LRT>()) {
-                    spider::log::error("Runner #%zu -> waiting for future self job..\n", ix());
-                    spider::log::error(
-                            "Runner #%zu -> current job stamp: %" PRId32" -- waited job stamp: %" PRId32"\n",
-                            ix(), localJobStampsArray_[runnerIx], job2Wait);
+                    log::error("Runner #%zu -> waiting for future self job..\n", ix());
+                    log::error("Runner #%zu -> current job stamp: %" PRId32" -- waited job stamp: %" PRId32"\n",
+                               ix(), localJobStampsArray_[runnerIx], job2Wait);
                 }
                 throwSpiderException("Runner #%zu -> bad job ix.", ix());
             }
             if (log_enabled<LOG_LRT>()) {
-                spider::log::info("Runner #%zu -> current job stamp %" PRId32"\n "
-                                  "Runner #%zu -> waiting runner #%" PRIu32" -- job stamp %" PRId32"\n",
-                                  ix(), jobQueueCurrentPos_, runnerIx, job2Wait);
+                log::info("Runner #%zu -> current job stamp %" PRId32"\n "
+                          "Runner #%zu -> waiting runner #%" PRIu32" -- job stamp %" PRId32"\n",
+                          ix(), jobQueueCurrentPos_, runnerIx, job2Wait);
             }
             return false;
         }
@@ -171,7 +170,7 @@ bool spider::JITMSRTRunner::readNotification(bool blocking) {
     Notification notification;
     if (blocking) {
         if (log_enabled<LOG_LRT>()) {
-            spider::log::info("Runner #%zu -> waiting for notification...\n", ix());
+            log::info("Runner #%zu -> waiting for notification...\n", ix());
         }
         spider::rtPlatform()->communicator()->pop(notification, ix());
     } else if (!spider::rtPlatform()->communicator()->try_pop(notification, ix())) {
@@ -193,7 +192,7 @@ bool spider::JITMSRTRunner::readNotification(bool blocking) {
     return true;
 }
 
-void spider::JITMSRTRunner::readJobNotification(spider::Notification &notification) {
+void spider::JITMSRTRunner::readJobNotification(Notification &notification) {
     switch (notification.subtype_) {
         case JobNotification::ADD: {
             JobMessage message;
@@ -216,9 +215,8 @@ void spider::JITMSRTRunner::readJobNotification(spider::Notification &notificati
             }
             localJobStampsArray_[static_cast<size_t>(notification.senderIx_)] = static_cast<uint32_t>(notification.notificationIx_);
             if (log_enabled<LOG_LRT>()) {
-                spider::log::info(
-                        "Runner #%zu -> updating local job stamp of runner #%" PRId32" -- value: %" PRId32"\n",
-                        ix(), notification.senderIx_, notification.notificationIx_);
+                log::info("Runner #%zu -> updating local job stamp of runner #%" PRId32" -- value: %" PRId32"\n",
+                          ix(), notification.senderIx_, notification.notificationIx_);
             }
             break;
         case JobNotification::DELAY_BROADCAST_JOBSTAMP:
@@ -232,12 +230,12 @@ void spider::JITMSRTRunner::readJobNotification(spider::Notification &notificati
     }
 }
 
-void spider::JITMSRTRunner::readRuntimeNotification(spider::Notification &notification) {
+void spider::JITMSRTRunner::readRuntimeNotification(Notification &notification) {
     switch (notification.subtype_) {
         case LRTNotifification::END_ITERATION:
             lastJobIx_ = static_cast<uint32_t >(notification.notificationIx_);
             if (log_enabled<LOG_LRT>()) {
-                spider::log::info("Runner #%zu -> last job stamp: %" PRIu32"\n", ix(), lastJobIx_);
+                log::info("Runner #%zu -> last job stamp: %" PRIu32"\n", ix(), lastJobIx_);
             }
             break;
         case LRTNotifification::RST_ITERATION:
@@ -261,7 +259,7 @@ void spider::JITMSRTRunner::readRuntimeNotification(spider::Notification &notifi
     }
 }
 
-void spider::JITMSRTRunner::readTraceNotification(spider::Notification &notification) {
+void spider::JITMSRTRunner::readTraceNotification(Notification &notification) {
     switch (notification.subtype_) {
         case TraceNotification::ENABLE:
             break;

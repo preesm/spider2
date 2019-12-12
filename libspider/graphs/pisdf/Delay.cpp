@@ -78,37 +78,37 @@ spider::pisdf::Delay::Delay(Expression &&expression,
     /* == If no setter is provided then an INIT is created == */
     if (!setter_) {
         setterPortIx_ = 0; /* = Ensure the proper value of the port ix = */
-        setter_ = spider::api::createInit(edge->graph(),
-                                          "init-" + edge->sink()->name() + "_" + std::to_string(edge->sinkPortIx()),
-                                          stack);
+        setter_ = api::createInit(edge->graph(),
+                                  "init-" + edge->sink()->name() + "_" + std::to_string(edge->sinkPortIx()),
+                                  stack);
     }
 
     /* == If no getter is provided then an END is created == */
     if (!getter_) {
         getterPortIx_ = 0; /* = Ensure the proper value of the port ix = */
-        getter_ = spider::api::createEnd(edge->graph(),
-                                         "end-" + edge->source()->name() + "_" + std::to_string(edge->sourcePortIx()),
-                                         stack);
+        getter_ = api::createEnd(edge->graph(),
+                                 "end-" + edge->source()->name() + "_" + std::to_string(edge->sourcePortIx()),
+                                 stack);
     }
 
     /* == Create virtual vertex and connect it to setter / getter == */
-    vertex_ = spider::make<DelayVertex>(stack, this->name(), stack);
+    vertex_ = make<DelayVertex>(stack, this->name(), stack);
     edge->graph()->addVertex(vertex_);
 
-    auto *setterEdge = spider::make<Edge>(stack,
-                                          setter_,
-                                          setterPortIx_,
-                                          std::move(setterRateExpression),
-                                          vertex_,
-                                          0u,
-                                          Expression(expression_));
-    auto *getterEdge = spider::make<Edge>(stack,
-                                          vertex_,
-                                          0u,
-                                          Expression(expression_),
-                                          getter_,
-                                          getterPortIx_,
-                                          std::move(getterRateExpression));
+    auto *setterEdge = make<Edge>(stack,
+                                  setter_,
+                                  setterPortIx_,
+                                  std::move(setterRateExpression),
+                                  vertex_,
+                                  0u,
+                                  Expression(expression_));
+    auto *getterEdge = make<Edge>(stack,
+                                  vertex_,
+                                  0u,
+                                  Expression(expression_),
+                                  getter_,
+                                  getterPortIx_,
+                                  std::move(getterRateExpression));
 
     /* == Add things to the graph == */
     edge->graph()->addEdge(setterEdge);

@@ -59,7 +59,8 @@ namespace spider {
             public:
                 template<class T, size_t N>
                 static const char *
-                format(char (&buf)[N], T f, int32_t width, int32_t precision, Flags flags, const char *alphabet, size_t *rlen) {
+                format(char (&buf)[N], T f, int32_t width, int32_t precision, Flags flags, const char *alphabet,
+                       size_t *rlen) {
                     auto negValue = f < 0;
                     if (negValue) {
                         f = -f;
@@ -148,7 +149,8 @@ namespace spider {
             public:
                 template<class T, size_t N>
                 static const char *
-                format(char (&buf)[N], T f, int32_t width, int32_t precision, Flags flags, const char *alphabet, size_t *rlen) {
+                format(char (&buf)[N], T f, int32_t width, int32_t precision, Flags flags, const char *alphabet,
+                       size_t *rlen) {
                     auto exp = static_cast<int32_t>(std::log10(f));
                     T val = f / std::pow(10., exp);
                     ftoa_helper<'f'>::format(buf, val, width, precision, flags, alphabet, rlen);
@@ -195,7 +197,8 @@ namespace spider {
             public:
                 template<class T, size_t N>
                 static const char *
-                format(char (&buf)[N], T f, int32_t width, int32_t precision, Flags flags, const char *alphabet, size_t *rlen) {
+                format(char (&buf)[N], T f, int32_t width, int32_t precision, Flags flags, const char *alphabet,
+                       size_t *rlen) {
                     if (precision == 0) {
                         precision = 1;
                     }
@@ -240,7 +243,8 @@ namespace spider {
 
 
             template<class T, size_t N>
-            const char *ftoa(char (&buf)[N], char base, int32_t precision, T f, int32_t width, Flags flags, size_t *rlen) {
+            const char *
+            ftoa(char (&buf)[N], char base, int32_t precision, T f, int32_t width, Flags flags, size_t *rlen) {
                 if (std::isnan(f)) {
                     if (base == 'f' || base == 'g' || base == 'e') {
                         buf[0] = 'n';

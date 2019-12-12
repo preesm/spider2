@@ -64,7 +64,7 @@ void spider::Scheduler::setJobInformation(sched::Job *job,
     schedule_.update(*job);
 }
 
-uint64_t spider::Scheduler::computeMinStartTime(const spider::pisdf::Vertex *vertex) {
+uint64_t spider::Scheduler::computeMinStartTime(const pisdf::Vertex *vertex) {
     uint64_t minimumStartTime = 0;
     auto &job = schedule_.job(vertex->ix());
     job.setVertexIx(vertex->ix());
@@ -84,7 +84,7 @@ uint64_t spider::Scheduler::computeMinStartTime(const spider::pisdf::Vertex *ver
     return minimumStartTime;
 }
 
-void spider::Scheduler::vertexMapper(const spider::pisdf::Vertex *vertex) {
+void spider::Scheduler::vertexMapper(const pisdf::Vertex *vertex) {
     /* == Compute the minimum start time possible for vertex == */
     uint64_t minStartTime = Scheduler::computeMinStartTime(vertex);
 
@@ -117,7 +117,7 @@ void spider::Scheduler::vertexMapper(const spider::pisdf::Vertex *vertex) {
                 uint64_t receiveCost = 0;
 
                 /* == Compute total schedule cost == */
-                const auto &scheduleCost = spider::math::saturateAdd(endTime, receiveCost);
+                const auto &scheduleCost = math::saturateAdd(endTime, receiveCost);
                 if (scheduleCost < bestScheduleCost || (scheduleCost == bestScheduleCost && waitTime < bestWaitTime)) {
                     bestScheduleCost = scheduleCost;
                     bestStartTime = JobStartTime;

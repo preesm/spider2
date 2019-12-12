@@ -55,7 +55,7 @@ spider::Platform::Platform(uint32_t clusterCount) : clusterArray_{ clusterCount,
 
 spider::Platform::~Platform() {
     for (auto &cluster : clusterArray_) {
-        spider::destroy(cluster);
+        destroy(cluster);
     }
 }
 
@@ -139,21 +139,19 @@ void spider::Platform::disablePE(PE *const PE) const {
     }
 }
 
-uint64_t spider::Platform::dataCommunicationCostPEToPE(PE *PESrc,
-                                                       PE *PESnk,
-                                                       uint64_t dataSize) {
+uint64_t spider::Platform::dataCommunicationCostPEToPE(PE *PESrc, PE *PESnk, uint64_t dataSize) {
     /* == Test if it is an intra or inter cluster communication == */
     if (PESrc->cluster()->ix() == PESnk->cluster()->ix()) {
         /* == Intra cluster, communication cost is the read / write to the cluster memory cost == */
         auto *cluster = PESrc->cluster();
-        return spider::math::saturateAdd(cluster->writeCostRoutine()(dataSize), cluster->readCostRoutine()(dataSize));
+        return math::saturateAdd(cluster->writeCostRoutine()(dataSize), cluster->readCostRoutine()(dataSize));
     }
 
     /* == For inter cluster communication, cost is a bit more complicated to compute == */
     auto *clusterSrc = PESrc->cluster();
     auto *clusterSnk = PESnk->cluster();
-    const auto &readWriteCost = spider::math::saturateAdd(clusterSrc->writeCostRoutine()(dataSize),
-                                                          clusterSnk->readCostRoutine()(dataSize));
-    return spider::math::saturateAdd(readWriteCost,
-                                     cluster2ClusterComCostRoutine_(clusterSrc->ix(), clusterSnk->ix(), dataSize));
+    const auto &readWriteCost = math::saturateAdd(clusterSrc->writeCostRoutine()(dataSize),
+                                                  clusterSnk->readCostRoutine()(dataSize));
+    return math::saturateAdd(readWriteCost,
+                             cluster2ClusterComCostRoutine_(clusterSrc->ix(), clusterSnk->ix(), dataSize));
 }

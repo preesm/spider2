@@ -144,7 +144,7 @@ namespace spider {
              * @param srcVector   Vector of @refitem TransfoVertex corresponding to the sources of the edge of the job.
              * @param snkVector   Vector of @refitem TransfoVertex corresponding to the sinks of the edge of the job.
              */
-            void computeDependencies(spider::pisdf::Edge *edge,
+            void computeDependencies(pisdf::Edge *edge,
                                      spider::vector<TransfoVertex> &srcVector,
                                      spider::vector<TransfoVertex> &snkVector);
 
@@ -168,14 +168,14 @@ namespace spider {
              * @param edge Edge to evaluate.
              * @return vector of TransfoVertex.
              */
-            spider::vector<TransfoVertex> buildSinkLinkerVector(spider::pisdf::Edge *edge);
+            spider::vector<TransfoVertex> buildSinkLinkerVector(pisdf::Edge *edge);
 
             /**
              * @brief Build a vector of @refitem TransfoVertex of the source clones of a given edge.
              * @param edge Edge to evaluate.
              * @return vector of TransfoVertex.
              */
-            spider::vector<TransfoVertex> buildSourceLinkerVector(spider::pisdf::Edge *edge);
+            spider::vector<TransfoVertex> buildSourceLinkerVector(pisdf::Edge *edge);
 
             /**
              * @brief Populate a given vector of @refitem TransfoVertex from given values.
@@ -185,7 +185,7 @@ namespace spider {
              * @param portIx     Port ix to use for the linkage.
              */
             inline void populateTransfoVertexVector(spider::vector<TransfoVertex> &vector,
-                                                    const spider::pisdf::Vertex *reference,
+                                                    const pisdf::Vertex *reference,
                                                     int64_t rate,
                                                     size_t portIx) const {
                 const auto *clone = srdag_->vertex(ref2Clone_[uniformIx(reference, job_.reference_)]);

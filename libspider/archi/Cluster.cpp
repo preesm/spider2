@@ -59,15 +59,15 @@ spider::Cluster::Cluster(uint32_t PECount, MemoryUnit *memoryUnit) : PEArray_{ P
     platform_->addCluster(this);
 
     /* == Set default read / write to the memory cost routine == */
-    writeCostRoutine_ = spider::defaultZeroCommunicationCost;
-    readCostRoutine_ = spider::defaultZeroCommunicationCost;
+    writeCostRoutine_ = defaultZeroCommunicationCost;
+    readCostRoutine_ = defaultZeroCommunicationCost;
 }
 
 spider::Cluster::~Cluster() {
     for (auto &pe : PEArray_) {
-        spider::destroy(pe);
+        destroy(pe);
     }
-    spider::destroy(memoryUnit_);
+    destroy(memoryUnit_);
 }
 
 void spider::Cluster::addPE(PE *PE) {

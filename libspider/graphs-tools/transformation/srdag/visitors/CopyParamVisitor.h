@@ -53,7 +53,7 @@ namespace spider {
 
         /* === Struct definition === */
 
-        struct CopyParamVisitor final : public spider::pisdf::DefaultVisitor {
+        struct CopyParamVisitor final : public pisdf::DefaultVisitor {
         public:
             CopyParamVisitor(const TransfoJob &job,
                              spider::vector<pisdf::Param *> &cpyParamVec) : job_{ job },
@@ -61,20 +61,20 @@ namespace spider {
 
             ~CopyParamVisitor() override = default;
 
-            inline void visit(spider::pisdf::Param *param) override {
+            inline void visit(pisdf::Param *param) override {
                 copyParamVector_.emplace_back(param);
             }
 
-            inline void visit(spider::pisdf::DynamicParam *param) override {
-                auto *p = spider::make<pisdf::DynamicParam, StackID::TRANSFO>(param->name(),
-                                                                              spider::Expression(param->expression()));
+            inline void visit(pisdf::DynamicParam *param) override {
+                auto *p = make<pisdf::DynamicParam, StackID::TRANSFO>(param->name(),
+                                                                      Expression(param->expression()));
                 copyParamVector_.emplace_back(p);
             }
 
-            inline void visit(spider::pisdf::InHeritedParam *param) override {
+            inline void visit(pisdf::InHeritedParam *param) override {
                 auto &parentJobParams = job_.params_;
                 const auto &inheritedParam = parentJobParams[param->parent()->ix()];
-                auto *p = spider::make<pisdf::Param, StackID::TRANSFO>(param->name(), inheritedParam->value());
+                auto *p = make<pisdf::Param, StackID::TRANSFO>(param->name(), inheritedParam->value());
                 copyParamVector_.emplace_back(p);
             }
 

@@ -49,12 +49,12 @@
 
 /* === Function(s) definition === */
 
-void spider::brv::compute(const spider::pisdf::Graph *graph, const spider::vector<pisdf::Param *> &params) {
+void spider::brv::compute(const pisdf::Graph *graph, const spider::vector<pisdf::Param *> &params) {
     /* == 0. Extract connected components of the graph == */
     const auto &connectedComponents = extractConnectedComponents(graph);
 
     /* == 1. For each connected component compute LCM and RV == */
-    spider::array<spider::Rational> rationalArray{ graph->vertexCount(), spider::Rational(), StackID::TRANSFO };
+    spider::array<Rational> rationalArray{ graph->vertexCount(), Rational(), StackID::TRANSFO };
     for (const auto &component : connectedComponents) {
         /* == 1.1 Extract the edges == */
         auto edgeArray = extractEdgesFromComponent(component);
@@ -65,7 +65,7 @@ void spider::brv::compute(const spider::pisdf::Graph *graph, const spider::vecto
         /* == 1.3 Compute the LCM factor for the current component == */
         int64_t lcmFactor = 1;
         for (const auto &vertex : component.vertexVector_) {
-            lcmFactor = spider::math::lcm(lcmFactor, rationalArray[vertex->ix()].denominator());
+            lcmFactor = math::lcm(lcmFactor, rationalArray[vertex->ix()].denominator());
         }
 
         /* == 1.4 Compute the repetition value for vertices of the connected component == */
@@ -82,20 +82,20 @@ void spider::brv::compute(const spider::pisdf::Graph *graph, const spider::vecto
     }
 
     /* == Print BRV (if VERBOSE) == */
-    spider::brv::print(graph);
+    print(graph);
 }
 
-void spider::brv::compute(const spider::pisdf::Graph *graph) {
+void spider::brv::compute(const pisdf::Graph *graph) {
     compute(graph, graph->params());
 }
 
 spider::vector<spider::brv::ConnectedComponent>
-spider::brv::extractConnectedComponents(const spider::pisdf::Graph *graph) {
+spider::brv::extractConnectedComponents(const pisdf::Graph *graph) {
     /* == Keys used to check if a vertex has already be assigned to a connected component == */
-    auto visited = spider::containers::vector<bool>(graph->vertexCount(), false, StackID::TRANSFO);
+    auto visited = containers::vector<bool>(graph->vertexCount(), false, StackID::TRANSFO);
 
     /* == Iterate over every vertex and assign it to a connected component == */
-    auto connectedComponents = spider::containers::vector<ConnectedComponent>(StackID::TRANSFO);
+    auto connectedComponents = containers::vector<ConnectedComponent>(StackID::TRANSFO);
     for (const auto &vertex : graph->vertices()) {
         if (!visited[vertex->ix()]) {
             /* == Initiate a new connected component == */
@@ -115,7 +115,7 @@ spider::brv::extractConnectedComponents(const spider::pisdf::Graph *graph) {
                         throwSpiderException("Vertex [%s] has null output edge.", currentVertex->name().c_str());
                     }
                     auto *sink = edge->sink();
-                    if (sink->subtype() != spider::pisdf::VertexType::OUTPUT && !visited[sink->ix()]) {
+                    if (sink->subtype() != pisdf::VertexType::OUTPUT && !visited[sink->ix()]) {
                         /* == Register the vertex == */
                         component.vertexVector_.emplace_back(sink);
                         visited[sink->ix()] = true;
@@ -128,11 +128,11 @@ spider::brv::extractConnectedComponents(const spider::pisdf::Graph *graph) {
                         throwSpiderException("Vertex [%s] has null input edge.", currentVertex->name().c_str());
                     }
                     auto *source = edge->source();
-                    if (source->subtype() != spider::pisdf::VertexType::INPUT && !visited[source->ix()]) {
+                    if (source->subtype() != pisdf::VertexType::INPUT && !visited[source->ix()]) {
                         /* == Register the vertex == */
                         component.vertexVector_.emplace_back(source);
                         visited[source->ix()] = true;
-                    } else if (source->subtype() == spider::pisdf::VertexType::INPUT) {
+                    } else if (source->subtype() == pisdf::VertexType::INPUT) {
                         component.edgeCount_ += 1;
                     }
                 }
@@ -162,10 +162,10 @@ spider::brv::extractEdgesFromComponent(const ConnectedComponent &component) {
     return edgeArray;
 }
 
-void spider::brv::extractRationalsFromEdges(spider::array<spider::Rational> &rationalArray,
+void spider::brv::extractRationalsFromEdges(spider::array<Rational> &rationalArray,
                                             const spider::array<const pisdf::Edge *> &edgeArray,
                                             const spider::vector<pisdf::Param *> &params) {
-    auto dummyRational = spider::Rational{ 1 };
+    auto dummyRational = Rational{ 1 };
     for (const auto &edge : edgeArray) {
         const auto *source = edge->source();
         const auto *sink = edge->sink();
@@ -190,14 +190,14 @@ void spider::brv::extractRationalsFromEdges(spider::array<spider::Rational> &rat
         auto &sinkRational = sink->subtype() == pisdf::VertexType::OUTPUT ? dummyRational : rationalArray[sink->ix()];
 
         if (!sinkRational.nominator() && sinkRate) {
-            sinkRational = spider::Rational{ sourceRate, sinkRate };
+            sinkRational = Rational{ sourceRate, sinkRate };
             if (sourceRational.nominator()) {
                 sinkRational *= sourceRational;
             }
         }
 
         if (!sourceRational.nominator() && sourceRate) {
-            sourceRational = spider::Rational{ sinkRate, sourceRate };
+            sourceRational = Rational{ sinkRate, sourceRate };
             if (sinkRational.nominator()) {
                 sourceRational *= sinkRational;
             }

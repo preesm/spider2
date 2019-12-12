@@ -66,7 +66,7 @@ namespace spider {
          */
         explicit array(size_t size, StackID stack = StackID::GENERAL) : size_{ size } {
             if (size) {
-                data_ = spider::allocate<T>(stack, size + 1);
+                data_ = allocate<T>(stack, size + 1);
             }
         }
 
@@ -91,7 +91,7 @@ namespace spider {
         }
 
         ~array() {
-            spider::deallocate(data_);
+            deallocate(data_);
         }
 
         array &operator=(array tmp) {
@@ -108,7 +108,7 @@ namespace spider {
          * @param first   First element to swap.
          * @param second  Second element to swap.
          */
-        inline friend void swap(spider::array<T> &first, spider::array<T> &second) noexcept {
+        inline friend void swap(array<T> &first, array<T> &second) noexcept {
             /* == Do the swapping of the values == */
             using std::swap;
             swap(first.data_, second.data_);

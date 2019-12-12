@@ -245,10 +245,10 @@ void spider::pisdf::DOTExporterVisitor::interfaceBodyPrinter(Interface *interfac
     file_ << offset_ << "];" << '\n' << '\n';
 }
 
-void spider::pisdf::DOTExporterVisitor::edgePrinter(spider::pisdf::Edge *edge) const {
+void spider::pisdf::DOTExporterVisitor::edgePrinter(Edge *edge) const {
     auto *source =
-            edge->source()->subtype() == spider::pisdf::VertexType::GRAPH ? edge->sourceFw() : edge->source();
-    auto *sink = edge->sink()->subtype() == spider::pisdf::VertexType::GRAPH ? edge->sinkFw() : edge->sink();
+            edge->source()->subtype() == VertexType::GRAPH ? edge->sourceFw() : edge->source();
+    auto *sink = edge->sink()->subtype() == VertexType::GRAPH ? edge->sinkFw() : edge->sink();
     const auto *delay = edge->delay();
     const auto &srcPortIx = edge->sourcePortIx();
     const auto &snkPortIx = edge->sinkPortIx();

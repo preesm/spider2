@@ -87,13 +87,13 @@ set_target_properties(${LIBRARY_TARGET_NAME} PROPERTIES VERSION ${${PROJECT_NAME
 # relocatable configuration files, see https://cmake.org/cmake/help/latest/manual/cmake-packages.7.html#creating-relocatable-packages
 target_include_directories(${LIBRARY_TARGET_NAME} PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/api/>"
         "$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/${CMAKE_INSTALL_INCLUDEDIR}>")
-        
+
 # Add specific target library (on LINUX and for MinGW we need to link pthread)
 if (USE_PAPI AND PAPI_FOUND)
     target_link_libraries(${LIBRARY_TARGET_NAME} ${PAPI_LIBRARIES})
 endif ()
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-    find_package(Threads REQUIRED)    
+    find_package(Threads REQUIRED)
     target_link_libraries(${LIBRARY_TARGET_NAME} ${CMAKE_THREAD_LIBS_INIT})
 endif ()
 

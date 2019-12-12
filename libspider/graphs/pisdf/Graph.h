@@ -76,11 +76,11 @@ namespace spider {
 
             Graph(const Graph &other, StackID stack = StackID::PISDF) : Vertex(other, stack) {
                 dynamic_ = other.dynamic_;
-                vertexVector_ = spider::containers::vector(other.vertexVector_, stack);
-                configVertexVector_ = spider::containers::vector(other.configVertexVector_, stack);
-                subgraphVector_ = spider::containers::vector(other.subgraphVector_, stack);
-                edgeVector_ = spider::containers::vector(other.edgeVector_, stack);
-                paramVector_ = spider::containers::vector(other.paramVector_, stack);
+                vertexVector_ = containers::vector(other.vertexVector_, stack);
+                configVertexVector_ = containers::vector(other.configVertexVector_, stack);
+                subgraphVector_ = containers::vector(other.subgraphVector_, stack);
+                edgeVector_ = containers::vector(other.edgeVector_, stack);
+                paramVector_ = containers::vector(other.paramVector_, stack);
             };
 
             Graph(Graph &&other) noexcept : Vertex(std::move(other)) {

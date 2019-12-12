@@ -202,7 +202,7 @@ namespace spider {
         /* === Methods === */
 
         inline Rational abs() const {
-            return Rational{ spider::math::abs((*this).n_), spider::math::abs((*this).d_) };
+            return Rational{ math::abs((*this).n_), math::abs((*this).d_) };
         }
 
         inline int64_t toInt64() const {
@@ -239,7 +239,7 @@ namespace spider {
         /* === Private method(s) === */
 
         inline void reduce() {
-            auto gcd = spider::math::gcd(n_, d_);
+            auto gcd = math::gcd(n_, d_);
             n_ /= gcd;
             d_ /= gcd;
             if (d_ < 0) {

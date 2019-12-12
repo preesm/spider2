@@ -49,15 +49,15 @@ namespace spider {
 
     /* === const-array(s) === */
 
-    inline std::array<spider::log::Log, spider::log::LOGGER_COUNT> &loggers() {
-        static std::array<spider::log::Log, spider::log::LOGGER_COUNT> loggerArray = {{{ "LRT", false },
-                                                                                              { "TIME", false },
-                                                                                              { "GENERAL", false },
-                                                                                              { "SCHEDULE", false },
-                                                                                              { "MEMORY", false },
-                                                                                              { "TRANSFO", false },
-                                                                                              { "OPTIMS", false },
-                                                                                              { "EXPR", false }}};
+    inline std::array<log::Log, log::LOGGER_COUNT> &loggers() {
+        static std::array<log::Log, log::LOGGER_COUNT> loggerArray = {{{ "LRT", false },
+                                                                              { "TIME", false },
+                                                                              { "GENERAL", false },
+                                                                              { "SCHEDULE", false },
+                                                                              { "MEMORY", false },
+                                                                              { "TRANSFO", false },
+                                                                              { "OPTIMS", false },
+                                                                              { "EXPR", false }}};
         return loggerArray;
     }
 
@@ -100,13 +100,13 @@ namespace spider {
          * @brief Enable a given logger.
          * @param type @refitem LoggerType to enable.
          */
-        void enableLogger(spider::log::Type type);
+        void enableLogger(log::Type type);
 
         /**
          * @brief Disable a given logger.
          * @param type @refitem LoggerType to disable.
          */
-        void disableLogger(spider::log::Type type);
+        void disableLogger(log::Type type);
     }
 }
 

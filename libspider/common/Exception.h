@@ -82,14 +82,14 @@ namespace spider {
                            const char *msg, const Ts &...ts)
                 : exceptionMessage_{ } {
             /* == Writes exception header == */
-            int n = spider::printer::sprintf(exceptionMessage_, EXCEPTION_BUFFER_SIZE, "%s::%s(%d): ", fileName,
-                                             fctName, lineNumber);
+            int n = printer::sprintf(exceptionMessage_, EXCEPTION_BUFFER_SIZE, "%s::%s(%d): ", fileName,
+                                     fctName, lineNumber);
 
             /* == Write the actual exception message == */
-            n = spider::printer::sprintf(exceptionMessage_ + n, EXCEPTION_BUFFER_SIZE, msg, ts...);
+            n = printer::sprintf(exceptionMessage_ + n, EXCEPTION_BUFFER_SIZE, msg, ts...);
             if (n > EXCEPTION_BUFFER_SIZE) {
-                spider::printer::fprintf(stderr, "Exception: ERROR: exception message too big.\n");
-                spider::printer::fprintf(stderr, "Partially recovered exception: %s\n", exceptionMessage_);
+                printer::fprintf(stderr, "Exception: ERROR: exception message too big.\n");
+                printer::fprintf(stderr, "Partially recovered exception: %s\n", exceptionMessage_);
                 fflush(stderr);
             }
         }

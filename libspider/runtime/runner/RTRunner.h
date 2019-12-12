@@ -103,10 +103,10 @@ namespace spider {
         }
 
         inline void broadcastJobStamps() {
-            spider::Notification broadcastNotification{ spider::NotificationType::JOB,
-                                                        spider::JobNotification::UPDATE_JOBSTAMP,
-                                                        static_cast<int32_t >(ix()),
-                                                        static_cast<int32_t>(jobQueueCurrentPos_) };
+            Notification broadcastNotification{ NotificationType::JOB,
+                                                JobNotification::UPDATE_JOBSTAMP,
+                                                static_cast<int32_t >(ix()),
+                                                static_cast<int32_t>(jobQueueCurrentPos_) };
             for (size_t i = 0; i < spider::platform()->LRTCount(); ++i) {
                 if (i != ix()) {
                     spider::rtPlatform()->communicator()->push(broadcastNotification, i);

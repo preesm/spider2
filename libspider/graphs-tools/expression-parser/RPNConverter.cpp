@@ -332,10 +332,10 @@ spider::vector<RPNElement> spider::rpn::extractPostfixElements(std::string infix
     auto infixStack = extractInfixElements(std::move(infixExpression));
 
     /* == Build the postfix expression == */
-    auto operatorStack = spider::containers::vector<std::pair<RPNOperatorType, RPNElement>>(StackID::EXPRESSION);
+    auto operatorStack = containers::vector<std::pair<RPNOperatorType, RPNElement>>(StackID::EXPRESSION);
 
     /* == Actually, size will probably be inferior but this will avoid realloc == */
-    auto postfixStack = spider::containers::vector<RPNElement>(StackID::EXPRESSION);
+    auto postfixStack = containers::vector<RPNElement>(StackID::EXPRESSION);
     postfixStack.reserve(infixStack.size());
     for (auto &element : infixStack) {
         if (element.type == RPNElementType::OPERATOR) {
@@ -398,8 +398,8 @@ spider::vector<RPNElement> spider::rpn::extractPostfixElements(std::string infix
 }
 
 void spider::rpn::reorderPostfixStack(spider::vector<RPNElement> &postfixStack) {
-    auto operationStackVector = spider::containers::vector<spider::vector<uint32_t>>(StackID::EXPRESSION);
-    operationStackVector.emplace_back(spider::containers::vector<uint32_t>(StackID::EXPRESSION));
+    auto operationStackVector = containers::vector<spider::vector<uint32_t>>(StackID::EXPRESSION);
+    operationStackVector.emplace_back(containers::vector<uint32_t>(StackID::EXPRESSION));
     operationStackVector[0].reserve(6);
 
     /* == Fill up the operation stack once == */
@@ -410,7 +410,7 @@ void spider::rpn::reorderPostfixStack(spider::vector<RPNElement> &postfixStack) 
             if (operationStackVector.back().size() == 1) {
                 break;
             }
-            operationStackVector.emplace_back(spider::containers::vector<uint32_t>(StackID::EXPRESSION));
+            operationStackVector.emplace_back(containers::vector<uint32_t>(StackID::EXPRESSION));
             operationStackVector.back().reserve(6);
         }
     }

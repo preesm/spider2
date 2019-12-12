@@ -74,15 +74,14 @@ private:
 };
 
 bool PiSDFJoinJoinOptimizer::operator()(spider::pisdf::Graph *graph) const {
-    using namespace spider::pisdf;
-    auto verticesToOptimize = spider::containers::vector<std::pair<Vertex *, Vertex *>>(
+    auto verticesToOptimize = spider::containers::vector<std::pair<spider::pisdf::Vertex *, spider::pisdf::Vertex *>>(
             StackID::TRANSFO);
 
     /* == Search for the pair of fork to optimize == */
     for (auto &vertex : graph->vertices()) {
-        if (vertex->subtype() == VertexType::JOIN) {
+        if (vertex->subtype() == spider::pisdf::VertexType::JOIN) {
             auto *sink = vertex->outputEdge(0)->sink();
-            if (sink->subtype() == VertexType::JOIN) {
+            if (sink->subtype() == spider::pisdf::VertexType::JOIN) {
                 verticesToOptimize.emplace_back(vertex, sink);
             }
         }

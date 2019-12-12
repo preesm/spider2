@@ -49,12 +49,10 @@
 /* === Methods implementation === */
 
 std::pair<spider::pisdf::Graph *, spider::pisdf::Graph *>
-spider::srdag::splitDynamicGraph(spider::pisdf::Graph *subgraph) {
+spider::srdag::splitDynamicGraph(pisdf::Graph *subgraph) {
     if (!subgraph->dynamic() || !subgraph->configVertexCount()) {
         return std::make_pair(nullptr, nullptr);
     }
-
-    using spider::pisdf::VertexType;
 
     /* == Compute the input interface count for both graphs == */
     uint32_t initInputIFCount = 0;
@@ -63,14 +61,14 @@ spider::srdag::splitDynamicGraph(spider::pisdf::Graph *subgraph) {
     for (const auto &cfg : subgraph->configVertices()) {
         for (const auto &edge : cfg->inputEdgeArray()) {
             const auto &source = edge->source();
-            if (source->subtype() != VertexType::INPUT) {
+            if (source->subtype() != pisdf::VertexType::INPUT) {
                 throwSpiderException("Config vertex can not have source of type other than interface.");
             }
             initInputIFCount += 1;
         }
         for (const auto &edge : cfg->outputEdgeArray()) {
             const auto &sink = edge->sink();
-            auto isOutputIF = sink->subtype() == VertexType::OUTPUT;
+            auto isOutputIF = sink->subtype() == pisdf::VertexType::OUTPUT;
             cfgInputIFCount += (!isOutputIF);
             initOutputIFCount += (isOutputIF);
         }
@@ -79,31 +77,31 @@ spider::srdag::splitDynamicGraph(spider::pisdf::Graph *subgraph) {
     const auto &runOutputIFCount = subgraph->outputEdgeCount() - initOutputIFCount;
 
     /* == Create the init subgraph == */
-    auto *initGraph = spider::api::createSubraph(subgraph->graph(),
-                                                 "ginit-" + subgraph->name(),
-                                                 static_cast<uint32_t>(subgraph->configVertexCount()),
-                                                 initInputIFCount + initOutputIFCount + cfgInputIFCount,
-                                                 0,
-                                                 initInputIFCount,
-                                                 initOutputIFCount + cfgInputIFCount,
-                                                 static_cast<uint32_t>(subgraph->configVertexCount()),
-                                                 StackID::PISDF);
+    auto *initGraph = api::createSubraph(subgraph->graph(),
+                                         "ginit-" + subgraph->name(),
+                                         static_cast<uint32_t>(subgraph->configVertexCount()),
+                                         initInputIFCount + initOutputIFCount + cfgInputIFCount,
+                                         0,
+                                         initInputIFCount,
+                                         initOutputIFCount + cfgInputIFCount,
+                                         static_cast<uint32_t>(subgraph->configVertexCount()),
+                                         StackID::PISDF);
 
     /* == Create the run subgraph == */
-    auto *runGraph = spider::api::createSubraph(subgraph->graph(),
-                                                "grun-" + subgraph->name(),
-                                                static_cast<uint32_t>(subgraph->vertexCount()),
-                                                static_cast<uint32_t>(subgraph->edgeCount()),
-                                                static_cast<uint32_t>(subgraph->paramCount()),
-                                                static_cast<uint32_t>(runInputIFCount),
-                                                static_cast<uint32_t>(runOutputIFCount),
-                                                0, StackID::PISDF);
+    auto *runGraph = api::createSubraph(subgraph->graph(),
+                                        "grun-" + subgraph->name(),
+                                        static_cast<uint32_t>(subgraph->vertexCount()),
+                                        static_cast<uint32_t>(subgraph->edgeCount()),
+                                        static_cast<uint32_t>(subgraph->paramCount()),
+                                        static_cast<uint32_t>(runInputIFCount),
+                                        static_cast<uint32_t>(runOutputIFCount),
+                                        0, StackID::PISDF);
 
     uint32_t inputInitIx = 0;
     uint32_t inputRunIx = 0;
     for (const auto &input : subgraph->inputInterfaceArray()) {
         const auto &sink = input->opposite();
-        if (sink->subtype() == VertexType::CONFIG) {
+        if (sink->subtype() == pisdf::VertexType::CONFIG) {
             /* == Reconnect and move inner edge in init graph == */
             auto *edge = input->outputEdge();
             edge->setSource(initGraph->inputInterface(inputInitIx), 0, Expression(edge->sourceRateExpression()));
@@ -132,7 +130,7 @@ spider::srdag::splitDynamicGraph(spider::pisdf::Graph *subgraph) {
     uint32_t outputRunIx = 0;
     for (const auto &output : subgraph->outputInterfaceArray()) {
         const auto &source = output->opposite();
-        if (source->subtype() == VertexType::CONFIG) {
+        if (source->subtype() == pisdf::VertexType::CONFIG) {
             /* == Reconnect and move inner edge in init graph == */
             auto *edge = output->inputEdge();
             edge->setSink(initGraph->outputInterface(outputInitIx), 0, Expression(edge->sinkRateExpression()));
@@ -161,7 +159,7 @@ spider::srdag::splitDynamicGraph(spider::pisdf::Graph *subgraph) {
         subgraph->moveVertex(cfg, initGraph);
         for (auto edge : cfg->outputEdgeArray()) {
             const auto &sink = edge->sink();
-            if (sink->subtype() != VertexType::OUTPUT) {
+            if (sink->subtype() != pisdf::VertexType::OUTPUT) {
                 const auto &srcRate = edge->sourceRateExpression().evaluate(subgraph->params());
                 const auto &srcPortIx = edge->sourcePortIx();
                 const auto &name = cfg->name() + "_out-" + std::to_string(srcPortIx);
@@ -173,11 +171,10 @@ spider::srdag::splitDynamicGraph(spider::pisdf::Graph *subgraph) {
 
                 /* == Connect cfg to output interface in init graph == */
                 auto *output = initGraph->outputInterface(outputInitIx);
-                spider::api::createEdge(cfg, srcPortIx, srcRate, output, 0, srcRate, StackID::PISDF);
+                api::createEdge(cfg, srcPortIx, srcRate, output, 0, srcRate, StackID::PISDF);
 
                 /* == Connect init graph to run graph == */
-                spider::api::createEdge(initGraph, outputInitIx, srcRate, runGraph, inputRunIx, srcRate,
-                                        StackID::PISDF);
+                api::createEdge(initGraph, outputInitIx, srcRate, runGraph, inputRunIx, srcRate, StackID::PISDF);
                 input->setName(name);
                 output->setName(name);
                 outputInitIx += 1;
@@ -205,14 +202,14 @@ spider::srdag::splitDynamicGraph(spider::pisdf::Graph *subgraph) {
 }
 
 std::pair<spider::srdag::JobStack, spider::srdag::JobStack>
-spider::srdag::singleRateTransformation(const spider::srdag::TransfoJob &job, pisdf::Graph *srdag) {
+spider::srdag::singleRateTransformation(const TransfoJob &job, pisdf::Graph *srdag) {
     if (!srdag) {
         throwSpiderException("nullptr for single rate graph.");
     }
     if (!job.reference_) {
         throwSpiderException("nullptr for reference graph.");
     }
-    spider::srdag::SingleRateTransformer transformer{ job, srdag };
+    SingleRateTransformer transformer{ job, srdag };
     return transformer.execute();
 }
 
