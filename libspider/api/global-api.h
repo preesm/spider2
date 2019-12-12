@@ -241,6 +241,7 @@ namespace spider {
 
     /**
      * @brief Data memory allocation routine (overridable).
+     *        This should return the allocated buffer.
      */
     using MemoryAllocateRoutine = void *(*)(uint64_t /* = Number of bytes = */);
 
@@ -248,6 +249,12 @@ namespace spider {
      * @brief Data memory deallocation routine (overridable).
      */
     using MemoryDeallocateRoutine = void (*)(void * /* = physical address to free = */);
+
+    /**
+     * @brief Data memory write routine (overridable).
+     * @remark This should return true on success, false else.
+     */
+    using MemoryWriteRoutine = bool (*)(void * /* = physical address to read = */);
 
     /**
      * @brief Generic refinement used by spider for the actors.

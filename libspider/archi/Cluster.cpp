@@ -51,8 +51,8 @@
 /* === Method(s) implementation === */
 
 spider::Cluster::Cluster(size_t PECount, MemoryUnit *memoryUnit) : PEArray_{ PECount, StackID::ARCHI },
-                                                                     platform_{ spider::platform() },
-                                                                     memoryUnit_{ memoryUnit } { }
+                                                                   platform_{ spider::platform() },
+                                                                   memoryUnit_{ memoryUnit } { }
 
 spider::Cluster::~Cluster() {
     for (auto &pe : PEArray_) {

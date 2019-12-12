@@ -47,3 +47,38 @@
 /* === Method(s) implementation === */
 
 /* === Private method(s) implementation === */
+
+void *spider::MemoryInterface::read(uint64_t virtualAddress) {
+    return retrievePhysicalAddress(virtualAddress);
+}
+
+bool spider::MemoryInterface::write(uint64_t virtualAddress) {
+    return writeRoutine_(retrievePhysicalAddress(virtualAddress));
+}
+
+void *spider::MemoryInterface::allocate(uint64_t virtualAddress, size_t size) {
+    auto *physicalAddress = allocateRoutine_(size);
+    if (!physicalAddress) {
+        return nullptr;
+    }
+    registerPhysicalAddress(virtualAddress, physicalAddress);
+    return physicalAddress;
+}
+
+void spider::MemoryInterface::deallocate(uint64_t virtualAddress) {
+    deallocateRoutine_(retrievePhysicalAddress(virtualAddress));
+}
+
+void spider::MemoryInterface::reset() {
+
+}
+
+/* === Private method(s) === */
+
+void spider::MemoryInterface::registerPhysicalAddress(uint64_t virtualAddress, void *physicalAddress) {
+
+}
+
+void *spider::MemoryInterface::retrievePhysicalAddress(uint64_t virtualAddress) {
+    return nullptr;
+}

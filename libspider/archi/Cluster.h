@@ -138,7 +138,7 @@ namespace spider {
          * @remark This method return the value of @refitem PE::hardwareType() method of the first PE.
          * @return PE type of the cluster.
          */
-        inline uint32_t PEType() const  {
+        inline uint32_t PEType() const {
             return PEArray_[0]->hardwareType();
         }
 

@@ -43,8 +43,13 @@
 /* === Include(s) === */
 
 #include <api/global-api.h>
+#include <common/Exception.h>
 
 namespace spider {
+
+    /* === Forward declaration(s) === */
+
+    class MemoryUnit;
 
     /* === Class definition === */
 
@@ -56,12 +61,160 @@ namespace spider {
 
         /* === Method(s) === */
 
-        /* === Getter(s) === */
+        /**
+         * @brief Read memory at the given memory virtual address.
+         * @param virtualAddress  Virtual address to evaluate.
+         * @return physical address corresponding to the virtual address.
+         */
+        void *read(uint64_t virtualAddress);
+
+        /**
+         * @brief Write memory at the given memory virtual address.
+         * @param virtualAddress  Virtual address to evaluate.
+         * @return true on success, false else.
+         */
+        bool write(uint64_t virtualAddress);
+
+        /**
+         * @brief Allocate memory to the given virtual address.
+         * @param virtualAddress  Virtual address to evaluate.
+         * @param size            Size of the memory to allocate.
+         * @return physical memory addressed allocated.
+         */
+        void *allocate(uint64_t virtualAddress, size_t size);
+
+        /**
+         * @brief Deallocate memory from the given virtual address.
+         * @param virtualAddress  Virtual address to evaluate.
+         */
+        void deallocate(uint64_t virtualAddress);
+
+        /**
+         * @brief Reset the memory interface and the attached MemoryUnit.
+         */
+        void reset();
+
+        /**
+         * @brief Get the cost of reading size bytes on the this MemoryInterface.
+         * @param size  Number of bytes to read.
+         * @return cost associated to reading size bytes.
+         */
+        inline uint64_t readCost(uint64_t size) const {
+            return readCostRoutine_(size);
+        }
+
+        /**
+         * @brief Get the cost of writing size bytes on the this MemoryInterface.
+         * @param size  Number of bytes to write.
+         * @return cost associated to writing size bytes.
+         */
+        inline uint64_t writeCost(uint64_t size) const {
+            return writeCostRoutine_(size);
+        }
 
         /* === Setter(s) === */
 
-    private:
+        /**
+         * @brief Set the @refitem MemoryUnit for this interface.
+         * @remark if nullptr, nothing happens.
+         * @param memoryUnit Memory unit to set.
+         * @throws spider::Exception if this interface already has a MemoryUnit.
+         */
+        inline void setMemoryUnit(MemoryUnit *memoryUnit) {
+            if (memoryUnit_) {
+                throwSpiderException("MemoryInterface already has a memory unit.");
+            }
+            if (memoryUnit) {
+                memoryUnit_ = memoryUnit;
+            }
+        }
 
+        /**
+         * @brief Set the virtual address offset used for internal virtual address translation.
+         * @param offset Offset to set.
+         */
+        inline void setVirtualAddressOffset(uint64_t offset) {
+            virtualAddressOffset_ = offset;
+        }
+
+        /**
+         * @brief Set the routine for writing memory.
+         * @remark override current value.
+         * @param routine  Routine to set.
+         */
+        inline void setWriteRoutine(MemoryWriteRoutine routine) {
+            writeRoutine_ = routine;
+        }
+
+        /**
+         * @brief Set the routine for allocating memory.
+         * @remark override current value.
+         * @param routine  Routine to set.
+         */
+        inline void setAllocateRoutine(MemoryAllocateRoutine routine) {
+            allocateRoutine_ = routine;
+        }
+
+        /**
+         * @brief Set the routine for deallocating memory.
+         * @remark override current value.
+         * @param routine  Routine to set.
+         */
+        inline void setDeallocateRoutine(MemoryDeallocateRoutine routine) {
+            deallocateRoutine_ = routine;
+        }
+
+        /**
+         * @brief Set the routine for the read cost.
+         * @remark override current value.
+         * @param routine  Routine to set.
+         */
+        inline void setReadCostRoutine(MemoryExchangeCostRoutine routine) {
+            readCostRoutine_ = routine;
+        }
+
+        /**
+         * @brief Set the routine for the write cost.
+         * @remark override current value.
+         * @param routine  Routine to set.
+         */
+        inline void setWriteCostRoutine(MemoryExchangeCostRoutine routine) {
+            writeCostRoutine_ = routine;
+        }
+
+    private:
+        uint64_t virtualAddressOffset_ = 0;          /* = Virtual address offset of this interface inside the spider runtime = */
+        MemoryUnit *memoryUnit_ = nullptr;           /* = Memory unit attached to this interface = */
+
+        /* === Memory write routine === */
+
+        MemoryWriteRoutine writeRoutine_;            /* = Memory write routine used by this interface = */
+
+        /* === Allocation routines === */
+
+        MemoryAllocateRoutine allocateRoutine_;      /* = Memory allocation routine used for this interface = */
+        MemoryDeallocateRoutine deallocateRoutine_;  /* = Memory deallocation routine used for this interface = */
+
+        /* === Memory exchange cost routines === */
+
+        MemoryExchangeCostRoutine readCostRoutine_;  /* = Memory read exchange cost routine used for this interface = */
+        MemoryExchangeCostRoutine writeCostRoutine_; /* = Memory write exchange cost routine used for this interface = */
+
+        /* === Private method(s) === */
+
+        /**
+         * @brief Register a physical address associated with a given virtual address.
+         * @param virtualAddress   Virtual address to evaluate.
+         * @param physicalAddress  Physical address to register.
+         */
+        void registerPhysicalAddress(uint64_t virtualAddress, void *physicalAddress);
+
+        /**
+         * @brief Retrieve the physical address corresponding to the given virtual address.
+         * @param virtualAddress   Virtual address to evaluate.
+         * @return corresponding physical address, nullptr if not found.
+         */
+        void *retrievePhysicalAddress(uint64_t virtualAddress);
     };
 }
 
