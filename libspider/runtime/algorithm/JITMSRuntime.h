@@ -51,9 +51,9 @@ namespace spider {
     class JITMSRuntime final : public Runtime {
     public:
 
-        explicit JITMSRuntime(PiSDFGraph *graph) : Runtime(graph) { };
+        explicit JITMSRuntime(pisdf::Graph *graph) : Runtime(graph) { };
 
-        ~JITMSRuntime() = default;
+        ~JITMSRuntime() override = default;
 
         /* === Method(s) === */
 

@@ -51,9 +51,9 @@ namespace spider {
     class BestFitScheduler final : public ListScheduler {
     public:
 
-        explicit BestFitScheduler(PiSDFGraph *graph) : ListScheduler(graph) { };
+        explicit BestFitScheduler(spider::pisdf::Graph *graph) : ListScheduler(graph) { };
 
-        BestFitScheduler(PiSDFGraph *graph, const spider::vector<PiSDFParam *> &params) : ListScheduler(graph, params) {
+        BestFitScheduler(spider::pisdf::Graph *graph, const spider::vector<spider::pisdf::Param *> &params) : ListScheduler(graph, params) {
 
         };
 

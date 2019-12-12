@@ -48,7 +48,8 @@
 
 /* === Methods implementation === */
 
-std::pair<PiSDFGraph *, PiSDFGraph *> spider::srdag::splitDynamicGraph(PiSDFGraph *subgraph) {
+std::pair<spider::pisdf::Graph *, spider::pisdf::Graph *>
+spider::srdag::splitDynamicGraph(spider::pisdf::Graph *subgraph) {
     if (!subgraph->dynamic() || !subgraph->configVertexCount()) {
         return std::make_pair(nullptr, nullptr);
     }
@@ -204,7 +205,7 @@ std::pair<PiSDFGraph *, PiSDFGraph *> spider::srdag::splitDynamicGraph(PiSDFGrap
 }
 
 std::pair<spider::srdag::JobStack, spider::srdag::JobStack>
-spider::srdag::singleRateTransformation(const spider::srdag::TransfoJob &job, PiSDFGraph *srdag) {
+spider::srdag::singleRateTransformation(const spider::srdag::TransfoJob &job, pisdf::Graph *srdag) {
     if (!srdag) {
         throwSpiderException("nullptr for single rate graph.");
     }

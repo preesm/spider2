@@ -43,7 +43,6 @@
 #include <gtest/gtest.h>
 #include <common/Exception.h>
 #include <memory/alloc.h>
-#include <graphs/pisdf/Types.h>
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/ExecVertex.h>
 #include <graphs/pisdf/interfaces/InputInterface.h>
@@ -54,7 +53,8 @@ class pisdfInterfaceTest : public ::testing::Test {
 protected:
     void SetUp() override {
         spider::createStackAllocator(spider::type<spider::AllocatorType::GENERIC>{ }, StackID::GENERAL, "alloc-test");
-        spider::createStackAllocator(spider::type<spider::AllocatorType::GENERIC>{ }, StackID::EXPRESSION, "alloc-test");
+        spider::createStackAllocator(spider::type<spider::AllocatorType::GENERIC>{ }, StackID::EXPRESSION,
+                                     "alloc-test");
         spider::createStackAllocator(spider::type<spider::AllocatorType::GENERIC>{ }, StackID::PISDF, "alloc-test");
     }
 
@@ -77,11 +77,11 @@ TEST_F(pisdfInterfaceTest, creationTest) {
 struct InterfaceVisitorTest final : public spider::pisdf::DefaultVisitor {
     int type = -1;
 
-    void visit(PiSDFInputInterface *) override {
+    void visit(spider::pisdf::InputInterface *) override {
         type = 0;
     }
 
-    void visit(PiSDFOutputInterface *) override {
+    void visit(spider::pisdf::OutputInterface *) override {
         type = 1;
     }
 };
@@ -90,8 +90,11 @@ TEST_F(pisdfInterfaceTest, usageTest) {
     auto *graph = spider::make<spider::pisdf::Graph, StackID::PISDF>("graph", 1, 2, 0, 1, 1);
     auto *vertex = spider::make<spider::pisdf::ExecVertex, StackID::PISDF>("vertex", 1, 1);
     graph->addVertex(vertex);
-    graph->addEdge(spider::make<spider::pisdf::Edge, StackID::PISDF>(graph->inputInterface(0), 0, spider::Expression(1), vertex, 0, spider::Expression(1)));
-    graph->addEdge(spider::make<spider::pisdf::Edge, StackID::PISDF>(vertex, 0, spider::Expression(1), graph->outputInterface(0), 0, spider::Expression(1)));
+    graph->addEdge(spider::make<spider::pisdf::Edge, StackID::PISDF>(graph->inputInterface(0), 0, spider::Expression(1),
+                                                                     vertex, 0, spider::Expression(1)));
+    graph->addEdge(spider::make<spider::pisdf::Edge, StackID::PISDF>(vertex, 0, spider::Expression(1),
+                                                                     graph->outputInterface(0), 0,
+                                                                     spider::Expression(1)));
     auto *input = graph->inputInterface(0);
     auto *output = graph->outputInterface(0);
     ASSERT_EQ(input->opposite(), vertex) << "opposite of input interface failed.";
@@ -106,16 +109,20 @@ TEST_F(pisdfInterfaceTest, usageTest) {
     top->addVertex(v1);
     auto *v2 = spider::make<spider::pisdf::ExecVertex, StackID::PISDF>("v2", 1, 0);
     top->addVertex(v2);
-    auto *e0 = spider::make<spider::pisdf::Edge, StackID::PISDF>(v1, 0, spider::Expression(1), graph, 0, spider::Expression(1));
+    auto *e0 = spider::make<spider::pisdf::Edge, StackID::PISDF>(v1, 0, spider::Expression(1), graph, 0,
+                                                                 spider::Expression(1));
     top->addEdge(e0);
-    auto *e1 = spider::make<spider::pisdf::Edge, StackID::PISDF>(graph, 0, spider::Expression(1), v2, 0, spider::Expression(1));
+    auto *e1 = spider::make<spider::pisdf::Edge, StackID::PISDF>(graph, 0, spider::Expression(1), v2, 0,
+                                                                 spider::Expression(1));
     top->addEdge(e1);
     ASSERT_EQ(input->inputEdge(), e0) << "inputEdge of input interface failed";
     ASSERT_EQ(output->outputEdge(), e1) << "outputEdge of output interface failed";
     ASSERT_EQ(input->outputEdge(), graph->edges()[0]) << "outputEdge of input interface failed";
     ASSERT_EQ(output->inputEdge(), graph->edges()[1]) << "inputEdge of input interface failed";
-    ASSERT_THROW(input->connectInputEdge(nullptr, 0), spider::Exception) << "input interface can not have input edge connected to it.";
-    ASSERT_THROW(output->connectOutputEdge(nullptr, 0), spider::Exception) << "output interface can not have output edge connected to it.";
+    ASSERT_THROW(input->connectInputEdge(nullptr, 0), spider::Exception)
+                                << "input interface can not have input edge connected to it.";
+    ASSERT_THROW(output->connectOutputEdge(nullptr, 0), spider::Exception)
+                                << "output interface can not have output edge connected to it.";
     {
         auto visitor = InterfaceVisitorTest();
         input->visit(&visitor);

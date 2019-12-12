@@ -49,12 +49,12 @@
 /* === Class definition === */
 
 /**
- * @brief Optimize Fork -> Fork patterns in a PiSDFGraph.
+ * @brief Optimize Fork -> Fork patterns in a spider::pisdf::Graph.
  * @see: https://tel.archives-ouvertes.fr/tel-01301642
  */
 class PiSDFForkForkOptimizer final : public PiSDFOptimizer {
 public:
-    inline bool operator()(PiSDFGraph *graph) const override;
+    inline bool operator()(spider::pisdf::Graph *graph) const override;
 
 private:
     inline spider::pisdf::ExecVertex *createNewFork(spider::pisdf::Vertex *firstFork,
@@ -74,7 +74,7 @@ private:
     }
 };
 
-bool PiSDFForkForkOptimizer::operator()(PiSDFGraph *graph) const {
+bool PiSDFForkForkOptimizer::operator()(spider::pisdf::Graph *graph) const {
     auto verticesToOptimize = spider::containers::vector<std::pair<spider::pisdf::Vertex *, spider::pisdf::Vertex *>>(
             StackID::TRANSFO);
 

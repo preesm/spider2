@@ -45,7 +45,6 @@
 #include <cstdint>
 #include <string>
 #include <graphs-tools/expression-parser/RPNConverter.h>
-#include <graphs/pisdf/Types.h>
 
 namespace spider {
 
@@ -76,7 +75,7 @@ namespace spider {
     class Expression {
     public:
 
-        explicit Expression(std::string expression, const spider::vector<PiSDFParam *> &params = { });
+        explicit Expression(std::string expression, const spider::vector<pisdf::Param *> &params = { });
 
         explicit Expression(int64_t value);
 
@@ -119,13 +118,13 @@ namespace spider {
          * @brief Evaluate the expression and return the value and cast result in int64_.
          * @return Evaluated value of the expression.
          */
-        inline int64_t evaluate(const spider::vector<PiSDFParam *> &params = { }) const;
+        inline int64_t evaluate(const spider::vector<pisdf::Param *> &params = { }) const;
 
         /**
          * @brief Evaluate the expression and return the value.
          * @return Evaluated value of the expression.
          */
-        inline double evaluateDBL(const spider::vector<PiSDFParam *> &params = { }) const;
+        inline double evaluateDBL(const spider::vector<pisdf::Param *> &params = { }) const;
 
         /**
          * @brief Get the expression string.
@@ -160,7 +159,7 @@ namespace spider {
          * @param expressionStack Stack of the postfix expression elements.
          */
         spider::vector<ExpressionElt>
-        buildExpressionStack(spider::vector<RPNElement> &postfixStack, const spider::vector<PiSDFParam *> &params);
+        buildExpressionStack(spider::vector<RPNElement> &postfixStack, const spider::vector<pisdf::Param *> &params);
 
         /**
          * @brief Evaluate the expression (if dynamic)
@@ -168,7 +167,7 @@ namespace spider {
          * @param params  Vector of parameters needed for the eval.
          * @return evaluated value
          */
-        double evaluateStack(const spider::vector<PiSDFParam *> &params) const;
+        double evaluateStack(const spider::vector<pisdf::Param *> &params) const;
     };
 
     /* === Inline methods === */
@@ -177,11 +176,11 @@ namespace spider {
         return static_cast<int64_t>(value_);
     }
 
-    int64_t Expression::evaluate(const spider::vector<PiSDFParam *> &params) const {
+    int64_t Expression::evaluate(const spider::vector<pisdf::Param *> &params) const {
         return static_ ? value() : static_cast<int64_t>(evaluateStack(params));
     }
 
-    double Expression::evaluateDBL(const spider::vector<PiSDFParam *> &params) const {
+    double Expression::evaluateDBL(const spider::vector<pisdf::Param *> &params) const {
         return static_ ? value_ : evaluateStack(params);
     }
 

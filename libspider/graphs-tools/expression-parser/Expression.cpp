@@ -48,8 +48,8 @@
 
 /* === Static method(s) === */
 
-static std::pair<PiSDFParam *, uint32_t>
-findParam(const spider::vector<PiSDFParam *> &params, const std::string &name) {
+static std::pair<spider::pisdf::Param *, uint32_t>
+findParam(const spider::vector<spider::pisdf::Param *> &params, const std::string &name) {
     uint32_t ix = 0;
     for (const auto &p : params) {
         if (p->name() == name) {
@@ -107,7 +107,7 @@ static double applyOperator(StartIterator start, RPNOperatorType type) {
 
 /* === Methods implementation === */
 
-spider::Expression::Expression(std::string expression, const spider::vector<PiSDFParam *> &params) {
+spider::Expression::Expression(std::string expression, const spider::vector<pisdf::Param *> &params) {
     /* == Get the postfix expression stack == */
     auto postfixStack = spider::rpn::extractPostfixElements(std::move(expression));
     if (spider::api::verbose() && log_enabled<LOG_EXPR>()) {
@@ -155,7 +155,7 @@ std::string spider::Expression::string() const {
 /* === Private method(s) === */
 
 spider::vector<spider::ExpressionElt> spider::Expression::buildExpressionStack(spider::vector<RPNElement> &postfixStack,
-                                                                               const spider::vector<PiSDFParam *> &params) {
+                                                                               const spider::vector<pisdf::Param *> &params) {
     auto stack = spider::containers::vector<ExpressionElt>(StackID::EXPRESSION);
     stack.reserve(postfixStack.size());
     auto evalStack = spider::containers::vector<double>(StackID::EXPRESSION);
@@ -215,7 +215,7 @@ spider::vector<spider::ExpressionElt> spider::Expression::buildExpressionStack(s
     return stack;
 }
 
-double spider::Expression::evaluateStack(const spider::vector<PiSDFParam *> &params) const {
+double spider::Expression::evaluateStack(const spider::vector<pisdf::Param *> &params) const {
     auto evalStack = spider::containers::vector<double>(StackID::EXPRESSION);
     evalStack.reserve(6); /* = In practice, the evalStack will most likely not exceed 3 values = */
     for (const auto &elt : *(expressionStack_)) {

@@ -51,7 +51,7 @@ namespace spider {
     class RoundRobinScheduler : ListScheduler {
     public:
 
-        explicit RoundRobinScheduler(PiSDFGraph *graph) : ListScheduler(graph) { };
+        explicit RoundRobinScheduler(spider::pisdf::Graph *graph) : ListScheduler(graph) { };
 
         ~RoundRobinScheduler() = default;
 

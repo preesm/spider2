@@ -51,9 +51,9 @@ namespace spider {
     class GreedyScheduler final : public Scheduler {
     public:
 
-        explicit GreedyScheduler(PiSDFGraph *graph) : GreedyScheduler{ graph, graph->params() } { };
+        explicit GreedyScheduler(spider::pisdf::Graph *graph) : GreedyScheduler{ graph, graph->params() } { };
 
-        GreedyScheduler(PiSDFGraph *graph, const spider::vector<PiSDFParam *> &params) : Scheduler{ graph, params } { };
+        GreedyScheduler(spider::pisdf::Graph *graph, const spider::vector<spider::pisdf::Param *> &params) : Scheduler{ graph, params } { };
 
         ~GreedyScheduler() override = default;
 
@@ -72,7 +72,7 @@ namespace spider {
          * @param vertex  Vertex to evaluate.
          * @return true if vertex is schedulable, false else.
          */
-        bool isSchedulable(PiSDFAbstractVertex *vertex) const;
+        bool isSchedulable(spider::pisdf::Vertex *vertex) const;
     };
 
     /* === Inline method(s) === */

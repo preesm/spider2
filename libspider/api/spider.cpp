@@ -139,7 +139,7 @@ void spider::start() {
 }
 
 void spider::quit() {
-    /* == Destroy the PiSDFGraph == */
+    /* == Destroy the spider::pisdf::Graph == */
     spider::destroy(spider::pisdfGraph());
 
     /* == Destroy the Platform == */

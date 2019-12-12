@@ -48,12 +48,12 @@
 /* === Class definition === */
 
 /**
- * @brief Optimize Join -> Join patterns in a PiSDFGraph.
+ * @brief Optimize Join -> Join patterns in a spider::pisdf::Graph.
  * @see: https://tel.archives-ouvertes.fr/tel-01301642
  */
 class PiSDFJoinJoinOptimizer final : public PiSDFOptimizer {
 public:
-    inline bool operator()(PiSDFGraph *graph) const override;
+    inline bool operator()(spider::pisdf::Graph *graph) const override;
 
 private:
     inline spider::pisdf::ExecVertex *createNewJoin(spider::pisdf::Vertex *firstJoin,
@@ -73,15 +73,16 @@ private:
     }
 };
 
-bool PiSDFJoinJoinOptimizer::operator()(PiSDFGraph *graph) const {
-    auto verticesToOptimize = spider::containers::vector<std::pair<PiSDFAbstractVertex *, PiSDFAbstractVertex *>>(
+bool PiSDFJoinJoinOptimizer::operator()(spider::pisdf::Graph *graph) const {
+    using namespace spider::pisdf;
+    auto verticesToOptimize = spider::containers::vector<std::pair<Vertex *, Vertex *>>(
             StackID::TRANSFO);
 
     /* == Search for the pair of fork to optimize == */
     for (auto &vertex : graph->vertices()) {
-        if (vertex->subtype() == PiSDFVertexType::JOIN) {
+        if (vertex->subtype() == VertexType::JOIN) {
             auto *sink = vertex->outputEdge(0)->sink();
-            if (sink->subtype() == PiSDFVertexType::JOIN) {
+            if (sink->subtype() == VertexType::JOIN) {
                 verticesToOptimize.emplace_back(vertex, sink);
             }
         }

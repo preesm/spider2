@@ -43,7 +43,7 @@
 /* === Includes === */
 
 #include <common/Exception.h>
-#include <graphs/pisdf/Types.h>
+#include <api/global-api.h>
 
 namespace spider {
 
@@ -56,7 +56,7 @@ namespace spider {
     class Runtime {
     public:
 
-        explicit Runtime(PiSDFGraph *graph) : graph_{ graph } {
+        explicit Runtime(pisdf::Graph *graph) : graph_{ graph } {
             if (!graph_) {
                 throwSpiderException("nullptr graph.");
             }
@@ -76,7 +76,7 @@ namespace spider {
         virtual bool execute() const = 0;
 
     protected:
-        PiSDFGraph *graph_ = nullptr;
+        pisdf::Graph *graph_ = nullptr;
         Monitor *monitor_ = nullptr;
     };
 }

@@ -82,6 +82,59 @@ namespace spider {
 
     namespace pisdf {
 
+        /**
+        * @brief PiSDF parameter types
+        */
+        enum class ParamType : uint8_t {
+            STATIC,            /*! Static parameter: expression is evaluated at startup only once */
+            DYNAMIC,           /*! Dynamic parameter: value is set at runtime */
+            INHERITED,         /*! Inherited parameter: value depend on parent */
+        };
+
+        /**
+         * @brief Type of PiSDF vertices
+         */
+        enum class VertexType : uint8_t {
+            NORMAL,         /*! Normal actor type */
+            CONFIG,         /*! Config vertex type */
+            DELAY,          /*! Delay vertex type */
+            FORK,           /*! Fork actor subtype */
+            JOIN,           /*! Join actor subtype */
+            REPEAT,         /*! Repeat actor subtype */
+            DUPLICATE,      /*! Duplicate actor subtype */
+            TAIL,           /*! Tail actor subtype */
+            HEAD,           /*! Head actor subtype */
+            INIT,           /*! Init actor subtype */
+            END,            /*! End actor subtype */
+            GRAPH,          /*! Graph vertex type */
+            INPUT,          /*! Input interface type */
+            OUTPUT,         /*! Output interface type */
+            First = NORMAL,
+            Last = OUTPUT,
+        };
+
+        template<VertexType> class SpecialVertex;
+
+        using ConfigVertex = SpecialVertex<VertexType::CONFIG>;
+
+        using DelayVertex = SpecialVertex<VertexType::DELAY>;
+
+        using ForkVertex = SpecialVertex<VertexType::FORK>;
+
+        using JoinVertex = SpecialVertex<VertexType::JOIN>;
+
+        using HeadVertex = SpecialVertex<VertexType::HEAD>;
+
+        using TailVertex = SpecialVertex<VertexType::TAIL>;
+
+        using RepeatVertex = SpecialVertex<VertexType::REPEAT>;
+
+        using DuplicateVertex = SpecialVertex<VertexType::DUPLICATE>;
+
+        using InitVertex = SpecialVertex<VertexType::INIT>;
+
+        using EndVertex = SpecialVertex<VertexType::END>;
+
         class Vertex;
 
         class ExecVertex;
@@ -179,6 +232,13 @@ namespace spider {
     }
 
     constexpr size_t ALLOCATOR_COUNT = static_cast<size_t>(AllocatorType::Last) + 1;
+
+    namespace pisdf {
+        constexpr auto SPECIAL_VERTEX_COUNT =
+                static_cast<uint8_t>(VertexType::END) - static_cast<uint8_t>(VertexType::CONFIG) + 1;
+        constexpr auto VERTEX_TYPE_COUNT =
+                static_cast<uint8_t>(VertexType::Last) - static_cast<uint8_t>(VertexType::First) + 1;
+    }
 
     /* === Type definition(s) === */
 

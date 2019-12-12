@@ -64,7 +64,7 @@ void spider::Scheduler::setJobInformation(sched::Job *job,
     schedule_.update(*job);
 }
 
-uint64_t spider::Scheduler::computeMinStartTime(const PiSDFAbstractVertex *vertex) {
+uint64_t spider::Scheduler::computeMinStartTime(const spider::pisdf::Vertex *vertex) {
     uint64_t minimumStartTime = 0;
     auto &job = schedule_.job(vertex->ix());
     job.setVertexIx(vertex->ix());
@@ -84,7 +84,7 @@ uint64_t spider::Scheduler::computeMinStartTime(const PiSDFAbstractVertex *verte
     return minimumStartTime;
 }
 
-void spider::Scheduler::vertexMapper(const PiSDFAbstractVertex *vertex) {
+void spider::Scheduler::vertexMapper(const spider::pisdf::Vertex *vertex) {
     /* == Compute the minimum start time possible for vertex == */
     uint64_t minStartTime = Scheduler::computeMinStartTime(vertex);
 

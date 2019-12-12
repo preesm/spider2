@@ -49,7 +49,7 @@
 /* === Class definition === */
 
 /**
- * @brief Optimize a PiSDFGraph by removing useless special actors.
+ * @brief Optimize a spider::pisdf::Graph by removing useless special actors.
  *        detail:    --> Fork      --> : removes fork with 1 output edge
  *                   --> Duplicate --> : removes duplicate with 1 input edge if rate_in == rate_out
  *                   --> Join      --> : removes join with 1 input edge
@@ -59,13 +59,13 @@
  */
 class PiSDFUnitaryOptimizer final : public PiSDFOptimizer {
 public:
-    inline bool operator()(PiSDFGraph *graph) const override;
+    inline bool operator()(spider::pisdf::Graph *graph) const override;
 
 private:
 
     struct OptimizerVisitor final : public spider::pisdf::DefaultVisitor {
 
-        explicit OptimizerVisitor(PiSDFGraph *graph) : graph_{ graph }, params_{ graph->params() } { }
+        explicit OptimizerVisitor(spider::pisdf::Graph *graph) : graph_{ graph }, params_{ graph->params() } { }
 
         inline void visit(spider::pisdf::ExecVertex *) override { removed_ = false; }
 
@@ -109,7 +109,7 @@ private:
             tryRemoveOutputEdge(vertex);
         }
 
-        PiSDFGraph *graph_ = nullptr;
+        spider::pisdf::Graph *graph_ = nullptr;
         const spider::vector<spider::pisdf::Param *> &params_;
         bool removed_ = false;
     private:
@@ -129,7 +129,7 @@ private:
     };
 };
 
-bool PiSDFUnitaryOptimizer::operator()(PiSDFGraph *graph) const {
+bool PiSDFUnitaryOptimizer::operator()(spider::pisdf::Graph *graph) const {
     bool optimized = true;
 
     OptimizerVisitor optimizer{ graph };

@@ -62,7 +62,7 @@ namespace spider {
 
             TransfoJob(const TransfoJob &) = default;
 
-            TransfoJob(PiSDFGraph *graph,
+            TransfoJob(pisdf::Graph *graph,
                        const uint32_t &srdagIx,
                        uint32_t firing) : reference_{ graph },
                                           srdagIx_{ srdagIx },

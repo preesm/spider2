@@ -146,7 +146,7 @@ spider::brv::extractConnectedComponents(const spider::pisdf::Graph *graph) {
 }
 
 spider::array<const spider::pisdf::Edge *>
-spider::brv::extractEdgesFromComponent(const spider::brv::ConnectedComponent &component) {
+spider::brv::extractEdgesFromComponent(const ConnectedComponent &component) {
     spider::array<const pisdf::Edge *> edgeArray{ component.edgeCount_, StackID::TRANSFO };
     size_t index = 0;
     for (const auto &vertex : component.vertexVector_) {
@@ -154,7 +154,7 @@ spider::brv::extractEdgesFromComponent(const spider::brv::ConnectedComponent &co
             edgeArray[index++] = edge;
         }
         for (const auto &edge: vertex->inputEdgeArray()) {
-            if (edge->source()->subtype() == PiSDFVertexType::INPUT) {
+            if (edge->source()->subtype() == pisdf::VertexType::INPUT) {
                 edgeArray[index++] = edge;
             }
         }
@@ -186,8 +186,8 @@ void spider::brv::extractRationalsFromEdges(spider::array<spider::Rational> &rat
         }
 
         auto &sourceRational =
-                source->subtype() == PiSDFVertexType::INPUT ? dummyRational : rationalArray[source->ix()];
-        auto &sinkRational = sink->subtype() == PiSDFVertexType::OUTPUT ? dummyRational : rationalArray[sink->ix()];
+                source->subtype() == pisdf::VertexType::INPUT ? dummyRational : rationalArray[source->ix()];
+        auto &sinkRational = sink->subtype() == pisdf::VertexType::OUTPUT ? dummyRational : rationalArray[sink->ix()];
 
         if (!sinkRational.nominator() && sinkRate) {
             sinkRational = spider::Rational{ sourceRate, sinkRate };
@@ -209,7 +209,7 @@ void spider::brv::updateBRV(const ConnectedComponent &component, const spider::v
     uint32_t scaleRVFactor{ 1 };
 
     /* == Compute the scale factor == */
-    spider::pisdf::UpdateBRVVisitor brvVisitor{ scaleRVFactor, params };
+    UpdateBRVVisitor brvVisitor{ scaleRVFactor, params };
     for (const auto &v : component.vertexVector_) {
         for (const auto &edge : v->inputEdgeArray()) {
             edge->source()->visit(&brvVisitor);
@@ -230,8 +230,8 @@ void spider::brv::updateBRV(const ConnectedComponent &component, const spider::v
 void spider::brv::checkConsistency(const spider::array<const pisdf::Edge *> &edgeArray,
                                    const spider::vector<pisdf::Param *> &params) {
     for (const auto &edge : edgeArray) {
-        if (edge->source()->subtype() == PiSDFVertexType::INPUT ||
-            edge->sink()->subtype() == PiSDFVertexType::OUTPUT) {
+        if (edge->source()->subtype() == pisdf::VertexType::INPUT ||
+            edge->sink()->subtype() == pisdf::VertexType::OUTPUT) {
             continue;
         }
         const auto &sourceRate = edge->sourceRateExpression().evaluate(params);
@@ -258,12 +258,12 @@ void spider::brv::checkConsistency(const spider::array<const pisdf::Edge *> &edg
     }
 }
 
-void spider::brv::print(const spider::pisdf::Graph *graph) {
-    if (spider::api::verbose() && log_enabled<LOG_TRANSFO>()) {
-        spider::log::verbose<LOG_TRANSFO>("BRV values for graph [%s]\n", graph->name().c_str());
+void spider::brv::print(const pisdf::Graph *graph) {
+    if (api::verbose() && log_enabled<LOG_TRANSFO>()) {
+        log::verbose<LOG_TRANSFO>("BRV values for graph [%s]\n", graph->name().c_str());
         for (const auto &vertex : graph->vertices()) {
-            spider::log::verbose<LOG_TRANSFO>(">> Vertex: %-20s --> RV[%" PRIu32"]\n", vertex->name().c_str(),
-                                              vertex->repetitionValue());
+            log::verbose<LOG_TRANSFO>(">> Vertex: %-20s --> RV[%" PRIu32"]\n", vertex->name().c_str(),
+                                      vertex->repetitionValue());
         }
     }
 }

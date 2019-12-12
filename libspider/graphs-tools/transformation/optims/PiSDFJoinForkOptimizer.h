@@ -49,24 +49,24 @@
 /* === Class definition === */
 
 /**
- * @brief Optimize Join -> Fork patterns in a PiSDFGraph.
+ * @brief Optimize Join -> Fork patterns in a spider::pisdf::Graph.
  * @see: https://tel.archives-ouvertes.fr/tel-01301642
  */
 class PiSDFJoinForkOptimizer final : public PiSDFOptimizer {
 public:
-    inline bool operator()(PiSDFGraph *graph) const override;
+    inline bool operator()(spider::pisdf::Graph *graph) const override;
 
 private:
     struct EdgeLinker {
-        PiSDFAbstractVertex *vertex = nullptr;
+        spider::pisdf::Vertex *vertex = nullptr;
         uint64_t rate = 0;
         size_t portIx = 0;
 
         EdgeLinker() = default;
 
-        EdgeLinker(PiSDFAbstractVertex *vertex, uint64_t rate, size_t portIx) : vertex{ vertex },
-                                                                                rate{ rate },
-                                                                                portIx{ portIx } { };
+        EdgeLinker(spider::pisdf::Vertex *vertex, uint64_t rate, size_t portIx) : vertex{ vertex },
+                                                                                  rate{ rate },
+                                                                                  portIx{ portIx } { };
     };
 
     inline uint32_t computeNJoinEdge(uint64_t sinkRate,
@@ -78,15 +78,15 @@ private:
                                      size_t sinkIx) const;
 };
 
-bool PiSDFJoinForkOptimizer::operator()(PiSDFGraph *graph) const {
-    auto verticesToOptimize = spider::containers::vector<std::pair<PiSDFAbstractVertex *, PiSDFAbstractVertex *>>(
+bool PiSDFJoinForkOptimizer::operator()(spider::pisdf::Graph *graph) const {
+    auto verticesToOptimize = spider::containers::vector<std::pair<spider::pisdf::Vertex *, spider::pisdf::Vertex *>>(
             StackID::TRANSFO);
 
     /* == Search for the pair of join / fork to optimize == */
     for (auto &vertex : graph->vertices()) {
-        if (vertex->subtype() == PiSDFVertexType::JOIN) {
+        if (vertex->subtype() == spider::pisdf::VertexType::JOIN) {
             auto *sink = vertex->outputEdge(0)->sink();
-            if (sink->subtype() == PiSDFVertexType::FORK) {
+            if (sink->subtype() == spider::pisdf::VertexType::FORK) {
                 verticesToOptimize.emplace_back(vertex, sink);
             }
         }

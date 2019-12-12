@@ -44,7 +44,6 @@
 
 #include <containers/containers.h>
 #include <graphs-tools/transformation/srdag/SingleRateTransformer.h>
-#include <graphs/pisdf/Types.h>
 
 namespace spider {
     namespace srdag {
@@ -57,7 +56,7 @@ namespace spider {
          * @param subgraph  Subgraph to split (if static nothing happen).
          * @return pair composed of init graph and run graph, pair of nullptr if subgraph is static.
          */
-        std::pair<PiSDFGraph *, PiSDFGraph *> splitDynamicGraph(PiSDFGraph *subgraph);
+        std::pair<pisdf::Graph *, pisdf::Graph *> splitDynamicGraph(pisdf::Graph *subgraph);
 
         /**
          * @brief Perform static single rate transformation for a given input job.
@@ -69,7 +68,7 @@ namespace spider {
          * jobs of dynamic graphs.
          * @throws @refitem Spider::Exception if srdag is nullptr
          */
-        std::pair<JobStack, JobStack> singleRateTransformation(const TransfoJob &job, PiSDFGraph *srdag);
+        std::pair<JobStack, JobStack> singleRateTransformation(const TransfoJob &job, pisdf::Graph *srdag);
     }
 }
 

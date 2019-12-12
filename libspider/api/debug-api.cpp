@@ -73,76 +73,76 @@ void spider::api::exportPreExecGantt(const std::string &) {
     /* == Close the file == */
 }
 
-void spider::api::exportSRDAG(const std::string &, PiSDFGraph *) {
+void spider::api::exportSRDAG(const std::string &, pisdf::Graph *) {
     /* == Get the PiSDF graph and transform it to SR-DAG == */
 
 //    if (Spider::API::srdagOptim()) {
-//        PiSDFGraphOptimizer()(srdag);
+//        spider::pisdf::GraphOptimizer()(srdag);
 //    }
 //
 //    /* == Print the SR-DAG == */
 //    Spider::PiSDF::DOTExporter(srdag).print(path);
 }
 
-void spider::api::exportGraphToDOT(const std::string &path, PiSDFGraph *graph) {
+void spider::api::exportGraphToDOT(const std::string &path, pisdf::Graph *graph) {
     /* == Print the Graph == */
-    spider::pisdf::DOTExporter(graph).print(path);
+    pisdf::DOTExporter(graph).print(path);
 }
 
-void spider::api::enableLogger(spider::log::Type type) {
+void spider::api::enableLogger(log::Type type) {
     switch (type) {
         case log::Type::LRT:
-            spider::log::enable<LOG_LRT>();
+            log::enable<log::Type::LRT>();
             break;
         case log::Type::TIME:
-            spider::log::enable<LOG_TIME>();
+            log::enable<log::Type::TIME>();
             break;
         case log::Type::GENERAL:
-            spider::log::enable<LOG_GENERAL>();
+            log::enable<log::Type::GENERAL>();
             break;
         case log::Type::SCHEDULE:
-            spider::log::enable<LOG_SCHEDULE>();
+            log::enable<log::Type::SCHEDULE>();
             break;
         case log::Type::MEMORY:
-            spider::log::enable<LOG_MEMORY>();
+            log::enable<log::Type::MEMORY>();
             break;
         case log::Type::TRANSFO:
-            spider::log::enable<LOG_TRANSFO>();
+            log::enable<log::Type::TRANSFO>();
             break;
         case log::Type::OPTIMS:
-            spider::log::enable<LOG_OPTIMS>();
+            log::enable<log::Type::OPTIMS>();
             break;
         case log::Type::EXPR:
-            spider::log::enable<LOG_EXPR>();
+            log::enable<log::Type::EXPR>();
             break;
     }
 }
 
-void spider::api::disableLogger(spider::log::Type type) {
+void spider::api::disableLogger(log::Type type) {
     switch (type) {
         case log::Type::LRT:
-            spider::log::disable<LOG_LRT>();
+            log::disable<log::Type::LRT>();
             break;
         case log::Type::TIME:
-            spider::log::disable<LOG_TIME>();
+            log::disable<log::Type::TIME>();
             break;
         case log::Type::GENERAL:
-            spider::log::disable<LOG_GENERAL>();
+            log::disable<log::Type::GENERAL>();
             break;
         case log::Type::SCHEDULE:
-            spider::log::disable<LOG_SCHEDULE>();
+            log::disable<log::Type::SCHEDULE>();
             break;
         case log::Type::MEMORY:
-            spider::log::disable<LOG_MEMORY>();
+            log::disable<log::Type::MEMORY>();
             break;
         case log::Type::TRANSFO:
-            spider::log::disable<LOG_TRANSFO>();
+            log::disable<log::Type::TRANSFO>();
             break;
         case log::Type::OPTIMS:
-            spider::log::disable<LOG_OPTIMS>();
+            log::disable<log::Type::OPTIMS>();
             break;
         case log::Type::EXPR:
-            spider::log::disable<LOG_EXPR>();
+            log::disable<log::Type::EXPR>();
             break;
     }
 }

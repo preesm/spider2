@@ -53,7 +53,7 @@
 
 /* === General Scenario related API === */
 
-void spider::api::setVertexMappableOnCluster(PiSDFVertex *vertex, const spider::Cluster *cluster, bool value) {
+void spider::api::setVertexMappableOnCluster(pisdf::ExecVertex *vertex, const spider::Cluster *cluster, bool value) {
     auto *constraints = vertex->constraints();
     if (!constraints) {
         constraints = vertex->createConstraints();
@@ -63,13 +63,13 @@ void spider::api::setVertexMappableOnCluster(PiSDFVertex *vertex, const spider::
     }
 }
 
-void spider::api::setVertexMappableOnCluster(PiSDFVertex *vertex, uint32_t clusterIx, bool value) {
+void spider::api::setVertexMappableOnCluster(pisdf::ExecVertex *vertex, uint32_t clusterIx, bool value) {
     auto *&platform = spider::platform();
     auto *cluster = platform->cluster(clusterIx);
     spider::api::setVertexMappableOnCluster(vertex, cluster, value);
 }
 
-void spider::api::setVertexMappableOnPE(PiSDFVertex *vertex, const spider::PE *pe, bool value) {
+void spider::api::setVertexMappableOnPE(pisdf::ExecVertex *vertex, const spider::PE *pe, bool value) {
     auto *constraints = vertex->constraints();
     if (!constraints) {
         constraints = vertex->createConstraints();
@@ -77,7 +77,7 @@ void spider::api::setVertexMappableOnPE(PiSDFVertex *vertex, const spider::PE *p
     constraints->setMappableConstraintOnPE(pe, value);
 }
 
-//void spider::api::setVertexMappableOnPE(PiSDFVertex *vertex, size_t ix, bool value) {
+//void spider::api::setVertexMappableOnPE(pisdf::ExecVertex *vertex, size_t ix, bool value) {
 //    auto *constraints = vertex->constraints();
 //    if (!constraints) {
 //        constraints = vertex->createConstraints();
@@ -86,7 +86,7 @@ void spider::api::setVertexMappableOnPE(PiSDFVertex *vertex, const spider::PE *p
 //    constraints->setMappableConstraintOnPE(ix, value);
 //}
 
-void spider::api::setVertexMappableOnAllPE(PiSDFVertex *vertex, bool value) {
+void spider::api::setVertexMappableOnAllPE(pisdf::ExecVertex *vertex, bool value) {
     auto *constraints = vertex->constraints();
     if (!constraints) {
         constraints = vertex->createConstraints();
@@ -94,7 +94,7 @@ void spider::api::setVertexMappableOnAllPE(PiSDFVertex *vertex, bool value) {
     constraints->setMappableConstraintOnAllPE(value);
 }
 
-void spider::api::setVertexExecutionTimingOnPE(PiSDFVertex *vertex,
+void spider::api::setVertexExecutionTimingOnPE(pisdf::ExecVertex *vertex,
                                                const PE *pe,
                                                const std::string &timingExpression) {
     auto *constraints = vertex->constraints();
@@ -104,7 +104,7 @@ void spider::api::setVertexExecutionTimingOnPE(PiSDFVertex *vertex,
     constraints->setTimingOnPE(pe, Expression(timingExpression));
 }
 
-void spider::api::setVertexExecutionTimingOnPE(PiSDFVertex *vertex, const PE *pe, int64_t timing) {
+void spider::api::setVertexExecutionTimingOnPE(pisdf::ExecVertex *vertex, const PE *pe, int64_t timing) {
     auto *constraints = vertex->constraints();
     if (!constraints) {
         constraints = vertex->createConstraints();
@@ -112,7 +112,7 @@ void spider::api::setVertexExecutionTimingOnPE(PiSDFVertex *vertex, const PE *pe
     constraints->setTimingOnPE(pe, timing);
 }
 
-void spider::api::setVertexExecutionTimingOnAllPE(PiSDFVertex *vertex, int64_t timing) {
+void spider::api::setVertexExecutionTimingOnAllPE(pisdf::ExecVertex *vertex, int64_t timing) {
     auto *constraints = vertex->constraints();
     if (!constraints) {
         constraints = vertex->createConstraints();
@@ -120,7 +120,7 @@ void spider::api::setVertexExecutionTimingOnAllPE(PiSDFVertex *vertex, int64_t t
     constraints->setTimingOnAllPE(timing);
 }
 
-void spider::api::setVertexExecutionTimingOnAllPE(PiSDFVertex *vertex, const std::string &timingExpression) {
+void spider::api::setVertexExecutionTimingOnAllPE(pisdf::ExecVertex *vertex, const std::string &timingExpression) {
     auto *constraints = vertex->constraints();
     if (!constraints) {
         constraints = vertex->createConstraints();

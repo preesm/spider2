@@ -85,8 +85,8 @@ namespace spider {
             /* === Getter(s) === */
 
             /**
-             * @brief Get the containing @refitem PiSDFGraph of the edge.
-             * @return containing @refitem PiSDFGraph
+             * @brief Get the containing @refitem spider::pisdf::Graph of the edge.
+             * @return containing @refitem spider::pisdf::Graph
              */
             inline Graph *graph() const {
                 return graph_;

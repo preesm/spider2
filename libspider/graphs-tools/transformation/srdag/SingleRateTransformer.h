@@ -87,9 +87,9 @@ namespace spider {
 
                 TransfoVertex() = default;
 
-                TransfoVertex(int64_t rate, uint32_t portIx, PiSDFAbstractVertex *vertex) : vertex_{ vertex },
-                                                                                            rate_{ rate },
-                                                                                            portIx_{ portIx } { }
+                TransfoVertex(int64_t rate, uint32_t portIx, pisdf::Vertex *vertex) : vertex_{ vertex },
+                                                                                      rate_{ rate },
+                                                                                      portIx_{ portIx } { }
             };
 
             /* === Private member(s) === */
@@ -112,9 +112,9 @@ namespace spider {
              * @return uniform index of the vertex
              */
             static inline size_t uniformIx(const pisdf::Vertex *vertex, const pisdf::Graph *graph) {
-                if (vertex->subtype() == PiSDFVertexType::INPUT) {
+                if (vertex->subtype() == pisdf::VertexType::INPUT) {
                     return vertex->ix() + graph->vertexCount();
-                } else if (vertex->subtype() == PiSDFVertexType::OUTPUT) {
+                } else if (vertex->subtype() == pisdf::VertexType::OUTPUT) {
                     return vertex->ix() + graph->vertexCount() + graph->inputEdgeCount();
                 }
                 return vertex->ix();

@@ -45,7 +45,6 @@
 #include <cstdint>
 #include <string>
 #include <containers/array.h>
-#include <graphs/pisdf/Types.h>
 #include <graphs/pisdf/visitors/Visitor.h>
 #include <runtime/constraints/RTConstraints.h>
 

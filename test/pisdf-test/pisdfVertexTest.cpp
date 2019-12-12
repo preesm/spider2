@@ -43,7 +43,6 @@
 #include <gtest/gtest.h>
 #include <common/Exception.h>
 #include <memory/alloc.h>
-#include <graphs/pisdf/Types.h>
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/Edge.h>
 #include <graphs/pisdf/Delay.h>
@@ -208,7 +207,7 @@ TEST_F(pisdVertexTest, vertexTest) {
 
     /* == Test setJobIx == */
     {
-        PiSDFVertex vertex;
+        spider::pisdf::ExecVertex vertex;
         ASSERT_EQ(vertex.jobIx(), UINT32_MAX) << "ExecVertex::jobIx() should return UINT32_MAX as default value.";
         ASSERT_NO_THROW(vertex.setJobIx(10)) << "ExecVertex::setJobIx() should never throw.";
         ASSERT_EQ(vertex.jobIx(), 10) << "ExecVertex::jobIx() bad value.";

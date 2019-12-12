@@ -160,7 +160,7 @@ bool spider::JITMSRuntime::execute() const {
 //    spider::XMLGanttExporter ganttExporter{&scheduler.schedule(), srdag};
 //    ganttExporter.print();
 
-//    spider::pisdf::DOTExporter(srdag).print("./srdag.dot");
+    spider::pisdf::DOTExporter(srdag).print("./srdag.dot");
 
     /* == Destroy the sr-dag == */
     spider::destroy(srdag);

@@ -59,7 +59,7 @@ public:
 
     /**
      * @brief Apply the given optimization.
-     * @param graph @refitem PiSDFGraph on which to apply the optimization.
+     * @param graph @refitem spider::pisdf::Graph on which to apply the optimization.
      * @return true if no optimization was necessary, false else.
      */
     inline void operator()(spider::pisdf::Graph *graph);

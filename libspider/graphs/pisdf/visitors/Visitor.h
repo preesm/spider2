@@ -45,7 +45,7 @@
 #include <typeinfo>
 #include <string>
 #include <stdexcept>
-#include <graphs/pisdf/Types.h>
+#include <api/global-api.h>
 
 namespace spider {
     namespace pisdf {

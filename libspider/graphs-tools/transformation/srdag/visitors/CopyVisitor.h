@@ -52,13 +52,13 @@ namespace spider {
 
         /* === Struct definition === */
 
-        struct CopyVisitor final : public spider::pisdf::DefaultVisitor {
+        struct CopyVisitor final : public pisdf::DefaultVisitor {
         public:
-            CopyVisitor(const TransfoJob &job, spider::pisdf::Graph *srdag) : job_{ job }, srdag_{ srdag } { };
+            CopyVisitor(const TransfoJob &job, pisdf::Graph *srdag) : job_{ job }, srdag_{ srdag } { };
 
             ~CopyVisitor() override = default;
 
-            inline void visit(spider::pisdf::DelayVertex *vertex) override {
+            inline void visit(pisdf::DelayVertex *vertex) override {
                 /* == This a trick to ensure proper coherence even with recursive delay init == */
                 /* == For given scenario:   A -> | delay | -> B
                  *                         setter --^ --> getter
@@ -67,13 +67,13 @@ namespace spider {
                  *                               A -> |       | -> B
                  *    But in reality the vertex does not make it after the SR-Transformation.
                  */
-                spider::api::createVertex(srdag_, buildCloneName(vertex, 0), 2, 2,
-                                          StackID::TRANSFO);
+                api::createVertex(srdag_, buildCloneName(vertex, 0), 2, 2,
+                                  StackID::TRANSFO);
                 ix_ = srdag_->vertexCount() - 1;
             }
 
-            inline void visit(spider::pisdf::ExecVertex *vertex) override {
-                spider::pisdf::CloneVertexVisitor cloneVisitor{ srdag_, StackID::TRANSFO };
+            inline void visit(pisdf::ExecVertex *vertex) override {
+                pisdf::CloneVertexVisitor cloneVisitor{ srdag_, StackID::TRANSFO };
                 vertex->setJobIx(job_.firingValue_);
                 for (uint32_t it = 0; it < vertex->repetitionValue(); ++it) {
                     /* == Change the name of the clone == */
@@ -84,25 +84,25 @@ namespace spider {
                 ix_ = (srdag_->vertexCount() - 1) - (vertex->repetitionValue() - 1);
             }
 
-            inline void visit(spider::pisdf::Graph *graph) override {
+            inline void visit(pisdf::Graph *graph) override {
                 /* == Clone the vertex == */
                 ix_ = 0;
                 for (uint32_t it = 0; it < graph->repetitionValue(); ++it) {
-                    const auto *clone = spider::api::createVertex(srdag_,
-                                                                  buildCloneName(graph, it),
-                                                                  static_cast<uint32_t>(graph->inputEdgeCount()),
-                                                                  static_cast<uint32_t>(graph->outputEdgeCount()),
-                                                                  StackID::TRANSFO);
+                    const auto *clone = api::createVertex(srdag_,
+                                                          buildCloneName(graph, it),
+                                                          static_cast<uint32_t>(graph->inputEdgeCount()),
+                                                          static_cast<uint32_t>(graph->outputEdgeCount()),
+                                                          StackID::TRANSFO);
                     ix_ = clone->ix();
                 }
                 ix_ = ix_ - (graph->repetitionValue() - 1);
             }
 
-            const spider::srdag::TransfoJob &job_;
-            spider::pisdf::Graph *srdag_ = nullptr;
+            const TransfoJob &job_;
+            pisdf::Graph *srdag_ = nullptr;
             size_t ix_ = SIZE_MAX;
         private:
-            std::string buildCloneName(const PiSDFAbstractVertex *vertex, uint32_t firing) {
+            std::string buildCloneName(const pisdf::Vertex *vertex, uint32_t firing) {
                 const auto *graphRef = job_.firingValue_ == UINT32_MAX ?
                                        job_.reference_ : srdag_->vertex(job_.srdagIx_);
                 return graphRef->name() + "-" + vertex->name() + "_" + std::to_string(firing);

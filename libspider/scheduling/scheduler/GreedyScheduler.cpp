@@ -85,7 +85,7 @@ spider::sched::Schedule &spider::GreedyScheduler::mappingScheduling() {
     return schedule_;
 }
 
-bool spider::GreedyScheduler::isSchedulable(PiSDFAbstractVertex *vertex) const {
+bool spider::GreedyScheduler::isSchedulable(spider::pisdf::Vertex *vertex) const {
     if (!vertex->inputEdgeCount()) {
         return true;
     }

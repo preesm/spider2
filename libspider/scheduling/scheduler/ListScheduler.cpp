@@ -89,8 +89,8 @@ int64_t spider::ListScheduler::computeScheduleLevel(ListVertex &listVertex,
 
 /* === Method(s) implementation === */
 
-spider::ListScheduler::ListScheduler(PiSDFGraph *graph,
-                                     const spider::vector<PiSDFParam *> &params) : Scheduler(graph, params) {
+spider::ListScheduler::ListScheduler(spider::pisdf::Graph *graph,
+                                     const spider::vector<spider::pisdf::Param *> &params) : Scheduler(graph, params) {
     /* == Reserve and push the vertices into the vertex == */
     sortedVertexVector_.reserve(graph_->vertexCount());
     for (auto *vertex : graph_->vertices()) {
@@ -105,7 +105,7 @@ spider::ListScheduler::ListScheduler(PiSDFGraph *graph,
     /* == Sort the vector == */
     std::sort(std::begin(sortedVertexVector_), std::end(sortedVertexVector_),
               [](const ListVertex &A, const ListVertex &B) -> int32_t {
-                  if (B.vertex_->subtype() == PiSDFVertexType::NORMAL &&
+                  if (B.vertex_->subtype() == spider::pisdf::VertexType::NORMAL &&
                       A.vertex_->reference() == B.vertex_->reference() &&
                       A.level_ == B.level_) {
                       return B.vertex_->ix() > A.vertex_->ix();

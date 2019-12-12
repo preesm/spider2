@@ -62,8 +62,9 @@
  */
 static spider::vector<size_t> splitSubgraphs(spider::pisdf::Graph *graph) {
     /* == 0. Split the dynamic subgraphs into init and run subgraphs == */
-    auto subgraph2RemoveVector = spider::containers::vector<PiSDFGraph *>(StackID::TRANSFO);
-    auto subgraph2AddVector = spider::containers::vector<std::pair<PiSDFGraph *, PiSDFGraph *>>(StackID::TRANSFO);
+    auto subgraph2RemoveVector = spider::containers::vector<spider::pisdf::Graph *>(StackID::TRANSFO);
+    auto subgraph2AddVector = spider::containers::vector<std::pair<spider::pisdf::Graph *, spider::pisdf::Graph *>>(
+            StackID::TRANSFO);
     subgraph2RemoveVector.reserve(graph->subgraphCount());
     subgraph2AddVector.reserve(graph->subgraphCount());
     for (auto *subgraph : graph->subgraphs()) {
@@ -381,9 +382,9 @@ void spider::srdag::SingleRateTransformer::addJoinVertex(spider::vector<TransfoV
 }
 
 spider::vector<spider::srdag::SingleRateTransformer::TransfoVertex>
-spider::srdag::SingleRateTransformer::buildSinkLinkerVector(spider::pisdf::Edge *edge) {
+spider::srdag::SingleRateTransformer::buildSinkLinkerVector(pisdf::Edge *edge) {
     /* == 0. Reserve size of the vector == */
-    auto sinkVector = spider::containers::vector<TransfoVertex>(StackID::TRANSFO);
+    auto sinkVector = containers::vector<TransfoVertex>(StackID::TRANSFO);
     auto *sink = edge->sink();
     auto *delay = edge->delay();
     sinkVector.reserve(sink->repetitionValue() + (delay != nullptr));
@@ -420,18 +421,18 @@ spider::srdag::SingleRateTransformer::buildSinkLinkerVector(spider::pisdf::Edge 
         /* == 2.2 Populate the sink clones in reverse order == */
         const auto &params = job_.params_;
         const auto &rate =
-                sink->subtype() == PiSDFVertexType::OUTPUT ? edge->sourceRateExpression().evaluate(params) *
-                                                             edge->source()->repetitionValue()
-                                                           : edge->sinkRateExpression().evaluate(params);
+                sink->subtype() == pisdf::VertexType::OUTPUT ? edge->sourceRateExpression().evaluate(params) *
+                                                               edge->source()->repetitionValue()
+                                                             : edge->sinkRateExpression().evaluate(params);
         populateTransfoVertexVector(sinkVector, sink, rate, edge->sinkPortIx());
     }
     return sinkVector;
 }
 
 spider::vector<spider::srdag::SingleRateTransformer::TransfoVertex>
-spider::srdag::SingleRateTransformer::buildSourceLinkerVector(spider::pisdf::Edge *edge) {
+spider::srdag::SingleRateTransformer::buildSourceLinkerVector(pisdf::Edge *edge) {
     /* == 0. Reserve size of the vector == */
-    auto sourceVector = spider::containers::vector<TransfoVertex>(StackID::TRANSFO);
+    auto sourceVector = containers::vector<TransfoVertex>(StackID::TRANSFO);
     auto *source = edge->source();
     auto *delay = edge->delay();
     sourceVector.reserve(source->repetitionValue() + (delay != nullptr));
@@ -444,9 +445,10 @@ spider::srdag::SingleRateTransformer::buildSourceLinkerVector(spider::pisdf::Edg
     } else {
         /* == 1.2 Populate the source clones in reverse order == */
         const auto &params = job_.params_;
-        const auto &rate = source->subtype() == PiSDFVertexType::INPUT ? edge->sinkRateExpression().evaluate(params) *
-                                                                         edge->sink()->repetitionValue()
-                                                                       : edge->sourceRateExpression().evaluate(params);
+        const auto &rate = source->subtype() == pisdf::VertexType::INPUT ? edge->sinkRateExpression().evaluate(params) *
+                                                                           edge->sink()->repetitionValue()
+                                                                         : edge->sourceRateExpression().evaluate(
+                        params);
         populateTransfoVertexVector(sourceVector, source, rate, edge->sourcePortIx());
     }
 

@@ -49,17 +49,17 @@
 
 class PiSDFJoinEndOptimizer final : public PiSDFOptimizer {
 public:
-    inline bool operator()(PiSDFGraph *graph) const override;
+    inline bool operator()(spider::pisdf::Graph *graph) const override;
 };
 
-bool PiSDFJoinEndOptimizer::operator()(PiSDFGraph *graph) const {
-    auto verticesToOptimize = spider::containers::vector<PiSDFAbstractVertex *>(StackID::TRANSFO);
+bool PiSDFJoinEndOptimizer::operator()(spider::pisdf::Graph *graph) const {
+    auto verticesToOptimize = spider::containers::vector<spider::pisdf::Vertex *>(StackID::TRANSFO);
 
     /* == Retrieve the vertices to remove == */
     for (auto *vertex : graph->vertices()) {
-        if (vertex->subtype() == PiSDFVertexType::JOIN) {
+        if (vertex->subtype() == spider::pisdf::VertexType::JOIN) {
             auto *sink = vertex->outputEdge(0)->sink();
-            if (sink->subtype() == PiSDFVertexType::END) {
+            if (sink->subtype() == spider::pisdf::VertexType::END) {
                 verticesToOptimize.push_back(vertex);
             }
         }
