@@ -147,8 +147,8 @@ TEST_F(expressionTest, expressionFunctionsTest) {
     ASSERT_NEAR(Expression("abs(-1)").evaluateDBL(), 1., 0.000001) << "Expression: abs(x) failed.";
     ASSERT_NEAR(Expression("abs(1)").evaluateDBL(), 1., 0.000001) << "Expression: abs(x) failed.";
     ASSERT_NEAR(Expression("cosh(2.15)").evaluateDBL(), std::cosh(2.15), 0.000001) << "Expression: cosh(x) failed.";
-    ASSERT_NEAR(Expression("sinh(2.15)").evaluateDBL(), std::sinh(2.15), 0.000001) << "Expression: cosh(x) failed.";
-    ASSERT_NEAR(Expression("tanh(2.15)").evaluateDBL(), std::tanh(2.15), 0.000001) << "Expression: cosh(x) failed.";
+    ASSERT_NEAR(Expression("sinh(2.15)").evaluateDBL(), std::sinh(2.15), 0.000001) << "Expression: sinh(x) failed.";
+    ASSERT_NEAR(Expression("tanh(2.15)").evaluateDBL(), std::tanh(2.15), 0.000001) << "Expression: tanh(x) failed.";
     ASSERT_NEAR(Expression("log(0.2)").evaluateDBL(), std::log(0.2), 0.000001) << "Expression: log(x) failed.";
     ASSERT_NEAR(Expression("log2(0.2)").evaluateDBL(), std::log2(0.2), 0.000001) << "Expression: log2(x) failed.";
     ASSERT_NEAR(Expression("4log2(0.2)").evaluateDBL(), 4 * std::log2(0.2), 0.000001) << "Expression: n*log2(x) failed.";

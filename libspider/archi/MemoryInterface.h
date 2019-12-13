@@ -44,6 +44,7 @@
 
 #include <api/global-api.h>
 #include <common/Exception.h>
+#include <containers/containers.h>
 
 namespace spider {
 
@@ -86,8 +87,9 @@ namespace spider {
         /**
          * @brief Deallocate memory from the given virtual address.
          * @param virtualAddress  Virtual address to evaluate.
+         * @param size            Size of the memory to deallocate.
          */
-        void deallocate(uint64_t virtualAddress);
+        void deallocate(uint64_t virtualAddress, size_t size);
 
         /**
          * @brief Reset the memory interface and the attached MemoryUnit.
@@ -127,14 +129,6 @@ namespace spider {
             if (memoryUnit) {
                 memoryUnit_ = memoryUnit;
             }
-        }
-
-        /**
-         * @brief Set the virtual address offset used for internal virtual address translation.
-         * @param offset Offset to set.
-         */
-        inline void setVirtualAddressOffset(uint64_t offset) {
-            virtualAddressOffset_ = offset;
         }
 
         /**
@@ -183,17 +177,17 @@ namespace spider {
         }
 
     private:
-        uint64_t virtualAddressOffset_ = 0;          /* = Virtual address offset of this interface inside the spider runtime = */
-        MemoryUnit *memoryUnit_ = nullptr;           /* = Memory unit attached to this interface = */
+        MemoryUnit *memoryUnit_ = nullptr;                    /* = Memory unit attached to this interface = */
+        spider::unordered_map<uint64_t, void*> virtual2Phys_; /* = Map associating virtual address to physical ones = */
 
         /* === Memory write routine === */
 
-        MemoryWriteRoutine writeRoutine_;            /* = Memory write routine used by this interface = */
+        MemoryWriteRoutine writeRoutine_; /* = Memory write routine used by this interface = */
 
         /* === Allocation routines === */
 
-        MemoryAllocateRoutine allocateRoutine_;      /* = Memory allocation routine used for this interface = */
-        MemoryDeallocateRoutine deallocateRoutine_;  /* = Memory deallocation routine used for this interface = */
+        MemoryAllocateRoutine allocateRoutine_;     /* = Memory allocation routine used for this interface = */
+        MemoryDeallocateRoutine deallocateRoutine_; /* = Memory deallocation routine used for this interface = */
 
         /* === Memory exchange cost routines === */
 

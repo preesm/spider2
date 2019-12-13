@@ -41,6 +41,7 @@
 /* === Include(s) === */
 
 #include <archi/MemoryInterface.h>
+#include <archi/MemoryUnit.h>
 
 /* === Static function === */
 
@@ -66,6 +67,13 @@ bool spider::MemoryInterface::write(uint64_t virtualAddress) {
 }
 
 void *spider::MemoryInterface::allocate(uint64_t virtualAddress, size_t size) {
+    if (!memoryUnit_) {
+        throwSpiderException("nullptr attached MemoryUnit.");
+    }
+    auto res = memoryUnit_->allocate(size);
+    if (res != size) {
+        throwSpiderException("failed to allocate %zu bytes.", size);
+    }
     auto *physicalAddress = allocateRoutine_(size);
     if (!physicalAddress) {
         return nullptr;
@@ -74,20 +82,22 @@ void *spider::MemoryInterface::allocate(uint64_t virtualAddress, size_t size) {
     return physicalAddress;
 }
 
-void spider::MemoryInterface::deallocate(uint64_t virtualAddress) {
+void spider::MemoryInterface::deallocate(uint64_t virtualAddress, size_t size) {
     deallocateRoutine_(retrievePhysicalAddress(virtualAddress));
+    memoryUnit_->deallocate(size);
 }
 
 void spider::MemoryInterface::reset() {
-
+    virtual2Phys_.clear();
 }
 
 /* === Private method(s) === */
 
 void spider::MemoryInterface::registerPhysicalAddress(uint64_t virtualAddress, void *physicalAddress) {
-
+    /* == Apply offset to virtual address to get the corresponding address associated to attached MemoryUnit == */
+    virtual2Phys_[virtualAddress] = physicalAddress;
 }
 
 void *spider::MemoryInterface::retrievePhysicalAddress(uint64_t virtualAddress) {
-    return nullptr;
+    return virtual2Phys_.at(virtualAddress);
 }
