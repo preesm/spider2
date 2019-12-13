@@ -83,6 +83,8 @@ namespace spider {
 
     class MemoryUnit;
 
+    class MemoryInterface;
+
     namespace pisdf {
 
         /**
@@ -159,9 +161,6 @@ namespace spider {
         class InputInterface;
 
         class OutputInterface;
-
-        class Refinement;
-
     }
 
     /* === Enumeration(s) === */

@@ -87,15 +87,79 @@ namespace spider {
          */
         void setSpiderGRTPE(PE *grtPE);
 
+        /* === MemoryUnit related API === */
+
+        /**
+         * @brief Create a new MemoryUnit.
+         * @param size  Size of the MemoryUnit.
+         * @return Pointer to newly created @refitem MemoryUnit.
+         */
+        MemoryUnit *createMemoryUnit(uint64_t size);
+
+        /**
+         * @brief Create a new MemoryInterface for a given @refitem MemoryUnit.
+         * @param memoryUnit MemoryUnit associated with the interface.
+         * @return Pointer to newly created @refitem MemoryInterface.
+         */
+        MemoryInterface *createMemoryInterface(MemoryUnit *memoryUnit);
+
+        /**
+         * @brief Create two MemoryInterface associated to the communication between two @refitem Cluster.
+         *        clusterA  <--------> clusterB
+         *    ==> clusterA [memoryUnitA] <--> memoryInterfaceA
+         *        memoryInterfaceB <--> [memoryUnitB] clusterB
+         * @param clusterA  Cluster A.
+         * @param clusterB  Cluster B.
+         * @return std::pair of pointer to @refitem MemoryInterface (first is clusterA side, second is clusterB sider).
+         */
+        std::pair<MemoryInterface *, MemoryInterface *>
+        createMemoryInterface(Cluster *clusterA, Cluster *clusterB);
+
+        /**
+         * @brief Override the write routine of a given MemoryInterface.
+         * @param interface  MemoryInterface to evaluate.
+         * @param routine    Routine to set.
+         */
+        void setMemoryInterfaceWriteRoutine(MemoryInterface *interface, MemoryWriteRoutine routine);
+
+        /**
+         * @brief Override the read cost routine of a given MemoryInterface.
+         * @param interface  MemoryInterface to evaluate.
+         * @param routine    Routine to set.
+         */
+        void setMemoryInterfaceReadCostRoutine(MemoryInterface *interface, MemoryExchangeCostRoutine routine);
+
+        /**
+         * @brief Override the write cost routine of a given MemoryInterface.
+         * @param interface  MemoryInterface to evaluate.
+         * @param routine    Routine to set.
+         */
+        void setMemoryInterfaceWriteCostRoutine(MemoryInterface *interface, MemoryExchangeCostRoutine routine);
+
+        /**
+         * @brief Override the allocate routine of a given MemoryInterface.
+         * @param interface  MemoryInterface to evaluate.
+         * @param routine    Routine to set.
+         */
+        void setMemoryInterfaceAllocateRoutine(MemoryInterface *interface, MemoryAllocateRoutine routine);
+
+        /**
+         * @brief Override the deallocate routine of a given MemoryInterface.
+         * @param interface  MemoryInterface to evaluate.
+         * @param routine    Routine to set.
+         */
+        void setMemoryInterfaceDeallocateRoutine(MemoryInterface *interface, MemoryDeallocateRoutine routine);
+
         /* === Cluster related API === */
 
         /**
          * @brief Create a new Cluster. A cluster is a set of PE connected to a same memory unit.
-         * @param PECount      Number of PE in the cluster.
-         * @param memoryUnit   Memory unit of the cluster.
+         * @param PECount         Number of PE in the cluster.
+         * @param memoryUnit      Memory unit of the cluster.
+         * @param memoryInterface Memory interface of the memory unit of the cluster.
          * @return pointer to the newly created @refitem Cluster.
          */
-        Cluster *createCluster(size_t PECount, MemoryUnit *memoryUnit);
+        Cluster *createCluster(size_t PECount, MemoryUnit *memoryUnit, MemoryInterface *memoryInterface);
 
         /* === PE related API === */
 
@@ -137,15 +201,6 @@ namespace spider {
          * @param PE  Pointer to the PE.
          */
         void disablePE(PE *PE);
-
-        /* === MemoryUnit related API === */
-
-        /**
-         * @brief Create a new MemoryUnit.
-         * @param size  Size of the MemoryUnit.
-         * @return Pointer to newly created @refitem MemoryUnit, associated memory is handled by spider.
-         */
-        MemoryUnit *createMemoryUnit(uint64_t size);
     }
 }
 

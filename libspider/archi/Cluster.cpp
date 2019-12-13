@@ -50,9 +50,18 @@
 
 /* === Method(s) implementation === */
 
-spider::Cluster::Cluster(size_t PECount, MemoryUnit *memoryUnit) : PEArray_{ PECount, StackID::ARCHI },
-                                                                   platform_{ spider::platform() },
-                                                                   memoryUnit_{ memoryUnit } { }
+spider::Cluster::Cluster(size_t PECount, MemoryUnit *memoryUnit, MemoryInterface *memoryInterface) :
+        PEArray_{ PECount, StackID::ARCHI },
+        platform_{ spider::platform() },
+        memoryUnit_{ memoryUnit },
+        memoryInterface_{ memoryInterface } {
+    if (!memoryUnit) {
+        throwSpiderException("nullptr MemoryUnit");
+    }
+    if (!memoryInterface) {
+        throwSpiderException("nullptr MemoryInterface");
+    }
+}
 
 spider::Cluster::~Cluster() {
     for (auto &pe : PEArray_) {

@@ -45,24 +45,17 @@
 #include <cstdint>
 #include <algorithm>
 #include <containers/array.h>
-#include <containers/containers.h>
 #include <archi/PE.h>
 #include <api/archi-api.h>
 
 namespace spider {
-
-    /* === Forward declaration(s) === */
-
-    class Platform;
-
-    class MemoryUnit;
 
     /* === Class definition === */
 
     class Cluster {
     public:
 
-        Cluster(size_t PECount, MemoryUnit *memoryUnit);
+        Cluster(size_t PECount, MemoryUnit *memoryUnit, MemoryInterface *memoryInterface);
 
         ~Cluster();
 
@@ -101,10 +94,18 @@ namespace spider {
 
         /**
          * @brief Get the memory unit of the cluster.
-         * @return reference to the @refitem MemoryUnit of the cluster.
+         * @return pointer to the @refitem MemoryUnit of the cluster.
          */
         inline MemoryUnit *memoryUnit() const {
             return memoryUnit_;
+        }
+
+        /**
+         * @brief Get the memory interface of the cluster.
+         * @return pointer to the @refitem MemoryInterface of the cluster.
+         */
+        inline MemoryInterface *memoryInterface() const {
+            return memoryInterface_;
         }
 
         /**
@@ -175,6 +176,7 @@ namespace spider {
         spider::array<PE *> PEArray_;
         Platform *platform_ = nullptr;
         MemoryUnit *memoryUnit_ = nullptr;
+        MemoryInterface *memoryInterface_ = nullptr;
 
         /* === Spider properties === */
 

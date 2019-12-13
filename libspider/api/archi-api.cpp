@@ -41,6 +41,7 @@
 /* === Includes === */
 
 #include <api/archi-api.h>
+#include <archi/MemoryInterface.h>
 #include <archi/MemoryUnit.h>
 #include <archi/Platform.h>
 #include <archi/Cluster.h>
@@ -72,14 +73,90 @@ void spider::api::setSpiderGRTPE(PE *grtPE) {
     }
 }
 
+/* === MemoryUnit related API === */
+
+spider::MemoryUnit *spider::api::createMemoryUnit(uint64_t size) {
+    return make<MemoryUnit, StackID::ARCHI>(size);
+}
+
+spider::MemoryInterface *spider::api::createMemoryInterface(spider::MemoryUnit *memoryUnit) {
+    if (!memoryUnit) {
+        throwSpiderException("nullptr MemoryUnit");
+    }
+    auto *interface = make<MemoryInterface, StackID::ARCHI>();
+    interface->setMemoryUnit(memoryUnit);
+    return interface;
+}
+
+std::pair<spider::MemoryInterface *, spider::MemoryInterface *>
+spider::api::createMemoryInterface(spider::Cluster *clusterA, spider::Cluster *clusterB) {
+    if (!clusterA || !clusterB) {
+        throwSpiderException("nullptr for Cluster");
+    }
+    /* == Create MemoryInterface for cluster A side == */
+    auto *memoryUnitA = clusterA->memoryUnit();
+    auto *memoryInterfaceA = make<MemoryInterface, StackID::ARCHI>();
+    memoryInterfaceA->setMemoryUnit(memoryUnitA);
+
+    /* == Create MemoryInterface for cluster B side == */
+    auto *memoryUnitB = clusterB->memoryUnit();
+    auto *memoryInterfaceB = make<MemoryInterface, StackID::ARCHI>();
+    memoryInterfaceB->setMemoryUnit(memoryUnitB);
+    return std::make_pair(memoryInterfaceA, memoryInterfaceB);
+}
+
+void spider::api::setMemoryInterfaceWriteRoutine(spider::MemoryInterface *interface,
+                                                 spider::MemoryWriteRoutine routine) {
+    if (!interface) {
+        throwSpiderException("nullptr MemoryInterface");
+    }
+    interface->setWriteRoutine(routine);
+}
+
+void spider::api::setMemoryInterfaceReadCostRoutine(spider::MemoryInterface *interface,
+                                                    spider::MemoryExchangeCostRoutine routine) {
+    if (!interface) {
+        throwSpiderException("nullptr MemoryInterface");
+    }
+    interface->setReadCostRoutine(routine);
+
+}
+
+void spider::api::setMemoryInterfaceWriteCostRoutine(spider::MemoryInterface *interface,
+                                                     spider::MemoryExchangeCostRoutine routine) {
+    if (!interface) {
+        throwSpiderException("nullptr MemoryInterface");
+    }
+    interface->setWriteCostRoutine(routine);
+
+}
+
+void spider::api::setMemoryInterfaceAllocateRoutine(spider::MemoryInterface *interface,
+                                                    spider::MemoryAllocateRoutine routine) {
+    if (!interface) {
+        throwSpiderException("nullptr MemoryInterface");
+    }
+    interface->setAllocateRoutine(routine);
+
+}
+
+void spider::api::setMemoryInterfaceDeallocateRoutine(spider::MemoryInterface *interface,
+                                                      spider::MemoryDeallocateRoutine routine) {
+    if (!interface) {
+        throwSpiderException("nullptr MemoryInterface");
+    }
+    interface->setDeallocateRoutine(routine);
+
+}
+
 /* === Cluster related API === */
 
-spider::Cluster *spider::api::createCluster(size_t PECount, MemoryUnit *memoryUnit) {
+spider::Cluster *spider::api::createCluster(size_t PECount, MemoryUnit *memoryUnit, MemoryInterface *memoryInterface) {
     auto *&platform = spider::platform();
     if (!platform) {
         throwSpiderException("Can not create cluster for empty platform.");
     }
-    auto *cluster = make<Cluster, StackID::ARCHI>(PECount, memoryUnit);
+    auto *cluster = make<Cluster, StackID::ARCHI>(PECount, memoryUnit, memoryInterface);
     return cluster;
 }
 
@@ -111,10 +188,4 @@ void spider::api::disablePE(PE *PE) {
     if (PE) {
         PE->disable();
     }
-}
-
-/* === MemoryUnit related API === */
-
-spider::MemoryUnit *spider::api::createMemoryUnit(uint64_t size) {
-    return make<MemoryUnit, StackID::ARCHI>(size);
 }
