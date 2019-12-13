@@ -51,7 +51,7 @@
 /**
  * @brief Primary type of an @refitem RPNElement.
  */
-enum class RPNElementType : uint16_t {
+enum class RPNElementType : uint8_t {
     OPERATOR, /*!< Operator element */
     OPERAND,  /*!< Operand element */
 };
@@ -59,7 +59,7 @@ enum class RPNElementType : uint16_t {
 /**
  * @brief Secondary type of an @refitem RPNElement
  */
-enum class RPNElementSubType : uint16_t {
+enum class RPNElementSubType : uint8_t {
     VALUE,      /*!< Value (digit) */
     PARAMETER,  /*!< Value coming from a parameter */
     FUNCTION,   /*!< Operator is a function */
@@ -69,23 +69,28 @@ enum class RPNElementSubType : uint16_t {
 /**
  * @brief Enumeration of the supported operators by the parser.
  */
-enum class RPNOperatorType : uint32_t {
+enum class RPNOperatorType : uint8_t {
     ADD = 0,    /*!< Addition operator */
     SUB,        /*!< Subtraction operator */
     MUL,        /*!< Multiplication operator */
     DIV,        /*!< Division operator */
     MOD,        /*!< Modulo operator */
     POW,        /*!< Power operator */
+    FACT,       /*!< Factorial operator */
     LEFT_PAR,   /*!< Left parenthesis */
     RIGHT_PAR,  /*!< Right parenthesis */
     COS,        /*!< Cosine function */
     SIN,        /*!< Sinus function */
     TAN,        /*!< Tangent function */
+    COSH,       /*!< Cosine hyperbolic function */
+    SINH,       /*!< Sinus hyperbolic function */
+    TANH,       /*!< Tangent hyperbolic function */
     EXP,        /*!< Exponential function */
     LOG,        /*!< Logarithm (base 10) function */
     LOG2,       /*!< Logarithm (base 2) function */
     CEIL,       /*!< Ceil function */
     FLOOR,      /*!< Floor function */
+    ABS,        /*!< Absolute function */
     SQRT,       /*!< Square root function */
     MAX,        /*!< Max function */
     MIN,        /*!< Min function */
@@ -98,11 +103,11 @@ enum class RPNOperatorType : uint32_t {
  * @brief Operator structure.
  */
 struct RPNOperator {
-    RPNOperatorType type;     /*! Operator type (see @refitem RPNOperatorType) */
-    uint16_t precedence; /*! Precedence value level of the operator */
-    bool isRighAssociative;   /*! Right associativity property of the operator */
-    std::string label;        /*! Label of the operator */
-    uint8_t argCount;    /*! Number of argument of the operator */
+    std::string label;      /*!< Label of the operator */
+    RPNOperatorType type;   /*!< Operator type (see @refitem RPNOperatorType) */
+    uint8_t precedence;     /*!< Precedence value level of the operator */
+    uint8_t argCount;       /*!< Number of argument of the operator */
+    bool isRighAssociative; /*!< Right associativity property of the operator */
 };
 
 /* === Structure definition(s) === */

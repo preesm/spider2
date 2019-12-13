@@ -40,6 +40,7 @@
 
 /* === Includes === */
 
+#include <common/Math.h>
 #include <cmath>
 #include <graphs-tools/expression-parser/Expression.h>
 #include <graphs/pisdf/Param.h>
@@ -75,12 +76,20 @@ static double applyOperator(StartIterator start, RPNOperatorType type) {
             return static_cast<double>(static_cast<int64_t>((*start)) % static_cast<int64_t>((*(start + 1))));
         case RPNOperatorType::POW:
             return std::pow((*start), (*(start + 1)));
+        case RPNOperatorType::FACT:
+            return spider::math::factorial((*start));
         case RPNOperatorType::COS:
             return std::cos((*start));
         case RPNOperatorType::SIN:
             return std::sin((*start));
         case RPNOperatorType::TAN:
             return std::tan((*start));
+        case RPNOperatorType::COSH:
+            return std::cosh((*start));
+        case RPNOperatorType::SINH:
+            return std::sinh((*start));
+        case RPNOperatorType::TANH:
+            return std::tanh((*start));
         case RPNOperatorType::EXP:
             return std::exp((*start));
         case RPNOperatorType::LOG:
@@ -91,6 +100,8 @@ static double applyOperator(StartIterator start, RPNOperatorType type) {
             return std::ceil((*start));
         case RPNOperatorType::FLOOR:
             return std::floor((*start));
+        case RPNOperatorType::ABS:
+            return spider::math::abs((*start));
         case RPNOperatorType::SQRT:
             return std::sqrt((*start));
         case RPNOperatorType::MAX:

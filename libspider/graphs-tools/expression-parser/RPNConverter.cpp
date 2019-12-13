@@ -52,7 +52,7 @@
  * @brief String containing all supported operators (should not be edited).
  */
 static const std::string &supportedBasicOperators() {
-    static std::string operators{ "+-*/%^()" };
+    static std::string operators{ "+-*/%^!()" };
     return operators;
 }
 
@@ -106,7 +106,7 @@ static void checkInfixExpression(const std::string &infixExprString) {
                 throwSpiderException("Expression ill formed. Two operators without operands between: %c -- %c", c,
                                      next);
             } else if (&c == &infixExprString.front() ||
-                       &c == &infixExprString.back()) {
+                       &c == &infixExprString.back() || next == ')') {
                 throwSpiderException("Expression ill formed. Operator [%c] expecting two operands.", c);
             }
         }
@@ -133,48 +133,64 @@ static std::string &stringReplace(std::string &s, const std::string &pattern, co
  * @brief Perform clean and reformatting operations on the original infix expression.
  * @param infixExprString String to reformat.
  */
-static void cleanInfixExpression(std::string &infixExprString) {
+static std::string cleanInfixExpression(std::string infixExprString) {
+    std::string cleanExpression;
     if (infixExprString.empty()) {
-        return;
+        return cleanExpression;
     }
+    auto localInfixExpression = std::move(infixExprString);
+
     /* == Clean the inFix expression by removing all white spaces == */
-    infixExprString.erase(std::remove(infixExprString.begin(), infixExprString.end(), ' '), infixExprString.end());
+    localInfixExpression.erase(std::remove(localInfixExpression.begin(), localInfixExpression.end(), ' '),
+                               localInfixExpression.end());
 
     /* == Convert the infix to lowercase == */
-    std::transform(infixExprString.begin(), infixExprString.end(), infixExprString.begin(), ::tolower);
+    std::transform(localInfixExpression.begin(), localInfixExpression.end(), localInfixExpression.begin(), ::tolower);
+
+    /* == Replace (+x) to (x) == */
+    stringReplace(localInfixExpression, "(+", "(");
+
+    /* == Replace (-x) to (0-x) == */
+    stringReplace(localInfixExpression, "(-", "(0-");
+
+    /* == Check if expression start with '-' == */
+    if (localInfixExpression[0] == '-') {
+        throwSpiderException("Expression starting with '-' detected. Please explicit parenthesis and multiplication.");
+    }
 
     /* == Clean the inFix expression by adding '*' for #valueY -> #value * Y  == */
-    std::string tmp{ std::move(infixExprString) };
-    infixExprString = std::string();
-    infixExprString.reserve(tmp.size() * 2); /*= Worst case is actually (tmp.size() - 1) = */
+    /* = Worst case is actually (tmp.size() - 1) but we avoid dealing (size == 0) = */
+    cleanExpression.reserve(localInfixExpression.size() * 2);
     uint32_t i = 0;
     bool ignore = false;
-    for (const auto &c:tmp) {
-        infixExprString += c;
-        auto next = tmp[++i];
+    for (const auto &c : localInfixExpression) {
+        cleanExpression += c;
+        auto next = localInfixExpression[++i];
         if (!ignore && ((std::isdigit(c) &&
                          (std::isalpha(next) || next == '(')) ||
                         (c == ')' &&
                          (next == '(' || std::isdigit(next) || std::isalpha(next))))) {
-            infixExprString += '*';
+            cleanExpression += '*';
         }
         ignore = std::isalpha(c) && std::isdigit(next);
     }
 
-    auto positionComa = infixExprString.find_first_of(',', 0);
+    /* == In case there are functions with multiple operands, we add parenthesis to ensure proper evaluation == */
+    auto positionComa = cleanExpression.find_first_of(',', 0);
     if (positionComa != std::string::npos) {
         /* == Replace ")" by "))" == */
-        stringReplace(infixExprString, ")", "))");
+        stringReplace(cleanExpression, ")", "))");
 
         /* == Replace "(" by "((" == */
-        stringReplace(infixExprString, "(", "((");
+        stringReplace(cleanExpression, "(", "((");
 
         /* == Replace "," by "),(" == */
-        stringReplace(infixExprString, ",", "),(");
+        stringReplace(cleanExpression, ",", "),(");
     }
 
     /* == Clean the inFix expression by replacing every occurrence of PI to its value == */
-    stringReplace(infixExprString, "pi", "3.1415926535");
+    stringReplace(cleanExpression, "pi", "3.1415926535");
+    return cleanExpression;
 }
 
 /**
@@ -288,13 +304,12 @@ std::string spider::rpn::postfixString(const spider::vector<RPNElement> &postfix
 }
 
 spider::vector<RPNElement> spider::rpn::extractInfixElements(std::string infixExpression) {
-    auto infixExpressionLocal = std::move(infixExpression);
-    if (missMatchParenthesis(infixExpressionLocal.begin(), infixExpressionLocal.end())) {
-        throwSpiderException("Expression with miss matched parenthesis: %s", infixExpressionLocal.c_str());
+    if (missMatchParenthesis(infixExpression.begin(), infixExpression.end())) {
+        throwSpiderException("Expression with miss matched parenthesis: %s", infixExpression.c_str());
     }
 
     /* == Format properly the expression == */
-    cleanInfixExpression(infixExpressionLocal);
+    auto infixExpressionLocal = cleanInfixExpression(std::move(infixExpression));
 
     /* == Check for incoherence(s) == */
     checkInfixExpression(infixExpressionLocal);
@@ -431,47 +446,32 @@ void spider::rpn::reorderPostfixStack(spider::vector<RPNElement> &postfixStack) 
 const RPNOperator &spider::rpn::getOperator(uint32_t ix) {
     static std::array<RPNOperator, rpn::OPERATOR_COUNT>
             operatorArray{{
-                                  { RPNOperatorType::ADD, 2, false, "+", 2 },          /*! ADD operator */
-                                  { RPNOperatorType::SUB, 2, false, "-", 2 },          /*! SUB operator */
-                                  { RPNOperatorType::MUL, 3, false, "*", 2 },          /*! MUL operator */
-                                  { RPNOperatorType::DIV, 3, false, "/", 2 },          /*! DIV operator */
-                                  { RPNOperatorType::MOD, 4, false, "%", 2 },          /*! MOD operator */
-                                  { RPNOperatorType::POW, 4, true, "^", 2 },           /*! POW operator */
-                                  { RPNOperatorType::LEFT_PAR, 2, false, "(", 0 },     /*! LEFT_PAR operator */
-                                  { RPNOperatorType::RIGHT_PAR, 2, false, ")", 0 },    /*! RIGHT_PAR operator */
-                                  { RPNOperatorType::COS, 5, false, "cos", 1 },        /*! COS function */
-                                  { RPNOperatorType::SIN, 5, false, "sin", 1 },        /*! SIN function */
-                                  { RPNOperatorType::TAN, 5, false, "tan", 1 },        /*! TAN function */
-                                  { RPNOperatorType::EXP, 5, false, "exp", 1 },        /*! EXP function */
-                                  { RPNOperatorType::LOG, 5, false, "log", 1 },        /*! LOG function */
-                                  { RPNOperatorType::LOG2, 5, false, "log2", 1 },      /*! LOG2 function */
-                                  { RPNOperatorType::CEIL, 5, false, "ceil", 1 },      /*! CEIL function */
-                                  { RPNOperatorType::FLOOR, 5, false, "floor", 1 },    /*! FLOOR function */
-                                  { RPNOperatorType::SQRT, 5, false, "sqrt", 1 },      /*! SQRT function */
-                                  { RPNOperatorType::MAX, 5, false, "max", 2 },        /*! MAX operator */
-                                  { RPNOperatorType::MIN, 5, false, "min", 2 },        /*! MIN operator */
-                                  { RPNOperatorType::DUMMY, 5, false, "dummy", 1 },    /*! Dummy operator */
+                                  { "+", RPNOperatorType::ADD, 1, 2, false },          /*! ADD operator */
+                                  { "-", RPNOperatorType::SUB, 1, 2, false },          /*! SUB operator */
+                                  { "*", RPNOperatorType::MUL, 2, 2, false },          /*! MUL operator */
+                                  { "/", RPNOperatorType::DIV, 2, 2, false },          /*! DIV operator */
+                                  { "%", RPNOperatorType::MOD, 3, 2, false },          /*! MOD operator */
+                                  { "^", RPNOperatorType::POW, 3, 2, true },           /*! POW operator */
+                                  { "!", RPNOperatorType::FACT, 4, 1, true },          /*! FACT operator */
+                                  { "(", RPNOperatorType::LEFT_PAR, 1, 0, false },     /*! LEFT_PAR operator */
+                                  { ")", RPNOperatorType::RIGHT_PAR, 1, 0, false },    /*! RIGHT_PAR operator */
+                                  { "cos", RPNOperatorType::COS, 5, 1, false },        /*! COS function */
+                                  { "sin", RPNOperatorType::SIN, 5, 1, false },        /*! SIN function */
+                                  { "tan", RPNOperatorType::TAN, 5, 1, false },        /*! TAN function */
+                                  { "cosh", RPNOperatorType::COSH, 5, 1, false },      /*! COSH function */
+                                  { "sinh", RPNOperatorType::SINH, 5, 1, false },      /*! SINH function */
+                                  { "tanh", RPNOperatorType::TANH, 5, 1, false },      /*! TANH function */
+                                  { "exp", RPNOperatorType::EXP, 5, 1, false },        /*! EXP function */
+                                  { "log", RPNOperatorType::LOG, 5, 1, false },        /*! LOG function */
+                                  { "log2", RPNOperatorType::LOG2, 5, 1, false },      /*! LOG2 function */
+                                  { "ceil", RPNOperatorType::CEIL, 5, 1, false },      /*! CEIL function */
+                                  { "floor", RPNOperatorType::FLOOR, 5, 1, false },    /*! FLOOR function */
+                                  { "abs", RPNOperatorType::ABS, 5, 1, false },        /*! ABS operator */
+                                  { "sqrt", RPNOperatorType::SQRT, 5, 1, false },      /*! SQRT function */
+                                  { "max", RPNOperatorType::MAX, 5, 2, false },        /*! MAX operator */
+                                  { "min", RPNOperatorType::MIN, 5, 2, false },        /*! MIN operator */
+                                  { "dummy", RPNOperatorType::DUMMY, 5, 1, false },    /*! Dummy operator */
                           }};
-//    static const std::map<RPNOperatorType, RPNOperator> operatorMap = {
-//            {RPNOperatorType::ADD,       {RPNOperatorType::ADD,       2, false, "+",     2}},
-//            {RPNOperatorType::SUB,       {RPNOperatorType::SUB,       2, false, "-",     2}},
-//            {RPNOperatorType::MUL,       {RPNOperatorType::MUL,       3, false, "*",     2}},
-//            {RPNOperatorType::DIV,       {RPNOperatorType::DIV,       3, false, "/",     2}},
-//            {RPNOperatorType::MOD,       {RPNOperatorType::MOD,       4, false, "%",     2}},
-//            {RPNOperatorType::POW,       {RPNOperatorType::POW,       4, true,  "^",     2}},
-//            {RPNOperatorType::LEFT_PAR,  {RPNOperatorType::LEFT_PAR,  2, false, "(",     0}},
-//            {RPNOperatorType::RIGHT_PAR, {RPNOperatorType::RIGHT_PAR, 2, false, ")",     0}},
-//            {RPNOperatorType::COS,       {RPNOperatorType::COS,       5, false, "cos",   1}},
-//            {RPNOperatorType::SIN,       {RPNOperatorType::SIN,       5, false, "sin",   1}},
-//            {RPNOperatorType::TAN,       {RPNOperatorType::TAN,       5, false, "tan",   1}},
-//            {RPNOperatorType::EXP,       {RPNOperatorType::EXP,       5, false, "exp",   1}},
-//            {RPNOperatorType::LOG,       {RPNOperatorType::LOG,       5, false, "log",   1}},
-//            {RPNOperatorType::LOG2,      {RPNOperatorType::LOG2,      5, false, "log2",  1}},
-//            {RPNOperatorType::CEIL,      {RPNOperatorType::CEIL,      5, false, "ceil",  1}},
-//            {RPNOperatorType::FLOOR,     {RPNOperatorType::FLOOR,     5, false, "floor", 1}},
-//            {RPNOperatorType::SQRT,      {RPNOperatorType::SQRT,      5, false, "sqrt",  1}},
-//            {RPNOperatorType::MAX,       {RPNOperatorType::MAX,       5, false, "max",   2}},
-//            {RPNOperatorType::MIN,       {RPNOperatorType::MIN,       5, false, "min",   2}}};
     return operatorArray.at(ix);
 }
 

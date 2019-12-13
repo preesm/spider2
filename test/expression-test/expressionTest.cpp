@@ -79,6 +79,15 @@ TEST_F(expressionTest, expressionCtorTest) {
     ASSERT_THROW(Expression("width"), spider::Exception) << "Parameterized Expression should throw when no parameter is given.";
     ASSERT_THROW(Expression("cos"), spider::Exception) << "Expression should throw when function is ill-formed.";
     ASSERT_THROW(Expression("+"), spider::Exception) << "Expression should throw when operator is missing an operand.";
+    ASSERT_THROW(Expression("cos(+)"), spider::Exception) << "Expression should throw when operator is missing an operand.";
+    ASSERT_THROW(Expression("cos(1+)"), spider::Exception) << "Expression should throw when operator is missing an operand.";
+    ASSERT_NO_THROW(Expression("cos(-1)")) << "Expression should not throw for (-x) construct.";
+    ASSERT_NO_THROW(Expression("cos(+1)")) << "Expression should not throw for (+x) construct.";
+    ASSERT_NO_THROW(Expression("(+1)")) << "Expression should not throw for (+x) construct.";
+    ASSERT_NO_THROW(Expression("(-1)")) << "Expression should not throw for (-x) construct.";
+    ASSERT_THROW(Expression("4+"), spider::Exception) << "Expression should throw when operator is missing an operand.";
+    ASSERT_THROW(Expression("+2"), spider::Exception) << "Expression should throw when operator is missing an operand.";
+    ASSERT_THROW(Expression("-2"), spider::Exception) << "Expression should throw when expression start with '-'.";
     ASSERT_THROW(Expression("max(1,)"), spider::Exception) << "Expression should throw when function is missing an operand.";
     ASSERT_EQ(Expression(4).value(), 4) << "Expression evaluation failed.";
     auto tmp2 = spider::ExpressionElt();
@@ -112,6 +121,9 @@ TEST_F(expressionTest, expressionOperatorsTest) {
     ASSERT_EQ(Expression("4*4/3").evaluateDBL(), 16. / 3) << "Expression: multiplication -> division priority ordering failed.";
     ASSERT_EQ(Expression("4/3").evaluate(), 1) << "Expression: division as int64_t failed.";
     ASSERT_EQ(Expression("4^3").evaluateDBL(), std::pow(4, 3)) << "Expression: power operator failed.";
+    ASSERT_EQ(Expression("8!").evaluate(), 40320) << "Expression: factorial operator failed.";
+    ASSERT_EQ(Expression("(2^3)!").evaluate(), 40320) << "Expression: factorial operator failed.";
+    ASSERT_EQ(Expression("2^3!").evaluate(), 64) << "Expression: factorial operator failed.";
     ASSERT_EQ(Expression("4+4^3").evaluateDBL(), 68) << "Expression: power -> addition priority ordering failed.";
     ASSERT_EQ(Expression("4*4^3").evaluateDBL(), 256) << "Expression: power -> multiplication priority ordering failed.";
     ASSERT_EQ(Expression("5%3").evaluateDBL(), 2) << "Expression: modulo failed.";
@@ -132,6 +144,11 @@ TEST_F(expressionTest, expressionFunctionsTest) {
     ASSERT_NEAR(Expression("tan((8/2))").evaluateDBL(),Expression("sin((8/2)) / cos((2^2))").evaluateDBL(),0.000001) << "Expression: comparison tan(x) and sin(x)/cos(x) failed.";
     ASSERT_NEAR(Expression("floor(1.2)").evaluateDBL(), 1., 0.000001) << "Expression: floor(x) failed.";
     ASSERT_NEAR(Expression("ceil(0.2)").evaluateDBL(), 1., 0.000001) << "Expression: ceil(x) failed.";
+    ASSERT_NEAR(Expression("abs(-1)").evaluateDBL(), 1., 0.000001) << "Expression: abs(x) failed.";
+    ASSERT_NEAR(Expression("abs(1)").evaluateDBL(), 1., 0.000001) << "Expression: abs(x) failed.";
+    ASSERT_NEAR(Expression("cosh(2.15)").evaluateDBL(), std::cosh(2.15), 0.000001) << "Expression: cosh(x) failed.";
+    ASSERT_NEAR(Expression("sinh(2.15)").evaluateDBL(), std::sinh(2.15), 0.000001) << "Expression: cosh(x) failed.";
+    ASSERT_NEAR(Expression("tanh(2.15)").evaluateDBL(), std::tanh(2.15), 0.000001) << "Expression: cosh(x) failed.";
     ASSERT_NEAR(Expression("log(0.2)").evaluateDBL(), std::log(0.2), 0.000001) << "Expression: log(x) failed.";
     ASSERT_NEAR(Expression("log2(0.2)").evaluateDBL(), std::log2(0.2), 0.000001) << "Expression: log2(x) failed.";
     ASSERT_NEAR(Expression("4log2(0.2)").evaluateDBL(), 4 * std::log2(0.2), 0.000001) << "Expression: n*log2(x) failed.";
