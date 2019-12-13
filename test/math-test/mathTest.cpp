@@ -51,11 +51,16 @@ protected:
 };
 
 TEST_F(mathTest, functionsTest) {
-    ASSERT_EQ(spider::math::saturateAdd(UINT32_MAX, static_cast<uint32_t>(1)), UINT32_MAX) << "math::saturateAdd(uint32_t) failed";
-    ASSERT_EQ(spider::math::saturateAdd(UINT32_MAX - 10, static_cast<uint32_t>(10)), UINT32_MAX) << "math::saturateAdd(uint32_t) failed";
-    ASSERT_EQ(spider::math::saturateAdd(UINT64_MAX, static_cast<uint64_t>(1)), UINT64_MAX) << "math::saturateAdd(uint64_t) failed";
-    ASSERT_EQ(spider::math::saturateAdd(UINT64_MAX - 10, static_cast<uint64_t>(10)), UINT64_MAX) << "math::saturateAdd(uint64_t) failed";
-    ASSERT_EQ(spider::math::saturateAdd(static_cast<uint64_t>(31415926535), static_cast<uint64_t>(10)), 31415926545u) << "math::saturateAdd(uint64_t) failed";
+    ASSERT_EQ(spider::math::saturateAdd(UINT32_MAX, static_cast<uint32_t>(1)), UINT32_MAX)
+                                << "math::saturateAdd(uint32_t) failed";
+    ASSERT_EQ(spider::math::saturateAdd(UINT32_MAX - 10, static_cast<uint32_t>(10)), UINT32_MAX)
+                                << "math::saturateAdd(uint32_t) failed";
+    ASSERT_EQ(spider::math::saturateAdd(UINT64_MAX, static_cast<uint64_t>(1)), UINT64_MAX)
+                                << "math::saturateAdd(uint64_t) failed";
+    ASSERT_EQ(spider::math::saturateAdd(UINT64_MAX - 10, static_cast<uint64_t>(10)), UINT64_MAX)
+                                << "math::saturateAdd(uint64_t) failed";
+    ASSERT_EQ(spider::math::saturateAdd(static_cast<uint64_t>(31415926535), static_cast<uint64_t>(10)), 31415926545u)
+                                << "math::saturateAdd(uint64_t) failed";
 
 
     ASSERT_EQ(spider::math::abs(static_cast<int16_t>(-2)), 2) << "math::abs(int16_t) failed";
@@ -95,12 +100,16 @@ TEST_F(mathTest, functionsTest) {
     ASSERT_EQ(spider::math::floorDiv(5, 2), 2) << "math::floorDiv() failed";
     ASSERT_EQ(spider::math::floorDiv(-5, 2), -3) << "math::floorDiv() failed";
     ASSERT_EQ(spider::math::floorDiv(static_cast<int64_t>(5), static_cast<int64_t>(2)), 2) << "math::floorDiv() failed";
-    ASSERT_EQ(spider::math::floorDiv(static_cast<int64_t>(-5), static_cast<int64_t>(2)), -3) << "math::floorDiv() failed";
-    ASSERT_EQ(spider::math::floorDiv(static_cast<int64_t>(5), static_cast<int64_t>(-2)), -3) << "math::floorDiv() failed";
-    ASSERT_EQ(spider::math::floorDiv(static_cast<uint64_t>(5), static_cast<uint64_t>(2)), 2) << "math::floorDiv() failed";
+    ASSERT_EQ(spider::math::floorDiv(static_cast<int64_t>(-5), static_cast<int64_t>(2)), -3)
+                                << "math::floorDiv() failed";
+    ASSERT_EQ(spider::math::floorDiv(static_cast<int64_t>(5), static_cast<int64_t>(-2)), -3)
+                                << "math::floorDiv() failed";
+    ASSERT_EQ(spider::math::floorDiv(static_cast<uint64_t>(5), static_cast<uint64_t>(2)), 2)
+                                << "math::floorDiv() failed";
 
     try {
-        throwSpiderException("Sagax discreta glabro notarius impium Constanti occultas quidam impium militares infudit quos quosdam crimina sub Magnentio est sub infudit conplurium membra multa eminebat facinus in supergressus Hispania modo crimina crimina licentius modo Magnentio odorandi membra a occultas quos a consarcinando ferebatur occultas longe ingenuorum conspirasse est Hispania Paulus obterens cum perquam iussa tempus");
+        throwSpiderException(
+                "Sagax discreta glabro notarius impium Constanti occultas quidam impium militares infudit quos quosdam crimina sub Magnentio est sub infudit conplurium membra multa eminebat facinus in supergressus Hispania modo crimina crimina licentius modo Magnentio odorandi membra a occultas quos a consarcinando ferebatur occultas longe ingenuorum conspirasse est Hispania Paulus obterens cum perquam iussa tempus");
     } catch (spider::Exception &e) {
         e.what();
     }
@@ -131,12 +140,17 @@ TEST_F(mathTest, rationalTest) {
     ASSERT_EQ(spider::Rational(1, 4) <= 0.25, true) << "Rational::operator<() failed";
     ASSERT_EQ(spider::Rational(1, 20) / spider::Rational(2), spider::Rational(1, 40)) << "Rational::operator/() failed";
     ASSERT_EQ(spider::Rational(1, 20) * spider::Rational(2), spider::Rational(1, 10)) << "Rational::operator*() failed";
-    ASSERT_EQ(spider::Rational(1, 20) - spider::Rational(2), spider::Rational(-39, 20)) << "Rational::operator-() failed";
-    ASSERT_EQ(spider::Rational(1, 20) + spider::Rational(2), spider::Rational(41, 20)) << "Rational::operator+() failed";
+    ASSERT_EQ(spider::Rational(1, 20) - spider::Rational(2), spider::Rational(-39, 20))
+                                << "Rational::operator-() failed";
+    ASSERT_EQ(spider::Rational(1, 20) + spider::Rational(2), spider::Rational(41, 20))
+                                << "Rational::operator+() failed";
     std::cout << spider::Rational(1, 20) << std::endl;
-    ASSERT_THROW(spider::Rational(1, 0), spider::Exception) << "Rational::Rational() should throw for null denominator.";
-    ASSERT_THROW(spider::Rational(5, 4) / 0, spider::Exception) << "Rational::operator/() should throw for null denominator.";
-    ASSERT_THROW(spider::Rational(1, 4) /= 0, spider::Exception) << "Rational::operator/=() should throw for null denominator.";
+    ASSERT_THROW(spider::Rational(1, 0), spider::Exception)
+                                << "Rational::Rational() should throw for null denominator.";
+    ASSERT_THROW(spider::Rational(5, 4) / 0, spider::Exception)
+                                << "Rational::operator/() should throw for null denominator.";
+    ASSERT_THROW(spider::Rational(1, 4) /= 0, spider::Exception)
+                                << "Rational::operator/=() should throw for null denominator.";
     ASSERT_EQ(spider::Rational(1, 4) *= 2, spider::Rational(1, 2)) << "Rational::operator*=() failed.";
     ASSERT_EQ(spider::Rational(1, 4) * 2, spider::Rational(1, 2)) << "Rational::operator*() failed.";
     ASSERT_EQ(spider::Rational(1, 4) /= 2, spider::Rational(1, 8)) << "Rational::operator/=() failed.";
@@ -145,6 +159,6 @@ TEST_F(mathTest, rationalTest) {
     ASSERT_EQ(spider::Rational(1, 4) - 2, spider::Rational(-7, 4)) << "Rational::operator-() failed.";
     ASSERT_EQ(spider::Rational(1, 4) + 2, spider::Rational(9, 4)) << "Rational::operator+() failed.";
     ASSERT_EQ(spider::Rational(1, 4) != spider::Rational(2), true) << "Rational::operator!=() failed.";
-    ASSERT_EQ(spider::Rational(1, 4) != spider::Rational(2,8), false) << "Rational::operator!=() failed.";
-    ASSERT_EQ(spider::Rational(1, -4) != spider::Rational(2,-8), false) << "Rational::operator!=() failed.";
+    ASSERT_EQ(spider::Rational(1, 4) != spider::Rational(2, 8), false) << "Rational::operator!=() failed.";
+    ASSERT_EQ(spider::Rational(1, -4) != spider::Rational(2, -8), false) << "Rational::operator!=() failed.";
 }

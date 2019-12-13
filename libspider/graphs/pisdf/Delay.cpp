@@ -81,6 +81,7 @@ spider::pisdf::Delay::Delay(Expression &&expression,
         setter_ = api::createInit(edge->graph(),
                                   "init-" + edge->sink()->name() + "_" + std::to_string(edge->sinkPortIx()),
                                   stack);
+        addedInit_ = true;
     }
 
     /* == If no getter is provided then an END is created == */
@@ -89,6 +90,7 @@ spider::pisdf::Delay::Delay(Expression &&expression,
         getter_ = api::createEnd(edge->graph(),
                                  "end-" + edge->source()->name() + "_" + std::to_string(edge->sourcePortIx()),
                                  stack);
+        addedEnd_ = true;
     }
 
     /* == Create virtual vertex and connect it to setter / getter == */
@@ -114,6 +116,18 @@ spider::pisdf::Delay::Delay(Expression &&expression,
     edge->graph()->addEdge(setterEdge);
     edge->graph()->addEdge(getterEdge);
     edge_->setDelay(this);
+}
+
+spider::pisdf::Delay::~Delay() {
+    if (vertex_) {
+        vertex_->graph()->removeVertex(vertex_);
+    }
+    if (addedInit_ && setter_) {
+        setter_->graph()->removeVertex(setter_);
+    }
+    if (addedEnd_ && getter_) {
+        getter_->graph()->removeVertex(getter_);
+    }
 }
 
 std::string spider::pisdf::Delay::name() const {

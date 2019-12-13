@@ -59,9 +59,12 @@ protected:
     spider::pisdf::Graph *graph_ = nullptr;
 
     void SetUp() override {
-        spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::GENERAL, "alloc-test");
-        spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::EXPRESSION, "alloc-test");
-        spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::PISDF, "alloc-test");
+        spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::GENERAL,
+                                     "alloc-test");
+        spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::EXPRESSION,
+                                     "alloc-test");
+        spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::PISDF,
+                                     "alloc-test");
 
 
         /* === GRAPH === */
@@ -94,7 +97,7 @@ protected:
         auto *input = spider::api::setInputInterfaceName(subgraph, 0, "input");
         auto *output = spider::api::setOutputInterfaceName(subgraph, 0, "output");
         auto *vertex_2 = spider::api::createVertex(subgraph, "vertex_2", 2, 1);
-        auto *vertex_3 = spider::api::createSubraph(subgraph, "vertex_3", 1, 4,1, 1, 1);
+        auto *vertex_3 = spider::api::createSubraph(subgraph, "vertex_3", 1, 4, 1, 1, 1);
         auto *in2 = spider::api::setInputInterfaceName(vertex_3, 0, "in2");
         auto *out2 = spider::api::setOutputInterfaceName(vertex_3, 0, "out2");
         auto *fork = spider::api::createFork(vertex_3, "fork", 2);
@@ -126,7 +129,7 @@ protected:
         auto *param = spider::api::createStaticParam(graph_, "width", 10);
         spider::api::createInheritedParam(subgraph, "top-width", param);
         spider::api::createStaticParam(subgraph, "height", 10);
-        auto *param2 =spider::api::createDynamicParam(subgraph, "width");
+        auto *param2 = spider::api::createDynamicParam(subgraph, "width");
         spider::api::createInheritedParam(vertex_3, "up-width", param2);
 
     }
@@ -140,17 +143,21 @@ protected:
 TEST_F(pisdfDotExporterTest, dotTest) {
     ASSERT_NO_THROW(spider::pisdf::DOTExporter{ graph_ }) << "DOTExporter::DOTExporter() failed";
     ASSERT_NO_THROW(spider::pisdf::DOTExporter{ graph_ }.print()) << "DOTExporter::print() failed";
-    ASSERT_NO_THROW(spider::pisdf::DOTExporter{ graph_ }.print("./dot.dot")) << "DOTExporter::print(path) failed with valid path";
-    ASSERT_THROW(spider::pisdf::DOTExporter{ graph_ }.print("XXX://INVALID_PATH"), spider::Exception) << "DOTExporter::print(path) should throw with invalid path";
+    ASSERT_NO_THROW(spider::pisdf::DOTExporter{ graph_ }.print("./dot.dot"))
+                                << "DOTExporter::print(path) failed with valid path";
+    ASSERT_THROW(spider::pisdf::DOTExporter{ graph_ }.print("XXX://INVALID_PATH"), spider::Exception)
+                                << "DOTExporter::print(path) should throw with invalid path";
 
     /* == Testing null input / output edge exceptions == */
     auto *source = graph_->edges()[0]->source();
     auto srcPort = graph_->edges()[0]->sourcePortIx();
     auto srcExpr = graph_->edges()[0]->sourceRateExpression();
     graph_->edges()[0]->setSource(nullptr, UINT32_MAX, spider::Expression());
-    ASSERT_THROW(spider::pisdf::DOTExporter{ graph_ }.print("./dot.dot"), spider::Exception) << "DOTExporter::print() should throw with nullptr output edge.";
+    ASSERT_THROW(spider::pisdf::DOTExporter{ graph_ }.print("./dot.dot"), spider::Exception)
+                                << "DOTExporter::print() should throw with nullptr output edge.";
     graph_->edges()[0]->setSource(source, srcPort, spider::Expression(srcExpr));
     graph_->edges()[0]->setSink(nullptr, UINT32_MAX, spider::Expression());
-    ASSERT_THROW(spider::pisdf::DOTExporter{ graph_ }.print("./dot.dot"), spider::Exception) << "DOTExporter::print() should throw with nullptr input edge.";
+    ASSERT_THROW(spider::pisdf::DOTExporter{ graph_ }.print("./dot.dot"), spider::Exception)
+                                << "DOTExporter::print() should throw with nullptr input edge.";
 
 }

@@ -129,7 +129,7 @@ std::pair<spider::srdag::JobStack, spider::srdag::JobStack> spider::srdag::Singl
     }
 
     /* == 3. Remove the Graph instance inside the SR-DAG == */
-    if (job_.firingValue_ != UINT32_MAX) {
+    if (!job_.root_) {
         auto *srdagInstance = srdag_->vertex(job_.srdagIx_);
         srdag_->removeVertex(srdagInstance);
     }

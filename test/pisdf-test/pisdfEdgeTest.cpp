@@ -52,9 +52,12 @@
 class pisdEdgeTest : public ::testing::Test {
 protected:
     void SetUp() override {
-        spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::GENERAL, "alloc-test");
-        spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::EXPRESSION, "alloc-test");
-        spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::PISDF, "alloc-test");
+        spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::GENERAL,
+                                     "alloc-test");
+        spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::EXPRESSION,
+                                     "alloc-test");
+        spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::PISDF,
+                                     "alloc-test");
     }
 
     void TearDown() override {
@@ -71,12 +74,17 @@ TEST_F(pisdEdgeTest, edgeTest) {
     graph->addVertex(v0);
     graph->addVertex(setter);
     graph->addVertex(getter);
-    ASSERT_THROW(spider::pisdf::Edge(nullptr, 0, spider::Expression(), v1, 0, spider::Expression()), spider::Exception) << "Edge(nullptr, ..) should throw";
-    ASSERT_THROW(spider::pisdf::Edge(v0, 0, spider::Expression(), nullptr, 0, spider::Expression()), spider::Exception) << "Edge(.., nullptr) should throw";
-    ASSERT_THROW(spider::pisdf::Edge(v0, 0, spider::Expression(), v1, 0, spider::Expression()), spider::Exception) << "Edge(.., ..) with different graph should throw";
+    ASSERT_THROW(spider::pisdf::Edge(nullptr, 0, spider::Expression(), v1, 0, spider::Expression()), spider::Exception)
+                                << "Edge(nullptr, ..) should throw";
+    ASSERT_THROW(spider::pisdf::Edge(v0, 0, spider::Expression(), nullptr, 0, spider::Expression()), spider::Exception)
+                                << "Edge(.., nullptr) should throw";
+    ASSERT_THROW(spider::pisdf::Edge(v0, 0, spider::Expression(), v1, 0, spider::Expression()), spider::Exception)
+                                << "Edge(.., ..) with different graph should throw";
     graph->addVertex(v1);
-    ASSERT_NO_THROW(spider::pisdf::Edge(v0, 0, spider::Expression(), v1, 0, spider::Expression())) << "Edge(.., ..) should not throw";
-    auto *edge = spider::make<spider::pisdf::Edge, StackID::PISDF>(v0, 0, spider::Expression(), v1, 0, spider::Expression());
+    ASSERT_NO_THROW(spider::pisdf::Edge(v0, 0, spider::Expression(), v1, 0, spider::Expression()))
+                                << "Edge(.., ..) should not throw";
+    auto *edge = spider::make<spider::pisdf::Edge, StackID::PISDF>(v0, 0, spider::Expression(), v1, 0,
+                                                                   spider::Expression());
     graph->addEdge(edge);
     ASSERT_NO_THROW(edge->setSource(nullptr, 0, spider::Expression())) << "Edge::setSource() should never throw";
     ASSERT_NO_THROW(edge->setSink(nullptr, 0, spider::Expression())) << "Edge::setSink() should never throw";
@@ -88,16 +96,22 @@ TEST_F(pisdEdgeTest, edgeTest) {
     ASSERT_EQ(edge->sinkFw(), v1) << "Edge::sinkFw() failed.";
     ASSERT_EQ(edge->sourcePortIx(), 0) << "Edge::sourcePortIx() failed.";
     ASSERT_EQ(edge->sinkPortIx(), 0) << "Edge::sinkPortIx() failed.";
-    graph->addEdge(spider::make<spider::pisdf::Edge, StackID::PISDF>(setter, 0, spider::Expression(), getter, 0, spider::Expression()));
-    ASSERT_NO_THROW(edge->setSource(setter, 0, spider::Expression())) << "Edge::setSource() should not throw on valid call.";
-    ASSERT_NO_THROW(edge->setSink(getter, 0, spider::Expression())) << "Edge::setSource() should not throw on valid call.";
+    graph->addEdge(spider::make<spider::pisdf::Edge, StackID::PISDF>(setter, 0, spider::Expression(), getter, 0,
+                                                                     spider::Expression()));
+    ASSERT_NO_THROW(edge->setSource(setter, 0, spider::Expression()))
+                                << "Edge::setSource() should not throw on valid call.";
+    ASSERT_NO_THROW(edge->setSink(getter, 0, spider::Expression()))
+                                << "Edge::setSource() should not throw on valid call.";
     ASSERT_EQ(edge->source(), setter) << "Edge::source() failed.";
     ASSERT_EQ(edge->sink(), getter) << "Edge::sink() failed.";
-    ASSERT_NO_THROW(edge->setSource(v0, 0, spider::Expression())) << "Edge::setSource() should not throw on valid call.";
+    ASSERT_NO_THROW(edge->setSource(v0, 0, spider::Expression()))
+                                << "Edge::setSource() should not throw on valid call.";
     ASSERT_NO_THROW(edge->setSink(v1, 0, spider::Expression())) << "Edge::setSource() should not throw on valid call.";
 
     ASSERT_EQ(edge->delay(), nullptr) << "delay should be nullptr on init.";
-    auto *delay = spider::make<spider::pisdf::Delay, StackID::PISDF>(spider::Expression(10), edge, setter, 0, spider::Expression(), getter, 0, spider::Expression());
+    auto *delay = spider::make<spider::pisdf::Delay, StackID::PISDF>(spider::Expression(10), edge, setter, 0,
+                                                                     spider::Expression(), getter, 0,
+                                                                     spider::Expression());
     ASSERT_EQ(edge->delay(), delay) << "delay should be set automatically on Edge.";
     ASSERT_EQ(edge->sourceRateExpression().value(), spider::Expression().value());
     ASSERT_EQ(edge->sinkRateExpression().value(), spider::Expression().value());

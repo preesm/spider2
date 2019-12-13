@@ -56,11 +56,14 @@
 class pisdfOptimsTest : public ::testing::Test {
 protected:
     void SetUp() override {
-        spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::GENERAL, "alloc-test");
+        spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::GENERAL,
+                                     "alloc-test");
         spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::EXPRESSION,
                                      "alloc-test");
-        spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::PISDF, "alloc-test");
-        spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::TRANSFO, "alloc-test");
+        spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::PISDF,
+                                     "alloc-test");
+        spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::TRANSFO,
+                                     "alloc-test");
         spider::api::enableVerbose();
         spider::api::enableLogger(spider::log::OPTIMS);
     }

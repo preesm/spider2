@@ -72,7 +72,9 @@ protected:
 
         auto *x86MemoryUnit = spider::api::createMemoryUnit(20000);
 
-        auto *x86Cluster = spider::api::createCluster(1, x86MemoryUnit);
+        auto *x86MemoryInterface = spider::api::createMemoryInterface(x86MemoryUnit);
+
+        auto *x86Cluster = spider::api::createCluster(1, x86MemoryUnit, x86MemoryInterface);
 
         auto x86PECore0 = spider::api::createPE(0, 0, x86Cluster, "x86-Core0", spider::PEType::LRT);
 

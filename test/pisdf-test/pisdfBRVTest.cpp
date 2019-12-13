@@ -61,10 +61,14 @@ protected:
     spider::pisdf::Graph *graph_ = nullptr;
 
     void SetUp() override {
-        spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::GENERAL, "alloc-test");
-        spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::EXPRESSION, "alloc-test");
-        spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::PISDF, "alloc-test");
-        spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::TRANSFO, "alloc-test");
+        spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::GENERAL,
+                                     "alloc-test");
+        spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::EXPRESSION,
+                                     "alloc-test");
+        spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::PISDF,
+                                     "alloc-test");
+        spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::TRANSFO,
+                                     "alloc-test");
 
 
         /* === GRAPH === */
@@ -97,7 +101,7 @@ protected:
         auto *input = spider::api::setInputInterfaceName(subgraph, 0, "input");
         auto *output = spider::api::setOutputInterfaceName(subgraph, 0, "output");
         auto *vertex_2 = spider::api::createVertex(subgraph, "vertex_2", 2, 1);
-        auto *vertex_3 = spider::api::createSubraph(subgraph, "vertex_3", 1, 4,1, 1, 1);
+        auto *vertex_3 = spider::api::createSubraph(subgraph, "vertex_3", 1, 4, 1, 1, 1);
         auto *in2 = spider::api::setInputInterfaceName(vertex_3, 0, "in2");
         auto *out2 = spider::api::setOutputInterfaceName(vertex_3, 0, "out2");
         auto *fork = spider::api::createFork(vertex_3, "fork", 2);
@@ -129,7 +133,7 @@ protected:
         auto *param = spider::api::createStaticParam(graph_, "width", 10);
         spider::api::createInheritedParam(subgraph, "top-width", param);
         spider::api::createStaticParam(subgraph, "height", 10);
-        auto *param2 =spider::api::createDynamicParam(subgraph, "width");
+        auto *param2 = spider::api::createDynamicParam(subgraph, "width");
         spider::api::createInheritedParam(vertex_3, "up-width", param2);
 
     }
@@ -151,10 +155,11 @@ TEST_F(pisdfBRVTest, brvTest) {
     ASSERT_EQ(graph_->vertex(3)->repetitionValue(), 1) << "spider::brv::compute failed.";
     ASSERT_EQ(graph_->vertex(4)->repetitionValue(), 1) << "spider::brv::compute failed.";
     ASSERT_EQ(graph_->vertex(5)->repetitionValue(), 1) << "spider::brv::compute failed.";
-    ASSERT_THROW(spider::brv::compute(graph_->subgraphs()[0]), spider::Exception) << "spider::brv::compute should throw for rv != 1 on config vertex.";
+    ASSERT_THROW(spider::brv::compute(graph_->subgraphs()[0]), spider::Exception)
+                                << "spider::brv::compute should throw for rv != 1 on config vertex.";
     ASSERT_NO_THROW(spider::brv::compute(graph_->subgraphs()[0]->subgraphs()[0]));
     {
-        auto *graph = spider::api::createGraph("graph", 1 );
+        auto *graph = spider::api::createGraph("graph", 1);
         spider::api::createVertex(graph, "failure", 1, 1);
         ASSERT_THROW(spider::brv::compute(graph), spider::Exception);
         spider::destroy(graph);
@@ -182,7 +187,8 @@ TEST_F(pisdfBRVTest, brvTest) {
         spider::api::createVertex(graph, "valid", 0, 1);
         spider::api::createVertex(graph, "failure", 1, 0);
         spider::api::createEdge(graph->vertex(0), 0, 1, graph->vertex(1), 0, 0);
-        ASSERT_THROW(spider::brv::compute(graph), spider::Exception) << "spider::brv::compute should throw for edges != 0 -> edge == 0";
+        ASSERT_THROW(spider::brv::compute(graph), spider::Exception)
+                                    << "spider::brv::compute should throw for edges != 0 -> edge == 0";
         spider::destroy(graph);
     }
     {
@@ -190,7 +196,8 @@ TEST_F(pisdfBRVTest, brvTest) {
         spider::api::createVertex(graph, "valid", 0, 1);
         spider::api::createVertex(graph, "failure", 1, 0);
         spider::api::createEdge(graph->vertex(0), 0, 0, graph->vertex(1), 0, 1);
-        ASSERT_THROW(spider::brv::compute(graph), spider::Exception) << "spider::brv::compute should throw for edges == 0 -> edge != 0";
+        ASSERT_THROW(spider::brv::compute(graph), spider::Exception)
+                                    << "spider::brv::compute should throw for edges == 0 -> edge != 0";
         spider::destroy(graph);
     }
     {
@@ -199,7 +206,8 @@ TEST_F(pisdfBRVTest, brvTest) {
         spider::api::createVertex(graph, "V1", 1, 1);
         spider::api::createEdge(graph->vertex(0), 0, 1, graph->vertex(1), 0, 1);
         spider::api::createEdge(graph->vertex(1), 0, 2, graph->vertex(0), 0, 1);
-        ASSERT_THROW(spider::brv::compute(graph), spider::Exception) << "spider::brv::compute should throw non consistent graph";
+        ASSERT_THROW(spider::brv::compute(graph), spider::Exception)
+                                    << "spider::brv::compute should throw non consistent graph";
         spider::destroy(graph);
     }
     {

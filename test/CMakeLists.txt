@@ -28,7 +28,7 @@ include_directories(
 
 # On GNU add compile flags
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-    set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -ftest-coverage -fprofile-arcs")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -ftest-coverage -fprofile-arcs")
 endif ()
 
 add_executable(${ALL_TEST_TARGET_NAME} ${${ALL_TEST_TARGET_NAME}_SRC})

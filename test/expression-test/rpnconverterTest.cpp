@@ -48,9 +48,12 @@
 class rpnconverterTest : public ::testing::Test {
 protected:
     void SetUp() override {
-        spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::GENERAL, "alloc-test");
-        spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::EXPRESSION, "alloc-test");
-        spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::PISDF, "alloc-test");
+        spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::GENERAL,
+                                     "alloc-test");
+        spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::EXPRESSION,
+                                     "alloc-test");
+        spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::PISDF,
+                                     "alloc-test");
     }
 
     void TearDown() override {
@@ -59,13 +62,19 @@ protected:
 };
 
 TEST_F(rpnconverterTest, rpnconverterCtorTest) {
-    ASSERT_THROW(spider::rpn::extractPostfixElements("4*((4+3)"), spider::Exception) << "RPNConverter: missing parenthesis ctor should throw.";
-    ASSERT_THROW(spider::rpn::extractPostfixElements("4**3"), spider::Exception) << "RPNConverter: double successive operators should throw.";
-    ASSERT_THROW(spider::rpn::extractPostfixElements("4*"), spider::Exception) << "RPNConverter: missing operand on operator should throw.";
-    ASSERT_THROW(spider::rpn::extractPostfixElements("*4"), spider::Exception) << "RPNConverter: missing operand on operator should throw.";
+    ASSERT_THROW(spider::rpn::extractPostfixElements("4*((4+3)"), spider::Exception)
+                                << "RPNConverter: missing parenthesis ctor should throw.";
+    ASSERT_THROW(spider::rpn::extractPostfixElements("4**3"), spider::Exception)
+                                << "RPNConverter: double successive operators should throw.";
+    ASSERT_THROW(spider::rpn::extractPostfixElements("4*"), spider::Exception)
+                                << "RPNConverter: missing operand on operator should throw.";
+    ASSERT_THROW(spider::rpn::extractPostfixElements("*4"), spider::Exception)
+                                << "RPNConverter: missing operand on operator should throw.";
     ASSERT_NO_THROW(spider::rpn::extractPostfixElements("")) << "RPNConverter: empty string should not throw.";
-    ASSERT_NO_THROW(spider::rpn::extractPostfixElements("(4)*3")) << "RPNConverter: well-formed expression should not throw.";
-    ASSERT_NO_THROW(spider::rpn::extractPostfixElements("4*(3)")) << "RPNConverter: well-formed expression should not throw.";
+    ASSERT_NO_THROW(spider::rpn::extractPostfixElements("(4)*3"))
+                                << "RPNConverter: well-formed expression should not throw.";
+    ASSERT_NO_THROW(spider::rpn::extractPostfixElements("4*(3)"))
+                                << "RPNConverter: well-formed expression should not throw.";
 }
 
 TEST_F(rpnconverterTest, rpnconverter2StringTest) {
@@ -73,7 +82,8 @@ TEST_F(rpnconverterTest, rpnconverter2StringTest) {
     ASSERT_EQ(spider::rpn::infixString(spider::rpn::extractPostfixElements("exp(log(0.2))")), "exp(log(0.2))");
     ASSERT_EQ(spider::rpn::infixString(spider::rpn::extractPostfixElements("exp( log ( 0.2) )")), "exp(log(0.2))");
     ASSERT_EQ(spider::rpn::infixString(spider::rpn::extractPostfixElements("4cos(PI/2)")), "(4*cos((3.1415926535/2)))");
-    ASSERT_EQ(spider::rpn::infixString(spider::rpn::extractPostfixElements("4max(4,cos(PI))")), "(4*max(4,cos(3.1415926535)))");
+    ASSERT_EQ(spider::rpn::infixString(spider::rpn::extractPostfixElements("4max(4,cos(PI))")),
+              "(4*max(4,cos(3.1415926535)))");
 }
 
 TEST_F(rpnconverterTest, rpnconverterGetStringFunctionsTest) {

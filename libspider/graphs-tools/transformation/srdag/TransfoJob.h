@@ -55,19 +55,28 @@ namespace spider {
         struct TransfoJob {
             pisdf::Graph *reference_ = nullptr;
             stack_vector(params_, pisdf::Param *, StackID::TRANSFO);
-            const uint32_t &srdagIx_;
+            uint32_t srdagIx_ = UINT32_MAX;
             uint32_t firingValue_ = UINT32_MAX;
+            bool root_ = false;
 
             TransfoJob(TransfoJob &&) = default;
 
             TransfoJob(const TransfoJob &) = default;
 
+            TransfoJob &operator=(const TransfoJob &) = default;
+
+            TransfoJob &operator=(TransfoJob &&) = default;
+
             TransfoJob(pisdf::Graph *graph,
                        const uint32_t &srdagIx,
-                       uint32_t firing) : reference_{ graph },
-                                          srdagIx_{ srdagIx },
-                                          firingValue_{ firing } {
-                params_.reserve(graph->paramCount());
+                       uint32_t firing,
+                       bool root = false) : reference_{ graph },
+                                            srdagIx_{ srdagIx },
+                                            firingValue_{ firing },
+                                            root_{ root } {
+                if (graph) {
+                    params_.reserve(graph->paramCount());
+                }
             }
 
             ~TransfoJob() {

@@ -24,6 +24,7 @@ find ./test/CMakeFiles/all-spider2-test.dir/ -name '*.gcno' -exec cp -prv '{}' '
 # Generate LCOV information
 lcov -c -d ./gcov_files -o all-spider2-test.info
 lcov --remove all-spider2-test.info "/usr*" -o all-spider2-test.info # Remove output for external libraries
+lcov --remove all-spider2-test.info "*/test/*" -o all-spider2-test.info # Remove output for source of unit-tests
 
 # Because it is almost impossible to test failed malloc, we force it to be tested in order to avoid "not 100% coverage syndrome"
 line_orig=$(grep -n "throwSpiderException(\"Failed to allocate" ../libspider/memory/dynamic-allocators/GenericAllocator.cpp | cut -d : -f 1) # Line number of non testable error in GenericAllocator.cpp file

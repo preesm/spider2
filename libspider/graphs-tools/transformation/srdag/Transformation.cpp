@@ -73,8 +73,13 @@ spider::srdag::splitDynamicGraph(pisdf::Graph *subgraph) {
             initOutputIFCount += (isOutputIF);
         }
     }
-    const auto &runInputIFCount = subgraph->inputEdgeCount() + cfgInputIFCount - initInputIFCount;
+    auto runInputIFCount = subgraph->inputEdgeCount() + cfgInputIFCount - initInputIFCount;
     const auto &runOutputIFCount = subgraph->outputEdgeCount() - initOutputIFCount;
+    if (!cfgInputIFCount) {
+        /* == There is no existing precedence enforce by an edge CFG -> Vertex == */
+        runInputIFCount += 1;
+        initOutputIFCount += 1;
+    }
 
     /* == Create the init subgraph == */
     auto *initGraph = api::createSubraph(subgraph->graph(),
@@ -96,6 +101,11 @@ spider::srdag::splitDynamicGraph(pisdf::Graph *subgraph) {
                                         static_cast<uint32_t>(runInputIFCount),
                                         static_cast<uint32_t>(runOutputIFCount),
                                         0, StackID::PISDF);
+
+    if (!cfgInputIFCount) {
+        api::createEdge(initGraph, initGraph->outputEdgeCount() - 1, 1,
+                        runGraph, runGraph->inputEdgeCount() - 1, 1, StackID::PISDF);
+    }
 
     uint32_t inputInitIx = 0;
     uint32_t inputRunIx = 0;

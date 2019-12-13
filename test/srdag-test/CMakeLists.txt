@@ -15,7 +15,7 @@ include_directories(
 
 # On GNU add compile flags
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-    set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -ftest-coverage -fprofile-arcs")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -ftest-coverage -fprofile-arcs")
 endif ()
 
 add_executable(${SRDAG_TARGET_NAME} ${${SRDAG_TARGET_NAME}_SRC})
@@ -28,4 +28,4 @@ target_link_libraries(${SRDAG_TARGET_NAME} ${GTEST_LIBRARIES} ${PROJECT_NAME}::$
 # created by add_executable(), it will automatically be replaced by the location
 # of the executable created at build time.
 add_test(NAME ${SRDAG_TARGET_NAME}
-         COMMAND ${SRDAG_TARGET_NAME})
+        COMMAND ${SRDAG_TARGET_NAME})

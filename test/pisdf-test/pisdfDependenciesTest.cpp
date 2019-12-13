@@ -60,11 +60,14 @@ protected:
     spider::pisdf::Graph *graph_ = nullptr;
 
     void SetUp() override {
-        spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::GENERAL, "alloc-test");
+        spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::GENERAL,
+                                     "alloc-test");
         spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::EXPRESSION,
                                      "alloc-test");
-        spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::PISDF, "alloc-test");
-        spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::TRANSFO, "alloc-test");
+        spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::PISDF,
+                                     "alloc-test");
+        spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::TRANSFO,
+                                     "alloc-test");
 
         /* === GRAPH === */
 
@@ -98,16 +101,20 @@ TEST_F(pisdfDepTest, consTest) {
     ASSERT_NO_THROW(spider::brv::compute(graph_));
     ASSERT_EQ(spider::pisdf::computeConsLowerDep(graph_->edges()[0]->sinkRateExpression().evaluate(),
                                                  graph_->edges()[0]->sourceRateExpression().evaluate(),
-                                                 0, graph_->edges()[0]->delay()->value()), -1) << "computeConsLowerDep: edge: 1 −> d=1 -> 2 should give -1 as lower dep for instance 0";
+                                                 0, graph_->edges()[0]->delay()->value()), -1)
+                                << "computeConsLowerDep: edge: 1 −> d=1 -> 2 should give -1 as lower dep for instance 0";
     ASSERT_EQ(spider::pisdf::computeConsUpperDep(graph_->edges()[0]->sinkRateExpression().evaluate(),
                                                  graph_->edges()[0]->sourceRateExpression().evaluate(),
-                                                 0, graph_->edges()[0]->delay()->value()), 0) << "computeConsUpperDep: edge: 1 −> d=1 -> 2 should give 0 as upper dep for instance 0";
+                                                 0, graph_->edges()[0]->delay()->value()), 0)
+                                << "computeConsUpperDep: edge: 1 −> d=1 -> 2 should give 0 as upper dep for instance 0";
     ASSERT_EQ(spider::pisdf::computeConsLowerDep(graph_->edges()[1]->sinkRateExpression().evaluate(),
                                                  graph_->edges()[1]->sourceRateExpression().evaluate(),
-                                                 1, 0), 1) << "computeConsLowerDep: edge:  1 −> d=0 -> 1 should give 1 as lower dep for instance 1";
+                                                 1, 0), 1)
+                                << "computeConsLowerDep: edge:  1 −> d=0 -> 1 should give 1 as lower dep for instance 1";
     ASSERT_EQ(spider::pisdf::computeConsUpperDep(graph_->edges()[1]->sinkRateExpression().evaluate(),
                                                  graph_->edges()[1]->sourceRateExpression().evaluate(),
-                                                 1, 0), 1) << "computeConsUpperDep: edge:  1 −> d=0 -> 1 should give 1 as upper dep for instance 1";
+                                                 1, 0), 1)
+                                << "computeConsUpperDep: edge:  1 −> d=0 -> 1 should give 1 as upper dep for instance 1";
 }
 
 TEST_F(pisdfDepTest, prodTest) {

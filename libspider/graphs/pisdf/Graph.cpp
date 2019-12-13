@@ -96,8 +96,16 @@ spider::pisdf::Graph::Graph(std::string name,
 }
 
 spider::pisdf::Graph::~Graph() noexcept {
-    GraphRemoveVertexVisitor rmVertexVisitor{ this };
+    /* == Destroy / deallocate edges == */
+    /* ==
+     * It is necessary to start with the edges because if an Edge has a delay, it will remove the associated vertices.
+     * == */
+    for (auto &edge : edgeVector_) {
+        destroy(edge);
+    }
+
     /* == Destroy / deallocate vertices (subgraphs included) == */
+    GraphRemoveVertexVisitor rmVertexVisitor{ this };
     for (auto &vertex : vertexVector_) {
         vertex->visit(&rmVertexVisitor);
     }
@@ -108,11 +116,6 @@ spider::pisdf::Graph::~Graph() noexcept {
     }
     for (auto &interface : outputInterfaceArray_) {
         destroy(interface);
-    }
-
-    /* == Destroy / deallocate edges == */
-    for (auto &edge : edgeVector_) {
-        destroy(edge);
     }
 
     /* == Destroy / deallocate params == */

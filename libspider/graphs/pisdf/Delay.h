@@ -68,7 +68,7 @@ namespace spider {
                   bool persistent = false,
                   StackID stack = StackID::PISDF);
 
-            ~Delay() = default;
+            ~Delay();
 
             friend class Edge;
 
@@ -171,16 +171,17 @@ namespace spider {
             }
 
         private:
-            Expression expression_;
-            Edge *edge_ = nullptr;
-            ExecVertex *setter_ = nullptr;
-            uint32_t setterPortIx_ = 0;
-            ExecVertex *getter_ = nullptr;
-            uint32_t getterPortIx_ = 0;
-            DelayVertex *vertex_ = nullptr;
-
-            bool persistent_ = true;
-            uint64_t memoryAddress_ = UINT64_MAX;
+            Expression expression_;               /* = Expression associated to the value of the Delay = */
+            Edge *edge_ = nullptr;                /* = Edge associated to the Delay = */
+            ExecVertex *setter_ = nullptr;        /* = Setter of the Delay = */
+            uint32_t setterPortIx_ = 0;           /* = Ouput port ix of the getter connected to the Delay = */
+            ExecVertex *getter_ = nullptr;        /* = Getter of the Delay = */
+            uint32_t getterPortIx_ = 0;           /* = Input port ix of the getter connected to the Delay = */
+            DelayVertex *vertex_ = nullptr;       /* = Virtual vertex created for consistency evaluation = */
+            bool addedInit_ = false;              /* = If no setter is provided, then an InitVertex is created = */
+            bool addedEnd_ = false;               /* = If no getter is provided, then an EndVertex is created = */
+            bool persistent_ = true;              /* = Persistence property of the Delay (true if persistent, false else) = */
+            uint64_t memoryAddress_ = UINT64_MAX; /* = Memory address associated to this Delay (if persistent) = */
         };
     }
 }

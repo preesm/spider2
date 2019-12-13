@@ -223,10 +223,26 @@ void spider::pisdf::DOTExporterVisitor::interfaceBodyPrinter(Interface *interfac
     const auto &widthPair = computeConstantWidth(interface);
     const auto &balanceWidth = widthPair.first;
     const auto &rateWidth = 24 + std::max(widthPair.second + 1 - 1, 0) * 6;
-    const auto &inIx = interface->inputEdge()->sinkPortIx();
-    const auto &outIx = interface->outputEdge()->sourcePortIx();
-    const auto &inRate = interface->inputEdge()->sinkRateExpression().evaluate(exporter_->params_);
-    const auto &outRate = interface->outputEdge()->sourceRateExpression().evaluate(exporter_->params_);
+    auto *inputEdge = interface->inputEdge();
+    auto *outputEdge = interface->outputEdge();
+    size_t inIx = 0;
+    size_t outIx = 0;
+    int64_t inRate = 0;
+    int64_t outRate = 0;
+    if (inputEdge) {
+        inIx = inputEdge->sinkPortIx();
+        inRate = inputEdge->sinkRateExpression().evaluate(exporter_->params_);
+        outIx = inIx;
+        outRate = inRate;
+    }
+    if (outputEdge) {
+        outIx = outputEdge->sourcePortIx();
+        outRate = outputEdge->sourceRateExpression().evaluate(exporter_->params_);
+        if (!inputEdge) {
+            inIx = outIx;
+            outRate = outRate;
+        }
+    }
     file_ << offset_ << '\t' << '\t'
           << R"(<tr>
                     <td border="0" bgcolor="#ffffff00" fixedsize="true" width=")" << balanceWidth << R"(" height="60"></td>
@@ -246,9 +262,17 @@ void spider::pisdf::DOTExporterVisitor::interfaceBodyPrinter(Interface *interfac
 }
 
 void spider::pisdf::DOTExporterVisitor::edgePrinter(Edge *edge) const {
-    auto *source =
-            edge->source()->subtype() == VertexType::GRAPH ? edge->sourceFw() : edge->source();
-    auto *sink = edge->sink()->subtype() == VertexType::GRAPH ? edge->sinkFw() : edge->sink();
+    auto *source = edge->source();
+    auto *sink = edge->sink();
+    if (!source || !sink) {
+        return;
+    }
+    if (source->subtype() == VertexType::GRAPH) {
+        source = edge->sourceFw();
+    }
+    if (sink->subtype() == VertexType::GRAPH) {
+        sink = edge->sinkFw();
+    }
     const auto *delay = edge->delay();
     const auto &srcPortIx = edge->sourcePortIx();
     const auto &snkPortIx = edge->sinkPortIx();
