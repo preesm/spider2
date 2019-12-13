@@ -43,6 +43,7 @@
 /* === Includes === */
 
 #include <cstdint>
+#include <limits>
 #include <type_traits>
 
 /* === Methods prototype === */
@@ -53,6 +54,14 @@ namespace spider {
         template<class T>
         inline T abs(T x) {
             return static_cast<T>((x < 0) ? (-x) : x);
+        }
+
+        template<class T>
+        inline T factorial(T x) {
+            T res = 1;
+            T i = 1;
+            while (i <= x) { res *= (i++); }
+            return res;
         }
 
         template<class T>
