@@ -46,6 +46,15 @@
 
 /* === Method(s) implementation === */
 
+spider::MemoryInterface::MemoryInterface() {
+    /* == Default routines == */
+    writeRoutine_ = [](void *) -> bool { return true; };
+    allocateRoutine_ = [](size_t size) -> void * { return std::malloc(size); };
+    deallocateRoutine_ = [](void *addr) -> void { std::free(addr); };
+    readCostRoutine_ = [](size_t) -> uint64_t { return 0; };
+    writeCostRoutine_ = [](size_t) -> uint64_t { return 0; };
+}
+
 /* === Private method(s) implementation === */
 
 void *spider::MemoryInterface::read(uint64_t virtualAddress) {

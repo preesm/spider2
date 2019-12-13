@@ -55,7 +55,7 @@ namespace spider {
 
     class MemoryInterface {
     public:
-        MemoryInterface() = default;
+        MemoryInterface();
 
         ~MemoryInterface() = default;
 
