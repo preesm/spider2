@@ -41,7 +41,7 @@
 /* === Include(s) === */
 
 #include <graphs-tools/transformation/srdag/SingleRateTransformer.h>
-#include <graphs-tools/transformation/srdag/visitors/CopyVisitor.h>
+#include <graphs-tools/transformation/srdag/visitors/SRDAGCopyVisitor.h>
 #include <graphs-tools/transformation/srdag/visitors/CopyParamVisitor.h>
 #include <graphs-tools/transformation/srdag/Transformation.h>
 #include <graphs-tools/numerical/brv.h>
@@ -116,7 +116,7 @@ std::pair<spider::srdag::JobStack, spider::srdag::JobStack> spider::srdag::Singl
     spider::vector<size_t> delayVertexToRemove;
     for (const auto &vertex : job_.reference_->vertices()) {
         const auto &vertexUniformIx = uniformIx(vertex, job_.reference_);
-        CopyVisitor visitor{ job_, srdag_ };
+        SRDAGCopyVisitor visitor{ job_, srdag_ };
         vertex->visit(&visitor);
         ref2Clone_[vertexUniformIx] = visitor.ix_;
         if (vertex->subtype() == pisdf::VertexType::DELAY) {

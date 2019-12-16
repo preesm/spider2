@@ -74,6 +74,14 @@ namespace spider {
 
             virtual ~Param() = default;
 
+            Param(const Param &) = default;
+
+            Param(Param &&) noexcept = default;
+
+            Param &operator=(const Param &) = delete;
+
+            Param &operator=(Param &&) = delete;
+
             /* === Method(s) === */
 
             inline virtual void visit(Visitor *visitor) {

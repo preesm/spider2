@@ -101,7 +101,7 @@ namespace spider {
 
             friend GraphRemoveVertexVisitor;
 
-            friend CloneVertexVisitor;
+            friend CloneVisitor;
 
             /* === Method(s) === */
 

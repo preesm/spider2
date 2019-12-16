@@ -56,7 +56,7 @@ namespace spider {
 
         class Graph;
 
-        struct CloneVertexVisitor;
+        struct CloneVisitor;
 
         /* === Class definition === */
 
@@ -81,7 +81,7 @@ namespace spider {
 
             virtual ~Vertex() noexcept;
 
-            friend CloneVertexVisitor;
+            friend CloneVisitor;
 
             /* === Method(s) === */
 

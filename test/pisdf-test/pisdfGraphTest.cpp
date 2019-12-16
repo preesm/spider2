@@ -52,7 +52,7 @@
 #include <graphs/pisdf/DynamicParam.h>
 #include <graphs/pisdf/ExecVertex.h>
 #include <api/spider.h>
-#include <graphs/pisdf/visitors/CloneVertexVisitor.h>
+#include <graphs/pisdf/visitors/CloneVisitor.h>
 
 class pisdfGraphTest : public ::testing::Test {
 protected:

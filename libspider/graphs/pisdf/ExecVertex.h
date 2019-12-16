@@ -72,7 +72,7 @@ namespace spider {
                 std::swap(jobIx_, other.jobIx_);
             }
 
-            friend CloneVertexVisitor;
+            friend CloneVisitor;
 
             /* === Method(s) === */
 

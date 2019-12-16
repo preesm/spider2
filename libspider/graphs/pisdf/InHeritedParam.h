@@ -59,6 +59,14 @@ namespace spider {
                 }
             }
 
+            InHeritedParam(const InHeritedParam &other) : Param(other) {
+                parent_ = other.parent_;
+            }
+
+            InHeritedParam(InHeritedParam &&other) noexcept : Param(std::move(other)) {
+                std::swap(parent_, other.parent_);
+            }
+
             /* === Method(s) === */
 
             inline void visit(Visitor *visitor) override {

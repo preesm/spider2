@@ -37,14 +37,17 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_CLONEVERTEXVISITOR_H
-#define SPIDER2_CLONEVERTEXVISITOR_H
+#ifndef SPIDER2_CLONEVISITOR_H
+#define SPIDER2_CLONEVISITOR_H
 
 /* === Include(s) === */
 
 #include <graphs/pisdf/Vertex.h>
 #include <graphs/pisdf/ExecVertex.h>
 #include <graphs/pisdf/SpecialVertex.h>
+#include <graphs/pisdf/Param.h>
+#include <graphs/pisdf/DynamicParam.h>
+#include <graphs/pisdf/InHeritedParam.h>
 #include <graphs/pisdf/visitors/DefaultVisitor.h>
 #include <api/pisdf-api.h>
 
@@ -59,9 +62,9 @@ namespace spider {
          * @param Graph Graph to which the clone is added (if nullptr, @refitem graph_ is used).
          * @return Clone instance of the vertex.
          */
-        struct CloneVertexVisitor final : public DefaultVisitor {
-            explicit CloneVertexVisitor(Graph *graph, StackID stack = StackID::PISDF) : graph_{ graph },
-                                                                                        stack_{ stack } { }
+        struct CloneVisitor final : public DefaultVisitor {
+            explicit CloneVisitor(Graph *graph, StackID stack = StackID::PISDF) : graph_{ graph },
+                                                                                  stack_{ stack } { }
 
             /* === Method(s) === */
 
@@ -89,6 +92,21 @@ namespace spider {
 
             inline void visit(EndVertex *vertex) override { clone(vertex); }
 
+            inline void visit(Param *param) override {
+                auto *clone = make<Param>(stack_, (*param));
+                graph_->addParam(clone);
+            }
+
+            inline void visit(DynamicParam *param) override {
+                auto *clone = make<DynamicParam>(stack_, (*param));
+                graph_->addParam(clone);
+            }
+
+            inline void visit(InHeritedParam *param) override {
+                auto *clone = make<InHeritedParam>(stack_, (*param));
+                graph_->addParam(clone);
+            }
+
             /* == Graph to add vertex to == */
             Graph *graph_ = nullptr;
             StackID stack_;
@@ -103,4 +121,4 @@ namespace spider {
         };
     }
 }
-#endif //SPIDER2_CLONEVERTEXVISITOR_H
+#endif //SPIDER2_CLONEVISITOR_H

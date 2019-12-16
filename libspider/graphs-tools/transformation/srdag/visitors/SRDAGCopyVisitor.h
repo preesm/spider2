@@ -37,13 +37,13 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_COPYVISITOR_H
-#define SPIDER2_COPYVISITOR_H
+#ifndef SPIDER2_SRDAGCOPYVISITOR_H
+#define SPIDER2_SRDAGCOPYVISITOR_H
 
 /* === Include(s) === */
 
 #include <graphs/pisdf/visitors/DefaultVisitor.h>
-#include <graphs/pisdf/visitors/CloneVertexVisitor.h>
+#include <graphs/pisdf/visitors/CloneVisitor.h>
 #include <graphs/pisdf/SpecialVertex.h>
 #include <api/pisdf-api.h>
 
@@ -52,11 +52,11 @@ namespace spider {
 
         /* === Struct definition === */
 
-        struct CopyVisitor final : public pisdf::DefaultVisitor {
+        struct SRDAGCopyVisitor final : public pisdf::DefaultVisitor {
         public:
-            CopyVisitor(const TransfoJob &job, pisdf::Graph *srdag) : job_{ job }, srdag_{ srdag } { };
+            SRDAGCopyVisitor(const TransfoJob &job, pisdf::Graph *srdag) : job_{ job }, srdag_{ srdag } { };
 
-            ~CopyVisitor() override = default;
+            ~SRDAGCopyVisitor() override = default;
 
             inline void visit(pisdf::DelayVertex *vertex) override {
                 /* == This a trick to ensure proper coherence even with recursive delay init == */
@@ -73,7 +73,7 @@ namespace spider {
             }
 
             inline void visit(pisdf::ExecVertex *vertex) override {
-                pisdf::CloneVertexVisitor cloneVisitor{ srdag_, StackID::TRANSFO };
+                pisdf::CloneVisitor cloneVisitor{ srdag_, StackID::TRANSFO };
                 vertex->setJobIx(job_.firingValue_);
                 for (uint32_t it = 0; it < vertex->repetitionValue(); ++it) {
                     /* == Change the name of the clone == */
@@ -111,4 +111,4 @@ namespace spider {
     }
 }
 
-#endif //SPIDER2_COPYVISITOR_H
+#endif //SPIDER2_SRDAGCOPYVISITOR_H

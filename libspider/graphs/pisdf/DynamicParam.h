@@ -66,6 +66,15 @@ namespace spider {
 
             }
 
+            DynamicParam(const DynamicParam &other) : Param(other) {
+                expression_ = other.expression_;
+            }
+
+            DynamicParam(DynamicParam &&other) noexcept : Param(std::move(other)) {
+                using std::swap;
+                swap(expression_, other.expression_);
+            }
+
             /* === Method(s) === */
 
             inline void visit(Visitor *visitor) override {

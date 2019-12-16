@@ -52,7 +52,7 @@
 #include <graphs/pisdf/ExecVertex.h>
 #include <graphs/pisdf/SpecialVertex.h>
 #include <api/spider.h>
-#include <graphs/pisdf/visitors/CloneVertexVisitor.h>
+#include <graphs/pisdf/visitors/CloneVisitor.h>
 
 class pisdVertexTest : public ::testing::Test {
 protected:
@@ -249,7 +249,7 @@ TEST_F(pisdVertexTest, vertexTest) {
     /* == Test cpy ctor of each subtype == */
     testCpyCtor();
 
-    auto visitor = spider::pisdf::CloneVertexVisitor(graph);
+    auto visitor = spider::pisdf::CloneVisitor(graph);
     spider::api::enableLogger(spider::log::GENERAL);
     v0->visit(&visitor);
 

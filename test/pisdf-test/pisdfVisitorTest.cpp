@@ -53,7 +53,7 @@
 #include <graphs/pisdf/InHeritedParam.h>
 #include <graphs/pisdf/ExecVertex.h>
 #include <api/spider.h>
-#include <graphs/pisdf/visitors/CloneVertexVisitor.h>
+#include <graphs/pisdf/visitors/CloneVisitor.h>
 
 class pisdfVisitorTest : public ::testing::Test {
 protected:
@@ -91,7 +91,7 @@ struct TestDefaultVisitor final : public spider::pisdf::DefaultVisitor {
     }
 
     bool hitExec_ = false;
-    bool hitGraph_  = false;
+    bool hitGraph_ = false;
     bool hitInterface_ = false;
 };
 
@@ -246,5 +246,86 @@ TEST_F(pisdfVisitorTest, defaultTest2) {
         spider::pisdf::OutputInterface vertex;
         ASSERT_NO_THROW(vertex.visit(&visitor)) << "TestDefaultVisitor should not throw for input interface.";
         ASSERT_EQ(visitor.hitInterface_, true) << "OutputInterface::visit failed";
+    }
+}
+
+
+TEST_F(pisdfVisitorTest, cloneTest) {
+    spider::pisdf::Graph result;
+    {
+        spider::pisdf::CloneVisitor visitor(&result);
+        spider::pisdf::ExecVertex vertex;
+        ASSERT_NO_THROW(vertex.visit(&visitor)) << "ExecVertex::visit should not throw for default visitor";
+    }
+    {
+        spider::pisdf::CloneVisitor visitor(&result);
+        spider::pisdf::ForkVertex vertex;
+        ASSERT_NO_THROW(vertex.visit(&visitor)) << "ForkVertex::visit should not throw for default visitor";
+    }
+    {
+        spider::pisdf::CloneVisitor visitor(&result);
+        spider::pisdf::JoinVertex vertex;
+        ASSERT_NO_THROW(vertex.visit(&visitor)) << "JoinVertex::visit should not throw for default visitor";
+    }
+    {
+        spider::pisdf::CloneVisitor visitor(&result);
+        spider::pisdf::HeadVertex vertex;
+        ASSERT_NO_THROW(vertex.visit(&visitor)) << "HeadVertex::visit should not throw for default visitor";
+    }
+    {
+        spider::pisdf::CloneVisitor visitor(&result);
+        spider::pisdf::TailVertex vertex;
+        ASSERT_NO_THROW(vertex.visit(&visitor)) << "TailVertex::visit should not throw for default visitor";
+    }
+    {
+        spider::pisdf::CloneVisitor visitor(&result);
+        spider::pisdf::RepeatVertex vertex;
+        ASSERT_NO_THROW(vertex.visit(&visitor)) << "RepeatVertex::visit should not throw for default visitor";
+    }
+    {
+        spider::pisdf::CloneVisitor visitor(&result);
+        spider::pisdf::DuplicateVertex vertex;
+        ASSERT_NO_THROW(vertex.visit(&visitor)) << "DuplicateVertex::visit should not throw for default visitor";
+    }
+    {
+        spider::pisdf::CloneVisitor visitor(&result);
+        spider::pisdf::DelayVertex vertex;
+        ASSERT_NO_THROW(vertex.visit(&visitor)) << "DelayVertex::visit should not throw for default visitor";
+    }
+    {
+        spider::pisdf::CloneVisitor visitor(&result);
+        spider::pisdf::ConfigVertex vertex;
+        ASSERT_NO_THROW(vertex.visit(&visitor)) << "ConfigVertex::visit should not throw for default visitor";
+    }
+    {
+        spider::pisdf::CloneVisitor visitor(&result);
+        spider::pisdf::Graph vertex;
+        ASSERT_NO_THROW(vertex.visit(&visitor)) << "CloneVisitor should not throw for graph.";
+    }
+    {
+        spider::pisdf::CloneVisitor visitor(&result);
+        spider::pisdf::InputInterface vertex;
+        ASSERT_THROW(vertex.visit(&visitor), spider::Exception) << "CloneVisitor should throw for input interface.";
+    }
+    {
+        spider::pisdf::CloneVisitor visitor(&result);
+        spider::pisdf::OutputInterface vertex;
+        ASSERT_THROW(vertex.visit(&visitor), spider::Exception) << "CloneVisitor should throw for input interface.";
+    }
+    {
+        spider::pisdf::CloneVisitor visitor(&result);
+        spider::pisdf::Param param("static");
+        ASSERT_NO_THROW(param.visit(&visitor)) << "CloneVisitor should not throw for static param.";
+    }
+    {
+        spider::pisdf::CloneVisitor visitor(&result);
+        spider::pisdf::DynamicParam param("dynamic");
+        ASSERT_NO_THROW(param.visit(&visitor)) << "CloneVisitor should not throw for dynamic param.";
+    }
+    {
+        spider::pisdf::CloneVisitor visitor(&result);
+        spider::pisdf::Param p("");
+        spider::pisdf::InHeritedParam param("inherited", &p);
+        ASSERT_NO_THROW(param.visit(&visitor)) << "CloneVisitor should not throw for inherited param.";
     }
 }
