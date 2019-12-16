@@ -61,6 +61,7 @@ namespace spider {
 
     class Platform {
     public:
+        using InterMemoryInterface = std::pair<MemoryInterface *, MemoryInterface *>;
 
         Platform(size_t clusterCount, size_t peCount);
 
@@ -79,6 +80,16 @@ namespace spider {
         inline PE *peFromVirtualIx(size_t virtualIx) const {
             return peArray_.at(virtualIx);
         }
+
+        /**
+         * @brief Compute the data communication cost between two processing elements.
+         * @param peSrc      Processing Element sending the data.
+         * @param peSnk      Processing Element receiving the data.
+         * @param dataSize   Size (in byte) of the data to send / receive.
+         * @return communication cost (UINT64_MAX if communication is not possible).
+         */
+        uint64_t dataCommunicationCostPEToPE(PE *peSrc, PE *peSnk, uint64_t dataSize);
+
 
         /* === Getter(s) === */
 
@@ -139,6 +150,16 @@ namespace spider {
          */
         size_t LRTCount() const;
 
+        /**
+         * @brief Get the pair of @refitem MemoryInterface between two clusters.
+         * @remark The pair is returned with first being A write <-> read B and second B write <-> read A.
+         * @param clusterA  Cluster A.
+         * @param clusterB  Cluster B.
+         * @return @refitem InterMemoryInterface
+         * @throws std::out_of_range if not found.
+         */
+        InterMemoryInterface getClusterToClusterMemoryInterface(Cluster *clusterA, Cluster *clusterB);
+
         /* === Setter(s) === */
 
         /**
@@ -152,9 +173,20 @@ namespace spider {
             }
         }
 
+        /**
+         * @brief Set the pair of @refitem MemoryInterface between two cluster.
+         * @remark This will overwrite current value.
+         * @param clusterA   Cluster A.
+         * @param clusterB   Cluster B.
+         * @param interface  Pair of interfaces.
+         * @throws std::out_of_range if out of bound
+         */
+        void setClusterToClusterMemoryInterface(Cluster *clusterA, Cluster *clusterB, InterMemoryInterface interface);
+
     private:
         spider::array<Cluster *> clusterArray_;
         spider::array<PE *> peArray_;
+        spider::array<InterMemoryInterface> cluster2ClusterMemoryIF_;
         size_t clusterCount_ = 0;
         size_t peCount_ = 0;
         PE *grt_ = nullptr;

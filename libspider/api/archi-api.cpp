@@ -81,7 +81,7 @@ spider::MemoryUnit *spider::api::createMemoryUnit(uint64_t size) {
 
 spider::MemoryInterface *spider::api::createMemoryInterface(spider::MemoryUnit *memoryUnit) {
     if (!memoryUnit) {
-        throwSpiderException("nullptr MemoryUnit");
+        throwSpiderException("nullptr MemoryUnit: use spider::api::createMemoryUnit() first.");
     }
     auto *interface = make<MemoryInterface, StackID::ARCHI>();
     interface->setMemoryUnit(memoryUnit);
@@ -91,7 +91,10 @@ spider::MemoryInterface *spider::api::createMemoryInterface(spider::MemoryUnit *
 std::pair<spider::MemoryInterface *, spider::MemoryInterface *>
 spider::api::createMemoryInterface(spider::Cluster *clusterA, spider::Cluster *clusterB) {
     if (!clusterA || !clusterB) {
-        throwSpiderException("nullptr for Cluster");
+        throwSpiderException("nullptr for Cluster: use spider::api::createCluster() first.");
+    }
+    if (!platform()) {
+        throwSpiderException("nullptr for platform(): use spider::api::createPlatform() first.");
     }
     /* == Create MemoryInterface for cluster A side == */
     auto *memoryUnitA = clusterA->memoryUnit();
@@ -102,6 +105,9 @@ spider::api::createMemoryInterface(spider::Cluster *clusterA, spider::Cluster *c
     auto *memoryUnitB = clusterB->memoryUnit();
     auto *memoryInterfaceB = make<MemoryInterface, StackID::ARCHI>();
     memoryInterfaceB->setMemoryUnit(memoryUnitB);
+
+    /* == Set the interface in the platform == */
+    platform()->setClusterToClusterMemoryInterface(clusterA, clusterB, { memoryInterfaceA, memoryInterfaceB });
     return std::make_pair(memoryInterfaceA, memoryInterfaceB);
 }
 

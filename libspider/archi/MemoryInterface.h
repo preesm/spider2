@@ -114,6 +114,12 @@ namespace spider {
             return writeCostRoutine_(size);
         }
 
+        /* === Getter(s) === */
+
+        inline MemoryUnit *memoryUnit() const {
+            return memoryUnit_;
+        }
+
         /* === Setter(s) === */
 
         /**
@@ -178,7 +184,7 @@ namespace spider {
 
     private:
         MemoryUnit *memoryUnit_ = nullptr;                    /* = Memory unit attached to this interface = */
-        spider::unordered_map<uint64_t, void*> virtual2Phys_; /* = Map associating virtual address to physical ones = */
+        spider::unordered_map<uint64_t, void *> virtual2Phys_; /* = Map associating virtual address to physical ones = */
 
         /* === Memory write routine === */
 
