@@ -113,11 +113,15 @@ std::pair<spider::srdag::JobStack, spider::srdag::JobStack> spider::srdag::Singl
     replaceInterfaces();
 
     /* == 1. Copy the vertex accordingly to their repetition value == */
+    spider::vector<size_t> delayVertexToRemove;
     for (const auto &vertex : job_.reference_->vertices()) {
         const auto &vertexUniformIx = uniformIx(vertex, job_.reference_);
         CopyVisitor visitor{ job_, srdag_ };
         vertex->visit(&visitor);
         ref2Clone_[vertexUniformIx] = visitor.ix_;
+        if (vertex->subtype() == pisdf::VertexType::DELAY) {
+            delayVertexToRemove.emplace_back(visitor.ix_);
+        }
     }
 
     /* == 1.1 Create the next and dynamic jobs == */
@@ -134,6 +138,11 @@ std::pair<spider::srdag::JobStack, spider::srdag::JobStack> spider::srdag::Singl
         srdag_->removeVertex(srdagInstance);
     }
 
+    /* == 4. Remove the delay vertex added for the transformation == */
+    for (const auto &ix : delayVertexToRemove) {
+        srdag_->removeVertex(srdag_->vertex(ix));
+    }
+
     return futureJobs;
 }
 
@@ -146,7 +155,7 @@ void spider::srdag::SingleRateTransformer::replaceInterfaces() {
 
     /* == 0. Search for the instance in the SR-DAG == */
     auto *instance = srdag_->vertex(job_.srdagIx_);
-    if (!instance) {
+    if (!instance || instance->name().find(job_.reference_->name()) == std::string::npos) {
         throwSpiderException("could not find matching single rate instance [%zu] of graph [%s]",
                              job_.firingValue_,
                              job_.reference_->name().c_str());
@@ -206,6 +215,7 @@ std::pair<spider::srdag::JobStack, spider::srdag::JobStack> spider::srdag::Singl
         auto it = dynaJobs.begin();
         while ((it != dynaJobs.end()) && ((*it).reference_ != runGraph)) { it++; }
         if (it == dynaJobs.end()) {
+            // LCOV_IGNORE: this a sanity check, if go there, something bad happened that can not be tested directly
             throwSpiderException("Init graph [%s] did not find run counter part [%s].",
                                  subgraph->name().c_str(),
                                  runGraph->name().c_str());
@@ -265,7 +275,7 @@ void spider::srdag::SingleRateTransformer::singleRateLinkage(pisdf::Edge *edge) 
 
     /* == 3. Sanity check == */
     if (!sourceVector.empty()) {
-        // LCOV_IGNORE
+        // LCOV_IGNORE: this a sanity check, if go there, something bad happened that can not be tested directly
         throwSpiderException("remaining sources to link after single rate transformation on edge: [%s].",
                              edge->name().c_str());
     }
@@ -406,7 +416,7 @@ spider::srdag::SingleRateTransformer::buildSinkLinkerVector(pisdf::Edge *edge) {
         auto *outputEdge = clone->outputEdge(0);
         if (outputEdge) {
             /* == 1.1 We already connected getter, we'll use it directly == */
-            populateFromDelayVertex(sinkVector, outputEdge, clone, true);
+            populateFromDelayVertex(sinkVector, outputEdge, true);
         } else {
             /* == 1.2 Connect to the clone == */
             populateTransfoVertexVector(sinkVector, delay->vertex(), delay->value(params), 1);
@@ -417,7 +427,7 @@ spider::srdag::SingleRateTransformer::buildSinkLinkerVector(pisdf::Edge *edge) {
     auto *clone = srdag_->vertex(ref2Clone_[sink->ix()]);
     if (sink->subtype() == pisdf::VertexType::DELAY && clone->outputEdge(1)) {
         /* == 2.1 We already connected sink of original edge containing the delay, we'll use it directly == */
-        populateFromDelayVertex(sinkVector, clone->outputEdge(1), clone, true);
+        populateFromDelayVertex(sinkVector, clone->outputEdge(1), true);
     } else {
         /* == 2.2 Populate the sink clones in reverse order == */
         const auto &params = job_.params_;
@@ -442,7 +452,7 @@ spider::srdag::SingleRateTransformer::buildSourceLinkerVector(pisdf::Edge *edge)
     auto *clone = srdag_->vertex(ref2Clone_[source->ix()]);
     if (source->subtype() == pisdf::VertexType::DELAY && clone->inputEdge(1)) {
         /* == 1.1 We already connected source of original edge containing the delay, we'll use it directly == */
-        populateFromDelayVertex(sourceVector, clone->inputEdge(1), clone, false);
+        populateFromDelayVertex(sourceVector, clone->inputEdge(1), false);
     } else {
         /* == 1.2 Populate the source clones in reverse order == */
         const auto &params = job_.params_;
@@ -461,7 +471,7 @@ spider::srdag::SingleRateTransformer::buildSourceLinkerVector(pisdf::Edge *edge)
         auto *inputEdge = delayClone->inputEdge(0);
         if (inputEdge) {
             /* == 2.1 We already connected setter, we'll use it directly == */
-            populateFromDelayVertex(sourceVector, inputEdge, delayClone, false);
+            populateFromDelayVertex(sourceVector, inputEdge, false);
         } else {
             /* == 2.2 Connect to the clone == */
             populateTransfoVertexVector(sourceVector, delay->vertex(), delay->value(params), 1);

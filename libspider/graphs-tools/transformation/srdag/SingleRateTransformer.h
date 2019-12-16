@@ -200,12 +200,10 @@ namespace spider {
              *        If edge is the last the four possible, removes the clone as well.
              * @param vector     Vector currently evaluated.
              * @param edge       Corresponding edge in the four possible (in_0: setter, in_1: producer, out_0:getter, out_1:consumer)
-             * @param delayClone Clone of the delay vertex (see the trick in CopyVisitor)
              * @param isSink     Boolean corresponding to type (true if calling for sink, false else)
              */
             inline void populateFromDelayVertex(spider::vector<TransfoVertex> &vector,
                                                 pisdf::Edge *edge,
-                                                pisdf::Vertex *delayClone,
                                                 bool isSink) {
                 pisdf::Vertex *vertex = nullptr;
                 int64_t rate;
@@ -223,12 +221,6 @@ namespace spider {
 
                 /* == Remove the Edge == */
                 srdag_->removeEdge(edge);
-
-                /* == Check if we are the last of the four (setter / getter, producer / consumer) == */
-                if (!delayClone->outputEdge(0) && !delayClone->outputEdge(1) &&
-                    !delayClone->inputEdge(0) && !delayClone->inputEdge(1)) {
-                    srdag_->removeVertex(delayClone);
-                }
             }
         };
     }
