@@ -120,14 +120,6 @@ namespace spider {
             virtual Edge *disconnectOutputEdge(size_t ix);
 
             /**
-             * @brief Forward the connection of an edge. It should return this except for @refitem Interface vertices.
-             * @return this or vertex connected to edge.
-             */
-            inline virtual Vertex *forwardEdge(const Edge *) {
-                return this;
-            }
-
-            /**
              * @brief Generic method that accept a visitor for class specific treatments.
              * @remark This implement a double-dispatch visitor pattern.
              * @param visitor  Visitor to accept.

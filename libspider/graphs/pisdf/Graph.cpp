@@ -163,13 +163,6 @@ void spider::pisdf::Graph::removeParam(Param *param) {
     destroy(param);
 }
 
-spider::pisdf::Vertex *spider::pisdf::Graph::forwardEdge(const Edge *e) {
-    if (e->source() == this) {
-        return outputInterfaceArray_[e->sourcePortIx()];
-    }
-    return inputInterfaceArray_[e->sinkPortIx()];
-}
-
 /* === Private method(s) === */
 
 template<class T>

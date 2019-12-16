@@ -196,8 +196,6 @@ namespace spider {
                 graph->addEdge(elt);
             }
 
-            Vertex *forwardEdge(const Edge *e) override;
-
             inline void visit(Visitor *visitor) override {
                 visitor->visit(this);
             }

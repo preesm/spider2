@@ -101,8 +101,6 @@ TEST_F(pisdfInterfaceTest, usageTest) {
     auto *output = graph->outputInterface(0);
     ASSERT_EQ(input->opposite(), vertex) << "opposite of input interface failed.";
     ASSERT_EQ(output->opposite(), vertex) << "opposite of output interface failed.";
-    ASSERT_EQ(input->forwardEdge(nullptr), vertex) << "forwardEdge of input interface failed.";
-    ASSERT_EQ(output->forwardEdge(nullptr), vertex) << "forwardEdge of output interface failed.";
     ASSERT_EQ(input->subtype(), spider::pisdf::VertexType::INPUT) << "input interface subtype failed";
     ASSERT_EQ(output->subtype(), spider::pisdf::VertexType::OUTPUT) << "output interface subtype failed";
     auto *top = new spider::pisdf::Graph("top", 3, 2, 0);

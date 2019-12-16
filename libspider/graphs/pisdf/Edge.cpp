@@ -99,14 +99,6 @@ void spider::pisdf::Edge::removeDelay() {
     destroy(delay_);
 }
 
-spider::pisdf::Vertex *spider::pisdf::Edge::sourceFw() const {
-    return src_->forwardEdge(this);
-}
-
-spider::pisdf::Vertex *spider::pisdf::Edge::sinkFw() const {
-    return snk_->forwardEdge(this);
-}
-
 void spider::pisdf::Edge::setSource(Vertex *vertex, size_t ix, Expression &&expr) {
     if (vertex) {
         /* == Disconnect current output edge (if any) == */

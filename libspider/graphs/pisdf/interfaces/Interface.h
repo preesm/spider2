@@ -63,10 +63,6 @@ namespace spider {
 
             /* === Method(s) === */
 
-            inline Vertex *forwardEdge(const Edge *) override {
-                return this->opposite()->forwardEdge(nullptr);
-            }
-
             /* === Getter(s) === */
 
             virtual Edge *inputEdge() const = 0;

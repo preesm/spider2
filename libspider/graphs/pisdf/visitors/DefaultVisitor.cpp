@@ -42,6 +42,8 @@
 
 #include <graphs/pisdf/visitors/DefaultVisitor.h>
 #include <graphs/pisdf/SpecialVertex.h>
+#include <graphs/pisdf/interfaces/InputInterface.h>
+#include <graphs/pisdf/interfaces/OutputInterface.h>
 
 /* === Function(s) definition === */
 
@@ -83,4 +85,12 @@ void spider::pisdf::DefaultVisitor::visit(InitVertex *vertex) {
 
 void spider::pisdf::DefaultVisitor::visit(EndVertex *vertex) {
     this->visit(static_cast<ExecVertex *>(vertex));
+}
+
+void spider::pisdf::DefaultVisitor::visit(InputInterface *input) {
+    this->visit(static_cast<Interface *>(input));
+}
+
+void spider::pisdf::DefaultVisitor::visit(OutputInterface *output) {
+    this->visit(static_cast<Interface *>(output));
 }

@@ -225,24 +225,10 @@ void spider::pisdf::DOTExporterVisitor::interfaceBodyPrinter(Interface *interfac
     const auto &rateWidth = 24 + std::max(widthPair.second + 1 - 1, 0) * 6;
     auto *inputEdge = interface->inputEdge();
     auto *outputEdge = interface->outputEdge();
-    size_t inIx = 0;
-    size_t outIx = 0;
-    int64_t inRate = 0;
-    int64_t outRate = 0;
-    if (inputEdge) {
-        inIx = inputEdge->sinkPortIx();
-        inRate = inputEdge->sinkRateExpression().evaluate(exporter_->params_);
-        outIx = inIx;
-        outRate = inRate;
-    }
-    if (outputEdge) {
-        outIx = outputEdge->sourcePortIx();
-        outRate = outputEdge->sourceRateExpression().evaluate(exporter_->params_);
-        if (!inputEdge) {
-            inIx = outIx;
-            outRate = outRate;
-        }
-    }
+    auto inIx = inputEdge->sinkPortIx();
+    auto outIx = outputEdge->sourcePortIx();
+    auto inRate = inputEdge->sinkRateExpression().evaluate(exporter_->params_);
+    auto outRate = outputEdge->sourceRateExpression().evaluate(exporter_->params_);
     file_ << offset_ << '\t' << '\t'
           << R"(<tr>
                     <td border="0" bgcolor="#ffffff00" fixedsize="true" width=")" << balanceWidth << R"(" height="60"></td>
@@ -261,26 +247,47 @@ void spider::pisdf::DOTExporterVisitor::interfaceBodyPrinter(Interface *interfac
     file_ << offset_ << "];" << '\n' << '\n';
 }
 
+struct GetVertexVisitor final : public spider::pisdf::DefaultVisitor {
+    void visit(spider::pisdf::ExecVertex *vertex) override {
+        vertex_ = vertex;
+        name_ = vertex->name();
+    }
+
+    void visit(spider::pisdf::InputInterface *interface) override {
+        vertex_ = interface;
+        name_ = "input-" + vertex_->name();
+    }
+
+    void visit(spider::pisdf::OutputInterface *interface) override {
+        vertex_ = interface;
+        name_ = "output-" + vertex_->name();
+    }
+
+    void visit(spider::pisdf::Graph *graph) override {
+        source_ ? this->visit(graph->outputInterface(ix_)) : this->visit(graph->inputInterface(ix_));
+    }
+
+    spider::pisdf::Vertex *vertex_ = nullptr;
+    bool source_ = true;
+    size_t ix_ = 0;
+    std::string name_;
+};
+
 void spider::pisdf::DOTExporterVisitor::edgePrinter(Edge *edge) const {
-    auto *source = edge->source();
-    auto *sink = edge->sink();
-    if (!source || !sink) {
-        return;
-    }
-    if (source->subtype() == VertexType::GRAPH) {
-        source = edge->sourceFw();
-    }
-    if (sink->subtype() == VertexType::GRAPH) {
-        sink = edge->sinkFw();
-    }
     const auto *delay = edge->delay();
     const auto &srcPortIx = edge->sourcePortIx();
     const auto &snkPortIx = edge->sinkPortIx();
-    const auto &srcName = source->subtype() == VertexType::OUTPUT ? ("output-" + source->name()) :
-                          (source->subtype() == VertexType::INPUT ? "input-" + source->name() : source->name());
-    const auto &snkName =
-            sink->subtype() == VertexType::INPUT ? ("input-" + sink->name()) :
-            (sink->subtype() == VertexType::OUTPUT ? ("output-" + sink->name()) : sink->name());
+    /* == Get the source and sink == */
+    GetVertexVisitor visitor;
+    visitor.ix_ = srcPortIx;
+    edge->source()->visit(&visitor);
+    auto *source = visitor.vertex_;
+    auto srcName = std::move(visitor.name_);
+    visitor.source_ = false;
+    visitor.ix_ = snkPortIx;
+    edge->sink()->visit(&visitor);
+    auto *sink = visitor.vertex_;
+    auto snkName = std::move(visitor.name_);
     if (delay) {
         /* == Draw circle of the delay == */
         file_ << offset_ << R"(")" << delay->name()

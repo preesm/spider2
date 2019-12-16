@@ -140,8 +140,6 @@ namespace spider {
                 return src_;
             }
 
-            Vertex *sourceFw() const;
-
             /**
              * @brief Get the sink reference vertex.
              * @return reference to sink
@@ -149,8 +147,6 @@ namespace spider {
             inline Vertex *sink() const {
                 return snk_;
             }
-
-            Vertex *sinkFw() const;
 
             /**
              * @brief Get the delay (if any) associated to the edge.

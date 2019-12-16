@@ -144,9 +144,6 @@ TEST_F(pisdfGraphTest, graphTest) {
     spider::api::createEdge(subgraph, 0, 5, vertex_4, 0, 5);
     spider::api::createEdge(cfg, 0, 15, vertex_2, 1, 1);
 
-    ASSERT_EQ(graph->edges()[1]->sinkFw(), input) << "Graph::forwardEdge() failed";
-    ASSERT_EQ(graph->edges()[2]->sourceFw(), output) << "Graph::forwardEdge() failed";
-
     ASSERT_EQ(graph->vertices().size(), 4) << "Graph::vertices() failed.";
     ASSERT_EQ(graph->subgraphs().size(), 1) << "Graph::subgraphs() failed.";
     ASSERT_EQ(subgraph->configVertices().size(), 1) << "Graph::configVertices() failed.";

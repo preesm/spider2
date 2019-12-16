@@ -92,8 +92,6 @@ TEST_F(pisdEdgeTest, edgeTest) {
     ASSERT_NO_THROW(edge->setSink(v1, 0, spider::Expression())) << "Edge::setSink() should never throw";
     ASSERT_EQ(edge->source(), v0) << "Edge::source() failed.";
     ASSERT_EQ(edge->sink(), v1) << "Edge::sink() failed.";
-    ASSERT_EQ(edge->sourceFw(), v0) << "Edge::sourceFw() failed.";
-    ASSERT_EQ(edge->sinkFw(), v1) << "Edge::sinkFw() failed.";
     ASSERT_EQ(edge->sourcePortIx(), 0) << "Edge::sourcePortIx() failed.";
     ASSERT_EQ(edge->sinkPortIx(), 0) << "Edge::sinkPortIx() failed.";
     graph->addEdge(spider::make<spider::pisdf::Edge, StackID::PISDF>(setter, 0, spider::Expression(), getter, 0,

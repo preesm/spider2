@@ -50,6 +50,7 @@ namespace spider {
 
         class DefaultVisitor : public Visitor {
         public:
+
             /* === Method(s) === */
 
             inline void visit(Graph *) override {
@@ -78,13 +79,13 @@ namespace spider {
 
             void visit(EndVertex *vertex) override;
 
-            inline void visit(InputInterface *) override {
-                throwSpiderException("unsupported visitor type: InputInterface.");
+            inline void visit(Interface *) override {
+                throwSpiderException("unsupported visitor type: Interface.");
             }
 
-            inline void visit(OutputInterface *) override {
-                throwSpiderException("unsupported visitor type: OutputInterface.");
-            }
+            void visit(InputInterface *input) override;
+
+            void visit(OutputInterface *output) override;
 
             inline void visit(Param *) override {
                 throwSpiderException("unsupported visitor type: Param.");

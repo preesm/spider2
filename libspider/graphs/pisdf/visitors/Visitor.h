@@ -89,6 +89,8 @@ namespace spider {
 
             virtual void visit(EndVertex *) = 0;
 
+            virtual void visit(Interface *) = 0;
+
             virtual void visit(InputInterface *) = 0;
 
             virtual void visit(OutputInterface *) = 0;
