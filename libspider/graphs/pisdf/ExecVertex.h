@@ -103,7 +103,7 @@ namespace spider {
              * @remark In the case of @refitem VertexType::CONFIG, the value match the one of the corresponding dynamic job.
              * @return ix of the job, UINT32_MAX if not set.
              */
-            inline uint32_t jobIx() const {
+            inline size_t jobIx() const {
                 return jobIx_;
             }
 
@@ -129,13 +129,13 @@ namespace spider {
              * @brief Set the job ix of the vertex.
              * @param ix  Ix to set.
              */
-            inline void setJobIx(uint32_t ix) {
+            inline void setJobIx(size_t ix) {
                 jobIx_ = ix;
             }
 
         protected:
+            size_t jobIx_ = UINT32_MAX;
             uint32_t refinementIx_ = UINT32_MAX;
-            uint32_t jobIx_ = UINT32_MAX;
 
         };
     }
