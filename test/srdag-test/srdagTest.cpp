@@ -421,56 +421,56 @@ TEST_F(srdagTest, srdagHTest3) {
     spider::destroy(graph);
 }
 
-//TEST_F(srdagTest, srdagHTest4) {
-//    auto *graph = spider::api::createGraph("topgraph", 2, 1);
-//    auto *vertex_0 = spider::api::createVertex(graph, "vertex_0", 0, 1);
-//    auto *subgraph = spider::api::createSubraph(graph, "subgraph", 2, 2, 0, 1, 1);
-//    auto *vertex_1 = spider::api::createVertex(graph, "vertex_1", 1);
-//    auto *input = spider::api::setInputInterfaceName(subgraph, 0, "input");
-//    auto *output = spider::api::setOutputInterfaceName(subgraph, 0, "output");
-//    auto *vertex_2 = spider::api::createVertex(subgraph, "vertex_2", 1, 1);
-//    auto *vertex_3 = spider::api::createVertex(subgraph, "vertex_3", 1);
-//    auto *cfg = spider::api::createConfigActor(subgraph, "cfg", 0, 1);
-//    spider::api::createEdge(vertex_0, 0, 1, subgraph, 0, 1);
-//    spider::api::createEdge(subgraph, 0, 1, vertex_1, 0, 1);
-//    spider::api::createEdge(input, 0, 1, vertex_2, 0, 1);
-//    spider::api::createEdge(cfg, 0, 1, output, 0, 1);
-//    spider::api::createEdge(vertex_2, 0, 1, vertex_3, 0, 1);
-//    spider::api::createStaticParam(subgraph, "height", 10);
-//    spider::api::createDynamicParam(subgraph, "width");
-//
-//    auto *srdag = spider::api::createGraph("srdag");
-//    spider::srdag::TransfoJob rootJob{ graph, UINT32_MAX, UINT32_MAX, true };
-//    std::pair<spider::srdag::JobStack, spider::srdag::JobStack> res;
-//    ASSERT_NO_THROW(res = spider::srdag::singleRateTransformation(rootJob, srdag));
-//    ASSERT_NO_THROW(spider::api::exportGraphToDOT("pisdf.dot", graph));
-//    ASSERT_NO_THROW(spider::api::exportGraphToDOT("srdag.dot", srdag));
-//    ASSERT_EQ(res.first.empty(), false)
-//                                << "srdag::singleRateTransformation should not return nullptr for dynamic H graph";
-//    ASSERT_EQ(res.second.empty(), false) << "srdag::singleRateTransformation should return nullptr for dynamic H graph";
-//    /*
-//     *       vertex_0_0 -> |
-//     * ginit_subgraph_0 | -> | grun_subgraph_0
-//     *                  | -> vertex_1_0
-//     */
-//    ASSERT_EQ(srdag->vertexCount(), 4);
-//    ASSERT_EQ(srdag->edgeCount(), 2);
-//    ASSERT_NO_THROW(spider::srdag::singleRateTransformation(res.first[0], srdag));
-//    ASSERT_NO_THROW(spider::api::exportGraphToDOT("srdag.dot", srdag));
-//    /*
-//     *    vertex_0_0 -> |
-//     * cfg -> output -> | grun_subgraph_0 -> vertex_1_0
-//     */
-//    ASSERT_EQ(srdag->vertexCount(), 5);
-//    ASSERT_EQ(srdag->edgeCount(), 3);
-//    ASSERT_NO_THROW(spider::srdag::singleRateTransformation(res.second[0], srdag));
-//    ASSERT_NO_THROW(spider::api::exportGraphToDOT("srdag.dot", srdag));
-//    /*
-//    *    vertex_0_0 -> input_0 -> |
-//    * cfg -> output -> input_1 -> | vertex_2_0 -> vertex_3_0 -> output -> vertex_1_0
-//    */
-//    ASSERT_EQ(srdag->vertexCount(), 7);
-//    ASSERT_EQ(srdag->edgeCount(), 5);
-//    spider::destroy(srdag);
-//    spider::destroy(graph);
-//}
+TEST_F(srdagTest, srdagHTest4) {
+    auto *graph = spider::api::createGraph("topgraph", 2, 1);
+    auto *vertex_0 = spider::api::createVertex(graph, "vertex_0", 0, 1);
+    auto *subgraph = spider::api::createSubraph(graph, "subgraph", 2, 2, 0, 1, 1);
+    auto *vertex_1 = spider::api::createVertex(graph, "vertex_1", 1);
+    auto *input = spider::api::setInputInterfaceName(subgraph, 0, "input");
+    auto *output = spider::api::setOutputInterfaceName(subgraph, 0, "output");
+    auto *vertex_2 = spider::api::createVertex(subgraph, "vertex_2", 1, 1);
+    auto *vertex_3 = spider::api::createVertex(subgraph, "vertex_3", 1);
+    auto *cfg = spider::api::createConfigActor(subgraph, "cfg", 0, 1);
+    spider::api::createEdge(vertex_0, 0, 1, subgraph, 0, 1);
+    spider::api::createEdge(subgraph, 0, 1, vertex_1, 0, 1);
+    spider::api::createEdge(input, 0, 1, vertex_2, 0, 1);
+    spider::api::createEdge(cfg, 0, 1, output, 0, 1);
+    spider::api::createEdge(vertex_2, 0, 1, vertex_3, 0, 1);
+    spider::api::createStaticParam(subgraph, "height", 10);
+    spider::api::createDynamicParam(subgraph, "width");
+    ASSERT_NO_THROW(spider::api::exportGraphToDOT("pisdf.dot", graph));
+
+    auto *srdag = spider::api::createGraph("srdag");
+    spider::srdag::TransfoJob rootJob{ graph, UINT32_MAX, UINT32_MAX, true };
+    std::pair<spider::srdag::JobStack, spider::srdag::JobStack> res;
+    ASSERT_NO_THROW(res = spider::srdag::singleRateTransformation(rootJob, srdag));
+    ASSERT_NO_THROW(spider::api::exportGraphToDOT("pisdf.dot", graph));
+    ASSERT_NO_THROW(spider::api::exportGraphToDOT("srdag.dot", srdag));
+    ASSERT_EQ(res.first.empty(), false)
+                                << "srdag::singleRateTransformation should not return nullptr for dynamic H graph";
+    ASSERT_EQ(res.second.empty(), false) << "srdag::singleRateTransformation should return nullptr for dynamic H graph";
+    /*
+     * ginit_subgraph_0 -> vertex_0_1
+     * vertex_0_0 -> grun_subgraph_0
+     */
+    ASSERT_EQ(srdag->vertexCount(), 4);
+    ASSERT_EQ(srdag->edgeCount(), 2);
+    ASSERT_NO_THROW(spider::srdag::singleRateTransformation(res.first[0], srdag));
+    ASSERT_NO_THROW(spider::api::exportGraphToDOT("srdag.dot", srdag));
+    /*
+     * cfg -> output -> vertex_1_0
+     * vertex_0_0 -> grun_subgraph_0
+     */
+    ASSERT_EQ(srdag->vertexCount(), 5);
+    ASSERT_EQ(srdag->edgeCount(), 3);
+    ASSERT_NO_THROW(spider::srdag::singleRateTransformation(res.second[0], srdag));
+    ASSERT_NO_THROW(spider::api::exportGraphToDOT("srdag.dot", srdag));
+    /*
+     * cfg -> output -> vertex_1_0
+     * vertex_0_0 -> output -> vertex_2_0 -> vertex_3_0
+     */
+    ASSERT_EQ(srdag->vertexCount(), 7);
+    ASSERT_EQ(srdag->edgeCount(), 5);
+    spider::destroy(srdag);
+    spider::destroy(graph);
+}

@@ -68,7 +68,7 @@ bool spider::JITMSRuntime::execute() const {
                                    StackID::TRANSFO);
 
     /* == Apply first transformation of root graph == */
-    auto &&rootJob = srdag::TransfoJob(graph, 0, UINT32_MAX);
+    auto &&rootJob = srdag::TransfoJob(graph, UINT32_MAX, UINT32_MAX, true);
     rootJob.params_ = graph->params();
     auto &&resultRootJob = srdag::singleRateTransformation(rootJob, srdag);
 
