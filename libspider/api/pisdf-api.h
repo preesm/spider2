@@ -85,12 +85,11 @@ namespace spider {
                                         uint32_t edgeOUTCount = 0,
                                         StackID stack = StackID::PISDF);
 
-        pisdf::ExecVertex *createVertex(pisdf::Graph *graph,
-                                        uint32_t refinementIx,
-                                        std::string name,
-                                        uint32_t edgeINCount = 0,
-                                        uint32_t edgeOUTCount = 0,
-                                        StackID stack = StackID::PISDF);
+//        pisdf::ExecVertex *createVertex(pisdf::Graph *graph,
+//                                        std::string name,
+//                                        uint32_t edgeINCount = 0,
+//                                        uint32_t edgeOUTCount = 0,
+//                                        StackID stack = StackID::PISDF);
 
         pisdf::ExecVertex *createFork(pisdf::Graph *graph,
                                       std::string name,

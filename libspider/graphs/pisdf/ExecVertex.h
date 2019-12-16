@@ -63,12 +63,10 @@ namespace spider {
                                                                          stack) { }
 
             ExecVertex(const ExecVertex &other, StackID stack = StackID::PISDF) : Vertex(other, stack) {
-                refinementIx_ = other.refinementIx_;
                 jobIx_ = other.jobIx_;
             }
 
             ExecVertex(ExecVertex &&other) noexcept : Vertex(std::move(other)) {
-                std::swap(refinementIx_, other.refinementIx_);
                 std::swap(jobIx_, other.jobIx_);
             }
 
@@ -91,14 +89,6 @@ namespace spider {
             }
 
             /**
-             * @brief Get the refinement index in the global register associated to this vertex.
-             * @return index of the refinement, UINT32_MAX if not set.
-             */
-            inline uint32_t refinementIx() const {
-                return refinementIx_;
-            }
-
-            /**
              * @brief Get the job ix associated to this vertex.
              * @remark In the case of @refitem VertexType::CONFIG, the value match the one of the corresponding dynamic job.
              * @return ix of the job, UINT32_MAX if not set.
@@ -118,14 +108,6 @@ namespace spider {
             /* === Setter(s) === */
 
             /**
-             * @brief Set the refinement index of the vertex.
-             * @param ix  Index to set.
-             */
-            inline void setRefinementIx(uint32_t ix) {
-                refinementIx_ = ix;
-            }
-
-            /**
              * @brief Set the job ix of the vertex.
              * @param ix  Ix to set.
              */
@@ -135,7 +117,6 @@ namespace spider {
 
         protected:
             size_t jobIx_ = UINT32_MAX;
-            uint32_t refinementIx_ = UINT32_MAX;
 
         };
     }

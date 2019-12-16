@@ -148,6 +148,14 @@ namespace spider {
             return timingVector_.at(ix).evaluate(params);
         }
 
+        /**
+         * @brief Get the index of the kernel in the global register associated to this vertex.
+         * @return index of the refinement, UINT32_MAX if not set.
+         */
+        inline size_t kernelIx() const {
+            return kernelIx_;
+        }
+
         /* === Setter(s) === */
 
         /**
@@ -240,10 +248,19 @@ namespace spider {
             std::fill(timingVector_.begin(), timingVector_.end(), expression);
         }
 
+        /**
+         * @brief Set the index of the kernel associated to the vertex.
+         * @param ix  Index to set.
+         */
+        inline void setKernelIx(size_t ix) {
+            kernelIx_ = ix;
+        }
+
     private:
         stack_vector(peMappableVector_, bool, StackID::CONSTRAINTS);
         stack_vector(clusterMappableVector_, bool, StackID::CONSTRAINTS);
         stack_vector(timingVector_, Expression, StackID::CONSTRAINTS);
+        size_t kernelIx_ = SIZE_MAX;
     };
 }
 #endif //SPIDER2_RTINFO_H
