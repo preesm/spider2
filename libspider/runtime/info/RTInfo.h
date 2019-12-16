@@ -37,8 +37,8 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_RTCONSTRAINTS_H
-#define SPIDER2_RTCONSTRAINTS_H
+#ifndef SPIDER2_RTINFO_H
+#define SPIDER2_RTINFO_H
 
 /* === Include(s) === */
 
@@ -53,10 +53,10 @@ namespace spider {
 
     /* === Class definition === */
 
-    class RTConstraints {
+    class RTInfo {
     public:
 
-        RTConstraints() {
+        RTInfo() {
             auto *platform = spider::platform();
             const auto &clusterCount = platform->clusterCount();
             const auto &peCount = platform->PECount();
@@ -65,15 +65,15 @@ namespace spider {
             timingVector_.resize(peCount, Expression(100));
         }
 
-        RTConstraints(const RTConstraints &) = default;
+        RTInfo(const RTInfo &) = default;
 
-        RTConstraints(RTConstraints &&) = default;
+        RTInfo(RTInfo &&) = default;
 
-        RTConstraints &operator=(const RTConstraints &) = default;
+        RTInfo &operator=(const RTInfo &) = default;
 
-        RTConstraints &operator=(RTConstraints &&) = default;
+        RTInfo &operator=(RTInfo &&) = default;
 
-        ~RTConstraints() = default;
+        ~RTInfo() = default;
 
         /* === Getter(s) === */
 
@@ -246,4 +246,4 @@ namespace spider {
         stack_vector(timingVector_, Expression, StackID::CONSTRAINTS);
     };
 }
-#endif //SPIDER2_RTCONSTRAINTS_H
+#endif //SPIDER2_RTINFO_H
