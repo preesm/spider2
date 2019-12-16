@@ -28,12 +28,12 @@ lcov --remove all-spider2-test.info "*/test/*" -o all-spider2-test.info # Remove
 
 # Because it is almost impossible to test for certain case such as failed malloc, we force it to be tested in order to avoid "not 100% coverage syndrome"
 cpp_files=$(find ../libspider/ -name "*.cpp")
-for file in $cpp_files:
+for file in $cpp_files
 do
     ../scripts/linux/lcovRemoveTest.sh "$(basename $file)" "$(dirname $file)/"
 done
 h_files=$(find ../libspider/ -name "*.h")
-for file in $h_files:
+for file in $h_files
 do
     ../scripts/linux/lcovRemoveTest.sh "$(basename $file)" "$(dirname $file)/"
 done

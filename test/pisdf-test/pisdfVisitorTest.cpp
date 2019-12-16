@@ -44,7 +44,6 @@
 #include <common/Exception.h>
 #include <memory/alloc.h>
 #include <graphs/pisdf/Graph.h>
-#include <graphs/pisdf/Edge.h>
 #include <graphs/pisdf/Delay.h>
 #include <graphs/pisdf/interfaces/InputInterface.h>
 #include <graphs/pisdf/interfaces/OutputInterface.h>
