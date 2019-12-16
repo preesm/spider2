@@ -184,9 +184,15 @@ spider::vector<spider::ExpressionElt> spider::Expression::buildExpressionStack(s
 
                 /* == By default, dynamic parameters have 0 value and dynamic expression are necessary built on startup == */
                 static_ &= (!dynamic);
-                skipEval = skipEval | dynamic;
                 stack.emplace_back(std::move(elt));
-                stack.back().arg.value_ = dynamic ? static_cast<double>(pair.second) : value;
+                if (!dynamic) {
+                    stack.back().elt_.type = RPNElementType::OPERAND;
+                    stack.back().elt_.subtype = RPNElementSubType::VALUE;
+                    stack.back().arg.value_ = value;
+                } else {
+                    skipEval = true;
+                    stack.back().arg.value_ = static_cast<double>(pair.second);
+                }
             } else {
                 const auto &value = std::strtod(elt.token.c_str(), nullptr);
                 evalStack.emplace_back(value);
@@ -231,7 +237,9 @@ double spider::Expression::evaluateStack(const spider::vector<pisdf::Param *> &p
     for (const auto &elt : *(expressionStack_)) {
         if (elt.elt_.type == RPNElementType::OPERAND) {
             if (elt.elt_.subtype == RPNElementSubType::PARAMETER) {
-                evalStack.emplace_back(static_cast<double>(params[static_cast<size_t>(elt.arg.value_)]->value()));
+                const auto &paramIx = static_cast<size_t>(elt.arg.value_);
+                const auto &paramValue = params[paramIx]->value();
+                evalStack.emplace_back(static_cast<double>(paramValue));
             } else {
                 evalStack.emplace_back(elt.arg.value_);
             }
