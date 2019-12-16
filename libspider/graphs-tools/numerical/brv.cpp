@@ -59,6 +59,11 @@ void spider::brv::compute(const pisdf::Graph *graph, const spider::vector<pisdf:
         /* == 1.1 Extract the edges == */
         auto edgeArray = extractEdgesFromComponent(component);
 
+        /* == 1.1.1 If there is no edge at all and this is normal then all RV are 1 by default == */
+        if (!edgeArray.size() && !component.edgeCount_) {
+            continue;
+        }
+
         /* == 1.2 Compute the Rationals == */
         extractRationalsFromEdges(rationalArray, edgeArray, params);
 

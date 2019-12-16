@@ -97,6 +97,10 @@ spider::srdag::splitDynamicGraph(pisdf::Graph *subgraph) {
                                         static_cast<uint32_t>(runOutputIFCount),
                                         0, StackID::PISDF);
 
+    /* == Set repetition values == */
+    initGraph->setRepetitionValue(subgraph->repetitionValue());
+    runGraph->setRepetitionValue(subgraph->repetitionValue());
+
     uint32_t inputInitIx = 0;
     uint32_t inputRunIx = 0;
     for (const auto &input : subgraph->inputInterfaceArray()) {

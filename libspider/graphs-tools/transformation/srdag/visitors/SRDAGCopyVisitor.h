@@ -83,6 +83,16 @@ namespace spider {
                 ix_ = (srdag_->vertexCount() - 1) - (vertex->repetitionValue() - 1);
             }
 
+            inline void visit(pisdf::ConfigVertex *vertex) override {
+                this->visit(static_cast<pisdf::ExecVertex *>(vertex));
+                if (vertex->repetitionValue()) {
+                    auto *clone = srdag_->configVertices().back(); /* = Repetition value of cfg is necessary one = */
+                    clone->setJobIx(clone->jobIx() + job_.firingValue_); /* = Current jobIx is the one of the first run job associated to the
+                                                                           * first init job this config vertex belong to.
+                                                                           * We apply offset of the firing value = */
+                }
+            }
+
             inline void visit(pisdf::Graph *graph) override {
                 /* == Clone the vertex == */
                 ix_ = 0;

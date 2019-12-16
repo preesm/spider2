@@ -51,6 +51,27 @@
 #include <monitor/Monitor.h>
 
 
+/* === Static function(s) === */
+
+static void updateStaticJobs(spider::vector<spider::srdag::TransfoJob> &src,
+                             spider::vector<spider::srdag::TransfoJob> &dest,
+                             size_t offset = 0) {
+    std::for_each(src.begin(), src.end(), [&](spider::srdag::TransfoJob &job) {
+        if (job.reference_->configVertexCount()) {
+            /* == Set the proper jobIx == */
+            for (auto &cfg : job.reference_->configVertices()) {
+                cfg->setJobIx(offset);
+            }
+        }
+        dest.emplace_back(std::move(job));
+    });
+}
+
+static void
+updateDynamicJobs(spider::vector<spider::srdag::TransfoJob> &src, spider::vector<spider::srdag::TransfoJob> &dest) {
+    std::for_each(src.begin(), src.end(), [&](spider::srdag::TransfoJob &job) { dest.emplace_back(std::move(job)); });
+}
+
 /* === Method(s) implementation === */
 
 bool spider::JITMSRuntime::execute() const {
@@ -73,8 +94,10 @@ bool spider::JITMSRuntime::execute() const {
     auto &&resultRootJob = srdag::singleRateTransformation(rootJob, srdag);
 
     /* == Initialize the job stacks == */
-    auto staticJobStack{ std::move(resultRootJob.first) };
-    auto dynamicJobStack{ std::move(resultRootJob.second) };
+    auto staticJobStack = containers::vector<srdag::TransfoJob>(StackID::TRANSFO);
+    auto dynamicJobStack = containers::vector<srdag::TransfoJob>(StackID::TRANSFO);
+    updateStaticJobs(resultRootJob.first, staticJobStack);
+    updateDynamicJobs(resultRootJob.second, dynamicJobStack);
 
     while (!staticJobStack.empty()) {
         //monitor_->startSampling();
@@ -86,14 +109,10 @@ bool spider::JITMSRuntime::execute() const {
             staticJobStack.pop_back();
 
             /* == Move static TransfoJob into static JobStack == */
-            std::for_each(result.first.begin(), result.first.end(), [&](srdag::TransfoJob &job) {
-                staticJobStack.emplace_back(std::move(job));
-            });
+            updateStaticJobs(result.first, staticJobStack, dynamicJobStack.size());
 
             /* == Move dynamic TransfoJob into dynamic JobStack == */
-            std::for_each(result.second.begin(), result.second.end(), [&](srdag::TransfoJob &job) {
-                dynamicJobStack.emplace_back(std::move(job));
-            });
+            updateDynamicJobs(result.second, dynamicJobStack);
         }
         //monitor_->endSampling();
 
@@ -112,6 +131,13 @@ bool spider::JITMSRuntime::execute() const {
         /* == Run graph for dynamic params to be resolved == */
         if (!dynamicJobStack.empty() && api::verbose() && log_enabled<LOG_TRANSFO>()) {
             log::verbose<LOG_TRANSFO>("Running graph with config actors..\n");
+            /* == simulating values == */
+            int64_t val = 10;
+            for (const auto &cfg : srdag->configVertices()) {
+                auto &job = dynamicJobStack.at(cfg->jobIx());
+                job.params_[1]->setValue(val);
+                val += 10;
+            }
         }
         // TODO: run graph
 

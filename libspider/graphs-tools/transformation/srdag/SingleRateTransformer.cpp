@@ -96,16 +96,16 @@ spider::srdag::SingleRateTransformer::SingleRateTransformer(const TransfoJob &jo
                                                             pisdf::Graph *srdag) : job_{ job }, srdag_{ srdag } {
     auto *graph = job_.reference_;
 
-    /* == 0. Split subgraphs == */
+    /* == 0. Compute the repetition vector == */
+    if (graph->dynamic() || (job_.firingValue_ == 0) || (job_.firingValue_ == UINT32_MAX)) {
+        brv::compute(graph, job_.params_);
+    }
+
+    /* == 1. Split subgraphs (must be done after brv so that init and run have same repetition value) == */
     init2run_ = splitSubgraphs(graph);
     ref2Clone_ = containers::vector<size_t>(graph->vertexCount() +
                                             graph->inputEdgeCount() +
                                             graph->outputEdgeCount(), SIZE_MAX, StackID::TRANSFO);
-
-    /* == 1. Compute the repetition vector == */
-    if (graph->dynamic() || (job_.firingValue_ == 0) || (job_.firingValue_ == UINT32_MAX)) {
-        brv::compute(graph, job_.params_);
-    }
 }
 
 std::pair<spider::srdag::JobStack, spider::srdag::JobStack> spider::srdag::SingleRateTransformer::execute() {
@@ -217,11 +217,11 @@ std::pair<spider::srdag::JobStack, spider::srdag::JobStack> spider::srdag::Singl
             // LCOV_IGNORE: this is a sanity check, it should never happen and it is not testable from the outside.
             throwSpiderException("Init graph [%s] does not have the same repetition value as run graph [%s] (%"
                                          PRIu32
-                                         "!= %"
+                                         " != %"
                                          PRIu32
                                          ").",
-                                 subgraph->name().c_str(),
-                                 runGraph->name().c_str());
+                                 subgraph->name().c_str(), runGraph->name().c_str(),
+                                 subgraph->repetitionValue(), runGraph->repetitionValue());
         }
 
         /* == 1.2 Do the actual copy == */
