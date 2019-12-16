@@ -65,7 +65,7 @@ void spider::pisdf::DOTExporter::print(const std::string &path) const {
 }
 
 void spider::pisdf::DOTExporter::print(std::ofstream &file) const {
-    DOTExporterVisitor visitor{ this, file, "\t" };
+    DOTExporterVisitor visitor{ file, "\t" };
     graph_->visit(&visitor);
 }
 

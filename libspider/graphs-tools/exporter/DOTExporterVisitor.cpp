@@ -46,6 +46,7 @@
 /* === Function(s) definition === */
 
 void spider::pisdf::DOTExporterVisitor::visit(Graph *graph) {
+    params_ = &(graph->params());
     if (graph->graph()) {
         file_ << offset_ << "subgraph \"cluster_" << graph->name() << "\" {" << '\n';
         offset_ += "\t";
@@ -63,27 +64,25 @@ void spider::pisdf::DOTExporterVisitor::visit(Graph *graph) {
         file_ << '\t' << R"(ranksep="2";)" << '\n';
     }
 
-    DOTExporterVisitor visitor{ exporter_, file_, offset_ };
-
     /* == Write vertices == */
     file_ << '\n' << offset_ << R"(// Vertices)" << '\n';
     for (const auto &vertex : graph->vertices()) {
-        vertex->visit(&visitor);
+        vertex->visit(this);
     }
 
     /* == Write interfaces in case of hierarchical graphs == */
     file_ << '\n' << offset_ << R"(// Interfaces)" << '\n';
     for (const auto &interface : graph->inputInterfaceArray()) {
-        interface->visit(&visitor);
+        interface->visit(this);
     }
     for (const auto &interface : graph->outputInterfaceArray()) {
-        interface->visit(&visitor);
+        interface->visit(this);
     }
 
     /* == Write parameters (if any) == */
     file_ << '\n' << offset_ << R"(// Parameters)" << '\n';
     for (const auto &param : graph->params()) {
-        param->visit(&visitor);
+        param->visit(this);
     }
 
     /* == Write edges == */
@@ -122,14 +121,14 @@ std::pair<int32_t, int32_t> spider::pisdf::DOTExporterVisitor::computeConstantWi
         if (!e) {
             throwSpiderException("vertex [%s]: null input edge.", vertex->name().c_str());
         }
-        const auto &rate = e->sinkRateExpression().evaluate(exporter_->params_);
+        const auto &rate = e->sinkRateExpression().evaluate((*params_));
         longestRateLen = std::max(longestRateLen, std::log10(rate));
     }
     for (const auto &e: vertex->outputEdgeArray()) {
         if (!e) {
             throwSpiderException("vertex [%s]: null output edge.", vertex->name().c_str());
         }
-        const auto &rate = e->sourceRateExpression().evaluate(exporter_->params_);
+        const auto &rate = e->sourceRateExpression().evaluate((*params_));
         longestRateLen = std::max(longestRateLen, std::log10(rate));
     }
     return std::make_pair(centerWidth, static_cast<int32_t>(longestRateLen));
@@ -227,8 +226,8 @@ void spider::pisdf::DOTExporterVisitor::interfaceBodyPrinter(Interface *interfac
     auto *outputEdge = interface->outputEdge();
     auto inIx = inputEdge->sinkPortIx();
     auto outIx = outputEdge->sourcePortIx();
-    auto inRate = inputEdge->sinkRateExpression().evaluate(exporter_->params_);
-    auto outRate = outputEdge->sourceRateExpression().evaluate(exporter_->params_);
+    auto inRate = inputEdge->sinkRateExpression().evaluate((*params_));
+    auto outRate = outputEdge->sourceRateExpression().evaluate((*params_));
     file_ << offset_ << '\t' << '\t'
           << R"(<tr>
                     <td border="0" bgcolor="#ffffff00" fixedsize="true" width=")" << balanceWidth << R"(" height="60"></td>

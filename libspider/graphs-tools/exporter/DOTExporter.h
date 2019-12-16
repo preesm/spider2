@@ -58,11 +58,8 @@ namespace spider {
         class DOTExporter final : public Exporter {
         public:
 
-            explicit DOTExporter(Graph *graph) : DOTExporter(graph, graph->params()) { }
-
-            DOTExporter(Graph *graph, const spider::vector<Param *> &params) : Exporter(),
-                                                                               graph_{ graph },
-                                                                               params_{ params } { }
+            explicit DOTExporter(Graph *graph) : Exporter(),
+                                                 graph_{ graph } { }
 
             ~DOTExporter() override = default;
 
@@ -82,7 +79,6 @@ namespace spider {
 
         private:
             Graph *graph_ = nullptr;
-            const spider::vector<Param *> &params_;
         };
     }
 }

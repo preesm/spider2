@@ -60,10 +60,8 @@ namespace spider {
         struct DOTExporterVisitor final : public DefaultVisitor {
         public:
 
-            explicit DOTExporterVisitor(const DOTExporter *exporter,
-                                        std::ofstream &file,
-                                        std::string offset) : exporter_{ exporter },
-                                                              file_{ file },
+            explicit DOTExporterVisitor(std::ofstream &file,
+                                        std::string offset) : file_{ file },
                                                               offset_{ std::move(offset) } { }
 
             /* === Method(s) === */
@@ -151,7 +149,7 @@ namespace spider {
             }
 
         private:
-            const DOTExporter *exporter_ = nullptr;
+            const spider::vector<Param *> *params_ = nullptr;
             std::ofstream &file_;
             std::string offset_;
 
@@ -215,7 +213,7 @@ namespace spider {
                       << R"(<td border="1" sides="l" align="left" bgcolor=")" << color
                       << R"(" fixedsize="true" width=")" << width
                       << R"(" height="20"><font point-size="12" face="inconsolata"> )"
-                      << edge->sinkRateExpression().evaluate(exporter_->params_)
+                      << edge->sinkRateExpression().evaluate((*params_))
                       << R"(</font></td>)" << '\n';
 
                 /* == Footer == */
@@ -273,7 +271,7 @@ namespace spider {
               << R"(<td border="1" sides="r" align="right" bgcolor=")" << color << R"(" fixedsize="true" width=")"
               << width
               << R"(" height="20"><font point-size="12" face="inconsolata">)"
-              << edge->sourceRateExpression().evaluate(exporter_->params_)
+              << edge->sourceRateExpression().evaluate((*params_))
               << R"( </font></td>)" << '\n';
         file_ << offset_ << '\t' << '\t' << '\t' << '\t' << '\t' << '\t'
               << R"(<td port="out_)" << edge->sourcePortIx()
