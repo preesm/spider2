@@ -48,6 +48,27 @@
 
 /* === Static variable(s) === */
 
+static size_t getCluster2ClusterIndex(size_t ixA, size_t ixB) {
+    auto j = ixA;
+    auto k = ixB;
+    if (ixA > ixB) {
+        std::swap(j, k);
+    }
+    /*
+     *  j = min(ixA, ixB), k = max(ixA, ixB)
+     *
+     *                    j*(j + 1)
+     *  index  = j * N - ----------- + k - (j + 1)
+     *                        2
+     *
+     */
+    return j * spider::platform()->clusterCount() + ((j - 2) * (j + 1)) / 2 + k;
+}
+
+static size_t getClusterMemoryInterfaceCount(size_t count) {
+    return (count * (count - 1)) / 2;
+}
+
 /* === Static function(s) === */
 
 /* === Method(s) implementation === */
@@ -55,7 +76,9 @@
 spider::Platform::Platform(size_t clusterCount, size_t peCount) :
         clusterArray_{ clusterCount, nullptr, StackID::ARCHI },
         peArray_{ peCount, nullptr, StackID::ARCHI },
-        cluster2ClusterMemoryIF_{ clusterCount, InterMemoryInterface(), StackID::ARCHI } { }
+        cluster2ClusterMemoryIF_{ getClusterMemoryInterfaceCount(clusterCount),
+                                  InterMemoryInterface(),
+                                  StackID::ARCHI } { }
 
 spider::Platform::~Platform() {
     for (auto &cluster : clusterArray_) {
@@ -81,7 +104,10 @@ size_t spider::Platform::LRTCount() const {
 
 spider::Platform::InterMemoryInterface
 spider::Platform::getClusterToClusterMemoryInterface(spider::Cluster *clusterA, spider::Cluster *clusterB) {
-    const auto &index = clusterA->ix() + clusterB->ix() - 1;
+    if (clusterA == clusterB) {
+        return std::make_pair(clusterA->memoryInterface(), clusterA->memoryInterface());
+    }
+    const auto &index = getCluster2ClusterIndex(clusterA->ix(), clusterB->ix());
     const auto &interface = cluster2ClusterMemoryIF_.at(index);
     if (interface.first->memoryUnit() == clusterA->memoryUnit()) {
         return interface;
@@ -93,7 +119,10 @@ spider::Platform::getClusterToClusterMemoryInterface(spider::Cluster *clusterA, 
 void spider::Platform::setClusterToClusterMemoryInterface(spider::Cluster *clusterA,
                                                           spider::Cluster *clusterB,
                                                           spider::Platform::InterMemoryInterface interface) {
-    const auto &index = clusterA->ix() + clusterB->ix() - 1;
+    if (clusterA == clusterB) {
+        return;
+    }
+    const auto &index = getCluster2ClusterIndex(clusterA->ix(), clusterB->ix());
     cluster2ClusterMemoryIF_.at(index) = std::move(interface);
 }
 
