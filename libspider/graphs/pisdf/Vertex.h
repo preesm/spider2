@@ -46,7 +46,7 @@
 #include <string>
 #include <containers/array.h>
 #include <graphs/pisdf/visitors/Visitor.h>
-#include <runtime/constraints/RTConstraints.h>
+#include <runtime/info/RTInfo.h>
 
 namespace spider {
 
@@ -127,15 +127,15 @@ namespace spider {
             virtual void visit(Visitor *visitor) = 0;
 
             /**
-             * @brief Create a runtime constraints structure for current vertex.
+             * @brief Create a runtime information structure for current vertex.
              * @remark if vertex already has constraints, nothing happens.
-             * @return Created @refitem RTConstraints.
+             * @return Created @refitem RTInfo.
              */
-            inline RTConstraints *createConstraints() {
-                if (!constraints_) {
-                    constraints_ = make<RTConstraints>();
+            inline RTInfo *createConstraints() {
+                if (!rtInformation_) {
+                    rtInformation_ = make<RTInfo>();
                 }
-                return constraints_;
+                return rtInformation_;
             }
 
             /* === Getter(s) === */
@@ -257,8 +257,8 @@ namespace spider {
                 return false;
             }
 
-            inline RTConstraints *constraints() const {
-                return constraints_;
+            inline RTInfo *constraints() const {
+                return rtInformation_;
             }
 
             /* === Setter(s) === */
@@ -302,16 +302,16 @@ namespace spider {
             }
 
             /**
-             * @brief Set RTConstraints of this vertex.
+             * @brief Set RTInfo of this vertex.
              * @remark if nullptr, nothing happens.
              * @remark if vertex already has constraints, nothing happens.
-             * @param constraints Constraints to set.
+             * @param rtInfo Constraints to set.
              */
-            inline void setConstraints(RTConstraints *constraints) {
-                if (!constraints || constraints_) {
+            inline void setConstraints(RTInfo *rtInfo) {
+                if (!rtInfo || rtInformation_) {
                     return;
                 }
-                constraints_ = constraints;
+                rtInformation_ = rtInfo;
             }
 
         protected:
@@ -320,7 +320,7 @@ namespace spider {
             spider::array<Edge *> outputEdgeArray_;
             const Vertex *reference_ = this;
             Graph *graph_ = nullptr;
-            RTConstraints *constraints_ = nullptr;
+            RTInfo *rtInformation_ = nullptr;
             uint32_t ix_ = UINT32_MAX;
             uint32_t repetitionValue_ = 1;
             mutable uint32_t copyCount_ = 0;
