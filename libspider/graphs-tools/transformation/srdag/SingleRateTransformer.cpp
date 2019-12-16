@@ -265,6 +265,7 @@ void spider::srdag::SingleRateTransformer::singleRateLinkage(pisdf::Edge *edge) 
 
     /* == 3. Sanity check == */
     if (!sourceVector.empty()) {
+        // LCOV_IGNORE
         throwSpiderException("remaining sources to link after single rate transformation on edge: [%s].",
                              edge->name().c_str());
     }

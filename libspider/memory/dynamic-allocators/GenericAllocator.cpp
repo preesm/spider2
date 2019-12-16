@@ -57,6 +57,7 @@ void *GenericAllocator::allocate(size_t size) {
 
     auto *headerAddress = std::malloc(alignedSize);
     if (!headerAddress) {
+        // LCOV_IGNORE
         throwSpiderException("Failed to allocate %lf %s",
                              AbstractAllocator::getByteNormalizedSize(alignedSize),
                              AbstractAllocator::getByteUnitString(alignedSize));

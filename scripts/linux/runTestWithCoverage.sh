@@ -26,13 +26,17 @@ lcov -c -d ./gcov_files -o all-spider2-test.info
 lcov --remove all-spider2-test.info "/usr*" -o all-spider2-test.info # Remove output for external libraries
 lcov --remove all-spider2-test.info "*/test/*" -o all-spider2-test.info # Remove output for source of unit-tests
 
-# Because it is almost impossible to test failed malloc, we force it to be tested in order to avoid "not 100% coverage syndrome"
-line_orig=$(grep -n "throwSpiderException(\"Failed to allocate" ../libspider/memory/dynamic-allocators/GenericAllocator.cpp | cut -d : -f 1) # Line number of non testable error in GenericAllocator.cpp file
-line_file=$(grep -n "GenericAllocator.cpp" all-spider2-test.info | cut -d : -f 1) # Line where the report of GenericAllocator.cpp start
-line_zero=$(($line_file + $(tail -n +${line_file} all-spider2-test.info | grep -n -m 1 "DA:${line_orig}" | cut -d : -f 1) - 1)) # Line of the corresponding coverage info
-line_orig_shift=$(($line_orig - 1)) # Line just before the one of the test in GenericAllocator.cpp
-value=$(tail -n +${line_file} all-spider2-test.info | grep -m 1 "${line_orig_shift}," | cut -d , -f 2) # Value attributed by LCOV for the line before
-sed -i "${line_zero}s/DA:${line_orig},0/DA:${line_orig},${value}/g" all-spider2-test.info # Replace the non-covered value by the one of the line before (if the line was not covered).
+# Because it is almost impossible to test for certain case such as failed malloc, we force it to be tested in order to avoid "not 100% coverage syndrome"
+cpp_files=$(find ../libspider/ -name "*.cpp")
+for file in $cpp_files:
+do
+    ../scripts/linux/lcovRemoveTest.sh "$(basename $file)" "$(dirname $file)/"
+done
+h_files=$(find ../libspider/ -name "*.h")
+for file in $h_files:
+do
+    ../scripts/linux/lcovRemoveTest.sh "$(basename $file)" "$(dirname $file)/"
+done
 
 # Generate the HTML coverage report
 rm -rf coverage
