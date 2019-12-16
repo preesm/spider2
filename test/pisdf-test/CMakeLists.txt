@@ -15,7 +15,8 @@ set(${GRAPH_TARGET_NAME}_SRC
         pisdfInterfaceTest.cpp
         pisdfOptimsTest.cpp
         pisdfParamTest.cpp
-        pisdfVertexTest.cpp)
+        pisdfVertexTest.cpp
+        pisdfVisitorTest.cpp)
 
 # Set the include directories to use <> instead of ""
 include_directories(
