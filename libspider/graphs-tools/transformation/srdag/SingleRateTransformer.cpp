@@ -208,31 +208,34 @@ std::pair<spider::srdag::JobStack, spider::srdag::JobStack> spider::srdag::Singl
     }
 
     /* == 1. Copy param pointers from run graph jobs to init graph jobs == */
+    size_t index = 0;
     for (auto *subgraph : initGraphVector) {
         /* == 1.1 Find the first job corresponding to the init graph == */
         const auto &runGraphSubIx = init2run_[subgraph->subIx()];
         auto *runGraph = job_.reference_->subgraphs()[runGraphSubIx];
-        auto it = dynaJobs.begin();
-        while ((it != dynaJobs.end()) && ((*it).reference_ != runGraph)) { it++; }
-        if (it == dynaJobs.end()) {
-            // LCOV_IGNORE: this a sanity check, if go there, something bad happened that can not be tested directly
-            throwSpiderException("Init graph [%s] did not find run counter part [%s].",
+        if (runGraph->repetitionValue() != subgraph->repetitionValue()) {
+            // LCOV_IGNORE: this is a sanity check, it should never happen and it is not testable from the outside.
+            throwSpiderException("Init graph [%s] does not have the same repetition value as run graph [%s] (%"
+                                         PRIu32
+                                         "!= %"
+                                         PRIu32
+                                         ").",
                                  subgraph->name().c_str(),
                                  runGraph->name().c_str());
         }
 
         /* == 1.2 Do the actual copy == */
         const auto &firstCloneIx = ref2Clone_[subgraph->ix()];
-        for (auto ix = firstCloneIx + runGraph->repetitionValue() - 1; ix >= firstCloneIx; --ix) {
+        for (auto ix = firstCloneIx + subgraph->repetitionValue() - 1; ix >= firstCloneIx; --ix) {
+            auto *runJob = &(dynaJobs.at(index++));
             auto *clone = srdag_->vertex(ix);
             nextJobs.emplace_back(subgraph, clone->ix(), ix - firstCloneIx);
 
             auto &job = nextJobs.back();
             job.params_.reserve(runGraph->paramCount());
-            for (auto &param : (*it).params_) {
+            for (auto &param : runJob->params_) {
                 job.params_.emplace_back(param);
             }
-            it++;
         }
     }
     return std::make_pair(std::move(nextJobs), std::move(dynaJobs));
