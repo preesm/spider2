@@ -187,9 +187,14 @@ namespace spider {
         spider::array<Cluster *> clusterArray_;
         spider::array<PE *> peArray_;
         spider::array<InterMemoryInterface> cluster2ClusterMemoryIF_;
+        spider::array<size_t> preComputedClusterIx_;
         size_t clusterCount_ = 0;
         size_t peCount_ = 0;
         PE *grt_ = nullptr;
+
+        /* === Private method(s) === */
+
+        size_t getCluster2ClusterIndex(size_t ixA, size_t ixB) const;
     };
 
 }

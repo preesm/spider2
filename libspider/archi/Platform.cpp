@@ -48,23 +48,6 @@
 
 /* === Static variable(s) === */
 
-static size_t getCluster2ClusterIndex(size_t ixA, size_t ixB) {
-    auto j = ixA;
-    auto k = ixB;
-    if (ixA > ixB) {
-        std::swap(j, k);
-    }
-    /*
-     *  j = min(ixA, ixB), k = max(ixA, ixB)
-     *
-     *                    j*(j + 1)
-     *  index  = j * N - ----------- + k - (j + 1)
-     *                        2
-     *
-     */
-    return j * spider::platform()->clusterCount() + ((j - 2) * (j + 1)) / 2 + k;
-}
-
 static size_t getClusterMemoryInterfaceCount(size_t count) {
     return (count * (count - 1)) / 2;
 }
@@ -78,7 +61,39 @@ spider::Platform::Platform(size_t clusterCount, size_t peCount) :
         peArray_{ peCount, nullptr, StackID::ARCHI },
         cluster2ClusterMemoryIF_{ getClusterMemoryInterfaceCount(clusterCount),
                                   InterMemoryInterface(),
-                                  StackID::ARCHI } { }
+                                  StackID::ARCHI },
+        preComputedClusterIx_{ clusterCount, SIZE_MAX, StackID::ARCHI } {
+    /* == Pre-compute the cluster to cluster ix == */
+    /*
+     * Index to find the pair of memory interface between two clusters.
+     * Ex: 5 clusters, need of (5*(5-1))/2 = 10 pairs to store all the communications.
+     * Let [ixA, ixB] be the index of the cluster we want the communication pair.
+     *     [0,1] = [1,0] -> 0, [0,2] = [2,0] -> 1, ... , [1,2] = [2,1] -> 4, ... , [3,4] = [4,3] -> 9.
+     *
+     * with N = cluster count
+     * Let's define a bucket as the set of index of pair associated with the minimum value of the cluster ix of a given pair.
+     * In our example we have 4 buckets: [0:3] for 0, [4:6] for 1, [7:8] for 2 and [9,9] for 3.
+     * (no bucket needed for ix=4 as it already appears in all others)
+     * Let's define the bucket size of a given bucket i as |B(i)| = (N - (i + 1)).
+     * Then we have for any cluster ix n:
+     *                               n              i*(i+1)
+     *   [start,end], with start = sum(N-i) = n*N - -------    ; end = start + |B(i)| - 1
+     *                              i=1                2
+     *
+     * ==> To get the index of the pair, for any (ixA,ixB):
+     *
+     *                    j*(j + 1)
+     *  index  = j * N - ----------- - (j + 1) + k
+     *                        2
+     *
+     *  with j = min(ixA, ixB), k = max(ixA, ixB)
+     *  (the -(j + 1) term is the offset of the selected bucket)
+     */
+    size_t j = 0;
+    for (auto &ix : preComputedClusterIx_) {
+        ix = j * clusterCount + ((j * (j + 1)) / 2) - (j + 1);
+    }
+}
 
 spider::Platform::~Platform() {
     for (auto &cluster : clusterArray_) {
@@ -146,4 +161,9 @@ uint64_t spider::Platform::dataCommunicationCostPEToPE(PE *peSrc, PE *peSnk, uin
     /* == Intra cluster communication == */
     auto *memoryInterface = peSnk->cluster()->memoryInterface();
     return math::saturateAdd(memoryInterface->readCost(dataSize), memoryInterface->writeCost(dataSize));
+}
+
+
+size_t spider::Platform::getCluster2ClusterIndex(size_t ixA, size_t ixB) const {
+    return ixA > ixB ? (preComputedClusterIx_[ixB] + ixA) : (preComputedClusterIx_[ixA] + ixB);
 }
