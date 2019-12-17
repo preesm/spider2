@@ -69,7 +69,7 @@ public:
 
     ~FreeListAllocatorPolicy() noexcept override;
 
-    void *allocate(size_t &&size) override;
+    std::pair<void *, size_t> allocate(size_t size) override;
 
     size_t deallocate(void *ptr) override;
 
@@ -90,7 +90,7 @@ private:
     size_t allocScale_ = 1;
 
 
-    using FreeListPolicyMethod = std::pair<Node *, Node *> (*)(size_t &, size_t *, size_t, Node *);
+    using FreeListPolicyMethod = std::pair<Node *, Node *> (*)(size_t, size_t *, size_t, Node *);
 
     FreeListPolicyMethod findNode_;
 
@@ -103,10 +103,10 @@ private:
     void updateFreeNodeList(Node *baseNode, Node *memoryNode, size_t requiredSize);
 
     static std::pair<Node *, Node *>
-    findFirst(size_t &size, size_t *padding, size_t alignment, Node *baseNode);
+    findFirst(size_t size, size_t *padding, size_t alignment, Node *baseNode);
 
     static std::pair<Node *, Node *>
-    findBest(size_t &size, size_t *padding, size_t alignment, Node *baseNode);
+    findBest(size_t size, size_t *padding, size_t alignment, Node *baseNode);
 
     /**
      * @brief Check the pointer address to be sure we are deallocating memory we allocated.

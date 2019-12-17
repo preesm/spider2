@@ -63,7 +63,7 @@ public:
      * @param size Size of the buffer to allocate
      * @return pointer to allocated memory, nullptr on failure or if size is 0
      */
-    virtual void *allocate(size_t &&size) = 0;
+    virtual std::pair<void *, size_t> allocate(size_t size) = 0;
 
     /**
      * @brief Free a memory buffer.

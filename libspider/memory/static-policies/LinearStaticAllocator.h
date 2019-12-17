@@ -58,7 +58,7 @@ public:
         }
     };
 
-    void *allocate(size_t &&size) override;
+    std::pair<void *, size_t> allocate(size_t size) override;
 
     size_t deallocate(void *ptr) override;
 

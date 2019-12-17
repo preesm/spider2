@@ -98,9 +98,9 @@ namespace spider {
         }
 
         inline void *allocate(size_t size) {
-            auto *buffer = policy_->allocate(size + 0);
-            increaseUsage(size);
-            return buffer;
+            auto allocResult = policy_->allocate(size);
+            increaseUsage(allocResult.second);
+            return allocResult.first;
         }
 
         inline void deallocate(void *ptr) {

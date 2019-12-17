@@ -87,9 +87,9 @@ FreeListAllocatorPolicy::~FreeListAllocatorPolicy() noexcept {
     }
 }
 
-void *FreeListAllocatorPolicy::allocate(size_t &&size) {
+std::pair<void *, size_t> FreeListAllocatorPolicy::allocate(size_t size) {
     if (!size) {
-        return nullptr;
+        return std::make_pair(nullptr, 0);
     }
     if (size < sizeof(Node)) {
         size = size + sizeof(Node);
@@ -124,7 +124,7 @@ void *FreeListAllocatorPolicy::allocate(size_t &&size) {
 
     /* == Updating usage stats == */
     usage_ += requiredSize;
-    return reinterpret_cast<void *>(dataAddress);
+    return std::make_pair(reinterpret_cast<void *>(dataAddress), requiredSize);
 }
 
 void FreeListAllocatorPolicy::updateFreeNodeList(FreeListAllocatorPolicy::Node *baseNode,
@@ -233,13 +233,13 @@ FreeListAllocatorPolicy::createExtraBuffer(size_t size, FreeListAllocatorPolicy:
 }
 
 std::pair<FreeListAllocatorPolicy::Node *, FreeListAllocatorPolicy::Node *>
-FreeListAllocatorPolicy::findFirst(size_t &size, size_t *padding, size_t alignment, Node *base) {
+FreeListAllocatorPolicy::findFirst(size_t size, size_t *padding, size_t alignment, Node *base) {
     (*padding) = AbstractAllocatorPolicy::computePadding(size, alignment);
-    size = size + (*padding);
+    const auto &requiredSize = size + (*padding);
     Node *previousNode = nullptr;
     auto *freeNode = base;
     while (freeNode) {
-        if (freeNode->blockSize_ >= size) {
+        if (freeNode->blockSize_ >= requiredSize) {
             return std::make_pair(freeNode, previousNode);
         }
         previousNode = freeNode;
@@ -249,18 +249,18 @@ FreeListAllocatorPolicy::findFirst(size_t &size, size_t *padding, size_t alignme
 }
 
 std::pair<FreeListAllocatorPolicy::Node *, FreeListAllocatorPolicy::Node *>
-FreeListAllocatorPolicy::findBest(size_t &size, size_t *padding, size_t alignment, Node *base) {
+FreeListAllocatorPolicy::findBest(size_t size, size_t *padding, size_t alignment, Node *base) {
     (*padding) = AbstractAllocatorPolicy::computePadding(size, alignment);
     auto &&minFit = SIZE_MAX;
-    size = size + (*padding);
+    const auto &requiredSize = size + (*padding);
     auto *it = base;
     Node *previousNode = nullptr;
     Node *bestPreviousNode = nullptr;
     Node *bestNode = nullptr;
     while (it) {
-        if ((it->blockSize_ >= size) &&
-            ((it->blockSize_ - size) < minFit)) {
-            minFit = it->blockSize_ - size;
+        if ((it->blockSize_ >= requiredSize) &&
+            ((it->blockSize_ - requiredSize) < minFit)) {
+            minFit = it->blockSize_ - requiredSize;
             bestPreviousNode = previousNode;
             bestNode = it;
             if (!minFit) {

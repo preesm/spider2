@@ -47,9 +47,9 @@
 
 GenericAllocatorPolicy::GenericAllocatorPolicy(size_t alignment) : AbstractAllocatorPolicy(alignment) { }
 
-void *GenericAllocatorPolicy::allocate(size_t &&size) {
+std::pair<void *, size_t> GenericAllocatorPolicy::allocate(size_t size) {
     if (!size) {
-        return nullptr;
+        return std::make_pair(nullptr, 0);
     }
     size = size + sizeof(uint64_t);
     size = AbstractAllocatorPolicy::computeAlignedSize(size, alignment_);
@@ -62,7 +62,8 @@ void *GenericAllocatorPolicy::allocate(size_t &&size) {
     auto *header = reinterpret_cast<uint64_t *>(headerAddress);
     (*header) = size;
     usage_ += size;
-    return reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(headerAddress) + sizeof(uint64_t));
+    auto buffer = reinterpret_cast<uintptr_t>(headerAddress) + sizeof(uint64_t);
+    return std::make_pair(reinterpret_cast<void *>(buffer), size);
 }
 
 size_t GenericAllocatorPolicy::deallocate(void *ptr) {

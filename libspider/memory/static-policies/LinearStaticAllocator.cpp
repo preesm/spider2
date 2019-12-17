@@ -59,9 +59,9 @@ LinearStaticAllocator::LinearStaticAllocator(size_t totalSize, void *externalBas
     }
 }
 
-void *LinearStaticAllocator::allocate(size_t &&size) {
+std::pair<void *, size_t> LinearStaticAllocator::allocate(size_t size) {
     if (!size) {
-        return nullptr;
+        return std::make_pair(nullptr, 0);
     }
     size_t padding = 0;
     if (alignment_ && size % alignment_ != 0) {
@@ -78,7 +78,7 @@ void *LinearStaticAllocator::allocate(size_t &&size) {
     }
     const auto &alignedAllocatedAddress = reinterpret_cast<uintptr_t>(buffer_) + usage_;
     usage_ += size;
-    return reinterpret_cast<void *>(alignedAllocatedAddress);
+    return std::make_pair(reinterpret_cast<void *>(alignedAllocatedAddress), size);
 }
 
 size_t LinearStaticAllocator::deallocate(void *ptr) {
