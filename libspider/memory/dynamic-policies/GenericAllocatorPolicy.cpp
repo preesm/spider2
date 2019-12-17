@@ -37,37 +37,56 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_LINEARSTATICALLOCATOR_H
-#define SPIDER2_LINEARSTATICALLOCATOR_H
 
 /* === Includes === */
 
-#include <memory/abstract-allocators/StaticAllocator.h>
+#include <algorithm>
+#include <memory/dynamic-allocators/GenericAllocatorPolicy.h>
 
-/* === Class definition === */
+/* === Methods implementation === */
 
-class LinearStaticAllocator final : public StaticAllocator {
-public:
+GenericAllocatorPolicy::GenericAllocatorPolicy(std::string name, size_t alignment) : DynamicAllocatorPolicy(std::move(name),
+                                                                                                            alignment) { }
 
-    explicit LinearStaticAllocator(std::string name,
-                                   size_t totalSize,
-                                   size_t alignment = sizeof(int64_t));
+void *GenericAllocatorPolicy::allocate(size_t size) {
+    if (!size) {
+        return nullptr;
+    }
+    const auto &requiredSize = size + sizeof(uint64_t);
+    const auto &alignedSize = AbstractAllocatorPolicy::computeAlignedSize(requiredSize, alignment_);
 
-    explicit LinearStaticAllocator(std::string name,
-                                   size_t totalSize,
-                                   void *externalBase,
-                                   size_t alignment = sizeof(int64_t));
+    auto *headerAddress = std::malloc(alignedSize);
+    if (!headerAddress) {
+        // LCOV_IGNORE
+        throwSpiderException("Failed to allocate %lf %s",
+                             AbstractAllocatorPolicy::getByteNormalizedSize(alignedSize),
+                             AbstractAllocatorPolicy::getByteUnitString(alignedSize));
+    }
+    auto *header = reinterpret_cast<uint64_t *>(headerAddress);
+    (*header) = alignedSize;
+    inUse_ += alignedSize;
+    peak_ = std::max(peak_, inUse_);
+    if (!((allocCount_++) % avgSamplRate)) {
+        averageUse_ += inUse_;
+        avgSampleCount_++;
+    }
+    return reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(headerAddress) + sizeof(uint64_t));
+}
 
-    ~LinearStaticAllocator() override {
-        reset();
-    };
+void GenericAllocatorPolicy::deallocate(void *ptr) {
+    if (!ptr) {
+        return;
+    }
+    const auto &headerAddress = reinterpret_cast<uintptr_t>(ptr) - sizeof(uint64_t);
+    auto *header = reinterpret_cast<uint64_t *>(headerAddress);
+    inUse_ -= (*header);
+    std::free(reinterpret_cast<void *>(headerAddress));
+}
 
-    void *allocate(size_t size) override;
+void GenericAllocatorPolicy::reset() noexcept {
+    averageUse_ += inUse_;
+    avgSampleCount_++;
+    inUse_ = 0;
+}
 
-    void deallocate(void *ptr) override;
 
-    void reset() noexcept override;
-
-};
-
-#endif //SPIDER2_LINEARSTATICALLOCATOR_H

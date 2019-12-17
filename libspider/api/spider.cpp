@@ -41,12 +41,15 @@
 /* === Includes === */
 
 #include <api/spider.h>
+#include <memory/Stack.h>
 #include <memory/alloc.h>
 #include <common/Logger.h>
 #include <archi/Platform.h>
 #include <graphs/pisdf/Graph.h>
 
 /* === Static variable(s) definition === */
+
+static bool startFlag = false;
 
 /* === Static function(s) === */
 
@@ -93,49 +96,44 @@
 
 /* === Function(s) definition === */
 
-void spider::api::createGenericStack(StackID stack, const std::string &name, size_t alignment) {
-    createStackAllocator(allocType<AllocatorType::GENERIC>{ }, stack, name, alignment);
-}
-
-void spider::api::createFreeListStack(StackID stack,
-                                      const std::string &name,
-                                      size_t staticBufferSize,
-                                      FreeListPolicy policy,
-                                      size_t alignment) {
-    createStackAllocator(allocType<AllocatorType::FREELIST>{ }, stack, name, staticBufferSize, policy, alignment);
-}
-
-void spider::api::createLinearStaticStack(StackID stack,
-                                          const std::string &name,
-                                          size_t totalSize,
-                                          size_t alignment) {
-    createStackAllocator(allocType<AllocatorType::LINEAR_STATIC>{ }, stack, name, totalSize, alignment);
-}
-
-void spider::api::createLinearStaticStack(StackID stack,
-                                          const std::string &name,
-                                          size_t totalSize,
-                                          void *base,
-                                          size_t alignment) {
-    createStackAllocator(allocType<AllocatorType::LINEAR_STATIC>{ }, stack, name, totalSize, base, alignment);
+void spider::api::setStackAllocatorPolicy(StackID stackId,
+                                          AllocatorPolicy policy,
+                                          size_t alignment,
+                                          size_t size,
+                                          void *externBuffer) {
+    auto *stack = stackArray()[static_cast<uint64_t >(stackId)];
+    switch (policy) {
+        case AllocatorPolicy::FREELIST_FIND_FIRST:
+            stack->setPolicy(new FreeListAllocatorPolicy(size, externBuffer, FreeListPolicy::FIND_FIRST, alignment));
+            break;
+        case AllocatorPolicy::FREELIST_FIND_BEST:
+            stack->setPolicy(new FreeListAllocatorPolicy(size, externBuffer, FreeListPolicy::FIND_BEST, alignment));
+            break;
+        case AllocatorPolicy::GENERIC:
+            stack->setPolicy(new GenericAllocatorPolicy(alignment));
+            break;
+        case AllocatorPolicy::LINEAR_STATIC:
+            stack->setPolicy(new LinearStaticAllocator(size, externBuffer, alignment));
+            break;
+    }
 }
 
 void spider::start() {
-    static bool start = false;
-    if (start) {
+    if (startFlag) {
         throwSpiderException("spider::start() function should be called only once.");
     }
-    /* == General stack initialization == */
-    api::createGenericStack(StackID::GENERAL, "general-allocator");
+
+    /* == Initialize stacks == */
+    auto it = EnumIterator<StackID>{ }.begin();
+    for (auto &stack : stackArray()) {
+        stack = new Stack(*(it++));
+    }
 
     /* == Init the Logger and enable the GENERAL Logger == */
     log::enable<LOG_GENERAL>();
 
-    /* == Init the special actor refinements == */
-//    spider::refinementsRegister() = specialActorRefinements();
-
     /* == Enable the config flag == */
-    start = true;
+    startFlag = true;
 }
 
 void spider::quit() {
@@ -145,11 +143,27 @@ void spider::quit() {
     /* == Destroy the Platform == */
     destroy(spider::platform());
 
-    /* == Destroy the refinement(s) == */
-//    for (auto &refinement : spider::refinementsRegister()) {
-//        spider::destroy(refinement);
-//    }
-
     /* == Clear the stacks == */
-    freeStackAllocators();
+    uint64_t totalUsage = 0;
+    uint64_t totalAverage = 0;
+    uint64_t totalPeak = 0;
+    for (auto &stack : stackArray()) {
+        totalUsage += stack->usage();
+        totalAverage += stack->average();
+        totalPeak += stack->peak();
+        delete stack;
+    }
+    if (totalPeak && log_enabled()) {
+        log::info("---------------------------\n");
+        log::info("Total: \n");
+        log::info("        ==>    peak: %" PRIu64" B\n", totalPeak);
+        log::info("        ==> average: %" PRIu64" B\n", totalAverage);
+        if (totalUsage) {
+            log::error("         ==>  in-use: %" PRIu64" B\n", totalUsage);
+        }
+        log::info("---------------------------\n");
+    }
+
+    /* == Reset start flag == */
+    startFlag = false;
 }

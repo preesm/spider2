@@ -37,31 +37,20 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_FREELISTALLOCATOR_H
-#define SPIDER2_FREELISTALLOCATOR_H
+#ifndef SPIDER2_GENERICALLOCATORPOLICY_H
+#define SPIDER2_GENERICALLOCATORPOLICY_H
 
 /* === Includes === */
 
-#include <vector>
-#include <memory/abstract-allocators/DynamicAllocator.h>
-
-/* === Defines === */
+#include <memory/abstract-policies/DynamicAllocatorPolicy.h>
 
 /* === Class definition === */
 
-class FreeListAllocator final : public DynamicAllocator {
+class GenericAllocatorPolicy final : public DynamicAllocatorPolicy {
 public:
-    struct Node {
-        size_t blockSize_ = 0;
-        Node *next_ = nullptr;
-    };
+    explicit GenericAllocatorPolicy(std::string name, size_t alignment = sizeof(uint64_t));
 
-    explicit FreeListAllocator(std::string name,
-                               size_t staticBufferSize,
-                               FreeListPolicy policy = FreeListPolicy::FIND_FIRST,
-                               size_t alignment = sizeof(int64_t));
-
-    ~FreeListAllocator() noexcept override;
+    ~GenericAllocatorPolicy() noexcept override = default;
 
     void *allocate(size_t size) override;
 
@@ -69,46 +58,8 @@ public:
 
     void reset() noexcept override;
 
-    static size_t MIN_CHUNK_SIZE;
 private:
-
-    struct Buffer {
-        size_t size_ = 0;
-        void *bufferPtr_ = nullptr;
-    };
-
-    Node *list_ = nullptr;
-
-    void *staticBufferPtr_ = nullptr;
-    std::vector<Buffer> extraBuffers_;
-    size_t staticBufferSize_ = 0;
-    size_t allocScale_ = 1;
-
-
-    using FreeListPolicyMethod = std::pair<Node *, Node *> (*)(size_t, size_t *, size_t, Node *);
-
-    FreeListPolicyMethod findNode_;
-
-    void insert(Node *baseNode, Node *newNode);
-
-    void remove(Node *baseNode, Node *removedNode);
-
-    Node *createExtraBuffer(size_t size, Node *base);
-
-    void updateFreeNodeList(Node *baseNode, Node *memoryNode, size_t requiredSize);
-
-    static std::pair<Node *, Node *>
-    findFirst(size_t size, size_t *padding, size_t alignment, Node *baseNode);
-
-    static std::pair<Node *, Node *>
-    findBest(size_t size, size_t *padding, size_t alignment, Node *baseNode);
-
-    /**
-     * @brief Check the pointer address to be sure we are deallocating memory we allocated.
-     * @param ptr  Pointer to check.
-     * @return true if address is valid, false else.
-     */
-    bool validAddress(void *ptr) noexcept;
+    uint64_t allocCount_ = 0;
 };
 
-#endif //SPIDER2_FREELISTALLOCATOR_H
+#endif //SPIDER2_GENERICALLOCATORPOLICY_H

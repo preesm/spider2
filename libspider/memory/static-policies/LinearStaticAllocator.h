@@ -37,26 +37,37 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_GENERICALLOCATOR_H
-#define SPIDER2_GENERICALLOCATOR_H
+#ifndef SPIDER2_LINEARSTATICALLOCATOR_H
+#define SPIDER2_LINEARSTATICALLOCATOR_H
 
 /* === Includes === */
 
-#include <memory/abstract-allocators/DynamicAllocator.h>
+#include <memory/abstract-allocators/StaticAllocatorPolicy.h>
 
 /* === Class definition === */
 
-class GenericAllocator final : public DynamicAllocator {
+class LinearStaticAllocator final : public StaticAllocatorPolicy {
 public:
-    explicit GenericAllocator(std::string name, size_t alignment = sizeof(uint64_t));
 
-    ~GenericAllocator() noexcept override = default;
+    explicit LinearStaticAllocator(std::string name,
+                                   size_t totalSize,
+                                   size_t alignment = sizeof(int64_t));
+
+    explicit LinearStaticAllocator(std::string name,
+                                   size_t totalSize,
+                                   void *externalBase,
+                                   size_t alignment = sizeof(int64_t));
+
+    ~LinearStaticAllocator() override {
+        reset();
+    };
 
     void *allocate(size_t size) override;
 
     void deallocate(void *ptr) override;
 
     void reset() noexcept override;
+
 };
 
-#endif //SPIDER2_GENERICALLOCATOR_H
+#endif //SPIDER2_LINEARSTATICALLOCATOR_H

@@ -44,75 +44,70 @@
 #include <common/Exception.h>
 #include <memory/allocator.h>
 #include <memory/alloc.h>
-#include <memory/dynamic-allocators/FreeListAllocator.h>
+#include <memory/dynamic-policies/FreeListAllocatorPolicy.h>
+#include <memory/dynamic-policies/GenericAllocatorPolicy.h>
+#include <memory/static-policies/LinearStaticAllocator.h>
+#include <api/spider.h>
 
 class allocatorTest : public ::testing::Test {
 protected:
+    void SetUp() override {
+        spider::start();
+        spider::api::disableLogger(spider::log::GENERAL);
+    }
+
+    void TearDown() override {
+        spider::quit();
+    }
 };
 
-TEST_F(allocatorTest, abstractAllocNameTest) {
-    auto allocator = LinearStaticAllocator("alloc", 512);
-    ASSERT_STREQ(allocator.name(), "alloc") << "LinearStaticAllocator: name() failed.";
-}
-
 TEST_F(allocatorTest, abstractAllocUsageTest) {
-    spider::api::enableLogger(spider::log::GENERAL);
     {
-        auto allocator = GenericAllocator("alloc", 8);
+        auto allocator = GenericAllocatorPolicy(8);
         auto *buffer = allocator.allocate(1024 * 1024 * 1024);
         ASSERT_NE(buffer, nullptr) << "Allocator: failed to allocated 1GB";
         ASSERT_NO_THROW(allocator.deallocate(buffer)) << "Allocator: deallocation failed";
-        allocator.printStats();
     }
     {
-        auto allocator = GenericAllocator("alloc", 8);
+        auto allocator = GenericAllocatorPolicy(8);
         auto *buffer = allocator.allocate(2 * 1024 * 1024);
         ASSERT_NE(buffer, nullptr) << "Allocator: failed to allocated 1MB";
         ASSERT_NO_THROW(allocator.deallocate(buffer)) << "Allocator: deallocation failed";
-        allocator.printStats();
     }
     {
-        auto allocator = GenericAllocator("alloc", 8);
+        auto allocator = GenericAllocatorPolicy(8);
         auto *buffer = allocator.allocate(1024);
         ASSERT_NE(buffer, nullptr) << "Allocator: failed to allocated 1KB";
         ASSERT_NO_THROW(allocator.deallocate(buffer)) << "Allocator: deallocation failed";
-        allocator.printStats();
     }
     {
-        auto allocator = GenericAllocator("alloc", 8);
+        auto allocator = GenericAllocatorPolicy(8);
         auto *buffer = allocator.allocate(1024);
         ASSERT_NE(buffer, nullptr) << "Allocator: failed to allocated 1KB";
-        allocator.printStats();
     }
-    spider::api::disableLogger(spider::log::GENERAL);
 }
 
 TEST_F(allocatorTest, linearAllocCtorTest) {
-    ASSERT_THROW(LinearStaticAllocator("", 0), spider::Exception) << "LinearStaticAllocator should throw with 0 size.";
-    ASSERT_THROW(LinearStaticAllocator("", 1000, 4), spider::Exception)
+    ASSERT_NO_THROW(LinearStaticAllocator(0)) << "LinearStaticAllocator should not throw with 0 size.";
+    ASSERT_THROW(LinearStaticAllocator(1000, nullptr, 4), spider::Exception)
                                 << "LinearStaticAllocator should throw with improper alignment size.";
-    ASSERT_NO_THROW(LinearStaticAllocator("", 1000)) << "LinearStaticAllocator should not throw with default ctor.";
-    ASSERT_THROW(LinearStaticAllocator("", 10, nullptr), spider::Exception)
-                                << "LinearStaticAllocator should throw with nullptr extern buffer.";
+    ASSERT_NO_THROW(LinearStaticAllocator(1000)) << "LinearStaticAllocator should not throw with default ctor.";
+    ASSERT_NO_THROW(LinearStaticAllocator(10, nullptr))
+                                << "LinearStaticAllocator should not throw with nullptr extern buffer.";
     char tmp[512];
-    ASSERT_THROW(LinearStaticAllocator("", 0, &tmp), spider::Exception)
+    ASSERT_THROW(LinearStaticAllocator(0, &tmp), spider::Exception)
                                 << "LinearStaticAllocator should throw with 0 size and extern buffer.";
-    ASSERT_THROW(LinearStaticAllocator("", 10, &tmp, 4), spider::Exception)
+    ASSERT_THROW(LinearStaticAllocator(10, &tmp, 4), spider::Exception)
                                 << "LinearStaticAllocator should throw invalid alignment size.";
-    ASSERT_NO_THROW(LinearStaticAllocator("", 10, &tmp))
+    ASSERT_NO_THROW(LinearStaticAllocator(10, &tmp))
                                 << "LinearStaticAllocator should not throw with valid external buffer.";
 }
 
 TEST_F(allocatorTest, linearAllocTest) {
-    auto allocator = LinearStaticAllocator("alloc", 512);
+    auto allocator = LinearStaticAllocator(512);
     ASSERT_NE(allocator.allocate(64), nullptr) << "LinearStaticAllocator: failed to allocate buffer.";
     ASSERT_EQ(allocator.allocate(0), nullptr) << "LinearStaticAllocator: 0 size buffer should return nullptr.";
     ASSERT_NO_THROW(allocator.allocate(64)) << "LinearStaticAllocator: failed to allocate buffer.";
-    allocator.reset();
-    ASSERT_NO_THROW(allocator.allocate(512)) << "LinearStaticAllocator: failed to allocate buffer.";
-    allocator.reset();
-    ASSERT_NO_THROW(allocator.allocate(512)) << "LinearStaticAllocator: reallocating after reset should not throw.";
-    allocator.reset();
     ASSERT_THROW(allocator.allocate(513), spider::Exception)
                                 << "LinearStaticAllocator: should throw if size > available.";
     char tmp[50];
@@ -125,15 +120,10 @@ TEST_F(allocatorTest, linearAllocTest) {
 
 TEST_F(allocatorTest, linearExternAllocTest) {
     char buffer[512];
-    auto allocator = LinearStaticAllocator("alloc", 512, &buffer);
+    auto allocator = LinearStaticAllocator(512, &buffer);
     ASSERT_NE(allocator.allocate(64), nullptr) << "LinearStaticAllocator: failed to allocate buffer.";
     ASSERT_EQ(allocator.allocate(0), nullptr) << "LinearStaticAllocator: 0 size buffer should return nullptr.";
     ASSERT_NO_THROW(allocator.allocate(64)) << "LinearStaticAllocator: failed to allocate buffer.";
-    allocator.reset();
-    ASSERT_NO_THROW(allocator.allocate(512)) << "LinearStaticAllocator: failed to allocate buffer.";
-    allocator.reset();
-    ASSERT_NO_THROW(allocator.allocate(512)) << "LinearStaticAllocator: reallocating after reset should not throw.";
-    allocator.reset();
     ASSERT_THROW(allocator.allocate(513), spider::Exception)
                                 << "LinearStaticAllocator: should throw if size > available.";
     char tmp[50];
@@ -165,15 +155,11 @@ void staticAllocAlignTest(ALLOC &allocator) {
 }
 
 TEST_F(allocatorTest, linearAlignTest) {
-    spider::api::enableLogger(spider::log::GENERAL);
-    auto allocator = LinearStaticAllocator("alloc", 512, 8);
+    auto allocator = LinearStaticAllocator(512, nullptr, 8);
     staticAllocAlignTest(allocator);
-    allocator.reset();
-    allocator.printStats();
-    spider::api::disableLogger(spider::log::GENERAL);
 }
 
-void freeListAlignTest(FreeListAllocator &allocator) {
+void freeListAlignTest(FreeListAllocatorPolicy &allocator) {
     {
         /* == Should allocate 32 bytes (17 of char + sizeof(size_t) of header + 7 of padding) == */
         auto *buffer = reinterpret_cast<char *>(allocator.allocate(17 * sizeof(char)));
@@ -216,31 +202,32 @@ void freeListAlignTest(FreeListAllocator &allocator) {
 }
 
 TEST_F(allocatorTest, freeListAlignTest) {
-    auto allocator = FreeListAllocator("alloc", 512, FreeListPolicy::FIND_FIRST);
+    auto allocator = FreeListAllocatorPolicy(512, nullptr, FreeListPolicy::FIND_FIRST);
     freeListAlignTest(allocator);
-    auto allocator2 = FreeListAllocator("alloc", 512, FreeListPolicy::FIND_BEST);
+    auto allocator2 = FreeListAllocatorPolicy(512, nullptr, FreeListPolicy::FIND_BEST);
     freeListAlignTest(allocator2);
 }
 
-void freeListAllocTest(FreeListAllocator &allocator) {
+size_t getMinSize() {
+    return FreeListAllocatorPolicy::MIN_CHUNK_SIZE;
+}
+
+void freeListAllocTest(FreeListAllocatorPolicy &allocator) {
     {
         auto *buffer = reinterpret_cast<double *>(allocator.allocate(2 * sizeof(double)));
         ASSERT_NE(buffer, nullptr) << "Allocator: allocation failed.";
         ASSERT_EQ(nullptr, allocator.allocate(0)) << "Allocator: 0 size allocation should result in nullptr.";
-        ASSERT_NO_THROW(allocator.allocate(FreeListAllocator::MIN_CHUNK_SIZE))
+        ASSERT_NO_THROW(allocator.allocate(getMinSize()))
                                     << "Allocator: allocation should not throw";
         void *test = allocator.allocate(1);
         ASSERT_NO_THROW(allocator.deallocate(test)) << "Allocator: deallocation of valid ptr should not throw";
         ASSERT_NO_THROW(allocator.deallocate(buffer)) << "Allocator: deallocation of valid ptr should not throw";
-        allocator.reset();
-        ASSERT_NO_THROW(allocator.allocate(FreeListAllocator::MIN_CHUNK_SIZE))
-                                    << "Allocator: allocation should not throw";
         /* == undefined behavior == */
         ASSERT_NO_THROW(allocator.deallocate(buffer));
-        ASSERT_NO_THROW(allocator.allocate(FreeListAllocator::MIN_CHUNK_SIZE));
+        ASSERT_NO_THROW(allocator.allocate(getMinSize()));
     }
     {
-        auto *buffer = allocator.allocate(FreeListAllocator::MIN_CHUNK_SIZE);
+        auto *buffer = allocator.allocate(getMinSize());
         void *buffer2 = nullptr;
         ASSERT_NO_THROW(buffer2 = allocator.allocate(8192))
                                     << "Allocator: extra buffer should not throw at allocation.";
@@ -248,8 +235,7 @@ void freeListAllocTest(FreeListAllocator &allocator) {
         ASSERT_NO_THROW(allocator.deallocate(buffer2)) << "Allocator: extra buffer should not throw at deallocation.";
     }
     {
-        allocator.reset();
-        auto *buffer = allocator.allocate(FreeListAllocator::MIN_CHUNK_SIZE - (512 + 2 * sizeof(size_t)));
+        auto *buffer = allocator.allocate(FreeListAllocatorPolicy::MIN_CHUNK_SIZE - (512 + 2 * sizeof(size_t)));
         void *buffer2 = allocator.allocate(512 - (256 + sizeof(size_t)));
         void *buffer3 = nullptr;
         ASSERT_NO_THROW(buffer3 = allocator.allocate(256)) << "Allocator: perfect fit should not throw.";
@@ -263,56 +249,31 @@ void freeListAllocTest(FreeListAllocator &allocator) {
 }
 
 TEST_F(allocatorTest, freeListAlloc) {
-    auto allocator = FreeListAllocator("alloc", 512, FreeListPolicy::FIND_FIRST);
+    auto allocator = FreeListAllocatorPolicy(512, nullptr, FreeListPolicy::FIND_FIRST);
     freeListAllocTest(allocator);
-    auto allocator2 = FreeListAllocator("alloc", 512, FreeListPolicy::FIND_BEST);
+    auto allocator2 = FreeListAllocatorPolicy(512, nullptr, FreeListPolicy::FIND_BEST);
     freeListAllocTest(allocator2);
     ASSERT_NO_THROW(allocator.deallocate(nullptr)) << "Allocator: deallocate for nullptr should not throw";
-    char buffer[512];
-    allocator.reset();
-    ASSERT_THROW(allocator.deallocate(&buffer), spider::Exception)
-                                << "Allocator: deallocate when no allocation ongoing should throw";
 }
 
 TEST_F(allocatorTest, freeListCtorTest) {
-    ASSERT_THROW(FreeListAllocator("", 0, FreeListPolicy::FIND_BEST, 2), spider::Exception)
+    ASSERT_THROW(FreeListAllocatorPolicy(0, nullptr, FreeListPolicy::FIND_BEST, 2), spider::Exception)
                                 << "FreeListAllocator should throw with alignement < 8.";
-    ASSERT_NO_THROW(FreeListAllocator("", 1000)) << "FreeListAllocator should not throw with default ctor.";
+    ASSERT_NO_THROW(FreeListAllocatorPolicy(1000)) << "FreeListAllocator should not throw with default ctor.";
 }
 
 TEST_F(allocatorTest, genericCtorTest) {
-    ASSERT_NO_THROW(GenericAllocator("", 0)) << "GenericAllocator should not throw with default ctor.";
+    ASSERT_NO_THROW(GenericAllocatorPolicy(0)) << "GenericAllocator should not throw with default ctor.";
 }
 
 TEST_F(allocatorTest, genericAllocTest) {
-    auto allocator = GenericAllocator("alloc", 8);
+    auto allocator = GenericAllocatorPolicy(8);
     ASSERT_NO_THROW(allocator.allocate(0)) << "GenericAllocator should not throw with 0 size allocation.";
     ASSERT_NO_THROW(allocator.deallocate(nullptr)) << "GenericAllocator should not throw with nullptr deallocation.";
-    allocator.reset();
 
-}
-
-TEST_F(allocatorTest, createStackAllocators) {
-    ASSERT_NO_THROW((spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>(), StackID::GENERAL,
-                                                  "alloc", 8)));
-    ASSERT_NO_THROW((spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>(), StackID::GENERAL,
-                                                  "alloc", 8)));
-    ASSERT_NO_THROW((spider::createStackAllocator(spider::allocType<spider::AllocatorType::FREELIST>(), StackID::PISDF,
-                                                  "alloc", 8)));
-    ASSERT_NO_THROW((spider::createStackAllocator(spider::allocType<spider::AllocatorType::LINEAR_STATIC>(),
-                                                  StackID::SCHEDULE, "alloc", 8)));
-    ASSERT_NO_THROW((spider::freeStackAllocators()));
 }
 
 TEST_F(allocatorTest, allocTest) {
-    ASSERT_NO_THROW((spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>(), StackID::GENERAL,
-                                                  "alloc", 8)));
-    ASSERT_NO_THROW(
-            (spider::createStackAllocator(spider::allocType<spider::AllocatorType::FREELIST>(), StackID::PISDF, "alloc",
-                                          4096)));
-    ASSERT_NO_THROW(
-            (spider::createStackAllocator(spider::allocType<spider::AllocatorType::LINEAR_STATIC>(), StackID::SCHEDULE,
-                                          "alloc", 16384)));
     ASSERT_NO_THROW(spider::allocate<double>(StackID::GENERAL, 0));
     ASSERT_EQ(spider::allocate<double>(StackID::GENERAL, 0), nullptr)
                                 << "alloc: 0-size allocation should return nullptr.";
@@ -327,21 +288,9 @@ TEST_F(allocatorTest, allocTest) {
                                 << "alloc: non null-size allocation should not return nullptr.";
     ASSERT_NE(spider::allocate<double>(StackID::SCHEDULE, 256), nullptr)
                                 << "alloc: non null-size allocation should not return nullptr.";
-    ASSERT_THROW(spider::safeAllocate<double>(StackID::TRANSFO), spider::Exception);
-    ASSERT_NO_THROW(spider::safeAllocate<double>(StackID::GENERAL));
-    ASSERT_EQ(spider::safeAllocate<double>(StackID::GENERAL, 0), nullptr);
-    ASSERT_NO_THROW((spider::freeStackAllocators()));
 }
 
 TEST_F(allocatorTest, allocatorTest) {
-    ASSERT_THROW(spider::allocator<double>(StackID::GENERAL), spider::Exception);
-    ASSERT_NO_THROW((spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>(), StackID::GENERAL,
-                                                  "alloc", 8)));
-    ASSERT_NO_THROW(
-            (spider::createStackAllocator(spider::allocType<spider::AllocatorType::LINEAR_STATIC>(), StackID::PISDF,
-                                          "alloc", 8)));
-    ASSERT_NO_THROW(spider::allocator<double>(StackID::GENERAL));
     ASSERT_EQ(spider::allocator<double>(StackID::GENERAL), spider::allocator<double>());
     ASSERT_NE(spider::allocator<double>(StackID::PISDF), spider::allocator<double>());
-    ASSERT_NO_THROW((spider::freeStackAllocators()));
 }

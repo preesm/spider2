@@ -37,34 +37,79 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_DYNAMICALLOCATOR_H
-#define SPIDER2_DYNAMICALLOCATOR_H
+#ifndef SPIDER2_FREELISTALLOCATORPOLICY_H
+#define SPIDER2_FREELISTALLOCATORPOLICY_H
 
 /* === Includes === */
 
-#include "AbstractAllocator.h"
+#include <vector>
+#include <memory/abstract-allocators/DynamicAllocatorPolicy.h>
+
+/* === Defines === */
 
 /* === Class definition === */
 
-class DynamicAllocator : public AbstractAllocator {
+class FreeListAllocatorPolicy final : public DynamicAllocatorPolicy {
 public:
-    void *allocate(size_t size) override = 0;
+    struct Node {
+        size_t blockSize_ = 0;
+        Node *next_ = nullptr;
 
-    void deallocate(void *ptr) override = 0;
+    };
+
+    explicit FreeListAllocatorPolicy(std::string name,
+                                     size_t staticBufferSize,
+                                     FreeListPolicy policy = FreeListPolicy::FIND_FIRST,
+                                     size_t alignment = sizeof(int64_t));
+
+    ~FreeListAllocatorPolicy() noexcept override;
+
+    void *allocate(size_t size) override;
+
+    void deallocate(void *ptr) override;
+
+    void reset() noexcept override;
+
+    static size_t MIN_CHUNK_SIZE;
+private:
+
+    struct Buffer {
+        size_t size_ = 0;
+        void *bufferPtr_ = nullptr;
+    };
+
+    Node *list_ = nullptr;
+
+    void *staticBufferPtr_ = nullptr;
+    std::vector<Buffer> extraBuffers_;
+    size_t staticBufferSize_ = 0;
+    size_t allocScale_ = 1;
+
+
+    using FreeListPolicyMethod = std::pair<Node *, Node *> (*)(size_t, size_t *, size_t, Node *);
+
+    FreeListPolicyMethod findNode_;
+
+    void insert(Node *baseNode, Node *newNode);
+
+    void remove(Node *baseNode, Node *removedNode);
+
+    Node *createExtraBuffer(size_t size, Node *base);
+
+    void updateFreeNodeList(Node *baseNode, Node *memoryNode, size_t requiredSize);
+
+    static std::pair<Node *, Node *>
+    findFirst(size_t size, size_t *padding, size_t alignment, Node *baseNode);
+
+    static std::pair<Node *, Node *>
+    findBest(size_t size, size_t *padding, size_t alignment, Node *baseNode);
 
     /**
-     * @brief Reset internal state of the allocator.
-     * @remark Memory should be deallocated before calling reset.
-     * @remark Behavior is undefined for memory block deallocated after reset call.
+     * @brief Check the pointer address to be sure we are deallocating memory we allocated.
+     * @param ptr  Pointer to check.
+     * @return true if address is valid, false else.
      */
-    virtual void reset() noexcept = 0;
-
-protected:
-
-    explicit DynamicAllocator(std::string name, size_t alignment = 0) : AbstractAllocator(std::move(name),
-                                                                                          alignment) { }
-
-    ~DynamicAllocator() noexcept override = default;
+    bool validAddress(void *ptr) noexcept;
 };
 
-#endif //SPIDER2_DYNAMICALLOCATOR_H
+#endif //SPIDER2_FREELISTALLOCATORPOLICY_H

@@ -44,6 +44,7 @@
 
 #include <cstdint>
 #include <cstddef>
+#include <array>
 
 /* === non-namespace forward declaration(s) === */
 
@@ -58,13 +59,13 @@ enum class StackID : uint64_t {
     PISDF = 0,       /*!< Stack used for PISDF graph (should be static) */
     ARCHI,           /*!< Stack used for architecture (should be static) */
     TRANSFO,         /*!< Stack used for graph transformations */
+    OPTIMS,          /*!< Stack used for graph transformations */
     EXPRESSION,      /*!< Stack used for handling expression */
     SCHEDULE,        /*!< Stack used for scheduling */
     RUNTIME,         /*!< Stack used by LRTs */
     GENERAL,         /*!< General stack used for classic new / delete */
-    CONSTRAINTS,     /*!< Stack used for the scenario (application constraints) */
-    First = PISDF,      /*!< Sentry for EnumIterator::begin */
-    Last = CONSTRAINTS, /*!< Sentry for EnumIterator::end */
+    First = PISDF,   /*!< Sentry for EnumIterator::begin */
+    Last = GENERAL,  /*!< Sentry for EnumIterator::end */
 };
 
 /* === non-namespace constant(s) === */
@@ -84,6 +85,8 @@ namespace spider {
     class MemoryUnit;
 
     class MemoryInterface;
+
+    class Stack;
 
     namespace pisdf {
 
@@ -191,14 +194,15 @@ namespace spider {
     }
 
     /**
-     * @brief Allocator types
+     * @brief Allocator policies
      */
-    enum class AllocatorType {
-        FREELIST,             /*!< (Dynamic) FreeList type allocator */
-        GENERIC,              /*!< (Dynamic) Generic type allocator (=malloc) */
-        LINEAR_STATIC,        /*!< (Static) Linear type allocator */
-        First = FREELIST,     /*!< Sentry for EnumIterator::begin */
-        Last = LINEAR_STATIC, /*!< Sentry for EnumIterator::end */
+    enum class AllocatorPolicy {
+        FREELIST_FIND_FIRST,         /*!< (Dynamic) FreeList with FIND_FIRST policy allocator policy */
+        FREELIST_FIND_BEST,          /*!< (Dynamic) FreeList with FIND_BEST policy allocator policy */
+        GENERIC,                     /*!< (Dynamic) Generic allocator policy (=malloc) */
+        LINEAR_STATIC,               /*!< (Static) Linear allocator policy */
+        First = FREELIST_FIND_FIRST, /*!< Sentry for EnumIterator::begin */
+        Last = LINEAR_STATIC,        /*!< Sentry for EnumIterator::end */
     };
 
     /* === Structure(s) === */
@@ -222,13 +226,34 @@ namespace spider {
         constexpr auto LOGGER_COUNT = static_cast<uint8_t >(Type::EXPR) + 1;
     }
 
-    constexpr size_t ALLOCATOR_COUNT = static_cast<size_t>(AllocatorType::Last) + 1;
+    constexpr size_t ALLOCATOR_POLICY_COUNT = static_cast<size_t>(AllocatorPolicy::Last) + 1;
+
+    constexpr size_t STACK_COUNT = static_cast<size_t>(StackID::Last) + 1;
 
     namespace pisdf {
         constexpr auto SPECIAL_VERTEX_COUNT =
                 static_cast<uint8_t>(VertexType::END) - static_cast<uint8_t>(VertexType::CONFIG) + 1;
         constexpr auto VERTEX_TYPE_COUNT =
                 static_cast<uint8_t>(VertexType::Last) - static_cast<uint8_t>(VertexType::First) + 1;
+    }
+
+    /* === Const array(s) === */
+
+    inline std::array<const char *, STACK_COUNT> &stackNamesArray() {
+        static std::array<const char *, STACK_COUNT> nameArray = {{ "pisdf-stack",
+                                                                          "archi-stack",
+                                                                          "srdag-stack",
+                                                                          "optims-stack",
+                                                                          "expr-stack",
+                                                                          "sched-stack",
+                                                                          "runtime-stack",
+                                                                          "general-stack" }};
+        return nameArray;
+    }
+
+    inline std::array<Stack *, STACK_COUNT> &stackArray() {
+        static std::array<Stack *, STACK_COUNT> stackArray = {{ nullptr }};
+        return stackArray;
     }
 
     /* === Type definition(s) === */

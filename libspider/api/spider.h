@@ -60,24 +60,11 @@ namespace spider {
 
     namespace api {
 
-        void createGenericStack(StackID stack, const std::string &name, size_t alignment = sizeof(uint64_t));
-
-        void createFreeListStack(StackID stack,
-                                 const std::string &name,
-                                 size_t staticBufferSize,
-                                 FreeListPolicy policy,
-                                 size_t alignment = sizeof(uint64_t));
-
-        void createLinearStaticStack(StackID stack,
-                                     const std::string &name,
-                                     size_t totalSize,
-                                     size_t alignment = sizeof(uint64_t));
-
-        void createLinearStaticStack(StackID stack,
-                                     const std::string &name,
-                                     size_t totalSize,
-                                     void *base,
-                                     size_t alignment = sizeof(uint64_t));
+        void setStackAllocatorPolicy(StackID stackId,
+                                     AllocatorPolicy policy,
+                                     size_t alignment = sizeof(uint64_t),
+                                     size_t size = 0,
+                                     void *externBuffer = nullptr);
     }
 
 }

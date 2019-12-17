@@ -48,20 +48,16 @@
 #include <graphs/pisdf/interfaces/InputInterface.h>
 #include <graphs/pisdf/interfaces/OutputInterface.h>
 #include <graphs/pisdf/visitors/DefaultVisitor.h>
+#include <api/spider.h>
 
 class pisdfInterfaceTest : public ::testing::Test {
 protected:
     void SetUp() override {
-        spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::GENERAL,
-                                     "alloc-test");
-        spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::EXPRESSION,
-                                     "alloc-test");
-        spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::PISDF,
-                                     "alloc-test");
+        spider::start();
     }
 
     void TearDown() override {
-        spider::freeStackAllocators();
+        spider::quit();
     }
 };
 

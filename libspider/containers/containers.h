@@ -67,8 +67,8 @@ namespace spider {
 
     /* === Sequence containers === */
 
-    template<class T>
-    using vector = std::vector<T, spider::allocator<T>>;
+    template<class T, class alloc = spider::allocator<T>>
+    using vector = std::vector<T, alloc>;
 
     template<class T>
     using deque = std::deque<T, spider::allocator<T>>;

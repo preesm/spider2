@@ -79,31 +79,32 @@ namespace spider {
 
         /* === Constructors / Destructors === */
 
-        allocator() noexcept : allocator_{ getStackAllocator<StackID::GENERAL>() } { };
+        allocator() noexcept : stack_{ stackArray()[static_cast<uint64_t>(StackID::GENERAL)] } { };
 
         template<class U>
-        allocator(const allocator<U> &other) noexcept : allocator_{ other.allocator_impl() } { }
+        allocator(const allocator<U> &other) noexcept : stack_{ other.stack() } { }
 
-        explicit allocator(StackID stack) : allocator_{ getStackAllocator(stack) } {
-            if (!allocator_) {
-                throwSpiderException("trying to use non-initialized allocator.");
+        explicit allocator(StackID stackId) : stack_{ stackArray()[static_cast<uint64_t>(stackId)] } {
+            if (!stack_) {
+                throwSpiderException("trying to use non-initialized stack_.");
             }
         }
 
-        allocator(const allocator &other) noexcept : allocator_{ other.allocator_ } { };
+        allocator(const allocator &other) noexcept : stack_{ other.stack_ } { };
 
         ~allocator() = default;
 
-        inline AbstractAllocator *allocator_impl() const {
-            return allocator_;
+        inline Stack *stack() const {
+            return stack_;
         }
 
         inline value_type *allocate(size_t n, size_t extra = 0) {
-            return static_cast<value_type *>(allocator_->allocate(n * sizeof(value_type) + extra));
+            auto size = n * sizeof(value_type) + extra;
+            return static_cast<value_type *>(stack_->allocate(size));
         }
 
         inline void deallocate(value_type *p, size_t) {
-            allocator_->deallocate(p);
+            stack_->deallocate(p);
         }
 
 //        inline void construct(value_type *p, const T &value) { new(p) T(value); }
@@ -129,12 +130,12 @@ namespace spider {
         friend bool operator!=(const allocator<T1> &, const allocator<T2> &);
 
     private:
-        AbstractAllocator *allocator_ = nullptr;
+        Stack *stack_ = nullptr;
     };
 
     template<class T1, class T2>
     inline bool operator==(const allocator<T1> &a, const allocator<T2> &b) {
-        return a.allocator_ == b.allocator_;
+        return a.stack_ == b.stack_;
     }
 
     template<class T1, class T2>

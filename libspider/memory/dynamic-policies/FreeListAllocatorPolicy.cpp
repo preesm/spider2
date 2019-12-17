@@ -40,19 +40,19 @@
 
 /* === Includes === */
 
-#include <memory/dynamic-allocators/FreeListAllocator.h>
+#include <memory/dynamic-allocators/FreeListAllocatorPolicy.h>
 
 /* === Constant(s) === */
 
-size_t FreeListAllocator::MIN_CHUNK_SIZE = 8192;
+size_t FreeListAllocatorPolicy::MIN_CHUNK_SIZE = 8192;
 
 /* === Methods implementation === */
 
-FreeListAllocator::FreeListAllocator(std::string name,
-                                     size_t staticBufferSize,
-                                     FreeListPolicy policy,
-                                     size_t alignment) :
-        DynamicAllocator(std::move(name), alignment),
+FreeListAllocatorPolicy::FreeListAllocatorPolicy(std::string name,
+                                                 size_t staticBufferSize,
+                                                 FreeListPolicy policy,
+                                                 size_t alignment) :
+        DynamicAllocatorPolicy(std::move(name), alignment),
         staticBufferSize_{ std::max(staticBufferSize, MIN_CHUNK_SIZE) } {
     if (alignment < 8) {
         throwSpiderException("Memory alignment should be at least of size sizeof(uint64_t) = 8 bytes.");
@@ -62,14 +62,14 @@ FreeListAllocator::FreeListAllocator(std::string name,
     staticBufferPtr_ = std::malloc(staticBufferSize_ + sizeof(Node));
     this->reset();
     if (policy == FreeListPolicy::FIND_FIRST) {
-        findNode_ = FreeListAllocator::findFirst;
+        findNode_ = FreeListAllocatorPolicy::findFirst;
     } else if (policy == FreeListPolicy::FIND_BEST) {
-        findNode_ = FreeListAllocator::findBest;
+        findNode_ = FreeListAllocatorPolicy::findBest;
     }
 }
 
 
-FreeListAllocator::~FreeListAllocator() noexcept {
+FreeListAllocatorPolicy::~FreeListAllocatorPolicy() noexcept {
     std::free(staticBufferPtr_);
     for (auto &it: extraBuffers_) {
         std::free(it.bufferPtr_);
@@ -77,7 +77,7 @@ FreeListAllocator::~FreeListAllocator() noexcept {
     }
 }
 
-void *FreeListAllocator::allocate(size_t size) {
+void *FreeListAllocatorPolicy::allocate(size_t size) {
     if (!size) {
         return nullptr;
     }
@@ -113,14 +113,14 @@ void *FreeListAllocator::allocate(size_t size) {
     (*header) = requiredSize;
 
     /* == Updating usage stats == */
-    used_ += requiredSize;
-    peak_ = std::max(peak_, used_);
+    inUse_ += requiredSize;
+    peak_ = std::max(peak_, inUse_);
     return reinterpret_cast<void *>(dataAddress);
 }
 
-void FreeListAllocator::updateFreeNodeList(FreeListAllocator::Node *baseNode,
-                                           FreeListAllocator::Node *memoryNode,
-                                           size_t requiredSize) {
+void FreeListAllocatorPolicy::updateFreeNodeList(FreeListAllocatorPolicy::Node *baseNode,
+                                                 FreeListAllocatorPolicy::Node *memoryNode,
+                                                 size_t requiredSize) {
     const auto &leftOverMemory = memoryNode->blockSize_ - requiredSize;
     if (leftOverMemory) {
         /* == We split block to limit waste memory space == */
@@ -131,10 +131,10 @@ void FreeListAllocator::updateFreeNodeList(FreeListAllocator::Node *baseNode,
     remove(baseNode, memoryNode);
 }
 
-void FreeListAllocator::deallocate(void *ptr) {
+void FreeListAllocatorPolicy::deallocate(void *ptr) {
     if (!ptr) {
         return;
-    } else if (!used_) {
+    } else if (!inUse_) {
         throwSpiderException("bad memory free: no memory allocated.");
     }
 
@@ -162,7 +162,7 @@ void FreeListAllocator::deallocate(void *ptr) {
     }
 
     /* == Update internal usage == */
-    used_ -= freeNode->blockSize_;
+    inUse_ -= freeNode->blockSize_;
 
     /* == Look for contiguous block to merge (coalescence) == */
     if (freeNode->next_ && (reinterpret_cast<uintptr_t>(freeNode) + freeNode->blockSize_ ==
@@ -177,10 +177,10 @@ void FreeListAllocator::deallocate(void *ptr) {
     }
 }
 
-void FreeListAllocator::reset() noexcept {
-    averageUse_ += used_;
-    numberAverage_++;
-    used_ = 0;
+void FreeListAllocatorPolicy::reset() noexcept {
+    averageUse_ += inUse_;
+    avgSampleCount_++;
+    inUse_ = 0;
     list_ = reinterpret_cast<Node *>(staticBufferPtr_);
     list_->blockSize_ = staticBufferSize_;
     list_->next_ = nullptr;
@@ -194,7 +194,7 @@ void FreeListAllocator::reset() noexcept {
     }
 }
 
-void FreeListAllocator::insert(Node *baseNode, Node *newNode) {
+void FreeListAllocatorPolicy::insert(Node *baseNode, Node *newNode) {
     if (!baseNode) {
         /* == Insert node as first == */
         newNode->next_ = list_;
@@ -207,7 +207,7 @@ void FreeListAllocator::insert(Node *baseNode, Node *newNode) {
     }
 }
 
-void FreeListAllocator::remove(Node *baseNode, Node *removedNode) {
+void FreeListAllocatorPolicy::remove(Node *baseNode, Node *removedNode) {
     if (!baseNode) {
         /* == Remove the first node == */
         list_ = removedNode->next_;
@@ -217,10 +217,10 @@ void FreeListAllocator::remove(Node *baseNode, Node *removedNode) {
     }
 }
 
-FreeListAllocator::Node *FreeListAllocator::createExtraBuffer(size_t size, FreeListAllocator::Node *base) {
+FreeListAllocatorPolicy::Node *FreeListAllocatorPolicy::createExtraBuffer(size_t size, FreeListAllocatorPolicy::Node *base) {
     /* == Allocate new buffer with size aligned to MIN_CHUNK == */
-    FreeListAllocator::Buffer buffer;
-    buffer.size_ = AbstractAllocator::computeAlignedSize(size, MIN_CHUNK_SIZE * allocScale_);
+    FreeListAllocatorPolicy::Buffer buffer;
+    buffer.size_ = AbstractAllocatorPolicy::computeAlignedSize(size, MIN_CHUNK_SIZE * allocScale_);
     buffer.bufferPtr_ = std::malloc(buffer.size_ + sizeof(Node));
 
     /* == Initialize memoryNode == */
@@ -238,9 +238,9 @@ FreeListAllocator::Node *FreeListAllocator::createExtraBuffer(size_t size, FreeL
     return node;
 }
 
-std::pair<FreeListAllocator::Node *, FreeListAllocator::Node *>
-FreeListAllocator::findFirst(size_t size, size_t *padding, size_t alignment, Node *base) {
-    (*padding) = AbstractAllocator::computePadding(size, alignment);
+std::pair<FreeListAllocatorPolicy::Node *, FreeListAllocatorPolicy::Node *>
+FreeListAllocatorPolicy::findFirst(size_t size, size_t *padding, size_t alignment, Node *base) {
+    (*padding) = AbstractAllocatorPolicy::computePadding(size, alignment);
     const auto &requiredSize = size + (*padding);
     Node *previousNode = nullptr;
     auto *freeNode = base;
@@ -254,9 +254,9 @@ FreeListAllocator::findFirst(size_t size, size_t *padding, size_t alignment, Nod
     return std::make_pair(nullptr, nullptr);
 }
 
-std::pair<FreeListAllocator::Node *, FreeListAllocator::Node *>
-FreeListAllocator::findBest(size_t size, size_t *padding, size_t alignment, Node *base) {
-    (*padding) = AbstractAllocator::computePadding(size, alignment);
+std::pair<FreeListAllocatorPolicy::Node *, FreeListAllocatorPolicy::Node *>
+FreeListAllocatorPolicy::findBest(size_t size, size_t *padding, size_t alignment, Node *base) {
+    (*padding) = AbstractAllocatorPolicy::computePadding(size, alignment);
     auto &&minFit = SIZE_MAX;
     const auto &requiredSize = size + (*padding);
     auto *it = base;
@@ -280,7 +280,7 @@ FreeListAllocator::findBest(size_t size, size_t *padding, size_t alignment, Node
     return std::make_pair(bestNode, bestPreviousNode);
 }
 
-bool FreeListAllocator::validAddress(void *ptr) noexcept {
+bool FreeListAllocatorPolicy::validAddress(void *ptr) noexcept {
     const auto &uintptr = reinterpret_cast<uintptr_t>(ptr);
     const auto &staticBufferUintptr = reinterpret_cast<uintptr_t>(staticBufferPtr_);
     auto found = ((uintptr >= staticBufferUintptr) && (uintptr < (staticBufferUintptr + staticBufferSize_)));

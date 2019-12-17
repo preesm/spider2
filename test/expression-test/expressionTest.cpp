@@ -50,20 +50,16 @@
 #include <graphs/pisdf/DynamicParam.h>
 #include <graphs-tools/expression-parser/Expression.h>
 #include <api/config-api.h>
+#include <api/spider.h>
 
 class expressionTest : public ::testing::Test {
 protected:
     void SetUp() override {
-        spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::GENERAL,
-                                     "alloc-test");
-        spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::EXPRESSION,
-                                     "alloc-test");
-        spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::PISDF,
-                                     "alloc-test");
+        spider::start();
     }
 
     void TearDown() override {
-        spider::freeStackAllocators();
+        spider::quit();
     }
 };
 

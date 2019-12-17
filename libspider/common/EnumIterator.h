@@ -59,6 +59,14 @@ namespace spider {
         public:
             explicit Iterator(int32_t value) : value_{ value } { }
 
+            Iterator(const Iterator &) = default;
+
+            Iterator(Iterator &&) noexcept = default;
+
+            Iterator &operator=(const Iterator &) = default;
+
+            Iterator &operator=(Iterator &&) noexcept = default;
+
             ~Iterator() = default;
 
             /* === Method(s) === */
@@ -71,8 +79,15 @@ namespace spider {
                 return static_cast<T>(value_);
             }
 
-            void operator++() {
+            inline Iterator &operator++() {
                 ++value_;
+                return *this;
+            }
+
+            inline Iterator operator++(int) {
+                auto tmp = *this;
+                ++(*this);
+                return tmp;
             }
 
             void operator--() {

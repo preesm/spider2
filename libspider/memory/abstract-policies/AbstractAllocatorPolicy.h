@@ -37,8 +37,8 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_ABSTRACTALLOCATOR_H
-#define SPIDER2_ABSTRACTALLOCATOR_H
+#ifndef SPIDER2_ABSTRACTALLOCATORPOLICY_H
+#define SPIDER2_ABSTRACTALLOCATORPOLICY_H
 
 /* === Includes === */
 
@@ -56,23 +56,25 @@ enum class FreeListPolicy {
     FIND_BEST = 1
 };
 
+constexpr auto avgSamplRate = 10;
+
 /* === Class definition === */
 
-class AbstractAllocator {
+class AbstractAllocatorPolicy {
 public:
-    explicit AbstractAllocator(std::string name, size_t alignment = 0) : used_{ 0 },
-                                                                         peak_{ 0 },
-                                                                         averageUse_{ 0 },
-                                                                         numberAverage_{ 0 },
-                                                                         alignment_{ alignment },
-                                                                         name_{ std::move(name) } { }
+    explicit AbstractAllocatorPolicy(std::string name, size_t alignment = 0) : inUse_{ 0 },
+                                                                               peak_{ 0 },
+                                                                               averageUse_{ 0 },
+                                                                               avgSampleCount_{ 0 },
+                                                                               alignment_{ alignment },
+                                                                               name_{ std::move(name) } { }
 
-    virtual ~AbstractAllocator() noexcept {
-        if (used_ > 0 && log_enabled()) {
+    virtual ~AbstractAllocatorPolicy() noexcept {
+        if (inUse_ > 0 && log_enabled()) {
             spider::log::error("Allocator: %s -- Still has %lf %s in use.\n",
                                name(),
-                               getByteNormalizedSize(used_),
-                               getByteUnitString(used_));
+                               getByteNormalizedSize(inUse_),
+                               getByteUnitString(inUse_));
         }
         printStats();
     }
@@ -104,16 +106,24 @@ public:
     /* === Getter(s) === */
 
     /**
-     * @brief Fetch current memory allocation alignment
-     * @return current allocation alignment
+     * @brief Returns current memory allocation alignment
+     * @return memory alignment value
      */
-    inline size_t getAllocationAlignment() const noexcept {
+    inline size_t alignment() const noexcept {
         return alignment_;
     }
 
     /**
-     * @brief Return name of the allocator.
-     * @return name of the allocator
+     * @brief Returns current memory usage.
+     * @return current memory usage.
+     */
+    inline size_t inUse() const noexcept {
+        return inUse_;
+    }
+
+    /**
+     * @brief Returns the name of the allocator-policy.
+     * @return name of the allocator-policy.
      */
     inline const char *name() const noexcept {
         return name_.c_str();
@@ -127,28 +137,29 @@ public:
     inline void printStats() const noexcept {
         if (log_enabled()) {
             spider::log::info("Allocator: %s\n", name());
-            spider::log::info("       ==> max usage:    %" PRIu64" B (%.6lf %s)\n",
+            spider::log::info("       ==>    peak:    %" PRIu64" B (%.6lf %s)\n",
                               peak_,
                               getByteNormalizedSize(peak_),
                               getByteUnitString(peak_));
             if (averageUse_) {
-                spider::log::info("       ==> avg usage:    %" PRIu64" B (%.6lf %s)\n",
-                                  averageUse_ / numberAverage_,
-                                  getByteNormalizedSize(averageUse_ / numberAverage_),
-                                  getByteUnitString(averageUse_ / numberAverage_));
+                spider::log::info("       ==> average:    %" PRIu64" B (%.6lf %s) sampled every %d allocation(s)\n",
+                                  averageUse_ / avgSampleCount_,
+                                  getByteNormalizedSize(averageUse_ / avgSampleCount_),
+                                  getByteUnitString(averageUse_ / avgSampleCount_),
+                                  avgSamplRate);
             }
-            spider::log::info("       ==> still in use: %" PRIu64" B (%.6lf %s)\n",
-                              used_,
-                              getByteNormalizedSize(used_),
-                              getByteUnitString(used_));
+            spider::log::info("       ==>  in use:    %" PRIu64" B (%.6lf %s)\n",
+                              inUse_,
+                              getByteNormalizedSize(inUse_),
+                              getByteUnitString(inUse_));
         }
     }
 
 protected:
-    uint64_t used_ = 0;
+    uint64_t inUse_ = 0;
     uint64_t peak_ = 0;
     uint64_t averageUse_ = 0;
-    uint64_t numberAverage_ = 0;
+    uint64_t avgSampleCount_ = 0;
     size_t alignment_ = 0;
 
     static inline size_t computeAlignedSize(size_t size, size_t alignment) noexcept {
@@ -198,4 +209,4 @@ private:
     std::string name_;
 };
 
-#endif //SPIDER2_ABSTRACTALLOCATOR_H
+#endif //SPIDER2_ABSTRACTALLOCATORPOLICY_H

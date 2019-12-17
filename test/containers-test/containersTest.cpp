@@ -44,16 +44,16 @@
 #include <memory/alloc.h>
 #include <containers/array.h>
 #include <containers/containers.h>
+#include <api/spider.h>
 
 class containersTest : public ::testing::Test {
 protected:
     void SetUp() override {
-        spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::GENERAL,
-                                     "alloc-test");
+        spider::start();
     }
 
     void TearDown() override {
-        spider::freeStackAllocators();
+        spider::quit();
     }
 };
 

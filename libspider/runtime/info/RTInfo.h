@@ -257,9 +257,9 @@ namespace spider {
         }
 
     private:
-        stack_vector(peMappableVector_, bool, StackID::CONSTRAINTS);
-        stack_vector(clusterMappableVector_, bool, StackID::CONSTRAINTS);
-        stack_vector(timingVector_, Expression, StackID::CONSTRAINTS);
+        stack_vector(peMappableVector_, bool, StackID::RUNTIME);
+        stack_vector(clusterMappableVector_, bool, StackID::RUNTIME);
+        stack_vector(timingVector_, Expression, StackID::RUNTIME);
         size_t kernelIx_ = SIZE_MAX;
     };
 }

@@ -44,20 +44,16 @@
 #include <memory/alloc.h>
 #include <common/Exception.h>
 #include <graphs-tools/expression-parser/RPNConverter.h>
+#include <api/spider.h>
 
 class rpnconverterTest : public ::testing::Test {
 protected:
     void SetUp() override {
-        spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::GENERAL,
-                                     "alloc-test");
-        spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::EXPRESSION,
-                                     "alloc-test");
-        spider::createStackAllocator(spider::allocType<spider::AllocatorType::GENERIC>{ }, StackID::PISDF,
-                                     "alloc-test");
+        spider::start();
     }
 
     void TearDown() override {
-        spider::freeStackAllocators();
+        spider::quit();
     }
 };
 

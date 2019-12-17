@@ -45,7 +45,7 @@
 /* === Methods implementation === */
 
 LinearStaticAllocator::LinearStaticAllocator(std::string name, size_t totalSize, size_t alignment) :
-        StaticAllocator(std::move(name), totalSize, alignment) {
+        StaticAllocatorPolicy(std::move(name), totalSize, alignment) {
     if (alignment < 8) {
         throwSpiderException("Memory alignment should be at least of size sizeof(int64_t) = 8 bytes.");
     }
@@ -54,9 +54,9 @@ LinearStaticAllocator::LinearStaticAllocator(std::string name, size_t totalSize,
 LinearStaticAllocator::LinearStaticAllocator(std::string name,
                                              size_t totalSize,
                                              void *externalBase,
-                                             size_t alignment) : StaticAllocator(std::move(name), totalSize,
-                                                                                 externalBase,
-                                                                                 alignment) {
+                                             size_t alignment) : StaticAllocatorPolicy(std::move(name), totalSize,
+                                                                                       externalBase,
+                                                                                       alignment) {
     if (alignment < 8) {
         throwSpiderException("Memory alignment should be at least of size sizeof(int64_t) = 8 bytes.");
     }
@@ -69,7 +69,7 @@ void *LinearStaticAllocator::allocate(size_t size) {
     size_t padding = 0;
     if (alignment_ && size % alignment_ != 0) {
         /*!< Compute next aligned address padding */
-        padding = AbstractAllocator::computePadding(static_cast<size_t>(size), alignment_);
+        padding = AbstractAllocatorPolicy::computePadding(static_cast<size_t>(size), alignment_);
     }
 
     const auto &requestedSize = padding + size;
@@ -79,9 +79,9 @@ void *LinearStaticAllocator::allocate(size_t size) {
                                      " -- Requested: %"
                                      PRIu64, name(), totalSize_, requestedSize);
     }
-    const auto &alignedAllocatedAddress = reinterpret_cast<uintptr_t>(startPtr_) + used_;
-    used_ += (size + padding);
-    peak_ = std::max(peak_, used_);
+    const auto &alignedAllocatedAddress = reinterpret_cast<uintptr_t>(startPtr_) + inUse_;
+    inUse_ += (size + padding);
+    peak_ = std::max(peak_, inUse_);
     return reinterpret_cast<void *>(alignedAllocatedAddress);
 }
 
@@ -89,12 +89,12 @@ void LinearStaticAllocator::deallocate(void *ptr) {
     if (!ptr) {
         return;
     }
-    StaticAllocator::checkPointerAddress(ptr);
+    StaticAllocatorPolicy::checkPointerAddress(ptr);
     /*!< LinearStaticAllocator does not free memory per block */
 }
 
 void LinearStaticAllocator::reset() noexcept {
-    averageUse_ += used_;
-    numberAverage_++;
-    used_ = 0;
+    averageUse_ += inUse_;
+    avgSampleCount_++;
+    inUse_ = 0;
 }
