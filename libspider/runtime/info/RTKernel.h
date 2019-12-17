@@ -37,83 +37,51 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_RTPLATFORM_H
-#define SPIDER2_RTPLATFORM_H
+#ifndef SPIDER2_RTKERNEL_H
+#define SPIDER2_RTKERNEL_H
 
 /* === Include(s) === */
 
-#include <containers/array.h>
-#include <runtime/info/RTKernel.h>
-#include <algorithm>
+#include <cstdint>
+#include <cstddef>
 
 namespace spider {
 
-    /* === Forward declaration(s) === */
-
-    class RTRunner;
-
-    class RTCommunicator;
-
     /* === Class definition === */
 
-    class RTPlatform {
+    class RTKernel {
     public:
+        RTKernel() = default;
 
-        explicit RTPlatform(size_t runnerCount = 0) : runnerArray_{ runnerCount, StackID::RUNTIME } { }
-
-        virtual ~RTPlatform() = default;
+        ~RTKernel() = default;
 
         /* === Method(s) === */
 
-        /**
-         * @brief Add a @refitem RTKernel to the RTPlatform.
-         * @remark If kernel already exist, this return the current ix of the kernel.
-         * @param kernel  Kernel to add.
-         * @return index of the kernel inside the platform, SIZE_MAX if failure.
-         */
-        inline size_t addKernel(RTKernel *kernel) {
-            if (!kernel) {
-                return SIZE_MAX;
-            }
-            /* == Search if seach Kernel does not already exists == */
-            auto res = std::find(runtimeKernels_.begin(), runtimeKernels_.end(), kernel);
-            if (res == runtimeKernels_.end()) {
-                kernel->setIx(runtimeKernels_.size());
-                runtimeKernels_.emplace_back(kernel);
-                res = runtimeKernels_.end() - 1;
-            }
-            return (*res)->ix();
-        }
-
         /* === Getter(s) === */
 
-        inline RTRunner *runner(size_t ix) const {
-            return runnerArray_.at(ix);
-        }
-
-        inline RTCommunicator *communicator() const {
-            return communicator_;
-        }
-
-        inline const spider::vector<RTKernel *> &runtimeKernels() const {
-            return runtimeKernels_;
+        /**
+         * @brief Get the ix of the kernel.
+         * @return ix of the kernel, if not set return SIZE_MAX.
+         */
+        inline size_t ix() const {
+            return ix_;
         }
 
         /* === Setter(s) === */
 
+        /**
+         * @brief Set the ix of the kernel.
+         * @param ix Ix to set.
+         */
+        inline void setIx(size_t ix) {
+            ix_ = ix;
+        }
+
     private:
-        spider::array<RTRunner *> runnerArray_;
-        stack_vector(runtimeKernels_, RTKernel*, StackID::RUNTIME);
-        RTCommunicator *communicator_ = nullptr;
+        size_t ix_ = SIZE_MAX;
+
     };
-
-    /* === Inline method(s) === */
-
-    inline RTPlatform *&rtPlatform() {
-        static RTPlatform *platform = nullptr;
-        return platform;
-    }
 
 }
 
-#endif //SPIDER2_RTPLATFORM_H
+#endif //SPIDER2_RTKERNEL_H
