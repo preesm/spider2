@@ -54,7 +54,7 @@
 /* === General Scenario related API === */
 
 void spider::api::setVertexMappableOnCluster(pisdf::ExecVertex *vertex, const Cluster *cluster, bool value) {
-    auto *constraints = vertex->constraints();
+    auto *constraints = vertex->runtimeInformation();
     if (!constraints) {
         constraints = vertex->createConstraints();
     }
@@ -70,7 +70,7 @@ void spider::api::setVertexMappableOnCluster(pisdf::ExecVertex *vertex, uint32_t
 }
 
 void spider::api::setVertexMappableOnPE(pisdf::ExecVertex *vertex, const spider::PE *pe, bool value) {
-    auto *constraints = vertex->constraints();
+    auto *constraints = vertex->runtimeInformation();
     if (!constraints) {
         constraints = vertex->createConstraints();
     }
@@ -87,7 +87,7 @@ void spider::api::setVertexMappableOnPE(pisdf::ExecVertex *vertex, const spider:
 //}
 
 void spider::api::setVertexMappableOnAllPE(pisdf::ExecVertex *vertex, bool value) {
-    auto *constraints = vertex->constraints();
+    auto *constraints = vertex->runtimeInformation();
     if (!constraints) {
         constraints = vertex->createConstraints();
     }
@@ -97,15 +97,15 @@ void spider::api::setVertexMappableOnAllPE(pisdf::ExecVertex *vertex, bool value
 void spider::api::setVertexExecutionTimingOnPE(pisdf::ExecVertex *vertex,
                                                const PE *pe,
                                                const std::string &timingExpression) {
-    auto *constraints = vertex->constraints();
-    if (!constraints) {
-        constraints = vertex->createConstraints();
+    auto *runtimeInfo = vertex->runtimeInformation();
+    if (!runtimeInfo) {
+        runtimeInfo = vertex->createConstraints();
     }
-    constraints->setTimingOnPE(pe, Expression(timingExpression));
+    runtimeInfo->setTimingOnPE(pe, Expression(timingExpression));
 }
 
 void spider::api::setVertexExecutionTimingOnPE(pisdf::ExecVertex *vertex, const PE *pe, int64_t timing) {
-    auto *constraints = vertex->constraints();
+    auto *constraints = vertex->runtimeInformation();
     if (!constraints) {
         constraints = vertex->createConstraints();
     }
@@ -113,7 +113,7 @@ void spider::api::setVertexExecutionTimingOnPE(pisdf::ExecVertex *vertex, const 
 }
 
 void spider::api::setVertexExecutionTimingOnAllPE(pisdf::ExecVertex *vertex, int64_t timing) {
-    auto *constraints = vertex->constraints();
+    auto *constraints = vertex->runtimeInformation();
     if (!constraints) {
         constraints = vertex->createConstraints();
     }
@@ -121,7 +121,7 @@ void spider::api::setVertexExecutionTimingOnAllPE(pisdf::ExecVertex *vertex, int
 }
 
 void spider::api::setVertexExecutionTimingOnAllPE(pisdf::ExecVertex *vertex, const std::string &timingExpression) {
-    auto *constraints = vertex->constraints();
+    auto *constraints = vertex->runtimeInformation();
     if (!constraints) {
         constraints = vertex->createConstraints();
     }

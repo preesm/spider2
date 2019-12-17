@@ -180,11 +180,10 @@ TEST_F(pisdVertexTest, vertexTest) {
         ASSERT_EQ(v->outputEdgeCount(), 0);
         ASSERT_EQ(v->reference(), v);
         ASSERT_EQ(v->graph(), nullptr);
-        ASSERT_EQ(v->constraints(), nullptr);
+        ASSERT_EQ(v->runtimeInformation(), nullptr);
         ASSERT_EQ(v->ix(), UINT32_MAX);
         ASSERT_EQ(v->repetitionValue(), 1);
         ASSERT_EQ(v->jobIx(), UINT32_MAX);
-        ASSERT_EQ(v->refinementIx(), UINT32_MAX);
         delete v;
     }
     {

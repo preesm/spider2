@@ -257,7 +257,7 @@ namespace spider {
                 return false;
             }
 
-            inline RTInfo *constraints() const {
+            inline RTInfo *runtimeInformation() const {
                 return rtInformation_;
             }
 

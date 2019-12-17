@@ -84,7 +84,7 @@ void spider::Scheduler::vertexMapper(const pisdf::Vertex *vertex) {
 
     /* == Search for the best slave possible == */
     const auto *platform = spider::platform();
-    const auto *constraints = vertex->constraints();
+    const auto *constraints = vertex->runtimeInformation();
     const auto &platformStats = schedule_.stats();
 
     size_t bestSlave = SIZE_MAX;
