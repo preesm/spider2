@@ -42,32 +42,44 @@
 
 /* === Includes === */
 
-#include <memory/abstract-allocators/StaticAllocatorPolicy.h>
+#include <memory/abstract-policies/AbstractAllocatorPolicy.h>
 
 /* === Class definition === */
 
-class LinearStaticAllocator final : public StaticAllocatorPolicy {
+class LinearStaticAllocator final : public AbstractAllocatorPolicy {
 public:
 
-    explicit LinearStaticAllocator(std::string name,
-                                   size_t totalSize,
-                                   size_t alignment = sizeof(int64_t));
 
-    explicit LinearStaticAllocator(std::string name,
-                                   size_t totalSize,
-                                   void *externalBase,
-                                   size_t alignment = sizeof(int64_t));
+    explicit LinearStaticAllocator(size_t totalSize, void *externalBase = nullptr, size_t alignment = sizeof(int64_t));
 
     ~LinearStaticAllocator() override {
-        reset();
+        if (!external_) {
+            std::free(buffer_);
+        }
     };
 
-    void *allocate(size_t size) override;
+    void *allocate(size_t &&size) override;
 
-    void deallocate(void *ptr) override;
+    size_t deallocate(void *ptr) override;
 
-    void reset() noexcept override;
+private:
 
+    size_t totalSize_ = 0;
+    bool external_ = false;
+    void *buffer_ = nullptr;
+
+    /* === Private method(s) === */
+
+    inline void checkPointerAddress(void *ptr) const {
+        const auto &uintPtr = reinterpret_cast<uintptr_t >(ptr);
+        if (uintPtr < reinterpret_cast<uintptr_t>(buffer_)) {
+            throwSpiderException("Trying to deallocate unallocated memory block.");
+        }
+
+        if (uintPtr > (reinterpret_cast<uintptr_t>(buffer_) + totalSize_)) {
+            throwSpiderException("Trying to deallocate memory block out of memory space.");
+        }
+    }
 };
 
 #endif //SPIDER2_LINEARSTATICALLOCATOR_H

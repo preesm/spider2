@@ -49,48 +49,28 @@
 #include <common/Exception.h>
 #include <common/Math.h>
 
-/* === Enumeration(s) === */
-
-enum class FreeListPolicy {
-    FIND_FIRST = 0,
-    FIND_BEST = 1
-};
-
-constexpr auto avgSamplRate = 10;
-
 /* === Class definition === */
 
 class AbstractAllocatorPolicy {
 public:
-    explicit AbstractAllocatorPolicy(std::string name, size_t alignment = 0) : inUse_{ 0 },
-                                                                               peak_{ 0 },
-                                                                               averageUse_{ 0 },
-                                                                               avgSampleCount_{ 0 },
-                                                                               alignment_{ alignment },
-                                                                               name_{ std::move(name) } { }
 
-    virtual ~AbstractAllocatorPolicy() noexcept {
-        if (inUse_ > 0 && log_enabled()) {
-            spider::log::error("Allocator: %s -- Still has %lf %s in use.\n",
-                               name(),
-                               getByteNormalizedSize(inUse_),
-                               getByteUnitString(inUse_));
-        }
-        printStats();
-    }
+    explicit AbstractAllocatorPolicy(size_t alignment = 0) : usage_{ 0 }, alignment_{ alignment } { }
+
+    virtual ~AbstractAllocatorPolicy() noexcept = default;
 
     /**
      * @brief Allocate a memory buffer.
      * @param size Size of the buffer to allocate
      * @return pointer to allocated memory, nullptr on failure or if size is 0
      */
-    virtual void *allocate(size_t size) = 0;
+    virtual void *allocate(size_t &&size) = 0;
 
     /**
      * @brief Free a memory buffer.
      * @param ptr Memory address to be freed
+     * @return size of the freed buffer
      */
-    virtual void deallocate(void *ptr) = 0;
+    virtual size_t deallocate(void *ptr) = 0;
 
     /* === Setter(s) === */
 
@@ -117,49 +97,12 @@ public:
      * @brief Returns current memory usage.
      * @return current memory usage.
      */
-    inline size_t inUse() const noexcept {
-        return inUse_;
-    }
-
-    /**
-     * @brief Returns the name of the allocator-policy.
-     * @return name of the allocator-policy.
-     */
-    inline const char *name() const noexcept {
-        return name_.c_str();
-    }
-
-    /* ===  Methods === */
-
-    /**
-     * @brief Print allocator usage statistics (peak usage, average usage)
-     */
-    inline void printStats() const noexcept {
-        if (log_enabled()) {
-            spider::log::info("Allocator: %s\n", name());
-            spider::log::info("       ==>    peak:    %" PRIu64" B (%.6lf %s)\n",
-                              peak_,
-                              getByteNormalizedSize(peak_),
-                              getByteUnitString(peak_));
-            if (averageUse_) {
-                spider::log::info("       ==> average:    %" PRIu64" B (%.6lf %s) sampled every %d allocation(s)\n",
-                                  averageUse_ / avgSampleCount_,
-                                  getByteNormalizedSize(averageUse_ / avgSampleCount_),
-                                  getByteUnitString(averageUse_ / avgSampleCount_),
-                                  avgSamplRate);
-            }
-            spider::log::info("       ==>  in use:    %" PRIu64" B (%.6lf %s)\n",
-                              inUse_,
-                              getByteNormalizedSize(inUse_),
-                              getByteUnitString(inUse_));
-        }
+    inline size_t usage() const noexcept {
+        return usage_;
     }
 
 protected:
-    uint64_t inUse_ = 0;
-    uint64_t peak_ = 0;
-    uint64_t averageUse_ = 0;
-    uint64_t avgSampleCount_ = 0;
+    uint64_t usage_ = 0;
     size_t alignment_ = 0;
 
     static inline size_t computeAlignedSize(size_t size, size_t alignment) noexcept {
@@ -175,38 +118,6 @@ protected:
     computePaddingWithHeader(size_t size, size_t alignment, size_t headerSize) noexcept {
         return computePadding(size + headerSize, alignment);
     }
-
-    static inline const char *getByteUnitString(uint64_t size) noexcept {
-        constexpr uint64_t SIZE_GB = 1024 * 1024 * 1024;
-        constexpr uint64_t SIZE_MB = 1024 * 1024;
-        constexpr uint64_t SIZE_KB = 1024;
-        if (size / SIZE_GB) {
-            return "GB";
-        } else if (size / SIZE_MB) {
-            return "MB";
-        } else if (size / SIZE_KB) {
-            return "KB";
-        }
-        return "B";
-    }
-
-    static inline double getByteNormalizedSize(uint64_t size) noexcept {
-        constexpr double SIZE_GB = 1024 * 1024 * 1024;
-        constexpr double SIZE_MB = 1024 * 1024;
-        constexpr double SIZE_KB = 1024;
-        const auto dblSize = (double) size;
-        if (dblSize / SIZE_GB >= 1.) {
-            return dblSize / SIZE_GB;
-        } else if (dblSize / SIZE_MB >= 1.) {
-            return dblSize / SIZE_MB;
-        } else if (dblSize / SIZE_KB >= 1.) {
-            return dblSize / SIZE_KB;
-        }
-        return dblSize;
-    }
-
-private:
-    std::string name_;
 };
 
 #endif //SPIDER2_ABSTRACTALLOCATORPOLICY_H

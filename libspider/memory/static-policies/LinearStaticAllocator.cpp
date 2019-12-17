@@ -40,29 +40,26 @@
 
 /* === Includes === */
 
-#include <memory/static-allocators/LinearStaticAllocator.h>
+#include <memory/static-policies/LinearStaticAllocator.h>
 
 /* === Methods implementation === */
 
-LinearStaticAllocator::LinearStaticAllocator(std::string name, size_t totalSize, size_t alignment) :
-        StaticAllocatorPolicy(std::move(name), totalSize, alignment) {
+LinearStaticAllocator::LinearStaticAllocator(size_t totalSize, void *externalBase, size_t alignment) :
+        AbstractAllocatorPolicy(alignment), totalSize_{ totalSize }, buffer_{ externalBase } {
     if (alignment < 8) {
         throwSpiderException("Memory alignment should be at least of size sizeof(int64_t) = 8 bytes.");
     }
-}
-
-LinearStaticAllocator::LinearStaticAllocator(std::string name,
-                                             size_t totalSize,
-                                             void *externalBase,
-                                             size_t alignment) : StaticAllocatorPolicy(std::move(name), totalSize,
-                                                                                       externalBase,
-                                                                                       alignment) {
-    if (alignment < 8) {
-        throwSpiderException("Memory alignment should be at least of size sizeof(int64_t) = 8 bytes.");
+    if (buffer_) {
+        if (!totalSize) {
+            throwSpiderException("can not have null size with non null external buffer.");
+        }
+        external_ = true;
+    } else {
+        buffer_ = std::malloc(totalSize);
     }
 }
 
-void *LinearStaticAllocator::allocate(size_t size) {
+void *LinearStaticAllocator::allocate(size_t &&size) {
     if (!size) {
         return nullptr;
     }
@@ -72,29 +69,23 @@ void *LinearStaticAllocator::allocate(size_t size) {
         padding = AbstractAllocatorPolicy::computePadding(static_cast<size_t>(size), alignment_);
     }
 
-    const auto &requestedSize = padding + size;
-    if (requestedSize > totalSize_) {
-        throwSpiderException("Memory request exceed memory available. Stack: %s -- Size: %"
+    size = padding + size;
+    if (size > totalSize_) {
+        throwSpiderException("not enough memory: available: %"
                                      PRIu64
-                                     " -- Requested: %"
-                                     PRIu64, name(), totalSize_, requestedSize);
+                                     " -- requested: %"
+                                     PRIu64, totalSize_ - usage_, size);
     }
-    const auto &alignedAllocatedAddress = reinterpret_cast<uintptr_t>(startPtr_) + inUse_;
-    inUse_ += (size + padding);
-    peak_ = std::max(peak_, inUse_);
+    const auto &alignedAllocatedAddress = reinterpret_cast<uintptr_t>(buffer_) + usage_;
+    usage_ += size;
     return reinterpret_cast<void *>(alignedAllocatedAddress);
 }
 
-void LinearStaticAllocator::deallocate(void *ptr) {
+size_t LinearStaticAllocator::deallocate(void *ptr) {
     if (!ptr) {
-        return;
+        return 0;
     }
-    StaticAllocatorPolicy::checkPointerAddress(ptr);
+    checkPointerAddress(ptr);
+    return 0;
     /*!< LinearStaticAllocator does not free memory per block */
-}
-
-void LinearStaticAllocator::reset() noexcept {
-    averageUse_ += inUse_;
-    avgSampleCount_++;
-    inUse_ = 0;
 }

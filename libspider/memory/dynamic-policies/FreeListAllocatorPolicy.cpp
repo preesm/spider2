@@ -40,7 +40,7 @@
 
 /* === Includes === */
 
-#include <memory/dynamic-allocators/FreeListAllocatorPolicy.h>
+#include <memory/dynamic-policies/FreeListAllocatorPolicy.h>
 
 /* === Constant(s) === */
 
@@ -48,36 +48,46 @@ size_t FreeListAllocatorPolicy::MIN_CHUNK_SIZE = 8192;
 
 /* === Methods implementation === */
 
-FreeListAllocatorPolicy::FreeListAllocatorPolicy(std::string name,
-                                                 size_t staticBufferSize,
+FreeListAllocatorPolicy::FreeListAllocatorPolicy(size_t staticBufferSize,
+                                                 void *externalBuffer,
                                                  FreeListPolicy policy,
                                                  size_t alignment) :
-        DynamicAllocatorPolicy(std::move(name), alignment),
+        AbstractAllocatorPolicy(alignment),
         staticBufferSize_{ std::max(staticBufferSize, MIN_CHUNK_SIZE) } {
     if (alignment < 8) {
         throwSpiderException("Memory alignment should be at least of size sizeof(uint64_t) = 8 bytes.");
     }
 
     /* == We need extra space for the Node structure == */
-    staticBufferPtr_ = std::malloc(staticBufferSize_ + sizeof(Node));
-    this->reset();
+    if (externalBuffer) {
+        staticBufferPtr_ = externalBuffer;
+        external_ = true;
+    } else {
+        staticBufferPtr_ = std::malloc(staticBufferSize_ + sizeof(Node));
+    }
     if (policy == FreeListPolicy::FIND_FIRST) {
         findNode_ = FreeListAllocatorPolicy::findFirst;
     } else if (policy == FreeListPolicy::FIND_BEST) {
         findNode_ = FreeListAllocatorPolicy::findBest;
     }
+    /* == Reset the default == */
+    list_ = reinterpret_cast<Node *>(staticBufferPtr_);
+    list_->blockSize_ = staticBufferSize_;
+    list_->next_ = nullptr;
 }
 
 
 FreeListAllocatorPolicy::~FreeListAllocatorPolicy() noexcept {
-    std::free(staticBufferPtr_);
+    if (!external_) {
+        std::free(staticBufferPtr_);
+    }
     for (auto &it: extraBuffers_) {
         std::free(it.bufferPtr_);
         it.bufferPtr_ = nullptr;
     }
 }
 
-void *FreeListAllocatorPolicy::allocate(size_t size) {
+void *FreeListAllocatorPolicy::allocate(size_t &&size) {
     if (!size) {
         return nullptr;
     }
@@ -113,8 +123,7 @@ void *FreeListAllocatorPolicy::allocate(size_t size) {
     (*header) = requiredSize;
 
     /* == Updating usage stats == */
-    inUse_ += requiredSize;
-    peak_ = std::max(peak_, inUse_);
+    usage_ += requiredSize;
     return reinterpret_cast<void *>(dataAddress);
 }
 
@@ -131,10 +140,10 @@ void FreeListAllocatorPolicy::updateFreeNodeList(FreeListAllocatorPolicy::Node *
     remove(baseNode, memoryNode);
 }
 
-void FreeListAllocatorPolicy::deallocate(void *ptr) {
+size_t FreeListAllocatorPolicy::deallocate(void *ptr) {
     if (!ptr) {
-        return;
-    } else if (!inUse_) {
+        return 0;
+    } else if (!usage_) {
         throwSpiderException("bad memory free: no memory allocated.");
     }
 
@@ -162,7 +171,7 @@ void FreeListAllocatorPolicy::deallocate(void *ptr) {
     }
 
     /* == Update internal usage == */
-    inUse_ -= freeNode->blockSize_;
+    usage_ -= freeNode->blockSize_;
 
     /* == Look for contiguous block to merge (coalescence) == */
     if (freeNode->next_ && (reinterpret_cast<uintptr_t>(freeNode) + freeNode->blockSize_ ==
@@ -175,23 +184,7 @@ void FreeListAllocatorPolicy::deallocate(void *ptr) {
         itPrev->blockSize_ += freeNode->blockSize_;
         remove(itPrev, freeNode);
     }
-}
-
-void FreeListAllocatorPolicy::reset() noexcept {
-    averageUse_ += inUse_;
-    avgSampleCount_++;
-    inUse_ = 0;
-    list_ = reinterpret_cast<Node *>(staticBufferPtr_);
-    list_->blockSize_ = staticBufferSize_;
-    list_->next_ = nullptr;
-    Node *currentNode = list_;
-    for (auto &it: extraBuffers_) {
-        auto *bufferHead = reinterpret_cast<Node *>(it.bufferPtr_);
-        bufferHead->blockSize_ = it.size_;
-        bufferHead->next_ = nullptr;
-        insert(currentNode, bufferHead);
-        currentNode = bufferHead;
-    }
+    return size;
 }
 
 void FreeListAllocatorPolicy::insert(Node *baseNode, Node *newNode) {
@@ -217,7 +210,8 @@ void FreeListAllocatorPolicy::remove(Node *baseNode, Node *removedNode) {
     }
 }
 
-FreeListAllocatorPolicy::Node *FreeListAllocatorPolicy::createExtraBuffer(size_t size, FreeListAllocatorPolicy::Node *base) {
+FreeListAllocatorPolicy::Node *
+FreeListAllocatorPolicy::createExtraBuffer(size_t size, FreeListAllocatorPolicy::Node *base) {
     /* == Allocate new buffer with size aligned to MIN_CHUNK == */
     FreeListAllocatorPolicy::Buffer buffer;
     buffer.size_ = AbstractAllocatorPolicy::computeAlignedSize(size, MIN_CHUNK_SIZE * allocScale_);
@@ -239,13 +233,13 @@ FreeListAllocatorPolicy::Node *FreeListAllocatorPolicy::createExtraBuffer(size_t
 }
 
 std::pair<FreeListAllocatorPolicy::Node *, FreeListAllocatorPolicy::Node *>
-FreeListAllocatorPolicy::findFirst(size_t size, size_t *padding, size_t alignment, Node *base) {
+FreeListAllocatorPolicy::findFirst(size_t &size, size_t *padding, size_t alignment, Node *base) {
     (*padding) = AbstractAllocatorPolicy::computePadding(size, alignment);
-    const auto &requiredSize = size + (*padding);
+    size = size + (*padding);
     Node *previousNode = nullptr;
     auto *freeNode = base;
     while (freeNode) {
-        if (freeNode->blockSize_ >= requiredSize) {
+        if (freeNode->blockSize_ >= size) {
             return std::make_pair(freeNode, previousNode);
         }
         previousNode = freeNode;
@@ -255,18 +249,18 @@ FreeListAllocatorPolicy::findFirst(size_t size, size_t *padding, size_t alignmen
 }
 
 std::pair<FreeListAllocatorPolicy::Node *, FreeListAllocatorPolicy::Node *>
-FreeListAllocatorPolicy::findBest(size_t size, size_t *padding, size_t alignment, Node *base) {
+FreeListAllocatorPolicy::findBest(size_t &size, size_t *padding, size_t alignment, Node *base) {
     (*padding) = AbstractAllocatorPolicy::computePadding(size, alignment);
     auto &&minFit = SIZE_MAX;
-    const auto &requiredSize = size + (*padding);
+    size = size + (*padding);
     auto *it = base;
     Node *previousNode = nullptr;
     Node *bestPreviousNode = nullptr;
     Node *bestNode = nullptr;
     while (it) {
-        if ((it->blockSize_ >= requiredSize) &&
-            ((it->blockSize_ - requiredSize) < minFit)) {
-            minFit = it->blockSize_ - requiredSize;
+        if ((it->blockSize_ >= size) &&
+            ((it->blockSize_ - size) < minFit)) {
+            minFit = it->blockSize_ - size;
             bestPreviousNode = previousNode;
             bestNode = it;
             if (!minFit) {

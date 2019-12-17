@@ -42,24 +42,19 @@
 
 /* === Includes === */
 
-#include <memory/abstract-policies/DynamicAllocatorPolicy.h>
+#include <memory/abstract-policies/AbstractAllocatorPolicy.h>
 
 /* === Class definition === */
 
-class GenericAllocatorPolicy final : public DynamicAllocatorPolicy {
+class GenericAllocatorPolicy final : public AbstractAllocatorPolicy {
 public:
-    explicit GenericAllocatorPolicy(std::string name, size_t alignment = sizeof(uint64_t));
+    explicit GenericAllocatorPolicy(size_t alignment = sizeof(uint64_t));
 
     ~GenericAllocatorPolicy() noexcept override = default;
 
-    void *allocate(size_t size) override;
+    void *allocate(size_t &&size) override;
 
-    void deallocate(void *ptr) override;
-
-    void reset() noexcept override;
-
-private:
-    uint64_t allocCount_ = 0;
+    size_t deallocate(void *ptr) override;
 };
 
 #endif //SPIDER2_GENERICALLOCATORPOLICY_H

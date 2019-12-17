@@ -43,13 +43,18 @@
 /* === Includes === */
 
 #include <vector>
-#include <memory/abstract-allocators/DynamicAllocatorPolicy.h>
+#include <memory/abstract-policies/AbstractAllocatorPolicy.h>
 
-/* === Defines === */
+/* === Enumeration(s) === */
+
+enum class FreeListPolicy {
+    FIND_FIRST = 0,
+    FIND_BEST = 1
+};
 
 /* === Class definition === */
 
-class FreeListAllocatorPolicy final : public DynamicAllocatorPolicy {
+class FreeListAllocatorPolicy final : public AbstractAllocatorPolicy {
 public:
     struct Node {
         size_t blockSize_ = 0;
@@ -57,18 +62,16 @@ public:
 
     };
 
-    explicit FreeListAllocatorPolicy(std::string name,
-                                     size_t staticBufferSize,
+    explicit FreeListAllocatorPolicy(size_t staticBufferSize,
+                                     void *externalBuffer = nullptr,
                                      FreeListPolicy policy = FreeListPolicy::FIND_FIRST,
                                      size_t alignment = sizeof(int64_t));
 
     ~FreeListAllocatorPolicy() noexcept override;
 
-    void *allocate(size_t size) override;
+    void *allocate(size_t &&size) override;
 
-    void deallocate(void *ptr) override;
-
-    void reset() noexcept override;
+    size_t deallocate(void *ptr) override;
 
     static size_t MIN_CHUNK_SIZE;
 private:
@@ -81,12 +84,13 @@ private:
     Node *list_ = nullptr;
 
     void *staticBufferPtr_ = nullptr;
+    bool external_ = false;
     std::vector<Buffer> extraBuffers_;
     size_t staticBufferSize_ = 0;
     size_t allocScale_ = 1;
 
 
-    using FreeListPolicyMethod = std::pair<Node *, Node *> (*)(size_t, size_t *, size_t, Node *);
+    using FreeListPolicyMethod = std::pair<Node *, Node *> (*)(size_t &, size_t *, size_t, Node *);
 
     FreeListPolicyMethod findNode_;
 
@@ -99,10 +103,10 @@ private:
     void updateFreeNodeList(Node *baseNode, Node *memoryNode, size_t requiredSize);
 
     static std::pair<Node *, Node *>
-    findFirst(size_t size, size_t *padding, size_t alignment, Node *baseNode);
+    findFirst(size_t &size, size_t *padding, size_t alignment, Node *baseNode);
 
     static std::pair<Node *, Node *>
-    findBest(size_t size, size_t *padding, size_t alignment, Node *baseNode);
+    findBest(size_t &size, size_t *padding, size_t alignment, Node *baseNode);
 
     /**
      * @brief Check the pointer address to be sure we are deallocating memory we allocated.

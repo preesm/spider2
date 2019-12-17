@@ -41,52 +41,39 @@
 /* === Includes === */
 
 #include <algorithm>
-#include <memory/dynamic-allocators/GenericAllocatorPolicy.h>
+#include <memory/dynamic-policies/GenericAllocatorPolicy.h>
 
 /* === Methods implementation === */
 
-GenericAllocatorPolicy::GenericAllocatorPolicy(std::string name, size_t alignment) : DynamicAllocatorPolicy(std::move(name),
-                                                                                                            alignment) { }
+GenericAllocatorPolicy::GenericAllocatorPolicy(size_t alignment) : AbstractAllocatorPolicy(alignment) { }
 
-void *GenericAllocatorPolicy::allocate(size_t size) {
+void *GenericAllocatorPolicy::allocate(size_t &&size) {
     if (!size) {
         return nullptr;
     }
-    const auto &requiredSize = size + sizeof(uint64_t);
-    const auto &alignedSize = AbstractAllocatorPolicy::computeAlignedSize(requiredSize, alignment_);
+    size = size + sizeof(uint64_t);
+    size = AbstractAllocatorPolicy::computeAlignedSize(size, alignment_);
 
-    auto *headerAddress = std::malloc(alignedSize);
+    auto *headerAddress = std::malloc(size);
     if (!headerAddress) {
         // LCOV_IGNORE
-        throwSpiderException("Failed to allocate %lf %s",
-                             AbstractAllocatorPolicy::getByteNormalizedSize(alignedSize),
-                             AbstractAllocatorPolicy::getByteUnitString(alignedSize));
+        throwSpiderException("malloc failure. requested size: %zu", size);
     }
     auto *header = reinterpret_cast<uint64_t *>(headerAddress);
-    (*header) = alignedSize;
-    inUse_ += alignedSize;
-    peak_ = std::max(peak_, inUse_);
-    if (!((allocCount_++) % avgSamplRate)) {
-        averageUse_ += inUse_;
-        avgSampleCount_++;
-    }
+    (*header) = size;
+    usage_ += size;
     return reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(headerAddress) + sizeof(uint64_t));
 }
 
-void GenericAllocatorPolicy::deallocate(void *ptr) {
+size_t GenericAllocatorPolicy::deallocate(void *ptr) {
     if (!ptr) {
-        return;
+        return 0;
     }
     const auto &headerAddress = reinterpret_cast<uintptr_t>(ptr) - sizeof(uint64_t);
     auto *header = reinterpret_cast<uint64_t *>(headerAddress);
-    inUse_ -= (*header);
+    auto size = *header;
+    usage_ -= size;
     std::free(reinterpret_cast<void *>(headerAddress));
+    return size;
 }
-
-void GenericAllocatorPolicy::reset() noexcept {
-    averageUse_ += inUse_;
-    avgSampleCount_++;
-    inUse_ = 0;
-}
-
 
