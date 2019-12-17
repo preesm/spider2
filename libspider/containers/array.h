@@ -58,15 +58,25 @@ namespace spider {
     template<typename T>
     class array {
     public:
+        using value_type = T;
+        using size_type = size_t;
+        using reference = value_type &;
+        using const_reference = const value_type &;
+        using pointer = value_type *;
+        using const_pointer = const value_type *;
+        using iterator = value_type *;
+        using const_iterator = const value_type *;
+
+        /* === Constructors, assignment and destructor === */
 
         /**
          * @brief Create an array of size size on stack stack.
          * @param stack  Stack on which the array should be allocated.
          * @param size   Size of the array.
          */
-        explicit array(size_t size, StackID stack = StackID::GENERAL) : size_{ size } {
+        explicit array(size_type size, StackID stack = StackID::GENERAL) : size_{ size } {
             if (size) {
-                data_ = allocate<T>(stack, size + 1);
+                data_ = allocate<T>(stack, size);
             }
         }
 
@@ -76,8 +86,12 @@ namespace spider {
          * @param size   Size of the array.
          * @param value  Value to set to all the elements of the array.
          */
-        explicit array(size_t size, const T &value, StackID stack = StackID::GENERAL) : array(size, stack) {
-            set(value);
+        array(size_t size, const_reference value, StackID stack = StackID::GENERAL) : array(size, stack) {
+            assign(value);
+        }
+
+        array(std::initializer_list<value_type> il, StackID stack = StackID::GENERAL) : array(il.size(), stack) {
+            std::copy(il.begin(), il.end(), begin());
         }
 
         array() noexcept = default;
@@ -94,19 +108,181 @@ namespace spider {
             deallocate(data_);
         }
 
-        array &operator=(array tmp) {
-            swap(*this, tmp);
+        /* === Member functions === */
+
+        array &operator=(const array &other) {
+            std::copy(other.begin(), std::min(other.begin() + size(), other.end()), begin());
             return *this;
         }
 
-
-        /* === Swap method === */
+        array &operator=(array &&other) noexcept {
+            swap(*this, other);
+            return *this;
+        }
 
         /**
-         * @brief use the "making new friends idiom" from
-         * https://en.wikibooks.org/wiki/More_C%2B%2B_Idioms/Making_New_Friends
-         * @param first   First element to swap.
-         * @param second  Second element to swap.
+         * @brief Replaces the contents of the container.
+         * Replaces the contents with size() copies of value value.
+         * @warning All iterators, pointers and references to the elements of the container are invalidated.
+         * @param value the value to initialize elements of the container with.
+         */
+        inline void assign(const_reference value) {
+            std::fill(begin(), end(), value);
+        }
+
+        /**
+         * @brief Replaces the contents of the container.
+         * Replaces the contents with the elements from the initializer list ilist.
+         * @remark if ilist.size() > size() only the elements of those in the range [0, size()] are copied.
+         * @warning All iterators, pointers and references to the elements of the container are invalidated.
+         * @param ilist initializer list to copy the values from
+         */
+        inline void assign(std::initializer_list<value_type> ilist) {
+            std::copy(ilist.begin(), std::min(ilist.begin() + size(), ilist.end()), begin());
+        }
+
+        /* === Element access === */
+
+        /**
+         * @brief Returns a reference to the element at specified location pos, with bounds checking.
+         * If pos is not within the range of the container, an exception of type std::out_of_range is thrown.
+         * @param pos position of the element to return
+         * @return Reference to the requested element.
+         * @throws std::out_of_range if !(pos < size()).
+         */
+        inline reference at(size_type pos) {
+            if (pos >= size()) { throw std::out_of_range("array out of bound."); }
+            return data_[pos];
+        }
+
+        inline const_reference at(size_type pos) const {
+            if (pos >= size()) { throw std::out_of_range("array out of bound."); }
+            return data_[pos];
+        }
+
+        /**
+         * @brief Returns a reference to the element at specified location pos.
+         * No bounds checking is performed.
+         * @param pos position of the element to return
+         * @return Reference to the requested element.
+         */
+        inline reference operator[](size_type pos) {
+            return data_[pos];
+        }
+
+        inline const_reference operator[](size_type pos) const {
+            return data_[pos];
+        }
+
+        /**
+         * @brief Returns a reference to the first element in the container.
+         * @warning Calling back on an empty container is undefined.
+         * @return Reference to the first element.
+         */
+        inline reference front() {
+            return *(begin());
+        }
+
+        inline const_reference front() const {
+            return *(cbegin());
+        }
+
+        /**
+         * @brief Returns reference to the last element in the container.
+         * @warning Calling back on an empty container is undefined.
+         * @return Reference to the last element.
+         */
+        inline reference back() {
+            return *(end() - 1);
+        }
+
+        inline const_reference back() const {
+            return *(cend() - 1);
+        }
+
+        /**
+         * @brief Returns pointer to the underlying array serving as element storage.
+         * The pointer is such that range [data(); data() + size()) is always a valid range,
+         * even if the container is empty (data() is not dereferenceable in that case).
+         * @return Pointer to the underlying element storage. For non-empty containers,
+         * the returned pointer compares equal to the address of the first element.
+         */
+        inline pointer data() {
+            return data_;
+        }
+
+        inline const_pointer data() const {
+            return data_;
+        }
+
+        /* === Iterators === */
+
+        /**
+         * @brief Returns an iterator to the first element of the container.
+         * If the container is empty, the returned iterator will be equal to end().
+         * @return Iterator to the first element.
+         */
+        inline iterator begin() {
+            if (empty()) {
+                return end();
+            }
+            return data_;
+        }
+
+        inline const_iterator begin() const {
+            if (empty()) {
+                return end();
+            }
+            return data_;
+        }
+
+        inline const_iterator cbegin() const {
+            return begin();
+        }
+
+        /**
+         * @brief Returns an iterator to the element following the last element of the container.
+         * This element acts as a placeholder; attempting to access it results in undefined behavior.
+         * @return Iterator to the element following the last element.
+         */
+        inline iterator end() {
+            return data_ + size_;
+        }
+
+        inline const_iterator end() const {
+            return data_ + size_;
+        }
+
+        inline const_iterator cend() const {
+            return end();
+        }
+
+        /* === Capacity === */
+
+        /**
+         * @brief Checks if the container has no elements, i.e. whether begin() == end().
+         * @return true if the container is empty, false otherwise
+         */
+        inline bool empty() const {
+            return !size_;
+        }
+
+        /**
+         * @brief  Returns the number of elements in the container, i.e. std::distance(begin(), end()).
+         * @return The number of elements in the container.
+         */
+        inline size_type size() const {
+            return size_;
+        }
+
+        /* === Modifiers === */
+
+        /**
+         * @brief Exchanges the contents of the container with those of other.
+         * Does not invoke any move, copy, or swap operations on individual elements.
+         * All iterators and references remain valid.
+         * @param first   First container.
+         * @param second  Other container to exchange the contents with.
          */
         inline friend void swap(array<T> &first, array<T> &second) noexcept {
             /* == Do the swapping of the values == */
@@ -115,127 +291,38 @@ namespace spider {
             swap(first.size_, second.size_);
         }
 
+        /* === Non member functions === */
 
-        /* === Operators === */
+        template<typename U>
+        friend bool operator==(const array<U> &lhs, const array<U> &rhs);
 
-        inline T &operator[](size_t ix);
-
-        inline const T &operator[](size_t ix) const;
-
-        /* === Iterator methods === */
-
-        typedef T *iterator;
-        typedef const T *const_iterator;
-
-        iterator begin();
-
-        iterator end();
-
-        const_iterator begin() const;
-
-        const_iterator end() const;
-
-        /* === Method(s) === */
-
-        inline void set(const T &value = T());
-
-
-        /* === Getters === */
-
-        /**
-         * @brief  Return the size of the Array.
-         * @return size of the array
-         */
-        inline size_t size() const;
-
-        /**
-         * @brief Return the raw array pointer.
-         * @return pointer to the array
-         */
-        inline const T *data() const;
-
-        /**
-         * @brief Return element of the array at position ix with bound check.
-         * @param ix Index of the element.
-         * @return reference to the element
-         * @throws Spider::Exception if out of bound.
-         */
-        inline T &at(size_t ix);
-
-        /**
-         * @brief Return element of the array at position ix with bound check.
-         * @param ix Index of the element.
-         * @return const reference to the element
-         * @throws Spider::Exception if out of bound.
-         */
-        inline const T &at(size_t ix) const;
+        template<typename U>
+        friend bool operator!=(const array<U> &lhs, const array<U> &rhs);
 
     private:
-        T *data_ = nullptr;
-        size_t size_ = 0;
+        pointer data_ = nullptr;
+        size_type size_ = 0;
     };
 
-    /* === Inline methods === */
-
-    template<typename T>
-    T &array<T>::operator[](size_t ix) {
-        return data_[ix];
-    }
-
-    template<typename T>
-    const T &array<T>::operator[](size_t ix) const {
-        return data_[ix];
-    }
-
-    template<typename T>
-    void array<T>::set(const T &value) {
-        std::fill(begin(), end(), value);
-    }
-
-    template<typename T>
-    T &array<T>::at(size_t ix) {
-        if (ix >= size_) {
-            throw std::out_of_range("array out of bound.");
+    template<typename U>
+    inline bool operator==(const array<U> &lhs, const array<U> &rhs) {
+        if (lhs.size() != rhs.size()) {
+            return false;
         }
-        return data_[ix];
-    }
-
-    template<typename T>
-    const T &array<T>::at(size_t ix) const {
-        if (ix >= size_) {
-            throw std::out_of_range("array out of bound.");
+        auto itlhs = lhs.begin();
+        auto itrhs = rhs.begin();
+        while (itlhs != lhs.end()) {
+            if ((*(itlhs++)) != (*(itrhs++))) {
+                return false;
+            }
         }
-        return data_[ix];
+        return true;
     }
 
-    template<typename T>
-    typename array<T>::iterator array<T>::begin() {
-        return data_;
+    template<typename U>
+    inline bool operator!=(const array<U> &lhs, const array<U> &rhs) {
+        return !(lhs == rhs);
     }
 
-    template<typename T>
-    typename array<T>::iterator array<T>::end() {
-        return data_ + size_;
-    }
-
-    template<typename T>
-    typename array<T>::const_iterator array<T>::begin() const {
-        return data_;
-    }
-
-    template<typename T>
-    typename array<T>::const_iterator array<T>::end() const {
-        return data_ + size_;
-    }
-
-    template<typename T>
-    size_t array<T>::size() const {
-        return size_;
-    }
-
-    template<typename T>
-    const T *array<T>::data() const {
-        return data_;
-    }
 }
 #endif //SPIDER2_ARRAY_H

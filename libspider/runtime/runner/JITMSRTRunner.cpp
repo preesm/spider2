@@ -102,7 +102,7 @@ void spider::JITMSRTRunner::run(bool infiniteLoop) {
                 run = false;
             } else {
                 clearLocalJobStamps();
-                localJobStampsArray_.set(UINT32_MAX);
+                localJobStampsArray_.assign(UINT32_MAX);
 
                 /* == Send END_ITERATION notification to GRT == */
                 Notification notification{ NotificationType::LRT,
