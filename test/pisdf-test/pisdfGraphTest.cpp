@@ -98,6 +98,7 @@ TEST_F(pisdfGraphTest, graphTest) {
     ASSERT_NO_THROW(graph->removeParam(nullptr)) << "Graph::removeParam() should not throw for nullptr.";
     ASSERT_THROW(graph->removeParam(param2), spider::Exception)
                                 << "Graph::removeParam() should throw for non-valid param.";
+    spider::destroy(param2);
     param = spider::make<spider::pisdf::Param, StackID::PISDF>("width", spider::Expression(5));
     graph->addParam(param);
     graph->addParam(spider::make<spider::pisdf::Param, StackID::PISDF>("height", spider::Expression(1)));
