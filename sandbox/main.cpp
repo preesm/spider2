@@ -56,6 +56,7 @@
 #include <thread/Barrier.h>
 #include <common/Time.h>
 #include <graphs-tools/numerical/brv.h>
+#include <archi/MemoryInterface.h>
 
 void createArchi();
 
@@ -99,6 +100,7 @@ int main(int, char **) {
 
     spiderTest();
 
+    std::cout << sizeof(spider::MemoryInterface) << std::endl;
     std::cout << sizeof(spider::pisdf::Vertex) << std::endl;
     std::cout << sizeof(spider::pisdf::ExecVertex) << std::endl;
     std::cout << sizeof(spider::pisdf::Graph) << std::endl;
@@ -106,6 +108,7 @@ int main(int, char **) {
     std::cout << sizeof(spider::Expression) << std::endl;
     std::cout << sizeof(spider::ExpressionElt) << std::endl;
     std::cout << sizeof(RPNElement) << std::endl;
+    std::cout << sizeof(RPNOperator) << std::endl;
     std::cout << sizeof(RPNElementType) << std::endl;
     std::cout << sizeof(RPNElementSubType) << std::endl;
     std::cout << sizeof(std::string) << std::endl;
@@ -115,19 +118,20 @@ int main(int, char **) {
 
 void spiderTest() {
     spider::start();
-    spider::api::createLinearStaticStack(StackID::PISDF, "pisdf-stack", 16392);
-    spider::api::createGenericStack(StackID::TRANSFO, "transfo-stack");
-    spider::api::createGenericStack(StackID::EXPRESSION, "expression-stack");
-    spider::api::createGenericStack(StackID::ARCHI, "archi-stack");
-    spider::api::createGenericStack(StackID::CONSTRAINTS, "scenario-stack");
-    spider::api::createGenericStack(StackID::SCHEDULE, "schedule-stack");
+    spider::api::setStackAllocatorPolicy(StackID::PISDF, spider::AllocatorPolicy::LINEAR_STATIC, sizeof(uint64_t), 16392);
     spider::api::enableLogger(spider::log::Type::TRANSFO);
     spider::api::enableLogger(spider::log::Type::OPTIMS);
     spider::api::enableVerbose();
 //    spider::api::disableSRDAGOptims();
 
-    if (0) {
-        createArchi();
+//    {
+//        auto *buffer = spider::allocate<char, StackID::GENERAL>(32764);
+//        spider::deallocate(buffer);
+//    }
+
+//    if (0)
+    {
+//        createArchi();
 
         auto *&graph = spider::pisdfGraph();
         graph = spider::api::createGraph("topgraph", 15, 15, 1);
@@ -139,39 +143,25 @@ void spiderTest() {
         auto *subgraph = spider::api::createSubraph(graph, "subgraph", 3, 4, 2, 1, 1);
         auto *input = spider::api::setInputInterfaceName(subgraph, 0, "input");
         auto *output = spider::api::setOutputInterfaceName(subgraph, 0, "output");
-        auto *vertex_2 = spider::api::createVertex(subgraph, "vertex_2", 2, 1);
+        auto *vertex_2 = spider::api::createVertex(subgraph, "vertex_2", 1, 1);
         auto *vertex_3 = spider::api::createVertex(subgraph, "vertex_3", 1, 1);
         auto *vertex_4 = spider::api::createVertex(graph, "vertex_4", 1);
-//        auto *setter = spider::api::createVertex(graph, "setter", 0, 1);
-//        auto *getter = spider::api::createVertex(graph, "getter", 1);
-        auto *cfg = spider::api::createConfigActor(subgraph, "cfg", 0, 1);
+        auto *cfg = spider::api::createConfigActor(subgraph, "cfg", 0, 0);
 
         /* === Creating param === */
 
+        spider::api::createStaticParam(subgraph, "height", 10);
+        spider::api::createDynamicParam(subgraph, "width");
 
         /* === Creating edges === */
 
-        auto *edge = spider::api::createEdge(vertex_0, 0, 1, vertex_1, 0, 1);
-//        spider::api::createDelay(edge, 4, setter, 0, 1, getter, 0, 1, false);
-//        spider::api::createDelay(edge, 1, setter, 0, 1, nullptr, 0, 0, false);
-//        auto *edge2 = setter->outputEdge(0);
-//        spider::api::createDelay(edge2, 4);
-//        auto *edge3 = edge2->delay()->setter()->outputEdge(0);
-//        spider::api::createDelay(edge3, 1);
-        spider::api::createEdge(vertex_1, 0, 1, subgraph, 0, 1);
-//        spider::api::createEdge(vertex_1, 0, 500, vertex_2, 0, 1);
-        spider::api::createEdge(input, 0, 5, vertex_2, 0, 1);
-        spider::api::createEdge(vertex_2, 0, 1, vertex_3, 0, 5);
-//        spider::api::createEdge(vertex_3, 0, 1, vertex_4, 0, 1);
+        spider::api::createEdge(vertex_0, 0, 1, vertex_1, 0, 1);
+        spider::api::createEdge(vertex_1, 0, 2, subgraph, 0, 1);
+        spider::api::createEdge(input, 0, 1, vertex_2, 0, 1);
+        spider::api::createEdge(vertex_2, 0, "width", vertex_3, 0, "1");
         spider::api::createEdge(vertex_3, 0, 1, output, 0, 1);
         spider::api::createEdge(subgraph, 0, 5, vertex_4, 0, 5);
-        spider::api::createEdge(cfg, 0, 15, vertex_2, 1, 1);
-
-        /* === Creating param === */
-
-//        spider::api::createStaticParam(graph, "width", 10);
-//        spider::api::createStaticParam(subgraph, "height", 10);
-        spider::api::createDynamicParam(subgraph, "width");
+//        spider::api::createEdge(cfg, 0, 1, vertex_2, 1, 1);
 
         /* === Export dot === */
 
@@ -191,10 +181,10 @@ void spiderTest() {
 
         /* === Export dot === */
 
-//        {
-//            auto exporter = spider::pisdf::DOTExporter{ graph };
-//            exporter.print("./new.dot");
-//        }
+        {
+            auto exporter = spider::pisdf::DOTExporter{ graph };
+            exporter.print("./new.dot");
+        }
 
 
         {
@@ -230,33 +220,19 @@ void spiderTest() {
 void createArchi() {
     spider::api::createPlatform();
 
-    auto *x86MemoryUnit = spider::api::createMemoryUnit(nullptr, 20000);
+    auto *x86MemoryUnit = spider::api::createMemoryUnit(20000);
 
-    auto *x86Cluster = spider::api::createCluster(4, x86MemoryUnit);
+    auto *x86MemoryInterface = spider::api::createMemoryInterface(x86MemoryUnit);
 
-    auto x86PECore0 = spider::api::createPE(0, 0, 0,
-                                            x86Cluster,
-                                            "x86-Core0",
-                                            spider::PEType::LRT_PE,
-                                            spider::HWType::PHYS_PE);
+    auto *x86Cluster = spider::api::createCluster(4, x86MemoryUnit, x86MemoryInterface);
 
-    spider::api::createPE(1, 1, 1,
-                          x86Cluster,
-                          "x86-Core1",
-                          spider::PEType::LRT_PE,
-                          spider::HWType::PHYS_PE);
+    auto x86PECore0 = spider::api::createPE(0, 0, x86Cluster, "x86-Core0", spider::PEType::LRT);
 
-    spider::api::createPE(2, 2, 2,
-                          x86Cluster,
-                          "x86-Core2",
-                          spider::PEType::LRT_PE,
-                          spider::HWType::PHYS_PE);
+    spider::api::createPE(1, 1, x86Cluster, "x86-Core1", spider::PEType::LRT);
 
-    spider::api::createPE(3, 3, 3,
-                          x86Cluster,
-                          "x86-Core3",
-                          spider::PEType::LRT_PE,
-                          spider::HWType::PHYS_PE);
+    spider::api::createPE(2, 2, x86Cluster, "x86-Core2", spider::PEType::LRT);
+
+    spider::api::createPE(3, 3, x86Cluster, "x86-Core3", spider::PEType::LRT);
 
     spider::api::setSpiderGRTPE(x86PECore0);
 }
