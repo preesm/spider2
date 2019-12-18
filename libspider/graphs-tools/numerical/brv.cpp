@@ -60,7 +60,7 @@ void spider::brv::compute(const pisdf::Graph *graph, const spider::vector<pisdf:
         auto edgeArray = extractEdgesFromComponent(component);
 
         /* == 1.1.1 If there is no edge at all and this is normal then all RV are 1 by default == */
-        if (!edgeArray.size() && !component.edgeCount_) {
+        if (edgeArray.empty() && !component.edgeCount_) {
             continue;
         }
 
@@ -265,10 +265,14 @@ void spider::brv::checkConsistency(const spider::array<const pisdf::Edge *> &edg
 
 void spider::brv::print(const pisdf::Graph *graph) {
     if (api::verbose() && log_enabled<LOG_TRANSFO>()) {
-        log::verbose<LOG_TRANSFO>("BRV values for graph [%s]\n", graph->name().c_str());
+        const auto &separation = std::string(46, '-');
+        log::verbose<LOG_TRANSFO>("%s\n", separation.c_str());
+        log::verbose<LOG_TRANSFO>("Repetition values for graph [%s]\n", graph->name().c_str());
         for (const auto &vertex : graph->vertices()) {
-            log::verbose<LOG_TRANSFO>(">> Vertex: %-20s --> RV[%" PRIu32"]\n", vertex->name().c_str(),
+            log::verbose<LOG_TRANSFO>("    >> Vertex: %-30s --> [%" PRIu32"]\n",
+                                      vertex->name().c_str(),
                                       vertex->repetitionValue());
         }
+        log::verbose<LOG_TRANSFO>("%s\n", separation.c_str());
     }
 }
