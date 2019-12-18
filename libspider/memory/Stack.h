@@ -66,7 +66,7 @@ namespace spider {
         Stack &operator=(const Stack &) = delete;
 
         ~Stack() {
-            print();
+            print(stackNamesArray()[static_cast<uint64_t>(stack_)], peak_, total_, sampleCount_, usage_);
             delete policy_;
         }
 
@@ -83,15 +83,23 @@ namespace spider {
             usage_ -= size;
         }
 
-        inline void print() const {
+        inline static void
+        print(const char *name, uint64_t peak, uint64_t total, uint64_t sampleCount, uint64_t usage) {
             // TODO: get stack name
-            if (peak_ && log_enabled()) {
+            if (peak && log_enabled()) {
                 log::info("---------------------------\n");
-                log::info("Stack: %s\n", stackNamesArray()[static_cast<uint64_t>(stack_)]);
-                log::info("        ==>    peak: %" PRIu64" B\n", peak_);
-                log::info("        ==> average: %" PRIu64" B\n", total_ / sampleCount_);
-                if (usage_) {
-                    log::error("         ==>  in-use: %" PRIu64" B\n", usage_);
+                log::info("Stack: %s\n", name);
+                log::info("        ==>    peak: %-6.1lf %s (%" PRIu64" B)\n", getByteNormalizedSize(peak),
+                          getByteUnitString(peak),
+                          peak);
+                const auto &average = total / sampleCount;
+                log::info("        ==> average: %-6.1lf %s (%" PRIu64" B)\n", getByteNormalizedSize(average),
+                          getByteUnitString(average),
+                          average);
+                if (usage) {
+                    log::error("         ==>  in-use: %-6.1lf %s (%" PRIu64" B)\n", getByteNormalizedSize(usage),
+                               getByteUnitString(usage),
+                               usage);
                 }
                 log::info("---------------------------\n");
             }

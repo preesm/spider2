@@ -63,22 +63,25 @@ std::pair<void *, size_t> LinearStaticAllocator::allocate(size_t size) {
     if (!size) {
         return std::make_pair(nullptr, 0);
     }
+    size += sizeof(size_t);
     size_t padding = 0;
     if (alignment_ && size % alignment_ != 0) {
         /*!< Compute next aligned address padding */
         padding = AbstractAllocatorPolicy::computePadding(static_cast<size_t>(size), alignment_);
     }
 
-    size = padding + size;
+    size += padding;
     if (size > totalSize_) {
         throwSpiderException("not enough memory: available: %"
                                      PRIu64
                                      " -- requested: %"
                                      PRIu64, totalSize_ - usage_, size);
     }
-    const auto &alignedAllocatedAddress = reinterpret_cast<uintptr_t>(buffer_) + usage_;
+    auto *headerBuffer = reinterpret_cast<size_t *>(reinterpret_cast<uintptr_t>(buffer_) + usage_);
+    (*headerBuffer) = size;
+    const auto &alignedBuffer = reinterpret_cast<uintptr_t>(buffer_) + usage_ + sizeof(size_t);
     usage_ += size;
-    return std::make_pair(reinterpret_cast<void *>(alignedAllocatedAddress), size);
+    return std::make_pair(reinterpret_cast<void *>(alignedBuffer), size);
 }
 
 size_t LinearStaticAllocator::deallocate(void *ptr) {
@@ -86,6 +89,8 @@ size_t LinearStaticAllocator::deallocate(void *ptr) {
         return 0;
     }
     checkPointerAddress(ptr);
-    return 0;
+    /* == Return the size in case some external code is checking alloc / dealloc == */
+    auto *headerBuffer = reinterpret_cast<size_t *>(reinterpret_cast<uintptr_t>(ptr) - sizeof(size_t));
+    return (*headerBuffer);
     /*!< LinearStaticAllocator does not free memory per block */
 }

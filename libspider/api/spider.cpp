@@ -153,16 +153,7 @@ void spider::quit() {
         totalPeak += stack->peak();
         delete stack;
     }
-    if (totalPeak && log_enabled()) {
-        log::info("---------------------------\n");
-        log::info("Total: \n");
-        log::info("        ==>    peak: %" PRIu64" B\n", totalPeak);
-        log::info("        ==> average: %" PRIu64" B\n", totalAverage);
-        if (totalUsage) {
-            log::error("         ==>  in-use: %" PRIu64" B\n", totalUsage);
-        }
-        log::info("---------------------------\n");
-    }
+    Stack::print("Total", totalPeak, totalAverage, 1, totalUsage);
 
     /* == Reset start flag == */
     startFlag = false;
