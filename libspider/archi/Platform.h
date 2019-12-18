@@ -69,10 +69,14 @@ namespace spider {
 
         /* === Method(s) === */
 
+        /**
+         * @brief Adds a Cluster to the platform.
+         * @param cluster Pointer to the Cluster to add.
+         */
         void addCluster(Cluster *cluster);
 
         /**
-         * @brief Find a processing element in the platform from its virtual ix (S-LAM user ix).
+         * @brief Returns the processing element in the platform matching the virtual ix.
          * @param virtualIx  Virtual ix of the PE to find.
          * @return pointer to the @refitem PE found.
          * @throws std::out_of_range
@@ -161,6 +165,18 @@ namespace spider {
         InterMemoryInterface getClusterToClusterMemoryInterface(Cluster *clusterA, Cluster *clusterB);
 
         /* === Setter(s) === */
+
+        /**
+         * @brief Sets the PE in the global linear PE array.
+         * @param pe  Pointer to the PE to add.
+         * @param ix  Virtual ix of the PE.
+         * @throws std::out_of_range
+         */
+        inline void setPE(PE *pe, size_t ix) {
+            if (pe) {
+                peArray_.at(ix) = pe;
+            }
+        }
 
         /**
          * @brief Set the processing element of the GRT (in master-slave mode).

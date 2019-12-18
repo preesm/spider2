@@ -43,6 +43,7 @@
 #include <archi/Cluster.h>
 #include <archi/Platform.h>
 #include <archi/MemoryUnit.h>
+#include <archi/MemoryInterface.h>
 
 /* === Static variable(s) === */
 
@@ -68,4 +69,17 @@ spider::Cluster::~Cluster() {
         destroy(pe);
     }
     destroy(memoryUnit_);
+    destroy(memoryInterface_);
+}
+
+void spider::Cluster::addPE(spider::PE *pe) {
+    if (!pe) {
+        return;
+    }
+    PEArray_.at(PECount_) = pe;
+    PECount_++; /* = In case at throws, PECount is not change = */
+    LRTCount_ += pe->isLRT();
+    if (platform_) {
+        platform_->setPE(pe, pe->virtualIx());
+    }
 }

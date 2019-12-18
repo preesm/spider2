@@ -96,8 +96,20 @@ spider::Platform::Platform(size_t clusterCount, size_t peCount) :
 }
 
 spider::Platform::~Platform() {
+    /* == Avoid dangling pointer and reset memory space associate to it == */
+    for (auto &pe : peArray_) {
+        pe = nullptr;
+    }
+
+    /* == Destroy the Cluster == */
     for (auto &cluster : clusterArray_) {
         destroy(cluster);
+    }
+
+    /* == Destroy the inter-cluster MemoryInterface == */
+    for (auto &pair : cluster2ClusterMemoryIF_) {
+        destroy(pair.first);
+        destroy(pair.second);
     }
 }
 
@@ -108,7 +120,9 @@ void spider::Platform::addCluster(Cluster *cluster) {
 
     /* == Add the PE to the proper place in the global array == */
     for (const auto &pe : cluster->array()) {
-        peArray_.at(pe->virtualIx()) = pe;
+        if (pe) {
+            peArray_.at(pe->virtualIx()) = pe;
+        }
     }
 }
 

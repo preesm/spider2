@@ -163,15 +163,20 @@ spider::Cluster *spider::api::createCluster(size_t PECount, MemoryUnit *memoryUn
         throwSpiderException("Can not create cluster for empty platform.");
     }
     auto *cluster = make<Cluster, StackID::ARCHI>(PECount, memoryUnit, memoryInterface);
+    platform->addCluster(cluster);
     return cluster;
 }
 
 /* === PE related API === */
 
 spider::PE *spider::api::createPE(uint32_t hwType, uint32_t hwID, Cluster *cluster, std::string name, PEType type) {
-    auto *PE = make<spider::PE, StackID::ARCHI>(hwType, hwID, cluster, std::move(name), type);
-    PE->enable();
-    return PE;
+    if (!cluster) {
+        throwSpiderException("nullptr for Cluster");
+    }
+    auto *pe = make<PE, StackID::ARCHI>(hwType, hwID, cluster, std::move(name), type);
+    pe->enable();
+    cluster->addPE(pe);
+    return pe;
 }
 
 void spider::api::setPESpiderPEType(PE *PE, spider::PEType type) {

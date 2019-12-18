@@ -66,11 +66,7 @@ namespace spider {
          * @param PE Processing element to add.
          * @throws @refitem std::out_of_range if cluster is already full.
          */
-        inline void addPE(PE *pe) {
-            PEArray_.at(PECount_) = pe;
-            PECount_++; /* = In case at throws, PECount is not change = */
-            LRTCount_ += pe->isLRT();
-        }
+        void addPE(PE *pe);
 
         /**
          * @brief Set the state (enabled or disabled) of a processing element in the cluster.
