@@ -52,8 +52,7 @@ FreeListAllocatorPolicy::FreeListAllocatorPolicy(size_t staticBufferSize,
                                                  void *externalBuffer,
                                                  FreeListPolicy policy,
                                                  size_t alignment) :
-        AbstractAllocatorPolicy(alignment),
-        staticBufferSize_{ std::max(staticBufferSize, MIN_CHUNK_SIZE) } {
+        AbstractAllocatorPolicy(alignment) {
     if (alignment < 8) {
         throwSpiderException("Memory alignment should be at least of size sizeof(uint64_t) = 8 bytes.");
     }
@@ -61,8 +60,10 @@ FreeListAllocatorPolicy::FreeListAllocatorPolicy(size_t staticBufferSize,
     /* == We need extra space for the Node structure == */
     if (externalBuffer) {
         staticBufferPtr_ = externalBuffer;
+        staticBufferSize_ = staticBufferSize;
         external_ = true;
     } else {
+        staticBufferSize_ = std::max(staticBufferSize, MIN_CHUNK_SIZE);
         staticBufferPtr_ = std::malloc(staticBufferSize_ + sizeof(Node));
     }
     if (policy == FreeListPolicy::FIND_FIRST) {

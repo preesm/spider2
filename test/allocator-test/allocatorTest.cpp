@@ -53,7 +53,6 @@ class allocatorTest : public ::testing::Test {
 protected:
     void SetUp() override {
         spider::start();
-        spider::api::disableLogger(spider::log::GENERAL);
     }
 
     void TearDown() override {
@@ -61,30 +60,22 @@ protected:
     }
 };
 
-TEST_F(allocatorTest, abstractAllocUsageTest) {
-    {
-        auto allocator = GenericAllocatorPolicy(8);
-        auto *buffer = allocator.allocate(1024 * 1024 * 1024).first;
-        ASSERT_NE(buffer, nullptr) << "Allocator: failed to allocated 1GB";
-        ASSERT_NO_THROW(allocator.deallocate(buffer)) << "Allocator: deallocation failed";
-    }
-    {
-        auto allocator = GenericAllocatorPolicy(8);
-        auto *buffer = allocator.allocate(2 * 1024 * 1024).first;
-        ASSERT_NE(buffer, nullptr) << "Allocator: failed to allocated 1MB";
-        ASSERT_NO_THROW(allocator.deallocate(buffer)) << "Allocator: deallocation failed";
-    }
-    {
-        auto allocator = GenericAllocatorPolicy(8);
-        auto *buffer = allocator.allocate(1024).first;
-        ASSERT_NE(buffer, nullptr) << "Allocator: failed to allocated 1KB";
-        ASSERT_NO_THROW(allocator.deallocate(buffer)) << "Allocator: deallocation failed";
-    }
-    {
-        auto allocator = GenericAllocatorPolicy(8);
-        auto *buffer = allocator.allocate(1024).first;
-        ASSERT_NE(buffer, nullptr) << "Allocator: failed to allocated 1KB";
-    }
+TEST_F(allocatorTest, abstractAllocUsage1GBTest) {
+    auto *buffer = spider::allocate<void *>(1024 * 1024 * 1024);
+    ASSERT_NE(buffer, nullptr) << "Allocator: failed to allocated 1GB";
+    ASSERT_NO_THROW(spider::deallocate(buffer)) << "Allocator: deallocation failed";
+}
+
+TEST_F(allocatorTest, abstractAllocUsage2MBTest) {
+    auto *buffer = spider::allocate<void *>(2 * 1024 * 1024);
+    ASSERT_NE(buffer, nullptr) << "Allocator: failed to allocated 1MB";
+    ASSERT_NO_THROW(spider::deallocate(buffer)) << "Allocator: deallocation failed";
+}
+
+TEST_F(allocatorTest, abstractAllocUsage1KBTest) {
+    auto *buffer = spider::allocate<void *>(1024);
+    ASSERT_NE(buffer, nullptr) << "Allocator: failed to allocated 1KB";
+    ASSERT_NO_THROW(spider::deallocate(buffer)) << "Allocator: deallocation failed";
 }
 
 TEST_F(allocatorTest, linearAllocCtorTest) {
@@ -104,8 +95,15 @@ TEST_F(allocatorTest, linearAllocCtorTest) {
 }
 
 TEST_F(allocatorTest, linearAllocTest) {
-    auto allocator = LinearStaticAllocator(512);
+    auto *stack = spider::stackArray()[static_cast<uint64_t>(StackID::OPTIMS)];
+    ASSERT_EQ(stack->setPolicy(nullptr), false) << "Stack::setPolicy should return false if nullptr as new policy.";
+    ASSERT_EQ(stack->setPolicy(new LinearStaticAllocator(512)), true) << "Stack::setPolicy should return true.";
+    auto &allocator = *(stack->policy());
+
     ASSERT_NE(allocator.allocate(64).first, nullptr) << "LinearStaticAllocator: failed to allocate buffer.";
+    auto *policy = new GenericAllocatorPolicy();
+    ASSERT_EQ(stack->setPolicy(policy), false) << "Stack::setPolicy should return false if still as memory.";
+    delete policy;
     ASSERT_EQ(allocator.allocate(0).first, nullptr) << "LinearStaticAllocator: 0 size buffer should return nullptr.";
     ASSERT_NO_THROW(allocator.allocate(64)) << "LinearStaticAllocator: failed to allocate buffer.";
     ASSERT_THROW(allocator.allocate(513), spider::Exception)
@@ -141,7 +139,7 @@ void staticAllocAlignTest(ALLOC &allocator) {
         ASSERT_NE(buffer, nullptr) << "Allocator: allocation failed.";
         auto *buffer2 = reinterpret_cast<double *>(allocator.allocate(2 * sizeof(double)).first);
         ASSERT_NE(buffer2, nullptr) << "Allocator: allocation failed.";
-        ASSERT_EQ(reinterpret_cast<uintptr_t>(buffer) + 16, reinterpret_cast<uintptr_t>(buffer2))
+        ASSERT_EQ(reinterpret_cast<uintptr_t>(buffer) + 16 + sizeof(size_t), reinterpret_cast<uintptr_t>(buffer2))
                                     << "Allocator: alignment with padding failed.";
     }
     {
@@ -149,7 +147,7 @@ void staticAllocAlignTest(ALLOC &allocator) {
         ASSERT_NE(buffer, nullptr) << "Allocator: allocation failed.";
         auto *buffer2 = reinterpret_cast<double *>(allocator.allocate(2 * sizeof(double)).first);
         ASSERT_NE(buffer2, nullptr) << "Allocator: allocation failed.";
-        ASSERT_EQ(reinterpret_cast<uintptr_t>(buffer) + 8, reinterpret_cast<uintptr_t>(buffer2))
+        ASSERT_EQ(reinterpret_cast<uintptr_t>(buffer) + 8 + sizeof(size_t), reinterpret_cast<uintptr_t>(buffer2))
                                     << "Allocator: alignment without padding failed.";
     }
 }
@@ -208,26 +206,27 @@ TEST_F(allocatorTest, freeListAlignTest) {
     freeListAlignTest(allocator2);
 }
 
-size_t getMinSize() {
-    return FreeListAllocatorPolicy::MIN_CHUNK_SIZE;
-}
-
 void freeListAllocTest(FreeListAllocatorPolicy &allocator) {
+    {
+        char tmp[10];
+        ASSERT_THROW(allocator.deallocate(tmp), spider::Exception)
+                                    << "FreeListAllocatorPolicy::deallocate should throw when deallocating with no memory allocated.";
+    }
     {
         auto *buffer = reinterpret_cast<double *>(allocator.allocate(2 * sizeof(double)).first);
         ASSERT_NE(buffer, nullptr) << "Allocator: allocation failed.";
         ASSERT_EQ(nullptr, allocator.allocate(0).first) << "Allocator: 0 size allocation should result in nullptr.";
-        ASSERT_NO_THROW(allocator.allocate(getMinSize()))
+        ASSERT_NO_THROW(allocator.allocate(FreeListAllocatorPolicy::MIN_CHUNK_SIZE))
                                     << "Allocator: allocation should not throw";
         void *test = allocator.allocate(1).first;
         ASSERT_NO_THROW(allocator.deallocate(test)) << "Allocator: deallocation of valid ptr should not throw";
         ASSERT_NO_THROW(allocator.deallocate(buffer)) << "Allocator: deallocation of valid ptr should not throw";
         /* == undefined behavior == */
         ASSERT_NO_THROW(allocator.deallocate(buffer));
-        ASSERT_NO_THROW(allocator.allocate(getMinSize()));
+        ASSERT_NO_THROW(allocator.allocate(FreeListAllocatorPolicy::MIN_CHUNK_SIZE));
     }
     {
-        auto *buffer = allocator.allocate(getMinSize()).first;
+        auto *buffer = allocator.allocate(FreeListAllocatorPolicy::MIN_CHUNK_SIZE).first;
         void *buffer2 = nullptr;
         ASSERT_NO_THROW(buffer2 = allocator.allocate(8192).first)
                                     << "Allocator: extra buffer should not throw at allocation.";
@@ -235,17 +234,19 @@ void freeListAllocTest(FreeListAllocatorPolicy &allocator) {
         ASSERT_NO_THROW(allocator.deallocate(buffer2)) << "Allocator: extra buffer should not throw at deallocation.";
     }
     {
-        auto *buffer = allocator.allocate(FreeListAllocatorPolicy::MIN_CHUNK_SIZE - (512 + 2 * sizeof(size_t))).first;
-        void *buffer2 = allocator.allocate(512 - (256 + sizeof(size_t))).first;
-        void *buffer3 = nullptr;
-        ASSERT_NO_THROW(buffer3 = allocator.allocate(256).first) << "Allocator: perfect fit should not throw.";
         char extern_buffer[512];
         ASSERT_THROW(allocator.deallocate(extern_buffer), spider::Exception)
                                     << "Allocator: extern buffer deallocation should throw";
-        allocator.deallocate(buffer);
-        allocator.deallocate(buffer2);
-        allocator.deallocate(buffer3);
     }
+}
+
+TEST_F(allocatorTest, freeListCtorTest) {
+    ASSERT_THROW(FreeListAllocatorPolicy(0, nullptr, FreeListPolicy::FIND_BEST, 2), spider::Exception)
+                                << "FreeListAllocator should throw with alignement < 8.";
+    ASSERT_NO_THROW(FreeListAllocatorPolicy(1000)) << "FreeListAllocator should not throw with default ctor.";
+    char tmp[1000];
+    ASSERT_NO_THROW(FreeListAllocatorPolicy(1000, tmp))
+                                << "FreeListAllocator should not throw with default ctor and external buffer.";
 }
 
 TEST_F(allocatorTest, freeListAlloc) {
@@ -256,10 +257,19 @@ TEST_F(allocatorTest, freeListAlloc) {
     ASSERT_NO_THROW(allocator.deallocate(nullptr)) << "Allocator: deallocate for nullptr should not throw";
 }
 
-TEST_F(allocatorTest, freeListCtorTest) {
-    ASSERT_THROW(FreeListAllocatorPolicy(0, nullptr, FreeListPolicy::FIND_BEST, 2), spider::Exception)
-                                << "FreeListAllocator should throw with alignement < 8.";
-    ASSERT_NO_THROW(FreeListAllocatorPolicy(1000)) << "FreeListAllocator should not throw with default ctor.";
+TEST_F(allocatorTest, freeListPerfectFit) {
+    char buffer[512];
+    auto allocator = FreeListAllocatorPolicy(512, buffer, FreeListPolicy::FIND_BEST);
+    ASSERT_NO_THROW(allocator.allocate(512 - sizeof(size_t)).first) << "Allocator: perfect fit should not throw.";
+}
+
+TEST_F(allocatorTest, freeListExternalAlloc) {
+    char buffer[512];
+    auto allocator = FreeListAllocatorPolicy(512, buffer, FreeListPolicy::FIND_FIRST);
+    freeListAllocTest(allocator);
+    auto allocator2 = FreeListAllocatorPolicy(512, buffer, FreeListPolicy::FIND_BEST);
+    freeListAllocTest(allocator2);
+    ASSERT_NO_THROW(allocator.deallocate(nullptr)) << "Allocator: deallocate for nullptr should not throw";
 }
 
 TEST_F(allocatorTest, genericCtorTest) {
@@ -293,4 +303,11 @@ TEST_F(allocatorTest, allocTest) {
 TEST_F(allocatorTest, allocatorTest) {
     ASSERT_EQ(spider::allocator<double>(StackID::GENERAL), spider::allocator<double>());
     ASSERT_NE(spider::allocator<double>(StackID::PISDF), spider::allocator<double>());
+}
+
+TEST_F(allocatorTest, errorUsageTest) {
+    ASSERT_NO_THROW((spider::allocate<double, StackID::GENERAL>()));
+    delete spider::stackArray()[static_cast<uint64_t >(StackID::GENERAL)];
+    spider::stackArray()[static_cast<uint64_t >(StackID::GENERAL)] = nullptr;
+    ASSERT_THROW((spider::allocator<double>(StackID::GENERAL)), spider::Exception) << "spider::allocator should throw for nullptr stack.";
 }

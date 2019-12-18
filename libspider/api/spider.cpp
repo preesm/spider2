@@ -148,9 +148,11 @@ void spider::quit() {
     uint64_t totalAverage = 0;
     uint64_t totalPeak = 0;
     for (auto &stack : stackArray()) {
-        totalUsage += stack->usage();
-        totalAverage += stack->average();
-        totalPeak += stack->peak();
+        if (stack) {
+            totalUsage += stack->usage();
+            totalAverage += stack->average();
+            totalPeak += stack->peak();
+        }
         delete stack;
     }
     Stack::print("Total", totalPeak, totalAverage, 1, totalUsage);
