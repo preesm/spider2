@@ -64,25 +64,25 @@ protected:
 TEST_F(allocatorTest, abstractAllocUsageTest) {
     {
         auto allocator = GenericAllocatorPolicy(8);
-        auto *buffer = allocator.allocate(1024 * 1024 * 1024);
+        auto *buffer = allocator.allocate(1024 * 1024 * 1024).first;
         ASSERT_NE(buffer, nullptr) << "Allocator: failed to allocated 1GB";
         ASSERT_NO_THROW(allocator.deallocate(buffer)) << "Allocator: deallocation failed";
     }
     {
         auto allocator = GenericAllocatorPolicy(8);
-        auto *buffer = allocator.allocate(2 * 1024 * 1024);
+        auto *buffer = allocator.allocate(2 * 1024 * 1024).first;
         ASSERT_NE(buffer, nullptr) << "Allocator: failed to allocated 1MB";
         ASSERT_NO_THROW(allocator.deallocate(buffer)) << "Allocator: deallocation failed";
     }
     {
         auto allocator = GenericAllocatorPolicy(8);
-        auto *buffer = allocator.allocate(1024);
+        auto *buffer = allocator.allocate(1024).first;
         ASSERT_NE(buffer, nullptr) << "Allocator: failed to allocated 1KB";
         ASSERT_NO_THROW(allocator.deallocate(buffer)) << "Allocator: deallocation failed";
     }
     {
         auto allocator = GenericAllocatorPolicy(8);
-        auto *buffer = allocator.allocate(1024);
+        auto *buffer = allocator.allocate(1024).first;
         ASSERT_NE(buffer, nullptr) << "Allocator: failed to allocated 1KB";
     }
 }
@@ -105,8 +105,8 @@ TEST_F(allocatorTest, linearAllocCtorTest) {
 
 TEST_F(allocatorTest, linearAllocTest) {
     auto allocator = LinearStaticAllocator(512);
-    ASSERT_NE(allocator.allocate(64), nullptr) << "LinearStaticAllocator: failed to allocate buffer.";
-    ASSERT_EQ(allocator.allocate(0), nullptr) << "LinearStaticAllocator: 0 size buffer should return nullptr.";
+    ASSERT_NE(allocator.allocate(64).first, nullptr) << "LinearStaticAllocator: failed to allocate buffer.";
+    ASSERT_EQ(allocator.allocate(0).first, nullptr) << "LinearStaticAllocator: 0 size buffer should return nullptr.";
     ASSERT_NO_THROW(allocator.allocate(64)) << "LinearStaticAllocator: failed to allocate buffer.";
     ASSERT_THROW(allocator.allocate(513), spider::Exception)
                                 << "LinearStaticAllocator: should throw if size > available.";
@@ -114,15 +114,15 @@ TEST_F(allocatorTest, linearAllocTest) {
     ASSERT_THROW(allocator.deallocate(tmp), spider::Exception)
                                 << "LinearStaticAllocator: deallocating not allocated buffer should throw.";
     ASSERT_NO_THROW(allocator.deallocate(nullptr)) << "LinearStaticAllocator: deallocate on nullptr should not throw.";
-    ASSERT_NO_THROW(allocator.deallocate(allocator.allocate(64)))
+    ASSERT_NO_THROW(allocator.deallocate(allocator.allocate(64).first))
                                 << "LinearStaticAllocator: deallocate should not throw.";
 }
 
 TEST_F(allocatorTest, linearExternAllocTest) {
     char buffer[512];
     auto allocator = LinearStaticAllocator(512, &buffer);
-    ASSERT_NE(allocator.allocate(64), nullptr) << "LinearStaticAllocator: failed to allocate buffer.";
-    ASSERT_EQ(allocator.allocate(0), nullptr) << "LinearStaticAllocator: 0 size buffer should return nullptr.";
+    ASSERT_NE(allocator.allocate(64).first, nullptr) << "LinearStaticAllocator: failed to allocate buffer.";
+    ASSERT_EQ(allocator.allocate(0).first, nullptr) << "LinearStaticAllocator: 0 size buffer should return nullptr.";
     ASSERT_NO_THROW(allocator.allocate(64)) << "LinearStaticAllocator: failed to allocate buffer.";
     ASSERT_THROW(allocator.allocate(513), spider::Exception)
                                 << "LinearStaticAllocator: should throw if size > available.";
@@ -130,24 +130,24 @@ TEST_F(allocatorTest, linearExternAllocTest) {
     ASSERT_THROW(allocator.deallocate(tmp), spider::Exception)
                                 << "LinearStaticAllocator: deallocating not allocated buffer should throw.";
     ASSERT_NO_THROW(allocator.deallocate(nullptr)) << "LinearStaticAllocator: deallocate on nullptr should not throw.";
-    ASSERT_NO_THROW(allocator.deallocate(allocator.allocate(64)))
+    ASSERT_NO_THROW(allocator.deallocate(allocator.allocate(64).first))
                                 << "LinearStaticAllocator: deallocate should not throw.";
 }
 
 template<class ALLOC>
 void staticAllocAlignTest(ALLOC &allocator) {
     {
-        auto *buffer = reinterpret_cast<char *>(allocator.allocate(9 * sizeof(char)));
+        auto *buffer = reinterpret_cast<char *>(allocator.allocate(9 * sizeof(char)).first);
         ASSERT_NE(buffer, nullptr) << "Allocator: allocation failed.";
-        auto *buffer2 = reinterpret_cast<double *>(allocator.allocate(2 * sizeof(double)));
+        auto *buffer2 = reinterpret_cast<double *>(allocator.allocate(2 * sizeof(double)).first);
         ASSERT_NE(buffer2, nullptr) << "Allocator: allocation failed.";
         ASSERT_EQ(reinterpret_cast<uintptr_t>(buffer) + 16, reinterpret_cast<uintptr_t>(buffer2))
                                     << "Allocator: alignment with padding failed.";
     }
     {
-        auto *buffer = reinterpret_cast<char *>(allocator.allocate(8 * sizeof(char)));
+        auto *buffer = reinterpret_cast<char *>(allocator.allocate(8 * sizeof(char)).first);
         ASSERT_NE(buffer, nullptr) << "Allocator: allocation failed.";
-        auto *buffer2 = reinterpret_cast<double *>(allocator.allocate(2 * sizeof(double)));
+        auto *buffer2 = reinterpret_cast<double *>(allocator.allocate(2 * sizeof(double)).first);
         ASSERT_NE(buffer2, nullptr) << "Allocator: allocation failed.";
         ASSERT_EQ(reinterpret_cast<uintptr_t>(buffer) + 8, reinterpret_cast<uintptr_t>(buffer2))
                                     << "Allocator: alignment without padding failed.";
@@ -162,11 +162,11 @@ TEST_F(allocatorTest, linearAlignTest) {
 void freeListAlignTest(FreeListAllocatorPolicy &allocator) {
     {
         /* == Should allocate 32 bytes (17 of char + sizeof(size_t) of header + 7 of padding) == */
-        auto *buffer = reinterpret_cast<char *>(allocator.allocate(17 * sizeof(char)));
+        auto *buffer = reinterpret_cast<char *>(allocator.allocate(17 * sizeof(char)).first);
         ASSERT_NE(buffer, nullptr) << "Allocator: allocation failed.";
 
         /* == Should allocate 24 bytes (16 of dbl + sizeof(size_t) of header) == */
-        auto *buffer2 = reinterpret_cast<double *>(allocator.allocate(2 * sizeof(double)));
+        auto *buffer2 = reinterpret_cast<double *>(allocator.allocate(2 * sizeof(double)).first);
         ASSERT_NE(buffer2, nullptr) << "Allocator: allocation failed.";
         ASSERT_EQ(reinterpret_cast<uintptr_t>(buffer) + (32 - sizeof(size_t)) + sizeof(size_t),
                   reinterpret_cast<uintptr_t>(buffer2)) << "Allocator: align with padding failed.";
@@ -175,11 +175,11 @@ void freeListAlignTest(FreeListAllocatorPolicy &allocator) {
     }
     {
         /* == Should allocate 24 bytes (16 of char + sizeof(size_t) of header) == */
-        auto *buffer = reinterpret_cast<char *>(allocator.allocate(16 * sizeof(char)));
+        auto *buffer = reinterpret_cast<char *>(allocator.allocate(16 * sizeof(char)).first);
         ASSERT_NE(buffer, nullptr) << "Allocator: allocation failed.";
 
         /* == Should allocate 24 bytes (16 of dbl + sizeof(size_t) of header) == */
-        auto *buffer2 = reinterpret_cast<double *>(allocator.allocate(2 * sizeof(double)));
+        auto *buffer2 = reinterpret_cast<double *>(allocator.allocate(2 * sizeof(double)).first);
         ASSERT_NE(buffer2, nullptr) << "Allocator: allocation failed.";
         ASSERT_EQ(reinterpret_cast<uintptr_t>(buffer) + (24 - sizeof(size_t)) + sizeof(size_t),
                   reinterpret_cast<uintptr_t>(buffer2)) << "Allocator: align with padding failed.";
@@ -188,11 +188,11 @@ void freeListAlignTest(FreeListAllocatorPolicy &allocator) {
     }
     {
         /* == Should allocate 520 bytes (512 of char + sizeof(size_t) of header) == */
-        auto *buffer = reinterpret_cast<char *>(allocator.allocate(512));
+        auto *buffer = reinterpret_cast<char *>(allocator.allocate(512).first);
         ASSERT_NE(buffer, nullptr) << "Allocator: allocation failed.";
 
         /* == Should allocate 520 bytes (512 of dbl + sizeof(size_t) of header) == */
-        auto *buffer2 = reinterpret_cast<double *>(allocator.allocate(512));
+        auto *buffer2 = reinterpret_cast<double *>(allocator.allocate(512).first);
         ASSERT_NE(buffer2, nullptr) << "Allocator: allocation failed.";
         ASSERT_EQ(reinterpret_cast<uintptr_t>(buffer) + 512 + sizeof(size_t), reinterpret_cast<uintptr_t>(buffer2))
                                     << "Allocator: align with padding failed.";
@@ -214,12 +214,12 @@ size_t getMinSize() {
 
 void freeListAllocTest(FreeListAllocatorPolicy &allocator) {
     {
-        auto *buffer = reinterpret_cast<double *>(allocator.allocate(2 * sizeof(double)));
+        auto *buffer = reinterpret_cast<double *>(allocator.allocate(2 * sizeof(double)).first);
         ASSERT_NE(buffer, nullptr) << "Allocator: allocation failed.";
-        ASSERT_EQ(nullptr, allocator.allocate(0)) << "Allocator: 0 size allocation should result in nullptr.";
+        ASSERT_EQ(nullptr, allocator.allocate(0).first) << "Allocator: 0 size allocation should result in nullptr.";
         ASSERT_NO_THROW(allocator.allocate(getMinSize()))
                                     << "Allocator: allocation should not throw";
-        void *test = allocator.allocate(1);
+        void *test = allocator.allocate(1).first;
         ASSERT_NO_THROW(allocator.deallocate(test)) << "Allocator: deallocation of valid ptr should not throw";
         ASSERT_NO_THROW(allocator.deallocate(buffer)) << "Allocator: deallocation of valid ptr should not throw";
         /* == undefined behavior == */
@@ -227,18 +227,18 @@ void freeListAllocTest(FreeListAllocatorPolicy &allocator) {
         ASSERT_NO_THROW(allocator.allocate(getMinSize()));
     }
     {
-        auto *buffer = allocator.allocate(getMinSize());
+        auto *buffer = allocator.allocate(getMinSize()).first;
         void *buffer2 = nullptr;
-        ASSERT_NO_THROW(buffer2 = allocator.allocate(8192))
+        ASSERT_NO_THROW(buffer2 = allocator.allocate(8192).first)
                                     << "Allocator: extra buffer should not throw at allocation.";
         ASSERT_NO_THROW(allocator.deallocate(buffer)) << "Allocator: extra buffer should not throw at deallocation.";
         ASSERT_NO_THROW(allocator.deallocate(buffer2)) << "Allocator: extra buffer should not throw at deallocation.";
     }
     {
-        auto *buffer = allocator.allocate(FreeListAllocatorPolicy::MIN_CHUNK_SIZE - (512 + 2 * sizeof(size_t)));
-        void *buffer2 = allocator.allocate(512 - (256 + sizeof(size_t)));
+        auto *buffer = allocator.allocate(FreeListAllocatorPolicy::MIN_CHUNK_SIZE - (512 + 2 * sizeof(size_t))).first;
+        void *buffer2 = allocator.allocate(512 - (256 + sizeof(size_t))).first;
         void *buffer3 = nullptr;
-        ASSERT_NO_THROW(buffer3 = allocator.allocate(256)) << "Allocator: perfect fit should not throw.";
+        ASSERT_NO_THROW(buffer3 = allocator.allocate(256).first) << "Allocator: perfect fit should not throw.";
         char extern_buffer[512];
         ASSERT_THROW(allocator.deallocate(extern_buffer), spider::Exception)
                                     << "Allocator: extern buffer deallocation should throw";

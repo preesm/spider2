@@ -73,8 +73,7 @@ TEST_F(expressionTest, expressionCtorTest) {
     ASSERT_NO_THROW(Expression(Expression(10))) << "Expression(Expression &&) failed.";
     auto tmp = Expression("10 * 11");
     ASSERT_NO_THROW(Expression(tmp)) << "Expression(const Expression &) failed.";
-    spider::pisdf::Graph *graph = spider::api::createGraph("test");
-    ASSERT_THROW(Expression("width", graph->params()), spider::Exception)
+    ASSERT_THROW(Expression("width", {}), spider::Exception)
                                 << "Parameterized Expression should throw when parameter is not found.";
     ASSERT_THROW(Expression("width"), spider::Exception)
                                 << "Parameterized Expression should throw when no parameter is given.";
