@@ -172,11 +172,7 @@ namespace spider {
          * @param ix  Virtual ix of the PE.
          * @throws std::out_of_range
          */
-        inline void setPE(PE *pe, size_t ix) {
-            if (pe) {
-                peArray_.at(ix) = pe;
-            }
-        }
+        void setPE(PE *pe);
 
         /**
          * @brief Set the processing element of the GRT (in master-slave mode).

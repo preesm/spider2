@@ -65,7 +65,6 @@ namespace spider {
            std::string name = "unnamed-PE",
            PEType type = PEType::LRT) : hwType_{ hwType },
                                         hwIx_{ hwIx },
-                                        virtIx_{ getVirtualIx() },
                                         name_{ std::move(name) },
                                         type_{ type },
                                         cluster_{ cluster },
@@ -105,7 +104,7 @@ namespace spider {
          * @brief Get the unique ix of the PE in Spider.
          * @return ix of the PE in Spider.
          */
-        inline uint32_t virtualIx() const {
+        inline size_t virtualIx() const {
             return virtIx_;
         }
 
@@ -195,13 +194,21 @@ namespace spider {
             }
         }
 
+        /**
+         * @brief Sets the virtual ix of the PE.
+         * @param ix Index to set.
+         */
+        inline void setVirtualIx(size_t ix) {
+            virtIx_ = ix;
+        }
+
     private:
 
         /* === Core properties === */
 
         uint32_t hwType_ = 0;             /* = S-LAM user hardware type = */
         uint32_t hwIx_ = 0;               /* = Hardware on which PE runs (core ix) = */
-        uint32_t virtIx_ = 0;             /* = Spider ID = */
+        size_t virtIx_ = SIZE_MAX;             /* = Spider ID = */
         std::string name_ = "unnamed-pe"; /* = S-LAM user name of the PE = */
 
         /* === Spider properties === */
@@ -210,14 +217,6 @@ namespace spider {
         Cluster *cluster_ = nullptr;     /* = Cluster to which the PE belong = */
         PE *attachedLRT_ = nullptr;      /* = LRT attached to the PE = */
         bool status_ = true;             /* = Status of the PE (enabled = true, disabled = false) = */
-
-        /* === Private method(s) === */
-
-        inline static uint32_t getVirtualIx() {
-            static uint32_t uniqueIx = 0;
-            return uniqueIx++;
-        }
-
     };
 }
 

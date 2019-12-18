@@ -120,9 +120,7 @@ void spider::Platform::addCluster(Cluster *cluster) {
 
     /* == Add the PE to the proper place in the global array == */
     for (const auto &pe : cluster->array()) {
-        if (pe) {
-            peArray_.at(pe->virtualIx()) = pe;
-        }
+        setPE(pe);
     }
 }
 
@@ -143,6 +141,13 @@ spider::Platform::getClusterToClusterMemoryInterface(spider::Cluster *clusterA, 
     }
     /* == We need to invert the order so that it can appear to be transparent to the user == */
     return std::make_pair(interface.second, interface.first);
+}
+
+void spider::Platform::setPE(spider::PE *pe) {
+    if (pe) {
+        peArray_.at(peCount_) = pe;
+        pe->setVirtualIx(peCount_++);
+    }
 }
 
 void spider::Platform::setClusterToClusterMemoryInterface(spider::Cluster *clusterA,
