@@ -44,12 +44,13 @@
 
 #include <containers/containers.h>
 #include <containers/array.h>
+#include <runtime/common/RTFifo.h>
 
 namespace spider {
 
     /* === Type(s) definition === */
 
-    using JobConstraint = std::pair<uint32_t, int32_t>; /*!< Constraint of a job (Ix of the LRT running the job, Ix of the job). */
+    using JobConstraint = std::pair<size_t, size_t>; /*!< Constraint of a job (Ix of the LRT running the job, Ix of the job). */
 
     /* === Structure(s) definition === */
 
@@ -72,10 +73,12 @@ namespace spider {
 
         /* === Struct member(s) === */
 
-        spider::array<bool> LRTs2Notify_;         /*!< Vector of LRT to notify after job completion (size IS equal to the number of LRT) */
-        spider::array<JobConstraint> jobs2Wait_;  /*!< Vector of jobs this job has to wait before running (size is inferior or equal to the number of LRT) */
+        spider::array<bool> LRTs2Notify_;         /*!< Array of LRT to notify after job completion (size IS equal to the number of LRT) */
+        spider::array<JobConstraint> jobs2Wait_;  /*!< Array of jobs this job has to wait before running (size is inferior or equal to the number of LRT) */
         spider::array<int64_t> inputParams_;      /*!< Array of static input parameters */
         spider::array<size_t> outputParamsIx_;    /*!< Array of output parameters to be set by this job. */
+        spider::array<RTFifo> inputFifoArray_;    /*!< Array of input FIFO for the job */
+        spider::array<RTFifo> outputFifoArray_;   /*!< Array of output FIFO for the job */
         size_t kernelIx_ = SIZE_MAX;              /*!< Index of the kernel to use to run this job */
     };
 
@@ -90,10 +93,8 @@ namespace spider {
 
         ParameterMessage(ParameterMessage &&) noexcept = default;
 
-        ParameterMessage(uint32_t vertexIx, spider::vector<int64_t> params) : vertexIx_{ vertexIx },
-                                                                              params_{ std::move(params) } {
-
-        }
+        ParameterMessage(size_t vertexIx, spider::array<int64_t> params) : vertexIx_{ vertexIx },
+                                                                           params_{ std::move(params) } { };
 
         ParameterMessage &operator=(const ParameterMessage &) = default;
 
@@ -103,10 +104,8 @@ namespace spider {
 
         /* === Struct member(s) === */
 
-        uint32_t vertexIx_ = UINT32_MAX; /*!< Ix of the vertex setting the parameter(s) */
-        spider::vector<int64_t> params_; /*!< Vector of parameter(s) value */
-        // TODO: Using raw pointer (int64_t*) + uint32_t, size drop to 16 bytes instead of 40.
-        // TODO: HOWEVER, vector are safer and easier to manipulate, maybe extra cost is worth?
+        size_t vertexIx_ = SIZE_MAX;     /*!< Ix of the vertex setting the parameter(s) */
+        spider::array<int64_t> params_;  /*!< Array of parameter(s) value */
     };
 
     /**

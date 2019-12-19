@@ -65,7 +65,7 @@ namespace spider {
         /* === Setter(s) === */
 
     private:
-        uint32_t lastJobIx_ = UINT32_MAX;
+        size_t lastJobIx_ = SIZE_MAX;
         bool shouldBroadcast_ = false;
 
         void runJob(const JobMessage &job);

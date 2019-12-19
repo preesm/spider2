@@ -75,7 +75,7 @@ namespace spider {
 
         /* === Operator === */
 
-        void operator()(const int64_t *paramIN, int64_t *paramOUT[], void *buffersIN[], void *buffersOUT[]) {
+        void operator()(const int64_t *paramIN, int64_t *paramOUT, void *buffersIN[], void *buffersOUT[]) {
             kernel_(paramIN, paramOUT, buffersIN, buffersOUT);
         }
 
@@ -139,7 +139,7 @@ namespace spider {
         stack_vector(inputParamIxVector_, size_t, StackID::RUNTIME);
         spider::array<size_t> outputParamIxArray_;
         size_t outputParamCount_ = 0;
-        rtkernel kernel_ = [](const int64_t *, int64_t *[], void *[], void *[]) { };
+        rtkernel kernel_ = [](const int64_t *, int64_t *, void *[], void *[]) { };
         size_t ix_ = SIZE_MAX;
     };
 

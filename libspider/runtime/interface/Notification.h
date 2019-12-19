@@ -104,11 +104,11 @@ namespace spider {
 
         explicit Notification(NotificationType type,
                               uint16_t subtype = UINT16_MAX,
-                              int32_t senderIx = -1,
-                              int32_t notificationIx = -1) : type_{ type },
-                                                             subtype_{ subtype },
+                              size_t senderIx = SIZE_MAX,
+                              size_t notificationIx = SIZE_MAX) : type_{ type },
                                                              senderIx_{ senderIx },
-                                                             notificationIx_{ notificationIx } {
+                                                             notificationIx_{ notificationIx },
+                                                             subtype_{ subtype } {
 
         }
 
@@ -120,10 +120,10 @@ namespace spider {
 
         /* === Struct member(s) === */
 
-        NotificationType type_ = NotificationType::UNDEFINED;    /*!< Primary type of the notification (ex: NotificationType::JOB). */
-        uint16_t subtype_ = UINT16_MAX;                          /*!< Sub-type of the notification (ex: JobNotification::ADD). */
-        int32_t senderIx_ = -1;                                  /*!< ID of the sender of the notification */
-        int32_t notificationIx_ = -1;                            /*!< Index of the notification to fetch (may be used for direct value passing for some notification). */
+        NotificationType type_ = NotificationType::UNDEFINED; /*!< Primary type of the notification (ex: NotificationType::JOB). */
+        size_t senderIx_ = SIZE_MAX;                          /*!< ID of the sender of the notification */
+        size_t notificationIx_ = SIZE_MAX;                    /*!< Index of the notification to fetch (may be used for direct value passing for some notification). */
+        uint16_t subtype_ = UINT16_MAX;                       /*!< Sub-type of the notification (ex: JobNotification::ADD). */
     };
 }
 

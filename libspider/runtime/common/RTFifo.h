@@ -37,81 +37,27 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_RTRUNNER_H
-#define SPIDER2_RTRUNNER_H
+#ifndef SPIDER2_RTFIFO_H
+#define SPIDER2_RTFIFO_H
 
 /* === Include(s) === */
 
 #include <cstdint>
 #include <cstddef>
-#include <containers/containers.h>
-#include <thread/Thread.h>
-#include <containers/array.h>
-#include <api/archi-api.h>
-#include <archi/Platform.h>
-#include <runtime/platform/RTPlatform.h>
-#include <runtime/interface/RTCommunicator.h>
-#include <runtime/interface/Message.h>
-#include <runtime/interface/Notification.h>
 
 namespace spider {
 
     /* === Forward declaration(s) === */
 
-    class PE;
+    class MemoryInterface;
 
     /* === Class definition === */
 
-    class RTRunner {
-    public:
-
-        RTRunner(PE *pe, size_t ix) : attachedPE_{ pe }, runnerIx_{ ix } {
-            auto *platform = spider::platform();
-            localJobStampsArray_ = spider::array<size_t>{ platform->LRTCount(), SIZE_MAX, StackID::RUNTIME };
-            jobQueue_ = spider::containers::vector<JobMessage>(StackID::RUNTIME);
-        }
-
-        virtual ~RTRunner() = default;
-
-        /* === Method(s) === */
-
-        virtual void run(bool infiniteLoop) = 0;
-
-        /* === Getter(s) === */
-
-        inline size_t ix() const {
-            return runnerIx_;
-        }
-
-        inline PE *attachedProcessingElement() const {
-            return attachedPE_;
-        }
-
-    protected:
-        stack_vector(jobQueue_, JobMessage, StackID::RUNTIME);
-        spider::array<size_t> localJobStampsArray_;
-        PE *attachedPE_ = nullptr;
-        size_t runnerIx_ = SIZE_MAX;
-        size_t jobQueueCurrentPos_ = 0;
-        bool stop_ = false;
-
-        inline void clearLocalJobStamps() {
-            jobQueueCurrentPos_ = 0;
-            jobQueue_.clear();
-        }
-
-        inline void broadcastJobStamps() {
-            Notification broadcastNotification{ NotificationType::JOB,
-                                                JobNotification::UPDATE_JOBSTAMP,
-                                                ix(),
-                                                jobQueueCurrentPos_ };
-            for (size_t i = 0; i < spider::platform()->LRTCount(); ++i) {
-                if (i != ix()) {
-                    spider::rtPlatform()->communicator()->push(broadcastNotification, i);
-                }
-            }
-        }
+    struct RTFifo {
+        MemoryInterface *memoryInterface_ = nullptr;
+        uint64_t virtualAddress_ = UINT64_MAX;
+        size_t size_ = 0;
     };
 }
 
-#endif //SPIDER2_RTRUNNER_H
+#endif //SPIDER2_RTFIFO_H
