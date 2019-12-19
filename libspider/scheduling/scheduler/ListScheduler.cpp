@@ -46,7 +46,7 @@
 #include <archi/Cluster.h>
 #include <archi/PE.h>
 #include <api/archi-api.h>
-#include <graphs/pisdf/visitors/DefaultVisitor.h>
+#include <graphs/pisdf/visitors/PiSDFDefaultVisitor.h>
 
 /* === Static variable(s) === */
 

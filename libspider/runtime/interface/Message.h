@@ -74,8 +74,9 @@ namespace spider {
 
         spider::array<bool> LRTs2Notify_;         /*!< Vector of LRT to notify after job completion (size IS equal to the number of LRT) */
         spider::array<JobConstraint> jobs2Wait_;  /*!< Vector of jobs this job has to wait before running (size is inferior or equal to the number of LRT) */
-        spider::array<int64_t> inputParams_;
-        // TODO: add other job description.
+        spider::array<int64_t> inputParams_;      /*!< Array of static input parameters */
+        spider::array<size_t> outputParamsIx_;    /*!< Array of output parameters to be set by this job. */
+        size_t kernelIx_ = SIZE_MAX;              /*!< Index of the kernel to use to run this job */
     };
 
     /**

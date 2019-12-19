@@ -37,12 +37,12 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_DEFAULTVISITOR_H
-#define SPIDER2_DEFAULTVISITOR_H
+#ifndef SPIDER2_PISDFDEFAULTVISITOR_H
+#define SPIDER2_PISDFDEFAULTVISITOR_H
 
 /* === Include(s) === */
 
-#include <graphs/pisdf/visitors/Visitor.h>
+#include <graphs/pisdf/visitors/PiSDFVisitor.h>
 #include <common/Exception.h>
 
 namespace spider {
@@ -103,4 +103,4 @@ namespace spider {
 }
 
 
-#endif //SPIDER2_DEFAULTVISITOR_H
+#endif //SPIDER2_PISDFDEFAULTVISITOR_H

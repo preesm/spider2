@@ -47,7 +47,7 @@
 #include <graphs/pisdf/ExecVertex.h>
 #include <graphs/pisdf/interfaces/InputInterface.h>
 #include <graphs/pisdf/interfaces/OutputInterface.h>
-#include <graphs/pisdf/visitors/DefaultVisitor.h>
+#include <graphs/pisdf/visitors/PiSDFDefaultVisitor.h>
 #include <api/spider.h>
 
 class pisdfInterfaceTest : public ::testing::Test {

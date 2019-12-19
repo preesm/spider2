@@ -65,7 +65,7 @@ namespace spider {
     class RTRunner {
     public:
 
-        RTRunner(PE *pe, size_t ix) : runningPE_{ pe }, runnerIx_{ ix } {
+        RTRunner(PE *pe, size_t ix) : attachedPE_{ pe }, runnerIx_{ ix } {
             auto *platform = spider::platform();
             localJobStampsArray_ = spider::array<uint32_t>{ platform->LRTCount(), UINT32_MAX, StackID::RUNTIME };
             jobQueue_ = spider::containers::vector<JobMessage>(StackID::RUNTIME);
@@ -83,16 +83,14 @@ namespace spider {
             return runnerIx_;
         }
 
-        inline PE *pe() const {
-            return runningPE_;
+        inline PE *attachedProcessingElement() const {
+            return attachedPE_;
         }
-
-        /* === Setter(s) === */
 
     protected:
         stack_vector(jobQueue_, JobMessage, StackID::RUNTIME);
         spider::array<uint32_t> localJobStampsArray_;
-        PE *runningPE_ = nullptr;
+        PE *attachedPE_ = nullptr;
         size_t runnerIx_ = SIZE_MAX;
         size_t jobQueueCurrentPos_ = 0;
         bool stop_ = false;

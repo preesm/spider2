@@ -45,8 +45,8 @@
 #include <cstdint>
 #include <string>
 #include <containers/array.h>
-#include <graphs/pisdf/visitors/Visitor.h>
-#include <runtime/info/RTInfo.h>
+#include <graphs/pisdf/visitors/PiSDFVisitor.h>
+#include <runtime/common/RTInfo.h>
 
 namespace spider {
 

@@ -47,7 +47,7 @@
 #include <graphs/pisdf/Param.h>
 #include <graphs/pisdf/DynamicParam.h>
 #include <graphs/pisdf/InHeritedParam.h>
-#include <graphs/pisdf/visitors/DefaultVisitor.h>
+#include <graphs/pisdf/visitors/PiSDFDefaultVisitor.h>
 #include <api/spider.h>
 
 class pisdfParamTest : public ::testing::Test {

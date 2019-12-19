@@ -37,59 +37,60 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_GRAPHADDVERTEXVISITOR_H
-#define SPIDER2_GRAPHADDVERTEXVISITOR_H
 
 /* === Include(s) === */
 
-#include <graphs/pisdf/visitors/DefaultVisitor.h>
+#include <graphs/pisdf/visitors/PiSDFDefaultVisitor.h>
 #include <graphs/pisdf/SpecialVertex.h>
-#include <graphs/pisdf/Graph.h>
-#include <api/archi-api.h>
-#include <archi/Platform.h>
+#include <graphs/pisdf/interfaces/InputInterface.h>
+#include <graphs/pisdf/interfaces/OutputInterface.h>
 
-namespace spider {
-    namespace pisdf {
-        struct GraphAddVertexVisitor final : public DefaultVisitor {
+/* === Function(s) definition === */
 
-            explicit GraphAddVertexVisitor(Graph *graph) : graph_{ graph } { }
-
-            /* === Method(s) === */
-
-            inline void visit(ExecVertex *vertex) override {
-                /* == Add vertex to vertexVector_ == */
-                addVertex(vertex);
-            }
-
-            inline void visit(ConfigVertex *vertex) override {
-                /* == Add vertex to vertexVector_ == */
-                addVertex(vertex);
-
-                /* == Add config vertex to the "viewer" vector == */
-                graph_->configVertexVector_.emplace_back(vertex);
-            }
-
-            inline void visit(Graph *subgraph) override {
-                /* == Add the subgraph as Vertex == */
-                addVertex(subgraph);
-
-                /* == Add the subgraph in the "viewer" vector == */
-                subgraph->subIx_ = static_cast<uint32_t>(graph_->subgraphVector_.size());
-                graph_->subgraphVector_.emplace_back(subgraph);
-            }
-
-            /* == Graph to add vertex to == */
-            Graph *graph_ = nullptr;
-        private:
-            template<class T>
-            void addVertex(T *vertex) {
-                vertex->setIx(static_cast<uint32_t>(graph_->vertexVector_.size()));
-                graph_->vertexVector_.emplace_back(vertex);
-                vertex->setGraph(graph_);
-            }
-        };
-    }
+void spider::pisdf::DefaultVisitor::visit(DelayVertex *vertex) {
+    this->visit(static_cast<ExecVertex *>(vertex));
 }
 
+void spider::pisdf::DefaultVisitor::visit(ConfigVertex *vertex) {
+    this->visit(static_cast<ExecVertex *>(vertex));
+}
 
-#endif //SPIDER2_GRAPHADDVERTEXVISITOR_H
+void spider::pisdf::DefaultVisitor::visit(ForkVertex *vertex) {
+    this->visit(static_cast<ExecVertex *>(vertex));
+}
+
+void spider::pisdf::DefaultVisitor::visit(JoinVertex *vertex) {
+    this->visit(static_cast<ExecVertex *>(vertex));
+}
+
+void spider::pisdf::DefaultVisitor::visit(HeadVertex *vertex) {
+    this->visit(static_cast<ExecVertex *>(vertex));
+}
+
+void spider::pisdf::DefaultVisitor::visit(TailVertex *vertex) {
+    this->visit(static_cast<ExecVertex *>(vertex));
+}
+
+void spider::pisdf::DefaultVisitor::visit(DuplicateVertex *vertex) {
+    this->visit(static_cast<ExecVertex *>(vertex));
+}
+
+void spider::pisdf::DefaultVisitor::visit(RepeatVertex *vertex) {
+    this->visit(static_cast<ExecVertex *>(vertex));
+}
+
+void spider::pisdf::DefaultVisitor::visit(InitVertex *vertex) {
+    this->visit(static_cast<ExecVertex *>(vertex));
+}
+
+void spider::pisdf::DefaultVisitor::visit(EndVertex *vertex) {
+    this->visit(static_cast<ExecVertex *>(vertex));
+}
+
+void spider::pisdf::DefaultVisitor::visit(InputInterface *input) {
+    this->visit(static_cast<Interface *>(input));
+}
+
+void spider::pisdf::DefaultVisitor::visit(OutputInterface *output) {
+    this->visit(static_cast<Interface *>(output));
+}

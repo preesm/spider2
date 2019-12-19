@@ -42,7 +42,7 @@
 
 /* === Include(s) === */
 
-#include <graphs/pisdf/visitors/DefaultVisitor.h>
+#include <graphs/pisdf/visitors/PiSDFDefaultVisitor.h>
 #include <graphs-tools/exporter/DOTExporter.h>
 #include <graphs/pisdf/interfaces/InputInterface.h>
 #include <graphs/pisdf/interfaces/OutputInterface.h>

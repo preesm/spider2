@@ -37,8 +37,8 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_VISITOR_H
-#define SPIDER2_VISITOR_H
+#ifndef SPIDER2_PISDFVISITOR_H
+#define SPIDER2_PISDFVISITOR_H
 
 /* === Include(s) === */
 
@@ -106,4 +106,4 @@ namespace spider {
         };
     }
 }
-#endif //SPIDER2_VISITOR_H
+#endif //SPIDER2_PISDFVISITOR_H

@@ -42,7 +42,7 @@
 
 /* === Include(s) === */
 
-#include <graphs/pisdf/visitors/DefaultVisitor.h>
+#include <graphs/pisdf/visitors/PiSDFDefaultVisitor.h>
 #include <graphs/pisdf/Graph.h>
 
 namespace spider {

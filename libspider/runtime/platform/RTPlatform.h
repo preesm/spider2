@@ -43,7 +43,7 @@
 /* === Include(s) === */
 
 #include <containers/array.h>
-#include <runtime/info/RTKernel.h>
+#include <runtime/common/RTKernel.h>
 #include <algorithm>
 
 namespace spider {

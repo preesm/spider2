@@ -52,7 +52,7 @@
 #include <graphs/pisdf/ExecVertex.h>
 #include <graphs/pisdf/SpecialVertex.h>
 #include <api/spider.h>
-#include <graphs/pisdf/visitors/CloneVisitor.h>
+#include <graphs/pisdf/visitors/PiSDFCloneVisitor.h>
 
 class pisdVertexTest : public ::testing::Test {
 protected:

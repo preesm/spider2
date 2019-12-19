@@ -41,8 +41,8 @@
 /* === Include(s) === */
 
 #include <graphs/pisdf/Graph.h>
-#include <graphs/pisdf/visitors/GraphAddVertexVisitor.h>
-#include <graphs/pisdf/visitors/GraphRemoveVertexVisitor.h>
+#include <graphs/pisdf/visitors/PiSDFGraphAddVertexVisitor.h>
+#include <graphs/pisdf/visitors/PiSDFGraphRemoveVertexVisitor.h>
 #include <graphs/pisdf/ExecVertex.h>
 #include <graphs/pisdf/interfaces/Interface.h>
 #include <graphs/pisdf/interfaces/InputInterface.h>
