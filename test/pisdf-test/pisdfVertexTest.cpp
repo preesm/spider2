@@ -170,7 +170,7 @@ TEST_F(pisdVertexTest, vertexTest) {
         ASSERT_EQ(v->outputEdgeCount(), 0);
         ASSERT_EQ(v->reference(), v);
         ASSERT_EQ(v->graph(), nullptr);
-        ASSERT_EQ(v->runtimeInformation(), nullptr);
+        ASSERT_NE(v->runtimeInformation(), nullptr);
         ASSERT_EQ(v->ix(), UINT32_MAX);
         ASSERT_EQ(v->repetitionValue(), 1);
         ASSERT_EQ(v->jobIx(), SIZE_MAX);
@@ -206,8 +206,6 @@ TEST_F(pisdVertexTest, vertexTest) {
     ASSERT_EQ(v1->outputEdgeCount(), 0) << "Vertex::outputEdgeCount() bad value.";
     ASSERT_EQ(v0->inputEdgeCount(), 0) << "Vertex::inputEdgeCount() bad value.";
     ASSERT_EQ(v0->outputEdgeCount(), 1) << "Vertex::outputEdgeCount() bad value.";
-    ASSERT_NO_THROW(v0->createConstraints()) << "Vertex::createConstraints() should never throw.";
-    ASSERT_NE(v0->createConstraints(), nullptr) << "Vertex::createConstraints() should never return nullptr.";
     ASSERT_NO_THROW(v0->setRepetitionValue(0)) << "Vertex::setRepetitionValue() should not throw for 0 value.";
     ASSERT_NO_THROW(v0->setRepetitionValue(1)) << "Vertex::setRepetitionValue() should not throw for any value.";
     ASSERT_NO_THROW(v0->setRepetitionValue(2)) << "Vertex::setRepetitionValue() should not throw for any value.";

@@ -94,19 +94,8 @@ TEST_F(pisdfGraphTest, graphTest) {
     auto *param2 = spider::make<spider::pisdf::Param, StackID::PISDF>("WIDTH", spider::Expression(5));
     ASSERT_THROW(graph->addParam(param2), spider::Exception)
                                 << "Graph::addParam() should throw for param with same name.";
-    ASSERT_NO_THROW(graph->removeParam(param)) << "Graph::removeParam() should not throw for valid param.";
-    ASSERT_NO_THROW(graph->removeParam(nullptr)) << "Graph::removeParam() should not throw for nullptr.";
-    ASSERT_THROW(graph->removeParam(param2), spider::Exception)
-                                << "Graph::removeParam() should throw for non-valid param.";
     spider::destroy(param2);
-    param = spider::make<spider::pisdf::Param, StackID::PISDF>("width", spider::Expression(5));
-    graph->addParam(param);
     graph->addParam(spider::make<spider::pisdf::Param, StackID::PISDF>("height", spider::Expression(1)));
-    auto ix = param->ix();
-    param->setIx(1);
-    ASSERT_THROW(graph->removeParam(param), spider::Exception)
-                                << "Graph::removeParam() should throw for invalid param-ix.";
-    param->setIx(ix);
 
     /* == Getter(s) test == */
     ASSERT_EQ(graph->vertexCount(), 0) << "Graph::vertexCount() failed.";

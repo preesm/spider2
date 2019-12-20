@@ -41,11 +41,11 @@
 /* === Include(s) === */
 
 #include <scheduling/scheduler/ListScheduler.h>
-#include <graphs/pisdf/ExecVertex.h>
 #include <archi/Platform.h>
 #include <archi/Cluster.h>
 #include <archi/PE.h>
 #include <api/archi-api.h>
+#include <graphs/pisdf/ExecVertex.h>
 #include <graphs/pisdf/visitors/PiSDFDefaultVisitor.h>
 
 /* === Static variable(s) === */

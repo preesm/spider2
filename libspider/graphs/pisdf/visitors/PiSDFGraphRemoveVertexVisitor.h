@@ -60,9 +60,9 @@ namespace spider {
                 destroyVertex(subgraph);
 
                 /* == Remove the subgraph from the subgraph vector == */
-                graph_->subgraphVector_[ix] = graph_->subgraphVector_.back();
-                graph_->subgraphVector_[ix]->subIx_ = ix;
-                graph_->subgraphVector_.pop_back();
+                graph_->subgraphVector_->operator[](ix) = graph_->subgraphVector_->back();
+                graph_->subgraphVector_->operator[](ix)->subIx_ = ix;
+                graph_->subgraphVector_->pop_back();
             }
 
             inline void visit(ExecVertex *vertex) override {
@@ -72,10 +72,10 @@ namespace spider {
 
             inline void visit(ConfigVertex *vertex) override {
                 /* == configVertexVector_ is just a "viewer" for config vertices so we need to find manually == */
-                for (auto &cfg : graph_->configVertexVector_) {
+                for (auto &cfg : *(graph_->configVertexVector_)) {
                     if (cfg == vertex) {
-                        cfg = graph_->configVertexVector_.back();
-                        graph_->configVertexVector_.pop_back();
+                        cfg = graph_->configVertexVector_->back();
+                        graph_->configVertexVector_->pop_back();
                         break;
                     }
                 }
@@ -135,7 +135,7 @@ namespace spider {
         private:
             template<class T>
             inline void destroyVertex(T *vertex) {
-                graph_->removeElement(graph_->vertexVector_, static_cast<Vertex *>(vertex));
+                graph_->removeElement(*(graph_->vertexVector_), static_cast<Vertex *>(vertex));
                 destroy(vertex);
             }
         };

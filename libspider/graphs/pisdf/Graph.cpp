@@ -66,17 +66,17 @@ spider::pisdf::Graph::Graph(std::string name,
                                              inputInterfaceArray_{ edgeINCount, stack },
                                              outputInterfaceArray_{ edgeOUTCount, stack } {
     /* == Create the vectors on corresponding stack == */
-    vertexVector_ = containers::vector<Vertex *>(stack);
-    configVertexVector_ = containers::vector<ConfigVertex *>(stack);
-    subgraphVector_ = containers::vector<Graph *>(stack);
-    edgeVector_ = containers::vector<Edge *>(stack);
-    paramVector_ = containers::vector<Param *>(stack);
+    vertexVector_ = make<spider::vector<Vertex *>>(stack, containers::vector<Vertex *>(stack));
+    configVertexVector_ = make<spider::vector<ConfigVertex *>>(stack, containers::vector<ConfigVertex *>(stack));
+    subgraphVector_ = make<spider::vector<Graph *>>(stack, containers::vector<Graph *>(stack));
+    edgeVector_ = make<spider::vector<Edge *>>(stack, containers::vector<Edge *>(stack));
+    paramVector_ = make<spider::vector<Param *>>(stack, containers::vector<Param *>(stack));
 
     /* == Reserve the memory == */
-    vertexVector_.reserve(vertexCount);
-    edgeVector_.reserve(edgeCount);
-    paramVector_.reserve(paramCount);
-    configVertexVector_.reserve(cfgVertexCount);
+    vertexVector_->reserve(vertexCount);
+    edgeVector_->reserve(edgeCount);
+    paramVector_->reserve(paramCount);
+    configVertexVector_->reserve(cfgVertexCount);
 
     /* == Create the input interfaces == */
     for (uint32_t i = 0; i < edgeINCount; ++i) {
@@ -100,15 +100,19 @@ spider::pisdf::Graph::~Graph() noexcept {
     /* ==
      * It is necessary to start with the edges because if an Edge has a delay, it will remove the associated vertices.
      * == */
-    for (auto &edge : edgeVector_) {
+    for (auto &edge : (*edgeVector_)) {
         destroy(edge);
     }
+    destroy(edgeVector_);
 
     /* == Destroy / deallocate vertices (subgraphs included) == */
     GraphRemoveVertexVisitor rmVertexVisitor{ this };
-    for (auto &vertex : vertexVector_) {
+    for (auto &vertex : (*vertexVector_)) {
         vertex->visit(&rmVertexVisitor);
     }
+    destroy(vertexVector_);
+    destroy(configVertexVector_);
+    destroy(subgraphVector_);
 
     /* == Destroy / deallocate interfaces == */
     for (auto &interface : inputInterfaceArray_) {
@@ -119,9 +123,10 @@ spider::pisdf::Graph::~Graph() noexcept {
     }
 
     /* == Destroy / deallocate params == */
-    for (auto &param : paramVector_) {
+    for (auto &param : (*paramVector_)) {
         destroy(param);
     }
+    destroy(paramVector_);
 }
 
 void spider::pisdf::Graph::addVertex(Vertex *vertex) {
@@ -135,32 +140,51 @@ void spider::pisdf::Graph::removeVertex(Vertex *vertex) {
 }
 
 void spider::pisdf::Graph::addEdge(Edge *edge) {
-    edge->setIx(static_cast<uint32_t>(edgeVector_.size()));
-    edgeVector_.push_back(edge);
+    edge->setIx(static_cast<uint32_t>(edgeVector_->size()));
+    edgeVector_->push_back(edge);
     edge->setGraph(this);
 }
 
 void spider::pisdf::Graph::removeEdge(Edge *edge) {
-    removeElement(edgeVector_, edge);
+    removeElement((*edgeVector_), edge);
     destroy(edge);
 }
 
 void spider::pisdf::Graph::addParam(Param *param) {
     /* == Check if a parameter with the same name already exists in the scope of this graph == */
-    for (auto &p : paramVector_) {
+    for (auto &p : (*paramVector_)) {
         if (p->name() == param->name()) {
             throwSpiderException("Parameter [%s] already exist in graph [%s].", param->name().c_str(), name().c_str());
         }
     }
-    param->setIx(static_cast<uint32_t>(paramVector_.size()));
+    param->setIx(static_cast<uint32_t>(paramVector_->size()));
     param->setGraph(this);
-    paramVector_.push_back(param);
+    paramVector_->push_back(param);
     dynamic_ |= (param->dynamic() && param->type() != ParamType::INHERITED);
 }
 
-void spider::pisdf::Graph::removeParam(Param *param) {
-    removeElement(paramVector_, param);
-    destroy(param);
+void spider::pisdf::Graph::moveVertex(spider::pisdf::Vertex *elt, spider::pisdf::Graph *graph) {
+    if (!graph || !elt) {
+        return;
+    }
+    removeElement((*vertexVector_), elt);
+    graph->addVertex(elt);
+}
+
+void spider::pisdf::Graph::moveEdge(spider::pisdf::Edge *elt, spider::pisdf::Graph *graph) {
+    if (!graph || !elt) {
+        return;
+    }
+    removeElement((*edgeVector_), elt);
+    graph->addEdge(elt);
+}
+
+void spider::pisdf::Graph::moveParam(spider::pisdf::Param *elt, spider::pisdf::Graph *graph) {
+    if (!graph || !elt) {
+        return;
+    }
+    removeElement((*paramVector_), elt);
+    graph->addParam(elt);
 }
 
 /* === Private method(s) === */
