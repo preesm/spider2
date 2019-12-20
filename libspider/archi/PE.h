@@ -155,7 +155,7 @@ namespace spider {
          * @brief Enable the PE.
          */
         inline void enable() {
-            status_ = false;
+            status_ = true;
         }
 
         /**
