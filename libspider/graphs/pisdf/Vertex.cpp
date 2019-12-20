@@ -51,7 +51,6 @@ spider::pisdf::Vertex::Vertex(const Vertex &other,
                                                outputEdgeArray_{ other.outputEdgeArray_.size(), nullptr, stack },
                                                reference_{ &other },
                                                graph_{ other.graph_ },
-                                               rtInformation_{ other.rtInformation_ },
                                                ix_{ other.ix_ },
                                                repetitionValue_{ other.repetitionValue_ },
                                                copyCount_{ 0 } {
@@ -61,9 +60,6 @@ spider::pisdf::Vertex::Vertex(const Vertex &other,
 spider::pisdf::Vertex::~Vertex() noexcept {
     if (copyCount_ && log::enabled()) {
         log::error("Removing vertex [%s] with copies out there.\n", name().c_str());
-    }
-    if (reference() == this) {
-        destroy(rtInformation_);
     }
     this->reference_->copyCount_ -= 1;
 

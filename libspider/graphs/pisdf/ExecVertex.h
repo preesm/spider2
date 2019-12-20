@@ -60,14 +60,23 @@ namespace spider {
                                 StackID stack = StackID::PISDF) : Vertex(std::move(name),
                                                                          edgeINCount,
                                                                          edgeOUTCount,
-                                                                         stack) { }
+                                                                         stack) {
+                rtInformation_ = make<RTInfo, StackID::RUNTIME>();
+            }
 
             ExecVertex(const ExecVertex &other, StackID stack = StackID::PISDF) : Vertex(other, stack) {
                 jobIx_ = other.jobIx_;
+                rtInformation_ = other.rtInformation_;
             }
 
             ExecVertex(ExecVertex &&other) noexcept : Vertex(std::move(other)) {
                 std::swap(jobIx_, other.jobIx_);
+            }
+
+            ~ExecVertex() override {
+                if (reference() == this) {
+                    destroy(rtInformation_);
+                }
             }
 
             friend CloneVisitor;
@@ -116,7 +125,7 @@ namespace spider {
             }
 
         protected:
-            size_t jobIx_ = SIZE_MAX; /* = Index of the transformation job associated to this Vertex (used only for ConfigVertex) = */
+            size_t jobIx_ = SIZE_MAX;         /* = Index of the transformation job associated to this Vertex (used only for ConfigVertex) = */
         };
     }
 }

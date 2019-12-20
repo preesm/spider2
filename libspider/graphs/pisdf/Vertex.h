@@ -70,7 +70,6 @@ namespace spider {
                     name_{ std::move(name) },
                     inputEdgeArray_{ edgeINCount, nullptr, stack },
                     outputEdgeArray_{ edgeOUTCount, nullptr, stack } {
-                rtInformation_ = make<RTInfo, StackID::RUNTIME>();
             }
 
             Vertex(const Vertex &other, StackID stack = StackID::PISDF);
@@ -247,6 +246,11 @@ namespace spider {
                 return false;
             }
 
+            /**
+             * @brief Returns the @refitem RTInfo structure associated with this vertex.
+             * @remark If the vertex is non-executable, it should return nullptr.
+             * @return pointer to the @refitem RTInfo of the vertex, nullptr if !(this->executable()).
+             */
             inline RTInfo *runtimeInformation() const {
                 return rtInformation_;
             }
