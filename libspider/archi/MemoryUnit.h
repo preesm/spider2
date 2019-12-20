@@ -112,8 +112,8 @@ namespace spider {
         }
 
     private:
-        uint64_t size_ = 0;
-        uint64_t used_ = 0;
+        uint64_t size_ = 0; /* = Total size of the MemoryUnit = */
+        uint64_t used_ = 0; /* = Currently used memory (strictly less or equal to size_) = */
     };
 }
 #endif //SPIDER2_MEMORYUNIT_H

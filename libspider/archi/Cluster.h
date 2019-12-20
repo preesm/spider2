@@ -152,7 +152,7 @@ namespace spider {
          * @return @refitem Platform of the cluster.
          */
         inline Platform *platform() const {
-            return platform_;
+            return spider::platform();
         }
 
         /* === Setter(s) === */
@@ -169,16 +169,15 @@ namespace spider {
 
         /* === Core properties === */
 
-        spider::array<PE *> PEArray_;
-        Platform *platform_ = nullptr;
-        MemoryUnit *memoryUnit_ = nullptr;
-        MemoryInterface *memoryInterface_ = nullptr;
+        spider::array<PE *> PEArray_;                /* = Array of PE contained in the Cluster = */
+        MemoryUnit *memoryUnit_ = nullptr;           /* = Pointer to the MemoryUni associated to the Cluster = */
+        MemoryInterface *memoryInterface_ = nullptr; /* = Pointer to the MemoryInterface for intra Cluster communications = */
 
         /* === Spider properties === */
 
-        size_t LRTCount_ = 0;
-        size_t PECount_ = 0;
-        size_t ix_ = 0;
+        size_t LRTCount_ = 0; /* = Number of Local Runtime inside this Cluster = */
+        size_t PECount_ = 0;  /* = Number of currently added PE in the Cluster */
+        size_t ix_ = 0;       /* = Linear index of the Cluster in the Platform */
 
     };
 }

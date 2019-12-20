@@ -53,7 +53,6 @@
 
 spider::Cluster::Cluster(size_t PECount, MemoryUnit *memoryUnit, MemoryInterface *memoryInterface) :
         PEArray_{ PECount, nullptr, StackID::ARCHI },
-        platform_{ spider::platform() },
         memoryUnit_{ memoryUnit },
         memoryInterface_{ memoryInterface } {
     if (!memoryUnit) {
@@ -79,7 +78,7 @@ void spider::Cluster::addPE(spider::PE *pe) {
     PEArray_.at(PECount_) = pe;
     PECount_++; /* = In case at throws, PECount is not change = */
     LRTCount_ += pe->isLRT();
-    if (platform_) {
-        platform_->setPE(pe);
+    if (platform()) {
+        platform()->setPE(pe);
     }
 }

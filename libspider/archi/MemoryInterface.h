@@ -183,22 +183,22 @@ namespace spider {
         }
 
     private:
-        MemoryUnit *memoryUnit_ = nullptr;                    /* = Memory unit attached to this interface = */
+        MemoryUnit *memoryUnit_ = nullptr;                     /* = Pointer to the MemoryUnit attached to this MemoryInterface = */
         spider::unordered_map<uint64_t, void *> virtual2Phys_; /* = Map associating virtual address to physical ones = */
 
         /* === Memory write routine === */
 
-        MemoryWriteRoutine writeRoutine_; /* = Memory write routine used by this interface = */
+        MemoryWriteRoutine writeRoutine_; /* = Memory write routine used by this MemoryInterface = */
 
         /* === Allocation routines === */
 
-        MemoryAllocateRoutine allocateRoutine_;     /* = Memory allocation routine used for this interface = */
-        MemoryDeallocateRoutine deallocateRoutine_; /* = Memory deallocation routine used for this interface = */
+        MemoryAllocateRoutine allocateRoutine_;     /* = Memory allocation routine used for this MemoryInterface = */
+        MemoryDeallocateRoutine deallocateRoutine_; /* = Memory deallocation routine used for this MemoryInterface = */
 
         /* === Memory exchange cost routines === */
 
-        MemoryExchangeCostRoutine readCostRoutine_;  /* = Memory read exchange cost routine used for this interface = */
-        MemoryExchangeCostRoutine writeCostRoutine_; /* = Memory write exchange cost routine used for this interface = */
+        MemoryExchangeCostRoutine readCostRoutine_;  /* = Memory read exchange cost routine used for this MemoryInterface = */
+        MemoryExchangeCostRoutine writeCostRoutine_; /* = Memory write exchange cost routine used for this MemoryInterface = */
 
         /* === Private method(s) === */
 

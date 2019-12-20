@@ -196,13 +196,13 @@ namespace spider {
         void setClusterToClusterMemoryInterface(Cluster *clusterA, Cluster *clusterB, InterMemoryInterface interface);
 
     private:
-        spider::array<Cluster *> clusterArray_;
-        spider::array<PE *> peArray_;
-        spider::array<InterMemoryInterface> cluster2ClusterMemoryIF_;
-        spider::array<size_t> preComputedClusterIx_;
-        size_t clusterCount_ = 0;
-        size_t peCount_ = 0;
-        PE *grt_ = nullptr;
+        spider::array<Cluster *> clusterArray_;                       /* = Array of Cluster in the Platform = */
+        spider::array<PE *> peArray_;                                 /* = Array of PE in the Platform = */
+        spider::array<InterMemoryInterface> cluster2ClusterMemoryIF_; /* = Array of inter Cluster MemoryInterface = */
+        spider::array<size_t> preComputedClusterIx_;                  /* = Array of pre-computed index value for fast inter Cluster communication = */
+        size_t clusterCount_ = 0;                                     /* = Number of currently added Cluster in the Platform = */
+        size_t peCount_ = 0;                                          /* = Number of currently added PE in the Platform = */
+        PE *grt_ = nullptr;                                           /* = Pointer to the PE used as Global Runtime = */
 
         /* === Private method(s) === */
 

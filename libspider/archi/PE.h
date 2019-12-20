@@ -208,14 +208,14 @@ namespace spider {
 
         uint32_t hwType_ = 0;             /* = S-LAM user hardware type = */
         uint32_t hwIx_ = 0;               /* = Hardware on which PE runs (core ix) = */
-        size_t virtIx_ = SIZE_MAX;             /* = Spider ID = */
+        size_t virtIx_ = SIZE_MAX;        /* = Linear virtual unique IX used by Spider for fast access to PE = */
         std::string name_ = "unnamed-pe"; /* = S-LAM user name of the PE = */
 
         /* === Spider properties === */
 
         PEType type_ = PEType::LRT;      /* = PEType of the PE (see @refitem PEType) */
         Cluster *cluster_ = nullptr;     /* = Cluster to which the PE belong = */
-        PE *attachedLRT_ = nullptr;      /* = LRT attached to the PE = */
+        PE *attachedLRT_ = nullptr;      /* = Local Runtime PE attached to this PE = */
         bool status_ = true;             /* = Status of the PE (enabled = true, disabled = false) = */
     };
 }
