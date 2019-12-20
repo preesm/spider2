@@ -40,7 +40,7 @@
 
 /* === Includes === */
 
-#include <api/constraints-api.h>
+#include <api/runtime-api.h>
 #include <api/archi-api.h>
 #include <archi/Platform.h>
 #include <archi/Cluster.h>
@@ -51,15 +51,15 @@
 
 /* === Methods implementation === */
 
-/* === General Scenario related API === */
+/* === General runtime related API === */
 
 void spider::api::setVertexMappableOnCluster(pisdf::ExecVertex *vertex, const Cluster *cluster, bool value) {
-    auto *constraints = vertex->runtimeInformation();
-    if (!constraints) {
-        constraints = vertex->createConstraints();
+    auto *runtimeInfo = vertex->runtimeInformation();
+    if (!runtimeInfo) {
+        runtimeInfo = vertex->createConstraints();
     }
     for (auto &pe : cluster->array()) {
-        constraints->setMappableConstraintOnPE(pe, value);
+        runtimeInfo->setMappableConstraintOnPE(pe, value);
     }
 }
 
@@ -70,60 +70,49 @@ void spider::api::setVertexMappableOnCluster(pisdf::ExecVertex *vertex, uint32_t
 }
 
 void spider::api::setVertexMappableOnPE(pisdf::ExecVertex *vertex, const spider::PE *pe, bool value) {
-    auto *constraints = vertex->runtimeInformation();
-    if (!constraints) {
-        constraints = vertex->createConstraints();
-    }
-    constraints->setMappableConstraintOnPE(pe, value);
-}
-
-//void spider::api::setVertexMappableOnPE(pisdf::ExecVertex *vertex, size_t ix, bool value) {
-//    auto *constraints = vertex->constraints();
-//    if (!constraints) {
-//        constraints = vertex->createConstraints();
-//    }
-//    auto *platform = spider::platform();
-//    constraints->setMappableConstraintOnPE(ix, value);
-//}
-
-void spider::api::setVertexMappableOnAllPE(pisdf::ExecVertex *vertex, bool value) {
-    auto *constraints = vertex->runtimeInformation();
-    if (!constraints) {
-        constraints = vertex->createConstraints();
-    }
-    constraints->setMappableConstraintOnAllPE(value);
-}
-
-void spider::api::setVertexExecutionTimingOnPE(pisdf::ExecVertex *vertex,
-                                               const PE *pe,
-                                               const std::string &timingExpression) {
     auto *runtimeInfo = vertex->runtimeInformation();
     if (!runtimeInfo) {
         runtimeInfo = vertex->createConstraints();
     }
-    runtimeInfo->setTimingOnPE(pe, Expression(timingExpression));
+    runtimeInfo->setMappableConstraintOnPE(pe, value);
+}
+
+void spider::api::setVertexMappableOnAllPE(pisdf::ExecVertex *vertex, bool value) {
+    auto *runtimeInfo = vertex->runtimeInformation();
+    if (!runtimeInfo) {
+        runtimeInfo = vertex->createConstraints();
+    }
+    runtimeInfo->setMappableConstraintOnAllPE(value);
+}
+
+void spider::api::setVertexExecutionTimingOnPE(pisdf::ExecVertex *vertex, const PE *pe, std::string timingExpression) {
+    auto *runtimeInfo = vertex->runtimeInformation();
+    if (!runtimeInfo) {
+        runtimeInfo = vertex->createConstraints();
+    }
+    runtimeInfo->setTimingOnPE(pe, Expression(std::move(timingExpression)));
 }
 
 void spider::api::setVertexExecutionTimingOnPE(pisdf::ExecVertex *vertex, const PE *pe, int64_t timing) {
-    auto *constraints = vertex->runtimeInformation();
-    if (!constraints) {
-        constraints = vertex->createConstraints();
+    auto *runtimeInfo = vertex->runtimeInformation();
+    if (!runtimeInfo) {
+        runtimeInfo = vertex->createConstraints();
     }
-    constraints->setTimingOnPE(pe, timing);
+    runtimeInfo->setTimingOnPE(pe, timing);
+}
+
+void spider::api::setVertexExecutionTimingOnAllPE(pisdf::ExecVertex *vertex, std::string timingExpression) {
+    auto *runtimeInfo = vertex->runtimeInformation();
+    if (!runtimeInfo) {
+        runtimeInfo = vertex->createConstraints();
+    }
+    runtimeInfo->setTimingOnAllPE(Expression(std::move(timingExpression)));
 }
 
 void spider::api::setVertexExecutionTimingOnAllPE(pisdf::ExecVertex *vertex, int64_t timing) {
-    auto *constraints = vertex->runtimeInformation();
-    if (!constraints) {
-        constraints = vertex->createConstraints();
+    auto *runtimeInfo = vertex->runtimeInformation();
+    if (!runtimeInfo) {
+        runtimeInfo = vertex->createConstraints();
     }
-    constraints->setTimingOnAllPE(timing);
-}
-
-void spider::api::setVertexExecutionTimingOnAllPE(pisdf::ExecVertex *vertex, const std::string &timingExpression) {
-    auto *constraints = vertex->runtimeInformation();
-    if (!constraints) {
-        constraints = vertex->createConstraints();
-    }
-    constraints->setTimingOnAllPE(Expression(timingExpression));
+    runtimeInfo->setTimingOnAllPE(timing);
 }

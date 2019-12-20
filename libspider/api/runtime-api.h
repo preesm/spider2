@@ -54,25 +54,67 @@ namespace spider {
 
         /* === General Scenario related API === */
 
+        /**
+        * @brief Sets mappable property of a vertex on a given Cluster of processing element.
+        * @param vertex  Pointer to the vertex.
+        * @param cluster Const pointer to the cluster.
+        * @param value   Value to be set (true = mappable, false = non mappable).
+        */
         void setVertexMappableOnCluster(pisdf::ExecVertex *vertex, const Cluster *cluster, bool value = true);
 
+        /**
+        * @brief Sets mappable property of a vertex on a given Cluster of processing element.
+        * @param vertex    Pointer to the vertex.
+        * @param clusterIx Index of the cluster.
+        * @param value     Value to be set (true = mappable, false = non mappable).
+        */
         void setVertexMappableOnCluster(pisdf::ExecVertex *vertex, uint32_t clusterIx, bool value = true);
 
+        /**
+         * @brief Sets mappable property of a vertex on a given processing element.
+         * @param vertex  Pointer to the vertex.
+         * @param pe      Const pointer to the processing element.
+         * @param value   Value to be set (true = mappable, false = non mappable).
+         */
         void setVertexMappableOnPE(pisdf::ExecVertex *vertex, const PE *pe, bool value = true);
 
-        void setVertexMappableOnPE(pisdf::ExecVertex *vertex, size_t ix, bool value = true);
-
+        /**
+         * @brief Sets mappable property of a vertex for all processing elements.
+         * @param vertex  Pointer to the vertex.
+         * @param value   Value to be set (true = mappable, false = non mappable).
+         */
         void setVertexMappableOnAllPE(pisdf::ExecVertex *vertex, bool value = true);
 
-        void setVertexExecutionTimingOnPE(pisdf::ExecVertex *vertex,
-                                          const PE *pe,
-                                          const std::string &timingExpression = "100");
+        /**
+         * @brief Sets the execution time expression of a vertex on a given processing element.
+         * @param vertex            Pointer to the vertex.
+         * @param pe                Const pointer to the processing element.
+         * @param timingExpression  Expression of the execution time (can be parameterized).
+         */
+        void
+        setVertexExecutionTimingOnPE(pisdf::ExecVertex *vertex, const PE *pe, std::string timingExpression = "100");
 
+        /**
+         * @brief Sets the execution time value of a vertex on a given processing element.
+         * @param vertex  Pointer to the vertex.
+         * @param pe      Const pointer to the processing element.
+         * @param timing  Value of the timing to be set.
+         */
         void setVertexExecutionTimingOnPE(pisdf::ExecVertex *vertex, const PE *pe, int64_t timing = 100);
 
-        void setVertexExecutionTimingOnAllPE(pisdf::ExecVertex *vertex, int64_t timing = 100);
+        /**
+         * @brief Sets the execution time expression of a vertex for all processing elements.
+         * @param vertex            Pointer to the vertex.
+         * @param timingExpression  Expression of the execution time (can be parameterized).
+         */
+        void setVertexExecutionTimingOnAllPE(pisdf::ExecVertex *vertex, std::string timingExpression);
 
-        void setVertexExecutionTimingOnAllPE(pisdf::ExecVertex *vertex, const std::string &timingExpression);
+        /**
+         * @brief Sets the execution time value of a vertex for all processing elements.
+         * @param vertex  Pointer to the vertex.
+         * @param timing  Value of the timing to be set.
+         */
+        void setVertexExecutionTimingOnAllPE(pisdf::ExecVertex *vertex, int64_t timing = 100);
     }
 }
 
