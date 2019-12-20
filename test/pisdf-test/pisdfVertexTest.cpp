@@ -173,7 +173,7 @@ TEST_F(pisdVertexTest, vertexTest) {
         ASSERT_EQ(v->runtimeInformation(), nullptr);
         ASSERT_EQ(v->ix(), UINT32_MAX);
         ASSERT_EQ(v->repetitionValue(), 1);
-        ASSERT_EQ(v->jobIx(), UINT32_MAX);
+        ASSERT_EQ(v->jobIx(), SIZE_MAX);
         delete v;
     }
     {
@@ -230,7 +230,7 @@ TEST_F(pisdVertexTest, vertexTest) {
     /* == Test setJobIx == */
     {
         spider::pisdf::ExecVertex vertex;
-        ASSERT_EQ(vertex.jobIx(), UINT32_MAX) << "ExecVertex::jobIx() should return UINT32_MAX as default value.";
+        ASSERT_EQ(vertex.jobIx(), SIZE_MAX) << "ExecVertex::jobIx() should return UINT32_MAX as default value.";
         ASSERT_NO_THROW(vertex.setJobIx(10)) << "ExecVertex::setJobIx() should never throw.";
         ASSERT_EQ(vertex.jobIx(), 10) << "ExecVertex::jobIx() bad value.";
     }

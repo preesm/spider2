@@ -94,7 +94,7 @@ namespace spider {
             /* === Setter(s) === */
 
         private:
-            Param *parent_ = nullptr;
+            Param *parent_ = nullptr; /* = Pointer to the corresponding parameter in the upper Graph = */
         };
     }
 }

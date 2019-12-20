@@ -116,8 +116,7 @@ namespace spider {
             }
 
         protected:
-            size_t jobIx_ = UINT32_MAX;
-
+            size_t jobIx_ = SIZE_MAX; /* = Index of the transformation job associated to this Vertex (used only for ConfigVertex) = */
         };
     }
 }

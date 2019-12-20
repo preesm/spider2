@@ -203,15 +203,15 @@ namespace spider {
             }
 
         private:
-            Expression srcExpression_;
-            Expression snkExpression_;
-            Graph *graph_ = nullptr;
-            Vertex *src_ = nullptr;
-            Vertex *snk_ = nullptr;
-            Delay *delay_ = nullptr;
-            uint32_t ix_ = UINT32_MAX;
-            size_t srcPortIx_ = SIZE_MAX;
-            size_t snkPortIx_ = SIZE_MAX;
+            Expression srcExpression_;    /* = Expression of the source rate of the Edge = */
+            Expression snkExpression_;    /* = Expression of the sink rate of the Edge = */
+            Graph *graph_ = nullptr;      /* = Pointer to the containing Graph (should not be nullptr) = */
+            Vertex *src_ = nullptr;       /* = Pointer to the source Vertex (if any) = */
+            Vertex *snk_ = nullptr;       /* = Pointer to the sink Vertex (if any) = */
+            Delay *delay_ = nullptr;      /* = Pointer to Delay associated to the Edge (if any) = */
+            uint32_t ix_ = UINT32_MAX;    /* = Index of the Edge in the Graph (used for add and remove) = */
+            size_t srcPortIx_ = SIZE_MAX; /* = Index of the Edge in the source outputEdgeArray = */
+            size_t snkPortIx_ = SIZE_MAX; /* = Index of the Edge in the sink inputEdgeArray = */
         };
     }
 }

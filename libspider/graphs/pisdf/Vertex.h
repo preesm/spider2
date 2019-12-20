@@ -315,15 +315,15 @@ namespace spider {
             }
 
         protected:
-            std::string name_ = "unnamed-vertex";
-            spider::array<Edge *> inputEdgeArray_;
-            spider::array<Edge *> outputEdgeArray_;
-            const Vertex *reference_ = this;
-            Graph *graph_ = nullptr;
-            RTInfo *rtInformation_ = nullptr;
-            uint32_t ix_ = UINT32_MAX;
-            uint32_t repetitionValue_ = 1;
-            mutable uint32_t copyCount_ = 0;
+            std::string name_ = "unnamed-vertex";   /* = Name of the Vertex (uniqueness is not required) = */
+            spider::array<Edge *> inputEdgeArray_;  /* = Array of input Edge = */
+            spider::array<Edge *> outputEdgeArray_; /* = Array of output Edge = */
+            const Vertex *reference_ = this;        /* = Pointer to the reference Vertex. Default is this, in case of copy, this is the original Vertex = */
+            Graph *graph_ = nullptr;                /* = Containing Graph of the Vertex (can be nullptr) = */
+            RTInfo *rtInformation_ = nullptr;       /* = Runtime information of the Vertex (timing, mappable, etc.) = */
+            uint32_t ix_ = UINT32_MAX;              /* = Index of the Vertex in the containing Graph = */
+            uint32_t repetitionValue_ = 1;          /* = Repetition value of the Vertex, default is 1 but it can be set to 0. = */
+            mutable uint32_t copyCount_ = 0;        /* = Number of copy of the Vertex = */
 
             /* === Private method(s) === */
 

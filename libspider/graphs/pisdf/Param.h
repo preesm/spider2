@@ -137,10 +137,10 @@ namespace spider {
             }
 
         protected:
-            Graph *graph_ = nullptr;
-            uint32_t ix_ = UINT32_MAX;
-            std::string name_ = "";
-            int64_t value_ = 0;
+            Graph *graph_ = nullptr;   /* = Containing Graph (can be nullptr) = */
+            uint32_t ix_ = UINT32_MAX; /* = Index of the Param in the Graph = */
+            std::string name_ = "";    /* = Name of the Param. It is transformed to lower case on construction = */
+            int64_t value_ = 0;        /* = Value of the Param. = */
         };
     }
 }

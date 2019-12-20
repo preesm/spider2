@@ -110,7 +110,7 @@ namespace spider {
             }
 
         private:
-            Expression expression_;
+            Expression expression_; /* = Expression of the value of the Param (can be parameterized) = */
         };
     }
 }

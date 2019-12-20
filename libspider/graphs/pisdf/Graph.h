@@ -370,18 +370,18 @@ namespace spider {
             /* === Setter(s) === */
 
         private:
-            bool dynamic_ = false;
-            uint32_t subIx_ = UINT32_MAX;
+            bool dynamic_ = false;         /* = Dynamic property of the Graph (false if static, true if dynamic) = */
+            uint32_t subIx_ = UINT32_MAX;  /* = Index of the Graph in containing Graph subgraphVector = */
 
             /* === Contained elements of the graph === */
 
-            spider::vector<Vertex *> vertexVector_;
-            spider::vector<ConfigVertex *> configVertexVector_;
-            spider::vector<Graph *> subgraphVector_;
-            spider::vector<Edge *> edgeVector_;
-            spider::vector<Param *> paramVector_;
-            spider::array<InputInterface *> inputInterfaceArray_;
-            spider::array<OutputInterface *> outputInterfaceArray_;
+            spider::vector<Vertex *> vertexVector_;                 /* = Vector of all the Vertex (if any). This vector contains subgraph and ConfigVertex as well = */
+            spider::vector<ConfigVertex *> configVertexVector_;     /* = Vector of ConfigVertex (if any). This is just a "viewer" vector. = */
+            spider::vector<Graph *> subgraphVector_;                /* = Vector of subgraph (if any). This is just a "viewer" vector. = */
+            spider::vector<Edge *> edgeVector_;                     /* = Vector of Edge contained in the Graph = */
+            spider::vector<Param *> paramVector_;                   /* = Vector of Param = */
+            spider::array<InputInterface *> inputInterfaceArray_;   /* = Array of InputInterface (size is equal to inputEdgeArray_.size()) = */
+            spider::array<OutputInterface *> outputInterfaceArray_; /* = Array of OutputInterface (size is equal to outputEdgeArray_.size()) = */
 
             /* === Private method(s) === */
 
