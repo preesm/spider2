@@ -58,11 +58,13 @@ namespace spider {
 
         RTInfo() {
             auto *platform = archi::platform();
-            const auto &clusterCount = platform->clusterCount();
-            const auto &peCount = platform->PECount();
-            peMappableVector_.resize(peCount, true);
-            clusterMappableVector_.resize(clusterCount, true);
-            timingVector_.resize(peCount, Expression(100));
+            if (platform) {
+                const auto &clusterCount = platform->clusterCount();
+                const auto &peCount = platform->PECount();
+                peMappableVector_.resize(peCount, true);
+                clusterMappableVector_.resize(clusterCount, true);
+                timingVector_.resize(peCount, Expression(100));
+            }
         }
 
         RTInfo(const RTInfo &) = default;
