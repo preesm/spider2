@@ -94,7 +94,6 @@ void spider::SVGGanttExporter::print() const {
 void spider::SVGGanttExporter::print(const std::string &path) const {
     std::ofstream file{ path, std::ios::out };
     print(file);
-
     /* == We should not do this manually but this will ensure that data are correctly written even if it crashes == */
     file.close();
 }

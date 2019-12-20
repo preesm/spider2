@@ -164,6 +164,14 @@ namespace spider {
          */
         InterMemoryInterface getClusterToClusterMemoryInterface(Cluster *clusterA, Cluster *clusterB);
 
+        /**
+         * @brief Returns the linear array of processing element (order is not guaranteed to respect Cluster order).
+         * @return @refitem spider::array of pointer of @refitem PE.
+         */
+        inline const spider::array<PE *> &processingElements() const {
+            return peArray_;
+        }
+
         /* === Setter(s) === */
 
         /**

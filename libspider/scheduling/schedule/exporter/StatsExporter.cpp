@@ -42,6 +42,8 @@
 
 #include <scheduling/schedule/exporter/StatsExporter.h>
 #include <scheduling/schedule/Schedule.h>
+#include <archi/Platform.h>
+#include <archi/PE.h>
 
 /* === Static variable(s) === */
 
@@ -50,13 +52,29 @@
 /* === Method(s) implementation === */
 
 void spider::StatsExporter::print() const {
-
+    print("./stats.txt");
 }
 
 void spider::StatsExporter::print(const std::string &path) const {
-
+    std::ofstream file{ path, std::ios::out };
+    print(file);
+    /* == We should not do this manually but this will ensure that data are correctly written even if it crashes == */
+    file.close();
 }
 
 void spider::StatsExporter::print(std::ofstream &file) const {
-
+    const auto& stats = schedule_->stats();
+    file << "Schedule statistics: " << '\n';
+    file << "Total number of jobs:     " << schedule_->jobCount() << '\n';
+    file << "Makespan of the schedule: " << stats.makespan() << '\n';
+    for (const auto &pe : spider::platform()->processingElements()) {
+        file << "PE #" << pe->virtualIx() << '\n';
+        file << "\t >> job count:          " << stats.jobCount(pe->virtualIx()) << '\n';
+        file << "\t >> start time:         " << stats.endTime(pe->virtualIx()) << '\n';
+        file << "\t >> end time:           " << stats.startTime(pe->virtualIx()) << '\n';
+        file << "\t >> load time:          " << stats.loadTime(pe->virtualIx()) << '\n';
+        file << "\t >> idle time:          " << stats.idleTime(pe->virtualIx()) << '\n';
+        file << "\t >> utilization factor: " << stats.utilizationFactor(pe->virtualIx()) << '\n';
+    }
+    file << std::endl;
 }

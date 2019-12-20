@@ -59,19 +59,19 @@ namespace spider {
         /* === Method(s) === */
 
         /**
-         * @brief Print the graph to default file path.
+         * @brief Print the exported product to a default file path.
          */
         virtual void print() const = 0;
 
         /**
-         * @brief Open file of path "path" and print the graph to the file.
-         * @param path   Path of the resulting file.
+         * @brief Open file of path "path" and print the product to the file.
+         * @param path Path of the resulting file.
          */
         virtual void print(const std::string &path) const = 0;
 
         /**
-         * @brief Print the graph to a given opened file.
-         * @param file File to which the graph will be printed.
+         * @brief Print the product to a given opened file.
+         * @param file File to which the product will be printed.
          */
         virtual void print(std::ofstream &file) const = 0;
 

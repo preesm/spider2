@@ -43,24 +43,34 @@
 /* === Include(s) === */
 
 #include <common/Exporter.h>
+#include <common/Exception.h>
 
 namespace spider {
 
     /* === Forward declaration(s) === */
 
-    class Schedule;
+    namespace sched {
+        class Schedule;
+    }
 
     /* === Class definition === */
 
     class StatsExporter final : public Exporter {
     public:
 
-        explicit StatsExporter(const Schedule *schedule) : Exporter(), schedule_{ schedule } { }
+        explicit StatsExporter(const sched::Schedule *schedule) : Exporter(), schedule_{ schedule } {
+            if (!schedule) {
+                throwSpiderException("StatsExporter can not have nullptr for schedule.");
+            }
+        }
 
         ~StatsExporter() override = default;
 
         /* === Method(s) === */
 
+        /**
+         * @brief Export Schedule statistics in ./stats.txt
+         */
         void print() const override;
 
         void print(const std::string &path) const override;
@@ -68,7 +78,7 @@ namespace spider {
         void print(std::ofstream &file) const override;
 
     private:
-        const Schedule *schedule_ = nullptr;
+        const sched::Schedule *schedule_ = nullptr;
 
         /* === Private method(s) === */
     };
