@@ -68,7 +68,6 @@ namespace spider {
         RTRunner(PE *pe, size_t ix) : attachedPE_{ pe }, runnerIx_{ ix } {
             auto *platform = archi::platform();
             localJobStampsArray_ = spider::array<size_t>{ platform->LRTCount(), SIZE_MAX, StackID::RUNTIME };
-            jobQueue_ = spider::containers::vector<JobMessage>(StackID::RUNTIME);
         }
 
         virtual ~RTRunner() = default;
