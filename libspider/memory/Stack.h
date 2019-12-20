@@ -46,6 +46,7 @@
 #include <memory/abstract-policies/AbstractAllocatorPolicy.h>
 #include <memory/dynamic-policies/GenericAllocatorPolicy.h>
 #include <api/global-api.h>
+#include <cmath>
 
 namespace spider {
 
@@ -87,18 +88,31 @@ namespace spider {
         print(const char *name, uint64_t peak, uint64_t total, uint64_t sampleCount, uint64_t usage) {
             // TODO: get stack name
             if (peak && log_enabled()) {
+                const auto &average = total / sampleCount;
+                const auto &normalizedPeak = getByteNormalizedSize(peak);
+                const auto &normalizedAverage = getByteNormalizedSize(average);
+                const auto &normalizedUsage = getByteNormalizedSize(usage);
+                const auto &maxWidth = computeMaxWidth(normalizedPeak, normalizedAverage, normalizedUsage);
                 log::info("---------------------------\n");
                 log::info("Stack: %s\n", name);
-                log::info("        ==>    peak: %-6.1lf %s (%" PRIu64" B)\n", getByteNormalizedSize(peak),
-                          getByteUnitString(peak),
+                auto unitPeak = std::string(maxWidth - getWidth(normalizedPeak), ' ') +
+                                getByteUnitString(peak);
+                unitPeak = unitPeak.size() > 1 ? unitPeak : " " + unitPeak;
+                log::info("        ==>    peak: %.1lf %s (%" PRIu64" B)\n", normalizedPeak,
+                          unitPeak.c_str(),
                           peak);
-                const auto &average = total / sampleCount;
-                log::info("        ==> average: %-6.1lf %s (%" PRIu64" B)\n", getByteNormalizedSize(average),
-                          getByteUnitString(average),
+                auto unitAverage = std::string(maxWidth - getWidth(normalizedAverage), ' ') +
+                                   std::string(getByteUnitString(average));
+                unitAverage = unitAverage.size() > 1 ? unitAverage : " " + unitAverage;
+                log::info("        ==> average: %.1lf %s (%" PRIu64" B)\n", normalizedAverage,
+                          unitAverage.c_str(),
                           average);
                 if (usage) {
-                    log::error("         ==>  in-use: %-6.1lf %s (%" PRIu64" B)\n", getByteNormalizedSize(usage),
-                               getByteUnitString(usage),
+                    auto unitUsage = std::string(maxWidth - getWidth(normalizedUsage), ' ') +
+                                     std::string(getByteUnitString(usage));
+                    unitUsage = unitUsage.size() > 1 ? unitUsage : " " + unitUsage;
+                    log::error("         ==>  in-use: %.1lf %s (%" PRIu64" B)\n", normalizedUsage,
+                               unitUsage.c_str(),
                                usage);
                 }
                 log::info("---------------------------\n");
@@ -192,6 +206,18 @@ namespace spider {
                 return dblSize / SIZE_KB;
             }
             return dblSize;
+        }
+
+        static inline uint32_t computeMaxWidth(double peak, double average, double usage) {
+            const auto &widthPeak = getWidth(peak);
+            const auto &widthAverage = getWidth(average);
+            const auto &widthUsage = getWidth(usage);
+            return std::max(std::max(widthPeak, widthAverage), widthUsage);
+        }
+
+        static inline uint32_t getWidth(double value) {
+            /* == We add two because printing format is .1f so there are two additional char == */
+            return (static_cast<uint32_t>(std::log10(value)) + 1) + 2;
         }
     };
 }
