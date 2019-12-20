@@ -90,7 +90,7 @@ namespace spider {
         inline size_t push(T value) {
             std::lock_guard<std::mutex> lock{ mutex_ };
             auto &&index = getFreeIndex();
-            if (index < 0) {
+            if (index == SIZE_MAX) {
                 queue_.emplace_back(std::move(value));
                 return queue_.size() - 1;
             }
