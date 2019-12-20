@@ -118,7 +118,8 @@ int main(int, char **) {
 
 void spiderTest() {
     spider::start();
-    spider::api::setStackAllocatorPolicy(StackID::PISDF, spider::AllocatorPolicy::LINEAR_STATIC, sizeof(uint64_t), 16392);
+    spider::api::setStackAllocatorPolicy(StackID::PISDF, spider::AllocatorPolicy::LINEAR_STATIC, sizeof(uint64_t),
+                                         16392);
     spider::api::enableLogger(spider::log::Type::TRANSFO);
     spider::api::enableLogger(spider::log::Type::OPTIMS);
     spider::api::enableVerbose();
@@ -133,8 +134,7 @@ void spiderTest() {
     {
 //        createArchi();
 
-        auto *&graph = spider::pisdfGraph();
-        graph = spider::api::createGraph("topgraph", 15, 15, 1);
+        auto *graph = spider::api::createSubraph(spider::pisdf::applicationGraph(), "topgraph", 15, 15, 1);
 
         /* === Creating vertices === */
 
@@ -174,7 +174,7 @@ void spiderTest() {
         {
             const auto &start = spider::time::now();
             spider::JITMSRuntime runtime(graph);
-            runtime.execute();
+            runtime.execute(graph);
             const auto &end = spider::time::now();
             std::cout << spider::time::duration::microseconds(start, end) << std::endl;
         }

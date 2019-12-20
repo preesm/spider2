@@ -49,7 +49,7 @@
 /* === Function(s) definition === */
 
 void spider::Scheduler::setJobInformation(sched::Job *job, size_t slave, uint64_t startTime, uint64_t endTime) {
-    auto *platform = spider::platform();
+    auto *platform = archi::platform();
     const auto &pe = platform->peFromVirtualIx(slave);
     job->setMappingLRT(pe->attachedLRT()->virtualIx());
     job->setMappingPE(pe->virtualIx());
@@ -83,7 +83,7 @@ void spider::Scheduler::vertexMapper(const pisdf::Vertex *vertex) {
     uint64_t minStartTime = Scheduler::computeMinStartTime(vertex);
 
     /* == Search for the best slave possible == */
-    const auto *platform = spider::platform();
+    const auto *platform = archi::platform();
     const auto *constraints = vertex->runtimeInformation();
     const auto &platformStats = schedule_.stats();
 

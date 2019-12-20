@@ -64,7 +64,7 @@ void spider::api::setVertexMappableOnCluster(pisdf::ExecVertex *vertex, const Cl
 }
 
 void spider::api::setVertexMappableOnCluster(pisdf::ExecVertex *vertex, uint32_t clusterIx, bool value) {
-    auto *&platform = spider::platform();
+    auto *&platform = archi::platform();
     auto *cluster = platform->cluster(clusterIx);
     spider::api::setVertexMappableOnCluster(vertex, cluster, value);
 }

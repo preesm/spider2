@@ -51,7 +51,7 @@
 /* === Method(s) implementation === */
 
 spider::sched::Job::Job(size_t ix) : ix_{ ix } {
-    auto *&platform = spider::platform();
+    auto *&platform = archi::platform();
     constraints_ = containers::vector<Job *>(StackID::SCHEDULE);
     constraints_.resize(platform->LRTCount(), nullptr);
 }

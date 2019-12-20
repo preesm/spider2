@@ -57,7 +57,7 @@ namespace spider {
     public:
 
         RTInfo() {
-            auto *platform = spider::platform();
+            auto *platform = archi::platform();
             const auto &clusterCount = platform->clusterCount();
             const auto &peCount = platform->PECount();
             peMappableVector_.resize(peCount, true);

@@ -51,13 +51,13 @@
 
 /* === General Platform related API === */
 
-spider::Platform *&spider::platform() {
+spider::Platform *&spider::archi::platform() {
     static Platform *platform = nullptr;
     return platform;
 }
 
 spider::Platform *spider::api::createPlatform(size_t clusterCount, size_t totalPECount) {
-    auto *&platform = spider::platform();
+    auto *&platform = archi::platform();
     if (!platform) {
         platform = make<Platform, StackID::ARCHI>(clusterCount, totalPECount);
     } else {
@@ -67,7 +67,7 @@ spider::Platform *spider::api::createPlatform(size_t clusterCount, size_t totalP
 }
 
 void spider::api::setSpiderGRTPE(PE *grtProcessingElement) {
-    auto *&platform = spider::platform();
+    auto *&platform = archi::platform();
     if (platform) {
         platform->setSpiderGRTPE(grtProcessingElement);
     }
@@ -93,7 +93,7 @@ spider::api::createMemoryInterface(spider::Cluster *clusterA, spider::Cluster *c
     if (!clusterA || !clusterB) {
         throwSpiderException("nullptr for Cluster: use spider::api::createCluster() first.");
     }
-    if (!platform()) {
+    if (!archi::platform()) {
         throwSpiderException("nullptr for platform(): use spider::api::createPlatform() first.");
     }
     /* == Create MemoryInterface for cluster A side == */
@@ -107,7 +107,7 @@ spider::api::createMemoryInterface(spider::Cluster *clusterA, spider::Cluster *c
     memoryInterfaceB->setMemoryUnit(memoryUnitB);
 
     /* == Set the interface in the platform == */
-    platform()->setClusterToClusterMemoryInterface(clusterA, clusterB, { memoryInterfaceA, memoryInterfaceB });
+    archi::platform()->setClusterToClusterMemoryInterface(clusterA, clusterB, { memoryInterfaceA, memoryInterfaceB });
     return std::make_pair(memoryInterfaceA, memoryInterfaceB);
 }
 
@@ -158,7 +158,7 @@ void spider::api::setMemoryInterfaceDeallocateRoutine(spider::MemoryInterface *i
 /* === Cluster related API === */
 
 spider::Cluster *spider::api::createCluster(size_t PECount, MemoryUnit *memoryUnit, MemoryInterface *memoryInterface) {
-    auto *&platform = spider::platform();
+    auto *&platform = archi::platform();
     if (!platform) {
         throwSpiderException("Can not create cluster for empty platform.");
     }

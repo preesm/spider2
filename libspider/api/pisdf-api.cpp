@@ -55,7 +55,7 @@
 
 /* === Methods implementation === */
 
-spider::pisdf::Graph *&spider::pisdfGraph() {
+spider::pisdf::Graph *&spider::pisdf::applicationGraph() {
     static pisdf::Graph *graph = nullptr;
     return graph;
 }

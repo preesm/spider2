@@ -152,7 +152,7 @@ namespace spider {
          * @return @refitem Platform of the cluster.
          */
         inline Platform *platform() const {
-            return spider::platform();
+            return archi::platform();
         }
 
         /* === Setter(s) === */

@@ -53,7 +53,7 @@
 
 
 spider::sched::Stats::Stats() {
-    auto *platform = spider::platform();
+    auto *platform = archi::platform();
 
     /* == Init stat vectors == */
     const auto &n = platform->PECount();

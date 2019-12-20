@@ -45,6 +45,7 @@
 #include <memory/alloc.h>
 #include <common/Logger.h>
 #include <archi/Platform.h>
+#include <runtime/platform/RTPlatform.h>
 #include <graphs/pisdf/Graph.h>
 
 /* === Static variable(s) definition === */
@@ -52,47 +53,6 @@
 static bool startFlag = false;
 
 /* === Static function(s) === */
-
-//static std::vector<spider::pisdf::Refinement *> specialActorRefinements() {
-//    std::vector<spider::pisdf::Refinement *> specialRefinements;
-//    specialRefinements.reserve(spider::pisdf::SPECIAL_ACTOR_COUNT);
-//
-//    /* == Create the special actor refinements == */
-//    auto *forkRefinement = spider::api::createRefinement("fork", spider::pisdf::fork, 0, 0, StackID::GENERAL);
-//    spider::api::registerRefinement(forkRefinement);
-//    specialRefinements.push_back(forkRefinement);
-//
-//    auto *joinRefinement = spider::api::createRefinement("join", spider::pisdf::join, 0, 0, StackID::GENERAL);
-//    spider::api::registerRefinement(joinRefinement);
-//    specialRefinements.emplace_back(joinRefinement);
-//
-//    auto *headRefinement = spider::api::createRefinement("head", spider::pisdf::head, 0, 0, StackID::GENERAL);
-//    spider::api::registerRefinement(headRefinement);
-//    specialRefinements.emplace_back(headRefinement);
-//
-//    auto *tailRefinement = spider::api::createRefinement("tail", spider::pisdf::tail, 0, 0, StackID::GENERAL);
-//    spider::api::registerRefinement(tailRefinement);
-//    specialRefinements.emplace_back(tailRefinement);
-//
-//    auto *duplicateRefinement = spider::api::createRefinement("duplicate", spider::pisdf::duplicate, 0, 0,
-//                                                              StackID::GENERAL);
-//    spider::api::registerRefinement(duplicateRefinement);
-//    specialRefinements.emplace_back(duplicateRefinement);
-//
-//    auto *repeatRefinement = spider::api::createRefinement("repeat", spider::pisdf::repeat, 0, 0, StackID::GENERAL);
-//    spider::api::registerRefinement(repeatRefinement);
-//    specialRefinements.emplace_back(repeatRefinement);
-//
-//    auto *initRefinement = spider::api::createRefinement("init", spider::pisdf::init, 0, 0, StackID::GENERAL);
-//    spider::api::registerRefinement(initRefinement);
-//    specialRefinements.emplace_back(initRefinement);
-//
-//    auto *endRefinement = spider::api::createRefinement("end", spider::pisdf::end, 0, 0, StackID::GENERAL);
-//    spider::api::registerRefinement(endRefinement);
-//    specialRefinements.emplace_back(endRefinement);
-//
-//    return specialRefinements;
-//}
 
 /* === Function(s) definition === */
 
@@ -129,6 +89,12 @@ void spider::start() {
         stack = new Stack(*(it++));
     }
 
+    /* == Create the upper top-graph that will contains the application top-graph == */
+    pisdf::applicationGraph() = api::createGraph("upper-graph", 1);
+
+    /* == Create the runtime platform == */
+    rt::platform() = make<RTPlatform, StackID::RUNTIME>(1);
+
     /* == Init the Logger and enable the GENERAL Logger == */
     log::enable<log::Type::GENERAL>();
 
@@ -138,10 +104,13 @@ void spider::start() {
 
 void spider::quit() {
     /* == Destroy the spider::pisdf::Graph == */
-    destroy(spider::pisdfGraph());
+    destroy(pisdf::applicationGraph());
 
     /* == Destroy the Platform == */
-    destroy(spider::platform());
+    destroy(archi::platform());
+
+    /* == Destroy the runtime Platform == */
+    destroy(rt::platform());
 
     /* == Clear the stacks == */
     uint64_t totalUsage = 0;

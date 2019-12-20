@@ -110,8 +110,8 @@ void spider::JITMSRTRunner::run(bool infiniteLoop) {
                 Notification notification{ NotificationType::LRT,
                                            LRTNotifification::FINISHED_ITERATION,
                                            ix() };
-                const auto *target = spider::platform()->spiderGRTPE()->attachedLRT();
-                spider::rtPlatform()->communicator()->push(notification, target->virtualIx());
+                const auto *target = archi::platform()->spiderGRTPE()->attachedLRT();
+                rt::platform()->communicator()->push(notification, target->virtualIx());
             }
             if (shouldBroadcast_) {
                 shouldBroadcast_ = false;
@@ -146,7 +146,7 @@ void spider::JITMSRTRunner::runJob(const JobMessage &job) {
 
     /* == Run the job == */
     // TODO: add time monitoring
-    auto &kernel = *(spider::rtPlatform()->runtimeKernels()[job.kernelIx_]);
+    auto &kernel = *(rt::platform()->runtimeKernels()[job.kernelIx_]);
     kernel(job.inputParams_.data(), outputParams.data(), inputBuffersArray.data(), outputBuffersArray.data());
 
     /* == Deallocate input buffers == */
@@ -170,7 +170,7 @@ void spider::JITMSRTRunner::runJob(const JobMessage &job) {
                                                      JobNotification::UPDATE_JOBSTAMP,
                                                      ix(),
                                                      lastJobIx_ };
-            spider::rtPlatform()->communicator()->push(updateJobStampNotification, lrtIx);
+            rt::platform()->communicator()->push(updateJobStampNotification, lrtIx);
             log::info<log::Type::LRT>("Runner #%zu -> notifying runner #%zu\n"
                                       "Runner #%zu -> sent job stamp: %zu\n",
                                       ix(), lrtIx,
@@ -180,9 +180,9 @@ void spider::JITMSRTRunner::runJob(const JobMessage &job) {
     }
 
     /* == Send output parameters == */
-    const auto *spiderGRT = spider::platform()->spiderGRTPE()->attachedLRT();
+    const auto *spiderGRT = archi::platform()->spiderGRTPE()->attachedLRT();
     auto paramNotification = ParameterMessage(0, std::move(outputParams));
-    spider::rtPlatform()->communicator()->push(paramNotification, spiderGRT->virtualIx());
+    rt::platform()->communicator()->push(paramNotification, spiderGRT->virtualIx());
 
     /* == Send traces == */
 }
@@ -221,8 +221,8 @@ bool spider::JITMSRTRunner::readNotification(bool blocking) {
         if (log::enabled<log::Type::LRT>()) {
             log::info<log::Type::LRT>("Runner #%zu -> waiting for notification...\n", ix());
         }
-        spider::rtPlatform()->communicator()->pop(notification, ix());
-    } else if (!spider::rtPlatform()->communicator()->try_pop(notification, ix())) {
+        rt::platform()->communicator()->pop(notification, ix());
+    } else if (!rt::platform()->communicator()->try_pop(notification, ix())) {
         return false;
     }
     switch (notification.type_) {
@@ -245,7 +245,7 @@ void spider::JITMSRTRunner::readJobNotification(Notification &notification) {
     switch (notification.subtype_) {
         case JobNotification::ADD: {
             JobMessage message;
-            spider::rtPlatform()->communicator()->pop(message, ix(), notification.notificationIx_);
+            rt::platform()->communicator()->pop(message, ix(), notification.notificationIx_);
             jobQueue_.emplace_back(std::move(message));
         }
             break;

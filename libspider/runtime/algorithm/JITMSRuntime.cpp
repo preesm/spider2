@@ -74,9 +74,10 @@ updateDynamicJobs(spider::vector<spider::srdag::TransfoJob> &src, spider::vector
 
 /* === Method(s) implementation === */
 
-bool spider::JITMSRuntime::execute() const {
-    // TODO: put root graph into a top graph
-    auto *graph = spider::pisdfGraph();
+bool spider::JITMSRuntime::execute(pisdf::Graph *graph) const {
+    if (!graph->graph() && graph->dynamic()) {
+        throwSpiderException("Can not run JITMS runtime on dynamic graph without containing graph.");
+    }
 
     /* == Create the Single-Rate graph == */
     auto *srdag = api::createGraph("srdag-" + graph->name(),

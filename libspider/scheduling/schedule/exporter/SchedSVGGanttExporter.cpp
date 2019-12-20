@@ -82,7 +82,7 @@ spider::SchedSVGGanttExporter::SchedSVGGanttExporter(const sched::Schedule *sche
     const auto &endPoint = static_cast<double>(schedule_->stats().minStartTime() + schedule_->stats().makespan());
     makespanWidth_ = static_cast<uint64_t>(endPoint * scaleFactor_);
     width_ = makespanWidth_ + 2 * BORDER + OFFSET + ARROW_STROKE + ARROW_SIZE;
-    const auto *platform = spider::platform();
+    const auto *platform = archi::platform();
     const auto &PECount = platform->PECount();
     height_ = PECount * (TASK_HEIGHT + TASK_SPACE) + TASK_SPACE + ARROW_STROKE + ARROW_SIZE + OFFSET;
 }

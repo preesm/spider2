@@ -55,7 +55,7 @@
 int64_t spider::ListScheduler::computeScheduleLevel(ListVertex &listVertex,
                                                     spider::vector<ListVertex> &sortedVertexVector) const {
     if (listVertex.level_ < 0) {
-        auto *platform = spider::platform();
+        auto *platform = archi::platform();
         auto *vertex = listVertex.vertex_;
         int64_t level = 0;
         for (auto &edge : vertex->outputEdgeArray()) {

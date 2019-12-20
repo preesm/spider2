@@ -62,11 +62,13 @@ namespace spider {
 
     /* === Function(s) prototype === */
 
-    /**
-     * @brief Get the unique platform of the spider session.
-     * @return reference pointer to the platform.
-     */
-    Platform *&platform();
+    namespace archi  {
+        /**
+        * @brief Get the unique platform of the spider session.
+        * @return reference pointer to the platform.
+        */
+        Platform *&platform();
+    }
 
     namespace api {
 

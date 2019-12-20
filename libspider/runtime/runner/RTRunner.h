@@ -66,7 +66,7 @@ namespace spider {
     public:
 
         RTRunner(PE *pe, size_t ix) : attachedPE_{ pe }, runnerIx_{ ix } {
-            auto *platform = spider::platform();
+            auto *platform = archi::platform();
             localJobStampsArray_ = spider::array<size_t>{ platform->LRTCount(), SIZE_MAX, StackID::RUNTIME };
             jobQueue_ = spider::containers::vector<JobMessage>(StackID::RUNTIME);
         }
@@ -105,9 +105,9 @@ namespace spider {
                                                 JobNotification::UPDATE_JOBSTAMP,
                                                 ix(),
                                                 jobQueueCurrentPos_ };
-            for (size_t i = 0; i < spider::platform()->LRTCount(); ++i) {
+            for (size_t i = 0; i < archi::platform()->LRTCount(); ++i) {
                 if (i != ix()) {
-                    spider::rtPlatform()->communicator()->push(broadcastNotification, i);
+                    rt::platform()->communicator()->push(broadcastNotification, i);
                 }
             }
         }

@@ -73,7 +73,7 @@ namespace spider {
          * @brief Main method of the runtime, do a graph iteration.
          * @return true if iteration was successful, false else.
          */
-        virtual bool execute() const = 0;
+        virtual bool execute(pisdf::Graph *) const = 0;
 
     protected:
         pisdf::Graph *graph_ = nullptr;

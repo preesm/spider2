@@ -50,8 +50,8 @@
 /* === Private method(s) implementation === */
 
 spider::ThreadRTPlatform::ThreadRTPlatform() {
-    if (spider::rtPlatform()) {
+    if (rt::platform()) {
         throwSpiderException("trying to instantiate multiple RTPlatform.");
     }
-    spider::rtPlatform() = this;
+    rt::platform() = this;
 }

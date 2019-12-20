@@ -109,11 +109,12 @@ namespace spider {
 
     /* === Inline method(s) === */
 
-    inline RTPlatform *&rtPlatform() {
-        static RTPlatform *platform = nullptr;
-        return platform;
+    namespace rt {
+        inline RTPlatform *&platform() {
+            static RTPlatform *platform = nullptr;
+            return platform;
+        }
     }
-
 }
 
 #endif //SPIDER2_RTPLATFORM_H

@@ -60,7 +60,7 @@ void spider::SchedStatsExporter::printFromFile(std::ofstream &file) const {
     file << "Schedule statistics: " << '\n';
     file << "Total number of jobs:     " << schedule_->jobCount() << '\n';
     file << "Makespan of the schedule: " << stats.makespan() << '\n';
-    for (const auto &pe : spider::platform()->processingElements()) {
+    for (const auto &pe : archi::platform()->processingElements()) {
         file << "PE #" << pe->virtualIx() << '\n';
         file << "\t >> job count:          " << stats.jobCount(pe->virtualIx()) << '\n';
         file << "\t >> start time:         " << stats.endTime(pe->virtualIx()) << '\n';

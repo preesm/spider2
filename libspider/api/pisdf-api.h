@@ -50,11 +50,14 @@
 
 namespace spider {
 
-    /**
-     * @brief Get the user defined graph of the Spider session.
-     * @return
-     */
-    pisdf::Graph *&pisdfGraph();
+
+    namespace pisdf {
+        /**
+         * @brief Get the user defined graph of the Spider session.
+         * @return
+         */
+        Graph *&applicationGraph();
+    }
 
     namespace api {
 
