@@ -61,7 +61,11 @@ namespace spider {
 
         explicit RTPlatform(size_t runnerCount = 0) : runnerArray_{ runnerCount, StackID::RUNTIME } { }
 
-        virtual ~RTPlatform() = default;
+        virtual ~RTPlatform() {
+            for (auto &kernel : runtimeKernels_) {
+                destroy(kernel);
+            }
+        }
 
         /* === Method(s) === */
 

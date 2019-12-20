@@ -88,6 +88,8 @@ namespace spider {
 
     class Stack;
 
+    class RTKernel;
+
     namespace pisdf {
 
         /**

@@ -69,7 +69,9 @@ namespace spider {
                             StackID stack = StackID::PISDF) :
                     name_{ std::move(name) },
                     inputEdgeArray_{ edgeINCount, nullptr, stack },
-                    outputEdgeArray_{ edgeOUTCount, nullptr, stack } { }
+                    outputEdgeArray_{ edgeOUTCount, nullptr, stack } {
+                rtInformation_ = make<RTInfo, StackID::RUNTIME>();
+            }
 
             Vertex(const Vertex &other, StackID stack = StackID::PISDF);
 
@@ -125,18 +127,6 @@ namespace spider {
              * @param visitor  Visitor to accept.
              */
             virtual void visit(Visitor *visitor) = 0;
-
-            /**
-             * @brief Create a runtime information structure for current vertex.
-             * @remark if vertex already has constraints, nothing happens.
-             * @return Created @refitem RTInfo.
-             */
-            inline RTInfo *createConstraints() {
-                if (!rtInformation_) {
-                    rtInformation_ = make<RTInfo>();
-                }
-                return rtInformation_;
-            }
 
             /* === Getter(s) === */
 
@@ -299,19 +289,6 @@ namespace spider {
                 if (graph) {
                     graph_ = graph;
                 }
-            }
-
-            /**
-             * @brief Set RTInfo of this vertex.
-             * @remark if nullptr, nothing happens.
-             * @remark if vertex already has constraints, nothing happens.
-             * @param rtInfo Constraints to set.
-             */
-            inline void setConstraints(RTInfo *rtInfo) {
-                if (!rtInfo || rtInformation_) {
-                    return;
-                }
-                rtInformation_ = rtInfo;
             }
 
         protected:

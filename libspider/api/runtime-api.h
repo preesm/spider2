@@ -52,22 +52,24 @@ namespace spider {
 
     namespace api {
 
-        /* === General Scenario related API === */
+        /* === Mapping and Timing related API === */
 
         /**
-        * @brief Sets mappable property of a vertex on a given Cluster of processing element.
-        * @param vertex  Pointer to the vertex.
-        * @param cluster Const pointer to the cluster.
-        * @param value   Value to be set (true = mappable, false = non mappable).
-        */
+         * @brief Sets mappable property of a vertex on a given Cluster of processing element.
+         * @param vertex  Pointer to the vertex.
+         * @param cluster Const pointer to the cluster.
+         * @param value   Value to be set (true = mappable, false = non mappable).
+         * @throws spider::Exception if vertex is nullptr.
+         */
         void setVertexMappableOnCluster(pisdf::ExecVertex *vertex, const Cluster *cluster, bool value = true);
 
         /**
-        * @brief Sets mappable property of a vertex on a given Cluster of processing element.
-        * @param vertex    Pointer to the vertex.
-        * @param clusterIx Index of the cluster.
-        * @param value     Value to be set (true = mappable, false = non mappable).
-        */
+         * @brief Sets mappable property of a vertex on a given Cluster of processing element.
+         * @param vertex    Pointer to the vertex.
+         * @param clusterIx Index of the cluster.
+         * @param value     Value to be set (true = mappable, false = non mappable).
+         * @throws spider::Exception if vertex is nullptr.
+         */
         void setVertexMappableOnCluster(pisdf::ExecVertex *vertex, uint32_t clusterIx, bool value = true);
 
         /**
@@ -75,6 +77,7 @@ namespace spider {
          * @param vertex  Pointer to the vertex.
          * @param pe      Const pointer to the processing element.
          * @param value   Value to be set (true = mappable, false = non mappable).
+         * @throws spider::Exception if vertex is nullptr.
          */
         void setVertexMappableOnPE(pisdf::ExecVertex *vertex, const PE *pe, bool value = true);
 
@@ -82,6 +85,7 @@ namespace spider {
          * @brief Sets mappable property of a vertex for all processing elements.
          * @param vertex  Pointer to the vertex.
          * @param value   Value to be set (true = mappable, false = non mappable).
+         * @throws spider::Exception if vertex is nullptr.
          */
         void setVertexMappableOnAllPE(pisdf::ExecVertex *vertex, bool value = true);
 
@@ -90,6 +94,7 @@ namespace spider {
          * @param vertex            Pointer to the vertex.
          * @param pe                Const pointer to the processing element.
          * @param timingExpression  Expression of the execution time (can be parameterized).
+         * @throws spider::Exception if vertex is nullptr.
          */
         void
         setVertexExecutionTimingOnPE(pisdf::ExecVertex *vertex, const PE *pe, std::string timingExpression = "100");
@@ -99,6 +104,7 @@ namespace spider {
          * @param vertex  Pointer to the vertex.
          * @param pe      Const pointer to the processing element.
          * @param timing  Value of the timing to be set.
+         * @throws spider::Exception if vertex is nullptr.
          */
         void setVertexExecutionTimingOnPE(pisdf::ExecVertex *vertex, const PE *pe, int64_t timing = 100);
 
@@ -106,6 +112,7 @@ namespace spider {
          * @brief Sets the execution time expression of a vertex for all processing elements.
          * @param vertex            Pointer to the vertex.
          * @param timingExpression  Expression of the execution time (can be parameterized).
+         * @throws spider::Exception if vertex is nullptr.
          */
         void setVertexExecutionTimingOnAllPE(pisdf::ExecVertex *vertex, std::string timingExpression);
 
@@ -113,8 +120,58 @@ namespace spider {
          * @brief Sets the execution time value of a vertex for all processing elements.
          * @param vertex  Pointer to the vertex.
          * @param timing  Value of the timing to be set.
+         * @throws spider::Exception if vertex is nullptr.
          */
         void setVertexExecutionTimingOnAllPE(pisdf::ExecVertex *vertex, int64_t timing = 100);
+
+        /* === Runtime kernel related API === */
+
+        /**
+         * @brief Creates a new runtime @refitem RTKernel for a given @refitem pisdf::ExecVertex.
+         * @param vertex            Pointer to the vertex to associate the kernel to.
+         * @param kernel            Kernel function to set.
+         * @param inputParamCount   Number of input parameters (can be modified).
+         * @param outputParamCount  Number of output parameters (can NOT be modified).
+         * @return pointer to the created @refitem RTKernel.
+         * @throws spider::Exception if the vertex is nullptr or if the vertex already has a kernel.
+         */
+        RTKernel *createKernel(pisdf::ExecVertex *vertex,
+                               rtkernel kernel,
+                               size_t inputParamCount = 0,
+                               size_t outputParamCount = 0);
+
+        /**
+         * @brief Adds an input parameter to a given @refitem RTKernel.
+         * @param kernel     Pointer to the kernel.
+         * @param parameter  Pointer to the parameter to add.
+         * @throws spider::Exception if either kernel or parameter is nullptr.
+         */
+        void addRuntimeKernelInputParameter(RTKernel *kernel, pisdf::Param *parameter);
+
+        /**
+         * @brief Adds an input parameter to a given @refitem RTKernel.
+         * @param kernel     Pointer to the kernel.
+         * @param parameter  Pointer to the parameter to add.
+         * @throws spider::Exception if either kernel or parameter is nullptr.
+         */
+        void addRuntimeKernelInputParameter(RTKernel *kernel, pisdf::DynamicParam *parameter);
+
+        /**
+         * @brief Adds an input parameter to a given @refitem RTKernel.
+         * @param kernel     Pointer to the kernel.
+         * @param parameter  Pointer to the parameter to add.
+         * @throws spider::Exception if either kernel or parameter is nullptr.
+         */
+        void addRuntimeKernelInputParameter(RTKernel *kernel, pisdf::InHeritedParam *parameter);
+
+        /**
+         * @brief Adds an output parameter to a given @refitem RTKernel.
+         * @param kernel     Pointer to the kernel.
+         * @param parameter  Pointer to the parameter to add.
+         * @throws spider::Exception if either kernel or parameter is nullptr or if all the output parameters have
+         * already been set.
+         */
+        void addRuntimeKernelOutputParameter(RTKernel *kernel, pisdf::DynamicParam *parameter);
     }
 }
 

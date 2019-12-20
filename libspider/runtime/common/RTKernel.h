@@ -53,7 +53,6 @@ namespace spider {
     public:
 
         explicit RTKernel(rtkernel kernel, size_t inputParamCount = 0, size_t outputParamCount = 0) :
-                inputParamIxVector_{ },
                 outputParamIxArray_{ outputParamCount, SIZE_MAX, StackID::RUNTIME },
                 kernel_{ kernel } {
             inputParamIxVector_.reserve(inputParamCount);
@@ -136,11 +135,11 @@ namespace spider {
         }
 
     private:
-        stack_vector(inputParamIxVector_, size_t, StackID::RUNTIME);
-        spider::array<size_t> outputParamIxArray_;
-        size_t outputParamCount_ = 0;
-        rtkernel kernel_ = [](const int64_t *, int64_t *, void *[], void *[]) { };
-        size_t ix_ = SIZE_MAX;
+        stack_vector(inputParamIxVector_, size_t, StackID::RUNTIME);          /* = Array of input parameters index = */
+        spider::array<size_t> outputParamIxArray_;                                 /* = Array of output parameters index = */
+        size_t outputParamCount_ = 0;                                              /* = Number of currently added output parameters = */
+        rtkernel kernel_ = [](const int64_t *, int64_t *, void *[], void *[]) { }; /* = Kernel function to be called when executing the associated vertex = */
+        size_t ix_ = SIZE_MAX;                                                     /* = Index of the kernel in the @refitem RTPlatform = */
     };
 
 }

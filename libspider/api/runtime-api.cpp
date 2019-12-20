@@ -48,71 +48,133 @@
 #include <archi/MemoryUnit.h>
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/ExecVertex.h>
+#include <graphs/pisdf/Param.h>
+#include <graphs/pisdf/DynamicParam.h>
+#include <graphs/pisdf/InHeritedParam.h>
+#include <runtime/common/RTInfo.h>
+#include <runtime/common/RTKernel.h>
+#include <runtime/platform/RTPlatform.h>
 
-/* === Methods implementation === */
-
-/* === General runtime related API === */
+/* === Mapping and Timing related API === */
 
 void spider::api::setVertexMappableOnCluster(pisdf::ExecVertex *vertex, const Cluster *cluster, bool value) {
-    auto *runtimeInfo = vertex->runtimeInformation();
-    if (!runtimeInfo) {
-        runtimeInfo = vertex->createConstraints();
+    if (!vertex) {
+        throwSpiderException("nullptr vertex.");
     }
+    auto *runtimeInfo = vertex->runtimeInformation();
     for (auto &pe : cluster->array()) {
         runtimeInfo->setMappableConstraintOnPE(pe, value);
     }
 }
 
 void spider::api::setVertexMappableOnCluster(pisdf::ExecVertex *vertex, uint32_t clusterIx, bool value) {
+    if (!vertex) {
+        throwSpiderException("nullptr vertex.");
+    }
     auto *&platform = archi::platform();
     auto *cluster = platform->cluster(clusterIx);
     spider::api::setVertexMappableOnCluster(vertex, cluster, value);
 }
 
 void spider::api::setVertexMappableOnPE(pisdf::ExecVertex *vertex, const spider::PE *pe, bool value) {
-    auto *runtimeInfo = vertex->runtimeInformation();
-    if (!runtimeInfo) {
-        runtimeInfo = vertex->createConstraints();
+    if (!vertex) {
+        throwSpiderException("nullptr vertex.");
     }
+    auto *runtimeInfo = vertex->runtimeInformation();
     runtimeInfo->setMappableConstraintOnPE(pe, value);
 }
 
 void spider::api::setVertexMappableOnAllPE(pisdf::ExecVertex *vertex, bool value) {
-    auto *runtimeInfo = vertex->runtimeInformation();
-    if (!runtimeInfo) {
-        runtimeInfo = vertex->createConstraints();
+    if (!vertex) {
+        throwSpiderException("nullptr vertex.");
     }
+    auto *runtimeInfo = vertex->runtimeInformation();
     runtimeInfo->setMappableConstraintOnAllPE(value);
 }
 
 void spider::api::setVertexExecutionTimingOnPE(pisdf::ExecVertex *vertex, const PE *pe, std::string timingExpression) {
-    auto *runtimeInfo = vertex->runtimeInformation();
-    if (!runtimeInfo) {
-        runtimeInfo = vertex->createConstraints();
+    if (!vertex) {
+        throwSpiderException("nullptr vertex.");
     }
+    auto *runtimeInfo = vertex->runtimeInformation();
     runtimeInfo->setTimingOnPE(pe, Expression(std::move(timingExpression)));
 }
 
 void spider::api::setVertexExecutionTimingOnPE(pisdf::ExecVertex *vertex, const PE *pe, int64_t timing) {
-    auto *runtimeInfo = vertex->runtimeInformation();
-    if (!runtimeInfo) {
-        runtimeInfo = vertex->createConstraints();
+    if (!vertex) {
+        throwSpiderException("nullptr vertex.");
     }
+    auto *runtimeInfo = vertex->runtimeInformation();
     runtimeInfo->setTimingOnPE(pe, timing);
 }
 
 void spider::api::setVertexExecutionTimingOnAllPE(pisdf::ExecVertex *vertex, std::string timingExpression) {
-    auto *runtimeInfo = vertex->runtimeInformation();
-    if (!runtimeInfo) {
-        runtimeInfo = vertex->createConstraints();
+    if (!vertex) {
+        throwSpiderException("nullptr vertex.");
     }
+    auto *runtimeInfo = vertex->runtimeInformation();
     runtimeInfo->setTimingOnAllPE(Expression(std::move(timingExpression)));
 }
 
 void spider::api::setVertexExecutionTimingOnAllPE(pisdf::ExecVertex *vertex, int64_t timing) {
-    auto *runtimeInfo = vertex->runtimeInformation();
-    if (!runtimeInfo) {
-        runtimeInfo = vertex->createConstraints();
+    if (!vertex) {
+        throwSpiderException("nullptr vertex.");
     }
+    auto *runtimeInfo = vertex->runtimeInformation();
     runtimeInfo->setTimingOnAllPE(timing);
+}
+
+/* === Runtime kernel related API === */
+
+spider::RTKernel *spider::api::createKernel(spider::pisdf::ExecVertex *vertex,
+                                            spider::rtkernel kernel,
+                                            size_t inputParamCount,
+                                            size_t outputParamCount) {
+    if (!vertex) {
+        throwSpiderException("nullptr vertex.");
+    }
+    auto *runtimeInfo = vertex->runtimeInformation();
+    if (runtimeInfo->kernelIx() != SIZE_MAX) {
+        throwSpiderException("vertex %s already has a runtime kernel.", vertex->name().c_str());
+    }
+    auto *runtimeKernel = make<RTKernel, StackID::RUNTIME>(kernel, inputParamCount, outputParamCount);
+    const auto &index = rt::platform()->addKernel(runtimeKernel);
+    runtimeInfo->setKernelIx(index);
+    return runtimeKernel;
+}
+
+void spider::api::addRuntimeKernelInputParameter(spider::RTKernel *kernel, spider::pisdf::Param *parameter) {
+    if (!kernel) {
+        throwSpiderException("nullptr kernel.");
+    }
+    if (!parameter) {
+        throwSpiderException("nullptr parameter.");
+    }
+    try {
+        kernel->addInputParam(parameter->ix());
+    } catch (spider::Exception &e) {
+        throw e;
+    }
+}
+
+void spider::api::addRuntimeKernelInputParameter(spider::RTKernel *kernel, spider::pisdf::DynamicParam *parameter) {
+    addRuntimeKernelInputParameter(kernel, static_cast<pisdf::Param *>(parameter));
+}
+
+void spider::api::addRuntimeKernelInputParameter(spider::RTKernel *kernel, spider::pisdf::InHeritedParam *parameter) {
+    addRuntimeKernelInputParameter(kernel, static_cast<pisdf::Param *>(parameter));
+}
+
+void spider::api::addRuntimeKernelOutputParameter(spider::RTKernel *kernel, spider::pisdf::DynamicParam *parameter) {
+    if (!kernel) {
+        throwSpiderException("nullptr kernel.");
+    }
+    if (!parameter) {
+        throwSpiderException("nullptr parameter.");
+    }
+    try {
+        kernel->addOutputParam(parameter->ix());
+    } catch (spider::Exception &e) {
+        throw e;
+    }
 }
