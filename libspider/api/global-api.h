@@ -90,6 +90,12 @@ namespace spider {
 
     class RTKernel;
 
+    class RTRunner;
+
+    class RTPlatform;
+
+    class RTCommunicator;
+
     namespace pisdf {
 
         /**

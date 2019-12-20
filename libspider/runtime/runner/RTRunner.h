@@ -47,6 +47,7 @@
 #include <containers/containers.h>
 #include <thread/Thread.h>
 #include <containers/array.h>
+#include <api/runtime-api.h>
 #include <api/archi-api.h>
 #include <archi/Platform.h>
 #include <runtime/platform/RTPlatform.h>
@@ -65,7 +66,7 @@ namespace spider {
     class RTRunner {
     public:
 
-        RTRunner(PE *pe, size_t ix) : attachedPE_{ pe }, runnerIx_{ ix } {
+        RTRunner(PE *attachedPE, size_t runnerIx) : attachedPE_{ attachedPE }, runnerIx_{ runnerIx } {
             auto *platform = archi::platform();
             localJobStampsArray_ = spider::array<size_t>{ platform->LRTCount(), SIZE_MAX, StackID::RUNTIME };
         }

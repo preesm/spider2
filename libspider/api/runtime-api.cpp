@@ -51,9 +51,94 @@
 #include <graphs/pisdf/Param.h>
 #include <graphs/pisdf/DynamicParam.h>
 #include <graphs/pisdf/InHeritedParam.h>
+#include <runtime/platform/RTPlatform.h>
 #include <runtime/common/RTInfo.h>
 #include <runtime/common/RTKernel.h>
-#include <runtime/platform/RTPlatform.h>
+#include <runtime/runner/JITMSRTRunner.h>
+#include <runtime/interface/ThreadRTCommunicator.h>
+
+
+/* === Runtime platform related API === */
+
+spider::RTRunner *spider::api::createJITMSRuntimeRunner(spider::PE *attachedPE, size_t runnerIx) {
+    if (!rt::platform()) {
+        throwSpiderException("the runtime platform has not yet been created.");
+    }
+    if (runnerIx >= archi::platform()->LRTCount()) {
+        throwSpiderException("runner ix #%zu is greater than the number of LRT #%zu.", runnerIx,
+                             archi::platform()->LRTCount());
+    }
+    auto *runner = make<JITMSRTRunner, StackID::RUNTIME>(attachedPE, runnerIx);
+    rt::platform()->addRunner(runner);
+    return runner;
+}
+
+spider::RTCommunicator *spider::api::createThreadRTCommunicator() {
+    if (!rt::platform()) {
+        throwSpiderException("the runtime platform has not yet been created.");
+    }
+    if (rt::platform()->communicator()) {
+        throwSpiderException("already existing communicator.");
+    }
+    auto *communicator = make<ThreadRTCommunicator, StackID::RUNTIME>(archi::platform()->LRTCount());
+    rt::platform()->setCommunicator(communicator);
+    return communicator;
+}
+
+/* === Runtime kernel related API === */
+
+spider::RTKernel *spider::api::createRuntimeKernel(spider::pisdf::ExecVertex *vertex,
+                                                   spider::rtkernel kernel,
+                                                   size_t inputParamCount,
+                                                   size_t outputParamCount) {
+    if (!vertex) {
+        throwSpiderException("nullptr vertex.");
+    }
+    auto *runtimeInfo = vertex->runtimeInformation();
+    if (runtimeInfo->kernelIx() != SIZE_MAX) {
+        throwSpiderException("vertex %s already has a runtime kernel.", vertex->name().c_str());
+    }
+    auto *runtimeKernel = make<RTKernel, StackID::RUNTIME>(kernel, inputParamCount, outputParamCount);
+    const auto &index = rt::platform()->addKernel(runtimeKernel);
+    runtimeInfo->setKernelIx(index);
+    return runtimeKernel;
+}
+
+void spider::api::addRuntimeKernelInputParameter(spider::RTKernel *kernel, spider::pisdf::Param *parameter) {
+    if (!kernel) {
+        throwSpiderException("nullptr kernel.");
+    }
+    if (!parameter) {
+        throwSpiderException("nullptr parameter.");
+    }
+    try {
+        kernel->addInputParam(parameter->ix());
+    } catch (spider::Exception &e) {
+        throw e;
+    }
+}
+
+void spider::api::addRuntimeKernelInputParameter(spider::RTKernel *kernel, spider::pisdf::DynamicParam *parameter) {
+    addRuntimeKernelInputParameter(kernel, static_cast<pisdf::Param *>(parameter));
+}
+
+void spider::api::addRuntimeKernelInputParameter(spider::RTKernel *kernel, spider::pisdf::InHeritedParam *parameter) {
+    addRuntimeKernelInputParameter(kernel, static_cast<pisdf::Param *>(parameter));
+}
+
+void spider::api::addRuntimeKernelOutputParameter(spider::RTKernel *kernel, spider::pisdf::DynamicParam *parameter) {
+    if (!kernel) {
+        throwSpiderException("nullptr kernel.");
+    }
+    if (!parameter) {
+        throwSpiderException("nullptr parameter.");
+    }
+    try {
+        kernel->addOutputParam(parameter->ix());
+    } catch (spider::Exception &e) {
+        throw e;
+    }
+}
 
 /* === Mapping and Timing related API === */
 
@@ -122,59 +207,4 @@ void spider::api::setVertexExecutionTimingOnAllPE(pisdf::ExecVertex *vertex, int
     }
     auto *runtimeInfo = vertex->runtimeInformation();
     runtimeInfo->setTimingOnAllPE(timing);
-}
-
-/* === Runtime kernel related API === */
-
-spider::RTKernel *spider::api::createKernel(spider::pisdf::ExecVertex *vertex,
-                                            spider::rtkernel kernel,
-                                            size_t inputParamCount,
-                                            size_t outputParamCount) {
-    if (!vertex) {
-        throwSpiderException("nullptr vertex.");
-    }
-    auto *runtimeInfo = vertex->runtimeInformation();
-    if (runtimeInfo->kernelIx() != SIZE_MAX) {
-        throwSpiderException("vertex %s already has a runtime kernel.", vertex->name().c_str());
-    }
-    auto *runtimeKernel = make<RTKernel, StackID::RUNTIME>(kernel, inputParamCount, outputParamCount);
-    const auto &index = rt::platform()->addKernel(runtimeKernel);
-    runtimeInfo->setKernelIx(index);
-    return runtimeKernel;
-}
-
-void spider::api::addRuntimeKernelInputParameter(spider::RTKernel *kernel, spider::pisdf::Param *parameter) {
-    if (!kernel) {
-        throwSpiderException("nullptr kernel.");
-    }
-    if (!parameter) {
-        throwSpiderException("nullptr parameter.");
-    }
-    try {
-        kernel->addInputParam(parameter->ix());
-    } catch (spider::Exception &e) {
-        throw e;
-    }
-}
-
-void spider::api::addRuntimeKernelInputParameter(spider::RTKernel *kernel, spider::pisdf::DynamicParam *parameter) {
-    addRuntimeKernelInputParameter(kernel, static_cast<pisdf::Param *>(parameter));
-}
-
-void spider::api::addRuntimeKernelInputParameter(spider::RTKernel *kernel, spider::pisdf::InHeritedParam *parameter) {
-    addRuntimeKernelInputParameter(kernel, static_cast<pisdf::Param *>(parameter));
-}
-
-void spider::api::addRuntimeKernelOutputParameter(spider::RTKernel *kernel, spider::pisdf::DynamicParam *parameter) {
-    if (!kernel) {
-        throwSpiderException("nullptr kernel.");
-    }
-    if (!parameter) {
-        throwSpiderException("nullptr parameter.");
-    }
-    try {
-        kernel->addOutputParam(parameter->ix());
-    } catch (spider::Exception &e) {
-        throw e;
-    }
 }

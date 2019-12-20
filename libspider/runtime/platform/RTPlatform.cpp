@@ -37,50 +37,27 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_JITMSRTRUNNER_H
-#define SPIDER2_JITMSRTRUNNER_H
 
 /* === Include(s) === */
 
+#include <runtime/platform/RTPlatform.h>
 #include <runtime/runner/RTRunner.h>
-#include <runtime/interface/Notification.h>
 
-namespace spider {
+/* === Function(s) definition === */
 
-    /* === Class definition === */
-
-    class JITMSRTRunner final : public RTRunner {
-    public:
-
-        JITMSRTRunner(PE *attachedPE, size_t runnerIx) : RTRunner(attachedPE, runnerIx) { }
-
-        ~JITMSRTRunner() override = default;
-
-        /* === Method(s) === */
-
-        void run(bool infiniteLoop) override;
-
-        /* === Getter(s) === */
-
-        /* === Setter(s) === */
-
-    private:
-        size_t lastJobIx_ = SIZE_MAX;
-        bool shouldBroadcast_ = false;
-
-        void runJob(const JobMessage &job);
-
-        bool isJobRunnable(const JobMessage &message) const;
-
-        bool readNotification(bool blocking);
-
-        void readJobNotification(spider::Notification &notification);
-
-        void readRuntimeNotification(spider::Notification &notification);
-
-        void readTraceNotification(spider::Notification &notification);
-    };
+spider::RTPlatform::~RTPlatform() {
+    for (auto &kernel : runtimeKernels_) {
+        destroy(kernel);
+    }
+    for (auto &runner : runnerArray_) {
+        destroy(runner);
+    }
+    destroy(communicator_);
 }
 
-
-#endif //SPIDER2_JITMSRTRUNNER_H
+void spider::RTPlatform::addRunner(spider::RTRunner *runner) {
+    if (!runner) {
+        return;
+    }
+    runnerArray_.at(runner->ix()) = runner;
+}

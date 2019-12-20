@@ -41,11 +41,9 @@
 /* === Include(s) === */
 
 #include <runtime/runner/JITMSRTRunner.h>
-#include <runtime/platform/ThreadRTPlatform.h>
 #include <runtime/interface/RTCommunicator.h>
 #include <archi/MemoryInterface.h>
 #include <archi/PE.h>
-#include <thread/Thread.h>
 
 /* === Static function === */
 
@@ -67,14 +65,15 @@ void spider::JITMSRTRunner::run(bool infiniteLoop) {
             break;
         }
         /* == Sanity check of the job queue == */
-        if (lastJobIx_ != SIZE_MAX && jobQueue_.size() >= lastJobIx_) {
+        if (lastJobIx_ != SIZE_MAX && jobQueue_.size() > (lastJobIx_ + 1)) {
             throwSpiderException("Runner #%zu -> job queue size larger than expected.", ix());
         }
 
         /* == If there is a job available, do it == */
         if (jobQueueCurrentPos_ < jobQueue_.size()) {
             if (log::enabled<log::Type::LRT>()) {
-                log::info<log::Type::LRT>("Runner #%zu -> finished jobs.\n", ix());
+                log::info<log::Type::LRT>("Runner #%zu -> %zu / %zu jobs done.\n", ix(), jobQueueCurrentPos_,
+                                          (lastJobIx_ + 1));
             }
             auto &job = jobQueue_[jobQueueCurrentPos_];
             canRun = isJobRunnable(job);
@@ -87,19 +86,20 @@ void spider::JITMSRTRunner::run(bool infiniteLoop) {
                 runJob(job);
 
                 /* == Update current position in job queue == */
-                if (log::enabled<log::Type::LRT>()) {
-                    log::info<log::Type::LRT>("Runner #%zu -> finished job %zu\n ", ix(), jobQueueCurrentPos_);
-                }
                 jobQueueCurrentPos_++;
+                if (log::enabled<log::Type::LRT>()) {
+                    log::info<log::Type::LRT>("Runner #%zu -> %zu / %zu jobs done.\n", ix(), jobQueueCurrentPos_,
+                                              (lastJobIx_ + 1));
+                }
             }
         }
 
         /* == Exit condition based on infinite loop flag == */
-        bool finishedIteration = (lastJobIx_ != SIZE_MAX) && (jobQueueCurrentPos_ == lastJobIx_);
+        bool finishedIteration = (lastJobIx_ != SIZE_MAX) && (jobQueueCurrentPos_ == (lastJobIx_ + 1));
         if (finishedIteration) {
             if (!infiniteLoop) {
                 if (log::enabled<log::Type::LRT>()) {
-                    log::info("Runner #%zu -> finished jobs.\n", ix());
+                    log::info<log::Type::LRT>("Runner #%zu -> finished all jobs.\n", ix());
                 }
                 run = false;
             } else {

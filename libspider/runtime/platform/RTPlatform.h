@@ -61,13 +61,17 @@ namespace spider {
 
         explicit RTPlatform(size_t runnerCount = 0) : runnerArray_{ runnerCount, StackID::RUNTIME } { }
 
-        virtual ~RTPlatform() {
-            for (auto &kernel : runtimeKernels_) {
-                destroy(kernel);
-            }
-        }
+        virtual ~RTPlatform();
 
         /* === Method(s) === */
+
+        /**
+         * @brief Adds an @refitem RTRunner to the RTPlatform.
+         * @remark if runner is nullptr, nothing happens.
+         * @param runner Pointer to the runner to add.
+         * @throws std::out_of_range index of the runner is not valid.
+         */
+        void addRunner(RTRunner *runner);
 
         /**
          * @brief Add a @refitem RTKernel to the RTPlatform.
@@ -91,34 +95,55 @@ namespace spider {
 
         /* === Getter(s) === */
 
+        /**
+         * @brief Returns pointer to @refitem RTRunner of index ix.
+         * @param ix Index of the RTRunner to fetch
+         * @return pointer to the corresponding @refitem RTRunner.
+         * @throws std::out_of_range if index is not valid.
+         */
         inline RTRunner *runner(size_t ix) const {
             return runnerArray_.at(ix);
         }
 
+        /**
+         * @brief Returns runtime communicator of the platform.
+         * @return pointer to the @refitem RTCommunicator.
+         */
         inline RTCommunicator *communicator() const {
             return communicator_;
         }
 
+        /**
+         * @brief Returns the vector of runtime kernels of the platform.
+         * @return const reference to a spider::vector of pointer of @refitem RTKernel.
+         */
         inline const spider::vector<RTKernel *> &runtimeKernels() const {
             return runtimeKernels_;
         }
 
         /* === Setter(s) === */
 
-    private:
-        spider::array<RTRunner *> runnerArray_;
-        stack_vector(runtimeKernels_, RTKernel*, StackID::RUNTIME);
-        RTCommunicator *communicator_ = nullptr;
-    };
-
-    /* === Inline method(s) === */
-
-    namespace rt {
-        inline RTPlatform *&platform() {
-            static RTPlatform *platform = nullptr;
-            return platform;
+        /**
+         * @brief Set the @refitem RTCommunicator of the platform.
+         * @remark If communicator is nullptr, nothing happens.
+         * @param communicator Pointer to the communicator to set.
+         * @throws spider::Exception if platform already has a communicator.
+         */
+        inline void setCommunicator(RTCommunicator *communicator) {
+            if (!communicator) {
+                return;
+            }
+            if (communicator_) {
+                throwSpiderException("already existing runtime communicator.");
+            }
+            communicator_ = communicator;
         }
-    }
+
+    private:
+        spider::array<RTRunner *> runnerArray_;                     /*= Array of RTRunner = */
+        stack_vector(runtimeKernels_, RTKernel*, StackID::RUNTIME); /* = Vector of RTKernel = */
+        RTCommunicator *communicator_ = nullptr;                    /* = Communicator of the RTPlatform = */
+    };
 }
 
 #endif //SPIDER2_RTPLATFORM_H

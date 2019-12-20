@@ -50,7 +50,83 @@ namespace spider {
 
     /* === Function(s) prototype === */
 
+    namespace rt {
+        inline RTPlatform *&platform() {
+            static RTPlatform *platform = nullptr;
+            return platform;
+        }
+    }
+
     namespace api {
+
+        /* === Runtime platform related API === */
+
+        /**
+         * @brief Creates a new @refitem JITMSRTRunner.
+         * @param attachedPE  Pointer to the processing element attached to the runner.
+         * @param runnerIx    Index of the runner (must be linear and start from 0 to NB_RUNNER).
+         * @return pointer to the created @refitem RTRunner.
+         * @throws spider::Exception if the runnerIx is greater than the number of local runtime or if the
+         *         runtime platform has not been created.
+         */
+        RTRunner *createJITMSRuntimeRunner(PE *attachedPE, size_t runnerIx);
+
+        /**
+         * @brief Creates the @refitem ThreadRTCommunicator
+         * @return pointer to the create @refitem RTCommunicator.
+         * @throws spider::Exception if a communicator already exists in the platform or if the
+         *         runtime platform has not been created.
+         */
+        RTCommunicator *createThreadRTCommunicator();
+
+        /* === Runtime kernel related API === */
+
+        /**
+         * @brief Creates a new runtime @refitem RTKernel for a given @refitem pisdf::ExecVertex.
+         * @param vertex            Pointer to the vertex to associate the kernel to.
+         * @param kernel            Kernel function to set.
+         * @param inputParamCount   Number of input parameters (can be modified).
+         * @param outputParamCount  Number of output parameters (can NOT be modified).
+         * @return pointer to the created @refitem RTKernel.
+         * @throws spider::Exception if the vertex is nullptr or if the vertex already has a kernel.
+         */
+        RTKernel *createRuntimeKernel(pisdf::ExecVertex *vertex,
+                                      rtkernel kernel,
+                                      size_t inputParamCount = 0,
+                                      size_t outputParamCount = 0);
+
+        /**
+         * @brief Adds an input parameter to a given @refitem RTKernel.
+         * @param kernel     Pointer to the kernel.
+         * @param parameter  Pointer to the parameter to add.
+         * @throws spider::Exception if either kernel or parameter is nullptr.
+         */
+        void addRuntimeKernelInputParameter(RTKernel *kernel, pisdf::Param *parameter);
+
+        /**
+         * @brief Adds an input parameter to a given @refitem RTKernel.
+         * @param kernel     Pointer to the kernel.
+         * @param parameter  Pointer to the parameter to add.
+         * @throws spider::Exception if either kernel or parameter is nullptr.
+         */
+        void addRuntimeKernelInputParameter(RTKernel *kernel, pisdf::DynamicParam *parameter);
+
+        /**
+         * @brief Adds an input parameter to a given @refitem RTKernel.
+         * @param kernel     Pointer to the kernel.
+         * @param parameter  Pointer to the parameter to add.
+         * @throws spider::Exception if either kernel or parameter is nullptr.
+         */
+        void addRuntimeKernelInputParameter(RTKernel *kernel, pisdf::InHeritedParam *parameter);
+
+        /**
+         * @brief Adds an output parameter to a given @refitem RTKernel.
+         * @param kernel     Pointer to the kernel.
+         * @param parameter  Pointer to the parameter to add.
+         * @throws spider::Exception if either kernel or parameter is nullptr or if all the output parameters have
+         * already been set.
+         */
+        void addRuntimeKernelOutputParameter(RTKernel *kernel, pisdf::DynamicParam *parameter);
 
         /* === Mapping and Timing related API === */
 
@@ -123,55 +199,6 @@ namespace spider {
          * @throws spider::Exception if vertex is nullptr.
          */
         void setVertexExecutionTimingOnAllPE(pisdf::ExecVertex *vertex, int64_t timing = 100);
-
-        /* === Runtime kernel related API === */
-
-        /**
-         * @brief Creates a new runtime @refitem RTKernel for a given @refitem pisdf::ExecVertex.
-         * @param vertex            Pointer to the vertex to associate the kernel to.
-         * @param kernel            Kernel function to set.
-         * @param inputParamCount   Number of input parameters (can be modified).
-         * @param outputParamCount  Number of output parameters (can NOT be modified).
-         * @return pointer to the created @refitem RTKernel.
-         * @throws spider::Exception if the vertex is nullptr or if the vertex already has a kernel.
-         */
-        RTKernel *createKernel(pisdf::ExecVertex *vertex,
-                               rtkernel kernel,
-                               size_t inputParamCount = 0,
-                               size_t outputParamCount = 0);
-
-        /**
-         * @brief Adds an input parameter to a given @refitem RTKernel.
-         * @param kernel     Pointer to the kernel.
-         * @param parameter  Pointer to the parameter to add.
-         * @throws spider::Exception if either kernel or parameter is nullptr.
-         */
-        void addRuntimeKernelInputParameter(RTKernel *kernel, pisdf::Param *parameter);
-
-        /**
-         * @brief Adds an input parameter to a given @refitem RTKernel.
-         * @param kernel     Pointer to the kernel.
-         * @param parameter  Pointer to the parameter to add.
-         * @throws spider::Exception if either kernel or parameter is nullptr.
-         */
-        void addRuntimeKernelInputParameter(RTKernel *kernel, pisdf::DynamicParam *parameter);
-
-        /**
-         * @brief Adds an input parameter to a given @refitem RTKernel.
-         * @param kernel     Pointer to the kernel.
-         * @param parameter  Pointer to the parameter to add.
-         * @throws spider::Exception if either kernel or parameter is nullptr.
-         */
-        void addRuntimeKernelInputParameter(RTKernel *kernel, pisdf::InHeritedParam *parameter);
-
-        /**
-         * @brief Adds an output parameter to a given @refitem RTKernel.
-         * @param kernel     Pointer to the kernel.
-         * @param parameter  Pointer to the parameter to add.
-         * @throws spider::Exception if either kernel or parameter is nullptr or if all the output parameters have
-         * already been set.
-         */
-        void addRuntimeKernelOutputParameter(RTKernel *kernel, pisdf::DynamicParam *parameter);
     }
 }
 
