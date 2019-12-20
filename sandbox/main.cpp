@@ -218,7 +218,7 @@ void spiderTest() {
 }
 
 void createArchi() {
-    spider::api::createPlatform();
+    spider::api::createPlatform(1, 4);
 
     auto *x86MemoryUnit = spider::api::createMemoryUnit(20000);
 
@@ -226,13 +226,13 @@ void createArchi() {
 
     auto *x86Cluster = spider::api::createCluster(4, x86MemoryUnit, x86MemoryInterface);
 
-    auto x86PECore0 = spider::api::createPE(0, 0, x86Cluster, "x86-Core0", spider::PEType::LRT);
+    auto x86PECore0 = spider::api::createProcessingElement(0, 0, x86Cluster, "x86-Core0", spider::PEType::LRT);
 
-    spider::api::createPE(1, 1, x86Cluster, "x86-Core1", spider::PEType::LRT);
+    spider::api::createProcessingElement(1, 1, x86Cluster, "x86-Core1", spider::PEType::LRT);
 
-    spider::api::createPE(2, 2, x86Cluster, "x86-Core2", spider::PEType::LRT);
+    spider::api::createProcessingElement(2, 2, x86Cluster, "x86-Core2", spider::PEType::LRT);
 
-    spider::api::createPE(3, 3, x86Cluster, "x86-Core3", spider::PEType::LRT);
+    spider::api::createProcessingElement(3, 3, x86Cluster, "x86-Core3", spider::PEType::LRT);
 
     spider::api::setSpiderGRTPE(x86PECore0);
 }

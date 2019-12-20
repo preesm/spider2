@@ -58,7 +58,7 @@ class pisdfGraphTest : public ::testing::Test {
 protected:
     void SetUp() override {
         spider::start();
-        spider::api::createPlatform();
+        spider::api::createPlatform(1, 1);
 
         auto *x86MemoryUnit = spider::api::createMemoryUnit(20000);
 
@@ -66,7 +66,7 @@ protected:
 
         auto *x86Cluster = spider::api::createCluster(1, x86MemoryUnit, x86MemoryInterface);
 
-        auto x86PECore0 = spider::api::createPE(0, 0, x86Cluster, "x86-Core0", spider::PEType::LRT);
+        auto x86PECore0 = spider::api::createProcessingElement(0, 0, x86Cluster, "x86-Core0", spider::PEType::LRT);
 
         spider::api::setSpiderGRTPE(x86PECore0);
     }

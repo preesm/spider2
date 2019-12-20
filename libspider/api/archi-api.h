@@ -79,13 +79,13 @@ namespace spider {
          * @return pointer to the newly created @refitem Platform
          * @throws @refitem Spider::Exception if a platform already exists.
          */
-        Platform *createPlatform(size_t clusterCount = 1, size_t totalPECount = 1);
+        Platform *createPlatform(size_t clusterCount, size_t totalPECount);
 
         /**
          * @brief Set the Global Run-Time (GRT) PE.
-         * @param grtPE  Processing Element of the GRT.
+         * @param grtProcessingElement  Processing Element of the GRT.
          */
-        void setSpiderGRTPE(PE *grtPE);
+        void setSpiderGRTPE(PE *grtProcessingElement);
 
         /* === MemoryUnit related API === */
 
@@ -174,33 +174,34 @@ namespace spider {
          * @param spiderHWType  Spider hardware type.
          * @return Pointer to newly created @refitem ProcessingElement, associated memory is handled by spider.
          */
-        PE *createPE(uint32_t hwType, uint32_t hwID, Cluster *cluster, std::string name, PEType type = PEType::LRT);
+        PE *createProcessingElement(uint32_t hwType, uint32_t hwID, Cluster *cluster, std::string name,
+                                    PEType type = PEType::LRT);
 
         /**
          * @brief Set the SpiderPEType of a given PE.
-         * @param PE    Pointer to the PE.
+         * @param processingElement    Pointer to the PE.
          * @param type  Spider::PEType to set.
          */
-        void setPESpiderPEType(PE *PE, PEType type);
+        void setPESpiderPEType(PE *processingElement, PEType type);
 
         /**
          * @brief Set the name of a given PE.
-         * @param PE    Pointer to the PE.
+         * @param processingElement    Pointer to the PE.
          * @param name  Name of the PE to set.
          */
-        void setPEName(PE *PE, std::string name);
+        void setPEName(PE *processingElement, std::string name);
 
         /**
          * @brief Enable a given PE (default).
-         * @param PE  Pointer to the PE.
+         * @param processingElement  Pointer to the PE.
          */
-        void enablePE(PE *PE);
+        void enablePE(PE *processingElement);
 
         /**
          * @brief Disable a given PE.
-         * @param PE  Pointer to the PE.
+         * @param processingElement  Pointer to the PE.
          */
-        void disablePE(PE *PE);
+        void disablePE(PE *processingElement);
     }
 }
 

@@ -66,10 +66,10 @@ spider::Platform *spider::api::createPlatform(size_t clusterCount, size_t totalP
     return platform;
 }
 
-void spider::api::setSpiderGRTPE(PE *grtPE) {
+void spider::api::setSpiderGRTPE(PE *grtProcessingElement) {
     auto *&platform = spider::platform();
     if (platform) {
-        platform->setSpiderGRTPE(grtPE);
+        platform->setSpiderGRTPE(grtProcessingElement);
     }
 }
 
@@ -169,34 +169,35 @@ spider::Cluster *spider::api::createCluster(size_t PECount, MemoryUnit *memoryUn
 
 /* === PE related API === */
 
-spider::PE *spider::api::createPE(uint32_t hwType, uint32_t hwID, Cluster *cluster, std::string name, PEType type) {
+spider::PE *
+spider::api::createProcessingElement(uint32_t hwType, uint32_t hwID, Cluster *cluster, std::string name, PEType type) {
     if (!cluster) {
         throwSpiderException("nullptr for Cluster");
     }
-    auto *pe = make<PE, StackID::ARCHI>(hwType, hwID, cluster, std::move(name), type);
-    pe->enable();
-    cluster->addPE(pe);
-    return pe;
+    auto *processingElement = make<PE, StackID::ARCHI>(hwType, hwID, cluster, std::move(name), type);
+    processingElement->enable();
+    cluster->addPE(processingElement);
+    return processingElement;
 }
 
-void spider::api::setPESpiderPEType(PE *PE, spider::PEType type) {
-    PE->setSpiderPEType(type);
+void spider::api::setPESpiderPEType(PE *processingElement, spider::PEType type) {
+    processingElement->setSpiderPEType(type);
 }
 
-void spider::api::setPEName(PE *PE, std::string name) {
-    if (PE) {
-        PE->setName(std::move(name));
+void spider::api::setPEName(PE *processingElement, std::string name) {
+    if (processingElement) {
+        processingElement->setName(std::move(name));
     }
 }
 
-void spider::api::enablePE(PE *PE) {
-    if (PE) {
-        PE->enable();
+void spider::api::enablePE(PE *processingElement) {
+    if (processingElement) {
+        processingElement->enable();
     }
 }
 
-void spider::api::disablePE(PE *PE) {
-    if (PE) {
-        PE->disable();
+void spider::api::disablePE(PE *processingElement) {
+    if (processingElement) {
+        processingElement->disable();
     }
 }
