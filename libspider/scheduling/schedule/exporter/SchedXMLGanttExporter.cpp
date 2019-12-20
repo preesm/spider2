@@ -40,10 +40,15 @@
 
 /* === Include(s) === */
 
-#include <scheduling/schedule/exporter/StatsExporter.h>
-#include <scheduling/schedule/Schedule.h>
+#include <scheduling/schedule/exporter/SchedXMLGanttExporter.h>
+#include <api/archi-api.h>
 #include <archi/Platform.h>
 #include <archi/PE.h>
+#include <graphs/pisdf/ExecVertex.h>
+#include <graphs/pisdf/Graph.h>
+#include <scheduling/schedule/Schedule.h>
+#include <scheduling/schedule/ScheduleJob.h>
+#include <iomanip>
 
 /* === Static variable(s) === */
 
@@ -51,23 +56,38 @@
 
 /* === Method(s) implementation === */
 
-void spider::StatsExporter::print() const {
-    Exporter::printFromPath("./stats.txt");
+void spider::SchedXMLGanttExporter::print() const {
+    Exporter::printFromPath("./gantt.xml");
 }
 
-void spider::StatsExporter::printFromFile(std::ofstream &file) const {
-    const auto& stats = schedule_->stats();
-    file << "Schedule statistics: " << '\n';
-    file << "Total number of jobs:     " << schedule_->jobCount() << '\n';
-    file << "Makespan of the schedule: " << stats.makespan() << '\n';
-    for (const auto &pe : spider::platform()->processingElements()) {
-        file << "PE #" << pe->virtualIx() << '\n';
-        file << "\t >> job count:          " << stats.jobCount(pe->virtualIx()) << '\n';
-        file << "\t >> start time:         " << stats.endTime(pe->virtualIx()) << '\n';
-        file << "\t >> end time:           " << stats.startTime(pe->virtualIx()) << '\n';
-        file << "\t >> load time:          " << stats.loadTime(pe->virtualIx()) << '\n';
-        file << "\t >> idle time:          " << stats.idleTime(pe->virtualIx()) << '\n';
-        file << "\t >> utilization factor: " << stats.utilizationFactor(pe->virtualIx()) << '\n';
+void spider::SchedXMLGanttExporter::printFromFile(std::ofstream &file) const {
+    file << "<data>" << '\n';
+    for (const auto &job : schedule_->jobs()) {
+        jobPrinter(file, job);
     }
-    file << std::endl;
+    file << "</data>" << '\n';
+}
+
+void spider::SchedXMLGanttExporter::jobPrinter(std::ofstream &file, const sched::Job &job) const {
+    const auto *vertex = graph_->vertex(job.vertexIx());
+    const auto *platform = spider::platform();
+    auto PEIx = platform->peFromVirtualIx(job.mappingInfo().PEIx)->hardwareIx();
+
+    /* == Let's compute a color based on the value of the pointer == */
+    const auto *reference = vertex->reference();
+    int32_t red = static_cast<uint8_t>((reinterpret_cast<uintptr_t>(reference) >> 3u) * 50 + 100);
+    int32_t green = static_cast<uint8_t>((reinterpret_cast<uintptr_t>(reference) >> 2u) * 50 + 100);
+    int32_t blue = static_cast<uint8_t>((reinterpret_cast<uintptr_t>(reference) >> 4u) * 50 + 100);
+    file << '\t' << "<event" << '\n';
+    file << '\t' << '\t' << R"(start=")" << job.mappingInfo().startTime << R"(")" << '\n';
+    file << '\t' << '\t' << R"(end=")" << job.mappingInfo().endTime << R"(")" << '\n';
+    file << '\t' << '\t' << R"(title=")" << vertex->name() << R"(")" << '\n';
+    file << '\t' << '\t' << R"(mapping="PE)" << PEIx << R"(")" << '\n';
+    std::ios savedFormat{ nullptr };
+    savedFormat.copyfmt(file);
+    file << '\t' << '\t' << R"(color="#)";
+    file << std::setfill('0') << std::setbase(16);
+    file << std::setw(2) << red << std::setw(2) << green << std::setw(2) << blue << '\"' << '\n';
+    file.copyfmt(savedFormat);
+    file << '\t' << '\t' << ">" << vertex->name() << ".</event>" << '\n';
 }

@@ -40,7 +40,7 @@
 
 /* === Include(s) === */
 
-#include <scheduling/schedule/exporter/SVGGanttExporter.h>
+#include <scheduling/schedule/exporter/SchedSVGGanttExporter.h>
 #include <api/archi-api.h>
 #include <graphs/pisdf/Graph.h>
 #include <scheduling/schedule/Schedule.h>
@@ -60,8 +60,8 @@ static constexpr uint32_t TASK_SPACE = 5;
 
 /* === Method(s) implementation === */
 
-spider::SVGGanttExporter::SVGGanttExporter(const sched::Schedule *schedule,
-                                           const pisdf::Graph *graph) : Exporter(),
+spider::SchedSVGGanttExporter::SchedSVGGanttExporter(const sched::Schedule *schedule,
+                                                     const pisdf::Graph *graph) : Exporter(),
                                                                         schedule_{ schedule },
                                                                         graph_{ graph } {
     /* == Compute values needed for printing == */
@@ -87,11 +87,11 @@ spider::SVGGanttExporter::SVGGanttExporter(const sched::Schedule *schedule,
     height_ = PECount * (TASK_HEIGHT + TASK_SPACE) + TASK_SPACE + ARROW_STROKE + ARROW_SIZE + OFFSET;
 }
 
-void spider::SVGGanttExporter::print() const {
+void spider::SchedSVGGanttExporter::print() const {
     Exporter::printFromPath("./gantt.svg");
 }
 
-void spider::SVGGanttExporter::printFromFile(std::ofstream &file) const {
+void spider::SchedSVGGanttExporter::printFromFile(std::ofstream &file) const {
     /* == Print header == */
     headerPrinter(file);
 
@@ -107,7 +107,7 @@ void spider::SVGGanttExporter::printFromFile(std::ofstream &file) const {
     file << "</svg>" << std::endl;
 }
 
-void spider::SVGGanttExporter::headerPrinter(std::ofstream &file) const {
+void spider::SchedSVGGanttExporter::headerPrinter(std::ofstream &file) const {
     file << R"(<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!-- Created with Spider 2.0 (http://www.github.com/preesm/spider-2.0) -->
 
@@ -140,7 +140,7 @@ void spider::SVGGanttExporter::headerPrinter(std::ofstream &file) const {
      inkscape:groupmode="layer">)" << '\n';
 }
 
-void spider::SVGGanttExporter::axisPrinter(std::ofstream &file) const {
+void spider::SchedSVGGanttExporter::axisPrinter(std::ofstream &file) const {
 
     /* == Print vertical arrow == */
     const auto &arrowColor = "393c3c";
@@ -202,7 +202,7 @@ void spider::SVGGanttExporter::axisPrinter(std::ofstream &file) const {
     /* == Print horizontal arrow == */
 }
 
-void spider::SVGGanttExporter::jobPrinter(std::ofstream &file, const sched::Job &job) const {
+void spider::SchedSVGGanttExporter::jobPrinter(std::ofstream &file, const sched::Job &job) const {
     /* == Compute color and width == */
     const auto *vertex = graph_->vertex(job.vertexIx());
     const auto *reference = vertex->reference();

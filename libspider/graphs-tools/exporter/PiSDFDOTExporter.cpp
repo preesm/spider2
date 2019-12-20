@@ -37,51 +37,25 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_STATSEXPORTER_H
-#define SPIDER2_STATSEXPORTER_H
 
 /* === Include(s) === */
 
-#include <common/Exporter.h>
-#include <common/Exception.h>
+#include <graphs-tools/exporter/PiSDFDOTExporter.h>
+#include <graphs-tools/exporter/PiSDFDOTExporterVisitor.h>
 
-namespace spider {
+/* === Static variable(s) === */
 
-    /* === Forward declaration(s) === */
+/* === Static function(s) === */
 
-    namespace sched {
-        class Schedule;
-    }
+/* === Method(s) implementation === */
 
-    /* === Class definition === */
-
-    class StatsExporter final : public Exporter {
-    public:
-
-        explicit StatsExporter(const sched::Schedule *schedule) : Exporter(), schedule_{ schedule } {
-            if (!schedule) {
-                throwSpiderException("StatsExporter can not have nullptr for schedule.");
-            }
-        }
-
-        ~StatsExporter() override = default;
-
-        /* === Method(s) === */
-
-        /**
-         * @brief Export Schedule statistics in ./stats.txt
-         */
-        void print() const override;
-
-        void printFromFile(std::ofstream &file) const override;
-
-    private:
-        const sched::Schedule *schedule_ = nullptr;
-
-        /* === Private method(s) === */
-    };
-
-    /* === Inline method(s) === */
+void spider::pisdf::PiSDFDOTExporter::print() const {
+    Exporter::printFromPath("./pisdf-graph.dot");
 }
 
-#endif //SPIDER2_STATSEXPORTER_H
+void spider::pisdf::PiSDFDOTExporter::printFromFile(std::ofstream &file) const {
+    PiSDFDOTExporterVisitor visitor{ file, "\t" };
+    graph_->visit(&visitor);
+}
+
+/* === Private method(s) === */

@@ -37,48 +37,37 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_DOTEXPORTER_H
-#define SPIDER2_DOTEXPORTER_H
 
 /* === Include(s) === */
 
-#include <common/Exporter.h>
-#include <containers/containers.h>
-#include <graphs/pisdf/Graph.h>
+#include <scheduling/schedule/exporter/SchedStatsExporter.h>
+#include <scheduling/schedule/Schedule.h>
+#include <archi/Platform.h>
+#include <archi/PE.h>
 
-namespace spider {
-    namespace pisdf {
+/* === Static variable(s) === */
 
-        /* === Forward declaration(s) === */
+/* === Static function(s) === */
 
-        struct DOTExporterVisitor;
+/* === Method(s) implementation === */
 
-        /* === Class definition === */
-
-        class DOTExporter final : public Exporter {
-        public:
-
-            explicit DOTExporter(Graph *graph) : Exporter(),
-                                                 graph_{ graph } { }
-
-            ~DOTExporter() override = default;
-
-            friend DOTExporterVisitor;
-
-            /* === Method(s) === */
-
-            /**
-             * @brief Print the graph to default file path.
-             * @remark default path: ./pisdf-graph.dot
-             */
-            void print() const override;
-
-            void printFromFile(std::ofstream &file) const override;
-
-        private:
-            Graph *graph_ = nullptr;
-        };
-    }
+void spider::SchedStatsExporter::print() const {
+    Exporter::printFromPath("./stats.txt");
 }
 
-#endif //SPIDER2_DOTEXPORTER_H
+void spider::SchedStatsExporter::printFromFile(std::ofstream &file) const {
+    const auto& stats = schedule_->stats();
+    file << "Schedule statistics: " << '\n';
+    file << "Total number of jobs:     " << schedule_->jobCount() << '\n';
+    file << "Makespan of the schedule: " << stats.makespan() << '\n';
+    for (const auto &pe : spider::platform()->processingElements()) {
+        file << "PE #" << pe->virtualIx() << '\n';
+        file << "\t >> job count:          " << stats.jobCount(pe->virtualIx()) << '\n';
+        file << "\t >> start time:         " << stats.endTime(pe->virtualIx()) << '\n';
+        file << "\t >> end time:           " << stats.startTime(pe->virtualIx()) << '\n';
+        file << "\t >> load time:          " << stats.loadTime(pe->virtualIx()) << '\n';
+        file << "\t >> idle time:          " << stats.idleTime(pe->virtualIx()) << '\n';
+        file << "\t >> utilization factor: " << stats.utilizationFactor(pe->virtualIx()) << '\n';
+    }
+    file << std::endl;
+}

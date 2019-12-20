@@ -37,8 +37,8 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_XMLGANTTEXPORTER_H
-#define SPIDER2_XMLGANTTEXPORTER_H
+#ifndef SPIDER2_SCHEDXMLGANTTEXPORTER_H
+#define SPIDER2_SCHEDXMLGANTTEXPORTER_H
 
 /* === Include(s) === */
 
@@ -60,14 +60,14 @@ namespace spider {
 
     /* === Class definition === */
 
-    class XMLGanttExporter final : public Exporter {
+    class SchedXMLGanttExporter final : public Exporter {
     public:
 
-        explicit XMLGanttExporter(const sched::Schedule *schedule, const pisdf::Graph *graph) : Exporter(),
-                                                                                                schedule_{ schedule },
-                                                                                                graph_{ graph } { }
+        explicit SchedXMLGanttExporter(const sched::Schedule *schedule, const pisdf::Graph *graph) : Exporter(),
+                                                                                                     schedule_{ schedule },
+                                                                                                     graph_{ graph } { }
 
-        ~XMLGanttExporter() override = default;
+        ~SchedXMLGanttExporter() override = default;
 
         /* === Method(s) === */
 
@@ -90,4 +90,4 @@ namespace spider {
 
     /* === Inline method(s) === */
 }
-#endif //SPIDER2_XMLGANTTEXPORTER_H
+#endif //SPIDER2_SCHEDXMLGANTTEXPORTER_H

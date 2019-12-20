@@ -51,7 +51,7 @@
 #include <graphs/pisdf/Param.h>
 #include <graphs/pisdf/DynamicParam.h>
 #include <graphs/pisdf/ExecVertex.h>
-#include <graphs-tools/exporter/DOTExporter.h>
+#include <graphs-tools/exporter/PiSDFDOTExporter.h>
 #include <api/spider.h>
 
 class pisdfDotExporterTest : public ::testing::Test {
@@ -136,11 +136,11 @@ protected:
 };
 
 TEST_F(pisdfDotExporterTest, dotTest) {
-    ASSERT_NO_THROW(spider::pisdf::DOTExporter{ graph_ }) << "DOTExporter::DOTExporter() failed";
-    ASSERT_NO_THROW(spider::pisdf::DOTExporter{ graph_ }.print()) << "DOTExporter::print() failed";
-    ASSERT_NO_THROW(spider::pisdf::DOTExporter{ graph_ }.printFromPath("./dot.dot"))
+    ASSERT_NO_THROW(spider::pisdf::PiSDFDOTExporter{ graph_ }) << "DOTExporter::DOTExporter() failed";
+    ASSERT_NO_THROW(spider::pisdf::PiSDFDOTExporter{ graph_ }.print()) << "DOTExporter::print() failed";
+    ASSERT_NO_THROW(spider::pisdf::PiSDFDOTExporter{ graph_ }.printFromPath("./dot.dot"))
                                 << "DOTExporter::print(path) failed with valid path";
-    ASSERT_THROW(spider::pisdf::DOTExporter{ graph_ }.printFromPath("XXX://INVALID_PATH"), spider::Exception)
+    ASSERT_THROW(spider::pisdf::PiSDFDOTExporter{ graph_ }.printFromPath("XXX://INVALID_PATH"), spider::Exception)
                                 << "DOTExporter::print(path) should throw with invalid path";
 
     /* == Testing null input / output edge exceptions == */
@@ -148,11 +148,11 @@ TEST_F(pisdfDotExporterTest, dotTest) {
     auto srcPort = graph_->edges()[0]->sourcePortIx();
     auto srcExpr = graph_->edges()[0]->sourceRateExpression();
     graph_->edges()[0]->setSource(nullptr, UINT32_MAX, spider::Expression());
-    ASSERT_THROW(spider::pisdf::DOTExporter{ graph_ }.printFromPath("./dot.dot"), spider::Exception)
+    ASSERT_THROW(spider::pisdf::PiSDFDOTExporter{ graph_ }.printFromPath("./dot.dot"), spider::Exception)
                                 << "DOTExporter::print() should throw with nullptr output edge.";
     graph_->edges()[0]->setSource(source, srcPort, spider::Expression(srcExpr));
     graph_->edges()[0]->setSink(nullptr, UINT32_MAX, spider::Expression());
-    ASSERT_THROW(spider::pisdf::DOTExporter{ graph_ }.printFromPath("./dot.dot"), spider::Exception)
+    ASSERT_THROW(spider::pisdf::PiSDFDOTExporter{ graph_ }.printFromPath("./dot.dot"), spider::Exception)
                                 << "DOTExporter::print() should throw with nullptr input edge.";
 
 }

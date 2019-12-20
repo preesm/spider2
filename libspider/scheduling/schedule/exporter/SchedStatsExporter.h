@@ -37,12 +37,13 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_SVGGANTTEXPORTER_H
-#define SPIDER2_SVGGANTTEXPORTER_H
+#ifndef SPIDER2_SCHEDSTATSEXPORTER_H
+#define SPIDER2_SCHEDSTATSEXPORTER_H
 
 /* === Include(s) === */
 
 #include <common/Exporter.h>
+#include <common/Exception.h>
 
 namespace spider {
 
@@ -50,28 +51,25 @@ namespace spider {
 
     namespace sched {
         class Schedule;
-
-        class Job;
-    }
-
-    namespace pisdf {
-        class Graph;
     }
 
     /* === Class definition === */
 
-    class SVGGanttExporter final : public Exporter {
+    class SchedStatsExporter final : public Exporter {
     public:
 
-        explicit SVGGanttExporter(const sched::Schedule *schedule, const pisdf::Graph *graph);
+        explicit SchedStatsExporter(const sched::Schedule *schedule) : Exporter(), schedule_{ schedule } {
+            if (!schedule) {
+                throwSpiderException("StatsExporter can not have nullptr for schedule.");
+            }
+        }
 
-        ~SVGGanttExporter() override = default;
+        ~SchedStatsExporter() override = default;
 
         /* === Method(s) === */
 
         /**
-         * @brief Print the graph to default file path.
-         * @remark default path: ./gantt.svg
+         * @brief Export Schedule statistics in ./stats.txt
          */
         void print() const override;
 
@@ -79,23 +77,11 @@ namespace spider {
 
     private:
         const sched::Schedule *schedule_ = nullptr;
-        const pisdf::Graph *graph_ = nullptr;
-        uint64_t width_ = UINT32_MAX;
-        uint64_t height_ = UINT32_MAX;
-        double widthMin_ = 10;
-        double widthMax_ = 500;
-        double scaleFactor_ = 0.;
-        uint64_t makespanWidth_ = 0;
 
         /* === Private method(s) === */
-
-        void headerPrinter(std::ofstream &file) const;
-
-        void axisPrinter(std::ofstream &file) const;
-
-        void jobPrinter(std::ofstream &file, const sched::Job &job) const;
     };
 
     /* === Inline method(s) === */
 }
-#endif //SPIDER2_SVGGANTTEXPORTER_H
+
+#endif //SPIDER2_SCHEDSTATSEXPORTER_H

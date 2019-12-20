@@ -43,10 +43,10 @@
 #include <runtime/algorithm/JITMSRuntime.h>
 #include <graphs-tools/transformation/srdag/Transformation.h>
 #include <graphs-tools/transformation/optims/PiSDFGraphOptimizer.h>
-#include <graphs-tools/exporter/DOTExporter.h>
-#include <scheduling/schedule/exporter/SVGGanttExporter.h>
+#include <graphs-tools/exporter/PiSDFDOTExporter.h>
+#include <scheduling/schedule/exporter/SchedSVGGanttExporter.h>
 #include <scheduling/scheduler/BestFitScheduler.h>
-#include <scheduling/schedule/exporter/XMLGanttExporter.h>
+#include <scheduling/schedule/exporter/SchedXMLGanttExporter.h>
 #include <scheduling/scheduler/GreedyScheduler.h>
 #include <monitor/Monitor.h>
 
@@ -185,7 +185,7 @@ bool spider::JITMSRuntime::execute() const {
 //    spider::XMLGanttExporter ganttExporter{&scheduler.schedule(), srdag};
 //    ganttExporter.print();
 
-    pisdf::DOTExporter(srdag).printFromPath("./srdag.dot");
+    pisdf::PiSDFDOTExporter(srdag).printFromPath("./srdag.dot");
 
     /* == Destroy the sr-dag == */
     destroy(srdag);

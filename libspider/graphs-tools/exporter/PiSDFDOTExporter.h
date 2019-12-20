@@ -37,57 +37,48 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
+#ifndef SPIDER2_PISDFDOTEXPORTER_H
+#define SPIDER2_PISDFDOTEXPORTER_H
 
 /* === Include(s) === */
 
-#include <scheduling/schedule/exporter/XMLGanttExporter.h>
-#include <api/archi-api.h>
-#include <archi/Platform.h>
-#include <archi/PE.h>
-#include <graphs/pisdf/ExecVertex.h>
+#include <common/Exporter.h>
+#include <containers/containers.h>
 #include <graphs/pisdf/Graph.h>
-#include <scheduling/schedule/Schedule.h>
-#include <scheduling/schedule/ScheduleJob.h>
-#include <iomanip>
 
-/* === Static variable(s) === */
+namespace spider {
+    namespace pisdf {
 
-/* === Static function(s) === */
+        /* === Forward declaration(s) === */
 
-/* === Method(s) implementation === */
+        struct PiSDFDOTExporterVisitor;
 
-void spider::XMLGanttExporter::print() const {
-    Exporter::printFromPath("./gantt.xml");
-}
+        /* === Class definition === */
 
-void spider::XMLGanttExporter::printFromFile(std::ofstream &file) const {
-    file << "<data>" << '\n';
-    for (const auto &job : schedule_->jobs()) {
-        jobPrinter(file, job);
+        class PiSDFDOTExporter final : public Exporter {
+        public:
+
+            explicit PiSDFDOTExporter(Graph *graph) : Exporter(),
+                                                      graph_{ graph } { }
+
+            ~PiSDFDOTExporter() override = default;
+
+            friend PiSDFDOTExporterVisitor;
+
+            /* === Method(s) === */
+
+            /**
+             * @brief Print the graph to default file path.
+             * @remark default path: ./pisdf-graph.dot
+             */
+            void print() const override;
+
+            void printFromFile(std::ofstream &file) const override;
+
+        private:
+            Graph *graph_ = nullptr;
+        };
     }
-    file << "</data>" << '\n';
 }
 
-void spider::XMLGanttExporter::jobPrinter(std::ofstream &file, const sched::Job &job) const {
-    const auto *vertex = graph_->vertex(job.vertexIx());
-    const auto *platform = spider::platform();
-    auto PEIx = platform->peFromVirtualIx(job.mappingInfo().PEIx)->hardwareIx();
-
-    /* == Let's compute a color based on the value of the pointer == */
-    const auto *reference = vertex->reference();
-    int32_t red = static_cast<uint8_t>((reinterpret_cast<uintptr_t>(reference) >> 3u) * 50 + 100);
-    int32_t green = static_cast<uint8_t>((reinterpret_cast<uintptr_t>(reference) >> 2u) * 50 + 100);
-    int32_t blue = static_cast<uint8_t>((reinterpret_cast<uintptr_t>(reference) >> 4u) * 50 + 100);
-    file << '\t' << "<event" << '\n';
-    file << '\t' << '\t' << R"(start=")" << job.mappingInfo().startTime << R"(")" << '\n';
-    file << '\t' << '\t' << R"(end=")" << job.mappingInfo().endTime << R"(")" << '\n';
-    file << '\t' << '\t' << R"(title=")" << vertex->name() << R"(")" << '\n';
-    file << '\t' << '\t' << R"(mapping="PE)" << PEIx << R"(")" << '\n';
-    std::ios savedFormat{ nullptr };
-    savedFormat.copyfmt(file);
-    file << '\t' << '\t' << R"(color="#)";
-    file << std::setfill('0') << std::setbase(16);
-    file << std::setw(2) << red << std::setw(2) << green << std::setw(2) << blue << '\"' << '\n';
-    file.copyfmt(savedFormat);
-    file << '\t' << '\t' << ">" << vertex->name() << ".</event>" << '\n';
-}
+#endif //SPIDER2_PISDFDOTEXPORTER_H

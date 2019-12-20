@@ -37,13 +37,13 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_DOTEXPORTERVISITOR_H
-#define SPIDER2_DOTEXPORTERVISITOR_H
+#ifndef SPIDER2_PISDFDOTEXPORTERVISITOR_H
+#define SPIDER2_PISDFDOTEXPORTERVISITOR_H
 
 /* === Include(s) === */
 
 #include <graphs/pisdf/visitors/PiSDFDefaultVisitor.h>
-#include <graphs-tools/exporter/DOTExporter.h>
+#include <graphs-tools/exporter/PiSDFDOTExporter.h>
 #include <graphs/pisdf/interfaces/InputInterface.h>
 #include <graphs/pisdf/interfaces/OutputInterface.h>
 #include <graphs/pisdf/InHeritedParam.h>
@@ -57,12 +57,12 @@ namespace spider {
 
         /* === Class definition === */
 
-        struct DOTExporterVisitor final : public DefaultVisitor {
+        struct PiSDFDOTExporterVisitor final : public DefaultVisitor {
         public:
 
-            explicit DOTExporterVisitor(std::ofstream &file,
-                                        std::string offset) : file_{ file },
-                                                              offset_{ std::move(offset) } { }
+            explicit PiSDFDOTExporterVisitor(std::ofstream &file,
+                                             std::string offset) : file_{ file },
+                                                                   offset_{ std::move(offset) } { }
 
             /* === Method(s) === */
 
@@ -237,7 +237,7 @@ namespace spider {
         /* === Inline method(s) === */
 
         template<>
-        inline void DOTExporterVisitor::dummyPortPrinter<false>(uint32_t
+        inline void PiSDFDOTExporterVisitor::dummyPortPrinter<false>(uint32_t
         width,
         const std::string &color
         ) const {
@@ -262,7 +262,7 @@ namespace spider {
 
     template<>
     inline void
-    DOTExporterVisitor::portPrinter<false>(const Edge *edge, uint32_t width, const std::string &color) const {
+    PiSDFDOTExporterVisitor::portPrinter<false>(const Edge *edge, uint32_t width, const std::string &color) const {
         /* == Header == */
         portHeaderPrinter();
 
@@ -283,4 +283,4 @@ namespace spider {
     }
 }
 }
-#endif //SPIDER2_DOTEXPORTERVISITOR_H
+#endif //SPIDER2_PISDFDOTEXPORTERVISITOR_H

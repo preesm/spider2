@@ -44,10 +44,10 @@
 #include <graphs/pisdf/DynamicParam.h>
 #include <graphs/pisdf/SpecialVertex.h>
 #include <api/spider.h>
-#include <graphs-tools/exporter/DOTExporter.h>
+#include <graphs-tools/exporter/PiSDFDOTExporter.h>
 #include <runtime/algorithm/JITMSRuntime.h>
 #include <scheduling/schedule/Schedule.h>
-#include <scheduling/schedule/exporter/SVGGanttExporter.h>
+#include <scheduling/schedule/exporter/SchedSVGGanttExporter.h>
 #include <scheduling/scheduler/BestFitScheduler.h>
 #include <runtime/interface/Notification.h>
 #include <runtime/interface/Message.h>
@@ -166,7 +166,7 @@ void spiderTest() {
         /* === Export dot === */
 
         {
-            auto exporter = spider::pisdf::DOTExporter{ graph };
+            auto exporter = spider::pisdf::PiSDFDOTExporter{ graph };
             exporter.printFromPath("./original.dot");
         }
 
@@ -182,7 +182,7 @@ void spiderTest() {
         /* === Export dot === */
 
         {
-            auto exporter = spider::pisdf::DOTExporter{ graph };
+            auto exporter = spider::pisdf::PiSDFDOTExporter{ graph };
             exporter.printFromPath("./new.dot");
         }
 

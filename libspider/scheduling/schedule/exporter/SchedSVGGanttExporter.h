@@ -37,25 +37,65 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
+#ifndef SPIDER2_SCHEDSVGGANTTEXPORTER_H
+#define SPIDER2_SCHEDSVGGANTTEXPORTER_H
 
 /* === Include(s) === */
 
-#include <graphs-tools/exporter/DOTExporter.h>
-#include <graphs-tools/exporter/DOTExporterVisitor.h>
+#include <common/Exporter.h>
 
-/* === Static variable(s) === */
+namespace spider {
 
-/* === Static function(s) === */
+    /* === Forward declaration(s) === */
 
-/* === Method(s) implementation === */
+    namespace sched {
+        class Schedule;
 
-void spider::pisdf::DOTExporter::print() const {
-    Exporter::printFromPath("./pisdf-graph.dot");
+        class Job;
+    }
+
+    namespace pisdf {
+        class Graph;
+    }
+
+    /* === Class definition === */
+
+    class SchedSVGGanttExporter final : public Exporter {
+    public:
+
+        explicit SchedSVGGanttExporter(const sched::Schedule *schedule, const pisdf::Graph *graph);
+
+        ~SchedSVGGanttExporter() override = default;
+
+        /* === Method(s) === */
+
+        /**
+         * @brief Print the graph to default file path.
+         * @remark default path: ./gantt.svg
+         */
+        void print() const override;
+
+        void printFromFile(std::ofstream &file) const override;
+
+    private:
+        const sched::Schedule *schedule_ = nullptr;
+        const pisdf::Graph *graph_ = nullptr;
+        uint64_t width_ = UINT32_MAX;
+        uint64_t height_ = UINT32_MAX;
+        double widthMin_ = 10;
+        double widthMax_ = 500;
+        double scaleFactor_ = 0.;
+        uint64_t makespanWidth_ = 0;
+
+        /* === Private method(s) === */
+
+        void headerPrinter(std::ofstream &file) const;
+
+        void axisPrinter(std::ofstream &file) const;
+
+        void jobPrinter(std::ofstream &file, const sched::Job &job) const;
+    };
+
+    /* === Inline method(s) === */
 }
-
-void spider::pisdf::DOTExporter::printFromFile(std::ofstream &file) const {
-    DOTExporterVisitor visitor{ file, "\t" };
-    graph_->visit(&visitor);
-}
-
-/* === Private method(s) === */
+#endif //SPIDER2_SCHEDSVGGANTTEXPORTER_H
