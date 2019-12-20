@@ -89,12 +89,12 @@ protected:
         auto *vertex_0 = spider::api::createVertex(graph_, "vertex_0", 0, 1);
         auto *vertex_1 = spider::api::createVertex(graph_, "vertex_1", 1, 1);
         auto *vertex_4 = spider::api::createVertex(graph_, "vertex_4", 1);
-        auto *subgraph = spider::api::createSubraph(graph_, "subgraph", 3, 4, 2, 1, 1);
+        auto *subgraph = spider::api::createSubgraph(graph_, "subgraph", 3, 4, 2, 1, 1);
         auto *cfg = spider::api::createConfigActor(subgraph, "cfg", 0, 1);
         auto *input = spider::api::setInputInterfaceName(subgraph, 0, "input");
         auto *output = spider::api::setOutputInterfaceName(subgraph, 0, "output");
         auto *vertex_2 = spider::api::createVertex(subgraph, "vertex_2", 2, 1);
-        auto *vertex_3 = spider::api::createSubraph(subgraph, "vertex_3", 1, 4, 1, 1, 1);
+        auto *vertex_3 = spider::api::createSubgraph(subgraph, "vertex_3", 1, 4, 1, 1, 1);
         auto *in2 = spider::api::setInputInterfaceName(vertex_3, 0, "in2");
         auto *out2 = spider::api::setOutputInterfaceName(vertex_3, 0, "out2");
         auto *fork = spider::api::createFork(vertex_3, "fork", 2);

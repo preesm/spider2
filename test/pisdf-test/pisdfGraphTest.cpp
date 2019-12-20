@@ -120,7 +120,7 @@ TEST_F(pisdfGraphTest, graphTest) {
     /* == Test subgraph == */
     auto *vertex_0 = spider::api::createVertex(graph, "vertex_0", 0, 1);
     auto *vertex_1 = spider::api::createVertex(graph, "vertex_1", 1, 1);
-    auto *subgraph = spider::api::createSubraph(graph, "subgraph", 3, 4, 2, 1, 1);
+    auto *subgraph = spider::api::createSubgraph(graph, "subgraph", 3, 4, 2, 1, 1);
     auto *input = spider::api::setInputInterfaceName(subgraph, 0, "input");
     auto *output = spider::api::setOutputInterfaceName(subgraph, 0, "output");
     auto *vertex_2 = spider::api::createVertex(subgraph, "vertex_2", 2, 1);

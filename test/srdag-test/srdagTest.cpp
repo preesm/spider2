@@ -305,7 +305,7 @@ TEST_F(srdagTest, srdagFlatDelayTest7) {
 TEST_F(srdagTest, srdagHTest) {
     auto *graph = spider::api::createGraph("topgraph", 2, 1);
     auto *vertex_0 = spider::api::createVertex(graph, "vertex_0", 0, 1);
-    auto *subgraph = spider::api::createSubraph(graph, "subgraph", 1, 2, 0, 1, 1);
+    auto *subgraph = spider::api::createSubgraph(graph, "subgraph", 1, 2, 0, 1, 1);
     auto *vertex_1 = spider::api::createVertex(graph, "vertex_1", 1);
     auto *input = spider::api::setInputInterfaceName(subgraph, 0, "input");
     auto *output = spider::api::setOutputInterfaceName(subgraph, 0, "output");
@@ -343,7 +343,7 @@ TEST_F(srdagTest, srdagHTest) {
 TEST_F(srdagTest, srdagHTest1) {
     auto *graph = spider::api::createGraph("topgraph", 2, 1);
     auto *vertex_0 = spider::api::createVertex(graph, "vertex_0", 0, 1);
-    auto *subgraph = spider::api::createSubraph(graph, "subgraph", 1, 2, 0, 1, 1);
+    auto *subgraph = spider::api::createSubgraph(graph, "subgraph", 1, 2, 0, 1, 1);
     auto *vertex_1 = spider::api::createVertex(graph, "vertex_1", 1);
     auto *input = spider::api::setInputInterfaceName(subgraph, 0, "input");
     auto *output = spider::api::setOutputInterfaceName(subgraph, 0, "output");
@@ -375,7 +375,7 @@ TEST_F(srdagTest, srdagHTest1) {
 TEST_F(srdagTest, srdagHTest2) {
     auto *graph = spider::api::createGraph("topgraph", 2, 1);
     auto *vertex_0 = spider::api::createVertex(graph, "vertex_0", 0, 1);
-    auto *subgraph = spider::api::createSubraph(graph, "subgraph", 2, 2, 0, 1, 1);
+    auto *subgraph = spider::api::createSubgraph(graph, "subgraph", 2, 2, 0, 1, 1);
     auto *vertex_1 = spider::api::createVertex(graph, "vertex_1", 1);
     auto *input = spider::api::setInputInterfaceName(subgraph, 0, "input");
     auto *output = spider::api::setOutputInterfaceName(subgraph, 0, "output");
@@ -428,7 +428,7 @@ TEST_F(srdagTest, srdagHTest2) {
 TEST_F(srdagTest, srdagHTest3) {
     auto *graph = spider::api::createGraph("topgraph", 2, 1);
     auto *vertex_0 = spider::api::createVertex(graph, "vertex_0", 0, 1);
-    auto *subgraph = spider::api::createSubraph(graph, "subgraph", 2, 2, 0, 1, 1);
+    auto *subgraph = spider::api::createSubgraph(graph, "subgraph", 2, 2, 0, 1, 1);
     auto *vertex_1 = spider::api::createVertex(graph, "vertex_1", 1);
     auto *input = spider::api::setInputInterfaceName(subgraph, 0, "input");
     auto *output = spider::api::setOutputInterfaceName(subgraph, 0, "output");
@@ -479,7 +479,7 @@ TEST_F(srdagTest, srdagHTest3) {
 TEST_F(srdagTest, srdagHTest4) {
     auto *graph = spider::api::createGraph("topgraph", 2, 1);
     auto *vertex_0 = spider::api::createVertex(graph, "vertex_0", 0, 1);
-    auto *subgraph = spider::api::createSubraph(graph, "subgraph", 2, 2, 0, 1, 1);
+    auto *subgraph = spider::api::createSubgraph(graph, "subgraph", 2, 2, 0, 1, 1);
     auto *vertex_1 = spider::api::createVertex(graph, "vertex_1", 1);
     auto *input = spider::api::setInputInterfaceName(subgraph, 0, "input");
     auto *output = spider::api::setOutputInterfaceName(subgraph, 0, "output");
@@ -532,7 +532,7 @@ TEST_F(srdagTest, srdagHTest4) {
 
 TEST_F(srdagTest, srdagHTest5) {
     auto *graph = spider::api::createGraph("topgraph", 2, 1);
-    auto *subgraph = spider::api::createSubraph(graph, "subgraph", 2, 2, 0, 0, 0);
+    auto *subgraph = spider::api::createSubgraph(graph, "subgraph", 2, 2, 0, 0, 0);
     auto *vertex_2 = spider::api::createVertex(subgraph, "vertex_2", 0, 1);
     auto *cfg = spider::api::createConfigActor(subgraph, "cfg", 1);
     spider::api::createEdge(vertex_2, 0, 1, cfg, 0, 1);

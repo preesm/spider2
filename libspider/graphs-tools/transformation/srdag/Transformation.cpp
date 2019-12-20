@@ -77,25 +77,25 @@ spider::srdag::splitDynamicGraph(pisdf::Graph *subgraph) {
     const auto &runOutputIFCount = subgraph->outputEdgeCount() - initOutputIFCount;
 
     /* == Create the init subgraph == */
-    auto *initGraph = api::createSubraph(subgraph->graph(),
-                                         "ginit-" + subgraph->name(),
-                                         static_cast<uint32_t>(subgraph->configVertexCount()),
-                                         initInputIFCount + initOutputIFCount + cfgInputIFCount,
-                                         0,
-                                         initInputIFCount,
-                                         initOutputIFCount + cfgInputIFCount,
-                                         static_cast<uint32_t>(subgraph->configVertexCount()),
-                                         StackID::PISDF);
+    auto *initGraph = api::createSubgraph(subgraph->graph(),
+                                          "ginit-" + subgraph->name(),
+                                          static_cast<uint32_t>(subgraph->configVertexCount()),
+                                          initInputIFCount + initOutputIFCount + cfgInputIFCount,
+                                          0,
+                                          initInputIFCount,
+                                          initOutputIFCount + cfgInputIFCount,
+                                          static_cast<uint32_t>(subgraph->configVertexCount()),
+                                          StackID::PISDF);
 
     /* == Create the run subgraph == */
-    auto *runGraph = api::createSubraph(subgraph->graph(),
-                                        "grun-" + subgraph->name(),
-                                        static_cast<uint32_t>(subgraph->vertexCount()),
-                                        static_cast<uint32_t>(subgraph->edgeCount()),
-                                        static_cast<uint32_t>(subgraph->paramCount()),
-                                        static_cast<uint32_t>(runInputIFCount),
-                                        static_cast<uint32_t>(runOutputIFCount),
-                                        0, StackID::PISDF);
+    auto *runGraph = api::createSubgraph(subgraph->graph(),
+                                         "grun-" + subgraph->name(),
+                                         static_cast<uint32_t>(subgraph->vertexCount()),
+                                         static_cast<uint32_t>(subgraph->edgeCount()),
+                                         static_cast<uint32_t>(subgraph->paramCount()),
+                                         static_cast<uint32_t>(runInputIFCount),
+                                         static_cast<uint32_t>(runOutputIFCount),
+                                         0, StackID::PISDF);
 
     /* == Set repetition values == */
     initGraph->setRepetitionValue(subgraph->repetitionValue());

@@ -60,6 +60,28 @@ spider::pisdf::Graph *&spider::pisdf::applicationGraph() {
     return graph;
 }
 
+spider::pisdf::Graph *spider::api::createUserApplicationGraph(std::string name,
+                                                              uint32_t actorCount,
+                                                              uint32_t edgeCount,
+                                                              uint32_t paramCount,
+                                                              uint32_t inIFCount,
+                                                              uint32_t outIFCount,
+                                                              uint32_t cfgActorCount,
+                                                              StackID stack) {
+    if (pisdf::applicationGraph()->subgraphCount()) {
+        throwSpiderException("Can have only one user application graph inside spider.");
+    }
+    return createSubgraph(pisdf::applicationGraph(),
+                          std::move(name),
+                          actorCount,
+                          edgeCount,
+                          paramCount,
+                          inIFCount,
+                          outIFCount,
+                          cfgActorCount,
+                          stack);
+}
+
 spider::pisdf::Graph *spider::api::createGraph(std::string name,
                                                uint32_t actorCount,
                                                uint32_t edgeCount,
@@ -79,15 +101,18 @@ spider::pisdf::Graph *spider::api::createGraph(std::string name,
                               stack);
 }
 
-spider::pisdf::Graph *spider::api::createSubraph(pisdf::Graph *graph,
-                                                 std::string name,
-                                                 uint32_t actorCount,
-                                                 uint32_t edgeCount,
-                                                 uint32_t paramCount,
-                                                 uint32_t inIFCount,
-                                                 uint32_t outIFCount,
-                                                 uint32_t cfgActorCount,
-                                                 StackID stack) {
+spider::pisdf::Graph *spider::api::createSubgraph(pisdf::Graph *graph,
+                                                  std::string name,
+                                                  uint32_t actorCount,
+                                                  uint32_t edgeCount,
+                                                  uint32_t paramCount,
+                                                  uint32_t inIFCount,
+                                                  uint32_t outIFCount,
+                                                  uint32_t cfgActorCount,
+                                                  StackID stack) {
+    if (!graph) {
+        throwSpiderException("trying to create a subgraph %s with no parent.", name.c_str());
+    }
     auto *subgraph = make<pisdf::Graph>(stack,
                                         std::move(name),
                                         actorCount,
@@ -106,22 +131,19 @@ spider::pisdf::ExecVertex *spider::api::createVertex(pisdf::Graph *graph,
                                                      uint32_t edgeINCount,
                                                      uint32_t edgeOUTCount,
                                                      StackID stack) {
+    if (!graph) {
+        throwSpiderException("nullptr for graph.");
+    }
     auto *vertex = make<pisdf::ExecVertex>(stack, std::move(name), edgeINCount, edgeOUTCount, stack);
     graph->addVertex(vertex);
     return vertex;
 }
 
-//spider::pisdf::ExecVertex *spider::api::createVertex(pisdf::Graph *graph,
-//                                                     std::string name,
-//                                                     uint32_t edgeINCount,
-//                                                     uint32_t edgeOUTCount,
-//                                                     StackID stack) {
-//    auto *vertex = createVertex(graph, std::move(name), edgeINCount, edgeOUTCount, stack);
-//    return vertex;
-//}
-
 spider::pisdf::ExecVertex *
 spider::api::createFork(pisdf::Graph *graph, std::string name, uint32_t edgeOUTCount, StackID stack) {
+    if (!graph) {
+        throwSpiderException("nullptr for graph.");
+    }
     auto *vertex = make<pisdf::ForkVertex>(stack, std::move(name), edgeOUTCount, stack);
     graph->addVertex(vertex);
     return vertex;
@@ -129,6 +151,9 @@ spider::api::createFork(pisdf::Graph *graph, std::string name, uint32_t edgeOUTC
 
 spider::pisdf::ExecVertex *
 spider::api::createJoin(pisdf::Graph *graph, std::string name, uint32_t edgeINCount, StackID stack) {
+    if (!graph) {
+        throwSpiderException("nullptr for graph.");
+    }
     auto *vertex = make<pisdf::JoinVertex>(stack, std::move(name), edgeINCount, stack);
     graph->addVertex(vertex);
     return vertex;
@@ -136,6 +161,9 @@ spider::api::createJoin(pisdf::Graph *graph, std::string name, uint32_t edgeINCo
 
 spider::pisdf::ExecVertex *
 spider::api::createHead(pisdf::Graph *graph, std::string name, uint32_t edgeINCount, StackID stack) {
+    if (!graph) {
+        throwSpiderException("nullptr for graph.");
+    }
     auto *vertex = make<pisdf::HeadVertex>(stack, std::move(name), edgeINCount, stack);
     graph->addVertex(vertex);
     return vertex;
@@ -143,6 +171,9 @@ spider::api::createHead(pisdf::Graph *graph, std::string name, uint32_t edgeINCo
 
 spider::pisdf::ExecVertex *
 spider::api::createTail(pisdf::Graph *graph, std::string name, uint32_t edgeINCount, StackID stack) {
+    if (!graph) {
+        throwSpiderException("nullptr for graph.");
+    }
     auto *vertex = make<pisdf::TailVertex>(stack, std::move(name), edgeINCount, stack);
     graph->addVertex(vertex);
     return vertex;
@@ -150,24 +181,36 @@ spider::api::createTail(pisdf::Graph *graph, std::string name, uint32_t edgeINCo
 
 spider::pisdf::ExecVertex *
 spider::api::createDuplicate(pisdf::Graph *graph, std::string name, uint32_t edgeOUTCount, StackID stack) {
+    if (!graph) {
+        throwSpiderException("nullptr for graph.");
+    }
     auto *vertex = make<pisdf::DuplicateVertex>(stack, std::move(name), edgeOUTCount, stack);
     graph->addVertex(vertex);
     return vertex;
 }
 
 spider::pisdf::ExecVertex *spider::api::createRepeat(pisdf::Graph *graph, std::string name, StackID stack) {
+    if (!graph) {
+        throwSpiderException("nullptr for graph.");
+    }
     auto *vertex = make<pisdf::RepeatVertex>(stack, std::move(name), stack);
     graph->addVertex(vertex);
     return vertex;
 }
 
 spider::pisdf::ExecVertex *spider::api::createInit(pisdf::Graph *graph, std::string name, StackID stack) {
+    if (!graph) {
+        throwSpiderException("nullptr for graph.");
+    }
     auto *vertex = make<pisdf::InitVertex>(stack, std::move(name), stack);
     graph->addVertex(vertex);
     return vertex;
 }
 
 spider::pisdf::ExecVertex *spider::api::createEnd(pisdf::Graph *graph, std::string name, StackID stack) {
+    if (!graph) {
+        throwSpiderException("nullptr for graph.");
+    }
     auto *vertex = make<pisdf::EndVertex>(stack, std::move(name), stack);
     graph->addVertex(vertex);
     return vertex;
@@ -178,6 +221,9 @@ spider::pisdf::ExecVertex *spider::api::createConfigActor(pisdf::Graph *graph,
                                                           uint32_t edgeINCount,
                                                           uint32_t edgeOUTCount,
                                                           StackID stack) {
+    if (!graph) {
+        throwSpiderException("nullptr for graph.");
+    }
     auto *vertex = make<pisdf::ConfigVertex>(stack, std::move(name), edgeINCount, edgeOUTCount, stack);
     graph->addVertex(vertex);
     return vertex;
@@ -185,6 +231,9 @@ spider::pisdf::ExecVertex *spider::api::createConfigActor(pisdf::Graph *graph,
 
 spider::pisdf::InputInterface *
 spider::api::setInputInterfaceName(pisdf::Graph *graph, uint32_t ix, std::string name) {
+    if (!graph) {
+        throwSpiderException("nullptr for graph.");
+    }
     auto *interface = graph->inputInterface(ix);
     if (!interface) {
         throwSpiderException("no input interface at index %"
@@ -197,6 +246,9 @@ spider::api::setInputInterfaceName(pisdf::Graph *graph, uint32_t ix, std::string
 
 spider::pisdf::OutputInterface *
 spider::api::setOutputInterfaceName(pisdf::Graph *graph, uint32_t ix, std::string name) {
+    if (!graph) {
+        throwSpiderException("nullptr for graph.");
+    }
     auto *interface = graph->outputInterface(ix);
     if (!interface) {
         throwSpiderException("no output interface at index %"
@@ -276,15 +328,20 @@ spider::pisdf::Edge *spider::api::createEdge(pisdf::Vertex *source,
                                              size_t snkPortIx,
                                              std::string snkRateExpression,
                                              StackID stack) {
-    auto *edge = make<pisdf::Edge>(stack,
-                                   source,
-                                   srcPortIx,
-                                   Expression(std::move(srcRateExpression), source->graph()->params()),
-                                   sink,
-                                   snkPortIx,
-                                   Expression(std::move(snkRateExpression), sink->graph()->params()));
-    source->graph()->addEdge(edge);
-    return edge;
+    try {
+        auto *edge = make<pisdf::Edge>(stack,
+                                       source,
+                                       srcPortIx,
+                                       Expression(std::move(srcRateExpression), source->graph()->params()),
+                                       sink,
+                                       snkPortIx,
+                                       Expression(std::move(snkRateExpression), sink->graph()->params()));
+
+        source->graph()->addEdge(edge);
+        return edge;
+    } catch (spider::Exception &e) {
+        throw e;
+    }
 }
 
 spider::pisdf::Edge *spider::api::createEdge(pisdf::Vertex *source,
@@ -294,15 +351,20 @@ spider::pisdf::Edge *spider::api::createEdge(pisdf::Vertex *source,
                                              size_t snkPortIx,
                                              int64_t snkRate,
                                              StackID stack) {
-    auto *edge = make<pisdf::Edge>(stack,
-                                   source,
-                                   srcPortIx,
-                                   Expression(srcRate),
-                                   sink,
-                                   snkPortIx,
-                                   Expression(snkRate));
-    source->graph()->addEdge(edge);
-    return edge;
+    try {
+        auto *edge = make<pisdf::Edge>(stack,
+                                       source,
+                                       srcPortIx,
+                                       Expression(srcRate),
+                                       sink,
+                                       snkPortIx,
+                                       Expression(snkRate));
+        source->graph()->addEdge(edge);
+        return edge;
+    } catch (spider::Exception &e) {
+        throw e;
+    }
+
 }
 
 spider::pisdf::Delay *spider::api::createDelay(pisdf::Edge *edge,

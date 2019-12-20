@@ -90,7 +90,7 @@ void spider::start() {
     }
 
     /* == Create the upper top-graph that will contains the application top-graph == */
-    pisdf::applicationGraph() = api::createGraph("upper-graph", 1);
+    pisdf::applicationGraph() = api::createGraph("app-graph", 1);
 
     /* == Create the runtime platform == */
     rt::platform() = make<RTPlatform, StackID::RUNTIME>(1);

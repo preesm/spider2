@@ -194,9 +194,9 @@ std::pair<spider::srdag::JobStack, spider::srdag::JobStack> spider::srdag::Singl
         } else {
             auto &jobStack = subgraph->dynamic() ? dynaJobs : nextJobs;
             const auto &firstCloneIx = ref2Clone_[subgraph->ix()];
-            for (auto ix = firstCloneIx + subgraph->repetitionValue() - 1; ix >= firstCloneIx; --ix) {
-                auto *clone = srdag_->vertex(ix);
-                jobStack.emplace_back(subgraph, clone->ix(), ix - firstCloneIx);
+            for (auto ix = firstCloneIx + subgraph->repetitionValue(); ix > firstCloneIx; --ix) {
+                auto *clone = srdag_->vertex(ix - 1);
+                jobStack.emplace_back(subgraph, clone->ix(), ix - 1 - firstCloneIx);
 
                 /* == Copy the params == */
                 CopyParamVisitor cpyVisitor{ job_, jobStack.back().params_ };

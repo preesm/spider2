@@ -59,7 +59,7 @@ namespace spider {
 
         inline void setup() const override { };
 
-        bool execute(pisdf::Graph *graph) const override;
+        bool execute() const override;
 
         /* === Getter(s) === */
 

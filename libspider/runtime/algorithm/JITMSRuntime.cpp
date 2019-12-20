@@ -74,13 +74,13 @@ updateDynamicJobs(spider::vector<spider::srdag::TransfoJob> &src, spider::vector
 
 /* === Method(s) implementation === */
 
-bool spider::JITMSRuntime::execute(pisdf::Graph *graph) const {
-    if (!graph->graph() && graph->dynamic()) {
+bool spider::JITMSRuntime::execute() const {
+    if (!graph_->graph() && graph_->dynamic()) {
         throwSpiderException("Can not run JITMS runtime on dynamic graph without containing graph.");
     }
 
     /* == Create the Single-Rate graph == */
-    auto *srdag = api::createGraph("srdag-" + graph->name(),
+    auto *srdag = api::createGraph("srdag-" + graph_->name(),
                                    0, /* = Number of actors = */
                                    0, /* = Number of edges = */
                                    0, /* = Number of parameters = */
@@ -90,8 +90,8 @@ bool spider::JITMSRuntime::execute(pisdf::Graph *graph) const {
                                    StackID::TRANSFO);
 
     /* == Apply first transformation of root graph == */
-    auto &&rootJob = srdag::TransfoJob(graph, UINT32_MAX, UINT32_MAX, true);
-    rootJob.params_ = graph->params();
+    auto &&rootJob = srdag::TransfoJob(graph_, UINT32_MAX, UINT32_MAX, true);
+    rootJob.params_ = graph_->params();
     auto &&resultRootJob = srdag::singleRateTransformation(rootJob, srdag);
 
     /* == Initialize the job stacks == */
