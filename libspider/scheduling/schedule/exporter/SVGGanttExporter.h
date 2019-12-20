@@ -75,9 +75,7 @@ namespace spider {
          */
         void print() const override;
 
-        void print(const std::string &path) const override;
-
-        void print(std::ofstream &file) const override;
+        void printFromFile(std::ofstream &file) const override;
 
     private:
         const sched::Schedule *schedule_ = nullptr;

@@ -42,6 +42,7 @@
 
 #include <common/Logger.h>
 #include <common/Exception.h>
+#include <common/Exporter.h>
 #include <api/debug-api.h>
 #include <api/pisdf-api.h>
 #include <graphs-tools/transformation/optims/PiSDFGraphOptimizer.h>
@@ -86,7 +87,8 @@ void spider::api::exportSRDAGToDOT(pisdf::Graph *, const std::string &) {
 
 void spider::api::exportGraphToDOT(pisdf::Graph *graph, const std::string &path) {
     /* == Print the Graph == */
-    pisdf::DOTExporter(graph).print(path);
+    auto exporter =pisdf::DOTExporter(graph);
+    exporter.printFromPath(path);
 }
 
 void spider::api::enableLogger(log::Type type) {

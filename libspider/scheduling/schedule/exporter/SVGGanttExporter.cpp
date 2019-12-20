@@ -88,17 +88,10 @@ spider::SVGGanttExporter::SVGGanttExporter(const sched::Schedule *schedule,
 }
 
 void spider::SVGGanttExporter::print() const {
-    print("./gantt.svg");
+    Exporter::printFromPath("./gantt.svg");
 }
 
-void spider::SVGGanttExporter::print(const std::string &path) const {
-    std::ofstream file{ path, std::ios::out };
-    print(file);
-    /* == We should not do this manually but this will ensure that data are correctly written even if it crashes == */
-    file.close();
-}
-
-void spider::SVGGanttExporter::print(std::ofstream &file) const {
+void spider::SVGGanttExporter::printFromFile(std::ofstream &file) const {
     /* == Print header == */
     headerPrinter(file);
 

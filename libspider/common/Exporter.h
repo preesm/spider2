@@ -45,13 +45,12 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <common/Exception.h>
 
 namespace spider {
     /* === Class definition === */
 
-    class Exporter {
-    public:
-
+    struct Exporter {
         Exporter() = default;
 
         virtual ~Exporter() = default;
@@ -67,13 +66,21 @@ namespace spider {
          * @brief Open file of path "path" and print the product to the file.
          * @param path Path of the resulting file.
          */
-        virtual void print(const std::string &path) const = 0;
+        inline void printFromPath(const std::string &path) const {
+            std::ofstream file{ path, std::ios::out };
+            if (file.fail()) {
+                throwSpiderException("Failed to open file with path [%s]", path.c_str());
+            }
+            printFromFile(file);
+            /* == We should not do this manually but this will ensure that data are correctly written even if it crashes == */
+            file.close();
+        }
 
         /**
          * @brief Print the product to a given opened file.
          * @param file File to which the product will be printed.
          */
-        virtual void print(std::ofstream &file) const = 0;
+        virtual void printFromFile(std::ofstream &file) const = 0;
 
     };
 }

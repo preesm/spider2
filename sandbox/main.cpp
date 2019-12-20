@@ -167,7 +167,7 @@ void spiderTest() {
 
         {
             auto exporter = spider::pisdf::DOTExporter{ graph };
-            exporter.print("./original.dot");
+            exporter.printFromPath("./original.dot");
         }
 
 //        for (auto j = 0; j < 10; ++j)
@@ -183,7 +183,7 @@ void spiderTest() {
 
         {
             auto exporter = spider::pisdf::DOTExporter{ graph };
-            exporter.print("./new.dot");
+            exporter.printFromPath("./new.dot");
         }
 
 

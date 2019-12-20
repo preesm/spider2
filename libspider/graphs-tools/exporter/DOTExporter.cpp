@@ -50,21 +50,10 @@
 /* === Method(s) implementation === */
 
 void spider::pisdf::DOTExporter::print() const {
-    print("./pisdf-graph.dot");
+    Exporter::printFromPath("./pisdf-graph.dot");
 }
 
-void spider::pisdf::DOTExporter::print(const std::string &path) const {
-    std::ofstream file{ path, std::ios::out };
-    if (file.fail()) {
-        throwSpiderException("Failed to open file with path [%s]", path.c_str());
-    }
-    print(file);
-
-    /* == We should not do this manually but this will ensure that data are correctly written even if it crashes == */
-    file.close();
-}
-
-void spider::pisdf::DOTExporter::print(std::ofstream &file) const {
+void spider::pisdf::DOTExporter::printFromFile(std::ofstream &file) const {
     DOTExporterVisitor visitor{ file, "\t" };
     graph_->visit(&visitor);
 }

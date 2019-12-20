@@ -57,18 +57,10 @@
 /* === Method(s) implementation === */
 
 void spider::XMLGanttExporter::print() const {
-    print("./gantt.xml");
+    Exporter::printFromPath("./gantt.xml");
 }
 
-void spider::XMLGanttExporter::print(const std::string &path) const {
-    std::ofstream file{ path, std::ios::out };
-    print(file);
-
-    /* == We should not do this manually but this will ensure that data are correctly written even if it crashes == */
-    file.close();
-}
-
-void spider::XMLGanttExporter::print(std::ofstream &file) const {
+void spider::XMLGanttExporter::printFromFile(std::ofstream &file) const {
     file << "<data>" << '\n';
     for (const auto &job : schedule_->jobs()) {
         jobPrinter(file, job);
