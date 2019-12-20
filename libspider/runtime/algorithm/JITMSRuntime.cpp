@@ -129,8 +129,8 @@ bool spider::JITMSRuntime::execute() const {
         //monitor_->endSampling();
 
         /* == Run graph for dynamic params to be resolved == */
-        if (!dynamicJobStack.empty() && api::verbose() && log_enabled<LOG_TRANSFO>()) {
-            log::verbose<LOG_TRANSFO>("Running graph with config actors..\n");
+        if (!dynamicJobStack.empty() && api::verbose() && log::enabled<log::Type::TRANSFO>()) {
+            log::verbose<log::Type::TRANSFO>("Running graph with config actors..\n");
             /* == simulating values == */
             int64_t val = 10;
             for (const auto &cfg : srdag->configVertices()) {
@@ -139,13 +139,12 @@ bool spider::JITMSRuntime::execute() const {
                 val += 10;
             }
         }
-        // TODO: run graph
 
         /* == Transform dynamic graphs == */
         //monitor_->startSampling();
         while (!dynamicJobStack.empty()) {
-            if (api::verbose() && log_enabled<LOG_TRANSFO>()) {
-                log::verbose<LOG_TRANSFO>("Resolved parameters.\n");
+            if (api::verbose() && log::enabled<log::Type::TRANSFO>()) {
+                log::verbose<log::Type::TRANSFO>("Resolved parameters.\n");
             }
             /* == Transform dynamic graphs == */
             const auto &job = dynamicJobStack.back();

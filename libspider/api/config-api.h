@@ -69,16 +69,6 @@ namespace spider {
         void disableVerbose();
 
         /**
-         * @brief Enable the Logs related to the JOBs.
-         */
-        void enableJobLogs();
-
-        /**
-         * @brief Disable the Logs related to the JOBs (default behavior).
-         */
-        void disableJobLogs();
-
-        /**
          * @brief Enable the schedule optimization for static graphs (default behavior).
          */
         void enableStaticScheduleOptim();

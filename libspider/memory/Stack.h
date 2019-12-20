@@ -87,7 +87,7 @@ namespace spider {
         inline static void
         print(const char *name, uint64_t peak, uint64_t total, uint64_t sampleCount, uint64_t usage) {
             // TODO: get stack name
-            if (peak && log_enabled()) {
+            if (peak && log::enabled()) {
                 const auto &average = total / sampleCount;
                 const auto &normalizedPeak = getByteNormalizedSize(peak);
                 const auto &normalizedAverage = getByteNormalizedSize(average);

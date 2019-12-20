@@ -79,22 +79,20 @@ namespace spider {
         void exportPreExecGantt(const std::string &path);
 
         /**
-         * @brief Export the equivalent Single-Rate Directed Acyclic Graph (SR-DAG) of a graph
-         * after one graph iteration to a .dot file.
+         * @brief Export the equivalent Single-Rate Directed Acyclic Graph (SR-DAG) of a graph to a .dot file.
          * @remark This function consider that dynamic parameters have been resolved.
-         * @remark This function perform the SR-DAG transformation of the graph.
+         * @remark This function perform the SR-DAG transformation of the graph only once.
          * @param path   Path of the file.
          * @param graph  Graph to transform (default is the application graph).
          */
-        void exportSRDAG(const std::string &path = "./srdag.dot", pisdf::Graph *graph = nullptr);
+        void exportSRDAGToDOT(pisdf::Graph *graph = nullptr, const std::string &path = "./srdag.dot");
 
         /**
          * @brief Export a PiSDF graph to a .dot file.
          * @param path   Path of the file.
          * @param graph  Graph to transform (default is the application graph).
          */
-        void
-        exportGraphToDOT(const std::string &path = "./graph.dot", pisdf::Graph *graph = nullptr);
+        void exportGraphToDOT(pisdf::Graph *graph = nullptr, const std::string &path = "./graph.dot");
 
         /**
          * @brief Enable a given logger.

@@ -152,23 +152,11 @@ namespace spider {
             constexpr static const char lvl[] = "VERB";
             print<type>(green, lvl, fmt, std::forward<Args>(args)...);
         }
+
+        template<spider::log::Type type = spider::log::Type::GENERAL>
+        inline constexpr bool enabled() {
+            return spider::log::logger<type>().enabled_;
+        }
     }
 }
-
-/* === Aliases for logger === */
-
-constexpr auto LOG_LRT = spider::log::Type::LRT;
-constexpr auto LOG_TIME = spider::log::Type::TIME;
-constexpr auto LOG_GENERAL = spider::log::Type::GENERAL;
-constexpr auto LOG_MEMORY = spider::log::Type::MEMORY;
-constexpr auto LOG_SCHEDULE = spider::log::Type::SCHEDULE;
-constexpr auto LOG_TRANSFO = spider::log::Type::TRANSFO;
-constexpr auto LOG_OPTIMS = spider::log::Type::OPTIMS;
-constexpr auto LOG_EXPR = spider::log::Type::EXPR;
-
-template<spider::log::Type type = spider::log::Type::GENERAL>
-inline constexpr bool log_enabled() {
-    return spider::log::logger<type>().enabled_;
-}
-
 #endif // SPIDER2_LOGGER_H

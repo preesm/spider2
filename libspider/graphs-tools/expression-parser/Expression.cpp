@@ -109,8 +109,8 @@ static double applyOperator(StartIterator start, RPNOperatorType type) {
         case RPNOperatorType::MIN:
             return std::min((*start), (*(start + 1)));
         default:
-            if (log_enabled<LOG_EXPR>()) {
-                spider::log::error<LOG_EXPR>("Unsupported operation.\n");
+            if (spider::log::enabled<spider::log::Type::EXPR>()) {
+                spider::log::error<spider::log::Type::EXPR>("Unsupported operation.\n");
             }
     }
     return 0;
@@ -121,9 +121,9 @@ static double applyOperator(StartIterator start, RPNOperatorType type) {
 spider::Expression::Expression(std::string expression, const spider::vector<pisdf::Param *> &params) {
     /* == Get the postfix expression stack == */
     auto postfixStack = rpn::extractPostfixElements(std::move(expression));
-    if (api::verbose() && log_enabled<LOG_EXPR>()) {
-        log::verbose<LOG_EXPR>("infix expression: [%s].\n", rpn::infixString(postfixStack).c_str());
-        log::verbose<LOG_EXPR>("postfix expression: [%s].\n", rpn::postfixString(postfixStack).c_str());
+    if (api::verbose() && log::enabled<log::Type::EXPR>()) {
+        log::verbose<log::Type::EXPR>("infix expression: [%s].\n", rpn::infixString(postfixStack).c_str());
+        log::verbose<log::Type::EXPR>("postfix expression: [%s].\n", rpn::postfixString(postfixStack).c_str());
     }
 
     /* == Reorder the postfix stack elements to increase the number of static evaluation done on construction == */

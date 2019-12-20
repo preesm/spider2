@@ -315,7 +315,7 @@ spider::pisdf::Delay *spider::api::createDelay(pisdf::Edge *edge,
                                                const std::string &getterRateExpression,
                                                bool persistent,
                                                StackID stack) {
-    if (delayExpression == "0" && log_enabled()) {
+    if (delayExpression == "0" && log::enabled()) {
         log::warning("delay with null value on edge [%s] ignored.\n",
                      edge->name().c_str());
         return nullptr;

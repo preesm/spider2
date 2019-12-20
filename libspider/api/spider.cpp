@@ -130,7 +130,7 @@ void spider::start() {
     }
 
     /* == Init the Logger and enable the GENERAL Logger == */
-    log::enable<LOG_GENERAL>();
+    log::enable<log::Type::GENERAL>();
 
     /* == Enable the config flag == */
     startFlag = true;

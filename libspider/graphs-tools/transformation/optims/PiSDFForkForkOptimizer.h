@@ -136,8 +136,8 @@ bool PiSDFForkForkOptimizer::operator()(spider::pisdf::Graph *graph) const {
         }
 
         /* == Remove the vertices == */
-        if (spider::api::verbose() && log_enabled<LOG_OPTIMS>()) {
-            spider::log::verbose<LOG_OPTIMS>("ForkForkOptimizer: removing [%s] and [%s] fork vertices.\n",
+        if (spider::api::verbose() && spider::log::enabled<spider::log::Type::OPTIMS>()) {
+            spider::log::verbose<spider::log::Type::OPTIMS>("ForkForkOptimizer: removing [%s] and [%s] fork vertices.\n",
                                              secondFork->name().c_str(), firstFork->name().c_str());
         }
         graph->removeVertex(secondFork);

@@ -88,14 +88,6 @@ void spider::api::disableSRDAGOptims() {
     config_.optimizeSRDAG_ = false;
 }
 
-void spider::api::enableJobLogs() {
-    log::enable<LOG_LRT>();
-}
-
-void spider::api::disableJobLogs() {
-    log::disable<LOG_LRT>();
-}
-
 bool spider::api::exportTrace() {
     return config_.exportTrace_;
 }

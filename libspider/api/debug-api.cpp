@@ -73,7 +73,7 @@ void spider::api::exportPreExecGantt(const std::string &) {
     /* == Close the file == */
 }
 
-void spider::api::exportSRDAG(const std::string &, pisdf::Graph *) {
+void spider::api::exportSRDAGToDOT(pisdf::Graph *, const std::string &) {
     /* == Get the PiSDF graph and transform it to SR-DAG == */
 
 //    if (Spider::API::srdagOptim()) {
@@ -84,7 +84,7 @@ void spider::api::exportSRDAG(const std::string &, pisdf::Graph *) {
 //    Spider::PiSDF::DOTExporter(srdag).print(path);
 }
 
-void spider::api::exportGraphToDOT(const std::string &path, pisdf::Graph *graph) {
+void spider::api::exportGraphToDOT(pisdf::Graph *graph, const std::string &path) {
     /* == Print the Graph == */
     pisdf::DOTExporter(graph).print(path);
 }

@@ -164,7 +164,7 @@ namespace spider {
              * @remark Issue a warning if delay already has an address.
              */
             inline void setMemoryAddress(uint64_t address) {
-                if (memoryAddress_ != UINT64_MAX && log_enabled()) {
+                if (memoryAddress_ != UINT64_MAX && log::enabled()) {
                     spider::log::warning("Delay [%s] already has a memory address.\n", name().c_str());
                 }
                 memoryAddress_ = address;

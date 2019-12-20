@@ -59,7 +59,7 @@ spider::pisdf::Vertex::Vertex(const Vertex &other,
 
 
 spider::pisdf::Vertex::~Vertex() noexcept {
-    if (copyCount_ && log_enabled()) {
+    if (copyCount_ && log::enabled()) {
         log::error("Removing vertex [%s] with copies out there.\n", name().c_str());
     }
     if (reference() == this) {

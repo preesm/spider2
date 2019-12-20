@@ -73,8 +73,8 @@ bool PiSDFInitEndOptimizer::operator()(spider::pisdf::Graph *graph) const {
         auto *edge = init->outputEdge(0);
         auto *end = edge->sink();
         graph->removeEdge(edge);
-        if (spider::api::verbose() && log_enabled<LOG_OPTIMS>()) {
-            spider::log::verbose<LOG_OPTIMS>("InitEndOptimizer: removing init [%s] and end [%s] vertices.\n",
+        if (spider::api::verbose() && spider::log::enabled<spider::log::Type::OPTIMS>()) {
+            spider::log::verbose<spider::log::Type::OPTIMS>("InitEndOptimizer: removing init [%s] and end [%s] vertices.\n",
                                              init->name().c_str(), end->name().c_str());
         }
         graph->removeVertex(init);
