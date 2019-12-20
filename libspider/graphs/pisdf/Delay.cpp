@@ -138,7 +138,7 @@ std::string spider::pisdf::Delay::name() const {
 
 
 int64_t spider::pisdf::Delay::value() const {
-    return expression_.evaluate(edge_->graph()->params());
+    return expression_.evaluate();
 }
 
 int64_t spider::pisdf::Delay::value(const spider::vector<Param *> &params) const {

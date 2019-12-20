@@ -84,7 +84,7 @@ namespace spider {
             /* === Getter(s) === */
 
             inline int64_t value() const override {
-                return expression_.evaluate(graph_->params());
+                return expression_.evaluate();
             }
 
             inline int64_t value(const spider::vector<Param *> &params) const {
