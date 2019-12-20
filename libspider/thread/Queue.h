@@ -44,6 +44,7 @@
 
 #include <containers/containers.h>
 #include <thread/Semaphore.h>
+#include <runtime/interface/Notification.h>
 #include <mutex>
 
 namespace spider {
@@ -86,7 +87,7 @@ namespace spider {
          */
         inline void clear() {
             std::lock_guard<std::mutex> lock{ mutex_ };
-            while (!queue_.empty()) { queue_.pop(); }
+//            while (!queue_.empty()) { queue_.pop(); }
         }
 
         /**
@@ -98,8 +99,8 @@ namespace spider {
         inline bool pop(T &data) {
             sem_.wait();
             std::lock_guard<std::mutex> lock{ mutex_ };
-            data = std::move(static_cast<T>(queue_.front()));
-            queue_.pop();
+            data = std::move(static_cast<T>(queue_.back()));
+            queue_.pop_back();
             return true;
         }
 
@@ -114,8 +115,8 @@ namespace spider {
                 return false;
             }
             std::lock_guard<std::mutex> lock{ mutex_ };
-            data = std::move(static_cast<T>(queue_.front()));
-            queue_.pop();
+            data = std::move(static_cast<T>(queue_.back()));
+            queue_.pop_back();
             return true;
         }
 
@@ -126,14 +127,14 @@ namespace spider {
          */
         inline void push(T data) {
             std::lock_guard<std::mutex> lock{ mutex_ };
-            queue_.push(std::move(data));
+            queue_.emplace_back(std::move(data));
             sem_.notify();
         }
 
     private:
         std::mutex mutex_;
         spider::semaphore sem_;
-        spider::queue<T> queue_;
+        std::vector<T> queue_;
     };
 }
 
