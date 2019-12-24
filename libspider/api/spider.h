@@ -53,10 +53,27 @@
 
 namespace spider {
 
-    void start();
+    struct StartUpConfig {
+        bool verbose_ = false;         /* = Enable / disable the verbose = */
+        bool standAlone_ = false;      /* = Enable / disable the stand-alone mode = */
+        bool usePapify_ = false;       /* = Enable / disable the papify support (if available) = */
+        bool useApollo_ = false;       /* = Enable / disable the apollo support (if available) = */
+        bool enableGeneralLog_ = true; /* = Enable / disable the main logger = */
+        size_t standAloneClusterIx_ = SIZE_MAX; /* = Id of the current cluster in stand-alone mode = */
+        AllocatorPolicy generalStackAllocatorPolicy_ = AllocatorPolicy::GENERIC; /* = Allocation policy of the general stack = */
+    };
 
+
+    /**
+     * @brief Function to be called before any other function of the spider runtime.
+     * @param cfg  Start-up configuration tto be used on startup by spider.
+     */
+    void start(const StartUpConfig &cfg = StartUpConfig());
+
+    /**
+     * @brief Function to call at the end of the application using Spider to close correctly the runtime.
+     */
     void quit();
-
 
     namespace api {
 

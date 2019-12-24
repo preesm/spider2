@@ -54,6 +54,56 @@ static bool startFlag = false;
 
 /* === Static function(s) === */
 
+static void printSpiderStartUpLogo() {
+    spider::printer::fprintf(stderr, "\n");
+    spider::printer::fprintf(stderr, "  .;;;;;;;  ==========================================  ;;;;;;;.  \n");
+    spider::printer::fprintf(stderr, " ;;;;;;;;;          SPIDER 2.0 Runtime Library          ;;;;;;;;; \n");
+    spider::printer::fprintf(stderr, ";;;;;;;;;;  ==========================================  ;;;;;;;;;;\n");
+    spider::printer::fprintf(stderr, ";;;;;             ;8.                        :@.             ;;;;;\n");
+    spider::printer::fprintf(stderr, ";;;;;               ,@8                   .@@                ;;;;;\n");
+    spider::printer::fprintf(stderr, ";;;;;                 L@8                @@:                 ;;;;;\n");
+    spider::printer::fprintf(stderr, ";;;;;                  .@@;            C@@                   ;;;;;\n");
+    spider::printer::fprintf(stderr, ";;;;;                    @@0          @@@                    ;;;;;\n");
+    spider::printer::fprintf(stderr, ";;;;;                    .@@0        @@@                     ;;;;;\n");
+    spider::printer::fprintf(stderr, ";;;;;                     L@@1      8@@:                     ;;;;;\n");
+    spider::printer::fprintf(stderr, ";;;;;                      @@@      @@@                      ;;;;;\n");
+    spider::printer::fprintf(stderr, ";;;;;     :L@@@@@@@@t      f@@      @@,      C@@@@@@@8t,     ;;;;;\n");
+    spider::printer::fprintf(stderr, ";;;;;            :0@@@@@G   @@     .@@   8@@@@@C.            ;;;;;\n");
+    spider::printer::fprintf(stderr, ";;;;;                 ;@@@1 @@     :@8 G@@@.                 ;;;;;\n");
+    spider::printer::fprintf(stderr, ";;;;;                   L@@f8@@@@@@8@t8@@:                   ;;;;;\n");
+    spider::printer::fprintf(stderr, ";;;;;                     @@i@@@@@@@8G@8                     ;;;;;\n");
+    spider::printer::fprintf(stderr, ";;;;;      t@@@@@@@@@@@@G. L@@@@@@@@@@; ,8@@@@@@@@@@@@;      ;;;;;\n");
+    spider::printer::fprintf(stderr, ";;;;;                  C@@@@L@@@@@@@C8@@@@t                  ;;;;;\n");
+    spider::printer::fprintf(stderr, ";;;;;                       :,@@@@@0:,                       ;;;;;\n");
+    spider::printer::fprintf(stderr, ";;;;;                      t@@@@@@@@@@:                      ;;;;;\n");
+    spider::printer::fprintf(stderr, ";;;;;                   .@@@8@@@@@@@@@@@C                    ;;;;;\n");
+    spider::printer::fprintf(stderr, ";;;;;                  1@@@ @@@0ii0@@f.@@@.                  ;;;;;\n");
+    spider::printer::fprintf(stderr, ";;;;;                 C@@C  @@,@8G@,@f  @@@;                 ;;;;;\n");
+    spider::printer::fprintf(stderr, ";;;;;                i@@1   ;@8.  ,8@    0@@                 ;;;;;\n");
+    spider::printer::fprintf(stderr, ";;;;;                @@:     ;@@@@@@.     C@8                ;;;;;\n");
+    spider::printer::fprintf(stderr, ";;;;;               i@.         ,,         1@                ;;;;;\n");
+    spider::printer::fprintf(stderr, ";;;;;               0                        @               ;;;;;\n");
+    spider::printer::fprintf(stderr, ";;;;;;;;;;                                              ;;;;;;;;;;\n");
+    spider::printer::fprintf(stderr, " ;;;;;;;;;                                              ;;;;;;;;; \n");
+    spider::printer::fprintf(stderr, "  .;;;;;;;                                              ;;;;;;;.  \n");
+    spider::printer::fprintf(stderr, "\n");
+}
+
+static void printConfig(const spider::StartUpConfig &cfg) {
+    printSpiderStartUpLogo();
+    spider::printer::fprintf(stderr, "==============================\n");
+    spider::printer::fprintf(stderr, " Start-up configuration:\n");
+    spider::printer::fprintf(stderr, "      verbose:        %s\n", cfg.verbose_ ? "ENABLED" : "DISABLED");
+    spider::printer::fprintf(stderr, "      papify:         %s\n", cfg.usePapify_ ? "ENABLED" : "DISABLED");
+    spider::printer::fprintf(stderr, "      apollo:         %s\n", cfg.useApollo_ ? "ENABLED" : "DISABLED");
+    spider::printer::fprintf(stderr, "      general-log:    %s\n", cfg.enableGeneralLog_ ? "ENABLED" : "DISABLED");
+    spider::printer::fprintf(stderr, "      stand-alone:    %s\n", cfg.standAlone_ ? "ENABLED" : "DISABLED");
+    if (cfg.standAlone_) {
+        spider::printer::fprintf(stderr, "      stand-alone ix: %zu\n", cfg.standAloneClusterIx_);
+    }
+    spider::printer::fprintf(stderr, "==============================\n");
+}
+
 /* === Function(s) definition === */
 
 void spider::api::setStackAllocatorPolicy(StackID stackId,
@@ -78,10 +128,13 @@ void spider::api::setStackAllocatorPolicy(StackID stackId,
     }
 }
 
-void spider::start() {
+void spider::start(const StartUpConfig &cfg) {
     if (startFlag) {
         throwSpiderException("spider::start() function should be called only once.");
     }
+
+    /* == Print the configuration == */
+    printConfig(cfg);
 
     /* == Initialize stacks == */
     auto it = EnumIterator<StackID>{ }.begin();
@@ -96,7 +149,14 @@ void spider::start() {
     rt::platform() = make<RTPlatform, StackID::RUNTIME>(1);
 
     /* == Init the Logger and enable the GENERAL Logger == */
-    log::enable<log::Type::GENERAL>();
+    if (cfg.enableGeneralLog_) {
+        log::enable<log::Type::GENERAL>();
+    }
+
+    /* == Enable the verbose == */
+    if (cfg.verbose_) {
+        api::enableVerbose();
+    }
 
     /* == Enable the config flag == */
     startFlag = true;
