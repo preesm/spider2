@@ -37,8 +37,8 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_JITMSRUNTIME_H
-#define SPIDER2_JITMSRUNTIME_H
+#ifndef SPIDER2_STATICJITMSRUNTIME_H
+#define SPIDER2_STATICJITMSRUNTIME_H
 
 /* === Include(s) === */
 
@@ -49,15 +49,13 @@ namespace spider {
     /* === Class definition === */
 
     /**
-     * @brief JITMS runtime to handle dynamic application.
-     * @remark see: https://tel.archives-ouvertes.fr/tel-01301642/file/These_HEULOT_Julien.pdf
+     * @brief Static JITMS runtime, uses the same structure but can only handle static application.
      */
-    class JITMSRuntime final : public Runtime {
+    class StaticJITMSRuntime final : public Runtime {
     public:
+        explicit StaticJITMSRuntime(pisdf::Graph *graph) : Runtime(graph) { };
 
-        explicit JITMSRuntime(pisdf::Graph *graph) : Runtime(graph) { };
-
-        ~JITMSRuntime() override = default;
+        ~StaticJITMSRuntime() override = default;
 
         /* === Method(s) === */
 
@@ -71,10 +69,6 @@ namespace spider {
 
     private:
 
-        /* === Private method(s) === */
     };
-
-    /* === Inline method(s) === */
-
 }
-#endif //SPIDER2_JITMSRUNTIME_H
+#endif //SPIDER2_STATICJITMSRUNTIME_H

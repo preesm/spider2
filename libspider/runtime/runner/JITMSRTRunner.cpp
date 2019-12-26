@@ -79,7 +79,7 @@ void spider::JITMSRTRunner::run(bool infiniteLoop) {
             canRun = isJobRunnable(job);
             if (canRun) {
                 if (log::enabled<log::Type::LRT>()) {
-                    log::info<log::Type::LRT>("Runner #%zu -> starting job %zu\n ", ix(), jobQueueCurrentPos_);
+                    log::info<log::Type::LRT>("Runner #%zu -> starting job %zu.\n", ix(), jobQueueCurrentPos_);
                 }
 
                 /* == Run the job == */
