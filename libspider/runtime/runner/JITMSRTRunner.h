@@ -52,13 +52,17 @@ namespace spider {
     class JITMSRTRunner final : public RTRunner {
     public:
 
-        JITMSRTRunner(PE *attachedPE, size_t runnerIx) : RTRunner(attachedPE, runnerIx) { }
+        JITMSRTRunner(PE *attachedPE, size_t runnerIx, int32_t affinity = -1) : RTRunner(attachedPE,
+                                                                                         runnerIx,
+                                                                                         affinity) { }
 
         ~JITMSRTRunner() override = default;
 
         /* === Method(s) === */
 
         void run(bool infiniteLoop) override;
+
+        static void start(JITMSRTRunner *runner);
 
         /* === Getter(s) === */
 

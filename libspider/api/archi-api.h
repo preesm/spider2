@@ -169,15 +169,14 @@ namespace spider {
          * @brief Create a new Processing Element (PE).
          * @param hwType        S-LAM user defined hardware type.
          * @param hwID          Physical hardware id of the PE (mainly used for thread affinity).
-         * @param virtID        S-LAM used defined PE id.
          * @param cluster       Cluster of the PE.
          * @param name          Name of the PE.
-         * @param spiderPEType  Spider PE type.
-         * @param spiderHWType  Spider hardware type.
+         * @param type          Spider PE type.
+         * @param affinity      Optional thread affinity.
          * @return Pointer to newly created @refitem ProcessingElement, associated memory is handled by spider.
          */
         PE *createProcessingElement(uint32_t hwType, uint32_t hwID, Cluster *cluster, std::string name,
-                                    PEType type = PEType::LRT);
+                                    PEType type = PEType::LRT, int32_t affinity = -1);
 
         /**
          * @brief Set the SpiderPEType of a given PE.

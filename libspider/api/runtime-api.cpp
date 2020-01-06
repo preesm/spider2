@@ -56,33 +56,73 @@
 #include <runtime/common/RTKernel.h>
 #include <runtime/runner/JITMSRTRunner.h>
 #include <runtime/interface/ThreadRTCommunicator.h>
+#include <zconf.h>
 
 
 /* === Runtime platform related API === */
 
-spider::RTRunner *spider::api::createJITMSRuntimeRunner(spider::PE *attachedPE, size_t runnerIx) {
-    if (!rt::platform()) {
-        throwSpiderException("the runtime platform has not yet been created.");
+//spider::RTRunner *spider::api::createJITMSRuntimeRunner(spider::PE *attachedPE, size_t runnerIx) {
+//    if (!rt::platform()) {
+//        throwSpiderException("the runtime platform has not yet been created.");
+//    }
+//    if (runnerIx >= archi::platform()->LRTCount()) {
+//        throwSpiderException("runner ix #%zu is greater than the number of LRT #%zu.", runnerIx,
+//                             archi::platform()->LRTCount());
+//    }
+//    auto *runner = make<JITMSRTRunner, StackID::RUNTIME>(attachedPE, runnerIx);
+//    rt::platform()->addRunner(runner);
+//    return runner;
+//}
+//
+//spider::RTCommunicator *spider::api::createThreadRTCommunicator() {
+//    if (!rt::platform()) {
+//        throwSpiderException("the runtime platform has not yet been created.");
+//    }
+//    if (rt::platform()->communicator()) {
+//        throwSpiderException("already existing communicator.");
+//    }
+//    auto *communicator = make<ThreadRTCommunicator, StackID::RUNTIME>(archi::platform()->LRTCount());
+//    rt::platform()->setCommunicator(communicator);
+//    return communicator;
+//}
+
+
+
+void spider::api::createRTPlatform() {
+    auto *platform = archi::platform();
+    if (!platform) {
+        throwSpiderException("createRTPlatform should be called after definition of the physical platform.");
     }
-    if (runnerIx >= archi::platform()->LRTCount()) {
-        throwSpiderException("runner ix #%zu is greater than the number of LRT #%zu.", runnerIx,
-                             archi::platform()->LRTCount());
+    auto *&rtPlatform = rt::platform();
+    if (rtPlatform) {
+        throwSpiderException("there can be only one runtime platform.");
     }
-    auto *runner = make<JITMSRTRunner, StackID::RUNTIME>(attachedPE, runnerIx);
-    rt::platform()->addRunner(runner);
-    return runner;
+    rtPlatform = make<RTPlatform, StackID::RUNTIME>(platform->LRTCount());
 }
 
-spider::RTCommunicator *spider::api::createThreadRTCommunicator() {
-    if (!rt::platform()) {
-        throwSpiderException("the runtime platform has not yet been created.");
+void spider::api::finalizeRTPlatform() {
+    auto *platform = archi::platform();
+    if (!platform) {
+        throwSpiderException("the physical platform has not yet been created.");
     }
-    if (rt::platform()->communicator()) {
-        throwSpiderException("already existing communicator.");
+    auto *&rtPlatform = rt::platform();
+    if (!rtPlatform) {
+        throwSpiderException("the runtime platform should exist.");
     }
-    auto *communicator = make<ThreadRTCommunicator, StackID::RUNTIME>(archi::platform()->LRTCount());
-    rt::platform()->setCommunicator(communicator);
-    return communicator;
+
+    /* == Create the communicator == */
+    auto *communicator = make<ThreadRTCommunicator, StackID::RUNTIME>(platform->LRTCount());
+    rtPlatform->setCommunicator(communicator);
+
+    /* == Create the runtime runners == */
+    size_t runnerIx = 0;
+    for (auto &pe : platform->processingElements()) {
+        if (pe->isLRT()) {
+            auto *runner = make<JITMSRTRunner, StackID::RUNTIME>(pe, runnerIx++, pe->threadAffinity());
+            auto *th = make<spider::thread, StackID::RUNTIME>(JITMSRTRunner::start, runner);
+            rtPlatform->addRunner(runner, th);
+        }
+    }
 }
 
 /* === Runtime kernel related API === */

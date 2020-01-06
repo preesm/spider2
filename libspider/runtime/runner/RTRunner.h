@@ -66,7 +66,9 @@ namespace spider {
     class RTRunner {
     public:
 
-        RTRunner(PE *attachedPE, size_t runnerIx) : attachedPE_{ attachedPE }, runnerIx_{ runnerIx } {
+        RTRunner(PE *attachedPE, size_t runnerIx, int32_t affinity = -1) : attachedPE_{ attachedPE },
+                                                                           runnerIx_{ runnerIx },
+                                                                           affinity_{ affinity } {
             auto *platform = archi::platform();
             localJobStampsArray_ = spider::array<size_t>{ platform->LRTCount(), SIZE_MAX, StackID::RUNTIME };
         }
@@ -92,6 +94,7 @@ namespace spider {
         spider::array<size_t> localJobStampsArray_;
         PE *attachedPE_ = nullptr;
         size_t runnerIx_ = SIZE_MAX;
+        int32_t affinity_ = -1;
         size_t jobQueueCurrentPos_ = 0;
         bool stop_ = false;
 

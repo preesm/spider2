@@ -170,11 +170,16 @@ spider::Cluster *spider::api::createCluster(size_t PECount, MemoryUnit *memoryUn
 /* === PE related API === */
 
 spider::PE *
-spider::api::createProcessingElement(uint32_t hwType, uint32_t hwID, Cluster *cluster, std::string name, PEType type) {
+spider::api::createProcessingElement(uint32_t hwType,
+                                     uint32_t hwID,
+                                     Cluster *cluster,
+                                     std::string name,
+                                     PEType type,
+                                     int32_t affinity) {
     if (!cluster) {
         throwSpiderException("nullptr for Cluster");
     }
-    auto *processingElement = make<PE, StackID::ARCHI>(hwType, hwID, cluster, std::move(name), type);
+    auto *processingElement = make<PE, StackID::ARCHI>(hwType, hwID, cluster, std::move(name), type, affinity);
     processingElement->enable();
     cluster->addPE(processingElement);
     return processingElement;

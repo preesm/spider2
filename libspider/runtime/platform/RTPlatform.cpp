@@ -42,22 +42,40 @@
 
 #include <runtime/platform/RTPlatform.h>
 #include <runtime/runner/RTRunner.h>
+#include <archi/PE.h>
 
 /* === Function(s) definition === */
 
 spider::RTPlatform::~RTPlatform() {
+    /* == Send notification to exit to runners == */
+    for (auto &runner : runnerArray_) {
+        communicator_->push(Notification(NotificationType::LRT,
+                                         LRTNotifification::STOP,
+                                         archi::platform()->spiderGRTPE()->virtualIx()),
+                            runner->ix());
+    }
+
+    /* == Wait for all the thread to finish == */
+    for (auto &thread : threadArray_) {
+        thread->join();
+    }
+
     for (auto &kernel : runtimeKernels_) {
         destroy(kernel);
     }
     for (auto &runner : runnerArray_) {
         destroy(runner);
     }
+    for (auto &thread : threadArray_) {
+        destroy(thread);
+    }
     destroy(communicator_);
 }
 
-void spider::RTPlatform::addRunner(spider::RTRunner *runner) {
+void spider::RTPlatform::addRunner(spider::RTRunner *runner, spider::thread *thread) {
     if (!runner) {
         return;
     }
     runnerArray_.at(runner->ix()) = runner;
+    threadArray_.at(runner->ix()) = thread;
 }

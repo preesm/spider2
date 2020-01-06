@@ -40,6 +40,7 @@
 
 /* === Include(s) === */
 
+#include <thread/Thread.h>
 #include <runtime/runner/JITMSRTRunner.h>
 #include <runtime/interface/RTCommunicator.h>
 #include <archi/MemoryInterface.h>
@@ -52,6 +53,9 @@
 void spider::JITMSRTRunner::run(bool infiniteLoop) {
     bool run = true;
     bool canRun = true;
+    if (infiniteLoop) {
+        log::info("Runner #%zu -> hello from thread %" PRId32"\n", ix(), this_thread::get_affinity());
+    }
     while (run && !stop_) {
         /* == Check for notifications == */
         bool blockingPop = (infiniteLoop && (jobQueueCurrentPos_ < jobQueue_.size())) || !canRun;
@@ -118,6 +122,19 @@ void spider::JITMSRTRunner::run(bool infiniteLoop) {
                 broadcastJobStamps();
             }
         }
+    }
+}
+
+void spider::JITMSRTRunner::start(JITMSRTRunner *runner) {
+    if (!runner) {
+        throwSpiderException("nullptr runner.");
+    }
+    if (runner->affinity_ >= 0) {
+        this_thread::set_affinity(runner->affinity_);
+    }
+    auto *platform = archi::platform();
+    if (runner->attachedProcessingElement() != platform->spiderGRTPE()) {
+        runner->run(true);
     }
 }
 

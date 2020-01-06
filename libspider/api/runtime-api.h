@@ -61,23 +61,27 @@ namespace spider {
 
         /* === Runtime platform related API === */
 
-        /**
-         * @brief Creates a new @refitem JITMSRTRunner.
-         * @param attachedPE  Pointer to the processing element attached to the runner.
-         * @param runnerIx    Index of the runner (must be linear and start from 0 to NB_RUNNER).
-         * @return pointer to the created @refitem RTRunner.
-         * @throws spider::Exception if the runnerIx is greater than the number of local runtime or if the
-         *         runtime platform has not been created.
-         */
-        RTRunner *createJITMSRuntimeRunner(PE *attachedPE, size_t runnerIx);
+//        /**
+//         * @brief Creates a new @refitem JITMSRTRunner.
+//         * @param attachedPE  Pointer to the processing element attached to the runner.
+//         * @param runnerIx    Index of the runner (must be linear and start from 0 to NB_RUNNER).
+//         * @return pointer to the created @refitem RTRunner.
+//         * @throws spider::Exception if the runnerIx is greater than the number of local runtime or if the
+//         *         runtime platform has not been created.
+//         */
+//        RTRunner *createJITMSRuntimeRunner(PE *attachedPE, size_t runnerIx);
+//
+//        /**
+//         * @brief Creates the @refitem ThreadRTCommunicator
+//         * @return pointer to the create @refitem RTCommunicator.
+//         * @throws spider::Exception if a communicator already exists in the platform or if the
+//         *         runtime platform has not been created.
+//         */
+//        RTCommunicator *createThreadRTCommunicator();
 
-        /**
-         * @brief Creates the @refitem ThreadRTCommunicator
-         * @return pointer to the create @refitem RTCommunicator.
-         * @throws spider::Exception if a communicator already exists in the platform or if the
-         *         runtime platform has not been created.
-         */
-        RTCommunicator *createThreadRTCommunicator();
+        void createRTPlatform();
+
+        void finalizeRTPlatform();
 
         /* === Runtime kernel related API === */
 

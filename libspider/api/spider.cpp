@@ -149,9 +149,6 @@ void spider::start(const StartUpConfig &cfg) {
     /* == Create the upper top-graph that will contains the application top-graph == */
     pisdf::applicationGraph() = api::createGraph("app-graph", 1);
 
-    /* == Create the runtime platform == */
-    rt::platform() = make<RTPlatform, StackID::RUNTIME>(1);
-
     /* == Init the Logger and enable the GENERAL Logger == */
     if (cfg.enableGeneralLog_) {
         log::enable<log::Type::GENERAL>();
@@ -170,11 +167,11 @@ void spider::quit() {
     /* == Destroy the spider::pisdf::Graph == */
     destroy(pisdf::applicationGraph());
 
-    /* == Destroy the Platform == */
-    destroy(archi::platform());
-
     /* == Destroy the runtime Platform == */
     destroy(rt::platform());
+
+    /* == Destroy the Platform == */
+    destroy(archi::platform());
 
     /* == Clear the stacks == */
     uint64_t totalUsage = 0;
