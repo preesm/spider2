@@ -132,6 +132,12 @@ struct RPNElement {
     RPNElement(RPNElementType type, RPNElementSubType subtype, std::string token = "") : type{ type },
                                                                                          subtype{ subtype },
                                                                                          token{ std::move(token) } { }
+
+    inline bool operator==(const RPNElement &other) const {
+        return (type == other.type) && (subtype == other.subtype) && (token == other.token);
+    }
+
+    inline bool operator!=(const RPNElement &other) const { return !((*this) == other); }
 };
 
 namespace spider {

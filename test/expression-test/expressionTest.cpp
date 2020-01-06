@@ -73,7 +73,7 @@ TEST_F(expressionTest, expressionCtorTest) {
     ASSERT_NO_THROW(Expression(Expression(10))) << "Expression(Expression &&) failed.";
     auto tmp = Expression("10 * 11");
     ASSERT_NO_THROW(Expression(tmp)) << "Expression(const Expression &) failed.";
-    ASSERT_THROW(Expression("width", {}), spider::Exception)
+    ASSERT_THROW(Expression("width", { }), spider::Exception)
                                 << "Parameterized Expression should throw when parameter is not found.";
     ASSERT_THROW(Expression("width"), spider::Exception)
                                 << "Parameterized Expression should throw when no parameter is given.";
@@ -115,6 +115,15 @@ TEST_F(expressionTest, expression2StringTest) {
                                 << "Dynamic parameterized Expression to string failed.";;
     spider::destroy(width);
     spider::destroy(height);
+}
+
+TEST_F(expressionTest, testEquality) {
+    ASSERT_EQ(Expression("4*3"), Expression("4*3")) << "Expression::operator== static expression should be equal.";
+    ASSERT_NE(Expression("4*3"), Expression("4*3.1")) << "Expression::operator== static expression should not be equal.";
+    ASSERT_EQ(Expression("4*3"), Expression("3*4")) << "Expression::operator== order should influence equality on static Expression";
+    auto *param = spider::api::createDynamicParam(nullptr, "width");
+    ASSERT_EQ(Expression("3*width", { param }), Expression("3*width", { param })) << "Expression::operator== parameterized expression should be equal.";
+    ASSERT_NE(Expression("3*width", { param }), Expression("width*3", { param })) << "Expression::operator== order matters.";
 }
 
 TEST_F(expressionTest, expressionOperatorsTest) {

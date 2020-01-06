@@ -68,6 +68,12 @@ namespace spider {
         ExpressionElt &operator=(const ExpressionElt &) = default;
 
         explicit ExpressionElt(RPNElement elt) : elt_{ std::move(elt) } { }
+
+        inline bool operator==(const ExpressionElt &second) const {
+            return (elt_ == second.elt_) && ((arg.value_ == second.arg.value_) || (arg.opType_ == second.arg.opType_));
+        }
+
+        inline bool operator!=(const ExpressionElt &other) const { return !((*this) == other); }
     };
 
     /* === Class definition === */
@@ -109,6 +115,17 @@ namespace spider {
         inline Expression &operator=(Expression temp) {
             swap(*this, temp);
             return *this;
+        }
+
+        inline bool operator==(const Expression &other) const {
+            if (this->static_) {
+                return other.static_ & (this->value_ == other.value_);
+            }
+            return (*(expressionStack_)) == (*(other.expressionStack_));
+        }
+
+        inline bool operator!=(const Expression &other) const {
+            return !((*this) == other);
         }
 
         /* === Methods === */
