@@ -60,8 +60,7 @@ namespace spider {
     class RTPlatform {
     public:
 
-        explicit RTPlatform(size_t runnerCount = 0) : runnerArray_{ runnerCount, nullptr, StackID::RUNTIME },
-                                                      threadArray_{ runnerCount, nullptr, StackID::RUNTIME } { }
+        explicit RTPlatform(size_t runnerCount = 0) : runnerArray_{ runnerCount, nullptr, StackID::RUNTIME } { }
 
         virtual ~RTPlatform();
 
@@ -71,10 +70,9 @@ namespace spider {
          * @brief Adds an @refitem RTRunner to the RTPlatform.
          * @remark if runner is nullptr, nothing happens.
          * @param runner Pointer to the runner to add.
-         * @param thread Pointer to the associated thread of the runner.
          * @throws std::out_of_range index of the runner is not valid.
          */
-        void addRunner(RTRunner *runner, spider::thread *thread);
+        void addRunner(RTRunner *runner);
 
         /**
          * @brief Add a @refitem RTKernel to the RTPlatform.
@@ -95,6 +93,8 @@ namespace spider {
             }
             return (*res)->ix();
         }
+
+        virtual void createRunnerRessource(RTRunner *) = 0;
 
         /* === Getter(s) === */
 
@@ -142,9 +142,8 @@ namespace spider {
             communicator_ = communicator;
         }
 
-    private:
+    protected:
         spider::array<RTRunner *> runnerArray_;                     /*= Array of RTRunner = */
-        spider::array<spider::thread *> threadArray_;               /*= Array of thread = */
         stack_vector(runtimeKernels_, RTKernel*, StackID::RUNTIME); /* = Vector of RTKernel = */
         RTCommunicator *communicator_ = nullptr;                    /* = Communicator of the RTPlatform = */
     };

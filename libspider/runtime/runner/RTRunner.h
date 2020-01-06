@@ -79,6 +79,15 @@ namespace spider {
 
         virtual void run(bool infiniteLoop) = 0;
 
+        inline static void start(RTRunner *runner) {
+            if (!runner) {
+                throwSpiderException("nullptr runner.");
+            }
+            runner->begin();
+        }
+
+        virtual void begin() = 0;
+
         /* === Getter(s) === */
 
         inline size_t ix() const {

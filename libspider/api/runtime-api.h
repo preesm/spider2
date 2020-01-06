@@ -79,7 +79,7 @@ namespace spider {
 //         */
 //        RTCommunicator *createThreadRTCommunicator();
 
-        void createRTPlatform();
+        void createThreadRTPlatform();
 
         void finalizeRTPlatform();
 

@@ -64,13 +64,13 @@ namespace spider {
            Cluster *cluster,
            std::string name = "unnamed-PE",
            PEType type = PEType::LRT,
-           int32_t threadAffinity = -1) : hwType_{ hwType },
-                                          hwIx_{ hwIx },
-                                          threadAffinity_{ threadAffinity },
-                                          name_{ std::move(name) },
-                                          type_{ type },
-                                          cluster_{ cluster },
-                                          attachedLRT_{ this } { };
+           int32_t affinity = -1) : hwType_{ hwType },
+                                    hwIx_{ hwIx },
+                                    affinity_{ affinity },
+                                    name_{ std::move(name) },
+                                    type_{ type },
+                                    cluster_{ cluster },
+                                    attachedLRT_{ this } { };
 
         ~PE() = default;
 
@@ -102,8 +102,8 @@ namespace spider {
             return name_;
         }
 
-        inline int32_t threadAffinity() const {
-            return threadAffinity_;
+        inline int32_t affinity() const {
+            return affinity_;
         }
 
         /**
@@ -214,7 +214,7 @@ namespace spider {
 
         uint32_t hwType_ = 0;             /* = S-LAM user hardware type = */
         uint32_t hwIx_ = 0;               /* = Hardware on which PE runs (core ix) = */
-        int32_t threadAffinity_ = -1;     /* = Thread affinity of the PE (optional) = */
+        int32_t affinity_ = -1;     /* = Thread affinity of the PE (optional) = */
         size_t virtIx_ = SIZE_MAX;        /* = Linear virtual unique IX used by Spider for fast access to PE = */
         std::string name_ = "unnamed-pe"; /* = S-LAM user name of the PE = */
 

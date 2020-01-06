@@ -62,7 +62,7 @@ namespace spider {
 
         void run(bool infiniteLoop) override;
 
-        static void start(JITMSRTRunner *runner);
+        void begin() override;
 
         /* === Getter(s) === */
 

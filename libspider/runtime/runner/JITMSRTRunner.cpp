@@ -125,16 +125,13 @@ void spider::JITMSRTRunner::run(bool infiniteLoop) {
     }
 }
 
-void spider::JITMSRTRunner::start(JITMSRTRunner *runner) {
-    if (!runner) {
-        throwSpiderException("nullptr runner.");
-    }
-    if (runner->affinity_ >= 0) {
-        this_thread::set_affinity(runner->affinity_);
+void spider::JITMSRTRunner::begin() {
+    if (affinity_ >= 0) {
+        this_thread::set_affinity(affinity_);
     }
     auto *platform = archi::platform();
-    if (runner->attachedProcessingElement() != platform->spiderGRTPE()) {
-        runner->run(true);
+    if (attachedPE_ != platform->spiderGRTPE()) {
+        run(true);
     }
 }
 
