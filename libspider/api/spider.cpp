@@ -54,6 +54,10 @@ static bool startFlag = false;
 
 /* === Static function(s) === */
 
+static const char *printFlagStatus(bool flag) {
+    return flag ? "ENABLED" : "DISABLED";
+}
+
 static void printSpiderStartUpLogo() {
     spider::printer::fprintf(stderr, "\n");
     spider::printer::fprintf(stderr, "  .;;;;;;;  ==========================================  ;;;;;;;.  \n");
@@ -93,11 +97,11 @@ static void printConfig(const spider::StartUpConfig &cfg) {
     printSpiderStartUpLogo();
     spider::printer::fprintf(stderr, "==============================\n");
     spider::printer::fprintf(stderr, " Start-up configuration:\n");
-    spider::printer::fprintf(stderr, "      verbose:        %s\n", cfg.verbose_ ? "ENABLED" : "DISABLED");
-    spider::printer::fprintf(stderr, "      papify:         %s\n", cfg.usePapify_ ? "ENABLED" : "DISABLED");
-    spider::printer::fprintf(stderr, "      apollo:         %s\n", cfg.useApollo_ ? "ENABLED" : "DISABLED");
-    spider::printer::fprintf(stderr, "      general-log:    %s\n", cfg.enableGeneralLog_ ? "ENABLED" : "DISABLED");
-    spider::printer::fprintf(stderr, "      stand-alone:    %s\n", cfg.standAlone_ ? "ENABLED" : "DISABLED");
+    spider::printer::fprintf(stderr, "      verbose:        %s\n", printFlagStatus(cfg.verbose_));
+    spider::printer::fprintf(stderr, "      papify:         %s\n", printFlagStatus(cfg.usePapify_));
+    spider::printer::fprintf(stderr, "      apollo:         %s\n", printFlagStatus(cfg.useApollo_));
+    spider::printer::fprintf(stderr, "      general-log:    %s\n", printFlagStatus(cfg.enableGeneralLog_));
+    spider::printer::fprintf(stderr, "      stand-alone:    %s\n", printFlagStatus(cfg.standAlone_));
     if (cfg.standAlone_) {
         spider::printer::fprintf(stderr, "      stand-alone ix: %zu\n", cfg.standAloneClusterIx_);
     }
