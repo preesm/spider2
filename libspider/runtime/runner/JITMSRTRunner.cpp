@@ -58,7 +58,7 @@ void spider::JITMSRTRunner::run(bool infiniteLoop) {
     }
     while (run && !stop_) {
         /* == Check for notifications == */
-        bool blockingPop = (infiniteLoop && (jobQueueCurrentPos_ < jobQueue_.size())) || !canRun;
+        bool blockingPop = (infiniteLoop && (jobQueueCurrentPos_ <= jobQueue_.size())) || !canRun;
         while (readNotification(blockingPop)) {
             blockingPop = false;
         }
