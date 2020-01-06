@@ -59,7 +59,7 @@ namespace spider {
     class RTPlatform {
     public:
 
-        explicit RTPlatform(size_t runnerCount = 0) : runnerArray_{ runnerCount, StackID::RUNTIME } { }
+        explicit RTPlatform(size_t runnerCount = 0) : runnerArray_{ runnerCount, nullptr, StackID::RUNTIME } { }
 
         virtual ~RTPlatform();
 
