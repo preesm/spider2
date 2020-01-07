@@ -97,11 +97,12 @@ namespace spider {
                 /* == Clone the vertex == */
                 ix_ = 0;
                 for (uint32_t it = 0; it < graph->repetitionValue(); ++it) {
-                    const auto *clone = api::createVertex(srdag_,
-                                                          buildCloneName(graph, it),
-                                                          static_cast<uint32_t>(graph->inputEdgeCount()),
-                                                          static_cast<uint32_t>(graph->outputEdgeCount()),
-                                                          StackID::TRANSFO);
+                    auto *clone = api::createVertex(srdag_,
+                                                    buildCloneName(graph, it),
+                                                    static_cast<uint32_t>(graph->inputEdgeCount()),
+                                                    static_cast<uint32_t>(graph->outputEdgeCount()),
+                                                    StackID::TRANSFO);
+                    clone->setReference(graph);
                     ix_ = clone->ix();
                 }
                 ix_ = ix_ - (graph->repetitionValue() - 1);

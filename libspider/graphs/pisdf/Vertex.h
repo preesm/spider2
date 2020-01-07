@@ -295,6 +295,14 @@ namespace spider {
                 }
             }
 
+            inline void setReference(const Vertex *ref) {
+                if (!ref || (this != reference_)) {
+                    return;
+                }
+                ref->copyCount_ += 1;
+                reference_ = ref;
+            }
+
         protected:
             std::string name_ = "unnamed-vertex";     /* = Name of the Vertex (uniqueness is not required) = */
             spider::vector<Edge *> inputEdgeVector_;  /* = Vector of input Edge = */
