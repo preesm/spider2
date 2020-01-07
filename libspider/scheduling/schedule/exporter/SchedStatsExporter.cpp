@@ -68,6 +68,14 @@ void spider::SchedStatsExporter::printFromFile(std::ofstream &file) const {
         file << "\t >> load time:          " << stats.loadTime(pe->virtualIx()) << '\n';
         file << "\t >> idle time:          " << stats.idleTime(pe->virtualIx()) << '\n';
         file << "\t >> utilization factor: " << stats.utilizationFactor(pe->virtualIx()) << '\n';
+        if (stats.jobCount(pe->virtualIx())) {
+            file << "\t >> job list: " << '\n';
+            for (auto &job : schedule_->jobs()) {
+                if (job.mappingInfo().PEIx == pe->virtualIx()) {
+                    file << "\t\t >> {"<< job.mappingInfo().startTime << "," << job.mappingInfo().endTime << "}" << '\n';
+                }
+            }
+        }
     }
     file << std::endl;
 }
