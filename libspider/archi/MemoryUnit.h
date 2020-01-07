@@ -64,8 +64,8 @@ namespace spider {
          * @return size value on success, UINT64_MAX on failure.
          */
         inline uint64_t allocate(uint64_t size) {
-            if (size >= available()) {
-                used_ += size_;
+            if (size <= available()) {
+                used_ += size;
                 return size;
             }
             return UINT64_MAX;
