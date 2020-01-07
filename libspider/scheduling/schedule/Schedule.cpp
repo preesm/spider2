@@ -54,6 +54,7 @@ void spider::sched::Schedule::clear() {
 
     /* == Reset the stats the platform == */
     stats_.reset();
+    currentJobIx_ = 0;
 }
 
 void spider::sched::Schedule::reset() {
@@ -67,6 +68,7 @@ void spider::sched::Schedule::update(sched::Job &job) {
     const auto &st = job.mappingInfo().startTime;
     const auto &et = job.mappingInfo().endTime;
     const auto &PE = job.mappingInfo().PEIx;
+    job.setIx(currentJobIx_++);
     stats_.updateStartTime(PE, st);
     stats_.updateIDLETime(PE, st - stats_.endTime(PE));
     stats_.updateEndTime(PE, et);
@@ -75,9 +77,10 @@ void spider::sched::Schedule::update(sched::Job &job) {
 }
 
 void spider::sched::Schedule::setJobCount(size_t count) {
-    jobs_.clear();
+//    jobs_.clear();
     jobs_.reserve(count);
-    for (size_t i = 0; i < count; ++i) {
+    const auto &oldSize = jobs_.size();
+    for (size_t i = oldSize; i < count; ++i) {
         jobs_.emplace_back(static_cast<uint32_t>(i));
     }
 }

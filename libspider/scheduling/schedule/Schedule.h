@@ -124,6 +124,7 @@ namespace spider {
         private:
             stack_vector(jobs_, Job, StackID::SCHEDULE);
             Stats stats_;
+            size_t currentJobIx_ = 0;
 
             /* === Private method(s) === */
         };
