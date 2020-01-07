@@ -76,7 +76,7 @@ namespace spider {
 
     enum JobNotification : uint16_t {
         ADD = 0,                    /*!< Signal LRT that a job is available in shared queue */
-        LAST_ID,                    /*!< Signal LRT what is the last job ID */
+        JOB_COUNT,                    /*!< Signal LRT what is the last job ID */
         CLEAR_QUEUE,                /*!< Signal LRT to clear its job queue (if LRT_REPEAT_ITERATION_EN, signal is ignored) */
         SENT_PARAM,                 /*!< Signal that LRT sent a ParameterMessage */
         BROADCAST_JOBSTAMP,         /*!< Signal LRT to broadcast its job stamp to everybody */
