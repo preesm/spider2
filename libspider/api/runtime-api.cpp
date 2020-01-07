@@ -142,7 +142,7 @@ void spider::api::finalizeRTPlatform() {
 
     /* == Create the runtime runners == */
     size_t runnerIx = 0;
-    for (auto &pe : platform->processingElements()) {
+    for (auto &pe : platform->peArray()) {
         if (pe->isLRT()) {
             auto *runner = make<JITMSRTRunner, StackID::RUNTIME>(pe, runnerIx++, pe->affinity());
             rtPlatform->addRunner(runner);

@@ -130,7 +130,7 @@ size_t spider::Platform::LRTCount() const {
 }
 
 spider::Platform::InterMemoryInterface
-spider::Platform::getClusterToClusterMemoryInterface(spider::Cluster *clusterA, spider::Cluster *clusterB) {
+spider::Platform::getClusterToClusterMemoryInterface(spider::Cluster *clusterA, spider::Cluster *clusterB) const {
     if (clusterA == clusterB) {
         return std::make_pair(clusterA->memoryInterface(), clusterA->memoryInterface());
     }
@@ -161,7 +161,7 @@ void spider::Platform::setClusterToClusterMemoryInterface(spider::Cluster *clust
 }
 
 
-uint64_t spider::Platform::dataCommunicationCostPEToPE(PE *peSrc, PE *peSnk, uint64_t dataSize) {
+uint64_t spider::Platform::dataCommunicationCostPEToPE(PE *peSrc, PE *peSnk, uint64_t dataSize) const {
     /* == Get the interface between cluster if needed == */
     if (peSrc->cluster() != peSnk->cluster()) {
         /* == For inter cluster communication, cost is a bit more complicated to compute == */

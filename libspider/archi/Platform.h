@@ -92,7 +92,7 @@ namespace spider {
          * @param dataSize   Size (in byte) of the data to send / receive.
          * @return communication cost (UINT64_MAX if communication is not possible).
          */
-        uint64_t dataCommunicationCostPEToPE(PE *peSrc, PE *peSnk, uint64_t dataSize);
+        uint64_t dataCommunicationCostPEToPE(PE *peSrc, PE *peSnk, uint64_t dataSize) const;
 
 
         /* === Getter(s) === */
@@ -162,14 +162,24 @@ namespace spider {
          * @return @refitem InterMemoryInterface
          * @throws std::out_of_range if not found.
          */
-        InterMemoryInterface getClusterToClusterMemoryInterface(Cluster *clusterA, Cluster *clusterB);
+        InterMemoryInterface getClusterToClusterMemoryInterface(Cluster *clusterA, Cluster *clusterB) const;
 
         /**
          * @brief Returns the linear array of processing element (order is not guaranteed to respect Cluster order).
          * @return @refitem spider::array of pointer of @refitem PE.
          */
-        inline const spider::array<PE *> &processingElements() const {
+        inline const spider::array<PE *> &peArray() const {
             return peArray_;
+        }
+
+        /**
+         * @brief Returns pointer to the processing element of index ix.
+         * @param ix   Value of the index of the processing element.
+         * @return pointer to @refitem PE.
+         * @throw std::out_of_range if ix is invalid.
+         */
+        inline PE *processingElement(size_t ix) const {
+            return peArray_.at(ix);
         }
 
         /* === Setter(s) === */
