@@ -100,13 +100,13 @@ bool PiSDFJoinForkOptimizer::operator()(spider::pisdf::Graph *graph) const {
         spider::array<EdgeLinker> sourceArray{ join->inputEdgeCount(), StackID::TRANSFO };
         spider::array<EdgeLinker> sinkArray{ fork->outputEdgeCount(), StackID::TRANSFO };
 
-        for (auto *edge : join->inputEdgeArray()) {
+        for (auto *edge : join->inputEdgeVector()) {
             const auto &rate = static_cast<uint64_t>(edge->sourceRateExpression().evaluate(params));
             sourceArray[edge->sinkPortIx()] = EdgeLinker{ edge->source(), rate, edge->sourcePortIx() };
             graph->removeEdge(edge);
         }
         graph->removeEdge(join->outputEdge(0));
-        for (auto *edge : fork->outputEdgeArray()) {
+        for (auto *edge : fork->outputEdgeVector()) {
             const auto &rate = static_cast<uint64_t>(edge->sinkRateExpression().evaluate(params));
             sinkArray[edge->sourcePortIx()] = EdgeLinker{ edge->sink(), rate, edge->sinkPortIx() };
             graph->removeEdge(edge);

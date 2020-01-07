@@ -91,8 +91,8 @@ namespace spider {
                 std::swap(subgraphVector_, other.subgraphVector_);
                 std::swap(edgeVector_, other.edgeVector_);
                 std::swap(paramVector_, other.paramVector_);
-                std::swap(inputInterfaceArray_, other.inputInterfaceArray_);
-                std::swap(outputInterfaceArray_, other.outputInterfaceArray_);
+                std::swap(inputInterfaceVector_, other.inputInterfaceVector_);
+                std::swap(outputInterfaceVector_, other.outputInterfaceVector_);
             };
 
             ~Graph() noexcept override;
@@ -175,6 +175,10 @@ namespace spider {
             }
 
             /* === Getter(s) === */
+
+            inline bool isTopGraph() const {
+                return (graph() == nullptr) || (graph()->name() == "app-graph");
+            }
 
             inline VertexType subtype() const override {
                 return VertexType::GRAPH;
@@ -259,18 +263,18 @@ namespace spider {
 
             /**
             * @brief A const reference on the set of output interfaces. Useful for iterating on the input interfaces.
-            * @return const reference to input interface array
+            * @return const reference to input interface vector
             */
-            inline const spider::array<InputInterface *> &inputInterfaceArray() const {
-                return inputInterfaceArray_;
+            inline const spider::vector<InputInterface *> &inputInterfaceVector() const {
+                return inputInterfaceVector_;
             }
 
             /**
             * @brief A const reference on the set of output interfaces. Useful for iterating on the output interfaces.
-            * @return const reference to output interface array
+            * @return const reference to output interface vector
             */
-            inline const spider::array<OutputInterface *> &outputInterfaceArray() const {
-                return outputInterfaceArray_;
+            inline const spider::vector<OutputInterface *> &outputInterfaceVector() const {
+                return outputInterfaceVector_;
             }
 
             /**
@@ -318,7 +322,7 @@ namespace spider {
              * @return @refitem InputInterface pointer
              */
             inline InputInterface *inputInterface(size_t ix) const {
-                return inputInterfaceArray_[ix];
+                return inputInterfaceVector_[ix];
             }
 
             /**
@@ -330,7 +334,7 @@ namespace spider {
              * @return @refitem OutputInterface pointer
              */
             inline OutputInterface *outputInterface(size_t ix) const {
-                return outputInterfaceArray_[ix];
+                return outputInterfaceVector_[ix];
             }
 
             /**
@@ -354,8 +358,8 @@ namespace spider {
             spider::vector<Graph *> *subgraphVector_ = nullptr;            /* = Vector of subgraph (if any). This is just a "viewer" vector. = */
             spider::vector<Edge *> *edgeVector_ = nullptr;                 /* = Vector of Edge contained in the Graph = */
             spider::vector<Param *> *paramVector_ = nullptr;               /* = Vector of Param = */
-            spider::array<InputInterface *> inputInterfaceArray_;          /* = Array of InputInterface (size is equal to inputEdgeArray_.size()) = */
-            spider::array<OutputInterface *> outputInterfaceArray_;        /* = Array of OutputInterface (size is equal to outputEdgeArray_.size()) = */
+            spider::vector<InputInterface *> inputInterfaceVector_;        /* = Array of InputInterface (size is equal to inputEdgeArray_.size()) = */
+            spider::vector<OutputInterface *> outputInterfaceVector_;      /* = Array of OutputInterface (size is equal to outputEdgeArray_.size()) = */
 
             /* === Private method(s) === */
 

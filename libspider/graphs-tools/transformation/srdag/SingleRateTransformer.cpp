@@ -162,7 +162,7 @@ void spider::srdag::SingleRateTransformer::replaceInterfaces() {
     }
 
     /* == 1. Replace the input interfaces == */
-    for (const auto &interface : job_.reference_->inputInterfaceArray()) {
+    for (const auto &interface : job_.reference_->inputInterfaceVector()) {
         auto *edge = instance->inputEdge(interface->ix());
         auto &&name = instance->name() + "_" + interface->name();
         auto *vertex = api::createRepeat(srdag_, std::move(name), StackID::TRANSFO);
@@ -171,7 +171,7 @@ void spider::srdag::SingleRateTransformer::replaceInterfaces() {
     }
 
     /* == 2. Replace the output interfaces == */
-    for (const auto &interface : job_.reference_->outputInterfaceArray()) {
+    for (const auto &interface : job_.reference_->outputInterfaceVector()) {
         auto *edge = instance->outputEdge(interface->ix());
         auto &&name = instance->name() + "_" + interface->name();
         auto *vertex = api::createTail(srdag_, std::move(name), 1, StackID::TRANSFO);

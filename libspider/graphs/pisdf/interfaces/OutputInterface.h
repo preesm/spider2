@@ -73,7 +73,7 @@ namespace spider {
             /* === Getter(s) === */
 
             inline Edge *inputEdge() const override {
-                return inputEdgeArray_[0];
+                return inputEdgeVector_[0];
             }
 
             inline Edge *outputEdge() const override {
@@ -81,7 +81,7 @@ namespace spider {
             }
 
             inline Vertex *opposite() const override {
-                return inputEdgeArray_[0]->source();
+                return inputEdgeVector_[0]->source();
             }
 
             /**

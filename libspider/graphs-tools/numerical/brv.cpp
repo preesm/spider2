@@ -115,7 +115,7 @@ spider::brv::extractConnectedComponents(const pisdf::Graph *graph) {
 
                 /* == Scan output edges == */
                 component.edgeCount_ += currentVertex->outputEdgeCount();
-                for (const auto *edge : currentVertex->outputEdgeArray()) {
+                for (const auto *edge : currentVertex->outputEdgeVector()) {
                     if (!edge) {
                         throwSpiderException("Vertex [%s] has null output edge.", currentVertex->name().c_str());
                     }
@@ -128,7 +128,7 @@ spider::brv::extractConnectedComponents(const pisdf::Graph *graph) {
                 }
 
                 /* == Scan input edges == */
-                for (const auto *edge : currentVertex->inputEdgeArray()) {
+                for (const auto *edge : currentVertex->inputEdgeVector()) {
                     if (!edge) {
                         throwSpiderException("Vertex [%s] has null input edge.", currentVertex->name().c_str());
                     }
@@ -155,10 +155,10 @@ spider::brv::extractEdgesFromComponent(const ConnectedComponent &component) {
     spider::array<const pisdf::Edge *> edgeArray{ component.edgeCount_, StackID::TRANSFO };
     size_t index = 0;
     for (const auto &vertex : component.vertexVector_) {
-        for (const auto &edge: vertex->outputEdgeArray()) {
+        for (const auto &edge: vertex->outputEdgeVector()) {
             edgeArray[index++] = edge;
         }
-        for (const auto &edge: vertex->inputEdgeArray()) {
+        for (const auto &edge: vertex->inputEdgeVector()) {
             if (edge->source()->subtype() == pisdf::VertexType::INPUT) {
                 edgeArray[index++] = edge;
             }
@@ -216,10 +216,10 @@ void spider::brv::updateBRV(const ConnectedComponent &component, const spider::v
     /* == Compute the scale factor == */
     UpdateBRVVisitor brvVisitor{ scaleRVFactor, params };
     for (const auto &v : component.vertexVector_) {
-        for (const auto &edge : v->inputEdgeArray()) {
+        for (const auto &edge : v->inputEdgeVector()) {
             edge->source()->visit(&brvVisitor);
         }
-        for (const auto &edge : v->outputEdgeArray()) {
+        for (const auto &edge : v->outputEdgeVector()) {
             edge->sink()->visit(&brvVisitor);
         }
     }

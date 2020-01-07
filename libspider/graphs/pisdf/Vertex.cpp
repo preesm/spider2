@@ -47,13 +47,13 @@
 
 spider::pisdf::Vertex::Vertex(const Vertex &other,
                               StackID stack) : name_{ other.name_ },
-                                               inputEdgeArray_{ other.inputEdgeArray_.size(), nullptr, stack },
-                                               outputEdgeArray_{ other.outputEdgeArray_.size(), nullptr, stack },
                                                reference_{ &other },
                                                graph_{ other.graph_ },
                                                ix_{ other.ix_ },
                                                repetitionValue_{ other.repetitionValue_ },
                                                copyCount_{ 0 } {
+    inputEdgeVector_ = containers::vector<Edge *>(other.inputEdgeVector_.size(), nullptr, stack);
+    outputEdgeVector_ = containers::vector<Edge *>(other.outputEdgeVector_.size(), nullptr, stack);
 }
 
 
@@ -64,16 +64,16 @@ spider::pisdf::Vertex::~Vertex() noexcept {
     this->reference_->copyCount_ -= 1;
 
     /* == If got any Edges left disconnect them == */
-    for (size_t ix = 0; ix < inputEdgeArray_.size(); ++ix) {
+    for (size_t ix = 0; ix < inputEdgeVector_.size(); ++ix) {
         disconnectInputEdge(ix);
     }
-    for (size_t ix = 0; ix < outputEdgeArray_.size(); ++ix) {
+    for (size_t ix = 0; ix < outputEdgeVector_.size(); ++ix) {
         disconnectOutputEdge(ix);
     }
 }
 
 spider::pisdf::Edge *spider::pisdf::Vertex::disconnectInputEdge(size_t ix) {
-    auto *edge = disconnectEdge(inputEdgeArray_, ix);
+    auto *edge = disconnectEdge(inputEdgeVector_, ix);
     if (edge) {
         /* == Reset the Edge == */
         edge->setSink(nullptr, SIZE_MAX, Expression());
@@ -82,7 +82,7 @@ spider::pisdf::Edge *spider::pisdf::Vertex::disconnectInputEdge(size_t ix) {
 }
 
 spider::pisdf::Edge *spider::pisdf::Vertex::disconnectOutputEdge(size_t ix) {
-    auto *edge = disconnectEdge(outputEdgeArray_, ix);
+    auto *edge = disconnectEdge(outputEdgeVector_, ix);
     if (edge) {
         /* == Reset the Edge == */
         edge->setSource(nullptr, SIZE_MAX, Expression());
@@ -90,7 +90,7 @@ spider::pisdf::Edge *spider::pisdf::Vertex::disconnectOutputEdge(size_t ix) {
     return edge;
 }
 
-spider::pisdf::Edge *spider::pisdf::Vertex::disconnectEdge(spider::array<Edge *> &edges, size_t ix) {
+spider::pisdf::Edge *spider::pisdf::Vertex::disconnectEdge(spider::vector<Edge *> &edges, size_t ix) {
     auto *&edge = edges.at(ix);
     Edge *ret = edge;
     if (edge) {
@@ -99,7 +99,7 @@ spider::pisdf::Edge *spider::pisdf::Vertex::disconnectEdge(spider::array<Edge *>
     return ret;
 }
 
-void spider::pisdf::Vertex::connectEdge(spider::array<Edge *> &edges, Edge *edge, size_t ix) {
+void spider::pisdf::Vertex::connectEdge(spider::vector<Edge *> &edges, Edge *edge, size_t ix) {
     auto *&current = edges.at(ix);
     if (!current) {
         current = edge;

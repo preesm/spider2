@@ -48,7 +48,7 @@
 #include <graphs/pisdf/interfaces/InputInterface.h>
 #include <graphs/pisdf/interfaces/OutputInterface.h>
 #include <graphs/pisdf/Param.h>
-
+#include <graphs/pisdf/Delay.h>
 
 /* === Method(s) implementation === */
 
@@ -62,15 +62,15 @@ spider::pisdf::Graph::Graph(std::string name,
                             StackID stack) : Vertex(std::move(name),
                                                     edgeINCount,
                                                     edgeOUTCount,
-                                                    stack),
-                                             inputInterfaceArray_{ edgeINCount, stack },
-                                             outputInterfaceArray_{ edgeOUTCount, stack } {
+                                                    stack) {
     /* == Create the vectors on corresponding stack == */
     vertexVector_ = make<spider::vector<Vertex *>>(stack, containers::vector<Vertex *>(stack));
     configVertexVector_ = make<spider::vector<ConfigVertex *>>(stack, containers::vector<ConfigVertex *>(stack));
     subgraphVector_ = make<spider::vector<Graph *>>(stack, containers::vector<Graph *>(stack));
     edgeVector_ = make<spider::vector<Edge *>>(stack, containers::vector<Edge *>(stack));
     paramVector_ = make<spider::vector<Param *>>(stack, containers::vector<Param *>(stack));
+    inputInterfaceVector_ = containers::vector<InputInterface *>(edgeINCount, nullptr, stack);
+    outputInterfaceVector_ = containers::vector<OutputInterface *>(edgeOUTCount, nullptr, stack);
 
     /* == Reserve the memory == */
     vertexVector_->reserve(vertexCount);
@@ -82,7 +82,7 @@ spider::pisdf::Graph::Graph(std::string name,
     for (uint32_t i = 0; i < edgeINCount; ++i) {
         auto *interface = make<InputInterface>(stack, "in_" + std::to_string(i), stack);
         interface->setIx(i);
-        inputInterfaceArray_[i] = interface;
+        inputInterfaceVector_[i] = interface;
         interface->setGraph(this);
     }
 
@@ -90,7 +90,7 @@ spider::pisdf::Graph::Graph(std::string name,
     for (uint32_t i = 0; i < edgeOUTCount; ++i) {
         auto *interface = make<OutputInterface>(stack, "out_" + std::to_string(i), stack);
         interface->setIx(i);
-        outputInterfaceArray_[i] = interface;
+        outputInterfaceVector_[i] = interface;
         interface->setGraph(this);
     }
 }
@@ -115,10 +115,10 @@ spider::pisdf::Graph::~Graph() noexcept {
     destroy(subgraphVector_);
 
     /* == Destroy / deallocate interfaces == */
-    for (auto &interface : inputInterfaceArray_) {
+    for (auto &interface : inputInterfaceVector_) {
         destroy(interface);
     }
-    for (auto &interface : outputInterfaceArray_) {
+    for (auto &interface : outputInterfaceVector_) {
         destroy(interface);
     }
 

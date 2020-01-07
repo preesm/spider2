@@ -450,6 +450,60 @@ namespace spider {
                                   int64_t getterRate = 0,
                                   bool persistent = true,
                                   StackID stack = StackID::PISDF);
+
+        /**
+         * @brief Creates a fully-persistent @refitem pisdf::Delay on a given @refitem pisdf::Edge.
+         * @remarks
+         * - If the delay is in a hierarchy it will be put up to the top-level.
+         * - For more details on the persistence of the delays: https://hal.archives-ouvertes.fr/hal-01850252/document
+         * @param edge             Pointer to the edge the Delay should be created on.
+         * @param delayExpression  Expression of the delay (can be parameterized but NON dynamic).
+         * @param stack            Stack on which the delay should be created.
+         * @return pointer to the created @refitem pisdf::Delay.
+         */
+        pisdf::Delay *
+        createPersistentDelay(pisdf::Edge *edge, std::string delayExpression, StackID stack = StackID::PISDF);
+
+        /**
+         * @brief Creates a locally-persistent @refitem pisdf::Delay on a given @refitem pisdf::Edge.
+         * @remarks
+         * - If the delay is in a hierarchy it will be put up to the top-level.
+         * - For more details on the persistence of the delays: https://hal.archives-ouvertes.fr/hal-01850252/document
+         * @param edge             Pointer to the edge the Delay should be created on.
+         * @param delayExpression  Expression of the delay (can be parameterized but NON dynamic).
+         * @param levelCount       Number of levels the delay should persist.
+         * @param stack            Stack on which the delay should be created.
+         * @return pointer to the created @refitem pisdf::Delay.
+         */
+        pisdf::Delay *
+        createLocalPersistentDelay(pisdf::Edge *edge, std::string delayExpression, int32_t levelCount = 1,
+                                   StackID stack = StackID::PISDF);
+
+        /**
+         * @brief Creates a non-persistent @refitem pisdf::Delay on a given @refitem pisdf::Edge.
+         * @remarks
+         * - If the delay is in a hierarchy it will be put up to the top-level.
+         * - For more details on the persistence of the delays: https://hal.archives-ouvertes.fr/hal-01850252/document
+         * @param edge                  Pointer to the edge the Delay should be created on.
+         * @param delayExpression       Expression of the delay (can be parameterized but NON dynamic).
+         * @param setter                Pointer to the setter vertex of the delay (can be nullptr).
+         * @param setterPortIx          Index of the edge in the outputEdgeArray of the setter vertex.
+         * @param setterRateExpression  Expression of the production rate on the edge from the setter to the delay.
+         * @param getter                Pointer to the getter vertex of the delay (can be nullptr).
+         * @param getterPortIx          Index of the edge in the inputEdgeArray of the getter vertex.
+         * @param getterRateExpression  Expression of the consumption rate on the edge from the delay to the getter.
+         * @param stack                 Stack on which the delay should be created.
+         * @return pointer to the created @refitem pisdf::Delay.
+         */
+        pisdf::Delay *createLocalDelay(pisdf::Edge *edge,
+                                       std::string delayExpression,
+                                       pisdf::ExecVertex *setter = nullptr,
+                                       uint32_t setterPortIx = 0,
+                                       std::string setterRateExpression = "0",
+                                       pisdf::ExecVertex *getter = nullptr,
+                                       uint32_t getterPortIx = 0,
+                                       std::string getterRateExpression = "0",
+                                       StackID stack = StackID::PISDF);
     }
 }
 

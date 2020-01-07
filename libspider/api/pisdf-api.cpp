@@ -71,6 +71,9 @@ spider::pisdf::Graph *spider::api::createUserApplicationGraph(std::string name,
     if (pisdf::applicationGraph()->subgraphCount()) {
         throwSpiderException("Can have only one user application graph inside spider.");
     }
+    if (name == "app-graph") {
+        throwSpiderException("Unauthorized name: \"app-graph\" is a reserved name for graphs by Spider.");
+    }
     return createSubgraph(pisdf::applicationGraph(),
                           std::move(name),
                           actorCount,
@@ -90,6 +93,9 @@ spider::pisdf::Graph *spider::api::createGraph(std::string name,
                                                uint32_t outIFCount,
                                                uint32_t cfgActorCount,
                                                StackID stack) {
+    if (name == "app-graph") {
+        throwSpiderException("Unauthorized name: \"app-graph\" is a reserved name for graphs by Spider.");
+    }
     return make<pisdf::Graph>(stack,
                               std::move(name),
                               actorCount,
@@ -112,6 +118,9 @@ spider::pisdf::Graph *spider::api::createSubgraph(pisdf::Graph *graph,
                                                   StackID stack) {
     if (!graph) {
         throwSpiderException("trying to create a subgraph %s with no parent.", name.c_str());
+    }
+    if (name == "app-graph") {
+        throwSpiderException("Unauthorized name: \"app-graph\" is a reserved name for graphs by Spider.");
     }
     auto *subgraph = make<pisdf::Graph>(stack,
                                         std::move(name),
@@ -439,4 +448,85 @@ spider::pisdf::Delay *spider::api::createDelay(pisdf::Edge *edge,
                               getterPortIx,
                               Expression(getter ? getterRate : value),
                               persistent);
+}
+
+static spider::Expression checkAndGetExpression(spider::pisdf::Edge *edge,
+                                                std::string delayExpression) {
+//    if (delayExpression == "0" && spider::log::enabled()) {
+//        spider::log::warning("delay with null value on edge [%s] ignored.\n",
+//                     edge->name().c_str());
+//    }
+    if (!edge) {
+        throwSpiderException("Can not create Edge on nullptr edge.");
+    }
+    auto *graph = edge->graph();
+    auto expression = spider::Expression(std::move(delayExpression), graph->params());
+    if (expression.dynamic()) {
+        throwSpiderException("Spider 2.0 does not yet support dynamic delay.");
+    }
+    return expression;
+}
+
+spider::pisdf::Delay *spider::api::createPersistentDelay(spider::pisdf::Edge *edge,
+                                                         std::string delayExpression,
+                                                         StackID stack) {
+    auto expression = checkAndGetExpression(edge, std::move(delayExpression));
+    auto *graph = edge->graph();
+    while (!graph->isTopGraph()) {
+        /* == We need to make it persist up to the top-level == */
+        /* == 0. Creates the interfaces == */
+        /* == 1. Connect the delay to the edge and the interfaces == */
+    }
+    return make<pisdf::Delay>(stack,
+                              std::move(expression),
+                              edge,
+                              nullptr,
+                              0,
+                              Expression(""),
+                              nullptr,
+                              0,
+                              Expression(""),
+                              true);
+}
+
+spider::pisdf::Delay *spider::api::createLocalPersistentDelay(pisdf::Edge *edge,
+                                                              std::string delayExpression,
+                                                              int32_t levelCount,
+                                                              StackID stack) {
+    auto expression = checkAndGetExpression(edge, std::move(delayExpression));
+//    auto *graph = edge->graph();
+    return make<pisdf::Delay>(stack,
+                              std::move(expression),
+                              edge,
+                              nullptr,
+                              0,
+                              Expression(""),
+                              nullptr,
+                              0,
+                              Expression(""),
+                              false);
+}
+
+spider::pisdf::Delay *spider::api::createLocalDelay(pisdf::Edge *edge,
+                                                    std::string delayExpression,
+                                                    pisdf::ExecVertex *setter,
+                                                    uint32_t setterPortIx,
+                                                    std::string setterRateExpression,
+                                                    pisdf::ExecVertex *getter,
+                                                    uint32_t getterPortIx,
+                                                    std::string getterRateExpression,
+                                                    StackID stack) {
+    auto expression = checkAndGetExpression(edge, std::move(delayExpression));
+    auto setterExpr = setter ? std::move(setterRateExpression) : std::to_string(expression.value());
+    auto getterExpr = getter ? std::move(getterRateExpression) : std::to_string(expression.value());
+    return make<pisdf::Delay>(stack,
+                              std::move(expression),
+                              edge,
+                              setter,
+                              setterPortIx,
+                              Expression(std::move(setterExpr), edge->graph()->params()),
+                              getter,
+                              getterPortIx,
+                              Expression(std::move(getterExpr), edge->graph()->params()),
+                              false);
 }

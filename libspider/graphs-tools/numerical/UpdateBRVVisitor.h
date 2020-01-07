@@ -67,7 +67,7 @@ namespace spider {
              * @param vertex  Config vertex evaluated.
              */
             inline void visit(pisdf::ConfigVertex *vertex) override {
-                for (const auto &edge : vertex->outputEdgeArray()) {
+                for (const auto &edge : vertex->outputEdgeVector()) {
                     updateFromInputIf(edge);
                 }
             }

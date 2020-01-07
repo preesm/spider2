@@ -147,7 +147,8 @@ void spider::start(const StartUpConfig &cfg) {
     }
 
     /* == Create the upper top-graph that will contains the application top-graph == */
-    pisdf::applicationGraph() = api::createGraph("app-graph", 1);
+    pisdf::applicationGraph() = api::createGraph("", 1);
+    pisdf::applicationGraph()->setName("app-graph");
 
     /* == Init the Logger and enable the GENERAL Logger == */
     if (cfg.enableGeneralLog_) {

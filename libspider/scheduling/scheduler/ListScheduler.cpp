@@ -58,7 +58,7 @@ int64_t spider::ListScheduler::computeScheduleLevel(ListVertex &listVertex,
         auto *platform = archi::platform();
         auto *vertex = listVertex.vertex_;
         int64_t level = 0;
-        for (auto &edge : vertex->outputEdgeArray()) {
+        for (auto &edge : vertex->outputEdgeVector()) {
             auto *sink = edge->sink();
             if (sink && sink->executable()) {
                 auto *constraints = sink->runtimeInformation();

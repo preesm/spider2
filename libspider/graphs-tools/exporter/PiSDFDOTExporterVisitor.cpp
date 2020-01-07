@@ -72,10 +72,10 @@ void spider::pisdf::PiSDFDOTExporterVisitor::visit(Graph *graph) {
 
     /* == Write interfaces in case of hierarchical graphs == */
     file_ << '\n' << offset_ << R"(// Interfaces)" << '\n';
-    for (const auto &interface : graph->inputInterfaceArray()) {
+    for (const auto &interface : graph->inputInterfaceVector()) {
         interface->visit(this);
     }
-    for (const auto &interface : graph->outputInterfaceArray()) {
+    for (const auto &interface : graph->outputInterfaceVector()) {
         interface->visit(this);
     }
 
@@ -117,14 +117,14 @@ std::pair<int32_t, int32_t> spider::pisdf::PiSDFDOTExporterVisitor::computeConst
 
     /* == Get the maximum number of digits == */
     double longestRateLen = 0;
-    for (const auto &e: vertex->inputEdgeArray()) {
+    for (const auto &e: vertex->inputEdgeVector()) {
         if (!e) {
             throwSpiderException("vertex [%s]: null input edge.", vertex->name().c_str());
         }
         const auto &rate = e->sinkRateExpression().evaluate((*params_));
         longestRateLen = std::max(longestRateLen, std::log10(rate));
     }
-    for (const auto &e: vertex->outputEdgeArray()) {
+    for (const auto &e: vertex->outputEdgeVector()) {
         if (!e) {
             throwSpiderException("vertex [%s]: null output edge.", vertex->name().c_str());
         }
@@ -156,7 +156,7 @@ void spider::pisdf::PiSDFDOTExporterVisitor::vertexPrinter(ExecVertex *vertex,
 
     /* == Export data ports == */
     uint32_t nOutput = 0;
-    for (const auto &edge : vertex->inputEdgeArray()) {
+    for (const auto &edge : vertex->inputEdgeVector()) {
         file_ << offset_ << '\t' << '\t'
               << R"(<tr> <td border="0" style="invis" colspan="4" fixedsize="false" height="10"></td></tr>)"
               << '\n';

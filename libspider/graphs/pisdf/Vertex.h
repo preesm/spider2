@@ -67,9 +67,9 @@ namespace spider {
                             size_t edgeINCount = 0,
                             size_t edgeOUTCount = 0,
                             StackID stack = StackID::PISDF) :
-                    name_{ std::move(name) },
-                    inputEdgeArray_{ edgeINCount, nullptr, stack },
-                    outputEdgeArray_{ edgeOUTCount, nullptr, stack } {
+                    name_{ std::move(name) } {
+                inputEdgeVector_ = containers::vector<Edge *>(edgeINCount, nullptr, stack);
+                outputEdgeVector_ = containers::vector<Edge *>(edgeOUTCount, nullptr, stack);
             }
 
             Vertex(const Vertex &other, StackID stack = StackID::PISDF);
@@ -93,7 +93,7 @@ namespace spider {
              * @throw @refitem Spide::rException if out of bound or already existing edge.
              */
             inline virtual void connectInputEdge(Edge *edge, size_t ix) {
-                connectEdge(inputEdgeArray_, edge, ix);
+                connectEdge(inputEdgeVector_, edge, ix);
             }
 
             /**
@@ -103,7 +103,7 @@ namespace spider {
              * @throw @refitem Spider::Exception if out of bound or already existing edge.
              */
             inline virtual void connectOutputEdge(Edge *edge, size_t ix) {
-                connectEdge(outputEdgeArray_, edge, ix);
+                connectEdge(outputEdgeVector_, edge, ix);
             }
 
             /**
@@ -173,8 +173,8 @@ namespace spider {
              * @brief A const reference on the array of input edges. Useful for iterating on the edges.
              * @return const reference to input edge array
              */
-            inline const spider::array<Edge *> &inputEdgeArray() const {
-                return inputEdgeArray_;
+            inline const spider::vector<Edge *> &inputEdgeVector() const {
+                return inputEdgeVector_;
             }
 
             /**
@@ -184,7 +184,7 @@ namespace spider {
              * @throw @refitem Spider::Exception if out of bound
              */
             inline Edge *inputEdge(size_t ix) const {
-                return inputEdgeArray_.at(ix);
+                return inputEdgeVector_.at(ix);
             }
 
             /**
@@ -192,15 +192,15 @@ namespace spider {
              * @return number of input edges.
              */
             inline size_t inputEdgeCount() const {
-                return inputEdgeArray_.size();
+                return inputEdgeVector_.size();
             }
 
             /**
              * @brief A const reference on the array of output edges. Useful for iterating on the edges.
              * @return const reference to output edge array
              */
-            inline const spider::array<Edge *> &outputEdgeArray() const {
-                return outputEdgeArray_;
+            inline const spider::vector<Edge *> &outputEdgeVector() const {
+                return outputEdgeVector_;
             }
 
             /**
@@ -210,7 +210,7 @@ namespace spider {
              * @throw @refitem Spider::Exception if out of bound.
              */
             inline Edge *outputEdge(size_t ix) const {
-                return outputEdgeArray_.at(ix);
+                return outputEdgeVector_.at(ix);
             }
 
             /**
@@ -218,7 +218,7 @@ namespace spider {
              * @return number of output edges.
              */
             inline size_t outputEdgeCount() const {
-                return outputEdgeArray_.size();
+                return outputEdgeVector_.size();
             }
 
             /**
@@ -296,21 +296,21 @@ namespace spider {
             }
 
         protected:
-            std::string name_ = "unnamed-vertex";   /* = Name of the Vertex (uniqueness is not required) = */
-            spider::array<Edge *> inputEdgeArray_;  /* = Array of input Edge = */
-            spider::array<Edge *> outputEdgeArray_; /* = Array of output Edge = */
-            const Vertex *reference_ = this;        /* = Pointer to the reference Vertex. Default is this, in case of copy, this is the original Vertex = */
-            Graph *graph_ = nullptr;                /* = Containing Graph of the Vertex (can be nullptr) = */
-            RTInfo *rtInformation_ = nullptr;       /* = Runtime information of the Vertex (timing, mappable, etc.) = */
-            uint32_t ix_ = UINT32_MAX;              /* = Index of the Vertex in the containing Graph = */
-            uint32_t repetitionValue_ = 1;          /* = Repetition value of the Vertex, default is 1 but it can be set to 0. = */
-            mutable uint32_t copyCount_ = 0;        /* = Number of copy of the Vertex = */
+            std::string name_ = "unnamed-vertex";     /* = Name of the Vertex (uniqueness is not required) = */
+            spider::vector<Edge *> inputEdgeVector_;  /* = Vector of input Edge = */
+            spider::vector<Edge *> outputEdgeVector_; /* = Vector of output Edge = */
+            const Vertex *reference_ = this;          /* = Pointer to the reference Vertex. Default is this, in case of copy, this is the original Vertex = */
+            Graph *graph_ = nullptr;                  /* = Containing Graph of the Vertex (can be nullptr) = */
+            RTInfo *rtInformation_ = nullptr;         /* = Runtime information of the Vertex (timing, mappable, etc.) = */
+            uint32_t ix_ = UINT32_MAX;                /* = Index of the Vertex in the containing Graph = */
+            uint32_t repetitionValue_ = 1;            /* = Repetition value of the Vertex, default is 1 but it can be set to 0. = */
+            mutable uint32_t copyCount_ = 0;          /* = Number of copy of the Vertex = */
 
             /* === Private method(s) === */
 
-            static Edge *disconnectEdge(spider::array<Edge *> &edges, size_t ix);
+            static Edge *disconnectEdge(spider::vector<Edge *> &edges, size_t ix);
 
-            static void connectEdge(spider::array<Edge *> &edges, Edge *edge, size_t ix);
+            static void connectEdge(spider::vector<Edge *> &edges, Edge *edge, size_t ix);
         };
     }
 }

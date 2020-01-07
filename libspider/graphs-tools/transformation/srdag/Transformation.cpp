@@ -59,14 +59,14 @@ spider::srdag::splitDynamicGraph(pisdf::Graph *subgraph) {
     uint32_t initOutputIFCount = 0;
     uint32_t cfgInputIFCount = 0;
     for (const auto &cfg : subgraph->configVertices()) {
-        for (const auto &edge : cfg->inputEdgeArray()) {
+        for (const auto &edge : cfg->inputEdgeVector()) {
             const auto &source = edge->source();
             if (source->subtype() != pisdf::VertexType::INPUT) {
                 throwSpiderException("Config vertex can not have source of type other than interface.");
             }
             initInputIFCount += 1;
         }
-        for (const auto &edge : cfg->outputEdgeArray()) {
+        for (const auto &edge : cfg->outputEdgeVector()) {
             const auto &sink = edge->sink();
             auto isOutputIF = sink->subtype() == pisdf::VertexType::OUTPUT;
             cfgInputIFCount += (!isOutputIF);
@@ -103,7 +103,7 @@ spider::srdag::splitDynamicGraph(pisdf::Graph *subgraph) {
 
     uint32_t inputInitIx = 0;
     uint32_t inputRunIx = 0;
-    for (const auto &input : subgraph->inputInterfaceArray()) {
+    for (const auto &input : subgraph->inputInterfaceVector()) {
         const auto &sink = input->opposite();
         if (sink->subtype() == pisdf::VertexType::CONFIG) {
             /* == Reconnect and move inner edge in init graph == */
@@ -132,7 +132,7 @@ spider::srdag::splitDynamicGraph(pisdf::Graph *subgraph) {
 
     uint32_t outputInitIx = 0;
     uint32_t outputRunIx = 0;
-    for (const auto &output : subgraph->outputInterfaceArray()) {
+    for (const auto &output : subgraph->outputInterfaceVector()) {
         const auto &source = output->opposite();
         if (source->subtype() == pisdf::VertexType::CONFIG) {
             /* == Reconnect and move inner edge in init graph == */
@@ -161,7 +161,7 @@ spider::srdag::splitDynamicGraph(pisdf::Graph *subgraph) {
 
     for (auto &cfg : subgraph->configVertices()) {
         subgraph->moveVertex(cfg, initGraph);
-        for (auto edge : cfg->outputEdgeArray()) {
+        for (auto edge : cfg->outputEdgeVector()) {
             const auto &sink = edge->sink();
             if (sink->subtype() != pisdf::VertexType::OUTPUT) {
                 const auto &srcRate = edge->sourceRateExpression().evaluate(subgraph->params());

@@ -127,9 +127,9 @@ TEST_F(pisdfGraphTest, graphTest) {
     ASSERT_EQ(graph->vertices().size(), 4) << "Graph::vertices() failed.";
     ASSERT_EQ(graph->subgraphs().size(), 1) << "Graph::subgraphs() failed.";
     ASSERT_EQ(subgraph->configVertices().size(), 1) << "Graph::configVertices() failed.";
-    ASSERT_EQ(subgraph->inputInterfaceArray().size(), subgraph->inputEdgeCount())
+    ASSERT_EQ(subgraph->inputInterfaceVector().size(), subgraph->inputEdgeCount())
                                 << "Graph::inputInterfaceArray() failed.";
-    ASSERT_EQ(subgraph->outputInterfaceArray().size(), subgraph->outputEdgeCount())
+    ASSERT_EQ(subgraph->outputInterfaceVector().size(), subgraph->outputEdgeCount())
                                 << "Graph::outputInterfaceArray() failed.";
     ASSERT_EQ(graph->vertex(0), vertex_0) << "Graph::vertex(ix) failed";
     ASSERT_EQ(graph->vertex(1), vertex_1) << "Graph::vertex(ix) failed";

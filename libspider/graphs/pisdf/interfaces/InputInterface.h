@@ -76,11 +76,11 @@ namespace spider {
             }
 
             inline Edge *outputEdge() const override {
-                return outputEdgeArray_[0];
+                return outputEdgeVector_[0];
             }
 
             inline Vertex *opposite() const override {
-                return outputEdgeArray_[0]->sink();
+                return outputEdgeVector_[0]->sink();
             }
 
             /**
