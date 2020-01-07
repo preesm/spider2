@@ -92,8 +92,8 @@ namespace spider {
         /* === MemoryUnit related API === */
 
         /**
-         * @brief Create a new MemoryUnit.
-         * @param size  Size of the MemoryUnit.
+         * @brief Creates a new MemoryUnit.
+         * @param size  Size of the MemoryUnit in bytes.
          * @return Pointer to newly created @refitem MemoryUnit.
          */
         MemoryUnit *createMemoryUnit(uint64_t size);

@@ -45,9 +45,6 @@
 #include <archi/Platform.h>
 #include <archi/Cluster.h>
 #include <archi/PE.h>
-#include <runtime/platform/RTPlatform.h>
-#include <runtime/runner/RTRunner.h>
-#include <api/runtime-api.h>
 
 /* === Function(s) definition === */
 
@@ -65,15 +62,15 @@ uint64_t spider::Scheduler::computeMinStartTime(const pisdf::Vertex *vertex) {
     uint64_t minimumStartTime = 0;
     auto &job = schedule_.job(vertex->ix());
     job.setVertexIx(vertex->ix());
-    for (const auto &edge : vertex->inputEdgeArray()) {
+    for (const auto &edge : vertex->inputEdgeVector()) {
         const auto &rate = edge->sinkRateExpression().evaluate(params_);
         if (rate) {
             const auto &src = edge->source();
             auto &srcJob = schedule_.job(src->ix());
             const auto &lrtIx = srcJob.mappingInfo().LRTIx;
-            auto *currentConstraint = job.constraint(lrtIx);
+            auto *currentConstraint = job.jobConstraint(lrtIx);
             if (!currentConstraint || (srcJob.ix() > currentConstraint->ix())) {
-                job.setConstraint(&srcJob);
+                job.setJobConstraint(&srcJob);
             }
             minimumStartTime = std::max(minimumStartTime, srcJob.mappingInfo().endTime);
         }
@@ -89,7 +86,7 @@ void spider::Scheduler::vertexMapper(const pisdf::Vertex *vertex) {
     const auto *platform = archi::platform();
     auto dataDependencies = containers::vector<std::pair<PE *, uint64_t >>(StackID::SCHEDULE);
     dataDependencies.reserve(vertex->inputEdgeCount());
-    for (auto &edge : vertex->inputEdgeArray()) {
+    for (auto &edge : vertex->inputEdgeVector()) {
         const auto &rate = edge->sinkRateExpression().evaluate(params_);
         if (rate) {
             const auto &job = schedule_.job(edge->source()->ix());
@@ -112,7 +109,7 @@ void spider::Scheduler::vertexMapper(const pisdf::Vertex *vertex) {
         }
         for (const auto &pe : cluster->array()) {
             /* == Check that PE is enabled and vertex is mappable on it == */
-            if (pe->status() && vertexRTConstraints->isPEMappable(pe)) {
+            if (pe->enabled() && vertexRTConstraints->isPEMappable(pe)) {
                 /* == Retrieving information needed for scheduling cost == */
                 const auto &PEReadyTime = platformStats.endTime(pe->virtualIx());
                 const auto &JobStartTime = std::max(PEReadyTime, minStartTime);
@@ -121,17 +118,15 @@ void spider::Scheduler::vertexMapper(const pisdf::Vertex *vertex) {
                 const auto &endTime = static_cast<uint64_t>(execTime) + JobStartTime;
 
                 /* == Compute communication cost == */
-                uint64_t receiveCost = 0;
+                uint64_t dataTransfertCost = 0;
                 for (auto &dep : dataDependencies) {
                     const auto &src = dep.first;
                     const auto &dataExchanged = dep.second;
-                    if (src != pe) {
-                        receiveCost += platform->dataCommunicationCostPEToPE(src, pe, dataExchanged);
-                    }
+                    dataTransfertCost += platform->dataCommunicationCostPEToPE(src, pe, dataExchanged);
                 }
 
                 /* == Compute total schedule cost == */
-                const auto &scheduleCost = math::saturateAdd(endTime, receiveCost);
+                const auto &scheduleCost = math::saturateAdd(endTime, dataTransfertCost);
                 if (scheduleCost < bestScheduleCost || (scheduleCost == bestScheduleCost && waitTime < bestWaitTime)) {
                     bestScheduleCost = scheduleCost;
                     bestStartTime = JobStartTime;

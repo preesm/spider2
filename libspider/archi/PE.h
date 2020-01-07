@@ -150,7 +150,7 @@ namespace spider {
          * @brief Get the state of the PE.
          * @return true if the PE is enabled, false else.
          */
-        inline bool status() const {
+        inline bool enabled() const {
             return status_;
         }
 
