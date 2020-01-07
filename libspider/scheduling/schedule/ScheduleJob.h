@@ -44,6 +44,7 @@
 
 #include <cstdint>
 #include <containers/containers.h>
+#include <algorithm>
 
 /* === Forward declarations === */
 
@@ -90,13 +91,11 @@ namespace spider {
 
             /* === Method(s) === */
 
-            // TODO add construction of ScheduleJobMessage
-
             /**
              * @brief Add a constraint on another @refitem ScheduleJob to current job.
              * @param job Pointer to the job we are constrained on.
              */
-            inline void setConstraint(Job *job);
+            inline void setJobConstraint(Job *job);
 
             /* === Getter(s) === */
 
@@ -105,7 +104,18 @@ namespace spider {
              * @param lrtIx  Ix of the LRT.
              * @return
              */
-            inline Job *constraint(size_t lrtIx) const;
+            inline Job *jobConstraint(size_t lrtIx) const;
+
+            inline size_t numberOfConstraints() const {
+                return jobConstraintVector_.size() -
+                       static_cast<size_t>(std::count(jobConstraintVector_.begin(),
+                                                      jobConstraintVector_.end(),
+                                                      nullptr));
+            }
+
+            inline spider::vector<Job *> const jobConstraintVector() const {
+                return jobConstraintVector_;
+            }
 
             /**
              * @brief Get the ix of the job.
@@ -183,9 +193,9 @@ namespace spider {
             inline void setMappingEndTime(uint64_t time);
 
         private:
-            stack_vector(constraints_, Job *, StackID::SCHEDULE);
-            size_t vertexIx_ = UINT32_MAX;
-            size_t ix_ = UINT32_MAX;
+            stack_vector(jobConstraintVector_, Job *, StackID::SCHEDULE);
+            size_t vertexIx_ = SIZE_MAX;
+            size_t ix_ = SIZE_MAX;
             JobState state_ = JobState::PENDING;
             JobMappingInfo mappingInfo_;
 
@@ -194,14 +204,14 @@ namespace spider {
 
         /* === Inline method(s) === */
 
-        void Job::setConstraint(Job *job) {
+        void Job::setJobConstraint(Job *job) {
             if (job && job != this) {
-                constraints_.at(job->mappingInfo().LRTIx) = job;
+                jobConstraintVector_.at(job->mappingInfo().LRTIx) = job;
             }
         }
 
-        Job *Job::constraint(size_t lrtIx) const {
-            return constraints_.at(lrtIx);
+        Job *Job::jobConstraint(size_t lrtIx) const {
+            return jobConstraintVector_.at(lrtIx);
         }
 
         size_t Job::vertexIx() const {
