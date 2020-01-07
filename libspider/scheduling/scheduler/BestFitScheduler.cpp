@@ -41,6 +41,10 @@
 /* === Include(s) === */
 
 #include <scheduling/scheduler/BestFitScheduler.h>
+#include <runtime/interface/Message.h>
+#include <runtime/platform/RTPlatform.h>
+#include <runtime/runner/RTRunner.h>
+#include <api/runtime-api.h>
 
 /* === Static variable(s) === */
 
@@ -50,8 +54,100 @@
 
 spider::sched::Schedule &spider::BestFitScheduler::mappingScheduling() {
     schedule_.setJobCount(sortedVertexVector_.size());
+    memoryAddesses_.resize(graph_->edgeCount(), UINT64_MAX);
     for (auto &listVertex : sortedVertexVector_) {
+        /* == Schedule and map the vertex onto available ressource == */
         Scheduler::vertexMapper(listVertex.vertex_);
+
+        /* == Do the memory allocation and build the job message == */
+        auto message = buildJobMessage(listVertex.vertex_);
+
+        /* == Send the job message == */
+        const auto &job = schedule_.job(listVertex.vertex_->ix());
+        const auto &messageIx = rt::platform()->communicator()->push(message, job.mappingInfo().LRTIx);
+
+        rt::platform()->communicator()->push(Notification(NotificationType::JOB,
+                                                          JobNotification::ADD,
+                                                          0,
+                                                          messageIx),
+                                             job.mappingInfo().LRTIx);
+
     }
+
+    for (auto &lrt : archi::platform()->lrtVector()) {
+        const auto &jobCount = schedule_.stats().jobCount(lrt->virtualIx());
+        rt::platform()->communicator()->push(Notification(NotificationType::JOB,
+                                                          JobNotification::JOB_COUNT,
+                                                          0,
+                                                          jobCount),
+                                             lrt->virtualIx());
+    }
+
+    /* == Run the jobs of GRT (if any) == */
+    rt::platform()->runner(0)->run(false);
     return schedule_;
+}
+
+/* === Private method(s) === */
+
+spider::JobMessage spider::BestFitScheduler::buildJobMessage(const pisdf::Vertex *vertex) {
+    const auto &job = schedule_.job(vertex->ix());
+    JobMessage message;
+    message.LRTs2Notify_ = spider::array<bool>(archi::platform()->LRTCount(), true);
+
+    /* == Set the kernel ix == */
+    message.kernelIx_ = vertex->runtimeInformation()->kernelIx();
+
+    /* == Set the job ix == */
+    message.ix_ = job.ix();
+
+    /* == Create input Fifos == */
+    message.inputFifoArray_ = spider::array<RTFifo>(vertex->inputEdgeCount(), StackID::RUNTIME);
+    size_t i = 0;
+    for (const auto &edge : vertex->inputEdgeVector()) {
+        auto &fifo = message.inputFifoArray_[i++];
+        fifo.size_ = static_cast<size_t>(edge->sourceRateExpression().evaluate(params_));
+        fifo.virtualAddress_ = memoryAddesses_[edge->ix()];
+        fifo.memoryInterface_ = archi::platform()->peFromVirtualIx(
+                job.mappingInfo().PEIx)->cluster()->memoryInterface();
+    }
+
+    /* == Create output Fifos == */
+    message.outputFifoArray_ = spider::array<RTFifo>(vertex->outputEdgeCount(), StackID::RUNTIME);
+    for (const auto &edge : vertex->outputEdgeVector()) {
+        memoryAddesses_[edge->ix()] = virtualMemoryAddress_++;
+        auto &fifo = message.outputFifoArray_[i++];
+        fifo.size_ = static_cast<size_t>(edge->sourceRateExpression().evaluate(params_));
+        fifo.virtualAddress_ = memoryAddesses_[edge->ix()];;
+        fifo.memoryInterface_ = archi::platform()->peFromVirtualIx(
+                job.mappingInfo().PEIx)->cluster()->memoryInterface();
+
+        /* == Register the LRTs to notify on job completion == */
+//        const auto &sink = edge->sink();
+//        const auto &snkJob = schedule_.job(sink->ix());
+//        message.LRTs2Notify_[snkJob.mappingInfo().LRTIx] = (snkJob.mappingInfo().LRTIx != job.mappingInfo().LRTIx);
+    }
+
+    /* == Create the jobs 2 wait array == */
+    const auto &numberOfConstraints = job.numberOfConstraints();
+    message.jobs2Wait_ = spider::array<std::pair<size_t, size_t>>(numberOfConstraints, StackID::RUNTIME);
+    auto jobIterator = message.jobs2Wait_.begin();
+    for (auto &srcJob : job.jobConstraintVector()) {
+        if (srcJob) {
+            (*(jobIterator++)) = std::make_pair(srcJob->mappingInfo().LRTIx, srcJob->ix());
+        }
+    }
+
+    /* == Set the number of output parameters to be set == */
+    message.outputParamCount_ = rt::platform()->runtimeKernels()[message.kernelIx_]->outputParamsValue().size();
+
+    /* == Creates the input parameters array == */
+    const auto &inputParamIndexArray = rt::platform()->runtimeKernels()[message.kernelIx_]->inputParamsValue();
+    message.inputParams_ = spider::array<int64_t>(inputParamIndexArray.size(), StackID::RUNTIME);
+    auto paramIterator = message.inputParams_.begin();
+    for (auto &index : inputParamIndexArray) {
+        // TODO: fix it with proper values
+        (*(paramIterator++)) = vertex->reference()->graph()->param(index)->value();
+    }
+    return message;
 }

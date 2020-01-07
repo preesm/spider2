@@ -43,6 +43,7 @@
 /* === Include(s) === */
 
 #include <scheduling/scheduler/ListScheduler.h>
+#include <runtime/interface/Message.h>
 
 namespace spider {
 
@@ -69,11 +70,13 @@ namespace spider {
         /* === Setter(s) === */
 
     private:
+        stack_vector(memoryAddesses_, uint64_t, StackID::SCHEDULE);
+        uint64_t virtualMemoryAddress_ = 0;
 
         /* === Private method(s) === */
-    };
 
-    /* === Inline method(s) === */
+        JobMessage buildJobMessage(const pisdf::Vertex *vertex);
+    };
 }
 
 
