@@ -125,8 +125,7 @@ void spider::Platform::addCluster(Cluster *cluster) {
 }
 
 size_t spider::Platform::LRTCount() const {
-    return std::accumulate(clusterArray_.begin(), clusterArray_.end(), static_cast<size_t>(0),
-                           [&](size_t a, Cluster *cluster) -> size_t { return a + cluster->LRTCount(); });
+    return lrtVector_.size();
 }
 
 spider::Platform::InterMemoryInterface
@@ -147,6 +146,9 @@ void spider::Platform::setPE(spider::PE *pe) {
     if (pe) {
         peArray_.at(peCount_) = pe;
         pe->setVirtualIx(peCount_++);
+        if (pe->isLRT()) {
+            lrtVector_.emplace_back(pe);
+        }
     }
 }
 
@@ -162,6 +164,9 @@ void spider::Platform::setClusterToClusterMemoryInterface(spider::Cluster *clust
 
 
 uint64_t spider::Platform::dataCommunicationCostPEToPE(PE *peSrc, PE *peSnk, uint64_t dataSize) const {
+    if (peSrc == peSnk) {
+        return 0;
+    }
     /* == Get the interface between cluster if needed == */
     if (peSrc->cluster() != peSnk->cluster()) {
         /* == For inter cluster communication, cost is a bit more complicated to compute == */
