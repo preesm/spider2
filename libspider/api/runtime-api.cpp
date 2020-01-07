@@ -68,6 +68,62 @@ void spider::api::createThreadRTPlatform() {
         throwSpiderException("there can be only one runtime platform.");
     }
     rtPlatform = make<ThreadRTPlatform, StackID::RUNTIME>(platform->LRTCount());
+
+    /* == Add special actors refinements == */
+    auto *forkKernel = make<RTKernel, StackID::RUNTIME>(
+            [](const int64_t *, int64_t *, void *[], void *[]) -> void {
+                spider::printer::printf("Fork\n");
+            });
+    rt::platform()->addKernel(forkKernel);
+
+    /* == Join Kernel == */
+    auto *joinKernel = make<RTKernel, StackID::RUNTIME>(
+            [](const int64_t *, int64_t *, void *[], void *[]) -> void {
+                spider::printer::printf("Join\n");
+            });
+    rt::platform()->addKernel(joinKernel);
+
+    /* == Head Kernel == */
+    auto *headKernel = make<RTKernel, StackID::RUNTIME>(
+            [](const int64_t *, int64_t *, void *[], void *[]) -> void {
+                spider::printer::printf("Head\n");
+            });
+    rt::platform()->addKernel(headKernel);
+
+    /* == Tail Kernel == */
+    auto *tailKernel = make<RTKernel, StackID::RUNTIME>(
+            [](const int64_t *, int64_t *, void *[], void *[]) -> void {
+                spider::printer::printf("Tail\n");
+            });
+    rt::platform()->addKernel(tailKernel);
+
+    /* == Repeat Kernel == */
+    auto *repeatKernel = make<RTKernel, StackID::RUNTIME>(
+            [](const int64_t *, int64_t *, void *[], void *[]) -> void {
+                spider::printer::printf("Repeat\n");
+            });
+    rt::platform()->addKernel(repeatKernel);
+
+    /* == Duplicate Kernel == */
+    auto *duplicateKernel = make<RTKernel, StackID::RUNTIME>(
+            [](const int64_t *, int64_t *, void *[], void *[]) -> void {
+                spider::printer::printf("Duplicate\n");
+            });
+    rt::platform()->addKernel(duplicateKernel);
+
+    /* == Init Kernel == */
+    auto *initKernel = make<RTKernel, StackID::RUNTIME>(
+            [](const int64_t *, int64_t *, void *[], void *[]) -> void {
+                spider::printer::printf("Init\n");
+            });
+    rt::platform()->addKernel(initKernel);
+
+    /* == End Kernel == */
+    auto *endKernel = make<RTKernel, StackID::RUNTIME>(
+            [](const int64_t *, int64_t *, void *[], void *[]) -> void {
+                spider::printer::printf("End\n");
+            });
+    rt::platform()->addKernel(endKernel);
 }
 
 void spider::api::finalizeRTPlatform() {
