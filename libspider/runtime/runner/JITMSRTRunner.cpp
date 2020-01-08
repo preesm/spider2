@@ -167,8 +167,10 @@ void spider::JITMSRTRunner::runJob(const JobMessage &job) {
 
     /* == Run the job == */
     // TODO: add time monitoring
-    auto &kernel = *(rt::platform()->runtimeKernels()[job.kernelIx_]);
-    kernel(job.inputParams_.data(), outputParams.data(), inputBuffersArray.data(), outputBuffersArray.data());
+    const auto &kernel = (rt::platform()->getKernel(job.kernelIx_));
+    if (kernel) {
+        (*kernel)(job.inputParams_.data(), outputParams.data(), inputBuffersArray.data(), outputBuffersArray.data());
+    }
 
     /* == Deallocate input buffers == */
     // TODO: add time monitoring

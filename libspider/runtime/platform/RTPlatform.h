@@ -85,11 +85,11 @@ namespace spider {
                 return SIZE_MAX;
             }
             /* == Search if seach Kernel does not already exists == */
-            auto res = std::find(runtimeKernels_.begin(), runtimeKernels_.end(), kernel);
-            if (res == runtimeKernels_.end()) {
-                kernel->setIx(runtimeKernels_.size());
-                runtimeKernels_.emplace_back(kernel);
-                res = runtimeKernels_.end() - 1;
+            auto res = std::find(runtimeKernelVector_.begin(), runtimeKernelVector_.end(), kernel);
+            if (res == runtimeKernelVector_.end()) {
+                kernel->setIx(runtimeKernelVector_.size());
+                runtimeKernelVector_.emplace_back(kernel);
+                res = runtimeKernelVector_.end() - 1;
             }
             return (*res)->ix();
         }
@@ -120,8 +120,20 @@ namespace spider {
          * @brief Returns the vector of runtime kernels of the platform.
          * @return const reference to a spider::vector of pointer of @refitem RTKernel.
          */
-        inline const spider::vector<RTKernel *> &runtimeKernels() const {
-            return runtimeKernels_;
+        inline const spider::vector<RTKernel *> &runtimeKernelVector() const {
+            return runtimeKernelVector_;
+        }
+
+        /**
+         * @brief Returns the runtime kernel associated with given index if possible.
+         * @param ix Index of the kernel to fetch.
+         * @return pointer to the @refitem RTKernel if it exists, nullptr else.
+         */
+        inline RTKernel *getKernel(size_t ix) const {
+            if (ix >= runtimeKernelVector_.size()) {
+                return nullptr;
+            }
+            return runtimeKernelVector_[ix];
         }
 
         /* === Setter(s) === */
@@ -143,9 +155,9 @@ namespace spider {
         }
 
     protected:
-        spider::array<RTRunner *> runnerArray_;                     /*= Array of RTRunner = */
-        stack_vector(runtimeKernels_, RTKernel*, StackID::RUNTIME); /* = Vector of RTKernel = */
-        RTCommunicator *communicator_ = nullptr;                    /* = Communicator of the RTPlatform = */
+        spider::array<RTRunner *> runnerArray_;                                    /* = Array of RTRunner = */
+        stack_vector(runtimeKernelVector_, RTKernel*, StackID::RUNTIME); /* = Vector of RTKernel = */
+        RTCommunicator *communicator_ = nullptr;                                   /* = Communicator of the RTPlatform = */
     };
 }
 

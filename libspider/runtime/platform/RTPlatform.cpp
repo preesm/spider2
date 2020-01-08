@@ -47,7 +47,7 @@
 /* === Function(s) definition === */
 
 spider::RTPlatform::~RTPlatform() {
-    for (auto &kernel : runtimeKernels_) {
+    for (auto &kernel : runtimeKernelVector_) {
         destroy(kernel);
     }
     for (auto &runner : runnerArray_) {
