@@ -54,6 +54,7 @@ spider::pisdf::Vertex::Vertex(const Vertex &other,
                                                copyCount_{ 0 } {
     inputEdgeVector_ = containers::vector<Edge *>(other.inputEdgeVector_.size(), nullptr, stack);
     outputEdgeVector_ = containers::vector<Edge *>(other.outputEdgeVector_.size(), nullptr, stack);
+    scheduleJobIx_ = other.scheduleJobIx_;
 }
 
 

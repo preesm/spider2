@@ -66,7 +66,9 @@ namespace spider {
                           uint32_t,    /* = Output edge count = */
                           StackID stack = StackID::PISDF) = delete;
 
-            SpecialVertex(const SpecialVertex &other, StackID stack = StackID::PISDF) : ExecVertex(other, stack) { };
+            SpecialVertex(const SpecialVertex &other, StackID stack = StackID::PISDF) : ExecVertex(other, stack) {
+                transfoJobIx_ = other.transfoJobIx_;
+            };
 
             SpecialVertex(SpecialVertex &&other) noexcept : ExecVertex(std::move(other)) { };
 
@@ -84,14 +86,22 @@ namespace spider {
                 return type;
             }
 
-            /* === Getter(s) === */
+            inline size_t transfoJobIx() const {
+                return transfoJobIx_;
+            }
+
+            /* === Setter(s) === */
 
             inline void setRepetitionValue(std::uint32_t value) override {
                 ExecVertex::setRepetitionValue(value);
             }
 
-        private:
+            inline void setTransfoJobIx(size_t ix) {
+                transfoJobIx_ = ix;
+            }
 
+        private:
+            size_t transfoJobIx_ = SIZE_MAX; /* = Index of the transfo job associated to this Vertex (used only for ConfigVertex) = */
         };
 
         /* === Define SpecialVertex types === */

@@ -255,6 +255,15 @@ namespace spider {
                 return rtInformation_;
             }
 
+            /**
+             * @brief Get the schedule job ix associated to this vertex.
+             * @remark In the case of @refitem VertexType::CONFIG, the value match the one of the corresponding dynamic job.
+             * @return ix of the job, UINT32_MAX if not set.
+             */
+            inline size_t scheduleJobIx() const {
+                return scheduleJobIx_;
+            }
+
             /* === Setter(s) === */
 
             /**
@@ -295,6 +304,14 @@ namespace spider {
                 }
             }
 
+            /**
+             * @brief Manually set the reference of the vertex.
+             * @remarks
+             * - Reference of a vertex can never be set to nullptr, so if ref is nullptr nothing happens.
+             * - If the vertex already has a reference which is not this, nothing happens.
+             * - If ref is properly set, the copyCount_ value of ref is incremented.
+             * @param ref Pointer to the reference to set.
+             */
             inline void setReference(const Vertex *ref) {
                 if (!ref || (this != reference_)) {
                     return;
@@ -303,13 +320,25 @@ namespace spider {
                 reference_ = ref;
             }
 
+            /**
+             * @brief Set the schedule job ix of the vertex.
+             * @param ix  Ix to set.
+             */
+            inline void setScheduleJobIx(size_t ix) {
+                scheduleJobIx_ = ix;
+            }
+
         protected:
             std::string name_ = "unnamed-vertex";     /* = Name of the Vertex (uniqueness is not required) = */
             spider::vector<Edge *> inputEdgeVector_;  /* = Vector of input Edge = */
             spider::vector<Edge *> outputEdgeVector_; /* = Vector of output Edge = */
-            const Vertex *reference_ = this;          /* = Pointer to the reference Vertex. Default is this, in case of copy, this is the original Vertex = */
+            const Vertex *reference_ = this;          /* = Pointer to the reference Vertex.
+                                                       * Default is this, in case of copy, point to the original Vertex. = */
             Graph *graph_ = nullptr;                  /* = Containing Graph of the Vertex (can be nullptr) = */
             RTInfo *rtInformation_ = nullptr;         /* = Runtime information of the Vertex (timing, mappable, etc.) = */
+            size_t scheduleJobIx_ = SIZE_MAX;         /* = Index of the schedule job associated to this Vertex.
+                                                       *   Needed in case of deletion of vertex between successive
+                                                       *   schedule pass in order to maintain coherence. = */
             uint32_t ix_ = UINT32_MAX;                /* = Index of the Vertex in the containing Graph = */
             uint32_t repetitionValue_ = 1;            /* = Repetition value of the Vertex, default is 1 but it can be set to 0. = */
             mutable uint32_t copyCount_ = 0;          /* = Number of copy of the Vertex = */

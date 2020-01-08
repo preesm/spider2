@@ -65,12 +65,11 @@ namespace spider {
             }
 
             ExecVertex(const ExecVertex &other, StackID stack = StackID::PISDF) : Vertex(other, stack) {
-                jobIx_ = other.jobIx_;
                 rtInformation_ = other.rtInformation_;
             }
 
             ExecVertex(ExecVertex &&other) noexcept : Vertex(std::move(other)) {
-                std::swap(jobIx_, other.jobIx_);
+                std::swap(scheduleJobIx_, other.scheduleJobIx_);
             }
 
             ~ExecVertex() override {
@@ -98,34 +97,12 @@ namespace spider {
             }
 
             /**
-             * @brief Get the job ix associated to this vertex.
-             * @remark In the case of @refitem VertexType::CONFIG, the value match the one of the corresponding dynamic job.
-             * @return ix of the job, UINT32_MAX if not set.
-             */
-            inline size_t jobIx() const {
-                return jobIx_;
-            }
-
-            /**
              * @brief Ensure that no vertex inheriting from ExecVertex will override this method.
              * @return false.
              */
             inline bool hierarchical() const final {
                 return false;
             }
-
-            /* === Setter(s) === */
-
-            /**
-             * @brief Set the job ix of the vertex.
-             * @param ix  Ix to set.
-             */
-            inline void setJobIx(size_t ix) {
-                jobIx_ = ix;
-            }
-
-        protected:
-            size_t jobIx_ = SIZE_MAX;         /* = Index of the transformation job associated to this Vertex (used only for ConfigVertex) = */
         };
     }
 }
