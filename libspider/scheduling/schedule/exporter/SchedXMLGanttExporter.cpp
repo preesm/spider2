@@ -63,7 +63,9 @@ void spider::SchedXMLGanttExporter::print() const {
 void spider::SchedXMLGanttExporter::printFromFile(std::ofstream &file) const {
     file << "<data>" << '\n';
     for (const auto &job : schedule_->jobs()) {
-        jobPrinter(file, job);
+        if (job.state() != sched::JobState::NON_EXEC) {
+            jobPrinter(file, job);
+        }
     }
     file << "</data>" << '\n';
 }

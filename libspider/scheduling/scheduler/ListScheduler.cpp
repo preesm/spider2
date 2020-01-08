@@ -50,23 +50,33 @@
 
 /* === Static variable(s) === */
 
+static constexpr auto NON_EXECUTABLE_LEVEL = -31415; /* = Value is arbitrary, just needed something unique = */
+
 /* === Static function(s) === */
 
 int64_t spider::ListScheduler::computeScheduleLevel(ListVertex &listVertex,
                                                     spider::vector<ListVertex> &sortedVertexVector) const {
-    if (listVertex.level_ < 0) {
+    if (listVertex.level_ == -1) {
+        if (listVertex.vertex_->reference()->hierarchical()) {
+            listVertex.level_ = NON_EXECUTABLE_LEVEL;
+            for (auto &edge : listVertex.vertex_->outputEdgeVector()) {
+                sortedVertexVector[edge->sink()->ix()].level_ = NON_EXECUTABLE_LEVEL;
+            }
+            return listVertex.level_;
+        }
+
         auto *platform = archi::platform();
         auto *vertex = listVertex.vertex_;
         int64_t level = 0;
         for (auto &edge : vertex->outputEdgeVector()) {
             auto *sink = edge->sink();
             if (sink && sink->executable()) {
-                auto *constraints = sink->runtimeInformation();
+                auto *sinkRTInfo = sink->runtimeInformation();
                 auto minExecutionTime = INT64_MAX;
                 for (auto &cluster : platform->clusters()) {
                     for (auto &pe : cluster->array()) {
-                        if (constraints->isPEMappable(pe)) {
-                            auto executionTime = constraints->timingOnPE(pe, params_);
+                        if (sinkRTInfo->isPEMappable(pe)) {
+                            auto executionTime = sinkRTInfo->timingOnPE(pe, params_);
                             if (!executionTime) {
                                 throwSpiderException("Vertex [%s] has null execution time on mappable PE [%s].",
                                                      vertex->name().c_str(), pe->name().c_str());
@@ -112,4 +122,19 @@ spider::ListScheduler::ListScheduler(pisdf::Graph *graph,
                   }
                   return B.level_ < A.level_;
               });
+
+    /* == Remove the non-executable actors == */
+    auto iterator = sortedVertexVector_.rbegin();
+    while ((iterator != sortedVertexVector_.rend()) && (*iterator).level_ == NON_EXECUTABLE_LEVEL) {
+        sortedVertexVector_.pop_back();
+        iterator = sortedVertexVector_.rbegin();
+    }
+}
+
+void spider::ListScheduler::update() {
+    /* == Reserve new size of vertex == */
+    sortedVertexVector_.reserve(graph_->vertexCount());
+
+    /* == Add vertices but check JobState == */
+
 }

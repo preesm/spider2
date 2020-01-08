@@ -58,9 +58,10 @@ namespace spider {
          * @brief State a scheduled job can take.
          */
         enum class JobState {
-            RUNNING,   /*!< TransfoJob is currently running */
-            PENDING,   /*!< TransfoJob is waiting to be run */
-            FINISHED   /*!< TransfoJob has finished its execution */
+            NON_EXEC,  /*!< Job is currently non-executable */
+            RUNNING,   /*!< Job is currently running */
+            PENDING,   /*!< Job is waiting to be run */
+            FINISHED   /*!< Job has finished its execution */
         };
 
         /**
@@ -196,7 +197,7 @@ namespace spider {
             stack_vector(jobConstraintVector_, Job *, StackID::SCHEDULE);
             size_t vertexIx_ = SIZE_MAX;
             size_t ix_ = SIZE_MAX;
-            JobState state_ = JobState::PENDING;
+            JobState state_ = JobState::NON_EXEC;
             JobMappingInfo mappingInfo_;
 
             /* === Private method(s) === */

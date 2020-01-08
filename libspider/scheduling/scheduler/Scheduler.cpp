@@ -61,6 +61,7 @@ void spider::Scheduler::setJobInformation(sched::Job *job, size_t slave, uint64_
 uint64_t spider::Scheduler::computeMinStartTime(const pisdf::Vertex *vertex) {
     uint64_t minimumStartTime = 0;
     auto &job = schedule_.job(vertex->ix());
+    job.setState(sched::JobState::PENDING);
     job.setVertexIx(vertex->ix());
     for (const auto &edge : vertex->inputEdgeVector()) {
         const auto &rate = edge->sinkRateExpression().evaluate(params_);
