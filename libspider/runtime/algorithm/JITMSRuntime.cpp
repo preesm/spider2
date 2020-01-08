@@ -49,6 +49,7 @@
 #include <scheduling/schedule/exporter/SchedXMLGanttExporter.h>
 #include <scheduling/scheduler/GreedyScheduler.h>
 #include <monitor/Monitor.h>
+#include <scheduling/schedule/exporter/SchedStatsExporter.h>
 
 
 /* === Static function(s) === */
@@ -67,9 +68,28 @@ static void updateStaticJobs(spider::vector<spider::srdag::TransfoJob> &src,
     });
 }
 
+/**
+ * @brief Appends @refitem spider::srdag::TransfoJob from source vector to destination vector using MOVE semantic.
+ * @param src   Source vector of the TransfoJobs to move.
+ * @param dest  Destination vector to move the TransfoJobs to.
+ */
 static void
 updateDynamicJobs(spider::vector<spider::srdag::TransfoJob> &src, spider::vector<spider::srdag::TransfoJob> &dest) {
     std::for_each(src.begin(), src.end(), [&](spider::srdag::TransfoJob &job) { dest.emplace_back(std::move(job)); });
+}
+
+/**
+ * @brief Checks that if a graph, or any of its subgraphs, is dynamic then it has at least one config actor.
+ * @param graph Pointer to the graph to test.
+ * @throws spider::Exception if graph is dynamic and does not have any config actor.
+ */
+static void checkDynamicConsistency(const spider::pisdf::Graph *const graph) {
+    for (const auto &subgraph : graph->subgraphs()) {
+        if (subgraph->dynamic() && !subgraph->configVertexCount()) {
+            throwSpiderException("subgraph [%s] has dynamic parameters but does not contains any config actors.", subgraph->name().c_str());
+        }
+        checkDynamicConsistency(subgraph);
+    }
 }
 
 /* === Method(s) implementation === */
@@ -78,6 +98,8 @@ bool spider::JITMSRuntime::execute() const {
     if (!graph_->graph() && graph_->dynamic()) {
         throwSpiderException("Can not run JITMS runtime on dynamic graph without containing graph.");
     }
+    /* == Check model consistency for dynamic graphs == */
+    checkDynamicConsistency(graph_);
 
     /* == Create the Single-Rate graph == */
     auto *srdag = api::createGraph("srdag-" + graph_->name(),
@@ -88,6 +110,9 @@ bool spider::JITMSRuntime::execute() const {
                                    0, /* = Number of output interfaces = */
                                    0, /* = Number of config actors = */
                                    StackID::TRANSFO);
+
+    /* == Create the scheduler == */
+//    spider::BestFitScheduler scheduler{ srdag };
 
     /* == Apply first transformation of root graph == */
     auto &&rootJob = srdag::TransfoJob(graph_, UINT32_MAX, UINT32_MAX, true);
@@ -126,11 +151,14 @@ bool spider::JITMSRuntime::execute() const {
 
         /* == Schedule current Single-Rate graph == */
         //monitor_->startSampling();
-        // TODO: add schedule
+//        scheduler.update();
+        pisdf::PiSDFDOTExporter(srdag).printFromPath("./srdag.dot");
         spider::BestFitScheduler scheduler{ srdag };
         scheduler.mappingScheduling();
-        auto ganttExporter = spider::SchedXMLGanttExporter{ &scheduler.schedule(), srdag };
+        auto ganttExporter = SchedXMLGanttExporter{ &scheduler.schedule(), srdag };
         ganttExporter.print();
+        auto statsExporter = SchedStatsExporter{ &scheduler.schedule() };
+        statsExporter.print();
         //monitor_->endSampling();
 
         /* == Run graph for dynamic params to be resolved == */
@@ -189,8 +217,6 @@ bool spider::JITMSRuntime::execute() const {
 
 //    spider::XMLGanttExporter ganttExporter{&scheduler.schedule(), srdag};
 //    ganttExporter.print();
-
-    pisdf::PiSDFDOTExporter(srdag).printFromPath("./srdag.dot");
 
     /* == Destroy the sr-dag == */
     destroy(srdag);
