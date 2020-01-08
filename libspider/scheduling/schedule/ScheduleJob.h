@@ -45,6 +45,7 @@
 #include <cstdint>
 #include <containers/containers.h>
 #include <algorithm>
+#include <runtime/interface/Message.h>
 
 /* === Forward declarations === */
 
@@ -67,10 +68,10 @@ namespace spider {
          * @brief Mapping information of the TransfoJob.
          */
         struct JobMappingInfo {
-            size_t PEIx = UINT32_MAX;        /*!< ix of the mapped PE in its cluster */
-            size_t LRTIx = UINT32_MAX;       /*!< ix of the LRT handling the job */
-            uint64_t startTime = UINT64_MAX;   /*!< mapping start time */
-            uint64_t endTime = UINT64_MAX;     /*!< mapping end time */
+            size_t PEIx = SIZE_MAX;          /*!< ix of the mapped PE in its cluster */
+            size_t LRTIx = SIZE_MAX;         /*!< ix of the LRT handling the job */
+            uint64_t startTime = UINT64_MAX; /*!< mapping start time */
+            uint64_t endTime = UINT64_MAX;   /*!< mapping end time */
         };
 
         /* === Class definition === */
@@ -113,8 +114,12 @@ namespace spider {
                                                       nullptr));
             }
 
-            inline spider::vector<Job *> const jobConstraintVector() const {
+            inline spider::vector<Job *> jobConstraintVector() const {
                 return jobConstraintVector_;
+            }
+
+            inline JobMessage &message() {
+                return message_;
             }
 
             /**
@@ -198,6 +203,7 @@ namespace spider {
             size_t ix_ = SIZE_MAX;
             JobState state_ = JobState::NON_EXEC;
             JobMappingInfo mappingInfo_;
+            JobMessage message_;
 
             /* === Private method(s) === */
         };
@@ -236,6 +242,7 @@ namespace spider {
 
         void Job::setIx(size_t ix) {
             ix_ = ix;
+            message_.ix_ = ix;
         }
 
         void Job::setState(JobState state) {

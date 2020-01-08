@@ -77,7 +77,6 @@ void spider::sched::Schedule::update(sched::Job &job) {
 }
 
 void spider::sched::Schedule::setJobCount(size_t count) {
-//    jobs_.clear();
     jobs_.reserve(count);
     const auto &oldSize = jobs_.size();
     for (size_t i = oldSize; i < count; ++i) {
