@@ -73,7 +73,9 @@ namespace spider {
             }
 
             ~ExecVertex() override {
-                if (reference() == this) {
+                if (reference() == this || reference()->hierarchical()) {
+                    /* == The second condition was added because during srdag, graph are replaced by
+                     * ExecVertex but keep a link to the original Graph so the rtInformation were never destroyed == */
                     destroy(rtInformation_);
                 }
             }

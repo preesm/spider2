@@ -80,7 +80,7 @@ namespace spider {
 
         inline void createRunnerRessource(RTRunner *runner) override {
             if (threadArray_.at(runner->ix())) {
-                log::warning<log::Type::LRT>("trying to create ressource for runner #%zu more than once.\n",
+                log::warning<log::Type::LRT>("trying to create resource for runner #%zu more than once.\n",
                                              runner->ix());
                 return;
             }
