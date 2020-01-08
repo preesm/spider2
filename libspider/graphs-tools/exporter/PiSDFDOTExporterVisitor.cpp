@@ -134,7 +134,7 @@ std::pair<int32_t, int32_t> spider::pisdf::PiSDFDOTExporterVisitor::computeConst
     return std::make_pair(centerWidth, static_cast<int32_t>(longestRateLen));
 }
 
-void spider::pisdf::PiSDFDOTExporterVisitor::vertexPrinter(ExecVertex *vertex,
+void spider::pisdf::PiSDFDOTExporterVisitor::vertexPrinter(Vertex *vertex,
                                                            const std::string &color,
                                                            int32_t border,
                                                            const std::string &style) const {

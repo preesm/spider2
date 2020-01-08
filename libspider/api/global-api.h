@@ -155,6 +155,8 @@ namespace spider {
 
         class ExecVertex;
 
+        class NonExecVertex;
+
         class Graph;
 
         class Param;

@@ -132,7 +132,7 @@ namespace spider {
                                      StackID stack = StackID::PISDF);
 
         /**
-         * @brief Creates a @refitem pisdf::Vertex.
+         * @brief Creates a @refitem pisdf::ExecVertex.
          * @param graph         Pointer to the parent graph the vertex should be added.
          * @param name          Name of the vertex.
          * @param edgeINCount   Number of input edges (can NOT be modified afterwards).
@@ -146,6 +146,22 @@ namespace spider {
                                         uint32_t edgeINCount = 0,
                                         uint32_t edgeOUTCount = 0,
                                         StackID stack = StackID::PISDF);
+
+        /**
+         * @brief Creates a @refitem pisdf::NonExecVertex.
+         * @param graph         Pointer to the parent graph the vertex should be added.
+         * @param name          Name of the vertex.
+         * @param edgeINCount   Number of input edges (can NOT be modified afterwards).
+         * @param edgeOUTCount  Number of output edges (can NOT be modified afterwards).
+         * @param stack         Stack on which the vertex should be created.
+         * @return pointer to the created @refitem pisdf::Vertex.
+         * @throws @refitem spider::Exception if the parent graph is nullptr.
+         */
+        pisdf::NonExecVertex *createNonExecVertex(pisdf::Graph *graph,
+                                                  std::string name,
+                                                  uint32_t edgeINCount = 0,
+                                                  uint32_t edgeOUTCount = 0,
+                                                  StackID stack = StackID::PISDF);
 
         /**
          * @brief Creates a @refitem pisdf::ForkVertex.

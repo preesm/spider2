@@ -70,6 +70,11 @@ namespace spider {
                 destroyVertex(vertex);
             }
 
+            inline void visit(NonExecVertex *vertex) override {
+                /* == Remove the vertex and destroy it == */
+                destroyVertex(vertex);
+            }
+
             inline void visit(ConfigVertex *vertex) override {
                 /* == configVertexVector_ is just a "viewer" for config vertices so we need to find manually == */
                 for (auto &cfg : *(graph_->configVertexVector_)) {

@@ -66,16 +66,14 @@ namespace spider {
 
             ExecVertex(const ExecVertex &other, StackID stack = StackID::PISDF) : Vertex(other, stack) {
                 rtInformation_ = other.rtInformation_;
-            }
+            };
 
             ExecVertex(ExecVertex &&other) noexcept : Vertex(std::move(other)) {
-                std::swap(scheduleJobIx_, other.scheduleJobIx_);
-            }
+                std::swap(rtInformation_, other.rtInformation_);
+            };
 
             ~ExecVertex() override {
-                if (reference() == this || reference()->hierarchical()) {
-                    /* == The second condition was added because during srdag, graph are replaced by
-                     * ExecVertex but keep a link to the original Graph so the rtInformation were never destroyed == */
+                if (reference() == this) {
                     destroy(rtInformation_);
                 }
             }
@@ -94,12 +92,16 @@ namespace spider {
                 return VertexType::NORMAL;
             }
 
-            inline bool executable() const override {
+            /**
+             * @brief Ensure that any vertex inheriting from ExecVertex will not be able to override this method.
+             * @return false.
+             */
+            inline bool executable() const final {
                 return true;
             }
 
             /**
-             * @brief Ensure that no vertex inheriting from ExecVertex will override this method.
+             * @brief Ensure that any vertex inheriting from ExecVertex will not be able to override this method.
              * @return false.
              */
             inline bool hierarchical() const final {

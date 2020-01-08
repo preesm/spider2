@@ -37,73 +37,69 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_PISDFDEFAULTVISITOR_H
-#define SPIDER2_PISDFDEFAULTVISITOR_H
+#ifndef SPIDER2_NONEXECVERTEX_H
+#define SPIDER2_NONEXECVERTEX_H
 
 /* === Include(s) === */
 
-#include <graphs/pisdf/visitors/PiSDFVisitor.h>
-#include <common/Exception.h>
-#include <graphs/pisdf/NonExecVertex.h>
+#include <graphs/pisdf/Vertex.h>
 
 namespace spider {
+
     namespace pisdf {
 
-        class DefaultVisitor : public Visitor {
+        /* === Class definition === */
+
+        class NonExecVertex final : public Vertex {
         public:
+            explicit NonExecVertex(std::string name = "unnamed-non-execvertex",
+                                   uint32_t edgeINCount = 0,
+                                   uint32_t edgeOUTCount = 0,
+                                   StackID stack = StackID::PISDF) : Vertex(std::move(name),
+                                                                            edgeINCount,
+                                                                            edgeOUTCount,
+                                                                            stack) { };
+
+            NonExecVertex(const NonExecVertex &other, StackID stack = StackID::PISDF) : Vertex(other, stack) { };
+
+            NonExecVertex(NonExecVertex &&other) noexcept : Vertex(std::move(other)) { };
+
+            ~NonExecVertex() override = default;
+
+            friend CloneVisitor;
 
             /* === Method(s) === */
 
-            inline void visit(Graph *) override {
-                throwSpiderException("unsupported visitor type: Graph.");
+            inline void visit(Visitor *visitor) override {
+                visitor->visit(this);
             }
 
-            inline void visit(ExecVertex *) override { };
+            /* === Getter(s) === */
 
-            inline void visit(NonExecVertex *) override { };
-
-            void visit(DelayVertex *vertex) override;
-
-            void visit(ConfigVertex *vertex) override;
-
-            void visit(ForkVertex *vertex) override;
-
-            void visit(JoinVertex *vertex) override;
-
-            void visit(HeadVertex *vertex) override;
-
-            void visit(TailVertex *vertex) override;
-
-            void visit(DuplicateVertex *vertex) override;
-
-            void visit(RepeatVertex *vertex) override;
-
-            void visit(InitVertex *vertex) override;
-
-            void visit(EndVertex *vertex) override;
-
-            inline void visit(Interface *) override {
-                throwSpiderException("unsupported visitor type: Interface.");
+            inline VertexType subtype() const override {
+                return VertexType::NORMAL;
             }
 
-            void visit(InputInterface *input) override;
-
-            void visit(OutputInterface *output) override;
-
-            inline void visit(Param *) override {
-                throwSpiderException("unsupported visitor type: Param.");
+            /**
+             * @brief Ensure that any vertex inheriting from NonExecVertex will not be able to override this method.
+             * @return false
+             */
+            inline bool executable() const final {
+                return false;
             }
 
-            inline void visit(DynamicParam *) override {
-                throwSpiderException("unsupported visitor type: DynamicParam.");
+            /**
+             * @brief Ensure that any vertex inheriting from NonExecVertex will not be able override this method.
+             * @return false.
+             */
+            inline bool hierarchical() const final {
+                return false;
             }
 
-            inline void visit(InHeritedParam *) override {
-                throwSpiderException("unsupported visitor type: InHeritedParam.");
-            }
+        private:
+
         };
     }
 }
 
-
-#endif //SPIDER2_PISDFDEFAULTVISITOR_H
+#endif //SPIDER2_NONEXECVERTEX_H

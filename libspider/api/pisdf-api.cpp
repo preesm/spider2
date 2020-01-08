@@ -52,6 +52,7 @@
 #include <graphs/pisdf/InHeritedParam.h>
 #include <graphs/pisdf/interfaces/InputInterface.h>
 #include <graphs/pisdf/interfaces/OutputInterface.h>
+#include <graphs/pisdf/NonExecVertex.h>
 
 /* === Methods implementation === */
 
@@ -144,6 +145,19 @@ spider::pisdf::ExecVertex *spider::api::createVertex(pisdf::Graph *graph,
         throwSpiderException("nullptr for graph.");
     }
     auto *vertex = make<pisdf::ExecVertex>(stack, std::move(name), edgeINCount, edgeOUTCount, stack);
+    graph->addVertex(vertex);
+    return vertex;
+}
+
+spider::pisdf::NonExecVertex *spider::api::createNonExecVertex(pisdf::Graph *graph,
+                                                               std::string name,
+                                                               uint32_t edgeINCount,
+                                                               uint32_t edgeOUTCount,
+                                                               StackID stack) {
+    if (!graph) {
+        throwSpiderException("nullptr for graph.");
+    }
+    auto *vertex = make<pisdf::NonExecVertex>(stack, std::move(name), edgeINCount, edgeOUTCount, stack);
     graph->addVertex(vertex);
     return vertex;
 }

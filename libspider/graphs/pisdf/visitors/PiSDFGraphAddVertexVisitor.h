@@ -43,6 +43,7 @@
 /* === Include(s) === */
 
 #include <graphs/pisdf/visitors/PiSDFDefaultVisitor.h>
+#include <graphs/pisdf/NonExecVertex.h>
 #include <graphs/pisdf/SpecialVertex.h>
 #include <graphs/pisdf/Graph.h>
 #include <api/archi-api.h>
@@ -57,6 +58,11 @@ namespace spider {
             /* === Method(s) === */
 
             inline void visit(ExecVertex *vertex) override {
+                /* == Add vertex to vertexVector_ == */
+                addVertex(vertex);
+            }
+
+            inline void visit(NonExecVertex *vertex) override {
                 /* == Add vertex to vertexVector_ == */
                 addVertex(vertex);
             }

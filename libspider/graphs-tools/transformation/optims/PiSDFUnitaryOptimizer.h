@@ -69,6 +69,8 @@ private:
 
         inline void visit(spider::pisdf::ExecVertex *) override { removed_ = false; }
 
+        inline void visit(spider::pisdf::NonExecVertex *) override { removed_ = false; }
+
         inline void visit(spider::pisdf::ForkVertex *vertex) override {
             removed_ = false;
             if (vertex->outputEdgeCount() == 1) {
