@@ -133,7 +133,7 @@ TEST_F(pisdfParamTest, paramTest) {
         auto *param = spider::make<spider::pisdf::Param>("PArAM", 31415);
         ASSERT_EQ(param->name(), "param") << "name of param should be lower case converted.";
         ASSERT_NE(param->graph(), graph) << "param::graph() failed";
-        ASSERT_EQ(param->ix(), UINT32_MAX) << "param::ix() should be equal to UINT32_MAX on init.";
+        ASSERT_EQ(param->ix(), SIZE_MAX) << "param::ix() should be equal to SIZE_MAX on init.";
         graph->addParam(param);
         ASSERT_EQ(param->graph(), graph) << "param::setGraph() failed";
         ASSERT_EQ(param->ix(), 0) << "param::ix() failed";

@@ -98,7 +98,7 @@ namespace spider {
                 return name_;
             }
 
-            inline uint32_t ix() const {
+            inline size_t ix() const {
                 return ix_;
             }
 
@@ -116,7 +116,7 @@ namespace spider {
 
             /* === Setter(s) === */
 
-            inline void setIx(uint32_t ix) {
+            inline void setIx(size_t ix) {
                 ix_ = ix;
             }
 
@@ -138,8 +138,8 @@ namespace spider {
 
         protected:
             Graph *graph_ = nullptr;   /* = Containing Graph (can be nullptr) = */
-            uint32_t ix_ = UINT32_MAX; /* = Index of the Param in the Graph = */
             std::string name_ = "";    /* = Name of the Param. It is transformed to lower case on construction = */
+            size_t ix_ = SIZE_MAX;   /* = Index of the Param in the Graph = */
             int64_t value_ = 0;        /* = Value of the Param. = */
         };
     }
