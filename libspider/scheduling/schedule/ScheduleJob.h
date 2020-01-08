@@ -61,7 +61,6 @@ namespace spider {
             NON_EXEC,  /*!< Job is currently non-executable */
             RUNNING,   /*!< Job is currently running */
             PENDING,   /*!< Job is waiting to be run */
-            FINISHED   /*!< Job has finished its execution */
         };
 
         /**
