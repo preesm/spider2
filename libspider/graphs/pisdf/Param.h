@@ -106,6 +106,10 @@ namespace spider {
                 return value_;
             }
 
+            virtual inline int64_t value(const spider::vector<Param *> &) const {
+                return value_;
+            }
+
             virtual inline ParamType type() const {
                 return ParamType::STATIC;
             }
