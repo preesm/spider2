@@ -53,38 +53,40 @@
 /* === Method(s) implementation === */
 
 spider::sched::Schedule &spider::BestFitScheduler::mappingScheduling() {
-    schedule_.setJobCount(sortedVertexVector_.size());
     memoryAddesses_.resize(graph_->edgeCount(), UINT64_MAX);
-    for (auto &listVertex : sortedVertexVector_) {
+    auto iterator = sortedVertexVector_.begin() + static_cast<long>(lastScheduledVertex_);
+    while (iterator != std::end(sortedVertexVector_)) {
         /* == Schedule and map the vertex onto available ressource == */
-        Scheduler::vertexMapper(listVertex.vertex_);
+        Scheduler::vertexMapper((*iterator).vertex_);
+        iterator++;
 
         /* == Do the memory allocation and build the job message == */
-        auto message = buildJobMessage(listVertex.vertex_);
-
-        /* == Send the job message == */
-        const auto &job = schedule_.job(listVertex.vertex_->ix());
-        const auto &messageIx = rt::platform()->communicator()->push(message, job.mappingInfo().LRTIx);
-
-        rt::platform()->communicator()->push(Notification(NotificationType::JOB,
-                                                          JobNotification::ADD,
-                                                          0,
-                                                          messageIx),
-                                             job.mappingInfo().LRTIx);
-
+//        auto message = buildJobMessage(listVertex.vertex_);
+//
+//        /* == Send the job message == */
+//        auto &job = schedule_.job(listVertex.vertex_->ix());
+//        const auto &messageIx = rt::platform()->communicator()->push(message, job.mappingInfo().LRTIx);
+//
+//        rt::platform()->communicator()->push(Notification(NotificationType::JOB,
+//                                                          JobNotification::ADD,
+//                                                          0,
+//                                                          messageIx),
+//                                             job.mappingInfo().LRTIx);
+//        job.setState(sched::JobState::RUNNING);
     }
+    lastScheduledVertex_ = sortedVertexVector_.size();
 
-    for (auto &lrt : archi::platform()->lrtVector()) {
-        const auto &jobCount = schedule_.stats().jobCount(lrt->virtualIx());
-        rt::platform()->communicator()->push(Notification(NotificationType::JOB,
-                                                          JobNotification::JOB_COUNT,
-                                                          0,
-                                                          jobCount),
-                                             lrt->virtualIx());
-    }
-
-    /* == Run the jobs of GRT (if any) == */
-    rt::platform()->runner(0)->run(false);
+//    for (auto &lrt : archi::platform()->lrtVector()) {
+//        const auto &jobCount = schedule_.stats().jobCount(lrt->virtualIx());
+//        rt::platform()->communicator()->push(Notification(NotificationType::JOB,
+//                                                          JobNotification::JOB_COUNT,
+//                                                          0,
+//                                                          jobCount),
+//                                             lrt->virtualIx());
+//    }
+//
+//    /* == Run the jobs of GRT (if any) == */
+//    rt::platform()->runner(0)->run(false);
     return schedule_;
 }
 

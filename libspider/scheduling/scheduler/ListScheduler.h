@@ -58,6 +58,8 @@ namespace spider {
 
         sched::Schedule &mappingScheduling() override = 0;
 
+        void update() override;
+
         /* === Getter(s) === */
 
         /* === Setter(s) === */
@@ -81,11 +83,35 @@ namespace spider {
         /* === Protected method(s) === */
 
     private:
-        int64_t computeScheduleLevel(ListVertex &listVertex, spider::vector<ListVertex> &sortedVertexVector) const;
+        size_t lastInsertedVertex_ = 0;
+
+        /* === Private method(s) === */
+
+        /**
+         * @brief Add vertices of the member @refitem pisdf::Graph in sorted order into the sortedVertexVector_
+         * for mappingScheduling.
+         * @remark This method also updates the number of jobs in the member @refitem sched::Schedule.
+         */
+        void addVerticesAndSortList();
+
+        /**
+         * @brief Compute recursively the schedule level used to sort the vertices for scheduling.
+         * The criteria used is based on the critical execution time path.
+         * @example:
+         *         input graph:
+         *             A (100) -> B(200)
+         *                     -> C(100) -> D(100)
+         *                               -> E(300)
+         *         result:
+         *           level(A) = max(level(C) + time(C); level(B) + time(B)) = 400
+         *           level(B) = level(D) = level(E) = 0
+         *           level(C) = max(level(D) + time(D); level(E) + time(E)) = 300
+         * @param listVertex       Pointer to the current @refitem ListVertex evaluated.
+         * @param listVertexVector Vector of @refitem ListVertex to evaluate.
+         * @return
+         */
+        int64_t computeScheduleLevel(ListVertex &listVertex, spider::vector<ListVertex> &listVertexVector) const;
     };
-
-    /* === Inline method(s) === */
-
 }
 
 #endif //SPIDER2_LISTSCHEDULER_H
