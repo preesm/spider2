@@ -42,7 +42,7 @@
 
 #include <graphs-tools/transformation/srdag/SingleRateTransformer.h>
 #include <graphs-tools/transformation/srdag/visitors/SRDAGCopyVisitor.h>
-#include <graphs-tools/transformation/srdag/visitors/CopyParamVisitor.h>
+#include <graphs-tools/transformation/srdag/visitors/SRDAGCopyParamVisitor.h>
 #include <graphs-tools/transformation/srdag/Transformation.h>
 #include <graphs-tools/numerical/brv.h>
 #include <graphs-tools/numerical/dependencies.h>
