@@ -76,7 +76,7 @@ namespace spider {
         /**
          * @brief Update internal state of the scheduler (mostly for dynamic applications)
          */
-        virtual void update() = 0;
+        virtual void update(const spider::vector<pisdf::Param *> &) = 0;
 
         /* === Getter(s) === */
 

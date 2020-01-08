@@ -62,7 +62,7 @@ spider::ListScheduler::ListScheduler(pisdf::Graph *graph,
     addVerticesAndSortList();
 }
 
-void spider::ListScheduler::update() {
+void spider::ListScheduler::update(const spider::vector<pisdf::Param *> &) {
     /* == Add vertices of the graph and sort the obtained list == */
     addVerticesAndSortList();
 }
@@ -80,13 +80,14 @@ void spider::ListScheduler::addVerticesAndSortList() {
     }
 
     /* == Compute the schedule level == */
-    auto iterator = sortedVertexVector_.begin() + static_cast<long>(lastInsertedVertex_);
+    auto iterator = sortedVertexVector_.begin() + static_cast<long>(lastSchedulableVertex_);
     while (iterator != std::end(sortedVertexVector_)) {
         computeScheduleLevel((*(iterator++)), sortedVertexVector_);
     }
 
     /* == Sort the vector == */
-    std::sort(std::begin(sortedVertexVector_) + static_cast<long>(lastInsertedVertex_), std::end(sortedVertexVector_),
+    std::sort(std::begin(sortedVertexVector_) + static_cast<long>(lastSchedulableVertex_),
+              std::end(sortedVertexVector_),
               [](const ListVertex &A, const ListVertex &B) -> int32_t {
                   if (B.vertex_->subtype() == pisdf::VertexType::NORMAL &&
                       A.vertex_->reference() == B.vertex_->reference() &&
@@ -98,30 +99,36 @@ void spider::ListScheduler::addVerticesAndSortList() {
                   return B.level_ < A.level_;
               });
 
-    /* == Remove the non-executable actors == */
+    /* == Remove the non-executable hierarchical vertex == */
+    size_t nonSchedulableVertexCount = 0;
     auto reverseIterator = sortedVertexVector_.rbegin();
-    while ((reverseIterator != sortedVertexVector_.rend()) &&
-           (*reverseIterator).level_ == NON_EXECUTABLE_LEVEL) {
-        sortedVertexVector_.pop_back();
-        reverseIterator = sortedVertexVector_.rbegin();
+    while ((reverseIterator != sortedVertexVector_.rend()) && (*reverseIterator).level_ == NON_EXECUTABLE_LEVEL) {
+        auto isHierarachical = (*reverseIterator).vertex_->reference()->hierarchical();
+        if (isHierarachical) {
+            std::swap((*reverseIterator), sortedVertexVector_.back());
+            sortedVertexVector_.pop_back();
+        }
+        nonSchedulableVertexCount += (!isHierarachical);            /* = Increase the number of non-schedulable vertex = */
+        (*(reverseIterator++)).vertex_->setScheduleJobIx(SIZE_MAX); /* = Reset the index for non-schedulable vertex = */
     }
 
     /* == Set the schedule job ix of the vertices == */
-    size_t i = lastInsertedVertex_;
-    iterator = sortedVertexVector_.begin() + static_cast<long>(lastInsertedVertex_);
-    while (iterator != std::end(sortedVertexVector_)) {
+    size_t i = lastSchedulableVertex_;
+    iterator = std::begin(sortedVertexVector_) + static_cast<long>(lastSchedulableVertex_);
+    auto endIterator = std::end(sortedVertexVector_) - static_cast<long>(nonSchedulableVertexCount);
+    while (iterator != endIterator) {
         (*(iterator++)).vertex_->setScheduleJobIx(i++);
     }
 
     /* == Update the schedule number of job == */
-    schedule_.setJobCount(sortedVertexVector_.size());
-    lastInsertedVertex_ = sortedVertexVector_.size();
+    schedule_.setJobCount(sortedVertexVector_.size() - nonSchedulableVertexCount);
+    lastSchedulableVertex_ = sortedVertexVector_.size() - nonSchedulableVertexCount;
 }
 
 int64_t spider::ListScheduler::computeScheduleLevel(ListVertex &listVertex,
                                                     spider::vector<ListVertex> &listVertexVector) const {
     if (listVertex.level_ == -1) {
-        if (listVertex.vertex_->reference()->hierarchical()) {
+        if (!listVertex.vertex_->executable()) {
             listVertex.level_ = NON_EXECUTABLE_LEVEL;
             for (auto &edge : listVertex.vertex_->outputEdgeVector()) {
                 listVertexVector[edge->sink()->ix()].level_ = NON_EXECUTABLE_LEVEL;
@@ -150,8 +157,9 @@ int64_t spider::ListScheduler::computeScheduleLevel(ListVertex &listVertex,
                         }
                     }
                 }
-                level = std::max(level, computeScheduleLevel(listVertexVector[sink->scheduleJobIx()], listVertexVector) +
-                                        minExecutionTime);
+                level = std::max(level,
+                                 computeScheduleLevel(listVertexVector[sink->scheduleJobIx()], listVertexVector) +
+                                 minExecutionTime);
             }
         }
         listVertex.level_ = level;

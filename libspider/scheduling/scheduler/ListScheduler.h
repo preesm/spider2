@@ -58,17 +58,19 @@ namespace spider {
 
         sched::Schedule &mappingScheduling() override = 0;
 
-        void update() override;
+        void update(const spider::vector<pisdf::Param *> &params) override;
 
         /* === Getter(s) === */
 
         /* === Setter(s) === */
 
     protected:
+        size_t lastSchedulableVertex_ = 0;
 
         struct ListVertex {
             pisdf::Vertex *vertex_ = nullptr;
             int64_t level_ = -1;
+            size_t updateIx_ = 0;
 
             explicit ListVertex(pisdf::Vertex *vertex, int32_t level = -1) : vertex_{ vertex },
                                                                              level_{ level } { };
@@ -83,7 +85,6 @@ namespace spider {
         /* === Protected method(s) === */
 
     private:
-        size_t lastInsertedVertex_ = 0;
 
         /* === Private method(s) === */
 
