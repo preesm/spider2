@@ -48,26 +48,27 @@
 
 /* === Function(s) definition === */
 
-void spider::Scheduler::setJobInformation(sched::Job *job, size_t slave, uint64_t startTime, uint64_t endTime) {
+void spider::Scheduler::setJobInformation(const pisdf::Vertex *vertex, size_t slave, uint64_t startTime, uint64_t endTime) {
     auto *platform = archi::platform();
     const auto &pe = platform->peFromVirtualIx(slave);
-    job->setMappingLRT(pe->attachedLRT()->virtualIx());
-    job->setMappingPE(pe->virtualIx());
-    job->setMappingStartTime(startTime);
-    job->setMappingEndTime(endTime);
-    schedule_.update(*job);
+    auto &job = schedule_.job(vertex->scheduleJobIx());
+    job.setMappingLRT(pe->attachedLRT()->virtualIx());
+    job.setMappingPE(pe->virtualIx());
+    job.setMappingStartTime(startTime);
+    job.setMappingEndTime(endTime);
+    schedule_.update(job);
 }
 
 uint64_t spider::Scheduler::computeMinStartTime(const pisdf::Vertex *vertex) {
     uint64_t minimumStartTime = 0;
-    auto &job = schedule_.job(vertex->ix());
+    auto &job = schedule_.job(vertex->scheduleJobIx());
     job.setState(sched::JobState::PENDING);
     job.setVertexIx(vertex->ix());
     for (const auto &edge : vertex->inputEdgeVector()) {
         const auto &rate = edge->sinkRateExpression().evaluate(params_);
         if (rate) {
             const auto &src = edge->source();
-            auto &srcJob = schedule_.job(src->ix());
+            auto &srcJob = schedule_.job(src->scheduleJobIx());
             const auto &lrtIx = srcJob.mappingInfo().LRTIx;
             auto *currentConstraint = job.jobConstraint(lrtIx);
             if (!currentConstraint || (srcJob.ix() > currentConstraint->ix())) {
@@ -90,7 +91,7 @@ void spider::Scheduler::vertexMapper(const pisdf::Vertex *vertex) {
     for (auto &edge : vertex->inputEdgeVector()) {
         const auto &rate = edge->sinkRateExpression().evaluate(params_);
         if (rate) {
-            const auto &job = schedule_.job(edge->source()->ix());
+            const auto &job = schedule_.job(edge->source()->scheduleJobIx());
             dataDependencies.emplace_back(platform->processingElement(job.mappingInfo().PEIx), rate);
         }
     }
@@ -143,5 +144,5 @@ void spider::Scheduler::vertexMapper(const pisdf::Vertex *vertex) {
         throwSpiderException("Could not find suitable processing element for vertex: [%s]", vertex->name().c_str());
     }
     /* == Set job information and update schedule == */
-    setJobInformation(&(schedule_.job(vertex->ix())), bestSlave, bestStartTime, bestEndTime);
+    setJobInformation(vertex, bestSlave, bestStartTime, bestEndTime);
 }

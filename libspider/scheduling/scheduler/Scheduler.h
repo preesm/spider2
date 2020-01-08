@@ -44,6 +44,7 @@
 
 #include <scheduling/schedule/Schedule.h>
 #include <graphs/pisdf/Graph.h>
+#include <runtime/interface/Message.h>
 
 namespace spider {
 
@@ -69,6 +70,11 @@ namespace spider {
          */
         virtual sched::Schedule &mappingScheduling() = 0;
 
+        /**
+         * @brief Update internal state of the scheduler (mostly for dynamic applications)
+         */
+        virtual void update() = 0;
+
         /* === Getter(s) === */
 
         /**
@@ -85,14 +91,14 @@ namespace spider {
         sched::Schedule schedule_;
 
         /**
-         * @brief Set the different information of a @refitem ScheduleJob.
-         * @remark This method also update the schedule_ based on TransfoJob information.
-         * @param job         TransfoJob to evaluate.
+         * @brief Set the different information of a @refitem sched::Job for a given vertex.
+         * @remark This method also update the schedule_ based on schedule Job information.
+         * @param vertex      Pointer to the vertex.
          * @param slave       Slave (cluster and pe) to execute on.
          * @param startTime   Start time of the job.
          * @param endTime     End time of the job.
          */
-        void setJobInformation(sched::Job *job, size_t slave, uint64_t startTime, uint64_t endTime);
+        void setJobInformation(const pisdf::Vertex *vertex, size_t slave, uint64_t startTime, uint64_t endTime);
 
         /**
          * @brief Compute the minimum start time possible for a given vertex.
