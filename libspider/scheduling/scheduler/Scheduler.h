@@ -42,9 +42,10 @@
 
 /* === Include(s) === */
 
+#include <runtime/interface/Message.h>
+#include <scheduling/allocator/FifoAllocator.h>
 #include <scheduling/schedule/Schedule.h>
 #include <graphs/pisdf/Graph.h>
-#include <runtime/interface/Message.h>
 
 namespace spider {
 
@@ -53,12 +54,14 @@ namespace spider {
     class Scheduler {
     public:
 
-        explicit Scheduler(pisdf::Graph *graph) : graph_{ graph },
-                                                  params_{ graph->params() } { };
+        explicit Scheduler(pisdf::Graph *graph,
+                           FifoAllocatorType type = FifoAllocatorType::DEFAULT) : Scheduler(graph,
+                                                                                            graph->params(),
+                                                                                            type) { };
 
         Scheduler(pisdf::Graph *graph,
-                  const spider::vector<pisdf::Param *> &params) : graph_{ graph },
-                                                                  params_{ params } { };
+                  const spider::vector<pisdf::Param *> &params,
+                  FifoAllocatorType type = FifoAllocatorType::DEFAULT);
 
         virtual ~Scheduler() = default;
 
@@ -89,6 +92,9 @@ namespace spider {
         pisdf::Graph *graph_ = nullptr;
         const spider::vector<pisdf::Param *> &params_;
         sched::Schedule schedule_;
+        FifoAllocator *fifoAllocator_ = nullptr;
+
+        /* === Protected method(s) === */
 
         /**
          * @brief Set the different information of a @refitem sched::Job for a given vertex.

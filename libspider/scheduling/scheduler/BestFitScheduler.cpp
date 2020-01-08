@@ -120,7 +120,7 @@ spider::JobMessage spider::BestFitScheduler::buildJobMessage(const pisdf::Vertex
         memoryAddesses_[edge->ix()] = virtualMemoryAddress_++;
         auto &fifo = message.outputFifoArray_[i++];
         fifo.size_ = static_cast<size_t>(edge->sourceRateExpression().evaluate(params_));
-        fifo.virtualAddress_ = memoryAddesses_[edge->ix()];;
+        fifo.virtualAddress_ = memoryAddesses_[edge->ix()];
         fifo.memoryInterface_ = archi::platform()->peFromVirtualIx(
                 job.mappingInfo().PEIx)->cluster()->memoryInterface();
 

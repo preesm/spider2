@@ -45,10 +45,25 @@
 #include <archi/Platform.h>
 #include <archi/Cluster.h>
 #include <archi/PE.h>
+#include <scheduling/allocator/DefaultFifoAllocator.h>
 
 /* === Function(s) definition === */
 
-void spider::Scheduler::setJobInformation(const pisdf::Vertex *vertex, size_t slave, uint64_t startTime, uint64_t endTime) {
+spider::Scheduler::Scheduler(spider::pisdf::Graph *graph,
+                             const spider::vector<spider::pisdf::Param *> &params,
+                             FifoAllocatorType type) : graph_{ graph },
+                                                       params_{ params } {
+    if (type == FifoAllocatorType::DEFAULT) {
+        fifoAllocator_ = make<DefaultFifoAllocator, StackID::SCHEDULE>();
+    } else {
+        throwSpiderException("Unsupported type of FifoAllocator.");
+    }
+}
+
+/* === Protected method(s) === */
+
+void
+spider::Scheduler::setJobInformation(const pisdf::Vertex *vertex, size_t slave, uint64_t startTime, uint64_t endTime) {
     auto *platform = archi::platform();
     const auto &pe = platform->peFromVirtualIx(slave);
     auto &job = schedule_.job(vertex->scheduleJobIx());
