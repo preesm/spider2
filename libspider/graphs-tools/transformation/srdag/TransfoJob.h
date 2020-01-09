@@ -55,6 +55,7 @@ namespace spider {
         struct TransfoJob {
             pisdf::Graph *reference_ = nullptr;
             stack_vector(params_, pisdf::Param *, StackID::TRANSFO);
+            size_t ix_ = SIZE_MAX;
             uint32_t srdagIx_ = UINT32_MAX;
             uint32_t firingValue_ = UINT32_MAX;
             bool root_ = false;
@@ -79,15 +80,7 @@ namespace spider {
                 }
             }
 
-            ~TransfoJob() {
-                if (reference_ && reference_->dynamic()) {
-                    for (auto &param : params_) {
-                        if (!param->graph()) {
-                            destroy(param);
-                        }
-                    }
-                }
-            }
+            ~TransfoJob() = default;
         };
     }
 }
