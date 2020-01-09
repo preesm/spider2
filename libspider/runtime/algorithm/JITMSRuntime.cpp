@@ -104,6 +104,7 @@ bool spider::JITMSRuntime::execute() const {
     updateJobStack(resultRootJob.first, staticJobStack);
     updateJobStack(resultRootJob.second, dynamicJobStack);
 
+    size_t dynamicStackJobOffset = 0;
     while (!staticJobStack.empty() || !dynamicJobStack.empty()) {
         /* == Transform static jobs == */
         //monitor_->startSampling();
@@ -145,7 +146,7 @@ bool spider::JITMSRuntime::execute() const {
 
                     /* == Get the config vertex == */
                     auto *cfg = srdag->configVertices()[message.vertexIx_];
-                    auto &job = dynamicJobStack.at(message.vertexIx_);
+                    auto &job = dynamicJobStack.at(message.vertexIx_ - dynamicStackJobOffset);
                     auto paramIterator = message.params_.begin();
                     for (const auto &index : cfg->reference()->outputParamVector()) {
                         job.params_[index]->setValue((*(paramIterator++)));
@@ -159,6 +160,7 @@ bool spider::JITMSRuntime::execute() const {
                     throwSpiderException("expected parameter notification");
                 }
             }
+            dynamicStackJobOffset += dynamicJobStack.size();
         }
 
         /* == Transform dynamic jobs == */
