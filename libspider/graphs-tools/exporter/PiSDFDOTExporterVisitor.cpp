@@ -43,6 +43,9 @@
 #include <graphs-tools/exporter/PiSDFDOTExporterVisitor.h>
 #include <graphs/pisdf/Delay.h>
 
+/* === Static constant(s) === */
+static constexpr size_t MAX_LENGTH = 30;
+
 /* === Function(s) definition === */
 
 void spider::pisdf::PiSDFDOTExporterVisitor::visit(Graph *graph) {
@@ -109,7 +112,7 @@ std::pair<int32_t, int32_t> spider::pisdf::PiSDFDOTExporterVisitor::computeConst
     /* ==                          |        1 + exp(-10*(n-7))|  == */
     /* ==                                                        == */
     /* == with U(x) the Heaviside function                       == */
-    auto n = static_cast<double>(vertex->name().size());
+    auto n = static_cast<double>(std::min(vertex->name().size(), MAX_LENGTH));
     const auto &centerWidth = static_cast<int32_t>(15. * (n - 8.) * (n > 8) +
                                                    std::ceil(20. *
                                                              (1 +
@@ -134,6 +137,26 @@ std::pair<int32_t, int32_t> spider::pisdf::PiSDFDOTExporterVisitor::computeConst
     return std::make_pair(centerWidth, static_cast<int32_t>(longestRateLen));
 }
 
+
+void spider::pisdf::PiSDFDOTExporterVisitor::vertexNamePrinter(Vertex *vertex, size_t columnCount) const {
+    if (vertex->name().size() > MAX_LENGTH) {
+        /* == Split name to avoid too big dot vertex == */
+        auto name = vertex->name();
+        while (!name.empty()) {
+            const auto &size = std::min(MAX_LENGTH, name.size());
+            file_ << offset_ << '\t' << '\t'
+                  << R"(<tr> <td border="0" colspan=")" << columnCount
+                  << R"("><font point-size="25" face="inconsolata">)"
+                  << name.substr(0, size) << "</font></td></tr>" << '\n';
+            name = name.substr(size, name.size() - size);
+        }
+    } else {
+        file_ << offset_ << '\t' << '\t'
+              << R"(<tr> <td border="0" colspan=")" << columnCount << R"("><font point-size="25" face="inconsolata">)"
+              << vertex->name() << "</font></td></tr>" << '\n';
+    }
+}
+
 void spider::pisdf::PiSDFDOTExporterVisitor::vertexPrinter(Vertex *vertex,
                                                            const std::string &color,
                                                            int32_t border,
@@ -145,9 +168,7 @@ void spider::pisdf::PiSDFDOTExporterVisitor::vertexPrinter(Vertex *vertex,
     file_ << offset_ << '\t' << '\t'
           << R"(<tr> <td border="0" colspan="4" fixedsize="false" height="10"></td></tr>)"
           << '\n';
-    file_ << offset_ << '\t' << '\t'
-          << R"(<tr> <td border="0" colspan="4"><font point-size="25" face="inconsolata">)"
-          << vertex->name() << "</font></td></tr>" << '\n';
+    vertexNamePrinter(vertex, 4);
 
     /* == Get widths == */
     const auto &widthPair = computeConstantWidth(vertex);
@@ -155,7 +176,7 @@ void spider::pisdf::PiSDFDOTExporterVisitor::vertexPrinter(Vertex *vertex,
     const auto &rateWidth = static_cast<uint32_t>(32 + std::max(widthPair.second + 1 - 3, 0) * 8);
 
     /* == Export data ports == */
-    uint32_t nOutput = 0;
+    size_t nOutput = 0;
     for (const auto &edge : vertex->inputEdgeVector()) {
         file_ << offset_ << '\t' << '\t'
               << R"(<tr> <td border="0" style="invis" colspan="4" fixedsize="false" height="10"></td></tr>)"
@@ -183,7 +204,7 @@ void spider::pisdf::PiSDFDOTExporterVisitor::vertexPrinter(Vertex *vertex,
     }
 
     /* == Trailing output ports == */
-    for (uint32_t i = nOutput; i < vertex->outputEdgeCount(); ++i) {
+    for (size_t i = nOutput; i < vertex->outputEdgeCount(); ++i) {
         auto *edge = vertex->outputEdge(i);
         file_ << offset_ << '\t' << '\t'
               << R"(<tr> <td border="0" style="invis" colspan="4" fixedsize="false" height="10"></td></tr>)"
@@ -215,9 +236,7 @@ void spider::pisdf::PiSDFDOTExporterVisitor::vertexPrinter(Vertex *vertex,
 void
 spider::pisdf::PiSDFDOTExporterVisitor::interfaceBodyPrinter(Interface *interface, const std::string &color) const {
     /* == Interface name == */
-    file_ << offset_ << '\t' << '\t'
-          << R"(<tr> <td border="0" colspan="5" bgcolor="#ffffff00"><font point-size="25" face="inconsolata">)"
-          << interface->name() << "</font></td></tr>" << '\n';
+    vertexNamePrinter(interface, 5);
 
     /* == Get widths == */
     const auto &widthPair = computeConstantWidth(interface);
@@ -324,7 +343,8 @@ void spider::pisdf::PiSDFDOTExporterVisitor::paramPrinter(Param *param) const {
           << '\n';
     if (param->dynamic()) {
         file_ << offset_ << '\t' << '\t'
-              << R"(<tr> <td border="1" style="rounded" bgcolor="#ffffff" fixedsize="true" width="25" height="25"></td></tr>)" << '\n';
+              << R"(<tr> <td border="1" style="rounded" bgcolor="#ffffff" fixedsize="true" width="25" height="25"></td></tr>)"
+              << '\n';
     }
     file_ << offset_ << '\t' << '\t'
           << R"(<tr> <td border="0" fixedsize="false" height="20"></td></tr>)" << '\n';

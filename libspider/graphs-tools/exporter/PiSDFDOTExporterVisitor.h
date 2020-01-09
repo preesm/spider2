@@ -172,6 +172,8 @@ namespace spider {
 
             std::pair<int32_t, int32_t> computeConstantWidth(Vertex *vertex) const;
 
+            void vertexNamePrinter(Vertex *vertex, size_t columnCount) const;
+
             void vertexPrinter(Vertex *vertex,
                                const std::string &color,
                                int32_t border = 2,
