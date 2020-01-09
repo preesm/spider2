@@ -257,11 +257,18 @@ namespace spider {
 
             /**
              * @brief Get the schedule job ix associated to this vertex.
-             * @remark In the case of @refitem VertexType::CONFIG, the value match the one of the corresponding dynamic job.
-             * @return ix of the job, UINT32_MAX if not set.
+             * @return ix of the job, SIZE_MAX if not set.
              */
             inline size_t scheduleJobIx() const {
                 return scheduleJobIx_;
+            }
+
+            /**
+             * @brief Get the transfo job ix associated to this vertex.
+             * @return ix of the job, SIZE_MAX if not set.
+             */
+            inline size_t transfoJobIx() const {
+                return transfoJobIx_;
             }
 
             /* === Setter(s) === */
@@ -328,6 +335,14 @@ namespace spider {
                 scheduleJobIx_ = ix;
             }
 
+            /**
+             * @brief Set the transfo job ix of the vertex.
+             * @param ix  Ix to set.
+             */
+            inline void setTransfoJobIx(size_t ix) {
+                transfoJobIx_ = ix;
+            }
+
         protected:
             std::string name_ = "unnamed-vertex";     /* = Name of the Vertex (uniqueness is not required) = */
             spider::vector<Edge *> inputEdgeVector_;  /* = Vector of input Edge = */
@@ -339,6 +354,7 @@ namespace spider {
             size_t scheduleJobIx_ = SIZE_MAX;         /* = Index of the schedule job associated to this Vertex.
                                                        *   Needed in case of deletion of vertex between successive
                                                        *   schedule pass in order to maintain coherence. = */
+            size_t transfoJobIx_ = SIZE_MAX;          /* = Index of the transfo job associated to this Vertex = */
             uint32_t ix_ = UINT32_MAX;                /* = Index of the Vertex in the containing Graph = */
             uint32_t repetitionValue_ = 1;            /* = Repetition value of the Vertex, default is 1 but it can be set to 0. = */
             mutable uint32_t copyCount_ = 0;          /* = Number of copy of the Vertex = */

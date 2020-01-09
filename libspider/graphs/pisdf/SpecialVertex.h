@@ -86,22 +86,13 @@ namespace spider {
                 return type;
             }
 
-            inline size_t transfoJobIx() const {
-                return transfoJobIx_;
-            }
-
             /* === Setter(s) === */
 
             inline void setRepetitionValue(std::uint32_t value) override {
                 ExecVertex::setRepetitionValue(value);
             }
 
-            inline void setTransfoJobIx(size_t ix) {
-                transfoJobIx_ = ix;
-            }
-
         private:
-            size_t transfoJobIx_ = SIZE_MAX; /* = Index of the transfo job associated to this Vertex (used only for ConfigVertex) = */
         };
 
         /* === Define SpecialVertex types === */
