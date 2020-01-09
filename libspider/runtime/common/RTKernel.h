@@ -52,11 +52,7 @@ namespace spider {
     class RTKernel {
     public:
 
-        explicit RTKernel(rtkernel kernel, size_t inputParamCount = 0, size_t outputParamCount = 0) :
-                outputParamIxArray_{ outputParamCount, SIZE_MAX, StackID::RUNTIME },
-                kernel_{ kernel } {
-            inputParamIxVector_.reserve(inputParamCount);
-        };
+        explicit RTKernel(rtkernel kernel) : kernel_{ kernel } { };
 
         RTKernel() = default;
 
@@ -80,22 +76,6 @@ namespace spider {
 
         /* === Getter(s) === */
 
-        /**
-         * @brief Retrieve the list of input param ix used by this refinement.
-         * @return @refitem spider::vector of ix
-         */
-        inline const spider::vector<size_t> &inputParamsValue() const {
-            return inputParamIxVector_;
-        }
-
-        /**
-         * @brief Retrieve the list of output param ix set by this refinement.
-         * @return @refitem spider::array of size_t
-         */
-        inline const spider::array<size_t> &outputParamsValue() const {
-            return outputParamIxArray_;
-        }
-
 
         /**
          * @brief Get the ix of the kernel.
@@ -108,25 +88,6 @@ namespace spider {
         /* === Setter(s) === */
 
         /**
-             * @brief Add a parameter ix at the end of the input param vector.
-             * @param ix  Ix of the @refitem Param to add.
-             */
-        inline void addInputParam(size_t ix) {
-            inputParamIxVector_.emplace_back(ix);
-        }
-
-        /**
-         * @brief Add a parameter ix at the end of the output param vector.
-         * @param ix  PIx of the @refitem Param to add.
-         */
-        inline void addOutputParam(size_t ix) {
-            if (outputParamCount_ >= outputParamIxArray_.size()) {
-                throwSpiderException("refinement [%zu]: too many output params.", ix);
-            }
-            outputParamIxArray_[outputParamCount_++] = ix;
-        }
-
-        /**
          * @brief Set the ix of the kernel.
          * @param ix Ix to set.
          */
@@ -135,11 +96,9 @@ namespace spider {
         }
 
     private:
-        stack_vector(inputParamIxVector_, size_t, StackID::RUNTIME);          /* = Array of input parameters index = */
-        spider::array<size_t> outputParamIxArray_;                                 /* = Array of output parameters index = */
-        size_t outputParamCount_ = 0;                                              /* = Number of currently added output parameters = */
-        rtkernel kernel_ = [](const int64_t *, int64_t *, void *[], void *[]) { }; /* = Kernel function to be called when executing the associated vertex = */
-        size_t ix_ = SIZE_MAX;                                                     /* = Index of the kernel in the @refitem RTPlatform = */
+        rtkernel kernel_ = [](const int64_t *, int64_t *, void *[],
+                              void *[]) { }; /* = Kernel function to be called when executing the associated vertex = */
+        size_t ix_ = SIZE_MAX;               /* = Index of the kernel in the @refitem RTPlatform = */
     };
 
 }

@@ -42,15 +42,16 @@
 
 #include <graphs/pisdf/Vertex.h>
 #include <graphs/pisdf/Edge.h>
+#include <graphs/pisdf/Param.h>
 
 /* === Function(s) definition === */
 
 spider::pisdf::Vertex::Vertex(const Vertex &other) : name_{ other.name_ },
-                                               reference_{ &other },
-                                               graph_{ other.graph_ },
-                                               ix_{ other.ix_ },
-                                               repetitionValue_{ other.repetitionValue_ },
-                                               copyCount_{ 0 } {
+                                                     reference_{ &other },
+                                                     graph_{ other.graph_ },
+                                                     ix_{ other.ix_ },
+                                                     repetitionValue_{ other.repetitionValue_ },
+                                                     copyCount_{ 0 } {
     inputEdgeVector_.resize(other.inputEdgeVector_.size(), nullptr);
     outputEdgeVector_.resize(other.outputEdgeVector_.size(), nullptr);
     scheduleJobIx_ = other.scheduleJobIx_;
@@ -106,4 +107,15 @@ void spider::pisdf::Vertex::connectEdge(spider::vector<Edge *> &edges, Edge *edg
         return;
     }
     throwSpiderException("Edge already exists at position: %zu", ix);
+}
+
+void spider::pisdf::Vertex::addInputParameter(const spider::pisdf::Param *param) {
+    inputParamIxVector_.emplace_back(param->ix());
+}
+
+void spider::pisdf::Vertex::addOutputParameter(const spider::pisdf::Param *param) {
+    if (subtype() != VertexType::CONFIG) {
+        throwSpiderException("[%s] can not have output parameter.", name().c_str());
+    }
+    outputParamIxVector_.emplace_back(param->ix());
 }

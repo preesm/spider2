@@ -152,10 +152,7 @@ void spider::api::finalizeRTPlatform() {
 
 /* === Runtime kernel related API === */
 
-spider::RTKernel *spider::api::createRuntimeKernel(spider::pisdf::ExecVertex *vertex,
-                                                   spider::rtkernel kernel,
-                                                   size_t inputParamCount,
-                                                   size_t outputParamCount) {
+spider::RTKernel *spider::api::createRuntimeKernel(spider::pisdf::ExecVertex *vertex, spider::rtkernel kernel) {
     if (!vertex) {
         throwSpiderException("nullptr vertex.");
     }
@@ -163,46 +160,10 @@ spider::RTKernel *spider::api::createRuntimeKernel(spider::pisdf::ExecVertex *ve
     if (runtimeInfo->kernelIx() != SIZE_MAX) {
         throwSpiderException("vertex %s already has a runtime kernel.", vertex->name().c_str());
     }
-    auto *runtimeKernel = make<RTKernel, StackID::RUNTIME>(kernel, inputParamCount, outputParamCount);
+    auto *runtimeKernel = make<RTKernel, StackID::RUNTIME>(kernel);
     const auto &index = rt::platform()->addKernel(runtimeKernel);
     runtimeInfo->setKernelIx(index);
     return runtimeKernel;
-}
-
-void spider::api::addRuntimeKernelInputParameter(spider::RTKernel *kernel, spider::pisdf::Param *parameter) {
-    if (!kernel) {
-        throwSpiderException("nullptr kernel.");
-    }
-    if (!parameter) {
-        throwSpiderException("nullptr parameter.");
-    }
-    try {
-        kernel->addInputParam(parameter->ix());
-    } catch (spider::Exception &e) {
-        throw e;
-    }
-}
-
-void spider::api::addRuntimeKernelInputParameter(spider::RTKernel *kernel, spider::pisdf::DynamicParam *parameter) {
-    addRuntimeKernelInputParameter(kernel, static_cast<pisdf::Param *>(parameter));
-}
-
-void spider::api::addRuntimeKernelInputParameter(spider::RTKernel *kernel, spider::pisdf::InHeritedParam *parameter) {
-    addRuntimeKernelInputParameter(kernel, static_cast<pisdf::Param *>(parameter));
-}
-
-void spider::api::addRuntimeKernelOutputParameter(spider::RTKernel *kernel, spider::pisdf::DynamicParam *parameter) {
-    if (!kernel) {
-        throwSpiderException("nullptr kernel.");
-    }
-    if (!parameter) {
-        throwSpiderException("nullptr parameter.");
-    }
-    try {
-        kernel->addOutputParam(parameter->ix());
-    } catch (spider::Exception &e) {
-        throw e;
-    }
 }
 
 /* === Mapping and Timing related API === */

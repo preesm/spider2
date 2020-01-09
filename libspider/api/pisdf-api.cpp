@@ -349,13 +349,14 @@ spider::api::createInheritedParam(pisdf::Graph *graph, std::string name, pisdf::
 }
 
 
-void spider::api::addInputParamToVertex(spider::pisdf::Vertex *vertex, spider::pisdf::Param *param) {
+void spider::api::addInputParamToVertex(pisdf::Vertex *vertex, const pisdf::Param *param) {
     if (!param || !vertex) {
         return;
     }
+    vertex->addInputParameter(param);
 }
 
-void spider::api::addOutputParamToVertex(spider::pisdf::Vertex *vertex, spider::pisdf::Param *param) {
+void spider::api::addOutputParamToVertex(pisdf::Vertex *vertex, const pisdf::Param *param) {
     if (!param || !vertex) {
         return;
     }
@@ -364,6 +365,7 @@ void spider::api::addOutputParamToVertex(spider::pisdf::Vertex *vertex, spider::
                              param->name().c_str(),
                              vertex->name().c_str());
     }
+    vertex->addOutputParameter(param);
 }
 
 

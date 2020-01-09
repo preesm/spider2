@@ -361,7 +361,7 @@ namespace spider {
          * @param vertex  Pointer to the vertex to evaluate.
          * @param param   Pointer to the parameter to add.
          */
-        void addInputParamToVertex(pisdf::Vertex *vertex, pisdf::Param *param);
+        void addInputParamToVertex(pisdf::Vertex *vertex, const pisdf::Param *param);
 
         /**
          * @brief Add an output parameter to a given Vertex.
@@ -370,7 +370,7 @@ namespace spider {
          * @param param   Pointer to the parameter to add.
          * @throw spider::Exception if vertex is not of type @refitem VertexType::ConfigVertex.
          */
-        void addOutputParamToVertex(pisdf::Vertex *vertex, pisdf::Param *param);
+        void addOutputParamToVertex(pisdf::Vertex *vertex, const pisdf::Param *param);
 
         /* === Edge API === */
 

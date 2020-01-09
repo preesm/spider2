@@ -94,43 +94,7 @@ namespace spider {
          * @return pointer to the created @refitem RTKernel.
          * @throws spider::Exception if the vertex is nullptr or if the vertex already has a kernel.
          */
-        RTKernel *createRuntimeKernel(pisdf::ExecVertex *vertex,
-                                      rtkernel kernel,
-                                      size_t inputParamCount = 0,
-                                      size_t outputParamCount = 0);
-
-        /**
-         * @brief Adds an input parameter to a given @refitem RTKernel.
-         * @param kernel     Pointer to the kernel.
-         * @param parameter  Pointer to the parameter to add.
-         * @throws spider::Exception if either kernel or parameter is nullptr.
-         */
-        void addRuntimeKernelInputParameter(RTKernel *kernel, pisdf::Param *parameter);
-
-        /**
-         * @brief Adds an input parameter to a given @refitem RTKernel.
-         * @param kernel     Pointer to the kernel.
-         * @param parameter  Pointer to the parameter to add.
-         * @throws spider::Exception if either kernel or parameter is nullptr.
-         */
-        void addRuntimeKernelInputParameter(RTKernel *kernel, pisdf::DynamicParam *parameter);
-
-        /**
-         * @brief Adds an input parameter to a given @refitem RTKernel.
-         * @param kernel     Pointer to the kernel.
-         * @param parameter  Pointer to the parameter to add.
-         * @throws spider::Exception if either kernel or parameter is nullptr.
-         */
-        void addRuntimeKernelInputParameter(RTKernel *kernel, pisdf::InHeritedParam *parameter);
-
-        /**
-         * @brief Adds an output parameter to a given @refitem RTKernel.
-         * @param kernel     Pointer to the kernel.
-         * @param parameter  Pointer to the parameter to add.
-         * @throws spider::Exception if either kernel or parameter is nullptr or if all the output parameters have
-         * already been set.
-         */
-        void addRuntimeKernelOutputParameter(RTKernel *kernel, pisdf::DynamicParam *parameter);
+        RTKernel *createRuntimeKernel(pisdf::ExecVertex *vertex, rtkernel kernel);
 
         /* === Mapping and Timing related API === */
 

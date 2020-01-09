@@ -126,6 +126,19 @@ namespace spider {
              */
             virtual void visit(Visitor *visitor) = 0;
 
+            /**
+             * @brief Add an output parameter to the Vertex.
+             * @param param  Pointer to the parameter to add.
+             */
+            void addInputParameter(const Param *param);
+
+            /**
+             * @brief Add an output parameter to the Vertex.
+             * @param param  Pointer to the parameter to add.
+             * @throw spider::Exception if subtype() is not @refitem VertexType::CONFIG.
+             */
+            void addOutputParameter(const Param *param);
+
             /* === Getter(s) === */
 
             /**
@@ -218,6 +231,38 @@ namespace spider {
              */
             inline size_t outputEdgeCount() const {
                 return outputEdgeVector_.size();
+            }
+
+            /**
+             * @brief A const reference on the array of input params. Useful for iterating on the edges.
+             * @return const reference to output edge array
+             */
+            inline const spider::vector<size_t> &inputParamVector() const {
+                return inputParamIxVector_;
+            }
+
+            /**
+             * @brief Get the number of input params connected to the vertex.
+             * @return number of input edges.
+             */
+            inline size_t inputParamCount() const {
+                return inputParamIxVector_.size();
+            }
+
+            /**
+             * @brief A const reference on the array of output params. Useful for iterating on the edges.
+             * @return const reference to output edge array
+             */
+            inline const spider::vector<size_t> &outputParamVector() const {
+                return outputParamIxVector_;
+            }
+
+            /**
+             * @brief Get the number of output params connected to the vertex.
+             * @return number of output edges.
+             */
+            inline size_t outputParamCount() const {
+                return outputParamIxVector_.size();
             }
 
             /**
@@ -344,10 +389,10 @@ namespace spider {
 
         protected:
             std::string name_ = "unnamed-vertex"; /* =  Name of the Vertex (uniqueness is not required) = */
-            stack_vector(inputEdgeVector_, Edge *, StackID::PISDF);  /* = Vector of input Edge = */
-            stack_vector(outputEdgeVector_, Edge *, StackID::PISDF); /* = Vector of output Edge = */
-            spider::vector<size_t> *inputParamIxVector_ = nullptr;  /* = Vector of input parameters index = */
-            spider::vector<size_t> *outputParamIxVector_ = nullptr; /* = Vector of output parameters index = */
+            stack_vector(inputEdgeVector_, Edge *, StackID::PISDF);     /* = Vector of input Edge = */
+            stack_vector(outputEdgeVector_, Edge *, StackID::PISDF);    /* = Vector of output Edge = */
+            stack_vector(inputParamIxVector_, size_t, StackID::PISDF);  /* = Vector of input Param index = */
+            stack_vector(outputParamIxVector_, size_t, StackID::PISDF); /* = Vector of output Param index = */
             const Vertex *reference_ = this;   /* =
                                                 * Pointer to the reference Vertex.
                                                 * Default is this, in case of copy, point to the original Vertex.
