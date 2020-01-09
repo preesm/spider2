@@ -102,8 +102,7 @@ bool spider::JITMSRuntime::execute() const {
                                    0, /* = Number of parameters = */
                                    0, /* = Number of input interfaces = */
                                    0, /* = Number of output interfaces = */
-                                   0, /* = Number of config actors = */
-                                   StackID::TRANSFO);
+                                   0 /* = Number of config actors = */);
 
     /* == Create the scheduler == */
     spider::BestFitScheduler scheduler{ srdag };

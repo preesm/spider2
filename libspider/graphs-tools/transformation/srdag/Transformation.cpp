@@ -84,8 +84,7 @@ spider::srdag::splitDynamicGraph(pisdf::Graph *subgraph) {
                                           0,
                                           initInputIFCount,
                                           initOutputIFCount + cfgInputIFCount,
-                                          static_cast<uint32_t>(subgraph->configVertexCount()),
-                                          StackID::PISDF);
+                                          static_cast<uint32_t>(subgraph->configVertexCount()));
 
     /* == Create the run subgraph == */
     auto *runGraph = api::createSubgraph(subgraph->graph(),
@@ -95,7 +94,7 @@ spider::srdag::splitDynamicGraph(pisdf::Graph *subgraph) {
                                          static_cast<uint32_t>(subgraph->paramCount()),
                                          static_cast<uint32_t>(runInputIFCount),
                                          static_cast<uint32_t>(runOutputIFCount),
-                                         0, StackID::PISDF);
+                                         0);
 
     /* == Set repetition values == */
     initGraph->setRepetitionValue(subgraph->repetitionValue());
@@ -175,10 +174,10 @@ spider::srdag::splitDynamicGraph(pisdf::Graph *subgraph) {
 
                 /* == Connect cfg to output interface in init graph == */
                 auto *output = initGraph->outputInterface(outputInitIx);
-                api::createEdge(cfg, srcPortIx, srcRate, output, 0, srcRate, StackID::PISDF);
+                api::createEdge(cfg, srcPortIx, srcRate, output, 0, srcRate);
 
                 /* == Connect init graph to run graph == */
-                api::createEdge(initGraph, outputInitIx, srcRate, runGraph, inputRunIx, srcRate, StackID::PISDF);
+                api::createEdge(initGraph, outputInitIx, srcRate, runGraph, inputRunIx, srcRate);
                 input->setName(name);
                 output->setName(name);
                 outputInitIx += 1;

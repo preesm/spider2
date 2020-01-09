@@ -272,6 +272,11 @@ struct GetVertexVisitor final : public spider::pisdf::DefaultVisitor {
         name_ = vertex->name();
     }
 
+    void visit(spider::pisdf::NonExecVertex *vertex) override {
+        vertex_ = vertex;
+        name_ = vertex->name();
+    }
+
     void visit(spider::pisdf::InputInterface *interface) override {
         vertex_ = interface;
         name_ = "input-" + vertex_->name();

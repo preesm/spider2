@@ -64,8 +64,7 @@ private:
                                                         secondFork->outputEdgeCount());
         auto *newFork = spider::api::createFork(graph,
                                                 "merged-" + firstFork->name() + "-" + secondFork->name(),
-                                                outputCount,
-                                                StackID::TRANSFO);
+                                                outputCount);
 
         /* == Connect the input of the first Fork to the new Fork == */
         auto *edge = firstFork->inputEdge(0);
@@ -137,8 +136,9 @@ bool PiSDFForkForkOptimizer::operator()(spider::pisdf::Graph *graph) const {
 
         /* == Remove the vertices == */
         if (spider::api::verbose() && spider::log::enabled<spider::log::Type::OPTIMS>()) {
-            spider::log::verbose<spider::log::Type::OPTIMS>("ForkForkOptimizer: removing [%s] and [%s] fork vertices.\n",
-                                             secondFork->name().c_str(), firstFork->name().c_str());
+            spider::log::verbose<spider::log::Type::OPTIMS>(
+                    "ForkForkOptimizer: removing [%s] and [%s] fork vertices.\n",
+                    secondFork->name().c_str(), firstFork->name().c_str());
         }
         graph->removeVertex(secondFork);
         graph->removeVertex(firstFork);

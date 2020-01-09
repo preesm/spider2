@@ -63,8 +63,7 @@ namespace spider {
          * @return Clone instance of the vertex.
          */
         struct CloneVisitor final : public DefaultVisitor {
-            explicit CloneVisitor(Graph *graph, StackID stack = StackID::PISDF) : graph_{ graph },
-                                                                                  stack_{ stack } { }
+            explicit CloneVisitor(Graph *graph) : graph_{ graph } { }
 
             /* === Method(s) === */
 
@@ -93,28 +92,27 @@ namespace spider {
             inline void visit(EndVertex *vertex) override { clone(vertex); }
 
             inline void visit(Param *param) override {
-                auto *clone = make<Param>(stack_, (*param));
+                auto *clone = make<Param>((*param));
                 graph_->addParam(clone);
             }
 
             inline void visit(DynamicParam *param) override {
-                auto *clone = make<DynamicParam>(stack_, (*param));
+                auto *clone = make<DynamicParam>((*param));
                 graph_->addParam(clone);
             }
 
             inline void visit(InHeritedParam *param) override {
-                auto *clone = make<InHeritedParam>(stack_, (*param));
+                auto *clone = make<InHeritedParam>((*param));
                 graph_->addParam(clone);
             }
 
             /* == Graph to add vertex to == */
             Graph *graph_ = nullptr;
-            StackID stack_;
 
         private:
             template<class T>
             inline void clone(T *vertex) {
-                auto *clone = make<T>(stack_, (*vertex), stack_);
+                auto *clone = make<T>(StackID::PISDF, (*vertex));
                 graph_->addVertex(clone);
                 vertex->copyCount_ += 1;
             }

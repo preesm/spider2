@@ -94,9 +94,9 @@ namespace spider {
 
             /**
              * @brief Get the ix of the edge in the containing graph.
-             * @return ix of the edge (UINT32_MAX if no ix).
+             * @return ix of the edge (SIZE_MAX if no ix).
              */
-            inline uint32_t ix() const {
+            inline size_t ix() const {
                 return ix_;
             }
 
@@ -163,7 +163,7 @@ namespace spider {
              * @remark This method will override current value.
              * @param ix Ix to set.
              */
-            inline void setIx(uint32_t ix) {
+            inline void setIx(size_t ix) {
                 ix_ = ix;
             }
 
@@ -209,7 +209,7 @@ namespace spider {
             Vertex *src_ = nullptr;       /* = Pointer to the source Vertex (if any) = */
             Vertex *snk_ = nullptr;       /* = Pointer to the sink Vertex (if any) = */
             Delay *delay_ = nullptr;      /* = Pointer to Delay associated to the Edge (if any) = */
-            uint32_t ix_ = UINT32_MAX;    /* = Index of the Edge in the Graph (used for add and remove) = */
+            size_t ix_ = SIZE_MAX;        /* = Index of the Edge in the Graph (used for add and remove) = */
             size_t srcPortIx_ = SIZE_MAX; /* = Index of the Edge in the source outputEdgeArray = */
             size_t snkPortIx_ = SIZE_MAX; /* = Index of the Edge in the sink inputEdgeArray = */
         };

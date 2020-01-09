@@ -52,12 +52,8 @@ namespace spider {
         class OutputInterface final : public Interface {
         public:
 
-            explicit OutputInterface(std::string name = "unnamed-interface",
-                                     StackID stack = StackID::PISDF) :
-                    Interface(std::move(name),
-                              1,
-                              0,
-                              stack) { }
+            explicit OutputInterface(std::string name = "unnamed-interface") :
+                    Interface(std::move(name), 1, 0) { };
 
             /* === Method(s) === */
 

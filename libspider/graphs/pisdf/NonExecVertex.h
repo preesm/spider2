@@ -54,13 +54,11 @@ namespace spider {
         public:
             explicit NonExecVertex(std::string name = "unnamed-non-execvertex",
                                    uint32_t edgeINCount = 0,
-                                   uint32_t edgeOUTCount = 0,
-                                   StackID stack = StackID::PISDF) : Vertex(std::move(name),
-                                                                            edgeINCount,
-                                                                            edgeOUTCount,
-                                                                            stack) { };
+                                   uint32_t edgeOUTCount = 0) : Vertex(std::move(name),
+                                                                       edgeINCount,
+                                                                       edgeOUTCount) { };
 
-            NonExecVertex(const NonExecVertex &other, StackID stack = StackID::PISDF) : Vertex(other, stack) { };
+            NonExecVertex(const NonExecVertex &other) = default;
 
             NonExecVertex(NonExecVertex &&other) noexcept : Vertex(std::move(other)) { };
 

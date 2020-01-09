@@ -63,8 +63,7 @@ private:
                                                        (secondJoin->inputEdgeCount() - 1));
         auto *newJoin = spider::api::createJoin(graph,
                                                 "merged-" + firstJoin->name() + "-" + secondJoin->name(),
-                                                inputCount,
-                                                StackID::TRANSFO);
+                                                inputCount);
 
         /* == Connect the output of the second Join to the new Join == */
         auto *edge = secondJoin->outputEdge(0);

@@ -71,28 +71,27 @@ namespace spider {
                            uint32_t paramCount = 0,
                            uint32_t edgeINCount = 0,
                            uint32_t edgeOUTCount = 0,
-                           uint32_t cfgVertexCount = 0,
-                           StackID stack = StackID::PISDF);
+                           uint32_t cfgVertexCount = 0);
 
-            Graph(const Graph &other, StackID stack = StackID::PISDF) : Vertex(other, stack) {
+            Graph(const Graph &other) : Vertex(other) {
                 dynamic_ = other.dynamic_;
-                vertexVector_ = make<spider::vector<Vertex *>>(stack, *(other.vertexVector_));
-                configVertexVector_ = make<spider::vector<ConfigVertex *>>(stack, *(other.configVertexVector_));
-                subgraphVector_ = make<spider::vector<Graph *>>(stack, *(other.subgraphVector_));
-                edgeVector_ = make<spider::vector<Edge *>>(stack, *(other.edgeVector_));
-                paramVector_ = make<spider::vector<Param *>>(stack, *(other.paramVector_));
+                vertexVector_ = other.vertexVector_;
+                configVertexVector_ = other.configVertexVector_;
+                subgraphVector_ = other.subgraphVector_;
+                edgeVector_ = other.edgeVector_;
+                paramVector_ = other.paramVector_;
             };
 
             Graph(Graph &&other) noexcept : Vertex(std::move(other)) {
                 std::swap(dynamic_, other.dynamic_);
                 std::swap(subIx_, other.subIx_);
-                std::swap(vertexVector_, other.vertexVector_);
-                std::swap(configVertexVector_, other.configVertexVector_);
-                std::swap(subgraphVector_, other.subgraphVector_);
-                std::swap(edgeVector_, other.edgeVector_);
-                std::swap(paramVector_, other.paramVector_);
-                std::swap(inputInterfaceVector_, other.inputInterfaceVector_);
-                std::swap(outputInterfaceVector_, other.outputInterfaceVector_);
+                vertexVector_.swap(other.vertexVector_);
+                configVertexVector_.swap(other.configVertexVector_);
+                subgraphVector_.swap(other.subgraphVector_);
+                edgeVector_.swap(other.edgeVector_);
+                paramVector_.swap(other.paramVector_);
+                inputInterfaceVector_.swap(other.inputInterfaceVector_);
+                outputInterfaceVector_.swap(other.outputInterfaceVector_);
             };
 
             ~Graph() noexcept override;
@@ -202,7 +201,7 @@ namespace spider {
              * @return Total number of vertices.
              */
             inline size_t vertexCount() const {
-                return vertexVector_->size();
+                return vertexVector_.size();
             }
 
             /**
@@ -210,7 +209,7 @@ namespace spider {
              * @return Total number of config actors.
              */
             inline size_t configVertexCount() const {
-                return configVertexVector_->size();
+                return configVertexVector_.size();
             }
 
             /**
@@ -218,7 +217,7 @@ namespace spider {
              * @return Number of edges.
              */
             inline size_t edgeCount() const {
-                return edgeVector_->size();
+                return edgeVector_.size();
             }
 
             /**
@@ -226,7 +225,7 @@ namespace spider {
              * @return Number of params.
              */
             inline size_t paramCount() const {
-                return paramVector_->size();
+                return paramVector_.size();
             }
 
             /**
@@ -234,7 +233,7 @@ namespace spider {
              * @return Number of subgraphs.
              */
             inline size_t subgraphCount() const {
-                return subgraphVector_->size();
+                return subgraphVector_.size();
             }
 
             /**
@@ -242,7 +241,7 @@ namespace spider {
             * @return const reference to exec vertex vector
             */
             inline const spider::vector<Vertex *> &vertices() const {
-                return (*vertexVector_);
+                return vertexVector_;
             }
 
             /**
@@ -250,7 +249,7 @@ namespace spider {
             * @return const reference to subgraph vector
             */
             inline const spider::vector<Graph *> &subgraphs() const {
-                return (*subgraphVector_);
+                return subgraphVector_;
             }
 
             /**
@@ -258,7 +257,7 @@ namespace spider {
             * @return const reference to vertex vector
             */
             inline const spider::vector<ConfigVertex *> &configVertices() const {
-                return (*configVertexVector_);
+                return configVertexVector_;
             }
 
             /**
@@ -282,7 +281,7 @@ namespace spider {
             * @return const reference to edge vector
             */
             inline const spider::vector<Edge *> &edges() const {
-                return (*edgeVector_);
+                return edgeVector_;
             }
 
             /**
@@ -290,7 +289,7 @@ namespace spider {
             * @return const reference to param vector
             */
             inline const spider::vector<Param *> &params() const {
-                return (*paramVector_);
+                return paramVector_;
             }
 
             /**
@@ -300,7 +299,7 @@ namespace spider {
              * @return @refitem Param pointer
              */
             inline Param *param(size_t ix) const {
-                return (*paramVector_)[ix];
+                return paramVector_[ix];
             }
 
             /**
@@ -310,7 +309,7 @@ namespace spider {
              * @return @refitem Vertex pointer
              */
             inline Vertex *vertex(size_t ix) const {
-                return (*vertexVector_)[ix];
+                return vertexVector_[ix];
             }
 
             /**
@@ -353,13 +352,19 @@ namespace spider {
 
             /* === Contained elements of the graph === */
 
-            spider::vector<Vertex *> *vertexVector_ = nullptr;             /* = Vector of all the Vertex (if any). This vector contains subgraph and ConfigVertex as well = */
-            spider::vector<ConfigVertex *> *configVertexVector_ = nullptr; /* = Vector of ConfigVertex (if any). This is just a "viewer" vector. = */
-            spider::vector<Graph *> *subgraphVector_ = nullptr;            /* = Vector of subgraph (if any). This is just a "viewer" vector. = */
-            spider::vector<Edge *> *edgeVector_ = nullptr;                 /* = Vector of Edge contained in the Graph = */
-            spider::vector<Param *> *paramVector_ = nullptr;               /* = Vector of Param = */
-            spider::vector<InputInterface *> inputInterfaceVector_;        /* = Array of InputInterface (size is equal to inputEdgeArray_.size()) = */
-            spider::vector<OutputInterface *> outputInterfaceVector_;      /* = Array of OutputInterface (size is equal to outputEdgeArray_.size()) = */
+            stack_vector(vertexVector_, Vertex *,
+                         StackID::PISDF); /* = Vector of all the Vertex (if any). This vector contains subgraph and ConfigVertex as well = */
+            stack_vector(configVertexVector_, ConfigVertex *,
+                         StackID::PISDF); /* = Vector of ConfigVertex (if any). This is just a "viewer" vector. = */
+            stack_vector(subgraphVector_, Graph *,
+                         StackID::PISDF); /* = Vector of subgraph (if any). This is just a "viewer" vector. = */
+            stack_vector(edgeVector_, Edge *,
+                         StackID::PISDF); /* = Vector of Edge contained in the Graph = */
+            stack_vector(paramVector_, Param *, StackID::PISDF);                /* = Vector of Param = */
+            stack_vector(inputInterfaceVector_, InputInterface *,
+                         StackID::PISDF); /* = Vector of InputInterface (size is equal to inputEdgeArray_.size()) = */
+            stack_vector(outputInterfaceVector_, OutputInterface *,
+                         StackID::PISDF); /* = Vector of OutputInterface (size is equal to outputEdgeArray_.size()) = */
 
             /* === Private method(s) === */
 

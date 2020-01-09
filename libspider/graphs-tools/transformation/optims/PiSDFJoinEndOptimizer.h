@@ -72,7 +72,7 @@ bool PiSDFJoinEndOptimizer::operator()(spider::pisdf::Graph *graph) const {
         graph->removeEdge(edge);
         // TODO: see how to deal with persistent delay memory allocation
         for (auto *inputEdge : join->inputEdgeVector()) {
-            auto *newEnd = spider::api::createEnd(graph, "end-" + inputEdge->source()->name(), StackID::TRANSFO);
+            auto *newEnd = spider::api::createEnd(graph, "end-" + inputEdge->source()->name());
             inputEdge->setSink(newEnd, 0, spider::Expression(inputEdge->sinkRateExpression()));
         }
 

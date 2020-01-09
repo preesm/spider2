@@ -72,7 +72,7 @@ namespace spider {
                 addVertex(vertex);
 
                 /* == Add config vertex to the "viewer" vector == */
-                graph_->configVertexVector_->emplace_back(vertex);
+                graph_->configVertexVector_.emplace_back(vertex);
             }
 
             inline void visit(Graph *subgraph) override {
@@ -80,8 +80,8 @@ namespace spider {
                 addVertex(subgraph);
 
                 /* == Add the subgraph in the "viewer" vector == */
-                subgraph->subIx_ = static_cast<uint32_t>(graph_->subgraphVector_->size());
-                graph_->subgraphVector_->emplace_back(subgraph);
+                subgraph->subIx_ = static_cast<uint32_t>(graph_->subgraphVector_.size());
+                graph_->subgraphVector_.emplace_back(subgraph);
             }
 
             /* == Graph to add vertex to == */
@@ -89,8 +89,8 @@ namespace spider {
         private:
             template<class T>
             void addVertex(T *vertex) {
-                vertex->setIx(static_cast<uint32_t>(graph_->vertexVector_->size()));
-                graph_->vertexVector_->emplace_back(vertex);
+                vertex->setIx(static_cast<uint32_t>(graph_->vertexVector_.size()));
+                graph_->vertexVector_.emplace_back(vertex);
                 vertex->setGraph(graph_);
             }
         };

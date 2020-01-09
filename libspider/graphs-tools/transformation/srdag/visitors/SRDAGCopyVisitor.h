@@ -67,13 +67,12 @@ namespace spider {
                  *                               A -> |       | -> B
                  *    But in reality the vertex does not make it after the SR-Transformation.
                  */
-                api::createVertex(srdag_, buildCloneName(vertex, 0), 2, 2,
-                                  StackID::TRANSFO);
+                api::createVertex(srdag_, buildCloneName(vertex, 0), 2, 2);
                 ix_ = srdag_->vertexCount() - 1;
             }
 
             inline void visit(pisdf::ExecVertex *vertex) override {
-                pisdf::CloneVisitor cloneVisitor{ srdag_, StackID::TRANSFO };
+                pisdf::CloneVisitor cloneVisitor{ srdag_ };
                 for (uint32_t it = 0; it < vertex->repetitionValue(); ++it) {
                     /* == Change the name of the clone == */
                     vertex->visit(&cloneVisitor);
@@ -91,8 +90,7 @@ namespace spider {
                     auto *clone = api::createNonExecVertex(srdag_,
                                                            buildCloneName(graph, it),
                                                            static_cast<uint32_t>(graph->inputEdgeCount()),
-                                                           static_cast<uint32_t>(graph->outputEdgeCount()),
-                                                           StackID::TRANSFO);
+                                                           static_cast<uint32_t>(graph->outputEdgeCount()));
                     clone->setReference(graph);
                     ix_ = clone->ix();
                 }

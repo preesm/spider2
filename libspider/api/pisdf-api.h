@@ -83,8 +83,7 @@ namespace spider {
                                                  uint32_t paramCount = 0,
                                                  uint32_t inIFCount = 0,
                                                  uint32_t outIFCount = 0,
-                                                 uint32_t cfgActorCount = 0,
-                                                 StackID stack = StackID::PISDF);
+                                                 uint32_t cfgActorCount = 0);
 
         /**
          * @brief Creates a @refitem pisdf::Graph with no parent.
@@ -104,8 +103,7 @@ namespace spider {
                                   uint32_t paramCount = 0,
                                   uint32_t inIFCount = 0,
                                   uint32_t outIFCount = 0,
-                                  uint32_t cfgActorCount = 0,
-                                  StackID stack = StackID::PISDF);
+                                  uint32_t cfgActorCount = 0);
 
         /**
          * @brief Creates a @refitem pisdf::Graph with a parent graph.
@@ -128,8 +126,7 @@ namespace spider {
                                      uint32_t paramCount = 0,
                                      uint32_t inIFCount = 0,
                                      uint32_t outIFCount = 0,
-                                     uint32_t cfgActorCount = 0,
-                                     StackID stack = StackID::PISDF);
+                                     uint32_t cfgActorCount = 0);
 
         /**
          * @brief Creates a @refitem pisdf::ExecVertex.
@@ -144,8 +141,7 @@ namespace spider {
         pisdf::ExecVertex *createVertex(pisdf::Graph *graph,
                                         std::string name,
                                         uint32_t edgeINCount = 0,
-                                        uint32_t edgeOUTCount = 0,
-                                        StackID stack = StackID::PISDF);
+                                        uint32_t edgeOUTCount = 0);
 
         /**
          * @brief Creates a @refitem pisdf::NonExecVertex.
@@ -160,8 +156,7 @@ namespace spider {
         pisdf::NonExecVertex *createNonExecVertex(pisdf::Graph *graph,
                                                   std::string name,
                                                   uint32_t edgeINCount = 0,
-                                                  uint32_t edgeOUTCount = 0,
-                                                  StackID stack = StackID::PISDF);
+                                                  uint32_t edgeOUTCount = 0);
 
         /**
          * @brief Creates a @refitem pisdf::ForkVertex.
@@ -174,8 +169,7 @@ namespace spider {
          */
         pisdf::ExecVertex *createFork(pisdf::Graph *graph,
                                       std::string name,
-                                      uint32_t edgeOUTCount = 0,
-                                      StackID stack = StackID::PISDF);
+                                      uint32_t edgeOUTCount = 0);
 
         /**
          * @brief Creates a @refitem pisdf::JoinVertex.
@@ -188,8 +182,7 @@ namespace spider {
          */
         pisdf::ExecVertex *createJoin(pisdf::Graph *graph,
                                       std::string name,
-                                      uint32_t edgeINCount = 0,
-                                      StackID stack = StackID::PISDF);
+                                      uint32_t edgeINCount = 0);
 
         /**
          * @brief Creates a @refitem pisdf::HeadVertex.
@@ -202,8 +195,7 @@ namespace spider {
          */
         pisdf::ExecVertex *createHead(pisdf::Graph *graph,
                                       std::string name,
-                                      uint32_t edgeINCount = 0,
-                                      StackID stack = StackID::PISDF);
+                                      uint32_t edgeINCount = 0);
 
         /**
          * @brief Creates a @refitem pisdf::TailVertex.
@@ -216,8 +208,7 @@ namespace spider {
          */
         pisdf::ExecVertex *createTail(pisdf::Graph *graph,
                                       std::string name,
-                                      uint32_t edgeINCount = 0,
-                                      StackID stack = StackID::PISDF);
+                                      uint32_t edgeINCount = 0);
 
         /**
          * @brief Creates a @refitem pisdf::DuplicateVertex.
@@ -230,8 +221,7 @@ namespace spider {
          */
         pisdf::ExecVertex *createDuplicate(pisdf::Graph *graph,
                                            std::string name,
-                                           uint32_t edgeOUTCount = 0,
-                                           StackID stack = StackID::PISDF);
+                                           uint32_t edgeOUTCount = 0);
 
         /**
          * @brief Creates a @refitem pisdf::RepeatVertex.
@@ -241,7 +231,7 @@ namespace spider {
          * @return pointer to the created @refitem pisdf::RepeatVertex.
          * @throws @refitem spider::Exception if the parent graph is nullptr.
          */
-        pisdf::ExecVertex *createRepeat(pisdf::Graph *graph, std::string name, StackID stack = StackID::PISDF);
+        pisdf::ExecVertex *createRepeat(pisdf::Graph *graph, std::string name);
 
         /**
          * @brief Creates a @refitem pisdf::InitVertex.
@@ -251,7 +241,7 @@ namespace spider {
          * @return pointer to the created @refitem pisdf::InitVertex.
          * @throws @refitem spider::Exception if the parent graph is nullptr.
          */
-        pisdf::ExecVertex *createInit(pisdf::Graph *graph, std::string name, StackID stack = StackID::PISDF);
+        pisdf::ExecVertex *createInit(pisdf::Graph *graph, std::string name);
 
         /**
          * @brief Creates a @refitem pisdf::EndVertex.
@@ -261,7 +251,7 @@ namespace spider {
          * @return pointer to the created @refitem pisdf::EndVertex.
          * @throws @refitem spider::Exception if the parent graph is nullptr.
          */
-        pisdf::ExecVertex *createEnd(pisdf::Graph *graph, std::string name, StackID stack = StackID::PISDF);
+        pisdf::ExecVertex *createEnd(pisdf::Graph *graph, std::string name);
 
         /**
          * @brief Creates a @refitem pisdf::ConfigVertex.
@@ -276,8 +266,7 @@ namespace spider {
         pisdf::ExecVertex *createConfigActor(pisdf::Graph *graph,
                                              std::string name,
                                              uint32_t edgeINCount = 0,
-                                             uint32_t edgeOUTCount = 0,
-                                             StackID stack = StackID::PISDF);
+                                             uint32_t edgeOUTCount = 0);
 
         /**
          * @brief Change the name of an @refitem pisdf::InputInterface.
@@ -312,8 +301,7 @@ namespace spider {
          */
         pisdf::Param *createStaticParam(pisdf::Graph *graph,
                                         std::string name,
-                                        int64_t value,
-                                        StackID stack = StackID::PISDF);
+                                        int64_t value);
 
         /**
          * @brief Creates a static @refitem pisdf::Param with static expression.
@@ -326,8 +314,7 @@ namespace spider {
          */
         pisdf::Param *createStaticParam(pisdf::Graph *graph,
                                         std::string name,
-                                        std::string expression,
-                                        StackID stack = StackID::PISDF);
+                                        std::string expression);
 
         /**
          * @brief Creates a @refitem pisdf::DynamicParam.
@@ -338,8 +325,7 @@ namespace spider {
          * @return pointer to the created @refitem pisdf::DynamicParam.
          */
         pisdf::DynamicParam *createDynamicParam(pisdf::Graph *graph,
-                                                std::string name,
-                                                StackID stack = StackID::PISDF);
+                                                std::string name);
 
         /**
          * @brief Creates a @refitem pisdf::DynamicParam with dynamic expression.
@@ -352,8 +338,7 @@ namespace spider {
          */
         pisdf::DynamicParam *createDynamicParam(pisdf::Graph *graph,
                                                 std::string name,
-                                                std::string expression,
-                                                StackID stack = StackID::PISDF);
+                                                std::string expression);
 
         /**
          * @brief Creates a @refitem pisdf::InheritedParam.
@@ -368,8 +353,24 @@ namespace spider {
          */
         pisdf::Param *createInheritedParam(pisdf::Graph *graph,
                                            std::string name,
-                                           pisdf::Param *parent,
-                                           StackID stack = StackID::PISDF);
+                                           pisdf::Param *parent);
+
+        /**
+         * @brief Add an input parameter to a given Vertex.
+         * @remark If param or vertex is nullptr, nothing happen.
+         * @param vertex  Pointer to the vertex to evaluate.
+         * @param param   Pointer to the parameter to add.
+         */
+        void addInputParamToVertex(pisdf::Vertex *vertex, pisdf::Param *param);
+
+        /**
+         * @brief Add an output parameter to a given Vertex.
+         * @remark If param or vertex is nullptr, nothing happen.
+         * @param vertex  Pointer to the vertex to evaluate.
+         * @param param   Pointer to the parameter to add.
+         * @throw spider::Exception if vertex is not of type @refitem VertexType::ConfigVertex.
+         */
+        void addOutputParamToVertex(pisdf::Vertex *vertex, pisdf::Param *param);
 
         /* === Edge API === */
 
@@ -390,8 +391,7 @@ namespace spider {
                                 std::string srcRateExpression,
                                 pisdf::Vertex *sink,
                                 size_t snkPortIx,
-                                std::string snkRateExpression,
-                                StackID stack = StackID::PISDF);
+                                std::string snkRateExpression);
 
         /**
          * @brief Creates an @refitem pisdf::Edge between two @refitem pisdf::Vertex.
@@ -410,8 +410,7 @@ namespace spider {
                                 int64_t srcRate,
                                 pisdf::Vertex *sink,
                                 size_t snkPortIx,
-                                int64_t snkRate,
-                                StackID stack = StackID::PISDF);
+                                int64_t snkRate);
 
         /**
          * @brief Creates a @refitem pisdf::Delay on a @refitem pisdf::Edge.
@@ -437,8 +436,7 @@ namespace spider {
                                   pisdf::ExecVertex *getter = nullptr,
                                   uint32_t getterPortIx = 0,
                                   const std::string &getterRateExpression = "0",
-                                  bool persistent = true,
-                                  StackID stack = StackID::PISDF);
+                                  bool persistent = true);
 
         /**
          * @brief Creates a @refitem pisdf::Delay on a @refitem pisdf::Edge.
@@ -464,8 +462,7 @@ namespace spider {
                                   pisdf::ExecVertex *getter = nullptr,
                                   uint32_t getterPortIx = 0,
                                   int64_t getterRate = 0,
-                                  bool persistent = true,
-                                  StackID stack = StackID::PISDF);
+                                  bool persistent = true);
 
         /**
          * @brief Creates a fully-persistent @refitem pisdf::Delay on a given @refitem pisdf::Edge.
@@ -478,7 +475,7 @@ namespace spider {
          * @return pointer to the created @refitem pisdf::Delay.
          */
         pisdf::Delay *
-        createPersistentDelay(pisdf::Edge *edge, std::string delayExpression, StackID stack = StackID::PISDF);
+        createPersistentDelay(pisdf::Edge *edge, std::string delayExpression);
 
         /**
          * @brief Creates a locally-persistent @refitem pisdf::Delay on a given @refitem pisdf::Edge.
@@ -492,8 +489,7 @@ namespace spider {
          * @return pointer to the created @refitem pisdf::Delay.
          */
         pisdf::Delay *
-        createLocalPersistentDelay(pisdf::Edge *edge, std::string delayExpression, int32_t levelCount = 1,
-                                   StackID stack = StackID::PISDF);
+        createLocalPersistentDelay(pisdf::Edge *edge, std::string delayExpression, int32_t levelCount = 1);
 
         /**
          * @brief Creates a non-persistent @refitem pisdf::Delay on a given @refitem pisdf::Edge.
@@ -518,8 +514,7 @@ namespace spider {
                                        std::string setterRateExpression = "0",
                                        pisdf::ExecVertex *getter = nullptr,
                                        uint32_t getterPortIx = 0,
-                                       std::string getterRateExpression = "0",
-                                       StackID stack = StackID::PISDF);
+                                       std::string getterRateExpression = "0");
     }
 }
 

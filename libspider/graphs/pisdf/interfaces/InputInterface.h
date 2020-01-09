@@ -52,12 +52,8 @@ namespace spider {
         class InputInterface final : public Interface {
         public:
 
-            explicit InputInterface(std::string name = "unnamed-interface",
-                                    StackID stack = StackID::PISDF) :
-                    Interface(std::move(name),
-                              0,
-                              1,
-                              stack) { }
+            explicit InputInterface(std::string name = "unnamed-interface") :
+                    Interface(std::move(name), 0, 1) { };
 
             /* === Method(s) === */
 

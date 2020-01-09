@@ -65,8 +65,7 @@ namespace spider {
                   ExecVertex *getter,
                   uint32_t getterPortIx,
                   Expression &&getterRateExpression,
-                  bool persistent = false,
-                  StackID stack = StackID::PISDF);
+                  bool persistent = false);
 
             ~Delay();
 

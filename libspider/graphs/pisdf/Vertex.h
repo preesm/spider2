@@ -65,14 +65,13 @@ namespace spider {
 
             explicit Vertex(std::string name,
                             size_t edgeINCount = 0,
-                            size_t edgeOUTCount = 0,
-                            StackID stack = StackID::PISDF) :
+                            size_t edgeOUTCount = 0) :
                     name_{ std::move(name) } {
-                inputEdgeVector_ = containers::vector<Edge *>(edgeINCount, nullptr, stack);
-                outputEdgeVector_ = containers::vector<Edge *>(edgeOUTCount, nullptr, stack);
+                inputEdgeVector_.resize(edgeINCount, nullptr);
+                outputEdgeVector_.resize(edgeOUTCount, nullptr);
             }
 
-            Vertex(const Vertex &other, StackID stack = StackID::PISDF);
+            Vertex(const Vertex &other);
 
             Vertex(Vertex &&other) noexcept = default;
 
@@ -344,20 +343,26 @@ namespace spider {
             }
 
         protected:
-            std::string name_ = "unnamed-vertex";     /* = Name of the Vertex (uniqueness is not required) = */
-            spider::vector<Edge *> inputEdgeVector_;  /* = Vector of input Edge = */
-            spider::vector<Edge *> outputEdgeVector_; /* = Vector of output Edge = */
-            const Vertex *reference_ = this;          /* = Pointer to the reference Vertex.
-                                                       * Default is this, in case of copy, point to the original Vertex. = */
-            Graph *graph_ = nullptr;                  /* = Containing Graph of the Vertex (can be nullptr) = */
-            RTInfo *rtInformation_ = nullptr;         /* = Runtime information of the Vertex (timing, mappable, etc.) = */
-            size_t scheduleJobIx_ = SIZE_MAX;         /* = Index of the schedule job associated to this Vertex.
-                                                       *   Needed in case of deletion of vertex between successive
-                                                       *   schedule pass in order to maintain coherence. = */
-            size_t transfoJobIx_ = SIZE_MAX;          /* = Index of the transfo job associated to this Vertex = */
-            uint32_t ix_ = UINT32_MAX;                /* = Index of the Vertex in the containing Graph = */
-            uint32_t repetitionValue_ = 1;            /* = Repetition value of the Vertex, default is 1 but it can be set to 0. = */
-            mutable uint32_t copyCount_ = 0;          /* = Number of copy of the Vertex = */
+            std::string name_ = "unnamed-vertex"; /* =  Name of the Vertex (uniqueness is not required) = */
+            stack_vector(inputEdgeVector_, Edge *, StackID::PISDF);  /* = Vector of input Edge = */
+            stack_vector(outputEdgeVector_, Edge *, StackID::PISDF); /* = Vector of output Edge = */
+            spider::vector<size_t> *inputParamIxVector_ = nullptr;  /* = Vector of input parameters index = */
+            spider::vector<size_t> *outputParamIxVector_ = nullptr; /* = Vector of output parameters index = */
+            const Vertex *reference_ = this;   /* =
+                                                * Pointer to the reference Vertex.
+                                                * Default is this, in case of copy, point to the original Vertex.
+                                                * = */
+            Graph *graph_ = nullptr;           /* = Containing Graph of the Vertex (can be nullptr) = */
+            RTInfo *rtInformation_ = nullptr;  /* = Runtime information of the Vertex (timing, mappable, etc.) = */
+            size_t scheduleJobIx_ = SIZE_MAX;  /* =
+                                                * Index of the schedule job associated to this Vertex.
+                                                * Needed in case of deletion of vertex between successive.
+                                                * schedule pass in order to maintain coherence.
+                                                * = */
+            size_t transfoJobIx_ = SIZE_MAX;   /* = Index of the transfo job associated to this Vertex = */
+            uint32_t ix_ = UINT32_MAX;         /* = Index of the Vertex in the containing Graph = */
+            uint32_t repetitionValue_ = 1;     /* = Repetition value of the Vertex, default is 1 but it can be set to 0. = */
+            mutable uint32_t copyCount_ = 0;   /* = Number of copy of the Vertex = */
 
             /* === Private method(s) === */
 

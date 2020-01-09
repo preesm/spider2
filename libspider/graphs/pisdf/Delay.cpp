@@ -60,14 +60,13 @@ spider::pisdf::Delay::Delay(Expression &&expression,
                             ExecVertex *getter,
                             uint32_t getterPortIx,
                             Expression &&getterRateExpression,
-                            bool persistent,
-                            StackID stack) : expression_{ std::move(expression) },
-                                             edge_{ edge },
-                                             setter_{ setter },
-                                             setterPortIx_{ setterPortIx },
-                                             getter_{ getter },
-                                             getterPortIx_{ getterPortIx },
-                                             persistent_{ persistent } {
+                            bool persistent) : expression_{ std::move(expression) },
+                                               edge_{ edge },
+                                               setter_{ setter },
+                                               setterPortIx_{ setterPortIx },
+                                               getter_{ getter },
+                                               getterPortIx_{ getterPortIx },
+                                               persistent_{ persistent } {
     if (!edge_) {
         throwSpiderException("Delay can not be created on nullptr edge.");
     }
@@ -79,8 +78,7 @@ spider::pisdf::Delay::Delay(Expression &&expression,
     if (!setter_) {
         setterPortIx_ = 0; /* = Ensure the proper value of the port ix = */
         setter_ = api::createInit(edge->graph(),
-                                  "init-" + edge->sink()->name() + "_" + std::to_string(edge->sinkPortIx()),
-                                  stack);
+                                  "init-" + edge->sink()->name() + "_" + std::to_string(edge->sinkPortIx()));
         addedInit_ = true;
     }
 
@@ -88,23 +86,22 @@ spider::pisdf::Delay::Delay(Expression &&expression,
     if (!getter_) {
         getterPortIx_ = 0; /* = Ensure the proper value of the port ix = */
         getter_ = api::createEnd(edge->graph(),
-                                 "end-" + edge->source()->name() + "_" + std::to_string(edge->sourcePortIx()),
-                                 stack);
+                                 "end-" + edge->source()->name() + "_" + std::to_string(edge->sourcePortIx()));
         addedEnd_ = true;
     }
 
     /* == Create virtual vertex and connect it to setter / getter == */
-    vertex_ = make<DelayVertex>(stack, this->name(), stack);
+    vertex_ = make<DelayVertex>(StackID::PISDF, this->name());
     edge->graph()->addVertex(vertex_);
 
-    auto *setterEdge = make<Edge>(stack,
+    auto *setterEdge = make<Edge>(StackID::PISDF,
                                   setter_,
                                   setterPortIx_,
                                   std::move(setterRateExpression),
                                   vertex_,
                                   0u,
                                   Expression(expression_));
-    auto *getterEdge = make<Edge>(stack,
+    auto *getterEdge = make<Edge>(StackID::PISDF,
                                   vertex_,
                                   0u,
                                   Expression(expression_),

@@ -45,15 +45,14 @@
 
 /* === Function(s) definition === */
 
-spider::pisdf::Vertex::Vertex(const Vertex &other,
-                              StackID stack) : name_{ other.name_ },
+spider::pisdf::Vertex::Vertex(const Vertex &other) : name_{ other.name_ },
                                                reference_{ &other },
                                                graph_{ other.graph_ },
                                                ix_{ other.ix_ },
                                                repetitionValue_{ other.repetitionValue_ },
                                                copyCount_{ 0 } {
-    inputEdgeVector_ = containers::vector<Edge *>(other.inputEdgeVector_.size(), nullptr, stack);
-    outputEdgeVector_ = containers::vector<Edge *>(other.outputEdgeVector_.size(), nullptr, stack);
+    inputEdgeVector_.resize(other.inputEdgeVector_.size(), nullptr);
+    outputEdgeVector_.resize(other.outputEdgeVector_.size(), nullptr);
     scheduleJobIx_ = other.scheduleJobIx_;
 }
 

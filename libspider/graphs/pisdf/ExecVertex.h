@@ -56,17 +56,13 @@ namespace spider {
         public:
             explicit ExecVertex(std::string name = "unnamed-execvertex",
                                 uint32_t edgeINCount = 0,
-                                uint32_t edgeOUTCount = 0,
-                                StackID stack = StackID::PISDF) : Vertex(std::move(name),
-                                                                         edgeINCount,
-                                                                         edgeOUTCount,
-                                                                         stack) {
+                                uint32_t edgeOUTCount = 0) : Vertex(std::move(name),
+                                                                    edgeINCount,
+                                                                    edgeOUTCount) {
                 rtInformation_ = make<RTInfo, StackID::RUNTIME>();
             }
 
-            ExecVertex(const ExecVertex &other, StackID stack = StackID::PISDF) : Vertex(other, stack) {
-                rtInformation_ = other.rtInformation_;
-            };
+            ExecVertex(const ExecVertex &other) : Vertex(other) { rtInformation_ = other.rtInformation_; };
 
             ExecVertex(ExecVertex &&other) noexcept : Vertex(std::move(other)) {
                 std::swap(rtInformation_, other.rtInformation_);

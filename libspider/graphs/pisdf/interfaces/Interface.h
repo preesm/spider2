@@ -55,11 +55,9 @@ namespace spider {
 
             explicit Interface(std::string name = "unnamed-interface",
                                uint32_t edgeINCount = 0,
-                               uint32_t edgeOUTCount = 0,
-                               StackID stack = StackID::PISDF) : Vertex(std::move(name),
-                                                                        edgeINCount,
-                                                                        edgeOUTCount,
-                                                                        stack) { }
+                               uint32_t edgeOUTCount = 0) : Vertex(std::move(name),
+                                                                   edgeINCount,
+                                                                   edgeOUTCount) { }
 
             /* === Method(s) === */
 

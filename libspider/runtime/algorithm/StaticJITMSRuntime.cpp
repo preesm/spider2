@@ -60,8 +60,7 @@ bool spider::StaticJITMSRuntime::execute() const {
                                    0, /* = Number of parameters = */
                                    0, /* = Number of input interfaces = */
                                    0, /* = Number of output interfaces = */
-                                   0, /* = Number of config actors = */
-                                   StackID::TRANSFO);
+                                   0 /* = Number of config actors = */);
 
     /* == Apply first transformation of root graph == */
     auto &&rootJob = srdag::TransfoJob(graph_, UINT32_MAX, UINT32_MAX, true);

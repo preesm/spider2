@@ -59,7 +59,7 @@ enum class StackID : uint64_t {
     PISDF = 0,       /*!< Stack used for PISDF graph (should be static) */
     ARCHI,           /*!< Stack used for architecture (should be static) */
     TRANSFO,         /*!< Stack used for graph transformations */
-    OPTIMS,          /*!< Stack used for graph transformations */
+    OPTIMS,          /*!< Stack used for graph optimizations */
     EXPRESSION,      /*!< Stack used for handling expression */
     SCHEDULE,        /*!< Stack used for scheduling */
     RUNTIME,         /*!< Stack used by LRTs */
@@ -252,7 +252,7 @@ namespace spider {
     inline std::array<const char *, STACK_COUNT> &stackNamesArray() {
         static std::array<const char *, STACK_COUNT> nameArray = {{ "pisdf-stack",
                                                                           "archi-stack",
-                                                                          "srdag-stack",
+                                                                          "transfo-stack",
                                                                           "optims-stack",
                                                                           "expr-stack",
                                                                           "sched-stack",
