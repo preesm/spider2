@@ -212,7 +212,8 @@ void spider::pisdf::PiSDFDOTExporterVisitor::vertexPrinter(Vertex *vertex,
     file_ << offset_ << "];" << '\n' << '\n';
 }
 
-void spider::pisdf::PiSDFDOTExporterVisitor::interfaceBodyPrinter(Interface *interface, const std::string &color) const {
+void
+spider::pisdf::PiSDFDOTExporterVisitor::interfaceBodyPrinter(Interface *interface, const std::string &color) const {
     /* == Interface name == */
     file_ << offset_ << '\t' << '\t'
           << R"(<tr> <td border="0" colspan="5" bgcolor="#ffffff00"><font point-size="25" face="inconsolata">)"
@@ -319,8 +320,12 @@ void spider::pisdf::PiSDFDOTExporterVisitor::paramPrinter(Param *param) const {
     file_ << offset_ << R"(")" << param->graph()->name() + ":" + param->name()
           << R"("[shape=house, style=filled, fillcolor=")" << (param->dynamic() ? "#19b5fe" : "#89c4f4")
           << R"(", margin=0, width=0, height=0, label=<)" << '\n';
-    file_ << offset_ << '\t' << R"(<table border="0" fixedsize="false" cellspacing="0" cellpadding="0">)"
+    file_ << offset_ << '\t' << R"(<table border="0" style="" cellspacing="0" cellpadding="0">)"
           << '\n';
+    if (param->dynamic()) {
+        file_ << offset_ << '\t' << '\t'
+              << R"(<tr> <td border="1" style="rounded" bgcolor="#ffffff" fixedsize="true" width="25" height="25"></td></tr>)" << '\n';
+    }
     file_ << offset_ << '\t' << '\t'
           << R"(<tr> <td border="0" fixedsize="false" height="20"></td></tr>)" << '\n';
     file_ << offset_ << '\t' << '\t'
