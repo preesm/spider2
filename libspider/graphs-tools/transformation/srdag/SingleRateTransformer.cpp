@@ -234,7 +234,7 @@ std::pair<spider::srdag::JobStack, spider::srdag::JobStack> spider::srdag::Singl
             auto &job = nextJobs.back();
             job.params_.reserve(runGraph->paramCount());
             for (auto &param : runJob->params_) {
-                job.params_.emplace_back(param);
+                job.params_.emplace_back(param->dynamic() ? nullptr : param);
             }
         }
     }
