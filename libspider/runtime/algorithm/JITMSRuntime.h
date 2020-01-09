@@ -43,8 +43,13 @@
 /* === Include(s) === */
 
 #include <runtime/algorithm/Runtime.h>
+#include <graphs-tools/transformation/srdag/TransfoJob.h>
 
 namespace spider {
+
+    /* === Forward declaration(s) === */
+
+    class Scheduler;
 
     /* === Class definition === */
 
@@ -72,6 +77,31 @@ namespace spider {
     private:
 
         /* === Private method(s) === */
+
+        /**
+         * @brief Transform all static jobs contained in staticJobStack and update the job stacks with future jobs.
+         * @param staticJobStack   Static job stack.
+         * @param dynamicJobStack  Dynamic job stack.
+         * @param scheduler        Pointer to the scheduler to use.
+         * @param srdag            Pointer to the single-rate graph to update.
+         */
+        void transformStaticJobs(spider::vector<srdag::TransfoJob> &staticJobStack,
+                                 spider::vector<srdag::TransfoJob> &dynamicJobStack,
+                                 Scheduler *scheduler,
+                                 pisdf::Graph *srdag) const;
+
+        /**
+         * @brief Transform all dynamic jobs contained in dynamicJobStack and update the job stacks with future jobs.
+         * @param staticJobStack   Static job stack.
+         * @param dynamicJobStack  Dynamic job stack.
+         * @param scheduler        Pointer to the scheduler to use.
+         * @param srdag            Pointer to the single-rate graph to update.
+         */
+        void transformDynamicJobs(spider::vector<srdag::TransfoJob> &staticJobStack,
+                                  spider::vector<srdag::TransfoJob> &dynamicJobStack,
+                                  Scheduler *scheduler,
+                                  pisdf::Graph *srdag) const;
+
     };
 
     /* === Inline method(s) === */
