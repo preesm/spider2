@@ -79,18 +79,9 @@ namespace spider {
                     vertex->visit(&cloneVisitor);
                     auto *clone = srdag_->vertices().back();
                     clone->setName(buildCloneName(vertex, it));
+                    clone->setTransfoJobIx(job_.ix_);
                 }
                 ix_ = (srdag_->vertexCount() - 1) - (vertex->repetitionValue() - 1);
-            }
-
-            inline void visit(pisdf::ConfigVertex *vertex) override {
-                this->visit(static_cast<pisdf::ExecVertex *>(vertex));
-                if (vertex->repetitionValue()) {
-                    auto *clone = srdag_->configVertices().back(); /* = Repetition value of cfg is necessary one = */
-                    clone->setTransfoJobIx(clone->transfoJobIx() + job_.firingValue_); /* = Current jobIx is the one of the first run job associated to the
-                                                                           * first init job this config vertex belong to.
-                                                                           * We apply offset of the firing value = */
-                }
             }
 
             inline void visit(pisdf::Graph *graph) override {
@@ -115,7 +106,7 @@ namespace spider {
             std::string buildCloneName(const pisdf::Vertex *vertex, uint32_t firing) {
                 const auto *graphRef = job_.firingValue_ == UINT32_MAX ?
                                        job_.reference_ : srdag_->vertex(job_.srdagIx_);
-                return graphRef->name() + "-" + vertex->name() + "_" + std::to_string(firing);
+                return graphRef->name() + ":" + vertex->name() + "-" + std::to_string(firing);
             }
         };
     }
