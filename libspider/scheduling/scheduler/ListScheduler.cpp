@@ -62,7 +62,7 @@ spider::ListScheduler::ListScheduler(pisdf::Graph *graph,
     addVerticesAndSortList();
 }
 
-void spider::ListScheduler::update(const spider::vector<pisdf::Param *> &) {
+void spider::ListScheduler::update() {
     /* == Add vertices of the graph and sort the obtained list == */
     addVerticesAndSortList();
 }
@@ -108,8 +108,10 @@ void spider::ListScheduler::addVerticesAndSortList() {
             std::swap((*reverseIterator), sortedVertexVector_.back());
             sortedVertexVector_.pop_back();
         }
-        nonSchedulableVertexCount += (!isHierarachical);            /* = Increase the number of non-schedulable vertex = */
-        (*(reverseIterator++)).vertex_->setScheduleJobIx(SIZE_MAX); /* = Reset the index for non-schedulable vertex = */
+        nonSchedulableVertexCount += (!isHierarachical);          /* = Increase the number of non-schedulable vertex = */
+//        (*(reverseIterator)).vertex_->setScheduleJobIx(SIZE_MAX); /* = Reset the index for non-schedulable vertex = */
+        (*(reverseIterator)).level_ = -1;                         /* = Reset the schedule level = */
+        reverseIterator++;
     }
 
     /* == Set the schedule job ix of the vertices == */
@@ -142,12 +144,13 @@ int64_t spider::ListScheduler::computeScheduleLevel(ListVertex &listVertex,
         for (auto &edge : vertex->outputEdgeVector()) {
             auto *sink = edge->sink();
             if (sink && sink->executable()) {
+                const auto &sinkParams = parameterBankVector_[sink->transfoJobIx()];
                 auto *sinkRTInfo = sink->runtimeInformation();
                 auto minExecutionTime = INT64_MAX;
                 for (auto &cluster : platform->clusters()) {
                     for (auto &pe : cluster->array()) {
                         if (sinkRTInfo->isPEMappable(pe)) {
-                            auto executionTime = sinkRTInfo->timingOnPE(pe, params_);
+                            auto executionTime = sinkRTInfo->timingOnPE(pe, sinkParams);
                             if (!executionTime) {
                                 throwSpiderException("Vertex [%s] has null execution time on mappable PE [%s].",
                                                      vertex->name().c_str(), pe->name().c_str());

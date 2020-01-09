@@ -63,7 +63,7 @@ namespace spider {
                   const spider::vector<pisdf::Param *> &params,
                   FifoAllocatorType type = FifoAllocatorType::DEFAULT);
 
-        virtual ~Scheduler() = default;
+        virtual ~Scheduler();
 
         /* === Method(s) === */
 
@@ -76,22 +76,30 @@ namespace spider {
         /**
          * @brief Update internal state of the scheduler (mostly for dynamic applications)
          */
-        virtual void update(const spider::vector<pisdf::Param *> &) = 0;
+        virtual void update() = 0;
+
+        /**
+         * @brief Add a param vector to the parameter bank using move semantic for dynamic scheduling.
+         * @param params Vector of parameters to move.
+         */
+        void addParameterVector(spider::vector<pisdf::Param *> params);
 
         /* === Getter(s) === */
 
         /**
-         * @brief Return the @refitem Schedule owned by the Scheduler.
-         * @return @refitem Schedule
+         * @brief Returns the @refitem Schedule owned by the Scheduler.
+         * @return const reference to @refitem Schedule.
          */
-        inline const sched::Schedule &schedule() const;
+        inline const sched::Schedule &schedule() const {
+            return schedule_;
+        }
 
         /* === Setter(s) === */
 
     protected:
-        pisdf::Graph *graph_ = nullptr;
-        const spider::vector<pisdf::Param *> &params_;
+        stack_vector(parameterBankVector_, spider::vector<pisdf::Param *>, StackID::SCHEDULE);
         sched::Schedule schedule_;
+        pisdf::Graph *graph_ = nullptr;
         FifoAllocator *fifoAllocator_ = nullptr;
 
         /* === Protected method(s) === */
@@ -118,12 +126,11 @@ namespace spider {
          * @param vertex Vertex to map.
          */
         virtual void vertexMapper(const pisdf::Vertex *vertex);
+
+        /**
+         * @brief Clears the parameterBankVector_ and destroy parameter with no graph.
+         */
+        void clearParameterBank();
     };
-
-    /* === Inline method(s) === */
-
-    const sched::Schedule &Scheduler::schedule() const {
-        return schedule_;
-    }
 }
 #endif //SPIDER2_SCHEDULER_H

@@ -58,7 +58,7 @@ namespace spider {
 
         sched::Schedule &mappingScheduling() override = 0;
 
-        void update(const spider::vector<pisdf::Param *> &params) override;
+        void update() override;
 
         /* === Getter(s) === */
 
