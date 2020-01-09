@@ -203,9 +203,12 @@ void spider::JITMSRTRunner::runJob(const JobMessage &job) {
     }
 
     /* == Send output parameters == */
-    const auto *spiderGRT = archi::platform()->spiderGRTPE()->attachedLRT();
-    auto paramNotification = ParameterMessage(job.kernelIx_, std::move(outputParams));
-    rt::platform()->communicator()->push(paramNotification, spiderGRT->virtualIx());
+    if (job.outputParamCount_) {
+        const auto *spiderGRT = archi::platform()->spiderGRTPE()->attachedLRT();
+        auto paramMessage = ParameterMessage(job.vertexIx_, std::move(outputParams));
+        auto index = rt::platform()->communicator()->push(std::move(paramMessage), spiderGRT->virtualIx());
+        rt::platform()->communicator()->pushParamNotification(attachedPE_->virtualIx(), index);
+    }
 
     /* == Send traces == */
 }

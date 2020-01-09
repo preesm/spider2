@@ -80,6 +80,7 @@ namespace spider {
         spider::array<RTFifo> outputFifoArray_;   /*!< Array of output FIFO for the job */
         size_t outputParamCount_ = 0;             /*!< Number of output parameters to be set by this job. */
         size_t kernelIx_ = SIZE_MAX;              /*!< Index of the kernel to use to run this job */
+        size_t vertexIx_ = SIZE_MAX;              /*!< Index of the vertex associated with the job */
         size_t ix_ = SIZE_MAX;                    /*!< Index of the job */
     };
 
@@ -94,7 +95,7 @@ namespace spider {
 
         ParameterMessage(ParameterMessage &&) noexcept = default;
 
-        ParameterMessage(size_t kernelIx, spider::array<int64_t> params) : kernelIx_{ kernelIx },
+        ParameterMessage(size_t kernelIx, spider::array<int64_t> params) : vertexIx_{ kernelIx },
                                                                            params_{ std::move(params) } { };
 
         ParameterMessage &operator=(const ParameterMessage &) = default;
@@ -105,7 +106,7 @@ namespace spider {
 
         /* === Struct member(s) === */
 
-        size_t kernelIx_ = SIZE_MAX;     /*!< Ix of the kernel setting the parameter(s) */
+        size_t vertexIx_ = SIZE_MAX;     /*!< Ix of the kernel setting the parameter(s) */
         spider::array<int64_t> params_;  /*!< Array of parameter(s) value */
     };
 

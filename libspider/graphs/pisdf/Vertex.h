@@ -237,7 +237,7 @@ namespace spider {
              * @brief A const reference on the array of input params. Useful for iterating on the edges.
              * @return const reference to output edge array
              */
-            inline const spider::vector<size_t> &inputParamVector() const {
+            inline const spider::vector<size_t> &inputParamIxVector() const {
                 return inputParamIxVector_;
             }
 

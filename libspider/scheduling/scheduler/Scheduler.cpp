@@ -41,9 +41,10 @@
 /* === Include(s) === */
 
 #include <scheduling/scheduler/Scheduler.h>
+#include <scheduling/allocator/DefaultFifoAllocator.h>
+#include <graphs/pisdf/SpecialVertex.h>
 #include <api/archi-api.h>
 #include <archi/PE.h>
-#include <scheduling/allocator/DefaultFifoAllocator.h>
 #include <runtime/interface/Message.h>
 #include <runtime/platform/RTPlatform.h>
 #include <runtime/runner/RTRunner.h>
@@ -83,44 +84,67 @@ spider::Scheduler::setJobInformation(const pisdf::Vertex *vertex, size_t slave, 
     schedule_.update(job);
 
     /* == Update the JobMessage == */
-//    auto &message = job.message();
-//    message.LRTs2Notify_ = spider::array<bool>(archi::platform()->LRTCount(), true);
-//
-//    /* == Set the kernel ix == */
-//    message.kernelIx_ = vertex->runtimeInformation()->kernelIx();
-//
-//    /* == Create input Fifos == */
-//    message.inputFifoArray_ = spider::array<RTFifo>(vertex->inputEdgeCount(), StackID::RUNTIME);
-//    size_t i = 0;
-//    for (const auto &edge : vertex->inputEdgeVector()) {
-//        auto &fifo = message.inputFifoArray_[i++];
-//        const auto &source = edge->source();
-//        auto &srcJob = schedule_.job(source->scheduleJobIx());
-//        fifo = srcJob.message().outputFifoArray_[edge->sourcePortIx()];
-//        // TODO: see for inter-cluster communication how to get proper interface
-//    }
-//
-//    /* == Create output Fifos == */
-//    message.outputFifoArray_ = spider::array<RTFifo>(vertex->outputEdgeCount(), StackID::RUNTIME);
-//    for (const auto &edge : vertex->outputEdgeVector()) {
-//        message.outputFifoArray_[i++] = fifoAllocator_->allocate(
-//                static_cast<size_t>(edge->sourceRateExpression().evaluate(params_)),
-//                archi::platform()->peFromVirtualIx(job.mappingInfo().PEIx)->cluster()->memoryInterface());
-//    }
-//
-//    /* == Create the jobs 2 wait array == */
-//    const auto &numberOfConstraints = job.numberOfConstraints();
-//    message.jobs2Wait_ = spider::array<std::pair<size_t, size_t>>(numberOfConstraints, StackID::RUNTIME);
-//    auto jobIterator = message.jobs2Wait_.begin();
-//    for (auto &srcJob : job.jobConstraintVector()) {
-//        if (srcJob) {
-//            (*(jobIterator++)) = std::make_pair(srcJob->mappingInfo().LRTIx, srcJob->ix());
-//        }
-//    }
+    auto &message = job.message();
+    message.LRTs2Notify_ = spider::array<bool>(archi::platform()->LRTCount(), true);
+
+    /* == Set the kernel ix == */
+    message.kernelIx_ = vertex->runtimeInformation()->kernelIx();
+
+    /* == Set the vertex ix == */
+    if (vertex->subtype() == pisdf::VertexType::CONFIG) {
+        size_t index = 0;
+        for (auto &cfg : graph_->configVertices()) {
+            if (vertex->ix() == cfg->ix()) {
+                break;
+            }
+            index++;
+        }
+        message.vertexIx_ = index;
+    } else {
+        message.vertexIx_ = vertex->ix();
+    }
+
+    /* == Create input Fifos == */
+    message.inputFifoArray_ = spider::array<RTFifo>(vertex->inputEdgeCount(), StackID::RUNTIME);
+    size_t inputIx = 0;
+    for (const auto &edge : vertex->inputEdgeVector()) {
+        auto &fifo = message.inputFifoArray_[inputIx++];
+        const auto &source = edge->source();
+        auto &srcJob = schedule_.job(source->scheduleJobIx());
+        fifo = srcJob.message().outputFifoArray_[edge->sourcePortIx()];
+        // TODO: see for inter-cluster communication how to get proper interface
+    }
+
+    /* == Create output Fifos == */
+    size_t outputIx = 0;
+    message.outputFifoArray_ = spider::array<RTFifo>(vertex->outputEdgeCount(), StackID::RUNTIME);
+    const auto &params = parameterBankVector_[vertex->transfoJobIx()];
+    for (const auto &edge : vertex->outputEdgeVector()) {
+        message.outputFifoArray_[outputIx++] = fifoAllocator_->allocate(
+                static_cast<size_t>(edge->sourceRateExpression().evaluate(params)),
+                archi::platform()->peFromVirtualIx(job.mappingInfo().PEIx)->cluster()->memoryInterface());
+    }
+
+    /* == Create the jobs 2 wait array == */
+    const auto &numberOfConstraints = job.numberOfConstraints();
+    message.jobs2Wait_ = spider::array<std::pair<size_t, size_t>>(numberOfConstraints, StackID::RUNTIME);
+    auto jobIterator = message.jobs2Wait_.begin();
+    for (auto &srcJob : job.jobConstraintVector()) {
+        if (srcJob) {
+            (*(jobIterator++)) = std::make_pair(srcJob->mappingInfo().LRTIx, srcJob->ix());
+        }
+    }
 
     /* == Set the number of output parameters to be set == */
-//    const auto &kernel = rt::platform()->runtimeKernels()[message.kernelIx_];
-//    message.outputParamCount_ = kernel->outputParamsValue().size();
+    const auto &reference = vertex->reference();
+    message.outputParamCount_ = reference->outputParamCount();
+
+    /* == Set the input parameters == */
+    message.inputParams_ = spider::array<int64_t>(reference->inputParamCount(), StackID::RUNTIME);
+    auto paramIterator = message.inputParams_.begin();
+    for (auto &index : reference->inputParamIxVector()) {
+        (*(paramIterator++)) = params[index]->value(params);
+    }
 }
 
 uint64_t spider::Scheduler::computeMinStartTime(const pisdf::Vertex *vertex) {

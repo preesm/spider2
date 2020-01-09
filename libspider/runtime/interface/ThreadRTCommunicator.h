@@ -65,6 +65,10 @@ namespace spider {
 
         bool try_pop(Notification &notification, size_t receiver) override;
 
+        void pushParamNotification(size_t sender, size_t messageIndex) override;
+
+        bool popParamNotification(Notification &notification) override;
+
         size_t push(JobMessage message, size_t receiver) override;
 
         bool pop(JobMessage &message, size_t receiver, size_t ix) override;

@@ -49,7 +49,7 @@
 /* === Private method(s) implementation === */
 
 spider::ThreadRTCommunicator::ThreadRTCommunicator(size_t lrtCount) :
-        notificationQueueArray_{ lrtCount, StackID::RUNTIME } { }
+        notificationQueueArray_{ lrtCount + 1, StackID::RUNTIME } { }
 
 void spider::ThreadRTCommunicator::push(Notification notification, size_t receiver) {
     notificationQueueArray_.at(receiver).push(notification);
@@ -61,6 +61,18 @@ bool spider::ThreadRTCommunicator::pop(Notification &notification, size_t receiv
 
 bool spider::ThreadRTCommunicator::try_pop(Notification &notification, size_t receiver) {
     return notificationQueueArray_.at(receiver).try_pop(notification);
+}
+
+
+void spider::ThreadRTCommunicator::pushParamNotification(size_t sender, size_t messageIndex) {
+    notificationQueueArray_.at(notificationQueueArray_.size() - 1).push(Notification(NotificationType::JOB,
+                                                                                     JobNotification::SENT_PARAM,
+                                                                                     sender,
+                                                                                     messageIndex));
+}
+
+bool spider::ThreadRTCommunicator::popParamNotification(spider::Notification &notification) {
+    return notificationQueueArray_.at(notificationQueueArray_.size() - 1).pop(notification);
 }
 
 size_t spider::ThreadRTCommunicator::push(JobMessage message, size_t) {

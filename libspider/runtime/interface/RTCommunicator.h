@@ -73,6 +73,20 @@ namespace spider {
         virtual bool pop(Notification &notification, size_t receiver) = 0;
 
         /**
+         * @brief Push a notification regarding new parameter value.
+         * @param sender        Index of the sender.
+         * @param messageIndex  Index of the parameter message.
+         */
+        virtual void pushParamNotification(size_t sender, size_t messageIndex) = 0;
+
+        /**
+         * @brief Blocking pop a notification regarding new parameter value.
+         * @param notification  Notification structure to be filled.
+         * @return true.
+         */
+        virtual bool popParamNotification(Notification &notification) = 0;
+
+        /**
          * @brief Non-blocking pop to get notification.
          * @param notification  Notification structure to be filled.
          * @param receiver      Receiver of the notification.

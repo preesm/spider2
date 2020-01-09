@@ -50,26 +50,12 @@
 #include <scheduling/scheduler/GreedyScheduler.h>
 #include <monitor/Monitor.h>
 #include <scheduling/schedule/exporter/SchedStatsExporter.h>
+#include <api/runtime-api.h>
+#include <runtime/runner/RTRunner.h>
+#include <runtime/interface/RTCommunicator.h>
 
 
 /* === Static function(s) === */
-
-/**
- * @brief Appends @refitem spider::srdag::TransfoJob from source vector to destination vector using MOVE semantic.
- * @param src       Source vector of the TransfoJobs to move.
- * @param dest      Destination vector to move the TransfoJobs to.
- * @param altIndex  Alternative index to use for setting index of transfoJob (only used for init jobs).
- */
-static void updateJobStack(spider::vector<spider::srdag::TransfoJob> &src,
-                           spider::vector<spider::srdag::TransfoJob> &dest,
-                           size_t altIndex = 0) {
-    std::for_each(src.begin(), src.end(), [&](spider::srdag::TransfoJob &job) {
-        auto isInit = !(job.reference_->configVertices().empty());
-        job.ix_ = ((!isInit) & src.size()) + (isInit & altIndex);
-        altIndex += isInit;
-        dest.emplace_back(std::move(job));
-    });
-}
 
 /**
  * @brief Checks that if a graph, or any of its subgraphs, is dynamic then it has at least one config actor.
@@ -141,17 +127,37 @@ bool spider::JITMSRuntime::execute() const {
         statsExporter.print();
         //monitor_->endSampling();
 
-        /* == Run graph for dynamic params to be resolved == */
+        /* == Wait for all parameters to be resolved == */
         if (!dynamicJobStack.empty()) {
             if (api::verbose() && log::enabled<log::Type::TRANSFO>()) {
                 log::verbose<log::Type::TRANSFO>("Running graph with config actors..\n");
             }
-            /* == simulating values == */
-            int64_t val = 10;
-            for (auto &cfg : srdag->configVertices()) {
-                auto &job = dynamicJobStack.at(cfg->transfoJobIx());
-                job.params_[1]->setValue(val);
-                val += 10;
+            const auto &grtIx = archi::platform()->spiderGRTPE()->virtualIx();
+            size_t readParam = 0;
+            while (readParam != dynamicJobStack.size()) {
+                Notification notification;
+                rt::platform()->communicator()->popParamNotification(notification);
+                if (notification.type_ == NotificationType::JOB &&
+                    notification.subtype_ == JobNotification::SENT_PARAM) {
+                    /* == Get the message == */
+                    ParameterMessage message;
+                    rt::platform()->communicator()->pop(message, grtIx, notification.notificationIx_);
+
+                    /* == Get the config vertex == */
+                    auto *cfg = srdag->configVertices()[message.vertexIx_];
+                    auto &job = dynamicJobStack.at(message.vertexIx_);
+                    auto paramIterator = message.params_.begin();
+                    for (const auto &index : cfg->reference()->outputParamVector()) {
+                        job.params_[index]->setValue((*(paramIterator++)));
+                        if (api::verbose() && log::enabled()) {
+                            log::verbose("Received value #%" PRId64" for parameter [%s].\n",
+                                         job.params_[index]->value(), job.params_[index]->name().c_str());
+                        }
+                    }
+                    readParam++;
+                } else {
+                    throwSpiderException("expected parameter notification");
+                }
             }
         }
 
@@ -181,6 +187,17 @@ bool spider::JITMSRuntime::execute() const {
     return true;
 }
 
+/* === Private method(s) === */
+
+
+void spider::JITMSRuntime::updateJobStack(spider::vector<spider::srdag::TransfoJob> &src,
+                                          spider::vector<spider::srdag::TransfoJob> &dest) const {
+    std::for_each(src.begin(), src.end(), [&](spider::srdag::TransfoJob &job) {
+        job.ix_ = src.size();
+        dest.emplace_back(std::move(job));
+    });
+}
+
 void spider::JITMSRuntime::transformStaticJobs(spider::vector<spider::srdag::TransfoJob> &staticJobStack,
                                                spider::vector<spider::srdag::TransfoJob> &dynamicJobStack,
                                                spider::Scheduler *scheduler,
@@ -198,7 +215,7 @@ void spider::JITMSRuntime::transformStaticJobs(spider::vector<spider::srdag::Tra
             scheduler->addParameterVector(std::move(job.params_));
 
             /* == Move static TransfoJob into static JobStack == */
-            updateJobStack(result.first, tempJobStack, dynamicJobStack.size());
+            updateJobStack(result.first, tempJobStack);
 
             /* == Move dynamic TransfoJob into dynamic JobStack == */
             updateJobStack(result.second, dynamicJobStack);
@@ -230,7 +247,7 @@ void spider::JITMSRuntime::transformDynamicJobs(spider::vector<srdag::TransfoJob
         scheduler->addParameterVector(std::move(job.params_));
 
         /* == Move static TransfoJob into static JobStack == */
-        updateJobStack(result.first, staticJobStack, tempJobStack.size());
+        updateJobStack(result.first, staticJobStack);
 
         /* == Move dynamic TransfoJob into dynamic JobStack == */
         updateJobStack(result.second, tempJobStack);
