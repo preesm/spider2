@@ -88,15 +88,28 @@ namespace spider {
                 size_t PEIx,
                 size_t LRTIx);
 
+            Job(const Job &) = default;
+
+            Job(Job &&) noexcept = default;
+
+            Job &operator=(const Job &) = default;
+
+            Job &operator=(Job &&) = default;
+
             ~Job() = default;
 
             /* === Method(s) === */
 
             /**
              * @brief Add a constraint on another @refitem ScheduleJob to current job.
-             * @param job Pointer to the job we are constrained on.
+             * @param ix    Ix of the job we're constrained on.
+             * @param lrtIx Ix of the LRT the constraint belong.
              */
-            inline void setJobConstraint(Job *job);
+            inline void setJobConstraint(size_t ix, size_t lrtIx) {
+                if (ix != SIZE_MAX && ix != ix_) {
+                    jobConstraintVector_.at(lrtIx) = ix;
+                }
+            }
 
             /* === Getter(s) === */
 
@@ -105,16 +118,18 @@ namespace spider {
              * @param lrtIx  Ix of the LRT.
              * @return
              */
-            inline Job *jobConstraint(size_t lrtIx) const;
+            inline size_t jobConstraintIxOnLRT(size_t lrtIx) const {
+                return jobConstraintVector_.at(lrtIx);
+            }
 
             inline size_t numberOfConstraints() const {
                 return jobConstraintVector_.size() -
                        static_cast<size_t>(std::count(jobConstraintVector_.begin(),
                                                       jobConstraintVector_.end(),
-                                                      nullptr));
+                                                      SIZE_MAX));
             }
 
-            inline spider::vector<Job *> jobConstraintVector() const {
+            inline const spider::vector<size_t> &jobConstraintVector() const {
                 return jobConstraintVector_;
             }
 
@@ -126,25 +141,33 @@ namespace spider {
              * @brief Get the ix of the job.
              * @return job ix.
              */
-            inline size_t vertexIx() const;
+            inline size_t vertexIx() const {
+                return vertexIx_;
+            }
 
             /**
              * @brief Get the ix of the job.
              * @return job ix.
              */
-            inline size_t ix() const;
+            inline size_t ix() const {
+                return ix_;
+            }
 
             /**
              * @brief Get the state of the job.
              * @return @refitem Spider::JobState
              */
-            inline JobState state() const;
+            inline JobState state() const {
+                return state_;
+            }
 
             /**
              * @brief Get the mapping information of the job.
              * @return const reference to the @refitem Spider::JobMappingInfo of the job.
              */
-            inline const JobMappingInfo &mappingInfo() const;
+            inline const JobMappingInfo &mappingInfo() const {
+                return mappingInfo_;
+            }
 
             /* === Setter(s) === */
 
@@ -153,118 +176,74 @@ namespace spider {
              * @remark This method will overwrite current value.
              * @param ix Ix to set.
              */
-            inline void setVertexIx(size_t ix);
+            inline void setVertexIx(size_t ix) {
+                vertexIx_ = ix;
+            }
 
             /**
              * @brief Set the ix of the job.
              * @remark This method will overwrite current value.
              * @param ix Ix to set.
              */
-            inline void setIx(size_t ix);
+            inline void setIx(size_t ix) {
+                ix_ = ix;
+                message_.ix_ = ix;
+            }
 
             /**
              * @brief Set the state of the job.
              * @remark This method will overwrite current value.
              * @param state State to set.
              */
-            inline void setState(JobState state);
+            inline void setState(JobState state) {
+                state_ = state;
+            }
 
             /**
             * @brief Set the processing element of the job.
             * @remark This method will overwrite current values.
             * @param PEIx  PE ix inside spider.
             */
-            inline void setMappingPE(size_t PEIx);
+            inline void setMappingPE(size_t PEIx) {
+                mappingInfo_.PEIx = PEIx;
+            }
 
             /**
             * @brief Set the LRT ix of the LRT that will handle the job.
             * @remark This method will overwrite current values.
             * @param LRTIx  LRT ix.
             */
-            inline void setMappingLRT(size_t LRTIx);
+            inline void setMappingLRT(size_t LRTIx) {
+                mappingInfo_.LRTIx = LRTIx;
+            }
 
             /**
              * @brief Set the start time of the job.
              * @remark This method will overwrite current value.
              * @param time  Value to set.
              */
-            inline void setMappingStartTime(uint64_t time);
+            inline void setMappingStartTime(uint64_t time) {
+                mappingInfo_.startTime = time;
+
+            }
 
             /**
              * @brief Set the end time of the job.
              * @remark This method will overwrite current value.
              * @param time  Value to set.
              */
-            inline void setMappingEndTime(uint64_t time);
+            inline void setMappingEndTime(uint64_t time) {
+                mappingInfo_.endTime = time;
+            }
 
         private:
-            stack_vector(jobConstraintVector_, Job *, StackID::SCHEDULE);
+            stack_vector(jobConstraintVector_, size_t, StackID::SCHEDULE);
             size_t vertexIx_ = SIZE_MAX;
             size_t ix_ = SIZE_MAX;
             JobState state_ = JobState::NON_EXEC;
             JobMappingInfo mappingInfo_;
             JobMessage message_;
-
-            /* === Private method(s) === */
         };
-
-        /* === Inline method(s) === */
-
-        void Job::setJobConstraint(Job *job) {
-            if (job && job != this) {
-                jobConstraintVector_.at(job->mappingInfo().LRTIx) = job;
-            }
-        }
-
-        Job *Job::jobConstraint(size_t lrtIx) const {
-            return jobConstraintVector_.at(lrtIx);
-        }
-
-        size_t Job::vertexIx() const {
-            return vertexIx_;
-        }
-
-        size_t Job::ix() const {
-            return ix_;
-        }
-
-        JobState Job::state() const {
-            return state_;
-        }
-
-        const JobMappingInfo &Job::mappingInfo() const {
-            return mappingInfo_;
-        }
-
-        void Job::setVertexIx(size_t ix) {
-            vertexIx_ = ix;
-        }
-
-        void Job::setIx(size_t ix) {
-            ix_ = ix;
-            message_.ix_ = ix;
-        }
-
-        void Job::setState(JobState state) {
-            state_ = state;
-        }
-
-        void Job::setMappingPE(size_t PEIx) {
-            mappingInfo_.PEIx = PEIx;
-        }
-
-        void Job::setMappingLRT(size_t LRTIx) {
-            mappingInfo_.LRTIx = LRTIx;
-        }
-
-        void Job::setMappingStartTime(uint64_t time) {
-            mappingInfo_.startTime = time;
-
-        }
-
-        void Job::setMappingEndTime(uint64_t time) {
-            mappingInfo_.endTime = time;
-        }
     }
 }
 

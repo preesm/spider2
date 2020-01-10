@@ -128,7 +128,7 @@ namespace spider {
              * @return job count of the PE.
              * @throws @refitem std::out_of_range if PE out of range.
              */
-            inline uint32_t jobCount(size_t ix) const;
+            inline size_t jobCount(size_t ix) const;
 
             /**
              * @brief Return the minimum start time among the different PE.
@@ -159,7 +159,7 @@ namespace spider {
             stack_vector(endTimeVector_, uint64_t, StackID::SCHEDULE);
             stack_vector(loadTimeVector_, uint64_t, StackID::SCHEDULE);
             stack_vector(idleTimeVector_, uint64_t, StackID::SCHEDULE);
-            stack_vector(jobCountVector_, uint32_t, StackID::SCHEDULE);
+            stack_vector(jobCountVector_, size_t, StackID::SCHEDULE);
             uint64_t minStartTime_ = UINT64_MAX;
             uint64_t maxEndTime_ = 0;
 
@@ -200,7 +200,7 @@ namespace spider {
             return startTimeVector_.at(ix) - endTimeVector_[ix];
         }
 
-        uint32_t Stats::jobCount(size_t ix) const {
+        size_t Stats::jobCount(size_t ix) const {
             return jobCountVector_.at(ix);
         }
 

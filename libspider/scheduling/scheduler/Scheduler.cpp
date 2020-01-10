@@ -129,9 +129,10 @@ spider::Scheduler::setJobInformation(const pisdf::Vertex *vertex, size_t slave, 
     const auto &numberOfConstraints = job.numberOfConstraints();
     message.jobs2Wait_ = spider::array<std::pair<size_t, size_t>>(numberOfConstraints, StackID::RUNTIME);
     auto jobIterator = message.jobs2Wait_.begin();
-    for (auto &srcJob : job.jobConstraintVector()) {
-        if (srcJob) {
-            (*(jobIterator++)) = std::make_pair(srcJob->mappingInfo().LRTIx, srcJob->ix());
+    for (auto &srcJobIx : job.jobConstraintVector()) {
+        if (srcJobIx != SIZE_MAX) {
+            const auto &srcJob = schedule_.job(srcJobIx);
+            (*(jobIterator++)) = std::make_pair(srcJob.mappingInfo().LRTIx, srcJob.ix());
         }
     }
 
@@ -158,10 +159,10 @@ uint64_t spider::Scheduler::computeMinStartTime(const pisdf::Vertex *vertex) {
         if (rate) {
             const auto &src = edge->source();
             auto &srcJob = schedule_.job(src->scheduleJobIx());
-            const auto &lrtIx = srcJob.mappingInfo().LRTIx;
-            auto *currentConstraint = job.jobConstraint(lrtIx);
-            if (!currentConstraint || (srcJob.ix() > currentConstraint->ix())) {
-                job.setJobConstraint(&srcJob);
+            const auto &srcJobLRTIx = srcJob.mappingInfo().LRTIx;
+            const auto &currentConstraintIx = job.jobConstraintIxOnLRT(srcJobLRTIx);
+            if (currentConstraintIx == SIZE_MAX || (srcJob.ix() > currentConstraintIx)) {
+                job.setJobConstraint(srcJob.ix(), srcJobLRTIx);
             }
             minimumStartTime = std::max(minimumStartTime, srcJob.mappingInfo().endTime);
         }

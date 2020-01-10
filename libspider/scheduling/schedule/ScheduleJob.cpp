@@ -51,8 +51,7 @@
 /* === Method(s) implementation === */
 
 spider::sched::Job::Job(size_t ix) : ix_{ ix } {
-    jobConstraintVector_ = containers::vector<Job *>(StackID::SCHEDULE);
-    jobConstraintVector_.resize(archi::platform()->LRTCount(), nullptr);
+    jobConstraintVector_.resize(archi::platform()->LRTCount(), SIZE_MAX);
 }
 
 spider::sched::Job::Job(size_t ix,
