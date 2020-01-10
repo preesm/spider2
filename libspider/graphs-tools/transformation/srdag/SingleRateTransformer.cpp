@@ -60,18 +60,13 @@
  * @param graph  Graph to evaluate.
  * @return @refitem spider::vector of index linking init to run subgraphs.
  */
-static spider::vector<size_t> splitSubgraphs(spider::pisdf::Graph *graph) {
+static void splitSubgraphs(spider::pisdf::Graph *graph) {
     /* == 0. Split the dynamic subgraphs into init and run subgraphs == */
     auto subgraph2RemoveVector = spider::containers::vector<spider::pisdf::Graph *>(StackID::TRANSFO);
-    auto subgraph2AddVector = spider::containers::vector<std::pair<spider::pisdf::Graph *, spider::pisdf::Graph *>>(
-            StackID::TRANSFO);
     subgraph2RemoveVector.reserve(graph->subgraphCount());
-    subgraph2AddVector.reserve(graph->subgraphCount());
     for (auto *subgraph : graph->subgraphs()) {
-        auto &&result = spider::srdag::splitDynamicGraph(subgraph);
-        if (result.first) {
+        if (spider::srdag::splitDynamicGraph(subgraph)) {
             subgraph2RemoveVector.emplace_back(subgraph);
-            subgraph2AddVector.emplace_back(std::move(result));
         }
     }
 
@@ -79,15 +74,6 @@ static spider::vector<size_t> splitSubgraphs(spider::pisdf::Graph *graph) {
     for (auto &subgraph : subgraph2RemoveVector) {
         graph->removeVertex(subgraph);
     }
-
-    /* == 2. Set the link between init to run graphs == */
-    auto init2Run = spider::containers::vector<size_t>(graph->subgraphCount(), SIZE_MAX, StackID::TRANSFO);
-    for (auto &pair : subgraph2AddVector) {
-        auto *initGraph = pair.first;
-        auto *runGraph = pair.second;
-        init2Run[initGraph->subIx()] = runGraph->subIx();
-    }
-    return init2Run;
 }
 
 /* === Method(s) implementation === */
@@ -102,7 +88,7 @@ spider::srdag::SingleRateTransformer::SingleRateTransformer(const TransfoJob &jo
     }
 
     /* == 1. Split subgraphs (must be done after brv so that init and run have same repetition value) == */
-    init2run_ = splitSubgraphs(graph);
+    splitSubgraphs(graph);
     ref2Clone_ = containers::vector<size_t>(graph->vertexCount() +
                                             graph->inputEdgeCount() +
                                             graph->outputEdgeCount(), SIZE_MAX, StackID::TRANSFO);
@@ -188,8 +174,7 @@ std::pair<spider::srdag::JobStack, spider::srdag::JobStack> spider::srdag::Singl
     auto initGraphVector = containers::vector<pisdf::Graph *>(StackID::TRANSFO);
     for (auto *subgraph : job_.reference_->subgraphs()) {
         /* == 0.1 Check if subgraph is an init graph or a run (or static) graph  == */
-        const auto &runGraphSubIx = init2run_[subgraph->subIx()];
-        if (runGraphSubIx != SIZE_MAX) {
+        if (subgraph->runReferenceGraph()) {
             initGraphVector.emplace_back(subgraph);
         } else {
             auto &jobStack = subgraph->dynamic() ? dynaJobs : nextJobs;
@@ -211,7 +196,7 @@ std::pair<spider::srdag::JobStack, spider::srdag::JobStack> spider::srdag::Singl
     size_t index = 0;
     for (auto *subgraph : initGraphVector) {
         /* == 1.1 Find the first job corresponding to the init graph == */
-        const auto &runGraphSubIx = init2run_[subgraph->subIx()];
+        const auto &runGraphSubIx = subgraph->runReferenceGraph()->subIx();
         auto *runGraph = job_.reference_->subgraphs()[runGraphSubIx];
         if (runGraph->repetitionValue() != subgraph->repetitionValue()) {
             // LCOV_IGNORE: this is a sanity check, it should never happen and it is not testable from the outside.
@@ -234,7 +219,16 @@ std::pair<spider::srdag::JobStack, spider::srdag::JobStack> spider::srdag::Singl
             auto &job = nextJobs.back();
             job.params_.reserve(runGraph->paramCount());
             for (auto &param : runJob->params_) {
-                job.params_.emplace_back(param->dynamic() ? nullptr : param);
+                if (param->dynamic()) {
+                    job.params_.emplace_back(nullptr);
+                } else if (!param->graph()) {
+                    /* == copy static inherited params == */
+                    auto *p = make<pisdf::Param, StackID::TRANSFO>(param->name(), param->value());
+                    p->setIx(param->ix());
+                    job.params_.emplace_back(p);
+                } else {
+                    job.params_.emplace_back(param);
+                }
             }
         }
     }
@@ -380,7 +374,8 @@ void spider::srdag::SingleRateTransformer::addJoinVertex(spider::vector<TransfoV
     for (size_t i = 0; i < join->inputEdgeCount() - 1; ++i) {
         const auto &sourceLinker = srcVector.back();
         remaining -= sourceLinker.rate_;
-        api::createEdge(sourceLinker.vertex_, sourceLinker.portIx_, sourceLinker.rate_, join, i, sourceLinker.rate_);
+        api::createEdge(sourceLinker.vertex_, sourceLinker.portIx_, sourceLinker.rate_, join, i,
+                        sourceLinker.rate_);
         srcVector.pop_back();
     }
     snkVector.emplace_back(remaining, static_cast<uint32_t>(join->inputEdgeCount() - 1), join);
@@ -453,9 +448,10 @@ spider::srdag::SingleRateTransformer::buildSourceLinkerVector(pisdf::Edge *edge)
     } else {
         /* == 1.2 Populate the source clones in reverse order == */
         const auto &params = job_.params_;
-        const auto &rate = source->subtype() == pisdf::VertexType::INPUT ? edge->sinkRateExpression().evaluate(params) *
-                                                                           edge->sink()->repetitionValue()
-                                                                         : edge->sourceRateExpression().evaluate(
+        const auto &rate =
+                source->subtype() == pisdf::VertexType::INPUT ? edge->sinkRateExpression().evaluate(params) *
+                                                                edge->sink()->repetitionValue()
+                                                              : edge->sourceRateExpression().evaluate(
                         params);
         populateTransfoVertexVector(sourceVector, source, rate, edge->sourcePortIx());
     }

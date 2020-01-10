@@ -54,9 +54,9 @@ namespace spider {
          * @brief Split dynamic graphs into two subgraphs: an init graph and a run graph.
          * @remark This method changes original graph.
          * @param subgraph  Subgraph to split (if static nothing happen).
-         * @return pair composed of init graph and run graph, pair of nullptr if subgraph is static.
+         * @return true if split the graph, false else.
          */
-        std::pair<pisdf::Graph *, pisdf::Graph *> splitDynamicGraph(pisdf::Graph *subgraph);
+        bool splitDynamicGraph(pisdf::Graph *subgraph);
 
         /**
          * @brief Perform static single rate transformation for a given input job.

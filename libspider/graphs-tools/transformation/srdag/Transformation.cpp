@@ -48,10 +48,9 @@
 
 /* === Methods implementation === */
 
-std::pair<spider::pisdf::Graph *, spider::pisdf::Graph *>
-spider::srdag::splitDynamicGraph(pisdf::Graph *subgraph) {
+bool spider::srdag::splitDynamicGraph(pisdf::Graph *subgraph) {
     if (!subgraph->dynamic() || !subgraph->configVertexCount()) {
-        return std::make_pair(nullptr, nullptr);
+        return false;
     }
 
     /* == Compute the input interface count for both graphs == */
@@ -201,7 +200,10 @@ spider::srdag::splitDynamicGraph(pisdf::Graph *subgraph) {
         subgraph->moveVertex(vertex, runGraph);
     }
 
-    return std::make_pair(initGraph, runGraph);
+    /* == Set the run reference in the init graph == */
+    initGraph->setRunGraphReference(runGraph);
+
+    return true;
 }
 
 std::pair<spider::srdag::JobStack, spider::srdag::JobStack>
