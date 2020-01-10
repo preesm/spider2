@@ -161,7 +161,7 @@ namespace spider {
              * @brief Get the ix of the vertex in the containing graph.
              * @return ix of the vertex (UINT32_MAX if no ix).
              */
-            inline const uint32_t &ix() const {
+            inline const size_t &ix() const {
                 return ix_;
             }
 
@@ -331,7 +331,7 @@ namespace spider {
              * @brief Set the ix of the vertex in the containing graph.
              * @param ix Ix to set.
              */
-            inline void setIx(uint32_t ix) {
+            inline void setIx(size_t ix) {
                 ix_ = ix;
             }
 
@@ -405,7 +405,7 @@ namespace spider {
                                                 * schedule pass in order to maintain coherence.
                                                 * = */
             size_t transfoJobIx_ = SIZE_MAX;   /* = Index of the transfo job associated to this Vertex = */
-            uint32_t ix_ = UINT32_MAX;         /* = Index of the Vertex in the containing Graph = */
+            size_t ix_ = SIZE_MAX;             /* = Index of the Vertex in the containing Graph = */
             uint32_t repetitionValue_ = 1;     /* = Repetition value of the Vertex, default is 1 but it can be set to 0. = */
             mutable uint32_t copyCount_ = 0;   /* = Number of copy of the Vertex = */
 

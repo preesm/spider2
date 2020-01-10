@@ -171,7 +171,7 @@ TEST_F(pisdVertexTest, vertexTest) {
         ASSERT_EQ(v->reference(), v);
         ASSERT_EQ(v->graph(), nullptr);
         ASSERT_NE(v->runtimeInformation(), nullptr);
-        ASSERT_EQ(v->ix(), UINT32_MAX);
+        ASSERT_EQ(v->ix(), SIZE_MAX);
         ASSERT_EQ(v->repetitionValue(), 1);
         ASSERT_EQ(v->scheduleJobIx(), SIZE_MAX);
         delete v;
