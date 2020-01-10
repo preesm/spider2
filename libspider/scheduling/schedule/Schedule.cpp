@@ -76,6 +76,21 @@ void spider::sched::Schedule::update(sched::Job &job) {
     stats_.updateJobCount(PE);
 }
 
+void spider::sched::Schedule::print() const {
+    if (log::enabled<log::Type::SCHEDULE>()) {
+        for (const auto &job : jobs()) {
+            log::print<log::Type::SCHEDULE>(log::magenta, "INFO: ", "Schedule: \n");
+            log::print<log::Type::SCHEDULE>(log::magenta, "INFO: ", "   >> job: %zu\n", job.ix());
+            for (const auto &index : job.jobConstraintVector()) {
+                if (index != SIZE_MAX) {
+                    log::print<log::Type::SCHEDULE>(log::magenta, "INFO: ", "           ----> %zu\n", jobs_[index].ix());
+                }
+            }
+        }
+    }
+}
+
+
 void spider::sched::Schedule::setJobCount(size_t count) {
     jobs_.reserve(count);
     const auto &oldSize = jobs_.size();

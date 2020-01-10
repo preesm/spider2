@@ -87,6 +87,16 @@ namespace spider {
              */
             void setJobCount(size_t count);
 
+            /**
+             * @brief Print the Schedule in the console with the format:
+             *        job: index
+             *          ----> dependency on lrt[0]
+             *          ...
+             *          ----> dependency on lrt[n]
+             * @remark requires the SCHEDULE log to be enabled.
+             */
+            void print() const;
+
             /* === Getter(s) === */
 
             inline size_t jobCount() const;
