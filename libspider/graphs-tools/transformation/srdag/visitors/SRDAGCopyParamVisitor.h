@@ -68,13 +68,15 @@ namespace spider {
             inline void visit(pisdf::DynamicParam *param) override {
                 auto *p = make<pisdf::DynamicParam, StackID::TRANSFO>(param->name(),
                                                                       Expression(param->expression()));
+                p->setIx(param->ix());
                 copyParamVector_.emplace_back(p);
             }
 
             inline void visit(pisdf::InHeritedParam *param) override {
                 auto &parentJobParams = job_.params_;
-                const auto &inheritedParam = parentJobParams[param->parent()->ix()];
-                auto *p = make<pisdf::Param, StackID::TRANSFO>(param->name(), inheritedParam->value());
+                const auto &parentParam = parentJobParams[param->parent()->ix()];
+                auto *p = make<pisdf::Param, StackID::TRANSFO>(param->name(), parentParam->value(parentJobParams));
+                p->setIx(param->ix());
                 copyParamVector_.emplace_back(p);
             }
 
