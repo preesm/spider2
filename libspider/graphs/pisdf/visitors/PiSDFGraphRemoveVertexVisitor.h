@@ -57,12 +57,13 @@ namespace spider {
             inline void visit(Graph *subgraph) override {
                 /* == Remove the vertex and destroy it == */
                 auto ix = subgraph->subIx_; /* = Save the index in the subgraphVector_ = */
-                destroyVertex(subgraph);
 
                 /* == Remove the subgraph from the subgraph vector == */
                 graph_->subgraphVector_[ix] = graph_->subgraphVector_.back();
                 graph_->subgraphVector_[ix]->subIx_ = ix;
                 graph_->subgraphVector_.pop_back();
+
+                destroyVertex(subgraph);
             }
 
             inline void visit(ExecVertex *vertex) override {
