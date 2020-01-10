@@ -185,6 +185,7 @@ namespace spider {
     private:
         MemoryUnit *memoryUnit_ = nullptr;                     /* = Pointer to the MemoryUnit attached to this MemoryInterface = */
         spider::unordered_map<uint64_t, void *> virtual2Phys_; /* = Map associating virtual address to physical ones = */
+        std::mutex lock_;
 
         /* === Memory write routine === */
 

@@ -119,12 +119,14 @@ namespace spider {
         }
 
         inline void *allocate(size_t size) {
+            std::lock_guard<std::mutex> lockGuard{ lock_ };
             auto allocResult = policy_->allocate(size);
             increaseUsage(allocResult.second);
             return allocResult.first;
         }
 
         inline void deallocate(void *ptr) {
+            std::lock_guard<std::mutex> lockGuard{ lock_ };
             decreaseUsage(policy_->deallocate(ptr));
         }
 
@@ -174,6 +176,7 @@ namespace spider {
         uint64_t sampleCount_ = 0;
         StackID stack_ = StackID::GENERAL;
         AbstractAllocatorPolicy *policy_ = nullptr;
+        std::mutex lock_;
 
 
         /* === Private methods === */
