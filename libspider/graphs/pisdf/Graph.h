@@ -344,7 +344,31 @@ namespace spider {
                 return subIx_;
             }
 
+            /**
+             * @brief Returns the corresponding run graph to this init graph.
+             * @return pointer to @refitem Graph if init, nullptr else.
+             */
+            inline const Graph *runReferenceGraph() const {
+                return runGraphReference_;
+            }
+
             /* === Setter(s) === */
+
+            /**
+             * @brief Set the run graph reference of an init graph.
+             * @param runGraph  Pointer to the graph to set.
+             * @return true on success,
+             * false if given runGraph is nullptr
+             * or if the graph is not an init graph
+             * or if the graph already has a reference.
+             */
+            bool setRunGraphReference(const Graph *runGraph) {
+                if (dynamic() || !configVertexCount() || runGraphReference_ || !runGraph) {
+                    return false;
+                }
+                runGraphReference_ = runGraph;
+                return true;
+            }
 
         private:
             bool dynamic_ = false;         /* = Dynamic property of the Graph (false if static, true if dynamic) = */
@@ -365,6 +389,11 @@ namespace spider {
                          StackID::PISDF); /* = Vector of InputInterface (size is equal to inputEdgeArray_.size()) = */
             stack_vector(outputInterfaceVector_, OutputInterface *,
                          StackID::PISDF); /* = Vector of OutputInterface (size is equal to outputEdgeArray_.size()) = */
+
+           const Graph *runGraphReference_ = nullptr; /* =
+                                                       * Reference pointer to the run counter part of this graph.
+                                                       * Only valid for init graphs.
+                                                       * = */
 
             /* === Private method(s) === */
 
