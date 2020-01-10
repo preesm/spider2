@@ -316,7 +316,7 @@ TEST_F(srdagTest, srdagHTest) {
     spider::api::createEdge(vertex_2, 0, 1, output, 0, 1);
 
     auto *srdag = spider::api::createGraph("srdag");
-    spider::srdag::TransfoJob rootJob{ graph, UINT32_MAX, UINT32_MAX, true };
+    spider::srdag::TransfoJob rootJob{ graph, SIZE_MAX, UINT32_MAX, true };
     std::pair<spider::srdag::JobStack, spider::srdag::JobStack> res;
     ASSERT_NO_THROW(res = spider::srdag::singleRateTransformation(rootJob, srdag));
     ASSERT_NO_THROW(spider::api::exportGraphToDOT(srdag, "srdag.dot"));
@@ -366,7 +366,7 @@ TEST_F(srdagTest, srdagHTest1) {
      */
     ASSERT_EQ(srdag->vertexCount(), 3);
     ASSERT_EQ(srdag->edgeCount(), 2);
-    srdag->removeVertex(srdag->vertex(res.first[0].srdagIx_));
+    srdag->removeVertex(srdag->vertex(*(res.first[0].srdagIx_)));
     ASSERT_THROW(spider::srdag::singleRateTransformation(res.first[0], srdag), spider::Exception);
     spider::destroy(srdag);
     spider::destroy(graph);
@@ -457,7 +457,6 @@ TEST_F(srdagTest, srdagHTest3) {
     ASSERT_EQ(srdag->vertexCount(), 4);
     ASSERT_EQ(srdag->edgeCount(), 3);
     spider::srdag::TransfoJob job{ res.first[0] };
-    ASSERT_NO_THROW(job = res.first[0]);
     ASSERT_NO_THROW(spider::srdag::singleRateTransformation(job, srdag));
     ASSERT_NO_THROW(spider::api::exportGraphToDOT(srdag, "srdag.dot"));
     /*

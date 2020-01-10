@@ -103,7 +103,7 @@ namespace spider {
         private:
             std::string buildCloneName(const pisdf::Vertex *vertex, uint32_t firing) {
                 const auto *graphRef = job_.firingValue_ == UINT32_MAX ?
-                                       job_.reference_ : srdag_->vertex(job_.srdagIx_);
+                                       job_.reference_ : srdag_->vertex(*(job_.srdagIx_));
                 return graphRef->name() + ":" + vertex->name() + "-" + std::to_string(firing);
             }
         };

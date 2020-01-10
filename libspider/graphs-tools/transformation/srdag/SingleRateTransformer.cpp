@@ -120,7 +120,7 @@ std::pair<spider::srdag::JobStack, spider::srdag::JobStack> spider::srdag::Singl
 
     /* == 3. Remove the Graph instance inside the SR-DAG == */
     if (!job_.root_) {
-        auto *srdagInstance = srdag_->vertex(job_.srdagIx_);
+        auto *srdagInstance = srdag_->vertex(*(job_.srdagIx_));
         srdag_->removeVertex(srdagInstance);
     }
 
@@ -140,7 +140,7 @@ void spider::srdag::SingleRateTransformer::replaceInterfaces() {
     }
 
     /* == 0. Search for the instance in the SR-DAG == */
-    auto *instance = srdag_->vertex(job_.srdagIx_);
+    auto *instance = srdag_->vertex(*(job_.srdagIx_));
     if (!instance || instance->name().find(job_.reference_->name()) == std::string::npos) {
         throwSpiderException("could not find matching single rate instance [%zu] of graph [%s]",
                              job_.firingValue_,
