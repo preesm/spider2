@@ -126,6 +126,7 @@ bool spider::JITMSRuntime::execute() const {
         ganttExporter.print();
         auto statsExporter = SchedStatsExporter{ &scheduler.schedule() };
         statsExporter.print();
+        rt::platform()->runner(0)->run(false);
         //monitor_->endSampling();
 
         /* == Wait for all parameters to be resolved == */
@@ -138,8 +139,7 @@ bool spider::JITMSRuntime::execute() const {
             while (readParam != dynamicJobStack.size()) {
                 Notification notification;
                 rt::platform()->communicator()->popParamNotification(notification);
-                if (notification.type_ == NotificationType::JOB &&
-                    notification.subtype_ == JobNotification::SENT_PARAM) {
+                if (notification.type_ == NotificationType::JOB_SENT_PARAM) {
                     /* == Get the message == */
                     ParameterMessage message;
                     rt::platform()->communicator()->pop(message, grtIx, notification.notificationIx_);
@@ -173,6 +173,7 @@ bool spider::JITMSRuntime::execute() const {
         scheduler.update();
         scheduler.mappingScheduling();
         ganttExporter.print();
+        rt::platform()->runner(0)->run(false);
     }
 
     /* == Apply graph optimizations == */

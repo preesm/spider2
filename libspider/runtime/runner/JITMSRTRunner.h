@@ -93,27 +93,6 @@ namespace spider {
         bool readNotification(bool blocking);
 
         /**
-         * @brief Read a @refitem JobNotification
-         * @param notification Notification to read.
-         * @throw spider::Exception if notification is of unknown type.
-         */
-        void readJobNotification(spider::Notification &notification);
-
-        /**
-         * @brief Read a @refitem LRTNotification
-         * @param notification Notification to read.
-         * @throw spider::Exception if notification is of unknown type.
-         */
-        void readRuntimeNotification(spider::Notification &notification);
-
-        /**
-         * @brief Read a @refitem TraceNotification
-         * @param notification Notification to read.
-         * @throw spider::Exception if notification is of unknown type.
-         */
-        void readTraceNotification(spider::Notification &notification);
-
-        /**
          * @brief Update the local job stamp value of a given runner.
          * @param lrtIx          Ix of the local runtime to update.
          * @param jobStampValue  Value of the job stamp to update.

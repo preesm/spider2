@@ -58,39 +58,44 @@ void spider::JITMSRTRunner::run(bool infiniteLoop) {
     }
     while (run && !stop_) {
         /* == Check for notifications == */
-        bool blockingPop = (infiniteLoop && (jobQueueCurrentPos_ <= jobQueue_.size())) || !canRun;
         const auto &currentNumberOfJob = jobQueue_.size();
-        while (readNotification(blockingPop)) {
+        bool blockingPop = (infiniteLoop && (jobQueueCurrentPos_ == currentNumberOfJob)) || !canRun;
+        while (!stop_ && readNotification(blockingPop)) {
             blockingPop = false;
-        }
-        /* == Reorder the job received order to respect send / execute order == */
-        if (jobQueue_.size() - currentNumberOfJob) {
-            std::reverse(jobQueue_.rbegin(), jobQueue_.rbegin() + static_cast<long>(jobQueue_.size() -
-                                                                                    currentNumberOfJob));
         }
 
         if (stop_) {
             if (log::enabled<log::Type::LRT>()) {
                 log::info<log::Type::LRT>("Runner #%zu -> received STOP notification.\n", ix());
             }
-            break;
+            return;
         }
-        /* == Sanity check of the job queue == */
-        if (jobCount_ != SIZE_MAX && jobQueue_.size() > jobCount_) {
-            throwSpiderException("Runner #%zu -> job queue size larger than expected.", ix());
+
+        /* == Reorder the job received order to respect send / execute order == */
+        if ((jobQueue_.size() - currentNumberOfJob) > 1) {
+            auto startIterator = jobQueue_.begin() + static_cast<long>(currentNumberOfJob);
+            std::sort(startIterator, jobQueue_.end(),
+                      [&](JobMessage &a, JobMessage &b) -> bool {
+                          return b.ix_ > a.ix_;
+                      });
+            if (log::enabled<log::Type::LRT>()) {
+                log::print<log::Type::LRT>(log::blue, "INFO", "Runner #%zu -> received %zu new jobs.\n", ix(),
+                                           jobQueue_.size() - currentNumberOfJob);
+                log::print<log::Type::LRT>(log::blue, "INFO", "Runner #%zu -> received jobs:\n", ix());
+                for (size_t i = 0; i < (jobQueue_.size() - currentNumberOfJob); ++i) {
+                    log::print<log::Type::LRT>(log::blue, "INFO", "Runner #%zu ->          >> %zu\n", ix(),
+                                               jobQueue_[currentNumberOfJob + i].ix_);
+                }
+            }
         }
 
         /* == If there is a job available, do it == */
-        if (jobQueueCurrentPos_ < jobQueue_.size()) {
-            if (log::enabled<log::Type::LRT>()) {
-                log::info<log::Type::LRT>("Runner #%zu -> %zu / %zu jobs done.\n", ix(), jobQueueCurrentPos_,
-                                          jobCount_);
-            }
+        if (jobQueueCurrentPos_ != jobQueue_.size()) {
             auto &job = jobQueue_[jobQueueCurrentPos_];
             canRun = isJobRunnable(job);
             if (canRun) {
                 if (log::enabled<log::Type::LRT>()) {
-                    log::info<log::Type::LRT>("Runner #%zu -> starting job %zu.\n", ix(), jobQueueCurrentPos_);
+                    log::info<log::Type::LRT>("Runner #%zu -> starting job %zu.\n", ix(), job.ix_);
                 }
 
                 /* == Run the job == */
@@ -99,35 +104,36 @@ void spider::JITMSRTRunner::run(bool infiniteLoop) {
                 /* == Update current position in job queue == */
                 jobQueueCurrentPos_++;
                 if (log::enabled<log::Type::LRT>()) {
-                    log::info<log::Type::LRT>("Runner #%zu -> %zu / %zu jobs done.\n", ix(), jobQueueCurrentPos_,
-                                              jobCount_);
+                    if (jobCount_ != SIZE_MAX) {
+                        log::info<log::Type::LRT>("Runner #%zu -> %zu / %zu jobs done.\n", ix(), jobQueueCurrentPos_,
+                                                  jobCount_);
+                    } else {
+                        log::info<log::Type::LRT>("Runner #%zu -> %zu / ? jobs done.\n", ix(), jobQueueCurrentPos_);
+                    }
                 }
             }
+        } else {
+            run = infiniteLoop;
         }
 
         /* == Exit condition based on infinite loop flag == */
         bool finishedIteration = (jobCount_ != SIZE_MAX) && (jobQueueCurrentPos_ == jobCount_);
         if (finishedIteration) {
-            if (!infiniteLoop) {
-                if (log::enabled<log::Type::LRT>()) {
-                    log::info<log::Type::LRT>("Runner #%zu -> finished all jobs.\n", ix());
-                }
-                run = false;
-            } else {
-                clearLocalJobStamps();
-                localJobStampsArray_.assign(SIZE_MAX);
-
-                /* == Send END_ITERATION notification to GRT == */
-                Notification notification{ NotificationType::LRT,
-                                           LRTNotifification::FINISHED_ITERATION,
-                                           ix() };
-                const auto *target = archi::platform()->spiderGRTPE()->attachedLRT();
-                rt::platform()->communicator()->push(notification, target->virtualIx());
+            if (log::enabled<log::Type::LRT>()) {
+                log::info<log::Type::LRT>("Runner #%zu -> finished all jobs.\n", ix());
             }
+
+            /* == Send FINISHED_ITERATION notification to GRT == */
+            Notification notification{ NotificationType::LRT_FINISHED_ITERATION, ix() };
+            const auto *target = archi::platform()->spiderGRTPE()->attachedLRT();
+            rt::platform()->communicator()->push(notification, target->virtualIx());
             if (shouldBroadcast_) {
                 shouldBroadcast_ = false;
                 broadcastJobStamps();
             }
+            jobQueueCurrentPos_ = 0;
+            jobQueue_.clear();
+            jobCount_ = SIZE_MAX;
         }
     }
 }
@@ -188,16 +194,17 @@ void spider::JITMSRTRunner::runJob(const JobMessage &job) {
     localJobStampsArray_[ix()] = job.ix_;
     size_t lrtIx = 0;
     for (const auto &shouldNotify : job.LRTs2Notify_) {
-        if (shouldNotify) {
-            Notification updateJobStampNotification{ NotificationType::JOB,
-                                                     JobNotification::UPDATE_JOBSTAMP,
+        if (shouldNotify && lrtIx != ix()) {
+            Notification updateJobStampNotification{ NotificationType::JOB_UPDATE_JOBSTAMP,
                                                      ix(),
                                                      job.ix_ };
             rt::platform()->communicator()->push(updateJobStampNotification, lrtIx);
-            log::info<log::Type::LRT>("Runner #%zu -> notifying runner #%zu\n"
-                                      "Runner #%zu -> sent job stamp: %zu\n",
-                                      ix(), lrtIx,
-                                      ix(), job.ix_);
+            if (log::enabled<log::Type::LRT>()) {
+                log::info<log::Type::LRT>("Runner #%zu -> notifying runner #%zu\n"
+                                          "Runner #%zu -> sent job stamp: %zu\n",
+                                          ix(), lrtIx,
+                                          ix(), job.ix_);
+            }
         }
         lrtIx++;
     }
@@ -232,7 +239,7 @@ bool spider::JITMSRTRunner::isJobRunnable(const JobMessage &job) const {
             if (log::enabled<log::Type::LRT>()) {
                 log::info<log::Type::LRT>("Runner #%zu -> current job stamp %zu\n"
                                           "Runner #%zu -> waiting runner #%zu -- job stamp %zu\n",
-                                          ix(), jobQueueCurrentPos_,
+                                          ix(), localJobStampsArray_[runner2WaitIx],
                                           ix(), runner2WaitIx, job2Wait);
             }
             return false;
@@ -252,14 +259,67 @@ bool spider::JITMSRTRunner::readNotification(bool blocking) {
         return false;
     }
     switch (notification.type_) {
-        case NotificationType::LRT:
-            readRuntimeNotification(notification);
+        case NotificationType::LRT_END_ITERATION:
             break;
-        case NotificationType::TRACE:
-            readTraceNotification(notification);
+        case NotificationType::LRT_REPEAT_ITERATION_EN:
             break;
-        case NotificationType::JOB:
-            readJobNotification(notification);
+        case NotificationType::LRT_REPEAT_ITERATION_DIS:
+            break;
+        case NotificationType::LRT_FINISHED_ITERATION:
+            break;
+        case NotificationType::LRT_RST_ITERATION:
+            jobQueueCurrentPos_ = 0;
+            // TODO fix this
+            break;
+        case NotificationType::LRT_STOP:
+            stop_ = true;
+            break;
+        case NotificationType::LRT_PAUSE:
+            // TODO: implement this
+            break;
+        case NotificationType::LRT_RESUME:
+            // TODO: implement this
+            break;
+        case NotificationType::TRACE_ENABLE:
+            break;
+        case NotificationType::TRACE_DISABLE:
+            break;
+        case NotificationType::TRACE_RST:
+            break;
+        case NotificationType::TRACE_SENT:
+            break;
+        case NotificationType::JOB_ADD: {
+            JobMessage message;
+            rt::platform()->communicator()->pop(message, ix(), notification.notificationIx_);
+            jobQueue_.emplace_back(std::move(message));
+        }
+            break;
+        case NotificationType::JOB_JOB_COUNT:
+            jobCount_ = notification.notificationIx_;
+            if (log::enabled<log::Type::LRT>()) {
+                log::info<log::Type::LRT>("Runner #%zu -> received number of jobs to do: %zu\n", ix(), jobCount_);
+            }
+            break;
+        case NotificationType::JOB_CLEAR_QUEUE:
+            jobCount_ = SIZE_MAX;
+            clearLocalJobStamps();
+            break;
+        case NotificationType::JOB_SENT_PARAM:
+            break;
+        case NotificationType::JOB_BROADCAST_JOBSTAMP:
+            broadcastJobStamps();
+            break;
+        case NotificationType::JOB_DELAY_BROADCAST_JOBSTAMP:
+            shouldBroadcast_ = true;
+            break;
+        case NotificationType::JOB_UPDATE_JOBSTAMP:
+            if (notification.senderIx_ == SIZE_MAX) {
+                throwSpiderException("Runner #%zu -> received notification from bad ix: %zu\n",
+                                     ix(), notification.senderIx_);
+            }
+            updateJobStamp(notification.senderIx_, notification.notificationIx_);
+            break;
+        case NotificationType::UNDEFINED:
             break;
         default:
             throwSpiderException("unhandled type of notification.");
@@ -267,84 +327,16 @@ bool spider::JITMSRTRunner::readNotification(bool blocking) {
     return true;
 }
 
-void spider::JITMSRTRunner::readJobNotification(Notification &notification) {
-    switch (notification.subtype_) {
-        case JobNotification::ADD: {
-            JobMessage message;
-            rt::platform()->communicator()->pop(message, ix(), notification.notificationIx_);
-            jobQueue_.emplace_back(std::move(message));
+void spider::JITMSRTRunner::updateJobStamp(size_t lrtIx, size_t jobStampValue) {
+    if (localJobStampsArray_.at(lrtIx) == SIZE_MAX ||
+        (localJobStampsArray_[lrtIx] < jobStampValue)) {
+        localJobStampsArray_[lrtIx] = jobStampValue;
+        if (log::enabled<log::Type::LRT>()) {
+            log::info<log::Type::LRT>("Runner #%zu -> updating local job stamp of runner #%zu\n"
+                                      "Runner #%zu -> received value: %zu\n",
+                                      ix(), lrtIx,
+                                      ix(), jobStampValue);
         }
-            break;
-        case JobNotification::CLEAR_QUEUE:
-            jobCount_ = SIZE_MAX;
-            clearLocalJobStamps();
-            break;
-        case JobNotification::JOB_COUNT:
-            jobCount_ = notification.notificationIx_;
-            break;
-        case JobNotification::UPDATE_JOBSTAMP:
-            if (notification.senderIx_ == SIZE_MAX) {
-                throwSpiderException("Runner #%zu -> received notification from bad ix: %zu\n",
-                                     ix(), notification.senderIx_);
-            }
-            localJobStampsArray_[notification.senderIx_] = notification.notificationIx_;
-            if (log::enabled<log::Type::LRT>()) {
-                log::info<log::Type::LRT>("Runner #%zu -> updating local job stamp of runner #%zu\n "
-                                          "Runner #%zu -> received value: %zu\n",
-                                          ix(), notification.senderIx_,
-                                          ix(), notification.notificationIx_);
-            }
-            break;
-        case JobNotification::DELAY_BROADCAST_JOBSTAMP:
-            shouldBroadcast_ = true;
-            break;
-        case JobNotification::BROADCAST_JOBSTAMP:
-            broadcastJobStamps();
-            break;
-        default:
-            throwSpiderException("unhandled type of Job Notification.");
-    }
-}
-
-void spider::JITMSRTRunner::readRuntimeNotification(Notification &notification) {
-    switch (notification.subtype_) {
-        case LRTNotifification::END_ITERATION:
-            jobCount_ = notification.notificationIx_;
-            if (log::enabled<log::Type::LRT>()) {
-                log::info<log::Type::LRT>("Runner #%zu -> received number of jobs to do: %zu\n", ix(), jobCount_);
-            }
-            break;
-        case LRTNotifification::RST_ITERATION:
-            jobQueueCurrentPos_ = 0;
-            break;
-        case LRTNotifification::REPEAT_ITERATION_EN:
-            break;
-        case LRTNotifification::REPEAT_ITERATION_DIS:
-            break;
-        case LRTNotifification::PAUSE:
-            // TODO: implement this
-            break;
-        case LRTNotifification::RESUME:
-            // TODO: implement this
-            break;
-        case LRTNotifification::STOP:
-            stop_ = true;
-            break;
-        default:
-            throwSpiderException("unhandled type of Runtime Notification.");
-    }
-}
-
-void spider::JITMSRTRunner::readTraceNotification(Notification &notification) {
-    switch (notification.subtype_) {
-        case TraceNotification::ENABLE:
-            break;
-        case TraceNotification::DISABLE:
-            break;
-        case TraceNotification::RST:
-            break;
-        default:
-            throwSpiderException("unhandled type of Trace Notification.");
     }
 }
 

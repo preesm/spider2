@@ -65,8 +65,7 @@ bool spider::ThreadRTCommunicator::try_pop(Notification &notification, size_t re
 
 
 void spider::ThreadRTCommunicator::pushParamNotification(size_t sender, size_t messageIndex) {
-    notificationQueueArray_.at(notificationQueueArray_.size() - 1).push(Notification(NotificationType::JOB,
-                                                                                     JobNotification::SENT_PARAM,
+    notificationQueueArray_.at(notificationQueueArray_.size() - 1).push(Notification(NotificationType::JOB_SENT_PARAM,
                                                                                      sender,
                                                                                      messageIndex));
 }

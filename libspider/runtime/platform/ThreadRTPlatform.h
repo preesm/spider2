@@ -59,8 +59,7 @@ namespace spider {
         ~ThreadRTPlatform() override {
             /* == Send notification to exit to runners == */
             for (auto &runner : runnerArray_) {
-                communicator_->push(Notification(NotificationType::LRT,
-                                                 LRTNotifification::STOP,
+                communicator_->push(Notification(NotificationType::LRT_STOP,
                                                  archi::platform()->spiderGRTPE()->virtualIx()),
                                     runner->ix());
             }

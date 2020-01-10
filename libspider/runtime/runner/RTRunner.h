@@ -113,8 +113,7 @@ namespace spider {
         }
 
         inline void broadcastJobStamps() {
-            Notification broadcastNotification{ NotificationType::JOB,
-                                                JobNotification::UPDATE_JOBSTAMP,
+            Notification broadcastNotification{ NotificationType::JOB_UPDATE_JOBSTAMP,
                                                 ix(),
                                                 jobQueueCurrentPos_ };
             for (size_t i = 0; i < archi::platform()->LRTCount(); ++i) {

@@ -51,12 +51,28 @@ namespace spider {
     /* === Enumaration(s) definition === */
 
     enum class NotificationType : uint16_t {
-        LRT,              /*!< LRT management related type of notification */
-        TRACE,            /*!< Trace related type of notification */
-        JOB,              /*!< Job related type of notification */
-        UNDEFINED,        /*!< Undefined type of notification */
-        First = LRT,      /*!< Sentry for EnumIterator::begin */
-        Last = UNDEFINED, /*!< Sentry for EnumIterator::end */
+        LRT_END_ITERATION = 0,          /*!< Cross-check signal sent after last JOB (if JOB_LAST_ID was not received) */
+        LRT_REPEAT_ITERATION_EN,        /*!< Signal LRT to repeat its complete iteration (indefinitely) */
+        LRT_REPEAT_ITERATION_DIS,       /*!< Signal LRT to stop repeating iteration */
+        LRT_FINISHED_ITERATION,         /*!< Signal that given LRT has finished its iteration */
+        LRT_RST_ITERATION,              /*!< Signal LRT to restart current iteration */
+        LRT_STOP,                       /*!< Signal LRT to stop */
+        LRT_PAUSE,                      /*!< Signal LRT to freeze */
+        LRT_RESUME,                     /*!< Signal LRT to un-freeze */
+        TRACE_ENABLE,                   /*!< Signal LRT to enable its trace */
+        TRACE_DISABLE,                  /*!< Signal LRT to disable its trace */
+        TRACE_RST,                      /*!< Signal LRT to reset its trace */
+        TRACE_SENT,                     /*!< Signal that a trace has been sent */
+        JOB_ADD,                        /*!< Signal LRT that a job is available in shared queue */
+        JOB_JOB_COUNT,                  /*!< Signal LRT what is the last job ID */
+        JOB_CLEAR_QUEUE,                /*!< Signal LRT to clear its job queue (if LRT_REPEAT_ITERATION_EN, signal is ignored) */
+        JOB_SENT_PARAM,                 /*!< Signal that LRT sent a ParameterMessage */
+        JOB_BROADCAST_JOBSTAMP,         /*!< Signal LRT to broadcast its job stamp to everybody */
+        JOB_DELAY_BROADCAST_JOBSTAMP,   /*!< Signal LRT to broadcast its job stamp to everybody after last job has been done */
+        JOB_UPDATE_JOBSTAMP,            /*!< Signal LRT that an update of job stamp is pending */
+        UNDEFINED,                      /*!< Undefined type of notification */
+        First = LRT_END_ITERATION,      /*!< Sentry for EnumIterator::begin */
+        Last = UNDEFINED,               /*!< Sentry for EnumIterator::end */
     };
 
 
@@ -64,24 +80,6 @@ namespace spider {
      * @brief All notification are NOT needed to be supported by ALL runtime.
      */
     enum LRTNotifification : uint16_t {
-        END_ITERATION = 0,    /*!< Cross-check signal sent after last JOB (if JOB_LAST_ID was not received) */
-        REPEAT_ITERATION_EN,  /*!< Signal LRT to repeat its complete iteration (indefinitely) */
-        REPEAT_ITERATION_DIS, /*!< Signal LRT to stop repeating iteration */
-        FINISHED_ITERATION,   /*!< Signal that given LRT has finished its iteration */
-        RST_ITERATION,        /*!< Signal LRT to restart current iteration */
-        STOP,                 /*!< Signal LRT to stop */
-        PAUSE,                /*!< Signal LRT to freeze */
-        RESUME,               /*!< Signal LRT to un-freeze */
-    };
-
-    enum JobNotification : uint16_t {
-        ADD = 0,                    /*!< Signal LRT that a job is available in shared queue */
-        JOB_COUNT,                    /*!< Signal LRT what is the last job ID */
-        CLEAR_QUEUE,                /*!< Signal LRT to clear its job queue (if LRT_REPEAT_ITERATION_EN, signal is ignored) */
-        SENT_PARAM,                 /*!< Signal that LRT sent a ParameterMessage */
-        BROADCAST_JOBSTAMP,         /*!< Signal LRT to broadcast its job stamp to everybody */
-        DELAY_BROADCAST_JOBSTAMP,   /*!< Signal LRT to broadcast its job stamp to everybody after last job has been done */
-        UPDATE_JOBSTAMP,            /*!< Signal LRT that an update of job stamp is pending */
     };
 
     enum TraceNotification : uint16_t {
@@ -103,12 +101,10 @@ namespace spider {
         Notification(Notification &&) noexcept = default;
 
         explicit Notification(NotificationType type,
-                              uint16_t subtype = UINT16_MAX,
                               size_t senderIx = SIZE_MAX,
                               size_t notificationIx = SIZE_MAX) : type_{ type },
-                                                             senderIx_{ senderIx },
-                                                             notificationIx_{ notificationIx },
-                                                             subtype_{ subtype } {
+                                                                  senderIx_{ senderIx },
+                                                                  notificationIx_{ notificationIx } {
 
         }
 
@@ -123,7 +119,6 @@ namespace spider {
         NotificationType type_ = NotificationType::UNDEFINED; /*!< Primary type of the notification (ex: NotificationType::JOB). */
         size_t senderIx_ = SIZE_MAX;                          /*!< ID of the sender of the notification */
         size_t notificationIx_ = SIZE_MAX;                    /*!< Index of the notification to fetch (may be used for direct value passing for some notification). */
-        uint16_t subtype_ = UINT16_MAX;                       /*!< Sub-type of the notification (ex: JobNotification::ADD). */
     };
 }
 
