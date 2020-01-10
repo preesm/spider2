@@ -353,6 +353,11 @@ void spider::api::addInputParamToVertex(pisdf::Vertex *vertex, const pisdf::Para
     if (!param || !vertex) {
         return;
     }
+    if (param->graph() != vertex->graph()) {
+        throwSpiderException("parameter [%s] and vertex [%s] are not in the same graph.",
+                             param->name().c_str(),
+                             vertex->name().c_str());
+    }
     vertex->addInputParameter(param);
 }
 
@@ -362,6 +367,11 @@ void spider::api::addOutputParamToVertex(pisdf::Vertex *vertex, const pisdf::Par
     }
     if (vertex->subtype() != pisdf::VertexType::CONFIG) {
         throwSpiderException("Failed to set parameter [%s] as output param of vertex [%s]: not a config actor.",
+                             param->name().c_str(),
+                             vertex->name().c_str());
+    }
+    if (param->graph() != vertex->graph()) {
+        throwSpiderException("parameter [%s] and vertex [%s] are not in the same graph.",
                              param->name().c_str(),
                              vertex->name().c_str());
     }
