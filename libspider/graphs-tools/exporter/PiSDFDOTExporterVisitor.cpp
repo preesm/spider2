@@ -140,10 +140,11 @@ std::pair<int32_t, int32_t> spider::pisdf::PiSDFDOTExporterVisitor::computeConst
 
 void spider::pisdf::PiSDFDOTExporterVisitor::vertexNamePrinter(Vertex *vertex, size_t columnCount) const {
     if (vertex->name().size() > MAX_LENGTH) {
+        std::cout << vertex->name() << std::endl;
         /* == Split name to avoid too big dot vertex == */
         auto name = vertex->name();
         while (!name.empty()) {
-            const auto &size = std::min(MAX_LENGTH, name.size());
+            size_t size = std::min(MAX_LENGTH, name.size());
             file_ << offset_ << '\t' << '\t'
                   << R"(<tr> <td border="0" colspan=")" << columnCount
                   << R"("><font point-size="25" face="inconsolata">)"
@@ -152,7 +153,8 @@ void spider::pisdf::PiSDFDOTExporterVisitor::vertexNamePrinter(Vertex *vertex, s
         }
     } else {
         file_ << offset_ << '\t' << '\t'
-              << R"(<tr> <td border="0" colspan=")" << columnCount << R"("><font point-size="25" face="inconsolata">)"
+              << R"(<tr> <td border="0" colspan=")" << columnCount
+              << R"("><font point-size="25" face="inconsolata">)"
               << vertex->name() << "</font></td></tr>" << '\n';
     }
 }
