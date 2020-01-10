@@ -94,7 +94,7 @@ bool spider::JITMSRuntime::execute() const {
     spider::BestFitScheduler scheduler{ srdag };
 
     /* == Apply first transformation of root graph == */
-    auto &&rootJob = srdag::TransfoJob(graph_, UINT32_MAX, UINT32_MAX, true);
+    auto &&rootJob = srdag::TransfoJob(graph_, SIZE_MAX, UINT32_MAX, true);
     rootJob.params_ = graph_->params();
     auto &&resultRootJob = srdag::singleRateTransformation(rootJob, srdag);
 
@@ -195,7 +195,7 @@ bool spider::JITMSRuntime::execute() const {
 void spider::JITMSRuntime::updateJobStack(spider::vector<spider::srdag::TransfoJob> &src,
                                           spider::vector<spider::srdag::TransfoJob> &dest) const {
     std::for_each(src.begin(), src.end(), [&](spider::srdag::TransfoJob &job) {
-        job.ix_ = src.size();
+        job.ix_ = dest.size();
         dest.emplace_back(std::move(job));
     });
 }
