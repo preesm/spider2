@@ -66,6 +66,7 @@ namespace spider {
 
     protected:
         size_t lastSchedulableVertex_ = 0;
+        size_t lastScheduledVertex_ = 0;
 
         struct ListVertex {
             pisdf::Vertex *vertex_ = nullptr;

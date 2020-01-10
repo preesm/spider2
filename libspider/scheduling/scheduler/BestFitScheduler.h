@@ -70,13 +70,6 @@ namespace spider {
         /* === Setter(s) === */
 
     private:
-        stack_vector(memoryAddesses_, uint64_t, StackID::SCHEDULE);
-        uint64_t virtualMemoryAddress_ = 0;
-        size_t lastScheduledVertex_ = 0;
-
-        /* === Private method(s) === */
-
-        JobMessage buildJobMessage(const pisdf::Vertex *vertex);
     };
 }
 
