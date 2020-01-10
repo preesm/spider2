@@ -81,10 +81,12 @@ void spider::sched::Schedule::print() const {
         for (const auto &job : jobs()) {
             log::print<log::Type::SCHEDULE>(log::magenta, "INFO: ", "Schedule: \n");
             log::print<log::Type::SCHEDULE>(log::magenta, "INFO: ", "   >> job: %zu\n", job.ix());
+            size_t lrtIx = 0;
             for (const auto &index : job.jobConstraintVector()) {
                 if (index != SIZE_MAX) {
-                    log::print<log::Type::SCHEDULE>(log::magenta, "INFO: ", "           ----> %zu\n", jobs_[index].ix());
+                    log::print<log::Type::SCHEDULE>(log::magenta, "INFO: ", "           ----> %zu (%zu)\n", jobs_[index].ix(), lrtIx);
                 }
+                lrtIx++;
             }
         }
     }
