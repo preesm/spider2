@@ -71,6 +71,8 @@ namespace spider {
 
             inline void visit(ExecVertex *vertex) override { clone(vertex); }
 
+            inline void visit(NonExecVertex *vertex) override { clone(vertex); }
+
             inline void visit(DelayVertex *vertex) override { clone(vertex); }
 
             inline void visit(ConfigVertex *vertex) override { clone(vertex); }
