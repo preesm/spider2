@@ -72,17 +72,53 @@ namespace spider {
         size_t jobCount_ = SIZE_MAX;
         bool shouldBroadcast_ = false;
 
+        /**
+         * @brief Run a given job.
+         * @param job  Job to run.
+         */
         void runJob(const JobMessage &job);
 
+        /**
+         * @brief Checks if a given job is runnable given its dependencies.
+         * @param message  Job to evaluate.
+         * @return true if the job is runnable, false else.
+         */
         bool isJobRunnable(const JobMessage &message) const;
 
+        /**
+         * @brief Checks if notification is available and read it.
+         * @param blocking  Flag indicating if check should be blocking or not.
+         * @return true if notification was read, false else.
+         */
         bool readNotification(bool blocking);
 
+        /**
+         * @brief Read a @refitem JobNotification
+         * @param notification Notification to read.
+         * @throw spider::Exception if notification is of unknown type.
+         */
         void readJobNotification(spider::Notification &notification);
 
+        /**
+         * @brief Read a @refitem LRTNotification
+         * @param notification Notification to read.
+         * @throw spider::Exception if notification is of unknown type.
+         */
         void readRuntimeNotification(spider::Notification &notification);
 
+        /**
+         * @brief Read a @refitem TraceNotification
+         * @param notification Notification to read.
+         * @throw spider::Exception if notification is of unknown type.
+         */
         void readTraceNotification(spider::Notification &notification);
+
+        /**
+         * @brief Update the local job stamp value of a given runner.
+         * @param lrtIx          Ix of the local runtime to update.
+         * @param jobStampValue  Value of the job stamp to update.
+         */
+        void updateJobStamp(size_t lrtIx, size_t jobStampValue);
     };
 }
 
