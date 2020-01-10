@@ -113,14 +113,14 @@ std::pair<spider::srdag::JobStack, spider::srdag::JobStack> spider::srdag::Singl
     replaceInterfaces();
 
     /* == 1. Copy the vertex accordingly to their repetition value == */
-    spider::vector<size_t> delayVertexToRemove;
+    spider::vector<pisdf::Vertex *> delayVertexToRemove;
     for (const auto &vertex : job_.reference_->vertices()) {
         const auto &vertexUniformIx = uniformIx(vertex, job_.reference_);
         SRDAGCopyVisitor visitor{ job_, srdag_ };
         vertex->visit(&visitor);
         ref2Clone_[vertexUniformIx] = visitor.ix_;
         if (vertex->subtype() == pisdf::VertexType::DELAY) {
-            delayVertexToRemove.emplace_back(visitor.ix_);
+            delayVertexToRemove.emplace_back(srdag_->vertex(visitor.ix_));
         }
     }
 
@@ -139,8 +139,8 @@ std::pair<spider::srdag::JobStack, spider::srdag::JobStack> spider::srdag::Singl
     }
 
     /* == 4. Remove the delay vertex added for the transformation == */
-    for (const auto &ix : delayVertexToRemove) {
-        srdag_->removeVertex(srdag_->vertex(ix));
+    for (const auto &vertex : delayVertexToRemove) {
+        srdag_->removeVertex(vertex);
     }
 
     return futureJobs;
