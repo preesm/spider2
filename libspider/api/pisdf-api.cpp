@@ -348,6 +348,27 @@ spider::api::createInheritedParam(pisdf::Graph *graph, std::string name, pisdf::
     return param;
 }
 
+spider::pisdf::Param *
+spider::api::createInheritedParam(pisdf::Graph *graph, std::string name, const std::string &parentName) {
+    if (!graph) {
+        throwSpiderException("Cannot instantiate inherited parameter from name in a nullptr graph.");
+    }
+    if (!graph->graph()) {
+        throwSpiderException("Cannot instantiate inherited parameter from name if graph [%s] has no parent graph.",
+                             graph->name().c_str());
+    }
+    auto *parent = graph->graph()->paramFromName(parentName);
+    if (!parent) {
+        throwSpiderException("Cannot instantiate inherited parameter with null parent.");
+    }
+    if (!parent->dynamic()) {
+        return createStaticParam(graph, std::move(name), parent->value());
+    }
+    auto *param = make<pisdf::InHeritedParam>(StackID::PISDF, std::move(name), parent);
+    graph->addParam(param);
+    return param;
+}
+
 
 void spider::api::addInputParamToVertex(pisdf::Vertex *vertex, const pisdf::Param *param) {
     if (!param || !vertex) {

@@ -73,7 +73,6 @@ namespace spider {
          * @param inIFCount       Number of input interfaces in the graph (can NOT be extended later).
          * @param outIFCount      Number of output interfaces in the graph (can NOT be extended later).
          * @param cfgActorCount   Number of actors to reserve in the graph (can be extended later).
-         * @param stack           Stack on which to create the graph.
          * @return pointer to the created @refitem pisdf::Graph.
          * @throws @refitem spider::Exception if a user graph already exists.
          */
@@ -94,7 +93,6 @@ namespace spider {
          * @param inIFCount       Number of input interfaces in the graph (can NOT be extended later).
          * @param outIFCount      Number of output interfaces in the graph (can NOT be extended later).
          * @param cfgActorCount   Number of actors to reserve in the graph (can be extended later).
-         * @param stack           Stack on which to create the graph.
          * @return pointer to the created @refitem pisdf::Graph.
          */
         pisdf::Graph *createGraph(std::string name,
@@ -115,7 +113,6 @@ namespace spider {
          * @param inIFCount       Number of input interfaces in the graph (can NOT be extended later).
          * @param outIFCount      Number of output interfaces in the graph (can NOT be extended later).
          * @param cfgActorCount   Number of actors to reserve in the graph (can be extended later).
-         * @param stack           Stack on which to create the graph.
          * @return pointer to the created @refitem pisdf::Graph.
          * @throws @refitem spider::Exception if parent graph is nullptr.
          */
@@ -134,7 +131,6 @@ namespace spider {
          * @param name          Name of the vertex.
          * @param edgeINCount   Number of input edges (can NOT be modified afterwards).
          * @param edgeOUTCount  Number of output edges (can NOT be modified afterwards).
-         * @param stack         Stack on which the vertex should be created.
          * @return pointer to the created @refitem pisdf::Vertex.
          * @throws @refitem spider::Exception if the parent graph is nullptr.
          */
@@ -149,7 +145,6 @@ namespace spider {
          * @param name          Name of the vertex.
          * @param edgeINCount   Number of input edges (can NOT be modified afterwards).
          * @param edgeOUTCount  Number of output edges (can NOT be modified afterwards).
-         * @param stack         Stack on which the vertex should be created.
          * @return pointer to the created @refitem pisdf::Vertex.
          * @throws @refitem spider::Exception if the parent graph is nullptr.
          */
@@ -163,7 +158,6 @@ namespace spider {
          * @param graph         Pointer to the parent graph the vertex should be added.
          * @param name          Name of the vertex.
          * @param edgeOUTCount  Number of output edges (can NOT be modified afterwards).
-         * @param stack         Stack on which the vertex should be created.
          * @return pointer to the created @refitem pisdf::ForkVertex.
          * @throws @refitem spider::Exception if the parent graph is nullptr.
          */
@@ -176,7 +170,6 @@ namespace spider {
          * @param graph         Pointer to the parent graph the vertex should be added.
          * @param name          Name of the vertex.
          * @param edgeINCount   Number of input edges (can NOT be modified afterwards).
-         * @param stack         Stack on which the vertex should be created.
          * @return pointer to the created @refitem pisdf::JoinVertex.
          * @throws @refitem spider::Exception if the parent graph is nullptr.
          */
@@ -189,7 +182,6 @@ namespace spider {
          * @param graph         Pointer to the parent graph the vertex should be added.
          * @param name          Name of the vertex.
          * @param edgeINCount   Number of input edges (can NOT be modified afterwards).
-         * @param stack         Stack on which the vertex should be created.
          * @return pointer to the created @refitem pisdf::HeadVertex.
          * @throws @refitem spider::Exception if the parent graph is nullptr.
          */
@@ -202,7 +194,6 @@ namespace spider {
          * @param graph         Pointer to the parent graph the vertex should be added.
          * @param name          Name of the vertex.
          * @param edgeINCount   Number of input edges (can NOT be modified afterwards).
-         * @param stack         Stack on which the vertex should be created.
          * @return pointer to the created @refitem pisdf::TailVertex.
          * @throws @refitem spider::Exception if the parent graph is nullptr.
          */
@@ -215,7 +206,6 @@ namespace spider {
          * @param graph         Pointer to the parent graph the vertex should be added.
          * @param name          Name of the vertex.
          * @param edgeOUTCount  Number of output edges (can NOT be modified afterwards).
-         * @param stack         Stack on which the vertex should be created.
          * @return pointer to the created @refitem pisdf::DuplicateVertex.
          * @throws @refitem spider::Exception if the parent graph is nullptr.
          */
@@ -227,7 +217,6 @@ namespace spider {
          * @brief Creates a @refitem pisdf::RepeatVertex.
          * @param graph         Pointer to the parent graph the vertex should be added.
          * @param name          Name of the vertex.
-         * @param stack         Stack on which the vertex should be created.
          * @return pointer to the created @refitem pisdf::RepeatVertex.
          * @throws @refitem spider::Exception if the parent graph is nullptr.
          */
@@ -237,7 +226,6 @@ namespace spider {
          * @brief Creates a @refitem pisdf::InitVertex.
          * @param graph         Pointer to the parent graph the vertex should be added.
          * @param name          Name of the vertex.
-         * @param stack         Stack on which the vertex should be created.
          * @return pointer to the created @refitem pisdf::InitVertex.
          * @throws @refitem spider::Exception if the parent graph is nullptr.
          */
@@ -247,7 +235,6 @@ namespace spider {
          * @brief Creates a @refitem pisdf::EndVertex.
          * @param graph         Pointer to the parent graph the vertex should be added.
          * @param name          Name of the vertex.
-         * @param stack         Stack on which the vertex should be created.
          * @return pointer to the created @refitem pisdf::EndVertex.
          * @throws @refitem spider::Exception if the parent graph is nullptr.
          */
@@ -259,7 +246,6 @@ namespace spider {
          * @param name          Name of the vertex.
          * @param edgeINCount   Number of input edges (can NOT be modified afterwards).
          * @param edgeOUTCount  Number of output edges (can NOT be modified afterwards).
-         * @param stack         Stack on which the vertex should be created.
          * @return pointer to the created @refitem pisdf::ConfigVertex.
          * @throws @refitem spider::Exception if the parent graph is nullptr.
          */
@@ -296,12 +282,9 @@ namespace spider {
          * @param graph   Pointer to the graph the parameter should be added.
          * @param name    Name of the parameter (will be transformed to lowercase).
          * @param value   Value of the parameter.
-         * @param stack   Stack on which the parameter should be created.
          * @return pointer to the created @refitem pisdf::Param.
          */
-        pisdf::Param *createStaticParam(pisdf::Graph *graph,
-                                        std::string name,
-                                        int64_t value);
+        pisdf::Param *createStaticParam(pisdf::Graph *graph, std::string name, int64_t value);
 
         /**
          * @brief Creates a static @refitem pisdf::Param with static expression.
@@ -309,23 +292,18 @@ namespace spider {
          * @param graph      Pointer to the graph the parameter should be added.
          * @param name       Name of the parameter (will be transformed to lowercase).
          * @param expression Expression of the parameter.
-         * @param stack      Stack on which the parameter should be created.
          * @return pointer to the created @refitem pisdf::Param.
          */
-        pisdf::Param *createStaticParam(pisdf::Graph *graph,
-                                        std::string name,
-                                        std::string expression);
+        pisdf::Param *createStaticParam(pisdf::Graph *graph, std::string name, std::string expression);
 
         /**
          * @brief Creates a @refitem pisdf::DynamicParam.
          * @remark If graph is not nullptr, the parameter will be added to it.
          * @param graph      Pointer to the graph the parameter should be added.
          * @param name       Name of the parameter (will be transformed to lowercase).
-         * @param stack      Stack on which the parameter should be created.
          * @return pointer to the created @refitem pisdf::DynamicParam.
          */
-        pisdf::DynamicParam *createDynamicParam(pisdf::Graph *graph,
-                                                std::string name);
+        pisdf::DynamicParam *createDynamicParam(pisdf::Graph *graph, std::string name);
 
         /**
          * @brief Creates a @refitem pisdf::DynamicParam with dynamic expression.
@@ -333,12 +311,9 @@ namespace spider {
          * @param graph      Pointer to the graph the parameter should be added.
          * @param name       Name of the parameter (will be transformed to lowercase).
          * @param expression Expression of the parameter.
-         * @param stack      Stack on which the parameter should be created.
          * @return pointer to the created @refitem pisdf::DynamicParam.
          */
-        pisdf::DynamicParam *createDynamicParam(pisdf::Graph *graph,
-                                                std::string name,
-                                                std::string expression);
+        pisdf::DynamicParam *createDynamicParam(pisdf::Graph *graph, std::string name, std::string expression);
 
         /**
          * @brief Creates a @refitem pisdf::InheritedParam.
@@ -347,13 +322,22 @@ namespace spider {
          * @param graph   Pointer to the graph the parameter should be added.
          * @param name    Name of the parameter (will be transformed to lowercase).
          * @param parent  Pointer to the parent parameter.
-         * @param stack   Stack on which the parameter should be created.
          * @return pointer to the created @refitem pisdf::Param.
          * @throws @refitem spider::Exception if parent parameter is nullptr.
          */
-        pisdf::Param *createInheritedParam(pisdf::Graph *graph,
-                                           std::string name,
-                                           pisdf::Param *parent);
+        pisdf::Param *createInheritedParam(pisdf::Graph *graph, std::string name, pisdf::Param *parent);
+
+        /**
+         * @brief Creates a @refitem pisdf::InheritedParam.
+         * @remark If the parent parameter is static, then a static parameter will be created instead.
+         * @param graph      Pointer to the graph the parameter should be added.
+         * @param name       Name of the parameter (will be transformed to lowercase).
+         * @param parentName Name of the parent parameter (will be transformed to lowercase).
+         * @return pointer to the created @refitem pisdf::Param.
+         * @throws @refitem spider::Exception if parent parameter is not found or if graph is nullptr or if
+         * graph does not have any parent graph.
+         */
+        pisdf::Param *createInheritedParam(pisdf::Graph *graph, std::string name, const std::string &parentName);
 
         /**
          * @brief Add an input parameter to a given Vertex.
@@ -382,7 +366,6 @@ namespace spider {
          * @param sink               Pointer to the sink Vertex.
          * @param snkPortIx          Index of the edge in the inputEdgeArray of the sink Vertex.
          * @param snkRateExpression  Expression of the consumption rate (can be parameterized).
-         * @param stack              Stack on which the Edge should be created.
          * @return pointer to the created @refitem pisdf::Edge.
          * @throws spider::Exception if either source or sink is nullptr or if source and sink do not belong to the same graph.
          */
@@ -401,7 +384,6 @@ namespace spider {
          * @param sink      Pointer to the sink Vertex.
          * @param snkPortIx Index of the edge in the inputEdgeArray of the sink Vertex.
          * @param snkRate   Value of the consumption rate.
-         * @param stack     Stack on which the Edge should be created.
          * @return pointer to the created @refitem pisdf::Edge.
          * @throws spider::Exception if either source or sink is nullptr or if source and sink do not belong to the same graph.
          */
@@ -425,7 +407,6 @@ namespace spider {
          * @param getterPortIx          Index of the edge in the inputEdgeArray of the getter vertex.
          * @param getterRateExpression  Expression of the consumption rate on the edge from the delay to the getter.
          * @param persistent            Persistence property of the delay (true = fully persistent, false = non persistent).
-         * @param stack                 Stack on which the delay should be created.
          * @return pointer to the created @refitem pisdf::Delay.
          */
         pisdf::Delay *createDelay(pisdf::Edge *edge,
@@ -451,7 +432,6 @@ namespace spider {
          * @param getterPortIx  Index of the edge in the inputEdgeArray of the getter vertex.
          * @param getterRate    Value of the consumption rate on the edge from the delay to the getter.
          * @param persistent    Persistence property of the delay (true = fully persistent, false = non persistent).
-         * @param stack         Stack on which the delay should be created.
          * @return pointer to the created @refitem pisdf::Delay.
          */
         pisdf::Delay *createDelay(pisdf::Edge *edge,
@@ -471,7 +451,6 @@ namespace spider {
          * - For more details on the persistence of the delays: https://hal.archives-ouvertes.fr/hal-01850252/document
          * @param edge             Pointer to the edge the Delay should be created on.
          * @param delayExpression  Expression of the delay (can be parameterized but NON dynamic).
-         * @param stack            Stack on which the delay should be created.
          * @return pointer to the created @refitem pisdf::Delay.
          */
         pisdf::Delay *
@@ -485,7 +464,6 @@ namespace spider {
          * @param edge             Pointer to the edge the Delay should be created on.
          * @param delayExpression  Expression of the delay (can be parameterized but NON dynamic).
          * @param levelCount       Number of levels the delay should persist.
-         * @param stack            Stack on which the delay should be created.
          * @return pointer to the created @refitem pisdf::Delay.
          */
         pisdf::Delay *
@@ -504,7 +482,6 @@ namespace spider {
          * @param getter                Pointer to the getter vertex of the delay (can be nullptr).
          * @param getterPortIx          Index of the edge in the inputEdgeArray of the getter vertex.
          * @param getterRateExpression  Expression of the consumption rate on the edge from the delay to the getter.
-         * @param stack                 Stack on which the delay should be created.
          * @return pointer to the created @refitem pisdf::Delay.
          */
         pisdf::Delay *createLocalDelay(pisdf::Edge *edge,
