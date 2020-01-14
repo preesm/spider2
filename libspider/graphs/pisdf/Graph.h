@@ -66,12 +66,12 @@ namespace spider {
         public:
 
             explicit Graph(std::string name = "unnamed-graph",
-                           uint32_t vertexCount = 0,
-                           uint32_t edgeCount = 0,
-                           uint32_t paramCount = 0,
-                           uint32_t edgeINCount = 0,
-                           uint32_t edgeOUTCount = 0,
-                           uint32_t cfgVertexCount = 0);
+                           size_t vertexCount = 0,
+                           size_t edgeCount = 0,
+                           size_t paramCount = 0,
+                           size_t edgeINCount = 0,
+                           size_t edgeOUTCount = 0,
+                           size_t cfgVertexCount = 0);
 
             Graph(const Graph &other) : Vertex(other) {
                 dynamic_ = other.dynamic_;
@@ -347,7 +347,7 @@ namespace spider {
              * @brief Get the ix of the graph inside its containing graph subgraphVector_.
              * @return subgraph ix of the graph.
              */
-            inline uint32_t subIx() const {
+            inline size_t subIx() const {
                 return subIx_;
             }
 
@@ -378,8 +378,8 @@ namespace spider {
             }
 
         private:
-            bool dynamic_ = false;         /* = Dynamic property of the Graph (false if static, true if dynamic) = */
-            uint32_t subIx_ = UINT32_MAX;  /* = Index of the Graph in containing Graph subgraphVector = */
+            bool dynamic_ = false;     /* = Dynamic property of the Graph (false if static, true if dynamic) = */
+            size_t subIx_ = SIZE_MAX;  /* = Index of the Graph in containing Graph subgraphVector = */
 
             /* === Contained elements of the graph === */
 
@@ -397,7 +397,7 @@ namespace spider {
             stack_vector(outputInterfaceVector_, OutputInterface *,
                          StackID::PISDF); /* = Vector of OutputInterface (size is equal to outputEdgeArray_.size()) = */
 
-           const Graph *runGraphReference_ = nullptr; /* =
+            const Graph *runGraphReference_ = nullptr; /* =
                                                        * Reference pointer to the run counter part of this graph.
                                                        * Only valid for init graphs.
                                                        * = */

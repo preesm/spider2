@@ -55,10 +55,10 @@ namespace spider {
         class ExecVertex : public Vertex {
         public:
             explicit ExecVertex(std::string name = "unnamed-execvertex",
-                                uint32_t edgeINCount = 0,
-                                uint32_t edgeOUTCount = 0) : Vertex(std::move(name),
-                                                                    edgeINCount,
-                                                                    edgeOUTCount) {
+                                size_t edgeINCount = 0,
+                                size_t edgeOUTCount = 0) : Vertex(std::move(name),
+                                                                  edgeINCount,
+                                                                  edgeOUTCount) {
                 rtInformation_ = make<RTInfo, StackID::RUNTIME>();
             }
 

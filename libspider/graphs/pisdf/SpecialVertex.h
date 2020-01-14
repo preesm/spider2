@@ -58,11 +58,11 @@ namespace spider {
             explicit SpecialVertex(std::string) = delete;
 
             SpecialVertex(std::string, /* = Name = */
-                          uint32_t     /* = Input/Output edge count (depend on VertexType) = */) = delete;
+                          size_t       /* = Input/Output edge count (depend on VertexType) = */) = delete;
 
             SpecialVertex(std::string, /* = Name = */
-                          uint32_t,    /* = Input edge count = */
-                          uint32_t     /* = Output edge count = */) = delete;
+                          size_t,      /* = Input edge count = */
+                          size_t       /* = Output edge count = */) = delete;
 
             SpecialVertex(const SpecialVertex &other) : ExecVertex(other) {
                 transfoJobIx_ = other.transfoJobIx_;
@@ -86,7 +86,7 @@ namespace spider {
 
             /* === Setter(s) === */
 
-            inline void setRepetitionValue(std::uint32_t value) override {
+            inline void setRepetitionValue(uint32_t value) override {
                 ExecVertex::setRepetitionValue(value);
             }
 
@@ -146,7 +146,7 @@ namespace spider {
         /* === ConfigVertex === */
 
         template<>
-        inline ConfigVertex::SpecialVertex(std::string name, uint32_t edgeINCount, uint32_t edgeOUTCount) :
+        inline ConfigVertex::SpecialVertex(std::string name, size_t edgeINCount, size_t edgeOUTCount) :
                                             ExecVertex(std::move(name), edgeINCount, edgeOUTCount) { }
 
         template<>
@@ -166,7 +166,7 @@ namespace spider {
         /* === ForkVertex === */
 
         template<>
-        inline ForkVertex::SpecialVertex(std::string name, uint32_t edgeOUTCount) :
+        inline ForkVertex::SpecialVertex(std::string name, size_t edgeOUTCount) :
                                           ExecVertex(std::move(name), 1, edgeOUTCount) { }
 
         template<>
@@ -176,7 +176,7 @@ namespace spider {
         /* === JoinVertex === */
 
         template<>
-        inline JoinVertex::SpecialVertex(std::string name, uint32_t edgeINCount) :
+        inline JoinVertex::SpecialVertex(std::string name, size_t edgeINCount) :
                                           ExecVertex(std::move(name), edgeINCount, 1) { }
 
         template<>
@@ -186,7 +186,7 @@ namespace spider {
         /* === HeadVertex === */
 
         template<>
-        inline HeadVertex::SpecialVertex(std::string name, uint32_t edgeINCount) :
+        inline HeadVertex::SpecialVertex(std::string name, size_t edgeINCount) :
                                           ExecVertex(std::move(name), edgeINCount, 1) { }
 
         template<>
@@ -196,7 +196,7 @@ namespace spider {
         /* === TailVertex === */
 
         template<>
-        inline TailVertex::SpecialVertex(std::string name, uint32_t edgeINCount) :
+        inline TailVertex::SpecialVertex(std::string name, size_t edgeINCount) :
                                           ExecVertex(std::move(name), edgeINCount, 1) { }
 
         template<>
@@ -216,7 +216,7 @@ namespace spider {
         /* === DuplicateVertex === */
 
         template<>
-        inline DuplicateVertex::SpecialVertex(std::string name, uint32_t edgeOUTCount) :
+        inline DuplicateVertex::SpecialVertex(std::string name, size_t edgeOUTCount) :
                                                ExecVertex(std::move(name),1, edgeOUTCount) { }
 
         template<>

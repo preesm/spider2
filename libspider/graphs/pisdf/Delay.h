@@ -60,10 +60,10 @@ namespace spider {
             Delay(Expression &&expression,
                   Edge *edge,
                   ExecVertex *setter,
-                  uint32_t setterPortIx,
+                  size_t setterPortIx,
                   Expression &&setterRateExpression,
                   ExecVertex *getter,
-                  uint32_t getterPortIx,
+                  size_t getterPortIx,
                   Expression &&getterRateExpression,
                   bool persistent = false);
 
@@ -105,7 +105,7 @@ namespace spider {
              * @brief Return the port ix on which the delay is connected to the setter.
              * @return setter output port ix.
              */
-            inline uint32_t setterPortIx() const {
+            inline size_t setterPortIx() const {
                 return setterPortIx_;
             }
 
@@ -113,7 +113,7 @@ namespace spider {
              * @brief Return the port ix on which the delay is connected to the getter.
              * @return getter output port ix.
              */
-            inline uint32_t getterPortIx() const {
+            inline size_t getterPortIx() const {
                 return getterPortIx_;
             }
 
@@ -173,9 +173,9 @@ namespace spider {
             Expression expression_;               /* = Expression associated to the value of the Delay = */
             Edge *edge_ = nullptr;                /* = Edge associated to the Delay = */
             ExecVertex *setter_ = nullptr;        /* = Setter of the Delay = */
-            uint32_t setterPortIx_ = 0;           /* = Ouput port ix of the getter connected to the Delay = */
+            size_t setterPortIx_ = 0;             /* = Ouput port ix of the getter connected to the Delay = */
             ExecVertex *getter_ = nullptr;        /* = Getter of the Delay = */
-            uint32_t getterPortIx_ = 0;           /* = Input port ix of the getter connected to the Delay = */
+            size_t getterPortIx_ = 0;             /* = Input port ix of the getter connected to the Delay = */
             DelayVertex *vertex_ = nullptr;       /* = Virtual vertex created for consistency evaluation = */
             bool addedInit_ = false;              /* = If no setter is provided, then an InitVertex is created = */
             bool addedEnd_ = false;               /* = If no getter is provided, then an EndVertex is created = */

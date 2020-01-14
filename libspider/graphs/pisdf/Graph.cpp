@@ -53,14 +53,14 @@
 /* === Method(s) implementation === */
 
 spider::pisdf::Graph::Graph(std::string name,
-                            uint32_t vertexCount,
-                            uint32_t edgeCount,
-                            uint32_t paramCount,
-                            uint32_t edgeINCount,
-                            uint32_t edgeOUTCount,
-                            uint32_t cfgVertexCount) : Vertex(std::move(name),
-                                                              edgeINCount,
-                                                              edgeOUTCount) {
+                            size_t vertexCount,
+                            size_t edgeCount,
+                            size_t paramCount,
+                            size_t edgeINCount,
+                            size_t edgeOUTCount,
+                            size_t cfgVertexCount) : Vertex(std::move(name),
+                                                            edgeINCount,
+                                                            edgeOUTCount) {
     /* == Reserve the memory == */
     vertexVector_.reserve(vertexCount);
     edgeVector_.reserve(edgeCount);
@@ -70,7 +70,7 @@ spider::pisdf::Graph::Graph(std::string name,
     outputInterfaceVector_.resize(edgeOUTCount, nullptr);
 
     /* == Create the input interfaces == */
-    for (uint32_t i = 0; i < edgeINCount; ++i) {
+    for (size_t i = 0; i < edgeINCount; ++i) {
         auto *interface = make<InputInterface>(StackID::PISDF, "in_" + std::to_string(i));
         interface->setIx(i);
         inputInterfaceVector_[i] = interface;
@@ -78,7 +78,7 @@ spider::pisdf::Graph::Graph(std::string name,
     }
 
     /* == Create the output interfaces == */
-    for (uint32_t i = 0; i < edgeOUTCount; ++i) {
+    for (size_t i = 0; i < edgeOUTCount; ++i) {
         auto *interface = make<OutputInterface>(StackID::PISDF, "out_" + std::to_string(i));
         interface->setIx(i);
         outputInterfaceVector_[i] = interface;

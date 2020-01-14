@@ -53,10 +53,10 @@ namespace spider {
         class NonExecVertex final : public Vertex {
         public:
             explicit NonExecVertex(std::string name = "unnamed-non-execvertex",
-                                   uint32_t edgeINCount = 0,
-                                   uint32_t edgeOUTCount = 0) : Vertex(std::move(name),
-                                                                       edgeINCount,
-                                                                       edgeOUTCount) { };
+                                   size_t edgeINCount = 0,
+                                   size_t edgeOUTCount = 0) : Vertex(std::move(name),
+                                                                     edgeINCount,
+                                                                     edgeOUTCount) { };
 
             NonExecVertex(const NonExecVertex &other) = default;
 

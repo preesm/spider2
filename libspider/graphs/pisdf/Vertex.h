@@ -63,9 +63,7 @@ namespace spider {
         class Vertex {
         public:
 
-            explicit Vertex(std::string name,
-                            size_t edgeINCount = 0,
-                            size_t edgeOUTCount = 0) :
+            explicit Vertex(std::string name, size_t edgeINCount = 0, size_t edgeOUTCount = 0) :
                     name_{ std::move(name) } {
                 inputEdgeVector_.resize(edgeINCount, nullptr);
                 outputEdgeVector_.resize(edgeOUTCount, nullptr);

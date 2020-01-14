@@ -77,12 +77,12 @@ namespace spider {
          * @throws @refitem spider::Exception if a user graph already exists.
          */
         pisdf::Graph *createUserApplicationGraph(std::string name,
-                                                 uint32_t actorCount = 0,
-                                                 uint32_t edgeCount = 0,
-                                                 uint32_t paramCount = 0,
-                                                 uint32_t inIFCount = 0,
-                                                 uint32_t outIFCount = 0,
-                                                 uint32_t cfgActorCount = 0);
+                                                 size_t actorCount = 0,
+                                                 size_t edgeCount = 0,
+                                                 size_t paramCount = 0,
+                                                 size_t inIFCount = 0,
+                                                 size_t outIFCount = 0,
+                                                 size_t cfgActorCount = 0);
 
         /**
          * @brief Creates a @refitem pisdf::Graph with no parent.
@@ -96,12 +96,12 @@ namespace spider {
          * @return pointer to the created @refitem pisdf::Graph.
          */
         pisdf::Graph *createGraph(std::string name,
-                                  uint32_t actorCount = 0,
-                                  uint32_t edgeCount = 0,
-                                  uint32_t paramCount = 0,
-                                  uint32_t inIFCount = 0,
-                                  uint32_t outIFCount = 0,
-                                  uint32_t cfgActorCount = 0);
+                                  size_t actorCount = 0,
+                                  size_t edgeCount = 0,
+                                  size_t paramCount = 0,
+                                  size_t inIFCount = 0,
+                                  size_t outIFCount = 0,
+                                  size_t cfgActorCount = 0);
 
         /**
          * @brief Creates a @refitem pisdf::Graph with a parent graph.
@@ -118,12 +118,12 @@ namespace spider {
          */
         pisdf::Graph *createSubgraph(pisdf::Graph *graph,
                                      std::string name,
-                                     uint32_t actorCount = 0,
-                                     uint32_t edgeCount = 0,
-                                     uint32_t paramCount = 0,
-                                     uint32_t inIFCount = 0,
-                                     uint32_t outIFCount = 0,
-                                     uint32_t cfgActorCount = 0);
+                                     size_t actorCount = 0,
+                                     size_t edgeCount = 0,
+                                     size_t paramCount = 0,
+                                     size_t inIFCount = 0,
+                                     size_t outIFCount = 0,
+                                     size_t cfgActorCount = 0);
 
         /**
          * @brief Creates a @refitem pisdf::ExecVertex.
@@ -136,8 +136,8 @@ namespace spider {
          */
         pisdf::ExecVertex *createVertex(pisdf::Graph *graph,
                                         std::string name,
-                                        uint32_t edgeINCount = 0,
-                                        uint32_t edgeOUTCount = 0);
+                                        size_t edgeINCount = 0,
+                                        size_t edgeOUTCount = 0);
 
         /**
          * @brief Creates a @refitem pisdf::NonExecVertex.
@@ -150,8 +150,8 @@ namespace spider {
          */
         pisdf::NonExecVertex *createNonExecVertex(pisdf::Graph *graph,
                                                   std::string name,
-                                                  uint32_t edgeINCount = 0,
-                                                  uint32_t edgeOUTCount = 0);
+                                                  size_t edgeINCount = 0,
+                                                  size_t edgeOUTCount = 0);
 
         /**
          * @brief Creates a @refitem pisdf::ForkVertex.
@@ -161,9 +161,7 @@ namespace spider {
          * @return pointer to the created @refitem pisdf::ForkVertex.
          * @throws @refitem spider::Exception if the parent graph is nullptr.
          */
-        pisdf::ExecVertex *createFork(pisdf::Graph *graph,
-                                      std::string name,
-                                      uint32_t edgeOUTCount = 0);
+        pisdf::ExecVertex *createFork(pisdf::Graph *graph, std::string name, size_t edgeOUTCount = 0);
 
         /**
          * @brief Creates a @refitem pisdf::JoinVertex.
@@ -173,9 +171,7 @@ namespace spider {
          * @return pointer to the created @refitem pisdf::JoinVertex.
          * @throws @refitem spider::Exception if the parent graph is nullptr.
          */
-        pisdf::ExecVertex *createJoin(pisdf::Graph *graph,
-                                      std::string name,
-                                      uint32_t edgeINCount = 0);
+        pisdf::ExecVertex *createJoin(pisdf::Graph *graph, std::string name, size_t edgeINCount = 0);
 
         /**
          * @brief Creates a @refitem pisdf::HeadVertex.
@@ -185,9 +181,7 @@ namespace spider {
          * @return pointer to the created @refitem pisdf::HeadVertex.
          * @throws @refitem spider::Exception if the parent graph is nullptr.
          */
-        pisdf::ExecVertex *createHead(pisdf::Graph *graph,
-                                      std::string name,
-                                      uint32_t edgeINCount = 0);
+        pisdf::ExecVertex *createHead(pisdf::Graph *graph, std::string name, size_t edgeINCount = 0);
 
         /**
          * @brief Creates a @refitem pisdf::TailVertex.
@@ -197,9 +191,7 @@ namespace spider {
          * @return pointer to the created @refitem pisdf::TailVertex.
          * @throws @refitem spider::Exception if the parent graph is nullptr.
          */
-        pisdf::ExecVertex *createTail(pisdf::Graph *graph,
-                                      std::string name,
-                                      uint32_t edgeINCount = 0);
+        pisdf::ExecVertex *createTail(pisdf::Graph *graph, std::string name, size_t edgeINCount = 0);
 
         /**
          * @brief Creates a @refitem pisdf::DuplicateVertex.
@@ -209,9 +201,7 @@ namespace spider {
          * @return pointer to the created @refitem pisdf::DuplicateVertex.
          * @throws @refitem spider::Exception if the parent graph is nullptr.
          */
-        pisdf::ExecVertex *createDuplicate(pisdf::Graph *graph,
-                                           std::string name,
-                                           uint32_t edgeOUTCount = 0);
+        pisdf::ExecVertex *createDuplicate(pisdf::Graph *graph, std::string name, size_t edgeOUTCount = 0);
 
         /**
          * @brief Creates a @refitem pisdf::RepeatVertex.
@@ -251,8 +241,8 @@ namespace spider {
          */
         pisdf::ExecVertex *createConfigActor(pisdf::Graph *graph,
                                              std::string name,
-                                             uint32_t edgeINCount = 0,
-                                             uint32_t edgeOUTCount = 0);
+                                             size_t edgeINCount = 0,
+                                             size_t edgeOUTCount = 0);
 
         /**
          * @brief Change the name of an @refitem pisdf::InputInterface.
@@ -262,7 +252,7 @@ namespace spider {
          * @return pointer to the corresponding @refitem InputInterface.
          * @throws spider::Exception if graph is nullptr or interface is not found.
          */
-        pisdf::InputInterface *setInputInterfaceName(pisdf::Graph *graph, uint32_t ix, std::string name);
+        pisdf::InputInterface *setInputInterfaceName(pisdf::Graph *graph, size_t ix, std::string name);
 
         /**
          * @brief Change the name of an @refitem pisdf::OutputInterface.
@@ -272,7 +262,7 @@ namespace spider {
          * @return pointer to the corresponding @refitem OutputInterface.
          * @throws spider::Exception if graph is nullptr or interface is not found.
          */
-        pisdf::OutputInterface *setOutputInterfaceName(pisdf::Graph *graph, uint32_t ix, std::string name);
+        pisdf::OutputInterface *setOutputInterfaceName(pisdf::Graph *graph, size_t ix, std::string name);
 
         /* === Param API === */
 
@@ -412,10 +402,10 @@ namespace spider {
         pisdf::Delay *createDelay(pisdf::Edge *edge,
                                   std::string delayExpression,
                                   pisdf::ExecVertex *setter = nullptr,
-                                  uint32_t setterPortIx = 0,
+                                  size_t setterPortIx = 0,
                                   const std::string &setterRateExpression = "0",
                                   pisdf::ExecVertex *getter = nullptr,
-                                  uint32_t getterPortIx = 0,
+                                  size_t getterPortIx = 0,
                                   const std::string &getterRateExpression = "0",
                                   bool persistent = true);
 
@@ -437,10 +427,10 @@ namespace spider {
         pisdf::Delay *createDelay(pisdf::Edge *edge,
                                   int64_t delayValue,
                                   pisdf::ExecVertex *setter = nullptr,
-                                  uint32_t setterPortIx = 0,
+                                  size_t setterPortIx = 0,
                                   int64_t setterRate = 0,
                                   pisdf::ExecVertex *getter = nullptr,
-                                  uint32_t getterPortIx = 0,
+                                  size_t getterPortIx = 0,
                                   int64_t getterRate = 0,
                                   bool persistent = true);
 
@@ -487,10 +477,10 @@ namespace spider {
         pisdf::Delay *createLocalDelay(pisdf::Edge *edge,
                                        std::string delayExpression,
                                        pisdf::ExecVertex *setter = nullptr,
-                                       uint32_t setterPortIx = 0,
+                                       size_t setterPortIx = 0,
                                        std::string setterRateExpression = "0",
                                        pisdf::ExecVertex *getter = nullptr,
-                                       uint32_t getterPortIx = 0,
+                                       size_t getterPortIx = 0,
                                        std::string getterRateExpression = "0");
     }
 }

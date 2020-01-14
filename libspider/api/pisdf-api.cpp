@@ -62,12 +62,12 @@ spider::pisdf::Graph *&spider::pisdf::applicationGraph() {
 }
 
 spider::pisdf::Graph *spider::api::createUserApplicationGraph(std::string name,
-                                                              uint32_t actorCount,
-                                                              uint32_t edgeCount,
-                                                              uint32_t paramCount,
-                                                              uint32_t inIFCount,
-                                                              uint32_t outIFCount,
-                                                              uint32_t cfgActorCount) {
+                                                              size_t actorCount,
+                                                              size_t edgeCount,
+                                                              size_t paramCount,
+                                                              size_t inIFCount,
+                                                              size_t outIFCount,
+                                                              size_t cfgActorCount) {
     if (pisdf::applicationGraph()->subgraphCount()) {
         throwSpiderException("Can have only one user application graph inside spider.");
     }
@@ -85,12 +85,12 @@ spider::pisdf::Graph *spider::api::createUserApplicationGraph(std::string name,
 }
 
 spider::pisdf::Graph *spider::api::createGraph(std::string name,
-                                               uint32_t actorCount,
-                                               uint32_t edgeCount,
-                                               uint32_t paramCount,
-                                               uint32_t inIFCount,
-                                               uint32_t outIFCount,
-                                               uint32_t cfgActorCount) {
+                                               size_t actorCount,
+                                               size_t edgeCount,
+                                               size_t paramCount,
+                                               size_t inIFCount,
+                                               size_t outIFCount,
+                                               size_t cfgActorCount) {
     if (name == "app-graph") {
         throwSpiderException("Unauthorized name: \"app-graph\" is a reserved name for graphs by Spider.");
     }
@@ -106,12 +106,12 @@ spider::pisdf::Graph *spider::api::createGraph(std::string name,
 
 spider::pisdf::Graph *spider::api::createSubgraph(pisdf::Graph *graph,
                                                   std::string name,
-                                                  uint32_t actorCount,
-                                                  uint32_t edgeCount,
-                                                  uint32_t paramCount,
-                                                  uint32_t inIFCount,
-                                                  uint32_t outIFCount,
-                                                  uint32_t cfgActorCount) {
+                                                  size_t actorCount,
+                                                  size_t edgeCount,
+                                                  size_t paramCount,
+                                                  size_t inIFCount,
+                                                  size_t outIFCount,
+                                                  size_t cfgActorCount) {
     if (!graph) {
         throwSpiderException("trying to create a subgraph %s with no parent.", name.c_str());
     }
@@ -132,8 +132,8 @@ spider::pisdf::Graph *spider::api::createSubgraph(pisdf::Graph *graph,
 
 spider::pisdf::ExecVertex *spider::api::createVertex(pisdf::Graph *graph,
                                                      std::string name,
-                                                     uint32_t edgeINCount,
-                                                     uint32_t edgeOUTCount) {
+                                                     size_t edgeINCount,
+                                                     size_t edgeOUTCount) {
     if (!graph) {
         throwSpiderException("nullptr for graph.");
     }
@@ -144,8 +144,8 @@ spider::pisdf::ExecVertex *spider::api::createVertex(pisdf::Graph *graph,
 
 spider::pisdf::NonExecVertex *spider::api::createNonExecVertex(pisdf::Graph *graph,
                                                                std::string name,
-                                                               uint32_t edgeINCount,
-                                                               uint32_t edgeOUTCount) {
+                                                               size_t edgeINCount,
+                                                               size_t edgeOUTCount) {
     if (!graph) {
         throwSpiderException("nullptr for graph.");
     }
@@ -154,8 +154,7 @@ spider::pisdf::NonExecVertex *spider::api::createNonExecVertex(pisdf::Graph *gra
     return vertex;
 }
 
-spider::pisdf::ExecVertex *
-spider::api::createFork(pisdf::Graph *graph, std::string name, uint32_t edgeOUTCount) {
+spider::pisdf::ExecVertex *spider::api::createFork(pisdf::Graph *graph, std::string name, size_t edgeOUTCount) {
     if (!graph) {
         throwSpiderException("nullptr for graph.");
     }
@@ -166,8 +165,7 @@ spider::api::createFork(pisdf::Graph *graph, std::string name, uint32_t edgeOUTC
     return vertex;
 }
 
-spider::pisdf::ExecVertex *
-spider::api::createJoin(pisdf::Graph *graph, std::string name, uint32_t edgeINCount) {
+spider::pisdf::ExecVertex *spider::api::createJoin(pisdf::Graph *graph, std::string name, size_t edgeINCount) {
     if (!graph) {
         throwSpiderException("nullptr for graph.");
     }
@@ -178,8 +176,7 @@ spider::api::createJoin(pisdf::Graph *graph, std::string name, uint32_t edgeINCo
     return vertex;
 }
 
-spider::pisdf::ExecVertex *
-spider::api::createHead(pisdf::Graph *graph, std::string name, uint32_t edgeINCount) {
+spider::pisdf::ExecVertex *spider::api::createHead(pisdf::Graph *graph, std::string name, size_t edgeINCount) {
     if (!graph) {
         throwSpiderException("nullptr for graph.");
     }
@@ -190,8 +187,7 @@ spider::api::createHead(pisdf::Graph *graph, std::string name, uint32_t edgeINCo
     return vertex;
 }
 
-spider::pisdf::ExecVertex *
-spider::api::createTail(pisdf::Graph *graph, std::string name, uint32_t edgeINCount) {
+spider::pisdf::ExecVertex *spider::api::createTail(pisdf::Graph *graph, std::string name, size_t edgeINCount) {
     if (!graph) {
         throwSpiderException("nullptr for graph.");
     }
@@ -203,7 +199,7 @@ spider::api::createTail(pisdf::Graph *graph, std::string name, uint32_t edgeINCo
 }
 
 spider::pisdf::ExecVertex *
-spider::api::createDuplicate(pisdf::Graph *graph, std::string name, uint32_t edgeOUTCount) {
+spider::api::createDuplicate(pisdf::Graph *graph, std::string name, size_t edgeOUTCount) {
     if (!graph) {
         throwSpiderException("nullptr for graph.");
     }
@@ -249,8 +245,8 @@ spider::pisdf::ExecVertex *spider::api::createEnd(pisdf::Graph *graph, std::stri
 
 spider::pisdf::ExecVertex *spider::api::createConfigActor(pisdf::Graph *graph,
                                                           std::string name,
-                                                          uint32_t edgeINCount,
-                                                          uint32_t edgeOUTCount) {
+                                                          size_t edgeINCount,
+                                                          size_t edgeOUTCount) {
     if (!graph) {
         throwSpiderException("nullptr for graph.");
     }
@@ -260,7 +256,7 @@ spider::pisdf::ExecVertex *spider::api::createConfigActor(pisdf::Graph *graph,
 }
 
 spider::pisdf::InputInterface *
-spider::api::setInputInterfaceName(pisdf::Graph *graph, uint32_t ix, std::string name) {
+spider::api::setInputInterfaceName(pisdf::Graph *graph, size_t ix, std::string name) {
     if (!graph) {
         throwSpiderException("nullptr for graph.");
     }
@@ -275,7 +271,7 @@ spider::api::setInputInterfaceName(pisdf::Graph *graph, uint32_t ix, std::string
 }
 
 spider::pisdf::OutputInterface *
-spider::api::setOutputInterfaceName(pisdf::Graph *graph, uint32_t ix, std::string name) {
+spider::api::setOutputInterfaceName(pisdf::Graph *graph, size_t ix, std::string name) {
     if (!graph) {
         throwSpiderException("nullptr for graph.");
     }
@@ -449,10 +445,10 @@ spider::pisdf::Edge *spider::api::createEdge(pisdf::Vertex *source,
 spider::pisdf::Delay *spider::api::createDelay(pisdf::Edge *edge,
                                                std::string delayExpression,
                                                pisdf::ExecVertex *setter,
-                                               uint32_t setterPortIx,
+                                               size_t setterPortIx,
                                                const std::string &setterRateExpression,
                                                pisdf::ExecVertex *getter,
-                                               uint32_t getterPortIx,
+                                               size_t getterPortIx,
                                                const std::string &getterRateExpression,
                                                bool persistent) {
     if (delayExpression == "0" && log::enabled()) {
@@ -479,10 +475,10 @@ spider::pisdf::Delay *spider::api::createDelay(pisdf::Edge *edge,
 spider::pisdf::Delay *spider::api::createDelay(pisdf::Edge *edge,
                                                int64_t value,
                                                pisdf::ExecVertex *setter,
-                                               uint32_t setterPortIx,
+                                               size_t setterPortIx,
                                                int64_t setterRate,
                                                pisdf::ExecVertex *getter,
-                                               uint32_t getterPortIx,
+                                               size_t getterPortIx,
                                                int64_t getterRate,
                                                bool persistent) {
 //    if (!value && log_enabled()) {
@@ -559,10 +555,10 @@ spider::pisdf::Delay *spider::api::createLocalPersistentDelay(pisdf::Edge *edge,
 spider::pisdf::Delay *spider::api::createLocalDelay(pisdf::Edge *edge,
                                                     std::string delayExpression,
                                                     pisdf::ExecVertex *setter,
-                                                    uint32_t setterPortIx,
+                                                    size_t setterPortIx,
                                                     std::string setterRateExpression,
                                                     pisdf::ExecVertex *getter,
-                                                    uint32_t getterPortIx,
+                                                    size_t getterPortIx,
                                                     std::string getterRateExpression) {
     auto expression = checkAndGetExpression(edge, std::move(delayExpression));
     auto setterExpr = setter ? std::move(setterRateExpression) : std::to_string(expression.value());

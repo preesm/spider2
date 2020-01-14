@@ -104,7 +104,7 @@ TEST_F(pisdfGraphTest, graphTest) {
     ASSERT_EQ(graph->configVertexCount(), 0) << "Graph::configVertexCount() failed.";
     ASSERT_EQ(graph->subgraphCount(), 0) << "Graph::subgraphCount() failed.";
     ASSERT_EQ(graph->dynamic(), false) << "Graph::dynamic() failed.";
-    ASSERT_EQ(graph->subIx(), UINT32_MAX) << "Graph::subIx() failed.";
+    ASSERT_EQ(graph->subIx(), SIZE_MAX) << "Graph::subIx() failed.";
 
     /* == Test subgraph == */
     auto *vertex_0 = spider::api::createVertex(graph, "vertex_0", 0, 1);
