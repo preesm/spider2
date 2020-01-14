@@ -173,6 +173,13 @@ namespace spider {
                 visitor->visit(this);
             }
 
+            /**
+             * @brief Search for a parameter from its name.
+             * @param name Name of the parameter to find.
+             * @return pointer to the found Param, nullptr else.
+             */
+            Param *paramFromName(const std::string &name);
+
             /* === Getter(s) === */
 
             inline bool isTopGraph() const {

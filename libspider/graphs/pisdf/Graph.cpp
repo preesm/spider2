@@ -173,6 +173,17 @@ void spider::pisdf::Graph::moveParam(spider::pisdf::Param *elt, spider::pisdf::G
     graph->addParam(elt);
 }
 
+spider::pisdf::Param *spider::pisdf::Graph::paramFromName(const std::string &name) {
+    std::string lowerCaseName = name;
+    std::transform(lowerCaseName.begin(), lowerCaseName.end(), lowerCaseName.begin(), ::tolower);
+    for (auto &param : paramVector_) {
+        if (param->name() == lowerCaseName) {
+            return param;
+        }
+    }
+    return nullptr;
+}
+
 /* === Private method(s) === */
 
 template<class T>
