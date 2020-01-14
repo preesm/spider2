@@ -56,8 +56,8 @@ public:
     inline bool operator()(spider::pisdf::Graph *graph) const override;
 
 private:
-    inline spider::pisdf::ExecVertex *createNewJoin(spider::pisdf::Vertex *firstJoin,
-                                                    spider::pisdf::Vertex *secondJoin) const {
+    inline spider::pisdf::Vertex *createNewJoin(spider::pisdf::Vertex *firstJoin,
+                                                spider::pisdf::Vertex *secondJoin) const {
         auto *graph = firstJoin->graph();
         const auto &inputCount = static_cast<uint32_t>(firstJoin->inputEdgeCount() +
                                                        (secondJoin->inputEdgeCount() - 1));
@@ -135,8 +135,9 @@ bool PiSDFJoinJoinOptimizer::operator()(spider::pisdf::Graph *graph) const {
 
         /* == Remove the vertices == */
         if (spider::api::verbose() && spider::log::enabled<spider::log::Type::OPTIMS>()) {
-            spider::log::verbose<spider::log::Type::OPTIMS>("JoinJoinOptimizer: removing [%s] and [%s] join vertices.\n",
-                                             firstJoin->name().c_str(), secondJoin->name().c_str());
+            spider::log::verbose<spider::log::Type::OPTIMS>(
+                    "JoinJoinOptimizer: removing [%s] and [%s] join vertices.\n",
+                    firstJoin->name().c_str(), secondJoin->name().c_str());
         }
         graph->removeVertex(firstJoin);
         graph->removeVertex(secondJoin);

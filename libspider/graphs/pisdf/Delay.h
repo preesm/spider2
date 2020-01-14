@@ -87,17 +87,17 @@ namespace spider {
 
             /**
              * @brief Get the setter vertex of the delay.
-             * @return @refitem Spider::PiSDF::ExecVertex connected to the delay.
+             * @return @refitem Spider::PiSDF::Vertex connected to the delay.
              */
-            inline ExecVertex *setter() const {
+            inline Vertex *setter() const {
                 return setter_;
             }
 
             /**
              * @brief Get the getter vertex of the delay.
-             * @return @refitem Spider::PiSDF::ExecVertex connected to the delay.
+             * @return @refitem Spider::PiSDF::Vertex connected to the delay.
              */
-            inline ExecVertex *getter() const {
+            inline Vertex *getter() const {
                 return getter_;
             }
 
@@ -172,9 +172,9 @@ namespace spider {
         private:
             Expression expression_;               /* = Expression associated to the value of the Delay = */
             Edge *edge_ = nullptr;                /* = Edge associated to the Delay = */
-            ExecVertex *setter_ = nullptr;        /* = Setter of the Delay = */
+            Vertex *setter_ = nullptr;            /* = Setter of the Delay = */
             size_t setterPortIx_ = 0;             /* = Ouput port ix of the getter connected to the Delay = */
-            ExecVertex *getter_ = nullptr;        /* = Getter of the Delay = */
+            Vertex *getter_ = nullptr;            /* = Getter of the Delay = */
             size_t getterPortIx_ = 0;             /* = Input port ix of the getter connected to the Delay = */
             DelayVertex *vertex_ = nullptr;       /* = Virtual vertex created for consistency evaluation = */
             bool addedInit_ = false;              /* = If no setter is provided, then an InitVertex is created = */

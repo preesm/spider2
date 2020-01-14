@@ -130,10 +130,41 @@ spider::pisdf::Graph *spider::api::createSubgraph(pisdf::Graph *graph,
     return subgraph;
 }
 
-spider::pisdf::ExecVertex *spider::api::createVertex(pisdf::Graph *graph,
-                                                     std::string name,
-                                                     size_t edgeINCount,
-                                                     size_t edgeOUTCount) {
+spider::pisdf::Vertex *spider::api::createVertexFromType(pisdf::Graph *graph,
+                                                         std::string name,
+                                                         size_t inputEdgeCount,
+                                                         size_t outputEdgeCount,
+                                                         pisdf::VertexType type) {
+    switch (type) {
+        case spider::pisdf::VertexType::NORMAL:
+            return spider::api::createVertex(graph, std::move(name), inputEdgeCount, outputEdgeCount);
+        case spider::pisdf::VertexType::CONFIG:
+            return spider::api::createConfigActor(graph, std::move(name), inputEdgeCount, outputEdgeCount);
+        case spider::pisdf::VertexType::FORK:
+            return spider::api::createFork(graph, std::move(name), outputEdgeCount);
+        case spider::pisdf::VertexType::JOIN:
+            return spider::api::createJoin(graph, std::move(name), inputEdgeCount);
+        case spider::pisdf::VertexType::REPEAT:
+            return spider::api::createRepeat(graph, std::move(name));
+        case spider::pisdf::VertexType::DUPLICATE:
+            return spider::api::createDuplicate(graph, std::move(name), outputEdgeCount);
+        case spider::pisdf::VertexType::TAIL:
+            return spider::api::createTail(graph, std::move(name), inputEdgeCount);
+        case spider::pisdf::VertexType::HEAD:
+            return spider::api::createHead(graph, std::move(name), inputEdgeCount);
+        case spider::pisdf::VertexType::INIT:
+            return spider::api::createInit(graph, std::move(name));
+        case spider::pisdf::VertexType::END:
+            return spider::api::createEnd(graph, std::move(name));
+        default:
+            throwSpiderException("vertex type not found");
+    }
+}
+
+spider::pisdf::Vertex *spider::api::createVertex(pisdf::Graph *graph,
+                                                 std::string name,
+                                                 size_t edgeINCount,
+                                                 size_t edgeOUTCount) {
     if (!graph) {
         throwSpiderException("nullptr for graph.");
     }
@@ -142,10 +173,10 @@ spider::pisdf::ExecVertex *spider::api::createVertex(pisdf::Graph *graph,
     return vertex;
 }
 
-spider::pisdf::NonExecVertex *spider::api::createNonExecVertex(pisdf::Graph *graph,
-                                                               std::string name,
-                                                               size_t edgeINCount,
-                                                               size_t edgeOUTCount) {
+spider::pisdf::Vertex *spider::api::createNonExecVertex(pisdf::Graph *graph,
+                                                        std::string name,
+                                                        size_t edgeINCount,
+                                                        size_t edgeOUTCount) {
     if (!graph) {
         throwSpiderException("nullptr for graph.");
     }
@@ -154,7 +185,7 @@ spider::pisdf::NonExecVertex *spider::api::createNonExecVertex(pisdf::Graph *gra
     return vertex;
 }
 
-spider::pisdf::ExecVertex *spider::api::createFork(pisdf::Graph *graph, std::string name, size_t edgeOUTCount) {
+spider::pisdf::Vertex *spider::api::createFork(pisdf::Graph *graph, std::string name, size_t edgeOUTCount) {
     if (!graph) {
         throwSpiderException("nullptr for graph.");
     }
@@ -165,7 +196,7 @@ spider::pisdf::ExecVertex *spider::api::createFork(pisdf::Graph *graph, std::str
     return vertex;
 }
 
-spider::pisdf::ExecVertex *spider::api::createJoin(pisdf::Graph *graph, std::string name, size_t edgeINCount) {
+spider::pisdf::Vertex *spider::api::createJoin(pisdf::Graph *graph, std::string name, size_t edgeINCount) {
     if (!graph) {
         throwSpiderException("nullptr for graph.");
     }
@@ -176,7 +207,7 @@ spider::pisdf::ExecVertex *spider::api::createJoin(pisdf::Graph *graph, std::str
     return vertex;
 }
 
-spider::pisdf::ExecVertex *spider::api::createHead(pisdf::Graph *graph, std::string name, size_t edgeINCount) {
+spider::pisdf::Vertex *spider::api::createHead(pisdf::Graph *graph, std::string name, size_t edgeINCount) {
     if (!graph) {
         throwSpiderException("nullptr for graph.");
     }
@@ -187,7 +218,7 @@ spider::pisdf::ExecVertex *spider::api::createHead(pisdf::Graph *graph, std::str
     return vertex;
 }
 
-spider::pisdf::ExecVertex *spider::api::createTail(pisdf::Graph *graph, std::string name, size_t edgeINCount) {
+spider::pisdf::Vertex *spider::api::createTail(pisdf::Graph *graph, std::string name, size_t edgeINCount) {
     if (!graph) {
         throwSpiderException("nullptr for graph.");
     }
@@ -198,8 +229,7 @@ spider::pisdf::ExecVertex *spider::api::createTail(pisdf::Graph *graph, std::str
     return vertex;
 }
 
-spider::pisdf::ExecVertex *
-spider::api::createDuplicate(pisdf::Graph *graph, std::string name, size_t edgeOUTCount) {
+spider::pisdf::Vertex *spider::api::createDuplicate(pisdf::Graph *graph, std::string name, size_t edgeOUTCount) {
     if (!graph) {
         throwSpiderException("nullptr for graph.");
     }
@@ -210,7 +240,7 @@ spider::api::createDuplicate(pisdf::Graph *graph, std::string name, size_t edgeO
     return vertex;
 }
 
-spider::pisdf::ExecVertex *spider::api::createRepeat(pisdf::Graph *graph, std::string name) {
+spider::pisdf::Vertex *spider::api::createRepeat(pisdf::Graph *graph, std::string name) {
     if (!graph) {
         throwSpiderException("nullptr for graph.");
     }
@@ -221,7 +251,7 @@ spider::pisdf::ExecVertex *spider::api::createRepeat(pisdf::Graph *graph, std::s
     return vertex;
 }
 
-spider::pisdf::ExecVertex *spider::api::createInit(pisdf::Graph *graph, std::string name) {
+spider::pisdf::Vertex *spider::api::createInit(pisdf::Graph *graph, std::string name) {
     if (!graph) {
         throwSpiderException("nullptr for graph.");
     }
@@ -232,7 +262,7 @@ spider::pisdf::ExecVertex *spider::api::createInit(pisdf::Graph *graph, std::str
     return vertex;
 }
 
-spider::pisdf::ExecVertex *spider::api::createEnd(pisdf::Graph *graph, std::string name) {
+spider::pisdf::Vertex *spider::api::createEnd(pisdf::Graph *graph, std::string name) {
     if (!graph) {
         throwSpiderException("nullptr for graph.");
     }
@@ -243,10 +273,10 @@ spider::pisdf::ExecVertex *spider::api::createEnd(pisdf::Graph *graph, std::stri
     return vertex;
 }
 
-spider::pisdf::ExecVertex *spider::api::createConfigActor(pisdf::Graph *graph,
-                                                          std::string name,
-                                                          size_t edgeINCount,
-                                                          size_t edgeOUTCount) {
+spider::pisdf::Vertex *spider::api::createConfigActor(pisdf::Graph *graph,
+                                                      std::string name,
+                                                      size_t edgeINCount,
+                                                      size_t edgeOUTCount) {
     if (!graph) {
         throwSpiderException("nullptr for graph.");
     }

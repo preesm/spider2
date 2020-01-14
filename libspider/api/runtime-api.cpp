@@ -152,7 +152,7 @@ void spider::api::finalizeRTPlatform() {
 
 /* === Runtime kernel related API === */
 
-spider::RTKernel *spider::api::createRuntimeKernel(spider::pisdf::ExecVertex *vertex, spider::rtkernel kernel) {
+spider::RTKernel *spider::api::createRuntimeKernel(spider::pisdf::Vertex *vertex, spider::rtkernel kernel) {
     if (!vertex) {
         throwSpiderException("nullptr vertex.");
     }
@@ -168,7 +168,7 @@ spider::RTKernel *spider::api::createRuntimeKernel(spider::pisdf::ExecVertex *ve
 
 /* === Mapping and Timing related API === */
 
-void spider::api::setVertexMappableOnCluster(pisdf::ExecVertex *vertex, const Cluster *cluster, bool value) {
+void spider::api::setVertexMappableOnCluster(pisdf::Vertex *vertex, const Cluster *cluster, bool value) {
     if (!vertex) {
         throwSpiderException("nullptr vertex.");
     }
@@ -178,7 +178,7 @@ void spider::api::setVertexMappableOnCluster(pisdf::ExecVertex *vertex, const Cl
     }
 }
 
-void spider::api::setVertexMappableOnCluster(pisdf::ExecVertex *vertex, uint32_t clusterIx, bool value) {
+void spider::api::setVertexMappableOnCluster(pisdf::Vertex *vertex, uint32_t clusterIx, bool value) {
     if (!vertex) {
         throwSpiderException("nullptr vertex.");
     }
@@ -187,7 +187,7 @@ void spider::api::setVertexMappableOnCluster(pisdf::ExecVertex *vertex, uint32_t
     spider::api::setVertexMappableOnCluster(vertex, cluster, value);
 }
 
-void spider::api::setVertexMappableOnPE(pisdf::ExecVertex *vertex, const spider::PE *pe, bool value) {
+void spider::api::setVertexMappableOnPE(pisdf::Vertex *vertex, const spider::PE *pe, bool value) {
     if (!vertex) {
         throwSpiderException("nullptr vertex.");
     }
@@ -195,7 +195,7 @@ void spider::api::setVertexMappableOnPE(pisdf::ExecVertex *vertex, const spider:
     runtimeInfo->setMappableConstraintOnPE(pe, value);
 }
 
-void spider::api::setVertexMappableOnAllPE(pisdf::ExecVertex *vertex, bool value) {
+void spider::api::setVertexMappableOnAllPE(pisdf::Vertex *vertex, bool value) {
     if (!vertex) {
         throwSpiderException("nullptr vertex.");
     }
@@ -203,7 +203,7 @@ void spider::api::setVertexMappableOnAllPE(pisdf::ExecVertex *vertex, bool value
     runtimeInfo->setMappableConstraintOnAllPE(value);
 }
 
-void spider::api::setVertexExecutionTimingOnPE(pisdf::ExecVertex *vertex, const PE *pe, std::string timingExpression) {
+void spider::api::setVertexExecutionTimingOnPE(pisdf::Vertex *vertex, const PE *pe, std::string timingExpression) {
     if (!vertex) {
         throwSpiderException("nullptr vertex.");
     }
@@ -211,7 +211,7 @@ void spider::api::setVertexExecutionTimingOnPE(pisdf::ExecVertex *vertex, const 
     runtimeInfo->setTimingOnPE(pe, Expression(std::move(timingExpression)));
 }
 
-void spider::api::setVertexExecutionTimingOnPE(pisdf::ExecVertex *vertex, const PE *pe, int64_t timing) {
+void spider::api::setVertexExecutionTimingOnPE(pisdf::Vertex *vertex, const PE *pe, int64_t timing) {
     if (!vertex) {
         throwSpiderException("nullptr vertex.");
     }
@@ -219,7 +219,7 @@ void spider::api::setVertexExecutionTimingOnPE(pisdf::ExecVertex *vertex, const 
     runtimeInfo->setTimingOnPE(pe, timing);
 }
 
-void spider::api::setVertexExecutionTimingOnAllPE(pisdf::ExecVertex *vertex, std::string timingExpression) {
+void spider::api::setVertexExecutionTimingOnAllPE(pisdf::Vertex *vertex, std::string timingExpression) {
     if (!vertex) {
         throwSpiderException("nullptr vertex.");
     }
@@ -227,7 +227,7 @@ void spider::api::setVertexExecutionTimingOnAllPE(pisdf::ExecVertex *vertex, std
     runtimeInfo->setTimingOnAllPE(Expression(std::move(timingExpression)));
 }
 
-void spider::api::setVertexExecutionTimingOnAllPE(pisdf::ExecVertex *vertex, int64_t timing) {
+void spider::api::setVertexExecutionTimingOnAllPE(pisdf::Vertex *vertex, int64_t timing) {
     if (!vertex) {
         throwSpiderException("nullptr vertex.");
     }

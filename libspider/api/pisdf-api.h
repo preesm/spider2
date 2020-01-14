@@ -126,6 +126,21 @@ namespace spider {
                                      size_t cfgActorCount = 0);
 
         /**
+         * @brief Creates the proper vertex type using the spider::api.
+         * @param graph            Pointer to the graph in which the vertex should be created.
+         * @param name             Name of the vertex.
+         * @param inputEdgeCount   Number of input edge of the vertex.
+         * @param outputEdgeCount  Number of output edge of the vertex.
+         * @param type             VertexType of the vertex.
+         * @return pointer to the @refitem spider::pisdf::ExecVertex created.
+         */
+        pisdf::Vertex *createVertexFromType(pisdf::Graph *graph,
+                                            std::string name,
+                                            size_t inputEdgeCount,
+                                            size_t outputEdgeCount,
+                                            pisdf::VertexType type);
+
+        /**
          * @brief Creates a @refitem pisdf::ExecVertex.
          * @param graph         Pointer to the parent graph the vertex should be added.
          * @param name          Name of the vertex.
@@ -134,10 +149,10 @@ namespace spider {
          * @return pointer to the created @refitem pisdf::Vertex.
          * @throws @refitem spider::Exception if the parent graph is nullptr.
          */
-        pisdf::ExecVertex *createVertex(pisdf::Graph *graph,
-                                        std::string name,
-                                        size_t edgeINCount = 0,
-                                        size_t edgeOUTCount = 0);
+        pisdf::Vertex *createVertex(pisdf::Graph *graph,
+                                    std::string name,
+                                    size_t edgeINCount = 0,
+                                    size_t edgeOUTCount = 0);
 
         /**
          * @brief Creates a @refitem pisdf::NonExecVertex.
@@ -148,10 +163,10 @@ namespace spider {
          * @return pointer to the created @refitem pisdf::Vertex.
          * @throws @refitem spider::Exception if the parent graph is nullptr.
          */
-        pisdf::NonExecVertex *createNonExecVertex(pisdf::Graph *graph,
-                                                  std::string name,
-                                                  size_t edgeINCount = 0,
-                                                  size_t edgeOUTCount = 0);
+        pisdf::Vertex *createNonExecVertex(pisdf::Graph *graph,
+                                           std::string name,
+                                           size_t edgeINCount = 0,
+                                           size_t edgeOUTCount = 0);
 
         /**
          * @brief Creates a @refitem pisdf::ForkVertex.
@@ -161,7 +176,7 @@ namespace spider {
          * @return pointer to the created @refitem pisdf::ForkVertex.
          * @throws @refitem spider::Exception if the parent graph is nullptr.
          */
-        pisdf::ExecVertex *createFork(pisdf::Graph *graph, std::string name, size_t edgeOUTCount = 0);
+        pisdf::Vertex *createFork(pisdf::Graph *graph, std::string name, size_t edgeOUTCount = 0);
 
         /**
          * @brief Creates a @refitem pisdf::JoinVertex.
@@ -171,7 +186,7 @@ namespace spider {
          * @return pointer to the created @refitem pisdf::JoinVertex.
          * @throws @refitem spider::Exception if the parent graph is nullptr.
          */
-        pisdf::ExecVertex *createJoin(pisdf::Graph *graph, std::string name, size_t edgeINCount = 0);
+        pisdf::Vertex *createJoin(pisdf::Graph *graph, std::string name, size_t edgeINCount = 0);
 
         /**
          * @brief Creates a @refitem pisdf::HeadVertex.
@@ -181,7 +196,7 @@ namespace spider {
          * @return pointer to the created @refitem pisdf::HeadVertex.
          * @throws @refitem spider::Exception if the parent graph is nullptr.
          */
-        pisdf::ExecVertex *createHead(pisdf::Graph *graph, std::string name, size_t edgeINCount = 0);
+        pisdf::Vertex *createHead(pisdf::Graph *graph, std::string name, size_t edgeINCount = 0);
 
         /**
          * @brief Creates a @refitem pisdf::TailVertex.
@@ -191,7 +206,7 @@ namespace spider {
          * @return pointer to the created @refitem pisdf::TailVertex.
          * @throws @refitem spider::Exception if the parent graph is nullptr.
          */
-        pisdf::ExecVertex *createTail(pisdf::Graph *graph, std::string name, size_t edgeINCount = 0);
+        pisdf::Vertex *createTail(pisdf::Graph *graph, std::string name, size_t edgeINCount = 0);
 
         /**
          * @brief Creates a @refitem pisdf::DuplicateVertex.
@@ -201,7 +216,7 @@ namespace spider {
          * @return pointer to the created @refitem pisdf::DuplicateVertex.
          * @throws @refitem spider::Exception if the parent graph is nullptr.
          */
-        pisdf::ExecVertex *createDuplicate(pisdf::Graph *graph, std::string name, size_t edgeOUTCount = 0);
+        pisdf::Vertex *createDuplicate(pisdf::Graph *graph, std::string name, size_t edgeOUTCount = 0);
 
         /**
          * @brief Creates a @refitem pisdf::RepeatVertex.
@@ -210,7 +225,7 @@ namespace spider {
          * @return pointer to the created @refitem pisdf::RepeatVertex.
          * @throws @refitem spider::Exception if the parent graph is nullptr.
          */
-        pisdf::ExecVertex *createRepeat(pisdf::Graph *graph, std::string name);
+        pisdf::Vertex *createRepeat(pisdf::Graph *graph, std::string name);
 
         /**
          * @brief Creates a @refitem pisdf::InitVertex.
@@ -219,7 +234,7 @@ namespace spider {
          * @return pointer to the created @refitem pisdf::InitVertex.
          * @throws @refitem spider::Exception if the parent graph is nullptr.
          */
-        pisdf::ExecVertex *createInit(pisdf::Graph *graph, std::string name);
+        pisdf::Vertex *createInit(pisdf::Graph *graph, std::string name);
 
         /**
          * @brief Creates a @refitem pisdf::EndVertex.
@@ -228,7 +243,7 @@ namespace spider {
          * @return pointer to the created @refitem pisdf::EndVertex.
          * @throws @refitem spider::Exception if the parent graph is nullptr.
          */
-        pisdf::ExecVertex *createEnd(pisdf::Graph *graph, std::string name);
+        pisdf::Vertex *createEnd(pisdf::Graph *graph, std::string name);
 
         /**
          * @brief Creates a @refitem pisdf::ConfigVertex.
@@ -239,10 +254,10 @@ namespace spider {
          * @return pointer to the created @refitem pisdf::ConfigVertex.
          * @throws @refitem spider::Exception if the parent graph is nullptr.
          */
-        pisdf::ExecVertex *createConfigActor(pisdf::Graph *graph,
-                                             std::string name,
-                                             size_t edgeINCount = 0,
-                                             size_t edgeOUTCount = 0);
+        pisdf::Vertex *createConfigActor(pisdf::Graph *graph,
+                                         std::string name,
+                                         size_t edgeINCount = 0,
+                                         size_t edgeOUTCount = 0);
 
         /**
          * @brief Change the name of an @refitem pisdf::InputInterface.

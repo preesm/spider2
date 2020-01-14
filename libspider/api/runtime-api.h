@@ -86,7 +86,7 @@ namespace spider {
         /* === Runtime kernel related API === */
 
         /**
-         * @brief Creates a new runtime @refitem RTKernel for a given @refitem pisdf::ExecVertex.
+         * @brief Creates a new runtime @refitem RTKernel for a given @refitem pisdf::Vertex.
          * @param vertex            Pointer to the vertex to associate the kernel to.
          * @param kernel            Kernel function to set.
          * @param inputParamCount   Number of input parameters (can be modified).
@@ -94,7 +94,7 @@ namespace spider {
          * @return pointer to the created @refitem RTKernel.
          * @throws spider::Exception if the vertex is nullptr or if the vertex already has a kernel.
          */
-        RTKernel *createRuntimeKernel(pisdf::ExecVertex *vertex, rtkernel kernel);
+        RTKernel *createRuntimeKernel(pisdf::Vertex *vertex, rtkernel kernel);
 
         /* === Mapping and Timing related API === */
 
@@ -105,7 +105,7 @@ namespace spider {
          * @param value   Value to be set (true = mappable, false = non mappable).
          * @throws spider::Exception if vertex is nullptr.
          */
-        void setVertexMappableOnCluster(pisdf::ExecVertex *vertex, const Cluster *cluster, bool value = true);
+        void setVertexMappableOnCluster(pisdf::Vertex *vertex, const Cluster *cluster, bool value = true);
 
         /**
          * @brief Sets mappable property of a vertex on a given Cluster of processing element.
@@ -114,7 +114,7 @@ namespace spider {
          * @param value     Value to be set (true = mappable, false = non mappable).
          * @throws spider::Exception if vertex is nullptr.
          */
-        void setVertexMappableOnCluster(pisdf::ExecVertex *vertex, uint32_t clusterIx, bool value = true);
+        void setVertexMappableOnCluster(pisdf::Vertex *vertex, uint32_t clusterIx, bool value = true);
 
         /**
          * @brief Sets mappable property of a vertex on a given processing element.
@@ -123,7 +123,7 @@ namespace spider {
          * @param value   Value to be set (true = mappable, false = non mappable).
          * @throws spider::Exception if vertex is nullptr.
          */
-        void setVertexMappableOnPE(pisdf::ExecVertex *vertex, const PE *pe, bool value = true);
+        void setVertexMappableOnPE(pisdf::Vertex *vertex, const PE *pe, bool value = true);
 
         /**
          * @brief Sets mappable property of a vertex for all processing elements.
@@ -131,7 +131,7 @@ namespace spider {
          * @param value   Value to be set (true = mappable, false = non mappable).
          * @throws spider::Exception if vertex is nullptr.
          */
-        void setVertexMappableOnAllPE(pisdf::ExecVertex *vertex, bool value = true);
+        void setVertexMappableOnAllPE(pisdf::Vertex *vertex, bool value = true);
 
         /**
          * @brief Sets the execution time expression of a vertex on a given processing element.
@@ -141,7 +141,7 @@ namespace spider {
          * @throws spider::Exception if vertex is nullptr.
          */
         void
-        setVertexExecutionTimingOnPE(pisdf::ExecVertex *vertex, const PE *pe, std::string timingExpression = "100");
+        setVertexExecutionTimingOnPE(pisdf::Vertex *vertex, const PE *pe, std::string timingExpression = "100");
 
         /**
          * @brief Sets the execution time value of a vertex on a given processing element.
@@ -150,7 +150,7 @@ namespace spider {
          * @param timing  Value of the timing to be set.
          * @throws spider::Exception if vertex is nullptr.
          */
-        void setVertexExecutionTimingOnPE(pisdf::ExecVertex *vertex, const PE *pe, int64_t timing = 100);
+        void setVertexExecutionTimingOnPE(pisdf::Vertex *vertex, const PE *pe, int64_t timing = 100);
 
         /**
          * @brief Sets the execution time expression of a vertex for all processing elements.
@@ -158,7 +158,7 @@ namespace spider {
          * @param timingExpression  Expression of the execution time (can be parameterized).
          * @throws spider::Exception if vertex is nullptr.
          */
-        void setVertexExecutionTimingOnAllPE(pisdf::ExecVertex *vertex, std::string timingExpression);
+        void setVertexExecutionTimingOnAllPE(pisdf::Vertex *vertex, std::string timingExpression);
 
         /**
          * @brief Sets the execution time value of a vertex for all processing elements.
@@ -166,7 +166,7 @@ namespace spider {
          * @param timing  Value of the timing to be set.
          * @throws spider::Exception if vertex is nullptr.
          */
-        void setVertexExecutionTimingOnAllPE(pisdf::ExecVertex *vertex, int64_t timing = 100);
+        void setVertexExecutionTimingOnAllPE(pisdf::Vertex *vertex, int64_t timing = 100);
     }
 }
 

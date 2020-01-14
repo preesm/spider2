@@ -57,8 +57,8 @@ public:
     inline bool operator()(spider::pisdf::Graph *graph) const override;
 
 private:
-    inline spider::pisdf::ExecVertex *createNewFork(spider::pisdf::Vertex *firstFork,
-                                                    spider::pisdf::Vertex *secondFork) const {
+    inline spider::pisdf::Vertex *createNewFork(spider::pisdf::Vertex *firstFork,
+                                                spider::pisdf::Vertex *secondFork) const {
         auto *graph = firstFork->graph();
         const auto &outputCount = static_cast<uint32_t>((firstFork->outputEdgeCount() - 1) +
                                                         secondFork->outputEdgeCount());
