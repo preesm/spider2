@@ -61,7 +61,7 @@
 void spider::api::createThreadRTPlatform() {
     auto *platform = archi::platform();
     if (!platform) {
-        throwSpiderException("createRTPlatform should be called after definition of the physical platform.");
+        throwSpiderException("function should be called after definition of the physical platform.");
     }
     auto *&rtPlatform = rt::platform();
     if (rtPlatform) {

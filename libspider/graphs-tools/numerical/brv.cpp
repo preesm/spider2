@@ -70,7 +70,6 @@ void spider::brv::compute(const pisdf::Graph *graph, const spider::vector<pisdf:
         /* == 1.3 Compute the LCM factor for the current component == */
         int64_t lcmFactor = 1;
         for (const auto &vertex : component.vertexVector_) {
-            std::cerr << rationalArray[vertex->ix()] << std::endl;
             lcmFactor = math::lcm(lcmFactor, rationalArray[vertex->ix()].denominator());
         }
 

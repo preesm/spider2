@@ -43,17 +43,13 @@
 #include <runtime/algorithm/JITMSRuntime.h>
 #include <graphs-tools/transformation/srdag/Transformation.h>
 #include <graphs-tools/transformation/optims/PiSDFGraphOptimizer.h>
-#include <graphs-tools/exporter/PiSDFDOTExporter.h>
 #include <scheduling/schedule/exporter/SchedSVGGanttExporter.h>
 #include <scheduling/scheduler/BestFitScheduler.h>
-#include <scheduling/schedule/exporter/SchedXMLGanttExporter.h>
 #include <scheduling/scheduler/GreedyScheduler.h>
 #include <monitor/Monitor.h>
-#include <scheduling/schedule/exporter/SchedStatsExporter.h>
 #include <api/runtime-api.h>
 #include <runtime/runner/RTRunner.h>
 #include <runtime/interface/RTCommunicator.h>
-
 
 /* === Static function(s) === */
 
@@ -95,6 +91,7 @@ bool spider::JITMSRuntime::execute() const {
 
     /* == Apply first transformation of root graph == */
     auto &&rootJob = srdag::TransfoJob(graph_, SIZE_MAX, UINT32_MAX, true);
+    rootJob.ix_ = 0;
     rootJob.params_ = graph_->params();
     auto &&resultRootJob = srdag::singleRateTransformation(rootJob, srdag);
 
@@ -122,10 +119,6 @@ bool spider::JITMSRuntime::execute() const {
         //monitor_->startSampling();
         scheduler.update();
         scheduler.mappingScheduling();
-        auto ganttExporter = SchedXMLGanttExporter{ &scheduler.schedule(), srdag };
-        ganttExporter.print();
-        auto statsExporter = SchedStatsExporter{ &scheduler.schedule() };
-        statsExporter.print();
         rt::platform()->runner(0)->run(false);
         //monitor_->endSampling();
 
@@ -161,26 +154,23 @@ bool spider::JITMSRuntime::execute() const {
                 }
             }
             dynamicStackJobOffset += dynamicJobStack.size();
+
+            /* == Transform dynamic jobs == */
+            //monitor_->startSampling();
+            transformDynamicJobs(staticJobStack, dynamicJobStack, &scheduler, srdag);
+            //monitor_->endSampling();
+
+            /* == Schedule / Map current Single-Rate graph == */
+            scheduler.update();
+            scheduler.mappingScheduling();
+
+            /* == Apply graph optimizations == */
+            if (api::optimizeSRDAG()) {
+                //monitor_->startSampling();
+                PiSDFGraphOptimizer()(srdag);
+                //monitor_->endSampling();
+            }
         }
-
-        /* == Transform dynamic jobs == */
-        //monitor_->startSampling();
-        transformDynamicJobs(staticJobStack, dynamicJobStack, &scheduler, srdag);
-        //monitor_->endSampling();
-
-        pisdf::PiSDFDOTExporter(srdag).printFromPath("./srdag_dyna.dot");
-        /* == Schedule / Map current Single-Rate graph == */
-        scheduler.update();
-        scheduler.mappingScheduling();
-        ganttExporter.print();
-        rt::platform()->runner(0)->run(false);
-    }
-
-    /* == Apply graph optimizations == */
-    if (api::optimizeSRDAG()) {
-        //monitor_->startSampling();
-        PiSDFGraphOptimizer()(srdag);
-        //monitor_->endSampling();
     }
 
     // TODO: export srdag if export is enabled
@@ -194,9 +184,10 @@ bool spider::JITMSRuntime::execute() const {
 
 
 void spider::JITMSRuntime::updateJobStack(spider::vector<spider::srdag::TransfoJob> &src,
-                                          spider::vector<spider::srdag::TransfoJob> &dest) const {
+                                          spider::vector<spider::srdag::TransfoJob> &dest,
+                                          size_t offset) const {
     std::for_each(src.begin(), src.end(), [&](spider::srdag::TransfoJob &job) {
-        job.ix_ = dest.size();
+        job.ix_ = dest.size() + offset;
         dest.emplace_back(std::move(job));
     });
 }
@@ -206,6 +197,7 @@ void spider::JITMSRuntime::transformStaticJobs(spider::vector<spider::srdag::Tra
                                                spider::Scheduler *scheduler,
                                                pisdf::Graph *srdag) const {
     auto tempJobStack = containers::vector<srdag::TransfoJob>(StackID::TRANSFO);
+    size_t offset = staticJobStack.size();
     while (!staticJobStack.empty()) {
         auto staticStackIterator = std::begin(staticJobStack);
         long staticStackIteratorPos = 0;
@@ -218,7 +210,7 @@ void spider::JITMSRuntime::transformStaticJobs(spider::vector<spider::srdag::Tra
             scheduler->addParameterVector(std::move(job.params_));
 
             /* == Move static TransfoJob into static JobStack == */
-            updateJobStack(result.first, tempJobStack);
+            updateJobStack(result.first, tempJobStack, offset);
 
             /* == Move dynamic TransfoJob into dynamic JobStack == */
             updateJobStack(result.second, dynamicJobStack);
@@ -226,6 +218,7 @@ void spider::JITMSRuntime::transformStaticJobs(spider::vector<spider::srdag::Tra
             /* == Update iterator (in case of change in size, previous may be invalidated == */
             staticStackIterator = std::begin(staticJobStack) + (++staticStackIteratorPos);
         }
+        offset += tempJobStack.size();
         staticJobStack.swap(tempJobStack);
         tempJobStack.clear();
     }

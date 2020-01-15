@@ -84,9 +84,11 @@ namespace spider {
          * @brief Appends @refitem spider::srdag::TransfoJob from source vector to destination vector using MOVE semantic.
          * @param src       Source vector of the TransfoJobs to move.
          * @param dest      Destination vector to move the TransfoJobs to.
+         * @param offset    Offset to apply on the job ix.
          */
         void updateJobStack(spider::vector<spider::srdag::TransfoJob> &src,
-                            spider::vector<spider::srdag::TransfoJob> &dest) const;
+                            spider::vector<spider::srdag::TransfoJob> &dest,
+                            size_t offset = 0) const;
 
         /**
          * @brief Transform all static jobs contained in staticJobStack and update the job stacks with future jobs.
