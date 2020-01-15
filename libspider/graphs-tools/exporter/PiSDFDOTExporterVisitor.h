@@ -127,7 +127,7 @@ namespace spider {
 
             inline void visit(InputInterface *interface) override {
                 /* == Header == */
-                vertexHeaderPrinter("input-" + interface->name(), "#ffffff00", 0);
+                vertexHeaderPrinter(interface->hierarchicalName(), "#ffffff00", 0);
 
                 /* == Interface printer == */
                 interfaceBodyPrinter(interface, "#87d37cff");
@@ -135,7 +135,7 @@ namespace spider {
 
             inline void visit(OutputInterface *interface) override {
                 /* == Header == */
-                vertexHeaderPrinter("output-" + interface->name(), "#ffffff00", 0);
+                vertexHeaderPrinter(interface->hierarchicalName(), "#ffffff00", 0);
 
                 /* == Interface printer == */
                 interfaceBodyPrinter(interface, "#ec644bff");

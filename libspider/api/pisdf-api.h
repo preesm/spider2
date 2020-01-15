@@ -103,6 +103,8 @@ namespace spider {
                                   size_t outIFCount = 0,
                                   size_t cfgActorCount = 0);
 
+        pisdf::Vertex *convertGraphToVertex(pisdf::Graph *graph);
+
         /**
          * @brief Creates a @refitem pisdf::Graph with a parent graph.
          * @param graph           Pointer to the parent graph.
@@ -264,20 +266,20 @@ namespace spider {
          * @param graph  Pointer to the graph the interface belong.
          * @param ix     Index of the input interface.
          * @param name   Name to be set.
-         * @return pointer to the corresponding @refitem InputInterface.
+         * @return pointer to the corresponding @refitem pisdf::Vertex.
          * @throws spider::Exception if graph is nullptr or interface is not found.
          */
-        pisdf::InputInterface *setInputInterfaceName(pisdf::Graph *graph, size_t ix, std::string name);
+        pisdf::Vertex *setInputInterfaceName(pisdf::Graph *graph, size_t ix, std::string name);
 
         /**
          * @brief Change the name of an @refitem pisdf::OutputInterface.
          * @param graph  Pointer to the graph the interface belong.
          * @param ix     Index of the input interface.
          * @param name   Name to be set.
-         * @return pointer to the corresponding @refitem OutputInterface.
+         * @return pointer to the corresponding @refitem pisdf::Vertex.
          * @throws spider::Exception if graph is nullptr or interface is not found.
          */
-        pisdf::OutputInterface *setOutputInterfaceName(pisdf::Graph *graph, size_t ix, std::string name);
+        pisdf::Vertex *setOutputInterfaceName(pisdf::Graph *graph, size_t ix, std::string name);
 
         /* === Param API === */
 

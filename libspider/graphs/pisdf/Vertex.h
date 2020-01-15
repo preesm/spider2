@@ -137,6 +137,14 @@ namespace spider {
              */
             void addOutputParameter(const Param *param);
 
+            /**
+             * @brief Get the full hierarchical name of the Vertex.
+             * @example: vertex name = "vertex_0", graph name = "top_graph"
+             *           -> hierarchical name = "top_graph-vertex_0"
+             * @return full hierarchical name
+             */
+            std::string hierarchicalName() const;
+
             /* === Getter(s) === */
 
             /**

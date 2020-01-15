@@ -51,7 +51,7 @@ static constexpr size_t MAX_LENGTH = 30;
 void spider::pisdf::PiSDFDOTExporterVisitor::visit(Graph *graph) {
     params_ = &(graph->params());
     if (graph->graph()) {
-        file_ << offset_ << "subgraph \"cluster_" << graph->name() << "\" {" << '\n';
+        file_ << offset_ << "subgraph \"cluster_" << graph->hierarchicalName() << "\" {" << '\n';
         offset_ += "\t";
         file_ << offset_ << R"(label=<<font point-size="40" face="inconsolata">)" << graph->name() << R"(</font>>;)"
               << '\n';
@@ -139,9 +139,9 @@ std::pair<int32_t, int32_t> spider::pisdf::PiSDFDOTExporterVisitor::computeConst
 
 
 void spider::pisdf::PiSDFDOTExporterVisitor::vertexNamePrinter(Vertex *vertex, size_t columnCount) const {
-    if (vertex->name().size() > MAX_LENGTH) {
+    auto name = vertex->name();
+    if (name.size() > MAX_LENGTH) {
         /* == Split name to avoid too big dot vertex == */
-        auto name = vertex->name();
         while (!name.empty()) {
             size_t size = std::min(MAX_LENGTH, name.size());
             file_ << offset_ << '\t' << '\t'
@@ -154,7 +154,7 @@ void spider::pisdf::PiSDFDOTExporterVisitor::vertexNamePrinter(Vertex *vertex, s
         file_ << offset_ << '\t' << '\t'
               << R"(<tr> <td border="0" colspan=")" << columnCount
               << R"("><font point-size="25" face="inconsolata">)"
-              << vertex->name() << "</font></td></tr>" << '\n';
+              << name << "</font></td></tr>" << '\n';
     }
 }
 
@@ -163,7 +163,7 @@ void spider::pisdf::PiSDFDOTExporterVisitor::vertexPrinter(Vertex *vertex,
                                                            int32_t border,
                                                            const std::string &style) const {
     /* == Header == */
-    vertexHeaderPrinter(vertex->name(), color, border, style);
+    vertexHeaderPrinter(vertex->hierarchicalName(), color, border, style);
 
     /* == Vertex name == */
     file_ << offset_ << '\t' << '\t'
@@ -268,24 +268,27 @@ spider::pisdf::PiSDFDOTExporterVisitor::interfaceBodyPrinter(Interface *interfac
 }
 
 struct GetVertexVisitor final : public spider::pisdf::DefaultVisitor {
-    void visit(spider::pisdf::ExecVertex *vertex) override {
+
+    void visit(spider::pisdf::Vertex *vertex) {
         vertex_ = vertex;
-        name_ = vertex->name();
+        name_ = vertex->hierarchicalName();
+
+    }
+
+    void visit(spider::pisdf::ExecVertex *vertex) override {
+        this->visit(static_cast<spider::pisdf::Vertex *>(vertex));
     }
 
     void visit(spider::pisdf::NonExecVertex *vertex) override {
-        vertex_ = vertex;
-        name_ = vertex->name();
+        this->visit(static_cast<spider::pisdf::Vertex *>(vertex));
     }
 
     void visit(spider::pisdf::InputInterface *interface) override {
-        vertex_ = interface;
-        name_ = "input-" + vertex_->name();
+        this->visit(static_cast<spider::pisdf::Vertex *>(interface));
     }
 
     void visit(spider::pisdf::OutputInterface *interface) override {
-        vertex_ = interface;
-        name_ = "output-" + vertex_->name();
+        this->visit(static_cast<spider::pisdf::Vertex *>(interface));
     }
 
     void visit(spider::pisdf::Graph *graph) override {

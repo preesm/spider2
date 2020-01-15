@@ -130,6 +130,10 @@ spider::pisdf::Graph *spider::api::createSubgraph(pisdf::Graph *graph,
     return subgraph;
 }
 
+spider::pisdf::Vertex *spider::api::convertGraphToVertex(pisdf::Graph *graph) {
+    return graph;
+}
+
 spider::pisdf::Vertex *spider::api::createVertexFromType(pisdf::Graph *graph,
                                                          std::string name,
                                                          size_t inputEdgeCount,
@@ -285,8 +289,7 @@ spider::pisdf::Vertex *spider::api::createConfigActor(pisdf::Graph *graph,
     return vertex;
 }
 
-spider::pisdf::InputInterface *
-spider::api::setInputInterfaceName(pisdf::Graph *graph, size_t ix, std::string name) {
+spider::pisdf::Vertex *spider::api::setInputInterfaceName(pisdf::Graph *graph, size_t ix, std::string name) {
     if (!graph) {
         throwSpiderException("nullptr for graph.");
     }
@@ -300,8 +303,7 @@ spider::api::setInputInterfaceName(pisdf::Graph *graph, size_t ix, std::string n
     return interface;
 }
 
-spider::pisdf::OutputInterface *
-spider::api::setOutputInterfaceName(pisdf::Graph *graph, size_t ix, std::string name) {
+spider::pisdf::Vertex *spider::api::setOutputInterfaceName(pisdf::Graph *graph, size_t ix, std::string name) {
     if (!graph) {
         throwSpiderException("nullptr for graph.");
     }
@@ -362,7 +364,7 @@ spider::api::createDynamicParam(pisdf::Graph *graph, std::string name, std::stri
 spider::pisdf::Param *
 spider::api::createInheritedParam(pisdf::Graph *graph, std::string name, pisdf::Param *parent) {
     if (!parent) {
-        throwSpiderException("Cannot instantiate inherited parameter with null parent.");
+        throwSpiderException("Cannot instantiate inherited parameter [%s] with null parent.", name.c_str());
     }
     if (!parent->dynamic()) {
         return createStaticParam(graph, std::move(name), parent->value());
@@ -385,7 +387,7 @@ spider::api::createInheritedParam(pisdf::Graph *graph, std::string name, const s
     }
     auto *parent = graph->graph()->paramFromName(parentName);
     if (!parent) {
-        throwSpiderException("Cannot instantiate inherited parameter with null parent.");
+        throwSpiderException("Cannot instantiate inherited parameter [%s] with null parent.", name.c_str());
     }
     if (!parent->dynamic()) {
         return createStaticParam(graph, std::move(name), parent->value());

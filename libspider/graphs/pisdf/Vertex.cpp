@@ -43,6 +43,7 @@
 #include <graphs/pisdf/Vertex.h>
 #include <graphs/pisdf/Edge.h>
 #include <graphs/pisdf/Param.h>
+#include <graphs/pisdf/Graph.h>
 
 /* === Function(s) definition === */
 
@@ -118,4 +119,15 @@ void spider::pisdf::Vertex::addOutputParameter(const spider::pisdf::Param *param
         throwSpiderException("[%s] can not have output parameter.", name().c_str());
     }
     outputParamIxVector_.emplace_back(param->ix());
+}
+
+std::string spider::pisdf::Vertex::hierarchicalName() const {
+    auto name = graph_->name();
+    auto *graph = graph_->graph();
+    while (graph) {
+        name += "-" + graph->name();
+        graph = graph->graph();
+    }
+    name += "-" + name_;
+    return name;
 }
