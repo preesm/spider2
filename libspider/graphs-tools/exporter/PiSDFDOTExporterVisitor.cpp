@@ -269,26 +269,26 @@ spider::pisdf::PiSDFDOTExporterVisitor::interfaceBodyPrinter(Interface *interfac
 
 struct GetVertexVisitor final : public spider::pisdf::DefaultVisitor {
 
-    void visit(spider::pisdf::Vertex *vertex) {
+    void doVertex(spider::pisdf::Vertex *vertex) {
         vertex_ = vertex;
         name_ = vertex->hierarchicalName();
 
     }
 
     void visit(spider::pisdf::ExecVertex *vertex) override {
-        this->visit(static_cast<spider::pisdf::Vertex *>(vertex));
+        this->doVertex(static_cast<spider::pisdf::Vertex *>(vertex));
     }
 
     void visit(spider::pisdf::NonExecVertex *vertex) override {
-        this->visit(static_cast<spider::pisdf::Vertex *>(vertex));
+        this->doVertex(static_cast<spider::pisdf::Vertex *>(vertex));
     }
 
     void visit(spider::pisdf::InputInterface *interface) override {
-        this->visit(static_cast<spider::pisdf::Vertex *>(interface));
+        this->doVertex(static_cast<spider::pisdf::Vertex *>(interface));
     }
 
     void visit(spider::pisdf::OutputInterface *interface) override {
-        this->visit(static_cast<spider::pisdf::Vertex *>(interface));
+        this->doVertex(static_cast<spider::pisdf::Vertex *>(interface));
     }
 
     void visit(spider::pisdf::Graph *graph) override {
@@ -345,7 +345,7 @@ void spider::pisdf::PiSDFDOTExporterVisitor::edgePrinter(Edge *edge) const {
 }
 
 void spider::pisdf::PiSDFDOTExporterVisitor::paramPrinter(Param *param) const {
-    file_ << offset_ << R"(")" << param->graph()->name() + ":" + param->name()
+    file_ << offset_ << R"(")" << param->graph()->hierarchicalName() + ":" + param->name()
           << R"("[shape=house, style=filled, fillcolor=")" << (param->dynamic() ? "#19b5fe" : "#89c4f4")
           << R"(", margin=0, width=0, height=0, label=<)" << '\n';
     file_ << offset_ << '\t' << R"(<table border="0" style="" cellspacing="0" cellpadding="0">)"
