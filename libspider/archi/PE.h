@@ -214,7 +214,7 @@ namespace spider {
 
         uint32_t hwType_ = 0;             /* = S-LAM user hardware type = */
         uint32_t hwIx_ = 0;               /* = Hardware on which PE runs (core ix) = */
-        int32_t affinity_ = -1;     /* = Thread affinity of the PE (optional) = */
+        int32_t affinity_ = -1;           /* = Thread affinity of the PE (optional) = */
         size_t virtIx_ = SIZE_MAX;        /* = Linear virtual unique IX used by Spider for fast access to PE = */
         std::string name_ = "unnamed-pe"; /* = S-LAM user name of the PE = */
 

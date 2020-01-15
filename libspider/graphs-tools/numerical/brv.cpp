@@ -70,6 +70,7 @@ void spider::brv::compute(const pisdf::Graph *graph, const spider::vector<pisdf:
         /* == 1.3 Compute the LCM factor for the current component == */
         int64_t lcmFactor = 1;
         for (const auto &vertex : component.vertexVector_) {
+            std::cerr << rationalArray[vertex->ix()] << std::endl;
             lcmFactor = math::lcm(lcmFactor, rationalArray[vertex->ix()].denominator());
         }
 
@@ -153,14 +154,19 @@ spider::brv::extractConnectedComponents(const pisdf::Graph *graph) {
 spider::array<const spider::pisdf::Edge *>
 spider::brv::extractEdgesFromComponent(const ConnectedComponent &component) {
     spider::array<const pisdf::Edge *> edgeArray{ component.edgeCount_, StackID::TRANSFO };
+    auto mapEdge = containers::unordered_map<size_t, const pisdf::Edge *>(StackID::TRANSFO);
     size_t index = 0;
     for (const auto &vertex : component.vertexVector_) {
         for (const auto &edge: vertex->outputEdgeVector()) {
-            edgeArray[index++] = edge;
+            if (mapEdge.find(edge->ix()) == mapEdge.end()) {
+                edgeArray[index++] = edge;
+                mapEdge[edge->ix()] = edge;
+            }
         }
         for (const auto &edge: vertex->inputEdgeVector()) {
-            if (edge->source()->subtype() == pisdf::VertexType::INPUT) {
+            if (mapEdge.find(edge->ix()) == mapEdge.end()) {
                 edgeArray[index++] = edge;
+                mapEdge[edge->ix()] = edge;
             }
         }
     }
@@ -270,8 +276,8 @@ void spider::brv::print(const pisdf::Graph *graph) {
         log::verbose<log::Type::TRANSFO>("Repetition values for graph [%s]\n", graph->name().c_str());
         for (const auto &vertex : graph->vertices()) {
             log::verbose<log::Type::TRANSFO>("    >> Vertex: %-30s --> [%" PRIu32"]\n",
-                                      vertex->name().c_str(),
-                                      vertex->repetitionValue());
+                                             vertex->name().c_str(),
+                                             vertex->repetitionValue());
         }
         log::verbose<log::Type::TRANSFO>("%s\n", separation.c_str());
     }
