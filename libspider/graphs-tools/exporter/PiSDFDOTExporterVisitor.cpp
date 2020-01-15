@@ -318,16 +318,16 @@ void spider::pisdf::PiSDFDOTExporterVisitor::edgePrinter(Edge *edge) const {
     auto snkName = std::move(visitor.name_);
     if (delay) {
         /* == Draw circle of the delay == */
-        file_ << offset_ << R"(")" << delay->name()
+        file_ << offset_ << R"(")" << delay->vertex()->hierarchicalName()
               << R"(" [shape=circle, style=filled, color="#393c3c", fillcolor="#393c3c", label=""])"
               << '\n';
 
         /* == Connect source to delay == */
         file_ << offset_ << R"(")" << srcName << R"(":out_)" << srcPortIx << R"(:e -> ")";
-        file_ << delay->name() << R"(":w [penwidth=3, color="#393c3c", arrowhead=none];)" << '\n';
+        file_ << delay->vertex()->hierarchicalName() << R"(":w [penwidth=3, color="#393c3c", arrowhead=none];)" << '\n';
 
         /* == Connect delay to sink == */
-        file_ << offset_ << R"(")" << delay->name() << R"(":e -> ")";
+        file_ << offset_ << R"(")" << delay->vertex()->hierarchicalName() << R"(":e -> ")";
         file_ << snkName << R"(":in_)" << snkPortIx << R"(:w [penwidth=3, color="#393c3c", dir=forward];)" << '\n';
     } else if (sink->subtype() == VertexType::DELAY) {
         /* == Connect setter to delay == */
