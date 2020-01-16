@@ -55,6 +55,65 @@
 #include <runtime/interface/ThreadRTCommunicator.h>
 #include <runtime/platform/ThreadRTPlatform.h>
 
+/* === Static function(s) === */
+
+static void createSpecialRTKernels() {
+    auto *&rtPlatform = spider::rt::platform();
+    auto *forkKernel = spider::make<spider::RTKernel, StackID::RUNTIME>(
+            [](const int64_t *, int64_t *, void *[], void *[]) -> void {
+                spider::printer::printf("Fork\n");
+            });
+    rtPlatform->addKernel(forkKernel);
+
+    /* == Join Kernel == */
+    auto *joinKernel = spider::make<spider::RTKernel, StackID::RUNTIME>(
+            [](const int64_t *, int64_t *, void *[], void *[]) -> void {
+                spider::printer::printf("Join\n");
+            });
+    rtPlatform->addKernel(joinKernel);
+
+    /* == Head Kernel == */
+    auto *headKernel = spider::make<spider::RTKernel, StackID::RUNTIME>(
+            [](const int64_t *, int64_t *, void *[], void *[]) -> void {
+                spider::printer::printf("Head\n");
+            });
+    rtPlatform->addKernel(headKernel);
+
+    /* == Tail Kernel == */
+    auto *tailKernel = spider::make<spider::RTKernel, StackID::RUNTIME>(
+            [](const int64_t *, int64_t *, void *[], void *[]) -> void {
+                spider::printer::printf("Tail\n");
+            });
+    rtPlatform->addKernel(tailKernel);
+
+    /* == Repeat Kernel == */
+    auto *repeatKernel = spider::make<spider::RTKernel, StackID::RUNTIME>(
+            [](const int64_t *, int64_t *, void *[], void *[]) -> void {
+                spider::printer::printf("Repeat\n");
+            });
+    rtPlatform->addKernel(repeatKernel);
+
+    /* == Duplicate Kernel == */
+    auto *duplicateKernel = spider::make<spider::RTKernel, StackID::RUNTIME>(
+            [](const int64_t *, int64_t *, void *[], void *[]) -> void {
+                spider::printer::printf("Duplicate\n");
+            });
+    rtPlatform->addKernel(duplicateKernel);
+
+    /* == Init Kernel == */
+    auto *initKernel = spider::make<spider::RTKernel, StackID::RUNTIME>(
+            [](const int64_t *, int64_t *, void *[], void *[]) -> void {
+                spider::printer::printf("Init\n");
+            });
+    rtPlatform->addKernel(initKernel);
+
+    /* == End Kernel == */
+    auto *endKernel = spider::make<spider::RTKernel, StackID::RUNTIME>(
+            [](const int64_t *, int64_t *, void *[], void *[]) -> void {
+                spider::printer::printf("End\n");
+            });
+    rtPlatform->addKernel(endKernel);
+}
 
 /* === Runtime platform related API === */
 
@@ -70,71 +129,7 @@ void spider::api::createThreadRTPlatform() {
     rtPlatform = make<ThreadRTPlatform, StackID::RUNTIME>(platform->LRTCount());
 
     /* == Add special actors refinements == */
-    auto *forkKernel = make<RTKernel, StackID::RUNTIME>(
-            [](const int64_t *, int64_t *, void *[], void *[]) -> void {
-                spider::printer::printf("Fork\n");
-            });
-    rt::platform()->addKernel(forkKernel);
-
-    /* == Join Kernel == */
-    auto *joinKernel = make<RTKernel, StackID::RUNTIME>(
-            [](const int64_t *, int64_t *, void *[], void *[]) -> void {
-                spider::printer::printf("Join\n");
-            });
-    rt::platform()->addKernel(joinKernel);
-
-    /* == Head Kernel == */
-    auto *headKernel = make<RTKernel, StackID::RUNTIME>(
-            [](const int64_t *, int64_t *, void *[], void *[]) -> void {
-                spider::printer::printf("Head\n");
-            });
-    rt::platform()->addKernel(headKernel);
-
-    /* == Tail Kernel == */
-    auto *tailKernel = make<RTKernel, StackID::RUNTIME>(
-            [](const int64_t *, int64_t *, void *[], void *[]) -> void {
-                spider::printer::printf("Tail\n");
-            });
-    rt::platform()->addKernel(tailKernel);
-
-    /* == Repeat Kernel == */
-    auto *repeatKernel = make<RTKernel, StackID::RUNTIME>(
-            [](const int64_t *, int64_t *, void *[], void *[]) -> void {
-                spider::printer::printf("Repeat\n");
-            });
-    rt::platform()->addKernel(repeatKernel);
-
-    /* == Duplicate Kernel == */
-    auto *duplicateKernel = make<RTKernel, StackID::RUNTIME>(
-            [](const int64_t *, int64_t *, void *[], void *[]) -> void {
-                spider::printer::printf("Duplicate\n");
-            });
-    rt::platform()->addKernel(duplicateKernel);
-
-    /* == Init Kernel == */
-    auto *initKernel = make<RTKernel, StackID::RUNTIME>(
-            [](const int64_t *, int64_t *, void *[], void *[]) -> void {
-                spider::printer::printf("Init\n");
-            });
-    rt::platform()->addKernel(initKernel);
-
-    /* == End Kernel == */
-    auto *endKernel = make<RTKernel, StackID::RUNTIME>(
-            [](const int64_t *, int64_t *, void *[], void *[]) -> void {
-                spider::printer::printf("End\n");
-            });
-    rt::platform()->addKernel(endKernel);
-}
-
-void spider::api::finalizeRTPlatform() {
-    auto *platform = archi::platform();
-    if (!platform) {
-        throwSpiderException("the physical platform has not yet been created.");
-    }
-    auto *&rtPlatform = rt::platform();
-    if (!rtPlatform) {
-        throwSpiderException("the runtime platform should exist.");
-    }
+    createSpecialRTKernels();
 
     /* == Create the communicator == */
     auto *communicator = make<ThreadRTCommunicator, StackID::RUNTIME>(platform->LRTCount());
