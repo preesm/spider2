@@ -107,7 +107,7 @@ namespace spider {
 
             inline void visit(DuplicateVertex *vertex) override {
                 /* == Vertex printer == */
-                vertexPrinter(vertex, "#2c3e50ff");
+                vertexPrinter(vertex, "#e87e04ff");
             }
 
             inline void visit(RepeatVertex *vertex) override {
