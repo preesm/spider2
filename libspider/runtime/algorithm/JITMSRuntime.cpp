@@ -141,7 +141,7 @@ bool spider::JITMSRuntime::execute() const {
                     auto *cfg = srdag->configVertices()[message.vertexIx_];
                     auto &job = dynamicJobStack.at(message.vertexIx_ - dynamicStackJobOffset);
                     auto paramIterator = message.params_.begin();
-                    for (const auto &index : cfg->reference()->outputParamVector()) {
+                    for (const auto &index : cfg->reference()->outputParamIxVector()) {
                         job.params_[index]->setValue((*(paramIterator++)));
                         if (api::verbose() && log::enabled()) {
                             log::verbose("Received value #%" PRId64" for parameter [%s].\n",
@@ -172,6 +172,9 @@ bool spider::JITMSRuntime::execute() const {
             }
         }
     }
+
+    /* == If there are jobs left, run == */
+    rt::platform()->runner(0)->run(false);
 
     // TODO: export srdag if export is enabled
 

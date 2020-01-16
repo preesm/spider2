@@ -103,14 +103,13 @@ void spider::ListScheduler::addVerticesAndSortList() {
     size_t nonSchedulableVertexCount = 0;
     auto reverseIterator = sortedVertexVector_.rbegin();
     while ((reverseIterator != sortedVertexVector_.rend()) && (*reverseIterator).level_ == NON_EXECUTABLE_LEVEL) {
-        auto isHierarachical = (*reverseIterator).vertex_->reference()->hierarchical();
-        if (isHierarachical) {
+        auto isExecutable = (*reverseIterator).vertex_->executable();
+        if (!isExecutable) {
             std::swap((*reverseIterator), sortedVertexVector_.back());
             sortedVertexVector_.pop_back();
         }
-        nonSchedulableVertexCount += (!isHierarachical);          /* = Increase the number of non-schedulable vertex = */
-//        (*(reverseIterator)).vertex_->setScheduleJobIx(SIZE_MAX); /* = Reset the index for non-schedulable vertex = */
-        (*(reverseIterator)).level_ = -1;                         /* = Reset the schedule level = */
+        nonSchedulableVertexCount += (isExecutable); /* = Increase the number of non-schedulable vertex = */
+        (*(reverseIterator)).level_ = -1;            /* = Reset the schedule level = */
         reverseIterator++;
     }
 
