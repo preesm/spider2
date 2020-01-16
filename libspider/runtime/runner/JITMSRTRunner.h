@@ -69,7 +69,7 @@ namespace spider {
         /* === Setter(s) === */
 
     private:
-        size_t jobCount_ = SIZE_MAX;
+        size_t jobCount_ = 0;
         bool shouldBroadcast_ = false;
 
         /**

@@ -117,7 +117,7 @@ void spider::JITMSRTRunner::run(bool infiniteLoop) {
         }
 
         /* == Exit condition based on infinite loop flag == */
-        bool finishedIteration = (jobCount_ != SIZE_MAX) && (jobQueueCurrentPos_ == jobCount_);
+        bool finishedIteration = (jobCount_) && (jobQueueCurrentPos_ == jobCount_);
         if (finishedIteration) {
             if (log::enabled<log::Type::LRT>()) {
                 log::info<log::Type::LRT>("Runner #%zu -> finished all jobs.\n", ix());
@@ -133,7 +133,7 @@ void spider::JITMSRTRunner::run(bool infiniteLoop) {
             }
             jobQueueCurrentPos_ = 0;
             jobQueue_.clear();
-            jobCount_ = SIZE_MAX;
+            jobCount_ = 0;
         }
     }
 }
@@ -295,7 +295,7 @@ bool spider::JITMSRTRunner::readNotification(bool blocking) {
         }
             break;
         case NotificationType::JOB_JOB_COUNT:
-            jobCount_ = notification.notificationIx_;
+            jobCount_ += notification.notificationIx_;
             if (log::enabled<log::Type::LRT>()) {
                 log::info<log::Type::LRT>("Runner #%zu -> received number of jobs to do: %zu\n", ix(), jobCount_);
             }
