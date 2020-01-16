@@ -138,10 +138,15 @@ spider::pisdf::Vertex *spider::api::createVertexFromType(pisdf::Graph *graph,
                                                          std::string name,
                                                          size_t inputEdgeCount,
                                                          size_t outputEdgeCount,
-                                                         pisdf::VertexType type) {
+                                                         pisdf::VertexType type,
+                                                         size_t kernelIx) {
     switch (type) {
-        case spider::pisdf::VertexType::NORMAL:
-            return spider::api::createVertex(graph, std::move(name), inputEdgeCount, outputEdgeCount);
+        case spider::pisdf::VertexType::NORMAL: {
+            auto *vertex = spider::api::createVertex(graph, std::move(name), inputEdgeCount, outputEdgeCount);
+            /* == Special actors kernels are added internally == */
+            vertex->runtimeInformation()->setKernelIx(pisdf::SPECIAL_VERTEX_COUNT + kernelIx);
+            return vertex;
+        }
         case spider::pisdf::VertexType::CONFIG:
             return spider::api::createConfigActor(graph, std::move(name), inputEdgeCount, outputEdgeCount);
         case spider::pisdf::VertexType::FORK:

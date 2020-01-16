@@ -103,6 +103,11 @@ namespace spider {
                                   size_t outIFCount = 0,
                                   size_t cfgActorCount = 0);
 
+        /**
+         * @brief Get a @refitem pisdf::Vertex pointer from a @refitem pisdf::Graph pointer.
+         * @param graph  Pointer to the graph.
+         * @return converted pointer to @refitem pisdf::Vertex.
+         */
         pisdf::Vertex *convertGraphToVertex(pisdf::Graph *graph);
 
         /**
@@ -129,18 +134,21 @@ namespace spider {
 
         /**
          * @brief Creates the proper vertex type using the spider::api.
+         * @remark This method consider kernelIx is in range [0..N] with 0.
          * @param graph            Pointer to the graph in which the vertex should be created.
          * @param name             Name of the vertex.
          * @param inputEdgeCount   Number of input edge of the vertex.
          * @param outputEdgeCount  Number of output edge of the vertex.
          * @param type             VertexType of the vertex.
+         * @param kernelIx         VertexType of the vertex.
          * @return pointer to the @refitem spider::pisdf::ExecVertex created.
          */
         pisdf::Vertex *createVertexFromType(pisdf::Graph *graph,
                                             std::string name,
                                             size_t inputEdgeCount,
                                             size_t outputEdgeCount,
-                                            pisdf::VertexType type);
+                                            pisdf::VertexType type,
+                                            size_t kernelIx = SIZE_MAX);
 
         /**
          * @brief Creates a @refitem pisdf::ExecVertex.

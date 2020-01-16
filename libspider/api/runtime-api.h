@@ -73,11 +73,16 @@ namespace spider {
         /* === Runtime kernel related API === */
 
         /**
+         * @brief Creates a new runtime @refitem RTKernel and registers it.
+         * @param kernel            Kernel function to set.
+         * @return pointer to the created @refitem RTKernel.
+         */
+        RTKernel *createRuntimeKernel(rtkernel kernel);
+
+        /**
          * @brief Creates a new runtime @refitem RTKernel for a given @refitem pisdf::Vertex.
          * @param vertex            Pointer to the vertex to associate the kernel to.
          * @param kernel            Kernel function to set.
-         * @param inputParamCount   Number of input parameters (can be modified).
-         * @param outputParamCount  Number of output parameters (can NOT be modified).
          * @return pointer to the created @refitem RTKernel.
          * @throws spider::Exception if the vertex is nullptr or if the vertex already has a kernel.
          */

@@ -147,6 +147,12 @@ void spider::api::createThreadRTPlatform() {
 
 /* === Runtime kernel related API === */
 
+spider::RTKernel *spider::api::createRuntimeKernel(spider::rtkernel kernel) {
+    auto *runtimeKernel = make<RTKernel, StackID::RUNTIME>(kernel);
+    rt::platform()->addKernel(runtimeKernel);
+    return runtimeKernel;
+}
+
 spider::RTKernel *spider::api::createRuntimeKernel(spider::pisdf::Vertex *vertex, spider::rtkernel kernel) {
     if (!vertex) {
         throwSpiderException("nullptr vertex.");
