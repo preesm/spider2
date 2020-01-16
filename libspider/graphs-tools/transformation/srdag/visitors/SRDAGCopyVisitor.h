@@ -91,7 +91,6 @@ namespace spider {
                                                            buildCloneName(graph, it),
                                                            static_cast<uint32_t>(graph->inputEdgeCount()),
                                                            static_cast<uint32_t>(graph->outputEdgeCount()));
-                    clone->setReference(graph);
                     ix_ = clone->ix();
                 }
                 ix_ = ix_ - (graph->repetitionValue() - 1);

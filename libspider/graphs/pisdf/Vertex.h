@@ -71,11 +71,11 @@ namespace spider {
 
             Vertex(const Vertex &other);
 
-            Vertex(Vertex &&other) noexcept = default;
+            Vertex(Vertex &&) noexcept = default;
 
-            Vertex &operator=(const Vertex &) = delete;
+            Vertex &operator=(const Vertex &) = default;
 
-            Vertex &operator=(Vertex &&) = delete;
+            Vertex &operator=(Vertex &&) = default;
 
             virtual ~Vertex() noexcept;
 
@@ -257,7 +257,7 @@ namespace spider {
              * @brief A const reference on the array of output params. Useful for iterating on the edges.
              * @return const reference to output edge array
              */
-            inline const spider::vector<size_t> &outputParamVector() const {
+            inline const spider::vector<size_t> &outputParamIxVector() const {
                 return outputParamIxVector_;
             }
 
@@ -359,22 +359,6 @@ namespace spider {
                 if (graph) {
                     graph_ = graph;
                 }
-            }
-
-            /**
-             * @brief Manually set the reference of the vertex.
-             * @remarks
-             * - Reference of a vertex can never be set to nullptr, so if ref is nullptr nothing happens.
-             * - If the vertex already has a reference which is not this, nothing happens.
-             * - If ref is properly set, the copyCount_ value of ref is incremented.
-             * @param ref Pointer to the reference to set.
-             */
-            inline void setReference(const Vertex *ref) {
-                if (!ref || (this != reference_)) {
-                    return;
-                }
-                ref->copyCount_ += 1;
-                reference_ = ref;
             }
 
             /**
