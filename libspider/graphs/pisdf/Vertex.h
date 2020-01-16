@@ -79,8 +79,6 @@ namespace spider {
 
             virtual ~Vertex() noexcept;
 
-            friend CloneVisitor;
-
             /* === Method(s) === */
 
             /**
@@ -275,7 +273,9 @@ namespace spider {
              * @brief Get the subtype of the vertex.
              * @return @refitem Spider::PiSDF::VertexType corresponding to the subtype
              */
-            virtual VertexType subtype() const = 0;
+            virtual inline VertexType subtype() const {
+                return VertexType::NORMAL;
+            }
 
             /**
              * @brief Return the reference vertex attached to current copy.

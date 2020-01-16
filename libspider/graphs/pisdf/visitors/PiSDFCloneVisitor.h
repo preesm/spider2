@@ -113,10 +113,9 @@ namespace spider {
 
         private:
             template<class T>
-            inline void clone(T *vertex) {
+            inline void clone(const T *vertex) {
                 auto *clone = make<T>(StackID::PISDF, (*vertex));
                 graph_->addVertex(clone);
-                vertex->copyCount_ += 1;
             }
         };
     }

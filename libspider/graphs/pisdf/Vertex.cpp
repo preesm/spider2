@@ -48,14 +48,16 @@
 /* === Function(s) definition === */
 
 spider::pisdf::Vertex::Vertex(const Vertex &other) : name_{ other.name_ },
+                                                     inputEdgeVector_{ other.inputEdgeVector_.size(), nullptr },
+                                                     outputEdgeVector_{ other.outputEdgeVector_.size(), nullptr },
                                                      reference_{ &other },
                                                      graph_{ other.graph_ },
+                                                     rtInformation_{ other.rtInformation_ },
+                                                     scheduleJobIx_{ other.scheduleJobIx_ },
+                                                     transfoJobIx_{ other.transfoJobIx_ },
                                                      ix_{ other.ix_ },
-                                                     repetitionValue_{ other.repetitionValue_ },
-                                                     copyCount_{ 0 } {
-    inputEdgeVector_.resize(other.inputEdgeVector_.size(), nullptr);
-    outputEdgeVector_.resize(other.outputEdgeVector_.size(), nullptr);
-    scheduleJobIx_ = other.scheduleJobIx_;
+                                                     repetitionValue_{ other.repetitionValue_ } {
+    other.copyCount_ += 1;
 }
 
 
@@ -64,6 +66,11 @@ spider::pisdf::Vertex::~Vertex() noexcept {
         log::error("Removing vertex [%s] with copies out there.\n", name().c_str());
     }
     this->reference_->copyCount_ -= 1;
+
+    /* == If vertex is the original, destroy the runtime info == */
+    if (reference() == this) {
+        destroy(rtInformation_);
+    }
 
     /* == If got any Edges left disconnect them == */
     for (size_t ix = 0; ix < inputEdgeVector_.size(); ++ix) {
@@ -122,12 +129,15 @@ void spider::pisdf::Vertex::addOutputParameter(const spider::pisdf::Param *param
 }
 
 std::string spider::pisdf::Vertex::hierarchicalName() const {
-    auto name = graph_->name();
-    auto *graph = graph_->graph();
-    while (graph) {
-        name += "-" + graph->name();
-        graph = graph->graph();
+    if (graph_) {
+        auto name = graph_->name();
+        auto *graph = graph_->graph();
+        while (graph) {
+            name += "-" + graph->name();
+            graph = graph->graph();
+        }
+        name += "-" + name_;
+        return name;
     }
-    name += "-" + name_;
-    return name;
+    return name_;
 }

@@ -56,53 +56,33 @@ namespace spider {
         public:
             explicit ExecVertex(std::string name = "unnamed-execvertex",
                                 size_t edgeINCount = 0,
-                                size_t edgeOUTCount = 0) : Vertex(std::move(name),
-                                                                  edgeINCount,
-                                                                  edgeOUTCount) {
+                                size_t edgeOUTCount = 0) : Vertex(std::move(name), edgeINCount, edgeOUTCount) {
                 rtInformation_ = make<RTInfo, StackID::RUNTIME>();
-            }
-
-            ExecVertex(const ExecVertex &other) : Vertex(other) { rtInformation_ = other.rtInformation_; };
-
-            ExecVertex(ExecVertex &&other) noexcept : Vertex(std::move(other)) {
-                std::swap(rtInformation_, other.rtInformation_);
             };
 
-            ~ExecVertex() override {
-                if (reference() == this) {
-                    destroy(rtInformation_);
-                }
-            }
+            ExecVertex(const ExecVertex &) = default;
 
-            friend CloneVisitor;
+            ExecVertex(ExecVertex &&other) noexcept : Vertex(std::move(other)) { };
+
+            ~ExecVertex() override = default;
 
             /* === Method(s) === */
 
-            inline void visit(Visitor *visitor) override {
-                visitor->visit(this);
-            }
+            inline void visit(Visitor *visitor) override { visitor->visit(this); };
 
             /* === Getter(s) === */
 
-            inline VertexType subtype() const override {
-                return VertexType::NORMAL;
-            }
+            /**
+             * @brief Ensure that any vertex inheriting from ExecVertex will not be able to override this method.
+             * @return false.
+             */
+            inline bool executable() const final { return true; };
 
             /**
              * @brief Ensure that any vertex inheriting from ExecVertex will not be able to override this method.
              * @return false.
              */
-            inline bool executable() const final {
-                return true;
-            }
-
-            /**
-             * @brief Ensure that any vertex inheriting from ExecVertex will not be able to override this method.
-             * @return false.
-             */
-            inline bool hierarchical() const final {
-                return false;
-            }
+            inline bool hierarchical() const final { return false; };
         };
     }
 }

@@ -54,45 +54,31 @@ namespace spider {
         public:
             explicit NonExecVertex(std::string name = "unnamed-non-execvertex",
                                    size_t edgeINCount = 0,
-                                   size_t edgeOUTCount = 0) : Vertex(std::move(name),
-                                                                     edgeINCount,
-                                                                     edgeOUTCount) { };
+                                   size_t edgeOUTCount = 0) : Vertex(std::move(name), edgeINCount, edgeOUTCount) { };
 
-            NonExecVertex(const NonExecVertex &other) = default;
+            NonExecVertex(const NonExecVertex &) = default;
 
             NonExecVertex(NonExecVertex &&other) noexcept : Vertex(std::move(other)) { };
 
             ~NonExecVertex() override = default;
 
-            friend CloneVisitor;
-
             /* === Method(s) === */
 
-            inline void visit(Visitor *visitor) override {
-                visitor->visit(this);
-            }
+            inline void visit(Visitor *visitor) override { visitor->visit(this); };
 
             /* === Getter(s) === */
-
-            inline VertexType subtype() const override {
-                return VertexType::NORMAL;
-            }
 
             /**
              * @brief Ensure that any vertex inheriting from NonExecVertex will not be able to override this method.
              * @return false
              */
-            inline bool executable() const final {
-                return false;
-            }
+            inline bool executable() const final { return false; };
 
             /**
              * @brief Ensure that any vertex inheriting from NonExecVertex will not be able override this method.
              * @return false.
              */
-            inline bool hierarchical() const final {
-                return false;
-            }
+            inline bool hierarchical() const final { return false; };
 
         private:
 
