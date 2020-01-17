@@ -214,6 +214,27 @@ namespace spider {
             ptr = nullptr;
         }
     }
+
+    template<class T>
+    using shared_ptr = std::shared_ptr<T>;
+
+    template<class T>
+    using unique_ptr = std::unique_ptr<T, void (*)(T *&)>;
+
+    template<class T, class ...Args>
+    spider::shared_ptr<T> make_shared(StackID stack, Args &&... args) {
+        return std::allocate_shared<T>(allocator<T>(stack), std::forward<Args>(args)...);
+    }
+
+    template<class T, StackID stack = StackID::GENERAL, class ...Args>
+    spider::shared_ptr<T> make_shared(Args &&... args) {
+        return spider::shared_ptr<T>(make<T, stack>(std::forward<Args>(args)...), destroy<T>);
+    }
+
+    template<class T, class ...Args>
+    spider::unique_ptr<T> make_unique(StackID stack, Args &&... args) {
+        return spider::unique_ptr<T>(make<T>(stack, std::forward<Args>(args)...), [](T *&p) { destroy(p); });
+    }
 }
 
 #endif /* SPIDER_STACKALLOCATOR_H */
