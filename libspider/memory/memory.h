@@ -42,11 +42,12 @@
 
 /* === Includes === */
 
+#include <memory>
 #include <memory/abstract-policies/AbstractAllocatorPolicy.h>
 #include <memory/static-policies/LinearStaticAllocator.h>
 #include <memory/dynamic-policies/FreeListAllocatorPolicy.h>
 #include <memory/dynamic-policies/GenericAllocatorPolicy.h>
-#include <memory/Stack.h>
+#include <memory/allocator.h>
 #include <api/global-api.h>
 #include <common/EnumIterator.h>
 
@@ -191,7 +192,7 @@ namespace spider {
 
     /**
      * @brief Wrapper to de-construct and deallocate an object
-     * @remark If ptr is nullptr, nothing happen. This function does not reset the value of ptr to nullptr.
+     * @remark If ptr is nullptr, nothing happen. This function reset the value of ptr to nullptr.
      * @tparam T    Type of the object (inferred by the call in most case)
      * @param ptr   Pointer to the object.
      */

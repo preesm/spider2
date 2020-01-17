@@ -42,7 +42,7 @@
 
 #include <gtest/gtest.h>
 #include <common/Exception.h>
-#include <memory/alloc.h>
+#include <memory/memory.h>
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/Delay.h>
 #include <graphs/pisdf/interfaces/InputInterface.h>

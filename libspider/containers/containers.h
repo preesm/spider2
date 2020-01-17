@@ -42,7 +42,6 @@
 
 /* === Includes === */
 
-#include <memory/allocator.h>
 #include <vector>
 #include <deque>
 #include <forward_list>
@@ -53,6 +52,7 @@
 #include <unordered_map>
 #include <queue>
 #include <stack>
+#include <memory/memory.h>
 
 /* === Macro to make stack_vector with proper stack Allocator in declaration,    === */
 /* === avoiding useless copies from one stack to another.                        === */

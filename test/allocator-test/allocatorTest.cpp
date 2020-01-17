@@ -43,7 +43,7 @@
 #include <gtest/gtest.h>
 #include <common/Exception.h>
 #include <memory/allocator.h>
-#include <memory/alloc.h>
+#include <memory/memory.h>
 #include <memory/dynamic-policies/FreeListAllocatorPolicy.h>
 #include <memory/dynamic-policies/GenericAllocatorPolicy.h>
 #include <memory/static-policies/LinearStaticAllocator.h>

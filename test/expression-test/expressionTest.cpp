@@ -43,7 +43,7 @@
 #include <gtest/gtest.h>
 #include <cmath>
 #include <api/pisdf-api.h>
-#include <memory/alloc.h>
+#include <memory/memory.h>
 #include <common/Exception.h>
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/Param.h>

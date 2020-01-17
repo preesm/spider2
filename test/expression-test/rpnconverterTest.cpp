@@ -41,7 +41,7 @@
 /* === Include(s) === */
 
 #include <gtest/gtest.h>
-#include <memory/alloc.h>
+#include <memory/memory.h>
 #include <common/Exception.h>
 #include <graphs-tools/expression-parser/RPNConverter.h>
 #include <api/spider.h>

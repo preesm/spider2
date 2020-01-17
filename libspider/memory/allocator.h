@@ -44,7 +44,7 @@
 
 #include <cstdint>
 #include <limits>
-#include <memory/alloc.h>
+#include <memory/Stack.h>
 
 namespace spider {
 
