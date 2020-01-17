@@ -110,6 +110,13 @@ static void printConfig(const spider::StartUpConfig &cfg) {
 
 /* === Function(s) definition === */
 
+spider::StartUpConfig spider::parseInputArguments(int32_t argc, char **argv) {
+    for (auto i = 0; i < argc; ++i) {
+        spider::log::info("argv[%d]: %s\n", i, argv[i]);
+    }
+    return {};
+}
+
 void spider::api::setStackAllocatorPolicy(StackID stackId,
                                           AllocatorPolicy policy,
                                           size_t alignment,

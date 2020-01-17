@@ -63,6 +63,8 @@ namespace spider {
         AllocatorPolicy generalStackAllocatorPolicy_ = AllocatorPolicy::GENERIC; /* = Allocation policy of the general stack = */
     };
 
+    StartUpConfig parseInputArguments(int32_t argc, char *argv[]);
+
 
     /**
      * @brief Function to be called before any other function of the spider runtime.
