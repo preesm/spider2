@@ -52,6 +52,17 @@
 /* === Methods prototype === */
 
 namespace spider {
+    
+    enum class RunMode {
+        INFINITE = 0, /* !< Run the application graph in a infinite loop */
+        LOOP,         /* !< Run the application graph in a fixed size loop */
+    };
+    
+    enum class RuntimeType {
+        JITMS = 0, /* !< Use the Just In Time Multicore Scheduling runtime
+                    *    see: https://tel.archives-ouvertes.fr/tel-01301642/file/These_HEULOT_Julien.pdf
+                    */
+    };
 
     struct StartUpConfig {
         bool verbose_ = false;         /* = Enable / disable the verbose = */
@@ -61,8 +72,18 @@ namespace spider {
         bool enableGeneralLog_ = true; /* = Enable / disable the main logger = */
         size_t standAloneClusterIx_ = SIZE_MAX; /* = Id of the current cluster in stand-alone mode = */
         AllocatorPolicy generalStackAllocatorPolicy_ = AllocatorPolicy::GENERIC; /* = Allocation policy of the general stack = */
+        size_t generalStackAlignment_ = sizeof(int64_t);
+        size_t generalStackSize_ = SIZE_MAX;
+        void * generalStackExternAddress_ = nullptr;
     };
-
+    
+    /**
+     * @brief Parse program input arguments and intiliaze @refitem StartUpConfig accordingly.
+     * @remark On error, it will print the usage and exit the program.
+     * @param argc Number of input arguments.
+     * @param argv Array of input arguments.
+     * @return Initialized @refitem StartUpConfig.
+     */
     StartUpConfig parseInputArguments(int32_t argc, char *argv[]);
 
 
@@ -71,6 +92,17 @@ namespace spider {
      * @param cfg  Start-up configuration tto be used on startup by spider.
      */
     void start(const StartUpConfig &cfg = StartUpConfig());
+    
+    /**
+     * @brief Run the user application graph.
+     * @remark In INFINITE mode, the application can only be stopped properly on receive of the SIGINT signal.
+     * @warning If the user application already catches this signal, it may interfer with the spider library
+     * exit mechanism.
+     * @param mode      Run mode the application graph (INFINITE or LOOP).
+     * @param loopCount Number of loop to perform (only used in LOOP mode).
+     * @param type      Runtime algorithm to use.
+     */
+    void run(RunMode mode, size_t loopCount, RuntimeType type);
 
     /**
      * @brief Function to call at the end of the application using Spider to close correctly the runtime.

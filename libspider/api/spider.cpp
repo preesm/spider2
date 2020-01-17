@@ -42,7 +42,7 @@
 
 #include <api/spider.h>
 #include <memory/Stack.h>
-#include <memory/alloc.h>
+#include <memory/memory.h>
 #include <common/Logger.h>
 #include <archi/Platform.h>
 #include <runtime/platform/RTPlatform.h>
@@ -152,6 +152,13 @@ void spider::start(const StartUpConfig &cfg) {
     auto it = EnumIterator<StackID>{ }.begin();
     for (auto &stack : stackArray()) {
         stack = new Stack(*(it++));
+    }
+    if (cfg.generalStackAllocatorPolicy_ != AllocatorPolicy::GENERIC) {
+        api::setStackAllocatorPolicy(StackID::GENERAL, 
+                                     cfg.generalStackAllocatorPolicy_, 
+                                     cfg.generalStackAlignment_, 
+                                     cfg.generalStackSize_,
+                                     cfg.generalStackExternAddress_);
     }
 
     /* == Create the upper top-graph that will contains the application top-graph == */
