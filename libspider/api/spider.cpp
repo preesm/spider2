@@ -111,10 +111,11 @@ static void printConfig(const spider::StartUpConfig &cfg) {
 /* === Function(s) definition === */
 
 spider::StartUpConfig spider::parseInputArguments(int32_t argc, char **argv) {
+    spider::log::info("parsing of input arguments is not yet supported.\n");
     for (auto i = 0; i < argc; ++i) {
         spider::log::info("argv[%d]: %s\n", i, argv[i]);
     }
-    return {};
+    return { };
 }
 
 void spider::api::setStackAllocatorPolicy(StackID stackId,
