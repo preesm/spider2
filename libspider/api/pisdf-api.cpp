@@ -144,7 +144,7 @@ spider::pisdf::Vertex *spider::api::createVertexFromType(pisdf::Graph *graph,
         case spider::pisdf::VertexType::NORMAL: {
             auto *vertex = spider::api::createVertex(graph, std::move(name), inputEdgeCount, outputEdgeCount);
             /* == Special actors kernels are added internally == */
-            vertex->runtimeInformation()->setKernelIx(pisdf::SPECIAL_VERTEX_COUNT + kernelIx);
+            vertex->runtimeInformation()->setKernelIx(pisdf::SPECIAL_KERNEL_COUNT + kernelIx);
             return vertex;
         }
         case spider::pisdf::VertexType::CONFIG:

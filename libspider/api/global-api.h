@@ -243,6 +243,8 @@ namespace spider {
     namespace pisdf {
         constexpr auto SPECIAL_VERTEX_COUNT =
                 static_cast<uint8_t>(VertexType::END) - static_cast<uint8_t>(VertexType::CONFIG) + 1;
+        constexpr auto SPECIAL_KERNEL_COUNT =
+                static_cast<uint8_t>(VertexType::END) - static_cast<uint8_t>(VertexType::FORK) + 1;
         constexpr auto VERTEX_TYPE_COUNT =
                 static_cast<uint8_t>(VertexType::Last) - static_cast<uint8_t>(VertexType::First) + 1;
     }
