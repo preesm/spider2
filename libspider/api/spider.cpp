@@ -47,6 +47,8 @@
 #include <archi/Platform.h>
 #include <runtime/platform/RTPlatform.h>
 #include <graphs/pisdf/Graph.h>
+#include <runtime/algorithm/Runtime.h>
+#include <runtime/algorithm/JITMSRuntime.h>
 
 /* === Static variable(s) definition === */
 
@@ -154,9 +156,9 @@ void spider::start(const StartUpConfig &cfg) {
         stack = new Stack(*(it++));
     }
     if (cfg.generalStackAllocatorPolicy_ != AllocatorPolicy::GENERIC) {
-        api::setStackAllocatorPolicy(StackID::GENERAL, 
-                                     cfg.generalStackAllocatorPolicy_, 
-                                     cfg.generalStackAlignment_, 
+        api::setStackAllocatorPolicy(StackID::GENERAL,
+                                     cfg.generalStackAllocatorPolicy_,
+                                     cfg.generalStackAlignment_,
                                      cfg.generalStackSize_,
                                      cfg.generalStackExternAddress_);
     }
@@ -177,6 +179,38 @@ void spider::start(const StartUpConfig &cfg) {
 
     /* == Enable the config flag == */
     startFlag = true;
+}
+
+static spider::Runtime *getRuntimeFromType(spider::RuntimeType type) {
+    switch (type) {
+        case spider::RuntimeType::JITMS:
+            return spider::make<spider::JITMSRuntime>(StackID::GENERAL, spider::pisdf::applicationGraph());
+    }
+    return nullptr;
+}
+
+void spider::run(RunMode mode, size_t loopCount, RuntimeType type) {
+    auto *runtimeAlgo = getRuntimeFromType(type);
+    if (!runtimeAlgo) {
+        throwSpiderException("could not create runtime algorithm.");
+    }
+    try {
+        if (mode == RunMode::INFINITE) {
+            while (true) {
+                runtimeAlgo->execute();
+            }
+        } else {
+            for (size_t i = 0; i < loopCount; ++i) {
+                runtimeAlgo->execute();
+            }
+        }
+
+        /* == Destroy the runtime == */
+        destroy(runtimeAlgo);
+    } catch (spider::Exception &e) {
+        destroy(runtimeAlgo);
+        throw std::runtime_error(e.what());
+    }
 }
 
 void spider::quit() {
