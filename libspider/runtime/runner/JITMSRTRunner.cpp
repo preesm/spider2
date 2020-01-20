@@ -222,8 +222,8 @@ void spider::JITMSRTRunner::runJob(const JobMessage &job) {
 
 bool spider::JITMSRTRunner::isJobRunnable(const JobMessage &job) const {
     for (const auto &constraint : job.jobs2Wait_) {
-        const auto &runner2WaitIx = constraint.first;
-        const auto &job2Wait = constraint.second;
+        const auto &runner2WaitIx = constraint.lrtToWait_;
+        const auto &job2Wait = constraint.jobToWait_;
         if (localJobStampsArray_[runner2WaitIx] == SIZE_MAX ||
             localJobStampsArray_[runner2WaitIx] < job2Wait) {
             if (runner2WaitIx == ix()) {

@@ -50,7 +50,10 @@ namespace spider {
 
     /* === Type(s) definition === */
 
-    using JobConstraint = std::pair<size_t, size_t>; /*!< Constraint of a job (Ix of the LRT running the job, Ix of the job). */
+    struct JobConstraint {
+        size_t lrtToWait_ = SIZE_MAX;
+        size_t jobToWait_ = SIZE_MAX;
+    };
 
     /* === Structure(s) definition === */
 
