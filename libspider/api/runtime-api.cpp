@@ -54,22 +54,18 @@
 #include <runtime/runner/JITMSRTRunner.h>
 #include <runtime/interface/ThreadRTCommunicator.h>
 #include <runtime/platform/ThreadRTPlatform.h>
+#include <graphs/pisdf/specials/ForkVertex.h>
+#include <graphs/pisdf/specials/JoinVertex.h>
 
 /* === Static function(s) === */
 
 static void createSpecialRTKernels() {
     auto *&rtPlatform = spider::rt::platform();
-    auto *forkKernel = spider::make<spider::RTKernel, StackID::RUNTIME>(
-            [](const int64_t *, int64_t *, void *[], void *[]) -> void {
-                spider::printer::printf("Fork\n");
-            });
+    auto *forkKernel = spider::make<spider::RTKernel, StackID::RUNTIME>(spider::pisdf::fork);
     rtPlatform->addKernel(forkKernel);
 
     /* == Join Kernel == */
-    auto *joinKernel = spider::make<spider::RTKernel, StackID::RUNTIME>(
-            [](const int64_t *, int64_t *, void *[], void *[]) -> void {
-                spider::printer::printf("Join\n");
-            });
+    auto *joinKernel = spider::make<spider::RTKernel, StackID::RUNTIME>(spider::pisdf::join);
     rtPlatform->addKernel(joinKernel);
 
     /* == Head Kernel == */

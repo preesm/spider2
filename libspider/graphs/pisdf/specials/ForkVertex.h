@@ -51,14 +51,14 @@
 namespace spider {
     namespace pisdf {
 
-        inline void fork(const int64_t *paramsIn, int64_t *[], void *in[], void *out[]) {
+        inline void fork(const int64_t *paramsIn, int64_t *, void *in[], void *out[]) {
             const auto &inputRate = paramsIn[0];   /* = Rate of the input port (used for sanity check) = */
             const auto &outputCount = paramsIn[1]; /* = Number of output = */
             size_t offset = 0;
             for (int64_t i = 0; i < outputCount; ++i) {
                 /* == Size of the current output to copy == */
                 const auto &outputSize = static_cast<size_t>(paramsIn[i + 2]);
-                auto *input = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(in[i]) + offset);
+                auto *input = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(in[0]) + offset);
                 std::memcpy(out[i], input, outputSize);
                 offset += outputSize;
             }
