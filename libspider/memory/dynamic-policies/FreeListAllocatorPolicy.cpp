@@ -88,9 +88,10 @@ FreeListAllocatorPolicy::~FreeListAllocatorPolicy() noexcept {
     }
 }
 
-std::pair<void *, size_t> FreeListAllocatorPolicy::allocate(size_t size) {
+void *FreeListAllocatorPolicy::allocate(size_t size) {
     if (!size) {
-        return std::make_pair(nullptr, 0);
+        lastAllocatedSize_ = 0;
+        return nullptr;
     }
     if (size < sizeof(Node)) {
         size = size + sizeof(Node);
@@ -125,7 +126,8 @@ std::pair<void *, size_t> FreeListAllocatorPolicy::allocate(size_t size) {
 
     /* == Updating usage stats == */
     usage_ += requiredSize;
-    return std::make_pair(reinterpret_cast<void *>(dataAddress), requiredSize);
+    lastAllocatedSize_ = requiredSize;
+    return reinterpret_cast<void *>(dataAddress);
 }
 
 void FreeListAllocatorPolicy::updateFreeNodeList(FreeListAllocatorPolicy::Node *baseNode,
