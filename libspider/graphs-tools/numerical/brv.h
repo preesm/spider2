@@ -78,6 +78,8 @@ namespace spider {
 
             stack_vector(vertexVector_, pisdf::Vertex*, StackID::TRANSFO);
             size_t edgeCount_ = 0;
+            bool hasInterfaces_ = false;
+            bool hasConfig_ = false;
         };
 
 

@@ -120,8 +120,11 @@ spider::brv::extractConnectedComponents(const pisdf::Graph *graph) {
                         throwSpiderException("Vertex [%s] has null output edge.", currentVertex->name().c_str());
                     }
                     auto *sink = edge->sink();
-                    if (sink->subtype() != pisdf::VertexType::OUTPUT && !visited[sink->ix()]) {
+                    auto isOutputIF = (sink->subtype() == pisdf::VertexType::OUTPUT);
+                    component.hasInterfaces_ |= isOutputIF;
+                    if (!isOutputIF && !visited[sink->ix()]) {
                         /* == Register the vertex == */
+                        component.hasConfig_ |= (sink->subtype() == pisdf::VertexType::CONFIG);
                         component.vertexVector_.emplace_back(sink);
                         visited[sink->ix()] = true;
                     }
@@ -135,10 +138,12 @@ spider::brv::extractConnectedComponents(const pisdf::Graph *graph) {
                     auto *source = edge->source();
                     if (source->subtype() != pisdf::VertexType::INPUT && !visited[source->ix()]) {
                         /* == Register the vertex == */
+                        component.hasConfig_ |= (source->subtype() == pisdf::VertexType::CONFIG);
                         component.vertexVector_.emplace_back(source);
                         visited[source->ix()] = true;
                     } else if (source->subtype() == pisdf::VertexType::INPUT) {
                         component.edgeCount_ += 1;
+                        component.hasInterfaces_ = true;
                     }
                 }
             }
@@ -217,6 +222,9 @@ void spider::brv::extractRationalsFromEdges(spider::array<Rational> &rationalArr
 
 void spider::brv::updateBRV(const ConnectedComponent &component, const spider::vector<pisdf::Param *> &params) {
     uint32_t scaleRVFactor{ 1 };
+    if (!component.hasConfig_ && !component.hasInterfaces_) {
+        return;
+    }
 
     /* == Compute the scale factor == */
     UpdateBRVVisitor brvVisitor{ scaleRVFactor, params };
