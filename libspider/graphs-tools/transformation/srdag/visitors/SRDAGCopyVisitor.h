@@ -72,10 +72,9 @@ namespace spider {
             }
 
             inline void visit(pisdf::ExecVertex *vertex) override {
-                pisdf::CloneVisitor cloneVisitor{ srdag_ };
                 for (uint32_t it = 0; it < vertex->repetitionValue(); ++it) {
+                    clone(vertex);
                     /* == Change the name of the clone == */
-                    vertex->visit(&cloneVisitor);
                     auto *clone = srdag_->vertices().back();
                     clone->setName(buildCloneName(vertex, it));
                     clone->setTransfoJobIx(job_.ix_);
@@ -100,6 +99,12 @@ namespace spider {
             pisdf::Graph *srdag_ = nullptr;
             size_t ix_ = SIZE_MAX;
         private:
+            template<class T>
+            inline void clone(const T *vertex) {
+                auto *clone = make<T>(StackID::PISDF, (*vertex));
+                srdag_->addVertex(clone);
+            }
+
             std::string buildCloneName(const pisdf::Vertex *vertex, uint32_t firing) {
                 const auto *graphRef = job_.firingValue_ == UINT32_MAX ?
                                        job_.reference_ : srdag_->vertex(*(job_.srdagIx_));

@@ -106,7 +106,7 @@ std::pair<spider::srdag::JobStack, spider::srdag::JobStack> spider::srdag::Singl
         vertex->visit(&visitor);
         ref2Clone_[vertexUniformIx] = visitor.ix_;
         if (vertex->subtype() == pisdf::VertexType::DELAY) {
-            delayVertexToRemove.emplace_back(srdag_->vertex(visitor.ix_));
+            delayVertexToRemove.emplace_back(srdag_->vertices().back());
         }
     }
 
