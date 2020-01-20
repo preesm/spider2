@@ -66,7 +66,9 @@ namespace spider {
         /* === Structure(s) definition === */
 
         struct ConnectedComponent {
-            ConnectedComponent() = default;
+            explicit ConnectedComponent(spider::vector<pisdf::Vertex *> &vertices) :
+                    vertexVector_{ vertices },
+                    offsetVertexVector_{ vertices.size() } { };
 
             ConnectedComponent(const ConnectedComponent &) = default;
 
@@ -76,8 +78,10 @@ namespace spider {
 
             /* === Member(s) === */
 
-            stack_vector(vertexVector_, pisdf::Vertex*, StackID::TRANSFO);
+            spider::vector<pisdf::Vertex *> &vertexVector_;
             size_t edgeCount_ = 0;
+            size_t vertexCount_ = 0;
+            size_t offsetVertexVector_ = 0;
             bool hasInterfaces_ = false;
             bool hasConfig_ = false;
         };
@@ -102,18 +106,22 @@ namespace spider {
 
         /**
          * @brief Extract the different connected components of a graph.
-         * @param graph Graph to evaluate.
+         * @param graph     Pointer to the graph to evaluate.
+         * @param vertices  Reference to the vector of vertices to update.
          * @return vector of @refitem ConnectedComponents.
          * @throws @refitem spider::Exception.
          */
-        spider::vector<ConnectedComponent> extractConnectedComponents(const pisdf::Graph *graph);
+        spider::vector<ConnectedComponent> extractConnectedComponents(const pisdf::Graph *graph,
+                                                                      spider::vector<pisdf::Vertex *> &vertices);
 
         /**
          * @brief Extract the edges from a connected component.
-         * @param component  Connected component to evaluate.
-         * @return array of edge.
+         * @param component            Connected component to evaluate.
+         * @param registeredEdgeVector Reference vector to already registered edges in the graph.
+         * @return array of Edge of the connected component.
          */
-        spider::array<const pisdf::Edge *> extractEdgesFromComponent(const ConnectedComponent &component);
+        spider::array<const pisdf::Edge *> extractEdgesFromComponent(const ConnectedComponent &component,
+                                                                     spider::vector<bool> &registeredEdgeVector);
 
         /**
          * @brief Extract Rationals of rates of a connected component using its edges.
