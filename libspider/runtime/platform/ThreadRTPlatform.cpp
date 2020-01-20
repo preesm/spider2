@@ -37,37 +37,45 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_THREADRTPLATFORM_H
-#define SPIDER2_THREADRTPLATFORM_H
 
 /* === Include(s) === */
 
-#include <runtime/platform/RTPlatform.h>
+#include <runtime/platform/ThreadRTPlatform.h>
+#include <runtime/runner/RTRunner.h>
+#include <thread/Thread.h>
+#include <archi/PE.h>
+#include <zconf.h>
 
-namespace spider {
+/* === Function(s) definition === */
 
-    /* === Class definition === */
+spider::ThreadRTPlatform::~ThreadRTPlatform() {
+    /* == Send notification to exit to runners == */
+    for (auto &runner : runnerArray_) {
+        communicator_->push(Notification(NotificationType::LRT_STOP,
+                                         archi::platform()->spiderGRTPE()->virtualIx()),
+                            runner->ix());
+    }
 
-    class ThreadRTPlatform final : public RTPlatform {
-    public:
-        explicit ThreadRTPlatform(size_t runnerCount = 0) : RTPlatform(runnerCount),
-                                                            threadArray_{ runnerCount, nullptr, StackID::RUNTIME } { };
+    /* == Wait for all the thread to finish == */
+    for (auto &thread : threadArray_) {
+        thread->join();
+    }
 
-        ~ThreadRTPlatform() override;
-
-        /* === Method(s) === */
-
-        void createRunnerRessource(RTRunner *runner) override;
-
-        void waitForRunnerToBeReady() override;
-
-        /* === Getter(s) === */
-
-        /* === Setter(s) === */
-
-    private:
-        spider::array<spider::thread *> threadArray_;  /*= Array of thread = */
-    };
+    /* == Destroy the threads == */
+    for (auto &thread : threadArray_) {
+        destroy(thread);
+    }
 }
 
-#endif //SPIDER2_THREADRTPLATFORM_H
+void spider::ThreadRTPlatform::createRunnerRessource(spider::RTRunner *runner) {
+    if (threadArray_.at(runner->ix())) {
+        log::warning<log::Type::LRT>("trying to create resource for runner #%zu more than once.\n",
+                                     runner->ix());
+        return;
+    }
+    threadArray_.at(runner->ix()) = make<spider::thread, StackID::RUNTIME>(RTRunner::start, runner);
+}
+
+void spider::ThreadRTPlatform::waitForRunnerToBeReady() {
+    sleep(2);
+}
