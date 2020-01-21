@@ -54,10 +54,13 @@ spider::pisdf::Vertex::Vertex(const Vertex &other) : name_{ other.name_ },
                                                      graph_{ other.graph_ },
                                                      rtInformation_{ other.rtInformation_ },
                                                      scheduleJobIx_{ other.scheduleJobIx_ },
-                                                     transfoJobIx_{ other.transfoJobIx_ },
+                                                     instanceValue_{ other.instanceValue_ },
                                                      ix_{ other.ix_ },
                                                      repetitionValue_{ other.repetitionValue_ } {
     other.copyCount_ += 1;
+    inputParamVector_.reserve(other.inputParamCount());
+    outputParamVector_.reserve(other.outputParamCount());
+    refinementParamVector_.reserve(other.refinementParamVector_.size());
 }
 
 
@@ -117,18 +120,22 @@ void spider::pisdf::Vertex::connectEdge(spider::vector<Edge *> &edges, Edge *edg
     throwSpiderException("Edge already exists at position: %zu", ix);
 }
 
-void spider::pisdf::Vertex::addInputParameter(const spider::pisdf::Param *param) {
-    inputParamIxVector_.emplace_back(param->ix());
+void spider::pisdf::Vertex::addInputParameter(spider::pisdf::Param *param) {
+    inputParamVector_.emplace_back(param);
 }
 
-void spider::pisdf::Vertex::addOutputParameter(const spider::pisdf::Param *param) {
+void spider::pisdf::Vertex::addOutputParameter(spider::pisdf::Param *param) {
     if (subtype() != VertexType::CONFIG) {
         throwSpiderException("[%s] can not have output parameter.", name().c_str());
     }
-    outputParamIxVector_.emplace_back(param->ix());
+    outputParamVector_.emplace_back(param);
 }
 
-std::string spider::pisdf::Vertex::hierarchicalName() const {
+void spider::pisdf::Vertex::addRefinementParameter(Param *param) {
+    refinementParamVector_.emplace_back(param);
+}
+
+std::string spider::pisdf::Vertex::vertexPath() const {
     if (graph_) {
         auto name = graph_->name();
         auto *graph = graph_->graph();

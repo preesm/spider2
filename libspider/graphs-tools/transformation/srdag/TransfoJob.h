@@ -56,7 +56,6 @@ namespace spider {
             pisdf::Graph *reference_ = nullptr;
             stack_vector(params_, pisdf::Param *, StackID::TRANSFO);
             const size_t *srdagIx_ = nullptr;
-            size_t ix_ = SIZE_MAX;
             uint32_t firingValue_ = UINT32_MAX;
             bool root_ = false;
 

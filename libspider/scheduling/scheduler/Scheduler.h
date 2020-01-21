@@ -78,12 +78,6 @@ namespace spider {
          */
         virtual void update() = 0;
 
-        /**
-         * @brief Add a param vector to the parameter bank using move semantic for dynamic scheduling.
-         * @param params Vector of parameters to move.
-         */
-        void addParameterVector(spider::vector<pisdf::Param *> params);
-
         /* === Getter(s) === */
 
         /**
@@ -97,7 +91,6 @@ namespace spider {
         /* === Setter(s) === */
 
     protected:
-        stack_vector(parameterBankVector_, spider::vector<pisdf::Param *>, StackID::SCHEDULE);
         sched::Schedule schedule_;
         pisdf::Graph *graph_ = nullptr;
         FifoAllocator *fifoAllocator_ = nullptr;
@@ -126,11 +119,6 @@ namespace spider {
          * @param vertex Vertex to map.
          */
         virtual void vertexMapper(const pisdf::Vertex *vertex);
-
-        /**
-         * @brief Clears the parameterBankVector_ and destroy parameter with no graph.
-         */
-        void clearParameterBank();
     };
 }
 #endif //SPIDER2_SCHEDULER_H

@@ -123,25 +123,32 @@ namespace spider {
             virtual void visit(Visitor *visitor) = 0;
 
             /**
-             * @brief Add an output parameter to the Vertex.
+             * @brief Add an input parameter to the Vertex.
              * @param param  Pointer to the parameter to add.
              */
-            void addInputParameter(const Param *param);
+            void addInputParameter(Param *param);
+
+            /**
+             * @brief Add an input parameter for the refinement of the Vertex.
+             * @warning a separate call to addInputParameter is needed.
+             * @param param  Pointer to the parameter to add.
+             */
+            void addRefinementParameter(Param *param);
 
             /**
              * @brief Add an output parameter to the Vertex.
              * @param param  Pointer to the parameter to add.
              * @throw spider::Exception if subtype() is not @refitem VertexType::CONFIG.
              */
-            void addOutputParameter(const Param *param);
+            void addOutputParameter(Param *param);
 
             /**
-             * @brief Get the full hierarchical name of the Vertex.
+             * @brief Get the complete path of the Vertex.
              * @example: vertex name = "vertex_0", graph name = "top_graph"
-             *           -> hierarchical name = "top_graph-vertex_0"
-             * @return full hierarchical name
+             *           -> vertex path = "top_graph-vertex_0"
+             * @return complete vertex path
              */
-            std::string hierarchicalName() const;
+            std::string vertexPath() const;
 
             /* === Getter(s) === */
 
@@ -213,7 +220,7 @@ namespace spider {
 
             /**
              * @brief A const reference on the array of output edges. Useful for iterating on the edges.
-             * @return const reference to output edge array
+             * @return const reference to output edge array.
              */
             inline const spider::vector<Edge *> &outputEdgeVector() const {
                 return outputEdgeVector_;
@@ -238,35 +245,43 @@ namespace spider {
             }
 
             /**
-             * @brief A const reference on the array of input params. Useful for iterating on the edges.
-             * @return const reference to output edge array
+             * @brief A const reference on the vector of refinement input params.
+             * @return const reference to input params vector.
              */
-            inline const spider::vector<size_t> &inputParamIxVector() const {
-                return inputParamIxVector_;
+            inline const spider::vector<Param *> &refinementParamVector() const {
+                return refinementParamVector_;
+            }
+
+            /**
+             * @brief A const reference on the vector of input params.
+             * @return const reference to input params vector.
+             */
+            inline const spider::vector<Param *> &inputParamVector() const {
+                return inputParamVector_;
             }
 
             /**
              * @brief Get the number of input params connected to the vertex.
-             * @return number of input edges.
+             * @return number of input params.
              */
             inline size_t inputParamCount() const {
-                return inputParamIxVector_.size();
+                return inputParamVector_.size();
             }
 
             /**
-             * @brief A const reference on the array of output params. Useful for iterating on the edges.
-             * @return const reference to output edge array
+             * @brief A const reference on the vector of output params.
+             * @return const reference to output params vector.
              */
-            inline const spider::vector<size_t> &outputParamIxVector() const {
-                return outputParamIxVector_;
+            inline const spider::vector<Param *> &outputParamVector() const {
+                return outputParamVector_;
             }
 
             /**
              * @brief Get the number of output params connected to the vertex.
-             * @return number of output edges.
+             * @return number of output params.
              */
             inline size_t outputParamCount() const {
-                return outputParamIxVector_.size();
+                return outputParamVector_.size();
             }
 
             /**
@@ -314,11 +329,11 @@ namespace spider {
             }
 
             /**
-             * @brief Get the transfo job ix associated to this vertex.
-             * @return ix of the job, SIZE_MAX if not set.
+             * @brief Get the instance value associated to this clone vertex (0 if original).
+             * @return instance value of the vertex, 0 by default.
              */
-            inline size_t transfoJobIx() const {
-                return transfoJobIx_;
+            inline size_t instanceValue() const {
+                return instanceValue_;
             }
 
             /* === Setter(s) === */
@@ -370,19 +385,24 @@ namespace spider {
             }
 
             /**
-             * @brief Set the transfo job ix of the vertex.
-             * @param ix  Ix to set.
+             * @brief Set the instance value of the vertex.
+             * @param value  Value to set.
+             * @throws spider::Exception if value is invalid relative to reference vertex repetition value.
              */
-            inline void setTransfoJobIx(size_t ix) {
-                transfoJobIx_ = ix;
+            inline void setInstanceValue(size_t value) {
+                if (value >= reference_->repetitionValue()) {
+                    throwSpiderException("invalid instance value for vertex [%s].", name_.c_str());
+                }
+                instanceValue_ = value;
             }
 
         protected:
             std::string name_ = "unnamed-vertex"; /* =  Name of the Vertex (uniqueness is not required) = */
-            stack_vector(inputEdgeVector_, Edge *, StackID::PISDF);     /* = Vector of input Edge = */
-            stack_vector(outputEdgeVector_, Edge *, StackID::PISDF);    /* = Vector of output Edge = */
-            stack_vector(inputParamIxVector_, size_t, StackID::PISDF);  /* = Vector of input Param index = */
-            stack_vector(outputParamIxVector_, size_t, StackID::PISDF); /* = Vector of output Param index = */
+            stack_vector(inputEdgeVector_, Edge *, StackID::PISDF);         /* = Vector of input Edge        = */
+            stack_vector(outputEdgeVector_, Edge *, StackID::PISDF);        /* = Vector of output Edge       = */
+            stack_vector(inputParamVector_, Param *, StackID::PISDF);       /* = Vector of input Param       = */
+            stack_vector(refinementParamVector_, Param *, StackID::PISDF);  /* = Vector of refinement Params = */
+            stack_vector(outputParamVector_, Param *, StackID::PISDF);      /* = Vector of output Param      = */
             const Vertex *reference_ = this;   /* =
                                                 * Pointer to the reference Vertex.
                                                 * Default is this, in case of copy, point to the original Vertex.
@@ -394,7 +414,7 @@ namespace spider {
                                                 * Needed in case of deletion of vertex between successive.
                                                 * schedule pass in order to maintain coherence.
                                                 * = */
-            size_t transfoJobIx_ = SIZE_MAX;   /* = Index of the transfo job associated to this Vertex = */
+            size_t instanceValue_ = 0;         /* = Value of the instance relative to reference Vertex = */
             size_t ix_ = SIZE_MAX;             /* = Index of the Vertex in the containing Graph = */
             uint32_t repetitionValue_ = 1;     /* = Repetition value of the Vertex, default is 1 but it can be set to 0. = */
             mutable uint32_t copyCount_ = 0;   /* = Number of copy of the Vertex = */

@@ -93,7 +93,6 @@ bool PiSDFJoinForkOptimizer::operator()(spider::pisdf::Graph *graph) const {
     }
 
     /* == Go through the different pair to optimize == */
-    const auto &params = graph->params();
     for (auto &pair : verticesToOptimize) {
         auto *join = pair.first;
         auto *fork = pair.second;
@@ -101,13 +100,13 @@ bool PiSDFJoinForkOptimizer::operator()(spider::pisdf::Graph *graph) const {
         spider::array<EdgeLinker> sinkArray{ fork->outputEdgeCount(), StackID::TRANSFO };
 
         for (auto *edge : join->inputEdgeVector()) {
-            const auto &rate = static_cast<uint64_t>(edge->sourceRateExpression().evaluate(params));
+            const auto &rate = static_cast<uint64_t>(edge->sourceRateValue());
             sourceArray[edge->sinkPortIx()] = EdgeLinker{ edge->source(), rate, edge->sourcePortIx() };
             graph->removeEdge(edge);
         }
         graph->removeEdge(join->outputEdge(0));
         for (auto *edge : fork->outputEdgeVector()) {
-            const auto &rate = static_cast<uint64_t>(edge->sinkRateExpression().evaluate(params));
+            const auto &rate = static_cast<uint64_t>(edge->sinkRateValue());
             sinkArray[edge->sourcePortIx()] = EdgeLinker{ edge->sink(), rate, edge->sinkPortIx() };
             graph->removeEdge(edge);
         }

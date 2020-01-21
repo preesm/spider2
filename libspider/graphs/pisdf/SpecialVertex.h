@@ -64,11 +64,9 @@ namespace spider {
                           size_t,      /* = Input edge count = */
                           size_t       /* = Output edge count = */) = delete;
 
-            SpecialVertex(const SpecialVertex &other) : ExecVertex(other) {
-                transfoJobIx_ = other.transfoJobIx_;
-            };
+            SpecialVertex(const SpecialVertex &) = default;
 
-            SpecialVertex(SpecialVertex &&other) noexcept : ExecVertex(std::move(other)) { };
+            SpecialVertex(SpecialVertex &&) noexcept = default;
 
             ~SpecialVertex() override = default;
 

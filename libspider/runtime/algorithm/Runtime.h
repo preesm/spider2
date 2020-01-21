@@ -67,13 +67,13 @@ namespace spider {
         /**
          * @brief Setup method of the runtime (maybe empty)
          */
-        virtual void setup() const = 0;
+        virtual void setup() = 0;
 
         /**
          * @brief Main method of the runtime, do a graph iteration.
          * @return true if iteration was successful, false else.
          */
-        virtual bool execute() const = 0;
+        virtual bool execute() = 0;
 
     protected:
         pisdf::Graph *graph_ = nullptr;

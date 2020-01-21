@@ -77,7 +77,18 @@ namespace spider {
                     /* == Change the name of the clone == */
                     auto *clone = srdag_->vertices().back();
                     clone->setName(buildCloneName(vertex, it));
-                    clone->setTransfoJobIx(job_.ix_);
+                    clone->setInstanceValue(it);
+
+                    /* == Get the cloned parameters == */
+                    for (const auto &param : vertex->inputParamVector()) {
+                        clone->addInputParameter(job_.params_[param->ix()]);
+                    }
+                    for (const auto &param : vertex->refinementParamVector()) {
+                        clone->addRefinementParameter(job_.params_[param->ix()]);
+                    }
+                    for (const auto &param : vertex->outputParamVector()) {
+                        clone->addOutputParameter(job_.params_[param->ix()]);
+                    }
                 }
                 ix_ = (srdag_->vertexCount() - 1) - (vertex->repetitionValue() - 1);
             }

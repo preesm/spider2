@@ -360,7 +360,16 @@ namespace spider {
          * @param vertex  Pointer to the vertex to evaluate.
          * @param param   Pointer to the parameter to add.
          */
-        void addInputParamToVertex(pisdf::Vertex *vertex, const pisdf::Param *param);
+        void addInputParamToVertex(pisdf::Vertex *vertex, pisdf::Param *param);
+
+        /**
+         * @brief Add an input parameter to a given Vertex for its refinement.
+         * @remark If param or vertex is nullptr, nothing happen.
+         * @remark A secondary call to vertex->addInputParam is done.
+         * @param vertex  Pointer to the vertex to evaluate.
+         * @param param   Pointer to the parameter to add.
+         */
+        void addInputRefinementParamToVertex(pisdf::Vertex *vertex, pisdf::Param *param);
 
         /**
          * @brief Add an output parameter to a given Vertex.
@@ -369,7 +378,7 @@ namespace spider {
          * @param param   Pointer to the parameter to add.
          * @throw spider::Exception if vertex is not of type @refitem VertexType::ConfigVertex.
          */
-        void addOutputParamToVertex(pisdf::Vertex *vertex, const pisdf::Param *param);
+        void addOutputParamToVertex(pisdf::Vertex *vertex, pisdf::Param *param);
 
         /* === Edge API === */
 
@@ -428,10 +437,10 @@ namespace spider {
                                   std::string delayExpression,
                                   pisdf::ExecVertex *setter = nullptr,
                                   size_t setterPortIx = 0,
-                                  const std::string &setterRateExpression = "0",
+                                  std::string setterRateExpression = "0",
                                   pisdf::ExecVertex *getter = nullptr,
                                   size_t getterPortIx = 0,
-                                  const std::string &getterRateExpression = "0",
+                                  std::string getterRateExpression = "0",
                                   bool persistent = true);
 
         /**

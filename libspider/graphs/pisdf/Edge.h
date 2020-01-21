@@ -125,12 +125,24 @@ namespace spider {
             }
 
             /**
+             * @brief Evaluates the sourceRateExpression with source input param.
+             * @return value of the source rate expression.
+             */
+            int64_t sourceRateValue() const;
+
+            /**
              * @brief Evaluate the expression rate of the sink.
              * @return @refitem Expression of the sink rate.
              */
             inline const Expression &sinkRateExpression() const {
                 return snkExpression_;
             }
+
+            /**
+             * @brief Evaluates the sinkRateExpression with source input param.
+             * @return value of the sink rate expression.
+             */
+            int64_t sinkRateValue() const;
 
             /**
              * @brief Get the source reference vertex.
@@ -154,6 +166,10 @@ namespace spider {
              */
             inline const Delay *delay() const {
                 return delay_;
+            }
+
+            inline uint64_t memoryAddress() const {
+                return memoryAddress_;
             }
 
             /* === Setter(s) === */
@@ -196,22 +212,36 @@ namespace spider {
                 delay_ = delay;
             }
 
+            /**
+             * @brief Set the containing graph of the Edge.
+             * @remark if graph is nullptr, nothing happen.
+             * @param graph Pointer to the graph to set.
+             */
             inline void setGraph(Graph *graph) {
                 if (graph) {
                     graph_ = graph;
                 }
             }
 
+            /**
+             * @brief Sets the memory address of the edge.
+             * @param address Value to set.
+             */
+            inline void setMemoryAddress(uint64_t address) {
+                memoryAddress_ = address;
+            }
+
         private:
-            Expression srcExpression_;    /* = Expression of the source rate of the Edge = */
-            Expression snkExpression_;    /* = Expression of the sink rate of the Edge = */
-            Graph *graph_ = nullptr;      /* = Pointer to the containing Graph (should not be nullptr) = */
-            Vertex *src_ = nullptr;       /* = Pointer to the source Vertex (if any) = */
-            Vertex *snk_ = nullptr;       /* = Pointer to the sink Vertex (if any) = */
-            Delay *delay_ = nullptr;      /* = Pointer to Delay associated to the Edge (if any) = */
-            size_t ix_ = SIZE_MAX;        /* = Index of the Edge in the Graph (used for add and remove) = */
-            size_t srcPortIx_ = SIZE_MAX; /* = Index of the Edge in the source outputEdgeArray = */
-            size_t snkPortIx_ = SIZE_MAX; /* = Index of the Edge in the sink inputEdgeArray = */
+            Expression srcExpression_;            /* = Expression of the source rate of the Edge = */
+            Expression snkExpression_;            /* = Expression of the sink rate of the Edge = */
+            Graph *graph_ = nullptr;              /* = Pointer to the containing Graph (should not be nullptr) = */
+            Vertex *src_ = nullptr;               /* = Pointer to the source Vertex (if any) = */
+            Vertex *snk_ = nullptr;               /* = Pointer to the sink Vertex (if any) = */
+            Delay *delay_ = nullptr;              /* = Pointer to Delay associated to the Edge (if any) = */
+            uint64_t memoryAddress_ = UINT64_MAX; /* = Virtual memory address of the edge = */
+            size_t ix_ = SIZE_MAX;                /* = Index of the Edge in the Graph (used for add and remove) = */
+            size_t srcPortIx_ = SIZE_MAX;         /* = Index of the Edge in the source outputEdgeArray = */
+            size_t snkPortIx_ = SIZE_MAX;         /* = Index of the Edge in the sink inputEdgeArray = */
         };
     }
 }

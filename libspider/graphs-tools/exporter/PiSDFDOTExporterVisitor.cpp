@@ -51,7 +51,7 @@ static constexpr size_t MAX_LENGTH = 30;
 void spider::pisdf::PiSDFDOTExporterVisitor::visit(Graph *graph) {
     params_ = &(graph->params());
     if (graph->graph()) {
-        file_ << offset_ << "subgraph \"cluster_" << graph->hierarchicalName() << "\" {" << '\n';
+        file_ << offset_ << "subgraph \"cluster_" << graph->vertexPath() << "\" {" << '\n';
         offset_ += "\t";
         file_ << offset_ << R"(label=<<font point-size="40" face="inconsolata">)" << graph->name() << R"(</font>>;)"
               << '\n';
@@ -124,14 +124,14 @@ std::pair<int32_t, int32_t> spider::pisdf::PiSDFDOTExporterVisitor::computeConst
         if (!e) {
             throwSpiderException("vertex [%s]: null input edge.", vertex->name().c_str());
         }
-        const auto &rate = e->sinkRateExpression().evaluate((*params_));
+        const auto &rate = e->sinkRateValue();
         longestRateLen = std::max(longestRateLen, std::log10(rate));
     }
     for (const auto &e: vertex->outputEdgeVector()) {
         if (!e) {
             throwSpiderException("vertex [%s]: null output edge.", vertex->name().c_str());
         }
-        const auto &rate = e->sourceRateExpression().evaluate((*params_));
+        const auto &rate = e->sourceRateValue();
         longestRateLen = std::max(longestRateLen, std::log10(rate));
     }
     return std::make_pair(centerWidth, static_cast<int32_t>(longestRateLen));
@@ -163,7 +163,7 @@ void spider::pisdf::PiSDFDOTExporterVisitor::vertexPrinter(Vertex *vertex,
                                                            int32_t border,
                                                            const std::string &style) const {
     /* == Header == */
-    vertexHeaderPrinter(vertex->hierarchicalName(), color, border, style);
+    vertexHeaderPrinter(vertex->vertexPath(), color, border, style);
 
     /* == Vertex name == */
     file_ << offset_ << '\t' << '\t'
@@ -247,7 +247,7 @@ spider::pisdf::PiSDFDOTExporterVisitor::interfaceBodyPrinter(Interface *interfac
     auto *outputEdge = interface->outputEdge();
     auto inIx = inputEdge->sinkPortIx();
     auto outIx = outputEdge->sourcePortIx();
-    auto inRate = inputEdge->sinkRateExpression().evaluate((*params_));
+    auto inRate = inputEdge->sinkRateValue();
     auto outRate = outputEdge->sourceRateExpression().evaluate((*params_));
     file_ << offset_ << '\t' << '\t'
           << R"(<tr>
@@ -271,7 +271,7 @@ struct GetVertexVisitor final : public spider::pisdf::DefaultVisitor {
 
     void doVertex(spider::pisdf::Vertex *vertex) {
         vertex_ = vertex;
-        name_ = vertex->hierarchicalName();
+        name_ = vertex->vertexPath();
 
     }
 
@@ -318,16 +318,16 @@ void spider::pisdf::PiSDFDOTExporterVisitor::edgePrinter(Edge *edge) const {
     auto snkName = std::move(visitor.name_);
     if (delay) {
         /* == Draw circle of the delay == */
-        file_ << offset_ << R"(")" << delay->vertex()->hierarchicalName()
+        file_ << offset_ << R"(")" << delay->vertex()->vertexPath()
               << R"(" [shape=circle, style=filled, color="#393c3c", fillcolor="#393c3c", label=""])"
               << '\n';
 
         /* == Connect source to delay == */
         file_ << offset_ << R"(")" << srcName << R"(":out_)" << srcPortIx << R"(:e -> ")";
-        file_ << delay->vertex()->hierarchicalName() << R"(":w [penwidth=3, color="#393c3c", arrowhead=none];)" << '\n';
+        file_ << delay->vertex()->vertexPath() << R"(":w [penwidth=3, color="#393c3c", arrowhead=none];)" << '\n';
 
         /* == Connect delay to sink == */
-        file_ << offset_ << R"(")" << delay->vertex()->hierarchicalName() << R"(":e -> ")";
+        file_ << offset_ << R"(")" << delay->vertex()->vertexPath() << R"(":e -> ")";
         file_ << snkName << R"(":in_)" << snkPortIx << R"(:w [penwidth=3, color="#393c3c", dir=forward];)" << '\n';
     } else if (sink->subtype() == VertexType::DELAY) {
         /* == Connect setter to delay == */
@@ -345,7 +345,7 @@ void spider::pisdf::PiSDFDOTExporterVisitor::edgePrinter(Edge *edge) const {
 }
 
 void spider::pisdf::PiSDFDOTExporterVisitor::paramPrinter(Param *param) const {
-    file_ << offset_ << R"(")" << param->graph()->hierarchicalName() + ":" + param->name()
+    file_ << offset_ << R"(")" << param->graph()->vertexPath() + ":" + param->name()
           << R"("[shape=house, style=filled, fillcolor=")" << (param->dynamic() ? "#19b5fe" : "#89c4f4")
           << R"(", margin=0, width=0, height=0, label=<)" << '\n';
     file_ << offset_ << '\t' << R"(<table border="0" style="" cellspacing="0" cellpadding="0">)"

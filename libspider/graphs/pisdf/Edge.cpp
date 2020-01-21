@@ -89,6 +89,14 @@ std::string spider::pisdf::Edge::name() const {
     return "edge_" + src_->name() + "-" + snk_->name();
 }
 
+int64_t spider::pisdf::Edge::sourceRateValue() const {
+    return src_ ? srcExpression_.evaluate(src_->inputParamVector()) : 0;
+}
+
+int64_t spider::pisdf::Edge::sinkRateValue() const {
+    return snk_ ? snkExpression_.evaluate(snk_->inputParamVector()) : 0;
+}
+
 void spider::pisdf::Edge::removeDelay() {
     if (delay_) {
         graph_->removeEdge(delay_->vertex_->inputEdge(0));

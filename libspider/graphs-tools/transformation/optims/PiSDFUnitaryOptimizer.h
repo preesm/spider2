@@ -65,7 +65,7 @@ private:
 
     struct OptimizerVisitor final : public spider::pisdf::DefaultVisitor {
 
-        explicit OptimizerVisitor(spider::pisdf::Graph *graph) : graph_{ graph }, params_{ graph->params() } { }
+        explicit OptimizerVisitor(spider::pisdf::Graph *graph) : graph_{ graph } { }
 
         inline void visit(spider::pisdf::ExecVertex *) override { removed_ = false; }
 
@@ -112,14 +112,12 @@ private:
         }
 
         spider::pisdf::Graph *graph_ = nullptr;
-        const spider::vector<spider::pisdf::Param *> &params_;
         bool removed_ = false;
     private:
         void tryRemoveOutputEdge(spider::pisdf::Vertex *vertex) {
             auto *inputEdge = vertex->inputEdge(0);
             auto *outputEdge = vertex->outputEdge(0);
-            if (inputEdge->sinkRateExpression().evaluate(params_) ==
-                outputEdge->sourceRateExpression().evaluate(params_)) {
+            if (inputEdge->sinkRateValue() == outputEdge->sourceRateValue()) {
                 inputEdge->setSink(outputEdge->sink(),
                                    outputEdge->sinkPortIx(),
                                    spider::Expression(outputEdge->sinkRateExpression()));

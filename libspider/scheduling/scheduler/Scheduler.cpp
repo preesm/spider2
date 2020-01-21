@@ -66,10 +66,6 @@ spider::Scheduler::~Scheduler() {
     destroy(fifoAllocator_);
 }
 
-void spider::Scheduler::addParameterVector(spider::vector<spider::pisdf::Param *> params) {
-    parameterBankVector_.emplace_back(std::move(params));
-}
-
 /* === Protected method(s) === */
 
 void
@@ -82,87 +78,22 @@ spider::Scheduler::setJobInformation(const pisdf::Vertex *vertex, size_t slave, 
     job.setMappingStartTime(startTime);
     job.setMappingEndTime(endTime);
     schedule_.update(job);
-
-    /* == Update the JobMessage == */
-    auto &message = job.message();
-    message.LRTs2Notify_ = spider::array<bool>(archi::platform()->LRTCount(), true);
-
-    /* == Set the kernel ix == */
-    message.kernelIx_ = vertex->runtimeInformation()->kernelIx();
-
-    /* == Set the vertex ix == */
-    if (vertex->subtype() == pisdf::VertexType::CONFIG) {
-        size_t index = 0;
-        for (auto &cfg : graph_->configVertices()) {
-            if (vertex->ix() == cfg->ix()) {
-                break;
-            }
-            index++;
-        }
-        message.vertexIx_ = index;
-    } else {
-        message.vertexIx_ = vertex->ix();
-    }
-
-    /* == Create input Fifos == */
-    message.inputFifoArray_ = spider::array<RTFifo>(vertex->inputEdgeCount(), StackID::RUNTIME);
-    size_t inputIx = 0;
-    for (const auto &edge : vertex->inputEdgeVector()) {
-        auto &fifo = message.inputFifoArray_[inputIx++];
-        const auto &source = edge->source();
-        auto &srcJob = schedule_.job(source->scheduleJobIx());
-        fifo = srcJob.message().outputFifoArray_[edge->sourcePortIx()];
-        // TODO: see for inter-cluster communication how to get proper interface
-    }
-
-    /* == Create output Fifos == */
-    size_t outputIx = 0;
-    message.outputFifoArray_ = spider::array<RTFifo>(vertex->outputEdgeCount(), StackID::RUNTIME);
-    const auto &params = parameterBankVector_[vertex->transfoJobIx()];
-    for (const auto &edge : vertex->outputEdgeVector()) {
-        message.outputFifoArray_[outputIx++] = fifoAllocator_->allocate(
-                static_cast<size_t>(edge->sourceRateExpression().evaluate(params)),
-                archi::platform()->peFromVirtualIx(job.mappingInfo().PEIx)->cluster()->memoryInterface());
-    }
-
-    /* == Create the jobs 2 wait array == */
-    const auto &numberOfConstraints = job.numberOfConstraints();
-    message.jobs2Wait_ = spider::array<std::pair<size_t, size_t>>(numberOfConstraints, StackID::RUNTIME);
-    auto jobIterator = message.jobs2Wait_.begin();
-    for (auto &srcJobIx : job.jobConstraintVector()) {
-        if (srcJobIx != SIZE_MAX) {
-            const auto &srcJob = schedule_.job(srcJobIx);
-            (*(jobIterator++)) = std::make_pair(srcJob.mappingInfo().LRTIx, srcJob.ix());
-        }
-    }
-
-    /* == Set the number of output parameters to be set == */
-    const auto &reference = vertex->reference();
-    message.outputParamCount_ = reference->outputParamCount();
-
-    /* == Set the input parameters == */
-    message.inputParams_ = spider::array<int64_t>(reference->inputParamCount(), StackID::RUNTIME);
-    auto paramIterator = message.inputParams_.begin();
-    for (auto &index : reference->inputParamIxVector()) {
-        (*(paramIterator++)) = params[index]->value(params);
-    }
 }
 
 uint64_t spider::Scheduler::computeMinStartTime(const pisdf::Vertex *vertex) {
     uint64_t minimumStartTime = 0;
     auto &job = schedule_.job(vertex->scheduleJobIx());
     job.setState(sched::JobState::PENDING);
-    job.setVertexIx(vertex->ix());
-    const auto &params = parameterBankVector_[vertex->transfoJobIx()];
+    job.setVertex(vertex);
     for (const auto &edge : vertex->inputEdgeVector()) {
-        const auto &rate = edge->sourceRateExpression().evaluate(params);
+        const auto &rate = edge->sourceRateValue();
         if (rate) {
             const auto &src = edge->source();
             auto &srcJob = schedule_.job(src->scheduleJobIx());
             const auto &srcJobLRTIx = srcJob.mappingInfo().LRTIx;
-            const auto &currentConstraintIx = job.jobConstraintIxOnLRT(srcJobLRTIx);
+            const auto &currentConstraintIx = job.scheduleJobConstraintOnLRT(srcJobLRTIx);
             if (currentConstraintIx == SIZE_MAX || (srcJob.ix() > currentConstraintIx)) {
-                job.setJobConstraint(srcJob.ix(), srcJobLRTIx);
+                job.setScheduleConstraint(srcJob.ix(), srcJobLRTIx);
             }
             minimumStartTime = std::max(minimumStartTime, srcJob.mappingInfo().endTime);
         }
@@ -176,11 +107,10 @@ void spider::Scheduler::vertexMapper(const pisdf::Vertex *vertex) {
 
     /* == Build the data dependency vector in order to compute receive cost == */
     const auto *platform = archi::platform();
-    const auto &params = parameterBankVector_[vertex->transfoJobIx()];
     auto dataDependencies = containers::vector<std::pair<PE *, uint64_t >>(StackID::SCHEDULE);
     dataDependencies.reserve(vertex->inputEdgeCount());
     for (auto &edge : vertex->inputEdgeVector()) {
-        const auto &rate = edge->sinkRateExpression().evaluate(params);
+        const auto &rate = edge->sinkRateValue();
         if (rate) {
             const auto &job = schedule_.job(edge->source()->scheduleJobIx());
             dataDependencies.emplace_back(platform->processingElement(job.mappingInfo().PEIx), rate);
@@ -207,7 +137,7 @@ void spider::Scheduler::vertexMapper(const pisdf::Vertex *vertex) {
                 const auto &PEReadyTime = platformStats.endTime(pe->virtualIx());
                 const auto &JobStartTime = std::max(PEReadyTime, minStartTime);
                 const auto &waitTime = JobStartTime - PEReadyTime;
-                const auto &execTime = vertexRTConstraints->timingOnPE(pe, params);
+                const auto &execTime = vertexRTConstraints->timingOnPE(pe, vertex->inputParamVector());
                 const auto &endTime = static_cast<uint64_t>(execTime) + JobStartTime;
 
                 /* == Compute communication cost == */
@@ -236,16 +166,4 @@ void spider::Scheduler::vertexMapper(const pisdf::Vertex *vertex) {
     }
     /* == Set job information and update schedule == */
     setJobInformation(vertex, bestSlave, bestStartTime, bestEndTime);
-}
-
-void spider::Scheduler::clearParameterBank() {
-    for (auto &paramVector : parameterBankVector_) {
-        for (auto &param : paramVector) {
-            if (param && !param->graph()) {
-                destroy(param);
-            }
-        }
-        paramVector.clear();
-    }
-    parameterBankVector_.clear();
 }

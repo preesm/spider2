@@ -127,7 +127,7 @@ namespace spider {
 
             inline void visit(InputInterface *interface) override {
                 /* == Header == */
-                vertexHeaderPrinter(interface->hierarchicalName(), "#ffffff00", 0);
+                vertexHeaderPrinter(interface->vertexPath(), "#ffffff00", 0);
 
                 /* == Interface printer == */
                 interfaceBodyPrinter(interface, "#87d37cff");
@@ -135,7 +135,7 @@ namespace spider {
 
             inline void visit(OutputInterface *interface) override {
                 /* == Header == */
-                vertexHeaderPrinter(interface->hierarchicalName(), "#ffffff00", 0);
+                vertexHeaderPrinter(interface->vertexPath(), "#ffffff00", 0);
 
                 /* == Interface printer == */
                 interfaceBodyPrinter(interface, "#ec644bff");
@@ -220,7 +220,7 @@ namespace spider {
                       << R"(<td border="1" sides="l" align="left" bgcolor=")" << color
                       << R"(" fixedsize="true" width=")" << width
                       << R"(" height="20"><font point-size="12" face="inconsolata"> )"
-                      << edge->sinkRateExpression().evaluate((*params_))
+                      << edge->sinkRateValue()
                       << R"(</font></td>)" << '\n';
 
                 /* == Footer == */

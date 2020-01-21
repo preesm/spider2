@@ -205,7 +205,7 @@ void spider::api::setVertexExecutionTimingOnPE(pisdf::Vertex *vertex, const PE *
         throwSpiderException("nullptr vertex.");
     }
     auto *runtimeInfo = vertex->runtimeInformation();
-    runtimeInfo->setTimingOnPE(pe, Expression(std::move(timingExpression)));
+    runtimeInfo->setTimingOnPE(pe, Expression(std::move(timingExpression), vertex->inputParamVector()));
 }
 
 void spider::api::setVertexExecutionTimingOnPE(pisdf::Vertex *vertex, const PE *pe, int64_t timing) {
@@ -221,7 +221,7 @@ void spider::api::setVertexExecutionTimingOnAllPE(pisdf::Vertex *vertex, std::st
         throwSpiderException("nullptr vertex.");
     }
     auto *runtimeInfo = vertex->runtimeInformation();
-    runtimeInfo->setTimingOnAllPE(Expression(std::move(timingExpression)));
+    runtimeInfo->setTimingOnAllPE(Expression(std::move(timingExpression), vertex->inputParamVector()));
 }
 
 void spider::api::setVertexExecutionTimingOnAllPE(pisdf::Vertex *vertex, int64_t timing) {

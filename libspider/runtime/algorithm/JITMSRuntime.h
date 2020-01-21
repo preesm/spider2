@@ -66,54 +66,44 @@ namespace spider {
 
         /* === Method(s) === */
 
-        inline void setup() const override { };
+        inline void setup() override { };
 
-        bool execute() const override;
+        bool execute() override;
 
         /* === Getter(s) === */
 
         /* === Setter(s) === */
 
     private:
-        using value_t = std::pair<size_t, size_t>;
-        stack_vector(configVertexToGraphsVector_, value_t, StackID::RUNTIME);
-
         /* === Private method(s) === */
 
         /**
          * @brief Appends @refitem spider::srdag::TransfoJob from source vector to destination vector using MOVE semantic.
          * @param src       Source vector of the TransfoJobs to move.
          * @param dest      Destination vector to move the TransfoJobs to.
-         * @param offset    Offset to apply on the job ix.
          */
         void updateJobStack(spider::vector<spider::srdag::TransfoJob> &src,
-                            spider::vector<spider::srdag::TransfoJob> &dest,
-                            size_t offset = 0) const;
+                            spider::vector<spider::srdag::TransfoJob> &dest) const;
 
         /**
          * @brief Transform all static jobs contained in staticJobStack and update the job stacks with future jobs.
          * @param staticJobStack   Static job stack.
          * @param dynamicJobStack  Dynamic job stack.
-         * @param scheduler        Pointer to the scheduler to use.
          * @param srdag            Pointer to the single-rate graph to update.
          */
         void transformStaticJobs(spider::vector<srdag::TransfoJob> &staticJobStack,
                                  spider::vector<srdag::TransfoJob> &dynamicJobStack,
-                                 Scheduler *scheduler,
-                                 pisdf::Graph *srdag) const;
+                                 pisdf::Graph *srdag);
 
         /**
          * @brief Transform all dynamic jobs contained in dynamicJobStack and update the job stacks with future jobs.
          * @param staticJobStack   Static job stack.
          * @param dynamicJobStack  Dynamic job stack.
-         * @param scheduler        Pointer to the scheduler to use.
          * @param srdag            Pointer to the single-rate graph to update.
          */
         void transformDynamicJobs(spider::vector<srdag::TransfoJob> &staticJobStack,
                                   spider::vector<srdag::TransfoJob> &dynamicJobStack,
-                                  Scheduler *scheduler,
-                                  pisdf::Graph *srdag) const;
-
+                                  pisdf::Graph *srdag);
     };
 
     /* === Inline method(s) === */
