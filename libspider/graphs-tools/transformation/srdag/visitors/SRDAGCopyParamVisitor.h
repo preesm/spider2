@@ -62,7 +62,9 @@ namespace spider {
             ~CopyParamVisitor() override = default;
 
             inline void visit(pisdf::Param *param) override {
-                copyParamVector_.emplace_back(param);
+                auto *p = make<pisdf::Param, StackID::PISDF>(param->name(), param->value());
+                p->setIx(param->ix());
+                copyParamVector_.emplace_back(p);
             }
 
             inline void visit(pisdf::DynamicParam *param) override {
