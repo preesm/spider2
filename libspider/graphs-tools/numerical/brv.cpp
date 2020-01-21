@@ -196,8 +196,9 @@ spider::brv::extractEdgesFromComponent(const ConnectedComponent &component,
                                        spider::vector<bool> &registeredEdgeVector) {
     auto edgeArray = spider::array<const pisdf::Edge *>{ component.edgeCount_, StackID::TRANSFO };
     size_t index = 0;
-    for (size_t it = component.offsetVertexVector_;
-         it < (component.offsetVertexVector_ + component.vertexCount_); ++it) {
+    auto start = component.offsetVertexVector_;
+    auto end = component.offsetVertexVector_ + component.vertexCount_;
+    for (size_t it = start; it < end; ++it) {
         const auto &vertex = component.vertexVector_[it];
         for (const auto &edge: vertex->outputEdgeVector()) {
             if (!registeredEdgeVector[edge->ix()]) {

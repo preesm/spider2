@@ -94,9 +94,9 @@ std::pair<spider::srdag::JobStack, spider::srdag::JobStack> spider::srdag::Singl
 
     /* == 1. Copy the vertex accordingly to their repetition value == */
     spider::vector<pisdf::Vertex *> delayVertexToRemove;
+    SRDAGCopyVisitor visitor{ job_, srdag_ };
     for (const auto &vertex : job_.reference_->vertices()) {
         const auto &vertexUniformIx = uniformIx(vertex, job_.reference_);
-        SRDAGCopyVisitor visitor{ job_, srdag_ };
         vertex->visit(&visitor);
         ref2Clone_[vertexUniformIx] = visitor.ix_;
         if (vertex->subtype() == pisdf::VertexType::DELAY) {
@@ -204,17 +204,14 @@ std::pair<spider::srdag::JobStack, spider::srdag::JobStack> spider::srdag::Singl
         }
 
         /* == 1.2 Do the actual copy == */
-        const auto &firstCloneIx = ref2Clone_[subgraph->ix()];
-        for (auto ix = firstCloneIx; ix < firstCloneIx + subgraph->repetitionValue(); ++ix) {
-            auto *clone = srdag_->vertex(ix); /* = same value but if clone->ix changes, value in transfojob will change also = */
-            nextJobs.emplace_back(subgraph, clone->ix(), ix - firstCloneIx);
-
-            auto &job = nextJobs.back();
-            job.params_.reserve(runGraph->paramCount());
-            auto *runJob = &(dynaJobs.at(index++));
-            for (auto &param : runJob->params_) {
-                job.params_.emplace_back(param);
-            }
+        const auto &cloneIx = ref2Clone_[subgraph->ix()];
+        auto *clone = srdag_->vertex(cloneIx); /* = same value but if clone->ix changes, value in transfojob will change also = */
+        nextJobs.emplace_back(subgraph, clone->ix(), 0);
+        auto &job = nextJobs.back();
+        job.params_.reserve(subgraph->paramCount());
+        auto *runJob = &(dynaJobs.at(index++));
+        for (auto &param : runJob->params_) {
+            job.params_.emplace_back(param);
         }
     }
     return std::make_pair(std::move(nextJobs), std::move(dynaJobs));

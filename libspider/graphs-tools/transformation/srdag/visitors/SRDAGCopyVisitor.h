@@ -71,28 +71,25 @@ namespace spider {
                 ix_ = srdag_->vertexCount() - 1;
             }
 
-            inline void visit(pisdf::ExecVertex *vertex) override {
-                pisdf::CloneVisitor cloneVisitor{srdag_};
-                for (uint32_t it = 0; it < vertex->repetitionValue(); ++it) {
-                    vertex->visit(&cloneVisitor);
-                    /* == Change the name of the clone == */
-                    auto *clone = srdag_->vertices().back();
-                    clone->setName(buildCloneName(vertex, it));
-                    clone->setInstanceValue(it);
+            inline void visit(pisdf::ExecVertex *vertex) override { clone(vertex); }
 
-                    /* == Get the cloned parameters == */
-                    for (const auto &param : vertex->inputParamVector()) {
-                        clone->addInputParameter(job_.params_[param->ix()]);
-                    }
-                    for (const auto &param : vertex->refinementParamVector()) {
-                        clone->addRefinementParameter(job_.params_[param->ix()]);
-                    }
-                    for (const auto &param : vertex->outputParamVector()) {
-                        clone->addOutputParameter(job_.params_[param->ix()]);
-                    }
-                }
-                ix_ = (srdag_->vertexCount() - 1) - (vertex->repetitionValue() - 1);
-            }
+            inline void visit(pisdf::ConfigVertex *vertex) override { clone(vertex); }
+
+            inline void visit(pisdf::ForkVertex *vertex) override { clone(vertex); }
+
+            inline void visit(pisdf::JoinVertex *vertex) override { clone(vertex); }
+
+            inline void visit(pisdf::HeadVertex *vertex) override { clone(vertex); }
+
+            inline void visit(pisdf::TailVertex *vertex) override { clone(vertex); }
+
+            inline void visit(pisdf::DuplicateVertex *vertex) override { clone(vertex); }
+
+            inline void visit(pisdf::RepeatVertex *vertex) override { clone(vertex); }
+
+            inline void visit(pisdf::InitVertex *vertex) override { clone(vertex); }
+
+            inline void visit(pisdf::EndVertex *vertex) override { clone(vertex); }
 
             inline void visit(pisdf::Graph *graph) override {
                 /* == Clone the vertex == */
@@ -115,6 +112,29 @@ namespace spider {
                 const auto *graphRef = job_.firingValue_ == UINT32_MAX ?
                                        job_.reference_ : srdag_->vertex(*(job_.srdagIx_));
                 return graphRef->name() + ":" + vertex->name() + "-" + std::to_string(firing);
+            }
+
+            template<class T>
+            inline void clone(const T *vertex) {
+                for (uint32_t it = 0; it < vertex->repetitionValue(); ++it) {
+                    auto *clone = make<T>(StackID::PISDF, (*vertex));
+                    srdag_->addVertex(clone);
+                    /* == Change the name of the clone == */
+                    clone->setName(buildCloneName(vertex, it));
+                    clone->setInstanceValue(it);
+
+                    /* == Get the cloned parameters == */
+                    for (const auto &param : vertex->inputParamVector()) {
+                        clone->addInputParameter(job_.params_[param->ix()]);
+                    }
+                    for (const auto &param : vertex->refinementParamVector()) {
+                        clone->addRefinementParameter(job_.params_[param->ix()]);
+                    }
+                    for (const auto &param : vertex->outputParamVector()) {
+                        clone->addOutputParameter(job_.params_[param->ix()]);
+                    }
+                }
+                ix_ = (srdag_->vertexCount() - 1) - (vertex->repetitionValue() - 1);
             }
         };
     }
