@@ -367,13 +367,7 @@ namespace spider {
              * or if the graph is not an init graph
              * or if the graph already has a reference.
              */
-            bool setRunGraphReference(const Graph *runGraph) {
-                if (dynamic() || !configVertexCount() || runGraphReference_ || !runGraph) {
-                    return false;
-                }
-                runGraphReference_ = runGraph;
-                return true;
-            }
+            bool setRunGraphReference(const Graph *runGraph);
 
         private:
             bool dynamic_ = false;     /* = Dynamic property of the Graph (false if static, true if dynamic) = */
@@ -403,7 +397,7 @@ namespace spider {
             /* === Private method(s) === */
 
             template<class T>
-            void removeElement(spider::vector<T *> &eltVector, T *elt);
+            void removeElement(spider::vector<T> &eltVector, T &elt);
         };
     }
 }

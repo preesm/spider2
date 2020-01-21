@@ -184,10 +184,18 @@ spider::pisdf::Param *spider::pisdf::Graph::paramFromName(const std::string &nam
     return nullptr;
 }
 
+bool spider::pisdf::Graph::setRunGraphReference(const spider::pisdf::Graph *runGraph) {
+    if (dynamic() || !configVertexCount() || runGraphReference_ || !runGraph) {
+        return false;
+    }
+    runGraphReference_ = runGraph;
+    return true;
+}
+
 /* === Private method(s) === */
 
 template<class T>
-void spider::pisdf::Graph::removeElement(spider::vector<T *> &eltVector, T *elt) {
+void spider::pisdf::Graph::removeElement(spider::vector<T> &eltVector, T &elt) {
     if (!elt) {
         return;
     }
@@ -199,7 +207,7 @@ void spider::pisdf::Graph::removeElement(spider::vector<T *> &eltVector, T *elt)
         throwSpiderException("Different element in ix position. Expected: %s -- Got: %s", elt->name().c_str(),
                              eltVector[ix]->name().c_str());
     }
-    eltVector[ix] = eltVector.back();
+    eltVector[ix] = std::move(eltVector.back());
     eltVector[ix]->setIx(ix);
     eltVector.pop_back();
 }
