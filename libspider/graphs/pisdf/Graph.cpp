@@ -149,11 +149,44 @@ void spider::pisdf::Graph::addParam(Param *param) {
     dynamic_ |= (param->dynamic() && param->type() != ParamType::INHERITED);
 }
 
-void spider::pisdf::Graph::moveVertex(spider::pisdf::Vertex *elt, spider::pisdf::Graph *graph) {
+void spider::pisdf::Graph::moveVertex(Vertex *elt, Graph *graph) {
     if (!graph || !elt) {
         return;
     }
     removeElement(vertexVector_, elt);
+    graph->addVertex(elt);
+}
+
+void spider::pisdf::Graph::moveConfigVertex(ConfigVertex *elt, Graph *graph) {
+    if (!graph || !elt) {
+        return;
+    }
+    removeElement(vertexVector_, static_cast<Vertex *>(elt));
+    size_t index = 0;
+    for (auto &cfg : configVertexVector_) {
+        if (cfg == elt) {
+            cfg = configVertexVector_.back();
+            configVertexVector_.pop_back();
+            break;
+        }
+        index++;
+    }
+    graph->addVertex(elt);
+}
+
+void spider::pisdf::Graph::moveSubgraph(Graph *elt, Graph *graph) {
+    if (!graph || !elt) {
+        return;
+    }
+    removeElement(vertexVector_, static_cast<Vertex *>(elt));
+
+    /* == Remove the vertex and destroy it == */
+    auto subIx = elt->subIx_;
+
+    /* == Remove the subgraph from the subgraph vector == */
+    subgraphVector_[subIx] = graph_->subgraphVector_.back();
+    subgraphVector_[subIx]->subIx_ = subIx;
+    subgraphVector_.pop_back();
     graph->addVertex(elt);
 }
 
@@ -171,6 +204,9 @@ void spider::pisdf::Graph::moveParam(spider::pisdf::Param *elt, spider::pisdf::G
     }
     removeElement(paramVector_, elt);
     graph->addParam(elt);
+    if (paramVector_.empty()) {
+        dynamic_ = false;
+    }
 }
 
 spider::pisdf::Param *spider::pisdf::Graph::paramFromName(const std::string &name) {
@@ -195,7 +231,7 @@ bool spider::pisdf::Graph::setRunGraphReference(const spider::pisdf::Graph *runG
 /* === Private method(s) === */
 
 template<class T>
-void spider::pisdf::Graph::removeElement(spider::vector<T> &eltVector, T &elt) {
+void spider::pisdf::Graph::removeElement(spider::vector<T *> &eltVector, T *elt) {
     if (!elt) {
         return;
     }

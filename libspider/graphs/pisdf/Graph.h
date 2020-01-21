@@ -147,6 +147,26 @@ namespace spider {
             void moveVertex(Vertex *elt, Graph *graph);
 
             /**
+             * @brief Move ConfigVertex ownership from this graph to another graph.
+             * @remark If graph or ConfigVertex is nullptr, nothing happen.
+             * @param elt    ConfigVertex to move.
+             * @param graph  Graph to move to.
+             * @throws spider::Exception if failed to remove ConfigVertex from current graph or failed to add it to new graph.
+             * Be aware that in the latter case the ConfigVertex has already been removed from the graph.
+             */
+            void moveConfigVertex(ConfigVertex *elt, Graph *graph);
+
+            /**
+             * @brief Move subgraph ownership from this graph to another graph.
+             * @remark If graph or subgraph is nullptr, nothing happen.
+             * @param elt    Subgraph to move.
+             * @param graph  Graph to move to.
+             * @throws spider::Exception if failed to remove subgraph from current graph or failed to add it to new graph.
+             * Be aware that in the latter case the subgraph has already been removed from the graph.
+             */
+            void moveSubgraph(Graph *elt, Graph *graph);
+
+            /**
              * @brief Move edge ownership from this graph to another graph.
              * @remark If graph or edge is nullptr, nothing happen.
              * @warning This method simply moves ownership of the Edge, no check on src / snk are performed.
@@ -397,7 +417,7 @@ namespace spider {
             /* === Private method(s) === */
 
             template<class T>
-            void removeElement(spider::vector<T> &eltVector, T &elt);
+            void removeElement(spider::vector<T*> &eltVector, T *elt);
         };
     }
 }
