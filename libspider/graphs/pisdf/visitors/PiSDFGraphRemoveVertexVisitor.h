@@ -63,17 +63,17 @@ namespace spider {
                 graph_->subgraphVector_[ix]->subIx_ = ix;
                 graph_->subgraphVector_.pop_back();
 
-                destroyVertex(subgraph);
+                destroy(subgraph);
             }
 
             inline void visit(ExecVertex *vertex) override {
                 /* == Remove the vertex and destroy it == */
-                destroyVertex(vertex);
+                destroy(vertex);
             }
 
             inline void visit(NonExecVertex *vertex) override {
                 /* == Remove the vertex and destroy it == */
-                destroyVertex(vertex);
+                destroy(vertex);
             }
 
             inline void visit(ConfigVertex *vertex) override {
@@ -87,63 +87,58 @@ namespace spider {
                 }
 
                 /* == Remove the vertex and destroy it == */
-                destroyVertex(vertex);
+                destroy(vertex);
             }
 
             inline void visit(DelayVertex *vertex) override {
                 /* == Remove the vertex and destroy it == */
-                destroyVertex(vertex);
+                destroy(vertex);
             }
 
             inline void visit(ForkVertex *vertex) override {
                 /* == Remove the vertex and destroy it == */
-                destroyVertex(vertex);
+                destroy(vertex);
             }
 
             inline void visit(JoinVertex *vertex) override {
                 /* == Remove the vertex and destroy it == */
-                destroyVertex(vertex);
+                destroy(vertex);
             }
 
             inline void visit(HeadVertex *vertex) override {
                 /* == Remove the vertex and destroy it == */
-                destroyVertex(vertex);
+                destroy(vertex);
             }
 
             inline void visit(TailVertex *vertex) override {
                 /* == Remove the vertex and destroy it == */
-                destroyVertex(vertex);
+                destroy(vertex);
             }
 
             inline void visit(DuplicateVertex *vertex) override {
                 /* == Remove the vertex and destroy it == */
-                destroyVertex(vertex);
+                destroy(vertex);
             }
 
             inline void visit(RepeatVertex *vertex) override {
                 /* == Remove the vertex and destroy it == */
-                destroyVertex(vertex);
+                destroy(vertex);
             }
 
             inline void visit(InitVertex *vertex) override {
                 /* == Remove the vertex and destroy it == */
-                destroyVertex(vertex);
+                destroy(vertex);
             }
 
             inline void visit(EndVertex *vertex) override {
                 /* == Remove the vertex and destroy it == */
-                destroyVertex(vertex);
+                destroy(vertex);
             }
 
             /* == Graph to add vertex to == */
             Graph *graph_ = nullptr;
 
         private:
-            template<class T>
-            inline void destroyVertex(T *vertex) {
-                graph_->removeElement(graph_->vertexVector_, static_cast<Vertex *>(vertex));
-                destroy(vertex);
-            }
         };
 
     }

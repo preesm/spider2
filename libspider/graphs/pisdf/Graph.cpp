@@ -96,9 +96,8 @@ spider::pisdf::Graph::~Graph() noexcept {
     }
 
     /* == Destroy / deallocate vertices (subgraphs included) == */
-    GraphRemoveVertexVisitor rmVertexVisitor{ this };
     for (auto &vertex : vertexVector_) {
-        vertex->visit(&rmVertexVisitor);
+        removeVertex(vertex);
     }
 
     /* == Destroy / deallocate interfaces == */
@@ -121,6 +120,7 @@ void spider::pisdf::Graph::addVertex(Vertex *vertex) {
 }
 
 void spider::pisdf::Graph::removeVertex(Vertex *vertex) {
+    removeElement(vertexVector_, vertex);
     GraphRemoveVertexVisitor rmVertexVisitor{ this };
     vertex->visit(&rmVertexVisitor);
 }
