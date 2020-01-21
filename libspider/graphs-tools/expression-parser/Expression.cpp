@@ -46,17 +46,16 @@
 #include <graphs/pisdf/Param.h>
 #include <graphs/pisdf/Graph.h>
 #include <api/config-api.h>
+#include "Expression.h"
 
 /* === Static method(s) === */
 
-static std::pair<spider::pisdf::Param *, uint32_t>
+static spider::pisdf::Param *
 findParam(const spider::vector<spider::pisdf::Param *> &params, const std::string &name) {
-    uint32_t ix = 0;
     for (const auto &p : params) {
         if (p->name() == name) {
-            return std::make_pair(p, ix);
+            return p;
         }
-        ix += 1;
     }
     throwSpiderException("Did not find parameter [%s] for expression parsing.", name.c_str());
 }
@@ -176,8 +175,7 @@ spider::vector<spider::ExpressionElt> spider::Expression::buildExpressionStack(s
         if (elt.type == RPNElementType::OPERAND) {
             argCount += 1;
             if (elt.subtype == RPNElementSubType::PARAMETER) {
-                const auto &pair = findParam(params, elt.token);
-                const auto &param = pair.first;
+                const auto &param = findParam(params, elt.token);
                 const auto &dynamic = param->dynamic();
                 const auto &value = static_cast<double>(param->value());
                 evalStack.emplace_back(value);
@@ -191,7 +189,6 @@ spider::vector<spider::ExpressionElt> spider::Expression::buildExpressionStack(s
                     stack.back().arg.value_ = value;
                 } else {
                     skipEval = true;
-                    stack.back().arg.value_ = static_cast<double>(pair.second);
                 }
             } else {
                 const auto &value = std::strtod(elt.token.c_str(), nullptr);
@@ -237,9 +234,8 @@ double spider::Expression::evaluateStack(const spider::vector<pisdf::Param *> &p
     for (const auto &elt : *(expressionStack_)) {
         if (elt.elt_.type == RPNElementType::OPERAND) {
             if (elt.elt_.subtype == RPNElementSubType::PARAMETER) {
-                const auto &paramIx = static_cast<size_t>(elt.arg.value_);
-                const auto &paramValue = params[paramIx]->value();
-                evalStack.emplace_back(static_cast<double>(paramValue));
+                const auto &param = findParam(params, elt.elt_.token);
+                evalStack.emplace_back(static_cast<double>(param->value()));
             } else {
                 evalStack.emplace_back(elt.arg.value_);
             }
