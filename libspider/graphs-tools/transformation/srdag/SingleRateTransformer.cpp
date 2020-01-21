@@ -83,7 +83,7 @@ spider::srdag::SingleRateTransformer::SingleRateTransformer(const TransfoJob &jo
     auto *graph = job_.reference_;
 
     /* == 0. Compute the repetition vector == */
-    if (graph->dynamic() || (job_.firingValue_ == 0) || (job_.firingValue_ == UINT32_MAX)) {
+    if (graph->dynamic() || (job_.firingValue_ == 0) || (job_.root_)) {
         brv::compute(graph, job_.params_);
     }
 
@@ -179,12 +179,13 @@ std::pair<spider::srdag::JobStack, spider::srdag::JobStack> spider::srdag::Singl
         } else {
             auto &jobStack = subgraph->dynamic() ? dynaJobs : nextJobs;
             const auto &firstCloneIx = ref2Clone_[subgraph->ix()];
-            for (auto ix = firstCloneIx + subgraph->repetitionValue(); ix > firstCloneIx; --ix) {
-                auto *clone = srdag_->vertex(ix - 1);
-                jobStack.emplace_back(subgraph, clone->ix(), ix - 1 - firstCloneIx);
+            for (auto ix = firstCloneIx; ix < firstCloneIx + subgraph->repetitionValue(); ++ix) {
+                auto *clone = srdag_->vertex(ix); /* = same value but if clone->ix changes, value in transfojob will change also = */
+                jobStack.emplace_back(subgraph, clone->ix(), ix - firstCloneIx);
 
                 /* == Copy the params == */
-                CopyParamVisitor cpyVisitor{ job_, jobStack.back().params_ };
+                auto &job = jobStack.back();
+                CopyParamVisitor cpyVisitor{ job_, job.params_ };
                 for (const auto &param : subgraph->params()) {
                     param->visit(&cpyVisitor);
                 }
@@ -211,24 +212,15 @@ std::pair<spider::srdag::JobStack, spider::srdag::JobStack> spider::srdag::Singl
 
         /* == 1.2 Do the actual copy == */
         const auto &firstCloneIx = ref2Clone_[subgraph->ix()];
-        for (auto ix = firstCloneIx + subgraph->repetitionValue() - 1; ix >= firstCloneIx; --ix) {
-            auto *runJob = &(dynaJobs.at(index++));
-            auto *clone = srdag_->vertex(ix);
+        for (auto ix = firstCloneIx; ix < firstCloneIx + subgraph->repetitionValue(); ++ix) {
+            auto *clone = srdag_->vertex(ix); /* = same value but if clone->ix changes, value in transfojob will change also = */
             nextJobs.emplace_back(subgraph, clone->ix(), ix - firstCloneIx);
 
             auto &job = nextJobs.back();
             job.params_.reserve(runGraph->paramCount());
+            auto *runJob = &(dynaJobs.at(index++));
             for (auto &param : runJob->params_) {
-                if (param->dynamic()) {
-                    job.params_.emplace_back(nullptr);
-                } else if (!param->graph()) {
-                    /* == copy static inherited params == */
-                    auto *p = make<pisdf::Param, StackID::TRANSFO>(param->name(), param->value());
-                    p->setIx(param->ix());
-                    job.params_.emplace_back(p);
-                } else {
-                    job.params_.emplace_back(param);
-                }
+                job.params_.emplace_back(param);
             }
         }
     }
