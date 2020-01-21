@@ -54,11 +54,6 @@ namespace spider {
 
         explicit BestFitScheduler(pisdf::Graph *graph) : ListScheduler(graph) { };
 
-        BestFitScheduler(pisdf::Graph *graph,
-                         const spider::vector<pisdf::Param *> &params) : ListScheduler(graph, params) {
-
-        };
-
         ~BestFitScheduler() override = default;
 
         /* === Method(s) === */

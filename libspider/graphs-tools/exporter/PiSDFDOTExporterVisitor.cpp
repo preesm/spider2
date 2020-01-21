@@ -85,7 +85,9 @@ void spider::pisdf::PiSDFDOTExporterVisitor::visit(Graph *graph) {
     /* == Write parameters (if any) == */
     file_ << '\n' << offset_ << R"(// Parameters)" << '\n';
     for (const auto &param : graph->params()) {
-        param->visit(this);
+        if (param->graph() == graph) {
+            param->visit(this);
+        }
     }
 
     /* == Write edges == */

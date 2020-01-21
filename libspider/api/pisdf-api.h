@@ -44,6 +44,7 @@
 
 #include <cstdint>
 #include <string>
+#include <memory>
 #include <api/global-api.h>
 
 /* === API methods === */
@@ -299,7 +300,7 @@ namespace spider {
          * @param value   Value of the parameter.
          * @return pointer to the created @refitem pisdf::Param.
          */
-        pisdf::Param *createStaticParam(pisdf::Graph *graph, std::string name, int64_t value);
+        std::shared_ptr<pisdf::Param> createStaticParam(pisdf::Graph *graph, std::string name, int64_t value);
 
         /**
          * @brief Creates a static @refitem pisdf::Param with static expression.
@@ -309,7 +310,8 @@ namespace spider {
          * @param expression Expression of the parameter.
          * @return pointer to the created @refitem pisdf::Param.
          */
-        pisdf::Param *createStaticParam(pisdf::Graph *graph, std::string name, std::string expression);
+        std::shared_ptr<spider::pisdf::Param>
+        createStaticParam(pisdf::Graph *graph, std::string name, std::string expression);
 
         /**
          * @brief Creates a @refitem pisdf::DynamicParam.
@@ -318,7 +320,7 @@ namespace spider {
          * @param name       Name of the parameter (will be transformed to lowercase).
          * @return pointer to the created @refitem pisdf::DynamicParam.
          */
-        pisdf::DynamicParam *createDynamicParam(pisdf::Graph *graph, std::string name);
+        std::shared_ptr<spider::pisdf::Param> createDynamicParam(pisdf::Graph *graph, std::string name);
 
         /**
          * @brief Creates a @refitem pisdf::DynamicParam with dynamic expression.
@@ -328,7 +330,8 @@ namespace spider {
          * @param expression Expression of the parameter.
          * @return pointer to the created @refitem pisdf::DynamicParam.
          */
-        pisdf::DynamicParam *createDynamicParam(pisdf::Graph *graph, std::string name, std::string expression);
+        std::shared_ptr<spider::pisdf::Param>
+        createDynamicParam(pisdf::Graph *graph, std::string name, std::string expression);
 
         /**
          * @brief Creates a @refitem pisdf::InheritedParam.
@@ -340,7 +343,8 @@ namespace spider {
          * @return pointer to the created @refitem pisdf::Param.
          * @throws @refitem spider::Exception if parent parameter is nullptr.
          */
-        pisdf::Param *createInheritedParam(pisdf::Graph *graph, std::string name, pisdf::Param *parent);
+        std::shared_ptr<spider::pisdf::Param>
+        createInheritedParam(pisdf::Graph *graph, std::string name, pisdf::Param *parent);
 
         /**
          * @brief Creates a @refitem pisdf::InheritedParam.
@@ -352,7 +356,8 @@ namespace spider {
          * @throws @refitem spider::Exception if parent parameter is not found or if graph is nullptr or if
          * graph does not have any parent graph.
          */
-        pisdf::Param *createInheritedParam(pisdf::Graph *graph, std::string name, const std::string &parentName);
+        std::shared_ptr<spider::pisdf::Param>
+        createInheritedParam(pisdf::Graph *graph, std::string name, const std::string &parentName);
 
         /**
          * @brief Add an input parameter to a given Vertex.
@@ -360,7 +365,7 @@ namespace spider {
          * @param vertex  Pointer to the vertex to evaluate.
          * @param param   Pointer to the parameter to add.
          */
-        void addInputParamToVertex(pisdf::Vertex *vertex, pisdf::Param *param);
+        void addInputParamToVertex(pisdf::Vertex *vertex, std::shared_ptr<spider::pisdf::Param> param);
 
         /**
          * @brief Add an input parameter to a given Vertex for its refinement.
@@ -369,7 +374,7 @@ namespace spider {
          * @param vertex  Pointer to the vertex to evaluate.
          * @param param   Pointer to the parameter to add.
          */
-        void addInputRefinementParamToVertex(pisdf::Vertex *vertex, pisdf::Param *param);
+        void addInputRefinementParamToVertex(pisdf::Vertex *vertex, std::shared_ptr<spider::pisdf::Param> param);
 
         /**
          * @brief Add an output parameter to a given Vertex.
@@ -378,7 +383,7 @@ namespace spider {
          * @param param   Pointer to the parameter to add.
          * @throw spider::Exception if vertex is not of type @refitem VertexType::ConfigVertex.
          */
-        void addOutputParamToVertex(pisdf::Vertex *vertex, pisdf::Param *param);
+        void addOutputParamToVertex(pisdf::Vertex *vertex, std::shared_ptr<spider::pisdf::Param> param);
 
         /* === Edge API === */
 

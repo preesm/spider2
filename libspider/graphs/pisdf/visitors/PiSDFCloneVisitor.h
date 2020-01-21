@@ -94,18 +94,15 @@ namespace spider {
             inline void visit(EndVertex *vertex) override { clone(vertex); }
 
             inline void visit(Param *param) override {
-                auto *clone = make<Param>((*param));
-                graph_->addParam(clone);
+                graph_->addParam(make_shared<Param>(StackID::PISDF, (*param)));
             }
 
             inline void visit(DynamicParam *param) override {
-                auto *clone = make<DynamicParam>((*param));
-                graph_->addParam(clone);
+                graph_->addParam(make_shared<DynamicParam>(StackID::PISDF, (*param)));
             }
 
             inline void visit(InHeritedParam *param) override {
-                auto *clone = make<InHeritedParam>((*param));
-                graph_->addParam(clone);
+                graph_->addParam(make_shared<InHeritedParam>(StackID::PISDF, (*param)));
             }
 
             /* == Graph to add vertex to == */

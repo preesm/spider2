@@ -149,7 +149,7 @@ namespace spider {
              * @warning If value of the delay is set by dynamic parameter, it is user responsability to ensure proper
              * order of call.
              */
-            int64_t value(const spider::vector<Param *> &params) const;
+            int64_t value(const spider::vector<std::shared_ptr<Param>> &params) const;
 
             inline bool isPersistent() const {
                 return persistent_;

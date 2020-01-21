@@ -115,19 +115,19 @@ void spider::pisdf::Vertex::connectEdge(spider::vector<Edge *> &edges, Edge *edg
     throwSpiderException("Edge already exists at position: %zu", ix);
 }
 
-void spider::pisdf::Vertex::addInputParameter(spider::pisdf::Param *param) {
-    inputParamVector_.emplace_back(param);
+void spider::pisdf::Vertex::addInputParameter(std::shared_ptr<Param> param) {
+    inputParamVector_.emplace_back(std::move(param));
 }
 
-void spider::pisdf::Vertex::addOutputParameter(spider::pisdf::Param *param) {
+void spider::pisdf::Vertex::addOutputParameter(std::shared_ptr<Param> param) {
     if (subtype() != VertexType::CONFIG) {
         throwSpiderException("[%s] can not have output parameter.", name().c_str());
     }
-    outputParamVector_.emplace_back(param);
+    outputParamVector_.emplace_back(std::move(param));
 }
 
-void spider::pisdf::Vertex::addRefinementParameter(Param *param) {
-    refinementParamVector_.emplace_back(param);
+void spider::pisdf::Vertex::addRefinementParameter(std::shared_ptr<Param> param) {
+    refinementParamVector_.emplace_back(std::move(param));
 }
 
 std::string spider::pisdf::Vertex::vertexPath() const {

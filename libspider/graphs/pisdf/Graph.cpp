@@ -107,11 +107,6 @@ spider::pisdf::Graph::~Graph() noexcept {
     for (auto &interface : outputInterfaceVector_) {
         destroy(interface);
     }
-
-    /* == Destroy / deallocate params == */
-    for (auto &param : paramVector_) {
-        destroy(param);
-    }
 }
 
 void spider::pisdf::Graph::addVertex(Vertex *vertex) {
@@ -136,17 +131,19 @@ void spider::pisdf::Graph::removeEdge(Edge *edge) {
     destroy(edge);
 }
 
-void spider::pisdf::Graph::addParam(Param *param) {
+void spider::pisdf::Graph::addParam(std::shared_ptr<Param> param) {
     /* == Check if a parameter with the same name already exists in the scope of this graph == */
     for (auto &p : paramVector_) {
         if (p->name() == param->name()) {
             throwSpiderException("Parameter [%s] already exist in graph [%s].", param->name().c_str(), name().c_str());
         }
     }
-    param->setIx(paramVector_.size());
-    param->setGraph(this);
-    paramVector_.emplace_back(param);
+    if (!param->graph()) {
+        param->setIx(paramVector_.size());
+        param->setGraph(this);
+    }
     dynamic_ |= (param->dynamic() && param->type() != ParamType::INHERITED);
+    paramVector_.emplace_back(std::move(param));
 }
 
 void spider::pisdf::Graph::moveVertex(Vertex *elt, Graph *graph) {
@@ -198,23 +195,12 @@ void spider::pisdf::Graph::moveEdge(spider::pisdf::Edge *elt, spider::pisdf::Gra
     graph->addEdge(elt);
 }
 
-void spider::pisdf::Graph::moveParam(spider::pisdf::Param *elt, spider::pisdf::Graph *graph) {
-    if (!graph || !elt) {
-        return;
-    }
-    removeElement(paramVector_, elt);
-    graph->addParam(elt);
-    if (paramVector_.empty()) {
-        dynamic_ = false;
-    }
-}
-
 spider::pisdf::Param *spider::pisdf::Graph::paramFromName(const std::string &name) {
     std::string lowerCaseName = name;
     std::transform(lowerCaseName.begin(), lowerCaseName.end(), lowerCaseName.begin(), ::tolower);
     for (auto &param : paramVector_) {
         if (param->name() == lowerCaseName) {
-            return param;
+            return param.get();
         }
     }
     return nullptr;
@@ -226,6 +212,10 @@ bool spider::pisdf::Graph::setRunGraphReference(const spider::pisdf::Graph *runG
     }
     runGraphReference_ = runGraph;
     return true;
+}
+
+void spider::pisdf::Graph::overrideDynamicProperty(bool value) {
+    dynamic_ = value;
 }
 
 /* === Private method(s) === */

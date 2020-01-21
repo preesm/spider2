@@ -76,28 +76,46 @@ bool spider::srdag::splitDynamicGraph(pisdf::Graph *subgraph) {
     const auto &runOutputIFCount = subgraph->outputEdgeCount() - initOutputIFCount;
 
     /* == Create the init subgraph == */
-    auto *initGraph = api::createSubgraph(subgraph->graph(),
-                                          "ginit-" + subgraph->name(),
-                                          static_cast<uint32_t>(subgraph->configVertexCount()),
-                                          initInputIFCount + initOutputIFCount + cfgInputIFCount,
-                                          0,
-                                          initInputIFCount,
-                                          initOutputIFCount + cfgInputIFCount,
-                                          static_cast<uint32_t>(subgraph->configVertexCount()));
+    auto *initGraph = api::createGraph("g_init",
+                                       subgraph->configVertexCount(),
+                                       initInputIFCount + initOutputIFCount + cfgInputIFCount,
+                                       0,
+                                       initInputIFCount,
+                                       initOutputIFCount + cfgInputIFCount,
+                                       subgraph->configVertexCount());
 
     /* == Create the run subgraph == */
-    auto *runGraph = api::createSubgraph(subgraph->graph(),
-                                         "grun-" + subgraph->name(),
-                                         static_cast<uint32_t>(subgraph->vertexCount()),
-                                         static_cast<uint32_t>(subgraph->edgeCount()),
-                                         static_cast<uint32_t>(subgraph->paramCount()),
-                                         static_cast<uint32_t>(runInputIFCount),
-                                         static_cast<uint32_t>(runOutputIFCount),
-                                         0);
+    auto *runGraph = api::createGraph("g_run",
+                                      subgraph->vertexCount(),
+                                      subgraph->edgeCount(),
+                                      subgraph->paramCount(),
+                                      runInputIFCount,
+                                      runOutputIFCount,
+                                      0);
 
-    /* == Set repetition values == */
-    initGraph->setRepetitionValue(subgraph->repetitionValue());
-    runGraph->setRepetitionValue(subgraph->repetitionValue());
+    /* == Move the edges == */
+    for (auto &edge : subgraph->edges()) {
+        subgraph->moveEdge(edge, runGraph);
+    }
+
+    /* == Move the config vertex == */
+    for (auto &vertex : subgraph->configVertices()) {
+        subgraph->moveConfigVertex(vertex, initGraph);
+    }
+
+    /* == Move the subgraphs == */
+    for (auto &subg : subgraph->subgraphs()) {
+        subgraph->moveSubgraph(subg, runGraph);
+    }
+
+    /* == Move the vertices == */
+    for (auto &vertex : subgraph->vertices()) {
+        subgraph->moveVertex(vertex, runGraph);
+    }
+
+    /* == Add init / run graphs == */
+    subgraph->addVertex(initGraph);
+    subgraph->addVertex(runGraph);
 
     uint32_t inputInitIx = 0;
     uint32_t inputRunIx = 0;
@@ -108,22 +126,31 @@ bool spider::srdag::splitDynamicGraph(pisdf::Graph *subgraph) {
             auto *edge = input->outputEdge();
             edge->setSource(initGraph->inputInterface(inputInitIx), 0, Expression(edge->sourceRateExpression()));
             edge->source()->setName(input->name());
-            subgraph->moveEdge(edge, initGraph);
+            runGraph->moveEdge(edge, initGraph);
 
-            /* == Reconnect outside edge == */
-            auto *inputEdge = input->inputEdge();
-            inputEdge->setSink(initGraph, inputInitIx, Expression(inputEdge->sinkRateExpression()));
+            /* == Connect the edge of the original subgraph == */
+            auto *inputEdge = make<pisdf::Edge, StackID::PISDF>(input,
+                                                                0,
+                                                                Expression(edge->sourceRateExpression()),
+                                                                initGraph,
+                                                                inputInitIx,
+                                                                Expression(edge->sourceRateExpression()));
+            subgraph->addEdge(inputEdge);
             inputInitIx += 1;
         } else {
             /* == Reconnect and move inner edge in run graph == */
             auto *edge = input->outputEdge();
             edge->setSource(runGraph->inputInterface(inputRunIx), 0, Expression(edge->sourceRateExpression()));
             edge->source()->setName(input->name());
-            subgraph->moveEdge(edge, runGraph);
 
-            /* == Reconnect outside edge == */
-            auto *inputEdge = input->inputEdge();
-            inputEdge->setSink(runGraph, inputRunIx, Expression(inputEdge->sinkRateExpression()));
+            /* == Connect the edge of the original subgraph == */
+            auto *inputEdge = make<pisdf::Edge, StackID::PISDF>(input,
+                                                                0,
+                                                                Expression(edge->sourceRateExpression()),
+                                                                runGraph,
+                                                                inputRunIx,
+                                                                Expression(edge->sourceRateExpression()));
+            subgraph->addEdge(inputEdge);
             inputRunIx += 1;
         }
     }
@@ -137,39 +164,46 @@ bool spider::srdag::splitDynamicGraph(pisdf::Graph *subgraph) {
             auto *edge = output->inputEdge();
             edge->setSink(initGraph->outputInterface(outputInitIx), 0, Expression(edge->sinkRateExpression()));
             edge->sink()->setName(output->name());
-            subgraph->moveEdge(edge, initGraph);
+            runGraph->moveEdge(edge, initGraph);
 
-            /* == Reconnect outside edge == */
-            auto *outputEdge = output->outputEdge();
-            outputEdge->setSource(initGraph, outputInitIx, Expression(outputEdge->sourceRateExpression()));
+            /* == Connect the edge of the original subgraph == */
+            auto *outputEdge = make<pisdf::Edge, StackID::PISDF>(initGraph,
+                                                                 outputInitIx,
+                                                                 Expression(edge->sinkRateExpression()),
+                                                                 output,
+                                                                 0,
+                                                                 Expression(edge->sinkRateExpression()));
+            subgraph->addEdge(outputEdge);
             outputInitIx += 1;
         } else {
             /* == Reconnect and move inner edge in run graph == */
             auto *edge = output->inputEdge();
             edge->setSink(runGraph->outputInterface(outputRunIx), 0, Expression(edge->sinkRateExpression()));
             edge->sink()->setName(output->name());
-            subgraph->moveEdge(edge, runGraph);
 
-            /* == Reconnect outside edge == */
-            auto *outputEdge = output->outputEdge();
-            outputEdge->setSource(runGraph, outputRunIx, Expression(outputEdge->sourceRateExpression()));
+            /* == Connect the edge of the original subgraph == */
+            auto *outputEdge = make<pisdf::Edge, StackID::PISDF>(runGraph,
+                                                                 outputRunIx,
+                                                                 Expression(edge->sinkRateExpression()),
+                                                                 output,
+                                                                 0,
+                                                                 Expression(edge->sinkRateExpression()));
+            subgraph->addEdge(outputEdge);
             outputRunIx += 1;
         }
     }
 
     for (auto &cfg : subgraph->configVertices()) {
-        subgraph->moveVertex(cfg, initGraph);
         for (auto edge : cfg->outputEdgeVector()) {
             const auto &sink = edge->sink();
             if (sink->subtype() != pisdf::VertexType::OUTPUT) {
-                const auto &srcRate = edge->sourceRateExpression().evaluate(subgraph->params());
+                const auto &srcRate = edge->sourceRateValue(); /* = Config actors can not have dynamic rate = */
                 const auto &srcPortIx = edge->sourcePortIx();
                 const auto &name = cfg->name() + "_out-" + std::to_string(srcPortIx);
 
                 /* == Connect input interface to vertex in run graph == */
                 auto *input = runGraph->inputInterface(inputRunIx);
                 edge->setSource(input, 0, Expression(edge->sourceRateExpression()));
-                subgraph->moveEdge(edge, runGraph);
 
                 /* == Connect cfg to output interface in init graph == */
                 auto *output = initGraph->outputInterface(outputInitIx);
@@ -187,18 +221,11 @@ bool spider::srdag::splitDynamicGraph(pisdf::Graph *subgraph) {
 
     /* == Move the params to the run graph (init job will use the one of the dyna) == */
     for (auto &param : subgraph->params()) {
-        subgraph->moveParam(param, runGraph);
+        initGraph->addParam(param);
+        runGraph->addParam(param);
     }
-
-    /* == Move the edges == */
-    for (auto &edge : subgraph->edges()) {
-        subgraph->moveEdge(edge, runGraph);
-    }
-
-    /* == Move the vertices == */
-    for (auto &vertex : subgraph->vertices()) {
-        subgraph->moveVertex(vertex, runGraph);
-    }
+    initGraph->overrideDynamicProperty(false);
+    subgraph->overrideDynamicProperty(false);
 
     /* == Set the run reference in the init graph == */
     initGraph->setRunGraphReference(runGraph);

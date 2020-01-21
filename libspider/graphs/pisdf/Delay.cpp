@@ -138,6 +138,6 @@ int64_t spider::pisdf::Delay::value() const {
     return expression_.evaluate();
 }
 
-int64_t spider::pisdf::Delay::value(const spider::vector<Param *> &params) const {
+int64_t spider::pisdf::Delay::value(const spider::vector<std::shared_ptr<Param>> &params) const {
     return expression_.evaluate(params);
 }

@@ -87,7 +87,7 @@ namespace spider {
                 return expression_.evaluate();
             }
 
-            inline int64_t value(const spider::vector<Param *> &params) const override {
+            inline int64_t value(const spider::vector<std::shared_ptr<Param>> &params) const override {
                 return expression_.evaluate(params);
             }
 

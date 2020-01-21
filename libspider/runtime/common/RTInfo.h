@@ -112,7 +112,8 @@ namespace spider {
          * @return timing on given PE (100 by default). If pe is nullptr, return INT64_MAX.
          * @throws std::out_of_range
          */
-        inline int64_t timingOnPE(const PE *pe, const spider::vector<pisdf::Param *> &params = { }) const {
+        inline int64_t
+        timingOnPE(const PE *pe, const spider::vector<std::shared_ptr<pisdf::Param>> &params = { }) const {
             if (!pe) {
                 return INT64_MAX;
             }
@@ -146,7 +147,7 @@ namespace spider {
          * @return timing on given PE (100 by default).
          * @throws std::out_of_range
          */
-        inline int64_t timingOnPE(size_t ix, const spider::vector<pisdf::Param *> &params = { }) const {
+        inline int64_t timingOnPE(size_t ix, const spider::vector<std::shared_ptr<pisdf::Param>> &params = { }) const {
             return timingVector_.at(ix).evaluate(params);
         }
 

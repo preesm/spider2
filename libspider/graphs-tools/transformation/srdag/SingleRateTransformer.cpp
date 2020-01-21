@@ -52,6 +52,7 @@
 #include <graphs/pisdf/interfaces/InputInterface.h>
 #include <graphs/pisdf/interfaces/OutputInterface.h>
 #include <api/pisdf-api.h>
+#include <graphs-tools/exporter/PiSDFDOTExporter.h>
 
 /* === Static function(s) === */
 
@@ -65,14 +66,7 @@ static void splitSubgraphs(spider::pisdf::Graph *graph) {
     auto subgraph2RemoveVector = spider::containers::vector<spider::pisdf::Graph *>(StackID::TRANSFO);
     subgraph2RemoveVector.reserve(graph->subgraphCount());
     for (auto *subgraph : graph->subgraphs()) {
-        if (spider::srdag::splitDynamicGraph(subgraph)) {
-            subgraph2RemoveVector.emplace_back(subgraph);
-        }
-    }
-
-    /* == 1. Remove the subgraphs from the graph == */
-    for (auto &subgraph : subgraph2RemoveVector) {
-        graph->removeVertex(subgraph);
+        spider::srdag::splitDynamicGraph(subgraph);
     }
 }
 
@@ -128,7 +122,6 @@ std::pair<spider::srdag::JobStack, spider::srdag::JobStack> spider::srdag::Singl
     for (const auto &vertex : delayVertexToRemove) {
         srdag_->removeVertex(vertex);
     }
-
     return futureJobs;
 }
 

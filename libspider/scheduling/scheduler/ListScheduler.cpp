@@ -56,8 +56,7 @@ static constexpr auto NON_EXECUTABLE_LEVEL = -31415; /* = Value is arbitrary, ju
 
 /* === Method(s) implementation === */
 
-spider::ListScheduler::ListScheduler(pisdf::Graph *graph,
-                                     const spider::vector<pisdf::Param *> &params) : Scheduler(graph, params) {
+spider::ListScheduler::ListScheduler(pisdf::Graph *graph) : Scheduler(graph) {
     /* == Add vertices of the graph and sort the obtained list == */
     addVerticesAndSortList();
 }

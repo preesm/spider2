@@ -52,9 +52,7 @@
 
 /* === Function(s) definition === */
 
-spider::Scheduler::Scheduler(spider::pisdf::Graph *graph,
-                             const spider::vector<spider::pisdf::Param *> &,
-                             FifoAllocatorType type) : graph_{ graph } {
+spider::Scheduler::Scheduler(spider::pisdf::Graph *graph, FifoAllocatorType type) : graph_{ graph } {
     if (type == FifoAllocatorType::DEFAULT) {
         fifoAllocator_ = make<DefaultFifoAllocator, StackID::SCHEDULE>();
     } else {

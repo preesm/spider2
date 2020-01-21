@@ -95,7 +95,7 @@ namespace spider {
          * @param graph   Graph to evaluate.
          * @param params  Parameters to use for the rates evaluation. (should contain the same parameters as the graphs)
          */
-        void compute(const pisdf::Graph *graph, const spider::vector<pisdf::Param *> &params);
+        void compute(const pisdf::Graph *graph, const spider::vector<std::shared_ptr<pisdf::Param>> &params);
 
         /**
          * @brief Compute the repetition vector of a graph using its parameters values as default.
@@ -132,14 +132,15 @@ namespace spider {
          */
         void extractRationalsFromEdges(spider::array<spider::Rational> &rationalArray,
                                        const spider::array<const pisdf::Edge *> &edgeArray,
-                                       const spider::vector<pisdf::Param *> &params);
+                                       const spider::vector<std::shared_ptr<pisdf::Param>> &params);
 
         /**
          * @brief Update repetition values of a given connected component.
          * @param component Connected component to evaluate.
          * @param params    Parameters value to use.
          */
-        void updateBRV(const ConnectedComponent &component, const spider::vector<pisdf::Param *> &params);
+        void
+        updateBRV(const ConnectedComponent &component, const spider::vector<std::shared_ptr<pisdf::Param>> &params);
 
         /**
          * @brief Check the consistency (see consistency property of SDF graph) of a connected component.
@@ -148,7 +149,7 @@ namespace spider {
          * @throws @refitem spider::Exception.
          */
         void checkConsistency(const spider::array<const pisdf::Edge *> &edgeArray,
-                              const spider::vector<pisdf::Param *> &params);
+                              const spider::vector<std::shared_ptr<pisdf::Param>> &params);
 
         /**
          * @brief Print the repetition vector of a given graph (only if verbose is enabled)

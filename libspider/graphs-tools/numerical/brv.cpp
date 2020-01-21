@@ -136,7 +136,7 @@ static void computeRepetitionValues(const spider::brv::ConnectedComponent &compo
 
 /* === Function(s) definition === */
 
-void spider::brv::compute(const pisdf::Graph *graph, const spider::vector<pisdf::Param *> &params) {
+void spider::brv::compute(const pisdf::Graph *graph, const spider::vector<std::shared_ptr<pisdf::Param>> &params) {
     auto vertices = containers::vector<pisdf::Vertex *>(StackID::TRANSFO);
     vertices.reserve(graph->vertexCount());
     /* == 0. Extract connected components of the graph == */
@@ -217,7 +217,7 @@ spider::brv::extractEdgesFromComponent(const ConnectedComponent &component,
 
 void spider::brv::extractRationalsFromEdges(spider::array<Rational> &rationalArray,
                                             const spider::array<const pisdf::Edge *> &edgeArray,
-                                            const spider::vector<pisdf::Param *> &params) {
+                                            const spider::vector<std::shared_ptr<pisdf::Param>> &params) {
     auto dummyRational = Rational{ 1 };
     for (const auto &edge : edgeArray) {
         const auto *source = edge->source();
@@ -258,7 +258,8 @@ void spider::brv::extractRationalsFromEdges(spider::array<Rational> &rationalArr
     }
 }
 
-void spider::brv::updateBRV(const ConnectedComponent &component, const spider::vector<pisdf::Param *> &params) {
+void spider::brv::updateBRV(const ConnectedComponent &component,
+                            const spider::vector<std::shared_ptr<pisdf::Param>> &params) {
     uint32_t scaleRVFactor{ 1 };
     if (!component.hasConfig_ && !component.hasInterfaces_) {
         return;
@@ -288,7 +289,7 @@ void spider::brv::updateBRV(const ConnectedComponent &component, const spider::v
 }
 
 void spider::brv::checkConsistency(const spider::array<const pisdf::Edge *> &edgeArray,
-                                   const spider::vector<pisdf::Param *> &params) {
+                                   const spider::vector<std::shared_ptr<pisdf::Param>> &params) {
     for (const auto &edge : edgeArray) {
         if (edge->source()->subtype() == pisdf::VertexType::INPUT ||
             edge->sink()->subtype() == pisdf::VertexType::OUTPUT) {

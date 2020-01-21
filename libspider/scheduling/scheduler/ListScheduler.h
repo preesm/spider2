@@ -77,9 +77,7 @@ namespace spider {
                                                                              level_{ level } { };
         };
 
-        explicit ListScheduler(pisdf::Graph *graph) : ListScheduler(graph, graph->params()) { };
-
-        ListScheduler(pisdf::Graph *graph, const spider::vector<pisdf::Param *> &params);
+        explicit ListScheduler(pisdf::Graph *graph);
 
         stack_vector(sortedVertexVector_, ListVertex, StackID::SCHEDULE);
 

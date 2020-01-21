@@ -106,7 +106,7 @@ namespace spider {
                 return value_;
             }
 
-            virtual inline int64_t value(const spider::vector<Param *> &) const {
+            virtual inline int64_t value(const spider::vector<std::shared_ptr<Param>> &) const {
                 return value_;
             }
 

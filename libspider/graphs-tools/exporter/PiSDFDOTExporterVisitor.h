@@ -154,7 +154,7 @@ namespace spider {
             }
 
         private:
-            const spider::vector<Param *> *params_ = nullptr;
+            const spider::vector<std::shared_ptr<Param>> *params_ = nullptr;
             std::ofstream &file_;
             std::string offset_;
 

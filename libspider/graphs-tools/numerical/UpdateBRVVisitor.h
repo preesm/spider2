@@ -56,9 +56,9 @@ namespace spider {
         struct UpdateBRVVisitor final : public pisdf::DefaultVisitor {
 
             explicit UpdateBRVVisitor(uint32_t &scaleFactor,
-                                      const spider::vector<pisdf::Param *> &paramVector) : scaleFactor_{ scaleFactor },
-                                                                                           paramVector_{
-                                                                                                   paramVector } { }
+                                      const spider::vector<std::shared_ptr<pisdf::Param>> &paramVector) :
+                    scaleFactor_{ scaleFactor },
+                    paramVector_{ paramVector } { };
 
             inline void visit(pisdf::Graph *) override { }
 
@@ -96,7 +96,7 @@ namespace spider {
             }
 
             uint32_t &scaleFactor_;
-            const spider::vector<pisdf::Param *> &paramVector_;
+            const spider::vector<std::shared_ptr<pisdf::Param>> &paramVector_;
         private:
             inline void updateFromInputIf(const pisdf::Edge *edge) {
                 const auto &sourceRate = edge->sourceRateExpression().evaluate(paramVector_);

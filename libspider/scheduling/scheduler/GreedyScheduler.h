@@ -51,10 +51,7 @@ namespace spider {
     class GreedyScheduler final : public Scheduler {
     public:
 
-        explicit GreedyScheduler(pisdf::Graph *graph) : GreedyScheduler{ graph, graph->params() } { };
-
-        GreedyScheduler(pisdf::Graph *graph, const spider::vector<pisdf::Param *> &params) : Scheduler{
-                graph, params } { };
+        explicit GreedyScheduler(pisdf::Graph *graph) : Scheduler{ graph } { };
 
         ~GreedyScheduler() override = default;
 

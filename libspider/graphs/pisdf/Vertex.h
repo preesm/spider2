@@ -124,21 +124,21 @@ namespace spider {
              * @brief Add an input parameter to the Vertex.
              * @param param  Pointer to the parameter to add.
              */
-            void addInputParameter(Param *param);
+            virtual void addInputParameter(std::shared_ptr<Param> param);
 
             /**
              * @brief Add an input parameter for the refinement of the Vertex.
              * @warning a separate call to addInputParameter is needed.
              * @param param  Pointer to the parameter to add.
              */
-            void addRefinementParameter(Param *param);
+            virtual void addRefinementParameter(std::shared_ptr<Param> param);
 
             /**
              * @brief Add an output parameter to the Vertex.
              * @param param  Pointer to the parameter to add.
              * @throw spider::Exception if subtype() is not @refitem VertexType::CONFIG.
              */
-            void addOutputParameter(Param *param);
+            virtual void addOutputParameter(std::shared_ptr<Param> param);
 
             /**
              * @brief Get the complete path of the Vertex.
@@ -246,7 +246,7 @@ namespace spider {
              * @brief A const reference on the vector of refinement input params.
              * @return const reference to input params vector.
              */
-            inline const spider::vector<Param *> &refinementParamVector() const {
+            inline const spider::vector<std::shared_ptr<pisdf::Param>> &refinementParamVector() const {
                 return refinementParamVector_;
             }
 
@@ -254,7 +254,7 @@ namespace spider {
              * @brief A const reference on the vector of input params.
              * @return const reference to input params vector.
              */
-            inline const spider::vector<Param *> &inputParamVector() const {
+            inline const spider::vector<std::shared_ptr<pisdf::Param>> &inputParamVector() const {
                 return inputParamVector_;
             }
 
@@ -270,7 +270,7 @@ namespace spider {
              * @brief A const reference on the vector of output params.
              * @return const reference to output params vector.
              */
-            inline const spider::vector<Param *> &outputParamVector() const {
+            inline const spider::vector<std::shared_ptr<pisdf::Param>> &outputParamVector() const {
                 return outputParamVector_;
             }
 
@@ -398,10 +398,13 @@ namespace spider {
             std::string name_ = "unnamed-vertex"; /* =  Name of the Vertex (uniqueness is not required) = */
             stack_vector(inputEdgeVector_, Edge *, StackID::PISDF);         /* = Vector of input Edge        = */
             stack_vector(outputEdgeVector_, Edge *, StackID::PISDF);        /* = Vector of output Edge       = */
-            stack_vector(inputParamVector_, Param *, StackID::PISDF);       /* = Vector of input Param       = */
-            stack_vector(refinementParamVector_, Param *, StackID::PISDF);  /* = Vector of refinement Params = */
-            stack_vector(outputParamVector_, Param *, StackID::PISDF);      /* = Vector of output Param      = */
-            spider::shared_ptr<RTInfo> rtInformation_;  /* = Runtime information of the Vertex (timing, mappable, etc.) = */
+            /* = Vector of input Param = */
+            stack_vector(inputParamVector_, std::shared_ptr<pisdf::Param>, StackID::PISDF);
+            /* = Vector of refinement Params = */
+            stack_vector(refinementParamVector_, std::shared_ptr<Param>, StackID::PISDF);
+            /* = Vector of output Param = */
+            stack_vector(outputParamVector_, std::shared_ptr<Param>, StackID::PISDF);
+            std::shared_ptr<RTInfo> rtInformation_;  /* = Runtime information of the Vertex (timing, mappable, etc.) = */
             const Vertex *reference_ = this;   /* =
                                                 * Pointer to the reference Vertex.
                                                 * Default is this, in case of copy, point to the original Vertex.

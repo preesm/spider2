@@ -50,10 +50,10 @@
 /* === Static method(s) === */
 
 static spider::pisdf::Param *
-findParam(const spider::vector<spider::pisdf::Param *> &params, const std::string &name) {
+findParam(const spider::vector<std::shared_ptr<spider::pisdf::Param>> &params, const std::string &name) {
     for (const auto &p : params) {
         if (p->name() == name) {
-            return p;
+            return p.get();
         }
     }
     throwSpiderException("Did not find parameter [%s] for expression parsing.", name.c_str());
@@ -116,7 +116,7 @@ static double applyOperator(StartIterator start, RPNOperatorType type) {
 
 /* === Methods implementation === */
 
-spider::Expression::Expression(std::string expression, const spider::vector<pisdf::Param *> &params) {
+spider::Expression::Expression(std::string expression, const spider::vector<std::shared_ptr<pisdf::Param>> &params) {
     /* == Get the postfix expression stack == */
     auto postfixStack = rpn::extractPostfixElements(std::move(expression));
     if (api::verbose() && log::enabled<log::Type::EXPR>()) {
@@ -162,8 +162,9 @@ std::string spider::Expression::string() const {
 
 /* === Private method(s) === */
 
-spider::vector<spider::ExpressionElt> spider::Expression::buildExpressionStack(spider::vector<RPNElement> &postfixStack,
-                                                                               const spider::vector<pisdf::Param *> &params) {
+spider::vector<spider::ExpressionElt>
+spider::Expression::buildExpressionStack(spider::vector<RPNElement> &postfixStack,
+                                         const spider::vector<std::shared_ptr<pisdf::Param>> &params) {
     auto stack = containers::vector<ExpressionElt>(StackID::EXPRESSION);
     stack.reserve(postfixStack.size());
     auto evalStack = containers::vector<double>(StackID::EXPRESSION);
@@ -227,7 +228,7 @@ spider::vector<spider::ExpressionElt> spider::Expression::buildExpressionStack(s
     return stack;
 }
 
-double spider::Expression::evaluateStack(const spider::vector<pisdf::Param *> &params) const {
+double spider::Expression::evaluateStack(const spider::vector<std::shared_ptr<pisdf::Param>> &params) const {
     auto evalStack = containers::vector<double>(StackID::EXPRESSION);
     evalStack.reserve(6); /* = In practice, the evalStack will most likely not exceed 3 values = */
     for (const auto &elt : *(expressionStack_)) {

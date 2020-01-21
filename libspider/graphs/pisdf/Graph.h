@@ -103,6 +103,12 @@ namespace spider {
             /* === Method(s) === */
 
             /**
+             * @brief Override automatic property of Graph.
+             * @param value Value to set.
+             */
+            void overrideDynamicProperty(bool value);
+
+            /**
              * @brief Add a vertex to the graph.
              * @param vertex Vertex to add.
              */
@@ -134,7 +140,7 @@ namespace spider {
              * @brief Add an param to the graph.
              * @param param Param to add.
              */
-            void addParam(Param *param);
+            void addParam(std::shared_ptr<Param> param);
 
             /**
              * @brief Move vertex ownership from this graph to another graph.
@@ -176,16 +182,6 @@ namespace spider {
              * Be aware that in the latter case the edge has already been removed from the graph.
              */
             void moveEdge(Edge *elt, Graph *graph);
-
-            /**
-             * @brief Move param ownership from this graph to another graph.
-             * @remark If graph or param is nullptr, nothing happen.
-             * @param elt    Param to move.
-             * @param graph  Graph to move to.
-             * @throws spider::Exception if failed to remove param from current graph or failed to add it to new graph.
-             * Be aware that in the latter case the param has already been removed from the graph.
-             */
-            void moveParam(Param *elt, Graph *graph);
 
             inline void visit(Visitor *visitor) override {
                 visitor->visit(this);
@@ -313,7 +309,7 @@ namespace spider {
             * @brief A const reference on the set of params. Useful for iterating on the params.
             * @return const reference to param vector
             */
-            inline const spider::vector<Param *> &params() const {
+            inline const spider::vector<std::shared_ptr<Param>> &params() const {
                 return paramVector_;
             }
 
@@ -324,7 +320,7 @@ namespace spider {
              * @return @refitem Param pointer
              */
             inline Param *param(size_t ix) const {
-                return paramVector_[ix];
+                return paramVector_[ix].get();
             }
 
             /**
@@ -403,7 +399,7 @@ namespace spider {
                          StackID::PISDF); /* = Vector of subgraph (if any). This is just a "viewer" vector. = */
             stack_vector(edgeVector_, Edge *,
                          StackID::PISDF); /* = Vector of Edge contained in the Graph = */
-            stack_vector(paramVector_, Param *, StackID::PISDF);                /* = Vector of Param = */
+            stack_vector(paramVector_, std::shared_ptr<Param>, StackID::PISDF); /* = Vector of Param = */
             stack_vector(inputInterfaceVector_, InputInterface *,
                          StackID::PISDF); /* = Vector of InputInterface (size is equal to inputEdgeArray_.size()) = */
             stack_vector(outputInterfaceVector_, OutputInterface *,
@@ -417,7 +413,13 @@ namespace spider {
             /* === Private method(s) === */
 
             template<class T>
-            void removeElement(spider::vector<T*> &eltVector, T *elt);
+            void removeElement(spider::vector<T *> &eltVector, T *elt);
+
+            inline void addInputParameter(std::shared_ptr<Param>) override { };
+
+            inline void addRefinementParameter(std::shared_ptr<Param>) override { };
+
+            inline void addOutputParameter(std::shared_ptr<Param>) override { };
         };
     }
 }

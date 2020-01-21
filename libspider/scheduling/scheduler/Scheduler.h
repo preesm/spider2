@@ -54,14 +54,7 @@ namespace spider {
     class Scheduler {
     public:
 
-        explicit Scheduler(pisdf::Graph *graph,
-                           FifoAllocatorType type = FifoAllocatorType::DEFAULT) : Scheduler(graph,
-                                                                                            graph->params(),
-                                                                                            type) { };
-
-        Scheduler(pisdf::Graph *graph,
-                  const spider::vector<pisdf::Param *> &params,
-                  FifoAllocatorType type = FifoAllocatorType::DEFAULT);
+        explicit Scheduler(pisdf::Graph *graph, FifoAllocatorType type = FifoAllocatorType::DEFAULT);
 
         virtual ~Scheduler();
 
