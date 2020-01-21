@@ -50,9 +50,9 @@
 spider::pisdf::Vertex::Vertex(const Vertex &other) : name_{ other.name_ },
                                                      inputEdgeVector_{ other.inputEdgeVector_.size(), nullptr },
                                                      outputEdgeVector_{ other.outputEdgeVector_.size(), nullptr },
+                                                     rtInformation_{ other.rtInformation_ },
                                                      reference_{ &other },
                                                      graph_{ other.graph_ },
-                                                     rtInformation_{ other.rtInformation_ },
                                                      scheduleJobIx_{ other.scheduleJobIx_ },
                                                      instanceValue_{ other.instanceValue_ },
                                                      ix_{ other.ix_ },
@@ -69,11 +69,6 @@ spider::pisdf::Vertex::~Vertex() noexcept {
         log::error("Removing vertex [%s] with copies out there.\n", name().c_str());
     }
     this->reference_->copyCount_ -= 1;
-
-    /* == If vertex is the original, destroy the runtime info == */
-    if (reference() == this) {
-        destroy(rtInformation_);
-    }
 
     /* == If got any Edges left disconnect them == */
     for (size_t ix = 0; ix < inputEdgeVector_.size(); ++ix) {

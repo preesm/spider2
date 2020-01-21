@@ -57,7 +57,7 @@ namespace spider {
             explicit ExecVertex(std::string name = "unnamed-execvertex",
                                 size_t edgeINCount = 0,
                                 size_t edgeOUTCount = 0) : Vertex(std::move(name), edgeINCount, edgeOUTCount) {
-                rtInformation_ = make<RTInfo, StackID::RUNTIME>();
+                rtInformation_ = spider::make_shared<RTInfo>(StackID::RUNTIME);
             };
 
             ExecVertex(const ExecVertex &) = default;

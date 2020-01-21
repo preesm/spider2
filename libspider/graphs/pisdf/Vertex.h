@@ -56,8 +56,6 @@ namespace spider {
 
         class Graph;
 
-        struct CloneVisitor;
-
         /* === Class definition === */
 
         class Vertex {
@@ -317,7 +315,7 @@ namespace spider {
              * @return pointer to the @refitem RTInfo of the vertex, nullptr if !(this->executable()).
              */
             inline RTInfo *runtimeInformation() const {
-                return rtInformation_;
+                return rtInformation_.get();
             }
 
             /**
@@ -403,12 +401,12 @@ namespace spider {
             stack_vector(inputParamVector_, Param *, StackID::PISDF);       /* = Vector of input Param       = */
             stack_vector(refinementParamVector_, Param *, StackID::PISDF);  /* = Vector of refinement Params = */
             stack_vector(outputParamVector_, Param *, StackID::PISDF);      /* = Vector of output Param      = */
+            spider::shared_ptr<RTInfo> rtInformation_;  /* = Runtime information of the Vertex (timing, mappable, etc.) = */
             const Vertex *reference_ = this;   /* =
                                                 * Pointer to the reference Vertex.
                                                 * Default is this, in case of copy, point to the original Vertex.
                                                 * = */
             Graph *graph_ = nullptr;           /* = Containing Graph of the Vertex (can be nullptr) = */
-            RTInfo *rtInformation_ = nullptr;  /* = Runtime information of the Vertex (timing, mappable, etc.) = */
             size_t scheduleJobIx_ = SIZE_MAX;  /* =
                                                 * Index of the schedule job associated to this Vertex.
                                                 * Needed in case of deletion of vertex between successive.
