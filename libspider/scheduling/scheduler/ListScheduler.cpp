@@ -122,7 +122,7 @@ void spider::ListScheduler::addVerticesAndSortList() {
     }
 
     /* == Update the schedule number of job == */
-    schedule_.setJobCount(sortedVertexVector_.size() - nonSchedulableVertexCount);
+    schedule_.updateScheduleSize(sortedVertexVector_.size() - nonSchedulableVertexCount);
     lastSchedulableVertex_ = sortedVertexVector_.size() - nonSchedulableVertexCount;
 }
 
@@ -143,7 +143,7 @@ int64_t spider::ListScheduler::computeScheduleLevel(ListVertex &listVertex,
         for (auto &edge : vertex->outputEdgeVector()) {
             auto *sink = edge->sink();
             if (sink && sink->executable()) {
-                const auto &sinkParams = parameterBankVector_[sink->transfoJobIx()];
+                const auto &sinkParams = sink->inputParamVector();
                 auto *sinkRTInfo = sink->runtimeInformation();
                 auto minExecutionTime = INT64_MAX;
                 for (auto &cluster : platform->clusters()) {

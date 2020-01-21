@@ -74,6 +74,13 @@ void spider::sched::Schedule::update(sched::Job &job) {
     stats_.updateEndTime(PE, et);
     stats_.updateLoadTime(PE, et - st);
     stats_.updateJobCount(PE);
+
+    /* == Set should notify value for previous jobs == */
+    for (auto &constraint : job.scheduleConstraintsArray()) {
+        if (constraint != SIZE_MAX) {
+            jobs_[constraint].setRunnerToNotify(job.mappingInfo().LRTIx, true);
+        }
+    }
 }
 
 void spider::sched::Schedule::print() const {
@@ -82,7 +89,7 @@ void spider::sched::Schedule::print() const {
             log::print<log::Type::SCHEDULE>(log::magenta, "INFO: ", "Schedule: \n");
             log::print<log::Type::SCHEDULE>(log::magenta, "INFO: ", "   >> job: %zu\n", job.ix());
             size_t lrtIx = 0;
-            for (const auto &index : job.jobConstraintVector()) {
+            for (const auto &index : job.scheduleConstraintsArray()) {
                 if (index != SIZE_MAX) {
                     log::print<log::Type::SCHEDULE>(log::magenta, "INFO: ", "           ----> %zu (%zu)\n", jobs_[index].ix(), lrtIx);
                 }
@@ -93,10 +100,10 @@ void spider::sched::Schedule::print() const {
 }
 
 
-void spider::sched::Schedule::setJobCount(size_t count) {
-    jobs_.reserve(count);
+void spider::sched::Schedule::updateScheduleSize(size_t count) {
     const auto &oldSize = jobs_.size();
+    jobs_.resize(count);
     for (size_t i = oldSize; i < count; ++i) {
-        jobs_.emplace_back(static_cast<uint32_t>(i));
+        jobs_[i].setIx(i);
     }
 }

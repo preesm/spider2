@@ -204,7 +204,7 @@ void spider::SchedSVGGanttExporter::axisPrinter(std::ofstream &file) const {
 
 void spider::SchedSVGGanttExporter::jobPrinter(std::ofstream &file, const sched::Job &job) const {
     /* == Compute color and width == */
-    const auto *vertex = graph_->vertex(job.vertexIx());
+    const auto *vertex = job.vertex();
     const auto *reference = vertex->reference();
     int32_t red = static_cast<uint8_t>((reinterpret_cast<uintptr_t>(reference) >> 3u) * 50 + 100);
     int32_t green = static_cast<uint8_t>((reinterpret_cast<uintptr_t>(reference) >> 2u) * 50 + 100);

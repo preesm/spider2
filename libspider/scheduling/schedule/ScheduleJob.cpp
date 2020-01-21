@@ -43,6 +43,10 @@
 #include <scheduling/schedule/ScheduleJob.h>
 #include <api/archi-api.h>
 #include <archi/Platform.h>
+#include <graphs/pisdf/Vertex.h>
+#include <graphs/pisdf/SpecialVertex.h>
+#include <graphs/pisdf/Graph.h>
+#include <scheduling/schedule/Schedule.h>
 
 /* === Static variable(s) === */
 
@@ -50,15 +54,107 @@
 
 /* === Method(s) implementation === */
 
-spider::sched::Job::Job(size_t ix) : ix_{ ix } {
-    jobConstraintVector_.resize(archi::platform()->LRTCount(), SIZE_MAX);
-}
+spider::sched::Job::Job() :
+        scheduleConstraintsArray_{ archi::platform()->LRTCount(), SIZE_MAX, StackID::SCHEDULE },
+        runnerToNotifyArray_{ archi::platform()->LRTCount(), true, StackID::SCHEDULE } { }
 
-spider::sched::Job::Job(size_t ix,
-                        size_t vertexIx,
+spider::sched::Job::Job(pisdf::Vertex *vertex,
                         size_t PEIx,
-                        size_t LRTIx) : Job(ix) {
-    vertexIx_ = vertexIx;
+                        size_t LRTIx) : Job() {
+    vertex_ = vertex;
     mappingInfo_.PEIx = PEIx;
     mappingInfo_.LRTIx = LRTIx;
+}
+
+spider::JobMessage spider::sched::Job::createJobMessage(const Schedule *schedule) {
+    if (!vertex_) {
+        throwSpiderException("no vertex has been set on this Job.");
+    }
+    /* == Update the JobMessage == */
+    auto message = JobMessage();
+    message.LRTs2Notify_ = runnerToNotifyArray_;
+
+    /* == Set essential properties == */
+    message.kernelIx_ = vertex_->runtimeInformation()->kernelIx();
+    message.outputParamCount_ = vertex_->reference()->outputParamCount();
+    message.vertexIx_ = vertex_->ix();
+
+    /* == Create the jobs 2 wait array == */
+    message.jobs2Wait_ = spider::array<JobConstraint>(this->numberOfConstraints(), StackID::RUNTIME);
+    auto jobIterator = message.jobs2Wait_.begin();
+    size_t lrtIt = 0;
+    for (auto &srcJobIx : scheduleConstraintsArray_) {
+        if (srcJobIx != SIZE_MAX) {
+            (*jobIterator).lrtToWait_ = lrtIt;
+            (*jobIterator).jobToWait_ = srcJobIx;
+        }
+        lrtIt++;
+    }
+
+    /* == Creates FIFOs == */
+    message.inputFifoArray_ = spider::array<RTFifo>(vertex_->inputEdgeCount(), StackID::RUNTIME);
+    message.outputFifoArray_ = spider::array<RTFifo>(vertex_->outputEdgeCount(), StackID::RUNTIME);
+    for (size_t i = 0; i < vertex_->inputEdgeCount(); ++i) {
+        const auto &edge = vertex_->inputEdge(i);
+        const auto &source = edge->source();
+        auto &fifo = message.inputFifoArray_[i];
+        auto &srcJob = schedule->job(source->scheduleJobIx());
+        fifo.virtualAddress_ = edge->memoryAddress();
+        fifo.senderReceiverIx_ = srcJob.mappingInfo().LRTIx;
+        fifo.size_ = static_cast<size_t>(edge->sourceRateValue());
+        // TODO: see for inter-cluster communication how to get proper interface
+    }
+    size_t outputIx = 0;
+    for (const auto &edge : vertex_->outputEdgeVector()) {
+//        message.outputFifoArray_[outputIx++] = fifoAllocator_->allocate(
+//                static_cast<size_t>(edge->sourceRateValue()), SIZE_MAX);
+    }
+
+    /* == Set the input parameters == */
+    switch (vertex_->reference()->subtype()) {
+        case pisdf::VertexType::CONFIG:
+        case pisdf::VertexType::NORMAL: {
+            message.inputParams_ = spider::array<int64_t>(vertex_->reference()->inputParamCount(), StackID::RUNTIME);
+            auto paramIterator = message.inputParams_.begin();
+            for (auto &param : vertex_->refinementParamVector()) {
+                (*(paramIterator++)) = param->value();
+            }
+        }
+            break;
+        case pisdf::VertexType::FORK:
+            message.inputParams_ = spider::array<int64_t>(vertex_->outputEdgeCount() + 2, StackID::RUNTIME);
+            message.inputParams_[0] = vertex_->inputEdge(0)->sinkRateValue();
+            message.inputParams_[1] = static_cast<int64_t>(vertex_->outputEdgeCount());
+            for (size_t i = 0; i < vertex_->outputEdgeCount(); ++i) {
+                message.inputParams_[i + 2] = vertex_->outputEdge(i)->sourceRateValue();
+            }
+            break;
+        case pisdf::VertexType::JOIN:
+            message.inputParams_ = spider::array<int64_t>(vertex_->inputEdgeCount() + 2, StackID::RUNTIME);
+            message.inputParams_[0] = vertex_->outputEdge(0)->sourceRateExpression().value();
+            message.inputParams_[1] = static_cast<int64_t>(vertex_->inputEdgeCount());
+            for (size_t i = 0; i < vertex_->inputEdgeCount(); ++i) {
+                message.inputParams_[i + 2] = vertex_->inputEdge(i)->sinkRateValue();
+            }
+            break;
+        case pisdf::VertexType::REPEAT:
+            break;
+        case pisdf::VertexType::DUPLICATE:
+            break;
+        case pisdf::VertexType::TAIL:
+            break;
+        case pisdf::VertexType::HEAD:
+            break;
+        case pisdf::VertexType::INIT:
+            break;
+        case pisdf::VertexType::END:
+            break;
+        case pisdf::VertexType::INPUT:
+            break;
+        case pisdf::VertexType::OUTPUT:
+            break;
+        default:
+            throwSpiderException("unhandled type of vertex.");
+    }
+    return message;
 }

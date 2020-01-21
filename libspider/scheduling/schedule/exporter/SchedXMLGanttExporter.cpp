@@ -71,7 +71,7 @@ void spider::SchedXMLGanttExporter::printFromFile(std::ofstream &file) const {
 }
 
 void spider::SchedXMLGanttExporter::jobPrinter(std::ofstream &file, const sched::Job &job) const {
-    const auto *vertex = graph_->vertex(job.vertexIx());
+    const auto *vertex = job.vertex();
     const auto *platform = archi::platform();
     auto PEIx = platform->peFromVirtualIx(job.mappingInfo().PEIx)->hardwareIx();
 

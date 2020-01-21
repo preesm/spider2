@@ -60,7 +60,7 @@ spider::sched::Schedule &spider::GreedyScheduler::mappingScheduling() {
     }
 
     /* == Initialize the jobs of the schedule == */
-    schedule_.setJobCount(vertexVector.size());
+    schedule_.updateScheduleSize(vertexVector.size());
 
     /* == Iterate on vector until a schedulable vertex is found == */
     auto it = vertexVector.begin();

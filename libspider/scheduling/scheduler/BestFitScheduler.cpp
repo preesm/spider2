@@ -67,15 +67,15 @@ spider::sched::Schedule &spider::BestFitScheduler::mappingScheduling() {
         auto &listVertex = (*(iterator++));
         Scheduler::vertexMapper(listVertex.vertex_);
 
-        /* == Send the job message == */
-        auto &job = schedule_.job(listVertex.vertex_->scheduleJobIx());
-        const auto &messageIx = rt::platform()->communicator()->push(job.message(), job.mappingInfo().LRTIx);
-
-        rt::platform()->communicator()->push(Notification(NotificationType::JOB_ADD,
-                                                          0,
-                                                          messageIx),
-                                             job.mappingInfo().LRTIx);
-        job.setState(sched::JobState::RUNNING);
+//        /* == Send the job message == */
+//        auto &job = schedule_.job(listVertex.vertex_->scheduleJobIx());
+//        const auto &messageIx = rt::platform()->communicator()->push(job.message(), job.mappingInfo().LRTIx);
+//
+//        rt::platform()->communicator()->push(Notification(NotificationType::JOB_ADD,
+//                                                          0,
+//                                                          messageIx),
+//                                             job.mappingInfo().LRTIx);
+//        job.setState(sched::JobState::RUNNING);
     }
     lastScheduledVertex_ = lastSchedulableVertex_;
     schedule_.print();
@@ -95,7 +95,5 @@ spider::sched::Schedule &spider::BestFitScheduler::mappingScheduling() {
 
 //    /* == Run the jobs of GRT (if any) == */
 //    rt::platform()->runner(grtIx)->run(false);
-
-    Scheduler::clearParameterBank();
     return schedule_;
 }

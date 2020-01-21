@@ -43,15 +43,21 @@
 /* === Include(s) === */
 
 #include <cstdint>
-#include <containers/containers.h>
 #include <algorithm>
+#include <containers/containers.h>
 #include <runtime/interface/Message.h>
 
 /* === Forward declarations === */
 
 namespace spider {
 
+    namespace pisdf {
+        class Vertex;
+    }
+
     namespace sched {
+
+        class Schedule;
 
         /* === Enumeration === */
 
@@ -79,14 +85,9 @@ namespace spider {
         class Job {
         public:
 
-            Job() = delete;
+            Job();
 
-            explicit Job(size_t ix);
-
-            Job(size_t ix,
-                size_t vertexIx,
-                size_t PEIx,
-                size_t LRTIx);
+            Job(pisdf::Vertex *vertex, size_t PEIx, size_t LRTIx);
 
             Job(const Job &) = default;
 
@@ -105,44 +106,47 @@ namespace spider {
              * @param ix    Ix of the job we're constrained on.
              * @param lrtIx Ix of the LRT the constraint belong.
              */
-            inline void setJobConstraint(size_t ix, size_t lrtIx) {
+            inline void setScheduleConstraint(size_t ix, size_t lrtIx) {
                 if (ix != SIZE_MAX && ix != ix_) {
-                    jobConstraintVector_.at(lrtIx) = ix;
+                    scheduleConstraintsArray_[lrtIx] = ix;
                 }
             }
+
+            /**
+             * @brief Creates a JobMessage out of the schedule job information.
+             * @param schedule Pointer to the schedule.
+             * @return @refitem JobMessage
+             */
+            JobMessage createJobMessage(const Schedule *schedule);
 
             /* === Getter(s) === */
 
             /**
              * @brief Return the job constraint associated to the LRT ix.
              * @param lrtIx  Ix of the LRT.
-             * @return
+             * @return ix of the @refitem sched::Job this job is constrained on given LRT.
              */
-            inline size_t jobConstraintIxOnLRT(size_t lrtIx) const {
-                return jobConstraintVector_.at(lrtIx);
+            inline size_t scheduleJobConstraintOnLRT(size_t lrtIx) const {
+                return scheduleConstraintsArray_[lrtIx];
             }
 
             inline size_t numberOfConstraints() const {
-                return jobConstraintVector_.size() -
-                       static_cast<size_t>(std::count(jobConstraintVector_.begin(),
-                                                      jobConstraintVector_.end(),
+                return scheduleConstraintsArray_.size() -
+                       static_cast<size_t>(std::count(scheduleConstraintsArray_.begin(),
+                                                      scheduleConstraintsArray_.end(),
                                                       SIZE_MAX));
             }
 
-            inline const spider::vector<size_t> &jobConstraintVector() const {
-                return jobConstraintVector_;
-            }
-
-            inline JobMessage &message() {
-                return message_;
+            inline const spider::array<size_t> &scheduleConstraintsArray() const {
+                return scheduleConstraintsArray_;
             }
 
             /**
-             * @brief Get the ix of the job.
-             * @return job ix.
+             * @brief Get the vertex of the job.
+             * @return pointer to the @refitem pisdf::Vertex of the job.
              */
-            inline size_t vertexIx() const {
-                return vertexIx_;
+            inline const pisdf::Vertex *vertex() const {
+                return vertex_;
             }
 
             /**
@@ -172,12 +176,22 @@ namespace spider {
             /* === Setter(s) === */
 
             /**
-             * @brief Set the ix of the vertex of the job.
-             * @remark This method will overwrite current value.
-             * @param ix Ix to set.
+             * @brief Sets the flag of notification for a given LRT.
+             * @warning no bound checking is performed.
+             * @param lrtIx  Ix of the LRT to notify (or not).
+             * @param value  Value to set to the flag.
              */
-            inline void setVertexIx(size_t ix) {
-                vertexIx_ = ix;
+            inline void setRunnerToNotify(size_t lrtIx, bool value) {
+                runnerToNotifyArray_[lrtIx] = value;
+            }
+
+            /**
+             * @brief Set the vertex of the job.
+             * @remark This method will overwrite current value.
+             * @param vertex Pointer to the vertex to set.
+             */
+            inline void setVertex(const pisdf::Vertex *vertex) {
+                vertex_ = vertex;
             }
 
             /**
@@ -237,11 +251,12 @@ namespace spider {
             }
 
         private:
-            stack_vector(jobConstraintVector_, size_t, StackID::SCHEDULE);
-            size_t vertexIx_ = SIZE_MAX;
+            spider::array<size_t> scheduleConstraintsArray_;
+            spider::array<bool> runnerToNotifyArray_;
+            JobMappingInfo mappingInfo_;
+            const pisdf::Vertex *vertex_ = nullptr;
             size_t ix_ = SIZE_MAX;
             JobState state_ = JobState::NON_EXEC;
-            JobMappingInfo mappingInfo_;
             JobMessage message_;
         };
     }
