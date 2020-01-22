@@ -179,6 +179,9 @@ namespace spider {
         }
 
         inline Rational &operator/=(int64_t b) {
+            if (!b) {
+                throwSpiderException("Fraction with zero denominator not allowed.");
+            }
             d_ *= b;
             reduce();
             return *this;
