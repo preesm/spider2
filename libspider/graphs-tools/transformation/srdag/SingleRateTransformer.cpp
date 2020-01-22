@@ -146,7 +146,7 @@ void spider::srdag::SingleRateTransformer::replaceInterfaces() {
                                          const spider::pisdf::InputInterface *interface) -> bool {
             auto *edge = interface->outputEdge();
             auto *sink = edge->sink();
-            const auto &sourceRate = edge->sourceRateExpression().evaluate(job.params_);
+            const auto &sourceRate = edge->sourceRateValue();
             const auto &sinkRate = edge->sinkRateExpression().evaluate(job.params_);
             return (sink->repetitionValue() * sinkRate) == sourceRate;
         };
@@ -170,7 +170,7 @@ void spider::srdag::SingleRateTransformer::replaceInterfaces() {
             auto *edge = interface->inputEdge();
             auto *source = edge->source();
             const auto &sourceRate = edge->sourceRateExpression().evaluate(job.params_);
-            const auto &sinkRate = edge->sinkRateExpression().evaluate(job.params_);
+            const auto &sinkRate = edge->sinkRateValue();
             return (source->repetitionValue() * sourceRate) == sinkRate;
         };
         for (const auto &interface : job_.reference_->outputInterfaceVector()) {
