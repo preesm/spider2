@@ -55,11 +55,9 @@ namespace spider {
                 throwSpiderException("Fraction with zero denominator not allowed.");
             }
             reduce();
-        }
+        };
 
-        inline Rational(const Rational &r) : Rational{ r.n_, r.d_ } {
-
-        }
+        inline Rational(const Rational &r) : Rational{ r.n_, r.d_ } { };
 
         /* === Operators overload === */
 
@@ -76,7 +74,6 @@ namespace spider {
             reduce();
             return *this;
         }
-
 
         inline Rational &operator*=(const Rational &b) {
             n_ *= b.n_;
@@ -148,38 +145,42 @@ namespace spider {
         /* === Overloads === */
 
         inline Rational operator+(int64_t b) const {
-            return Rational{ *this } += Rational{ b };
+            return Rational{ n_ + b * d_, d_ };
         }
 
         inline Rational operator-(int64_t b) const {
-            return Rational{ *this } -= Rational{ b };
+            return Rational{ n_ - b * d_, d_ };
         }
 
         inline Rational operator*(int64_t b) const {
-            return Rational{ *this } *= Rational{ b };
+            return Rational{ n_ * b, d_ };
         }
 
         inline Rational operator/(int64_t b) const {
-            return Rational{ *this } /= Rational{ b };
+            return Rational{ n_, d_ * b };
         }
 
         inline Rational &operator+=(int64_t b) {
-            *this += Rational{ b };
+            n_ += (b * d_);
+            reduce();
             return *this;
         }
 
         inline Rational &operator-=(int64_t b) {
-            *this -= Rational{ b };
+            n_ -= (b * d_);
+            reduce();
             return *this;
         }
 
         inline Rational &operator*=(int64_t b) {
-            *this *= Rational{ b };
+            n_ *= b;
+            reduce();
             return *this;
         }
 
         inline Rational &operator/=(int64_t b) {
-            *this /= Rational{ b };
+            d_ *= b;
+            reduce();
             return *this;
         }
 
@@ -239,13 +240,13 @@ namespace spider {
         /* === Private method(s) === */
 
         inline void reduce() {
-            auto gcd = math::gcd(n_, d_);
-            n_ /= gcd;
-            d_ /= gcd;
             if (d_ < 0) {
                 n_ = -n_;
                 d_ = -d_;
             }
+            auto gcd = math::gcd(n_, d_);
+            n_ /= gcd;
+            d_ /= gcd;
         }
     };
 }
