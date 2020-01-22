@@ -43,7 +43,6 @@
 /* === Include(s) === */
 
 #include <graphs/pisdf/visitors/PiSDFDefaultVisitor.h>
-#include <graphs/pisdf/visitors/PiSDFCloneVisitor.h>
 #include <graphs/pisdf/SpecialVertex.h>
 #include <api/pisdf-api.h>
 

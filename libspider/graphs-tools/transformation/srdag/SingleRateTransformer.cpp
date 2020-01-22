@@ -141,21 +141,49 @@ void spider::srdag::SingleRateTransformer::replaceInterfaces() {
     }
 
     /* == 1. Replace the input interfaces == */
-    for (const auto &interface : job_.reference_->inputInterfaceVector()) {
-        auto *edge = instance->inputEdge(interface->ix());
-        auto &&name = instance->name() + "_" + interface->name();
-        auto *vertex = api::createRepeat(srdag_, std::move(name));
-        edge->setSink(vertex, 0, Expression(edge->sinkRateExpression()));
-        ref2Clone_[uniformIx(interface, job_.reference_)] = vertex->ix();
+    {
+        auto isInterfaceTransparent = [](const TransfoJob &job,
+                                         const spider::pisdf::InputInterface *interface) -> bool {
+            auto *edge = interface->outputEdge();
+            auto *sink = edge->sink();
+            const auto &sourceRate = edge->sourceRateExpression().evaluate(job.params_);
+            const auto &sinkRate = edge->sinkRateExpression().evaluate(job.params_);
+            return (sink->repetitionValue() * sinkRate) == sourceRate;
+        };
+        for (const auto &interface : job_.reference_->inputInterfaceVector()) {
+            auto *edge = instance->inputEdge(interface->ix());
+            if (isInterfaceTransparent(job_, interface)) {
+                ref2Clone_[uniformIx(interface, job_.reference_)] = edge->source()->ix();
+            } else {
+                auto &&name = instance->name() + "_" + interface->name();
+                auto *vertex = api::createRepeat(srdag_, std::move(name));
+                edge->setSink(vertex, 0, Expression(edge->sinkRateExpression()));
+                ref2Clone_[uniformIx(interface, job_.reference_)] = vertex->ix();
+            }
+        }
     }
 
     /* == 2. Replace the output interfaces == */
-    for (const auto &interface : job_.reference_->outputInterfaceVector()) {
-        auto *edge = instance->outputEdge(interface->ix());
-        auto &&name = instance->name() + "_" + interface->name();
-        auto *vertex = api::createTail(srdag_, std::move(name), 1);
-        edge->setSource(vertex, 0, Expression(edge->sourceRateExpression()));
-        ref2Clone_[uniformIx(interface, job_.reference_)] = vertex->ix();
+    {
+        auto isInterfaceTransparent = [](const TransfoJob &job,
+                                         const spider::pisdf::OutputInterface *interface) -> bool {
+            auto *edge = interface->inputEdge();
+            auto *source = edge->source();
+            const auto &sourceRate = edge->sourceRateExpression().evaluate(job.params_);
+            const auto &sinkRate = edge->sinkRateExpression().evaluate(job.params_);
+            return (source->repetitionValue() * sourceRate) == sinkRate;
+        };
+        for (const auto &interface : job_.reference_->outputInterfaceVector()) {
+            auto *edge = instance->outputEdge(interface->ix());
+            if (isInterfaceTransparent(job_, interface)) {
+                ref2Clone_[uniformIx(interface, job_.reference_)] = edge->sink()->ix();
+            } else {
+                auto &&name = instance->name() + "_" + interface->name();
+                auto *vertex = api::createTail(srdag_, std::move(name), 1);
+                edge->setSource(vertex, 0, Expression(edge->sourceRateExpression()));
+                ref2Clone_[uniformIx(interface, job_.reference_)] = vertex->ix();
+            }
+        }
     }
 }
 
@@ -173,7 +201,8 @@ std::pair<spider::srdag::JobStack, spider::srdag::JobStack> spider::srdag::Singl
             auto &jobStack = subgraph->dynamic() ? dynaJobs : nextJobs;
             const auto &firstCloneIx = ref2Clone_[subgraph->ix()];
             for (auto ix = firstCloneIx; ix < firstCloneIx + subgraph->repetitionValue(); ++ix) {
-                auto *clone = srdag_->vertex(ix); /* = same value but if clone->ix changes, value in transfojob will change also = */
+                auto *clone = srdag_->vertex(
+                        ix); /* = same value but if clone->ix changes, value in transfojob will change also = */
                 jobStack.emplace_back(subgraph, clone->ix(), ix - firstCloneIx);
 
                 /* == Copy the params == */
@@ -205,7 +234,8 @@ std::pair<spider::srdag::JobStack, spider::srdag::JobStack> spider::srdag::Singl
 
         /* == 1.2 Do the actual copy == */
         const auto &cloneIx = ref2Clone_[subgraph->ix()];
-        auto *clone = srdag_->vertex(cloneIx); /* = same value but if clone->ix changes, value in transfojob will change also = */
+        auto *clone = srdag_->vertex(
+                cloneIx); /* = same value but if clone->ix changes, value in transfojob will change also = */
         nextJobs.emplace_back(subgraph, clone->ix(), 0);
         auto &job = nextJobs.back();
         job.params_.reserve(subgraph->paramCount());
@@ -398,17 +428,24 @@ spider::srdag::SingleRateTransformer::buildSinkLinkerVector(pisdf::Edge *edge) {
     }
 
     /* == 2. Populate the rest of the sinkVector == */
-    auto *clone = srdag_->vertex(ref2Clone_[sink->ix()]);
-    if (sink->subtype() == pisdf::VertexType::DELAY && clone->outputEdge(1)) {
+    auto *clone = srdag_->vertex(ref2Clone_[uniformIx(sink, job_.reference_)]);
+    if (sink->subtype() == pisdf::VertexType::OUTPUT) {
+        /* == 2.0 Check if we are in the trivial case of no interface == */
+        if (clone->subtype() != pisdf::VertexType::TAIL) {
+            auto *graphInstance = srdag_->vertex(*(job_.srdagIx_));
+            auto *outputEdge = graphInstance->outputEdge(sink->ix());
+            populateTransfoVertexVector(sinkVector, sink, outputEdge->sinkRateValue(), outputEdge->sinkPortIx());
+            srdag_->removeEdge(outputEdge);
+        } else {
+            const auto &rate = edge->sourceRateExpression().evaluate(job_.params_) * edge->source()->repetitionValue();
+            populateTransfoVertexVector(sinkVector, sink, rate, edge->sinkPortIx());
+        }
+    } else if (sink->subtype() == pisdf::VertexType::DELAY && clone->outputEdge(1)) {
         /* == 2.1 We already connected sink of original edge containing the delay, we'll use it directly == */
         populateFromDelayVertex(sinkVector, clone->outputEdge(1), true);
     } else {
-        /* == 2.2 Populate the sink clones in reverse order == */
-        const auto &params = job_.params_;
-        const auto &rate =
-                sink->subtype() == pisdf::VertexType::OUTPUT ? edge->sourceRateExpression().evaluate(params) *
-                                                               edge->source()->repetitionValue()
-                                                             : edge->sinkRateExpression().evaluate(params);
+        /* == 2.2 Normal case == */
+        const auto &rate = edge->sinkRateExpression().evaluate(job_.params_);
         populateTransfoVertexVector(sinkVector, sink, rate, edge->sinkPortIx());
     }
     return sinkVector;
@@ -423,18 +460,24 @@ spider::srdag::SingleRateTransformer::buildSourceLinkerVector(pisdf::Edge *edge)
     sourceVector.reserve(source->repetitionValue() + (delay != nullptr));
 
     /* == 1. Populate the sourceVector == */
-    auto *clone = srdag_->vertex(ref2Clone_[source->ix()]);
-    if (source->subtype() == pisdf::VertexType::DELAY && clone->inputEdge(1)) {
+    auto *clone = srdag_->vertex(ref2Clone_[uniformIx(source, job_.reference_)]);
+    if (source->subtype() == pisdf::VertexType::INPUT) {
+        /* == 1.0 Check if we are in the trivial case of no interface == */
+        if (clone->subtype() != pisdf::VertexType::REPEAT) {
+            auto *graphInstance = srdag_->vertex(*(job_.srdagIx_));
+            auto *inputEdge = graphInstance->inputEdge(source->ix());
+            populateTransfoVertexVector(sourceVector, source, inputEdge->sourceRateValue(), inputEdge->sourcePortIx());
+            srdag_->removeEdge(inputEdge);
+        } else {
+            const auto &rate = edge->sinkRateExpression().evaluate(job_.params_) * edge->sink()->repetitionValue();
+            populateTransfoVertexVector(sourceVector, source, rate, edge->sourcePortIx());
+        }
+    } else if (source->subtype() == pisdf::VertexType::DELAY && clone->inputEdge(1)) {
         /* == 1.1 We already connected source of original edge containing the delay, we'll use it directly == */
         populateFromDelayVertex(sourceVector, clone->inputEdge(1), false);
     } else {
-        /* == 1.2 Populate the source clones in reverse order == */
-        const auto &params = job_.params_;
-        const auto &rate =
-                source->subtype() == pisdf::VertexType::INPUT ? edge->sinkRateExpression().evaluate(params) *
-                                                                edge->sink()->repetitionValue()
-                                                              : edge->sourceRateExpression().evaluate(
-                        params);
+        /* == 1.2 Normal case == */
+        const auto &rate = edge->sourceRateExpression().evaluate(job_.params_);
         populateTransfoVertexVector(sourceVector, source, rate, edge->sourcePortIx());
     }
 

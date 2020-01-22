@@ -193,7 +193,7 @@ bool spider::srdag::splitDynamicGraph(pisdf::Graph *subgraph) {
         }
     }
 
-    for (auto &cfg : subgraph->configVertices()) {
+    for (auto &cfg : initGraph->configVertices()) {
         for (auto edge : cfg->outputEdgeVector()) {
             const auto &sink = edge->sink();
             if (sink->subtype() != pisdf::VertexType::OUTPUT) {
