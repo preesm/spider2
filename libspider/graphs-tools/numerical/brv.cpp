@@ -47,6 +47,9 @@
 #include <graphs/pisdf/Param.h>
 #include <api/config-api.h>
 
+/* === Constant === */
+static constexpr size_t DEFAULT_MAX_CC_COUNT = 3;
+
 /* === Static function(s) === */
 
 /**
@@ -112,25 +115,25 @@ extractOneComponent(spider::pisdf::Vertex *vertex,
 
 /**
  * @brief Computes the repetition values of current connected component.
- * @param component      Const reference to current connected component.
- * @param rationalArray  Reference to @refitem Rational array.
+ * @param component       Const reference to current connected component.
+ * @param rationalVector  Reference to @refitem Rational vector.
  */
 static void computeRepetitionValues(const spider::brv::ConnectedComponent &component,
-                                    spider::array<spider::Rational> &rationalArray) {
+                                    spider::vector<spider::Rational> &rationalVector) {
     const auto &startIter = component.offsetVertexVector_;
     const auto &endIter = component.offsetVertexVector_ + component.vertexCount_;
     /* == 0. Compute the LCM factor for the current component == */
     int64_t lcmFactor = 1;
     for (auto it = startIter; it < endIter; ++it) {
         const auto &vertex = component.vertexVector_[it];
-        lcmFactor = spider::math::lcm(lcmFactor, rationalArray[vertex->ix()].denominator());
+        lcmFactor = spider::math::lcm(lcmFactor, rationalVector[vertex->ix()].denominator());
     }
 
     /* == 1. Compute the repetition value for vertices of the connected component == */
     for (auto it = startIter; it < endIter; ++it) {
         const auto &vertex = component.vertexVector_[it];
-        rationalArray[vertex->ix()] *= lcmFactor;
-        vertex->setRepetitionValue(static_cast<uint32_t>(rationalArray[vertex->ix()].toUInt64()));
+        rationalVector[vertex->ix()] *= lcmFactor;
+        vertex->setRepetitionValue(static_cast<uint32_t>(rationalVector[vertex->ix()].toUInt64()));
     }
 }
 
@@ -143,7 +146,7 @@ void spider::brv::compute(const pisdf::Graph *graph, const spider::vector<std::s
     const auto &connectedComponents = extractConnectedComponents(graph, vertices);
 
     auto registeredEdgeVector = containers::vector<bool>(graph->edgeCount(), false, StackID::TRANSFO);
-    auto rationalArray = spider::array<Rational>{ graph->vertexCount(), Rational(), StackID::TRANSFO };
+    auto rationalVector = containers::vector<Rational>(graph->vertexCount(), StackID::TRANSFO);
     /* == 1. For each connected component compute LCM and RV == */
     for (const auto &component : connectedComponents) {
         /* == 1.1 Extract the edges == */
@@ -155,10 +158,10 @@ void spider::brv::compute(const pisdf::Graph *graph, const spider::vector<std::s
         }
 
         /* == 1.2 Compute the Rationals == */
-        extractRationalsFromEdges(rationalArray, edgeArray, params);
+        extractRationalsFromEdges(rationalVector, edgeArray, params);
 
         /* == 1.3 Compute the repetition values for the current component == */
-        computeRepetitionValues(component, rationalArray);
+        computeRepetitionValues(component, rationalVector);
 
         /* == 1.4 Update repetition values based on PiSDF rules of input / output interfaces and config actors == */
         updateBRV(component, params);
@@ -182,6 +185,8 @@ spider::brv::extractConnectedComponents(const pisdf::Graph *graph, spider::vecto
 
     /* == Iterate over every vertex and assign it to a connected component == */
     auto connectedComponents = containers::vector<ConnectedComponent>(StackID::TRANSFO);
+    /* == We assume 3 ConnectedComponents as a basis, this may be superior or inferior but this will save some time == */
+    connectedComponents.reserve(DEFAULT_MAX_CC_COUNT);
     for (const auto &vertex : graph->vertices()) {
         if (!visited[vertex->ix()]) {
             /* == Extract the component into output vector == */
@@ -216,7 +221,7 @@ spider::brv::extractEdgesFromComponent(const ConnectedComponent &component,
     return edgeArray;
 }
 
-void spider::brv::extractRationalsFromEdges(spider::array<Rational> &rationalArray,
+void spider::brv::extractRationalsFromEdges(spider::vector<Rational> &rationalVector,
                                             const spider::array<const pisdf::Edge *> &edgeArray,
                                             const spider::vector<std::shared_ptr<pisdf::Param>> &params) {
     auto dummyRational = Rational{ 1 };
@@ -240,8 +245,8 @@ void spider::brv::extractRationalsFromEdges(spider::array<Rational> &rationalArr
         }
 
         auto &sourceRational =
-                source->subtype() == pisdf::VertexType::INPUT ? dummyRational : rationalArray[source->ix()];
-        auto &sinkRational = sink->subtype() == pisdf::VertexType::OUTPUT ? dummyRational : rationalArray[sink->ix()];
+                source->subtype() == pisdf::VertexType::INPUT ? dummyRational : rationalVector[source->ix()];
+        auto &sinkRational = sink->subtype() == pisdf::VertexType::OUTPUT ? dummyRational : rationalVector[sink->ix()];
 
         if (!sinkRational.nominator() && sinkRate) {
             sinkRational = Rational{ sourceRate, sinkRate };
