@@ -52,7 +52,7 @@
 #include <graphs/pisdf/ExecVertex.h>
 #include <graphs/pisdf/SpecialVertex.h>
 #include <api/spider.h>
-#include <graphs/pisdf/visitors/PiSDFCloneVisitor.h>
+#include <graphs/pisdf/visitors/PiSDFDefaultVisitor.h>
 
 class pisdVertexTest : public ::testing::Test {
 protected:
@@ -235,10 +235,6 @@ TEST_F(pisdVertexTest, vertexTest) {
 
     /* == Test cpy ctor of each subtype == */
     testCpyCtor();
-
-    auto visitor = spider::pisdf::CloneVisitor(graph);
-    spider::api::enableLogger(spider::log::GENERAL);
-    v0->visit(&visitor);
 
     ASSERT_NO_THROW(v0->setName("toto")) << "Vertex::setName() should never throw.";
     ASSERT_EQ(v0->name(), "toto") << "Vertex::setName() should never throw.";

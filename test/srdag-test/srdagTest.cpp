@@ -331,10 +331,10 @@ TEST_F(srdagTest, srdagHTest) {
     ASSERT_NO_THROW(spider::srdag::singleRateTransformation(res.first[0], srdag));
     ASSERT_NO_THROW(spider::api::exportGraphToDOT(srdag, "srdag.dot"));
     /*
-     * vertex_0_0 -> input -> vertex_2_0 -> output -> vertex_1_0
+     * vertex_0_0 -> vertex_2_0 -> vertex_1_0
      */
-    ASSERT_EQ(srdag->vertexCount(), 5);
-    ASSERT_EQ(srdag->edgeCount(), 4);
+    ASSERT_EQ(srdag->vertexCount(), 3);
+    ASSERT_EQ(srdag->edgeCount(), 2);
     spider::destroy(srdag);
     spider::destroy(graph);
 }
@@ -395,32 +395,41 @@ TEST_F(srdagTest, srdagHTest2) {
     spider::srdag::TransfoJob rootJob{ graph, UINT32_MAX, UINT32_MAX, true };
     std::pair<spider::srdag::JobStack, spider::srdag::JobStack> res;
     ASSERT_NO_THROW(res = spider::srdag::singleRateTransformation(rootJob, srdag));
+    ASSERT_NO_THROW(spider::api::exportGraphToDOT(graph, "graph.dot"));
     ASSERT_NO_THROW(spider::api::exportGraphToDOT(srdag, "srdag.dot"));
     ASSERT_EQ(res.first.empty(), false)
-                                << "srdag::singleRateTransformation should not return nullptr for dynamic H graph";
-    ASSERT_EQ(res.second.empty(), false) << "srdag::singleRateTransformation should return nullptr for dynamic H graph";
+                                << "srdag::singleRateTransformation should not return nullptr for static H graph";
+    ASSERT_EQ(res.second.empty(), true)
+                                << "srdag::singleRateTransformation should not return nullptr for static H graph";
     /*
-     *       vertex_0_0 -> |
-     * ginit_subgraph_0 -> | grun_subgraph_0 -> vertex_1_0
+     *  vertex_0_0 -> subgraph_0 -> vertex_1_ 0
+     */
+    ASSERT_EQ(srdag->vertexCount(), 3);
+    ASSERT_EQ(srdag->edgeCount(), 2);
+    ASSERT_NO_THROW(res = spider::srdag::singleRateTransformation(res.first[0], srdag));
+    ASSERT_NO_THROW(spider::api::exportGraphToDOT(srdag, "srdag.dot"));
+    /*
+     *      vertex_0_0 -> |
+     *  subgraph_init  -> | subgraph_run -> vertex_1_ 0
      */
     ASSERT_EQ(srdag->vertexCount(), 4);
     ASSERT_EQ(srdag->edgeCount(), 3);
     ASSERT_NO_THROW(spider::srdag::singleRateTransformation(res.first[0], srdag));
     ASSERT_NO_THROW(spider::api::exportGraphToDOT(srdag, "srdag.dot"));
     /*
-     *    vertex_0_0 -> |
-     * cfg -> output -> | grun_subgraph_0 -> vertex_1_0
+     *     vertex_0_0 -> |
+     *            cfg -> | subgraph_run -> vertex_1_ 0
      */
-    ASSERT_EQ(srdag->vertexCount(), 5);
-    ASSERT_EQ(srdag->edgeCount(), 4);
+    ASSERT_EQ(srdag->vertexCount(), 4);
+    ASSERT_EQ(srdag->edgeCount(), 3);
     ASSERT_NO_THROW(spider::srdag::singleRateTransformation(res.second[0], srdag));
     ASSERT_NO_THROW(spider::api::exportGraphToDOT(srdag, "srdag.dot"));
     /*
-    *    vertex_0_0 -> input_0 -> |
-    * cfg -> output -> input_1 -> | vertex_2_0 -> vertex_3_0 -> output -> vertex_1_0
+    *    vertex_0_0 -> |
+    *           cfg -> | vertex_2_0 -> vertex_3_0 -> vertex_1_0
     */
-    ASSERT_EQ(srdag->vertexCount(), 9);
-    ASSERT_EQ(srdag->edgeCount(), 8);
+    ASSERT_EQ(srdag->vertexCount(), 5);
+    ASSERT_EQ(srdag->edgeCount(), 4);
     spider::destroy(srdag);
     spider::destroy(graph);
 }
@@ -450,27 +459,34 @@ TEST_F(srdagTest, srdagHTest3) {
     ASSERT_NO_THROW(spider::api::exportGraphToDOT(srdag, "srdag.dot"));
     ASSERT_EQ(res.first.empty(), false)
                                 << "srdag::singleRateTransformation should not return nullptr for dynamic H graph";
+    ASSERT_EQ(res.second.empty(), true) << "srdag::singleRateTransformation should return nullptr for dynamic H graph";
+    /*
+     * vertex_0_0 -> subgraph_0 -> vertex_1_0
+     */
+    ASSERT_EQ(srdag->vertexCount(), 3);
+    ASSERT_EQ(srdag->edgeCount(), 2);
+    ASSERT_NO_THROW(res = spider::srdag::singleRateTransformation(res.first[0], srdag));
     ASSERT_EQ(res.second.empty(), false) << "srdag::singleRateTransformation should return nullptr for dynamic H graph";
+    ASSERT_NO_THROW(spider::api::exportGraphToDOT(srdag, "srdag.dot"));
     /*
      * vertex_0_0 -> ginit_subgraph_0 -> grun_subgraph_0 -> vertex_1_0
      */
     ASSERT_EQ(srdag->vertexCount(), 4);
     ASSERT_EQ(srdag->edgeCount(), 3);
-    spider::srdag::TransfoJob job{ res.first[0] };
-    ASSERT_NO_THROW(spider::srdag::singleRateTransformation(job, srdag));
+    ASSERT_NO_THROW(spider::srdag::singleRateTransformation(res.first[0], srdag));
     ASSERT_NO_THROW(spider::api::exportGraphToDOT(srdag, "srdag.dot"));
     /*
-     * vertex_0_0 -> input -> cfg -> output -> grun_subgraph_0 -> vertex_1_0
+     * vertex_0_0 -> cfg -> grun_subgraph_0 -> vertex_1_0
      */
-    ASSERT_EQ(srdag->vertexCount(), 6);
-    ASSERT_EQ(srdag->edgeCount(), 5);
+    ASSERT_EQ(srdag->vertexCount(), 4);
+    ASSERT_EQ(srdag->edgeCount(), 3);
     ASSERT_NO_THROW(spider::srdag::singleRateTransformation(res.second[0], srdag));
     ASSERT_NO_THROW(spider::api::exportGraphToDOT(srdag, "srdag.dot"));
     /*
-    *  vertex_0_0 -> input_0 -> cfg -> output -> input_1 -> vertex_2_0  -> output -> vertex_1_0
+    *  vertex_0_0 ->  cfg -> vertex_2_0 -> vertex_1_0
     */
-    ASSERT_EQ(srdag->vertexCount(), 8);
-    ASSERT_EQ(srdag->edgeCount(), 7);
+    ASSERT_EQ(srdag->vertexCount(), 4);
+    ASSERT_EQ(srdag->edgeCount(), 3);
     spider::destroy(srdag);
     spider::destroy(graph);
 }
@@ -501,8 +517,16 @@ TEST_F(srdagTest, srdagHTest4) {
     ASSERT_NO_THROW(spider::api::exportGraphToDOT(graph, "pisdf.dot"));
     ASSERT_NO_THROW(spider::api::exportGraphToDOT(srdag, "srdag.dot"));
     ASSERT_EQ(res.first.empty(), false)
-                                << "srdag::singleRateTransformation should not return nullptr for dynamic H graph";
-    ASSERT_EQ(res.second.empty(), false) << "srdag::singleRateTransformation should return nullptr for dynamic H graph";
+                                << "srdag::singleRateTransformation staticJobStack should not be empty for static H graph";
+    ASSERT_EQ(res.second.empty(), true) << "srdag::singleRateTransformation dynamicJobStack should be empty for static H graph";
+    /*
+     * vertex_0_0 -> subgraph_0 -> vertex_0_1
+     */
+    ASSERT_EQ(srdag->vertexCount(), 3);
+    ASSERT_EQ(srdag->edgeCount(), 2);
+    ASSERT_NO_THROW(res = spider::srdag::singleRateTransformation(res.first[0], srdag));
+    ASSERT_NO_THROW(spider::api::exportGraphToDOT(srdag, "srdag.dot"));
+    ASSERT_EQ(res.second.empty(), false) << "srdag::singleRateTransformation dynamicJobStack should not be empty for dynamic H graph";
     /*
      * ginit_subgraph_0 -> vertex_0_1
      * vertex_0_0 -> grun_subgraph_0
@@ -512,19 +536,19 @@ TEST_F(srdagTest, srdagHTest4) {
     ASSERT_NO_THROW(spider::srdag::singleRateTransformation(res.first[0], srdag));
     ASSERT_NO_THROW(spider::api::exportGraphToDOT(srdag, "srdag.dot"));
     /*
-     * cfg -> output -> vertex_1_0
+     * cfg -> vertex_1_0
      * vertex_0_0 -> grun_subgraph_0
      */
-    ASSERT_EQ(srdag->vertexCount(), 5);
-    ASSERT_EQ(srdag->edgeCount(), 3);
+    ASSERT_EQ(srdag->vertexCount(), 4);
+    ASSERT_EQ(srdag->edgeCount(), 2);
     ASSERT_NO_THROW(spider::srdag::singleRateTransformation(res.second[0], srdag));
     ASSERT_NO_THROW(spider::api::exportGraphToDOT(srdag, "srdag.dot"));
     /*
-     * cfg -> output -> vertex_1_0
-     * vertex_0_0 -> output -> vertex_2_0 -> vertex_3_0
+     * cfg -> vertex_1_0
+     * vertex_0_0 -> vertex_2_0 -> vertex_3_0
      */
-    ASSERT_EQ(srdag->vertexCount(), 7);
-    ASSERT_EQ(srdag->edgeCount(), 5);
+    ASSERT_EQ(srdag->vertexCount(), 5);
+    ASSERT_EQ(srdag->edgeCount(), 3);
     spider::destroy(srdag);
     spider::destroy(graph);
 }
@@ -541,7 +565,8 @@ TEST_F(srdagTest, srdagHTest5) {
     auto *srdag = spider::api::createGraph("srdag");
     spider::srdag::TransfoJob rootJob{ graph, UINT32_MAX, UINT32_MAX, true };
     std::pair<spider::srdag::JobStack, spider::srdag::JobStack> res;
-    ASSERT_THROW(res = spider::srdag::singleRateTransformation(rootJob, srdag), spider::Exception) << "srdag::singleRateTransformation should throw when cfg actors receive token from non interface actor.";
+    ASSERT_THROW(res = spider::srdag::singleRateTransformation(rootJob, srdag), spider::Exception)
+                                << "srdag::singleRateTransformation should throw when cfg actors receive token from non interface actor.";
     spider::destroy(srdag);
     spider::destroy(graph);
 }

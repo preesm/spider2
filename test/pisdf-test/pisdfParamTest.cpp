@@ -98,8 +98,8 @@ TEST_F(pisdfParamTest, paramCreationTest) {
                                     << "InHeritedParam(std::string, Graph*, Param *) should throw with nullptr parent.";
     }
     {
-        auto param = spider::pisdf::DynamicParam("width");
-        ASSERT_THROW(spider::pisdf::Param("param", spider::Expression("width*31415", { &param })), spider::Exception)
+        auto param = spider::make_shared<spider::pisdf::DynamicParam>("width");
+        ASSERT_THROW(spider::pisdf::Param("param", spider::Expression("width*31415", { param })), spider::Exception)
                                     << "Param(std::string, Graph*, Expression &&) should throw with dynamic parameter";
     }
 }
@@ -130,7 +130,7 @@ TEST_F(pisdfParamTest, paramTest) {
     }
     {
         auto *graph = new spider::pisdf::Graph();
-        auto *param = spider::make<spider::pisdf::Param>("PArAM", 31415);
+        auto param = spider::make_shared<spider::pisdf::Param>("PArAM", 31415);
         ASSERT_EQ(param->name(), "param") << "name of param should be lower case converted.";
         ASSERT_NE(param->graph(), graph) << "param::graph() failed";
         ASSERT_EQ(param->ix(), SIZE_MAX) << "param::ix() should be equal to SIZE_MAX on init.";

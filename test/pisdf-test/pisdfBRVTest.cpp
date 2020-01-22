@@ -123,11 +123,11 @@ protected:
         spider::api::createEdge(repeat, 0, 5, out2, 0, 15);
 
         /* == Creating param == */
-        auto *param = spider::api::createStaticParam(graph_, "width", 10);
-        spider::api::createInheritedParam(subgraph, "top-width", param);
+        auto param = spider::api::createStaticParam(graph_, "width", 10);
+        spider::api::createInheritedParam(subgraph, "top-width", param.get());
         spider::api::createStaticParam(subgraph, "height", 10);
-        auto *param2 = spider::api::createDynamicParam(subgraph, "width");
-        spider::api::createInheritedParam(vertex_3, "up-width", param2);
+        auto param2 = spider::api::createDynamicParam(subgraph, "width");
+        spider::api::createInheritedParam(vertex_3, "up-width", param2.get());
 
     }
 

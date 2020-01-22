@@ -52,7 +52,6 @@
 #include <graphs/pisdf/DynamicParam.h>
 #include <graphs/pisdf/ExecVertex.h>
 #include <api/spider.h>
-#include <graphs/pisdf/visitors/PiSDFCloneVisitor.h>
 
 class pisdfGraphTest : public ::testing::Test {
 protected:
@@ -88,14 +87,15 @@ TEST_F(pisdfGraphTest, graphTest) {
 
     auto *graph = spider::make<spider::pisdf::Graph, StackID::PISDF>("graph", 4, 2, 3);
     /* == Param tests == */
-    auto *param = spider::make<spider::pisdf::Param, StackID::PISDF>("width", spider::Expression(5));
+    auto param = spider::make_shared<spider::pisdf::Param, StackID::PISDF>("width", spider::Expression(5));
     ASSERT_NO_THROW(graph->addParam(param)) << "Graph::addParam() should not throw on valid value.";
     ASSERT_THROW(graph->addParam(param), spider::Exception) << "Graph::addParam() should throw for pre-existing param.";
-    auto *param2 = spider::make<spider::pisdf::Param, StackID::PISDF>("WIDTH", spider::Expression(5));
-    ASSERT_THROW(graph->addParam(param2), spider::Exception)
-                                << "Graph::addParam() should throw for param with same name.";
-    spider::destroy(param2);
-    graph->addParam(spider::make<spider::pisdf::Param, StackID::PISDF>("height", spider::Expression(1)));
+    {
+        auto param2 = spider::make_shared<spider::pisdf::Param, StackID::PISDF>("WIDTH", spider::Expression(5));
+        ASSERT_THROW(graph->addParam(param2), spider::Exception)
+                                    << "Graph::addParam() should throw for param with same name.";
+    }
+    graph->addParam(spider::make_shared<spider::pisdf::Param, StackID::PISDF>("height", spider::Expression(1)));
 
     /* == Getter(s) test == */
     ASSERT_EQ(graph->vertexCount(), 0) << "Graph::vertexCount() failed.";
@@ -137,13 +137,6 @@ TEST_F(pisdfGraphTest, graphTest) {
     ASSERT_EQ(graph->vertex(3), vertex_4) << "Graph::vertex(ix) failed";
     spider::api::createDynamicParam(subgraph, "width");
     ASSERT_EQ(subgraph->dynamic(), true) << "Graph::dynamic() failed.";
-
-    ASSERT_NO_THROW(graph->moveParam(param, nullptr)) << "Graph::moveParam() should not throw for nullptr graph";
-    ASSERT_NO_THROW(graph->moveParam(nullptr, subgraph)) << "Graph::moveParam() should not throw for nullptr param";
-    ASSERT_THROW(graph->moveParam(param, subgraph), spider::Exception)
-                                << "Graph::moveParam() should throw if trying to move a param in a graph already containing one with same name.";
-    graph->addParam(param);
-    ASSERT_NO_THROW(graph->moveParam(param, graph)) << "Graph::moveParam() should not throw";
 
     ASSERT_NO_THROW(graph->moveEdge(graph->edges()[0], nullptr))
                                 << "Graph::moveEdge() should not throw for nullptr graph";

@@ -121,7 +121,7 @@ TEST_F(pisdfDelayTest, delayTest) {
     ASSERT_EQ(delay->isPersistent(), false) << "delay::isPersistent() failed.";
     ASSERT_NE(delay->vertex(), nullptr) << "delay::vertex() should not return nullptr.";
 
-    graph->addParam(spider::make<spider::pisdf::DynamicParam, StackID::PISDF>("width"));
+    graph->addParam(spider::make_shared<spider::pisdf::DynamicParam, StackID::PISDF>("width"));
     edge->removeDelay();
     auto *delay2 = spider::make<spider::pisdf::Delay, StackID::PISDF>(spider::Expression("10width", graph->params()),
                                                                       edge, nullptr, 0, spider::Expression(), nullptr,

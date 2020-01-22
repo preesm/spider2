@@ -76,7 +76,7 @@ bool spider::srdag::splitDynamicGraph(pisdf::Graph *subgraph) {
     const auto &runOutputIFCount = subgraph->outputEdgeCount() - initOutputIFCount;
 
     /* == Create the init subgraph == */
-    auto *initGraph = api::createGraph("g_init",
+    auto *initGraph = api::createGraph("init",
                                        subgraph->configVertexCount(),
                                        initInputIFCount + initOutputIFCount + cfgInputIFCount,
                                        0,
@@ -85,7 +85,7 @@ bool spider::srdag::splitDynamicGraph(pisdf::Graph *subgraph) {
                                        subgraph->configVertexCount());
 
     /* == Create the run subgraph == */
-    auto *runGraph = api::createGraph("g_run",
+    auto *runGraph = api::createGraph("run",
                                       subgraph->vertexCount(),
                                       subgraph->edgeCount(),
                                       subgraph->paramCount(),

@@ -105,25 +105,27 @@ TEST_F(expressionTest, expression2StringTest) {
     ASSERT_EQ(Expression(4).string(), "4.000000") << "Expression to string from simple value failed.";
     ASSERT_EQ(Expression("").string(), "0.000000") << "Empty Expression should convert to 0.000000";
     ASSERT_EQ(Expression("4cos(0)").string(), "4.000000") << "Static Expression to string failed.";
-    auto *width = spider::api::createStaticParam(nullptr, "width", 0);
+    auto width = spider::api::createStaticParam(nullptr, "width", 0);
     ASSERT_EQ(Expression("4cos(width)", { width }).string(), "4.000000")
                                 << "Static parameterized Expression to string failed";
-    auto *height = spider::api::createDynamicParam(nullptr, "height");
+    auto height = spider::api::createDynamicParam(nullptr, "height");
     ASSERT_EQ(Expression("cos(height)", { width, height }).string(), "height cos")
                                 << "Dynamic parameterized Expression to string failed.";
     ASSERT_EQ(Expression("4min(1,height)", { width, height }).string(), "4 1 height min *")
                                 << "Dynamic parameterized Expression to string failed.";;
-    spider::destroy(width);
-    spider::destroy(height);
 }
 
 TEST_F(expressionTest, testEquality) {
     ASSERT_EQ(Expression("4*3"), Expression("4*3")) << "Expression::operator== static expression should be equal.";
-    ASSERT_NE(Expression("4*3"), Expression("4*3.1")) << "Expression::operator== static expression should not be equal.";
-    ASSERT_EQ(Expression("4*3"), Expression("3*4")) << "Expression::operator== order should influence equality on static Expression";
-    auto *param = spider::api::createDynamicParam(nullptr, "width");
-    ASSERT_EQ(Expression("3*width", { param }), Expression("3*width", { param })) << "Expression::operator== parameterized expression should be equal.";
-    ASSERT_NE(Expression("3*width", { param }), Expression("width*3", { param })) << "Expression::operator== order matters.";
+    ASSERT_NE(Expression("4*3"), Expression("4*3.1"))
+                                << "Expression::operator== static expression should not be equal.";
+    ASSERT_EQ(Expression("4*3"), Expression("3*4"))
+                                << "Expression::operator== order should influence equality on static Expression";
+    auto param = spider::api::createDynamicParam(nullptr, "width");
+    ASSERT_EQ(Expression("3*width", { param }), Expression("3*width", { param }))
+                                << "Expression::operator== parameterized expression should be equal.";
+    ASSERT_NE(Expression("3*width", { param }), Expression("width*3", { param }))
+                                << "Expression::operator== order matters.";
 }
 
 TEST_F(expressionTest, expressionOperatorsTest) {
@@ -193,7 +195,7 @@ TEST_F(expressionTest, expressionFunctionsTest) {
     ASSERT_EQ(Expression("min(0.2 * 0.1, 0.21)").dynamic(), false)
                                 << "Expression: dynamic() should evaluate to false for static expression.";
     spider::pisdf::Graph *graph = spider::api::createGraph("test", 0, 0, 1);
-    auto *height = spider::api::createDynamicParam(graph, "height");
+    auto height = spider::api::createDynamicParam(graph, "height");
     ASSERT_EQ(Expression("1cos(height)", graph->params()).evaluateDBL(graph->params()), 1.)
                                 << "Expression: parameterized function evaluation failed.";
     ASSERT_EQ(Expression("cos(height)", graph->params()).evaluate(graph->params()), 1)
