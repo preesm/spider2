@@ -82,7 +82,7 @@ bool PiSDFForkForkOptimizer::operator()(spider::pisdf::Graph *graph) const {
         if (vertex->subtype() == spider::pisdf::VertexType::FORK) {
             auto *source = vertex->inputEdge(0)->source();
             if (source->subtype() == spider::pisdf::VertexType::FORK) {
-                verticesToOptimize.emplace_back(source, vertex);
+                verticesToOptimize.emplace_back(source, vertex.get());
             }
         }
     }

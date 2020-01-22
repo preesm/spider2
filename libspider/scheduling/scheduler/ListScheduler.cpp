@@ -71,9 +71,9 @@ void spider::ListScheduler::update() {
 void spider::ListScheduler::addVerticesAndSortList() {
     /* == Reserve and push the vertices into the vertex == */
     sortedVertexVector_.reserve(graph_->vertexCount());
-    for (auto *vertex : graph_->vertices()) {
+    for (const auto &vertex : graph_->vertices()) {
         if (vertex->scheduleJobIx() == SIZE_MAX) {
-            sortedVertexVector_.emplace_back(ListVertex(vertex, -1));
+            sortedVertexVector_.emplace_back(ListVertex(vertex.get(), -1));
             sortedVertexVector_.back().vertex_->setScheduleJobIx(sortedVertexVector_.size() - 1);
         }
     }

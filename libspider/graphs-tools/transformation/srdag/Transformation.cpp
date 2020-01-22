@@ -94,23 +94,23 @@ bool spider::srdag::splitDynamicGraph(pisdf::Graph *subgraph) {
                                       0);
 
     /* == Move the edges == */
-    for (auto &edge : subgraph->edges()) {
-        subgraph->moveEdge(edge, runGraph);
+    while (!subgraph->edges().empty()) {
+        subgraph->moveEdge(subgraph->edges()[0], runGraph);
     }
 
     /* == Move the config vertex == */
-    for (auto &vertex : subgraph->configVertices()) {
-        subgraph->moveConfigVertex(vertex, initGraph);
+    while (!subgraph->configVertices().empty()) {
+        subgraph->moveVertex(subgraph->configVertices()[0], initGraph);
     }
 
     /* == Move the subgraphs == */
-    for (auto &subg : subgraph->subgraphs()) {
-        subgraph->moveSubgraph(subg, runGraph);
+    while (!subgraph->subgraphs().empty()) {
+        subgraph->moveVertex(subgraph->subgraphs()[0], runGraph);
     }
 
     /* == Move the vertices == */
-    for (auto &vertex : subgraph->vertices()) {
-        subgraph->moveVertex(vertex, runGraph);
+    while (!subgraph->vertices().empty()) {
+        subgraph->moveVertex(subgraph->vertex(0), runGraph);
     }
 
     /* == Add init / run graphs == */

@@ -96,11 +96,11 @@ std::pair<spider::srdag::JobStack, spider::srdag::JobStack> spider::srdag::Singl
     spider::vector<pisdf::Vertex *> delayVertexToRemove;
     SRDAGCopyVisitor visitor{ job_, srdag_ };
     for (const auto &vertex : job_.reference_->vertices()) {
-        const auto &vertexUniformIx = uniformIx(vertex, job_.reference_);
+        const auto &vertexUniformIx = uniformIx(vertex.get(), job_.reference_);
         vertex->visit(&visitor);
         ref2Clone_[vertexUniformIx] = visitor.ix_;
         if (vertex->subtype() == pisdf::VertexType::DELAY) {
-            delayVertexToRemove.emplace_back(srdag_->vertices().back());
+            delayVertexToRemove.emplace_back(srdag_->vertices().back().get());
         }
     }
 

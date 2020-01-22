@@ -37,65 +37,63 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_PISDFGRAPHADDVERTEXVISITOR_H
-#define SPIDER2_PISDFGRAPHADDVERTEXVISITOR_H
+#ifndef SPIDER2_SRDAGCOPYVISITOR_H
+#define SPIDER2_SRDAGCOPYVISITOR_H
 
 /* === Include(s) === */
 
 #include <graphs/pisdf/visitors/PiSDFDefaultVisitor.h>
+#include <graphs/pisdf/Graph.h>
+#include <graphs/pisdf/ExecVertex.h>
 #include <graphs/pisdf/NonExecVertex.h>
 #include <graphs/pisdf/SpecialVertex.h>
-#include <graphs/pisdf/Graph.h>
-#include <api/archi-api.h>
-#include <archi/Platform.h>
+#include <api/pisdf-api.h>
 
 namespace spider {
     namespace pisdf {
-        struct GraphAddVertexVisitor final : public DefaultVisitor {
 
-            explicit GraphAddVertexVisitor(Graph *graph) : graph_{ graph } { }
+        /* === Struct definition === */
 
-            /* === Method(s) === */
+        struct VertexCopyVisitor final : public pisdf::DefaultVisitor {
+        public:
+            VertexCopyVisitor() = default;
 
-            inline void visit(ExecVertex *vertex) override {
-                /* == Add vertex to vertexVector_ == */
-                addVertex(vertex);
-            }
+            ~VertexCopyVisitor() override = default;
 
-            inline void visit(NonExecVertex *vertex) override {
-                /* == Add vertex to vertexVector_ == */
-                addVertex(vertex);
-            }
+            inline void visit(pisdf::DelayVertex *vertex) override { clone(vertex); }
 
-            inline void visit(ConfigVertex *vertex) override {
-                /* == Add vertex to vertexVector_ == */
-                addVertex(vertex);
+            inline void visit(pisdf::ExecVertex *vertex) override { clone(vertex); }
 
-                /* == Add config vertex to the "viewer" vector == */
-                graph_->configVertexVector_.emplace_back(vertex);
-            }
+            inline void visit(pisdf::NonExecVertex *vertex) override { clone(vertex); }
 
-            inline void visit(Graph *subgraph) override {
-                /* == Add the subgraph as Vertex == */
-                addVertex(subgraph);
+            inline void visit(pisdf::ConfigVertex *vertex) override { clone(vertex); }
 
-                /* == Add the subgraph in the "viewer" vector == */
-                subgraph->subIx_ = static_cast<uint32_t>(graph_->subgraphVector_.size());
-                graph_->subgraphVector_.emplace_back(subgraph);
-            }
+            inline void visit(pisdf::ForkVertex *vertex) override { clone(vertex); }
 
-            /* == Graph to add vertex to == */
-            Graph *graph_ = nullptr;
+            inline void visit(pisdf::JoinVertex *vertex) override { clone(vertex); }
+
+            inline void visit(pisdf::HeadVertex *vertex) override { clone(vertex); }
+
+            inline void visit(pisdf::TailVertex *vertex) override { clone(vertex); }
+
+            inline void visit(pisdf::DuplicateVertex *vertex) override { clone(vertex); }
+
+            inline void visit(pisdf::RepeatVertex *vertex) override { clone(vertex); }
+
+            inline void visit(pisdf::InitVertex *vertex) override { clone(vertex); }
+
+            inline void visit(pisdf::EndVertex *vertex) override { clone(vertex); }
+
+            inline void visit(pisdf::Graph *graph) override { clone(graph); }
+
+            Vertex *result_ = nullptr;
         private:
             template<class T>
-            void addVertex(T *vertex) {
-                vertex->setIx(static_cast<uint32_t>(graph_->vertexVector_.size()));
-                graph_->vertexVector_.emplace_back(vertex);
-                vertex->setGraph(graph_);
+            inline void clone(const T *vertex) {
+                result_ = make<T>(StackID::PISDF, (*vertex));
             }
         };
     }
 }
 
-
-#endif //SPIDER2_PISDFGRAPHADDVERTEXVISITOR_H
+#endif //SPIDER2_SRDAGCOPYVISITOR_H

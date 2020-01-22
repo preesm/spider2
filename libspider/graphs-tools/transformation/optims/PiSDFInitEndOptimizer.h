@@ -59,11 +59,11 @@ bool PiSDFInitEndOptimizer::operator()(spider::pisdf::Graph *graph) const {
     auto verticesToOptimize = spider::containers::vector<spider::pisdf::Vertex *>(StackID::TRANSFO);
 
     /* == Retrieve the vertices to remove == */
-    for (auto *vertex : graph->vertices()) {
+    for (auto &vertex : graph->vertices()) {
         if (vertex->subtype() == spider::pisdf::VertexType::INIT) {
             auto *sink = vertex->outputEdge(0)->sink();
             if (sink->subtype() == spider::pisdf::VertexType::END) {
-                verticesToOptimize.push_back(vertex);
+                verticesToOptimize.push_back(vertex.get());
             }
         }
     }

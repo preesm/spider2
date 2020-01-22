@@ -190,7 +190,7 @@ spider::brv::extractConnectedComponents(const pisdf::Graph *graph, spider::vecto
     for (const auto &vertex : graph->vertices()) {
         if (!visited[vertex->ix()]) {
             /* == Extract the component into output vector == */
-            connectedComponents.emplace_back(extractOneComponent(vertex, visited, vertices));
+            connectedComponents.emplace_back(extractOneComponent(vertex.get(), visited, vertices));
         }
     }
     return connectedComponents;

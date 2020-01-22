@@ -230,17 +230,22 @@ namespace spider {
 
     template<class T>
     std::shared_ptr<T> make_shared(T *&value) {
-        return std::shared_ptr<T>(value, [](T *&p) { destroy(p); });
+        return std::shared_ptr<T>(value, destroy<T>);
+    }
+
+    template<class T, StackID stack = StackID::GENERAL, class ...Args>
+    spider::unique_ptr<T> make_unique(Args &&... args) {
+        return spider::unique_ptr<T>(make<T, stack>(std::forward<Args>(args)...), destroy<T>);
     }
 
     template<class T, class ...Args>
     spider::unique_ptr<T> make_unique(StackID stack, Args &&... args) {
-        return spider::unique_ptr<T>(make<T>(stack, std::forward<Args>(args)...), [](T *&p) { destroy(p); });
+        return spider::unique_ptr<T>(make<T>(stack, std::forward<Args>(args)...), destroy<T>);
     }
 
     template<class T>
     spider::unique_ptr<T> make_unique(T *&value) {
-        return spider::unique_ptr<T>(value, [](T *&p) { destroy(p); });
+        return spider::unique_ptr<T>(value, destroy<T>);
     }
 }
 

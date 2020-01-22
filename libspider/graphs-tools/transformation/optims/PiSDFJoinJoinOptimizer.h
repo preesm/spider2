@@ -81,7 +81,7 @@ bool PiSDFJoinJoinOptimizer::operator()(spider::pisdf::Graph *graph) const {
         if (vertex->subtype() == spider::pisdf::VertexType::JOIN) {
             auto *sink = vertex->outputEdge(0)->sink();
             if (sink->subtype() == spider::pisdf::VertexType::JOIN) {
-                verticesToOptimize.emplace_back(vertex, sink);
+                verticesToOptimize.emplace_back(vertex.get(), sink);
             }
         }
     }

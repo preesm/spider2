@@ -56,7 +56,7 @@ spider::sched::Schedule &spider::GreedyScheduler::mappingScheduling() {
 
     /* == Initialize vector of vertex == */
     for (const auto &vertex : graph_->vertices()) {
-        vertexVector.emplace_back(vertex);
+        vertexVector.emplace_back(vertex.get());
     }
 
     /* == Initialize the jobs of the schedule == */
