@@ -109,9 +109,10 @@ namespace spider {
             size_t ix_ = SIZE_MAX;
         private:
             std::string buildCloneName(const pisdf::Vertex *vertex, uint32_t firing) {
-                const auto *graphRef = job_.firingValue_ == UINT32_MAX ?
-                                       job_.reference_ : srdag_->vertex(*(job_.srdagIx_));
-                return graphRef->name() + ":" + vertex->name() + "-" + std::to_string(firing);
+                const auto *graphRef = job_.root_ ? job_.reference_ : srdag_->vertex(*(job_.srdagIx_));
+                std::string name = graphRef->name();
+                name.append(":").append(vertex->name()).append("-").append(std::to_string(firing));
+                return name;
             }
 
             template<class T>
