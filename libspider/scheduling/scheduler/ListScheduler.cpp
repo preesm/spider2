@@ -50,7 +50,7 @@
 
 /* === Static variable(s) === */
 
-static constexpr auto NON_EXECUTABLE_LEVEL = -31415; /* = Value is arbitrary, just needed something unique = */
+static constexpr auto NON_EXECUTABLE_LEVEL = -314159265; /* = Value is arbitrary, just needed something unique = */
 
 /* === Static function(s) === */
 
@@ -88,55 +88,42 @@ void spider::ListScheduler::addVerticesAndSortList() {
     std::sort(std::begin(sortedVertexVector_) + static_cast<long>(lastSchedulableVertex_),
               std::end(sortedVertexVector_),
               [](const ListVertex &A, const ListVertex &B) -> int32_t {
-                  if (B.vertex_->subtype() == pisdf::VertexType::NORMAL &&
-                      A.vertex_->reference() == B.vertex_->reference() &&
-                      A.level_ == B.level_) {
-                      return B.vertex_->ix() > A.vertex_->ix();
-                  } else if (A.level_ == B.level_) {
-                      return B.vertex_->name() > A.vertex_->name();
-                  }
-                  return B.level_ < A.level_;
+                  bool isSame = B.vertex_->reference() == A.vertex_->reference();
+                  return isSame ? B.vertex_->executable() && (B.vertex_->instanceValue() > A.vertex_->instanceValue()) :
+                         (B.level_ < A.level_) || (A.vertex_->subtype() == pisdf::VertexType::CONFIG);
               });
 
     /* == Remove the non-executable hierarchical vertex == */
     size_t nonSchedulableVertexCount = 0;
     auto reverseIterator = sortedVertexVector_.rbegin();
-    while ((reverseIterator != sortedVertexVector_.rend()) && (*reverseIterator).level_ == NON_EXECUTABLE_LEVEL) {
-        auto isExecutable = (*reverseIterator).vertex_->executable();
+    while ((reverseIterator != sortedVertexVector_.rend()) && (reverseIterator->level_ == NON_EXECUTABLE_LEVEL)) {
+        auto isExecutable = reverseIterator->vertex_->executable();
         if (!isExecutable) {
             std::swap((*reverseIterator), sortedVertexVector_.back());
             sortedVertexVector_.pop_back();
         }
         nonSchedulableVertexCount += (isExecutable); /* = Increase the number of non-schedulable vertex = */
-        (*(reverseIterator)).level_ = -1;            /* = Reset the schedule level = */
+        reverseIterator->level_ = -1;                /* = Reset the schedule level = */
         reverseIterator++;
     }
 
     /* == Set the schedule job ix of the vertices == */
     iterator = std::begin(sortedVertexVector_) + static_cast<long>(lastSchedulableVertex_);
     auto endIterator = std::end(sortedVertexVector_);
-    size_t i = lastSchedulableVertex_;
     while (iterator != endIterator) {
-        (*(iterator++)).vertex_->setScheduleJobIx(i++);
+        schedule_.addJobToSchedule((iterator++)->vertex_);
     }
-
-    /* == Update the schedule number of job == */
-    schedule_.updateScheduleSize(sortedVertexVector_.size() - nonSchedulableVertexCount);
     lastSchedulableVertex_ = sortedVertexVector_.size() - nonSchedulableVertexCount;
 }
 
 int64_t spider::ListScheduler::computeScheduleLevel(ListVertex &listVertex,
                                                     spider::vector<ListVertex> &listVertexVector) const {
-    if (!listVertex.vertex_->executable()) {
+    if ((listVertex.level_ == NON_EXECUTABLE_LEVEL) || !listVertex.vertex_->executable()) {
         listVertex.level_ = NON_EXECUTABLE_LEVEL;
         for (auto &edge : listVertex.vertex_->outputEdgeVector()) {
             listVertexVector[edge->sink()->ix()].level_ = NON_EXECUTABLE_LEVEL;
         }
-    } else if (listVertex.level_ == NON_EXECUTABLE_LEVEL) {
-        for (auto &edge : listVertex.vertex_->outputEdgeVector()) {
-            listVertexVector[edge->sink()->ix()].level_ = NON_EXECUTABLE_LEVEL;
-        }
-    } else if (listVertex.level_ == -1) {
+    } else if (listVertex.level_ < 0) {
         auto *platform = archi::platform();
         auto *vertex = listVertex.vertex_;
         int64_t level = 0;

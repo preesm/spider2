@@ -53,47 +53,14 @@
 /* === Method(s) implementation === */
 
 spider::sched::Schedule &spider::BestFitScheduler::mappingScheduling() {
-    /* == Save the old number of job count == */
-    auto oldJobCountVector = containers::vector<size_t>(archi::platform()->LRTCount(), StackID::SCHEDULE);
-    for (auto &lrt : archi::platform()->lrtVector()) {
-        const auto &jobCount = schedule_.stats().jobCount(lrt->virtualIx());
-        oldJobCountVector[lrt->virtualIx()] = jobCount;
-    }
-
     /* == Schedule and map the vertex onto available ressource == */
     auto iterator = sortedVertexVector_.begin() + static_cast<long>(lastScheduledVertex_);
     auto endIterator = sortedVertexVector_.begin() + static_cast<long>(lastSchedulableVertex_);
     while (iterator != endIterator) {
         auto &listVertex = (*(iterator++));
         Scheduler::vertexMapper(listVertex.vertex_);
-
-//        /* == Send the job message == */
-//        auto &job = schedule_.job(listVertex.vertex_->scheduleJobIx());
-//        const auto &messageIx = rt::platform()->communicator()->push(job.message(), job.mappingInfo().LRTIx);
-//
-//        rt::platform()->communicator()->push(Notification(NotificationType::JOB_ADD,
-//                                                          0,
-//                                                          messageIx),
-//                                             job.mappingInfo().LRTIx);
-//        job.setState(sched::JobState::RUNNING);
+        schedule_.runReadyJobs();
     }
     lastScheduledVertex_ = lastSchedulableVertex_;
-    schedule_.print();
-
-    /* == Send the job count to each runner == */
-    const auto &grtIx = archi::platform()->spiderGRTPE()->virtualIx();
-    for (auto &lrt : archi::platform()->lrtVector()) {
-        const auto &jobCount = schedule_.stats().jobCount(lrt->virtualIx());
-        const auto &newJobCount = jobCount - oldJobCountVector[lrt->virtualIx()];
-        if (newJobCount) {
-            rt::platform()->communicator()->push(Notification(NotificationType::JOB_JOB_COUNT,
-                                                              grtIx,
-                                                              newJobCount),
-                                                 lrt->virtualIx());
-        }
-    }
-
-//    /* == Run the jobs of GRT (if any) == */
-//    rt::platform()->runner(grtIx)->run(false);
     return schedule_;
 }

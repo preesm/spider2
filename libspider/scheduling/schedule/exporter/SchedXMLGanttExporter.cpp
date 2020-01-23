@@ -63,7 +63,7 @@ void spider::SchedXMLGanttExporter::print() const {
 void spider::SchedXMLGanttExporter::printFromFile(std::ofstream &file) const {
     file << "<data>" << '\n';
     for (const auto &job : schedule_->jobs()) {
-        if (job.state() != sched::JobState::NON_EXEC) {
+        if (job.state() != sched::JobState::PENDING) {
             jobPrinter(file, job);
         }
     }

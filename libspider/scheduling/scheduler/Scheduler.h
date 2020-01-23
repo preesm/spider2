@@ -91,16 +91,6 @@ namespace spider {
         /* === Protected method(s) === */
 
         /**
-         * @brief Set the different information of a @refitem sched::Job for a given vertex.
-         * @remark This method also update the schedule_ based on schedule Job information.
-         * @param vertex      Pointer to the vertex.
-         * @param slave       Slave (cluster and pe) to execute on.
-         * @param startTime   Start time of the job.
-         * @param endTime     End time of the job.
-         */
-        void setJobInformation(const pisdf::Vertex *vertex, size_t slave, uint64_t startTime, uint64_t endTime);
-
-        /**
          * @brief Compute the minimum start time possible for a given vertex.
          * @param vertex  Vertex to evaluate.
          * @return Minimum start time for the vertex.

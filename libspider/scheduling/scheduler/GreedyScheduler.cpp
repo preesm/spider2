@@ -57,10 +57,8 @@ spider::sched::Schedule &spider::GreedyScheduler::mappingScheduling() {
     /* == Initialize vector of vertex == */
     for (const auto &vertex : graph_->vertices()) {
         vertexVector.emplace_back(vertex.get());
+        schedule_.addJobToSchedule(vertex.get());
     }
-
-    /* == Initialize the jobs of the schedule == */
-    schedule_.updateScheduleSize(vertexVector.size());
 
     /* == Iterate on vector until a schedulable vertex is found == */
     auto it = vertexVector.begin();
@@ -92,7 +90,7 @@ bool spider::GreedyScheduler::isSchedulable(pisdf::Vertex *vertex) const {
     for (const auto &edge : vertex->inputEdgeVector()) {
         const auto &source = edge->source();
         const auto &job = schedule_.job(source->ix());
-        if (job.mappingInfo().PEIx == UINT32_MAX) {
+        if (job.mappingInfo().PEIx == SIZE_MAX) {
             return false;
         }
     }

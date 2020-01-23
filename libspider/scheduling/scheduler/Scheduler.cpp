@@ -66,18 +66,6 @@ spider::Scheduler::~Scheduler() {
 
 /* === Protected method(s) === */
 
-void
-spider::Scheduler::setJobInformation(const pisdf::Vertex *vertex, size_t slave, uint64_t startTime, uint64_t endTime) {
-    auto *platform = archi::platform();
-    const auto &pe = platform->peFromVirtualIx(slave);
-    auto &job = schedule_.job(vertex->scheduleJobIx());
-    job.setMappingLRT(pe->attachedLRT()->virtualIx());
-    job.setMappingPE(pe->virtualIx());
-    job.setMappingStartTime(startTime);
-    job.setMappingEndTime(endTime);
-    schedule_.update(job);
-}
-
 uint64_t spider::Scheduler::computeMinStartTime(const pisdf::Vertex *vertex) {
     uint64_t minimumStartTime = 0;
     auto &job = schedule_.job(vertex->scheduleJobIx());
@@ -163,5 +151,5 @@ void spider::Scheduler::vertexMapper(const pisdf::Vertex *vertex) {
         throwSpiderException("Could not find suitable processing element for vertex: [%s]", vertex->name().c_str());
     }
     /* == Set job information and update schedule == */
-    setJobInformation(vertex, bestSlave, bestStartTime, bestEndTime);
+    schedule_.updateJobAndSetReady(vertex->scheduleJobIx(), bestSlave, bestStartTime, bestEndTime);
 }

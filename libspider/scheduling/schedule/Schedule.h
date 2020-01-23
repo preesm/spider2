@@ -63,29 +63,36 @@ namespace spider {
             /* === Method(s) === */
 
             /**
-             * @brief Update schedule stats based on given TransfoJob.
-             * @param job  TransfoJob to evaluate.
-             */
-            void update(Job &job);
-
-            /**
              * @brief Clear schedule jobs.
              */
             void clear();
 
             /**
              * @brief Reset schedule jobs.
-             * @remark Set all job state to @refitem Spider::JobState::PENDING.
+             * @remark Set all job state to @refitem JobState::PENDING.
              * @remark Statistics of the platform are not modified.
              */
             void reset();
 
             /**
-             * @brief Clear the job vector and initialize it with a given count of jobs.
-             * @remark This method is intended to be used with scheduler using SR-DAG representation.
-             * @param count Number of jobs to initialize.
+             * @brief Creates a new schedule job and add it to the Schedule.
+             * @param vertex Pointer to the vertex of the new job.
              */
-            void updateScheduleSize(size_t count);
+            void addJobToSchedule(pisdf::Vertex *vertex);
+
+            /**
+             * @brief Updates a job information and set its state as JobState::READY
+             * @param jobIx     Ix of the job to update.
+             * @param slave     Slave (cluster and pe) to execute on.
+             * @param startTime Start time of the job.
+             * @param endTime   End time of the job.
+             */
+            void updateJobAndSetReady(size_t jobIx, size_t slave, uint64_t startTime, uint64_t endTime);
+
+            /**
+             * @brief Send every jobs currently in JobState::READY.
+             */
+            void runReadyJobs();
 
             /**
              * @brief Print the Schedule in the console with the format:
@@ -99,13 +106,21 @@ namespace spider {
 
             /* === Getter(s) === */
 
-            inline size_t jobCount() const;
+            /**
+             * @brief Get the number of jobs in the schedule.
+             * @return number of jobs.
+             */
+            inline size_t jobCount() const {
+                return jobVector_.size();
+            }
 
             /**
              * @brief Get the job vector of the schedule.
              * @return const reference to the job vector
              */
-            inline const spider::vector<Job> &jobs() const;
+            inline const spider::vector<Job> &jobs() const {
+                return jobVector_;
+            }
 
             /**
              * @brief Get a job from its ix.
@@ -113,7 +128,9 @@ namespace spider {
              * @return const reference to the job.
              * @throws @refitem std::out_of_range if ix is out of range.
              */
-            inline Job &job(size_t ix);
+            inline Job &job(size_t ix) {
+                return jobVector_.at(ix);
+            }
 
             /**
              * @brief Get a job from its ix.
@@ -121,45 +138,27 @@ namespace spider {
              * @return const reference to the job.
              * @throws @refitem std::out_of_range if ix is out of range.
              */
-            inline const Job &job(size_t ix) const;
+            inline const Job &job(size_t ix) const {
+                return jobVector_.at(ix);
+            }
+
 
             /**
              * @brief Get the different statistics of the platform.
              * @return const reference to @refitem Stats
              */
-            inline const Stats &stats() const;
+            inline const Stats &stats() const {
+                return stats_;
+            }
 
             /* === Setter(s) === */
 
         private:
-            stack_vector(jobs_, Job, StackID::SCHEDULE);
+            stack_vector(jobVector_, Job, StackID::SCHEDULE);
             Stats stats_;
-            size_t currentJobIx_ = 0;
-
-            /* === Private method(s) === */
+            long readyJobCount_ = 0;
+            long lastRunJob_ = 0;
         };
-
-        /* === Inline method(s) === */
-
-        size_t Schedule::jobCount() const {
-            return jobs_.size();
-        }
-
-        const spider::vector<Job> &Schedule::jobs() const {
-            return jobs_;
-        }
-
-        Job &Schedule::job(size_t ix) {
-            return jobs_.at(ix);
-        }
-
-        const Job &Schedule::job(size_t ix) const {
-            return jobs_.at(ix);
-        }
-
-        const Stats &Schedule::stats() const {
-            return stats_;
-        }
     }
 }
 

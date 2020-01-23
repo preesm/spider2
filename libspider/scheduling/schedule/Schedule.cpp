@@ -41,7 +41,11 @@
 /* === Include(s) === */
 
 #include <scheduling/schedule/Schedule.h>
+#include <graphs/pisdf/Vertex.h>
+#include <runtime/interface/RTCommunicator.h>
+#include <runtime/platform/RTPlatform.h>
 #include <api/archi-api.h>
+#include <api/runtime-api.h>
 
 /* === Static variable(s) === */
 
@@ -50,37 +54,17 @@
 /* === Method(s) implementation === */
 
 void spider::sched::Schedule::clear() {
-    jobs_.clear();
+    jobVector_.clear();
 
     /* == Reset the stats the platform == */
     stats_.reset();
-    currentJobIx_ = 0;
 }
 
 void spider::sched::Schedule::reset() {
-    for (auto &job : jobs_) {
-        job.setState(sched::JobState::PENDING);
+    for (auto &job : jobVector_) {
+        job.setState(JobState::PENDING);
     }
-}
-
-void spider::sched::Schedule::update(sched::Job &job) {
-    /* == Update stats of given PE based on current TransfoJob == */
-    const auto &st = job.mappingInfo().startTime;
-    const auto &et = job.mappingInfo().endTime;
-    const auto &PE = job.mappingInfo().PEIx;
-    job.setIx(currentJobIx_++);
-    stats_.updateStartTime(PE, st);
-    stats_.updateIDLETime(PE, st - stats_.endTime(PE));
-    stats_.updateEndTime(PE, et);
-    stats_.updateLoadTime(PE, et - st);
-    stats_.updateJobCount(PE);
-
-    /* == Set should notify value for previous jobs == */
-    for (auto &constraint : job.scheduleConstraintsArray()) {
-        if (constraint != SIZE_MAX) {
-            jobs_[constraint].setRunnerToNotify(job.mappingInfo().LRTIx, true);
-        }
-    }
+    lastRunJob_ = 0;
 }
 
 void spider::sched::Schedule::print() const {
@@ -91,7 +75,8 @@ void spider::sched::Schedule::print() const {
             size_t lrtIx = 0;
             for (const auto &index : job.scheduleConstraintsArray()) {
                 if (index != SIZE_MAX) {
-                    log::print<log::Type::SCHEDULE>(log::magenta, "INFO: ", "           ----> %zu (%zu)\n", jobs_[index].ix(), lrtIx);
+                    log::print<log::Type::SCHEDULE>(log::magenta, "INFO: ", "           ----> %zu (%zu)\n",
+                                                    jobVector_[index].ix(), lrtIx);
                 }
                 lrtIx++;
             }
@@ -99,11 +84,64 @@ void spider::sched::Schedule::print() const {
     }
 }
 
+void spider::sched::Schedule::addJobToSchedule(pisdf::Vertex *vertex) {
+    auto job = Job(vertex);
+    /* == Set the schedule job ix of the vertex == */
+    job.setIx(jobVector_.size());
+    vertex->setScheduleJobIx(job.ix());
 
-void spider::sched::Schedule::updateScheduleSize(size_t count) {
-    const auto &oldSize = jobs_.size();
-    jobs_.resize(count);
-    for (size_t i = oldSize; i < count; ++i) {
-        jobs_[i].setIx(i);
+    /* == Add the job to the schedule == */
+    jobVector_.emplace_back(std::move(job));
+}
+
+void spider::sched::Schedule::updateJobAndSetReady(size_t jobIx, size_t slave, uint64_t startTime, uint64_t endTime) {
+    auto &job = jobVector_.at(jobIx);
+    const auto &pe = archi::platform()->peFromVirtualIx(slave);
+    const auto &peIx = pe->virtualIx();
+
+    /* == Set job information == */
+    job.setMappingLRT(pe->attachedLRT()->virtualIx());
+    job.setMappingPE(peIx);
+    job.setMappingStartTime(startTime);
+    job.setMappingEndTime(endTime);
+
+    /* == Set should notify value for previous jobs == */
+    for (auto &constraint : job.scheduleConstraintsArray()) {
+        if (constraint != SIZE_MAX) {
+            jobVector_[constraint].setRunnerToNotify(job.mappingInfo().LRTIx, true);
+        }
     }
+
+    /* == Update schedule statistics == */
+    stats_.updateStartTime(peIx, startTime);
+    stats_.updateIDLETime(peIx, startTime - stats_.endTime(peIx));
+    stats_.updateEndTime(peIx, endTime);
+    stats_.updateLoadTime(peIx, endTime - startTime);
+    stats_.updateJobCount(peIx);
+
+    /* == Update job state == */
+    job.setState(JobState::READY);
+}
+
+void spider::sched::Schedule::runReadyJobs() {
+    const auto &grtIx = archi::platform()->spiderGRTPE()->virtualIx();
+    auto startIterator = std::begin(jobVector_) + lastRunJob_;
+    auto endIterator = startIterator + readyJobCount_;
+    for (auto it = startIterator; it < endIterator; ++it) {
+        auto &job = (*it);
+        /* == Create job message and send the notification == */
+        const auto &messageIx = rt::platform()->communicator()->push(job.createJobMessage(this),
+                                                                     job.mappingInfo().LRTIx);
+
+        rt::platform()->communicator()->push(Notification(NotificationType::JOB_ADD,
+                                                          grtIx,
+                                                          messageIx),
+                                             job.mappingInfo().LRTIx);
+
+        /* == Set job in JobState::RUNNING == */
+        job.setState(sched::JobState::RUNNING);
+    }
+    /* == Reset last job and ready count == */
+    lastRunJob_ += readyJobCount_;
+    readyJobCount_ = 0;
 }
