@@ -46,7 +46,7 @@
 #include <archi/PE.h>
 #include <api/archi-api.h>
 #include <graphs/pisdf/ExecVertex.h>
-#include <graphs/pisdf/visitors/PiSDFDefaultVisitor.h>
+#include <graphs-tools/helper/visitors/PiSDFDefaultVisitor.h>
 
 /* === Static variable(s) === */
 

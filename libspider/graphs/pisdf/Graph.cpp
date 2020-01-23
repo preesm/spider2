@@ -41,14 +41,14 @@
 /* === Include(s) === */
 
 #include <graphs/pisdf/Graph.h>
-#include <graphs/pisdf/visitors/PiSDFDefaultVisitor.h>
+#include <graphs-tools/helper/visitors/PiSDFDefaultVisitor.h>
 #include <graphs/pisdf/ExecVertex.h>
 #include <graphs/pisdf/interfaces/Interface.h>
 #include <graphs/pisdf/interfaces/InputInterface.h>
 #include <graphs/pisdf/interfaces/OutputInterface.h>
 #include <graphs/pisdf/Param.h>
 #include <graphs/pisdf/Delay.h>
-#include <graphs-tools/helper/visitors/VertexCopyVisitor.h>
+#include <graphs-tools/helper/visitors/PiSDFVertexCopyVisitor.h>
 
 /* === Private structure(s) === */
 

@@ -44,7 +44,7 @@
 
 #include <common/Exception.h>
 #include <graphs-tools/expression-parser/Expression.h>
-#include <graphs/pisdf/visitors/PiSDFVisitor.h>
+#include <graphs-tools/helper/visitors/PiSDFVisitor.h>
 
 namespace spider {
     namespace pisdf {

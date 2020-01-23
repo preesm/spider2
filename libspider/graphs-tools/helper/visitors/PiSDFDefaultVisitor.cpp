@@ -37,73 +37,60 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_PISDFDEFAULTVISITOR_H
-#define SPIDER2_PISDFDEFAULTVISITOR_H
 
 /* === Include(s) === */
 
-#include <graphs/pisdf/visitors/PiSDFVisitor.h>
-#include <common/Exception.h>
-#include <graphs/pisdf/NonExecVertex.h>
+#include <graphs-tools/helper/visitors/PiSDFDefaultVisitor.h>
+#include <graphs/pisdf/SpecialVertex.h>
+#include <graphs/pisdf/interfaces/InputInterface.h>
+#include <graphs/pisdf/interfaces/OutputInterface.h>
 
-namespace spider {
-    namespace pisdf {
+/* === Function(s) definition === */
 
-        class DefaultVisitor : public Visitor {
-        public:
-
-            /* === Method(s) === */
-
-            inline void visit(Graph *) override {
-                throwSpiderException("unsupported visitor type: Graph.");
-            }
-
-            inline void visit(ExecVertex *) override { };
-
-            inline void visit(NonExecVertex *) override { };
-
-            void visit(DelayVertex *vertex) override;
-
-            void visit(ConfigVertex *vertex) override;
-
-            void visit(ForkVertex *vertex) override;
-
-            void visit(JoinVertex *vertex) override;
-
-            void visit(HeadVertex *vertex) override;
-
-            void visit(TailVertex *vertex) override;
-
-            void visit(DuplicateVertex *vertex) override;
-
-            void visit(RepeatVertex *vertex) override;
-
-            void visit(InitVertex *vertex) override;
-
-            void visit(EndVertex *vertex) override;
-
-            inline void visit(Interface *) override {
-                throwSpiderException("unsupported visitor type: Interface.");
-            }
-
-            void visit(InputInterface *input) override;
-
-            void visit(OutputInterface *output) override;
-
-            inline void visit(Param *) override {
-                throwSpiderException("unsupported visitor type: Param.");
-            }
-
-            inline void visit(DynamicParam *) override {
-                throwSpiderException("unsupported visitor type: DynamicParam.");
-            }
-
-            inline void visit(InHeritedParam *) override {
-                throwSpiderException("unsupported visitor type: InHeritedParam.");
-            }
-        };
-    }
+void spider::pisdf::DefaultVisitor::visit(DelayVertex *vertex) {
+    this->visit(static_cast<ExecVertex *>(vertex));
 }
 
+void spider::pisdf::DefaultVisitor::visit(ConfigVertex *vertex) {
+    this->visit(static_cast<ExecVertex *>(vertex));
+}
 
-#endif //SPIDER2_PISDFDEFAULTVISITOR_H
+void spider::pisdf::DefaultVisitor::visit(ForkVertex *vertex) {
+    this->visit(static_cast<ExecVertex *>(vertex));
+}
+
+void spider::pisdf::DefaultVisitor::visit(JoinVertex *vertex) {
+    this->visit(static_cast<ExecVertex *>(vertex));
+}
+
+void spider::pisdf::DefaultVisitor::visit(HeadVertex *vertex) {
+    this->visit(static_cast<ExecVertex *>(vertex));
+}
+
+void spider::pisdf::DefaultVisitor::visit(TailVertex *vertex) {
+    this->visit(static_cast<ExecVertex *>(vertex));
+}
+
+void spider::pisdf::DefaultVisitor::visit(DuplicateVertex *vertex) {
+    this->visit(static_cast<ExecVertex *>(vertex));
+}
+
+void spider::pisdf::DefaultVisitor::visit(RepeatVertex *vertex) {
+    this->visit(static_cast<ExecVertex *>(vertex));
+}
+
+void spider::pisdf::DefaultVisitor::visit(InitVertex *vertex) {
+    this->visit(static_cast<ExecVertex *>(vertex));
+}
+
+void spider::pisdf::DefaultVisitor::visit(EndVertex *vertex) {
+    this->visit(static_cast<ExecVertex *>(vertex));
+}
+
+void spider::pisdf::DefaultVisitor::visit(InputInterface *input) {
+    this->visit(static_cast<Interface *>(input));
+}
+
+void spider::pisdf::DefaultVisitor::visit(OutputInterface *output) {
+    this->visit(static_cast<Interface *>(output));
+}

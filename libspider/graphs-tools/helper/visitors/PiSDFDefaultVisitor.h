@@ -37,63 +37,73 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_VERTEXCOPYVISITOR_H
-#define SPIDER2_VERTEXCOPYVISITOR_H
+#ifndef SPIDER2_PISDFDEFAULTVISITOR_H
+#define SPIDER2_PISDFDEFAULTVISITOR_H
 
 /* === Include(s) === */
 
-#include <graphs/pisdf/visitors/PiSDFDefaultVisitor.h>
-#include <graphs/pisdf/Graph.h>
-#include <graphs/pisdf/ExecVertex.h>
+#include <graphs-tools/helper/visitors/PiSDFVisitor.h>
+#include <common/Exception.h>
 #include <graphs/pisdf/NonExecVertex.h>
-#include <graphs/pisdf/SpecialVertex.h>
-#include <api/pisdf-api.h>
 
 namespace spider {
     namespace pisdf {
 
-        /* === Struct definition === */
-
-        struct VertexCopyVisitor final : public pisdf::DefaultVisitor {
+        class DefaultVisitor : public Visitor {
         public:
-            VertexCopyVisitor() = default;
 
-            ~VertexCopyVisitor() override = default;
+            /* === Method(s) === */
 
-            inline void visit(pisdf::DelayVertex *vertex) override { clone(vertex); }
+            inline void visit(Graph *) override {
+                throwSpiderException("unsupported visitor type: Graph.");
+            }
 
-            inline void visit(pisdf::ExecVertex *vertex) override { clone(vertex); }
+            inline void visit(ExecVertex *) override { };
 
-            inline void visit(pisdf::NonExecVertex *vertex) override { clone(vertex); }
+            inline void visit(NonExecVertex *) override { };
 
-            inline void visit(pisdf::ConfigVertex *vertex) override { clone(vertex); }
+            void visit(DelayVertex *vertex) override;
 
-            inline void visit(pisdf::ForkVertex *vertex) override { clone(vertex); }
+            void visit(ConfigVertex *vertex) override;
 
-            inline void visit(pisdf::JoinVertex *vertex) override { clone(vertex); }
+            void visit(ForkVertex *vertex) override;
 
-            inline void visit(pisdf::HeadVertex *vertex) override { clone(vertex); }
+            void visit(JoinVertex *vertex) override;
 
-            inline void visit(pisdf::TailVertex *vertex) override { clone(vertex); }
+            void visit(HeadVertex *vertex) override;
 
-            inline void visit(pisdf::DuplicateVertex *vertex) override { clone(vertex); }
+            void visit(TailVertex *vertex) override;
 
-            inline void visit(pisdf::RepeatVertex *vertex) override { clone(vertex); }
+            void visit(DuplicateVertex *vertex) override;
 
-            inline void visit(pisdf::InitVertex *vertex) override { clone(vertex); }
+            void visit(RepeatVertex *vertex) override;
 
-            inline void visit(pisdf::EndVertex *vertex) override { clone(vertex); }
+            void visit(InitVertex *vertex) override;
 
-            inline void visit(pisdf::Graph *graph) override { clone(graph); }
+            void visit(EndVertex *vertex) override;
 
-            Vertex *result_ = nullptr;
-        private:
-            template<class T>
-            inline void clone(const T *vertex) {
-                result_ = make<T>(StackID::PISDF, (*vertex));
+            inline void visit(Interface *) override {
+                throwSpiderException("unsupported visitor type: Interface.");
+            }
+
+            void visit(InputInterface *input) override;
+
+            void visit(OutputInterface *output) override;
+
+            inline void visit(Param *) override {
+                throwSpiderException("unsupported visitor type: Param.");
+            }
+
+            inline void visit(DynamicParam *) override {
+                throwSpiderException("unsupported visitor type: DynamicParam.");
+            }
+
+            inline void visit(InHeritedParam *) override {
+                throwSpiderException("unsupported visitor type: InHeritedParam.");
             }
         };
     }
 }
 
-#endif //SPIDER2_VERTEXCOPYVISITOR_H
+
+#endif //SPIDER2_PISDFDEFAULTVISITOR_H

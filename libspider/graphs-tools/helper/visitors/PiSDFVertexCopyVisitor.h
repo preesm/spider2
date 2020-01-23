@@ -37,60 +37,63 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
+#ifndef SPIDER2_PISDFVERTEXCOPYVISITOR_H
+#define SPIDER2_PISDFVERTEXCOPYVISITOR_H
 
 /* === Include(s) === */
 
-#include <graphs/pisdf/visitors/PiSDFDefaultVisitor.h>
+#include <graphs-tools/helper/visitors/PiSDFDefaultVisitor.h>
+#include <graphs/pisdf/Graph.h>
+#include <graphs/pisdf/ExecVertex.h>
+#include <graphs/pisdf/NonExecVertex.h>
 #include <graphs/pisdf/SpecialVertex.h>
-#include <graphs/pisdf/interfaces/InputInterface.h>
-#include <graphs/pisdf/interfaces/OutputInterface.h>
+#include <api/pisdf-api.h>
 
-/* === Function(s) definition === */
+namespace spider {
+    namespace pisdf {
 
-void spider::pisdf::DefaultVisitor::visit(DelayVertex *vertex) {
-    this->visit(static_cast<ExecVertex *>(vertex));
+        /* === Struct definition === */
+
+        struct VertexCopyVisitor final : public pisdf::DefaultVisitor {
+        public:
+            VertexCopyVisitor() = default;
+
+            ~VertexCopyVisitor() override = default;
+
+            inline void visit(pisdf::DelayVertex *vertex) override { clone(vertex); }
+
+            inline void visit(pisdf::ExecVertex *vertex) override { clone(vertex); }
+
+            inline void visit(pisdf::NonExecVertex *vertex) override { clone(vertex); }
+
+            inline void visit(pisdf::ConfigVertex *vertex) override { clone(vertex); }
+
+            inline void visit(pisdf::ForkVertex *vertex) override { clone(vertex); }
+
+            inline void visit(pisdf::JoinVertex *vertex) override { clone(vertex); }
+
+            inline void visit(pisdf::HeadVertex *vertex) override { clone(vertex); }
+
+            inline void visit(pisdf::TailVertex *vertex) override { clone(vertex); }
+
+            inline void visit(pisdf::DuplicateVertex *vertex) override { clone(vertex); }
+
+            inline void visit(pisdf::RepeatVertex *vertex) override { clone(vertex); }
+
+            inline void visit(pisdf::InitVertex *vertex) override { clone(vertex); }
+
+            inline void visit(pisdf::EndVertex *vertex) override { clone(vertex); }
+
+            inline void visit(pisdf::Graph *graph) override { clone(graph); }
+
+            Vertex *result_ = nullptr;
+        private:
+            template<class T>
+            inline void clone(const T *vertex) {
+                result_ = make<T>(StackID::PISDF, (*vertex));
+            }
+        };
+    }
 }
 
-void spider::pisdf::DefaultVisitor::visit(ConfigVertex *vertex) {
-    this->visit(static_cast<ExecVertex *>(vertex));
-}
-
-void spider::pisdf::DefaultVisitor::visit(ForkVertex *vertex) {
-    this->visit(static_cast<ExecVertex *>(vertex));
-}
-
-void spider::pisdf::DefaultVisitor::visit(JoinVertex *vertex) {
-    this->visit(static_cast<ExecVertex *>(vertex));
-}
-
-void spider::pisdf::DefaultVisitor::visit(HeadVertex *vertex) {
-    this->visit(static_cast<ExecVertex *>(vertex));
-}
-
-void spider::pisdf::DefaultVisitor::visit(TailVertex *vertex) {
-    this->visit(static_cast<ExecVertex *>(vertex));
-}
-
-void spider::pisdf::DefaultVisitor::visit(DuplicateVertex *vertex) {
-    this->visit(static_cast<ExecVertex *>(vertex));
-}
-
-void spider::pisdf::DefaultVisitor::visit(RepeatVertex *vertex) {
-    this->visit(static_cast<ExecVertex *>(vertex));
-}
-
-void spider::pisdf::DefaultVisitor::visit(InitVertex *vertex) {
-    this->visit(static_cast<ExecVertex *>(vertex));
-}
-
-void spider::pisdf::DefaultVisitor::visit(EndVertex *vertex) {
-    this->visit(static_cast<ExecVertex *>(vertex));
-}
-
-void spider::pisdf::DefaultVisitor::visit(InputInterface *input) {
-    this->visit(static_cast<Interface *>(input));
-}
-
-void spider::pisdf::DefaultVisitor::visit(OutputInterface *output) {
-    this->visit(static_cast<Interface *>(output));
-}
+#endif //SPIDER2_PISDFVERTEXCOPYVISITOR_H

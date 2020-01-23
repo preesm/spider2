@@ -53,7 +53,7 @@
 #include <graphs/pisdf/ExecVertex.h>
 #include <graphs/pisdf/SpecialVertex.h>
 #include <api/spider.h>
-#include <graphs/pisdf/visitors/PiSDFDefaultVisitor.h>
+#include <graphs-tools/helper/visitors/PiSDFDefaultVisitor.h>
 
 class pisdfVisitorTest : public ::testing::Test {
 protected:
