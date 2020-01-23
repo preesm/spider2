@@ -45,7 +45,7 @@
 #include <common/Exporter.h>
 #include <api/debug-api.h>
 #include <api/pisdf-api.h>
-#include <graphs-tools/transformation/optims/PiSDFGraphOptimizer.h>
+#include <api/config-api.h>
 #include <graphs-tools/exporter/PiSDFDOTExporter.h>
 
 /* === Methods implementation === */

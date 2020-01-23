@@ -51,7 +51,7 @@
 #include <graphs/pisdf/DynamicParam.h>
 #include <graphs/pisdf/ExecVertex.h>
 #include <api/spider.h>
-#include <graphs-tools/transformation/optims/PiSDFGraphOptimizer.h>
+#include <graphs-tools/transformation/optims/optimizations.h>
 
 class pisdfOptimsTest : public ::testing::Test {
 protected:
@@ -77,7 +77,7 @@ TEST_F(pisdfOptimsTest, initEndTest) {
         auto *end = spider::api::createEnd(graph, "end");
         spider::api::createEdge(init, 0, 1, end, 0, 1);
         ASSERT_EQ(graph->vertexCount(), 2);
-        ASSERT_NO_THROW(PiSDFInitEndOptimizer()(graph));
+        ASSERT_NO_THROW(spider::optims::reduceInitEnd(graph));
         ASSERT_EQ(graph->vertexCount(), 0);
         spider::destroy(graph);
     }
@@ -91,7 +91,7 @@ TEST_F(pisdfOptimsTest, initEndTest) {
         spider::api::createEdge(init, 0, 1, v, 0, 1);
         spider::api::createEdge(v1, 0, 1, end, 0, 1);
         ASSERT_EQ(graph->vertexCount(), 4);
-        ASSERT_NO_THROW(PiSDFInitEndOptimizer()(graph));
+        ASSERT_NO_THROW(spider::optims::reduceInitEnd(graph));
         ASSERT_EQ(graph->vertexCount(), 4);
         spider::destroy(graph);
     }
@@ -121,7 +121,7 @@ TEST_F(pisdfOptimsTest, allOptimTest) {
     spider::api::createEdge(repeat, 0, 1, v1, 0, 1);
     spider::api::createEdge(init, 0, 1, end, 0, 1);
 
-    ASSERT_NO_THROW(PiSDFGraphOptimizer()(graph));
+    ASSERT_NO_THROW(spider::optims::optimize(graph));
 
     spider::destroy(graph);
 }
@@ -136,7 +136,7 @@ TEST_F(pisdfOptimsTest, unitaryTest) {
         spider::api::createEdge(v, 0, 1, fork, 0, 1);
         spider::api::createEdge(fork, 0, 1, v1, 0, 1);
         ASSERT_EQ(graph->vertexCount(), 3);
-        ASSERT_NO_THROW(PiSDFUnitaryOptimizer()(graph));
+        ASSERT_NO_THROW(spider::optims::reduceUnitaryRateActors(graph));
         ASSERT_EQ(graph->vertexCount(), 2);
         spider::destroy(graph);
     }
@@ -149,7 +149,7 @@ TEST_F(pisdfOptimsTest, unitaryTest) {
         spider::api::createEdge(v, 0, 1, join, 0, 1);
         spider::api::createEdge(join, 0, 1, v1, 0, 1);
         ASSERT_EQ(graph->vertexCount(), 3);
-        ASSERT_NO_THROW(PiSDFUnitaryOptimizer()(graph));
+        ASSERT_NO_THROW(spider::optims::reduceUnitaryRateActors(graph));
         ASSERT_EQ(graph->vertexCount(), 2);
         spider::destroy(graph);
     }
@@ -162,7 +162,7 @@ TEST_F(pisdfOptimsTest, unitaryTest) {
         spider::api::createEdge(v, 0, 1, head, 0, 1);
         spider::api::createEdge(head, 0, 1, v1, 0, 1);
         ASSERT_EQ(graph->vertexCount(), 3);
-        ASSERT_NO_THROW(PiSDFUnitaryOptimizer()(graph));
+        ASSERT_NO_THROW(spider::optims::reduceUnitaryRateActors(graph));
         ASSERT_EQ(graph->vertexCount(), 2);
         spider::destroy(graph);
     }
@@ -175,7 +175,7 @@ TEST_F(pisdfOptimsTest, unitaryTest) {
         spider::api::createEdge(v, 0, 1, tail, 0, 1);
         spider::api::createEdge(tail, 0, 1, v1, 0, 1);
         ASSERT_EQ(graph->vertexCount(), 3);
-        ASSERT_NO_THROW(PiSDFUnitaryOptimizer()(graph));
+        ASSERT_NO_THROW(spider::optims::reduceUnitaryRateActors(graph));
         ASSERT_EQ(graph->vertexCount(), 2);
         spider::destroy(graph);
     }
@@ -188,7 +188,7 @@ TEST_F(pisdfOptimsTest, unitaryTest) {
         spider::api::createEdge(v, 0, 1, duplicate, 0, 1);
         spider::api::createEdge(duplicate, 0, 1, v1, 0, 1);
         ASSERT_EQ(graph->vertexCount(), 3);
-        ASSERT_NO_THROW(PiSDFUnitaryOptimizer()(graph));
+        ASSERT_NO_THROW(spider::optims::reduceUnitaryRateActors(graph));
         ASSERT_EQ(graph->vertexCount(), 2);
         spider::destroy(graph);
     }
@@ -201,7 +201,7 @@ TEST_F(pisdfOptimsTest, unitaryTest) {
         spider::api::createEdge(v, 0, 1, repeat, 0, 1);
         spider::api::createEdge(repeat, 0, 1, v1, 0, 1);
         ASSERT_EQ(graph->vertexCount(), 3);
-        ASSERT_NO_THROW(PiSDFUnitaryOptimizer()(graph));
+        ASSERT_NO_THROW(spider::optims::reduceUnitaryRateActors(graph));
         ASSERT_EQ(graph->vertexCount(), 2);
         spider::destroy(graph);
     }
@@ -227,7 +227,7 @@ TEST_F(pisdfOptimsTest, forkForkTest) {
     spider::api::createEdge(fork_1, 0, 1, v3, 0, 1);
     spider::api::createEdge(fork_1, 1, 1, v4, 0, 1);
     ASSERT_EQ(graph->vertexCount(), 9);
-    ASSERT_NO_THROW(PiSDFForkForkOptimizer()(graph));
+    ASSERT_NO_THROW(spider::optims::reduceForkFork(graph));
     ASSERT_EQ(graph->vertexCount(), 7);
     spider::destroy(graph);
 }
@@ -256,7 +256,7 @@ TEST_F(pisdfOptimsTest, forkForkTest2) {
     spider::api::createEdge(fork_2, 0, 1, v5, 0, 1);
     spider::api::createEdge(fork_2, 1, 1, v6, 0, 1);
     ASSERT_EQ(graph->vertexCount(), 11);
-    ASSERT_NO_THROW(PiSDFForkForkOptimizer()(graph));
+    ASSERT_NO_THROW(spider::optims::reduceForkFork(graph));
     ASSERT_EQ(graph->vertexCount(), 8);
     spider::destroy(graph);
 }
@@ -285,7 +285,7 @@ TEST_F(pisdfOptimsTest, joinForkTest) {
     spider::api::createEdge(fork_1, 0, 1, v5, 0, 1);
     spider::api::createEdge(fork_1, 1, 1, v6, 0, 1);
     ASSERT_EQ(graph->vertexCount(), 11);
-    ASSERT_NO_THROW(PiSDFJoinForkOptimizer()(graph));
+    ASSERT_NO_THROW(spider::optims::reduceJoinFork(graph));
     ASSERT_EQ(graph->vertexCount(), 8);
     spider::destroy(graph);
 }
@@ -306,7 +306,7 @@ TEST_F(pisdfOptimsTest, joinForkTest2) {
     spider::api::createEdge(fork_0, 0, 2, v3, 0, 2);
     spider::api::createEdge(fork_0, 1, 1, v4, 0, 1);
     ASSERT_EQ(graph->vertexCount(), 7);
-    ASSERT_NO_THROW(PiSDFJoinForkOptimizer()(graph));
+    ASSERT_NO_THROW(spider::optims::reduceJoinFork(graph));
     ASSERT_EQ(graph->vertexCount(), 6);
     spider::destroy(graph);
 }
@@ -329,7 +329,7 @@ TEST_F(pisdfOptimsTest, joinForkTest3) {
     spider::api::createEdge(fork_0, 1, 6, v3, 0, 6);
     spider::api::createEdge(fork_0, 2, 2, v5, 0, 5);
     ASSERT_EQ(graph->vertexCount(), 8);
-    ASSERT_NO_THROW(PiSDFJoinForkOptimizer()(graph));
+    ASSERT_NO_THROW(spider::optims::reduceJoinFork(graph));
     ASSERT_EQ(graph->vertexCount(), 8);
     spider::destroy(graph);
 }
@@ -348,7 +348,7 @@ TEST_F(pisdfOptimsTest, joinForkTest4) {
     spider::api::createEdge(fork_0, 0, 5, v2, 0, 5);
     spider::api::createEdge(fork_0, 1, 2, v3, 0, 2);
     ASSERT_EQ(graph->vertexCount(), 6);
-    ASSERT_NO_THROW(PiSDFJoinForkOptimizer()(graph));
+    ASSERT_NO_THROW(spider::optims::reduceJoinFork(graph));
     ASSERT_EQ(graph->vertexCount(), 6);
     spider::destroy(graph);
 }
@@ -371,7 +371,7 @@ TEST_F(pisdfOptimsTest, joinForkTest5) {
     spider::api::createEdge(fork_0, 2, 1, v4, 0, 1);
     spider::api::createEdge(fork_0, 3, 1, v5, 0, 1);
     ASSERT_EQ(graph->vertexCount(), 8);
-    ASSERT_NO_THROW(PiSDFJoinForkOptimizer()(graph));
+    ASSERT_NO_THROW(spider::optims::reduceJoinFork(graph));
     ASSERT_EQ(graph->vertexCount(), 8);
     spider::destroy(graph);
 }
@@ -396,7 +396,7 @@ TEST_F(pisdfOptimsTest, joinJoinTest) {
     spider::api::createEdge(v4, 0, 1, join_1, 2, 1);
     spider::api::createEdge(join_1, 0, 5, v5, 0, 5);
     ASSERT_EQ(graph->vertexCount(), 9);
-    ASSERT_NO_THROW(PiSDFJoinJoinOptimizer()(graph));
+    ASSERT_NO_THROW(spider::optims::reduceJoinJoin(graph));
     ASSERT_EQ(graph->vertexCount(), 7);
     spider::destroy(graph);
 }
@@ -425,7 +425,7 @@ TEST_F(pisdfOptimsTest, joinJoinTest2) {
     spider::api::createEdge(join_2, 0, 2, join_1, 2, 2);
     spider::api::createEdge(join_1, 0, 6, v6, 0, 6);
     ASSERT_EQ(graph->vertexCount(), 11);
-    ASSERT_NO_THROW(PiSDFJoinJoinOptimizer()(graph));
+    ASSERT_NO_THROW(spider::optims::reduceJoinJoin(graph));
     ASSERT_EQ(graph->vertexCount(), 8);
     spider::destroy(graph);
 }
@@ -442,7 +442,7 @@ TEST_F(pisdfOptimsTest, joinEndTest) {
     spider::api::createEdge(v2, 0, 1, join, 2, 1);
     spider::api::createEdge(join, 0, 3, end, 0, 3);
     ASSERT_EQ(graph->vertexCount(), 5);
-    ASSERT_NO_THROW(PiSDFJoinEndOptimizer()(graph));
+    ASSERT_NO_THROW(spider::optims::reduceJoinEnd(graph));
     ASSERT_EQ(graph->vertexCount(), 6);
     spider::destroy(graph);
 }
