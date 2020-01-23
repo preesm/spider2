@@ -124,14 +124,7 @@ void spider::pisdf::Vertex::addRefinementParameter(std::shared_ptr<Param> param)
 
 std::string spider::pisdf::Vertex::vertexPath() const {
     if (graph_) {
-        auto name = graph_->name();
-        auto *graph = graph_->graph();
-        while (graph) {
-            name += "-" + graph->name();
-            graph = graph->graph();
-        }
-        name += "-" + name_;
-        return name;
+        return graph_->vertexPath().append(":").append(name_);
     }
     return name_;
 }
