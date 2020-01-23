@@ -188,63 +188,62 @@ void spider::srdag::SingleRateTransformer::replaceInterfaces() {
 }
 
 std::pair<spider::srdag::JobStack, spider::srdag::JobStack> spider::srdag::SingleRateTransformer::makeFutureJobs() {
-    auto nextJobs = containers::vector<TransfoJob>(StackID::TRANSFO);
-    auto dynaJobs = containers::vector<TransfoJob>(StackID::TRANSFO);
+    auto staticJobStack = containers::vector<TransfoJob>(StackID::TRANSFO);
+    auto dynaJobStack = containers::vector<TransfoJob>(StackID::TRANSFO);
+
+    auto addJobWithParamCopy = [&](spider::vector<TransfoJob> &jobStack,
+                                   pisdf::Graph *graph,
+                                   size_t ix, size_t offset) {
+        auto *clone = srdag_->vertex(ix);
+        /* = same value but if clone->ix changes, value in transfojob will change also = */
+        jobStack.emplace_back(graph, clone->ix(), ix - offset);
+        auto &job = jobStack.back();
+        CopyParamVisitor cpyVisitor{ job_, job.params_ };
+        for (const auto &param : graph->params()) {
+            param->visit(&cpyVisitor);
+        }
+    };
 
     /* == 0. Copy Params for static and dynamic jobs == */
-    auto initGraphVector = containers::vector<pisdf::Graph *>(StackID::TRANSFO);
     for (auto *subgraph : job_.reference_->subgraphs()) {
-        /* == 0.1 Check if subgraph is an init graph or a run (or static) graph  == */
+        /* == 1 Check if subgraph is an init graph or a run (or static) graph  == */
         if (subgraph->runReferenceGraph()) {
-            initGraphVector.emplace_back(subgraph);
-        } else {
-            auto &jobStack = subgraph->dynamic() ? dynaJobs : nextJobs;
+            /* == 2 Find the first job corresponding to the run graph == */
+            const auto &runGraphSubIx = subgraph->runReferenceGraph()->subIx();
+            auto *runGraph = job_.reference_->subgraphs()[runGraphSubIx];
+            if (runGraph->repetitionValue() != subgraph->repetitionValue()) {
+                // LCOV_IGNORE: this is a sanity check, it should never happen and it is not testable from the outside.
+                throwSpiderException("Init graph [%s] does not have the same repetition value as run graph [%s] (%"
+                                             PRIu32
+                                             " != %"
+                                             PRIu32
+                                             ").",
+                                     subgraph->name().c_str(), runGraph->name().c_str(),
+                                     subgraph->repetitionValue(), runGraph->repetitionValue());
+            }
+            /* == 2.0 Creates dynamic job == */
+            addJobWithParamCopy(dynaJobStack, runGraph, ref2Clone_[runGraph->ix()], 0);
+
+            /* == 2.1 Creates init job == */
+            /* = same value but if clone->ix changes, value in transfojob will change also = */
+            auto *initClone = srdag_->vertex(ref2Clone_[subgraph->ix()]);
+            staticJobStack.emplace_back(subgraph, initClone->ix(), 0);
+            auto &initJob = staticJobStack.back();
+
+            /* == Copy the params == */
+            auto &runJob = dynaJobStack.back();
+            for (auto &param : runJob.params_) {
+                initJob.params_.emplace_back(param);
+            }
+        } else if (!subgraph->dynamic()) {
+            /* == 3. Add static jobs == */
             const auto &firstCloneIx = ref2Clone_[subgraph->ix()];
             for (auto ix = firstCloneIx; ix < firstCloneIx + subgraph->repetitionValue(); ++ix) {
-                auto *clone = srdag_->vertex(
-                        ix); /* = same value but if clone->ix changes, value in transfojob will change also = */
-                jobStack.emplace_back(subgraph, clone->ix(), ix - firstCloneIx);
-
-                /* == Copy the params == */
-                auto &job = jobStack.back();
-                CopyParamVisitor cpyVisitor{ job_, job.params_ };
-                for (const auto &param : subgraph->params()) {
-                    param->visit(&cpyVisitor);
-                }
+                addJobWithParamCopy(staticJobStack, subgraph, ix, firstCloneIx);
             }
         }
     }
-
-    /* == 1. Copy param pointers from run graph jobs to init graph jobs == */
-    size_t index = 0;
-    for (auto *subgraph : initGraphVector) {
-        /* == 1.1 Find the first job corresponding to the init graph == */
-        const auto &runGraphSubIx = subgraph->runReferenceGraph()->subIx();
-        auto *runGraph = job_.reference_->subgraphs()[runGraphSubIx];
-        if (runGraph->repetitionValue() != subgraph->repetitionValue()) {
-            // LCOV_IGNORE: this is a sanity check, it should never happen and it is not testable from the outside.
-            throwSpiderException("Init graph [%s] does not have the same repetition value as run graph [%s] (%"
-                                         PRIu32
-                                         " != %"
-                                         PRIu32
-                                         ").",
-                                 subgraph->name().c_str(), runGraph->name().c_str(),
-                                 subgraph->repetitionValue(), runGraph->repetitionValue());
-        }
-
-        /* == 1.2 Do the actual copy == */
-        const auto &cloneIx = ref2Clone_[subgraph->ix()];
-        auto *clone = srdag_->vertex(
-                cloneIx); /* = same value but if clone->ix changes, value in transfojob will change also = */
-        nextJobs.emplace_back(subgraph, clone->ix(), 0);
-        auto &job = nextJobs.back();
-        job.params_.reserve(subgraph->paramCount());
-        auto *runJob = &(dynaJobs.at(index++));
-        for (auto &param : runJob->params_) {
-            job.params_.emplace_back(param);
-        }
-    }
-    return std::make_pair(std::move(nextJobs), std::move(dynaJobs));
+    return std::make_pair(std::move(staticJobStack), std::move(dynaJobStack));
 }
 
 void spider::srdag::SingleRateTransformer::singleRateLinkage(pisdf::Edge *edge) {
