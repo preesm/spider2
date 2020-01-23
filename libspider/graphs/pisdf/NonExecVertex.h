@@ -56,6 +56,17 @@ namespace spider {
                                    size_t edgeINCount = 0,
                                    size_t edgeOUTCount = 0) : Vertex(std::move(name), edgeINCount, edgeOUTCount) { };
 
+            NonExecVertex(std::string name,
+                          size_t edgeINCount,
+                          size_t edgeOUTCount,
+                          size_t paramINCount,
+                          size_t paramOUTCount,
+                          const NonExecVertex *reference) : Vertex(std::move(name),
+                                                                   edgeINCount,
+                                                                   edgeOUTCount,
+                                                                   paramINCount,
+                                                                   paramOUTCount, reference) { };
+
             NonExecVertex(const NonExecVertex &) = default;
 
             NonExecVertex(NonExecVertex &&other) noexcept : Vertex(std::move(other)) { };

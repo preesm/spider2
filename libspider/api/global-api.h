@@ -129,27 +129,25 @@ namespace spider {
             Last = OUTPUT,
         };
 
-        template<VertexType> class SpecialVertex;
+        class ConfigVertex;
 
-        using ConfigVertex = SpecialVertex<VertexType::CONFIG>;
+        class DelayVertex;
 
-        using DelayVertex = SpecialVertex<VertexType::DELAY>;
+        class ForkVertex;
 
-        using ForkVertex = SpecialVertex<VertexType::FORK>;
+        class JoinVertex;
 
-        using JoinVertex = SpecialVertex<VertexType::JOIN>;
+        class HeadVertex;
 
-        using HeadVertex = SpecialVertex<VertexType::HEAD>;
+        class TailVertex;
 
-        using TailVertex = SpecialVertex<VertexType::TAIL>;
+        class RepeatVertex;
 
-        using RepeatVertex = SpecialVertex<VertexType::REPEAT>;
+        class DuplicateVertex;
 
-        using DuplicateVertex = SpecialVertex<VertexType::DUPLICATE>;
+        class InitVertex;
 
-        using InitVertex = SpecialVertex<VertexType::INIT>;
-
-        using EndVertex = SpecialVertex<VertexType::END>;
+        class EndVertex;
 
         class Vertex;
 

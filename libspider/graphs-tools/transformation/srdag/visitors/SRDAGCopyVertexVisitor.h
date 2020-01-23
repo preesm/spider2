@@ -119,10 +119,15 @@ namespace spider {
             template<class T>
             inline void clone(const T *vertex) {
                 for (uint32_t it = 0; it < vertex->repetitionValue(); ++it) {
-                    auto *clone = make<T>(StackID::PISDF, (*vertex));
+                    auto *clone = make<T>(StackID::PISDF,
+                                          buildCloneName(vertex, it),
+                                          vertex->inputEdgeCount(),
+                                          vertex->outputEdgeCount(),
+                                          vertex->inputParamCount(),
+                                          vertex->outputParamCount(),
+                                          vertex);
                     srdag_->addVertex(clone);
-                    /* == Change the name of the clone == */
-                    clone->setName(buildCloneName(vertex, it));
+                    /* == Change the instance value of the clone == */
                     clone->setInstanceValue(it);
 
                     /* == Get the cloned parameters == */

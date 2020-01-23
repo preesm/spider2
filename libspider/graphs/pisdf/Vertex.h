@@ -61,11 +61,14 @@ namespace spider {
         class Vertex {
         public:
 
-            explicit Vertex(std::string name, size_t edgeINCount = 0, size_t edgeOUTCount = 0) :
-                    name_{ std::move(name) } {
-                inputEdgeVector_.resize(edgeINCount, nullptr);
-                outputEdgeVector_.resize(edgeOUTCount, nullptr);
-            }
+            explicit Vertex(std::string name, size_t edgeINCount = 0, size_t edgeOUTCount = 0);
+
+            Vertex(std::string name,
+                   size_t edgeINCount,
+                   size_t edgeOUTCount,
+                   size_t paramINCount,
+                   size_t paramOUTCount,
+                   const Vertex *reference);
 
             Vertex(const Vertex &other);
 
@@ -85,9 +88,7 @@ namespace spider {
              * @param ix  Index of the edge.
              * @throw @refitem Spide::rException if out of bound or already existing edge.
              */
-            inline virtual void connectInputEdge(Edge *edge, size_t ix) {
-                connectEdge(inputEdgeVector_, edge, ix);
-            }
+            virtual void connectInputEdge(Edge *edge, size_t ix);
 
             /**
              * @brief Set the output edge of index ix.
@@ -95,9 +96,7 @@ namespace spider {
              * @param ix  Index of the edge.
              * @throw @refitem Spider::Exception if out of bound or already existing edge.
              */
-            inline virtual void connectOutputEdge(Edge *edge, size_t ix) {
-                connectEdge(outputEdgeVector_, edge, ix);
-            }
+            virtual void connectOutputEdge(Edge *edge, size_t ix);
 
             /**
              * @brief Disconnect input edge on port ix. If no edge is connected, nothing happens
@@ -154,49 +153,37 @@ namespace spider {
              * @brief Get the containing @refitem Graph of the vertex.
              * @return containing @refitem Graph
              */
-            inline Graph *graph() const {
-                return graph_;
-            }
+            inline Graph *graph() const { return graph_; };
 
             /**
              * @brief Get the name string of the vertex.
              * @return name of the vertex.
              */
-            inline const std::string &name() const {
-                return name_;
-            }
+            const std::string &name() const;
 
             /**
              * @brief Get the ix of the vertex in the containing graph.
              * @return ix of the vertex (UINT32_MAX if no ix).
              */
-            inline const size_t &ix() const {
-                return ix_;
-            }
+            inline const size_t &ix() const { return ix_; };
 
             /**
              * @brief Test if the vertex is a graph.
              * @return true if vertex is a graph, false else.
              */
-            inline virtual bool hierarchical() const {
-                return false;
-            }
+            inline virtual bool hierarchical() const { return false; };
 
             /**
              * @brief Get the repetition vector value of the vertex.
              * @return repetition vector value of the vertex. (UINT32_MAX if uninitialized)
              */
-            inline uint32_t repetitionValue() const {
-                return repetitionValue_;
-            }
+            inline uint32_t repetitionValue() const { return repetitionValue_; };
 
             /**
              * @brief A const reference on the array of input edges. Useful for iterating on the edges.
              * @return const reference to input edge array
              */
-            inline const spider::vector<Edge *> &inputEdgeVector() const {
-                return inputEdgeVector_;
-            }
+            inline const spider::vector<Edge *> &inputEdgeVector() const { return inputEdgeVector_; };
 
             /**
              * @brief Get input edge connected to port Ix.
@@ -204,25 +191,19 @@ namespace spider {
              * @return @refitem Spider::PiSDF::Edge
              * @throw @refitem Spider::Exception if out of bound
              */
-            inline Edge *inputEdge(size_t ix) const {
-                return inputEdgeVector_.at(ix);
-            }
+            inline Edge *inputEdge(size_t ix) const { return inputEdgeVector_.at(ix); };
 
             /**
              * @brief Get the number of input edges connected to the vertex.
              * @return number of input edges.
              */
-            inline size_t inputEdgeCount() const {
-                return inputEdgeVector_.size();
-            }
+            inline size_t inputEdgeCount() const { return inputEdgeVector_.size(); };
 
             /**
              * @brief A const reference on the array of output edges. Useful for iterating on the edges.
              * @return const reference to output edge array.
              */
-            inline const spider::vector<Edge *> &outputEdgeVector() const {
-                return outputEdgeVector_;
-            }
+            inline const spider::vector<Edge *> &outputEdgeVector() const { return outputEdgeVector_; };
 
             /**
              * @brief Get input edge connected to port Ix.
@@ -230,65 +211,52 @@ namespace spider {
              * @return @refitem Spider::PiSDF::Edge
              * @throw @refitem Spider::Exception if out of bound.
              */
-            inline Edge *outputEdge(size_t ix) const {
-                return outputEdgeVector_.at(ix);
-            }
+            inline Edge *outputEdge(size_t ix) const { return outputEdgeVector_.at(ix); };
 
             /**
              * @brief Get the number of output edges connected to the vertex.
              * @return number of output edges.
              */
-            inline size_t outputEdgeCount() const {
-                return outputEdgeVector_.size();
-            }
+            inline size_t outputEdgeCount() const { return outputEdgeVector_.size(); };
 
             /**
              * @brief A const reference on the vector of refinement input params.
              * @return const reference to input params vector.
              */
-            inline const spider::vector<std::shared_ptr<pisdf::Param>> &refinementParamVector() const {
-                return refinementParamVector_;
-            }
+            inline const spider::vector<std::shared_ptr<pisdf::Param>> &
+            refinementParamVector() const { return refinementParamVector_; };
 
             /**
              * @brief A const reference on the vector of input params.
              * @return const reference to input params vector.
              */
-            inline const spider::vector<std::shared_ptr<pisdf::Param>> &inputParamVector() const {
-                return inputParamVector_;
-            }
+            inline const spider::vector<std::shared_ptr<pisdf::Param>> &
+            inputParamVector() const { return inputParamVector_; };
 
             /**
              * @brief Get the number of input params connected to the vertex.
              * @return number of input params.
              */
-            inline size_t inputParamCount() const {
-                return inputParamVector_.size();
-            }
+            inline size_t inputParamCount() const { return inputParamVector_.size(); };
 
             /**
              * @brief A const reference on the vector of output params.
              * @return const reference to output params vector.
              */
-            inline const spider::vector<std::shared_ptr<pisdf::Param>> &outputParamVector() const {
-                return outputParamVector_;
-            }
+            inline const spider::vector<std::shared_ptr<pisdf::Param>> &
+            outputParamVector() const { return outputParamVector_; };
 
             /**
              * @brief Get the number of output params connected to the vertex.
              * @return number of output params.
              */
-            inline size_t outputParamCount() const {
-                return outputParamVector_.size();
-            }
+            inline size_t outputParamCount() const { return outputParamVector_.size(); };
 
             /**
              * @brief Get the subtype of the vertex.
              * @return @refitem Spider::PiSDF::VertexType corresponding to the subtype
              */
-            virtual inline VertexType subtype() const {
-                return VertexType::NORMAL;
-            }
+            virtual inline VertexType subtype() const { return VertexType::NORMAL; };
 
             /**
              * @brief Return the reference vertex attached to current copy.
@@ -297,42 +265,32 @@ namespace spider {
              * there are no possibilities to know it.
              * @return pointer to @refitem Vertex reference.
              */
-            inline const Vertex *reference() const {
-                return reference_;
-            }
+            inline const Vertex *reference() const { return reference_; };
 
             /**
              * @brief Return the executable property of a vertex.
              * @return true if vertex is executable, false else.
              */
-            inline virtual bool executable() const {
-                return false;
-            }
+            inline virtual bool executable() const { return false; };
 
             /**
              * @brief Returns the @refitem RTInfo structure associated with this vertex.
              * @remark If the vertex is non-executable, it should return nullptr.
              * @return pointer to the @refitem RTInfo of the vertex, nullptr if !(this->executable()).
              */
-            inline RTInfo *runtimeInformation() const {
-                return rtInformation_.get();
-            }
+            inline RTInfo *runtimeInformation() const { return rtInformation_.get(); };
 
             /**
              * @brief Get the schedule job ix associated to this vertex.
              * @return ix of the job, SIZE_MAX if not set.
              */
-            inline size_t scheduleJobIx() const {
-                return scheduleJobIx_;
-            }
+            inline size_t scheduleJobIx() const { return scheduleJobIx_; };
 
             /**
              * @brief Get the instance value associated to this clone vertex (0 if original).
              * @return instance value of the vertex, 0 by default.
              */
-            inline size_t instanceValue() const {
-                return instanceValue_;
-            }
+            inline size_t instanceValue() const { return instanceValue_; };
 
             /* === Setter(s) === */
 
@@ -342,25 +300,19 @@ namespace spider {
              * @warning No check on the name is performed to see if it is unique in the graph.
              * @param name  Name to set.
              */
-            inline void setName(std::string name) {
-                name_ = std::move(name);
-            }
+            inline void setName(std::string name) { name_ = std::move(name); };
 
             /**
              * @brief Set the ix of the vertex in the containing graph.
              * @param ix Ix to set.
              */
-            inline void setIx(size_t ix) {
-                ix_ = ix;
-            }
+            inline void setIx(size_t ix) { ix_ = ix; };
 
             /**
              * @brief Set the repetition vector value of the vertex;
              * @param value Repetition value to set.
              */
-            inline virtual void setRepetitionValue(uint32_t value) {
-                repetitionValue_ = value;
-            }
+            inline virtual void setRepetitionValue(uint32_t value) { repetitionValue_ = value; };
 
             /**
              * @brief Set the graph of the vertex.
@@ -368,31 +320,20 @@ namespace spider {
              * @remark If graph is nullptr, nothing happen.
              * @param graph  Graph to set.
              */
-            inline void setGraph(Graph *graph) {
-                if (graph) {
-                    graph_ = graph;
-                }
-            }
+            void setGraph(Graph *graph);
 
             /**
              * @brief Set the schedule job ix of the vertex.
              * @param ix  Ix to set.
              */
-            inline void setScheduleJobIx(size_t ix) {
-                scheduleJobIx_ = ix;
-            }
+            inline void setScheduleJobIx(size_t ix) { scheduleJobIx_ = ix; };
 
             /**
              * @brief Set the instance value of the vertex.
              * @param value  Value to set.
              * @throws spider::Exception if value is invalid relative to reference vertex repetition value.
              */
-            inline void setInstanceValue(size_t value) {
-                if (value >= reference_->repetitionValue()) {
-                    throwSpiderException("invalid instance value for vertex [%s].", name_.c_str());
-                }
-                instanceValue_ = value;
-            }
+            void setInstanceValue(size_t value);
 
         protected:
             std::string name_ = "unnamed-vertex"; /* =  Name of the Vertex (uniqueness is not required) = */
@@ -419,12 +360,6 @@ namespace spider {
             size_t ix_ = SIZE_MAX;             /* = Index of the Vertex in the containing Graph = */
             uint32_t repetitionValue_ = 1;     /* = Repetition value of the Vertex, default is 1 but it can be set to 0. = */
             mutable uint32_t copyCount_ = 0;   /* = Number of copy of the Vertex = */
-
-            /* === Private method(s) === */
-
-            static Edge *disconnectEdge(spider::vector<Edge *> &edges, size_t ix);
-
-            static void connectEdge(spider::vector<Edge *> &edges, Edge *edge, size_t ix);
         };
     }
 }

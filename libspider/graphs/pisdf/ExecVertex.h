@@ -60,6 +60,17 @@ namespace spider {
                 rtInformation_ = spider::make_shared<RTInfo>(StackID::RUNTIME);
             };
 
+            ExecVertex(std::string name,
+                       size_t edgeINCount,
+                       size_t edgeOUTCount,
+                       size_t paramINCount,
+                       size_t paramOUTCount,
+                       const ExecVertex *reference) : Vertex(std::move(name),
+                                                             edgeINCount,
+                                                             edgeOUTCount,
+                                                             paramINCount,
+                                                             paramOUTCount, reference) { };
+
             ExecVertex(const ExecVertex &) = default;
 
             ExecVertex(ExecVertex &&other) noexcept : Vertex(std::move(other)) { };

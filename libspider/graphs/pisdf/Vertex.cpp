@@ -45,7 +45,50 @@
 #include <graphs/pisdf/Param.h>
 #include <graphs/pisdf/Graph.h>
 
+/* === Static function(s) === */
+
+static spider::pisdf::Edge *disconnectEdge(spider::vector<spider::pisdf::Edge *> &edges, size_t ix) {
+    auto *&edge = edges.at(ix);
+    spider::pisdf::Edge *ret = edge;
+    if (edge) {
+        edge = nullptr;
+    }
+    return ret;
+}
+
+static void connectEdge(spider::vector<spider::pisdf::Edge *> &edges, spider::pisdf::Edge *edge, size_t ix) {
+    auto *&current = edges.at(ix);
+    if (!current) {
+        current = edge;
+        return;
+    }
+    throwSpiderException("Edge already exists at position: %zu", ix);
+}
+
 /* === Function(s) definition === */
+
+spider::pisdf::Vertex::Vertex(std::string name, size_t edgeINCount, size_t edgeOUTCount) : name_{ std::move(name) } {
+    inputEdgeVector_.resize(edgeINCount, nullptr);
+    outputEdgeVector_.resize(edgeOUTCount, nullptr);
+}
+
+spider::pisdf::Vertex::Vertex(std::string name,
+                              size_t edgeINCount,
+                              size_t edgeOUTCount,
+                              size_t paramINCount,
+                              size_t paramOUTCount,
+                              const spider::pisdf::Vertex *reference) : name_{ std::move(name) },
+                                                                        reference_{ this } {
+    inputEdgeVector_.resize(edgeINCount, nullptr);
+    outputEdgeVector_.resize(edgeOUTCount, nullptr);
+    if (reference) {
+        reference_ = reference;
+        reference->copyCount_++;
+        rtInformation_ = reference->rtInformation_;
+    }
+    inputParamVector_.reserve(paramINCount);
+    outputParamVector_.reserve(paramOUTCount);
+}
 
 spider::pisdf::Vertex::Vertex(const Vertex &other) : name_{ other.name_ },
                                                      inputEdgeVector_{ other.inputEdgeVector_.size(), nullptr },
@@ -63,12 +106,19 @@ spider::pisdf::Vertex::Vertex(const Vertex &other) : name_{ other.name_ },
     refinementParamVector_.reserve(other.refinementParamVector_.size());
 }
 
-
 spider::pisdf::Vertex::~Vertex() noexcept {
     if (copyCount_ && log::enabled()) {
         log::error("Removing vertex [%s] with copies out there.\n", name().c_str());
     }
     this->reference_->copyCount_ -= 1;
+}
+
+void spider::pisdf::Vertex::connectInputEdge(Edge *edge, size_t ix) {
+    connectEdge(inputEdgeVector_, edge, ix);
+}
+
+void spider::pisdf::Vertex::connectOutputEdge(Edge *edge, size_t ix) {
+    connectEdge(outputEdgeVector_, edge, ix);
 }
 
 spider::pisdf::Edge *spider::pisdf::Vertex::disconnectInputEdge(size_t ix) {
@@ -89,24 +139,6 @@ spider::pisdf::Edge *spider::pisdf::Vertex::disconnectOutputEdge(size_t ix) {
     return edge;
 }
 
-spider::pisdf::Edge *spider::pisdf::Vertex::disconnectEdge(spider::vector<Edge *> &edges, size_t ix) {
-    auto *&edge = edges.at(ix);
-    Edge *ret = edge;
-    if (edge) {
-        edge = nullptr;
-    }
-    return ret;
-}
-
-void spider::pisdf::Vertex::connectEdge(spider::vector<Edge *> &edges, Edge *edge, size_t ix) {
-    auto *&current = edges.at(ix);
-    if (!current) {
-        current = edge;
-        return;
-    }
-    throwSpiderException("Edge already exists at position: %zu", ix);
-}
-
 void spider::pisdf::Vertex::addInputParameter(std::shared_ptr<Param> param) {
     inputParamVector_.emplace_back(std::move(param));
 }
@@ -122,9 +154,26 @@ void spider::pisdf::Vertex::addRefinementParameter(std::shared_ptr<Param> param)
     refinementParamVector_.emplace_back(std::move(param));
 }
 
+const std::string &spider::pisdf::Vertex::name() const {
+    return (reference_ == this) ? name_ : reference_->name_;
+}
+
 std::string spider::pisdf::Vertex::vertexPath() const {
     if (graph_) {
         return graph_->vertexPath().append(":").append(name_);
     }
     return name_;
+}
+
+void spider::pisdf::Vertex::setGraph(Graph *graph) {
+    if (graph) {
+        graph_ = graph;
+    }
+}
+
+void spider::pisdf::Vertex::setInstanceValue(size_t value) {
+    if (value >= reference_->repetitionValue()) {
+        throwSpiderException("invalid instance value for vertex [%s].", name_.c_str());
+    }
+    instanceValue_ = value;
 }

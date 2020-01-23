@@ -47,201 +47,209 @@
 namespace spider {
     namespace pisdf {
 
-        /* === Class definition === */
-
-        template<VertexType type>
-        class SpecialVertex final : public ExecVertex {
-        public:
-
-            SpecialVertex() = delete;
-
-            explicit SpecialVertex(std::string) = delete;
-
-            SpecialVertex(std::string, /* = Name = */
-                          size_t       /* = Input/Output edge count (depend on VertexType) = */) = delete;
-
-            SpecialVertex(std::string, /* = Name = */
-                          size_t,      /* = Input edge count = */
-                          size_t       /* = Output edge count = */) = delete;
-
-            SpecialVertex(const SpecialVertex &) = default;
-
-            SpecialVertex(SpecialVertex &&) noexcept = default;
-
-            ~SpecialVertex() override = default;
-
-            /* === Method(s) === */
-
-            inline void visit(Visitor *visitor) override {
-                visitor->visit(this);
-            }
-
-            /* === Getter(s) === */
-
-            inline VertexType subtype() const override {
-                return type;
-            }
-
-            /* === Setter(s) === */
-
-            inline void setRepetitionValue(uint32_t value) override {
-                ExecVertex::setRepetitionValue(value);
-            }
-
-        private:
-        };
-
-        /* === Define SpecialVertex types === */
-
-        using ConfigVertex = SpecialVertex<VertexType::CONFIG>;
-
-        using DelayVertex = SpecialVertex<VertexType::DELAY>;
-
-        using ForkVertex = SpecialVertex<VertexType::FORK>;
-
-        using JoinVertex = SpecialVertex<VertexType::JOIN>;
-
-        using HeadVertex = SpecialVertex<VertexType::HEAD>;
-
-        using TailVertex = SpecialVertex<VertexType::TAIL>;
-
-        using RepeatVertex = SpecialVertex<VertexType::REPEAT>;
-
-        using DuplicateVertex = SpecialVertex<VertexType::DUPLICATE>;
-
-        using InitVertex = SpecialVertex<VertexType::INIT>;
-
-        using EndVertex = SpecialVertex<VertexType::END>;
-
-
-        /* === Define SpecialVertex specific override === */
-
-        template<>
-        inline void ConfigVertex::setRepetitionValue(uint32_t value) {
-            if (value > 1) {
-                throwSpiderException("Configure actor [%s] has repetition vector value of %"
-                                             PRIu32
-                                             " instead of 1.", name().c_str(), value);
-            }
-            repetitionValue_ = value;
-        }
-
-        template<>
-        inline void DelayVertex::setRepetitionValue(uint32_t value) {
-            if (value > 1) {
-                throwSpiderException("Delay actor [%s] has repetition vector value of %"
-                                             PRIu32
-                                             " instead of 1.", name().c_str(), value);
-            }
-            repetitionValue_ = value;
-        }
-
-        /* === Define SpecialVertex constructor(s) === */
-
-        // We need to disable auto formatter here because it does really weird stuff for this particular layout
-        // @formatter:off
+        /* === Class definition(s) === */
 
         /* === ConfigVertex === */
 
-        template<>
-        inline ConfigVertex::SpecialVertex(std::string name, size_t edgeINCount, size_t edgeOUTCount) :
-                                            ExecVertex(std::move(name), edgeINCount, edgeOUTCount) { }
+        class ConfigVertex final : public ExecVertex {
+        public:
 
-        template<>
-        inline ConfigVertex::SpecialVertex() :
-                ConfigVertex("unnamed-cfg", 0, 0) { }
+            explicit ConfigVertex(std::string name = "unnamed-config",
+                                  size_t edgeINCount = 0,
+                                  size_t edgeOUTCount = 0);
+
+            ConfigVertex(std::string name, size_t edgeINCount, size_t edgeOUTCount, size_t paramINCount,
+                         size_t paramOUTCount, const ConfigVertex *reference);
+
+            /* === Method(s) === */
+
+            inline void visit(Visitor *visitor) override { visitor->visit(this); };
+
+            /* === Getter(s) === */
+
+            inline VertexType subtype() const override { return VertexType::CONFIG; };
+
+            /* === Setter(s) === */
+
+            void setRepetitionValue(uint32_t value) override;
+        };
 
         /* === DelayVertex === */
 
-        template<>
-        inline DelayVertex::SpecialVertex(std::string name) :
-                                           ExecVertex(std::move(name),1, 1) { }
+        class DelayVertex final : public ExecVertex {
+        public:
 
-        template<>
-        inline DelayVertex::SpecialVertex() :
-                DelayVertex("unnamed-delay") { }
+            explicit DelayVertex(std::string name = "unnamed-delay");
+
+            DelayVertex(std::string name, size_t edgeINCount, size_t edgeOUTCount, size_t paramINCount,
+                        size_t paramOUTCount, const DelayVertex *reference);
+
+            /* === Method(s) === */
+
+            inline void visit(Visitor *visitor) override { visitor->visit(this); };
+
+            /* === Getter(s) === */
+
+            inline VertexType subtype() const override { return VertexType::DELAY; };
+
+            /* === Setter(s) === */
+
+            void setRepetitionValue(uint32_t value) override;
+        };
 
         /* === ForkVertex === */
 
-        template<>
-        inline ForkVertex::SpecialVertex(std::string name, size_t edgeOUTCount) :
-                                          ExecVertex(std::move(name), 1, edgeOUTCount) { }
+        class ForkVertex final : public ExecVertex {
+        public:
 
-        template<>
-        inline ForkVertex::SpecialVertex() :
-                ForkVertex("unnamed-fork", 0) { }
+            explicit ForkVertex(std::string name = "unnamed-fork", size_t edgeOUTCount = 0);
+
+            ForkVertex(std::string name, size_t edgeINCount, size_t edgeOUTCount, size_t paramINCount,
+                       size_t paramOUTCount, const ForkVertex *reference);
+
+            /* === Method(s) === */
+
+            inline void visit(Visitor *visitor) override { visitor->visit(this); };
+
+            /* === Getter(s) === */
+
+            inline VertexType subtype() const override { return VertexType::FORK; };
+        };
 
         /* === JoinVertex === */
 
-        template<>
-        inline JoinVertex::SpecialVertex(std::string name, size_t edgeINCount) :
-                                          ExecVertex(std::move(name), edgeINCount, 1) { }
+        class JoinVertex final : public ExecVertex {
+        public:
 
-        template<>
-        inline JoinVertex::SpecialVertex() :
-                JoinVertex("unnamed-join", 0) { }
+            explicit JoinVertex(std::string name = "unnamed-join", size_t edgeINCount = 0);
+
+            JoinVertex(std::string name, size_t edgeINCount, size_t edgeOUTCount, size_t paramINCount,
+                       size_t paramOUTCount, const JoinVertex *reference);
+
+            /* === Method(s) === */
+
+            inline void visit(Visitor *visitor) override { visitor->visit(this); };
+
+            /* === Getter(s) === */
+
+            inline VertexType subtype() const override { return VertexType::JOIN; };
+        };
 
         /* === HeadVertex === */
 
-        template<>
-        inline HeadVertex::SpecialVertex(std::string name, size_t edgeINCount) :
-                                          ExecVertex(std::move(name), edgeINCount, 1) { }
+        class HeadVertex final : public ExecVertex {
+        public:
 
-        template<>
-        inline HeadVertex::SpecialVertex() :
-                HeadVertex("unnamed-head", 0) { }
+            explicit HeadVertex(std::string name = "unnamed-head", size_t edgeINCount = 0);
+
+            HeadVertex(std::string name, size_t edgeINCount, size_t edgeOUTCount, size_t paramINCount,
+                       size_t paramOUTCount, const HeadVertex *reference);
+
+            /* === Method(s) === */
+
+            inline void visit(Visitor *visitor) override { visitor->visit(this); };
+
+            /* === Getter(s) === */
+
+            inline VertexType subtype() const override { return VertexType::HEAD; };
+        };
 
         /* === TailVertex === */
 
-        template<>
-        inline TailVertex::SpecialVertex(std::string name, size_t edgeINCount) :
-                                          ExecVertex(std::move(name), edgeINCount, 1) { }
+        class TailVertex final : public ExecVertex {
+        public:
 
-        template<>
-        inline TailVertex::SpecialVertex() :
-                TailVertex("unnamed-tail", 0) { }
+            explicit TailVertex(std::string name = "unnamed-tail", size_t edgeINCount = 0);
+
+            TailVertex(std::string name, size_t edgeINCount, size_t edgeOUTCount, size_t paramINCount,
+                       size_t paramOUTCount, const TailVertex *reference);
+
+            /* === Method(s) === */
+
+            inline void visit(Visitor *visitor) override { visitor->visit(this); };
+
+            /* === Getter(s) === */
+
+            inline VertexType subtype() const override { return VertexType::TAIL; };
+        };
 
         /* === RepeatVertex === */
 
-        template<>
-        inline RepeatVertex::SpecialVertex(std::string name) :
-                                            ExecVertex(std::move(name),1, 1) { }
+        class RepeatVertex final : public ExecVertex {
+        public:
 
-        template<>
-        inline RepeatVertex::SpecialVertex() :
-                RepeatVertex("unnamed-repeat") { }
+            explicit RepeatVertex(std::string name = "unnamed-repeat");
+
+            RepeatVertex(std::string name, size_t edgeINCount, size_t edgeOUTCount, size_t paramINCount,
+                         size_t paramOUTCount, const RepeatVertex *reference);
+
+            /* === Method(s) === */
+
+            inline void visit(Visitor *visitor) override { visitor->visit(this); };
+
+            /* === Getter(s) === */
+
+            inline VertexType subtype() const override { return VertexType::REPEAT; };
+        };
 
         /* === DuplicateVertex === */
 
-        template<>
-        inline DuplicateVertex::SpecialVertex(std::string name, size_t edgeOUTCount) :
-                                               ExecVertex(std::move(name),1, edgeOUTCount) { }
+        class DuplicateVertex final : public ExecVertex {
+        public:
 
-        template<>
-        inline DuplicateVertex::SpecialVertex() :
-                DuplicateVertex("unnamed-duplicate", 0) { }
+            explicit DuplicateVertex(std::string name = "unnamed-duplicate", size_t edgeOUTCount = 0);
+
+            DuplicateVertex(std::string name, size_t edgeINCount, size_t edgeOUTCount, size_t paramINCount,
+                            size_t paramOUTCount, const DuplicateVertex *reference);
+
+            /* === Method(s) === */
+
+            inline void visit(Visitor *visitor) override { visitor->visit(this); };
+
+            /* === Getter(s) === */
+
+            inline VertexType subtype() const override { return VertexType::DUPLICATE; };
+        };
 
         /* === InitVertex === */
 
-        template<>
-        inline InitVertex::SpecialVertex(std::string name) :
-                                          ExecVertex(std::move(name),0, 1) { }
+        class InitVertex final : public ExecVertex {
+        public:
 
-        template<>
-        inline InitVertex::SpecialVertex() :
-                InitVertex("unnamed-init") { }
+            explicit InitVertex(std::string name = "unnamed-init");
+
+            InitVertex(std::string name, size_t edgeINCount, size_t edgeOUTCount, size_t paramINCount,
+                       size_t paramOUTCount, const InitVertex *reference);
+
+            /* === Method(s) === */
+
+            inline void visit(Visitor *visitor) override { visitor->visit(this); };
+
+            /* === Getter(s) === */
+
+            inline VertexType subtype() const override { return VertexType::INIT; };
+        };
 
         /* === EndVertex === */
 
-        template<>
-        inline EndVertex::SpecialVertex(std::string name) :
-                                         ExecVertex(std::move(name), 1, 0) { }
+        class EndVertex final : public ExecVertex {
+        public:
 
-        template<>
-        inline EndVertex::SpecialVertex() :
-                EndVertex("unnamed-end") { }
+            explicit EndVertex(std::string name = "unnamed-end");
+
+            EndVertex(std::string name, size_t edgeINCount, size_t edgeOUTCount, size_t paramINCount,
+                      size_t paramOUTCount, const EndVertex *reference);
+
+            /* === Method(s) === */
+
+            inline void visit(Visitor *visitor) override { visitor->visit(this); };
+
+            /* === Getter(s) === */
+
+            inline VertexType subtype() const override { return VertexType::END; };
+        };
+
     }
-    // @formatter:on
 }
 
 #endif //SPIDER2_SPECIALVERTEX_H
