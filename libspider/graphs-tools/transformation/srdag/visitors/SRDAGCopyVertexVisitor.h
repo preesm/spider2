@@ -37,8 +37,8 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_SRDAGCOPYVISITOR_H
-#define SPIDER2_SRDAGCOPYVISITOR_H
+#ifndef SPIDER2_SRDAGCOPYVERTEXVISITOR_H
+#define SPIDER2_SRDAGCOPYVERTEXVISITOR_H
 
 /* === Include(s) === */
 
@@ -51,11 +51,11 @@ namespace spider {
 
         /* === Struct definition === */
 
-        struct SRDAGCopyVisitor final : public pisdf::DefaultVisitor {
+        struct SRDAGCopyVertexVisitor final : public pisdf::DefaultVisitor {
         public:
-            SRDAGCopyVisitor(const TransfoJob &job, pisdf::Graph *srdag) : job_{ job }, srdag_{ srdag } { };
+            SRDAGCopyVertexVisitor(const TransfoJob &job, pisdf::Graph *srdag) : job_{ job }, srdag_{ srdag } { };
 
-            ~SRDAGCopyVisitor() override = default;
+            ~SRDAGCopyVertexVisitor() override = default;
 
             inline void visit(pisdf::DelayVertex *vertex) override {
                 /* == This a trick to ensure proper coherence even with recursive delay init == */
@@ -98,9 +98,11 @@ namespace spider {
                                                            buildCloneName(graph, it),
                                                            static_cast<uint32_t>(graph->inputEdgeCount()),
                                                            static_cast<uint32_t>(graph->outputEdgeCount()));
-                    ix_ = clone->ix();
+                    clone->setRepetitionValue(graph->repetitionValue());
+                    /* == Set the instance value of the vertex == */
+                    clone->setInstanceValue(it);
                 }
-                ix_ = ix_ - (graph->repetitionValue() - 1);
+                ix_ = (srdag_->vertexCount() - 1) - (graph->repetitionValue() - 1);
             }
 
             const TransfoJob &job_;
@@ -140,4 +142,4 @@ namespace spider {
     }
 }
 
-#endif //SPIDER2_SRDAGCOPYVISITOR_H
+#endif //SPIDER2_SRDAGCOPYVERTEXVISITOR_H
