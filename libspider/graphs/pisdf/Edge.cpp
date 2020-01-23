@@ -77,12 +77,6 @@ spider::pisdf::Edge::Edge(Vertex *source,
 
 spider::pisdf::Edge::~Edge() {
     destroy(delay_);
-    if (src_) {
-        src_->disconnectOutputEdge(srcPortIx_);
-    }
-    if (snk_) {
-        snk_->disconnectInputEdge(snkPortIx_);
-    }
 }
 
 std::string spider::pisdf::Edge::name() const {
@@ -95,16 +89,6 @@ int64_t spider::pisdf::Edge::sourceRateValue() const {
 
 int64_t spider::pisdf::Edge::sinkRateValue() const {
     return snk_ ? snkExpression_.evaluate(snk_->inputParamVector()) : 0;
-}
-
-void spider::pisdf::Edge::removeDelay() {
-    if (delay_) {
-        graph_->removeEdge(delay_->vertex_->inputEdge(0));
-        graph_->removeEdge(delay_->vertex_->outputEdge(0));
-        graph_->removeVertex(delay_->vertex_);
-        delay_->vertex_ = nullptr;
-    }
-    destroy(delay_);
 }
 
 void spider::pisdf::Edge::setSource(Vertex *vertex, size_t ix, Expression &&expr) {

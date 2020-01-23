@@ -286,11 +286,19 @@ TEST_F(srdagTest, srdagFlatDelayTest7) {
     spider::api::createDelay(edge, 1);
     ASSERT_THROW(spider::srdag::singleRateTransformation(rootJob, srdag), spider::Exception)
                                 << "SingleRateTransformer::singleRateLinkage should throw for self loop with insufficient delay";
+    spider::destroy(srdag);
+    spider::destroy(graph);
+}
+
+TEST_F(srdagTest, srdagFlatDelayTest8) {
+    auto *graph = spider::api::createGraph("topgraph", 2, 1);
+    auto *vertex_0 = spider::api::createVertex(graph, "vertex_0", 1, 1);
+    spider::srdag::TransfoJob rootJob{ graph, UINT32_MAX, UINT32_MAX, true };
+    auto *edge = spider::api::createEdge(vertex_0, 0, 2, vertex_0, 0, 2);
+    auto *srdag = spider::api::createGraph("srdag");
+    ASSERT_THROW(spider::srdag::singleRateTransformation(rootJob, srdag), spider::Exception)
+                                << "SingleRateTransformer::singleRateLinkage should throw for self loop with no delay";
     srdag->removeVertex(srdag->vertex(0)); /* = Before failing, it did copy the vertex = */
-    srdag->removeVertex(srdag->vertex(0)); /* = Before failing, it did copy the init vertex = */
-    srdag->removeVertex(srdag->vertex(0)); /* = Before failing, it did copy the end vertex = */
-    srdag->removeVertex(srdag->vertex(0)); /* = Before failing, it did copy the delay vertex = */
-    graph->edges()[0]->removeDelay();
     spider::api::createDelay(edge, 2);
     ASSERT_NO_THROW(spider::srdag::singleRateTransformation(rootJob, srdag));
     /*

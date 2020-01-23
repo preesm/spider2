@@ -67,7 +67,7 @@ namespace spider {
                   Expression &&getterRateExpression,
                   bool persistent = false);
 
-            ~Delay();
+            ~Delay() = default;
 
             friend class Edge;
 
@@ -177,8 +177,6 @@ namespace spider {
             Vertex *getter_ = nullptr;            /* = Getter of the Delay = */
             size_t getterPortIx_ = 0;             /* = Input port ix of the getter connected to the Delay = */
             DelayVertex *vertex_ = nullptr;       /* = Virtual vertex created for consistency evaluation = */
-            bool addedInit_ = false;              /* = If no setter is provided, then an InitVertex is created = */
-            bool addedEnd_ = false;               /* = If no getter is provided, then an EndVertex is created = */
             bool persistent_ = true;              /* = Persistence property of the Delay (true if persistent, false else) = */
             uint64_t memoryAddress_ = UINT64_MAX; /* = Memory address associated to this Delay (if persistent) = */
         };

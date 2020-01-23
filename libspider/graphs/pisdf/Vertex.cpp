@@ -69,14 +69,6 @@ spider::pisdf::Vertex::~Vertex() noexcept {
         log::error("Removing vertex [%s] with copies out there.\n", name().c_str());
     }
     this->reference_->copyCount_ -= 1;
-
-    /* == If got any Edges left disconnect them == */
-    for (size_t ix = 0; ix < inputEdgeVector_.size(); ++ix) {
-        disconnectInputEdge(ix);
-    }
-    for (size_t ix = 0; ix < outputEdgeVector_.size(); ++ix) {
-        disconnectOutputEdge(ix);
-    }
 }
 
 spider::pisdf::Edge *spider::pisdf::Vertex::disconnectInputEdge(size_t ix) {

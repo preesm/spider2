@@ -69,6 +69,8 @@ spider::pisdf::Delay::Delay(Expression &&expression,
                                                persistent_{ persistent } {
     if (!edge_) {
         throwSpiderException("Delay can not be created on nullptr edge.");
+    } else if (edge_->delay()) {
+        throwSpiderException("Edge can only have one delay.");
     }
     if (persistent && (setter || getter)) {
         throwSpiderException("Persistent delay on edge [%s] can not have setter nor getter.", edge->name().c_str());
@@ -79,7 +81,6 @@ spider::pisdf::Delay::Delay(Expression &&expression,
         setterPortIx_ = 0; /* = Ensure the proper value of the port ix = */
         setter_ = api::createInit(edge->graph(),
                                   "init-" + edge->sink()->name() + "_" + std::to_string(edge->sinkPortIx()));
-        addedInit_ = true;
     }
 
     /* == If no getter is provided then an END is created == */
@@ -87,7 +88,6 @@ spider::pisdf::Delay::Delay(Expression &&expression,
         getterPortIx_ = 0; /* = Ensure the proper value of the port ix = */
         getter_ = api::createEnd(edge->graph(),
                                  "end-" + edge->source()->name() + "_" + std::to_string(edge->sourcePortIx()));
-        addedEnd_ = true;
     }
 
     /* == Create virtual vertex and connect it to setter / getter == */
@@ -113,18 +113,6 @@ spider::pisdf::Delay::Delay(Expression &&expression,
     edge->graph()->addEdge(setterEdge);
     edge->graph()->addEdge(getterEdge);
     edge_->setDelay(this);
-}
-
-spider::pisdf::Delay::~Delay() {
-    if (vertex_) {
-        vertex_->graph()->removeVertex(vertex_);
-    }
-    if (addedInit_ && setter_) {
-        setter_->graph()->removeVertex(setter_);
-    }
-    if (addedEnd_ && getter_) {
-        getter_->graph()->removeVertex(getter_);
-    }
 }
 
 std::string spider::pisdf::Delay::name() const {

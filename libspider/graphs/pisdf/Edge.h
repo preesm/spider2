@@ -77,11 +77,6 @@ namespace spider {
              */
             std::string name() const;
 
-            /**
-             * @brief Remove delay of the Edge and destroy it.
-             */
-            void removeDelay();
-
             /* === Getter(s) === */
 
             /**

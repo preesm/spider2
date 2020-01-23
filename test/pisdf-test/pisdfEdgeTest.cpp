@@ -77,10 +77,10 @@ TEST_F(pisdEdgeTest, edgeTest) {
     ASSERT_THROW(spider::pisdf::Edge(v0, 0, spider::Expression(), v1, 0, spider::Expression()), spider::Exception)
                                 << "Edge(.., ..) with different graph should throw";
     graph->addVertex(v1);
-    ASSERT_NO_THROW(spider::pisdf::Edge(v0, 0, spider::Expression(), v1, 0, spider::Expression()))
+    spider::pisdf::Edge *edge = nullptr;
+    ASSERT_NO_THROW((edge = spider::make<spider::pisdf::Edge, StackID::PISDF>(v0, 0, spider::Expression(), v1, 0,
+                                                                              spider::Expression())))
                                 << "Edge(.., ..) should not throw";
-    auto *edge = spider::make<spider::pisdf::Edge, StackID::PISDF>(v0, 0, spider::Expression(), v1, 0,
-                                                                   spider::Expression());
     graph->addEdge(edge);
     ASSERT_NO_THROW(edge->setSource(nullptr, 0, spider::Expression())) << "Edge::setSource() should never throw";
     ASSERT_NO_THROW(edge->setSink(nullptr, 0, spider::Expression())) << "Edge::setSink() should never throw";
