@@ -64,7 +64,6 @@ namespace spider {
         TRACE_RST,                      /*!< Signal LRT to reset its trace */
         TRACE_SENT,                     /*!< Signal that a trace has been sent */
         JOB_ADD,                        /*!< Signal LRT that a job is available in shared queue */
-        JOB_JOB_COUNT,                  /*!< Signal LRT what is the last job ID */
         JOB_CLEAR_QUEUE,                /*!< Signal LRT to clear its job queue (if LRT_REPEAT_ITERATION_EN, signal is ignored) */
         JOB_SENT_PARAM,                 /*!< Signal that LRT sent a ParameterMessage */
         JOB_BROADCAST_JOBSTAMP,         /*!< Signal LRT to broadcast its job stamp to everybody */
