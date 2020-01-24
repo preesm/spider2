@@ -109,7 +109,7 @@ void spider::ListScheduler::addVerticesAndSortList() {
 
     /* == Set the schedule job ix of the vertices == */
     iterator = std::begin(sortedVertexVector_) + static_cast<long>(lastSchedulableVertex_);
-    auto endIterator = std::end(sortedVertexVector_);
+    auto endIterator = std::end(sortedVertexVector_) - nonSchedulableVertexCount;
     while (iterator != endIterator) {
         schedule_.addJobToSchedule((iterator++)->vertex_);
     }
