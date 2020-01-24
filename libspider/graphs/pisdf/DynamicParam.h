@@ -58,12 +58,11 @@ namespace spider {
         public:
 
             explicit DynamicParam(std::string name) : Param(std::move(name)) {
-                expression_ = Expression(0);
+                value_ = 0;
             }
 
-            DynamicParam(std::string name, Expression &&expression) : Param(std::move(name)),
-                                                                      expression_{ expression } {
-
+            DynamicParam(std::string name, Expression expression) : Param(std::move(name)) {
+                expression_ = make<Expression, StackID::PISDF>(std::move(expression));
             }
 
             DynamicParam(const DynamicParam &other) : Param(other) {
@@ -75,6 +74,10 @@ namespace spider {
                 swap(expression_, other.expression_);
             }
 
+            ~DynamicParam() override {
+                destroy(expression_);
+            }
+
             /* === Method(s) === */
 
             inline void visit(Visitor *visitor) override {
@@ -84,11 +87,11 @@ namespace spider {
             /* === Getter(s) === */
 
             inline int64_t value() const override {
-                return expression_.evaluate();
+                return expression_ ? expression_->evaluate() : value_;
             }
 
             inline int64_t value(const spider::vector<std::shared_ptr<Param>> &params) const override {
-                return expression_.evaluate(params);
+                return expression_ ? expression_->evaluate(params) : value_;
             }
 
             inline ParamType type() const override {
@@ -99,18 +102,19 @@ namespace spider {
                 return true;
             }
 
-            inline const Expression &expression() const {
-                return expression_;
+            inline Expression expression() const {
+                return expression_ ? (*expression_) : Expression(value_);
             }
 
             /* === Setter(s) === */
 
             inline void setValue(int64_t value) override {
-                expression_ = Expression(value);
+                value_ = value;
+                destroy(expression_);
             }
 
         private:
-            Expression expression_; /* = Expression of the value of the Param (can be parameterized) = */
+            Expression *expression_ = nullptr; /* = Expression of the value of the Param (can be parameterized) = */
         };
     }
 }
