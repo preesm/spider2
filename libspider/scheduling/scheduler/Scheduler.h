@@ -71,6 +71,11 @@ namespace spider {
          */
         virtual void update() = 0;
 
+        /**
+         * @brief Clears scheduler.
+         */
+        virtual void clear();
+
         /* === Getter(s) === */
 
         /**
@@ -103,5 +108,13 @@ namespace spider {
          */
         virtual void vertexMapper(const pisdf::Vertex *vertex);
     };
+
+    /**
+     * @brief Make a new scheduler based on the scheduling algorithm.
+     * @param algorithm Algorithm type (see @refitem SchedulingAlgorithm).
+     * @param graph     Pointer to the graph.
+     * @return unique_ptr of the created scheduler.
+     */
+    spider::unique_ptr<Scheduler> makeScheduler(SchedulingAlgorithm algorithm, pisdf::Graph *graph);
 }
 #endif //SPIDER2_SCHEDULER_H

@@ -48,12 +48,12 @@ namespace spider {
 
     /* === Class definition === */
 
-    class RoundRobinScheduler : ListScheduler {
+    class RoundRobinScheduler : public ListScheduler {
     public:
 
         explicit RoundRobinScheduler(pisdf::Graph *graph) : ListScheduler(graph) { };
 
-        ~RoundRobinScheduler() = default;
+        ~RoundRobinScheduler() override = default;
 
         /* === Method(s) === */
 

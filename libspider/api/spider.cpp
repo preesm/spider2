@@ -181,16 +181,16 @@ void spider::start(const StartUpConfig &cfg) {
     startFlag = true;
 }
 
-static spider::Runtime *getRuntimeFromType(spider::RuntimeType type) {
+static spider::Runtime *getRuntimeFromType(spider::RuntimeType type, spider::SchedulingAlgorithm algorithm) {
     switch (type) {
         case spider::RuntimeType::JITMS:
-            return spider::make<spider::JITMSRuntime>(StackID::GENERAL, spider::pisdf::applicationGraph());
+            return spider::make<spider::JITMSRuntime>(StackID::GENERAL, spider::pisdf::applicationGraph(), algorithm);
     }
     return nullptr;
 }
 
-void spider::run(RunMode mode, size_t loopCount, RuntimeType type) {
-    auto *runtimeAlgo = getRuntimeFromType(type);
+void spider::run(RunMode mode, size_t loopCount, RuntimeType type, SchedulingAlgorithm algorithm) {
+    auto *runtimeAlgo = getRuntimeFromType(type, algorithm);
     if (!runtimeAlgo) {
         throwSpiderException("could not create runtime algorithm.");
     }

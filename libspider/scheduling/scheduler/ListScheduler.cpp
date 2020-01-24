@@ -61,6 +61,13 @@ spider::ListScheduler::ListScheduler(pisdf::Graph *graph) : Scheduler(graph) {
     addVerticesAndSortList();
 }
 
+void spider::ListScheduler::clear() {
+    Scheduler::clear();
+    lastScheduledVertex_ = 0;
+    lastSchedulableVertex_ = 0;
+    sortedVertexVector_.clear();
+}
+
 void spider::ListScheduler::update() {
     /* == Add vertices of the graph and sort the obtained list == */
     addVerticesAndSortList();
@@ -156,3 +163,4 @@ int64_t spider::ListScheduler::computeScheduleLevel(ListVertex &listVertex,
     }
     return listVertex.level_;
 }
+

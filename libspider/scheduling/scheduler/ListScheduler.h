@@ -60,6 +60,8 @@ namespace spider {
 
         void update() override;
 
+        void clear() override;
+
         /* === Getter(s) === */
 
         /* === Setter(s) === */

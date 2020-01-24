@@ -57,6 +57,8 @@ namespace spider {
 
         /* === Method(s) === */
 
+        inline void update() override { };
+
         sched::Schedule &mappingScheduling() override;
 
         /* === Getter(s) === */

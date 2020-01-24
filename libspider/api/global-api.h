@@ -177,6 +177,15 @@ namespace spider {
     /* === Enumeration(s) === */
 
     /**
+     * @brief Spider scheduling algorithms.
+     */
+    enum class SchedulingAlgorithm {
+        LIST_BEST_FIT,    /*!< Use a list based algorithm with best fit mapping decision */
+        LIST_ROUND_ROBIN, /*!< Use a list based algorithm with round robin mapping decision */
+        GREEDY,           /*!< Greedy algorithm with no heuristics */
+    };
+
+    /**
      * @brief Spider Processing Element types.
      */
     enum class PEType {

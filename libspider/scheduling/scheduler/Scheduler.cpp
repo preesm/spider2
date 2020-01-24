@@ -41,6 +41,9 @@
 /* === Include(s) === */
 
 #include <scheduling/scheduler/Scheduler.h>
+#include <scheduling/scheduler/GreedyScheduler.h>
+#include <scheduling/scheduler/BestFitScheduler.h>
+#include <scheduling/scheduler/RoundRobinScheduler.h>
 #include <scheduling/allocator/DefaultFifoAllocator.h>
 #include <graphs/pisdf/SpecialVertex.h>
 #include <api/archi-api.h>
@@ -62,6 +65,11 @@ spider::Scheduler::Scheduler(spider::pisdf::Graph *graph, FifoAllocatorType type
 
 spider::Scheduler::~Scheduler() {
     destroy(fifoAllocator_);
+}
+
+void spider::Scheduler::clear() {
+    schedule_.clear();
+    fifoAllocator_->clear();
 }
 
 /* === Protected method(s) === */
@@ -152,4 +160,20 @@ void spider::Scheduler::vertexMapper(const pisdf::Vertex *vertex) {
     }
     /* == Set job information and update schedule == */
     schedule_.updateJobAndSetReady(vertex->scheduleJobIx(), bestSlave, bestStartTime, bestEndTime);
+}
+
+spider::unique_ptr<spider::Scheduler> spider::makeScheduler(SchedulingAlgorithm algorithm, pisdf::Graph *graph) {
+    Scheduler *scheduler = nullptr;
+    switch (algorithm) {
+        case SchedulingAlgorithm::LIST_BEST_FIT:
+            scheduler = make<BestFitScheduler, StackID::SCHEDULE>(graph);
+            break;
+        case SchedulingAlgorithm::LIST_ROUND_ROBIN:
+            scheduler = make<RoundRobinScheduler, StackID::SCHEDULE>(graph);
+            break;
+        case SchedulingAlgorithm::GREEDY:
+            scheduler = make<GreedyScheduler, StackID::SCHEDULE>(graph);
+            break;
+    }
+    return spider::make_unique<spider::Scheduler>(scheduler);
 }

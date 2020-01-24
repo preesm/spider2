@@ -59,7 +59,7 @@ spider::sched::Schedule &spider::BestFitScheduler::mappingScheduling() {
     while (iterator != endIterator) {
         auto &listVertex = (*(iterator++));
         Scheduler::vertexMapper(listVertex.vertex_);
-        schedule_.runReadyJobs();
+//        schedule_.runReadyJobs();
     }
     lastScheduledVertex_ = lastSchedulableVertex_;
     return schedule_;
