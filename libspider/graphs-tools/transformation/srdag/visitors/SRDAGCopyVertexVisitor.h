@@ -112,6 +112,7 @@ namespace spider {
             std::string buildCloneName(const pisdf::Vertex *vertex, uint32_t firing) {
                 const auto *graphRef = job_.root_ ? job_.reference_ : srdag_->vertex(*(job_.srdagIx_));
                 std::string name = graphRef->name();
+                name.reserve(name.length() + vertex->name().length() + 12);
                 name.append(":").append(vertex->name()).append("-").append(std::to_string(firing));
                 return name;
             }
