@@ -42,6 +42,7 @@
 
 #include <api/config-api.h>
 #include <common/Logger.h>
+#include <common/EnumIterator.h>
 
 /* === Static variable(s) definition === */
 
@@ -66,10 +67,16 @@ void spider::api::disableExportTrace() {
 
 void spider::api::enableVerbose() {
     config_.verbose_ = true;
+    for (auto log: EnumIterator<log::Type>()) {
+        enableLogger(log);
+    }
 }
 
 void spider::api::disableVerbose() {
     config_.verbose_ = false;
+    for (auto log: EnumIterator<log::Type>()) {
+        disableLogger(log);
+    }
 }
 
 void spider::api::enableStaticScheduleOptim() {

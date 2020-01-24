@@ -119,7 +119,7 @@ static double applyOperator(StartIterator start, RPNOperatorType type) {
 spider::Expression::Expression(std::string expression, const spider::vector<std::shared_ptr<pisdf::Param>> &params) {
     /* == Get the postfix expression stack == */
     auto postfixStack = rpn::extractPostfixElements(std::move(expression));
-    if (api::verbose() && log::enabled<log::Type::EXPR>()) {
+    if (log::enabled<log::Type::EXPR>()) {
         log::verbose<log::Type::EXPR>("infix expression: [%s].\n", rpn::infixString(postfixStack).c_str());
         log::verbose<log::Type::EXPR>("postfix expression: [%s].\n", rpn::postfixString(postfixStack).c_str());
     }
