@@ -55,16 +55,17 @@
 
 void spider::sched::Schedule::clear() {
     jobVector_.clear();
-
-    /* == Reset the stats the platform == */
     stats_.reset();
+    reset();
 }
 
 void spider::sched::Schedule::reset() {
     for (auto &job : jobVector_) {
         job.setState(JobState::PENDING);
     }
+    stats_.reset();
     lastRunJob_ = 0;
+    readyJobCount_ = 0;
 }
 
 void spider::sched::Schedule::print() const {
@@ -125,7 +126,7 @@ void spider::sched::Schedule::updateJobAndSetReady(size_t jobIx, size_t slave, u
     readyJobCount_++;
 }
 
-void spider::sched::Schedule::runReadyJobs() {
+void spider::sched::Schedule::sendReadyJobs() {
     const auto &grtIx = archi::platform()->spiderGRTPE()->virtualIx();
     auto startIterator = std::begin(jobVector_) + lastRunJob_;
     auto endIterator = startIterator + readyJobCount_;

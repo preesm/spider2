@@ -92,7 +92,7 @@ namespace spider {
             /**
              * @brief Send every jobs currently in JobState::READY.
              */
-            void runReadyJobs();
+            void sendReadyJobs();
 
             /**
              * @brief Print the Schedule in the console with the format:
