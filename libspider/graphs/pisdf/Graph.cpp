@@ -184,6 +184,17 @@ spider::pisdf::Graph::~Graph() noexcept {
     }
 }
 
+void spider::pisdf::Graph::clear() {
+    for (auto &edge : edgeVector_) {
+        destroy(edge);
+    }
+    edgeVector_.clear();
+    vertexVector_.clear();
+    paramVector_.clear();
+    subgraphVector_.clear();
+    configVertexVector_.clear();
+}
+
 void spider::pisdf::Graph::addVertex(Vertex *vertex) {
     if (vertex->subtype() == VertexType::CONFIG) {
         AddSpecialVertexVisitor visitor{ this };

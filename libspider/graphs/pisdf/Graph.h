@@ -56,10 +56,6 @@ namespace spider {
 
         /* === Forward declaration(s) === */
 
-        struct GraphAddVertexVisitor;
-
-        struct GraphRemoveVertexVisitor;
-
         /* === Class definition === */
 
         class Graph final : public Vertex {
@@ -79,9 +75,12 @@ namespace spider {
 
             ~Graph() noexcept override;
 
-            friend GraphAddVertexVisitor;
-
             /* === Method(s) === */
+
+            /**
+             * @brief Clears a graph without destroying it.
+             */
+            void clear();
 
             /**
              * @brief Override automatic property of Graph.
