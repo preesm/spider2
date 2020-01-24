@@ -79,6 +79,10 @@ namespace spider {
                 return parent_->value();
             }
 
+            inline int64_t value(const spider::vector<std::shared_ptr<Param>> &params) const override {
+                return parent_->value(params);
+            }
+
             inline ParamType type() const override {
                 return ParamType::INHERITED;
             }
