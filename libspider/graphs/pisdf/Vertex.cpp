@@ -155,7 +155,7 @@ void spider::pisdf::Vertex::addRefinementParameter(std::shared_ptr<Param> param)
 }
 
 const std::string &spider::pisdf::Vertex::name() const {
-    return (reference_ == this) ? name_ : reference_->name_;
+    return name_;
 }
 
 std::string spider::pisdf::Vertex::vertexPath() const {
