@@ -163,10 +163,6 @@ void spider::start(const StartUpConfig &cfg) {
                                      cfg.generalStackExternAddress_);
     }
 
-    /* == Create the upper top-graph that will contains the application top-graph == */
-    pisdf::applicationGraph() = api::createGraph("", 1);
-    pisdf::applicationGraph()->setName("app-graph");
-
     /* == Init the Logger and enable the GENERAL Logger == */
     if (cfg.enableGeneralLog_) {
         log::enable<log::Type::GENERAL>();

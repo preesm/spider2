@@ -68,20 +68,17 @@ spider::pisdf::Graph *spider::api::createUserApplicationGraph(std::string name,
                                                               size_t inIFCount,
                                                               size_t outIFCount,
                                                               size_t cfgActorCount) {
-    if (pisdf::applicationGraph()->subgraphCount()) {
+    if (pisdf::applicationGraph()) {
         throwSpiderException("Can have only one user application graph inside spider.");
     }
-    if (name == "app-graph") {
-        throwSpiderException("Unauthorized name: \"app-graph\" is a reserved name for graphs by Spider.");
-    }
-    return createSubgraph(pisdf::applicationGraph(),
-                          std::move(name),
-                          actorCount,
-                          edgeCount,
-                          paramCount,
-                          inIFCount,
-                          outIFCount,
-                          cfgActorCount);
+    pisdf::applicationGraph() = createGraph(std::move(name),
+                                            actorCount,
+                                            edgeCount,
+                                            paramCount,
+                                            inIFCount,
+                                            outIFCount,
+                                            cfgActorCount);
+    return pisdf::applicationGraph();
 }
 
 spider::pisdf::Graph *spider::api::createGraph(std::string name,
