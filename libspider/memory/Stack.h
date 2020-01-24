@@ -119,14 +119,14 @@ namespace spider {
         }
 
         inline void *allocate(size_t size) {
-//            std::lock_guard<std::mutex> lockGuard{ lock_ };
+            std::lock_guard<std::mutex> lockGuard{ lock_ };
             auto buffer = policy_->allocate(size);
             increaseUsage(policy_->lastAllocatedSize());
             return buffer;
         }
 
         inline void deallocate(void *ptr) {
-//            std::lock_guard<std::mutex> lockGuard{ lock_ };
+            std::lock_guard<std::mutex> lockGuard{ lock_ };
             decreaseUsage(policy_->deallocate(ptr));
         }
 

@@ -73,12 +73,14 @@ void spider::sched::Schedule::print() const {
         for (const auto &job : jobs()) {
             log::print<log::Type::SCHEDULE>(log::magenta, "INFO: ", "Schedule: \n");
             log::print<log::Type::SCHEDULE>(log::magenta, "INFO: ", "   >> job: %zu (runner: %zu) [%s]\n", job.ix(),
-                    job.mappingInfo().LRTIx, job.vertex()->reference()->name().c_str());
+                                            job.mappingInfo().LRTIx, job.vertex()->reference()->name().c_str());
             size_t lrtIx = 0;
             for (const auto &index : job.scheduleConstraintsArray()) {
                 if (index != SIZE_MAX) {
-                    log::print<log::Type::SCHEDULE>(log::magenta, "INFO: ", "           ----> job: %zu (runner: %zu) [%s]\n",
-                                                    jobVector_[index].ix(), lrtIx, jobVector_[index].vertex()->reference()->name().c_str());
+                    log::print<log::Type::SCHEDULE>(log::magenta, "INFO: ",
+                                                    "           ----> job: %zu (runner: %zu) [%s]\n",
+                                                    jobVector_[index].ix(), lrtIx,
+                                                    jobVector_[index].vertex()->reference()->name().c_str());
                 }
                 lrtIx++;
             }

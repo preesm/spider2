@@ -57,16 +57,17 @@ namespace spider {
 
         /* === Method(s) === */
 
-        inline RTFifo allocate(size_t size, MemoryInterface *interface) override {
-            if (interface) {
-                RTFifo fifo;
-                fifo.size_ = size;
-                fifo.memoryInterface_ = interface;
-                fifo.virtualAddress_ = virtualMemoryAddress_;
-                virtualMemoryAddress_ += size;
-                return fifo;
-            }
-            throwSpiderException("nullptr MemoryInterface.");
+        inline RTFifo allocate(size_t size, size_t senderReceiverIx) noexcept override {
+            RTFifo fifo;
+            fifo.size_ = size;
+            fifo.senderReceiverIx_ = senderReceiverIx;
+            fifo.virtualAddress_ = virtualMemoryAddress_;
+            virtualMemoryAddress_ += size;
+            return fifo;
+        }
+
+        inline void clear() noexcept override {
+            virtualMemoryAddress_ = 0;
         }
 
         /* === Getter(s) === */

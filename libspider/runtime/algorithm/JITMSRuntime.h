@@ -60,7 +60,7 @@ namespace spider {
     class JITMSRuntime final : public Runtime {
     public:
 
-        explicit JITMSRuntime(pisdf::Graph *graph) : Runtime(graph) { };
+        explicit JITMSRuntime(pisdf::Graph *graph, SchedulingAlgorithm schedulingAlgorithm);
 
         ~JITMSRuntime() override = default;
 
@@ -75,7 +75,14 @@ namespace spider {
         /* === Setter(s) === */
 
     private:
+        spider::unique_ptr<pisdf::Graph> srdag_;
+        spider::unique_ptr<Scheduler> scheduler_;
+
         /* === Private method(s) === */
+
+        bool staticExecute();
+
+        bool dynamicExecute();
 
         /**
          * @brief Appends @refitem spider::srdag::TransfoJob from source vector to destination vector using MOVE semantic.
@@ -89,21 +96,17 @@ namespace spider {
          * @brief Transform all static jobs contained in staticJobStack and update the job stacks with future jobs.
          * @param staticJobStack   Static job stack.
          * @param dynamicJobStack  Dynamic job stack.
-         * @param srdag            Pointer to the single-rate graph to update.
          */
         void transformStaticJobs(spider::vector<srdag::TransfoJob> &staticJobStack,
-                                 spider::vector<srdag::TransfoJob> &dynamicJobStack,
-                                 pisdf::Graph *srdag);
+                                 spider::vector<srdag::TransfoJob> &dynamicJobStack);
 
         /**
          * @brief Transform all dynamic jobs contained in dynamicJobStack and update the job stacks with future jobs.
          * @param staticJobStack   Static job stack.
          * @param dynamicJobStack  Dynamic job stack.
-         * @param srdag            Pointer to the single-rate graph to update.
          */
         void transformDynamicJobs(spider::vector<srdag::TransfoJob> &staticJobStack,
-                                  spider::vector<srdag::TransfoJob> &dynamicJobStack,
-                                  pisdf::Graph *srdag);
+                                  spider::vector<srdag::TransfoJob> &dynamicJobStack);
     };
 
     /* === Inline method(s) === */

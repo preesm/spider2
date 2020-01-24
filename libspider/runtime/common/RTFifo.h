@@ -49,14 +49,12 @@ namespace spider {
 
     /* === Forward declaration(s) === */
 
-    class MemoryInterface;
-
     /* === Class definition === */
 
     struct RTFifo {
-        MemoryInterface *memoryInterface_ = nullptr;
         uint64_t virtualAddress_ = UINT64_MAX;
         size_t size_ = 0;
+        size_t senderReceiverIx_ = 0;
     };
 }
 

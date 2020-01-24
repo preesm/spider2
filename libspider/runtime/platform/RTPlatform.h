@@ -96,6 +96,8 @@ namespace spider {
 
         virtual void createRunnerRessource(RTRunner *) = 0;
 
+        virtual void waitForRunnerToBeReady() = 0;
+
         /* === Getter(s) === */
 
         /**

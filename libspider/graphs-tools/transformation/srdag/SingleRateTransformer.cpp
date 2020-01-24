@@ -56,20 +56,6 @@
 
 /* === Static function(s) === */
 
-/**
- * @brief Split every dynamic subgraphs of a given graph into an init and a run subgraph.
- * @param graph  Graph to evaluate.
- * @return @refitem spider::vector of index linking init to run subgraphs.
- */
-static void splitSubgraphs(spider::pisdf::Graph *graph) {
-    /* == 0. Split the dynamic subgraphs into init and run subgraphs == */
-    auto subgraph2RemoveVector = spider::containers::vector<spider::pisdf::Graph *>(StackID::TRANSFO);
-    subgraph2RemoveVector.reserve(graph->subgraphCount());
-    for (auto *subgraph : graph->subgraphs()) {
-        spider::srdag::splitDynamicGraph(subgraph);
-    }
-}
-
 /* === Method(s) implementation === */
 
 spider::srdag::SingleRateTransformer::SingleRateTransformer(const TransfoJob &job,
@@ -82,13 +68,24 @@ spider::srdag::SingleRateTransformer::SingleRateTransformer(const TransfoJob &jo
     }
 
     /* == 1. Split subgraphs (must be done after brv so that init and run have same repetition value) == */
-    splitSubgraphs(graph);
+    for (auto *subgraph : graph->subgraphs()) {
+        spider::srdag::splitDynamicGraph(subgraph);
+    }
     ref2Clone_ = containers::vector<size_t>(graph->vertexCount() +
                                             graph->inputEdgeCount() +
                                             graph->outputEdgeCount(), SIZE_MAX, StackID::TRANSFO);
 }
 
 std::pair<spider::srdag::JobStack, spider::srdag::JobStack> spider::srdag::SingleRateTransformer::execute() {
+    /* == Set dynamic dependent parameter values == */
+    if (job_.reference_->dynamic()) {
+        for (auto &param : job_.params_) {
+            if (param->dynamic()) {
+                param->setValue(param->value(job_.params_));
+            }
+        }
+    }
+
     /* == 0. Insert repeat and tail actors for input and output interfaces, respectively == */
     replaceInterfaces();
 
@@ -191,12 +188,10 @@ std::pair<spider::srdag::JobStack, spider::srdag::JobStack> spider::srdag::Singl
     auto staticJobStack = containers::vector<TransfoJob>(StackID::TRANSFO);
     auto dynaJobStack = containers::vector<TransfoJob>(StackID::TRANSFO);
 
-    auto addJobWithParamCopy = [&](spider::vector<TransfoJob> &jobStack,
-                                   pisdf::Graph *graph,
-                                   size_t ix, size_t offset) {
+    auto addJobWithParamCopy = [&](spider::vector<TransfoJob> &jobStack, pisdf::Graph *graph, size_t ix) {
         auto *clone = srdag_->vertex(ix);
         /* = same value but if clone->ix changes, value in transfojob will change also = */
-        jobStack.emplace_back(graph, clone->ix(), ix - offset);
+        jobStack.emplace_back(graph, clone->ix(), clone->instanceValue());
         auto &job = jobStack.back();
         CopyParamVisitor cpyVisitor{ job_, job.params_ };
         for (const auto &param : graph->params()) {
@@ -222,7 +217,7 @@ std::pair<spider::srdag::JobStack, spider::srdag::JobStack> spider::srdag::Singl
                                      subgraph->repetitionValue(), runGraph->repetitionValue());
             }
             /* == 2.0 Creates dynamic job == */
-            addJobWithParamCopy(dynaJobStack, runGraph, ref2Clone_[runGraph->ix()], 0);
+            addJobWithParamCopy(dynaJobStack, runGraph, ref2Clone_[runGraph->ix()]);
 
             /* == 2.1 Creates init job == */
             /* = same value but if clone->ix changes, value in transfojob will change also = */
@@ -239,7 +234,7 @@ std::pair<spider::srdag::JobStack, spider::srdag::JobStack> spider::srdag::Singl
             /* == 3. Add static jobs == */
             const auto &firstCloneIx = ref2Clone_[subgraph->ix()];
             for (auto ix = firstCloneIx; ix < firstCloneIx + subgraph->repetitionValue(); ++ix) {
-                addJobWithParamCopy(staticJobStack, subgraph, ix, firstCloneIx);
+                addJobWithParamCopy(staticJobStack, subgraph, ix);
             }
         }
     }

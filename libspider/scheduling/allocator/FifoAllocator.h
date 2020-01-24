@@ -64,20 +64,28 @@ namespace spider {
 
         /**
          * @brief Allocate a FIFO of given size.
-         * @param size      Size of the FIFO to allocate in bytes.
-         * @param interface Pointer to the @refitem MemoryInterface to use for allocation.
+         * @param size             Size of the FIFO to allocate in bytes.
+         * @param senderReceiverIx Index of the sending (or receiving) PE of the FIFO.
          * @return created @refitem RTFifo.
          */
-        virtual RTFifo allocate(size_t size, MemoryInterface *interface) = 0;
+        virtual RTFifo allocate(size_t size, size_t senderReceiverIx) noexcept = 0;
+
+        /**
+         * @brief Clears the allocator.
+         */
+        virtual void clear() noexcept = 0;
 
         /* === Getter(s) === */
 
+        /**
+         * @brief Get the type of the FifoAllocator
+         * @return @refitem FifoAllocatorType
+         */
         virtual FifoAllocatorType type() const = 0;
 
         /* === Setter(s) === */
 
     private:
-
     };
 }
 #endif //SPIDER2_FIFOALLOCATOR_H

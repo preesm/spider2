@@ -163,10 +163,6 @@ namespace spider {
                 return delay_;
             }
 
-            inline uint64_t memoryAddress() const {
-                return memoryAddress_;
-            }
-
             /* === Setter(s) === */
 
             /**
@@ -218,14 +214,6 @@ namespace spider {
                 }
             }
 
-            /**
-             * @brief Sets the memory address of the edge.
-             * @param address Value to set.
-             */
-            inline void setMemoryAddress(uint64_t address) {
-                memoryAddress_ = address;
-            }
-
         private:
             Expression srcExpression_;            /* = Expression of the source rate of the Edge = */
             Expression snkExpression_;            /* = Expression of the sink rate of the Edge = */
@@ -233,7 +221,6 @@ namespace spider {
             Vertex *src_ = nullptr;               /* = Pointer to the source Vertex (if any) = */
             Vertex *snk_ = nullptr;               /* = Pointer to the sink Vertex (if any) = */
             Delay *delay_ = nullptr;              /* = Pointer to Delay associated to the Edge (if any) = */
-            uint64_t memoryAddress_ = UINT64_MAX; /* = Virtual memory address of the edge = */
             size_t ix_ = SIZE_MAX;                /* = Index of the Edge in the Graph (used for add and remove) = */
             size_t srcPortIx_ = SIZE_MAX;         /* = Index of the Edge in the source outputEdgeArray = */
             size_t snkPortIx_ = SIZE_MAX;         /* = Index of the Edge in the sink inputEdgeArray = */

@@ -45,6 +45,7 @@
 #include <runtime/interface/RTCommunicator.h>
 #include <archi/MemoryInterface.h>
 #include <archi/PE.h>
+#include <archi/Cluster.h>
 
 /* === Static function === */
 
@@ -156,7 +157,11 @@ void spider::JITMSRTRunner::runJob(const JobMessage &job) {
     spider::array<void *> inputBuffersArray{ job.inputFifoArray_.size(), nullptr, StackID::RUNTIME };
     auto inputBufferIterator = inputBuffersArray.begin();
     for (auto &inputFIFO : job.inputFifoArray_) {
-        *(inputBufferIterator++) = inputFIFO.memoryInterface_->read(inputFIFO.virtualAddress_);
+        auto *sender = archi::platform()->processingElement(inputFIFO.senderReceiverIx_)->cluster();
+        auto *memoryInterface = archi::platform()->getClusterToClusterMemoryInterface(sender,
+                                                                                      attachedPE_->cluster()).second;
+        fprintf(stderr, "INFO:%zu: in -> %" PRIu64"\n", ix(), inputFIFO.virtualAddress_);
+        *(inputBufferIterator++) = memoryInterface->read(inputFIFO.virtualAddress_);
     }
 
     /* == Allocate output memory == */
@@ -164,7 +169,9 @@ void spider::JITMSRTRunner::runJob(const JobMessage &job) {
     spider::array<void *> outputBuffersArray{ job.outputFifoArray_.size(), nullptr, StackID::RUNTIME };
     auto outputBufferIterator = outputBuffersArray.begin();
     for (auto &outputFIFO : job.outputFifoArray_) {
-        *(outputBufferIterator++) = outputFIFO.memoryInterface_->allocate(outputFIFO.virtualAddress_, outputFIFO.size_);
+        auto *memoryInterface = attachedPE_->cluster()->memoryInterface();
+        fprintf(stderr, "INFO:%zu: out -> %" PRIu64"\n", ix(), outputFIFO.virtualAddress_);
+        *(outputBufferIterator++) = memoryInterface->allocate(outputFIFO.virtualAddress_, outputFIFO.size_);
     }
 
     /* == Allocate output parameter memory == */
@@ -181,13 +188,18 @@ void spider::JITMSRTRunner::runJob(const JobMessage &job) {
     /* == Deallocate input buffers == */
     // TODO: add time monitoring
     for (auto &inputFIFO : job.inputFifoArray_) {
-        inputFIFO.memoryInterface_->deallocate(inputFIFO.virtualAddress_, inputFIFO.size_);
+        auto *sender = archi::platform()->processingElement(inputFIFO.senderReceiverIx_)->cluster();
+        auto *memoryInterface = archi::platform()->getClusterToClusterMemoryInterface(sender,
+                                                                                      attachedPE_->cluster()).second;
+        fprintf(stderr, "INFO:%zu: deallocate -> %" PRIu64"\n", ix(), inputFIFO.virtualAddress_);
+        memoryInterface->deallocate(inputFIFO.virtualAddress_, inputFIFO.size_);
     }
 
     /* == Send output data == */
     // TODO: add time monitoring
     for (auto &outputFIFO : job.outputFifoArray_) {
-        outputFIFO.memoryInterface_->write(outputFIFO.virtualAddress_);
+        auto *memoryInterface = attachedPE_->cluster()->memoryInterface();
+        memoryInterface->write(outputFIFO.virtualAddress_);
     }
 
     /* == Notify other runtimes that need to know == */
@@ -292,13 +304,8 @@ bool spider::JITMSRTRunner::readNotification(bool blocking) {
             JobMessage message;
             rt::platform()->communicator()->pop(message, ix(), notification.notificationIx_);
             jobQueue_.emplace_back(std::move(message));
+            jobCount_++;
         }
-            break;
-        case NotificationType::JOB_JOB_COUNT:
-            jobCount_ += notification.notificationIx_;
-            if (log::enabled<log::Type::LRT>()) {
-                log::info<log::Type::LRT>("Runner #%zu -> received number of jobs to do: %zu\n", ix(), jobCount_);
-            }
             break;
         case NotificationType::JOB_CLEAR_QUEUE:
             jobCount_ = SIZE_MAX;

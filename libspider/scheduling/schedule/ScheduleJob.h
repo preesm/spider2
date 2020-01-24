@@ -120,6 +120,10 @@ namespace spider {
              */
             JobMessage createJobMessage(const Schedule *schedule);
 
+            inline void addOutputFIFO(RTFifo fifo) {
+                outputFifoVector_.emplace_back(fifo);
+            }
+
             /* === Getter(s) === */
 
             /**
@@ -174,6 +178,10 @@ namespace spider {
                 return mappingInfo_;
             }
 
+            inline RTFifo outputFIFO(size_t ix) const {
+                return outputFifoVector_.at(ix);
+            }
+
             /* === Setter(s) === */
 
             /**
@@ -191,9 +199,7 @@ namespace spider {
              * @remark This method will overwrite current value.
              * @param vertex Pointer to the vertex to set.
              */
-            inline void setVertex(const pisdf::Vertex *vertex) {
-                vertex_ = vertex;
-            }
+            void setVertex(const pisdf::Vertex *vertex);
 
             /**
              * @brief Set the ix of the job.
@@ -251,6 +257,7 @@ namespace spider {
             }
 
         private:
+            stack_vector(outputFifoVector_, RTFifo, StackID::SCHEDULE);
             spider::array<size_t> scheduleConstraintsArray_;
             spider::array<bool> runnerToNotifyArray_;
             JobMappingInfo mappingInfo_;
