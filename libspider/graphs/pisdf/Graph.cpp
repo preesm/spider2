@@ -208,7 +208,6 @@ void spider::pisdf::Graph::removeVertex(Vertex *vertex) {
     for (auto &edge : outputEdgeVector_) {
         edge->setSource(nullptr, SIZE_MAX, Expression());
     }
-    removeAndDestroy(vertexVector_, vertex);
     if (vertex->subtype() == VertexType::CONFIG) {
         RemoveSpecialVertexVisitor visitor{ this };
         vertex->visit(&visitor);
@@ -216,6 +215,7 @@ void spider::pisdf::Graph::removeVertex(Vertex *vertex) {
         RemoveSpecialVertexVisitor visitor{ this };
         vertex->visit(&visitor);
     }
+    removeAndDestroy(vertexVector_, vertex);
 }
 
 void spider::pisdf::Graph::addEdge(Edge *edge) {
