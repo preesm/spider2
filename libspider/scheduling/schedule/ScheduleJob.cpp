@@ -47,6 +47,7 @@
 #include <graphs/pisdf/SpecialVertex.h>
 #include <graphs/pisdf/Graph.h>
 #include <scheduling/schedule/Schedule.h>
+#include <scheduling/allocator/FifoAllocator.h>
 
 /* === Static variable(s) === */
 
@@ -58,12 +59,8 @@ spider::sched::Job::Job() :
         scheduleConstraintsArray_{ archi::platform()->LRTCount(), SIZE_MAX, StackID::SCHEDULE },
         runnerToNotifyArray_{ archi::platform()->LRTCount(), true, StackID::SCHEDULE } { }
 
-spider::sched::Job::Job(pisdf::Vertex *vertex,
-                        size_t PEIx,
-                        size_t LRTIx) : Job() {
+spider::sched::Job::Job(pisdf::Vertex *vertex) : Job() {
     vertex_ = vertex;
-    mappingInfo_.PEIx = PEIx;
-    mappingInfo_.LRTIx = LRTIx;
 }
 
 spider::JobMessage spider::sched::Job::createJobMessage(const Schedule *schedule) {
@@ -75,6 +72,7 @@ spider::JobMessage spider::sched::Job::createJobMessage(const Schedule *schedule
     message.LRTs2Notify_ = runnerToNotifyArray_;
 
     /* == Set essential properties == */
+    message.ix_ = ix_;
     message.kernelIx_ = vertex_->runtimeInformation()->kernelIx();
     message.outputParamCount_ = vertex_->reference()->outputParamCount();
     message.vertexIx_ = vertex_->ix();
@@ -99,22 +97,24 @@ spider::JobMessage spider::sched::Job::createJobMessage(const Schedule *schedule
         const auto &source = edge->source();
         auto &fifo = message.inputFifoArray_[i];
         auto &srcJob = schedule->job(source->scheduleJobIx());
+        fifo.size_ = static_cast<size_t>(edge->sourceRateValue());
         fifo.virtualAddress_ = edge->memoryAddress();
         fifo.senderReceiverIx_ = srcJob.mappingInfo().LRTIx;
-        fifo.size_ = static_cast<size_t>(edge->sourceRateValue());
-        // TODO: see for inter-cluster communication how to get proper interface
     }
+
     size_t outputIx = 0;
     for (const auto &edge : vertex_->outputEdgeVector()) {
-//        message.outputFifoArray_[outputIx++] = fifoAllocator_->allocate(
-//                static_cast<size_t>(edge->sourceRateValue()), SIZE_MAX);
+        auto &fifo = message.outputFifoArray_[outputIx++];
+        fifo.size_ = static_cast<size_t>(edge->sourceRateValue());
+        fifo.virtualAddress_  = edge->memoryAddress();
+        fifo.senderReceiverIx_ = mappingInfo_.LRTIx;
     }
 
     /* == Set the input parameters == */
     switch (vertex_->reference()->subtype()) {
         case pisdf::VertexType::CONFIG:
         case pisdf::VertexType::NORMAL: {
-            message.inputParams_ = spider::array<int64_t>(vertex_->reference()->inputParamCount(), StackID::RUNTIME);
+            message.inputParams_ = spider::array<int64_t>(vertex_->reference()->refinementParamVector().size(), StackID::RUNTIME);
             auto paramIterator = message.inputParams_.begin();
             for (auto &param : vertex_->refinementParamVector()) {
                 (*(paramIterator++)) = param->value();

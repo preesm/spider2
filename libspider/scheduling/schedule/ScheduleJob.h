@@ -46,6 +46,7 @@
 #include <algorithm>
 #include <containers/containers.h>
 #include <runtime/interface/Message.h>
+#include <scheduling/allocator/FifoAllocator.h>
 
 /* === Forward declarations === */
 
@@ -65,9 +66,9 @@ namespace spider {
          * @brief State a scheduled job can take.
          */
         enum class JobState {
-            NON_EXEC,  /*!< Job is currently non-executable */
+            PENDING,   /*!< Job is waiting to be scheduled */
+            READY,     /*!< Job is ready to be run */
             RUNNING,   /*!< Job is currently running */
-            PENDING,   /*!< Job is waiting to be run */
         };
 
         /**
@@ -87,7 +88,7 @@ namespace spider {
 
             Job();
 
-            Job(pisdf::Vertex *vertex, size_t PEIx, size_t LRTIx);
+            explicit Job(pisdf::Vertex *vertex);
 
             Job(const Job &) = default;
 
@@ -201,7 +202,6 @@ namespace spider {
              */
             inline void setIx(size_t ix) {
                 ix_ = ix;
-                message_.ix_ = ix;
             }
 
             /**
@@ -256,8 +256,7 @@ namespace spider {
             JobMappingInfo mappingInfo_;
             const pisdf::Vertex *vertex_ = nullptr;
             size_t ix_ = SIZE_MAX;
-            JobState state_ = JobState::NON_EXEC;
-            JobMessage message_;
+            JobState state_ = JobState::PENDING;
         };
     }
 }
