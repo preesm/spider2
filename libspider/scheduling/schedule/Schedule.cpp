@@ -71,12 +71,13 @@ void spider::sched::Schedule::print() const {
     if (log::enabled<log::Type::SCHEDULE>()) {
         for (const auto &job : jobs()) {
             log::print<log::Type::SCHEDULE>(log::magenta, "INFO: ", "Schedule: \n");
-            log::print<log::Type::SCHEDULE>(log::magenta, "INFO: ", "   >> job: %zu\n", job.ix());
+            log::print<log::Type::SCHEDULE>(log::magenta, "INFO: ", "   >> job: %zu (runner: %zu) [%s]\n", job.ix(),
+                    job.mappingInfo().LRTIx, job.vertex()->reference()->name().c_str());
             size_t lrtIx = 0;
             for (const auto &index : job.scheduleConstraintsArray()) {
                 if (index != SIZE_MAX) {
-                    log::print<log::Type::SCHEDULE>(log::magenta, "INFO: ", "           ----> %zu (%zu)\n",
-                                                    jobVector_[index].ix(), lrtIx);
+                    log::print<log::Type::SCHEDULE>(log::magenta, "INFO: ", "           ----> job: %zu (runner: %zu) [%s]\n",
+                                                    jobVector_[index].ix(), lrtIx, jobVector_[index].vertex()->reference()->name().c_str());
                 }
                 lrtIx++;
             }
@@ -121,6 +122,7 @@ void spider::sched::Schedule::updateJobAndSetReady(size_t jobIx, size_t slave, u
 
     /* == Update job state == */
     job.setState(JobState::READY);
+    readyJobCount_++;
 }
 
 void spider::sched::Schedule::runReadyJobs() {
