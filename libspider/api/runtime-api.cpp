@@ -56,6 +56,8 @@
 #include <runtime/platform/ThreadRTPlatform.h>
 #include <graphs/pisdf/specials/ForkVertex.h>
 #include <graphs/pisdf/specials/JoinVertex.h>
+#include <graphs/pisdf/specials/DuplicateVertex.h>
+#include <graphs/pisdf/specials/RepeatVertex.h>
 
 /* === Static function(s) === */
 
@@ -83,17 +85,11 @@ static void createSpecialRTKernels() {
     rtPlatform->addKernel(tailKernel);
 
     /* == Repeat Kernel == */
-    auto *repeatKernel = spider::make<spider::RTKernel, StackID::RUNTIME>(
-            [](const int64_t *, int64_t *, void *[], void *[]) -> void {
-                spider::printer::printf("Repeat\n");
-            });
+    auto *repeatKernel = spider::make<spider::RTKernel, StackID::RUNTIME>(spider::pisdf::repeat);
     rtPlatform->addKernel(repeatKernel);
 
     /* == Duplicate Kernel == */
-    auto *duplicateKernel = spider::make<spider::RTKernel, StackID::RUNTIME>(
-            [](const int64_t *, int64_t *, void *[], void *[]) -> void {
-                spider::printer::printf("Duplicate\n");
-            });
+    auto *duplicateKernel = spider::make<spider::RTKernel, StackID::RUNTIME>(spider::pisdf::duplicate);
     rtPlatform->addKernel(duplicateKernel);
 
     /* == Init Kernel == */

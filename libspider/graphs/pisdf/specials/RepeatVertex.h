@@ -47,7 +47,7 @@
 namespace spider {
     namespace pisdf {
 
-        inline void repeat(const int64_t *paramsIn, int64_t *[], void **in, void **out) {
+        inline void repeat(const int64_t *paramsIn, int64_t *, void *in[], void *out[]) {
             const auto &inputSize = static_cast<size_t>(paramsIn[0]);  /* = Rate of the input port = */
             const auto &outputSize = static_cast<size_t>(paramsIn[1]); /* = Rate of the output port = */
             if (inputSize == outputSize) {
