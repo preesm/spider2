@@ -63,9 +63,7 @@ namespace spider {
             ~CopyParamVisitor() override = default;
 
             inline void visit(pisdf::Param *param) override {
-                auto p = make_shared<pisdf::Param, StackID::PISDF>(param->name(), param->value());
-                p->setIx(param->ix());
-                copyParamVector_.emplace_back(std::move(p));
+                copyParamVector_.emplace_back(job_.reference_->params()[param->ix()]);
             }
 
             inline void visit(pisdf::DynamicParam *param) override {
@@ -76,11 +74,8 @@ namespace spider {
             }
 
             inline void visit(pisdf::InHeritedParam *param) override {
-                auto &parentJobParams = job_.params_;
-                const auto &parentParam = parentJobParams[param->parent()->ix()];
-                auto p = make_shared<pisdf::Param, StackID::PISDF>(param->name(), parentParam->value(parentJobParams));
-                p->setIx(param->ix());
-                copyParamVector_.emplace_back(std::move(p));
+                const auto &parentParam = job_.params_[param->parent()->ix()];
+                copyParamVector_.emplace_back(parentParam);
             }
 
         private:
