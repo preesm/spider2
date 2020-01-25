@@ -454,10 +454,10 @@ spider::pisdf::Edge *spider::api::createEdge(pisdf::Vertex *source,
         auto *edge = make<pisdf::Edge>(StackID::PISDF,
                                        source,
                                        srcPortIx,
-                                       Expression(std::move(srcRateExpression), source->inputParamVector()),
+                                       Expression(std::move(srcRateExpression), source->graph()->params()),
                                        sink,
                                        snkPortIx,
-                                       Expression(std::move(snkRateExpression), sink->inputParamVector()));
+                                       Expression(std::move(snkRateExpression), sink->graph()->params()));
 
         source->graph()->addEdge(edge);
         return edge;
