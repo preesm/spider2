@@ -63,7 +63,9 @@ namespace spider {
             ~CopyParamVisitor() override = default;
 
             inline void visit(pisdf::Param *param) override {
-                copyParamVector_.emplace_back(job_.reference_->params()[param->ix()]);
+                /* == Copy shared_ptr directly == */
+                const auto &paramGraph = param->graph();
+                copyParamVector_.emplace_back(paramGraph->params()[param->ix()]);
             }
 
             inline void visit(pisdf::DynamicParam *param) override {
