@@ -58,6 +58,15 @@ spider::MemoryInterface::MemoryInterface() {
 
 /* === Private method(s) implementation === */
 
+void spider::MemoryInterface::setMemoryUnit(spider::MemoryUnit *memoryUnit) {
+    if (memoryUnit_) {
+        throwSpiderException("MemoryInterface already has a memory unit.");
+    }
+    if (memoryUnit) {
+        memoryUnit_ = memoryUnit;
+    }
+}
+
 void *spider::MemoryInterface::read(uint64_t virtualAddress) {
     std::lock_guard<std::mutex> lockGuard{ lock_ };
     return retrievePhysicalAddress(virtualAddress);

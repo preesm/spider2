@@ -128,14 +128,7 @@ namespace spider {
          * @param memoryUnit Memory unit to set.
          * @throws spider::Exception if this interface already has a MemoryUnit.
          */
-        inline void setMemoryUnit(MemoryUnit *memoryUnit) {
-            if (memoryUnit_) {
-                throwSpiderException("MemoryInterface already has a memory unit.");
-            }
-            if (memoryUnit) {
-                memoryUnit_ = memoryUnit;
-            }
-        }
+        void setMemoryUnit(MemoryUnit *memoryUnit);
 
         /**
          * @brief Set the routine for writing memory.
