@@ -56,16 +56,16 @@
 void spider::sched::Schedule::clear() {
     jobVector_.clear();
     stats_.reset();
-    reset();
+    lastRunJob_ = 0;
+    readyJobCount_ = 0;
 }
 
 void spider::sched::Schedule::reset() {
     for (auto &job : jobVector_) {
-        job.setState(JobState::PENDING);
+        job.setState(JobState::READY);
     }
-    stats_.reset();
     lastRunJob_ = 0;
-    readyJobCount_ = 0;
+    readyJobCount_ = static_cast<long>(jobVector_.size());
 }
 
 void spider::sched::Schedule::print() const {
