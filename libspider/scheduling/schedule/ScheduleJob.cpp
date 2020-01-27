@@ -140,15 +140,21 @@ spider::JobMessage spider::sched::Job::createJobMessage(const Schedule *schedule
             break;
         case pisdf::VertexType::JOIN:
             message.inputParams_ = spider::array<int64_t>(vertex_->inputEdgeCount() + 2, StackID::RUNTIME);
-            message.inputParams_[0] = vertex_->outputEdge(0)->sourceRateExpression().value();
+            message.inputParams_[0] = vertex_->outputEdge(0)->sourceRateValue();
             message.inputParams_[1] = static_cast<int64_t>(vertex_->inputEdgeCount());
             for (size_t i = 0; i < vertex_->inputEdgeCount(); ++i) {
                 message.inputParams_[i + 2] = vertex_->inputEdge(i)->sinkRateValue();
             }
             break;
         case pisdf::VertexType::REPEAT:
+            message.inputParams_ = spider::array<int64_t>(2, StackID::RUNTIME);
+            message.inputParams_[0] = vertex_->inputEdge(0)->sinkRateValue();
+            message.inputParams_[1] = vertex_->outputEdge(0)->sourceRateValue();
             break;
         case pisdf::VertexType::DUPLICATE:
+            message.inputParams_ = spider::array<int64_t>(2, StackID::RUNTIME);
+            message.inputParams_[0] = static_cast<int64_t>(vertex_->outputEdgeCount());
+            message.inputParams_[1] = vertex_->inputEdge(0)->sinkRateValue();
             break;
         case pisdf::VertexType::TAIL:
             break;
