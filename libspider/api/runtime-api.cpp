@@ -54,56 +54,41 @@
 #include <runtime/runner/JITMSRTRunner.h>
 #include <runtime/interface/ThreadRTCommunicator.h>
 #include <runtime/platform/ThreadRTPlatform.h>
-#include <graphs/pisdf/specials/ForkVertex.h>
-#include <graphs/pisdf/specials/JoinVertex.h>
-#include <graphs/pisdf/specials/DuplicateVertex.h>
-#include <graphs/pisdf/specials/RepeatVertex.h>
+#include <runtime/special-kernels/specialKernels.h>
 
 /* === Static function(s) === */
 
 static void createSpecialRTKernels() {
     auto *&rtPlatform = spider::rt::platform();
-    auto *forkKernel = spider::make<spider::RTKernel, StackID::RUNTIME>(spider::pisdf::fork);
+    auto *forkKernel = spider::make<spider::RTKernel, StackID::RUNTIME>(spider::rt::fork);
     rtPlatform->addKernel(forkKernel);
 
     /* == Join Kernel == */
-    auto *joinKernel = spider::make<spider::RTKernel, StackID::RUNTIME>(spider::pisdf::join);
+    auto *joinKernel = spider::make<spider::RTKernel, StackID::RUNTIME>(spider::rt::join);
     rtPlatform->addKernel(joinKernel);
 
     /* == Head Kernel == */
-    auto *headKernel = spider::make<spider::RTKernel, StackID::RUNTIME>(
-            [](const int64_t *, int64_t *, void *[], void *[]) -> void {
-                spider::printer::printf("Head\n");
-            });
+    auto *headKernel = spider::make<spider::RTKernel, StackID::RUNTIME>(spider::rt::head);
     rtPlatform->addKernel(headKernel);
 
     /* == Tail Kernel == */
-    auto *tailKernel = spider::make<spider::RTKernel, StackID::RUNTIME>(
-            [](const int64_t *, int64_t *, void *[], void *[]) -> void {
-                spider::printer::printf("Tail\n");
-            });
+    auto *tailKernel = spider::make<spider::RTKernel, StackID::RUNTIME>(spider::rt::tail);
     rtPlatform->addKernel(tailKernel);
 
     /* == Repeat Kernel == */
-    auto *repeatKernel = spider::make<spider::RTKernel, StackID::RUNTIME>(spider::pisdf::repeat);
+    auto *repeatKernel = spider::make<spider::RTKernel, StackID::RUNTIME>(spider::rt::repeat);
     rtPlatform->addKernel(repeatKernel);
 
     /* == Duplicate Kernel == */
-    auto *duplicateKernel = spider::make<spider::RTKernel, StackID::RUNTIME>(spider::pisdf::duplicate);
+    auto *duplicateKernel = spider::make<spider::RTKernel, StackID::RUNTIME>(spider::rt::duplicate);
     rtPlatform->addKernel(duplicateKernel);
 
     /* == Init Kernel == */
-    auto *initKernel = spider::make<spider::RTKernel, StackID::RUNTIME>(
-            [](const int64_t *, int64_t *, void *[], void *[]) -> void {
-                spider::printer::printf("Init\n");
-            });
+    auto *initKernel = spider::make<spider::RTKernel, StackID::RUNTIME>(spider::rt::init);
     rtPlatform->addKernel(initKernel);
 
     /* == End Kernel == */
-    auto *endKernel = spider::make<spider::RTKernel, StackID::RUNTIME>(
-            [](const int64_t *, int64_t *, void *[], void *[]) -> void {
-                spider::printer::printf("End\n");
-            });
+    auto *endKernel = spider::make<spider::RTKernel, StackID::RUNTIME>(spider::rt::end);
     rtPlatform->addKernel(endKernel);
 }
 

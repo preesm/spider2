@@ -99,10 +99,12 @@ spider::JobMessage spider::sched::Job::createJobMessage(const Schedule *schedule
     }
 
     /* == Creates FIFOs == */
-    message.inputFifoArray_ = spider::array<RTFifo>(vertex_->inputEdgeCount(), StackID::RUNTIME);
-    message.outputFifoArray_ = spider::array<RTFifo>(vertex_->outputEdgeCount(), StackID::RUNTIME);
+    const auto &inputEdgeCount = vertex_->inputEdgeCount();
+    const auto &outputEdgeCount = vertex_->outputEdgeCount();
+    message.inputFifoArray_ = spider::array<RTFifo>(inputEdgeCount, StackID::RUNTIME);
+    message.outputFifoArray_ = spider::array<RTFifo>(outputEdgeCount, StackID::RUNTIME);
 //    log::print<log::Type::GENERAL>(log::white, "INFO: ", "Vertex: %s\n", vertex_->name().c_str());
-    for (size_t i = 0; i < vertex_->inputEdgeCount(); ++i) {
+    for (size_t i = 0; i < inputEdgeCount; ++i) {
         const auto &edge = vertex_->inputEdge(i);
         const auto &source = edge->source();
         auto &fifo = message.inputFifoArray_[i];
@@ -112,7 +114,7 @@ spider::JobMessage spider::sched::Job::createJobMessage(const Schedule *schedule
     }
 
 
-    for (size_t outputIx = 0; outputIx < vertex_->outputEdgeCount(); ++outputIx) {
+    for (size_t outputIx = 0; outputIx < outputEdgeCount; ++outputIx) {
         auto &fifo = message.outputFifoArray_[outputIx];
         fifo = outputFIFO(outputIx);
 //        log::print<log::Type::GENERAL>(log::red, "INFO: ", "   -> edge [%zu]: %zu\n", outputIx, fifo.virtualAddress_);
@@ -131,18 +133,18 @@ spider::JobMessage spider::sched::Job::createJobMessage(const Schedule *schedule
         }
             break;
         case pisdf::VertexType::FORK:
-            message.inputParams_ = spider::array<int64_t>(vertex_->outputEdgeCount() + 2, StackID::RUNTIME);
+            message.inputParams_ = spider::array<int64_t>(outputEdgeCount + 2, StackID::RUNTIME);
             message.inputParams_[0] = vertex_->inputEdge(0)->sinkRateValue();
-            message.inputParams_[1] = static_cast<int64_t>(vertex_->outputEdgeCount());
-            for (size_t i = 0; i < vertex_->outputEdgeCount(); ++i) {
+            message.inputParams_[1] = static_cast<int64_t>(outputEdgeCount);
+            for (size_t i = 0; i < outputEdgeCount; ++i) {
                 message.inputParams_[i + 2] = vertex_->outputEdge(i)->sourceRateValue();
             }
             break;
         case pisdf::VertexType::JOIN:
-            message.inputParams_ = spider::array<int64_t>(vertex_->inputEdgeCount() + 2, StackID::RUNTIME);
+            message.inputParams_ = spider::array<int64_t>(inputEdgeCount + 2, StackID::RUNTIME);
             message.inputParams_[0] = vertex_->outputEdge(0)->sourceRateValue();
-            message.inputParams_[1] = static_cast<int64_t>(vertex_->inputEdgeCount());
-            for (size_t i = 0; i < vertex_->inputEdgeCount(); ++i) {
+            message.inputParams_[1] = static_cast<int64_t>(inputEdgeCount);
+            for (size_t i = 0; i < inputEdgeCount; ++i) {
                 message.inputParams_[i + 2] = vertex_->inputEdge(i)->sinkRateValue();
             }
             break;
@@ -153,20 +155,61 @@ spider::JobMessage spider::sched::Job::createJobMessage(const Schedule *schedule
             break;
         case pisdf::VertexType::DUPLICATE:
             message.inputParams_ = spider::array<int64_t>(2, StackID::RUNTIME);
-            message.inputParams_[0] = static_cast<int64_t>(vertex_->outputEdgeCount());
+            message.inputParams_[0] = static_cast<int64_t>(outputEdgeCount);
             message.inputParams_[1] = vertex_->inputEdge(0)->sinkRateValue();
             break;
-        case pisdf::VertexType::TAIL:
+        case pisdf::VertexType::TAIL: {
+            size_t inputCount = 1;
+            auto rate = vertex_->outputEdge(0)->sourceRateValue();
+            for (auto it = vertex_->inputEdgeVector().rbegin(); it != vertex_->inputEdgeVector().rend(); ++it) {
+                const auto &inRate = (*it)->sinkRateValue();
+                if (inRate >= rate) {
+                    break;
+                }
+                rate -= inRate;
+                inputCount++;
+            }
+            message.inputParams_ = spider::array<int64_t>(4 + inputCount, StackID::RUNTIME);
+            /* = Number of input = */
+            message.inputParams_[0] = static_cast<int64_t>(inputEdgeCount);
+            /* = First input to be considered = */
+            message.inputParams_[1] = static_cast<int64_t>(inputEdgeCount - inputCount);
+            /* = Offset in the first buffer if any = */
+            message.inputParams_[2] = static_cast<int64_t>(
+                    vertex_->inputEdge(inputEdgeCount - inputCount)->sinkRateValue() - rate);
+            /* = Effective size to copy of the first input = */
+            message.inputParams_[3] = static_cast<int64_t>(rate);
+            size_t i = 4;
+            for (auto it = vertex_->inputEdgeVector().rbegin();
+                 it != vertex_->inputEdgeVector().rbegin() + static_cast<long>(inputCount) - 1; ++it) {
+                message.inputParams_[i++] = (*it)->sinkRateValue();
+            }
+        }
             break;
-        case pisdf::VertexType::HEAD:
+        case pisdf::VertexType::HEAD: {
+            size_t inputCount = 1;
+            auto rate = vertex_->outputEdge(0)->sourceRateValue();
+            for (auto &edge : vertex_->inputEdgeVector()) {
+                const auto &inRate = edge->sinkRateValue();
+                if (inRate >= rate) {
+                    break;
+                }
+                rate -= inRate;
+                inputCount++;
+            }
+            message.inputParams_ = spider::array<int64_t>(1 + inputCount, StackID::RUNTIME);
+            message.inputParams_[0] = static_cast<int64_t>(inputCount);
+            rate = vertex_->outputEdge(0)->sourceRateValue();
+            for (size_t i = 0; i < inputCount; ++i) {
+                const auto &inRate = vertex_->inputEdge(i)->sinkRateValue();
+                message.inputParams_[i + 1] = std::min(inRate, rate);
+                rate -= inRate;
+            }
+        }
             break;
         case pisdf::VertexType::INIT:
             break;
         case pisdf::VertexType::END:
-            break;
-        case pisdf::VertexType::INPUT:
-            break;
-        case pisdf::VertexType::OUTPUT:
             break;
         default:
             throwSpiderException("unhandled type of vertex.");
