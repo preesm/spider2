@@ -72,11 +72,11 @@ namespace spider {
 
         struct ListVertex {
             pisdf::Vertex *vertex_ = nullptr;
-            int64_t level_ = -1;
+            int_fast32_t level_ = -1;
             size_t updateIx_ = 0;
 
-            explicit ListVertex(pisdf::Vertex *vertex, int32_t level = -1) : vertex_{ vertex },
-                                                                             level_{ level } { };
+            explicit ListVertex(pisdf::Vertex *vertex, int_fast32_t level = -1) : vertex_{ vertex },
+                                                                                  level_{ level } { };
         };
 
         explicit ListScheduler(pisdf::Graph *graph);

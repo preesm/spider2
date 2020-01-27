@@ -71,8 +71,11 @@ namespace spider {
          * @param delay        Value of the delay.
          * @return value of the lower firing dependency on the producer.
          */
-        inline int64_t computeConsLowerDep(int64_t consumption, int64_t production, uint32_t firing, int64_t delay) {
-            return std::max(static_cast<int64_t>(-1), math::floorDiv(firing * consumption - delay, production));
+        inline int_fast64_t computeConsLowerDep(int_fast64_t consumption,
+                                                int_fast64_t production,
+                                                int_fast32_t firing,
+                                                int_fast64_t delay) {
+            return std::max(static_cast<int_fast64_t>(-1), math::floorDiv(firing * consumption - delay, production));
         }
 
         /**
@@ -93,46 +96,49 @@ namespace spider {
          * @param delay        Value of the delay.
          * @return value of the upper firing dependency on the producer.
          */
-        inline int64_t computeConsUpperDep(int64_t consumption, int64_t production, uint32_t firing, int64_t delay) {
-            return std::max(static_cast<int64_t>(-1), math::floorDiv((firing + 1) * consumption - delay - 1,
-                                                                     production));
+        inline int_fast64_t computeConsUpperDep(int_fast64_t consumption,
+                                                int_fast64_t production,
+                                                int_fast32_t firing,
+                                                int_fast64_t delay) {
+            return std::max(static_cast<int_fast64_t>(-1), math::floorDiv((firing + 1) * consumption - delay - 1,
+                                                                          production));
         }
 
-        inline int64_t computeProdLowerDep(int64_t sinkRate,
-                                           int64_t sourceRate,
-                                           int32_t instance,
-                                           int64_t delay,
-                                           int64_t sinkRepetitionValue) {
-            int64_t produced = instance * sourceRate + delay;
-            int64_t lowerDep = math::floorDiv(produced, sinkRate);
+        inline int_fast64_t computeProdLowerDep(int_fast64_t sinkRate,
+                                                int_fast64_t sourceRate,
+                                                int_fast32_t instance,
+                                                int_fast64_t delay,
+                                                int_fast64_t sinkRepetitionValue) {
+            int_fast64_t produced = instance * sourceRate + delay;
+            int_fast64_t lowerDep = math::floorDiv(produced, sinkRate);
             return std::min(sinkRepetitionValue, lowerDep);
         }
 
-        inline int64_t computeProdUpperDep(int64_t sinkRate,
-                                           int64_t sourceRate,
-                                           int32_t instance,
-                                           int64_t delay,
-                                           int64_t sinkRepetitionValue) {
-            int64_t produced = (instance + 1) * sourceRate + delay - 1;
-            int64_t upperDep = math::floorDiv(produced, sinkRate);
+        inline int_fast64_t computeProdUpperDep(int_fast64_t sinkRate,
+                                                int_fast64_t sourceRate,
+                                                int_fast32_t instance,
+                                                int_fast64_t delay,
+                                                int_fast64_t sinkRepetitionValue) {
+            int_fast64_t produced = (instance + 1) * sourceRate + delay - 1;
+            int_fast64_t upperDep = math::floorDiv(produced, sinkRate);
             return std::min(sinkRepetitionValue, upperDep);
         }
 
-        inline int64_t computeProdLowerDep(int64_t sinkRate,
-                                           int64_t sourceRate,
-                                           uint32_t instance,
-                                           int64_t delay) {
-            int64_t produced = instance * sourceRate + delay;
-            int64_t lowerDep = produced / sinkRate;
+        inline int_fast64_t computeProdLowerDep(int_fast64_t sinkRate,
+                                                int_fast64_t sourceRate,
+                                                int_fast32_t instance,
+                                                int_fast64_t delay) {
+            int_fast64_t produced = instance * sourceRate + delay;
+            int_fast64_t lowerDep = produced / sinkRate;
             return lowerDep;
         }
 
-        inline int64_t computeProdUpperDep(int64_t sinkRate,
-                                           int64_t sourceRate,
-                                           uint32_t instance,
-                                           int64_t delay) {
-            int64_t produced = (instance + 1) * sourceRate + delay - 1;
-            int64_t upperDep = produced / sinkRate;
+        inline int_fast64_t computeProdUpperDep(int_fast64_t sinkRate,
+                                                int_fast64_t sourceRate,
+                                                int_fast32_t instance,
+                                                int_fast64_t delay) {
+            int_fast64_t produced = (instance + 1) * sourceRate + delay - 1;
+            int_fast64_t upperDep = produced / sinkRate;
             return upperDep;
         }
     }

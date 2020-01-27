@@ -106,7 +106,8 @@ void spider::pisdf::PiSDFDOTExporterVisitor::visit(Graph *graph) {
 
 /* === Private method(s) === */
 
-std::pair<int32_t, int32_t> spider::pisdf::PiSDFDOTExporterVisitor::computeConstantWidth(Vertex *vertex) const {
+std::pair<int_fast32_t, int_fast32_t>
+spider::pisdf::PiSDFDOTExporterVisitor::computeConstantWidth(Vertex *vertex) const {
     /* == Compute widths (based on empirical measurements)       == */
     /* ==                           _                        _   == */
     /* ==                          |               1          |  == */
@@ -115,10 +116,8 @@ std::pair<int32_t, int32_t> spider::pisdf::PiSDFDOTExporterVisitor::computeConst
     /* ==                                                        == */
     /* == with U(x) the Heaviside function                       == */
     auto n = static_cast<double>(std::min(vertex->name().size(), MAX_LENGTH));
-    const auto &centerWidth = static_cast<int32_t>(15. * (n - 8.) * (n > 8) +
-                                                   std::ceil(20. *
-                                                             (1 +
-                                                              1. / (1 + std::exp(-10. * (n - 7.))))));
+    const auto &centerWidth = static_cast<int_fast32_t>(15. * (n - 8.) * (n > 8) +
+                                                        std::ceil(20. * (1 + 1. / (1 + std::exp(-10. * (n - 7.))))));
 
     /* == Get the maximum number of digits == */
     double longestRateLen = 0;
@@ -136,7 +135,7 @@ std::pair<int32_t, int32_t> spider::pisdf::PiSDFDOTExporterVisitor::computeConst
         const auto &rate = e->sourceRateValue();
         longestRateLen = std::max(longestRateLen, std::log10(rate));
     }
-    return std::make_pair(centerWidth, static_cast<int32_t>(longestRateLen));
+    return std::make_pair(centerWidth, static_cast<int_fast32_t>(longestRateLen));
 }
 
 
@@ -162,7 +161,7 @@ void spider::pisdf::PiSDFDOTExporterVisitor::vertexNamePrinter(Vertex *vertex, s
 
 void spider::pisdf::PiSDFDOTExporterVisitor::vertexPrinter(Vertex *vertex,
                                                            const std::string &color,
-                                                           int32_t border,
+                                                           int_fast32_t border,
                                                            const std::string &style) const {
     /* == Header == */
     vertexHeaderPrinter(vertex->vertexPath(), color, border, style);
@@ -176,7 +175,7 @@ void spider::pisdf::PiSDFDOTExporterVisitor::vertexPrinter(Vertex *vertex,
     /* == Get widths == */
     const auto &widthPair = computeConstantWidth(vertex);
     const auto &centerWidth = widthPair.first;
-    const auto &rateWidth = static_cast<uint32_t>(32 + std::max(widthPair.second + 1 - 3, 0) * 8);
+    const auto &rateWidth = static_cast<int_fast32_t>(32 + std::max(widthPair.second + 1 - 3, 0l) * 8);
 
     /* == Export data ports == */
     size_t nOutput = 0;
@@ -244,7 +243,7 @@ spider::pisdf::PiSDFDOTExporterVisitor::interfaceBodyPrinter(Interface *interfac
     /* == Get widths == */
     const auto &widthPair = computeConstantWidth(interface);
     const auto &balanceWidth = widthPair.first;
-    const auto &rateWidth = 24 + std::max(widthPair.second + 1 - 1, 0) * 6;
+    const auto &rateWidth = 24 + std::max(widthPair.second + 1 - 1, 0l) * 6;
     auto *inputEdge = interface->inputEdge();
     auto *outputEdge = interface->outputEdge();
     auto inIx = inputEdge->sinkPortIx();

@@ -94,7 +94,7 @@ void spider::ListScheduler::addVerticesAndSortList() {
     /* == Sort the vector == */
     std::sort(std::begin(sortedVertexVector_) + static_cast<long>(lastSchedulableVertex_),
               std::end(sortedVertexVector_),
-              [](const ListVertex &A, const ListVertex &B) -> int32_t {
+              [](const ListVertex &A, const ListVertex &B) -> bool {
                   bool isSame = B.vertex_->reference() == A.vertex_->reference();
                   return isSame ? B.vertex_->executable() && (B.vertex_->instanceValue() > A.vertex_->instanceValue()) :
                          (B.level_ < A.level_) || (A.vertex_->subtype() == pisdf::VertexType::CONFIG);
