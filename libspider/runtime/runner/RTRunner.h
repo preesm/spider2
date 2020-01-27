@@ -103,9 +103,11 @@ namespace spider {
         spider::array<size_t> localJobStampsArray_;
         PE *attachedPE_ = nullptr;
         size_t runnerIx_ = SIZE_MAX;
-        int32_t affinity_ = -1;
         size_t jobQueueCurrentPos_ = 0;
+        int32_t affinity_ = -1;
         bool stop_ = false;
+        bool pause_ = false;
+        bool trace_ = false;
 
         inline void clearLocalJobStamps() {
             jobQueueCurrentPos_ = 0;
