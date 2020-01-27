@@ -82,7 +82,7 @@ namespace spider {
          * @brief Returns the @refitem Schedule owned by the Scheduler.
          * @return const reference to @refitem Schedule.
          */
-        inline const sched::Schedule &schedule() const {
+        inline sched::Schedule &schedule() {
             return schedule_;
         }
 
