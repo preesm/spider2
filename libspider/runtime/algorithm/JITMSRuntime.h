@@ -77,6 +77,7 @@ namespace spider {
     private:
         spider::unique_ptr<pisdf::Graph> srdag_;
         spider::unique_ptr<Scheduler> scheduler_;
+        bool isFullyStatic_ = true;
 
         /* === Private method(s) === */
 

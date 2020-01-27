@@ -57,16 +57,28 @@
 
 /* === Static function(s) === */
 
+static bool isGraphFullyStatic(const spider::pisdf::Graph *graph) {
+    bool isFullyStatic = true;
+    for (const auto &subgraph : graph->subgraphs()) {
+        isFullyStatic &= isGraphFullyStatic(subgraph);
+        if (!isFullyStatic) {
+            break;
+        }
+    }
+    return isFullyStatic;
+}
+
 /* === Method(s) implementation === */
 
 spider::JITMSRuntime::JITMSRuntime(pisdf::Graph *graph, SchedulingAlgorithm schedulingAlgorithm) :
         Runtime(graph),
         srdag_{ make_unique<pisdf::Graph, StackID::RUNTIME>("srdag-" + graph->name()) },
         scheduler_{ makeScheduler(schedulingAlgorithm, srdag_.get()) } {
+    isFullyStatic_ = isGraphFullyStatic(graph);
 }
 
 bool spider::JITMSRuntime::execute() {
-    if (!graph_->dynamic()) {
+    if (isFullyStatic_) {
         return staticExecute();
     }
     return dynamicExecute();
@@ -75,6 +87,15 @@ bool spider::JITMSRuntime::execute() {
 /* === Private method(s) === */
 
 bool spider::JITMSRuntime::staticExecute() {
+    static bool first = true;
+    if (!first) {
+        /* == Just reset the schedule and re-run it == */
+        scheduler_->schedule().sendReadyJobs();
+        rt::platform()->runner(0)->run(false);
+        scheduler_->schedule().reset();
+        return true;
+    }
+    first = false;
     /* == Apply first transformation of root graph == */
     auto &&rootJob = srdag::TransfoJob(graph_, SIZE_MAX, UINT32_MAX, true);
     rootJob.params_ = graph_->params();
@@ -115,19 +136,13 @@ bool spider::JITMSRuntime::staticExecute() {
     /* == If there are jobs left, run == */
     rt::platform()->runner(0)->run(false);
 
-    /* == Clear the srdag == */
-    srdag_->clear();
-
-    /* == Clear the scheduler == */
-    scheduler_->clear();
+    /* == Reset the scheduler == */
+    scheduler_->schedule().reset();
 
     return true;
 }
 
 bool spider::JITMSRuntime::dynamicExecute() {
-//    auto start = spider::time::now();
-//    double appTime = 0;
-
     /* == Apply first transformation of root graph == */
     auto &&rootJob = srdag::TransfoJob(graph_, SIZE_MAX, UINT32_MAX, true);
     rootJob.params_ = graph_->params();
@@ -156,9 +171,7 @@ bool spider::JITMSRuntime::dynamicExecute() {
         //monitor_->startSampling();
         scheduler_->update();
         scheduler_->mappingScheduling();
-//        auto startApp = spider::time::now();
         rt::platform()->runner(0)->run(false);
-//        appTime = static_cast<double>(spider::time::duration::microseconds(startApp, spider::time::now())) / 1000.;
         //monitor_->endSampling();
 
         /* == Wait for all parameters to be resolved == */
@@ -166,44 +179,44 @@ bool spider::JITMSRuntime::dynamicExecute() {
             if (log::enabled<log::Type::TRANSFO>()) {
                 log::verbose<log::Type::TRANSFO>("Running graph with config actors..\n");
             }
-//            size_t value = 1;
-//            for (const auto *cfg : srdag_->configVertices()) {
-//                for (const auto &param : cfg->outputParamVector()) {
-//                    param->setValue(static_cast<int64_t>(value));
-//                    if (api::verbose() && log::enabled()) {
-//                        log::verbose("Received value #%" PRId64" for parameter [%s].\n",
-//                                     param->value(), param->name().c_str());
-//                    }
-//                    value *= 2;
-//                }
-//            }
-            const auto &grtIx = archi::platform()->spiderGRTPE()->virtualIx();
-            size_t readParam = 0;
-            while (readParam != dynamicJobStack.size()) {
-                Notification notification;
-                rt::platform()->communicator()->popParamNotification(notification);
-                if (notification.type_ == NotificationType::JOB_SENT_PARAM) {
-                    /* == Get the message == */
-                    ParameterMessage message;
-                    rt::platform()->communicator()->pop(message, grtIx, notification.notificationIx_);
-
-                    /* == Get the config vertex == */
-                    const auto *cfg = srdag_->vertex(message.vertexIx_);
-                    auto paramIterator = message.params_.begin();
-                    for (const auto &param : cfg->outputParamVector()) {
-                        param->setValue((*(paramIterator++)));
+            size_t value = 1;
+            for (const auto *cfg : srdag_->configVertices()) {
+                for (const auto &param : cfg->outputParamVector()) {
+                    param->setValue(static_cast<int64_t>(value));
+                    if (api::verbose() && log::enabled()) {
+                        log::verbose("Received value #%" PRId64" for parameter [%s].\n",
+                                     param->value(), param->name().c_str());
                     }
-                    if (log::enabled<log::TRANSFO>()) {
-                        for (const auto &param : cfg->outputParamVector()) {
-                            log::info<log::TRANSFO>("Received value #%" PRId64" for parameter [%s].\n",
-                                                    param->value(), param->name().c_str());
-                        }
-                    }
-                    readParam++;
-                } else {
-                    throwSpiderException("expected parameter notification");
+                    value *= 2;
                 }
             }
+//            const auto &grtIx = archi::platform()->spiderGRTPE()->virtualIx();
+//            size_t readParam = 0;
+//            while (readParam != dynamicJobStack.size()) {
+//                Notification notification;
+//                rt::platform()->communicator()->popParamNotification(notification);
+//                if (notification.type_ == NotificationType::JOB_SENT_PARAM) {
+//                    /* == Get the message == */
+//                    ParameterMessage message;
+//                    rt::platform()->communicator()->pop(message, grtIx, notification.notificationIx_);
+//
+//                    /* == Get the config vertex == */
+//                    const auto *cfg = srdag_->vertex(message.vertexIx_);
+//                    auto paramIterator = message.params_.begin();
+//                    for (const auto &param : cfg->outputParamVector()) {
+//                        param->setValue((*(paramIterator++)));
+//                    }
+//                    if (log::enabled<log::TRANSFO>()) {
+//                        for (const auto &param : cfg->outputParamVector()) {
+//                            log::info<log::TRANSFO>("Received value #%" PRId64" for parameter [%s].\n",
+//                                                    param->value(), param->name().c_str());
+//                        }
+//                    }
+//                    readParam++;
+//                } else {
+//                    throwSpiderException("expected parameter notification");
+//                }
+//            }
 
             /* == Transform dynamic jobs == */
             //monitor_->startSampling();
@@ -231,14 +244,6 @@ bool spider::JITMSRuntime::dynamicExecute() {
 
     /* == Clear the scheduler == */
     scheduler_->clear();
-
-    // TODO: export srdag if export is enabled
-
-//    auto end = spider::time::now();
-//    auto total = static_cast<double>(spider::time::duration::microseconds(start, end)) / 1000.;
-//    spider::log::info("Total execution time:       %lf ms\n", total);
-//    spider::log::info("Application execution time: %lf ms\n", appTime);
-//    spider::log::info("Spider overhead time:       %lf ms\n\n", total - appTime);
     return true;
 }
 
