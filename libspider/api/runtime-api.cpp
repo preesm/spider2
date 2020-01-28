@@ -138,10 +138,13 @@ spider::RTKernel *spider::api::createRuntimeKernel(spider::pisdf::Vertex *vertex
     if (runtimeInfo->kernelIx() != SIZE_MAX) {
         throwSpiderException("vertex %s already has a runtime kernel.", vertex->name().c_str());
     }
-    auto *runtimeKernel = make<RTKernel, StackID::RUNTIME>(kernel);
-    const auto &index = rt::platform()->addKernel(runtimeKernel);
-    runtimeInfo->setKernelIx(index);
-    return runtimeKernel;
+    if (rt::platform()) {
+        auto *runtimeKernel = make<RTKernel, StackID::RUNTIME>(kernel);
+        const auto &index = rt::platform()->addKernel(runtimeKernel);
+        runtimeInfo->setKernelIx(index);
+        return runtimeKernel;
+    }
+    return nullptr;
 }
 
 /* === Mapping and Timing related API === */
