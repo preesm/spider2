@@ -43,9 +43,17 @@
 #include <gtest/gtest.h>
 #include <memory/memory.h>
 #include <containers/array.h>
-#include <containers/containers.h>
-#include <api/spider.h>
 #include <containers/vector.h>
+#include <containers/stack.h>
+#include <containers/deque.h>
+#include <containers/queue.h>
+#include <containers/map.h>
+#include <containers/set.h>
+#include <containers/unordered_map.h>
+#include <containers/unordered_set.h>
+#include <containers/forward_list.h>
+#include <containers/list.h>
+#include <api/spider.h>
 
 class containersTest : public ::testing::Test {
 protected:
@@ -132,78 +140,78 @@ TEST_F(containersTest, stdContainersCtorTest) {
     /* === Testing wrapper around std containers === */
 
     /* == spider::vector == */
-    ASSERT_NO_THROW(spider::factory::vector<double>()) << "spider::containers::vector() failed.";
-    ASSERT_NO_THROW(spider::factory::vector<double>(10)) << "spider::containers::vector(size_t) failed.";
+    ASSERT_NO_THROW(spider::factory::vector<double>()) << "spider::factory::vector() failed.";
+    ASSERT_NO_THROW(spider::factory::vector<double>(10)) << "spider::factory::vector(size_t) failed.";
     ASSERT_NO_THROW(spider::factory::vector<double>(10, 0.))
-                                << "spider::containers::vector(size_t, const T &) failed.";
+                                << "spider::factory::vector(size_t, const T &) failed.";
     auto tmp_vector = spider::factory::vector<double>();
     ASSERT_NO_THROW(spider::factory::vector<double>(tmp_vector))
-                                << "spider::containers::vector(const spider::vector &) failed.";
+                                << "spider::factory::vector(const spider::vector &) failed.";
     ASSERT_NO_THROW(spider::factory::vector<double>(spider::vector<double>()))
-                                << "spider::containers::vector(spider::vector &&) failed.";
+                                << "spider::factory::vector(spider::vector &&) failed.";
     ASSERT_NO_THROW(spider::factory::vector<double>({ 10, 0., 3.1415 }))
-                                << "spider::containers::vector(std::initializer_list) failed.";
+                                << "spider::factory::vector(std::initializer_list) failed.";
 
     /* == spider::deque == */
-    ASSERT_NO_THROW(spider::containers::deque<double>()) << "spider::containers::deque() failed.";
-    ASSERT_NO_THROW(spider::containers::deque<double>(10)) << "spider::containers::deque(size_t) failed.";
-    ASSERT_NO_THROW(spider::containers::deque<double>(10, 0.))
-                                << "spider::containers::deque(size_t, const T &) failed.";
-    auto tmp_deque = spider::containers::deque<double>();
-    ASSERT_NO_THROW(spider::containers::deque<double>(tmp_deque))
-                                << "spider::containers::deque(const spider::deque &) failed.";
-    ASSERT_NO_THROW(spider::containers::deque<double>(spider::deque<double>()))
-                                << "spider::containers::deque(spider::deque &&) failed.";
-    ASSERT_NO_THROW(spider::containers::deque<double>({ 10, 0., 3.1415 }))
-                                << "spider::containers::deque(std::initializer_list) failed.";
+    ASSERT_NO_THROW(spider::factory::deque<double>()) << "spider::factory::deque() failed.";
+    ASSERT_NO_THROW(spider::factory::deque<double>(10)) << "spider::factory::deque(size_t) failed.";
+    ASSERT_NO_THROW(spider::factory::deque<double>(10, 0.))
+                                << "spider::factory::deque(size_t, const T &) failed.";
+    auto tmp_deque = spider::factory::deque<double>();
+    ASSERT_NO_THROW(spider::factory::deque<double>(tmp_deque))
+                                << "spider::factory::deque(const spider::deque &) failed.";
+    ASSERT_NO_THROW(spider::factory::deque<double>(spider::deque<double>()))
+                                << "spider::factory::deque(spider::deque &&) failed.";
+    ASSERT_NO_THROW(spider::factory::deque<double>({ 10, 0., 3.1415 }))
+                                << "spider::factory::deque(std::initializer_list) failed.";
 
     /* == spider::forward_list == */
-    ASSERT_NO_THROW(spider::containers::forward_list<double>()) << "spider::containers::forward_list() failed.";
-    ASSERT_NO_THROW(spider::containers::forward_list<double>(10, 0.))
-                                << "spider::containers::forward_list(size_t, const T &) failed.";
-    auto tmp_fwlist = spider::containers::forward_list<double>();
-    ASSERT_NO_THROW(spider::containers::forward_list<double>(tmp_fwlist))
-                                << "spider::containers::forward_list(const spider::forward_list &) failed.";
-    ASSERT_NO_THROW(spider::containers::forward_list<double>(spider::forward_list<double>()))
-                                << "spider::containers::forward_list(spider::forward_list &&)";
+    ASSERT_NO_THROW(spider::factory::forward_list<double>()) << "spider::factory::forward_list() failed.";
+    ASSERT_NO_THROW(spider::factory::forward_list<double>(10, 0.))
+                                << "spider::factory::forward_list(size_t, const T &) failed.";
+    auto tmp_fwlist = spider::factory::forward_list<double>();
+    ASSERT_NO_THROW(spider::factory::forward_list<double>(tmp_fwlist))
+                                << "spider::factory::forward_list(const spider::forward_list &) failed.";
+    ASSERT_NO_THROW(spider::factory::forward_list<double>(spider::forward_list<double>()))
+                                << "spider::factory::forward_list(spider::forward_list &&)";
 
     /* == spider::list == */
-    ASSERT_NO_THROW(spider::containers::list<double>()) << "spider::containers::list() failed.";
-    ASSERT_NO_THROW(spider::containers::list<double>(10, 0.)) << "spider::containers::list(size_t, const T &) failed.";
-    auto tmp_list = spider::containers::list<double>();
-    ASSERT_NO_THROW(spider::containers::list<double>(tmp_list))
-                                << "spider::containers::list(const spider::list &) failed.";
-    ASSERT_NO_THROW(spider::containers::list<double>(spider::list<double>()))
-                                << "spider::containers::list(spider::list &&) failed.";
+    ASSERT_NO_THROW(spider::factory::list<double>()) << "spider::factory::list() failed.";
+    ASSERT_NO_THROW(spider::factory::list<double>(10, 0.)) << "spider::factory::list(size_t, const T &) failed.";
+    auto tmp_list = spider::factory::list<double>();
+    ASSERT_NO_THROW(spider::factory::list<double>(tmp_list))
+                                << "spider::factory::list(const spider::list &) failed.";
+    ASSERT_NO_THROW(spider::factory::list<double>(spider::list<double>()))
+                                << "spider::factory::list(spider::list &&) failed.";
 
     /* == spider::set == */
-    ASSERT_NO_THROW(spider::containers::set<double>()) << "spider::containers::set() failed.";
-    auto tmp_set = spider::containers::set<double>();
-    ASSERT_NO_THROW(spider::containers::set<double>(tmp_set)) << "spider::containers::set(const spider::set &) failed.";
-    ASSERT_NO_THROW(spider::containers::set<double>(spider::set<double>()))
-                                << "spider::containers::set(spider::set &&) failed.";
+    ASSERT_NO_THROW(spider::factory::set<double>()) << "spider::factory::set() failed.";
+    auto tmp_set = spider::factory::set<double>();
+    ASSERT_NO_THROW(spider::factory::set<double>(tmp_set)) << "spider::factory::set(const spider::set &) failed.";
+    ASSERT_NO_THROW(spider::factory::set<double>(spider::set<double>()))
+                                << "spider::factory::set(spider::set &&) failed.";
 
     /* == spider::map == */
-    ASSERT_NO_THROW((spider::containers::map<double, int>())) << "spider::containers::map() failed.";
-    auto tmp_map = spider::containers::map<double, int>();
-    ASSERT_NO_THROW((spider::containers::map(tmp_map))) << "spider::containers::map(const spider::map &) failed.";
-    ASSERT_NO_THROW((spider::containers::map(spider::map<double, int>())))
-                                << "spider::containers::map(spider::map &&) failed.";
+    ASSERT_NO_THROW((spider::factory::map<double, int>())) << "spider::factory::map() failed.";
+    auto tmp_map = spider::factory::map<double, int>();
+    ASSERT_NO_THROW((spider::factory::map(tmp_map))) << "spider::factory::map(const spider::map &) failed.";
+    ASSERT_NO_THROW((spider::factory::map(spider::map<double, int>())))
+                                << "spider::factory::map(spider::map &&) failed.";
 
     /* == spider::unordered_set == */
-    ASSERT_NO_THROW(spider::containers::unordered_set<double>()) << "spider::containers::unordered_set() failed.";
-    auto tmp_unordered_set = spider::containers::unordered_set<double>();
-    ASSERT_NO_THROW(spider::containers::unordered_set(tmp_unordered_set))
-                                << "spider::containers::unordered_set(const spider::unordered_set &) failed.";
-    ASSERT_NO_THROW(spider::containers::unordered_set(spider::unordered_set<double>()))
-                                << "spider::containers::unordered_set(spider::unordered_set &&) failed.";
+    ASSERT_NO_THROW(spider::factory::unordered_set<double>()) << "spider::factory::unordered_set() failed.";
+    auto tmp_unordered_set = spider::factory::unordered_set<double>();
+    ASSERT_NO_THROW(spider::factory::unordered_set(tmp_unordered_set))
+                                << "spider::factory::unordered_set(const spider::unordered_set &) failed.";
+    ASSERT_NO_THROW(spider::factory::unordered_set(spider::unordered_set<double>()))
+                                << "spider::factory::unordered_set(spider::unordered_set &&) failed.";
 
     /* == spider::unordered_map == */
-    ASSERT_NO_THROW((spider::containers::unordered_map<double, int>()))
-                                << "spider::containers::unordered_map() failed.";
-    auto tmp_unordered_map = spider::containers::unordered_map<double, int>();
-    ASSERT_NO_THROW((spider::containers::unordered_map(tmp_unordered_map)))
-                                << "spider::containers::unordered_map(const spider::unordered_map &) failed.";
-    ASSERT_NO_THROW((spider::containers::unordered_map(spider::unordered_map<double, int>())))
-                                << "spider::containers::unordered_map(spider::unordered_map &&) failed.";
+    ASSERT_NO_THROW((spider::factory::unordered_map<double, int>()))
+                                << "spider::factory::unordered_map() failed.";
+    auto tmp_unordered_map = spider::factory::unordered_map<double, int>();
+    ASSERT_NO_THROW((spider::factory::unordered_map(tmp_unordered_map)))
+                                << "spider::factory::unordered_map(const spider::unordered_map &) failed.";
+    ASSERT_NO_THROW((spider::factory::unordered_map(spider::unordered_map<double, int>())))
+                                << "spider::factory::unordered_map(spider::unordered_map &&) failed.";
 }

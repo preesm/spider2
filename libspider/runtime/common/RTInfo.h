@@ -42,7 +42,6 @@
 
 /* === Include(s) === */
 
-#include <containers/containers.h>
 #include <graphs-tools/expression-parser/Expression.h>
 #include <archi/Platform.h>
 #include <api/archi-api.h>

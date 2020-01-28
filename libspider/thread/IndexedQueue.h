@@ -43,6 +43,7 @@
 /* === Include(s) === */
 
 #include <mutex>
+#include <containers/queue.h>
 #include <containers/vector.h>
 
 namespace spider {

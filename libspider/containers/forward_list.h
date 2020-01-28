@@ -37,38 +37,44 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_TRANSFORMATION_H
-#define SPIDER2_TRANSFORMATION_H
+#ifndef SPIDER2_FORWARD_LIST_H
+#define SPIDER2_FORWARD_LIST_H
 
-/* === Includes === */
+/* === Include(s) === */
 
-#include <graphs-tools/transformation/srdag/SingleRateTransformer.h>
+#include <forward_list>
+#include <memory/memory.h>
+
+/* === Container definition === */
 
 namespace spider {
-    namespace srdag {
 
-        /* === Functions prototype === */
+    template<class T>
+    using forward_list = std::forward_list<T, spider::allocator<T>>;
 
-        /**
-         * @brief Split dynamic graphs into two subgraphs: an init graph and a run graph.
-         * @remark This method changes original graph.
-         * @param subgraph  Subgraph to split (if static nothing happen).
-         * @return true if split the graph, false else.
-         */
-        bool splitDynamicGraph(pisdf::Graph *subgraph);
+    namespace factory {
 
-        /**
-         * @brief Perform static single rate transformation for a given input job.
-         * @remark If one of the subgraph of the job is dynamic then it is automatically split into two graphs.
-         * @warning This function expect that dynamic graphs have been split using @refitem splitDynamicGraph before hand.
-         * @param job    TransfoJob containing information on the transformation to perform.
-         * @param srdag  Graph to append result of the transformation.
-         * @return a pair of @refitem JobStack, the first one containing future static jobs, second one containing
-         * jobs of dynamic graphs.
-         * @throws @refitem Spider::Exception if srdag is nullptr
-         */
-        std::pair<JobStack, JobStack> singleRateTransformation(const TransfoJob &job, pisdf::Graph *srdag);
+        template<class T>
+        inline spider::forward_list<T> forward_list(StackID stack = StackID::GENERAL) {
+            return spider::forward_list<T>(spider::allocator<T>(stack));
+        }
+
+        template<class T>
+        inline spider::forward_list<T> forward_list(size_t count, const T &value, StackID stack = StackID::GENERAL) {
+            return spider::forward_list<T>(count, value, spider::allocator<T>(stack));
+        }
+
+        template<class T>
+        inline spider::forward_list<T>
+        forward_list(const spider::forward_list<T> &other, StackID stack = StackID::GENERAL) {
+            return spider::forward_list<T>(other, spider::allocator<T>(stack));
+        }
+
+        template<class T>
+        inline spider::forward_list<T> forward_list(spider::forward_list<T> &&other, StackID stack = StackID::GENERAL) {
+            return spider::forward_list<T>(other, spider::allocator<T>(stack));
+        }
     }
 }
 
-#endif //SPIDER2_TRANSFORMATION_H
+#endif //SPIDER2_FORWARD_LIST_H

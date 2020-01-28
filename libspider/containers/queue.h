@@ -37,38 +37,25 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_TRANSFORMATION_H
-#define SPIDER2_TRANSFORMATION_H
+#ifndef SPIDER2_CONTAINER_QUEUE_H
+#define SPIDER2_CONTAINER_QUEUE_H
 
-/* === Includes === */
+/* === Include(s) === */
 
-#include <graphs-tools/transformation/srdag/SingleRateTransformer.h>
+#include <queue>
+#include <containers/deque.h>
+#include <memory/memory.h>
+
+/* === Container definition === */
 
 namespace spider {
-    namespace srdag {
 
-        /* === Functions prototype === */
+    template<class T, class Container = spider::deque<T>>
+    using queue = std::queue<T, Container>;
 
-        /**
-         * @brief Split dynamic graphs into two subgraphs: an init graph and a run graph.
-         * @remark This method changes original graph.
-         * @param subgraph  Subgraph to split (if static nothing happen).
-         * @return true if split the graph, false else.
-         */
-        bool splitDynamicGraph(pisdf::Graph *subgraph);
+    namespace factory {
 
-        /**
-         * @brief Perform static single rate transformation for a given input job.
-         * @remark If one of the subgraph of the job is dynamic then it is automatically split into two graphs.
-         * @warning This function expect that dynamic graphs have been split using @refitem splitDynamicGraph before hand.
-         * @param job    TransfoJob containing information on the transformation to perform.
-         * @param srdag  Graph to append result of the transformation.
-         * @return a pair of @refitem JobStack, the first one containing future static jobs, second one containing
-         * jobs of dynamic graphs.
-         * @throws @refitem Spider::Exception if srdag is nullptr
-         */
-        std::pair<JobStack, JobStack> singleRateTransformation(const TransfoJob &job, pisdf::Graph *srdag);
     }
 }
 
-#endif //SPIDER2_TRANSFORMATION_H
+#endif //SPIDER2_QUEUE_H

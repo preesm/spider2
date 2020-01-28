@@ -42,7 +42,6 @@
 
 /* === Include(s) === */
 
-#include <containers/containers.h>
 #include <graphs-tools/transformation/srdag/TransfoJob.h>
 
 namespace spider {

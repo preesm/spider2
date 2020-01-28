@@ -37,38 +37,40 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_TRANSFORMATION_H
-#define SPIDER2_TRANSFORMATION_H
+#ifndef SPIDER2_UNORDERED_SET_H
+#define SPIDER2_UNORDERED_SET_H
 
-/* === Includes === */
+/* === Include(s) === */
 
-#include <graphs-tools/transformation/srdag/SingleRateTransformer.h>
+#include <unordered_set>
+#include <memory/memory.h>
+
+/* === Container definition === */
 
 namespace spider {
-    namespace srdag {
 
-        /* === Functions prototype === */
+    template<class Key, class Hash = std::hash<Key>, class KeyEqual = std::equal_to<Key>>
+    using unordered_set = std::unordered_set<Key, Hash, KeyEqual, spider::allocator<Key>>;
 
-        /**
-         * @brief Split dynamic graphs into two subgraphs: an init graph and a run graph.
-         * @remark This method changes original graph.
-         * @param subgraph  Subgraph to split (if static nothing happen).
-         * @return true if split the graph, false else.
-         */
-        bool splitDynamicGraph(pisdf::Graph *subgraph);
+    namespace factory {
 
-        /**
-         * @brief Perform static single rate transformation for a given input job.
-         * @remark If one of the subgraph of the job is dynamic then it is automatically split into two graphs.
-         * @warning This function expect that dynamic graphs have been split using @refitem splitDynamicGraph before hand.
-         * @param job    TransfoJob containing information on the transformation to perform.
-         * @param srdag  Graph to append result of the transformation.
-         * @return a pair of @refitem JobStack, the first one containing future static jobs, second one containing
-         * jobs of dynamic graphs.
-         * @throws @refitem Spider::Exception if srdag is nullptr
-         */
-        std::pair<JobStack, JobStack> singleRateTransformation(const TransfoJob &job, pisdf::Graph *srdag);
+        template<class Key>
+        inline spider::unordered_set<Key> unordered_set(StackID stack = StackID::GENERAL) {
+            return spider::unordered_set<Key>(spider::allocator<Key>(stack));
+        }
+
+        template<class Key>
+        inline spider::unordered_set<Key>
+        unordered_set(const spider::unordered_set<Key> &other, StackID stack = StackID::GENERAL) {
+            return spider::unordered_set<Key>(other, spider::allocator<Key>(stack));
+        }
+
+        template<class Key>
+        inline spider::unordered_set<Key>
+        unordered_set(spider::unordered_set<Key> &&other, StackID stack = StackID::GENERAL) {
+            return spider::unordered_set<Key>(other, spider::allocator<Key>(stack));
+        }
     }
 }
 
-#endif //SPIDER2_TRANSFORMATION_H
+#endif //SPIDER2_UNORDERED_SET_H

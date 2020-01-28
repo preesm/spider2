@@ -45,7 +45,6 @@
 #include <string>
 #include <cstdint>
 #include <common/Exception.h>
-#include <containers/containers.h>
 #include <graphs/pisdf/ExecVertex.h>
 #include <graphs/pisdf/Edge.h>
 #include <graphs/pisdf/Param.h>

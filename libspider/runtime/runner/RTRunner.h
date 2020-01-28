@@ -44,9 +44,9 @@
 
 #include <cstdint>
 #include <cstddef>
-#include <containers/containers.h>
 #include <thread/Thread.h>
 #include <containers/array.h>
+#include <containers/vector.h>
 #include <api/runtime-api.h>
 #include <api/archi-api.h>
 #include <archi/Platform.h>

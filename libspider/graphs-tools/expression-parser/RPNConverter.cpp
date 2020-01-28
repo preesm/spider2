@@ -42,7 +42,7 @@
 
 #include <algorithm>
 #include <graphs-tools/expression-parser/RPNConverter.h>
-#include <containers/containers.h>
+#include <containers/stack.h>
 #include <common/Exception.h>
 #include <cctype>
 

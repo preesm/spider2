@@ -37,38 +37,40 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_TRANSFORMATION_H
-#define SPIDER2_TRANSFORMATION_H
+#ifndef SPIDER2_MAP_H
+#define SPIDER2_MAP_H
 
-/* === Includes === */
+/* === Include(s) === */
 
-#include <graphs-tools/transformation/srdag/SingleRateTransformer.h>
+#include <map>
+#include <memory/memory.h>
+
+/* === Container definition === */
 
 namespace spider {
-    namespace srdag {
 
-        /* === Functions prototype === */
+    template<class Key, class T, class Compare = std::less<Key>>
+    using map = std::map<Key, T, Compare, spider::allocator<std::pair<const Key, T>>>;
 
-        /**
-         * @brief Split dynamic graphs into two subgraphs: an init graph and a run graph.
-         * @remark This method changes original graph.
-         * @param subgraph  Subgraph to split (if static nothing happen).
-         * @return true if split the graph, false else.
-         */
-        bool splitDynamicGraph(pisdf::Graph *subgraph);
+    namespace factory {
 
-        /**
-         * @brief Perform static single rate transformation for a given input job.
-         * @remark If one of the subgraph of the job is dynamic then it is automatically split into two graphs.
-         * @warning This function expect that dynamic graphs have been split using @refitem splitDynamicGraph before hand.
-         * @param job    TransfoJob containing information on the transformation to perform.
-         * @param srdag  Graph to append result of the transformation.
-         * @return a pair of @refitem JobStack, the first one containing future static jobs, second one containing
-         * jobs of dynamic graphs.
-         * @throws @refitem Spider::Exception if srdag is nullptr
-         */
-        std::pair<JobStack, JobStack> singleRateTransformation(const TransfoJob &job, pisdf::Graph *srdag);
+        template<class Key, class T, class Compare = std::less<Key>>
+        inline spider::map<Key, T, Compare> map(StackID stack = StackID::GENERAL) {
+            return spider::map<Key, T, Compare>(spider::allocator<std::pair<const Key, T>>(stack));
+        }
+
+        template<class Key, class T, class Compare = std::less<Key>>
+        inline spider::map<Key, T, Compare>
+        map(const spider::map<Key, T, Compare> &other, StackID stack = StackID::GENERAL) {
+            return spider::map<Key, T, Compare>(other, spider::allocator<std::pair<const Key, T>>(stack));
+        }
+
+        template<class Key, class T, class Compare = std::less<Key>>
+        inline spider::map<Key, T, Compare>
+        map(spider::map<Key, T, Compare> &&other, StackID stack = StackID::GENERAL) {
+            return spider::map<Key, T, Compare>(other, spider::allocator<std::pair<const Key, T>>(stack));
+        }
     }
 }
 
-#endif //SPIDER2_TRANSFORMATION_H
+#endif //SPIDER2_MAP_H

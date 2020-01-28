@@ -42,10 +42,10 @@
 
 /* === Include(s) === */
 
-#include <containers/containers.h>
+#include <mutex>
+#include <vector>
 #include <thread/Semaphore.h>
 #include <runtime/interface/Notification.h>
-#include <mutex>
 
 namespace spider {
 

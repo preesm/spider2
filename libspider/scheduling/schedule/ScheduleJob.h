@@ -45,7 +45,6 @@
 #include <cstdint>
 #include <algorithm>
 #include <containers/vector.h>
-#include <containers/containers.h>
 #include <runtime/interface/Message.h>
 #include <scheduling/allocator/FifoAllocator.h>
 

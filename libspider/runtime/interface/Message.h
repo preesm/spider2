@@ -42,7 +42,6 @@
 
 /* === Include(s) === */
 
-#include <containers/containers.h>
 #include <containers/array.h>
 #include <runtime/common/RTFifo.h>
 
