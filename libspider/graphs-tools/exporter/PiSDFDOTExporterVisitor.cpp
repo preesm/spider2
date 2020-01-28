@@ -49,23 +49,22 @@ static constexpr size_t MAX_LENGTH = 30;
 /* === Function(s) definition === */
 
 void spider::pisdf::PiSDFDOTExporterVisitor::visit(Graph *graph) {
-    params_ = &(graph->params());
-    if (graph->graph()) {
-        file_ << offset_ << "subgraph \"cluster_" << graph->vertexPath() << "\" {" << '\n';
-        offset_ += "\t";
-        file_ << offset_ << R"(label=<<font point-size="40" face="inconsolata">)" << graph->name() << R"(</font>>;)"
-              << '\n';
-        file_ << offset_ << "style=dotted;" << '\n';
-        file_ << offset_ << R"(fillcolor="#ffffff")" << '\n';
-        file_ << offset_ << R"(color="#393c3c";)" << '\n';
-        file_ << offset_ << "penwidth=2;" << '\n';
-    } else {
+    if (!graph->graph()) {
         file_ << "digraph {\n";
-        file_ << '\t' << R"(label=<<font point-size="40" face="inconsolata">)" << graph->name() << R"(</font>>;)"
-              << '\n';
-        file_ << '\t' << "rankdir=LR;" << '\n';
-        file_ << '\t' << R"(ranksep="2";)" << '\n';
+        file_ << '\t' << R"(rankdir = LR;)" << '\n';
+        file_ << '\t' << R"(ranksep = 1;)" << '\n';
+        file_ << '\t' << R"(nodesep = 1;)" << '\n';
     }
+
+    params_ = &(graph->params());
+    file_ << offset_ << "subgraph \"cluster_" + graph->vertexPath() + "\" {" << '\n';
+    offset_ += "\t";
+    file_ << offset_ << R"(label=<<font point-size="40" face="inconsolata">)" << graph->name() << R"(</font>>;)"
+          << '\n';
+    file_ << offset_ << "style=dotted;" << '\n';
+    file_ << offset_ << R"(fillcolor="#ffffff")" << '\n';
+    file_ << offset_ << R"(color="#393c3c";)" << '\n';
+    file_ << offset_ << "penwidth=2;" << '\n';
 
     /* == Write vertices == */
     file_ << '\n' << offset_ << R"(// Vertices)" << '\n';
@@ -75,11 +74,23 @@ void spider::pisdf::PiSDFDOTExporterVisitor::visit(Graph *graph) {
 
     /* == Write interfaces in case of hierarchical graphs == */
     file_ << '\n' << offset_ << R"(// Interfaces)" << '\n';
-    for (const auto &interface : graph->inputInterfaceVector()) {
-        interface->visit(this);
+    if (graph->inputEdgeCount()) {
+        file_ << offset_ << "{" << '\n';
+        offset_ += "\t";
+        file_ << offset_ << "rank=source;" << '\n';
+        for (const auto &interface : graph->inputInterfaceVector()) {
+            interface->visit(this);
+        }
+        offset_.pop_back();
+        file_ << offset_ << "}" << '\n';
     }
-    for (const auto &interface : graph->outputInterfaceVector()) {
-        interface->visit(this);
+    if (graph->outputEdgeCount()) {
+        file_ << offset_ << "{" << '\n';
+        file_ << offset_ << '\t' << "rank=sink;" << '\n';
+        for (const auto &interface : graph->outputInterfaceVector()) {
+            interface->visit(this);
+        }
+        file_ << offset_ << "}" << '\n';
     }
 
     /* == Write parameters (if any) == */
@@ -87,6 +98,17 @@ void spider::pisdf::PiSDFDOTExporterVisitor::visit(Graph *graph) {
     for (const auto &param : graph->params()) {
         if (param->graph() == graph) {
             param->visit(this);
+        }
+    }
+    file_ << '\n';
+    /* == draw invisible edges between params to put them on the same line == */
+    for (auto iterator = graph->params().begin(); iterator != graph->params().end(); ++iterator) {
+        if ((iterator + 1) != graph->params().end()) {
+            auto *param = (*iterator).get();
+            auto *nextParam = (*(iterator + 1)).get();
+            file_ << offset_ << R"(")" << param->graph()->vertexPath() + ":" + param->name() << R"(" ->)"
+                  << R"(")" << nextParam->graph()->vertexPath() + ":" + nextParam->name() << R"(" [style="invis"])"
+                  << '\n';
         }
     }
 
@@ -100,8 +122,11 @@ void spider::pisdf::PiSDFDOTExporterVisitor::visit(Graph *graph) {
     if (graph->graph()) {
         offset_.pop_back();
         file_ << offset_;
+        file_ << "}" << '\n' << '\n';
+    } else {
+        file_ << '\t' << "}";
+        file_ << "}";
     }
-    file_ << "}" << '\n' << '\n';
 }
 
 /* === Private method(s) === */
@@ -251,17 +276,24 @@ spider::pisdf::PiSDFDOTExporterVisitor::interfaceBodyPrinter(Interface *interfac
     auto inRate = inputEdge->sinkRateValue();
     auto outRate = outputEdge->sourceRateExpression().evaluate((*params_));
     file_ << offset_ << '\t' << '\t'
-          << R"(<tr>
-                    <td border="0" bgcolor="#ffffff00" fixedsize="true" width=")" << balanceWidth << R"(" height="60"></td>
-                    <td port="in_)" << inIx
-          << R"(" align="left" border="0" bgcolor="#ffffff00" fixedsize="true" width=")" << rateWidth
-          << R"(" height="60"><font point-size="12" face="inconsolata"> )" << inRate << R"(</font></td>
-                    <td border="1" bgcolor=")" << color << R"(" fixedsize="true" width="20" height="60"></td>
-                    <td port="out_)" << outIx
+          << "<tr>"
+          << '\n' << offset_ << '\t' << '\t' << '\t'
+          << R"(<td border="0" bgcolor="#ffffff00" fixedsize="true" width=")" << balanceWidth
+          << R"(" height="60"></td>)"
+          << '\n' << offset_ << '\t' << '\t' << '\t'
+          << R"(<td port="in_)" << inIx << R"(" align="left" border="0" bgcolor="#ffffff00" fixedsize="true" width=")"
+          << rateWidth << R"(" height="60"><font point-size="12" face="inconsolata"> )" << inRate << "</font></td>"
+          << '\n' << offset_ << '\t' << '\t' << '\t'
+          << R"(<td border="1" bgcolor=")" << color << R"(" fixedsize="true" width="20" height="60"></td>)"
+          << '\n' << offset_ << '\t' << '\t' << '\t'
+          << R"(<td port="out_)" << outIx
           << R"(" align="right" border="0" bgcolor="#ffffff00" fixedsize="true" width=")" << rateWidth
-          << R"(" height="60"><font point-size="12" face="inconsolata">)" << outRate << R"( </font></td>
-                    <td border="0" bgcolor="#ffffff00" fixedsize="true" width=")" << balanceWidth << R"(" height="60"></td>
-                </tr>)" << '\n';
+          << R"(" height="60"><font point-size="12" face="inconsolata">)" << outRate << R"( </font></td>)"
+          << '\n' << offset_ << '\t' << '\t' << '\t'
+          << R"(<td border="0" bgcolor="#ffffff00" fixedsize="true" width=")" << balanceWidth
+          << R"(" height="60"></td>)"
+          << '\n' << offset_ << '\t' << '\t'
+          << "</tr>" << '\n';
 
     /* == Footer == */
     file_ << offset_ << '\t' << "</table>>" << '\n';
@@ -273,7 +305,6 @@ struct GetVertexVisitor final : public spider::pisdf::DefaultVisitor {
     void doVertex(spider::pisdf::Vertex *vertex) {
         vertex_ = vertex;
         name_ = vertex->vertexPath();
-
     }
 
     void visit(spider::pisdf::ExecVertex *vertex) override {
@@ -342,6 +373,11 @@ void spider::pisdf::PiSDFDOTExporterVisitor::edgePrinter(Edge *edge) const {
         /* == General case == */
         file_ << offset_ << R"(")" << srcName << R"(":out_)" << srcPortIx << R"(:e -> ")";
         file_ << snkName << R"(":in_)" << snkPortIx << R"(:w [penwidth=3, color="#393c3c", dir=forward];)" << '\n';
+    }
+    if (edge->source()->hierarchical() && edge->sink()->hierarchical()) {
+        /* == Add invisible edge to insure layout == */
+        file_ << offset_ << '\"' << source->vertexPath() << R"(" -> ")"
+              << sink->vertexPath() << R"(" [style="invis"];)" << '\n';
     }
 }
 
