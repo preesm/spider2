@@ -94,7 +94,7 @@ namespace spider {
 
             /* === Private member(s) === */
 
-            stack_vector(ref2Clone_, size_t, StackID::TRANSFO);
+            spider::sbc::vector<size_t, StackID::TRANSFO> ref2Clone_;
             const TransfoJob &job_;
             pisdf::Graph *srdag_ = nullptr;
 

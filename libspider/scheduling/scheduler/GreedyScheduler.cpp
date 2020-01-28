@@ -51,7 +51,7 @@
 /* === Private method(s) implementation === */
 
 spider::sched::Schedule &spider::GreedyScheduler::mappingScheduling() {
-    auto vertexVector = containers::vector<pisdf::Vertex *>(StackID::SCHEDULE);
+    auto vertexVector = factory::vector<pisdf::Vertex *>(StackID::SCHEDULE);
     vertexVector.reserve(graph_->vertexCount());
 
     /* == Initialize vector of vertex == */

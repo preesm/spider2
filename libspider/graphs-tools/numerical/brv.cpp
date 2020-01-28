@@ -140,13 +140,13 @@ static void computeRepetitionValues(const spider::brv::ConnectedComponent &compo
 /* === Function(s) definition === */
 
 void spider::brv::compute(const pisdf::Graph *graph, const spider::vector<std::shared_ptr<pisdf::Param>> &params) {
-    auto vertices = containers::vector<pisdf::Vertex *>(StackID::TRANSFO);
+    auto vertices = factory::vector<pisdf::Vertex *>(StackID::TRANSFO);
     vertices.reserve(graph->vertexCount());
     /* == 0. Extract connected components of the graph == */
     const auto &connectedComponents = extractConnectedComponents(graph, vertices);
 
-    auto registeredEdgeVector = containers::vector<bool>(graph->edgeCount(), false, StackID::TRANSFO);
-    auto rationalVector = containers::vector<Rational>(graph->vertexCount(), StackID::TRANSFO);
+    auto registeredEdgeVector = factory::vector<bool>(graph->edgeCount(), false, StackID::TRANSFO);
+    auto rationalVector = factory::vector<Rational>(graph->vertexCount(), StackID::TRANSFO);
     /* == 1. For each connected component compute LCM and RV == */
     for (const auto &component : connectedComponents) {
         /* == 1.1 Extract the edges == */
@@ -181,10 +181,10 @@ void spider::brv::compute(const pisdf::Graph *graph) {
 spider::vector<spider::brv::ConnectedComponent>
 spider::brv::extractConnectedComponents(const pisdf::Graph *graph, spider::vector<pisdf::Vertex *> &vertices) {
     /* == Keys used to check if a vertex has already be assigned to a connected component == */
-    auto visited = containers::vector<bool>(graph->vertexCount(), false, StackID::TRANSFO);
+    auto visited = factory::vector<bool>(graph->vertexCount(), false, StackID::TRANSFO);
 
     /* == Iterate over every vertex and assign it to a connected component == */
-    auto connectedComponents = containers::vector<ConnectedComponent>(StackID::TRANSFO);
+    auto connectedComponents = factory::vector<ConnectedComponent>(StackID::TRANSFO);
     /* == We assume 3 ConnectedComponents as a basis, this may be superior or inferior but this will save some time == */
     connectedComponents.reserve(DEFAULT_MAX_CC_COUNT);
     for (const auto &vertex : graph->vertices()) {

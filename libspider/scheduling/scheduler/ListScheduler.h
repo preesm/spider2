@@ -67,9 +67,6 @@ namespace spider {
         /* === Setter(s) === */
 
     protected:
-        size_t lastSchedulableVertex_ = 0;
-        size_t lastScheduledVertex_ = 0;
-
         struct ListVertex {
             pisdf::Vertex *vertex_ = nullptr;
             int_fast32_t level_ = -1;
@@ -79,11 +76,13 @@ namespace spider {
                                                                                   level_{ level } { };
         };
 
-        explicit ListScheduler(pisdf::Graph *graph);
-
-        stack_vector(sortedVertexVector_, ListVertex, StackID::SCHEDULE);
+        spider::sbc::vector<ListVertex, StackID::SCHEDULE> sortedVertexVector_;
+        size_t lastSchedulableVertex_ = 0;
+        size_t lastScheduledVertex_ = 0;
 
         /* === Protected method(s) === */
+
+        explicit ListScheduler(pisdf::Graph *graph);
 
     private:
 

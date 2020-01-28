@@ -44,6 +44,7 @@
 
 #include <cstdint>
 #include <containers/array.h>
+#include <containers/vector.h>
 #include <containers/containers.h>
 #include <api/archi-api.h>
 
@@ -222,8 +223,7 @@ namespace spider {
         spider::array<PE *> peArray_;                                 /* = Array of PE in the Platform = */
         spider::array<InterMemoryInterface> cluster2ClusterMemoryIF_; /* = Array of inter Cluster MemoryInterface = */
         spider::array<size_t> preComputedClusterIx_;                  /* = Array of pre-computed index value for fast inter Cluster communication = */
-        stack_vector(lrtVector_, PE*,
-                     StackID::ARCHI);      /* = Vector of the LRT of the platform (does not hold any memory) = */
+        spider::sbc::vector<PE *, StackID::ARCHI> lrtVector_;         /* = Vector of the LRT of the platform (does not hold any memory) = */
         size_t clusterCount_ = 0;                                     /* = Number of currently added Cluster in the Platform = */
         size_t peCount_ = 0;                                          /* = Number of currently added PE in the Platform = */
         PE *grt_ = nullptr;                                           /* = Pointer to the PE used as Global Runtime = */

@@ -98,14 +98,14 @@ bool spider::JITMSRuntime::staticExecute() {
     first = false;
     /* == Apply first transformation of root graph == */
     auto &&rootJob = srdag::TransfoJob(graph_, SIZE_MAX, UINT32_MAX, true);
-    rootJob.params_ = graph_->params();
+    rootJob.params_ = sbc::vector<std::shared_ptr<pisdf::Param>, StackID::TRANSFO>(graph_->params());
     auto &&resultRootJob = srdag::singleRateTransformation(rootJob, srdag_.get());
 
     /* == Initialize the job stacks == */
-    auto staticJobStack = containers::vector<srdag::TransfoJob>(StackID::TRANSFO);
+    auto staticJobStack = factory::vector<srdag::TransfoJob>(StackID::TRANSFO);
     updateJobStack(resultRootJob.first, staticJobStack);
 
-    auto tempJobStack = containers::vector<srdag::TransfoJob>(StackID::TRANSFO);
+    auto tempJobStack = factory::vector<srdag::TransfoJob>(StackID::TRANSFO);
     while (!staticJobStack.empty()) {
         for (auto &job : staticJobStack) {
             /* == Transform static graphs == */
@@ -145,12 +145,12 @@ bool spider::JITMSRuntime::staticExecute() {
 bool spider::JITMSRuntime::dynamicExecute() {
     /* == Apply first transformation of root graph == */
     auto &&rootJob = srdag::TransfoJob(graph_, SIZE_MAX, UINT32_MAX, true);
-    rootJob.params_ = graph_->params();
+    rootJob.params_ = sbc::vector<std::shared_ptr<pisdf::Param>, StackID::TRANSFO>(graph_->params());
     auto &&resultRootJob = srdag::singleRateTransformation(rootJob, srdag_.get());
 
     /* == Initialize the job stacks == */
-    auto staticJobStack = containers::vector<srdag::TransfoJob>(StackID::TRANSFO);
-    auto dynamicJobStack = containers::vector<srdag::TransfoJob>(StackID::TRANSFO);
+    auto staticJobStack = factory::vector<srdag::TransfoJob>(StackID::TRANSFO);
+    auto dynamicJobStack = factory::vector<srdag::TransfoJob>(StackID::TRANSFO);
     updateJobStack(resultRootJob.first, staticJobStack);
     updateJobStack(resultRootJob.second, dynamicJobStack);
 
@@ -177,46 +177,34 @@ bool spider::JITMSRuntime::dynamicExecute() {
         /* == Wait for all parameters to be resolved == */
         if (!dynamicJobStack.empty()) {
             if (log::enabled<log::Type::TRANSFO>()) {
-                log::verbose<log::Type::TRANSFO>("Running graph with config actors..\n");
+                log::info<log::Type::TRANSFO>("Waiting fo dynamic parameters..\n");
             }
-            size_t value = 1;
-            for (const auto *cfg : srdag_->configVertices()) {
-                for (const auto &param : cfg->outputParamVector()) {
-                    param->setValue(static_cast<int64_t>(value));
-                    if (api::verbose() && log::enabled()) {
-                        log::verbose("Received value #%" PRId64" for parameter [%s].\n",
-                                     param->value(), param->name().c_str());
+            const auto &grtIx = archi::platform()->spiderGRTPE()->virtualIx();
+            size_t readParam = 0;
+            while (readParam != dynamicJobStack.size()) {
+                Notification notification;
+                rt::platform()->communicator()->popParamNotification(notification);
+                if (notification.type_ == NotificationType::JOB_SENT_PARAM) {
+                    /* == Get the message == */
+                    ParameterMessage message;
+                    rt::platform()->communicator()->pop(message, grtIx, notification.notificationIx_);
+
+                    /* == Get the config vertex == */
+                    const auto *cfg = srdag_->vertex(message.vertexIx_);
+                    auto paramIterator = message.params_.begin();
+                    for (const auto &param : cfg->outputParamVector()) {
+                        param->setValue((*(paramIterator++)));
+                        if (log::enabled<log::Type::TRANSFO>()) {
+                            log::info<log::Type::TRANSFO>("Parameter [%12s]: received value #%" PRId64".\n",
+                                                          param->name().c_str(),
+                                                          param->value());
+                        }
                     }
-                    value *= 2;
+                    readParam++;
+                } else {
+                    throwSpiderException("expected parameter notification");
                 }
             }
-//            const auto &grtIx = archi::platform()->spiderGRTPE()->virtualIx();
-//            size_t readParam = 0;
-//            while (readParam != dynamicJobStack.size()) {
-//                Notification notification;
-//                rt::platform()->communicator()->popParamNotification(notification);
-//                if (notification.type_ == NotificationType::JOB_SENT_PARAM) {
-//                    /* == Get the message == */
-//                    ParameterMessage message;
-//                    rt::platform()->communicator()->pop(message, grtIx, notification.notificationIx_);
-//
-//                    /* == Get the config vertex == */
-//                    const auto *cfg = srdag_->vertex(message.vertexIx_);
-//                    auto paramIterator = message.params_.begin();
-//                    for (const auto &param : cfg->outputParamVector()) {
-//                        param->setValue((*(paramIterator++)));
-//                    }
-//                    if (log::enabled<log::TRANSFO>()) {
-//                        for (const auto &param : cfg->outputParamVector()) {
-//                            log::info<log::TRANSFO>("Received value #%" PRId64" for parameter [%s].\n",
-//                                                    param->value(), param->name().c_str());
-//                        }
-//                    }
-//                    readParam++;
-//                } else {
-//                    throwSpiderException("expected parameter notification");
-//                }
-//            }
 
             /* == Transform dynamic jobs == */
             //monitor_->startSampling();
@@ -254,21 +242,27 @@ void spider::JITMSRuntime::updateJobStack(spider::vector<spider::srdag::TransfoJ
     });
 }
 
+void spider::JITMSRuntime::transformJobs(spider::vector<spider::srdag::TransfoJob> &iterJobStack,
+                                         spider::vector<spider::srdag::TransfoJob> &staticJobStack,
+                                         spider::vector<spider::srdag::TransfoJob> &dynamicJobStack) {
+    for (auto &job : iterJobStack) {
+        /* == Transform current job == */
+        auto &&result = srdag::singleRateTransformation(job, srdag_.get());
+
+        /* == Move static TransfoJob into static JobStack == */
+        updateJobStack(result.first, staticJobStack);
+
+        /* == Move dynamic TransfoJob into dynamic JobStack == */
+        updateJobStack(result.second, dynamicJobStack);
+    }
+}
+
 void spider::JITMSRuntime::transformStaticJobs(spider::vector<spider::srdag::TransfoJob> &staticJobStack,
                                                spider::vector<spider::srdag::TransfoJob> &dynamicJobStack) {
-    auto tempJobStack = containers::vector<srdag::TransfoJob>(StackID::TRANSFO);
+    auto tempJobStack = factory::vector<srdag::TransfoJob>(StackID::TRANSFO);
     while (!staticJobStack.empty()) {
-        for (auto &job : staticJobStack) {
-            /* == Transform static graphs == */
-            auto &&result = srdag::singleRateTransformation(job, srdag_.get());
-
-            /* == Move static TransfoJob into static JobStack == */
-            updateJobStack(result.first, tempJobStack);
-
-            /* == Move dynamic TransfoJob into dynamic JobStack == */
-            updateJobStack(result.second, dynamicJobStack);
-        }
-
+        /* == Transform jobs of current static stack == */
+        transformJobs(staticJobStack, tempJobStack, dynamicJobStack);
         /* == Swap vectors == */
         staticJobStack.swap(tempJobStack);
         tempJobStack.clear();
@@ -277,21 +271,9 @@ void spider::JITMSRuntime::transformStaticJobs(spider::vector<spider::srdag::Tra
 
 void spider::JITMSRuntime::transformDynamicJobs(spider::vector<srdag::TransfoJob> &staticJobStack,
                                                 spider::vector<srdag::TransfoJob> &dynamicJobStack) {
-    auto tempJobStack = containers::vector<srdag::TransfoJob>(StackID::TRANSFO);
-    for (auto &job : dynamicJobStack) {
-        if (log::enabled<log::Type::TRANSFO>()) {
-            log::verbose<log::Type::TRANSFO>("Resolved parameters.\n");
-        }
-        /* == Transform dynamic graphs == */
-        auto &&result = srdag::singleRateTransformation(job, srdag_.get());
-
-        /* == Move static TransfoJob into static JobStack == */
-        updateJobStack(result.first, staticJobStack);
-
-        /* == Move dynamic TransfoJob into dynamic JobStack == */
-        updateJobStack(result.second, tempJobStack);
-    }
-
+    auto tempJobStack = factory::vector<srdag::TransfoJob>(StackID::TRANSFO);
+    /* == Transform jobs of current dynamic stack == */
+    transformJobs(dynamicJobStack, staticJobStack, tempJobStack);
     /* == Swap vectors == */
     dynamicJobStack.swap(tempJobStack);
 }

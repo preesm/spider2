@@ -260,9 +260,9 @@ namespace spider {
         }
 
     private:
-        stack_vector(peMappableVector_, bool, StackID::RUNTIME);
-        stack_vector(clusterMappableVector_, bool, StackID::RUNTIME);
-        stack_vector(timingVector_, Expression, StackID::RUNTIME);
+        spider::sbc::vector<bool, StackID::RUNTIME> peMappableVector_;
+        spider::sbc::vector<bool, StackID::RUNTIME> clusterMappableVector_;
+        spider::sbc::vector<Expression, StackID::RUNTIME> timingVector_;
         size_t kernelIx_ = SIZE_MAX;
     };
 }

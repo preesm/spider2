@@ -101,7 +101,7 @@ void spider::Scheduler::vertexMapper(const pisdf::Vertex *vertex) {
 
     /* == Build the data dependency vector in order to compute receive cost == */
     const auto *platform = archi::platform();
-    auto dataDependencies = containers::vector<std::pair<PE *, uint64_t >>(StackID::SCHEDULE);
+    auto dataDependencies = factory::vector<std::pair<PE *, uint64_t >>(StackID::SCHEDULE);
     dataDependencies.reserve(vertex->inputEdgeCount());
     for (auto &edge : vertex->inputEdgeVector()) {
         const auto &rate = edge->sinkRateValue();

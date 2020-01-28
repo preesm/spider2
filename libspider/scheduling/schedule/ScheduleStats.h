@@ -43,7 +43,7 @@
 /* === Include(s) === */
 
 #include <cstdint>
-#include <containers/containers.h>
+#include <containers/vector.h>
 
 namespace spider {
 
@@ -155,11 +155,11 @@ namespace spider {
             inline void updateJobCount(size_t ix, uint32_t incValue = 1);
 
         private:
-            stack_vector(startTimeVector_, uint64_t, StackID::SCHEDULE);
-            stack_vector(endTimeVector_, uint64_t, StackID::SCHEDULE);
-            stack_vector(loadTimeVector_, uint64_t, StackID::SCHEDULE);
-            stack_vector(idleTimeVector_, uint64_t, StackID::SCHEDULE);
-            stack_vector(jobCountVector_, size_t, StackID::SCHEDULE);
+            spider::sbc::vector<uint64_t, StackID::SCHEDULE> startTimeVector_;
+            spider::sbc::vector<uint64_t, StackID::SCHEDULE> endTimeVector_;
+            spider::sbc::vector<uint64_t, StackID::SCHEDULE> loadTimeVector_;
+            spider::sbc::vector<uint64_t, StackID::SCHEDULE> idleTimeVector_;
+            spider::sbc::vector<size_t, StackID::SCHEDULE> jobCountVector_;
             uint64_t minStartTime_ = UINT64_MAX;
             uint64_t maxEndTime_ = 0;
 

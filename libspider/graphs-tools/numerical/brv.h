@@ -42,8 +42,8 @@
 
 /* === Include(s) === */
 
-#include <containers/containers.h>
 #include <containers/array.h>
+#include <containers/vector.h>
 #include <common/Rational.h>
 
 namespace spider {

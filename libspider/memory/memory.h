@@ -225,7 +225,7 @@ namespace spider {
 
     template<class T, StackID stack = StackID::GENERAL, class ...Args>
     std::shared_ptr<T> make_shared(Args &&... args) {
-        return std::shared_ptr<T>(make<T, stack>(std::forward<Args>(args)...), destroy<T>);
+        return std::allocate_shared<T>(allocator<T>(stack), std::forward<Args>(args)...);
     }
 
     template<class T>

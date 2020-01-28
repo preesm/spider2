@@ -94,6 +94,16 @@ namespace spider {
                             spider::vector<spider::srdag::TransfoJob> &dest) const;
 
         /**
+         * @brief Transform all jobs of a given job stack and update results in static and dynamic job stacks.
+         * @param iterJobStack      Stack to iterate on.
+         * @param staticJobStack    Stack of static jobs to be updated.
+         * @param dynamicJobStack   Stack of dynamic jobs to be updated.
+         */
+        void transformJobs(spider::vector<spider::srdag::TransfoJob> &iterJobStack,
+                           spider::vector<spider::srdag::TransfoJob> &staticJobStack,
+                           spider::vector<spider::srdag::TransfoJob> &dynamicJobStack);
+
+        /**
          * @brief Transform all static jobs contained in staticJobStack and update the job stacks with future jobs.
          * @param staticJobStack   Static job stack.
          * @param dynamicJobStack  Dynamic job stack.

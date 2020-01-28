@@ -43,6 +43,7 @@
 /* === Include(s) === */
 
 #include <containers/array.h>
+#include <containers/vector.h>
 #include <runtime/common/RTKernel.h>
 #include <thread/Thread.h>
 #include <algorithm>
@@ -157,9 +158,9 @@ namespace spider {
         }
 
     protected:
-        spider::array<RTRunner *> runnerArray_;                                    /* = Array of RTRunner = */
-        stack_vector(runtimeKernelVector_, RTKernel*, StackID::RUNTIME); /* = Vector of RTKernel = */
-        RTCommunicator *communicator_ = nullptr;                                   /* = Communicator of the RTPlatform = */
+        spider::array<RTRunner *> runnerArray_;                                /* = Array of RTRunner = */
+        spider::sbc::vector<RTKernel*, StackID::RUNTIME> runtimeKernelVector_; /* = Vector of RTKernel = */
+        RTCommunicator *communicator_ = nullptr;                               /* = Communicator of the RTPlatform = */
     };
 }
 

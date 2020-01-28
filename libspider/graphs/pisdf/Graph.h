@@ -352,19 +352,19 @@ namespace spider {
             /* === Contained elements of the graph === */
 
             /* = Vector of all the Vertex (if any). This vector contains subgraph and ConfigVertex as well = */
-            stack_vector(vertexVector_, spider::unique_ptr<Vertex>, StackID::PISDF);
+            spider::sbc::vector<spider::unique_ptr<Vertex>, StackID::PISDF> vertexVector_;
             /* = Vector of ConfigVertex (if any). This is just a "viewer" vector. = */
-            stack_vector(configVertexVector_, ConfigVertex *, StackID::PISDF);
+            spider::sbc::vector<ConfigVertex *, StackID::PISDF> configVertexVector_;
             /* = Vector of subgraph (if any). This is just a "viewer" vector. = */
-            stack_vector(subgraphVector_, Graph *, StackID::PISDF);
+            spider::sbc::vector<Graph *, StackID::PISDF> subgraphVector_;
             /* = Vector of Edge contained in the Graph = */
-            stack_vector(edgeVector_, Edge *, StackID::PISDF);
+            spider::sbc::vector<Edge *, StackID::PISDF> edgeVector_;
             /* = Vector of Param = */
-            stack_vector(paramVector_, std::shared_ptr<Param>, StackID::PISDF);
+            spider::sbc::vector<std::shared_ptr<Param>, StackID::PISDF> paramVector_;
             /* = Vector of InputInterface (size is equal to inputEdgeArray_.size()) = */
-            stack_vector(inputInterfaceVector_, InputInterface *, StackID::PISDF);
+            spider::sbc::vector<InputInterface *, StackID::PISDF> inputInterfaceVector_;
             /* = Vector of OutputInterface (size is equal to outputEdgeArray_.size()) = */
-            stack_vector(outputInterfaceVector_, OutputInterface *, StackID::PISDF);
+            spider::sbc::vector<OutputInterface *, StackID::PISDF> outputInterfaceVector_;
 
             const Graph *runGraphReference_ = nullptr; /* =
                                                        * Reference pointer to the run counter part of this graph.

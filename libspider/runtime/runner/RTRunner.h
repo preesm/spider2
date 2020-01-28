@@ -99,7 +99,7 @@ namespace spider {
         }
 
     protected:
-        stack_vector(jobQueue_, JobMessage, StackID::RUNTIME);
+        spider::sbc::vector<JobMessage, StackID::RUNTIME> jobQueue_;
         spider::array<size_t> localJobStampsArray_;
         PE *attachedPE_ = nullptr;
         size_t runnerIx_ = SIZE_MAX;

@@ -44,6 +44,7 @@
 
 #include <cstdint>
 #include <algorithm>
+#include <containers/vector.h>
 #include <containers/containers.h>
 #include <runtime/interface/Message.h>
 #include <scheduling/allocator/FifoAllocator.h>
@@ -257,7 +258,7 @@ namespace spider {
             }
 
         private:
-            stack_vector(outputFifoVector_, RTFifo, StackID::SCHEDULE);
+            spider::sbc::vector<RTFifo, StackID::SCHEDULE> outputFifoVector_;
             spider::array<size_t> scheduleConstraintsArray_;
             spider::array<bool> runnerToNotifyArray_;
             JobMappingInfo mappingInfo_;

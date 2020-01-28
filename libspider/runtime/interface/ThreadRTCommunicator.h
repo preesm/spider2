@@ -46,6 +46,7 @@
 #include <thread/Queue.h>
 #include <thread/IndexedQueue.h>
 #include <containers/array.h>
+#include <containers/vector.h>
 
 namespace spider {
 
@@ -82,7 +83,7 @@ namespace spider {
         bool pop(TraceMessage &message, size_t receiver, size_t ix) override;
 
     private:
-        stack_vector(notificationQueueVector_, spider::Queue<Notification>, StackID::RUNTIME);
+        spider::sbc::vector<spider::Queue<Notification>, StackID::RUNTIME> notificationQueueVector_;
         spider::IndexedQueue<JobMessage> jobMessageQueueArray_;
         spider::IndexedQueue<ParameterMessage> paramMessageQueueArray_;
         spider::IndexedQueue<TraceMessage> traceMessageQueueArray_;

@@ -42,6 +42,7 @@
 
 #include <cmath>
 #include <common/Math.h>
+#include <containers/vector.h>
 #include <graphs-tools/expression-parser/Expression.h>
 #include <graphs/pisdf/Param.h>
 #include <graphs/pisdf/Graph.h>
@@ -165,9 +166,9 @@ std::string spider::Expression::string() const {
 spider::vector<spider::ExpressionElt>
 spider::Expression::buildExpressionStack(spider::vector<RPNElement> &postfixStack,
                                          const spider::vector<std::shared_ptr<pisdf::Param>> &params) {
-    auto stack = containers::vector<ExpressionElt>(StackID::EXPRESSION);
+    auto stack = factory::vector<ExpressionElt>(StackID::EXPRESSION);
     stack.reserve(postfixStack.size());
-    auto evalStack = containers::vector<double>(StackID::EXPRESSION);
+    auto evalStack = factory::vector<double>(StackID::EXPRESSION);
     evalStack.reserve(6); /* = In practice, the evalStack will most likely not exceed 3 values = */
     bool skipEval = false;
     size_t argCount = 0;
@@ -229,7 +230,7 @@ spider::Expression::buildExpressionStack(spider::vector<RPNElement> &postfixStac
 }
 
 double spider::Expression::evaluateStack(const spider::vector<std::shared_ptr<pisdf::Param>> &params) const {
-    auto evalStack = containers::vector<double>(StackID::EXPRESSION);
+    auto evalStack = factory::vector<double>(StackID::EXPRESSION);
     evalStack.reserve(6); /* = In practice, the evalStack will most likely not exceed 3 values = */
     for (const auto &elt : *(expressionStack_)) {
         if (elt.elt_.type == RPNElementType::OPERAND) {

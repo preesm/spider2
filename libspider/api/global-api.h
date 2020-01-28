@@ -46,10 +46,6 @@
 #include <cstddef>
 #include <array>
 
-/* === non-namespace forward declaration(s) === */
-
-enum class FreeListPolicy;
-
 /* === non-namespace Enumeration(s) === */
 
 /**

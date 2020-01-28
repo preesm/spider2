@@ -74,7 +74,7 @@ namespace spider {
          * @param status  Status of the PE to set (true = enabled, false = disabled).
          * @throws std::out_of_range if PE ix is out of bound.
          */
-        inline void setPEStatus(uint32_t ix, bool status) {
+        inline void setPEStatus(size_t ix, bool status) {
             status ? PEArray_.at(ix)->enable() : PEArray_.at(ix)->disable();
         }
 

@@ -45,6 +45,7 @@
 #include <containers/array.h>
 #include <containers/containers.h>
 #include <api/spider.h>
+#include <containers/vector.h>
 
 class containersTest : public ::testing::Test {
 protected:
@@ -131,16 +132,16 @@ TEST_F(containersTest, stdContainersCtorTest) {
     /* === Testing wrapper around std containers === */
 
     /* == spider::vector == */
-    ASSERT_NO_THROW(spider::containers::vector<double>()) << "spider::containers::vector() failed.";
-    ASSERT_NO_THROW(spider::containers::vector<double>(10)) << "spider::containers::vector(size_t) failed.";
-    ASSERT_NO_THROW(spider::containers::vector<double>(10, 0.))
+    ASSERT_NO_THROW(spider::factory::vector<double>()) << "spider::containers::vector() failed.";
+    ASSERT_NO_THROW(spider::factory::vector<double>(10)) << "spider::containers::vector(size_t) failed.";
+    ASSERT_NO_THROW(spider::factory::vector<double>(10, 0.))
                                 << "spider::containers::vector(size_t, const T &) failed.";
-    auto tmp_vector = spider::containers::vector<double>();
-    ASSERT_NO_THROW(spider::containers::vector<double>(tmp_vector))
+    auto tmp_vector = spider::factory::vector<double>();
+    ASSERT_NO_THROW(spider::factory::vector<double>(tmp_vector))
                                 << "spider::containers::vector(const spider::vector &) failed.";
-    ASSERT_NO_THROW(spider::containers::vector<double>(spider::vector<double>()))
+    ASSERT_NO_THROW(spider::factory::vector<double>(spider::vector<double>()))
                                 << "spider::containers::vector(spider::vector &&) failed.";
-    ASSERT_NO_THROW(spider::containers::vector<double>({ 10, 0., 3.1415 }))
+    ASSERT_NO_THROW(spider::factory::vector<double>({ 10, 0., 3.1415 }))
                                 << "spider::containers::vector(std::initializer_list) failed.";
 
     /* == spider::deque == */

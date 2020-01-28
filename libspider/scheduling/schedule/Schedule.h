@@ -154,7 +154,7 @@ namespace spider {
             /* === Setter(s) === */
 
         private:
-            stack_vector(jobVector_, Job, StackID::SCHEDULE);
+            spider::sbc::vector<Job, StackID::SCHEDULE> jobVector_;
             Stats stats_;
             long readyJobCount_ = 0;
             long lastRunJob_ = 0;

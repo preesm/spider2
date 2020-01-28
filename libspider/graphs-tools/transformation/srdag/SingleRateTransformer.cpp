@@ -71,9 +71,9 @@ spider::srdag::SingleRateTransformer::SingleRateTransformer(const TransfoJob &jo
     for (auto *subgraph : graph->subgraphs()) {
         spider::srdag::splitDynamicGraph(subgraph);
     }
-    ref2Clone_ = containers::vector<size_t>(graph->vertexCount() +
-                                            graph->inputEdgeCount() +
-                                            graph->outputEdgeCount(), SIZE_MAX, StackID::TRANSFO);
+    ref2Clone_ = sbc::vector<size_t, StackID::TRANSFO>(graph->vertexCount() +
+                                                       graph->inputEdgeCount() +
+                                                       graph->outputEdgeCount(), SIZE_MAX);
 }
 
 std::pair<spider::srdag::JobStack, spider::srdag::JobStack> spider::srdag::SingleRateTransformer::execute() {
@@ -185,8 +185,8 @@ void spider::srdag::SingleRateTransformer::replaceInterfaces() {
 }
 
 std::pair<spider::srdag::JobStack, spider::srdag::JobStack> spider::srdag::SingleRateTransformer::makeFutureJobs() {
-    auto staticJobStack = containers::vector<TransfoJob>(StackID::TRANSFO);
-    auto dynaJobStack = containers::vector<TransfoJob>(StackID::TRANSFO);
+    auto staticJobStack = factory::vector<TransfoJob>(StackID::TRANSFO);
+    auto dynaJobStack = factory::vector<TransfoJob>(StackID::TRANSFO);
 
     auto addJobWithParamCopy = [&](spider::vector<TransfoJob> &jobStack, pisdf::Graph *graph, size_t ix) {
         auto *clone = srdag_->vertex(ix);
@@ -393,7 +393,7 @@ void spider::srdag::SingleRateTransformer::addJoinVertex(spider::vector<TransfoV
 spider::vector<spider::srdag::SingleRateTransformer::TransfoVertex>
 spider::srdag::SingleRateTransformer::buildSinkLinkerVector(pisdf::Edge *edge) {
     /* == 0. Reserve size of the vector == */
-    auto sinkVector = containers::vector<TransfoVertex>(StackID::TRANSFO);
+    auto sinkVector = factory::vector<TransfoVertex>(StackID::TRANSFO);
     auto *sink = edge->sink();
     auto *delay = edge->delay();
     sinkVector.reserve(sink->repetitionValue() + (delay != nullptr));
@@ -448,7 +448,7 @@ spider::srdag::SingleRateTransformer::buildSinkLinkerVector(pisdf::Edge *edge) {
 spider::vector<spider::srdag::SingleRateTransformer::TransfoVertex>
 spider::srdag::SingleRateTransformer::buildSourceLinkerVector(pisdf::Edge *edge) {
     /* == 0. Reserve size of the vector == */
-    auto sourceVector = containers::vector<TransfoVertex>(StackID::TRANSFO);
+    auto sourceVector = factory::vector<TransfoVertex>(StackID::TRANSFO);
     auto *source = edge->source();
     auto *delay = edge->delay();
     sourceVector.reserve(source->repetitionValue() + (delay != nullptr));

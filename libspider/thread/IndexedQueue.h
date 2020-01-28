@@ -43,7 +43,7 @@
 /* === Include(s) === */
 
 #include <mutex>
-#include <containers/containers.h>
+#include <containers/vector.h>
 
 namespace spider {
 
@@ -120,7 +120,7 @@ namespace spider {
 
     private:
         spider::queue<size_t> freeIndexQueue_; /* = Keeping track of available space in vector = */
-        spider::vector<T> queue_;                    /* = Actual queue = */
+        spider::vector<T> queue_;              /* = Actual queue = */
         std::mutex mutex_;
 
         /* === Private method(s) === */

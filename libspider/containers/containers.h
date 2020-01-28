@@ -54,21 +54,11 @@
 #include <stack>
 #include <memory/memory.h>
 
-/* === Macro to make stack_vector with proper stack Allocator in declaration,    === */
-/* === avoiding useless copies from one stack to another.                        === */
-/* === Basically just a wrapper calling default ctor with Allocator<type>(stack) === */
-/* === (I know it is ugly AF but still better than letting it clearly)           === */
-
-#define stack_vector(name, type, stack) spider::vector<type> (name){spider::allocator<type>(stack)}
-
 /* === Namespace === */
 
 namespace spider {
 
     /* === Sequence containers === */
-
-    template<class T, class alloc = spider::allocator<T>>
-    using vector = std::vector<T, alloc>;
 
     template<class T>
     using deque = std::deque<T, spider::allocator<T>>;
@@ -106,38 +96,6 @@ namespace spider {
     /* === Helper functions to make containers using specific stack === */
 
     namespace containers {
-
-        /* === std::vector === */
-
-        template<class T>
-        inline spider::vector<T> vector(StackID stack = StackID::GENERAL) {
-            return spider::vector<T>(spider::allocator<T>(stack));
-        }
-
-        template<class T>
-        inline spider::vector<T> vector(size_t count, StackID stack = StackID::GENERAL) {
-            return spider::vector<T>(count, T(), spider::allocator<T>(stack));
-        }
-
-        template<class T>
-        inline spider::vector<T> vector(size_t count, const T &value, StackID stack = StackID::GENERAL) {
-            return spider::vector<T>(count, value, spider::allocator<T>(stack));
-        }
-
-        template<class T>
-        inline spider::vector<T> vector(const spider::vector<T> &other, StackID stack = StackID::GENERAL) {
-            return spider::vector<T>(other, spider::allocator<T>(stack));
-        }
-
-        template<class T>
-        inline spider::vector<T> vector(spider::vector<T> &&other, StackID stack = StackID::GENERAL) {
-            return spider::vector<T>(other, spider::allocator<T>(stack));
-        }
-
-        template<class T>
-        inline spider::vector<T> vector(std::initializer_list<T> init, StackID stack = StackID::GENERAL) {
-            return spider::vector<T>(std::move(init), spider::allocator<T>(stack));
-        }
 
         /* === std::deque === */
 

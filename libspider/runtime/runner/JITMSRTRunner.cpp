@@ -62,7 +62,7 @@ void spider::JITMSRTRunner::run(bool infiniteLoop) {
         const auto &currentNumberOfJob = jobQueue_.size();
         bool blockingPop = (infiniteLoop && (jobQueueCurrentPos_ == currentNumberOfJob)) || !canRun;
         while (!stop_ && readNotification(blockingPop)) {
-            blockingPop = false;
+            blockingPop = pause_;
         }
 
         if (stop_) {
@@ -160,7 +160,6 @@ void spider::JITMSRTRunner::runJob(const JobMessage &job) {
         auto *sender = archi::platform()->processingElement(inputFIFO.senderReceiverIx_)->cluster();
         auto *memoryInterface = archi::platform()->getClusterToClusterMemoryInterface(sender,
                                                                                       attachedPE_->cluster()).second;
-        fprintf(stderr, "INFO:%zu: in -> %" PRIu64"\n", ix(), inputFIFO.virtualAddress_);
         *(inputBufferIterator++) = memoryInterface->read(inputFIFO.virtualAddress_);
     }
 
@@ -170,7 +169,6 @@ void spider::JITMSRTRunner::runJob(const JobMessage &job) {
     auto outputBufferIterator = outputBuffersArray.begin();
     for (auto &outputFIFO : job.outputFifoArray_) {
         auto *memoryInterface = attachedPE_->cluster()->memoryInterface();
-        fprintf(stderr, "INFO:%zu: out -> %" PRIu64"\n", ix(), outputFIFO.virtualAddress_);
         *(outputBufferIterator++) = memoryInterface->allocate(outputFIFO.virtualAddress_, outputFIFO.size_);
     }
 
@@ -191,7 +189,6 @@ void spider::JITMSRTRunner::runJob(const JobMessage &job) {
         auto *sender = archi::platform()->processingElement(inputFIFO.senderReceiverIx_)->cluster();
         auto *memoryInterface = archi::platform()->getClusterToClusterMemoryInterface(sender,
                                                                                       attachedPE_->cluster()).second;
-        fprintf(stderr, "INFO:%zu: deallocate -> %" PRIu64"\n", ix(), inputFIFO.virtualAddress_);
         memoryInterface->deallocate(inputFIFO.virtualAddress_, inputFIFO.size_);
     }
 
@@ -281,20 +278,22 @@ bool spider::JITMSRTRunner::readNotification(bool blocking) {
             break;
         case NotificationType::LRT_RST_ITERATION:
             jobQueueCurrentPos_ = 0;
-            // TODO fix this
+            localJobStampsArray_.assign(SIZE_MAX);
             break;
         case NotificationType::LRT_STOP:
             stop_ = true;
             break;
         case NotificationType::LRT_PAUSE:
-            // TODO: implement this
+            pause_ = true;
             break;
         case NotificationType::LRT_RESUME:
-            // TODO: implement this
+            pause_ = false;
             break;
         case NotificationType::TRACE_ENABLE:
+            trace_ = true;
             break;
         case NotificationType::TRACE_DISABLE:
+            trace_ = false;
             break;
         case NotificationType::TRACE_RST:
             break;
