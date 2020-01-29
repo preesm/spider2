@@ -489,10 +489,10 @@ spider::pisdf::Edge *spider::api::createEdge(pisdf::Vertex *source,
 }
 
 static spider::Expression checkAndGetExpression(spider::pisdf::Edge *edge, std::string delayExpression) {
-//    if (delayExpression == "0" && spider::log::enabled()) {
-//        spider::log::warning("delay with null value on edge [%s] ignored.\n",
-//                     edge->name().c_str());
-//    }
+    if (delayExpression == "0" && spider::log::enabled()) {
+        spider::log::warning("delay with null value on edge [%s] ignored.\n",
+                             edge->name().c_str());
+    }
     if (!edge) {
         throwSpiderException("Can not create Edge on nullptr edge.");
     }
@@ -596,6 +596,9 @@ spider::pisdf::Delay *spider::api::createLocalDelay(pisdf::Edge *edge,
                                                     size_t getterPortIx,
                                                     std::string getterRateExpression) {
     auto expression = checkAndGetExpression(edge, std::move(delayExpression));
+    if (expression.value() == 0) {
+        return nullptr;
+    }
     auto setterExpr = setter ? std::move(setterRateExpression) : std::to_string(expression.value());
     auto getterExpr = getter ? std::move(getterRateExpression) : std::to_string(expression.value());
     return make<pisdf::Delay>(StackID::PISDF,
