@@ -158,19 +158,12 @@ namespace spider {
             std::ofstream &file_;
             std::string offset_;
 
-            inline void vertexHeaderPrinter(const std::string &name,
+            void vertexHeaderPrinter(const std::string &name,
                                             const std::string &color = "#ffffff00",
                                             int_fast32_t border = 2,
-                                            const std::string &style = "") const {
-                file_ << offset_ << R"(")" << name
-                      << R"(" [shape=plain, color="#393c3c", width=0, height=0, label=<)"
-                      << '\n';
-                file_ << offset_ << '\t' << R"(<table border=")" << border << R"(" style=")" << style
-                      << R"(" bgcolor=")" << color << R"(" fixedsize="false" cellspacing="0" cellpadding="0">)" << '\n';
+                                            const std::string &style = "") const;
 
-            }
-
-            std::pair<int_fast32_t, int_fast32_t> computeConstantWidth(Vertex *vertex) const;
+            int_fast32_t computeMaxDigitCount(Vertex *vertex) const;
 
             void vertexNamePrinter(Vertex *vertex, size_t columnCount) const;
 

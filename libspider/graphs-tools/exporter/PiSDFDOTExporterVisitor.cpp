@@ -56,6 +56,7 @@ void spider::pisdf::PiSDFDOTExporterVisitor::visit(Graph *graph) {
         file_ << '\t' << R"(nodesep = 1;)" << '\n';
     }
 
+    /* == Subgraph header == */
     params_ = &(graph->params());
     file_ << offset_ << "subgraph \"cluster_" + graph->vertexPath() + "\" {" << '\n';
     offset_ += "\t";
@@ -66,10 +67,12 @@ void spider::pisdf::PiSDFDOTExporterVisitor::visit(Graph *graph) {
     file_ << offset_ << R"(color="#393c3c";)" << '\n';
     file_ << offset_ << "penwidth=2;" << '\n';
 
-    /* == Write vertices == */
-    file_ << '\n' << offset_ << R"(// Vertices)" << '\n';
-    for (const auto &vertex : graph->vertices()) {
-        vertex->visit(this);
+    /* == Write parameters (if any) == */
+    file_ << '\n' << offset_ << R"(// Parameters)" << '\n';
+    for (const auto &param : graph->params()) {
+        if (param->graph() == graph) {
+            param->visit(this);
+        }
     }
 
     /* == Write interfaces in case of hierarchical graphs == */
@@ -86,20 +89,31 @@ void spider::pisdf::PiSDFDOTExporterVisitor::visit(Graph *graph) {
     }
     if (graph->outputEdgeCount()) {
         file_ << offset_ << "{" << '\n';
-        file_ << offset_ << '\t' << "rank=sink;" << '\n';
+        offset_ += "\t";
+        file_ << offset_ << "rank=sink;" << '\n';
         for (const auto &interface : graph->outputInterfaceVector()) {
             interface->visit(this);
         }
+        offset_.pop_back();
         file_ << offset_ << "}" << '\n';
     }
 
-    /* == Write parameters (if any) == */
-    file_ << '\n' << offset_ << R"(// Parameters)" << '\n';
-    for (const auto &param : graph->params()) {
-        if (param->graph() == graph) {
-            param->visit(this);
+    /* == Write vertices == */
+    file_ << '\n' << offset_ << R"(// Vertices)" << '\n';
+    for (const auto &vertex : graph->vertices()) {
+        if (!vertex->hierarchical()) {
+            vertex->visit(this);
         }
     }
+
+    /* == Write subgraphs == */
+    if (graph->subgraphCount()) {
+        file_ << '\n' << offset_ << R"(// Subgraphs)" << '\n';
+        for (const auto &subgraph : graph->subgraphs()) {
+            subgraph->visit(this);
+        }
+    }
+
     file_ << '\n';
     /* == draw invisible edges between params to put them on the same line == */
     for (auto iterator = graph->params().begin(); iterator != graph->params().end(); ++iterator) {
@@ -131,38 +145,39 @@ void spider::pisdf::PiSDFDOTExporterVisitor::visit(Graph *graph) {
 
 /* === Private method(s) === */
 
-std::pair<int_fast32_t, int_fast32_t>
-spider::pisdf::PiSDFDOTExporterVisitor::computeConstantWidth(Vertex *vertex) const {
-    /* == Compute widths (based on empirical measurements)       == */
-    /* ==                           _                        _   == */
-    /* ==                          |               1          |  == */
-    /* == w(n) = 15*(n-8)*U(n-8) + |20*(1 + ------------------|  == */
-    /* ==                          |        1 + exp(-10*(n-7))|  == */
-    /* ==                                                        == */
-    /* == with U(x) the Heaviside function                       == */
-    auto n = static_cast<double>(std::min(vertex->name().size(), MAX_LENGTH));
-    const auto &centerWidth = static_cast<int_fast32_t>(15. * (n - 8.) * (n > 8) +
-                                                        std::ceil(20. * (1 + 1. / (1 + std::exp(-10. * (n - 7.))))));
-
+int_fast32_t spider::pisdf::PiSDFDOTExporterVisitor::computeMaxDigitCount(Vertex *vertex) const {
     /* == Get the maximum number of digits == */
-    double longestRateLen = 0;
+    int_fast32_t maxDigitCount = 0;
     for (const auto &e: vertex->inputEdgeVector()) {
         if (!e) {
             throwSpiderException("vertex [%s]: null input edge.", vertex->name().c_str());
         }
         const auto &rate = e->sinkRateValue();
-        longestRateLen = std::max(longestRateLen, std::log10(rate));
+        maxDigitCount = std::max(maxDigitCount, static_cast<int_fast32_t>(std::log10(rate)));
     }
     for (const auto &e: vertex->outputEdgeVector()) {
         if (!e) {
             throwSpiderException("vertex [%s]: null output edge.", vertex->name().c_str());
         }
         const auto &rate = e->sourceRateValue();
-        longestRateLen = std::max(longestRateLen, std::log10(rate));
+        maxDigitCount = std::max(maxDigitCount, static_cast<int_fast32_t>(std::log10(rate)));
     }
-    return std::make_pair(centerWidth, static_cast<int_fast32_t>(longestRateLen));
+    return maxDigitCount;
 }
 
+void spider::pisdf::PiSDFDOTExporterVisitor::vertexHeaderPrinter(const std::string &name,
+                                                                 const std::string &color,
+                                                                 int_fast32_t border,
+                                                                 const std::string &style) const {
+    file_ << offset_ << R"(")" << name
+          << R"(" [shape=plain, color="#393c3c", width=0, height=0, label=<)"
+          << '\n';
+    file_ << offset_ << '\t' << R"(<table border=")" << border << R"(" style=")" << style
+          << R"(" bgcolor=")" << color << R"(" fixedsize="false" cellspacing="0" cellpadding="0">)" << '\n';
+
+    file_ << offset_ << '\t' << '\t'
+          << R"(<tr> <td border="0" colspan="4" fixedsize="false" height="10"></td></tr>)" << '\n';
+}
 
 void spider::pisdf::PiSDFDOTExporterVisitor::vertexNamePrinter(Vertex *vertex, size_t columnCount) const {
     auto name = vertex->name();
@@ -192,15 +207,13 @@ void spider::pisdf::PiSDFDOTExporterVisitor::vertexPrinter(Vertex *vertex,
     vertexHeaderPrinter(vertex->vertexPath(), color, border, style);
 
     /* == Vertex name == */
-    file_ << offset_ << '\t' << '\t'
-          << R"(<tr> <td border="0" colspan="4" fixedsize="false" height="10"></td></tr>)"
-          << '\n';
     vertexNamePrinter(vertex, 4);
 
     /* == Get widths == */
-    const auto &widthPair = computeConstantWidth(vertex);
-    const auto &centerWidth = widthPair.first;
-    const auto &rateWidth = static_cast<int_fast32_t>(32 + std::max(widthPair.second + 1 - 3, 0l) * 8);
+    const auto &digitCount = computeMaxDigitCount(vertex);
+    const auto &rateWidth = 32 + std::max(digitCount - 2, 0l) * 8;
+    const auto &nameWidth = static_cast<int_fast32_t >(std::min(vertex->name().size(), MAX_LENGTH) * 16);
+    const auto centerWidth = 20 + std::max(nameWidth - (2 * 20 + 2 * rateWidth), 0l);
 
     /* == Export data ports == */
     size_t nOutput = 0;
@@ -266,9 +279,11 @@ spider::pisdf::PiSDFDOTExporterVisitor::interfaceBodyPrinter(Interface *interfac
     vertexNamePrinter(interface, 5);
 
     /* == Get widths == */
-    const auto &widthPair = computeConstantWidth(interface);
-    const auto &balanceWidth = widthPair.first;
-    const auto &rateWidth = 24 + std::max(widthPair.second + 1 - 1, 0l) * 6;
+    const auto &digitCount = computeMaxDigitCount(interface);
+    const auto &rateWidth = 24 + digitCount * 6;
+    const auto &nameWidth = static_cast<int_fast32_t >(std::min(interface->name().size(), MAX_LENGTH) * 16);
+    const auto balanceWidth = std::max((nameWidth - (2 * rateWidth + 20)) / 2, 20l);
+
     auto *inputEdge = interface->inputEdge();
     auto *outputEdge = interface->outputEdge();
     auto inIx = inputEdge->sinkPortIx();
@@ -368,7 +383,8 @@ void spider::pisdf::PiSDFDOTExporterVisitor::edgePrinter(Edge *edge) const {
     } else if (source->subtype() == VertexType::DELAY) {
         /* == Connect delay to getter == */
         file_ << offset_ << R"(")" << srcName << R"(":se -> ")";
-        file_ << snkName << R"(":in_)" << snkPortIx << R"(:w [penwidth=3, color="#393c3c", dir=forward];)" << '\n';
+        file_ << snkName << R"(":in_)" << snkPortIx << R"(:w [penwidth=3, style=dotted, color="#393c3c", dir=forward];)"
+              << '\n';
     } else {
         /* == General case == */
         file_ << offset_ << R"(")" << srcName << R"(":out_)" << srcPortIx << R"(:e -> ")";
