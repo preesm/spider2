@@ -62,7 +62,7 @@ namespace spider {
                 const auto &peCount = platform->PECount();
                 peMappableVector_.resize(peCount, true);
                 clusterMappableVector_.resize(clusterCount, true);
-                timingVector_.resize(peCount, Expression(100));
+                timingVector_.resize(clusterCount, Expression(100));
             }
         }
 
@@ -116,7 +116,47 @@ namespace spider {
             if (!pe) {
                 return INT64_MAX;
             }
-            return timingVector_.at(pe->virtualIx()).evaluate(params);
+            return timingVector_.at(pe->cluster()->ix()).evaluate(params);
+        }
+
+        /**
+         * @brief Evaluate the timing of vertex associated to this RTConstraints on given PE.
+         * @param ix      Spider pe ix to evaluate.
+         * @param params  Extra parameters in case timing is parameterized.
+         * @return timing on given PE (100 by default).
+         * @throws std::out_of_range
+         */
+        inline int64_t timingOnPE(size_t ix, const spider::vector<std::shared_ptr<pisdf::Param>> &params = { }) const {
+            auto *cluster = archi::platform()->processingElement(ix)->cluster();
+            return timingVector_.at(cluster->ix()).evaluate(params);
+        }
+
+        /**
+         * @brief Evaluate the timing of vertex associated to this RTInfo on given cluster.
+         * @param cluster Pointer to the cluster to evaluate.
+         * @param params  Extra parameters in case timing is parameterized.
+         * @return timing on given PE (100 by default). If pe is nullptr, return INT64_MAX.
+         * @throws std::out_of_range
+         */
+        inline int64_t
+        timingOnCluster(const Cluster *cluster,
+                        const spider::vector<std::shared_ptr<pisdf::Param>> &params = { }) const {
+            if (!cluster) {
+                return INT64_MAX;
+            }
+            return timingVector_.at(cluster->ix()).evaluate(params);
+        }
+
+        /**
+         * @brief Evaluate the timing of vertex associated to this RTConstraints on given PE.
+         * @param ix      Spider cluster ix to evaluate.
+         * @param params  Extra parameters in case timing is parameterized.
+         * @return timing on given PE (100 by default).
+         * @throws std::out_of_range
+         */
+        inline int64_t
+        timingOnCluster(size_t ix, const spider::vector<std::shared_ptr<pisdf::Param>> &params = { }) const {
+            return timingVector_.at(ix).evaluate(params);
         }
 
         /**
@@ -137,17 +177,6 @@ namespace spider {
          */
         inline bool isClusterMappable(size_t ix) const {
             return clusterMappableVector_.at(ix);
-        }
-
-        /**
-         * @brief Evaluate the timing of vertex associated to this RTConstraints on given PE.
-         * @param ix      Spider pe ix to evaluate.
-         * @param params  Extra parameters in case timing is parameterized.
-         * @return timing on given PE (100 by default).
-         * @throws std::out_of_range
-         */
-        inline int64_t timingOnPE(size_t ix, const spider::vector<std::shared_ptr<pisdf::Param>> &params = { }) const {
-            return timingVector_.at(ix).evaluate(params);
         }
 
         /**
@@ -188,65 +217,65 @@ namespace spider {
         }
 
         /**
-         * @brief Set timing on a given PE by value.
-         * @remark If pe is nullptr, nothing happens.
-         * @param pe     PE to evaluate.
-         * @param value  Value to set (default is 100).
+         * @brief Set timing on a given cluster by value.
+         * @remark If cluster is nullptr, nothing happens.
+         * @param cluster Pointer to the cluster to evaluate.
+         * @param value   Value to set (default is 100).
          * @throws std::out_of_range
          */
-        inline void setTimingOnPE(const PE *pe, int64_t value = 100) {
-            if (!pe) {
+        inline void setTimingOnCluster(const Cluster *cluster, int64_t value = 100) {
+            if (!cluster) {
                 return;
             }
-            timingVector_.at(pe->virtualIx()) = Expression(value);
+            timingVector_.at(cluster->ix()) = Expression(value);
         }
 
         /**
-         * @brief Set timing on a given PE by Expression.
-         * @remark If pe is nullptr, nothing happens.
-         * @param pe          PE to evaluate.
+         * @brief Set timing on a given cluster by Expression.
+         * @remark If cluster is nullptr, nothing happens.
+         * @param cluster     Pointer to the cluster to evaluate.
          * @param expression  Expression to set.
          * @throws std::out_of_range
          */
-        inline void setTimingOnPE(const PE *pe, Expression &&expression) {
-            if (!pe) {
+        inline void setTimingOnCluster(const Cluster *cluster, Expression &&expression) {
+            if (!cluster) {
                 return;
             }
-            timingVector_.at(pe->virtualIx()) = std::move(expression);
+            timingVector_.at(cluster->ix()) = std::move(expression);
         }
 
         /**
-         * @brief Set timing on a given PE by value.
-         * @param ix     Spider PE ix to evaluate.
+         * @brief Set timing on a given cluster by value.
+         * @param ix     Spider cluster ix to evaluate.
          * @param value  Value to set (default is 100).
          * @throws std::out_of_range
          */
-        inline void setTimingOnPE(size_t ix, int64_t value = 100) {
+        inline void setTimingOnCluster(size_t ix, int64_t value = 100) {
             timingVector_.at(ix) = Expression(value);
         }
 
         /**
-         * @brief Set timing on a given PE by Expression.
-         * @param ix          Spider PE ix to evaluate.
+         * @brief Set timing on a given cluster by Expression.
+         * @param ix          Spider cluster ix to evaluate.
          * @param expression  Expression to set.
          */
-        inline void setTimingOnPE(size_t ix, Expression &&expression) {
+        inline void setTimingOnCluster(size_t ix, Expression &&expression) {
             timingVector_.at(ix) = std::move(expression);
         }
 
         /**
-         * @brief Set timing on all PE by value.
+         * @brief Set timing on all Cluster by value.
          * @param value  Value to set (default is 100).
          */
-        inline void setTimingOnAllPE(int64_t value = 100) {
+        inline void setTimingOnAllCluster(int64_t value = 100) {
             std::fill(timingVector_.begin(), timingVector_.end(), Expression(value));
         }
 
         /**
-         * @brief Set timing on all PE by Expression.
+         * @brief Set timing on all Cluster by Expression.
          * @param expression Expression to set.
          */
-        inline void setTimingOnAllPE(const Expression &expression) {
+        inline void setTimingOnAllCluster(const Expression &expression) {
             std::fill(timingVector_.begin(), timingVector_.end(), expression);
         }
 

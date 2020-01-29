@@ -60,6 +60,9 @@
 
 static void createSpecialRTKernels() {
     auto *&rtPlatform = spider::rt::platform();
+    if (!rtPlatform) {
+        throwSpiderException("runtime platform should be created first.");
+    }
     auto *forkKernel = spider::make<spider::RTKernel, StackID::RUNTIME>(spider::rt::fork);
     rtPlatform->addKernel(forkKernel);
 
@@ -125,24 +128,29 @@ void spider::api::createThreadRTPlatform() {
 /* === Runtime kernel related API === */
 
 spider::RTKernel *spider::api::createRuntimeKernel(spider::rtkernel kernel) {
-    auto *runtimeKernel = make<RTKernel, StackID::RUNTIME>(kernel);
-    rt::platform()->addKernel(runtimeKernel);
-    return runtimeKernel;
+    if (rt::platform()) {
+        auto *runtimeKernel = make<RTKernel, StackID::RUNTIME>(kernel);
+        rt::platform()->addKernel(runtimeKernel);
+        return runtimeKernel;
+    }
+    return nullptr;
 }
 
 spider::RTKernel *spider::api::createRuntimeKernel(spider::pisdf::Vertex *vertex, spider::rtkernel kernel) {
     if (!vertex) {
         throwSpiderException("nullptr vertex.");
     }
-    auto *runtimeInfo = vertex->runtimeInformation();
-    if (runtimeInfo->kernelIx() != SIZE_MAX) {
-        throwSpiderException("vertex %s already has a runtime kernel.", vertex->name().c_str());
-    }
-    if (rt::platform()) {
-        auto *runtimeKernel = make<RTKernel, StackID::RUNTIME>(kernel);
-        const auto &index = rt::platform()->addKernel(runtimeKernel);
-        runtimeInfo->setKernelIx(index);
-        return runtimeKernel;
+    if (vertex->executable()) {
+        auto *runtimeInfo = vertex->runtimeInformation();
+        if (runtimeInfo->kernelIx() != SIZE_MAX) {
+            throwSpiderException("vertex %s already has a runtime kernel.", vertex->name().c_str());
+        }
+        if (rt::platform()) {
+            auto *runtimeKernel = make<RTKernel, StackID::RUNTIME>(kernel);
+            const auto &index = rt::platform()->addKernel(runtimeKernel);
+            runtimeInfo->setKernelIx(index);
+            return runtimeKernel;
+        }
     }
     return nullptr;
 }
@@ -153,9 +161,14 @@ void spider::api::setVertexMappableOnCluster(pisdf::Vertex *vertex, const Cluste
     if (!vertex) {
         throwSpiderException("nullptr vertex.");
     }
-    auto *runtimeInfo = vertex->runtimeInformation();
-    for (auto &pe : cluster->array()) {
-        runtimeInfo->setMappableConstraintOnPE(pe, value);
+    if (vertex->executable()) {
+        if (!cluster) {
+            throwSpiderException("nullptr cluster.");
+        }
+        auto *runtimeInfo = vertex->runtimeInformation();
+        for (auto &pe : cluster->array()) {
+            runtimeInfo->setMappableConstraintOnPE(pe, value);
+        }
     }
 }
 
@@ -163,55 +176,97 @@ void spider::api::setVertexMappableOnCluster(pisdf::Vertex *vertex, uint32_t clu
     if (!vertex) {
         throwSpiderException("nullptr vertex.");
     }
-    auto *&platform = archi::platform();
-    auto *cluster = platform->cluster(clusterIx);
-    spider::api::setVertexMappableOnCluster(vertex, cluster, value);
+    if (!archi::platform()) {
+        throwSpiderException("platform must be created first.");
+    }
+    if (vertex->executable()) {
+        auto *&platform = archi::platform();
+        auto *cluster = platform->cluster(clusterIx);
+        spider::api::setVertexMappableOnCluster(vertex, cluster, value);
+    }
 }
 
 void spider::api::setVertexMappableOnPE(pisdf::Vertex *vertex, const spider::PE *pe, bool value) {
     if (!vertex) {
         throwSpiderException("nullptr vertex.");
     }
-    auto *runtimeInfo = vertex->runtimeInformation();
-    runtimeInfo->setMappableConstraintOnPE(pe, value);
+    if (!pe) {
+        throwSpiderException("nullptr pe.");
+    }
+    if (vertex->executable()) {
+        auto *runtimeInfo = vertex->runtimeInformation();
+        runtimeInfo->setMappableConstraintOnPE(pe, value);
+    }
+}
+
+void spider::api::setVertexMappableOnPE(spider::pisdf::Vertex *vertex, size_t PEId, bool value) {
+    if (!archi::platform()) {
+        throwSpiderException("platform must be created first.");
+    }
+    setVertexMappableOnPE(vertex, archi::platform()->processingElement(PEId), value);
 }
 
 void spider::api::setVertexMappableOnAllPE(pisdf::Vertex *vertex, bool value) {
     if (!vertex) {
         throwSpiderException("nullptr vertex.");
     }
-    auto *runtimeInfo = vertex->runtimeInformation();
-    runtimeInfo->setMappableConstraintOnAllPE(value);
+    if (vertex->executable()) {
+        auto *runtimeInfo = vertex->runtimeInformation();
+        runtimeInfo->setMappableConstraintOnAllPE(value);
+    }
 }
 
-void spider::api::setVertexExecutionTimingOnPE(pisdf::Vertex *vertex, const PE *pe, std::string timingExpression) {
+void spider::api::setVertexExecutionTimingOnCluster(pisdf::Vertex *vertex, const Cluster *cluster,
+                                                    std::string timingExpression) {
     if (!vertex) {
         throwSpiderException("nullptr vertex.");
     }
-    auto *runtimeInfo = vertex->runtimeInformation();
-    runtimeInfo->setTimingOnPE(pe, Expression(std::move(timingExpression), vertex->inputParamVector()));
+    if (!cluster) {
+        throwSpiderException("nullptr cluster.");
+    }
+    if (vertex->executable()) {
+        auto *runtimeInfo = vertex->runtimeInformation();
+        runtimeInfo->setTimingOnCluster(cluster, Expression(std::move(timingExpression), vertex->graph()->params()));
+    }
 }
 
-void spider::api::setVertexExecutionTimingOnPE(pisdf::Vertex *vertex, const PE *pe, int64_t timing) {
+void spider::api::setVertexExecutionTimingOnCluster(pisdf::Vertex *vertex, const Cluster *cluster, int64_t timing) {
     if (!vertex) {
         throwSpiderException("nullptr vertex.");
     }
-    auto *runtimeInfo = vertex->runtimeInformation();
-    runtimeInfo->setTimingOnPE(pe, timing);
+    if (!cluster) {
+        throwSpiderException("nullptr cluster.");
+    }
+    if (vertex->executable()) {
+        auto *runtimeInfo = vertex->runtimeInformation();
+        runtimeInfo->setTimingOnCluster(cluster, timing);
+    }
 }
 
-void spider::api::setVertexExecutionTimingOnAllPE(pisdf::Vertex *vertex, std::string timingExpression) {
+void
+spider::api::setVertexExecutionTimingOnCluster(pisdf::Vertex *vertex, size_t clusterIx, std::string timingExpression) {
+    if (!archi::platform()) {
+        throwSpiderException("platform must be created first.");
+    }
+    setVertexExecutionTimingOnCluster(vertex, archi::platform()->cluster(clusterIx), std::move(timingExpression));
+}
+
+void spider::api::setVertexExecutionTimingOnAllCluster(pisdf::Vertex *vertex, std::string timingExpression) {
     if (!vertex) {
         throwSpiderException("nullptr vertex.");
     }
-    auto *runtimeInfo = vertex->runtimeInformation();
-    runtimeInfo->setTimingOnAllPE(Expression(std::move(timingExpression), vertex->inputParamVector()));
+    if (vertex->executable()) {
+        auto *runtimeInfo = vertex->runtimeInformation();
+        runtimeInfo->setTimingOnAllCluster(Expression(std::move(timingExpression), vertex->graph()->params()));
+    }
 }
 
-void spider::api::setVertexExecutionTimingOnAllPE(pisdf::Vertex *vertex, int64_t timing) {
+void spider::api::setVertexExecutionTimingOnAllCluster(pisdf::Vertex *vertex, int64_t timing) {
     if (!vertex) {
         throwSpiderException("nullptr vertex.");
     }
-    auto *runtimeInfo = vertex->runtimeInformation();
-    runtimeInfo->setTimingOnAllPE(timing);
+    if (vertex->executable()) {
+        auto *runtimeInfo = vertex->runtimeInformation();
+        runtimeInfo->setTimingOnAllCluster(timing);
+    }
 }
