@@ -545,12 +545,12 @@ spider::pisdf::Delay *spider::api::createDelay(pisdf::Edge *edge,
 
 spider::pisdf::Delay *spider::api::createPersistentDelay(spider::pisdf::Edge *edge,
                                                          std::string delayExpression) {
-    if (delayExpression == "0" && spider::log::enabled()) {
+    auto expression = checkAndGetExpression(edge, std::move(delayExpression));
+    if (expression.value() == 0 && spider::log::enabled()) {
         spider::log::warning("delay with null value on edge [%s] ignored.\n",
                              edge->name().c_str());
         return nullptr;
     }
-    auto expression = checkAndGetExpression(edge, std::move(delayExpression));
     auto *graph = edge->graph();
     const auto value = expression.value();
     while (!graph->isTopGraph()) {
@@ -584,14 +584,15 @@ spider::pisdf::Delay *spider::api::createPersistentDelay(spider::pisdf::Edge *ed
 spider::pisdf::Delay *spider::api::createLocalPersistentDelay(pisdf::Edge *edge,
                                                               std::string delayExpression,
                                                               int_fast32_t levelCount) {
-    if (delayExpression == "0" && spider::log::enabled()) {
-        spider::log::warning("delay with null value on edge [%s] ignored.\n",
-                             edge->name().c_str());
-        return nullptr;
-    } else if (levelCount < 0) {
+    if (levelCount < 0) {
         return createPersistentDelay(edge, std::move(delayExpression));
     }
     auto expression = checkAndGetExpression(edge, std::move(delayExpression));
+    if (expression.value() == 0 && spider::log::enabled()) {
+        spider::log::warning("delay with null value on edge [%s] ignored.\n",
+                             edge->name().c_str());
+        return nullptr;
+    }
     int_fast32_t currentLevelCount = 0;
     auto *graph = edge->graph();
     const auto value = expression.value();
@@ -633,12 +634,12 @@ spider::pisdf::Delay *spider::api::createLocalDelay(pisdf::Edge *edge,
                                                     pisdf::ExecVertex *getter,
                                                     size_t getterPortIx,
                                                     std::string getterRateExpression) {
-    if (delayExpression == "0" && spider::log::enabled()) {
+    auto expression = checkAndGetExpression(edge, std::move(delayExpression));
+    if (expression.value() == 0 && spider::log::enabled()) {
         spider::log::warning("delay with null value on edge [%s] ignored.\n",
                              edge->name().c_str());
         return nullptr;
     }
-    auto expression = checkAndGetExpression(edge, std::move(delayExpression));
     auto setterExpr = setter ? std::move(setterRateExpression) : std::to_string(expression.value());
     auto getterExpr = getter ? std::move(getterRateExpression) : std::to_string(expression.value());
     return make<pisdf::Delay, StackID::PISDF>(std::move(expression), edge,
