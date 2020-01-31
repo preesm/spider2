@@ -59,6 +59,17 @@ namespace spider {
         void disableExportTrace();
 
         /**
+         * @brief Enable the export of the SRDAG in Spider.
+         * @remark default path is "./srdag.dot"
+         */
+        void enableExportSRDAG();
+
+        /**
+         * @brief Disable the export of the SRDAG in Spider (default behavior).
+         */
+        void disableExportSRDAG();
+
+        /**
          * @brief Enable the Verbose mode in Spider.
          */
         void enableVerbose();
@@ -95,6 +106,12 @@ namespace spider {
          * @return value of trace flag.
          */
         bool exportTrace();
+
+        /**
+         * @brief Get the export srdag flag value.
+         * @return value of export srdag flag.
+         */
+        bool exportSRDAG();
 
         /**
          * @brief Get the verbose flag value.

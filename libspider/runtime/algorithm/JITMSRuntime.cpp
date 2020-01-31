@@ -127,6 +127,11 @@ bool spider::JITMSRuntime::staticExecute() {
         //monitor_->endSampling();
     }
 
+    if (api::exportSRDAG()) {
+        auto exporter = pisdf::PiSDFDOTExporter{ srdag_.get() };
+        exporter.printFromPath("./srdag.dot");
+    }
+
     /* == Schedule / Map current Single-Rate graph == */
     //monitor_->startSampling();
     scheduler_->update();
@@ -222,6 +227,11 @@ bool spider::JITMSRuntime::dynamicExecute() {
             scheduler_->update();
             scheduler_->mappingScheduling();
         }
+    }
+
+    if (api::exportSRDAG()) {
+        auto exporter = pisdf::PiSDFDOTExporter{ srdag_.get() };
+        exporter.printFromPath("./srdag.dot");
     }
 
     /* == If there are jobs left, run == */

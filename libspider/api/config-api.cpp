@@ -51,6 +51,7 @@ struct SpiderConfiguration {
     bool optimizeSRDAG_ = true;
     bool verbose_ = false;
     bool exportTrace_ = false;
+    bool exportSRDAG_ = false;
 };
 
 static SpiderConfiguration config_;
@@ -63,6 +64,14 @@ void spider::api::enableExportTrace() {
 
 void spider::api::disableExportTrace() {
     config_.exportTrace_ = false;
+}
+
+void spider::api::enableExportSRDAG() {
+    config_.exportSRDAG_ = true;
+}
+
+void spider::api::disableExportSRDAG() {
+    config_.exportSRDAG_ = false;
 }
 
 void spider::api::enableVerbose() {
@@ -97,6 +106,10 @@ void spider::api::disableSRDAGOptims() {
 
 bool spider::api::exportTrace() {
     return config_.exportTrace_;
+}
+
+bool spider::api::exportSRDAG() {
+    return config_.exportSRDAG_;
 }
 
 bool spider::api::verbose() {
