@@ -90,7 +90,7 @@ namespace spider {
         private:
             template<class T>
             inline void clone(const T *vertex) {
-                result_ = make<T>(StackID::PISDF, (*vertex));
+                result_ = make<T, StackID::PISDF>((*vertex));
             }
         };
     }

@@ -91,14 +91,13 @@ spider::pisdf::Graph *spider::api::createGraph(std::string name,
     if (name == "app-graph") {
         throwSpiderException("Unauthorized name: \"app-graph\" is a reserved name for graphs by Spider.");
     }
-    return make<pisdf::Graph>(StackID::PISDF,
-                              std::move(name),
-                              actorCount,
-                              edgeCount,
-                              paramCount,
-                              inIFCount,
-                              outIFCount,
-                              cfgActorCount);
+    return make<pisdf::Graph, StackID::PISDF>(std::move(name),
+                                              actorCount,
+                                              edgeCount,
+                                              paramCount,
+                                              inIFCount,
+                                              outIFCount,
+                                              cfgActorCount);
 }
 
 spider::pisdf::Graph *spider::api::createSubgraph(pisdf::Graph *graph,
@@ -115,14 +114,13 @@ spider::pisdf::Graph *spider::api::createSubgraph(pisdf::Graph *graph,
     if (name == "app-graph") {
         throwSpiderException("Unauthorized name: \"app-graph\" is a reserved name for graphs by Spider.");
     }
-    auto *subgraph = make<pisdf::Graph>(StackID::PISDF,
-                                        std::move(name),
-                                        actorCount,
-                                        edgeCount,
-                                        paramCount,
-                                        inIFCount,
-                                        outIFCount,
-                                        cfgActorCount);
+    auto *subgraph = make<pisdf::Graph, StackID::PISDF>(std::move(name),
+                                                        actorCount,
+                                                        edgeCount,
+                                                        paramCount,
+                                                        inIFCount,
+                                                        outIFCount,
+                                                        cfgActorCount);
     graph->addVertex(subgraph);
     return subgraph;
 }
@@ -174,7 +172,7 @@ spider::pisdf::Vertex *spider::api::createVertex(pisdf::Graph *graph,
     if (!graph) {
         throwSpiderException("nullptr for graph.");
     }
-    auto *vertex = make<pisdf::ExecVertex>(StackID::PISDF, std::move(name), edgeINCount, edgeOUTCount);
+    auto *vertex = make<pisdf::ExecVertex, StackID::PISDF>(std::move(name), edgeINCount, edgeOUTCount);
     graph->addVertex(vertex);
     return vertex;
 }
@@ -186,7 +184,7 @@ spider::pisdf::Vertex *spider::api::createNonExecVertex(pisdf::Graph *graph,
     if (!graph) {
         throwSpiderException("nullptr for graph.");
     }
-    auto *vertex = make<pisdf::NonExecVertex>(StackID::PISDF, std::move(name), edgeINCount, edgeOUTCount);
+    auto *vertex = make<pisdf::NonExecVertex, StackID::PISDF>(std::move(name), edgeINCount, edgeOUTCount);
     graph->addVertex(vertex);
     return vertex;
 }
@@ -195,7 +193,7 @@ spider::pisdf::Vertex *spider::api::createFork(pisdf::Graph *graph, std::string 
     if (!graph) {
         throwSpiderException("nullptr for graph.");
     }
-    auto *vertex = make<pisdf::ForkVertex>(StackID::PISDF, std::move(name), edgeOUTCount);
+    auto *vertex = make<pisdf::ForkVertex, StackID::PISDF>(std::move(name), edgeOUTCount);
     auto *runtimeInfo = vertex->runtimeInformation();
     runtimeInfo->setKernelIx(0);
     graph->addVertex(vertex);
@@ -206,7 +204,7 @@ spider::pisdf::Vertex *spider::api::createJoin(pisdf::Graph *graph, std::string 
     if (!graph) {
         throwSpiderException("nullptr for graph.");
     }
-    auto *vertex = make<pisdf::JoinVertex>(StackID::PISDF, std::move(name), edgeINCount);
+    auto *vertex = make<pisdf::JoinVertex, StackID::PISDF>(std::move(name), edgeINCount);
     auto *runtimeInfo = vertex->runtimeInformation();
     runtimeInfo->setKernelIx(1);
     graph->addVertex(vertex);
@@ -217,7 +215,7 @@ spider::pisdf::Vertex *spider::api::createHead(pisdf::Graph *graph, std::string 
     if (!graph) {
         throwSpiderException("nullptr for graph.");
     }
-    auto *vertex = make<pisdf::HeadVertex>(StackID::PISDF, std::move(name), edgeINCount);
+    auto *vertex = make<pisdf::HeadVertex, StackID::PISDF>(std::move(name), edgeINCount);
     auto *runtimeInfo = vertex->runtimeInformation();
     runtimeInfo->setKernelIx(2);
     graph->addVertex(vertex);
@@ -228,7 +226,7 @@ spider::pisdf::Vertex *spider::api::createTail(pisdf::Graph *graph, std::string 
     if (!graph) {
         throwSpiderException("nullptr for graph.");
     }
-    auto *vertex = make<pisdf::TailVertex>(StackID::PISDF, std::move(name), edgeINCount);
+    auto *vertex = make<pisdf::TailVertex, StackID::PISDF>(std::move(name), edgeINCount);
     auto *runtimeInfo = vertex->runtimeInformation();
     runtimeInfo->setKernelIx(3);
     graph->addVertex(vertex);
@@ -239,7 +237,7 @@ spider::pisdf::Vertex *spider::api::createDuplicate(pisdf::Graph *graph, std::st
     if (!graph) {
         throwSpiderException("nullptr for graph.");
     }
-    auto *vertex = make<pisdf::DuplicateVertex>(StackID::PISDF, std::move(name), edgeOUTCount);
+    auto *vertex = make<pisdf::DuplicateVertex, StackID::PISDF>(std::move(name), edgeOUTCount);
     auto *runtimeInfo = vertex->runtimeInformation();
     runtimeInfo->setKernelIx(5);
     graph->addVertex(vertex);
@@ -250,7 +248,7 @@ spider::pisdf::Vertex *spider::api::createRepeat(pisdf::Graph *graph, std::strin
     if (!graph) {
         throwSpiderException("nullptr for graph.");
     }
-    auto *vertex = make<pisdf::RepeatVertex>(StackID::PISDF, std::move(name));
+    auto *vertex = make<pisdf::RepeatVertex, StackID::PISDF>(std::move(name));
     auto *runtimeInfo = vertex->runtimeInformation();
     runtimeInfo->setKernelIx(4);
     graph->addVertex(vertex);
@@ -261,7 +259,7 @@ spider::pisdf::Vertex *spider::api::createInit(pisdf::Graph *graph, std::string 
     if (!graph) {
         throwSpiderException("nullptr for graph.");
     }
-    auto *vertex = make<pisdf::InitVertex>(StackID::PISDF, std::move(name));
+    auto *vertex = make<pisdf::InitVertex, StackID::PISDF>(std::move(name));
     auto *runtimeInfo = vertex->runtimeInformation();
     runtimeInfo->setKernelIx(6);
     graph->addVertex(vertex);
@@ -272,7 +270,7 @@ spider::pisdf::Vertex *spider::api::createEnd(pisdf::Graph *graph, std::string n
     if (!graph) {
         throwSpiderException("nullptr for graph.");
     }
-    auto *vertex = make<pisdf::EndVertex>(StackID::PISDF, std::move(name));
+    auto *vertex = make<pisdf::EndVertex, StackID::PISDF>(std::move(name));
     auto *runtimeInfo = vertex->runtimeInformation();
     runtimeInfo->setKernelIx(7);
     graph->addVertex(vertex);
@@ -286,7 +284,7 @@ spider::pisdf::Vertex *spider::api::createConfigActor(pisdf::Graph *graph,
     if (!graph) {
         throwSpiderException("nullptr for graph.");
     }
-    auto *vertex = make<pisdf::ConfigVertex>(StackID::PISDF, std::move(name), edgeINCount, edgeOUTCount);
+    auto *vertex = make<pisdf::ConfigVertex, StackID::PISDF>(std::move(name), edgeINCount, edgeOUTCount);
     graph->addVertex(vertex);
     return vertex;
 }
@@ -323,7 +321,7 @@ spider::pisdf::Vertex *spider::api::setOutputInterfaceName(pisdf::Graph *graph, 
 
 std::shared_ptr<spider::pisdf::Param>
 spider::api::createStaticParam(pisdf::Graph *graph, std::string name, int64_t value) {
-    auto param = make_shared<pisdf::Param>(StackID::PISDF, std::move(name), value);
+    auto param = make_shared<pisdf::Param, StackID::PISDF>(std::move(name), value);
     if (graph) {
         graph->addParam(param);
     }
@@ -333,33 +331,34 @@ spider::api::createStaticParam(pisdf::Graph *graph, std::string name, int64_t va
 std::shared_ptr<spider::pisdf::Param>
 spider::api::createStaticParam(pisdf::Graph *graph, std::string name, std::string expression) {
     if (graph) {
-        auto param = make_shared<pisdf::Param>(StackID::PISDF, std::move(name),
-                                               Expression(std::move(expression), graph->params()));
+        auto param = make_shared<pisdf::Param, StackID::PISDF>(std::move(name),
+                                                               Expression(std::move(expression), graph->params()));
         graph->addParam(param);
         return param;
     }
-    return make_shared<pisdf::Param>(StackID::PISDF, std::move(name), Expression(std::move(expression)));
+    return make_shared<pisdf::Param, StackID::PISDF>(std::move(name), Expression(std::move(expression)));
 }
 
 std::shared_ptr<spider::pisdf::Param>
 spider::api::createDynamicParam(pisdf::Graph *graph, std::string name) {
     if (graph) {
-        auto param = make_shared<pisdf::DynamicParam>(StackID::PISDF, std::move(name), Expression(0));
+        auto param = make_shared<pisdf::DynamicParam, StackID::PISDF>(std::move(name), Expression(0));
         graph->addParam(param);
         return param;
     }
-    return make_shared<pisdf::DynamicParam>(StackID::PISDF, std::move(name), Expression(0));
+    return make_shared<pisdf::DynamicParam, StackID::PISDF>(std::move(name), Expression(0));
 }
 
 std::shared_ptr<spider::pisdf::Param>
 spider::api::createDynamicParam(pisdf::Graph *graph, std::string name, std::string expression) {
     if (graph) {
-        auto param = make_shared<pisdf::DynamicParam>(StackID::PISDF, std::move(name),
-                                                      Expression(std::move(expression), graph->params()));
+        auto param = make_shared<pisdf::DynamicParam, StackID::PISDF>(std::move(name),
+                                                                      Expression(std::move(expression),
+                                                                                 graph->params()));
         graph->addParam(param);
         return param;
     }
-    return make_shared<pisdf::DynamicParam>(StackID::PISDF, std::move(name), Expression(std::move(expression)));
+    return make_shared<pisdf::DynamicParam, StackID::PISDF>(std::move(name), Expression(std::move(expression)));
 }
 
 std::shared_ptr<spider::pisdf::Param>
@@ -371,11 +370,11 @@ spider::api::createInheritedParam(pisdf::Graph *graph, std::string name, pisdf::
         return createStaticParam(graph, std::move(name), parent->value());
     }
     if (graph) {
-        auto param = make_shared<pisdf::InHeritedParam>(StackID::PISDF, std::move(name), parent);
+        auto param = make_shared<pisdf::InHeritedParam, StackID::PISDF>(std::move(name), parent);
         graph->addParam(param);
         return param;
     }
-    return make_shared<pisdf::InHeritedParam>(StackID::PISDF, std::move(name), parent);
+    return make_shared<pisdf::InHeritedParam, StackID::PISDF>(std::move(name), parent);
 }
 
 std::shared_ptr<spider::pisdf::Param>
@@ -394,7 +393,7 @@ spider::api::createInheritedParam(pisdf::Graph *graph, std::string name, const s
     if (!parent->dynamic()) {
         return createStaticParam(graph, std::move(name), parent->value());
     }
-    auto param = make_shared<pisdf::InHeritedParam>(StackID::PISDF, std::move(name), parent);
+    auto param = make_shared<pisdf::InHeritedParam, StackID::PISDF>(std::move(name), parent);
     graph->addParam(param);
     return param;
 }
@@ -451,13 +450,13 @@ spider::pisdf::Edge *spider::api::createEdge(pisdf::Vertex *source,
                                              size_t snkPortIx,
                                              std::string snkRateExpression) {
     try {
-        auto *edge = make<pisdf::Edge>(StackID::PISDF,
-                                       source,
-                                       srcPortIx,
-                                       Expression(std::move(srcRateExpression), source->graph()->params()),
-                                       sink,
-                                       snkPortIx,
-                                       Expression(std::move(snkRateExpression), sink->graph()->params()));
+        auto *edge = make<pisdf::Edge, StackID::PISDF>(
+                source,
+                srcPortIx,
+                Expression(std::move(srcRateExpression), source->graph()->params()),
+                sink,
+                snkPortIx,
+                Expression(std::move(snkRateExpression), sink->graph()->params()));
 
         source->graph()->addEdge(edge);
         return edge;
@@ -473,13 +472,13 @@ spider::pisdf::Edge *spider::api::createEdge(pisdf::Vertex *source,
                                              size_t snkPortIx,
                                              int64_t snkRate) {
     try {
-        auto *edge = make<pisdf::Edge>(StackID::PISDF,
-                                       source,
-                                       srcPortIx,
-                                       Expression(srcRate),
-                                       sink,
-                                       snkPortIx,
-                                       Expression(snkRate));
+        auto *edge = make<pisdf::Edge, StackID::PISDF>(
+                source,
+                srcPortIx,
+                Expression(srcRate),
+                sink,
+                snkPortIx,
+                Expression(snkRate));
         source->graph()->addEdge(edge);
         return edge;
     } catch (spider::Exception &e) {
@@ -512,16 +511,16 @@ spider::pisdf::Delay *spider::api::createDelay(pisdf::Edge *edge,
     auto expression = checkAndGetExpression(edge, std::move(delayExpression));
     auto setterExpr = setter ? std::move(setterRateExpression) : std::to_string(expression.value());
     auto getterExpr = getter ? std::move(getterRateExpression) : std::to_string(expression.value());
-    return make<pisdf::Delay>(StackID::PISDF,
-                              std::move(expression),
-                              edge,
-                              setter,
-                              setterPortIx,
-                              Expression(std::move(setterExpr), edge->graph()->params()),
-                              getter,
-                              getterPortIx,
-                              Expression(std::move(getterExpr), edge->graph()->params()),
-                              persistent);
+    return make<pisdf::Delay, StackID::PISDF>(
+            std::move(expression),
+            edge,
+            setter,
+            setterPortIx,
+            Expression(std::move(setterExpr), edge->graph()->params()),
+            getter,
+            getterPortIx,
+            Expression(std::move(getterExpr), edge->graph()->params()),
+            persistent);
 }
 
 spider::pisdf::Delay *spider::api::createDelay(pisdf::Edge *edge,
@@ -533,16 +532,15 @@ spider::pisdf::Delay *spider::api::createDelay(pisdf::Edge *edge,
                                                size_t getterPortIx,
                                                int64_t getterRate,
                                                bool persistent) {
-    return make<pisdf::Delay>(StackID::PISDF,
-                              Expression(value),
-                              edge,
-                              setter,
-                              setterPortIx,
-                              Expression(setter ? setterRate : value),
-                              getter,
-                              getterPortIx,
-                              Expression(getter ? getterRate : value),
-                              persistent);
+    return make<pisdf::Delay, StackID::PISDF>(Expression(value),
+                                              edge,
+                                              setter,
+                                              setterPortIx,
+                                              Expression(setter ? setterRate : value),
+                                              getter,
+                                              getterPortIx,
+                                              Expression(getter ? getterRate : value),
+                                              persistent);
 }
 
 spider::pisdf::Delay *spider::api::createPersistentDelay(spider::pisdf::Edge *edge,
@@ -577,14 +575,9 @@ spider::pisdf::Delay *spider::api::createPersistentDelay(spider::pisdf::Edge *ed
         graph = graph->graph();
         graph->addEdge(edge);
     }
-    return make<pisdf::Delay, StackID::PISDF>(std::move(expression),
-                                              edge,
-                                              nullptr,
-                                              0,
-                                              Expression(value),
-                                              nullptr,
-                                              0,
-                                              Expression(value),
+    return make<pisdf::Delay, StackID::PISDF>(std::move(expression), edge,
+                                              nullptr, 0, Expression(value),
+                                              nullptr, 0, Expression(value),
                                               true);
 }
 
@@ -648,14 +641,12 @@ spider::pisdf::Delay *spider::api::createLocalDelay(pisdf::Edge *edge,
     auto expression = checkAndGetExpression(edge, std::move(delayExpression));
     auto setterExpr = setter ? std::move(setterRateExpression) : std::to_string(expression.value());
     auto getterExpr = getter ? std::move(getterRateExpression) : std::to_string(expression.value());
-    return make<pisdf::Delay>(StackID::PISDF,
-                              std::move(expression),
-                              edge,
-                              setter,
-                              setterPortIx,
-                              Expression(std::move(setterExpr), edge->graph()->params()),
-                              getter,
-                              getterPortIx,
-                              Expression(std::move(getterExpr), edge->graph()->params()),
-                              false);
+    return make<pisdf::Delay, StackID::PISDF>(std::move(expression), edge,
+                                              setter,
+                                              setterPortIx,
+                                              Expression(std::move(setterExpr), edge->graph()->params()),
+                                              getter,
+                                              getterPortIx,
+                                              Expression(std::move(getterExpr), edge->graph()->params()),
+                                              false);
 }
