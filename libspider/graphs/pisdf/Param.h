@@ -63,7 +63,7 @@ namespace spider {
                 std::transform(name_.begin(), name_.end(), name_.begin(), ::tolower);
             }
 
-            Param(std::string name, Expression &&expression) : name_{ std::move(name) } {
+            Param(std::string name, const Expression &expression) : name_{ std::move(name) } {
                 if (expression.dynamic()) {
                     throwSpiderException("STATIC parameter should have static expression: %s.",
                                          expression.string().c_str());

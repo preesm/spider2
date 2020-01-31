@@ -52,9 +52,9 @@
 
 /* === Method(s) implementation === */
 
-spider::pisdf::Delay::Delay(Expression &&expression, Edge *edge,
-                            Vertex *setter, size_t setterPortIx, Expression &&setterRateExpression,
-                            Vertex *getter, size_t getterPortIx, Expression &&getterRateExpression,
+spider::pisdf::Delay::Delay(Expression expression, Edge *edge,
+                            Vertex *setter, size_t setterPortIx, Expression setterRateExpression,
+                            Vertex *getter, size_t getterPortIx, Expression getterRateExpression,
                             bool persistent) : expression_{ std::move(expression) },
                                                edge_{ edge },
                                                setter_{ setter },
@@ -86,23 +86,13 @@ spider::pisdf::Delay::Delay(Expression &&expression, Edge *edge,
     }
 
     /* == Create virtual vertex and connect it to setter / getter == */
-    vertex_ = make<DelayVertex>(StackID::PISDF, this->name());
+    vertex_ = make<DelayVertex, StackID::PISDF>(this->name());
     edge->graph()->addVertex(vertex_);
 
-    auto *setterEdge = make<Edge>(StackID::PISDF,
-                                  setter_,
-                                  setterPortIx_,
-                                  std::move(setterRateExpression),
-                                  vertex_,
-                                  0u,
-                                  Expression(expression_));
-    auto *getterEdge = make<Edge>(StackID::PISDF,
-                                  vertex_,
-                                  0u,
-                                  Expression(expression_),
-                                  getter_,
-                                  getterPortIx_,
-                                  std::move(getterRateExpression));
+    auto *setterEdge = make<Edge, StackID::PISDF>(setter_, setterPortIx_, std::move(setterRateExpression),
+                                                  vertex_, 0u, Expression(expression_));
+    auto *getterEdge = make<Edge, StackID::PISDF>(vertex_, 0u, Expression(expression_),
+                                                  getter_, getterPortIx_, std::move(getterRateExpression));
 
     /* == Add things to the graph == */
     edge->graph()->addEdge(setterEdge);

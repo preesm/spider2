@@ -237,7 +237,7 @@ namespace spider {
          * @param expression  Expression to set.
          * @throws std::out_of_range
          */
-        inline void setTimingOnCluster(const Cluster *cluster, Expression &&expression) {
+        inline void setTimingOnCluster(const Cluster *cluster, Expression expression) {
             if (!cluster) {
                 return;
             }
@@ -259,7 +259,7 @@ namespace spider {
          * @param ix          Spider cluster ix to evaluate.
          * @param expression  Expression to set.
          */
-        inline void setTimingOnCluster(size_t ix, Expression &&expression) {
+        inline void setTimingOnCluster(size_t ix, Expression expression) {
             timingVector_.at(ix) = std::move(expression);
         }
 

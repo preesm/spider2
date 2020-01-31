@@ -52,17 +52,13 @@
 
 /* === Method(s) implementation === */
 
-spider::pisdf::Edge::Edge(Vertex *source,
-                          size_t srcIx,
-                          Expression &&srcExpr,
-                          Vertex *sink,
-                          size_t snkIx,
-                          Expression &&snkExpr) : srcExpression_{ srcExpr },
-                                                  snkExpression_{ snkExpr },
-                                                  src_{ source },
-                                                  snk_{ sink },
-                                                  srcPortIx_{ srcIx },
-                                                  snkPortIx_{ snkIx } {
+spider::pisdf::Edge::Edge(Vertex *source, size_t srcIx, Expression srcExpr,
+                          Vertex *sink, size_t snkIx, Expression snkExpr) : srcExpression_{ std::move(srcExpr) },
+                                                                            snkExpression_{ std::move(snkExpr) },
+                                                                            src_{ source },
+                                                                            snk_{ sink },
+                                                                            srcPortIx_{ srcIx },
+                                                                            snkPortIx_{ snkIx } {
     if (!source || !sink) {
         throwSpiderException("nullptr vertex connected to Edge.");
     }
@@ -91,7 +87,7 @@ int64_t spider::pisdf::Edge::sinkRateValue() const {
     return snk_ ? snkExpression_.evaluate(snk_->inputParamVector()) : 0;
 }
 
-void spider::pisdf::Edge::setSource(Vertex *vertex, size_t ix, Expression &&expr) {
+void spider::pisdf::Edge::setSource(Vertex *vertex, size_t ix, Expression expr) {
     if (vertex) {
         /* == Disconnect current output edge (if any) == */
         vertex->disconnectOutputEdge(ix);
@@ -111,7 +107,7 @@ void spider::pisdf::Edge::setSource(Vertex *vertex, size_t ix, Expression &&expr
     srcExpression_ = std::move(expr);
 }
 
-void spider::pisdf::Edge::setSink(Vertex *vertex, size_t ix, Expression &&expr) {
+void spider::pisdf::Edge::setSink(Vertex *vertex, size_t ix, Expression expr) {
     if (vertex) {
         /* == Disconnect current input edge (if any) == */
         vertex->disconnectInputEdge(ix);

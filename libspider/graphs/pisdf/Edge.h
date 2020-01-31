@@ -60,12 +60,8 @@ namespace spider {
         class Edge {
         public:
 
-            Edge(Vertex *source,
-                 size_t srcIx,
-                 Expression &&srcExpr,
-                 Vertex *sink,
-                 size_t snkIx,
-                 Expression &&snkExpr);
+            Edge(Vertex *source, size_t srcIx, Expression srcExpr,
+                 Vertex *sink, size_t snkIx, Expression snkExpr);
 
             ~Edge();
 
@@ -182,7 +178,7 @@ namespace spider {
              * @param expr    Expression of the rate.
              * @return pointer to the old output @refitem Edge of vertex, nullptr else.
              */
-            void setSource(Vertex *vertex, size_t ix, Expression &&expr);
+            void setSource(Vertex *vertex, size_t ix, Expression expr);
 
             /**
              * @brief Set the sink vertex of the edge.
@@ -192,7 +188,7 @@ namespace spider {
              * @param expr    Expression of the rate.
              * @return pointer to the old input @refitem Edge of vertex, nullptr else.
              */
-            void setSink(Vertex *vertex, size_t ix, Expression &&expr);
+            void setSink(Vertex *vertex, size_t ix, Expression expr);
 
             inline void setDelay(Delay *delay) {
                 if (!delay) {
