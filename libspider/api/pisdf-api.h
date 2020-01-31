@@ -496,7 +496,7 @@ namespace spider {
          * @return pointer to the created @refitem pisdf::Delay.
          */
         pisdf::Delay *
-        createLocalPersistentDelay(pisdf::Edge *edge, std::string delayExpression, int32_t levelCount = 1);
+        createLocalPersistentDelay(pisdf::Edge *edge, std::string delayExpression, int_fast32_t levelCount = 1);
 
         /**
          * @brief Creates a non-persistent @refitem pisdf::Delay on a given @refitem pisdf::Edge.

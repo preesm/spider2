@@ -57,14 +57,9 @@ namespace spider {
         class Delay {
         public:
 
-            Delay(Expression &&expression,
-                  Edge *edge,
-                  ExecVertex *setter,
-                  size_t setterPortIx,
-                  Expression &&setterRateExpression,
-                  ExecVertex *getter,
-                  size_t getterPortIx,
-                  Expression &&getterRateExpression,
+            Delay(Expression &&expression, Edge *edge,
+                  Vertex *setter, size_t setterPortIx, Expression &&setterRateExpression,
+                  Vertex *getter, size_t getterPortIx, Expression &&getterRateExpression,
                   bool persistent = false);
 
             ~Delay() = default;

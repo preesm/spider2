@@ -52,14 +52,9 @@
 
 /* === Method(s) implementation === */
 
-spider::pisdf::Delay::Delay(Expression &&expression,
-                            Edge *edge,
-                            ExecVertex *setter,
-                            size_t setterPortIx,
-                            Expression &&setterRateExpression,
-                            ExecVertex *getter,
-                            size_t getterPortIx,
-                            Expression &&getterRateExpression,
+spider::pisdf::Delay::Delay(Expression &&expression, Edge *edge,
+                            Vertex *setter, size_t setterPortIx, Expression &&setterRateExpression,
+                            Vertex *getter, size_t getterPortIx, Expression &&getterRateExpression,
                             bool persistent) : expression_{ std::move(expression) },
                                                edge_{ edge },
                                                setter_{ setter },

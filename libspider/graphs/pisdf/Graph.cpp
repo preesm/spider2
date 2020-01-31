@@ -118,23 +118,19 @@ spider::pisdf::Graph::Graph(std::string name,
     edgeVector_.reserve(edgeCount);
     paramVector_.reserve(paramCount);
     configVertexVector_.reserve(cfgVertexCount);
-    inputInterfaceVector_.resize(edgeINCount, nullptr);
-    outputInterfaceVector_.resize(edgeOUTCount, nullptr);
+    inputInterfaceVector_.reserve(edgeINCount);
+    outputInterfaceVector_.reserve(edgeOUTCount);
 
     /* == Create the input interfaces == */
     for (size_t i = 0; i < edgeINCount; ++i) {
-        auto *interface = make<InputInterface>(StackID::PISDF, "in_" + std::to_string(i));
-        interface->setIx(i);
-        inputInterfaceVector_[i] = interface;
-        interface->setGraph(this);
+        auto *interface = make<InputInterface, StackID::PISDF>("in_" + std::to_string(i));
+        addInputInterface(interface);
     }
 
     /* == Create the output interfaces == */
     for (size_t i = 0; i < edgeOUTCount; ++i) {
-        auto *interface = make<OutputInterface>(StackID::PISDF, "out_" + std::to_string(i));
-        interface->setIx(i);
-        outputInterfaceVector_[i] = interface;
-        interface->setGraph(this);
+        auto *interface = make<OutputInterface, StackID::PISDF>("out_" + std::to_string(i));
+        addOutputInterface(interface);
     }
 }
 
@@ -193,6 +189,36 @@ void spider::pisdf::Graph::clear() {
     paramVector_.clear();
     subgraphVector_.clear();
     configVertexVector_.clear();
+}
+
+void spider::pisdf::Graph::addInputInterface(InputInterface *interface) {
+    if (!interface) {
+        return;
+    }
+    /* == Adds the interface to the graph == */
+    interface->setIx(inputInterfaceVector_.size());
+    interface->setGraph(this);
+    inputInterfaceVector_.emplace_back(interface);
+
+    /* == Resize the input edge vector == */
+    if (inputEdgeCount() < inputInterfaceVector_.size()) {
+        inputEdgeVector_.emplace_back(nullptr);
+    }
+}
+
+void spider::pisdf::Graph::addOutputInterface(OutputInterface *interface) {
+    if (!interface) {
+        return;
+    }
+    /* == Adds the interface to the graph == */
+    interface->setIx(outputInterfaceVector_.size());
+    interface->setGraph(this);
+    outputInterfaceVector_.emplace_back(interface);
+
+    /* == Resize the output edge vector == */
+    if (outputEdgeCount() < outputInterfaceVector_.size()) {
+        outputEdgeVector_.emplace_back(nullptr);
+    }
 }
 
 void spider::pisdf::Graph::addVertex(Vertex *vertex) {

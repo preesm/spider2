@@ -338,15 +338,15 @@ namespace spider {
         protected:
             std::string name_ = "unnamed-vertex"; /* =  Name of the Vertex (uniqueness is not required) = */
             /* = Vector of input Edge = */
-            spider::sbc::vector<Edge *, StackID::PISDF> inputEdgeVector_;
+            sbc::vector<Edge *, StackID::PISDF> inputEdgeVector_;
             /* = Vector of output Edge = */
-            spider::sbc::vector<Edge *, StackID::PISDF> outputEdgeVector_;
+            sbc::vector<Edge *, StackID::PISDF> outputEdgeVector_;
             /* = Vector of input Param = */
-            spider::sbc::vector<std::shared_ptr<pisdf::Param>, StackID::PISDF> inputParamVector_;
+            sbc::vector<std::shared_ptr<pisdf::Param>, StackID::PISDF> inputParamVector_;
             /* = Vector of refinement Params = */
-            spider::sbc::vector<std::shared_ptr<pisdf::Param>, StackID::PISDF> refinementParamVector_;
+            sbc::vector<std::shared_ptr<pisdf::Param>, StackID::PISDF> refinementParamVector_;
             /* = Vector of output Param = */
-            spider::sbc::vector<std::shared_ptr<pisdf::Param>, StackID::PISDF> outputParamVector_;
+            sbc::vector<std::shared_ptr<pisdf::Param>, StackID::PISDF> outputParamVector_;
             std::shared_ptr<RTInfo> rtInformation_;  /* = Runtime information of the Vertex (timing, mappable, etc.) = */
             const Vertex *reference_ = this;   /* =
                                                 * Pointer to the reference Vertex.

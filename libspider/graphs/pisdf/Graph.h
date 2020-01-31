@@ -88,6 +88,22 @@ namespace spider {
             void overrideDynamicProperty(bool value);
 
             /**
+             * @brief Adds an input interface to the graph.
+             * @remark This will increase input edge vector size.
+             * @remark If interface is nullptr, nothing happens.
+             * @param interface Pointer to the interface to add.
+             */
+            void addInputInterface(InputInterface *interface);
+
+            /**
+             * @brief Adds an output interface to the graph.
+             * @remark This will increase output edge vector size.
+             * @remark If interface is nullptr, nothing happens.
+             * @param interface Pointer to the interface to add.
+             */
+            void addOutputInterface(OutputInterface *interface);
+
+            /**
              * @brief Add a vertex to the graph.
              * @param vertex Vertex to add.
              */
@@ -153,11 +169,15 @@ namespace spider {
              */
             Param *paramFromName(const std::string &name);
 
-            /* === Getter(s) === */
-
+            /**
+             * @brief Checks if a graph is the top-level graph.
+             * @return true if no upper graph exists, false else.
+             */
             inline bool isTopGraph() const {
-                return (graph() == nullptr) || (graph()->name() == "app-graph");
+                return graph() == nullptr;
             }
+
+            /* === Getter(s) === */
 
             inline VertexType subtype() const override {
                 return VertexType::GRAPH;
