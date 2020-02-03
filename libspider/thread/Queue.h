@@ -43,7 +43,7 @@
 /* === Include(s) === */
 
 #include <mutex>
-#include <vector>
+#include <containers/vector.h>
 #include <thread/Semaphore.h>
 #include <runtime/interface/Notification.h>
 
@@ -132,9 +132,9 @@ namespace spider {
         }
 
     private:
-        std::mutex mutex_;
+        spider::vector<T> queue_;
         spider::semaphore sem_;
-        std::vector<T> queue_;
+        std::mutex mutex_;
     };
 }
 
