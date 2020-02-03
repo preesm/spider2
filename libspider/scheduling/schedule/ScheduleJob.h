@@ -65,20 +65,10 @@ namespace spider {
         /**
          * @brief State a scheduled job can take.
          */
-        enum class JobState {
+        enum class JobState : uint32_t {
             PENDING,   /*!< Job is waiting to be scheduled */
             READY,     /*!< Job is ready to be run */
             RUNNING,   /*!< Job is currently running */
-        };
-
-        /**
-         * @brief Mapping information of the TransfoJob.
-         */
-        struct JobMappingInfo {
-            size_t PEIx = SIZE_MAX;          /*!< ix of the mapped PE in its cluster */
-            size_t LRTIx = SIZE_MAX;         /*!< ix of the LRT handling the job */
-            uint64_t startTime = UINT64_MAX; /*!< mapping start time */
-            uint64_t endTime = UINT64_MAX;   /*!< mapping end time */
         };
 
         /* === Class definition === */
@@ -170,12 +160,20 @@ namespace spider {
                 return state_;
             }
 
-            /**
-             * @brief Get the mapping information of the job.
-             * @return const reference to the @refitem Spider::JobMappingInfo of the job.
-             */
-            inline const JobMappingInfo &mappingInfo() const {
-                return mappingInfo_;
+            inline uint64_t startTime() const {
+                return startTime_;
+            }
+
+            inline uint64_t endTime() const {
+                return endTime_;
+            }
+
+            inline uint32_t PEIx() const {
+                return PEIx_;
+            }
+
+            inline uint32_t LRTIx() const {
+                return LRTIx_;
             }
 
             inline RTFifo outputFIFO(size_t ix) const {
@@ -224,8 +222,8 @@ namespace spider {
             * @remark This method will overwrite current values.
             * @param PEIx  PE ix inside spider.
             */
-            inline void setMappingPE(size_t PEIx) {
-                mappingInfo_.PEIx = PEIx;
+            inline void setMappingPE(uint32_t PEIx) {
+                PEIx_ = PEIx;
             }
 
             /**
@@ -233,8 +231,8 @@ namespace spider {
             * @remark This method will overwrite current values.
             * @param LRTIx  LRT ix.
             */
-            inline void setMappingLRT(size_t LRTIx) {
-                mappingInfo_.LRTIx = LRTIx;
+            inline void setMappingLRT(uint32_t LRTIx) {
+                LRTIx_ = LRTIx;
             }
 
             /**
@@ -243,7 +241,7 @@ namespace spider {
              * @param time  Value to set.
              */
             inline void setMappingStartTime(uint64_t time) {
-                mappingInfo_.startTime = time;
+                startTime_ = time;
 
             }
 
@@ -253,16 +251,19 @@ namespace spider {
              * @param time  Value to set.
              */
             inline void setMappingEndTime(uint64_t time) {
-                mappingInfo_.endTime = time;
+                endTime_ = time;
             }
 
         private:
-            spider::sbc::vector<RTFifo, StackID::SCHEDULE> outputFifoVector_;
+            sbc::vector<RTFifo, StackID::SCHEDULE> outputFifoVector_;
             spider::array<size_t> scheduleConstraintsArray_;
             spider::array<bool> runnerToNotifyArray_;
-            JobMappingInfo mappingInfo_;
             const pisdf::Vertex *vertex_ = nullptr;
+            uint64_t startTime_ = UINT64_MAX;
+            uint64_t endTime_ = UINT64_MAX;
             size_t ix_ = SIZE_MAX;
+            uint32_t PEIx_ = UINT32_MAX;
+            uint32_t LRTIx_ = UINT32_MAX;
             JobState state_ = JobState::PENDING;
         };
     }

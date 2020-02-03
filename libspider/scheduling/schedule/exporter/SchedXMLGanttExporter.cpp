@@ -73,7 +73,7 @@ void spider::SchedXMLGanttExporter::printFromFile(std::ofstream &file) const {
 void spider::SchedXMLGanttExporter::jobPrinter(std::ofstream &file, const sched::Job &job) const {
     const auto *vertex = job.vertex();
     const auto *platform = archi::platform();
-    auto PEIx = platform->peFromVirtualIx(job.mappingInfo().PEIx)->hardwareIx();
+    auto PEIx = platform->peFromVirtualIx(job.PEIx())->hardwareIx();
 
     /* == Let's compute a color based on the value of the pointer == */
     const auto *reference = vertex->reference();
@@ -81,8 +81,8 @@ void spider::SchedXMLGanttExporter::jobPrinter(std::ofstream &file, const sched:
     int32_t green = static_cast<uint8_t>((reinterpret_cast<uintptr_t>(reference) >> 2u) * 50 + 100);
     int32_t blue = static_cast<uint8_t>((reinterpret_cast<uintptr_t>(reference) >> 4u) * 50 + 100);
     file << '\t' << "<event" << '\n';
-    file << '\t' << '\t' << R"(start=")" << job.mappingInfo().startTime << R"(")" << '\n';
-    file << '\t' << '\t' << R"(end=")" << job.mappingInfo().endTime << R"(")" << '\n';
+    file << '\t' << '\t' << R"(start=")" << job.startTime() << R"(")" << '\n';
+    file << '\t' << '\t' << R"(end=")" << job.endTime() << R"(")" << '\n';
     file << '\t' << '\t' << R"(title=")" << vertex->name() << R"(")" << '\n';
     file << '\t' << '\t' << R"(mapping="PE)" << PEIx << R"(")" << '\n';
     std::ios savedFormat{ nullptr };

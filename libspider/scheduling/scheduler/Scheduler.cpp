@@ -84,12 +84,12 @@ uint64_t spider::Scheduler::computeMinStartTime(const pisdf::Vertex *vertex) {
         if (rate) {
             const auto &src = edge->source();
             auto &srcJob = schedule_.job(src->scheduleJobIx());
-            const auto &srcJobLRTIx = srcJob.mappingInfo().LRTIx;
+            const auto &srcJobLRTIx = srcJob.LRTIx();
             const auto &currentConstraintIx = job.scheduleJobConstraintOnLRT(srcJobLRTIx);
             if (currentConstraintIx == SIZE_MAX || (srcJob.ix() > currentConstraintIx)) {
                 job.setScheduleConstraint(srcJob.ix(), srcJobLRTIx);
             }
-            minimumStartTime = std::max(minimumStartTime, srcJob.mappingInfo().endTime);
+            minimumStartTime = std::max(minimumStartTime, srcJob.endTime());
         }
     }
     return minimumStartTime;
@@ -107,7 +107,7 @@ void spider::Scheduler::vertexMapper(const pisdf::Vertex *vertex) {
         const auto &rate = edge->sinkRateValue();
         if (rate) {
             const auto &job = schedule_.job(edge->source()->scheduleJobIx());
-            dataDependencies.emplace_back(platform->processingElement(job.mappingInfo().PEIx), rate);
+            dataDependencies.emplace_back(platform->processingElement(job.PEIx()), rate);
         }
     }
 

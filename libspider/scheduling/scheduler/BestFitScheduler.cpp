@@ -64,7 +64,8 @@ spider::sched::Schedule &spider::BestFitScheduler::mappingScheduling() {
         auto &job = schedule_.job(listVertex.vertex_->scheduleJobIx());
         for (auto &edge : listVertex.vertex_->outputEdgeVector()) {
             job.addOutputFIFO(
-                    fifoAllocator_->allocate(static_cast<size_t>(edge->sourceRateValue()), job.mappingInfo().LRTIx));
+                    fifoAllocator_->allocate(static_cast<uint32_t>(edge->sourceRateValue()),
+                            job.LRTIx()));
             ix++;
         }
         schedule_.sendReadyJobs();

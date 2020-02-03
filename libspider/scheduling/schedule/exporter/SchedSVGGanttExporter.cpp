@@ -68,7 +68,7 @@ spider::SchedSVGGanttExporter::SchedSVGGanttExporter(const sched::Schedule *sche
     uint64_t minExecTime = UINT64_MAX;
     uint64_t maxExecTime = 0;
     for (auto &job : schedule_->jobs()) {
-        const auto &execTime = job.mappingInfo().endTime - job.mappingInfo().startTime;
+        const auto &execTime = job.endTime() - job.startTime();
         minExecTime = std::min(execTime, minExecTime);
         maxExecTime = std::max(execTime, maxExecTime);
     }
@@ -209,11 +209,11 @@ void spider::SchedSVGGanttExporter::jobPrinter(std::ofstream &file, const sched:
     int32_t red = static_cast<uint8_t>((reinterpret_cast<uintptr_t>(reference) >> 3u) * 50 + 100);
     int32_t green = static_cast<uint8_t>((reinterpret_cast<uintptr_t>(reference) >> 2u) * 50 + 100);
     int32_t blue = static_cast<uint8_t>((reinterpret_cast<uintptr_t>(reference) >> 4u) * 50 + 100);
-    const auto &taskWidth = static_cast<double>(job.mappingInfo().endTime - job.mappingInfo().startTime) * scaleFactor_;
+    const auto &taskWidth = static_cast<double>(job.endTime() - job.startTime()) * scaleFactor_;
 
     /* == Compute coordinates == */
-    const auto &x = OFFSET + ARROW_STROKE + BORDER + static_cast<double>(job.mappingInfo().startTime) * scaleFactor_;
-    const auto &y = height_ - (OFFSET + ARROW_STROKE + (job.mappingInfo().PEIx + 1) * (TASK_HEIGHT + BORDER));
+    const auto &x = OFFSET + ARROW_STROKE + BORDER + static_cast<double>(job.startTime()) * scaleFactor_;
+    const auto &y = height_ - (OFFSET + ARROW_STROKE + (job.PEIx() + 1) * (TASK_HEIGHT + BORDER));
     std::ios savedFormat{ nullptr };
     savedFormat.copyfmt(file);
     file << R"(

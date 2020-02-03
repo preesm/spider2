@@ -89,7 +89,7 @@ bool spider::GreedyScheduler::isSchedulable(pisdf::Vertex *vertex) const {
     for (const auto &edge : vertex->inputEdgeVector()) {
         const auto &source = edge->source();
         const auto &job = schedule_.job(source->ix());
-        if (job.mappingInfo().PEIx == SIZE_MAX) {
+        if (job.PEIx() == UINT32_MAX) {
             return false;
         }
     }

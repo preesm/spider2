@@ -71,8 +71,8 @@ void spider::SchedStatsExporter::printFromFile(std::ofstream &file) const {
         if (stats.jobCount(pe->virtualIx())) {
             file << "\t >> job list: " << '\n';
             for (auto &job : schedule_->jobs()) {
-                if (job.mappingInfo().PEIx == pe->virtualIx()) {
-                    file << "\t\t >> {"<< job.mappingInfo().startTime << "," << job.mappingInfo().endTime << "}" << '\n';
+                if (job.PEIx() == pe->virtualIx()) {
+                    file << "\t\t >> {"<< job.startTime() << "," << job.endTime() << "}" << '\n';
                 }
             }
         }

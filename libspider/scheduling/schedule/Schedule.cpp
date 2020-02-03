@@ -69,15 +69,15 @@ void spider::sched::Schedule::reset() {
 }
 
 void spider::sched::Schedule::print() const {
-    if (log::enabled<log::Type::SCHEDULE>()) {
+    if (log::enabled<log::SCHEDULE>()) {
         for (const auto &job : jobs()) {
-            log::print<log::Type::SCHEDULE>(log::magenta, "INFO: ", "Schedule: \n");
-            log::print<log::Type::SCHEDULE>(log::magenta, "INFO: ", "   >> job: %zu (runner: %zu) [%s]\n", job.ix(),
-                                            job.mappingInfo().LRTIx, job.vertex()->reference()->name().c_str());
+            log::print<log::SCHEDULE>(log::magenta, "INFO: ", "Schedule: \n");
+            log::print<log::SCHEDULE>(log::magenta, "INFO: ", "   >> job: %zu (runner: %zu) [%s]\n", job.ix(),
+                                            job.LRTIx(), job.vertex()->reference()->name().c_str());
             size_t lrtIx = 0;
             for (const auto &index : job.scheduleConstraintsArray()) {
                 if (index != SIZE_MAX) {
-                    log::print<log::Type::SCHEDULE>(log::magenta, "INFO: ",
+                    log::print<log::SCHEDULE>(log::magenta, "INFO: ",
                                                     "           ----> job: %zu (runner: %zu) [%s]\n",
                                                     jobVector_[index].ix(), lrtIx,
                                                     jobVector_[index].vertex()->reference()->name().c_str());
@@ -104,15 +104,15 @@ void spider::sched::Schedule::updateJobAndSetReady(size_t jobIx, size_t slave, u
     const auto &peIx = pe->virtualIx();
 
     /* == Set job information == */
-    job.setMappingLRT(pe->attachedLRT()->virtualIx());
-    job.setMappingPE(peIx);
+    job.setMappingLRT(static_cast<uint32_t>(pe->attachedLRT()->virtualIx()));
+    job.setMappingPE(static_cast<uint32_t>(peIx));
     job.setMappingStartTime(startTime);
     job.setMappingEndTime(endTime);
 
     /* == Set should notify value for previous jobs == */
     for (auto &constraint : job.scheduleConstraintsArray()) {
         if (constraint != SIZE_MAX) {
-            jobVector_[constraint].setRunnerToNotify(job.mappingInfo().LRTIx, true);
+            jobVector_[constraint].setRunnerToNotify(job.LRTIx(), true);
         }
     }
 
@@ -136,12 +136,12 @@ void spider::sched::Schedule::sendReadyJobs() {
         auto &job = (*it);
         /* == Create job message and send the notification == */
         const auto &messageIx = rt::platform()->communicator()->push(job.createJobMessage(this),
-                                                                     job.mappingInfo().LRTIx);
+                                                                     job.LRTIx());
 
         rt::platform()->communicator()->push(Notification(NotificationType::JOB_ADD,
                                                           grtIx,
                                                           messageIx),
-                                             job.mappingInfo().LRTIx);
+                                             job.LRTIx());
 
         /* == Set job in JobState::RUNNING == */
         job.setState(sched::JobState::RUNNING);

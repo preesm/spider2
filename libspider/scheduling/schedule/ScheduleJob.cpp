@@ -81,9 +81,9 @@ spider::JobMessage spider::sched::Job::createJobMessage(const Schedule *schedule
 
     /* == Set essential properties == */
     message.ix_ = ix_;
-    message.kernelIx_ = vertex_->runtimeInformation()->kernelIx();
-    message.outputParamCount_ = vertex_->reference()->outputParamCount();
     message.vertexIx_ = vertex_->ix();
+    message.kernelIx_ = vertex_->runtimeInformation()->kernelIx();
+    message.outputParamCount_ = vertex_->outputParamCount();
 
     /* == Create the jobs 2 wait array == */
     message.jobs2Wait_ = spider::array<JobConstraint>(this->numberOfConstraints(), StackID::RUNTIME);
@@ -103,21 +103,17 @@ spider::JobMessage spider::sched::Job::createJobMessage(const Schedule *schedule
     const auto &outputEdgeCount = vertex_->outputEdgeCount();
     message.inputFifoArray_ = spider::array<RTFifo>(inputEdgeCount, StackID::RUNTIME);
     message.outputFifoArray_ = spider::array<RTFifo>(outputEdgeCount, StackID::RUNTIME);
-//    log::print<log::Type::GENERAL>(log::white, "INFO: ", "Vertex: %s\n", vertex_->name().c_str());
     for (size_t i = 0; i < inputEdgeCount; ++i) {
         const auto &edge = vertex_->inputEdge(i);
         const auto &source = edge->source();
         auto &fifo = message.inputFifoArray_[i];
         auto &srcJob = schedule->job(source->scheduleJobIx());
         fifo = srcJob.outputFIFO(edge->sourcePortIx());
-//        log::print<log::Type::GENERAL>(log::green, "INFO: ", "   <- edge [%zu]: %zu\n", i, fifo.virtualAddress_);
     }
-
 
     for (size_t outputIx = 0; outputIx < outputEdgeCount; ++outputIx) {
         auto &fifo = message.outputFifoArray_[outputIx];
         fifo = outputFIFO(outputIx);
-//        log::print<log::Type::GENERAL>(log::red, "INFO: ", "   -> edge [%zu]: %zu\n", outputIx, fifo.virtualAddress_);
     }
 
     /* == Set the input parameters == */
@@ -208,8 +204,14 @@ spider::JobMessage spider::sched::Job::createJobMessage(const Schedule *schedule
         }
             break;
         case pisdf::VertexType::INIT:
+            message.inputParams_ = spider::array<int64_t>(2, StackID::RUNTIME);
+            message.inputParams_[0] = static_cast<int64_t>(0);
+            message.inputParams_[1] = static_cast<int64_t>(vertex_->outputEdge(0)->sourceRateValue());
             break;
         case pisdf::VertexType::END:
+            message.inputParams_ = spider::array<int64_t>(2, StackID::RUNTIME);
+            message.inputParams_[0] = static_cast<int64_t>(0);
+            message.inputParams_[1] = static_cast<int64_t>(vertex_->inputEdge(0)->sinkRateValue());
             break;
         default:
             throwSpiderException("unhandled type of vertex.");
