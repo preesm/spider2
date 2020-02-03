@@ -332,10 +332,10 @@ void spider::pisdf::Graph::overrideDynamicProperty(bool value) {
 
 template<class T>
 void spider::pisdf::Graph::removeNoDestroy(spider::vector<spider::unique_ptr<T>> &eltVector, T *elt) {
-    if (elt->graph() != this) {
+    auto ix = elt->ix();
+    if (ix >= eltVector.size()) {
         throwSpiderException("Trying to remove an element not from this graph.");
     }
-    auto ix = elt->ix();
     if (eltVector[ix].get() != elt) {
         throwSpiderException("Different element in ix position. Expected: %s -- Got: %s", elt->name().c_str(),
                              eltVector[ix]->name().c_str());
@@ -352,10 +352,10 @@ void spider::pisdf::Graph::removeNoDestroy(spider::vector<spider::unique_ptr<T>>
 
 template<class T>
 void spider::pisdf::Graph::removeAndDestroy(spider::vector<spider::unique_ptr<T>> &eltVector, T *elt) {
-    if (elt->graph() != this) {
+    auto ix = elt->ix();
+    if (ix >= eltVector.size()) {
         throwSpiderException("Trying to remove an element not from this graph.");
     }
-    auto ix = elt->ix();
     if (eltVector[ix].get() != elt) {
         throwSpiderException("Different element in ix position. Expected: %s -- Got: %s", elt->name().c_str(),
                              eltVector[ix]->name().c_str());
@@ -372,10 +372,10 @@ void spider::pisdf::Graph::removeNoDestroy(spider::vector<T *> &eltVector, T *el
     if (!elt) {
         return;
     }
-    if (elt->graph() != this) {
+    auto ix = elt->ix();
+    if (ix >= eltVector.size()) {
         throwSpiderException("Trying to remove an element not from this graph.");
     }
-    auto ix = elt->ix();
     if (eltVector[ix] != elt) {
         throwSpiderException("Different element in ix position. Expected: %s -- Got: %s", elt->name().c_str(),
                              eltVector[ix]->name().c_str());
