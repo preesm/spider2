@@ -70,6 +70,8 @@ namespace spider {
         bool usePapify_ = false;       /* = Enable / disable the papify support (if available) = */
         bool useApollo_ = false;       /* = Enable / disable the apollo support (if available) = */
         bool enableGeneralLog_ = true; /* = Enable / disable the main logger = */
+        bool exportTrace_ = false;     /* = Enable / disable the export of the traces = */
+        bool exportSRDAG_ = false;     /* = Enable / disable the export of the srdag = */
         size_t standAloneClusterIx_ = SIZE_MAX; /* = Id of the current cluster in stand-alone mode = */
         AllocatorPolicy generalStackAllocatorPolicy_ = AllocatorPolicy::GENERIC; /* = Allocation policy of the general stack = */
         size_t generalStackAlignment_ = sizeof(int64_t);

@@ -104,6 +104,8 @@ static void printConfig(const spider::StartUpConfig &cfg) {
     spider::printer::fprintf(stderr, "      apollo:         %s\n", printFlagStatus(cfg.useApollo_));
     spider::printer::fprintf(stderr, "      general-log:    %s\n", printFlagStatus(cfg.enableGeneralLog_));
     spider::printer::fprintf(stderr, "      stand-alone:    %s\n", printFlagStatus(cfg.standAlone_));
+    spider::printer::fprintf(stderr, "      export-trace:   %s\n", printFlagStatus(cfg.exportTrace_));
+    spider::printer::fprintf(stderr, "      export-srdag:   %s\n", printFlagStatus(cfg.exportSRDAG_));
     if (cfg.standAlone_) {
         spider::printer::fprintf(stderr, "      stand-alone ix: %zu\n", cfg.standAloneClusterIx_);
     }
@@ -171,6 +173,16 @@ void spider::start(const StartUpConfig &cfg) {
     /* == Enable the verbose == */
     if (cfg.verbose_) {
         api::enableVerbose();
+    }
+
+    /* == Enable export trace == */
+    if (cfg.exportTrace_) {
+        api::enableExportTrace();
+    }
+
+    /* == Enable export SRDAG == */
+    if (cfg.exportSRDAG_) {
+        api::enableExportSRDAG();
     }
 
     /* == Enable the config flag == */
