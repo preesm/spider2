@@ -101,9 +101,7 @@ namespace spider {
             swap(*this, other);
         }
 
-        ~array() {
-            deallocate(data_);
-        }
+        ~array() { deallocate(data_); }
 
         /* === Member functions === */
 
@@ -289,6 +287,7 @@ namespace spider {
             using std::swap;
             swap(first.data_, second.data_);
             swap(first.size_, second.size_);
+            swap(first.stack_, second.stack_);
         }
 
         /* === Non member functions === */

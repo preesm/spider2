@@ -90,7 +90,7 @@ namespace spider {
          */
         inline size_t push(T value) {
             std::lock_guard<std::mutex> lock{ mutex_ };
-            auto &&index = getFreeIndex();
+            auto index = getFreeIndex();
             if (index == SIZE_MAX) {
                 queue_.emplace_back(std::move(value));
                 return queue_.size() - 1;
@@ -132,7 +132,7 @@ namespace spider {
          */
         inline size_t getFreeIndex() {
             if (!freeIndexQueue_.empty()) {
-                auto &&front = freeIndexQueue_.front();
+                auto front = freeIndexQueue_.front();
                 freeIndexQueue_.pop();
                 return front;
             }
