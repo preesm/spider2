@@ -54,7 +54,7 @@ namespace spider {
      * @brief Thread-safe Indexed Queue (i.e message retrieval is through ix)
      * @tparam T Type of the message.
      */
-    template<class T>
+    template<class T, StackID stack = StackID::GENERAL>
     class IndexedQueue {
     public:
         IndexedQueue() = default;
@@ -121,7 +121,7 @@ namespace spider {
 
     private:
         spider::queue<size_t> freeIndexQueue_; /* = Keeping track of available space in vector = */
-        spider::vector<T> queue_;              /* = Actual queue = */
+        sbc::vector<T, stack> queue_;          /* = Actual queue = */
         std::mutex mutex_;
 
         /* === Private method(s) === */
