@@ -326,15 +326,15 @@ void spider::brv::checkConsistency(const spider::array<const pisdf::Edge *> &edg
 }
 
 void spider::brv::print(const pisdf::Graph *graph) {
-    if (log::enabled<log::Type::TRANSFO>()) {
+    if (log::enabled<log::TRANSFO>()) {
         const auto &separation = std::string(46, '-');
-        log::verbose<log::Type::TRANSFO>("%s\n", separation.c_str());
-        log::verbose<log::Type::TRANSFO>("Repetition values for graph [%s]\n", graph->name().c_str());
+        log::verbose<log::TRANSFO>("%s\n", separation.c_str());
+        log::verbose<log::TRANSFO>("Repetition values for graph [%s]\n", graph->name().c_str());
         for (const auto &vertex : graph->vertices()) {
-            log::verbose<log::Type::TRANSFO>("    >> Vertex: %-30s --> [%" PRIu32"]\n",
+            log::verbose<log::TRANSFO>("    >> Vertex: %-30s --> [%" PRIu32"]\n",
                                              vertex->name().c_str(),
                                              vertex->repetitionValue());
         }
-        log::verbose<log::Type::TRANSFO>("%s\n", separation.c_str());
+        log::verbose<log::TRANSFO>("%s\n", separation.c_str());
     }
 }

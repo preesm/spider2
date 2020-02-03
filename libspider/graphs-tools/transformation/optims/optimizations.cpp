@@ -225,8 +225,8 @@ bool spider::optims::reduceForkFork(pisdf::Graph *graph) {
         }
 
         /* == Remove the vertices == */
-        if (log::enabled<log::Type::OPTIMS>()) {
-            log::verbose<log::Type::OPTIMS>("ForkForkOptimizer: removing [%s] and [%s] fork vertices.\n",
+        if (log::enabled<log::OPTIMS>()) {
+            log::verbose<log::OPTIMS>("ForkForkOptimizer: removing [%s] and [%s] fork vertices.\n",
                                             secondFork->name().c_str(), firstFork->name().c_str());
         }
         graph->removeVertex(secondFork);
@@ -407,8 +407,8 @@ bool spider::optims::reduceJoinJoin(pisdf::Graph *graph) {
         }
 
         /* == Remove the vertices == */
-        if (log::enabled<log::Type::OPTIMS>()) {
-            log::verbose<log::Type::OPTIMS>("JoinJoinOptimizer: removing [%s] and [%s] join vertices.\n",
+        if (log::enabled<log::OPTIMS>()) {
+            log::verbose<log::OPTIMS>("JoinJoinOptimizer: removing [%s] and [%s] join vertices.\n",
                                             firstJoin->name().c_str(), secondJoin->name().c_str());
         }
         graph->removeVertex(firstJoin);
@@ -444,8 +444,8 @@ bool spider::optims::reduceJoinEnd(pisdf::Graph *graph) {
             inputEdge->setSink(newEnd, 0, Expression(inputEdge->sinkRateExpression()));
         }
 
-        if (log::enabled<log::Type::OPTIMS>()) {
-            log::verbose<log::Type::OPTIMS>("JoinEndOptimizer: removing join [%s] and end [%s] vertices.\n",
+        if (log::enabled<log::OPTIMS>()) {
+            log::verbose<log::OPTIMS>("JoinEndOptimizer: removing join [%s] and end [%s] vertices.\n",
                                             join->name().c_str(), end->name().c_str());
         }
         graph->removeVertex(join);
@@ -475,8 +475,8 @@ bool spider::optims::reduceInitEnd(pisdf::Graph *graph) {
         auto *edge = init->outputEdge(0);
         auto *end = edge->sink();
         graph->removeEdge(edge);
-        if (log::enabled<log::Type::OPTIMS>()) {
-            log::verbose<log::Type::OPTIMS>("InitEndOptimizer: removing init [%s] and end [%s] vertices.\n",
+        if (log::enabled<log::OPTIMS>()) {
+            log::verbose<log::OPTIMS>("InitEndOptimizer: removing init [%s] and end [%s] vertices.\n",
                                             init->name().c_str(), end->name().c_str());
         }
         graph->removeVertex(init);

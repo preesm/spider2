@@ -153,7 +153,7 @@ namespace spider {
             print<type>(green, lvl, fmt, std::forward<Args>(args)...);
         }
 
-        template<spider::log::Type type = spider::log::Type::GENERAL>
+        template<spider::log::Type type = spider::log::GENERAL>
         inline constexpr bool enabled() {
             return spider::log::logger<type>().enabled_;
         }

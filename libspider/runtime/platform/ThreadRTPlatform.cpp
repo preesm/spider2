@@ -69,7 +69,7 @@ spider::ThreadRTPlatform::~ThreadRTPlatform() {
 
 void spider::ThreadRTPlatform::createRunnerRessource(spider::RTRunner *runner) {
     if (threadArray_.at(runner->ix())) {
-        log::warning<log::Type::LRT>("trying to create resource for runner #%zu more than once.\n",
+        log::warning<log::LRT>("trying to create resource for runner #%zu more than once.\n",
                                      runner->ix());
         return;
     }

@@ -83,28 +83,28 @@ void spider::api::exportGraphToDOT(pisdf::Graph *graph, const std::string &path)
 void spider::api::enableLogger(log::Type type) {
     switch (type) {
         case log::Type::LRT:
-            log::enable<log::Type::LRT>();
+            log::enable<log::LRT>();
             break;
         case log::Type::TIME:
-            log::enable<log::Type::TIME>();
+            log::enable<log::TIME>();
             break;
         case log::Type::GENERAL:
-            log::enable<log::Type::GENERAL>();
+            log::enable<log::GENERAL>();
             break;
         case log::Type::SCHEDULE:
-            log::enable<log::Type::SCHEDULE>();
+            log::enable<log::SCHEDULE>();
             break;
         case log::Type::MEMORY:
-            log::enable<log::Type::MEMORY>();
+            log::enable<log::MEMORY>();
             break;
         case log::Type::TRANSFO:
-            log::enable<log::Type::TRANSFO>();
+            log::enable<log::TRANSFO>();
             break;
         case log::Type::OPTIMS:
-            log::enable<log::Type::OPTIMS>();
+            log::enable<log::OPTIMS>();
             break;
         case log::Type::EXPR:
-            log::enable<log::Type::EXPR>();
+            log::enable<log::EXPR>();
             break;
     }
 }
@@ -112,28 +112,28 @@ void spider::api::enableLogger(log::Type type) {
 void spider::api::disableLogger(log::Type type) {
     switch (type) {
         case log::Type::LRT:
-            log::disable<log::Type::LRT>();
+            log::disable<log::LRT>();
             break;
         case log::Type::TIME:
-            log::disable<log::Type::TIME>();
+            log::disable<log::TIME>();
             break;
         case log::Type::GENERAL:
-            log::disable<log::Type::GENERAL>();
+            log::disable<log::GENERAL>();
             break;
         case log::Type::SCHEDULE:
-            log::disable<log::Type::SCHEDULE>();
+            log::disable<log::SCHEDULE>();
             break;
         case log::Type::MEMORY:
-            log::disable<log::Type::MEMORY>();
+            log::disable<log::MEMORY>();
             break;
         case log::Type::TRANSFO:
-            log::disable<log::Type::TRANSFO>();
+            log::disable<log::TRANSFO>();
             break;
         case log::Type::OPTIMS:
-            log::disable<log::Type::OPTIMS>();
+            log::disable<log::OPTIMS>();
             break;
         case log::Type::EXPR:
-            log::disable<log::Type::EXPR>();
+            log::disable<log::EXPR>();
             break;
     }
 }

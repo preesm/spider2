@@ -54,6 +54,7 @@
 #include <api/config-api.h>
 #include <common/Time.h>
 #include <graphs/pisdf/SpecialVertex.h>
+#include <scheduling/schedule/exporter/SchedXMLGanttExporter.h>
 
 /* === Static function(s) === */
 
@@ -181,8 +182,8 @@ bool spider::JITMSRuntime::dynamicExecute() {
 
         /* == Wait for all parameters to be resolved == */
         if (!dynamicJobStack.empty()) {
-            if (log::enabled<log::Type::TRANSFO>()) {
-                log::info<log::Type::TRANSFO>("Waiting fo dynamic parameters..\n");
+            if (log::enabled<log::TRANSFO>()) {
+                log::info<log::TRANSFO>("Waiting fo dynamic parameters..\n");
             }
             const auto &grtIx = archi::platform()->spiderGRTPE()->virtualIx();
             size_t readParam = 0;
@@ -199,8 +200,8 @@ bool spider::JITMSRuntime::dynamicExecute() {
                     auto paramIterator = message.params_.begin();
                     for (const auto &param : cfg->outputParamVector()) {
                         param->setValue((*(paramIterator++)));
-                        if (log::enabled<log::Type::TRANSFO>()) {
-                            log::info<log::Type::TRANSFO>("Parameter [%12s]: received value #%" PRId64".\n",
+                        if (log::enabled<log::TRANSFO>()) {
+                            log::info<log::TRANSFO>("Parameter [%12s]: received value #%" PRId64".\n",
                                                           param->name().c_str(),
                                                           param->value());
                         }

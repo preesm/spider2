@@ -165,7 +165,7 @@ void spider::start(const StartUpConfig &cfg) {
 
     /* == Init the Logger and enable the GENERAL Logger == */
     if (cfg.enableGeneralLog_) {
-        log::enable<log::Type::GENERAL>();
+        log::enable<log::GENERAL>();
     }
 
     /* == Enable the verbose == */
