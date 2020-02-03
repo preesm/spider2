@@ -258,7 +258,6 @@ void spider::pisdf::Graph::removeVertex(Vertex *vertex) {
 void spider::pisdf::Graph::addEdge(Edge *edge) {
     edge->setIx(edgeVector_.size());
     edgeVector_.emplace_back(edge);
-    edge->setGraph(this);
 }
 
 void spider::pisdf::Graph::removeEdge(Edge *edge) {

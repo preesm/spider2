@@ -68,7 +68,6 @@ spider::pisdf::Edge::Edge(Vertex *source, size_t srcIx, Expression srcExpr,
     }
     source->connectOutputEdge(this, srcIx);
     sink->connectInputEdge(this, snkIx);
-    graph_ = source->graph();
 }
 
 spider::pisdf::Edge::~Edge() {
@@ -77,6 +76,13 @@ spider::pisdf::Edge::~Edge() {
 
 std::string spider::pisdf::Edge::name() const {
     return "edge_" + src_->name() + "-" + snk_->name();
+}
+
+spider::pisdf::Graph *spider::pisdf::Edge::graph() const {
+    if (src_) {
+        return src_->graph();
+    }
+    return snk_ ? snk_->graph() : nullptr;
 }
 
 int64_t spider::pisdf::Edge::sourceRateValue() const {
@@ -89,6 +95,10 @@ int64_t spider::pisdf::Edge::sinkRateValue() const {
 
 void spider::pisdf::Edge::setSource(Vertex *vertex, size_t ix, Expression expr) {
     if (vertex) {
+        if (vertex->graph() != snk_->graph()) {
+            throwSpiderException("Can not set edge between [%s] and [%s]: not in the same graph.",
+                                 vertex->name().c_str(), snk_->name().c_str());
+        }
         /* == Disconnect current output edge (if any) == */
         vertex->disconnectOutputEdge(ix);
 
@@ -109,6 +119,10 @@ void spider::pisdf::Edge::setSource(Vertex *vertex, size_t ix, Expression expr) 
 
 void spider::pisdf::Edge::setSink(Vertex *vertex, size_t ix, Expression expr) {
     if (vertex) {
+        if (vertex->graph() != src_->graph()) {
+            throwSpiderException("Can not set edge between [%s] and [%s]: not in the same graph.",
+                                 src_->name().c_str(), vertex->name().c_str());
+        }
         /* == Disconnect current input edge (if any) == */
         vertex->disconnectInputEdge(ix);
 

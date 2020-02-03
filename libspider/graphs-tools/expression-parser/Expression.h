@@ -88,8 +88,7 @@ namespace spider {
 
         Expression() = default;
 
-        Expression(const Expression &other) : value_{ other.value_ },
-                                              static_{ other.static_ } {
+        Expression(const Expression &other) : value_{ other.value_ } {
             if (other.expressionStack_) {
                 expressionStack_ = make<spider::vector<ExpressionElt>, StackID::EXPRESSION>(*(other.expressionStack_));
             }
@@ -110,7 +109,6 @@ namespace spider {
             /* == Swap members of both objects == */
             swap(first.expressionStack_, second.expressionStack_);
             swap(first.value_, second.value_);
-            swap(first.static_, second.static_);
         }
 
         inline Expression &operator=(Expression temp) {
@@ -119,10 +117,13 @@ namespace spider {
         }
 
         inline bool operator==(const Expression &other) const {
-            if (this->static_) {
-                return other.static_ & (this->value_ == other.value_);
+            bool sameType = dynamic() == other.dynamic();
+            if (!sameType) {
+                return false;
+            } else if (dynamic()) {
+                return (*(expressionStack_)) == (*(other.expressionStack_));
             }
-            return (*(expressionStack_)) == (*(other.expressionStack_));
+            return value_ == other.value_;
         }
 
         inline bool operator!=(const Expression &other) const {
@@ -136,7 +137,7 @@ namespace spider {
          * @return Evaluated value of the expression.
          */
         inline int64_t evaluate(const spider::vector<std::shared_ptr<pisdf::Param>> &params = { }) const {
-            return static_ ? value() : static_cast<int64_t>(evaluateStack(params));
+            return dynamic() ? static_cast<int64_t>(evaluateStack(params)) : value();
         }
 
         /**
@@ -144,7 +145,7 @@ namespace spider {
          * @return Evaluated value of the expression.
          */
         inline double evaluateDBL(const spider::vector<std::shared_ptr<pisdf::Param>> &params = { }) const {
-            return static_ ? value_ : evaluateStack(params);
+            return dynamic() ? evaluateStack(params) : value_;
         }
 
         /**
@@ -169,13 +170,12 @@ namespace spider {
          * @return true if the expression is static, false else.
          */
         inline bool dynamic() const {
-            return !static_;
+            return expressionStack_ != nullptr;
         }
 
     private:
         spider::vector<ExpressionElt> *expressionStack_ = nullptr;
         double value_ = 0;
-        bool static_ = true;
 
         /* === Private method(s) === */
 
@@ -184,7 +184,8 @@ namespace spider {
          * @param expressionStack Stack of the postfix expression elements.
          */
         spider::vector<ExpressionElt> buildExpressionStack(spider::vector<RPNElement> &postfixStack,
-                                                           const spider::vector<std::shared_ptr<pisdf::Param>> &params);
+                                                           const spider::vector<std::shared_ptr<pisdf::Param>> &params,
+                                                           bool &staticExpression);
 
         /**
          * @brief Evaluate the expression (if dynamic)

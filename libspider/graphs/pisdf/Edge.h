@@ -79,9 +79,7 @@ namespace spider {
              * @brief Get the containing @refitem spider::pisdf::Graph of the edge.
              * @return containing @refitem spider::pisdf::Graph
              */
-            inline Graph *graph() const {
-                return graph_;
-            }
+            Graph *graph() const;
 
             /**
              * @brief Get the ix of the edge in the containing graph.
@@ -199,21 +197,9 @@ namespace spider {
                 delay_ = delay;
             }
 
-            /**
-             * @brief Set the containing graph of the Edge.
-             * @remark if graph is nullptr, nothing happen.
-             * @param graph Pointer to the graph to set.
-             */
-            inline void setGraph(Graph *graph) {
-                if (graph) {
-                    graph_ = graph;
-                }
-            }
-
         private:
             Expression srcExpression_;            /* = Expression of the source rate of the Edge = */
             Expression snkExpression_;            /* = Expression of the sink rate of the Edge = */
-            Graph *graph_ = nullptr;              /* = Pointer to the containing Graph (should not be nullptr) = */
             Vertex *src_ = nullptr;               /* = Pointer to the source Vertex (if any) = */
             Vertex *snk_ = nullptr;               /* = Pointer to the sink Vertex (if any) = */
             Delay *delay_ = nullptr;              /* = Pointer to Delay associated to the Edge (if any) = */

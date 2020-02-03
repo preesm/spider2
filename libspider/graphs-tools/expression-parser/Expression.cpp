@@ -129,9 +129,10 @@ spider::Expression::Expression(std::string expression, const spider::vector<std:
     rpn::reorderPostfixStack(postfixStack);
 
     /* == Build the expression stack == */
-    auto stack = buildExpressionStack(postfixStack, params);
+    bool staticExpression = true;
+    auto stack = buildExpressionStack(postfixStack, params, staticExpression);
 
-    if (static_) {
+    if (staticExpression) {
         value_ = stack.empty() ? 0. : stack.back().arg.value_;
     } else {
         /* == Doing dynamic alloc of vector member if stack is not static == */
@@ -140,7 +141,6 @@ spider::Expression::Expression(std::string expression, const spider::vector<std:
 }
 
 spider::Expression::Expression(int64_t value) {
-    static_ = true;
     value_ = static_cast<double>(value);
 }
 
@@ -165,7 +165,8 @@ std::string spider::Expression::string() const {
 
 spider::vector<spider::ExpressionElt>
 spider::Expression::buildExpressionStack(spider::vector<RPNElement> &postfixStack,
-                                         const spider::vector<std::shared_ptr<pisdf::Param>> &params) {
+                                         const spider::vector<std::shared_ptr<pisdf::Param>> &params,
+                                         bool &staticExpression) {
     auto stack = factory::vector<ExpressionElt>(StackID::EXPRESSION);
     stack.reserve(postfixStack.size());
     auto evalStack = factory::vector<double>(StackID::EXPRESSION);
@@ -182,7 +183,7 @@ spider::Expression::buildExpressionStack(spider::vector<RPNElement> &postfixStac
                 evalStack.emplace_back(value);
 
                 /* == By default, dynamic parameters have 0 value and dynamic expression are necessary built on startup == */
-                static_ &= (!dynamic);
+                staticExpression &= (!dynamic);
                 stack.emplace_back(std::move(elt));
                 if (!dynamic) {
                     stack.back().elt_.type = RPNElementType::OPERAND;

@@ -73,7 +73,7 @@ namespace spider {
          * @param stack  Stack on which the array should be allocated.
          * @param size   Size of the array.
          */
-        explicit array(size_type size, StackID stack = StackID::GENERAL) : size_{ size }, stack_{ stack } {
+        explicit array(size_type size, StackID stack = StackID::GENERAL) : size_{ size } {
             data_ = allocate<T>(stack, size);
         }
 
@@ -93,7 +93,7 @@ namespace spider {
 
         array() noexcept = default;
 
-        array(const array &other) : array(other.size_, other.stack_) {
+        array(const array &other) : array(other.size_) {
             std::copy(other.begin(), other.end(), begin());
         };
 
@@ -107,7 +107,7 @@ namespace spider {
 
         array &operator=(const array &other) {
             deallocate(data_);
-            data_ = allocate<T>(stack_, other.size_);
+            data_ = allocate<T>(other.size_);
             size_ = other.size_;
             std::copy(other.begin(), std::min(other.begin() + size(), other.end()), begin());
             return *this;
@@ -287,7 +287,6 @@ namespace spider {
             using std::swap;
             swap(first.data_, second.data_);
             swap(first.size_, second.size_);
-            swap(first.stack_, second.stack_);
         }
 
         /* === Non member functions === */
@@ -301,7 +300,6 @@ namespace spider {
     private:
         pointer data_ = nullptr;
         size_type size_ = 0;
-        StackID stack_ = StackID::GENERAL;
     };
 
     template<typename U>

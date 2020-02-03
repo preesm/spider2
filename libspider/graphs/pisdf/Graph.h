@@ -365,8 +365,6 @@ namespace spider {
             bool setRunGraphReference(const Graph *runGraph);
 
         private:
-            bool dynamic_ = false;     /* = Dynamic property of the Graph (false if static, true if dynamic) = */
-            size_t subIx_ = SIZE_MAX;  /* = Index of the Graph in containing Graph subgraphVector = */
 
             /* === Contained elements of the graph === */
 
@@ -389,6 +387,9 @@ namespace spider {
                                                        * Reference pointer to the run counter part of this graph.
                                                        * Only valid for init graphs.
                                                        * = */
+
+            size_t subIx_ = SIZE_MAX;  /* = Index of the Graph in containing Graph subgraphVector = */
+            bool dynamic_ = false;     /* = Dynamic property of the Graph (false if static, true if dynamic) = */
 
             /* === Private method(s) === */
 
