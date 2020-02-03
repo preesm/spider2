@@ -54,16 +54,17 @@
 #include <api/config-api.h>
 #include <common/Time.h>
 #include <graphs/pisdf/SpecialVertex.h>
-#include <scheduling/schedule/exporter/SchedXMLGanttExporter.h>
 
 /* === Static function(s) === */
 
 static bool isGraphFullyStatic(const spider::pisdf::Graph *graph) {
-    bool isFullyStatic = true;
-    for (const auto &subgraph : graph->subgraphs()) {
-        isFullyStatic &= isGraphFullyStatic(subgraph);
-        if (!isFullyStatic) {
-            break;
+    bool isFullyStatic = !graph->dynamic();
+    if (isFullyStatic) {
+        for (const auto &subgraph : graph->subgraphs()) {
+            isFullyStatic &= isGraphFullyStatic(subgraph);
+            if (!isFullyStatic) {
+                break;
+            }
         }
     }
     return isFullyStatic;
@@ -202,8 +203,8 @@ bool spider::JITMSRuntime::dynamicExecute() {
                         param->setValue((*(paramIterator++)));
                         if (log::enabled<log::TRANSFO>()) {
                             log::info<log::TRANSFO>("Parameter [%12s]: received value #%" PRId64".\n",
-                                                          param->name().c_str(),
-                                                          param->value());
+                                                    param->name().c_str(),
+                                                    param->value());
                         }
                     }
                     readParam++;
