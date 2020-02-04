@@ -147,58 +147,13 @@ void spider::pisdf::PiSDFDOTExporterVisitor::visit(Graph *graph) {
 void spider::pisdf::PiSDFDOTExporterVisitor::visit(DelayVertex *) { }
 
 void spider::pisdf::PiSDFDOTExporterVisitor::visit(ExecVertex *vertex) {
-/* == Vertex printer == */
-    vertexPrinter(vertex, "#eeeeeeff");
+    /* == Vertex printer == */
+    vertexPrinter(vertex);
 }
 
 void spider::pisdf::PiSDFDOTExporterVisitor::visit(NonExecVertex *vertex) {
-/* == Vertex printer == */
-    vertexPrinter(vertex, "#eeeeeeff");
-}
-
-void spider::pisdf::PiSDFDOTExporterVisitor::visit(ConfigVertex *vertex) {
-/* == Vertex printer == */
-    vertexPrinter(vertex, "#ffffccff", 2, "rounded");
-}
-
-void spider::pisdf::PiSDFDOTExporterVisitor::visit(ForkVertex *vertex) {
-/* == Vertex printer == */
-    vertexPrinter(vertex, "#fabe58ff");
-}
-
-void spider::pisdf::PiSDFDOTExporterVisitor::visit(JoinVertex *vertex) {
-/* == Vertex printer == */
-    vertexPrinter(vertex, "#aea8d3ff");
-}
-
-void spider::pisdf::PiSDFDOTExporterVisitor::visit(HeadVertex *vertex) {
-/* == Vertex printer == */
-    vertexPrinter(vertex, "#dcc6e0ff");
-}
-
-void spider::pisdf::PiSDFDOTExporterVisitor::visit(TailVertex *vertex) {
-/* == Vertex printer == */
-    vertexPrinter(vertex, "#f1e7feff");
-}
-
-void spider::pisdf::PiSDFDOTExporterVisitor::visit(DuplicateVertex *vertex) {
-/* == Vertex printer == */
-    vertexPrinter(vertex, "#e87e04ff");
-}
-
-void spider::pisdf::PiSDFDOTExporterVisitor::visit(RepeatVertex *vertex) {
-/* == Vertex printer == */
-    vertexPrinter(vertex, "#fff68fff");
-}
-
-void spider::pisdf::PiSDFDOTExporterVisitor::visit(InitVertex *vertex) {
-/* == Vertex printer == */
-    vertexPrinter(vertex, "#c8f7c5ff");
-}
-
-void spider::pisdf::PiSDFDOTExporterVisitor::visit(EndVertex *vertex) {
-/* == Vertex printer == */
-    vertexPrinter(vertex, "#ff9478ff");
+    /* == Vertex printer == */
+    vertexPrinter(vertex);
 }
 
 void spider::pisdf::PiSDFDOTExporterVisitor::visit(InputInterface *interface) {
@@ -218,14 +173,6 @@ void spider::pisdf::PiSDFDOTExporterVisitor::visit(OutputInterface *interface) {
 }
 
 void spider::pisdf::PiSDFDOTExporterVisitor::visit(Param *param) {
-    paramPrinter(param);
-}
-
-void spider::pisdf::PiSDFDOTExporterVisitor::visit(InHeritedParam *param) {
-    paramPrinter(param);
-}
-
-void spider::pisdf::PiSDFDOTExporterVisitor::visit(DynamicParam *param) {
     paramPrinter(param);
 }
 
@@ -285,12 +232,21 @@ void spider::pisdf::PiSDFDOTExporterVisitor::vertexNamePrinter(Vertex *vertex, s
     }
 }
 
-void spider::pisdf::PiSDFDOTExporterVisitor::vertexPrinter(Vertex *vertex,
-                                                           const std::string &color,
-                                                           int_fast32_t border,
-                                                           const std::string &style) const {
+void spider::pisdf::PiSDFDOTExporterVisitor::vertexPrinter(Vertex *vertex) const {
+    static constexpr const char *colors[VERTEX_TYPE_COUNT] = { "#eeeeeeff" /* = NORMAL vertex      = */,
+                                                               "#ffffccff" /* = CONFIG vertex      = */,
+                                                               "#eeeeeeff" /* = DELAY vertex       = */,
+                                                               "#fabe58ff" /* = FORK vertex        = */,
+                                                               "#aea8d3ff" /* = JOIN vertex        = */,
+                                                               "#fff68fff" /* = REPEAT vertex      = */,
+                                                               "#e87e04ff" /* = DUPLICATE vertex   = */,
+                                                               "#f1e7feff" /* = TAIL vertex        = */,
+                                                               "#dcc6e0ff" /* = HEAD vertex        = */,
+                                                               "#c8f7c5ff" /* = INIT vertex        = */,
+                                                               "#ff9478ff" /* = END vertex         = */, };
+    const auto color = colors[static_cast<uint8_t >(vertex->subtype())];
     /* == Header == */
-    vertexHeaderPrinter(vertex->vertexPath(), color, border, style);
+    vertexHeaderPrinter(vertex->vertexPath(), color, 2, vertex->subtype() == VertexType::CONFIG ? "rounded" : "");
 
     /* == Vertex name == */
     vertexNamePrinter(vertex, 4);

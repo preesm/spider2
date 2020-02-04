@@ -74,39 +74,24 @@ namespace spider {
 
             void visit(NonExecVertex *vertex) override;
 
-            void visit(ConfigVertex *vertex) override;
-
-            void visit(ForkVertex *vertex) override;
-
-            void visit(JoinVertex *vertex) override;
-
-            void visit(HeadVertex *vertex) override;
-
-            void visit(TailVertex *vertex) override;
-
-            void visit(DuplicateVertex *vertex) override;
-
-            void visit(RepeatVertex *vertex) override;
-
-            void visit(InitVertex *vertex) override;
-
-            void visit(EndVertex *vertex) override;
-
             void visit(InputInterface *interface) override;
 
             void visit(OutputInterface *interface) override;
 
             void visit(Param *param) override;
 
-            void visit(InHeritedParam *param) override;
-
-            void visit(DynamicParam *param) override;
-
         private:
             const spider::vector<std::shared_ptr<Param>> *params_ = nullptr;
             std::ofstream &file_;
             std::string offset_;
 
+            /**
+             * @brief
+             * @param name     Name of the vertex.
+             * @param color    Color of the vertex in format "#rrggbbaa"
+             * @param border   Size of the border of the vertex.
+             * @param style    Style of the vertex shape (rounded, box, etc.).
+             */
             void vertexHeaderPrinter(const std::string &name,
                                      const std::string &color = "#ffffff00",
                                      int_fast32_t border = 2,
@@ -124,14 +109,8 @@ namespace spider {
             /**
              * @brief Prints a vertex into DOT format.
              * @param vertex   Pointer to the vertex.
-             * @param color    Color of the vertex in format "#rrggbbaa"
-             * @param border   Size of the border of the vertex.
-             * @param style    Style of the vertex shape (rounded, box, etc.).
              */
-            void vertexPrinter(Vertex *vertex,
-                               const std::string &color,
-                               int_fast32_t border = 2,
-                               const std::string &style = "") const;
+            void vertexPrinter(Vertex *vertex) const;
 
             /**
              * @brief Prints a graph interface into DOT format.
