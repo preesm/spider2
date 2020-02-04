@@ -42,9 +42,8 @@
 
 /* === Include(s) === */
 
+#include <graphs-tools/transformation/srdag/TransfoJob.h>
 #include <graphs-tools/helper/visitors/PiSDFDefaultVisitor.h>
-#include <graphs/pisdf/SpecialVertex.h>
-#include <api/pisdf-api.h>
 
 namespace spider {
     namespace srdag {
@@ -57,92 +56,40 @@ namespace spider {
 
             ~SRDAGCopyVertexVisitor() override = default;
 
-            inline void visit(pisdf::DelayVertex *vertex) override {
-                /* == This a trick to ensure proper coherence even with recursive delay init == */
-                /* == For given scenario:   A -> | delay | -> B
-                 *                         setter --^ --> getter
-                 *    This will produce this:
-                 *                          setter -> | delay | -> getter
-                 *                               A -> |       | -> B
-                 *    But in reality the vertex does not make it after the SR-Transformation.
-                 */
-                api::createVertex(srdag_, buildCloneName(vertex, 0), 2, 2);
-                ix_ = srdag_->vertexCount() - 1;
-            }
+            void visit(pisdf::DelayVertex *vertex) override;
 
-            inline void visit(pisdf::ExecVertex *vertex) override { cloneVertex(vertex); }
+            void visit(pisdf::ExecVertex *vertex) override;
 
-            inline void visit(pisdf::ConfigVertex *vertex) override { cloneVertex(vertex); }
+            void visit(pisdf::ConfigVertex *vertex) override;
 
-            inline void visit(pisdf::ForkVertex *vertex) override { cloneVertex(vertex); }
+            void visit(pisdf::ForkVertex *vertex) override;
 
-            inline void visit(pisdf::JoinVertex *vertex) override { cloneVertex(vertex); }
+            void visit(pisdf::JoinVertex *vertex) override;
 
-            inline void visit(pisdf::HeadVertex *vertex) override { cloneVertex(vertex); }
+            void visit(pisdf::HeadVertex *vertex) override;
 
-            inline void visit(pisdf::TailVertex *vertex) override { cloneVertex(vertex); }
+            void visit(pisdf::TailVertex *vertex) override;
 
-            inline void visit(pisdf::DuplicateVertex *vertex) override { cloneVertex(vertex); }
+            void visit(pisdf::DuplicateVertex *vertex) override;
 
-            inline void visit(pisdf::RepeatVertex *vertex) override { cloneVertex(vertex); }
+            void visit(pisdf::RepeatVertex *vertex) override;
 
-            inline void visit(pisdf::InitVertex *vertex) override { cloneVertex(vertex); }
+            void visit(pisdf::InitVertex *vertex) override;
 
-            inline void visit(pisdf::EndVertex *vertex) override { cloneVertex(vertex); }
+            void visit(pisdf::EndVertex *vertex) override;
 
-            inline void visit(pisdf::Graph *graph) override {
-                /* == Clone the vertex == */
-                ix_ = 0;
-                for (uint32_t it = 0; it < graph->repetitionValue(); ++it) {
-                    auto *clone = api::createNonExecVertex(srdag_,
-                                                           buildCloneName(graph, it),
-                                                           static_cast<uint32_t>(graph->inputEdgeCount()),
-                                                           static_cast<uint32_t>(graph->outputEdgeCount()));
-                    clone->setRepetitionValue(graph->repetitionValue());
-                    /* == Set the instance value of the vertex == */
-                    clone->setInstanceValue(it);
-                }
-                ix_ = (srdag_->vertexCount() - 1) - (graph->repetitionValue() - 1);
-            }
+            void visit(pisdf::Graph *graph) override;
 
             const TransfoJob &job_;
             pisdf::Graph *srdag_ = nullptr;
             size_t ix_ = SIZE_MAX;
         private:
-            std::string buildCloneName(const pisdf::Vertex *vertex, uint32_t firing) {
-                const auto *graphRef = job_.root_ ? job_.reference_ : srdag_->vertex(*(job_.srdagIx_));
-                std::string name = graphRef->name();
-                name.reserve(name.length() + vertex->name().length() + 12);
-                name.append(":").append(vertex->name()).append("-").append(std::to_string(firing));
-                return name;
-            }
+            std::string buildCloneName(const pisdf::Vertex *vertex, uint32_t firing) const;
 
             template<class T>
-            inline void cloneVertex(const T *vertex) {
-                for (uint32_t it = 0; it < vertex->repetitionValue(); ++it) {
-                    auto *clone = make<T, StackID::PISDF>(buildCloneName(vertex, it),
-                                                          vertex->inputEdgeCount(),
-                                                          vertex->outputEdgeCount(),
-                                                          vertex->inputParamCount(),
-                                                          vertex->outputParamCount(),
-                                                          vertex);
-                    srdag_->addVertex(clone);
-                    /* == Change the instance value of the clone == */
-                    clone->setInstanceValue(it);
+            void makeClone(const T *vertex);
 
-                    /* == Get the cloned parameters == */
-                    for (const auto &param : vertex->inputParamVector()) {
-                        clone->addInputParameter(job_.params_[param->ix()]);
-                    }
-                    for (const auto &param : vertex->refinementParamVector()) {
-                        clone->addRefinementParameter(job_.params_[param->ix()]);
-                    }
-                    for (const auto &param : vertex->outputParamVector()) {
-                        clone->addOutputParameter(job_.params_[param->ix()]);
-                    }
-                }
-                ix_ = (srdag_->vertexCount() - 1) - (vertex->repetitionValue() - 1);
-            }
+            void setCloneInformation(const pisdf::Vertex *vertex, pisdf::Vertex *clone, uint32_t it) const;
         };
     }
 }
