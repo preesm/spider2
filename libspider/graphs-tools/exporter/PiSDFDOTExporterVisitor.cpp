@@ -44,6 +44,7 @@
 #include <graphs/pisdf/Delay.h>
 
 /* === Static constant(s) === */
+
 static constexpr size_t MAX_LENGTH = 30;
 
 /* === Function(s) definition === */
@@ -143,6 +144,91 @@ void spider::pisdf::PiSDFDOTExporterVisitor::visit(Graph *graph) {
     }
 }
 
+void spider::pisdf::PiSDFDOTExporterVisitor::visit(DelayVertex *) { }
+
+void spider::pisdf::PiSDFDOTExporterVisitor::visit(ExecVertex *vertex) {
+/* == Vertex printer == */
+    vertexPrinter(vertex, "#eeeeeeff");
+}
+
+void spider::pisdf::PiSDFDOTExporterVisitor::visit(NonExecVertex *vertex) {
+/* == Vertex printer == */
+    vertexPrinter(vertex, "#eeeeeeff");
+}
+
+void spider::pisdf::PiSDFDOTExporterVisitor::visit(ConfigVertex *vertex) {
+/* == Vertex printer == */
+    vertexPrinter(vertex, "#ffffccff", 2, "rounded");
+}
+
+void spider::pisdf::PiSDFDOTExporterVisitor::visit(ForkVertex *vertex) {
+/* == Vertex printer == */
+    vertexPrinter(vertex, "#fabe58ff");
+}
+
+void spider::pisdf::PiSDFDOTExporterVisitor::visit(JoinVertex *vertex) {
+/* == Vertex printer == */
+    vertexPrinter(vertex, "#aea8d3ff");
+}
+
+void spider::pisdf::PiSDFDOTExporterVisitor::visit(HeadVertex *vertex) {
+/* == Vertex printer == */
+    vertexPrinter(vertex, "#dcc6e0ff");
+}
+
+void spider::pisdf::PiSDFDOTExporterVisitor::visit(TailVertex *vertex) {
+/* == Vertex printer == */
+    vertexPrinter(vertex, "#f1e7feff");
+}
+
+void spider::pisdf::PiSDFDOTExporterVisitor::visit(DuplicateVertex *vertex) {
+/* == Vertex printer == */
+    vertexPrinter(vertex, "#e87e04ff");
+}
+
+void spider::pisdf::PiSDFDOTExporterVisitor::visit(RepeatVertex *vertex) {
+/* == Vertex printer == */
+    vertexPrinter(vertex, "#fff68fff");
+}
+
+void spider::pisdf::PiSDFDOTExporterVisitor::visit(InitVertex *vertex) {
+/* == Vertex printer == */
+    vertexPrinter(vertex, "#c8f7c5ff");
+}
+
+void spider::pisdf::PiSDFDOTExporterVisitor::visit(EndVertex *vertex) {
+/* == Vertex printer == */
+    vertexPrinter(vertex, "#ff9478ff");
+}
+
+void spider::pisdf::PiSDFDOTExporterVisitor::visit(InputInterface *interface) {
+/* == Header == */
+    vertexHeaderPrinter(interface->vertexPath(), "#ffffff00", 0);
+
+/* == Interface printer == */
+    interfaceBodyPrinter(interface, "#87d37cff");
+}
+
+void spider::pisdf::PiSDFDOTExporterVisitor::visit(OutputInterface *interface) {
+/* == Header == */
+    vertexHeaderPrinter(interface->vertexPath(), "#ffffff00", 0);
+
+/* == Interface printer == */
+    interfaceBodyPrinter(interface, "#ec644bff");
+}
+
+void spider::pisdf::PiSDFDOTExporterVisitor::visit(Param *param) {
+    paramPrinter(param);
+}
+
+void spider::pisdf::PiSDFDOTExporterVisitor::visit(InHeritedParam *param) {
+    paramPrinter(param);
+}
+
+void spider::pisdf::PiSDFDOTExporterVisitor::visit(DynamicParam *param) {
+    paramPrinter(param);
+}
+
 /* === Private method(s) === */
 
 int_fast32_t spider::pisdf::PiSDFDOTExporterVisitor::computeMaxDigitCount(Vertex *vertex) const {
@@ -224,7 +310,7 @@ void spider::pisdf::PiSDFDOTExporterVisitor::vertexPrinter(Vertex *vertex,
         file_ << offset_ << '\t' << '\t' << R"(<tr>)" << '\n';
 
         /* == Export input port == */
-        portPrinter<true>(edge, rateWidth, color);
+        portPrinter(edge, rateWidth, color);
 
         /* == Middle separation == */
         file_ << offset_ << '\t' << '\t' << '\t'
@@ -234,9 +320,9 @@ void spider::pisdf::PiSDFDOTExporterVisitor::vertexPrinter(Vertex *vertex,
 
         /* == Export output port == */
         if (nOutput < vertex->outputEdgeCount()) {
-            portPrinter<false>(vertex->outputEdge(nOutput), rateWidth, color);
+            portPrinter(vertex->outputEdge(nOutput), rateWidth, color, false);
         } else {
-            dummyPortPrinter<false>(rateWidth, color);
+            dummyPortPrinter(rateWidth, color, false);
         }
 
         file_ << offset_ << '\t' << '\t' << R"(</tr>)" << '\n';
@@ -252,7 +338,7 @@ void spider::pisdf::PiSDFDOTExporterVisitor::vertexPrinter(Vertex *vertex,
         file_ << offset_ << '\t' << '\t' << R"(<tr>)" << '\n';
 
         /* == Export dummy input port == */
-        dummyPortPrinter<true>(rateWidth, color);
+        dummyPortPrinter(rateWidth, color, true);
 
         /* == Middle separation == */
         file_ << offset_ << '\t' << '\t' << '\t'
@@ -261,7 +347,7 @@ void spider::pisdf::PiSDFDOTExporterVisitor::vertexPrinter(Vertex *vertex,
               << R"(" height="20"></td>)" << '\n';
 
         /* == Export output port == */
-        portPrinter<false>(edge, rateWidth, color);
+        portPrinter(edge, rateWidth, color, false);
         file_ << offset_ << '\t' << '\t' << R"(</tr>)" << '\n';
     }
 
@@ -322,23 +408,23 @@ struct GetVertexVisitor final : public spider::pisdf::DefaultVisitor {
         name_ = vertex->vertexPath();
     }
 
-    void visit(spider::pisdf::ExecVertex *vertex) override {
+    void visit(spider::pisdf::ExecVertex *vertex) {
         this->doVertex(static_cast<spider::pisdf::Vertex *>(vertex));
     }
 
-    void visit(spider::pisdf::NonExecVertex *vertex) override {
+    void visit(spider::pisdf::NonExecVertex *vertex) {
         this->doVertex(static_cast<spider::pisdf::Vertex *>(vertex));
     }
 
-    void visit(spider::pisdf::InputInterface *interface) override {
+    void visit(spider::pisdf::InputInterface *interface) {
         this->doVertex(static_cast<spider::pisdf::Vertex *>(interface));
     }
 
-    void visit(spider::pisdf::OutputInterface *interface) override {
+    void visit(spider::pisdf::OutputInterface *interface) {
         this->doVertex(static_cast<spider::pisdf::Vertex *>(interface));
     }
 
-    void visit(spider::pisdf::Graph *graph) override {
+    void visit(spider::pisdf::Graph *graph) {
         source_ ? this->visit(graph->outputInterface(ix_)) : this->visit(graph->inputInterface(ix_));
     }
 
@@ -414,4 +500,88 @@ void spider::pisdf::PiSDFDOTExporterVisitor::paramPrinter(Param *param) const {
           << R"(<tr> <td border="0"><font point-size="20" face="inconsolata">)"
           << param->name() << "</font></td></tr>" << '\n';
     file_ << offset_ << '\t' << R"(</table>>];)" << '\n';
+}
+
+void spider::pisdf::PiSDFDOTExporterVisitor::portHeaderPrinter() const {
+    file_ << offset_ << '\t' << '\t' << '\t' << R"(<td border="0" colspan="1" align="left">)" << '\n';
+    file_ << offset_ << '\t' << '\t' << '\t' << '\t'
+          << R"(<table border="0" cellpadding="0" cellspacing="0">)" << '\n';
+    file_ << offset_ << '\t' << '\t' << '\t' << '\t' << '\t' << R"(<tr>)" << '\n';
+}
+
+void spider::pisdf::PiSDFDOTExporterVisitor::portFooterPrinter() const {
+    file_ << offset_ << '\t' << '\t' << '\t' << '\t' << '\t' << R"(</tr>)" << '\n';
+    file_ << offset_ << '\t' << '\t' << '\t' << '\t' << R"(</table>)" << '\n';
+    file_ << offset_ << '\t' << '\t' << '\t' << R"(</td>)" << '\n';
+}
+
+void spider::pisdf::PiSDFDOTExporterVisitor::portPrinter(const Edge *edge,
+                                                         int_fast32_t width,
+                                                         const std::string &color,
+                                                         bool direction) const {
+    /* == Header == */
+    portHeaderPrinter();
+
+    /* == Direction specific export == */
+    if (direction) {
+        file_ << offset_ << '\t' << '\t' << '\t' << '\t' << '\t' << '\t'
+              << R"(<td port="in_)" << edge->sinkPortIx()
+              << R"(" border="1" sides="rtb" bgcolor="#87d37cff" align="left" fixedsize="true" width="20" height="20"></td>)"
+              << '\n';
+        file_ << offset_ << '\t' << '\t' << '\t' << '\t' << '\t' << '\t'
+              << R"(<td border="1" sides="l" align="left" bgcolor=")" << color
+              << R"(" fixedsize="true" width=")" << width
+              << R"(" height="20"><font point-size="12" face="inconsolata"> )"
+              << edge->sinkRateValue()
+              << R"(</font></td>)" << '\n';
+    } else {
+        file_ << offset_ << '\t' << '\t' << '\t' << '\t' << '\t' << '\t'
+              << R"(<td border="1" sides="r" align="right" bgcolor=")" << color << R"(" fixedsize="true" width=")"
+              << width
+              << R"(" height="20"><font point-size="12" face="inconsolata">)"
+              << edge->sourceRateExpression().evaluate((*params_))
+              << R"( </font></td>)" << '\n';
+        file_ << offset_ << '\t' << '\t' << '\t' << '\t' << '\t' << '\t'
+              << R"(<td port="out_)" << edge->sourcePortIx()
+              << R"(" border="1" sides="ltb" bgcolor="#ec644bff" align="left" fixedsize="true" width="20" height="20"></td>)"
+              << '\n';
+    }
+
+    /* == Footer == */
+    portFooterPrinter();
+}
+
+void spider::pisdf::PiSDFDOTExporterVisitor::dummyPortPrinter(int_fast32_t width,
+                                                              const std::string &color,
+                                                              bool direction) const {
+    /* == Header == */
+    portHeaderPrinter();
+
+    /* == Direction specific export == */
+    if (direction) {
+        file_ << offset_ << '\t' << '\t' << '\t' << '\t' << '\t' << '\t'
+              << R"(<td border="0" style="invis" bgcolor=")" << color
+              << R"(" align="left" fixedsize="true" width="20" height="20"></td>)"
+              << '\n';
+        file_ << offset_ << '\t' << '\t' << '\t' << '\t' << '\t' << '\t'
+              << R"(<td border="0" style="invis" align="left" bgcolor=")" << color
+              << R"(" fixedsize="true" width=")" << width
+              << R"(" height="20"><font color=")" << color
+              << R"(" point-size="12" face="inconsolata"> 0</font></td>)"
+              << '\n';
+    } else {
+        file_ << offset_ << '\t' << '\t' << '\t' << '\t' << '\t' << '\t'
+              << R"(<td border="0" style="invis" align="right" bgcolor=")" << color
+              << R"(" fixedsize="true" width=")" << width
+              << R"(" height="20"><font color=")" << color
+              << R"(" point-size="12" face="inconsolata">0 </font></td>)"
+              << '\n';
+        file_ << offset_ << '\t' << '\t' << '\t' << '\t' << '\t' << '\t'
+              << R"(<td border="0" style="invis" bgcolor=")" << color
+              << R"(" align="left" fixedsize="true" width="20" height="20"></td>)"
+              << '\n';
+    }
+
+    /* == Footer == */
+    portFooterPrinter();
 }

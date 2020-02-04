@@ -68,90 +68,39 @@ namespace spider {
 
             void visit(Graph *graph) override;
 
-            inline void visit(DelayVertex *) override { }
+            void visit(DelayVertex *) override;
 
-            inline void visit(ExecVertex *vertex) override {
-                /* == Vertex printer == */
-                vertexPrinter(vertex, "#eeeeeeff");
-            }
+            void visit(ExecVertex *vertex) override;
 
-            inline void visit(NonExecVertex *vertex) override {
-                /* == Vertex printer == */
-                vertexPrinter(vertex, "#eeeeeeff");
-            }
+            void visit(NonExecVertex *vertex) override;
 
-            inline void visit(ConfigVertex *vertex) override {
-                /* == Vertex printer == */
-                vertexPrinter(vertex, "#ffffccff", 2, "rounded");
-            }
+            void visit(ConfigVertex *vertex) override;
 
-            inline void visit(ForkVertex *vertex) override {
-                /* == Vertex printer == */
-                vertexPrinter(vertex, "#fabe58ff");
-            }
+            void visit(ForkVertex *vertex) override;
 
-            inline void visit(JoinVertex *vertex) override {
-                /* == Vertex printer == */
-                vertexPrinter(vertex, "#aea8d3ff");
-            }
+            void visit(JoinVertex *vertex) override;
 
-            inline void visit(HeadVertex *vertex) override {
-                /* == Vertex printer == */
-                vertexPrinter(vertex, "#dcc6e0ff");
-            }
+            void visit(HeadVertex *vertex) override;
 
-            inline void visit(TailVertex *vertex) override {
-                /* == Vertex printer == */
-                vertexPrinter(vertex, "#f1e7feff");
-            }
+            void visit(TailVertex *vertex) override;
 
-            inline void visit(DuplicateVertex *vertex) override {
-                /* == Vertex printer == */
-                vertexPrinter(vertex, "#e87e04ff");
-            }
+            void visit(DuplicateVertex *vertex) override;
 
-            inline void visit(RepeatVertex *vertex) override {
-                /* == Vertex printer == */
-                vertexPrinter(vertex, "#fff68fff");
-            }
+            void visit(RepeatVertex *vertex) override;
 
-            inline void visit(InitVertex *vertex) override {
-                /* == Vertex printer == */
-                vertexPrinter(vertex, "#c8f7c5ff");
-            }
+            void visit(InitVertex *vertex) override;
 
-            inline void visit(EndVertex *vertex) override {
-                /* == Vertex printer == */
-                vertexPrinter(vertex, "#ff9478ff");
-            }
+            void visit(EndVertex *vertex) override;
 
-            inline void visit(InputInterface *interface) override {
-                /* == Header == */
-                vertexHeaderPrinter(interface->vertexPath(), "#ffffff00", 0);
+            void visit(InputInterface *interface) override;
 
-                /* == Interface printer == */
-                interfaceBodyPrinter(interface, "#87d37cff");
-            }
+            void visit(OutputInterface *interface) override;
 
-            inline void visit(OutputInterface *interface) override {
-                /* == Header == */
-                vertexHeaderPrinter(interface->vertexPath(), "#ffffff00", 0);
+            void visit(Param *param) override;
 
-                /* == Interface printer == */
-                interfaceBodyPrinter(interface, "#ec644bff");
-            }
+            void visit(InHeritedParam *param) override;
 
-            inline void visit(Param *param) override {
-                paramPrinter(param);
-            }
-
-            inline void visit(InHeritedParam *param) override {
-                paramPrinter(param);
-            }
-
-            inline void visit(DynamicParam *param) override {
-                paramPrinter(param);
-            }
+            void visit(DynamicParam *param) override;
 
         private:
             const spider::vector<std::shared_ptr<Param>> *params_ = nullptr;
@@ -159,127 +108,78 @@ namespace spider {
             std::string offset_;
 
             void vertexHeaderPrinter(const std::string &name,
-                                            const std::string &color = "#ffffff00",
-                                            int_fast32_t border = 2,
-                                            const std::string &style = "") const;
+                                     const std::string &color = "#ffffff00",
+                                     int_fast32_t border = 2,
+                                     const std::string &style = "") const;
 
             int_fast32_t computeMaxDigitCount(Vertex *vertex) const;
 
+            /**
+             * @brief Prints a vertex name to DOT with stripped size.
+             * @param vertex       Pointer to the vertex.
+             * @param columnCount  Number of column in the html table.
+             */
             void vertexNamePrinter(Vertex *vertex, size_t columnCount) const;
 
+            /**
+             * @brief Prints a vertex into DOT format.
+             * @param vertex   Pointer to the vertex.
+             * @param color    Color of the vertex in format "#rrggbbaa"
+             * @param border   Size of the border of the vertex.
+             * @param style    Style of the vertex shape (rounded, box, etc.).
+             */
             void vertexPrinter(Vertex *vertex,
                                const std::string &color,
                                int_fast32_t border = 2,
                                const std::string &style = "") const;
 
+            /**
+             * @brief Prints a graph interface into DOT format.
+             * @param interface Pointer to the interface.
+             * @param color     Color of the interface (red for output or green for input).
+             */
             void interfaceBodyPrinter(Interface *interface, const std::string &color) const;
 
+            /**
+             * @brief Prints an edge.
+             * @param edge Pointer to the edge.
+             */
             void edgePrinter(Edge *edge) const;
 
+            /**
+             * @brief Prints a param.
+             * @param param  Pointer to the parameter.
+             */
             void paramPrinter(Param *param) const;
 
-            template<bool = true>
-            inline void dummyPortPrinter(int_fast32_t width, const std::string &color) const {
-                /* == Header == */
-                portHeaderPrinter();
+            /**
+             * @brief Prints a data port.
+             * @param edge      Pointer to the edge.
+             * @param width     Width of the port.
+             * @param color     Color of the port (green for input, red for output)
+             * @param direction direction of the data port (true for input, false for output)
+             */
+            void
+            portPrinter(const Edge *edge, int_fast32_t width, const std::string &color, bool direction = true) const;
 
-                /* == Direction specific export == */
-                file_ << offset_ << '\t' << '\t' << '\t' << '\t' << '\t' << '\t'
-                      << R"(<td border="0" style="invis" bgcolor=")" << color
-                      << R"(" align="left" fixedsize="true" width="20" height="20"></td>)"
-                      << '\n';
-                file_ << offset_ << '\t' << '\t' << '\t' << '\t' << '\t' << '\t'
-                      << R"(<td border="0" style="invis" align="left" bgcolor=")" << color
-                      << R"(" fixedsize="true" width=")" << width
-                      << R"(" height="20"><font color=")" << color
-                      << R"(" point-size="12" face="inconsolata"> 0</font></td>)"
-                      << '\n';
+            /**
+             * @brief Prints a dummy data port.
+             * @param width      Width of the port.
+             * @param color      Color of the vertex containing the port
+             * @param direction  Direction, true for input, false for output
+             */
+            void dummyPortPrinter(int_fast32_t width, const std::string &color, bool direction = true) const;
 
-                /* == Footer == */
-                portFooterPrinter();
-            }
+            /**
+             * @brief Prints the header of a data port.
+             */
+            void portHeaderPrinter() const;
 
-            template<bool>
-            inline void portPrinter(const Edge *edge, int_fast32_t width, const std::string &color) const {
-                /* == Header == */
-                portHeaderPrinter();
-
-                /* == Direction specific export == */
-                file_ << offset_ << '\t' << '\t' << '\t' << '\t' << '\t' << '\t'
-                      << R"(<td port="in_)" << edge->sinkPortIx()
-                      << R"(" border="1" sides="rtb" bgcolor="#87d37cff" align="left" fixedsize="true" width="20" height="20"></td>)"
-                      << '\n';
-                file_ << offset_ << '\t' << '\t' << '\t' << '\t' << '\t' << '\t'
-                      << R"(<td border="1" sides="l" align="left" bgcolor=")" << color
-                      << R"(" fixedsize="true" width=")" << width
-                      << R"(" height="20"><font point-size="12" face="inconsolata"> )"
-                      << edge->sinkRateValue()
-                      << R"(</font></td>)" << '\n';
-
-                /* == Footer == */
-                portFooterPrinter();
-            }
-
-            inline void portHeaderPrinter() const {
-                file_ << offset_ << '\t' << '\t' << '\t' << R"(<td border="0" colspan="1" align="left">)" << '\n';
-                file_ << offset_ << '\t' << '\t' << '\t' << '\t'
-                      << R"(<table border="0" cellpadding="0" cellspacing="0">)" << '\n';
-                file_ << offset_ << '\t' << '\t' << '\t' << '\t' << '\t' << R"(<tr>)" << '\n';
-            }
-
-            inline void portFooterPrinter() const {
-                file_ << offset_ << '\t' << '\t' << '\t' << '\t' << '\t' << R"(</tr>)" << '\n';
-                file_ << offset_ << '\t' << '\t' << '\t' << '\t' << R"(</table>)" << '\n';
-                file_ << offset_ << '\t' << '\t' << '\t' << R"(</td>)" << '\n';
-            }
+            /**
+             * @brief Prints the footer of a data port.
+             */
+            void portFooterPrinter() const;
         };
-
-        /* === Inline method(s) === */
-
-        template<>
-        inline void
-        PiSDFDOTExporterVisitor::dummyPortPrinter<false>(int_fast32_t width, const std::string &color) const {
-            /* == Header == */
-            portHeaderPrinter();
-
-            /* == Direction specific export == */
-            file_ << offset_ << '\t' << '\t' << '\t' << '\t' << '\t' << '\t'
-                  << R"(<td border="0" style="invis" align="right" bgcolor=")" << color
-                  << R"(" fixedsize="true" width=")" << width
-                  << R"(" height="20"><font color=")" << color
-                  << R"(" point-size="12" face="inconsolata">0 </font></td>)"
-                  << '\n';
-            file_ << offset_ << '\t' << '\t' << '\t' << '\t' << '\t' << '\t'
-                  << R"(<td border="0" style="invis" bgcolor=")" << color
-                  << R"(" align="left" fixedsize="true" width="20" height="20"></td>)"
-                  << '\n';
-
-            /* == Footer == */
-            portFooterPrinter();
-        }
-
-        template<>
-        inline void
-        PiSDFDOTExporterVisitor::portPrinter<false>(const Edge *edge, int_fast32_t width,
-                                                    const std::string &color) const {
-            /* == Header == */
-            portHeaderPrinter();
-
-            /* == Direction specific export == */
-            file_ << offset_ << '\t' << '\t' << '\t' << '\t' << '\t' << '\t'
-                  << R"(<td border="1" sides="r" align="right" bgcolor=")" << color << R"(" fixedsize="true" width=")"
-                  << width
-                  << R"(" height="20"><font point-size="12" face="inconsolata">)"
-                  << edge->sourceRateExpression().evaluate((*params_))
-                  << R"( </font></td>)" << '\n';
-            file_ << offset_ << '\t' << '\t' << '\t' << '\t' << '\t' << '\t'
-                  << R"(<td port="out_)" << edge->sourcePortIx()
-                  << R"(" border="1" sides="ltb" bgcolor="#ec644bff" align="left" fixedsize="true" width="20" height="20"></td>)"
-                  << '\n';
-
-            /* == Footer == */
-            portFooterPrinter();
-        }
     }
 }
 #endif //SPIDER2_PISDFDOTEXPORTERVISITOR_H
