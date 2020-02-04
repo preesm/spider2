@@ -37,75 +37,42 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_PISDFVISITOR_H
-#define SPIDER2_PISDFVISITOR_H
 
 /* === Include(s) === */
 
-#include <typeinfo>
-#include <string>
-#include <stdexcept>
-#include <api/global-api.h>
+#include <new>
+#include <memory/memory.h>
 
-namespace spider {
-    namespace pisdf {
+/* === Function(s) definition === */
 
-        /* === Class definition === */
-
-        class Visitor {
-        public:
-            Visitor() = default;
-
-            virtual ~Visitor() = default;
-
-            /* === Method(s) === */
-
-            template<class T>
-            inline void visit(T *) {
-                throw std::runtime_error("unsupported type:");
-            }
-
-            virtual void visit(Graph *) = 0;
-
-            virtual void visit(ExecVertex *) = 0;
-
-            virtual void visit(NonExecVertex *) = 0;
-
-            virtual void visit(DelayVertex *) = 0;
-
-            virtual void visit(ConfigVertex *) = 0;
-
-            virtual void visit(ForkVertex *) = 0;
-
-            virtual void visit(JoinVertex *) = 0;
-
-            virtual void visit(HeadVertex *) = 0;
-
-            virtual void visit(TailVertex *) = 0;
-
-            virtual void visit(DuplicateVertex *) = 0;
-
-            virtual void visit(RepeatVertex *) = 0;
-
-            virtual void visit(InitVertex *) = 0;
-
-            virtual void visit(EndVertex *) = 0;
-
-            virtual void visit(Interface *) = 0;
-
-            virtual void visit(InputInterface *) = 0;
-
-            virtual void visit(OutputInterface *) = 0;
-
-            virtual void visit(Param *) = 0;
-
-            virtual void visit(DynamicParam *) = 0;
-
-            virtual void visit(InHeritedParam *) = 0;
-
-        private:
-
-        };
-    }
+void *operator new(std::size_t size) {
+    return std::malloc(size);
 }
-#endif //SPIDER2_PISDFVISITOR_H
+
+void *operator new[](std::size_t size) {
+    return std::malloc(size);
+}
+
+void operator delete(void *ptr) noexcept {
+    std::free(ptr);
+}
+
+void operator delete[](void *ptr) noexcept {
+    std::free(ptr);
+}
+
+void *operator new(std::size_t size, const std::nothrow_t &) noexcept {
+    return std::malloc(size);
+}
+
+void *operator new[](std::size_t size, const std::nothrow_t &) noexcept {
+    return std::malloc(size);
+}
+
+void operator delete(void *ptr, const std::nothrow_t &) noexcept {
+    std::free(ptr);
+}
+
+void operator delete[](void *ptr, const std::nothrow_t &) noexcept {
+    std::free(ptr);
+}

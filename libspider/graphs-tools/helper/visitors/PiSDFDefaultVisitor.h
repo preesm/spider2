@@ -54,13 +54,11 @@ namespace spider {
 
             /* === Method(s) === */
 
-            inline void visit(Graph *) override {
-                throwSpiderException("unsupported visitor type: Graph.");
-            }
+            void visit(Graph *) override;
 
-            inline void visit(ExecVertex *) override { };
+            void visit(ExecVertex *) override;
 
-            inline void visit(NonExecVertex *) override { };
+            void visit(NonExecVertex *) override;
 
             void visit(DelayVertex *vertex) override;
 
@@ -82,25 +80,17 @@ namespace spider {
 
             void visit(EndVertex *vertex) override;
 
-            inline void visit(Interface *) override {
-                throwSpiderException("unsupported visitor type: Interface.");
-            }
+            void visit(Interface *) override;
 
             void visit(InputInterface *input) override;
 
             void visit(OutputInterface *output) override;
 
-            inline void visit(Param *) override {
-                throwSpiderException("unsupported visitor type: Param.");
-            }
+            void visit(Param *) override;
 
-            inline void visit(DynamicParam *) override {
-                throwSpiderException("unsupported visitor type: DynamicParam.");
-            }
+            void visit(DynamicParam *) override;
 
-            inline void visit(InHeritedParam *) override {
-                throwSpiderException("unsupported visitor type: InHeritedParam.");
-            }
+            void visit(InHeritedParam *) override;
         };
     }
 }

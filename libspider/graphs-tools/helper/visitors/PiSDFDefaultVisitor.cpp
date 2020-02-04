@@ -47,6 +47,14 @@
 
 /* === Function(s) definition === */
 
+void spider::pisdf::DefaultVisitor::visit(spider::pisdf::Graph *) {
+    throwSpiderException("unsupported visitor type: Graph.");
+}
+
+void spider::pisdf::DefaultVisitor::visit(spider::pisdf::ExecVertex *) { }
+
+void spider::pisdf::DefaultVisitor::visit(spider::pisdf::NonExecVertex *) { }
+
 void spider::pisdf::DefaultVisitor::visit(DelayVertex *vertex) {
     this->visit(static_cast<ExecVertex *>(vertex));
 }
@@ -87,10 +95,26 @@ void spider::pisdf::DefaultVisitor::visit(EndVertex *vertex) {
     this->visit(static_cast<ExecVertex *>(vertex));
 }
 
+void spider::pisdf::DefaultVisitor::visit(spider::pisdf::Interface *) {
+    throwSpiderException("unsupported visitor type: Interface.");
+}
+
 void spider::pisdf::DefaultVisitor::visit(InputInterface *input) {
     this->visit(static_cast<Interface *>(input));
 }
 
 void spider::pisdf::DefaultVisitor::visit(OutputInterface *output) {
     this->visit(static_cast<Interface *>(output));
+}
+
+void spider::pisdf::DefaultVisitor::visit(spider::pisdf::Param *) {
+    throwSpiderException("unsupported visitor type: Param.");
+}
+
+void spider::pisdf::DefaultVisitor::visit(spider::pisdf::DynamicParam *) {
+    throwSpiderException("unsupported visitor type: DynamicParam.");
+}
+
+void spider::pisdf::DefaultVisitor::visit(spider::pisdf::InHeritedParam *) {
+    throwSpiderException("unsupported visitor type: InHeritedParam.");
 }

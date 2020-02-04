@@ -408,24 +408,24 @@ struct GetVertexVisitor final : public spider::pisdf::DefaultVisitor {
         name_ = vertex->vertexPath();
     }
 
-    void visit(spider::pisdf::ExecVertex *vertex) {
-        this->doVertex(static_cast<spider::pisdf::Vertex *>(vertex));
+    void visit(spider::pisdf::ExecVertex *vertex) override {
+        doVertex(vertex);
     }
 
-    void visit(spider::pisdf::NonExecVertex *vertex) {
-        this->doVertex(static_cast<spider::pisdf::Vertex *>(vertex));
+    void visit(spider::pisdf::NonExecVertex *vertex) override {
+        doVertex(vertex);
     }
 
-    void visit(spider::pisdf::InputInterface *interface) {
-        this->doVertex(static_cast<spider::pisdf::Vertex *>(interface));
+    void visit(spider::pisdf::InputInterface *interface) override {
+        doVertex(interface);
     }
 
-    void visit(spider::pisdf::OutputInterface *interface) {
-        this->doVertex(static_cast<spider::pisdf::Vertex *>(interface));
+    void visit(spider::pisdf::OutputInterface *interface) override {
+        doVertex(interface);
     }
 
-    void visit(spider::pisdf::Graph *graph) {
-        source_ ? this->visit(graph->outputInterface(ix_)) : this->visit(graph->inputInterface(ix_));
+    void visit(spider::pisdf::Graph *graph) override {
+        source_ ? doVertex(graph->outputInterface(ix_)) : doVertex(graph->inputInterface(ix_));
     }
 
     spider::pisdf::Vertex *vertex_ = nullptr;
