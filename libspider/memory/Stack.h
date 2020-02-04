@@ -199,7 +199,7 @@ namespace spider {
             constexpr double SIZE_GB = 1024 * 1024 * 1024;
             constexpr double SIZE_MB = 1024 * 1024;
             constexpr double SIZE_KB = 1024;
-            const auto dblSize = (double) size;
+            const auto dblSize = static_cast<double>(size);
             if (dblSize / SIZE_GB >= 1.) {
                 return dblSize / SIZE_GB;
             } else if (dblSize / SIZE_MB >= 1.) {

@@ -69,8 +69,7 @@ namespace spider {
             }
 
             inline void visit(pisdf::DynamicParam *param) override {
-                auto p = make_shared<pisdf::DynamicParam, StackID::PISDF>(param->name(),
-                                                                          Expression(param->expression()));
+                auto p = make_shared<pisdf::DynamicParam, StackID::PISDF>(param->name(), param->expression());
                 p->setIx(param->ix());
                 copyParamVector_.emplace_back(std::move(p));
             }

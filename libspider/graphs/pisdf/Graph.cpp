@@ -293,7 +293,7 @@ void spider::pisdf::Graph::moveVertex(Vertex *elt, Graph *graph) {
         RemoveSpecialVertexVisitor visitor{ this };
         elt->visit(&visitor);
     }
-    removeNoDestroy(vertexVector_, static_cast<Vertex *>(elt));
+    removeNoDestroy(vertexVector_, elt);
     graph->addVertex(elt);
 }
 

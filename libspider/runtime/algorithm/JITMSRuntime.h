@@ -86,6 +86,22 @@ namespace spider {
         bool dynamicExecute();
 
         /**
+         * @brief Transform all static jobs contained in staticJobStack and update the job stacks with future jobs.
+         * @param staticJobStack   Static job stack.
+         * @param dynamicJobStack  Dynamic job stack.
+         */
+        void transformStaticJobs(spider::vector<srdag::TransfoJob> &staticJobStack,
+                                 spider::vector<srdag::TransfoJob> &dynamicJobStack);
+
+        /**
+         * @brief Transform all dynamic jobs contained in dynamicJobStack and update the job stacks with future jobs.
+         * @param staticJobStack   Static job stack.
+         * @param dynamicJobStack  Dynamic job stack.
+         */
+        void transformDynamicJobs(spider::vector<srdag::TransfoJob> &staticJobStack,
+                                  spider::vector<srdag::TransfoJob> &dynamicJobStack);
+
+        /**
          * @brief Appends @refitem spider::srdag::TransfoJob from source vector to destination vector using MOVE semantic.
          * @param src       Source vector of the TransfoJobs to move.
          * @param dest      Destination vector to move the TransfoJobs to.
@@ -102,25 +118,6 @@ namespace spider {
         void transformJobs(spider::vector<spider::srdag::TransfoJob> &iterJobStack,
                            spider::vector<spider::srdag::TransfoJob> &staticJobStack,
                            spider::vector<spider::srdag::TransfoJob> &dynamicJobStack);
-
-        /**
-         * @brief Transform all static jobs contained in staticJobStack and update the job stacks with future jobs.
-         * @param staticJobStack   Static job stack.
-         * @param dynamicJobStack  Dynamic job stack.
-         */
-        void transformStaticJobs(spider::vector<srdag::TransfoJob> &staticJobStack,
-                                 spider::vector<srdag::TransfoJob> &dynamicJobStack);
-
-        /**
-         * @brief Transform all dynamic jobs contained in dynamicJobStack and update the job stacks with future jobs.
-         * @param staticJobStack   Static job stack.
-         * @param dynamicJobStack  Dynamic job stack.
-         */
-        void transformDynamicJobs(spider::vector<srdag::TransfoJob> &staticJobStack,
-                                  spider::vector<srdag::TransfoJob> &dynamicJobStack);
     };
-
-    /* === Inline method(s) === */
-
 }
 #endif //SPIDER2_JITMSRUNTIME_H

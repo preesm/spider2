@@ -52,9 +52,9 @@ namespace spider {
     /* === Class definition === */
 
     struct RTFifo {
-        uint64_t virtualAddress_ = UINT64_MAX;
-        size_t size_ = 0;
-        size_t senderReceiverIx_ = 0;
+        uint32_t virtualAddress_ = UINT32_MAX;
+        uint32_t size_ = 0;
+        uint32_t senderReceiverIx_ = 0;
     };
 }
 

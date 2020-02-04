@@ -210,7 +210,7 @@ namespace spider {
         }
 
         inline int64_t toInt64() const {
-            return static_cast<int64_t >(n_ / d_);
+            return n_ / d_;
         }
 
         inline uint64_t toUInt64() const {

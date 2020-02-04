@@ -199,12 +199,7 @@ namespace spider {
         inline void setMappableConstraintOnPE(const PE *pe, bool mappable = true) {
             auto *cluster = pe->cluster();
             peMappableVector_.at(pe->virtualIx()) = mappable;
-            auto clusterMappableValue = false;
-            std::for_each(cluster->array().begin(), cluster->array().end(),
-                          [&clusterMappableValue, this](const PE *pe) {
-                              clusterMappableValue |= peMappableVector_.at(pe->virtualIx());
-                          });
-            clusterMappableVector_.at(cluster->ix()) = clusterMappableValue;
+            clusterMappableVector_.at(cluster->ix()) = mappable;
         }
 
         /**

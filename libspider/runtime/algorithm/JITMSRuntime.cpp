@@ -54,6 +54,7 @@
 #include <api/config-api.h>
 #include <common/Time.h>
 #include <graphs/pisdf/SpecialVertex.h>
+#include <scheduling/schedule/exporter/SchedXMLGanttExporter.h>
 
 /* === Static function(s) === */
 
@@ -247,6 +248,27 @@ bool spider::JITMSRuntime::dynamicExecute() {
     return true;
 }
 
+void spider::JITMSRuntime::transformStaticJobs(spider::vector<spider::srdag::TransfoJob> &staticJobStack,
+                                               spider::vector<spider::srdag::TransfoJob> &dynamicJobStack) {
+    auto tempJobStack = factory::vector<srdag::TransfoJob>(StackID::TRANSFO);
+    while (!staticJobStack.empty()) {
+        /* == Transform jobs of current static stack == */
+        transformJobs(staticJobStack, tempJobStack, dynamicJobStack);
+        /* == Swap vectors == */
+        staticJobStack.swap(tempJobStack);
+        tempJobStack.clear();
+    }
+}
+
+void spider::JITMSRuntime::transformDynamicJobs(spider::vector<srdag::TransfoJob> &staticJobStack,
+                                                spider::vector<srdag::TransfoJob> &dynamicJobStack) {
+    auto tempJobStack = factory::vector<srdag::TransfoJob>(StackID::TRANSFO);
+    /* == Transform jobs of current dynamic stack == */
+    transformJobs(dynamicJobStack, staticJobStack, tempJobStack);
+    /* == Swap vectors == */
+    dynamicJobStack.swap(tempJobStack);
+}
+
 void spider::JITMSRuntime::updateJobStack(spider::vector<spider::srdag::TransfoJob> &src,
                                           spider::vector<spider::srdag::TransfoJob> &dest) const {
     std::for_each(src.begin(), src.end(), [&](spider::srdag::TransfoJob &job) {
@@ -267,25 +289,4 @@ void spider::JITMSRuntime::transformJobs(spider::vector<spider::srdag::TransfoJo
         /* == Move dynamic TransfoJob into dynamic JobStack == */
         updateJobStack(result.second, dynamicJobStack);
     }
-}
-
-void spider::JITMSRuntime::transformStaticJobs(spider::vector<spider::srdag::TransfoJob> &staticJobStack,
-                                               spider::vector<spider::srdag::TransfoJob> &dynamicJobStack) {
-    auto tempJobStack = factory::vector<srdag::TransfoJob>(StackID::TRANSFO);
-    while (!staticJobStack.empty()) {
-        /* == Transform jobs of current static stack == */
-        transformJobs(staticJobStack, tempJobStack, dynamicJobStack);
-        /* == Swap vectors == */
-        staticJobStack.swap(tempJobStack);
-        tempJobStack.clear();
-    }
-}
-
-void spider::JITMSRuntime::transformDynamicJobs(spider::vector<srdag::TransfoJob> &staticJobStack,
-                                                spider::vector<srdag::TransfoJob> &dynamicJobStack) {
-    auto tempJobStack = factory::vector<srdag::TransfoJob>(StackID::TRANSFO);
-    /* == Transform jobs of current dynamic stack == */
-    transformJobs(dynamicJobStack, staticJobStack, tempJobStack);
-    /* == Swap vectors == */
-    dynamicJobStack.swap(tempJobStack);
 }

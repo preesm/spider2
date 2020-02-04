@@ -171,10 +171,9 @@ spider::JobMessage spider::sched::Job::createJobMessage(const Schedule *schedule
             /* = First input to be considered = */
             message.inputParams_[1] = static_cast<int64_t>(inputEdgeCount - inputCount);
             /* = Offset in the first buffer if any = */
-            message.inputParams_[2] = static_cast<int64_t>(
-                    vertex_->inputEdge(inputEdgeCount - inputCount)->sinkRateValue() - rate);
+            message.inputParams_[2] = vertex_->inputEdge(inputEdgeCount - inputCount)->sinkRateValue() - rate;
             /* = Effective size to copy of the first input = */
-            message.inputParams_[3] = static_cast<int64_t>(rate);
+            message.inputParams_[3] = rate;
             size_t i = 4;
             for (auto it = vertex_->inputEdgeVector().rbegin();
                  it != vertex_->inputEdgeVector().rbegin() + static_cast<long>(inputCount) - 1; ++it) {
@@ -206,13 +205,17 @@ spider::JobMessage spider::sched::Job::createJobMessage(const Schedule *schedule
         case pisdf::VertexType::INIT:
             message.inputParams_ = spider::array<int64_t>(2, StackID::RUNTIME);
             message.inputParams_[0] = static_cast<int64_t>(0);
-            message.inputParams_[1] = static_cast<int64_t>(vertex_->outputEdge(0)->sourceRateValue());
+            message.inputParams_[1] = vertex_->outputEdge(0)->sourceRateValue();
             break;
         case pisdf::VertexType::END:
             message.inputParams_ = spider::array<int64_t>(2, StackID::RUNTIME);
             message.inputParams_[0] = static_cast<int64_t>(0);
-            message.inputParams_[1] = static_cast<int64_t>(vertex_->inputEdge(0)->sinkRateValue());
+            message.inputParams_[1] = vertex_->inputEdge(0)->sinkRateValue();
             break;
+        case pisdf::VertexType::DELAY:
+        case pisdf::VertexType::GRAPH:
+        case pisdf::VertexType::INPUT:
+        case pisdf::VertexType::OUTPUT:
         default:
             throwSpiderException("unhandled type of vertex.");
     }

@@ -29,7 +29,6 @@ cmake_minimum_required(VERSION 3.12)
 # THE SOFTWARE.
 
 
-
 # This sets the PROJECT_NAME, PROJECT_VERSION as well as other variable
 # listed here: https://cmake.org/cmake/help/latest/command/project.html.
 # We use this name to export all the files such that is then possible to use
@@ -75,7 +74,7 @@ if (MSVC)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
     install(FILES $<TARGET_PDB_FILE:${PROJECT_NAME}> CONFIGURATIONS "Debug" "RelWithDebInfo" DESTINATION "${CMAKE_INSTALL_BINDIR}")
 else ()
-    set(SPIDER_WARNING_FLAGS "-Wall -Wextra -pedantic-errors -Wnon-virtual-dtor -Wconversion -Wformat")
+    set(SPIDER_WARNING_FLAGS "-Wall -Wextra -pedantic-errors -Wnon-virtual-dtor -Wconversion -Wformat -Wswitch-enum -Wredundant-decls -Wold-style-cast -Wuseless-cast -Wshadow")
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -pg -O0 --coverage ${SPIDER_WARNING_FLAGS}")
     set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG ${SPIDER_WARNING_FLAGS}")
     if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")

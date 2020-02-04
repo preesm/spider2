@@ -160,6 +160,11 @@ spider::pisdf::Vertex *spider::api::createVertexFromType(pisdf::Graph *graph,
             return spider::api::createInit(graph, std::move(name));
         case spider::pisdf::VertexType::END:
             return spider::api::createEnd(graph, std::move(name));
+        case spider::pisdf::VertexType::DELAY:
+        case spider::pisdf::VertexType::INPUT:
+        case spider::pisdf::VertexType::OUTPUT:
+        case spider::pisdf::VertexType::GRAPH:
+            return nullptr;
         default:
             throwSpiderException("vertex type not found");
     }

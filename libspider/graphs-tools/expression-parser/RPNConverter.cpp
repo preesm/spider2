@@ -228,10 +228,10 @@ static void addElementFromToken(spider::vector<RPNElement> &tokenStack, const st
 static bool trySwap(spider::vector<RPNElement> &stack,
                     const spider::vector<uint32_t> &left,
                     const spider::vector<uint32_t> &right) {
-    if (stack[left.back()].token != stack[right.back()].token) {
+    if (stack[left.back()].token_ != stack[right.back()].token_) {
         return false;
     }
-    const auto &token = stack[left.back()].token;
+    const auto &token = stack[left.back()].token_;
     if (std::string("+-/*^").find(token) == std::string::npos) {
         return false;
     }
@@ -240,9 +240,9 @@ static bool trySwap(spider::vector<RPNElement> &stack,
     /* == Operators "-/^" can not swap the most left elements == */
     auto it = left.begin() + (std::string("-/^").find(token) != std::string::npos);
     for (; it != left.end(); ++it) {
-        if (stack[*it].subtype == RPNElementSubType::PARAMETER) {
+        if (stack[*it].subtype_ == RPNElementSubType::PARAMETER) {
             for (const auto &ixr: right) {
-                if (stack[ixr].subtype == RPNElementSubType::VALUE) {
+                if (stack[ixr].subtype_ == RPNElementSubType::VALUE) {
                     std::swap(stack[*it], stack[ixr]);
                     swaped = true;
                     break;
@@ -259,13 +259,13 @@ std::string spider::rpn::infixString(const spider::vector<RPNElement> &postfixSt
     spider::stack<std::string> stack;
     stack.push("");
     for (const auto &element : postfixStack) {
-        if (element.type == RPNElementType::OPERAND) {
-            stack.push(element.token);
+        if (element.type_ == RPNElementType::OPERAND) {
+            stack.push(element.token_);
         } else {
-            const auto &op = getOperatorFromOperatorType(getOperatorTypeFromString(element.token));
+            const auto &op = getOperatorFromOperatorType(getOperatorTypeFromString(element.token_));
             std::string builtInfix;
-            if (element.subtype == RPNElementSubType::FUNCTION) {
-                builtInfix += (element.token + '(');
+            if (element.subtype_ == RPNElementSubType::FUNCTION) {
+                builtInfix += (element.token_ + '(');
                 spider::stack<std::string> reverseStack;
                 for (uint32_t i = 0; i < op.argCount; ++i) {
                     reverseStack.push(std::move(stack.top()));
@@ -284,7 +284,7 @@ std::string spider::rpn::infixString(const spider::vector<RPNElement> &postfixSt
                 auto op1 = stack.top();
                 stack.pop();
                 builtInfix += ('(' + op1);
-                builtInfix += element.token;
+                builtInfix += element.token_;
                 builtInfix += (op2 + ')');
             }
             stack.push(builtInfix);
@@ -297,7 +297,7 @@ std::string spider::rpn::postfixString(const spider::vector<RPNElement> &postfix
     /* == Build the postfix string expression == */
     std::string postfixExpr;
     for (auto &t : postfixStack) {
-        postfixExpr += t.token + " ";
+        postfixExpr += t.token_ + " ";
     }
     postfixExpr.pop_back();
     return postfixExpr;
@@ -353,9 +353,9 @@ spider::vector<RPNElement> spider::rpn::extractPostfixElements(std::string infix
     auto postfixStack = factory::vector<RPNElement>(StackID::EXPRESSION);
     postfixStack.reserve(infixStack.size());
     for (auto &element : infixStack) {
-        if (element.type == RPNElementType::OPERATOR) {
-            const auto &operatorType = getOperatorTypeFromString(element.token);
-            if (element.subtype == RPNElementSubType::FUNCTION ||
+        if (element.type_ == RPNElementType::OPERATOR) {
+            const auto &operatorType = getOperatorTypeFromString(element.token_);
+            if (element.subtype_ == RPNElementSubType::FUNCTION ||
                 operatorType == RPNOperatorType::LEFT_PAR) {
                 /* == Handle function and left parenthesis case == */
                 operatorStack.emplace_back(std::make_pair(operatorType, std::move(element)));
@@ -421,7 +421,7 @@ void spider::rpn::reorderPostfixStack(spider::vector<RPNElement> &postfixStack) 
     uint32_t i = 0;
     for (const auto &elt : postfixStack) {
         operationStackVector.back().emplace_back(i++);
-        if (elt.type == RPNElementType::OPERATOR) {
+        if (elt.type_ == RPNElementType::OPERATOR) {
             if (operationStackVector.back().size() == 1) {
                 break;
             }

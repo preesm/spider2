@@ -68,7 +68,7 @@ namespace spider {
          * @param senderReceiverIx Index of the sending (or receiving) PE of the FIFO.
          * @return created @refitem RTFifo.
          */
-        virtual RTFifo allocate(size_t size, size_t senderReceiverIx) noexcept = 0;
+        virtual RTFifo allocate(uint32_t size, uint32_t senderReceiverIx) noexcept = 0;
 
         /**
          * @brief Clears the allocator.

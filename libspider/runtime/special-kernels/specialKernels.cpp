@@ -130,13 +130,13 @@ void spider::rt::duplicate(const int64_t *paramsIn, int64_t *, void **in, void *
 }
 
 void spider::rt::repeat(const int64_t *paramsIn, int64_t *, void **in, void **out) {
-    const auto &inputSize = static_cast<size_t>(paramsIn[0]);  /* = Rate of the input port = */
-    const auto &outputSize = static_cast<size_t>(paramsIn[1]); /* = Rate of the output port = */
+    const auto inputSize = static_cast<size_t>(paramsIn[0]);  /* = Rate of the input port = */
+    const auto outputSize = static_cast<size_t>(paramsIn[1]); /* = Rate of the output port = */
     if (inputSize >= outputSize) {
         std::memcpy(out[0], in[0], outputSize);
     } else {
-        const auto &repeatCount = static_cast<size_t>(outputSize / inputSize);
-        const auto &rest = static_cast<size_t>(outputSize % inputSize);
+        const auto repeatCount = outputSize / inputSize;
+        const auto rest = outputSize % inputSize;
         for (size_t i = 0; i < repeatCount; ++i) {
             auto *output = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(out[0]) + i * inputSize);
             std::memcpy(output, in[0], inputSize);

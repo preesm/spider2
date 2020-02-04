@@ -70,25 +70,25 @@ namespace spider {
                 ix_ = srdag_->vertexCount() - 1;
             }
 
-            inline void visit(pisdf::ExecVertex *vertex) override { clone(vertex); }
+            inline void visit(pisdf::ExecVertex *vertex) override { cloneVertex(vertex); }
 
-            inline void visit(pisdf::ConfigVertex *vertex) override { clone(vertex); }
+            inline void visit(pisdf::ConfigVertex *vertex) override { cloneVertex(vertex); }
 
-            inline void visit(pisdf::ForkVertex *vertex) override { clone(vertex); }
+            inline void visit(pisdf::ForkVertex *vertex) override { cloneVertex(vertex); }
 
-            inline void visit(pisdf::JoinVertex *vertex) override { clone(vertex); }
+            inline void visit(pisdf::JoinVertex *vertex) override { cloneVertex(vertex); }
 
-            inline void visit(pisdf::HeadVertex *vertex) override { clone(vertex); }
+            inline void visit(pisdf::HeadVertex *vertex) override { cloneVertex(vertex); }
 
-            inline void visit(pisdf::TailVertex *vertex) override { clone(vertex); }
+            inline void visit(pisdf::TailVertex *vertex) override { cloneVertex(vertex); }
 
-            inline void visit(pisdf::DuplicateVertex *vertex) override { clone(vertex); }
+            inline void visit(pisdf::DuplicateVertex *vertex) override { cloneVertex(vertex); }
 
-            inline void visit(pisdf::RepeatVertex *vertex) override { clone(vertex); }
+            inline void visit(pisdf::RepeatVertex *vertex) override { cloneVertex(vertex); }
 
-            inline void visit(pisdf::InitVertex *vertex) override { clone(vertex); }
+            inline void visit(pisdf::InitVertex *vertex) override { cloneVertex(vertex); }
 
-            inline void visit(pisdf::EndVertex *vertex) override { clone(vertex); }
+            inline void visit(pisdf::EndVertex *vertex) override { cloneVertex(vertex); }
 
             inline void visit(pisdf::Graph *graph) override {
                 /* == Clone the vertex == */
@@ -118,7 +118,7 @@ namespace spider {
             }
 
             template<class T>
-            inline void clone(const T *vertex) {
+            inline void cloneVertex(const T *vertex) {
                 for (uint32_t it = 0; it < vertex->repetitionValue(); ++it) {
                     auto *clone = make<T, StackID::PISDF>(buildCloneName(vertex, it),
                                                           vertex->inputEdgeCount(),

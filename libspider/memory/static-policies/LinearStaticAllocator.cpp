@@ -68,7 +68,7 @@ void *LinearStaticAllocator::allocate(size_t size) {
     size_t padding = 0;
     if (alignment_ && size % alignment_ != 0) {
         /*!< Compute next aligned address padding */
-        padding = AbstractAllocatorPolicy::computePadding(static_cast<size_t>(size), alignment_);
+        padding = AbstractAllocatorPolicy::computePadding(size, alignment_);
     }
 
     size += padding;

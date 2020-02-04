@@ -90,8 +90,8 @@ spider::pisdf::Delay::Delay(Expression expression, Edge *edge,
     edge->graph()->addVertex(vertex_);
 
     auto *setterEdge = make<Edge, StackID::PISDF>(setter_, setterPortIx_, std::move(setterRateExpression),
-                                                  vertex_, 0u, Expression(expression_));
-    auto *getterEdge = make<Edge, StackID::PISDF>(vertex_, 0u, Expression(expression_),
+                                                  vertex_, 0u, expression_);
+    auto *getterEdge = make<Edge, StackID::PISDF>(vertex_, 0u, expression_,
                                                   getter_, getterPortIx_, std::move(getterRateExpression));
 
     /* == Add things to the graph == */

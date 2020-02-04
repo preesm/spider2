@@ -107,6 +107,9 @@ static double applyOperator(StartIterator start, RPNOperatorType type) {
             return std::max((*start), (*(start + 1)));
         case RPNOperatorType::MIN:
             return std::min((*start), (*(start + 1)));
+        case RPNOperatorType::LEFT_PAR:
+        case RPNOperatorType::RIGHT_PAR:
+        case RPNOperatorType::DUMMY:
         default:
             if (spider::log::enabled<spider::log::EXPR>()) {
                 spider::log::error<spider::log::EXPR>("Unsupported operation.\n");
@@ -155,7 +158,7 @@ std::string spider::Expression::string() const {
     /* == Build the postfix string expression == */
     std::string postfixExpr;
     for (auto &t : *(expressionStack_)) {
-        postfixExpr += t.elt_.token + " ";
+        postfixExpr += t.elt_.token_ + " ";
     }
     postfixExpr.pop_back();
     return postfixExpr;
@@ -174,10 +177,10 @@ spider::Expression::buildExpressionStack(spider::vector<RPNElement> &postfixStac
     bool skipEval = false;
     size_t argCount = 0;
     for (auto &elt : postfixStack) {
-        if (elt.type == RPNElementType::OPERAND) {
+        if (elt.type_ == RPNElementType::OPERAND) {
             argCount += 1;
-            if (elt.subtype == RPNElementSubType::PARAMETER) {
-                const auto &param = findParam(params, elt.token);
+            if (elt.subtype_ == RPNElementSubType::PARAMETER) {
+                const auto &param = findParam(params, elt.token_);
                 const auto &dynamic = param->dynamic();
                 const auto &value = static_cast<double>(param->value());
                 evalStack.emplace_back(value);
@@ -186,23 +189,23 @@ spider::Expression::buildExpressionStack(spider::vector<RPNElement> &postfixStac
                 staticExpression &= (!dynamic);
                 stack.emplace_back(std::move(elt));
                 if (!dynamic) {
-                    stack.back().elt_.type = RPNElementType::OPERAND;
-                    stack.back().elt_.subtype = RPNElementSubType::VALUE;
+                    stack.back().elt_.type_ = RPNElementType::OPERAND;
+                    stack.back().elt_.subtype_ = RPNElementSubType::VALUE;
                     stack.back().arg.value_ = value;
                 } else {
                     skipEval = true;
                 }
             } else {
-                const auto &value = std::strtod(elt.token.c_str(), nullptr);
+                const auto &value = std::strtod(elt.token_.c_str(), nullptr);
                 evalStack.emplace_back(value);
                 stack.emplace_back(std::move(elt));
                 stack.back().arg.value_ = value;
             }
         } else {
-            const auto &opType = rpn::getOperatorTypeFromString(elt.token);
+            const auto &opType = rpn::getOperatorTypeFromString(elt.token_);
             const auto &op = rpn::getOperatorFromOperatorType(opType);
-            if (elt.subtype == RPNElementSubType::FUNCTION && argCount < op.argCount) {
-                throwSpiderException("Function [%s] expecting argument !", elt.token.c_str());
+            if (elt.subtype_ == RPNElementSubType::FUNCTION && argCount < op.argCount) {
+                throwSpiderException("Function [%s] expecting argument !", elt.token_.c_str());
             }
             stack.emplace_back(std::move(elt));
             stack.back().arg.opType_ = opType;
@@ -213,9 +216,9 @@ spider::Expression::buildExpressionStack(spider::vector<RPNElement> &postfixStac
                     stack.pop_back();
                     evalStack.pop_back();
                 }
-                stack.back().elt_.type = RPNElementType::OPERAND;
-                stack.back().elt_.subtype = RPNElementSubType::VALUE;
-                stack.back().elt_.token = std::to_string(result);
+                stack.back().elt_.type_ = RPNElementType::OPERAND;
+                stack.back().elt_.subtype_ = RPNElementSubType::VALUE;
+                stack.back().elt_.token_ = std::to_string(result);
                 stack.back().arg.value_ = result;
                 evalStack.emplace_back(result);
             } else {
@@ -234,9 +237,9 @@ double spider::Expression::evaluateStack(const spider::vector<std::shared_ptr<pi
     auto evalStack = factory::vector<double>(StackID::EXPRESSION);
     evalStack.reserve(6); /* = In practice, the evalStack will most likely not exceed 3 values = */
     for (const auto &elt : *(expressionStack_)) {
-        if (elt.elt_.type == RPNElementType::OPERAND) {
-            if (elt.elt_.subtype == RPNElementSubType::PARAMETER) {
-                const auto &param = findParam(params, elt.elt_.token);
+        if (elt.elt_.type_ == RPNElementType::OPERAND) {
+            if (elt.elt_.subtype_ == RPNElementSubType::PARAMETER) {
+                const auto &param = findParam(params, elt.elt_.token_);
                 evalStack.emplace_back(static_cast<double>(param->value()));
             } else {
                 evalStack.emplace_back(elt.arg.value_);
