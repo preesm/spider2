@@ -88,9 +88,9 @@ namespace spider {
 
             void visit(Param *) override;
 
-            void visit(DynamicParam *) override;
+            void visit(DynamicParam *param) override;
 
-            void visit(InHeritedParam *) override;
+            void visit(InHeritedParam *param) override;
         };
     }
 }

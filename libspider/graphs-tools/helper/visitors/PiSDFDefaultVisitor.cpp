@@ -42,6 +42,8 @@
 
 #include <graphs-tools/helper/visitors/PiSDFDefaultVisitor.h>
 #include <graphs/pisdf/SpecialVertex.h>
+#include <graphs/pisdf/DynamicParam.h>
+#include <graphs/pisdf/InHeritedParam.h>
 #include <graphs/pisdf/interfaces/InputInterface.h>
 #include <graphs/pisdf/interfaces/OutputInterface.h>
 
@@ -107,14 +109,14 @@ void spider::pisdf::DefaultVisitor::visit(OutputInterface *output) {
     this->visit(static_cast<Interface *>(output));
 }
 
-void spider::pisdf::DefaultVisitor::visit(spider::pisdf::Param *) {
+void spider::pisdf::DefaultVisitor::visit(Param *) {
     throwSpiderException("unsupported visitor type: Param.");
 }
 
-void spider::pisdf::DefaultVisitor::visit(spider::pisdf::DynamicParam *) {
-    throwSpiderException("unsupported visitor type: DynamicParam.");
+void spider::pisdf::DefaultVisitor::visit(DynamicParam *param) {
+    this->visit(static_cast<Param *>(param));
 }
 
-void spider::pisdf::DefaultVisitor::visit(spider::pisdf::InHeritedParam *) {
-    throwSpiderException("unsupported visitor type: InHeritedParam.");
+void spider::pisdf::DefaultVisitor::visit(InHeritedParam *param) {
+    this->visit(static_cast<Param *>(param));
 }
