@@ -60,29 +60,15 @@ void spider::pisdf::ConfigVertex::setRepetitionValue(uint32_t value) {
     repetitionValue_ = value;
 }
 
-spider::pisdf::ConfigVertex::ConfigVertex(std::string name,
-                                          size_t edgeINCount,
-                                          size_t edgeOUTCount,
-                                          size_t paramINCount,
-                                          size_t paramOUTCount,
-                                          const spider::pisdf::ConfigVertex *reference) :
-        ExecVertex(std::move(name), edgeINCount, edgeOUTCount, paramINCount, paramOUTCount, reference) {
-
+spider::pisdf::Vertex *spider::pisdf::ConfigVertex::emptyClone(std::string name) {
+    auto *clone = make<ConfigVertex, StackID::PISDF>(std::move(name));
+    Vertex::initializeEmptyClone(clone);
+    return clone;
 }
 
 /* === DelayVertex === */
 
 spider::pisdf::DelayVertex::DelayVertex(std::string name) : ExecVertex(std::move(name), 1, 1) {
-
-}
-
-spider::pisdf::DelayVertex::DelayVertex(std::string name,
-                                        size_t,
-                                        size_t,
-                                        size_t,
-                                        size_t,
-                                        const spider::pisdf::DelayVertex *reference) :
-        ExecVertex(std::move(name), 1, 1, 0, 0, reference) {
 
 }
 
@@ -95,6 +81,12 @@ void spider::pisdf::DelayVertex::setRepetitionValue(uint32_t value) {
     repetitionValue_ = value;
 }
 
+spider::pisdf::Vertex *spider::pisdf::DelayVertex::emptyClone(std::string name) {
+    auto *clone = make<DelayVertex, StackID::PISDF>(std::move(name));
+    Vertex::initializeEmptyClone(clone);
+    return clone;
+}
+
 /* === ForkVertex === */
 
 spider::pisdf::ForkVertex::ForkVertex(std::string name, size_t edgeOUTCount) : ExecVertex(std::move(name),
@@ -103,14 +95,10 @@ spider::pisdf::ForkVertex::ForkVertex(std::string name, size_t edgeOUTCount) : E
 
 }
 
-spider::pisdf::ForkVertex::ForkVertex(std::string name,
-                                      size_t,
-                                      size_t edgeOUTCount,
-                                      size_t,
-                                      size_t,
-                                      const spider::pisdf::ForkVertex *reference) :
-        ExecVertex(std::move(name), 1, edgeOUTCount, 0, 0, reference) {
-
+spider::pisdf::Vertex *spider::pisdf::ForkVertex::emptyClone(std::string name) {
+    auto *clone = make<ForkVertex, StackID::PISDF>(std::move(name));
+    Vertex::initializeEmptyClone(clone);
+    return clone;
 }
 
 /* === JoinVertex === */
@@ -121,14 +109,10 @@ spider::pisdf::JoinVertex::JoinVertex(std::string name, size_t edgeINCount) : Ex
 
 }
 
-spider::pisdf::JoinVertex::JoinVertex(std::string name,
-                                      size_t edgeINCount,
-                                      size_t,
-                                      size_t,
-                                      size_t,
-                                      const spider::pisdf::JoinVertex *reference) :
-        ExecVertex(std::move(name), edgeINCount, 1, 0, 0, reference) {
-
+spider::pisdf::Vertex *spider::pisdf::JoinVertex::emptyClone(std::string name) {
+    auto *clone = make<JoinVertex, StackID::PISDF>(std::move(name));
+    Vertex::initializeEmptyClone(clone);
+    return clone;
 }
 
 /* === HeadVertex === */
@@ -139,14 +123,10 @@ spider::pisdf::HeadVertex::HeadVertex(std::string name, size_t edgeINCount) : Ex
 
 }
 
-spider::pisdf::HeadVertex::HeadVertex(std::string name,
-                                      size_t edgeINCount,
-                                      size_t,
-                                      size_t,
-                                      size_t,
-                                      const spider::pisdf::HeadVertex *reference) :
-        ExecVertex(std::move(name), edgeINCount, 1, 0, 0, reference) {
-
+spider::pisdf::Vertex *spider::pisdf::HeadVertex::emptyClone(std::string name) {
+    auto *clone = make<HeadVertex, StackID::PISDF>(std::move(name));
+    Vertex::initializeEmptyClone(clone);
+    return clone;
 }
 
 /* === TailVertex === */
@@ -157,14 +137,10 @@ spider::pisdf::TailVertex::TailVertex(std::string name, size_t edgeINCount) : Ex
 
 }
 
-spider::pisdf::TailVertex::TailVertex(std::string name,
-                                      size_t edgeINCount,
-                                      size_t,
-                                      size_t,
-                                      size_t,
-                                      const spider::pisdf::TailVertex *reference) :
-        ExecVertex(std::move(name), edgeINCount, 1, 0, 0, reference) {
-
+spider::pisdf::Vertex *spider::pisdf::TailVertex::emptyClone(std::string name) {
+    auto *clone = make<TailVertex, StackID::PISDF>(std::move(name));
+    Vertex::initializeEmptyClone(clone);
+    return clone;
 }
 
 /* === RepeatVertex === */
@@ -173,14 +149,10 @@ spider::pisdf::RepeatVertex::RepeatVertex(std::string name) : ExecVertex(std::mo
 
 }
 
-spider::pisdf::RepeatVertex::RepeatVertex(std::string name,
-                                          size_t,
-                                          size_t,
-                                          size_t,
-                                          size_t,
-                                          const spider::pisdf::RepeatVertex *reference) :
-        ExecVertex(std::move(name), 1, 1, 0, 0, reference) {
-
+spider::pisdf::Vertex *spider::pisdf::RepeatVertex::emptyClone(std::string name) {
+    auto *clone = make<RepeatVertex, StackID::PISDF>(std::move(name));
+    Vertex::initializeEmptyClone(clone);
+    return clone;
 }
 
 /* === DuplicateVertex === */
@@ -191,14 +163,10 @@ spider::pisdf::DuplicateVertex::DuplicateVertex(std::string name, size_t edgeOUT
 
 }
 
-spider::pisdf::DuplicateVertex::DuplicateVertex(std::string name,
-                                                size_t,
-                                                size_t edgeOUTCount,
-                                                size_t,
-                                                size_t,
-                                                const spider::pisdf::DuplicateVertex *reference) :
-        ExecVertex(std::move(name), 1, edgeOUTCount, 0, 0, reference) {
-
+spider::pisdf::Vertex *spider::pisdf::DuplicateVertex::emptyClone(std::string name) {
+    auto *clone = make<DuplicateVertex, StackID::PISDF>(std::move(name));
+    Vertex::initializeEmptyClone(clone);
+    return clone;
 }
 
 /* === InitVertex === */
@@ -207,14 +175,10 @@ spider::pisdf::InitVertex::InitVertex(std::string name) : ExecVertex(std::move(n
 
 }
 
-spider::pisdf::InitVertex::InitVertex(std::string name,
-                                      size_t,
-                                      size_t,
-                                      size_t,
-                                      size_t,
-                                      const spider::pisdf::InitVertex *reference) :
-        ExecVertex(std::move(name), 0, 1, 0, 0, reference) {
-
+spider::pisdf::Vertex *spider::pisdf::InitVertex::emptyClone(std::string name) {
+    auto *clone = make<InitVertex, StackID::PISDF>(std::move(name));
+    Vertex::initializeEmptyClone(clone);
+    return clone;
 }
 
 /* === EndVertex === */
@@ -223,12 +187,8 @@ spider::pisdf::EndVertex::EndVertex(std::string name) : ExecVertex(std::move(nam
 
 }
 
-spider::pisdf::EndVertex::EndVertex(std::string name,
-                                    size_t,
-                                    size_t,
-                                    size_t,
-                                    size_t,
-                                    const spider::pisdf::EndVertex *reference) :
-        ExecVertex(std::move(name), 1, 0, 0, 0, reference) {
-
+spider::pisdf::Vertex *spider::pisdf::EndVertex::emptyClone(std::string name) {
+    auto *clone = make<EndVertex, StackID::PISDF>(std::move(name));
+    Vertex::initializeEmptyClone(clone);
+    return clone;
 }

@@ -58,12 +58,11 @@ namespace spider {
                                   size_t edgeINCount = 0,
                                   size_t edgeOUTCount = 0);
 
-            ConfigVertex(std::string name, size_t edgeINCount, size_t edgeOUTCount, size_t paramINCount,
-                         size_t paramOUTCount, const ConfigVertex *reference);
-
             /* === Method(s) === */
 
             inline void visit(Visitor *visitor) override { visitor->visit(this); };
+
+            Vertex *emptyClone(std::string name) override;
 
             /* === Getter(s) === */
 
@@ -81,12 +80,11 @@ namespace spider {
 
             explicit DelayVertex(std::string name = "unnamed-delay");
 
-            DelayVertex(std::string name, size_t edgeINCount, size_t edgeOUTCount, size_t paramINCount,
-                        size_t paramOUTCount, const DelayVertex *reference);
-
             /* === Method(s) === */
 
             inline void visit(Visitor *visitor) override { visitor->visit(this); };
+
+            Vertex *emptyClone(std::string name) override;
 
             /* === Getter(s) === */
 
@@ -104,12 +102,11 @@ namespace spider {
 
             explicit ForkVertex(std::string name = "unnamed-fork", size_t edgeOUTCount = 0);
 
-            ForkVertex(std::string name, size_t edgeINCount, size_t edgeOUTCount, size_t paramINCount,
-                       size_t paramOUTCount, const ForkVertex *reference);
-
             /* === Method(s) === */
 
             inline void visit(Visitor *visitor) override { visitor->visit(this); };
+
+            Vertex *emptyClone(std::string name) override;
 
             /* === Getter(s) === */
 
@@ -123,12 +120,11 @@ namespace spider {
 
             explicit JoinVertex(std::string name = "unnamed-join", size_t edgeINCount = 0);
 
-            JoinVertex(std::string name, size_t edgeINCount, size_t edgeOUTCount, size_t paramINCount,
-                       size_t paramOUTCount, const JoinVertex *reference);
-
             /* === Method(s) === */
 
             inline void visit(Visitor *visitor) override { visitor->visit(this); };
+
+            Vertex *emptyClone(std::string name) override;
 
             /* === Getter(s) === */
 
@@ -142,12 +138,11 @@ namespace spider {
 
             explicit HeadVertex(std::string name = "unnamed-head", size_t edgeINCount = 0);
 
-            HeadVertex(std::string name, size_t edgeINCount, size_t edgeOUTCount, size_t paramINCount,
-                       size_t paramOUTCount, const HeadVertex *reference);
-
             /* === Method(s) === */
 
             inline void visit(Visitor *visitor) override { visitor->visit(this); };
+
+            Vertex *emptyClone(std::string name) override;
 
             /* === Getter(s) === */
 
@@ -161,12 +156,11 @@ namespace spider {
 
             explicit TailVertex(std::string name = "unnamed-tail", size_t edgeINCount = 0);
 
-            TailVertex(std::string name, size_t edgeINCount, size_t edgeOUTCount, size_t paramINCount,
-                       size_t paramOUTCount, const TailVertex *reference);
-
             /* === Method(s) === */
 
             inline void visit(Visitor *visitor) override { visitor->visit(this); };
+
+            Vertex *emptyClone(std::string name) override;
 
             /* === Getter(s) === */
 
@@ -180,12 +174,11 @@ namespace spider {
 
             explicit RepeatVertex(std::string name = "unnamed-repeat");
 
-            RepeatVertex(std::string name, size_t edgeINCount, size_t edgeOUTCount, size_t paramINCount,
-                         size_t paramOUTCount, const RepeatVertex *reference);
-
             /* === Method(s) === */
 
             inline void visit(Visitor *visitor) override { visitor->visit(this); };
+
+            Vertex *emptyClone(std::string name) override;
 
             /* === Getter(s) === */
 
@@ -199,12 +192,11 @@ namespace spider {
 
             explicit DuplicateVertex(std::string name = "unnamed-duplicate", size_t edgeOUTCount = 0);
 
-            DuplicateVertex(std::string name, size_t edgeINCount, size_t edgeOUTCount, size_t paramINCount,
-                            size_t paramOUTCount, const DuplicateVertex *reference);
-
             /* === Method(s) === */
 
             inline void visit(Visitor *visitor) override { visitor->visit(this); };
+
+            Vertex *emptyClone(std::string name) override;
 
             /* === Getter(s) === */
 
@@ -218,12 +210,11 @@ namespace spider {
 
             explicit InitVertex(std::string name = "unnamed-init");
 
-            InitVertex(std::string name, size_t edgeINCount, size_t edgeOUTCount, size_t paramINCount,
-                       size_t paramOUTCount, const InitVertex *reference);
-
             /* === Method(s) === */
 
             inline void visit(Visitor *visitor) override { visitor->visit(this); };
+
+            Vertex *emptyClone(std::string name) override;
 
             /* === Getter(s) === */
 
@@ -237,12 +228,11 @@ namespace spider {
 
             explicit EndVertex(std::string name = "unnamed-end");
 
-            EndVertex(std::string name, size_t edgeINCount, size_t edgeOUTCount, size_t paramINCount,
-                      size_t paramOUTCount, const EndVertex *reference);
-
             /* === Method(s) === */
 
             inline void visit(Visitor *visitor) override { visitor->visit(this); };
+
+            Vertex *emptyClone(std::string name) override;
 
             /* === Getter(s) === */
 

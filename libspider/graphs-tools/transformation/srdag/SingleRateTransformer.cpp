@@ -188,17 +188,6 @@ std::pair<spider::srdag::JobStack, spider::srdag::JobStack> spider::srdag::Singl
     auto staticJobStack = factory::vector<TransfoJob>(StackID::TRANSFO);
     auto dynaJobStack = factory::vector<TransfoJob>(StackID::TRANSFO);
 
-    auto addJobWithParamCopy = [&](spider::vector<TransfoJob> &jobStack, pisdf::Graph *graph, size_t ix) {
-        auto *clone = srdag_->vertex(ix);
-        /* = same value but if clone->ix changes, value in transfojob will change also = */
-        jobStack.emplace_back(graph, clone->ix(), clone->instanceValue());
-        auto &job = jobStack.back();
-        CopyParamVisitor cpyVisitor{ job_, job.params_ };
-        for (const auto &param : graph->params()) {
-            param->visit(&cpyVisitor);
-        }
-    };
-
     /* == 0. Copy Params for static and dynamic jobs == */
     for (auto *subgraph : job_.reference_->subgraphs()) {
         /* == 1 Check if subgraph is an init graph or a run (or static) graph  == */
@@ -217,7 +206,16 @@ std::pair<spider::srdag::JobStack, spider::srdag::JobStack> spider::srdag::Singl
                                      subgraph->repetitionValue(), runGraph->repetitionValue());
             }
             /* == 2.0 Creates dynamic job == */
-            addJobWithParamCopy(dynaJobStack, runGraph, ref2Clone_[runGraph->ix()]);
+            {
+                auto *clone = srdag_->vertex(ref2Clone_[runGraph->ix()]);
+                /* = same value but if clone->ix changes, value in transfojob will change also = */
+                dynaJobStack.emplace_back(runGraph, clone->ix(), clone->instanceValue());
+                auto &job = dynaJobStack.back();
+                CopyParamVisitor cpyVisitor{ job_, job.params_ };
+                for (const auto &param : runGraph->params()) {
+                    param->visit(&cpyVisitor);
+                }
+            }
 
             /* == 2.1 Creates init job == */
             /* = same value but if clone->ix changes, value in transfojob will change also = */
@@ -234,7 +232,14 @@ std::pair<spider::srdag::JobStack, spider::srdag::JobStack> spider::srdag::Singl
             /* == 3. Add static jobs == */
             const auto &firstCloneIx = ref2Clone_[subgraph->ix()];
             for (auto ix = firstCloneIx; ix < firstCloneIx + subgraph->repetitionValue(); ++ix) {
-                addJobWithParamCopy(staticJobStack, subgraph, ix);
+                auto *clone = srdag_->vertex(ix);
+                /* = same value but if clone->ix changes, value in transfojob will change also = */
+                staticJobStack.emplace_back(subgraph, clone->ix(), clone->instanceValue());
+                auto &job = staticJobStack.back();
+                CopyParamVisitor cpyVisitor{ job_, job.params_ };
+                for (const auto &param : subgraph->params()) {
+                    param->visit(&cpyVisitor);
+                }
             }
         }
     }

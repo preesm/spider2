@@ -328,6 +328,9 @@ void spider::pisdf::Graph::overrideDynamicProperty(bool value) {
     dynamic_ = value;
 }
 
+
+spider::pisdf::Vertex *spider::pisdf::Graph::emptyClone(std::string) { return nullptr; }
+
 /* === Private method(s) === */
 
 template<class T>

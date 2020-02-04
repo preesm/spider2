@@ -63,13 +63,6 @@ namespace spider {
 
             explicit Vertex(std::string name, size_t edgeINCount = 0, size_t edgeOUTCount = 0);
 
-            Vertex(std::string name,
-                   size_t edgeINCount,
-                   size_t edgeOUTCount,
-                   size_t paramINCount,
-                   size_t paramOUTCount,
-                   const Vertex *reference);
-
             Vertex(const Vertex &other);
 
             Vertex(Vertex &&) noexcept = default;
@@ -118,6 +111,13 @@ namespace spider {
              * @param visitor  Visitor to accept.
              */
             virtual void visit(Visitor *visitor) = 0;
+
+            /**
+             * @brief Do an empty cloning of the vertex, i.e just reserve sizes and set reference.
+             * @param name  Name of the clone.
+             * @return pointer to the new clone.
+             */
+            virtual Vertex *emptyClone(std::string name) = 0;
 
             /**
              * @brief Add an input parameter to the Vertex.
@@ -347,7 +347,8 @@ namespace spider {
             sbc::vector<std::shared_ptr<pisdf::Param>, StackID::PISDF> refinementParamVector_;
             /* = Vector of output Param = */
             sbc::vector<std::shared_ptr<pisdf::Param>, StackID::PISDF> outputParamVector_;
-            std::shared_ptr<RTInfo> rtInformation_;  /* = Runtime information of the Vertex (timing, mappable, etc.) = */
+            /* = Runtime information of the Vertex (timing, mappable, etc.) = */
+            std::shared_ptr<RTInfo> rtInformation_;
             const Vertex *reference_ = this;   /* =
                                                 * Pointer to the reference Vertex.
                                                 * Default is this, in case of copy, point to the original Vertex.
@@ -362,6 +363,12 @@ namespace spider {
             size_t ix_ = SIZE_MAX;             /* = Index of the Vertex in the containing Graph = */
             uint32_t repetitionValue_ = 1;     /* = Repetition value of the Vertex, default is 1 but it can be set to 0. = */
             mutable uint32_t copyCount_ = 0;   /* = Number of copy of the Vertex = */
+
+            /**
+             * @brief Initialize an empty clone to reserve vector sizes.
+             * @param clone  Pointer to the clone.
+             */
+            void initializeEmptyClone(Vertex *clone);
         };
     }
 }

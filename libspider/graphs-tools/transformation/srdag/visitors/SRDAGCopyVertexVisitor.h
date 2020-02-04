@@ -60,24 +60,6 @@ namespace spider {
 
             void visit(pisdf::ExecVertex *vertex) override;
 
-            void visit(pisdf::ConfigVertex *vertex) override;
-
-            void visit(pisdf::ForkVertex *vertex) override;
-
-            void visit(pisdf::JoinVertex *vertex) override;
-
-            void visit(pisdf::HeadVertex *vertex) override;
-
-            void visit(pisdf::TailVertex *vertex) override;
-
-            void visit(pisdf::DuplicateVertex *vertex) override;
-
-            void visit(pisdf::RepeatVertex *vertex) override;
-
-            void visit(pisdf::InitVertex *vertex) override;
-
-            void visit(pisdf::EndVertex *vertex) override;
-
             void visit(pisdf::Graph *graph) override;
 
             const TransfoJob &job_;
@@ -86,10 +68,7 @@ namespace spider {
         private:
             std::string buildCloneName(const pisdf::Vertex *vertex, uint32_t firing) const;
 
-            template<class T>
-            void makeClone(const T *vertex);
-
-            void setCloneInformation(const pisdf::Vertex *vertex, pisdf::Vertex *clone, uint32_t it) const;
+            void makeClone(pisdf::Vertex *vertex);
         };
     }
 }

@@ -158,10 +158,6 @@ namespace spider {
              */
             void moveEdge(Edge *elt, Graph *graph);
 
-            inline void visit(Visitor *visitor) override {
-                visitor->visit(this);
-            }
-
             /**
              * @brief Search for a parameter from its name.
              * @param name Name of the parameter to find.
@@ -176,6 +172,16 @@ namespace spider {
             inline bool isTopGraph() const {
                 return graph() == nullptr;
             }
+
+            inline void visit(Visitor *visitor) override {
+                visitor->visit(this);
+            }
+
+            /**
+             * @brief This method is not supported for graphs.
+             * @return nullptr.
+             */
+            Vertex *emptyClone(std::string) override;
 
             /* === Getter(s) === */
 

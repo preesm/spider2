@@ -64,42 +64,6 @@ void spider::srdag::SRDAGCopyVertexVisitor::visit(pisdf::ExecVertex *vertex) {
     makeClone(vertex);
 }
 
-void spider::srdag::SRDAGCopyVertexVisitor::visit(pisdf::ConfigVertex *vertex) {
-    makeClone(vertex);
-}
-
-void spider::srdag::SRDAGCopyVertexVisitor::visit(pisdf::ForkVertex *vertex) {
-    makeClone(vertex);
-}
-
-void spider::srdag::SRDAGCopyVertexVisitor::visit(pisdf::JoinVertex *vertex) {
-    makeClone(vertex);
-}
-
-void spider::srdag::SRDAGCopyVertexVisitor::visit(pisdf::HeadVertex *vertex) {
-    makeClone(vertex);
-}
-
-void spider::srdag::SRDAGCopyVertexVisitor::visit(pisdf::TailVertex *vertex) {
-    makeClone(vertex);
-}
-
-void spider::srdag::SRDAGCopyVertexVisitor::visit(pisdf::DuplicateVertex *vertex) {
-    makeClone(vertex);
-}
-
-void spider::srdag::SRDAGCopyVertexVisitor::visit(pisdf::RepeatVertex *vertex) {
-    makeClone(vertex);
-}
-
-void spider::srdag::SRDAGCopyVertexVisitor::visit(pisdf::InitVertex *vertex) {
-    makeClone(vertex);
-}
-
-void spider::srdag::SRDAGCopyVertexVisitor::visit(pisdf::EndVertex *vertex) {
-    makeClone(vertex);
-}
-
 void spider::srdag::SRDAGCopyVertexVisitor::visit(pisdf::Graph *graph) {
     /* == Clone the vertex == */
     ix_ = 0;
@@ -125,38 +89,27 @@ std::string spider::srdag::SRDAGCopyVertexVisitor::buildCloneName(const pisdf::V
     return name;
 }
 
-template<class T>
-void spider::srdag::SRDAGCopyVertexVisitor::makeClone(const T *vertex) {
+void spider::srdag::SRDAGCopyVertexVisitor::makeClone(pisdf::Vertex *vertex) {
     for (uint32_t it = 0; it < vertex->repetitionValue(); ++it) {
-        auto *clone = make<T, StackID::PISDF>(buildCloneName(vertex, it),
-                                              vertex->inputEdgeCount(),
-                                              vertex->outputEdgeCount(),
-                                              vertex->inputParamCount(),
-                                              vertex->outputParamCount(),
-                                              vertex);
-        setCloneInformation(vertex, clone, it);
+        auto *clone = vertex->emptyClone(buildCloneName(vertex, it));
+
+        /* == Add clone to the srdag == */
+        srdag_->addVertex(clone);
+
+        /* == Change the instance value of the clone == */
+        clone->setInstanceValue(it);
+
+        /* == Get the cloned parameters == */
+        for (const auto &param : vertex->inputParamVector()) {
+            clone->addInputParameter(job_.params_[param->ix()]);
+        }
+        for (const auto &param : vertex->refinementParamVector()) {
+            clone->addRefinementParameter(job_.params_[param->ix()]);
+        }
+        for (const auto &param : vertex->outputParamVector()) {
+            clone->addOutputParameter(job_.params_[param->ix()]);
+        }
     }
     ix_ = (srdag_->vertexCount() - 1) - (vertex->repetitionValue() - 1);
-}
-
-void spider::srdag::SRDAGCopyVertexVisitor::setCloneInformation(const pisdf::Vertex *vertex,
-                                                                pisdf::Vertex *clone,
-                                                                uint32_t it) const {
-    /* == Add clone to the srdag == */
-    srdag_->addVertex(clone);
-
-    /* == Change the instance value of the clone == */
-    clone->setInstanceValue(it);
-
-    /* == Get the cloned parameters == */
-    for (const auto &param : vertex->inputParamVector()) {
-        clone->addInputParameter(job_.params_[param->ix()]);
-    }
-    for (const auto &param : vertex->refinementParamVector()) {
-        clone->addRefinementParameter(job_.params_[param->ix()]);
-    }
-    for (const auto &param : vertex->outputParamVector()) {
-        clone->addOutputParameter(job_.params_[param->ix()]);
-    }
 }
 

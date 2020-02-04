@@ -65,6 +65,12 @@ namespace spider {
                 visitor->visit(this);
             }
 
+            inline Vertex *emptyClone(std::string name) override {
+                auto *clone = make<InputInterface, StackID::PISDF>(std::move(name));
+                Vertex::initializeEmptyClone(clone);
+                return clone;
+            }
+
             /* === Getter(s) === */
 
             inline Edge *inputEdge() const override {

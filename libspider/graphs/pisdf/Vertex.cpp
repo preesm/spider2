@@ -72,23 +72,23 @@ spider::pisdf::Vertex::Vertex(std::string name, size_t edgeINCount, size_t edgeO
     outputEdgeVector_.resize(edgeOUTCount, nullptr);
 }
 
-spider::pisdf::Vertex::Vertex(std::string name,
-                              size_t edgeINCount,
-                              size_t edgeOUTCount,
-                              size_t paramINCount,
-                              size_t paramOUTCount,
-                              const spider::pisdf::Vertex *reference) : name_{ std::move(name) },
-                                                                        reference_{ this } {
-    inputEdgeVector_.resize(edgeINCount, nullptr);
-    outputEdgeVector_.resize(edgeOUTCount, nullptr);
-    if (reference) {
-        reference_ = reference;
-        reference->copyCount_++;
-        rtInformation_ = reference->rtInformation_;
-    }
-    inputParamVector_.reserve(paramINCount);
-    outputParamVector_.reserve(paramOUTCount);
-}
+//spider::pisdf::Vertex::Vertex(std::string name,
+//                              size_t edgeINCount,
+//                              size_t edgeOUTCount,
+//                              size_t paramINCount,
+//                              size_t paramOUTCount,
+//                              const spider::pisdf::Vertex *reference) : name_{ std::move(name) },
+//                                                                        reference_{ this } {
+//    inputEdgeVector_.resize(edgeINCount, nullptr);
+//    outputEdgeVector_.resize(edgeOUTCount, nullptr);
+//    if (reference) {
+//        reference_ = reference;
+//        reference->copyCount_++;
+//        rtInformation_ = reference->rtInformation_;
+//    }
+//    inputParamVector_.reserve(paramINCount);
+//    outputParamVector_.reserve(paramOUTCount);
+//}
 
 spider::pisdf::Vertex::Vertex(const Vertex &other) : name_{ other.name_ },
                                                      inputEdgeVector_{ other.inputEdgeVector_.size(), nullptr },
@@ -176,4 +176,17 @@ void spider::pisdf::Vertex::setInstanceValue(size_t value) {
         throwSpiderException("invalid instance value for vertex [%s].", name_.c_str());
     }
     instanceValue_ = value;
+}
+
+/* === Protected method(s) === */
+
+void spider::pisdf::Vertex::initializeEmptyClone(spider::pisdf::Vertex *clone) {
+    clone->inputEdgeVector_.resize(this->inputEdgeVector_.size(), nullptr);
+    clone->outputEdgeVector_.resize(this->outputEdgeVector_.size(), nullptr);
+    clone->reference_ = this;
+    this->copyCount_++;
+    clone->rtInformation_ = this->rtInformation_;
+    clone->inputParamVector_.reserve(this->inputParamVector_.size());
+    clone->refinementParamVector_.reserve(this->refinementParamVector_.size());
+    clone->outputParamVector_.reserve(this->outputParamVector_.size());
 }

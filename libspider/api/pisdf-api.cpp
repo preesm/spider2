@@ -178,6 +178,7 @@ spider::pisdf::Vertex *spider::api::createVertex(pisdf::Graph *graph,
         throwSpiderException("nullptr for graph.");
     }
     auto *vertex = make<pisdf::ExecVertex, StackID::PISDF>(std::move(name), edgeINCount, edgeOUTCount);
+    vertex->makeRTInformation();
     graph->addVertex(vertex);
     return vertex;
 }
@@ -199,7 +200,7 @@ spider::pisdf::Vertex *spider::api::createFork(pisdf::Graph *graph, std::string 
         throwSpiderException("nullptr for graph.");
     }
     auto *vertex = make<pisdf::ForkVertex, StackID::PISDF>(std::move(name), edgeOUTCount);
-    auto *runtimeInfo = vertex->runtimeInformation();
+    auto *runtimeInfo = vertex->makeRTInformation();
     runtimeInfo->setKernelIx(0);
     graph->addVertex(vertex);
     return vertex;
@@ -210,7 +211,7 @@ spider::pisdf::Vertex *spider::api::createJoin(pisdf::Graph *graph, std::string 
         throwSpiderException("nullptr for graph.");
     }
     auto *vertex = make<pisdf::JoinVertex, StackID::PISDF>(std::move(name), edgeINCount);
-    auto *runtimeInfo = vertex->runtimeInformation();
+    auto *runtimeInfo = vertex->makeRTInformation();
     runtimeInfo->setKernelIx(1);
     graph->addVertex(vertex);
     return vertex;
@@ -221,7 +222,7 @@ spider::pisdf::Vertex *spider::api::createHead(pisdf::Graph *graph, std::string 
         throwSpiderException("nullptr for graph.");
     }
     auto *vertex = make<pisdf::HeadVertex, StackID::PISDF>(std::move(name), edgeINCount);
-    auto *runtimeInfo = vertex->runtimeInformation();
+    auto *runtimeInfo = vertex->makeRTInformation();
     runtimeInfo->setKernelIx(2);
     graph->addVertex(vertex);
     return vertex;
@@ -232,7 +233,7 @@ spider::pisdf::Vertex *spider::api::createTail(pisdf::Graph *graph, std::string 
         throwSpiderException("nullptr for graph.");
     }
     auto *vertex = make<pisdf::TailVertex, StackID::PISDF>(std::move(name), edgeINCount);
-    auto *runtimeInfo = vertex->runtimeInformation();
+    auto *runtimeInfo = vertex->makeRTInformation();
     runtimeInfo->setKernelIx(3);
     graph->addVertex(vertex);
     return vertex;
@@ -243,7 +244,7 @@ spider::pisdf::Vertex *spider::api::createDuplicate(pisdf::Graph *graph, std::st
         throwSpiderException("nullptr for graph.");
     }
     auto *vertex = make<pisdf::DuplicateVertex, StackID::PISDF>(std::move(name), edgeOUTCount);
-    auto *runtimeInfo = vertex->runtimeInformation();
+    auto *runtimeInfo = vertex->makeRTInformation();
     runtimeInfo->setKernelIx(5);
     graph->addVertex(vertex);
     return vertex;
@@ -254,7 +255,7 @@ spider::pisdf::Vertex *spider::api::createRepeat(pisdf::Graph *graph, std::strin
         throwSpiderException("nullptr for graph.");
     }
     auto *vertex = make<pisdf::RepeatVertex, StackID::PISDF>(std::move(name));
-    auto *runtimeInfo = vertex->runtimeInformation();
+    auto *runtimeInfo = vertex->makeRTInformation();
     runtimeInfo->setKernelIx(4);
     graph->addVertex(vertex);
     return vertex;
@@ -265,7 +266,7 @@ spider::pisdf::Vertex *spider::api::createInit(pisdf::Graph *graph, std::string 
         throwSpiderException("nullptr for graph.");
     }
     auto *vertex = make<pisdf::InitVertex, StackID::PISDF>(std::move(name));
-    auto *runtimeInfo = vertex->runtimeInformation();
+    auto *runtimeInfo = vertex->makeRTInformation();
     runtimeInfo->setKernelIx(6);
     graph->addVertex(vertex);
     return vertex;
@@ -276,7 +277,7 @@ spider::pisdf::Vertex *spider::api::createEnd(pisdf::Graph *graph, std::string n
         throwSpiderException("nullptr for graph.");
     }
     auto *vertex = make<pisdf::EndVertex, StackID::PISDF>(std::move(name));
-    auto *runtimeInfo = vertex->runtimeInformation();
+    auto *runtimeInfo = vertex->makeRTInformation();
     runtimeInfo->setKernelIx(7);
     graph->addVertex(vertex);
     return vertex;
@@ -290,6 +291,7 @@ spider::pisdf::Vertex *spider::api::createConfigActor(pisdf::Graph *graph,
         throwSpiderException("nullptr for graph.");
     }
     auto *vertex = make<pisdf::ConfigVertex, StackID::PISDF>(std::move(name), edgeINCount, edgeOUTCount);
+    vertex->makeRTInformation();
     graph->addVertex(vertex);
     return vertex;
 }

@@ -56,20 +56,7 @@ namespace spider {
         public:
             explicit ExecVertex(std::string name = "unnamed-execvertex",
                                 size_t edgeINCount = 0,
-                                size_t edgeOUTCount = 0) : Vertex(std::move(name), edgeINCount, edgeOUTCount) {
-                rtInformation_ = spider::make_shared<RTInfo>(StackID::RUNTIME);
-            };
-
-            ExecVertex(std::string name,
-                       size_t edgeINCount,
-                       size_t edgeOUTCount,
-                       size_t paramINCount,
-                       size_t paramOUTCount,
-                       const ExecVertex *reference) : Vertex(std::move(name),
-                                                             edgeINCount,
-                                                             edgeOUTCount,
-                                                             paramINCount,
-                                                             paramOUTCount, reference) { };
+                                size_t edgeOUTCount = 0) : Vertex(std::move(name), edgeINCount, edgeOUTCount) { };
 
             ExecVertex(const ExecVertex &) = default;
 
@@ -80,6 +67,23 @@ namespace spider {
             /* === Method(s) === */
 
             inline void visit(Visitor *visitor) override { visitor->visit(this); };
+
+            /**
+             * @brief Creates the runtime information if does not yet exist and vertex is not a clone
+             * @return pointer to the vertex runtime information.
+             */
+            inline RTInfo *makeRTInformation() {
+                if (!rtInformation_ && this == reference()) {
+                    rtInformation_ = spider::make_shared<RTInfo>(StackID::RUNTIME);
+                }
+                return rtInformation_.get();
+            }
+
+            inline Vertex *emptyClone(std::string name) override {
+                auto *clone = make<ExecVertex, StackID::PISDF>(std::move(name));
+                Vertex::initializeEmptyClone(clone);
+                return clone;
+            }
 
             /* === Getter(s) === */
 
