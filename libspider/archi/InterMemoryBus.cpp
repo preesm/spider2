@@ -40,61 +40,35 @@
 
 /* === Include(s) === */
 
-#include <archi/MemoryInterface.h>
+#include <archi/MemoryBus.h>
+#include <archi/InterMemoryBus.h>
+#include <common/Exception.h>
+
+
+/* === Static function === */
 
 /* === Method(s) implementation === */
 
-spider::MemoryInterface::MemoryInterface(uint64_t size) : size_{ size }, used_{ 0 } {
-    /* == Default routines == */
-    allocateRoutine_ = [](size_t size) -> void * { return std::malloc(size); };
-    deallocateRoutine_ = [](void *addr) -> void { std::free(addr); };
-}
-
-/* === Private method(s) implementation === */
-
-void *spider::MemoryInterface::read(uint64_t virtualAddress) {
-    std::lock_guard<std::mutex> lockGuard{ lock_ };
-    return retrievePhysicalAddress(virtualAddress);
-}
-
-void *spider::MemoryInterface::allocate(uint64_t virtualAddress, size_t size) {
-    std::lock_guard<std::mutex> lockGuard{ lock_ };
-    uint64_t res = UINT64_MAX;
-    if (size <= available()) {
-        used_ += size;
-        res = size;
+spider::InterMemoryBus::InterMemoryBus(Cluster *clusterA,
+                                       Cluster *clusterB,
+                                       MemoryBus *busAToB,
+                                       MemoryBus *busBToA) : clusterA_{ clusterA },
+                                                             clusterB_{ clusterB },
+                                                             busAToB_{ busAToB },
+                                                             busBToA_{ busBToA } {
+    if (!clusterA || !clusterB) {
+        throwSpiderException("can not build memory bus with nullptr cluster");
     }
-    if (res != size) {
-        throwSpiderException("failed to allocate %zu bytes.", size);
+}
+
+spider::MemoryBus *spider::InterMemoryBus::get(Cluster *clusterA, Cluster *clusterB) {
+    if (!clusterA || !clusterB) {
+        throwSpiderException("nullptr for passed parameter cluster.");
     }
-    auto *physicalAddress = allocateRoutine_(size);
-    if (!physicalAddress) {
-        return nullptr;
+    if ((clusterA == clusterA_) && (clusterB == clusterB_)) {
+        return busAToB_;
+    } else if ((clusterA == clusterB_) && (clusterB == clusterA_)) {
+        return busBToA_;
     }
-    registerPhysicalAddress(virtualAddress, physicalAddress);
-    return physicalAddress;
-}
-
-void spider::MemoryInterface::deallocate(uint64_t virtualAddress, size_t size) {
-    std::lock_guard<std::mutex> lockGuard{ lock_ };
-    if (size > used_) {
-        throwSpiderException("Deallocating more memory than used.");
-    }
-    used_ -= size;
-    deallocateRoutine_(retrievePhysicalAddress(virtualAddress));
-}
-
-void spider::MemoryInterface::reset() {
-    virtual2Phys_.clear();
-}
-
-/* === Private method(s) === */
-
-void spider::MemoryInterface::registerPhysicalAddress(uint64_t virtualAddress, void *physicalAddress) {
-    /* == Apply offset to virtual address to get the corresponding address associated to attached MemoryUnit == */
-    virtual2Phys_[virtualAddress] = physicalAddress;
-}
-
-void *spider::MemoryInterface::retrievePhysicalAddress(uint64_t virtualAddress) {
-    return virtual2Phys_.at(virtualAddress);
+    return nullptr;
 }

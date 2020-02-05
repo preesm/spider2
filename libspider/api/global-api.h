@@ -78,9 +78,11 @@ namespace spider {
 
     class PE;
 
-    class MemoryUnit;
-
     class MemoryInterface;
+
+    class MemoryBus;
+
+    class InterMemoryBus;
 
     class Stack;
 
@@ -279,6 +281,11 @@ namespace spider {
     using MemoryExchangeCostRoutine = uint64_t (*)(uint64_t /* = Number of bytes = */);
 
     /**
+     * @brief Memory bus send / receive routine.
+     */
+    using MemoryBusRoutine = void (*)(int64_t /* = Size in bytes = */, void * /* = Buffer to send / receive = */);
+
+    /**
      * @brief Data memory allocation routine (overridable).
      *        This should return the allocated buffer.
      */
@@ -288,12 +295,6 @@ namespace spider {
      * @brief Data memory deallocation routine (overridable).
      */
     using MemoryDeallocateRoutine = void (*)(void * /* = physical address to free = */);
-
-    /**
-     * @brief Data memory write routine (overridable).
-     * @remark This should return true on success, false else.
-     */
-    using MemoryWriteRoutine = bool (*)(void * /* = physical address to read = */);
 
     /**
      * @brief Generic refinement used by spider for the actors.

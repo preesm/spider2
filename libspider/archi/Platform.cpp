@@ -41,6 +41,8 @@
 /* === Include(s) === */
 
 #include <archi/Platform.h>
+#include <archi/MemoryBus.h>
+#include <archi/InterMemoryBus.h>
 #include <archi/MemoryInterface.h>
 #include <archi/Cluster.h>
 #include <archi/PE.h>
@@ -59,9 +61,7 @@ static size_t getClusterMemoryInterfaceCount(size_t count) {
 spider::Platform::Platform(size_t clusterCount, size_t peCount) :
         clusterArray_{ clusterCount, nullptr, StackID::ARCHI },
         peArray_{ peCount, nullptr, StackID::ARCHI },
-        cluster2ClusterMemoryIF_{ getClusterMemoryInterfaceCount(clusterCount),
-                                  InterMemoryInterface(),
-                                  StackID::ARCHI },
+        interClusterMemoryBusArray_{ getClusterMemoryInterfaceCount(clusterCount), nullptr, StackID::ARCHI },
         preComputedClusterIx_{ clusterCount, SIZE_MAX, StackID::ARCHI } {
     /* == Pre-compute the cluster to cluster ix == */
     /*
@@ -107,9 +107,8 @@ spider::Platform::~Platform() {
     }
 
     /* == Destroy the inter-cluster MemoryInterface == */
-    for (auto &pair : cluster2ClusterMemoryIF_) {
-        destroy(pair.first);
-        destroy(pair.second);
+    for (auto &bus : interClusterMemoryBusArray_) {
+        destroy(bus);
     }
 }
 
@@ -128,18 +127,12 @@ size_t spider::Platform::LRTCount() const {
     return lrtVector_.size();
 }
 
-spider::Platform::InterMemoryInterface
-spider::Platform::getClusterToClusterMemoryInterface(spider::Cluster *clusterA, spider::Cluster *clusterB) const {
+spider::MemoryBus *spider::Platform::getClusterToClusterMemoryBus(Cluster *clusterA, Cluster *clusterB) const {
     if (clusterA == clusterB) {
-        return std::make_pair(clusterA->memoryInterface(), clusterA->memoryInterface());
+        return nullptr;
     }
-    const auto &index = getCluster2ClusterIndex(clusterA->ix(), clusterB->ix());
-    const auto &interface = cluster2ClusterMemoryIF_.at(index);
-    if (interface.first->memoryUnit() == clusterA->memoryUnit()) {
-        return interface;
-    }
-    /* == We need to invert the order so that it can appear to be transparent to the user == */
-    return std::make_pair(interface.second, interface.first);
+    const auto index = getCluster2ClusterIndex(clusterA->ix(), clusterB->ix());
+    return interClusterMemoryBusArray_.at(index)->get(clusterA, clusterB);
 }
 
 void spider::Platform::setPE(spider::PE *pe) {
@@ -152,39 +145,27 @@ void spider::Platform::setPE(spider::PE *pe) {
     }
 }
 
-void spider::Platform::setClusterToClusterMemoryInterface(spider::Cluster *clusterA,
-                                                          spider::Cluster *clusterB,
-                                                          spider::Platform::InterMemoryInterface interface) {
-    if (clusterA == clusterB) {
+void spider::Platform::setClusterToClusterMemoryBus(Cluster *clusterA, Cluster *clusterB, InterMemoryBus *bus) {
+    if ((clusterA == clusterB) || !bus) {
         return;
     }
-    const auto &index = getCluster2ClusterIndex(clusterA->ix(), clusterB->ix());
-    cluster2ClusterMemoryIF_.at(index) = std::move(interface);
+    const auto index = getCluster2ClusterIndex(clusterA->ix(), clusterB->ix());
+    interClusterMemoryBusArray_.at(index) = bus;
 }
 
-
 uint64_t spider::Platform::dataCommunicationCostPEToPE(PE *peSrc, PE *peSnk, uint64_t dataSize) const {
-    if (peSrc == peSnk) {
+    if (!peSrc || !peSnk) {
+        throwSpiderException("nullptr for peSrc or peSnk.");
+    }
+    if ((peSrc == peSnk) || (peSrc->cluster() == peSnk->cluster())) {
         return 0;
     }
-    /* == Get the interface between cluster if needed == */
-    if (peSrc->cluster() != peSnk->cluster()) {
-        /* == For inter cluster communication, cost is a bit more complicated to compute == */
-        auto interComInterfaces = getClusterToClusterMemoryInterface(peSrc->cluster(), peSnk->cluster());
-        auto *srcMemoryInterface = peSrc->cluster()->memoryInterface();
-        /* == Total write cost is the sum of PEsrc -> srcMemoryInterface and ClusterSrc -> snkMemoryInterface == */
-        const auto &writeCost = math::saturateAdd(srcMemoryInterface->writeCost(dataSize),
-                                                  interComInterfaces.first->writeCost(dataSize));
-
-        /* == Total read cost is the sum of srcMemoryInterface -> ClusterSnk and snkMemoryInterface -> PEsnk == */
-        auto *snkMemoryInterface = peSnk->cluster()->memoryInterface();
-        const auto &readCost = math::saturateAdd(interComInterfaces.second->readCost(dataSize),
-                                                 snkMemoryInterface->readCost(dataSize));
-        return math::saturateAdd(writeCost, readCost);
-    }
-    /* == Intra cluster communication == */
-    auto *memoryInterface = peSnk->cluster()->memoryInterface();
-    return math::saturateAdd(memoryInterface->readCost(dataSize), memoryInterface->writeCost(dataSize));
+    /* == For inter cluster communication, cost is a bit more complicated to compute == */
+    auto *interComBus = getClusterToClusterMemoryBus(peSrc->cluster(), peSnk->cluster());
+    /* == Total cost is cost of send ClusterSrc -> ClusterSnk + costof receive ClusterSrc -> ClusterSnk == */
+    auto cost = interComBus->sendCost(dataSize);
+    interComBus = getClusterToClusterMemoryBus(peSnk->cluster(), peSrc->cluster());
+    return math::saturateAdd(cost, interComBus->receiveCost(dataSize));
 }
 
 

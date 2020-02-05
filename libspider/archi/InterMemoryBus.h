@@ -37,83 +37,51 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_MEMORYUNIT_H
-#define SPIDER2_MEMORYUNIT_H
+#ifndef SPIDER2_INTERMEMORYBUS_H
+#define SPIDER2_INTERMEMORYBUS_H
 
 /* === Include(s) === */
 
-#include <cstdint>
-#include <common/Exception.h>
-
 namespace spider {
+
+    /* === Forward declaration === */
+
+    class MemoryBus;
+
+    class Cluster;
 
     /* === Class definition === */
 
-    class MemoryUnit {
+    class InterMemoryBus {
     public:
+        /**
+         * @brief Builds an inter cluster memory bus.
+         * @param clusterA   Pointer to cluster A.
+         * @param clusterB   Pointer to cluster B.
+         * @param busAToB    Pointer to the @refitem MemoryBus from A to B (can be nullptr).
+         * @param busBToA    Pointer to the @refitem MemoryBus from B to A (can be nullptr).
+         * @throws spider::Exception if either of clusterA or clusterB is nullptr.
+         */
+        InterMemoryBus(Cluster *clusterA, Cluster *clusterB, MemoryBus *busAToB, MemoryBus *busBToA);
 
-        explicit MemoryUnit(uint64_t size = 0) : size_{ size }, used_{ 0 } { };
-
-        ~MemoryUnit() = default;
+        ~InterMemoryBus() = default;
 
         /* === Method(s) === */
 
         /**
-         * @brief Allocate memory on the MemoryUnit (virtual allocation)
-         * @param size  Size (in bytes) to allocate.
-         * @return size value on success, UINT64_MAX on failure.
+         * @brief Returns the @refitem MemoryBus of the direction A -> B.
+         * @param clusterA  Pointer to the first cluster.
+         * @param clusterB  Pointer to the second cluster.
+         * @return pointer to appropriate @refitem MemoryBus, nullptr if A or B is not related to this InterMemoryBus.
+         * @throws spider::Exception if either of clusterA or clusterB is nullptr.
          */
-        inline uint64_t allocate(uint64_t size) {
-            if (size <= available()) {
-                used_ += size;
-                return size;
-            }
-            return UINT64_MAX;
-        }
-
-        /**
-         * @brief Deallocate memory on the MemoryUnit (virtual deallocation)
-         * @param size Size (in bytes) to deallocate.
-         * @return new available size.
-         * @throws spider::Exception if deallocating too much memory.
-         */
-        inline uint64_t deallocate(uint64_t size) {
-            if (size > used_) {
-                throwSpiderException("Deallocating more memory than used.");
-            }
-            used_ -= size;
-            return available();
-        }
-
-        /* === Getter(s) === */
-
-        /**
-         * @brief Get the total available size (in bytes) of the MemoryUnit.
-         * @return total size in bytes.
-         */
-        inline uint64_t size() const {
-            return size_;
-        }
-
-        /**
-         * @brief Get the total current memory usage (in bytes) of the MemoryUnit.
-         * @return total current memory usage.
-         */
-        inline uint64_t used() const {
-            return used_;
-        }
-
-        /**
-         * @brief Get the current available memory (in bytes) of the MemoryUnit.
-         * @return size() - used().
-         */
-        inline uint64_t available() const {
-            return size_ - used_;
-        }
+        MemoryBus *get(Cluster *clusterA, Cluster *clusterB);
 
     private:
-        uint64_t size_ = 0; /* = Total size of the MemoryUnit = */
-        uint64_t used_ = 0; /* = Currently used memory (strictly less or equal to size_) = */
+        Cluster *clusterA_ = nullptr;
+        Cluster *clusterB_ = nullptr;
+        MemoryBus *busAToB_ = nullptr;
+        MemoryBus *busBToA_ = nullptr;
     };
 }
-#endif //SPIDER2_MEMORYUNIT_H
+#endif //SPIDER2_INTERMEMORYBUS_H

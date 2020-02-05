@@ -40,61 +40,41 @@
 
 /* === Include(s) === */
 
-#include <archi/MemoryInterface.h>
+#include <archi/MemoryBus.h>
+
+/* === Static function === */
 
 /* === Method(s) implementation === */
 
-spider::MemoryInterface::MemoryInterface(uint64_t size) : size_{ size }, used_{ 0 } {
-    /* == Default routines == */
-    allocateRoutine_ = [](size_t size) -> void * { return std::malloc(size); };
-    deallocateRoutine_ = [](void *addr) -> void { std::free(addr); };
-}
-
 /* === Private method(s) implementation === */
 
-void *spider::MemoryInterface::read(uint64_t virtualAddress) {
-    std::lock_guard<std::mutex> lockGuard{ lock_ };
-    return retrievePhysicalAddress(virtualAddress);
+spider::MemoryBus::MemoryBus() {
+    sendCostRoutine_ = [](size_t) -> uint64_t { return 0; };
+    receiveCostRoutine_ = [](size_t) -> uint64_t { return 0; };
+    sendRoutine_ = [](int64_t, void *) { };
+    receiveRoutine_ = [](int64_t, void *) { };
 }
 
-void *spider::MemoryInterface::allocate(uint64_t virtualAddress, size_t size) {
-    std::lock_guard<std::mutex> lockGuard{ lock_ };
-    uint64_t res = UINT64_MAX;
-    if (size <= available()) {
-        used_ += size;
-        res = size;
-    }
-    if (res != size) {
-        throwSpiderException("failed to allocate %zu bytes.", size);
-    }
-    auto *physicalAddress = allocateRoutine_(size);
-    if (!physicalAddress) {
-        return nullptr;
-    }
-    registerPhysicalAddress(virtualAddress, physicalAddress);
-    return physicalAddress;
+uint64_t spider::MemoryBus::sendCost(uint64_t size) const {
+    return sendCostRoutine_(size);
 }
 
-void spider::MemoryInterface::deallocate(uint64_t virtualAddress, size_t size) {
-    std::lock_guard<std::mutex> lockGuard{ lock_ };
-    if (size > used_) {
-        throwSpiderException("Deallocating more memory than used.");
-    }
-    used_ -= size;
-    deallocateRoutine_(retrievePhysicalAddress(virtualAddress));
+uint64_t spider::MemoryBus::receiveCost(uint64_t size) const {
+    return receiveCostRoutine_(size);
 }
 
-void spider::MemoryInterface::reset() {
-    virtual2Phys_.clear();
+void spider::MemoryBus::setSendCostRoutine(spider::MemoryExchangeCostRoutine routine) {
+    sendCostRoutine_ = routine;
 }
 
-/* === Private method(s) === */
-
-void spider::MemoryInterface::registerPhysicalAddress(uint64_t virtualAddress, void *physicalAddress) {
-    /* == Apply offset to virtual address to get the corresponding address associated to attached MemoryUnit == */
-    virtual2Phys_[virtualAddress] = physicalAddress;
+void spider::MemoryBus::setReceiveCostRoutine(spider::MemoryExchangeCostRoutine routine) {
+    receiveCostRoutine_ = routine;
 }
 
-void *spider::MemoryInterface::retrievePhysicalAddress(uint64_t virtualAddress) {
-    return virtual2Phys_.at(virtualAddress);
+void spider::MemoryBus::setSendRoutine(spider::MemoryBusRoutine routine) {
+    sendRoutine_ = routine;
+}
+
+void spider::MemoryBus::setReceiveRoutine(spider::MemoryBusRoutine routine) {
+    receiveRoutine_ = routine;
 }

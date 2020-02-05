@@ -45,7 +45,6 @@
 #include <archi/Platform.h>
 #include <archi/Cluster.h>
 #include <archi/PE.h>
-#include <archi/MemoryUnit.h>
 #include <graphs/pisdf/ExecVertex.h>
 #include <graphs/pisdf/Param.h>
 #include <graphs/pisdf/DynamicParam.h>

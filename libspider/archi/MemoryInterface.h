@@ -48,15 +48,11 @@
 
 namespace spider {
 
-    /* === Forward declaration(s) === */
-
-    class MemoryUnit;
-
     /* === Class definition === */
 
     class MemoryInterface {
     public:
-        MemoryInterface();
+        explicit MemoryInterface(uint64_t size = 0);
 
         ~MemoryInterface() = default;
 
@@ -68,13 +64,6 @@ namespace spider {
          * @return physical address corresponding to the virtual address.
          */
         void *read(uint64_t virtualAddress);
-
-        /**
-         * @brief Write memory at the given memory virtual address.
-         * @param virtualAddress  Virtual address to evaluate.
-         * @return true on success, false else.
-         */
-        bool write(uint64_t virtualAddress);
 
         /**
          * @brief Allocate memory to the given virtual address.
@@ -92,52 +81,38 @@ namespace spider {
         void deallocate(uint64_t virtualAddress, size_t size);
 
         /**
-         * @brief Reset the memory interface and the attached MemoryUnit.
+         * @brief Reset the memory interface.
          */
         void reset();
 
-        /**
-         * @brief Get the cost of reading size bytes on the this MemoryInterface.
-         * @param size  Number of bytes to read.
-         * @return cost associated to reading size bytes.
-         */
-        inline uint64_t readCost(uint64_t size) const {
-            return readCostRoutine_(size);
-        }
-
-        /**
-         * @brief Get the cost of writing size bytes on the this MemoryInterface.
-         * @param size  Number of bytes to write.
-         * @return cost associated to writing size bytes.
-         */
-        inline uint64_t writeCost(uint64_t size) const {
-            return writeCostRoutine_(size);
-        }
 
         /* === Getter(s) === */
 
-        inline MemoryUnit *memoryUnit() const {
-            return memoryUnit_;
+        /**
+         * @brief Get the total available size (in bytes) of the MemoryUnit.
+         * @return total size in bytes.
+         */
+        inline uint64_t size() const {
+            return size_;
+        }
+
+        /**
+         * @brief Get the total current memory usage (in bytes) of the MemoryUnit.
+         * @return total current memory usage.
+         */
+        inline uint64_t used() const {
+            return used_;
+        }
+
+        /**
+         * @brief Get the current available memory (in bytes) of the MemoryUnit.
+         * @return size() - used().
+         */
+        inline uint64_t available() const {
+            return size_ - used_;
         }
 
         /* === Setter(s) === */
-
-        /**
-         * @brief Set the @refitem MemoryUnit for this interface.
-         * @remark if nullptr, nothing happens.
-         * @param memoryUnit Memory unit to set.
-         * @throws spider::Exception if this interface already has a MemoryUnit.
-         */
-        void setMemoryUnit(MemoryUnit *memoryUnit);
-
-        /**
-         * @brief Set the routine for writing memory.
-         * @remark override current value.
-         * @param routine  Routine to set.
-         */
-        inline void setWriteRoutine(MemoryWriteRoutine routine) {
-            writeRoutine_ = routine;
-        }
 
         /**
          * @brief Set the routine for allocating memory.
@@ -157,42 +132,19 @@ namespace spider {
             deallocateRoutine_ = routine;
         }
 
-        /**
-         * @brief Set the routine for the read cost.
-         * @remark override current value.
-         * @param routine  Routine to set.
-         */
-        inline void setReadCostRoutine(MemoryExchangeCostRoutine routine) {
-            readCostRoutine_ = routine;
-        }
-
-        /**
-         * @brief Set the routine for the write cost.
-         * @remark override current value.
-         * @param routine  Routine to set.
-         */
-        inline void setWriteCostRoutine(MemoryExchangeCostRoutine routine) {
-            writeCostRoutine_ = routine;
-        }
-
     private:
-        MemoryUnit *memoryUnit_ = nullptr;                     /* = Pointer to the MemoryUnit attached to this MemoryInterface = */
-        spider::unordered_map<uint64_t, void *> virtual2Phys_; /* = Map associating virtual address to physical ones = */
+        /* = Map associating virtual address to physical ones = */
+        spider::unordered_map<uint64_t, void *> virtual2Phys_;
+        /* = Total size of the MemoryUnit = */
+        uint64_t size_ = 0;
+        /* = Currently used memory (strictly less or equal to size_) = */
+        uint64_t used_ = 0;
         std::mutex lock_;
-
-        /* === Memory write routine === */
-
-        MemoryWriteRoutine writeRoutine_; /* = Memory write routine used by this MemoryInterface = */
 
         /* === Allocation routines === */
 
         MemoryAllocateRoutine allocateRoutine_;     /* = Memory allocation routine used for this MemoryInterface = */
         MemoryDeallocateRoutine deallocateRoutine_; /* = Memory deallocation routine used for this MemoryInterface = */
-
-        /* === Memory exchange cost routines === */
-
-        MemoryExchangeCostRoutine readCostRoutine_;  /* = Memory read exchange cost routine used for this MemoryInterface = */
-        MemoryExchangeCostRoutine writeCostRoutine_; /* = Memory write exchange cost routine used for this MemoryInterface = */
 
         /* === Private method(s) === */
 

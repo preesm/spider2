@@ -42,7 +42,6 @@
 
 #include <archi/Cluster.h>
 #include <archi/Platform.h>
-#include <archi/MemoryUnit.h>
 #include <archi/MemoryInterface.h>
 
 /* === Static variable(s) === */
@@ -51,13 +50,9 @@
 
 /* === Method(s) implementation === */
 
-spider::Cluster::Cluster(size_t PECount, MemoryUnit *memoryUnit, MemoryInterface *memoryInterface) :
+spider::Cluster::Cluster(size_t PECount, MemoryInterface *memoryInterface) :
         PEArray_{ PECount, nullptr, StackID::ARCHI },
-        memoryUnit_{ memoryUnit },
         memoryInterface_{ memoryInterface } {
-    if (!memoryUnit) {
-        throwSpiderException("nullptr MemoryUnit");
-    }
     if (!memoryInterface) {
         throwSpiderException("nullptr MemoryInterface");
     }
@@ -67,7 +62,6 @@ spider::Cluster::~Cluster() {
     for (auto &pe : PEArray_) {
         destroy(pe);
     }
-    destroy(memoryUnit_);
     destroy(memoryInterface_);
 }
 

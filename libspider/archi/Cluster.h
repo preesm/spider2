@@ -55,7 +55,7 @@ namespace spider {
     class Cluster {
     public:
 
-        Cluster(size_t PECount, MemoryUnit *memoryUnit, MemoryInterface *memoryInterface);
+        Cluster(size_t PECount, MemoryInterface *memoryInterface);
 
         ~Cluster();
 
@@ -86,14 +86,6 @@ namespace spider {
          */
         inline const spider::array<PE *> &array() const {
             return PEArray_;
-        }
-
-        /**
-         * @brief Get the memory unit of the cluster.
-         * @return pointer to the @refitem MemoryUnit of the cluster.
-         */
-        inline MemoryUnit *memoryUnit() const {
-            return memoryUnit_;
         }
 
         /**
@@ -170,7 +162,6 @@ namespace spider {
         /* === Core properties === */
 
         spider::array<PE *> PEArray_;                /* = Array of PE contained in the Cluster = */
-        MemoryUnit *memoryUnit_ = nullptr;           /* = Pointer to the MemoryUni associated to the Cluster = */
         MemoryInterface *memoryInterface_ = nullptr; /* = Pointer to the MemoryInterface for intra Cluster communications = */
 
         /* === Spider properties === */

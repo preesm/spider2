@@ -55,13 +55,14 @@ namespace spider {
 
     class PE;
 
-    class MemoryUnit;
+    class MemoryBus;
+
+    class InterMemoryBus;
 
     /* === Class definition === */
 
     class Platform {
     public:
-        using InterMemoryInterface = std::pair<MemoryInterface *, MemoryInterface *>;
 
         Platform(size_t clusterCount, size_t peCount);
 
@@ -155,14 +156,13 @@ namespace spider {
         size_t LRTCount() const;
 
         /**
-         * @brief Get the pair of @refitem MemoryInterface between two clusters.
-         * @remark The pair is returned with first being A write <-> read B and second B write <-> read A.
-         * @param clusterA  Cluster A.
-         * @param clusterB  Cluster B.
-         * @return @refitem InterMemoryInterface
+         * @brief Get the @refitem MemoryBus between two clusters in the direction A to B.
+         * @param clusterA  Pointer to cluster A.
+         * @param clusterB  Pointer to cluster B.
+         * @return @refitem MemoryBus if cluster A != cluster B, nullptr else.
          * @throws std::out_of_range if not found.
          */
-        InterMemoryInterface getClusterToClusterMemoryInterface(Cluster *clusterA, Cluster *clusterB) const;
+        MemoryBus *getClusterToClusterMemoryBus(Cluster *clusterA, Cluster *clusterB) const;
 
         /**
          * @brief Returns the linear array of processing element (order is not guaranteed to respect Cluster order).
@@ -182,7 +182,7 @@ namespace spider {
             return peArray_.at(ix);
         }
 
-        inline const spider::vector<PE *> lrtVector() const {
+        inline spider::vector<PE *> lrtVector() const {
             return lrtVector_;
         }
 
@@ -208,24 +208,24 @@ namespace spider {
         }
 
         /**
-         * @brief Set the pair of @refitem MemoryInterface between two cluster.
+         * @brief Set the @refitem InterMemoryBus between two cluster.
          * @remark This will overwrite current value.
-         * @param clusterA   Cluster A.
-         * @param clusterB   Cluster B.
-         * @param interface  Pair of interfaces.
+         * @param clusterA   Pointer to cluster A.
+         * @param clusterB   Pointer to cluster B.
+         * @param bus        Pointer to the @refitem InterMemoryBus.
          * @throws std::out_of_range if out of bound
          */
-        void setClusterToClusterMemoryInterface(Cluster *clusterA, Cluster *clusterB, InterMemoryInterface interface);
+        void setClusterToClusterMemoryBus(Cluster *clusterA, Cluster *clusterB, InterMemoryBus *bus);
 
     private:
-        spider::array<Cluster *> clusterArray_;                       /* = Array of Cluster in the Platform = */
-        spider::array<PE *> peArray_;                                 /* = Array of PE in the Platform = */
-        spider::array<InterMemoryInterface> cluster2ClusterMemoryIF_; /* = Array of inter Cluster MemoryInterface = */
-        spider::array<size_t> preComputedClusterIx_;                  /* = Array of pre-computed index value for fast inter Cluster communication = */
-        spider::sbc::vector<PE *, StackID::ARCHI> lrtVector_;         /* = Vector of the LRT of the platform (does not hold any memory) = */
-        size_t clusterCount_ = 0;                                     /* = Number of currently added Cluster in the Platform = */
-        size_t peCount_ = 0;                                          /* = Number of currently added PE in the Platform = */
-        PE *grt_ = nullptr;                                           /* = Pointer to the PE used as Global Runtime = */
+        array<Cluster *> clusterArray_;                      /* = Array of Cluster in the Platform = */
+        array<PE *> peArray_;                                /* = Array of PE in the Platform = */
+        array<InterMemoryBus *> interClusterMemoryBusArray_; /* = Array of inter Cluster MemoryBus = */
+        array<size_t> preComputedClusterIx_;                 /* = Array of pre-computed index value for fast inter Cluster communication = */
+        sbc::vector<PE *, StackID::ARCHI> lrtVector_;        /* = Vector of the LRT of the platform (does not hold any memory) = */
+        size_t clusterCount_ = 0;                            /* = Number of currently added Cluster in the Platform = */
+        size_t peCount_ = 0;                                 /* = Number of currently added PE in the Platform = */
+        PE *grt_ = nullptr;                                  /* = Pointer to the PE used as Global Runtime = */
 
         /* === Private method(s) === */
 

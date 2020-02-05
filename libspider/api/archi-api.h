@@ -62,7 +62,7 @@ namespace spider {
 
     /* === Function(s) prototype === */
 
-    namespace archi  {
+    namespace archi {
         /**
         * @brief Get the unique platform of the spider session.
         * @return reference pointer to the platform.
@@ -92,51 +92,26 @@ namespace spider {
         /* === MemoryUnit related API === */
 
         /**
-         * @brief Creates a new MemoryUnit.
-         * @param size  Size of the MemoryUnit in bytes.
-         * @return Pointer to newly created @refitem MemoryUnit.
-         */
-        MemoryUnit *createMemoryUnit(uint64_t size);
-
-        /**
-         * @brief Create a new MemoryInterface for a given @refitem MemoryUnit.
-         * @param memoryUnit MemoryUnit associated with the interface.
+         * @brief Create a new MemoryInterface.
+         * @param size  Size of the MemoryInterface in bytes.
          * @return Pointer to newly created @refitem MemoryInterface.
          */
-        MemoryInterface *createMemoryInterface(MemoryUnit *memoryUnit);
+        MemoryInterface *createMemoryInterface(uint64_t size);
+
+        MemoryBus *createMemoryBus();
 
         /**
-         * @brief Create two MemoryInterface associated to the communication between two @refitem Cluster.
-         *        clusterA  <--------> clusterB
-         *    ==> clusterA [memoryUnitA] <--> memoryInterfaceA
-         *        memoryInterfaceB <--> [memoryUnitB] clusterB
-         * @param clusterA  Cluster A.
-         * @param clusterB  Cluster B.
-         * @return std::pair of pointer to @refitem MemoryInterface (first is clusterA side, second is clusterB sider).
+         * @brief Create a @refitem InterMemoryBus associated to the communication between two @refitem Cluster.
+         * @param clusterA  Pointer to cluster A.
+         * @param clusterB  Pointer to cluster B.
+         * @param busAToB   Pointer to @refitem MemoryBus in the direction A -> B.
+         * @param busBToA   Pointer to @refitem MemoryBus in the direction B -> A.
+         * @return pointer to created @refitem InterMemoryBus.
          */
-        std::pair<MemoryInterface *, MemoryInterface *>
-        createMemoryInterface(Cluster *clusterA, Cluster *clusterB);
-
-        /**
-         * @brief Override the write routine of a given MemoryInterface.
-         * @param interface  MemoryInterface to evaluate.
-         * @param routine    Routine to set.
-         */
-        void setMemoryInterfaceWriteRoutine(MemoryInterface *interface, MemoryWriteRoutine routine);
-
-        /**
-         * @brief Override the read cost routine of a given MemoryInterface.
-         * @param interface  MemoryInterface to evaluate.
-         * @param routine    Routine to set.
-         */
-        void setMemoryInterfaceReadCostRoutine(MemoryInterface *interface, MemoryExchangeCostRoutine routine);
-
-        /**
-         * @brief Override the write cost routine of a given MemoryInterface.
-         * @param interface  MemoryInterface to evaluate.
-         * @param routine    Routine to set.
-         */
-        void setMemoryInterfaceWriteCostRoutine(MemoryInterface *interface, MemoryExchangeCostRoutine routine);
+        InterMemoryBus *createInterClusterMemoryBus(Cluster *clusterA,
+                                                    Cluster *clusterB,
+                                                    MemoryBus *busAToB = nullptr,
+                                                    MemoryBus *busBToA = nullptr);
 
         /**
          * @brief Override the allocate routine of a given MemoryInterface.
@@ -157,11 +132,10 @@ namespace spider {
         /**
          * @brief Create a new Cluster. A cluster is a set of PE connected to a same memory unit.
          * @param PECount         Number of PE in the cluster.
-         * @param memoryUnit      Memory unit of the cluster.
          * @param memoryInterface Memory interface of the memory unit of the cluster.
          * @return pointer to the newly created @refitem Cluster.
          */
-        Cluster *createCluster(size_t PECount, MemoryUnit *memoryUnit, MemoryInterface *memoryInterface);
+        Cluster *createCluster(size_t PECount, MemoryInterface *memoryInterface);
 
         /* === PE related API === */
 
