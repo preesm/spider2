@@ -215,9 +215,6 @@ namespace spider {
         }
     }
 
-    template<class T>
-    using unique_ptr = std::unique_ptr<T, void (*)(T *&)>;
-
     template<class T, class ...Args>
     std::shared_ptr<T> make_shared(StackID stack, Args &&... args) {
         return std::allocate_shared<T>(allocator<T>(stack), std::forward<Args>(args)...);
@@ -231,21 +228,6 @@ namespace spider {
     template<class T>
     std::shared_ptr<T> make_shared(T *&value) {
         return std::shared_ptr<T>(value, destroy<T>);
-    }
-
-    template<class T, StackID stack = StackID::GENERAL, class ...Args>
-    spider::unique_ptr<T> make_unique(Args &&... args) {
-        return spider::unique_ptr<T>(make<T, stack>(std::forward<Args>(args)...), destroy<T>);
-    }
-
-    template<class T, class ...Args>
-    spider::unique_ptr<T> make_unique(StackID stack, Args &&... args) {
-        return spider::unique_ptr<T>(make<T>(stack, std::forward<Args>(args)...), destroy<T>);
-    }
-
-    template<class T>
-    spider::unique_ptr<T> make_unique(T *&value) {
-        return spider::unique_ptr<T>(value, destroy<T>);
     }
 }
 

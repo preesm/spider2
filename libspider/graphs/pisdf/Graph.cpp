@@ -334,7 +334,7 @@ spider::pisdf::Vertex *spider::pisdf::Graph::emptyClone(std::string) { return nu
 /* === Private method(s) === */
 
 template<class T>
-void spider::pisdf::Graph::removeNoDestroy(spider::vector<spider::unique_ptr<T>> &eltVector, T *elt) {
+void spider::pisdf::Graph::removeNoDestroy(spider::vector<unique_ptr<T>> &eltVector, T *elt) {
     auto ix = elt->ix();
     if (ix >= eltVector.size()) {
         throwSpiderException("Trying to remove an element not from this graph.");
@@ -354,7 +354,7 @@ void spider::pisdf::Graph::removeNoDestroy(spider::vector<spider::unique_ptr<T>>
 }
 
 template<class T>
-void spider::pisdf::Graph::removeAndDestroy(spider::vector<spider::unique_ptr<T>> &eltVector, T *elt) {
+void spider::pisdf::Graph::removeAndDestroy(spider::vector<unique_ptr<T>> &eltVector, T *elt) {
     auto ix = elt->ix();
     if (ix >= eltVector.size()) {
         throwSpiderException("Trying to remove an element not from this graph.");

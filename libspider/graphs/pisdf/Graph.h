@@ -44,6 +44,7 @@
 
 #include <string>
 #include <cstdint>
+#include <memory/unique_ptr.h>
 #include <common/Exception.h>
 #include <graphs/pisdf/ExecVertex.h>
 #include <graphs/pisdf/Edge.h>
@@ -375,7 +376,7 @@ namespace spider {
             /* === Contained elements of the graph === */
 
             /* = Vector of all the Vertex (if any). This vector contains subgraph and ConfigVertex as well = */
-            sbc::vector<spider::unique_ptr<Vertex>, StackID::PISDF> vertexVector_;
+            sbc::vector<unique_ptr<Vertex>, StackID::PISDF> vertexVector_;
             /* = Vector of ConfigVertex (if any). This is just a "viewer" vector. = */
             sbc::vector<ConfigVertex *, StackID::PISDF> configVertexVector_;
             /* = Vector of subgraph (if any). This is just a "viewer" vector. = */
@@ -400,10 +401,10 @@ namespace spider {
             /* === Private method(s) === */
 
             template<class T>
-            void removeNoDestroy(spider::vector<spider::unique_ptr<T>> &eltVector, T *elt);
+            void removeNoDestroy(spider::vector<unique_ptr<T>> &eltVector, T *elt);
 
             template<class T>
-            void removeAndDestroy(spider::vector<spider::unique_ptr<T>> &eltVector, T *elt);
+            void removeAndDestroy(spider::vector<unique_ptr<T>> &eltVector, T *elt);
 
             template<class T>
             void removeNoDestroy(spider::vector<T *> &eltVector, T *elt);
