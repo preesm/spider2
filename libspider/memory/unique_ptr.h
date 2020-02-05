@@ -117,7 +117,7 @@ namespace spider {
     }
 
     template<class T>
-    spider::unique_ptr<T> make_unique(T *&value) {
+    spider::unique_ptr<T> make_unique(T *value) {
         return unique_ptr<T>(value);
     }
 }
