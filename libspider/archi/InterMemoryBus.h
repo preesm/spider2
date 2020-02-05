@@ -64,7 +64,7 @@ namespace spider {
          */
         InterMemoryBus(Cluster *clusterA, Cluster *clusterB, MemoryBus *busAToB, MemoryBus *busBToA);
 
-        ~InterMemoryBus() = default;
+        ~InterMemoryBus();
 
         /* === Method(s) === */
 

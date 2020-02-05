@@ -81,6 +81,39 @@ spider::MemoryInterface *spider::api::createMemoryInterface(uint64_t size) {
     return interface;
 }
 
+void spider::api::setMemoryInterfaceAllocateRoutine(MemoryInterface *interface, MemoryAllocateRoutine routine) {
+    if (interface) {
+        interface->setAllocateRoutine(routine);
+    }
+}
+
+void spider::api::setMemoryInterfaceDeallocateRoutine(MemoryInterface *interface, MemoryDeallocateRoutine routine) {
+    if (interface) {
+        interface->setDeallocateRoutine(routine);
+    }
+}
+
+spider::MemoryBus *spider::api::createMemoryBus(MemoryBusRoutine sendRoutine, MemoryBusRoutine receiveRoutine) {
+    auto *bus = make<MemoryBus, StackID::ARCHI>();
+    if (bus) {
+        bus->setSendRoutine(sendRoutine);
+        bus->setReceiveRoutine(receiveRoutine);
+    }
+    return bus;
+}
+
+void spider::api::setMemoryBusSendCostRoutine(MemoryBus *bus, MemoryExchangeCostRoutine routine) {
+    if (bus) {
+        bus->setSendCostRoutine(routine);
+    }
+}
+
+void spider::api::setMemoryBusReceiveCostRoutine(MemoryBus *bus, MemoryExchangeCostRoutine routine) {
+    if (bus) {
+        bus->setReceiveCostRoutine(routine);
+    }
+}
+
 spider::InterMemoryBus *
 spider::api::createInterClusterMemoryBus(Cluster *clusterA, Cluster *clusterB, MemoryBus *busAToB, MemoryBus *busBToA) {
     if (!clusterA || !clusterB) {
@@ -95,24 +128,6 @@ spider::api::createInterClusterMemoryBus(Cluster *clusterA, Cluster *clusterB, M
     /* == Set the interface in the platform == */
     archi::platform()->setClusterToClusterMemoryBus(clusterA, clusterB, interMemoryBus);
     return interMemoryBus;
-}
-
-void spider::api::setMemoryInterfaceAllocateRoutine(spider::MemoryInterface *interface,
-                                                    spider::MemoryAllocateRoutine routine) {
-    if (!interface) {
-        throwSpiderException("nullptr MemoryInterface");
-    }
-    interface->setAllocateRoutine(routine);
-
-}
-
-void spider::api::setMemoryInterfaceDeallocateRoutine(spider::MemoryInterface *interface,
-                                                      spider::MemoryDeallocateRoutine routine) {
-    if (!interface) {
-        throwSpiderException("nullptr MemoryInterface");
-    }
-    interface->setDeallocateRoutine(routine);
-
 }
 
 /* === Cluster related API === */
@@ -145,7 +160,7 @@ spider::api::createProcessingElement(uint32_t hwType,
     return processingElement;
 }
 
-void spider::api::setPESpiderPEType(PE *processingElement, spider::PEType type) {
+void spider::api::setPESpiderPEType(PE *processingElement, PEType type) {
     processingElement->setSpiderPEType(type);
 }
 

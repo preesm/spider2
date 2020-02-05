@@ -43,6 +43,7 @@
 #include <archi/MemoryBus.h>
 #include <archi/InterMemoryBus.h>
 #include <common/Exception.h>
+#include <memory/memory.h>
 
 
 /* === Static function === */
@@ -71,4 +72,9 @@ spider::MemoryBus *spider::InterMemoryBus::get(Cluster *clusterA, Cluster *clust
         return busBToA_;
     }
     return nullptr;
+}
+
+spider::InterMemoryBus::~InterMemoryBus() {
+    destroy(busAToB_);
+    destroy(busBToA_);
 }

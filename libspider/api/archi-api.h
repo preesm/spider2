@@ -98,7 +98,41 @@ namespace spider {
          */
         MemoryInterface *createMemoryInterface(uint64_t size);
 
-        MemoryBus *createMemoryBus();
+        /**
+         * @brief Override the allocate routine of a given @refitem  MemoryInterface.
+         * @param interface  Pointer to the @refitem MemoryInterface.
+         * @param routine    Routine to set.
+         */
+        void setMemoryInterfaceAllocateRoutine(MemoryInterface *interface, MemoryAllocateRoutine routine);
+
+        /**
+         * @brief Override the deallocate routine of a given @refitem  MemoryInterface.
+         * @param interface  Pointer to the @refitem MemoryInterface.
+         * @param routine    Routine to set.
+         */
+        void setMemoryInterfaceDeallocateRoutine(MemoryInterface *interface, MemoryDeallocateRoutine routine);
+
+        /**
+         * @brief Creates a new @refitem MemoryBus.
+         * @param sendRoutine     Routine used for sending data on this bus.
+         * @param receiveRoutine  Routine used for receiving data on this bus.
+         * @return pointer to the created @refitem MemoryBus.
+         */
+        MemoryBus *createMemoryBus(MemoryBusRoutine sendRoutine, MemoryBusRoutine receiveRoutine);
+
+        /**
+         * @brief Override the send cost routine of a given @refitem MemoryBus.
+         * @param bus      Pointer to the @refitem MemoryBus.
+         * @param routine  Routine to set.
+         */
+        void setMemoryBusSendCostRoutine(MemoryBus *bus, MemoryExchangeCostRoutine routine);
+
+        /**
+         * @brief Override the receive cost routine of a given @refitem MemoryBus.
+         * @param bus      Pointer to the @refitem MemoryBus.
+         * @param routine  Routine to set.
+         */
+        void setMemoryBusReceiveCostRoutine(MemoryBus *bus, MemoryExchangeCostRoutine routine);
 
         /**
          * @brief Create a @refitem InterMemoryBus associated to the communication between two @refitem Cluster.
@@ -112,20 +146,6 @@ namespace spider {
                                                     Cluster *clusterB,
                                                     MemoryBus *busAToB = nullptr,
                                                     MemoryBus *busBToA = nullptr);
-
-        /**
-         * @brief Override the allocate routine of a given MemoryInterface.
-         * @param interface  MemoryInterface to evaluate.
-         * @param routine    Routine to set.
-         */
-        void setMemoryInterfaceAllocateRoutine(MemoryInterface *interface, MemoryAllocateRoutine routine);
-
-        /**
-         * @brief Override the deallocate routine of a given MemoryInterface.
-         * @param interface  MemoryInterface to evaluate.
-         * @param routine    Routine to set.
-         */
-        void setMemoryInterfaceDeallocateRoutine(MemoryInterface *interface, MemoryDeallocateRoutine routine);
 
         /* === Cluster related API === */
 
