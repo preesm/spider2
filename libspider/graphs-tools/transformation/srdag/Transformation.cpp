@@ -43,7 +43,6 @@
 #include <graphs-tools/transformation/srdag/Transformation.h>
 #include <graphs/pisdf/interfaces/InputInterface.h>
 #include <graphs/pisdf/interfaces/OutputInterface.h>
-#include <graphs/pisdf/SpecialVertex.h>
 #include <api/pisdf-api.h>
 
 /* === Methods implementation === */

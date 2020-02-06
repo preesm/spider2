@@ -37,46 +37,27 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_INPUTINTERFACE_H
-#define SPIDER2_INPUTINTERFACE_H
+#ifndef SPIDER2_UNITARYOPTIMIZER_H
+#define SPIDER2_UNITARYOPTIMIZER_H
 
 /* === Include(s) === */
 
-#include <graphs/pisdf/interfaces/Interface.h>
+/* === Function(s) prototype === */
 
 namespace spider {
+
     namespace pisdf {
-        /* === Class definition === */
+        class Vertex;
+    }
 
-        class InputInterface final : public Interface {
-        public:
+    namespace optims {
 
-            explicit InputInterface(std::string name = "unnamed-interface") :
-                    Interface(VertexType::INPUT, std::move(name), 0, 1) { };
-
-            /* === Method(s) === */
-
-            inline void connectInputEdge(Edge *, size_t) override {
-                throwSpiderException("Can not connect input edge to input interface.");
-            }
-
-            inline void visit(Visitor *visitor) override {
-                visitor->visit(this);
-            }
-
-            /* === Getter(s) === */
-
-            Edge *inputEdge() const override;
-
-            inline Edge *outputEdge() const override {
-                return outputEdgeVector_[0];
-            }
-
-            inline Vertex *opposite() const override {
-                return outputEdgeVector_[0]->sink();
-            }
-        };
+        /**
+         * @brief Remove unitary vertex when possible. see @refitem spider::optims::reduceUnitaryRateActors
+         * @param vertex  Pointer to the vertex.
+         * @return true if optimized vertex, false else.
+         */
+        bool optimizeUnitaryVertex(pisdf::Vertex *vertex);
     }
 }
-
-#endif //SPIDER2_INPUTINTERFACE_H
+#endif //SPIDER2_UNITARYOPTIMIZER_H

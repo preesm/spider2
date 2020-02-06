@@ -44,7 +44,6 @@
 #include <graphs/pisdf/Vertex.h>
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/Delay.h>
-#include <graphs/pisdf/SpecialVertex.h>
 
 /* === Static variable(s) === */
 

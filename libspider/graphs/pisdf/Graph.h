@@ -184,21 +184,7 @@ namespace spider {
                 visitor->visit(this);
             }
 
-            /**
-             * @brief This method is not supported for graphs.
-             * @return nullptr.
-             */
-            Vertex *emptyClone(std::string) override;
-
             /* === Getter(s) === */
-
-            inline VertexType subtype() const override {
-                return VertexType::GRAPH;
-            }
-
-            inline bool hierarchical() const override {
-                return true;
-            }
 
             /**
              * @brief Return dynamic property of the graph.
@@ -269,7 +255,7 @@ namespace spider {
             * @brief A const reference on the set of vertices. Useful for iterating on the vertices.
             * @return const reference to vertex vector
             */
-            inline const vector<ConfigVertex *> &configVertices() const {
+            inline const vector<Vertex *> &configVertices() const {
                 return configVertexVector_;
             }
 
@@ -380,7 +366,7 @@ namespace spider {
         private:
             vector<unique_ptr<Vertex>> vertexVector_;                     /* = Vector of all the Vertices of the graph = */
             vector<unique_ptr<Edge>> edgeVector_;                         /* = Vector of Edge contained in the Graph = */
-            vector<ConfigVertex *> configVertexVector_;                   /* = Vector of Vertices with VertexType::CONFIG. This is just a "viewer" vector. = */
+            vector<Vertex *> configVertexVector_;                         /* = Vector of Vertices with VertexType::CONFIG. This is just a "viewer" vector. = */
             vector<Graph *> subgraphVector_;                              /* = Vector of Vertices with VertexType::GRAPH.  This is just a "viewer" vector. = */
             vector<std::shared_ptr<Param>> paramVector_;                  /* = Vector of Param = */
             vector<unique_ptr<InputInterface>> inputInterfaceVector_;     /* = Vector of InputInterface = */

@@ -60,26 +60,6 @@ namespace spider {
 
             void visit(NonExecVertex *) override;
 
-            void visit(DelayVertex *vertex) override;
-
-            void visit(ConfigVertex *vertex) override;
-
-            void visit(ForkVertex *vertex) override;
-
-            void visit(JoinVertex *vertex) override;
-
-            void visit(HeadVertex *vertex) override;
-
-            void visit(TailVertex *vertex) override;
-
-            void visit(DuplicateVertex *vertex) override;
-
-            void visit(RepeatVertex *vertex) override;
-
-            void visit(InitVertex *vertex) override;
-
-            void visit(EndVertex *vertex) override;
-
             void visit(Interface *) override;
 
             void visit(InputInterface *input) override;

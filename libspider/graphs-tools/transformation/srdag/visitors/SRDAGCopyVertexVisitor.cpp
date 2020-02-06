@@ -41,27 +41,26 @@
 /* === Include(s) === */
 
 #include <graphs-tools/transformation/srdag/visitors/SRDAGCopyVertexVisitor.h>
-#include <graphs/pisdf/SpecialVertex.h>
 #include <graphs/pisdf/ExecVertex.h>
 #include <api/pisdf-api.h>
 
 /* === Function(s) definition === */
 
-void spider::srdag::SRDAGCopyVertexVisitor::visit(pisdf::DelayVertex *vertex) {
-    /* == This a trick to ensure proper coherence even with recursive delay init == */
-    /* == For given scenario:   A -> | delay | -> B
-     *                         setter --^ --> getter
-     *    This will produce this:
-     *                          setter -> | delay | -> getter
-     *                               A -> |       | -> B
-     *    But in reality the vertex does not make it after the SR-Transformation.
-     */
-    api::createVertex(srdag_, buildCloneName(vertex, 0), 2, 2);
-    ix_ = srdag_->vertexCount() - 1;
-}
-
 void spider::srdag::SRDAGCopyVertexVisitor::visit(pisdf::ExecVertex *vertex) {
-    makeClone(vertex);
+    if (vertex->subtype() == pisdf::VertexType::DELAY) {
+        /* == This a trick to ensure proper coherence even with recursive delay init == */
+        /* == For given scenario:   A -> | delay | -> B
+         *                         setter --^ --> getter
+         *    This will produce this:
+         *                          setter -> | delay | -> getter
+         *                               A -> |       | -> B
+         *    But in reality the vertex does not make it after the SR-Transformation.
+         */
+        api::createVertex(srdag_, buildCloneName(vertex, 0), 2, 2);
+        ix_ = srdag_->vertexCount() - 1;
+    } else {
+        makeClone(vertex);
+    }
 }
 
 void spider::srdag::SRDAGCopyVertexVisitor::visit(pisdf::Graph *graph) {
@@ -91,7 +90,10 @@ std::string spider::srdag::SRDAGCopyVertexVisitor::buildCloneName(const pisdf::V
 
 void spider::srdag::SRDAGCopyVertexVisitor::makeClone(pisdf::Vertex *vertex) {
     for (uint32_t it = 0; it < vertex->repetitionValue(); ++it) {
-        auto *clone = vertex->emptyClone(buildCloneName(vertex, it));
+        auto *clone = make<pisdf::ExecVertex, StackID::PISDF>(vertex->subtype(),
+                                                              buildCloneName(vertex, it),
+                                                              vertex->inputEdgeCount(),
+                                                              vertex->outputEdgeCount());
 
         /* == Add clone to the srdag == */
         srdag_->addVertex(clone);

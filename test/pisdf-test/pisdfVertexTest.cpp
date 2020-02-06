@@ -50,7 +50,6 @@
 #include <graphs/pisdf/interfaces/OutputInterface.h>
 #include <graphs/pisdf/DynamicParam.h>
 #include <graphs/pisdf/ExecVertex.h>
-#include <graphs/pisdf/SpecialVertex.h>
 #include <api/spider.h>
 #include <graphs-tools/helper/visitors/PiSDFDefaultVisitor.h>
 
@@ -60,11 +59,9 @@ protected:
         spider::start();
         spider::api::createPlatform(1, 1);
 
-        auto *x86MemoryUnit = spider::api::createMemoryUnit(20000);
+        auto *x86MemoryInterface = spider::api::createMemoryInterface(20000);
 
-        auto *x86MemoryInterface = spider::api::createMemoryInterface(x86MemoryUnit);
-
-        auto *x86Cluster = spider::api::createCluster(1, x86MemoryUnit, x86MemoryInterface);
+        auto *x86Cluster = spider::api::createCluster(1, x86MemoryInterface);
 
         auto x86PECore0 = spider::api::createProcessingElement(0, 0, x86Cluster, "x86-Core0", spider::PEType::LRT);
 
@@ -88,15 +85,6 @@ void testHierarchical() {
 
 void testExecutable() {
     ASSERT_EQ((spider::pisdf::ExecVertex().executable()), true) << "ExecVertex::executable() should be true.";
-    ASSERT_EQ((spider::pisdf::ForkVertex().executable()), true) << "ForkVertex::executable() should be true.";
-    ASSERT_EQ((spider::pisdf::JoinVertex().executable()), true) << "JoinVertex::executable() should be true.";
-    ASSERT_EQ((spider::pisdf::HeadVertex().executable()), true) << "HeadVertex::executable() should be true.";
-    ASSERT_EQ((spider::pisdf::TailVertex().executable()), true) << "TailVertex::executable() should be true.";
-    ASSERT_EQ((spider::pisdf::ConfigVertex().executable()), true) << "ConfigVertex::executable() should be true.";
-    ASSERT_EQ((spider::pisdf::RepeatVertex().executable()), true) << "RepeatVertex::executable() should be true.";
-    ASSERT_EQ((spider::pisdf::DuplicateVertex().executable()), true) << "DuplicateVertex::executable() should be true.";
-    ASSERT_EQ((spider::pisdf::InitVertex().executable()), true) << "InitVertex::executable() should be true.";
-    ASSERT_EQ((spider::pisdf::EndVertex().executable()), true) << "EndVertex::executable() should be true.";
     ASSERT_EQ((spider::pisdf::InputInterface().executable()), false) << "Vertex::executable() should be false.";
     ASSERT_EQ((spider::pisdf::OutputInterface().executable()), false) << "Vertex::executable() should be false.";
     ASSERT_EQ((spider::pisdf::Graph().executable()), false) << "Vertex::executable() should be false.";
@@ -105,23 +93,32 @@ void testExecutable() {
 void testType() {
     ASSERT_EQ((spider::pisdf::ExecVertex().subtype()), spider::pisdf::VertexType::NORMAL)
                                 << "ExecVertex::subtype() should be VertexType::NORMAL.";
-    ASSERT_EQ((spider::pisdf::ForkVertex().subtype()), spider::pisdf::VertexType::FORK)
+    ASSERT_EQ((spider::pisdf::ExecVertex(spider::pisdf::VertexType::FORK).subtype()),
+              spider::pisdf::VertexType::FORK)
                                 << "ForkVertex::subtype() should be VertexType::FORK.";
-    ASSERT_EQ((spider::pisdf::JoinVertex().subtype()), spider::pisdf::VertexType::JOIN)
+    ASSERT_EQ((spider::pisdf::ExecVertex(spider::pisdf::VertexType::JOIN).subtype()),
+              spider::pisdf::VertexType::JOIN)
                                 << "JoinVertex::subtype() should be VertexType::JOIN.";
-    ASSERT_EQ((spider::pisdf::HeadVertex().subtype()), spider::pisdf::VertexType::HEAD)
+    ASSERT_EQ((spider::pisdf::ExecVertex(spider::pisdf::VertexType::HEAD).subtype()),
+              spider::pisdf::VertexType::HEAD)
                                 << "HeadVertex::subtype() should be VertexType::HEAD.";
-    ASSERT_EQ((spider::pisdf::TailVertex().subtype()), spider::pisdf::VertexType::TAIL)
+    ASSERT_EQ((spider::pisdf::ExecVertex(spider::pisdf::VertexType::TAIL).subtype()),
+              spider::pisdf::VertexType::TAIL)
                                 << "TailVertex::subtype() should be VertexType::TAIL.";
-    ASSERT_EQ((spider::pisdf::ConfigVertex().subtype()), spider::pisdf::VertexType::CONFIG)
+    ASSERT_EQ((spider::pisdf::ExecVertex(spider::pisdf::VertexType::CONFIG).subtype()),
+              spider::pisdf::VertexType::CONFIG)
                                 << "ConfigVertex::subtype() should be VertexType::CONFIG.";
-    ASSERT_EQ((spider::pisdf::RepeatVertex().subtype()), spider::pisdf::VertexType::REPEAT)
+    ASSERT_EQ((spider::pisdf::ExecVertex(spider::pisdf::VertexType::REPEAT).subtype()),
+              spider::pisdf::VertexType::REPEAT)
                                 << "RepeatVertex::subtype() should be VertexType::REPEAT.";
-    ASSERT_EQ((spider::pisdf::DuplicateVertex().subtype()), spider::pisdf::VertexType::DUPLICATE)
+    ASSERT_EQ((spider::pisdf::ExecVertex(spider::pisdf::VertexType::DUPLICATE).subtype()),
+              spider::pisdf::VertexType::DUPLICATE)
                                 << "DuplicateVertex::subtype() should be VertexType::DUPLICATE.";
-    ASSERT_EQ((spider::pisdf::InitVertex().subtype()), spider::pisdf::VertexType::INIT)
+    ASSERT_EQ((spider::pisdf::ExecVertex(spider::pisdf::VertexType::INIT).subtype()),
+              spider::pisdf::VertexType::INIT)
                                 << "InitVertex::subtype() should be VertexType::INIT.";
-    ASSERT_EQ((spider::pisdf::EndVertex().subtype()), spider::pisdf::VertexType::END)
+    ASSERT_EQ((spider::pisdf::ExecVertex(spider::pisdf::VertexType::END).subtype()),
+              spider::pisdf::VertexType::END)
                                 << "EndVertex::subtype() should be VertexType::END.";
     ASSERT_EQ((spider::pisdf::InputInterface().subtype()), spider::pisdf::VertexType::INPUT)
                                 << "InputInterface::subtype() should be VertexType::INPUT.";
@@ -129,30 +126,8 @@ void testType() {
                                 << "OutputInterface::subtype() should be VertexType::OUTPUT.";
     ASSERT_EQ((spider::pisdf::Graph().subtype()), spider::pisdf::VertexType::GRAPH)
                                 << "Graph::subtype() should be VertexType::GRAPH.";
-    ASSERT_EQ((spider::pisdf::DelayVertex().subtype()), spider::pisdf::VertexType::DELAY)
-                                << "DelayVertex::subtype() should be VertexType::DELAY.";
-}
-
-void testCpyCtor() {
-    auto test = spider::pisdf::ExecVertex();
-    ASSERT_EQ((spider::pisdf::ExecVertex(test).subtype()), spider::pisdf::VertexType::NORMAL)
-                                << "ExecVertex::subtype() should be VertexType::NORMAL.";
-    auto test2 = spider::pisdf::ForkVertex();
-    ASSERT_EQ((spider::pisdf::ForkVertex(test2).subtype()), spider::pisdf::VertexType::FORK)
-                                << "ForkVertex::subtype() should be VertexType::FORK.";
-    ASSERT_EQ((spider::pisdf::DuplicateVertex(spider::pisdf::DuplicateVertex()).subtype()),
-              spider::pisdf::VertexType::DUPLICATE) << "DuplicateVertex::subtype() should be VertexType::DUPLICATE.";
-    ASSERT_EQ((spider::pisdf::InitVertex(spider::pisdf::InitVertex()).subtype()), spider::pisdf::VertexType::INIT)
-                                << "InitVertex::subtype() should be VertexType::INIT.";
-    ASSERT_EQ((spider::pisdf::EndVertex(spider::pisdf::EndVertex()).subtype()), spider::pisdf::VertexType::END)
-                                << "EndVertex::subtype() should be VertexType::END.";
-    ASSERT_EQ((spider::pisdf::InputInterface(spider::pisdf::InputInterface()).subtype()),
-              spider::pisdf::VertexType::INPUT) << "InputInterface::subtype() should be VertexType::INPUT.";
-    ASSERT_EQ((spider::pisdf::OutputInterface(spider::pisdf::OutputInterface()).subtype()),
-              spider::pisdf::VertexType::OUTPUT) << "OutputInterface::subtype() should be VertexType::OUTPUT.";
-    ASSERT_EQ((spider::pisdf::Graph(spider::pisdf::Graph()).subtype()), spider::pisdf::VertexType::GRAPH)
-                                << "Graph::subtype() should be VertexType::GRAPH.";
-    ASSERT_EQ((spider::pisdf::DelayVertex(spider::pisdf::DelayVertex()).subtype()), spider::pisdf::VertexType::DELAY)
+    ASSERT_EQ((spider::pisdf::ExecVertex(spider::pisdf::VertexType::DELAY).subtype()),
+              spider::pisdf::VertexType::DELAY)
                                 << "DelayVertex::subtype() should be VertexType::DELAY.";
 }
 
@@ -160,7 +135,8 @@ void testCpyCtor() {
 TEST_F(pisdVertexTest, vertexTest) {
     {
         ASSERT_NO_THROW(spider::pisdf::ExecVertex()) << "ExecVertex() should never throw";
-        ASSERT_NO_THROW(spider::pisdf::ExecVertex("", 1, 4)) << "ExecVertex() should never throw";
+        ASSERT_NO_THROW(spider::pisdf::ExecVertex(spider::pisdf::VertexType::NORMAL, "", 1, 4))
+                                    << "ExecVertex() should never throw";
     }
     {
         /* == Checking init values == */
@@ -177,14 +153,14 @@ TEST_F(pisdVertexTest, vertexTest) {
         delete v;
     }
     {
-        auto *v = new spider::pisdf::DelayVertex();
+        auto *v = new spider::pisdf::ExecVertex(spider::pisdf::VertexType::DELAY);
         ASSERT_THROW(v->setRepetitionValue(2), spider::Exception)
                                     << "DelayVertex::setRepetitionValue() should throw if value > 1";
         ASSERT_NO_THROW(v->setRepetitionValue(1)) << "DelayVertex::setRepetitionValue() should not throw if value == 1";
         delete v;
     }
     {
-        auto *v = new spider::pisdf::ConfigVertex();
+        auto *v = new spider::pisdf::ExecVertex(spider::pisdf::VertexType::CONFIG);
         ASSERT_THROW(v->setRepetitionValue(2), spider::Exception)
                                     << "ConfigVertex::setRepetitionValue() should throw if value > 1";
         ASSERT_NO_THROW(v->setRepetitionValue(1))
@@ -232,9 +208,6 @@ TEST_F(pisdVertexTest, vertexTest) {
         ASSERT_NO_THROW(vertex.setScheduleJobIx(10)) << "ExecVertex::setJobIx() should never throw.";
         ASSERT_EQ(vertex.scheduleJobIx(), 10) << "ExecVertex::jobIx() bad value.";
     }
-
-    /* == Test cpy ctor of each subtype == */
-    testCpyCtor();
 
     ASSERT_NO_THROW(v0->setName("toto")) << "Vertex::setName() should never throw.";
     ASSERT_EQ(v0->name(), "toto") << "Vertex::setName() should never throw.";

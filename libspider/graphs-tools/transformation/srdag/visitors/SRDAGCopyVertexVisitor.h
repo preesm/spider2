@@ -56,8 +56,6 @@ namespace spider {
 
             ~SRDAGCopyVertexVisitor() override = default;
 
-            void visit(pisdf::DelayVertex *vertex) override;
-
             void visit(pisdf::ExecVertex *vertex) override;
 
             void visit(pisdf::Graph *graph) override;

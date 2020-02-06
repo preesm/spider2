@@ -45,7 +45,6 @@
 #include <scheduling/scheduler/BestFitScheduler.h>
 #include <scheduling/scheduler/RoundRobinScheduler.h>
 #include <scheduling/allocator/DefaultFifoAllocator.h>
-#include <graphs/pisdf/SpecialVertex.h>
 #include <api/archi-api.h>
 #include <archi/PE.h>
 #include <runtime/interface/Message.h>

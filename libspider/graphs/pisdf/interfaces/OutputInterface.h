@@ -52,7 +52,7 @@ namespace spider {
         public:
 
             explicit OutputInterface(std::string name = "unnamed-interface") :
-                    Interface(std::move(name), 1, 0) { };
+                    Interface(VertexType::OUTPUT, std::move(name), 1, 0) { };
 
             /* === Method(s) === */
 
@@ -65,12 +65,6 @@ namespace spider {
                 visitor->visit(this);
             }
 
-            inline Vertex *emptyClone(std::string name) override {
-                auto *clone = make<OutputInterface, StackID::PISDF>(std::move(name));
-                Vertex::initializeEmptyClone(clone);
-                return clone;
-            }
-
             /* === Getter(s) === */
 
             inline Edge *inputEdge() const override {
@@ -81,14 +75,6 @@ namespace spider {
 
             inline Vertex *opposite() const override {
                 return inputEdgeVector_[0]->source();
-            }
-
-            /**
-             * @brief Return the kind of the interface (@refitem InterfaceType)
-             * @return @refitem VertexType::OUTPUT
-             */
-            inline VertexType subtype() const override {
-                return VertexType::OUTPUT;
             }
         };
     }

@@ -54,23 +54,24 @@ namespace spider {
         public:
             explicit NonExecVertex(std::string name = "unnamed-non-execvertex",
                                    size_t edgeINCount = 0,
-                                   size_t edgeOUTCount = 0) : Vertex(std::move(name), edgeINCount, edgeOUTCount) { };
+                                   size_t edgeOUTCount = 0) : Vertex(VertexType::NORMAL,
+                                                                     std::move(name),
+                                                                     edgeINCount,
+                                                                     edgeOUTCount) { };
 
-            NonExecVertex(const NonExecVertex &) = default;
+            NonExecVertex(NonExecVertex &&) noexcept = default;
 
-            NonExecVertex(NonExecVertex &&other) noexcept : Vertex(std::move(other)) { };
+            NonExecVertex &operator=(NonExecVertex &&) noexcept = default;
 
             ~NonExecVertex() override = default;
+
+            NonExecVertex(const NonExecVertex &) = delete;
+
+            NonExecVertex &operator=(const NonExecVertex &) = delete;
 
             /* === Method(s) === */
 
             inline void visit(Visitor *visitor) override { visitor->visit(this); };
-
-            inline Vertex *emptyClone(std::string name) override {
-                auto *clone = make<NonExecVertex, StackID::PISDF>(std::move(name));
-                Vertex::initializeEmptyClone(clone);
-                return clone;
-            }
 
             /* === Getter(s) === */
 
@@ -79,15 +80,6 @@ namespace spider {
              * @return false
              */
             inline bool executable() const final { return false; };
-
-            /**
-             * @brief Ensure that any vertex inheriting from NonExecVertex will not be able override this method.
-             * @return false.
-             */
-            inline bool hierarchical() const final { return false; };
-
-        private:
-
         };
     }
 }

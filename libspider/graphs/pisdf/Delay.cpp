@@ -43,7 +43,6 @@
 #include <graphs/pisdf/Delay.h>
 #include <graphs/pisdf/Edge.h>
 #include <graphs/pisdf/Graph.h>
-#include <graphs/pisdf/SpecialVertex.h>
 #include <api/pisdf-api.h>
 
 /* === Static variable(s) === */
@@ -86,7 +85,7 @@ spider::pisdf::Delay::Delay(Expression expression, Edge *edge,
     }
 
     /* == Create virtual vertex and connect it to setter / getter == */
-    vertex_ = make<DelayVertex, StackID::PISDF>(this->name());
+    vertex_ = make<ExecVertex, StackID::PISDF>(VertexType::DELAY, this->name(), 1, 1);
     edge->graph()->addVertex(vertex_);
 
     auto *setterEdge = make<Edge, StackID::PISDF>(setter_, setterPortIx_, std::move(setterRateExpression),

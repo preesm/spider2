@@ -37,46 +37,54 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_INPUTINTERFACE_H
-#define SPIDER2_INPUTINTERFACE_H
 
 /* === Include(s) === */
 
-#include <graphs/pisdf/interfaces/Interface.h>
+#include <graphs/pisdf/Vertex.h>
+#include <graphs/pisdf/Edge.h>
+#include <graphs/pisdf/Graph.h>
+#include <graphs-tools/transformation/optims/helper/unitaryOptimizer.h>
 
-namespace spider {
-    namespace pisdf {
-        /* === Class definition === */
+/* === Function(s) definition === */
 
-        class InputInterface final : public Interface {
-        public:
+bool spider::optims::optimizeUnitaryVertex(pisdf::Vertex *vertex) {
+    auto removeVertex = [](pisdf::Vertex *vertex) -> bool {
+        auto *graph = vertex->graph();
+        auto *inputEdge = vertex->inputEdge(0);
+        auto *outputEdge = vertex->outputEdge(0);
+        if (inputEdge->sinkRateValue() == outputEdge->sourceRateValue()) {
+            inputEdge->setSink(outputEdge->sink(),
+                               outputEdge->sinkPortIx(),
+                               spider::Expression(outputEdge->sinkRateExpression()));
+            graph->removeEdge(outputEdge);
+            graph->removeVertex(vertex);
+            return true;
+        }
+        return false;
+    };
 
-            explicit InputInterface(std::string name = "unnamed-interface") :
-                    Interface(VertexType::INPUT, std::move(name), 0, 1) { };
-
-            /* === Method(s) === */
-
-            inline void connectInputEdge(Edge *, size_t) override {
-                throwSpiderException("Can not connect input edge to input interface.");
+    switch (vertex->subtype()) {
+        case pisdf::VertexType::DUPLICATE:
+        case pisdf::VertexType::FORK:
+            if (vertex->outputEdgeCount() == 1) {
+                return removeVertex(vertex);
             }
-
-            inline void visit(Visitor *visitor) override {
-                visitor->visit(this);
+            break;
+        case pisdf::VertexType::JOIN:
+        case pisdf::VertexType::TAIL:
+        case pisdf::VertexType::HEAD:
+            if (vertex->inputEdgeCount() == 1) {
+                return removeVertex(vertex);
             }
-
-            /* === Getter(s) === */
-
-            Edge *inputEdge() const override;
-
-            inline Edge *outputEdge() const override {
-                return outputEdgeVector_[0];
-            }
-
-            inline Vertex *opposite() const override {
-                return outputEdgeVector_[0]->sink();
-            }
-        };
+            break;
+        case pisdf::VertexType::REPEAT:
+            return removeVertex(vertex);
+        case pisdf::VertexType::INIT:
+            break;
+        case pisdf::VertexType::END:
+            break;
+        default:
+            break;
     }
+    return false;
 }
-
-#endif //SPIDER2_INPUTINTERFACE_H

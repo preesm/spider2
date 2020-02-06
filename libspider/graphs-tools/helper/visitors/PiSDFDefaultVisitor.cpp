@@ -41,7 +41,6 @@
 /* === Include(s) === */
 
 #include <graphs-tools/helper/visitors/PiSDFDefaultVisitor.h>
-#include <graphs/pisdf/SpecialVertex.h>
 #include <graphs/pisdf/DynamicParam.h>
 #include <graphs/pisdf/InHeritedParam.h>
 #include <graphs/pisdf/interfaces/InputInterface.h>
@@ -56,46 +55,6 @@ void spider::pisdf::DefaultVisitor::visit(spider::pisdf::Graph *) {
 void spider::pisdf::DefaultVisitor::visit(spider::pisdf::ExecVertex *) { }
 
 void spider::pisdf::DefaultVisitor::visit(spider::pisdf::NonExecVertex *) { }
-
-void spider::pisdf::DefaultVisitor::visit(DelayVertex *vertex) {
-    this->visit(static_cast<ExecVertex *>(vertex));
-}
-
-void spider::pisdf::DefaultVisitor::visit(ConfigVertex *vertex) {
-    this->visit(static_cast<ExecVertex *>(vertex));
-}
-
-void spider::pisdf::DefaultVisitor::visit(ForkVertex *vertex) {
-    this->visit(static_cast<ExecVertex *>(vertex));
-}
-
-void spider::pisdf::DefaultVisitor::visit(JoinVertex *vertex) {
-    this->visit(static_cast<ExecVertex *>(vertex));
-}
-
-void spider::pisdf::DefaultVisitor::visit(HeadVertex *vertex) {
-    this->visit(static_cast<ExecVertex *>(vertex));
-}
-
-void spider::pisdf::DefaultVisitor::visit(TailVertex *vertex) {
-    this->visit(static_cast<ExecVertex *>(vertex));
-}
-
-void spider::pisdf::DefaultVisitor::visit(DuplicateVertex *vertex) {
-    this->visit(static_cast<ExecVertex *>(vertex));
-}
-
-void spider::pisdf::DefaultVisitor::visit(RepeatVertex *vertex) {
-    this->visit(static_cast<ExecVertex *>(vertex));
-}
-
-void spider::pisdf::DefaultVisitor::visit(InitVertex *vertex) {
-    this->visit(static_cast<ExecVertex *>(vertex));
-}
-
-void spider::pisdf::DefaultVisitor::visit(EndVertex *vertex) {
-    this->visit(static_cast<ExecVertex *>(vertex));
-}
 
 void spider::pisdf::DefaultVisitor::visit(spider::pisdf::Interface *) {
     throwSpiderException("unsupported visitor type: Interface.");

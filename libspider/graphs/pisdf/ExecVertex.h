@@ -54,15 +54,27 @@ namespace spider {
 
         class ExecVertex : public Vertex {
         public:
+            explicit ExecVertex(VertexType type,
+                                std::string name = "unnamed-execvertex",
+                                size_t edgeINCount = 0,
+                                size_t edgeOUTCount = 0) : Vertex(type, std::move(name), edgeINCount, edgeOUTCount) { };
+
             explicit ExecVertex(std::string name = "unnamed-execvertex",
                                 size_t edgeINCount = 0,
-                                size_t edgeOUTCount = 0) : Vertex(std::move(name), edgeINCount, edgeOUTCount) { };
+                                size_t edgeOUTCount = 0) : Vertex(VertexType::NORMAL,
+                                                                  std::move(name),
+                                                                  edgeINCount,
+                                                                  edgeOUTCount) { };
 
-            ExecVertex(const ExecVertex &) = default;
-
-            ExecVertex(ExecVertex &&other) noexcept : Vertex(std::move(other)) { };
+            ExecVertex(ExecVertex &&) noexcept = default;
 
             ~ExecVertex() override = default;
+
+            ExecVertex &operator=(ExecVertex &&) = default;
+
+            ExecVertex(const ExecVertex &) = delete;
+
+            ExecVertex &operator=(const ExecVertex &) = delete;
 
             /* === Method(s) === */
 
@@ -79,12 +91,6 @@ namespace spider {
                 return rtInformation_.get();
             }
 
-            inline Vertex *emptyClone(std::string name) override {
-                auto *clone = make<ExecVertex, StackID::PISDF>(std::move(name));
-                Vertex::initializeEmptyClone(clone);
-                return clone;
-            }
-
             /* === Getter(s) === */
 
             /**
@@ -92,12 +98,6 @@ namespace spider {
              * @return false.
              */
             inline bool executable() const final { return true; };
-
-            /**
-             * @brief Ensure that any vertex inheriting from ExecVertex will not be able to override this method.
-             * @return false.
-             */
-            inline bool hierarchical() const final { return false; };
         };
     }
 }

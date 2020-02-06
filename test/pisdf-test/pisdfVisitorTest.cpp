@@ -51,7 +51,6 @@
 #include <graphs/pisdf/DynamicParam.h>
 #include <graphs/pisdf/InHeritedParam.h>
 #include <graphs/pisdf/ExecVertex.h>
-#include <graphs/pisdf/SpecialVertex.h>
 #include <api/spider.h>
 #include <graphs-tools/helper/visitors/PiSDFDefaultVisitor.h>
 
@@ -94,46 +93,6 @@ TEST_F(pisdfVisitorTest, defaultTest) {
     }
     {
         spider::pisdf::DefaultVisitor visitor;
-        spider::pisdf::ForkVertex vertex;
-        ASSERT_NO_THROW(vertex.visit(&visitor)) << "ForkVertex::visit should not throw for default visitor";
-    }
-    {
-        spider::pisdf::DefaultVisitor visitor;
-        spider::pisdf::JoinVertex vertex;
-        ASSERT_NO_THROW(vertex.visit(&visitor)) << "JoinVertex::visit should not throw for default visitor";
-    }
-    {
-        spider::pisdf::DefaultVisitor visitor;
-        spider::pisdf::HeadVertex vertex;
-        ASSERT_NO_THROW(vertex.visit(&visitor)) << "HeadVertex::visit should not throw for default visitor";
-    }
-    {
-        spider::pisdf::DefaultVisitor visitor;
-        spider::pisdf::TailVertex vertex;
-        ASSERT_NO_THROW(vertex.visit(&visitor)) << "TailVertex::visit should not throw for default visitor";
-    }
-    {
-        spider::pisdf::DefaultVisitor visitor;
-        spider::pisdf::RepeatVertex vertex;
-        ASSERT_NO_THROW(vertex.visit(&visitor)) << "RepeatVertex::visit should not throw for default visitor";
-    }
-    {
-        spider::pisdf::DefaultVisitor visitor;
-        spider::pisdf::DuplicateVertex vertex;
-        ASSERT_NO_THROW(vertex.visit(&visitor)) << "DuplicateVertex::visit should not throw for default visitor";
-    }
-    {
-        spider::pisdf::DefaultVisitor visitor;
-        spider::pisdf::DelayVertex vertex;
-        ASSERT_NO_THROW(vertex.visit(&visitor)) << "DelayVertex::visit should not throw for default visitor";
-    }
-    {
-        spider::pisdf::DefaultVisitor visitor;
-        spider::pisdf::ConfigVertex vertex;
-        ASSERT_NO_THROW(vertex.visit(&visitor)) << "ConfigVertex::visit should not throw for default visitor";
-    }
-    {
-        spider::pisdf::DefaultVisitor visitor;
         spider::pisdf::Graph vertex;
         ASSERT_THROW(vertex.visit(&visitor), spider::Exception) << "DefaultVisitor should throw for graph.";
     }
@@ -171,54 +130,6 @@ TEST_F(pisdfVisitorTest, defaultTest2) {
         spider::pisdf::ExecVertex vertex;
         ASSERT_NO_THROW(vertex.visit(&visitor)) << "ExecVertex::visit should not throw for default visitor";
         ASSERT_EQ(visitor.hitExec_, true) << "ExecVertex::visit failed";
-    }
-    {
-        TestDefaultVisitor visitor;
-        spider::pisdf::ForkVertex vertex;
-        ASSERT_NO_THROW(vertex.visit(&visitor)) << "ForkVertex::visit should not throw for default visitor";
-        ASSERT_EQ(visitor.hitExec_, true) << "ForkVertex::visit failed";
-    }
-    {
-        TestDefaultVisitor visitor;
-        spider::pisdf::JoinVertex vertex;
-        ASSERT_NO_THROW(vertex.visit(&visitor)) << "JoinVertex::visit should not throw for default visitor";
-        ASSERT_EQ(visitor.hitExec_, true) << "JoinVertex::visit failed";
-    }
-    {
-        TestDefaultVisitor visitor;
-        spider::pisdf::HeadVertex vertex;
-        ASSERT_NO_THROW(vertex.visit(&visitor)) << "HeadVertex::visit should not throw for default visitor";
-        ASSERT_EQ(visitor.hitExec_, true) << "HeadVertex::visit failed";
-    }
-    {
-        TestDefaultVisitor visitor;
-        spider::pisdf::TailVertex vertex;
-        ASSERT_NO_THROW(vertex.visit(&visitor)) << "TailVertex::visit should not throw for default visitor";
-        ASSERT_EQ(visitor.hitExec_, true) << "TailVertex::visit failed";
-    }
-    {
-        TestDefaultVisitor visitor;
-        spider::pisdf::RepeatVertex vertex;
-        ASSERT_NO_THROW(vertex.visit(&visitor)) << "RepeatVertex::visit should not throw for default visitor";
-        ASSERT_EQ(visitor.hitExec_, true) << "RepeatVertex::visit failed";
-    }
-    {
-        TestDefaultVisitor visitor;
-        spider::pisdf::DuplicateVertex vertex;
-        ASSERT_NO_THROW(vertex.visit(&visitor)) << "DuplicateVertex::visit should not throw for default visitor";
-        ASSERT_EQ(visitor.hitExec_, true) << "DuplicateVertex::visit failed";
-    }
-    {
-        TestDefaultVisitor visitor;
-        spider::pisdf::DelayVertex vertex;
-        ASSERT_NO_THROW(vertex.visit(&visitor)) << "DelayVertex::visit should not throw for default visitor";
-        ASSERT_EQ(visitor.hitExec_, true) << "DelayVertex::visit failed";
-    }
-    {
-        TestDefaultVisitor visitor;
-        spider::pisdf::ConfigVertex vertex;
-        ASSERT_NO_THROW(vertex.visit(&visitor)) << "ConfigVertex::visit should not throw for default visitor";
-        ASSERT_EQ(visitor.hitExec_, true) << "ConfigVertex::visit failed";
     }
     {
         TestDefaultVisitor visitor;

@@ -71,26 +71,6 @@ namespace spider {
 
             virtual void visit(NonExecVertex *) = 0;
 
-            virtual void visit(DelayVertex *) = 0;
-
-            virtual void visit(ConfigVertex *) = 0;
-
-            virtual void visit(ForkVertex *) = 0;
-
-            virtual void visit(JoinVertex *) = 0;
-
-            virtual void visit(HeadVertex *) = 0;
-
-            virtual void visit(TailVertex *) = 0;
-
-            virtual void visit(DuplicateVertex *) = 0;
-
-            virtual void visit(RepeatVertex *) = 0;
-
-            virtual void visit(InitVertex *) = 0;
-
-            virtual void visit(EndVertex *) = 0;
-
             virtual void visit(Interface *) = 0;
 
             virtual void visit(InputInterface *) = 0;

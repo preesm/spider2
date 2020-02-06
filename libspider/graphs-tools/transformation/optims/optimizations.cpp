@@ -41,8 +41,7 @@
 /* === Include(s) === */
 
 #include <graphs-tools/transformation/optims/optimizations.h>
-#include <graphs-tools/transformation/optims/visitors/UnitaryOptimizerVisitor.h>
-#include <graphs/pisdf/SpecialVertex.h>
+#include <graphs-tools/transformation/optims/helper/unitaryOptimizer.h>
 #include <graphs/pisdf/Edge.h>
 #include <graphs/pisdf/Graph.h>
 #include <api/pisdf-api.h>
@@ -491,13 +490,12 @@ bool spider::optims::reduceUnitaryRateActors(pisdf::Graph *graph) {
     }
     bool optimized = false;
 
-    UnitaryOptimizerVisitor optimizer{ graph };
     auto it = graph->vertices().begin();
     while (it != graph->vertices().end()) {
         auto &vertex = (*it);
-        vertex->visit(&optimizer);
-        it += (!optimizer.removed_);
-        optimized |= (optimizer.removed_);
+        auto result = optimizeUnitaryVertex(vertex.get());
+        it += (!result);
+        optimized |= (result);
     }
     return optimized;
 }

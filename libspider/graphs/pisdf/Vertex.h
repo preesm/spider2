@@ -61,7 +61,7 @@ namespace spider {
         class Vertex {
         public:
 
-            explicit Vertex(std::string name, size_t edgeINCount = 0, size_t edgeOUTCount = 0);
+            explicit Vertex(VertexType type, std::string name, size_t edgeINCount = 0, size_t edgeOUTCount = 0);
 
             Vertex(Vertex &&) noexcept = default;
 
@@ -78,48 +78,43 @@ namespace spider {
             /* === Method(s) === */
 
             /**
-             * @brief Set the input edge of index ix.
-             * @param edge Edge to set.
-             * @param ix  Index of the edge.
-             * @throw @refitem Spide::rException if out of bound or already existing edge.
+             * @brief Generic method that accept a visitor for class specific treatments.
+             * @remark This implement a double-dispatch visitor pattern.
+             * @param visitor  Pointer to the visitor to accept.
+             */
+            virtual void visit(Visitor *visitor);
+
+            /**
+             * @brief Connect an input edge at given position.
+             * @param edge  Pointer to the edge to connect.
+             * @param pos   Input position where to connect the edge.
+             * @throw @refitem std::out_of_range.
+             * @throw @refitem spider::Exception if an edge already exists at this position.
              */
             virtual void connectInputEdge(Edge *edge, size_t ix);
 
             /**
-             * @brief Set the output edge of index ix.
-             * @param edge Edge to set.
-             * @param ix  Index of the edge.
-             * @throw @refitem Spider::Exception if out of bound or already existing edge.
+             * @brief Connect an output edge at given position.
+             * @param edge  Pointer to the edge to connect.
+             * @param pos   Output position where to connect the edge.
+             * @throw @refitem std::out_of_range.
+             * @throw @refitem spider::Exception if an edge already exists at this position.
              */
-            virtual void connectOutputEdge(Edge *edge, size_t ix);
+            virtual void connectOutputEdge(Edge *edge, size_t pos);
 
             /**
-             * @brief Disconnect input edge on port ix. If no edge is connected, nothing happens
+             * @brief Disconnect input edge on port ix. If no edge is connected, nothing happens.
+             * @remark Call @refitem Edge::setSink to reset the edge if found.
              * @param ix  Index of the input edge to disconnect.
-             * @throws @refitem Spider::Exception if index out of bound.
              */
             virtual Edge *disconnectInputEdge(size_t ix);
 
             /**
              * @brief Disconnect output edge on port ix. If no edge is connected, nothing happens
+             * @remark Call @refitem Edge::setSource to reset the edge if found.
              * @param ix  Index of the output edge to disconnect.
-             * @throws @refitem Spider::Exception if index out of bound.
              */
             virtual Edge *disconnectOutputEdge(size_t ix);
-
-            /**
-             * @brief Generic method that accept a visitor for class specific treatments.
-             * @remark This implement a double-dispatch visitor pattern.
-             * @param visitor  Visitor to accept.
-             */
-            virtual void visit(Visitor *visitor) = 0;
-
-            /**
-             * @brief Do an empty cloning of the vertex, i.e just reserve sizes and set reference.
-             * @param name  Name of the clone.
-             * @return pointer to the new clone.
-             */
-            virtual Vertex *emptyClone(std::string name) = 0;
 
             /**
              * @brief Add an input parameter to the Vertex.
@@ -164,6 +159,12 @@ namespace spider {
             const std::string &name() const;
 
             /**
+             * @brief Get the subtype of the vertex.
+             * @return @refitem spider::pisdf::VertexType corresponding to the subtype
+             */
+            inline VertexType subtype() const { return subtype_; };
+
+            /**
              * @brief Get the ix of the vertex in the containing graph.
              * @return ix of the vertex (UINT32_MAX if no ix).
              */
@@ -173,7 +174,7 @@ namespace spider {
              * @brief Test if the vertex is a graph.
              * @return true if vertex is a graph, false else.
              */
-            inline virtual bool hierarchical() const { return false; };
+            inline bool hierarchical() const { return subtype_ == VertexType::GRAPH; };
 
             /**
              * @brief Get the repetition vector value of the vertex.
@@ -255,12 +256,6 @@ namespace spider {
             inline size_t outputParamCount() const { return outputParamVector_.size(); };
 
             /**
-             * @brief Get the subtype of the vertex.
-             * @return @refitem Spider::PiSDF::VertexType corresponding to the subtype
-             */
-            virtual inline VertexType subtype() const { return VertexType::NORMAL; };
-
-            /**
              * @brief Return the reference vertex attached to current copy.
              * @remark If vertex is not a copy, this return the vertex itself.
              * @warning There is a potential risk here. If the reference is freed before the copy,
@@ -314,7 +309,7 @@ namespace spider {
              * @brief Set the repetition vector value of the vertex;
              * @param value Repetition value to set.
              */
-            inline virtual void setRepetitionValue(uint32_t value) { repetitionValue_ = value; };
+            virtual void setRepetitionValue(uint32_t value);
 
             /**
              * @brief Set the graph of the vertex.
@@ -322,7 +317,7 @@ namespace spider {
              * @remark If graph is nullptr, nothing happen.
              * @param graph  Graph to set.
              */
-            void setGraph(Graph *graph);
+            virtual void setGraph(Graph *graph);
 
             /**
              * @brief Set the schedule job ix of the vertex.
@@ -359,12 +354,18 @@ namespace spider {
             size_t instanceValue_ = 0;         /* = Value of the instance relative to reference Vertex = */
             uint32_t repetitionValue_ = 1;     /* = Repetition value of the Vertex, default is 1 but it can be set to 0. = */
             mutable uint32_t copyCount_ = 0;   /* = Number of copy of the Vertex = */
+            VertexType subtype_ = VertexType::NORMAL;
 
             /**
              * @brief Initialize an empty clone to reserve vector sizes.
              * @param clone  Pointer to the clone.
              */
             void initializeEmptyClone(Vertex *clone);
+
+            /**
+             * @brief Verify that VertexType and vertex properties are coherent.
+             */
+            void checkTypeConsistency() const;
         };
     }
 }

@@ -144,9 +144,10 @@ void spider::pisdf::PiSDFDOTExporterVisitor::visit(Graph *graph) {
     }
 }
 
-void spider::pisdf::PiSDFDOTExporterVisitor::visit(DelayVertex *) { }
-
 void spider::pisdf::PiSDFDOTExporterVisitor::visit(ExecVertex *vertex) {
+    if (vertex->subtype() == VertexType::DELAY) {
+        return;
+    }
     /* == Vertex printer == */
     vertexPrinter(vertex);
 }

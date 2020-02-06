@@ -44,7 +44,6 @@
 #include <api/archi-api.h>
 #include <archi/Platform.h>
 #include <graphs/pisdf/Vertex.h>
-#include <graphs/pisdf/SpecialVertex.h>
 #include <graphs/pisdf/Graph.h>
 #include <scheduling/schedule/Schedule.h>
 #include <scheduling/allocator/FifoAllocator.h>

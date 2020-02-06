@@ -67,17 +67,6 @@ struct spider::pisdf::Graph::RemoveSpecialVertexVisitor final : public DefaultVi
         graph_->subgraphVector_.pop_back();
     }
 
-    inline void visit(ConfigVertex *vertex) override {
-        /* == configVertexVector_ is just a "viewer" for config vertices so we need to find manually == */
-        for (auto &cfg : graph_->configVertexVector_) {
-            if (cfg == vertex) {
-                cfg = graph_->configVertexVector_.back();
-                graph_->configVertexVector_.pop_back();
-                break;
-            }
-        }
-    }
-
 private:
     Graph *graph_ = nullptr;
 };
@@ -85,11 +74,6 @@ private:
 struct spider::pisdf::Graph::AddSpecialVertexVisitor final : public DefaultVisitor {
 
     explicit AddSpecialVertexVisitor(Graph *graph) : graph_{ graph } { }
-
-    inline void visit(ConfigVertex *vertex) override {
-        /* == Add config vertex to the "viewer" vector == */
-        graph_->configVertexVector_.emplace_back(vertex);
-    }
 
     inline void visit(Graph *subgraph) override {
         /* == Add the subgraph in the "viewer" vector == */
@@ -110,10 +94,10 @@ spider::pisdf::Graph::Graph(std::string name,
                             size_t edgeINCount,
                             size_t edgeOUTCount,
                             size_t cfgVertexCount) :
-        Vertex(std::move(name), edgeINCount, edgeOUTCount),
+        Vertex(VertexType::GRAPH, std::move(name), edgeINCount, edgeOUTCount),
         vertexVector_{ sbc::vector < unique_ptr < Vertex > , StackID::PISDF > { }},
         edgeVector_{ sbc::vector < unique_ptr < Edge > , StackID::PISDF > { }},
-        configVertexVector_{ sbc::vector < ConfigVertex * , StackID::PISDF > { }},
+        configVertexVector_{ sbc::vector < Vertex * , StackID::PISDF > { }},
         subgraphVector_{ sbc::vector < Graph * , StackID::PISDF > { }},
         paramVector_{ sbc::vector < std::shared_ptr<Param>, StackID::PISDF > { }},
         inputInterfaceVector_{ sbc::vector < unique_ptr < InputInterface > , StackID::PISDF > { }},
@@ -180,8 +164,8 @@ void spider::pisdf::Graph::addOutputInterface(OutputInterface *interface) {
 
 void spider::pisdf::Graph::addVertex(Vertex *vertex) {
     if (vertex->subtype() == VertexType::CONFIG) {
-        AddSpecialVertexVisitor visitor{ this };
-        vertex->visit(&visitor);
+        /* == Add config vertex to the "viewer" vector == */
+        graph_->configVertexVector_.emplace_back(vertex);
     } else if (vertex->hierarchical()) {
         AddSpecialVertexVisitor visitor{ this };
         vertex->visit(&visitor);
@@ -203,8 +187,14 @@ void spider::pisdf::Graph::removeVertex(Vertex *vertex) {
         edge->setSource(nullptr, SIZE_MAX, Expression());
     }
     if (vertex->subtype() == VertexType::CONFIG) {
-        RemoveSpecialVertexVisitor visitor{ this };
-        vertex->visit(&visitor);
+        /* == configVertexVector_ is just a "viewer" for config vertices so we need to find manually == */
+        for (auto &cfg : graph_->configVertexVector_) {
+            if (cfg == vertex) {
+                cfg = graph_->configVertexVector_.back();
+                graph_->configVertexVector_.pop_back();
+                break;
+            }
+        }
     } else if (vertex->hierarchical()) {
         RemoveSpecialVertexVisitor visitor{ this };
         vertex->visit(&visitor);
@@ -283,9 +273,6 @@ bool spider::pisdf::Graph::setRunGraphReference(const spider::pisdf::Graph *runG
 void spider::pisdf::Graph::overrideDynamicProperty(bool value) {
     dynamic_ = value;
 }
-
-
-spider::pisdf::Vertex *spider::pisdf::Graph::emptyClone(std::string) { return nullptr; }
 
 /* === Private method(s) === */
 

@@ -53,11 +53,17 @@ namespace spider {
         class Interface : public Vertex {
         public:
 
-            explicit Interface(std::string name = "unnamed-interface",
+            explicit Interface(VertexType type,
+                               std::string name = "unnamed-interface",
                                uint32_t edgeINCount = 0,
-                               uint32_t edgeOUTCount = 0) : Vertex(std::move(name),
+                               uint32_t edgeOUTCount = 0) : Vertex(type,
+                                                                   std::move(name),
                                                                    edgeINCount,
-                                                                   edgeOUTCount) { }
+                                                                   edgeOUTCount) {
+                if (type != VertexType::INPUT && type != VertexType::OUTPUT) {
+                    throwSpiderException("INTERFACE [%s] has invalid type.", name_.c_str());
+                }
+            }
 
             /* === Method(s) === */
 

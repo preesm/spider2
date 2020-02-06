@@ -41,11 +41,9 @@
 /* === Include(s) === */
 
 #include <graphs-tools/numerical/brv.h>
-#include <graphs-tools/numerical/UpdateBRVVisitor.h>
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/Edge.h>
 #include <graphs/pisdf/Param.h>
-#include <api/config-api.h>
 
 /* === Constant === */
 static constexpr size_t DEFAULT_MAX_CC_COUNT = 3;
@@ -134,6 +132,39 @@ static void computeRepetitionValues(const spider::brv::ConnectedComponent &compo
         const auto &vertex = component.vertexVector_[it];
         rationalVector[vertex->ix()] *= lcmFactor;
         vertex->setRepetitionValue(static_cast<uint32_t>(rationalVector[vertex->ix()].toUInt64()));
+    }
+}
+
+
+static void updateBRVFromPiSDFRules(spider::pisdf::Vertex *vertex,
+                                    uint32_t &scaleFactor,
+                                    const spider::vector<std::shared_ptr<spider::pisdf::Param>> &params) {
+    switch (vertex->subtype()) {
+        case spider::pisdf::VertexType::CONFIG:
+        case spider::pisdf::VertexType::INPUT:
+            for (const auto &edge : vertex->outputEdgeVector()) {
+                const auto &sourceRate = edge->sourceRateExpression().evaluate(params);
+                const auto &sinkRate = edge->sinkRateExpression().evaluate(params);
+                const auto &totalCons = sinkRate * edge->sink()->repetitionValue() * scaleFactor;
+                if (totalCons && totalCons < sourceRate) {
+                    /* == Return ceil( prod / vertexCons) == */
+                    scaleFactor *= static_cast<uint32_t>(spider::math::ceilDiv(sourceRate, totalCons));
+                }
+            }
+            break;
+        case spider::pisdf::VertexType::OUTPUT: {
+            const auto &edge = vertex->inputEdge(0);
+            const auto &sourceRate = edge->sourceRateExpression().evaluate(params);
+            const auto &sinkRate = edge->sinkRateExpression().evaluate(params);
+            const auto &totalProd = sourceRate * edge->source()->repetitionValue() * scaleFactor;
+            if (totalProd && totalProd < sinkRate) {
+                /* == Return ceil(interfaceCons / vertexProd) == */
+                scaleFactor *= static_cast<uint32_t>(spider::math::ceilDiv(sinkRate, totalProd));
+            }
+        }
+            break;
+        default:
+            break;
     }
 }
 
@@ -274,14 +305,13 @@ void spider::brv::updateBRV(const ConnectedComponent &component,
     const auto &startIter = component.offsetVertexVector_;
     const auto &endIter = component.offsetVertexVector_ + component.vertexCount_;
     /* == Compute the scale factor == */
-    UpdateBRVVisitor brvVisitor{ scaleRVFactor, params };
     for (auto it = startIter; it < endIter; ++it) {
         const auto &v = component.vertexVector_[it];
         for (const auto &edge : v->inputEdgeVector()) {
-            edge->source()->visit(&brvVisitor);
+            updateBRVFromPiSDFRules(edge->source(), scaleRVFactor, params);
         }
         for (const auto &edge : v->outputEdgeVector()) {
-            edge->sink()->visit(&brvVisitor);
+            updateBRVFromPiSDFRules(edge->sink(), scaleRVFactor, params);
         }
     }
 
@@ -332,8 +362,8 @@ void spider::brv::print(const pisdf::Graph *graph) {
         log::verbose<log::TRANSFO>("Repetition values for graph [%s]\n", graph->name().c_str());
         for (const auto &vertex : graph->vertices()) {
             log::verbose<log::TRANSFO>("    >> Vertex: %-30s --> [%" PRIu32"]\n",
-                                             vertex->name().c_str(),
-                                             vertex->repetitionValue());
+                                       vertex->name().c_str(),
+                                       vertex->repetitionValue());
         }
         log::verbose<log::TRANSFO>("%s\n", separation.c_str());
     }

@@ -48,8 +48,6 @@
 #include <graphs/pisdf/interfaces/OutputInterface.h>
 #include <graphs/pisdf/InHeritedParam.h>
 #include <graphs/pisdf/DynamicParam.h>
-#include <graphs/pisdf/SpecialVertex.h>
-#include <cmath>
 #include <utility>
 
 namespace spider {
@@ -67,8 +65,6 @@ namespace spider {
             /* === Method(s) === */
 
             void visit(Graph *graph) override;
-
-            void visit(DelayVertex *) override;
 
             void visit(ExecVertex *vertex) override;
 

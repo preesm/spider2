@@ -116,7 +116,7 @@ namespace spider {
              * @brief Get the virtual vertex associated to the Delay.
              * @return @refitem ExecVertex.
              */
-            inline const DelayVertex *vertex() const {
+            inline const Vertex *vertex() const {
                 return vertex_;
             }
 
@@ -171,7 +171,7 @@ namespace spider {
             size_t setterPortIx_ = 0;             /* = Ouput port ix of the getter connected to the Delay = */
             Vertex *getter_ = nullptr;            /* = Getter of the Delay = */
             size_t getterPortIx_ = 0;             /* = Input port ix of the getter connected to the Delay = */
-            DelayVertex *vertex_ = nullptr;       /* = Virtual vertex created for consistency evaluation = */
+            Vertex *vertex_ = nullptr;            /* = Virtual vertex created for consistency evaluation = */
             bool persistent_ = true;              /* = Persistence property of the Delay (true if persistent, false else) = */
             uint64_t memoryAddress_ = UINT64_MAX; /* = Memory address associated to this Delay (if persistent) = */
         };
