@@ -37,62 +37,19 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_OUTPUTINTERFACE_H
-#define SPIDER2_OUTPUTINTERFACE_H
 
 /* === Include(s) === */
 
-#include <graphs/pisdf/interfaces/Interface.h>
+#include <graphs/pisdf/interfaces/InputInterface.h>
+#include <graphs/pisdf/interfaces/OutputInterface.h>
+#include <graphs/pisdf/Graph.h>
 
-namespace spider {
-    namespace pisdf {
-        /* === Class definition === */
+/* === Function(s) definition === */
 
-        class OutputInterface final : public Interface {
-        public:
-
-            explicit OutputInterface(std::string name = "unnamed-interface") :
-                    Interface(std::move(name), 1, 0) { };
-
-            /* === Method(s) === */
-
-            inline void connectOutputEdge(Edge *, size_t) override {
-                throwSpiderException("Can not connect output edge to output interface.");
-
-            }
-
-            inline void visit(Visitor *visitor) override {
-                visitor->visit(this);
-            }
-
-            inline Vertex *emptyClone(std::string name) override {
-                auto *clone = make<OutputInterface, StackID::PISDF>(std::move(name));
-                Vertex::initializeEmptyClone(clone);
-                return clone;
-            }
-
-            /* === Getter(s) === */
-
-            inline Edge *inputEdge() const override {
-                return inputEdgeVector_[0];
-            }
-
-            Edge *outputEdge() const override;
-
-            inline Vertex *opposite() const override {
-                return inputEdgeVector_[0]->source();
-            }
-
-            /**
-             * @brief Return the kind of the interface (@refitem InterfaceType)
-             * @return @refitem VertexType::OUTPUT
-             */
-            inline VertexType subtype() const override {
-                return VertexType::OUTPUT;
-            }
-        };
-    }
+spider::pisdf::Edge *spider::pisdf::InputInterface::inputEdge() const {
+    return graph_->inputEdge(ix_);
 }
 
-
-#endif //SPIDER2_OUTPUTINTERFACE_H
+spider::pisdf::Edge *spider::pisdf::OutputInterface::outputEdge() const {
+    return graph_->outputEdge(ix_);
+}

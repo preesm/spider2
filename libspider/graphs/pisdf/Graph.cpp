@@ -48,7 +48,6 @@
 #include <graphs/pisdf/interfaces/OutputInterface.h>
 #include <graphs/pisdf/Param.h>
 #include <graphs/pisdf/Delay.h>
-#include <graphs-tools/helper/visitors/PiSDFVertexCopyVisitor.h>
 
 /* === Private structure(s) === */
 
@@ -110,9 +109,16 @@ spider::pisdf::Graph::Graph(std::string name,
                             size_t paramCount,
                             size_t edgeINCount,
                             size_t edgeOUTCount,
-                            size_t cfgVertexCount) : Vertex(std::move(name),
-                                                            edgeINCount,
-                                                            edgeOUTCount) {
+                            size_t cfgVertexCount) :
+        Vertex(std::move(name), edgeINCount, edgeOUTCount),
+        vertexVector_{ sbc::vector < unique_ptr < Vertex > , StackID::PISDF > { }},
+        edgeVector_{ sbc::vector < unique_ptr < Edge > , StackID::PISDF > { }},
+        configVertexVector_{ sbc::vector < ConfigVertex * , StackID::PISDF > { }},
+        subgraphVector_{ sbc::vector < Graph * , StackID::PISDF > { }},
+        paramVector_{ sbc::vector < std::shared_ptr<Param>, StackID::PISDF > { }},
+        inputInterfaceVector_{ sbc::vector < unique_ptr < InputInterface > , StackID::PISDF > { }},
+        outputInterfaceVector_{ sbc::vector < unique_ptr < OutputInterface > , StackID::PISDF > { }} {
+
     /* == Reserve the memory == */
     vertexVector_.reserve(vertexCount);
     edgeVector_.reserve(edgeCount);
@@ -134,56 +140,7 @@ spider::pisdf::Graph::Graph(std::string name,
     }
 }
 
-spider::pisdf::Graph::Graph(const Graph &other) : Vertex(other) {
-    dynamic_ = other.dynamic_;
-    /* == Need to make a deep copy of the vertices == */
-    vertexVector_.reserve(other.vertexCount());
-    VertexCopyVisitor visitor;
-    for (auto &vertex : other.vertexVector_) {
-        vertex->visit(&visitor);
-        auto *result = visitor.result_;
-        this->addVertex(result);
-    }
-    configVertexVector_ = other.configVertexVector_;
-    subgraphVector_ = other.subgraphVector_;
-    edgeVector_ = other.edgeVector_;
-    paramVector_ = other.paramVector_;
-}
-
-spider::pisdf::Graph::Graph(spider::pisdf::Graph &&other) noexcept : Vertex(std::move(other)) {
-    std::swap(dynamic_, other.dynamic_);
-    std::swap(subIx_, other.subIx_);
-    vertexVector_.swap(other.vertexVector_);
-    configVertexVector_.swap(other.configVertexVector_);
-    subgraphVector_.swap(other.subgraphVector_);
-    edgeVector_.swap(other.edgeVector_);
-    paramVector_.swap(other.paramVector_);
-    inputInterfaceVector_.swap(other.inputInterfaceVector_);
-    outputInterfaceVector_.swap(other.outputInterfaceVector_);
-}
-
-spider::pisdf::Graph::~Graph() noexcept {
-    /* == Destroy / deallocate edges == */
-    /* ==
-     * It is necessary to start with the edges because if an Edge has a delay, it will remove the associated vertices.
-     * == */
-    for (auto &edge : edgeVector_) {
-        destroy(edge);
-    }
-
-    /* == Destroy / deallocate interfaces == */
-    for (auto &interface : inputInterfaceVector_) {
-        destroy(interface);
-    }
-    for (auto &interface : outputInterfaceVector_) {
-        destroy(interface);
-    }
-}
-
 void spider::pisdf::Graph::clear() {
-    for (auto &edge : edgeVector_) {
-        destroy(edge);
-    }
     edgeVector_.clear();
     vertexVector_.clear();
     paramVector_.clear();
@@ -231,7 +188,7 @@ void spider::pisdf::Graph::addVertex(Vertex *vertex) {
     }
     vertex->setIx(vertexVector_.size());
     vertex->setGraph(this);
-    vertexVector_.emplace_back(spider::make_unique(vertex));
+    vertexVector_.emplace_back(vertex);
 }
 
 void spider::pisdf::Graph::removeVertex(Vertex *vertex) {
@@ -261,10 +218,9 @@ void spider::pisdf::Graph::addEdge(Edge *edge) {
 }
 
 void spider::pisdf::Graph::removeEdge(Edge *edge) {
-    removeNoDestroy(edgeVector_, edge);
     edge->setSource(nullptr, SIZE_MAX, Expression());
     edge->setSink(nullptr, SIZE_MAX, Expression());
-    destroy(edge);
+    removeAndDestroy(edgeVector_, edge);
 }
 
 void spider::pisdf::Graph::addParam(std::shared_ptr<Param> param) {
@@ -297,7 +253,7 @@ void spider::pisdf::Graph::moveVertex(Vertex *elt, Graph *graph) {
     graph->addVertex(elt);
 }
 
-void spider::pisdf::Graph::moveEdge(spider::pisdf::Edge *elt, spider::pisdf::Graph *graph) {
+void spider::pisdf::Graph::moveEdge(Edge *elt, Graph *graph) {
     if (!graph || (graph == this) || !elt) {
         return;
     }

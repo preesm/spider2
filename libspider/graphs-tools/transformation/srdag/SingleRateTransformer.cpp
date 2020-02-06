@@ -105,8 +105,8 @@ std::pair<spider::srdag::JobStack, spider::srdag::JobStack> spider::srdag::Singl
     auto futureJobs = makeFutureJobs();
 
     /* == 2. Perform single rate linkage for every edge of the reference graph == */
-    for (auto *edge : job_.reference_->edges()) {
-        singleRateLinkage(edge);
+    for (auto &edge : job_.reference_->edges()) {
+        singleRateLinkage(edge.get());
     }
 
     /* == 3. Remove the Graph instance inside the SR-DAG == */
@@ -149,13 +149,13 @@ void spider::srdag::SingleRateTransformer::replaceInterfaces() {
         };
         for (const auto &interface : job_.reference_->inputInterfaceVector()) {
             auto *edge = instance->inputEdge(interface->ix());
-            if (isInterfaceTransparent(job_, interface)) {
-                ref2Clone_[uniformIx(interface, job_.reference_)] = edge->source()->ix();
+            if (isInterfaceTransparent(job_, interface.get())) {
+                ref2Clone_[uniformIx(interface.get(), job_.reference_)] = edge->source()->ix();
             } else {
                 auto &&name = instance->name() + "_" + interface->name();
                 auto *vertex = api::createRepeat(srdag_, std::move(name));
                 edge->setSink(vertex, 0, Expression(edge->sinkRateExpression()));
-                ref2Clone_[uniformIx(interface, job_.reference_)] = vertex->ix();
+                ref2Clone_[uniformIx(interface.get(), job_.reference_)] = vertex->ix();
             }
         }
     }
@@ -172,13 +172,13 @@ void spider::srdag::SingleRateTransformer::replaceInterfaces() {
         };
         for (const auto &interface : job_.reference_->outputInterfaceVector()) {
             auto *edge = instance->outputEdge(interface->ix());
-            if (isInterfaceTransparent(job_, interface)) {
-                ref2Clone_[uniformIx(interface, job_.reference_)] = edge->sink()->ix();
+            if (isInterfaceTransparent(job_, interface.get())) {
+                ref2Clone_[uniformIx(interface.get(), job_.reference_)] = edge->sink()->ix();
             } else {
                 auto &&name = instance->name() + "_" + interface->name();
                 auto *vertex = api::createTail(srdag_, std::move(name), 1);
                 edge->setSource(vertex, 0, Expression(edge->sourceRateExpression()));
-                ref2Clone_[uniformIx(interface, job_.reference_)] = vertex->ix();
+                ref2Clone_[uniformIx(interface.get(), job_.reference_)] = vertex->ix();
             }
         }
     }

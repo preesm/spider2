@@ -43,7 +43,6 @@
 /* === Include(s) === */
 
 #include <graphs/pisdf/interfaces/Interface.h>
-#include <graphs/pisdf/Graph.h>
 
 namespace spider {
     namespace pisdf {
@@ -73,9 +72,7 @@ namespace spider {
 
             /* === Getter(s) === */
 
-            inline Edge *inputEdge() const override {
-                return graph_->inputEdge(ix_);
-            }
+            Edge *inputEdge() const override;
 
             inline Edge *outputEdge() const override {
                 return outputEdgeVector_[0];
@@ -95,6 +92,5 @@ namespace spider {
         };
     }
 }
-
 
 #endif //SPIDER2_INPUTINTERFACE_H

@@ -130,7 +130,7 @@ void spider::pisdf::PiSDFDOTExporterVisitor::visit(Graph *graph) {
     /* == Write edges == */
     file_ << '\n' << offset_ << R"(// Edges)" << '\n';
     for (const auto &edge : graph->edges()) {
-        edgePrinter(edge);
+        edgePrinter(edge.get());
     }
 
     /* == Footer == */

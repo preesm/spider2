@@ -95,7 +95,7 @@ bool spider::srdag::splitDynamicGraph(pisdf::Graph *subgraph) {
 
     /* == Move the edges == */
     while (!subgraph->edges().empty()) {
-        subgraph->moveEdge(subgraph->edges()[0], runGraph);
+        subgraph->moveEdge(subgraph->edges()[0].get(), runGraph);
     }
 
     /* == Move the config vertex == */
@@ -129,7 +129,7 @@ bool spider::srdag::splitDynamicGraph(pisdf::Graph *subgraph) {
             runGraph->moveEdge(edge, initGraph);
 
             /* == Connect the edge of the original subgraph == */
-            auto *inputEdge = make<pisdf::Edge, StackID::PISDF>(input,
+            auto *inputEdge = make<pisdf::Edge, StackID::PISDF>(input.get(),
                                                                 0,
                                                                 Expression(edge->sourceRateExpression()),
                                                                 initGraph,
@@ -144,7 +144,7 @@ bool spider::srdag::splitDynamicGraph(pisdf::Graph *subgraph) {
             edge->source()->setName(input->name());
 
             /* == Connect the edge of the original subgraph == */
-            auto *inputEdge = make<pisdf::Edge, StackID::PISDF>(input,
+            auto *inputEdge = make<pisdf::Edge, StackID::PISDF>(input.get(),
                                                                 0,
                                                                 Expression(edge->sourceRateExpression()),
                                                                 runGraph,
@@ -170,7 +170,7 @@ bool spider::srdag::splitDynamicGraph(pisdf::Graph *subgraph) {
             auto *outputEdge = make<pisdf::Edge, StackID::PISDF>(initGraph,
                                                                  outputInitIx,
                                                                  Expression(edge->sinkRateExpression()),
-                                                                 output,
+                                                                 output.get(),
                                                                  0,
                                                                  Expression(edge->sinkRateExpression()));
             subgraph->addEdge(outputEdge);
@@ -185,7 +185,7 @@ bool spider::srdag::splitDynamicGraph(pisdf::Graph *subgraph) {
             auto *outputEdge = make<pisdf::Edge, StackID::PISDF>(runGraph,
                                                                  outputRunIx,
                                                                  Expression(edge->sinkRateExpression()),
-                                                                 output,
+                                                                 output.get(),
                                                                  0,
                                                                  Expression(edge->sinkRateExpression()));
             subgraph->addEdge(outputEdge);

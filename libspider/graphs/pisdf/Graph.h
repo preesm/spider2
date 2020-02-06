@@ -47,14 +47,14 @@
 #include <memory/unique_ptr.h>
 #include <common/Exception.h>
 #include <graphs/pisdf/ExecVertex.h>
+#include <graphs/pisdf/interfaces/InputInterface.h>
+#include <graphs/pisdf/interfaces/OutputInterface.h>
 #include <graphs/pisdf/Edge.h>
 #include <graphs/pisdf/Param.h>
 
 namespace spider {
 
     namespace pisdf {
-
-        /* === Forward declaration(s) === */
 
         /* === Class definition === */
 
@@ -69,11 +69,17 @@ namespace spider {
                            size_t edgeOUTCount = 0,
                            size_t cfgVertexCount = 0);
 
-            Graph(const Graph &other);
+            Graph &operator=(Graph &&) = default;
 
-            Graph(Graph &&other) noexcept;
+            Graph(Graph &&) noexcept = default;
 
-            ~Graph() noexcept override;
+            ~Graph() noexcept override = default;
+
+            /* === Disabling copy construction / assignment === */
+
+            Graph(const Graph &) = delete;
+
+            Graph &operator=(const Graph &) = delete;
 
             /* === Method(s) === */
 
@@ -247,7 +253,7 @@ namespace spider {
             * @brief A const reference on the set of vertices. Useful for iterating on the vertices.
             * @return const reference to exec vertex vector
             */
-            inline const spider::vector<spider::unique_ptr<Vertex>> &vertices() const {
+            inline const vector<spider::unique_ptr<Vertex>> &vertices() const {
                 return vertexVector_;
             }
 
@@ -255,7 +261,7 @@ namespace spider {
             * @brief A const reference on the set of subgraphs. Useful for iterating on the subgraphs.
             * @return const reference to subgraph vector
             */
-            inline const spider::vector<Graph *> &subgraphs() const {
+            inline const vector<Graph *> &subgraphs() const {
                 return subgraphVector_;
             }
 
@@ -263,7 +269,7 @@ namespace spider {
             * @brief A const reference on the set of vertices. Useful for iterating on the vertices.
             * @return const reference to vertex vector
             */
-            inline const spider::vector<ConfigVertex *> &configVertices() const {
+            inline const vector<ConfigVertex *> &configVertices() const {
                 return configVertexVector_;
             }
 
@@ -271,7 +277,7 @@ namespace spider {
             * @brief A const reference on the set of output interfaces. Useful for iterating on the input interfaces.
             * @return const reference to input interface vector
             */
-            inline const spider::vector<InputInterface *> &inputInterfaceVector() const {
+            inline const vector<unique_ptr<InputInterface>> &inputInterfaceVector() const {
                 return inputInterfaceVector_;
             }
 
@@ -279,7 +285,7 @@ namespace spider {
             * @brief A const reference on the set of output interfaces. Useful for iterating on the output interfaces.
             * @return const reference to output interface vector
             */
-            inline const spider::vector<OutputInterface *> &outputInterfaceVector() const {
+            inline const vector<unique_ptr<OutputInterface>> &outputInterfaceVector() const {
                 return outputInterfaceVector_;
             }
 
@@ -287,7 +293,7 @@ namespace spider {
             * @brief A const reference on the set of edges. Useful for iterating on the edges.
             * @return const reference to edge vector
             */
-            inline const spider::vector<Edge *> &edges() const {
+            inline const vector<unique_ptr<Edge>> &edges() const {
                 return edgeVector_;
             }
 
@@ -295,7 +301,7 @@ namespace spider {
             * @brief A const reference on the set of params. Useful for iterating on the params.
             * @return const reference to param vector
             */
-            inline const spider::vector<std::shared_ptr<Param>> &params() const {
+            inline const vector<std::shared_ptr<Param>> &params() const {
                 return paramVector_;
             }
 
@@ -328,7 +334,7 @@ namespace spider {
              * @return @refitem InputInterface pointer
              */
             inline InputInterface *inputInterface(size_t ix) const {
-                return inputInterfaceVector_[ix];
+                return inputInterfaceVector_[ix].get();
             }
 
             /**
@@ -340,7 +346,7 @@ namespace spider {
              * @return @refitem OutputInterface pointer
              */
             inline OutputInterface *outputInterface(size_t ix) const {
-                return outputInterfaceVector_[ix];
+                return outputInterfaceVector_[ix].get();
             }
 
             /**
@@ -372,24 +378,13 @@ namespace spider {
             bool setRunGraphReference(const Graph *runGraph);
 
         private:
-
-            /* === Contained elements of the graph === */
-
-            /* = Vector of all the Vertex (if any). This vector contains subgraph and ConfigVertex as well = */
-            sbc::vector<unique_ptr<Vertex>, StackID::PISDF> vertexVector_;
-            /* = Vector of ConfigVertex (if any). This is just a "viewer" vector. = */
-            sbc::vector<ConfigVertex *, StackID::PISDF> configVertexVector_;
-            /* = Vector of subgraph (if any). This is just a "viewer" vector. = */
-            sbc::vector<Graph *, StackID::PISDF> subgraphVector_;
-            /* = Vector of Edge contained in the Graph = */
-            sbc::vector<Edge *, StackID::PISDF> edgeVector_;
-            /* = Vector of Param = */
-            sbc::vector<std::shared_ptr<Param>, StackID::PISDF> paramVector_;
-            /* = Vector of InputInterface (size is equal to inputEdgeArray_.size()) = */
-            sbc::vector<InputInterface *, StackID::PISDF> inputInterfaceVector_;
-            /* = Vector of OutputInterface (size is equal to outputEdgeArray_.size()) = */
-            sbc::vector<OutputInterface *, StackID::PISDF> outputInterfaceVector_;
-
+            vector<unique_ptr<Vertex>> vertexVector_;                     /* = Vector of all the Vertices of the graph = */
+            vector<unique_ptr<Edge>> edgeVector_;                         /* = Vector of Edge contained in the Graph = */
+            vector<ConfigVertex *> configVertexVector_;                   /* = Vector of Vertices with VertexType::CONFIG. This is just a "viewer" vector. = */
+            vector<Graph *> subgraphVector_;                              /* = Vector of Vertices with VertexType::GRAPH.  This is just a "viewer" vector. = */
+            vector<std::shared_ptr<Param>> paramVector_;                  /* = Vector of Param = */
+            vector<unique_ptr<InputInterface>> inputInterfaceVector_;     /* = Vector of InputInterface = */
+            vector<unique_ptr<OutputInterface>> outputInterfaceVector_;   /* = Vector of OutputInterface = */
             const Graph *runGraphReference_ = nullptr; /* =
                                                        * Reference pointer to the run counter part of this graph.
                                                        * Only valid for init graphs.
@@ -401,13 +396,13 @@ namespace spider {
             /* === Private method(s) === */
 
             template<class T>
-            void removeNoDestroy(spider::vector<unique_ptr<T>> &eltVector, T *elt);
+            void removeNoDestroy(vector<unique_ptr<T>> &eltVector, T *elt);
 
             template<class T>
-            void removeAndDestroy(spider::vector<unique_ptr<T>> &eltVector, T *elt);
+            void removeAndDestroy(vector<unique_ptr<T>> &eltVector, T *elt);
 
             template<class T>
-            void removeNoDestroy(spider::vector<T *> &eltVector, T *elt);
+            void removeNoDestroy(vector<T *> &eltVector, T *elt);
 
             inline void addInputParameter(std::shared_ptr<Param>) override { };
 
