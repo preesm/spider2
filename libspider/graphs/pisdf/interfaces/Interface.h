@@ -46,6 +46,7 @@
 #include <graphs/pisdf/Edge.h>
 
 namespace spider {
+
     namespace pisdf {
 
         /* === Class definition === */
@@ -54,12 +55,10 @@ namespace spider {
         public:
 
             explicit Interface(VertexType type,
-                               std::string name = "unnamed-interface",
-                               uint32_t edgeINCount = 0,
-                               uint32_t edgeOUTCount = 0) : Vertex(type,
-                                                                   std::move(name),
-                                                                   edgeINCount,
-                                                                   edgeOUTCount) {
+                               std::string name = "unnamed-interface") : Vertex(type,
+                                                                                std::move(name),
+                                                                                type == VertexType::OUTPUT,
+                                                                                type == VertexType::INPUT) {
                 if (type != VertexType::INPUT && type != VertexType::OUTPUT) {
                     throwSpiderException("INTERFACE [%s] has invalid type.", name_.c_str());
                 }
@@ -67,11 +66,17 @@ namespace spider {
 
             /* === Method(s) === */
 
+            void connectInputEdge(Edge *edge, size_t pos) override;
+
+            void connectOutputEdge(Edge *edge, size_t pos) override;
+
+            inline void visit(Visitor *visitor) override { visitor->visit(this); }
+
             /* === Getter(s) === */
 
-            virtual Edge *inputEdge() const = 0;
+            Edge *inputEdge() const;
 
-            virtual Edge *outputEdge() const = 0;
+            Edge *outputEdge() const;
 
             /**
              * @brief Return vertex connected to interface.
@@ -79,7 +84,7 @@ namespace spider {
              * @warning no check is performed on validity of connected edge.
              * @return opposite vertex
              */
-            virtual Vertex *opposite() const = 0;
+            Vertex *opposite() const;
         };
     }
 }

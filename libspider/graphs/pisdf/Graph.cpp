@@ -44,8 +44,6 @@
 #include <graphs-tools/helper/visitors/PiSDFDefaultVisitor.h>
 #include <graphs/pisdf/ExecVertex.h>
 #include <graphs/pisdf/interfaces/Interface.h>
-#include <graphs/pisdf/interfaces/InputInterface.h>
-#include <graphs/pisdf/interfaces/OutputInterface.h>
 #include <graphs/pisdf/Param.h>
 #include <graphs/pisdf/Delay.h>
 
@@ -100,8 +98,8 @@ spider::pisdf::Graph::Graph(std::string name,
         configVertexVector_{ sbc::vector < Vertex * , StackID::PISDF > { }},
         subgraphVector_{ sbc::vector < Graph * , StackID::PISDF > { }},
         paramVector_{ sbc::vector < std::shared_ptr<Param>, StackID::PISDF > { }},
-        inputInterfaceVector_{ sbc::vector < unique_ptr < InputInterface > , StackID::PISDF > { }},
-        outputInterfaceVector_{ sbc::vector < unique_ptr < OutputInterface > , StackID::PISDF > { }} {
+        inputInterfaceVector_{ sbc::vector < unique_ptr < Interface > , StackID::PISDF > { }},
+        outputInterfaceVector_{ sbc::vector < unique_ptr < Interface > , StackID::PISDF > { }} {
 
     /* == Reserve the memory == */
     vertexVector_.reserve(vertexCount);
@@ -113,13 +111,13 @@ spider::pisdf::Graph::Graph(std::string name,
 
     /* == Create the input interfaces == */
     for (size_t i = 0; i < edgeINCount; ++i) {
-        auto *interface = make<InputInterface, StackID::PISDF>("in_" + std::to_string(i));
+        auto *interface = make<Interface, StackID::PISDF>(VertexType::INPUT, "in_" + std::to_string(i));
         addInputInterface(interface);
     }
 
     /* == Create the output interfaces == */
     for (size_t i = 0; i < edgeOUTCount; ++i) {
-        auto *interface = make<OutputInterface, StackID::PISDF>("out_" + std::to_string(i));
+        auto *interface = make<Interface, StackID::PISDF>(VertexType::OUTPUT, "out_" + std::to_string(i));
         addOutputInterface(interface);
     }
 }
@@ -132,8 +130,8 @@ void spider::pisdf::Graph::clear() {
     configVertexVector_.clear();
 }
 
-void spider::pisdf::Graph::addInputInterface(InputInterface *interface) {
-    if (!interface) {
+void spider::pisdf::Graph::addInputInterface(Interface *interface) {
+    if (!interface || interface->subtype() != VertexType::INPUT) {
         return;
     }
     /* == Adds the interface to the graph == */
@@ -147,8 +145,8 @@ void spider::pisdf::Graph::addInputInterface(InputInterface *interface) {
     }
 }
 
-void spider::pisdf::Graph::addOutputInterface(OutputInterface *interface) {
-    if (!interface) {
+void spider::pisdf::Graph::addOutputInterface(Interface *interface) {
+    if (!interface || interface->subtype() != VertexType::OUTPUT) {
         return;
     }
     /* == Adds the interface to the graph == */

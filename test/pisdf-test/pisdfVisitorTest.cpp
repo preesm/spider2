@@ -45,8 +45,6 @@
 #include <memory/memory.h>
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/Delay.h>
-#include <graphs/pisdf/interfaces/InputInterface.h>
-#include <graphs/pisdf/interfaces/OutputInterface.h>
 #include <graphs/pisdf/Param.h>
 #include <graphs/pisdf/DynamicParam.h>
 #include <graphs/pisdf/InHeritedParam.h>
@@ -98,12 +96,12 @@ TEST_F(pisdfVisitorTest, defaultTest) {
     }
     {
         spider::pisdf::DefaultVisitor visitor;
-        spider::pisdf::InputInterface vertex;
+        spider::pisdf::Interface vertex(spider::pisdf::VertexType::INPUT);
         ASSERT_THROW(vertex.visit(&visitor), spider::Exception) << "DefaultVisitor should throw for input interface.";
     }
     {
         spider::pisdf::DefaultVisitor visitor;
-        spider::pisdf::OutputInterface vertex;
+        spider::pisdf::Interface vertex(spider::pisdf::VertexType::OUTPUT);
         ASSERT_THROW(vertex.visit(&visitor), spider::Exception) << "DefaultVisitor should throw for input interface.";
     }
     {
@@ -139,13 +137,13 @@ TEST_F(pisdfVisitorTest, defaultTest2) {
     }
     {
         TestDefaultVisitor visitor;
-        spider::pisdf::InputInterface vertex;
+        spider::pisdf::Interface vertex(spider::pisdf::VertexType::INPUT);
         ASSERT_NO_THROW(vertex.visit(&visitor)) << "TestDefaultVisitor should not throw for input interface.";
         ASSERT_EQ(visitor.hitInterface_, true) << "InputInterface::visit failed";
     }
     {
         TestDefaultVisitor visitor;
-        spider::pisdf::OutputInterface vertex;
+        spider::pisdf::Interface vertex(spider::pisdf::VertexType::OUTPUT);
         ASSERT_NO_THROW(vertex.visit(&visitor)) << "TestDefaultVisitor should not throw for input interface.";
         ASSERT_EQ(visitor.hitInterface_, true) << "OutputInterface::visit failed";
     }

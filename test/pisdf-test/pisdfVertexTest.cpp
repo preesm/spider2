@@ -46,8 +46,6 @@
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/Edge.h>
 #include <graphs/pisdf/Delay.h>
-#include <graphs/pisdf/interfaces/InputInterface.h>
-#include <graphs/pisdf/interfaces/OutputInterface.h>
 #include <graphs/pisdf/DynamicParam.h>
 #include <graphs/pisdf/ExecVertex.h>
 #include <api/spider.h>
@@ -76,17 +74,19 @@ protected:
 void testHierarchical() {
     ASSERT_EQ((spider::pisdf::ExecVertex().hierarchical()), false)
                                 << "Vertex::hierarchical() should be false except for graph.";
-    ASSERT_EQ((spider::pisdf::InputInterface().hierarchical()), false)
+    ASSERT_EQ((spider::pisdf::Interface(spider::pisdf::VertexType::INPUT).hierarchical()), false)
                                 << "Vertex::hierarchical() should be false except for graph.";
-    ASSERT_EQ((spider::pisdf::OutputInterface().hierarchical()), false)
+    ASSERT_EQ((spider::pisdf::Interface(spider::pisdf::VertexType::OUTPUT).hierarchical()), false)
                                 << "Vertex::hierarchical() should be false except for graph.";
     ASSERT_EQ((spider::pisdf::Graph().hierarchical()), true) << "Graph::hierarchical() should be true.";
 }
 
 void testExecutable() {
     ASSERT_EQ((spider::pisdf::ExecVertex().executable()), true) << "ExecVertex::executable() should be true.";
-    ASSERT_EQ((spider::pisdf::InputInterface().executable()), false) << "Vertex::executable() should be false.";
-    ASSERT_EQ((spider::pisdf::OutputInterface().executable()), false) << "Vertex::executable() should be false.";
+    ASSERT_EQ((spider::pisdf::Interface(spider::pisdf::VertexType::INPUT).executable()), false)
+                                << "Vertex::executable() should be false.";
+    ASSERT_EQ((spider::pisdf::Interface(spider::pisdf::VertexType::OUTPUT).executable()), false)
+                                << "Vertex::executable() should be false.";
     ASSERT_EQ((spider::pisdf::Graph().executable()), false) << "Vertex::executable() should be false.";
 }
 
@@ -120,9 +120,10 @@ void testType() {
     ASSERT_EQ((spider::pisdf::ExecVertex(spider::pisdf::VertexType::END).subtype()),
               spider::pisdf::VertexType::END)
                                 << "EndVertex::subtype() should be VertexType::END.";
-    ASSERT_EQ((spider::pisdf::InputInterface().subtype()), spider::pisdf::VertexType::INPUT)
+    ASSERT_EQ((spider::pisdf::Interface(spider::pisdf::VertexType::INPUT).subtype()), spider::pisdf::VertexType::INPUT)
                                 << "InputInterface::subtype() should be VertexType::INPUT.";
-    ASSERT_EQ((spider::pisdf::OutputInterface().subtype()), spider::pisdf::VertexType::OUTPUT)
+    ASSERT_EQ((spider::pisdf::Interface(spider::pisdf::VertexType::OUTPUT).subtype()),
+              spider::pisdf::VertexType::OUTPUT)
                                 << "OutputInterface::subtype() should be VertexType::OUTPUT.";
     ASSERT_EQ((spider::pisdf::Graph().subtype()), spider::pisdf::VertexType::GRAPH)
                                 << "Graph::subtype() should be VertexType::GRAPH.";

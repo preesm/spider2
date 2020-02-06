@@ -49,8 +49,6 @@
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/Edge.h>
 #include <graphs/pisdf/Delay.h>
-#include <graphs/pisdf/interfaces/InputInterface.h>
-#include <graphs/pisdf/interfaces/OutputInterface.h>
 #include <api/pisdf-api.h>
 
 /* === Static function(s) === */
@@ -139,7 +137,7 @@ void spider::srdag::SingleRateTransformer::replaceInterfaces() {
     /* == 1. Replace the input interfaces == */
     {
         auto isInterfaceTransparent = [](const TransfoJob &job,
-                                         const spider::pisdf::InputInterface *interface) -> bool {
+                                         const spider::pisdf::Interface *interface) -> bool {
             auto *edge = interface->outputEdge();
             auto *sink = edge->sink();
             const auto &sourceRate = edge->sourceRateValue();
@@ -162,7 +160,7 @@ void spider::srdag::SingleRateTransformer::replaceInterfaces() {
     /* == 2. Replace the output interfaces == */
     {
         auto isInterfaceTransparent = [](const TransfoJob &job,
-                                         const spider::pisdf::OutputInterface *interface) -> bool {
+                                         const spider::pisdf::Interface *interface) -> bool {
             auto *edge = interface->inputEdge();
             auto *source = edge->source();
             const auto &sourceRate = edge->sourceRateExpression().evaluate(job.params_);

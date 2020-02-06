@@ -46,8 +46,6 @@
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/Edge.h>
 #include <graphs/pisdf/Delay.h>
-#include <graphs/pisdf/interfaces/InputInterface.h>
-#include <graphs/pisdf/interfaces/OutputInterface.h>
 #include <graphs/pisdf/Param.h>
 #include <graphs/pisdf/DynamicParam.h>
 #include <graphs/pisdf/ExecVertex.h>
@@ -59,11 +57,9 @@ protected:
         spider::start();
         spider::api::createPlatform(1, 1);
 
-        auto *x86MemoryUnit = spider::api::createMemoryUnit(20000);
+        auto *x86MemoryInterface = spider::api::createMemoryInterface(20000);
 
-        auto *x86MemoryInterface = spider::api::createMemoryInterface(x86MemoryUnit);
-
-        auto *x86Cluster = spider::api::createCluster(1, x86MemoryUnit, x86MemoryInterface);
+        auto *x86Cluster = spider::api::createCluster(1,  x86MemoryInterface);
 
         auto x86PECore0 = spider::api::createProcessingElement(0, 0, x86Cluster, "x86-Core0", spider::PEType::LRT);
 
@@ -138,13 +134,13 @@ TEST_F(pisdfGraphTest, graphTest) {
     spider::api::createDynamicParam(subgraph, "width");
     ASSERT_EQ(subgraph->dynamic(), true) << "Graph::dynamic() failed.";
 
-    ASSERT_NO_THROW(graph->moveEdge(graph->edges()[0], nullptr))
+    ASSERT_NO_THROW(graph->moveEdge(graph->edges()[0].get(), nullptr))
                                 << "Graph::moveEdge() should not throw for nullptr graph";
     ASSERT_NO_THROW(graph->moveEdge(nullptr, subgraph)) << "Graph::moveEdge() should not throw for nullptr edge";
-    ASSERT_NO_THROW(graph->moveEdge(graph->edges()[0], subgraph)) << "Graph::moveEdge() should not throw";
-    ASSERT_NO_THROW(subgraph->moveEdge(subgraph->edges()[subgraph->edgeCount() - 1], graph))
+    ASSERT_NO_THROW(graph->moveEdge(graph->edges()[0].get(), subgraph)) << "Graph::moveEdge() should not throw";
+    ASSERT_NO_THROW(subgraph->moveEdge(subgraph->edges()[subgraph->edgeCount() - 1].get(), graph))
                                 << "Graph::moveEdge() should not throw";
-    ASSERT_NO_THROW(graph->moveEdge(graph->edges()[0], graph)) << "Graph::moveEdge() should not throw";
+    ASSERT_NO_THROW(graph->moveEdge(graph->edges()[0].get(), graph)) << "Graph::moveEdge() should not throw";
 
     ASSERT_NO_THROW(graph->moveVertex(graph->vertex(0), nullptr))
                                 << "Graph::moveVertex() should not throw for nullptr graph";

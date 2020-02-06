@@ -44,8 +44,6 @@
 
 #include <graphs-tools/helper/visitors/PiSDFDefaultVisitor.h>
 #include <graphs-tools/exporter/PiSDFDOTExporter.h>
-#include <graphs/pisdf/interfaces/InputInterface.h>
-#include <graphs/pisdf/interfaces/OutputInterface.h>
 #include <graphs/pisdf/InHeritedParam.h>
 #include <graphs/pisdf/DynamicParam.h>
 #include <utility>
@@ -70,9 +68,7 @@ namespace spider {
 
             void visit(NonExecVertex *vertex) override;
 
-            void visit(InputInterface *interface) override;
-
-            void visit(OutputInterface *interface) override;
+            void visit(Interface *interface) override;
 
             void visit(Param *param) override;
 

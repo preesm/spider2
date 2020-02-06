@@ -127,26 +127,6 @@ namespace spider {
             Last = OUTPUT,
         };
 
-        class ConfigVertex;
-
-        class DelayVertex;
-
-        class ForkVertex;
-
-        class JoinVertex;
-
-        class HeadVertex;
-
-        class TailVertex;
-
-        class RepeatVertex;
-
-        class DuplicateVertex;
-
-        class InitVertex;
-
-        class EndVertex;
-
         class Vertex;
 
         class ExecVertex;
@@ -166,10 +146,6 @@ namespace spider {
         class Delay;
 
         class Interface;
-
-        class InputInterface;
-
-        class OutputInterface;
     }
 
     /* === Enumeration(s) === */

@@ -62,10 +62,6 @@ namespace spider {
 
             void visit(Interface *) override;
 
-            void visit(InputInterface *input) override;
-
-            void visit(OutputInterface *output) override;
-
             void visit(Param *) override;
 
             void visit(DynamicParam *param) override;

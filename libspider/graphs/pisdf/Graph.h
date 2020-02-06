@@ -47,8 +47,7 @@
 #include <memory/unique_ptr.h>
 #include <common/Exception.h>
 #include <graphs/pisdf/ExecVertex.h>
-#include <graphs/pisdf/interfaces/InputInterface.h>
-#include <graphs/pisdf/interfaces/OutputInterface.h>
+#include <graphs/pisdf/interfaces/Interface.h>
 #include <graphs/pisdf/Edge.h>
 #include <graphs/pisdf/Param.h>
 
@@ -100,7 +99,7 @@ namespace spider {
              * @remark If interface is nullptr, nothing happens.
              * @param interface Pointer to the interface to add.
              */
-            void addInputInterface(InputInterface *interface);
+            void addInputInterface(Interface *interface);
 
             /**
              * @brief Adds an output interface to the graph.
@@ -108,7 +107,7 @@ namespace spider {
              * @remark If interface is nullptr, nothing happens.
              * @param interface Pointer to the interface to add.
              */
-            void addOutputInterface(OutputInterface *interface);
+            void addOutputInterface(Interface *interface);
 
             /**
              * @brief Add a vertex to the graph.
@@ -263,7 +262,7 @@ namespace spider {
             * @brief A const reference on the set of output interfaces. Useful for iterating on the input interfaces.
             * @return const reference to input interface vector
             */
-            inline const vector<unique_ptr<InputInterface>> &inputInterfaceVector() const {
+            inline const vector<unique_ptr<Interface>> &inputInterfaceVector() const {
                 return inputInterfaceVector_;
             }
 
@@ -271,7 +270,7 @@ namespace spider {
             * @brief A const reference on the set of output interfaces. Useful for iterating on the output interfaces.
             * @return const reference to output interface vector
             */
-            inline const vector<unique_ptr<OutputInterface>> &outputInterfaceVector() const {
+            inline const vector<unique_ptr<Interface>> &outputInterfaceVector() const {
                 return outputInterfaceVector_;
             }
 
@@ -319,7 +318,7 @@ namespace spider {
              * @param ix  Ix of the port
              * @return @refitem InputInterface pointer
              */
-            inline InputInterface *inputInterface(size_t ix) const {
+            inline Interface *inputInterface(size_t ix) const {
                 return inputInterfaceVector_[ix].get();
             }
 
@@ -331,7 +330,7 @@ namespace spider {
              * @param ix  Ix of the port
              * @return @refitem OutputInterface pointer
              */
-            inline OutputInterface *outputInterface(size_t ix) const {
+            inline Interface *outputInterface(size_t ix) const {
                 return outputInterfaceVector_[ix].get();
             }
 
@@ -364,13 +363,13 @@ namespace spider {
             bool setRunGraphReference(const Graph *runGraph);
 
         private:
-            vector<unique_ptr<Vertex>> vertexVector_;                     /* = Vector of all the Vertices of the graph = */
-            vector<unique_ptr<Edge>> edgeVector_;                         /* = Vector of Edge contained in the Graph = */
-            vector<Vertex *> configVertexVector_;                         /* = Vector of Vertices with VertexType::CONFIG. This is just a "viewer" vector. = */
-            vector<Graph *> subgraphVector_;                              /* = Vector of Vertices with VertexType::GRAPH.  This is just a "viewer" vector. = */
-            vector<std::shared_ptr<Param>> paramVector_;                  /* = Vector of Param = */
-            vector<unique_ptr<InputInterface>> inputInterfaceVector_;     /* = Vector of InputInterface = */
-            vector<unique_ptr<OutputInterface>> outputInterfaceVector_;   /* = Vector of OutputInterface = */
+            vector<unique_ptr<Vertex>> vertexVector_;               /* = Vector of all the Vertices of the graph = */
+            vector<unique_ptr<Edge>> edgeVector_;                   /* = Vector of Edge contained in the Graph = */
+            vector<Vertex *> configVertexVector_;                   /* = Vector of Vertices with VertexType::CONFIG. This is just a "viewer" vector. = */
+            vector<Graph *> subgraphVector_;                        /* = Vector of Vertices with VertexType::GRAPH.  This is just a "viewer" vector. = */
+            vector<std::shared_ptr<Param>> paramVector_;            /* = Vector of Param = */
+            vector<unique_ptr<Interface>> inputInterfaceVector_;    /* = Vector of InputInterface = */
+            vector<unique_ptr<Interface>> outputInterfaceVector_;   /* = Vector of OutputInterface = */
             const Graph *runGraphReference_ = nullptr; /* =
                                                        * Reference pointer to the run counter part of this graph.
                                                        * Only valid for init graphs.

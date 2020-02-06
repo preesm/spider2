@@ -49,8 +49,6 @@
 #include <graphs/pisdf/ExecVertex.h>
 #include <graphs/pisdf/DynamicParam.h>
 #include <graphs/pisdf/InHeritedParam.h>
-#include <graphs/pisdf/interfaces/InputInterface.h>
-#include <graphs/pisdf/interfaces/OutputInterface.h>
 #include <graphs/pisdf/NonExecVertex.h>
 
 /* === Methods implementation === */
@@ -293,7 +291,8 @@ spider::pisdf::Vertex *spider::api::createConfigActor(pisdf::Graph *graph,
     if (!graph) {
         throwSpiderException("nullptr for graph.");
     }
-    auto *vertex = make<pisdf::ExecVertex, StackID::PISDF>(pisdf::VertexType::CONFIG, std::move(name), edgeINCount, edgeOUTCount);
+    auto *vertex = make<pisdf::ExecVertex, StackID::PISDF>(pisdf::VertexType::CONFIG, std::move(name), edgeINCount,
+                                                           edgeOUTCount);
     vertex->makeRTInformation();
     graph->addVertex(vertex);
     return vertex;
@@ -566,8 +565,8 @@ spider::pisdf::Delay *spider::api::createPersistentDelay(spider::pisdf::Edge *ed
     while (!graph->isTopGraph()) {
         /* == We need to make it persist up to the top-level == */
         /* == 0. Creates the interfaces == */
-        auto *input = make<pisdf::InputInterface, StackID::PISDF>("in_" + edge->name());
-        auto *output = make<pisdf::OutputInterface, StackID::PISDF>("out_" + edge->name());
+        auto *input = make<pisdf::Interface, StackID::PISDF>(pisdf::VertexType::INPUT, "in_" + edge->name());
+        auto *output = make<pisdf::Interface, StackID::PISDF>(pisdf::VertexType::OUTPUT, "out_" + edge->name());
         graph->addInputInterface(input);
         graph->addOutputInterface(output);
 
@@ -608,8 +607,8 @@ spider::pisdf::Delay *spider::api::createLocalPersistentDelay(pisdf::Edge *edge,
     const auto value = expression.value();
     while ((currentLevelCount < levelCount) && !graph->isTopGraph()) {
         /* == 0. Creates the interfaces == */
-        auto *input = make<pisdf::InputInterface, StackID::PISDF>("in_" + edge->name());
-        auto *output = make<pisdf::OutputInterface, StackID::PISDF>("out_" + edge->name());
+        auto *input = make<pisdf::Interface, StackID::PISDF>(pisdf::VertexType::INPUT, "in_" + edge->name());
+        auto *output = make<pisdf::Interface, StackID::PISDF>(pisdf::VertexType::OUTPUT, "out_" + edge->name());
         graph->addInputInterface(input);
         graph->addOutputInterface(output);
 

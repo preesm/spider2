@@ -45,8 +45,6 @@
 #include <memory/memory.h>
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/ExecVertex.h>
-#include <graphs/pisdf/interfaces/InputInterface.h>
-#include <graphs/pisdf/interfaces/OutputInterface.h>
 #include <graphs-tools/helper/visitors/PiSDFDefaultVisitor.h>
 #include <api/spider.h>
 
@@ -65,22 +63,30 @@ protected:
 
 TEST_F(pisdfInterfaceTest, creationTest) {
     {
-        ASSERT_NO_THROW(spider::pisdf::InputInterface()) << "InputInterface() should not throw";
-        ASSERT_NO_THROW(spider::pisdf::InputInterface("input")) << "InputInterface(std::string) should not throw";
-        ASSERT_NO_THROW(spider::pisdf::OutputInterface()) << "OutputInterface() should not throw";
-        ASSERT_NO_THROW(spider::pisdf::OutputInterface("output")) << "OutputInterface(std::string) should not throw";
+        for (auto type : spider::EnumIterator<spider::pisdf::VertexType>{ }) {
+            if ((type != spider::pisdf::VertexType::INPUT) &&
+                (type != spider::pisdf::VertexType::OUTPUT)) {
+                ASSERT_THROW(spider::pisdf::Interface(type, ""), spider::Exception)
+                                            << "Interface() should throw for any type other than INPUT / OUTPUT";
+            }
+        }
+
+        ASSERT_NO_THROW(spider::pisdf::Interface(spider::pisdf::VertexType::INPUT, ""))
+                                    << "Interface() should not throw";
+        ASSERT_NO_THROW(spider::pisdf::Interface(spider::pisdf::VertexType::INPUT, "input"))
+                                    << "Interface(std::string) should not throw";
+        ASSERT_NO_THROW(spider::pisdf::Interface(spider::pisdf::VertexType::OUTPUT, ""))
+                                    << "Interface() should not throw";
+        ASSERT_NO_THROW(spider::pisdf::Interface(spider::pisdf::VertexType::OUTPUT, "output"))
+                                    << "Interface(std::string) should not throw";
     }
 }
 
 struct InterfaceVisitorTest final : public spider::pisdf::DefaultVisitor {
     int type = -1;
 
-    void visit(spider::pisdf::InputInterface *) override {
-        type = 0;
-    }
-
-    void visit(spider::pisdf::OutputInterface *) override {
-        type = 1;
+    void visit(spider::pisdf::Interface *i) override {
+        type = i->subtype() == spider::pisdf::VertexType::OUTPUT;
     }
 };
 

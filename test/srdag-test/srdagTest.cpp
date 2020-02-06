@@ -46,8 +46,6 @@
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/Edge.h>
 #include <graphs/pisdf/Delay.h>
-#include <graphs/pisdf/interfaces/InputInterface.h>
-#include <graphs/pisdf/interfaces/OutputInterface.h>
 #include <graphs/pisdf/Param.h>
 #include <graphs/pisdf/DynamicParam.h>
 #include <graphs/pisdf/ExecVertex.h>
@@ -88,7 +86,7 @@ TEST_F(srdagTest, srdagFlatTest) {
          */
         ASSERT_EQ(srdag->vertexCount(), 2);
         ASSERT_EQ(srdag->edgeCount(), 1);
-        graph->removeEdge(graph->edges()[0]);
+        graph->removeEdge(graph->edges()[0].get());
         spider::destroy(srdag);
     }
     {
@@ -101,7 +99,7 @@ TEST_F(srdagTest, srdagFlatTest) {
          */
         ASSERT_EQ(srdag->vertexCount(), 4);
         ASSERT_EQ(srdag->edgeCount(), 3);
-        graph->removeEdge(graph->edges()[0]);
+        graph->removeEdge(graph->edges()[0].get());
         spider::destroy(srdag);
     }
     {
@@ -115,7 +113,7 @@ TEST_F(srdagTest, srdagFlatTest) {
          */
         ASSERT_EQ(srdag->vertexCount(), 4);
         ASSERT_EQ(srdag->edgeCount(), 3);
-        graph->removeEdge(graph->edges()[0]);
+        graph->removeEdge(graph->edges()[0].get());
         spider::destroy(srdag);
     }
     spider::destroy(graph);
@@ -151,8 +149,8 @@ TEST_F(srdagTest, srdagFlatDelayTest1) {
     spider::api::createEdge(vertex_0, 1, 1, vertex_1, 1, 1);
     auto *edge = spider::api::createEdge(vertex_0, 2, 1, vertex_1, 2, 1);
     spider::api::createDelay(edge, 1);
-    graph->removeEdge(graph->edges()[0]);
-    graph->removeEdge(graph->edges()[1]);
+    graph->removeEdge(graph->edges()[0].get());
+    graph->removeEdge(graph->edges()[1].get());
     spider::api::createEdge(vertex_0, 0, 1, vertex_1, 0, 1);
     spider::api::createEdge(vertex_0, 1, 1, vertex_1, 1, 1);
     auto *srdag = spider::api::createGraph("srdag");

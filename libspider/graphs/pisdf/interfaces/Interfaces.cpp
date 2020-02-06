@@ -40,16 +40,43 @@
 
 /* === Include(s) === */
 
-#include <graphs/pisdf/interfaces/InputInterface.h>
-#include <graphs/pisdf/interfaces/OutputInterface.h>
 #include <graphs/pisdf/Graph.h>
+#include <graphs/pisdf/interfaces/Interface.h>
+
 
 /* === Function(s) definition === */
 
-spider::pisdf::Edge *spider::pisdf::InputInterface::inputEdge() const {
-    return graph_->inputEdge(ix_);
+spider::pisdf::Edge *spider::pisdf::Interface::inputEdge() const {
+    if (subtype_ == VertexType::INPUT) {
+        return graph_->inputEdge(ix_);
+    }
+    return Vertex::inputEdge(0);
 }
 
-spider::pisdf::Edge *spider::pisdf::OutputInterface::outputEdge() const {
+spider::pisdf::Edge *spider::pisdf::Interface::outputEdge() const {
+    if (subtype_ == VertexType::INPUT) {
+        return Vertex::outputEdge(0);
+    }
     return graph_->outputEdge(ix_);
+}
+
+spider::pisdf::Vertex *spider::pisdf::Interface::opposite() const {
+    if (subtype_ == VertexType::INPUT) {
+        return outputEdge()->sink();
+    }
+    return inputEdge()->source();
+}
+
+void spider::pisdf::Interface::connectInputEdge(Edge *edge, size_t pos) {
+    if (subtype_ == VertexType::INPUT) {
+        throwSpiderException("Can not connect output edge to output interface.");
+    }
+    Vertex::connectInputEdge(edge, pos);
+}
+
+void spider::pisdf::Interface::connectOutputEdge(Edge *edge, size_t pos) {
+    if (subtype_ == VertexType::OUTPUT) {
+        throwSpiderException("Can not connect output edge to output interface.");
+    }
+    Vertex::connectOutputEdge(edge, pos);
 }

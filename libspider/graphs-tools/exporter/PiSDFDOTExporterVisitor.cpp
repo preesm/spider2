@@ -157,20 +157,11 @@ void spider::pisdf::PiSDFDOTExporterVisitor::visit(NonExecVertex *vertex) {
     vertexPrinter(vertex);
 }
 
-void spider::pisdf::PiSDFDOTExporterVisitor::visit(InputInterface *interface) {
-/* == Header == */
+void spider::pisdf::PiSDFDOTExporterVisitor::visit(Interface *interface) {
+    /* == Header == */
     vertexHeaderPrinter(interface->vertexPath(), "#ffffff00", 0);
-
-/* == Interface printer == */
-    interfaceBodyPrinter(interface, "#87d37cff");
-}
-
-void spider::pisdf::PiSDFDOTExporterVisitor::visit(OutputInterface *interface) {
-/* == Header == */
-    vertexHeaderPrinter(interface->vertexPath(), "#ffffff00", 0);
-
-/* == Interface printer == */
-    interfaceBodyPrinter(interface, "#ec644bff");
+    /* == Interface printer == */
+    interfaceBodyPrinter(interface, interface->subtype() == VertexType::INPUT ?"#87d37cff" : "#ec644bff");
 }
 
 void spider::pisdf::PiSDFDOTExporterVisitor::visit(Param *param) {
@@ -373,11 +364,7 @@ struct GetVertexVisitor final : public spider::pisdf::DefaultVisitor {
         doVertex(vertex);
     }
 
-    void visit(spider::pisdf::InputInterface *interface) override {
-        doVertex(interface);
-    }
-
-    void visit(spider::pisdf::OutputInterface *interface) override {
+    void visit(spider::pisdf::Interface *interface) override {
         doVertex(interface);
     }
 

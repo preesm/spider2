@@ -43,8 +43,6 @@
 #include <graphs-tools/helper/visitors/PiSDFDefaultVisitor.h>
 #include <graphs/pisdf/DynamicParam.h>
 #include <graphs/pisdf/InHeritedParam.h>
-#include <graphs/pisdf/interfaces/InputInterface.h>
-#include <graphs/pisdf/interfaces/OutputInterface.h>
 
 /* === Function(s) definition === */
 
@@ -58,14 +56,6 @@ void spider::pisdf::DefaultVisitor::visit(spider::pisdf::NonExecVertex *) { }
 
 void spider::pisdf::DefaultVisitor::visit(spider::pisdf::Interface *) {
     throwSpiderException("unsupported visitor type: Interface.");
-}
-
-void spider::pisdf::DefaultVisitor::visit(InputInterface *input) {
-    this->visit(static_cast<Interface *>(input));
-}
-
-void spider::pisdf::DefaultVisitor::visit(OutputInterface *output) {
-    this->visit(static_cast<Interface *>(output));
 }
 
 void spider::pisdf::DefaultVisitor::visit(Param *) {

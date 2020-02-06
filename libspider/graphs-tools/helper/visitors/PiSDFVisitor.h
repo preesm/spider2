@@ -73,10 +73,6 @@ namespace spider {
 
             virtual void visit(Interface *) = 0;
 
-            virtual void visit(InputInterface *) = 0;
-
-            virtual void visit(OutputInterface *) = 0;
-
             virtual void visit(Param *) = 0;
 
             virtual void visit(DynamicParam *) = 0;
