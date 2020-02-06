@@ -63,13 +63,15 @@ namespace spider {
 
             explicit Vertex(std::string name, size_t edgeINCount = 0, size_t edgeOUTCount = 0);
 
-            Vertex(const Vertex &other);
-
             Vertex(Vertex &&) noexcept = default;
 
-            Vertex &operator=(const Vertex &) = default;
-
             Vertex &operator=(Vertex &&) = default;
+
+            /* === Disabling copy construction / assignment === */
+
+            Vertex(const Vertex &) = delete;
+
+            Vertex &operator=(const Vertex &) = delete;
 
             virtual ~Vertex() noexcept;
 
@@ -336,31 +338,25 @@ namespace spider {
             void setInstanceValue(size_t value);
 
         protected:
-            std::string name_ = "unnamed-vertex"; /* =  Name of the Vertex (uniqueness is not required) = */
-            /* = Vector of input Edge = */
-            sbc::vector<Edge *, StackID::PISDF> inputEdgeVector_;
-            /* = Vector of output Edge = */
-            sbc::vector<Edge *, StackID::PISDF> outputEdgeVector_;
-            /* = Vector of input Param = */
-            sbc::vector<std::shared_ptr<pisdf::Param>, StackID::PISDF> inputParamVector_;
-            /* = Vector of refinement Params = */
-            sbc::vector<std::shared_ptr<pisdf::Param>, StackID::PISDF> refinementParamVector_;
-            /* = Vector of output Param = */
-            sbc::vector<std::shared_ptr<pisdf::Param>, StackID::PISDF> outputParamVector_;
-            /* = Runtime information of the Vertex (timing, mappable, etc.) = */
-            std::shared_ptr<RTInfo> rtInformation_;
+            std::string name_ = "unnamed-vertex";                  /* = Name of the Vertex (uniqueness is not required) = */
+            vector<Edge *> inputEdgeVector_;                       /* = Vector of input Edge = */
+            vector<Edge *> outputEdgeVector_;                      /* = Vector of output Edge = */
+            vector<std::shared_ptr<Param>> inputParamVector_;      /* = Vector of input Params = */
+            vector<std::shared_ptr<Param>> refinementParamVector_; /* = Vector of refinement Params = */
+            vector<std::shared_ptr<Param>> outputParamVector_;     /* = Vector of output Params = */
+            std::shared_ptr<RTInfo> rtInformation_;                /* = Runtime information of the Vertex (timing, mappable, etc.) = */
+            Graph *graph_ = nullptr;                               /* = Containing Graph of the Vertex (can be nullptr) = */
+            size_t ix_ = SIZE_MAX;                                 /* = Index of the Vertex in the containing Graph = */
             const Vertex *reference_ = this;   /* =
                                                 * Pointer to the reference Vertex.
                                                 * Default is this, in case of copy, point to the original Vertex.
                                                 * = */
-            Graph *graph_ = nullptr;           /* = Containing Graph of the Vertex (can be nullptr) = */
             size_t scheduleJobIx_ = SIZE_MAX;  /* =
                                                 * Index of the schedule job associated to this Vertex.
                                                 * Needed in case of deletion of vertex between successive.
                                                 * schedule pass in order to maintain coherence.
                                                 * = */
             size_t instanceValue_ = 0;         /* = Value of the instance relative to reference Vertex = */
-            size_t ix_ = SIZE_MAX;             /* = Index of the Vertex in the containing Graph = */
             uint32_t repetitionValue_ = 1;     /* = Repetition value of the Vertex, default is 1 but it can be set to 0. = */
             mutable uint32_t copyCount_ = 0;   /* = Number of copy of the Vertex = */
 

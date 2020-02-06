@@ -67,43 +67,13 @@ static void connectEdge(spider::vector<spider::pisdf::Edge *> &edges, spider::pi
 
 /* === Function(s) definition === */
 
-spider::pisdf::Vertex::Vertex(std::string name, size_t edgeINCount, size_t edgeOUTCount) : name_{ std::move(name) } {
-    inputEdgeVector_.resize(edgeINCount, nullptr);
-    outputEdgeVector_.resize(edgeOUTCount, nullptr);
-}
-
-//spider::pisdf::Vertex::Vertex(std::string name,
-//                              size_t edgeINCount,
-//                              size_t edgeOUTCount,
-//                              size_t paramINCount,
-//                              size_t paramOUTCount,
-//                              const spider::pisdf::Vertex *reference) : name_{ std::move(name) },
-//                                                                        reference_{ this } {
-//    inputEdgeVector_.resize(edgeINCount, nullptr);
-//    outputEdgeVector_.resize(edgeOUTCount, nullptr);
-//    if (reference) {
-//        reference_ = reference;
-//        reference->copyCount_++;
-//        rtInformation_ = reference->rtInformation_;
-//    }
-//    inputParamVector_.reserve(paramINCount);
-//    outputParamVector_.reserve(paramOUTCount);
-//}
-
-spider::pisdf::Vertex::Vertex(const Vertex &other) : name_{ other.name_ },
-                                                     inputEdgeVector_{ other.inputEdgeVector_.size(), nullptr },
-                                                     outputEdgeVector_{ other.outputEdgeVector_.size(), nullptr },
-                                                     rtInformation_{ other.rtInformation_ },
-                                                     reference_{ &other },
-                                                     graph_{ other.graph_ },
-                                                     scheduleJobIx_{ other.scheduleJobIx_ },
-                                                     instanceValue_{ other.instanceValue_ },
-                                                     ix_{ other.ix_ },
-                                                     repetitionValue_{ other.repetitionValue_ } {
-    other.copyCount_ += 1;
-    inputParamVector_.reserve(other.inputParamCount());
-    outputParamVector_.reserve(other.outputParamCount());
-    refinementParamVector_.reserve(other.refinementParamVector_.size());
+spider::pisdf::Vertex::Vertex(std::string name, size_t edgeINCount, size_t edgeOUTCount) :
+        name_{ std::move(name) },
+        inputEdgeVector_{ sbc::vector < Edge * , StackID::PISDF > { edgeINCount, nullptr }},
+        outputEdgeVector_{ sbc::vector < Edge * , StackID::PISDF > { edgeOUTCount, nullptr }},
+        inputParamVector_{ sbc::vector < std::shared_ptr<Param>, StackID::PISDF > { }},
+        refinementParamVector_{ sbc::vector < std::shared_ptr<Param>, StackID::PISDF > { }},
+        outputParamVector_{ sbc::vector < std::shared_ptr<Param>, StackID::PISDF > { }} {
 }
 
 spider::pisdf::Vertex::~Vertex() noexcept {
