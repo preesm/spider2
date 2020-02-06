@@ -47,7 +47,7 @@
 #include <memory/unique_ptr.h>
 #include <common/Exception.h>
 #include <graphs/pisdf/ExecVertex.h>
-#include <graphs/pisdf/interfaces/Interface.h>
+#include <graphs/pisdf/Interface.h>
 #include <graphs/pisdf/Edge.h>
 #include <graphs/pisdf/Param.h>
 

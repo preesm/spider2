@@ -41,7 +41,7 @@
 /* === Include(s) === */
 
 #include <graphs/pisdf/Graph.h>
-#include <graphs/pisdf/interfaces/Interface.h>
+#include <graphs/pisdf/Interface.h>
 
 
 /* === Function(s) definition === */

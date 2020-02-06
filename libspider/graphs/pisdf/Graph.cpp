@@ -43,7 +43,7 @@
 #include <graphs/pisdf/Graph.h>
 #include <graphs-tools/helper/visitors/PiSDFDefaultVisitor.h>
 #include <graphs/pisdf/ExecVertex.h>
-#include <graphs/pisdf/interfaces/Interface.h>
+#include <graphs/pisdf/Interface.h>
 #include <graphs/pisdf/Param.h>
 #include <graphs/pisdf/Delay.h>
 
