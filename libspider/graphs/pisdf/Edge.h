@@ -46,6 +46,8 @@
 #include <string>
 #include <functional>
 #include <memory/memory.h>
+#include <memory/unique_ptr.h>
+#include <graphs/pisdf/Delay.h>
 #include <graphs-tools/expression-parser/Expression.h>
 
 namespace spider {
@@ -63,7 +65,7 @@ namespace spider {
             Edge(Vertex *source, size_t srcIx, Expression srcExpr,
                  Vertex *sink, size_t snkIx, Expression snkExpr);
 
-            ~Edge();
+            ~Edge() noexcept = default;
 
             /* === Method(s) === */
 
@@ -153,9 +155,7 @@ namespace spider {
              * @brief Get the delay (if any) associated to the edge.
              * @return @refitem PiSDFDelay of the edge.
              */
-            inline const Delay *delay() const {
-                return delay_;
-            }
+            Delay *delay() const;
 
             /* === Setter(s) === */
 
@@ -188,21 +188,18 @@ namespace spider {
              */
             void setSink(Vertex *vertex, size_t ix, Expression expr);
 
-            inline void setDelay(Delay *delay) {
-                if (!delay) {
-                    return;
-                } else if (delay_) {
-                    throwSpiderException("Cannot set delay. Edge [%s] already has a delay.", name().c_str());
-                }
-                delay_ = delay;
-            }
+            /**
+             * @brief
+             * @param delay
+             */
+            void setDelay(Delay *delay);
 
         private:
             Expression srcExpression_;            /* = Expression of the source rate of the Edge = */
             Expression snkExpression_;            /* = Expression of the sink rate of the Edge = */
             Vertex *src_ = nullptr;               /* = Pointer to the source Vertex (if any) = */
             Vertex *snk_ = nullptr;               /* = Pointer to the sink Vertex (if any) = */
-            Delay *delay_ = nullptr;              /* = Pointer to Delay associated to the Edge (if any) = */
+            unique_ptr<Delay> delay_;             /* = Pointer to Delay associated to the Edge (if any) = */
             size_t ix_ = SIZE_MAX;                /* = Index of the Edge in the Graph (used for add and remove) = */
             size_t srcPortIx_ = SIZE_MAX;         /* = Index of the Edge in the source outputEdgeArray = */
             size_t snkPortIx_ = SIZE_MAX;         /* = Index of the Edge in the sink inputEdgeArray = */

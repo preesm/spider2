@@ -70,10 +70,6 @@ spider::pisdf::Edge::Edge(Vertex *source, size_t srcIx, Expression srcExpr,
     sink->connectInputEdge(this, snkIx);
 }
 
-spider::pisdf::Edge::~Edge() {
-    destroy(delay_);
-}
-
 std::string spider::pisdf::Edge::name() const {
     return "edge_" + src_->name() + "-" + snk_->name();
 }
@@ -139,4 +135,17 @@ void spider::pisdf::Edge::setSink(Vertex *vertex, size_t ix, Expression expr) {
     snk_ = vertex;
     snkPortIx_ = ix;
     snkExpression_ = std::move(expr);
+}
+
+spider::pisdf::Delay *spider::pisdf::Edge::delay() const {
+    return delay_.get();
+}
+
+void spider::pisdf::Edge::setDelay(Delay *delay) {
+    if (!delay) {
+        return;
+    } else if (delay_) {
+        throwSpiderException("Cannot set delay. Edge [%s] already has a delay.", name().c_str());
+    }
+    delay_ = unique_ptr<Delay>(delay);
 }
