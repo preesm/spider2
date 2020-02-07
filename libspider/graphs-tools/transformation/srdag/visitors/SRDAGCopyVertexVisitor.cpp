@@ -95,6 +95,8 @@ void spider::srdag::SRDAGCopyVertexVisitor::makeClone(pisdf::Vertex *vertex) {
                                                               vertex->inputEdgeCount(),
                                                               vertex->outputEdgeCount());
 
+        vertex->setAsReference(clone);
+
         /* == Add clone to the srdag == */
         srdag_->addVertex(clone);
 
