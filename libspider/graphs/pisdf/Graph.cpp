@@ -49,15 +49,15 @@
 
 /* === Private structure(s) === */
 
-struct spider::pisdf::Graph::RemoveSpecialVertexVisitor final : public DefaultVisitor {
+struct spider::pisdf::Graph::RemoveSubgraphVisitor final : public DefaultVisitor {
 
-    explicit RemoveSpecialVertexVisitor(Graph *graph) : graph_{ graph } { };
+    explicit RemoveSubgraphVisitor(Graph *graph) : graph_{ graph } { };
 
     /* === Method(s) === */
 
     inline void visit(Graph *subgraph) override {
-        /* == Remove the vertex and destroy it == */
-        auto ix = subgraph->subIx_; /* = Save the index in the subgraphVector_ = */
+        /* = Save the index in the subgraphVector_ = */
+        auto ix = subgraph->subIx_;
 
         /* == Remove the subgraph from the subgraph vector == */
         graph_->subgraphVector_[ix] = graph_->subgraphVector_.back();
@@ -65,13 +65,12 @@ struct spider::pisdf::Graph::RemoveSpecialVertexVisitor final : public DefaultVi
         graph_->subgraphVector_.pop_back();
     }
 
-private:
     Graph *graph_ = nullptr;
 };
 
-struct spider::pisdf::Graph::AddSpecialVertexVisitor final : public DefaultVisitor {
+struct spider::pisdf::Graph::AddSubgraphVisitor final : public DefaultVisitor {
 
-    explicit AddSpecialVertexVisitor(Graph *graph) : graph_{ graph } { }
+    explicit AddSubgraphVisitor(Graph *graph) : graph_{ graph } { }
 
     inline void visit(Graph *subgraph) override {
         /* == Add the subgraph in the "viewer" vector == */
@@ -79,7 +78,6 @@ struct spider::pisdf::Graph::AddSpecialVertexVisitor final : public DefaultVisit
         graph_->subgraphVector_.emplace_back(subgraph);
     }
 
-private:
     Graph *graph_ = nullptr;
 };
 
@@ -163,9 +161,9 @@ void spider::pisdf::Graph::addOutputInterface(Interface *interface) {
 void spider::pisdf::Graph::addVertex(Vertex *vertex) {
     if (vertex->subtype() == VertexType::CONFIG) {
         /* == Add config vertex to the "viewer" vector == */
-        graph_->configVertexVector_.emplace_back(vertex);
+        configVertexVector_.emplace_back(vertex);
     } else if (vertex->hierarchical()) {
-        AddSpecialVertexVisitor visitor{ this };
+        AddSubgraphVisitor visitor{ this };
         vertex->visit(&visitor);
     }
     vertex->setIx(vertexVector_.size());
@@ -186,15 +184,15 @@ void spider::pisdf::Graph::removeVertex(Vertex *vertex) {
     }
     if (vertex->subtype() == VertexType::CONFIG) {
         /* == configVertexVector_ is just a "viewer" for config vertices so we need to find manually == */
-        for (auto &cfg : graph_->configVertexVector_) {
+        for (auto &cfg : configVertexVector_) {
             if (cfg == vertex) {
-                cfg = graph_->configVertexVector_.back();
-                graph_->configVertexVector_.pop_back();
+                cfg = configVertexVector_.back();
+                configVertexVector_.pop_back();
                 break;
             }
         }
     } else if (vertex->hierarchical()) {
-        RemoveSpecialVertexVisitor visitor{ this };
+        RemoveSubgraphVisitor visitor{ this };
         vertex->visit(&visitor);
     }
     removeAndDestroy(vertexVector_, vertex);
@@ -231,10 +229,21 @@ void spider::pisdf::Graph::moveVertex(Vertex *elt, Graph *graph) {
         return;
     }
     if (elt->subtype() == VertexType::CONFIG) {
-        RemoveSpecialVertexVisitor visitor{ this };
-        elt->visit(&visitor);
+        /* == configVertexVector_ is just a "viewer" for config vertices so we need to find manually == */
+        for (auto &cfg : configVertexVector_) {
+            if (cfg == elt) {
+                cfg = configVertexVector_.back();
+                configVertexVector_.pop_back();
+                break;
+            }
+        }
+//        auto it = std::find(configVertexVector_.begin(), configVertexVector_.end(), elt);
+//        if (it == configVertexVector_.end()) {
+//            throwSpiderException("did not find CONFIG vertex [%s].", elt->name().c_str());
+//        }
+//        out_of_order_erase(configVertexVector_, std::distance(configVertexVector_.begin(), it));
     } else if (elt->hierarchical()) {
-        RemoveSpecialVertexVisitor visitor{ this };
+        RemoveSubgraphVisitor visitor{ this };
         elt->visit(&visitor);
     }
     removeNoDestroy(vertexVector_, elt);
@@ -284,14 +293,12 @@ void spider::pisdf::Graph::removeNoDestroy(spider::vector<unique_ptr<T>> &eltVec
         throwSpiderException("Different element in ix position. Expected: %s -- Got: %s", elt->name().c_str(),
                              eltVector[ix]->name().c_str());
     }
-    if (ix == (eltVector.size() - 1)) {
-        (void) eltVector.back().release();
-    } else {
-        (void) eltVector[ix].release();
-        eltVector[ix] = std::move(eltVector.back());
+    (void) eltVector[ix].release();
+    out_of_order_erase(eltVector, ix);
+    if (!eltVector.empty()) {
+        ix = std::min(ix, eltVector.size() - 1);
         eltVector[ix]->setIx(ix);
     }
-    eltVector.pop_back();
 }
 
 template<class T>
@@ -304,11 +311,11 @@ void spider::pisdf::Graph::removeAndDestroy(spider::vector<unique_ptr<T>> &eltVe
         throwSpiderException("Different element in ix position. Expected: %s -- Got: %s", elt->name().c_str(),
                              eltVector[ix]->name().c_str());
     }
-    if (ix != (eltVector.size() - 1)) {
-        eltVector[ix] = std::move(eltVector.back());
+    out_of_order_erase(eltVector, ix);
+    if (!eltVector.empty()) {
+        ix = std::min(ix, eltVector.size() - 1);
         eltVector[ix]->setIx(ix);
     }
-    eltVector.pop_back();
 }
 
 template<class T>
@@ -324,7 +331,9 @@ void spider::pisdf::Graph::removeNoDestroy(spider::vector<T *> &eltVector, T *el
         throwSpiderException("Different element in ix position. Expected: %s -- Got: %s", elt->name().c_str(),
                              eltVector[ix]->name().c_str());
     }
-    eltVector[ix] = std::move(eltVector.back());
-    eltVector[ix]->setIx(ix);
-    eltVector.pop_back();
+    out_of_order_erase(eltVector, ix);
+    if (!eltVector.empty()) {
+        ix = std::min(ix, eltVector.size() - 1);
+        eltVector[ix]->setIx(ix);
+    }
 }

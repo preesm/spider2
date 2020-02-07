@@ -389,17 +389,11 @@ namespace spider {
             template<class T>
             void removeNoDestroy(vector<T *> &eltVector, T *elt);
 
-            inline void addInputParameter(std::shared_ptr<Param>) override { };
-
-            inline void addRefinementParameter(std::shared_ptr<Param>) override { };
-
-            inline void addOutputParameter(std::shared_ptr<Param>) override { };
-
             /* === Private structure(s) === */
 
-            struct RemoveSpecialVertexVisitor;
+            struct RemoveSubgraphVisitor;
 
-            struct AddSpecialVertexVisitor;
+            struct AddSubgraphVisitor;
         };
     }
 }
