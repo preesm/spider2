@@ -45,6 +45,7 @@
 #include <cstdint>
 #include <string>
 #include <containers/array.h>
+#include <graphs/abstract/AbstractVertex.h>
 #include <graphs-tools/helper/visitors/PiSDFVisitor.h>
 #include <runtime/common/RTInfo.h>
 
@@ -58,11 +59,7 @@ namespace spider {
 
         /* === Class definition === */
 
-        struct VertexProperties {
-
-        };
-
-        class Vertex {
+        class Vertex : public AbstractVertex<pisdf::Edge> {
         public:
 
             explicit Vertex(VertexType type, std::string name, size_t edgeINCount = 0, size_t edgeOUTCount = 0);
@@ -93,38 +90,6 @@ namespace spider {
              * @param clone  Pointer to the clone.
              */
             void setAsReference(Vertex *clone);
-
-            /**
-             * @brief Connect an input edge at given position.
-             * @param edge  Pointer to the edge to connect.
-             * @param pos   Input position where to connect the edge.
-             * @throw @refitem std::out_of_range.
-             * @throw @refitem spider::Exception if an edge already exists at this position.
-             */
-            virtual void connectInputEdge(Edge *edge, size_t ix);
-
-            /**
-             * @brief Connect an output edge at given position.
-             * @param edge  Pointer to the edge to connect.
-             * @param pos   Output position where to connect the edge.
-             * @throw @refitem std::out_of_range.
-             * @throw @refitem spider::Exception if an edge already exists at this position.
-             */
-            virtual void connectOutputEdge(Edge *edge, size_t pos);
-
-            /**
-             * @brief Disconnect input edge on port ix. If no edge is connected, nothing happens.
-             * @remark Call @refitem Edge::setSink to reset the edge if found.
-             * @param ix  Index of the input edge to disconnect.
-             */
-            virtual Edge *disconnectInputEdge(size_t ix);
-
-            /**
-             * @brief Disconnect output edge on port ix. If no edge is connected, nothing happens
-             * @remark Call @refitem Edge::setSource to reset the edge if found.
-             * @param ix  Index of the output edge to disconnect.
-             */
-            virtual Edge *disconnectOutputEdge(size_t ix);
 
             /**
              * @brief Add an input parameter to the Vertex.
@@ -163,22 +128,10 @@ namespace spider {
             inline Graph *graph() const { return graph_; };
 
             /**
-             * @brief Get the name string of the vertex.
-             * @return name of the vertex.
-             */
-            const std::string &name() const;
-
-            /**
              * @brief Get the subtype of the vertex.
              * @return @refitem spider::pisdf::VertexType corresponding to the subtype
              */
             inline VertexType subtype() const { return subtype_; };
-
-            /**
-             * @brief Get the ix of the vertex in the containing graph.
-             * @return ix of the vertex (UINT32_MAX if no ix).
-             */
-            inline const size_t &ix() const { return ix_; };
 
             /**
              * @brief Test if the vertex is a graph.
@@ -191,46 +144,6 @@ namespace spider {
              * @return repetition vector value of the vertex. (UINT32_MAX if uninitialized)
              */
             inline uint32_t repetitionValue() const { return repetitionValue_; };
-
-            /**
-             * @brief A const reference on the array of input edges. Useful for iterating on the edges.
-             * @return const reference to input edge array
-             */
-            inline const spider::vector<Edge *> &inputEdgeVector() const { return inputEdgeVector_; };
-
-            /**
-             * @brief Get input edge connected to port Ix.
-             * @param ix Index of the input port.
-             * @return @refitem Spider::PiSDF::Edge
-             * @throw @refitem Spider::Exception if out of bound
-             */
-            inline Edge *inputEdge(size_t ix) const { return inputEdgeVector_.at(ix); };
-
-            /**
-             * @brief Get the number of input edges connected to the vertex.
-             * @return number of input edges.
-             */
-            inline size_t inputEdgeCount() const { return inputEdgeVector_.size(); };
-
-            /**
-             * @brief A const reference on the array of output edges. Useful for iterating on the edges.
-             * @return const reference to output edge array.
-             */
-            inline const spider::vector<Edge *> &outputEdgeVector() const { return outputEdgeVector_; };
-
-            /**
-             * @brief Get input edge connected to port Ix.
-             * @param ix Index of the output port.
-             * @return @refitem Spider::PiSDF::Edge
-             * @throw @refitem Spider::Exception if out of bound.
-             */
-            inline Edge *outputEdge(size_t ix) const { return outputEdgeVector_.at(ix); };
-
-            /**
-             * @brief Get the number of output edges connected to the vertex.
-             * @return number of output edges.
-             */
-            inline size_t outputEdgeCount() const { return outputEdgeVector_.size(); };
 
             /**
              * @brief A const reference on the vector of refinement input params.
@@ -302,20 +215,6 @@ namespace spider {
             /* === Setter(s) === */
 
             /**
-             * @brief Set the name of the vertex.
-             * @remark This method will replace current name of the vertex.
-             * @warning No check on the name is performed to see if it is unique in the graph.
-             * @param name  Name to set.
-             */
-            inline void setName(std::string name) { name_ = std::move(name); };
-
-            /**
-             * @brief Set the ix of the vertex in the containing graph.
-             * @param ix Ix to set.
-             */
-            inline void setIx(size_t ix) { ix_ = ix; };
-
-            /**
              * @brief Set the repetition vector value of the vertex;
              * @param value Repetition value to set.
              */
@@ -343,15 +242,11 @@ namespace spider {
             void setInstanceValue(size_t value);
 
         protected:
-            std::string name_ = "unnamed-vertex";                  /* = Name of the Vertex (uniqueness is not required) = */
-            vector<Edge *> inputEdgeVector_;                       /* = Vector of input Edge = */
-            vector<Edge *> outputEdgeVector_;                      /* = Vector of output Edge = */
             vector<std::shared_ptr<Param>> inputParamVector_;      /* = Vector of input Params = */
             vector<std::shared_ptr<Param>> refinementParamVector_; /* = Vector of refinement Params = */
             vector<std::shared_ptr<Param>> outputParamVector_;     /* = Vector of output Params = */
             std::shared_ptr<RTInfo> rtInformation_;                /* = Runtime information of the Vertex (timing, mappable, etc.) = */
             Graph *graph_ = nullptr;                               /* = Containing Graph of the Vertex (can be nullptr) = */
-            size_t ix_ = SIZE_MAX;                                 /* = Index of the Vertex in the containing Graph = */
             const Vertex *reference_ = this;   /* =
                                                 * Pointer to the reference Vertex.
                                                 * Default is this, in case of copy, point to the original Vertex.

@@ -45,33 +45,10 @@
 #include <graphs/pisdf/Param.h>
 #include <graphs/pisdf/Graph.h>
 
-/* === Static function(s) === */
-
-static spider::pisdf::Edge *disconnectEdge(spider::vector<spider::pisdf::Edge *> &edges, size_t ix) {
-    auto *&edge = edges.at(ix);
-    spider::pisdf::Edge *ret = edge;
-    if (edge) {
-        edge = nullptr;
-    }
-    return ret;
-}
-
-static void connectEdge(spider::vector<spider::pisdf::Edge *> &edges, spider::pisdf::Edge *edge, size_t ix) {
-    auto *&current = edges.at(ix);
-    if (!current) {
-        current = edge;
-        return;
-    }
-    throwSpiderException("Edge already exists at position: %zu", ix);
-}
-
-
 /* === Function(s) definition === */
 
 spider::pisdf::Vertex::Vertex(VertexType type, std::string name, size_t edgeINCount, size_t edgeOUTCount) :
-        name_{ std::move(name) },
-        inputEdgeVector_{ sbc::vector < Edge * , StackID::PISDF > { edgeINCount, nullptr }},
-        outputEdgeVector_{ sbc::vector < Edge * , StackID::PISDF > { edgeOUTCount, nullptr }},
+        AbstractVertex<pisdf::Edge>(stack_t < StackID::PISDF > { }, std::move(name), edgeINCount, edgeOUTCount),
         inputParamVector_{ sbc::vector < std::shared_ptr<Param>, StackID::PISDF > { }},
         refinementParamVector_{ sbc::vector < std::shared_ptr<Param>, StackID::PISDF > { }},
         outputParamVector_{ sbc::vector < std::shared_ptr<Param>, StackID::PISDF > { }},
@@ -101,32 +78,6 @@ void spider::pisdf::Vertex::setAsReference(Vertex *clone) {
     clone->outputParamVector_.reserve(this->outputParamVector_.size());
 }
 
-void spider::pisdf::Vertex::connectInputEdge(Edge *edge, size_t ix) {
-    connectEdge(inputEdgeVector_, edge, ix);
-}
-
-void spider::pisdf::Vertex::connectOutputEdge(Edge *edge, size_t pos) {
-    connectEdge(outputEdgeVector_, edge, pos);
-}
-
-spider::pisdf::Edge *spider::pisdf::Vertex::disconnectInputEdge(size_t ix) {
-    auto *edge = disconnectEdge(inputEdgeVector_, ix);
-    if (edge) {
-        /* == Reset the Edge == */
-        edge->setSink(nullptr, SIZE_MAX, Expression());
-    }
-    return edge;
-}
-
-spider::pisdf::Edge *spider::pisdf::Vertex::disconnectOutputEdge(size_t ix) {
-    auto *edge = disconnectEdge(outputEdgeVector_, ix);
-    if (edge) {
-        /* == Reset the Edge == */
-        edge->setSource(nullptr, SIZE_MAX, Expression());
-    }
-    return edge;
-}
-
 void spider::pisdf::Vertex::addInputParameter(std::shared_ptr<Param> param) {
     if (subtype_ != VertexType::GRAPH) {
         inputParamVector_.emplace_back(std::move(param));
@@ -144,10 +95,6 @@ void spider::pisdf::Vertex::addRefinementParameter(std::shared_ptr<Param> param)
     if (subtype_ != VertexType::GRAPH) {
         refinementParamVector_.emplace_back(std::move(param));
     }
-}
-
-const std::string &spider::pisdf::Vertex::name() const {
-    return name_;
 }
 
 std::string spider::pisdf::Vertex::vertexPath() const {

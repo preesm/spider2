@@ -119,8 +119,8 @@ TEST_F(pisdfInterfaceTest, usageTest) {
     top->addEdge(e1);
     ASSERT_EQ(input->inputEdge(), e0) << "inputEdge of input interface failed";
     ASSERT_EQ(output->outputEdge(), e1) << "outputEdge of output interface failed";
-    ASSERT_EQ(input->outputEdge(), graph->edges()[0]) << "outputEdge of input interface failed";
-    ASSERT_EQ(output->inputEdge(), graph->edges()[1]) << "inputEdge of input interface failed";
+    ASSERT_EQ(input->outputEdge(), graph->edges()[0].get()) << "outputEdge of input interface failed";
+    ASSERT_EQ(output->inputEdge(), graph->edges()[1].get()) << "inputEdge of input interface failed";
     ASSERT_THROW(input->connectInputEdge(nullptr, 0), spider::Exception)
                                 << "input interface can not have input edge connected to it.";
     ASSERT_THROW(output->connectOutputEdge(nullptr, 0), spider::Exception)

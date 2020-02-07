@@ -93,31 +93,31 @@ void testExecutable() {
 void testType() {
     ASSERT_EQ((spider::pisdf::ExecVertex().subtype()), spider::pisdf::VertexType::NORMAL)
                                 << "ExecVertex::subtype() should be VertexType::NORMAL.";
-    ASSERT_EQ((spider::pisdf::ExecVertex(spider::pisdf::VertexType::FORK).subtype()),
+    ASSERT_EQ((spider::pisdf::ExecVertex(spider::pisdf::VertexType::FORK, "", 1).subtype()),
               spider::pisdf::VertexType::FORK)
                                 << "ForkVertex::subtype() should be VertexType::FORK.";
-    ASSERT_EQ((spider::pisdf::ExecVertex(spider::pisdf::VertexType::JOIN).subtype()),
+    ASSERT_EQ((spider::pisdf::ExecVertex(spider::pisdf::VertexType::JOIN, "", 0, 1).subtype()),
               spider::pisdf::VertexType::JOIN)
                                 << "JoinVertex::subtype() should be VertexType::JOIN.";
-    ASSERT_EQ((spider::pisdf::ExecVertex(spider::pisdf::VertexType::HEAD).subtype()),
+    ASSERT_EQ((spider::pisdf::ExecVertex(spider::pisdf::VertexType::HEAD, "", 0, 1).subtype()),
               spider::pisdf::VertexType::HEAD)
                                 << "HeadVertex::subtype() should be VertexType::HEAD.";
-    ASSERT_EQ((spider::pisdf::ExecVertex(spider::pisdf::VertexType::TAIL).subtype()),
+    ASSERT_EQ((spider::pisdf::ExecVertex(spider::pisdf::VertexType::TAIL, "", 0, 1).subtype()),
               spider::pisdf::VertexType::TAIL)
                                 << "TailVertex::subtype() should be VertexType::TAIL.";
     ASSERT_EQ((spider::pisdf::ExecVertex(spider::pisdf::VertexType::CONFIG).subtype()),
               spider::pisdf::VertexType::CONFIG)
                                 << "ConfigVertex::subtype() should be VertexType::CONFIG.";
-    ASSERT_EQ((spider::pisdf::ExecVertex(spider::pisdf::VertexType::REPEAT).subtype()),
+    ASSERT_EQ((spider::pisdf::ExecVertex(spider::pisdf::VertexType::REPEAT, "", 1, 1).subtype()),
               spider::pisdf::VertexType::REPEAT)
                                 << "RepeatVertex::subtype() should be VertexType::REPEAT.";
-    ASSERT_EQ((spider::pisdf::ExecVertex(spider::pisdf::VertexType::DUPLICATE).subtype()),
+    ASSERT_EQ((spider::pisdf::ExecVertex(spider::pisdf::VertexType::DUPLICATE, "", 1, 0).subtype()),
               spider::pisdf::VertexType::DUPLICATE)
                                 << "DuplicateVertex::subtype() should be VertexType::DUPLICATE.";
-    ASSERT_EQ((spider::pisdf::ExecVertex(spider::pisdf::VertexType::INIT).subtype()),
+    ASSERT_EQ((spider::pisdf::ExecVertex(spider::pisdf::VertexType::INIT, "", 0, 1).subtype()),
               spider::pisdf::VertexType::INIT)
                                 << "InitVertex::subtype() should be VertexType::INIT.";
-    ASSERT_EQ((spider::pisdf::ExecVertex(spider::pisdf::VertexType::END).subtype()),
+    ASSERT_EQ((spider::pisdf::ExecVertex(spider::pisdf::VertexType::END, "", 1, 0).subtype()),
               spider::pisdf::VertexType::END)
                                 << "EndVertex::subtype() should be VertexType::END.";
     ASSERT_EQ((spider::pisdf::Interface(spider::pisdf::VertexType::INPUT).subtype()), spider::pisdf::VertexType::INPUT)
@@ -127,7 +127,7 @@ void testType() {
                                 << "OutputInterface::subtype() should be VertexType::OUTPUT.";
     ASSERT_EQ((spider::pisdf::Graph().subtype()), spider::pisdf::VertexType::GRAPH)
                                 << "Graph::subtype() should be VertexType::GRAPH.";
-    ASSERT_EQ((spider::pisdf::ExecVertex(spider::pisdf::VertexType::DELAY).subtype()),
+    ASSERT_EQ((spider::pisdf::ExecVertex(spider::pisdf::VertexType::DELAY, "", 1, 1).subtype()),
               spider::pisdf::VertexType::DELAY)
                                 << "DelayVertex::subtype() should be VertexType::DELAY.";
 }
@@ -154,7 +154,7 @@ TEST_F(pisdVertexTest, vertexTest) {
         delete v;
     }
     {
-        auto *v = new spider::pisdf::ExecVertex(spider::pisdf::VertexType::DELAY);
+        auto *v = new spider::pisdf::ExecVertex(spider::pisdf::VertexType::DELAY, "", 1, 1);
         ASSERT_THROW(v->setRepetitionValue(2), spider::Exception)
                                     << "DelayVertex::setRepetitionValue() should throw if value > 1";
         ASSERT_NO_THROW(v->setRepetitionValue(1)) << "DelayVertex::setRepetitionValue() should not throw if value == 1";
