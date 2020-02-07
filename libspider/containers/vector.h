@@ -52,6 +52,14 @@ namespace spider {
     template<class T, class alloc = spider::allocator<T>>
     using vector = std::vector<T, alloc>;
 
+    template<class T>
+    inline void out_of_order_erase(spider::vector<T> &v, size_t pos) {
+        if (pos != (v.size() - 1)) {
+            v[pos] = std::move(v.back());
+        }
+        v.pop_back();
+    }
+
     namespace factory {
 
         template<class T>
@@ -131,11 +139,11 @@ namespace spider {
             /* === Conversion from other stack == */
 
             template<StackID otherStack>
-            vector(vector<T, otherStack> &&other) noexcept :
+            explicit vector(vector<T, otherStack> &&other) noexcept :
                     std::vector<T, spider::allocator<T>>{ std::move(other), spider::allocator<T>(stack) } { }
 
             template<StackID otherStack>
-            vector(const vector<T, otherStack> &other) noexcept :
+            explicit vector(const vector<T, otherStack> &other) noexcept :
                     std::vector<T, spider::allocator<T>>{ other, spider::allocator<T>(stack) } { }
 
         };
