@@ -48,6 +48,7 @@
 #include <memory/memory.h>
 #include <memory/unique_ptr.h>
 #include <graphs/pisdf/Delay.h>
+#include <graphs/abstract/AbstractEdge.h>
 #include <graphs-tools/expression-parser/Expression.h>
 
 namespace spider {
@@ -59,21 +60,15 @@ namespace spider {
 
         /* === Class definition === */
 
-        class Edge {
+        class Edge : public AbstractEdge<pisdf::Vertex, pisdf::Edge> {
         public:
 
             Edge(Vertex *source, size_t srcIx, Expression srcExpr,
                  Vertex *sink, size_t snkIx, Expression snkExpr);
 
-            ~Edge() noexcept = default;
+            ~Edge() noexcept override = default;
 
             /* === Method(s) === */
-
-            /**
-             * @brief Build and return a name of the edge.
-             * @return Name of the edge in format "#source -> #sink"
-             */
-            std::string name() const;
 
             /* === Getter(s) === */
 
@@ -84,74 +79,6 @@ namespace spider {
             Graph *graph() const;
 
             /**
-             * @brief Get the ix of the edge in the containing graph.
-             * @return ix of the edge (SIZE_MAX if no ix).
-             */
-            inline size_t ix() const {
-                return ix_;
-            }
-
-            /**
-             * @brief Get the source port ix of the edge
-             * @return source port ix
-             */
-            inline size_t sourcePortIx() const {
-                return srcPortIx_;
-            }
-
-            /**
-             * @brief Get the sink port ix of the edge
-             * @return sink port ix
-             */
-            inline size_t sinkPortIx() const {
-                return snkPortIx_;
-            }
-
-            /**
-             * @brief Evaluate the expression rate of the source.
-             * @return @refitem Expression of the source rate .
-             */
-            inline const Expression &sourceRateExpression() const {
-                return srcExpression_;
-            }
-
-            /**
-             * @brief Evaluates the sourceRateExpression with source input param.
-             * @return value of the source rate expression.
-             */
-            int64_t sourceRateValue() const;
-
-            /**
-             * @brief Evaluate the expression rate of the sink.
-             * @return @refitem Expression of the sink rate.
-             */
-            inline const Expression &sinkRateExpression() const {
-                return snkExpression_;
-            }
-
-            /**
-             * @brief Evaluates the sinkRateExpression with source input param.
-             * @return value of the sink rate expression.
-             */
-            int64_t sinkRateValue() const;
-
-            /**
-             * @brief Get the source reference vertex.
-             * @return reference to source
-             */
-            inline Vertex *source() const {
-                return src_;
-            }
-
-            /**
-             * @brief Get the sink reference vertex.
-             * @return reference to sink
-             */
-            inline Vertex *sink() const {
-                return snk_;
-            }
-
-            /**
              * @brief Get the delay (if any) associated to the edge.
              * @return @refitem PiSDFDelay of the edge.
              */
@@ -160,49 +87,13 @@ namespace spider {
             /* === Setter(s) === */
 
             /**
-             * @brief Set the ix of the edge in the containing graph.
-             * @remark This method will override current value.
-             * @param ix Ix to set.
-             */
-            inline void setIx(size_t ix) {
-                ix_ = ix;
-            }
-
-            /**
-             * @brief Set the source vertex of the edge.
-             * @remark This method disconnect any previous connected edge on vertex and disconnect current source.
-             * @param vertex  Vertex to connect to.
-             * @param ix      Output port ix.
-             * @param expr    Expression of the rate.
-             * @return pointer to the old output @refitem Edge of vertex, nullptr else.
-             */
-            void setSource(Vertex *vertex, size_t ix, Expression expr);
-
-            /**
-             * @brief Set the sink vertex of the edge.
-             * @remark This method disconnect any previous connected edge on vertex and disconnect current sink.
-             * @param vertex  Vertex to connect to.
-             * @param ix      Input port ix.
-             * @param expr    Expression of the rate.
-             * @return pointer to the old input @refitem Edge of vertex, nullptr else.
-             */
-            void setSink(Vertex *vertex, size_t ix, Expression expr);
-
-            /**
              * @brief
              * @param delay
              */
             void setDelay(Delay *delay);
 
         private:
-            Expression srcExpression_;            /* = Expression of the source rate of the Edge = */
-            Expression snkExpression_;            /* = Expression of the sink rate of the Edge = */
-            Vertex *src_ = nullptr;               /* = Pointer to the source Vertex (if any) = */
-            Vertex *snk_ = nullptr;               /* = Pointer to the sink Vertex (if any) = */
-            unique_ptr<Delay> delay_;             /* = Pointer to Delay associated to the Edge (if any) = */
-            size_t ix_ = SIZE_MAX;                /* = Index of the Edge in the Graph (used for add and remove) = */
-            size_t srcPortIx_ = SIZE_MAX;         /* = Index of the Edge in the source outputEdgeArray = */
-            size_t snkPortIx_ = SIZE_MAX;         /* = Index of the Edge in the sink inputEdgeArray = */
+            unique_ptr<Delay> delay_; /* = Pointer to Delay associated to the Edge (if any) = */
         };
     }
 }

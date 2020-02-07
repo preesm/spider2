@@ -52,25 +52,11 @@
 /* === Method(s) implementation === */
 
 spider::pisdf::Edge::Edge(Vertex *source, size_t srcIx, Expression srcExpr,
-                          Vertex *sink, size_t snkIx, Expression snkExpr) : srcExpression_{ std::move(srcExpr) },
-                                                                            snkExpression_{ std::move(snkExpr) },
-                                                                            src_{ source },
-                                                                            snk_{ sink },
-                                                                            srcPortIx_{ srcIx },
-                                                                            snkPortIx_{ snkIx } {
-    if (!source || !sink) {
-        throwSpiderException("nullptr vertex connected to Edge.");
-    }
-    if (source->graph() != sink->graph()) {
-        throwSpiderException("Can not create edge between [%s] and [%s]: not in the same graph.",
-                             source->name().c_str(), sink->name().c_str());
-    }
-    source->connectOutputEdge(this, srcIx);
-    sink->connectInputEdge(this, snkIx);
-}
-
-std::string spider::pisdf::Edge::name() const {
-    return "edge_" + src_->name() + "-" + snk_->name();
+                          Vertex *sink, size_t snkIx, Expression snkExpr) :
+        AbstractEdge<Vertex, Edge>(source, srcIx,
+                                   std::move(srcExpr),
+                                   sink, snkIx,
+                                   std::move(snkExpr)) {
 }
 
 spider::pisdf::Graph *spider::pisdf::Edge::graph() const {
@@ -78,62 +64,6 @@ spider::pisdf::Graph *spider::pisdf::Edge::graph() const {
         return src_->graph();
     }
     return snk_ ? snk_->graph() : nullptr;
-}
-
-int64_t spider::pisdf::Edge::sourceRateValue() const {
-    return src_ ? srcExpression_.evaluate(src_->inputParamVector()) : 0;
-}
-
-int64_t spider::pisdf::Edge::sinkRateValue() const {
-    return snk_ ? snkExpression_.evaluate(snk_->inputParamVector()) : 0;
-}
-
-void spider::pisdf::Edge::setSource(Vertex *vertex, size_t ix, Expression expr) {
-    if (vertex) {
-        if (snk_ && vertex->graph() != snk_->graph()) {
-            throwSpiderException("Can not set edge between [%s] and [%s]: not in the same graph.",
-                                 vertex->name().c_str(), snk_->name().c_str());
-        }
-        /* == Disconnect current output edge (if any) == */
-        vertex->disconnectOutputEdge(ix);
-
-        /* == Connect this edge == */
-        vertex->connectOutputEdge(this, ix);
-    }
-
-    /* == Disconnect current src (if any) == */
-    if (src_) {
-        src_->disconnectOutputEdge(srcPortIx_);
-    }
-
-    /* == Set source of this edge == */
-    src_ = vertex;
-    srcPortIx_ = ix;
-    srcExpression_ = std::move(expr);
-}
-
-void spider::pisdf::Edge::setSink(Vertex *vertex, size_t ix, Expression expr) {
-    if (vertex) {
-        if (src_ && vertex->graph() != src_->graph()) {
-            throwSpiderException("Can not set edge between [%s] and [%s]: not in the same graph.",
-                                 src_->name().c_str(), vertex->name().c_str());
-        }
-        /* == Disconnect current input edge (if any) == */
-        vertex->disconnectInputEdge(ix);
-
-        /* == Connect this edge == */
-        vertex->connectInputEdge(this, ix);
-    }
-
-    /* == Disconnect current snk_ (if any) == */
-    if (snk_) {
-        snk_->disconnectInputEdge(snkPortIx_);
-    }
-
-    /* == Set sink of this edge == */
-    snk_ = vertex;
-    snkPortIx_ = ix;
-    snkExpression_ = std::move(expr);
 }
 
 spider::pisdf::Delay *spider::pisdf::Edge::delay() const {

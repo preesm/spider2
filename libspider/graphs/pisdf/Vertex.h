@@ -74,7 +74,7 @@ namespace spider {
 
             Vertex &operator=(const Vertex &) = delete;
 
-            virtual ~Vertex() noexcept;
+            ~Vertex() noexcept override;
 
             /* === Method(s) === */
 
