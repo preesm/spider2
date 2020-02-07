@@ -58,6 +58,10 @@ namespace spider {
 
         /* === Class definition === */
 
+        struct VertexProperties {
+
+        };
+
         class Vertex {
         public:
 
@@ -83,6 +87,12 @@ namespace spider {
              * @param visitor  Pointer to the visitor to accept.
              */
             virtual void visit(Visitor *visitor);
+
+            /**
+             * @brief Initialize an empty clone to reserve vector sizes.
+             * @param clone  Pointer to the clone.
+             */
+            void setAsReference(Vertex *clone);
 
             /**
              * @brief Connect an input edge at given position.
@@ -120,21 +130,21 @@ namespace spider {
              * @brief Add an input parameter to the Vertex.
              * @param param  Pointer to the parameter to add.
              */
-            virtual void addInputParameter(std::shared_ptr<Param> param);
+            void addInputParameter(std::shared_ptr<Param> param);
 
             /**
              * @brief Add an input parameter for the refinement of the Vertex.
              * @warning a separate call to addInputParameter is needed.
              * @param param  Pointer to the parameter to add.
              */
-            virtual void addRefinementParameter(std::shared_ptr<Param> param);
+            void addRefinementParameter(std::shared_ptr<Param> param);
 
             /**
              * @brief Add an output parameter to the Vertex.
              * @param param  Pointer to the parameter to add.
              * @throw spider::Exception if subtype() is not @refitem VertexType::CONFIG.
              */
-            virtual void addOutputParameter(std::shared_ptr<Param> param);
+            void addOutputParameter(std::shared_ptr<Param> param);
 
             /**
              * @brief Get the complete path of the Vertex.
@@ -355,12 +365,6 @@ namespace spider {
             uint32_t repetitionValue_ = 1;     /* = Repetition value of the Vertex, default is 1 but it can be set to 0. = */
             mutable uint32_t copyCount_ = 0;   /* = Number of copy of the Vertex = */
             VertexType subtype_ = VertexType::NORMAL;
-
-            /**
-             * @brief Initialize an empty clone to reserve vector sizes.
-             * @param clone  Pointer to the clone.
-             */
-            void initializeEmptyClone(Vertex *clone);
 
             /**
              * @brief Verify that VertexType and vertex properties are coherent.

@@ -90,6 +90,17 @@ void spider::pisdf::Vertex::visit(Visitor *visitor) {
     visitor->visit(this);
 }
 
+void spider::pisdf::Vertex::setAsReference(Vertex *clone) {
+    clone->inputEdgeVector_.resize(this->inputEdgeVector_.size(), nullptr);
+    clone->outputEdgeVector_.resize(this->outputEdgeVector_.size(), nullptr);
+    clone->reference_ = this;
+    this->copyCount_++;
+    clone->rtInformation_ = this->rtInformation_;
+    clone->inputParamVector_.reserve(this->inputParamVector_.size());
+    clone->refinementParamVector_.reserve(this->refinementParamVector_.size());
+    clone->outputParamVector_.reserve(this->outputParamVector_.size());
+}
+
 void spider::pisdf::Vertex::connectInputEdge(Edge *edge, size_t ix) {
     connectEdge(inputEdgeVector_, edge, ix);
 }
@@ -117,7 +128,9 @@ spider::pisdf::Edge *spider::pisdf::Vertex::disconnectOutputEdge(size_t ix) {
 }
 
 void spider::pisdf::Vertex::addInputParameter(std::shared_ptr<Param> param) {
-    inputParamVector_.emplace_back(std::move(param));
+    if (subtype_ != VertexType::GRAPH) {
+        inputParamVector_.emplace_back(std::move(param));
+    }
 }
 
 void spider::pisdf::Vertex::addOutputParameter(std::shared_ptr<Param> param) {
@@ -128,7 +141,9 @@ void spider::pisdf::Vertex::addOutputParameter(std::shared_ptr<Param> param) {
 }
 
 void spider::pisdf::Vertex::addRefinementParameter(std::shared_ptr<Param> param) {
-    refinementParamVector_.emplace_back(std::move(param));
+    if (subtype_ != VertexType::GRAPH) {
+        refinementParamVector_.emplace_back(std::move(param));
+    }
 }
 
 const std::string &spider::pisdf::Vertex::name() const {
@@ -163,17 +178,6 @@ void spider::pisdf::Vertex::setInstanceValue(size_t value) {
 }
 
 /* === Protected method(s) === */
-
-void spider::pisdf::Vertex::initializeEmptyClone(spider::pisdf::Vertex *clone) {
-    clone->inputEdgeVector_.resize(this->inputEdgeVector_.size(), nullptr);
-    clone->outputEdgeVector_.resize(this->outputEdgeVector_.size(), nullptr);
-    clone->reference_ = this;
-    this->copyCount_++;
-    clone->rtInformation_ = this->rtInformation_;
-    clone->inputParamVector_.reserve(this->inputParamVector_.size());
-    clone->refinementParamVector_.reserve(this->refinementParamVector_.size());
-    clone->outputParamVector_.reserve(this->outputParamVector_.size());
-}
 
 void spider::pisdf::Vertex::checkTypeConsistency() const {
     switch (subtype_) {
