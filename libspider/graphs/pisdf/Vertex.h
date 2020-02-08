@@ -59,7 +59,7 @@ namespace spider {
 
         /* === Class definition === */
 
-        class Vertex : public AbstractVertex<pisdf::Edge> {
+        class Vertex : public AbstractVertex<pisdf::Graph, pisdf::Edge> {
         public:
 
             explicit Vertex(VertexType type, std::string name, size_t edgeINCount = 0, size_t edgeOUTCount = 0);
@@ -120,12 +120,6 @@ namespace spider {
             std::string vertexPath() const;
 
             /* === Getter(s) === */
-
-            /**
-             * @brief Get the containing @refitem Graph of the vertex.
-             * @return containing @refitem Graph
-             */
-            inline Graph *graph() const { return graph_; };
 
             /**
              * @brief Get the subtype of the vertex.
@@ -221,14 +215,6 @@ namespace spider {
             virtual void setRepetitionValue(uint32_t value);
 
             /**
-             * @brief Set the graph of the vertex.
-             * @remark This method changes current value.
-             * @remark If graph is nullptr, nothing happen.
-             * @param graph  Graph to set.
-             */
-            virtual void setGraph(Graph *graph);
-
-            /**
              * @brief Set the schedule job ix of the vertex.
              * @param ix  Ix to set.
              */
@@ -246,7 +232,6 @@ namespace spider {
             vector<std::shared_ptr<Param>> refinementParamVector_; /* = Vector of refinement Params = */
             vector<std::shared_ptr<Param>> outputParamVector_;     /* = Vector of output Params = */
             std::shared_ptr<RTInfo> rtInformation_;                /* = Runtime information of the Vertex (timing, mappable, etc.) = */
-            Graph *graph_ = nullptr;                               /* = Containing Graph of the Vertex (can be nullptr) = */
             const Vertex *reference_ = this;   /* =
                                                 * Pointer to the reference Vertex.
                                                 * Default is this, in case of copy, point to the original Vertex.

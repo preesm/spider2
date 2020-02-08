@@ -46,6 +46,7 @@
 #include <cstdint>
 #include <memory/unique_ptr.h>
 #include <common/Exception.h>
+#include <graphs/abstract/AbstractGraph.h>
 #include <graphs/pisdf/ExecVertex.h>
 #include <graphs/pisdf/Interface.h>
 #include <graphs/pisdf/Edge.h>
@@ -57,7 +58,7 @@ namespace spider {
 
         /* === Class definition === */
 
-        class Graph final : public Vertex {
+        class Graph : public AbstractGraph<pisdf::Graph, pisdf::Vertex, pisdf::Edge>, public Vertex {
         public:
 
             explicit Graph(std::string name = "unnamed-graph",
@@ -85,7 +86,31 @@ namespace spider {
             /**
              * @brief Clears a graph without destroying it.
              */
-            void clear();
+            void clear() override;
+
+            /**
+             * @brief Add a vertex to the graph.
+             * @param vertex Vertex to add.
+             */
+            void addVertex(Vertex *vertex) override;
+
+            /**
+             * @brief Remove a vertex from the graph.
+             * @remark If vertex is nullptr, nothing happens.
+             * @param vertex Vertex to remove.
+             * @throw @refitem Spider::Exception if vertex does not exist in the graph.
+             */
+            void removeVertex(Vertex *vertex) override;
+
+            /**
+             * @brief Move vertex ownership from this graph to another graph.
+             * @remark If graph or vertex is nullptr, nothing happen.
+             * @param elt    Vertex to move.
+             * @param graph  Graph to move to.
+             * @throws spider::Exception if failed to remove vertex from current graph or failed to add it to new graph.
+             * Be aware that in the latter case the vertex has already been removed from the graph.
+             */
+            void moveVertex(Vertex *vertex, Graph *graph) override;
 
             /**
              * @brief Override automatic property of Graph.
@@ -110,59 +135,10 @@ namespace spider {
             void addOutputInterface(Interface *interface);
 
             /**
-             * @brief Add a vertex to the graph.
-             * @param vertex Vertex to add.
-             */
-            void addVertex(Vertex *vertex);
-
-            /**
-             * @brief Remove a vertex from the graph.
-             * @remark If vertex is nullptr, nothing happens.
-             * @param vertex Vertex to remove.
-             * @throw @refitem Spider::Exception if vertex does not exist in the graph.
-             */
-            void removeVertex(Vertex *vertex);
-
-            /**
-             * @brief Add an edge to the graph.
-             * @param edge Edge to add.
-             */
-            void addEdge(Edge *edge);
-
-            /**
-             * @brief Remove an edge from the graph.
-             * @remark If edge is nullptr, nothing happens.
-             * @param edge Edge to remove.
-             * @throw @refitem Spider::Exception if edge does not exist in the graph.
-             */
-            void removeEdge(Edge *edge);
-
-            /**
              * @brief Add an param to the graph.
              * @param param Param to add.
              */
             void addParam(std::shared_ptr<Param> param);
-
-            /**
-             * @brief Move vertex ownership from this graph to another graph.
-             * @remark If graph or vertex is nullptr, nothing happen.
-             * @param elt    Vertex to move.
-             * @param graph  Graph to move to.
-             * @throws spider::Exception if failed to remove vertex from current graph or failed to add it to new graph.
-             * Be aware that in the latter case the vertex has already been removed from the graph.
-             */
-            void moveVertex(Vertex *elt, Graph *graph);
-
-            /**
-             * @brief Move edge ownership from this graph to another graph.
-             * @remark If graph or edge is nullptr, nothing happen.
-             * @warning This method simply moves ownership of the Edge, no check on src / snk are performed.
-             * @param elt    Edge to move.
-             * @param graph  Graph to move to.
-             * @throws spider::Exception if failed to remove edge from current graph or failed to add it to new graph.
-             * Be aware that in the latter case the edge has already been removed from the graph.
-             */
-            void moveEdge(Edge *elt, Graph *graph);
 
             /**
              * @brief Search for a parameter from its name.
@@ -194,28 +170,11 @@ namespace spider {
             }
 
             /**
-             * @brief Get the number of vertices in the graph.
-             * @remark This method exclude the number of interfaces and the number of config actors.
-             * @return Total number of vertices.
-             */
-            inline size_t vertexCount() const {
-                return vertexVector_.size();
-            }
-
-            /**
              * @brief Get the number of config actors in the graph.
              * @return Total number of config actors.
              */
             inline size_t configVertexCount() const {
                 return configVertexVector_.size();
-            }
-
-            /**
-             * @brief Get the number of edges contained in the graph.
-             * @return Number of edges.
-             */
-            inline size_t edgeCount() const {
-                return edgeVector_.size();
             }
 
             /**
@@ -232,14 +191,6 @@ namespace spider {
              */
             inline size_t subgraphCount() const {
                 return subgraphVector_.size();
-            }
-
-            /**
-            * @brief A const reference on the set of vertices. Useful for iterating on the vertices.
-            * @return const reference to exec vertex vector
-            */
-            inline const vector<spider::unique_ptr<Vertex>> &vertices() const {
-                return vertexVector_;
             }
 
             /**
@@ -275,14 +226,6 @@ namespace spider {
             }
 
             /**
-            * @brief A const reference on the set of edges. Useful for iterating on the edges.
-            * @return const reference to edge vector
-            */
-            inline const vector<unique_ptr<Edge>> &edges() const {
-                return edgeVector_;
-            }
-
-            /**
             * @brief A const reference on the set of params. Useful for iterating on the params.
             * @return const reference to param vector
             */
@@ -298,16 +241,6 @@ namespace spider {
              */
             inline Param *param(size_t ix) const {
                 return paramVector_[ix].get();
-            }
-
-            /**
-             * @brief Return the vertex corresponding to the ix.
-             * @warning This method does not check for out of bound error.
-             * @param ix  Ix of the vertex.
-             * @return @refitem Vertex pointer
-             */
-            inline Vertex *vertex(size_t ix) const {
-                return vertexVector_[ix].get();
             }
 
             /**
@@ -363,8 +296,6 @@ namespace spider {
             bool setRunGraphReference(const Graph *runGraph);
 
         private:
-            vector<unique_ptr<Vertex>> vertexVector_;               /* = Vector of all the Vertices of the graph = */
-            vector<unique_ptr<Edge>> edgeVector_;                   /* = Vector of Edge contained in the Graph = */
             vector<Vertex *> configVertexVector_;                   /* = Vector of Vertices with VertexType::CONFIG. This is just a "viewer" vector. = */
             vector<Graph *> subgraphVector_;                        /* = Vector of Vertices with VertexType::GRAPH.  This is just a "viewer" vector. = */
             vector<std::shared_ptr<Param>> paramVector_;            /* = Vector of Param = */
@@ -378,22 +309,12 @@ namespace spider {
             size_t subIx_ = SIZE_MAX;  /* = Index of the Graph in containing Graph subgraphVector = */
             bool dynamic_ = false;     /* = Dynamic property of the Graph (false if static, true if dynamic) = */
 
-            /* === Private method(s) === */
-
-            template<class T>
-            void removeNoDestroy(vector<unique_ptr<T>> &eltVector, T *elt);
-
-            template<class T>
-            void removeAndDestroy(vector<unique_ptr<T>> &eltVector, T *elt);
-
-            template<class T>
-            void removeNoDestroy(vector<T *> &eltVector, T *elt);
-
             /* === Private structure(s) === */
 
             struct RemoveSubgraphVisitor;
 
             struct AddSubgraphVisitor;
+
         };
     }
 }

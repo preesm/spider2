@@ -48,7 +48,7 @@
 /* === Function(s) definition === */
 
 spider::pisdf::Vertex::Vertex(VertexType type, std::string name, size_t edgeINCount, size_t edgeOUTCount) :
-        AbstractVertex<pisdf::Edge>(stack_t < StackID::PISDF > { }, std::move(name), edgeINCount, edgeOUTCount),
+        AbstractVertex<Graph, Edge>(stack_t < StackID::PISDF > { }, std::move(name), edgeINCount, edgeOUTCount),
         inputParamVector_{ sbc::vector < std::shared_ptr<Param>, StackID::PISDF > { }},
         refinementParamVector_{ sbc::vector < std::shared_ptr<Param>, StackID::PISDF > { }},
         outputParamVector_{ sbc::vector < std::shared_ptr<Param>, StackID::PISDF > { }},
@@ -109,12 +109,6 @@ void spider::pisdf::Vertex::setRepetitionValue(uint32_t value) {
         throwSpiderException("special vertex [%s] can not have repetition value greater than 1.", name_.c_str());
     }
     repetitionValue_ = value;
-}
-
-void spider::pisdf::Vertex::setGraph(Graph *graph) {
-    if (graph) {
-        graph_ = graph;
-    }
 }
 
 void spider::pisdf::Vertex::setInstanceValue(size_t value) {

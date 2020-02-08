@@ -148,7 +148,7 @@ TEST_F(pisdfDotExporterTest, dotTest) {
     graph_->edges()[0]->setSource(nullptr, UINT32_MAX, spider::Expression());
     ASSERT_THROW(spider::pisdf::PiSDFDOTExporter{ graph_ }.printFromPath("./dot.dot"), spider::Exception)
                                 << "DOTExporter::print() should throw with nullptr output edge.";
-    graph_->edges()[0]->setSource(source, srcPort, spider::Expression(srcExpr));
+    graph_->edges()[0]->setSource(source, srcPort, srcExpr);
     graph_->edges()[0]->setSink(nullptr, UINT32_MAX, spider::Expression());
     ASSERT_THROW(spider::pisdf::PiSDFDOTExporter{ graph_ }.printFromPath("./dot.dot"), spider::Exception)
                                 << "DOTExporter::print() should throw with nullptr input edge.";
