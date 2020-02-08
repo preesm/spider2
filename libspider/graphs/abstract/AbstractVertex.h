@@ -49,12 +49,9 @@
 
 namespace spider {
 
-    template<StackID stack>
-    struct stack_t { };
-
     /* === Class definition === */
 
-    template<class E>
+    template<class G, class E>
     class AbstractVertex {
     public:
         template<StackID stack>
@@ -67,17 +64,17 @@ namespace spider {
 
         AbstractVertex &operator=(AbstractVertex &&) noexcept = default;
 
-        virtual ~AbstractVertex() = default;
+        virtual ~AbstractVertex() noexcept = default;
 
         /* === Method(s) === */
 
         /**
-             * @brief Connect an input edge at given position.
-             * @param edge  Pointer to the edge to connect.
-             * @param pos   Input position where to connect the edge.
-             * @throw @refitem std::out_of_range.
-             * @throw @refitem spider::Exception if an edge already exists at this position.
-             */
+         * @brief Connect an input edge at given position.
+         * @param edge  Pointer to the edge to connect.
+         * @param pos   Input position where to connect the edge.
+         * @throw @refitem std::out_of_range.
+         * @throw @refitem spider::Exception if an edge already exists at this position.
+         */
         virtual inline void connectInputEdge(E *edge, size_t pos) {
             connectEdge(inputEdgeVector_, edge, pos);
         }
@@ -130,15 +127,21 @@ namespace spider {
         inline const std::string &name() const { return name_; };
 
         /**
-      * @brief Get the ix of the vertex in the containing graph.
-      * @return ix of the vertex (UINT32_MAX if no ix).
-      */
+         * @brief Get the ix of the vertex in the containing graph.
+         * @return ix of the vertex (UINT32_MAX if no ix).
+         */
         inline const size_t &ix() const { return ix_; };
 
         /**
-             * @brief A const reference on the array of input edges. Useful for iterating on the edges.
-             * @return const reference to input edge array
-             */
+         * @brief Returns the graph of the vertex (if any)
+         * @return Pointer to the containing graph, nullptr else.
+         */
+        inline G *graph() const { return graph_; }
+
+        /**
+         * @brief A const reference on the array of input edges. Useful for iterating on the edges.
+         * @return const reference to input edge array
+         */
         inline const vector<E *> &inputEdgeVector() const { return inputEdgeVector_; };
 
         /**
@@ -183,18 +186,31 @@ namespace spider {
          * @warning No check on the name is performed to see if it is unique in the graph.
          * @param name  Name to set.
          */
-        inline void setName(std::string name) { name_ = std::move(name); };
+        virtual inline void setName(std::string name) { name_ = std::move(name); };
 
         /**
          * @brief Set the ix of the vertex in the containing graph.
          * @param ix Ix to set.
          */
-        inline void setIx(size_t ix) { ix_ = ix; };
+        virtual inline void setIx(size_t ix) { ix_ = ix; };
+
+        /**
+         * @brief Set the containing graph of the vertex.
+         * @remark override current value.
+         * @remark if graph is nullptr, nothing happens.
+         * @param graph  Pointer to the graph to set.
+         */
+        virtual inline void setGraph(G *graph) {
+            if (graph) {
+                graph_= graph;
+            }
+        }
 
     protected:
         std::string name_ = "unnamed-vertex";  /* = Name of the Vertex (uniqueness is not required) = */
         vector<E *> inputEdgeVector_;          /* = Vector of input Edge = */
         vector<E *> outputEdgeVector_;         /* = Vector of output Edge = */
+        G *graph_ = nullptr;                  /* = Graph of the vertex = */
         size_t ix_ = SIZE_MAX;                 /* = Index of the Vertex in the containing Graph = */
 
         static inline E *disconnectEdge(vector<E *> &edges, size_t ix) {
