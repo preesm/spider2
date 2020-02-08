@@ -52,14 +52,29 @@ namespace spider {
 
     template<class T>
     class unique_ptr {
+        template<class U>
+        struct ptr {
+            using type = U *;
+        };
     public:
+        using pointer = typename ptr<T>::type;
+        using element_type  = T;
+
         constexpr unique_ptr() noexcept : data_{ nullptr } { };
 
         constexpr explicit unique_ptr(nullptr_t) noexcept : data_{ nullptr } { };
 
         explicit unique_ptr(T *value) : data_{ value } { };
 
-        unique_ptr(unique_ptr &&rhs) noexcept : data_{ rhs.release() } { };
+        unique_ptr(unique_ptr &&rhs) noexcept : data_{ rhs.release() } { }
+
+        template<typename U, typename = typename std::_Require<
+                std::is_convertible<typename unique_ptr<U>::pointer, pointer>>>
+        explicit unique_ptr(U *value) : data_{ value } { }
+
+        template<typename U, typename = typename std::_Require<
+                std::is_convertible<typename unique_ptr<U>::pointer, pointer>>>
+        unique_ptr(unique_ptr<U> &&rhs) noexcept : data_{ rhs.release() } { }
 
         ~unique_ptr() {
             destroy(data_);
