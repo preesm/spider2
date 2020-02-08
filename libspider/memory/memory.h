@@ -55,6 +55,9 @@
 
 namespace spider {
 
+    template<StackID stack>
+    struct stack_t { };
+
     /* == Functions used for allocating (constructing) / deallocating(destroying) == */
 
     /**
@@ -138,7 +141,6 @@ namespace spider {
         /* == Deallocate the pointer == */
         auto *stack = stackArray()[static_cast<uint64_t >(stackId)];
         stack->deallocate(originalPtr);
-
     }
 
     /**
@@ -197,18 +199,34 @@ namespace spider {
      * @param ptr   Pointer to the object.
      */
     template<class T>
-    inline void destroy(T *&ptr) {
+    inline
+    typename std::enable_if<std::is_polymorphic<T>::value>::type
+    destroy(T *&ptr) {
+        if (ptr) {
+            /* == Retrieve valid address == */
+            auto *fixedPtr = dynamic_cast<void *>(ptr);
+
+            /* == Destruct the object pointed by ptr == */
+            ptr->~T();
+
+            /* == Deallocate the pointer == */
+            deallocate(fixedPtr);
+
+            /* == Reset pointer to nullptr == */
+            ptr = nullptr;
+        }
+    }
+
+    template<class T>
+    inline
+    typename std::enable_if<std::__not_<std::is_polymorphic<T>>::value>::type
+    destroy(T *&ptr) {
         if (ptr) {
             /* == Destruct the object pointed by ptr == */
             ptr->~T();
 
-            /* == Retrieve stack id == */
-            auto *originalPtr = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(ptr) - sizeof(uint64_t));
-            auto stackId = static_cast<StackID>(reinterpret_cast<uint64_t *>(originalPtr)[0]);
-
             /* == Deallocate the pointer == */
-            auto *stack = stackArray()[static_cast<uint64_t >(stackId)];
-            stack->deallocate(originalPtr);
+            deallocate(ptr);
 
             /* == Reset pointer to nullptr == */
             ptr = nullptr;
