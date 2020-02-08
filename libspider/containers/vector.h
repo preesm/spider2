@@ -53,10 +53,8 @@ namespace spider {
     using vector = std::vector<T, alloc>;
 
     template<class T>
-    inline void out_of_order_erase(spider::vector<T> &v, size_t pos) {
-        if (pos != (v.size() - 1)) {
-            v[pos] = std::move(v.back());
-        }
+    inline void out_of_order_erase(vector<T> &v, size_t pos) {
+        v[pos] = std::move(v.back());
         v.pop_back();
     }
 
