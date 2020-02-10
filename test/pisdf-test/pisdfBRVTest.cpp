@@ -104,7 +104,7 @@ protected:
 
         /* == Creating edges == */
         auto *edge = spider::api::createEdge(vertex_0, 0, 1, vertex_1, 0, 1);
-        spider::api::createDelay(edge, 1);
+        spider::api::createPersistentDelay(edge, "1");
         spider::api::createEdge(vertex_1, 0, "1", subgraph, 0, "2");
         spider::api::createEdge(input, 0, 5, vertex_2, 0, 1);
         spider::api::createEdge(vertex_2, 0, 1, vertex_3, 0, 5);

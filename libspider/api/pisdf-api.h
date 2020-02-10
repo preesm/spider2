@@ -424,56 +424,6 @@ namespace spider {
                                 int64_t snkRate);
 
         /**
-         * @brief Creates a @refitem pisdf::Delay on a @refitem pisdf::Edge.
-         * @remark For more details on the setter/getter and persistence of the delays:
-         *         https://hal.archives-ouvertes.fr/hal-01850252/document
-         * @param edge                  Pointer to the edge the Delay should be created on.
-         * @param delayExpression       Expression of the delay (can be parameterized).
-         * @param setter                Pointer to the setter vertex of the delay (can be nullptr).
-         * @param setterPortIx          Index of the edge in the outputEdgeArray of the setter vertex.
-         * @param setterRateExpression  Expression of the production rate on the edge from the setter to the delay.
-         * @param getter                Pointer to the getter vertex of the delay (can be nullptr).
-         * @param getterPortIx          Index of the edge in the inputEdgeArray of the getter vertex.
-         * @param getterRateExpression  Expression of the consumption rate on the edge from the delay to the getter.
-         * @param persistent            Persistence property of the delay (true = fully persistent, false = non persistent).
-         * @return pointer to the created @refitem pisdf::Delay.
-         */
-        pisdf::Delay *createDelay(pisdf::Edge *edge,
-                                  std::string delayExpression,
-                                  pisdf::ExecVertex *setter = nullptr,
-                                  size_t setterPortIx = 0,
-                                  std::string setterRateExpression = "0",
-                                  pisdf::ExecVertex *getter = nullptr,
-                                  size_t getterPortIx = 0,
-                                  std::string getterRateExpression = "0",
-                                  bool persistent = true);
-
-        /**
-         * @brief Creates a @refitem pisdf::Delay on a @refitem pisdf::Edge.
-         * @remark For more details on the setter/getter and persistence of the delays:
-         *         https://hal.archives-ouvertes.fr/hal-01850252/document
-         * @param edge          Pointer to the edge the Delay should be created on.
-         * @param delayValue    Value of the delay.
-         * @param setter        Pointer to the setter vertex of the delay (can be nullptr).
-         * @param setterPortIx  Index of the edge in the outputEdgeArray of the setter vertex.
-         * @param setterRate    Value of the production rate on the edge from the setter to the delay.
-         * @param getter        Pointer to the getter vertex of the delay (can be nullptr).
-         * @param getterPortIx  Index of the edge in the inputEdgeArray of the getter vertex.
-         * @param getterRate    Value of the consumption rate on the edge from the delay to the getter.
-         * @param persistent    Persistence property of the delay (true = fully persistent, false = non persistent).
-         * @return pointer to the created @refitem pisdf::Delay.
-         */
-        pisdf::Delay *createDelay(pisdf::Edge *edge,
-                                  int64_t delayValue,
-                                  pisdf::ExecVertex *setter = nullptr,
-                                  size_t setterPortIx = 0,
-                                  int64_t setterRate = 0,
-                                  pisdf::ExecVertex *getter = nullptr,
-                                  size_t getterPortIx = 0,
-                                  int64_t getterRate = 0,
-                                  bool persistent = true);
-
-        /**
          * @brief Creates a fully-persistent @refitem pisdf::Delay on a given @refitem pisdf::Edge.
          * @remarks
          * - If the delay is in a hierarchy it will be put up to the top-level.

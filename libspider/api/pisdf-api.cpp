@@ -508,52 +508,7 @@ static spider::Expression checkAndGetExpression(spider::pisdf::Edge *edge, std::
     return expression;
 }
 
-spider::pisdf::Delay *spider::api::createDelay(pisdf::Edge *edge,
-                                               std::string delayExpression,
-                                               pisdf::ExecVertex *setter,
-                                               size_t setterPortIx,
-                                               std::string setterRateExpression,
-                                               pisdf::ExecVertex *getter,
-                                               size_t getterPortIx,
-                                               std::string getterRateExpression,
-                                               bool persistent) {
-    auto expression = checkAndGetExpression(edge, std::move(delayExpression));
-    auto setterExpr = setter ? std::move(setterRateExpression) : std::to_string(expression.value());
-    auto getterExpr = getter ? std::move(getterRateExpression) : std::to_string(expression.value());
-    return make<pisdf::Delay, StackID::PISDF>(
-            std::move(expression),
-            edge,
-            setter,
-            setterPortIx,
-            Expression(std::move(setterExpr), edge->graph()->params()),
-            getter,
-            getterPortIx,
-            Expression(std::move(getterExpr), edge->graph()->params()),
-            persistent);
-}
-
-spider::pisdf::Delay *spider::api::createDelay(pisdf::Edge *edge,
-                                               int64_t value,
-                                               pisdf::ExecVertex *setter,
-                                               size_t setterPortIx,
-                                               int64_t setterRate,
-                                               pisdf::ExecVertex *getter,
-                                               size_t getterPortIx,
-                                               int64_t getterRate,
-                                               bool persistent) {
-    return make<pisdf::Delay, StackID::PISDF>(Expression(value),
-                                              edge,
-                                              setter,
-                                              setterPortIx,
-                                              Expression(setter ? setterRate : value),
-                                              getter,
-                                              getterPortIx,
-                                              Expression(getter ? getterRate : value),
-                                              persistent);
-}
-
-spider::pisdf::Delay *spider::api::createPersistentDelay(spider::pisdf::Edge *edge,
-                                                         std::string delayExpression) {
+spider::pisdf::Delay *spider::api::createPersistentDelay(spider::pisdf::Edge *edge, std::string delayExpression) {
     auto expression = checkAndGetExpression(edge, std::move(delayExpression));
     if (expression.value() == 0 && spider::log::enabled()) {
         spider::log::warning("delay with null value on edge [%s] ignored.\n",
