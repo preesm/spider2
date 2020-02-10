@@ -59,7 +59,7 @@ protected:
 
         auto *x86MemoryInterface = spider::api::createMemoryInterface(20000);
 
-        auto *x86Cluster = spider::api::createCluster(1,  x86MemoryInterface);
+        auto *x86Cluster = spider::api::createCluster(1, x86MemoryInterface);
 
         auto x86PECore0 = spider::api::createProcessingElement(0, 0, x86Cluster, "x86-Core0", spider::PEType::LRT);
 
@@ -92,6 +92,11 @@ TEST_F(pisdfGraphTest, graphTest) {
                                     << "Graph::addParam() should throw for param with same name.";
     }
     graph->addParam(spider::make_shared<spider::pisdf::Param, StackID::PISDF>("height", spider::Expression(1)));
+
+    ASSERT_NO_THROW(graph->addVertex(nullptr)) << "pisdf::Graph::addVertex should not throw for nullptr.";
+    ASSERT_NO_THROW(graph->removeVertex(nullptr)) << "pisdf::Graph::removeVertex should not throw for nullptr.";
+    ASSERT_NO_THROW(graph->addEdge(nullptr)) << "AbstractGraph::addEdge should not throw for nullptr.";
+    ASSERT_NO_THROW(graph->removeEdge(nullptr)) << "AbstractGraph::removeEdge should not throw for nullptr.";
 
     /* == Getter(s) test == */
     ASSERT_EQ(graph->vertexCount(), 0) << "Graph::vertexCount() failed.";

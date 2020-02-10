@@ -119,6 +119,9 @@ namespace spider {
          * @param edge Edge to add.
          */
         virtual inline void addEdge(E *edge) {
+            if (!edge) {
+                return;
+            }
             edge->setIx(edgeVector_.size());
             edgeVector_.emplace_back(edge);
         }
@@ -130,6 +133,9 @@ namespace spider {
          * @throw @refitem Spider::Exception if edge does not exist in the graph.
          */
         virtual inline void removeEdge(E *edge) {
+            if (!edge) {
+                return;
+            }
             /* == Assert that edge is part of the edgeVector_ == */
             assertElement(edge, edgeVector_);
             /* == Reset edge source and sink == */
