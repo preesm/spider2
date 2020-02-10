@@ -48,6 +48,12 @@
 
 namespace spider {
 
+    /* === Forward declaration === */
+
+    class ScheduleTask;
+
+    class ScheduleVertexTask;
+
     /* === Class definition === */
 
     class Scheduler {
@@ -109,6 +115,19 @@ namespace spider {
          * @param vertex Vertex to map.
          */
         virtual void vertexMapper(const pisdf::Vertex *vertex);
+
+        /**
+         * @brief Compute the minimum start time possible for a given vertex.
+         * @param task  Vertex to evaluate.
+         * @return Minimum start time for the vertex.
+         */
+        static uint64_t computeMinStartTime(ScheduleTask *task);
+
+        /**
+         * @brief Default task mapper that try to best fit.
+         * @param task Pointer to the task to map.
+         */
+        virtual void taskMapper(ScheduleVertexTask *task);
     };
 
     /**
@@ -117,6 +136,6 @@ namespace spider {
      * @param graph     Pointer to the graph.
      * @return unique_ptr of the created scheduler.
      */
-    unique_ptr<Scheduler> makeScheduler(SchedulingAlgorithm algorithm, pisdf::Graph *graph);
+    unique_ptr <Scheduler> makeScheduler(SchedulingAlgorithm algorithm, pisdf::Graph *graph);
 }
 #endif //SPIDER2_SCHEDULER_H

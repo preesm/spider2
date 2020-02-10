@@ -45,12 +45,14 @@
 #include <scheduling/scheduler/BestFitScheduler.h>
 #include <scheduling/scheduler/RoundRobinScheduler.h>
 #include <scheduling/allocator/DefaultFifoAllocator.h>
-#include <api/archi-api.h>
-#include <archi/PE.h>
+#include <scheduling/schedule/ScheduleTask.h>
+#include <scheduling/schedule/ScheduleVertexTask.h>
 #include <runtime/interface/Message.h>
 #include <runtime/platform/RTPlatform.h>
-#include <runtime/runner/RTRunner.h>
-#include <api/runtime-api.h>
+#include <api/archi-api.h>
+#include <archi/PE.h>
+#include <archi/Platform.h>
+#include <archi/MemoryBus.h>
 
 /* === Function(s) definition === */
 
@@ -149,6 +151,111 @@ void spider::Scheduler::vertexMapper(const pisdf::Vertex *vertex) {
     }
     /* == Set job information and update schedule == */
     schedule_.updateJobAndSetReady(vertex->scheduleJobIx(), bestSlave, bestStartTime, bestEndTime);
+}
+
+uint64_t spider::Scheduler::computeMinStartTime(ScheduleTask *task) {
+    uint64_t minimumStartTime = 0;
+    task->setState(TaskState::PENDING);
+    for (const auto *dependency : task->dependencies()) {
+        const auto mappedLRT = dependency->mappedLrt();
+        const auto currentJobConstraint = task->executionConstraint(mappedLRT);
+        if ((currentJobConstraint < 0) || (dependency->ix() > currentJobConstraint)) {
+            task->setExecutionConstraint(mappedLRT, dependency->ix());
+        }
+        minimumStartTime = std::max(minimumStartTime, dependency->endTime());
+    }
+    return minimumStartTime;
+}
+
+void spider::Scheduler::taskMapper(ScheduleVertexTask *task) {
+    const auto *vertex = task->vertex();
+    if (!vertex) {
+        throwSpiderException("can not schedule a task with no vertex.");
+    }
+    /* == Compute the minimum start time possible for vertex == */
+    uint64_t minStartTime = Scheduler::computeMinStartTime(task);
+
+    /* == Build the data dependency vector in order to compute receive cost == */
+    const auto *platform = archi::platform();
+    auto dataDependencies = factory::vector<std::pair<PE *, uint64_t >>(StackID::SCHEDULE);
+    dataDependencies.reserve(vertex->inputEdgeCount());
+    for (auto &edge : vertex->inputEdgeVector()) {
+        const auto &rate = edge->sinkRateValue();
+        if (rate) {
+            const auto &job = schedule_.job(edge->source()->scheduleJobIx());
+            dataDependencies.emplace_back(platform->processingElement(job.PEIx()), rate);
+        }
+    }
+
+    /* == Search for a slave to map the task on */
+    const auto *vertexRTConstraints = vertex->runtimeInformation();
+    const auto &platformStats = schedule_.stats();
+    PE *bestSlave = nullptr;
+    uint_fast64_t bestStartTime = 0;
+    uint_fast64_t bestEndTime = UINT64_MAX;
+    uint_fast64_t bestIdleTime = UINT64_MAX;
+    uint_fast64_t bestScheduleCost = UINT64_MAX;
+    int_fast32_t interClusterCom = 0;
+    for (const auto *cluster : platform->clusters()) {
+        /* == Fast check to discard entire cluster == */
+        if (!vertexRTConstraints->isClusterMappable(cluster)) {
+            continue;
+        }
+        for (const auto &pe : cluster->array()) {
+            /* == Check that PE is enabled and vertex is mappable on it == */
+            if (pe->enabled() && vertexRTConstraints->isPEMappable(pe)) {
+                /* == Retrieving information needed for scheduling cost == */
+                const auto readyTime = platformStats.endTime(pe->virtualIx());
+                const auto startTime = std::max(readyTime, minStartTime);
+                const auto idleTime = startTime - readyTime;
+                const auto execTime = vertexRTConstraints->timingOnPE(pe, vertex->inputParamVector());
+                const auto endTime = static_cast<uint64_t>(execTime) + startTime;
+
+                /* == Compute communication cost == */
+                uint64_t dataTransfertCost = 0;
+                for (auto &dep : dataDependencies) {
+                    const auto peSrc = dep.first;
+                    const auto dataSize = dep.second;
+                    dataTransfertCost += platform->dataCommunicationCostPEToPE(peSrc, pe, dataSize);
+                }
+
+                /* == Compute total schedule cost == */
+                const auto scheduleCost = math::saturateAdd(endTime, dataTransfertCost);
+                if (scheduleCost < bestScheduleCost || (scheduleCost == bestScheduleCost && idleTime < bestIdleTime)) {
+                    bestScheduleCost = scheduleCost;
+                    bestStartTime = startTime;
+                    bestEndTime = endTime;
+                    bestIdleTime = idleTime;
+                    bestSlave = pe;
+                }
+            }
+        }
+    }
+
+    /* == Throw if no possible mapping was found == */
+    if (!bestSlave) {
+        throwSpiderException("Could not find suitable processing element for vertex: [%s]", vertex->name().c_str());
+    }
+
+    /* == Check if communication need to be scheduled == */
+    auto *mappedCluster = bestSlave->cluster();
+    for (auto &dep : dataDependencies) {
+        const auto peSrc = dep.first;
+        const auto dataSize = dep.second;
+        auto *srcCluster = peSrc->cluster();
+        if (srcCluster != mappedCluster) {
+            /* == Add send / receive task and update time if needed == */
+            const auto *sendBus = archi::platform()->getClusterToClusterMemoryBus(srcCluster, mappedCluster);
+            const auto *recvBus = archi::platform()->getClusterToClusterMemoryBus(mappedCluster, srcCluster);
+            const auto *sendKernel = sendBus->sendKernel();
+            const auto *recvKernel = recvBus->receiveKernel();
+            const auto sendTime = sendBus->writeSpeed() / dataSize;
+            const auto recvTime = recvBus->readSpeed() / dataSize;
+        }
+    }
+
+    /* == Set job information and update schedule == */
+    schedule_.updateJobAndSetReady(static_cast<size_t>(task->ix()), bestSlave->virtualIx(), bestStartTime, bestEndTime);
 }
 
 spider::unique_ptr<spider::Scheduler> spider::makeScheduler(SchedulingAlgorithm algorithm, pisdf::Graph *graph) {

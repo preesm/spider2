@@ -124,7 +124,7 @@ void spider::ListScheduler::addVerticesAndSortList() {
 }
 
 int64_t spider::ListScheduler::computeScheduleLevel(ListVertex &listVertex,
-                                                    spider::vector<ListVertex> &listVertexVector) const {
+                                                    vector<ListVertex> &listVertexVector) const {
     if ((listVertex.level_ == NON_EXECUTABLE_LEVEL) || !listVertex.vertex_->executable()) {
         listVertex.level_ = NON_EXECUTABLE_LEVEL;
         for (auto &edge : listVertex.vertex_->outputEdgeVector()) {

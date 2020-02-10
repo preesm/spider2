@@ -76,7 +76,7 @@ namespace spider {
                                                                                   level_{ level } { };
         };
 
-        spider::sbc::vector<ListVertex, StackID::SCHEDULE> sortedVertexVector_;
+        sbc::vector<ListVertex, StackID::SCHEDULE> sortedVertexVector_;
         size_t lastSchedulableVertex_ = 0;
         size_t lastScheduledVertex_ = 0;
 
