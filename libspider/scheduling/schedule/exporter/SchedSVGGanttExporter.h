@@ -79,7 +79,6 @@ namespace spider {
 
     private:
         const sched::Schedule *schedule_ = nullptr;
-        const pisdf::Graph *graph_ = nullptr;
         uint64_t width_ = UINT32_MAX;
         uint64_t height_ = UINT32_MAX;
         double widthMin_ = 10;

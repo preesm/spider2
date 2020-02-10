@@ -85,7 +85,7 @@ spider::pisdf::Delay::Delay(Expression expression, Edge *edge,
     }
 
     /* == Create virtual vertex and connect it to setter / getter == */
-    vertex_ = make<ExecVertex, StackID::PISDF>(VertexType::DELAY, this->name(), 1, 1);
+    vertex_ = make<ExecVertex, StackID::PISDF>(VertexType::DELAY, this->name(), 1u, 1u);
     edge->graph()->addVertex(vertex_);
 
     auto *setterEdge = make<Edge, StackID::PISDF>(setter_, setterPortIx_, std::move(setterRateExpression),

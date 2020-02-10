@@ -71,7 +71,7 @@ namespace spider {
 
             Graph &operator=(Graph &&) = default;
 
-            Graph(Graph &&) noexcept = default;
+            Graph(Graph &&) = default;
 
             ~Graph() noexcept override = default;
 

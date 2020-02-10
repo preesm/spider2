@@ -63,9 +63,9 @@ namespace spider {
     class SchedXMLGanttExporter final : public Exporter {
     public:
 
-        explicit SchedXMLGanttExporter(const sched::Schedule *schedule, const pisdf::Graph *graph) : Exporter(),
-                                                                                                     schedule_{ schedule },
-                                                                                                     graph_{ graph } { }
+        explicit SchedXMLGanttExporter(const sched::Schedule *schedule, const pisdf::Graph *) : Exporter(),
+                                                                                                schedule_{
+                                                                                                        schedule } { }
 
         ~SchedXMLGanttExporter() override = default;
 
@@ -81,7 +81,6 @@ namespace spider {
 
     private:
         const sched::Schedule *schedule_ = nullptr;
-        const pisdf::Graph *graph_ = nullptr;
 
         /* === Private method(s) === */
 

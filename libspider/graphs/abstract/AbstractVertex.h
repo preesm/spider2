@@ -62,7 +62,7 @@ namespace spider {
 
         AbstractVertex(AbstractVertex &&) noexcept = default;
 
-        AbstractVertex &operator=(AbstractVertex &&) noexcept = default;
+        AbstractVertex &operator=(AbstractVertex &&) = default;
 
         virtual ~AbstractVertex() noexcept = default;
 

@@ -199,7 +199,7 @@ spider::pisdf::Vertex *spider::api::createFork(pisdf::Graph *graph, std::string 
     if (!graph) {
         throwSpiderException("nullptr for graph.");
     }
-    auto *vertex = make<pisdf::ExecVertex, StackID::PISDF>(pisdf::VertexType::FORK, std::move(name), 1, edgeOUTCount);
+    auto *vertex = make<pisdf::ExecVertex, StackID::PISDF>(pisdf::VertexType::FORK, std::move(name), 1u, edgeOUTCount);
     auto *runtimeInfo = vertex->makeRTInformation();
     runtimeInfo->setKernelIx(0);
     graph->addVertex(vertex);
@@ -210,7 +210,7 @@ spider::pisdf::Vertex *spider::api::createJoin(pisdf::Graph *graph, std::string 
     if (!graph) {
         throwSpiderException("nullptr for graph.");
     }
-    auto *vertex = make<pisdf::ExecVertex, StackID::PISDF>(pisdf::VertexType::JOIN, std::move(name), edgeINCount, 1);
+    auto *vertex = make<pisdf::ExecVertex, StackID::PISDF>(pisdf::VertexType::JOIN, std::move(name), edgeINCount, 1u);
     auto *runtimeInfo = vertex->makeRTInformation();
     runtimeInfo->setKernelIx(1);
     graph->addVertex(vertex);
@@ -221,7 +221,7 @@ spider::pisdf::Vertex *spider::api::createHead(pisdf::Graph *graph, std::string 
     if (!graph) {
         throwSpiderException("nullptr for graph.");
     }
-    auto *vertex = make<pisdf::ExecVertex, StackID::PISDF>(pisdf::VertexType::HEAD, std::move(name), edgeINCount, 1);
+    auto *vertex = make<pisdf::ExecVertex, StackID::PISDF>(pisdf::VertexType::HEAD, std::move(name), edgeINCount, 1u);
     auto *runtimeInfo = vertex->makeRTInformation();
     runtimeInfo->setKernelIx(2);
     graph->addVertex(vertex);
@@ -232,7 +232,7 @@ spider::pisdf::Vertex *spider::api::createTail(pisdf::Graph *graph, std::string 
     if (!graph) {
         throwSpiderException("nullptr for graph.");
     }
-    auto *vertex = make<pisdf::ExecVertex, StackID::PISDF>(pisdf::VertexType::TAIL, std::move(name), edgeINCount, 1);
+    auto *vertex = make<pisdf::ExecVertex, StackID::PISDF>(pisdf::VertexType::TAIL, std::move(name), edgeINCount, 1u);
     auto *runtimeInfo = vertex->makeRTInformation();
     runtimeInfo->setKernelIx(3);
     graph->addVertex(vertex);
@@ -243,7 +243,7 @@ spider::pisdf::Vertex *spider::api::createDuplicate(pisdf::Graph *graph, std::st
     if (!graph) {
         throwSpiderException("nullptr for graph.");
     }
-    auto *vertex = make<pisdf::ExecVertex, StackID::PISDF>(pisdf::VertexType::DUPLICATE, std::move(name), 1,
+    auto *vertex = make<pisdf::ExecVertex, StackID::PISDF>(pisdf::VertexType::DUPLICATE, std::move(name), 1u,
                                                            edgeOUTCount);
     auto *runtimeInfo = vertex->makeRTInformation();
     runtimeInfo->setKernelIx(5);
@@ -255,7 +255,7 @@ spider::pisdf::Vertex *spider::api::createRepeat(pisdf::Graph *graph, std::strin
     if (!graph) {
         throwSpiderException("nullptr for graph.");
     }
-    auto *vertex = make<pisdf::ExecVertex, StackID::PISDF>(pisdf::VertexType::REPEAT, std::move(name), 1, 1);
+    auto *vertex = make<pisdf::ExecVertex, StackID::PISDF>(pisdf::VertexType::REPEAT, std::move(name), 1u, 1u);
     auto *runtimeInfo = vertex->makeRTInformation();
     runtimeInfo->setKernelIx(4);
     graph->addVertex(vertex);
@@ -266,7 +266,7 @@ spider::pisdf::Vertex *spider::api::createInit(pisdf::Graph *graph, std::string 
     if (!graph) {
         throwSpiderException("nullptr for graph.");
     }
-    auto *vertex = make<pisdf::ExecVertex, StackID::PISDF>(pisdf::VertexType::INIT, std::move(name), 0, 1);
+    auto *vertex = make<pisdf::ExecVertex, StackID::PISDF>(pisdf::VertexType::INIT, std::move(name), 0u, 1u);
     auto *runtimeInfo = vertex->makeRTInformation();
     runtimeInfo->setKernelIx(6);
     graph->addVertex(vertex);
@@ -277,7 +277,7 @@ spider::pisdf::Vertex *spider::api::createEnd(pisdf::Graph *graph, std::string n
     if (!graph) {
         throwSpiderException("nullptr for graph.");
     }
-    auto *vertex = make<pisdf::ExecVertex, StackID::PISDF>(pisdf::VertexType::END, std::move(name), 1, 0);
+    auto *vertex = make<pisdf::ExecVertex, StackID::PISDF>(pisdf::VertexType::END, std::move(name), 1u, 0u);
     auto *runtimeInfo = vertex->makeRTInformation();
     runtimeInfo->setKernelIx(7);
     graph->addVertex(vertex);
@@ -572,8 +572,8 @@ spider::pisdf::Delay *spider::api::createPersistentDelay(spider::pisdf::Edge *ed
 
         /* == 1. Connect the delay to the edge and the interfaces == */
         make<pisdf::Delay, StackID::PISDF>(Expression(value), edge,
-                                           input, 0, Expression(value),
-                                           output, 0, Expression(value),
+                                           input, 0u, Expression(value),
+                                           output, 0u, Expression(value),
                                            false);
 
         /* == 2. Creates the edge around the graph == */
@@ -585,8 +585,8 @@ spider::pisdf::Delay *spider::api::createPersistentDelay(spider::pisdf::Edge *ed
         graph->addEdge(edge);
     }
     return make<pisdf::Delay, StackID::PISDF>(std::move(expression), edge,
-                                              nullptr, 0, Expression(value),
-                                              nullptr, 0, Expression(value),
+                                              nullptr, 0u, Expression(value),
+                                              nullptr, 0u, Expression(value),
                                               true);
 }
 
@@ -614,8 +614,8 @@ spider::pisdf::Delay *spider::api::createLocalPersistentDelay(pisdf::Edge *edge,
 
         /* == 1. Connect the delay to the edge and the interfaces == */
         make<pisdf::Delay, StackID::PISDF>(Expression(value), edge,
-                                           input, 0, Expression(value),
-                                           output, 0, Expression(value),
+                                           input, 0u, Expression(value),
+                                           output, 0u, Expression(value),
                                            false);
 
         /* == 2. Creates the edge around the graph == */
@@ -630,8 +630,8 @@ spider::pisdf::Delay *spider::api::createLocalPersistentDelay(pisdf::Edge *edge,
     }
     bool persistent = graph->isTopGraph();
     return make<pisdf::Delay, StackID::PISDF>(std::move(expression), edge,
-                                              nullptr, 0, Expression(value),
-                                              nullptr, 0, Expression(value),
+                                              nullptr, 0u, Expression(value),
+                                              nullptr, 0u, Expression(value),
                                               persistent);
 }
 

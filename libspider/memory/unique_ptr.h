@@ -60,11 +60,9 @@ namespace spider {
         using pointer = typename ptr<T>::type;
         using element_type  = T;
 
-        constexpr unique_ptr() noexcept : data_{ nullptr } { };
+        constexpr unique_ptr() noexcept : data_{ nullptr } { }
 
-        constexpr explicit unique_ptr(nullptr_t) noexcept : data_{ nullptr } { };
-
-        explicit unique_ptr(T *value) : data_{ value } { };
+        explicit unique_ptr(T *value) : data_{ value } { }
 
         unique_ptr(unique_ptr &&rhs) noexcept : data_{ rhs.release() } { }
 

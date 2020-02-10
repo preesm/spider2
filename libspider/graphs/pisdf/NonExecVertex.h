@@ -61,7 +61,7 @@ namespace spider {
 
             NonExecVertex(NonExecVertex &&) noexcept = default;
 
-            NonExecVertex &operator=(NonExecVertex &&) noexcept = default;
+            NonExecVertex &operator=(NonExecVertex &&) = default;
 
             ~NonExecVertex() override = default;
 

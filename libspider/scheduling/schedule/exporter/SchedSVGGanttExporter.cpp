@@ -61,9 +61,8 @@ static constexpr uint32_t TASK_SPACE = 5;
 /* === Method(s) implementation === */
 
 spider::SchedSVGGanttExporter::SchedSVGGanttExporter(const sched::Schedule *schedule,
-                                                     const pisdf::Graph *graph) : Exporter(),
-                                                                        schedule_{ schedule },
-                                                                        graph_{ graph } {
+                                                     const pisdf::Graph *) : Exporter(),
+                                                                        schedule_{ schedule } {
     /* == Compute values needed for printing == */
     uint64_t minExecTime = UINT64_MAX;
     uint64_t maxExecTime = 0;
