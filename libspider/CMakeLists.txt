@@ -92,7 +92,7 @@ target_include_directories(${LIBRARY_TARGET_NAME} PUBLIC "$<BUILD_INTERFACE:${CM
 if (USE_PAPI AND PAPI_FOUND)
     target_link_libraries(${LIBRARY_TARGET_NAME} ${PAPI_LIBRARIES})
 endif ()
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+if (NOT MSVC)
     find_package(Threads REQUIRED)
     target_link_libraries(${LIBRARY_TARGET_NAME} ${CMAKE_THREAD_LIBS_INIT})
 endif ()
