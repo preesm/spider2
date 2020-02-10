@@ -56,217 +56,214 @@ namespace spider {
         class Vertex;
     }
 
-    namespace sched {
+    class Schedule;
 
-        class Schedule;
+    /* === Enumeration === */
 
-        /* === Enumeration === */
+    /**
+     * @brief State a scheduled job can take.
+     */
+    enum class JobState : uint32_t {
+        PENDING,   /*!< Job is waiting to be scheduled */
+        READY,     /*!< Job is ready to be run */
+        RUNNING,   /*!< Job is currently running */
+    };
+
+    /* === Class definition === */
+
+    class ScheduleJob {
+    public:
+
+        ScheduleJob();
+
+        explicit ScheduleJob(pisdf::Vertex *vertex);
+
+        ScheduleJob(const ScheduleJob &) = default;
+
+        ScheduleJob(ScheduleJob &&) noexcept = default;
+
+        ScheduleJob &operator=(const ScheduleJob &) = default;
+
+        ScheduleJob &operator=(ScheduleJob &&) = default;
+
+        ~ScheduleJob() = default;
+
+        /* === Method(s) === */
 
         /**
-         * @brief State a scheduled job can take.
+         * @brief Add a constraint on another @refitem ScheduleJob to current job.
+         * @param ix    Ix of the job we're constrained on.
+         * @param lrtIx Ix of the LRT the constraint belong.
          */
-        enum class JobState : uint32_t {
-            PENDING,   /*!< Job is waiting to be scheduled */
-            READY,     /*!< Job is ready to be run */
-            RUNNING,   /*!< Job is currently running */
-        };
-
-        /* === Class definition === */
-
-        class Job {
-        public:
-
-            Job();
-
-            explicit Job(pisdf::Vertex *vertex);
-
-            Job(const Job &) = default;
-
-            Job(Job &&) noexcept = default;
-
-            Job &operator=(const Job &) = default;
-
-            Job &operator=(Job &&) = default;
-
-            ~Job() = default;
-
-            /* === Method(s) === */
-
-            /**
-             * @brief Add a constraint on another @refitem ScheduleJob to current job.
-             * @param ix    Ix of the job we're constrained on.
-             * @param lrtIx Ix of the LRT the constraint belong.
-             */
-            inline void setScheduleConstraint(size_t ix, size_t lrtIx) {
-                if (ix != SIZE_MAX && ix != ix_) {
-                    scheduleConstraintsArray_[lrtIx] = ix;
-                }
+        inline void setScheduleConstraint(size_t ix, size_t lrtIx) {
+            if (ix != SIZE_MAX && ix != ix_) {
+                scheduleConstraintsArray_[lrtIx] = ix;
             }
+        }
 
-            /**
-             * @brief Creates a JobMessage out of the schedule job information.
-             * @param schedule Pointer to the schedule.
-             * @return @refitem JobMessage
-             */
-            JobMessage createJobMessage(const Schedule *schedule);
+        /**
+         * @brief Creates a JobMessage out of the schedule job information.
+         * @param schedule Pointer to the schedule.
+         * @return @refitem JobMessage
+         */
+        JobMessage createJobMessage(const Schedule *schedule);
 
-            inline void addOutputFIFO(RTFifo fifo) {
-                outputFifoVector_.emplace_back(fifo);
-            }
+        inline void addOutputFIFO(RTFifo fifo) {
+            outputFifoVector_.emplace_back(fifo);
+        }
 
-            /* === Getter(s) === */
+        /* === Getter(s) === */
 
-            /**
-             * @brief Return the job constraint associated to the LRT ix.
-             * @param lrtIx  Ix of the LRT.
-             * @return ix of the @refitem sched::Job this job is constrained on given LRT.
-             */
-            inline size_t scheduleJobConstraintOnLRT(size_t lrtIx) const {
-                return scheduleConstraintsArray_[lrtIx];
-            }
+        /**
+         * @brief Return the job constraint associated to the LRT ix.
+         * @param lrtIx  Ix of the LRT.
+         * @return ix of the @refitem sched::Job this job is constrained on given LRT.
+         */
+        inline size_t scheduleJobConstraintOnLRT(size_t lrtIx) const {
+            return scheduleConstraintsArray_[lrtIx];
+        }
 
-            inline size_t numberOfConstraints() const {
-                return scheduleConstraintsArray_.size() -
-                       static_cast<size_t>(std::count(scheduleConstraintsArray_.begin(),
-                                                      scheduleConstraintsArray_.end(),
-                                                      SIZE_MAX));
-            }
+        inline size_t numberOfConstraints() const {
+            return scheduleConstraintsArray_.size() -
+                   static_cast<size_t>(std::count(scheduleConstraintsArray_.begin(),
+                                                  scheduleConstraintsArray_.end(),
+                                                  SIZE_MAX));
+        }
 
-            inline const spider::array<size_t> &scheduleConstraintsArray() const {
-                return scheduleConstraintsArray_;
-            }
+        inline const spider::array<size_t> &scheduleConstraintsArray() const {
+            return scheduleConstraintsArray_;
+        }
 
-            /**
-             * @brief Get the vertex of the job.
-             * @return pointer to the @refitem pisdf::Vertex of the job.
-             */
-            inline const pisdf::Vertex *vertex() const {
-                return vertex_;
-            }
+        /**
+         * @brief Get the vertex of the job.
+         * @return pointer to the @refitem pisdf::Vertex of the job.
+         */
+        inline const pisdf::Vertex *vertex() const {
+            return vertex_;
+        }
 
-            /**
-             * @brief Get the ix of the job.
-             * @return job ix.
-             */
-            inline size_t ix() const {
-                return ix_;
-            }
+        /**
+         * @brief Get the ix of the job.
+         * @return job ix.
+         */
+        inline size_t ix() const {
+            return ix_;
+        }
 
-            /**
-             * @brief Get the state of the job.
-             * @return @refitem Spider::JobState
-             */
-            inline JobState state() const {
-                return state_;
-            }
+        /**
+         * @brief Get the state of the job.
+         * @return @refitem Spider::JobState
+         */
+        inline JobState state() const {
+            return state_;
+        }
 
-            inline uint64_t startTime() const {
-                return startTime_;
-            }
+        inline uint64_t startTime() const {
+            return startTime_;
+        }
 
-            inline uint64_t endTime() const {
-                return endTime_;
-            }
+        inline uint64_t endTime() const {
+            return endTime_;
+        }
 
-            inline uint32_t PEIx() const {
-                return PEIx_;
-            }
+        inline uint32_t PEIx() const {
+            return PEIx_;
+        }
 
-            inline uint32_t LRTIx() const {
-                return LRTIx_;
-            }
+        inline uint32_t LRTIx() const {
+            return LRTIx_;
+        }
 
-            inline RTFifo outputFIFO(size_t ix) const {
-                return outputFifoVector_.at(ix);
-            }
+        inline RTFifo outputFIFO(size_t ix) const {
+            return outputFifoVector_.at(ix);
+        }
 
-            /* === Setter(s) === */
+        /* === Setter(s) === */
 
-            /**
-             * @brief Sets the flag of notification for a given LRT.
-             * @warning no bound checking is performed.
-             * @param lrtIx  Ix of the LRT to notify (or not).
-             * @param value  Value to set to the flag.
-             */
-            inline void setRunnerToNotify(size_t lrtIx, bool value) {
-                runnerToNotifyArray_[lrtIx] = value;
-            }
+        /**
+         * @brief Sets the flag of notification for a given LRT.
+         * @warning no bound checking is performed.
+         * @param lrtIx  Ix of the LRT to notify (or not).
+         * @param value  Value to set to the flag.
+         */
+        inline void setRunnerToNotify(size_t lrtIx, bool value) {
+            runnerToNotifyArray_[lrtIx] = value;
+        }
 
-            /**
-             * @brief Set the vertex of the job.
-             * @remark This method will overwrite current value.
-             * @param vertex Pointer to the vertex to set.
-             */
-            void setVertex(const pisdf::Vertex *vertex);
+        /**
+         * @brief Set the vertex of the job.
+         * @remark This method will overwrite current value.
+         * @param vertex Pointer to the vertex to set.
+         */
+        void setVertex(const pisdf::Vertex *vertex);
 
-            /**
-             * @brief Set the ix of the job.
-             * @remark This method will overwrite current value.
-             * @param ix Ix to set.
-             */
-            inline void setIx(size_t ix) {
-                ix_ = ix;
-            }
+        /**
+         * @brief Set the ix of the job.
+         * @remark This method will overwrite current value.
+         * @param ix Ix to set.
+         */
+        inline void setIx(size_t ix) {
+            ix_ = ix;
+        }
 
-            /**
-             * @brief Set the state of the job.
-             * @remark This method will overwrite current value.
-             * @param state State to set.
-             */
-            inline void setState(JobState state) {
-                state_ = state;
-            }
+        /**
+         * @brief Set the state of the job.
+         * @remark This method will overwrite current value.
+         * @param state State to set.
+         */
+        inline void setState(JobState state) {
+            state_ = state;
+        }
 
-            /**
-            * @brief Set the processing element of the job.
-            * @remark This method will overwrite current values.
-            * @param PEIx  PE ix inside spider.
-            */
-            inline void setMappingPE(uint32_t PEIx) {
-                PEIx_ = PEIx;
-            }
+        /**
+        * @brief Set the processing element of the job.
+        * @remark This method will overwrite current values.
+        * @param PEIx  PE ix inside spider.
+        */
+        inline void setMappingPE(uint32_t PEIx) {
+            PEIx_ = PEIx;
+        }
 
-            /**
-            * @brief Set the LRT ix of the LRT that will handle the job.
-            * @remark This method will overwrite current values.
-            * @param LRTIx  LRT ix.
-            */
-            inline void setMappingLRT(uint32_t LRTIx) {
-                LRTIx_ = LRTIx;
-            }
+        /**
+        * @brief Set the LRT ix of the LRT that will handle the job.
+        * @remark This method will overwrite current values.
+        * @param LRTIx  LRT ix.
+        */
+        inline void setMappingLRT(uint32_t LRTIx) {
+            LRTIx_ = LRTIx;
+        }
 
-            /**
-             * @brief Set the start time of the job.
-             * @remark This method will overwrite current value.
-             * @param time  Value to set.
-             */
-            inline void setMappingStartTime(uint64_t time) {
-                startTime_ = time;
+        /**
+         * @brief Set the start time of the job.
+         * @remark This method will overwrite current value.
+         * @param time  Value to set.
+         */
+        inline void setMappingStartTime(uint64_t time) {
+            startTime_ = time;
 
-            }
+        }
 
-            /**
-             * @brief Set the end time of the job.
-             * @remark This method will overwrite current value.
-             * @param time  Value to set.
-             */
-            inline void setMappingEndTime(uint64_t time) {
-                endTime_ = time;
-            }
+        /**
+         * @brief Set the end time of the job.
+         * @remark This method will overwrite current value.
+         * @param time  Value to set.
+         */
+        inline void setMappingEndTime(uint64_t time) {
+            endTime_ = time;
+        }
 
-        private:
-            sbc::vector<RTFifo, StackID::SCHEDULE> outputFifoVector_;
-            spider::array<size_t> scheduleConstraintsArray_;
-            spider::array<bool> runnerToNotifyArray_;
-            const pisdf::Vertex *vertex_ = nullptr;
-            uint64_t startTime_ = UINT64_MAX;
-            uint64_t endTime_ = UINT64_MAX;
-            size_t ix_ = SIZE_MAX;
-            uint32_t PEIx_ = UINT32_MAX;
-            uint32_t LRTIx_ = UINT32_MAX;
-            JobState state_ = JobState::PENDING;
-        };
-    }
+    private:
+        sbc::vector<RTFifo, StackID::SCHEDULE> outputFifoVector_;
+        spider::array<size_t> scheduleConstraintsArray_;
+        spider::array<bool> runnerToNotifyArray_;
+        const pisdf::Vertex *vertex_ = nullptr;
+        uint64_t startTime_ = UINT64_MAX;
+        uint64_t endTime_ = UINT64_MAX;
+        size_t ix_ = SIZE_MAX;
+        uint32_t PEIx_ = UINT32_MAX;
+        uint32_t LRTIx_ = UINT32_MAX;
+        JobState state_ = JobState::PENDING;
+    };
 }
 
 #endif //SPIDER2_SCHEDULEJOB_H

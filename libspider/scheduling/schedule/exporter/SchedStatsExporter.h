@@ -49,16 +49,14 @@ namespace spider {
 
     /* === Forward declaration(s) === */
 
-    namespace sched {
-        class Schedule;
-    }
+    class Schedule;
 
     /* === Class definition === */
 
     class SchedStatsExporter final : public Exporter {
     public:
 
-        explicit SchedStatsExporter(const sched::Schedule *schedule) : Exporter(), schedule_{ schedule } {
+        explicit SchedStatsExporter(const Schedule *schedule) : Exporter(), schedule_{ schedule } {
             if (!schedule) {
                 throwSpiderException("StatsExporter can not have nullptr for schedule.");
             }
@@ -76,7 +74,7 @@ namespace spider {
         void printFromFile(std::ofstream &file) const override;
 
     private:
-        const sched::Schedule *schedule_ = nullptr;
+        const Schedule *schedule_ = nullptr;
 
         /* === Private method(s) === */
     };

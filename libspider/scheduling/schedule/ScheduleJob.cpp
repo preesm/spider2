@@ -54,15 +54,15 @@
 
 /* === Method(s) implementation === */
 
-spider::sched::Job::Job() :
+spider::ScheduleJob::ScheduleJob() :
         scheduleConstraintsArray_{ archi::platform()->LRTCount(), SIZE_MAX, StackID::SCHEDULE },
         runnerToNotifyArray_{ archi::platform()->LRTCount(), true, StackID::SCHEDULE } { }
 
-spider::sched::Job::Job(pisdf::Vertex *vertex) : Job() {
+spider::ScheduleJob::ScheduleJob(pisdf::Vertex *vertex) : ScheduleJob() {
     vertex_ = vertex;
 }
 
-void spider::sched::Job::setVertex(const spider::pisdf::Vertex *vertex) {
+void spider::ScheduleJob::setVertex(const spider::pisdf::Vertex *vertex) {
     if (vertex) {
         vertex_ = vertex;
         outputFifoVector_.clear();
@@ -70,7 +70,7 @@ void spider::sched::Job::setVertex(const spider::pisdf::Vertex *vertex) {
     }
 }
 
-spider::JobMessage spider::sched::Job::createJobMessage(const Schedule *schedule) {
+spider::JobMessage spider::ScheduleJob::createJobMessage(const Schedule *schedule) {
     if (!vertex_) {
         throwSpiderException("no vertex has been set on this Job.");
     }

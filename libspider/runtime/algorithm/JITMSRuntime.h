@@ -44,6 +44,7 @@
 
 #include <runtime/algorithm/Runtime.h>
 #include <graphs-tools/transformation/srdag/TransfoJob.h>
+#include <scheduling/allocator/FifoAllocator.h>
 
 namespace spider {
 
@@ -60,7 +61,9 @@ namespace spider {
     class JITMSRuntime final : public Runtime {
     public:
 
-        explicit JITMSRuntime(pisdf::Graph *graph, SchedulingAlgorithm schedulingAlgorithm);
+        explicit JITMSRuntime(pisdf::Graph *graph,
+                              SchedulingAlgorithm schedulingAlgorithm = SchedulingAlgorithm::LIST_BEST_FIT,
+                              FifoAllocatorType type = FifoAllocatorType::DEFAULT);
 
         ~JITMSRuntime() override = default;
 
@@ -75,8 +78,9 @@ namespace spider {
         /* === Setter(s) === */
 
     private:
-        spider::unique_ptr<pisdf::Graph> srdag_;
-        spider::unique_ptr<Scheduler> scheduler_;
+        unique_ptr<pisdf::Graph> srdag_;
+        unique_ptr<Scheduler> scheduler_;
+        unique_ptr<FifoAllocator> fifoAllocator_;
         bool isFullyStatic_ = true;
 
         /* === Private method(s) === */
@@ -90,24 +94,22 @@ namespace spider {
          * @param staticJobStack   Static job stack.
          * @param dynamicJobStack  Dynamic job stack.
          */
-        void transformStaticJobs(spider::vector<srdag::TransfoJob> &staticJobStack,
-                                 spider::vector<srdag::TransfoJob> &dynamicJobStack);
+        void transformStaticJobs(vector<srdag::TransfoJob> &staticJobStack, vector<srdag::TransfoJob> &dynamicJobStack);
 
         /**
          * @brief Transform all dynamic jobs contained in dynamicJobStack and update the job stacks with future jobs.
          * @param staticJobStack   Static job stack.
          * @param dynamicJobStack  Dynamic job stack.
          */
-        void transformDynamicJobs(spider::vector<srdag::TransfoJob> &staticJobStack,
-                                  spider::vector<srdag::TransfoJob> &dynamicJobStack);
+        void
+        transformDynamicJobs(vector<srdag::TransfoJob> &staticJobStack, vector<srdag::TransfoJob> &dynamicJobStack);
 
         /**
          * @brief Appends @refitem spider::srdag::TransfoJob from source vector to destination vector using MOVE semantic.
          * @param src       Source vector of the TransfoJobs to move.
          * @param dest      Destination vector to move the TransfoJobs to.
          */
-        void updateJobStack(spider::vector<spider::srdag::TransfoJob> &src,
-                            spider::vector<spider::srdag::TransfoJob> &dest) const;
+        void updateJobStack(vector<srdag::TransfoJob> &src, vector<srdag::TransfoJob> &dest) const;
 
         /**
          * @brief Transform all jobs of a given job stack and update results in static and dynamic job stacks.
@@ -115,9 +117,9 @@ namespace spider {
          * @param staticJobStack    Stack of static jobs to be updated.
          * @param dynamicJobStack   Stack of dynamic jobs to be updated.
          */
-        void transformJobs(spider::vector<spider::srdag::TransfoJob> &iterJobStack,
-                           spider::vector<spider::srdag::TransfoJob> &staticJobStack,
-                           spider::vector<spider::srdag::TransfoJob> &dynamicJobStack);
+        void transformJobs(vector<srdag::TransfoJob> &iterJobStack,
+                           vector<srdag::TransfoJob> &staticJobStack,
+                           vector<srdag::TransfoJob> &dynamicJobStack);
     };
 }
 #endif //SPIDER2_JITMSRUNTIME_H

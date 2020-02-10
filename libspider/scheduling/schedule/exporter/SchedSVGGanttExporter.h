@@ -48,11 +48,9 @@ namespace spider {
 
     /* === Forward declaration(s) === */
 
-    namespace sched {
-        class Schedule;
+    class Schedule;
 
-        class Job;
-    }
+    class ScheduleJob;
 
     namespace pisdf {
         class Graph;
@@ -63,7 +61,7 @@ namespace spider {
     class SchedSVGGanttExporter final : public Exporter {
     public:
 
-        explicit SchedSVGGanttExporter(const sched::Schedule *schedule, const pisdf::Graph *graph);
+        explicit SchedSVGGanttExporter(const Schedule *schedule, const pisdf::Graph *graph);
 
         ~SchedSVGGanttExporter() override = default;
 
@@ -78,7 +76,7 @@ namespace spider {
         void printFromFile(std::ofstream &file) const override;
 
     private:
-        const sched::Schedule *schedule_ = nullptr;
+        const Schedule *schedule_ = nullptr;
         uint64_t width_ = UINT32_MAX;
         uint64_t height_ = UINT32_MAX;
         double widthMin_ = 10;
@@ -92,7 +90,7 @@ namespace spider {
 
         void axisPrinter(std::ofstream &file) const;
 
-        void jobPrinter(std::ofstream &file, const sched::Job &job) const;
+        void jobPrinter(std::ofstream &file, const ScheduleJob &job) const;
     };
 
     /* === Inline method(s) === */

@@ -43,7 +43,6 @@
 /* === Include(s) === */
 
 #include <runtime/interface/Message.h>
-#include <scheduling/allocator/FifoAllocator.h>
 #include <scheduling/schedule/Schedule.h>
 #include <graphs/pisdf/Graph.h>
 
@@ -54,17 +53,21 @@ namespace spider {
     class Scheduler {
     public:
 
-        explicit Scheduler(pisdf::Graph *graph, FifoAllocatorType type = FifoAllocatorType::DEFAULT);
+        explicit Scheduler(pisdf::Graph *graph);
 
-        virtual ~Scheduler();
+        virtual ~Scheduler() = default;
 
         /* === Method(s) === */
 
         /**
          * @brief Perform the mapping and scheduling of a given graph.
+         * @param jitSend Type of schedule strategy: true  -> send job just after scheduling.
+         *                                                    maximize resource utilization.
+         *                                           false -> send jobs after every jobs have been scheduled.
+         *                                                    minimize synchronization.
          * @return @refitem Schedule.
          */
-        virtual sched::Schedule &mappingScheduling() = 0;
+        virtual Schedule &mappingScheduling(bool jitSend) = 0;
 
         /**
          * @brief Update internal state of the scheduler (mostly for dynamic applications)
@@ -82,16 +85,15 @@ namespace spider {
          * @brief Returns the @refitem Schedule owned by the Scheduler.
          * @return const reference to @refitem Schedule.
          */
-        inline sched::Schedule &schedule() {
+        inline Schedule &schedule() {
             return schedule_;
         }
 
         /* === Setter(s) === */
 
     protected:
-        sched::Schedule schedule_;
+        Schedule schedule_;
         pisdf::Graph *graph_ = nullptr;
-        FifoAllocator *fifoAllocator_ = nullptr;
 
         /* === Protected method(s) === */
 
@@ -115,6 +117,6 @@ namespace spider {
      * @param graph     Pointer to the graph.
      * @return unique_ptr of the created scheduler.
      */
-    spider::unique_ptr<Scheduler> makeScheduler(SchedulingAlgorithm algorithm, pisdf::Graph *graph);
+    unique_ptr<Scheduler> makeScheduler(SchedulingAlgorithm algorithm, pisdf::Graph *graph);
 }
 #endif //SPIDER2_SCHEDULER_H

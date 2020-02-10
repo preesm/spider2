@@ -116,7 +116,7 @@ void spider::ListScheduler::addVerticesAndSortList() {
 
     /* == Set the schedule job ix of the vertices == */
     iterator = std::begin(sortedVertexVector_) + static_cast<long>(lastSchedulableVertex_);
-    auto endIterator = std::end(sortedVertexVector_) - nonSchedulableVertexCount;
+    auto endIterator = std::end(sortedVertexVector_) - static_cast<long>(nonSchedulableVertexCount);
     while (iterator != endIterator) {
         schedule_.addJobToSchedule((iterator++)->vertex_);
     }
@@ -153,7 +153,7 @@ int64_t spider::ListScheduler::computeScheduleLevel(ListVertex &listVertex,
                         }
                     }
                 }
-                const auto &sinkLevel = computeScheduleLevel(listVertexVector[sink->scheduleJobIx()], listVertexVector);
+                const auto sinkLevel = computeScheduleLevel(listVertexVector[sink->scheduleJobIx()], listVertexVector);
                 if (sinkLevel != NON_EXECUTABLE_LEVEL) {
                     level = std::max(level, sinkLevel + minExecutionTime);
                 }

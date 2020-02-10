@@ -54,21 +54,11 @@
 
 /* === Function(s) definition === */
 
-spider::Scheduler::Scheduler(spider::pisdf::Graph *graph, FifoAllocatorType type) : graph_{ graph } {
-    if (type == FifoAllocatorType::DEFAULT) {
-        fifoAllocator_ = make<DefaultFifoAllocator, StackID::SCHEDULE>();
-    } else {
-        throwSpiderException("Unsupported type of FifoAllocator.");
-    }
-}
-
-spider::Scheduler::~Scheduler() {
-    destroy(fifoAllocator_);
+spider::Scheduler::Scheduler(spider::pisdf::Graph *graph) : graph_{ graph } {
 }
 
 void spider::Scheduler::clear() {
     schedule_.clear();
-    fifoAllocator_->clear();
 }
 
 /* === Protected method(s) === */
@@ -76,7 +66,7 @@ void spider::Scheduler::clear() {
 uint64_t spider::Scheduler::computeMinStartTime(const pisdf::Vertex *vertex) {
     uint64_t minimumStartTime = 0;
     auto &job = schedule_.job(vertex->scheduleJobIx());
-    job.setState(sched::JobState::PENDING);
+    job.setState(JobState::PENDING);
     job.setVertex(vertex);
     for (const auto &edge : vertex->inputEdgeVector()) {
         const auto &rate = edge->sourceRateValue();

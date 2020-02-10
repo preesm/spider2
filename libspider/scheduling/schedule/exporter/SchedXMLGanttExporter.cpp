@@ -63,14 +63,14 @@ void spider::SchedXMLGanttExporter::print() const {
 void spider::SchedXMLGanttExporter::printFromFile(std::ofstream &file) const {
     file << "<data>" << '\n';
     for (const auto &job : schedule_->jobs()) {
-        if (job.state() != sched::JobState::PENDING) {
+        if (job.state() != JobState::PENDING) {
             jobPrinter(file, job);
         }
     }
     file << "</data>" << '\n';
 }
 
-void spider::SchedXMLGanttExporter::jobPrinter(std::ofstream &file, const sched::Job &job) const {
+void spider::SchedXMLGanttExporter::jobPrinter(std::ofstream &file, const ScheduleJob &job) const {
     const auto *vertex = job.vertex();
     const auto *platform = archi::platform();
     auto PEIx = platform->peFromVirtualIx(job.PEIx())->hardwareIx();

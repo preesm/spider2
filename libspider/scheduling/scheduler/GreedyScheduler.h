@@ -59,7 +59,7 @@ namespace spider {
 
         inline void update() override { };
 
-        sched::Schedule &mappingScheduling() override;
+        Schedule &mappingScheduling(bool jitSend) override;
 
         /* === Getter(s) === */
 

@@ -49,117 +49,114 @@
 
 namespace spider {
 
-    namespace sched {
+    /* === Class definition === */
 
-        /* === Class definition === */
+    class Schedule {
+    public:
 
-        class Schedule {
-        public:
+        Schedule() = default;
 
-            Schedule() = default;
+        ~Schedule() = default;
 
-            ~Schedule() = default;
+        /* === Method(s) === */
 
-            /* === Method(s) === */
+        /**
+         * @brief Clear schedule jobs.
+         */
+        void clear();
 
-            /**
-             * @brief Clear schedule jobs.
-             */
-            void clear();
+        /**
+         * @brief Reset schedule jobs.
+         * @remark Set all job state to @refitem JobState::PENDING.
+         * @remark Statistics of the platform are not modified.
+         */
+        void reset();
 
-            /**
-             * @brief Reset schedule jobs.
-             * @remark Set all job state to @refitem JobState::PENDING.
-             * @remark Statistics of the platform are not modified.
-             */
-            void reset();
+        /**
+         * @brief Creates a new schedule job and add it to the Schedule.
+         * @param vertex Pointer to the vertex of the new job.
+         */
+        void addJobToSchedule(pisdf::Vertex *vertex);
 
-            /**
-             * @brief Creates a new schedule job and add it to the Schedule.
-             * @param vertex Pointer to the vertex of the new job.
-             */
-            void addJobToSchedule(pisdf::Vertex *vertex);
+        /**
+         * @brief Updates a job information and set its state as JobState::READY
+         * @param jobIx     Ix of the job to update.
+         * @param slave     Slave (cluster and pe) to execute on.
+         * @param startTime Start time of the job.
+         * @param endTime   End time of the job.
+         */
+        void updateJobAndSetReady(size_t jobIx, size_t slave, uint64_t startTime, uint64_t endTime);
 
-            /**
-             * @brief Updates a job information and set its state as JobState::READY
-             * @param jobIx     Ix of the job to update.
-             * @param slave     Slave (cluster and pe) to execute on.
-             * @param startTime Start time of the job.
-             * @param endTime   End time of the job.
-             */
-            void updateJobAndSetReady(size_t jobIx, size_t slave, uint64_t startTime, uint64_t endTime);
+        /**
+         * @brief Send every jobs currently in JobState::READY.
+         */
+        void sendReadyJobs();
 
-            /**
-             * @brief Send every jobs currently in JobState::READY.
-             */
-            void sendReadyJobs();
+        /**
+         * @brief Print the Schedule in the console with the format:
+         *        job: index
+         *          ----> dependency on lrt[0]
+         *          ...
+         *          ----> dependency on lrt[n]
+         * @remark requires the SCHEDULE log to be enabled.
+         */
+        void print() const;
 
-            /**
-             * @brief Print the Schedule in the console with the format:
-             *        job: index
-             *          ----> dependency on lrt[0]
-             *          ...
-             *          ----> dependency on lrt[n]
-             * @remark requires the SCHEDULE log to be enabled.
-             */
-            void print() const;
+        /* === Getter(s) === */
 
-            /* === Getter(s) === */
+        /**
+         * @brief Get the number of jobs in the schedule.
+         * @return number of jobs.
+         */
+        inline size_t jobCount() const {
+            return jobVector_.size();
+        }
 
-            /**
-             * @brief Get the number of jobs in the schedule.
-             * @return number of jobs.
-             */
-            inline size_t jobCount() const {
-                return jobVector_.size();
-            }
+        /**
+         * @brief Get the job vector of the schedule.
+         * @return const reference to the job vector
+         */
+        inline const spider::vector<ScheduleJob> &jobs() const {
+            return jobVector_;
+        }
 
-            /**
-             * @brief Get the job vector of the schedule.
-             * @return const reference to the job vector
-             */
-            inline const spider::vector<Job> &jobs() const {
-                return jobVector_;
-            }
+        /**
+         * @brief Get a job from its ix.
+         * @param ix  Ix of the job to fetch.
+         * @return const reference to the job.
+         * @throws @refitem std::out_of_range if ix is out of range.
+         */
+        inline ScheduleJob &job(size_t ix) {
+            return jobVector_.at(ix);
+        }
 
-            /**
-             * @brief Get a job from its ix.
-             * @param ix  Ix of the job to fetch.
-             * @return const reference to the job.
-             * @throws @refitem std::out_of_range if ix is out of range.
-             */
-            inline Job &job(size_t ix) {
-                return jobVector_.at(ix);
-            }
-
-            /**
-             * @brief Get a job from its ix.
-             * @param ix  Ix of the job to fetch.
-             * @return const reference to the job.
-             * @throws @refitem std::out_of_range if ix is out of range.
-             */
-            inline const Job &job(size_t ix) const {
-                return jobVector_.at(ix);
-            }
+        /**
+         * @brief Get a job from its ix.
+         * @param ix  Ix of the job to fetch.
+         * @return const reference to the job.
+         * @throws @refitem std::out_of_range if ix is out of range.
+         */
+        inline const ScheduleJob &job(size_t ix) const {
+            return jobVector_.at(ix);
+        }
 
 
-            /**
-             * @brief Get the different statistics of the platform.
-             * @return const reference to @refitem Stats
-             */
-            inline const Stats &stats() const {
-                return stats_;
-            }
+        /**
+         * @brief Get the different statistics of the platform.
+         * @return const reference to @refitem Stats
+         */
+        inline const Stats &stats() const {
+            return stats_;
+        }
 
-            /* === Setter(s) === */
+        /* === Setter(s) === */
 
-        private:
-            spider::sbc::vector<Job, StackID::SCHEDULE> jobVector_;
-            Stats stats_;
-            long readyJobCount_ = 0;
-            long lastRunJob_ = 0;
-        };
-    }
+    private:
+        sbc::vector<ScheduleJob, StackID::SCHEDULE> jobVector_;
+        Stats stats_;
+        long readyJobCount_ = 0;
+        long lastRunJob_ = 0;
+    };
 }
 
 #endif //SPIDER2_SCHEDULE_H

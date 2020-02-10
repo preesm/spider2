@@ -47,197 +47,194 @@
 
 namespace spider {
 
-    namespace sched {
+    /* === Class definition === */
 
-        /* === Class definition === */
+    class Stats {
+    public:
 
-        class Stats {
-        public:
+        Stats();
 
-            Stats();
+        ~Stats() = default;
 
-            ~Stats() = default;
+        /* === Method(s) === */
 
-            /* === Method(s) === */
+        /**
+         * @brief Reset all stats values to 0.
+         */
+        void reset();
 
-            /**
-             * @brief Reset all stats values to 0.
-             */
-            void reset();
+        /**
+         * @brief Return the maximum span of all PE of the platform.
+         * @return max span of all PE
+         */
+        inline uint64_t makespan() const;
 
-            /**
-             * @brief Return the maximum span of all PE of the platform.
-             * @return max span of all PE
-             */
-            inline uint64_t makespan() const;
+        /**
+         * @brief Compute the utilization factor of a PE.
+         * @remark utilization factor is defined as (load(PE) / makespan())
+         * @param ix PE to evaluate.
+         * @return utilization factor of the PE.
+         * @throws @refitem std::out_of_range if PE out of range.
+         */
+        inline double utilizationFactor(size_t ix) const;
 
-            /**
-             * @brief Compute the utilization factor of a PE.
-             * @remark utilization factor is defined as (load(PE) / makespan())
-             * @param ix PE to evaluate.
-             * @return utilization factor of the PE.
-             * @throws @refitem std::out_of_range if PE out of range.
-             */
-            inline double utilizationFactor(size_t ix) const;
+        /* === Getter(s) === */
 
-            /* === Getter(s) === */
+        /**
+         * @brief Return the scheduled start time of a given PE.
+         * @param ix  PE to check.
+         * @return start time of given PE.
+         * @throws @refitem std::out_of_range if PE out of range.
+         */
+        inline uint64_t startTime(size_t ix) const;
 
-            /**
-             * @brief Return the scheduled start time of a given PE.
-             * @param ix  PE to check.
-             * @return start time of given PE.
-             * @throws @refitem std::out_of_range if PE out of range.
-             */
-            inline uint64_t startTime(size_t ix) const;
+        /**
+         * @brief Return the scheduled end time of a given PE.
+         * @param ix  PE to check.
+         * @return end time of given PE.
+         * @throws @refitem std::out_of_range if PE out of range.
+         */
+        inline uint64_t endTime(size_t ix) const;
 
-            /**
-             * @brief Return the scheduled end time of a given PE.
-             * @param ix  PE to check.
-             * @return end time of given PE.
-             * @throws @refitem std::out_of_range if PE out of range.
-             */
-            inline uint64_t endTime(size_t ix) const;
+        /**
+         * @brief Return the load time of a given PE.
+         * @param ix  PE to check.
+         * @return load time of given PE.
+         * @throws @refitem std::out_of_range if PE out of range.
+         */
+        inline uint64_t loadTime(size_t ix) const;
 
-            /**
-             * @brief Return the load time of a given PE.
-             * @param ix  PE to check.
-             * @return load time of given PE.
-             * @throws @refitem std::out_of_range if PE out of range.
-             */
-            inline uint64_t loadTime(size_t ix) const;
+        /**
+         * @brief Return the idle time of a given PE.
+         * @param ix  PE to check.
+         * @return idle time of given PE.
+         * @throws @refitem std::out_of_range if PE out of range.
+         */
+        inline uint64_t idleTime(size_t ix) const;
 
-            /**
-             * @brief Return the idle time of a given PE.
-             * @param ix  PE to check.
-             * @return idle time of given PE.
-             * @throws @refitem std::out_of_range if PE out of range.
-             */
-            inline uint64_t idleTime(size_t ix) const;
+        /**
+         * @brief Return the schedule span of a given PE.
+         * @param ix  PE to check.
+         * @return makespan of given PE.
+         * @throws @refitem std::out_of_range if PE out of range.
+         */
+        inline uint64_t makespan(size_t ix) const;
 
-            /**
-             * @brief Return the schedule span of a given PE.
-             * @param ix  PE to check.
-             * @return makespan of given PE.
-             * @throws @refitem std::out_of_range if PE out of range.
-             */
-            inline uint64_t makespan(size_t ix) const;
+        /**
+         * @brief Return the number job mapped on given PE.
+         * @param ix PE to evaluate.
+         * @return job count of the PE.
+         * @throws @refitem std::out_of_range if PE out of range.
+         */
+        inline size_t jobCount(size_t ix) const;
 
-            /**
-             * @brief Return the number job mapped on given PE.
-             * @param ix PE to evaluate.
-             * @return job count of the PE.
-             * @throws @refitem std::out_of_range if PE out of range.
-             */
-            inline size_t jobCount(size_t ix) const;
+        /**
+         * @brief Return the minimum start time among the different PE.
+         * @return min start time
+         */
+        inline uint64_t minStartTime() const;
 
-            /**
-             * @brief Return the minimum start time among the different PE.
-             * @return min start time
-             */
-            inline uint64_t minStartTime() const;
+        /**
+         * @brief Return the maximum end time among the different PE.
+         * @return max end time
+         */
+        inline uint64_t maxEndTime() const;
 
-            /**
-             * @brief Return the maximum end time among the different PE.
-             * @return max end time
-             */
-            inline uint64_t maxEndTime() const;
+        /* === Setter(s) === */
 
-            /* === Setter(s) === */
+        inline void updateStartTime(size_t ix, uint64_t time);
 
-            inline void updateStartTime(size_t ix, uint64_t time);
+        inline void updateEndTime(size_t ix, uint64_t time);
 
-            inline void updateEndTime(size_t ix, uint64_t time);
+        inline void updateLoadTime(size_t ix, uint64_t time);
 
-            inline void updateLoadTime(size_t ix, uint64_t time);
+        inline void updateIDLETime(size_t ix, uint64_t time);
 
-            inline void updateIDLETime(size_t ix, uint64_t time);
+        inline void updateJobCount(size_t ix, uint32_t incValue = 1);
 
-            inline void updateJobCount(size_t ix, uint32_t incValue = 1);
+    private:
+        spider::sbc::vector<uint64_t, StackID::SCHEDULE> startTimeVector_;
+        spider::sbc::vector<uint64_t, StackID::SCHEDULE> endTimeVector_;
+        spider::sbc::vector<uint64_t, StackID::SCHEDULE> loadTimeVector_;
+        spider::sbc::vector<uint64_t, StackID::SCHEDULE> idleTimeVector_;
+        spider::sbc::vector<size_t, StackID::SCHEDULE> jobCountVector_;
+        uint64_t minStartTime_ = UINT64_MAX;
+        uint64_t maxEndTime_ = 0;
 
-        private:
-            spider::sbc::vector<uint64_t, StackID::SCHEDULE> startTimeVector_;
-            spider::sbc::vector<uint64_t, StackID::SCHEDULE> endTimeVector_;
-            spider::sbc::vector<uint64_t, StackID::SCHEDULE> loadTimeVector_;
-            spider::sbc::vector<uint64_t, StackID::SCHEDULE> idleTimeVector_;
-            spider::sbc::vector<size_t, StackID::SCHEDULE> jobCountVector_;
-            uint64_t minStartTime_ = UINT64_MAX;
-            uint64_t maxEndTime_ = 0;
+        /* === Private method(s) === */
+    };
 
-            /* === Private method(s) === */
-        };
+    /* === Inline method(s) === */
 
-        /* === Inline method(s) === */
+    uint64_t Stats::makespan() const {
+        return maxEndTime_ - minStartTime_;
+    }
 
-        uint64_t Stats::makespan() const {
-            return maxEndTime_ - minStartTime_;
-        }
+    double Stats::utilizationFactor(size_t ix) const {
+        const auto &load = static_cast<double>(loadTime(ix));
+        const auto &span = static_cast<double>(makespan());
+        return load / span;
+    }
 
-        double Stats::utilizationFactor(size_t ix) const {
-            const auto &load = static_cast<double>(loadTime(ix));
-            const auto &span = static_cast<double>(makespan());
-            return load / span;
-        }
+    uint64_t Stats::startTime(size_t ix) const {
+        return startTimeVector_.at(ix);
+    }
 
-        uint64_t Stats::startTime(size_t ix) const {
-            return startTimeVector_.at(ix);
-        }
+    uint64_t Stats::endTime(size_t ix) const {
+        return endTimeVector_.at(ix);
+    }
 
-        uint64_t Stats::endTime(size_t ix) const {
-            return endTimeVector_.at(ix);
-        }
+    uint64_t Stats::loadTime(size_t ix) const {
+        return loadTimeVector_.at(ix);
+    }
 
-        uint64_t Stats::loadTime(size_t ix) const {
-            return loadTimeVector_.at(ix);
-        }
+    uint64_t Stats::idleTime(size_t ix) const {
+        return idleTimeVector_.at(ix);
+    }
 
-        uint64_t Stats::idleTime(size_t ix) const {
-            return idleTimeVector_.at(ix);
-        }
+    uint64_t Stats::makespan(size_t ix) const {
+        /* == Here, we use the at method on the first vector to check the validity of PE value then we use
+         * random access operator on second vector due to it being faster. == */
+        return startTimeVector_.at(ix) - endTimeVector_[ix];
+    }
 
-        uint64_t Stats::makespan(size_t ix) const {
-            /* == Here, we use the at method on the first vector to check the validity of PE value then we use
-             * random access operator on second vector due to it being faster. == */
-            return startTimeVector_.at(ix) - endTimeVector_[ix];
-        }
+    size_t Stats::jobCount(size_t ix) const {
+        return jobCountVector_.at(ix);
+    }
 
-        size_t Stats::jobCount(size_t ix) const {
-            return jobCountVector_.at(ix);
-        }
+    uint64_t Stats::minStartTime() const {
+        return minStartTime_;
+    }
 
-        uint64_t Stats::minStartTime() const {
-            return minStartTime_;
-        }
+    uint64_t Stats::maxEndTime() const {
+        return maxEndTime_;
+    }
 
-        uint64_t Stats::maxEndTime() const {
-            return maxEndTime_;
-        }
+    void Stats::updateStartTime(size_t ix, uint64_t time) {
+        auto &startTime = startTimeVector_.at(ix);
+        startTime = time;
+        minStartTime_ = std::min(startTime, minStartTime_);
+    }
 
-        void Stats::updateStartTime(size_t ix, uint64_t time) {
-            auto &startTime = startTimeVector_.at(ix);
-            startTime = time;
-            minStartTime_ = std::min(startTime, minStartTime_);
-        }
+    void Stats::updateEndTime(size_t ix, uint64_t time) {
+        auto &endTime = endTimeVector_.at(ix);
+        endTime = time;
+        maxEndTime_ = std::max(endTime, maxEndTime_);
+    }
 
-        void Stats::updateEndTime(size_t ix, uint64_t time) {
-            auto &endTime = endTimeVector_.at(ix);
-            endTime = time;
-            maxEndTime_ = std::max(endTime, maxEndTime_);
-        }
+    void Stats::updateLoadTime(size_t ix, uint64_t time) {
+        auto &loadTime = loadTimeVector_.at(ix);
+        loadTime += time;
+    }
 
-        void Stats::updateLoadTime(size_t ix, uint64_t time) {
-            auto &loadTime = loadTimeVector_.at(ix);
-            loadTime += time;
-        }
+    void Stats::updateIDLETime(size_t ix, uint64_t time) {
+        auto &idleTime = idleTimeVector_.at(ix);
+        idleTime += time;
+    }
 
-        void Stats::updateIDLETime(size_t ix, uint64_t time) {
-            auto &idleTime = idleTimeVector_.at(ix);
-            idleTime += time;
-        }
-
-        void Stats::updateJobCount(size_t ix, uint32_t incValue) {
-            auto &jobCount = jobCountVector_.at(ix);
-            jobCount += incValue;
-        }
+    void Stats::updateJobCount(size_t ix, uint32_t incValue) {
+        auto &jobCount = jobCountVector_.at(ix);
+        jobCount += incValue;
     }
 }
 

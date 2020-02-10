@@ -52,23 +52,24 @@
 
 /* === Method(s) implementation === */
 
-spider::sched::Schedule &spider::BestFitScheduler::mappingScheduling() {
+spider::Schedule &spider::BestFitScheduler::mappingScheduling(bool jitSend) {
     /* == Schedule and map the vertex onto available resource == */
     auto iterator = sortedVertexVector_.begin() + static_cast<long>(lastScheduledVertex_);
     auto endIterator = sortedVertexVector_.begin() + static_cast<long>(lastSchedulableVertex_);
-    while (iterator != endIterator) {
-        auto &listVertex = (*(iterator++));
-        Scheduler::vertexMapper(listVertex.vertex_);
-        /* == Allocate buffer == */
-        size_t ix = 0;
-        auto &job = schedule_.job(listVertex.vertex_->scheduleJobIx());
-        for (auto &edge : listVertex.vertex_->outputEdgeVector()) {
-            job.addOutputFIFO(
-                    fifoAllocator_->allocate(static_cast<uint32_t>(edge->sourceRateValue()),
-                            job.LRTIx()));
-            ix++;
+    if (jitSend) {
+        while (iterator != endIterator) {
+            auto &listVertex = (*(iterator++));
+            Scheduler::vertexMapper(listVertex.vertex_);
+            /* == Create job message and send it == */
+//            schedule_.sendReadyJobs();
         }
-        schedule_.sendReadyJobs();
+    } else {
+        while (iterator != endIterator) {
+            auto &listVertex = (*(iterator++));
+            Scheduler::vertexMapper(listVertex.vertex_);
+        }
+        /* == Creates all job messages and send them == */
+//        schedule_.sendReadyJobs();
     }
     lastScheduledVertex_ = lastSchedulableVertex_;
     return schedule_;

@@ -60,9 +60,9 @@ static constexpr uint32_t TASK_SPACE = 5;
 
 /* === Method(s) implementation === */
 
-spider::SchedSVGGanttExporter::SchedSVGGanttExporter(const sched::Schedule *schedule,
+spider::SchedSVGGanttExporter::SchedSVGGanttExporter(const Schedule *schedule,
                                                      const pisdf::Graph *) : Exporter(),
-                                                                        schedule_{ schedule } {
+                                                                             schedule_{ schedule } {
     /* == Compute values needed for printing == */
     uint64_t minExecTime = UINT64_MAX;
     uint64_t maxExecTime = 0;
@@ -201,7 +201,7 @@ void spider::SchedSVGGanttExporter::axisPrinter(std::ofstream &file) const {
     /* == Print horizontal arrow == */
 }
 
-void spider::SchedSVGGanttExporter::jobPrinter(std::ofstream &file, const sched::Job &job) const {
+void spider::SchedSVGGanttExporter::jobPrinter(std::ofstream &file, const ScheduleJob &job) const {
     /* == Compute color and width == */
     const auto *vertex = job.vertex();
     const auto *reference = vertex->reference();

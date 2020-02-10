@@ -52,7 +52,7 @@
 /* === Method(s) implementation === */
 
 
-spider::sched::Stats::Stats() {
+spider::Stats::Stats() {
     auto *platform = archi::platform();
 
     /* == Init stat vectors == */
@@ -64,7 +64,7 @@ spider::sched::Stats::Stats() {
     jobCountVector_.resize(n, 0);
 }
 
-void spider::sched::Stats::reset() {
+void spider::Stats::reset() {
     /* == Clear all the vectors == */
     std::fill(startTimeVector_.begin(), startTimeVector_.end(), 0);
     std::fill(endTimeVector_.begin(), endTimeVector_.end(), 0);
