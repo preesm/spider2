@@ -81,6 +81,18 @@ namespace spider {
             return res;
         }
 
+        int fprintf(FILE *stream, const char *format, va_list list) {
+            return std::vfprintf(stream, format, list);
+        }
+
+        int sprintf(char *str, size_t size, const char *format, va_list list) {
+            return std::vsnprintf(str, size, format, list);
+        }
+
+        int printf(const char *format, va_list list) {
+            return std::vprintf(format, list);
+        }
+
 #pragma GCC diagnostic pop
     }
 }

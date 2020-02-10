@@ -46,6 +46,12 @@
 #include <stdexcept>
 #include <common/Printer.h>
 
+#ifdef _SPIDER_NO_TYPESAFETY_PRINT
+
+#include <cstdarg>
+
+#endif
+
 /* === Defines === */
 
 /* == Size of 50 minimum is required for the error message associated == */
@@ -77,22 +83,44 @@ namespace spider {
 
     class Exception : public std::exception {
     public:
-        template<class... Ts>
-        explicit Exception(const char *fileName, const char *fctName, int lineNumber,
-                           const char *msg, const Ts &...ts)
+#ifdef _SPIDER_NO_TYPESAFETY_PRINT
+
+        explicit Exception(const char *fileName, const char *fctName, int lineNumber, const char *msg, ...)
                 : exceptionMessage_{ } {
             /* == Writes exception header == */
             int n = printer::sprintf(exceptionMessage_, EXCEPTION_BUFFER_SIZE, "%s::%s(%d): ", fileName,
                                      fctName, lineNumber);
 
             /* == Write the actual exception message == */
-            n = printer::sprintf(exceptionMessage_ + n, EXCEPTION_BUFFER_SIZE, msg, ts...);
+            va_list list;
+            va_start(list, msg);
+            n = printer::sprintf(exceptionMessage_ + n, EXCEPTION_BUFFER_SIZE, msg, list);
+            va_end(list);
             if (n > EXCEPTION_BUFFER_SIZE) {
                 printer::fprintf(stderr, "Exception: ERROR: exception message too big.\n");
                 printer::fprintf(stderr, "Partially recovered exception: %s\n", exceptionMessage_);
                 fflush(stderr);
             }
         }
+
+#else
+        template<class... Args>
+        explicit Exception(const char *fileName, const char *fctName, int lineNumber,
+                           const char *msg, Args &&...args)
+                : exceptionMessage_{ } {
+            /* == Writes exception header == */
+            int n = printer::sprintf(exceptionMessage_, EXCEPTION_BUFFER_SIZE, "%s::%s(%d): ", fileName,
+                                     fctName, lineNumber);
+
+            /* == Write the actual exception message == */
+            n = printer::sprintf(exceptionMessage_ + n, EXCEPTION_BUFFER_SIZE, msg, std::forward<Args>(args)...);
+            if (n > EXCEPTION_BUFFER_SIZE) {
+                printer::fprintf(stderr, "Exception: ERROR: exception message too big.\n");
+                printer::fprintf(stderr, "Partially recovered exception: %s\n", exceptionMessage_);
+                fflush(stderr);
+            }
+        }
+#endif
 
         const char *what() const noexcept override { return exceptionMessage_; }
 

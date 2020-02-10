@@ -66,6 +66,12 @@ namespace spider {
 
         int printf(const char *format, ...);
 
+        int fprintf(FILE *stream, const char *format, va_list list);
+
+        int sprintf(char *str, size_t size, const char *format, va_list list);
+
+        int printf(const char *format, va_list list);
+
 #else
 
         template<class... Args>
