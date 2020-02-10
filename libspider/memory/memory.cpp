@@ -45,6 +45,36 @@
 
 /* === Function(s) definition === */
 
+void *spider::allocate(Stack *stack, size_t size, size_t n) {
+    if (!n) {
+        return nullptr;
+    }
+    auto buffer = reinterpret_cast<uintptr_t>(stack->allocate(n * size + sizeof(uint64_t)));
+
+    /* == Return allocated buffer == */
+    if (buffer) {
+        reinterpret_cast<uint64_t *>(buffer)[0] = static_cast<uint64_t>(stack->id());
+        buffer = buffer + sizeof(uint64_t);
+        return reinterpret_cast<void *>(buffer);
+    }
+    return nullptr;
+}
+
+void spider::deallocate(void *ptr) {
+    if (!ptr) {
+        return;
+    }
+    /* == Retrieve stack id == */
+    auto *originalPtr = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(ptr) - sizeof(uint64_t));
+    auto stackId = static_cast<StackID>(reinterpret_cast<uint64_t *>(originalPtr)[0]);
+
+    /* == Deallocate the pointer == */
+    auto *stack = stackArray()[static_cast<uint64_t >(stackId)];
+    stack->deallocate(originalPtr);
+}
+
+/* === Overload operator new / delete === */
+
 void *operator new(std::size_t size) {
     return std::malloc(size);
 }

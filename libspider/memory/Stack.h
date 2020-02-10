@@ -151,6 +151,10 @@ namespace spider {
             return 0;
         }
 
+        inline StackID id() const {
+            return stack_;
+        }
+
         /* === Setter(s) === */
 
         /**

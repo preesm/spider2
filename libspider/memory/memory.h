@@ -61,6 +61,16 @@ namespace spider {
     /* == Functions used for allocating (constructing) / deallocating(destroying) == */
 
     /**
+     * @brief Allocates data using given stack.
+     * @remark This method allocates slightly more than asked for book keeping.
+     * @param stack  Pointer to the stack to use.
+     * @param size   Size of the buffer element to allocate (ex: sizeof(double).
+     * @param n      Number of element of size "size" to allocate.
+     * @return allocated buffer on success, nullptr else.
+     */
+    void *allocate(Stack *stack, size_t size, size_t n);
+
+    /**
      * @brief Allocate raw memory buffer on given stack.
      * @tparam T    Type of the pointer to allocate.
      * @param size  Size of the buffer to allocate.
@@ -70,59 +80,13 @@ namespace spider {
     template<typename T>
     inline T *allocate(StackID stackId, size_t n = 1) {
         /* == Allocate buffer with (size + 1) to store stack identifier == */
-        auto *stack = stackArray()[static_cast<uint64_t >(stackId)];
-        auto size = (n > 0 ? n * sizeof(T) + sizeof(uint64_t) : 0);
-        auto buffer = reinterpret_cast<uintptr_t>(stack->allocate(size));
-
-        /* == Return allocated buffer == */
-        if (buffer) {
-            reinterpret_cast<uint64_t *>(buffer)[0] = static_cast<uint64_t>(stackId);
-            buffer = buffer + sizeof(uint64_t);
-            return reinterpret_cast<T *>(buffer);
-        }
-        return nullptr;
+        return reinterpret_cast<T *>(allocate(stackArray()[static_cast<uint64_t >(stackId)], sizeof(T), n));
     }
 
     template<typename T, StackID stackId = StackID::GENERAL>
     inline T *allocate(size_t n = 1) {
         /* == Allocate buffer with (size + 1) to store stack identifier == */
-        auto *stack = stackArray()[static_cast<uint64_t >(stackId)];
-        auto size = (n > 0 ? n * sizeof(T) + sizeof(uint64_t) : 0);
-        auto buffer = reinterpret_cast<uintptr_t>(stack->allocate(size));
-
-        /* == Return allocated buffer == */
-        if (buffer) {
-            reinterpret_cast<uint64_t *>(buffer)[0] = static_cast<uint64_t>(stackId);
-            buffer = buffer + sizeof(uint64_t);
-            return reinterpret_cast<T *>(buffer);
-        }
-        return nullptr;
-    }
-
-    /**
-     * @brief  Construct a previously allocated object
-     * @attention This method does not allocate memory, use @refitem spider::allocate first
-     * @tparam T     Type of the object to construct
-     * @tparam Args  Packed arguments list for construction
-     * @param ptr    Reference pointer of the object to be constructed
-     * @param args   Arguments used by the constructor of the object
-     */
-    template<typename T, class... Args>
-    inline void construct(T *ptr, Args &&... args) {
-        new(ptr) T(std::forward<Args>(args)...);
-    }
-
-    /**
-     * @brief Destroy an object
-     * @attention This method does not deallocate memory of the pointer, use @refitem spider::deallocate
-     * @tparam T  Type of the object to destroy
-     * @param ptr Reference pointer to the object to destroy
-     */
-    template<typename T>
-    inline void destruct(T *ptr) {
-        if (ptr) {
-            ptr->~T();
-        }
+        return reinterpret_cast<T *>(allocate(stackArray()[static_cast<uint64_t >(stackId)], sizeof(T), n));
     }
 
     /**
@@ -130,18 +94,7 @@ namespace spider {
      * @attention This method does not destroy the object, use @refitem spider::destroy
      * @param ptr Raw pointer to deallocate
      */
-    inline void deallocate(void *ptr) {
-        if (!ptr) {
-            return;
-        }
-        /* == Retrieve stack id == */
-        auto *originalPtr = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(ptr) - sizeof(uint64_t));
-        auto stackId = static_cast<StackID>(reinterpret_cast<uint64_t *>(originalPtr)[0]);
-
-        /* == Deallocate the pointer == */
-        auto *stack = stackArray()[static_cast<uint64_t >(stackId)];
-        stack->deallocate(originalPtr);
-    }
+    void deallocate(void *ptr);
 
     /**
      * @brief Allocate an object on a given stack and construct it.
@@ -155,14 +108,14 @@ namespace spider {
     template<class T, StackID stack = StackID::GENERAL, class ...Args>
     inline T *make(Args &&... args) {
         auto *ptr = allocate<T, stack>();
-        construct(ptr, std::forward<Args>(args)...);
+        new(ptr) T(std::forward<Args>(args)...);
         return ptr;
     }
 
     template<class T, class ...Args>
     inline T *make(StackID stack, Args &&... args) {
         auto *ptr = allocate<T>(stack);
-        construct(ptr, std::forward<Args>(args)...);
+        new(ptr) T(std::forward<Args>(args)...);
         return ptr;
     }
 
@@ -178,7 +131,7 @@ namespace spider {
     inline T *make_n(size_t count, const T &value = T()) {
         auto *ptr = allocate<T, stack>(count);
         for (size_t i = 0; i < count; ++i) {
-            construct(&ptr[i], value);
+            new(&ptr[i]) T(value);
         }
         return ptr;
     }
@@ -187,7 +140,7 @@ namespace spider {
     inline T *make_n(StackID stack, size_t count, const T &value = T()) {
         auto *ptr = allocate<T>(stack, count);
         for (size_t i = 0; i < count; ++i) {
-            construct(&ptr[i], value);
+            new(&ptr[i]) T(value);
         }
         return ptr;
     }
