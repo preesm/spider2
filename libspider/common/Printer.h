@@ -63,19 +63,28 @@ namespace spider {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat-security"
 
-        template<class... Args>
-        inline int fprintf(FILE *stream, const char *format, Args &&... args) {
-            return std::fprintf(stream, format, std::forward<Args>(args)...);
+        inline int fprintf(FILE *stream, const char *format, ...) {
+            va_list list;
+            va_start(list, format);
+            auto res = std::vfprintf(stream, format, list);
+            va_end(list);
+            return res;
         }
 
-        template<class... Args>
-        inline int sprintf(char *str, size_t size, const char *format, Args &&... args) {
-            return std::snprintf(str, size, format, std::forward<Args>(args)...);
+        inline int sprintf(char *str, size_t size, const char *format, ...) {
+            va_list list;
+            va_start(list, format);
+            auto res = std::vsnprintf(str, size, format, list);
+            va_end(list);
+            return res;
         }
 
-        template<class... Args>
-        inline int printf(const char *format, Args &&... args) {
-            return std::printf(format, std::forward<Args>(args)...);
+        inline int printf(const char *format, ...) {
+            va_list list;
+            va_start(list, format);
+            auto res = std::vprintf(format, list);
+            va_end(list);
+            return res;
         }
 
 #pragma GCC diagnostic pop
