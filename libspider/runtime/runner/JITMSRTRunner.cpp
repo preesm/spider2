@@ -157,10 +157,10 @@ void spider::JITMSRTRunner::runJob(const JobMessage &job) {
     spider::array<void *> inputBuffersArray{ job.inputFifoArray_.size(), nullptr, StackID::RUNTIME };
     auto inputBufferIterator = inputBuffersArray.begin();
     for (auto &inputFIFO : job.inputFifoArray_) {
-        auto *sender = archi::platform()->processingElement(inputFIFO.senderReceiverIx_)->cluster();
-        auto *memoryInterface = archi::platform()->getClusterToClusterMemoryInterface(sender,
-                                                                                      attachedPE_->cluster()).second;
-        *(inputBufferIterator++) = memoryInterface->read(inputFIFO.virtualAddress_);
+//        auto *sender = archi::platform()->processingElement(inputFIFO.senderReceiverIx_)->cluster();
+//        auto *memoryInterface = archi::platform()->getClusterToClusterMemoryInterface(sender,
+//                                                                                      attachedPE_->cluster()).second;
+//        *(inputBufferIterator++) = memoryInterface->read(inputFIFO.virtualAddress_);
     }
 
     /* == Allocate output memory == */
@@ -186,17 +186,10 @@ void spider::JITMSRTRunner::runJob(const JobMessage &job) {
     /* == Deallocate input buffers == */
     // TODO: add time monitoring
     for (auto &inputFIFO : job.inputFifoArray_) {
-        auto *sender = archi::platform()->processingElement(inputFIFO.senderReceiverIx_)->cluster();
-        auto *memoryInterface = archi::platform()->getClusterToClusterMemoryInterface(sender,
-                                                                                      attachedPE_->cluster()).second;
-        memoryInterface->deallocate(inputFIFO.virtualAddress_, inputFIFO.size_);
-    }
-
-    /* == Send output data == */
-    // TODO: add time monitoring
-    for (auto &outputFIFO : job.outputFifoArray_) {
-        auto *memoryInterface = attachedPE_->cluster()->memoryInterface();
-        memoryInterface->write(outputFIFO.virtualAddress_);
+//        auto *sender = archi::platform()->processingElement(inputFIFO.senderReceiverIx_)->cluster();
+//        auto *memoryInterface = archi::platform()->getClusterToClusterMemoryInterface(sender,
+//                                                                                      attachedPE_->cluster()).second;
+//        memoryInterface->deallocate(inputFIFO.virtualAddress_, inputFIFO.size_);
     }
 
     /* == Notify other runtimes that need to know == */

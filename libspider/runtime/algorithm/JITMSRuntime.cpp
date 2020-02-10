@@ -41,20 +41,16 @@
 /* === Include(s) === */
 
 #include <runtime/algorithm/JITMSRuntime.h>
-#include <graphs-tools/transformation/srdag/Transformation.h>
-#include <graphs-tools/transformation/optims/optimizations.h>
-#include <graphs-tools/exporter/PiSDFDOTExporter.h>
-#include <scheduling/schedule/exporter/SchedSVGGanttExporter.h>
-#include <scheduling/scheduler/BestFitScheduler.h>
 #include <runtime/runner/RTRunner.h>
 #include <runtime/platform/RTPlatform.h>
 #include <runtime/interface/RTCommunicator.h>
-#include <monitor/Monitor.h>
 #include <api/runtime-api.h>
+#include <graphs-tools/transformation/srdag/Transformation.h>
+#include <graphs-tools/transformation/optims/optimizations.h>
+#include <scheduling/scheduler/BestFitScheduler.h>
+#include <scheduling/allocator/DefaultFifoAllocator.h>
+#include <monitor/Monitor.h>
 #include <api/config-api.h>
-#include <common/Time.h>
-#include <graphs/pisdf/SpecialVertex.h>
-#include <scheduling/schedule/exporter/SchedXMLGanttExporter.h>
 
 /* === Static function(s) === */
 
@@ -71,12 +67,27 @@ static bool isGraphFullyStatic(const spider::pisdf::Graph *graph) {
     return isFullyStatic;
 }
 
+static spider::FifoAllocator *makeFifoAllocator(spider::FifoAllocatorType type) {
+    switch (type) {
+        case spider::FifoAllocatorType::DEFAULT:
+            return spider::make<spider::DefaultFifoAllocator, StackID::RUNTIME>();
+        case spider::FifoAllocatorType::ARCHI_AWARE:
+            break;
+        default:
+            throwSpiderException("unsupported type of FifoAllocator.");
+    }
+    return nullptr;
+}
+
 /* === Method(s) implementation === */
 
-spider::JITMSRuntime::JITMSRuntime(pisdf::Graph *graph, SchedulingAlgorithm schedulingAlgorithm) :
+spider::JITMSRuntime::JITMSRuntime(pisdf::Graph *graph,
+                                   SchedulingAlgorithm schedulingAlgorithm,
+                                   FifoAllocatorType type) :
         Runtime(graph),
         srdag_{ make_unique<pisdf::Graph, StackID::RUNTIME>("srdag-" + graph->name()) },
-        scheduler_{ makeScheduler(schedulingAlgorithm, srdag_.get()) } {
+        scheduler_{ makeScheduler(schedulingAlgorithm, srdag_.get()) },
+        fifoAllocator_{ makeFifoAllocator(type) } {
     isFullyStatic_ = isGraphFullyStatic(graph);
 }
 
@@ -131,14 +142,13 @@ bool spider::JITMSRuntime::staticExecute() {
     }
 
     if (api::exportSRDAG()) {
-        auto exporter = pisdf::PiSDFDOTExporter{ srdag_.get() };
-        exporter.printFromPath("./srdag.dot");
+        api::exportGraphToDOT(srdag_.get(), "./srdag.dot");
     }
 
     /* == Schedule / Map current Single-Rate graph == */
     //monitor_->startSampling();
     scheduler_->update();
-    scheduler_->mappingScheduling();
+    scheduler_->mappingScheduling(true);
     //monitor_->endSampling();
 
     /* == If there are jobs left, run == */
@@ -178,7 +188,7 @@ bool spider::JITMSRuntime::dynamicExecute() {
         /* == Schedule / Map current Single-Rate graph == */
         //monitor_->startSampling();
         scheduler_->update();
-        scheduler_->mappingScheduling();
+        scheduler_->mappingScheduling(true);
         rt::platform()->runner(0)->run(false);
         //monitor_->endSampling();
 
@@ -187,6 +197,7 @@ bool spider::JITMSRuntime::dynamicExecute() {
             if (log::enabled<log::TRANSFO>()) {
                 log::info<log::TRANSFO>("Waiting fo dynamic parameters..\n");
             }
+
             const auto &grtIx = archi::platform()->spiderGRTPE()->virtualIx();
             size_t readParam = 0;
             while (readParam != dynamicJobStack.size()) {
@@ -228,13 +239,12 @@ bool spider::JITMSRuntime::dynamicExecute() {
 
             /* == Schedule / Map current Single-Rate graph == */
             scheduler_->update();
-            scheduler_->mappingScheduling();
+            scheduler_->mappingScheduling(true);
         }
     }
 
     if (api::exportSRDAG()) {
-        auto exporter = pisdf::PiSDFDOTExporter{ srdag_.get() };
-        exporter.printFromPath("./srdag.dot");
+        api::exportGraphToDOT(srdag_.get(), "./srdag.dot");
     }
 
     /* == If there are jobs left, run == */
@@ -248,8 +258,8 @@ bool spider::JITMSRuntime::dynamicExecute() {
     return true;
 }
 
-void spider::JITMSRuntime::transformStaticJobs(spider::vector<spider::srdag::TransfoJob> &staticJobStack,
-                                               spider::vector<spider::srdag::TransfoJob> &dynamicJobStack) {
+void spider::JITMSRuntime::transformStaticJobs(vector<srdag::TransfoJob> &staticJobStack,
+                                               vector<srdag::TransfoJob> &dynamicJobStack) {
     auto tempJobStack = factory::vector<srdag::TransfoJob>(StackID::TRANSFO);
     while (!staticJobStack.empty()) {
         /* == Transform jobs of current static stack == */
@@ -260,8 +270,8 @@ void spider::JITMSRuntime::transformStaticJobs(spider::vector<spider::srdag::Tra
     }
 }
 
-void spider::JITMSRuntime::transformDynamicJobs(spider::vector<srdag::TransfoJob> &staticJobStack,
-                                                spider::vector<srdag::TransfoJob> &dynamicJobStack) {
+void spider::JITMSRuntime::transformDynamicJobs(vector<srdag::TransfoJob> &staticJobStack,
+                                                vector<srdag::TransfoJob> &dynamicJobStack) {
     auto tempJobStack = factory::vector<srdag::TransfoJob>(StackID::TRANSFO);
     /* == Transform jobs of current dynamic stack == */
     transformJobs(dynamicJobStack, staticJobStack, tempJobStack);
@@ -269,16 +279,15 @@ void spider::JITMSRuntime::transformDynamicJobs(spider::vector<srdag::TransfoJob
     dynamicJobStack.swap(tempJobStack);
 }
 
-void spider::JITMSRuntime::updateJobStack(spider::vector<spider::srdag::TransfoJob> &src,
-                                          spider::vector<spider::srdag::TransfoJob> &dest) const {
-    std::for_each(src.begin(), src.end(), [&](spider::srdag::TransfoJob &job) {
+void spider::JITMSRuntime::updateJobStack(vector<srdag::TransfoJob> &src, vector<srdag::TransfoJob> &dest) const {
+    std::for_each(src.begin(), src.end(), [&](srdag::TransfoJob &job) {
         dest.emplace_back(std::move(job));
     });
 }
 
-void spider::JITMSRuntime::transformJobs(spider::vector<spider::srdag::TransfoJob> &iterJobStack,
-                                         spider::vector<spider::srdag::TransfoJob> &staticJobStack,
-                                         spider::vector<spider::srdag::TransfoJob> &dynamicJobStack) {
+void spider::JITMSRuntime::transformJobs(vector<srdag::TransfoJob> &iterJobStack,
+                                         vector<srdag::TransfoJob> &staticJobStack,
+                                         vector<srdag::TransfoJob> &dynamicJobStack) {
     for (auto &job : iterJobStack) {
         /* == Transform current job == */
         auto &&result = srdag::singleRateTransformation(job, srdag_.get());
