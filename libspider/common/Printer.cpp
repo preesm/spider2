@@ -37,55 +37,51 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_PRINTER_H
-#define SPIDER2_PRINTER_H
 
-/* === Includes === */
+/* === Include(s) === */
 
 #ifdef _SPIDER_NO_TYPESAFETY_PRINT
 
-#include <cstdlib>
-#include <cstdio>
-
-#else
-
-#include <common/cxx11-printf/Printf.h>
+#include <cstdarg>
 
 #endif
 
+#include <common/Printer.h>
+
+/* === Function(s) definition === */
+
+#ifdef _SPIDER_NO_TYPESAFETY_PRINT
 namespace spider {
     namespace printer {
 
-        /* === Methods prototype === */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-security"
 
-#ifdef _SPIDER_NO_TYPESAFETY_PRINT
-
-        int fprintf(FILE *stream, const char *format, ...);
-
-        int sprintf(char *str, size_t size, const char *format, ...);
-
-        int printf(const char *format, ...);
-
-#else
-
-        template<class... Args>
-        inline int fprintf(FILE *stream, const char *format, Args &&... args) {
-            return cxx11::fprintf(stream, format, std::forward<Args>(args)...);
+        int fprintf(FILE *stream, const char *format, ...) {
+            va_list list;
+            va_start(list, format);
+            auto res = std::vfprintf(stream, format, list);
+            va_end(list);
+            return res;
         }
 
-        template<class... Args>
-        inline int sprintf(char *str, size_t size, const char *format, Args &&... args) {
-            return cxx11::sprintf(str, size, format, std::forward<Args>(args)...);
+        int sprintf(char *str, size_t size, const char *format, ...) {
+            va_list list;
+            va_start(list, format);
+            auto res = std::vsnprintf(str, size, format, list);
+            va_end(list);
+            return res;
         }
 
-        template<class... Args>
-        inline int printf(const char *format, Args &&... args) {
-            return cxx11::printf(format, std::forward<Args>(args)...);
+        int printf(const char *format, ...) {
+            va_list list;
+            va_start(list, format);
+            auto res = std::vprintf(format, list);
+            va_end(list);
+            return res;
         }
 
-
-#endif
+#pragma GCC diagnostic pop
     }
 }
-
-#endif //SPIDER2_PRINTER_H
+#endif
