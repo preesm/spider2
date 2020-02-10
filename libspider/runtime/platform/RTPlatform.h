@@ -158,8 +158,8 @@ namespace spider {
         }
 
     protected:
-        spider::array<RTRunner *> runnerArray_;                                /* = Array of RTRunner = */
-        spider::sbc::vector<RTKernel*, StackID::RUNTIME> runtimeKernelVector_; /* = Vector of RTKernel = */
+        array<RTRunner *> runnerArray_;                                /* = Array of RTRunner = */
+        sbc::vector<RTKernel*, StackID::RUNTIME> runtimeKernelVector_; /* = Vector of RTKernel = */
         RTCommunicator *communicator_ = nullptr;                               /* = Communicator of the RTPlatform = */
     };
 }

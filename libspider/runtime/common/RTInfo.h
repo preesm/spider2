@@ -111,8 +111,7 @@ namespace spider {
          * @return timing on given PE (100 by default). If pe is nullptr, return INT64_MAX.
          * @throws std::out_of_range
          */
-        inline int64_t
-        timingOnPE(const PE *pe, const spider::vector<std::shared_ptr<pisdf::Param>> &params = { }) const {
+        inline int64_t timingOnPE(const PE *pe, const vector<std::shared_ptr<pisdf::Param>> &params = { }) const {
             if (!pe) {
                 return INT64_MAX;
             }
@@ -126,7 +125,7 @@ namespace spider {
          * @return timing on given PE (100 by default).
          * @throws std::out_of_range
          */
-        inline int64_t timingOnPE(size_t ix, const spider::vector<std::shared_ptr<pisdf::Param>> &params = { }) const {
+        inline int64_t timingOnPE(size_t ix, const vector<std::shared_ptr<pisdf::Param>> &params = { }) const {
             auto *cluster = archi::platform()->processingElement(ix)->cluster();
             return timingVector_.at(cluster->ix()).evaluate(params);
         }
@@ -140,7 +139,7 @@ namespace spider {
          */
         inline int64_t
         timingOnCluster(const Cluster *cluster,
-                        const spider::vector<std::shared_ptr<pisdf::Param>> &params = { }) const {
+                        const vector<std::shared_ptr<pisdf::Param>> &params = { }) const {
             if (!cluster) {
                 return INT64_MAX;
             }
@@ -154,8 +153,7 @@ namespace spider {
          * @return timing on given PE (100 by default).
          * @throws std::out_of_range
          */
-        inline int64_t
-        timingOnCluster(size_t ix, const spider::vector<std::shared_ptr<pisdf::Param>> &params = { }) const {
+        inline int64_t timingOnCluster(size_t ix, const vector<std::shared_ptr<pisdf::Param>> &params = { }) const {
             return timingVector_.at(ix).evaluate(params);
         }
 
@@ -283,9 +281,9 @@ namespace spider {
         }
 
     private:
-        spider::sbc::vector<bool, StackID::RUNTIME> peMappableVector_;
-        spider::sbc::vector<bool, StackID::RUNTIME> clusterMappableVector_;
-        spider::sbc::vector<Expression, StackID::RUNTIME> timingVector_;
+        sbc::vector<bool, StackID::RUNTIME> peMappableVector_;
+        sbc::vector<bool, StackID::RUNTIME> clusterMappableVector_;
+        sbc::vector<Expression, StackID::RUNTIME> timingVector_;
         size_t kernelIx_ = SIZE_MAX;
     };
 }

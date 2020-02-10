@@ -135,6 +135,20 @@ namespace spider {
         void setMemoryBusReceiveCostRoutine(MemoryBus *bus, MemoryExchangeCostRoutine routine);
 
         /**
+         * @brief Set the writing speed of a given @refitem MemoryBus.
+         * @param bus    Pointer to the @refitem MemoryBus.
+         * @param value  Writing speed in bytes/s.
+         */
+        void setMemoryBusWriteSpeed(MemoryBus *bus, uint64_t value);
+
+        /**
+         * @brief Set the reading speed of a given @refitem MemoryBus.
+         * @param bus    Pointer to the @refitem MemoryBus.
+         * @param value  Reading speed in bytes/s.
+         */
+        void setMemoryBusReadSpeed(MemoryBus *bus, uint64_t value);
+
+        /**
          * @brief Create a @refitem InterMemoryBus associated to the communication between two @refitem Cluster.
          * @param clusterA  Pointer to cluster A.
          * @param clusterB  Pointer to cluster B.

@@ -51,6 +51,8 @@ namespace spider {
 
     class MemoryInterface;
 
+    class RTKernel;
+
     /* === Class definition === */
 
     class MemoryBus {
@@ -60,8 +62,6 @@ namespace spider {
         ~MemoryBus() = default;
 
         /* === Method(s) === */
-
-
 
         /**
          * @brief Get the cost of sending size bytes on the this MemoryBus.
@@ -77,7 +77,45 @@ namespace spider {
          */
         uint64_t receiveCost(uint64_t size) const;
 
+        /**
+         * @brief Send data over the bus.
+         * @param size    Size in bytes to send.
+         * @param buffer  Buffer to send.
+         */
+        void dataSend(int64_t size, void *buffer);
+
+        /**
+         * @brief Receive data over the bus.
+         * @param size    Size in bytes to receive.
+         * @param buffer  Buffer of the receive data.
+         */
+        void dataReceive(int64_t size, void *buffer);
+
         /* === Getter(s) === */
+
+        /**
+         * @brief Get the runtime kernel associated with this memory bus send routine.
+         * @return pointer to the kernel, nullptr else.
+         */
+        RTKernel *sendKernel() const;
+
+        /**
+         * @brief Get the runtime kernel associated with this memory bus receive routine.
+         * @return pointer to the kernel, nullptr else.
+         */
+        RTKernel *receiveKernel() const;
+
+        /**
+         * @brief Get the write speed of this memory bus.
+         * @return writing speed of the bus in bytes / s.
+         */
+        uint64_t writeSpeed() const;
+
+        /**
+         * @brief Get the write speed of this memory bus.
+         * @return reading speed of the bus in bytes / s.
+         */
+        uint64_t readSpeed() const;
 
         /* === Setter(s) === */
 
@@ -109,12 +147,35 @@ namespace spider {
          */
         void setReceiveRoutine(MemoryBusRoutine routine);
 
+        /**
+         * @brief Set the routine for sending data on this bus.
+         * @remark override current value.
+         * @param routine  Routine to set.
+         */
+        void setWriteSpeed(uint64_t value);
+
+        /**
+         * @brief Set the routine for receiving data on this bus.
+         * @remark override current value.
+         * @param routine  Routine to set.
+         */
+        void setReadSpeed(uint64_t value);
+
     private:
         MemoryExchangeCostRoutine sendCostRoutine_;    /* = Memory send exchange cost routine used for this MemoryBus = */
         MemoryExchangeCostRoutine receiveCostRoutine_; /* = Memory receive exchange cost routine used for this MemoryBus = */
         MemoryBusRoutine sendRoutine_;                 /* = Memory send routine used by this MemoryBus = */
         MemoryBusRoutine receiveRoutine_;              /* = Memory receive routine used by this MemoryBus = */
+        uint64_t writeSpeed_ = 0;                      /* = Memory bus write speed in bytes / s = */
+        uint64_t readSpeed_ = 0;                       /* = Memory bus read speed in bytes / s = */
+        size_t sendKernelIx_ = SIZE_MAX;               /* = Ix of the send kernel = */
+        size_t recvKernelIx_ = SIZE_MAX;               /* = Ix of the receive kernel = */
 
+        /* === Private method(s) === */
+
+        static void send(const int64_t *paramsIN, int64_t *, void *in[], void *[]);
+
+        static void receive(const int64_t *paramsIN, int64_t *, void *[], void *out[]);
     };
 }
 #endif //SPIDER2_MEMORYBUS_H

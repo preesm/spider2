@@ -114,6 +114,19 @@ void spider::api::setMemoryBusReceiveCostRoutine(MemoryBus *bus, MemoryExchangeC
     }
 }
 
+
+void spider::api::setMemoryBusWriteSpeed(MemoryBus *bus, uint64_t value) {
+    if (bus) {
+        bus->setWriteSpeed(value);
+    }
+}
+
+void spider::api::setMemoryBusReadSpeed(MemoryBus *bus, uint64_t value) {
+    if (bus) {
+        bus->setReadSpeed(value);
+    }
+}
+
 spider::InterMemoryBus *
 spider::api::createInterClusterMemoryBus(Cluster *clusterA, Cluster *clusterB, MemoryBus *busAToB, MemoryBus *busBToA) {
     if (!clusterA || !clusterB) {
