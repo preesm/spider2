@@ -100,7 +100,7 @@ namespace spider {
                 // NOTE(eteran): len is at most strlen, possible is less
                 // so we can just loop len times
                 width -= len;
-                ctx.write(s_ptr, len);
+                ctx.write(s_ptr, static_cast<size_t>(len));
 
                 // if left justified padding goes last...
                 if (flags.justify) {
@@ -424,13 +424,14 @@ namespace spider {
                                 *formatted_pointer<intmax_t *>(arg) = static_cast<intmax_t>(ctx.written);
                                 break;
                             case Modifiers::MOD_SIZE_T:
-                                *formatted_pointer<std::make_signed<size_t>::type *>(arg) = ctx.written;
+                                *(formatted_pointer<std::make_signed<size_t>::type *>(
+                                        arg)) = static_cast<std::make_signed<size_t>::type>(ctx.written);
                                 break;
                             case Modifiers::MOD_PTRDIFF_T:
-                                *formatted_pointer<ptrdiff_t *>(arg) = (ctx.written);
+                                *(formatted_pointer<ptrdiff_t *>(arg)) = static_cast<ptrdiff_t>(ctx.written);
                                 break;
                             default:
-                                *formatted_pointer<int *>(arg) = static_cast<int32_t>(ctx.written);
+                                *(formatted_pointer<int *>(arg)) = static_cast<int32_t>(ctx.written);
                                 break;
                         }
 

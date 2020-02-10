@@ -107,8 +107,7 @@ namespace spider {
                 template<class T, size_t N>
                 static const char *
                 format(char (&buf)[N], T d, int32_t width, Flags flags, const char *alphabet, size_t *rlen) {
-
-                    typename std::make_unsigned<T>::type ud = d;
+                    auto ud = static_cast<typename std::make_unsigned<T>::type>(d);
 
                     char *p = buf + N;
                     *--p = '\0';
@@ -154,7 +153,7 @@ namespace spider {
                         *--p = '+';
                     }
 
-                    *rlen = (buf + N) - p - 1;
+                    *rlen = static_cast<size_t>((buf + N) - p - 1);
                     return p;
                 }
             };
@@ -174,8 +173,7 @@ namespace spider {
                 template<class T, size_t N>
                 static const char *
                 format(char (&buf)[N], T d, int32_t width, Flags flags, const char *alphabet, size_t *rlen) {
-
-                    typename std::make_unsigned<T>::type ud = d;
+                    auto ud = static_cast<typename std::make_unsigned<T>::type>(d);
 
                     char *p = buf + N;
                     *--p = '\0';
@@ -207,7 +205,7 @@ namespace spider {
                         *--p = '0';
                     }
 
-                    *rlen = (buf + N) - p - 1;
+                    *rlen = static_cast<size_t>((buf + N) - p - 1);
                     return p;
                 }
             };
@@ -227,7 +225,6 @@ namespace spider {
                 template<class T, size_t N>
                 static const char *
                 format(char (&buf)[N], T d, int32_t width, Flags flags, const char *alphabet, size_t *rlen) {
-
                     auto ud = static_cast<typename std::make_unsigned<T>::type>(d);
 
                     char *p = buf + N;
@@ -260,7 +257,7 @@ namespace spider {
                         *--p = '0';
                     }
 
-                    *rlen = (buf + N) - p - 1;
+                    *rlen = static_cast<size_t>((buf + N) - p - 1);
                     return p;
                 }
             };
@@ -280,8 +277,7 @@ namespace spider {
                 template<class T, size_t N>
                 static const char *
                 format(char (&buf)[N], T d, int32_t width, Flags flags, const char *alphabet, size_t *rlen) {
-
-                    typename std::make_unsigned<T>::type ud = d;
+                    auto ud = static_cast<typename std::make_unsigned<T>::type>(d);
 
                     char *p = buf + N;
                     *--p = '\0';
@@ -313,7 +309,7 @@ namespace spider {
                         *--p = '0';
                     }
 
-                    *rlen = (buf + N) - p - 1;
+                    *rlen = static_cast<size_t>((buf + N) - p - 1);
                     return p;
                 }
             };

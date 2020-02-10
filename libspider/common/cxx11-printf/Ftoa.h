@@ -139,7 +139,7 @@ namespace spider {
                         *--p = '+';
                     }
 
-                    *rlen = (buf + N) - p - 1;
+                    *rlen = static_cast<size_t>((buf + N) - p - 1);
                     return p;
                 }
             };
@@ -187,7 +187,7 @@ namespace spider {
                         *--p = buf[i];
                     }
 
-                    *rlen = *rlen + digits;
+                    *rlen = *rlen + static_cast<unsigned long>(digits);
                     return buf + N - 1 - *rlen;
                 }
             };
