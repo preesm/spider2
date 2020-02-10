@@ -52,7 +52,7 @@ namespace spider {
     class RTKernel {
     public:
 
-        explicit RTKernel(rtkernel kernel) : kernel_{ kernel } { };
+        explicit RTKernel(Kernel kernel) : kernel_{ kernel } { };
 
         RTKernel() = default;
 
@@ -96,9 +96,8 @@ namespace spider {
         }
 
     private:
-        rtkernel kernel_ = [](const int64_t *, int64_t *, void *[],
-                              void *[]) { }; /* = Kernel function to be called when executing the associated vertex = */
-        size_t ix_ = SIZE_MAX;               /* = Index of the kernel in the @refitem RTPlatform = */
+        Kernel kernel_;         /* = Kernel function to be called when executing the associated vertex = */
+        size_t ix_ = SIZE_MAX;  /* = Index of the kernel in the @refitem RTPlatform = */
     };
 
 }

@@ -126,7 +126,7 @@ void spider::api::createThreadRTPlatform() {
 
 /* === Runtime kernel related API === */
 
-spider::RTKernel *spider::api::createRuntimeKernel(spider::rtkernel kernel) {
+spider::RTKernel *spider::api::createRuntimeKernel(Kernel kernel) {
     if (rt::platform()) {
         auto *runtimeKernel = make<RTKernel, StackID::RUNTIME>(kernel);
         rt::platform()->addKernel(runtimeKernel);
@@ -135,7 +135,7 @@ spider::RTKernel *spider::api::createRuntimeKernel(spider::rtkernel kernel) {
     return nullptr;
 }
 
-spider::RTKernel *spider::api::createRuntimeKernel(spider::pisdf::Vertex *vertex, spider::rtkernel kernel) {
+spider::RTKernel *spider::api::createRuntimeKernel(pisdf::Vertex *vertex, Kernel kernel) {
     if (!vertex) {
         throwSpiderException("nullptr vertex.");
     }
@@ -198,7 +198,7 @@ void spider::api::setVertexMappableOnPE(pisdf::Vertex *vertex, const spider::PE 
     }
 }
 
-void spider::api::setVertexMappableOnPE(spider::pisdf::Vertex *vertex, size_t PEId, bool value) {
+void spider::api::setVertexMappableOnPE(pisdf::Vertex *vertex, size_t PEId, bool value) {
     if (!archi::platform()) {
         throwSpiderException("platform must be created first.");
     }

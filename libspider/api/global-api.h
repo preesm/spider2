@@ -275,7 +275,7 @@ namespace spider {
     /**
      * @brief Generic refinement used by spider for the actors.
      */
-    using rtkernel = void (*)(const int64_t *, int64_t *, void *[], void *[]);
+    using Kernel = void (*)(const int64_t *, int64_t *, void *[], void *[]);
 }
 
 #endif //SPIDER2_GLOBAL_API_H
