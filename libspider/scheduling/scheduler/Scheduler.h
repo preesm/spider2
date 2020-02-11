@@ -73,7 +73,7 @@ namespace spider {
          *                                                    minimize synchronization.
          * @return @refitem Schedule.
          */
-        virtual Schedule &mappingScheduling(bool jitSend) = 0;
+        virtual Schedule &schedule(bool jitSend) = 0;
 
         /**
          * @brief Update internal state of the scheduler (mostly for dynamic applications)
@@ -95,11 +95,27 @@ namespace spider {
             return schedule_;
         }
 
-        /* === Setter(s) === */
-
     protected:
         Schedule schedule_;
         pisdf::Graph *graph_ = nullptr;
+
+        /* === Protected struct(s) === */
+
+        struct DataDependency {
+            ScheduleTask *task_ = nullptr;
+            PE *sender_ = nullptr;
+            uint64_t size_ = 0;
+
+            DataDependency(ScheduleTask *task, PE *pe, uint64_t size) : task_{ task }, sender_{ pe }, size_{ size } { }
+
+            DataDependency(const DataDependency &) = default;
+
+            DataDependency(DataDependency &&) = default;
+
+            DataDependency &operator=(const DataDependency &) = default;
+
+            DataDependency &operator=(DataDependency &&) = default;
+        };
 
         /* === Protected method(s) === */
 
@@ -123,6 +139,55 @@ namespace spider {
          */
         static uint64_t computeMinStartTime(ScheduleTask *task);
 
+        template<class SkipPredicate>
+        PE *findBestPEFit(Cluster *cluster,
+                          uint_fast64_t minStartTime,
+                          uint_fast64_t execTime,
+                          SkipPredicate skipPredicate);
+
+        /**
+         * @brief Inserts a communication task on given cluster.
+         *        The method may modify the dependency array of the task passed in parameter.
+         * @param cluster      Pointer to the cluster.
+         * @param kernel       Pointer to the kernel to use.
+         * @param comTime      Estimated time of the communication (in s).
+         * @param taskToUpdate Pointer to the task sending data.
+         * @param direction    Direction of the communication.
+         * @return send task.
+         */
+        ScheduleTask *insertSendTask(Cluster *cluster, RTKernel *kernel, uint64_t comTime, ScheduleTask *taskToUpdate);
+
+        /**
+         * @brief Inserts a communication task on given cluster.
+         *        The method may modify the dependency array of the task passed in parameter.
+         * @param cluster      Pointer to the cluster.
+         * @param kernel       Pointer to the kernel to use.
+         * @param comTime      Estimated time of the communication (in s).
+         * @param pos          Position of the dependency to replace.
+         * @param taskToUpdate Pointer to the task receiving data.
+         * @param direction    Direction of the communication.
+         * @return end time of the mapped task.
+         */
+        uint64_t
+        insertRecvTask(Cluster *cluster, RTKernel *kernel, uint64_t comTime, size_t pos, ScheduleTask *taskToUpdate);
+
+        /**
+         * @brief Schedules inter cluster communications (if any are needed).
+         * @param task           Pointer to the task.
+         * @param dependencies   Reference to the data dependencies of the task.
+         * @param mappedCluster  Pointer on which the task is mapped.
+         */
+        void
+        scheduleCommunications(ScheduleVertexTask *task, vector<DataDependency> &dependencies, Cluster *mappedCluster);
+
+        /**
+         * @brief Build a vector of Data dependency. Only the dependencies with exchange of data > 0 are taken into
+         *        account.
+         * @param task  Pointer to the task.
+         * @return vector of @refitem DataDependency.
+         */
+        static vector<DataDependency> getDataDependencies(ScheduleVertexTask *task);
+
         /**
          * @brief Default task mapper that try to best fit.
          * @param task Pointer to the task to map.
@@ -133,9 +198,9 @@ namespace spider {
     /**
      * @brief Make a new scheduler based on the scheduling algorithm.
      * @param algorithm Algorithm type (see @refitem SchedulingAlgorithm).
-     * @param graph     Pointer to the graph.
+     * @param graph  Pointer to the graph.
      * @return unique_ptr of the created scheduler.
      */
-    unique_ptr <Scheduler> makeScheduler(SchedulingAlgorithm algorithm, pisdf::Graph *graph);
+    unique_ptr<Scheduler> makeScheduler(SchedulingAlgorithm algorithm, pisdf::Graph *graph);
 }
 #endif //SPIDER2_SCHEDULER_H
