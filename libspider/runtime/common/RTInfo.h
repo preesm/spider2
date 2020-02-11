@@ -197,7 +197,14 @@ namespace spider {
         inline void setMappableConstraintOnPE(const PE *pe, bool mappable = true) {
             auto *cluster = pe->cluster();
             peMappableVector_.at(pe->virtualIx()) = mappable;
-            clusterMappableVector_.at(cluster->ix()) = mappable;
+            if (!mappable) {
+                /* == We need to recompute the condition to check if at least one PE in the cluster is valid == */
+                clusterMappableVector_.at(cluster->ix()) = std::count(clusterMappableVector_.begin(),
+                                                                      clusterMappableVector_.end(),
+                                                                      true) != 0;
+            } else {
+                clusterMappableVector_.at(cluster->ix()) = mappable;
+            }
         }
 
         /**
