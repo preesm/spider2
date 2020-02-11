@@ -97,6 +97,10 @@ namespace spider {
             return mappedLRT_;
         }
 
+        inline size_t mappedPE() const {
+            return mappedPE_;
+        }
+
         inline int32_t ix() const {
             return ix_;
         }
@@ -163,6 +167,15 @@ namespace spider {
         }
 
         /**
+        * @brief Set the processing element of the job.
+        * @remark This method will overwrite current values.
+        * @param mappedPE  Lrt ix inside spider.
+        */
+        inline void setMappedPE(size_t mappedPE) {
+            mappedPE_ = mappedPE;
+        }
+
+        /**
          * @brief Set the ix of the job.
          * @remark This method will overwrite current value.
          * @param ix Ix to set.
@@ -187,6 +200,7 @@ namespace spider {
         uint64_t startTime_ = SIZE_MAX;
         uint64_t endTime_ = SIZE_MAX;
         size_t mappedLRT_ = SIZE_MAX;
+        size_t mappedPE_ = SIZE_MAX;
         int32_t ix_ = -1;
         TaskState state_ = TaskState::NOT_SCHEDULABLE;
         TaskType type_;

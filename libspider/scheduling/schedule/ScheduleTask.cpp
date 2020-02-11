@@ -69,7 +69,7 @@ void spider::ScheduleTask::setNumberOfDependencies(size_t count) {
     }
 }
 
-void spider::ScheduleTask::setDependency(spider::ScheduleTask *task, size_t pos) {
+void spider::ScheduleTask::setDependency(ScheduleTask *task, size_t pos) {
     if (!task || dependenciesArray_.empty()) {
         return;
     }
