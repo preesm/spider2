@@ -49,7 +49,7 @@
 
 /* === Private method(s) implementation === */
 
-spider::Schedule &spider::GreedyScheduler::mappingScheduling(bool) {
+spider::Schedule &spider::GreedyScheduler::schedule(bool) {
     auto vertexVector = factory::vector<pisdf::Vertex *>(StackID::SCHEDULE);
     vertexVector.reserve(graph_->vertexCount());
 

@@ -45,6 +45,7 @@
 #include <runtime/platform/RTPlatform.h>
 #include <runtime/runner/RTRunner.h>
 #include <api/runtime-api.h>
+#include "GreedyScheduler.h"
 
 /* === Static variable(s) === */
 
@@ -52,7 +53,7 @@
 
 /* === Method(s) implementation === */
 
-spider::Schedule &spider::BestFitScheduler::mappingScheduling(bool jitSend) {
+spider::Schedule &spider::BestFitScheduler::schedule(bool jitSend) {
     /* == Schedule and map the vertex onto available resource == */
     auto iterator = sortedVertexVector_.begin() + static_cast<long>(lastScheduledVertex_);
     auto endIterator = sortedVertexVector_.begin() + static_cast<long>(lastSchedulableVertex_);

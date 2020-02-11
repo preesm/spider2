@@ -56,15 +56,11 @@ namespace spider {
 
         /* === Method(s) === */
 
-        Schedule &mappingScheduling(bool jitSend) override = 0;
+        Schedule &schedule(bool jitSend) override = 0;
 
         void update() override;
 
         void clear() override;
-
-        /* === Getter(s) === */
-
-        /* === Setter(s) === */
 
     protected:
         struct ListVertex {

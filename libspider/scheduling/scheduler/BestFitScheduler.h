@@ -58,11 +58,7 @@ namespace spider {
 
         /* === Method(s) === */
 
-        Schedule &mappingScheduling(bool jitSend) override;
-
-        /* === Getter(s) === */
-
-        /* === Setter(s) === */
+        Schedule &schedule(bool jitSend) override;
 
     private:
     };
