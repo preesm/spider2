@@ -64,7 +64,7 @@ namespace spider {
             pisdf::Graph *srdag_ = nullptr;
             size_t ix_ = SIZE_MAX;
         private:
-            std::string buildCloneName(const pisdf::Vertex *vertex, uint32_t firing) const;
+            std::string buildCloneName(const pisdf::Vertex *vertex) const;
 
             void makeClone(pisdf::Vertex *vertex);
         };

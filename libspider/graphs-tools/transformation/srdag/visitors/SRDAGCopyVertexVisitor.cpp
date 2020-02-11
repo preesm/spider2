@@ -56,7 +56,7 @@ void spider::srdag::SRDAGCopyVertexVisitor::visit(pisdf::ExecVertex *vertex) {
          *                               A -> |       | -> B
          *    But in reality the vertex does not make it after the SR-Transformation.
          */
-        api::createVertex(srdag_, buildCloneName(vertex, 0), 2, 2);
+        api::createVertex(srdag_, std::move(buildCloneName(vertex).append("0")), 2, 2);
         ix_ = srdag_->vertexCount() - 1;
     } else {
         makeClone(vertex);
@@ -66,9 +66,10 @@ void spider::srdag::SRDAGCopyVertexVisitor::visit(pisdf::ExecVertex *vertex) {
 void spider::srdag::SRDAGCopyVertexVisitor::visit(pisdf::Graph *graph) {
     /* == Clone the vertex == */
     ix_ = 0;
+    auto name = buildCloneName(graph);
     for (uint32_t it = 0; it < graph->repetitionValue(); ++it) {
         auto *clone = api::createNonExecVertex(srdag_,
-                                               buildCloneName(graph, it),
+                                               name + std::to_string(it),
                                                static_cast<uint32_t>(graph->inputEdgeCount()),
                                                static_cast<uint32_t>(graph->outputEdgeCount()));
         clone->setRepetitionValue(graph->repetitionValue());
@@ -80,18 +81,19 @@ void spider::srdag::SRDAGCopyVertexVisitor::visit(pisdf::Graph *graph) {
 
 /* === Private method(s) === */
 
-std::string spider::srdag::SRDAGCopyVertexVisitor::buildCloneName(const pisdf::Vertex *vertex, uint32_t firing) const {
+std::string spider::srdag::SRDAGCopyVertexVisitor::buildCloneName(const pisdf::Vertex *vertex) const {
     const auto *graphRef = job_.root_ ? job_.reference_ : srdag_->vertex(*(job_.srdagIx_));
     std::string name = graphRef->name();
     name.reserve(name.length() + vertex->name().length() + 12);
-    name.append(":").append(vertex->name()).append("-").append(std::to_string(firing));
+    name.append(":").append(vertex->name()).append("-");
     return name;
 }
 
 void spider::srdag::SRDAGCopyVertexVisitor::makeClone(pisdf::Vertex *vertex) {
+    auto name = buildCloneName(vertex);
     for (uint32_t it = 0; it < vertex->repetitionValue(); ++it) {
         auto *clone = make<pisdf::ExecVertex, StackID::PISDF>(vertex->subtype(),
-                                                              buildCloneName(vertex, it),
+                                                              name + std::to_string(it),
                                                               vertex->inputEdgeCount(),
                                                               vertex->outputEdgeCount());
 
