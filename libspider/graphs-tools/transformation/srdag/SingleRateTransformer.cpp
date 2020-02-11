@@ -55,8 +55,8 @@
 
 /* === Method(s) implementation === */
 
-spider::srdag::SingleRateTransformer::SingleRateTransformer(const TransfoJob &job,
-                                                            pisdf::Graph *srdag) : job_{ job }, srdag_{ srdag } {
+spider::srdag::SingleRateTransformer::SingleRateTransformer(const TransfoJob &job, pisdf::Graph *srdag) :
+        ref2Clone_{ sbc::vector < size_t, StackID::TRANSFO > { }}, job_{ job }, srdag_{ srdag } {
     auto *graph = job_.reference_;
 
     /* == 0. Compute the repetition vector == */

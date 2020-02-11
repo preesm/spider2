@@ -52,7 +52,11 @@
 /* === Method(s) implementation === */
 
 
-spider::Stats::Stats() {
+spider::Stats::Stats() : startTimeVector_{ sbc::vector < uint64_t, StackID::SCHEDULE > { }},
+                         endTimeVector_{ sbc::vector < uint64_t, StackID::SCHEDULE > { }},
+                         loadTimeVector_{ sbc::vector < uint64_t, StackID::SCHEDULE > { }},
+                         idleTimeVector_{ sbc::vector < uint64_t, StackID::SCHEDULE > { }},
+                         jobCountVector_{ sbc::vector < size_t, StackID::SCHEDULE > { }} {
     auto *platform = archi::platform();
 
     /* == Init stat vectors == */
