@@ -148,7 +148,7 @@ bool spider::JITMSRuntime::staticExecute() {
     /* == Schedule / Map current Single-Rate graph == */
     //monitor_->startSampling();
     scheduler_->update();
-    scheduler_->mappingScheduling(true);
+    scheduler_->schedule(true);
     //monitor_->endSampling();
 
     /* == If there are jobs left, run == */
@@ -188,7 +188,7 @@ bool spider::JITMSRuntime::dynamicExecute() {
         /* == Schedule / Map current Single-Rate graph == */
         //monitor_->startSampling();
         scheduler_->update();
-        scheduler_->mappingScheduling(true);
+        scheduler_->schedule(true);
         rt::platform()->runner(0)->run(false);
         //monitor_->endSampling();
 
@@ -239,7 +239,7 @@ bool spider::JITMSRuntime::dynamicExecute() {
 
             /* == Schedule / Map current Single-Rate graph == */
             scheduler_->update();
-            scheduler_->mappingScheduling(true);
+            scheduler_->schedule(true);
         }
     }
 
