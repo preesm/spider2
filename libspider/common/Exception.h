@@ -94,7 +94,7 @@ namespace spider {
             /* == Write the actual exception message == */
             va_list list;
             va_start(list, msg);
-            n = printer::sprintf(exceptionMessage_ + n, EXCEPTION_BUFFER_SIZE, msg, list);
+            n = printer::sprintf(exceptionMessage_ + n, static_cast<size_t>(EXCEPTION_BUFFER_SIZE - n), msg, list);
             va_end(list);
             if (n > EXCEPTION_BUFFER_SIZE) {
                 printer::fprintf(stderr, "Exception: ERROR: exception message too big.\n");
@@ -113,7 +113,7 @@ namespace spider {
                                      fctName, lineNumber);
 
             /* == Write the actual exception message == */
-            n = printer::sprintf(exceptionMessage_ + n, EXCEPTION_BUFFER_SIZE, msg, std::forward<Args>(args)...);
+            n = printer::sprintf(exceptionMessage_ + n, static_cast<size_t>(EXCEPTION_BUFFER_SIZE - n), msg, std::forward<Args>(args)...);
             if (n > EXCEPTION_BUFFER_SIZE) {
                 printer::fprintf(stderr, "Exception: ERROR: exception message too big.\n");
                 printer::fprintf(stderr, "Partially recovered exception: %s\n", exceptionMessage_);
