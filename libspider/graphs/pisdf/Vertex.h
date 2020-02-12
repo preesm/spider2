@@ -198,7 +198,7 @@ namespace spider {
              * @brief Get the schedule job ix associated to this vertex.
              * @return ix of the job, SIZE_MAX if not set.
              */
-            inline size_t scheduleJobIx() const { return scheduleJobIx_; };
+            inline size_t scheduleTaskIx() const { return scheduleJobIx_; };
 
             /**
              * @brief Get the instance value associated to this clone vertex (0 if original).
@@ -218,7 +218,7 @@ namespace spider {
              * @brief Set the schedule job ix of the vertex.
              * @param ix  Ix to set.
              */
-            inline void setScheduleJobIx(size_t ix) { scheduleJobIx_ = ix; };
+            inline void setScheduleTaskIx(size_t ix) { scheduleJobIx_ = ix; };
 
             /**
              * @brief Set the instance value of the vertex.

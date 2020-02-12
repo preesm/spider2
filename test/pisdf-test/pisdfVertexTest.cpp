@@ -150,7 +150,7 @@ TEST_F(pisdVertexTest, vertexTest) {
         ASSERT_NE(v->makeRTInformation(), nullptr);
         ASSERT_EQ(v->ix(), SIZE_MAX);
         ASSERT_EQ(v->repetitionValue(), 1);
-        ASSERT_EQ(v->scheduleJobIx(), SIZE_MAX);
+        ASSERT_EQ(v->scheduleTaskIx(), SIZE_MAX);
         delete v;
     }
     {
@@ -205,9 +205,9 @@ TEST_F(pisdVertexTest, vertexTest) {
     /* == Test setJobIx == */
     {
         spider::pisdf::ExecVertex vertex;
-        ASSERT_EQ(vertex.scheduleJobIx(), SIZE_MAX) << "ExecVertex::jobIx() should return UINT32_MAX as default value.";
-        ASSERT_NO_THROW(vertex.setScheduleJobIx(10)) << "ExecVertex::setJobIx() should never throw.";
-        ASSERT_EQ(vertex.scheduleJobIx(), 10) << "ExecVertex::jobIx() bad value.";
+        ASSERT_EQ(vertex.scheduleTaskIx(), SIZE_MAX) << "ExecVertex::jobIx() should return UINT32_MAX as default value.";
+        ASSERT_NO_THROW(vertex.setScheduleTaskIx(10)) << "ExecVertex::setJobIx() should never throw.";
+        ASSERT_EQ(vertex.scheduleTaskIx(), 10) << "ExecVertex::jobIx() bad value.";
     }
 
     ASSERT_NO_THROW(v0->setName("toto")) << "Vertex::setName() should never throw.";

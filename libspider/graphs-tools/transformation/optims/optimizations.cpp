@@ -168,9 +168,9 @@ bool spider::optims::reduceForkFork(pisdf::Graph *graph) {
 
     /* == Search for the pair of fork to optimize == */
     for (const auto &vertex : graph->vertices()) {
-        if (vertex->subtype() == pisdf::VertexType::FORK && vertex->scheduleJobIx() == SIZE_MAX) {
+        if (vertex->subtype() == pisdf::VertexType::FORK && vertex->scheduleTaskIx() == SIZE_MAX) {
             auto *source = vertex->inputEdge(0)->source();
-            if (source->subtype() == pisdf::VertexType::FORK && vertex->scheduleJobIx() == SIZE_MAX) {
+            if (source->subtype() == pisdf::VertexType::FORK && vertex->scheduleTaskIx() == SIZE_MAX) {
                 verticesToOptimize.emplace_back(source, vertex.get());
             }
         }
@@ -243,9 +243,9 @@ bool spider::optims::reduceJoinFork(pisdf::Graph *graph) {
 
     /* == Search for the pair of join / fork to optimize == */
     for (auto &vertex : graph->vertices()) {
-        if (vertex->subtype() == pisdf::VertexType::JOIN && vertex->scheduleJobIx() == SIZE_MAX) {
+        if (vertex->subtype() == pisdf::VertexType::JOIN && vertex->scheduleTaskIx() == SIZE_MAX) {
             auto *sink = vertex->outputEdge(0)->sink();
-            if (sink->subtype() == pisdf::VertexType::FORK && vertex->scheduleJobIx() == SIZE_MAX) {
+            if (sink->subtype() == pisdf::VertexType::FORK && vertex->scheduleTaskIx() == SIZE_MAX) {
                 verticesToOptimize.emplace_back(vertex.get(), sink);
             }
         }
@@ -350,9 +350,9 @@ bool spider::optims::reduceJoinJoin(pisdf::Graph *graph) {
 
     /* == Search for the pair of fork to optimize == */
     for (auto &vertex : graph->vertices()) {
-        if (vertex->subtype() == pisdf::VertexType::JOIN && vertex->scheduleJobIx() == SIZE_MAX) {
+        if (vertex->subtype() == pisdf::VertexType::JOIN && vertex->scheduleTaskIx() == SIZE_MAX) {
             auto *sink = vertex->outputEdge(0)->sink();
-            if (sink->subtype() == pisdf::VertexType::JOIN && vertex->scheduleJobIx() == SIZE_MAX) {
+            if (sink->subtype() == pisdf::VertexType::JOIN && vertex->scheduleTaskIx() == SIZE_MAX) {
                 verticesToOptimize.emplace_back(vertex.get(), sink);
             }
         }
@@ -424,9 +424,9 @@ bool spider::optims::reduceJoinEnd(pisdf::Graph *graph) {
 
     /* == Retrieve the vertices to remove == */
     for (auto &vertex : graph->vertices()) {
-        if (vertex->subtype() == pisdf::VertexType::JOIN && vertex->scheduleJobIx() == SIZE_MAX) {
+        if (vertex->subtype() == pisdf::VertexType::JOIN && vertex->scheduleTaskIx() == SIZE_MAX) {
             auto *sink = vertex->outputEdge(0)->sink();
-            if (sink->subtype() == pisdf::VertexType::END && vertex->scheduleJobIx() == SIZE_MAX) {
+            if (sink->subtype() == pisdf::VertexType::END && vertex->scheduleTaskIx() == SIZE_MAX) {
                 verticesToOptimize.push_back(vertex.get());
             }
         }
@@ -461,9 +461,9 @@ bool spider::optims::reduceInitEnd(pisdf::Graph *graph) {
 
     /* == Retrieve the vertices to remove == */
     for (auto &vertex : graph->vertices()) {
-        if (vertex->subtype() == pisdf::VertexType::INIT && vertex->scheduleJobIx() == SIZE_MAX) {
+        if (vertex->subtype() == pisdf::VertexType::INIT && vertex->scheduleTaskIx() == SIZE_MAX) {
             auto *sink = vertex->outputEdge(0)->sink();
-            if (sink->subtype() == pisdf::VertexType::END && vertex->scheduleJobIx() == SIZE_MAX) {
+            if (sink->subtype() == pisdf::VertexType::END && vertex->scheduleTaskIx() == SIZE_MAX) {
                 verticesToOptimize.push_back(vertex.get());
             }
         }
