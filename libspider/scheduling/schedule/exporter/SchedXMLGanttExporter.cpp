@@ -41,14 +41,8 @@
 /* === Include(s) === */
 
 #include <scheduling/schedule/exporter/SchedXMLGanttExporter.h>
-#include <api/archi-api.h>
-#include <archi/Platform.h>
-#include <archi/PE.h>
-#include <graphs/pisdf/ExecVertex.h>
-#include <graphs/pisdf/Graph.h>
 #include <scheduling/schedule/Schedule.h>
-#include <scheduling/schedule/ScheduleJob.h>
-#include <iomanip>
+#include <scheduling/schedule/ScheduleTask.h>
 
 /* === Static variable(s) === */
 
@@ -62,34 +56,10 @@ void spider::SchedXMLGanttExporter::print() const {
 
 void spider::SchedXMLGanttExporter::printFromFile(std::ofstream &file) const {
     file << "<data>" << '\n';
-    for (const auto &job : schedule_->jobs()) {
-        if (job.state() != JobState::PENDING) {
-            jobPrinter(file, job);
+    for (auto &task : schedule_->tasks()) {
+        if (task->state() != TaskState::PENDING) {
+            task->exportXML(file);
         }
     }
     file << "</data>" << '\n';
-}
-
-void spider::SchedXMLGanttExporter::jobPrinter(std::ofstream &file, const ScheduleJob &job) const {
-    const auto *vertex = job.vertex();
-    const auto *platform = archi::platform();
-    auto PEIx = platform->peFromVirtualIx(job.PEIx())->hardwareIx();
-
-    /* == Let's compute a color based on the value of the pointer == */
-    const auto *reference = vertex->reference();
-    int32_t red = static_cast<uint8_t>((reinterpret_cast<uintptr_t>(reference) >> 3u) * 50 + 100);
-    int32_t green = static_cast<uint8_t>((reinterpret_cast<uintptr_t>(reference) >> 2u) * 50 + 100);
-    int32_t blue = static_cast<uint8_t>((reinterpret_cast<uintptr_t>(reference) >> 4u) * 50 + 100);
-    file << '\t' << "<event" << '\n';
-    file << '\t' << '\t' << R"(start=")" << job.startTime() << R"(")" << '\n';
-    file << '\t' << '\t' << R"(end=")" << job.endTime() << R"(")" << '\n';
-    file << '\t' << '\t' << R"(title=")" << vertex->name() << R"(")" << '\n';
-    file << '\t' << '\t' << R"(mapping="PE)" << PEIx << R"(")" << '\n';
-    std::ios savedFormat{ nullptr };
-    savedFormat.copyfmt(file);
-    file << '\t' << '\t' << R"(color="#)";
-    file << std::setfill('0') << std::setbase(16);
-    file << std::setw(2) << red << std::setw(2) << green << std::setw(2) << blue << '\"' << '\n';
-    file.copyfmt(savedFormat);
-    file << '\t' << '\t' << ">" << vertex->name() << ".</event>" << '\n';
 }

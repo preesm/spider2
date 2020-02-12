@@ -42,12 +42,10 @@
 
 #include <scheduling/schedule/exporter/SchedStatsExporter.h>
 #include <scheduling/schedule/Schedule.h>
+#include <scheduling/schedule/ScheduleTask.h>
 #include <archi/Platform.h>
 #include <archi/PE.h>
 
-/* === Static variable(s) === */
-
-/* === Static function(s) === */
 
 /* === Method(s) implementation === */
 
@@ -70,9 +68,9 @@ void spider::SchedStatsExporter::printFromFile(std::ofstream &file) const {
         file << "\t >> utilization factor: " << stats.utilizationFactor(pe->virtualIx()) << '\n';
         if (stats.jobCount(pe->virtualIx())) {
             file << "\t >> job list: " << '\n';
-            for (auto &job : schedule_->jobs()) {
-                if (job.PEIx() == pe->virtualIx()) {
-                    file << "\t\t >> {"<< job.startTime() << "," << job.endTime() << "}" << '\n';
+            for (auto &task : schedule_->tasks()) {
+                if (task->mappedPE() == pe->virtualIx()) {
+                    file << "\t\t >> {"<< task->startTime() << "," << task->endTime() << "}" << '\n';
                 }
             }
         }
