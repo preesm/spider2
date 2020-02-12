@@ -53,25 +53,25 @@
 
 /* === Method(s) implementation === */
 
-spider::Schedule &spider::BestFitScheduler::schedule(bool jitSend) {
+spider::Schedule &spider::BestFitScheduler::execute() {
     /* == Schedule and map the vertex onto available resource == */
-    auto iterator = sortedVertexVector_.begin() + static_cast<long>(lastScheduledVertex_);
-    auto endIterator = sortedVertexVector_.begin() + static_cast<long>(lastSchedulableVertex_);
-    if (jitSend) {
+    auto iterator = sortedTaskVector_.begin() + static_cast<long>(lastScheduledTask_);
+    auto endIterator = sortedTaskVector_.begin() + static_cast<long>(lastSchedulableTask_);
+    if (mode_ == JIT_SEND) {
         while (iterator != endIterator) {
             auto &listVertex = (*(iterator++));
-            Scheduler::vertexMapper(listVertex.vertex_);
+            Scheduler::taskMapper(listVertex.task_);
             /* == Create job message and send it == */
 //            schedule_.sendReadyJobs();
         }
     } else {
         while (iterator != endIterator) {
             auto &listVertex = (*(iterator++));
-            Scheduler::vertexMapper(listVertex.vertex_);
+            Scheduler::taskMapper(listVertex.task_);
         }
         /* == Creates all job messages and send them == */
 //        schedule_.sendReadyJobs();
     }
-    lastScheduledVertex_ = lastSchedulableVertex_;
+    lastScheduledTask_ = lastSchedulableTask_;
     return schedule_;
 }

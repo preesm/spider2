@@ -44,6 +44,7 @@
 
 #include <scheduling/scheduler/Scheduler.h>
 #include <containers/vector.h>
+#include <common/Types.h>
 
 namespace spider {
 
@@ -56,25 +57,34 @@ namespace spider {
 
         /* === Method(s) === */
 
-        Schedule &schedule(bool jitSend) override = 0;
-
+        /**
+         * @brief Add vertices of the member @refitem pisdf::Graph in sorted order into the sortedVertexVector_
+         * for mappingScheduling.
+         * @remark This method also updates the number of jobs in the member @refitem sched::Schedule.
+         */
         void update() override;
+
+        /**
+         * @brief ListScheduler is an abstract class regrouping common method for list based schedulers but it can not
+         *        actually perform a scheduling. The scheduling and mapping algorithm must be implemented in derived
+         *        class.
+         */
+        Schedule &execute() override = 0;
 
         void clear() override;
 
     protected:
-        struct ListVertex {
-            pisdf::Vertex *vertex_ = nullptr;
-            int_fast32_t level_ = -1;
-            size_t updateIx_ = 0;
+        struct ListTask {
+            ScheduleVertexTask *task_ = nullptr;
+            ifast32 level_ = -1;
 
-            explicit ListVertex(pisdf::Vertex *vertex, int_fast32_t level = -1) : vertex_{ vertex },
-                                                                                  level_{ level } { };
+            explicit ListTask(ScheduleVertexTask *task, ifast32 level = -1) : task_{ task },
+                                                                              level_{ level } { };
         };
 
-        sbc::vector<ListVertex, StackID::SCHEDULE> sortedVertexVector_;
-        size_t lastSchedulableVertex_ = 0;
-        size_t lastScheduledVertex_ = 0;
+        vector<ListTask> sortedTaskVector_;
+        size_t lastSchedulableTask_ = 0;
+        size_t lastScheduledTask_ = 0;
 
         /* === Protected method(s) === */
 
@@ -83,13 +93,6 @@ namespace spider {
     private:
 
         /* === Private method(s) === */
-
-        /**
-         * @brief Add vertices of the member @refitem pisdf::Graph in sorted order into the sortedVertexVector_
-         * for mappingScheduling.
-         * @remark This method also updates the number of jobs in the member @refitem sched::Schedule.
-         */
-        void addVerticesAndSortList();
 
         /**
          * @brief Compute recursively the schedule level used to sort the vertices for scheduling.
@@ -103,11 +106,22 @@ namespace spider {
          *           level(A) = max(level(C) + time(C); level(B) + time(B)) = 400
          *           level(B) = level(D) = level(E) = 0
          *           level(C) = max(level(D) + time(D); level(E) + time(E)) = 300
-         * @param listVertex       Pointer to the current @refitem ListVertex evaluated.
+         * @param listTask       Pointer to the current @refitem ListVertex evaluated.
          * @param listVertexVector Vector of @refitem ListVertex to evaluate.
          * @return
          */
-        int64_t computeScheduleLevel(ListVertex &listVertex, spider::vector<ListVertex> &listVertexVector) const;
+        ifast64 computeScheduleLevel(ListTask &listTask, vector<ListTask> &listVertexVector) const;
+
+        /**
+         * @brief Sort the list of vertices.
+         */
+        void sortVertices();
+
+        /**
+         * @brief Removes all the non executable vertices from the list for scheduling.
+         * @return number of non schedulable tasks.
+         */
+        size_t resetNonSchedulableTasks();
     };
 }
 

@@ -49,7 +49,7 @@
 
 /* === Private method(s) implementation === */
 
-spider::Schedule &spider::GreedyScheduler::schedule(bool) {
+spider::Schedule &spider::GreedyScheduler::execute() {
     auto vertexVector = factory::vector<pisdf::Vertex *>(StackID::SCHEDULE);
     vertexVector.reserve(graph_->vertexCount());
 
@@ -70,7 +70,7 @@ spider::Schedule &spider::GreedyScheduler::schedule(bool) {
         /* == Test if vertex is schedulable == */
         if (isSchedulable((*it))) {
             /* == Map the vertex == */
-            Scheduler::vertexMapper((*it));
+//            Scheduler::vertexMapper((*it));
 
             /* == Remove current vertex from the vector == */
             std::swap((*it), vertexVector.back());

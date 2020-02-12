@@ -41,98 +41,117 @@
 /* === Include(s) === */
 
 #include <scheduling/scheduler/ListScheduler.h>
+#include <scheduling/schedule/ScheduleVertexTask.h>
+#include <api/archi-api.h>
 #include <archi/Platform.h>
 #include <archi/Cluster.h>
 #include <archi/PE.h>
-#include <api/archi-api.h>
 #include <graphs/pisdf/ExecVertex.h>
-#include <graphs-tools/helper/visitors/PiSDFDefaultVisitor.h>
 
 /* === Static variable(s) === */
 
-static constexpr auto NON_EXECUTABLE_LEVEL = -314159265; /* = Value is arbitrary, just needed something unique = */
+static constexpr auto NON_SCHEDULABLE_LEVEL = -314159265; /* = Value is arbitrary, just needed something unique = */
 
 /* === Static function(s) === */
 
 /* === Method(s) implementation === */
 
-spider::ListScheduler::ListScheduler(pisdf::Graph *graph) : Scheduler(graph) {
-    /* == Add vertices of the graph and sort the obtained list == */
-    addVerticesAndSortList();
+spider::ListScheduler::ListScheduler(pisdf::Graph *graph) : Scheduler(graph),
+                                                            sortedTaskVector_{ sbc::vector < ListTask,
+                                                                               StackID::SCHEDULE > { }} {
 }
 
 void spider::ListScheduler::clear() {
     Scheduler::clear();
-    lastScheduledVertex_ = 0;
-    lastSchedulableVertex_ = 0;
-    sortedVertexVector_.clear();
+    lastScheduledTask_ = 0;
+    lastSchedulableTask_ = 0;
+    sortedTaskVector_.clear();
 }
 
 void spider::ListScheduler::update() {
-    /* == Add vertices of the graph and sort the obtained list == */
-    addVerticesAndSortList();
-}
+    /* == Reserve, creates and add the new ScheduleTask == */
+    sortedTaskVector_.reserve(graph_->vertexCount());
 
-/* === Private method(s) === */
+    /* == Reset previous non-schedulable tasks == */
+    {
+        auto last = sortedTaskVector_.size();
+        for (auto t = lastSchedulableTask_; t < last; ++t) {
+            auto *task = sortedTaskVector_[t].task_;
+            auto *vertex = task->vertex();
+            vertex->setScheduleTaskIx(t);
+            size_t i = 0;
+            for (auto &edge : vertex->inputEdgeVector()) {
+                auto *source = edge->source();
+                if (source->executable() && source->scheduleTaskIx() == SIZE_MAX) {
+                    auto *newTask = make<ScheduleVertexTask, StackID::SCHEDULE>(source);
+                    newTask->setNumberOfDependencies(source->inputEdgeCount());
+                    /* == Set the dependency == */
+                    task->setDependency(newTask, i);
+                    /* == Add the task to the sorted vector == */
+                    sortedTaskVector_.emplace_back(newTask, -1);
+                    source->setScheduleTaskIx(sortedTaskVector_.size() - 1);
+                }
+                i++;
+            }
+        }
+    }
 
-void spider::ListScheduler::addVerticesAndSortList() {
     /* == Reserve and push the vertices into the vertex == */
-    sortedVertexVector_.reserve(graph_->vertexCount());
     for (const auto &vertex : graph_->vertices()) {
-        if (vertex->scheduleJobIx() == SIZE_MAX) {
-            sortedVertexVector_.emplace_back(ListVertex(vertex.get(), -1));
-            sortedVertexVector_.back().vertex_->setScheduleJobIx(sortedVertexVector_.size() - 1);
+        if (vertex->scheduleTaskIx() == SIZE_MAX) {
+            auto *task = make<ScheduleVertexTask, StackID::SCHEDULE>(vertex.get());
+            task->setNumberOfDependencies(vertex->inputEdgeCount());
+            sortedTaskVector_.emplace_back(task, -1);
+            vertex->setScheduleTaskIx(sortedTaskVector_.size() - 1);
         }
     }
 
     /* == Compute the schedule level == */
-    auto iterator = sortedVertexVector_.begin() + static_cast<long>(lastSchedulableVertex_);
-    while (iterator != std::end(sortedVertexVector_)) {
-        computeScheduleLevel((*(iterator++)), sortedVertexVector_);
+    {
+        auto iterator = sortedTaskVector_.begin() + static_cast<long>(lastSchedulableTask_);
+        while (iterator != std::end(sortedTaskVector_)) {
+            computeScheduleLevel((*(iterator++)), sortedTaskVector_);
+        }
     }
 
     /* == Sort the vector == */
-    std::sort(std::begin(sortedVertexVector_) + static_cast<long>(lastSchedulableVertex_),
-              std::end(sortedVertexVector_),
-              [](const ListVertex &A, const ListVertex &B) -> bool {
-                  bool isSame = B.vertex_->reference() == A.vertex_->reference();
-                  return isSame ? B.vertex_->executable() && (B.vertex_->instanceValue() > A.vertex_->instanceValue()) :
-                         (B.level_ < A.level_) || (A.vertex_->subtype() == pisdf::VertexType::CONFIG);
-              });
+    sortVertices();
 
     /* == Remove the non-executable hierarchical vertex == */
-    size_t nonSchedulableVertexCount = 0;
-    auto reverseIterator = sortedVertexVector_.rbegin();
-    while ((reverseIterator != sortedVertexVector_.rend()) && (reverseIterator->level_ == NON_EXECUTABLE_LEVEL)) {
-        auto isExecutable = reverseIterator->vertex_->executable();
-        if (!isExecutable) {
-            std::swap((*reverseIterator), sortedVertexVector_.back());
-            sortedVertexVector_.pop_back();
+    const auto nonSchedulableTaskCount = resetNonSchedulableTasks();
+
+    {
+        auto iterator = sortedTaskVector_.begin() + static_cast<long>(lastSchedulableTask_);
+        for (; iterator != sortedTaskVector_.end(); ++iterator) {
+            auto *task = iterator->task_;
+            auto *vertex = task->vertex();
+            schedule_.addScheduleTask(task);
+            for (size_t i = 0; i < vertex->inputEdgeCount(); ++i) {
+                auto *source = vertex->inputEdge(i)->source();
+                if (source->executable()) {
+                    task->setDependency(schedule_.task(source->scheduleTaskIx()), i);
+                }
+            }
+            vertex->setScheduleTaskIx(static_cast<size_t>(task->ix()));
         }
-        nonSchedulableVertexCount += (isExecutable); /* = Increase the number of non-schedulable vertex = */
-        reverseIterator->level_ = -1;                /* = Reset the schedule level = */
-        reverseIterator++;
     }
 
-    /* == Set the schedule job ix of the vertices == */
-    iterator = std::begin(sortedVertexVector_) + static_cast<long>(lastSchedulableVertex_);
-    auto endIterator = std::end(sortedVertexVector_) - static_cast<long>(nonSchedulableVertexCount);
-    while (iterator != endIterator) {
-        schedule_.addJobToSchedule((iterator++)->vertex_);
-    }
-    lastSchedulableVertex_ = sortedVertexVector_.size() - nonSchedulableVertexCount;
+    /* == Create the schedule tasks == */
+    lastSchedulableTask_ = sortedTaskVector_.size() - nonSchedulableTaskCount;
 }
 
-int64_t spider::ListScheduler::computeScheduleLevel(ListVertex &listVertex,
-                                                    vector<ListVertex> &listVertexVector) const {
-    if ((listVertex.level_ == NON_EXECUTABLE_LEVEL) || !listVertex.vertex_->executable()) {
-        listVertex.level_ = NON_EXECUTABLE_LEVEL;
-        for (auto &edge : listVertex.vertex_->outputEdgeVector()) {
-            listVertexVector[edge->sink()->ix()].level_ = NON_EXECUTABLE_LEVEL;
+/* === Private method(s) === */
+
+int64_t spider::ListScheduler::computeScheduleLevel(ListTask &listTask,
+                                                    vector<ListTask> &listVertexVector) const {
+    auto *vertex = listTask.task_->vertex();
+    if ((listTask.level_ == NON_SCHEDULABLE_LEVEL) || !vertex->executable()) {
+        listTask.level_ = NON_SCHEDULABLE_LEVEL;
+        for (auto &edge : vertex->outputEdgeVector()) {
+            listVertexVector[edge->sink()->ix()].level_ = NON_SCHEDULABLE_LEVEL;
         }
-    } else if (listVertex.level_ < 0) {
+    } else if (listTask.level_ < 0) {
         auto *platform = archi::platform();
-        auto *vertex = listVertex.vertex_;
         int64_t level = 0;
         for (auto &edge : vertex->outputEdgeVector()) {
             auto *sink = edge->sink();
@@ -141,26 +160,51 @@ int64_t spider::ListScheduler::computeScheduleLevel(ListVertex &listVertex,
                 auto *sinkRTInfo = sink->runtimeInformation();
                 auto minExecutionTime = INT64_MAX;
                 for (auto &cluster : platform->clusters()) {
-                    for (auto &pe : cluster->array()) {
-                        if (sinkRTInfo->isPEMappable(pe)) {
-                            auto executionTime = sinkRTInfo->timingOnPE(pe, sinkParams);
-                            if (!executionTime) {
-                                throwSpiderException("Vertex [%s] has null execution time on mappable PE [%s].",
-                                                     vertex->name().c_str(), pe->name().c_str());
-                            }
-                            minExecutionTime = std::min(minExecutionTime, executionTime);
-                            break; /* = We can break because any other PE of the cluster will have the same timing = */
+                    if (sinkRTInfo->isClusterMappable(cluster)) {
+                        auto executionTime = sinkRTInfo->timingOnCluster(cluster, sinkParams);
+                        if (!executionTime) {
+                            throwSpiderException("Vertex [%s] has null execution time on mappable cluster.",
+                                                 vertex->name().c_str());
                         }
+                        minExecutionTime = std::min(minExecutionTime, executionTime);
                     }
                 }
-                const auto sinkLevel = computeScheduleLevel(listVertexVector[sink->scheduleJobIx()], listVertexVector);
-                if (sinkLevel != NON_EXECUTABLE_LEVEL) {
+                const auto sinkLevel = computeScheduleLevel(listVertexVector[sink->scheduleTaskIx()], listVertexVector);
+                if (sinkLevel != NON_SCHEDULABLE_LEVEL) {
                     level = std::max(level, sinkLevel + minExecutionTime);
                 }
             }
         }
-        listVertex.level_ = level;
+        listTask.level_ = level;
     }
-    return listVertex.level_;
+    return listTask.level_;
+}
+
+void spider::ListScheduler::sortVertices() {
+    std::sort(std::begin(sortedTaskVector_) + static_cast<long>(lastSchedulableTask_),
+              std::end(sortedTaskVector_),
+              [](const ListTask &A, const ListTask &B) -> bool {
+                  auto *vertexA = A.task_->vertex();
+                  auto *vertexB = B.task_->vertex();
+                  const auto diff = A.level_ - B.level_;
+                  if (!diff && vertexB->reference() == vertexA->reference()) {
+                      return vertexA->instanceValue() < vertexB->instanceValue();
+                  }
+                  return (diff > 0) || (vertexA->subtype() == pisdf::VertexType::CONFIG);
+              });
+}
+
+size_t spider::ListScheduler::resetNonSchedulableTasks() {
+    auto iterator = sortedTaskVector_.rbegin();
+    for (; (iterator->level_ == NON_SCHEDULABLE_LEVEL) && (iterator != sortedTaskVector_.rend()); ++iterator) {
+        auto isExec = iterator->task_->vertex()->executable();
+        if (!isExec) {
+            destroy(iterator->task_);
+            std::swap(*iterator, sortedTaskVector_.back());
+            sortedTaskVector_.pop_back();
+        }
+        iterator->level_ = -1;      /* = Reset the schedule level = */
+    }
+    return static_cast<size_t>(std::distance(sortedTaskVector_.rbegin(), iterator));
 }
 
