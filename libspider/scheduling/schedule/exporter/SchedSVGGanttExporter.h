@@ -50,7 +50,7 @@ namespace spider {
 
     class Schedule;
 
-    class ScheduleJob;
+    class ScheduleTask;
 
     namespace pisdf {
         class Graph;
@@ -90,7 +90,7 @@ namespace spider {
 
         void axisPrinter(std::ofstream &file) const;
 
-        void jobPrinter(std::ofstream &file, const ScheduleJob &job) const;
+        void jobPrinter(std::ofstream &file, const ScheduleTask *task) const;
     };
 
     /* === Inline method(s) === */

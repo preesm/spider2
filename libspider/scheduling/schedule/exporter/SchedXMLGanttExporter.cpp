@@ -43,6 +43,11 @@
 #include <scheduling/schedule/exporter/SchedXMLGanttExporter.h>
 #include <scheduling/schedule/Schedule.h>
 #include <scheduling/schedule/ScheduleTask.h>
+#include <api/archi-api.h>
+#include <archi/PE.h>
+#include <archi/Platform.h>
+#include <iomanip>
+#include <fstream>
 
 /* === Static variable(s) === */
 
@@ -58,8 +63,31 @@ void spider::SchedXMLGanttExporter::printFromFile(std::ofstream &file) const {
     file << "<data>" << '\n';
     for (auto &task : schedule_->tasks()) {
         if (task->state() != TaskState::PENDING) {
-            task->exportXML(file);
+            printTask(file, task.get());
         }
     }
     file << "</data>" << '\n';
+}
+
+void spider::SchedXMLGanttExporter::printTask(std::ofstream &file, const ScheduleTask *task) const {
+    const auto *platform = archi::platform();
+    auto PEIx = platform->peFromVirtualIx(task->mappedPE())->hardwareIx();
+
+    /* == Let's compute a color based on the value of the pointer == */
+    const auto name = task->name();
+    int32_t red = static_cast<uint8_t>((reinterpret_cast<uintptr_t>(name.c_str()) >> 1u) * 50 + 100);
+    int32_t green = static_cast<uint8_t>((reinterpret_cast<uintptr_t>(name.c_str()) >> 2u) * 50 + 100);
+    int32_t blue = static_cast<uint8_t>((reinterpret_cast<uintptr_t>(name.c_str()) >> 4u) * 50 + 100);
+    file << '\t' << "<event" << '\n';
+    file << '\t' << '\t' << R"(start=")" << task->startTime() << R"(")" << '\n';
+    file << '\t' << '\t' << R"(end=")" << task->endTime() << R"(")" << '\n';
+    file << '\t' << '\t' << R"(title=")" << name << R"(")" << '\n';
+    file << '\t' << '\t' << R"(mapping="PE)" << PEIx << R"(")" << '\n';
+    std::ios savedFormat{ nullptr };
+    savedFormat.copyfmt(file);
+    file << '\t' << '\t' << R"(color="#)";
+    file << std::setfill('0') << std::setbase(16);
+    file << std::setw(2) << red << std::setw(2) << green << std::setw(2) << blue << '\"' << '\n';
+    file.copyfmt(savedFormat);
+    file << '\t' << '\t' << ">" << name << ".</event>" << '\n';
 }

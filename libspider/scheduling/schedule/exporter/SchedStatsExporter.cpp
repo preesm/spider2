@@ -56,7 +56,7 @@ void spider::SchedStatsExporter::print() const {
 void spider::SchedStatsExporter::printFromFile(std::ofstream &file) const {
     const auto& stats = schedule_->stats();
     file << "Schedule statistics: " << '\n';
-    file << "Total number of jobs:     " << schedule_->jobCount() << '\n';
+    file << "Total number of jobs:     " << schedule_->taskCount() << '\n';
     file << "Makespan of the schedule: " << stats.makespan() << '\n';
     for (const auto &pe : archi::platform()->peArray()) {
         file << "PE #" << pe->virtualIx() << '\n';

@@ -44,7 +44,7 @@
 #include <api/archi-api.h>
 #include <graphs/pisdf/Graph.h>
 #include <scheduling/schedule/Schedule.h>
-#include <scheduling/schedule/ScheduleJob.h>
+#include <scheduling/schedule/ScheduleTask.h>
 #include <iomanip>
 
 /* === Static variable(s) === */
@@ -66,8 +66,8 @@ spider::SchedSVGGanttExporter::SchedSVGGanttExporter(const Schedule *schedule,
     /* == Compute values needed for printing == */
     uint64_t minExecTime = UINT64_MAX;
     uint64_t maxExecTime = 0;
-    for (auto &job : schedule_->jobs()) {
-        const auto &execTime = job.endTime() - job.startTime();
+    for (auto &task : schedule_->tasks()) {
+        const auto &execTime = task->endTime() - task->startTime();
         minExecTime = std::min(execTime, minExecTime);
         maxExecTime = std::max(execTime, maxExecTime);
     }
@@ -98,8 +98,8 @@ void spider::SchedSVGGanttExporter::printFromFile(std::ofstream &file) const {
     axisPrinter(file);
 
     /* == Print the jobs == */
-    for (auto &job : schedule_->jobs()) {
-        jobPrinter(file, job);
+    for (auto &task : schedule_->tasks()) {
+        jobPrinter(file, task.get());
     }
 
     file << "  </g>" << std::endl;
@@ -201,18 +201,17 @@ void spider::SchedSVGGanttExporter::axisPrinter(std::ofstream &file) const {
     /* == Print horizontal arrow == */
 }
 
-void spider::SchedSVGGanttExporter::jobPrinter(std::ofstream &file, const ScheduleJob &job) const {
+void spider::SchedSVGGanttExporter::jobPrinter(std::ofstream &file, const ScheduleTask *task) const {
     /* == Compute color and width == */
-    const auto *vertex = job.vertex();
-    const auto *reference = vertex->reference();
-    int32_t red = static_cast<uint8_t>((reinterpret_cast<uintptr_t>(reference) >> 3u) * 50 + 100);
-    int32_t green = static_cast<uint8_t>((reinterpret_cast<uintptr_t>(reference) >> 2u) * 50 + 100);
-    int32_t blue = static_cast<uint8_t>((reinterpret_cast<uintptr_t>(reference) >> 4u) * 50 + 100);
-    const auto &taskWidth = static_cast<double>(job.endTime() - job.startTime()) * scaleFactor_;
+    const auto name = task->name();
+    int32_t red = static_cast<uint8_t>((reinterpret_cast<uintptr_t>(name.data()) >> 3u) * 50 + 100);
+    int32_t green = static_cast<uint8_t>((reinterpret_cast<uintptr_t>(name.data()) >> 2u) * 50 + 100);
+    int32_t blue = static_cast<uint8_t>((reinterpret_cast<uintptr_t>(name.data()) >> 4u) * 50 + 100);
+    const auto &taskWidth = static_cast<double>(task->endTime() - task->startTime()) * scaleFactor_;
 
     /* == Compute coordinates == */
-    const auto &x = OFFSET + ARROW_STROKE + BORDER + static_cast<double>(job.startTime()) * scaleFactor_;
-    const auto &y = height_ - (OFFSET + ARROW_STROKE + (job.PEIx() + 1) * (TASK_HEIGHT + BORDER));
+    const auto &x = OFFSET + ARROW_STROKE + BORDER + static_cast<double>(task->startTime()) * scaleFactor_;
+    const auto &y = height_ - (OFFSET + ARROW_STROKE + (task->mappedPE() + 1) * (TASK_HEIGHT + BORDER));
     std::ios savedFormat{ nullptr };
     savedFormat.copyfmt(file);
     file << R"(
@@ -223,7 +222,7 @@ void spider::SchedSVGGanttExporter::jobPrinter(std::ofstream &file, const Schedu
     file.copyfmt(savedFormat);
     file << R"("
        stroke="none"
-       id=)" << R"("rect_)" + vertex->name() << R"("
+       id=)" << R"("rect_)" + name << R"("
        width=")" << taskWidth << R"("
        height=")" << TASK_HEIGHT << R"("
        x=")" << x << R"("

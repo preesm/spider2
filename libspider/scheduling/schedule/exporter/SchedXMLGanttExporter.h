@@ -78,8 +78,8 @@ namespace spider {
 
     private:
         const Schedule *schedule_ = nullptr;
-    };
 
-    /* === Inline method(s) === */
+        void printTask(std::ofstream &file, const ScheduleTask *task) const;
+    };
 }
 #endif //SPIDER2_SCHEDXMLGANTTEXPORTER_H
