@@ -51,7 +51,7 @@
 /**
  * @brief Stack ids
  */
-enum class StackID : uint64_t {
+enum class StackID : uint_least64_t {
     PISDF = 0,       /*!< Stack used for PISDF graph (should be static) */
     ARCHI,           /*!< Stack used for architecture (should be static) */
     TRANSFO,         /*!< Stack used for graph transformations */
@@ -99,7 +99,7 @@ namespace spider {
         /**
         * @brief PiSDF parameter types
         */
-        enum class ParamType : uint8_t {
+        enum class ParamType : uint_least8_t {
             STATIC,            /*! Static parameter: expression is evaluated at startup only once */
             DYNAMIC,           /*! Dynamic parameter: value is set at runtime */
             INHERITED,         /*! Inherited parameter: value depend on parent */
@@ -108,7 +108,7 @@ namespace spider {
         /**
          * @brief Type of PiSDF vertices
          */
-        enum class VertexType : uint8_t {
+        enum class VertexType : uint_least8_t {
             NORMAL,         /*! Normal actor type */
             CONFIG,         /*! Config vertex type */
             DELAY,          /*! Delay vertex type */
@@ -170,7 +170,7 @@ namespace spider {
     };
 
     namespace log {
-        enum Type : int32_t {
+        enum Type : int_least32_t {
             LRT = 0,        /*! LRT logger. When enabled, this will print LRT logged information. */
             TIME,           /*! TIME logger. When enabled this will print time logged information */
             GENERAL,        /*! GENERAL purpose logger, used for information about almost everything */
@@ -199,9 +199,9 @@ namespace spider {
     /* === Structure(s) === */
 
     struct PlatformConfig {
-        uint32_t PECount;
-        uint32_t PETypeCount;
-        uint32_t memoryUnitCount;
+        uint_least32_t PECount;
+        uint_least32_t PETypeCount;
+        uint_least32_t memoryUnitCount;
     };
 
     namespace log {
@@ -214,7 +214,7 @@ namespace spider {
     /* === Constant(s) === */
 
     namespace log {
-        constexpr auto LOGGER_COUNT = static_cast<uint8_t >(Type::EXPR) + 1;
+        constexpr auto LOGGER_COUNT = static_cast<uint_least8_t>(Type::EXPR) + 1;
     }
 
     constexpr size_t ALLOCATOR_POLICY_COUNT = static_cast<size_t>(AllocatorPolicy::Last) + 1;
@@ -223,11 +223,11 @@ namespace spider {
 
     namespace pisdf {
         constexpr auto SPECIAL_VERTEX_COUNT =
-                static_cast<uint8_t>(VertexType::END) - static_cast<uint8_t>(VertexType::CONFIG) + 1;
+                static_cast<uint_least8_t>(VertexType::END) - static_cast<uint_least8_t>(VertexType::CONFIG) + 1;
         constexpr auto SPECIAL_KERNEL_COUNT =
-                static_cast<uint8_t>(VertexType::END) - static_cast<uint8_t>(VertexType::FORK) + 1;
+                static_cast<uint_least8_t>(VertexType::END) - static_cast<uint_least8_t>(VertexType::FORK) + 1;
         constexpr auto VERTEX_TYPE_COUNT =
-                static_cast<uint8_t>(VertexType::Last) - static_cast<uint8_t>(VertexType::First) + 1;
+                static_cast<uint_least8_t>(VertexType::Last) - static_cast<uint_least8_t>(VertexType::First) + 1;
     }
 
     /* === Const array(s) === */
@@ -254,18 +254,18 @@ namespace spider {
     /**
      * @brief Memory exchange cost routine (overridable).
      */
-    using MemoryExchangeCostRoutine = uint64_t (*)(uint64_t /* = Number of bytes = */);
+    using MemoryExchangeCostRoutine = uint_least64_t (*)(uint_least64_t /* = Number of bytes = */);
 
     /**
      * @brief Memory bus send / receive routine.
      */
-    using MemoryBusRoutine = void (*)(int64_t /* = Size in bytes = */, void * /* = Buffer to send / receive = */);
+    using MemoryBusRoutine = void (*)(int_least64_t /* = Size in bytes = */, void * /* = Buffer to send / receive = */);
 
     /**
      * @brief Data memory allocation routine (overridable).
      *        This should return the allocated buffer.
      */
-    using MemoryAllocateRoutine = void *(*)(uint64_t /* = Number of bytes = */);
+    using MemoryAllocateRoutine = void *(*)(uint_least64_t /* = Number of bytes = */);
 
     /**
      * @brief Data memory deallocation routine (overridable).
@@ -275,7 +275,7 @@ namespace spider {
     /**
      * @brief Generic refinement used by spider for the actors.
      */
-    using Kernel = void (*)(const int64_t *, int64_t *, void *[], void *[]);
+    using Kernel = void (*)(const int_least64_t *, int_least64_t *, void *[], void *[]);
 }
 
 #endif //SPIDER2_GLOBAL_API_H
