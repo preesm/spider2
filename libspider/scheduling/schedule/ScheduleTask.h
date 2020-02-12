@@ -44,6 +44,7 @@
 
 #include <memory/unique_ptr.h>
 #include <containers/array.h>
+#include <common/Types.h>
 
 namespace spider {
 
@@ -66,7 +67,7 @@ namespace spider {
     public:
         explicit ScheduleTask(TaskType type);
 
-        ~ScheduleTask() = default;
+        virtual ~ScheduleTask() = default;
 
         /* === Method(s) === */
 
@@ -75,40 +76,84 @@ namespace spider {
          */
         void enableBroadcast();
 
+        /**
+         * @brief Export this task to xml format.
+         * @param file  File to write to.
+         */
+        virtual void exportXML(std::ofstream &file) const;
+
         /* === Getter(s) === */
 
-        inline array<ScheduleTask *> dependencies() const {
+        /**
+         * @brief Get the array of task dependencies.
+         * @return const reference to the array of dependencies.
+         */
+        inline const array<ScheduleTask *> &dependencies() const {
             return dependenciesArray_;
         }
 
-        inline int32_t executionConstraint(size_t lrt) const {
+        /**
+         * @brief Get the task execution constraint the task has on a given LRT.
+         * @warning There are no checks perform on the the value of the index.
+         * @param lrt Index of the LRT.
+         * @return task ix of the constraint, -1 else.
+         */
+        inline i32 executionConstraint(size_t lrt) const {
             return executionConstraints_.get()[lrt];
         }
 
-        inline uint64_t startTime() const {
+        /**
+         * @brief Get the start time of the task.
+         * @return mapping start time of the task, UINT64_MAX else
+         */
+        inline u64 startTime() const {
             return startTime_;
         }
 
-        inline uint64_t endTime() const {
+        /**
+         * @brief Get the end time of the task.
+         * @return mapping end time of the task, UINT64_MAX else
+         */
+        inline u64 endTime() const {
             return endTime_;
         }
 
+        /**
+         * @brief Returns the LRT virtual ix on which the task is mapped.
+         * @return LRT virtual ix
+         */
         inline size_t mappedLrt() const {
             return mappedLRT_;
         }
 
+        /**
+         * @brief Returns the PE virtual ix on which the task is mapped.
+         * @return PE virtual ix
+         */
         inline size_t mappedPE() const {
             return mappedPE_;
         }
 
-        inline int32_t ix() const {
+        /**
+         * @brief Returns the ix of the task in the schedule.
+         * @return ix of the task in the schedule, SIZE_MAX else.
+         */
+        inline i32 ix() const {
             return ix_;
         }
 
+        /**
+         * @brief Returns the state of the task.
+         * @return @refitem TaskState of the task
+         */
         inline TaskState state() const {
             return state_;
         }
 
+        /**
+         * @brief Returns the type of the task.
+         * @return @refitem TaskType of the task
+         */
         inline TaskType type() const {
             return type_;
         }
@@ -135,8 +180,18 @@ namespace spider {
          * @param lrt  Ix of the lrt.
          * @param job  Ix of the job.
          */
-        inline void setExecutionConstraint(size_t lrt, int32_t job) const {
+        inline void setExecutionConstraint(size_t lrt, i32 job) {
             executionConstraints_.get()[lrt] = job;
+        }
+
+        /**
+         * @brief Set the notification flag for this lrt.
+         * @warning There is no check on the value of lrt.
+         * @param lrt   Index of the lrt.
+         * @param value Value to set: true = should notify, false = should not notify.
+         */
+        inline void setNotificationFlag(size_t lrt, bool value) {
+            notificationFlags_.get()[lrt] = value;
         }
 
         /**
@@ -144,7 +199,7 @@ namespace spider {
          * @remark This method will overwrite current value.
          * @param time  Value to set.
          */
-        inline void setStartTime(uint64_t time) {
+        inline void setStartTime(u64 time) {
             startTime_ = time;
         }
 
@@ -153,7 +208,7 @@ namespace spider {
          * @remark This method will overwrite current value.
          * @param time  Value to set.
          */
-        inline void setEndTime(uint64_t time) {
+        inline void setEndTime(u64 time) {
             endTime_ = time;
         }
 
@@ -195,13 +250,13 @@ namespace spider {
 
     protected:
         array<ScheduleTask *> dependenciesArray_;
-        unique_ptr <int32_t> executionConstraints_;
+        unique_ptr <i32> executionConstraints_;
         unique_ptr<bool> notificationFlags_;
-        uint64_t startTime_ = SIZE_MAX;
-        uint64_t endTime_ = SIZE_MAX;
+        u64 startTime_ = UINT64_MAX;
+        u64 endTime_ = UINT64_MAX;
         size_t mappedLRT_ = SIZE_MAX;
         size_t mappedPE_ = SIZE_MAX;
-        int32_t ix_ = -1;
+        i32 ix_ = -1;
         TaskState state_ = TaskState::NOT_SCHEDULABLE;
         TaskType type_;
     };

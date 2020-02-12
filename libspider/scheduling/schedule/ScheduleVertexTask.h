@@ -56,18 +56,21 @@ namespace spider {
 
     class ScheduleVertexTask : public ScheduleTask {
     public:
-        explicit ScheduleVertexTask(pisdf::Vertex *vertex) : ScheduleTask(TaskType::VERTEX),
-                                                             vertex_{ vertex } { };
+        explicit ScheduleVertexTask(pisdf::Vertex *vertex);
 
         ~ScheduleVertexTask() = default;
 
         /* === Method(s) === */
 
+        void exportXML(std::ofstream &file) const override ;
+
         /* === Getter(s) === */
 
-        pisdf::Vertex *vertex() const { return vertex_; }
+        inline pisdf::Vertex *vertex() const { return vertex_; }
 
         /* === Setter(s) === */
+
+        inline void setVertex(pisdf::Vertex *vertex) { vertex_ = vertex ? vertex : vertex_; }
 
     private:
         pisdf::Vertex *vertex_ = nullptr;

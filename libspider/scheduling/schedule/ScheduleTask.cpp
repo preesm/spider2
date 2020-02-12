@@ -42,7 +42,10 @@
 
 #include <scheduling/schedule/ScheduleTask.h>
 #include <archi/Platform.h>
+#include <archi/PE.h>
 #include <api/archi-api.h>
+#include <iostream>
+#include <fstream>
 
 /* === Static function === */
 
@@ -61,6 +64,16 @@ spider::ScheduleTask::ScheduleTask(TaskType type) : type_{ type } {
 void spider::ScheduleTask::enableBroadcast() {
     const auto lrtCount = archi::platform()->LRTCount();
     std::fill(notificationFlags_.get(), notificationFlags_.get() + lrtCount, true);
+}
+
+void spider::ScheduleTask::exportXML(std::ofstream &file) const {
+    const auto *platform = archi::platform();
+    auto PEIx = platform->peFromVirtualIx(mappedPE())->hardwareIx();
+    file << '\t' << "<event" << '\n';
+    file << '\t' << '\t' << R"(start=")" << startTime() << R"(")" << '\n';
+    file << '\t' << '\t' << R"(end=")" << endTime_ << R"(")" << '\n';
+    file << '\t' << '\t' << R"(mapping="PE)" << PEIx << R"(")" << '\n';
+    file << '\t' << '\t' << ">.</event>" << '\n';
 }
 
 void spider::ScheduleTask::setNumberOfDependencies(size_t count) {

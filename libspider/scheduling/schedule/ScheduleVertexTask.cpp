@@ -40,10 +40,40 @@
 
 /* === Include(s) === */
 
-#include "ScheduleVertexTask.h"
+#include <scheduling/schedule/ScheduleVertexTask.h>
+#include <graphs/pisdf/Graph.h>
+#include <iomanip>
+#include <fstream>
 
 /* === Static function === */
 
 /* === Method(s) implementation === */
 
 /* === Private method(s) implementation === */
+spider::ScheduleVertexTask::ScheduleVertexTask(pisdf::Vertex *vertex) : ScheduleTask(TaskType::VERTEX),
+                                                                        vertex_{ vertex } {
+    setNumberOfDependencies(vertex->inputEdgeCount());
+}
+
+void spider::ScheduleVertexTask::exportXML(std::ofstream &file) const {
+    const auto *platform = archi::platform();
+    auto PEIx = platform->peFromVirtualIx(mappedPE())->hardwareIx();
+
+    /* == Let's compute a color based on the value of the pointer == */
+    const auto *reference = vertex_->reference();
+    int32_t red = static_cast<uint8_t>((reinterpret_cast<uintptr_t>(reference) >> 3u) * 50 + 100);
+    int32_t green = static_cast<uint8_t>((reinterpret_cast<uintptr_t>(reference) >> 2u) * 50 + 100);
+    int32_t blue = static_cast<uint8_t>((reinterpret_cast<uintptr_t>(reference) >> 4u) * 50 + 100);
+    file << '\t' << "<event" << '\n';
+    file << '\t' << '\t' << R"(start=")" << startTime() << R"(")" << '\n';
+    file << '\t' << '\t' << R"(end=")" << endTime() << R"(")" << '\n';
+    file << '\t' << '\t' << R"(title=")" << vertex_->name() << R"(")" << '\n';
+    file << '\t' << '\t' << R"(mapping="PE)" << PEIx << R"(")" << '\n';
+    std::ios savedFormat{ nullptr };
+    savedFormat.copyfmt(file);
+    file << '\t' << '\t' << R"(color="#)";
+    file << std::setfill('0') << std::setbase(16);
+    file << std::setw(2) << red << std::setw(2) << green << std::setw(2) << blue << '\"' << '\n';
+    file.copyfmt(savedFormat);
+    file << '\t' << '\t' << ">" << vertex_->name() << ".</event>" << '\n';
+}
