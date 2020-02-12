@@ -56,7 +56,7 @@ spider::Schedule &spider::GreedyScheduler::execute() {
     /* == Initialize vector of vertex == */
     for (const auto &vertex : graph_->vertices()) {
         vertexVector.emplace_back(vertex.get());
-        schedule_.addJobToSchedule(vertex.get());
+//        schedule_.addJobToSchedule(vertex.get());
     }
 
     /* == Iterate on vector until a schedulable vertex is found == */
@@ -86,12 +86,12 @@ bool spider::GreedyScheduler::isSchedulable(pisdf::Vertex *vertex) const {
     if (!vertex->inputEdgeCount()) {
         return true;
     }
-    for (const auto &edge : vertex->inputEdgeVector()) {
-        const auto &source = edge->source();
-        const auto &job = schedule_.job(source->ix());
-        if (job.PEIx() == UINT32_MAX) {
-            return false;
-        }
-    }
+//    for (const auto &edge : vertex->inputEdgeVector()) {
+//        const auto &source = edge->source();
+//        const auto &job = schedule_.job(source->ix());
+//        if (job.PEIx() == UINT32_MAX) {
+//            return false;
+//        }
+//    }
     return true;
 }

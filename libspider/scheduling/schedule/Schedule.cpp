@@ -54,7 +54,6 @@
 /* === Method(s) implementation === */
 
 void spider::Schedule::clear() {
-    jobVector_.clear();
     taskVector_.clear();
     stats_.reset();
     lastRunJob_ = 0;
@@ -62,71 +61,31 @@ void spider::Schedule::clear() {
 }
 
 void spider::Schedule::reset() {
-    for (auto &job : jobVector_) {
-        job.setState(JobState::READY);
+    for (auto &task : taskVector_) {
+        task->setState(TaskState::READY);
     }
     lastRunJob_ = 0;
-    readyJobCount_ = static_cast<long>(jobVector_.size());
+    readyJobCount_ = static_cast<long>(taskVector_.size());
 }
 
 void spider::Schedule::print() const {
     if (log::enabled<log::SCHEDULE>()) {
-        for (const auto &job : jobs()) {
+        const auto lrtCount = archi::platform()->LRTCount();
+        for (const auto &task : taskVector_) {
             log::print<log::SCHEDULE>(log::magenta, "INFO: ", "Schedule: \n");
-            log::print<log::SCHEDULE>(log::magenta, "INFO: ", "   >> job: %zu (runner: %zu) [%s]\n", job.ix(),
-                                      job.LRTIx(), job.vertex()->reference()->name().c_str());
-            size_t lrtIx = 0;
-            for (const auto &index : job.scheduleConstraintsArray()) {
-                if (index != SIZE_MAX) {
+            log::print<log::SCHEDULE>(log::magenta, "INFO: ", "   >> task: %zu (runner: %zu)\n", task->ix(),
+                                      task->mappedLrt(), task->name().c_str());
+            for (size_t lrtIx = 0; lrtIx < lrtCount; ++lrtIx) {
+                const auto taskIx = task->executionConstraint(lrtIx);
+                if (taskIx >= 0) {
                     log::print<log::SCHEDULE>(log::magenta, "INFO: ",
-                                              "           ----> job: %zu (runner: %zu) [%s]\n",
-                                              jobVector_[index].ix(), lrtIx,
-                                              jobVector_[index].vertex()->reference()->name().c_str());
+                                              "           ----> task: %zu (runner: %zu) [%s]\n",
+                                              taskVector_[static_cast<size_t>(taskIx)]->ix(), lrtIx,
+                                              taskVector_[static_cast<size_t>(taskIx)]->name().c_str());
                 }
-                lrtIx++;
             }
         }
     }
-}
-
-void spider::Schedule::addJobToSchedule(pisdf::Vertex *vertex) {
-    auto job = ScheduleJob(vertex);
-    /* == Set the schedule job ix of the vertex == */
-    job.setIx(jobVector_.size());
-    vertex->setScheduleTaskIx(job.ix());
-
-    /* == Add the job to the schedule == */
-    jobVector_.emplace_back(std::move(job));
-}
-
-void spider::Schedule::updateJobAndSetReady(size_t jobIx, size_t slave, uint64_t startTime, uint64_t endTime) {
-    auto &job = jobVector_.at(jobIx);
-    const auto &pe = archi::platform()->peFromVirtualIx(slave);
-    const auto &peIx = pe->virtualIx();
-
-    /* == Set job information == */
-    job.setMappingLRT(static_cast<uint32_t>(pe->attachedLRT()->virtualIx()));
-    job.setMappingPE(static_cast<uint32_t>(peIx));
-    job.setMappingStartTime(startTime);
-    job.setMappingEndTime(endTime);
-
-    /* == Set should notify value for previous jobs == */
-    for (auto &constraint : job.scheduleConstraintsArray()) {
-        if (constraint != SIZE_MAX) {
-            jobVector_[constraint].setRunnerToNotify(job.LRTIx(), true);
-        }
-    }
-
-    /* == Update schedule statistics == */
-    stats_.updateStartTime(peIx, startTime);
-    stats_.updateIDLETime(peIx, startTime - stats_.endTime(peIx));
-    stats_.updateEndTime(peIx, endTime);
-    stats_.updateLoadTime(peIx, endTime - startTime);
-    stats_.updateJobCount(peIx);
-
-    /* == Update job state == */
-    job.setState(JobState::READY);
-    readyJobCount_++;
 }
 
 void spider::Schedule::addScheduleTask(ScheduleTask *task) {
@@ -170,24 +129,24 @@ void spider::Schedule::updateTaskAndSetReady(size_t taskIx, size_t slave, uint64
     readyJobCount_++;
 }
 
-void spider::Schedule::sendReadyJobs() {
-    const auto &grtIx = archi::platform()->spiderGRTPE()->virtualIx();
-    auto startIterator = std::begin(jobVector_) + lastRunJob_;
-    auto endIterator = startIterator + readyJobCount_;
-    for (auto it = startIterator; it < endIterator; ++it) {
-        auto &job = (*it);
-        /* == Create job message and send the notification == */
-        const auto &messageIx = rt::platform()->communicator()->push(job.createJobMessage(this),
-                                                                     job.LRTIx());
-
-        rt::platform()->communicator()->push(Notification(NotificationType::JOB_ADD,
-                                                          grtIx,
-                                                          messageIx),
-                                             job.LRTIx());
-
-        /* == Set job in JobState::RUNNING == */
-        job.setState(JobState::RUNNING);
-    }
+void spider::Schedule::sendReadyTasks() {
+//    const auto &grtIx = archi::platform()->spiderGRTPE()->virtualIx();
+//    auto startIterator = std::begin(jobVector_) + lastRunJob_;
+//    auto endIterator = startIterator + readyJobCount_;
+//    for (auto it = startIterator; it < endIterator; ++it) {
+//        auto &job = (*it);
+//        /* == Create job message and send the notification == */
+//        const auto &messageIx = rt::platform()->communicator()->push(job.createJobMessage(this),
+//                                                                     job.LRTIx());
+//
+//        rt::platform()->communicator()->push(Notification(NotificationType::JOB_ADD,
+//                                                          grtIx,
+//                                                          messageIx),
+//                                             job.LRTIx());
+//
+//        /* == Set job in JobState::RUNNING == */
+//        job.setState(JobState::RUNNING);
+//    }
     /* == Reset last job and ready count == */
     lastRunJob_ += readyJobCount_;
     readyJobCount_ = 0;

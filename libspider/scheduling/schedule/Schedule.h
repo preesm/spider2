@@ -63,40 +63,25 @@ namespace spider {
         /* === Method(s) === */
 
         /**
-         * @brief Clear schedule jobs.
+         * @brief Clear schedule tasks.
          */
         void clear();
 
         /**
-         * @brief Reset schedule jobs.
-         * @remark Set all job state to @refitem JobState::PENDING.
+         * @brief Reset schedule tasks.
+         * @remark Set all task state to @refitem TaskState::PENDING.
          * @remark Statistics of the platform are not modified.
          */
         void reset();
 
         /**
-         * @brief Creates a new schedule job and add it to the Schedule.
-         * @param vertex Pointer to the vertex of the new job.
+         * @brief Send every tasks currently in JobState::READY.
          */
-        void addJobToSchedule(pisdf::Vertex *vertex);
-
-        /**
-         * @brief Updates a job information and set its state as JobState::READY
-         * @param jobIx     Ix of the job to update.
-         * @param slave     Slave (cluster and pe) to execute on.
-         * @param startTime Start time of the job.
-         * @param endTime   End time of the job.
-         */
-        void updateJobAndSetReady(size_t jobIx, size_t slave, uint64_t startTime, uint64_t endTime);
-
-        /**
-         * @brief Send every jobs currently in JobState::READY.
-         */
-        void sendReadyJobs();
+        void sendReadyTasks();
 
         /**
          * @brief Print the Schedule in the console with the format:
-         *        job: index
+         *        task: index
          *          ----> dependency on lrt[0]
          *          ...
          *          ----> dependency on lrt[n]
@@ -113,52 +98,16 @@ namespace spider {
         void addScheduleTask(ScheduleTask *task);
 
         /**
-         * @brief Updates a job information and set its state as JobState::READY
-         * @param taskIx    Ix of the job to update.
+         * @brief Updates a task information and set its state as JobState::READY
+         * @param taskIx    Ix of the task to update.
          * @param slave     Slave (cluster and pe) to execute on.
-         * @param startTime Start time of the job.
-         * @param endTime   End time of the job.
+         * @param startTime Start time of the task.
+         * @param endTime   End time of the task.
          * @throw std::out_of_range if bad ix.
          */
         void updateTaskAndSetReady(size_t taskIx, size_t slave, uint64_t startTime, uint64_t endTime);
 
         /* === Getter(s) === */
-
-        /**
-         * @brief Get the number of jobs in the schedule.
-         * @return number of jobs.
-         */
-        inline size_t jobCount() const {
-            return jobVector_.size();
-        }
-
-        /**
-         * @brief Get the job vector of the schedule.
-         * @return const reference to the job vector
-         */
-        inline const spider::vector<ScheduleJob> &jobs() const {
-            return jobVector_;
-        }
-
-        /**
-         * @brief Get a job from its ix.
-         * @param ix  Ix of the job to fetch.
-         * @return const reference to the job.
-         * @throws @refitem std::out_of_range if ix is out of range.
-         */
-        inline ScheduleJob &job(size_t ix) {
-            return jobVector_.at(ix);
-        }
-
-        /**
-         * @brief Get a job from its ix.
-         * @param ix  Ix of the job to fetch.
-         * @return const reference to the job.
-         * @throws @refitem std::out_of_range if ix is out of range.
-         */
-        inline const ScheduleJob &job(size_t ix) const {
-            return jobVector_.at(ix);
-        }
 
         /**
          * @brief Get the number of tasks in the schedule.
@@ -217,7 +166,6 @@ namespace spider {
         /* === Setter(s) === */
 
     private:
-        sbc::vector<ScheduleJob, StackID::SCHEDULE> jobVector_;
         vector<unique_ptr<ScheduleTask>> taskVector_;
         Stats stats_;
         long readyJobCount_ = 0;

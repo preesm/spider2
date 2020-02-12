@@ -129,7 +129,7 @@ spider::ScheduleTask *spider::Scheduler::insertCommunicationTask(Cluster *cluste
     comTask->setDependency(previousTask, 0);
     schedule_.addScheduleTask(comTask);
     /* == Set job information and update schedule == */
-    schedule_.updateJobAndSetReady(static_cast<size_t>(comTask->ix()), mappedPEIx, mappingST, mappingET);
+    schedule_.updateTaskAndSetReady(static_cast<size_t>(comTask->ix()), mappedPEIx, mappingST, mappingET);
     return comTask;
 }
 
