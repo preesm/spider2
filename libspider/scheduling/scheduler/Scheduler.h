@@ -45,6 +45,7 @@
 #include <runtime/interface/Message.h>
 #include <scheduling/schedule/Schedule.h>
 #include <graphs/pisdf/Graph.h>
+#include <common/Types.h>
 
 namespace spider {
 
@@ -59,21 +60,16 @@ namespace spider {
     class Scheduler {
     public:
 
-        explicit Scheduler(pisdf::Graph *graph);
+        enum ScheduleMode {
+            JIT_SEND = 0, /*!< Send job just after scheduling. Maximize resource utilization. */
+            DELAYED_SEND, /*!< Send jobs after every jobs have been scheduled. Minimize synchronizations. */
+        };
+
+        explicit Scheduler(pisdf::Graph *graph, ScheduleMode mode = JIT_SEND);
 
         virtual ~Scheduler() = default;
 
         /* === Method(s) === */
-
-        /**
-         * @brief Perform the mapping and scheduling of a given graph.
-         * @param jitSend Type of schedule strategy: true  -> send job just after scheduling.
-         *                                                    maximize resource utilization.
-         *                                           false -> send jobs after every jobs have been scheduled.
-         *                                                    minimize synchronization.
-         * @return @refitem Schedule.
-         */
-        virtual Schedule &schedule(bool jitSend) = 0;
 
         /**
          * @brief Update internal state of the scheduler (mostly for dynamic applications)
@@ -81,7 +77,13 @@ namespace spider {
         virtual void update() = 0;
 
         /**
-         * @brief Clears scheduler.
+         * @brief Perform the mapping and scheduling of a given graph.
+         * @return @refitem Schedule.
+         */
+        virtual Schedule &execute() = 0;
+
+        /**
+         * @brief Clears scheduler resources.
          */
         virtual void clear();
 
@@ -98,15 +100,16 @@ namespace spider {
     protected:
         Schedule schedule_;
         pisdf::Graph *graph_ = nullptr;
+        ScheduleMode mode_ = JIT_SEND;
 
         /* === Protected struct(s) === */
 
         struct DataDependency {
             ScheduleTask *task_ = nullptr;
             PE *sender_ = nullptr;
-            uint64_t size_ = 0;
+            ufast64 size_ = 0;
 
-            DataDependency(ScheduleTask *task, PE *pe, uint64_t size) : task_{ task }, sender_{ pe }, size_{ size } { }
+            DataDependency(ScheduleTask *task, PE *pe, ufast64 size) : task_{ task }, sender_{ pe }, size_{ size } { }
 
             DataDependency(const DataDependency &) = default;
 
@@ -121,29 +124,13 @@ namespace spider {
 
         /**
          * @brief Compute the minimum start time possible for a given vertex.
-         * @param vertex  Vertex to evaluate.
-         * @return Minimum start time for the vertex.
-         */
-        uint64_t computeMinStartTime(const pisdf::Vertex *vertex);
-
-        /**
-         * @brief Default vertex mapper that try to best fit.
-         * @param vertex Vertex to map.
-         */
-        virtual void vertexMapper(const pisdf::Vertex *vertex);
-
-        /**
-         * @brief Compute the minimum start time possible for a given vertex.
          * @param task  Vertex to evaluate.
          * @return Minimum start time for the vertex.
          */
-        static uint64_t computeMinStartTime(ScheduleTask *task);
+        static ufast64 computeMinStartTime(ScheduleTask *task);
 
         template<class SkipPredicate>
-        PE *findBestPEFit(Cluster *cluster,
-                          uint_fast64_t minStartTime,
-                          uint_fast64_t execTime,
-                          SkipPredicate skipPredicate);
+        PE *findBestPEFit(Cluster *cluster, ufast64 minStartTime, ufast64 execTime, SkipPredicate skipPredicate);
 
         /**
          * @brief Inserts a communication task on given cluster.
@@ -151,25 +138,15 @@ namespace spider {
          * @param cluster      Pointer to the cluster.
          * @param kernel       Pointer to the kernel to use.
          * @param comTime      Estimated time of the communication (in s).
-         * @param taskToUpdate Pointer to the task sending data.
-         * @param direction    Direction of the communication.
-         * @return send task.
+         * @param previousTask Pointer to the task sending data.
+         * @param type         Type of the task to insert (@refitem TaskType::SYNC_SEND or @refitem TaskType::SYNC_RECEIVE).
+         * @return pointer to the created ScheduleTask.
          */
-        ScheduleTask *insertSendTask(Cluster *cluster, RTKernel *kernel, uint64_t comTime, ScheduleTask *taskToUpdate);
-
-        /**
-         * @brief Inserts a communication task on given cluster.
-         *        The method may modify the dependency array of the task passed in parameter.
-         * @param cluster      Pointer to the cluster.
-         * @param kernel       Pointer to the kernel to use.
-         * @param comTime      Estimated time of the communication (in s).
-         * @param pos          Position of the dependency to replace.
-         * @param taskToUpdate Pointer to the task receiving data.
-         * @param direction    Direction of the communication.
-         * @return end time of the mapped task.
-         */
-        uint64_t
-        insertRecvTask(Cluster *cluster, RTKernel *kernel, uint64_t comTime, size_t pos, ScheduleTask *taskToUpdate);
+        ScheduleTask *insertCommunicationTask(Cluster *cluster,
+                                              RTKernel *kernel,
+                                              ufast64 comTime,
+                                              ScheduleTask *previousTask,
+                                              TaskType type);
 
         /**
          * @brief Schedules inter cluster communications (if any are needed).
@@ -178,7 +155,7 @@ namespace spider {
          * @param mappedCluster  Pointer on which the task is mapped.
          */
         void
-        scheduleCommunications(ScheduleVertexTask *task, vector<DataDependency> &dependencies, Cluster *mappedCluster);
+        scheduleCommunications(ScheduleVertexTask *task, vector <DataDependency> &dependencies, Cluster *mappedCluster);
 
         /**
          * @brief Build a vector of Data dependency. Only the dependencies with exchange of data > 0 are taken into
@@ -186,7 +163,7 @@ namespace spider {
          * @param task  Pointer to the task.
          * @return vector of @refitem DataDependency.
          */
-        static vector<DataDependency> getDataDependencies(ScheduleVertexTask *task);
+        static vector <DataDependency> getDataDependencies(ScheduleVertexTask *task);
 
         /**
          * @brief Default task mapper that try to best fit.
@@ -201,6 +178,6 @@ namespace spider {
      * @param graph  Pointer to the graph.
      * @return unique_ptr of the created scheduler.
      */
-    unique_ptr<Scheduler> makeScheduler(SchedulingAlgorithm algorithm, pisdf::Graph *graph);
+    unique_ptr <Scheduler> makeScheduler(SchedulingAlgorithm algorithm, pisdf::Graph *graph);
 }
 #endif //SPIDER2_SCHEDULER_H
