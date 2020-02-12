@@ -44,8 +44,10 @@
 
 #include <containers/vector.h>
 #include <scheduling/schedule/ScheduleJob.h>
+#include <scheduling/schedule/ScheduleTask.h>
 #include <scheduling/schedule/ScheduleStats.h>
 #include <functional>
+#include <memory/unique_ptr.h>
 
 namespace spider {
 
@@ -54,7 +56,7 @@ namespace spider {
     class Schedule {
     public:
 
-        Schedule() = default;
+        Schedule() : taskVector_{ sbc::vector<unique_ptr<ScheduleTask>, StackID::SCHEDULE>{ }} { }
 
         ~Schedule() = default;
 
@@ -102,6 +104,24 @@ namespace spider {
          */
         void print() const;
 
+        /**
+         * @brief Add a new schedule task to the schedule.
+         * @remark if task has an index >= 0, nothing happens.
+         * @remark if task is nullptr, nothing happens.
+         * @param task Pointer to the task.
+         */
+        void addScheduleTask(ScheduleTask *task);
+
+        /**
+         * @brief Updates a job information and set its state as JobState::READY
+         * @param taskIx    Ix of the job to update.
+         * @param slave     Slave (cluster and pe) to execute on.
+         * @param startTime Start time of the job.
+         * @param endTime   End time of the job.
+         * @throw std::out_of_range if bad ix.
+         */
+        void updateTaskAndSetReady(size_t taskIx, size_t slave, uint64_t startTime, uint64_t endTime);
+
         /* === Getter(s) === */
 
         /**
@@ -141,6 +161,32 @@ namespace spider {
         }
 
         /**
+         * @brief Get the number of tasks in the schedule.
+         * @return number of tasks.
+         */
+        inline size_t taskCount() const {
+            return taskVector_.size();
+        }
+
+        /**
+         * @brief Get the task vector of the schedule.
+         * @return const reference to the task vector
+         */
+        inline const vector<unique_ptr<ScheduleTask>> &tasks() const {
+            return taskVector_;
+        }
+
+        /**
+         * @brief Get a task from its ix.
+         * @param ix  Ix of the task to fetch.
+         * @return pointer to the task.
+         * @throws @refitem std::out_of_range if ix is out of range.
+         */
+        inline ScheduleTask *task(size_t ix) const {
+            return taskVector_.at(ix).get();
+        }
+
+        /**
          * @brief Get the different statistics of the platform.
          * @return const reference to @refitem Stats
          */
@@ -172,6 +218,7 @@ namespace spider {
 
     private:
         sbc::vector<ScheduleJob, StackID::SCHEDULE> jobVector_;
+        vector<unique_ptr<ScheduleTask>> taskVector_;
         Stats stats_;
         long readyJobCount_ = 0;
         long lastRunJob_ = 0;

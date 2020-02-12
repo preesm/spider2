@@ -55,6 +55,7 @@
 
 void spider::Schedule::clear() {
     jobVector_.clear();
+    taskVector_.clear();
     stats_.reset();
     lastRunJob_ = 0;
     readyJobCount_ = 0;
@@ -92,7 +93,7 @@ void spider::Schedule::addJobToSchedule(pisdf::Vertex *vertex) {
     auto job = ScheduleJob(vertex);
     /* == Set the schedule job ix of the vertex == */
     job.setIx(jobVector_.size());
-    vertex->setScheduleJobIx(job.ix());
+    vertex->setScheduleTaskIx(job.ix());
 
     /* == Add the job to the schedule == */
     jobVector_.emplace_back(std::move(job));
@@ -125,6 +126,47 @@ void spider::Schedule::updateJobAndSetReady(size_t jobIx, size_t slave, uint64_t
 
     /* == Update job state == */
     job.setState(JobState::READY);
+    readyJobCount_++;
+}
+
+void spider::Schedule::addScheduleTask(ScheduleTask *task) {
+    if (!task || (task->ix() >= 0)) {
+        return;
+    }
+    task->setIx(static_cast<int32_t>(taskVector_.size()));
+    taskVector_.emplace_back(task);
+}
+
+void spider::Schedule::updateTaskAndSetReady(size_t taskIx, size_t slave, uint64_t startTime, uint64_t endTime) {
+    auto &task = taskVector_.at(taskIx);
+    const auto &pe = archi::platform()->peFromVirtualIx(slave);
+    const auto &peIx = pe->virtualIx();
+
+    /* == Set job information == */
+    task->setMappedLrt(pe->attachedLRT()->virtualIx());
+    task->setMappedPE(peIx);
+    task->setStartTime(startTime);
+    task->setEndTime(endTime);
+
+    /* == Set should notify value for previous jobs == */
+    auto *platform = archi::platform();
+    const auto lrtCount = platform->LRTCount();
+    for (size_t i = 0; i < lrtCount; ++i) {
+        const auto constraint = task->executionConstraint(i);
+        if (constraint >= 0) {
+            taskVector_[static_cast<size_t>(constraint)]->setNotificationFlag(task->mappedLrt(), true);
+        }
+    }
+
+    /* == Update schedule statistics == */
+    stats_.updateStartTime(peIx, startTime);
+    stats_.updateIDLETime(peIx, startTime - stats_.endTime(peIx));
+    stats_.updateEndTime(peIx, endTime);
+    stats_.updateLoadTime(peIx, endTime - startTime);
+    stats_.updateJobCount(peIx);
+
+    /* == Update job state == */
+    task->setState(TaskState::READY);
     readyJobCount_++;
 }
 
