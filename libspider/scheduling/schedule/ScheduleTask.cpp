@@ -66,14 +66,8 @@ void spider::ScheduleTask::enableBroadcast() {
     std::fill(notificationFlags_.get(), notificationFlags_.get() + lrtCount, true);
 }
 
-void spider::ScheduleTask::exportXML(std::ofstream &file) const {
-    const auto *platform = archi::platform();
-    auto PEIx = platform->peFromVirtualIx(mappedPE())->hardwareIx();
-    file << '\t' << "<event" << '\n';
-    file << '\t' << '\t' << R"(start=")" << startTime() << R"(")" << '\n';
-    file << '\t' << '\t' << R"(end=")" << endTime_ << R"(")" << '\n';
-    file << '\t' << '\t' << R"(mapping="PE)" << PEIx << R"(")" << '\n';
-    file << '\t' << '\t' << ">.</event>" << '\n';
+std::string spider::ScheduleTask::name() const {
+    return std::to_string(reinterpret_cast<uintptr_t>(this));
 }
 
 void spider::ScheduleTask::setNumberOfDependencies(size_t count) {

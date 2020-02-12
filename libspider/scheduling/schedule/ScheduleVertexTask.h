@@ -62,7 +62,7 @@ namespace spider {
 
         /* === Method(s) === */
 
-        void exportXML(std::ofstream &file) const override ;
+        std::string name() const override ;
 
         /* === Getter(s) === */
 

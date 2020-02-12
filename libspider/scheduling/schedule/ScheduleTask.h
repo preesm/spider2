@@ -80,7 +80,7 @@ namespace spider {
          * @brief Export this task to xml format.
          * @param file  File to write to.
          */
-        virtual void exportXML(std::ofstream &file) const;
+        virtual std::string name() const;
 
         /* === Getter(s) === */
 
