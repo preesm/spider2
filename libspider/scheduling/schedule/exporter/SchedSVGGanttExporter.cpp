@@ -49,7 +49,8 @@
 
 /* === Static variable(s) === */
 
-static constexpr u32 OFFSET = 3;
+static constexpr u32 OFFSET_X = 3;
+static constexpr u32 OFFSET_Y = 3;
 static constexpr u32 BORDER = 5;
 static constexpr u32 ARROW_SIZE = 8;
 static constexpr u32 ARROW_STROKE = 2;
@@ -85,10 +86,10 @@ spider::SchedSVGGanttExporter::SchedSVGGanttExporter(const Schedule *schedule) :
     /* == Compute dimensions of the Gantt == */
     const auto endPoint = schedule_->stats().minStartTime() + schedule_->stats().makespan();
     makespanWidth_ = computeWidth(endPoint);
-    width_ = makespanWidth_ + 2 * BORDER + OFFSET + ARROW_STROKE + ARROW_SIZE;
+    width_ = makespanWidth_ + 2 * BORDER + OFFSET_X + ARROW_STROKE + ARROW_SIZE;
     const auto *platform = archi::platform();
     const auto PECount = platform->PECount();
-    height_ = PECount * (TASK_HEIGHT + TASK_SPACE) + TASK_SPACE + ARROW_STROKE + ARROW_SIZE + OFFSET;
+    height_ = PECount * (TASK_HEIGHT + TASK_SPACE) + TASK_SPACE + ARROW_STROKE + ARROW_SIZE + OFFSET_Y;
 }
 
 void spider::SchedSVGGanttExporter::print() const {
@@ -160,16 +161,16 @@ void spider::SchedSVGGanttExporter::axisPrinter(std::ofstream &file) const {
        id="rect_arrow_vertical"
        width=")" << ARROW_STROKE << R"("
        height=")" << verticalHeight << R"("
-       x=")" << OFFSET << R"("
+       x=")" << OFFSET_X << R"("
        y=")" << (ARROW_SIZE - 1) << R"(" />
     <path
        fill="#)" << arrowColor << R"("
        display="inline"
        stroke="none"
        fill-rule="evenodd"
-       d="M )" << (ARROW_SIZE / 2) << "," << 0 << " "
-         << ARROW_SIZE << "," << ARROW_SIZE << " H "
-         << 0 << R"( Z"
+       d="M )" << OFFSET_X + 1 << "," << 0 << " " // x top sommet, y top sommet, x right corner, height, x left corner
+         << OFFSET_X + 1 + (ARROW_SIZE / 2) << "," << ARROW_SIZE << " H "
+         << OFFSET_X + 1 - (ARROW_SIZE / 2) << R"( Z"
        id="arrow_vertical_head"
        inkscape:connector-curvature="0" />)";
 
@@ -184,7 +185,7 @@ void spider::SchedSVGGanttExporter::axisPrinter(std::ofstream &file) const {
        id="rect_grid"
        width="1"
        height=")" << verticalHeight << R"("
-       x=")" << (OFFSET + ARROW_STROKE + BORDER + i * 40) << R"("
+       x=")" << (OFFSET_X + ARROW_STROKE + BORDER + i * 40) << R"("
        y=")" << (ARROW_SIZE - 1) << R"(" />)";
     }
 
@@ -193,9 +194,9 @@ void spider::SchedSVGGanttExporter::axisPrinter(std::ofstream &file) const {
        fill="#)" << arrowColor << R"("
        stroke="none"
        id="rect_arrow_horizontal"
-       width=")" << (width_ - (OFFSET + (ARROW_SIZE - 1))) << R"("
+       width=")" << (width_ - (OFFSET_X + (ARROW_SIZE - 1))) << R"("
        height=")" << ARROW_STROKE << R"("
-       x=")" << OFFSET << R"("
+       x=")" << OFFSET_X << R"("
        y=")" << (height_ - (((ARROW_SIZE + ARROW_STROKE) / 2))) << R"(" />
     <path
        fill="#)" << arrowColor << R"("
@@ -237,8 +238,8 @@ void spider::SchedSVGGanttExporter::jobPrinter(std::ofstream &file, const Schedu
     const auto taskWidth = computeWidth(task->endTime() - task->startTime());
 
     /* == Compute coordinates == */
-    const auto x = OFFSET + ARROW_STROKE + BORDER + computeWidth(task->startTime());
-    const auto y = height_ - (OFFSET + ARROW_STROKE + (task->mappedPE() + 1) * (TASK_HEIGHT + BORDER));
+    const auto x = OFFSET_X + ARROW_STROKE + BORDER + computeWidth(task->startTime());
+    const auto y = height_ - (OFFSET_Y + ARROW_STROKE + (task->mappedPE() + 1) * (TASK_HEIGHT + BORDER));
     std::ios savedFormat{ nullptr };
     savedFormat.copyfmt(file);
     file << R"(
@@ -262,8 +263,10 @@ void spider::SchedSVGGanttExporter::jobPrinter(std::ofstream &file, const Schedu
     /* == Don't mind the magic constant for offsetting x and y, they are based on the following observation:
      *    xText = realX - fontSize * alpha; (same for y) and some empirical measurement.
      *    where "realX" is the value you should obtain but fontSize seem to influence text positioning in SVG.. == */
-    const auto xText = (static_cast<double>(x) + (static_cast<double>(taskWidth) - textWidth) / 2.0) - 0.2588 * fontSize;
-    const auto yText = (static_cast<double>(y) + (static_cast<double>(TASK_HEIGHT) + fontSize) / 2.0) - 0.2358 * fontSize;
+    const auto xText =
+            (static_cast<double>(x) + (static_cast<double>(taskWidth) - textWidth) / 2.0) - 0.2588 * fontSize;
+    const auto yText =
+            (static_cast<double>(y) + (static_cast<double>(TASK_HEIGHT) + fontSize) / 2.0) - 0.2358 * fontSize;
     file << R"(
     <text
        style="font-size:)" << fontSize << R"(px;font-family:monospace;fill:#ffffff;fill-opacity:1;"
