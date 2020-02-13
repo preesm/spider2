@@ -75,9 +75,10 @@ void spider::SchedXMLGanttExporter::printTask(std::ofstream &file, const Schedul
 
     /* == Let's compute a color based on the value of the pointer == */
     const auto name = task->name();
-    int32_t red = static_cast<uint8_t>((reinterpret_cast<uintptr_t>(name.c_str()) >> 1u) * 50 + 100);
-    int32_t green = static_cast<uint8_t>((reinterpret_cast<uintptr_t>(name.c_str()) >> 2u) * 50 + 100);
-    int32_t blue = static_cast<uint8_t>((reinterpret_cast<uintptr_t>(name.c_str()) >> 4u) * 50 + 100);
+    u32 color = task->color();
+    i32 red = static_cast<u8>((color >> 16u) & 0xFFu);
+    i32 green = static_cast<u8>((color >> 8u) & 0xFFu);
+    i32 blue = static_cast<u8>(color & 0xFFu);
     file << '\t' << "<event" << '\n';
     file << '\t' << '\t' << R"(start=")" << task->startTime() << R"(")" << '\n';
     file << '\t' << '\t' << R"(end=")" << task->endTime() << R"(")" << '\n';

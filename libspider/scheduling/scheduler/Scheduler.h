@@ -154,8 +154,7 @@ namespace spider {
          * @param dependencies   Reference to the data dependencies of the task.
          * @param mappedCluster  Pointer on which the task is mapped.
          */
-        void
-        scheduleCommunications(ScheduleVertexTask *task, vector <DataDependency> &dependencies, Cluster *mappedCluster);
+        void scheduleCommunications(ScheduleTask *task, vector <DataDependency> &dependencies, Cluster *mappedCluster);
 
         /**
          * @brief Build a vector of Data dependency. Only the dependencies with exchange of data > 0 are taken into
@@ -163,13 +162,13 @@ namespace spider {
          * @param task  Pointer to the task.
          * @return vector of @refitem DataDependency.
          */
-        static vector <DataDependency> getDataDependencies(ScheduleVertexTask *task);
+        static vector <DataDependency> getDataDependencies(ScheduleTask *task);
 
         /**
          * @brief Default task mapper that try to best fit.
          * @param task Pointer to the task to map.
          */
-        virtual void taskMapper(ScheduleVertexTask *task);
+        virtual void taskMapper(ScheduleTask *task);
     };
 
     /**

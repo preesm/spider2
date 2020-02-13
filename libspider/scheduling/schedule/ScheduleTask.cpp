@@ -41,11 +41,9 @@
 /* === Include(s) === */
 
 #include <scheduling/schedule/ScheduleTask.h>
+#include <graphs/pisdf/Graph.h>
 #include <archi/Platform.h>
-#include <archi/PE.h>
 #include <api/archi-api.h>
-#include <iostream>
-#include <fstream>
 
 /* === Static function === */
 
@@ -61,13 +59,45 @@ spider::ScheduleTask::ScheduleTask(TaskType type) : type_{ type } {
     std::fill(notificationFlags_.get(), notificationFlags_.get() + lrtCount, false);
 }
 
+spider::ScheduleTask::ScheduleTask(pisdf::Vertex *vertex) : ScheduleTask(TaskType::VERTEX) {
+    if (!vertex) {
+        throwSpiderException("creating TaskType::VERTEX task with nullptr vertex.");
+    }
+    vertex_ = vertex;
+    setNumberOfDependencies(vertex->inputEdgeCount());
+}
+
 void spider::ScheduleTask::enableBroadcast() {
     const auto lrtCount = archi::platform()->LRTCount();
     std::fill(notificationFlags_.get(), notificationFlags_.get() + lrtCount, true);
 }
 
 std::string spider::ScheduleTask::name() const {
-    return std::to_string(reinterpret_cast<uintptr_t>(this));
+    if (type_ == TaskType::VERTEX) {
+        return vertex_->name();
+    } else if (type_ == TaskType::SYNC_SEND) {
+        return "send-task";
+    }
+    return "receive-task";
+}
+
+u32 spider::ScheduleTask::color() const {
+    if (type_ == TaskType::VERTEX) {
+        const auto *reference = vertex_->reference();
+        const u32 red = static_cast<u8>((reinterpret_cast<uintptr_t>(reference) >> 3u) * 50 + 100);
+        const u32 green = static_cast<u8>((reinterpret_cast<uintptr_t>(reference) >> 2u) * 50 + 100);
+        const u32 blue = static_cast<u8>((reinterpret_cast<uintptr_t>(reference) >> 4u) * 50 + 100);
+        return 0u | (red << 16u) | (green << 8u) | (blue);
+    }
+    return static_cast<u32>(kernelIx_);
+}
+
+spider::pisdf::Vertex *spider::ScheduleTask::vertex() const {
+    return vertex_;
+}
+
+size_t spider::ScheduleTask::kernelIx() const {
+    return type_ == TaskType::VERTEX ? vertex_->runtimeInformation()->kernelIx() : kernelIx_;
 }
 
 void spider::ScheduleTask::setNumberOfDependencies(size_t count) {
@@ -81,4 +111,16 @@ void spider::ScheduleTask::setDependency(ScheduleTask *task, size_t pos) {
         return;
     }
     dependenciesArray_.at(pos) = task;
+}
+
+void spider::ScheduleTask::setVertex(pisdf::Vertex *vertex) {
+    if (type_ == TaskType::VERTEX && vertex) {
+        vertex_ = vertex;
+    }
+}
+
+void spider::ScheduleTask::setKernelIx(size_t kernelIx) {
+    if (type_ != TaskType::VERTEX) {
+        kernelIx_ = kernelIx;
+    }
 }

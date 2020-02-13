@@ -67,7 +67,9 @@ namespace spider {
     public:
         explicit ScheduleTask(TaskType type);
 
-        virtual ~ScheduleTask() = default;
+        explicit ScheduleTask(pisdf::Vertex *vertex);
+
+        ~ScheduleTask() = default;
 
         /* === Method(s) === */
 
@@ -80,7 +82,14 @@ namespace spider {
          * @brief Export this task to xml format.
          * @param file  File to write to.
          */
-        virtual std::string name() const;
+        std::string name() const;
+
+        /**
+         * @brief Return a color value for the task.
+         *        format is RGB with 8 bits per component in the lower part of the returned value.
+         * @return  color of the task.
+         */
+        u32 color() const;
 
         /* === Getter(s) === */
 
@@ -157,6 +166,19 @@ namespace spider {
         inline TaskType type() const {
             return type_;
         }
+
+        /**
+         * @brief Get the vertex associated to this task (if type() == TaskType::VERTEX).
+         * @return pointer to the associated vertex, nullptr else.
+         */
+        pisdf::Vertex *vertex() const;
+
+        /**
+         * @brief Get the ix of the kernel associated with this task.
+         * @return ix of the kernel of the associated vertex if type() == TaskType::VERTEX,
+         *         ix of the kernel set by the method @refitem ScheduleTask::setKernelIx
+         */
+        size_t kernelIx() const;
 
         /* === Setter(s) === */
 
@@ -248,14 +270,29 @@ namespace spider {
             state_ = state;
         }
 
+        /**
+         * @brief Set the value of the associated vertex if type() == TaskType::VERTEX AND vertex is not nullptr.
+         * @param vertex  Pointer to the vertex to set.
+         */
+        void setVertex(pisdf::Vertex *vertex);
+
+        /**
+         * @brief Set the kernel ix of the task if type() != TaskType::VERTEX.
+         * @remark override current value.
+         * @param kernelIx Ix to set.
+         */
+        void setKernelIx(size_t kernelIx);
+
     protected:
         array<ScheduleTask *> dependenciesArray_;
         unique_ptr <i32> executionConstraints_;
         unique_ptr<bool> notificationFlags_;
+        pisdf::Vertex *vertex_ = nullptr;
         u64 startTime_ = UINT64_MAX;
         u64 endTime_ = UINT64_MAX;
         size_t mappedLRT_ = SIZE_MAX;
         size_t mappedPE_ = SIZE_MAX;
+        size_t kernelIx_ = SIZE_MAX;
         i32 ix_ = -1;
         TaskState state_ = TaskState::NOT_SCHEDULABLE;
         TaskType type_;

@@ -46,14 +46,11 @@
 #include <scheduling/scheduler/RoundRobinScheduler.h>
 #include <scheduling/allocator/DefaultFifoAllocator.h>
 #include <scheduling/schedule/ScheduleTask.h>
-#include <scheduling/schedule/ScheduleVertexTask.h>
-#include <runtime/interface/Message.h>
-#include <runtime/platform/RTPlatform.h>
+#include <runtime/common/RTKernel.h>
 #include <api/archi-api.h>
 #include <archi/PE.h>
 #include <archi/Platform.h>
 #include <archi/MemoryBus.h>
-#include <scheduling/schedule/ScheduleKernelTask.h>
 
 /* === Function(s) definition === */
 
@@ -124,7 +121,8 @@ spider::ScheduleTask *spider::Scheduler::insertCommunicationTask(Cluster *cluste
     const auto mappingST = std::max(schedule_.endTime(mappedPEIx), minStartTime);
     const auto mappingET = mappingST + comTime;
     /* == Create the send task == */
-    auto *comTask = make<ScheduleKernelTask, StackID::SCHEDULE>(kernel, type);
+    auto *comTask = make<ScheduleTask, StackID::SCHEDULE>(type);
+    comTask->setKernelIx(kernel->ix());
     comTask->setNumberOfDependencies(1);
     comTask->setDependency(previousTask, 0);
     schedule_.addScheduleTask(comTask);
@@ -133,7 +131,7 @@ spider::ScheduleTask *spider::Scheduler::insertCommunicationTask(Cluster *cluste
     return comTask;
 }
 
-void spider::Scheduler::scheduleCommunications(ScheduleVertexTask *task,
+void spider::Scheduler::scheduleCommunications(ScheduleTask *task,
                                                vector<DataDependency> &dependencies,
                                                Cluster *mappedCluster) {
     auto begin = task->dependencies().begin();
@@ -169,7 +167,7 @@ void spider::Scheduler::scheduleCommunications(ScheduleVertexTask *task,
 }
 
 spider::vector<spider::Scheduler::DataDependency>
-spider::Scheduler::getDataDependencies(ScheduleVertexTask *task) {
+spider::Scheduler::getDataDependencies(ScheduleTask *task) {
     const auto *vertex = task->vertex();
     const auto *platform = archi::platform();
     auto taskDependenciesIterator = task->dependencies().begin();
@@ -186,7 +184,7 @@ spider::Scheduler::getDataDependencies(ScheduleVertexTask *task) {
     return dataDependencies;
 }
 
-void spider::Scheduler::taskMapper(ScheduleVertexTask *task) {
+void spider::Scheduler::taskMapper(ScheduleTask *task) {
     const auto *vertex = task->vertex();
     if (!vertex) {
         throwSpiderException("can not schedule a task with no vertex.");

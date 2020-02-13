@@ -41,7 +41,6 @@
 /* === Include(s) === */
 
 #include <scheduling/scheduler/ListScheduler.h>
-#include <scheduling/schedule/ScheduleVertexTask.h>
 #include <api/archi-api.h>
 #include <archi/Platform.h>
 #include <archi/Cluster.h>
@@ -83,7 +82,7 @@ void spider::ListScheduler::update() {
             for (auto &edge : vertex->inputEdgeVector()) {
                 auto *source = edge->source();
                 if (source->executable() && source->scheduleTaskIx() == SIZE_MAX) {
-                    auto *newTask = make<ScheduleVertexTask, StackID::SCHEDULE>(source);
+                    auto *newTask = make<ScheduleTask, StackID::SCHEDULE>(source);
                     newTask->setNumberOfDependencies(source->inputEdgeCount());
                     /* == Set the dependency == */
                     task->setDependency(newTask, i);
@@ -99,7 +98,7 @@ void spider::ListScheduler::update() {
     /* == Reserve and push the vertices into the vertex == */
     for (const auto &vertex : graph_->vertices()) {
         if (vertex->scheduleTaskIx() == SIZE_MAX) {
-            auto *task = make<ScheduleVertexTask, StackID::SCHEDULE>(vertex.get());
+            auto *task = make<ScheduleTask, StackID::SCHEDULE>(vertex.get());
             task->setNumberOfDependencies(vertex->inputEdgeCount());
             sortedTaskVector_.emplace_back(task, -1);
             vertex->setScheduleTaskIx(sortedTaskVector_.size() - 1);
