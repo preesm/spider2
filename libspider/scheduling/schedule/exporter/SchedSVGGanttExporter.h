@@ -83,7 +83,6 @@ namespace spider {
         double widthMin_ = 0;
         double widthMax_ = 0;
         double alpha_ = 0.;
-        double beta_ = 0.;
         uint64_t makespanWidth_ = 0;
 
         /* === Private method(s) === */

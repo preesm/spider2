@@ -80,14 +80,7 @@ spider::SchedSVGGanttExporter::SchedSVGGanttExporter(const Schedule *schedule) :
     if (widthMin_ * ratio > widthMax_) {
         widthMax_ = widthMin_ * ratio;
     }
-    if (maxExecTime != minExecTime) {
-        alpha_ = (widthMax_ - widthMin_) / static_cast<double>(maxExecTime - minExecTime);
-        beta_ = widthMin_ - (alpha_ * static_cast<double>(minExecTime));
-    } else {
-        /* == We take a size in the middle == */
-        alpha_ = (widthMax_ / 2.) / static_cast<double>(maxExecTime);
-        beta_ = 0.;
-    }
+    alpha_ = widthMax_ / static_cast<double>(maxExecTime);
 
     /* == Compute dimensions of the Gantt == */
     const auto endPoint = schedule_->stats().minStartTime() + schedule_->stats().makespan();
@@ -119,7 +112,7 @@ void spider::SchedSVGGanttExporter::printFromFile(std::ofstream &file) const {
 }
 
 u64 spider::SchedSVGGanttExporter::computeWidth(u64 time) const {
-    return static_cast<u64>(alpha_ * static_cast<double>(time) + beta_);
+    return static_cast<u64>(alpha_ * static_cast<double>(time));
 }
 
 void spider::SchedSVGGanttExporter::headerPrinter(std::ofstream &file) const {
@@ -224,7 +217,7 @@ static double computeWidthFromFontSize(double fontSize, size_t count) {
 }
 
 static double computeFontSize(const std::string &name, u64 boxWidth) {
-    const auto maxWidth = boxWidth - 2 * TEXT_BORDER;
+    const auto maxWidth = static_cast<double>(boxWidth - 2 * TEXT_BORDER);
     const auto count = name.length();
     auto width = computeWidthFromFontSize(static_cast<double>(TEXT_MAX_HEIGHT), count);
     if (width > maxWidth) {
