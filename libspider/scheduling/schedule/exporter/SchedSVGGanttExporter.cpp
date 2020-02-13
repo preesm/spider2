@@ -49,40 +49,52 @@
 
 /* === Static variable(s) === */
 
-static constexpr uint32_t OFFSET = 3;
-static constexpr uint32_t BORDER = 5;
-static constexpr uint32_t ARROW_SIZE = 8;
-static constexpr uint32_t ARROW_STROKE = 2;
-static constexpr uint32_t TASK_HEIGHT = 50;
-static constexpr uint32_t TASK_SPACE = 5;
+static constexpr u32 OFFSET = 3;
+static constexpr u32 BORDER = 5;
+static constexpr u32 ARROW_SIZE = 8;
+static constexpr u32 ARROW_STROKE = 2;
+static constexpr u32 TASK_HEIGHT = 50;
+static constexpr u32 TASK_SPACE = 5;
+static constexpr u32 TASK_MIN_WIDTH = 50;
+static constexpr u32 TASK_MAX_WIDTH = 600;
+static constexpr u32 TEXT_BORDER = 2;
+static constexpr u32 TEXT_MAX_HEIGHT = TASK_HEIGHT - 20;
 
 /* === Static function(s) === */
 
 /* === Method(s) implementation === */
 
-spider::SchedSVGGanttExporter::SchedSVGGanttExporter(const Schedule *schedule,
-                                                     const pisdf::Graph *) : Exporter(),
-                                                                             schedule_{ schedule } {
+spider::SchedSVGGanttExporter::SchedSVGGanttExporter(const Schedule *schedule) : Exporter(),
+                                                                                 schedule_{ schedule },
+                                                                                 widthMin_{ TASK_MIN_WIDTH },
+                                                                                 widthMax_{ TASK_MAX_WIDTH } {
     /* == Compute values needed for printing == */
-    uint64_t minExecTime = UINT64_MAX;
-    uint64_t maxExecTime = 0;
+    u64 minExecTime = UINT64_MAX;
+    u64 maxExecTime = 0;
     for (auto &task : schedule_->tasks()) {
         const auto &execTime = task->endTime() - task->startTime();
         minExecTime = std::min(execTime, minExecTime);
         maxExecTime = std::max(execTime, maxExecTime);
     }
-    const auto &ratio = static_cast<double>(maxExecTime) / static_cast<double>(minExecTime);
+    const auto ratio = static_cast<double>(maxExecTime) / static_cast<double>(minExecTime);
     if (widthMin_ * ratio > widthMax_) {
         widthMax_ = widthMin_ * ratio;
     }
-    scaleFactor_ = widthMax_ / static_cast<double>(maxExecTime);
+    if (maxExecTime != minExecTime) {
+        alpha_ = (widthMax_ - widthMin_) / static_cast<double>(maxExecTime - minExecTime);
+        beta_ = widthMin_ - (alpha_ * static_cast<double>(minExecTime));
+    } else {
+        /* == We take a size in the middle == */
+        alpha_ = (widthMax_ / 2.) / static_cast<double>(maxExecTime);
+        beta_ = 0.;
+    }
 
     /* == Compute dimensions of the Gantt == */
-    const auto &endPoint = static_cast<double>(schedule_->stats().minStartTime() + schedule_->stats().makespan());
-    makespanWidth_ = static_cast<uint64_t>(endPoint * scaleFactor_);
+    const auto endPoint = schedule_->stats().minStartTime() + schedule_->stats().makespan();
+    makespanWidth_ = computeWidth(endPoint);
     width_ = makespanWidth_ + 2 * BORDER + OFFSET + ARROW_STROKE + ARROW_SIZE;
     const auto *platform = archi::platform();
-    const auto &PECount = platform->PECount();
+    const auto PECount = platform->PECount();
     height_ = PECount * (TASK_HEIGHT + TASK_SPACE) + TASK_SPACE + ARROW_STROKE + ARROW_SIZE + OFFSET;
 }
 
@@ -104,6 +116,10 @@ void spider::SchedSVGGanttExporter::printFromFile(std::ofstream &file) const {
 
     file << "  </g>" << std::endl;
     file << "</svg>" << std::endl;
+}
+
+u64 spider::SchedSVGGanttExporter::computeWidth(u64 time) const {
+    return static_cast<u64>(alpha_ * static_cast<double>(time) + beta_);
 }
 
 void spider::SchedSVGGanttExporter::headerPrinter(std::ofstream &file) const {
@@ -142,8 +158,8 @@ void spider::SchedSVGGanttExporter::headerPrinter(std::ofstream &file) const {
 void spider::SchedSVGGanttExporter::axisPrinter(std::ofstream &file) const {
 
     /* == Print vertical arrow == */
-    const auto &arrowColor = "393c3c";
-    const auto &verticalHeight = height_ - ((3 * ARROW_SIZE - 4) / 2);
+    const auto arrowColor = "393c3c";
+    const auto verticalHeight = height_ - ((3 * ARROW_SIZE - 4) / 2);
     file << R"(
     <rect
        fill="#)" << arrowColor << R"("
@@ -165,8 +181,8 @@ void spider::SchedSVGGanttExporter::axisPrinter(std::ofstream &file) const {
        inkscape:connector-curvature="0" />)";
 
     /* == Print vertical grid == */
-    const auto &gridColor = "e8e8e8";
-    const auto &gridCount = makespanWidth_ / 40;
+    const auto gridColor = "e8e8e8";
+    const auto gridCount = makespanWidth_ / 40;
     for (uint32_t i = 0; i <= gridCount; ++i) {
         file << R"(
     <rect
@@ -201,17 +217,35 @@ void spider::SchedSVGGanttExporter::axisPrinter(std::ofstream &file) const {
     /* == Print horizontal arrow == */
 }
 
+static double computeWidthFromFontSize(double fontSize, size_t count) {
+    static constexpr double alpha = 0.6016;
+    static constexpr double beta = 0.6855;
+    return fontSize * (beta + alpha * static_cast<double>(count));
+}
+
+static double computeFontSize(const std::string &name, u64 boxWidth) {
+    const auto maxWidth = boxWidth - 2 * TEXT_BORDER;
+    const auto count = name.length();
+    auto width = computeWidthFromFontSize(static_cast<double>(TEXT_MAX_HEIGHT), count);
+    if (width > maxWidth) {
+        width = maxWidth;
+        return width / computeWidthFromFontSize(1.0, count);
+    }
+    return static_cast<double>(TEXT_MAX_HEIGHT);
+}
+
 void spider::SchedSVGGanttExporter::jobPrinter(std::ofstream &file, const ScheduleTask *task) const {
     /* == Compute color and width == */
     const auto name = task->name();
-    int32_t red = static_cast<uint8_t>((reinterpret_cast<uintptr_t>(name.data()) >> 3u) * 50 + 100);
-    int32_t green = static_cast<uint8_t>((reinterpret_cast<uintptr_t>(name.data()) >> 2u) * 50 + 100);
-    int32_t blue = static_cast<uint8_t>((reinterpret_cast<uintptr_t>(name.data()) >> 4u) * 50 + 100);
-    const auto &taskWidth = static_cast<double>(task->endTime() - task->startTime()) * scaleFactor_;
+    u32 color = task->color();
+    i32 red = static_cast<u8>((color >> 16u) & 0xFFu);
+    i32 green = static_cast<u8>((color >> 8u) & 0xFFu);
+    i32 blue = static_cast<u8>(color & 0xFFu);
+    const auto taskWidth = computeWidth(task->endTime() - task->startTime());
 
     /* == Compute coordinates == */
-    const auto &x = OFFSET + ARROW_STROKE + BORDER + static_cast<double>(task->startTime()) * scaleFactor_;
-    const auto &y = height_ - (OFFSET + ARROW_STROKE + (task->mappedPE() + 1) * (TASK_HEIGHT + BORDER));
+    const auto x = OFFSET + ARROW_STROKE + BORDER + computeWidth(task->startTime());
+    const auto y = height_ - (OFFSET + ARROW_STROKE + (task->mappedPE() + 1) * (TASK_HEIGHT + BORDER));
     std::ios savedFormat{ nullptr };
     savedFormat.copyfmt(file);
     file << R"(
@@ -228,6 +262,21 @@ void spider::SchedSVGGanttExporter::jobPrinter(std::ofstream &file, const Schedu
        x=")" << x << R"("
        y=")" << y << R"("
        ry="4" />)";
+
+    /* == Write the text == */
+    const auto fontSize = computeFontSize(name, taskWidth);
+    const auto textWidth = computeWidthFromFontSize(fontSize, name.length());
+    /* == Don't mind the magic constant for offsetting x and y, they are based on the following observation:
+     *    xText = realX - fontSize * alpha; (same for y) and some empirical measurement.
+     *    where "realX" is the value you should obtain but fontSize seem to influence text positioning in SVG.. == */
+    const auto xText = (static_cast<double>(x) + (static_cast<double>(taskWidth) - textWidth) / 2.0) - 0.2588 * fontSize;
+    const auto yText = (static_cast<double>(y) + (static_cast<double>(TASK_HEIGHT) + fontSize) / 2.0) - 0.2358 * fontSize;
+    file << R"(
+    <text
+       style="font-size:)" << fontSize << R"(px;font-family:monospace;fill:#ffffff;fill-opacity:1;"
+       x=")" << xText << R"("
+       y=")" << yText << R"("
+       >|)" << name << R"(|</text>)";
 }
 
 

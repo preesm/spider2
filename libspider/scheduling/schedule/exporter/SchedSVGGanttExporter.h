@@ -43,6 +43,7 @@
 /* === Include(s) === */
 
 #include <common/Exporter.h>
+#include <common/Types.h>
 
 namespace spider {
 
@@ -61,7 +62,7 @@ namespace spider {
     class SchedSVGGanttExporter final : public Exporter {
     public:
 
-        explicit SchedSVGGanttExporter(const Schedule *schedule, const pisdf::Graph *graph);
+        explicit SchedSVGGanttExporter(const Schedule *schedule);
 
         ~SchedSVGGanttExporter() override = default;
 
@@ -79,9 +80,10 @@ namespace spider {
         const Schedule *schedule_ = nullptr;
         uint64_t width_ = UINT32_MAX;
         uint64_t height_ = UINT32_MAX;
-        double widthMin_ = 10;
-        double widthMax_ = 500;
-        double scaleFactor_ = 0.;
+        double widthMin_ = 0;
+        double widthMax_ = 0;
+        double alpha_ = 0.;
+        double beta_ = 0.;
         uint64_t makespanWidth_ = 0;
 
         /* === Private method(s) === */
@@ -91,6 +93,8 @@ namespace spider {
         void axisPrinter(std::ofstream &file) const;
 
         void jobPrinter(std::ofstream &file, const ScheduleTask *task) const;
+
+        u64 computeWidth(u64 time) const;
     };
 
     /* === Inline method(s) === */
