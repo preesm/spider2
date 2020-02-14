@@ -268,5 +268,10 @@ namespace spider {
         pointer data_ = nullptr;
         size_type size_ = 0;
     };
+
+    template <class T>
+    array_handle<T> make_handle(T *data, size_t size) {
+        return array_handle<T>(data, size);
+    }
 }
 #endif //SPIDER2_ARRAY_HANDLE_H
