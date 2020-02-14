@@ -301,7 +301,7 @@ void spider::SchedSVGGanttExporter::taskPrinter(std::ofstream &file, const Sched
        height=")" << TASK_HEIGHT << R"("
        x=")" << x << R"("
        y=")" << y << R"("
-       ry="4" />)";
+       ry="10" />)";
 
     /* == Write the text == */
     const auto fontSize = computeFontSize(name, taskWidth);
