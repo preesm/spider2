@@ -60,6 +60,7 @@ static constexpr u32 TASK_MIN_WIDTH = 50;
 static constexpr u32 TASK_MAX_WIDTH = 600;
 static constexpr u32 TEXT_BORDER = 2;
 static constexpr u32 TEXT_MAX_HEIGHT = (TASK_HEIGHT - 10);
+static constexpr double PE_FONT_SIZE = (TEXT_MAX_HEIGHT / 3.);
 static constexpr double X_FONT_OFFSET = 0.2588;
 static constexpr double Y_FONT_OFFSET = 0.2358;
 
@@ -84,7 +85,11 @@ static double computeFontSize(const std::string &name, u64 boxWidth) {
 }
 
 static double computeRelativeCenteredX(double xAnchor, double widthAnchor, double width, double fontSize) {
-    return xAnchor + ((widthAnchor - width) / 2.0) - X_FONT_OFFSET * fontSize;
+    return (xAnchor + ((widthAnchor - width) / 2.0)) - (X_FONT_OFFSET * fontSize);
+}
+
+static double computeRelativeCenteredY(double yAnchor, double heightAnchor, double height, double fontSize) {
+    return (yAnchor + ((heightAnchor - height) / 2.0) + fontSize) - (Y_FONT_OFFSET * fontSize);
 }
 
 /* === Method(s) implementation === */
@@ -92,7 +97,8 @@ static double computeRelativeCenteredX(double xAnchor, double widthAnchor, doubl
 spider::SchedSVGGanttExporter::SchedSVGGanttExporter(const Schedule *schedule) : Exporter(),
                                                                                  schedule_{ schedule },
                                                                                  widthMin_{ TASK_MIN_WIDTH },
-                                                                                 widthMax_{ TASK_MAX_WIDTH } {
+                                                                                 widthMax_{ TASK_MAX_WIDTH },
+                                                                                 offsetX_{ OFFSET_X } {
     /* == Compute values needed for printing == */
     u64 minExecTime = UINT64_MAX;
     u64 maxExecTime = 0;
@@ -108,12 +114,11 @@ spider::SchedSVGGanttExporter::SchedSVGGanttExporter(const Schedule *schedule) :
     alpha_ = widthMax_ / static_cast<double>(maxExecTime);
 
     /* == Compute dimensions of the Gantt == */
-    const auto endPoint = schedule_->stats().minStartTime() + schedule_->stats().makespan();
-    makespanWidth_ = computeWidth(endPoint);
-    width_ = makespanWidth_ + 2 * BORDER + OFFSET_X + ARROW_STROKE + ARROW_SIZE;
-    const auto *platform = archi::platform();
-    const auto PECount = platform->PECount();
-    height_ = PECount * (TASK_HEIGHT + TASK_SPACE) + TASK_SPACE + ARROW_STROKE + ARROW_SIZE + OFFSET_Y;
+    offsetX_ = computeRealXOffset();
+    makespanWidth_ = computeWidth(schedule_->stats().minStartTime() + schedule_->stats().makespan());
+    width_ = makespanWidth_ + 2 * BORDER + offsetX_ + ARROW_STROKE + ARROW_SIZE;
+    height_ = archi::platform()->PECount() * (TASK_HEIGHT + TASK_SPACE) + TASK_SPACE + ARROW_STROKE + ARROW_SIZE +
+              OFFSET_Y;
 }
 
 void spider::SchedSVGGanttExporter::print() const {
@@ -123,6 +128,9 @@ void spider::SchedSVGGanttExporter::print() const {
 void spider::SchedSVGGanttExporter::printFromFile(std::ofstream &file) const {
     /* == Print header == */
     headerPrinter(file);
+
+    /* == Print the name of the processors == */
+    pePrinter(file);
 
     /* == Print the arrows == */
     axisPrinter(file);
@@ -136,8 +144,40 @@ void spider::SchedSVGGanttExporter::printFromFile(std::ofstream &file) const {
     file << "</svg>" << std::endl;
 }
 
+u32 spider::SchedSVGGanttExporter::computeRealXOffset() const {
+    auto maxWidth = static_cast<double>(OFFSET_X);
+    auto *archi = archi::platform();
+    for (auto &pe : archi->peArray()) {
+        if (schedule_->stats().utilizationFactor(pe->virtualIx()) > 0.) {
+            const auto width = computeWidthFromFontSize(PE_FONT_SIZE, pe->name().length());
+            maxWidth = std::max(maxWidth, width);
+        }
+    }
+    return static_cast<u32>(maxWidth);
+}
+
 u64 spider::SchedSVGGanttExporter::computeWidth(u64 time) const {
     return static_cast<u64>(alpha_ * static_cast<double>(time));
+}
+
+void spider::SchedSVGGanttExporter::pePrinter(std::ofstream &file) const {
+    /* == Print the name of the processors == */
+    auto *archi = archi::platform();
+    for (auto &pe : archi->peArray()) {
+        if (schedule_->stats().utilizationFactor(pe->virtualIx()) > 0.) {
+            const auto yLine = height_ - (OFFSET_Y + ARROW_STROKE + (pe->virtualIx() + 1) * (TASK_HEIGHT + BORDER));
+            const auto xText = -(X_FONT_OFFSET * PE_FONT_SIZE);
+            const auto yText = computeRelativeCenteredY(static_cast<double>(yLine), static_cast<double>(TASK_HEIGHT),
+                                                        PE_FONT_SIZE, PE_FONT_SIZE);
+            /* == Print the PE name == */
+            file << R"(
+    <text
+       style="font-size:)" << PE_FONT_SIZE << R"(px;font-family:monospace;fill:#000000;fill-opacity:1;"
+       x=")" << xText << R"("
+       y=")" << yText << R"("
+       ><tspan style="fill:none">|</tspan>)" << pe->name() << R"(<tspan style="fill:none">|</tspan></text>)";
+        }
+    }
 }
 
 void spider::SchedSVGGanttExporter::headerPrinter(std::ofstream &file) const {
@@ -184,16 +224,16 @@ void spider::SchedSVGGanttExporter::axisPrinter(std::ofstream &file) const {
        id="rect_arrow_vertical"
        width=")" << ARROW_STROKE << R"("
        height=")" << verticalHeight << R"("
-       x=")" << OFFSET_X << R"("
+       x=")" << offsetX_ << R"("
        y=")" << (ARROW_SIZE - 1) << R"(" />
     <path
        fill="#)" << arrowColor << R"("
        display="inline"
        stroke="none"
        fill-rule="evenodd"
-       d="M )" << OFFSET_X + 1 << "," << 0 << " " // x top sommet, y top sommet, x right corner, height, x left corner
-         << OFFSET_X + 1 + (ARROW_SIZE / 2) << "," << ARROW_SIZE << " H "
-         << OFFSET_X + 1 - (ARROW_SIZE / 2) << R"( Z"
+       d="M )" << offsetX_ + 1 << "," << 0 << " " // x top sommet, y top sommet, x right corner, height, x left corner
+         << offsetX_ + 1 + (ARROW_SIZE / 2) << "," << ARROW_SIZE << " H "
+         << offsetX_ + 1 - (ARROW_SIZE / 2) << R"( Z"
        id="arrow_vertical_head"
        inkscape:connector-curvature="0" />)";
 
@@ -208,7 +248,7 @@ void spider::SchedSVGGanttExporter::axisPrinter(std::ofstream &file) const {
        id="rect_grid"
        width="1"
        height=")" << verticalHeight << R"("
-       x=")" << (OFFSET_X + ARROW_STROKE + BORDER + i * 40) << R"("
+       x=")" << (offsetX_ + ARROW_STROKE + BORDER + i * 40) << R"("
        y=")" << (ARROW_SIZE - 1) << R"(" />)";
     }
 
@@ -218,9 +258,9 @@ void spider::SchedSVGGanttExporter::axisPrinter(std::ofstream &file) const {
        fill="#)" << arrowColor << R"("
        stroke="none"
        id="rect_arrow_horizontal"
-       width=")" << (width_ - (OFFSET_X + (ARROW_SIZE - 1))) << R"("
+       width=")" << (width_ - (offsetX_ + (ARROW_SIZE - 1))) << R"("
        height=")" << ARROW_STROKE << R"("
-       x=")" << OFFSET_X << R"("
+       x=")" << offsetX_ << R"("
        y=")" << (height_ - (((ARROW_SIZE + ARROW_STROKE) / 2))) << R"(" />
     <path
        fill="#)" << arrowColor << R"("
@@ -244,7 +284,7 @@ void spider::SchedSVGGanttExporter::taskPrinter(std::ofstream &file, const Sched
     const auto taskWidth = computeWidth(task->endTime() - task->startTime());
 
     /* == Compute coordinates == */
-    const auto x = OFFSET_X + ARROW_STROKE + BORDER + computeWidth(task->startTime());
+    const auto x = offsetX_ + ARROW_STROKE + BORDER + computeWidth(task->startTime());
     const auto y = height_ - (OFFSET_Y + ARROW_STROKE + (task->mappedPE() + 1) * (TASK_HEIGHT + BORDER));
     std::ios savedFormat{ nullptr };
     savedFormat.copyfmt(file);
@@ -271,9 +311,8 @@ void spider::SchedSVGGanttExporter::taskPrinter(std::ofstream &file, const Sched
      *    where "realX" is the value you should obtain but fontSize seem to influence text positioning in SVG.. == */
     const auto xText = computeRelativeCenteredX(static_cast<double>(x), static_cast<double>(taskWidth), textWidth,
                                                 fontSize);
-    const auto yText =
-            (static_cast<double>(y) + (static_cast<double>(TASK_HEIGHT) + (fontSize / 3.) + 1) / 2.0) -
-            Y_FONT_OFFSET * fontSize;
+    const auto yText = computeRelativeCenteredY(static_cast<double>(y), static_cast<double>(TASK_HEIGHT),
+                                                (5. * fontSize / 3.) + 2., fontSize);
     file << R"(
     <text
        style="font-size:)" << fontSize << R"(px;font-family:monospace;fill:#ffffff;fill-opacity:1;"

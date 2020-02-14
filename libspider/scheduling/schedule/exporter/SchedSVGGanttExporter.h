@@ -78,22 +78,27 @@ namespace spider {
 
     private:
         const Schedule *schedule_ = nullptr;
-        uint64_t width_ = UINT32_MAX;
-        uint64_t height_ = UINT32_MAX;
         double widthMin_ = 0;
         double widthMax_ = 0;
         double alpha_ = 0.;
-        uint64_t makespanWidth_ = 0;
+        u64 width_ = 0;
+        u64 height_ = 0;
+        u64 makespanWidth_ = 0;
+        u32 offsetX_ = 0;
 
         /* === Private method(s) === */
+
+        u32 computeRealXOffset() const;
+
+        u64 computeWidth(u64 time) const;
+
+        void pePrinter(std::ofstream &file) const;
 
         void headerPrinter(std::ofstream &file) const;
 
         void axisPrinter(std::ofstream &file) const;
 
         void taskPrinter(std::ofstream &file, const ScheduleTask *task) const;
-
-        u64 computeWidth(u64 time) const;
     };
 
     /* === Inline method(s) === */
