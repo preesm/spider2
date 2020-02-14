@@ -91,7 +91,7 @@ namespace spider {
 
         void axisPrinter(std::ofstream &file) const;
 
-        void jobPrinter(std::ofstream &file, const ScheduleTask *task) const;
+        void taskPrinter(std::ofstream &file, const ScheduleTask *task) const;
 
         u64 computeWidth(u64 time) const;
     };

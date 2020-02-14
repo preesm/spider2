@@ -60,8 +60,32 @@ static constexpr u32 TASK_MIN_WIDTH = 50;
 static constexpr u32 TASK_MAX_WIDTH = 600;
 static constexpr u32 TEXT_BORDER = 2;
 static constexpr u32 TEXT_MAX_HEIGHT = (TASK_HEIGHT - 10);
+static constexpr double X_FONT_OFFSET = 0.2588;
+static constexpr double Y_FONT_OFFSET = 0.2358;
 
 /* === Static function(s) === */
+
+static double computeWidthFromFontSize(double fontSize, size_t count) {
+    static constexpr double alpha = 0.6016;
+    static constexpr double beta = 0.6855;
+    return fontSize * (beta + alpha * static_cast<double>(count));
+}
+
+static double computeFontSize(const std::string &name, u64 boxWidth) {
+    const auto maxWidth = static_cast<double>(boxWidth - 2 * TEXT_BORDER);
+    const auto count = name.length();
+    constexpr auto MAX_TEXT_FONT_SIZE = (static_cast<double>(TEXT_MAX_HEIGHT) - 2.) * 3. / 5.;
+    auto width = computeWidthFromFontSize(MAX_TEXT_FONT_SIZE, count);
+    if (width > maxWidth) {
+        width = maxWidth;
+        return width / computeWidthFromFontSize(1.0, count);
+    }
+    return MAX_TEXT_FONT_SIZE;
+}
+
+static double computeRelativeCenteredX(double xAnchor, double widthAnchor, double width, double fontSize) {
+    return xAnchor + ((widthAnchor - width) / 2.0) - X_FONT_OFFSET * fontSize;
+}
 
 /* === Method(s) implementation === */
 
@@ -105,7 +129,7 @@ void spider::SchedSVGGanttExporter::printFromFile(std::ofstream &file) const {
 
     /* == Print the jobs == */
     for (auto &task : schedule_->tasks()) {
-        jobPrinter(file, task.get());
+        taskPrinter(file, task.get());
     }
 
     file << "  </g>" << std::endl;
@@ -150,10 +174,9 @@ void spider::SchedSVGGanttExporter::headerPrinter(std::ofstream &file) const {
 }
 
 void spider::SchedSVGGanttExporter::axisPrinter(std::ofstream &file) const {
-
-    /* == Print vertical arrow == */
     const auto arrowColor = "393c3c";
     const auto verticalHeight = height_ - ((3 * ARROW_SIZE - 4) / 2);
+    /* == Print vertical arrow == */
     file << R"(
     <rect
        fill="#)" << arrowColor << R"("
@@ -189,6 +212,7 @@ void spider::SchedSVGGanttExporter::axisPrinter(std::ofstream &file) const {
        y=")" << (ARROW_SIZE - 1) << R"(" />)";
     }
 
+    /* == Print horizontal arrow == */
     file << R"(
     <rect
        fill="#)" << arrowColor << R"("
@@ -208,28 +232,9 @@ void spider::SchedSVGGanttExporter::axisPrinter(std::ofstream &file) const {
          << (height_ - ARROW_SIZE) << R"( Z"
        id="arrow_horizontal_head"
        inkscape:connector-curvature="0" />)";
-    /* == Print horizontal arrow == */
 }
 
-static double computeWidthFromFontSize(double fontSize, size_t count) {
-    static constexpr double alpha = 0.6016;
-    static constexpr double beta = 0.6855;
-    return fontSize * (beta + alpha * static_cast<double>(count));
-}
-
-static double computeFontSize(const std::string &name, u64 boxWidth) {
-    const auto maxWidth = static_cast<double>(boxWidth - 2 * TEXT_BORDER);
-    const auto count = name.length();
-    constexpr auto MAX_TEXT_FONT_SIZE = (static_cast<double>(TEXT_MAX_HEIGHT) - 2.) * 3. / 5.;
-    auto width = computeWidthFromFontSize(MAX_TEXT_FONT_SIZE, count);
-    if (width > maxWidth) {
-        width = maxWidth;
-        return width / computeWidthFromFontSize(1.0, count);
-    }
-    return MAX_TEXT_FONT_SIZE;
-}
-
-void spider::SchedSVGGanttExporter::jobPrinter(std::ofstream &file, const ScheduleTask *task) const {
+void spider::SchedSVGGanttExporter::taskPrinter(std::ofstream &file, const ScheduleTask *task) const {
     /* == Compute color and width == */
     const auto name = task->name();
     u32 color = task->color();
@@ -264,10 +269,11 @@ void spider::SchedSVGGanttExporter::jobPrinter(std::ofstream &file, const Schedu
     /* == Don't mind the magic constant for offsetting x and y, they are based on the following observation:
      *    xText = realX - fontSize * alpha; (same for y) and some empirical measurement.
      *    where "realX" is the value you should obtain but fontSize seem to influence text positioning in SVG.. == */
-    const auto xText =
-            (static_cast<double>(x) + (static_cast<double>(taskWidth) - textWidth) / 2.0) - 0.2588 * fontSize;
+    const auto xText = computeRelativeCenteredX(static_cast<double>(x), static_cast<double>(taskWidth), textWidth,
+                                                fontSize);
     const auto yText =
-            (static_cast<double>(y) + (static_cast<double>(TASK_HEIGHT) + (fontSize / 3.) + 1) / 2.0) - 0.2358 * fontSize;
+            (static_cast<double>(y) + (static_cast<double>(TASK_HEIGHT) + (fontSize / 3.) + 1) / 2.0) -
+            Y_FONT_OFFSET * fontSize;
     file << R"(
     <text
        style="font-size:)" << fontSize << R"(px;font-family:monospace;fill:#ffffff;fill-opacity:1;"
@@ -275,11 +281,11 @@ void spider::SchedSVGGanttExporter::jobPrinter(std::ofstream &file, const Schedu
        y=")" << yText << R"("
        ><tspan style="fill:none">|</tspan>)" << name << R"(<tspan style="fill:none">|</tspan></text>)";
     const auto timeFontSize = fontSize / 1.5;
-    const auto timeString = std::string("[").append(std::to_string(task->startTime())).append(":").append(
-            std::to_string(task->endTime())).append("]");
+    const auto timeString = std::string("[").append(std::to_string(task->startTime()).append(":").append(
+            std::to_string(task->endTime()).append("]")));
     const auto timeWidth = computeWidthFromFontSize(timeFontSize, timeString.length());
-    const auto xTime = xText + ((textWidth - timeWidth) / 2.0) - 0.2588 * timeFontSize;
-    const auto yTime = yText + fontSize + 2 - 0.2358 * timeFontSize;
+    const auto xTime = computeRelativeCenteredX(xText, textWidth, timeWidth, timeFontSize);
+    const auto yTime = yText + fontSize + 2 - Y_FONT_OFFSET * timeFontSize;
     file << R"(
     <text
        style="font-size:)" << timeFontSize << R"(px;font-family:monospace;fill:#ffffff;fill-opacity:1;"
