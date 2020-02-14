@@ -289,19 +289,20 @@ void spider::SchedSVGGanttExporter::taskPrinter(std::ofstream &file, const Sched
     std::ios savedFormat{ nullptr };
     savedFormat.copyfmt(file);
     file << R"(
-    <rect
-       fill="#)";
+    <g>
+        <rect
+           fill="#)";
     file << std::setfill('0') << std::setbase(16);
     file << std::setw(2) << red << std::setw(2) << green << std::setw(2) << blue;
     file.copyfmt(savedFormat);
     file << R"("
-       stroke="none"
-       id=)" << R"("rect_)" + name << R"("
-       width=")" << taskWidth << R"("
-       height=")" << TASK_HEIGHT << R"("
-       x=")" << x << R"("
-       y=")" << y << R"("
-       ry="10" />)";
+           stroke="none"
+           id=)" << R"("rect_)" + name << R"("
+           width=")" << taskWidth << R"("
+           height=")" << TASK_HEIGHT << R"("
+           x=")" << x << R"("
+           y=")" << y << R"("
+           ry="10" />)";
 
     /* == Write the text == */
     const auto fontSize = computeFontSize(name, taskWidth);
@@ -314,11 +315,11 @@ void spider::SchedSVGGanttExporter::taskPrinter(std::ofstream &file, const Sched
     const auto yText = computeRelativeCenteredY(static_cast<double>(y), static_cast<double>(TASK_HEIGHT),
                                                 (5. * fontSize / 3.) + 2., fontSize);
     file << R"(
-    <text
-       style="font-size:)" << fontSize << R"(px;font-family:monospace;fill:#ffffff;fill-opacity:1;"
-       x=")" << xText << R"("
-       y=")" << yText << R"("
-       ><tspan style="fill:none">|</tspan>)" << name << R"(<tspan style="fill:none">|</tspan></text>)";
+        <text
+           style="font-size:)" << fontSize << R"(px;font-family:monospace;fill:#ffffff;fill-opacity:1;"
+           x=")" << xText << R"("
+           y=")" << yText << R"("
+           ><tspan style="fill:none">|</tspan>)" << name << R"(<tspan style="fill:none">|</tspan></text>)";
     const auto timeFontSize = fontSize / 1.5;
     const auto timeString = std::string("[").append(std::to_string(task->startTime()).append(":").append(
             std::to_string(task->endTime()).append("]")));
@@ -326,11 +327,12 @@ void spider::SchedSVGGanttExporter::taskPrinter(std::ofstream &file, const Sched
     const auto xTime = computeRelativeCenteredX(xText, textWidth, timeWidth, timeFontSize);
     const auto yTime = yText + fontSize + 2 - Y_FONT_OFFSET * timeFontSize;
     file << R"(
-    <text
-       style="font-size:)" << timeFontSize << R"(px;font-family:monospace;fill:#ffffff;fill-opacity:1;"
-       x=")" << xTime << R"("
-       y=")" << yTime << R"("
-       ><tspan style="fill:none">|</tspan>)" << timeString << R"(<tspan style="fill:none">|</tspan></text>)";
+        <text
+           style="font-size:)" << timeFontSize << R"(px;font-family:monospace;fill:#ffffff;fill-opacity:1;"
+           x=")" << xTime << R"("
+           y=")" << yTime << R"("
+           ><tspan style="fill:none">|</tspan>)" << timeString << R"(<tspan style="fill:none">|</tspan></text>
+    </g>)";
 }
 
 
