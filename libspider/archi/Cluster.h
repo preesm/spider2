@@ -47,6 +47,7 @@
 #include <containers/array.h>
 #include <archi/PE.h>
 #include <api/archi-api.h>
+#include <containers/array_handle.h>
 
 namespace spider {
 
@@ -75,7 +76,8 @@ namespace spider {
          * @throws std::out_of_range if PE ix is out of bound.
          */
         inline void setPEStatus(size_t ix, bool status) {
-            status ? PEArray_.at(ix)->enable() : PEArray_.at(ix)->disable();
+            auto handle = make_handle(PEArray_, PECount_);
+            status ? handle.at(ix)->enable() : handle.at(ix)->disable();
         }
 
         /* === Getter(s) === */
@@ -84,8 +86,8 @@ namespace spider {
          * @brief Get the array of processing element of the cluster.
          * @return const reference to the @refitem spider::array of @refitem PE of the cluster.
          */
-        inline const spider::array<PE *> &array() const {
-            return PEArray_;
+        inline array_handle<PE *> array() const {
+            return make_handle(PEArray_, PECount_);
         }
 
         /**
@@ -103,7 +105,7 @@ namespace spider {
          * @throws @refitem std::out_of_range if ix is out of bound
          */
         inline PE *at(size_t ix) const {
-            return PEArray_.at(ix);
+            return make_handle(PEArray_, PECount_).at(ix);
         }
 
         /**
@@ -161,7 +163,7 @@ namespace spider {
 
         /* === Core properties === */
 
-        spider::array<PE *> PEArray_;                /* = Array of PE contained in the Cluster = */
+        PE **PEArray_ = nullptr;                     /* = Array of PE contained in the Cluster = */
         MemoryInterface *memoryInterface_ = nullptr; /* = Pointer to the MemoryInterface for intra Cluster communications = */
 
         /* === Spider properties === */

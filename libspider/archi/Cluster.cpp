@@ -43,6 +43,7 @@
 #include <archi/Cluster.h>
 #include <archi/Platform.h>
 #include <archi/MemoryInterface.h>
+#include <containers/array_handle.h>
 
 /* === Static variable(s) === */
 
@@ -51,25 +52,27 @@
 /* === Method(s) implementation === */
 
 spider::Cluster::Cluster(size_t PECount, MemoryInterface *memoryInterface) :
-        PEArray_{ PECount, nullptr, StackID::ARCHI },
         memoryInterface_{ memoryInterface } {
+    PEArray_ = allocate<PE *, StackID::ARCHI>(PECount);
+    make_handle(PEArray_, PECount).assign(nullptr);
     if (!memoryInterface) {
         throwSpiderException("nullptr MemoryInterface");
     }
 }
 
 spider::Cluster::~Cluster() {
-    for (auto &pe : PEArray_) {
+    for (auto &pe : make_handle(PEArray_, PECount_)) {
         destroy(pe);
     }
+    destroy(PEArray_);
     destroy(memoryInterface_);
 }
 
-void spider::Cluster::addPE(spider::PE *pe) {
+void spider::Cluster::addPE(PE *pe) {
     if (!pe) {
         return;
     }
-    PEArray_.at(PECount_) = pe;
+    make_handle(PEArray_, PECount_ + 1).at(PECount_) = pe;
     PECount_++; /* = In case at throws, PECount is not change = */
     LRTCount_ += pe->isLRT();
     if (platform()) {
