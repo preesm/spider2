@@ -82,11 +82,10 @@ void spider::srdag::SRDAGCopyVertexVisitor::visit(pisdf::Graph *graph) {
 /* === Private method(s) === */
 
 std::string spider::srdag::SRDAGCopyVertexVisitor::buildCloneName(const pisdf::Vertex *vertex) const {
-    const auto *graphRef = job_.root_ ? job_.reference_ : srdag_->vertex(*(job_.srdagIx_));
-    std::string name = graphRef->name();
-    name.reserve(name.length() + vertex->name().length() + 12);
-    name.append(":").append(vertex->name()).append("-");
-    return name;
+    if (job_.root_) {
+        return std::string(vertex->name()).append("-");
+    }
+    return std::string(srdag_->vertex(*(job_.srdagIx_))->name()).append(":").append(vertex->name()).append("-");
 }
 
 void spider::srdag::SRDAGCopyVertexVisitor::makeClone(pisdf::Vertex *vertex) {
