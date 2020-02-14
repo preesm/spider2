@@ -71,7 +71,6 @@ void spider::SchedXMLGanttExporter::printFromFile(std::ofstream &file) const {
 
 void spider::SchedXMLGanttExporter::printTask(std::ofstream &file, const ScheduleTask *task) const {
     const auto *platform = archi::platform();
-    auto PEIx = platform->peFromVirtualIx(task->mappedPE())->hardwareIx();
 
     /* == Let's compute a color based on the value of the pointer == */
     const auto name = task->name();
@@ -83,7 +82,7 @@ void spider::SchedXMLGanttExporter::printTask(std::ofstream &file, const Schedul
     file << '\t' << '\t' << R"(start=")" << task->startTime() << R"(")" << '\n';
     file << '\t' << '\t' << R"(end=")" << task->endTime() << R"(")" << '\n';
     file << '\t' << '\t' << R"(title=")" << name << R"(")" << '\n';
-    file << '\t' << '\t' << R"(mapping="PE)" << PEIx << R"(")" << '\n';
+    file << '\t' << '\t' << R"(mapping=")" << platform->peFromVirtualIx(task->mappedPE())->name() << R"(")" << '\n';
     std::ios savedFormat{ nullptr };
     savedFormat.copyfmt(file);
     file << '\t' << '\t' << R"(color="#)";
