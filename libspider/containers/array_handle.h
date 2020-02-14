@@ -244,8 +244,7 @@ namespace spider {
 
         /* === Non member functions === */
 
-        template<typename U>
-        inline friend bool operator==(const array_handle<U> &lhs, const array_handle<U> &rhs) {
+        inline friend bool operator==(const array_handle &lhs, const array_handle &rhs) {
             if (lhs.size() != rhs.size()) {
                 return false;
             }
@@ -259,8 +258,7 @@ namespace spider {
             return true;
         }
 
-        template<typename U>
-        inline friend bool operator!=(const array_handle<U> &lhs, const array_handle<U> &rhs) {
+        inline friend bool operator!=(const array_handle &lhs, const array_handle &rhs) {
             return !(lhs == rhs);
         }
 
