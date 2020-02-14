@@ -186,8 +186,11 @@ void spider::ListScheduler::sortVertices() {
                   auto *vertexA = A.task_->vertex();
                   auto *vertexB = B.task_->vertex();
                   const auto diff = A.level_ - B.level_;
-                  if (!diff && vertexB->reference() == vertexA->reference()) {
-                      return vertexA->instanceValue() < vertexB->instanceValue();
+                  if (!diff) {
+                      if (vertexB->reference() == vertexA->reference()) {
+                          return vertexA->instanceValue() < vertexB->instanceValue();
+                      }
+                      return vertexA->subtype() != pisdf::VertexType::END;
                   }
                   return (diff > 0) || (vertexA->subtype() == pisdf::VertexType::CONFIG);
               });
