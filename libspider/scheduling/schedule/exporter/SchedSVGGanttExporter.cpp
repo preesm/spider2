@@ -272,7 +272,7 @@ void spider::SchedSVGGanttExporter::jobPrinter(std::ofstream &file, const Schedu
        style="font-size:)" << fontSize << R"(px;font-family:monospace;fill:#ffffff;fill-opacity:1;"
        x=")" << xText << R"("
        y=")" << yText << R"("
-       >|)" << name << R"(|</text>)";
+       ><tspan style="fill:none">|</tspan>)" << name << R"(<tspan style="fill:none">|</tspan></text>)";
 }
 
 
