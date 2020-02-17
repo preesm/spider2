@@ -157,19 +157,27 @@ void spider::JITMSRTRunner::runJob(const JobMessage &job) {
     spider::array<void *> inputBuffersArray{ job.inputFifoArray_.size(), nullptr, StackID::RUNTIME };
     auto inputBufferIterator = inputBuffersArray.begin();
     for (auto &inputFIFO : job.inputFifoArray_) {
-//        auto *sender = archi::platform()->processingElement(inputFIFO.senderReceiverIx_)->cluster();
-//        auto *memoryInterface = archi::platform()->getClusterToClusterMemoryInterface(sender,
-//                                                                                      attachedPE_->cluster()).second;
-//        *(inputBufferIterator++) = memoryInterface->read(inputFIFO.virtualAddress_);
+        auto *memoryInterface = attachedPE_->cluster()->memoryInterface();
+        (*inputBufferIterator) = memoryInterface->read(inputFIFO.virtualAddress_);
+        (*inputBufferIterator) = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>((*inputBufferIterator)) +
+                                                          inputFIFO.offset_);
+        inputBufferIterator++;
     }
 
     /* == Allocate output memory == */
     // TODO: add time monitoring
-    spider::array<void *> outputBuffersArray{ job.outputFifoArray_.size(), nullptr, StackID::RUNTIME };
+    array<void *> outputBuffersArray{ job.outputFifoArray_.size(), nullptr, StackID::RUNTIME };
     auto outputBufferIterator = outputBuffersArray.begin();
     for (auto &outputFIFO : job.outputFifoArray_) {
         auto *memoryInterface = attachedPE_->cluster()->memoryInterface();
-        *(outputBufferIterator++) = memoryInterface->allocate(outputFIFO.virtualAddress_, outputFIFO.size_);
+        if (outputFIFO.attribute_ == FifoAttribute::WRITE_OWN) {
+            *(outputBufferIterator++) = memoryInterface->allocate(outputFIFO.virtualAddress_, outputFIFO.size_);
+        } else {
+            (*outputBufferIterator) = memoryInterface->read(outputFIFO.virtualAddress_);
+            (*outputBufferIterator) = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>((*outputBufferIterator)) +
+                                                               outputFIFO.offset_);
+            outputBufferIterator++;
+        }
     }
 
     /* == Allocate output parameter memory == */
@@ -186,10 +194,10 @@ void spider::JITMSRTRunner::runJob(const JobMessage &job) {
     /* == Deallocate input buffers == */
     // TODO: add time monitoring
     for (auto &inputFIFO : job.inputFifoArray_) {
-//        auto *sender = archi::platform()->processingElement(inputFIFO.senderReceiverIx_)->cluster();
-//        auto *memoryInterface = archi::platform()->getClusterToClusterMemoryInterface(sender,
-//                                                                                      attachedPE_->cluster()).second;
-//        memoryInterface->deallocate(inputFIFO.virtualAddress_, inputFIFO.size_);
+        if (inputFIFO.attribute_ == FifoAttribute::READ_OWN) {
+            auto *memoryInterface = attachedPE_->cluster()->memoryInterface();
+            memoryInterface->deallocate(inputFIFO.virtualAddress_, inputFIFO.size_);
+        }
     }
 
     /* == Notify other runtimes that need to know == */
