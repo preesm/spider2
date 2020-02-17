@@ -50,14 +50,16 @@
 /* === Function(s) definition === */
 
 void spider::rt::join(const int64_t *paramsIn, int64_t *, void **in, void **out) {
-    const auto &outputRate = paramsIn[0]; /* = Rate of the output port (used for sanity check) = */
-    const auto &inputCount = paramsIn[1]; /* = Number of input = */
+    const auto outputRate = paramsIn[0]; /* = Rate of the output port (used for sanity check) = */
+    const auto inputCount = paramsIn[1]; /* = Number of input = */
     size_t offset = 0;
     for (int64_t i = 0; i < inputCount; ++i) {
         /* == Size to copy for current input == */
-        const auto &inputSize = static_cast<size_t>(paramsIn[i + 2]);
+        const auto inputSize = static_cast<size_t>(paramsIn[i + 2]);
         auto *output = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(out[0]) + offset);
-        std::memcpy(output, in[i], inputSize);
+        if (output != in[i]) {
+            std::memcpy(output, in[i], inputSize);
+        }
         offset += inputSize;
     }
     if (offset != static_cast<size_t>(outputRate)) {
@@ -70,14 +72,16 @@ void spider::rt::join(const int64_t *paramsIn, int64_t *, void **in, void **out)
 }
 
 void spider::rt::fork(const int64_t *paramsIn, int64_t *, void **in, void **out) {
-    const auto &inputRate = paramsIn[0];   /* = Rate of the input port (used for sanity check) = */
-    const auto &outputCount = paramsIn[1]; /* = Number of output = */
+    const auto inputRate = paramsIn[0];   /* = Rate of the input port (used for sanity check) = */
+    const auto outputCount = paramsIn[1]; /* = Number of output = */
     size_t offset = 0;
     for (int64_t i = 0; i < outputCount; ++i) {
         /* == Size of the current output to copy == */
-        const auto &outputSize = static_cast<size_t>(paramsIn[i + 2]);
+        const auto outputSize = static_cast<size_t>(paramsIn[i + 2]);
         auto *input = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(in[0]) + offset);
-        std::memcpy(out[i], input, outputSize);
+        if (input != out[i]) {
+            std::memcpy(out[i], input, outputSize);
+        }
         offset += outputSize;
     }
     if (offset != static_cast<size_t>(inputRate)) {
@@ -90,22 +94,24 @@ void spider::rt::fork(const int64_t *paramsIn, int64_t *, void **in, void **out)
 }
 
 void spider::rt::head(const int64_t *paramsIn, int64_t *, void **in, void **out) {
-    const auto &inputEnd = paramsIn[0]; /* = Number of inputs to consider = */
+    const auto inputEnd = paramsIn[0]; /* = Number of inputs to consider = */
     size_t offset = 0;
     for (int64_t i = 0; i < inputEnd; ++i) {
         /* == Size to copy for current input == */
-        const auto &inputSize = static_cast<size_t>(paramsIn[i + 1]);
+        const auto inputSize = static_cast<size_t>(paramsIn[i + 1]);
         auto *output = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(out[i]) + offset);
-        std::memcpy(output, in[i], inputSize);
+        if (output != in[i]) {
+            std::memcpy(output, in[i], inputSize);
+        }
         offset += inputSize;
     }
 }
 
 void spider::rt::tail(const int64_t *paramsIn, int64_t *, void **in, void **out) {
-    const auto &inputCount = static_cast<size_t>(paramsIn[0]);  /* = Number of input = */
-    const auto &inputStart = static_cast<size_t>(paramsIn[1]);  /* = First input to be considered = */
-    const auto &inputOffset = static_cast<size_t>(paramsIn[2]); /* = Offset in the first buffer if any = */
-    const auto &sizeFirstInput = static_cast<size_t>(paramsIn[3]); /* = Effective size to copy of the first input = */
+    const auto inputCount = static_cast<size_t>(paramsIn[0]);     /* = Number of input = */
+    const auto inputStart = static_cast<size_t>(paramsIn[1]);     /* = First input to be considered = */
+    const auto inputOffset = static_cast<size_t>(paramsIn[2]);    /* = Offset in the first buffer if any = */
+    const auto sizeFirstInput = static_cast<size_t>(paramsIn[3]); /* = Effective size to copy of the first input = */
 
     /* == Copy the first input with the offset == */
     auto *input = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(in[inputStart]) + inputOffset);
@@ -114,18 +120,23 @@ void spider::rt::tail(const int64_t *paramsIn, int64_t *, void **in, void **out)
     /* == Do the general case == */
     size_t offset = inputOffset + sizeFirstInput;
     for (size_t i = inputStart + 1; i < inputCount; ++i) {
-        const auto &inputSize = static_cast<size_t>(paramsIn[i + 4]);
+        const auto inputSize = static_cast<size_t>(paramsIn[i + 4]);
         auto *output = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(out[0]) + offset);
-        std::memcpy(output, in[i], inputSize);
+        if (output != in[i]) {
+            std::memcpy(output, in[i], inputSize);
+        }
         offset += inputSize;
     }
 }
 
 void spider::rt::duplicate(const int64_t *paramsIn, int64_t *, void **in, void **out) {
-    const auto &outputCount = paramsIn[0]; /* = Number of output = */
-    const auto &inputSize = paramsIn[1];   /* = Rate of the input port = */
+    const auto outputCount = paramsIn[0]; /* = Number of output = */
+    const auto inputSize = paramsIn[1];   /* = Rate of the input port = */
+    const auto *input = in[0];            /* = Input buffer = */
     for (int64_t i = 0; i < outputCount; ++i) {
-        std::memcpy(out[i], in[0], static_cast<size_t>(inputSize));
+        if (input != out[i]) {
+            std::memcpy(out[i], input, static_cast<size_t>(inputSize));
+        }
     }
 }
 
