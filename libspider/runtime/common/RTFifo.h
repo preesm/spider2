@@ -42,19 +42,25 @@
 
 /* === Include(s) === */
 
-#include <cstdint>
-#include <cstddef>
+
+#include <common/Types.h>
 
 namespace spider {
 
-    /* === Forward declaration(s) === */
+    enum class FifoAttribute {
+        READ_ONLY = 0, /*!< Reader of the FIFO does not own memory (no dealloc) */
+        READ_OWN,      /*!< Reader of the FIFO is the owner (dealloc after read) */
+        WRITE_ONLY,    /*!< Writer of the FIFO does not own the memory (no alloc) */
+        WRITE_OWN,     /*!< Writer of the FIFO own the memory (alloc before write) */
+    };
 
     /* === Class definition === */
 
     struct RTFifo {
-        uint32_t virtualAddress_ = UINT32_MAX;
-        uint32_t size_ = 0;
-        uint32_t senderReceiverIx_ = 0;
+        u64 virtualAddress_ = UINT64_MAX;                   /* = Virtual address of the Fifo = */
+        u32 size_ = 0;                                      /* = Size of the Fifo = */
+        u32 offset_ = 0;                                    /* = Offset in the address = */
+        FifoAttribute attribute_ = FifoAttribute::READ_OWN; /* = Attribute of the Fifo = */
     };
 }
 
