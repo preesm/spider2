@@ -124,6 +124,14 @@ void spider::pisdf::Graph::clear() {
     configVertexVector_.clear();
 }
 
+size_t spider::pisdf::Graph::totalActorCount() const {
+    size_t totalCount{ vertexCount() - subgraphCount() };
+    for (auto &subgraph : subgraphs()) {
+        totalCount += subgraph->totalActorCount();
+    }
+    return totalCount;
+}
+
 void spider::pisdf::Graph::addInputInterface(Interface *interface) {
     if (!interface || interface->subtype() != VertexType::INPUT) {
         return;

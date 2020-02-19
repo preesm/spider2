@@ -178,6 +178,12 @@ namespace spider {
             }
 
             /**
+             * @brief Get the total number of actors of a graph, including actors in subgraphs.
+             * @return total number of actors in the hierarchy.
+             */
+            size_t totalActorCount() const;
+
+            /**
              * @brief Get the number of params contained in the graph.
              * @return Number of params.
              */
