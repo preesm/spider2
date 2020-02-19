@@ -285,7 +285,7 @@ void spider::SchedSVGGanttExporter::taskPrinter(std::ofstream &file, const Sched
 
     /* == Compute coordinates == */
     const auto x = offsetX_ + ARROW_STROKE + BORDER + computeWidth(task->startTime());
-    const auto y = height_ - (OFFSET_Y + ARROW_STROKE + (task->mappedPE() + 1) * (TASK_HEIGHT + BORDER));
+    const auto y = height_ - (OFFSET_Y + ARROW_STROKE + (task->mappedPe() + 1) * (TASK_HEIGHT + BORDER));
     std::ios savedFormat{ nullptr };
     savedFormat.copyfmt(file);
     file << R"(

@@ -82,7 +82,7 @@ void spider::SchedXMLGanttExporter::printTask(std::ofstream &file, const Schedul
     file << '\t' << '\t' << R"(start=")" << task->startTime() << R"(")" << '\n';
     file << '\t' << '\t' << R"(end=")" << task->endTime() << R"(")" << '\n';
     file << '\t' << '\t' << R"(title=")" << name << R"(")" << '\n';
-    file << '\t' << '\t' << R"(mapping=")" << platform->peFromVirtualIx(task->mappedPE())->name() << R"(")" << '\n';
+    file << '\t' << '\t' << R"(mapping=")" << platform->peFromVirtualIx(task->mappedPe())->name() << R"(")" << '\n';
     std::ios savedFormat{ nullptr };
     savedFormat.copyfmt(file);
     file << '\t' << '\t' << R"(color="#)";
