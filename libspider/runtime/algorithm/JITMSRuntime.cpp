@@ -51,6 +51,9 @@
 #include <scheduling/allocator/DefaultFifoAllocator.h>
 #include <monitor/Monitor.h>
 #include <api/config-api.h>
+#include <scheduling/schedule/exporter/SchedXMLGanttExporter.h>
+#include <scheduling/schedule/exporter/SchedStatsExporter.h>
+#include <scheduling/schedule/exporter/SchedSVGGanttExporter.h>
 
 /* === Static function(s) === */
 
@@ -79,6 +82,16 @@ static spider::FifoAllocator *makeFifoAllocator(spider::FifoAllocatorType type) 
     return nullptr;
 }
 
+static void exportGantt(spider::Schedule *schedule) {
+    if (spider::api::useSVGOverXMLGantt()) {
+        spider::SchedSVGGanttExporter exporter{ schedule };
+        exporter.print();
+    } else {
+        spider::SchedXMLGanttExporter exporter{ schedule };
+        exporter.print();
+    }
+}
+
 /* === Method(s) implementation === */
 
 spider::JITMSRuntime::JITMSRuntime(pisdf::Graph *graph,
@@ -104,7 +117,7 @@ bool spider::JITMSRuntime::staticExecute() {
     static bool first = true;
     if (!first) {
         /* == Just reset the schedule and re-run it == */
-        scheduler_->schedule().sendReadyJobs();
+        scheduler_->schedule().sendReadyTasks();
         rt::platform()->runner(0)->run(false);
         scheduler_->schedule().reset();
         return true;
@@ -135,21 +148,25 @@ bool spider::JITMSRuntime::staticExecute() {
     }
 
     /* == Apply graph optimizations == */
-    if (api::optimizeSRDAG()) {
+    if (api::shouldOptimizeSRDAG()) {
         //monitor_->startSampling();
         optims::optimize(srdag_.get());
         //monitor_->endSampling();
     }
 
-    if (api::exportSRDAG()) {
+    if (api::exportSRDAGEnabled()) {
         api::exportGraphToDOT(srdag_.get(), "./srdag.dot");
     }
 
     /* == Schedule / Map current Single-Rate graph == */
     //monitor_->startSampling();
     scheduler_->update();
-    scheduler_->schedule(true);
+    scheduler_->execute();
     //monitor_->endSampling();
+
+    if (api::exportGanttEnabled()) {
+        exportGantt(&scheduler_->schedule());
+    }
 
     /* == If there are jobs left, run == */
     rt::platform()->runner(0)->run(false);
@@ -172,6 +189,7 @@ bool spider::JITMSRuntime::dynamicExecute() {
     updateJobStack(resultRootJob.first, staticJobStack);
     updateJobStack(resultRootJob.second, dynamicJobStack);
 
+    /* == Transform, schedule and run == */
     while (!staticJobStack.empty() || !dynamicJobStack.empty()) {
         /* == Transform static jobs == */
         //monitor_->startSampling();
@@ -179,7 +197,7 @@ bool spider::JITMSRuntime::dynamicExecute() {
         //monitor_->endSampling();
 
         /* == Apply graph optimizations == */
-        if (api::optimizeSRDAG()) {
+        if (api::shouldOptimizeSRDAG()) {
             //monitor_->startSampling();
             optims::optimize(srdag_.get());
             //monitor_->endSampling();
@@ -188,7 +206,7 @@ bool spider::JITMSRuntime::dynamicExecute() {
         /* == Schedule / Map current Single-Rate graph == */
         //monitor_->startSampling();
         scheduler_->update();
-        scheduler_->schedule(true);
+        scheduler_->execute();
         rt::platform()->runner(0)->run(false);
         //monitor_->endSampling();
 
@@ -231,7 +249,7 @@ bool spider::JITMSRuntime::dynamicExecute() {
             //monitor_->endSampling();
 
             /* == Apply graph optimizations == */
-            if (api::optimizeSRDAG()) {
+            if (api::shouldOptimizeSRDAG()) {
                 //monitor_->startSampling();
                 optims::optimize(srdag_.get());
                 //monitor_->endSampling();
@@ -239,16 +257,20 @@ bool spider::JITMSRuntime::dynamicExecute() {
 
             /* == Schedule / Map current Single-Rate graph == */
             scheduler_->update();
-            scheduler_->schedule(true);
+            scheduler_->execute();
         }
     }
 
-    if (api::exportSRDAG()) {
+    if (api::exportSRDAGEnabled()) {
         api::exportGraphToDOT(srdag_.get(), "./srdag.dot");
     }
 
     /* == If there are jobs left, run == */
     rt::platform()->runner(0)->run(false);
+
+    if (api::exportGanttEnabled()) {
+        exportGantt(&scheduler_->schedule());
+    }
 
     /* == Clear the srdag == */
     srdag_->clear();
@@ -257,6 +279,8 @@ bool spider::JITMSRuntime::dynamicExecute() {
     scheduler_->clear();
     return true;
 }
+
+/* === Transformation related methods === */
 
 void spider::JITMSRuntime::transformStaticJobs(vector<srdag::TransfoJob> &staticJobStack,
                                                vector<srdag::TransfoJob> &dynamicJobStack) {
