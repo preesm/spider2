@@ -41,13 +41,44 @@
 /* === Include(s) === */
 
 #include <thread/Thread.h>
+#include <api/runtime-api.h>
 #include <runtime/runner/JITMSRTRunner.h>
 #include <runtime/interface/RTCommunicator.h>
-#include <archi/MemoryInterface.h>
-#include <archi/PE.h>
+#include <runtime/platform/RTPlatform.h>
+#include <api/archi-api.h>
+#include <archi/Platform.h>
 #include <archi/Cluster.h>
+#include <archi/MemoryInterface.h>
 
 /* === Static function === */
+
+spider::array<void *> createInputFifos(const spider::array<spider::RTFifo> &fifos,
+                                       spider::MemoryInterface *memoryInterface) {
+    spider::array<void *> inputBuffersArray{ fifos.size(), nullptr, StackID::RUNTIME };
+    auto bufferIterator = inputBuffersArray.begin();
+    for (auto &fifo : fifos) {
+        (*bufferIterator) = memoryInterface->read(fifo.virtualAddress_);
+        (*bufferIterator) = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>((*bufferIterator)) + fifo.offset_);
+        bufferIterator++;
+    }
+    return inputBuffersArray;
+}
+
+spider::array<void *> createOutputFifos(const spider::array<spider::RTFifo> &fifos,
+                                        spider::MemoryInterface *memoryInterface) {
+    spider::array<void *> outputBuffersArray{ fifos.size(), nullptr, StackID::RUNTIME };
+    auto bufferIterator = outputBuffersArray.begin();
+    for (auto &fifo : fifos) {
+        if (fifo.attribute_ == spider::FifoAttribute::WRITE_OWN) {
+            *(bufferIterator++) = memoryInterface->allocate(fifo.virtualAddress_, fifo.size_);
+        } else {
+            (*bufferIterator) = memoryInterface->read(fifo.virtualAddress_);
+            (*bufferIterator) = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>((*bufferIterator)) + fifo.offset_);
+            bufferIterator++;
+        }
+    }
+    return outputBuffersArray;
+}
 
 /* === Method(s) implementation === */
 
@@ -130,7 +161,7 @@ void spider::JITMSRTRunner::run(bool infiniteLoop) {
             rt::platform()->communicator()->push(notification, target->virtualIx());
             if (shouldBroadcast_) {
                 shouldBroadcast_ = false;
-                broadcastJobStamps();
+                broadcastCurrentJobStamp();
             }
             jobQueueCurrentPos_ = 0;
             jobQueue_.clear();
@@ -152,37 +183,17 @@ void spider::JITMSRTRunner::begin() {
 /* === Private method(s) implementation === */
 
 void spider::JITMSRTRunner::runJob(const JobMessage &job) {
-    /* == Fetch input memory == */
+    /* == Create input buffers == */
     // TODO: add time monitoring
-    spider::array<void *> inputBuffersArray{ job.inputFifoArray_.size(), nullptr, StackID::RUNTIME };
-    auto inputBufferIterator = inputBuffersArray.begin();
-    for (auto &inputFIFO : job.inputFifoArray_) {
-        auto *memoryInterface = attachedPE_->cluster()->memoryInterface();
-        (*inputBufferIterator) = memoryInterface->read(inputFIFO.virtualAddress_);
-        (*inputBufferIterator) = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>((*inputBufferIterator)) +
-                                                          inputFIFO.offset_);
-        inputBufferIterator++;
-    }
+    auto inputBuffersArray = createInputFifos(job.inputFifoArray_, attachedPE_->cluster()->memoryInterface());
 
-    /* == Allocate output memory == */
+    /* == Create output buffers == */
     // TODO: add time monitoring
-    array<void *> outputBuffersArray{ job.outputFifoArray_.size(), nullptr, StackID::RUNTIME };
-    auto outputBufferIterator = outputBuffersArray.begin();
-    for (auto &outputFIFO : job.outputFifoArray_) {
-        auto *memoryInterface = attachedPE_->cluster()->memoryInterface();
-        if (outputFIFO.attribute_ == FifoAttribute::WRITE_OWN) {
-            *(outputBufferIterator++) = memoryInterface->allocate(outputFIFO.virtualAddress_, outputFIFO.size_);
-        } else {
-            (*outputBufferIterator) = memoryInterface->read(outputFIFO.virtualAddress_);
-            (*outputBufferIterator) = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>((*outputBufferIterator)) +
-                                                               outputFIFO.offset_);
-            outputBufferIterator++;
-        }
-    }
+    auto outputBuffersArray = createOutputFifos(job.outputFifoArray_, attachedPE_->cluster()->memoryInterface());
 
     /* == Allocate output parameter memory == */
     // TODO: add time monitoring
-    spider::array<int64_t> outputParams{ job.outputParamCount_, 0, StackID::RUNTIME };
+    array<int64_t> outputParams{ static_cast<size_t>(job.outputParamCount_), 0, StackID::RUNTIME };
 
     /* == Run the job == */
     // TODO: add time monitoring
@@ -202,30 +213,10 @@ void spider::JITMSRTRunner::runJob(const JobMessage &job) {
 
     /* == Notify other runtimes that need to know == */
     localJobStampsArray_[ix()] = job.ix_;
-    size_t lrtIx = 0;
-    for (const auto &shouldNotify : job.LRTs2Notify_) {
-        if (shouldNotify && lrtIx != ix()) {
-            Notification updateJobStampNotification{ NotificationType::JOB_UPDATE_JOBSTAMP,
-                                                     ix(),
-                                                     job.ix_ };
-            rt::platform()->communicator()->push(updateJobStampNotification, lrtIx);
-            if (log::enabled<log::LRT>()) {
-                log::info<log::LRT>("Runner #%zu -> notifying runner #%zu\n"
-                                    "Runner #%zu -> sent job stamp: %zu\n",
-                                    ix(), lrtIx,
-                                    ix(), job.ix_);
-            }
-        }
-        lrtIx++;
-    }
+    sendJobStampNotification(job.notificationFlagsArray_.get(), job.ix_);
 
     /* == Send output parameters == */
-    if (job.outputParamCount_) {
-        const auto *spiderGRT = archi::platform()->spiderGRTPE()->attachedLRT();
-        auto paramMessage = ParameterMessage(job.vertexIx_, std::move(outputParams));
-        auto index = rt::platform()->communicator()->push(std::move(paramMessage), spiderGRT->virtualIx());
-        rt::platform()->communicator()->pushParamNotification(attachedPE_->virtualIx(), index);
-    }
+    sendParameters(job.vertexIx_, outputParams);
 
     /* == Send traces == */
 }
@@ -314,7 +305,7 @@ bool spider::JITMSRTRunner::readNotification(bool blocking) {
         case NotificationType::JOB_SENT_PARAM:
             break;
         case NotificationType::JOB_BROADCAST_JOBSTAMP:
-            broadcastJobStamps();
+            broadcastCurrentJobStamp();
             break;
         case NotificationType::JOB_DELAY_BROADCAST_JOBSTAMP:
             shouldBroadcast_ = true;
