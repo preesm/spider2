@@ -77,14 +77,14 @@ namespace spider {
         /* === Struct member(s) === */
 
         unique_ptr<bool> notificationFlagsArray_; /*!< Array of LRT to notify after job completion (size IS equal to the number of LRT) */
-        array <JobConstraint> jobs2Wait_;    /*!< Array of jobs this job has to wait before running (size is inferior or equal to the number of LRT) */
-        array <int64_t> inputParams_;        /*!< Array of static input parameters */
-        array <RTFifo> inputFifoArray_;      /*!< Array of input FIFO for the job */
-        array <RTFifo> outputFifoArray_;     /*!< Array of output FIFO for the job */
-        i32 outputParamCount_ = 0;           /*!< Number of output parameters to be set by this job. */
-        size_t kernelIx_ = SIZE_MAX;         /*!< Index of the kernel to use to run this job */
-        size_t vertexIx_ = SIZE_MAX;         /*!< Index of the vertex associated with the job */
-        size_t ix_ = SIZE_MAX;               /*!< Index of the job */
+        array<JobConstraint> jobs2Wait_;          /*!< Array of jobs this job has to wait before running (size is inferior or equal to the number of LRT) */
+        array<int64_t> inputParams_;              /*!< Array of static input parameters */
+        array<RTFifo> inputFifoArray_;            /*!< Array of input FIFO for the job */
+        array<RTFifo> outputFifoArray_;           /*!< Array of output FIFO for the job */
+        i32 outputParamCount_ = 0;                /*!< Number of output parameters to be set by this job. */
+        size_t kernelIx_ = SIZE_MAX;              /*!< Index of the kernel to use to run this job */
+        size_t vertexIx_ = SIZE_MAX;              /*!< Index of the vertex associated with the job */
+        size_t ix_ = SIZE_MAX;                    /*!< Index of the job */
     };
 
     /**

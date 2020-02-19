@@ -148,6 +148,20 @@ spider::JobMessage spider::ScheduleTask::createJobMessage() const {
     }
 
     /* == Set the execution task constraints == */
+    const auto numberOfConstraints{ lrtCount - static_cast<size_t>(std::count(executionConstraints_.get(),
+                                                                              executionConstraints_.get() + lrtCount,
+                                                                              -1)) };
+    message.jobs2Wait_ = array<JobConstraint>(numberOfConstraints, StackID::RUNTIME);
+    auto jobIterator = message.jobs2Wait_.begin();
+    size_t lrtIt = 0;
+    for (auto value : make_handle(executionConstraints_.get(), lrtCount)) {
+        if (value >= 0) {
+            jobIterator->lrtToWait_ = lrtIt;
+            jobIterator->jobToWait_ = static_cast<size_t>(value);
+            jobIterator++;
+        }
+        lrtIt++;
+    }
 
     return message;
 }
