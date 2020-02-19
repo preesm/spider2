@@ -89,17 +89,33 @@ namespace spider {
          */
         void disableSRDAGOptims();
 
+        /**
+         * @brief Enable the export of the Gantt in Spider.
+         * @remark default path is "./gantt.extension"
+         */
+        void enableExportGantt();
+
+        /**
+         * @brief Disable the export of the Gantt in Spider (default behavior).
+         */
+        void disableExportGantt();
+
+        /**
+         * @brief Use the SVG gantt exporter instead of the default XML one.
+         */
+        void useSVGGanttExporter();
+
         /* === Getters for static variables === */
 
         /**
          * @brief Get the trace flag value.
-         * @return value of trace flag.
+         * @return true if traces are enabled, false.
          */
         bool exportTraceEnabled();
 
         /**
          * @brief Get the export srdag flag value.
-         * @return value of export srdag flag.
+         * @return true if srdag should be exported, false.
          */
         bool exportSRDAGEnabled();
 
@@ -111,9 +127,21 @@ namespace spider {
 
         /**
          * @brief Get the srdagOptim flag value.
-         * @return value of srdagOptim flag.
+         * @return true if SRDAG should be optimized, false.
          */
         bool shouldOptimizeSRDAG();
+
+        /**
+         * @brief Get the exportGantt_ flag value.
+         * @return true if gantt should be exported, false else.
+         */
+        bool exportGanttEnabled();
+
+        /**
+         * @brief Get the useSVGGanttExporter_ flag value.
+         * @return true if gantt should be exported in SVG format instead of XML, false else.
+         */
+        bool useSVGOverXMLGantt();
     }
 }
 

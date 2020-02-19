@@ -51,6 +51,8 @@ struct SpiderConfiguration {
     bool verbose_ = false;
     bool exportTrace_ = false;
     bool exportSRDAG_ = false;
+    bool exportGantt_ = false;
+    bool useSVGGanttExporter_ = false;
 };
 
 static SpiderConfiguration config_;
@@ -95,6 +97,18 @@ void spider::api::disableSRDAGOptims() {
     config_.optimizeSRDAG_ = false;
 }
 
+void spider::api::enableExportGantt() {
+    config_.exportGantt_ = true;
+}
+
+void spider::api::disableExportGantt() {
+    config_.exportGantt_ = false;
+}
+
+void spider::api::useSVGGanttExporter() {
+    config_.useSVGGanttExporter_ = true;
+}
+
 bool spider::api::exportTraceEnabled() {
     return config_.exportTrace_;
 }
@@ -109,4 +123,12 @@ bool spider::api::verboseEnabled() {
 
 bool spider::api::shouldOptimizeSRDAG() {
     return config_.optimizeSRDAG_;
+}
+
+bool spider::api::exportGanttEnabled() {
+    return config_.exportGantt_;
+}
+
+bool spider::api::useSVGOverXMLGantt() {
+    return config_.useSVGGanttExporter_;
 }
