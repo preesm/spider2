@@ -65,7 +65,7 @@ namespace spider {
             DELAYED_SEND, /*!< Send jobs after every jobs have been scheduled. Minimize synchronizations. */
         };
 
-        explicit Scheduler(pisdf::Graph *graph, ScheduleMode mode = JIT_SEND);
+        explicit Scheduler(pisdf::Graph *graph, ScheduleMode mode = JIT_SEND, FifoAllocator *allocator = nullptr);
 
         virtual ~Scheduler() = default;
 
@@ -101,6 +101,7 @@ namespace spider {
         Schedule schedule_;
         pisdf::Graph *graph_ = nullptr;
         ScheduleMode mode_ = JIT_SEND;
+        FifoAllocator *allocator_ = nullptr;
 
         /* === Protected struct(s) === */
 

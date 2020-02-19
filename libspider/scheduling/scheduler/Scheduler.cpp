@@ -52,13 +52,37 @@
 #include <archi/Platform.h>
 #include <archi/MemoryBus.h>
 
+/* === Static function(s) definition === */
+
+static void checkFifoAllocatorTraits(spider::FifoAllocator *allocator, spider::Scheduler::ScheduleMode mode) {
+    switch (mode) {
+        case spider::Scheduler::JIT_SEND:
+            if (!allocator->traits.jitAllocator_) {
+                throwSpiderException("Using a scheduler in JIT_SEND mode with incompatible fifo allocator.");
+            }
+            break;
+        case spider::Scheduler::DELAYED_SEND:
+            if (!allocator->traits.postSchedulingAllocator_) {
+                throwSpiderException("Using a scheduler in DELAYED_SEND mode with incompatible fifo allocator.");
+            }
+            break;
+    }
+}
+
 /* === Function(s) definition === */
 
-spider::Scheduler::Scheduler(spider::pisdf::Graph *graph, ScheduleMode mode) : graph_{ graph }, mode_{ mode } {
+spider::Scheduler::Scheduler(pisdf::Graph *graph, ScheduleMode mode, FifoAllocator *allocator) :
+        graph_{ graph },
+        mode_{ mode },
+        allocator_{ allocator } {
+    checkFifoAllocatorTraits(allocator, mode);
 }
 
 void spider::Scheduler::clear() {
     schedule_.clear();
+    if (allocator_) {
+        allocator_->clear();
+    }
 }
 
 /* === Protected method(s) === */
@@ -170,14 +194,14 @@ spider::vector<spider::Scheduler::DataDependency>
 spider::Scheduler::getDataDependencies(ScheduleTask *task) {
     const auto *vertex = task->vertex();
     const auto *platform = archi::platform();
-    auto taskDependenciesIterator = task->dependencies().begin();
+    auto taskDependenciesIterator{ task->dependencies().begin() };
     auto dataDependencies = factory::vector<DataDependency>(StackID::SCHEDULE);
     dataDependencies.reserve(vertex->inputEdgeCount());
     for (auto &edge : vertex->inputEdgeVector()) {
         const auto rate = edge->sinkRateValue();
         if (rate) {
-            auto *taskDep = (*taskDependenciesIterator);
-            dataDependencies.emplace_back(taskDep, platform->processingElement(taskDep->mappedPE()), rate);
+            auto *taskDep{ *taskDependenciesIterator };
+            dataDependencies.emplace_back(taskDep, platform->processingElement(taskDep->mappedPe()), rate);
         }
         taskDependenciesIterator++;
     }
@@ -197,59 +221,59 @@ void spider::Scheduler::taskMapper(ScheduleTask *task) {
     auto dataDependencies = getDataDependencies(task);
 
     /* == Search for a slave to map the task on */
-    const auto *vertexRTConstraints = vertex->runtimeInformation();
-    bool needToScheduleCom = false;
-    PE *mappingPE = nullptr;
-    auto mappingST = UINT_FAST64_MAX;
-    auto mappingET = UINT_FAST64_MAX;
-    auto bestScheduleCost = UINT_FAST64_MAX;
+    const auto *vertexRtConstraints{ vertex->runtimeInformation() };
+    auto needToScheduleCom{ false };
+    PE *mappingPe{ nullptr };
+    auto mappingSt{ UINT_FAST64_MAX };
+    auto mappingEt{ UINT_FAST64_MAX };
+    auto bestScheduleCost{ UINT_FAST64_MAX };
     for (const auto &cluster : platform->clusters()) {
         /* == Fast check to discard entire cluster == */
-        if (!vertexRTConstraints->isClusterMappable(cluster)) {
+        if (!vertexRtConstraints->isClusterMappable(cluster)) {
             continue;
         }
         /* == Find best fit PE for this cluster == */
-        const auto execTime = vertexRTConstraints->timingOnCluster(cluster, vertex->inputParamVector());
+        const auto execTime = vertexRtConstraints->timingOnCluster(cluster, vertex->inputParamVector());
         auto *foundPE = findBestPEFit(cluster, minStartTime, static_cast<ufast64>(execTime),
-                                      [&vertexRTConstraints](PE *pe) -> bool {
-                                          return !vertexRTConstraints->isPEMappable(pe);
+                                      [&vertexRtConstraints](PE *pe) -> bool {
+                                          return !vertexRtConstraints->isPEMappable(pe);
                                       });
         if (foundPE) {
             /* == Compute communication cost == */
             ufast64 dataTransfertCost = 0;
             for (auto &dep : dataDependencies) {
-                const auto peSrc = dep.sender_;
-                const auto dataSize = dep.size_;
+                const auto peSrc{ dep.sender_ };
+                const auto dataSize{ dep.size_ };
                 dataTransfertCost += platform->dataCommunicationCostPEToPE(peSrc, foundPE, dataSize);
             }
             needToScheduleCom |= (dataTransfertCost != 0);
             /* == Check if it is better than previous cluster PE == */
-            const auto startTime = std::max(schedule_.endTime(foundPE->virtualIx()), minStartTime);
-            const auto endTime = startTime + static_cast<ufast64>(execTime);
-            const auto scheduleCost = math::saturateAdd(endTime, dataTransfertCost);
+            const auto startTime{ std::max(schedule_.endTime(foundPE->virtualIx()), minStartTime) };
+            const auto endTime{ startTime + static_cast<ufast64>(execTime) };
+            const auto scheduleCost{ math::saturateAdd(endTime, dataTransfertCost) };
             if (scheduleCost < bestScheduleCost) {
-                mappingPE = foundPE;
-                mappingST = startTime;
-                mappingET = endTime;
+                mappingPe = foundPE;
+                mappingSt = startTime;
+                mappingEt = endTime;
             }
         }
     }
 
     /* == Throw if no possible mapping was found == */
-    if (!mappingPE) {
+    if (!mappingPe) {
         throwSpiderException("Could not find suitable processing element for vertex: [%s]", vertex->name().c_str());
     }
     if (needToScheduleCom) {
         /* == Schedule communications == */
-        task->setStartTime(mappingST);
-        task->setEndTime(mappingET);
-        scheduleCommunications(task, dataDependencies, mappingPE->cluster());
-        mappingST = task->startTime();
-        mappingET = task->endTime();
+        task->setStartTime(mappingSt);
+        task->setEndTime(mappingEt);
+        scheduleCommunications(task, dataDependencies, mappingPe->cluster());
+        mappingSt = task->startTime();
+        mappingEt = task->endTime();
     }
 
     /* == Set job information and update schedule == */
-    schedule_.updateTaskAndSetReady(static_cast<size_t>(task->ix()), mappingPE->virtualIx(), mappingST, mappingET);
+    schedule_.updateTaskAndSetReady(static_cast<size_t>(task->ix()), mappingPe->virtualIx(), mappingSt, mappingEt);
 }
 
 spider::unique_ptr<spider::Scheduler> spider::makeScheduler(SchedulingAlgorithm algorithm, pisdf::Graph *graph) {
