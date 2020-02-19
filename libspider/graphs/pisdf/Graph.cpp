@@ -87,11 +87,11 @@ spider::pisdf::Graph::Graph(std::string name,
                             size_t vertexCount,
                             size_t edgeCount,
                             size_t paramCount,
-                            size_t edgeINCount,
-                            size_t edgeOUTCount,
+                            size_t numberOfInputEdge,
+                            size_t numberOfOutputEdge,
                             size_t cfgVertexCount) :
         AbstractGraph<Graph, Vertex, Edge>(stack_t < StackID::PISDF > { }, vertexCount, edgeCount),
-        Vertex(VertexType::GRAPH, std::move(name), edgeINCount, edgeOUTCount),
+        Vertex(VertexType::GRAPH, std::move(name), numberOfInputEdge, numberOfOutputEdge),
         configVertexVector_{ sbc::vector < Vertex * , StackID::PISDF > { }},
         subgraphVector_{ sbc::vector < Graph * , StackID::PISDF > { }},
         paramVector_{ sbc::vector < std::shared_ptr<Param>, StackID::PISDF > { }},
@@ -101,17 +101,17 @@ spider::pisdf::Graph::Graph(std::string name,
     /* == Reserve the memory == */
     paramVector_.reserve(paramCount);
     configVertexVector_.reserve(cfgVertexCount);
-    inputInterfaceVector_.reserve(edgeINCount);
-    outputInterfaceVector_.reserve(edgeOUTCount);
+    inputInterfaceVector_.reserve(numberOfInputEdge);
+    outputInterfaceVector_.reserve(numberOfOutputEdge);
 
     /* == Create the input interfaces == */
-    for (size_t i = 0; i < edgeINCount; ++i) {
+    for (size_t i = 0; i < numberOfInputEdge; ++i) {
         auto *interface = make<Interface, StackID::PISDF>(VertexType::INPUT, "in_" + std::to_string(i));
         addInputInterface(interface);
     }
 
     /* == Create the output interfaces == */
-    for (size_t i = 0; i < edgeOUTCount; ++i) {
+    for (size_t i = 0; i < numberOfOutputEdge; ++i) {
         auto *interface = make<Interface, StackID::PISDF>(VertexType::OUTPUT, "out_" + std::to_string(i));
         addOutputInterface(interface);
     }

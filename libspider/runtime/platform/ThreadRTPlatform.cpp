@@ -41,10 +41,11 @@
 /* === Include(s) === */
 
 #include <runtime/platform/ThreadRTPlatform.h>
+#include <runtime/interface/RTCommunicator.h>
 #include <runtime/runner/RTRunner.h>
 #include <thread/Thread.h>
+#include <archi/Platform.h>
 #include <archi/PE.h>
-#include <zconf.h>
 
 /* === Function(s) definition === */
 
@@ -70,12 +71,12 @@ spider::ThreadRTPlatform::~ThreadRTPlatform() {
 void spider::ThreadRTPlatform::createRunnerRessource(spider::RTRunner *runner) {
     if (threadArray_.at(runner->ix())) {
         log::warning<log::LRT>("trying to create resource for runner #%zu more than once.\n",
-                                     runner->ix());
+                               runner->ix());
         return;
     }
     threadArray_.at(runner->ix()) = make<spider::thread, StackID::RUNTIME>(RTRunner::start, runner);
 }
 
 void spider::ThreadRTPlatform::waitForRunnerToBeReady() {
-    sleep(2);
+    //sleep(2);
 }

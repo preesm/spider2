@@ -41,6 +41,7 @@
 /* === Include(s) === */
 
 #include <runtime/platform/RTPlatform.h>
+#include <runtime/interface/RTCommunicator.h>
 #include <runtime/runner/RTRunner.h>
 #include <archi/PE.h>
 

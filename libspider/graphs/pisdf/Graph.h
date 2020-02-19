@@ -65,8 +65,8 @@ namespace spider {
                            size_t vertexCount = 0,
                            size_t edgeCount = 0,
                            size_t paramCount = 0,
-                           size_t edgeINCount = 0,
-                           size_t edgeOUTCount = 0,
+                           size_t numberOfInputEdge = 0,
+                           size_t numberOfOutputEdge = 0,
                            size_t cfgVertexCount = 0);
 
             Graph &operator=(Graph &&) = default;

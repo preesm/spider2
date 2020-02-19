@@ -42,18 +42,9 @@
 
 /* === Include(s) === */
 
-#include <cstdint>
-#include <cstddef>
-#include <thread/Thread.h>
 #include <containers/array.h>
 #include <containers/vector.h>
-#include <api/runtime-api.h>
-#include <api/archi-api.h>
-#include <archi/Platform.h>
-#include <runtime/platform/RTPlatform.h>
-#include <runtime/interface/RTCommunicator.h>
 #include <runtime/interface/Message.h>
-#include <runtime/interface/Notification.h>
 
 namespace spider {
 
@@ -66,12 +57,7 @@ namespace spider {
     class RTRunner {
     public:
 
-        RTRunner(PE *attachedPE, size_t runnerIx, int32_t affinity = -1) : attachedPE_{ attachedPE },
-                                                                           runnerIx_{ runnerIx },
-                                                                           affinity_{ affinity } {
-            auto *platform = archi::platform();
-            localJobStampsArray_ = spider::array<size_t>{ platform->LRTCount(), SIZE_MAX, StackID::RUNTIME };
-        }
+        RTRunner(PE *attachedPe, size_t runnerIx, i32 affinity = -1);
 
         virtual ~RTRunner() = default;
 
@@ -99,31 +85,39 @@ namespace spider {
         }
 
     protected:
-        spider::sbc::vector<JobMessage, StackID::RUNTIME> jobQueue_;
-        spider::array<size_t> localJobStampsArray_;
-        PE *attachedPE_ = nullptr;
-        size_t runnerIx_ = SIZE_MAX;
-        size_t jobQueueCurrentPos_ = 0;
-        int32_t affinity_ = -1;
-        bool stop_ = false;
-        bool pause_ = false;
-        bool trace_ = false;
+        vector<JobMessage> jobQueue_;
+        array<size_t> localJobStampsArray_;
+        PE *attachedPE_{ nullptr };
+        size_t runnerIx_{ SIZE_MAX };
+        size_t jobQueueCurrentPos_{ 0 };
+        i32 affinity_{ -1 };
+        bool stop_{ false };
+        bool pause_{ false };
+        bool trace_{ false };
 
-        inline void clearLocalJobStamps() {
-            jobQueueCurrentPos_ = 0;
-            jobQueue_.clear();
-        }
+        /**
+         * @brief Clear all the local copies of other LRT job stamps.
+         */
+        void clearLocalJobStamps();
 
-        inline void broadcastJobStamps() {
-            Notification broadcastNotification{ NotificationType::JOB_UPDATE_JOBSTAMP,
-                                                ix(),
-                                                jobQueueCurrentPos_ };
-            for (size_t i = 0; i < archi::platform()->LRTCount(); ++i) {
-                if (i != ix()) {
-                    rt::platform()->communicator()->push(broadcastNotification, i);
-                }
-            }
-        }
+        /**
+         * @brief Broadcast current job stamp to every other LRT.
+         */
+        void broadcastCurrentJobStamp() const;
+
+        /**
+         * @brief Send notification with last achieved job to lrt that need to know.
+         * @param notificationFlags  Array of notification flags.
+         * @param jobIx              Ix of the job to send.
+         */
+        void sendJobStampNotification(bool *notificationFlags, size_t jobIx) const;
+
+        /**
+         * @brief Send notification with produced parameters.
+         * @param parameters Array of parameter values to send.
+         * @param vertexIx   Ix of the vertex which produced the parameter values.
+         */
+        void sendParameters(size_t vertexIx, array<int64_t> &parameters) const;
     };
 }
 
