@@ -42,8 +42,11 @@
 
 /* === Include(s) === */
 
+#include <runtime/common/RTFifo.h>
+#include <runtime/interface/Message.h>
 #include <memory/unique_ptr.h>
 #include <containers/array.h>
+#include <containers/vector.h>
 #include <common/Types.h>
 
 namespace spider {
@@ -91,6 +94,18 @@ namespace spider {
          */
         u32 color() const;
 
+        /**
+         * @brief Add an output @refitem RTFifo to the ScheduleTask.
+         * @param fifo  Fifo to add.
+         */
+        void addOutputFifo(RTFifo fifo);
+
+        /**
+         * @brief Creates a job message out of the information of the task.
+         * @return  JobMessage.
+         */
+        JobMessage createJobMessage() const;
+
         /* === Getter(s) === */
 
         /**
@@ -132,15 +147,15 @@ namespace spider {
          * @return LRT virtual ix
          */
         inline size_t mappedLrt() const {
-            return mappedLRT_;
+            return mappedLrt_;
         }
 
         /**
          * @brief Returns the PE virtual ix on which the task is mapped.
          * @return PE virtual ix
          */
-        inline size_t mappedPE() const {
-            return mappedPE_;
+        inline size_t mappedPe() const {
+            return mappedPe_;
         }
 
         /**
@@ -179,6 +194,14 @@ namespace spider {
          *         ix of the kernel set by the method @refitem ScheduleTask::setKernelIx
          */
         size_t kernelIx() const;
+
+        /**
+         * @brief Get the output fifos of the task if any.
+         * @return const reference to the vector of RTFifo
+         */
+        const vector<RTFifo> &outputFifos() const {
+            return outputFifos_;
+        }
 
         /* === Setter(s) === */
 
@@ -240,7 +263,7 @@ namespace spider {
         * @param mappedLrt  Lrt ix inside spider.
         */
         inline void setMappedLrt(size_t mappedLrt) {
-            mappedLRT_ = mappedLrt;
+            mappedLrt_ = mappedLrt;
         }
 
         /**
@@ -249,7 +272,7 @@ namespace spider {
         * @param mappedPE  Lrt ix inside spider.
         */
         inline void setMappedPE(size_t mappedPE) {
-            mappedPE_ = mappedPE;
+            mappedPe_ = mappedPE;
         }
 
         /**
@@ -284,17 +307,18 @@ namespace spider {
         void setKernelIx(size_t kernelIx);
 
     protected:
+        vector<RTFifo> outputFifos_;
         array<ScheduleTask *> dependenciesArray_;
-        unique_ptr <i32> executionConstraints_;
+        unique_ptr<i32> executionConstraints_;
         unique_ptr<bool> notificationFlags_;
-        pisdf::Vertex *vertex_ = nullptr;
-        u64 startTime_ = UINT64_MAX;
-        u64 endTime_ = UINT64_MAX;
-        size_t mappedLRT_ = SIZE_MAX;
-        size_t mappedPE_ = SIZE_MAX;
-        size_t kernelIx_ = SIZE_MAX;
-        i32 ix_ = -1;
-        TaskState state_ = TaskState::NOT_SCHEDULABLE;
+        pisdf::Vertex *vertex_{ nullptr };
+        u64 startTime_{ UINT64_MAX };
+        u64 endTime_{ UINT64_MAX };
+        size_t mappedLrt_{ SIZE_MAX };
+        size_t mappedPe_{ SIZE_MAX };
+        size_t kernelIx_{ SIZE_MAX };
+        i32 ix_{ -1 };
+        TaskState state_{ TaskState::NOT_SCHEDULABLE };
         TaskType type_;
     };
 }

@@ -51,8 +51,9 @@
 
 /* === Private method(s) implementation === */
 
-spider::ScheduleTask::ScheduleTask(TaskType type) : type_{ type } {
-    const auto lrtCount = archi::platform()->LRTCount();
+spider::ScheduleTask::ScheduleTask(TaskType type) : outputFifos_{ sbc::vector < RTFifo, StackID::SCHEDULE > { }},
+                                                    type_{ type } {
+    const auto lrtCount{ archi::platform()->LRTCount() };
     executionConstraints_ = make_unique<int32_t>(allocate<int32_t, StackID::SCHEDULE>(lrtCount));
     std::fill(executionConstraints_.get(), executionConstraints_.get() + lrtCount, -1);
     notificationFlags_ = make_unique<bool>(allocate<bool, StackID::SCHEDULE>(lrtCount));
@@ -65,6 +66,7 @@ spider::ScheduleTask::ScheduleTask(pisdf::Vertex *vertex) : ScheduleTask(TaskTyp
     }
     vertex_ = vertex;
     setNumberOfDependencies(vertex->inputEdgeCount());
+    outputFifos_.reserve(vertex->outputEdgeCount());
 }
 
 void spider::ScheduleTask::enableBroadcast() {
@@ -90,6 +92,10 @@ u32 spider::ScheduleTask::color() const {
         return 0u | (red << 16u) | (green << 8u) | (blue);
     }
     return static_cast<u32>(kernelIx_);
+}
+
+void spider::ScheduleTask::addOutputFifo(spider::RTFifo fifo) {
+    outputFifos_.emplace_back(fifo);
 }
 
 spider::pisdf::Vertex *spider::ScheduleTask::vertex() const {
@@ -124,3 +130,26 @@ void spider::ScheduleTask::setKernelIx(size_t kernelIx) {
         kernelIx_ = kernelIx;
     }
 }
+
+spider::JobMessage spider::ScheduleTask::createJobMessage() const {
+    JobMessage message{ };
+    /* == Set core properties == */
+    message.outputParamCount_ = vertex_ ? static_cast<i32>(vertex_->reference()->outputParamCount()) : 0;
+    message.kernelIx_ = kernelIx();
+    message.vertexIx_ = vertex_ ? vertex_->ix() : SIZE_MAX;
+    message.ix_ = static_cast<size_t>(ix());
+
+    /* == Set the notification flags == */
+    const auto lrtCount{ archi::platform()->LRTCount() };
+    message.notificationFlagsArray_ = make_unique<bool>(allocate<bool, StackID::SCHEDULE>(lrtCount));
+    auto flags = notificationFlags_.get();
+    for (auto &value : make_handle(message.notificationFlagsArray_.get(), lrtCount)) {
+        value = (*(flags++));
+    }
+
+    /* == Set the execution task constraints == */
+
+    return message;
+}
+
+
