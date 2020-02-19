@@ -47,7 +47,6 @@
 /* === Static variable(s) definition === */
 
 struct SpiderConfiguration {
-    bool staticSchedule_ = true;
     bool optimizeSRDAG_ = true;
     bool verbose_ = false;
     bool exportTrace_ = false;
@@ -88,14 +87,6 @@ void spider::api::disableVerbose() {
     }
 }
 
-void spider::api::enableStaticScheduleOptim() {
-    config_.staticSchedule_ = true;
-}
-
-void spider::api::disableStaticScheduleOptim() {
-    config_.staticSchedule_ = false;
-}
-
 void spider::api::enableSRDAGOptims() {
     config_.optimizeSRDAG_ = true;
 }
@@ -104,22 +95,18 @@ void spider::api::disableSRDAGOptims() {
     config_.optimizeSRDAG_ = false;
 }
 
-bool spider::api::exportTrace() {
+bool spider::api::exportTraceEnabled() {
     return config_.exportTrace_;
 }
 
-bool spider::api::exportSRDAG() {
+bool spider::api::exportSRDAGEnabled() {
     return config_.exportSRDAG_;
 }
 
-bool spider::api::verbose() {
+bool spider::api::verboseEnabled() {
     return config_.verbose_;
 }
 
-bool spider::api::staticOptim() {
-    return config_.staticSchedule_;
-}
-
-bool spider::api::optimizeSRDAG() {
+bool spider::api::shouldOptimizeSRDAG() {
     return config_.optimizeSRDAG_;
 }

@@ -80,16 +80,6 @@ namespace spider {
         void disableVerbose();
 
         /**
-         * @brief Enable the schedule optimization for static graphs (default behavior).
-         */
-        void enableStaticScheduleOptim();
-
-        /**
-         * @brief Disable the schedule optimization for static graphs (schedule will be recomputed every iteration).
-         */
-        void disableStaticScheduleOptim();
-
-        /**
          * @brief Enable the SRDAG optimizations (default behavior).
          */
         void enableSRDAGOptims();
@@ -105,31 +95,25 @@ namespace spider {
          * @brief Get the trace flag value.
          * @return value of trace flag.
          */
-        bool exportTrace();
+        bool exportTraceEnabled();
 
         /**
          * @brief Get the export srdag flag value.
          * @return value of export srdag flag.
          */
-        bool exportSRDAG();
+        bool exportSRDAGEnabled();
 
         /**
          * @brief Get the verbose flag value.
          * @return value of verbose flag.
          */
-        bool verbose();
-
-        /**
-         * @brief Get the staticOptims flag value.
-         * @return value of staticOptims flag.
-         */
-        bool staticOptim();
+        bool verboseEnabled();
 
         /**
          * @brief Get the srdagOptim flag value.
          * @return value of srdagOptim flag.
          */
-        bool optimizeSRDAG();
+        bool shouldOptimizeSRDAG();
     }
 }
 
