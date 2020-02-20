@@ -56,8 +56,8 @@
 spider::MemoryBus::MemoryBus() {
     sendCostRoutine_ = [](size_t) -> uint64_t { return 0; };
     receiveCostRoutine_ = [](size_t) -> uint64_t { return 0; };
-    sendRoutine_ = [](int64_t, void *) { };
-    receiveRoutine_ = [](int64_t, void *) { };
+    sendRoutine_ = [](i64, i32, void *) { };
+    receiveRoutine_ = [](i64, i32, void *) { };
 }
 
 uint64_t spider::MemoryBus::sendCost(uint64_t size) const {
@@ -68,11 +68,11 @@ uint64_t spider::MemoryBus::receiveCost(uint64_t size) const {
     return receiveCostRoutine_(size);
 }
 
-void spider::MemoryBus::dataSend(int64_t size, i32 packetIx, void *buffer) {
+void spider::MemoryBus::dataSend(i64 size, i32 packetIx, void *buffer) {
     sendRoutine_(size, packetIx, buffer);
 }
 
-void spider::MemoryBus::dataReceive(int64_t size, i32 packetIx, void *buffer) {
+void spider::MemoryBus::dataReceive(i64 size, i32 packetIx, void *buffer) {
     receiveRoutine_(size, packetIx, buffer);
 }
 

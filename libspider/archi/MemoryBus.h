@@ -84,7 +84,7 @@ namespace spider {
          * @param packetIx Ix of the packet sent.
          * @param buffer   Buffer to send.
          */
-        void dataSend(int64_t sizee, i32 packetIx, void *buffer);
+        void dataSend(i64 size, i32 packetIx, void *buffer);
 
         /**
          * @brief Receive data over the bus.
@@ -92,7 +92,7 @@ namespace spider {
          * @param packetIx Ix of the packet to receive.
          * @param buffer   Buffer of the receive data.
          */
-        void dataReceive(int64_t sizee, i32 packetIx, void *buffer);
+        void dataReceive(i64 size, i32 packetIx, void *buffer);
 
         /* === Getter(s) === */
 
