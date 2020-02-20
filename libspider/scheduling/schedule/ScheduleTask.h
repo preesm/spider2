@@ -64,6 +64,13 @@ namespace spider {
         SYNC_RECEIVE,
     };
 
+    struct ComTaskInformation {
+        size_t size_{ 0 };
+        size_t kernelIx_{ SIZE_MAX };
+        i32 inputPortIx_{ 0 };
+        i32 packetIx_{ 0 };
+    };
+
     /* === Class definition === */
 
     class ScheduleTask {
@@ -72,7 +79,7 @@ namespace spider {
 
         explicit ScheduleTask(pisdf::Vertex *vertex);
 
-        ~ScheduleTask() = default;
+        ~ScheduleTask();
 
         /* === Method(s) === */
 
@@ -294,32 +301,45 @@ namespace spider {
         }
 
         /**
-         * @brief Set the value of the associated vertex if type() == TaskType::VERTEX AND vertex is not nullptr.
-         * @param vertex  Pointer to the vertex to set.
+         * @brief Set the value of the internal data pointer (@refitem pisdf::Vertex or @refitem ComTaskInformation).
+         * @param information  Pointer to the information to set.
          */
-        void setVertex(pisdf::Vertex *vertex);
-
-        /**
-         * @brief Set the kernel ix of the task if type() != TaskType::VERTEX.
-         * @remark override current value.
-         * @param kernelIx Ix to set.
-         */
-        void setKernelIx(size_t kernelIx);
+        void setInternal(void *information);
 
     protected:
         vector<RTFifo> outputFifos_;
         array<ScheduleTask *> dependenciesArray_;
         unique_ptr<i32> executionConstraints_;
         unique_ptr<bool> notificationFlags_;
-        pisdf::Vertex *vertex_{ nullptr };
+        void *internal_{ nullptr };
         u64 startTime_{ UINT64_MAX };
         u64 endTime_{ UINT64_MAX };
         size_t mappedLrt_{ SIZE_MAX };
         size_t mappedPe_{ SIZE_MAX };
-        size_t kernelIx_{ SIZE_MAX };
         i32 ix_{ -1 };
         TaskState state_{ TaskState::NOT_SCHEDULABLE };
         TaskType type_;
+
+        /* === Private method(s) === */
+
+        /**
+         * @brief Set JobMessage input parameters (if any).
+         * @param message Reference to the jobMessage to update.
+         */
+        void setJobMessageInputParameters(JobMessage &message) const;
+
+        /**
+         * @brief Set JobMessage input fifos (if any)
+         * @param message Reference to the jobMessage to update.
+         */
+        void setJobMessageInputFifos(JobMessage &message) const;
+
+        /**
+         * @brief Set JobMessage output fifos (if any)
+         * @param message Reference to the jobMessage to update.
+         */
+        void setJobMessageOutputFifos(JobMessage &message) const;
+
     };
 }
 #endif //SPIDER2_SCHEDULETASK_H
