@@ -45,6 +45,7 @@
 #include <runtime/platform/RTPlatform.h>
 #include <api/archi-api.h>
 #include <archi/Platform.h>
+#include <common/Types.h>
 
 /* === Static function === */
 
@@ -67,12 +68,12 @@ uint64_t spider::MemoryBus::receiveCost(uint64_t size) const {
     return receiveCostRoutine_(size);
 }
 
-void spider::MemoryBus::dataSend(int64_t size, void *buffer) {
-    sendRoutine_(size, buffer);
+void spider::MemoryBus::dataSend(int64_t size, i32 packetIx, void *buffer) {
+    sendRoutine_(size, packetIx, buffer);
 }
 
-void spider::MemoryBus::dataReceive(int64_t size, void *buffer) {
-    receiveRoutine_(size, buffer);
+void spider::MemoryBus::dataReceive(int64_t size, i32 packetIx, void *buffer) {
+    receiveRoutine_(size, packetIx, buffer);
 }
 
 spider::RTKernel *spider::MemoryBus::sendKernel() const {
@@ -126,17 +127,17 @@ void spider::MemoryBus::setReceiveRoutine(MemoryBusRoutine routine) {
 }
 
 void spider::MemoryBus::send(const int64_t *paramsIN, int64_t *, void *in[], void *[]) {
-    auto *clusterA = archi::platform()->cluster(static_cast<size_t>(paramsIN[0]));
-    auto *clusterB = archi::platform()->cluster(static_cast<size_t>(paramsIN[1]));
+    auto *clusterA = archi::platform()->cluster(static_cast<size_t>(paramsIN[0])); /* = source = */
+    auto *clusterB = archi::platform()->cluster(static_cast<size_t>(paramsIN[1])); /* = target = */
     auto *bus = archi::platform()->getClusterToClusterMemoryBus(clusterA, clusterB);
-    bus->dataSend(paramsIN[1], in);
+    bus->dataSend(paramsIN[2], static_cast<i32>(paramsIN[3]), in);
 }
 
 void spider::MemoryBus::receive(const int64_t *paramsIN, int64_t *, void *[], void *out[]) {
-    auto *clusterA = archi::platform()->cluster(static_cast<size_t>(paramsIN[0]));
-    auto *clusterB = archi::platform()->cluster(static_cast<size_t>(paramsIN[1]));
+    auto *clusterA = archi::platform()->cluster(static_cast<size_t>(paramsIN[0])); /* = source = */
+    auto *clusterB = archi::platform()->cluster(static_cast<size_t>(paramsIN[1])); /* = target = */
     auto *bus = archi::platform()->getClusterToClusterMemoryBus(clusterA, clusterB);
-    bus->dataReceive(paramsIN[2], out);
+    bus->dataReceive(paramsIN[2], static_cast<i32>(paramsIN[3]), out);
 }
 
 void spider::MemoryBus::setWriteSpeed(uint64_t value) {

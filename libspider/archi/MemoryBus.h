@@ -44,6 +44,7 @@
 
 #include <cstdint>
 #include <api/global-api.h>
+#include <common/Types.h>
 
 namespace spider {
 
@@ -79,17 +80,19 @@ namespace spider {
 
         /**
          * @brief Send data over the bus.
-         * @param size    Size in bytes to send.
-         * @param buffer  Buffer to send.
+         * @param size     Size in bytes to send.
+         * @param packetIx Ix of the packet sent.
+         * @param buffer   Buffer to send.
          */
-        void dataSend(int64_t size, void *buffer);
+        void dataSend(int64_t sizee, i32 packetIx, void *buffer);
 
         /**
          * @brief Receive data over the bus.
-         * @param size    Size in bytes to receive.
-         * @param buffer  Buffer of the receive data.
+         * @param size     Size in bytes to receive.
+         * @param packetIx Ix of the packet to receive.
+         * @param buffer   Buffer of the receive data.
          */
-        void dataReceive(int64_t size, void *buffer);
+        void dataReceive(int64_t sizee, i32 packetIx, void *buffer);
 
         /* === Getter(s) === */
 

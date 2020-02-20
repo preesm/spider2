@@ -259,7 +259,9 @@ namespace spider {
     /**
      * @brief Memory bus send / receive routine.
      */
-    using MemoryBusRoutine = void (*)(int_least64_t /* = Size in bytes = */, void * /* = Buffer to send / receive = */);
+    using MemoryBusRoutine = void (*)(int_least64_t  /* = Size in bytes = */,
+                                      int_least32_t, /* = Packet id = */
+                                      void *         /* = Buffer to send / receive = */);
 
     /**
      * @brief Data memory allocation routine (overridable).
