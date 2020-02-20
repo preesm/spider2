@@ -137,48 +137,62 @@ spider::ScheduleTask *spider::Scheduler::insertCommunicationTask(Cluster *cluste
                                                                  TaskType type) {
     const auto minStartTime = previousTask->endTime();
     /* == Search for the first PE able to run the send task == */
-    auto *mappedPE = findBestPEFit(cluster, minStartTime, comTime, [](PE *) -> bool { return false; });
-    if (!mappedPE) {
+    auto *mappedPe = findBestPEFit(cluster, minStartTime, comTime, [](PE *) -> bool { return false; });
+    if (!mappedPe) {
         throwSpiderException("could not find any processing element to map task.");
     }
-    const auto mappedPEIx = mappedPE->virtualIx();
-    const auto mappingST = std::max(schedule_.endTime(mappedPEIx), minStartTime);
-    const auto mappingET = mappingST + comTime;
-    /* == Create the send task == */
+    const auto mappedPeIx{ mappedPe->virtualIx() };
+    const auto mappingSt{ std::max(schedule_.endTime(mappedPeIx), minStartTime) };
+    const auto mappingEt{ mappingSt + comTime };
+    /* == Create the com task == */
     auto *comTask = make<ScheduleTask, StackID::SCHEDULE>(type);
-    comTask->setKernelIx(kernel->ix());
     comTask->setNumberOfDependencies(1);
     comTask->setDependency(previousTask, 0);
+    comTask->setExecutionConstraint(previousTask->mappedLrt(), previousTask->ix());
     schedule_.addScheduleTask(comTask);
+
     /* == Set job information and update schedule == */
-    schedule_.updateTaskAndSetReady(static_cast<size_t>(comTask->ix()), mappedPEIx, mappingST, mappingET);
+    schedule_.updateTaskAndSetReady(static_cast<size_t>(comTask->ix()), mappedPeIx, mappingSt, mappingEt);
     return comTask;
 }
 
 void spider::Scheduler::scheduleCommunications(ScheduleTask *task,
                                                vector<DataDependency> &dependencies,
-                                               Cluster *mappedCluster) {
+                                               Cluster *cluster) {
     auto begin = task->dependencies().begin();
     auto end = task->dependencies().end();
     for (auto &dep : dependencies) {
         const auto peSrc = dep.sender_;
         const auto dataSize = dep.size_;
         auto *srcCluster = peSrc->cluster();
-        if (srcCluster != mappedCluster) {
+        if (srcCluster != cluster) {
+            const auto pos = std::distance(begin, std::find(begin, end, dep.task_));
             /* == Add send / receive task and update time if needed == */
-            const auto *sendBus = archi::platform()->getClusterToClusterMemoryBus(srcCluster, mappedCluster);
-            const auto *recvBus = archi::platform()->getClusterToClusterMemoryBus(mappedCluster, srcCluster);
+            const auto *sendBus = archi::platform()->getClusterToClusterMemoryBus(srcCluster, cluster);
+            const auto *recvBus = archi::platform()->getClusterToClusterMemoryBus(cluster, srcCluster);
+
             /* == Insert send on source cluster == */
             auto *sendKernel = sendBus->sendKernel();
             const auto sendTime = sendBus->writeSpeed() / dataSize;
             auto *sendTask = insertCommunicationTask(srcCluster, sendKernel, sendTime, dep.task_, TaskType::SYNC_SEND);
+            auto *sendComInfo = make<ComTaskInformation, StackID::SCHEDULE>();
+            sendComInfo->size_ = dataSize;
+            sendComInfo->kernelIx_ = sendKernel->ix();
+            sendComInfo->inputPortIx_ = static_cast<i32>(pos);
+            sendComInfo->packetIx_ = sendTask->ix();
+            sendTask->setInternal(sendComInfo);
+
             /* == Insert receive on mapped cluster == */
             auto *recvKernel = recvBus->receiveKernel();
             const auto recvTime = recvBus->readSpeed() / dataSize;
-            auto *recvTask = insertCommunicationTask(mappedCluster, recvKernel, recvTime, sendTask,
-                                                     TaskType::SYNC_RECEIVE);
+            auto *recvTask = insertCommunicationTask(cluster, recvKernel, recvTime, sendTask, TaskType::SYNC_RECEIVE);
+            auto *recvComInfo = make<ComTaskInformation, StackID::SCHEDULE>();
+            recvComInfo->size_ = dataSize;
+            recvComInfo->kernelIx_ = recvKernel->ix();
+            recvComInfo->packetIx_ = sendTask->ix();
+            recvTask->setInternal(recvComInfo);
+
             /* == Set dependency of the original vertex as dependency of recvTask == */
-            const auto pos = std::distance(begin, std::find(begin, end, dep.task_));
             task->setDependency(recvTask, static_cast<size_t>(pos));
             const auto currentStartTime = task->startTime();
             if (recvTask->endTime() > currentStartTime) {

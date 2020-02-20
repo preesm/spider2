@@ -153,9 +153,9 @@ namespace spider {
          * @brief Schedules inter cluster communications (if any are needed).
          * @param task           Pointer to the task.
          * @param dependencies   Reference to the data dependencies of the task.
-         * @param mappedCluster  Pointer on which the task is mapped.
+         * @param cluster  Pointer on which the task is mapped.
          */
-        void scheduleCommunications(ScheduleTask *task, vector <DataDependency> &dependencies, Cluster *mappedCluster);
+        void scheduleCommunications(ScheduleTask *task, vector <DataDependency> &dependencies, Cluster *cluster);
 
         /**
          * @brief Build a vector of Data dependency. Only the dependencies with exchange of data > 0 are taken into
