@@ -68,7 +68,7 @@ void *GenericAllocatorPolicy::allocate(size_t size) {
     return reinterpret_cast<void *>(buffer);
 }
 
-size_t GenericAllocatorPolicy::deallocate(void *ptr) {
+u64 GenericAllocatorPolicy::deallocate(void *ptr) {
     if (!ptr) {
         return 0;
     }

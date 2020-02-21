@@ -54,10 +54,10 @@
 /* === Private method(s) implementation === */
 
 spider::MemoryBus::MemoryBus() {
-    sendCostRoutine_ = [](size_t) -> uint64_t { return 0; };
-    receiveCostRoutine_ = [](size_t) -> uint64_t { return 0; };
-    sendRoutine_ = [](i64, i32, void *) { };
-    receiveRoutine_ = [](i64, i32, void *) { };
+    sendCostRoutine_ = [](u64) -> u64 { return 0; };
+    receiveCostRoutine_ = [](u64) -> u64 { return 0; };
+    sendRoutine_ = [](i64, i32, void *) {};
+    receiveRoutine_ = [](i64, i32, void *) {};
 }
 
 uint64_t spider::MemoryBus::sendCost(uint64_t size) const {

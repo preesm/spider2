@@ -143,7 +143,7 @@ void FreeListAllocatorPolicy::updateFreeNodeList(FreeListAllocatorPolicy::Node *
     remove(baseNode, memoryNode);
 }
 
-size_t FreeListAllocatorPolicy::deallocate(void *ptr) {
+u64 FreeListAllocatorPolicy::deallocate(void *ptr) {
     if (!ptr) {
         return 0;
     } else if (!usage_) {

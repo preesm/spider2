@@ -46,6 +46,7 @@
 #include <string>
 #include <containers/array.h>
 #include <graphs/abstract/AbstractVertex.h>
+#include <graphs/pisdf/Edge.h>
 #include <graphs-tools/helper/visitors/PiSDFVisitor.h>
 #include <runtime/common/RTInfo.h>
 

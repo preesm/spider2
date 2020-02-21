@@ -110,7 +110,7 @@ namespace spider {
          * @param listVertexVector Vector of @refitem ListVertex to evaluate.
          * @return
          */
-        ifast64 computeScheduleLevel(ListTask &listTask, vector<ListTask> &listVertexVector) const;
+        ifast32 computeScheduleLevel(ListTask &listTask, vector<ListTask> &listVertexVector) const;
 
         /**
          * @brief Sort the list of vertices.

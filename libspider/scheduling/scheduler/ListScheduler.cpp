@@ -141,7 +141,7 @@ void spider::ListScheduler::update() {
 
 /* === Private method(s) === */
 
-int64_t spider::ListScheduler::computeScheduleLevel(ListTask &listTask,
+ifast32 spider::ListScheduler::computeScheduleLevel(ListTask &listTask,
                                                     vector<ListTask> &listVertexVector) const {
     auto *vertex = listTask.task_->vertex();
     if ((listTask.level_ == NON_SCHEDULABLE_LEVEL) || !vertex->executable()) {
@@ -151,7 +151,7 @@ int64_t spider::ListScheduler::computeScheduleLevel(ListTask &listTask,
         }
     } else if (listTask.level_ < 0) {
         auto *platform = archi::platform();
-        int64_t level = 0;
+        ifast32 level = 0;
         for (auto &edge : vertex->outputEdgeVector()) {
             auto *sink = edge->sink();
             if (sink && sink->executable()) {
@@ -170,7 +170,7 @@ int64_t spider::ListScheduler::computeScheduleLevel(ListTask &listTask,
                 }
                 const auto sinkLevel = computeScheduleLevel(listVertexVector[sink->scheduleTaskIx()], listVertexVector);
                 if (sinkLevel != NON_SCHEDULABLE_LEVEL) {
-                    level = std::max(level, sinkLevel + minExecutionTime);
+                    level = std::max(level, sinkLevel + static_cast<ifast32>(minExecutionTime));
                 }
             }
         }

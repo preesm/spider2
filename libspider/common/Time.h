@@ -60,27 +60,27 @@ namespace spider {
 
         namespace duration {
 
-            inline long hours(time_point first, time_point second) noexcept {
+            inline long long hours(time_point first, time_point second) noexcept {
                 return std::chrono::duration_cast<std::chrono::hours>(second - first).count();
             }
 
-            inline long minutes(time_point first, time_point second) noexcept {
+            inline long long minutes(time_point first, time_point second) noexcept {
                 return std::chrono::duration_cast<std::chrono::minutes>(second - first).count();
             }
 
-            inline long seconds(time_point first, time_point second) noexcept {
+            inline long long seconds(time_point first, time_point second) noexcept {
                 return std::chrono::duration_cast<std::chrono::seconds>(second - first).count();
             }
 
-            inline long milliseconds(time_point first, time_point second) noexcept {
+            inline long long milliseconds(time_point first, time_point second) noexcept {
                 return std::chrono::duration_cast<std::chrono::milliseconds>(second - first).count();
             }
 
-            inline long microseconds(time_point first, time_point second) noexcept {
+            inline long long microseconds(time_point first, time_point second) noexcept {
                 return std::chrono::duration_cast<std::chrono::microseconds>(second - first).count();
             }
 
-            inline long nanoseconds(time_point first, time_point second) noexcept {
+            inline long long nanoseconds(time_point first, time_point second) noexcept {
                 return std::chrono::duration_cast<std::chrono::nanoseconds>(second - first).count();
             }
 

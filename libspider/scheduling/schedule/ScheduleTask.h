@@ -65,7 +65,7 @@ namespace spider {
     };
 
     struct ComTaskInformation {
-        size_t size_{ 0 };
+        ufast64 size_{ 0 };
         size_t kernelIx_{ SIZE_MAX };
         i32 inputPortIx_{ 0 };
         i32 packetIx_{ 0 };

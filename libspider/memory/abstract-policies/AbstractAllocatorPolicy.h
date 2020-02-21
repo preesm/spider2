@@ -48,6 +48,7 @@
 #include <common/Logger.h>
 #include <common/Exception.h>
 #include <common/Math.h>
+#include <common/Types.h>
 
 /* === Class definition === */
 
@@ -70,7 +71,7 @@ public:
      * @param ptr Memory address to be freed
      * @return size of the freed buffer
      */
-    virtual size_t deallocate(void *ptr) = 0;
+    virtual u64 deallocate(void *ptr) = 0;
 
     /* === Setter(s) === */
 
@@ -97,7 +98,7 @@ public:
      * @brief Returns current memory usage.
      * @return current memory usage.
      */
-    inline size_t usage() const noexcept {
+    inline u64 usage() const noexcept {
         return usage_;
     }
 
@@ -110,7 +111,7 @@ public:
     }
 
 protected:
-    uint64_t usage_ = 0;
+    u64 usage_ = 0;
     size_t alignment_ = 0;
     size_t lastAllocatedSize_ = 0;
 

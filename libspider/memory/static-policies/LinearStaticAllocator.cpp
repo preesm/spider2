@@ -86,7 +86,7 @@ void *LinearStaticAllocator::allocate(size_t size) {
     return reinterpret_cast<void *>(alignedBuffer);
 }
 
-size_t LinearStaticAllocator::deallocate(void *ptr) {
+u64 LinearStaticAllocator::deallocate(void *ptr) {
     if (!ptr) {
         return 0;
     }

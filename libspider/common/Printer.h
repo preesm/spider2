@@ -46,6 +46,7 @@
 
 #include <cstdlib>
 #include <cstdio>
+#include <cstdarg>
 
 #else
 

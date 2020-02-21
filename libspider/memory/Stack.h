@@ -67,7 +67,7 @@ namespace spider {
         Stack &operator=(const Stack &) = delete;
 
         ~Stack() {
-            print(stackNamesArray()[static_cast<uint64_t>(stack_)], peak_, total_, sampleCount_, usage_);
+            print(stackNamesArray()[static_cast<size_t>(stack_)], peak_, total_, sampleCount_, usage_);
             delete policy_;
         }
 

@@ -80,13 +80,13 @@ namespace spider {
     template<typename T>
     inline T *allocate(StackID stackId, size_t n = 1) {
         /* == Allocate buffer with (size + 1) to store stack identifier == */
-        return reinterpret_cast<T *>(allocate(stackArray()[static_cast<uint64_t >(stackId)], sizeof(T), n));
+        return reinterpret_cast<T *>(allocate(stackArray()[static_cast<size_t>(stackId)], sizeof(T), n));
     }
 
     template<typename T, StackID stackId = StackID::GENERAL>
     inline T *allocate(size_t n = 1) {
         /* == Allocate buffer with (size + 1) to store stack identifier == */
-        return reinterpret_cast<T *>(allocate(stackArray()[static_cast<uint64_t >(stackId)], sizeof(T), n));
+        return reinterpret_cast<T *>(allocate(stackArray()[static_cast<size_t>(stackId)], sizeof(T), n));
     }
 
     /**
@@ -172,7 +172,7 @@ namespace spider {
 
     template<class T>
     inline
-    typename std::enable_if<std::__not_<std::is_polymorphic<T>>::value>::type
+    typename std::enable_if<!std::is_polymorphic<T>::value>::type
     destroy(T *&ptr) {
         if (ptr) {
             /* == Destruct the object pointed by ptr == */

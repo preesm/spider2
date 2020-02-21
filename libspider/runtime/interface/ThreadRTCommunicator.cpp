@@ -98,9 +98,13 @@ bool spider::ThreadRTCommunicator::pop(TraceMessage &message, size_t, size_t ix)
     return traceMessageQueueArray_.pop(message, ix);
 }
 
+#if defined(__GNUC__) || defined(__MINGW64__) || defined(__MINGW32__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-function"
-
+#elif defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-function"
+#endif
 /**
  * @brief Trick to pre-declare template specialization.
  */
@@ -111,4 +115,8 @@ static void foo() {
     spider::IndexedQueue<spider::TraceMessage> d;
 }
 
+#if defined(__GNUC__) || defined(__MINGW64__) || defined(__MINGW32__)
 #pragma GCC diagnostic pop
+#elif defined(__clang__)
+#pragma clang diagnostic pop
+#endif

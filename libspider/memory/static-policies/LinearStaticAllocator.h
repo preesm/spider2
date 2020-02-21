@@ -60,7 +60,7 @@ public:
 
     void *allocate(size_t size) override;
 
-    size_t deallocate(void *ptr) override;
+    u64 deallocate(void *ptr) override;
 
 private:
 

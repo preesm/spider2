@@ -41,12 +41,13 @@
 /* === Include(s) === */
 
 #include <archi/MemoryInterface.h>
+#include <common/Types.h>
 
 /* === Method(s) implementation === */
 
 spider::MemoryInterface::MemoryInterface(uint64_t size) : size_{ size }, used_{ 0 } {
     /* == Default routines == */
-    allocateRoutine_ = [](size_t size) -> void * { return std::malloc(size); };
+    allocateRoutine_ = [](u64 size) -> void * { return std::malloc(static_cast<size_t>(size)); };
     deallocateRoutine_ = [](void *addr) -> void { std::free(addr); };
 }
 

@@ -42,6 +42,7 @@
 
 #include <graphs-tools/exporter/PiSDFDOTExporterVisitor.h>
 #include <graphs/pisdf/Delay.h>
+#include <common/Types.h>
 
 /* === Static constant(s) === */
 
@@ -161,7 +162,7 @@ void spider::pisdf::PiSDFDOTExporterVisitor::visit(Interface *interface) {
     /* == Header == */
     vertexHeaderPrinter(interface->vertexPath(), "#ffffff00", 0);
     /* == Interface printer == */
-    interfaceBodyPrinter(interface, interface->subtype() == VertexType::INPUT ?"#87d37cff" : "#ec644bff");
+    interfaceBodyPrinter(interface, interface->subtype() == VertexType::INPUT ? "#87d37cff" : "#ec644bff");
 }
 
 void spider::pisdf::PiSDFDOTExporterVisitor::visit(Param *param) {
@@ -225,17 +226,17 @@ void spider::pisdf::PiSDFDOTExporterVisitor::vertexNamePrinter(Vertex *vertex, s
 }
 
 void spider::pisdf::PiSDFDOTExporterVisitor::vertexPrinter(Vertex *vertex) const {
-    static constexpr const char *colors[VERTEX_TYPE_COUNT] = { "#eeeeeeff" /* = NORMAL vertex      = */,
-                                                               "#ffffccff" /* = CONFIG vertex      = */,
-                                                               "#eeeeeeff" /* = DELAY vertex       = */,
-                                                               "#fabe58ff" /* = FORK vertex        = */,
-                                                               "#aea8d3ff" /* = JOIN vertex        = */,
-                                                               "#fff68fff" /* = REPEAT vertex      = */,
-                                                               "#e87e04ff" /* = DUPLICATE vertex   = */,
-                                                               "#f1e7feff" /* = TAIL vertex        = */,
-                                                               "#dcc6e0ff" /* = HEAD vertex        = */,
-                                                               "#c8f7c5ff" /* = INIT vertex        = */,
-                                                               "#ff9478ff" /* = END vertex         = */, };
+    static constexpr const char *colors[VERTEX_TYPE_COUNT] = {"#eeeeeeff" /* = NORMAL vertex      = */,
+                                                              "#ffffccff" /* = CONFIG vertex      = */,
+                                                              "#eeeeeeff" /* = DELAY vertex       = */,
+                                                              "#fabe58ff" /* = FORK vertex        = */,
+                                                              "#aea8d3ff" /* = JOIN vertex        = */,
+                                                              "#fff68fff" /* = REPEAT vertex      = */,
+                                                              "#e87e04ff" /* = DUPLICATE vertex   = */,
+                                                              "#f1e7feff" /* = TAIL vertex        = */,
+                                                              "#dcc6e0ff" /* = HEAD vertex        = */,
+                                                              "#c8f7c5ff" /* = INIT vertex        = */,
+                                                              "#ff9478ff" /* = END vertex         = */,};
     const auto color = colors[static_cast<uint8_t >(vertex->subtype())];
     /* == Header == */
     vertexHeaderPrinter(vertex->vertexPath(), color, 2, vertex->subtype() == VertexType::CONFIG ? "rounded" : "");
@@ -244,10 +245,10 @@ void spider::pisdf::PiSDFDOTExporterVisitor::vertexPrinter(Vertex *vertex) const
     vertexNamePrinter(vertex, 4);
 
     /* == Get widths == */
-    const auto &digitCount = computeMaxDigitCount(vertex);
-    const auto &rateWidth = 32 + std::max(digitCount - 2, 0l) * 8;
-    const auto &nameWidth = static_cast<int_fast32_t >(std::min(vertex->name().size(), MAX_LENGTH) * 16);
-    const auto centerWidth = 20 + std::max(nameWidth - (2 * 20 + 2 * rateWidth), 0l);
+    const auto digitCount = computeMaxDigitCount(vertex);
+    const auto rateWidth = 32 + std::max(digitCount - 2, ifast32{0}) * 8;
+    const auto nameWidth = static_cast<ifast32>(std::min(vertex->name().size(), MAX_LENGTH) * 16);
+    const auto centerWidth = 20 + std::max(nameWidth - (2 * 20 + 2 * rateWidth), ifast32{0});
 
     /* == Export data ports == */
     size_t nOutput = 0;
@@ -316,7 +317,7 @@ spider::pisdf::PiSDFDOTExporterVisitor::interfaceBodyPrinter(Interface *interfac
     const auto &digitCount = computeMaxDigitCount(interface);
     const auto &rateWidth = 24 + digitCount * 6;
     const auto &nameWidth = static_cast<int_fast32_t >(std::min(interface->name().size(), MAX_LENGTH) * 16);
-    const auto balanceWidth = std::max((nameWidth - (2 * rateWidth + 20)) / 2, 20l);
+    const auto balanceWidth = std::max((nameWidth - (2 * rateWidth + 20)) / 2, ifast32{20});
 
     auto *inputEdge = interface->inputEdge();
     auto *outputEdge = interface->outputEdge();

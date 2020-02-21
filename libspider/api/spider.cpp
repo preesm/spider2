@@ -127,7 +127,7 @@ void spider::api::setStackAllocatorPolicy(StackID stackId,
                                           size_t alignment,
                                           size_t size,
                                           void *externBuffer) {
-    auto *stack = stackArray()[static_cast<uint64_t >(stackId)];
+    auto *stack = stackArray()[static_cast<size_t>(stackId)];
     switch (policy) {
         case AllocatorPolicy::FREELIST_FIND_FIRST:
             stack->setPolicy(new FreeListAllocatorPolicy(size, externBuffer, FreeListPolicy::FIND_FIRST, alignment));

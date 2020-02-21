@@ -69,7 +69,7 @@ void spider::deallocate(void *ptr) {
     auto stackId = static_cast<StackID>(reinterpret_cast<uint64_t *>(originalPtr)[0]);
 
     /* == Deallocate the pointer == */
-    auto *stack = stackArray()[static_cast<uint64_t >(stackId)];
+    auto *stack = stackArray()[static_cast<size_t>(stackId)];
     stack->deallocate(originalPtr);
 }
 
