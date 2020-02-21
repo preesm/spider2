@@ -43,7 +43,6 @@
 /* === Include(s) === */
 
 #include <containers/vector.h>
-#include <scheduling/schedule/ScheduleJob.h>
 #include <scheduling/schedule/ScheduleTask.h>
 #include <scheduling/schedule/ScheduleStats.h>
 #include <functional>
