@@ -56,6 +56,15 @@ namespace spider {
 
     class FifoAllocator {
     public:
+        struct FifoAllocatorTraits {
+            bool jitAllocator_ = false;
+            bool postSchedulingAllocator_ = false;
+        };
+
+        /* === Allocator traits === */
+
+        FifoAllocatorTraits traits;
+
         FifoAllocator() = default;
 
         virtual ~FifoAllocator() = default;
@@ -65,10 +74,9 @@ namespace spider {
         /**
          * @brief Allocate a FIFO of given size.
          * @param size             Size of the FIFO to allocate in bytes.
-         * @param senderReceiverIx Index of the sending (or receiving) PE of the FIFO.
          * @return created @refitem RTFifo.
          */
-        virtual RTFifo allocate(uint32_t size, uint32_t senderReceiverIx) noexcept = 0;
+        virtual RTFifo allocate(uint32_t size) noexcept = 0;
 
         /**
          * @brief Clears the allocator.
@@ -82,8 +90,6 @@ namespace spider {
          * @return @refitem FifoAllocatorType
          */
         virtual FifoAllocatorType type() const = 0;
-
-        /* === Setter(s) === */
 
     private:
     };

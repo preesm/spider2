@@ -58,6 +58,9 @@ spider::ScheduleTask::ScheduleTask(TaskType type) : outputFifos_{ sbc::vector < 
     std::fill(executionConstraints_.get(), executionConstraints_.get() + lrtCount, -1);
     notificationFlags_ = make_unique<bool>(allocate<bool, StackID::SCHEDULE>(lrtCount));
     std::fill(notificationFlags_.get(), notificationFlags_.get() + lrtCount, false);
+    if ((type == TaskType::SYNC_RECEIVE) || (type == TaskType::SYNC_SEND)) {
+        dependenciesArray_ = array<ScheduleTask *>(1, nullptr, StackID::SCHEDULE);
+    }
 }
 
 spider::ScheduleTask::ScheduleTask(pisdf::Vertex *vertex) : ScheduleTask(TaskType::VERTEX) {

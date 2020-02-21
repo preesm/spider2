@@ -57,10 +57,9 @@ namespace spider {
 
         /* === Method(s) === */
 
-        inline RTFifo allocate(uint32_t size, uint32_t senderReceiverIx) noexcept override {
+        inline RTFifo allocate(uint32_t size) noexcept override {
             RTFifo fifo;
             fifo.size_ = size;
-            fifo.senderReceiverIx_ = senderReceiverIx;
             fifo.virtualAddress_ = virtualMemoryAddress_;
             virtualMemoryAddress_ += size;
             return fifo;

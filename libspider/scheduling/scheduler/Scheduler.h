@@ -53,7 +53,7 @@ namespace spider {
 
     class ScheduleTask;
 
-    class ScheduleVertexTask;
+    class FifoAllocator;
 
     /* === Class definition === */
 
@@ -109,8 +109,12 @@ namespace spider {
             ScheduleTask *task_ = nullptr;
             PE *sender_ = nullptr;
             ufast64 size_ = 0;
+            i32 position_ = -1;
 
-            DataDependency(ScheduleTask *task, PE *pe, ufast64 size) : task_{ task }, sender_{ pe }, size_{ size } { }
+            DataDependency(ScheduleTask *task, PE *pe, ufast64 size, i32 pos) : task_{ task },
+                                                                                sender_{ pe },
+                                                                                size_{ size },
+                                                                                position_{ pos } { }
 
             DataDependency(const DataDependency &) = default;
 
@@ -137,17 +141,19 @@ namespace spider {
          * @brief Inserts a communication task on given cluster.
          *        The method may modify the dependency array of the task passed in parameter.
          * @param cluster      Pointer to the cluster.
-         * @param kernel       Pointer to the kernel to use.
-         * @param comTime      Estimated time of the communication (in s).
+         * @param distCluster  Pointer to the distant cluster.
+         * @param dataSize     Size in bytes of the data to transfer.
          * @param previousTask Pointer to the task sending data.
          * @param type         Type of the task to insert (@refitem TaskType::SYNC_SEND or @refitem TaskType::SYNC_RECEIVE).
+         * @param portIx       Port ix of the previous task sending data (0 for @refitem TaskType::SYNC_RECEIVE).
          * @return pointer to the created ScheduleTask.
          */
         ScheduleTask *insertCommunicationTask(Cluster *cluster,
-                                              RTKernel *kernel,
-                                              ufast64 comTime,
+                                              Cluster *distCluster,
+                                              ufast64 dataSize,
                                               ScheduleTask *previousTask,
-                                              TaskType type);
+                                              TaskType type,
+                                              i32 portIx = 0);
 
         /**
          * @brief Schedules inter cluster communications (if any are needed).
@@ -155,7 +161,7 @@ namespace spider {
          * @param dependencies   Reference to the data dependencies of the task.
          * @param cluster  Pointer on which the task is mapped.
          */
-        void scheduleCommunications(ScheduleTask *task, vector <DataDependency> &dependencies, Cluster *cluster);
+        void scheduleCommunications(ScheduleTask *task, vector<DataDependency> &dependencies, Cluster *cluster);
 
         /**
          * @brief Build a vector of Data dependency. Only the dependencies with exchange of data > 0 are taken into
@@ -163,7 +169,7 @@ namespace spider {
          * @param task  Pointer to the task.
          * @return vector of @refitem DataDependency.
          */
-        static vector <DataDependency> getDataDependencies(ScheduleTask *task);
+        static vector<DataDependency> getDataDependencies(ScheduleTask *task);
 
         /**
          * @brief Default task mapper that try to best fit.
@@ -178,6 +184,6 @@ namespace spider {
      * @param graph  Pointer to the graph.
      * @return unique_ptr of the created scheduler.
      */
-    unique_ptr <Scheduler> makeScheduler(SchedulingAlgorithm algorithm, pisdf::Graph *graph);
+    unique_ptr<Scheduler> makeScheduler(SchedulingAlgorithm algorithm, pisdf::Graph *graph);
 }
 #endif //SPIDER2_SCHEDULER_H
