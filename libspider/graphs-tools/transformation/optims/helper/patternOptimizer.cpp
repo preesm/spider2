@@ -65,10 +65,12 @@ bool spider::optims::reduceFFJJWorker(const ReduceWorkerInfo &info) {
     /* == Do the optimization == */
     for (auto it = verticesToOptimize.begin(); it != verticesToOptimize.end(); ++it) {
         auto &pair = (*it);
-        auto *vertexA = pair.first;
-        auto *vertexB = pair.second;
+        auto *vertexA = pair.first;  /* = Second fork or first join = */
+        auto *vertexB = pair.second; /* = First fork or second join = */
 
         /* == Remove edge == */
+        /* == If type is JOIN, then it gets the output edge of the first join
+         *    else if type if FORK, it gets the input edge of the second fork == */
         const auto offset = ((vertexA->*info.getOppositeEdge_)(0)->*info.getPortIx_)();
         graph->removeEdge((vertexB->*info.getEdge_)(offset));
 
@@ -80,6 +82,8 @@ bool spider::optims::reduceFFJJWorker(const ReduceWorkerInfo &info) {
         const auto vertexBEdgeCount = std::max(vertexB->inputEdgeCount(), vertexB->outputEdgeCount());
 
         /* == Link edges of vertexB into newVertex == */
+        /* == If type is JOIN, connects every input edges of the first join into the new join
+         *    else if type if FORK, connects every output edges of the second fork into the new fork == */
         for (size_t i = 0; i < offset; ++i) {
             auto *edge = (vertexB->*info.getEdge_)(i);
             (edge->*info.setVertex_)(newVertex, i, (edge->*info.edgeRate_)());
@@ -90,6 +94,8 @@ bool spider::optims::reduceFFJJWorker(const ReduceWorkerInfo &info) {
         }
 
         /* == Link edges of vertexA into newVertex == */
+        /* == If type is JOIN, connects every input edges of the second join into the new join
+         *    else if type if FORK, connects every output edges of the first fork into the new fork == */
         for (size_t i = 0; i < vertexAEdgeCount; ++i) {
             auto *edge = (vertexA->*info.getEdge_)(i);
             (edge->*info.setVertex_)(newVertex, i + offset, (edge->*info.edgeRate_)());
