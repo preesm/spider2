@@ -66,7 +66,7 @@ namespace spider {
             }
 
             DynamicParam(const DynamicParam &other) : Param(other) {
-                expression_ = other.expression_;
+                expression_ = make<Expression, StackID::PISDF>(other.expression());
             }
 
             DynamicParam(DynamicParam &&other) noexcept : Param(std::move(other)) {
