@@ -80,3 +80,10 @@ void spider::pisdf::Interface::connectOutputEdge(Edge *edge, size_t pos) {
     }
     Vertex::connectOutputEdge(edge, pos);
 }
+
+spider::pisdf::Edge *spider::pisdf::Interface::edge() const {
+    if (subtype_ == VertexType::INPUT) {
+        return Vertex::outputEdge(0);
+    }
+    return Vertex::inputEdge(0);
+}

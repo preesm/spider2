@@ -133,50 +133,43 @@ void spider::srdag::SingleRateTransformer::replaceInterfaces() {
                              job_.firingValue_,
                              job_.reference_->name().c_str());
     }
+    auto isInterfaceTransparent = [](const TransfoJob &job,
+                                     const pisdf::Interface *interface) -> bool {
+        auto *edge = interface->edge();
+        auto *vertex = interface->opposite();
+        const auto sourceRate = edge->sourceRateExpression().evaluate(job.params_);
+        const auto sinkRate = edge->sinkRateExpression().evaluate(job.params_);
+        if (interface->subtype() == pisdf::VertexType::INPUT) {
+            return (vertex->repetitionValue() * sinkRate) == sourceRate;
+        }
+        return (vertex->repetitionValue() * sourceRate) == sinkRate;
+    };
 
     /* == 1. Replace the input interfaces == */
-    {
-        auto isInterfaceTransparent = [](const TransfoJob &job,
-                                         const spider::pisdf::Interface *interface) -> bool {
-            auto *edge = interface->outputEdge();
-            auto *sink = edge->sink();
-            const auto &sourceRate = edge->sourceRateValue();
-            const auto &sinkRate = edge->sinkRateExpression().evaluate(job.params_);
-            return (sink->repetitionValue() * sinkRate) == sourceRate;
-        };
-        for (const auto &interface : job_.reference_->inputInterfaceVector()) {
-            auto *edge = instance->inputEdge(interface->ix());
-            if (isInterfaceTransparent(job_, interface.get())) {
-                ref2Clone_[uniformIx(interface.get(), job_.reference_)] = edge->source()->ix();
-            } else {
-                auto &&name = instance->name() + "_" + interface->name();
-                auto *vertex = api::createRepeat(srdag_, std::move(name));
-                edge->setSink(vertex, 0, Expression(edge->sinkRateExpression()));
-                ref2Clone_[uniformIx(interface.get(), job_.reference_)] = vertex->ix();
-            }
+    for (const auto &interface : job_.reference_->inputInterfaceVector()) {
+        auto *edge = instance->inputEdge(interface->ix());
+        const auto ix = uniformIx(interface.get(), job_.reference_);
+        if (isInterfaceTransparent(job_, interface.get())) {
+            ref2Clone_[ix] = edge->source()->ix();
+        } else {
+            auto &&name = instance->name() + "_" + interface->name();
+            auto *vertex = api::createRepeat(srdag_, std::move(name));
+            edge->setSink(vertex, 0, Expression(edge->sinkRateExpression()));
+            ref2Clone_[ix] = vertex->ix();
         }
     }
 
     /* == 2. Replace the output interfaces == */
-    {
-        auto isInterfaceTransparent = [](const TransfoJob &job,
-                                         const spider::pisdf::Interface *interface) -> bool {
-            auto *edge = interface->inputEdge();
-            auto *source = edge->source();
-            const auto &sourceRate = edge->sourceRateExpression().evaluate(job.params_);
-            const auto &sinkRate = edge->sinkRateValue();
-            return (source->repetitionValue() * sourceRate) == sinkRate;
-        };
-        for (const auto &interface : job_.reference_->outputInterfaceVector()) {
-            auto *edge = instance->outputEdge(interface->ix());
-            if (isInterfaceTransparent(job_, interface.get())) {
-                ref2Clone_[uniformIx(interface.get(), job_.reference_)] = edge->sink()->ix();
-            } else {
-                auto &&name = instance->name() + "_" + interface->name();
-                auto *vertex = api::createTail(srdag_, std::move(name), 1);
-                edge->setSource(vertex, 0, Expression(edge->sourceRateExpression()));
-                ref2Clone_[uniformIx(interface.get(), job_.reference_)] = vertex->ix();
-            }
+    for (const auto &interface : job_.reference_->outputInterfaceVector()) {
+        auto *edge = instance->outputEdge(interface->ix());
+        const auto ix = uniformIx(interface.get(), job_.reference_);
+        if (isInterfaceTransparent(job_, interface.get())) {
+            ref2Clone_[ix] = edge->sink()->ix();
+        } else {
+            auto &&name = instance->name() + "_" + interface->name();
+            auto *vertex = api::createTail(srdag_, std::move(name), 1);
+            edge->setSource(vertex, 0, Expression(edge->sourceRateExpression()));
+            ref2Clone_[ix] = vertex->ix();
         }
     }
 }
@@ -287,14 +280,14 @@ void spider::srdag::SingleRateTransformer::singleRateLinkage(pisdf::Edge *edge) 
 }
 
 void spider::srdag::SingleRateTransformer::computeDependencies(pisdf::Edge *edge,
-                                                               spider::vector<TransfoVertex> &srcVector,
-                                                               spider::vector<TransfoVertex> &snkVector) {
+                                                               vector<TransfoVertex> &srcVector,
+                                                               vector<TransfoVertex> &snkVector) {
     auto &&delay = edge->delay() ? edge->delay()->value(job_.params_) : 0;
-    const auto &srcRate = srcVector[0].rate_;     /* = This should be the proper source rate of the edge = */
-    const auto &snkRate = snkVector.back().rate_; /* = This should be the proper sink rate of the edge = */
-    const auto &getterRate = edge->delay() ? snkVector[0].rate_ : 0;
-    const auto &sinkRepetitionValue = edge->sink()->repetitionValue();
-    const auto &setterOffset = edge->delay() ? 1 : 0;
+    const auto srcRate = srcVector[0].rate_;     /* = This should be the proper source rate of the edge = */
+    const auto snkRate = snkVector.back().rate_; /* = This should be the proper sink rate of the edge = */
+    const auto getterRate = edge->delay() ? snkVector[0].rate_ : 0;
+    const auto sinkRepetitionValue = edge->sink()->repetitionValue();
+    const auto setterOffset = edge->delay() ? 1 : 0;
 
     /* == Compute dependencies for sinks == */
     uint32_t firing = 0;
@@ -320,8 +313,8 @@ void spider::srdag::SingleRateTransformer::computeDependencies(pisdf::Edge *edge
     /* == Update source vector with proper dependencies == */
     firing = 0;
     for (auto it = snkVector.rbegin(); it < snkVector.rend(); ++it) {
-        const auto &lowerIndex = srcVector.size() - 1 - (*it).lowerDep_;
-        const auto &upperIndex = srcVector.size() - 1 - (*it).upperDep_;
+        const auto lowerIndex = srcVector.size() - 1 - (*it).lowerDep_;
+        const auto upperIndex = srcVector.size() - 1 - (*it).upperDep_;
         srcVector[lowerIndex].lowerDep_ = std::min(srcVector[lowerIndex].lowerDep_, firing);
         srcVector[lowerIndex].upperDep_ = std::max(srcVector[lowerIndex].upperDep_, firing);
         srcVector[upperIndex].lowerDep_ = std::min(srcVector[upperIndex].lowerDep_, firing);
@@ -330,13 +323,35 @@ void spider::srdag::SingleRateTransformer::computeDependencies(pisdf::Edge *edge
     }
 }
 
-void spider::srdag::SingleRateTransformer::addForkVertex(spider::vector<TransfoVertex> &srcVector,
-                                                         spider::vector<TransfoVertex> &snkVector) {
+template<class ConnectEdge>
+void spider::srdag::SingleRateTransformer::connectSpecialActor(pisdf::Vertex *vertex,
+                                                               vector<TransfoVertex> &workingVector,
+                                                               vector<TransfoVertex> &oppositeVector,
+                                                               const ConnectEdge &edgeConnector) const {
+    /* == Get current last element == */
+    const auto &last = oppositeVector.back();
+    oppositeVector.pop_back();
+    /* == Number of edges == */
+    const auto count = std::max(vertex->inputEdgeCount(), vertex->outputEdgeCount());
+    /* == Total number of tokens == */
+    auto rate = last.rate_;
+    for (size_t i = 0; i < count - 1; ++i) {
+        const auto &transfoVertex = workingVector.back();
+        rate -= transfoVertex.rate_;
+        edgeConnector(vertex, i, transfoVertex);
+        workingVector.pop_back();
+    }
+    oppositeVector.emplace_back(rate, static_cast<uint32_t>(count - 1), vertex);
+    oppositeVector.back().lowerDep_ = last.upperDep_;
+    oppositeVector.back().upperDep_ = last.upperDep_;
+}
+
+void spider::srdag::SingleRateTransformer::addForkVertex(vector<TransfoVertex> &srcVector,
+                                                         vector<TransfoVertex> &snkVector) {
     const auto &sourceLinker = srcVector.back();
-    auto *fork = api::createFork(srdag_,
-                                 "fork-" + sourceLinker.vertex_->name() + "_out-" +
-                                 std::to_string(sourceLinker.portIx_),
-                                 (sourceLinker.upperDep_ - sourceLinker.lowerDep_) + 1);
+    auto name = std::string("fork-").append(sourceLinker.vertex_->name()).append("_out--").append(
+            std::to_string(sourceLinker.portIx_));
+    auto *fork = api::createFork(srdag_, std::move(name), (sourceLinker.upperDep_ - sourceLinker.lowerDep_) + 1);
 
     /* == Create an edge between source and fork == */
     api::createEdge(sourceLinker.vertex_,  /* = Vertex that need to explode = */
@@ -345,51 +360,39 @@ void spider::srdag::SingleRateTransformer::addForkVertex(spider::vector<TransfoV
                     fork,                  /* = Added fork = */
                     0,                     /* = Fork has only one input port so 0 is fixed = */
                     sourceLinker.rate_    /* = Sink rate is the same as the source rate = */);
-    srcVector.pop_back();
 
-    /* == Connect out of fork == */
-    auto remaining = sourceLinker.rate_;
-    for (size_t i = 0; i < fork->outputEdgeCount() - 1; ++i) {
-        const auto &sinkLinker = snkVector.back();
-        remaining -= sinkLinker.rate_;
-        api::createEdge(fork,               /* = Fork vertex = */
-                        i,                  /* = Fork output to connect = */
-                        sinkLinker.rate_,   /* = Sink rate = */
-                        sinkLinker.vertex_, /* = Sink to connect to fork = */
-                        sinkLinker.portIx_, /* = Sink port ix = */
-                        sinkLinker.rate_    /* = Sink rate = */);
-        snkVector.pop_back();
-    }
-    srcVector.emplace_back(remaining, static_cast<uint32_t>(fork->outputEdgeCount() - 1), fork);
-    srcVector.back().lowerDep_ = sourceLinker.upperDep_;
-    srcVector.back().upperDep_ = sourceLinker.upperDep_;
+    /* == Connect the output edges of the fork == */
+    connectSpecialActor(fork, snkVector, srcVector,
+                        [](pisdf::Vertex *fork, size_t portIx, const TransfoVertex &transfoVertex) {
+                            api::createEdge(fork,                  /* = Fork vertex = */
+                                            portIx,                /* = Fork output to connect = */
+                                            transfoVertex.rate_,   /* = Sink rate = */
+                                            transfoVertex.vertex_, /* = Sink to connect to fork = */
+                                            transfoVertex.portIx_, /* = Sink port ix = */
+                                            transfoVertex.rate_    /* = Sink rate = */);
+                        });
 }
 
-void spider::srdag::SingleRateTransformer::addJoinVertex(spider::vector<TransfoVertex> &srcVector,
-                                                         spider::vector<TransfoVertex> &snkVector) {
+void spider::srdag::SingleRateTransformer::addJoinVertex(vector<TransfoVertex> &srcVector,
+                                                         vector<TransfoVertex> &snkVector) {
     const auto &sinkLinker = snkVector.back();
-    auto *join = api::createJoin(srdag_,
-                                 "join-" + sinkLinker.vertex_->name() + "_in-" +
-                                 std::to_string(sinkLinker.portIx_),
-                                 (sinkLinker.upperDep_ - sinkLinker.lowerDep_) + 1);
+    auto name = std::string("join-").append(sinkLinker.vertex_->name()).append("_in--").append(
+            std::to_string(sinkLinker.portIx_));
+    auto *join = api::createJoin(srdag_, std::move(name), (sinkLinker.upperDep_ - sinkLinker.lowerDep_) + 1);
 
-    /* == Create an edge between source and fork == */
+    /* == Create an edge between join and sink == */
     api::createEdge(join, 0, sinkLinker.rate_, sinkLinker.vertex_, sinkLinker.portIx_, sinkLinker.rate_);
-    snkVector.pop_back();
 
-    /* == Connect in of join == */
-    auto remaining = sinkLinker.rate_;
-    for (size_t i = 0; i < join->inputEdgeCount() - 1; ++i) {
-        const auto &sourceLinker = srcVector.back();
-        remaining -= sourceLinker.rate_;
-        api::createEdge(sourceLinker.vertex_, sourceLinker.portIx_, sourceLinker.rate_, join, i,
-                        sourceLinker.rate_);
-        srcVector.pop_back();
-    }
-    snkVector.emplace_back(remaining, static_cast<uint32_t>(join->inputEdgeCount() - 1), join);
-    snkVector.back().lowerDep_ = sinkLinker.upperDep_;
-    snkVector.back().upperDep_ = sinkLinker.upperDep_;
-
+    /* == Connect the input edges of the join == */
+    connectSpecialActor(join, srcVector, snkVector,
+                        [](pisdf::Vertex *join, size_t portIx, const TransfoVertex &transfoVertex) {
+                            api::createEdge(transfoVertex.vertex_, /* = Source to connect to join = */
+                                            transfoVertex.portIx_, /* = Source port ix = */
+                                            transfoVertex.rate_,   /* = Source rate = */
+                                            join,                  /* = Join = */
+                                            portIx,                /* = Join input to connect = */
+                                            transfoVertex.rate_    /* = Source rate = */);
+                        });
 }
 
 spider::vector<spider::srdag::SingleRateTransformer::TransfoVertex>

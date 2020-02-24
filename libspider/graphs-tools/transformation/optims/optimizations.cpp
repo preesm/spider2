@@ -88,7 +88,7 @@ static spider::pisdf::Vertex *createNewFork(spider::pisdf::Vertex *firstFork, sp
 
     /* == Connect the input of the first Fork to the new Fork == */
     auto *edge = firstFork->inputEdge(0);
-    edge->setSink(newFork, 0, spider::Expression(edge->sinkRateExpression()));
+    edge->setSink(newFork, 0, edge->sinkRateExpression());
     return newFork;
 }
 
@@ -118,7 +118,7 @@ static spider::pisdf::Vertex *createNewJoin(spider::pisdf::Vertex *firstJoin, sp
 
     /* == Connect the output of the second Join to the new Join == */
     auto *edge = secondJoin->outputEdge(0);
-    edge->setSource(newJoin, 0, spider::Expression(edge->sourceRateExpression()));
+    edge->setSource(newJoin, 0, edge->sourceRateExpression());
     return newJoin;
 }
 
@@ -170,7 +170,7 @@ bool spider::optims::reduceForkFork(pisdf::Graph *graph) {
     for (const auto &vertex : graph->vertices()) {
         if (vertex->subtype() == pisdf::VertexType::FORK && vertex->scheduleTaskIx() == SIZE_MAX) {
             auto *source = vertex->inputEdge(0)->source();
-            if (source->subtype() == pisdf::VertexType::FORK && vertex->scheduleTaskIx() == SIZE_MAX) {
+            if (source->subtype() == pisdf::VertexType::FORK && source->scheduleTaskIx() == SIZE_MAX) {
                 verticesToOptimize.emplace_back(source, vertex.get());
             }
         }
@@ -191,7 +191,7 @@ bool spider::optims::reduceForkFork(pisdf::Graph *graph) {
         auto secondForkEdgeIx = secondFork->inputEdge(0)->sourcePortIx();
         for (size_t i = 0; i < secondForkEdgeIx; ++i) {
             auto *edge = firstFork->outputEdge(i);
-            edge->setSource(newFork, i, Expression(edge->sourceRateExpression()));
+            edge->setSource(newFork, i, edge->sourceRateExpression());
         }
 
         /* == Remove the edge between the two Forks == */
@@ -200,16 +200,14 @@ bool spider::optims::reduceForkFork(pisdf::Graph *graph) {
         /* == Connect the output edges of the second fork into the new fork == */
         for (size_t i = 0; i < secondFork->outputEdgeCount(); ++i) {
             auto *edge = secondFork->outputEdge(i);
-            const auto &ix = edge->sourcePortIx() + secondForkEdgeIx;
-            edge->setSource(newFork, ix, Expression(edge->sourceRateExpression()));
+            edge->setSource(newFork, edge->sourcePortIx() + secondForkEdgeIx, edge->sourceRateExpression());
         }
 
         /* == Connect the remaining output edges of the first Fork into the new Fork == */
         const auto &offset = secondFork->outputEdgeCount() - 1;
         for (size_t i = secondForkEdgeIx + 1; i < firstFork->outputEdgeCount(); ++i) {
             auto *edge = firstFork->outputEdge(i);
-            const auto &ix = edge->sourcePortIx() + offset;
-            edge->setSource(newFork, ix, Expression(edge->sourceRateExpression()));
+            edge->setSource(newFork, edge->sourcePortIx() + offset, edge->sourceRateExpression());
         }
 
         /* == Search for the pair to modify (if any) == */
@@ -226,7 +224,7 @@ bool spider::optims::reduceForkFork(pisdf::Graph *graph) {
         /* == Remove the vertices == */
         if (log::enabled<log::OPTIMS>()) {
             log::verbose<log::OPTIMS>("ForkForkOptimizer: removing [%s] and [%s] fork vertices.\n",
-                                            secondFork->name().c_str(), firstFork->name().c_str());
+                                      secondFork->name().c_str(), firstFork->name().c_str());
         }
         graph->removeVertex(secondFork);
         graph->removeVertex(firstFork);
@@ -245,7 +243,7 @@ bool spider::optims::reduceJoinFork(pisdf::Graph *graph) {
     for (auto &vertex : graph->vertices()) {
         if (vertex->subtype() == pisdf::VertexType::JOIN && vertex->scheduleTaskIx() == SIZE_MAX) {
             auto *sink = vertex->outputEdge(0)->sink();
-            if (sink->subtype() == pisdf::VertexType::FORK && vertex->scheduleTaskIx() == SIZE_MAX) {
+            if (sink->subtype() == pisdf::VertexType::FORK && sink->scheduleTaskIx() == SIZE_MAX) {
                 verticesToOptimize.emplace_back(vertex.get(), sink);
             }
         }
@@ -352,7 +350,7 @@ bool spider::optims::reduceJoinJoin(pisdf::Graph *graph) {
     for (auto &vertex : graph->vertices()) {
         if (vertex->subtype() == pisdf::VertexType::JOIN && vertex->scheduleTaskIx() == SIZE_MAX) {
             auto *sink = vertex->outputEdge(0)->sink();
-            if (sink->subtype() == pisdf::VertexType::JOIN && vertex->scheduleTaskIx() == SIZE_MAX) {
+            if (sink->subtype() == pisdf::VertexType::JOIN && sink->scheduleTaskIx() == SIZE_MAX) {
                 verticesToOptimize.emplace_back(vertex.get(), sink);
             }
         }
@@ -373,7 +371,7 @@ bool spider::optims::reduceJoinJoin(pisdf::Graph *graph) {
         auto firstJoinEdgeIx = firstJoin->outputEdge(0)->sinkPortIx();
         for (size_t i = 0; i < firstJoinEdgeIx; ++i) {
             auto *edge = secondJoin->inputEdge(i);
-            edge->setSink(newJoin, i, Expression(edge->sinkRateExpression()));
+            edge->setSink(newJoin, i, edge->sinkRateExpression());
         }
 
         /* == Remove the edge between the two Joins == */
@@ -382,16 +380,14 @@ bool spider::optims::reduceJoinJoin(pisdf::Graph *graph) {
         /* == Connect the input edges of the first join into the new join == */
         for (size_t i = 0; i < firstJoin->inputEdgeCount(); ++i) {
             auto *edge = firstJoin->inputEdge(i);
-            const auto &ix = edge->sinkPortIx() + firstJoinEdgeIx;
-            edge->setSink(newJoin, ix, Expression(edge->sinkRateExpression()));
+            edge->setSink(newJoin, edge->sinkPortIx() + firstJoinEdgeIx, edge->sinkRateExpression());
         }
 
-        /* == Connect the remaining output edges of the first Fork into the new Fork == */
-        const auto &offset = firstJoin->inputEdgeCount() - 1;
+        /* == Connect the remaining output edges of the first Join into the new Join == */
+        const auto offset = firstJoin->inputEdgeCount() - 1;
         for (size_t i = firstJoinEdgeIx + 1; i < secondJoin->inputEdgeCount(); ++i) {
             auto *edge = secondJoin->inputEdge(i);
-            const auto &ix = edge->sinkPortIx() + offset;
-            edge->setSink(newJoin, ix, Expression(edge->sinkRateExpression()));
+            edge->setSink(newJoin, edge->sinkPortIx() + offset, edge->sinkRateExpression());
         }
 
         /* == Search for the pair to modify (if any) == */
@@ -408,7 +404,7 @@ bool spider::optims::reduceJoinJoin(pisdf::Graph *graph) {
         /* == Remove the vertices == */
         if (log::enabled<log::OPTIMS>()) {
             log::verbose<log::OPTIMS>("JoinJoinOptimizer: removing [%s] and [%s] join vertices.\n",
-                                            firstJoin->name().c_str(), secondJoin->name().c_str());
+                                      firstJoin->name().c_str(), secondJoin->name().c_str());
         }
         graph->removeVertex(firstJoin);
         graph->removeVertex(secondJoin);
@@ -426,7 +422,7 @@ bool spider::optims::reduceJoinEnd(pisdf::Graph *graph) {
     for (auto &vertex : graph->vertices()) {
         if (vertex->subtype() == pisdf::VertexType::JOIN && vertex->scheduleTaskIx() == SIZE_MAX) {
             auto *sink = vertex->outputEdge(0)->sink();
-            if (sink->subtype() == pisdf::VertexType::END && vertex->scheduleTaskIx() == SIZE_MAX) {
+            if (sink->subtype() == pisdf::VertexType::END && sink->scheduleTaskIx() == SIZE_MAX) {
                 verticesToOptimize.push_back(vertex.get());
             }
         }
@@ -440,12 +436,12 @@ bool spider::optims::reduceJoinEnd(pisdf::Graph *graph) {
         // TODO: see how to deal with persistent delay memory allocation
         for (auto *inputEdge : join->inputEdgeVector()) {
             auto *newEnd = api::createEnd(graph, "end-" + inputEdge->source()->name());
-            inputEdge->setSink(newEnd, 0, Expression(inputEdge->sinkRateExpression()));
+            inputEdge->setSink(newEnd, 0, inputEdge->sinkRateExpression());
         }
 
         if (log::enabled<log::OPTIMS>()) {
             log::verbose<log::OPTIMS>("JoinEndOptimizer: removing join [%s] and end [%s] vertices.\n",
-                                            join->name().c_str(), end->name().c_str());
+                                      join->name().c_str(), end->name().c_str());
         }
         graph->removeVertex(join);
         graph->removeVertex(end);
@@ -463,7 +459,7 @@ bool spider::optims::reduceInitEnd(pisdf::Graph *graph) {
     for (auto &vertex : graph->vertices()) {
         if (vertex->subtype() == pisdf::VertexType::INIT && vertex->scheduleTaskIx() == SIZE_MAX) {
             auto *sink = vertex->outputEdge(0)->sink();
-            if (sink->subtype() == pisdf::VertexType::END && vertex->scheduleTaskIx() == SIZE_MAX) {
+            if (sink->subtype() == pisdf::VertexType::END && sink->scheduleTaskIx() == SIZE_MAX) {
                 verticesToOptimize.push_back(vertex.get());
             }
         }
@@ -476,7 +472,7 @@ bool spider::optims::reduceInitEnd(pisdf::Graph *graph) {
         graph->removeEdge(edge);
         if (log::enabled<log::OPTIMS>()) {
             log::verbose<log::OPTIMS>("InitEndOptimizer: removing init [%s] and end [%s] vertices.\n",
-                                            init->name().c_str(), end->name().c_str());
+                                      init->name().c_str(), end->name().c_str());
         }
         graph->removeVertex(init);
         graph->removeVertex(end);

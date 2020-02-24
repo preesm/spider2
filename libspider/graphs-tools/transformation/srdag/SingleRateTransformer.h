@@ -146,20 +146,26 @@ namespace spider {
                                      spider::vector<TransfoVertex> &srcVector,
                                      spider::vector<TransfoVertex> &snkVector);
 
+            template<class ConnectEdge>
+            void connectSpecialActor(pisdf::Vertex *vertex,
+                                     vector<TransfoVertex> &workingVector,
+                                     vector<TransfoVertex> &oppositeVector,
+                                     const ConnectEdge &edgeConnector) const;
+
             /**
              * @brief Add a @refitem ForkVertex into the single-rate graph and connect it.
              * @param srcVector   Vector of @refitem TransfoVertex.
              * @param snkVector   Vector of @refitem TransfoVertex.
              * @param srdag       Single-Rate graph.
              */
-            void addForkVertex(spider::vector<TransfoVertex> &srcVector, spider::vector<TransfoVertex> &snkVector);
+            void addForkVertex(vector<TransfoVertex> &srcVector, vector<TransfoVertex> &snkVector);
 
             /**
              * @brief Add a @refitem JoinVertex into the single-rate graph and connect it.
              * @param srcVector   Vector of @refitem TransfoVertex.
              * @param snkVector   Vector of @refitem TransfoVertex.
              */
-            void addJoinVertex(spider::vector<TransfoVertex> &srcVector, spider::vector<TransfoVertex> &snkVector);
+            void addJoinVertex(vector<TransfoVertex> &srcVector, vector<TransfoVertex> &snkVector);
 
             /**
              * @brief Build a vector of @refitem TransfoVertex of the sink clones of a given edge.

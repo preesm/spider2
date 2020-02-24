@@ -56,7 +56,7 @@ namespace spider {
         struct CopyParamVisitor final : public pisdf::DefaultVisitor {
         public:
             CopyParamVisitor(const TransfoJob &job,
-                             spider::vector<std::shared_ptr<pisdf::Param>> &cpyParamVec) :
+                             vector<std::shared_ptr<pisdf::Param>> &cpyParamVec) :
                     job_{ job },
                     copyParamVector_{ cpyParamVec } { };
 
@@ -81,7 +81,7 @@ namespace spider {
 
         private:
             const TransfoJob &job_;
-            spider::vector<std::shared_ptr<pisdf::Param>> &copyParamVector_;
+            vector<std::shared_ptr<pisdf::Param>> &copyParamVector_;
         };
     }
 }

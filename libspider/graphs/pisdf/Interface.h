@@ -78,6 +78,8 @@ namespace spider {
 
             Edge *outputEdge() const;
 
+            Edge *edge() const;
+
             /**
              * @brief Return vertex connected to interface.
              * @remark return source vertex for output IF, sink vertex for input IF
