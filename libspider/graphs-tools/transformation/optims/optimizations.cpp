@@ -42,6 +42,7 @@
 
 #include <graphs-tools/transformation/optims/optimizations.h>
 #include <graphs-tools/transformation/optims/helper/unitaryOptimizer.h>
+#include <graphs-tools/transformation/optims/helper/patternOptimizer.h>
 #include <graphs/pisdf/Edge.h>
 #include <graphs/pisdf/Graph.h>
 #include <api/pisdf-api.h>
@@ -78,7 +79,7 @@ struct EdgeLinker {
  * @param secondFork  Pointer to the secondary vertex.
  * @return pointer to the created Vertex.
  */
-static spider::pisdf::Vertex *createNewFork(spider::pisdf::Vertex *firstFork, spider::pisdf::Vertex *secondFork) {
+static spider::pisdf::Vertex *createNewFork(spider::pisdf::Vertex *secondFork, spider::pisdf::Vertex *firstFork) {
     auto *graph = firstFork->graph();
     const auto &outputCount = static_cast<uint32_t>((firstFork->outputEdgeCount() - 1) +
                                                     secondFork->outputEdgeCount());
@@ -161,76 +162,29 @@ void spider::optims::optimize(spider::pisdf::Graph *graph) {
 }
 
 bool spider::optims::reduceForkFork(pisdf::Graph *graph) {
-    if (!graph) {
-        return false;
-    }
-    auto verticesToOptimize = factory::vector<std::pair<pisdf::Vertex *, pisdf::Vertex *>>(StackID::TRANSFO);
-
-    /* == Search for the pair of fork to optimize == */
-    for (const auto &vertex : graph->vertices()) {
-        if (vertex->subtype() == pisdf::VertexType::FORK && vertex->scheduleTaskIx() == SIZE_MAX) {
-            auto *source = vertex->inputEdge(0)->source();
-            if (source->subtype() == pisdf::VertexType::FORK && source->scheduleTaskIx() == SIZE_MAX) {
-                verticesToOptimize.emplace_back(source, vertex.get());
-            }
-        }
-    }
-
     /* == Do the optimization == */
-    for (auto it = verticesToOptimize.begin(); it != verticesToOptimize.end(); ++it) {
-        auto &pair = (*it);
-        auto *firstFork = pair.first;
-        auto *secondFork = pair.second;
+    return graph && reduceFFJJWorker({ pisdf::VertexType::FORK,
+                                       graph,
+                                       createNewFork,
+                                       &pisdf::Vertex::outputEdge,
+                                       &pisdf::Vertex::inputEdge,
+                                       &pisdf::Edge::setSource,
+                                       &pisdf::Edge::source,
+                                       &pisdf::Edge::sourcePortIx,
+                                       &pisdf::Edge::sourceRateExpression });
+}
 
-        /* == Create the new fork == */
-        auto *newFork = createNewFork(firstFork, secondFork);
-
-        /* === Link the edges === */
-
-        /* == Connect the output edges of the first Fork into the new Fork == */
-        auto secondForkEdgeIx = secondFork->inputEdge(0)->sourcePortIx();
-        for (size_t i = 0; i < secondForkEdgeIx; ++i) {
-            auto *edge = firstFork->outputEdge(i);
-            edge->setSource(newFork, i, edge->sourceRateExpression());
-        }
-
-        /* == Remove the edge between the two Forks == */
-        graph->removeEdge(firstFork->outputEdge(secondForkEdgeIx));
-
-        /* == Connect the output edges of the second fork into the new fork == */
-        for (size_t i = 0; i < secondFork->outputEdgeCount(); ++i) {
-            auto *edge = secondFork->outputEdge(i);
-            edge->setSource(newFork, edge->sourcePortIx() + secondForkEdgeIx, edge->sourceRateExpression());
-        }
-
-        /* == Connect the remaining output edges of the first Fork into the new Fork == */
-        const auto &offset = secondFork->outputEdgeCount() - 1;
-        for (size_t i = secondForkEdgeIx + 1; i < firstFork->outputEdgeCount(); ++i) {
-            auto *edge = firstFork->outputEdge(i);
-            edge->setSource(newFork, edge->sourcePortIx() + offset, edge->sourceRateExpression());
-        }
-
-        /* == Search for the pair to modify (if any) == */
-        for (auto it2 = std::next(it); it2 != std::end(verticesToOptimize); ++it2) {
-            auto &secPair = (*it2);
-            if (secPair.first == firstFork || secPair.first == secondFork) {
-                secPair.first = newFork;
-            }
-            if (secPair.second == firstFork || secPair.second == secondFork) {
-                secPair.second = newFork;
-            }
-        }
-
-        /* == Remove the vertices == */
-        if (log::enabled<log::OPTIMS>()) {
-            log::verbose<log::OPTIMS>("ForkForkOptimizer: removing [%s] and [%s] fork vertices.\n",
-                                      secondFork->name().c_str(), firstFork->name().c_str());
-        }
-        graph->removeVertex(secondFork);
-        graph->removeVertex(firstFork);
-    }
-
-    return verticesToOptimize.empty();
+bool spider::optims::reduceJoinJoin(pisdf::Graph *graph) {
+    /* == Do the optimization == */
+    return graph && reduceFFJJWorker({ pisdf::VertexType::JOIN,
+                                       graph,
+                                       createNewJoin,
+                                       &pisdf::Vertex::inputEdge,
+                                       &pisdf::Vertex::outputEdge,
+                                       &pisdf::Edge::setSink,
+                                       &pisdf::Edge::sink,
+                                       &pisdf::Edge::sinkPortIx,
+                                       &pisdf::Edge::sinkRateExpression });
 }
 
 bool spider::optims::reduceJoinFork(pisdf::Graph *graph) {
@@ -336,78 +290,6 @@ bool spider::optims::reduceJoinFork(pisdf::Graph *graph) {
                 }
             }
         }
-    }
-    return verticesToOptimize.empty();
-}
-
-bool spider::optims::reduceJoinJoin(pisdf::Graph *graph) {
-    if (!graph) {
-        return false;
-    }
-    auto verticesToOptimize = factory::vector<std::pair<pisdf::Vertex *, pisdf::Vertex *>>(StackID::TRANSFO);
-
-    /* == Search for the pair of fork to optimize == */
-    for (auto &vertex : graph->vertices()) {
-        if (vertex->subtype() == pisdf::VertexType::JOIN && vertex->scheduleTaskIx() == SIZE_MAX) {
-            auto *sink = vertex->outputEdge(0)->sink();
-            if (sink->subtype() == pisdf::VertexType::JOIN && sink->scheduleTaskIx() == SIZE_MAX) {
-                verticesToOptimize.emplace_back(vertex.get(), sink);
-            }
-        }
-    }
-
-    /* == Do the optimization == */
-    for (auto it = verticesToOptimize.begin(); it != verticesToOptimize.end(); ++it) {
-        auto &pair = (*it);
-        auto *firstJoin = pair.first;
-        auto *secondJoin = pair.second;
-
-        /* == Create the new join == */
-        auto *newJoin = createNewJoin(firstJoin, secondJoin);
-
-        /* === Link the edges === */
-
-        /* == Connect the output edges of the first Join into the new Join == */
-        auto firstJoinEdgeIx = firstJoin->outputEdge(0)->sinkPortIx();
-        for (size_t i = 0; i < firstJoinEdgeIx; ++i) {
-            auto *edge = secondJoin->inputEdge(i);
-            edge->setSink(newJoin, i, edge->sinkRateExpression());
-        }
-
-        /* == Remove the edge between the two Joins == */
-        graph->removeEdge(secondJoin->inputEdge(firstJoinEdgeIx));
-
-        /* == Connect the input edges of the first join into the new join == */
-        for (size_t i = 0; i < firstJoin->inputEdgeCount(); ++i) {
-            auto *edge = firstJoin->inputEdge(i);
-            edge->setSink(newJoin, edge->sinkPortIx() + firstJoinEdgeIx, edge->sinkRateExpression());
-        }
-
-        /* == Connect the remaining output edges of the first Join into the new Join == */
-        const auto offset = firstJoin->inputEdgeCount() - 1;
-        for (size_t i = firstJoinEdgeIx + 1; i < secondJoin->inputEdgeCount(); ++i) {
-            auto *edge = secondJoin->inputEdge(i);
-            edge->setSink(newJoin, edge->sinkPortIx() + offset, edge->sinkRateExpression());
-        }
-
-        /* == Search for the pair to modify (if any) == */
-        for (auto it2 = std::next(it); it2 != std::end(verticesToOptimize); ++it2) {
-            auto &secPair = (*it2);
-            if (secPair.first == firstJoin || secPair.first == secondJoin) {
-                secPair.first = newJoin;
-            }
-            if (secPair.second == firstJoin || secPair.second == secondJoin) {
-                secPair.second = newJoin;
-            }
-        }
-
-        /* == Remove the vertices == */
-        if (log::enabled<log::OPTIMS>()) {
-            log::verbose<log::OPTIMS>("JoinJoinOptimizer: removing [%s] and [%s] join vertices.\n",
-                                      firstJoin->name().c_str(), secondJoin->name().c_str());
-        }
-        graph->removeVertex(firstJoin);
-        graph->removeVertex(secondJoin);
     }
     return verticesToOptimize.empty();
 }
