@@ -196,8 +196,8 @@ void spider::JITMSRTRunner::run(bool infiniteLoop) {
             LOG_END_ITER();
             /* == Send FINISHED_ITERATION notification to GRT == */
             Notification notification{ NotificationType::LRT_FINISHED_ITERATION, ix() };
-            const auto *target = archi::platform()->spiderGRTPE()->attachedLRT();
-            rt::platform()->communicator()->push(notification, target->virtualIx());
+            const auto *grt = archi::platform()->spiderGRTPE()->attachedLRT();
+            rt::platform()->communicator()->push(notification, grt->virtualIx());
             if (shouldBroadcast_) {
                 shouldBroadcast_ = false;
                 broadcastCurrentJobStamp();
@@ -205,6 +205,9 @@ void spider::JITMSRTRunner::run(bool infiniteLoop) {
             jobQueueCurrentPos_ = 0;
             jobQueue_.clear();
             jobCount_ = 0;
+            /* == Reset state == */
+            start_ = false;
+            end_ = true;
         }
     }
 }
@@ -287,8 +290,19 @@ bool spider::JITMSRTRunner::readNotification(bool blocking) {
     }
     switch (notification.type_) {
         case NotificationType::LRT_START_ITERATION:
+            if (!end_) {
+                /* == push back notification until we finished previous iteration == */
+                Notification startNotification{ NotificationType::LRT_START_ITERATION, ix() };
+                rt::platform()->communicator()->push(startNotification, ix());
+            } else {
+                start_ = true;
+            }
             break;
         case NotificationType::LRT_END_ITERATION:
+            if (!start_) {
+                throwSpiderException("Runner #%zu -> received LRT_END_ITERATION before LRT_START_ITERATION.", ix());
+            }
+            end_ = false;
             break;
         case NotificationType::LRT_REPEAT_ITERATION_EN:
             break;

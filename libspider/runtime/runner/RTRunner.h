@@ -91,6 +91,8 @@ namespace spider {
         size_t runnerIx_{ SIZE_MAX };
         size_t jobQueueCurrentPos_{ 0 };
         i32 affinity_{ -1 };
+        bool start_{ false };
+        bool end_{ true };
         bool stop_{ false };
         bool pause_{ false };
         bool trace_{ false };
