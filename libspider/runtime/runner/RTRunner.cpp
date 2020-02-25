@@ -50,6 +50,16 @@
 #include <archi/PE.h>
 #include <containers/array_handle.h>
 
+/* === Define(s) === */
+
+#define LOG_NOTIFY() \
+    if (log::enabled<log::LRT>()) {\
+        log::info<log::LRT>("Runner #%zu -> notifying runner #%zu\n"\
+                            "Runner #%zu -> sent job stamp: %zu\n",\
+                            ix(), lrtIx,\
+                            ix(), jobIx);\
+    }
+
 /* === Function(s) definition === */
 
 spider::RTRunner::RTRunner(PE *attachedPe, size_t runnerIx, i32 affinity) : jobQueue_{ sbc::vector < JobMessage,
@@ -87,12 +97,7 @@ void spider::RTRunner::sendJobStampNotification(bool *notificationFlags, size_t 
                                                      ix(),
                                                      jobIx };
             rt::platform()->communicator()->push(updateJobStampNotification, lrtIx);
-            if (log::enabled<log::LRT>()) {
-                log::info<log::LRT>("Runner #%zu -> notifying runner #%zu\n"
-                                    "Runner #%zu -> sent job stamp: %zu\n",
-                                    ix(), lrtIx,
-                                    ix(), jobIx);
-            }
+            LOG_NOTIFY();
         }
         lrtIx++;
     }
