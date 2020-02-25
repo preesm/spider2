@@ -46,7 +46,7 @@
 
 /* === Static constant(s) === */
 
-static constexpr size_t MAX_LENGTH = 30;
+static constexpr size_t MAX_LENGTH = 40;
 
 /* === Function(s) definition === */
 
@@ -247,7 +247,7 @@ void spider::pisdf::PiSDFDOTExporterVisitor::vertexPrinter(Vertex *vertex) const
     /* == Get widths == */
     const auto digitCount = computeMaxDigitCount(vertex);
     const auto rateWidth = 32 + std::max(digitCount - 2, ifast32{0}) * 8;
-    const auto nameWidth = static_cast<ifast32>(std::min(vertex->name().size(), MAX_LENGTH) * 16);
+    const auto nameWidth = static_cast<ifast32>(std::min(vertex->name().length(), MAX_LENGTH) * 16);
     const auto centerWidth = 20 + std::max(nameWidth - (2 * 20 + 2 * rateWidth), ifast32{0});
 
     /* == Export data ports == */
@@ -316,7 +316,7 @@ spider::pisdf::PiSDFDOTExporterVisitor::interfaceBodyPrinter(Interface *interfac
     /* == Get widths == */
     const auto &digitCount = computeMaxDigitCount(interface);
     const auto &rateWidth = 24 + digitCount * 6;
-    const auto &nameWidth = static_cast<int_fast32_t >(std::min(interface->name().size(), MAX_LENGTH) * 16);
+    const auto &nameWidth = static_cast<int_fast32_t >(std::min(interface->name().length(), MAX_LENGTH) * 16);
     const auto balanceWidth = std::max((nameWidth - (2 * rateWidth + 20)) / 2, ifast32{20});
 
     auto *inputEdge = interface->inputEdge();

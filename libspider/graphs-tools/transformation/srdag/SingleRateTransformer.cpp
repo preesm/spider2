@@ -152,7 +152,7 @@ void spider::srdag::SingleRateTransformer::replaceInterfaces() {
         if (isInterfaceTransparent(job_, interface.get())) {
             ref2Clone_[ix] = edge->source()->ix();
         } else {
-            auto &&name = instance->name() + "_" + interface->name();
+            auto &&name = instance->name() + "::" + interface->name();
             auto *vertex = api::createRepeat(srdag_, std::move(name));
             edge->setSink(vertex, 0, Expression(edge->sinkRateExpression()));
             ref2Clone_[ix] = vertex->ix();
@@ -166,7 +166,7 @@ void spider::srdag::SingleRateTransformer::replaceInterfaces() {
         if (isInterfaceTransparent(job_, interface.get())) {
             ref2Clone_[ix] = edge->sink()->ix();
         } else {
-            auto &&name = instance->name() + "_" + interface->name();
+            auto &&name = instance->name() + "::" + interface->name();
             auto *vertex = api::createTail(srdag_, std::move(name), 1);
             edge->setSource(vertex, 0, Expression(edge->sourceRateExpression()));
             ref2Clone_[ix] = vertex->ix();
@@ -282,7 +282,7 @@ void spider::srdag::SingleRateTransformer::singleRateLinkage(pisdf::Edge *edge) 
 void spider::srdag::SingleRateTransformer::computeDependencies(pisdf::Edge *edge,
                                                                vector<TransfoVertex> &srcVector,
                                                                vector<TransfoVertex> &snkVector) {
-    auto &&delay = edge->delay() ? edge->delay()->value(job_.params_) : 0;
+    auto &&delay = edge->delay() ? edge->delay()->value() : 0;
     const auto srcRate = srcVector[0].rate_;     /* = This should be the proper source rate of the edge = */
     const auto snkRate = snkVector.back().rate_; /* = This should be the proper sink rate of the edge = */
     const auto getterRate = edge->delay() ? snkVector[0].rate_ : 0;
@@ -349,7 +349,7 @@ void spider::srdag::SingleRateTransformer::connectSpecialActor(pisdf::Vertex *ve
 void spider::srdag::SingleRateTransformer::addForkVertex(vector<TransfoVertex> &srcVector,
                                                          vector<TransfoVertex> &snkVector) {
     const auto &sourceLinker = srcVector.back();
-    auto name = std::string("fork-").append(sourceLinker.vertex_->name()).append("_out--").append(
+    auto name = std::string("fork::").append(sourceLinker.vertex_->name()).append("::out::").append(
             std::to_string(sourceLinker.portIx_));
     auto *fork = api::createFork(srdag_, std::move(name), (sourceLinker.upperDep_ - sourceLinker.lowerDep_) + 1);
 
@@ -376,7 +376,7 @@ void spider::srdag::SingleRateTransformer::addForkVertex(vector<TransfoVertex> &
 void spider::srdag::SingleRateTransformer::addJoinVertex(vector<TransfoVertex> &srcVector,
                                                          vector<TransfoVertex> &snkVector) {
     const auto &sinkLinker = snkVector.back();
-    auto name = std::string("join-").append(sinkLinker.vertex_->name()).append("_in--").append(
+    auto name = std::string("join::").append(sinkLinker.vertex_->name()).append("::in::").append(
             std::to_string(sinkLinker.portIx_));
     auto *join = api::createJoin(srdag_, std::move(name), (sinkLinker.upperDep_ - sinkLinker.lowerDep_) + 1);
 
@@ -407,11 +407,11 @@ spider::srdag::SingleRateTransformer::buildSinkLinkerVector(pisdf::Edge *edge) {
     if (delay) {
         const auto &params = job_.params_;
         if ((sink == edge->source()) &&
-            delay->value(params) < edge->sinkRateExpression().evaluate(params)) {
+            delay->value() < edge->sinkRateExpression().evaluate(params)) {
             throwSpiderException("Insufficient delay [%"
                                          PRIu32
                                          "] on edge [%s].",
-                                 delay->value(params),
+                                 delay->value(),
                                  edge->name().c_str());
         }
         const auto *delayVertex = delay->vertex();
@@ -422,7 +422,7 @@ spider::srdag::SingleRateTransformer::buildSinkLinkerVector(pisdf::Edge *edge) {
             populateFromDelayVertex(sinkVector, outputEdge, true);
         } else {
             /* == 1.2 Connect to the clone == */
-            populateTransfoVertexVector(sinkVector, delay->vertex(), delay->value(params), 1);
+            populateTransfoVertexVector(sinkVector, delay->vertex(), delay->value(), 1);
         }
     }
 
@@ -482,7 +482,6 @@ spider::srdag::SingleRateTransformer::buildSourceLinkerVector(pisdf::Edge *edge)
 
     /* == 2. If delay, populate the setter clones in reverse order == */
     if (delay) {
-        const auto &params = job_.params_;
         const auto *delayVertex = delay->vertex();
         auto *delayClone = srdag_->vertex(ref2Clone_[delayVertex->ix()]);
         auto *inputEdge = delayClone->inputEdge(0);
@@ -491,7 +490,7 @@ spider::srdag::SingleRateTransformer::buildSourceLinkerVector(pisdf::Edge *edge)
             populateFromDelayVertex(sourceVector, inputEdge, false);
         } else {
             /* == 2.2 Connect to the clone == */
-            populateTransfoVertexVector(sourceVector, delay->vertex(), delay->value(params), 1);
+            populateTransfoVertexVector(sourceVector, delay->vertex(), delay->value(), 1);
         }
     }
 

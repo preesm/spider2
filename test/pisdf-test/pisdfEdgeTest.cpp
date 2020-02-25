@@ -103,7 +103,7 @@ TEST_F(pisdEdgeTest, edgeTest) {
     ASSERT_NO_THROW(edge->setSink(v1, 0, spider::Expression())) << "Edge::setSource() should not throw on valid call.";
 
     ASSERT_EQ(edge->delay(), nullptr) << "delay should be nullptr on init.";
-    auto *delay = spider::make<spider::pisdf::Delay, StackID::PISDF>(spider::Expression(10), edge, setter, 0,
+    auto *delay = spider::make<spider::pisdf::Delay, StackID::PISDF>(10, edge, setter, 0,
                                                                      spider::Expression(), getter, 0,
                                                                      spider::Expression());
     ASSERT_EQ(edge->delay(), delay) << "delay should be set automatically on Edge.";

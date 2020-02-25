@@ -51,10 +51,10 @@
 
 /* === Method(s) implementation === */
 
-spider::pisdf::Delay::Delay(Expression expression, Edge *edge,
+spider::pisdf::Delay::Delay(int64_t value, Edge *edge,
                             Vertex *setter, size_t setterPortIx, Expression setterRateExpression,
                             Vertex *getter, size_t getterPortIx, Expression getterRateExpression,
-                            bool persistent) : expression_{ std::move(expression) },
+                            bool persistent) : value_{ value },
                                                edge_{ edge },
                                                setter_{ setter },
                                                setterPortIx_{ setterPortIx },
@@ -70,18 +70,26 @@ spider::pisdf::Delay::Delay(Expression expression, Edge *edge,
         throwSpiderException("Persistent delay on edge [%s] can not have setter nor getter.", edge->name().c_str());
     }
 
+    auto persistentParam = api::createStaticParam(edge->graph(), "delay::" + edge->name() + "::persistence",
+                                                  persistent);
+    auto sizeParam = api::createStaticParam(edge->graph(), "delay::" + edge->name() + "::size", value);
+
     /* == If no setter is provided then an INIT is created == */
     if (!setter_) {
         setterPortIx_ = 0; /* = Ensure the proper value of the port ix = */
         setter_ = api::createInit(edge->graph(),
-                                  "init-" + edge->sink()->name() + "_" + std::to_string(edge->sinkPortIx()));
+                                  "init::" + edge->sink()->name() + ":" + std::to_string(edge->sinkPortIx()));
+        setter_->addRefinementParameter(persistentParam);
+        setter_->addRefinementParameter(sizeParam);
     }
 
     /* == If no getter is provided then an END is created == */
     if (!getter_) {
         getterPortIx_ = 0; /* = Ensure the proper value of the port ix = */
         getter_ = api::createEnd(edge->graph(),
-                                 "end-" + edge->source()->name() + "_" + std::to_string(edge->sourcePortIx()));
+                                 "end::" + edge->source()->name() + ":" + std::to_string(edge->sourcePortIx()));
+        getter_->addRefinementParameter(persistentParam);
+        getter_->addRefinementParameter(sizeParam);
     }
 
     /* == Create virtual vertex and connect it to setter / getter == */
@@ -89,8 +97,8 @@ spider::pisdf::Delay::Delay(Expression expression, Edge *edge,
     edge->graph()->addVertex(vertex_);
 
     auto *setterEdge = make<Edge, StackID::PISDF>(setter_, setterPortIx_, std::move(setterRateExpression),
-                                                  vertex_, 0u, expression_);
-    auto *getterEdge = make<Edge, StackID::PISDF>(vertex_, 0u, expression_,
+                                                  vertex_, 0u, Expression(value));
+    auto *getterEdge = make<Edge, StackID::PISDF>(vertex_, 0u, Expression(value),
                                                   getter_, getterPortIx_, std::move(getterRateExpression));
 
     /* == Add things to the graph == */
@@ -100,16 +108,22 @@ spider::pisdf::Delay::Delay(Expression expression, Edge *edge,
 }
 
 std::string spider::pisdf::Delay::name() const {
-    return "delay-" +
-           edge_->source()->name() + "_" + std::to_string(edge_->sourcePortIx()) + "--" +
-           edge_->sink()->name() + "_" + std::to_string(edge_->sinkPortIx());
+    return "delay::" +
+           edge_->source()->name() + ":" + std::to_string(edge_->sourcePortIx()) + "--" +
+           edge_->sink()->name() + ":" + std::to_string(edge_->sinkPortIx());
 }
 
 
 int64_t spider::pisdf::Delay::value() const {
-    return expression_.evaluate();
+    return value_;
 }
 
-int64_t spider::pisdf::Delay::value(const spider::vector<std::shared_ptr<Param>> &params) const {
-    return expression_.evaluate(params);
+void spider::pisdf::Delay::setMemoryAddress(uint64_t address) {
+    if (persistent_) {
+        return;
+    }
+    if (memoryAddress_ != UINT64_MAX && log::enabled()) {
+        spider::log::warning("Delay [%s] already has a memory address.\n", name().c_str());
+    }
+    memoryAddress_ = address;
 }

@@ -496,53 +496,58 @@ spider::pisdf::Edge *spider::api::createEdge(pisdf::Vertex *source,
 
 }
 
-static spider::Expression checkAndGetExpression(spider::pisdf::Edge *edge, std::string delayExpression) {
+static int64_t checkAndGetValue(spider::pisdf::Edge *edge, std::string delayExpression) {
     if (!edge) {
-        throwSpiderException("Can not create Edge on nullptr edge.");
+        throwSpiderException("Can not create Delay on nullptr edge.");
     }
     auto *graph = edge->graph();
     auto expression = spider::Expression(std::move(delayExpression), graph->params());
     if (expression.dynamic()) {
-        throwSpiderException("Spider 2.0 does not yet support dynamic delay.");
+        throwSpiderException("Spider 2.0 does not support dynamic delays.");
     }
-    return expression;
+    return expression.value();
 }
 
-spider::pisdf::Delay *spider::api::createPersistentDelay(spider::pisdf::Edge *edge, std::string delayExpression) {
-    auto expression = checkAndGetExpression(edge, std::move(delayExpression));
-    if (expression.value() == 0 && spider::log::enabled()) {
-        spider::log::warning("delay with null value on edge [%s] ignored.\n",
-                             edge->name().c_str());
-        return nullptr;
-    }
+static spider::pisdf::Delay *forwardDelayToTop(spider::pisdf::Edge *edge, const int64_t value, ifast32 level) {
+    using namespace spider;
     auto *graph = edge->graph();
-    const auto value = expression.value();
-    while (!graph->isTopGraph()) {
-        /* == We need to make it persist up to the top-level == */
+    ifast32 currentLevel = 0;
+    while (!graph->isTopGraph() && (currentLevel < level)) {
         /* == 0. Creates the interfaces == */
-        auto *input = make<pisdf::Interface, StackID::PISDF>(pisdf::VertexType::INPUT, "in_" + edge->name());
-        auto *output = make<pisdf::Interface, StackID::PISDF>(pisdf::VertexType::OUTPUT, "out_" + edge->name());
+        auto *input = make<pisdf::Interface, StackID::PISDF>(pisdf::VertexType::INPUT, "in::" + edge->name());
+        auto *output = make<pisdf::Interface, StackID::PISDF>(pisdf::VertexType::OUTPUT, "out::" + edge->name());
         graph->addInputInterface(input);
         graph->addOutputInterface(output);
 
         /* == 1. Connect the delay to the edge and the interfaces == */
-        make<pisdf::Delay, StackID::PISDF>(Expression(value), edge,
+        make<pisdf::Delay, StackID::PISDF>(value, edge,
                                            input, 0u, Expression(value),
                                            output, 0u, Expression(value),
                                            false);
 
         /* == 2. Creates the edge around the graph == */
-        edge = make<pisdf::Edge, StackID::PISDF>(graph, graph->outputEdgeCount() - 1, Expression(value),
-                                                 graph, graph->inputEdgeCount() - 1, Expression(value));
+        edge = make<pisdf::Edge, StackID::PISDF>(graph, output->ix(), Expression(value),
+                                                 graph, input->ix(), Expression(value));
 
         /* == 3. Update the current graph == */
         graph = graph->graph();
         graph->addEdge(edge);
+        currentLevel++;
     }
-    return make<pisdf::Delay, StackID::PISDF>(std::move(expression), edge,
+    return make<pisdf::Delay, StackID::PISDF>(value, edge,
                                               nullptr, 0u, Expression(value),
                                               nullptr, 0u, Expression(value),
-                                              true);
+                                              graph->isTopGraph());
+}
+
+spider::pisdf::Delay *spider::api::createPersistentDelay(pisdf::Edge *edge, std::string delayExpression) {
+    const auto value = checkAndGetValue(edge, std::move(delayExpression));
+    if (!value && spider::log::enabled()) {
+        spider::log::warning("delay with null value on edge [%s] ignored.\n",
+                             edge->name().c_str());
+        return nullptr;
+    }
+    return forwardDelayToTop(edge, value, INT32_MAX);
 }
 
 spider::pisdf::Delay *spider::api::createLocalPersistentDelay(pisdf::Edge *edge,
@@ -551,43 +556,13 @@ spider::pisdf::Delay *spider::api::createLocalPersistentDelay(pisdf::Edge *edge,
     if (levelCount < 0) {
         return createPersistentDelay(edge, std::move(delayExpression));
     }
-    auto expression = checkAndGetExpression(edge, std::move(delayExpression));
-    if (expression.value() == 0 && spider::log::enabled()) {
+    const auto value = checkAndGetValue(edge, std::move(delayExpression));
+    if (!value && spider::log::enabled()) {
         spider::log::warning("delay with null value on edge [%s] ignored.\n",
                              edge->name().c_str());
         return nullptr;
     }
-    int_fast32_t currentLevelCount = 0;
-    auto *graph = edge->graph();
-    const auto value = expression.value();
-    while ((currentLevelCount < levelCount) && !graph->isTopGraph()) {
-        /* == 0. Creates the interfaces == */
-        auto *input = make<pisdf::Interface, StackID::PISDF>(pisdf::VertexType::INPUT, "in_" + edge->name());
-        auto *output = make<pisdf::Interface, StackID::PISDF>(pisdf::VertexType::OUTPUT, "out_" + edge->name());
-        graph->addInputInterface(input);
-        graph->addOutputInterface(output);
-
-        /* == 1. Connect the delay to the edge and the interfaces == */
-        make<pisdf::Delay, StackID::PISDF>(Expression(value), edge,
-                                           input, 0u, Expression(value),
-                                           output, 0u, Expression(value),
-                                           false);
-
-        /* == 2. Creates the edge around the graph == */
-        edge = make<pisdf::Edge, StackID::PISDF>(graph, graph->outputEdgeCount() - 1, Expression(value),
-                                                 graph, graph->inputEdgeCount() - 1, Expression(value));
-
-        /* == 3. Update the current graph == */
-        graph = graph->graph();
-        graph->addEdge(edge);
-
-        currentLevelCount++;
-    }
-    bool persistent = graph->isTopGraph();
-    return make<pisdf::Delay, StackID::PISDF>(std::move(expression), edge,
-                                              nullptr, 0u, Expression(value),
-                                              nullptr, 0u, Expression(value),
-                                              persistent);
+    return forwardDelayToTop(edge, value, levelCount);
 }
 
 spider::pisdf::Delay *spider::api::createLocalDelay(pisdf::Edge *edge,
@@ -598,15 +573,15 @@ spider::pisdf::Delay *spider::api::createLocalDelay(pisdf::Edge *edge,
                                                     pisdf::ExecVertex *getter,
                                                     size_t getterPortIx,
                                                     std::string getterRateExpression) {
-    auto expression = checkAndGetExpression(edge, std::move(delayExpression));
-    if (expression.value() == 0 && spider::log::enabled()) {
+    const auto value = checkAndGetValue(edge, std::move(delayExpression));
+    if (!value && spider::log::enabled()) {
         spider::log::warning("delay with null value on edge [%s] ignored.\n",
                              edge->name().c_str());
         return nullptr;
     }
-    auto setterExpr = setter ? std::move(setterRateExpression) : std::to_string(expression.value());
-    auto getterExpr = getter ? std::move(getterRateExpression) : std::to_string(expression.value());
-    return make<pisdf::Delay, StackID::PISDF>(std::move(expression), edge,
+    auto setterExpr = setter ? std::move(setterRateExpression) : std::to_string(value);
+    auto getterExpr = getter ? std::move(getterRateExpression) : std::to_string(value);
+    return make<pisdf::Delay, StackID::PISDF>(value, edge,
                                               setter,
                                               setterPortIx,
                                               Expression(std::move(setterExpr), edge->graph()->params()),

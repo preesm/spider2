@@ -56,7 +56,7 @@ void spider::srdag::SRDAGCopyVertexVisitor::visit(pisdf::ExecVertex *vertex) {
          *                               A -> |       | -> B
          *    But in reality the vertex does not make it after the SR-Transformation.
          */
-        api::createVertex(srdag_, std::move(buildCloneName(vertex).append("0")), 2, 2);
+        api::createVertex(srdag_, std::move(buildCloneName(vertex).append("(0)")), 2, 2);
         ix_ = srdag_->vertexCount() - 1;
     } else {
         makeClone(vertex);
@@ -69,7 +69,7 @@ void spider::srdag::SRDAGCopyVertexVisitor::visit(pisdf::Graph *graph) {
     auto name = buildCloneName(graph);
     for (uint32_t it = 0; it < graph->repetitionValue(); ++it) {
         auto *clone = api::createNonExecVertex(srdag_,
-                                               name + std::to_string(it),
+                                               name + std::to_string(it) + ")",
                                                static_cast<uint32_t>(graph->inputEdgeCount()),
                                                static_cast<uint32_t>(graph->outputEdgeCount()));
         clone->setRepetitionValue(graph->repetitionValue());
@@ -83,16 +83,16 @@ void spider::srdag::SRDAGCopyVertexVisitor::visit(pisdf::Graph *graph) {
 
 std::string spider::srdag::SRDAGCopyVertexVisitor::buildCloneName(const pisdf::Vertex *vertex) const {
     if (job_.root_) {
-        return std::string(vertex->name()).append("-");
+        return std::string(vertex->name()).append("(");
     }
-    return std::string(srdag_->vertex(*(job_.srdagIx_))->name()).append(":").append(vertex->name()).append("-");
+    return std::string(srdag_->vertex(*(job_.srdagIx_))->name()).append(":").append(vertex->name()).append("(");
 }
 
 void spider::srdag::SRDAGCopyVertexVisitor::makeClone(pisdf::Vertex *vertex) {
     auto name = buildCloneName(vertex);
     for (uint32_t it = 0; it < vertex->repetitionValue(); ++it) {
         auto *clone = make<pisdf::ExecVertex, StackID::PISDF>(vertex->subtype(),
-                                                              name + std::to_string(it),
+                                                              name + std::to_string(it) + ")",
                                                               vertex->inputEdgeCount(),
                                                               vertex->outputEdgeCount());
 

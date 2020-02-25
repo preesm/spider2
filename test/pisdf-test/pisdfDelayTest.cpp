@@ -79,14 +79,14 @@ protected:
 };
 
 TEST_F(pisdfDelayTest, delayCtorTest0) {
-    ASSERT_THROW(spider::pisdf::Delay(spider::Expression(), nullptr, nullptr, 0, spider::Expression(), nullptr, 0,
+    ASSERT_THROW(spider::pisdf::Delay(0, nullptr, nullptr, 0, spider::Expression(), nullptr, 0,
                                       spider::Expression()), spider::Exception)
                                 << "Delay() should throw with nullptr edge.";
 }
 
 TEST_F(pisdfDelayTest, delayCtorTest1) {
     auto *setter = dynamic_cast<spider::pisdf::ExecVertex *>(graph_->vertex(2));
-    ASSERT_NO_THROW((spider::make<spider::pisdf::Delay, StackID::PISDF>(spider::Expression(),
+    ASSERT_NO_THROW((spider::make<spider::pisdf::Delay, StackID::PISDF>(0,
                                                                         edge_,
                                                                         setter, 0,
                                                                         spider::Expression(),
@@ -98,7 +98,7 @@ TEST_F(pisdfDelayTest, delayCtorTest1) {
 
 TEST_F(pisdfDelayTest, delayCtorTest2) {
     auto *getter = dynamic_cast<spider::pisdf::ExecVertex *>(graph_->vertex(3));
-    ASSERT_THROW((spider::make_unique<spider::pisdf::Delay, StackID::PISDF>(spider::Expression(),
+    ASSERT_THROW((spider::make_unique<spider::pisdf::Delay, StackID::PISDF>(0,
                                                                             edge_,
                                                                             nullptr, 0,
                                                                             spider::Expression(),
@@ -108,7 +108,7 @@ TEST_F(pisdfDelayTest, delayCtorTest2) {
                  spider::Exception)
                                 << "Delay::Delay() should fail. Persistent delays can not have getter nor setter.";
     auto *setter = dynamic_cast<spider::pisdf::ExecVertex *>(graph_->vertex(2));
-    ASSERT_THROW((spider::make_unique<spider::pisdf::Delay, StackID::PISDF>(spider::Expression(),
+    ASSERT_THROW((spider::make_unique<spider::pisdf::Delay, StackID::PISDF>(0,
                                                                             edge_,
                                                                             setter, 0,
                                                                             spider::Expression(),
@@ -122,7 +122,7 @@ TEST_F(pisdfDelayTest, delayCtorTest2) {
 TEST_F(pisdfDelayTest, delayCtorTest3) {
     auto *setter = dynamic_cast<spider::pisdf::ExecVertex *>(graph_->vertex(2));
     auto *getter = dynamic_cast<spider::pisdf::ExecVertex *>(graph_->vertex(3));
-    ASSERT_NO_THROW((spider::make<spider::pisdf::Delay, StackID::PISDF>(spider::Expression(),
+    ASSERT_NO_THROW((spider::make<spider::pisdf::Delay, StackID::PISDF>(0,
                                                                         edge_,
                                                                         setter, 0,
                                                                         spider::Expression(),
@@ -130,7 +130,7 @@ TEST_F(pisdfDelayTest, delayCtorTest3) {
                                                                         0,
                                                                         spider::Expression())))
                                 << "Delay::Delay() should not throw with valid parameters.";
-    ASSERT_THROW((spider::pisdf::Delay(spider::Expression(), edge_, setter, 0, spider::Expression(), getter, 0,
+    ASSERT_THROW((spider::pisdf::Delay(0, edge_, setter, 0, spider::Expression(), getter, 0,
                                       spider::Expression())), spider::Exception)
                                 << "Delay::Delay() should throw. Edge can only have one Delay.";
 }
@@ -139,7 +139,7 @@ TEST_F(pisdfDelayTest, delayValueNameTest) {
     auto *setter = dynamic_cast<spider::pisdf::ExecVertex *>(graph_->vertex(2));
     auto *getter = dynamic_cast<spider::pisdf::ExecVertex *>(graph_->vertex(3));
     spider::pisdf::Delay *delay = nullptr;
-    ASSERT_NO_THROW((delay = spider::make<spider::pisdf::Delay, StackID::PISDF>(spider::Expression(10),
+    ASSERT_NO_THROW((delay = spider::make<spider::pisdf::Delay, StackID::PISDF>(10,
                                                                                 edge_,
                                                                                 setter, 0,
                                                                                 spider::Expression(),
@@ -148,9 +148,9 @@ TEST_F(pisdfDelayTest, delayValueNameTest) {
                                                                                 spider::Expression())))
                                 << "Delay::Delay() should not throw with valid parameters.";
     ASSERT_EQ(delay->value(), 10) << "Delay::value() error. Value should be 10";
-    ASSERT_EQ(delay->name(), "delay-" +
-                             edge_->source()->name() + "_" + std::to_string(edge_->sourcePortIx()) + "--" +
-                             edge_->sink()->name() + "_" + std::to_string(edge_->sinkPortIx()))
+    ASSERT_EQ(delay->name(), "delay::" +
+                             edge_->source()->name() + ":" + std::to_string(edge_->sourcePortIx()) + "--" +
+                             edge_->sink()->name() + ":" + std::to_string(edge_->sinkPortIx()))
                                 << "Delay::name() error.";
     ASSERT_EQ(delay->edge(), edge_) << "Delay::edge() failed.";
     ASSERT_EQ(delay->setter(), setter) << "Delay::setter() failed.";
@@ -165,17 +165,4 @@ TEST_F(pisdfDelayTest, delayValueNameTest) {
     ASSERT_EQ(delay->memoryAddress(), 0) << "Delay::memoryAddress() failed.";
     ASSERT_EQ(delay->isPersistent(), false) << "Delay::isPersistent() failed.";
     ASSERT_NE(delay->vertex(), nullptr) << "Delay::vertex() should not return nullptr.";
-}
-
-TEST_F(pisdfDelayTest, delayValueTest) {
-    graph_->addParam(spider::make_shared<spider::pisdf::DynamicParam, StackID::PISDF>("width"));
-    auto *delay2 = spider::make<spider::pisdf::Delay, StackID::PISDF>(spider::Expression("10width",
-                                                                                         graph_->params()),
-
-                                                                      edge_, nullptr, 0,
-                                                                      spider::Expression(), nullptr,
-                                                                      0, spider::Expression(), true);
-    ASSERT_EQ(delay2->isPersistent(), true) << "Delay::isPersistent() failed.";
-    graph_->param(0)->setValue(10);
-    ASSERT_EQ(delay2->value(graph_->params()), 100) << "delay value failed";
 }

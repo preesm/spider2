@@ -124,12 +124,15 @@ TEST_F(srdagTest, srdagFlatDelayTest) {
     auto *graph = spider::api::createGraph("topgraph", 2, 1);
     auto *vertex_0 = spider::api::createVertex(graph, "vertex_0", 0, 1);
     auto *vertex_1 = spider::api::createVertex(graph, "vertex_1", 1);
-    spider::srdag::TransfoJob rootJob{ graph, UINT32_MAX, UINT32_MAX, true };
     auto *edge = spider::api::createEdge(vertex_0, 0, 1, vertex_1, 0, 1);
     spider::api::createPersistentDelay(edge, "1");
     auto *srdag = spider::api::createGraph("srdag");
-    ASSERT_NO_THROW(spider::srdag::singleRateTransformation(rootJob, srdag));
-    ASSERT_NO_THROW(spider::api::exportGraphToDOT(srdag, "srdag.dot"));
+    {
+        spider::srdag::TransfoJob rootJob{ graph, UINT32_MAX, UINT32_MAX, true };
+        rootJob.params_ = graph->params();
+        ASSERT_NO_THROW(spider::srdag::singleRateTransformation(rootJob, srdag));
+        ASSERT_NO_THROW(spider::api::exportGraphToDOT(srdag, "srdag.dot"));
+    }
     /*
      * init -> vertex_1
      * vertex_0 -> end
@@ -144,7 +147,6 @@ TEST_F(srdagTest, srdagFlatDelayTest1) {
     auto *graph = spider::api::createGraph("topgraph", 2, 3);
     auto *vertex_0 = spider::api::createVertex(graph, "vertex_0", 0, 3);
     auto *vertex_1 = spider::api::createVertex(graph, "vertex_1", 3);
-    spider::srdag::TransfoJob rootJob{ graph, UINT32_MAX, UINT32_MAX, true };
     spider::api::createEdge(vertex_0, 0, 1, vertex_1, 0, 1);
     spider::api::createEdge(vertex_0, 1, 1, vertex_1, 1, 1);
     auto *edge = spider::api::createEdge(vertex_0, 2, 1, vertex_1, 2, 1);
@@ -154,8 +156,12 @@ TEST_F(srdagTest, srdagFlatDelayTest1) {
     spider::api::createEdge(vertex_0, 0, 1, vertex_1, 0, 1);
     spider::api::createEdge(vertex_0, 1, 1, vertex_1, 1, 1);
     auto *srdag = spider::api::createGraph("srdag");
-    ASSERT_NO_THROW(spider::srdag::singleRateTransformation(rootJob, srdag));
-    ASSERT_NO_THROW(spider::api::exportGraphToDOT(srdag, "srdag.dot"));
+    {
+        spider::srdag::TransfoJob rootJob{ graph, UINT32_MAX, UINT32_MAX, true };
+        rootJob.params_ = graph->params();
+        ASSERT_NO_THROW(spider::srdag::singleRateTransformation(rootJob, srdag));
+        ASSERT_NO_THROW(spider::api::exportGraphToDOT(srdag, "srdag.dot"));
+    }
     /*
      *       init -> | vertex_1
      *          | -> |
@@ -171,12 +177,15 @@ TEST_F(srdagTest, srdagFlatDelayTest2) {
     auto *graph = spider::api::createGraph("topgraph", 2, 1);
     auto *vertex_0 = spider::api::createVertex(graph, "vertex_0", 0, 1);
     auto *vertex_1 = spider::api::createVertex(graph, "vertex_1", 1);
-    spider::srdag::TransfoJob rootJob{ graph, UINT32_MAX, UINT32_MAX, true };
     auto *edge = spider::api::createEdge(vertex_0, 0, 1, vertex_1, 0, 1);
     spider::api::createPersistentDelay(edge, "2");
     auto *srdag = spider::api::createGraph("srdag");
-    ASSERT_NO_THROW(spider::srdag::singleRateTransformation(rootJob, srdag));
-    ASSERT_NO_THROW(spider::api::exportGraphToDOT(srdag, "srdag.dot"));
+    {
+        spider::srdag::TransfoJob rootJob{ graph, UINT32_MAX, UINT32_MAX, true };
+        rootJob.params_ = graph->params();
+        ASSERT_NO_THROW(spider::srdag::singleRateTransformation(rootJob, srdag));
+        ASSERT_NO_THROW(spider::api::exportGraphToDOT(srdag, "srdag.dot"));
+    }
     /*
      *              | -> vertex_1_0
      * init -> fork | -> |
@@ -192,10 +201,11 @@ TEST_F(srdagTest, srdagFlatDelayTest3) {
     auto *graph = spider::api::createGraph("topgraph", 2, 1);
     auto *vertex_0 = spider::api::createVertex(graph, "vertex_0", 0, 1);
     auto *vertex_1 = spider::api::createVertex(graph, "vertex_1", 1);
-    spider::srdag::TransfoJob rootJob{ graph, UINT32_MAX, UINT32_MAX, true };
     auto *edge = spider::api::createEdge(vertex_0, 0, 1, vertex_1, 0, 2);
     spider::api::createPersistentDelay(edge, "1");
     auto *srdag = spider::api::createGraph("srdag");
+    spider::srdag::TransfoJob rootJob{ graph, UINT32_MAX, UINT32_MAX, true };
+    rootJob.params_ = graph->params();
     ASSERT_NO_THROW(spider::srdag::singleRateTransformation(rootJob, srdag));
     ASSERT_NO_THROW(spider::api::exportGraphToDOT(srdag, "srdag.dot"));
     /*
@@ -214,10 +224,11 @@ TEST_F(srdagTest, srdagFlatDelayTest4) {
     auto *graph = spider::api::createGraph("topgraph", 2, 1);
     auto *vertex_0 = spider::api::createVertex(graph, "vertex_0", 0, 1);
     auto *vertex_1 = spider::api::createVertex(graph, "vertex_1", 1);
-    spider::srdag::TransfoJob rootJob{ graph, UINT32_MAX, UINT32_MAX, true };
     auto *edge = spider::api::createEdge(vertex_0, 0, 2, vertex_1, 0, 1);
     spider::api::createPersistentDelay(edge, "1");
     auto *srdag = spider::api::createGraph("srdag");
+    spider::srdag::TransfoJob rootJob{ graph, UINT32_MAX, UINT32_MAX, true };
+    rootJob.params_ = graph->params();
     ASSERT_NO_THROW(spider::srdag::singleRateTransformation(rootJob, srdag));
     ASSERT_NO_THROW(spider::api::exportGraphToDOT(srdag, "srdag.dot"));
     /*
@@ -235,10 +246,11 @@ TEST_F(srdagTest, srdagFlatDelayTest5) {
     auto *graph = spider::api::createGraph("topgraph", 2, 1);
     auto *vertex_0 = spider::api::createVertex(graph, "vertex_0", 0, 1);
     auto *vertex_1 = spider::api::createVertex(graph, "vertex_1", 1);
-    spider::srdag::TransfoJob rootJob{ graph, UINT32_MAX, UINT32_MAX, true };
     auto *edge = spider::api::createEdge(vertex_0, 0, 1, vertex_1, 0, 2);
     spider::api::createPersistentDelay(edge, "2");
     auto *srdag = spider::api::createGraph("srdag");
+    spider::srdag::TransfoJob rootJob{ graph, UINT32_MAX, UINT32_MAX, true };
+    rootJob.params_ = graph->params();
     ASSERT_NO_THROW(spider::srdag::singleRateTransformation(rootJob, srdag));
     ASSERT_NO_THROW(spider::api::exportGraphToDOT(srdag, "srdag.dot"));
     /*
@@ -256,11 +268,12 @@ TEST_F(srdagTest, srdagFlatDelayTest6) {
     auto *graph = spider::api::createGraph("topgraph", 2, 1);
     auto *vertex_0 = spider::api::createVertex(graph, "vertex_0", 1, 1);
     auto *vertex_1 = spider::api::createVertex(graph, "vertex_1", 1, 1);
-    spider::srdag::TransfoJob rootJob{ graph, UINT32_MAX, UINT32_MAX, true };
     spider::api::createEdge(vertex_1, 0, 1, vertex_0, 0, 1);
     auto *edge = spider::api::createEdge(vertex_0, 0, 1, vertex_1, 0, 1);
     spider::api::createPersistentDelay(edge, "1");
     auto *srdag = spider::api::createGraph("srdag");
+    spider::srdag::TransfoJob rootJob{ graph, UINT32_MAX, UINT32_MAX, true };
+    rootJob.params_ = graph->params();
     ASSERT_NO_THROW(spider::srdag::singleRateTransformation(rootJob, srdag));
     ASSERT_NO_THROW(spider::api::exportGraphToDOT(srdag, "srdag.dot"));
     /*
@@ -275,13 +288,15 @@ TEST_F(srdagTest, srdagFlatDelayTest6) {
 TEST_F(srdagTest, srdagFlatDelayTest7) {
     auto *graph = spider::api::createGraph("topgraph", 2, 1);
     auto *vertex_0 = spider::api::createVertex(graph, "vertex_0", 1, 1);
-    spider::srdag::TransfoJob rootJob{ graph, UINT32_MAX, UINT32_MAX, true };
     auto *edge = spider::api::createEdge(vertex_0, 0, 2, vertex_0, 0, 2);
     auto *srdag = spider::api::createGraph("srdag");
+    spider::srdag::TransfoJob rootJob{ graph, UINT32_MAX, UINT32_MAX, true };
+    rootJob.params_ = graph->params();
     ASSERT_THROW(spider::srdag::singleRateTransformation(rootJob, srdag), spider::Exception)
                                 << "SingleRateTransformer::singleRateLinkage should throw for self loop with no delay";
     srdag->removeVertex(srdag->vertex(0)); /* = Before failing, it did copy the vertex = */
     spider::api::createPersistentDelay(edge, "1");
+    rootJob.params_ = graph->params();
     ASSERT_THROW(spider::srdag::singleRateTransformation(rootJob, srdag), spider::Exception)
                                 << "SingleRateTransformer::singleRateLinkage should throw for self loop with insufficient delay";
     spider::destroy(srdag);
@@ -291,13 +306,15 @@ TEST_F(srdagTest, srdagFlatDelayTest7) {
 TEST_F(srdagTest, srdagFlatDelayTest8) {
     auto *graph = spider::api::createGraph("topgraph", 2, 1);
     auto *vertex_0 = spider::api::createVertex(graph, "vertex_0", 1, 1);
-    spider::srdag::TransfoJob rootJob{ graph, UINT32_MAX, UINT32_MAX, true };
     auto *edge = spider::api::createEdge(vertex_0, 0, 2, vertex_0, 0, 2);
     auto *srdag = spider::api::createGraph("srdag");
+    spider::srdag::TransfoJob rootJob{ graph, UINT32_MAX, UINT32_MAX, true };
+    rootJob.params_ = graph->params();
     ASSERT_THROW(spider::srdag::singleRateTransformation(rootJob, srdag), spider::Exception)
                                 << "SingleRateTransformer::singleRateLinkage should throw for self loop with no delay";
     srdag->removeVertex(srdag->vertex(0)); /* = Before failing, it did copy the vertex = */
     spider::api::createPersistentDelay(edge, "2");
+    rootJob.params_ = graph->params();
     ASSERT_NO_THROW(spider::srdag::singleRateTransformation(rootJob, srdag));
     /*
      * init -> vertex_0_0 -> end
@@ -524,7 +541,8 @@ TEST_F(srdagTest, srdagHTest4) {
     ASSERT_NO_THROW(spider::api::exportGraphToDOT(srdag, "srdag.dot"));
     ASSERT_EQ(res.first.empty(), false)
                                 << "srdag::singleRateTransformation staticJobStack should not be empty for static H graph";
-    ASSERT_EQ(res.second.empty(), true) << "srdag::singleRateTransformation dynamicJobStack should be empty for static H graph";
+    ASSERT_EQ(res.second.empty(), true)
+                                << "srdag::singleRateTransformation dynamicJobStack should be empty for static H graph";
     /*
      * vertex_0_0 -> subgraph_0 -> vertex_0_1
      */
@@ -532,7 +550,8 @@ TEST_F(srdagTest, srdagHTest4) {
     ASSERT_EQ(srdag->edgeCount(), 2);
     ASSERT_NO_THROW(res = spider::srdag::singleRateTransformation(res.first[0], srdag));
     ASSERT_NO_THROW(spider::api::exportGraphToDOT(srdag, "srdag.dot"));
-    ASSERT_EQ(res.second.empty(), false) << "srdag::singleRateTransformation dynamicJobStack should not be empty for dynamic H graph";
+    ASSERT_EQ(res.second.empty(), false)
+                                << "srdag::singleRateTransformation dynamicJobStack should not be empty for dynamic H graph";
     /*
      * ginit_subgraph_0 -> vertex_0_1
      * vertex_0_0 -> grun_subgraph_0

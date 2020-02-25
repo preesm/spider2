@@ -57,7 +57,7 @@ namespace spider {
         class Delay {
         public:
 
-            Delay(Expression expression, Edge *edge,
+            Delay(int64_t value, Edge *edge,
                   Vertex *setter, size_t setterPortIx, Expression setterRateExpression,
                   Vertex *getter, size_t getterPortIx, Expression getterRateExpression,
                   bool persistent = false);
@@ -137,15 +137,6 @@ namespace spider {
              */
             int64_t value() const;
 
-            /**
-             * @brief Return the value of the delay. Calls @refitem Expression::evaluate method.
-             * @param params Vector of parameters.
-             * @return value of the delay.
-             * @warning If value of the delay is set by dynamic parameter, it is user responsability to ensure proper
-             * order of call.
-             */
-            int64_t value(const spider::vector<std::shared_ptr<Param>> &params) const;
-
             inline bool isPersistent() const {
                 return persistent_;
             }
@@ -157,23 +148,18 @@ namespace spider {
              * @param address
              * @remark Issue a warning if delay already has an address.
              */
-            inline void setMemoryAddress(uint64_t address) {
-                if (memoryAddress_ != UINT64_MAX && log::enabled()) {
-                    spider::log::warning("Delay [%s] already has a memory address.\n", name().c_str());
-                }
-                memoryAddress_ = address;
-            }
+            void setMemoryAddress(uint64_t address);
 
         private:
-            Expression expression_;               /* = Expression associated to the value of the Delay = */
+            uint64_t memoryAddress_ = UINT64_MAX; /* = Memory address associated to this Delay (if persistent) = */
+            int64_t value_ = 0;                   /* = Value of the Delay = */
+            Vertex *vertex_ = nullptr;            /* = Virtual vertex created for consistency evaluation = */
             Edge *edge_ = nullptr;                /* = Edge associated to the Delay = */
             Vertex *setter_ = nullptr;            /* = Setter of the Delay = */
             size_t setterPortIx_ = 0;             /* = Ouput port ix of the getter connected to the Delay = */
             Vertex *getter_ = nullptr;            /* = Getter of the Delay = */
             size_t getterPortIx_ = 0;             /* = Input port ix of the getter connected to the Delay = */
-            Vertex *vertex_ = nullptr;            /* = Virtual vertex created for consistency evaluation = */
             bool persistent_ = true;              /* = Persistence property of the Delay (true if persistent, false else) = */
-            uint64_t memoryAddress_ = UINT64_MAX; /* = Memory address associated to this Delay (if persistent) = */
         };
     }
 }

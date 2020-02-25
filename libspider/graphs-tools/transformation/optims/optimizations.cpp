@@ -269,7 +269,7 @@ bool spider::optims::reduceJoinFork(pisdf::Graph *graph) {
                 /* == Need for a Fork == */
                 auto nForkEdge = computeNForkEdge(source.rate_, sinkArray, sinkIx);
                 auto *addedFork = spider::api::createFork(graph,
-                                                          "fork-" + source.vertex_->name() + "-out" +
+                                                          "fork::" + source.vertex_->name() + "::out::" +
                                                           std::to_string(source.portIx_),
                                                           nForkEdge);
                 const auto &srcRate = static_cast<int64_t>(source.rate_);
@@ -295,9 +295,7 @@ bool spider::optims::reduceJoinFork(pisdf::Graph *graph) {
                 /* == Need for a Join == */
                 auto nJoinEdge = computeNJoinEdge(sink.rate_, sourceArray, sourceIx);
                 auto *addedJoin = api::createJoin(graph,
-                                                  "join-" +
-                                                  sink.vertex_->name() +
-                                                  "-in" +
+                                                  "join::" + sink.vertex_->name() + "::in::" +
                                                   std::to_string(sink.portIx_),
                                                   nJoinEdge);
                 const auto &snkRate = static_cast<int64_t>(sink.rate_);
