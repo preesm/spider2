@@ -95,6 +95,21 @@ namespace spider {
             return (*res)->ix();
         }
 
+        /**
+        * @brief Send the LRT_START_ITERATION notification to every runners.
+        */
+        void sendStartIteration() const;
+
+        /**
+         * @brief Send the LRT_END_ITERATION notification to every runners.
+         */
+        void sendEndIteration() const;
+
+        /**
+         * @brief Wait for every runners to send the LRT_FINISHED_ITERATION notification.
+         */
+        void waitForRunnersToFinish() const;
+
         virtual void createRunnerRessource(RTRunner *) = 0;
 
         virtual void waitForRunnerToBeReady() = 0;

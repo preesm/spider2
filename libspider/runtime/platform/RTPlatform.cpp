@@ -44,6 +44,7 @@
 #include <runtime/interface/RTCommunicator.h>
 #include <runtime/runner/RTRunner.h>
 #include <archi/PE.h>
+#include <archi/Platform.h>
 
 /* === Function(s) definition === */
 
@@ -65,4 +66,36 @@ void spider::RTPlatform::addRunner(spider::RTRunner *runner) {
 
     /* == Create the ressource to handle the runner (thread, process, etc.) == */
     this->createRunnerRessource(runner);
+}
+
+void spider::RTPlatform::sendStartIteration() const {
+    Notification startIterNotification{ NotificationType::LRT_START_ITERATION,
+                                        archi::platform()->spiderGRTPE()->attachedLRT()->virtualIx() };
+    for (size_t i = 0; i < archi::platform()->LRTCount(); ++i) {
+        communicator()->push(startIterNotification, i);
+    }
+}
+
+void spider::RTPlatform::sendEndIteration() const {
+    Notification startIterNotification{ NotificationType::LRT_END_ITERATION,
+                                        archi::platform()->spiderGRTPE()->attachedLRT()->virtualIx() };
+    for (size_t i = 0; i < archi::platform()->LRTCount(); ++i) {
+        communicator()->push(startIterNotification, i);
+    }
+}
+
+void spider::RTPlatform::waitForRunnersToFinish() const {
+    const auto grtIx = archi::platform()->spiderGRTPE()->attachedLRT()->virtualIx();
+    /* == Wait for the notifications == */
+    size_t i = 0;
+    while (i != archi::platform()->LRTCount()) {
+        Notification notification;
+        communicator()->pop(notification, grtIx);
+        if (notification.type_ == NotificationType::LRT_FINISHED_ITERATION) {
+            i++;
+        } else {
+            /* == push back notification == */
+            communicator()->push(notification, grtIx);
+        }
+    }
 }
