@@ -73,7 +73,7 @@ namespace spider {
              */
             void print() const override;
 
-            void printFromFile(std::ofstream &file) const override;
+            void printFromFile(FILE *file) const override;
 
         private:
             Graph *graph_ = nullptr;

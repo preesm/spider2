@@ -92,6 +92,28 @@ static double computeRelativeCenteredY(double yAnchor, double heightAnchor, doub
     return (yAnchor + ((heightAnchor - height) / 2.0) + fontSize) - (Y_FONT_OFFSET * fontSize);
 }
 
+static void printRect(FILE *file, const std::string &color, double width, double height, double x, double y) {
+    spider::printer::fprintf(file, R"(
+    <rect
+       fill="#%s"
+       stroke="none"
+       width="%f"
+       height="%f"
+       x="%f"
+       y="%f" />)" "\n", color.c_str(), width, height, x, y);
+}
+
+static void printText(FILE *file, const std::string &text, double size, double x, double y,
+                      const std::string &color = "000000") {
+    spider::printer::fprintf(file, R"(
+    <text
+       style="font-size:%fpx;font-family:monospace;fill:#%s;fill-opacity:1;"
+       x="%f"
+       y="%f"
+       ><tspan style="fill:none">|</tspan>%s<tspan style="fill:none">|</tspan></text>)" "\n",
+                             size, color.c_str(), x, y, text.c_str());
+}
+
 /* === Method(s) implementation === */
 
 spider::SchedSVGGanttExporter::SchedSVGGanttExporter(const Schedule *schedule) : Exporter(),
@@ -125,7 +147,7 @@ void spider::SchedSVGGanttExporter::print() const {
     Exporter::printFromPath("./gantt.svg");
 }
 
-void spider::SchedSVGGanttExporter::printFromFile(std::ofstream &file) const {
+void spider::SchedSVGGanttExporter::printFromFile(FILE *file) const {
     /* == Print header == */
     headerPrinter(file);
 
@@ -139,9 +161,8 @@ void spider::SchedSVGGanttExporter::printFromFile(std::ofstream &file) const {
     for (auto &task : schedule_->tasks()) {
         taskPrinter(file, task.get());
     }
-
-    file << "  </g>" << std::endl;
-    file << "</svg>" << std::endl;
+    printer::fprintf(file, " </g>\n");
+    printer::fprintf(file, "</svg>");
 }
 
 u32 spider::SchedSVGGanttExporter::computeRealXOffset() const {
@@ -160,28 +181,23 @@ u64 spider::SchedSVGGanttExporter::computeWidth(u64 time) const {
     return static_cast<u64>(alpha_ * static_cast<double>(time));
 }
 
-void spider::SchedSVGGanttExporter::pePrinter(std::ofstream &file) const {
+void spider::SchedSVGGanttExporter::pePrinter(FILE *file) const {
     /* == Print the name of the processors == */
     auto *archi = archi::platform();
     for (auto &pe : archi->peArray()) {
         if (schedule_->stats().utilizationFactor(pe->virtualIx()) > 0.) {
             const auto yLine = height_ - (OFFSET_Y + ARROW_STROKE + (pe->virtualIx() + 1) * (TASK_HEIGHT + BORDER));
-            const auto xText = -(X_FONT_OFFSET * PE_FONT_SIZE);
             const auto yText = computeRelativeCenteredY(static_cast<double>(yLine), static_cast<double>(TASK_HEIGHT),
                                                         PE_FONT_SIZE, PE_FONT_SIZE);
             /* == Print the PE name == */
-            file << R"(
-    <text
-       style="font-size:)" << PE_FONT_SIZE << R"(px;font-family:monospace;fill:#000000;fill-opacity:1;"
-       x=")" << xText << R"("
-       y=")" << yText << R"("
-       ><tspan style="fill:none">|</tspan>)" << pe->name() << R"(<tspan style="fill:none">|</tspan></text>)";
+            printText(file, pe->name(), PE_FONT_SIZE, -(X_FONT_OFFSET * PE_FONT_SIZE), yText);
         }
+
     }
 }
 
-void spider::SchedSVGGanttExporter::headerPrinter(std::ofstream &file) const {
-    file << R"(<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+void spider::SchedSVGGanttExporter::headerPrinter(FILE *file) const {
+    printer::fprintf(file, R"(<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!-- Created with Spider 2.0 (http://www.github.com/preesm/spider-2.0) -->
 
 <svg
@@ -194,8 +210,8 @@ void spider::SchedSVGGanttExporter::headerPrinter(std::ofstream &file) const {
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    id="svg0"
    version="1.1"
-   width=")" << width_ << R"("
-   height=")" << height_ << R"(">
+   width=")" "%" PRIu64 R"("
+   height=")" "%" PRIu64 R"(">
    <metadata
      id="metadata5">
     <rdf:RDF>
@@ -210,99 +226,84 @@ void spider::SchedSVGGanttExporter::headerPrinter(std::ofstream &file) const {
   </metadata>
   <g
      inkscape:label="Calque 1"
-     inkscape:groupmode="layer">)" << '\n';
+     inkscape:groupmode="layer">)" "\n", width_, height_);
 }
 
-void spider::SchedSVGGanttExporter::axisPrinter(std::ofstream &file) const {
+void spider::SchedSVGGanttExporter::axisPrinter(FILE *file) const {
     const auto arrowColor = "393c3c";
-    const auto verticalHeight = height_ - ((3 * ARROW_SIZE - 4) / 2);
+    const auto verticalHeight = static_cast<double>((height_ - ((3 * ARROW_SIZE - 4) / 2)));
     /* == Print vertical arrow == */
-    file << R"(
-    <rect
-       fill="#)" << arrowColor << R"("
-       stroke="none"
-       id="rect_arrow_vertical"
-       width=")" << ARROW_STROKE << R"("
-       height=")" << verticalHeight << R"("
-       x=")" << offsetX_ << R"("
-       y=")" << (ARROW_SIZE - 1) << R"(" />
+    printRect(file, arrowColor, ARROW_STROKE, verticalHeight,
+              static_cast<double>(offsetX_), static_cast<double>(ARROW_SIZE - 1));
+    printer::fprintf(file, R"(
     <path
-       fill="#)" << arrowColor << R"("
+       fill="#%s"
        display="inline"
        stroke="none"
        fill-rule="evenodd"
-       d="M )" << offsetX_ + 1 << "," << 0 << " " // x top sommet, y top sommet, x right corner, height, x left corner
-         << offsetX_ + 1 + (ARROW_SIZE / 2) << "," << ARROW_SIZE << " H "
-         << offsetX_ + 1 - (ARROW_SIZE / 2) << R"( Z"
+       d="M )" "%" PRIu32 R"(,0 )" "%" PRIu32 R"(,)" "%" PRIu32 R"( H )" "%" PRIu32 R"( Z"
        id="arrow_vertical_head"
-       inkscape:connector-curvature="0" />)";
+       inkscape:connector-curvature="0" />)",
+                     arrowColor, offsetX_ + 1, offsetX_ + 1 + (ARROW_SIZE / 2), ARROW_SIZE,
+                     offsetX_ + 1 - (ARROW_SIZE / 2));
+    // x top sommet, y top sommet, x right corner, height, x left corner
 
     /* == Print vertical grid == */
-    const auto gridColor = "e8e8e8";
     const auto gridCount = makespanWidth_ / 40;
     for (uint32_t i = 0; i <= gridCount; ++i) {
-        file << R"(
-    <rect
-       fill="#)" << gridColor << R"("
-       stroke="none"
-       id="rect_grid"
-       width="1"
-       height=")" << verticalHeight << R"("
-       x=")" << (offsetX_ + ARROW_STROKE + BORDER + i * 40) << R"("
-       y=")" << (ARROW_SIZE - 1) << R"(" />)";
+        printRect(file, "e8e8e8",
+                  1.,
+                  verticalHeight,
+                  (offsetX_ + ARROW_STROKE + BORDER + i * 40),
+                  (ARROW_SIZE - 1));
     }
 
     /* == Print horizontal arrow == */
-    file << R"(
-    <rect
-       fill="#)" << arrowColor << R"("
-       stroke="none"
-       id="rect_arrow_horizontal"
-       width=")" << (width_ - (offsetX_ + (ARROW_SIZE - 1))) << R"("
-       height=")" << ARROW_STROKE << R"("
-       x=")" << offsetX_ << R"("
-       y=")" << (height_ - (((ARROW_SIZE + ARROW_STROKE) / 2))) << R"(" />
+    printRect(file, arrowColor,
+              static_cast<double >(width_ - (offsetX_ + (ARROW_SIZE - 1))),
+              ARROW_STROKE,
+              offsetX_,
+              static_cast<double>((height_ - ((ARROW_SIZE + ARROW_STROKE) / 2))));
+
+    printer::fprintf(file, R"(
     <path
-       fill="#)" << arrowColor << R"("
+       fill="#%s"
        display="inline"
        stroke="none"
        fill-rule="evenodd"
-       d="M )" << width_ << "," << (height_ - (ARROW_SIZE / 2)) << " "
-         << (width_ - ARROW_SIZE) << "," << height_ << " V "
-         << (height_ - ARROW_SIZE) << R"( Z"
+       d="M )" "%" PRIu64 R"(,)" "%" PRIu64 R"( )" "%" PRIu64 R"(,)" "%" PRIu64 R"( V )" "%" PRIu64 R"( Z"
        id="arrow_horizontal_head"
-       inkscape:connector-curvature="0" />)";
+       inkscape:connector-curvature="0" />)",
+                     arrowColor, width_, (height_ - (ARROW_SIZE / 2)), (width_ - ARROW_SIZE), height_,
+                     (height_ - ARROW_SIZE));
 }
 
-void spider::SchedSVGGanttExporter::taskPrinter(std::ofstream &file, const ScheduleTask *task) const {
+void spider::SchedSVGGanttExporter::taskPrinter(FILE *file, const ScheduleTask *task) const {
     /* == Compute color and width == */
     const auto name = task->name();
+
+    /* == Compute coordinates == */
+    const auto taskWidth = computeWidth(task->endTime() - task->startTime());
+    const auto x = offsetX_ + ARROW_STROKE + BORDER + computeWidth(task->startTime());
+    const auto y = height_ - (OFFSET_Y + ARROW_STROKE + (task->mappedPe() + 1) * (TASK_HEIGHT + BORDER));
+
+    /* == Print rect == */
     u32 color = task->color();
     i32 red = static_cast<u8>((color >> 16u) & 0xFFu);
     i32 green = static_cast<u8>((color >> 8u) & 0xFFu);
     i32 blue = static_cast<u8>(color & 0xFFu);
-    const auto taskWidth = computeWidth(task->endTime() - task->startTime());
-
-    /* == Compute coordinates == */
-    const auto x = offsetX_ + ARROW_STROKE + BORDER + computeWidth(task->startTime());
-    const auto y = height_ - (OFFSET_Y + ARROW_STROKE + (task->mappedPe() + 1) * (TASK_HEIGHT + BORDER));
-    std::ios savedFormat{ nullptr };
-    savedFormat.copyfmt(file);
-    file << R"(
+    printer::fprintf(file, R"(
     <g>
         <rect
-           fill="#)";
-    file << std::setfill('0') << std::setbase(16);
-    file << std::setw(2) << red << std::setw(2) << green << std::setw(2) << blue;
-    file.copyfmt(savedFormat);
-    file << R"("
+           fill="#%.2X%.2X%.2X"
            stroke="none"
-           id=)" << R"("rect_)" + name << R"("
-           width=")" << taskWidth << R"("
-           height=")" << TASK_HEIGHT << R"("
-           x=")" << x << R"("
-           y=")" << y << R"("
-           ry="10" />)";
+           id="rect_%s"
+           width=")" "%" PRIu64 R"("
+           height=")" "%" PRIu32 R"("
+           x=")" "%" PRIu64 R"("
+           y=")" "%" PRIu64 R"("
+           ry="10" />)" "\n", red, green, blue, name.c_str(), taskWidth, TASK_HEIGHT, x, y);
+
 
     /* == Write the text == */
     const auto fontSize = computeFontSize(name, taskWidth);
@@ -314,25 +315,16 @@ void spider::SchedSVGGanttExporter::taskPrinter(std::ofstream &file, const Sched
                                                 fontSize);
     const auto yText = computeRelativeCenteredY(static_cast<double>(y), static_cast<double>(TASK_HEIGHT),
                                                 (5. * fontSize / 3.) + 2., fontSize);
-    file << R"(
-        <text
-           style="font-size:)" << fontSize << R"(px;font-family:monospace;fill:#ffffff;fill-opacity:1;"
-           x=")" << xText << R"("
-           y=")" << yText << R"("
-           ><tspan style="fill:none">|</tspan>)" << name << R"(<tspan style="fill:none">|</tspan></text>)";
+    printText(file, name, fontSize, xText, yText, "ffffff");
+
     const auto timeFontSize = fontSize / 1.5;
     const auto timeString = std::string("[").append(std::to_string(task->startTime()).append(":").append(
             std::to_string(task->endTime()).append("]")));
     const auto timeWidth = computeWidthFromFontSize(timeFontSize, timeString.length());
     const auto xTime = computeRelativeCenteredX(xText, textWidth, timeWidth, timeFontSize);
     const auto yTime = yText + fontSize + 2 - Y_FONT_OFFSET * timeFontSize;
-    file << R"(
-        <text
-           style="font-size:)" << timeFontSize << R"(px;font-family:monospace;fill:#ffffff;fill-opacity:1;"
-           x=")" << xTime << R"("
-           y=")" << yTime << R"("
-           ><tspan style="fill:none">|</tspan>)" << timeString << R"(<tspan style="fill:none">|</tspan></text>
-    </g>)";
+    printText(file, timeString, timeFontSize, xTime, yTime, "ffffff");
+    printer::fprintf(file, "</g>");
 }
 
 

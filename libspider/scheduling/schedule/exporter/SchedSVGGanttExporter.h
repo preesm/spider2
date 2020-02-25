@@ -74,7 +74,7 @@ namespace spider {
          */
         void print() const override;
 
-        void printFromFile(std::ofstream &file) const override;
+        void printFromFile(FILE *file) const override;
 
     private:
         const Schedule *schedule_ = nullptr;
@@ -92,13 +92,13 @@ namespace spider {
 
         u64 computeWidth(u64 time) const;
 
-        void pePrinter(std::ofstream &file) const;
+        void pePrinter(FILE *file) const;
 
-        void headerPrinter(std::ofstream &file) const;
+        void headerPrinter(FILE *file) const;
 
-        void axisPrinter(std::ofstream &file) const;
+        void axisPrinter(FILE *file) const;
 
-        void taskPrinter(std::ofstream &file, const ScheduleTask *task) const;
+        void taskPrinter(FILE *file, const ScheduleTask *task) const;
     };
 
     /* === Inline method(s) === */

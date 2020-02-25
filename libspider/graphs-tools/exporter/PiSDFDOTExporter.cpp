@@ -53,7 +53,7 @@ void spider::pisdf::PiSDFDOTExporter::print() const {
     Exporter::printFromPath("./pisdf-graph.dot");
 }
 
-void spider::pisdf::PiSDFDOTExporter::printFromFile(std::ofstream &file) const {
+void spider::pisdf::PiSDFDOTExporter::printFromFile(FILE *file) const {
     PiSDFDOTExporterVisitor visitor{ file, "\t" };
     graph_->visit(&visitor);
 }

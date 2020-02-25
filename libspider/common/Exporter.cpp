@@ -40,40 +40,16 @@
 
 /* === Include(s) === */
 
-#include <scheduling/schedule/exporter/SchedStatsExporter.h>
-#include <scheduling/schedule/Schedule.h>
-#include <scheduling/schedule/ScheduleTask.h>
-#include <archi/Platform.h>
-#include <archi/PE.h>
+#include <common/Exporter.h>
+#include <common/Exception.h>
 
+/* === Function(s) definition === */
 
-/* === Method(s) implementation === */
-
-void spider::SchedStatsExporter::print() const {
-    Exporter::printFromPath("./stats.txt");
-}
-
-void spider::SchedStatsExporter::printFromFile(FILE *file) const {
-    const auto &stats = schedule_->stats();
-    printer::fprintf(file, "Schedule statistics: \n");
-    printer::fprintf(file, "Total number of jobs:     %zu\n", schedule_->taskCount());
-    printer::fprintf(file, "Makespan of the schedule: %zu\n", stats.makespan());
-    for (const auto &pe : archi::platform()->peArray()) {
-        printer::fprintf(file, "PE #%zu\n", pe->virtualIx());
-        printer::fprintf(file, "\t >> job count:          %zu\n", stats.jobCount(pe->virtualIx()));
-        printer::fprintf(file, "\t >> start time:         %zu\n", stats.endTime(pe->virtualIx()));
-        printer::fprintf(file, "\t >> end time:           %zu\n", stats.startTime(pe->virtualIx()));
-        printer::fprintf(file, "\t >> load time:          %zu\n", stats.loadTime(pe->virtualIx()));
-        printer::fprintf(file, "\t >> idle time:          %zu\n", stats.idleTime(pe->virtualIx()));
-        printer::fprintf(file, "\t >> utilization factor: %f\n", stats.utilizationFactor(pe->virtualIx()));
-        if (stats.jobCount(pe->virtualIx())) {
-            printer::fprintf(file, "\t >> job list: \n");
-            for (auto &task : schedule_->tasks()) {
-                if (task->mappedPe() == pe->virtualIx()) {
-                    printer::fprintf(file, "\t\t >> {%zu,%zu}\n", task->startTime(), task->endTime());
-                }
-            }
-        }
+void spider::Exporter::printFromPath(const std::string &path) const {
+    FILE *file = fopen(path.c_str(), "w+");
+    if (!file) {
+        throwSpiderException("Failed to open file with path [%s]", path.c_str());
     }
-    printer::fprintf(file, "\n");
+    printFromFile(file);
+    fclose(file);
 }

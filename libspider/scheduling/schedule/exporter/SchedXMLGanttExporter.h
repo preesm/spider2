@@ -74,12 +74,12 @@ namespace spider {
          */
         void print() const override;
 
-        void printFromFile(std::ofstream &file) const override;
+        void printFromFile(FILE *file) const override;
 
     private:
         const Schedule *schedule_ = nullptr;
 
-        void printTask(std::ofstream &file, const ScheduleTask *task) const;
+        void printTask(FILE *file, const ScheduleTask *task) const;
     };
 }
 #endif //SPIDER2_SCHEDXMLGANTTEXPORTER_H

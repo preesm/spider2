@@ -56,9 +56,8 @@ namespace spider {
         struct PiSDFDOTExporterVisitor final : public DefaultVisitor {
         public:
 
-            explicit PiSDFDOTExporterVisitor(std::ofstream &file,
-                                             std::string offset) : file_{ file },
-                                                                   offset_{ std::move(offset) } { }
+            explicit PiSDFDOTExporterVisitor(FILE *file, std::string offset) : file_{ file },
+                                                                               offset_{ std::move(offset) } { }
 
             /* === Method(s) === */
 
@@ -74,7 +73,7 @@ namespace spider {
 
         private:
             const spider::vector<std::shared_ptr<Param>> *params_ = nullptr;
-            std::ofstream &file_;
+            FILE *file_;
             std::string offset_;
 
             /**

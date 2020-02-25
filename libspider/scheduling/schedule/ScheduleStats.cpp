@@ -43,7 +43,6 @@
 #include <scheduling/schedule/ScheduleStats.h>
 #include <api/archi-api.h>
 #include <archi/Platform.h>
-#include <iostream>
 
 /* === Static variable(s) === */
 
