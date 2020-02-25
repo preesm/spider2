@@ -3,8 +3,6 @@
 # https://github.com/lefticus/cppbestpractices/blob/master/02-Use_the_Tools_Avai
 # lable.md
 
-option(WARNINGS_AS_ERRORS "Treat compiler warnings as errors" TRUE)
-
 set(MSVC_WARNINGS
         /W4 # Baseline reasonable warnings
         /w14242 # 'identfier': conversion from 'type1' to 'type1', possible loss
@@ -55,7 +53,8 @@ set(CLANG_WARNINGS
         # (ie printf)
         )
 
-if (WARNINGS_AS_ERRORS)
+set(WARNINGS_AS_ERRORS "OFF")
+if (WARNINGS_AS_ERRORS MATCHES "ON")
     set(CLANG_WARNINGS "${CLANG_WARNINGS} -Werror")
     set(MSVC_WARNINGS "${MSVC_WARNINGS} /WX")
 endif ()
@@ -76,5 +75,5 @@ else ()
     set(PROJECT_WARNINGS ${GCC_WARNINGS})
 endif ()
 list(JOIN PROJECT_WARNINGS " " PROJECT_WARNINGS)
-set(CMAKE_CXX_FLAGS_DEBUG "${PROJECT_WARNINGS}")
-set(CMAKE_CXX_FLAGS_RELEASE "${PROJECT_WARNINGS}")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${PROJECT_WARNINGS}")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${PROJECT_WARNINGS}")
