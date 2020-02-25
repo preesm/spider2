@@ -118,11 +118,12 @@ bool spider::JITMSRuntime::execute() {
 /* === Private method(s) === */
 
 bool spider::JITMSRuntime::staticExecute() {
+    const auto grtIx = archi::platform()->spiderGRTPE()->attachedLRT()->virtualIx();
     static bool first = true;
     if (!first) {
         /* == Just reset the schedule and re-run it == */
         scheduler_->schedule().sendReadyTasks();
-        rt::platform()->runner(0)->run(false);
+        rt::platform()->runner(grtIx)->run(false);
         scheduler_->schedule().reset();
         return true;
     }
@@ -173,7 +174,7 @@ bool spider::JITMSRuntime::staticExecute() {
     }
 
     /* == If there are jobs left, run == */
-    rt::platform()->runner(0)->run(false);
+    rt::platform()->runner(grtIx)->run(false);
 
     /* == Reset the scheduler == */
     scheduler_->schedule().reset();
@@ -182,6 +183,7 @@ bool spider::JITMSRuntime::staticExecute() {
 }
 
 bool spider::JITMSRuntime::dynamicExecute() {
+    const auto grtIx = archi::platform()->spiderGRTPE()->attachedLRT()->virtualIx();
     /* == Apply first transformation of root graph == */
     auto &&rootJob = srdag::TransfoJob(graph_, SIZE_MAX, UINT32_MAX, true);
     rootJob.params_ = graph_->params();
@@ -211,7 +213,7 @@ bool spider::JITMSRuntime::dynamicExecute() {
         //monitor_->startSampling();
         scheduler_->update();
         scheduler_->execute();
-        rt::platform()->runner(0)->run(false);
+        rt::platform()->runner(grtIx)->run(false);
         //monitor_->endSampling();
 
         /* == Wait for all parameters to be resolved == */
@@ -220,7 +222,6 @@ bool spider::JITMSRuntime::dynamicExecute() {
                 log::info<log::TRANSFO>("Waiting fo dynamic parameters..\n");
             }
 
-            const auto &grtIx = archi::platform()->spiderGRTPE()->virtualIx();
             size_t readParam = 0;
             while (readParam != dynamicJobStack.size()) {
                 Notification notification;
@@ -270,7 +271,7 @@ bool spider::JITMSRuntime::dynamicExecute() {
     }
 
     /* == If there are jobs left, run == */
-    rt::platform()->runner(0)->run(false);
+    rt::platform()->runner(grtIx)->run(false);
 
     if (api::exportGanttEnabled()) {
         exportGantt(&scheduler_->schedule());
