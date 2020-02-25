@@ -51,7 +51,8 @@ namespace spider {
     /* === Enumaration(s) definition === */
 
     enum class NotificationType : uint16_t {
-        LRT_END_ITERATION = 0,          /*!< Cross-check signal sent after last JOB (if JOB_LAST_ID was not received) */
+        LRT_END_ITERATION = 0,          /*!< Cross-check signal sent after last job */
+        LRT_START_ITERATION,            /*!< Cross-check signal sent before first job */
         LRT_REPEAT_ITERATION_EN,        /*!< Signal LRT to repeat its complete iteration (indefinitely) */
         LRT_REPEAT_ITERATION_DIS,       /*!< Signal LRT to stop repeating iteration */
         LRT_FINISHED_ITERATION,         /*!< Signal that given LRT has finished its iteration */
