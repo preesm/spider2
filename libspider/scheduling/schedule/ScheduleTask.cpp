@@ -314,6 +314,7 @@ void spider::ScheduleTask::setJobMessageInputFifos(JobMessage &message) const {
         } else {
             message.inputFifoArray_[0] = task->outputFifos_[static_cast<size_t>(information->inputPortIx_)];
         }
+        message.inputFifoArray_[0].attribute_ = FifoAttribute::READ_OWN;
         return;
     }
     auto *vertex = reinterpret_cast<pisdf::Vertex *>(internal_);
@@ -327,6 +328,8 @@ void spider::ScheduleTask::setJobMessageInputFifos(JobMessage &message) const {
         } else if (task->type() == TaskType::SYNC_RECEIVE) {
             message.inputFifoArray_[inputIx] = task->outputFifos_[0];
         }
+        // TODO move handling of input fifos else where for proper attributes
+        message.inputFifoArray_[inputIx].attribute_ = FifoAttribute::READ_OWN;
     }
 }
 

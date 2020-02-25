@@ -47,10 +47,15 @@
 namespace spider {
 
     /* === Enum definition === */
+
     enum class FifoAllocatorType {
         DEFAULT,      /*!< Default Fifo allocator */
         ARCHI_AWARE,  /*!< Architecture aware Fifo allocator */
     };
+
+    /* === Forward declaration(s) === */
+
+    class MemoryInterface;
 
     /* === Class definition === */
 
@@ -73,10 +78,10 @@ namespace spider {
 
         /**
          * @brief Allocate a FIFO of given size.
-         * @param size             Size of the FIFO to allocate in bytes.
+         * @param size      Size of the FIFO to allocate in bytes.
          * @return created @refitem RTFifo.
          */
-        virtual RTFifo allocate(uint32_t size) noexcept = 0;
+        virtual RTFifo allocate(int64_t size) = 0;
 
         /**
          * @brief Clears the allocator.

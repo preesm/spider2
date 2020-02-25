@@ -41,11 +41,11 @@
 /* === Include(s) === */
 
 #include <scheduling/scheduler/BestFitScheduler.h>
+#include <scheduling/allocator/FifoAllocator.h>
 #include <runtime/interface/Message.h>
 #include <runtime/platform/RTPlatform.h>
 #include <runtime/runner/RTRunner.h>
 #include <api/runtime-api.h>
-#include "GreedyScheduler.h"
 
 /* === Static variable(s) === */
 
@@ -58,19 +58,47 @@ spider::Schedule &spider::BestFitScheduler::execute() {
     auto iterator = sortedTaskVector_.begin() + static_cast<long>(lastScheduledTask_);
     auto endIterator = sortedTaskVector_.begin() + static_cast<long>(lastSchedulableTask_);
     if (mode_ == JIT_SEND) {
+        /* == Send LRT_START_ITERATION notification == */
+        rt::platform()->sendStartIteration();
         while (iterator != endIterator) {
             auto &listVertex = (*(iterator++));
             Scheduler::taskMapper(listVertex.task_);
+            /* == We are in JIT mode, we need to broadcast the job stamp == */
+            listVertex.task_->enableBroadcast();
+            /* == If we got an allocator let use it == */
+            if (allocator_) {
+                auto *vertex = listVertex.task_->vertex();
+                for (auto &edge : vertex->outputEdgeVector()) {
+                    listVertex.task_->addOutputFifo(allocator_->allocate(edge->sourceRateValue()));
+                }
+            }
             /* == Create job message and send it == */
-//            schedule_.sendReadyJobs();
+            schedule_.sendReadyTasks();
         }
+        /* == Send LRT_END_ITERATION notification == */
+        rt::platform()->sendEndIteration();
     } else {
         while (iterator != endIterator) {
             auto &listVertex = (*(iterator++));
             Scheduler::taskMapper(listVertex.task_);
         }
+        /* == Send LRT_START_ITERATION notification == */
+        rt::platform()->sendStartIteration();
+        /* == If we got an allocator let use it == */
+        if (allocator_) {
+            iterator = sortedTaskVector_.begin() + static_cast<long>(lastScheduledTask_);
+            while (iterator != endIterator) {
+                auto &listVertex = (*(iterator++));
+                auto *vertex = listVertex.task_->vertex();
+                for (auto &edge : vertex->outputEdgeVector()) {
+                    listVertex.task_->addOutputFifo(allocator_->allocate(edge->sourceRateValue()));
+                }
+            }
+        }
         /* == Creates all job messages and send them == */
-//        schedule_.sendReadyJobs();
+        schedule_.sendReadyTasks();
+        /* == Send LRT_END_ITERATION notification == */
+        rt::platform()->sendEndIteration();
     }
     lastScheduledTask_ = lastSchedulableTask_;
     return schedule_;

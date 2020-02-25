@@ -43,6 +43,7 @@
 /* === Include(s) === */
 
 #include <scheduling/allocator/FifoAllocator.h>
+#include <archi/MemoryInterface.h>
 #include <common/Exception.h>
 
 namespace spider {
@@ -60,10 +61,11 @@ namespace spider {
 
         /* === Method(s) === */
 
-        inline RTFifo allocate(uint32_t size) noexcept override {
+        inline RTFifo allocate(int64_t size) override {
             RTFifo fifo;
-            fifo.size_ = size;
-            fifo.virtualAddress_ = virtualMemoryAddress_;
+            fifo.size_ = static_cast<u32>(size);
+            fifo.virtualAddress_ = static_cast<u64>(virtualMemoryAddress_);
+            fifo.attribute_ = FifoAttribute::WRITE_OWN;
             virtualMemoryAddress_ += size;
             return fifo;
         }
@@ -81,7 +83,7 @@ namespace spider {
         /* === Setter(s) === */
 
     private:
-        uint32_t virtualMemoryAddress_ = 0;
+        int64_t virtualMemoryAddress_ = 0;
     };
 }
 
