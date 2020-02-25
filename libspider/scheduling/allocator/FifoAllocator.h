@@ -63,7 +63,7 @@ namespace spider {
 
         /* === Allocator traits === */
 
-        FifoAllocatorTraits traits;
+        FifoAllocatorTraits traits_;
 
         FifoAllocator() = default;
 

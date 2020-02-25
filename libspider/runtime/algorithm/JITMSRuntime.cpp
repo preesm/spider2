@@ -101,6 +101,7 @@ spider::JITMSRuntime::JITMSRuntime(pisdf::Graph *graph,
         srdag_{ make_unique<pisdf::Graph, StackID::RUNTIME>("srdag-" + graph->name()) },
         scheduler_{ makeScheduler(schedulingAlgorithm, srdag_.get()) },
         fifoAllocator_{ makeFifoAllocator(type) } {
+    scheduler_->setAllocator(fifoAllocator_.get());
     isFullyStatic_ = isGraphFullyStatic(graph);
 }
 
@@ -125,7 +126,7 @@ bool spider::JITMSRuntime::staticExecute() {
     first = false;
     /* == Apply first transformation of root graph == */
     auto &&rootJob = srdag::TransfoJob(graph_, SIZE_MAX, UINT32_MAX, true);
-    rootJob.params_ = sbc::vector<std::shared_ptr<pisdf::Param>, StackID::TRANSFO>(graph_->params());
+    rootJob.params_ = graph_->params();
     auto &&resultRootJob = srdag::singleRateTransformation(rootJob, srdag_.get());
 
     /* == Initialize the job stacks == */
@@ -180,7 +181,7 @@ bool spider::JITMSRuntime::staticExecute() {
 bool spider::JITMSRuntime::dynamicExecute() {
     /* == Apply first transformation of root graph == */
     auto &&rootJob = srdag::TransfoJob(graph_, SIZE_MAX, UINT32_MAX, true);
-    rootJob.params_ = sbc::vector<std::shared_ptr<pisdf::Param>, StackID::TRANSFO>(graph_->params());
+    rootJob.params_ = graph_->params();
     auto &&resultRootJob = srdag::singleRateTransformation(rootJob, srdag_.get());
 
     /* == Initialize the job stacks == */

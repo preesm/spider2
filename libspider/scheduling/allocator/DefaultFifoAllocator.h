@@ -51,7 +51,10 @@ namespace spider {
 
     class DefaultFifoAllocator final : public FifoAllocator {
     public:
-        DefaultFifoAllocator() = default;
+        DefaultFifoAllocator() : FifoAllocator() {
+            traits_.jitAllocator_ = true;
+            traits_.postSchedulingAllocator_ = true;
+        };
 
         ~DefaultFifoAllocator() override = default;
 

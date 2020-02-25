@@ -57,12 +57,12 @@
 static void checkFifoAllocatorTraits(spider::FifoAllocator *allocator, spider::Scheduler::ScheduleMode mode) {
     switch (mode) {
         case spider::Scheduler::JIT_SEND:
-            if (!allocator->traits.jitAllocator_) {
+            if (!allocator->traits_.jitAllocator_) {
                 throwSpiderException("Using a scheduler in JIT_SEND mode with incompatible fifo allocator.");
             }
             break;
         case spider::Scheduler::DELAYED_SEND:
-            if (!allocator->traits.postSchedulingAllocator_) {
+            if (!allocator->traits_.postSchedulingAllocator_) {
                 throwSpiderException("Using a scheduler in DELAYED_SEND mode with incompatible fifo allocator.");
             }
             break;
@@ -75,13 +75,29 @@ spider::Scheduler::Scheduler(pisdf::Graph *graph, ScheduleMode mode, FifoAllocat
         graph_{ graph },
         mode_{ mode },
         allocator_{ allocator } {
-    checkFifoAllocatorTraits(allocator, mode);
+    if (allocator) {
+        checkFifoAllocatorTraits(allocator, mode);
+    }
 }
 
 void spider::Scheduler::clear() {
     schedule_.clear();
     if (allocator_) {
         allocator_->clear();
+    }
+}
+
+void spider::Scheduler::setMode(spider::Scheduler::ScheduleMode mode) {
+    mode_ = mode;
+    if (allocator_) {
+        checkFifoAllocatorTraits(allocator_, mode_);
+    }
+}
+
+void spider::Scheduler::setAllocator(spider::FifoAllocator *allocator) {
+    allocator_ = allocator;
+    if (allocator_) {
+        checkFifoAllocatorTraits(allocator_, mode_);
     }
 }
 

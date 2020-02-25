@@ -71,6 +71,10 @@ namespace spider {
 
         /* === Method(s) === */
 
+        void setAllocator(FifoAllocator *allocator);
+
+        void setMode(ScheduleMode mode);
+
         /**
          * @brief Update internal state of the scheduler (mostly for dynamic applications)
          */
