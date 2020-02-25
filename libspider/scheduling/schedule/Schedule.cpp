@@ -56,7 +56,7 @@
 void spider::Schedule::clear() {
     taskVector_.clear();
     stats_.reset();
-    lastRunJob_ = 0;
+    lastRunTask_ = 0;
     readyJobCount_ = 0;
 }
 
@@ -64,7 +64,7 @@ void spider::Schedule::reset() {
     for (auto &task : taskVector_) {
         task->setState(TaskState::READY);
     }
-    lastRunJob_ = 0;
+    lastRunTask_ = 0;
     readyJobCount_ = static_cast<long>(taskVector_.size());
 }
 
@@ -130,24 +130,20 @@ void spider::Schedule::updateTaskAndSetReady(size_t taskIx, size_t slave, uint64
 }
 
 void spider::Schedule::sendReadyTasks() {
-//    const auto &grtIx = archi::platform()->spiderGRTPE()->virtualIx();
-//    auto startIterator = std::begin(jobVector_) + lastRunJob_;
-//    auto endIterator = startIterator + readyJobCount_;
-//    for (auto it = startIterator; it < endIterator; ++it) {
-//        auto &job = (*it);
-//        /* == Create job message and send the notification == */
-//        const auto &messageIx = rt::platform()->communicator()->push(job.createJobMessage(this),
-//                                                                     job.LRTIx());
-//
-//        rt::platform()->communicator()->push(Notification(NotificationType::JOB_ADD,
-//                                                          grtIx,
-//                                                          messageIx),
-//                                             job.LRTIx());
-//
-//        /* == Set job in JobState::RUNNING == */
-//        job.setState(JobState::RUNNING);
-//    }
+    const auto grtIx = archi::platform()->spiderGRTPE()->virtualIx();
+    auto *communicator = rt::platform()->communicator();
+    /* == Compute the iterator on ready only jobs == */
+    auto startIterator = std::begin(taskVector_) + lastRunTask_;
+    auto endIterator = startIterator + readyJobCount_;
+    for (auto it = startIterator; it < endIterator; ++it) {
+        auto *task = it->get();
+        /* == Create job message and send the notification == */
+        const auto messageIx = communicator->push(task->createJobMessage(), task->mappedLrt());
+        communicator->push(Notification(NotificationType::JOB_ADD, grtIx, messageIx), task->mappedLrt());
+        /* == Set job in TaskState::RUNNING == */
+        task->setState(TaskState::RUNNING);
+    }
     /* == Reset last job and ready count == */
-    lastRunJob_ += readyJobCount_;
+    lastRunTask_ += readyJobCount_;
     readyJobCount_ = 0;
 }

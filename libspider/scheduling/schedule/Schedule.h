@@ -168,7 +168,7 @@ namespace spider {
         vector<unique_ptr<ScheduleTask>> taskVector_;
         Stats stats_;
         long readyJobCount_ = 0;
-        long lastRunJob_ = 0;
+        long lastRunTask_ = 0;
     };
 }
 
