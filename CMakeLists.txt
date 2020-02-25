@@ -63,6 +63,9 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR}"
 # See https://blog.kitware.com/create-dlls-on-windows-without-declspec-using-new-cmake-export-all-feature/
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
+# Set warnings for all compilers
+include(cmake/CompilerWarnings.cmake)
+
 # Compiler specific settings
 if (MSVC)
     # Under MSVC, we set CMAKE_DEBUG_POSTFIX to "d" to add a trailing "d" to library
@@ -74,10 +77,10 @@ if (MSVC)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
     install(FILES $<TARGET_PDB_FILE:${PROJECT_NAME}> CONFIGURATIONS "Debug" "RelWithDebInfo" DESTINATION "${CMAKE_INSTALL_BINDIR}")
 else ()
-    set(SPIDER_EXTRA_FLAGS " -Wall -Wextra -pedantic-errors -Wnon-virtual-dtor -Wconversion -Wformat -Wredundant-decls -Wold-style-cast")
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -pg -O0 --coverage ${SPIDER_EXTRA_FLAGS}")
+#    set(SPIDER_EXTRA_FLAGS "-Wall -Wextra -pedantic-errors -Wnon-virtual-dtor -Wconversion -Wformat -Wredundant-decls -Wold-style-cast")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -pg -O0 --coverage")
     message(STATUS "Using Link Time Optimization (-flto) on GNU platforms.")
-    set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG -fno-rtti -flto ${SPIDER_EXTRA_FLAGS}")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}  -O2 -DNDEBUG -fno-rtti -flto")
     if (${CMAKE_GENERATOR} MATCHES "MinGW Makefiles")
         # To prevent a redefinition conflict
         message(STATUS "Add definition _TIMESPEC_DEFINED")

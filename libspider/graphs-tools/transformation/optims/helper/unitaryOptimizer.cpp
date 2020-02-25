@@ -48,15 +48,15 @@
 /* === Function(s) definition === */
 
 bool spider::optims::optimizeUnitaryVertex(pisdf::Vertex *vertex) {
-    auto removeVertex = [](pisdf::Vertex *vertex) -> bool {
-        auto *inputEdge = vertex->inputEdge(0);
-        auto *outputEdge = vertex->outputEdge(0);
+    auto removeVertex = [](pisdf::Vertex *v) -> bool {
+        auto *inputEdge = v->inputEdge(0);
+        auto *outputEdge = v->outputEdge(0);
         if (inputEdge->sinkRateValue() == outputEdge->sourceRateValue()) {
             inputEdge->setSink(outputEdge->sink(), outputEdge->sinkPortIx(), outputEdge->sinkRateExpression());
             /* == Remove edge and vertex == */
-            auto *graph = vertex->graph();
+            auto *graph = v->graph();
             graph->removeEdge(outputEdge);
-            graph->removeVertex(vertex);
+            graph->removeVertex(v);
             return true;
         }
         return false;

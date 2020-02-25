@@ -53,11 +53,11 @@ namespace spider {
     template<class T>
     class unique_ptr {
         template<class U>
-        struct ptr {
+        struct ptr_t {
             using type = U *;
         };
     public:
-        using pointer = typename ptr<T>::type;
+        using pointer = typename ptr_t<T>::type;
         using element_type  = T;
 
         constexpr unique_ptr() noexcept : data_{ nullptr } { }

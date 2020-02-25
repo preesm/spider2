@@ -47,7 +47,7 @@
 
 spider::MemoryInterface::MemoryInterface(uint64_t size) : size_{ size }, used_{ 0 } {
     /* == Default routines == */
-    allocateRoutine_ = [](u64 size) -> void * { return std::malloc(static_cast<size_t>(size)); };
+    allocateRoutine_ = [](u64 sizeAlloc) -> void * { return std::malloc(static_cast<size_t>(sizeAlloc)); };
     deallocateRoutine_ = [](void *addr) -> void { std::free(addr); };
 }
 

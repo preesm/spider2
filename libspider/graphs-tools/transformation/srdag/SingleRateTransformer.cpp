@@ -363,8 +363,8 @@ void spider::srdag::SingleRateTransformer::addForkVertex(vector<TransfoVertex> &
 
     /* == Connect the output edges of the fork == */
     connectSpecialActor(fork, snkVector, srcVector,
-                        [](pisdf::Vertex *fork, size_t portIx, const TransfoVertex &transfoVertex) {
-                            api::createEdge(fork,                  /* = Fork vertex = */
+                        [](pisdf::Vertex *vertex, size_t portIx, const TransfoVertex &transfoVertex) {
+                            api::createEdge(vertex,                /* = Fork vertex = */
                                             portIx,                /* = Fork output to connect = */
                                             transfoVertex.rate_,   /* = Sink rate = */
                                             transfoVertex.vertex_, /* = Sink to connect to fork = */
@@ -385,11 +385,11 @@ void spider::srdag::SingleRateTransformer::addJoinVertex(vector<TransfoVertex> &
 
     /* == Connect the input edges of the join == */
     connectSpecialActor(join, srcVector, snkVector,
-                        [](pisdf::Vertex *join, size_t portIx, const TransfoVertex &transfoVertex) {
+                        [](pisdf::Vertex *vertex, size_t portIx, const TransfoVertex &transfoVertex) {
                             api::createEdge(transfoVertex.vertex_, /* = Source to connect to join = */
                                             transfoVertex.portIx_, /* = Source port ix = */
                                             transfoVertex.rate_,   /* = Source rate = */
-                                            join,                  /* = Join = */
+                                            vertex,                /* = Join = */
                                             portIx,                /* = Join input to connect = */
                                             transfoVertex.rate_    /* = Source rate = */);
                         });
