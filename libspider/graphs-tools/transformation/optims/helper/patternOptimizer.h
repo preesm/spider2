@@ -49,28 +49,12 @@ namespace spider {
 
     class Expression;
 
-    /* === Structure(s) definition === */
-
-    using VertexEdgeGetter = pisdf::Edge *(pisdf::Vertex::*)(size_t) const;
-    using EdgeVertexSetter = void (pisdf::Edge::*)(pisdf::Vertex *, size_t, Expression);
-    using EdgeVertexGetter = pisdf::Vertex *(pisdf::Edge::*)() const;
-    using EdgeRateGetter = const Expression &(pisdf::Edge::*)() const;
-    using EdgePortGetter =  size_t (pisdf::Edge::*)() const;
-    using VertexMaker = pisdf::Vertex *(*)(pisdf::Vertex *, pisdf::Vertex *);
-
-    struct ReduceWorkerInfo {
-        pisdf::VertexType type_;
-        pisdf::Graph *graph_;
-        VertexMaker vertexMaker_;
-        VertexEdgeGetter getEdge_;
-        VertexEdgeGetter getOppositeEdge_;
-        EdgeVertexSetter setVertex_;
-        EdgeVertexGetter getVertex_;
-        EdgePortGetter getPortIx_;
-        EdgeRateGetter edgeRate_;
-    };
-
     /* === Function(s) prototype === */
+
+    using EdgeConnecter = void (*)(pisdf::Vertex *, size_t, pisdf::Vertex *, size_t);
+    using EdgeRemover = size_t (*)(pisdf::Vertex *, pisdf::Vertex *);
+    using NextVertexGetter = pisdf::Vertex *(*)(pisdf::Vertex *);
+    using VertexMaker = pisdf::Vertex *(*)(pisdf::Vertex *, pisdf::Vertex *);
 
     namespace optims {
 
@@ -79,7 +63,12 @@ namespace spider {
          * @param info Information needed for performing the optimization.
          * @return true if optimization(s) were performed, false else.
          */
-        bool reduceFFJJWorker(const ReduceWorkerInfo &info);
+        bool reduceFFJJWorker(pisdf::VertexType type,
+                              pisdf::Graph *graph,
+                              VertexMaker makeNewVertex,
+                              NextVertexGetter getNextVertex,
+                              EdgeRemover removeEdge,
+                              EdgeConnecter reconnect);
     }
 }
 

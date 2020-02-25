@@ -162,29 +162,56 @@ void spider::optims::optimize(spider::pisdf::Graph *graph) {
 }
 
 bool spider::optims::reduceForkFork(pisdf::Graph *graph) {
+    if (!graph) {
+        return false;
+    }
+    /* == Declare the lambdas == */
+    auto getNextVertex = [](pisdf::Vertex *vertex) -> pisdf::Vertex * {
+        return vertex->inputEdge(0)->source();
+    };
+    auto removeEdge = [](pisdf::Vertex *vertex, pisdf::Vertex *vertexB) -> size_t {
+        const auto offset = vertex->inputEdge(0)->sinkPortIx();
+        vertex->graph()->removeEdge(vertexB->outputEdge(offset));
+        return offset;
+    };
+    auto reconnectEdge = [](pisdf::Vertex *vertex, size_t srcIx, pisdf::Vertex *target, size_t snkIx) {
+        auto *edge = vertex->outputEdge(srcIx);
+        edge->setSource(target, snkIx, edge->sourceRateExpression());
+    };
+
     /* == Do the optimization == */
-    return graph && reduceFFJJWorker({ pisdf::VertexType::FORK,
-                                       graph,
-                                       createNewFork,
-                                       &pisdf::Vertex::outputEdge,
-                                       &pisdf::Vertex::inputEdge,
-                                       &pisdf::Edge::setSource,
-                                       &pisdf::Edge::source,
-                                       &pisdf::Edge::sourcePortIx,
-                                       &pisdf::Edge::sourceRateExpression });
+    return reduceFFJJWorker(pisdf::VertexType::FORK,
+                            graph,
+                            createNewFork,
+                            std::move(getNextVertex),
+                            std::move(removeEdge),
+                            std::move(reconnectEdge));
 }
 
 bool spider::optims::reduceJoinJoin(pisdf::Graph *graph) {
+    if (!graph) {
+        return false;
+    }
+    /* == Declare the lambdas == */
+    auto getNextVertex = [](pisdf::Vertex *vertex) -> pisdf::Vertex * {
+        return vertex->outputEdge(0)->sink();
+    };
+    auto removeEdge = [](pisdf::Vertex *vertex, pisdf::Vertex *vertexB) -> size_t {
+        const auto offset = vertex->outputEdge(0)->sinkPortIx();
+        vertex->graph()->removeEdge(vertexB->inputEdge(offset));
+        return offset;
+    };
+    auto reconnectEdge = [](pisdf::Vertex *vertex, size_t srcIx, pisdf::Vertex *target, size_t snkIx) {
+        auto *edge = vertex->inputEdge(srcIx);
+        edge->setSink(target, snkIx, edge->sinkRateExpression());
+    };
     /* == Do the optimization == */
-    return graph && reduceFFJJWorker({ pisdf::VertexType::JOIN,
-                                       graph,
-                                       createNewJoin,
-                                       &pisdf::Vertex::inputEdge,
-                                       &pisdf::Vertex::outputEdge,
-                                       &pisdf::Edge::setSink,
-                                       &pisdf::Edge::sink,
-                                       &pisdf::Edge::sinkPortIx,
-                                       &pisdf::Edge::sinkRateExpression });
+    return reduceFFJJWorker(pisdf::VertexType::JOIN,
+                            graph,
+                            createNewJoin,
+                            std::move(getNextVertex),
+                            std::move(removeEdge),
+                            std::move(reconnectEdge));
 }
 
 bool spider::optims::reduceJoinFork(pisdf::Graph *graph) {
