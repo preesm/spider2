@@ -103,6 +103,9 @@ spider::JITMSRuntime::JITMSRuntime(pisdf::Graph *graph,
         fifoAllocator_{ makeFifoAllocator(type) } {
     scheduler_->setAllocator(fifoAllocator_.get());
     isFullyStatic_ = isGraphFullyStatic(graph);
+    if (!rt::platform()) {
+        throwSpiderException("JITMSRuntime need the runtime platform to be created.");
+    }
 }
 
 bool spider::JITMSRuntime::execute() {
