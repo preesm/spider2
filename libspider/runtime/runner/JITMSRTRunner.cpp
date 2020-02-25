@@ -286,6 +286,8 @@ bool spider::JITMSRTRunner::readNotification(bool blocking) {
         return false;
     }
     switch (notification.type_) {
+        case NotificationType::LRT_START_ITERATION:
+            break;
         case NotificationType::LRT_END_ITERATION:
             break;
         case NotificationType::LRT_REPEAT_ITERATION_EN:
