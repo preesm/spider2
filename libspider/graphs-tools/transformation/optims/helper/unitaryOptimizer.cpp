@@ -49,13 +49,12 @@
 
 bool spider::optims::optimizeUnitaryVertex(pisdf::Vertex *vertex) {
     auto removeVertex = [](pisdf::Vertex *vertex) -> bool {
-        auto *graph = vertex->graph();
         auto *inputEdge = vertex->inputEdge(0);
         auto *outputEdge = vertex->outputEdge(0);
         if (inputEdge->sinkRateValue() == outputEdge->sourceRateValue()) {
-            inputEdge->setSink(outputEdge->sink(),
-                               outputEdge->sinkPortIx(),
-                               spider::Expression(outputEdge->sinkRateExpression()));
+            inputEdge->setSink(outputEdge->sink(), outputEdge->sinkPortIx(), outputEdge->sinkRateExpression());
+            /* == Remove edge and vertex == */
+            auto *graph = vertex->graph();
             graph->removeEdge(outputEdge);
             graph->removeVertex(vertex);
             return true;
@@ -66,23 +65,13 @@ bool spider::optims::optimizeUnitaryVertex(pisdf::Vertex *vertex) {
     switch (vertex->subtype()) {
         case pisdf::VertexType::DUPLICATE:
         case pisdf::VertexType::FORK:
-            if (vertex->outputEdgeCount() == 1) {
-                return removeVertex(vertex);
-            }
-            break;
+            return (vertex->outputEdgeCount() == 1) && removeVertex(vertex);
         case pisdf::VertexType::JOIN:
         case pisdf::VertexType::TAIL:
         case pisdf::VertexType::HEAD:
-            if (vertex->inputEdgeCount() == 1) {
-                return removeVertex(vertex);
-            }
-            break;
+            return (vertex->inputEdgeCount() == 1) && removeVertex(vertex);
         case pisdf::VertexType::REPEAT:
             return removeVertex(vertex);
-        case pisdf::VertexType::INIT:
-            break;
-        case pisdf::VertexType::END:
-            break;
         default:
             break;
     }
