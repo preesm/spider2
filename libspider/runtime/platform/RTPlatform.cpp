@@ -107,7 +107,11 @@ void spider::RTPlatform::waitForRunnersToFinish() const {
             communicator()->push(notification, grtIx);
         }
     }
-    for (i = 0; i < archi::platform()->LRTCount(); ++i) {
+}
+
+void spider::RTPlatform::sendClearToRunners() const {
+    const auto grtIx = archi::platform()->spiderGRTPE()->attachedLRT()->virtualIx();
+    for (size_t i = 0; i < archi::platform()->LRTCount(); ++i) {
         communicator()->push(Notification{ NotificationType::JOB_CLEAR_QUEUE, grtIx }, i);
     }
 }

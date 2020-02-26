@@ -110,6 +110,11 @@ namespace spider {
          */
         void waitForRunnersToFinish() const;
 
+        /**
+         * @brief send JOB_CLEAR_QUEUE notification to every runners.
+         */
+        void sendClearToRunners() const;
+
         virtual void createRunnerRessource(RTRunner *) = 0;
 
         virtual void waitForRunnerToBeReady() = 0;

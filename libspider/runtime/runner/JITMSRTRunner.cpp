@@ -298,11 +298,7 @@ bool spider::JITMSRTRunner::readNotification(bool blocking) {
     LOG_NOTIFICATION();
     switch (notification.type_) {
         case NotificationType::LRT_START_ITERATION:
-            if (!finished_) {
-                /* == push back notification until we finished previous iteration == */
-                rt::platform()->communicator()->push(notification, ix());
-                return false;
-            } else {
+            if (finished_) {
                 start_ = true;
                 finished_ = false;
                 jobCount_ = 0;

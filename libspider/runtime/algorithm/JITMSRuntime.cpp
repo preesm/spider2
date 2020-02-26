@@ -133,6 +133,7 @@ bool spider::JITMSRuntime::staticExecute() {
         /* == Run and wait == */
         rt::platform()->runner(grtIx)->run(false);
         rt::platform()->waitForRunnersToFinish();
+        rt::platform()->sendClearToRunners();
         scheduler_->schedule().reset();
         return true;
     }
@@ -185,6 +186,7 @@ bool spider::JITMSRuntime::staticExecute() {
     /* == If there are jobs left, run == */
     rt::platform()->runner(grtIx)->run(false);
     rt::platform()->waitForRunnersToFinish();
+    rt::platform()->sendClearToRunners();
 
     /* == Reset the scheduler == */
     scheduler_->schedule().reset();
@@ -226,6 +228,7 @@ bool spider::JITMSRuntime::dynamicExecute() {
         //monitor_->endSampling();
 
         rt::platform()->runner(grtIx)->run(false);
+        rt::platform()->waitForRunnersToFinish();
 
         /* == Wait for all parameters to be resolved == */
         if (!dynamicJobStack.empty()) {
@@ -288,6 +291,7 @@ bool spider::JITMSRuntime::dynamicExecute() {
     /* == If there are jobs left, run == */
     rt::platform()->runner(grtIx)->run(false);
     rt::platform()->waitForRunnersToFinish();
+    rt::platform()->sendClearToRunners();
 
     /* == Clear the srdag == */
     srdag_->clear();
