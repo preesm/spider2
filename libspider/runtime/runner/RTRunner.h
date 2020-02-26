@@ -92,7 +92,8 @@ namespace spider {
         size_t jobQueueCurrentPos_{ 0 };
         i32 affinity_{ -1 };
         bool start_{ false };
-        bool end_{ true };
+        bool receivedEnd_{ false };
+        bool finished_{ true };
         bool stop_{ false };
         bool pause_{ false };
         bool trace_{ false };
@@ -103,9 +104,19 @@ namespace spider {
         void clearLocalJobStamps();
 
         /**
+         * @brief Clear job queue.
+         */
+        void clearJobQueue();
+
+        /**
          * @brief Broadcast current job stamp to every other LRT.
          */
         void broadcastCurrentJobStamp() const;
+
+        /**
+         * @brief Send the LRT_FINISHED_ITERATION notification to the GRT.
+         */
+        void sendFinishedNotification() const;
 
         /**
          * @brief Send notification with last achieved job to lrt that need to know.

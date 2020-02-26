@@ -121,9 +121,18 @@ bool spider::JITMSRuntime::staticExecute() {
     const auto grtIx = archi::platform()->spiderGRTPE()->attachedLRT()->virtualIx();
     static bool first = true;
     if (!first) {
+        /* == Send LRT_START_ITERATION notification == */
+        rt::platform()->sendStartIteration();
+
         /* == Just reset the schedule and re-run it == */
         scheduler_->schedule().sendReadyTasks();
+
+        /* == Send LRT_END_ITERATION notification == */
+        rt::platform()->sendEndIteration();
+
+        /* == Run and wait == */
         rt::platform()->runner(grtIx)->run(false);
+        rt::platform()->waitForRunnersToFinish();
         scheduler_->schedule().reset();
         return true;
     }
@@ -175,6 +184,7 @@ bool spider::JITMSRuntime::staticExecute() {
 
     /* == If there are jobs left, run == */
     rt::platform()->runner(grtIx)->run(false);
+    rt::platform()->waitForRunnersToFinish();
 
     /* == Reset the scheduler == */
     scheduler_->schedule().reset();
@@ -213,8 +223,9 @@ bool spider::JITMSRuntime::dynamicExecute() {
         //monitor_->startSampling();
         scheduler_->update();
         scheduler_->execute();
-        rt::platform()->runner(grtIx)->run(false);
         //monitor_->endSampling();
+
+        rt::platform()->runner(grtIx)->run(false);
 
         /* == Wait for all parameters to be resolved == */
         if (!dynamicJobStack.empty()) {
@@ -270,12 +281,13 @@ bool spider::JITMSRuntime::dynamicExecute() {
         api::exportGraphToDOT(srdag_.get(), "./srdag.dot");
     }
 
-    /* == If there are jobs left, run == */
-    rt::platform()->runner(grtIx)->run(false);
-
     if (api::exportGanttEnabled()) {
         exportGantt(&scheduler_->schedule());
     }
+
+    /* == If there are jobs left, run == */
+    rt::platform()->runner(grtIx)->run(false);
+    rt::platform()->waitForRunnersToFinish();
 
     /* == Clear the srdag == */
     srdag_->clear();

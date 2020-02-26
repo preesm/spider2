@@ -166,9 +166,8 @@ namespace spider {
 
     private:
         vector<unique_ptr<ScheduleTask>> taskVector_;
+        vector<ScheduleTask *> readyTaskVector_;
         Stats stats_;
-        long readyJobCount_ = 0;
-        long lastRunTask_ = 0;
     };
 }
 

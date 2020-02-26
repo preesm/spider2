@@ -75,20 +75,51 @@ namespace spider {
         Last = UNDEFINED,               /*!< Sentry for EnumIterator::end */
     };
 
-
-    /**
-     * @brief All notification are NOT needed to be supported by ALL runtime.
-     */
-    enum LRTNotifification : uint16_t {
-    };
-
-    enum TraceNotification : uint16_t {
-        ENABLE = 0,    /*!< Signal LRT to enable its trace */
-        DISABLE,       /*!< Signal LRT to disable its trace */
-        RST,           /*!< Signal LRT to reset its trace */
-        SENT,          /*!< Signal that a trace has been sent */
-    };
-
+    inline const char *notificationToString(NotificationType type) {
+        switch (type) {
+            case NotificationType::LRT_END_ITERATION:
+                return "LRT_END_ITERATION";
+            case NotificationType::LRT_START_ITERATION:
+                return "LRT_START_ITERATION";
+            case NotificationType::LRT_REPEAT_ITERATION_EN:
+                return "LRT_REPEAT_ITERATION_EN";
+            case NotificationType::LRT_REPEAT_ITERATION_DIS:
+                return "LRT_REPEAT_ITERATION_DIS";
+            case NotificationType::LRT_FINISHED_ITERATION:
+                return "LRT_FINISHED_ITERATION";
+            case NotificationType::LRT_RST_ITERATION:
+                return "LRT_RST_ITERATION";
+            case NotificationType::LRT_STOP:
+                return "LRT_STOP";
+            case NotificationType::LRT_PAUSE:
+                return "LRT_PAUSE";
+            case NotificationType::LRT_RESUME:
+                return "LRT_RESUME";
+            case NotificationType::TRACE_ENABLE:
+                return "TRACE_ENABLE";
+            case NotificationType::TRACE_DISABLE:
+                return "TRACE_DISABLE";
+            case NotificationType::TRACE_RST:
+                return "TRACE_RST";
+            case NotificationType::TRACE_SENT:
+                return "TRACE_SENT";
+            case NotificationType::JOB_ADD:
+                return "JOB_ADD";
+            case NotificationType::JOB_CLEAR_QUEUE:
+                return "JOB_CLEAR_QUEUE";
+            case NotificationType::JOB_SENT_PARAM:
+                return "JOB_SENT_PARAM";
+            case NotificationType::JOB_BROADCAST_JOBSTAMP:
+                return "JOB_BROADCAST_JOBSTAMP";
+            case NotificationType::JOB_DELAY_BROADCAST_JOBSTAMP:
+                return "JOB_DELAY_BROADCAST_JOBSTAMP";
+            case NotificationType::JOB_UPDATE_JOBSTAMP:
+                return "JOB_UPDATE_JOBSTAMP";
+            case NotificationType::UNDEFINED:
+                return "UNDEFINED";
+        }
+        return "DEFAULT";
+    }
 
     /* === Structure(s) definition === */
 

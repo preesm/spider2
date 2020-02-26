@@ -97,7 +97,7 @@
 
 #define LOG_JOB_END() \
     if (log::enabled<log::LRT>()) { \
-        if (jobCount_ != SIZE_MAX) {\
+        if (jobCount_ != 0) {\
             log::info<log::LRT>("Runner #%zu -> %zu / %zu jobs done.\n", ix(), jobQueueCurrentPos_, jobCount_); \
         } else { \
             log::info<log::LRT>("Runner #%zu -> %zu / ? jobs done.\n", ix(), jobQueueCurrentPos_);\
@@ -115,6 +115,18 @@
                             "Runner #%zu -> received value: %zu\n",\
                             ix(), lrtIx,\
                             ix(), jobStampValue);\
+    }
+
+#define LOG_UNHANDLED() \
+     if (log::enabled<log::LRT>()) {\
+        log::info<log::LRT>("Runner #%zu -> received unhandled type of notification: #%s\n",\
+                            ix(), notificationToString(notification.type_));\
+    }
+
+#define LOG_NOTIFICATION() \
+     if (log::enabled<log::LRT>()) {\
+        log::info<log::LRT>("Runner #%zu -> received notification: #%s\n",\
+                            ix(), notificationToString(notification.type_));\
     }
 
 /* === Static function === */
@@ -151,64 +163,59 @@ spider::array<void *> createOutputFifos(const spider::array<spider::RTFifo> &fif
 
 void spider::JITMSRTRunner::run(bool infiniteLoop) {
     bool run = true;
-    bool canRun = true;
     if (infiniteLoop) {
         log::info("Runner #%zu -> hello from thread %" PRId32"\n", ix(), this_thread::get_affinity());
     }
+    bool waitForJob = false;
     while (run && !stop_) {
         /* == Check for notifications == */
-        const auto &currentNumberOfJob = jobQueue_.size();
-        bool blockingPop = (infiniteLoop && (jobQueueCurrentPos_ == currentNumberOfJob)) || !canRun;
+        bool blockingPop = (infiniteLoop && finished_) || waitForJob;
         while (!stop_ && readNotification(blockingPop)) {
             blockingPop = pause_;
         }
-
         if (stop_) {
             LOG_STOP();
             return;
         }
 
-        /* == Reorder the job received to respect send / execute order == */
-        if ((jobQueue_.size() - currentNumberOfJob) > 1) {
-            auto startIterator = jobQueue_.begin() + static_cast<long>(currentNumberOfJob);
-            std::sort(startIterator, jobQueue_.end(), [](JobMessage &a, JobMessage &b) { return b.ix_ > a.ix_; });
-            LOG_JOB_PUSH();
-        }
-
         /* == If there is a job available, do it == */
         if (jobQueueCurrentPos_ != jobQueue_.size()) {
             auto &job = jobQueue_[jobQueueCurrentPos_];
-            canRun = isJobRunnable(job);
-            if (canRun) {
+            waitForJob = !isJobRunnable(job);
+            if (!waitForJob) {
                 /* == Run the job == */
                 LOG_JOB_START();
                 runJob(job);
                 jobQueueCurrentPos_++;
                 LOG_JOB_END();
             }
-        } else {
-            run = infiniteLoop;
         }
-
-        /* == Exit condition based on infinite loop flag == */
-        bool finishedIteration = (jobCount_) && (jobQueueCurrentPos_ == jobCount_);
+        bool finishedIteration = receivedEnd_ && (jobQueueCurrentPos_ == jobCount_);
         if (finishedIteration) {
-            LOG_END_ITER();
-            /* == Send FINISHED_ITERATION notification to GRT == */
-            Notification notification{ NotificationType::LRT_FINISHED_ITERATION, ix() };
-            const auto *grt = archi::platform()->spiderGRTPE()->attachedLRT();
-            rt::platform()->communicator()->push(notification, grt->virtualIx());
+            /* == Send finished notification == */
+            sendFinishedNotification();
+
+            /* == Check if we need to broadcast == */
             if (shouldBroadcast_) {
                 shouldBroadcast_ = false;
                 broadcastCurrentJobStamp();
             }
-            jobQueueCurrentPos_ = 0;
-            jobQueue_.clear();
-            jobCount_ = 0;
+
             /* == Reset state == */
+            clearJobQueue();
+            finished_ = true;
             start_ = false;
-            end_ = true;
+            receivedEnd_ = false;
+
+            /* == log == */
+            LOG_END_ITER();
+
+            /* == Exit condition based on infinite loop flag == */
+            if (!infiniteLoop) {
+                return;
+            }
         }
+        run = !finishedIteration || infiniteLoop;
     }
 }
 
@@ -254,7 +261,7 @@ void spider::JITMSRTRunner::runJob(const JobMessage &job) {
     }
 
     /* == Notify other runtimes that need to know == */
-    localJobStampsArray_[ix()] = job.ix_;
+    updateJobStamp(ix(), job.ix_);
     sendJobStampNotification(job.notificationFlagsArray_.get(), job.ix_);
 
     /* == Send output parameters == */
@@ -288,32 +295,34 @@ bool spider::JITMSRTRunner::readNotification(bool blocking) {
     } else if (!rt::platform()->communicator()->try_pop(notification, ix())) {
         return false;
     }
+    LOG_NOTIFICATION();
     switch (notification.type_) {
         case NotificationType::LRT_START_ITERATION:
-            if (!end_) {
+            if (!finished_) {
                 /* == push back notification until we finished previous iteration == */
-                Notification startNotification{ NotificationType::LRT_START_ITERATION, ix() };
-                rt::platform()->communicator()->push(startNotification, ix());
+                rt::platform()->communicator()->push(notification, ix());
+                return false;
             } else {
                 start_ = true;
+                finished_ = false;
+                jobCount_ = 0;
+                jobQueueCurrentPos_ = 0;
             }
             break;
         case NotificationType::LRT_END_ITERATION:
             if (!start_) {
                 throwSpiderException("Runner #%zu -> received LRT_END_ITERATION before LRT_START_ITERATION.", ix());
             }
-            end_ = false;
-            break;
-        case NotificationType::LRT_REPEAT_ITERATION_EN:
-            break;
-        case NotificationType::LRT_REPEAT_ITERATION_DIS:
-            break;
-        case NotificationType::LRT_FINISHED_ITERATION:
+            receivedEnd_ = true;
+            jobCount_ = jobQueue_.size();
             break;
         case NotificationType::LRT_RST_ITERATION:
-            jobQueueCurrentPos_ = 0;
-            localJobStampsArray_.assign(SIZE_MAX);
+//            jobQueueCurrentPos_ = 0;
+//            localJobStampsArray_.assign(SIZE_MAX);
             break;
+        case NotificationType::LRT_FINISHED_ITERATION:
+            rt::platform()->communicator()->push(notification, ix());
+            return false;
         case NotificationType::LRT_STOP:
             stop_ = true;
             break;
@@ -336,15 +345,15 @@ bool spider::JITMSRTRunner::readNotification(bool blocking) {
         case NotificationType::JOB_ADD: {
             JobMessage message;
             rt::platform()->communicator()->pop(message, ix(), notification.notificationIx_);
-            jobQueue_.emplace_back(std::move(message));
-            jobCount_++;
+            if (start_) {
+                jobQueue_.emplace_back(std::move(message));
+            }
         }
             break;
         case NotificationType::JOB_CLEAR_QUEUE:
-            jobCount_ = SIZE_MAX;
             clearLocalJobStamps();
-            break;
-        case NotificationType::JOB_SENT_PARAM:
+            clearJobQueue();
+            jobCount_ = 0;
             break;
         case NotificationType::JOB_BROADCAST_JOBSTAMP:
             broadcastCurrentJobStamp();
@@ -359,10 +368,8 @@ bool spider::JITMSRTRunner::readNotification(bool blocking) {
             }
             updateJobStamp(notification.senderIx_, notification.notificationIx_);
             break;
-        case NotificationType::UNDEFINED:
-            break;
         default:
-            throwSpiderException("unhandled type of notification.");
+            LOG_UNHANDLED();
     }
     return true;
 }

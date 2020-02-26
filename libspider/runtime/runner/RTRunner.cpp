@@ -74,6 +74,10 @@ spider::RTRunner::RTRunner(PE *attachedPe, size_t runnerIx, i32 affinity) : jobQ
 }
 
 void spider::RTRunner::clearLocalJobStamps() {
+    localJobStampsArray_.assign(SIZE_MAX);
+}
+
+void spider::RTRunner::clearJobQueue() {
     jobQueueCurrentPos_ = 0;
     jobQueue_.clear();
 }
@@ -87,6 +91,12 @@ void spider::RTRunner::broadcastCurrentJobStamp() const {
             rt::platform()->communicator()->push(broadcastNotification, i);
         }
     }
+}
+
+void spider::RTRunner::sendFinishedNotification() const {
+    Notification notification{ NotificationType::LRT_FINISHED_ITERATION, ix() };
+    const auto *grt = archi::platform()->spiderGRTPE()->attachedLRT();
+    rt::platform()->communicator()->push(notification, grt->virtualIx());
 }
 
 void spider::RTRunner::sendJobStampNotification(bool *notificationFlags, size_t jobIx) const {

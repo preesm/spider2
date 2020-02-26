@@ -55,17 +55,15 @@
 
 void spider::Schedule::clear() {
     taskVector_.clear();
+    readyTaskVector_.clear();
     stats_.reset();
-    lastRunTask_ = 0;
-    readyJobCount_ = 0;
 }
 
 void spider::Schedule::reset() {
     for (auto &task : taskVector_) {
         task->setState(TaskState::READY);
+        readyTaskVector_.emplace_back(task.get());
     }
-    lastRunTask_ = 0;
-    readyJobCount_ = static_cast<long>(taskVector_.size());
 }
 
 void spider::Schedule::print() const {
@@ -98,6 +96,9 @@ void spider::Schedule::addScheduleTask(ScheduleTask *task) {
 
 void spider::Schedule::updateTaskAndSetReady(size_t taskIx, size_t slave, uint64_t startTime, uint64_t endTime) {
     auto &task = taskVector_.at(taskIx);
+    if (task->state() == TaskState::READY) {
+        return;
+    }
     const auto &pe = archi::platform()->peFromVirtualIx(slave);
     const auto &peIx = pe->virtualIx();
 
@@ -126,24 +127,19 @@ void spider::Schedule::updateTaskAndSetReady(size_t taskIx, size_t slave, uint64
 
     /* == Update job state == */
     task->setState(TaskState::READY);
-    readyJobCount_++;
+    readyTaskVector_.emplace_back(task.get());
 }
 
 void spider::Schedule::sendReadyTasks() {
     const auto grtIx = archi::platform()->spiderGRTPE()->virtualIx();
     auto *communicator = rt::platform()->communicator();
-    /* == Compute the iterator on ready only jobs == */
-    auto startIterator = std::begin(taskVector_) + lastRunTask_;
-    auto endIterator = startIterator + readyJobCount_;
-    for (auto it = startIterator; it < endIterator; ++it) {
-        auto *task = it->get();
+    for (auto &task : readyTaskVector_) {
         /* == Create job message and send the notification == */
         const auto messageIx = communicator->push(task->createJobMessage(), task->mappedLrt());
-        communicator->push(Notification(NotificationType::JOB_ADD, grtIx, messageIx), task->mappedLrt());
+        communicator->push(Notification{ NotificationType::JOB_ADD, grtIx, messageIx }, task->mappedLrt());
         /* == Set job in TaskState::RUNNING == */
         task->setState(TaskState::RUNNING);
     }
-    /* == Reset last job and ready count == */
-    lastRunTask_ += readyJobCount_;
-    readyJobCount_ = 0;
+    /* == Reset ready task vector == */
+    readyTaskVector_.clear();
 }

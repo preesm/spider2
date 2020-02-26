@@ -46,6 +46,14 @@
 #include <archi/PE.h>
 #include <archi/Platform.h>
 
+/* === Define(s) === */
+
+#define LOG_WAIT() \
+    if (log::enabled<log::LRT>()) {\
+        log::info<log::LRT>("GRT -> waiting for #%zu runners to finish..\n",\
+                            archi::platform()->LRTCount() - i);\
+    }
+
 /* === Function(s) definition === */
 
 spider::RTPlatform::~RTPlatform() {
@@ -89,13 +97,17 @@ void spider::RTPlatform::waitForRunnersToFinish() const {
     /* == Wait for the notifications == */
     size_t i = 0;
     while (i != archi::platform()->LRTCount()) {
+        LOG_WAIT();
         Notification notification;
         communicator()->pop(notification, grtIx);
         if (notification.type_ == NotificationType::LRT_FINISHED_ITERATION) {
             i++;
-        } else {
+        } else if (notification.type_ != NotificationType::JOB_UPDATE_JOBSTAMP) {
             /* == push back notification == */
             communicator()->push(notification, grtIx);
         }
+    }
+    for (i = 0; i < archi::platform()->LRTCount(); ++i) {
+        communicator()->push(Notification{ NotificationType::JOB_CLEAR_QUEUE, grtIx }, i);
     }
 }
