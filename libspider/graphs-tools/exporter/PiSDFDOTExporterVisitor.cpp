@@ -467,7 +467,7 @@ void spider::pisdf::PiSDFDOTExporterVisitor::portPrinter(const Edge *edge,
     if (direction) {
         printer::fprintf(file_,
                          "%s\t\t\t\t\t\t" R"(<td port="in_%zu" border="1" sides="rtb" bgcolor="#87d37cff" align="left" fixedsize="true" width="20" height="20"></td>)" "\n",
-                         offset_.c_str(), edge->sourcePortIx());
+                         offset_.c_str(), edge->sinkPortIx());
         printer::fprintf(file_,
                          "%s\t\t\t\t\t\t" R"(<td border="1" sides="l" align="left" bgcolor="%s" fixedsize="true" width="%ld" height="20"><font point-size="12" face="inconsolata"> )" "%" PRId64 R"(</font></td>)" "\n",
                          offset_.c_str(), color.c_str(), width, edge->sinkRateExpression().evaluate((*params_)));
