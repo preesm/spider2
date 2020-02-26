@@ -58,8 +58,6 @@ spider::Schedule &spider::BestFitScheduler::execute() {
     auto iterator = sortedTaskVector_.begin() + static_cast<long>(lastScheduledTask_);
     auto endIterator = sortedTaskVector_.begin() + static_cast<long>(lastSchedulableTask_);
     if (mode_ == JIT_SEND) {
-        /* == Send LRT_START_ITERATION notification == */
-        rt::platform()->sendStartIteration();
         while (iterator != endIterator) {
             auto &listVertex = (*(iterator++));
             Scheduler::taskMapper(listVertex.task_);
@@ -75,15 +73,11 @@ spider::Schedule &spider::BestFitScheduler::execute() {
             /* == Create job message and send it == */
             schedule_.sendReadyTasks();
         }
-        /* == Send LRT_END_ITERATION notification == */
-        rt::platform()->sendEndIteration();
     } else {
         while (iterator != endIterator) {
             auto &listVertex = (*(iterator++));
             Scheduler::taskMapper(listVertex.task_);
         }
-        /* == Send LRT_START_ITERATION notification == */
-        rt::platform()->sendStartIteration();
         /* == If we got an allocator let use it == */
         if (allocator_) {
             iterator = sortedTaskVector_.begin() + static_cast<long>(lastScheduledTask_);
@@ -97,8 +91,6 @@ spider::Schedule &spider::BestFitScheduler::execute() {
         }
         /* == Creates all job messages and send them == */
         schedule_.sendReadyTasks();
-        /* == Send LRT_END_ITERATION notification == */
-        rt::platform()->sendEndIteration();
     }
     lastScheduledTask_ = lastSchedulableTask_;
     return schedule_;

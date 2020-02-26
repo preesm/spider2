@@ -139,9 +139,9 @@ bool spider::JITMSRuntime::staticExecute() {
     }
     first = false;
     /* == Apply first transformation of root graph == */
-    auto &&rootJob = srdag::TransfoJob(graph_, SIZE_MAX, UINT32_MAX, true);
+    auto rootJob = srdag::TransfoJob(graph_, SIZE_MAX, UINT32_MAX, true);
     rootJob.params_ = graph_->params();
-    auto &&resultRootJob = srdag::singleRateTransformation(rootJob, srdag_.get());
+    auto resultRootJob = srdag::singleRateTransformation(rootJob, srdag_.get());
 
     /* == Initialize the job stacks == */
     auto staticJobStack = factory::vector<srdag::TransfoJob>(StackID::TRANSFO);
@@ -173,11 +173,17 @@ bool spider::JITMSRuntime::staticExecute() {
         api::exportGraphToDOT(srdag_.get(), "./srdag.dot");
     }
 
+    /* == Send LRT_START_ITERATION notification == */
+    rt::platform()->sendStartIteration();
+
     /* == Schedule / Map current Single-Rate graph == */
     //monitor_->startSampling();
     scheduler_->update();
     scheduler_->execute();
     //monitor_->endSampling();
+
+    /* == Send LRT_END_ITERATION notification == */
+    rt::platform()->sendEndIteration();
 
     if (api::exportGanttEnabled()) {
         exportGantt(&scheduler_->schedule());
@@ -221,11 +227,17 @@ bool spider::JITMSRuntime::dynamicExecute() {
             //monitor_->endSampling();
         }
 
+        /* == Send LRT_START_ITERATION notification == */
+        rt::platform()->sendStartIteration();
+
         /* == Schedule / Map current Single-Rate graph == */
         //monitor_->startSampling();
         scheduler_->update();
         scheduler_->execute();
         //monitor_->endSampling();
+
+        /* == Send LRT_END_ITERATION notification == */
+        rt::platform()->sendEndIteration();
 
         rt::platform()->runner(grtIx)->run(false);
         rt::platform()->waitForRunnersToFinish();
@@ -274,9 +286,15 @@ bool spider::JITMSRuntime::dynamicExecute() {
                 //monitor_->endSampling();
             }
 
+            /* == Send LRT_START_ITERATION notification == */
+            rt::platform()->sendStartIteration();
+
             /* == Schedule / Map current Single-Rate graph == */
             scheduler_->update();
             scheduler_->execute();
+
+            /* == Send LRT_END_ITERATION notification == */
+            rt::platform()->sendEndIteration();
         }
     }
 
@@ -303,6 +321,27 @@ bool spider::JITMSRuntime::dynamicExecute() {
 
 /* === Transformation related methods === */
 
+void spider::JITMSRuntime::updateJobStack(vector<srdag::TransfoJob> &src, vector<srdag::TransfoJob> &dest) const {
+    std::for_each(src.begin(), src.end(), [&dest](srdag::TransfoJob &job) {
+        dest.emplace_back(std::move(job));
+    });
+}
+
+void spider::JITMSRuntime::transformJobs(vector<srdag::TransfoJob> &iterJobStack,
+                                         vector<srdag::TransfoJob> &staticJobStack,
+                                         vector<srdag::TransfoJob> &dynamicJobStack) {
+    for (auto &job : iterJobStack) {
+        /* == Transform current job == */
+        auto &&result = srdag::singleRateTransformation(job, srdag_.get());
+
+        /* == Move static TransfoJob into static JobStack == */
+        updateJobStack(result.first, staticJobStack);
+
+        /* == Move dynamic TransfoJob into dynamic JobStack == */
+        updateJobStack(result.second, dynamicJobStack);
+    }
+}
+
 void spider::JITMSRuntime::transformStaticJobs(vector<srdag::TransfoJob> &staticJobStack,
                                                vector<srdag::TransfoJob> &dynamicJobStack) {
     auto tempJobStack = factory::vector<srdag::TransfoJob>(StackID::TRANSFO);
@@ -322,25 +361,4 @@ void spider::JITMSRuntime::transformDynamicJobs(vector<srdag::TransfoJob> &stati
     transformJobs(dynamicJobStack, staticJobStack, tempJobStack);
     /* == Swap vectors == */
     dynamicJobStack.swap(tempJobStack);
-}
-
-void spider::JITMSRuntime::updateJobStack(vector<srdag::TransfoJob> &src, vector<srdag::TransfoJob> &dest) const {
-    std::for_each(src.begin(), src.end(), [&](srdag::TransfoJob &job) {
-        dest.emplace_back(std::move(job));
-    });
-}
-
-void spider::JITMSRuntime::transformJobs(vector<srdag::TransfoJob> &iterJobStack,
-                                         vector<srdag::TransfoJob> &staticJobStack,
-                                         vector<srdag::TransfoJob> &dynamicJobStack) {
-    for (auto &job : iterJobStack) {
-        /* == Transform current job == */
-        auto &&result = srdag::singleRateTransformation(job, srdag_.get());
-
-        /* == Move static TransfoJob into static JobStack == */
-        updateJobStack(result.first, staticJobStack);
-
-        /* == Move dynamic TransfoJob into dynamic JobStack == */
-        updateJobStack(result.second, dynamicJobStack);
-    }
 }
