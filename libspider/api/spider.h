@@ -96,6 +96,12 @@ namespace spider {
     void start(const StartUpConfig &cfg = StartUpConfig());
 
     /**
+     * @brief Check if SPIDER runtime is already initialized.
+     * @return true if spider is initialized, false else.
+     */
+    bool isInit();
+
+    /**
      * @brief Run the user application graph.
      * @remark In INFINITE mode, the application can only be stopped properly on receive of the SIGINT signal.
      * @warning If the user application already catches this signal, it may interfer with the spider library

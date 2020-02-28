@@ -53,6 +53,7 @@
 /* === Static variable(s) definition === */
 
 static bool startFlag = false;
+static spider::Runtime *runtimeAlgo = nullptr;
 
 /* === Static function(s) === */
 
@@ -189,6 +190,10 @@ void spider::start(const StartUpConfig &cfg) {
     startFlag = true;
 }
 
+bool spider::isInit() {
+    return startFlag;
+}
+
 static spider::Runtime *getRuntimeFromType(spider::RuntimeType type, spider::SchedulingAlgorithm algorithm) {
     switch (type) {
         case spider::RuntimeType::JITMS:
@@ -198,7 +203,11 @@ static spider::Runtime *getRuntimeFromType(spider::RuntimeType type, spider::Sch
 }
 
 void spider::run(RunMode mode, size_t loopCount, RuntimeType type, SchedulingAlgorithm algorithm) {
-    auto *runtimeAlgo = getRuntimeFromType(type, algorithm);
+    if (!isInit()) {
+        log::warning("SPIDER has not been initialized, returning.\n");
+        return;
+    }
+    runtimeAlgo = getRuntimeFromType(type, algorithm);
     if (!runtimeAlgo) {
         throwSpiderException("could not create runtime algorithm.");
     }
@@ -212,16 +221,25 @@ void spider::run(RunMode mode, size_t loopCount, RuntimeType type, SchedulingAlg
                 runtimeAlgo->execute();
             }
         }
-
+        
         /* == Destroy the runtime == */
         destroy(runtimeAlgo);
     } catch (spider::Exception &e) {
+        /* == Destroy the runtime == */
         destroy(runtimeAlgo);
         throw std::runtime_error(e.what());
     }
 }
 
 void spider::quit() {
+    if (!isInit()) {
+        log::warning("SPIDER has not been initialized, returning.\n");
+        return;
+    }
+
+    /* == Destroy the runtime == */
+    destroy(runtimeAlgo);
+
     /* == Destroy the spider::pisdf::Graph == */
     destroy(pisdf::applicationGraph());
 

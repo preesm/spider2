@@ -50,8 +50,7 @@ namespace spider {
 
     class ThreadRTPlatform final : public RTPlatform {
     public:
-        explicit ThreadRTPlatform(size_t runnerCount = 0) : RTPlatform(runnerCount),
-                                                            threadArray_{ runnerCount, nullptr, StackID::RUNTIME } { };
+        explicit ThreadRTPlatform(size_t runnerCount = 0);
 
         ~ThreadRTPlatform() override;
 

@@ -46,8 +46,15 @@
 #include <thread/Thread.h>
 #include <archi/Platform.h>
 #include <archi/PE.h>
+#include <csignal>
+#include <api/runtime-api.h>
 
 /* === Function(s) definition === */
+
+spider::ThreadRTPlatform::ThreadRTPlatform(size_t runnerCount) : RTPlatform(runnerCount),
+                                                                 threadArray_{ runnerCount, nullptr,
+                                                                               StackID::RUNTIME } {
+}
 
 spider::ThreadRTPlatform::~ThreadRTPlatform() {
     /* == Send notification to exit to runners == */
