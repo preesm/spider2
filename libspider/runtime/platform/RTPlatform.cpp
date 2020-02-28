@@ -54,6 +54,10 @@
                             archi::platform()->LRTCount() - i);\
     }
 
+/* === Global stop boolean === */
+
+bool spider2StopRunning = false;
+
 /* === Function(s) definition === */
 
 spider::RTPlatform::~RTPlatform() {

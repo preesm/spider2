@@ -54,6 +54,7 @@
 
 static bool startFlag = false;
 static spider::Runtime *runtimeAlgo = nullptr;
+extern bool spider2StopRunning;
 
 /* === Static function(s) === */
 
@@ -213,11 +214,11 @@ void spider::run(RunMode mode, size_t loopCount, RuntimeType type, SchedulingAlg
     }
     try {
         if (mode == RunMode::INFINITE) {
-            while (true) {
+            while (!spider2StopRunning) {
                 runtimeAlgo->execute();
             }
         } else {
-            for (size_t i = 0; i < loopCount; ++i) {
+            for (size_t i = 0; (i < loopCount) && !spider2StopRunning; ++i) {
                 runtimeAlgo->execute();
             }
         }

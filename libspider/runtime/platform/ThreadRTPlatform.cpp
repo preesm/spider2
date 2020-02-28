@@ -49,11 +49,18 @@
 #include <csignal>
 #include <api/runtime-api.h>
 
+extern bool spider2StopRunning;
+
 /* === Function(s) definition === */
 
 spider::ThreadRTPlatform::ThreadRTPlatform(size_t runnerCount) : RTPlatform(runnerCount),
                                                                  threadArray_{ runnerCount, nullptr,
                                                                                StackID::RUNTIME } {
+    std::signal(SIGINT, [](int signal) {
+        if (signal == SIGINT) {
+            spider2StopRunning = true;
+        }
+    });
 }
 
 spider::ThreadRTPlatform::~ThreadRTPlatform() {
