@@ -180,9 +180,9 @@ spider::Expression::buildExpressionStack(spider::vector<RPNElement> &postfixStac
         if (elt.type_ == RPNElementType::OPERAND) {
             argCount += 1;
             if (elt.subtype_ == RPNElementSubType::PARAMETER) {
-                const auto &param = findParam(params, elt.token_);
-                const auto &dynamic = param->dynamic();
-                const auto &value = static_cast<double>(param->value());
+                const auto param = findParam(params, elt.token_);
+                const auto dynamic = param->dynamic();
+                const auto value = static_cast<double>(param->value(params));
                 evalStack.emplace_back(value);
 
                 /* == By default, dynamic parameters have 0 value and dynamic expression are necessary built on startup == */
@@ -239,8 +239,8 @@ double spider::Expression::evaluateStack(const spider::vector<std::shared_ptr<pi
     for (const auto &elt : *(expressionStack_)) {
         if (elt.elt_.type_ == RPNElementType::OPERAND) {
             if (elt.elt_.subtype_ == RPNElementSubType::PARAMETER) {
-                const auto &param = findParam(params, elt.elt_.token_);
-                evalStack.emplace_back(static_cast<double>(param->value()));
+                const auto param = findParam(params, elt.elt_.token_);
+                evalStack.emplace_back(static_cast<double>(param->value(params)));
             } else {
                 evalStack.emplace_back(elt.arg.value_);
             }
