@@ -139,8 +139,12 @@ spider::pisdf::Vertex *spider::api::createVertexFromType(pisdf::Graph *graph,
             vertex->runtimeInformation()->setKernelIx(pisdf::SPECIAL_KERNEL_COUNT + kernelIx);
             return vertex;
         }
-        case spider::pisdf::VertexType::CONFIG:
-            return spider::api::createConfigActor(graph, std::move(name), inputEdgeCount, outputEdgeCount);
+        case spider::pisdf::VertexType::CONFIG: {
+            auto *vertex = spider::api::createConfigActor(graph, std::move(name), inputEdgeCount, outputEdgeCount);
+            /* == Special actors kernels are added internally == */
+            vertex->runtimeInformation()->setKernelIx(pisdf::SPECIAL_KERNEL_COUNT + kernelIx);
+            return vertex;
+        }
         case spider::pisdf::VertexType::FORK:
             return spider::api::createFork(graph, std::move(name), outputEdgeCount);
         case spider::pisdf::VertexType::JOIN:

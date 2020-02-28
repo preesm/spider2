@@ -202,6 +202,9 @@ bool spider::JITMSRuntime::staticExecute() {
 
 bool spider::JITMSRuntime::dynamicExecute() {
     const auto grtIx = archi::platform()->spiderGRTPE()->attachedLRT()->virtualIx();
+    if (graph_->dynamic()) {
+        spider::srdag::splitDynamicGraph(graph_);
+    }
     /* == Apply first transformation of root graph == */
     auto &&rootJob = srdag::TransfoJob(graph_, SIZE_MAX, UINT32_MAX, true);
     rootJob.params_ = graph_->params();
