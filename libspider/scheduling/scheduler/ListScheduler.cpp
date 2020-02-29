@@ -87,7 +87,7 @@ void spider::ListScheduler::update() {
                     /* == Set the dependency == */
                     task->setDependency(newTask, i);
                     /* == Add the task to the sorted vector == */
-                    sortedTaskVector_.emplace_back(newTask, -1);
+                    sortedTaskVector_.push_back({ newTask, -1 });
                     source->setScheduleTaskIx(sortedTaskVector_.size() - 1);
                 }
                 i++;
@@ -100,7 +100,7 @@ void spider::ListScheduler::update() {
         if (vertex->scheduleTaskIx() == SIZE_MAX) {
             auto *task = make<ScheduleTask, StackID::SCHEDULE>(vertex.get());
             task->setNumberOfDependencies(vertex->inputEdgeCount());
-            sortedTaskVector_.emplace_back(task, -1);
+            sortedTaskVector_.push_back({ task, -1});
             vertex->setScheduleTaskIx(sortedTaskVector_.size() - 1);
         }
     }

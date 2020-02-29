@@ -75,11 +75,8 @@ namespace spider {
 
     protected:
         struct ListTask {
-            ScheduleTask *task_ = nullptr;
-            ifast32 level_ = -1;
-
-            explicit ListTask(ScheduleTask *task, ifast32 level = -1) : task_{ task },
-                                                                        level_{ level } { };
+            ScheduleTask *task_;
+            ifast32 level_;
         };
 
         vector<ListTask> sortedTaskVector_;
