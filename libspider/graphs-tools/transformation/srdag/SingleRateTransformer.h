@@ -147,10 +147,10 @@ namespace spider {
                                      spider::vector<TransfoVertex> &snkVector);
 
             template<class ConnectEdge>
-            void connectSpecialActor(pisdf::Vertex *vertex,
-                                     vector<TransfoVertex> &workingVector,
-                                     vector<TransfoVertex> &oppositeVector,
-                                     const ConnectEdge &edgeConnector) const;
+            void connectForkOrJoin(pisdf::Vertex *vertex,
+                                   vector<TransfoVertex> &workingVector,
+                                   vector<TransfoVertex> &oppositeVector,
+                                   const ConnectEdge &edgeConnector) const;
 
             /**
              * @brief Add a @refitem ForkVertex into the single-rate graph and connect it.

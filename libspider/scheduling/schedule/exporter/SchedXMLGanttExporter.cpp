@@ -56,7 +56,7 @@ void spider::SchedXMLGanttExporter::print() const {
 void spider::SchedXMLGanttExporter::printFromFile(FILE *file) const {
     printer::fprintf(file, "<data>\n");
     for (auto &task : schedule_->tasks()) {
-        if (task->state() != TaskState::PENDING) {
+        if (task->state() != TaskState::PENDING && task->state() != TaskState::NOT_SCHEDULABLE) {
             printTask(file, task.get());
         }
     }

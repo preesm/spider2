@@ -100,7 +100,7 @@ void spider::ListScheduler::update() {
         if (vertex->scheduleTaskIx() == SIZE_MAX) {
             auto *task = make<ScheduleTask, StackID::SCHEDULE>(vertex.get());
             task->setNumberOfDependencies(vertex->inputEdgeCount());
-            sortedTaskVector_.push_back({ task, -1});
+            sortedTaskVector_.push_back({ task, -1 });
             vertex->setScheduleTaskIx(sortedTaskVector_.size() - 1);
         }
     }

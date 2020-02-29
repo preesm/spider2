@@ -50,6 +50,7 @@
 #include <graphs/pisdf/Edge.h>
 #include <graphs/pisdf/Delay.h>
 #include <api/pisdf-api.h>
+#include <api/runtime-api.h>
 
 /* === Static function(s) === */
 
@@ -242,6 +243,26 @@ void spider::srdag::SingleRateTransformer::singleRateLinkage(pisdf::Edge *edge) 
             throwSpiderException("No delay on edge with self loop.");
         }
     }
+    if (!edge->sourceRateValue() && !edge->sinkRateValue()) {
+        bool noSource = edge->source()->repetitionValue() == 0;
+        bool noSink = edge->sink()->repetitionValue() == 0;
+        if (noSource && !noSink) {
+            /* == Add an empty INIT to the sink == */
+            auto *clone = srdag_->vertex(ref2Clone_[uniformIx(edge->sink(), job_.reference_)]);
+            auto *init = api::createInit(srdag_, "init::" + clone->name() + ":" + std::to_string(edge->sinkPortIx()));
+            api::setVertexExecutionTimingOnAllHWTypes(init, 1);
+            api::createEdge(init, 0, 0, clone, edge->sinkPortIx(), 0);
+        } else if (noSink && !noSource) {
+            /* == Add an empty END to the source == */
+            auto *clone = srdag_->vertex(ref2Clone_[uniformIx(edge->source(), job_.reference_)]);
+            auto *end = api::createEnd(srdag_, "end::" + clone->name() + ":" + std::to_string(edge->sourcePortIx()));
+            api::setVertexExecutionTimingOnAllHWTypes(end, 1);
+            api::createEdge(clone, edge->sourcePortIx(), 0, end, 0, 0);
+
+        }
+        /* == In case, both sink and source do not execute, then nothing to do == */
+        return;
+    }
 
     /* == 0. Create vectors of source and sinks for the linkage == */
     auto sourceVector = buildSourceLinkerVector(edge);
@@ -324,10 +345,10 @@ void spider::srdag::SingleRateTransformer::computeDependencies(pisdf::Edge *edge
 }
 
 template<class ConnectEdge>
-void spider::srdag::SingleRateTransformer::connectSpecialActor(pisdf::Vertex *vertex,
-                                                               vector<TransfoVertex> &workingVector,
-                                                               vector<TransfoVertex> &oppositeVector,
-                                                               const ConnectEdge &edgeConnector) const {
+void spider::srdag::SingleRateTransformer::connectForkOrJoin(pisdf::Vertex *vertex,
+                                                             vector<TransfoVertex> &workingVector,
+                                                             vector<TransfoVertex> &oppositeVector,
+                                                             const ConnectEdge &edgeConnector) const {
     /* == Get current last element == */
     const auto &last = oppositeVector.back();
     oppositeVector.pop_back();
@@ -362,15 +383,15 @@ void spider::srdag::SingleRateTransformer::addForkVertex(vector<TransfoVertex> &
                     sourceLinker.rate_    /* = Sink rate is the same as the source rate = */);
 
     /* == Connect the output edges of the fork == */
-    connectSpecialActor(fork, snkVector, srcVector,
-                        [](pisdf::Vertex *vertex, size_t portIx, const TransfoVertex &transfoVertex) {
-                            api::createEdge(vertex,                /* = Fork vertex = */
-                                            portIx,                /* = Fork output to connect = */
-                                            transfoVertex.rate_,   /* = Sink rate = */
-                                            transfoVertex.vertex_, /* = Sink to connect to fork = */
-                                            transfoVertex.portIx_, /* = Sink port ix = */
-                                            transfoVertex.rate_    /* = Sink rate = */);
-                        });
+    connectForkOrJoin(fork, snkVector, srcVector,
+                      [](pisdf::Vertex *vertex, size_t portIx, const TransfoVertex &transfoVertex) {
+                          api::createEdge(vertex,                /* = Fork vertex = */
+                                          portIx,                /* = Fork output to connect = */
+                                          transfoVertex.rate_,   /* = Sink rate = */
+                                          transfoVertex.vertex_, /* = Sink to connect to fork = */
+                                          transfoVertex.portIx_, /* = Sink port ix = */
+                                          transfoVertex.rate_    /* = Sink rate = */);
+                      });
 }
 
 void spider::srdag::SingleRateTransformer::addJoinVertex(vector<TransfoVertex> &srcVector,
@@ -384,15 +405,15 @@ void spider::srdag::SingleRateTransformer::addJoinVertex(vector<TransfoVertex> &
     api::createEdge(join, 0, sinkLinker.rate_, sinkLinker.vertex_, sinkLinker.portIx_, sinkLinker.rate_);
 
     /* == Connect the input edges of the join == */
-    connectSpecialActor(join, srcVector, snkVector,
-                        [](pisdf::Vertex *vertex, size_t portIx, const TransfoVertex &transfoVertex) {
-                            api::createEdge(transfoVertex.vertex_, /* = Source to connect to join = */
-                                            transfoVertex.portIx_, /* = Source port ix = */
-                                            transfoVertex.rate_,   /* = Source rate = */
-                                            vertex,                /* = Join = */
-                                            portIx,                /* = Join input to connect = */
-                                            transfoVertex.rate_    /* = Source rate = */);
-                        });
+    connectForkOrJoin(join, srcVector, snkVector,
+                      [](pisdf::Vertex *vertex, size_t portIx, const TransfoVertex &transfoVertex) {
+                          api::createEdge(transfoVertex.vertex_, /* = Source to connect to join = */
+                                          transfoVertex.portIx_, /* = Source port ix = */
+                                          transfoVertex.rate_,   /* = Source rate = */
+                                          vertex,                /* = Join = */
+                                          portIx,                /* = Join input to connect = */
+                                          transfoVertex.rate_    /* = Source rate = */);
+                      });
 }
 
 spider::vector<spider::srdag::SingleRateTransformer::TransfoVertex>
