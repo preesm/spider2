@@ -144,7 +144,7 @@ void spider::Platform::setPE(spider::PE *pe) {
                 break;
             }
         }
-        hwTypeCount_ += found;
+        hwTypeCount_ += (!found);
         peArray_.at(peCount_) = pe;
         pe->setVirtualIx(peCount_++);
         if (pe->isLRT()) {
