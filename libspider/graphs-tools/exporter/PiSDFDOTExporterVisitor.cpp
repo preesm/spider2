@@ -178,14 +178,14 @@ int_fast32_t spider::pisdf::PiSDFDOTExporterVisitor::computeMaxDigitCount(Vertex
         if (!e) {
             throwSpiderException("vertex [%s]: null input edge.", vertex->name().c_str());
         }
-        const auto &rate = e->sinkRateValue();
+        const auto rate = e->sinkRateExpression().evaluate((*params_));
         maxDigitCount = std::max(maxDigitCount, static_cast<int_fast32_t>(std::log10(rate)));
     }
     for (const auto &e: vertex->outputEdgeVector()) {
         if (!e) {
             throwSpiderException("vertex [%s]: null output edge.", vertex->name().c_str());
         }
-        const auto &rate = e->sourceRateValue();
+        const auto rate = e->sourceRateExpression().evaluate((*params_));
         maxDigitCount = std::max(maxDigitCount, static_cast<int_fast32_t>(std::log10(rate)));
     }
     return maxDigitCount;
@@ -319,7 +319,7 @@ spider::pisdf::PiSDFDOTExporterVisitor::interfaceBodyPrinter(Interface *interfac
     auto *outputEdge = interface->outputEdge();
     auto inIx = inputEdge->sinkPortIx();
     auto outIx = outputEdge->sourcePortIx();
-    auto inRate = inputEdge->sinkRateValue();
+    auto inRate = inputEdge->sinkRateExpression().evaluate((*params_));
     auto outRate = outputEdge->sourceRateExpression().evaluate((*params_));
     printer::fprintf(file_, "%s\t\t<tr>\n", offset_.c_str());
     printer::fprintf(file_,
