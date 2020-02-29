@@ -58,7 +58,6 @@ namespace spider {
         public:
 
             explicit DynamicParam(std::string name) : Param(std::move(name)) {
-                value_ = 0;
             }
 
             DynamicParam(std::string name, Expression expression) : Param(std::move(name)) {

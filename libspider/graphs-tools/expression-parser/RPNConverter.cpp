@@ -166,12 +166,13 @@ static std::string cleanInfixExpression(std::string infixExprString) {
     for (const auto &c : localInfixExpression) {
         cleanExpression += c;
         auto next = localInfixExpression[++i];
-        if (!ignore && ((std::isdigit(c) &&
-                         (std::isalpha(next) || next == '(')) ||
-                        (c == ')' &&
-                         (next == '(' || std::isdigit(next) || std::isalpha(next))))) {
-            cleanExpression += '*';
+        if (!ignore) {
+            if ((std::isdigit(c) && (std::isalpha(next) || next == '(')) ||
+                (c == ')' && (next == '(' || std::isalnum(next)))) {
+                cleanExpression += '*';
+            }
         }
+        /* == This avoid pattern such as log2(...) -> log2*(...) == */
         ignore = std::isalpha(c) && std::isdigit(next);
     }
 
@@ -189,7 +190,16 @@ static std::string cleanInfixExpression(std::string infixExprString) {
     }
 
     /* == Clean the inFix expression by replacing every occurrence of PI to its value == */
-    stringReplace(cleanExpression, "pi", "3.1415926535");
+    const std::string piValue = "3.1415926535";
+    const std::string piString = "pi";
+    for (size_t pos = 0; (pos = cleanExpression.find(piString, pos)) != std::string::npos; pos += piValue.size()) {
+        /* == we can effectively do the change if we are not part of a word == */
+        bool isAlphPrev = (pos > 0) && std::isalnum(cleanExpression[pos - 1]);
+        bool isAlphNext = ((pos + 2) != cleanExpression.length()) && std::isalnum(cleanExpression[pos + 2]);
+        if (!isAlphPrev && !isAlphNext) {
+            cleanExpression.replace(pos, 2, piValue);
+        }
+    }
     return cleanExpression;
 }
 

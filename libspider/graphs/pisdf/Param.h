@@ -58,17 +58,15 @@ namespace spider {
         class Param {
         public:
 
-            explicit Param(std::string name, int64_t value = 0) : name_{ std::move(name) },
-                                                                  value_{ value } {
-                std::transform(name_.begin(), name_.end(), name_.begin(), ::tolower);
+            explicit Param(std::string name, int64_t value) : Param(std::move(name)) {
+                value_ = value;
             }
 
-            Param(std::string name, const Expression &expression) : name_{ std::move(name) } {
+            Param(std::string name, const Expression &expression) : Param(std::move(name)) {
                 if (expression.dynamic()) {
                     throwSpiderException("STATIC parameter should have static expression: %s.",
                                          expression.string().c_str());
                 }
-                std::transform(name_.begin(), name_.end(), name_.begin(), ::tolower);
                 value_ = expression.value();
             }
 
@@ -143,8 +141,16 @@ namespace spider {
         protected:
             Graph *graph_ = nullptr;   /* = Containing Graph (can be nullptr) = */
             std::string name_ = "";    /* = Name of the Param. It is transformed to lower case on construction = */
-            size_t ix_ = SIZE_MAX;   /* = Index of the Param in the Graph = */
+            size_t ix_ = SIZE_MAX;     /* = Index of the Param in the Graph = */
             int64_t value_ = 0;        /* = Value of the Param. = */
+
+            /* == Protected ctor == */
+            explicit Param(std::string name) : name_{ std::move(name) } {
+                std::transform(name_.begin(), name_.end(), name_.begin(), ::tolower);
+                if (name_ == "pi") {
+                    throwSpiderException("ambiguous name for parameter: pi is a math constant.");
+                }
+            }
         };
     }
 }

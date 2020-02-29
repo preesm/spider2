@@ -106,7 +106,7 @@ TEST_F(pisdfVisitorTest, defaultTest) {
     }
     {
         spider::pisdf::DefaultVisitor visitor;
-        spider::pisdf::Param param("");
+        spider::pisdf::Param param("", 0);
         ASSERT_THROW(param.visit(&visitor), spider::Exception) << "DefaultVisitor should throw for static param.";
     }
     {
@@ -116,7 +116,7 @@ TEST_F(pisdfVisitorTest, defaultTest) {
     }
     {
         spider::pisdf::DefaultVisitor visitor;
-        spider::pisdf::Param p("");
+        spider::pisdf::Param p("", 0);
         spider::pisdf::InHeritedParam param("", &p);
         ASSERT_THROW(param.visit(&visitor), spider::Exception) << "DefaultVisitor should throw for inherited param.";
     }

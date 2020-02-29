@@ -120,7 +120,9 @@ TEST_F(expressionTest, testEquality) {
     ASSERT_NE(Expression("4*3"), Expression("4*3.1"))
                                 << "Expression::operator== static expression should not be equal.";
     ASSERT_EQ(Expression("4*3"), Expression("3*4"))
-                                << "Expression::operator== order should influence equality on static Expression";
+                                << "Expression::operator== order should not influence equality on static Expression";
+    ASSERT_EQ(Expression("4pi"), Expression("pi*4"))
+                                << "Expression::operator== order should not influence equality on static Expression";
     auto param = spider::api::createDynamicParam(nullptr, "width");
     ASSERT_EQ(Expression("3*width", { param }), Expression("3*width", { param }))
                                 << "Expression::operator== parameterized expression should be equal.";
@@ -207,5 +209,14 @@ TEST_F(expressionTest, expressionFunctionsTest) {
                                 << "Expression: parameterized function evaluation to int64_t failed.";
     ASSERT_EQ(Expression("cos(height)", graph->params()).dynamic(), true)
                                 << "Expression: dynamic() should evaluate to true for dynamic expression.";
+    auto pisdfP = spider::api::createStaticParam(nullptr, "pisdf", 0);
+    ASSERT_EQ(Expression("cos(pisdf)", { pisdfP }).evaluate(), 1)
+                                << "Expression: parameterized function evaluation to int64_t failed.";
+    auto papiP = spider::api::createStaticParam(nullptr, "papi", 0);
+    ASSERT_EQ(Expression("cos(papi)", { papiP }).evaluate(), 1)
+                                << "Expression: parameterized function evaluation to int64_t failed.";
+    auto papi2P = spider::api::createStaticParam(nullptr, "papi2", 0);
+    ASSERT_EQ(Expression("cos(papi2)", { papi2P }).evaluate(), 1)
+                                << "Expression: parameterized function evaluation to int64_t failed.";
     spider::destroy(graph);
 }
