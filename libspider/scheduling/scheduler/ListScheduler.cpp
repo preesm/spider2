@@ -194,8 +194,11 @@ void spider::ListScheduler::sortVertices() {
                   if (!diff) {
                       if (vertexB->reference() == vertexA->reference()) {
                           return vertexA->instanceValue() < vertexB->instanceValue();
+                      } else if (vertexA->subtype() != vertexB->subtype()) {
+                          return (vertexA->subtype() == pisdf::VertexType::INIT) ||
+                                 (vertexA->subtype() != pisdf::VertexType::END);
                       }
-                      return vertexA->subtype() != pisdf::VertexType::END;
+                      return true;
                   }
                   return (diff > 0) || (vertexA->subtype() == pisdf::VertexType::CONFIG);
               });
