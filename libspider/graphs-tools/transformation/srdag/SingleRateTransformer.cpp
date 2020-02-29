@@ -249,16 +249,13 @@ void spider::srdag::SingleRateTransformer::singleRateLinkage(pisdf::Edge *edge) 
         if (noSource && !noSink) {
             /* == Add an empty INIT to the sink == */
             auto *clone = srdag_->vertex(ref2Clone_[uniformIx(edge->sink(), job_.reference_)]);
-            auto *init = api::createInit(srdag_, "init::" + clone->name() + ":" + std::to_string(edge->sinkPortIx()));
-            api::setVertexExecutionTimingOnAllHWTypes(init, 1);
+            auto *init = api::createNonExecVertex(srdag_, "void::" + clone->name() + ":" + std::to_string(edge->sinkPortIx()), 0, 1);
             api::createEdge(init, 0, 0, clone, edge->sinkPortIx(), 0);
         } else if (noSink && !noSource) {
             /* == Add an empty END to the source == */
             auto *clone = srdag_->vertex(ref2Clone_[uniformIx(edge->source(), job_.reference_)]);
-            auto *end = api::createEnd(srdag_, "end::" + clone->name() + ":" + std::to_string(edge->sourcePortIx()));
-            api::setVertexExecutionTimingOnAllHWTypes(end, 1);
+            auto *end = api::createNonExecVertex(srdag_, "void::" + clone->name() + ":" + std::to_string(edge->sourcePortIx()), 1);
             api::createEdge(clone, edge->sourcePortIx(), 0, end, 0, 0);
-
         }
         /* == In case, both sink and source do not execute, then nothing to do == */
         return;

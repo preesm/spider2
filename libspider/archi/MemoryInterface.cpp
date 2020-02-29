@@ -59,6 +59,9 @@ void *spider::MemoryInterface::read(uint64_t virtualAddress) {
 }
 
 void *spider::MemoryInterface::allocate(uint64_t virtualAddress, size_t size) {
+    if (!size) {
+        return nullptr;
+    }
     std::lock_guard<std::mutex> lockGuard{ lock_ };
     uint64_t res = UINT64_MAX;
     if (size <= available()) {
@@ -77,6 +80,9 @@ void *spider::MemoryInterface::allocate(uint64_t virtualAddress, size_t size) {
 }
 
 void spider::MemoryInterface::deallocate(uint64_t virtualAddress, size_t size) {
+    if (!size) {
+        return;
+    }
     std::lock_guard<std::mutex> lockGuard{ lock_ };
     if (size > used_) {
         throwSpiderException("Deallocating more memory than used.");

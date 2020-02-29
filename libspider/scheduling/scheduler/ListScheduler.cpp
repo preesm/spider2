@@ -147,7 +147,10 @@ ifast32 spider::ListScheduler::computeScheduleLevel(ListTask &listTask,
     if ((listTask.level_ == NON_SCHEDULABLE_LEVEL) || !vertex->executable()) {
         listTask.level_ = NON_SCHEDULABLE_LEVEL;
         for (auto &edge : vertex->outputEdgeVector()) {
-            listVertexVector[edge->sink()->ix()].level_ = NON_SCHEDULABLE_LEVEL;
+            if (edge->sinkRateValue()) {
+                /* == Disable non-null edge == */
+                listVertexVector[edge->sink()->ix()].level_ = NON_SCHEDULABLE_LEVEL;
+            }
         }
     } else if (listTask.level_ < 0) {
         auto *platform = archi::platform();

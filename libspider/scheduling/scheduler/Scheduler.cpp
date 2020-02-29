@@ -107,12 +107,14 @@ ufast64 spider::Scheduler::computeMinStartTime(ScheduleTask *task) {
     ufast64 minimumStartTime = 0;
     task->setState(TaskState::PENDING);
     for (const auto *dependency : task->dependencies()) {
-        const auto mappedLRT = dependency->mappedLrt();
-        const auto currentJobConstraint = task->executionConstraint(mappedLRT);
-        if ((currentJobConstraint < 0) || (dependency->ix() > currentJobConstraint)) {
-            task->setExecutionConstraint(mappedLRT, dependency->ix());
+        if (dependency) {
+            const auto mappedLRT = dependency->mappedLrt();
+            const auto currentJobConstraint = task->executionConstraint(mappedLRT);
+            if ((currentJobConstraint < 0) || (dependency->ix() > currentJobConstraint)) {
+                task->setExecutionConstraint(mappedLRT, dependency->ix());
+            }
+            minimumStartTime = std::max(minimumStartTime, dependency->endTime());
         }
-        minimumStartTime = std::max(minimumStartTime, dependency->endTime());
     }
     return minimumStartTime;
 }

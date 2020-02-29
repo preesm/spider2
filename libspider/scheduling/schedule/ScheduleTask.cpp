@@ -322,7 +322,9 @@ void spider::ScheduleTask::setJobMessageInputFifos(JobMessage &message) const {
     message.inputFifoArray_ = array<RTFifo>(inputEdgeCount, StackID::RUNTIME);
     for (size_t inputIx = 0; inputIx < inputEdgeCount; ++inputIx) {
         auto &task = dependenciesArray_[inputIx];
-        if (task->type() == TaskType::VERTEX) {
+        if (!task) {
+            message.inputFifoArray_[inputIx] = RTFifo{ };
+        } else if (task->type() == TaskType::VERTEX) {
             const auto edge = vertex->inputEdge(inputIx);
             message.inputFifoArray_[inputIx] = task->outputFifos_[edge->sourcePortIx()];
         } else if (task->type() == TaskType::SYNC_RECEIVE) {
