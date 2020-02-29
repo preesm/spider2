@@ -86,7 +86,7 @@ namespace spider {
          * @brief Get the array of processing element of the cluster.
          * @return const reference to the @refitem spider::array of @refitem PE of the cluster.
          */
-        inline array_handle<PE *> array() const {
+        inline array_handle<PE *> peArray() const {
             return make_handle(PEArray_, PECount_);
         }
 

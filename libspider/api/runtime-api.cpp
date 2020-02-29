@@ -165,7 +165,7 @@ void spider::api::setVertexMappableOnCluster(pisdf::Vertex *vertex, const Cluste
             throwSpiderException("nullptr cluster.");
         }
         auto *runtimeInfo = vertex->runtimeInformation();
-        for (auto &pe : cluster->array()) {
+        for (auto &pe : cluster->peArray()) {
             runtimeInfo->setMappableConstraintOnPE(pe, value);
         }
     }
@@ -215,57 +215,40 @@ void spider::api::setVertexMappableOnAllPE(pisdf::Vertex *vertex, bool value) {
     }
 }
 
-void spider::api::setVertexExecutionTimingOnCluster(pisdf::Vertex *vertex, const Cluster *cluster,
-                                                    std::string timingExpression) {
-    if (!vertex) {
-        throwSpiderException("nullptr vertex.");
-    }
-    if (!cluster) {
-        throwSpiderException("nullptr cluster.");
-    }
-    if (vertex->executable()) {
-        auto *runtimeInfo = vertex->runtimeInformation();
-        runtimeInfo->setTimingOnCluster(cluster, Expression(std::move(timingExpression), vertex->graph()->params()));
-    }
-}
-
-void spider::api::setVertexExecutionTimingOnCluster(pisdf::Vertex *vertex, const Cluster *cluster, int64_t timing) {
-    if (!vertex) {
-        throwSpiderException("nullptr vertex.");
-    }
-    if (!cluster) {
-        throwSpiderException("nullptr cluster.");
-    }
-    if (vertex->executable()) {
-        auto *runtimeInfo = vertex->runtimeInformation();
-        runtimeInfo->setTimingOnCluster(cluster, timing);
-    }
+void spider::api::setVertexExecutionTimingOnHWType(pisdf::Vertex *vertex, uint32_t hardwareType, int64_t timing) {
+    setVertexExecutionTimingOnHWType(vertex, hardwareType, std::to_string(timing));
 }
 
 void
-spider::api::setVertexExecutionTimingOnCluster(pisdf::Vertex *vertex, size_t clusterIx, std::string timingExpression) {
+spider::api::setVertexExecutionTimingOnHWType(pisdf::Vertex *vertex, uint32_t hardwareType, std::string timingExpression) {
     if (!archi::platform()) {
         throwSpiderException("platform must be created first.");
     }
-    setVertexExecutionTimingOnCluster(vertex, archi::platform()->cluster(clusterIx), std::move(timingExpression));
-}
-
-void spider::api::setVertexExecutionTimingOnAllCluster(pisdf::Vertex *vertex, std::string timingExpression) {
     if (!vertex) {
         throwSpiderException("nullptr vertex.");
     }
     if (vertex->executable()) {
         auto *runtimeInfo = vertex->runtimeInformation();
-        runtimeInfo->setTimingOnAllCluster(Expression(std::move(timingExpression), vertex->graph()->params()));
+        runtimeInfo->setTimingOnHWType(hardwareType, Expression(std::move(timingExpression), vertex->graph()->params()));
     }
 }
 
-void spider::api::setVertexExecutionTimingOnAllCluster(pisdf::Vertex *vertex, int64_t timing) {
+void spider::api::setVertexExecutionTimingOnAllHWTypes(pisdf::Vertex *vertex, std::string timingExpression) {
     if (!vertex) {
         throwSpiderException("nullptr vertex.");
     }
     if (vertex->executable()) {
         auto *runtimeInfo = vertex->runtimeInformation();
-        runtimeInfo->setTimingOnAllCluster(timing);
+        runtimeInfo->setTimingOnAllHWTypes(Expression(std::move(timingExpression), vertex->graph()->params()));
+    }
+}
+
+void spider::api::setVertexExecutionTimingOnAllHWTypes(pisdf::Vertex *vertex, int64_t timing) {
+    if (!vertex) {
+        throwSpiderException("nullptr vertex.");
+    }
+    if (vertex->executable()) {
+        auto *runtimeInfo = vertex->runtimeInformation();
+        runtimeInfo->setTimingOnAllHWTypes(timing);
     }
 }

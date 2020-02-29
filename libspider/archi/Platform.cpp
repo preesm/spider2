@@ -118,7 +118,7 @@ void spider::Platform::addCluster(Cluster *cluster) {
     clusterCount_++;
 
     /* == Add the PE to the proper place in the global array == */
-    for (const auto &pe : cluster->array()) {
+    for (const auto &pe : cluster->peArray()) {
         setPE(pe);
     }
 }
@@ -137,6 +137,14 @@ spider::MemoryBus *spider::Platform::getClusterToClusterMemoryBus(Cluster *clust
 
 void spider::Platform::setPE(spider::PE *pe) {
     if (pe) {
+        bool found = false;
+        for (auto &p : peArray_) {
+            if (p && (p->hardwareType() == pe->hardwareType())) {
+                found = true;
+                break;
+            }
+        }
+        hwTypeCount_ += found;
         peArray_.at(peCount_) = pe;
         pe->setVirtualIx(peCount_++);
         if (pe->isLRT()) {

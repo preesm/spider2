@@ -58,11 +58,9 @@ namespace spider {
         RTInfo() {
             auto *platform = archi::platform();
             if (platform) {
-                const auto &clusterCount = platform->clusterCount();
-                const auto &peCount = platform->PECount();
-                peMappableVector_.resize(peCount, true);
-                clusterMappableVector_.resize(clusterCount, true);
-                timingVector_.resize(clusterCount, Expression(100));
+                peMappableVector_.resize(platform->PECount(), true);
+                clusterMappableVector_.resize(platform->clusterCount(), true);
+                timingVector_.resize(platform->HWTypeCount(), Expression(100));
             }
         }
 
@@ -115,7 +113,7 @@ namespace spider {
             if (!pe) {
                 return INT64_MAX;
             }
-            return timingVector_.at(pe->cluster()->ix()).evaluate(params);
+            return timingVector_.at(pe->hardwareType()).evaluate(params);
         }
 
         /**
@@ -126,35 +124,8 @@ namespace spider {
          * @throws std::out_of_range
          */
         inline int64_t timingOnPE(size_t ix, const vector<std::shared_ptr<pisdf::Param>> &params = { }) const {
-            auto *cluster = archi::platform()->processingElement(ix)->cluster();
-            return timingVector_.at(cluster->ix()).evaluate(params);
-        }
-
-        /**
-         * @brief Evaluate the timing of vertex associated to this RTInfo on given cluster.
-         * @param cluster Pointer to the cluster to evaluate.
-         * @param params  Extra parameters in case timing is parameterized.
-         * @return timing on given PE (100 by default). If pe is nullptr, return INT64_MAX.
-         * @throws std::out_of_range
-         */
-        inline int64_t
-        timingOnCluster(const Cluster *cluster,
-                        const vector<std::shared_ptr<pisdf::Param>> &params = { }) const {
-            if (!cluster) {
-                return INT64_MAX;
-            }
-            return timingVector_.at(cluster->ix()).evaluate(params);
-        }
-
-        /**
-         * @brief Evaluate the timing of vertex associated to this RTConstraints on given PE.
-         * @param ix      Spider cluster ix to evaluate.
-         * @param params  Extra parameters in case timing is parameterized.
-         * @return timing on given PE (100 by default).
-         * @throws std::out_of_range
-         */
-        inline int64_t timingOnCluster(size_t ix, const vector<std::shared_ptr<pisdf::Param>> &params = { }) const {
-            return timingVector_.at(ix).evaluate(params);
+            auto *pe = archi::platform()->processingElement(ix);
+            return timingVector_.at(pe->hardwareType()).evaluate(params);
         }
 
         /**
@@ -217,31 +188,23 @@ namespace spider {
         }
 
         /**
-         * @brief Set timing on a given cluster by value.
-         * @remark If cluster is nullptr, nothing happens.
-         * @param cluster Pointer to the cluster to evaluate.
-         * @param value   Value to set (default is 100).
+         * @brief Set timing on a given hardware type by value.
+         * @param hardwareType Hardware type to set the timing for (ex: x86, ARM, etc.).
+         * @param value        Value to set (default is 100).
          * @throws std::out_of_range
          */
-        inline void setTimingOnCluster(const Cluster *cluster, int64_t value = 100) {
-            if (!cluster) {
-                return;
-            }
-            timingVector_.at(cluster->ix()) = Expression(value);
+        inline void setTimingOnHWType(u32 hardwareType, int64_t value = 100) {
+            timingVector_.at(hardwareType) = Expression(value);
         }
 
         /**
-         * @brief Set timing on a given cluster by Expression.
-         * @remark If cluster is nullptr, nothing happens.
-         * @param cluster     Pointer to the cluster to evaluate.
-         * @param expression  Expression to set.
+         * @brief Set timing on a given hardware type by Expression.
+         * @param hardwareType Hardware type to set the timing for (ex: x86, ARM, etc.).
+         * @param expression   Expression to set.
          * @throws std::out_of_range
          */
-        inline void setTimingOnCluster(const Cluster *cluster, Expression expression) {
-            if (!cluster) {
-                return;
-            }
-            timingVector_.at(cluster->ix()) = std::move(expression);
+        inline void setTimingOnHWType(u32 hardwareType, Expression expression) {
+            timingVector_.at(hardwareType) = std::move(expression);
         }
 
         /**
@@ -267,7 +230,7 @@ namespace spider {
          * @brief Set timing on all Cluster by value.
          * @param value  Value to set (default is 100).
          */
-        inline void setTimingOnAllCluster(int64_t value = 100) {
+        inline void setTimingOnAllHWTypes(int64_t value = 100) {
             std::fill(timingVector_.begin(), timingVector_.end(), Expression(value));
         }
 
@@ -275,7 +238,7 @@ namespace spider {
          * @brief Set timing on all Cluster by Expression.
          * @param expression Expression to set.
          */
-        inline void setTimingOnAllCluster(const Expression &expression) {
+        inline void setTimingOnAllHWTypes(const Expression &expression) {
             std::fill(timingVector_.begin(), timingVector_.end(), expression);
         }
 

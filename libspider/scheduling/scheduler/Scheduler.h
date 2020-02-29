@@ -65,7 +65,7 @@ namespace spider {
             DELAYED_SEND, /*!< Send jobs after every jobs have been scheduled. Minimize synchronizations. */
         };
 
-        explicit Scheduler(pisdf::Graph *graph, ScheduleMode mode = JIT_SEND, FifoAllocator *allocator = nullptr);
+        explicit Scheduler(pisdf::Graph *graph, ScheduleMode mode = DELAYED_SEND, FifoAllocator *allocator = nullptr);
 
         virtual ~Scheduler() = default;
 
@@ -138,8 +138,10 @@ namespace spider {
          */
         static ufast64 computeMinStartTime(ScheduleTask *task);
 
-        template<class SkipPredicate>
-        PE *findBestPEFit(Cluster *cluster, ufast64 minStartTime, ufast64 execTime, SkipPredicate skipPredicate);
+        template<class SkipPredicate, class TimePredicate>
+        PE *findBestPEFit(Cluster *cluster, ufast64 minStartTime,
+                          TimePredicate execTimePredicate,
+                          SkipPredicate skipPredicate);
 
         /**
          * @brief Inserts a communication task on given cluster.

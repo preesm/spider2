@@ -117,22 +117,22 @@ ufast64 spider::Scheduler::computeMinStartTime(ScheduleTask *task) {
     return minimumStartTime;
 }
 
-template<class SkipPredicate>
+template<class SkipPredicate, class TimePredicate>
 spider::PE *spider::Scheduler::findBestPEFit(Cluster *cluster,
                                              ufast64 minStartTime,
-                                             ufast64 execTime,
+                                             TimePredicate execTimePredicate,
                                              SkipPredicate skipPredicate) {
     auto bestFitIdleTime = UINT_FAST64_MAX;
     auto bestFitEndTime = UINT_FAST64_MAX;
     PE *foundPE = nullptr;
-    for (const auto &pe : cluster->array()) {
+    for (const auto &pe : cluster->peArray()) {
         if (!pe->enabled() || skipPredicate(pe)) {
             continue;
         }
         const auto readyTime = schedule_.endTime(pe->virtualIx());
         const auto startTime = std::max(readyTime, minStartTime);
         const auto idleTime = startTime - readyTime;
-        const auto endTime = startTime + execTime;
+        const auto endTime = startTime + execTimePredicate(pe);
         if (endTime < bestFitEndTime) {
             foundPE = pe;
             bestFitEndTime = endTime;
@@ -159,7 +159,8 @@ spider::ScheduleTask *spider::Scheduler::insertCommunicationTask(Cluster *cluste
 
     /* == Search for the first PE able to run the send task == */
     const auto minStartTime = previousTask->endTime();
-    auto *mappedPe = findBestPEFit(cluster, minStartTime, comTime, [](PE *) -> bool { return false; });
+    auto *mappedPe = findBestPEFit(cluster, minStartTime, [&comTime](PE *) -> ufast64 { return comTime; },
+                                   [](PE *) -> bool { return false; });
     if (!mappedPe) {
         throwSpiderException("could not find any processing element to map task.");
     }
@@ -260,8 +261,9 @@ void spider::Scheduler::taskMapper(ScheduleTask *task) {
             continue;
         }
         /* == Find best fit PE for this cluster == */
-        const auto execTime = vertexRtConstraints->timingOnCluster(cluster, vertex->inputParamVector());
-        auto *foundPE = findBestPEFit(cluster, minStartTime, static_cast<ufast64>(execTime),
+        auto *foundPE = findBestPEFit(cluster, minStartTime, [&vertexRtConstraints](PE *pe) -> ufast64 {
+                                          return !vertexRtConstraints->timingOnPE(pe);
+                                      },
                                       [&vertexRtConstraints](PE *pe) -> bool {
                                           return !vertexRtConstraints->isPEMappable(pe);
                                       });
@@ -276,7 +278,7 @@ void spider::Scheduler::taskMapper(ScheduleTask *task) {
             needToScheduleCom |= (dataTransfertCost != 0);
             /* == Check if it is better than previous cluster PE == */
             const auto startTime{ std::max(schedule_.endTime(foundPE->virtualIx()), minStartTime) };
-            const auto endTime{ startTime + static_cast<ufast64>(execTime) };
+            const auto endTime{ startTime + static_cast<ufast64>(vertexRtConstraints->timingOnPE(foundPE)) };
             const auto scheduleCost{ math::saturateAdd(endTime, dataTransfertCost) };
             if (scheduleCost < bestScheduleCost) {
                 mappingPe = foundPE;

@@ -141,12 +141,12 @@ namespace spider {
         }
 
         /**
-         * @brief Get the total number of PE type in the platform (go through each cluster).
-         * @remark This is equivalent to clusterCount() because all PE inside a cluster share the same PE type.
-         * @return total number of PE type in the platform.
+         * @brief Get the total number of Hardware type in the platform.
+         * @remark this value should only be looked once the platform is finalized.
+         * @return total number of HW type in the platform.
          */
-        inline size_t PETypeCount() const {
-            return clusterCount();
+        inline size_t HWTypeCount() const {
+            return hwTypeCount_;
         }
 
         /**
@@ -225,6 +225,7 @@ namespace spider {
         sbc::vector<PE *, StackID::ARCHI> lrtVector_;        /* = Vector of the LRT of the platform (does not hold any memory) = */
         size_t clusterCount_ = 0;                            /* = Number of currently added Cluster in the Platform = */
         size_t peCount_ = 0;                                 /* = Number of currently added PE in the Platform = */
+        size_t hwTypeCount_ = 0;                             /* = Number of currently added PE Types in the Platform = */
         PE *grt_ = nullptr;                                  /* = Pointer to the PE used as Global Runtime = */
 
         /* === Private method(s) === */

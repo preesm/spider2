@@ -147,23 +147,23 @@ namespace spider {
 
         /**
          * @brief Sets the execution time value of a vertex on a given processing element.
-         * @param vertex  Pointer to the vertex.
-         * @param cluster      Const pointer to the processing element.
-         * @param timing  Value of the timing to be set.
+         * @param vertex       Pointer to the vertex.
+         * @param hardwareType Hardware type to set the timing for (ex: x86, ARM, etc.).
+         * @param timing       Value of the timing to be set.
          * @throws spider::Exception if vertex is nullptr.
          */
-        void setVertexExecutionTimingOnCluster(pisdf::Vertex *vertex, const Cluster *cluster, int64_t timing = 100);
+        void setVertexExecutionTimingOnHWType(pisdf::Vertex *vertex, uint32_t hardwareType, int64_t timing = 100);
 
         /**
          * @brief Sets the execution time expression of a vertex on a given processing element.
          * @param vertex            Pointer to the vertex.
-         * @param clusterIx              Processing element id.
+         * @param hardwareType      Hardware type to set the timing for (ex: x86, ARM, etc.).
          * @param timingExpression  Expression of the execution time (can be parameterized).
          * @throws spider::Exception if vertex is nullptr.
          */
         void
-        setVertexExecutionTimingOnCluster(pisdf::Vertex *vertex, size_t clusterIx,
-                                          std::string timingExpression = "100");
+        setVertexExecutionTimingOnHWType(pisdf::Vertex *vertex, uint32_t hardwareType,
+                                         std::string timingExpression = "100");
 
 
         /**
@@ -172,7 +172,7 @@ namespace spider {
          * @param timingExpression  Expression of the execution time (can be parameterized).
          * @throws spider::Exception if vertex is nullptr.
          */
-        void setVertexExecutionTimingOnAllCluster(pisdf::Vertex *vertex, std::string timingExpression);
+        void setVertexExecutionTimingOnAllHWTypes(pisdf::Vertex *vertex, std::string timingExpression);
 
         /**
          * @brief Sets the execution time value of a vertex for all processing elements.
@@ -180,7 +180,7 @@ namespace spider {
          * @param timing  Value of the timing to be set.
          * @throws spider::Exception if vertex is nullptr.
          */
-        void setVertexExecutionTimingOnAllCluster(pisdf::Vertex *vertex, int64_t timing = 100);
+        void setVertexExecutionTimingOnAllHWTypes(pisdf::Vertex *vertex, int64_t timing = 100);
     }
 }
 

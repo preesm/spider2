@@ -160,12 +160,14 @@ ifast32 spider::ListScheduler::computeScheduleLevel(ListTask &listTask,
                 auto minExecutionTime = INT64_MAX;
                 for (auto &cluster : platform->clusters()) {
                     if (sinkRTInfo->isClusterMappable(cluster)) {
-                        auto executionTime = sinkRTInfo->timingOnCluster(cluster, sinkParams);
-                        if (!executionTime) {
-                            throwSpiderException("Vertex [%s] has null execution time on mappable cluster.",
-                                                 vertex->name().c_str());
+                        for (const auto &pe : cluster->peArray()) {
+                            auto executionTime = sinkRTInfo->timingOnPE(pe, sinkParams);
+                            if (!executionTime) {
+                                throwSpiderException("Vertex [%s] has null execution time on mappable cluster.",
+                                                     vertex->name().c_str());
+                            }
+                            minExecutionTime = std::min(minExecutionTime, executionTime);
                         }
-                        minExecutionTime = std::min(minExecutionTime, executionTime);
                     }
                 }
                 const auto sinkLevel = computeScheduleLevel(listVertexVector[sink->scheduleTaskIx()], listVertexVector);
