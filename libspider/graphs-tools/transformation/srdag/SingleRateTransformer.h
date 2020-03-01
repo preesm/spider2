@@ -91,6 +91,8 @@ namespace spider {
                                                                                       portIx_{ portIx } { }
             };
 
+            using TransfoVertexVector = vector<TransfoVertex>;
+
             /* === Private member(s) === */
 
             vector<size_t> ref2Clone_;
@@ -109,14 +111,7 @@ namespace spider {
              * @param graph   Graph of the vertex.
              * @return uniform index of the vertex
              */
-            static inline size_t uniformIx(const pisdf::Vertex *vertex, const pisdf::Graph *graph) {
-                if (vertex->subtype() == pisdf::VertexType::INPUT) {
-                    return vertex->ix() + graph->vertexCount();
-                } else if (vertex->subtype() == pisdf::VertexType::OUTPUT) {
-                    return vertex->ix() + graph->vertexCount() + graph->inputEdgeCount();
-                }
-                return vertex->ix();
-            }
+            static size_t getIx(const pisdf::Vertex *vertex, const pisdf::Graph *graph);
 
             /**
              * @brief Insert @refitem RepeatVertex and @refitem TailVertex for every input and output interfaces of
@@ -129,6 +124,14 @@ namespace spider {
              * @return pair of static and dynamic @refitem JobStack.
              */
             std::pair<JobStack, JobStack> makeFutureJobs();
+
+            /**
+             * @brief Check if the given edge is null and if so, add non-exec vertices to snk and src ports.
+             *        An edge is considered null if and only if the source rate is null AND the sink rate is null.
+             * @param edge  Pointer to the edge.
+             * @return true if null edge, false else.
+             */
+            bool checkForNullEdge(pisdf::Edge *edge);
 
             /**
              * @brief Perform single rate linkage for a given Edge.
@@ -168,36 +171,30 @@ namespace spider {
             void addJoinVertex(vector<TransfoVertex> &srcVector, vector<TransfoVertex> &snkVector);
 
             /**
-             * @brief Build a vector of @refitem TransfoVertex of the sink clones of a given edge.
-             * @param edge Edge to evaluate.
-             * @return vector of TransfoVertex.
-             */
-            spider::vector<TransfoVertex> buildSinkLinkerVector(pisdf::Edge *edge);
-
-            /**
-             * @brief Build a vector of @refitem TransfoVertex of the source clones of a given edge.
-             * @param edge Edge to evaluate.
-             * @return vector of TransfoVertex.
-             */
-            spider::vector<TransfoVertex> buildSourceLinkerVector(pisdf::Edge *edge);
-
-            /**
              * @brief Populate a given vector of @refitem TransfoVertex from given values.
              * @param vector     Vector to populate.
              * @param reference  Reference of the vertex to populate.
              * @param rate       Rate to set.
              * @param portIx     Port ix to use for the linkage.
              */
-            inline void populateTransfoVertexVector(spider::vector<TransfoVertex> &vector,
-                                                    const pisdf::Vertex *reference,
-                                                    int64_t rate,
-                                                    size_t portIx) const {
-                const auto *clone = srdag_->vertex(ref2Clone_[uniformIx(reference, job_.reference_)]);
-                const auto &cloneIx = clone->ix();
-                for (auto ix = (cloneIx + reference->repetitionValue()); ix != cloneIx; --ix) {
-                    vector.emplace_back(rate, portIx, srdag_->vertex(ix - 1));
-                }
-            }
+            void populateTransfoVertexVector(spider::vector<TransfoVertex> &vector,
+                                             const pisdf::Vertex *reference,
+                                             int64_t rate,
+                                             size_t portIx) const;
+
+            /**
+             * @brief Build a vector of @refitem TransfoVertex of the sink clones of a given edge.
+             * @param edge Edge to evaluate.
+             * @return vector of TransfoVertex.
+             */
+            TransfoVertexVector buildSinkLinkerVector(pisdf::Edge *edge);
+
+            /**
+             * @brief Build a vector of @refitem TransfoVertex of the source clones of a given edge.
+             * @param edge Edge to evaluate.
+             * @return vector of TransfoVertex.
+             */
+            TransfoVertexVector buildSourceLinkerVector(pisdf::Edge *edge);
 
             /**
              * @brief Populate vector from delay vertex and removes the edge.
@@ -206,26 +203,7 @@ namespace spider {
              * @param edge       Corresponding edge in the four possible (in_0: setter, in_1: producer, out_0:getter, out_1:consumer)
              * @param isSink     Boolean corresponding to type (true if calling for sink, false else)
              */
-            inline void populateFromDelayVertex(spider::vector<TransfoVertex> &vector,
-                                                pisdf::Edge *edge,
-                                                bool isSink) {
-                pisdf::Vertex *vertex = nullptr;
-                int64_t rate;
-                size_t portIx;
-                if (isSink) {
-                    vertex = edge->sink();
-                    rate = edge->sourceRateExpression().evaluate(job_.params_);
-                    portIx = edge->sinkPortIx();
-                } else {
-                    vertex = edge->source();
-                    rate = edge->sinkRateExpression().evaluate(job_.params_);
-                    portIx = edge->sourcePortIx();
-                }
-                vector.emplace_back(rate, portIx, vertex);
-
-                /* == Remove the Edge == */
-                srdag_->removeEdge(edge);
-            }
+            void populateFromDelayVertex(spider::vector<TransfoVertex> &vector, pisdf::Edge *edge, bool isSink);
         };
     }
 }

@@ -54,6 +54,15 @@
 
 /* === Static function(s) === */
 
+size_t spider::srdag::SingleRateTransformer::getIx(const pisdf::Vertex *vertex, const pisdf::Graph *graph) {
+    if (vertex->subtype() == pisdf::VertexType::INPUT) {
+        return vertex->ix() + graph->vertexCount();
+    } else if (vertex->subtype() == pisdf::VertexType::OUTPUT) {
+        return vertex->ix() + graph->vertexCount() + graph->inputEdgeCount();
+    }
+    return vertex->ix();
+}
+
 /* === Method(s) implementation === */
 
 spider::srdag::SingleRateTransformer::SingleRateTransformer(const TransfoJob &job, pisdf::Graph *srdag) :
@@ -91,7 +100,7 @@ std::pair<spider::srdag::JobStack, spider::srdag::JobStack> spider::srdag::Singl
     spider::vector<pisdf::Vertex *> delayVertexToRemove;
     SRDAGCopyVertexVisitor visitor{ job_, srdag_ };
     for (const auto &vertex : job_.reference_->vertices()) {
-        const auto &vertexUniformIx = uniformIx(vertex.get(), job_.reference_);
+        const auto &vertexUniformIx = getIx(vertex.get(), job_.reference_);
         vertex->visit(&visitor);
         ref2Clone_[vertexUniformIx] = visitor.ix_;
         if (vertex->subtype() == pisdf::VertexType::DELAY) {
@@ -149,7 +158,7 @@ void spider::srdag::SingleRateTransformer::replaceInterfaces() {
     /* == 1. Replace the input interfaces == */
     for (const auto &interface : job_.reference_->inputInterfaceVector()) {
         auto *edge = instance->inputEdge(interface->ix());
-        const auto ix = uniformIx(interface.get(), job_.reference_);
+        const auto ix = getIx(interface.get(), job_.reference_);
         if (isInterfaceTransparent(job_, interface.get())) {
             ref2Clone_[ix] = edge->source()->ix();
         } else {
@@ -163,7 +172,7 @@ void spider::srdag::SingleRateTransformer::replaceInterfaces() {
     /* == 2. Replace the output interfaces == */
     for (const auto &interface : job_.reference_->outputInterfaceVector()) {
         auto *edge = instance->outputEdge(interface->ix());
-        const auto ix = uniformIx(interface.get(), job_.reference_);
+        const auto ix = getIx(interface.get(), job_.reference_);
         if (isInterfaceTransparent(job_, interface.get())) {
             ref2Clone_[ix] = edge->sink()->ix();
         } else {
@@ -237,27 +246,45 @@ std::pair<spider::srdag::JobStack, spider::srdag::JobStack> spider::srdag::Singl
     return std::make_pair(std::move(staticJobStack), std::move(dynaJobStack));
 }
 
-void spider::srdag::SingleRateTransformer::singleRateLinkage(pisdf::Edge *edge) {
-    if ((edge->source() == edge->sink())) {
-        if (!edge->delay()) {
-            throwSpiderException("No delay on edge with self loop.");
+bool spider::srdag::SingleRateTransformer::checkForNullEdge(pisdf::Edge *edge) {
+    bool isNullEdge = !(edge->sourceRateExpression().evaluate(job_.params_)) &&
+                      !(edge->sinkRateExpression().evaluate(job_.params_));
+    if (isNullEdge) {
+        /* == Add an empty INIT to the sink == */
+        auto *sink = edge->sink();
+        if (sink->repetitionValue()) {
+            auto start = ref2Clone_[getIx(sink, job_.reference_)];
+            for (auto i = start; i < start +  sink->repetitionValue(); ++i) {
+                auto *clone = srdag_->vertex(i);
+                auto *init = api::createNonExecVertex(srdag_,
+                                                      "void::" + clone->name() + ":" + std::to_string(edge->sinkPortIx()),
+                                                      0, 1);
+                api::createEdge(init, 0, 0, clone, edge->sinkPortIx(), 0);
+            }
         }
+        /* == Add an empty END to the source == */
+        auto *source = edge->source();
+        if (source->repetitionValue()) {
+            auto start = ref2Clone_[getIx(source, job_.reference_)];
+            for (auto i = start; i < start +  source->repetitionValue(); ++i) {
+                auto *clone = srdag_->vertex(i);
+                auto *end = api::createNonExecVertex(srdag_,
+                                                     "void::" + clone->name() + ":" + std::to_string(edge->sourcePortIx()),
+                                                     1);
+                api::createEdge(clone, edge->sourcePortIx(), 0, end, 0, 0);
+            }
+        }
+        return true;
     }
-    if (!edge->sourceRateValue() && !edge->sinkRateValue()) {
-        bool noSource = edge->source()->repetitionValue() == 0;
-        bool noSink = edge->sink()->repetitionValue() == 0;
-        if (noSource && !noSink) {
-            /* == Add an empty INIT to the sink == */
-            auto *clone = srdag_->vertex(ref2Clone_[uniformIx(edge->sink(), job_.reference_)]);
-            auto *init = api::createNonExecVertex(srdag_, "void::" + clone->name() + ":" + std::to_string(edge->sinkPortIx()), 0, 1);
-            api::createEdge(init, 0, 0, clone, edge->sinkPortIx(), 0);
-        } else if (noSink && !noSource) {
-            /* == Add an empty END to the source == */
-            auto *clone = srdag_->vertex(ref2Clone_[uniformIx(edge->source(), job_.reference_)]);
-            auto *end = api::createNonExecVertex(srdag_, "void::" + clone->name() + ":" + std::to_string(edge->sourcePortIx()), 1);
-            api::createEdge(clone, edge->sourcePortIx(), 0, end, 0, 0);
-        }
-        /* == In case, both sink and source do not execute, then nothing to do == */
+    return false;
+}
+
+void spider::srdag::SingleRateTransformer::singleRateLinkage(pisdf::Edge *edge) {
+    if ((edge->source() == edge->sink()) && !edge->delay()) {
+        throwSpiderException("No delay on edge with self loop.");
+    }
+    /* == Check for null edge == */
+    if (checkForNullEdge(edge)) {
         return;
     }
 
@@ -300,36 +327,34 @@ void spider::srdag::SingleRateTransformer::singleRateLinkage(pisdf::Edge *edge) 
 void spider::srdag::SingleRateTransformer::computeDependencies(pisdf::Edge *edge,
                                                                vector<TransfoVertex> &srcVector,
                                                                vector<TransfoVertex> &snkVector) {
-    auto &&delay = edge->delay() ? edge->delay()->value() : 0;
     const auto srcRate = srcVector[0].rate_;     /* = This should be the proper source rate of the edge = */
     const auto snkRate = snkVector.back().rate_; /* = This should be the proper sink rate of the edge = */
-    const auto getterRate = edge->delay() ? snkVector[0].rate_ : 0;
     const auto sinkRepetitionValue = edge->sink()->repetitionValue();
     const auto setterOffset = edge->delay() ? 1 : 0;
 
-    /* == Compute dependencies for sinks == */
-    uint32_t firing = 0;
-    auto currentSinkRate = snkRate;
-    for (auto it = snkVector.rbegin(); it < snkVector.rend(); ++it) {
-        if (it == snkVector.rbegin() + sinkRepetitionValue) {
-            /* == We've reached the end / getter vertices == */
-            delay = delay - snkRate * sinkRepetitionValue;
-            currentSinkRate = getterRate;
-            firing = 0;
+    auto computeWorker = [&snkVector, &srcRate, &setterOffset](i64 start, i64 end, i64 sinkRate, i64 delay) {
+        u32 firing = 0;
+        for (auto it = (snkVector.rbegin() + start); it < (snkVector.rbegin() + end); ++it) {
+            /* == Adjust the values to match the actual position in the source vector == */
+            auto snkLowerDep = setterOffset + pisdf::computeConsLowerDep(sinkRate, srcRate, firing, delay);
+            auto snkUpperDep = setterOffset + pisdf::computeConsUpperDep(sinkRate, srcRate, firing, delay);
+            (*it).lowerDep_ = static_cast<uint32_t>(snkLowerDep);
+            (*it).upperDep_ = static_cast<uint32_t>(snkUpperDep);
+            firing += 1;
         }
-        auto snkLowerDep = pisdf::computeConsLowerDep(currentSinkRate, srcRate, firing, delay);
-        auto snkUpperDep = pisdf::computeConsUpperDep(currentSinkRate, srcRate, firing, delay);
+    };
 
-        /* == Adjust the values to match the actual position in the source vector == */
-        snkLowerDep += setterOffset;
-        snkUpperDep += setterOffset;
-        (*it).lowerDep_ = static_cast<uint32_t>(snkLowerDep);
-        (*it).upperDep_ = static_cast<uint32_t>(snkUpperDep);
-        firing += 1;
-    }
+    /* == Compute dependencies for sinks == */
+    auto delay = edge->delay() ? edge->delay()->value() : 0;
+    computeWorker(0, sinkRepetitionValue, snkRate, delay);
+
+    /* == Compute dependencies for end / getter vertices == */
+    const auto getterRate = edge->delay() ? snkVector[0].rate_ : 0;
+    delay = delay - snkRate * sinkRepetitionValue;
+    computeWorker(sinkRepetitionValue, static_cast<i64>(snkVector.size()), getterRate, delay);
 
     /* == Update source vector with proper dependencies == */
-    firing = 0;
+    u32 firing = 0;
     for (auto it = snkVector.rbegin(); it < snkVector.rend(); ++it) {
         const auto lowerIndex = srcVector.size() - 1 - (*it).lowerDep_;
         const auto upperIndex = srcVector.size() - 1 - (*it).upperDep_;
@@ -413,7 +438,19 @@ void spider::srdag::SingleRateTransformer::addJoinVertex(vector<TransfoVertex> &
                       });
 }
 
-spider::vector<spider::srdag::SingleRateTransformer::TransfoVertex>
+
+void spider::srdag::SingleRateTransformer::populateTransfoVertexVector(vector<TransfoVertex> &vector,
+                                                                       const pisdf::Vertex *reference,
+                                                                       int64_t rate,
+                                                                       size_t portIx) const {
+    const auto *clone = srdag_->vertex(ref2Clone_[getIx(reference, job_.reference_)]);
+    const auto &cloneIx = clone->ix();
+    for (auto ix = (cloneIx + reference->repetitionValue()); ix != cloneIx; --ix) {
+        vector.emplace_back(rate, portIx, srdag_->vertex(ix - 1));
+    }
+}
+
+spider::srdag::SingleRateTransformer::TransfoVertexVector
 spider::srdag::SingleRateTransformer::buildSinkLinkerVector(pisdf::Edge *edge) {
     /* == 0. Reserve size of the vector == */
     auto sinkVector = factory::vector<TransfoVertex>(StackID::TRANSFO);
@@ -445,7 +482,7 @@ spider::srdag::SingleRateTransformer::buildSinkLinkerVector(pisdf::Edge *edge) {
     }
 
     /* == 2. Populate the rest of the sinkVector == */
-    auto *clone = srdag_->vertex(ref2Clone_[uniformIx(sink, job_.reference_)]);
+    auto *clone = srdag_->vertex(ref2Clone_[getIx(sink, job_.reference_)]);
     if (sink->subtype() == pisdf::VertexType::OUTPUT) {
         /* == 2.0 Check if we are in the trivial case of no interface == */
         if (clone->subtype() != pisdf::VertexType::TAIL) {
@@ -468,7 +505,7 @@ spider::srdag::SingleRateTransformer::buildSinkLinkerVector(pisdf::Edge *edge) {
     return sinkVector;
 }
 
-spider::vector<spider::srdag::SingleRateTransformer::TransfoVertex>
+spider::srdag::SingleRateTransformer::TransfoVertexVector
 spider::srdag::SingleRateTransformer::buildSourceLinkerVector(pisdf::Edge *edge) {
     /* == 0. Reserve size of the vector == */
     auto sourceVector = factory::vector<TransfoVertex>(StackID::TRANSFO);
@@ -477,7 +514,7 @@ spider::srdag::SingleRateTransformer::buildSourceLinkerVector(pisdf::Edge *edge)
     sourceVector.reserve(source->repetitionValue() + (delay != nullptr));
 
     /* == 1. Populate the sourceVector == */
-    auto *clone = srdag_->vertex(ref2Clone_[uniformIx(source, job_.reference_)]);
+    auto *clone = srdag_->vertex(ref2Clone_[getIx(source, job_.reference_)]);
     if (source->subtype() == pisdf::VertexType::INPUT) {
         /* == 1.0 Check if we are in the trivial case of no interface == */
         if (clone->subtype() != pisdf::VertexType::REPEAT) {
@@ -514,5 +551,30 @@ spider::srdag::SingleRateTransformer::buildSourceLinkerVector(pisdf::Edge *edge)
 
     return sourceVector;
 }
+
+void spider::srdag::SingleRateTransformer::populateFromDelayVertex(vector<TransfoVertex> &vector,
+                                                                   pisdf::Edge *edge,
+                                                                   bool isSink) {
+    pisdf::Vertex *vertex = nullptr;
+    int64_t rate;
+    size_t portIx;
+    if (isSink) {
+        vertex = edge->sink();
+        rate = edge->sourceRateExpression().evaluate(job_.params_);
+        portIx = edge->sinkPortIx();
+    } else {
+        vertex = edge->source();
+        rate = edge->sinkRateExpression().evaluate(job_.params_);
+        portIx = edge->sourcePortIx();
+    }
+    vector.emplace_back(rate, portIx, vertex);
+
+    /* == Remove the Edge == */
+    srdag_->removeEdge(edge);
+}
+
+
+
+
 
 
