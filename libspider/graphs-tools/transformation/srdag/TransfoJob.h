@@ -53,9 +53,9 @@ namespace spider {
         /* === Struct definition === */
 
         struct TransfoJob {
+            vector <std::shared_ptr<pisdf::Param>> params_;
             pisdf::Graph *reference_ = nullptr;
-            vector<std::shared_ptr<pisdf::Param>> params_;
-            const size_t *srdagIx_ = nullptr;
+            pisdf::Vertex *srdagInstance_ = nullptr;
             uint32_t firingValue_ = UINT32_MAX;
             bool root_ = false;
 
@@ -67,14 +67,14 @@ namespace spider {
 
             TransfoJob &operator=(TransfoJob &&) = default;
 
-            TransfoJob(pisdf::Graph *graph,
-                       const size_t &srdagIx,
-                       uint32_t firing,
-                       bool root = false) : reference_{ graph },
-                                            params_{ sbc::vector<std::shared_ptr<pisdf::Param>, StackID::TRANSFO>{ }},
-                                            srdagIx_{ &srdagIx },
-                                            firingValue_{ firing },
-                                            root_{ root } {
+            explicit TransfoJob(pisdf::Graph *graph,
+                                pisdf::Vertex *srdagInstance = nullptr,
+                                uint32_t firing = 0) : params_{ sbc::vector < std::shared_ptr<pisdf::Param>,
+                                                                StackID::TRANSFO > { }},
+                                                       reference_{ graph },
+                                                       srdagInstance_{ srdagInstance },
+                                                       firingValue_{ firing },
+                                                       root_{ srdagInstance == nullptr } {
                 if (graph) {
                     params_.reserve(graph->paramCount());
                 }

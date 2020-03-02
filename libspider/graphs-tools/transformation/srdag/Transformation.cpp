@@ -231,7 +231,7 @@ bool spider::srdag::splitDynamicGraph(pisdf::Graph *subgraph) {
 }
 
 std::pair<spider::srdag::JobStack, spider::srdag::JobStack>
-spider::srdag::singleRateTransformation(const TransfoJob &job, pisdf::Graph *srdag) {
+spider::srdag::singleRateTransformation(TransfoJob &job, pisdf::Graph *srdag) {
     if (!srdag) {
         throwSpiderException("nullptr for single rate graph.");
     }

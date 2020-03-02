@@ -85,7 +85,7 @@ std::string spider::srdag::SRDAGCopyVertexVisitor::buildCloneName(const pisdf::V
     if (job_.root_) {
         return std::string(vertex->name()).append("(");
     }
-    return std::string(srdag_->vertex(*(job_.srdagIx_))->name()).append(":").append(vertex->name()).append("(");
+    return std::string(job_.srdagInstance_->name()).append(":").append(vertex->name()).append("(");
 }
 
 void spider::srdag::SRDAGCopyVertexVisitor::makeClone(pisdf::Vertex *vertex) {

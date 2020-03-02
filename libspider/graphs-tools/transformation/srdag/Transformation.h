@@ -67,7 +67,7 @@ namespace spider {
          * jobs of dynamic graphs.
          * @throws @refitem Spider::Exception if srdag is nullptr
          */
-        std::pair<JobStack, JobStack> singleRateTransformation(const TransfoJob &job, pisdf::Graph *srdag);
+        std::pair<JobStack, JobStack> singleRateTransformation(TransfoJob &job, pisdf::Graph *srdag);
     }
 }
 

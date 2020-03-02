@@ -67,7 +67,7 @@ namespace spider {
         public:
             SingleRateTransformer() = delete;
 
-            SingleRateTransformer(const TransfoJob &job, pisdf::Graph *srdag);
+            SingleRateTransformer(TransfoJob &job, pisdf::Graph *srdag);
 
             ~SingleRateTransformer() = default;
 
@@ -96,7 +96,7 @@ namespace spider {
             /* === Private member(s) === */
 
             vector<size_t> ref2Clone_;
-            const TransfoJob &job_;
+            TransfoJob &job_;
             pisdf::Graph *srdag_ = nullptr;
 
             /* === Private method(s) === */
