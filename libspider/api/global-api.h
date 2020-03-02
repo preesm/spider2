@@ -151,6 +151,23 @@ namespace spider {
     /* === Enumeration(s) === */
 
     /**
+     * @brief Spider run modes (INFINITE or LOOP).
+     */
+    enum class RunMode {
+        INFINITE = 0, /*!< Run the application graph in a infinite loop */
+        LOOP,         /*!< Run the application graph in a fixed size loop */
+    };
+
+    /**
+     * @brief Spider runtime algorithms.
+     */
+    enum class RuntimeType {
+        JITMS = 0, /*!< Use the Just In Time Multicore Scheduling runtime
+                    *   see: https://tel.archives-ouvertes.fr/tel-01301642/file/These_HEULOT_Julien.pdf
+                    */
+    };
+
+    /**
      * @brief Spider scheduling algorithms.
      */
     enum class SchedulingAlgorithm {

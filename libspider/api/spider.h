@@ -53,17 +53,6 @@
 
 namespace spider {
 
-    enum class RunMode {
-        INFINITE = 0, /* !< Run the application graph in a infinite loop */
-        LOOP,         /* !< Run the application graph in a fixed size loop */
-    };
-
-    enum class RuntimeType {
-        JITMS = 0, /* !< Use the Just In Time Multicore Scheduling runtime
-                    *    see: https://tel.archives-ouvertes.fr/tel-01301642/file/These_HEULOT_Julien.pdf
-                    */
-    };
-
     struct StartUpConfig {
         bool verbose_ = false;         /* = Enable / disable the verbose = */
         bool standAlone_ = false;      /* = Enable / disable the stand-alone mode = */
