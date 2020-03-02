@@ -106,6 +106,7 @@ namespace spider {
         pisdf::Graph *graph_ = nullptr;
         ScheduleMode mode_ = JIT_SEND;
         FifoAllocator *allocator_ = nullptr;
+        ufast64 minStartTime_ = 0;
 
         /* === Protected struct(s) === */
 
@@ -136,7 +137,7 @@ namespace spider {
          * @param task  Vertex to evaluate.
          * @return Minimum start time for the vertex.
          */
-        static ufast64 computeMinStartTime(ScheduleTask *task);
+        ufast64 computeMinStartTime(ScheduleTask *task) const;
 
         template<class SkipPredicate, class TimePredicate>
         PE *findBestPEFit(Cluster *cluster, ufast64 minStartTime,

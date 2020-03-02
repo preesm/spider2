@@ -103,8 +103,8 @@ void spider::Scheduler::setAllocator(spider::FifoAllocator *allocator) {
 
 /* === Protected method(s) === */
 
-ufast64 spider::Scheduler::computeMinStartTime(ScheduleTask *task) {
-    ufast64 minimumStartTime = 0;
+ufast64 spider::Scheduler::computeMinStartTime(ScheduleTask *task) const {
+    ufast64 minimumStartTime = minStartTime_;
     task->setState(TaskState::PENDING);
     for (const auto *dependency : task->dependencies()) {
         if (dependency) {

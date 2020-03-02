@@ -137,6 +137,9 @@ void spider::ListScheduler::update() {
 
     /* == Create the schedule tasks == */
     lastSchedulableTask_ = sortedTaskVector_.size() - nonSchedulableTaskCount;
+
+    /* == Update minimum start time == */
+    minStartTime_ = schedule_.stats().maxEndTime();
 }
 
 /* === Private method(s) === */
@@ -149,7 +152,9 @@ ifast32 spider::ListScheduler::computeScheduleLevel(ListTask &listTask,
         for (auto &edge : vertex->outputEdgeVector()) {
             if (edge->sinkRateValue()) {
                 /* == Disable non-null edge == */
-                listVertexVector[edge->sink()->ix()].level_ = NON_SCHEDULABLE_LEVEL;
+                auto &sinkTask = listVertexVector[edge->sink()->scheduleTaskIx()];
+                sinkTask.level_ = NON_SCHEDULABLE_LEVEL;
+                computeScheduleLevel(sinkTask, listVertexVector);
             }
         }
     } else if (listTask.level_ < 0) {
