@@ -75,6 +75,12 @@ void spider::srdag::SRDAGCopyVertexVisitor::visit(pisdf::Graph *graph) {
         clone->setRepetitionValue(graph->repetitionValue());
         /* == Set the instance value of the vertex == */
         clone->setInstanceValue(it);
+        auto *containingGraph = graph->graph();
+        std::for_each(containingGraph->params().begin(),
+                      containingGraph->params().end(),
+                      [&clone, this](const std::shared_ptr<pisdf::Param> &p) {
+                          clone->addInputParameter(job_.params_[p->ix()]);
+                      });
     }
     ix_ = (srdag_->vertexCount() - 1) - (graph->repetitionValue() - 1);
 }

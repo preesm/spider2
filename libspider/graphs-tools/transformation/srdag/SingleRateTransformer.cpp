@@ -100,9 +100,8 @@ std::pair<spider::srdag::JobStack, spider::srdag::JobStack> spider::srdag::Singl
     spider::vector<pisdf::Vertex *> delayVertexToRemove;
     SRDAGCopyVertexVisitor visitor{ job_, srdag_ };
     for (const auto &vertex : job_.reference_->vertices()) {
-        const auto &vertexUniformIx = getIx(vertex.get(), job_.reference_);
         vertex->visit(&visitor);
-        ref2Clone_[vertexUniformIx] = visitor.ix_;
+        ref2Clone_[getIx(vertex.get(), job_.reference_)] = visitor.ix_;
         if (vertex->subtype() == pisdf::VertexType::DELAY) {
             delayVertexToRemove.emplace_back(srdag_->vertices().back().get());
         }
