@@ -98,6 +98,11 @@ namespace spider {
          * @param jobStampValue  Value of the job stamp to update.
          */
         void updateJobStamp(size_t lrtIx, size_t jobStampValue);
+
+        /**
+         * @brief Clear all information and ready to start as new.
+         */
+        void clear();
     };
 }
 

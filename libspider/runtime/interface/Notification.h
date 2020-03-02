@@ -57,6 +57,7 @@ namespace spider {
         LRT_REPEAT_ITERATION_DIS,       /*!< Signal LRT to stop repeating iteration */
         LRT_FINISHED_ITERATION,         /*!< Signal that given LRT has finished its iteration */
         LRT_RST_ITERATION,              /*!< Signal LRT to restart current iteration */
+        LRT_CLEAR_ITERATION,            /*!< Signal LRT to clear information relative to the last iteration */
         LRT_STOP,                       /*!< Signal LRT to stop */
         LRT_PAUSE,                      /*!< Signal LRT to freeze */
         LRT_RESUME,                     /*!< Signal LRT to un-freeze */
@@ -89,6 +90,8 @@ namespace spider {
                 return "LRT_FINISHED_ITERATION";
             case NotificationType::LRT_RST_ITERATION:
                 return "LRT_RST_ITERATION";
+            case NotificationType::LRT_CLEAR_ITERATION:
+                return "LRT_CLEAR_ITERATION";
             case NotificationType::LRT_STOP:
                 return "LRT_STOP";
             case NotificationType::LRT_PAUSE:

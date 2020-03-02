@@ -90,6 +90,7 @@ namespace spider {
         PE *attachedPE_{ nullptr };
         size_t runnerIx_{ SIZE_MAX };
         size_t jobQueueCurrentPos_{ 0 };
+        size_t lastJobStamp_{ 0 };
         i32 affinity_{ -1 };
         bool start_{ false };
         bool receivedEnd_{ false };

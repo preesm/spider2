@@ -50,8 +50,12 @@
 
 #define LOG_WAIT() \
     if (log::enabled<log::LRT>()) {\
-        log::info<log::LRT>("GRT -> waiting for #%zu runners to finish..\n",\
-                            archi::platform()->LRTCount() - i);\
+        log::info<log::LRT>("GRT -> waiting for runner #%zu to finish..\n", i);\
+    }
+
+#define LOG_REGISTER() \
+    if (log::enabled<log::LRT>()) {\
+        log::info<log::LRT>("GRT -> registering runner #%zu as finished.\n", ix);\
     }
 
 /* === Global stop boolean === */
@@ -60,17 +64,20 @@ bool spider2StopRunning = false;
 
 /* === Function(s) definition === */
 
+spider::RTPlatform::RTPlatform(size_t runnerCount) : runtimeKernelVector_{
+        factory::vector < unique_ptr < RTKernel >> (StackID::RUNTIME) },
+                                                     runnerArray_{ runnerCount, nullptr, StackID::RUNTIME },
+                                                     finishedRunnerArray_{ runnerCount, false, StackID::RUNTIME } {
+
+}
+
 spider::RTPlatform::~RTPlatform() {
-    for (auto &kernel : runtimeKernelVector_) {
-        destroy(kernel);
-    }
     for (auto &runner : runnerArray_) {
         destroy(runner);
     }
-    destroy(communicator_);
 }
 
-void spider::RTPlatform::addRunner(spider::RTRunner *runner) {
+void spider::RTPlatform::addRunner(RTRunner *runner) {
     if (!runner) {
         return;
     }
@@ -78,6 +85,21 @@ void spider::RTPlatform::addRunner(spider::RTRunner *runner) {
 
     /* == Create the ressource to handle the runner (thread, process, etc.) == */
     this->createRunnerRessource(runner);
+}
+
+size_t spider::RTPlatform::addKernel(RTKernel *kernel) {
+    if (!kernel) {
+        return SIZE_MAX;
+    }
+    /* == Search if Kernel does not already exists == */
+    auto res = std::find_if(runtimeKernelVector_.begin(), runtimeKernelVector_.end(),
+                            [&kernel](const unique_ptr<RTKernel> &p) { return p.get() == kernel; });
+    if (res == runtimeKernelVector_.end()) {
+        kernel->setIx(runtimeKernelVector_.size());
+        runtimeKernelVector_.emplace_back(kernel);
+        res = runtimeKernelVector_.end() - 1;
+    }
+    return (*res)->ix();
 }
 
 void spider::RTPlatform::sendStartIteration() const {
@@ -89,33 +111,66 @@ void spider::RTPlatform::sendStartIteration() const {
 }
 
 void spider::RTPlatform::sendEndIteration() const {
-    Notification startIterNotification{ NotificationType::LRT_END_ITERATION,
+    Notification endIterNotification{ NotificationType::LRT_END_ITERATION,
+                                      archi::platform()->spiderGRTPE()->attachedLRT()->virtualIx() };
+    for (size_t i = 0; i < archi::platform()->LRTCount(); ++i) {
+        communicator()->push(endIterNotification, i);
+    }
+}
+
+void spider::RTPlatform::sendDelayedBroadCastToRunners() const {
+    Notification startIterNotification{ NotificationType::JOB_DELAY_BROADCAST_JOBSTAMP,
                                         archi::platform()->spiderGRTPE()->attachedLRT()->virtualIx() };
     for (size_t i = 0; i < archi::platform()->LRTCount(); ++i) {
         communicator()->push(startIterNotification, i);
     }
 }
 
-void spider::RTPlatform::waitForRunnersToFinish() const {
-    const auto grtIx = archi::platform()->spiderGRTPE()->attachedLRT()->virtualIx();
-    /* == Wait for the notifications == */
-    size_t i = 0;
-    while (i != archi::platform()->LRTCount()) {
-        LOG_WAIT();
-        Notification notification;
-        communicator()->pop(notification, grtIx);
-        if (notification.type_ == NotificationType::LRT_FINISHED_ITERATION) {
-            i++;
-        } else if (notification.type_ != NotificationType::JOB_UPDATE_JOBSTAMP) {
-            /* == push back notification == */
-            communicator()->push(notification, grtIx);
-        }
-    }
-}
-
 void spider::RTPlatform::sendClearToRunners() const {
     const auto grtIx = archi::platform()->spiderGRTPE()->attachedLRT()->virtualIx();
     for (size_t i = 0; i < archi::platform()->LRTCount(); ++i) {
-        communicator()->push(Notification{ NotificationType::JOB_CLEAR_QUEUE, grtIx }, i);
+        communicator()->push(Notification{ NotificationType::LRT_CLEAR_ITERATION, grtIx }, i);
     }
+}
+
+void spider::RTPlatform::waitForRunnersToFinish() {
+    const auto grtIx = archi::platform()->spiderGRTPE()->attachedLRT()->virtualIx();
+    /* == Wait for the notifications == */
+    for (size_t i = 0; i < archi::platform()->LRTCount(); ++i) {
+        while (!finishedRunnerArray_[i]) {
+            LOG_WAIT();
+            Notification notification;
+            communicator()->pop(notification, grtIx);
+            if (notification.type_ == NotificationType::LRT_FINISHED_ITERATION) {
+                finishedRunnerArray_[i] = true;
+            } else if (notification.type_ != NotificationType::JOB_UPDATE_JOBSTAMP) {
+                /* == push back notification == */
+                communicator()->push(notification, grtIx);
+            }
+        }
+    }
+    /* == Reset values == */
+    finishedRunnerArray_.assign(false);
+}
+
+void spider::RTPlatform::registerFinishedRunner(size_t ix) {
+    LOG_REGISTER();
+    finishedRunnerArray_.at(ix) = true;
+}
+
+spider::RTKernel *spider::RTPlatform::getKernel(size_t ix) const {
+    if (ix >= runtimeKernelVector_.size()) {
+        return nullptr;
+    }
+    return runtimeKernelVector_[ix].get();
+}
+
+void spider::RTPlatform::setCommunicator(RTCommunicator *communicator) {
+    if (!communicator) {
+        return;
+    }
+    if (communicator_) {
+        throwSpiderException("already existing runtime communicator.");
+    }
+    communicator_ = make_unique(communicator);
 }

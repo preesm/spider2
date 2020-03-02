@@ -47,6 +47,7 @@
 #include <runtime/common/RTKernel.h>
 #include <thread/Thread.h>
 #include <algorithm>
+#include <memory/unique_ptr.h>
 
 namespace spider {
 
@@ -61,7 +62,7 @@ namespace spider {
     class RTPlatform {
     public:
 
-        explicit RTPlatform(size_t runnerCount = 0) : runnerArray_{ runnerCount, nullptr, StackID::RUNTIME } { }
+        explicit RTPlatform(size_t runnerCount = 0);
 
         virtual ~RTPlatform();
 
@@ -81,19 +82,7 @@ namespace spider {
          * @param kernel  Kernel to add.
          * @return index of the kernel inside the platform, SIZE_MAX if failure.
          */
-        inline size_t addKernel(RTKernel *kernel) {
-            if (!kernel) {
-                return SIZE_MAX;
-            }
-            /* == Search if seach Kernel does not already exists == */
-            auto res = std::find(runtimeKernelVector_.begin(), runtimeKernelVector_.end(), kernel);
-            if (res == runtimeKernelVector_.end()) {
-                kernel->setIx(runtimeKernelVector_.size());
-                runtimeKernelVector_.emplace_back(kernel);
-                res = runtimeKernelVector_.end() - 1;
-            }
-            return (*res)->ix();
-        }
+        size_t addKernel(RTKernel *kernel);
 
         /**
         * @brief Send the LRT_START_ITERATION notification to every runners.
@@ -106,16 +95,32 @@ namespace spider {
         void sendEndIteration() const;
 
         /**
-         * @brief Wait for every runners to send the LRT_FINISHED_ITERATION notification.
+         * @brief Send the JOB_DELAY_BROADCAST_JOBSTAMP notification to every runners.
          */
-        void waitForRunnersToFinish() const;
+        void sendDelayedBroadCastToRunners() const;
 
         /**
-         * @brief send JOB_CLEAR_QUEUE notification to every runners.
+         * @brief send LRT_CLEAR_ITERATION notification to every runners.
          */
         void sendClearToRunners() const;
 
-        virtual void createRunnerRessource(RTRunner *) = 0;
+        /**
+         * @brief Wait for every runners to send the LRT_FINISHED_ITERATION notification.
+         */
+        void waitForRunnersToFinish();
+
+        /**
+         * @brief Register a runner as having finished its iteration.
+         * @param ix Ix of the runner to register.
+         * @throw spider::Exception if out of range.
+         */
+        void registerFinishedRunner(size_t ix);
+
+        /**
+         * @brief Creates resources related to a runner (thread, process, etc.)
+         * @param runner  Pointer to the runner.
+         */
+        virtual void createRunnerRessource(RTRunner *runner) = 0;
 
         virtual void waitForRunnerToBeReady() = 0;
 
@@ -136,14 +141,14 @@ namespace spider {
          * @return pointer to the @refitem RTCommunicator.
          */
         inline RTCommunicator *communicator() const {
-            return communicator_;
+            return communicator_.get();
         }
 
         /**
          * @brief Returns the vector of runtime kernels of the platform.
          * @return const reference to a spider::vector of pointer of @refitem RTKernel.
          */
-        inline const spider::vector<RTKernel *> &runtimeKernelVector() const {
+        inline const vector<unique_ptr<RTKernel>> &runtimeKernelVector() const {
             return runtimeKernelVector_;
         }
 
@@ -152,12 +157,7 @@ namespace spider {
          * @param ix Index of the kernel to fetch.
          * @return pointer to the @refitem RTKernel if it exists, nullptr else.
          */
-        inline RTKernel *getKernel(size_t ix) const {
-            if (ix >= runtimeKernelVector_.size()) {
-                return nullptr;
-            }
-            return runtimeKernelVector_[ix];
-        }
+        RTKernel *getKernel(size_t ix) const;
 
         /* === Setter(s) === */
 
@@ -167,20 +167,13 @@ namespace spider {
          * @param communicator Pointer to the communicator to set.
          * @throws spider::Exception if platform already has a communicator.
          */
-        inline void setCommunicator(RTCommunicator *communicator) {
-            if (!communicator) {
-                return;
-            }
-            if (communicator_) {
-                throwSpiderException("already existing runtime communicator.");
-            }
-            communicator_ = communicator;
-        }
+        void setCommunicator(RTCommunicator *communicator);
 
     protected:
-        array<RTRunner *> runnerArray_;                                /* = Array of RTRunner = */
-        sbc::vector<RTKernel*, StackID::RUNTIME> runtimeKernelVector_; /* = Vector of RTKernel = */
-        RTCommunicator *communicator_ = nullptr;                               /* = Communicator of the RTPlatform = */
+        vector<unique_ptr<RTKernel>> runtimeKernelVector_; /* = Vector of RTKernel = */
+        array<RTRunner *> runnerArray_;                    /* = Array of RTRunner = */
+        array<bool> finishedRunnerArray_;                  /* = Array of registered finished runner */
+        unique_ptr<RTCommunicator> communicator_;          /* = Communicator of the RTPlatform = */
     };
 }
 

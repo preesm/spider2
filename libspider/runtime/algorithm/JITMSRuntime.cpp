@@ -217,6 +217,7 @@ bool spider::JITMSRuntime::dynamicExecute() {
     updateJobStack(resultRootJob.second, dynamicJobStack);
 
     /* == Transform, schedule and run == */
+    bool shouldWait = false;
     while (!staticJobStack.empty() || !dynamicJobStack.empty()) {
         /* == Transform static jobs == */
         //monitor_->startSampling();
@@ -241,13 +242,13 @@ bool spider::JITMSRuntime::dynamicExecute() {
         scheduler_->execute();
         //monitor_->endSampling();
 
-        if (api::exportGanttEnabled()) {
-            exportGantt(&scheduler_->schedule());
-        }
+        /* == Send JOB_DELAY_BROADCAST_JOBSTAMP notification == */
+        rt::platform()->sendDelayedBroadCastToRunners();
 
         /* == Send LRT_END_ITERATION notification == */
         rt::platform()->sendEndIteration();
 
+        /* == Run and wait == */
         rt::platform()->runner(grtIx)->run(false);
         rt::platform()->waitForRunnersToFinish();
 
@@ -287,6 +288,7 @@ bool spider::JITMSRuntime::dynamicExecute() {
             /* == Transform dynamic jobs == */
             //monitor_->startSampling();
             transformDynamicJobs(staticJobStack, dynamicJobStack);
+            shouldWait = staticJobStack.empty();
             //monitor_->endSampling();
 
             api::exportGraphToDOT(srdag_.get(), "srdag_intermediate.dot");
@@ -307,8 +309,15 @@ bool spider::JITMSRuntime::dynamicExecute() {
             scheduler_->update();
             scheduler_->execute();
 
+            /* == Send JOB_DELAY_BROADCAST_JOBSTAMP notification == */
+            rt::platform()->sendDelayedBroadCastToRunners();
+
             /* == Send LRT_END_ITERATION notification == */
             rt::platform()->sendEndIteration();
+
+            /* == Run and wait == */
+            rt::platform()->runner(grtIx)->run(false);
+            rt::platform()->waitForRunnersToFinish();
         }
     }
 
@@ -320,9 +329,7 @@ bool spider::JITMSRuntime::dynamicExecute() {
         exportGantt(&scheduler_->schedule());
     }
 
-    /* == If there are jobs left, run == */
-    rt::platform()->runner(grtIx)->run(false);
-    rt::platform()->waitForRunnersToFinish();
+    /* == Runners should clear their parameters == */
     rt::platform()->sendClearToRunners();
 
     /* == Clear the srdag == */
