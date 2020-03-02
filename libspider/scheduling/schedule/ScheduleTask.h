@@ -119,6 +119,14 @@ namespace spider {
          * @brief Get the array of task dependencies.
          * @return const reference to the array of dependencies.
          */
+        inline const bool *notificationFlags() const {
+            return notificationFlags_.get();
+        }
+
+        /**
+         * @brief Get the array of task dependencies.
+         * @return const reference to the array of dependencies.
+         */
         inline const array<ScheduleTask *> &dependencies() const {
             return dependenciesArray_;
         }
