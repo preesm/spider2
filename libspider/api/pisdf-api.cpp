@@ -302,15 +302,35 @@ spider::pisdf::Vertex *spider::api::createConfigActor(pisdf::Graph *graph,
     return vertex;
 }
 
+spider::pisdf::Vertex *spider::api::getInputInterface(spider::pisdf::Graph *graph, size_t ix) {
+    if (!graph) {
+        throwSpiderException("nullptr for graph.");
+    }
+    auto *interface = graph->inputInterface(ix);
+    if (!interface) {
+        throwSpiderException("no input interface at index %zu in graph [%s]", ix, graph->name().c_str());
+    }
+    return interface;
+}
+
+spider::pisdf::Vertex *spider::api::getOutputInterface(spider::pisdf::Graph *graph, size_t ix) {
+    if (!graph) {
+        throwSpiderException("nullptr for graph.");
+    }
+    auto *interface = graph->outputInterface(ix);
+    if (!interface) {
+        throwSpiderException("no output interface at index %zu in graph [%s]", ix, graph->name().c_str());
+    }
+    return interface;
+}
+
 spider::pisdf::Vertex *spider::api::setInputInterfaceName(pisdf::Graph *graph, size_t ix, std::string name) {
     if (!graph) {
         throwSpiderException("nullptr for graph.");
     }
     auto *interface = graph->inputInterface(ix);
     if (!interface) {
-        throwSpiderException("no input interface at index %"
-                                     PRIu32
-                                     " in graph [%s]", graph->name().c_str());
+        throwSpiderException("no input interface at index %zu in graph [%s]", ix, graph->name().c_str());
     }
     interface->setName(std::move(name));
     return interface;
@@ -322,9 +342,7 @@ spider::pisdf::Vertex *spider::api::setOutputInterfaceName(pisdf::Graph *graph, 
     }
     auto *interface = graph->outputInterface(ix);
     if (!interface) {
-        throwSpiderException("no output interface at index %"
-                                     PRIu32
-                                     " in graph [%s]", graph->name().c_str());
+        throwSpiderException("no output interface at index %zu in graph [%s]", ix, graph->name().c_str());
     }
     interface->setName(std::move(name));
     return interface;

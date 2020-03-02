@@ -271,7 +271,25 @@ namespace spider {
                                          size_t edgeOUTCount = 0);
 
         /**
-         * @brief Change the name of an @refitem pisdf::InputInterface.
+         * @brief Get an input @refitem pisdf::Interface of a given graph.
+         * @param graph Pointer to the graph the interface belong.
+         * @param ix    Index of the input interface.
+         * @return pointer to the corresponding @refitem pisdf::Vertex.
+         * @throws spider::Exception if graph is nullptr or interface is not found.
+         */
+        pisdf::Vertex* getInputInterface(pisdf::Graph *graph, size_t ix);
+
+        /**
+         * @brief Get an input @refitem pisdf::Interface of a given graph.
+         * @param graph Pointer to the graph the interface belong.
+         * @param ix    Index of the input interface.
+         * @return pointer to the corresponding @refitem pisdf::Vertex.
+         * @throws spider::Exception if graph is nullptr or interface is not found.
+         */
+        pisdf::Vertex* getOutputInterface(pisdf::Graph *graph, size_t ix);
+
+        /**
+         * @brief Change the name of an input @refitem pisdf::Interface.
          * @param graph  Pointer to the graph the interface belong.
          * @param ix     Index of the input interface.
          * @param name   Name to be set.
@@ -281,7 +299,7 @@ namespace spider {
         pisdf::Vertex *setInputInterfaceName(pisdf::Graph *graph, size_t ix, std::string name);
 
         /**
-         * @brief Change the name of an @refitem pisdf::OutputInterface.
+         * @brief Change the name of an output @refitem pisdf::Interface.
          * @param graph  Pointer to the graph the interface belong.
          * @param ix     Index of the input interface.
          * @param name   Name to be set.
