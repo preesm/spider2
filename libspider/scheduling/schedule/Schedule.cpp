@@ -73,6 +73,7 @@ void spider::Schedule::print() const {
             log::print<log::SCHEDULE>(log::magenta, "INFO: ", "Schedule: \n");
             log::print<log::SCHEDULE>(log::magenta, "INFO: ", "   >> task: %zu (runner: %zu)\n", task->ix(),
                                       task->mappedLrt(), task->name().c_str());
+            log::print<log::SCHEDULE>(log::magenta, "INFO: ", "   >> will wait for:\n");
             for (size_t lrtIx = 0; lrtIx < lrtCount; ++lrtIx) {
                 const auto taskIx = task->executionConstraint(lrtIx);
                 if (taskIx >= 0) {
@@ -80,6 +81,14 @@ void spider::Schedule::print() const {
                                               "           ----> task: %zu (runner: %zu) [%s]\n",
                                               taskVector_[static_cast<size_t>(taskIx)]->ix(), lrtIx,
                                               taskVector_[static_cast<size_t>(taskIx)]->name().c_str());
+                }
+            }
+            log::print<log::SCHEDULE>(log::magenta, "INFO: ", "   >> will notify:\n");
+            for (size_t lrtIx = 0; lrtIx < lrtCount; ++lrtIx) {
+                const auto notify = task->notificationFlags()[lrtIx];
+                if (notify) {
+                    log::print<log::SCHEDULE>(log::magenta, "INFO: ",
+                                              "           ----> runner: %zu\n", lrtIx);
                 }
             }
         }
@@ -131,6 +140,9 @@ void spider::Schedule::updateTaskAndSetReady(size_t taskIx, size_t slave, uint64
 }
 
 void spider::Schedule::sendReadyTasks() {
+    if (log::enabled<log::SCHEDULE>()) {
+        print();
+    }
     const auto grtIx = archi::platform()->spiderGRTPE()->virtualIx();
     auto *communicator = rt::platform()->communicator();
     for (auto &task : readyTaskVector_) {
