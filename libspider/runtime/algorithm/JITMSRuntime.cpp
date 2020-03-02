@@ -139,7 +139,7 @@ bool spider::JITMSRuntime::staticExecute() {
     }
     first = false;
     /* == Apply first transformation of root graph == */
-    auto rootJob = srdag::TransfoJob(graph_, SIZE_MAX, UINT32_MAX, true);
+    auto rootJob = srdag::TransfoJob(graph_);
     rootJob.params_ = graph_->params();
     auto resultRootJob = srdag::singleRateTransformation(rootJob, srdag_.get());
 
@@ -206,9 +206,9 @@ bool spider::JITMSRuntime::dynamicExecute() {
         spider::srdag::splitDynamicGraph(graph_);
     }
     /* == Apply first transformation of root graph == */
-    auto &&rootJob = srdag::TransfoJob(graph_, SIZE_MAX, UINT32_MAX, true);
+    auto rootJob = srdag::TransfoJob(graph_);
     rootJob.params_ = graph_->params();
-    auto &&resultRootJob = srdag::singleRateTransformation(rootJob, srdag_.get());
+    auto resultRootJob = srdag::singleRateTransformation(rootJob, srdag_.get());
 
     /* == Initialize the job stacks == */
     auto staticJobStack = factory::vector<srdag::TransfoJob>(StackID::TRANSFO);
@@ -230,6 +230,8 @@ bool spider::JITMSRuntime::dynamicExecute() {
             //monitor_->endSampling();
         }
 
+        api::exportGraphToDOT(srdag_.get(), "srdag_intermediate.dot");
+
         /* == Send LRT_START_ITERATION notification == */
         rt::platform()->sendStartIteration();
 
@@ -238,6 +240,10 @@ bool spider::JITMSRuntime::dynamicExecute() {
         scheduler_->update();
         scheduler_->execute();
         //monitor_->endSampling();
+
+        if (api::exportGanttEnabled()) {
+            exportGantt(&scheduler_->schedule());
+        }
 
         /* == Send LRT_END_ITERATION notification == */
         rt::platform()->sendEndIteration();
@@ -273,6 +279,7 @@ bool spider::JITMSRuntime::dynamicExecute() {
                     }
                     readParam++;
                 } else {
+                    // LCOV_IGNORE: this is a sanity check, it should never happen and it is not testable from the outside.
                     throwSpiderException("expected parameter notification");
                 }
             }
@@ -282,12 +289,16 @@ bool spider::JITMSRuntime::dynamicExecute() {
             transformDynamicJobs(staticJobStack, dynamicJobStack);
             //monitor_->endSampling();
 
+            api::exportGraphToDOT(srdag_.get(), "srdag_intermediate.dot");
+
             /* == Apply graph optimizations == */
             if (api::shouldOptimizeSRDAG()) {
                 //monitor_->startSampling();
                 optims::optimize(srdag_.get());
                 //monitor_->endSampling();
             }
+
+            api::exportGraphToDOT(srdag_.get(), "srdag_intermediate.dot");
 
             /* == Send LRT_START_ITERATION notification == */
             rt::platform()->sendStartIteration();

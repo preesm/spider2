@@ -128,7 +128,7 @@ namespace spider {
 
         /**
          * @brief Get the ix of the vertex in the containing graph.
-         * @return ix of the vertex (UINT32_MAX if no ix).
+         * @return ix of the vertex (SIZE_MAX if no ix).
          */
         inline const size_t &ix() const { return ix_; };
 
