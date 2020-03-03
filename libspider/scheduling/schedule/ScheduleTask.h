@@ -175,10 +175,18 @@ namespace spider {
 
         /**
          * @brief Returns the ix of the task in the schedule.
-         * @return ix of the task in the schedule, SIZE_MAX else.
+         * @return ix of the task in the schedule, -1 else.
          */
         inline i32 ix() const {
             return ix_;
+        }
+
+        /**
+         * @brief Returns the execution ix of the task in the schedule.
+         * @return execution ix of the task in the schedule, -1 else.
+         */
+        inline i32 execIx() const {
+            return execIx_;
         }
 
         /**
@@ -300,6 +308,15 @@ namespace spider {
         }
 
         /**
+        * @brief Set the execution ix of the task (that will be used for synchronization).
+        * @remark This method will overwrite current values.
+         * @param execIx Ix to set.
+        */
+        inline void setExecIx(i32 execIx) {
+            execIx_ = execIx;
+        }
+
+        /**
          * @brief Set the state of the job.
          * @remark This method will overwrite current value.
          * @param state State to set.
@@ -324,6 +341,7 @@ namespace spider {
         u64 endTime_{ UINT64_MAX };
         size_t mappedLrt_{ SIZE_MAX };
         size_t mappedPe_{ SIZE_MAX };
+        i32 execIx_{ -1 };
         i32 ix_{ -1 };
         TaskState state_{ TaskState::NOT_SCHEDULABLE };
         TaskType type_;

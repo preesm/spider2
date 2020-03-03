@@ -240,6 +240,23 @@ void spider::JITMSRTRunner::begin() {
 /* === Private method(s) implementation === */
 
 void spider::JITMSRTRunner::runJob(const JobMessage &job) {
+    if (log::enabled<log::LRT>()) {
+        log::print<log::LRT>(log::blue, "INFO:", "Runner #%zu -> Task: %zu\n", ix(), job.ix_);
+        log::print<log::LRT>(log::blue, "INFO:", "Runner #%zu -> Constraints:\n", ix());
+        for (const auto &constraint : job.execConstraints_) {
+            log::print<log::LRT>(log::blue, "INFO:", "Runner #%zu -> >> job %zu on runner #%zu\n", ix(),
+                                 constraint.jobToWait_, constraint.lrtToWait_);
+        }
+        log::print<log::LRT>(log::blue, "INFO:", "Runner #%zu -> Input Fifo(s):\n", ix());
+        for (auto &fifo : job.inputFifoArray_) {
+            log::print<log::LRT>(log::blue, "INFO:", "Runner #%zu -> >> size: %zu -- address: %zu\n", ix(), fifo.size_, fifo.virtualAddress_);
+        }
+        log::print<log::LRT>(log::blue, "INFO:", "Runner #%zu -> Output Fifo(s):\n", ix());
+        for (auto &fifo : job.outputFifoArray_) {
+            log::print<log::LRT>(log::blue, "INFO:", "Runner #%zu -> >> size: %zu -- address: %zu\n", ix(), fifo.size_, fifo.virtualAddress_);
+        }
+    }
+
     /* == Create input buffers == */
     // TODO: add time monitoring
     auto inputBuffersArray = createInputFifos(job.inputFifoArray_, attachedPE_->cluster()->memoryInterface());
@@ -279,7 +296,7 @@ void spider::JITMSRTRunner::runJob(const JobMessage &job) {
 }
 
 bool spider::JITMSRTRunner::isJobRunnable(const JobMessage &job) const {
-    for (const auto &constraint : job.jobs2Wait_) {
+    for (const auto &constraint : job.execConstraints_) {
         const auto runner2WaitIx = constraint.lrtToWait_;
         const auto job2Wait = constraint.jobToWait_;
         const auto localJobStamp = localJobStampsArray_[runner2WaitIx];
@@ -383,10 +400,10 @@ bool spider::JITMSRTRunner::readNotification(bool blocking) {
 }
 
 void spider::JITMSRTRunner::updateJobStamp(size_t lrtIx, size_t jobStampValue) {
-    LOG_UPDATE();
     if (localJobStampsArray_.at(lrtIx) == SIZE_MAX ||
         (localJobStampsArray_[lrtIx] < jobStampValue)) {
         localJobStampsArray_[lrtIx] = jobStampValue;
+        LOG_UPDATE();
     }
 }
 
@@ -394,7 +411,7 @@ void spider::JITMSRTRunner::clear() {
     clearLocalJobStamps();
     clearJobQueue();
     jobCount_ = 0;
-    lastJobStamp_ = 0;
+    lastJobStamp_ = SIZE_MAX;
     shouldBroadcast_ = false;
     start_ = false;
     receivedEnd_ = false;

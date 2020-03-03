@@ -63,6 +63,9 @@ void *spider::MemoryInterface::allocate(uint64_t virtualAddress, size_t size) {
         return nullptr;
     }
     std::lock_guard<std::mutex> lockGuard{ lock_ };
+    if (log::enabled<log::MEMORY>()) {
+        log::print<log::MEMORY>(log::yellow, "INFO: ", "PHYSICAL: allocating %zu bytes address %zu.\n", size, virtualAddress);
+    }
     uint64_t res = UINT64_MAX;
     if (size <= available()) {
         used_ += size;
@@ -103,5 +106,8 @@ void spider::MemoryInterface::registerPhysicalAddress(uint64_t virtualAddress, v
 }
 
 void *spider::MemoryInterface::retrievePhysicalAddress(uint64_t virtualAddress) {
+    if (log::enabled<log::LRT>()) {
+        log::print<log::LRT>(log::red, "INFO: ", "PHYSICAL: fetching address %zu.\n", virtualAddress);
+    }
     return virtual2Phys_.at(virtualAddress);
 }

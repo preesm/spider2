@@ -135,6 +135,7 @@ void spider::RTPlatform::sendClearToRunners() const {
 
 void spider::RTPlatform::waitForRunnersToFinish() {
     const auto grtIx = archi::platform()->spiderGRTPE()->attachedLRT()->virtualIx();
+    auto notifVector = factory::vector<Notification>(StackID::RUNTIME);
     /* == Wait for the notifications == */
     for (size_t i = 0; i < archi::platform()->LRTCount(); ++i) {
         while (!finishedRunnerArray_[i]) {
@@ -143,11 +144,14 @@ void spider::RTPlatform::waitForRunnersToFinish() {
             communicator()->pop(notification, grtIx);
             if (notification.type_ == NotificationType::LRT_FINISHED_ITERATION) {
                 finishedRunnerArray_[i] = true;
-            } else if (notification.type_ != NotificationType::JOB_UPDATE_JOBSTAMP) {
-                /* == push back notification == */
-                communicator()->push(notification, grtIx);
+            } else {
+                notifVector.emplace_back(notification);
             }
         }
+    }
+    for (auto &notification : notifVector) {
+        /* == push back notification == */
+        communicator()->push(notification, grtIx);
     }
     /* == Reset values == */
     finishedRunnerArray_.assign(false);

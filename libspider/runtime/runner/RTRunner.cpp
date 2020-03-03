@@ -83,12 +83,14 @@ void spider::RTRunner::clearJobQueue() {
 }
 
 void spider::RTRunner::broadcastCurrentJobStamp() const {
-    Notification broadcastNotification{ NotificationType::JOB_UPDATE_JOBSTAMP,
-                                        ix(),
-                                        lastJobStamp_ };
-    for (size_t i = 0; i < archi::platform()->LRTCount(); ++i) {
-        if (i != ix()) {
-            rt::platform()->communicator()->push(broadcastNotification, i);
+    if (lastJobStamp_ != SIZE_MAX) {
+        Notification broadcastNotification{ NotificationType::JOB_UPDATE_JOBSTAMP,
+                                            ix(),
+                                            lastJobStamp_ };
+        for (size_t i = 0; i < archi::platform()->LRTCount(); ++i) {
+            if (i != ix()) {
+                rt::platform()->communicator()->push(broadcastNotification, i);
+            }
         }
     }
 }
@@ -105,13 +107,14 @@ void spider::RTRunner::sendFinishedNotification() const {
 }
 
 void spider::RTRunner::sendJobStampNotification(bool *notificationFlags, size_t jobIx) const {
+    if (jobIx == SIZE_MAX) {
+        return;
+    }
     size_t lrtIx = 0;
     for (const auto &shouldNotify : array_handle<bool>{ notificationFlags, archi::platform()->LRTCount() }) {
         if (shouldNotify && lrtIx != ix()) {
-            Notification updateJobStampNotification{ NotificationType::JOB_UPDATE_JOBSTAMP,
-                                                     ix(),
-                                                     jobIx };
-            rt::platform()->communicator()->push(updateJobStampNotification, lrtIx);
+            rt::platform()->communicator()->push(Notification{ NotificationType::JOB_UPDATE_JOBSTAMP, ix(), jobIx },
+                                                 lrtIx);
             LOG_NOTIFY();
         }
         lrtIx++;

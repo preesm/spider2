@@ -108,11 +108,6 @@ ufast64 spider::Scheduler::computeMinStartTime(ScheduleTask *task) const {
     task->setState(TaskState::PENDING);
     for (const auto *dependency : task->dependencies()) {
         if (dependency) {
-            const auto mappedLRT = dependency->mappedLrt();
-            const auto currentJobConstraint = task->executionConstraint(mappedLRT);
-            if ((currentJobConstraint < 0) || (dependency->ix() > currentJobConstraint)) {
-                task->setExecutionConstraint(mappedLRT, dependency->ix());
-            }
             minimumStartTime = std::max(minimumStartTime, dependency->endTime());
         }
     }
@@ -170,7 +165,7 @@ spider::ScheduleTask *spider::Scheduler::insertCommunicationTask(Cluster *cluste
     /* == Create the com task == */
     auto *comTask = make<ScheduleTask, StackID::SCHEDULE>(type);
     comTask->setDependency(previousTask, 0);
-    comTask->setExecutionConstraint(previousTask->mappedLrt(), previousTask->ix());
+    comTask->setExecutionConstraint(previousTask->mappedLrt(), previousTask->execIx());
     schedule_.addScheduleTask(comTask);
 
     /* == Creates the com task information == */
@@ -178,7 +173,7 @@ spider::ScheduleTask *spider::Scheduler::insertCommunicationTask(Cluster *cluste
     comTaskInfo->size_ = dataSize;
     comTaskInfo->kernelIx_ = busKernel->ix();
     comTaskInfo->inputPortIx_ = portIx;
-    comTaskInfo->packetIx_ = type == TaskType::SYNC_SEND ? comTask->ix() : previousTask->ix();
+    comTaskInfo->packetIx_ = type == TaskType::SYNC_SEND ? comTask->execIx() : previousTask->execIx();
     comTask->setInternal(comTaskInfo);
 
     /* == Set job information and update schedule == */

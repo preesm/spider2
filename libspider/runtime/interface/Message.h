@@ -77,7 +77,7 @@ namespace spider {
         /* === Struct member(s) === */
 
         unique_ptr<bool> notificationFlagsArray_; /*!< Array of LRT to notify after job completion (size IS equal to the number of LRT) */
-        array<JobConstraint> jobs2Wait_;          /*!< Array of jobs this job has to wait before running (size is inferior or equal to the number of LRT) */
+        array<JobConstraint> execConstraints_;    /*!< Array of jobs this job has to wait before running (size is inferior or equal to the number of LRT) */
         array<int64_t> inputParams_;              /*!< Array of static input parameters */
         array<RTFifo> inputFifoArray_;            /*!< Array of input FIFO for the job */
         array<RTFifo> outputFifoArray_;           /*!< Array of output FIFO for the job */

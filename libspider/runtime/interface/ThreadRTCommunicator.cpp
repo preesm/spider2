@@ -60,18 +60,19 @@ bool spider::ThreadRTCommunicator::pop(Notification &notification, size_t receiv
 }
 
 bool spider::ThreadRTCommunicator::try_pop(Notification &notification, size_t receiver) {
-    return notificationQueueVector_.at(receiver).try_pop(notification);
+//    return notificationQueueVector_.at(receiver).try_pop(notification);
+    return notificationQueueVector_[receiver].try_pop(notification);
 }
 
 
 void spider::ThreadRTCommunicator::pushParamNotification(size_t sender, size_t messageIndex) {
-    notificationQueueVector_.at(notificationQueueVector_.size() - 1).push(Notification(NotificationType::JOB_SENT_PARAM,
-                                                                                       sender,
-                                                                                       messageIndex));
+    notificationQueueVector_.back().push(Notification(NotificationType::JOB_SENT_PARAM,
+                                                      sender,
+                                                      messageIndex));
 }
 
 bool spider::ThreadRTCommunicator::popParamNotification(spider::Notification &notification) {
-    return notificationQueueVector_.at(notificationQueueVector_.size() - 1).pop(notification);
+    return notificationQueueVector_.back().pop(notification);
 }
 
 size_t spider::ThreadRTCommunicator::push(JobMessage message, size_t) {
@@ -105,6 +106,7 @@ bool spider::ThreadRTCommunicator::pop(TraceMessage &message, size_t, size_t ix)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-function"
 #endif
+
 /**
  * @brief Trick to pre-declare template specialization.
  */

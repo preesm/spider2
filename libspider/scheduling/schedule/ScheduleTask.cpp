@@ -141,7 +141,7 @@ spider::JobMessage spider::ScheduleTask::createJobMessage() const {
             type_ == TaskType::VERTEX ? static_cast<i32>(vertex()->reference()->outputParamCount()) : 0;
     message.kernelIx_ = kernelIx();
     message.vertexIx_ = type_ == TaskType::VERTEX ? vertex()->ix() : SIZE_MAX;
-    message.ix_ = static_cast<size_t>(ix());
+    message.ix_ = static_cast<size_t>(execIx());
 
     /* == Set the notification flags == */
     const auto lrtCount{ archi::platform()->LRTCount() };
@@ -155,8 +155,8 @@ spider::JobMessage spider::ScheduleTask::createJobMessage() const {
     const auto numberOfConstraints{ lrtCount - static_cast<size_t>(std::count(executionConstraints_.get(),
                                                                               executionConstraints_.get() + lrtCount,
                                                                               -1)) };
-    message.jobs2Wait_ = array<JobConstraint>(numberOfConstraints, StackID::RUNTIME);
-    auto jobIterator = message.jobs2Wait_.begin();
+    message.execConstraints_ = array<JobConstraint>(numberOfConstraints, StackID::RUNTIME);
+    auto jobIterator = message.execConstraints_.begin();
     size_t lrtIt = 0;
     for (auto value : make_handle(executionConstraints_.get(), lrtCount)) {
         if (value >= 0) {

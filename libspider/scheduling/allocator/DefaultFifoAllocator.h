@@ -66,12 +66,18 @@ namespace spider {
             fifo.size_ = static_cast<u32>(size);
             fifo.virtualAddress_ = static_cast<u64>(virtualMemoryAddress_);
             fifo.attribute_ = FifoAttribute::WRITE_OWN;
+            if (log::enabled<log::MEMORY>()) {
+                log::print<log::MEMORY>(log::green, "INFO:", "VIRTUAL: allocating %zu bytes at address %zu.\n", size, virtualMemoryAddress_);
+            }
             virtualMemoryAddress_ += size;
             return fifo;
         }
 
         inline void clear() noexcept override {
             virtualMemoryAddress_ = 0;
+            for (auto &cluster : archi::platform()->clusters()) {
+                cluster->memoryInterface()->reset();
+            }
         }
 
         /* === Getter(s) === */
