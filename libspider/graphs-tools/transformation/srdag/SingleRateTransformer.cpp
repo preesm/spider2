@@ -69,6 +69,15 @@ spider::srdag::SingleRateTransformer::SingleRateTransformer(TransfoJob &job, pis
         ref2Clone_{ sbc::vector < size_t, StackID::TRANSFO > { }}, job_{ job }, srdag_{ srdag } {
     auto *graph = job_.reference_;
 
+    /* == -1. Set dynamic dependent parameter values == */
+    if (graph->dynamic()) {
+        for (auto &param : job_.params_) {
+            if (param->dynamic()) {
+                param->setValue(param->value(job_.params_));
+            }
+        }
+    }
+
     /* == 0. Compute the repetition vector == */
     if (graph->dynamic() || (job_.firingValue_ == 0) || (job_.root_)) {
         brv::compute(graph, job_.params_);
@@ -84,14 +93,6 @@ spider::srdag::SingleRateTransformer::SingleRateTransformer(TransfoJob &job, pis
 }
 
 std::pair<spider::srdag::JobStack, spider::srdag::JobStack> spider::srdag::SingleRateTransformer::execute() {
-    /* == Set dynamic dependent parameter values == */
-    if (job_.reference_->dynamic()) {
-        for (auto &param : job_.params_) {
-            if (param->dynamic()) {
-                param->setValue(param->value(job_.params_));
-            }
-        }
-    }
 
     /* == 0. Insert repeat and tail actors for input and output interfaces, respectively == */
     replaceInterfaces();
@@ -206,7 +207,7 @@ std::pair<spider::srdag::JobStack, spider::srdag::JobStack> spider::srdag::Singl
             dynaJobStack.emplace_back(runGraph, srdag_->vertex(ref2Clone_[runGraph->ix()]));
             auto &runJob = dynaJobStack.back();
             CopyParamVisitor cpyVisitor{ job_, runJob.params_ };
-            for (const auto &param : runGraph->params()) {
+            for (const auto &param : job_.params_) {
                 param->visit(&cpyVisitor);
             }
 
