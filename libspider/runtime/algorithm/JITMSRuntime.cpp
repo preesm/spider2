@@ -217,7 +217,6 @@ bool spider::JITMSRuntime::dynamicExecute() {
     updateJobStack(resultRootJob.second, dynamicJobStack);
 
     /* == Transform, schedule and run == */
-    bool shouldWait = false;
     while (!staticJobStack.empty() || !dynamicJobStack.empty()) {
         /* == Transform static jobs == */
         //monitor_->startSampling();
@@ -230,8 +229,6 @@ bool spider::JITMSRuntime::dynamicExecute() {
             optims::optimize(srdag_.get());
             //monitor_->endSampling();
         }
-
-        api::exportGraphToDOT(srdag_.get(), "srdag_intermediate.dot");
 
         /* == Send LRT_START_ITERATION notification == */
         rt::platform()->sendStartIteration();
@@ -288,10 +285,7 @@ bool spider::JITMSRuntime::dynamicExecute() {
             /* == Transform dynamic jobs == */
             //monitor_->startSampling();
             transformDynamicJobs(staticJobStack, dynamicJobStack);
-            shouldWait = staticJobStack.empty();
             //monitor_->endSampling();
-
-            api::exportGraphToDOT(srdag_.get(), "srdag_intermediate.dot");
 
             /* == Apply graph optimizations == */
             if (api::shouldOptimizeSRDAG()) {
@@ -299,8 +293,6 @@ bool spider::JITMSRuntime::dynamicExecute() {
                 optims::optimize(srdag_.get());
                 //monitor_->endSampling();
             }
-
-            api::exportGraphToDOT(srdag_.get(), "srdag_intermediate.dot");
 
             /* == Send LRT_START_ITERATION notification == */
             rt::platform()->sendStartIteration();

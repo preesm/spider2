@@ -200,14 +200,14 @@ void spider::JITMSRTRunner::run(bool infiniteLoop) {
         bool finishedIteration =
                 (receivedEnd_ && (jobQueueCurrentPos_ == jobCount_)) || (!infiniteLoop && jobQueue_.empty());
         if (finishedIteration) {
-            /* == Send finished notification == */
-            sendFinishedNotification();
-
             /* == Check if we need to broadcast == */
             if (shouldBroadcast_) {
                 shouldBroadcast_ = false;
                 broadcastCurrentJobStamp();
             }
+
+            /* == Send finished notification (after broadcast to avoid potential miss-synchronization) == */
+            sendFinishedNotification();
 
             /* == Reset state == */
             clearJobQueue();
