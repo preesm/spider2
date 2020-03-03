@@ -174,7 +174,6 @@ spider::Expression::buildExpressionStack(spider::vector<RPNElement> &postfixStac
     stack.reserve(postfixStack.size());
     auto evalStack = factory::vector<double>(StackID::EXPRESSION);
     evalStack.reserve(6); /* = In practice, the evalStack will most likely not exceed 3 values = */
-    bool skipEval = false;
     size_t argCount = 0;
     for (auto &elt : postfixStack) {
         if (elt.type_ == RPNElementType::OPERAND) {
@@ -192,8 +191,6 @@ spider::Expression::buildExpressionStack(spider::vector<RPNElement> &postfixStac
                     stack.back().elt_.type_ = RPNElementType::OPERAND;
                     stack.back().elt_.subtype_ = RPNElementSubType::VALUE;
                     stack.back().arg.value_ = value;
-                } else {
-                    skipEval = true;
                 }
             } else {
                 const auto &value = std::strtod(elt.token_.c_str(), nullptr);
@@ -207,9 +204,13 @@ spider::Expression::buildExpressionStack(spider::vector<RPNElement> &postfixStac
             if (elt.subtype_ == RPNElementSubType::FUNCTION && argCount < op.argCount) {
                 throwSpiderException("Function [%s] expecting argument !", elt.token_.c_str());
             }
+            bool skip = false;
+            for (auto it = stack.rbegin(); !skip && (it != (stack.rbegin() + op.argCount)); ++it) {
+                skip |= (*it).elt_.subtype_ == RPNElementSubType::PARAMETER;
+            }
             stack.emplace_back(std::move(elt));
             stack.back().arg.opType_ = opType;
-            if (!skipEval && evalStack.size() >= op.argCount) {
+            if (!skip && evalStack.size() >= op.argCount) {
                 auto &&result = applyOperator(
                         evalStack.begin() + (static_cast<int64_t>(evalStack.size() - op.argCount)), op.type);
                 for (uint8_t i = 0; i < op.argCount; ++i) {
@@ -227,7 +228,6 @@ spider::Expression::buildExpressionStack(spider::vector<RPNElement> &postfixStac
                 }
             }
             argCount = evalStack.size();
-            skipEval = false;
         }
     }
     return stack;
