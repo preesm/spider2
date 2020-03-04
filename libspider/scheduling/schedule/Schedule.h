@@ -55,7 +55,7 @@ namespace spider {
     class Schedule {
     public:
 
-        Schedule() : taskVector_{ sbc::vector<unique_ptr<ScheduleTask>, StackID::SCHEDULE>{ }} { }
+        Schedule() : taskVector_{ factory::vector<unique_ptr<ScheduleTask>>(StackID::SCHEDULE)} { }
 
         ~Schedule() = default;
 

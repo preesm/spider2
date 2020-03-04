@@ -62,8 +62,8 @@
 
 /* === Function(s) definition === */
 
-spider::RTRunner::RTRunner(PE *attachedPe, size_t runnerIx, i32 affinity) : jobQueue_{ sbc::vector < JobMessage,
-                                                                                       StackID::RUNTIME > { }},
+spider::RTRunner::RTRunner(PE *attachedPe, size_t runnerIx, i32 affinity) : jobQueue_{
+        factory::vector<JobMessage>(StackID::RUNTIME) },
                                                                             localJobStampsArray_{ array < size_t >
                                                                                                   { archi::platform()->LRTCount(),
                                                                                                     SIZE_MAX,

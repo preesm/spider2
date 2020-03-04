@@ -211,8 +211,8 @@ bool spider::JITMSRuntime::dynamicExecute() {
     auto resultRootJob = srdag::singleRateTransformation(rootJob, srdag_.get());
 
     /* == Initialize the job stacks == */
-    auto staticJobStack = sbc::vector<srdag::TransfoJob, StackID::TRANSFO>();
-    auto dynamicJobStack = sbc::vector<srdag::TransfoJob, StackID::TRANSFO>();
+    auto staticJobStack = factory::vector<srdag::TransfoJob>(StackID::TRANSFO);
+    auto dynamicJobStack = factory::vector<srdag::TransfoJob>(StackID::TRANSFO);
     updateJobStack(resultRootJob.first, staticJobStack);
     updateJobStack(resultRootJob.second, dynamicJobStack);
 

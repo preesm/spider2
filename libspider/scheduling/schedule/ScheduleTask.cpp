@@ -51,7 +51,7 @@
 
 /* === Private method(s) implementation === */
 
-spider::ScheduleTask::ScheduleTask(TaskType type) : outputFifos_{ sbc::vector < RTFifo, StackID::SCHEDULE > { }},
+spider::ScheduleTask::ScheduleTask(TaskType type) : outputFifos_{ factory::vector<RTFifo>(StackID::SCHEDULE) },
                                                     type_{ type } {
     const auto lrtCount{ archi::platform()->LRTCount() };
     executionConstraints_ = make_unique<int32_t>(allocate<int32_t, StackID::SCHEDULE>(lrtCount));

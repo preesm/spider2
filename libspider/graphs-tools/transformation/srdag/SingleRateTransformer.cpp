@@ -66,10 +66,11 @@ size_t spider::srdag::SingleRateTransformer::getIx(const pisdf::Vertex *vertex, 
 /* === Method(s) implementation === */
 
 spider::srdag::SingleRateTransformer::SingleRateTransformer(TransfoJob &job, pisdf::Graph *srdag) :
-        ref2Clone_{ sbc::vector < size_t, StackID::TRANSFO > { }}, job_{ job }, srdag_{ srdag } {
-    auto *graph = job_.reference_;
-
+        ref2Clone_{ factory::vector<size_t>(StackID::TRANSFO) },
+        job_{ job },
+        srdag_{ srdag } {
     /* == -1. Set dynamic dependent parameter values == */
+    auto *graph = job_.reference_;
     if (graph->dynamic()) {
         if (!graph->configVertexCount()) {
             for (auto &param : job_.params_) {
@@ -88,7 +89,7 @@ spider::srdag::SingleRateTransformer::SingleRateTransformer(TransfoJob &job, pis
     }
 
     const auto vertexCount = graph->vertexCount() + graph->inputEdgeCount() + graph->outputEdgeCount();
-    ref2Clone_ = sbc::vector<size_t, StackID::TRANSFO>(vertexCount, SIZE_MAX);
+    ref2Clone_ = factory::vector<size_t>(vertexCount, SIZE_MAX, StackID::TRANSFO);
 }
 
 std::pair<spider::srdag::JobStack, spider::srdag::JobStack> spider::srdag::SingleRateTransformer::execute() {

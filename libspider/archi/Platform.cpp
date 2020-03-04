@@ -62,7 +62,8 @@ spider::Platform::Platform(size_t clusterCount, size_t peCount) :
         clusterArray_{ clusterCount, nullptr, StackID::ARCHI },
         peArray_{ peCount, nullptr, StackID::ARCHI },
         interClusterMemoryBusArray_{ getClusterMemoryInterfaceCount(clusterCount), nullptr, StackID::ARCHI },
-        preComputedClusterIx_{ clusterCount, SIZE_MAX, StackID::ARCHI } {
+        preComputedClusterIx_{ clusterCount, SIZE_MAX, StackID::ARCHI },
+        lrtVector_{ factory::vector<PE *>(StackID::ARCHI) } {
     /* == Pre-compute the cluster to cluster ix == */
     /*
      * Index to find the pair of memory interface between two clusters.

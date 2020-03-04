@@ -54,9 +54,9 @@ namespace spider {
     class AbstractGraph {
     public:
         template<StackID stack>
-        explicit AbstractGraph(stack_t<stack>, size_t vertexCount = 0, size_t edgeCount = 0) :
-                vertexVector_{ sbc::vector<unique_ptr<V>, stack>{ }},
-                edgeVector_{ sbc::vector<unique_ptr<E>, stack>{ }} {
+        explicit AbstractGraph(stack_t <stack>, size_t vertexCount = 0, size_t edgeCount = 0) :
+                vertexVector_{ factory::vector<spider::unique_ptr<V >>(stack) },
+                edgeVector_{ factory::vector<spider::unique_ptr<E >>(stack) } {
             vertexVector_.reserve(vertexCount);
             edgeVector_.reserve(edgeCount);
         }
@@ -194,7 +194,7 @@ namespace spider {
          * @brief A const reference on the vector of vertex. Useful for iterating on the vertices.
          * @return const reference to vertex vector
          */
-        inline const vector<unique_ptr<V>> &vertices() const {
+        inline const vector <unique_ptr<V>> &vertices() const {
             return vertexVector_;
         }
 
@@ -221,7 +221,7 @@ namespace spider {
          * @brief A const reference on the set of edges. Useful for iterating on the edges.
          * @return const reference to edge vector
          */
-        inline const vector<unique_ptr<E>> &edges() const {
+        inline const vector <unique_ptr<E>> &edges() const {
             return edgeVector_;
         }
 
@@ -236,13 +236,13 @@ namespace spider {
         /* === Setter(s) === */
 
     protected:
-        vector<unique_ptr<V>> vertexVector_; /* = Vector of all the Vertices of the graph = */
-        vector<unique_ptr<E>> edgeVector_;   /* = Vector of Edge contained in the graph = */
+        vector <unique_ptr<V>> vertexVector_; /* = Vector of all the Vertices of the graph = */
+        vector <unique_ptr<E>> edgeVector_;   /* = Vector of Edge contained in the graph = */
 
         /* === Protected method(s) === */
 
         template<class T>
-        inline void assertElement(T *elt, vector<unique_ptr<T>> &eltVector) {
+        inline void assertElement(T *elt, vector <unique_ptr<T>> &eltVector) {
             auto ix = elt->ix();
             if (ix >= eltVector.size()) {
                 throwSpiderException("Trying to remove an element not from this graph.");
@@ -253,7 +253,7 @@ namespace spider {
         }
 
         template<class T, class U>
-        inline void swapElement(T *elt, vector<U> &eltVector) {
+        inline void swapElement(T *elt, vector <U> &eltVector) {
             auto ix = elt->ix();
             if (eltVector.back()) {
                 eltVector.back()->setIx(ix);

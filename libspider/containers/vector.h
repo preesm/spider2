@@ -90,62 +90,6 @@ namespace spider {
             return spider::vector<T>(std::move(init), spider::allocator<T>(stack));
         }
     }
-
-    namespace sbc {
-
-        /**
-         * @brief Stack based vector.
-         * @tparam T     Type of the vector.
-         * @tparam stack Stack on which the vector will be used.
-         */
-        template<class T, StackID stack = StackID::GENERAL>
-        struct vector : std::vector<T, spider::allocator<T>> {
-
-            explicit vector() : std::vector<T, spider::allocator<T>>{
-                    spider::allocator<T>(stack) } { };
-
-            explicit vector(size_t count) :
-                    std::vector<T, spider::allocator<T>>(count, T(), spider::allocator<T>(stack)) { };
-
-            explicit vector(size_t count, const T &value) :
-                    std::vector<T, spider::allocator<T>>(count, value, spider::allocator<T>(stack)) { };
-
-            vector(std::initializer_list<T> init) :
-                    std::vector<T, spider::allocator<T>>(std::move(init), spider::allocator<T>(stack)) { };
-
-            vector(const vector &other) :
-                    std::vector<T, spider::allocator<T>>{ other, spider::allocator<T>(stack) } { };
-
-            vector(vector &&other) noexcept :
-                    std::vector<T, spider::allocator<T>>{ std::move(other), spider::allocator<T>(stack) } { };
-
-            vector &operator=(const vector &) = default;
-
-            vector &operator=(vector &&other) noexcept {
-                this->swap(other);
-                return *this;
-            }
-
-            /* === Conversion from std::vector === */
-
-            explicit vector(const std::vector<T, spider::allocator<T>> &other) :
-                    std::vector<T, spider::allocator<T>>{ other, spider::allocator<T>(stack) } { };
-
-            explicit vector(std::vector<T, spider::allocator<T>> &&other) noexcept :
-                    std::vector<T, spider::allocator<T>>{ std::move(other), spider::allocator<T>(stack) } { };
-
-            /* === Conversion from other stack == */
-
-            template<StackID otherStack>
-            explicit vector(vector<T, otherStack> &&other) noexcept :
-                    std::vector<T, spider::allocator<T>>{ std::move(other), spider::allocator<T>(stack) } { }
-
-            template<StackID otherStack>
-            explicit vector(const vector<T, otherStack> &other) noexcept :
-                    std::vector<T, spider::allocator<T>>{ other, spider::allocator<T>(stack) } { }
-
-        };
-    }
 }
 
 #endif //SPIDER2_VECTOR_H

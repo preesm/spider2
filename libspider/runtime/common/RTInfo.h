@@ -55,7 +55,9 @@ namespace spider {
     class RTInfo {
     public:
 
-        RTInfo() {
+        RTInfo() : peMappableVector_{ factory::vector<bool>(StackID::RUNTIME) },
+                   clusterMappableVector_{ factory::vector<bool>(StackID::RUNTIME) },
+                   timingVector_{ factory::vector<Expression>(StackID::RUNTIME) } {
             auto *platform = archi::platform();
             if (platform) {
                 peMappableVector_.resize(platform->PECount(), true);
@@ -251,9 +253,9 @@ namespace spider {
         }
 
     private:
-        sbc::vector<bool, StackID::RUNTIME> peMappableVector_;
-        sbc::vector<bool, StackID::RUNTIME> clusterMappableVector_;
-        sbc::vector<Expression, StackID::RUNTIME> timingVector_;
+        vector<bool> peMappableVector_;
+        vector<bool> clusterMappableVector_;
+        vector<Expression> timingVector_;
         size_t kernelIx_ = SIZE_MAX;
     };
 }

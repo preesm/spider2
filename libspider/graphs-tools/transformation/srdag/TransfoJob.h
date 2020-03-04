@@ -68,8 +68,8 @@ namespace spider {
 
             explicit TransfoJob(pisdf::Graph *graph,
                                 pisdf::Vertex *srdagInstance = nullptr,
-                                uint32_t firing = 0) : params_{ sbc::vector < std::shared_ptr<pisdf::Param>,
-                                                                StackID::TRANSFO > { }},
+                                uint32_t firing = 0) : params_{
+                    factory::vector<std::shared_ptr<pisdf::Param>>(StackID::TRANSFO) },
                                                        reference_{ graph },
                                                        srdagInstance_{ srdagInstance },
                                                        firingValue_{ firing } {

@@ -49,9 +49,9 @@
 
 spider::pisdf::Vertex::Vertex(VertexType type, std::string name, size_t edgeINCount, size_t edgeOUTCount) :
         AbstractVertex<Graph, Edge>(stack_t < StackID::PISDF > { }, std::move(name), edgeINCount, edgeOUTCount),
-        inputParamVector_{ sbc::vector < std::shared_ptr<Param>, StackID::PISDF > { }},
-        refinementParamVector_{ sbc::vector < std::shared_ptr<Param>, StackID::PISDF > { }},
-        outputParamVector_{ sbc::vector < std::shared_ptr<Param>, StackID::PISDF > { }},
+        inputParamVector_{ factory::vector<std::shared_ptr<Param>>(StackID::PISDF) },
+        refinementParamVector_{ factory::vector<std::shared_ptr<Param>>(StackID::PISDF) },
+        outputParamVector_{ factory::vector<std::shared_ptr<Param>>(StackID::PISDF) },
         subtype_{ type } {
     checkTypeConsistency();
 }

@@ -55,10 +55,10 @@ namespace spider {
     class AbstractVertex {
     public:
         template<StackID stack>
-        explicit AbstractVertex(stack_t<stack>, std::string name, size_t edgeINCount = 0, size_t edgeOUTCount = 0) :
+        explicit AbstractVertex(stack_t <stack>, std::string name, size_t edgeINCount = 0, size_t edgeOUTCount = 0) :
                 name_{ std::move(name) },
-                inputEdgeVector_{ sbc::vector<E *, stack>{ edgeINCount, nullptr }},
-                outputEdgeVector_{ sbc::vector<E *, stack>{ edgeOUTCount, nullptr }} { }
+                inputEdgeVector_{ factory::vector<E *>(edgeINCount, nullptr, stack) },
+                outputEdgeVector_{ factory::vector<E *>(edgeOUTCount, nullptr, stack) } { }
 
         AbstractVertex(AbstractVertex &&) noexcept = default;
 
@@ -202,7 +202,7 @@ namespace spider {
          */
         virtual inline void setGraph(G *graph) {
             if (graph) {
-                graph_= graph;
+                graph_ = graph;
             }
         }
 

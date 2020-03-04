@@ -49,7 +49,7 @@
 /* === Private method(s) implementation === */
 
 spider::ThreadRTCommunicator::ThreadRTCommunicator(size_t lrtCount) :
-        notificationQueueVector_{ lrtCount + 1 } { }
+        notificationQueueVector_{ factory::vector<spider::Queue<Notification>>(lrtCount + 1, StackID::RUNTIME) } { }
 
 void spider::ThreadRTCommunicator::push(Notification notification, size_t receiver) {
     notificationQueueVector_.at(receiver).push(notification);

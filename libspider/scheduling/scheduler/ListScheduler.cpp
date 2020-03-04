@@ -56,8 +56,8 @@ static constexpr auto NON_SCHEDULABLE_LEVEL = -314159265; /* = Value is arbitrar
 /* === Method(s) implementation === */
 
 spider::ListScheduler::ListScheduler(pisdf::Graph *graph) : Scheduler(graph),
-                                                            sortedTaskVector_{ sbc::vector < ListTask,
-                                                                               StackID::SCHEDULE > { }} {
+                                                            sortedTaskVector_{
+                                                                    factory::vector<ListTask>(StackID::SCHEDULE) } {
 }
 
 void spider::ListScheduler::clear() {

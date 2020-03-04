@@ -222,7 +222,7 @@ namespace spider {
         array<PE *> peArray_;                                /* = Array of PE in the Platform = */
         array<InterMemoryBus *> interClusterMemoryBusArray_; /* = Array of inter Cluster MemoryBus = */
         array<size_t> preComputedClusterIx_;                 /* = Array of pre-computed index value for fast inter Cluster communication = */
-        sbc::vector<PE *, StackID::ARCHI> lrtVector_;        /* = Vector of the LRT of the platform (does not hold any memory) = */
+        vector<PE *> lrtVector_;                             /* = Vector of the LRT of the platform (does not hold any memory) = */
         size_t clusterCount_ = 0;                            /* = Number of currently added Cluster in the Platform = */
         size_t peCount_ = 0;                                 /* = Number of currently added PE in the Platform = */
         size_t hwTypeCount_ = 0;                             /* = Number of currently added PE Types in the Platform = */

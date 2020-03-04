@@ -92,11 +92,11 @@ spider::pisdf::Graph::Graph(std::string name,
                             size_t cfgVertexCount) :
         AbstractGraph<Graph, Vertex, Edge>(stack_t < StackID::PISDF > { }, vertexCount, edgeCount),
         Vertex(VertexType::GRAPH, std::move(name), numberOfInputEdge, numberOfOutputEdge),
-        configVertexVector_{ sbc::vector < Vertex * , StackID::PISDF > { }},
-        subgraphVector_{ sbc::vector < Graph * , StackID::PISDF > { }},
-        paramVector_{ sbc::vector < std::shared_ptr<Param>, StackID::PISDF > { }},
-        inputInterfaceVector_{ sbc::vector < unique_ptr < Interface > , StackID::PISDF > { }},
-        outputInterfaceVector_{ sbc::vector < unique_ptr < Interface > , StackID::PISDF > { }} {
+        configVertexVector_{ factory::vector<Vertex *>(StackID::PISDF) },
+        subgraphVector_{ factory::vector<Graph *>(StackID::PISDF) },
+        paramVector_{ factory::vector<std::shared_ptr<Param>>(StackID::PISDF) },
+        inputInterfaceVector_{ factory::vector<spider::unique_ptr<Interface>>(StackID::PISDF) },
+        outputInterfaceVector_{ factory::vector<spider::unique_ptr<Interface>>(StackID::PISDF) } {
 
     /* == Reserve the memory == */
     paramVector_.reserve(paramCount);
