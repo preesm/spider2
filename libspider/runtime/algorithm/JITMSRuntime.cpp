@@ -54,21 +54,9 @@
 #include <scheduling/schedule/exporter/SchedXMLGanttExporter.h>
 #include <scheduling/schedule/exporter/SchedStatsExporter.h>
 #include <scheduling/schedule/exporter/SchedSVGGanttExporter.h>
+#include <graphs-tools/helper/pisdf.h>
 
 /* === Static function(s) === */
-
-static bool isGraphFullyStatic(const spider::pisdf::Graph *graph) {
-    bool isFullyStatic = !graph->dynamic();
-    if (isFullyStatic) {
-        for (const auto &subgraph : graph->subgraphs()) {
-            isFullyStatic &= isGraphFullyStatic(subgraph);
-            if (!isFullyStatic) {
-                break;
-            }
-        }
-    }
-    return isFullyStatic;
-}
 
 static spider::FifoAllocator *makeFifoAllocator(spider::FifoAllocatorType type) {
     switch (type) {
@@ -102,7 +90,7 @@ spider::JITMSRuntime::JITMSRuntime(pisdf::Graph *graph,
         scheduler_{ makeScheduler(schedulingAlgorithm, srdag_.get()) },
         fifoAllocator_{ makeFifoAllocator(type) } {
     scheduler_->setAllocator(fifoAllocator_.get());
-    isFullyStatic_ = isGraphFullyStatic(graph);
+    isFullyStatic_ = pisdf::isGraphFullyStatic(graph);
     if (!rt::platform()) {
         throwSpiderException("JITMSRuntime need the runtime platform to be created.");
     }

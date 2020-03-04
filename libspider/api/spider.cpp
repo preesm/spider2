@@ -49,6 +49,7 @@
 #include <graphs/pisdf/Graph.h>
 #include <runtime/algorithm/Runtime.h>
 #include <runtime/algorithm/JITMSRuntime.h>
+#include <runtime/algorithm/FastJITMSRuntime.h>
 
 /* === Static variable(s) definition === */
 
@@ -199,6 +200,8 @@ static spider::Runtime *getRuntimeFromType(spider::RuntimeType type, spider::Sch
     switch (type) {
         case spider::RuntimeType::JITMS:
             return spider::make<spider::JITMSRuntime>(StackID::GENERAL, spider::pisdf::applicationGraph(), algorithm);
+        case spider::RuntimeType::FAST_JITMS:
+            return spider::make<spider::FastJITMSRuntime>(StackID::GENERAL, spider::pisdf::applicationGraph(), algorithm);
     }
     return nullptr;
 }
