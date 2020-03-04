@@ -105,7 +105,7 @@ namespace spider {
                 return true;
             }
 
-            inline Expression expression() const {
+            inline Expression expression()const override  {
                 return expression_ ? (*expression_) : Expression(value_);
             }
 

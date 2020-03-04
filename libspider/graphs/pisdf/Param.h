@@ -104,7 +104,7 @@ namespace spider {
                 return value_;
             }
 
-            virtual inline int64_t value(const spider::vector<std::shared_ptr<Param>> &) const {
+            virtual inline int64_t value(const vector<std::shared_ptr<Param>> &) const {
                 return value_;
             }
 
@@ -114,6 +114,14 @@ namespace spider {
 
             virtual inline bool dynamic() const {
                 return false;
+            }
+
+            virtual inline Param *parent() const {
+                return nullptr;
+            }
+
+            virtual inline Expression expression()const {
+                return Expression(value_);
             }
 
             /* === Setter(s) === */

@@ -91,7 +91,7 @@ namespace spider {
                 return parent_->dynamic();
             }
 
-            inline Param *parent() const {
+            inline Param *parent() const override {
                 return parent_;
             }
 

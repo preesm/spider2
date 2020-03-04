@@ -232,6 +232,24 @@ void spider::pisdf::Graph::addParam(std::shared_ptr<Param> param) {
     paramVector_.emplace_back(std::move(param));
 }
 
+void spider::pisdf::Graph::removeParam(const std::shared_ptr<Param> &param) {
+    if (!param || param->graph() != this) {
+        return;
+    }
+    out_of_order_erase(paramVector_, param->ix());
+    paramVector_[param->ix()]->setIx(param->ix());
+    if (param->dynamic() && param->type() != ParamType::INHERITED) {
+        /* == Update dynamic property == */
+        dynamic_ = false;
+        for (auto &p : paramVector_) {
+            dynamic_ |= (p->dynamic() && p->type() != ParamType::INHERITED);
+            if (dynamic_) {
+                break;
+            }
+        }
+    }
+}
+
 spider::pisdf::Param *spider::pisdf::Graph::paramFromName(const std::string &name) {
     std::string lowerCaseName = name;
     std::transform(lowerCaseName.begin(), lowerCaseName.end(), lowerCaseName.begin(), ::tolower);
@@ -241,14 +259,6 @@ spider::pisdf::Param *spider::pisdf::Graph::paramFromName(const std::string &nam
         }
     }
     return nullptr;
-}
-
-bool spider::pisdf::Graph::setRunGraphReference(const spider::pisdf::Graph *runGraph) {
-    if (dynamic() || !configVertexCount() || runGraphReference_ || !runGraph) {
-        return false;
-    }
-    runGraphReference_ = runGraph;
-    return true;
 }
 
 void spider::pisdf::Graph::overrideDynamicProperty(bool value) {

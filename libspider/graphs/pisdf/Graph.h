@@ -141,6 +141,12 @@ namespace spider {
             void addParam(std::shared_ptr<Param> param);
 
             /**
+             * @brief Remove a parameter in the graph and update dynamic property accordingly.
+             * @param param Param to be removed.
+             */
+            void removeParam(const std::shared_ptr<Param> &param);
+
+            /**
              * @brief Search for a parameter from its name.
              * @param name Name of the parameter to find.
              * @return pointer to the found Param, nullptr else.
@@ -281,25 +287,7 @@ namespace spider {
                 return subIx_;
             }
 
-            /**
-             * @brief Returns the corresponding run graph to this init graph.
-             * @return pointer to @refitem Graph if init, nullptr else.
-             */
-            inline const Graph *runReferenceGraph() const {
-                return runGraphReference_;
-            }
-
             /* === Setter(s) === */
-
-            /**
-             * @brief Set the run graph reference of an init graph.
-             * @param runGraph  Pointer to the graph to set.
-             * @return true on success,
-             * false if given runGraph is nullptr
-             * or if the graph is not an init graph
-             * or if the graph already has a reference.
-             */
-            bool setRunGraphReference(const Graph *runGraph);
 
         private:
             vector<Vertex *> configVertexVector_;                   /* = Vector of Vertices with VertexType::CONFIG. This is just a "viewer" vector. = */
@@ -307,11 +295,6 @@ namespace spider {
             vector<std::shared_ptr<Param>> paramVector_;            /* = Vector of Param = */
             vector<unique_ptr<Interface>> inputInterfaceVector_;    /* = Vector of InputInterface = */
             vector<unique_ptr<Interface>> outputInterfaceVector_;   /* = Vector of OutputInterface = */
-            const Graph *runGraphReference_ = nullptr; /* =
-                                                       * Reference pointer to the run counter part of this graph.
-                                                       * Only valid for init graphs.
-                                                       * = */
-
             size_t subIx_ = SIZE_MAX;  /* = Index of the Graph in containing Graph subgraphVector = */
             bool dynamic_ = false;     /* = Dynamic property of the Graph (false if static, true if dynamic) = */
 

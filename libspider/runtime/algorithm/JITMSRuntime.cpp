@@ -203,7 +203,7 @@ bool spider::JITMSRuntime::staticExecute() {
 bool spider::JITMSRuntime::dynamicExecute() {
     const auto grtIx = archi::platform()->spiderGRTPE()->attachedLRT()->virtualIx();
     if (graph_->dynamic()) {
-        spider::srdag::splitDynamicGraph(graph_);
+        srdag::separateRunGraphFromInit(graph_);
     }
     /* == Apply first transformation of root graph == */
     auto rootJob = srdag::TransfoJob(graph_);
@@ -211,8 +211,8 @@ bool spider::JITMSRuntime::dynamicExecute() {
     auto resultRootJob = srdag::singleRateTransformation(rootJob, srdag_.get());
 
     /* == Initialize the job stacks == */
-    auto staticJobStack = factory::vector<srdag::TransfoJob>(StackID::TRANSFO);
-    auto dynamicJobStack = factory::vector<srdag::TransfoJob>(StackID::TRANSFO);
+    auto staticJobStack = sbc::vector<srdag::TransfoJob, StackID::TRANSFO>();
+    auto dynamicJobStack = sbc::vector<srdag::TransfoJob, StackID::TRANSFO>();
     updateJobStack(resultRootJob.first, staticJobStack);
     updateJobStack(resultRootJob.second, dynamicJobStack);
 
@@ -345,7 +345,7 @@ void spider::JITMSRuntime::transformJobs(vector<srdag::TransfoJob> &iterJobStack
                                          vector<srdag::TransfoJob> &dynamicJobStack) {
     for (auto &job : iterJobStack) {
         /* == Transform current job == */
-        auto &&result = srdag::singleRateTransformation(job, srdag_.get());
+        auto result = srdag::singleRateTransformation(job, srdag_.get());
 
         /* == Move static TransfoJob into static JobStack == */
         updateJobStack(result.first, staticJobStack);

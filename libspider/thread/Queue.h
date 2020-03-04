@@ -45,7 +45,6 @@
 #include <mutex>
 #include <containers/vector.h>
 #include <thread/Semaphore.h>
-#include <runtime/interface/Notification.h>
 #include <containers/queue.h>
 
 namespace spider {

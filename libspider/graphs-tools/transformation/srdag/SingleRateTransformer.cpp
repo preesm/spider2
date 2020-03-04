@@ -42,13 +42,13 @@
 
 #include <graphs-tools/transformation/srdag/SingleRateTransformer.h>
 #include <graphs-tools/transformation/srdag/visitors/SRDAGCopyVertexVisitor.h>
-#include <graphs-tools/transformation/srdag/visitors/SRDAGCopyParamVisitor.h>
 #include <graphs-tools/transformation/srdag/Transformation.h>
 #include <graphs-tools/numerical/brv.h>
 #include <graphs-tools/numerical/dependencies.h>
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/Edge.h>
 #include <graphs/pisdf/Delay.h>
+#include <graphs/pisdf/DynamicParam.h>
 #include <api/pisdf-api.h>
 #include <api/runtime-api.h>
 
@@ -71,29 +71,27 @@ spider::srdag::SingleRateTransformer::SingleRateTransformer(TransfoJob &job, pis
 
     /* == -1. Set dynamic dependent parameter values == */
     if (graph->dynamic()) {
-        for (auto &param : job_.params_) {
-            if (param->dynamic()) {
-                param->setValue(param->value(job_.params_));
+        if (!graph->configVertexCount()) {
+            for (auto &param : job_.params_) {
+                if (param->dynamic()) {
+                    param->setValue(param->value(job_.params_));
+                }
             }
+        } else {
+            srdag::separateRunGraphFromInit(graph);
         }
     }
 
     /* == 0. Compute the repetition vector == */
-    if (graph->dynamic() || (job_.firingValue_ == 0) || (job_.root_)) {
+    if (graph->dynamic() || (job_.firingValue_ == 0)) {
         brv::compute(graph, job_.params_);
     }
 
-    /* == 1. Split subgraphs (must be done after brv so that init and run have same repetition value) == */
-    for (auto *subgraph : graph->subgraphs()) {
-        spider::srdag::splitDynamicGraph(subgraph);
-    }
-    ref2Clone_ = sbc::vector<size_t, StackID::TRANSFO>(graph->vertexCount() +
-                                                       graph->inputEdgeCount() +
-                                                       graph->outputEdgeCount(), SIZE_MAX);
+    const auto vertexCount = graph->vertexCount() + graph->inputEdgeCount() + graph->outputEdgeCount();
+    ref2Clone_ = sbc::vector<size_t, StackID::TRANSFO>(vertexCount, SIZE_MAX);
 }
 
 std::pair<spider::srdag::JobStack, spider::srdag::JobStack> spider::srdag::SingleRateTransformer::execute() {
-
     /* == 0. Insert repeat and tail actors for input and output interfaces, respectively == */
     replaceInterfaces();
 
@@ -133,7 +131,6 @@ void spider::srdag::SingleRateTransformer::replaceInterfaces() {
     if (!job_.reference_->inputEdgeCount() && !job_.reference_->outputEdgeCount()) {
         return;
     }
-
     /* == 0. Search for the instance in the SR-DAG == */
     auto *instance = job_.srdagInstance_;
     if (!instance || instance->name().find(job_.reference_->name()) == std::string::npos) {
@@ -141,8 +138,7 @@ void spider::srdag::SingleRateTransformer::replaceInterfaces() {
                              job_.firingValue_,
                              job_.reference_->name().c_str());
     }
-    auto isInterfaceTransparent = [](const TransfoJob &job,
-                                     const pisdf::Interface *interface) -> bool {
+    auto isInterfaceTransparent = [](const TransfoJob &job, const pisdf::Interface *interface) -> bool {
         auto *edge = interface->edge();
         auto *vertex = interface->opposite();
         const auto sourceRate = edge->sourceRateExpression().evaluate(job.params_);
@@ -160,9 +156,8 @@ void spider::srdag::SingleRateTransformer::replaceInterfaces() {
         if (isInterfaceTransparent(job_, interface.get())) {
             ref2Clone_[ix] = edge->source()->ix();
         } else {
-            auto &&name = instance->name() + "::" + interface->name();
-            auto *vertex = api::createRepeat(srdag_, std::move(name));
-            edge->setSink(vertex, 0, Expression(edge->sinkRateExpression()));
+            auto *vertex = api::createRepeat(srdag_, instance->name() + "::" + interface->name());
+            edge->setSink(vertex, 0, edge->sinkRateExpression());
             ref2Clone_[ix] = vertex->ix();
         }
     }
@@ -174,64 +169,51 @@ void spider::srdag::SingleRateTransformer::replaceInterfaces() {
         if (isInterfaceTransparent(job_, interface.get())) {
             ref2Clone_[ix] = edge->sink()->ix();
         } else {
-            auto &&name = instance->name() + "::" + interface->name();
-            auto *vertex = api::createTail(srdag_, std::move(name), 1);
-            edge->setSource(vertex, 0, Expression(edge->sourceRateExpression()));
+            auto *vertex = api::createTail(srdag_, instance->name() + "::" + interface->name(), 1);
+            edge->setSource(vertex, 0, edge->sourceRateExpression());
             ref2Clone_[ix] = vertex->ix();
         }
     }
 }
 
 std::pair<spider::srdag::JobStack, spider::srdag::JobStack> spider::srdag::SingleRateTransformer::makeFutureJobs() {
+    /* == 0. Copy Params for static and dynamic jobs == */
     auto staticJobStack = factory::vector<TransfoJob>(StackID::TRANSFO);
     auto dynaJobStack = factory::vector<TransfoJob>(StackID::TRANSFO);
-
-    /* == 0. Copy Params for static and dynamic jobs == */
     for (auto *subgraph : job_.reference_->subgraphs()) {
-        /* == 1 Check if subgraph is an init graph or a run (or static) graph  == */
-        if (subgraph->runReferenceGraph()) {
-            /* == 2 Find the first job corresponding to the run graph == */
-            const auto &runGraphSubIx = subgraph->runReferenceGraph()->subIx();
-            auto *runGraph = job_.reference_->subgraphs()[runGraphSubIx];
-            if (runGraph->repetitionValue() != subgraph->repetitionValue()) {
-                // LCOV_IGNORE: this is a sanity check, it should never happen and it is not testable from the outside.
-                throwSpiderException("Init graph [%s] does not have the same repetition value as run graph [%s] (%"
-                                             PRIu32
-                                             " != %"
-                                             PRIu32
-                                             ").",
-                                     subgraph->name().c_str(), runGraph->name().c_str(),
-                                     subgraph->repetitionValue(), runGraph->repetitionValue());
-            }
-            /* == 2.0 Creates dynamic job == */
-            dynaJobStack.emplace_back(runGraph, srdag_->vertex(ref2Clone_[runGraph->ix()]));
-            auto &runJob = dynaJobStack.back();
-            CopyParamVisitor cpyVisitor{ job_, runJob.params_ };
-            for (const auto &param : job_.params_) {
-                param->visit(&cpyVisitor);
-            }
-
-            /* == 2.1 Creates init job == */
-            staticJobStack.emplace_back(subgraph, srdag_->vertex(ref2Clone_[subgraph->ix()]));
-            auto &initJob = staticJobStack.back();
-
+        auto isDynamic = subgraph->dynamic() && !subgraph->configVertexCount();
+        /* == Creates the jobs == */
+        const auto &params = isDynamic ? job_.params_ : subgraph->params();
+        auto &stack = isDynamic ? dynaJobStack : staticJobStack;
+        const auto firstCloneIx = ref2Clone_[subgraph->ix()];
+        for (auto ix = firstCloneIx; ix < firstCloneIx + subgraph->repetitionValue(); ++ix) {
+            auto job = TransfoJob{ subgraph, srdag_->vertex(ix), static_cast<u32>((ix - firstCloneIx)) };
             /* == Copy the params == */
-            for (auto &param : runJob.params_) {
-                initJob.params_.emplace_back(param);
-            }
-        } else if (!subgraph->dynamic()) {
-            /* == 3. Add static jobs == */
-            const auto firstCloneIx = ref2Clone_[subgraph->ix()];
-            for (auto ix = firstCloneIx; ix < firstCloneIx + subgraph->repetitionValue(); ++ix) {
-                staticJobStack.emplace_back(subgraph, srdag_->vertex(ix), ix - firstCloneIx);
-                auto &job = staticJobStack.back();
-                CopyParamVisitor cpyVisitor{ job_, job.params_ };
-                for (const auto &param : subgraph->params()) {
-                    param->visit(&cpyVisitor);
+            job.params_.reserve(params.size());
+            for (const auto &param : params) {
+                auto p = param;
+                if (param->dynamic()) {
+                    if (param->type() == pisdf::ParamType::DYNAMIC) {
+                        p = make_shared<pisdf::DynamicParam, StackID::PISDF>(param->name(), param->expression());
+                        p->setIx(param->ix());
+                    } else {
+                        p = job_.params_[param->parent()->ix()];
+                    }
                 }
+                job.params_.emplace_back(std::move(p));
             }
+            stack.emplace_back(std::move(job));
         }
     }
+
+    /* == Update reference of config vertices parameters == */
+    for (auto &cfg : job_.reference_->configVertices()) {
+        auto *clone = srdag_->vertex(ref2Clone_[cfg->ix()]);
+        for (const auto &param : cfg->outputParamVector()) {
+            clone->addOutputParameter(dynaJobStack[0].params_[param->ix()]);
+        }
+    }
+
     return std::make_pair(std::move(staticJobStack), std::move(dynaJobStack));
 }
 

@@ -50,12 +50,13 @@ namespace spider {
         /* === Functions prototype === */
 
         /**
-         * @brief Split dynamic graphs into two subgraphs: an init graph and a run graph.
+         * @brief Creates a subgraph for the 'run' section of a dynamic graph and keep config actors as the 'init'
+         *        section.
          * @remark This method changes original graph.
-         * @param subgraph  Subgraph to split (if static nothing happen).
+         * @param graph  Pointer to the graph to split (if static nothing happen).
          * @return true if split the graph, false else.
          */
-        bool splitDynamicGraph(pisdf::Graph *subgraph);
+        void separateRunGraphFromInit(pisdf::Graph *graph);
 
         /**
          * @brief Perform static single rate transformation for a given input job.

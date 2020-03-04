@@ -57,7 +57,6 @@ namespace spider {
             pisdf::Graph *reference_ = nullptr;
             pisdf::Vertex *srdagInstance_ = nullptr;
             uint32_t firingValue_ = UINT32_MAX;
-            bool root_ = false;
 
             TransfoJob(TransfoJob &&) = default;
 
@@ -73,8 +72,7 @@ namespace spider {
                                                                 StackID::TRANSFO > { }},
                                                        reference_{ graph },
                                                        srdagInstance_{ srdagInstance },
-                                                       firingValue_{ firing },
-                                                       root_{ srdagInstance == nullptr } {
+                                                       firingValue_{ firing } {
                 if (graph) {
                     params_.reserve(graph->paramCount());
                 }
