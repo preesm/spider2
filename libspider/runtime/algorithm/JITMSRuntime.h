@@ -81,6 +81,7 @@ namespace spider {
         unique_ptr<pisdf::Graph> srdag_;
         unique_ptr<Scheduler> scheduler_;
         unique_ptr<FifoAllocator> fifoAllocator_;
+        time::time_point startIterStamp_ = time::min();
         bool isFullyStatic_ = true;
 
         /* === Private method(s) === */
@@ -96,6 +97,12 @@ namespace spider {
          * @return true
          */
         bool dynamicExecute();
+
+        /**
+         * @brief Update scheduler, execute scheduler, run schedule and wait.
+         * @param shouldBroadcast  Flag to check if we should broadcast job stamp at the end of the iteration.
+         */
+        void scheduleRunAndWait(bool shouldBroadcast);
 
         /**
          * @brief Appends @refitem spider::srdag::TransfoJob from source vector to destination vector using MOVE semantic.

@@ -155,7 +155,7 @@ void spider::Schedule::sendReadyTasks() {
     if (log::enabled<log::SCHEDULE>()) {
         print();
     }
-    const auto grtIx = archi::platform()->spiderGRTPE()->virtualIx();
+    const auto grtIx = archi::platform()->getGRTIx();
     auto *communicator = rt::platform()->communicator();
     for (auto &task : readyTaskVector_) {
         /* == Create job message and send the notification == */

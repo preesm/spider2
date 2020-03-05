@@ -63,8 +63,11 @@ namespace spider {
         LRT_RESUME,                     /*!< Signal LRT to un-freeze */
         TRACE_ENABLE,                   /*!< Signal LRT to enable its trace */
         TRACE_DISABLE,                  /*!< Signal LRT to disable its trace */
-        TRACE_RST,                      /*!< Signal LRT to reset its trace */
-        TRACE_SENT,                     /*!< Signal that a trace has been sent */
+        TRACE_TASK,                     /*!< Signal that an execution trace of a task has been sent */
+        TRACE_SCHEDULE,                 /*!< Signal that an execution trace of scheduling has been sent */
+        TRACE_TRANSFO,                  /*!< Signal that an execution trace of transformation step has been sent */
+        TRACE_PARAM,                    /*!< Signal that an execution trace of param resolution has been sent */
+        TRACE_MEMORY,                   /*!< Signal that an execution trace of memory alloc has been sent */
         JOB_ADD,                        /*!< Signal LRT that a job is available in shared queue */
         JOB_CLEAR_QUEUE,                /*!< Signal LRT to clear its job queue (if LRT_REPEAT_ITERATION_EN, signal is ignored) */
         JOB_SENT_PARAM,                 /*!< Signal that LRT sent a ParameterMessage */
@@ -102,10 +105,16 @@ namespace spider {
                 return "TRACE_ENABLE";
             case NotificationType::TRACE_DISABLE:
                 return "TRACE_DISABLE";
-            case NotificationType::TRACE_RST:
-                return "TRACE_RST";
-            case NotificationType::TRACE_SENT:
-                return "TRACE_SENT";
+            case NotificationType::TRACE_TASK:
+                return "TRACE_TASK";
+            case NotificationType::TRACE_SCHEDULE:
+                return "TRACE_SCHEDULE";
+            case NotificationType::TRACE_TRANSFO:
+                return "TRACE_TRANSFO";
+            case NotificationType::TRACE_PARAM:
+                return "TRACE_PARAM";
+            case NotificationType::TRACE_MEMORY:
+                return "TRACE_MEMORY";
             case NotificationType::JOB_ADD:
                 return "JOB_ADD";
             case NotificationType::JOB_CLEAR_QUEUE:
@@ -120,8 +129,9 @@ namespace spider {
                 return "JOB_UPDATE_JOBSTAMP";
             case NotificationType::UNDEFINED:
                 return "UNDEFINED";
+            default:
+                return "DEFAULT";
         }
-        return "DEFAULT";
     }
 
     /* === Structure(s) definition === */

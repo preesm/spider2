@@ -49,6 +49,7 @@
 #include <archi/Platform.h>
 #include <archi/Cluster.h>
 #include <archi/MemoryInterface.h>
+#include <api/config-api.h>
 
 /* === Define(s) === */
 
@@ -127,6 +128,26 @@
      if (log::enabled<log::LRT>()) {\
         log::info<log::LRT>("Runner #%zu -> received notification: #%s\n",\
                             ix(), notificationToString(notification.type_));\
+    }
+
+#define LOG_JOB() \
+    if (log::enabled<log::LRT>() && spider::api::verboseEnabled()) {\
+        log::print<log::LRT>(log::blue, "INFO:", "Runner #%zu -> Task: %zu\n", ix(), job.ix_);\
+        log::print<log::LRT>(log::blue, "INFO:", "Runner #%zu -> Constraints:\n", ix());\
+        for (const auto &constraint : job.execConstraints_) {\
+            log::print<log::LRT>(log::blue, "INFO:", "Runner #%zu -> >> job %zu on runner #%zu\n", ix(),\
+                    constraint.jobToWait_, constraint.lrtToWait_);\
+        }\
+        log::print<log::LRT>(log::blue, "INFO:", "Runner #%zu -> Input Fifo(s):\n", ix());\
+        for (auto &fifo : job.inputFifoArray_) {\
+            log::print<log::LRT>(log::blue, "INFO:", "Runner #%zu -> >> size: %zu -- address: %zu\n", ix(), fifo.size_,\
+            fifo.virtualAddress_);\
+        }\
+        log::print<log::LRT>(log::blue, "INFO:", "Runner #%zu -> Output Fifo(s):\n", ix());\
+        for (auto &fifo : job.outputFifoArray_) {\
+            log::print<log::LRT>(log::blue, "INFO:", "Runner #%zu -> >> size: %zu -- address: %zu\n", ix(), fifo.size_,\
+            fifo.virtualAddress_);\
+        }\
     }
 
 /* === Static function === */
@@ -240,44 +261,46 @@ void spider::JITMSRTRunner::begin() {
 /* === Private method(s) implementation === */
 
 void spider::JITMSRTRunner::runJob(const JobMessage &job) {
-    if (log::enabled<log::LRT>()) {
-        log::print<log::LRT>(log::blue, "INFO:", "Runner #%zu -> Task: %zu\n", ix(), job.ix_);
-        log::print<log::LRT>(log::blue, "INFO:", "Runner #%zu -> Constraints:\n", ix());
-        for (const auto &constraint : job.execConstraints_) {
-            log::print<log::LRT>(log::blue, "INFO:", "Runner #%zu -> >> job %zu on runner #%zu\n", ix(),
-                                 constraint.jobToWait_, constraint.lrtToWait_);
-        }
-        log::print<log::LRT>(log::blue, "INFO:", "Runner #%zu -> Input Fifo(s):\n", ix());
-        for (auto &fifo : job.inputFifoArray_) {
-            log::print<log::LRT>(log::blue, "INFO:", "Runner #%zu -> >> size: %zu -- address: %zu\n", ix(), fifo.size_, fifo.virtualAddress_);
-        }
-        log::print<log::LRT>(log::blue, "INFO:", "Runner #%zu -> Output Fifo(s):\n", ix());
-        for (auto &fifo : job.outputFifoArray_) {
-            log::print<log::LRT>(log::blue, "INFO:", "Runner #%zu -> >> size: %zu -- address: %zu\n", ix(), fifo.size_, fifo.virtualAddress_);
-        }
+    LOG_JOB();
+    TraceMessage msgMemory{ };
+    if (trace_) {
+        msgMemory.taskIx_ = job.vertexIx_;
+        msgMemory.startTime_ = time::now();
     }
-
     /* == Create input buffers == */
-    // TODO: add time monitoring
     auto inputBuffersArray = createInputFifos(job.inputFifoArray_, attachedPE_->cluster()->memoryInterface());
 
     /* == Create output buffers == */
-    // TODO: add time monitoring
     auto outputBuffersArray = createOutputFifos(job.outputFifoArray_, attachedPE_->cluster()->memoryInterface());
 
     /* == Allocate output parameter memory == */
-    // TODO: add time monitoring
     array<int64_t> outputParams{ static_cast<size_t>(job.outputParamCount_), 0, StackID::RUNTIME };
 
+    if (trace_) {
+        msgMemory.endTime_ = time::now();
+        auto *communicator = rt::platform()->communicator();
+        auto msgIx = communicator->push(msgMemory, archi::platform()->getGRTIx());
+        communicator->pushTraceNotification(Notification{ NotificationType::TRACE_MEMORY, ix(), msgIx });
+    }
+
     /* == Run the job == */
-    // TODO: add time monitoring
     const auto &kernel = (rt::platform()->getKernel(job.kernelIx_));
     if (kernel) {
+        TraceMessage msgExec{ };
+        if (trace_) {
+            msgExec.taskIx_ = job.vertexIx_;
+            msgExec.startTime_ = time::now();
+        }
         (*kernel)(job.inputParams_.data(), outputParams.data(), inputBuffersArray.data(), outputBuffersArray.data());
+        if (trace_) {
+            msgExec.endTime_ = time::now();
+            auto *communicator = rt::platform()->communicator();
+            auto msgIx = communicator->push(msgExec, archi::platform()->getGRTIx());
+            communicator->pushTraceNotification(Notification{ NotificationType::TRACE_TASK, ix(), msgIx });
+        }
     }
 
     /* == Deallocate input buffers == */
-    // TODO: add time monitoring
     for (auto &inputFIFO : job.inputFifoArray_) {
         if (inputFIFO.attribute_ == FifoAttribute::READ_OWN) {
             auto *memoryInterface = attachedPE_->cluster()->memoryInterface();
@@ -363,10 +386,6 @@ bool spider::JITMSRTRunner::readNotification(bool blocking) {
             break;
         case NotificationType::TRACE_DISABLE:
             trace_ = false;
-            break;
-        case NotificationType::TRACE_RST:
-            break;
-        case NotificationType::TRACE_SENT:
             break;
         case NotificationType::JOB_ADD: {
             JobMessage message;

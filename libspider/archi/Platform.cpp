@@ -181,3 +181,7 @@ uint64_t spider::Platform::dataCommunicationCostPEToPE(PE *peSrc, PE *peSnk, uin
 size_t spider::Platform::getCluster2ClusterIndex(size_t ixA, size_t ixB) const {
     return ixA > ixB ? (preComputedClusterIx_[ixB] + ixA) : (preComputedClusterIx_[ixA] + ixB);
 }
+
+size_t spider::Platform::getGRTIx() const {
+    return grt_ ? grt_->attachedLRT()->virtualIx() : SIZE_MAX;
+}

@@ -50,30 +50,6 @@
 
 /* === Methods implementation === */
 
-void spider::api::exportPostExecGantt(const std::string &) {
-    if (!exportTraceEnabled()) {
-        throwSpiderException("Can not export graph if traces are disable. Use Spider::enableTrace().");
-    }
-
-    /* == Open the file for the gantt == */
-
-    /* == Get the execution traces == */
-
-    /* == Print the gantt == */
-
-    /* == Close the file == */
-}
-
-void spider::api::exportPreExecGantt(const std::string &) {
-    /* == Open the file for the gantt == */
-
-    /* == Get the schedule == */
-
-    /* == Print the gantt == */
-
-    /* == Close the file == */
-}
-
 void spider::api::exportGraphToDOT(pisdf::Graph *graph, const std::string &path) {
     /* == Print the Graph == */
     auto exporter =pisdf::PiSDFDOTExporter(graph);

@@ -73,9 +73,17 @@ namespace spider {
         virtual bool pop(Notification &notification, size_t receiver) = 0;
 
         /**
+         * @brief Non-blocking pop to get notification.
+         * @param notification  Notification structure to be filled.
+         * @param receiver      Receiver of the notification.
+         * @return true if succeed in pop, false else.
+         */
+        virtual bool try_pop(Notification &notification, size_t receiver) = 0;
+
+        /**
          * @brief Push a notification regarding new parameter value.
          * @param sender        Index of the sender.
-         * @param messageIndex  Index of the parameter message.
+         * @param messageIndex  Index of the  @refitem ParameterMessage.
          */
         virtual void pushParamNotification(size_t sender, size_t messageIndex) = 0;
 
@@ -87,12 +95,17 @@ namespace spider {
         virtual bool popParamNotification(Notification &notification) = 0;
 
         /**
-         * @brief Non-blocking pop to get notification.
-         * @param notification  Notification structure to be filled.
-         * @param receiver      Receiver of the notification.
-         * @return true if succeed in pop, false else.
+         * @brief Push a notification regarding new trace value.
+         * @param notification  Notification to push.
          */
-        virtual bool try_pop(Notification &notification, size_t receiver) = 0;
+        virtual void pushTraceNotification(Notification notification) = 0;
+
+        /**
+         * @brief Blocking pop a notification regarding new trace value.
+         * @param notification  Notification structure to be filled.
+         * @return true.
+         */
+        virtual bool popTraceNotification(Notification &notification) = 0;
 
         /**
          * @brief Push a JobMessage for a given target LRT.

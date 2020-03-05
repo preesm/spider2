@@ -66,19 +66,6 @@ namespace spider {
         /* === Function(s) prototype === */
 
         /**
-         * @brief Export the Gantt of the real execution trace of the application for 1 graph iteration.
-         * @remark Requires to have enable the execution traces with @refitem Spider::enableTrace.
-         * @param path Path of the file.
-         */
-        void exportPostExecGantt(const std::string &path);
-
-        /**
-         * @brief Export the expected Gantt obtained by the scheduling algorithm.
-         * @param path Path of the file.
-         */
-        void exportPreExecGantt(const std::string &path);
-
-        /**
          * @brief Export a PiSDF graph to a .dot file.
          * @param path   Path of the file.
          * @param graph  Graph to transform (default is the application graph).

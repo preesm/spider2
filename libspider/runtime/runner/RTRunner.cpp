@@ -49,6 +49,7 @@
 #include <archi/Platform.h>
 #include <archi/PE.h>
 #include <containers/array_handle.h>
+#include <api/config-api.h>
 
 /* === Define(s) === */
 
@@ -71,6 +72,9 @@ spider::RTRunner::RTRunner(PE *attachedPe, size_t runnerIx, i32 affinity) : jobQ
                                                                             attachedPE_{ attachedPe },
                                                                             runnerIx_{ runnerIx },
                                                                             affinity_{ affinity } {
+    if (api::exportTraceEnabled()) {
+        trace_ = true;
+    }
 }
 
 void spider::RTRunner::clearLocalJobStamps() {

@@ -49,7 +49,7 @@
 /* === Private method(s) implementation === */
 
 spider::ThreadRTCommunicator::ThreadRTCommunicator(size_t lrtCount) :
-        notificationQueueVector_{ factory::vector<spider::Queue<Notification>>(lrtCount + 1, StackID::RUNTIME) } { }
+        notificationQueueVector_{ factory::vector<spider::Queue<Notification>>(lrtCount, StackID::RUNTIME) } { }
 
 void spider::ThreadRTCommunicator::push(Notification notification, size_t receiver) {
     notificationQueueVector_.at(receiver).push(notification);
@@ -60,19 +60,23 @@ bool spider::ThreadRTCommunicator::pop(Notification &notification, size_t receiv
 }
 
 bool spider::ThreadRTCommunicator::try_pop(Notification &notification, size_t receiver) {
-//    return notificationQueueVector_.at(receiver).try_pop(notification);
     return notificationQueueVector_[receiver].try_pop(notification);
 }
 
-
 void spider::ThreadRTCommunicator::pushParamNotification(size_t sender, size_t messageIndex) {
-    notificationQueueVector_.back().push(Notification(NotificationType::JOB_SENT_PARAM,
-                                                      sender,
-                                                      messageIndex));
+    paramNotificationQueue_.push(Notification(NotificationType::JOB_SENT_PARAM, sender, messageIndex));
 }
 
-bool spider::ThreadRTCommunicator::popParamNotification(spider::Notification &notification) {
-    return notificationQueueVector_.back().pop(notification);
+bool spider::ThreadRTCommunicator::popParamNotification(Notification &notification) {
+    return paramNotificationQueue_.pop(notification);
+}
+
+void spider::ThreadRTCommunicator::pushTraceNotification(Notification notification) {
+    traceNotificationQueue_.push(notification);
+}
+
+bool spider::ThreadRTCommunicator::popTraceNotification(Notification &notification) {
+    return traceNotificationQueue_.try_pop(notification);
 }
 
 size_t spider::ThreadRTCommunicator::push(JobMessage message, size_t) {

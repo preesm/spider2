@@ -45,6 +45,7 @@
 #include <containers/array.h>
 #include <memory/unique_ptr.h>
 #include <runtime/common/RTFifo.h>
+#include <common/Time.h>
 
 namespace spider {
 
@@ -132,9 +133,9 @@ namespace spider {
 
         /* === Struct member(s) === */
 
-        uint32_t vertexIx_ = UINT32_MAX;   /*!< Ix of the vertex */
-        uint64_t startTime_ = UINT64_MAX;  /*!< Start time of the job */
-        uint64_t endTime_ = 0;             /*!< End time of the job */
+        size_t taskIx_ = SIZE_MAX;                  /*!< Ix of the task */
+        time::time_point startTime_ = time::max();  /*!< Start time of the job */
+        time::time_point endTime_ = time::min();    /*!< End time of the job */
     };
 
 }

@@ -125,11 +125,11 @@ spider::SchedSVGGanttExporter::SchedSVGGanttExporter(const Schedule *schedule) :
     u64 minExecTime = UINT64_MAX;
     u64 maxExecTime = 0;
     for (auto &task : schedule_->tasks()) {
-        const auto &execTime = task->endTime() - task->startTime();
+        const auto execTime = task->endTime() - task->startTime();
         minExecTime = std::min(execTime, minExecTime);
         maxExecTime = std::max(execTime, maxExecTime);
     }
-    const auto ratio = static_cast<double>(maxExecTime) / static_cast<double>(minExecTime);
+    const auto ratio = static_cast<double>(maxExecTime) / static_cast<double>(minExecTime + 1);
     if (widthMin_ * ratio > widthMax_) {
         widthMax_ = widthMin_ * ratio;
     }
@@ -283,7 +283,7 @@ void spider::SchedSVGGanttExporter::taskPrinter(FILE *file, const ScheduleTask *
     const auto name = task->name();
 
     /* == Compute coordinates == */
-    const auto taskWidth = computeWidth(task->endTime() - task->startTime());
+    const auto taskWidth = computeWidth((task->endTime() - task->startTime()));
     const auto x = offsetX_ + ARROW_STROKE + BORDER + computeWidth(task->startTime());
     const auto y = height_ - (OFFSET_Y + ARROW_STROKE + (task->mappedPe() + 1) * (TASK_HEIGHT + BORDER));
 

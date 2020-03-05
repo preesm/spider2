@@ -143,6 +143,14 @@ namespace spider {
         }
 
         /**
+         * @brief Get the different statistics of the platform.
+         * @return const reference to @refitem Stats
+         */
+        inline Stats &stats() {
+            return stats_;
+        }
+
+        /**
          * @brief Return the scheduled start time of a given PE.
          * @param ix  PE to check.
          * @return start time of given PE.

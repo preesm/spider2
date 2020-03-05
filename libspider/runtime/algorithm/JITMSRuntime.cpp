@@ -70,16 +70,6 @@ static spider::FifoAllocator *makeFifoAllocator(spider::FifoAllocatorType type) 
     return nullptr;
 }
 
-static void exportGantt(spider::Schedule *schedule) {
-    if (spider::api::useSVGOverXMLGantt()) {
-        spider::SchedSVGGanttExporter exporter{ schedule };
-        exporter.print();
-    } else {
-        spider::SchedXMLGanttExporter exporter{ schedule };
-        exporter.print();
-    }
-}
-
 /* === Method(s) implementation === */
 
 spider::JITMSRuntime::JITMSRuntime(pisdf::Graph *graph,
@@ -106,7 +96,11 @@ bool spider::JITMSRuntime::execute() {
 /* === Private method(s) === */
 
 bool spider::JITMSRuntime::staticExecute() {
-    const auto grtIx = archi::platform()->spiderGRTPE()->attachedLRT()->virtualIx();
+    /* == Time point used as reference == */
+    if (api::exportTraceEnabled()) {
+        startIterStamp_ = time::now();
+    }
+    const auto grtIx = archi::platform()->getGRTIx();
     static bool first = true;
     if (!first) {
         /* == Send LRT_START_ITERATION notification == */
@@ -157,30 +151,26 @@ bool spider::JITMSRuntime::staticExecute() {
         //monitor_->endSampling();
     }
 
+    /* == Update schedule, run and wait == */
+    scheduleRunAndWait(false);
+
+    /* == Export srdag if needed  == */
     if (api::exportSRDAGEnabled()) {
         api::exportGraphToDOT(srdag_.get(), "./srdag.dot");
     }
 
-    /* == Send LRT_START_ITERATION notification == */
-    rt::platform()->sendStartIteration();
-
-    /* == Schedule / Map current Single-Rate graph == */
-    //monitor_->startSampling();
-    scheduler_->update();
-    scheduler_->execute();
-    //monitor_->endSampling();
-
-    /* == Send LRT_END_ITERATION notification == */
-    rt::platform()->sendEndIteration();
-
+    /* == Export pre-exec gantt if needed  == */
     if (api::exportGanttEnabled()) {
-        exportGantt(&scheduler_->schedule());
+        exportPreExecGantt(&scheduler_->schedule());
     }
 
-    /* == If there are jobs left, run == */
-    rt::platform()->runner(grtIx)->run(false);
-    rt::platform()->waitForRunnersToFinish();
+    /* == Runners should clear their parameters == */
     rt::platform()->sendClearToRunners();
+
+    /* == Export post-exec gantt if needed  == */
+    if (api::exportTraceEnabled()) {
+        exportPostExecGantt(srdag_.get(), &scheduler_->schedule(), startIterStamp_);
+    }
 
     /* == Reset the scheduler == */
     scheduler_->schedule().reset();
@@ -193,6 +183,12 @@ bool spider::JITMSRuntime::dynamicExecute() {
     if (graph_->dynamic()) {
         srdag::separateRunGraphFromInit(graph_);
     }
+
+    /* == Time point used as reference == */
+    if (api::exportTraceEnabled()) {
+        startIterStamp_ = time::now();
+    }
+
     /* == Apply first transformation of root graph == */
     auto rootJob = srdag::TransfoJob(graph_);
     rootJob.params_ = graph_->params();
@@ -218,24 +214,8 @@ bool spider::JITMSRuntime::dynamicExecute() {
             //monitor_->endSampling();
         }
 
-        /* == Send LRT_START_ITERATION notification == */
-        rt::platform()->sendStartIteration();
-
-        /* == Schedule / Map current Single-Rate graph == */
-        //monitor_->startSampling();
-        scheduler_->update();
-        scheduler_->execute();
-        //monitor_->endSampling();
-
-        /* == Send JOB_DELAY_BROADCAST_JOBSTAMP notification == */
-        rt::platform()->sendDelayedBroadCastToRunners();
-
-        /* == Send LRT_END_ITERATION notification == */
-        rt::platform()->sendEndIteration();
-
-        /* == Run and wait == */
-        rt::platform()->runner(grtIx)->run(false);
-        rt::platform()->waitForRunnersToFinish();
+        /* == Update schedule, run and wait == */
+        scheduleRunAndWait(true);
 
         /* == Wait for all parameters to be resolved == */
         if (!dynamicJobStack.empty()) {
@@ -282,35 +262,28 @@ bool spider::JITMSRuntime::dynamicExecute() {
                 //monitor_->endSampling();
             }
 
-            /* == Send LRT_START_ITERATION notification == */
-            rt::platform()->sendStartIteration();
-
-            /* == Schedule / Map current Single-Rate graph == */
-            scheduler_->update();
-            scheduler_->execute();
-
-            /* == Send JOB_DELAY_BROADCAST_JOBSTAMP notification == */
-            rt::platform()->sendDelayedBroadCastToRunners();
-
-            /* == Send LRT_END_ITERATION notification == */
-            rt::platform()->sendEndIteration();
-
-            /* == Run and wait == */
-            rt::platform()->runner(grtIx)->run(false);
-            rt::platform()->waitForRunnersToFinish();
+            /* == Update schedule, run and wait == */
+            scheduleRunAndWait(true);
         }
     }
 
+    /* == Export srdag if needed  == */
     if (api::exportSRDAGEnabled()) {
         api::exportGraphToDOT(srdag_.get(), "./srdag.dot");
     }
 
+    /* == Export pre-exec gantt if needed  == */
     if (api::exportGanttEnabled()) {
-        exportGantt(&scheduler_->schedule());
+        exportPreExecGantt(&scheduler_->schedule());
     }
 
     /* == Runners should clear their parameters == */
     rt::platform()->sendClearToRunners();
+
+    /* == Export post-exec gantt if needed  == */
+    if (api::exportTraceEnabled()) {
+        exportPostExecGantt(srdag_.get(), &scheduler_->schedule(), startIterStamp_);
+    }
 
     /* == Clear the srdag == */
     srdag_->clear();
@@ -318,6 +291,29 @@ bool spider::JITMSRuntime::dynamicExecute() {
     /* == Clear the scheduler == */
     scheduler_->clear();
     return true;
+}
+
+void spider::JITMSRuntime::scheduleRunAndWait(bool shouldBroadcast) {
+    /* == Send LRT_START_ITERATION notification == */
+    rt::platform()->sendStartIteration();
+
+    /* == Schedule / Map current Single-Rate graph == */
+    //monitor_->startSampling();
+    scheduler_->update();
+    scheduler_->execute();
+    //monitor_->endSampling();
+
+    if (shouldBroadcast) {
+        /* == Send JOB_DELAY_BROADCAST_JOBSTAMP notification == */
+        rt::platform()->sendDelayedBroadCastToRunners();
+    }
+
+    /* == Send LRT_END_ITERATION notification == */
+    rt::platform()->sendEndIteration();
+
+    /* == If there are jobs left, run == */
+    rt::platform()->runner(archi::platform()->getGRTIx())->run(false);
+    rt::platform()->waitForRunnersToFinish();
 }
 
 /* === Transformation related methods === */

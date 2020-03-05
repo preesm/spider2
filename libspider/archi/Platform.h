@@ -125,6 +125,12 @@ namespace spider {
         }
 
         /**
+         * @brief Get the ix of the GRT.
+         * @return ix of the GRT, SIZE_MAX if failed
+         */
+        size_t getGRTIx() const;
+
+        /**
          * @brief Get the number of cluster in the platform.
          * @return Number of @refitem Cluster.
          */

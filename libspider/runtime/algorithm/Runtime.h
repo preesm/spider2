@@ -43,6 +43,7 @@
 /* === Includes === */
 
 #include <common/Exception.h>
+#include <common/Time.h>
 #include <api/global-api.h>
 
 namespace spider {
@@ -50,6 +51,8 @@ namespace spider {
     /* === Forward declaration(s) === */
 
     class Monitor;
+
+    class Schedule;
 
     /* === Class definition === */
 
@@ -78,6 +81,27 @@ namespace spider {
     protected:
         pisdf::Graph *graph_ = nullptr;
         Monitor *monitor_ = nullptr;
+
+
+        /**
+         * @brief Export the expected Gantt obtained by the scheduling algorithm.
+         * @param schedule Pointer to the schedule.
+         * @param path     Path of the file.
+         */
+        void exportPreExecGantt(Schedule *schedule, const std::string &path = "./sched-gantt");
+
+        /**
+         * @brief Export the Gantt of the real execution trace of the application for 1 graph iteration.
+         * @remark Requires to have enable the execution traces with @refitem spider::enableExportTrace.
+         * @param graph    Pointer to the graph to be used as referece.
+         * @param schedule Pointer to the schedule.
+         * @param offset   Time offset to apply.
+         * @param path     Path of the file.
+         */
+        void exportPostExecGantt(pisdf::Graph *graph,
+                                 Schedule *schedule,
+                                 time::time_point offset = time::min(),
+                                 const std::string &path = "./exec-gantt");
     };
 }
 #endif //SPIDER2_RUNTIME_H
