@@ -148,12 +148,18 @@ bool spider::JITMSRuntime::staticExecute() {
         rt::platform()->runner(grtIx)->run(false);
         rt::platform()->waitForRunnersToFinish();
         rt::platform()->sendClearToRunners();
+        /* == Export post-exec gantt if needed  == */
+        if (api::exportTraceEnabled()) {
+            exportPostExecGantt(srdag_.get(), &scheduler_->schedule(), startIterStamp_);
+        }
+
         scheduler_->schedule().reset();
         return true;
     }
     first = false;
     TraceMessage transfoMsg{ };
     TRACE_TRANSFO_START();
+
     /* == Apply first transformation of root graph == */
     auto rootJob = srdag::TransfoJob(graph_);
     rootJob.params_ = graph_->params();
@@ -162,7 +168,6 @@ bool spider::JITMSRuntime::staticExecute() {
     /* == Initialize the job stacks == */
     auto staticJobStack = factory::vector<srdag::TransfoJob>(StackID::TRANSFO);
     updateJobStack(resultRootJob.first, staticJobStack);
-
     auto tempJobStack = factory::vector<srdag::TransfoJob>(StackID::TRANSFO);
     while (!staticJobStack.empty()) {
         for (auto &job : staticJobStack) {
