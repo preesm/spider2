@@ -133,8 +133,12 @@ namespace spider {
         }
 
     private:
+        struct buffer_t {
+            void *buffer_;
+            i32 count_;
+        };
         /* = Map associating virtual address to physical ones = */
-        spider::unordered_map<uint64_t, void *> virtual2Phys_;
+        spider::unordered_map<uint64_t, buffer_t> virtual2Phys_;
         /* = Total size of the MemoryUnit = */
         uint64_t size_ = 0;
         /* = Currently used memory (strictly less or equal to size_) = */
@@ -160,7 +164,7 @@ namespace spider {
          * @param virtualAddress   Virtual address to evaluate.
          * @return corresponding physical address, nullptr if not found.
          */
-        void *retrievePhysicalAddress(uint64_t virtualAddress);
+        buffer_t *retrieveBuffer(uint64_t virtualAddress);
     };
 }
 

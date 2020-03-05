@@ -55,7 +55,7 @@ spider::MemoryInterface::MemoryInterface(uint64_t size) : size_{ size }, used_{ 
 
 void *spider::MemoryInterface::read(uint64_t virtualAddress) {
     std::lock_guard<std::mutex> lockGuard{ lock_ };
-    return retrievePhysicalAddress(virtualAddress);
+    return retrieveBuffer(virtualAddress)->buffer_;
 }
 
 void *spider::MemoryInterface::allocate(uint64_t virtualAddress, size_t size) {
@@ -64,7 +64,8 @@ void *spider::MemoryInterface::allocate(uint64_t virtualAddress, size_t size) {
     }
     std::lock_guard<std::mutex> lockGuard{ lock_ };
     if (log::enabled<log::MEMORY>()) {
-        log::print<log::MEMORY>(log::yellow, "INFO: ", "PHYSICAL: allocating %zu bytes address %zu.\n", size, virtualAddress);
+        log::print<log::MEMORY>(log::yellow, "INFO: ", "PHYSICAL: allocating %zu bytes address %zu.\n", size,
+                                virtualAddress);
     }
     uint64_t res = UINT64_MAX;
     if (size <= available()) {
@@ -91,7 +92,10 @@ void spider::MemoryInterface::deallocate(uint64_t virtualAddress, size_t size) {
         throwSpiderException("Deallocating more memory than used.");
     }
     used_ -= size;
-    deallocateRoutine_(retrievePhysicalAddress(virtualAddress));
+    auto *buffer = retrieveBuffer(virtualAddress);
+    if (!(--(buffer->count_))) {
+        deallocateRoutine_(buffer->buffer_);
+    }
 }
 
 void spider::MemoryInterface::reset() {
@@ -102,12 +106,12 @@ void spider::MemoryInterface::reset() {
 
 void spider::MemoryInterface::registerPhysicalAddress(uint64_t virtualAddress, void *physicalAddress) {
     /* == Apply offset to virtual address to get the corresponding address associated to attached MemoryUnit == */
-    virtual2Phys_[virtualAddress] = physicalAddress;
+    virtual2Phys_[virtualAddress] = buffer_t{ physicalAddress, 1 };
 }
 
-void *spider::MemoryInterface::retrievePhysicalAddress(uint64_t virtualAddress) {
+spider::MemoryInterface::buffer_t *spider::MemoryInterface::retrieveBuffer(uint64_t virtualAddress) {
     if (log::enabled<log::LRT>()) {
         log::print<log::LRT>(log::red, "INFO: ", "PHYSICAL: fetching address %zu.\n", virtualAddress);
     }
-    return virtual2Phys_.at(virtualAddress);
+    return &(virtual2Phys_.at(virtualAddress));
 }
