@@ -132,6 +132,8 @@ bool spider::JITMSRuntime::staticExecute() {
     const auto grtIx = archi::platform()->getGRTIx();
     static bool first = true;
     if (!first) {
+        TraceMessage schedMsg{ };
+        TRACE_SCHEDULE_START();
         /* == Send LRT_START_ITERATION notification == */
         rt::platform()->sendStartIteration();
 
@@ -140,6 +142,7 @@ bool spider::JITMSRuntime::staticExecute() {
 
         /* == Send LRT_END_ITERATION notification == */
         rt::platform()->sendEndIteration();
+        TRACE_SCHEDULE_END();
 
         /* == Run and wait == */
         rt::platform()->runner(grtIx)->run(false);
@@ -149,6 +152,8 @@ bool spider::JITMSRuntime::staticExecute() {
         return true;
     }
     first = false;
+    TraceMessage transfoMsg{ };
+    TRACE_TRANSFO_START();
     /* == Apply first transformation of root graph == */
     auto rootJob = srdag::TransfoJob(graph_);
     rootJob.params_ = graph_->params();
@@ -172,12 +177,13 @@ bool spider::JITMSRuntime::staticExecute() {
         staticJobStack.swap(tempJobStack);
         tempJobStack.clear();
     }
+    TRACE_TRANSFO_END();
 
     /* == Apply graph optimizations == */
     if (api::shouldOptimizeSRDAG()) {
-        //monitor_->startSampling();
+        TRACE_TRANSFO_START();
         optims::optimize(srdag_.get());
-        //monitor_->endSampling();
+        TRACE_TRANSFO_END();
     }
 
     /* == Update schedule, run and wait == */
