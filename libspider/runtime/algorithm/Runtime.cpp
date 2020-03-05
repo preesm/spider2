@@ -62,30 +62,8 @@ constexpr const char *MEMORY_TASK_COLOR = "#26A65B";
 
 /* === Static function(s) definition === */
 
-static void
-updateScheduleTaskTimes(spider::TraceMessage &msg,
-                        spider::pisdf::Graph *graph,
-                        spider::Schedule *schedule,
-                        spider::time::time_point offset) {
-    auto *vertex = graph->vertex(msg.taskIx_);
-    if (vertex && vertex->scheduleTaskIx() != SIZE_MAX) {
-        auto *task = schedule->task(vertex->scheduleTaskIx());
-        /* == Update start time == */
-        auto startTime = static_cast<u64>(spider::time::duration::microseconds(offset, msg.startTime_));
-        task->setStartTime(startTime);
-        /* == Update end time == */
-        auto endTime = static_cast<u64>(spider::time::duration::microseconds(offset, msg.endTime_));
-        task->setEndTime(endTime);
-        const auto peIx = task->mappedPe();
-        schedule->stats().updateStartTime(peIx, startTime);
-        schedule->stats().updateIDLETime(peIx, startTime - schedule->stats().endTime(peIx));
-        schedule->stats().updateEndTime(peIx, endTime);
-        schedule->stats().updateLoadTime(peIx, endTime - startTime);
-    }
-}
-
 static u64 getTime(spider::time::time_point value, spider::time::time_point offset) {
-    return static_cast<u64>(spider::time::duration::microseconds(offset, value));
+    return static_cast<u64>(spider::time::duration::nanoseconds(offset, value));
 }
 
 /* === Function(s) definition === */
