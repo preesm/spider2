@@ -85,6 +85,9 @@ void spider::Runtime::exportPostExecGantt(pisdf::Graph *graph,
     if (!graph || !schedule) {
         return;
     }
+    u64 applicationMinTime = UINT64_MAX;
+    u64 applicationMaxTime = 0;
+    u64 spiderTime = 0;
     auto ganttTasks = factory::vector<GanttTask>();
     /* == Get execution traces and update schedule info == */
     Notification notification;
@@ -101,30 +104,45 @@ void spider::Runtime::exportPostExecGantt(pisdf::Graph *graph,
                 if (vertex) {
                     task.name_ = vertex->name();
                     task.color_ = VERTEX_TASK_COLOR;
+                    applicationMinTime = std::min(applicationMinTime, task.start_);
+                    applicationMaxTime = std::max(applicationMaxTime, task.end_);
                 }
             }
                 break;
             case NotificationType::TRACE_SCHEDULE:
                 task.name_ = "schedule";
                 task.color_ = SCHEDULE_TASK_COLOR;
+                spiderTime += (task.end_ - task.start_);
                 break;
             case NotificationType::TRACE_TRANSFO:
                 task.name_ = "transfo";
                 task.color_ = TRANSFO_TASK_COLOR;
+                spiderTime += (task.end_ - task.start_);
                 break;
             case NotificationType::TRACE_PARAM:
                 task.name_ = "parameters";
                 task.color_ = PARAM_TASK_COLOR;
+                spiderTime += (task.end_ - task.start_);
                 break;
             case NotificationType::TRACE_MEMORY:
                 task.name_ = "memory";
                 task.color_ = MEMORY_TASK_COLOR;
+                spiderTime += (task.end_ - task.start_);
                 break;
             default:
                 throwSpiderException("received unexpected notification type");
         }
         ganttTasks.emplace_back(std::move(task));
     }
+
+    /* == Print exec time == */
+    const auto applicationTime = applicationMaxTime - applicationMinTime;
+    log::info("Iteration execution information:\n");
+    log::info("    >> Application exec time:    %" PRId64"\n", applicationTime);
+    log::info("    >> Spider runtime exec time: %" PRId64"\n", spiderTime);
+    log::info("    >> Spider runtime overhead:  %f%%\n",
+              100. - 100. * ((static_cast<double>(applicationTime) - static_cast<double>(spiderTime)) /
+                             static_cast<double>(applicationTime)));
 
     /* == Export the schedule == */
     if (api::useSVGOverXMLGantt()) {
