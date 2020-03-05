@@ -156,9 +156,49 @@ void spider::optims::optimize(spider::pisdf::Graph *graph) {
         done &= reduceForkFork(graph);
         done &= reduceJoinJoin(graph);
         done &= reduceJoinFork(graph);
+        done &= reduceRepeatFork(graph);
     }
     reduceJoinEnd(graph);
     reduceInitEnd(graph);
+}
+
+bool spider::optims::reduceRepeatFork(spider::pisdf::Graph *graph) {
+    if (!graph) {
+        return false;
+    }
+    auto verticesToOptimize = factory::vector<pisdf::Vertex *>(StackID::TRANSFO);
+    /* == Retrieve the vertices to remove == */
+    for (auto &vertex : graph->vertices()) {
+        if (vertex->subtype() == pisdf::VertexType::REPEAT && vertex->scheduleTaskIx() == SIZE_MAX) {
+            auto inputRate = vertex->inputEdge(0)->sinkRateValue();
+            auto outputRate = vertex->outputEdge(0)->sourceRateValue();
+            auto *sink = vertex->outputEdge(0)->sink();
+            if (!(outputRate % inputRate) &&
+                (sink->subtype() == pisdf::VertexType::FORK && sink->scheduleTaskIx() == SIZE_MAX)) {
+                verticesToOptimize.push_back(vertex.get());
+            }
+        }
+    }
+
+    /* == Remove repeate / fork connections and replace them with duplicate vertex == */
+    for (auto *repeat : verticesToOptimize) {
+        auto *edge = repeat->outputEdge(0);
+        auto *fork = edge->sink();
+        auto *duplicate = api::createDuplicate(graph, repeat->name(), fork->outputEdgeCount());
+        auto *inEdge = repeat->inputEdge(0);
+        inEdge->setSink(duplicate, 0, inEdge->sinkRateExpression());
+        for (auto *outputEdge : fork->outputEdgeVector()) {
+            outputEdge->setSource(duplicate, outputEdge->sourcePortIx(), outputEdge->sourceRateExpression());
+        }
+        if (log::enabled<log::OPTIMS>()) {
+            log::verbose<log::OPTIMS>("reduceRepeatFork: removing repeat [%s] and fork [%s] vertices.\n",
+                                      repeat->name().c_str(), fork->name().c_str());
+        }
+        graph->removeEdge(edge);
+        graph->removeVertex(repeat);
+        graph->removeVertex(fork);
+    }
+    return verticesToOptimize.empty();
 }
 
 bool spider::optims::reduceForkFork(pisdf::Graph *graph) {
@@ -347,7 +387,7 @@ bool spider::optims::reduceJoinEnd(pisdf::Graph *graph) {
         }
 
         if (log::enabled<log::OPTIMS>()) {
-            log::verbose<log::OPTIMS>("JoinEndOptimizer: removing join [%s] and end [%s] vertices.\n",
+            log::verbose<log::OPTIMS>("reduceJoinEnd: removing join [%s] and end [%s] vertices.\n",
                                       join->name().c_str(), end->name().c_str());
         }
         graph->removeVertex(join);

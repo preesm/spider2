@@ -54,7 +54,7 @@ namespace spider {
     namespace pisdf {
 
         /**
-         * @brief Compute the upper consumption dependencies of a vertex in a flat graph:
+         * @brief Compute the lower consumption dependencies of a vertex in a flat graph:
          *                     |   k * c - d   |
          *         lower_dep = | ------------- |
          *                     |_      p      _|
