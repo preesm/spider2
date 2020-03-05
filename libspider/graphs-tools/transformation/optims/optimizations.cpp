@@ -170,7 +170,7 @@ bool spider::optims::reduceForkFork(pisdf::Graph *graph) {
         return vertex->inputEdge(0)->source();
     };
     auto removeEdge = [](pisdf::Vertex *vertex, pisdf::Vertex *vertexB) -> size_t {
-        const auto offset = vertex->inputEdge(0)->sinkPortIx();
+        const auto offset = vertex->inputEdge(0)->sourcePortIx();
         vertex->graph()->removeEdge(vertexB->outputEdge(offset));
         return offset;
     };
