@@ -52,6 +52,14 @@ namespace spider {
 
         using time_point = std::chrono::steady_clock::time_point;
 
+        inline constexpr time_point max() {
+            return std::chrono::time_point<std::chrono::steady_clock>::max();
+        }
+
+        inline constexpr time_point min() {
+            return std::chrono::time_point<std::chrono::steady_clock>::min();
+        }
+
         /* === Function(s) prototype === */
 
         inline time_point now() noexcept {
