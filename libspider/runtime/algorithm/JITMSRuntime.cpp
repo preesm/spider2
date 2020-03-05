@@ -336,22 +336,16 @@ void spider::JITMSRuntime::scheduleRunAndWait(bool shouldBroadcast) {
     TRACE_SCHEDULE_START();
     /* == Send LRT_START_ITERATION notification == */
     rt::platform()->sendStartIteration();
-
     /* == Schedule / Map current Single-Rate graph == */
-    //monitor_->startSampling();
     scheduler_->update();
     scheduler_->execute();
-    //monitor_->endSampling();
-
     if (shouldBroadcast) {
         /* == Send JOB_DELAY_BROADCAST_JOBSTAMP notification == */
         rt::platform()->sendDelayedBroadCastToRunners();
     }
-
     /* == Send LRT_END_ITERATION notification == */
     rt::platform()->sendEndIteration();
     TRACE_SCHEDULE_END();
-
     /* == If there are jobs left, run == */
     rt::platform()->runner(archi::platform()->getGRTIx())->run(false);
     rt::platform()->waitForRunnersToFinish();
