@@ -56,6 +56,35 @@
 #include <scheduling/schedule/exporter/SchedSVGGanttExporter.h>
 #include <graphs-tools/helper/pisdf.h>
 
+/* === Define(s) === */
+
+#define TRACE_TRANSFO_START()\
+    if (api::exportTraceEnabled()) {\
+        transfoMsg.startTime_ = time::now();\
+    }
+
+#define TRACE_TRANSFO_END() \
+    if (api::exportTraceEnabled()) {\
+        transfoMsg.endTime_ = time::now();\
+        auto *communicator = rt::platform()->communicator();\
+        auto msgIx = communicator->push(transfoMsg, archi::platform()->getGRTIx());\
+        communicator->pushTraceNotification(Notification{ NotificationType::TRACE_TRANSFO, archi::platform()->getGRTIx(), msgIx });\
+    }
+
+#define TRACE_SCHEDULE_START()\
+    if (api::exportTraceEnabled()) {\
+        schedMsg.startTime_ = time::now();\
+    }
+
+#define TRACE_SCHEDULE_END() \
+    if (api::exportTraceEnabled()) {\
+        schedMsg.endTime_ = time::now();\
+        auto *communicator = rt::platform()->communicator();\
+        auto msgIx = communicator->push(schedMsg, archi::platform()->getGRTIx());\
+        communicator->pushTraceNotification(Notification{ NotificationType::TRACE_SCHEDULE, archi::platform()->getGRTIx(), msgIx });\
+    }
+
+
 /* === Static function(s) === */
 
 static spider::FifoAllocator *makeFifoAllocator(spider::FifoAllocatorType type) {
@@ -190,6 +219,8 @@ bool spider::JITMSRuntime::dynamicExecute() {
     }
 
     /* == Apply first transformation of root graph == */
+    TraceMessage transfoMsg{ };
+    TRACE_TRANSFO_START();
     auto rootJob = srdag::TransfoJob(graph_);
     rootJob.params_ = graph_->params();
     auto resultRootJob = srdag::singleRateTransformation(rootJob, srdag_.get());
@@ -199,19 +230,20 @@ bool spider::JITMSRuntime::dynamicExecute() {
     auto dynamicJobStack = factory::vector<srdag::TransfoJob>(StackID::TRANSFO);
     updateJobStack(resultRootJob.first, staticJobStack);
     updateJobStack(resultRootJob.second, dynamicJobStack);
+    TRACE_TRANSFO_END();
 
     /* == Transform, schedule and run == */
     while (!staticJobStack.empty() || !dynamicJobStack.empty()) {
         /* == Transform static jobs == */
-        //monitor_->startSampling();
+        TRACE_TRANSFO_START();
         transformStaticJobs(staticJobStack, dynamicJobStack);
-        //monitor_->endSampling();
+        TRACE_TRANSFO_END();
 
         /* == Apply graph optimizations == */
         if (api::shouldOptimizeSRDAG()) {
-            //monitor_->startSampling();
+            TRACE_TRANSFO_START();
             optims::optimize(srdag_.get());
-            //monitor_->endSampling();
+            TRACE_TRANSFO_END();
         }
 
         /* == Update schedule, run and wait == */
@@ -251,15 +283,15 @@ bool spider::JITMSRuntime::dynamicExecute() {
             }
 
             /* == Transform dynamic jobs == */
-            //monitor_->startSampling();
+            TRACE_TRANSFO_START();
             transformDynamicJobs(staticJobStack, dynamicJobStack);
-            //monitor_->endSampling();
+            TRACE_TRANSFO_END();
 
             /* == Apply graph optimizations == */
             if (api::shouldOptimizeSRDAG()) {
-                //monitor_->startSampling();
+                TRACE_TRANSFO_START();
                 optims::optimize(srdag_.get());
-                //monitor_->endSampling();
+                TRACE_TRANSFO_END();
             }
 
             /* == Update schedule, run and wait == */
@@ -294,6 +326,8 @@ bool spider::JITMSRuntime::dynamicExecute() {
 }
 
 void spider::JITMSRuntime::scheduleRunAndWait(bool shouldBroadcast) {
+    TraceMessage schedMsg{ };
+    TRACE_SCHEDULE_START();
     /* == Send LRT_START_ITERATION notification == */
     rt::platform()->sendStartIteration();
 
@@ -310,6 +344,7 @@ void spider::JITMSRuntime::scheduleRunAndWait(bool shouldBroadcast) {
 
     /* == Send LRT_END_ITERATION notification == */
     rt::platform()->sendEndIteration();
+    TRACE_SCHEDULE_END();
 
     /* == If there are jobs left, run == */
     rt::platform()->runner(archi::platform()->getGRTIx())->run(false);

@@ -43,6 +43,8 @@
 /* === Include(s) === */
 
 #include <common/Exporter.h>
+#include <containers/vector.h>
+#include <scheduling/schedule/exporter/GanttTask.h>
 
 namespace spider {
 
@@ -74,7 +76,13 @@ namespace spider {
          */
         void print() const override;
 
+        /**
+         * @brief Print directly from the schedule information.
+         * @param file pointer to the file.
+         */
         void printFromFile(FILE *file) const override;
+
+        void printFromTasks(const vector<GanttTask> &taskVector, const std::string &path = "./gantt.xml");
 
     private:
         const Schedule *schedule_ = nullptr;

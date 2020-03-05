@@ -327,4 +327,28 @@ void spider::SchedSVGGanttExporter::taskPrinter(FILE *file, const ScheduleTask *
     printer::fprintf(file, "</g>");
 }
 
+void spider::SchedSVGGanttExporter::printFromTasks(const vector<spider::GanttTask> &,
+                                                   const std::string &path) {
+    auto *file = std::fopen(path.c_str(), "w+");
+    if (!file) {
+        throwSpiderException("Failed to open file with path [%s]", path.c_str());
+    }
+    /* == Print header == */
+    headerPrinter(file);
+
+    /* == Print the name of the processors == */
+    pePrinter(file);
+
+    /* == Print the arrows == */
+    axisPrinter(file);
+
+    /* == Print the jobs == */
+    for (auto &task : schedule_->tasks()) {
+        taskPrinter(file, task.get());
+    }
+    printer::fprintf(file, " </g>\n");
+    printer::fprintf(file, "</svg>");
+    std::fclose(file);
+}
+
 

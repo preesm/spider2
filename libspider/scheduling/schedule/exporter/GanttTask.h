@@ -37,75 +37,24 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_SCHEDSVGGANTTEXPORTER_H
-#define SPIDER2_SCHEDSVGGANTTEXPORTER_H
+#ifndef SPIDER2_GANTTTASK_H
+#define SPIDER2_GANTTTASK_H
 
 /* === Include(s) === */
 
-#include <common/Exporter.h>
 #include <common/Types.h>
-#include <containers/vector.h>
-#include <scheduling/schedule/exporter/GanttTask.h>
-
+#include <string>
 
 namespace spider {
 
-    /* === Forward declaration(s) === */
-
-    class Schedule;
-
-    class ScheduleTask;
-
-    namespace pisdf {
-        class Graph;
-    }
-
     /* === Class definition === */
 
-    class SchedSVGGanttExporter final : public Exporter {
-    public:
-
-        explicit SchedSVGGanttExporter(const Schedule *schedule);
-
-        ~SchedSVGGanttExporter() override = default;
-
-        /* === Method(s) === */
-
-        /**
-         * @brief Print the graph to default file path.
-         * @remark default path: ./gantt.svg
-         */
-        void print() const override;
-
-        void printFromFile(FILE *file) const override;
-
-        void printFromTasks(const vector<GanttTask> &taskVector, const std::string &path = "./gantt.xml");
-
-    private:
-        const Schedule *schedule_ = nullptr;
-        double widthMin_ = 0;
-        double widthMax_ = 0;
-        double alpha_ = 0.;
-        u64 width_ = 0;
-        u64 height_ = 0;
-        u64 makespanWidth_ = 0;
-        u32 offsetX_ = 0;
-
-        /* === Private method(s) === */
-
-        u32 computeRealXOffset() const;
-
-        u64 computeWidth(u64 time) const;
-
-        void pePrinter(FILE *file) const;
-
-        void headerPrinter(FILE *file) const;
-
-        void axisPrinter(FILE *file) const;
-
-        void taskPrinter(FILE *file, const ScheduleTask *task) const;
+    struct GanttTask {
+        std::string name_;
+        const char* color_;
+        u64 start_;
+        u64 end_;
+        size_t pe_;
     };
-
-    /* === Inline method(s) === */
 }
-#endif //SPIDER2_SCHEDSVGGANTTEXPORTER_H
+#endif //SPIDER2_GANTTTASK_H

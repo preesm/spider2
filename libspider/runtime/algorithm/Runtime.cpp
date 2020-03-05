@@ -52,6 +52,14 @@
 #include <api/config-api.h>
 #include <api/runtime-api.h>
 
+/* === Static variable === */
+
+constexpr const char *VERTEX_TASK_COLOR = "#6C7A89";
+constexpr const char *SCHEDULE_TASK_COLOR = "#F22613";
+constexpr const char *TRANSFO_TASK_COLOR = "#F39C12";
+constexpr const char *PARAM_TASK_COLOR = "#5333ED";
+constexpr const char *MEMORY_TASK_COLOR = "#26A65B";
+
 /* === Static function(s) definition === */
 
 static void
@@ -76,6 +84,10 @@ updateScheduleTaskTimes(spider::TraceMessage &msg,
     }
 }
 
+static u64 getTime(spider::time::time_point value, spider::time::time_point offset) {
+    return static_cast<u64>(spider::time::duration::microseconds(offset, value));
+}
+
 /* === Function(s) definition === */
 
 void spider::Runtime::exportPreExecGantt(Schedule *schedule, const std::string &path) {
@@ -95,27 +107,45 @@ void spider::Runtime::exportPostExecGantt(pisdf::Graph *graph,
     if (!graph || !schedule) {
         return;
     }
-    schedule->stats().reset();
+    auto ganttTasks = factory::vector<GanttTask>();
     /* == Get execution traces and update schedule info == */
     Notification notification;
     while (rt::platform()->communicator()->popTraceNotification(notification)) {
         TraceMessage msg;
         rt::platform()->communicator()->pop(msg, archi::platform()->getGRTIx(), notification.notificationIx_);
+        GanttTask task;
+        task.start_ = getTime(msg.startTime_, offset);
+        task.end_ = getTime(msg.endTime_, offset);
+        task.pe_ = notification.senderIx_;
         switch (notification.type_) {
-            case NotificationType::TRACE_TASK:
-                updateScheduleTaskTimes(msg, graph, schedule, offset);
+            case NotificationType::TRACE_TASK: {
+                auto *vertex = graph->vertex(msg.taskIx_);
+                if (vertex) {
+                    task.name_ = vertex->name();
+                    task.color_ = VERTEX_TASK_COLOR;
+                }
+            }
                 break;
             case NotificationType::TRACE_SCHEDULE:
+                task.name_ = "schedule";
+                task.color_ = SCHEDULE_TASK_COLOR;
                 break;
             case NotificationType::TRACE_TRANSFO:
+                task.name_ = "transfo";
+                task.color_ = TRANSFO_TASK_COLOR;
                 break;
             case NotificationType::TRACE_PARAM:
+                task.name_ = "parameters";
+                task.color_ = PARAM_TASK_COLOR;
                 break;
             case NotificationType::TRACE_MEMORY:
+                task.name_ = "memory";
+                task.color_ = MEMORY_TASK_COLOR;
                 break;
             default:
                 throwSpiderException("received unexpected notification type");
         }
+        ganttTasks.emplace_back(std::move(task));
     }
 
     /* == Export the schedule == */
@@ -124,6 +154,6 @@ void spider::Runtime::exportPostExecGantt(pisdf::Graph *graph,
         exporter.printFromPath(path + ".svg");
     } else {
         SchedXMLGanttExporter exporter{ schedule };
-        exporter.printFromPath(path + ".xml");
+        exporter.printFromTasks(ganttTasks, path + ".xml");
     }
 }

@@ -80,3 +80,22 @@ void spider::SchedXMLGanttExporter::printTask(FILE *file, const ScheduleTask *ta
     printer::fprintf(file, "\t\t" R"(color="#%.2X%.2X%.2X")" "\n", red, green, blue);
     printer::fprintf(file, "\t\t>%s.</event>\n", name.c_str());
 }
+
+void spider::SchedXMLGanttExporter::printFromTasks(const vector<GanttTask> &taskVector, const std::string &path) {
+    auto *file = std::fopen(path.c_str(), "w+");
+    if (!file) {
+        throwSpiderException("Failed to open file with path [%s]", path.c_str());
+    }
+    printer::fprintf(file, "<data>\n");
+    for (auto &task : taskVector) {
+        printer::fprintf(file, "\t<event\n");
+        printer::fprintf(file, "\t\t" R"(start=")" "%" PRIu64"" R"(")" "\n", task.start_);
+        printer::fprintf(file, "\t\t" R"(end=")" "%" PRIu64"" R"(")" "\n", task.end_);
+        printer::fprintf(file, "\t\t" R"(title="%s")" "\n", task.name_.c_str());
+        printer::fprintf(file, "\t\t" R"(mapping="%s")" "\n", archi::platform()->peFromVirtualIx(task.pe_)->name().c_str());
+        printer::fprintf(file, "\t\t" R"(color="%s")" "\n", task.color_);
+        printer::fprintf(file, "\t\t>%s.</event>\n", task.name_.c_str());
+    }
+    printer::fprintf(file, "</data>\n");
+    std::fclose(file);
+}
