@@ -202,8 +202,9 @@ static spider::Runtime *getRuntimeFromType(spider::RuntimeType type, spider::Sch
             return spider::make<spider::JITMSRuntime>(StackID::GENERAL, spider::pisdf::applicationGraph(), algorithm);
         case spider::RuntimeType::FAST_JITMS:
             return spider::make<spider::FastJITMSRuntime>(StackID::GENERAL, spider::pisdf::applicationGraph(), algorithm);
+        default:
+            return nullptr;
     }
-    return nullptr;
 }
 
 void spider::run(RunMode mode, size_t loopCount, RuntimeType type, SchedulingAlgorithm algorithm) {
