@@ -160,10 +160,12 @@ void spider::rt::repeat(const int64_t *paramsIn, int64_t *, void **in, void **ou
     }
 }
 
-void spider::rt::init(const int64_t *, int64_t *, void **, void **) {
-    log::info("Init vertex.\n");
+void spider::rt::init(const int64_t *paramsIn, int64_t *, void **, void **out) {
+    const auto isPersistent = paramsIn[0];
+    const auto outputSize = paramsIn[1];
+    if (!isPersistent) {
+        std::memset(out[0], 0, static_cast<size_t>(outputSize));
+    }
 }
 
-void spider::rt::end(const int64_t *, int64_t *, void **, void **) {
-    log::info("End vertex.\n");
-}
+void spider::rt::end(const int64_t *, int64_t *, void **, void **) { }
