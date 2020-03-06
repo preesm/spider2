@@ -51,6 +51,7 @@
 #include <archi/PE.h>
 #include <archi/Platform.h>
 #include <archi/MemoryBus.h>
+#include <scheduling/scheduler/srdagless/SRLessBestFitScheduler.h>
 
 /* === Static function(s) definition === */
 
@@ -314,6 +315,12 @@ spider::unique_ptr<spider::Scheduler> spider::makeScheduler(SchedulingAlgorithm 
         case SchedulingAlgorithm::GREEDY:
             scheduler = make<GreedyScheduler, StackID::SCHEDULE>(graph);
             break;
+        case SchedulingAlgorithm::SRLESS_LIST_BEST_FIT:
+            scheduler = make<SRLessBestFitScheduler, StackID::SCHEDULE>(graph);
+            break;
+//        case SchedulingAlgorithm::SRLESS_GREEDY:
+//            scheduler = make<GreedyScheduler, StackID::SCHEDULE>(graph);
+//            break;
     }
     return make_unique<Scheduler>(scheduler);
 }

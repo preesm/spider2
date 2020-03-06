@@ -56,48 +56,7 @@
 #include <scheduling/schedule/exporter/SchedSVGGanttExporter.h>
 #include <graphs-tools/helper/pisdf.h>
 
-/* === Define(s) === */
-
-#define TRACE_TRANSFO_START()\
-    if (api::exportTraceEnabled()) {\
-        transfoMsg.startTime_ = time::now();\
-    }
-
-#define TRACE_TRANSFO_END() \
-    if (api::exportTraceEnabled()) {\
-        transfoMsg.endTime_ = time::now();\
-        auto *communicator = rt::platform()->communicator();\
-        auto msgIx = communicator->push(transfoMsg, archi::platform()->getGRTIx());\
-        communicator->pushTraceNotification(Notification{ NotificationType::TRACE_TRANSFO, archi::platform()->getGRTIx(), msgIx });\
-    }
-
-#define TRACE_SCHEDULE_START()\
-    if (api::exportTraceEnabled()) {\
-        schedMsg.startTime_ = time::now();\
-    }
-
-#define TRACE_SCHEDULE_END() \
-    if (api::exportTraceEnabled()) {\
-        schedMsg.endTime_ = time::now();\
-        auto *communicator = rt::platform()->communicator();\
-        auto msgIx = communicator->push(schedMsg, archi::platform()->getGRTIx());\
-        communicator->pushTraceNotification(Notification{ NotificationType::TRACE_SCHEDULE, archi::platform()->getGRTIx(), msgIx });\
-    }
-
-
 /* === Static function(s) === */
-
-static spider::FifoAllocator *makeFifoAllocator(spider::FifoAllocatorType type) {
-    switch (type) {
-        case spider::FifoAllocatorType::DEFAULT:
-            return spider::make<spider::DefaultFifoAllocator, StackID::RUNTIME>();
-        case spider::FifoAllocatorType::ARCHI_AWARE:
-            break;
-        default:
-            throwSpiderException("unsupported type of FifoAllocator.");
-    }
-    return nullptr;
-}
 
 /* === Method(s) implementation === */
 

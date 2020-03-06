@@ -68,7 +68,6 @@ spider::ScheduleTask::ScheduleTask(pisdf::Vertex *vertex) : ScheduleTask(TaskTyp
         throwSpiderException("creating TaskType::VERTEX task with nullptr vertex.");
     }
     internal_ = vertex;
-    setNumberOfDependencies(vertex->inputEdgeCount());
     outputFifos_.reserve(vertex->outputEdgeCount());
 }
 

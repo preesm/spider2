@@ -47,21 +47,22 @@
 #include <api/runtime-api.h>
 #include <scheduling/scheduler/BestFitScheduler.h>
 #include <scheduling/allocator/DefaultFifoAllocator.h>
+#include <graphs-tools/numerical/brv.h>
 #include <graphs-tools/helper/pisdf.h>
+#include <api/config-api.h>
 
 /* === Static function === */
 
-static spider::FifoAllocator *makeFifoAllocator(spider::FifoAllocatorType type) {
-    switch (type) {
-        case spider::FifoAllocatorType::DEFAULT:
-            return spider::make<spider::DefaultFifoAllocator, StackID::RUNTIME>();
-        case spider::FifoAllocatorType::ARCHI_AWARE:
-            break;
-        default:
-            throwSpiderException("unsupported type of FifoAllocator.");
+static void computeRVRecursive(spider::pisdf::Graph *graph) {
+    if (graph->dynamic()) {
+        return;
     }
-    return nullptr;
+    spider::brv::compute(graph, graph->params());
+    for (auto &subgraph : graph->subgraphs()) {
+        computeRVRecursive(subgraph);
+    }
 }
+
 
 /* === Method(s) implementation === */
 
@@ -90,23 +91,51 @@ bool spider::FastJITMSRuntime::staticExecute() {
     const auto grtIx = archi::platform()->spiderGRTPE()->attachedLRT()->virtualIx();
     static bool first = true;
     if (!first) {
+//        TraceMessage schedMsg{ };
+//        TRACE_SCHEDULE_START();
         /* == Send LRT_START_ITERATION notification == */
         rt::platform()->sendStartIteration();
-
-        /* == Just reset the schedule and re-run it == */
-        scheduler_->schedule().sendReadyTasks();
-
         /* == Send LRT_END_ITERATION notification == */
         rt::platform()->sendEndIteration();
-
+//        TRACE_SCHEDULE_END();
         /* == Run and wait == */
         rt::platform()->runner(grtIx)->run(false);
         rt::platform()->waitForRunnersToFinish();
-        rt::platform()->sendClearToRunners();
-        scheduler_->schedule().reset();
+        /* == Runners should reset their parameters == */
+        rt::platform()->sendResetToRunners();
         return true;
     }
     first = false;
+
+    /* == Runners should repeat their iteration == */
+//    rt::platform()->sendRepeatToRunners(true);
+
+    /* == Compute brv == */
+//    TraceMessage transfoMsg{ };
+//    TRACE_TRANSFO_START();
+    computeRVRecursive(graph_);
+//    TRACE_TRANSFO_END();
+
+//    TraceMessage schedMsg{ };
+//    TRACE_SCHEDULE_START();
+    /* == Send LRT_START_ITERATION notification == */
+//    rt::platform()->sendStartIteration();
+
+    /* == Schedule == */
+    scheduler_->update();
+    scheduler_->execute();
+
+    /* == Send LRT_END_ITERATION notification == */
+//    rt::platform()->sendEndIteration();
+//    TRACE_SCHEDULE_END();
+    exportPreExecGantt(&scheduler_->schedule());
+
+    /* == Run and wait == */
+//    rt::platform()->runner(grtIx)->run(false);
+//    rt::platform()->waitForRunnersToFinish();
+
+    /* == Runners should reset their parameters == */
+//    rt::platform()->sendResetToRunners();
     return true;
 }
 

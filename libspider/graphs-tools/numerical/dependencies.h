@@ -124,21 +124,54 @@ namespace spider {
             return std::min(sinkRepetitionValue, upperDep);
         }
 
-        inline int_fast64_t computeProdLowerDep(int_fast64_t sinkRate,
-                                                int_fast64_t sourceRate,
-                                                int_fast32_t instance,
+        /**
+         * @brief Compute the lower production dependency of a vertex in a flat graph:
+         *                     |   k * p + d   |
+         *         lower_dep = | ------------- |
+         *                     |_     c       _|
+         *
+         *         with c = consumption, p = production, k = firing and d = delay.
+         *
+         * @remark edge: sourceRate -> delay -> sinkRate
+         * @remark If dependency is inferior to 0, it will be bound to -1. Such value means that the instance depends on
+         * the delay initialization.
+         * @param consumption  Consumption value on the edge.
+         * @param production   Production value on the edge.
+         * @param firing       Firing of the vertex.
+         * @param delay        Value of the delay.
+         * @return value of the lower firing dependency on the consumer.
+         */
+        inline int_fast64_t computeProdLowerDep(int_fast64_t consumption,
+                                                int_fast64_t production,
+                                                int_fast32_t firing,
                                                 int_fast64_t delay) {
-            int_fast64_t produced = instance * sourceRate + delay;
-            int_fast64_t lowerDep = produced / sinkRate;
+            int_fast64_t produced = firing * production + delay;
+            int_fast64_t lowerDep = produced / consumption;
             return lowerDep;
         }
 
-        inline int_fast64_t computeProdUpperDep(int_fast64_t sinkRate,
-                                                int_fast64_t sourceRate,
-                                                int_fast32_t instance,
+
+        /**
+         * @brief Compute the upper production dependency of a vertex in a flat graph:
+         *                     |  (k + 1) * p + d - 1  |
+         *         upper_dep = | --------------------- |
+         *                     |_         c           _|
+         *
+         *         with c = consumption, p = production, k = firing and d = delay.
+         *
+         * @remark: edge: sourceRate -> delay -> sinkRate
+         * @param consumption  Consumption value on the edge.
+         * @param production   Production value on the edge.
+         * @param firing       Firing of the vertex.
+         * @param delay        Value of the delay.
+         * @return value of the upper firing dependency on the consumer.
+         */
+        inline int_fast64_t computeProdUpperDep(int_fast64_t consumption,
+                                                int_fast64_t production,
+                                                int_fast32_t firing,
                                                 int_fast64_t delay) {
-            int_fast64_t produced = (instance + 1) * sourceRate + delay - 1;
-            int_fast64_t upperDep = produced / sinkRate;
+            int_fast64_t produced = (firing + 1) * production + delay - 1;
+            int_fast64_t upperDep = produced / consumption;
             return upperDep;
         }
     }

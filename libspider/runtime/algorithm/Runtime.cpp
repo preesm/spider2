@@ -51,6 +51,8 @@
 #include <runtime/interface/Notification.h>
 #include <api/config-api.h>
 #include <api/runtime-api.h>
+#include <scheduling/allocator/FifoAllocator.h>
+#include <scheduling/allocator/DefaultFifoAllocator.h>
 
 /* === Static variable === */
 
@@ -152,4 +154,16 @@ void spider::Runtime::exportPostExecGantt(pisdf::Graph *graph,
         SchedXMLGanttExporter exporter{ schedule };
         exporter.printFromTasks(ganttTasks, path + ".xml");
     }
+}
+
+spider::FifoAllocator *spider::Runtime::makeFifoAllocator(FifoAllocatorType type) {
+    switch (type) {
+        case spider::FifoAllocatorType::DEFAULT:
+            return spider::make<DefaultFifoAllocator, StackID::RUNTIME>();
+        case spider::FifoAllocatorType::ARCHI_AWARE:
+            break;
+        default:
+            throwSpiderException("unsupported type of FifoAllocator.");
+    }
+    return nullptr;
 }
