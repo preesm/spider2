@@ -174,9 +174,10 @@ namespace spider {
      * @brief Spider scheduling algorithms.
      */
     enum class SchedulingAlgorithm {
-        LIST_BEST_FIT,    /*!< Use a list based algorithm with best fit mapping decision */
-        LIST_ROUND_ROBIN, /*!< Use a list based algorithm with round robin mapping decision */
-        GREEDY,           /*!< Greedy algorithm with no heuristics */
+        LIST_BEST_FIT,        /*!< Use a list based algorithm with best fit mapping decision (use srdag) */
+        LIST_ROUND_ROBIN,     /*!< Use a list based algorithm with round robin mapping decision (use srdag) */
+        GREEDY,               /*!< Greedy algorithm with no heuristics (use srdag) */
+        SRLESS_LIST_BEST_FIT, /*!< Use a list based algorithm with best fit mapping decision (srdag less version) */
     };
 
     /**
