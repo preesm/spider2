@@ -323,6 +323,9 @@ void spider::ScheduleTask::setJobMessageInputFifos(JobMessage &message) const {
     for (size_t inputIx = 0; inputIx < inputEdgeCount; ++inputIx) {
         auto &task = dependenciesArray_[inputIx];
         message.inputFifoArray_[inputIx] = RTFifo{ };
+        if (!task) {
+            continue;
+        }
         if (task->type() == TaskType::VERTEX) {
             const auto edge = vertex->inputEdge(inputIx);
             auto &fifo = task->outputFifos_[edge->sourcePortIx()];
@@ -356,7 +359,8 @@ void spider::ScheduleTask::setJobMessageOutputFifos(JobMessage &message) const {
     const auto outputEdgeCount{ vertex->outputEdgeCount() };
     message.outputFifoArray_ = array<RTFifo>(outputEdgeCount, StackID::RUNTIME);
     if (vertex->subtype() == pisdf::VertexType::FORK) {
-        auto address = message.inputFifoArray_[0].virtualAddress_;
+        auto &inputFifo = message.inputFifoArray_[0];
+        auto address = inputFifo.virtualAddress_;
         for (size_t outputIx = 0; outputIx < outputEdgeCount; ++outputIx) {
             message.outputFifoArray_[outputIx] = RTFifo();
             message.outputFifoArray_[outputIx].attribute_ = FifoAttribute::WRITE_ONLY;
@@ -364,6 +368,7 @@ void spider::ScheduleTask::setJobMessageOutputFifos(JobMessage &message) const {
             message.outputFifoArray_[outputIx].offset_ = static_cast<u32>(address -
                                                                           message.inputFifoArray_[0].virtualAddress_);
             message.outputFifoArray_[outputIx].size_ = outputFifos_[outputIx].size_;
+            inputFifo.count_ -= (outputFifos_[outputIx].size_ == 0);
             address += outputFifos_[outputIx].size_;
             outputFifos_[outputIx] = message.outputFifoArray_[outputIx];
         }

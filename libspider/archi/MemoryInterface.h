@@ -137,6 +137,7 @@ namespace spider {
     private:
         struct buffer_t {
             void *buffer_;
+            size_t size_;
             u32 count_;
         };
         /* = Map associating virtual address to physical ones = */
@@ -158,8 +159,9 @@ namespace spider {
          * @brief Register a physical address associated with a given virtual address.
          * @param virtualAddress   Virtual address to evaluate.
          * @param physicalAddress  Physical address to register.
+         * @param size             Size of the memory to allocate.
          */
-        void registerPhysicalAddress(uint64_t virtualAddress, void *physicalAddress);
+        void registerPhysicalAddress(uint64_t virtualAddress, void *physicalAddress, size_t size);
 
         /**
          * @brief Retrieve the physical address corresponding to the given virtual address.
