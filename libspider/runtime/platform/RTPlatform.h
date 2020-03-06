@@ -105,6 +105,17 @@ namespace spider {
         void sendClearToRunners() const;
 
         /**
+         * @brief send LRT_RST_ITERATION notification to every runners.
+         */
+        void sendResetToRunners() const;
+
+        /**
+         * @brief Send LRT_REPEAT_ITERATION_EN(DIS) notification to every runners.
+         * @param value if true send LRT_REPEAT_ITERATION_EN, else send LRT_REPEAT_ITERATION_DIS
+         */
+        void sendRepeatToRunners(bool value) const;
+
+        /**
          * @brief Wait for every runners to send the LRT_FINISHED_ITERATION notification.
          */
         void waitForRunnersToFinish();

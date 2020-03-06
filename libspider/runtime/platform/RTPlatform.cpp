@@ -119,17 +119,31 @@ void spider::RTPlatform::sendEndIteration() const {
 }
 
 void spider::RTPlatform::sendDelayedBroadCastToRunners() const {
-    Notification startIterNotification{ NotificationType::JOB_DELAY_BROADCAST_JOBSTAMP,
-                                        archi::platform()->spiderGRTPE()->attachedLRT()->virtualIx() };
     for (size_t i = 0; i < archi::platform()->LRTCount(); ++i) {
-        communicator()->push(startIterNotification, i);
+        communicator()->push(
+                Notification{ NotificationType::JOB_DELAY_BROADCAST_JOBSTAMP, archi::platform()->getGRTIx() }, i);
     }
 }
 
 void spider::RTPlatform::sendClearToRunners() const {
-    const auto grtIx = archi::platform()->spiderGRTPE()->attachedLRT()->virtualIx();
+    const auto grtIx = archi::platform()->getGRTIx();
     for (size_t i = 0; i < archi::platform()->LRTCount(); ++i) {
         communicator()->push(Notification{ NotificationType::LRT_CLEAR_ITERATION, grtIx }, i);
+    }
+}
+
+void spider::RTPlatform::sendResetToRunners() const {
+    const auto grtIx = archi::platform()->getGRTIx();
+    for (size_t i = 0; i < archi::platform()->LRTCount(); ++i) {
+        communicator()->push(Notification{ NotificationType::LRT_RST_ITERATION, grtIx }, i);
+    }
+}
+
+void spider::RTPlatform::sendRepeatToRunners(bool value) const {
+    NotificationType type = value ? NotificationType::LRT_REPEAT_ITERATION_EN
+                                  : NotificationType::LRT_REPEAT_ITERATION_DIS;
+    for (size_t i = 0; i < archi::platform()->LRTCount(); ++i) {
+        communicator()->push(Notification{ type, archi::platform()->getGRTIx() }, i);
     }
 }
 
