@@ -74,6 +74,11 @@ namespace spider {
 
         virtual void begin() = 0;
 
+        /**
+         * @brief Reset all information and ready to start as new.
+         */
+        virtual void reset();
+
         /* === Getter(s) === */
 
         inline size_t ix() const {
@@ -98,6 +103,7 @@ namespace spider {
         bool stop_{ false };
         bool pause_{ false };
         bool trace_{ false };
+        bool repeat_{ false };
 
         /**
          * @brief Clear all the local copies of other LRT job stamps.

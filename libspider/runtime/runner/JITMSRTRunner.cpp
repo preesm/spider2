@@ -206,7 +206,7 @@ void spider::JITMSRTRunner::run(bool infiniteLoop) {
         }
 
         /* == If there is a job available, do it == */
-        if (jobQueueCurrentPos_ != jobQueue_.size()) {
+        if (start_ && (jobQueueCurrentPos_ != jobQueue_.size())) {
             auto &job = jobQueue_[jobQueueCurrentPos_];
             waitForJob = !isJobRunnable(job);
             if (!waitForJob) {
@@ -231,7 +231,9 @@ void spider::JITMSRTRunner::run(bool infiniteLoop) {
             sendFinishedNotification();
 
             /* == Reset state == */
-            clearJobQueue();
+            if (!repeat_) {
+                clearJobQueue();
+            }
             finished_ = true;
             start_ = false;
             receivedEnd_ = false;
@@ -366,11 +368,20 @@ bool spider::JITMSRTRunner::readNotification(bool blocking) {
         case NotificationType::LRT_CLEAR_ITERATION:
             clear();
             break;
+        case NotificationType::LRT_RST_ITERATION:
+            reset();
+            break;
         case NotificationType::LRT_FINISHED_ITERATION:
             if (attachedPE_ != archi::platform()->spiderGRTPE()) {
                 throwSpiderException("Runner #%zu --> received notification for GRT.", ix());
             }
             rt::platform()->registerFinishedRunner(notification.senderIx_);
+            break;
+        case NotificationType::LRT_REPEAT_ITERATION_EN:
+            repeat_ = true;
+            break;
+        case NotificationType::LRT_REPEAT_ITERATION_DIS:
+            repeat_ = false;
             break;
         case NotificationType::LRT_STOP:
             stop_ = true;
@@ -429,6 +440,16 @@ void spider::JITMSRTRunner::updateJobStamp(size_t lrtIx, size_t jobStampValue) {
 void spider::JITMSRTRunner::clear() {
     clearLocalJobStamps();
     clearJobQueue();
+    jobCount_ = 0;
+    lastJobStamp_ = SIZE_MAX;
+    shouldBroadcast_ = false;
+    start_ = false;
+    receivedEnd_ = false;
+    finished_ = true;
+}
+
+void spider::JITMSRTRunner::reset() {
+    RTRunner::reset();
     jobCount_ = 0;
     lastJobStamp_ = SIZE_MAX;
     shouldBroadcast_ = false;

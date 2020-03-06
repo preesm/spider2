@@ -133,3 +133,8 @@ void spider::RTRunner::sendParameters(size_t vertexIx, array<int64_t> &parameter
         rt::platform()->communicator()->pushParamNotification(attachedPE_->virtualIx(), index);
     }
 }
+
+void spider::RTRunner::reset() {
+    clearLocalJobStamps();
+    jobQueueCurrentPos_ = 0;
+}

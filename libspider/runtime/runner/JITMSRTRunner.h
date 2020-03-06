@@ -64,6 +64,11 @@ namespace spider {
 
         void begin() override;
 
+        /**
+         * @brief Reset all information and ready to start again the same iteration.
+         */
+        void reset() override;
+
         /* === Getter(s) === */
 
         /* === Setter(s) === */
