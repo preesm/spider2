@@ -53,8 +53,12 @@ spider::MemoryInterface::MemoryInterface(uint64_t size) : size_{ size }, used_{ 
 
 /* === Private method(s) implementation === */
 
-void *spider::MemoryInterface::read(uint64_t virtualAddress) {
+void *spider::MemoryInterface::read(uint64_t virtualAddress, u32 count) {
     std::lock_guard<std::mutex> lockGuard{ lock_ };
+    auto *buffer = retrieveBuffer(virtualAddress);
+    if (count > 1) {
+        buffer->count_ += (count - 1);
+    }
     return retrieveBuffer(virtualAddress)->buffer_;
 }
 
@@ -91,14 +95,14 @@ void spider::MemoryInterface::deallocate(uint64_t virtualAddress, size_t size) {
     if (size > used_) {
         throwSpiderException("Deallocating more memory than used.");
     }
-    used_ -= size;
     auto *buffer = retrieveBuffer(virtualAddress);
     if (!(--(buffer->count_))) {
+        used_ -= size;
         deallocateRoutine_(buffer->buffer_);
     }
 }
 
-void spider::MemoryInterface::reset() {
+void spider::MemoryInterface::clear() {
     virtual2Phys_.clear();
 }
 

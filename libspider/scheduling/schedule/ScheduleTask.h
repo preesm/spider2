@@ -332,7 +332,7 @@ namespace spider {
         void setInternal(void *information);
 
     protected:
-        vector<RTFifo> outputFifos_;
+        mutable vector<RTFifo> outputFifos_;
         array<ScheduleTask *> dependenciesArray_;
         unique_ptr<i32> executionConstraints_;
         unique_ptr<bool> notificationFlags_;

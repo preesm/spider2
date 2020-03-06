@@ -60,10 +60,12 @@ namespace spider {
 
         /**
          * @brief Read memory at the given memory virtual address.
+         * @remark if count is 0, the value is discarded.
          * @param virtualAddress  Virtual address to evaluate.
+         * @param count           Number of use of the buffer to set.
          * @return physical address corresponding to the virtual address.
          */
-        void *read(uint64_t virtualAddress);
+        void *read(uint64_t virtualAddress, u32 count = 1);
 
         /**
          * @brief Allocate memory to the given virtual address.
@@ -83,7 +85,7 @@ namespace spider {
         /**
          * @brief Reset the memory interface.
          */
-        void reset();
+        void clear();
 
 
         /* === Getter(s) === */
@@ -135,7 +137,7 @@ namespace spider {
     private:
         struct buffer_t {
             void *buffer_;
-            i32 count_;
+            u32 count_;
         };
         /* = Map associating virtual address to physical ones = */
         spider::unordered_map<uint64_t, buffer_t> virtual2Phys_;

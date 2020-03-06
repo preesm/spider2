@@ -76,7 +76,7 @@ namespace spider {
         inline void clear() noexcept override {
             virtualMemoryAddress_ = 0;
             for (auto &cluster : archi::platform()->clusters()) {
-                cluster->memoryInterface()->reset();
+                cluster->memoryInterface()->clear();
             }
         }
 

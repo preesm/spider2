@@ -60,6 +60,7 @@ namespace spider {
         u64 virtualAddress_ = UINT64_MAX;                   /* = Virtual address of the Fifo = */
         u32 size_ = 0;                                      /* = Size of the Fifo = */
         u32 offset_ = 0;                                    /* = Offset in the address = */
+        u32 count_ = 1;                                     /* = Number of use of this FIFO = */
         FifoAttribute attribute_ = FifoAttribute::READ_OWN; /* = Attribute of the Fifo = */
     };
 }

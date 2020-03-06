@@ -322,16 +322,25 @@ void spider::ScheduleTask::setJobMessageInputFifos(JobMessage &message) const {
     message.inputFifoArray_ = array<RTFifo>(inputEdgeCount, StackID::RUNTIME);
     for (size_t inputIx = 0; inputIx < inputEdgeCount; ++inputIx) {
         auto &task = dependenciesArray_[inputIx];
-        if (!task) {
-            message.inputFifoArray_[inputIx] = RTFifo{ };
-        } else if (task->type() == TaskType::VERTEX) {
+        message.inputFifoArray_[inputIx] = RTFifo{ };
+        if (task->type() == TaskType::VERTEX) {
             const auto edge = vertex->inputEdge(inputIx);
-            message.inputFifoArray_[inputIx] = task->outputFifos_[edge->sourcePortIx()];
+            auto &fifo = task->outputFifos_[edge->sourcePortIx()];
+            message.inputFifoArray_[inputIx].virtualAddress_ = fifo.virtualAddress_;
+            message.inputFifoArray_[inputIx].size_ = fifo.size_;
+            message.inputFifoArray_[inputIx].offset_ = fifo.offset_;
+            if (vertex->subtype() == pisdf::VertexType::DUPLICATE ||
+                vertex->subtype() == pisdf::VertexType::FORK) {
+                message.inputFifoArray_[inputIx].count_ = static_cast<u32>(vertex->outputEdgeCount());
+                message.inputFifoArray_[inputIx].attribute_ = FifoAttribute::READ_ONLY;
+            } else {
+                message.inputFifoArray_[inputIx].count_ = 1;
+                message.inputFifoArray_[inputIx].attribute_ = FifoAttribute::READ_OWN;
+            }
         } else if (task->type() == TaskType::SYNC_RECEIVE) {
             message.inputFifoArray_[inputIx] = task->outputFifos_[0];
+            message.inputFifoArray_[inputIx].attribute_ = FifoAttribute::READ_OWN;
         }
-        // TODO move handling of input fifos else where for proper attributes
-        message.inputFifoArray_[inputIx].attribute_ = FifoAttribute::READ_OWN;
     }
 }
 
@@ -346,8 +355,31 @@ void spider::ScheduleTask::setJobMessageOutputFifos(JobMessage &message) const {
     auto *vertex = reinterpret_cast<pisdf::Vertex *>(internal_);
     const auto outputEdgeCount{ vertex->outputEdgeCount() };
     message.outputFifoArray_ = array<RTFifo>(outputEdgeCount, StackID::RUNTIME);
-    for (size_t outputIx = 0; outputIx < outputEdgeCount; ++outputIx) {
-        message.outputFifoArray_[outputIx] = outputFifos_[outputIx];
+    if (vertex->subtype() == pisdf::VertexType::FORK) {
+        auto address = message.inputFifoArray_[0].virtualAddress_;
+        for (size_t outputIx = 0; outputIx < outputEdgeCount; ++outputIx) {
+            message.outputFifoArray_[outputIx] = RTFifo();
+            message.outputFifoArray_[outputIx].attribute_ = FifoAttribute::WRITE_ONLY;
+            message.outputFifoArray_[outputIx].virtualAddress_ = message.inputFifoArray_[0].virtualAddress_;
+            message.outputFifoArray_[outputIx].offset_ = static_cast<u32>(address -
+                                                                          message.inputFifoArray_[0].virtualAddress_);
+            message.outputFifoArray_[outputIx].size_ = outputFifos_[outputIx].size_;
+            address += outputFifos_[outputIx].size_;
+            outputFifos_[outputIx] = message.outputFifoArray_[outputIx];
+        }
+    } else if (vertex->subtype() == pisdf::VertexType::DUPLICATE) {
+        for (size_t outputIx = 0; outputIx < outputEdgeCount; ++outputIx) {
+            message.outputFifoArray_[outputIx] = RTFifo();
+            message.outputFifoArray_[outputIx].attribute_ = FifoAttribute::WRITE_ONLY;
+            message.outputFifoArray_[outputIx].virtualAddress_ = message.inputFifoArray_[0].virtualAddress_;
+            message.outputFifoArray_[outputIx].offset_ = 0;
+            message.outputFifoArray_[outputIx].size_ = outputFifos_[outputIx].size_;
+            outputFifos_[outputIx] = message.outputFifoArray_[outputIx];
+        }
+    } else {
+        for (size_t outputIx = 0; outputIx < outputEdgeCount; ++outputIx) {
+            message.outputFifoArray_[outputIx] = outputFifos_[outputIx];
+        }
     }
 }
 

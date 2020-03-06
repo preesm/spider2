@@ -158,7 +158,7 @@ spider::array<void *> createInputFifos(const spider::array<spider::RTFifo> &fifo
     auto bufferIterator = inputBuffersArray.begin();
     for (auto &fifo : fifos) {
         if (fifo.size_) {
-            (*bufferIterator) = memoryInterface->read(fifo.virtualAddress_);
+            (*bufferIterator) = memoryInterface->read(fifo.virtualAddress_, fifo.count_);
             (*bufferIterator) = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>((*bufferIterator)) + fifo.offset_);
         } else {
             (*bufferIterator) = nullptr;
