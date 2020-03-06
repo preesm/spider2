@@ -130,41 +130,34 @@ bool spider::JITMSRuntime::staticExecute() {
         startIterStamp_ = time::now();
     }
     const auto grtIx = archi::platform()->getGRTIx();
-    static bool first = true;
-    if (!first) {
+    if (srdag_->vertexCount()) {
         TraceMessage schedMsg{ };
         TRACE_SCHEDULE_START();
         /* == Send LRT_START_ITERATION notification == */
         rt::platform()->sendStartIteration();
-
-        /* == Just reset the schedule and re-run it == */
-        scheduler_->schedule().sendReadyTasks();
-
         /* == Send LRT_END_ITERATION notification == */
         rt::platform()->sendEndIteration();
         TRACE_SCHEDULE_END();
-
         /* == Run and wait == */
         rt::platform()->runner(grtIx)->run(false);
         rt::platform()->waitForRunnersToFinish();
-        rt::platform()->sendClearToRunners();
+        /* == Runners should reset their parameters == */
+        rt::platform()->sendResetToRunners();
         /* == Export post-exec gantt if needed  == */
         if (api::exportTraceEnabled()) {
             exportPostExecGantt(srdag_.get(), &scheduler_->schedule(), startIterStamp_);
         }
-
-        scheduler_->schedule().reset();
         return true;
     }
-    first = false;
+    /* == Runners should repeat their iteration == */
+    rt::platform()->sendRepeatToRunners(true);
+
     TraceMessage transfoMsg{ };
     TRACE_TRANSFO_START();
-
     /* == Apply first transformation of root graph == */
     auto rootJob = srdag::TransfoJob(graph_);
     rootJob.params_ = graph_->params();
     auto resultRootJob = srdag::singleRateTransformation(rootJob, srdag_.get());
-
     /* == Initialize the job stacks == */
     auto staticJobStack = factory::vector<srdag::TransfoJob>(StackID::TRANSFO);
     updateJobStack(resultRootJob.first, staticJobStack);
@@ -194,27 +187,21 @@ bool spider::JITMSRuntime::staticExecute() {
     /* == Update schedule, run and wait == */
     scheduleRunAndWait(false);
 
+    /* == Runners should reset their parameters == */
+    rt::platform()->sendResetToRunners();
+
     /* == Export srdag if needed  == */
     if (api::exportSRDAGEnabled()) {
         api::exportGraphToDOT(srdag_.get(), "./srdag.dot");
     }
-
     /* == Export pre-exec gantt if needed  == */
     if (api::exportGanttEnabled()) {
         exportPreExecGantt(&scheduler_->schedule());
     }
-
-    /* == Runners should clear their parameters == */
-    rt::platform()->sendClearToRunners();
-
     /* == Export post-exec gantt if needed  == */
     if (api::exportTraceEnabled()) {
         exportPostExecGantt(srdag_.get(), &scheduler_->schedule(), startIterStamp_);
     }
-
-    /* == Reset the scheduler == */
-    scheduler_->schedule().reset();
-
     return true;
 }
 
