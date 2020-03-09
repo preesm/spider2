@@ -55,6 +55,9 @@ namespace spider {
         class Graph;
 
         class Param;
+
+        class Vertex;
+
     }
 
     namespace srdagless {
@@ -63,9 +66,17 @@ namespace spider {
 
         class SRLessHandler {
         public:
-            explicit SRLessHandler(pisdf::Graph *graph);
+            explicit SRLessHandler();
 
             ~SRLessHandler() = default;
+
+            /* === Struct(s) === */
+
+            struct Dependency {
+                pisdf::Vertex *vertex_;
+                i32 first_;
+                i32 last_;
+            };
 
             /* === Method(s) === */
 
@@ -108,7 +119,19 @@ namespace spider {
              */
             void copyParameters(pisdf::Graph *graph, u32 graphRepCount, u32 parentFiring);
 
+            void createsProductionDependencies(pisdf::Vertex *vertex, u32 graphFiring);
+
+            void createsConsumptionDependencies(pisdf::Vertex *vertex, u32 graphFiring);
+
+            void addVertexToBeScheduled(pisdf::Vertex *vertex);
+
+            void clearVertexToBeScheduled();
+
             /* === Getter(s) === */
+
+            const vector<std::shared_ptr<pisdf::Param>> &getParameters(pisdf::Graph *graph, u32 graphFiring) const;
+
+            const vector<pisdf::Vertex*> &getVerticesToSchedule() const;
 
             /**
              * @brief Get the repetition value of a vertex for a given graph firing.
@@ -117,6 +140,7 @@ namespace spider {
              * @return repetition value of the vertex.
              */
             u32 getRepetitionValue(pisdf::Vertex *vertex, u32 graphFiring) const;
+
 
             /* === Setter(s) === */
 
@@ -130,15 +154,23 @@ namespace spider {
 
         private:
             using FiringVector = vector<vector<u32>>;
-            using FiringParamVector = vector<vector<std::shared_ptr<pisdf::Param>>>;
-            unordered_map<pisdf::Graph *, FiringParamVector> graph2Params_;
+            using ParamVector = vector<vector<std::shared_ptr<pisdf::Param>>>;
+            using DependencyVector = vector<vector<Dependency>>;
+
+            unordered_map<pisdf::Graph *, vector<DependencyVector>> prodDependencies_;
+            unordered_map<pisdf::Graph *, vector<DependencyVector>> consDependencies_;
+            unordered_map<pisdf::Graph *, ParamVector> parameters_;
             unordered_map<pisdf::Graph *, FiringVector> graph2RV_;
-            pisdf::Graph *graph_ = nullptr;
+            vector<pisdf::Vertex*> verticesToSchedule_;
 
             /* === Private methods === */
 
-            inline static FiringParamVector makeParamVector() {
+            inline static ParamVector makeParamVector() {
                 return factory::vector<vector<std::shared_ptr<pisdf::Param>>>(StackID::TRANSFO);
+            }
+
+            inline static DependencyVector makeDependencyVector() {
+                return factory::vector<vector<Dependency>>(StackID::TRANSFO);
             }
 
             inline static FiringVector makeRVVector() {
