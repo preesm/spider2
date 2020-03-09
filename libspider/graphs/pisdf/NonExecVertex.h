@@ -50,11 +50,12 @@ namespace spider {
 
         /* === Class definition === */
 
-        class NonExecVertex final : public Vertex {
+        class NonExecVertex : public Vertex {
         public:
-            explicit NonExecVertex(std::string name = "unnamed-non-execvertex",
+            explicit NonExecVertex(VertexType type,
+                                   std::string name = "unnamed-non-execvertex",
                                    size_t edgeINCount = 0,
-                                   size_t edgeOUTCount = 0) : Vertex(VertexType::NORMAL,
+                                   size_t edgeOUTCount = 0) : Vertex(type,
                                                                      std::move(name),
                                                                      edgeINCount,
                                                                      edgeOUTCount) { };
