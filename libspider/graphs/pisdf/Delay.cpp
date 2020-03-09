@@ -44,6 +44,7 @@
 #include <graphs/pisdf/Edge.h>
 #include <graphs/pisdf/Graph.h>
 #include <api/pisdf-api.h>
+#include "DelayVertex.h"
 
 /* === Static variable(s) === */
 
@@ -70,17 +71,11 @@ spider::pisdf::Delay::Delay(int64_t value, Edge *edge,
         throwSpiderException("Persistent delay on edge [%s] can not have setter nor getter.", edge->name().c_str());
     }
 
-    auto persistentParam = api::createStaticParam(edge->graph(), "delay::" + edge->name() + "::persistence",
-                                                  persistent);
-    auto sizeParam = api::createStaticParam(edge->graph(), "delay::" + edge->name() + "::size", value);
-
     /* == If no setter is provided then an INIT is created == */
     if (!setter_) {
         setterPortIx_ = 0; /* = Ensure the proper value of the port ix = */
         setter_ = api::createInit(edge->graph(),
                                   "init::" + edge->sink()->name() + ":" + std::to_string(edge->sinkPortIx()));
-        setter_->addRefinementParameter(persistentParam);
-        setter_->addRefinementParameter(sizeParam);
     }
 
     /* == If no getter is provided then an END is created == */
@@ -88,12 +83,10 @@ spider::pisdf::Delay::Delay(int64_t value, Edge *edge,
         getterPortIx_ = 0; /* = Ensure the proper value of the port ix = */
         getter_ = api::createEnd(edge->graph(),
                                  "end::" + edge->source()->name() + ":" + std::to_string(edge->sourcePortIx()));
-        getter_->addRefinementParameter(persistentParam);
-        getter_->addRefinementParameter(sizeParam);
     }
 
     /* == Create virtual vertex and connect it to setter / getter == */
-    vertex_ = make<ExecVertex, StackID::PISDF>(VertexType::DELAY, this->name(), 1u, 1u);
+    vertex_ = make<DelayVertex, StackID::PISDF>(this->name(), this);
     edge->graph()->addVertex(vertex_);
 
     auto *setterEdge = make<Edge, StackID::PISDF>(setter_, setterPortIx_, std::move(setterRateExpression),

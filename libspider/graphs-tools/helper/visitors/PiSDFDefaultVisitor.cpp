@@ -43,18 +43,23 @@
 #include <graphs-tools/helper/visitors/PiSDFDefaultVisitor.h>
 #include <graphs/pisdf/DynamicParam.h>
 #include <graphs/pisdf/InHeritedParam.h>
+#include <graphs/pisdf/DelayVertex.h>
 
 /* === Function(s) definition === */
 
-void spider::pisdf::DefaultVisitor::visit(spider::pisdf::Graph *) {
+void spider::pisdf::DefaultVisitor::visit(Graph *) {
     throwSpiderException("unsupported visitor type: Graph.");
 }
 
-void spider::pisdf::DefaultVisitor::visit(spider::pisdf::ExecVertex *) { }
+void spider::pisdf::DefaultVisitor::visit(ExecVertex *) { }
 
-void spider::pisdf::DefaultVisitor::visit(spider::pisdf::NonExecVertex *) { }
+void spider::pisdf::DefaultVisitor::visit(DelayVertex *vertex) {
+    visit(static_cast<ExecVertex*>(vertex));
+}
 
-void spider::pisdf::DefaultVisitor::visit(spider::pisdf::Interface *) {
+void spider::pisdf::DefaultVisitor::visit(NonExecVertex *) { }
+
+void spider::pisdf::DefaultVisitor::visit(Interface *) {
     throwSpiderException("unsupported visitor type: Interface.");
 }
 

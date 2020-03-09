@@ -42,9 +42,8 @@
 
 /* === Include(s) === */
 
-#include <graphs-tools/helper/visitors/PiSDFVisitor.h>
 #include <common/Exception.h>
-#include <graphs/pisdf/NonExecVertex.h>
+#include <graphs-tools/helper/visitors/PiSDFVisitor.h>
 
 namespace spider {
     namespace pisdf {
@@ -57,6 +56,8 @@ namespace spider {
             void visit(Graph *) override;
 
             void visit(ExecVertex *) override;
+
+            void visit(DelayVertex *vertex) override;
 
             void visit(NonExecVertex *) override;
 

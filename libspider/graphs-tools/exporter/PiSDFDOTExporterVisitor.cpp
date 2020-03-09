@@ -42,6 +42,7 @@
 
 #include <graphs-tools/exporter/PiSDFDOTExporterVisitor.h>
 #include <graphs/pisdf/Delay.h>
+#include <graphs/pisdf/NonExecVertex.h>
 #include <common/Types.h>
 
 /* === Static constant(s) === */

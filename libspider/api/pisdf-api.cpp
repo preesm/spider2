@@ -194,7 +194,10 @@ spider::pisdf::Vertex *spider::api::createNonExecVertex(pisdf::Graph *graph,
     if (!graph) {
         throwSpiderException("nullptr for graph.");
     }
-    auto *vertex = make<pisdf::NonExecVertex, StackID::PISDF>(std::move(name), edgeINCount, edgeOUTCount);
+    auto *vertex = make<pisdf::NonExecVertex, StackID::PISDF>(pisdf::VertexType::NORMAL,
+                                                              std::move(name),
+                                                              edgeINCount,
+                                                              edgeOUTCount);
     graph->addVertex(vertex);
     return vertex;
 }
@@ -564,9 +567,8 @@ static spider::pisdf::Delay *forwardDelayToTop(spider::pisdf::Edge *edge, const 
 
 spider::pisdf::Delay *spider::api::createPersistentDelay(pisdf::Edge *edge, std::string delayExpression) {
     const auto value = checkAndGetValue(edge, std::move(delayExpression));
-    if (!value && spider::log::enabled()) {
-        spider::log::warning("delay with null value on edge [%s] ignored.\n",
-                             edge->name().c_str());
+    if (!value) {
+        log::warning("delay with null value on edge [%s] ignored.\n", edge->name().c_str());
         return nullptr;
     }
     return forwardDelayToTop(edge, value, INT32_MAX);
@@ -579,9 +581,8 @@ spider::pisdf::Delay *spider::api::createLocalPersistentDelay(pisdf::Edge *edge,
         return createPersistentDelay(edge, std::move(delayExpression));
     }
     const auto value = checkAndGetValue(edge, std::move(delayExpression));
-    if (!value && spider::log::enabled()) {
-        spider::log::warning("delay with null value on edge [%s] ignored.\n",
-                             edge->name().c_str());
+    if (!value) {
+        log::warning("delay with null value on edge [%s] ignored.\n", edge->name().c_str());
         return nullptr;
     }
     return forwardDelayToTop(edge, value, levelCount);
@@ -596,9 +597,8 @@ spider::pisdf::Delay *spider::api::createLocalDelay(pisdf::Edge *edge,
                                                     size_t getterPortIx,
                                                     std::string getterRateExpression) {
     const auto value = checkAndGetValue(edge, std::move(delayExpression));
-    if (!value && spider::log::enabled()) {
-        spider::log::warning("delay with null value on edge [%s] ignored.\n",
-                             edge->name().c_str());
+    if (!value) {
+        log::warning("delay with null value on edge [%s] ignored.\n", edge->name().c_str());
         return nullptr;
     }
     auto setterExpr = setter ? std::move(setterRateExpression) : std::to_string(value);

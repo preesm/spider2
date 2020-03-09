@@ -131,6 +131,8 @@ namespace spider {
 
         class ExecVertex;
 
+        class DelayVertex;
+
         class NonExecVertex;
 
         class Graph;
