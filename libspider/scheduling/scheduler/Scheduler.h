@@ -111,23 +111,10 @@ namespace spider {
         /* === Protected struct(s) === */
 
         struct DataDependency {
-            ScheduleTask *task_ = nullptr;
-            PE *sender_ = nullptr;
-            ufast64 size_ = 0;
-            i32 position_ = -1;
-
-            DataDependency(ScheduleTask *task, PE *pe, ufast64 size, i32 pos) : task_{ task },
-                                                                                sender_{ pe },
-                                                                                size_{ size },
-                                                                                position_{ pos } { }
-
-            DataDependency(const DataDependency &) = default;
-
-            DataDependency(DataDependency &&) = default;
-
-            DataDependency &operator=(const DataDependency &) = default;
-
-            DataDependency &operator=(DataDependency &&) = default;
+            ScheduleTask *task_;
+            PE *sender_;
+            ufast64 size_;
+            i32 position_;
         };
 
         /* === Protected method(s) === */

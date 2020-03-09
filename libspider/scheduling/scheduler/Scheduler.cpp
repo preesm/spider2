@@ -226,7 +226,10 @@ spider::Scheduler::getDataDependencies(ScheduleTask *task) {
         const auto rate = edge->sinkRateValue();
         if (rate) {
             auto *taskDep{ *taskDependenciesIterator };
-            dataDependencies.emplace_back(taskDep, platform->processingElement(taskDep->mappedPe()), rate, pos);
+            dataDependencies.push_back({ taskDep,
+                                         platform->processingElement(taskDep->mappedPe()),
+                                         static_cast<ufast64>(rate),
+                                         pos });
         }
         taskDependenciesIterator++;
         pos++;
