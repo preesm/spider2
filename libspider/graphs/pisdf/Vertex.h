@@ -47,7 +47,7 @@
 #include <containers/array.h>
 #include <graphs/abstract/AbstractVertex.h>
 #include <graphs/pisdf/Edge.h>
-#include <graphs-tools/helper/visitors/PiSDFVisitor.h>
+#include <graphs-tools/helper/visitors/PiSDFConvertVisitor.h>
 #include <runtime/common/RTInfo.h>
 
 namespace spider {
@@ -119,6 +119,18 @@ namespace spider {
              * @return complete vertex path
              */
             std::string vertexPath() const;
+
+            /**
+             * @brief Convert a vertex to the desired type (if possible) using double-dispatch visitor.
+             * @tparam T Type to convert to.
+             * @return pointer to the converted type.
+             */
+            template<class T>
+            inline T *convertTo() {
+                PiSDFConvertVisitor<T> visitor;
+                this->visit(&visitor);
+                return visitor.result_;
+            }
 
             /* === Getter(s) === */
 
