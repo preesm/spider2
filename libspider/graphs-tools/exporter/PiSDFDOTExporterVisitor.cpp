@@ -392,8 +392,8 @@ void spider::pisdf::PiSDFDOTExporterVisitor::edgePrinter(Edge *edge) const {
     if (delay) {
         /* == Draw circle of the delay == */
         printer::fprintf(file_,
-                         "%s" R"("%s" [shape=circle, style=filled, color="#393c3c", fillcolor="#393c3c", label=""])" "\n",
-                         offset_.c_str(), delay->vertex()->vertexPath().c_str());
+                         "%s" R"("%s" [shape=circle, style=filled, color="#393c3c", fillcolor="#393c3c", label="%ld"])" "\n",
+                         offset_.c_str(), delay->vertex()->vertexPath().c_str(), delay->value());
 
         /* == Connect source to delay == */
         printer::fprintf(file_, "%s" R"("%s":out_%ld:e -> "%s":w [penwidth=3, color="#393c3c", dir=forward];)" "\n",
