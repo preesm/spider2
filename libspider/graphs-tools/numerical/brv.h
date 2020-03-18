@@ -66,9 +66,8 @@ namespace spider {
         /* === Structure(s) definition === */
 
         struct ConnectedComponent {
-            explicit ConnectedComponent(spider::vector<pisdf::Vertex *> &vertices) :
-                    vertexVector_{ vertices },
-                    offsetVertexVector_{ vertices.size() } { };
+            explicit ConnectedComponent(vector<pisdf::Vertex *> &vertices) : vertexVector_{ vertices },
+                                                                             offsetVertexVector_{ vertices.size() } { };
 
             ConnectedComponent(const ConnectedComponent &) = default;
 
@@ -78,7 +77,7 @@ namespace spider {
 
             /* === Member(s) === */
 
-            spider::vector<pisdf::Vertex *> &vertexVector_;
+            vector<pisdf::Vertex *> &vertexVector_;
             size_t edgeCount_ = 0;
             size_t vertexCount_ = 0;
             size_t offsetVertexVector_ = 0;
@@ -139,8 +138,9 @@ namespace spider {
          * @param component Connected component to evaluate.
          * @param params    Parameters value to use.
          */
-        void
-        updateBRV(const ConnectedComponent &component, const spider::vector<std::shared_ptr<pisdf::Param>> &params);
+        void updateBRV(const ConnectedComponent &component,
+                       const array<const pisdf::Edge *> &edges,
+                       const vector<std::shared_ptr<pisdf::Param>> &params);
 
         /**
          * @brief Check the consistency (see consistency property of SDF graph) of a connected component.
