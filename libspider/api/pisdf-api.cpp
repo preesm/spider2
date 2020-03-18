@@ -590,10 +590,10 @@ spider::pisdf::Delay *spider::api::createLocalPersistentDelay(pisdf::Edge *edge,
 
 spider::pisdf::Delay *spider::api::createLocalDelay(pisdf::Edge *edge,
                                                     std::string delayExpression,
-                                                    pisdf::ExecVertex *setter,
+                                                    pisdf::Vertex *setter,
                                                     size_t setterPortIx,
                                                     std::string setterRateExpression,
-                                                    pisdf::ExecVertex *getter,
+                                                    pisdf::Vertex *getter,
                                                     size_t getterPortIx,
                                                     std::string getterRateExpression) {
     const auto value = checkAndGetValue(edge, std::move(delayExpression));

@@ -277,7 +277,7 @@ namespace spider {
          * @return pointer to the corresponding @refitem pisdf::Vertex.
          * @throws spider::Exception if graph is nullptr or interface is not found.
          */
-        pisdf::Vertex* getInputInterface(pisdf::Graph *graph, size_t ix);
+        pisdf::Vertex *getInputInterface(pisdf::Graph *graph, size_t ix);
 
         /**
          * @brief Get an input @refitem pisdf::Interface of a given graph.
@@ -286,7 +286,7 @@ namespace spider {
          * @return pointer to the corresponding @refitem pisdf::Vertex.
          * @throws spider::Exception if graph is nullptr or interface is not found.
          */
-        pisdf::Vertex* getOutputInterface(pisdf::Graph *graph, size_t ix);
+        pisdf::Vertex *getOutputInterface(pisdf::Graph *graph, size_t ix);
 
         /**
          * @brief Change the name of an input @refitem pisdf::Interface.
@@ -483,10 +483,10 @@ namespace spider {
          */
         pisdf::Delay *createLocalDelay(pisdf::Edge *edge,
                                        std::string delayExpression,
-                                       pisdf::ExecVertex *setter = nullptr,
+                                       pisdf::Vertex *setter = nullptr,
                                        size_t setterPortIx = 0,
                                        std::string setterRateExpression = "0",
-                                       pisdf::ExecVertex *getter = nullptr,
+                                       pisdf::Vertex *getter = nullptr,
                                        size_t getterPortIx = 0,
                                        std::string getterRateExpression = "0");
     }
