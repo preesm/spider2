@@ -106,10 +106,10 @@ namespace spider {
                                                             const vector<std::pair<i64, i64>> &rates,
                                                             BRVHandler &handler) {
             auto component = ConnectedComponent{ };
-            component.offset_ = handler.vertexVector_.size();
+            const auto offset = std::distance(std::begin(handler.vertexVector_), std::end(handler.vertexVector_));
             handler.vertexVector_.emplace_back(vertex);
             handler.visitedVertices_[vertex->ix()] = true;
-            auto visitedIndex{ component.offset_ };
+            auto visitedIndex = static_cast<size_t>(offset);
             while (visitedIndex != handler.vertexVector_.size()) {
                 const auto *currentVertex = handler.vertexVector_[visitedIndex++];
                 component.edgeCount_ += currentVertex->outputEdgeCount();
@@ -148,7 +148,8 @@ namespace spider {
                     }
                 }
             }
-            component.count_ = handler.vertexVector_.size() - component.offset_;
+            component.startIt_ = std::begin(handler.vertexVector_) + offset;
+            component.endIt_ = std::end(handler.vertexVector_);
             return component;
         }
 
@@ -158,33 +159,26 @@ namespace spider {
          * @param handler         Reference to the BRV handler.
          */
         static void computeRepetitionValues(const ConnectedComponent &component, BRVHandler &handler) {
-            const auto startIter = component.offset_;
-            const auto endIter = component.offset_ + component.count_;
             /* == 0. Compute the LCM factor for the current component == */
-            int64_t lcmFactor = 1;
-            for (auto it = startIter; it < endIter; ++it) {
-                const auto &vertex = handler.vertexVector_[it];
-                lcmFactor = math::lcm(lcmFactor, handler.rationalVector_[vertex->ix()].denominator());
+            auto lcmFactor = int64_t{ 1 };
+            for (auto it = component.startIt_; it < component.endIt_; ++it) {
+                lcmFactor = math::lcm(lcmFactor, handler.rationalVector_[(*it)->ix()].denominator());
             }
 
             /* == 1. Compute the repetition value for vertices of the connected component == */
-            for (auto it = startIter; it < endIter; ++it) {
-                const auto &vertex = handler.vertexVector_[it];
+            std::for_each(component.startIt_, component.endIt_, [&lcmFactor, &handler](pisdf::Vertex *vertex) {
                 handler.rationalVector_[vertex->ix()] *= lcmFactor;
-                vertex->setRepetitionValue(static_cast<uint32_t>(handler.rationalVector_[vertex->ix()].toUInt64()));
-            }
+                vertex->setRepetitionValue(static_cast<u32>(handler.rationalVector_[vertex->ix()].toUInt64()));
+            });
         }
 
         /**
          * @brief Update repetition vector values of a connected component based on PiSDF rules.
          * @param component  Const reference to the connected component.
          * @param rates      Const reference to the vector of pre-computed rates.
-         * @param handler    Const reference to the BRV handler.
          */
-        static void updateComponentBRV(const ConnectedComponent &component,
-                                       const vector<std::pair<i64, i64>> &rates,
-                                       const BRVHandler &handler) {
-            const auto graph = handler.vertexVector_[0]->graph();
+        static void updateComponentBRV(const ConnectedComponent &component, const vector<std::pair<i64, i64>> &rates) {
+            const auto graph = (*component.startIt_)->graph();
             u32 scaleRVFactor{ 1 };
             const auto updateInput = [&scaleRVFactor, &rates](const pisdf::Edge *edge) {
                 const auto sourceRate = rates[edge->ix()].first;
@@ -219,10 +213,7 @@ namespace spider {
             }
             /* == Apply the scale factor (if needed) == */
             if (scaleRVFactor > 1) {
-                const auto itStart = std::begin(handler.vertexVector_) + static_cast<long>(component.offset_);
-                const auto itEnd = std::begin(handler.vertexVector_) +
-                                   static_cast<long>(component.offset_ + component.count_);
-                std::for_each(itStart, itEnd, [scaleRVFactor](pisdf::Vertex *vertex) -> void {
+                std::for_each(component.startIt_, component.endIt_, [scaleRVFactor](pisdf::Vertex *vertex) {
                     vertex->setRepetitionValue(vertex->repetitionValue() * scaleRVFactor);
                 });
             }
@@ -232,16 +223,10 @@ namespace spider {
          * @brief Check the consistency (see consistency property of SDF graph) of a connected component.
          * @param component  Const reference to the connected component.
          * @param rates      Const reference to the vector of pre-computed rates.
-         * @param handler    Const reference to the BRV handler.
          * @throws @refitem spider::Exception.
          */
-        static void checkConsistency(const ConnectedComponent &component,
-                                     const vector<std::pair<i64, i64>> &rates,
-                                     const BRVHandler &handler) {
-            const auto itStart = std::begin(handler.vertexVector_) + static_cast<long>(component.offset_);
-            const auto itEnd = std::begin(handler.vertexVector_) +
-                               static_cast<long>(component.offset_ + component.count_);
-            for (auto it = itStart; it < itEnd; ++it) {
+        static void checkConsistency(const ConnectedComponent &component, const vector<std::pair<i64, i64>> &rates) {
+            for (auto it = component.startIt_; it < component.endIt_; ++it) {
                 for (const auto &edge : (*it)->outputEdgeVector()) {
                     if (edge->sink()->subtype() == pisdf::VertexType::OUTPUT) {
                         continue;
@@ -282,10 +267,10 @@ void spider::brv::compute(const pisdf::Graph *graph, const vector<std::shared_pt
             computeRepetitionValues(component, handler);
             /* == 4. Update repetition vector based on PiSDF rules == */
             if (component.hasConfig_ || component.hasInterfaces_) {
-                updateComponentBRV(component, preComputedEdgeRates, handler);
+                updateComponentBRV(component, preComputedEdgeRates);
             }
             /* == 5. Check graph consistency == */
-            checkConsistency(component, preComputedEdgeRates, handler);
+            checkConsistency(component, preComputedEdgeRates);
         }
     }
     /* == Print BRV (if VERBOSE) == */

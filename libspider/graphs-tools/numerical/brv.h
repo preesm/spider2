@@ -66,9 +66,9 @@ namespace spider {
         /* === Structure(s) definition === */
 
         struct ConnectedComponent {
+            vector<pisdf::Vertex *>::iterator startIt_;
+            vector<pisdf::Vertex *>::iterator endIt_;
             size_t edgeCount_ = 0;
-            size_t count_ = 0;
-            size_t offset_ = 0;
             bool hasInterfaces_ = false;
             bool hasConfig_ = false;
         };
