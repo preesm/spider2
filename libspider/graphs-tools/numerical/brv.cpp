@@ -45,309 +45,255 @@
 #include <graphs/pisdf/Edge.h>
 #include <graphs/pisdf/Param.h>
 
-/* === Constant === */
-static constexpr size_t DEFAULT_MAX_CC_COUNT = 3;
-
 /* === Static function(s) === */
-
-/**
- * @brief Creates a Connected component from a given seed Vertex.
- * @param vertex   Pointer to the seed Vertex.
- * @param visited  Reference to the vector of visited vertices.
- * @param vertices Reference to the global vector of vertices (shared by all connected components).
- * @return created ConnectedComponent.
- */
-static spider::brv::ConnectedComponent
-extractOneComponent(spider::pisdf::Vertex *vertex,
-                    spider::vector<bool> &visited,
-                    spider::vector<spider::pisdf::Vertex *> &vertices) {
-    spider::brv::ConnectedComponent component(vertices);
-    component.vertexVector_.emplace_back(vertex);
-
-    /* == Extract every vertices of the connected component using a non-recursive BFS algorithm == */
-    size_t visitedIndex = component.offsetVertexVector_;
-    visited[vertex->ix()] = true;
-    while (visitedIndex != component.vertexVector_.size()) {
-        const auto *currentVertex = component.vertexVector_[visitedIndex++];
-        /* == Scan output edges == */
-        component.edgeCount_ += currentVertex->outputEdgeCount();
-        for (const auto *edge : currentVertex->outputEdgeVector()) {
-            if (!edge) {
-                throwSpiderException("Vertex [%s] has null output edge.", currentVertex->name().c_str());
+namespace spider {
+    namespace brv {
+        /**
+         * @brief Pre-compute rates of every edge of a given graph.
+         * @param graph   Pointer to the graph.
+         * @param params  Const reference to the vector of parameter to use for the evaluation of rates.
+         * @return vector of pair of rates (first is source rate, second is sink rate).
+         */
+        static vector<std::pair<i64, i64>> preComputeEdgeRates(const pisdf::Graph *graph,
+                                                               const vector<std::shared_ptr<pisdf::Param>> &params) {
+            auto result = factory::vector<std::pair<i64, i64>>(graph->edgeCount(), StackID::TRANSFO);
+            for (const auto &edge : graph->edges()) {
+                result[edge->ix()].first = edge->sourceRateExpression().evaluate(params);
+                result[edge->ix()].second = edge->sinkRateExpression().evaluate(params);
             }
-            auto *sink = edge->sink();
-            const auto isOutputIF = (sink->subtype() == spider::pisdf::VertexType::OUTPUT);
-            component.hasInterfaces_ |= isOutputIF;
-            if (!isOutputIF && !visited[sink->ix()]) {
-                /* == Register the vertex == */
-                component.hasConfig_ |= (sink->subtype() == spider::pisdf::VertexType::CONFIG);
-                component.vertexVector_.emplace_back(sink);
-                visited[sink->ix()] = true;
-            }
+            return result;
         }
 
-        /* == Scan input edges == */
-        for (const auto *edge : currentVertex->inputEdgeVector()) {
-            if (!edge) {
-                throwSpiderException("Vertex [%s] has null input edge.", currentVertex->name().c_str());
+        static void updateRational(const pisdf::Edge *edge,
+                                   const vector<std::pair<i64, i64>> &rates,
+                                   vector<Rational> &rationalVector) {
+            auto dummyRational = Rational{ 1 };
+            const auto *source = edge->source();
+            const auto *sink = edge->sink();
+            const auto sourceRate = rates[edge->ix()].first;
+            const auto sinkRate = rates[edge->ix()].second;
+            /* == Check rates validity == */
+            if ((!sinkRate && sourceRate) || (sinkRate && !sourceRate)) {
+                throwSpiderException("Invalid rates on edge. Source [%s]: %" PRIu64" -- Sink [%s]: %" PRIu64".",
+                                     source->name().c_str(), sourceRate, sink->name().c_str(), sinkRate);
             }
-            auto *source = edge->source();
-            const auto isInputIF = (source->subtype() == spider::pisdf::VertexType::INPUT);
-            component.edgeCount_ += isInputIF;
-            component.hasInterfaces_ |= isInputIF;
-            if (!isInputIF && !visited[source->ix()]) {
-                /* == Register the vertex == */
-                component.hasConfig_ |= (source->subtype() == spider::pisdf::VertexType::CONFIG);
-                component.vertexVector_.emplace_back(source);
-                visited[source->ix()] = true;
-            }
-        }
-    }
-
-    /* == Update the number of vertices inside the component == */
-    component.vertexCount_ = vertices.size() - component.offsetVertexVector_;
-    return component;
-}
-
-
-/**
- * @brief Computes the repetition values of current connected component.
- * @param component       Const reference to current connected component.
- * @param rationalVector  Reference to @refitem Rational vector.
- */
-static void computeRepetitionValues(const spider::brv::ConnectedComponent &component,
-                                    spider::vector<spider::Rational> &rationalVector) {
-    const auto startIter = component.offsetVertexVector_;
-    const auto endIter = component.offsetVertexVector_ + component.vertexCount_;
-    /* == 0. Compute the LCM factor for the current component == */
-    int64_t lcmFactor = 1;
-    for (auto it = startIter; it < endIter; ++it) {
-        const auto &vertex = component.vertexVector_[it];
-        lcmFactor = spider::math::lcm(lcmFactor, rationalVector[vertex->ix()].denominator());
-    }
-
-    /* == 1. Compute the repetition value for vertices of the connected component == */
-    for (auto it = startIter; it < endIter; ++it) {
-        const auto &vertex = component.vertexVector_[it];
-        rationalVector[vertex->ix()] *= lcmFactor;
-        vertex->setRepetitionValue(static_cast<uint32_t>(rationalVector[vertex->ix()].toUInt64()));
-    }
-}
-
-
-static u32 updateBRVFromPiSDFRules(spider::pisdf::Vertex *vertex,
-                                   u32 scaleFactor,
-                                   const spider::vector<std::shared_ptr<spider::pisdf::Param>> &params) {
-    switch (vertex->subtype()) {
-        case spider::pisdf::VertexType::CONFIG:
-        case spider::pisdf::VertexType::INPUT:
-            for (const auto &edge : vertex->outputEdgeVector()) {
-                const auto sourceRate = edge->sourceRateExpression().evaluate(params);
-                const auto sinkRate = edge->sinkRateExpression().evaluate(params);
-                const auto totalCons = sinkRate * edge->sink()->repetitionValue() * scaleFactor;
-                if (totalCons && totalCons < sourceRate) {
-                    /* == Return ceil( prod / vertexCons) == */
-                    scaleFactor *= static_cast<u32>(spider::math::ceilDiv(sourceRate, totalCons));
+            auto &sourceRational = source->subtype() == pisdf::VertexType::INPUT ? dummyRational
+                                                                                 : rationalVector[source->ix()];
+            auto &sinkRational = sink->subtype() == pisdf::VertexType::OUTPUT ? dummyRational
+                                                                              : rationalVector[sink->ix()];
+            if (sinkRate && !sinkRational.nominator()) {
+                sinkRational = Rational{ sourceRate, sinkRate };
+                if (sourceRational.nominator()) {
+                    sinkRational *= sourceRational;
                 }
             }
-            break;
-        case spider::pisdf::VertexType::OUTPUT: {
-            const auto edge = vertex->inputEdge(0);
-            const auto sourceRate = edge->sourceRateExpression().evaluate(params);
-            const auto sinkRate = edge->sinkRateExpression().evaluate(params);
-            const auto totalProd = sourceRate * edge->source()->repetitionValue() * scaleFactor;
-            if (totalProd && totalProd < sinkRate) {
-                /* == Return ceil(interfaceCons / vertexProd) == */
-                scaleFactor *= static_cast<u32>(spider::math::ceilDiv(sinkRate, totalProd));
+            if (sourceRate && !sourceRational.nominator()) {
+                sourceRational = Rational{ sinkRate, sourceRate };
+                if (sinkRational.nominator()) {
+                    sourceRational *= sinkRational;
+                }
             }
         }
-            break;
-        default:
-            break;
+
+        /**
+         * @brief Creates a Connected component from a given seed Vertex.
+         * @param vertex   Pointer to the seed Vertex.
+         * @param rates    Const reference to the vector of pre-computed rates.
+         * @param handler  Reference to the BRV handler.
+         * @return created ConnectedComponent.
+         */
+        static ConnectedComponent extractConnectedComponent(pisdf::Vertex *vertex,
+                                                            const vector<std::pair<i64, i64>> &rates,
+                                                            BRVHandler &handler) {
+            auto component = ConnectedComponent{ };
+            component.offset_ = handler.vertexVector_.size();
+            handler.vertexVector_.emplace_back(vertex);
+            handler.visitedVertices_[vertex->ix()] = true;
+            auto visitedIndex{ component.offset_ };
+            while (visitedIndex != handler.vertexVector_.size()) {
+                const auto *currentVertex = handler.vertexVector_[visitedIndex++];
+                component.edgeCount_ += currentVertex->outputEdgeCount();
+                component.hasConfig_ |= (currentVertex->subtype() == pisdf::VertexType::CONFIG);
+                for (const auto *edge : currentVertex->outputEdgeVector()) {
+                    if (!edge) {
+                        throwSpiderException("Vertex [%s] has null output edge.", currentVertex->name().c_str());
+                    } else if (!handler.visitedEdges_[edge->ix()]) {
+                        handler.visitedEdges_[edge->ix()] = true;
+                        auto *sink = edge->sink();
+                        const auto isOutputIf = (sink->subtype() == pisdf::VertexType::OUTPUT);
+                        component.hasInterfaces_ |= isOutputIf;
+                        updateRational(edge, rates, handler.rationalVector_);
+                        if (!isOutputIf && !handler.visitedVertices_[sink->ix()]) {
+                            /* == Register the vertex == */
+                            handler.vertexVector_.emplace_back(sink);
+                            handler.visitedVertices_[sink->ix()] = true;
+                        }
+                    }
+                }
+                for (const auto *edge : currentVertex->inputEdgeVector()) {
+                    if (!edge) {
+                        throwSpiderException("Vertex [%s] has null input edge.", currentVertex->name().c_str());
+                    } else if (!handler.visitedEdges_[edge->ix()]) {
+                        handler.visitedEdges_[edge->ix()] = true;
+                        auto *source = edge->source();
+                        const auto isInputIf = (source->subtype() == pisdf::VertexType::INPUT);
+                        component.edgeCount_ += isInputIf;
+                        component.hasInterfaces_ |= isInputIf;
+                        updateRational(edge, rates, handler.rationalVector_);
+                        if (!isInputIf && !handler.visitedVertices_[source->ix()]) {
+                            /* == Register the vertex == */
+                            handler.vertexVector_.emplace_back(source);
+                            handler.visitedVertices_[source->ix()] = true;
+                        }
+                    }
+                }
+            }
+            component.count_ = handler.vertexVector_.size() - component.offset_;
+            return component;
+        }
+
+        /**
+         * @brief Computes the repetition values of current connected component.
+         * @param component       Const reference to current connected component.
+         * @param handler         Reference to the BRV handler.
+         */
+        static void computeRepetitionValues(const ConnectedComponent &component, BRVHandler &handler) {
+            const auto startIter = component.offset_;
+            const auto endIter = component.offset_ + component.count_;
+            /* == 0. Compute the LCM factor for the current component == */
+            int64_t lcmFactor = 1;
+            for (auto it = startIter; it < endIter; ++it) {
+                const auto &vertex = handler.vertexVector_[it];
+                lcmFactor = math::lcm(lcmFactor, handler.rationalVector_[vertex->ix()].denominator());
+            }
+
+            /* == 1. Compute the repetition value for vertices of the connected component == */
+            for (auto it = startIter; it < endIter; ++it) {
+                const auto &vertex = handler.vertexVector_[it];
+                handler.rationalVector_[vertex->ix()] *= lcmFactor;
+                vertex->setRepetitionValue(static_cast<uint32_t>(handler.rationalVector_[vertex->ix()].toUInt64()));
+            }
+        }
+
+        /**
+         * @brief Update repetition vector values of a connected component based on PiSDF rules.
+         * @param component  Const reference to the connected component.
+         * @param rates      Const reference to the vector of pre-computed rates.
+         * @param handler    Const reference to the BRV handler.
+         */
+        static void updateComponentBRV(const ConnectedComponent &component,
+                                       const vector<std::pair<i64, i64>> &rates,
+                                       const BRVHandler &handler) {
+            const auto graph = handler.vertexVector_[0]->graph();
+            u32 scaleRVFactor{ 1 };
+            const auto updateInput = [&scaleRVFactor, &rates](const pisdf::Edge *edge) {
+                const auto sourceRate = rates[edge->ix()].first;
+                const auto sinkRate = rates[edge->ix()].second;
+                const auto totalCons = sinkRate * edge->sink()->repetitionValue() * scaleRVFactor;
+                if (totalCons && totalCons < sourceRate) {
+                    /* == Return ceil( prod / vertexCons) == */
+                    scaleRVFactor *= static_cast<u32>(math::ceilDiv(sourceRate, totalCons));
+                }
+            };
+            if (component.hasConfig_) {
+                for (const auto &cfg : graph->configVertices()) {
+                    for (const auto &edge : cfg->outputEdgeVector()) {
+                        updateInput(edge);
+                    }
+                }
+            }
+            if (component.hasInterfaces_) {
+                for (const auto &input : graph->inputInterfaceVector()) {
+                    updateInput(input->outputEdge());
+                }
+                for (const auto &output : graph->outputInterfaceVector()) {
+                    const auto edge = output->inputEdge();
+                    const auto sourceRate = rates[edge->ix()].first;
+                    const auto sinkRate = rates[edge->ix()].second;
+                    const auto totalProd = sourceRate * edge->source()->repetitionValue() * scaleRVFactor;
+                    if (totalProd && totalProd < sinkRate) {
+                        /* == Return ceil(interfaceCons / vertexProd) == */
+                        scaleRVFactor *= static_cast<u32>(math::ceilDiv(sinkRate, totalProd));
+                    }
+                }
+            }
+            /* == Apply the scale factor (if needed) == */
+            if (scaleRVFactor > 1) {
+                const auto itStart = std::begin(handler.vertexVector_) + static_cast<long>(component.offset_);
+                const auto itEnd = std::begin(handler.vertexVector_) +
+                                   static_cast<long>(component.offset_ + component.count_);
+                std::for_each(itStart, itEnd, [scaleRVFactor](pisdf::Vertex *vertex) -> void {
+                    vertex->setRepetitionValue(vertex->repetitionValue() * scaleRVFactor);
+                });
+            }
+        }
+
+        /**
+         * @brief Check the consistency (see consistency property of SDF graph) of a connected component.
+         * @param component  Const reference to the connected component.
+         * @param rates      Const reference to the vector of pre-computed rates.
+         * @param handler    Const reference to the BRV handler.
+         * @throws @refitem spider::Exception.
+         */
+        static void checkConsistency(const ConnectedComponent &component,
+                                     const vector<std::pair<i64, i64>> &rates,
+                                     const BRVHandler &handler) {
+            const auto itStart = std::begin(handler.vertexVector_) + static_cast<long>(component.offset_);
+            const auto itEnd = std::begin(handler.vertexVector_) +
+                               static_cast<long>(component.offset_ + component.count_);
+            for (auto it = itStart; it < itEnd; ++it) {
+                for (const auto &edge : (*it)->outputEdgeVector()) {
+                    if (edge->sink()->subtype() == pisdf::VertexType::OUTPUT) {
+                        continue;
+                    }
+                    const auto sourceRate = rates[edge->ix()].first;
+                    const auto sinkRate = rates[edge->ix()].second;
+                    const auto *source = edge->source();
+                    const auto *sink = edge->sink();
+                    if ((sourceRate * source->repetitionValue()) != (sinkRate * sink->repetitionValue())) {
+                        throwSpiderException(
+                                "Edge [%s]: prod(%" PRId64") * sourceRV(%" PRIu32") != cons(%" PRId64") * sinkRV(%"
+                                PRIu32").", edge->name().c_str(), sourceRate, source->repetitionValue(),
+                                sinkRate, sink->repetitionValue());
+                    }
+                }
+            }
+        }
     }
-    return scaleFactor;
 }
 
 /* === Function(s) definition === */
 
-void spider::brv::compute(const pisdf::Graph *graph, const spider::vector<std::shared_ptr<pisdf::Param>> &params) {
-    auto vertices = factory::vector<pisdf::Vertex *>(StackID::TRANSFO);
-    vertices.reserve(graph->vertexCount());
-    /* == 0. Extract connected components of the graph == */
-    const auto &connectedComponents = extractConnectedComponents(graph, vertices);
+void spider::brv::compute(const pisdf::Graph *graph, const vector<std::shared_ptr<pisdf::Param>> &params) {
+    auto handler = BRVHandler{ graph->vertexCount(), graph->edgeCount() };
+    /* == 0. Pre-compute rates == */
+    const auto preComputedEdgeRates = preComputeEdgeRates(graph, params);
 
-    auto registeredEdgeVector = factory::vector<bool>(graph->edgeCount(), false, StackID::TRANSFO);
-    auto rationalVector = factory::vector<Rational>(graph->vertexCount(), StackID::TRANSFO);
-    /* == 1. For each connected component compute LCM and RV == */
-    for (const auto &component : connectedComponents) {
-        /* == 1.1 Extract the edges == */
-        auto edgeArray = extractEdgesFromComponent(component, registeredEdgeVector);
-
-        /* == 1.1.1 If there is no edge at all and this is normal then all RV are 1 by default == */
-        if (edgeArray.empty() && !component.edgeCount_) {
-            continue;
+    /* == 1. Iterate over all vertices == */
+    for (const auto &vertex : graph->vertices()) {
+        if (!handler.visitedVertices_[vertex->ix()]) {
+            /* == 2. Extract current connected component == */
+            const auto component = extractConnectedComponent(vertex.get(), preComputedEdgeRates, handler);
+            /* == 2.1 If there are no edges then RV is supposed to be 1 == */
+            if (!component.edgeCount_) {
+                continue;
+            }
+            /* == 3. Compute Repetition vector for current connected component == */
+            computeRepetitionValues(component, handler);
+            /* == 4. Update repetition vector based on PiSDF rules == */
+            if (component.hasConfig_ || component.hasInterfaces_) {
+                updateComponentBRV(component, preComputedEdgeRates, handler);
+            }
+            /* == 5. Check graph consistency == */
+            checkConsistency(component, preComputedEdgeRates, handler);
         }
-
-        /* == 1.2 Compute the Rationals == */
-        extractRationalsFromEdges(rationalVector, edgeArray, params);
-
-        /* == 1.3 Compute the repetition values for the current component == */
-        computeRepetitionValues(component, rationalVector);
-
-        /* == 1.4 Update repetition values based on PiSDF rules of input / output interfaces and config actors == */
-        updateBRV(component, edgeArray, params);
-
-        /* == 1.5 Check consistency of the connected component == */
-        checkConsistency(edgeArray, params);
     }
-
     /* == Print BRV (if VERBOSE) == */
     print(graph);
 }
 
 void spider::brv::compute(const pisdf::Graph *graph) {
     compute(graph, graph->params());
-}
-
-spider::vector<spider::brv::ConnectedComponent>
-spider::brv::extractConnectedComponents(const pisdf::Graph *graph, spider::vector<pisdf::Vertex *> &vertices) {
-    /* == Keys used to check if a vertex has already be assigned to a connected component == */
-    auto visited = factory::vector<bool>(graph->vertexCount(), false, StackID::TRANSFO);
-
-    /* == Iterate over every vertex and assign it to a connected component == */
-    auto connectedComponents = factory::vector<ConnectedComponent>(StackID::TRANSFO);
-
-    /* == We assume 3 ConnectedComponents as a basis, this may be superior or inferior but this will save some time == */
-    connectedComponents.reserve(DEFAULT_MAX_CC_COUNT);
-    for (const auto &vertex : graph->vertices()) {
-        if (!visited[vertex->ix()]) {
-            /* == Extract the component into output vector == */
-            connectedComponents.emplace_back(extractOneComponent(vertex.get(), visited, vertices));
-        }
-    }
-    return connectedComponents;
-}
-
-spider::array<const spider::pisdf::Edge *>
-spider::brv::extractEdgesFromComponent(const ConnectedComponent &component, vector<bool> &registeredEdgeVector) {
-    auto edgeArray = array<const pisdf::Edge *>{ component.edgeCount_, StackID::TRANSFO };
-    const auto start = component.offsetVertexVector_;
-    const auto end = component.offsetVertexVector_ + component.vertexCount_;
-    auto edgeIt = std::begin(edgeArray);
-    for (auto it = start; it < end; ++it) {
-        const auto &vertex = component.vertexVector_[it];
-        for (const auto &edge: vertex->outputEdgeVector()) {
-            if (!registeredEdgeVector[edge->ix()]) {
-                *(edgeIt++) = edge;
-                registeredEdgeVector[edge->ix()] = true;
-            }
-        }
-        for (const auto &edge: vertex->inputEdgeVector()) {
-            if (!registeredEdgeVector[edge->ix()]) {
-                *(edgeIt++) = edge;
-                registeredEdgeVector[edge->ix()] = true;
-            }
-        }
-    }
-    return edgeArray;
-}
-
-void spider::brv::extractRationalsFromEdges(vector<Rational> &rationalVector,
-                                            const array<const pisdf::Edge *> &edgeArray,
-                                            const vector<std::shared_ptr<pisdf::Param>> &params) {
-    auto dummyRational = Rational{ 1 };
-    for (const auto &edge : edgeArray) {
-        const auto *source = edge->source();
-        const auto *sink = edge->sink();
-        const auto sourceRate = edge->sourceRateExpression().evaluate(params);
-        const auto sinkRate = edge->sinkRateExpression().evaluate(params);
-
-        /* == Check rates validity == */
-        if ((!sinkRate && sourceRate) || (sinkRate && !sourceRate)) {
-            throwSpiderException("Invalid rates on edge. Source [%s]: %"
-                                         PRIu64
-                                         " -- Sink [%s]: %"
-                                         PRIu64
-                                         ".",
-                                 source->name().c_str(),
-                                 sourceRate,
-                                 sink->name().c_str(),
-                                 sinkRate);
-        }
-
-        auto &sourceRational =
-                source->subtype() == pisdf::VertexType::INPUT ? dummyRational : rationalVector[source->ix()];
-        auto &sinkRational = sink->subtype() == pisdf::VertexType::OUTPUT ? dummyRational : rationalVector[sink->ix()];
-
-        if (!sinkRational.nominator() && sinkRate) {
-            sinkRational = Rational{ sourceRate, sinkRate };
-            if (sourceRational.nominator()) {
-                sinkRational *= sourceRational;
-            }
-        }
-
-        if (!sourceRational.nominator() && sourceRate) {
-            sourceRational = Rational{ sinkRate, sourceRate };
-            if (sinkRational.nominator()) {
-                sourceRational *= sinkRational;
-            }
-        }
-    }
-}
-
-void spider::brv::updateBRV(const ConnectedComponent &component,
-                            const array<const pisdf::Edge *> &edges,
-                            const vector<std::shared_ptr<pisdf::Param>> &params) {
-    if (!component.hasConfig_ && !component.hasInterfaces_) {
-        return;
-    }
-
-    u32 scaleRVFactor{ 1 };
-    for (const auto &edge : edges) {
-        scaleRVFactor = updateBRVFromPiSDFRules(edge->source(), scaleRVFactor, params);
-        scaleRVFactor = updateBRVFromPiSDFRules(edge->sink(), scaleRVFactor, params);
-    }
-
-    /* == Apply the scale factor (if needed) == */
-    if (scaleRVFactor > 1) {
-        const auto start = std::begin(component.vertexVector_) + static_cast<long>(component.offsetVertexVector_);
-        const auto end = std::begin(component.vertexVector_) +
-                         static_cast<long>(component.offsetVertexVector_ + component.vertexCount_);
-        std::for_each(start, end, [scaleRVFactor](pisdf::Vertex *vertex) -> void {
-            vertex->setRepetitionValue(vertex->repetitionValue() * scaleRVFactor);
-        });
-    }
-}
-
-void spider::brv::checkConsistency(const spider::array<const pisdf::Edge *> &edgeArray,
-                                   const spider::vector<std::shared_ptr<pisdf::Param>> &params) {
-    for (const auto &edge : edgeArray) {
-        if (edge->source()->subtype() == pisdf::VertexType::INPUT ||
-            edge->sink()->subtype() == pisdf::VertexType::OUTPUT) {
-            continue;
-        }
-        const auto &sourceRate = edge->sourceRateExpression().evaluate(params);
-        const auto &sinkRate = edge->sinkRateExpression().evaluate(params);
-        const auto *source = edge->source();
-        const auto *sink = edge->sink();
-
-        if ((sourceRate * source->repetitionValue()) != (sinkRate * sink->repetitionValue())) {
-            throwSpiderException("Edge [%s]: prod(%"
-                                         PRId64
-                                         ") * sourceRV(%"
-                                         PRIu32
-                                         ") != cons(%"
-                                         PRId64
-                                         ") * sinkRV(%"
-                                         PRIu32
-                                         ").",
-                                 edge->name().c_str(),
-                                 sourceRate,
-                                 source->repetitionValue(),
-                                 sinkRate,
-                                 sink->repetitionValue());
-        }
-    }
 }
 
 void spider::brv::print(const pisdf::Graph *graph) {

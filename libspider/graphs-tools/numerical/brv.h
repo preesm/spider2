@@ -66,23 +66,32 @@ namespace spider {
         /* === Structure(s) definition === */
 
         struct ConnectedComponent {
-            explicit ConnectedComponent(vector<pisdf::Vertex *> &vertices) : vertexVector_{ vertices },
-                                                                             offsetVertexVector_{ vertices.size() } { };
-
-            ConnectedComponent(const ConnectedComponent &) = default;
-
-            ConnectedComponent(ConnectedComponent &&) = default;
-
-            ~ConnectedComponent() = default;
-
-            /* === Member(s) === */
-
-            vector<pisdf::Vertex *> &vertexVector_;
             size_t edgeCount_ = 0;
-            size_t vertexCount_ = 0;
-            size_t offsetVertexVector_ = 0;
+            size_t count_ = 0;
+            size_t offset_ = 0;
             bool hasInterfaces_ = false;
             bool hasConfig_ = false;
+        };
+
+        struct BRVHandler {
+            explicit BRVHandler(size_t vertexCount, size_t edgeCount) :
+                    vertexVector_{ factory::vector<pisdf::Vertex *>(StackID::TRANSFO) },
+                    rationalVector_{ factory::vector<Rational>(vertexCount, StackID::TRANSFO) },
+                    visitedVertices_{ factory::vector<bool>(vertexCount, false, StackID::TRANSFO) },
+                    visitedEdges_{ factory::vector<bool>(edgeCount, false, StackID::TRANSFO) } {
+                vertexVector_.reserve(vertexCount);
+            }
+
+            BRVHandler(const BRVHandler &) = default;
+
+            BRVHandler(BRVHandler &&) = default;
+
+            ~BRVHandler() = default;
+
+            vector<pisdf::Vertex *> vertexVector_; /* = Vector used to handle multiple connected components = */
+            vector<Rational> rationalVector_;      /* = Vector used to store Rationals of every vertices = */
+            vector<bool> visitedVertices_;         /* = Vector used to keep track of already visited vertices = */
+            vector<bool> visitedEdges_;            /* = Vector used to keep track of visited edges = */
         };
 
 
@@ -102,54 +111,6 @@ namespace spider {
          * @param graph Graph to evaluate.
          */
         void compute(const pisdf::Graph *graph);
-
-        /**
-         * @brief Extract the different connected components of a graph.
-         * @param graph     Pointer to the graph to evaluate.
-         * @param vertices  Reference to the vector of vertices to update.
-         * @return vector of @refitem ConnectedComponents.
-         * @throws @refitem spider::Exception.
-         */
-        spider::vector<ConnectedComponent> extractConnectedComponents(const pisdf::Graph *graph,
-                                                                      spider::vector<pisdf::Vertex *> &vertices);
-
-        /**
-         * @brief Extract the edges from a connected component.
-         * @param component            Connected component to evaluate.
-         * @param registeredEdgeVector Reference vector to already registered edges in the graph.
-         * @return array of Edge of the connected component.
-         */
-        spider::array<const pisdf::Edge *> extractEdgesFromComponent(const ConnectedComponent &component,
-                                                                     spider::vector<bool> &registeredEdgeVector);
-
-        /**
-         * @brief Extract Rationals of rates of a connected component using its edges.
-         * @param rationalVector Vector of @refitem Rational to be set.
-         * @param edgeArray      Edges of the connected component we are evaluating.
-         * @param params         Parameters used for rate evaluation.
-         * @throws @refitem spider::Exception
-         */
-        void extractRationalsFromEdges(spider::vector<spider::Rational> &rationalVector,
-                                       const spider::array<const pisdf::Edge *> &edgeArray,
-                                       const spider::vector<std::shared_ptr<pisdf::Param>> &params);
-
-        /**
-         * @brief Update repetition values of a given connected component.
-         * @param component Connected component to evaluate.
-         * @param params    Parameters value to use.
-         */
-        void updateBRV(const ConnectedComponent &component,
-                       const array<const pisdf::Edge *> &edges,
-                       const vector<std::shared_ptr<pisdf::Param>> &params);
-
-        /**
-         * @brief Check the consistency (see consistency property of SDF graph) of a connected component.
-         * @param edgeArray  Edges of the connected component.
-         * @param params     Parameters value to use.
-         * @throws @refitem spider::Exception.
-         */
-        void checkConsistency(const spider::array<const pisdf::Edge *> &edgeArray,
-                              const spider::vector<std::shared_ptr<pisdf::Param>> &params);
 
         /**
          * @brief Print the repetition vector of a given graph (only if verbose is enabled)

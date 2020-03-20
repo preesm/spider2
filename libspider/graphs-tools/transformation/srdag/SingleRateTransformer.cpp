@@ -544,9 +544,3 @@ void spider::srdag::SingleRateTransformer::populateFromDelayVertex(vector<Transf
     /* == Remove the Edge == */
     srdag_->removeEdge(edge);
 }
-
-
-
-
-
-
