@@ -40,12 +40,16 @@
 
 /* === Include(s) === */
 
-#include <cstddef>
 #include <cstring>
-#include <cinttypes>
 #include <runtime/special-kernels/specialKernels.h>
+#include <common/Types.h>
 #include <common/Exception.h>
 #include <common/Logger.h>
+#include <archi/Platform.h>
+#include <archi/Cluster.h>
+#include <archi/PE.h>
+#include <archi/MemoryInterface.h>
+#include <api/archi-api.h>
 
 /* === Function(s) definition === */
 
@@ -162,10 +166,35 @@ void spider::rt::repeat(const int64_t *paramsIn, int64_t *, void **in, void **ou
 
 void spider::rt::init(const int64_t *paramsIn, int64_t *, void **, void **out) {
     const auto isPersistent = paramsIn[0];
-    const auto outputSize = paramsIn[1];
+    const auto size = paramsIn[1];
     if (!isPersistent) {
-        std::memset(out[0], 0, static_cast<size_t>(outputSize));
+        std::memset(out[0], 0, static_cast<size_t>(size));
+    } else {
+        const auto address = paramsIn[2];
+        const auto *grt = archi::platform()->spiderGRTPE();
+        auto *memInterface = grt->cluster()->memoryInterface();
+        auto *buffer = memInterface->read(static_cast<u64>(address), 1);
+        if (out[0] != buffer) {
+            memcpy(out[0], buffer, static_cast<size_t>(size));
+        }
+        if (log::enabled<log::MEMORY>()) {
+            log::info<log::MEMORY>("INIT for address %p and size %ld.\n", out[0], size);
+        }
     }
 }
 
-void spider::rt::end(const int64_t *, int64_t *, void **, void **) { }
+void spider::rt::end(const int64_t *paramsIn, int64_t *, void **in, void **) {
+    if (paramsIn[0]) {
+        const auto size = paramsIn[1];
+        const auto address = paramsIn[2];
+        const auto *grt = archi::platform()->spiderGRTPE();
+        auto *memInterface = grt->cluster()->memoryInterface();
+        auto *buffer = memInterface->read(static_cast<u64>(address), 1);
+        if (in[0] != buffer) {
+            memcpy(buffer, in[0], static_cast<size_t>(size));
+        }
+        if (log::enabled<log::MEMORY>()) {
+            log::info<log::MEMORY>("END for address %p and size %ld.\n", in[0], size);
+        }
+    }
+}

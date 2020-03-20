@@ -61,6 +61,8 @@
 
 #define throwSpiderException(...) throw spider::Exception(spider::getFileName(__FILE__), __func__, __LINE__, __VA_ARGS__)
 
+#define throwNullptrException() throw spider::Exception(spider::getFileName(__FILE__), __func__, __LINE__, "nullptr exception")
+
 namespace spider {
 
     constexpr const char *str_end(const char *str) {

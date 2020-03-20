@@ -46,9 +46,12 @@
 #include <graphs-tools/expression-parser/Expression.h>
 
 namespace spider {
-    namespace pisdf {
 
-        /* === Forward declaration(s) === */
+    /* === Forward declaration(s) === */
+
+    class MemoryInterface;
+
+    namespace pisdf {
 
         class Edge;
 
@@ -62,7 +65,7 @@ namespace spider {
                   Vertex *getter, size_t getterPortIx, Expression getterRateExpression,
                   bool persistent = false);
 
-            ~Delay() = default;
+            ~Delay();
 
             friend class Edge;
 
@@ -150,8 +153,15 @@ namespace spider {
              */
             void setMemoryAddress(uint64_t address);
 
+            /**
+             * @brief Set the memory interface on which memory has been allocated (for persistent delays)
+             * @param interface Pointer to the interface.
+             */
+            void setMemoryInterface(MemoryInterface *interface);
+
         private:
             uint64_t memoryAddress_ = UINT64_MAX; /* = Memory address associated to this Delay (if persistent) = */
+            MemoryInterface *memoryInterface_ = nullptr; /* = Memory interface on which the delay is allocated = */
             int64_t value_ = 0;                   /* = Value of the Delay = */
             Vertex *vertex_ = nullptr;            /* = Virtual vertex created for consistency evaluation = */
             Edge *edge_ = nullptr;                /* = Edge associated to the Delay = */

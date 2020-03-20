@@ -72,6 +72,7 @@ spider::JITMSRuntime::JITMSRuntime(pisdf::Graph *graph,
     if (!rt::platform()) {
         throwSpiderException("JITMSRuntime need the runtime platform to be created.");
     }
+    fifoAllocator_->allocatePersistentDelays(graph_);
 }
 
 bool spider::JITMSRuntime::execute() {

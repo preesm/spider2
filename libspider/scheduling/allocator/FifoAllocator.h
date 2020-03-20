@@ -57,6 +57,12 @@ namespace spider {
 
     class MemoryInterface;
 
+    class ScheduleTask;
+
+    namespace pisdf {
+        class Graph;
+    }
+
     /* === Class definition === */
 
     class FifoAllocator {
@@ -83,10 +89,18 @@ namespace spider {
          */
         virtual RTFifo allocate(int64_t size) = 0;
 
+        virtual void allocate(ScheduleTask *task) = 0;
+
         /**
          * @brief Clears the allocator.
          */
         virtual void clear() noexcept = 0;
+
+        /**
+         * @brief Reserve memory for permanent delays.
+         * @param graph pointer to the graph.
+         */
+        virtual void allocatePersistentDelays(pisdf::Graph *graph) = 0;
 
         /* === Getter(s) === */
 

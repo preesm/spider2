@@ -97,6 +97,9 @@ void spider::MemoryInterface::deallocate(uint64_t virtualAddress, size_t size) {
         throwSpiderException("Deallocating more memory than used.");
     }
     if (!(--(buffer->count_))) {
+        if (log::enabled<log::MEMORY>()) {
+            log::print<log::MEMORY>(log::green, "INFO: ", "PHYSICAL: deallocating %zu bytes at address %zu.\n", buffer->size_, virtualAddress);
+        }
         used_ -= buffer->size_;
         deallocateRoutine_(buffer->buffer_);
     }
@@ -114,8 +117,8 @@ void spider::MemoryInterface::registerPhysicalAddress(uint64_t virtualAddress, v
 }
 
 spider::MemoryInterface::buffer_t *spider::MemoryInterface::retrieveBuffer(uint64_t virtualAddress) {
-    if (log::enabled<log::LRT>()) {
-        log::print<log::LRT>(log::red, "INFO: ", "PHYSICAL: fetching address %zu.\n", virtualAddress);
+    if (log::enabled<log::MEMORY>()) {
+        log::print<log::MEMORY>(log::red, "INFO: ", "PHYSICAL: fetching address %zu.\n", virtualAddress);
     }
     return &(virtual2Phys_.at(virtualAddress));
 }

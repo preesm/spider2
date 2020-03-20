@@ -170,6 +170,12 @@ namespace spider {
          * @param task Pointer to the task to map.
          */
         virtual void taskMapper(ScheduleTask *task);
+
+        /**
+         * @brief Allocate virtual addresses for a given task.
+         * @param task  Pointer to the task.
+         */
+        virtual void allocateTaskOutputFifos(ScheduleTask *task);
     };
 
     /**

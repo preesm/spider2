@@ -41,10 +41,12 @@
 /* === Include(s) === */
 
 #include <graphs/pisdf/Delay.h>
+#include <graphs/pisdf/DelayVertex.h>
 #include <graphs/pisdf/Edge.h>
 #include <graphs/pisdf/Graph.h>
 #include <api/pisdf-api.h>
-#include "DelayVertex.h"
+#include <archi/MemoryInterface.h>
+#include <api/runtime-api.h>
 
 /* === Static variable(s) === */
 
@@ -85,6 +87,17 @@ spider::pisdf::Delay::Delay(int64_t value, Edge *edge,
                                  "end::" + edge->source()->name() + ":" + std::to_string(edge->sourcePortIx()));
     }
 
+    /* == Set init / end of persistent delays only mappable on PE of the same cluster of the GRT for memory reason == */
+    if (persistent) {
+        api::setVertexMappableOnAllPE(setter_, false);
+        api::setVertexMappableOnAllPE(getter_, false);
+        const auto *grt = archi::platform()->spiderGRTPE();
+        for (auto &pe : grt->cluster()->peArray()) {
+            api::setVertexMappableOnPE(setter_, pe->virtualIx(), true);
+            api::setVertexMappableOnPE(getter_, pe->virtualIx(), true);
+        }
+    }
+
     /* == Create virtual vertex and connect it to setter / getter == */
     vertex_ = make<DelayVertex, StackID::PISDF>(this->name(), this);
     edge->graph()->addVertex(vertex_);
@@ -100,6 +113,13 @@ spider::pisdf::Delay::Delay(int64_t value, Edge *edge,
     edge_->setDelay(this);
 }
 
+
+spider::pisdf::Delay::~Delay() {
+    if (memoryInterface_) {
+        memoryInterface_->deallocate(memoryAddress_, static_cast<size_t>(value_));
+    }
+}
+
 std::string spider::pisdf::Delay::name() const {
     return "delay::" +
            edge_->source()->name() + ":" + std::to_string(edge_->sourcePortIx()) + "--" +
@@ -112,11 +132,17 @@ int64_t spider::pisdf::Delay::value() const {
 }
 
 void spider::pisdf::Delay::setMemoryAddress(uint64_t address) {
-    if (persistent_) {
+    if (!persistent_) {
         return;
     }
     if (memoryAddress_ != UINT64_MAX && log::enabled()) {
         spider::log::warning("Delay [%s] already has a memory address.\n", name().c_str());
     }
     memoryAddress_ = address;
+}
+
+void spider::pisdf::Delay::setMemoryInterface(MemoryInterface *interface) {
+    if (interface) {
+        memoryInterface_ = interface;
+    }
 }

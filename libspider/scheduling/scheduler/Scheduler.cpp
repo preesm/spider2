@@ -306,6 +306,12 @@ void spider::Scheduler::taskMapper(ScheduleTask *task) {
     schedule_.updateTaskAndSetReady(static_cast<size_t>(task->ix()), mappingPe->virtualIx(), mappingSt, mappingEt);
 }
 
+void spider::Scheduler::allocateTaskOutputFifos(spider::ScheduleTask *task) {
+    if (task && allocator_) {
+        allocator_->allocate(task);
+    }
+}
+
 spider::unique_ptr<spider::Scheduler> spider::makeScheduler(SchedulingAlgorithm algorithm, pisdf::Graph *graph) {
     Scheduler *scheduler = nullptr;
     switch (algorithm) {

@@ -182,7 +182,7 @@ std::pair<spider::srdag::JobStack, spider::srdag::JobStack> spider::srdag::Singl
     auto staticJobStack = factory::vector<TransfoJob>(StackID::TRANSFO);
     auto dynaJobStack = factory::vector<TransfoJob>(StackID::TRANSFO);
     for (auto *subgraph : job_.reference_->subgraphs()) {
-        auto isDynamic = subgraph->dynamic() && !subgraph->configVertexCount();
+        const auto isDynamic = subgraph->dynamic() && !subgraph->configVertexCount();
         /* == Creates the jobs == */
         const auto &params = isDynamic ? job_.params_ : subgraph->params();
         auto &stack = isDynamic ? dynaJobStack : staticJobStack;
@@ -464,7 +464,7 @@ spider::srdag::SingleRateTransformer::buildSinkLinkerVector(pisdf::Edge *edge) {
             populateTransfoVertexVector(sinkVector, sink, outputEdge->sinkRateValue(), outputEdge->sinkPortIx());
             srdag_->removeEdge(outputEdge);
         } else {
-            const auto &rate = edge->sourceRateExpression().evaluate(job_.params_) * edge->source()->repetitionValue();
+            const auto rate = edge->sourceRateExpression().evaluate(job_.params_) * edge->source()->repetitionValue();
             populateTransfoVertexVector(sinkVector, sink, rate, edge->sinkPortIx());
         }
     } else if (sink->subtype() == pisdf::VertexType::DELAY && clone->outputEdge(1)) {
@@ -472,7 +472,7 @@ spider::srdag::SingleRateTransformer::buildSinkLinkerVector(pisdf::Edge *edge) {
         populateFromDelayVertex(sinkVector, clone->outputEdge(1), true);
     } else {
         /* == 2.2 Normal case == */
-        const auto &rate = edge->sinkRateExpression().evaluate(job_.params_);
+        const auto rate = edge->sinkRateExpression().evaluate(job_.params_);
         populateTransfoVertexVector(sinkVector, sink, rate, edge->sinkPortIx());
     }
     return sinkVector;
@@ -495,7 +495,7 @@ spider::srdag::SingleRateTransformer::buildSourceLinkerVector(pisdf::Edge *edge)
             populateTransfoVertexVector(sourceVector, source, inputEdge->sourceRateValue(), inputEdge->sourcePortIx());
             srdag_->removeEdge(inputEdge);
         } else {
-            const auto &rate = edge->sinkRateExpression().evaluate(job_.params_) * edge->sink()->repetitionValue();
+            const auto rate = edge->sinkRateExpression().evaluate(job_.params_) * edge->sink()->repetitionValue();
             populateTransfoVertexVector(sourceVector, source, rate, edge->sourcePortIx());
         }
     } else if (source->subtype() == pisdf::VertexType::DELAY && clone->inputEdge(1)) {
@@ -503,7 +503,7 @@ spider::srdag::SingleRateTransformer::buildSourceLinkerVector(pisdf::Edge *edge)
         populateFromDelayVertex(sourceVector, clone->inputEdge(1), false);
     } else {
         /* == 1.2 Normal case == */
-        const auto &rate = edge->sourceRateExpression().evaluate(job_.params_);
+        const auto rate = edge->sourceRateExpression().evaluate(job_.params_);
         populateTransfoVertexVector(sourceVector, source, rate, edge->sourcePortIx());
     }
 

@@ -48,6 +48,10 @@
 
 namespace spider {
 
+    namespace pisdf {
+        class Delay;
+    }
+
     /* === Class definition === */
 
     class DefaultFifoAllocator final : public FifoAllocator {
@@ -61,24 +65,13 @@ namespace spider {
 
         /* === Method(s) === */
 
-        inline RTFifo allocate(int64_t size) override {
-            RTFifo fifo;
-            fifo.size_ = static_cast<u32>(size);
-            fifo.virtualAddress_ = static_cast<u64>(virtualMemoryAddress_);
-            fifo.attribute_ = FifoAttribute::WRITE_OWN;
-            if (log::enabled<log::MEMORY>()) {
-                log::print<log::MEMORY>(log::green, "INFO:", "VIRTUAL: allocating %zu bytes at address %zu.\n", size, virtualMemoryAddress_);
-            }
-            virtualMemoryAddress_ += size;
-            return fifo;
-        }
+        RTFifo allocate(int64_t size) override;
 
-        inline void clear() noexcept override {
-            virtualMemoryAddress_ = 0;
-            for (auto &cluster : archi::platform()->clusters()) {
-                cluster->memoryInterface()->clear();
-            }
-        }
+        void allocate(ScheduleTask *task) override;
+
+        void clear() noexcept override;
+
+        void allocatePersistentDelays(pisdf::Graph *graph) override;
 
         /* === Getter(s) === */
 
@@ -90,6 +83,25 @@ namespace spider {
 
     private:
         int64_t virtualMemoryAddress_ = 0;
+        int64_t reservedMemory_ = 0;
+
+        /* === Private method(s) === */
+
+        void allocateVertexTask(ScheduleTask *task);
+
+        void allocateDefaultVertexTask(ScheduleTask *task);
+
+        void allocateForkTask(ScheduleTask *task);
+
+        void allocateDuplicateTask(ScheduleTask *task);
+
+        void allocateInitTask(ScheduleTask *task);
+
+        RTFifo createFifoFromDelay(const pisdf::Delay *delay);
+
+        void allocateReceiveTask(ScheduleTask *task);
+
+        void allocateSendTask(ScheduleTask *task);
     };
 }
 

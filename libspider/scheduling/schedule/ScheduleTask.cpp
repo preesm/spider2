@@ -42,6 +42,7 @@
 
 #include <scheduling/schedule/ScheduleTask.h>
 #include <graphs/pisdf/Graph.h>
+#include <graphs/pisdf/DelayVertex.h>
 #include <archi/Platform.h>
 #include <api/archi-api.h>
 
@@ -107,6 +108,10 @@ void spider::ScheduleTask::addOutputFifo(RTFifo fifo) {
 
 spider::pisdf::Vertex *spider::ScheduleTask::vertex() const {
     return type_ == TaskType::VERTEX ? reinterpret_cast<pisdf::Vertex *>(internal_) : nullptr;
+}
+
+spider::ComTaskInformation *spider::ScheduleTask::comTaskInfo() const {
+    return type_ != TaskType::VERTEX ? reinterpret_cast<ComTaskInformation *>(internal_) : nullptr;
 }
 
 size_t spider::ScheduleTask::kernelIx() const {
@@ -194,35 +199,27 @@ void spider::ScheduleTask::setJobMessageInputParameters(JobMessage &message) con
         message.inputParams_[3] = static_cast<i64>(information->packetIx_);
         return;
     }
-    auto *vertex = reinterpret_cast<pisdf::Vertex *>(internal_);
-    auto inputEdgeCount{ vertex->inputEdgeCount() };
-    auto outputEdgeCount{ vertex->outputEdgeCount() };
+    const auto *vertex = reinterpret_cast<pisdf::Vertex *>(internal_);
+    const auto &inputParams = vertex->refinementParamVector();
+    const auto outputEdgeCount{ vertex->outputEdgeCount() };
     switch (vertex->subtype()) {
         case pisdf::VertexType::CONFIG:
-        case pisdf::VertexType::NORMAL: {
-            message.inputParams_ = array<i64>(vertex->refinementParamVector().size(),
-                                              StackID::RUNTIME);
-            auto paramIterator = message.inputParams_.begin();
-            for (auto &param : vertex->refinementParamVector()) {
-                (*(paramIterator++)) = param->value();
-            }
-        }
+        case pisdf::VertexType::NORMAL:
+            message.inputParams_ = array<i64>(inputParams.size(), StackID::RUNTIME);
+            std::transform(std::begin(inputParams), std::end(inputParams), std::begin(message.inputParams_),
+                           [](const std::shared_ptr<pisdf::Param> &param) { return param->value(); });
             break;
         case pisdf::VertexType::FORK:
-            message.inputParams_ = array<i64>(outputEdgeCount + 2, StackID::RUNTIME);
-            message.inputParams_[0] = vertex->inputEdge(0)->sinkRateValue();
-            message.inputParams_[1] = static_cast<i64>(outputEdgeCount);
-            for (size_t i = 0; i < outputEdgeCount; ++i) {
-                message.inputParams_[i + 2] = vertex->outputEdge(i)->sourceRateValue();
-            }
+            message.inputParams_ = buildForkInputParameters(vertex);
             break;
         case pisdf::VertexType::JOIN:
-            message.inputParams_ = array<i64>(inputEdgeCount + 2, StackID::RUNTIME);
-            message.inputParams_[0] = vertex->outputEdge(0)->sourceRateValue();
-            message.inputParams_[1] = static_cast<i64>(inputEdgeCount);
-            for (size_t i = 0; i < inputEdgeCount; ++i) {
-                message.inputParams_[i + 2] = vertex->inputEdge(i)->sinkRateValue();
-            }
+            message.inputParams_ = buildJoinInputParameters(vertex);
+            break;
+        case pisdf::VertexType::TAIL:
+            message.inputParams_ = buildTailInputParameters(vertex);
+            break;
+        case pisdf::VertexType::HEAD:
+            message.inputParams_ = buildHeadInputParameters(vertex);
             break;
         case pisdf::VertexType::REPEAT:
             message.inputParams_ = array<i64>(2, StackID::RUNTIME);
@@ -234,73 +231,98 @@ void spider::ScheduleTask::setJobMessageInputParameters(JobMessage &message) con
             message.inputParams_[0] = static_cast<i64>(outputEdgeCount);
             message.inputParams_[1] = vertex->inputEdge(0)->sinkRateValue();
             break;
-        case pisdf::VertexType::TAIL: {
-            size_t inputCount = 1;
-            auto rate = vertex->outputEdge(0)->sourceRateValue();
-            for (auto it = vertex->inputEdgeVector().rbegin(); it != vertex->inputEdgeVector().rend(); ++it) {
-                const auto &inRate = (*it)->sinkRateValue();
-                if (inRate >= rate) {
-                    break;
-                }
-                rate -= inRate;
-                inputCount++;
-            }
-            message.inputParams_ = array<i64>(4 + inputCount, StackID::RUNTIME);
-            /* = Number of input = */
-            message.inputParams_[0] = static_cast<i64>(inputEdgeCount);
-            /* = First input to be considered = */
-            message.inputParams_[1] = static_cast<i64>(inputEdgeCount - inputCount);
-            /* = Offset in the first buffer if any = */
-            message.inputParams_[2] = vertex->inputEdge(inputEdgeCount - inputCount)->sinkRateValue() - rate;
-            /* = Effective size to copy of the first input = */
-            message.inputParams_[3] = rate;
-            size_t i = 4;
-            for (auto it = vertex->inputEdgeVector().rbegin();
-                 it != vertex->inputEdgeVector().rbegin() + static_cast<long>(inputCount) - 1; ++it) {
-                message.inputParams_[i++] = (*it)->sinkRateValue();
-            }
-        }
-            break;
-        case pisdf::VertexType::HEAD: {
-            size_t inputCount = 1;
-            auto rate = vertex->outputEdge(0)->sourceRateValue();
-            for (auto &edge : vertex->inputEdgeVector()) {
-                const auto &inRate = edge->sinkRateValue();
-                if (inRate >= rate) {
-                    break;
-                }
-                rate -= inRate;
-                inputCount++;
-            }
-            message.inputParams_ = array<i64>(1 + inputCount, StackID::RUNTIME);
-            message.inputParams_[0] = static_cast<i64>(inputCount);
-            rate = vertex->outputEdge(0)->sourceRateValue();
-            for (size_t i = 0; i < inputCount; ++i) {
-                const auto &inRate = vertex->inputEdge(i)->sinkRateValue();
-                message.inputParams_[i + 1] = std::min(inRate, rate);
-                rate -= inRate;
-            }
-        }
-            break;
         case pisdf::VertexType::INIT:
-            message.inputParams_ = array<i64>(2, StackID::RUNTIME);
-            message.inputParams_[0] = static_cast<i64>(-1);
-            if (!vertex->refinementParamVector().empty()) {
-                message.inputParams_[0] = vertex->refinementParamVector()[0]->value();
-            }
-            message.inputParams_[1] = vertex->outputEdge(0)->sourceRateValue();
+            message.inputParams_ = buildInitEndInputParameters(vertex, true);
             break;
         case pisdf::VertexType::END:
-            message.inputParams_ = array<i64>(2, StackID::RUNTIME);
-            message.inputParams_[0] = static_cast<i64>(-1);
-            if (!vertex->refinementParamVector().empty()) {
-                message.inputParams_[0] = vertex->refinementParamVector()[0]->value();
-            }
-            message.inputParams_[1] = vertex->inputEdge(0)->sinkRateValue();
+            message.inputParams_ = buildInitEndInputParameters(vertex, false);
             break;
         default:
             break;
     }
+}
+
+spider::array<i64> spider::ScheduleTask::buildForkInputParameters(const pisdf::Vertex *vertex) const {
+    const auto &outputEdges = vertex->outputEdgeVector();
+    auto params = array<i64>(outputEdges.size() + 2, StackID::RUNTIME);
+    params[0] = vertex->inputEdge(0)->sinkRateValue();
+    params[1] = static_cast<i64>(outputEdges.size());
+    std::transform(std::begin(outputEdges), std::end(outputEdges), std::begin(params) + 2,
+                   [](const pisdf::Edge *edge) { return edge->sourceRateValue(); });
+    return params;
+}
+
+spider::array<i64> spider::ScheduleTask::buildJoinInputParameters(const pisdf::Vertex *vertex) const {
+    const auto &inputEdges = vertex->inputEdgeVector();
+    auto params = array<i64>(inputEdges.size() + 2, StackID::RUNTIME);
+    params[0] = vertex->outputEdge(0)->sourceRateValue();
+    params[1] = static_cast<i64>(inputEdges.size());
+    std::transform(std::begin(inputEdges), std::end(inputEdges), std::begin(params) + 2,
+                   [](const pisdf::Edge *edge) { return edge->sinkRateValue(); });
+    return params;
+}
+
+spider::array<i64> spider::ScheduleTask::buildTailInputParameters(const pisdf::Vertex *vertex) const {
+    size_t inputCount = 1;
+    auto rate = vertex->outputEdge(0)->sourceRateValue();
+    const auto &inputEdges = vertex->inputEdgeVector();
+    for (auto it = inputEdges.rbegin(); it != inputEdges.rend(); ++it) {
+        const auto &inRate = (*it)->sinkRateValue();
+        if (inRate >= rate) {
+            break;
+        }
+        rate -= inRate;
+        inputCount++;
+    }
+    auto params = array<i64>(4 + inputCount, StackID::RUNTIME);
+    /* = Number of input = */
+    params[0] = static_cast<i64>(inputEdges.size());
+    /* = First input to be considered = */
+    params[1] = static_cast<i64>(inputEdges.size() - inputCount);
+    /* = Offset in the first buffer if any = */
+    params[2] = vertex->inputEdge(inputEdges.size() - inputCount)->sinkRateValue() - rate;
+    /* = Effective size to copy of the first input = */
+    params[3] = rate;
+    size_t i = 4;
+    for (auto it = vertex->inputEdgeVector().rbegin();
+         it != vertex->inputEdgeVector().rbegin() + static_cast<long>(inputCount) - 1; ++it) {
+        params[i++] = (*it)->sinkRateValue();
+    }
+    return params;
+}
+
+spider::array<i64> spider::ScheduleTask::buildHeadInputParameters(const pisdf::Vertex *vertex) const {
+    size_t inputCount = 1;
+    auto rate = vertex->outputEdge(0)->sourceRateValue();
+    for (auto &edge : vertex->inputEdgeVector()) {
+        const auto &inRate = edge->sinkRateValue();
+        if (inRate >= rate) {
+            break;
+        }
+        rate -= inRate;
+        inputCount++;
+    }
+    auto params = array<i64>(1 + inputCount, StackID::RUNTIME);
+    params[0] = static_cast<i64>(inputCount);
+    rate = vertex->outputEdge(0)->sourceRateValue();
+    for (size_t i = 0; i < inputCount; ++i) {
+        const auto &inRate = vertex->inputEdge(i)->sinkRateValue();
+        params[i + 1] = std::min(inRate, rate);
+        rate -= inRate;
+    }
+    return params;
+}
+
+spider::array<i64> spider::ScheduleTask::buildInitEndInputParameters(const pisdf::Vertex *vertex, bool isInit) const {
+    auto params = array<i64>(3, StackID::RUNTIME);
+    auto *reference = vertex->reference();
+    auto *delayVertex = isInit ? reference->outputEdge(0)->sink()->convertTo<pisdf::DelayVertex>()
+                               : reference->inputEdge(0)->source()->convertTo<pisdf::DelayVertex>();
+    auto *delay = delayVertex->delay();
+    params[0] = delay->isPersistent();
+    params[1] = delay->value();
+    params[2] = static_cast<i64>(delay->memoryAddress());
+    return params;
 }
 
 void spider::ScheduleTask::setJobMessageInputFifos(JobMessage &message) const {
@@ -316,75 +338,33 @@ void spider::ScheduleTask::setJobMessageInputFifos(JobMessage &message) const {
         message.inputFifoArray_[0].attribute_ = FifoAttribute::READ_OWN;
         return;
     }
-    auto *vertex = reinterpret_cast<pisdf::Vertex *>(internal_);
-    const auto inputEdgeCount{ vertex->inputEdgeCount() };
-    message.inputFifoArray_ = array<RTFifo>(inputEdgeCount, StackID::RUNTIME);
-    for (size_t inputIx = 0; inputIx < inputEdgeCount; ++inputIx) {
-        auto &task = dependenciesArray_[inputIx];
+    auto *vertex = this->vertex();
+    message.inputFifoArray_ = array<RTFifo>(dependenciesArray_.size(), StackID::RUNTIME);
+    for (size_t inputIx = 0; inputIx < dependenciesArray_.size(); ++inputIx) {
+        const auto &inputTask = dependenciesArray_[inputIx];
         message.inputFifoArray_[inputIx] = RTFifo{ };
-        if (!task) {
+        if (!inputTask) {
             continue;
         }
-        if (task->type() == TaskType::VERTEX) {
-            const auto edge = vertex->inputEdge(inputIx);
-            auto &fifo = task->outputFifos_[edge->sourcePortIx()];
-            message.inputFifoArray_[inputIx].virtualAddress_ = fifo.virtualAddress_;
-            message.inputFifoArray_[inputIx].size_ = fifo.size_;
-            message.inputFifoArray_[inputIx].offset_ = fifo.offset_;
-            if (vertex->subtype() == pisdf::VertexType::DUPLICATE ||
-                vertex->subtype() == pisdf::VertexType::FORK) {
-                message.inputFifoArray_[inputIx].count_ = static_cast<u32>(vertex->outputEdgeCount());
+        if (inputTask->type() == TaskType::VERTEX) {
+            const auto *inputEdge = vertex->inputEdge(inputIx);
+            message.inputFifoArray_[inputIx] = inputTask->outputFifos_[inputEdge->sourcePortIx()];
+            message.inputFifoArray_[inputIx].attribute_ = FifoAttribute::READ_OWN;
+            if (vertex->subtype() == pisdf::VertexType::DUPLICATE || vertex->subtype() == pisdf::VertexType::FORK) {
+                const auto count = std::count_if(std::begin(outputFifos_), std::end(outputFifos_),
+                                                 [](const RTFifo &fifo) { return fifo.size_ != 0; });
+                message.inputFifoArray_[inputIx].count_ = static_cast<u32>(count);
                 message.inputFifoArray_[inputIx].attribute_ = FifoAttribute::READ_ONLY;
-            } else {
-                message.inputFifoArray_[inputIx].count_ = 1;
-                message.inputFifoArray_[inputIx].attribute_ = FifoAttribute::READ_OWN;
             }
-        } else if (task->type() == TaskType::SYNC_RECEIVE) {
-            message.inputFifoArray_[inputIx] = task->outputFifos_[0];
+        } else if (inputTask->type() == TaskType::SYNC_RECEIVE) {
+            message.inputFifoArray_[inputIx] = inputTask->outputFifos_[0];
             message.inputFifoArray_[inputIx].attribute_ = FifoAttribute::READ_OWN;
         }
     }
 }
 
 void spider::ScheduleTask::setJobMessageOutputFifos(JobMessage &message) const {
-    if (type_ != TaskType::VERTEX) {
-        if (type_ == TaskType::SYNC_RECEIVE) {
-            message.outputFifoArray_ = array<RTFifo>(1, StackID::RUNTIME);
-            message.outputFifoArray_[0] = outputFifos_[0];
-        }
-        return;
-    }
-    auto *vertex = reinterpret_cast<pisdf::Vertex *>(internal_);
-    const auto outputEdgeCount{ vertex->outputEdgeCount() };
-    message.outputFifoArray_ = array<RTFifo>(outputEdgeCount, StackID::RUNTIME);
-    if (vertex->subtype() == pisdf::VertexType::FORK) {
-        auto &inputFifo = message.inputFifoArray_[0];
-        auto address = inputFifo.virtualAddress_;
-        for (size_t outputIx = 0; outputIx < outputEdgeCount; ++outputIx) {
-            message.outputFifoArray_[outputIx] = RTFifo();
-            message.outputFifoArray_[outputIx].attribute_ = FifoAttribute::WRITE_ONLY;
-            message.outputFifoArray_[outputIx].virtualAddress_ = message.inputFifoArray_[0].virtualAddress_;
-            message.outputFifoArray_[outputIx].offset_ = static_cast<u32>(address -
-                                                                          message.inputFifoArray_[0].virtualAddress_);
-            message.outputFifoArray_[outputIx].size_ = outputFifos_[outputIx].size_;
-            inputFifo.count_ -= (outputFifos_[outputIx].size_ == 0);
-            address += outputFifos_[outputIx].size_;
-            outputFifos_[outputIx] = message.outputFifoArray_[outputIx];
-        }
-    } else if (vertex->subtype() == pisdf::VertexType::DUPLICATE) {
-        for (size_t outputIx = 0; outputIx < outputEdgeCount; ++outputIx) {
-            message.outputFifoArray_[outputIx] = RTFifo();
-            message.outputFifoArray_[outputIx].attribute_ = FifoAttribute::WRITE_ONLY;
-            message.outputFifoArray_[outputIx].virtualAddress_ = message.inputFifoArray_[0].virtualAddress_;
-            message.outputFifoArray_[outputIx].offset_ = 0;
-            message.outputFifoArray_[outputIx].size_ = outputFifos_[outputIx].size_;
-            outputFifos_[outputIx] = message.outputFifoArray_[outputIx];
-        }
-    } else {
-        for (size_t outputIx = 0; outputIx < outputEdgeCount; ++outputIx) {
-            message.outputFifoArray_[outputIx] = outputFifos_[outputIx];
-        }
-    }
+    message.outputFifoArray_ = array<RTFifo>(outputFifos_.size(), StackID::RUNTIME);
+    std::copy(std::begin(outputFifos_), std::end(outputFifos_), std::begin(message.outputFifoArray_));
 }
-
 

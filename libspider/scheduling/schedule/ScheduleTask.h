@@ -212,6 +212,12 @@ namespace spider {
         pisdf::Vertex *vertex() const;
 
         /**
+         * @brief Get the communication task information associated to this task (if type() != TaskType::VERTEX).
+         * @return pointer to the associated information, nullptr else.
+         */
+        ComTaskInformation *comTaskInfo() const;
+
+        /**
          * @brief Get the ix of the kernel associated with this task.
          * @return ix of the kernel of the associated vertex if type() == TaskType::VERTEX,
          *         ix of the kernel set by the method @refitem ScheduleTask::setKernelIx
@@ -353,6 +359,16 @@ namespace spider {
          * @param message Reference to the jobMessage to update.
          */
         void setJobMessageInputParameters(JobMessage &message) const;
+
+        array<i64> buildForkInputParameters(const pisdf::Vertex *vertex) const;
+
+        array<i64> buildJoinInputParameters(const pisdf::Vertex *vertex) const;
+
+        array<i64> buildTailInputParameters(const pisdf::Vertex *vertex) const;
+
+        array<i64> buildHeadInputParameters(const pisdf::Vertex *vertex) const;
+
+        array<i64> buildInitEndInputParameters(const pisdf::Vertex *vertex, bool isInit) const;
 
         /**
          * @brief Set JobMessage input fifos (if any)

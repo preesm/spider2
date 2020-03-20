@@ -55,40 +55,28 @@
 
 spider::Schedule &spider::BestFitScheduler::execute() {
     /* == Schedule and map the vertex onto available resource == */
-    auto iterator = sortedTaskVector_.begin() + static_cast<long>(lastScheduledTask_);
+    auto startIterator = sortedTaskVector_.begin() + static_cast<long>(lastScheduledTask_);
     auto endIterator = sortedTaskVector_.begin() + static_cast<long>(lastSchedulableTask_);
     if (mode_ == JIT_SEND) {
-        while (iterator != endIterator) {
-            auto &listVertex = (*(iterator++));
-            Scheduler::taskMapper(listVertex.task_);
+        std::for_each(startIterator, endIterator, [this](ListScheduler::ListTask &listTask) {
+            /* == Do the mapping scheduling for the task == */
+            Scheduler::taskMapper(listTask.task_);
             /* == We are in JIT mode, we need to broadcast the job stamp == */
-            listVertex.task_->enableBroadcast();
-            /* == If we got an allocator let use it == */
-            if (allocator_) {
-                auto *vertex = listVertex.task_->vertex();
-                for (auto &edge : vertex->outputEdgeVector()) {
-                    listVertex.task_->addOutputFifo(allocator_->allocate(edge->sourceRateValue()));
-                }
-            }
+            listTask.task_->enableBroadcast();
+            /* == Allocate output fifos for the task == */
+            Scheduler::allocateTaskOutputFifos(listTask.task_);
             /* == Create job message and send it == */
             schedule_.sendReadyTasks();
-        }
+        });
     } else {
-        while (iterator != endIterator) {
-            auto &listVertex = (*(iterator++));
-            Scheduler::taskMapper(listVertex.task_);
-        }
-        /* == If we got an allocator let use it == */
-        if (allocator_) {
-            iterator = sortedTaskVector_.begin() + static_cast<long>(lastScheduledTask_);
-            while (iterator != endIterator) {
-                auto &listVertex = (*(iterator++));
-                auto *vertex = listVertex.task_->vertex();
-                for (auto &edge : vertex->outputEdgeVector()) {
-                    listVertex.task_->addOutputFifo(allocator_->allocate(edge->sourceRateValue()));
-                }
-            }
-        }
+        /* == Do the mapping scheduling for all the tasks == */
+        std::for_each(startIterator, endIterator, [this](ListScheduler::ListTask &listTask) {
+            Scheduler::taskMapper(listTask.task_);
+        });
+        /* == Allocate output fifos for all the tasks == */
+        std::for_each(startIterator, endIterator, [this](ListScheduler::ListTask &listTask) {
+            Scheduler::allocateTaskOutputFifos(listTask.task_);
+        });
         /* == Creates all job messages and send them == */
         schedule_.sendReadyTasks();
     }

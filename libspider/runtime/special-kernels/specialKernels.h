@@ -125,9 +125,29 @@ namespace spider {
          */
         void repeat(const int64_t *paramsIn, int64_t *, void *in[], void *out[]);
 
-        void init(const int64_t *, int64_t *, void *[], void *[]);
+        /**
+         * @brief Default special kernel for @refitem pisdf::VertexType::INIT actors.
+         * @details Set output to 0 if linked-delay is not persistent.
+         *          Copy content of delay buffer into output buffer if linked-delay is persistent.
+         *          paramsIn[0] = persistence property of the delay.
+         *          paramsIn[1] = size of the delay.
+         *          paramsIn[2] = address of the delay buffer (if persistent).
+         * @param paramsIn Input parameters.
+         * @param out      Output buffers.
+         */
+        void init(const int64_t *paramsIn, int64_t *, void *[], void *out[]);
 
-        void end(const int64_t *, int64_t *, void *[], void *[]);
+        /**
+         * @brief Default special kernel for @refitem pisdf::VertexType::END actors.
+         * @details Do nothing if linked-delay is not persistent.
+         *          Copy content of input buffer to the delay buffer if linked-delay is persistent.
+         *          paramsIn[0] = persistence property of the delay.
+         *          paramsIn[1] = size of the delay.
+         *          paramsIn[2] = address of the delay buffer (if persistent).
+         * @param paramsIn Input parameters.
+         * @param in       Input buffers.
+         */
+        void end(const int64_t *paramsIn, int64_t *, void *in[], void *[]);
     }
 }
 
