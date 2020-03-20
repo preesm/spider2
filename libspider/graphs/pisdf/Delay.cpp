@@ -88,7 +88,7 @@ spider::pisdf::Delay::Delay(int64_t value, Edge *edge,
     }
 
     /* == Set init / end of persistent delays only mappable on PE of the same cluster of the GRT for memory reason == */
-    if (persistent) {
+    if (persistent && archi::platform()) {
         api::setVertexMappableOnAllPE(setter_, false);
         api::setVertexMappableOnAllPE(getter_, false);
         const auto *grt = archi::platform()->spiderGRTPE();

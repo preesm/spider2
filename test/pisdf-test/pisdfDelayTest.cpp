@@ -158,11 +158,10 @@ TEST_F(pisdfDelayTest, delayValueNameTest) {
     ASSERT_EQ(delay->setterPortIx(), 0) << "Delay::setterPortIx() failed.";
     ASSERT_EQ(delay->getterPortIx(), 0) << "Delay::getterPortIx() failed.";
     ASSERT_EQ(delay->memoryAddress(), UINT64_MAX) << "Delay::memoryAddress() failed.";
-    delay->setMemoryAddress(0);
+    ASSERT_NO_THROW(delay->setMemoryAddress(0)); // nothing should happen
     spider::api::enableLogger(spider::log::GENERAL);
-    delay->setMemoryAddress(0); /* = this is just to have the warning covered... = */
     spider::api::disableLogger(spider::log::GENERAL);
-    ASSERT_EQ(delay->memoryAddress(), 0) << "Delay::memoryAddress() failed.";
+    ASSERT_EQ(delay->memoryAddress(), UINT64_MAX) << "Delay::memoryAddress() failed.";
     ASSERT_EQ(delay->isPersistent(), false) << "Delay::isPersistent() failed.";
     ASSERT_NE(delay->vertex(), nullptr) << "Delay::vertex() should not return nullptr.";
 }

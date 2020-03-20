@@ -209,5 +209,17 @@ TEST_F(pisdfBRVTest, brvTest) {
         ASSERT_NO_THROW(spider::brv::compute(graph)) << "spider::brv::compute should not throw.";
         spider::destroy(graph);
     }
+    {
+        auto *graph = spider::api::createGraph("graph", 2, 1, 0, 1);
+        spider::api::createVertex(graph, "V0", 1, 1);
+        spider::api::createVertex(graph, "V1", 1);
+        spider::api::createVertex(graph, "V2", 0, 1);
+        spider::api::createVertex(graph, "V3", 1);
+        spider::api::createEdge(graph->vertex(0), 0, 1, graph->vertex(1), 0, 2);
+        spider::api::createEdge(graph->vertex(2), 0, 2, graph->vertex(3), 0, 1);
+        spider::api::createEdge(graph->inputInterface(0), 0, 2, graph->vertex(0), 0, 1);
+        ASSERT_NO_THROW(spider::brv::compute(graph)) << "spider::brv::compute should not throw.";
+        spider::destroy(graph);
+    }
     spider::api::disableVerbose();
 }
