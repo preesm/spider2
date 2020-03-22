@@ -174,10 +174,8 @@ namespace spider {
          * @return pointer to the created @refitem pisdf::Vertex.
          * @throws @refitem spider::Exception if the parent graph is nullptr.
          */
-        pisdf::Vertex *createNonExecVertex(pisdf::Graph *graph,
-                                           std::string name,
-                                           size_t edgeINCount = 0,
-                                           size_t edgeOUTCount = 0);
+        pisdf::Vertex *
+        createNonExecVertex(pisdf::Graph *graph, std::string name, size_t edgeINCount = 0, size_t edgeOUTCount = 0);
 
         /**
          * @brief Creates a @refitem pisdf::ForkVertex.
@@ -262,13 +260,37 @@ namespace spider {
          * @param name          Name of the vertex.
          * @param edgeINCount   Number of input edges (can NOT be modified afterwards).
          * @param edgeOUTCount  Number of output edges (can NOT be modified afterwards).
-         * @return pointer to the created @refitem pisdf::ConfigVertex.
+         * @return pointer to the created @refitem pisdf::Vertex.
          * @throws @refitem spider::Exception if the parent graph is nullptr.
          */
-        pisdf::Vertex *createConfigActor(pisdf::Graph *graph,
-                                         std::string name,
-                                         size_t edgeINCount = 0,
-                                         size_t edgeOUTCount = 0);
+        pisdf::Vertex *
+        createConfigActor(pisdf::Graph *graph, std::string name, size_t edgeINCount = 0, size_t edgeOUTCount = 0);
+
+        /**
+         * @brief Creates an external input interface to convey data from outside the dataflow application.
+         * @warning No check is made on the provided buffer size, it is the user responsability to ensure
+         *          the size will match the execution need.
+         * @param graph    Pointer to the parent graph the vertex should be added.
+         * @param name     Name of the interface.
+         * @param buffer   Buffer to transmit data.
+         * @return pointer to the created @refitem pisdf::Vertex.
+         * @throws @refitem spider::Exception if the parent graph is nullptr.
+         * @throws @refitem spider::Exception if the provided buffer is nullptr.
+         */
+        pisdf::Vertex *createExternInputInterface(pisdf::Graph *graph, std::string name, void *buffer);
+
+        /**
+         * @brief Creates an external input interface to convey data from outside the dataflow application.
+         * @warning No check is made on the provided buffer size, it is the user responsability to ensure
+         *          the size will match the execution need.
+         * @param graph    Pointer to the parent graph the vertex should be added.
+         * @param name     Name of the interface.
+         * @param buffer   Buffer to transmit data.
+         * @return pointer to the created @refitem pisdf::Vertex.
+         * @throws @refitem spider::Exception if the parent graph is nullptr.
+         * @throws @refitem spider::Exception if the provided buffer is nullptr.
+         */
+        pisdf::Vertex *createExternOutputInterface(pisdf::Graph *graph, std::string name, void *buffer);
 
         /**
          * @brief Get an input @refitem pisdf::Interface of a given graph.

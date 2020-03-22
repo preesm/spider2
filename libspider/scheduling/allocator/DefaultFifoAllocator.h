@@ -95,7 +95,7 @@ namespace spider {
 
         void allocateDuplicateTask(ScheduleTask *task);
 
-        void allocateInitTask(ScheduleTask *task);
+        void allocateExternInTask(ScheduleTask *task);
 
         RTFifo createFifoFromDelay(const pisdf::Delay *delay);
 

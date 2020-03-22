@@ -37,34 +37,43 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_RTFIFO_H
-#define SPIDER2_RTFIFO_H
+#ifndef SPIDER2_EXTERNINTERFACE_H
+#define SPIDER2_EXTERNINTERFACE_H
 
 /* === Include(s) === */
 
-
-#include <common/Types.h>
+#include <graphs/pisdf/ExecVertex.h>
 
 namespace spider {
+    namespace pisdf {
 
-    enum class FifoAttribute {
-        READ_ONLY = 0, /*!< Reader of the FIFO does not own memory (no dealloc) */
-        READ_OWN,      /*!< Reader of the FIFO is the owner (dealloc after read) */
-        READ_EXT,      /*!< Reader of the FIFO reads from external memory */
-        WRITE_ONLY,    /*!< Writer of the FIFO does not own the memory (no alloc) */
-        WRITE_OWN,     /*!< Writer of the FIFO own the memory (alloc before write) */
-        WRITE_EXT,     /*!< Writer of the FIFO writes to external memory */
-    };
+        /* === Class definition === */
 
-    /* === Class definition === */
+        class ExternInterface final : public ExecVertex {
+        public:
+            ExternInterface(VertexType type,
+                            size_t bufferIndex,
+                            std::string name = "unnamed-extern") : ExecVertex(type,
+                                                                              std::move(name),
+                                                                              type == VertexType::EXTERN_OUT,
+                                                                              type == VertexType::EXTERN_IN),
+                                                                   bufferIndex_{ bufferIndex } {
+                if (type != VertexType::EXTERN_OUT && type != VertexType::EXTERN_IN) {
+                    throwSpiderException("External interface [%s] wrong VertexType.", name_.c_str());
+                }
+            };
 
-    struct RTFifo {
-        u64 virtualAddress_ = UINT64_MAX;                   /* = Virtual address of the Fifo = */
-        u32 size_ = 0;                                      /* = Size of the Fifo = */
-        u32 offset_ = 0;                                    /* = Offset in the address = */
-        u32 count_ = 1;                                     /* = Number of use of this FIFO = */
-        FifoAttribute attribute_ = FifoAttribute::READ_OWN; /* = Attribute of the Fifo = */
-    };
+            ~ExternInterface() override = default;
+
+            /* === Getter(s) === */
+
+            inline size_t bufferIndex() const {
+                return bufferIndex_;
+            }
+
+        private:
+            size_t bufferIndex_ = SIZE_MAX;
+        };
+    }
 }
-
-#endif //SPIDER2_RTFIFO_H
+#endif //SPIDER2_EXTERNINTERFACE_H

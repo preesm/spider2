@@ -370,6 +370,8 @@ namespace spider {
 
         array<i64> buildInitEndInputParameters(const pisdf::Vertex *vertex, bool isInit) const;
 
+        array<i64> buildExternOutInputParameters(const pisdf::Vertex *vertex) const;
+
         /**
          * @brief Set JobMessage input fifos (if any)
          * @param message Reference to the jobMessage to update.

@@ -118,6 +118,8 @@ namespace spider {
             DUPLICATE,      /*! Duplicate actor subtype */
             TAIL,           /*! Tail actor subtype */
             HEAD,           /*! Head actor subtype */
+            EXTERN_IN,      /*! Extern output interface subtype */
+            EXTERN_OUT,     /*! Extern output interface subtype */
             INIT,           /*! Init actor subtype */
             END,            /*! End actor subtype */
             GRAPH,          /*! Graph vertex type */

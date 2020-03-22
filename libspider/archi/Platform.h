@@ -95,6 +95,12 @@ namespace spider {
          */
         uint64_t dataCommunicationCostPEToPE(PE *peSrc, PE *peSnk, uint64_t dataSize) const;
 
+        /**
+         * @brief Register a new external buffer.
+         * @param buffer Pointer to the buffer
+         * @return index of the buffer if success, SIZE_MAX else.
+         */
+        size_t registerExternalBuffer(void *buffer);
 
         /* === Getter(s) === */
 
@@ -188,8 +194,22 @@ namespace spider {
             return peArray_.at(ix);
         }
 
-        inline spider::vector<PE *> lrtVector() const {
+        /**
+         * @brief Returns vector of LRT.
+         * @return const reference to the vector of local runtimes.
+         */
+        inline const spider::vector<PE *> &lrtVector() const {
             return lrtVector_;
+        }
+
+        /**
+         * @brief Returns the external buffer associated with this index.
+         * @param index Index of the buffer.
+         * @return buffer;
+         * @throws std::out_of_range if index is invalid.
+         */
+        inline void *getExternalBuffer(size_t index) const {
+            return externBuffersVector_.at(index);
         }
 
         /* === Setter(s) === */
@@ -229,6 +249,7 @@ namespace spider {
         array<InterMemoryBus *> interClusterMemoryBusArray_; /* = Array of inter Cluster MemoryBus = */
         array<size_t> preComputedClusterIx_;                 /* = Array of pre-computed index value for fast inter Cluster communication = */
         vector<PE *> lrtVector_;                             /* = Vector of the LRT of the platform (does not hold any memory) = */
+        vector<void *> externBuffersVector_;                 /* = Vector of external buffers = */
         size_t clusterCount_ = 0;                            /* = Number of currently added Cluster in the Platform = */
         size_t peCount_ = 0;                                 /* = Number of currently added PE in the Platform = */
         size_t hwTypeCount_ = 0;                             /* = Number of currently added PE Types in the Platform = */

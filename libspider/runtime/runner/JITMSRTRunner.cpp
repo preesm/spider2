@@ -155,32 +155,38 @@
 spider::array<void *> createInputFifos(const spider::array<spider::RTFifo> &fifos,
                                        spider::MemoryInterface *memoryInterface) {
     spider::array<void *> inputBuffersArray{ fifos.size(), nullptr, StackID::RUNTIME };
-    auto bufferIterator = inputBuffersArray.begin();
-    for (auto &fifo : fifos) {
-        if (fifo.size_) {
-            (*bufferIterator) = memoryInterface->read(fifo.virtualAddress_, fifo.count_);
-            (*bufferIterator) = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>((*bufferIterator)) + fifo.offset_);
-        } else {
-            (*bufferIterator) = nullptr;
-        }
-        bufferIterator++;
-    }
+    std::transform(std::begin(fifos), std::end(fifos), std::begin(inputBuffersArray),
+                   [&memoryInterface](const spider::RTFifo &fifo) -> void * {
+                       if (!fifo.size_) {
+                           return nullptr;
+                       }
+                       void *buffer = nullptr;
+                       if (fifo.attribute_ == spider::FifoAttribute::READ_EXT) {
+                           buffer = spider::archi::platform()->getExternalBuffer(fifo.virtualAddress_);
+                       } else {
+                           buffer = memoryInterface->read(fifo.virtualAddress_, fifo.count_);
+                       }
+                       return reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(buffer) + fifo.offset_);
+                   });
     return inputBuffersArray;
 }
 
 spider::array<void *> createOutputFifos(const spider::array<spider::RTFifo> &fifos,
                                         spider::MemoryInterface *memoryInterface) {
     spider::array<void *> outputBuffersArray{ fifos.size(), nullptr, StackID::RUNTIME };
-    auto bufferIterator = outputBuffersArray.begin();
-    for (auto &fifo : fifos) {
-        if (fifo.attribute_ == spider::FifoAttribute::WRITE_OWN) {
-            *(bufferIterator++) = memoryInterface->allocate(fifo.virtualAddress_, fifo.size_);
-        } else {
-            (*bufferIterator) = memoryInterface->read(fifo.virtualAddress_);
-            (*bufferIterator) = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>((*bufferIterator)) + fifo.offset_);
-            bufferIterator++;
-        }
-    }
+    std::transform(std::begin(fifos), std::end(fifos), std::begin(outputBuffersArray),
+                   [&memoryInterface](const spider::RTFifo &fifo) -> void * {
+                       if (fifo.attribute_ == spider::FifoAttribute::WRITE_OWN) {
+                           return memoryInterface->allocate(fifo.virtualAddress_, fifo.size_);
+                       }
+                       void *buffer = nullptr;
+                       if (fifo.attribute_ == spider::FifoAttribute::WRITE_EXT) {
+                           buffer = spider::archi::platform()->getExternalBuffer(fifo.virtualAddress_);
+                       } else {
+                           buffer = memoryInterface->read(fifo.virtualAddress_);
+                       }
+                       return reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(buffer) + fifo.offset_);
+                   });
     return outputBuffersArray;
 }
 

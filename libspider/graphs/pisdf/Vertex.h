@@ -129,6 +129,15 @@ namespace spider {
             template<class T>
             inline T *convertTo() { return static_cast<T *>(this); }
 
+            /**
+             * @brief Convert a vertex to the desired type (if possible) using static_cast.
+             * @warning This a static_cast so it is your responsibility to ensure the type compatibility.
+             * @tparam T Type to convert to.
+             * @return pointer to the converted type.
+             */
+            template<class T>
+            inline const T *convertTo() const { return static_cast<const T *>(this); }
+
             /* === Getter(s) === */
 
             /**

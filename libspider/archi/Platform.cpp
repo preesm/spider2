@@ -124,6 +124,15 @@ void spider::Platform::addCluster(Cluster *cluster) {
     }
 }
 
+size_t spider::Platform::registerExternalBuffer(void *buffer) {
+    if (!buffer) {
+        return SIZE_MAX;
+    }
+    const auto index = externBuffersVector_.size();
+    externBuffersVector_.emplace_back(buffer);
+    return index;
+}
+
 size_t spider::Platform::LRTCount() const {
     return lrtVector_.size();
 }

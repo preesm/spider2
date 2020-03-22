@@ -105,10 +105,20 @@ std::string spider::pisdf::Vertex::vertexPath() const {
 }
 
 void spider::pisdf::Vertex::setRepetitionValue(uint32_t value) {
-    if ((value > 1) && ((subtype_ == VertexType::CONFIG) || (subtype_ == VertexType::DELAY))) {
-        throwSpiderException("special vertex [%s] can not have repetition value greater than 1.", name_.c_str());
+    switch (subtype_) {
+        case VertexType::CONFIG:
+        case VertexType::DELAY:
+        case VertexType::EXTERN_IN:
+        case VertexType::EXTERN_OUT:
+            if (value > 1) {
+                throwSpiderException("Vertex [%s] can not have repetition value greater than 1.", name_.c_str());
+            }
+            repetitionValue_ = value;
+            break;
+        default:
+            repetitionValue_ = value;
+            break;
     }
-    repetitionValue_ = value;
 }
 
 void spider::pisdf::Vertex::setInstanceValue(size_t value) {

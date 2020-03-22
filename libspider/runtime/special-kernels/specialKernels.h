@@ -48,17 +48,19 @@
 
 namespace spider {
     namespace rt {
-        /**
-         * @brief Default special kernel for @refitem pisdf::VertexType::JOIN actors.
-         * @details Copy input buffers in output buffers in a serial manner.
-         *          paramsIn[0]     = rate of the output buffer.
-         *          paramsIn[1]     = number of input buffers.
-         *          paramsIn[i + 2] = size of in[i] to copy.
-         * @param paramsIn Input parameters.
-         * @param in       Input buffers.
-         * @param out      Output buffers.
-         */
-        void join(const int64_t *paramsIn, int64_t *, void *in[], void *out[]);
+
+        enum specialKernelIx {
+            FORK_KERNEL_IX = 0,
+            JOIN_KERNEL_IX,
+            HEAD_KERNEL_IX,
+            TAIL_KERNEL_IX,
+            REPEAT_KERNEL_IX,
+            DUPLICATE_KERNEL_IX,
+            INIT_KERNEL_IX,
+            END_KERNEL_IX,
+            EXTERN_IN_KERNEL_IX,
+            EXTERN_OUT_KERNEL_IX,
+        };
 
         /**
          * @brief Default special kernel for @refitem pisdf::VertexType::FORK actors.
@@ -71,6 +73,18 @@ namespace spider {
          * @param out      Output buffers.
          */
         void fork(const int64_t *paramsIn, int64_t *, void *in[], void *out[]);
+
+        /**
+         * @brief Default special kernel for @refitem pisdf::VertexType::JOIN actors.
+         * @details Copy input buffers in output buffers in a serial manner.
+         *          paramsIn[0]     = rate of the output buffer.
+         *          paramsIn[1]     = number of input buffers.
+         *          paramsIn[i + 2] = size of in[i] to copy.
+         * @param paramsIn Input parameters.
+         * @param in       Input buffers.
+         * @param out      Output buffers.
+         */
+        void join(const int64_t *paramsIn, int64_t *, void *in[], void *out[]);
 
         /**
          * @brief Default special kernel for @refitem pisdf::VertexType::HEAD actors.
@@ -98,17 +112,6 @@ namespace spider {
         void tail(const int64_t *paramsIn, int64_t *, void *in[], void *out[]);
 
         /**
-         * @brief Default special kernel for @refitem pisdf::VertexType::DUPLICATE actors.
-         * @details Copy content of input buffer onto every output buffers.
-         *          paramsIn[0] = total number of output buffers.
-         *          paramsIn[1] = size of the input buffer.
-         * @param paramsIn Input parameters.
-         * @param in       Input buffers.
-         * @param out      Output buffers.
-         */
-        void duplicate(const int64_t *paramsIn, int64_t *, void *in[], void *out[]);
-
-        /**
          * @brief Default special kernel for @refitem pisdf::VertexType::REPEAT actors.
          * @details Repeat content of input buffer into output buffer with respect to output size.
          *          paramsIn[0] = size of the input buffer.
@@ -124,6 +127,17 @@ namespace spider {
          * @param out      Output buffers.
          */
         void repeat(const int64_t *paramsIn, int64_t *, void *in[], void *out[]);
+
+        /**
+         * @brief Default special kernel for @refitem pisdf::VertexType::DUPLICATE actors.
+         * @details Copy content of input buffer onto every output buffers.
+         *          paramsIn[0] = total number of output buffers.
+         *          paramsIn[1] = size of the input buffer.
+         * @param paramsIn Input parameters.
+         * @param in       Input buffers.
+         * @param out      Output buffers.
+         */
+        void duplicate(const int64_t *paramsIn, int64_t *, void *in[], void *out[]);
 
         /**
          * @brief Default special kernel for @refitem pisdf::VertexType::INIT actors.
@@ -148,6 +162,16 @@ namespace spider {
          * @param in       Input buffers.
          */
         void end(const int64_t *paramsIn, int64_t *, void *in[], void *[]);
+
+        /**
+         * @brief Default special kernel for @refitem pisdf::VertexType::EXTERN_IN actors.
+         */
+        void externIn(const int64_t *, int64_t *, void *[], void *[]);
+
+        /**
+         * @brief Default special kernel for @refitem pisdf::VertexType::EXTERN_OUT actors.
+         */
+        void externOut(const int64_t *, int64_t *, void *[], void *[]);
     }
 }
 

@@ -43,6 +43,7 @@
 #include <scheduling/allocator/DefaultFifoAllocator.h>
 #include <scheduling/schedule/ScheduleTask.h>
 #include <graphs/pisdf/DelayVertex.h>
+#include <graphs/pisdf/ExternInterface.h>
 #include <graphs/pisdf/Graph.h>
 #include <archi/Platform.h>
 #include <archi/Cluster.h>
@@ -117,6 +118,9 @@ void spider::DefaultFifoAllocator::allocateVertexTask(ScheduleTask *task) {
         case pisdf::VertexType::DUPLICATE:
             allocateDuplicateTask(task);
             break;
+        case pisdf::VertexType::EXTERN_IN:
+            allocateExternInTask(task);
+            break;
         default:
             allocateDefaultVertexTask(task);
             break;
@@ -128,8 +132,33 @@ void spider::DefaultFifoAllocator::allocateDefaultVertexTask(ScheduleTask *task)
     const auto *vertex = task->vertex();
     for (const auto &edge : vertex->outputEdgeVector()) {
         const auto size = edge->sourceRateValue();
-        task->addOutputFifo(allocate(size));
+        if (edge->sink()->subtype() == pisdf::VertexType::EXTERN_OUT) {
+            const auto *reference = edge->sink()->reference()->convertTo<pisdf::ExternInterface>();
+            const auto index = reference->bufferIndex();
+            RTFifo fifo{ };
+            fifo.size_ = static_cast<u32>(vertex->outputEdge(0)->sourceRateValue());
+            fifo.count_ = 1;
+            fifo.virtualAddress_ = index;
+            fifo.offset_ = 0;
+            fifo.attribute_ = FifoAttribute::WRITE_EXT;
+            task->addOutputFifo(fifo);
+        } else {
+            task->addOutputFifo(allocate(size));
+        }
     }
+}
+
+void spider::DefaultFifoAllocator::allocateExternInTask(ScheduleTask *task) {
+    const auto *vertex = task->vertex();
+    const auto *reference = vertex->reference()->convertTo<pisdf::ExternInterface>();
+    const auto index = reference->bufferIndex();
+    RTFifo fifo{ };
+    fifo.size_ = static_cast<u32>(vertex->outputEdge(0)->sourceRateValue());
+    fifo.count_ = 1;
+    fifo.virtualAddress_ = index;
+    fifo.offset_ = 0;
+    fifo.attribute_ = FifoAttribute::WRITE_EXT;
+    task->addOutputFifo(fifo);
 }
 
 void spider::DefaultFifoAllocator::allocateForkTask(ScheduleTask *task) {

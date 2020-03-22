@@ -53,28 +53,6 @@
 
 /* === Function(s) definition === */
 
-void spider::rt::join(const int64_t *paramsIn, int64_t *, void **in, void **out) {
-    const auto outputRate = paramsIn[0]; /* = Rate of the output port (used for sanity check) = */
-    const auto inputCount = paramsIn[1]; /* = Number of input = */
-    size_t offset = 0;
-    for (int64_t i = 0; i < inputCount; ++i) {
-        /* == Size to copy for current input == */
-        const auto inputSize = static_cast<size_t>(paramsIn[i + 2]);
-        auto *output = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(out[0]) + offset);
-        if (output != in[i]) {
-            std::memcpy(output, in[i], inputSize);
-        }
-        offset += inputSize;
-    }
-    if (offset != static_cast<size_t>(outputRate)) {
-        throwSpiderException("Join has different rates: input[%"
-                                     PRId64
-                                     "] | output[%"
-                                     PRId64
-                                     "]", offset, outputRate);
-    }
-}
-
 void spider::rt::fork(const int64_t *paramsIn, int64_t *, void **in, void **out) {
     const auto inputRate = paramsIn[0];   /* = Rate of the input port (used for sanity check) = */
     const auto outputCount = paramsIn[1]; /* = Number of output = */
@@ -94,6 +72,28 @@ void spider::rt::fork(const int64_t *paramsIn, int64_t *, void **in, void **out)
                                      "] | output[%"
                                      PRId64
                                      "]", inputRate, offset);
+    }
+}
+
+void spider::rt::join(const int64_t *paramsIn, int64_t *, void **in, void **out) {
+    const auto outputRate = paramsIn[0]; /* = Rate of the output port (used for sanity check) = */
+    const auto inputCount = paramsIn[1]; /* = Number of input = */
+    size_t offset = 0;
+    for (int64_t i = 0; i < inputCount; ++i) {
+        /* == Size to copy for current input == */
+        const auto inputSize = static_cast<size_t>(paramsIn[i + 2]);
+        auto *output = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(out[0]) + offset);
+        if (output != in[i]) {
+            std::memcpy(output, in[i], inputSize);
+        }
+        offset += inputSize;
+    }
+    if (offset != static_cast<size_t>(outputRate)) {
+        throwSpiderException("Join has different rates: input[%"
+                                     PRId64
+                                     "] | output[%"
+                                     PRId64
+                                     "]", offset, outputRate);
     }
 }
 
@@ -133,17 +133,6 @@ void spider::rt::tail(const int64_t *paramsIn, int64_t *, void **in, void **out)
     }
 }
 
-void spider::rt::duplicate(const int64_t *paramsIn, int64_t *, void **in, void **out) {
-    const auto outputCount = paramsIn[0]; /* = Number of output = */
-    const auto inputSize = paramsIn[1];   /* = Rate of the input port = */
-    const auto *input = in[0];            /* = Input buffer = */
-    for (int64_t i = 0; i < outputCount; ++i) {
-        if (input != out[i]) {
-            std::memcpy(out[i], input, static_cast<size_t>(inputSize));
-        }
-    }
-}
-
 void spider::rt::repeat(const int64_t *paramsIn, int64_t *, void **in, void **out) {
     const auto inputSize = static_cast<size_t>(paramsIn[0]);  /* = Rate of the input port = */
     const auto outputSize = static_cast<size_t>(paramsIn[1]); /* = Rate of the output port = */
@@ -160,6 +149,17 @@ void spider::rt::repeat(const int64_t *paramsIn, int64_t *, void **in, void **ou
             auto *output = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(out[0]) +
                                                     inputSize * repeatCount);
             std::memcpy(output, in[0], rest);
+        }
+    }
+}
+
+void spider::rt::duplicate(const int64_t *paramsIn, int64_t *, void **in, void **out) {
+    const auto outputCount = paramsIn[0]; /* = Number of output = */
+    const auto inputSize = paramsIn[1];   /* = Rate of the input port = */
+    const auto *input = in[0];            /* = Input buffer = */
+    for (int64_t i = 0; i < outputCount; ++i) {
+        if (input != out[i]) {
+            std::memcpy(out[i], input, static_cast<size_t>(inputSize));
         }
     }
 }
@@ -196,5 +196,16 @@ void spider::rt::end(const int64_t *paramsIn, int64_t *, void **in, void **) {
         if (log::enabled<log::MEMORY>()) {
             log::info<log::MEMORY>("END for address %p and size %ld.\n", in[0], size);
         }
+    }
+}
+
+void spider::rt::externIn(const int64_t *, int64_t *, void **, void **) { }
+
+void spider::rt::externOut(const int64_t *paramsIn, int64_t *, void **in, void **) {
+    if (paramsIn[0]) {
+        const auto index = paramsIn[1];
+        const auto size = paramsIn[2];
+        auto *buffer = archi::platform()->getExternalBuffer(static_cast<size_t>(index));
+        memcpy(buffer, in[0], static_cast<size_t>(size));
     }
 }

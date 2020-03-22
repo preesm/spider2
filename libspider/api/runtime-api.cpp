@@ -92,6 +92,14 @@ static void createSpecialRTKernels() {
     /* == End Kernel == */
     auto *endKernel = spider::make<spider::RTKernel, StackID::RUNTIME>(spider::rt::end);
     rtPlatform->addKernel(endKernel);
+
+    /* == Extern input Kernel == */
+    auto *extInKernel = spider::make<spider::RTKernel, StackID::RUNTIME>(spider::rt::externIn);
+    rtPlatform->addKernel(extInKernel);
+
+    /* == Extern output Kernel == */
+    auto *extOutKernel = spider::make<spider::RTKernel, StackID::RUNTIME>(spider::rt::externOut);
+    rtPlatform->addKernel(extOutKernel);
 }
 
 /* === Runtime platform related API === */
