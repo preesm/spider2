@@ -133,6 +133,8 @@ namespace spider {
 
         class ExecVertex;
 
+        class ExternInterface;
+
         class DelayVertex;
 
         class NonExecVertex;
@@ -160,6 +162,7 @@ namespace spider {
     enum class RunMode {
         INFINITE = 0, /*!< Run the application graph in a infinite loop */
         LOOP,         /*!< Run the application graph in a fixed size loop */
+        EXTERN_LOOP,  /*!< Run the application graph in a extern fixed size loop */
     };
 
     /**

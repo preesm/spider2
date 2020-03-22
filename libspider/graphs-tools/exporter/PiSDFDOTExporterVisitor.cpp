@@ -234,6 +234,8 @@ void spider::pisdf::PiSDFDOTExporterVisitor::vertexPrinter(Vertex *vertex) const
                                                                "#e87e04ff" /* = DUPLICATE vertex   = */,
                                                                "#f1e7feff" /* = TAIL vertex        = */,
                                                                "#dcc6e0ff" /* = HEAD vertex        = */,
+                                                               "#c8f7c5ff" /* = EXTERN_IN vertex   = */,
+                                                               "#ff9478ff" /* = EXTERN_OUT vertex  = */,
                                                                "#c8f7c5ff" /* = INIT vertex        = */,
                                                                "#ff9478ff" /* = END vertex         = */, };
     const auto color = colors[static_cast<uint8_t >(vertex->subtype())];

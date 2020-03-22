@@ -44,6 +44,7 @@
 #include <graphs/pisdf/DynamicParam.h>
 #include <graphs/pisdf/InHeritedParam.h>
 #include <graphs/pisdf/DelayVertex.h>
+#include <graphs/pisdf/ExternInterface.h>
 
 /* === Function(s) definition === */
 
@@ -53,8 +54,12 @@ void spider::pisdf::DefaultVisitor::visit(Graph *) {
 
 void spider::pisdf::DefaultVisitor::visit(ExecVertex *) { }
 
+void spider::pisdf::DefaultVisitor::visit(ExternInterface *vertex) {
+    visit(static_cast<ExecVertex *>(vertex));
+}
+
 void spider::pisdf::DefaultVisitor::visit(DelayVertex *vertex) {
-    visit(static_cast<ExecVertex*>(vertex));
+    visit(static_cast<ExecVertex *>(vertex));
 }
 
 void spider::pisdf::DefaultVisitor::visit(NonExecVertex *) { }

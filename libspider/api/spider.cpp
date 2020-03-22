@@ -212,23 +212,36 @@ void spider::run(RunMode mode, size_t loopCount, RuntimeType type, SchedulingAlg
         log::warning("SPIDER has not been initialized, returning.\n");
         return;
     }
-    runtimeAlgo = getRuntimeFromType(type, algorithm);
-    if (!runtimeAlgo) {
-        throwSpiderException("could not create runtime algorithm.");
-    }
     try {
-        if (mode == RunMode::INFINITE) {
-            while (!spider2StopRunning) {
-                runtimeAlgo->execute();
+        if (mode == RunMode::EXTERN_LOOP) {
+            if (!loopCount) {
+                runtimeAlgo = getRuntimeFromType(type, algorithm);
+                if (!runtimeAlgo) {
+                    throwSpiderException("could not create runtime algorithm.");
+                }
+            }
+            runtimeAlgo->execute();
+            if (spider2StopRunning) {
+                /* == Destroy the runtime == */
+                destroy(runtimeAlgo);
             }
         } else {
-            for (size_t i = 0; (i < loopCount) && !spider2StopRunning; ++i) {
-                runtimeAlgo->execute();
+            runtimeAlgo = getRuntimeFromType(type, algorithm);
+            if (!runtimeAlgo) {
+                throwSpiderException("could not create runtime algorithm.");
             }
+            if (mode == RunMode::INFINITE) {
+                while (!spider2StopRunning) {
+                    runtimeAlgo->execute();
+                }
+            } else if (mode == RunMode::LOOP) {
+                for (size_t i = 0; (i < loopCount) && !spider2StopRunning; ++i) {
+                    runtimeAlgo->execute();
+                }
+            }
+            /* == Destroy the runtime == */
+            destroy(runtimeAlgo);
         }
-        
-        /* == Destroy the runtime == */
-        destroy(runtimeAlgo);
     } catch (spider::Exception &e) {
         /* == Destroy the runtime == */
         destroy(runtimeAlgo);

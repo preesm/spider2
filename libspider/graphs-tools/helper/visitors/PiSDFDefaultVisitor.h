@@ -57,6 +57,8 @@ namespace spider {
 
             void visit(ExecVertex *) override;
 
+            void visit(ExternInterface *) override;
+
             void visit(DelayVertex *vertex) override;
 
             void visit(NonExecVertex *) override;
