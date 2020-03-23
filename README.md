@@ -66,7 +66,7 @@ cd spider-2.0/libspider/build-scripts/windows
 ```shell
 PREFIX=/usr/local/
 sudo cp libSpider2.0.so  ${PREFIX}/lib/
-sudo cp libspider/spider-api/*.h ${PREFIX}/include/
+sudo cp libspider/api/*.h ${PREFIX}/include/
 ```
 
 * Windows platforms:
@@ -87,11 +87,10 @@ make doc -j$(nproc)
 ## How to Use the Spider 2.0 Library
 
 * Using CMake based projects:
-- Copy the "FindSpider2.cmake" file from the cmake folder into your project cmake modules directory.
+- Copy the ``` FindSpider2.cmake ``` file from the cmake folder into your project cmake modules directory.
 - Add ``` include(FindSpider2) ``` into your CMakeList.txt.
-- Add "${SPIDER2_INCLUDE_DIR}
-       ${SPIDER2_INCLUDE_DIR}/api" to your include_directories directive.
-- Add "${SPIDER2_LIBRARY}" to your target_link_library directive.
+- Add ``` ${SPIDER2_INCLUDE_DIR} ${SPIDER2_INCLUDE_DIR}/api ``` to your include_directories directive.
+- Add ``` ${SPIDER2_LIBRARY} ``` to your target_link_library directive.
 
 
 ## Contact
