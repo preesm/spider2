@@ -61,6 +61,9 @@ namespace spider {
                 if (type != VertexType::EXTERN_OUT && type != VertexType::EXTERN_IN) {
                     throwSpiderException("External interface [%s] wrong VertexType.", name_.c_str());
                 }
+                if (bufferIndex == SIZE_MAX) {
+                    throwSpiderException("invalid buffer index for extern interface.");
+                }
             };
 
             ~ExternInterface() override = default;

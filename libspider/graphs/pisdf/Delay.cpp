@@ -137,6 +137,7 @@ void spider::pisdf::Delay::setMemoryAddress(uint64_t address) {
     }
     if (memoryAddress_ != UINT64_MAX && log::enabled()) {
         spider::log::warning("Delay [%s] already has a memory address.\n", name().c_str());
+        return;
     }
     memoryAddress_ = address;
 }

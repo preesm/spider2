@@ -48,12 +48,22 @@
 #include <graphs/pisdf/Delay.h>
 #include <graphs/pisdf/DynamicParam.h>
 #include <graphs/pisdf/ExecVertex.h>
+#include <archi/MemoryInterface.h>
 #include <api/spider.h>
 
 class pisdfDelayTest : public ::testing::Test {
 protected:
     void SetUp() override {
         spider::start();
+
+        spider::api::createPlatform(1, 1);
+
+        memoryInterface_ = spider::api::createMemoryInterface(1024 * 1024 * 1024);
+
+        auto *x86Cluster = spider::api::createCluster(1, memoryInterface_);
+
+        auto x86PECore0 = spider::api::createProcessingElement(0, 0, x86Cluster, "x86-Core0", spider::PEType::LRT, 0);
+        spider::api::setSpiderGRTPE(x86PECore0);
 
         graph_ = spider::make<spider::pisdf::Graph, StackID::PISDF>("graph", 4, 3, 0, 0, 0);
         auto *v0 = spider::make<spider::pisdf::ExecVertex, StackID::PISDF>("v0", 0, 1);
@@ -76,7 +86,17 @@ protected:
 
     spider::pisdf::Graph *graph_ = nullptr;
     spider::pisdf::Edge *edge_ = nullptr;
+    spider::MemoryInterface *memoryInterface_;
 };
+
+TEST_F(pisdfDelayTest, delayPersistentTest) {
+    spider::pisdf::Delay *delay = nullptr;
+    ASSERT_NO_THROW((delay = spider::make<spider::pisdf::Delay, StackID::PISDF>(10, edge_)));
+    memoryInterface_->allocate(0, 10);
+    ASSERT_NO_THROW(delay->setMemoryAddress(0));
+    ASSERT_NO_THROW(delay->setMemoryAddress(10)); // just for the warning to be covered
+    ASSERT_NO_THROW(delay->setMemoryInterface(memoryInterface_));
+}
 
 TEST_F(pisdfDelayTest, delayCtorTest0) {
     ASSERT_THROW(spider::pisdf::Delay(0, nullptr, nullptr, 0, spider::Expression(), nullptr, 0,
@@ -85,19 +105,19 @@ TEST_F(pisdfDelayTest, delayCtorTest0) {
 }
 
 TEST_F(pisdfDelayTest, delayCtorTest1) {
-    auto *setter = dynamic_cast<spider::pisdf::ExecVertex *>(graph_->vertex(2));
+    auto *setter = graph_->vertex(2);
     ASSERT_NO_THROW((spider::make<spider::pisdf::Delay, StackID::PISDF>(0,
                                                                         edge_,
                                                                         setter, 0,
                                                                         spider::Expression(),
                                                                         nullptr,
                                                                         0,
-                                                                        spider::Expression())))
+                                                                        spider::Expression(), false)))
                                 << "Delay::Delay() should not throw with valid parameters.";
 }
 
 TEST_F(pisdfDelayTest, delayCtorTest2) {
-    auto *getter = dynamic_cast<spider::pisdf::ExecVertex *>(graph_->vertex(3));
+    auto *getter = graph_->vertex(3);
     ASSERT_THROW((spider::make_unique<spider::pisdf::Delay, StackID::PISDF>(0,
                                                                             edge_,
                                                                             nullptr, 0,
@@ -107,7 +127,7 @@ TEST_F(pisdfDelayTest, delayCtorTest2) {
                                                                             spider::Expression(), true)),
                  spider::Exception)
                                 << "Delay::Delay() should fail. Persistent delays can not have getter nor setter.";
-    auto *setter = dynamic_cast<spider::pisdf::ExecVertex *>(graph_->vertex(2));
+    auto *setter = graph_->vertex(2);
     ASSERT_THROW((spider::make_unique<spider::pisdf::Delay, StackID::PISDF>(0,
                                                                             edge_,
                                                                             setter, 0,
@@ -120,24 +140,24 @@ TEST_F(pisdfDelayTest, delayCtorTest2) {
 }
 
 TEST_F(pisdfDelayTest, delayCtorTest3) {
-    auto *setter = dynamic_cast<spider::pisdf::ExecVertex *>(graph_->vertex(2));
-    auto *getter = dynamic_cast<spider::pisdf::ExecVertex *>(graph_->vertex(3));
+    auto *setter = graph_->vertex(2);
+    auto *getter = graph_->vertex(3);
     ASSERT_NO_THROW((spider::make<spider::pisdf::Delay, StackID::PISDF>(0,
                                                                         edge_,
                                                                         setter, 0,
                                                                         spider::Expression(),
                                                                         getter,
                                                                         0,
-                                                                        spider::Expression())))
+                                                                        spider::Expression(), false)))
                                 << "Delay::Delay() should not throw with valid parameters.";
     ASSERT_THROW((spider::pisdf::Delay(0, edge_, setter, 0, spider::Expression(), getter, 0,
-                                      spider::Expression())), spider::Exception)
+                                       spider::Expression())), spider::Exception)
                                 << "Delay::Delay() should throw. Edge can only have one Delay.";
 }
 
 TEST_F(pisdfDelayTest, delayValueNameTest) {
-    auto *setter = dynamic_cast<spider::pisdf::ExecVertex *>(graph_->vertex(2));
-    auto *getter = dynamic_cast<spider::pisdf::ExecVertex *>(graph_->vertex(3));
+    auto *setter = graph_->vertex(2);
+    auto *getter = graph_->vertex(3);
     spider::pisdf::Delay *delay = nullptr;
     ASSERT_NO_THROW((delay = spider::make<spider::pisdf::Delay, StackID::PISDF>(10,
                                                                                 edge_,
@@ -145,7 +165,7 @@ TEST_F(pisdfDelayTest, delayValueNameTest) {
                                                                                 spider::Expression(),
                                                                                 getter,
                                                                                 0,
-                                                                                spider::Expression())))
+                                                                                spider::Expression(), false)))
                                 << "Delay::Delay() should not throw with valid parameters.";
     ASSERT_EQ(delay->value(), 10) << "Delay::value() error. Value should be 10";
     ASSERT_EQ(delay->name(), "delay::" +

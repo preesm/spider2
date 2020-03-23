@@ -105,12 +105,16 @@ TEST_F(pisdEdgeTest, edgeTest) {
     ASSERT_EQ(edge->delay(), nullptr) << "delay should be nullptr on init.";
     auto *delay = spider::make<spider::pisdf::Delay, StackID::PISDF>(10, edge, setter, 0,
                                                                      spider::Expression(), getter, 0,
-                                                                     spider::Expression());
+                                                                     spider::Expression(), false);
     ASSERT_EQ(edge->delay(), delay) << "delay should be set automatically on Edge.";
     ASSERT_EQ(edge->sourceRateExpression().value(), spider::Expression().value());
     ASSERT_EQ(edge->sinkRateExpression().value(), spider::Expression().value());
     ASSERT_NO_THROW(edge->setDelay(nullptr)) << "Edge::setDelay() with nullptr should not throw.";
     ASSERT_THROW(edge->setDelay(delay), spider::Exception);
+
+    ASSERT_EQ(edge->graph(), graph);
+    ASSERT_NO_THROW(edge->setSource(nullptr, 0, spider::Expression(0)));
+    ASSERT_EQ(edge->graph(), graph);
 
     spider::destroy(graph);
 }

@@ -61,9 +61,9 @@ namespace spider {
         public:
 
             Delay(int64_t value, Edge *edge,
-                  Vertex *setter, size_t setterPortIx, Expression setterRateExpression,
-                  Vertex *getter, size_t getterPortIx, Expression getterRateExpression,
-                  bool persistent = false);
+                  Vertex *setter = nullptr, size_t setterPortIx = 0, Expression setterRateExpression = Expression{ },
+                  Vertex *getter = nullptr, size_t getterPortIx = 0, Expression getterRateExpression = Expression{ },
+                  bool persistent = true);
 
             ~Delay();
 

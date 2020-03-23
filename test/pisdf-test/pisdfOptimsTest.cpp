@@ -66,6 +66,16 @@ protected:
     }
 };
 
+TEST_F(pisdfOptimsTest, falseReturn) {
+    ASSERT_NO_THROW(spider::optims::optimize(nullptr));
+    ASSERT_EQ(spider::optims::reduceRepeatFork(nullptr), false);
+    ASSERT_EQ(spider::optims::reduceJoinJoin(nullptr), false);
+    ASSERT_EQ(spider::optims::reduceJoinFork(nullptr), false);
+    ASSERT_EQ(spider::optims::reduceForkFork(nullptr), false);
+    ASSERT_EQ(spider::optims::reduceJoinEnd(nullptr), false);
+    ASSERT_EQ(spider::optims::reduceInitEnd(nullptr), false);
+    ASSERT_EQ(spider::optims::reduceUnitaryRateActors(nullptr), false);
+}
 
 TEST_F(pisdfOptimsTest, initEndTest) {
     /* == == */
@@ -441,6 +451,42 @@ TEST_F(pisdfOptimsTest, joinEndTest) {
     spider::api::createEdge(join, 0, 3, end, 0, 3);
     ASSERT_EQ(graph->vertexCount(), 5);
     ASSERT_NO_THROW(spider::optims::reduceJoinEnd(graph));
+    ASSERT_EQ(graph->vertexCount(), 6);
+    spider::destroy(graph);
+}
+
+TEST_F(pisdfOptimsTest, repeatForkTest) {
+    auto *graph = spider::api::createGraph("graph", 2, 1);
+    auto *v = spider::api::createVertex(graph, "v", 0, 1);
+    auto *repeat = spider::api::createRepeat(graph, "repeat");
+    auto *fork = spider::api::createFork(graph, "fork", 2);
+    auto *v1 = spider::api::createVertex(graph, "v1", 1, 0);
+    auto *v2 = spider::api::createVertex(graph, "v2", 1, 0);
+    spider::api::createEdge(v, 0, 1, repeat, 0, 1);
+    spider::api::createEdge(repeat, 0, 2, fork, 0, 2);
+    spider::api::createEdge(fork, 0, 1, v1, 0, 1);
+    spider::api::createEdge(fork, 1, 1, v2, 0, 1);
+    ASSERT_EQ(graph->vertexCount(), 5);
+    ASSERT_NO_THROW(spider::optims::reduceRepeatFork(graph));
+    ASSERT_EQ(graph->vertexCount(), 4);
+    spider::destroy(graph);
+}
+
+TEST_F(pisdfOptimsTest, repeatForkTest2) {
+    auto *graph = spider::api::createGraph("graph", 2, 1);
+    auto *v = spider::api::createVertex(graph, "v", 0, 1);
+    auto *repeat = spider::api::createRepeat(graph, "repeat");
+    auto *fork = spider::api::createFork(graph, "fork", 3);
+    auto *v1 = spider::api::createVertex(graph, "v1", 1, 0);
+    auto *v2 = spider::api::createVertex(graph, "v2", 1, 0);
+    auto *v3 = spider::api::createVertex(graph, "v3", 1, 0);
+    spider::api::createEdge(v, 0, 2, repeat, 0, 2);
+    spider::api::createEdge(repeat, 0, 3, fork, 0, 3);
+    spider::api::createEdge(fork, 0, 1, v1, 0, 1);
+    spider::api::createEdge(fork, 1, 1, v2, 0, 1);
+    spider::api::createEdge(fork, 2, 1, v3, 0, 1);
+    ASSERT_EQ(graph->vertexCount(), 6);
+    ASSERT_NO_THROW(spider::optims::reduceRepeatFork(graph));
     ASSERT_EQ(graph->vertexCount(), 6);
     spider::destroy(graph);
 }

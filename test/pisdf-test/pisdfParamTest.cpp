@@ -121,6 +121,9 @@ struct ParamVisitorTest final : public spider::pisdf::DefaultVisitor {
 };
 
 TEST_F(pisdfParamTest, paramTest) {
+    ASSERT_THROW(spider::pisdf::Param("pi", 31415), spider::Exception);
+    ASSERT_THROW(spider::pisdf::DynamicParam("pi"), spider::Exception);
+    ASSERT_THROW(spider::pisdf::InHeritedParam("pi", nullptr), spider::Exception);
     {
         auto param = spider::pisdf::Param("param", 31415);
         ASSERT_THROW(param.setValue(272), spider::Exception) << "Static param should throw when calling setValue()";
@@ -150,6 +153,11 @@ TEST_F(pisdfParamTest, paramTest) {
         auto visitor = ParamVisitorTest();
         param2.visit(&visitor);
         ASSERT_EQ(visitor.type, 2) << "Inherited param visitor failed.";
+    }
+    {
+        auto param = spider::pisdf::Param("param", 31415);
+        ASSERT_EQ(param.parent(), nullptr);
+        ASSERT_EQ(param.expression(), spider::Expression(31415));
     }
     {
         auto visitor = ParamVisitorTest();

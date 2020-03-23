@@ -48,10 +48,12 @@
 #include <graphs/pisdf/Delay.h>
 #include <graphs/pisdf/DynamicParam.h>
 #include <graphs/pisdf/ExecVertex.h>
+#include <graphs/pisdf/ExternInterface.h>
+#include <graphs/pisdf/DelayVertex.h>
 #include <api/spider.h>
 #include <graphs-tools/helper/visitors/PiSDFDefaultVisitor.h>
 
-class pisdVertexTest : public ::testing::Test {
+class pisdfVertexTest : public ::testing::Test {
 protected:
     void SetUp() override {
         spider::start();
@@ -132,13 +134,35 @@ void testType() {
                                 << "DelayVertex::subtype() should be VertexType::DELAY.";
 }
 
+TEST_F(pisdfVertexTest, vertexCtorTest) {
+    ASSERT_NO_THROW(spider::pisdf::ExecVertex()) << "ExecVertex() should never throw";
+    ASSERT_NO_THROW(spider::pisdf::ExecVertex(spider::pisdf::VertexType::NORMAL, "", 1, 4))
+                                << "ExecVertex() should never throw";
+    ASSERT_NO_THROW(spider::pisdf::ExternInterface(spider::pisdf::VertexType::EXTERN_IN, 0));
+    ASSERT_NO_THROW(spider::pisdf::ExternInterface(spider::pisdf::VertexType::EXTERN_OUT, 0));
+    ASSERT_THROW(spider::pisdf::ExternInterface(spider::pisdf::VertexType::NORMAL, 0), spider::Exception);
+    ASSERT_THROW(spider::pisdf::ExternInterface(spider::pisdf::VertexType::EXTERN_IN, SIZE_MAX), spider::Exception);
+    ASSERT_THROW(spider::pisdf::ExternInterface(spider::pisdf::VertexType::EXTERN_OUT, SIZE_MAX), spider::Exception);
+    ASSERT_THROW(spider::pisdf::ExecVertex(spider::pisdf::VertexType::REPEAT, "", 2, 1), spider::Exception);
+    ASSERT_THROW(spider::pisdf::ExecVertex(spider::pisdf::VertexType::REPEAT, "", 1, 2), spider::Exception);
+    ASSERT_THROW(spider::pisdf::ExecVertex(spider::pisdf::VertexType::DELAY, "", 2, 1), spider::Exception);
+    ASSERT_THROW(spider::pisdf::ExecVertex(spider::pisdf::VertexType::DELAY, "", 1, 2), spider::Exception);
+    ASSERT_THROW(spider::pisdf::ExecVertex(spider::pisdf::VertexType::INIT, "", 1, 1), spider::Exception);
+    ASSERT_THROW(spider::pisdf::ExecVertex(spider::pisdf::VertexType::INIT, "", 0, 0), spider::Exception);
+    ASSERT_THROW(spider::pisdf::ExecVertex(spider::pisdf::VertexType::INIT, "", 0, 2), spider::Exception);
+    ASSERT_THROW(spider::pisdf::ExecVertex(spider::pisdf::VertexType::END, "", 1, 1), spider::Exception);
+    ASSERT_THROW(spider::pisdf::ExecVertex(spider::pisdf::VertexType::END, "", 0, 0), spider::Exception);
+    ASSERT_THROW(spider::pisdf::ExecVertex(spider::pisdf::VertexType::END, "", 2, 0), spider::Exception);
+}
 
-TEST_F(pisdVertexTest, vertexTest) {
-    {
-        ASSERT_NO_THROW(spider::pisdf::ExecVertex()) << "ExecVertex() should never throw";
-        ASSERT_NO_THROW(spider::pisdf::ExecVertex(spider::pisdf::VertexType::NORMAL, "", 1, 4))
-                                    << "ExecVertex() should never throw";
-    }
+TEST_F(pisdfVertexTest, externBufferIndexTest) {
+    const auto vertex = new spider::pisdf::ExternInterface(spider::pisdf::VertexType::EXTERN_IN, 0);
+    ASSERT_EQ(vertex->bufferIndex(), 0);
+    delete vertex;
+}
+
+
+TEST_F(pisdfVertexTest, vertexTest) {
     {
         /* == Checking init values == */
         auto *v = new spider::pisdf::ExecVertex();
@@ -151,21 +175,6 @@ TEST_F(pisdVertexTest, vertexTest) {
         ASSERT_EQ(v->ix(), SIZE_MAX);
         ASSERT_EQ(v->repetitionValue(), 1);
         ASSERT_EQ(v->scheduleTaskIx(), SIZE_MAX);
-        delete v;
-    }
-    {
-        auto *v = new spider::pisdf::ExecVertex(spider::pisdf::VertexType::DELAY, "", 1, 1);
-        ASSERT_THROW(v->setRepetitionValue(2), spider::Exception)
-                                    << "DelayVertex::setRepetitionValue() should throw if value > 1";
-        ASSERT_NO_THROW(v->setRepetitionValue(1)) << "DelayVertex::setRepetitionValue() should not throw if value == 1";
-        delete v;
-    }
-    {
-        auto *v = new spider::pisdf::ExecVertex(spider::pisdf::VertexType::CONFIG);
-        ASSERT_THROW(v->setRepetitionValue(2), spider::Exception)
-                                    << "ConfigVertex::setRepetitionValue() should throw if value > 1";
-        ASSERT_NO_THROW(v->setRepetitionValue(1))
-                                    << "ConfigVertex::setRepetitionValue() should not throw if value == 1";
         delete v;
     }
     auto *graph = spider::make<spider::pisdf::Graph, StackID::PISDF>("graph", 4, 3, 0, 0, 0);
@@ -202,16 +211,105 @@ TEST_F(pisdVertexTest, vertexTest) {
     /* == Test subtype property for every vertex == */
     testType();
 
-    /* == Test setJobIx == */
-    {
-        spider::pisdf::ExecVertex vertex;
-        ASSERT_EQ(vertex.scheduleTaskIx(), SIZE_MAX) << "ExecVertex::jobIx() should return UINT32_MAX as default value.";
-        ASSERT_NO_THROW(vertex.setScheduleTaskIx(10)) << "ExecVertex::setJobIx() should never throw.";
-        ASSERT_EQ(vertex.scheduleTaskIx(), 10) << "ExecVertex::jobIx() bad value.";
-    }
-
     ASSERT_NO_THROW(v0->setName("toto")) << "Vertex::setName() should never throw.";
     ASSERT_EQ(v0->name(), "toto") << "Vertex::setName() should never throw.";
     spider::destroy(graph);
     spider::api::disableLogger(spider::log::GENERAL);
+}
+
+TEST_F(pisdfVertexTest, addParamTest) {
+    auto *v = new spider::pisdf::ExecVertex(spider::pisdf::VertexType::NORMAL, "", 1, 1);
+    auto param = spider::make_shared<spider::pisdf::Param>("w", 1);
+    ASSERT_NO_THROW(v->addInputParameter(param));
+    ASSERT_NO_THROW(v->addRefinementParameter(param));
+    ASSERT_THROW(v->addOutputParameter(param), spider::Exception);
+    delete v;
+    v = new spider::pisdf::ExecVertex(spider::pisdf::VertexType::CONFIG, "", 1, 1);
+    ASSERT_NO_THROW(v->addInputParameter(param));
+    ASSERT_NO_THROW(v->addRefinementParameter(param));
+    ASSERT_NO_THROW(v->addOutputParameter(param));
+    delete v;
+}
+
+TEST_F(pisdfVertexTest, setRepTest) {
+    auto *v = new spider::pisdf::ExecVertex(spider::pisdf::VertexType::DELAY, "", 1, 1);
+    ASSERT_THROW(v->setRepetitionValue(2), spider::Exception)
+                                << "DelayVertex::setRepetitionValue() should throw if value > 1";
+    ASSERT_NO_THROW(v->setRepetitionValue(1)) << "DelayVertex::setRepetitionValue() should not throw if value == 1";
+    delete v;
+    v = new spider::pisdf::ExecVertex(spider::pisdf::VertexType::CONFIG);
+    ASSERT_THROW(v->setRepetitionValue(2), spider::Exception)
+                                << "ConfigVertex::setRepetitionValue() should throw if value > 1";
+    ASSERT_NO_THROW(v->setRepetitionValue(1))
+                                << "ConfigVertex::setRepetitionValue() should not throw if value == 1";
+    delete v;
+    v = new spider::pisdf::ExternInterface(spider::pisdf::VertexType::EXTERN_IN, 0);
+    ASSERT_THROW(v->setRepetitionValue(2), spider::Exception)
+                                << "ExternInterface::setRepetitionValue() should throw if value > 1";
+    ASSERT_NO_THROW(v->setRepetitionValue(1))
+                                << "ExternInterface::setRepetitionValue() should not throw if value == 1";
+    delete v;
+    v = new spider::pisdf::ExternInterface(spider::pisdf::VertexType::EXTERN_OUT, 0);
+    ASSERT_THROW(v->setRepetitionValue(2), spider::Exception)
+                                << "ExternInterface::setRepetitionValue() should throw if value > 1";
+    ASSERT_NO_THROW(v->setRepetitionValue(1))
+                                << "ExternInterface::setRepetitionValue() should not throw if value == 1";
+    delete v;
+    v = new spider::pisdf::ExecVertex(spider::pisdf::VertexType::NORMAL);
+    ASSERT_NO_THROW(v->setRepetitionValue(2));
+    ASSERT_NO_THROW(v->setInstanceValue(0));
+    ASSERT_NO_THROW(v->setInstanceValue(1));
+    ASSERT_THROW(v->setInstanceValue(2), spider::Exception);
+}
+
+
+TEST_F(pisdfVertexTest, setNameTest) {
+    spider::pisdf::ExecVertex vertex;
+    ASSERT_NO_THROW(vertex.setName("toto")) << "Vertex::setName() should never throw.";
+    ASSERT_EQ(vertex.name(), "toto") << "Vertex::setName() should never throw.";
+}
+
+
+TEST_F(pisdfVertexTest, setJobIxTest) {
+    spider::pisdf::ExecVertex vertex;
+    ASSERT_EQ(vertex.scheduleTaskIx(), SIZE_MAX) << "ExecVertex::jobIx() should return UINT32_MAX as default value.";
+    ASSERT_NO_THROW(vertex.setScheduleTaskIx(10)) << "ExecVertex::setJobIx() should never throw.";
+    ASSERT_EQ(vertex.scheduleTaskIx(), 10) << "ExecVertex::jobIx() bad value.";
+}
+
+namespace spider {
+    struct TestVisitor : public pisdf::DefaultVisitor {
+        void visit(pisdf::ExecVertex *) override { }
+
+        void visit(pisdf::NonExecVertex *) override { }
+
+        void visit(pisdf::DelayVertex *) override { }
+
+        void visit(pisdf::ExternInterface *) override { }
+    };
+}
+
+TEST_F(pisdfVertexTest, visitorTest) {
+    auto visitor = spider::TestVisitor();
+    spider::pisdf::Vertex *v = new spider::pisdf::ExternInterface(spider::pisdf::VertexType::EXTERN_OUT, 0);
+    ASSERT_NO_THROW(v->visit(&visitor));
+    delete v;
+    v = new spider::pisdf::ExecVertex(spider::pisdf::VertexType::NORMAL, "");
+    ASSERT_NO_THROW(v->visit(&visitor));
+    delete v;
+    v = new spider::pisdf::DelayVertex("", nullptr);
+    ASSERT_NO_THROW(v->visit(&visitor));
+    delete v;
+    v = new spider::pisdf::ExecVertex(spider::pisdf::VertexType::CONFIG, "");
+    ASSERT_NO_THROW(v->visit(&visitor));
+    ASSERT_THROW(v->spider::pisdf::Vertex::visit(&visitor), std::runtime_error);
+    delete v;
+}
+
+
+TEST_F(pisdfVertexTest, convertTest) {
+    spider::pisdf::Vertex *v = new spider::pisdf::ExternInterface(spider::pisdf::VertexType::EXTERN_OUT, 0);
+    ASSERT_NO_THROW(v->convertTo<spider::pisdf::ExternInterface>());
+    ASSERT_NO_THROW(const_cast<const spider::pisdf::Vertex *>(v)->convertTo<spider::pisdf::ExternInterface>());
+    delete v;
 }

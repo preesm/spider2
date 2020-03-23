@@ -97,8 +97,13 @@ TEST_F(pisdfGraphTest, graphTest) {
     ASSERT_NO_THROW(graph->removeVertex(nullptr)) << "pisdf::Graph::removeVertex should not throw for nullptr.";
     ASSERT_NO_THROW(graph->addEdge(nullptr)) << "AbstractGraph::addEdge should not throw for nullptr.";
     ASSERT_NO_THROW(graph->removeEdge(nullptr)) << "AbstractGraph::removeEdge should not throw for nullptr.";
+    ASSERT_NO_THROW(graph->removeParam(nullptr)) << "pisdf::Graph::removeParam should not throw for nullptr.";
 
     /* == Getter(s) test == */
+    ASSERT_EQ(graph->paramFromName("WIDTH"), param.get());
+    ASSERT_EQ(graph->paramFromName("width"), param.get());
+    ASSERT_EQ(graph->paramFromName("wIdTh"), param.get());
+    ASSERT_EQ(graph->paramFromName("height2"), nullptr);
     ASSERT_EQ(graph->vertexCount(), 0) << "Graph::vertexCount() failed.";
     ASSERT_EQ(graph->edgeCount(), 0) << "Graph::edgeCount() failed.";
     ASSERT_EQ(graph->paramCount(), 2) << "Graph::paramCount() failed.";
@@ -125,6 +130,8 @@ TEST_F(pisdfGraphTest, graphTest) {
     spider::api::createEdge(subgraph, 0, 5, vertex_4, 0, 5);
     spider::api::createEdge(cfg, 0, 15, vertex_2, 1, 1);
 
+    /* == Getter tests == */
+    ASSERT_EQ(graph->totalActorCount(), 6);
     ASSERT_EQ(graph->vertices().size(), 4) << "Graph::vertices() failed.";
     ASSERT_EQ(graph->subgraphs().size(), 1) << "Graph::subgraphs() failed.";
     ASSERT_EQ(subgraph->configVertices().size(), 1) << "Graph::configVertices() failed.";
@@ -139,6 +146,17 @@ TEST_F(pisdfGraphTest, graphTest) {
     spider::api::createDynamicParam(subgraph, "width");
     ASSERT_EQ(subgraph->dynamic(), true) << "Graph::dynamic() failed.";
 
+    /* == Setter test == */
+    ASSERT_NO_THROW(subgraph->addInputInterface(nullptr));
+    ASSERT_NO_THROW(subgraph->addOutputInterface(nullptr));
+    auto outputInterface = spider::make<spider::pisdf::Interface, StackID::PISDF>(spider::pisdf::VertexType::OUTPUT);
+    auto inputInterface = spider::make<spider::pisdf::Interface, StackID::PISDF>(spider::pisdf::VertexType::INPUT);
+    ASSERT_NO_THROW(subgraph->addInputInterface(outputInterface));
+    ASSERT_NO_THROW(subgraph->addInputInterface(inputInterface));
+    ASSERT_NO_THROW(subgraph->addOutputInterface(inputInterface));
+    ASSERT_NO_THROW(subgraph->addOutputInterface(outputInterface));
+
+    /* == Move Edge tests == */
     ASSERT_NO_THROW(graph->moveEdge(graph->edges()[0].get(), nullptr))
                                 << "Graph::moveEdge() should not throw for nullptr graph";
     ASSERT_NO_THROW(graph->moveEdge(nullptr, subgraph)) << "Graph::moveEdge() should not throw for nullptr edge";
@@ -147,6 +165,14 @@ TEST_F(pisdfGraphTest, graphTest) {
                                 << "Graph::moveEdge() should not throw";
     ASSERT_NO_THROW(graph->moveEdge(graph->edges()[0].get(), graph)) << "Graph::moveEdge() should not throw";
 
+
+    /* == Remove param test == */
+    ASSERT_NO_THROW(graph->addParam(spider::make_shared<spider::pisdf::DynamicParam, StackID::PISDF>("dyna1")));
+    ASSERT_NO_THROW(graph->addParam(spider::make_shared<spider::pisdf::DynamicParam, StackID::PISDF>("dyna2")));
+    ASSERT_EQ(graph->paramCount(), 4);
+    ASSERT_NO_THROW(graph->removeParam(graph->params()[2]));
+
+    /* == Move / Remove vertex test == */
     ASSERT_NO_THROW(graph->moveVertex(graph->vertex(0), nullptr))
                                 << "Graph::moveVertex() should not throw for nullptr graph";
     ASSERT_NO_THROW(graph->moveVertex(nullptr, subgraph)) << "Graph::moveVertex() should not throw for nullptr vertex";
@@ -154,6 +180,10 @@ TEST_F(pisdfGraphTest, graphTest) {
     ASSERT_NO_THROW(subgraph->moveVertex(subgraph->vertex(subgraph->vertexCount() - 1), graph))
                                 << "Graph::moveVertex() should not throw";
     ASSERT_NO_THROW(graph->moveVertex(graph->vertex(0), graph)) << "Graph::moveVertex() should not throw";
+    ASSERT_NO_THROW(subgraph->moveVertex(subgraph->configVertices()[0], graph))
+                                << "Graph::moveVertex() should not throw";
+    ASSERT_NO_THROW(graph->removeVertex(graph->configVertices()[0])) << "Graph::moveVertex() should not throw";
+    ASSERT_NO_THROW(graph->removeVertex(subgraph)) << "Graph::moveVertex() should not throw";
 
 
     spider::destroy(graph);

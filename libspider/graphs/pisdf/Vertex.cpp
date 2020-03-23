@@ -58,6 +58,7 @@ spider::pisdf::Vertex::Vertex(VertexType type, std::string name, size_t edgeINCo
 
 spider::pisdf::Vertex::~Vertex() noexcept {
     if (copyCount_ && log::enabled()) {
+        // LCOV_IGNORE: this is a log message that does not need to be tested.
         log::error("Removing vertex [%s] with copies out there.\n", name().c_str());
     }
     this->reference_->copyCount_ -= 1;
@@ -65,6 +66,7 @@ spider::pisdf::Vertex::~Vertex() noexcept {
 
 void spider::pisdf::Vertex::visit(Visitor *visitor) {
     visitor->visit(this);
+    // LCOV_IGNORE: this line can not be reached because above line throw exception
 }
 
 void spider::pisdf::Vertex::setAsReference(Vertex *clone) {

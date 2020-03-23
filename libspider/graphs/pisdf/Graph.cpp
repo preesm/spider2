@@ -236,9 +236,10 @@ void spider::pisdf::Graph::removeParam(const std::shared_ptr<Param> &param) {
     if (!param || param->graph() != this) {
         return;
     }
-    out_of_order_erase(paramVector_, param->ix());
-    paramVector_[param->ix()]->setIx(param->ix());
-    if (param->dynamic() && param->type() != ParamType::INHERITED) {
+    const auto tmp = param;
+    out_of_order_erase(paramVector_, tmp->ix());
+    paramVector_[tmp->ix()]->setIx(tmp->ix());
+    if (tmp->dynamic() && tmp->type() != ParamType::INHERITED) {
         /* == Update dynamic property == */
         dynamic_ = false;
         for (auto &p : paramVector_) {
