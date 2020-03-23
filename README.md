@@ -34,39 +34,40 @@ To build the shared library, a variety of scripts are provided.
 * Building SPIDER 2.0 shared library on Linux using GCC:
 ```shell
 git clone https://github.com/preesm/spider-2.0.git
-cd spider-2.0/libspider/build-scripts/linux
-./CMakeGCC.sh
+cd spider-2.0/bin
+cmake .. -DCMAKE_BUILD_TYPE=Release
+make spider2 -j$(nproc)
 ```
 
 * Building SPIDER 2.0 shared library on Linux using CodeBlock:
- ```shell
- git clone https://github.com/preesm/spider-2.0.git
- cd spider-2.0/libspider/build-scripts/linux
- ./CMakeCodeblock.sh
- ```
+```shell
+git clone https://github.com/preesm/spider-2.0.git
+cd spider-2.0/libspider/build-scripts/linux
+./CMakeCodeblock.sh
+```
 
 * Building SPIDER 2.0 shared library on Windows using CodeBlock:
-  ```shell
-  git clone https://github.com/preesm/spider-2.0.git
-  cd spider-2.0/libspider/build-scripts/windows
-  ./CMakeCodeblock.bat
-  ```
+```shell
+git clone https://github.com/preesm/spider-2.0.git
+cd spider-2.0/libspider/build-scripts/windows
+./CMakeCodeblock.bat
+```
 
 * Building SPIDER 2.0 shared library on Windows using Visual Studio 2017:
-   ```shell
-   git clone https://github.com/preesm/spider-2.0.git
-   cd spider-2.0/libspider/build-scripts/windows
-   ./CMakeVS2017.bat
-   ```
+```shell
+git clone https://github.com/preesm/spider-2.0.git
+cd spider-2.0/libspider/build-scripts/windows
+./CMakeVS2017.bat
+```
 
 ### System wide installation
 
 * Linux platforms:
-   ```shell
-   PREFIX=/usr/local/
-   sudo cp libSpider2.0.so  ${PREFIX}/lib/
-   sudo cp libspider/spider-api/*.h ${PREFIX}/include/
-   ```
+```shell
+PREFIX=/usr/local/
+sudo cp libSpider2.0.so  ${PREFIX}/lib/
+sudo cp libspider/spider-api/*.h ${PREFIX}/include/
+```
 
 * Windows platforms:
 
@@ -75,11 +76,22 @@ __(coming soon...)__
 
 ### Generating the Doxygen documentation
 
-__(coming soon...)__
+* Building SPIDER 2.0 documentation on Linux:
+```shell
+git clone https://github.com/preesm/spider-2.0.git
+cd spider-2.0/bin
+cmake ..
+make doc -j$(nproc)
+```
 
 ## How to Use the Spider 2.0 Library
 
-__(coming soon...)__
+* Using CMake based projects:
+- Copy the "FindSpider2.cmake" file from the cmake folder into your project cmake modules directory.
+- Add ``` include(FindSpider2) ``` into your CMakeList.txt.
+- Add "${SPIDER2_INCLUDE_DIR}
+       ${SPIDER2_INCLUDE_DIR}/api" to your include_directories directive.
+- Add "${SPIDER2_LIBRARY}" to your target_link_library directive.
 
 
 ## Contact
@@ -87,7 +99,7 @@ __(coming soon...)__
 This project is maintained by the Preesm maintainers. Contact us using one of the following:
 
 *   General information : contact@preesm.org
-*   Technical support : https://github.com/preesm/spider/issues
+*   Technical support : https://github.com/preesm/spider2/issues
 
 ## License
 
