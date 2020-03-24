@@ -148,7 +148,7 @@ namespace spider {
                     }
                 }
             }
-            component.startIt_ = std::begin(handler.vertexVector_) + offset;
+            component.startIt_ = std::next(std::begin(handler.vertexVector_), offset);
             component.endIt_ = std::end(handler.vertexVector_);
             return component;
         }

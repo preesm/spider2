@@ -126,6 +126,13 @@ namespace spider {
             std::pair<JobStack, JobStack> makeFutureJobs();
 
             /**
+             * @brief Copy parameter according to its type.
+             * @param param  Const reference to the parameter.
+             * @return Parameter copy shared_ptr.
+             */
+            std::shared_ptr<pisdf::Param> copyParameter(const std::shared_ptr<pisdf::Param> &param) const;
+
+            /**
              * @brief Check if the given edge is null and if so, add non-exec vertices to snk and src ports.
              *        An edge is considered null if and only if the source rate is null AND the sink rate is null.
              * @param edge  Pointer to the edge.

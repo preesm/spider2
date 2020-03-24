@@ -133,15 +133,15 @@ void spider::srdag::SingleRateTransformer::replaceInterfaces() {
         return;
     }
     /* == 0. Search for the instance in the SR-DAG == */
-    auto *instance = job_.srdagInstance_;
+    const auto *instance = job_.srdagInstance_;
     if (!instance || instance->name().find(job_.reference_->name()) == std::string::npos) {
         throwSpiderException("could not find matching single rate instance [%zu] of graph [%s]",
                              job_.firingValue_,
                              job_.reference_->name().c_str());
     }
-    auto isInterfaceTransparent = [](const TransfoJob &job, const pisdf::Interface *interface) -> bool {
-        auto *edge = interface->edge();
-        auto *vertex = interface->opposite();
+    const auto isInterfaceTransparent = [](const TransfoJob &job, const pisdf::Interface *interface) -> bool {
+        const auto *edge = interface->edge();
+        const auto *vertex = interface->opposite();
         const auto sourceRate = edge->sourceRateExpression().evaluate(job.params_);
         const auto sinkRate = edge->sinkRateExpression().evaluate(job.params_);
         if (interface->subtype() == pisdf::VertexType::INPUT) {
@@ -178,37 +178,26 @@ void spider::srdag::SingleRateTransformer::replaceInterfaces() {
 }
 
 std::pair<spider::srdag::JobStack, spider::srdag::JobStack> spider::srdag::SingleRateTransformer::makeFutureJobs() {
-    /* == 0. Copy Params for static and dynamic jobs == */
     auto staticJobStack = factory::vector<TransfoJob>(StackID::TRANSFO);
     auto dynaJobStack = factory::vector<TransfoJob>(StackID::TRANSFO);
     for (auto *subgraph : job_.reference_->subgraphs()) {
         const auto isDynamic = subgraph->dynamic() && !subgraph->configVertexCount();
-        /* == Creates the jobs == */
         const auto &params = isDynamic ? job_.params_ : subgraph->params();
-        auto &stack = isDynamic ? dynaJobStack : staticJobStack;
         const auto firstCloneIx = ref2Clone_[subgraph->ix()];
+        auto &stack = isDynamic ? dynaJobStack : staticJobStack;
         for (auto ix = firstCloneIx; ix < firstCloneIx + subgraph->repetitionValue(); ++ix) {
             auto job = TransfoJob{ subgraph, srdag_->vertex(ix), static_cast<u32>((ix - firstCloneIx)) };
             /* == Copy the params == */
             job.params_.reserve(params.size());
             for (const auto &param : params) {
-                auto p = param;
-                if (param->dynamic()) {
-                    if (param->type() == pisdf::ParamType::DYNAMIC) {
-                        p = make_shared<pisdf::DynamicParam, StackID::PISDF>(param->name(), param->expression());
-                        p->setIx(param->ix());
-                    } else {
-                        p = job_.params_[param->parent()->ix()];
-                    }
-                }
-                job.params_.emplace_back(std::move(p));
+                job.params_.emplace_back(copyParameter(param));
             }
             stack.emplace_back(std::move(job));
         }
     }
 
     /* == Update reference of config vertices parameters == */
-    for (auto &cfg : job_.reference_->configVertices()) {
+    for (const auto &cfg : job_.reference_->configVertices()) {
         auto *clone = srdag_->vertex(ref2Clone_[cfg->ix()]);
         for (const auto &param : cfg->outputParamVector()) {
             clone->addOutputParameter(dynaJobStack[0].params_[param->ix()]);
@@ -216,6 +205,19 @@ std::pair<spider::srdag::JobStack, spider::srdag::JobStack> spider::srdag::Singl
     }
 
     return std::make_pair(std::move(staticJobStack), std::move(dynaJobStack));
+}
+
+std::shared_ptr<spider::pisdf::Param>
+spider::srdag::SingleRateTransformer::copyParameter(const std::shared_ptr<pisdf::Param> &param) const {
+    if (param->dynamic()) {
+        if (param->type() == pisdf::ParamType::DYNAMIC) {
+            auto p = spider::make_shared<pisdf::DynamicParam, StackID::PISDF>(param->name(), param->expression());
+            p->setIx(param->ix());
+            return p;
+        }
+        return job_.params_[param->parent()->ix()];
+    }
+    return param;
 }
 
 bool spider::srdag::SingleRateTransformer::checkForNullEdge(pisdf::Edge *edge) {

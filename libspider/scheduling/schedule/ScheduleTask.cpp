@@ -251,7 +251,7 @@ spider::array<i64> spider::ScheduleTask::buildForkInputParameters(const pisdf::V
     auto params = array<i64>(outputEdges.size() + 2, StackID::RUNTIME);
     params[0] = vertex->inputEdge(0)->sinkRateValue();
     params[1] = static_cast<i64>(outputEdges.size());
-    std::transform(std::begin(outputEdges), std::end(outputEdges), std::begin(params) + 2,
+    std::transform(std::begin(outputEdges), std::end(outputEdges), std::next(std::begin(params), 2),
                    [](const pisdf::Edge *edge) { return edge->sourceRateValue(); });
     return params;
 }
@@ -261,7 +261,7 @@ spider::array<i64> spider::ScheduleTask::buildJoinInputParameters(const pisdf::V
     auto params = array<i64>(inputEdges.size() + 2, StackID::RUNTIME);
     params[0] = vertex->outputEdge(0)->sourceRateValue();
     params[1] = static_cast<i64>(inputEdges.size());
-    std::transform(std::begin(inputEdges), std::end(inputEdges), std::begin(params) + 2,
+    std::transform(std::begin(inputEdges), std::end(inputEdges), std::next(std::begin(params), 2),
                    [](const pisdf::Edge *edge) { return edge->sinkRateValue(); });
     return params;
 }

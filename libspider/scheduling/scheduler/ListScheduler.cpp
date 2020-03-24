@@ -190,7 +190,7 @@ ifast32 spider::ListScheduler::computeScheduleLevel(ListTask &listTask,
 }
 
 void spider::ListScheduler::sortVertices() {
-    std::sort(std::begin(sortedTaskVector_) + static_cast<long>(lastSchedulableTask_),
+    std::sort(std::next(std::begin(sortedTaskVector_), static_cast<long>(lastSchedulableTask_)),
               std::end(sortedTaskVector_),
               [](const ListTask &A, const ListTask &B) -> bool {
                   auto *vertexA = A.task_->vertex();
