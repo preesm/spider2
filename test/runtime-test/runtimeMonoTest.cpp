@@ -73,26 +73,26 @@ protected:
 
 TEST_F(runtimeMonoTest, TestStaticFlat) {
     ASSERT_NO_THROW(
-            spider::test::runtimeStaticFlat(spider::RuntimeType::JITMS, spider::SchedulingAlgorithm::LIST_BEST_FIT));
+            spider::test::runtimeStaticFlat(spider::RuntimeType::JITMS, spider::SchedulingPolicy::LIST_BEST_FIT));
 }
 
 TEST_F(runtimeMonoTest, TestStaticNoExecFlat) {
     ASSERT_NO_THROW(
-            spider::test::runtimeStaticFlatNoExec(spider::RuntimeType::JITMS, spider::SchedulingAlgorithm::LIST_BEST_FIT));
+            spider::test::runtimeStaticFlatNoExec(spider::RuntimeType::JITMS, spider::SchedulingPolicy::LIST_BEST_FIT));
 }
 
 TEST_F(runtimeMonoTest, TestStaticHierarchical) {
     ASSERT_NO_THROW(spider::test::runtimeStaticHierarchical(spider::RuntimeType::JITMS,
-                                                            spider::SchedulingAlgorithm::LIST_BEST_FIT));
+                                                            spider::SchedulingPolicy::LIST_BEST_FIT));
 }
 
 TEST_F(runtimeMonoTest, TestStaticNoExecHierarchical) {
     ASSERT_NO_THROW(spider::test::runtimeStaticHierarchicalNoExec(spider::RuntimeType::JITMS,
-                                                            spider::SchedulingAlgorithm::LIST_BEST_FIT));
+                                                            spider::SchedulingPolicy::LIST_BEST_FIT));
 }
 
 TEST_F(runtimeMonoTest, TestDynamicHierarchical) {
     ASSERT_NO_THROW(
-            spider::test::runtimeDynamicHierarchical(spider::RuntimeType::JITMS, spider::SchedulingAlgorithm::LIST_BEST_FIT));
+            spider::test::runtimeDynamicHierarchical(spider::RuntimeType::JITMS, spider::SchedulingPolicy::LIST_BEST_FIT));
 }
 

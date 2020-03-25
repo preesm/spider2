@@ -68,6 +68,13 @@ namespace spider {
         void *generalStackExternAddress_ = nullptr;
     };
 
+    struct RuntimeContext {
+        pisdf::Graph *graph_ = nullptr;
+        Runtime *algorithm_ = nullptr;
+        size_t loopSize_ = 0;
+        RunMode mode_ = RunMode::LOOP;
+    };
+
     /**
      * @brief Parse program input arguments and intiliaze @refitem StartUpConfig accordingly.
      * @remark On error, it will print the usage and exit the program.
@@ -91,16 +98,30 @@ namespace spider {
     bool isInit();
 
     /**
-     * @brief Run the user application graph.
+     * @brief Creates a runtime context for a given graph.
      * @remark In INFINITE mode, the application can only be stopped properly on receive of the SIGINT signal.
-     * @warning If the user application already catches this signal, it may interfer with the spider library
-     * exit mechanism.
+     * @warning If the user application already catches this signal, it should define and set the extern bool
+     *          variable spider2StopRunning to true.
      * @param mode      Run mode the application graph (INFINITE or LOOP).
      * @param loopCount Number of loop to perform (only used in LOOP mode).
      * @param type      Runtime algorithm to use.
-     * @param algorithm Scheduling algorithm to use.
+     * @param policy    Scheduling policy to use.
+     * @return Created runtime context.
      */
-    void run(RunMode mode, size_t loopCount, RuntimeType type, SchedulingAlgorithm algorithm);
+    RuntimeContext createRuntimeContext(pisdf::Graph *graph, RunMode mode, size_t loopCount, RuntimeType type,
+                                        SchedulingPolicy policy);
+
+    /**
+     * @brief Run a given runtime context.
+     * @param context Context to run.
+     */
+    void run(RuntimeContext &context);
+
+    /**
+     * @brief Destroy a runtime context.
+     * @param context Reference to the context to destroy.
+     */
+    void destroyRuntimeContext(RuntimeContext &context);
 
     /**
      * @brief Function to call at the end of the application using Spider to close correctly the runtime.

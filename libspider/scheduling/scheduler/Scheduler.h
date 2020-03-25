@@ -184,6 +184,6 @@ namespace spider {
      * @param graph  Pointer to the graph.
      * @return unique_ptr of the created scheduler.
      */
-    unique_ptr<Scheduler> makeScheduler(SchedulingAlgorithm algorithm, pisdf::Graph *graph);
+    unique_ptr<Scheduler> makeScheduler(SchedulingPolicy algorithm, pisdf::Graph *graph);
 }
 #endif //SPIDER2_SCHEDULER_H

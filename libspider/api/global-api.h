@@ -86,6 +86,8 @@ namespace spider {
 
     class Stack;
 
+    class Runtime;
+
     class RTKernel;
 
     class RTRunner;
@@ -180,7 +182,7 @@ namespace spider {
     /**
      * @brief Spider scheduling algorithms.
      */
-    enum class SchedulingAlgorithm {
+    enum class SchedulingPolicy {
         LIST_BEST_FIT,        /*!< Use a list based algorithm with best fit mapping decision (use srdag) */
         LIST_ROUND_ROBIN,     /*!< Use a list based algorithm with round robin mapping decision (use srdag) */
         GREEDY,               /*!< Greedy algorithm with no heuristics (use srdag) */

@@ -46,8 +46,8 @@
 
 /* === Function(s) definition === */
 
-void spider::test::runtimeStaticFlat(spider::RuntimeType type, SchedulingAlgorithm algorithm) {
-    auto *graph = spider::api::createUserApplicationGraph("topgraph", 1, 0, 0);
+void spider::test::runtimeStaticFlat(spider::RuntimeType type, SchedulingPolicy algorithm) {
+    auto *graph = spider::api::createGraph("topgraph", 1, 0, 0);
     auto *vertex_0 = spider::api::createVertex(graph, "vertex_0", 0, 1);
     auto *vertex_1 = spider::api::createVertex(graph, "vertex_1", 1, 0);
     spider::api::createEdge(vertex_0, 0, 4, vertex_1, 0, 1);
@@ -68,12 +68,15 @@ void spider::test::runtimeStaticFlat(spider::RuntimeType type, SchedulingAlgorit
                                          auto *buffer = reinterpret_cast<char *>(input[0]);
                                          log::info("vertex_1 reading %d\n", buffer[0]);
                                      });
-    run(RunMode::LOOP, 10, type, algorithm);
+    auto context = spider::createRuntimeContext(graph, RunMode::LOOP, 10, type, algorithm);
+    run(context);
+    destroyRuntimeContext(context);
+    api::destroyGraph(graph);
 }
 
-void spider::test::runtimeStaticHierarchical(spider::RuntimeType type, SchedulingAlgorithm algorithm) {
+void spider::test::runtimeStaticHierarchical(spider::RuntimeType type, SchedulingPolicy algorithm) {
     spider::api::createThreadRTPlatform();
-    auto *graph = spider::api::createUserApplicationGraph("topgraph", 1, 0, 0);
+    auto *graph = spider::api::createGraph("topgraph", 1, 0, 0);
     auto *vertex_0 = spider::api::createVertex(graph, "vertex_0", 0, 1);
     auto *vertex_1 = spider::api::createVertex(graph, "vertex_1", 1, 1);
     auto *subgraph = spider::api::createSubgraph(graph, "subgraph", 3, 4, 2, 1, 1);
@@ -95,11 +98,14 @@ void spider::test::runtimeStaticHierarchical(spider::RuntimeType type, Schedulin
     spider::api::createEdge(subgraph, 0, 1, vertex_3, 0, 1);
     auto *edge = spider::api::createEdge(vertex_2, 1, 1, vertex_2, 1, 1);
     spider::api::createLocalDelay(edge, "1");
-    run(RunMode::LOOP, 10, type, algorithm);
+    auto context = spider::createRuntimeContext(graph, RunMode::LOOP, 10, type, algorithm);
+    run(context);
+    destroyRuntimeContext(context);
+    api::destroyGraph(graph);
 }
 
-void spider::test::runtimeStaticFlatNoExec(spider::RuntimeType type, spider::SchedulingAlgorithm algorithm) {
-    auto *graph = spider::api::createUserApplicationGraph("topgraph", 1, 0, 0);
+void spider::test::runtimeStaticFlatNoExec(spider::RuntimeType type, spider::SchedulingPolicy algorithm) {
+    auto *graph = spider::api::createGraph("topgraph", 1, 0, 0);
     auto *vertex_0 = spider::api::createVertex(graph, "vertex_0", 0, 2);
     auto *vertex_1 = spider::api::createVertex(graph, "vertex_1", 2, 0);
     auto *vertex_2 = spider::api::createVertex(graph, "vertex_2", 1, 1);
@@ -125,11 +131,14 @@ void spider::test::runtimeStaticFlatNoExec(spider::RuntimeType type, spider::Sch
                                          auto *buffer = reinterpret_cast<char *>(input[0]);
                                          spider::log::info("vertex_2 reading %d\n", buffer[0]);
                                      });
-    run(RunMode::LOOP, 10, type, algorithm);
+    auto context = spider::createRuntimeContext(graph, RunMode::LOOP, 10, type, algorithm);
+    run(context);
+    destroyRuntimeContext(context);
+    api::destroyGraph(graph);
 }
 
-void spider::test::runtimeStaticHierarchicalNoExec(spider::RuntimeType type, spider::SchedulingAlgorithm algorithm) {
-    auto *graph = spider::api::createUserApplicationGraph("topgraph", 1, 0, 0);
+void spider::test::runtimeStaticHierarchicalNoExec(spider::RuntimeType type, spider::SchedulingPolicy algorithm) {
+    auto *graph = spider::api::createGraph("topgraph", 1, 0, 0);
     auto *vertex_0 = spider::api::createVertex(graph, "vertex_0", 0, 2);
     auto *vertex_1 = spider::api::createVertex(graph, "vertex_1", 2, 0);
     auto *vertex_2 = spider::api::createSubgraph(graph, "vertex_2", 1, 2, 0, 1, 1);
@@ -161,11 +170,14 @@ void spider::test::runtimeStaticHierarchicalNoExec(spider::RuntimeType type, spi
                                          auto *buffer = reinterpret_cast<char *>(input[0]);
                                          spider::log::info("vertex_2 reading %d\n", buffer[0]);
                                      });
-    run(RunMode::LOOP, 10, type, algorithm);
+    auto context = spider::createRuntimeContext(graph, RunMode::LOOP, 10, type, algorithm);
+    run(context);
+    destroyRuntimeContext(context);
+    api::destroyGraph(graph);
 }
 
-void spider::test::runtimeDynamicHierarchical(spider::RuntimeType type, spider::SchedulingAlgorithm algorithm) {
-    auto *graph = spider::api::createUserApplicationGraph("topgraph", 15, 15, 1);
+void spider::test::runtimeDynamicHierarchical(spider::RuntimeType type, spider::SchedulingPolicy algorithm) {
+    auto *graph = spider::api::createGraph("topgraph", 15, 15, 1);
 
     /* === Creating vertices === */
 
@@ -274,5 +286,8 @@ void spider::test::runtimeDynamicHierarchical(spider::RuntimeType type, spider::
     spider::api::createEdge(vertex_5, 0, 1, vertex_4, 0, 1);
     spider::api::createEdge(vertex_2, 1, "10", subsubgraph, 0, "10");
     spider::api::createEdge(sub_input, 0, "10", vertex_6, 0, "sub_width");
-    run(RunMode::LOOP, 10, type, algorithm);
+    auto context = spider::createRuntimeContext(graph, RunMode::LOOP, 10, type, algorithm);
+    run(context);
+    destroyRuntimeContext(context);
+    api::destroyGraph(graph);
 }

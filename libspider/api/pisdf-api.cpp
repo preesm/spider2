@@ -71,31 +71,6 @@ static spider::Platform *safeGetPlatform() {
 
 /* === Methods implementation === */
 
-spider::pisdf::Graph *&spider::pisdf::applicationGraph() {
-    static pisdf::Graph *graph = nullptr;
-    return graph;
-}
-
-spider::pisdf::Graph *spider::api::createUserApplicationGraph(std::string name,
-                                                              size_t actorCount,
-                                                              size_t edgeCount,
-                                                              size_t paramCount,
-                                                              size_t inIFCount,
-                                                              size_t outIFCount,
-                                                              size_t cfgActorCount) {
-    if (pisdf::applicationGraph()) {
-        throwSpiderException("Can have only one user application graph inside spider.");
-    }
-    pisdf::applicationGraph() = createGraph(std::move(name),
-                                            actorCount,
-                                            edgeCount,
-                                            paramCount,
-                                            inIFCount,
-                                            outIFCount,
-                                            cfgActorCount);
-    return pisdf::applicationGraph();
-}
-
 spider::pisdf::Graph *spider::api::createGraph(std::string name,
                                                size_t actorCount,
                                                size_t edgeCount,
@@ -110,6 +85,10 @@ spider::pisdf::Graph *spider::api::createGraph(std::string name,
                                               inIFCount,
                                               outIFCount,
                                               cfgActorCount);
+}
+
+void spider::api::destroyGraph(spider::pisdf::Graph *graph) {
+    destroy(graph);
 }
 
 spider::pisdf::Graph *spider::api::createSubgraph(pisdf::Graph *graph,

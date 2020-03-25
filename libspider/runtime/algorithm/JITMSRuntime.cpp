@@ -61,7 +61,7 @@
 /* === Method(s) implementation === */
 
 spider::JITMSRuntime::JITMSRuntime(pisdf::Graph *graph,
-                                   SchedulingAlgorithm schedulingAlgorithm,
+                                   SchedulingPolicy schedulingAlgorithm,
                                    FifoAllocatorType type) :
         Runtime(graph),
         srdag_{ make_unique<pisdf::Graph, StackID::RUNTIME>("srdag-" + graph->name()) },

@@ -312,19 +312,19 @@ void spider::Scheduler::allocateTaskOutputFifos(spider::ScheduleTask *task) {
     }
 }
 
-spider::unique_ptr<spider::Scheduler> spider::makeScheduler(SchedulingAlgorithm algorithm, pisdf::Graph *graph) {
+spider::unique_ptr<spider::Scheduler> spider::makeScheduler(SchedulingPolicy algorithm, pisdf::Graph *graph) {
     Scheduler *scheduler = nullptr;
     switch (algorithm) {
-        case SchedulingAlgorithm::LIST_BEST_FIT:
+        case SchedulingPolicy::LIST_BEST_FIT:
             scheduler = make<BestFitScheduler, StackID::SCHEDULE>(graph);
             break;
-        case SchedulingAlgorithm::LIST_ROUND_ROBIN:
+        case SchedulingPolicy::LIST_ROUND_ROBIN:
             scheduler = make<RoundRobinScheduler, StackID::SCHEDULE>(graph);
             break;
-        case SchedulingAlgorithm::GREEDY:
+        case SchedulingPolicy::GREEDY:
             scheduler = make<GreedyScheduler, StackID::SCHEDULE>(graph);
             break;
-        case SchedulingAlgorithm::SRLESS_LIST_BEST_FIT:
+        case SchedulingPolicy::SRLESS_LIST_BEST_FIT:
             scheduler = make<SRLessBestFitScheduler, StackID::SCHEDULE>(graph);
             break;
 //        case SchedulingAlgorithm::SRLESS_GREEDY:

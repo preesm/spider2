@@ -51,39 +51,9 @@
 
 namespace spider {
 
-
-    namespace pisdf {
-        /**
-         * @brief Get the user defined graph of the Spider session.
-         * @return
-         */
-        Graph *&applicationGraph();
-    }
-
     namespace api {
 
         /* === Graph API === */
-
-        /**
-         * @brief Creates the main user application graph.
-         * @remark this call is equivalent to call spider::api::createSubgraph(pisdf::applicationGraph(), ...).
-         * @param name            Name of the graph.
-         * @param actorCount      Number of actors to reserve in the graph (can be extended later).
-         * @param edgeCount       Number of edges to reserve in the graph (can be extended later).
-         * @param paramCount      Number of params to reserve in the graph (can be extended later).
-         * @param inIFCount       Number of input interfaces in the graph (can NOT be extended later).
-         * @param outIFCount      Number of output interfaces in the graph (can NOT be extended later).
-         * @param cfgActorCount   Number of actors to reserve in the graph (can be extended later).
-         * @return pointer to the created @refitem pisdf::Graph.
-         * @throws @refitem spider::Exception if a user graph already exists.
-         */
-        pisdf::Graph *createUserApplicationGraph(std::string name,
-                                                 size_t actorCount = 0,
-                                                 size_t edgeCount = 0,
-                                                 size_t paramCount = 0,
-                                                 size_t inIFCount = 0,
-                                                 size_t outIFCount = 0,
-                                                 size_t cfgActorCount = 0);
 
         /**
          * @brief Creates a @refitem pisdf::Graph with no parent.
@@ -103,6 +73,12 @@ namespace spider {
                                   size_t inIFCount = 0,
                                   size_t outIFCount = 0,
                                   size_t cfgActorCount = 0);
+
+        /**
+         * @brief Destroy a given graph.
+         * @param graph Pointer to the graph to destroy.
+         */
+        void destroyGraph(pisdf::Graph *graph);
 
         /**
          * @brief Get a @refitem pisdf::Vertex pointer from a @refitem pisdf::Graph pointer.

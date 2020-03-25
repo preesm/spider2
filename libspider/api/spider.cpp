@@ -54,7 +54,6 @@
 /* === Static variable(s) definition === */
 
 static bool startFlag = false;
-static spider::Runtime *runtimeAlgo = nullptr;
 extern bool spider2StopRunning;
 
 /* === Static function(s) === */
@@ -196,57 +195,67 @@ bool spider::isInit() {
     return startFlag;
 }
 
-static spider::Runtime *getRuntimeFromType(spider::RuntimeType type, spider::SchedulingAlgorithm algorithm) {
+static spider::Runtime *getRuntimeFromType(spider::pisdf::Graph *graph,
+                                           spider::RuntimeType type,
+                                           spider::SchedulingPolicy policy) {
     switch (type) {
         case spider::RuntimeType::JITMS:
-            return spider::make<spider::JITMSRuntime>(StackID::GENERAL, spider::pisdf::applicationGraph(), algorithm);
+            return spider::make<spider::JITMSRuntime>(StackID::GENERAL, graph, policy);
         case spider::RuntimeType::FAST_JITMS:
-            return spider::make<spider::FastJITMSRuntime>(StackID::GENERAL, spider::pisdf::applicationGraph(), algorithm);
+            return spider::make<spider::FastJITMSRuntime>(StackID::GENERAL, graph, policy);
         default:
             return nullptr;
     }
 }
 
-void spider::run(RunMode mode, size_t loopCount, RuntimeType type, SchedulingAlgorithm algorithm) {
+
+spider::RuntimeContext
+spider::createRuntimeContext(pisdf::Graph *graph, RunMode mode, size_t loopCount, RuntimeType type,
+                             SchedulingPolicy policy) {
     if (!isInit()) {
         log::warning("SPIDER has not been initialized, returning.\n");
-        return;
+        return RuntimeContext{ };
     }
+    RuntimeContext context{ };
+    context.graph_ = graph;
+    context.algorithm_ = getRuntimeFromType(graph, type, policy);
+    if (!context.algorithm_) {
+        throwSpiderException("could not create runtime algorithm.");
+    }
+    context.loopSize_ = loopCount;
+    context.mode_ = mode;
+    return context;
+}
+
+void spider::run(spider::RuntimeContext &context) {
     try {
-        if (mode == RunMode::EXTERN_LOOP) {
-            if (!loopCount) {
-                runtimeAlgo = getRuntimeFromType(type, algorithm);
-                if (!runtimeAlgo) {
-                    throwSpiderException("could not create runtime algorithm.");
-                }
-            }
-            runtimeAlgo->execute();
-            if (spider2StopRunning) {
-                /* == Destroy the runtime == */
-                destroy(runtimeAlgo);
-            }
-        } else {
-            runtimeAlgo = getRuntimeFromType(type, algorithm);
-            if (!runtimeAlgo) {
-                throwSpiderException("could not create runtime algorithm.");
-            }
-            if (mode == RunMode::INFINITE) {
+        switch (context.mode_) {
+            case RunMode::INFINITE:
                 while (!spider2StopRunning) {
-                    runtimeAlgo->execute();
+                    context.algorithm_->execute();
                 }
-            } else if (mode == RunMode::LOOP) {
-                for (size_t i = 0; (i < loopCount) && !spider2StopRunning; ++i) {
-                    runtimeAlgo->execute();
+                break;
+            case RunMode::LOOP:
+                for (size_t i = 0; (i < context.loopSize_) && !spider2StopRunning; ++i) {
+                    context.algorithm_->execute();
                 }
-            }
-            /* == Destroy the runtime == */
-            destroy(runtimeAlgo);
+                break;
+            case RunMode::EXTERN_LOOP:
+                context.algorithm_->execute();
+                break;
+            default:
+                break;
         }
     } catch (spider::Exception &e) {
-        /* == Destroy the runtime == */
-        destroy(runtimeAlgo);
         throw std::runtime_error(e.what());
     }
+}
+
+void spider::destroyRuntimeContext(RuntimeContext &context) {
+    context.graph_ = nullptr;
+    destroy(context.algorithm_);
+    context.loopSize_ = 0;
+    context.mode_ = RunMode::LOOP;
 }
 
 void spider::quit() {
@@ -254,12 +263,6 @@ void spider::quit() {
         log::warning("SPIDER has not been initialized, returning.\n");
         return;
     }
-
-    /* == Destroy the runtime == */
-    destroy(runtimeAlgo);
-
-    /* == Destroy the spider::pisdf::Graph == */
-    destroy(pisdf::applicationGraph());
 
     /* == Destroy the runtime Platform == */
     destroy(rt::platform());
