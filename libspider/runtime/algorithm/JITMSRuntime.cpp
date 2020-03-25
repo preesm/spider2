@@ -144,20 +144,17 @@ bool spider::JITMSRuntime::staticExecute() {
         TRACE_TRANSFO_END();
     }
 
+    /* == Export srdag if needed  == */
+    if (api::exportSRDAGEnabled()) {
+        api::exportGraphToDOT(srdag_.get(), "./srdag.dot");
+    }
+
     /* == Update schedule, run and wait == */
     scheduleRunAndWait(false);
 
     /* == Runners should reset their parameters == */
     rt::platform()->sendResetToRunners();
 
-    /* == Export srdag if needed  == */
-    if (api::exportSRDAGEnabled()) {
-        api::exportGraphToDOT(srdag_.get(), "./srdag.dot");
-    }
-    /* == Export pre-exec gantt if needed  == */
-    if (api::exportGanttEnabled()) {
-        exportPreExecGantt(&scheduler_->schedule());
-    }
     /* == Export post-exec gantt if needed  == */
     if (api::exportTraceEnabled()) {
         exportPostExecGantt(srdag_.get(), &scheduler_->schedule(), startIterStamp_);
@@ -262,11 +259,6 @@ bool spider::JITMSRuntime::dynamicExecute() {
         api::exportGraphToDOT(srdag_.get(), "./srdag.dot");
     }
 
-    /* == Export pre-exec gantt if needed  == */
-    if (api::exportGanttEnabled()) {
-        exportPreExecGantt(&scheduler_->schedule());
-    }
-
     /* == Runners should clear their parameters == */
     rt::platform()->sendClearToRunners();
 
@@ -298,6 +290,12 @@ void spider::JITMSRuntime::scheduleRunAndWait(bool shouldBroadcast) {
     /* == Send LRT_END_ITERATION notification == */
     rt::platform()->sendEndIteration();
     TRACE_SCHEDULE_END();
+
+    /* == Export pre-exec gantt if needed  == */
+    if (api::exportGanttEnabled()) {
+        exportPreExecGantt(&scheduler_->schedule());
+    }
+
     /* == If there are jobs left, run == */
     rt::platform()->runner(archi::platform()->getGRTIx())->run(false);
     rt::platform()->waitForRunnersToFinish();
