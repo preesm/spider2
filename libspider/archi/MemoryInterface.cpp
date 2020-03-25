@@ -59,7 +59,7 @@ void *spider::MemoryInterface::read(uint64_t virtualAddress, u32 count) {
     if (count > 1) {
         buffer->count_ += (count - 1);
     }
-    return retrieveBuffer(virtualAddress)->buffer_;
+    return buffer->buffer_;
 }
 
 void *spider::MemoryInterface::allocate(uint64_t virtualAddress, size_t size) {
