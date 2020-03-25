@@ -86,14 +86,22 @@ enum class RPNOperatorType : uint8_t {
     SINH,       /*!< Sinus hyperbolic function */
     TANH,       /*!< Tangent hyperbolic function */
     EXP,        /*!< Exponential function */
-    LOG,        /*!< Logarithm (base 10) function */
+    LOG,        /*!< Logarithm function */
     LOG2,       /*!< Logarithm (base 2) function */
+    LOG10,      /*!< Logarithm (base 10) function */
     CEIL,       /*!< Ceil function */
     FLOOR,      /*!< Floor function */
     ABS,        /*!< Absolute function */
     SQRT,       /*!< Square root function */
     MAX,        /*!< Max function */
     MIN,        /*!< Min function */
+    IF,         /*!< If expression function (predicate, pathA, pathB) */
+    LOG_AND,    /*!< Logical AND function */
+    LOG_OR,     /*!< Logical OR function */
+    GREATER,    /*!< Greater than function (a,b) return 1 if a > b */
+    GEQ,        /*!< Greater than or equal function (a,b) return 1 if a >= b */
+    LESS,       /*!< Less than function (a,b) return 1 if a < b */
+    LEQ,        /*!< Less than or equal function (a,b) return 1 if a <= b */
     DUMMY,      /*!< Dummy function */
     First = ADD,   /*!< Sentry for EnumIterator::begin */
     Last = DUMMY,  /*!< Sentry for EnumIterator::end */

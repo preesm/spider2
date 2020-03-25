@@ -474,12 +474,20 @@ const RPNOperator &spider::rpn::getOperator(uint32_t ix) {
                                   { "exp", RPNOperatorType::EXP, 5, 1, false },        /*! EXP function */
                                   { "log", RPNOperatorType::LOG, 5, 1, false },        /*! LOG function */
                                   { "log2", RPNOperatorType::LOG2, 5, 1, false },      /*! LOG2 function */
+                                  { "log10", RPNOperatorType::LOG2, 5, 1, false },     /*! LOG10 function */
                                   { "ceil", RPNOperatorType::CEIL, 5, 1, false },      /*! CEIL function */
                                   { "floor", RPNOperatorType::FLOOR, 5, 1, false },    /*! FLOOR function */
                                   { "abs", RPNOperatorType::ABS, 5, 1, false },        /*! ABS operator */
                                   { "sqrt", RPNOperatorType::SQRT, 5, 1, false },      /*! SQRT function */
                                   { "max", RPNOperatorType::MAX, 5, 2, false },        /*! MAX operator */
                                   { "min", RPNOperatorType::MIN, 5, 2, false },        /*! MIN operator */
+                                  { "if", RPNOperatorType::IF, 5, 3, false },          /*! IF operator */
+                                  { "and", RPNOperatorType::LOG_AND, 5, 2, false },    /*! AND operator */
+                                  { "or", RPNOperatorType::LOG_OR, 5, 2, false },      /*! OR operator */
+                                  { "grt", RPNOperatorType::GREATER, 5, 2, false },    /*! GREATER operator */
+                                  { "geq", RPNOperatorType::GEQ, 5, 2, false },        /*! GEQ operator */
+                                  { "less", RPNOperatorType::LESS, 5, 2, false },      /*! LESS operator */
+                                  { "leq", RPNOperatorType::LEQ, 5, 2, false },        /*! LEQ operator */
                                   { "dummy", RPNOperatorType::DUMMY, 5, 1, false },    /*! Dummy operator */
                           }};
     return operatorArray.at(ix);

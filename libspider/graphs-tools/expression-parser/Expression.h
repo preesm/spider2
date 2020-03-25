@@ -130,6 +130,8 @@ namespace spider {
             return !((*this) == other);
         }
 
+        Expression &operator+=(const Expression &rhs);
+
         /* === Methods === */
 
         /**

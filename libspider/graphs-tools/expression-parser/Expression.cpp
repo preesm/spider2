@@ -95,6 +95,8 @@ static double applyOperator(StartIterator start, RPNOperatorType type) {
             return std::log((*start));
         case RPNOperatorType::LOG2:
             return std::log2((*start));
+        case RPNOperatorType::LOG10:
+            return std::log10((*start));
         case RPNOperatorType::CEIL:
             return std::ceil((*start));
         case RPNOperatorType::FLOOR:
@@ -107,6 +109,23 @@ static double applyOperator(StartIterator start, RPNOperatorType type) {
             return std::max((*start), (*(start + 1)));
         case RPNOperatorType::MIN:
             return std::min((*start), (*(start + 1)));
+        case RPNOperatorType::LOG_AND:
+            return static_cast<double>(static_cast<long>(*start) && static_cast<long>(*(start + 1)));
+        case RPNOperatorType::LOG_OR:
+            return static_cast<double>(static_cast<long>(*start) || static_cast<long>(*(start + 1)));
+        case RPNOperatorType::IF:
+            if ((*start) >= 1.) {
+                return (*(start + 1));
+            }
+            return (*(start + 2));
+        case RPNOperatorType::GREATER:
+            return (*start) > (*(start + 1));
+        case RPNOperatorType::GEQ:
+            return (*start) >= (*(start + 1));
+        case RPNOperatorType::LESS:
+            return (*start) < (*(start + 1));
+        case RPNOperatorType::LEQ:
+            return (*start) <= (*(start + 1));
         case RPNOperatorType::LEFT_PAR:
         case RPNOperatorType::RIGHT_PAR:
         case RPNOperatorType::DUMMY:
@@ -149,6 +168,23 @@ spider::Expression::Expression(int64_t value) {
 
 spider::Expression::~Expression() {
     destroy(expressionStack_);
+}
+
+spider::Expression &spider::Expression::operator+=(const spider::Expression &rhs) {
+    if (!rhs.dynamic()) {
+        value_ = value_ + rhs.value_;
+    } else if (!dynamic()) {
+        expressionStack_ = make<spider::vector<ExpressionElt>, StackID::EXPRESSION>(*(rhs.expressionStack_));
+        expressionStack_->emplace_back(
+                RPNElement{ RPNElementType::OPERAND, RPNElementSubType::VALUE, std::to_string(value_) });
+        expressionStack_->emplace_back(RPNElement{ RPNElementType::OPERATOR, RPNElementSubType::OPERATOR, "+" });
+    } else {
+        for (auto &elt : *(rhs.expressionStack_)) {
+            expressionStack_->emplace_back(elt);
+        }
+        expressionStack_->emplace_back(RPNElement{ RPNElementType::OPERATOR, RPNElementSubType::OPERATOR, "+" });
+    }
+    return *this;
 }
 
 std::string spider::Expression::string() const {
