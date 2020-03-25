@@ -69,6 +69,39 @@ static spider::Platform *safeGetPlatform() {
     return platform;
 }
 
+static void findAndReplacePREESMBroadcast(spider::pisdf::Graph *graph) {
+    auto broadcastVector = spider::factory::vector<spider::pisdf::Vertex *>(StackID::TRANSFO);
+    for (const auto &vertex : graph->vertices()) {
+        if (vertex->subtype() == spider::pisdf::VertexType::DUPLICATE) {
+            const auto &inputExpression = vertex->inputEdge(0)->sinkRateExpression();
+            for (const auto &edge : vertex->outputEdgeVector()) {
+                if (edge->sourceRateExpression() != inputExpression) {
+                    broadcastVector.emplace_back(vertex.get());
+                    break;
+                }
+            }
+        }
+    }
+    for (auto *vertex : broadcastVector) {
+        auto *repeat = spider::api::createRepeat(graph, "repeat::" + vertex->name());
+        auto *fork = spider::api::createFork(graph, "fork::" + vertex->name(), vertex->outputEdgeCount());
+        auto *inputEdge = vertex->inputEdge(0);
+        inputEdge->setSink(repeat, 0, inputEdge->sinkRateExpression());
+        spider::Expression expression{ };
+        for (const auto &edge : vertex->outputEdgeVector()) {
+            expression += edge->sourceRateExpression();
+            edge->setSource(fork, edge->sourcePortIx(), edge->sourceRateExpression());
+        }
+        auto *edge = spider::make<spider::pisdf::Edge, StackID::PISDF>(repeat, 0, expression, fork, 0,
+                                                                       std::move(expression));
+        graph->addEdge(edge);
+        graph->removeVertex(vertex);
+    }
+    for (const auto &subgraph : graph->subgraphs()) {
+        findAndReplacePREESMBroadcast(subgraph);
+    }
+}
+
 /* === Methods implementation === */
 
 spider::pisdf::Graph *spider::api::createGraph(std::string name,
@@ -114,6 +147,11 @@ spider::pisdf::Graph *spider::api::createSubgraph(pisdf::Graph *graph,
 spider::pisdf::Vertex *spider::api::convertGraphToVertex(pisdf::Graph *graph) {
     return graph;
 }
+
+void spider::api::convertPreesmBroadcast(pisdf::Graph *graph) {
+    findAndReplacePREESMBroadcast(graph);
+}
+
 
 spider::pisdf::Vertex *spider::api::createVertexFromType(pisdf::Graph *graph,
                                                          std::string name,

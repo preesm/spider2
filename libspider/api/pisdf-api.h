@@ -88,6 +88,13 @@ namespace spider {
         pisdf::Vertex *convertGraphToVertex(pisdf::Graph *graph);
 
         /**
+         * @brief This functions converts every broadcast as they are expressed in the Preesm tool in convertible
+         *        pattern for Spider to understand.
+         * @param graph Pointer to the graph.
+         */
+        void convertPreesmBroadcast(pisdf::Graph *graph);
+
+        /**
          * @brief Creates a @refitem pisdf::Graph with a parent graph.
          * @param graph           Pointer to the parent graph.
          * @param name            Name of the graph.
