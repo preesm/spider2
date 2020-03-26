@@ -67,6 +67,13 @@ namespace spider {
         bool reduceRepeatFork(pisdf::Graph *graph);
 
         /**
+         * @brief Optimize Duplicate -> Duplicate patterns in a @refitem pisdf::Graph.
+         * @param graph Pointer to the graph to be optimized.
+         * @return true if optimization was applied, false else.
+         */
+        bool reduceDupDup(pisdf::Graph *graph);
+
+        /**
          * @brief Optimize Fork -> Fork patterns in a @refitem pisdf::Graph.
          * @see: https://tel.archives-ouvertes.fr/tel-01301642
          * @param graph Pointer to the graph to be optimized.

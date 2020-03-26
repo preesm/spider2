@@ -64,7 +64,7 @@ struct EdgeLinker {
 /* === Static function(s) === */
 
 /**
- * @brief Creates one new @refitem pisdf::ForkVertex out of two.
+ * @brief Creates one new @refitem pisdf::VertexType::FORK out of two.
  *        detail: pattern is as follow:
  *         -> firstFork | -> secondaryFork | ->
  *                      | .. fv_j          | .. v_i
@@ -91,6 +91,37 @@ static spider::pisdf::Vertex *createNewFork(spider::pisdf::Vertex *secondFork, s
     auto *edge = firstFork->inputEdge(0);
     edge->setSink(newFork, 0, edge->sinkRateExpression());
     return newFork;
+}
+
+/**
+ * @brief Creates one new @refitem pisdf::VertexType::DUPLICATE out of two.
+ *        detail: pattern is as follow:
+ *         -> firstFork | -> secondaryFork | ->
+ *                      | .. fv_j          | .. v_i
+ *                      | -> fv_m          | -> v_n
+ *
+ *    to   -> newFork | ->
+ *                    | .. v_i
+ *                    | -> v_n
+ *                    | .. fv_j
+ *                    | -> fv_m
+ * @param firstDuplicate   Pointer to the first vertex.
+ * @param secondDuplicate  Pointer to the secondary vertex.
+ * @return pointer to the created Vertex.
+ */
+static spider::pisdf::Vertex *
+createNewDuplicate(spider::pisdf::Vertex *secondDuplicate, spider::pisdf::Vertex *firstDuplicate) {
+    auto *graph = firstDuplicate->graph();
+    const auto &outputCount = static_cast<uint32_t>((firstDuplicate->outputEdgeCount() - 1) +
+                                                    secondDuplicate->outputEdgeCount());
+    auto *newDupl = spider::api::createDuplicate(graph,
+                                                 "merged-" + firstDuplicate->name() + "-" + secondDuplicate->name(),
+                                                 outputCount);
+
+    /* == Connect the input of the first Fork to the new Fork == */
+    auto *edge = firstDuplicate->inputEdge(0);
+    edge->setSink(newDupl, 0, edge->sinkRateExpression());
+    return newDupl;
 }
 
 /**
@@ -153,6 +184,7 @@ void spider::optims::optimize(spider::pisdf::Graph *graph) {
     bool done = false;
     while (!done) {
         done = true;
+        done &= reduceDupDup(graph);
         done &= reduceForkFork(graph);
         done &= reduceJoinJoin(graph);
         done &= reduceJoinFork(graph);
@@ -199,6 +231,33 @@ bool spider::optims::reduceRepeatFork(spider::pisdf::Graph *graph) {
         graph->removeVertex(fork);
     }
     return verticesToOptimize.empty();
+}
+
+bool spider::optims::reduceDupDup(pisdf::Graph *graph) {
+    if (!graph) {
+        return false;
+    }
+    /* == Declare the lambdas == */
+    auto getNextVertex = [](pisdf::Vertex *vertex) -> pisdf::Vertex * {
+        return vertex->inputEdge(0)->source();
+    };
+    auto removeEdge = [](pisdf::Vertex *vertex, pisdf::Vertex *vertexB) -> size_t {
+        const auto offset = vertex->inputEdge(0)->sourcePortIx();
+        vertex->graph()->removeEdge(vertexB->outputEdge(offset));
+        return offset;
+    };
+    auto reconnectEdge = [](pisdf::Vertex *vertex, size_t srcIx, pisdf::Vertex *target, size_t snkIx) {
+        auto *edge = vertex->outputEdge(srcIx);
+        edge->setSource(target, snkIx, edge->sourceRateExpression());
+    };
+
+    /* == Do the optimization == */
+    return reduceFFJJWorker(pisdf::VertexType::DUPLICATE,
+                            graph,
+                            createNewDuplicate,
+                            std::move(getNextVertex),
+                            std::move(removeEdge),
+                            std::move(reconnectEdge));
 }
 
 bool spider::optims::reduceForkFork(pisdf::Graph *graph) {
