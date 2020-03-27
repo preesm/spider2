@@ -184,11 +184,11 @@ void spider::optims::optimize(spider::pisdf::Graph *graph) {
     bool done = false;
     while (!done) {
         done = true;
-        done &= reduceDupDup(graph);
+        done &= reduceRepeatFork(graph);
         done &= reduceForkFork(graph);
         done &= reduceJoinJoin(graph);
         done &= reduceJoinFork(graph);
-        done &= reduceRepeatFork(graph);
+        done &= reduceDupDup(graph);
     }
     reduceJoinEnd(graph);
     reduceInitEnd(graph);
