@@ -91,6 +91,7 @@ void spider::SchedXMLGanttExporter::printFromTasks(const vector<GanttTask> &task
         printer::fprintf(file, "\t<event\n");
         printer::fprintf(file, "\t\t" R"(start=")" "%" PRIu64"" R"(")" "\n", task.start_);
         printer::fprintf(file, "\t\t" R"(end=")" "%" PRIu64"" R"(")" "\n", task.end_);
+        printer::fprintf(file, "\t\t" R"(duration=")" "%" PRIu64"" R"(")" "\n", task.end_ - task.start_);
         printer::fprintf(file, "\t\t" R"(title="%s")" "\n", task.name_.c_str());
         printer::fprintf(file, "\t\t" R"(mapping="%s")" "\n", archi::platform()->peFromVirtualIx(task.pe_)->name().c_str());
         printer::fprintf(file, "\t\t" R"(color="%s")" "\n", task.color_);

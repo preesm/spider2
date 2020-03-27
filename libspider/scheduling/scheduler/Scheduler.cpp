@@ -262,7 +262,8 @@ void spider::Scheduler::taskMapper(ScheduleTask *task) {
             continue;
         }
         /* == Find best fit PE for this cluster == */
-        auto *foundPE = findBestPEFit(cluster, minStartTime, [&vertexRtConstraints](PE *pe) -> ufast64 {
+        auto *foundPE = findBestPEFit(cluster, minStartTime,
+                                      [&vertexRtConstraints](PE *pe) -> ufast64 {
                                           return !vertexRtConstraints->timingOnPE(pe);
                                       },
                                       [&vertexRtConstraints](PE *pe) -> bool {
