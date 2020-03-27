@@ -68,9 +68,10 @@ namespace spider {
         struct ConnectedComponent {
             vector<pisdf::Vertex *>::iterator startIt_;
             vector<pisdf::Vertex *>::iterator endIt_;
+            vector<pisdf::Vertex *> inputs_;
+            vector<pisdf::Vertex *> outputs_;
+            vector<pisdf::Vertex *> configs_;
             size_t edgeCount_ = 0;
-            bool hasInterfaces_ = false;
-            bool hasConfig_ = false;
         };
 
         struct BRVHandler {

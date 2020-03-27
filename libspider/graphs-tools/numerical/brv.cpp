@@ -113,7 +113,9 @@ namespace spider {
             while (visitedIndex != handler.vertexVector_.size()) {
                 const auto *currentVertex = handler.vertexVector_[visitedIndex++];
                 component.edgeCount_ += currentVertex->outputEdgeCount();
-                component.hasConfig_ |= (currentVertex->subtype() == pisdf::VertexType::CONFIG);
+                if (currentVertex->subtype() == pisdf::VertexType::CONFIG) {
+                    component.configs_.emplace_back(vertex);
+                }
                 for (const auto *edge : currentVertex->outputEdgeVector()) {
                     if (!edge) {
                         throwSpiderException("Vertex [%s] has null output edge.", currentVertex->name().c_str());
@@ -121,9 +123,10 @@ namespace spider {
                         handler.visitedEdges_[edge->ix()] = true;
                         auto *sink = edge->sink();
                         const auto isOutputIf = (sink->subtype() == pisdf::VertexType::OUTPUT);
-                        component.hasInterfaces_ |= isOutputIf;
                         updateRational(edge, rates, handler.rationalVector_);
-                        if (!isOutputIf && !handler.visitedVertices_[sink->ix()]) {
+                        if (isOutputIf) {
+                            component.outputs_.emplace_back(sink);
+                        } else if (!handler.visitedVertices_[sink->ix()]) {
                             /* == Register the vertex == */
                             handler.vertexVector_.emplace_back(sink);
                             handler.visitedVertices_[sink->ix()] = true;
@@ -138,9 +141,10 @@ namespace spider {
                         auto *source = edge->source();
                         const auto isInputIf = (source->subtype() == pisdf::VertexType::INPUT);
                         component.edgeCount_ += isInputIf;
-                        component.hasInterfaces_ |= isInputIf;
                         updateRational(edge, rates, handler.rationalVector_);
-                        if (!isInputIf && !handler.visitedVertices_[source->ix()]) {
+                        if (isInputIf) {
+                            component.inputs_.emplace_back(source);
+                        } else if (!handler.visitedVertices_[source->ix()]) {
                             /* == Register the vertex == */
                             handler.vertexVector_.emplace_back(source);
                             handler.visitedVertices_[source->ix()] = true;
@@ -178,7 +182,6 @@ namespace spider {
          * @param rates      Const reference to the vector of pre-computed rates.
          */
         static void updateComponentBRV(const ConnectedComponent &component, const vector<std::pair<i64, i64>> &rates) {
-            const auto graph = (*component.startIt_)->graph();
             u32 scaleRVFactor{ 1 };
             const auto updateInput = [&scaleRVFactor, &rates](const pisdf::Edge *edge) {
                 const auto sourceRate = rates[edge->ix()].first;
@@ -189,26 +192,22 @@ namespace spider {
                     scaleRVFactor *= static_cast<u32>(math::ceilDiv(sourceRate, totalCons));
                 }
             };
-            if (component.hasConfig_) {
-                for (const auto &cfg : graph->configVertices()) {
-                    for (const auto &edge : cfg->outputEdgeVector()) {
-                        updateInput(edge);
-                    }
+            for (const auto &cfg : component.configs_) {
+                for (const auto &edge : cfg->outputEdgeVector()) {
+                    updateInput(edge);
                 }
             }
-            if (component.hasInterfaces_) {
-                for (const auto &input : graph->inputInterfaceVector()) {
-                    updateInput(input->outputEdge());
-                }
-                for (const auto &output : graph->outputInterfaceVector()) {
-                    const auto edge = output->inputEdge();
-                    const auto sourceRate = rates[edge->ix()].first;
-                    const auto sinkRate = rates[edge->ix()].second;
-                    const auto totalProd = sourceRate * edge->source()->repetitionValue() * scaleRVFactor;
-                    if (totalProd && totalProd < sinkRate) {
-                        /* == Return ceil(interfaceCons / vertexProd) == */
-                        scaleRVFactor *= static_cast<u32>(math::ceilDiv(sinkRate, totalProd));
-                    }
+            for (const auto &input : component.inputs_) {
+                updateInput(input->outputEdge(0));
+            }
+            for (const auto &output : component.outputs_) {
+                const auto edge = output->inputEdge(0);
+                const auto sourceRate = rates[edge->ix()].first;
+                const auto sinkRate = rates[edge->ix()].second;
+                const auto totalProd = sourceRate * edge->source()->repetitionValue() * scaleRVFactor;
+                if (totalProd && totalProd < sinkRate) {
+                    /* == Return ceil(interfaceCons / vertexProd) == */
+                    scaleRVFactor *= static_cast<u32>(math::ceilDiv(sinkRate, totalProd));
                 }
             }
             /* == Apply the scale factor (if needed) == */
@@ -266,9 +265,7 @@ void spider::brv::compute(const pisdf::Graph *graph, const vector<std::shared_pt
             /* == 3. Compute Repetition vector for current connected component == */
             computeRepetitionValues(component, handler);
             /* == 4. Update repetition vector based on PiSDF rules == */
-            if (component.hasConfig_ || component.hasInterfaces_) {
-                updateComponentBRV(component, preComputedEdgeRates);
-            }
+            updateComponentBRV(component, preComputedEdgeRates);
             /* == 5. Check graph consistency == */
             checkConsistency(component, preComputedEdgeRates);
         }
