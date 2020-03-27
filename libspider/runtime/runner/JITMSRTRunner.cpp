@@ -140,13 +140,13 @@
         }\
         log::print<log::LRT>(log::blue, "INFO:", "Runner #%zu -> Input Fifo(s):\n", ix());\
         for (auto &fifo : job.inputFifoArray_) {\
-            log::print<log::LRT>(log::blue, "INFO:", "Runner #%zu -> >> size: %zu -- address: %zu\n", ix(), fifo.size_,\
-            fifo.virtualAddress_);\
+            log::print<log::LRT>(log::blue, "INFO:", "Runner #%zu -> >> size: %zu -- address: %zu -- offset: %zu\n", ix(), fifo.size_,\
+            fifo.virtualAddress_, fifo.offset_);\
         }\
         log::print<log::LRT>(log::blue, "INFO:", "Runner #%zu -> Output Fifo(s):\n", ix());\
         for (auto &fifo : job.outputFifoArray_) {\
-            log::print<log::LRT>(log::blue, "INFO:", "Runner #%zu -> >> size: %zu -- address: %zu\n", ix(), fifo.size_,\
-            fifo.virtualAddress_);\
+            log::print<log::LRT>(log::blue, "INFO:", "Runner #%zu -> >> size: %zu -- address: %zu -- offset: %zu\n", ix(), fifo.size_,\
+            fifo.virtualAddress_, fifo.offset_);\
         }\
     }
 

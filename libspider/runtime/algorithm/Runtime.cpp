@@ -90,6 +90,7 @@ void spider::Runtime::exportPostExecGantt(pisdf::Graph *graph,
     u64 applicationMinTime = UINT64_MAX;
     u64 applicationMaxTime = 0;
     u64 spiderTime = 0;
+    u64 applicationRealTime = 0;
     auto ganttTasks = factory::vector<GanttTask>();
     /* == Get execution traces and update schedule info == */
     Notification notification;
@@ -108,6 +109,7 @@ void spider::Runtime::exportPostExecGantt(pisdf::Graph *graph,
                     task.color_ = VERTEX_TASK_COLOR;
                     applicationMinTime = std::min(applicationMinTime, task.start_);
                     applicationMaxTime = std::max(applicationMaxTime, task.end_);
+                    applicationRealTime += (task.end_ - task.start_);
                 }
             }
                 break;
@@ -138,13 +140,17 @@ void spider::Runtime::exportPostExecGantt(pisdf::Graph *graph,
     }
 
     /* == Print exec time == */
-    const auto applicationTime = applicationMaxTime - applicationMinTime;
+    const auto applicationUserTime = applicationMaxTime - applicationMinTime;
     log::info("Iteration execution information:\n");
-    log::info("    >> Application exec time:    %" PRId64"\n", applicationTime);
-    log::info("    >> Spider runtime exec time: %" PRId64"\n", spiderTime);
-    log::info("    >> Spider runtime overhead:  %f%%\n",
-              100. - 100. * ((static_cast<double>(applicationTime) - static_cast<double>(spiderTime)) /
-                             static_cast<double>(applicationTime)));
+    log::info("    >> Application exec time (user): %" PRId64"\n", applicationUserTime);
+    log::info("    >> Application exec time (real): %" PRId64"\n", applicationRealTime);
+    log::info("    >> Spider runtime exec time:     %" PRId64"\n", spiderTime);
+    log::info("    >> Spider runtime overhead (user):  %f%%\n",
+              100. - 100. * ((static_cast<double>(applicationUserTime) - static_cast<double>(spiderTime)) /
+                             static_cast<double>(applicationUserTime)));
+    log::info("    >> Spider runtime overhead (real):  %f%%\n",
+              100. - 100. * ((static_cast<double>(applicationRealTime) - static_cast<double>(spiderTime)) /
+                             static_cast<double>(applicationRealTime)));
 
     /* == Export the schedule == */
     if (api::useSVGOverXMLGantt()) {
