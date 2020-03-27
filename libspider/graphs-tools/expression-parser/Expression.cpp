@@ -148,7 +148,7 @@ spider::Expression::Expression(std::string expression, const spider::vector<std:
     }
 
     /* == Reorder the postfix stack elements to increase the number of static evaluation done on construction == */
-    rpn::reorderPostfixStack(postfixStack);
+//    rpn::reorderPostfixStack(postfixStack);
 
     /* == Build the expression stack == */
     bool staticExpression = true;
