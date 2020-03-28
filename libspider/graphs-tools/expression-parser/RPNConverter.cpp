@@ -236,8 +236,8 @@ static void addElementFromToken(spider::vector<RPNElement> &tokenStack, const st
 }
 
 static bool trySwap(spider::vector<RPNElement> &stack,
-                    const spider::vector<uint32_t> &left,
-                    const spider::vector<uint32_t> &right) {
+                    const spider::vector<size_t> &left,
+                    const spider::vector<size_t> &right) {
     if (stack[left.back()].token_ != stack[right.back()].token_) {
         return false;
     }
@@ -245,7 +245,7 @@ static bool trySwap(spider::vector<RPNElement> &stack,
     if (std::string("+-/*^").find(token) == std::string::npos) {
         return false;
     }
-    bool swaped = false;
+    bool swapped = false;
 
     /* == Operators "-/^" can not swap the most left elements == */
     auto it = left.begin() + (std::string("-/^").find(token) != std::string::npos);
@@ -254,13 +254,13 @@ static bool trySwap(spider::vector<RPNElement> &stack,
             for (const auto &ixr: right) {
                 if (stack[ixr].subtype_ == RPNElementSubType::VALUE) {
                     std::swap(stack[*it], stack[ixr]);
-                    swaped = true;
+                    swapped = true;
                     break;
                 }
             }
         }
     }
-    return swaped;
+    return swapped;
 }
 
 /* === Function(s) implementation === */
@@ -423,20 +423,19 @@ spider::vector<RPNElement> spider::rpn::extractPostfixElements(std::string infix
 }
 
 void spider::rpn::reorderPostfixStack(spider::vector<RPNElement> &postfixStack) {
-    auto operationStackVector = factory::vector<spider::vector<uint32_t>>(StackID::EXPRESSION);
-    operationStackVector.emplace_back(factory::vector<uint32_t>(StackID::EXPRESSION));
+    auto operationStackVector = factory::vector<spider::vector<size_t>>(StackID::EXPRESSION);
+    operationStackVector.emplace_back(factory::vector<size_t>(StackID::EXPRESSION));
     operationStackVector[0].reserve(6);
 
     /* == Fill up the operation stack once == */
-    uint32_t i = 0;
+    size_t i = 0;
     for (const auto &elt : postfixStack) {
         operationStackVector.back().emplace_back(i++);
         if (elt.type_ == RPNElementType::OPERATOR) {
-            if (operationStackVector.back().size() == 1) {
-                break;
+            if (i != postfixStack.size()) {
+                operationStackVector.emplace_back(factory::vector<size_t>(StackID::EXPRESSION));
+                operationStackVector.back().reserve(6);
             }
-            operationStackVector.emplace_back(factory::vector<uint32_t>(StackID::EXPRESSION));
-            operationStackVector.back().reserve(6);
         }
     }
 
@@ -444,11 +443,25 @@ void spider::rpn::reorderPostfixStack(spider::vector<RPNElement> &postfixStack) 
     bool swapped;
     do {
         swapped = false;
-
         /* == Try to swap element in operations == */
-        auto it = operationStackVector.begin();
-        for (; it != (operationStackVector.end() - 1); ++it) {
-            swapped |= trySwap(postfixStack, (*it), (*(it + 1)));
+        auto it = std::begin(operationStackVector);
+        for (; it != std::next(std::end(operationStackVector), -1); ++it) {
+            // Check if stacks are swappable
+            if ((it + 2) == std::end(operationStackVector)) {
+                swapped |= trySwap(postfixStack, (*it), (*(it + 1)));
+            } else {
+                const auto &leftElt = postfixStack[it->back()];
+                const auto &rightElt = postfixStack[(it + 1)->back()];
+                const auto &nextElt = postfixStack[(it + 2)->back()];
+                const auto isSameElt = (leftElt.token_ == rightElt.token_);
+                const auto &rightOperator = rpn::getOperatorFromOperatorType(q
+                        rpn::getOperatorTypeFromString(rightElt.token_));
+                if (isSameElt && (((it + 1)->size() - 1) < rightOperator.argCount)) {
+                    swapped |= trySwap(postfixStack, (*it), (*(it + 1)));
+                } else if (isSameElt && (nextElt.token_ == rightElt.token_) && ((it + 2)->size() == 1)) {
+                    swapped |= trySwap(postfixStack, (*it), (*(it + 1)));
+                }
+            }
         }
     } while (swapped);
 }

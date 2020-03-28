@@ -139,6 +139,12 @@ TEST_F(rpnconverterTest, rpnconverterReorderTest) {
         ASSERT_EQ(spider::rpn::postfixString(stack), "2 6 + w + 20 *");
     }
     {
+        auto stack = spider::rpn::extractPostfixElements("((2+w)*(w+2))*(h+2)");
+        ASSERT_EQ(spider::rpn::postfixString(stack), "2 w + w 2 + * h 2 + *");
+        ASSERT_NO_THROW(spider::rpn::reorderPostfixStack(stack)) << "RPNConverter: stack reordering should not throw.";
+        ASSERT_EQ(spider::rpn::postfixString(stack), "2 w + w 2 + * h 2 + *");
+    }
+    {
         auto stack = spider::rpn::extractPostfixElements("(w*2)*(4*h)");
         ASSERT_EQ(spider::rpn::postfixString(stack), "w 2 * 4 h * *");
         ASSERT_NO_THROW(spider::rpn::reorderPostfixStack(stack)) << "RPNConverter: stack reordering should not throw.";
