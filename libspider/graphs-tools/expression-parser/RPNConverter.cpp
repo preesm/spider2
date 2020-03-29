@@ -454,7 +454,7 @@ void spider::rpn::reorderPostfixStack(spider::vector<RPNElement> &postfixStack) 
                 const auto &rightElt = postfixStack[(it + 1)->back()];
                 const auto &nextElt = postfixStack[(it + 2)->back()];
                 const auto isSameElt = (leftElt.token_ == rightElt.token_);
-                const auto &rightOperator = rpn::getOperatorFromOperatorType(q
+                const auto &rightOperator = rpn::getOperatorFromOperatorType(
                         rpn::getOperatorTypeFromString(rightElt.token_));
                 if (isSameElt && (((it + 1)->size() - 1) < rightOperator.argCount)) {
                     swapped |= trySwap(postfixStack, (*it), (*(it + 1)));
