@@ -166,13 +166,14 @@ void spider::DefaultFifoAllocator::allocateForkTask(ScheduleTask *task) {
     const auto *inputEdge = vertex->inputEdge(0);
     const auto *previousTask = task->dependencies()[0];
     const auto &inputFifo = previousTask->outputFifos()[inputEdge->sourcePortIx()];
+    const auto offset = inputFifo.offset_;
     auto address = inputFifo.virtualAddress_;
     for (const auto &edge : vertex->outputEdgeVector()) {
         RTFifo fifo{ };
         fifo.size_ = static_cast<u32>(edge->sourceRateValue());
         fifo.count_ = 1;
         fifo.virtualAddress_ = inputFifo.virtualAddress_;
-        fifo.offset_ = static_cast<u32>(address - inputFifo.virtualAddress_);
+        fifo.offset_ = offset + static_cast<u32>(address - inputFifo.virtualAddress_);
         fifo.attribute_ = FifoAttribute::WRITE_ONLY;
         address += fifo.size_;
         task->addOutputFifo(fifo);
@@ -185,12 +186,13 @@ void spider::DefaultFifoAllocator::allocateDuplicateTask(ScheduleTask *task) {
     const auto *previousTask = task->dependencies()[0];
     const auto &inputFifo = previousTask->outputFifos()[inputEdge->sourcePortIx()];
     const auto size = inputEdge->sinkRateValue();
+    const auto offset = inputFifo.offset_;
     for (size_t i = 0; i < vertex->outputEdgeCount(); ++i) {
         RTFifo fifo{ };
         fifo.size_ = static_cast<u32>(size);
         fifo.count_ = 1;
         fifo.virtualAddress_ = inputFifo.virtualAddress_;
-        fifo.offset_ = 0;
+        fifo.offset_ = offset;
         fifo.attribute_ = FifoAttribute::WRITE_ONLY;
         task->addOutputFifo(fifo);
     }
