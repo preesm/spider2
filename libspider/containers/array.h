@@ -65,6 +65,9 @@ namespace spider {
         using const_pointer = const value_type *;
         using iterator = value_type *;
         using const_iterator = const value_type *;
+        using reverse_iterator = std::reverse_iterator<iterator>;
+        using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+        using difference_type = ptrdiff_t;
 
         /* === Constructors, assignment and destructor === */
 

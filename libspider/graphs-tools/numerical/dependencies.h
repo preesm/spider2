@@ -42,9 +42,7 @@
 
 /* === Includes === */
 
-#include <cstdint>
-#include <algorithm>
-#include <common/Math.h>
+#include <common/Types.h>
 
 /* === Methods prototype === */
 
@@ -71,12 +69,7 @@ namespace spider {
          * @param delay        Value of the delay.
          * @return value of the lower firing dependency on the producer.
          */
-        inline int_fast64_t computeConsLowerDep(int_fast64_t consumption,
-                                                int_fast64_t production,
-                                                int_fast32_t firing,
-                                                int_fast64_t delay) {
-            return std::max(static_cast<int_fast64_t>(-1), math::floorDiv(firing * consumption - delay, production));
-        }
+        ifast64 computeConsLowerDep(ifast64 consumption, ifast64 production, ifast32 firing, ifast64 delay);
 
         /**
          * @brief Compute the upper consumption dependencies of a vertex in a flat graph:
@@ -96,33 +89,7 @@ namespace spider {
          * @param delay        Value of the delay.
          * @return value of the upper firing dependency on the producer.
          */
-        inline int_fast64_t computeConsUpperDep(int_fast64_t consumption,
-                                                int_fast64_t production,
-                                                int_fast32_t firing,
-                                                int_fast64_t delay) {
-            return std::max(static_cast<int_fast64_t>(-1), math::floorDiv((firing + 1) * consumption - delay - 1,
-                                                                          production));
-        }
-
-        inline int_fast64_t computeProdLowerDep(int_fast64_t sinkRate,
-                                                int_fast64_t sourceRate,
-                                                int_fast32_t instance,
-                                                int_fast64_t delay,
-                                                int_fast64_t sinkRepetitionValue) {
-            int_fast64_t produced = instance * sourceRate + delay;
-            int_fast64_t lowerDep = math::floorDiv(produced, sinkRate);
-            return std::min(sinkRepetitionValue, lowerDep);
-        }
-
-        inline int_fast64_t computeProdUpperDep(int_fast64_t sinkRate,
-                                                int_fast64_t sourceRate,
-                                                int_fast32_t instance,
-                                                int_fast64_t delay,
-                                                int_fast64_t sinkRepetitionValue) {
-            int_fast64_t produced = (instance + 1) * sourceRate + delay - 1;
-            int_fast64_t upperDep = math::floorDiv(produced, sinkRate);
-            return std::min(sinkRepetitionValue, upperDep);
-        }
+        ifast64 computeConsUpperDep(ifast64 consumption, ifast64 production, ifast32 firing, ifast64 delay);
 
         /**
          * @brief Compute the lower production dependency of a vertex in a flat graph:
@@ -141,15 +108,7 @@ namespace spider {
          * @param delay        Value of the delay.
          * @return value of the lower firing dependency on the consumer.
          */
-        inline int_fast64_t computeProdLowerDep(int_fast64_t consumption,
-                                                int_fast64_t production,
-                                                int_fast32_t firing,
-                                                int_fast64_t delay) {
-            int_fast64_t produced = firing * production + delay;
-            int_fast64_t lowerDep = produced / consumption;
-            return lowerDep;
-        }
-
+        ifast64 computeProdLowerDep(ifast64 consumption, ifast64 production, ifast32 firing, ifast64 delay);
 
         /**
          * @brief Compute the upper production dependency of a vertex in a flat graph:
@@ -166,14 +125,19 @@ namespace spider {
          * @param delay        Value of the delay.
          * @return value of the upper firing dependency on the consumer.
          */
-        inline int_fast64_t computeProdUpperDep(int_fast64_t consumption,
-                                                int_fast64_t production,
-                                                int_fast32_t firing,
-                                                int_fast64_t delay) {
-            int_fast64_t produced = (firing + 1) * production + delay - 1;
-            int_fast64_t upperDep = produced / consumption;
-            return upperDep;
-        }
+        ifast64 computeProdUpperDep(ifast64 consumption, ifast64 production, ifast32 firing, ifast64 delay);
+
+        ifast64 computeProdLowerDep(ifast64 consumption,
+                                    ifast64 production,
+                                    ifast32 firing,
+                                    ifast64 delay,
+                                    ifast64 sinkRepetitionValue);
+
+        ifast64 computeProdUpperDep(ifast64 consumption,
+                                    ifast64 production,
+                                    ifast32 firing,
+                                    ifast64 delay,
+                                    ifast64 sinkRepetitionValue);
     }
 }
 

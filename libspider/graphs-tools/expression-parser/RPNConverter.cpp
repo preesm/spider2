@@ -445,7 +445,7 @@ void spider::rpn::reorderPostfixStack(spider::vector<RPNElement> &postfixStack) 
         swapped = false;
         /* == Try to swap element in operations == */
         auto it = std::begin(operationStackVector);
-        for (; it != std::next(std::end(operationStackVector), -1); ++it) {
+        for (; it != std::prev(std::end(operationStackVector)); ++it) {
             // Check if stacks are swappable
             if ((it + 2) == std::end(operationStackVector)) {
                 swapped |= trySwap(postfixStack, (*it), (*(it + 1)));

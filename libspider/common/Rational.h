@@ -40,7 +40,6 @@
 /* === Includes === */
 
 #include <cstdint>
-#include <iostream>
 #include <common/Math.h>
 #include <common/Exception.h>
 
@@ -229,11 +228,6 @@ namespace spider {
 
         inline int64_t nominator() const {
             return n_;
-        }
-
-        friend inline std::ostream &operator<<(std::ostream &stream, const Rational &r) {
-            stream << "[" << r.nominator() << " / " << r.denominator() << "]";
-            return stream;
         }
 
     private:

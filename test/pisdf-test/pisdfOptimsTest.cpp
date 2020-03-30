@@ -266,6 +266,12 @@ TEST_F(pisdfOptimsTest, forkForkTest2) {
     ASSERT_EQ(graph->vertexCount(), 11);
     ASSERT_NO_THROW(spider::optims::reduceForkFork(graph));
     ASSERT_EQ(graph->vertexCount(), 8);
+    ASSERT_EQ(graph->vertex(7)->outputEdge(0)->sink(), v3);
+    ASSERT_EQ(graph->vertex(7)->outputEdge(1)->sink(), v4);
+    ASSERT_EQ(graph->vertex(7)->outputEdge(2)->sink(), v2);
+    ASSERT_EQ(graph->vertex(7)->outputEdge(3)->sink(), v5);
+    ASSERT_EQ(graph->vertex(7)->outputEdge(4)->sink(), v6);
+    ASSERT_EQ(graph->vertex(7)->outputEdge(5)->sink(), v1);
     spider::destroy(graph);
 }
 
@@ -336,9 +342,11 @@ TEST_F(pisdfOptimsTest, joinForkTest3) {
     spider::api::createEdge(fork_0, 0, 2, v2, 0, 2);
     spider::api::createEdge(fork_0, 1, 6, v3, 0, 6);
     spider::api::createEdge(fork_0, 2, 2, v5, 0, 5);
+    spider::api::exportGraphToDOT(graph, "./before.dot");
     ASSERT_EQ(graph->vertexCount(), 8);
     ASSERT_NO_THROW(spider::optims::reduceJoinFork(graph));
     ASSERT_EQ(graph->vertexCount(), 8);
+    spider::api::exportGraphToDOT(graph, "./after.dot");
     spider::destroy(graph);
 }
 
@@ -435,6 +443,12 @@ TEST_F(pisdfOptimsTest, joinJoinTest2) {
     ASSERT_EQ(graph->vertexCount(), 11);
     ASSERT_NO_THROW(spider::optims::reduceJoinJoin(graph));
     ASSERT_EQ(graph->vertexCount(), 8);
+    ASSERT_EQ(graph->vertex(7)->inputEdge(0)->source(), v5);
+    ASSERT_EQ(graph->vertex(7)->inputEdge(1)->source(), v2);
+    ASSERT_EQ(graph->vertex(7)->inputEdge(2)->source(), v);
+    ASSERT_EQ(graph->vertex(7)->inputEdge(3)->source(), v1);
+    ASSERT_EQ(graph->vertex(7)->inputEdge(4)->source(), v3);
+    ASSERT_EQ(graph->vertex(7)->inputEdge(5)->source(), v4);
     spider::destroy(graph);
 }
 

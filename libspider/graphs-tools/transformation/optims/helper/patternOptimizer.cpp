@@ -53,7 +53,7 @@ bool spider::optims::reduceFFJJWorker(pisdf::VertexType type,
                                       NextVertexGetter getNextVertex,
                                       EdgeRemover removeEdge,
                                       EdgeConnecter reconnect) {
-    auto verticesToOptimize = factory::vector<std::pair<pisdf::Vertex *, pisdf::Vertex *>>(StackID::TRANSFO);
+    auto verticesToOptimize = factory::vector<pisdf::Vertex *>(StackID::TRANSFO);
 
     /* == Search for the pair of fork to optimize == */
     for (auto &vertex : graph->vertices()) {
@@ -61,16 +61,15 @@ bool spider::optims::reduceFFJJWorker(pisdf::VertexType type,
         if (vertex->subtype() == type && vertex->scheduleTaskIx() == SIZE_MAX) {
             auto *vertexB = getNextVertex(vertexA);
             if (vertexB->subtype() == type && vertexB->scheduleTaskIx() == SIZE_MAX) {
-                verticesToOptimize.emplace_back(vertex.get(), vertexB);
+                verticesToOptimize.emplace_back(vertexA);
             }
         }
     }
 
     /* == Do the optimization == */
-    for (auto it = verticesToOptimize.begin(); it != verticesToOptimize.end(); ++it) {
-        auto &pair = (*it);
-        auto *vertexA = pair.first;  /* = Second fork or first join = */
-        auto *vertexB = pair.second; /* = First fork or second join = */
+    for (auto it = std::begin(verticesToOptimize); it != std::end(verticesToOptimize); ++it) {
+        auto *vertexA = (*it);                  /* = Second fork or first join = */
+        auto *vertexB = getNextVertex(vertexA); /* = First fork or second join = */
 
         /* == Remove edge == */
         /* == If type is JOIN, then it gets the output edge of the first join
@@ -103,12 +102,9 @@ bool spider::optims::reduceFFJJWorker(pisdf::VertexType type,
 
         /* == Search for the pair to modify (if any) == */
         for (auto it2 = std::next(it); it2 != std::end(verticesToOptimize); ++it2) {
-            auto &secPair = (*it2);
-            if (secPair.first == vertexA || secPair.first == vertexB) {
-                secPair.first = newVertex;
-            }
-            if (secPair.second == vertexA || secPair.second == vertexB) {
-                secPair.second = newVertex;
+            auto *secVertexA = (*it2);
+            if (secVertexA == vertexA || secVertexA == vertexB) {
+                (*it2) = newVertex;
             }
         }
         /* == Remove the vertices == */

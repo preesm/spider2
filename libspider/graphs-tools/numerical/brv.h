@@ -42,7 +42,6 @@
 
 /* === Include(s) === */
 
-#include <containers/array.h>
 #include <containers/vector.h>
 #include <common/Rational.h>
 

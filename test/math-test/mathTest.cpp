@@ -144,7 +144,6 @@ TEST_F(mathTest, rationalTest) {
                                 << "Rational::operator-() failed";
     ASSERT_EQ(spider::Rational(1, 20) + spider::Rational(2), spider::Rational(41, 20))
                                 << "Rational::operator+() failed";
-    std::cout << spider::Rational(1, 20) << std::endl;
     ASSERT_THROW(spider::Rational(1, 0), spider::Exception)
                                 << "Rational::Rational() should throw for null denominator.";
     ASSERT_THROW(spider::Rational(5, 4) / 0, spider::Exception)

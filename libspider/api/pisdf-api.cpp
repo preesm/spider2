@@ -92,7 +92,7 @@ static void findAndReplacePREESMBroadcast(spider::pisdf::Graph *graph) {
             expression += edge->sourceRateExpression();
             edge->setSource(fork, edge->sourcePortIx(), edge->sourceRateExpression());
         }
-        auto *edge = spider::make<spider::pisdf::Edge, StackID::PISDF>(repeat, 0, expression, fork, 0,
+        auto *edge = spider::make<spider::pisdf::Edge, StackID::PISDF>(repeat, 0u, expression, fork, 0u,
                                                                        std::move(expression));
         graph->addEdge(edge);
         graph->removeVertex(vertex);
