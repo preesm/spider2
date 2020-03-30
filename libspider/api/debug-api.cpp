@@ -113,3 +113,7 @@ void spider::api::disableLogger(log::Type type) {
             break;
     }
 }
+
+void spider::api::setLoggerSteam(FILE *stream) {
+    log::setOutputStream(stream);
+}

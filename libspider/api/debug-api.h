@@ -83,6 +83,12 @@ namespace spider {
          * @param type @refitem LoggerType to disable.
          */
         void disableLogger(log::Type type);
+
+        /**
+         * @brief Set the logger output stream (default is stderr).
+         * @param stream Pointer to the stream to use.
+         */
+        void setLoggerSteam(FILE *stream);
     }
 }
 
