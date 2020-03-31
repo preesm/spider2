@@ -152,7 +152,7 @@ bool spider::this_thread::set_affinity(int32_t affinity_id) {
     CPU_ZERO(&cpu_set);
     CPU_SET(affinity_id, &cpu_set);
     auto ret = pthread_setaffinity_np(spider::this_thread::native_handle(), sizeof(cpu_set_t), &cpu_set);
-    return ret != 0;
+    return ret == 0;
 }
 
 std::thread::native_handle_type spider::this_thread::native_handle() {

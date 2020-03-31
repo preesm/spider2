@@ -73,7 +73,9 @@ spider::ThreadRTPlatform::~ThreadRTPlatform() {
 
     /* == Wait for all the thread to finish == */
     for (auto &thread : threadArray_) {
-        thread->join();
+        if (thread) {
+            thread->join();
+        }
     }
 
     /* == Destroy the threads == */
@@ -88,7 +90,11 @@ void spider::ThreadRTPlatform::createRunnerRessource(spider::RTRunner *runner) {
                                runner->ix());
         return;
     }
-    threadArray_.at(runner->ix()) = make<spider::thread, StackID::RUNTIME>(RTRunner::start, runner);
+    if (runner->attachedProcessingElement() != archi::platform()->spiderGRTPE()) {
+        threadArray_.at(runner->ix()) = make<spider::thread, StackID::RUNTIME>(RTRunner::start, runner);
+    } else {
+        RTRunner::start(runner);
+    }
 }
 
 void spider::ThreadRTPlatform::waitForRunnerToBeReady() {
