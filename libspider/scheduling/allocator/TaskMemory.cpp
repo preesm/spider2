@@ -40,23 +40,53 @@
 
 /* === Include(s) === */
 
-#include <graphs-tools/helper/pisdf.h>
-#include <graphs/pisdf/Graph.h>
+#include <scheduling/allocator/TaskMemory.h>
+#include <containers/vector.h>
 
-/* === Function(s) definition === */
+/* === Static function === */
 
-bool spider::pisdf::isGraphFullyStatic(const Graph *graph) {
-    if (!graph) {
-        return false;
+/* === Method(s) implementation === */
+
+spider::TaskMemory::TaskMemory(size_t inputFifoCount, size_t outputFifoCount) :
+        inputFifos_{ spider::allocate<RTFifo, StackID::SCHEDULE>(inputFifoCount) },
+        outputFifos_{ spider::allocate<RTFifo, StackID::SCHEDULE>(outputFifoCount) },
+        inputFifoCount_{ inputFifoCount },
+        outputFifoCount_{ outputFifoCount } {
+
+}
+
+spider::array_handle<spider::RTFifo> spider::TaskMemory::inputFifos() const {
+    return array_handle<RTFifo>{ inputFifos_.get(), inputFifoCount_ };
+}
+
+spider::array_handle<spider::RTFifo> spider::TaskMemory::outputFifos() const {
+    return make_handle(outputFifos_.get(), outputFifoCount_);
+}
+
+size_t spider::TaskMemory::inputFifoCount() const {
+    return inputFifoCount_;
+}
+
+size_t spider::TaskMemory::outputFifoCount() const {
+    return outputFifoCount_;
+}
+
+spider::RTFifo spider::TaskMemory::inputFifo(size_t ix) const {
+    return inputFifos_.get()[ix];
+}
+
+spider::RTFifo spider::TaskMemory::outputFifo(size_t ix) const {
+    return outputFifos_.get()[ix];
+}
+
+void spider::TaskMemory::setInputFifo(size_t ix, spider::RTFifo fifo) {
+    if (inputFifos_ && (ix < inputFifoCount_)) {
+        inputFifos_.get()[ix] = fifo;
     }
-    bool isFullyStatic = !graph->dynamic();
-    if (isFullyStatic) {
-        for (const auto &subgraph : graph->subgraphs()) {
-            isFullyStatic &= isGraphFullyStatic(subgraph);
-            if (!isFullyStatic) {
-                break;
-            }
-        }
+}
+
+void spider::TaskMemory::setOutputFifo(size_t ix, spider::RTFifo fifo) {
+    if (outputFifos_ && (ix < outputFifoCount_)) {
+        outputFifos_.get()[ix] = fifo;
     }
-    return isFullyStatic;
 }

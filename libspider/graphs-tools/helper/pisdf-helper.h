@@ -37,10 +37,12 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_PISDF_H
-#define SPIDER2_PISDF_H
+#ifndef SPIDER2_PISDF_HELPER_H
+#define SPIDER2_PISDF_HELPER_H
 
 /* === Include(s) === */
+
+#include <containers/array.h>
 
 /* === Function(s) prototype === */
 
@@ -51,6 +53,8 @@ namespace spider {
 
         class Graph;
 
+        class Vertex;
+
         /* === Function(s) prototype === */
 
         /**
@@ -59,6 +63,13 @@ namespace spider {
          * @return true if the graph is fully static, false else.
          */
         bool isGraphFullyStatic(const Graph *graph);
+
+        /**
+         * @brief Creates an array with parameters needed for the runtime exec of a vertex.
+         * @param vertex Pointer to the vertex.
+         * @return array of int_least_64_t.
+         */
+        array<i64> buildVertexRuntimeInputParameters(const pisdf::Vertex *vertex);
     }
 }
-#endif //SPIDER2_PISDF_H
+#endif //SPIDER2_PISDF_HELPER_H

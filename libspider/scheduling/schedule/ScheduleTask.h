@@ -71,6 +71,8 @@ namespace spider {
         i32 packetIx_{ 0 };
     };
 
+    class TaskMemory;
+
     /* === Class definition === */
 
     class ScheduleTask {
@@ -100,12 +102,6 @@ namespace spider {
          * @return  color of the task.
          */
         u32 color() const;
-
-        /**
-         * @brief Add an output @refitem RTFifo to the ScheduleTask.
-         * @param fifo  Fifo to add.
-         */
-        void addOutputFifo(RTFifo fifo);
 
         /**
          * @brief Creates a job message out of the information of the task.
@@ -225,12 +221,28 @@ namespace spider {
         size_t kernelIx() const;
 
         /**
-         * @brief Get the output fifos of the task if any.
-         * @return const reference to the vector of RTFifo
+         * @brief Gets the @refitem TaskMemory associated with this task.
+         * @return pointer to the memory (input / output fifos) of the Task.
          */
-        const vector<RTFifo> &outputFifos() const {
-            return outputFifos_;
+        inline TaskMemory *taskMemory() const {
+            return taskMemory_.get();
         }
+
+        /**
+         * @brief Get the input fifo at index ix of the task.
+         * @param ix Index of the fifo.
+         * @return empty fifo if no @refitem TaskMemory is attached to this task, corresponding input fifo else.
+         * @throws std::out_of_range
+         */
+        RTFifo getInputFifo(size_t ix) const;
+
+        /**
+         * @brief Get the output fifo at index ix of the task.
+         * @param ix Index of the fifo.
+         * @return empty fifo if no @refitem TaskMemory is attached to this task, corresponding output fifo else.
+         * @throws std::out_of_range
+         */
+        RTFifo getOutputFifo(size_t ix) const;
 
         /* === Setter(s) === */
 
@@ -337,11 +349,17 @@ namespace spider {
          */
         void setInternal(void *information);
 
+        /**
+         * @brief Set the internal task memory of the ScheduleTask and replace current one.
+         * @param taskMemory  Unique pointer to the task memory.
+         */
+        void setTaskMemory(spider::unique_ptr<TaskMemory> taskMemory);
+
     protected:
-        mutable vector<RTFifo> outputFifos_;
-        array<ScheduleTask *> dependenciesArray_;
-        unique_ptr<i32> executionConstraints_;
-        unique_ptr<bool> notificationFlags_;
+        spider::array<ScheduleTask *> dependenciesArray_;
+        spider::unique_ptr<TaskMemory> taskMemory_;
+        spider::unique_ptr<i32> executionConstraints_;
+        spider::unique_ptr<bool> notificationFlags_;
         void *internal_{ nullptr };
         u64 startTime_{ UINT64_MAX };
         u64 endTime_{ UINT64_MAX };
@@ -359,31 +377,6 @@ namespace spider {
          * @param message Reference to the jobMessage to update.
          */
         void setJobMessageInputParameters(JobMessage &message) const;
-
-        array<i64> buildForkInputParameters(const pisdf::Vertex *vertex) const;
-
-        array<i64> buildJoinInputParameters(const pisdf::Vertex *vertex) const;
-
-        array<i64> buildTailInputParameters(const pisdf::Vertex *vertex) const;
-
-        array<i64> buildHeadInputParameters(const pisdf::Vertex *vertex) const;
-
-        array<i64> buildInitEndInputParameters(const pisdf::Vertex *vertex, bool isInit) const;
-
-        array<i64> buildExternOutInputParameters(const pisdf::Vertex *vertex) const;
-
-        /**
-         * @brief Set JobMessage input fifos (if any)
-         * @param message Reference to the jobMessage to update.
-         */
-        void setJobMessageInputFifos(JobMessage &message) const;
-
-        /**
-         * @brief Set JobMessage output fifos (if any)
-         * @param message Reference to the jobMessage to update.
-         */
-        void setJobMessageOutputFifos(JobMessage &message) const;
-
     };
 }
 #endif //SPIDER2_SCHEDULETASK_H

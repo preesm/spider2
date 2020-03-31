@@ -202,10 +202,10 @@ void spider::rt::end(const int64_t *paramsIn, int64_t *, void **in, void **) {
 void spider::rt::externIn(const int64_t *, int64_t *, void **, void **) { }
 
 void spider::rt::externOut(const int64_t *paramsIn, int64_t *, void **in, void **) {
-    if (paramsIn[0]) {
-        const auto index = paramsIn[1];
-        const auto size = paramsIn[2];
-        auto *buffer = archi::platform()->getExternalBuffer(static_cast<size_t>(index));
+    const auto bufferIndex = paramsIn[0];
+    const auto size = paramsIn[1];
+    auto *buffer = archi::platform()->getExternalBuffer(static_cast<size_t>(bufferIndex));
+    if (in[0] != buffer) {
         memcpy(buffer, in[0], static_cast<size_t>(size));
     }
 }

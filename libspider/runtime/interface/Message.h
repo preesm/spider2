@@ -77,15 +77,15 @@ namespace spider {
 
         /* === Struct member(s) === */
 
-        unique_ptr<bool> notificationFlagsArray_; /*!< Array of LRT to notify after job completion (size IS equal to the number of LRT) */
         array<JobConstraint> execConstraints_;    /*!< Array of jobs this job has to wait before running (size is inferior or equal to the number of LRT) */
-        array<int64_t> inputParams_;              /*!< Array of static input parameters */
+        array<i64> inputParams_;                  /*!< Array of static input parameters */
         array<RTFifo> inputFifoArray_;            /*!< Array of input FIFO for the job */
         array<RTFifo> outputFifoArray_;           /*!< Array of output FIFO for the job */
-        i32 outputParamCount_ = 0;                /*!< Number of output parameters to be set by this job. */
+        unique_ptr<bool> notificationFlagsArray_; /*!< Array of LRT to notify after job completion (size IS equal to the number of LRT) */
         size_t kernelIx_ = SIZE_MAX;              /*!< Index of the kernel to use to run this job */
         size_t vertexIx_ = SIZE_MAX;              /*!< Index of the vertex associated with the job */
         size_t ix_ = SIZE_MAX;                    /*!< Index of the job */
+        i32 outputParamCount_ = 0;                /*!< Number of output parameters to be set by this job. */
     };
 
     /**
@@ -99,8 +99,8 @@ namespace spider {
 
         ParameterMessage(ParameterMessage &&) noexcept = default;
 
-        ParameterMessage(size_t kernelIx, spider::array<int64_t> params) : vertexIx_{ kernelIx },
-                                                                           params_{ std::move(params) } { };
+        ParameterMessage(size_t kernelIx, spider::array<int64_t> params) : params_{ std::move(params) },
+                                                                           vertexIx_{ kernelIx } { };
 
         ParameterMessage &operator=(const ParameterMessage &) = default;
 
@@ -110,8 +110,8 @@ namespace spider {
 
         /* === Struct member(s) === */
 
-        size_t vertexIx_ = SIZE_MAX;     /*!< Ix of the kernel setting the parameter(s) */
-        spider::array<int64_t> params_;  /*!< Array of parameter(s) value */
+        array<i64> params_;          /*!< Array of parameter(s) value */
+        size_t vertexIx_ = SIZE_MAX; /*!< Ix of the kernel setting the parameter(s) */
     };
 
     /**
@@ -133,9 +133,9 @@ namespace spider {
 
         /* === Struct member(s) === */
 
-        size_t taskIx_ = SIZE_MAX;                  /*!< Ix of the task */
         time::time_point startTime_ = time::max();  /*!< Start time of the job */
         time::time_point endTime_ = time::min();    /*!< End time of the job */
+        size_t taskIx_ = SIZE_MAX;                  /*!< Ix of the task */
     };
 
 }

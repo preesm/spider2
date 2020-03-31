@@ -54,7 +54,7 @@
 #include <scheduling/schedule/exporter/SchedXMLGanttExporter.h>
 #include <scheduling/schedule/exporter/SchedStatsExporter.h>
 #include <scheduling/schedule/exporter/SchedSVGGanttExporter.h>
-#include <graphs-tools/helper/pisdf.h>
+#include <graphs-tools/helper/pisdf-helper.h>
 
 /* === Static function(s) === */
 

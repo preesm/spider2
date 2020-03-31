@@ -218,7 +218,7 @@ spider::vector<spider::Scheduler::DataDependency>
 spider::Scheduler::getDataDependencies(ScheduleTask *task) {
     const auto *vertex = task->vertex();
     const auto *platform = archi::platform();
-    auto taskDependenciesIterator{ task->dependencies().begin() };
+    auto taskDependenciesIterator{ std::begin(task->dependencies()) };
     auto dataDependencies = factory::vector<DataDependency>(StackID::SCHEDULE);
     dataDependencies.reserve(vertex->inputEdgeCount());
     i32 pos = 0;
