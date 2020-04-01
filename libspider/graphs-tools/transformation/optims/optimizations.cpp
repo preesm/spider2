@@ -45,6 +45,7 @@
 #include <graphs-tools/transformation/optims/helper/patternOptimizer.h>
 #include <graphs/pisdf/Edge.h>
 #include <graphs/pisdf/Graph.h>
+#include <graphs/pisdf/DelayVertex.h>
 #include <api/pisdf-api.h>
 
 /* === Private structure(s) === */
@@ -174,12 +175,12 @@ void spider::optims::optimize(spider::pisdf::Graph *graph) {
     bool done = false;
     while (!done) {
         done = true;
-        done &= reduceRepeatFork(graph);
         done &= reduceForkFork(graph);
         done &= reduceJoinJoin(graph);
         done &= reduceJoinFork(graph);
-        done &= reduceDupDup(graph);
     }
+    reduceRepeatFork(graph);
+    reduceDupDup(graph);
     reduceJoinEnd(graph);
     reduceInitEnd(graph);
 }
@@ -405,10 +406,17 @@ bool spider::optims::reduceJoinEnd(pisdf::Graph *graph) {
     for (auto *join : verticesToOptimize) {
         auto *edge = join->outputEdge(0);
         auto *end = edge->sink();
+        auto *ref = const_cast<pisdf::Vertex *>(end->reference());
+        auto *delay = ref->inputEdge(0)->source()->convertTo<pisdf::DelayVertex>()->delay();
+        if (delay->isPersistent()) {
+            continue;
+        }
         graph->removeEdge(edge);
-        // TODO: see how to deal with persistent delay memory allocation
         for (auto *inputEdge : join->inputEdgeVector()) {
             auto *newEnd = api::createEnd(graph, "end-" + inputEdge->source()->name());
+            if (ref != end) {
+                ref->setAsReference(newEnd);
+            }
             inputEdge->setSink(newEnd, 0, inputEdge->sinkRateExpression());
         }
 

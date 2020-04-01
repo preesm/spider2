@@ -193,15 +193,18 @@ void spider::ListScheduler::sortVertices() {
     std::sort(std::next(std::begin(sortedTaskVector_), static_cast<long>(lastSchedulableTask_)),
               std::end(sortedTaskVector_),
               [](const ListTask &A, const ListTask &B) -> bool {
-                  auto *vertexA = A.task_->vertex();
-                  auto *vertexB = B.task_->vertex();
                   const auto diff = A.level_ - B.level_;
                   if (!diff) {
+                      const auto *vertexA = A.task_->vertex();
+                      const auto *vertexB = B.task_->vertex();
                       if (vertexB->reference() == vertexA->reference()) {
                           return vertexA->instanceValue() < vertexB->instanceValue();
+                      } else if ((vertexA->subtype() != vertexB->subtype()) &&
+                                 ((vertexA->subtype() == pisdf::VertexType::INIT) ||
+                                  (vertexB->subtype() == pisdf::VertexType::END))) {
+                          return true;
                       }
-                      return (vertexA->subtype() == pisdf::VertexType::INIT) ||
-                             (vertexB->subtype() == pisdf::VertexType::END);
+                      return vertexA->name() > vertexB->name();
                   }
                   return (diff > 0);
               });
