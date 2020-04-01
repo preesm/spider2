@@ -147,8 +147,8 @@ namespace spider {
         /**
          * @brief Get input edge connected to port Ix.
          * @param ix Index of the input port.
-         * @return @refitem Spider::PiSDF::Edge
-         * @throw @refitem Spider::Exception if out of bound
+         * @return @refitem spider::pisdf::Edge
+         * @throw std::out_of_range.
          */
         inline E *inputEdge(size_t ix) const { return inputEdgeVector_.at(ix); };
 
@@ -167,8 +167,8 @@ namespace spider {
         /**
          * @brief Get input edge connected to port Ix.
          * @param ix Index of the output port.
-         * @return @refitem Spider::PiSDF::Edge
-         * @throw @refitem Spider::Exception if out of bound.
+         * @return @refitem spider::pisdf::Edge
+         * @throw std::out_of_range.
          */
         inline E *outputEdge(size_t ix) const { return outputEdgeVector_.at(ix); };
 

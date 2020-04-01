@@ -51,7 +51,7 @@ namespace spider {
 
         /* === Class definition === */
 
-        class Interface : public Vertex {
+        class Interface final : public Vertex {
         public:
 
             explicit Interface(VertexType type,

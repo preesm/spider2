@@ -111,6 +111,9 @@ void spider::DefaultFifoAllocator::allocateVertexTask(ScheduleTask *task) {
         throwNullptrException();
     }
     switch (vertex->subtype()) {
+        case pisdf::VertexType::REPEAT:
+            allocateRepeatTask(task);
+            break;
         case pisdf::VertexType::FORK:
             allocateForkTask(task);
             break;
@@ -176,6 +179,30 @@ void spider::DefaultFifoAllocator::allocateExternInTask(ScheduleTask *task) {
     fifo.attribute_ = FifoAttribute::WRITE_EXT;
     taskMemory->setOutputFifo(0, fifo);
     task->setTaskMemory(std::move(taskMemory));
+}
+
+void spider::DefaultFifoAllocator::allocateRepeatTask(ScheduleTask *task) {
+    const auto *vertex = task->vertex();
+    const auto *inputEdge = vertex->inputEdge(0);
+    const auto *outputEdge = vertex->outputEdge(0);
+    if (inputEdge->sinkRateValue() == outputEdge->sourceRateValue()) {
+        const auto *previousTask = task->dependencies()[0];
+        auto inputFifo = previousTask->getOutputFifo(inputEdge->sourcePortIx());
+        auto outputFifo = inputFifo;
+        auto taskMemory = make_unique<TaskMemory>(make<TaskMemory, StackID::SCHEDULE>(1, 1));
+        if (inputFifo.attribute_ == FifoAttribute::WRITE_EXT) {
+            inputFifo.attribute_ = FifoAttribute::READ_EXT;
+        } else {
+            inputFifo.count_ = 2;
+            inputFifo.attribute_ = FifoAttribute::READ_ONLY;
+            outputFifo.attribute_ = FifoAttribute::WRITE_ONLY;
+        }
+        taskMemory->setInputFifo(0, inputFifo);
+        taskMemory->setOutputFifo(0, outputFifo);
+        task->setTaskMemory(std::move(taskMemory));
+    } else {
+        allocateDefaultVertexTask(task);
+    }
 }
 
 void spider::DefaultFifoAllocator::allocateForkTask(ScheduleTask *task) {

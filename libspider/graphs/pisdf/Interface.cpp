@@ -47,24 +47,15 @@
 /* === Function(s) definition === */
 
 spider::pisdf::Edge *spider::pisdf::Interface::inputEdge() const {
-    if (subtype_ == VertexType::INPUT) {
-        return graph_->inputEdge(ix_);
-    }
-    return Vertex::inputEdge(0);
+    return (subtype_ == VertexType::INPUT) ? graph_->inputEdge(ix_) : Vertex::inputEdge(0);
 }
 
 spider::pisdf::Edge *spider::pisdf::Interface::outputEdge() const {
-    if (subtype_ == VertexType::INPUT) {
-        return Vertex::outputEdge(0);
-    }
-    return graph_->outputEdge(ix_);
+    return (subtype_ == VertexType::OUTPUT) ? graph_->outputEdge(ix_) : Vertex::outputEdge(0);
 }
 
 spider::pisdf::Vertex *spider::pisdf::Interface::opposite() const {
-    if (subtype_ == VertexType::INPUT) {
-        return outputEdge()->sink();
-    }
-    return inputEdge()->source();
+    return (subtype_ == VertexType::INPUT) ? outputEdge()->sink() : inputEdge()->source();
 }
 
 void spider::pisdf::Interface::connectInputEdge(Edge *edge, size_t pos) {
@@ -82,8 +73,5 @@ void spider::pisdf::Interface::connectOutputEdge(Edge *edge, size_t pos) {
 }
 
 spider::pisdf::Edge *spider::pisdf::Interface::edge() const {
-    if (subtype_ == VertexType::INPUT) {
-        return Vertex::outputEdge(0);
-    }
-    return Vertex::inputEdge(0);
+    return (subtype_ == VertexType::OUTPUT) ? Vertex::inputEdge(0) : Vertex::outputEdge(0);
 }

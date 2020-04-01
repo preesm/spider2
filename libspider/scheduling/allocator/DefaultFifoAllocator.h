@@ -91,13 +91,13 @@ namespace spider {
 
         void allocateDefaultVertexTask(ScheduleTask *task);
 
+        void allocateRepeatTask(ScheduleTask *task);
+
         void allocateForkTask(ScheduleTask *task);
 
         void allocateDuplicateTask(ScheduleTask *task);
 
         void allocateExternInTask(ScheduleTask *task);
-
-        RTFifo createFifoFromDelay(const pisdf::Delay *delay);
 
         void allocateReceiveTask(ScheduleTask *task);
 
