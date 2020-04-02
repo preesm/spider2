@@ -82,6 +82,30 @@ namespace spider {
          */
         array<i64> buildVertexRuntimeInputParameters(const pisdf::Vertex *vertex,
                                                      const spider::vector<std::shared_ptr<pisdf::Param>> &params);
+
+        /**
+         * @brief Get the source of the vertex across interfaces.
+         * @example V ->  H -> V2
+         *             | -> |
+         *          V2 direct source is H, but real indirect source is V.
+         * @param vertex  Pointer to the vertex.
+         * @param ix      Index of the input edge.
+         * @return pointer to the indirect real source of the vertex on given edge.
+         * @throws std::out_of_range
+         */
+        pisdf::Vertex *getIndirectSource(const pisdf::Vertex *vertex, size_t ix);
+
+        /**
+         * @brief Get the source of the vertex across interfaces.
+         * @example V ->  H -> V2
+         *             | -> |
+         *          V direct sink is H, but real indirect source is V2.
+         * @param vertex  Pointer to the vertex.
+         * @param ix      Index of the output edge.
+         * @return pointer to the indirect real sink of the vertex on given edge.
+         * @throws std::out_of_range
+         */
+        pisdf::Vertex *getIndirectSink(const pisdf::Vertex *vertex, size_t ix);
     }
 }
 #endif //SPIDER2_PISDF_HELPER_H

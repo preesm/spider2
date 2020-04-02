@@ -407,9 +407,12 @@ bool spider::optims::reduceJoinEnd(pisdf::Graph *graph) {
         auto *edge = join->outputEdge(0);
         auto *end = edge->sink();
         auto *ref = const_cast<pisdf::Vertex *>(end->reference());
-        auto *delay = ref->inputEdge(0)->source()->convertTo<pisdf::DelayVertex>()->delay();
-        if (delay->isPersistent()) {
-            continue;
+        auto *refSource = ref->inputEdge(0)->source();
+        if (refSource->subtype() == pisdf::VertexType::DELAY) {
+            auto *delay = ref->inputEdge(0)->source()->convertTo<pisdf::DelayVertex>()->delay();
+            if (delay->isPersistent()) {
+                continue;
+            }
         }
         graph->removeEdge(edge);
         for (auto *inputEdge : join->inputEdgeVector()) {

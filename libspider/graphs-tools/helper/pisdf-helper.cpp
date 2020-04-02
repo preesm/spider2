@@ -203,10 +203,14 @@ spider::array<i64> buildDuplicateRuntimeInputParameters(const spider::pisdf::Ver
  */
 spider::array<i64> buildInitEndRuntimeInputParameters(const spider::pisdf::Vertex *vertex) {
     auto outParams = spider::array<i64>(3, StackID::RUNTIME);
-    const auto *delay = vertex->convertTo<spider::pisdf::DelayVertex>()->delay();
-    outParams[0] = delay->isPersistent();
-    outParams[1] = delay->value();
-    outParams[2] = static_cast<i64>(delay->memoryAddress());
+    if (vertex->subtype() == spider::pisdf::VertexType::DELAY) {
+        const auto *delay = vertex->convertTo<spider::pisdf::DelayVertex>()->delay();
+        outParams[0] = delay->isPersistent();
+        outParams[1] = delay->value();
+        outParams[2] = static_cast<i64>(delay->memoryAddress());
+    } else {
+        outParams[0] = 0;
+    }
     return outParams;
 }
 
@@ -273,4 +277,38 @@ spider::array<i64> spider::pisdf::buildVertexRuntimeInputParameters(const pisdf:
         default:
             return buildDefaultVertexRuntimeParameters(vertex);
     }
+}
+
+spider::pisdf::Vertex *spider::pisdf::getIndirectSource(const pisdf::Vertex *vertex, size_t ix) {
+    auto *edge = vertex->inputEdge(ix);
+    auto *source = edge->source();
+    while (source->subtype() == VertexType::INPUT ||
+           source->subtype() == VertexType::GRAPH) {
+        if (source->subtype() == VertexType::GRAPH) {
+            const auto *graph = source->convertTo<Graph>();
+            const auto *interface = graph->outputInterface(edge->sourcePortIx());
+            edge = interface->Vertex::inputEdge(0);
+        } else {
+            edge = source->graph()->inputEdge(source->ix());
+        }
+        source = edge->source();
+    }
+    return source;
+}
+
+spider::pisdf::Vertex *spider::pisdf::getIndirectSink(const pisdf::Vertex *vertex, size_t ix) {
+    auto *edge = vertex->outputEdge(ix);
+    auto *sink = edge->sink();
+    while (sink->subtype() == VertexType::GRAPH ||
+           sink->subtype() == VertexType::OUTPUT) {
+        if (sink->subtype() == VertexType::GRAPH) {
+            const auto *graph = sink->convertTo<Graph>();
+            const auto *interface = graph->inputInterface(edge->sinkPortIx());
+            edge = interface->Vertex::outputEdge(0);
+        } else {
+            edge = sink->graph()->outputEdge(sink->ix());
+        }
+        sink = edge->sink();
+    }
+    return sink;
 }
