@@ -75,6 +75,9 @@ void spider::pisdf::Edge::setDelay(Delay *delay) {
         return;
     } else if (delay_) {
         throwSpiderException("Cannot set delay. Edge [%s] already has a delay.", name().c_str());
+    } else if ((snk_ && snk_->subtype() == VertexType::DELAY) ||
+               (src_ && src_->subtype() == VertexType::DELAY)) {
+        throwSpiderException("Cannot set a delay on a edge connected to a delay.");
     }
     delay_ = unique_ptr<Delay>(delay);
 }
