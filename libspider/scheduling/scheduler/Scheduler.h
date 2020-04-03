@@ -71,8 +71,16 @@ namespace spider {
 
         /* === Method(s) === */
 
+        /**
+         * @brief Set the task memory allocator to be used.
+         * @param allocator pointer to the fifo allocator.
+         */
         void setAllocator(FifoAllocator *allocator);
 
+        /**
+         * @brief Set the scheduling and execution mode.
+         * @param mode  Mode to set.
+         */
         void setMode(ScheduleMode mode);
 
         /**
@@ -169,13 +177,13 @@ namespace spider {
          * @brief Default task mapper that try to best fit.
          * @param task Pointer to the task to map.
          */
-        virtual void taskMapper(ScheduleTask *task);
+        virtual void mapTask(ScheduleTask *task);
 
         /**
          * @brief Allocate virtual addresses for a given task.
          * @param task  Pointer to the task.
          */
-        virtual void allocateTaskOutputFifos(ScheduleTask *task);
+        virtual void allocateTaskMemory(ScheduleTask *task);
     };
 
     /**
@@ -184,6 +192,6 @@ namespace spider {
      * @param graph  Pointer to the graph.
      * @return unique_ptr of the created scheduler.
      */
-    unique_ptr<Scheduler> makeScheduler(SchedulingPolicy algorithm, pisdf::Graph *graph);
+    spider::unique_ptr<Scheduler> makeScheduler(SchedulingPolicy algorithm, pisdf::Graph *graph);
 }
 #endif //SPIDER2_SCHEDULER_H

@@ -237,7 +237,7 @@ spider::Scheduler::getDataDependencies(ScheduleTask *task) {
     return dataDependencies;
 }
 
-void spider::Scheduler::taskMapper(ScheduleTask *task) {
+void spider::Scheduler::mapTask(ScheduleTask *task) {
     const auto *vertex = task->vertex();
     if (!vertex) {
         throwSpiderException("can not schedule a task with no vertex.");
@@ -307,7 +307,7 @@ void spider::Scheduler::taskMapper(ScheduleTask *task) {
     schedule_.updateTaskAndSetReady(static_cast<size_t>(task->ix()), mappingPe->virtualIx(), mappingSt, mappingEt);
 }
 
-void spider::Scheduler::allocateTaskOutputFifos(spider::ScheduleTask *task) {
+void spider::Scheduler::allocateTaskMemory(spider::ScheduleTask *task) {
     if (task && allocator_) {
         allocator_->allocate(task);
     }
@@ -325,12 +325,8 @@ spider::unique_ptr<spider::Scheduler> spider::makeScheduler(SchedulingPolicy alg
         case SchedulingPolicy::GREEDY:
             scheduler = make<GreedyScheduler, StackID::SCHEDULE>(graph);
             break;
-        case SchedulingPolicy::SRLESS_LIST_BEST_FIT:
-            scheduler = make<SRLessBestFitScheduler, StackID::SCHEDULE>(graph);
+        default:
             break;
-//        case SchedulingAlgorithm::SRLESS_GREEDY:
-//            scheduler = make<GreedyScheduler, StackID::SCHEDULE>(graph);
-//            break;
     }
     return make_unique<Scheduler>(scheduler);
 }

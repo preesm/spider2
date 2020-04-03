@@ -40,46 +40,24 @@
 
 /* === Include(s) === */
 
-#include <scheduling/scheduler/BestFitScheduler.h>
-#include <scheduling/allocator/FifoAllocator.h>
-#include <runtime/interface/Message.h>
-#include <runtime/platform/RTPlatform.h>
-#include <runtime/runner/RTRunner.h>
-#include <api/runtime-api.h>
+#include <scheduling/scheduler/srdagless/SRLessScheduler.h>
+#include <scheduling/scheduler/srdagless/SRLessBestFitScheduler.h>
 
-/* === Static variable(s) === */
+/* === Function(s) definition === */
 
-/* === Static function(s) === */
 
-/* === Method(s) implementation === */
-
-spider::Schedule &spider::BestFitScheduler::execute() {
-    /* == Schedule and map the vertex onto available resource == */
-    auto startIterator = sortedTaskVector_.begin() + static_cast<long>(lastScheduledTask_);
-    auto endIterator = sortedTaskVector_.begin() + static_cast<long>(lastSchedulableTask_);
-    if (mode_ == JIT_SEND) {
-        std::for_each(startIterator, endIterator, [this](ListScheduler::ListTask &listTask) {
-            /* == Do the mapping scheduling for the task == */
-            Scheduler::mapTask(listTask.task_);
-            /* == We are in JIT mode, we need to broadcast the job stamp == */
-            listTask.task_->enableBroadcast();
-            /* == Allocate output fifos for the task == */
-            Scheduler::allocateTaskMemory(listTask.task_);
-            /* == Create job message and send it == */
-            schedule_.sendReadyTasks();
-        });
-    } else {
-        /* == Do the mapping scheduling for all the tasks == */
-        std::for_each(startIterator, endIterator, [this](ListScheduler::ListTask &listTask) {
-            Scheduler::mapTask(listTask.task_);
-        });
-        /* == Allocate output fifos for all the tasks == */
-        std::for_each(startIterator, endIterator, [this](ListScheduler::ListTask &listTask) {
-            Scheduler::allocateTaskMemory(listTask.task_);
-        });
-        /* == Creates all job messages and send them == */
-        schedule_.sendReadyTasks();
+spider::unique_ptr<spider::SRLessScheduler>
+spider::makeSRLessScheduler(SchedulingPolicy algorithm, pisdf::Graph *graph) {
+    SRLessScheduler *scheduler = nullptr;
+    switch (algorithm) {
+        case SchedulingPolicy::SRLESS_LIST_BEST_FIT:
+            scheduler = make<SRLessBestFitScheduler, StackID::SCHEDULE>(graph);
+            break;
+//        case SchedulingAlgorithm::SRLESS_GREEDY:
+//            scheduler = make<GreedyScheduler, StackID::SCHEDULE>(graph);
+//            break;
+        default:
+            break;
     }
-    lastScheduledTask_ = lastSchedulableTask_;
-    return schedule_;
+    return spider::unique_ptr<spider::SRLessScheduler>(scheduler);
 }

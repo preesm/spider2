@@ -42,7 +42,7 @@
 
 /* === Include(s) === */
 
-#include <scheduling/scheduler/Scheduler.h>
+#include <scheduling/scheduler/srdagless/SRLessScheduler.h>
 #include <containers/vector.h>
 #include <common/Types.h>
 
@@ -50,7 +50,7 @@ namespace spider {
 
     /* === Class definition === */
 
-    class SRLessListScheduler : public Scheduler {
+    class SRLessListScheduler : public SRLessScheduler {
     public:
 
         ~SRLessListScheduler() override = default;
@@ -105,6 +105,8 @@ namespace spider {
          * @return
          */
         ifast32 computeScheduleLevel(ListTask &listTask, vector<ListTask> &listVertexVector) const;
+
+        void setNextVerticesNonSchedulable(pisdf::Vertex *vertex, vector<ListTask> &listVertexVector) const;
 
         void sortVertices();
     };

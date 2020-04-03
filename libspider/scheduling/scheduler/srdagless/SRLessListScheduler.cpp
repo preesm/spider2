@@ -46,6 +46,7 @@
 #include <archi/Cluster.h>
 #include <archi/PE.h>
 #include <graphs/pisdf/ExecVertex.h>
+#include <graphs/pisdf/DelayVertex.h>
 #include <graphs-tools/numerical/brv.h>
 #include <graphs-tools/numerical/dependencies.h>
 
@@ -59,16 +60,18 @@ static constexpr auto NON_SCHEDULABLE_LEVEL = -314159265; /* = Value is arbitrar
 
 /* === Private method(s) implementation === */
 
-spider::SRLessListScheduler::SRLessListScheduler(pisdf::Graph *graph) : Scheduler(graph),
-                                                                        sortedTaskVector_{
-                                                                                factory::vector<ListTask>(
-                                                                                        StackID::SCHEDULE) } {
+spider::SRLessListScheduler::SRLessListScheduler(pisdf::Graph *graph) :
+        SRLessScheduler(graph),
+        sortedTaskVector_{ factory::vector<ListTask>(StackID::SCHEDULE) } {
 
 }
 
 void spider::SRLessListScheduler::update() {
     /* == Reserve and push the vertices into the vertex == */
     for (const auto &vertex : graph_->vertices()) {
+        if (vertex->subtype() == pisdf::VertexType::DELAY) {
+            continue;
+        }
         if (vertex->scheduleTaskIx() == SIZE_MAX) {
             for (u32 i = 0; i < vertex->repetitionValue(); ++i) {
                 auto *task = make<ScheduleTask, StackID::SCHEDULE>(vertex.get());
@@ -92,13 +95,31 @@ void spider::SRLessListScheduler::update() {
         schedule_.addScheduleTask(task);
         task->setNumberOfDependencies(listTask.dependencyCount_);
         size_t pos = 0;
-        for (auto &edge : vertex->inputEdgeVector()) {
+        for (auto edge : vertex->inputEdgeVector()) {
             auto *source = edge->source();
-            if (source->executable()) {
+            if (source->subtype() == pisdf::VertexType::DELAY) {
+                auto *delayVertex = source->convertTo<pisdf::DelayVertex>();
+                auto *delayEdge = delayVertex->delay()->edge();
+                source = delayEdge->source();
+                auto delay = delayEdge->delay()->value();
+                delay = delay - delayEdge->sinkRateValue() * delayEdge->sink()->repetitionValue();
+                const auto sourceRate = delayEdge->sinkRateValue();
+                const auto getterRate = edge->sinkRateValue();
+                const auto depMin = pisdf::computeConsLowerDep(getterRate, sourceRate, listTask.firing_, delay);
+                const auto depMax = pisdf::computeConsUpperDep(getterRate, sourceRate, listTask.firing_, delay);
+                for (auto i = depMin; i <= depMax; ++i) {
+                    task->setDependency(schedule_.task(source->scheduleTaskIx() + static_cast<ufast64>(i)), pos++);
+                }
+            } else if (source->executable()) {
                 const auto sinkRate = edge->sinkRateValue();
                 const auto sourceRate = edge->sourceRateValue();
-                const auto depMin = pisdf::computeConsLowerDep(sinkRate, sourceRate, listTask.firing_, 0);
-                const auto depMax = pisdf::computeConsUpperDep(sinkRate, sourceRate, listTask.firing_, 0);
+                const auto delay = edge->delay() ? edge->delay()->value() : 0;
+                auto depMin = pisdf::computeConsLowerDep(sinkRate, sourceRate, listTask.firing_, delay);
+                const auto depMax = pisdf::computeConsUpperDep(sinkRate, sourceRate, listTask.firing_, delay);
+                if (depMin < 0) {
+                    depMin = 0;
+
+                }
                 for (auto i = depMin; i <= depMax; ++i) {
                     task->setDependency(schedule_.task(source->scheduleTaskIx() + static_cast<ufast64>(i)), pos++);
                 }
@@ -123,20 +144,20 @@ ifast32 spider::SRLessListScheduler::computeScheduleLevel(SRLessListScheduler::L
     if ((listTask.level_ == NON_SCHEDULABLE_LEVEL) || !vertex->executable()) {
         listTask.level_ = NON_SCHEDULABLE_LEVEL;
         // TODO: Get the proper rate of the edge -> get the firing of the containing graph to get the parameters.
-        for (auto &edge : vertex->outputEdgeVector()) {
-            if (edge->sinkRateValue()) {
-                /* == Disable non-null edge == */
-                auto &sinkTask = listVertexVector[edge->sink()->scheduleTaskIx()];
-                sinkTask.level_ = NON_SCHEDULABLE_LEVEL;
-                computeScheduleLevel(sinkTask, listVertexVector);
-            }
-        }
+        setNextVerticesNonSchedulable(vertex, listVertexVector);
     } else if (listTask.level_ < 0) {
         auto *platform = archi::platform();
         ifast32 level = 0;
         for (auto &edge : vertex->outputEdgeVector()) {
             auto *sink = edge->sink();
-            if (sink && sink->executable()) {
+            if (!sink) {
+                continue;
+            }
+            if (sink->subtype() == pisdf::VertexType::DELAY) {
+                auto *delayVertex = sink->convertTo<pisdf::DelayVertex>();
+                sink = delayVertex->delay()->edge()->sink();
+            }
+            if (sink->executable()) {
                 const auto &sinkParams = sink->inputParamVector();
                 auto *sinkRTInfo = sink->runtimeInformation();
                 auto minExecutionTime = INT64_MAX;
@@ -154,8 +175,26 @@ ifast32 spider::SRLessListScheduler::computeScheduleLevel(SRLessListScheduler::L
                 }
                 const auto sinkRate = edge->sinkRateValue();
                 const auto sourceRate = edge->sourceRateValue();
-                const auto depMin = pisdf::computeProdLowerDep(sinkRate, sourceRate, listTask.firing_, 0);
-                const auto depMax = pisdf::computeProdUpperDep(sinkRate, sourceRate, listTask.firing_, 0);
+                const auto delay = edge->delay() ? edge->delay()->value() : 0;
+                const auto depMin = pisdf::computeProdLowerDep(sinkRate, sourceRate, listTask.firing_, delay);
+                auto depMax = pisdf::computeProdUpperDep(sinkRate, sourceRate, listTask.firing_, delay);
+                if (depMax >= sink->repetitionValue()) {
+                    depMax = sink->repetitionValue() - 1;
+                    pisdf::Vertex *end = nullptr;
+                    if (!edge->delay()) {
+                        /* == Case of setter / init to end == */
+                        auto *delayVertex = edge->sink()->convertTo<pisdf::DelayVertex>();
+                        end = delayVertex->delay()->getter();
+                    } else {
+                        /* == Case of produced to end == */
+                        end = edge->delay()->getter();
+                    }
+                    const auto sinkLevel = computeScheduleLevel(listVertexVector[end->scheduleTaskIx()],
+                                                                listVertexVector);
+                    if (sinkLevel != NON_SCHEDULABLE_LEVEL) {
+                        level = std::max(level, sinkLevel + static_cast<ifast32>(minExecutionTime));
+                    }
+                }
                 for (auto i = depMin; i <= depMax; ++i) {
                     auto &nextListTask = listVertexVector[sink->scheduleTaskIx() + static_cast<ufast64>(i)];
                     nextListTask.dependencyCount_ += 1;
@@ -169,6 +208,18 @@ ifast32 spider::SRLessListScheduler::computeScheduleLevel(SRLessListScheduler::L
         listTask.level_ = level;
     }
     return listTask.level_;
+}
+
+void spider::SRLessListScheduler::setNextVerticesNonSchedulable(pisdf::Vertex *vertex,
+                                                                vector<ListTask> &listVertexVector) const {
+    for (auto &edge : vertex->outputEdgeVector()) {
+        if (edge->sinkRateValue()) {
+            /* == Disable non-null edge == */
+            auto &sinkTask = listVertexVector[edge->sink()->scheduleTaskIx()];
+            sinkTask.level_ = NON_SCHEDULABLE_LEVEL;
+            computeScheduleLevel(sinkTask, listVertexVector);
+        }
+    }
 }
 
 void spider::SRLessListScheduler::sortVertices() {

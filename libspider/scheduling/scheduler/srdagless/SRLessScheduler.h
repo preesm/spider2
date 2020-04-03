@@ -37,49 +37,45 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
+#ifndef SPIDER2_SRLESSSCHEDULER_H
+#define SPIDER2_SRLESSSCHEDULER_H
 
 /* === Include(s) === */
 
-#include <scheduling/scheduler/BestFitScheduler.h>
-#include <scheduling/allocator/FifoAllocator.h>
-#include <runtime/interface/Message.h>
-#include <runtime/platform/RTPlatform.h>
-#include <runtime/runner/RTRunner.h>
-#include <api/runtime-api.h>
+#include <scheduling/scheduler/Scheduler.h>
 
-/* === Static variable(s) === */
+namespace spider {
 
-/* === Static function(s) === */
+    /* === Class definition === */
 
-/* === Method(s) implementation === */
+    class SRLessScheduler : public Scheduler {
+    public:
+        explicit SRLessScheduler(pisdf::Graph *graph,
+                                 ScheduleMode mode = DELAYED_SEND,
+                                 FifoAllocator *allocator = nullptr) :
+                Scheduler(graph, mode, allocator) {
 
-spider::Schedule &spider::BestFitScheduler::execute() {
-    /* == Schedule and map the vertex onto available resource == */
-    auto startIterator = sortedTaskVector_.begin() + static_cast<long>(lastScheduledTask_);
-    auto endIterator = sortedTaskVector_.begin() + static_cast<long>(lastSchedulableTask_);
-    if (mode_ == JIT_SEND) {
-        std::for_each(startIterator, endIterator, [this](ListScheduler::ListTask &listTask) {
-            /* == Do the mapping scheduling for the task == */
-            Scheduler::mapTask(listTask.task_);
-            /* == We are in JIT mode, we need to broadcast the job stamp == */
-            listTask.task_->enableBroadcast();
-            /* == Allocate output fifos for the task == */
-            Scheduler::allocateTaskMemory(listTask.task_);
-            /* == Create job message and send it == */
-            schedule_.sendReadyTasks();
-        });
-    } else {
-        /* == Do the mapping scheduling for all the tasks == */
-        std::for_each(startIterator, endIterator, [this](ListScheduler::ListTask &listTask) {
-            Scheduler::mapTask(listTask.task_);
-        });
-        /* == Allocate output fifos for all the tasks == */
-        std::for_each(startIterator, endIterator, [this](ListScheduler::ListTask &listTask) {
-            Scheduler::allocateTaskMemory(listTask.task_);
-        });
-        /* == Creates all job messages and send them == */
-        schedule_.sendReadyTasks();
-    }
-    lastScheduledTask_ = lastSchedulableTask_;
-    return schedule_;
+        }
+
+        ~SRLessScheduler() override = default;
+
+        /* === Method(s) === */
+
+        /* === Getter(s) === */
+
+        /* === Setter(s) === */
+
+    private:
+
+    };
+
+    /**
+     * @brief Make a new scheduler based on the scheduling algorithm.
+     * @param algorithm Algorithm type (see @refitem SchedulingAlgorithm).
+     * @param graph  Pointer to the graph.
+     * @return unique_ptr of the created scheduler.
+     */
+    spider::unique_ptr<SRLessScheduler> makeSRLessScheduler(SchedulingPolicy algorithm, pisdf::Graph *graph);
 }
+
+#endif //SPIDER2_SRLESSSCHEDULER_H
