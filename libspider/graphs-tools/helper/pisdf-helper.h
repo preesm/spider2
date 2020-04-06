@@ -68,6 +68,12 @@ namespace spider {
         bool isGraphFullyStatic(const Graph *graph);
 
         /**
+         * @brief Recursively split dynamic graphs to separate init from run sections of the graph.
+         * @param graph  Pointer to the top graph.
+         */
+        void recursiveSplitDynamicGraph(Graph *graph);
+
+        /**
          * @brief Creates an array with parameters needed for the runtime exec of a vertex.
          * @param vertex Pointer to the vertex.
          * @return array of int_least_64_t.

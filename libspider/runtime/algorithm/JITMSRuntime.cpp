@@ -73,6 +73,9 @@ spider::JITMSRuntime::JITMSRuntime(pisdf::Graph *graph,
         throwSpiderException("JITMSRuntime need the runtime platform to be created.");
     }
     fifoAllocator_->allocatePersistentDelays(graph_);
+    if (!isFullyStatic_) {
+        pisdf::recursiveSplitDynamicGraph(graph);
+    }
 }
 
 bool spider::JITMSRuntime::execute() {

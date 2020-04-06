@@ -44,6 +44,7 @@
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/DelayVertex.h>
 #include <graphs/pisdf/ExternInterface.h>
+#include <graphs-tools/transformation/srdag/Transformation.h>
 
 /* === Static function(s) === */
 
@@ -247,6 +248,15 @@ bool spider::pisdf::isGraphFullyStatic(const Graph *graph) {
         }
     }
     return isFullyStatic;
+}
+
+void spider::pisdf::recursiveSplitDynamicGraph(Graph *graph) {
+    if (graph->dynamic()) {
+        srdag::separateRunGraphFromInit(graph);
+    }
+    for (auto &subgraph : graph->subgraphs()) {
+        recursiveSplitDynamicGraph(subgraph);
+    }
 }
 
 spider::array<i64> spider::pisdf::buildVertexRuntimeInputParameters(const pisdf::Vertex *vertex) {
