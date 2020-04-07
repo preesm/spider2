@@ -49,6 +49,7 @@
 #include <graphs/pisdf/DelayVertex.h>
 #include <graphs-tools/numerical/brv.h>
 #include <graphs-tools/numerical/dependencies.h>
+#include <numeric>
 
 /* === Static variable(s) === */
 
@@ -75,7 +76,7 @@ void spider::SRLessListScheduler::update() {
         if (vertex->scheduleTaskIx() == SIZE_MAX) {
             for (u32 i = 0; i < vertex->repetitionValue(); ++i) {
                 auto *task = make<ScheduleTask, StackID::SCHEDULE>(vertex.get());
-                sortedTaskVector_.push_back({ task, i, 0, -1 });
+                sortedTaskVector_.push_back({ task, i, -1 });
             }
             vertex->setScheduleTaskIx(sortedTaskVector_.size() - vertex->repetitionValue());
         }
@@ -89,44 +90,42 @@ void spider::SRLessListScheduler::update() {
     /* == Sort the vector == */
     sortVertices();
 
-    for (auto &listTask : sortedTaskVector_) {
-        auto *task = listTask.task_;
+    auto iterator = sortedTaskVector_.begin() + static_cast<long>(lastSchedulableTask_);
+    for (; iterator != sortedTaskVector_.end(); ++iterator) {
+        auto *task = iterator->task_;
         auto *vertex = task->vertex();
         schedule_.addScheduleTask(task);
-        task->setNumberOfDependencies(listTask.dependencyCount_);
-        size_t pos = 0;
-        for (auto edge : vertex->inputEdgeVector()) {
-            auto *source = edge->source();
-            if (source->subtype() == pisdf::VertexType::DELAY) {
-                auto *delayVertex = source->convertTo<pisdf::DelayVertex>();
-                auto *delayEdge = delayVertex->delay()->edge();
-                source = delayEdge->source();
-                auto delay = delayEdge->delay()->value();
-                delay = delay - delayEdge->sinkRateValue() * delayEdge->sink()->repetitionValue();
-                const auto sourceRate = delayEdge->sinkRateValue();
-                const auto getterRate = edge->sinkRateValue();
-                const auto depMin = pisdf::computeConsLowerDep(getterRate, sourceRate, listTask.firing_, delay);
-                const auto depMax = pisdf::computeConsUpperDep(getterRate, sourceRate, listTask.firing_, delay);
-                for (auto i = depMin; i <= depMax; ++i) {
-                    task->setDependency(schedule_.task(source->scheduleTaskIx() + static_cast<ufast64>(i)), pos++);
-                }
-            } else if (source->executable()) {
-                const auto sinkRate = edge->sinkRateValue();
-                const auto sourceRate = edge->sourceRateValue();
-                const auto delay = edge->delay() ? edge->delay()->value() : 0;
-                auto depMin = pisdf::computeConsLowerDep(sinkRate, sourceRate, listTask.firing_, delay);
-                const auto depMax = pisdf::computeConsUpperDep(sinkRate, sourceRate, listTask.firing_, delay);
-                if (depMin < 0) {
-                    depMin = 0;
-
-                }
-                for (auto i = depMin; i <= depMax; ++i) {
-                    task->setDependency(schedule_.task(source->scheduleTaskIx() + static_cast<ufast64>(i)), pos++);
+        const auto &dependencies = handler_.getVertexDependencies(vertex)[iterator->firing_];
+        size_t nbDep = 0;
+        for (const auto &dependency : dependencies) {
+            nbDep += ((dependency.firingEnd_ - dependency.firingStart_) + 1);
+        }
+        task->setNumberOfDependencies(nbDep);
+        size_t index = 0;
+        size_t depIndex = 0;
+        for (const auto &edge : vertex->inputEdgeVector()) {
+            auto *source = dependencies[index].vertex_;
+            const auto numberOfDependencies = 1 + (source != edge->source());
+            for (auto i = 0; i < numberOfDependencies; ++i) {
+                if (source->executable()) {
+                    auto &srcDep = dependencies[index++];
+                    for (auto k = srcDep.firingStart_; k <= srcDep.firingEnd_; ++k) {
+                        auto &srcTask = sortedTaskVector_[srcDep.vertex_->scheduleTaskIx() + k];
+                        task->setDependency(schedule_.task(static_cast<size_t>(srcTask.task_->ix())), depIndex++);
+                    }
                 }
             }
         }
+    }
+    iterator = sortedTaskVector_.begin() + static_cast<long>(lastSchedulableTask_);
+    for (; iterator != sortedTaskVector_.end(); ++iterator) {
+        auto *task = iterator->task_;
+        auto *vertex = task->vertex();
         vertex->setScheduleTaskIx(static_cast<size_t>(task->ix()));
     }
+
+    /* == Create the schedule tasks == */
+    lastSchedulableTask_ = sortedTaskVector_.size() - 0;
 
     /* == Update minimum start time == */
     minStartTime_ = schedule_.stats().maxEndTime();
@@ -143,81 +142,60 @@ ifast32 spider::SRLessListScheduler::computeScheduleLevel(SRLessListScheduler::L
     auto *vertex = listTask.task_->vertex();
     if ((listTask.level_ == NON_SCHEDULABLE_LEVEL) || !vertex->executable()) {
         listTask.level_ = NON_SCHEDULABLE_LEVEL;
-        // TODO: Get the proper rate of the edge -> get the firing of the containing graph to get the parameters.
         setNextVerticesNonSchedulable(vertex, listVertexVector);
     } else if (listTask.level_ < 0) {
         auto *platform = archi::platform();
-        ifast32 level = 0;
-        for (auto &edge : vertex->outputEdgeVector()) {
-            auto *sink = edge->sink();
-            if (!sink) {
-                continue;
-            }
-            if (sink->subtype() == pisdf::VertexType::DELAY) {
-                auto *delayVertex = sink->convertTo<pisdf::DelayVertex>();
-                sink = delayVertex->delay()->edge()->sink();
-            }
-            if (sink->executable()) {
-                const auto &sinkParams = sink->inputParamVector();
-                auto *sinkRTInfo = sink->runtimeInformation();
-                auto minExecutionTime = INT64_MAX;
-                for (auto &cluster : platform->clusters()) {
-                    if (sinkRTInfo->isClusterMappable(cluster)) {
-                        for (const auto &pe : cluster->peArray()) {
-                            auto executionTime = sinkRTInfo->timingOnPE(pe, sinkParams);
-                            if (!executionTime) {
-                                throwSpiderException("Vertex [%s] has null execution time on mappable cluster.",
-                                                     vertex->name().c_str());
+        const auto &dependencies = handler_.getVertexDependencies(vertex);
+        for (const auto &edge : vertex->outputEdgeVector()) {
+            computeScheduleLevel(listVertexVector[edge->sink()->scheduleTaskIx()], listVertexVector);
+        }
+        for (u32 k = 0; k < vertex->repetitionValue(); ++k) {
+            size_t index = 0;
+            auto &firingListTask = listVertexVector[vertex->scheduleTaskIx() + k];
+            firingListTask.level_ = std::max(firingListTask.level_, ifast32{ 0 });
+            for (const auto &edge : vertex->inputEdgeVector()) {
+                auto *source = dependencies[firingListTask.firing_][index].vertex_;
+                const auto numberOfDependencies = 1 + (source != edge->source());
+                for (auto i = 0; i < numberOfDependencies; ++i) {
+                    if (source->executable()) {
+                        const auto *rtInfo = vertex->runtimeInformation();
+                        auto minExecutionTime = INT64_MAX;
+                        for (auto &cluster : platform->clusters()) {
+                            if (rtInfo->isClusterMappable(cluster)) {
+                                for (const auto &pe : cluster->peArray()) {
+                                    const auto executionTime = rtInfo->timingOnPE(pe, handler_.getParameters());
+                                    if (!executionTime) {
+                                        throwSpiderException("Vertex [%s] has null execution time on mappable cluster.",
+                                                             vertex->name().c_str());
+                                    }
+                                    minExecutionTime = std::min(minExecutionTime, executionTime);
+                                }
                             }
-                            minExecutionTime = std::min(minExecutionTime, executionTime);
                         }
-                    }
-                }
-                const auto sinkRate = edge->sinkRateValue();
-                const auto sourceRate = edge->sourceRateValue();
-                const auto delay = edge->delay() ? edge->delay()->value() : 0;
-                const auto depMin = pisdf::computeProdLowerDep(sinkRate, sourceRate, listTask.firing_, delay);
-                auto depMax = pisdf::computeProdUpperDep(sinkRate, sourceRate, listTask.firing_, delay);
-                if (depMax >= sink->repetitionValue()) {
-                    depMax = sink->repetitionValue() - 1;
-                    pisdf::Vertex *end = nullptr;
-                    if (!edge->delay()) {
-                        /* == Case of setter / init to end == */
-                        auto *delayVertex = edge->sink()->convertTo<pisdf::DelayVertex>();
-                        end = delayVertex->delay()->getter();
-                    } else {
-                        /* == Case of produced to end == */
-                        end = edge->delay()->getter();
-                    }
-                    const auto sinkLevel = computeScheduleLevel(listVertexVector[end->scheduleTaskIx()],
-                                                                listVertexVector);
-                    if (sinkLevel != NON_SCHEDULABLE_LEVEL) {
-                        level = std::max(level, sinkLevel + static_cast<ifast32>(minExecutionTime));
-                    }
-                }
-                for (auto i = depMin; i <= depMax; ++i) {
-                    auto &nextListTask = listVertexVector[sink->scheduleTaskIx() + static_cast<ufast64>(i)];
-                    nextListTask.dependencyCount_ += 1;
-                    const auto sinkLevel = computeScheduleLevel(nextListTask, listVertexVector);
-                    if (sinkLevel != NON_SCHEDULABLE_LEVEL) {
-                        level = std::max(level, sinkLevel + static_cast<ifast32>(minExecutionTime));
+                        auto &srcDep = dependencies[firingListTask.firing_][index++];
+                        for (auto delta = srcDep.firingStart_; delta <= srcDep.firingEnd_; ++delta) {
+                            auto &srcTask = listVertexVector[srcDep.vertex_->scheduleTaskIx() + delta];
+                            srcTask.level_ = std::max(srcTask.level_, firingListTask.level_ + minExecutionTime);
+                        }
+                        source = srcDep.vertex_;
                     }
                 }
             }
         }
-        listTask.level_ = level;
     }
     return listTask.level_;
 }
 
 void spider::SRLessListScheduler::setNextVerticesNonSchedulable(pisdf::Vertex *vertex,
                                                                 vector<ListTask> &listVertexVector) const {
-    for (auto &edge : vertex->outputEdgeVector()) {
-        if (edge->sinkRateValue()) {
-            /* == Disable non-null edge == */
-            auto &sinkTask = listVertexVector[edge->sink()->scheduleTaskIx()];
-            sinkTask.level_ = NON_SCHEDULABLE_LEVEL;
-            computeScheduleLevel(sinkTask, listVertexVector);
+    for (const auto &edge : vertex->outputEdgeVector()) {
+        /* == Disable non-null edge == */
+        if (edge->sinkRateExpression().evaluate(handler_.getParameters())) {
+            for (u32 i = 0; i < edge->sink()->repetitionValue(); ++i) {
+                auto &sinkTask = listVertexVector[edge->sink()->scheduleTaskIx() + i];
+                sinkTask.level_ = NON_SCHEDULABLE_LEVEL;
+            }
+            setNextVerticesNonSchedulable(vertex, listVertexVector);
         }
     }
 }
@@ -225,15 +203,18 @@ void spider::SRLessListScheduler::setNextVerticesNonSchedulable(pisdf::Vertex *v
 void spider::SRLessListScheduler::sortVertices() {
     std::sort(std::begin(sortedTaskVector_), std::end(sortedTaskVector_),
               [](const ListTask &A, const ListTask &B) -> bool {
-                  auto *vertexA = A.task_->vertex();
-                  auto *vertexB = B.task_->vertex();
+                  const auto *vertexA = A.task_->vertex();
+                  const auto *vertexB = B.task_->vertex();
                   const auto diff = A.level_ - B.level_;
                   if (!diff) {
                       if (vertexA == vertexB) {
                           return A.firing_ < B.firing_;
+                      } else if ((vertexA->subtype() != vertexB->subtype()) &&
+                                 ((vertexA->subtype() == pisdf::VertexType::INIT) ||
+                                  (vertexB->subtype() == pisdf::VertexType::END))) {
+                          return true;
                       }
-                      return (vertexA->subtype() == pisdf::VertexType::INIT) ||
-                             (vertexB->subtype() == pisdf::VertexType::END);
+                      return vertexA->name() > vertexB->name();
                   }
                   return (diff > 0);
               });

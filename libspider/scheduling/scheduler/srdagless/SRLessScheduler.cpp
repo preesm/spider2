@@ -47,7 +47,7 @@
 
 
 spider::unique_ptr<spider::SRLessScheduler>
-spider::makeSRLessScheduler(SchedulingPolicy algorithm, pisdf::Graph *graph) {
+spider::makeSRLessScheduler(pisdf::Graph *graph, SchedulingPolicy algorithm) {
     SRLessScheduler *scheduler = nullptr;
     switch (algorithm) {
         case SchedulingPolicy::SRLESS_LIST_BEST_FIT:
@@ -60,4 +60,53 @@ spider::makeSRLessScheduler(SchedulingPolicy algorithm, pisdf::Graph *graph) {
             break;
     }
     return spider::unique_ptr<spider::SRLessScheduler>(scheduler);
+}
+
+void spider::SRLessScheduler::mapTask(ScheduleTask *task) {
+    const auto *vertex = task->vertex();
+    if (!vertex) {
+        throwSpiderException("can not schedule a task with no vertex.");
+    }
+    /* == Compute the minimum start time possible for vertex == */
+    const auto minStartTime = Scheduler::computeMinStartTime(task);
+
+    /* == Search for a slave to map the task on */
+    const auto *platform = archi::platform();
+    const auto *vertexRtConstraints{ vertex->runtimeInformation() };
+    PE *mappingPe{ nullptr };
+    auto mappingSt{ UINT_FAST64_MAX };
+    auto mappingEt{ UINT_FAST64_MAX };
+    auto bestScheduleCost{ UINT_FAST64_MAX };
+    for (const auto &cluster : platform->clusters()) {
+        /* == Fast check to discard entire cluster == */
+        if (!vertexRtConstraints->isClusterMappable(cluster)) {
+            continue;
+        }
+        /* == Find best fit PE for this cluster == */
+        auto *foundPE = findBestPEFit(cluster, minStartTime, vertexRtConstraints,
+                                      [](const PE *pe, const void *info) -> i64 {
+                                          return reinterpret_cast<const RTInfo *>(info)->timingOnPE(pe);
+                                      },
+                                      [](const PE *pe, const void *info) -> bool {
+                                          return !reinterpret_cast<const RTInfo *>(info)->isPEMappable(pe);
+                                      });
+
+        if (foundPE) {
+            /* == Check if it is better than previous cluster PE == */
+            const auto startTime{ std::max(schedule_.endTime(foundPE->virtualIx()), minStartTime) };
+            const auto endTime{ startTime + static_cast<ufast64>(vertexRtConstraints->timingOnPE(foundPE)) };
+            const auto scheduleCost{ endTime };
+            if (scheduleCost < bestScheduleCost) {
+                mappingPe = foundPE;
+                mappingSt = startTime;
+                mappingEt = endTime;
+            }
+        }
+    }
+    /* == Throw if no possible mapping was found == */
+    if (!mappingPe) {
+        throwSpiderException("Could not find suitable processing element for vertex: [%s]", vertex->name().c_str());
+    }
+    /* == Set job information and update schedule == */
+    schedule_.updateTaskAndSetReady(static_cast<size_t>(task->ix()), mappingPe->virtualIx(), mappingSt, mappingEt);
 }

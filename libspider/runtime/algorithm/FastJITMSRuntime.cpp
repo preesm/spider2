@@ -45,37 +45,35 @@
 #include <runtime/platform/RTPlatform.h>
 #include <runtime/interface/RTCommunicator.h>
 #include <api/runtime-api.h>
-#include <scheduling/scheduler/BestFitScheduler.h>
+#include <graphs-tools/transformation/srdagless/SRLessHandler.h>
+#include <graphs-tools/transformation/srdag/Transformation.h>
+#include <scheduling/scheduler/srdagless/SRLessScheduler.h>
 #include <scheduling/allocator/DefaultFifoAllocator.h>
 #include <graphs-tools/numerical/brv.h>
-#include <graphs-tools/helper/pisdf.h>
+#include <graphs-tools/helper/pisdf-helper.h>
 #include <api/config-api.h>
 
 /* === Static function === */
-
-static void computeRVRecursive(spider::pisdf::Graph *graph) {
-    if (graph->dynamic()) {
-        return;
-    }
-    spider::brv::compute(graph, graph->params());
-    for (auto &subgraph : graph->subgraphs()) {
-        computeRVRecursive(subgraph);
-    }
-}
-
 
 /* === Method(s) implementation === */
 
 /* === Private method(s) implementation === */
 
 spider::FastJITMSRuntime::FastJITMSRuntime(pisdf::Graph *graph,
-                                           SchedulingAlgorithm schedulingAlgorithm,
+                                           SchedulingPolicy schedulingAlgorithm,
                                            FifoAllocatorType type) :
         Runtime(graph),
-        scheduler_{ makeScheduler(schedulingAlgorithm, graph) },
+        scheduler_{ makeSRLessScheduler(graph, schedulingAlgorithm) },
         fifoAllocator_{ makeFifoAllocator(type) } {
+    if (!scheduler_) {
+        throwSpiderException("Failed to create scheduler.\n"
+                             "Check compatibility between algorithm and runtime.");
+    }
     scheduler_->setAllocator(fifoAllocator_.get());
     isFullyStatic_ = pisdf::isGraphFullyStatic(graph);
+    if (!isFullyStatic_) {
+        pisdf::recursiveSplitDynamicGraph(graph);
+    }
 }
 
 bool spider::FastJITMSRuntime::execute() {
@@ -88,57 +86,20 @@ bool spider::FastJITMSRuntime::execute() {
 /* === Private method(s) implementation === */
 
 bool spider::FastJITMSRuntime::staticExecute() {
-    const auto grtIx = archi::platform()->spiderGRTPE()->attachedLRT()->virtualIx();
-    static bool first = true;
-    if (!first) {
-//        TraceMessage schedMsg{ };
-//        TRACE_SCHEDULE_START();
-        /* == Send LRT_START_ITERATION notification == */
-        rt::platform()->sendStartIteration();
-        /* == Send LRT_END_ITERATION notification == */
-        rt::platform()->sendEndIteration();
-//        TRACE_SCHEDULE_END();
-        /* == Run and wait == */
-        rt::platform()->runner(grtIx)->run(false);
-        rt::platform()->waitForRunnersToFinish();
-        /* == Runners should reset their parameters == */
-        rt::platform()->sendResetToRunners();
-        return true;
-    }
-    first = false;
-
-    /* == Runners should repeat their iteration == */
-//    rt::platform()->sendRepeatToRunners(true);
-
-    /* == Compute brv == */
-//    TraceMessage transfoMsg{ };
-//    TRACE_TRANSFO_START();
-    computeRVRecursive(graph_);
-//    TRACE_TRANSFO_END();
-
-//    TraceMessage schedMsg{ };
-//    TRACE_SCHEDULE_START();
-    /* == Send LRT_START_ITERATION notification == */
-//    rt::platform()->sendStartIteration();
-
-    /* == Schedule == */
+    handleStaticGraph(graph_);
     scheduler_->update();
     scheduler_->execute();
-
-    /* == Send LRT_END_ITERATION notification == */
-//    rt::platform()->sendEndIteration();
-//    TRACE_SCHEDULE_END();
-    exportPreExecGantt(&scheduler_->schedule());
-
-    /* == Run and wait == */
-//    rt::platform()->runner(grtIx)->run(false);
-//    rt::platform()->waitForRunnersToFinish();
-
-    /* == Runners should reset their parameters == */
-//    rt::platform()->sendResetToRunners();
+    exportPreExecGantt(&scheduler_->schedule(), "./sched.gantt");
     return true;
 }
 
 bool spider::FastJITMSRuntime::dynamicExecute() {
     return true;
+}
+
+void spider::FastJITMSRuntime::handleStaticGraph(pisdf::Graph *graph) {
+    auto &handler = scheduler_->srLessHandler();
+    /* == Compute BRV == */
+    handler.resolveStatic();
+//    handler_->flattenDependencies(graph, 0);
 }

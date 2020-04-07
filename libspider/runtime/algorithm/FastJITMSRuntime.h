@@ -45,19 +45,20 @@
 #include <runtime/algorithm/Runtime.h>
 #include <graphs-tools/transformation/srdag/TransfoJob.h>
 #include <scheduling/allocator/FifoAllocator.h>
+#include <graphs-tools/transformation/srdagless/SRLessHandler.h>
 
 namespace spider {
 
     /* === Forward declaration(s) === */
 
-    class Scheduler;
+    class SRLessScheduler;
 
     /* === Class definition === */
 
     class FastJITMSRuntime final : public Runtime {
     public:
         explicit FastJITMSRuntime(pisdf::Graph *graph,
-                                  SchedulingAlgorithm schedulingAlgorithm = SchedulingAlgorithm::LIST_BEST_FIT,
+                                  SchedulingPolicy schedulingAlgorithm = SchedulingPolicy::SRLESS_LIST_BEST_FIT,
                                   FifoAllocatorType type = FifoAllocatorType::DEFAULT);
 
         ~FastJITMSRuntime() override = default;
@@ -73,7 +74,7 @@ namespace spider {
         /* === Setter(s) === */
 
     private:
-        unique_ptr<Scheduler> scheduler_;
+        unique_ptr<SRLessScheduler> scheduler_;
         unique_ptr<FifoAllocator> fifoAllocator_;
         bool isFullyStatic_ = true;
 
@@ -90,6 +91,8 @@ namespace spider {
          * @return true
          */
         bool dynamicExecute();
+
+        void handleStaticGraph(pisdf::Graph *graph);
     };
 }
 

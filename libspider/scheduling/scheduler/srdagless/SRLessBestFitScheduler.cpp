@@ -50,7 +50,7 @@
 
 spider::Schedule &spider::SRLessBestFitScheduler::execute() {
     for (auto &listTask : sortedTaskVector_) {
-        Scheduler::mapTask(listTask.task_);
+        SRLessScheduler::mapTask(listTask.task_);
     }
     return schedule_;
 }

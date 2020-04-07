@@ -45,7 +45,7 @@
 #include <graphs/pisdf/InHeritedParam.h>
 #include <graphs/pisdf/Param.h>
 #include <graphs/pisdf/DelayVertex.h>
-#include <graphs-tools/helper/pisdf.h>
+#include <graphs-tools/helper/pisdf-helper.h>
 #include <graphs-tools/numerical/brv.h>
 #include <graphs-tools/numerical/dependencies.h>
 
@@ -53,244 +53,154 @@
 
 /* === Method(s) implementation === */
 
-spider::srdagless::SRLessHandler::SRLessHandler() :
-        verticesToSchedule_{ factory::vector<pisdf::Vertex *>(StackID::TRANSFO) } { }
+spider::srdagless::SRLessHandler::SRLessHandler(spider::pisdf::Graph *graph, const SRLessHandler *parentHandler) :
+        graph_{ graph },
+        parentHandler_{ parentHandler },
+        params_{ factory::vector<std::shared_ptr<pisdf::Param>>(graph->paramCount(), StackID::TRANSFO) },
+        subHandlers_{ factory::vector<spider::unique_ptr<SRLessHandler>>(StackID::TRANSFO) },
+        vertexDependencies_{ factory::vector<spider::vector<VertexDependencies>>(StackID::TRANSFO) } {
+    for (const auto &param : graph_->params()) {
+        const auto ix = param->ix();
+        if (param->dynamic()) {
+            if (param->type() == pisdf::ParamType::DYNAMIC) {
+                params_[ix] = spider::make_shared<pisdf::DynamicParam, StackID::PISDF>(param->name(),
+                                                                                       param->expression());
+                params_[ix]->setIx(ix);
+            } else if (parentHandler_) {
+                params_[ix] = parentHandler_->params_[param->ix()];
+            } else {
+                throwNullptrException();
+            }
+        } else {
+            params_[ix] = param;
+        }
+    }
+}
 
-void spider::srdagless::SRLessHandler::computeRV(pisdf::Graph *graph, u32 graphFiring) {
-    if (graph->dynamic() && !graph->configVertexCount()) {
-        const auto &paramVector = parameters_.at(graph);
-        /* == Dynamic graph == */
-        brv::compute(graph, paramVector[graphFiring]);
-        /* == Copy the repetition vector values == */
-        if (graph2RV_.find(graph) == graph2RV_.end()) {
-            graph2RV_[graph] = makeRVVector();
+void spider::srdagless::SRLessHandler::resolveStatic() {
+    subHandlers_.clear();
+    /* == Compute RV == */
+    brv::compute(graph_, params_);
+    /* == Evaluate if there are dynamic subgraphs or not == */
+    for (auto &subgraph : graph_->subgraphs()) {
+        if (subgraph->configVertexCount()) {
+            for (u32 i = 0; i < subgraph->repetitionValue(); ++i) {
+                auto *subHandler = make<SRLessHandler>(subgraph, this);
+                // TODO: clear previous and copy config vertices
+                // TODO: update config vertices
+                subHandlers_.emplace_back(subHandler);
+            }
+        } else {
+            subHandlers_.emplace_back(make<SRLessHandler>(subgraph, this));
         }
-        graph2RV_[graph].emplace_back(factory::vector<u32>(StackID::TRANSFO));
-        auto &rvVector = graph2RV_[graph][graphFiring];
-        for (auto &vertex : graph->vertices()) {
-            rvVector[vertex->ix()] = vertex->repetitionValue();
+    }
+    /* == Replace interfaces (if needed) == */
+    // TODO: add repeat / tail actors when rates are not transparent, copy dependencies when needed.
+    /* == Compute the dependencies == */
+    for (const auto &vertex : graph_->vertices()) {
+        if (vertex->subtype() == pisdf::VertexType::DELAY) {
+            continue;
         }
+        computeDependencies(vertex.get());
+    }
+}
+
+const spider::vector<spider::VertexDependencies> &
+spider::srdagless::SRLessHandler::getVertexDependencies(const pisdf::Vertex *vertex) const {
+    return vertexDependencies_.at(vertex->ix());
+}
+
+const spider::vector<std::shared_ptr<spider::pisdf::Param>> &spider::srdagless::SRLessHandler::getParameters() const {
+    return params_;
+}
+
+/* === Private method(s) === */
+
+void spider::srdagless::SRLessHandler::computeDependencies(const spider::pisdf::Vertex *vertex) {
+    auto firingDependencies = factory::vector<VertexDependencies>(StackID::TRANSFO);
+    for (u32 i = 0; i < vertex->repetitionValue(); ++i) {
+        auto firingDependency = factory::vector<ExecDependency>(StackID::TRANSFO);
+        for (const auto &edge : vertex->inputEdgeVector()) {
+            if (edge->source()->subtype() == pisdf::VertexType::DELAY) {
+                computeGetterDependency(edge, i, firingDependency);
+            } else if (edge->delay()) {
+                computeDelayedDependency(edge, i, firingDependency);
+            } else {
+                computeDependency(edge, i, firingDependency);
+            }
+        }
+        firingDependencies.emplace_back(std::move(firingDependency));
+    }
+    vertexDependencies_.emplace_back(std::move(firingDependencies));
+}
+
+void spider::srdagless::SRLessHandler::computeDependency(const pisdf::Edge *edge,
+                                                         u32 firing,
+                                                         spider::vector<spider::ExecDependency> &firingDependency) {
+    const auto sinkRate = edge->sinkRateExpression().evaluate(params_);
+    const auto sourceRate = edge->sourceRateExpression().evaluate(params_);
+    const auto memoryStart = static_cast<u32>((firing * sinkRate) % sourceRate);
+    const auto memoryEnd = static_cast<u32>(((firing + 1) * sinkRate - 1) % sourceRate);
+    const auto depMin = static_cast<u32>(pisdf::computeConsLowerDep(sinkRate, sourceRate, firing, 0));
+    const auto depMax = static_cast<u32>(pisdf::computeConsUpperDep(sinkRate, sourceRate, firing, 0));
+    firingDependency.push_back({ edge->source(), memoryStart, memoryEnd, depMin, depMax });
+}
+
+void spider::srdagless::SRLessHandler::computeDelayedDependency(const pisdf::Edge *edge,
+                                                                u32 firing,
+                                                                spider::vector<ExecDependency> &firingDependency) {
+    auto *delay = edge->delay();
+    auto *source = edge->source();
+    const auto delayValue = delay->value();
+    const auto sinkRate = edge->sinkRateExpression().evaluate(params_);
+    const auto sourceRate = edge->sourceRateExpression().evaluate(params_);
+    const auto lowerCons = sinkRate * firing;
+    const auto upperCons = sinkRate * (firing + 1);
+    if ((delayValue + 1) > upperCons) {
+        const auto *delayEdge = delay->vertex()->inputEdge(0);
+        const auto setterRate = delayEdge->sourceRateExpression().evaluate(params_);
+        const auto memoryStart = static_cast<u32>(lowerCons % setterRate);
+        const auto memoryEnd = static_cast<u32>((upperCons - 1) % setterRate);
+        const auto depMin = static_cast<u32>(math::floorDiv(lowerCons, setterRate));
+        const auto depMax = static_cast<u32>(math::floorDiv(upperCons - 1, setterRate));
+        firingDependency.push_back({ delayEdge->source(), memoryStart, memoryEnd, depMin, depMax });
+    } else if (delayValue > lowerCons) {
+        const auto *delayEdge = delay->vertex()->inputEdge(0);
+        auto *setter = delayEdge->source();
+        const auto setterRate = delayEdge->sourceRateExpression().evaluate(params_);
+        const auto memoryStart = static_cast<u32>(lowerCons % setterRate);
+        const auto memorySetterEnd = static_cast<u32>(setterRate - 1);
+        const auto memoryEnd = static_cast<u32>((upperCons - 1) % sourceRate);
+        const auto depMin = static_cast<u32>(math::floorDiv(lowerCons - delayValue, setterRate));
+        const auto depSetterMax = setter->repetitionValue() - 1;
+        const auto depMax = static_cast<u32>(math::floorDiv(upperCons - delayValue - 1, sourceRate));
+        firingDependency.push_back({ delayEdge->source(), memoryStart, memorySetterEnd, depMin, depSetterMax });
+        firingDependency.push_back({ source, 0u, memoryEnd, 0, depMax });
     } else {
-        brv::compute(graph);
+        const auto memoryStart = static_cast<u32>(lowerCons % sourceRate);
+        const auto memoryEnd = static_cast<u32>((upperCons - 1) % sourceRate);
+        const auto depMin = static_cast<u32>(math::floorDiv(lowerCons - delayValue, sourceRate));
+        const auto depMax = static_cast<u32>(math::floorDiv(upperCons - delayValue - 1, sourceRate));
+        firingDependency.push_back({ source, memoryStart, memoryEnd, depMin, depMax });
     }
 }
 
-ifast64 spider::srdagless::SRLessHandler::computeConsLowerDep(pisdf::Edge *edge,
-                                                              u32 vertexFiring,
-                                                              pisdf::Graph *graph,
-                                                              u32 graphFiring) const {
-    const auto &paramVector = parameters_.at(graph);
-    if (!(graph->dynamic() && !graph->configVertexCount())) {
-        graphFiring = 0;
-    }
-    const auto prod = edge->sourceRateExpression().evaluate(paramVector[graphFiring]);
-    const auto cons = edge->sinkRateExpression().evaluate(paramVector[graphFiring]);
-    const auto delay = edge->delay() ? edge->delay()->value() : 0;
-    return pisdf::computeConsLowerDep(cons, prod, vertexFiring, delay);
+void spider::srdagless::SRLessHandler::computeGetterDependency(const pisdf::Edge *edge,
+                                                               u32 firing,
+                                                               spider::vector<spider::ExecDependency> &firingDependency) {
+    const auto *delay = edge->source()->convertTo<pisdf::DelayVertex>()->delay();
+    const auto *delayEdge = delay->edge();
+    const auto originalSourceRate = delayEdge->sourceRateExpression().evaluate(params_);
+    const auto originalSinkRate = delayEdge->sinkRateExpression().evaluate(params_);
+    const auto offset = delay->value() + delayEdge->sink()->repetitionValue() * originalSinkRate;
+    const auto sourceRV = delayEdge->source()->repetitionValue();
+    const auto sinkRate = edge->sinkRateExpression().evaluate(params_);
+    const auto memoryStart = static_cast<u32>((offset + firing * sinkRate) % originalSourceRate);
+    const auto memoryEnd = static_cast<u32>((offset + (firing + 1) * sinkRate - 1) % originalSourceRate);
+    const auto depMin = sourceRV - static_cast<u32>(math::ceilDiv(firing * sinkRate, originalSourceRate));
+    const auto depMax = sourceRV - static_cast<u32>(math::ceilDiv((firing + 1) * sinkRate, originalSourceRate));
+    firingDependency.push_back({ delayEdge->source(), memoryStart, memoryEnd, depMin, depMax });
+
 }
 
-ifast64 spider::srdagless::SRLessHandler::computeConsUpperDep(pisdf::Edge *edge,
-                                                              u32 vertexFiring,
-                                                              pisdf::Graph *graph,
-                                                              u32 graphFiring) const {
-    const auto &paramVector = parameters_.at(graph);
-    if (!(graph->dynamic() && !graph->configVertexCount())) {
-        graphFiring = 0;
-    }
-    const auto prod = edge->sourceRateExpression().evaluate(paramVector[graphFiring]);
-    const auto cons = edge->sinkRateExpression().evaluate(paramVector[graphFiring]);
-    const auto delay = edge->delay() ? edge->delay()->value() : 0;
-    return pisdf::computeConsUpperDep(cons, prod, vertexFiring, delay);
-}
 
-void spider::srdagless::SRLessHandler::copyParameters(pisdf::Graph *graph, u32 graphRepCount, u32 parentFiring) {
-    if (parameters_.find(graph) == parameters_.end()) {
-        parameters_[graph] = makeParamVector();
-    }
-    auto &paramVector = parameters_[graph];
-    paramVector.reserve(paramVector.size() + graphRepCount);
-    for (u32 i = 0; i < graphRepCount; ++i) {
-        parameters_[graph].emplace_back(factory::vector<std::shared_ptr<pisdf::Param>>(StackID::TRANSFO));
-        for (auto &param : graph->params()) {
-            auto p = param;
-            if (param->dynamic()) {
-                if (param->type() == pisdf::ParamType::DYNAMIC) {
-                    p = make_shared<pisdf::DynamicParam, StackID::PISDF>(param->name(), param->expression());
-                    p->setIx(param->ix());
-                } else {
-                    const auto &parentParamVector = parameters_[graph->graph()][parentFiring];
-                    const auto &parentParam = parentParamVector[param->parent()->ix()];
-                    p = make_shared<pisdf::Param, StackID::PISDF>(param->name(), parentParam->value());
-                }
-            }
-            parameters_[graph].back().emplace_back(std::move(p));
-        }
-    }
-}
-
-u32 spider::srdagless::SRLessHandler::getRepetitionValue(pisdf::Vertex *vertex, u32 graphFiring) const {
-    if (!vertex) {
-        return 0;
-    }
-    auto *graph = vertex->graph();
-    if (!(graph->dynamic() && !graph->configVertexCount())) {
-        /* == Graph is static so we can use vertex value directly == */
-        return vertex->repetitionValue();
-    }
-    const auto &rvVector = graph2RV_.at(graph);
-    return rvVector[graphFiring][vertex->ix()];
-}
-
-void spider::srdagless::SRLessHandler::setParamValue(pisdf::Param *param, u32 graphFiring, i64 value) {
-    if (!param) {
-        return;
-    }
-    auto *graph = param->graph();
-    const auto &paramVector = parameters_.at(graph);
-    if (!(graph->dynamic() && !graph->configVertexCount())) {
-        graphFiring = 0;
-    }
-    paramVector[graphFiring][param->ix()]->setValue(value);
-}
-
-void spider::srdagless::SRLessHandler::createsProductionDependencies(pisdf::Vertex *vertex, u32 graphFiring) {
-    const auto &graph = vertex->graph();
-    if (prodDependencies_.find(graph) == prodDependencies_.end()) {
-        auto vector = factory::vector<DependencyVector>(StackID::TRANSFO);
-        vector.reserve(graph->vertexCount());
-        for (size_t i = 0; i < graph->vertexCount(); ++i) {
-            vector.emplace_back(makeDependencyVector());
-        }
-        prodDependencies_[graph] = std::move(vector);
-    }
-    const auto &params = getParameters(graph, graphFiring);
-    auto &dependencies = prodDependencies_.at(graph).at(vertex->ix());
-    if (!dependencies.empty()) {
-        return;
-    }
-    const auto repetitionValue = getRepetitionValue(vertex, graphFiring);
-    for (auto edge : vertex->outputEdgeVector()) {
-        auto *sink = edge->sink();
-        auto *delay = edge->delay();
-        const auto sourceRate = edge->sourceRateExpression().evaluate(params);
-        const auto delayValue = delay ? delay->value() : 0;
-        if (sink->subtype() == pisdf::VertexType::DELAY) {
-            edge = sink->convertTo<pisdf::DelayVertex>()->delay()->edge();
-            sink = edge->sink();
-        }
-        const auto sinkRate = edge->sinkRateExpression().evaluate(params);
-        /* == Creates the vector of dependencies == */
-        auto currentEdgeDependencies = factory::vector<Dependency>(StackID::TRANSFO);
-        currentEdgeDependencies.reserve(repetitionValue);
-        if (delay && delayValue) {
-            auto *getter = delay->getter();
-            const auto sinkRV = static_cast<i32>(getRepetitionValue(sink, graphFiring));
-            const auto correctedDelay = delayValue - sinkRV * sinkRate;
-            const auto getterRate = delay->vertex()->outputEdge(0)->sinkRateExpression().evaluate(params);
-            for (u32 i = 0; i < repetitionValue; ++i) {
-                auto depMin = static_cast<i32>(pisdf::computeProdLowerDep(sinkRate, sourceRate, i, delayValue));
-                auto depMax = static_cast<i32>(pisdf::computeProdUpperDep(sinkRate, sourceRate, i, delayValue));
-                if (depMin >= sinkRV) {
-                    depMin = static_cast<i32>(pisdf::computeProdLowerDep(getterRate, sourceRate, i, correctedDelay));
-                    depMax = static_cast<i32>(pisdf::computeProdUpperDep(getterRate, sourceRate, i, correctedDelay));
-                    currentEdgeDependencies.push_back({ getter, depMin, depMax });
-                } else if (depMax >= sinkRV) {
-                    currentEdgeDependencies.push_back({ sink, depMin, sinkRV - 1 });
-                    depMax = static_cast<i32>(pisdf::computeProdUpperDep(getterRate, sourceRate, i, correctedDelay));
-                    currentEdgeDependencies.push_back({ getter, 0, depMax });
-                } else {
-                    currentEdgeDependencies.push_back({ sink, depMin, depMax });
-                }
-            }
-        } else {
-            for (u32 i = 0; i < repetitionValue; ++i) {
-                const auto depMin = static_cast<i32>(pisdf::computeProdLowerDep(sinkRate, sourceRate, i, 0));
-                const auto depMax = static_cast<i32>(pisdf::computeProdUpperDep(sinkRate, sourceRate, i, 0));
-                currentEdgeDependencies.push_back({ sink, depMin, depMax });
-            }
-        }
-        dependencies.emplace_back(std::move(currentEdgeDependencies));
-    }
-}
-
-void spider::srdagless::SRLessHandler::createsConsumptionDependencies(pisdf::Vertex *vertex, u32 graphFiring) {
-    const auto &graph = vertex->graph();
-    if (consDependencies_.find(graph) == consDependencies_.end()) {
-        auto vector = factory::vector<DependencyVector>(StackID::TRANSFO);
-        vector.reserve(graph->vertexCount());
-        for (size_t i = 0; i < graph->vertexCount(); ++i) {
-            vector.emplace_back(makeDependencyVector());
-        }
-        consDependencies_[graph] = std::move(vector);
-    }
-    const auto &params = getParameters(graph, graphFiring);
-    auto &dependencies = consDependencies_.at(graph).at(vertex->ix());
-    if (!dependencies.empty()) {
-        return;
-    }
-    const auto repetitionValue = getRepetitionValue(vertex, graphFiring);
-    for (auto edge : vertex->inputEdgeVector()) {
-        auto *delay = edge->delay();
-        auto *source = edge->source();
-        const auto sinkRate = edge->sinkRateExpression().evaluate(params);
-        const auto delayValue = delay ? delay->value() : 0;
-        if (source->subtype() == pisdf::VertexType::DELAY) {
-            edge = source->convertTo<pisdf::DelayVertex>()->delay()->edge();
-            source = edge->source();
-        }
-        const auto sourceRate = edge->sourceRateExpression().evaluate(params);
-        /* == Creates the vector of dependencies == */
-        auto currentEdgeDependencies = factory::vector<Dependency>(StackID::TRANSFO);
-        currentEdgeDependencies.reserve(repetitionValue);
-        if (delay && delayValue) {
-            auto *setter = delay->setter();
-            const auto setterRV = static_cast<i32>(getRepetitionValue(setter, graphFiring));
-            const auto setterRate = delay->vertex()->inputEdge(0)->sourceRateExpression().evaluate(params);
-            for (u32 i = 0; i < repetitionValue; ++i) {
-                auto depMin = static_cast<i32>(pisdf::computeConsLowerDep(sinkRate, sourceRate, i, delayValue));
-                auto depMax = static_cast<i32>(pisdf::computeConsUpperDep(sinkRate, sourceRate, i, delayValue));
-                if (depMax < 0) {
-                    depMin = static_cast<i32>(pisdf::computeConsLowerDep(sinkRate, setterRate, i, 0));
-                    depMax = static_cast<i32>(pisdf::computeConsUpperDep(sinkRate, setterRate, i, 0));
-                    currentEdgeDependencies.push_back({ setter, depMin, depMax });
-                } else if (depMin < 0) {
-                    depMin = static_cast<i32>( pisdf::computeProdUpperDep(sinkRate, setterRate, i, 0));
-                    currentEdgeDependencies.push_back({ setter, depMin, setterRV - 1 });
-                    currentEdgeDependencies.push_back({ source, 0, depMax });
-                } else {
-                    currentEdgeDependencies.push_back({ source, depMin, depMax });
-                }
-            }
-        } else {
-            for (u32 i = 0; i < repetitionValue; ++i) {
-                const auto depMin = static_cast<i32>(pisdf::computeConsLowerDep(sinkRate, sourceRate, i, 0));
-                const auto depMax = static_cast<i32>(pisdf::computeConsUpperDep(sinkRate, sourceRate, i, 0));
-                currentEdgeDependencies.push_back({ source, depMin, depMax });
-            }
-        }
-        dependencies.emplace_back(std::move(currentEdgeDependencies));
-    }
-}
-
-const spider::vector<std::shared_ptr<spider::pisdf::Param>> &
-spider::srdagless::SRLessHandler::getParameters(pisdf::Graph *graph, u32 graphFiring) const {
-    if (!(graph->dynamic() && !graph->configVertexCount())) {
-        return graph->params();
-    }
-    const auto &params = parameters_.at(graph);
-    return params[graphFiring];
-}
-
-void spider::srdagless::SRLessHandler::addVertexToBeScheduled(pisdf::Vertex *vertex) {
-    verticesToSchedule_.emplace_back(vertex);
-}
-
-void spider::srdagless::SRLessHandler::clearVertexToBeScheduled() {
-    verticesToSchedule_.clear();
-}
-
-const spider::vector<spider::pisdf::Vertex *> &spider::srdagless::SRLessHandler::getVerticesToSchedule() const {
-    return verticesToSchedule_;
-}
-
-/* === Private method(s) implementation === */

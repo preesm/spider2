@@ -45,6 +45,7 @@
 #include <common/Types.h>
 #include <containers/vector.h>
 #include <containers/unordered_map.h>
+#include <memory/unique_ptr.h>
 
 namespace spider {
 
@@ -60,123 +61,62 @@ namespace spider {
 
     }
 
+    struct ExecDependency {
+        pisdf::Vertex *vertex_;
+        u32 memoryStart_;
+        u32 memoryEnd_;
+        u32 firingStart_;
+        u32 firingEnd_;
+    };
+
+    using VertexDependencies = spider::vector<ExecDependency>;
+
     namespace srdagless {
+
+        /* === Struct(s) === */
 
         /* === Class definition === */
 
         class SRLessHandler {
         public:
-            explicit SRLessHandler();
+            explicit SRLessHandler(pisdf::Graph *graph, const SRLessHandler *parentHandler = nullptr);
 
             ~SRLessHandler() = default;
 
-            /* === Struct(s) === */
-
-            struct Dependency {
-                pisdf::Vertex *vertex_;
-                i32 first_;
-                i32 last_;
-            };
-
             /* === Method(s) === */
 
-            /**
-             * @brief Compute repetition value for a given firing of a graph.
-             * @param graph       Pointer to the graph.
-             * @param graphFiring Firing of the graph.
-             */
-            void computeRV(pisdf::Graph *graph, u32 graphFiring);
-
-            /**
-             * @brief Compute the lower consumption dependency of a given edge with respect to a given firing
-             *        of a vertex inside a given firing of a graph (ex: firing 2 of actor A of firing 3 of graph G).
-             * @param edge          Pointer to the edge.
-             * @param vertexFiring  Firing of the vertex.
-             * @param graph         Pointer to the graph (necessary to retrieve proper parameters).
-             * @param graphFiring   Firing of the graph.
-             * @return value of the dependency.
-             */
-            ifast64
-            computeConsLowerDep(pisdf::Edge *edge, u32 vertexFiring, pisdf::Graph *graph, u32 graphFiring) const;
-
-            /**
-             * @brief Compute the upper consumption dependency of a given edge with respect to a given firing
-             *        of a vertex inside a given firing of a graph (ex: firing 2 of actor A of firing 3 of graph G).
-             * @param edge          Pointer to the edge.
-             * @param vertexFiring  Firing of the vertex.
-             * @param graph         Pointer to the graph (necessary to retrieve proper parameters).
-             * @param graphFiring   Firing of the graph.
-             * @return value of the dependency.
-             */
-            ifast64
-            computeConsUpperDep(pisdf::Edge *edge, u32 vertexFiring, pisdf::Graph *graph, u32 graphFiring) const;
-
-            /**
-             * @brief Copy parameters for a given graph firing.
-             * @param graph         Pointer to the graph.
-             * @param graphRepCount Repetition value of the graph.
-             * @param parentFiring  Firing of the parent graph.
-             */
-            void copyParameters(pisdf::Graph *graph, u32 graphRepCount, u32 parentFiring);
-
-            void createsProductionDependencies(pisdf::Vertex *vertex, u32 graphFiring);
-
-            void createsConsumptionDependencies(pisdf::Vertex *vertex, u32 graphFiring);
-
-            void addVertexToBeScheduled(pisdf::Vertex *vertex);
-
-            void clearVertexToBeScheduled();
+            void resolveStatic();
 
             /* === Getter(s) === */
 
-            const vector<std::shared_ptr<pisdf::Param>> &getParameters(pisdf::Graph *graph, u32 graphFiring) const;
+            const spider::vector<VertexDependencies> &getVertexDependencies(const pisdf::Vertex *vertex) const;
 
-            const vector<pisdf::Vertex*> &getVerticesToSchedule() const;
-
-            /**
-             * @brief Get the repetition value of a vertex for a given graph firing.
-             * @param vertex       Pointer to the vertex.
-             * @param graphFiring  Firing of the graph.
-             * @return repetition value of the vertex.
-             */
-            u32 getRepetitionValue(pisdf::Vertex *vertex, u32 graphFiring) const;
-
+            const spider::vector<std::shared_ptr<pisdf::Param>> &getParameters() const;
 
             /* === Setter(s) === */
 
-            /**
-             * @brief Set the value of a parameter for a given firing of its corresponding graph.
-             * @param param        Pointer to the parameter in the pisdf representation.
-             * @param graphFiring  Global firing of the graph (taking into account the hierarchy).
-             * @param value        Value to set.
-             */
-            void setParamValue(pisdf::Param *param, u32 graphFiring, i64 value);
-
         private:
-            using FiringVector = vector<vector<u32>>;
-            using ParamVector = vector<vector<std::shared_ptr<pisdf::Param>>>;
-            using DependencyVector = vector<vector<Dependency>>;
+            pisdf::Graph *graph_ = nullptr;
+            const SRLessHandler *parentHandler_ = nullptr;
+            spider::vector<std::shared_ptr<pisdf::Param>> params_;
+            spider::vector<spider::unique_ptr<SRLessHandler>> subHandlers_;
+            spider::vector<spider::vector<VertexDependencies>> vertexDependencies_;
 
-            unordered_map<pisdf::Graph *, vector<DependencyVector>> prodDependencies_;
-            unordered_map<pisdf::Graph *, vector<DependencyVector>> consDependencies_;
-            unordered_map<pisdf::Graph *, ParamVector> parameters_;
-            unordered_map<pisdf::Graph *, FiringVector> graph2RV_;
-            vector<pisdf::Vertex*> verticesToSchedule_;
+            /* === Private method(s) === */
 
-            /* === Private methods === */
+            void computeDependencies(const pisdf::Vertex *vertex);
 
-            inline static ParamVector makeParamVector() {
-                return factory::vector<vector<std::shared_ptr<pisdf::Param>>>(StackID::TRANSFO);
-            }
+            void computeDependency(const pisdf::Edge *edge,
+                                   u32 firing,
+                                   spider::vector<ExecDependency> &firingDependency);
 
-            inline static DependencyVector makeDependencyVector() {
-                return factory::vector<vector<Dependency>>(StackID::TRANSFO);
-            }
+            void computeDelayedDependency(const pisdf::Edge *edge,
+                                          u32 firing,
+                                          spider::vector<ExecDependency> &firingDependency);
 
-            inline static FiringVector makeRVVector() {
-                return factory::vector<vector<u32>>(StackID::TRANSFO);
-            }
-
+            void computeGetterDependency(const pisdf::Edge *edge,
+                                         u32 firing,
+                                         spider::vector<ExecDependency> &firingDependency);
         };
     }
 }

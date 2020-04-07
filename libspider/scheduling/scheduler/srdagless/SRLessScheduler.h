@@ -43,6 +43,7 @@
 /* === Include(s) === */
 
 #include <scheduling/scheduler/Scheduler.h>
+#include <graphs-tools/transformation/srdagless/SRLessHandler.h>
 
 namespace spider {
 
@@ -53,7 +54,7 @@ namespace spider {
         explicit SRLessScheduler(pisdf::Graph *graph,
                                  ScheduleMode mode = DELAYED_SEND,
                                  FifoAllocator *allocator = nullptr) :
-                Scheduler(graph, mode, allocator) {
+                Scheduler(graph, mode, allocator), handler_{ graph } {
 
         }
 
@@ -61,21 +62,31 @@ namespace spider {
 
         /* === Method(s) === */
 
+
         /* === Getter(s) === */
+
+        srdagless::SRLessHandler &srLessHandler() {
+            return handler_;
+        }
 
         /* === Setter(s) === */
 
-    private:
+    protected:
+        srdagless::SRLessHandler handler_;
 
+        /**
+         * @brief Default task mapper that try to best fit.
+         * @param task Pointer to the task to map.
+         */
+        void mapTask(ScheduleTask *task) override;
     };
 
     /**
      * @brief Make a new scheduler based on the scheduling algorithm.
      * @param algorithm Algorithm type (see @refitem SchedulingAlgorithm).
-     * @param graph  Pointer to the graph.
      * @return unique_ptr of the created scheduler.
      */
-    spider::unique_ptr<SRLessScheduler> makeSRLessScheduler(SchedulingPolicy algorithm, pisdf::Graph *graph);
+    spider::unique_ptr<SRLessScheduler> makeSRLessScheduler(pisdf::Graph *graph, SchedulingPolicy algorithm);
 }
 
 #endif //SPIDER2_SRLESSSCHEDULER_H

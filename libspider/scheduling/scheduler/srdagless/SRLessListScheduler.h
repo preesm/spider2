@@ -77,10 +77,11 @@ namespace spider {
         struct ListTask {
             ScheduleTask *task_;
             u32 firing_;
-            u32 dependencyCount_;
             ifast32 level_;
         };
         vector<ListTask> sortedTaskVector_;
+        size_t lastSchedulableTask_ = 0;
+        size_t lastScheduledTask_ = 0;
 
         /* === Protected method(s) === */
 
