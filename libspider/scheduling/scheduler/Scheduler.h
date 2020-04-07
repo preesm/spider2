@@ -125,6 +125,9 @@ namespace spider {
             i32 position_;
         };
 
+        using TimePredicate = i64 (*)(const PE *, const void *);
+        using SkipPredicate = bool (*)(const PE *, const void *);
+
         /* === Protected method(s) === */
 
         /**
@@ -134,8 +137,9 @@ namespace spider {
          */
         ufast64 computeMinStartTime(ScheduleTask *task) const;
 
-        template<class SkipPredicate, class TimePredicate>
-        PE *findBestPEFit(Cluster *cluster, ufast64 minStartTime,
+        PE *findBestPEFit(Cluster *cluster,
+                          ufast64 minStartTime,
+                          const void *info,
                           TimePredicate execTimePredicate,
                           SkipPredicate skipPredicate);
 
@@ -163,7 +167,7 @@ namespace spider {
          * @param dependencies   Reference to the data dependencies of the task.
          * @param cluster  Pointer on which the task is mapped.
          */
-        void scheduleCommunications(ScheduleTask *task, vector<DataDependency> &dependencies, Cluster *cluster);
+        void scheduleCommunications(ScheduleTask *task, vector <DataDependency> &dependencies, Cluster *cluster);
 
         /**
          * @brief Build a vector of Data dependency. Only the dependencies with exchange of data > 0 are taken into
@@ -171,7 +175,7 @@ namespace spider {
          * @param task  Pointer to the task.
          * @return vector of @refitem DataDependency.
          */
-        static vector<DataDependency> getDataDependencies(ScheduleTask *task);
+        static vector <DataDependency> getDataDependencies(ScheduleTask *task);
 
         /**
          * @brief Default task mapper that try to best fit.

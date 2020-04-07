@@ -115,22 +115,22 @@ ufast64 spider::Scheduler::computeMinStartTime(ScheduleTask *task) const {
     return minimumStartTime;
 }
 
-template<class SkipPredicate, class TimePredicate>
 spider::PE *spider::Scheduler::findBestPEFit(Cluster *cluster,
                                              ufast64 minStartTime,
+                                             const void *info,
                                              TimePredicate execTimePredicate,
                                              SkipPredicate skipPredicate) {
     auto bestFitIdleTime = UINT_FAST64_MAX;
     auto bestFitEndTime = UINT_FAST64_MAX;
     PE *foundPE = nullptr;
     for (const auto &pe : cluster->peArray()) {
-        if (!pe->enabled() || skipPredicate(pe)) {
+        if (!pe->enabled() || skipPredicate(pe, info)) {
             continue;
         }
         const auto readyTime = schedule_.endTime(pe->virtualIx());
         const auto startTime = std::max(readyTime, minStartTime);
         const auto idleTime = startTime - readyTime;
-        const auto endTime = startTime + execTimePredicate(pe);
+        const auto endTime = startTime + static_cast<u64>(execTimePredicate(pe, info));
         if (endTime < bestFitEndTime) {
             foundPE = pe;
             bestFitEndTime = endTime;
@@ -153,12 +153,14 @@ spider::ScheduleTask *spider::Scheduler::insertCommunicationTask(Cluster *cluste
     const auto *bus = archi::platform()->getClusterToClusterMemoryBus(cluster, distCluster);
     const auto busSpeed = type == TaskType::SYNC_SEND ? bus->writeSpeed() : bus->readSpeed();
     const auto *busKernel = type == TaskType::SYNC_SEND ? bus->sendKernel() : bus->receiveKernel();
-    const auto comTime = busSpeed / dataSize;
+    const i64 comTime = static_cast<const i64>(busSpeed / dataSize);
 
     /* == Search for the first PE able to run the send task == */
     const auto minStartTime = previousTask->endTime();
-    auto *mappedPe = findBestPEFit(cluster, minStartTime, [&comTime](PE *) -> ufast64 { return comTime; },
-                                   [](PE *) -> bool { return false; });
+    auto *mappedPe = findBestPEFit(cluster, minStartTime, &comTime,
+                                   [](const PE *,
+                                      const void *info) -> i64 { return reinterpret_cast<const i64 *>(info)[0]; },
+                                   [](const PE *, const void *) -> bool { return false; });
     if (!mappedPe) {
         throwSpiderException("could not find any processing element to map task.");
     }
@@ -262,12 +264,12 @@ void spider::Scheduler::mapTask(ScheduleTask *task) {
             continue;
         }
         /* == Find best fit PE for this cluster == */
-        auto *foundPE = findBestPEFit(cluster, minStartTime,
-                                      [&vertexRtConstraints](PE *pe) -> ufast64 {
-                                          return !vertexRtConstraints->timingOnPE(pe);
+        auto *foundPE = findBestPEFit(cluster, minStartTime, vertexRtConstraints,
+                                      [](const PE *pe, const void *info) -> i64 {
+                                          return reinterpret_cast<const RTInfo *>(info)->timingOnPE(pe);
                                       },
-                                      [&vertexRtConstraints](PE *pe) -> bool {
-                                          return !vertexRtConstraints->isPEMappable(pe);
+                                      [](const PE *pe, const void *info) -> bool {
+                                          return !reinterpret_cast<const RTInfo *>(info)->isPEMappable(pe);
                                       });
         if (foundPE) {
             /* == Compute communication cost == */
