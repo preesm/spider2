@@ -1,4 +1,4 @@
-# <img src="./doc/img/spider-full.svg" alt="SPIDER 2.0" width="400"/>
+# <img src="./doc/img/spider-full-nofont.svg" alt="SPIDER 2.0" width="400"/>
 _Synchronous Parameterized and Interfaced Dataflow Embedded Runtime_
 
 
