@@ -33,30 +33,30 @@ To build the shared library, a variety of scripts are provided.
 
 * Building SPIDER 2.0 shared library on Linux using GCC:
 ```shell
-git clone https://github.com/preesm/spider-2.0.git
-cd spider-2.0/bin
+git clone https://github.com/preesm/spider2.git
+cd spider2/bin
 cmake .. -DCMAKE_BUILD_TYPE=Release
 make spider2 -j$(nproc)
 ```
 
 * Building SPIDER 2.0 shared library on Linux using CodeBlock:
 ```shell
-git clone https://github.com/preesm/spider-2.0.git
-cd spider-2.0/libspider/build-scripts/linux
+git clone https://github.com/preesm/spider2.git
+cd spider2/libspider/build-scripts/linux
 ./CMakeCodeblock.sh
 ```
 
 * Building SPIDER 2.0 shared library on Windows using CodeBlock:
 ```shell
-git clone https://github.com/preesm/spider-2.0.git
-cd spider-2.0/libspider/build-scripts/windows
+git clone https://github.com/preesm/spider2.git
+cd spider2/libspider/build-scripts/windows
 ./CMakeCodeblock.bat
 ```
 
 * Building SPIDER 2.0 shared library on Windows using Visual Studio 2017:
 ```shell
-git clone https://github.com/preesm/spider-2.0.git
-cd spider-2.0/libspider/build-scripts/windows
+git clone https://github.com/preesm/spider2.git
+cd spider2/libspider/build-scripts/windows
 ./CMakeVS2017.bat
 ```
 
@@ -80,8 +80,8 @@ __(coming soon...)__
 
 * Building SPIDER 2.0 documentation on Linux:
 ```shell
-git clone https://github.com/preesm/spider-2.0.git
-cd spider-2.0/bin
+git clone https://github.com/preesm/spider2.git
+cd spider2/bin
 cmake ..
 make doc -j$(nproc)
 ```
