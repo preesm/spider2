@@ -61,7 +61,7 @@ protected:
 };
 
 TEST_F(allocatorTest, abstractAllocUsage1GBTest) {
-    auto *buffer = spider::allocate<void *>(1024 * 1024 * 1024);
+    auto *buffer = spider::allocate<void *>(1024u * 1024u * 1024u);
     ASSERT_NE(buffer, nullptr) << "Allocator: failed to allocated 1GB";
     ASSERT_NO_THROW(spider::deallocate(buffer)) << "Allocator: deallocation failed";
 }

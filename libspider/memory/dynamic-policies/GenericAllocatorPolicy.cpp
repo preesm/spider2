@@ -52,7 +52,7 @@ void *GenericAllocatorPolicy::allocate(size_t size) {
         lastAllocatedSize_ = 0;
         return nullptr;
     }
-    fprintf(stderr, "size: %zu -- %lu\n", size, 1024u * 1024u * 1024u);
+    fprintf(stderr, "size: %zu -- %lu -- %lu\n", size, size, 1024u * 1024u * 1024u);
     size = size + sizeof(uint64_t);
     fprintf(stderr, "size: %zu\n", size);
     size = AbstractAllocatorPolicy::computeAlignedSize(size, alignment_);
