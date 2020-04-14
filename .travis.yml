@@ -30,3 +30,47 @@ jobs:
             - cmake .. -DCMAKE_BUILD_TYPE=Debug -DTYPE_SAFE=ON -DBUILD_TESTING=OFF
             - cmake --build . --target spider2 -- -j$(nproc) VERBOSE=1
 
+        - stage: Build
+          name: "Build release"
+          os: linux
+          dist: xenial
+          compiler: gcc-7
+          addons:
+            apt:
+                sources:
+                    - ubuntu-toolchain-r-test
+                packages:
+                    - g++-7
+                    - doxygen
+          env:
+            - GENERATOR="Unix Makefile"
+            - PATH=/opt/python/3.7.1/bin:$PATH
+          script:
+            - export CC=gcc-7
+            - export CXX=g++-7
+            - cd bin
+            - cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF
+            - cmake --build . --target spider2 -- -j$(nproc) VERBOSE=1
+
+        - stage: Build
+          name: "Build debug"
+          os: linux
+          dist: xenial
+          compiler: gcc-7
+          addons:
+            apt:
+                sources:
+                    - ubuntu-toolchain-r-test
+                packages:
+                    - g++-7
+                    - doxygen
+          env:
+            - GENERATOR="Unix Makefile"
+            - PATH=/opt/python/3.7.1/bin:$PATH
+          script:
+            - export CC=gcc-7
+            - export CXX=g++-7
+            - cd bin
+            - cmake .. -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=OFF
+            - cmake --build . --target spider2 -- -j$(nproc) VERBOSE=1
+
