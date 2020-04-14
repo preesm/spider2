@@ -34,7 +34,7 @@
  * knowledge of the CeCILL license and that you accept its terms.
  */
 
-#include <chrono>
+#include <iostream>
 #include <graphs/pisdf/Param.h>
 #include <graphs/pisdf/Delay.h>
 #include <graphs/pisdf/ExecVertex.h>
@@ -60,6 +60,7 @@
 #include <containers/array_handle.h>
 #include <csignal>
 #include <runtime/runner/JITMSRTRunner.h>
+#include <graphs-tools/transformation/srdagless/SRLessHandler.h>
 
 void createUserPlatform();
 
@@ -285,8 +286,8 @@ void testGraphRec() {
 int main(int, char **) {
 //    simpleNoExecHTest();
 //    simpleNoExecTest();
-    testGraphRec();
-//    simpleTest();
+//    testGraphRec();
+    simpleTest();
 //    spiderSmallTest();
 //    spiderTest();
     return 0;
@@ -349,9 +350,9 @@ void simpleNoExecTest() {
     auto *vertex_0 = spider::api::createVertex(graph, "vertex_0", 0, 2);
     auto *vertex_1 = spider::api::createVertex(graph, "vertex_1", 2, 0);
     auto *vertex_2 = spider::api::createVertex(graph, "vertex_2", 1, 1);
-    spider::api::createEdge(vertex_0, 0, 1, vertex_1, 0, 1);
-    spider::api::createEdge(vertex_0, 1, 0, vertex_2, 0, 0);
-    spider::api::createEdge(vertex_2, 0, 0, vertex_1, 1, 0);
+    spider::api::createEdge(vertex_0, 0, 2, vertex_1, 0, 1);
+    spider::api::createEdge(vertex_0, 1, 2, vertex_2, 0, 1);
+    spider::api::createEdge(vertex_2, 0, 1, vertex_1, 1, 1);
     spider::api::exportGraphToDOT(graph);
     spider::api::createThreadRTPlatform();
     spider::api::createRuntimeKernel(vertex_0,
@@ -374,8 +375,10 @@ void simpleNoExecTest() {
                                          auto *buffer = reinterpret_cast<char *>(input[0]);
                                          spider::log::info("vertex_2 reading %d\n", buffer[0]);
                                      });
-    auto context = spider::createRuntimeContext(graph, spider::RunMode::LOOP, 1, spider::RuntimeType::JITMS,
-                                                spider::SchedulingPolicy::LIST_BEST_FIT);
+//    auto context = spider::createRuntimeContext(graph, spider::RunMode::LOOP, 1, spider::RuntimeType::JITMS,
+//                                                spider::SchedulingPolicy::LIST_BEST_FIT);
+    auto context = spider::createRuntimeContext(graph, spider::RunMode::LOOP, 1, spider::RuntimeType::FAST_JITMS,
+                                                spider::SchedulingPolicy::SRLESS_LIST_BEST_FIT);
     spider::run(context);
     spider::destroyRuntimeContext(context);
     spider::api::destroyGraph(graph);
@@ -391,17 +394,19 @@ void simpleTest() {
     createUserPlatform();
     auto *graph = spider::api::createGraph("topgraph", 1, 0, 0);
     auto *vertex_0 = spider::api::createVertex(graph, "A", 0, 1);
-    auto *vertex_1 = spider::api::createVertex(graph, "B", 1, 0);
-    auto *setter = spider::api::createVertex(graph, "S", 0, 1);
-    auto *getter = spider::api::createVertex(graph, "G", 1, 0);
-    auto *edge = spider::api::createEdge(vertex_0, 0, 4, vertex_1, 0, 2);
-    auto *delay = spider::api::createLocalDelay(edge, "3", setter, 0, "1", getter, 0, "1");
-    auto *vertex_init = spider::api::createVertex(graph, "I", 0, 1);
-    auto *vertex_end = spider::api::createVertex(graph, "E", 1, 0);
-    spider::api::createLocalDelay(delay->vertex()->outputEdge(0), "2", vertex_init, 0, "1", vertex_end, 0, "2");
-    auto *vertex_d = spider::api::createVertex(graph, "D", 0, 1);
-    auto *vertex_h = spider::api::createVertex(graph, "H", 1, 0);
-    spider::api::createLocalDelay(delay->vertex()->inputEdge(0), "5", vertex_d, 0, "1", vertex_h, 0, "1");
+    auto *vertex_1 = spider::api::createVertex(graph, "B", 1, 1);
+    auto *vertex_2 = spider::api::createVertex(graph, "C", 1, 0);
+//    auto *setter = spider::api::createVertex(graph, "S", 0, 1);
+//    auto *getter = spider::api::createVertex(graph, "G", 1, 0);
+    spider::api::createEdge(vertex_0, 0, 4, vertex_1, 0, 1);
+    spider::api::createEdge(vertex_1, 0, 3, vertex_2, 0, 4);
+//    auto *delay = spider::api::createLocalDelay(edge, "3", setter, 0, "1", getter, 0, "1");
+//    auto *vertex_init = spider::api::createVertex(graph, "I", 0, 1);
+//    auto *vertex_end = spider::api::createVertex(graph, "E", 1, 0);
+//    spider::api::createLocalDelay(delay->vertex()->outputEdge(0), "2", vertex_init, 0, "1", vertex_end, 0, "2");
+//    auto *vertex_d = spider::api::createVertex(graph, "D", 0, 1);
+//    auto *vertex_h = spider::api::createVertex(graph, "H", 1, 0);
+//    spider::api::createLocalDelay(delay->vertex()->inputEdge(0), "5", vertex_d, 0, "1", vertex_h, 0, "1");
 
     spider::api::createThreadRTPlatform();
     spider::api::exportGraphToDOT(graph);
@@ -420,19 +425,19 @@ void simpleTest() {
                                          spider::log::info("vertex_1 reading %d\n", buffer[0]);
                                      });
     auto start = spider::time::now();
-    auto context = spider::createRuntimeContext(graph, spider::RunMode::LOOP, 10000, spider::RuntimeType::FAST_JITMS,
-                                                 spider::SchedulingPolicy::SRLESS_LIST_BEST_FIT);
+    auto context = spider::createRuntimeContext(graph, spider::RunMode::LOOP, 1, spider::RuntimeType::FAST_JITMS,
+                                                spider::SchedulingPolicy::SRLESS_LIST_BEST_FIT);
     spider::run(context);
     spider::destroyRuntimeContext(context);
     auto end = spider::time::now();
     std::cerr << "fast-jitms: " << spider::time::duration::nanoseconds(start, end) << std::endl;
-//    start = spider::time::now();
-//    auto context2 = spider::createRuntimeContext(graph, spider::RunMode::LOOP, 100, spider::RuntimeType::JITMS,
-//                                                 spider::SchedulingPolicy::LIST_BEST_FIT);
-//    spider::run(context2);
-//    spider::destroyRuntimeContext(context2);
-//    end = spider::time::now();
-//    std::cerr << "jitms: " << spider::time::duration::nanoseconds(start, end) << std::endl;
+    start = spider::time::now();
+    auto context2 = spider::createRuntimeContext(graph, spider::RunMode::LOOP, 1, spider::RuntimeType::JITMS,
+                                                 spider::SchedulingPolicy::LIST_BEST_FIT);
+    spider::run(context2);
+    spider::destroyRuntimeContext(context2);
+    end = spider::time::now();
+    std::cerr << "jitms: " << spider::time::duration::nanoseconds(start, end) << std::endl;
     spider::api::destroyGraph(graph);
     spider::quit();
 }
