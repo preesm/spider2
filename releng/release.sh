@@ -81,6 +81,7 @@ if [ $NBCHANGES -ne 0 ]; then
 fi
 
 #commit new version in develop
+git stash pop
 git add -A
 git commit -m "[RELENG] Prepare version $NEW_VERSION"
 
