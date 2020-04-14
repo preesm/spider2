@@ -61,19 +61,19 @@ protected:
 };
 
 TEST_F(allocatorTest, abstractAllocUsage1GBTest) {
-    auto *buffer = spider::allocate<void *>(1024 * 1024 * 1024);
+    auto *buffer = spider::allocate<char>(1024u * 1024u * 1024u);
     ASSERT_NE(buffer, nullptr) << "Allocator: failed to allocated 1GB";
     ASSERT_NO_THROW(spider::deallocate(buffer)) << "Allocator: deallocation failed";
 }
 
 TEST_F(allocatorTest, abstractAllocUsage2MBTest) {
-    auto *buffer = spider::allocate<void *>(2 * 1024 * 1024);
+    auto *buffer = spider::allocate<char>(2 * 1024 * 1024);
     ASSERT_NE(buffer, nullptr) << "Allocator: failed to allocated 1MB";
     ASSERT_NO_THROW(spider::deallocate(buffer)) << "Allocator: deallocation failed";
 }
 
 TEST_F(allocatorTest, abstractAllocUsage1KBTest) {
-    auto *buffer = spider::allocate<void *>(1024);
+    auto *buffer = spider::allocate<char>(1024);
     ASSERT_NE(buffer, nullptr) << "Allocator: failed to allocated 1KB";
     ASSERT_NO_THROW(spider::deallocate(buffer)) << "Allocator: deallocation failed";
 }
@@ -292,12 +292,16 @@ TEST_F(allocatorTest, allocTest) {
                                 << "alloc: 0-size allocation should return nullptr.";
     ASSERT_EQ(spider::allocate<double>(StackID::SCHEDULE, 0), nullptr)
                                 << "alloc: 0-size allocation should return nullptr.";
-    ASSERT_NE(spider::allocate<double>(StackID::GENERAL, 256), nullptr)
+    void *tmp = nullptr;
+    ASSERT_NE(tmp = spider::allocate<double>(StackID::GENERAL, 256), nullptr)
                                 << "alloc: non null-size allocation should not return nullptr.";
-    ASSERT_NE(spider::allocate<double>(StackID::PISDF, 256), nullptr)
+    ASSERT_NO_THROW(spider::deallocate(tmp));
+    ASSERT_NE(tmp = spider::allocate<double>(StackID::PISDF, 256), nullptr)
                                 << "alloc: non null-size allocation should not return nullptr.";
-    ASSERT_NE(spider::allocate<double>(StackID::SCHEDULE, 256), nullptr)
+    ASSERT_NO_THROW(spider::deallocate(tmp));
+    ASSERT_NE(tmp = spider::allocate<double>(StackID::SCHEDULE, 256), nullptr)
                                 << "alloc: non null-size allocation should not return nullptr.";
+    ASSERT_NO_THROW(spider::deallocate(tmp));
 }
 
 TEST_F(allocatorTest, allocatorTest) {
@@ -306,8 +310,11 @@ TEST_F(allocatorTest, allocatorTest) {
 }
 
 TEST_F(allocatorTest, errorUsageTest) {
-    ASSERT_NO_THROW((spider::allocate<double, StackID::GENERAL>()));
+    void *tmp = nullptr;
+    ASSERT_NO_THROW((tmp = spider::allocate<double, StackID::GENERAL>()));
+    ASSERT_NO_THROW(spider::deallocate(tmp));
     delete spider::stackArray()[static_cast<uint64_t >(StackID::GENERAL)];
     spider::stackArray()[static_cast<uint64_t >(StackID::GENERAL)] = nullptr;
-    ASSERT_THROW((spider::allocator<double>(StackID::GENERAL)), spider::Exception) << "spider::allocator should throw for nullptr stack.";
+    ASSERT_THROW((spider::allocator<double>(StackID::GENERAL)), spider::Exception)
+                                << "spider::allocator should throw for nullptr stack.";
 }

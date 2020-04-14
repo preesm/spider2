@@ -11,6 +11,8 @@ Spider 2.0 is developped at the Institute of Electronics and Telecommunications-
 
 ## Overview
 
+* [Continuous Integration](#continuous-integration)
+
 * [Build and Install Spider 2.0](#build-and-install-spider-2.0)
 
 * [How to Use the Spider 2.0 Library](#how-to-use-the-spider-2.0-library)
@@ -18,6 +20,13 @@ Spider 2.0 is developped at the Institute of Electronics and Telecommunications-
 * [Contact](#contact)
 
 * [License](#license)
+
+## Continuous Integration
+
+| All branches | [Travis Status](https://travis-ci.com/preesm/spider2) |
+| ------------- |  ------------- |
+| master  |  [![Build Status](https://travis-ci.com/preesm/spider2.svg?branch=master)](https://travis-ci.com/preesm/spider2/branches)  |
+| develop  | [![Build Status](https://travis-ci.com/preesm/spider2.svg?branch=develop)](https://travis-ci.com/preesm/spider2/branches) |
 
 ## Build and Install Spider 2.0
 

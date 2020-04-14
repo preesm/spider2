@@ -54,7 +54,6 @@ void *GenericAllocatorPolicy::allocate(size_t size) {
     }
     size = size + sizeof(uint64_t);
     size = AbstractAllocatorPolicy::computeAlignedSize(size, alignment_);
-
     auto *headerAddress = std::malloc(size);
     if (!headerAddress) {
         // LCOV_IGNORE
