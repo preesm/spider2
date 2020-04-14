@@ -23,10 +23,10 @@ Spider 2.0 is developped at the Institute of Electronics and Telecommunications-
 
 ## Continuous Integration
 
-| All branches | [Travis Status](https://travis-ci.com/github/preesm/spider2) |
+| All branches | [Travis Status](https://travis-ci.com/preesm/spider2) |
 | ------------- |  ------------- |
-| master  |  [![Build Status](https://travis-ci.com/github/preesm/spider2.svg?branch=master)](https://travis-ci.com/github/preesm/spider2/branches)  |
-| develop  | [![Build Status](https://travis-ci.com/github/preesm/spider2.svg?branch=develop)](https://travis-ci.com/github/preesm/spider2/branches) |
+| master  |  [![Build Status](https://travis-ci.com/preesm/spider2.svg?branch=master)](https://travis-ci.com/preesm/spider2/branches)  |
+| develop  | [![Build Status](https://travis-ci.com/preesm/spider2.svg?branch=develop)](https://travis-ci.com/preesm/spider2/branches) |
 
 ## Build and Install Spider 2.0
 
