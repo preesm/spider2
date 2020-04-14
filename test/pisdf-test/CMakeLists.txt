@@ -31,7 +31,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 endif ()
 
 add_executable(${GRAPH_TARGET_NAME} ${${GRAPH_TARGET_NAME}_SRC})
-target_link_libraries(${GRAPH_TARGET_NAME} ${GTEST_LIBRARIES} ${PROJECT_NAME}::${PROJECT_NAME})
+target_link_libraries(${GRAPH_TARGET_NAME} gtest_main gmock_main ${PROJECT_NAME}::${PROJECT_NAME})
 
 # Add a test to the project to be run by ctest.
 # See https://cmake.org/cmake/help/latest/command/add_test.html

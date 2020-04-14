@@ -103,26 +103,26 @@ void spider::SRLessDefaultFifoAllocator::allocateDefaultVertexTask(spider::Sched
     task->setTaskMemory(std::move(taskMemory));
 }
 
-void spider::SRLessDefaultFifoAllocator::allocateRepeatTask(spider::ScheduleTask *task) {
+void spider::SRLessDefaultFifoAllocator::allocateRepeatTask(spider::ScheduleTask *) {
 
 }
 
-void spider::SRLessDefaultFifoAllocator::allocateForkTask(spider::ScheduleTask *task) {
+void spider::SRLessDefaultFifoAllocator::allocateForkTask(spider::ScheduleTask *) {
 
 }
 
-void spider::SRLessDefaultFifoAllocator::allocateDuplicateTask(spider::ScheduleTask *task) {
+void spider::SRLessDefaultFifoAllocator::allocateDuplicateTask(spider::ScheduleTask *) {
 
 }
 
-void spider::SRLessDefaultFifoAllocator::allocateExternInTask(spider::ScheduleTask *task) {
+void spider::SRLessDefaultFifoAllocator::allocateExternInTask(spider::ScheduleTask *) {
 
 }
 
-void spider::SRLessDefaultFifoAllocator::allocateReceiveTask(spider::ScheduleTask *task) {
+void spider::SRLessDefaultFifoAllocator::allocateReceiveTask(spider::ScheduleTask *) {
 
 }
 
-void spider::SRLessDefaultFifoAllocator::allocateSendTask(spider::ScheduleTask *task) {
+void spider::SRLessDefaultFifoAllocator::allocateSendTask(spider::ScheduleTask *) {
 
 }

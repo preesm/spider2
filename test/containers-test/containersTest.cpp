@@ -102,7 +102,7 @@ TEST_F(containersTest, arrayAssignTest) {
                                 << "const method at() should throw for out_of_bound index spider::array";
 //    ASSERT_DOUBLE_EQ(arr[0], 3.1415) << "failed value initialized spider::array";
 //    ASSERT_DOUBLE_EQ(test_const_at(arr, false), 3.1415) << "const method at() should work for spider::array";
-    ASSERT_EQ(arr.size(), 10) << "invalid size for spider::array";
+    ASSERT_EQ(arr.size(), 10u) << "invalid size for spider::array";
     spider::array<double> test;
     ASSERT_NO_THROW(test = spider::array<double>(2)) << "move assignment failed for spider::array";
     spider::array<double> test2{2., 2.};

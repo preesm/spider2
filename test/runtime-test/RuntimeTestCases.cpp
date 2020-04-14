@@ -153,21 +153,21 @@ void spider::test::runtimeStaticHierarchicalNoExec(spider::RuntimeType type, spi
     spider::api::exportGraphToDOT(graph);
     spider::api::createThreadRTPlatform();
     spider::api::createRuntimeKernel(vertex_0,
-                                     [](const int64_t *, int64_t *, void *[], void *output[]) -> void {
-                                         auto *buffer = reinterpret_cast<char *>(output[0]);
+                                     [](const int64_t *, int64_t *, void *[], void *out[]) -> void {
+                                         auto *buffer = reinterpret_cast<char *>(out[0]);
                                          buffer[0] = 3;
                                          spider::log::info("vertex_0:0 writing: 3..\n");
                                      });
 
     spider::api::createRuntimeKernel(vertex_1,
-                                     [](const int64_t *, int64_t *, void *input[], void *[]) -> void {
-                                         auto *buffer = reinterpret_cast<char *>(input[0]);
+                                     [](const int64_t *, int64_t *, void *in[], void *[]) -> void {
+                                         auto *buffer = reinterpret_cast<char *>(in[0]);
                                          spider::log::info("vertex_1 reading %d\n", buffer[0]);
                                      });
 
     spider::api::createRuntimeKernel(vertex_2,
-                                     [](const int64_t *, int64_t *, void *input[], void *[]) -> void {
-                                         auto *buffer = reinterpret_cast<char *>(input[0]);
+                                     [](const int64_t *, int64_t *, void *in[], void *[]) -> void {
+                                         auto *buffer = reinterpret_cast<char *>(in[0]);
                                          spider::log::info("vertex_2 reading %d\n", buffer[0]);
                                      });
     auto context = spider::createRuntimeContext(graph, RunMode::LOOP, 10, type, algorithm);
@@ -199,15 +199,15 @@ void spider::test::runtimeDynamicHierarchical(spider::RuntimeType type, spider::
     spider::api::createThreadRTPlatform();
 
     spider::api::createRuntimeKernel(vertex_0,
-                                     [](const int64_t *, int64_t *, void *[], void *output[]) -> void {
-                                         auto *buffer = reinterpret_cast<char *>(output[0]);
+                                     [](const int64_t *, int64_t *, void *[], void *out[]) -> void {
+                                         auto *buffer = reinterpret_cast<char *>(out[0]);
                                          buffer[0] = 78;
 //                                             spider::printer::printf("vertex_0 writing: %d..\n", buffer[0]);
                                      });
 
     spider::api::createRuntimeKernel(vertex_1,
-                                     [](const int64_t *, int64_t *, void *input[], void *output[]) -> void {
-                                         auto *buffer = reinterpret_cast<char *>(output[0]);
+                                     [](const int64_t *, int64_t *, void *[], void *out[]) -> void {
+                                         auto *buffer = reinterpret_cast<char *>(out[0]);
 //                                             spider::printer::printf("vertex_1 reading %d..\n",
 //                                                                     reinterpret_cast<char *>(input[0])[0]);
                                          buffer[0] = 1;
@@ -217,20 +217,20 @@ void spider::test::runtimeDynamicHierarchical(spider::RuntimeType type, spider::
                                      });
 
     spider::api::createRuntimeKernel(width_setter,
-                                     [](const int64_t *, int64_t *output, void *[], void *[]) -> void {
+                                     [](const int64_t *, int64_t *out, void *[], void *[]) -> void {
                                          static int64_t i = 10;
-                                         output[0] = i;
+                                         out[0] = i;
                                          spider::printer::printf("width_setter: setting value: %" PRId64".\n",
-                                                                 output[0]);
+                                                                 out[0]);
                                      });
 
     spider::api::createRuntimeKernel(sub_setter,
-                                     [](const int64_t *, int64_t *output, void *[], void *[]) -> void {
+                                     [](const int64_t *, int64_t *out, void *[], void *[]) -> void {
                                          static int64_t i = 1;
-                                         output[0] = i;
+                                         out[0] = i;
 //                                             ++i;
                                          spider::printer::printf("sub_setter: setting value: %" PRId64".\n",
-                                                                 output[0]);
+                                                                 out[0]);
                                      });
 
     spider::api::createRuntimeKernel(vertex_2,
