@@ -6,7 +6,6 @@ stages:
 jobs:
     include:
         - stage: Build
-          name: "Build typesafe"
           os: linux
           dist: xenial
           compiler: gcc-7
@@ -25,57 +24,18 @@ jobs:
             - export CXX=g++-7
             - cd bin
             - cmake .. -DCMAKE_BUILD_TYPE=Release -DTYPE_SAFE=ON -DBUILD_TESTING=OFF
-            - cmake --build . --target spider2 -- -j$(nproc) VERBOSE=1
+            - cmake --build . --target spider2 -- -j$(nproc)
             - rm -rf ../bin/*
             - cmake .. -DCMAKE_BUILD_TYPE=Debug -DTYPE_SAFE=ON -DBUILD_TESTING=OFF
-            - cmake --build . --target spider2 -- -j$(nproc) VERBOSE=1
-
-        - stage: Build
-          name: "Build release"
-          os: linux
-          dist: xenial
-          compiler: gcc-7
-          addons:
-            apt:
-                sources:
-                    - ubuntu-toolchain-r-test
-                packages:
-                    - g++-7
-                    - doxygen
-          env:
-            - GENERATOR="Unix Makefile"
-            - PATH=/opt/python/3.7.1/bin:$PATH
-          script:
-            - export CC=gcc-7
-            - export CXX=g++-7
-            - cd bin
+            - cmake --build . --target spider2 -- -j$(nproc)
+	    - rm -rf ../bin/*
             - cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF
-            - cmake --build . --target spider2 -- -j$(nproc) VERBOSE=1
-
-        - stage: Build
-          name: "Build debug"
-          os: linux
-          dist: xenial
-          compiler: gcc-7
-          addons:
-            apt:
-                sources:
-                    - ubuntu-toolchain-r-test
-                packages:
-                    - g++-7
-                    - doxygen
-          env:
-            - GENERATOR="Unix Makefile"
-            - PATH=/opt/python/3.7.1/bin:$PATH
-          script:
-            - export CC=gcc-7
-            - export CXX=g++-7
-            - cd bin
+            - cmake --build . --target spider2 -- -j$(nproc)
+	    - rm -rf ../bin/*
             - cmake .. -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=OFF
-            - cmake --build . --target spider2 -- -j$(nproc) VERBOSE=1
+            - cmake --build . --target spider2 -- -j$(nproc)
 
         - stage: Test
-          name: "Test allocator"
           os: linux
           dist: xenial
           compiler: gcc-7
@@ -101,116 +61,8 @@ jobs:
             - cmake --build . --target spider2 -- -j$(nproc)
             - cd ..
             - ./scripts/linux/runTest.sh allocator
-
-        - stage: Test
-          name: "Test containers"
-          os: linux
-          dist: xenial
-          compiler: gcc-7
-          addons:
-            apt:
-                sources:
-                    - ubuntu-toolchain-r-test
-                packages:
-                    - g++-7
-                    - doxygen
-                    - gcovr
-                    - lcov
-          env:
-            - GENERATOR="Unix Makefile"
-            - PATH=/opt/python/3.7.1/bin:$PATH
-          install:
-            - pip install gcovr
-          script:
-            - export CC=gcc-7
-            - export CXX=g++-7
-            - cd bin
-            - cmake .. -DCMAKE_BUILD_TYPE=Debug
-            - cmake --build . --target spider2 -- -j$(nproc)
-            - cd ..
             - ./scripts/linux/runTest.sh containers
-
-        - stage: Test
-          name: "Test expression"
-          os: linux
-          dist: xenial
-          compiler: gcc-7
-          addons:
-            apt:
-                sources:
-                    - ubuntu-toolchain-r-test
-                packages:
-                    - g++-7
-                    - doxygen
-                    - gcovr
-                    - lcov
-          env:
-            - GENERATOR="Unix Makefile"
-            - PATH=/opt/python/3.7.1/bin:$PATH
-          install:
-            - pip install gcovr
-          script:
-            - export CC=gcc-7
-            - export CXX=g++-7
-            - cd bin
-            - cmake .. -DCMAKE_BUILD_TYPE=Debug
-            - cmake --build . --target spider2 -- -j$(nproc)
-            - cd ..
             - ./scripts/linux/runTest.sh expression
-
-        - stage: Test
-          name: "Test graph"
-          os: linux
-          dist: xenial
-          compiler: gcc-7
-          addons:
-            apt:
-                sources:
-                    - ubuntu-toolchain-r-test
-                packages:
-                    - g++-7
-                    - doxygen
-                    - gcovr
-                    - lcov
-          env:
-            - GENERATOR="Unix Makefile"
-            - PATH=/opt/python/3.7.1/bin:$PATH
-          install:
-            - pip install gcovr
-          script:
-            - export CC=gcc-7
-            - export CXX=g++-7
-            - cd bin
-            - cmake .. -DCMAKE_BUILD_TYPE=Debug
-            - cmake --build . --target spider2 -- -j$(nproc)
-            - cd ..
             - ./scripts/linux/runTest.sh graph
-
-        - stage: Test
-          name: "Test math"
-          os: linux
-          dist: xenial
-          compiler: gcc-7
-          addons:
-            apt:
-                sources:
-                    - ubuntu-toolchain-r-test
-                packages:
-                    - g++-7
-                    - doxygen
-                    - gcovr
-                    - lcov
-          env:
-            - GENERATOR="Unix Makefile"
-            - PATH=/opt/python/3.7.1/bin:$PATH
-          install:
-            - pip install gcovr
-          script:
-            - export CC=gcc-7
-            - export CXX=g++-7
-            - cd bin
-            - cmake .. -DCMAKE_BUILD_TYPE=Debug
-            - cmake --build . --target spider2 -- -j$(nproc)
-            - cd ..
             - ./scripts/linux/runTest.sh math
 
