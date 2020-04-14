@@ -2,6 +2,7 @@ language: cpp
 
 stages:
     - Build
+    - Test
 
 jobs:
     include:
@@ -28,10 +29,10 @@ jobs:
             - rm -rf ../bin/*
             - cmake .. -DCMAKE_BUILD_TYPE=Debug -DTYPE_SAFE=ON -DBUILD_TESTING=OFF
             - cmake --build . --target spider2 -- -j$(nproc)
-	    - rm -rf ../bin/*
+            - rm -rf ../bin/*
             - cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF
             - cmake --build . --target spider2 -- -j$(nproc)
-	    - rm -rf ../bin/*
+            - rm -rf ../bin/*
             - cmake .. -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=OFF
             - cmake --build . --target spider2 -- -j$(nproc)
 
