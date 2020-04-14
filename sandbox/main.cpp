@@ -1,10 +1,9 @@
-/*
- * Copyright or © or Copr. IETR/INSA - Rennes (2018) :
+/**
+ * Copyright or © or Copr. IETR/INSA - Rennes (2019 - 2020) :
  *
- * Antoine Morvan <antoine.morvan@insa-rennes.fr> (2018)
- * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2017-2019)
+ * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2019 - 2020)
  *
- * Spider is a dataflow based runtime used to execute dynamic PiSDF
+ * Spider 2.0 is a dataflow based runtime used to execute dynamic PiSDF
  * applications. The Preesm tool may be used to design PiSDF applications.
  *
  * This software is governed by the CeCILL  license under French law and
@@ -33,7 +32,6 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-
 #include <iostream>
 #include <graphs/pisdf/Param.h>
 #include <graphs/pisdf/Delay.h>
