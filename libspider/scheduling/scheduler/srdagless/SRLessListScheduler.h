@@ -109,7 +109,7 @@ namespace spider {
 
         void setNextVerticesNonSchedulable(pisdf::Vertex *vertex, vector<ListTask> &listVertexVector) const;
 
-        void sortVertices();
+        void sortTasks();
     };
 }
 

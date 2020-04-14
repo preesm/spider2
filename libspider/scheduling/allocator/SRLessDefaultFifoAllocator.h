@@ -37,12 +37,13 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_DEFAULTFIFOALLOCATOR_H
-#define SPIDER2_DEFAULTFIFOALLOCATOR_H
+#ifndef SPIDER2_SRLESSDEFAULTFIFOALLOCATOR_H
+#define SPIDER2_SRLESSDEFAULTFIFOALLOCATOR_H
 
 /* === Include(s) === */
 
-#include <scheduling/allocator/FifoAllocator.h>
+
+#include <scheduling/allocator/DefaultFifoAllocator.h>
 #include <archi/MemoryInterface.h>
 #include <common/Exception.h>
 
@@ -54,55 +55,42 @@ namespace spider {
 
     /* === Class definition === */
 
-    class DefaultFifoAllocator : public FifoAllocator {
+    class SRLessDefaultFifoAllocator final : public DefaultFifoAllocator {
     public:
-        DefaultFifoAllocator() : FifoAllocator() {
+        SRLessDefaultFifoAllocator() : DefaultFifoAllocator() {
             traits_.jitAllocator_ = true;
             traits_.postSchedulingAllocator_ = true;
         };
 
-        ~DefaultFifoAllocator() override = default;
+        ~SRLessDefaultFifoAllocator() override = default;
 
         /* === Method(s) === */
 
-        RTFifo allocate(int64_t size) override;
-
-        void allocate(ScheduleTask *task) override;
-
-        void clear() noexcept override;
-
-        void allocatePersistentDelays(pisdf::Graph *graph) override;
-
         /* === Getter(s) === */
-
-        inline FifoAllocatorType type() const override {
-            return FifoAllocatorType::DEFAULT;
-        }
 
         /* === Setter(s) === */
 
-    protected:
+    private:
         int64_t virtualMemoryAddress_ = 0;
         int64_t reservedMemory_ = 0;
 
-        /* === Protected method(s) === */
+        /* === Private method(s) === */
 
-        virtual void allocateVertexTask(ScheduleTask *task);
+        void allocateVertexTask(ScheduleTask *task) override;
 
-        virtual void allocateDefaultVertexTask(ScheduleTask *task);
+        void allocateDefaultVertexTask(ScheduleTask *task) override;
 
-        virtual void allocateRepeatTask(ScheduleTask *task);
+        void allocateRepeatTask(ScheduleTask *task) override;
 
-        virtual void allocateForkTask(ScheduleTask *task);
+        void allocateForkTask(ScheduleTask *task) override;
 
-        virtual void allocateDuplicateTask(ScheduleTask *task);
+        void allocateDuplicateTask(ScheduleTask *task) override;
 
-        virtual void allocateExternInTask(ScheduleTask *task);
+        void allocateExternInTask(ScheduleTask *task) override;
 
-        virtual void allocateReceiveTask(ScheduleTask *task);
+        void allocateReceiveTask(ScheduleTask *task) override;
 
-        virtual void allocateSendTask(ScheduleTask *task);
+        void allocateSendTask(ScheduleTask *task) override;
     };
 }
-
-#endif //SPIDER2_DEFAULTFIFOALLOCATOR_H
+#endif //SPIDER2_SRLESSDEFAULTFIFOALLOCATOR_H

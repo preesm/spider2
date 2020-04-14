@@ -87,9 +87,6 @@ void spider::SRLessListScheduler::update() {
         computeScheduleLevel(listVertex, sortedTaskVector_);
     }
 
-    /* == Sort the vector == */
-    sortVertices();
-
     auto iterator = sortedTaskVector_.begin() + static_cast<long>(lastSchedulableTask_);
     for (; iterator != sortedTaskVector_.end(); ++iterator) {
         auto *task = iterator->task_;
@@ -111,7 +108,7 @@ void spider::SRLessListScheduler::update() {
                     auto &srcDep = dependencies[index++];
                     for (auto k = srcDep.firingStart_; k <= srcDep.firingEnd_; ++k) {
                         auto &srcTask = sortedTaskVector_[srcDep.vertex_->scheduleTaskIx() + k];
-                        task->setDependency(schedule_.task(static_cast<size_t>(srcTask.task_->ix())), depIndex++);
+                        task->setDependency(srcTask.task_, depIndex++);
                     }
                 }
             }
@@ -123,6 +120,9 @@ void spider::SRLessListScheduler::update() {
         auto *vertex = task->vertex();
         vertex->setScheduleTaskIx(static_cast<size_t>(task->ix()));
     }
+
+    /* == Sort the vector == */
+    sortTasks();
 
     /* == Create the schedule tasks == */
     lastSchedulableTask_ = sortedTaskVector_.size() - 0;
@@ -147,6 +147,9 @@ ifast32 spider::SRLessListScheduler::computeScheduleLevel(SRLessListScheduler::L
         auto *platform = archi::platform();
         const auto &dependencies = handler_.getVertexDependencies(vertex);
         for (const auto &edge : vertex->outputEdgeVector()) {
+            if (edge->sink()->subtype() == pisdf::VertexType::DELAY) {
+                continue;
+            }
             computeScheduleLevel(listVertexVector[edge->sink()->scheduleTaskIx()], listVertexVector);
         }
         for (u32 k = 0; k < vertex->repetitionValue(); ++k) {
@@ -155,7 +158,8 @@ ifast32 spider::SRLessListScheduler::computeScheduleLevel(SRLessListScheduler::L
             firingListTask.level_ = std::max(firingListTask.level_, ifast32{ 0 });
             for (const auto &edge : vertex->inputEdgeVector()) {
                 auto *source = dependencies[firingListTask.firing_][index].vertex_;
-                const auto numberOfDependencies = 1 + (source != edge->source());
+                const auto numberOfDependencies =
+                        1 + ((source != edge->source()) && edge->source()->subtype() != pisdf::VertexType::DELAY);
                 for (auto i = 0; i < numberOfDependencies; ++i) {
                     if (source->executable()) {
                         const auto *rtInfo = vertex->runtimeInformation();
@@ -200,7 +204,7 @@ void spider::SRLessListScheduler::setNextVerticesNonSchedulable(pisdf::Vertex *v
     }
 }
 
-void spider::SRLessListScheduler::sortVertices() {
+void spider::SRLessListScheduler::sortTasks() {
     std::sort(std::begin(sortedTaskVector_), std::end(sortedTaskVector_),
               [](const ListTask &A, const ListTask &B) -> bool {
                   const auto *vertexA = A.task_->vertex();

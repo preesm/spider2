@@ -143,7 +143,7 @@ void spider::srdagless::SRLessHandler::computeDependency(const pisdf::Edge *edge
     const auto memoryEnd = static_cast<u32>(((firing + 1) * sinkRate - 1) % sourceRate);
     const auto depMin = static_cast<u32>(pisdf::computeConsLowerDep(sinkRate, sourceRate, firing, 0));
     const auto depMax = static_cast<u32>(pisdf::computeConsUpperDep(sinkRate, sourceRate, firing, 0));
-    firingDependency.push_back({ edge->source(), memoryStart, memoryEnd, depMin, depMax });
+    firingDependency.push_back({ edge->source(), sinkRate, memoryStart, memoryEnd, depMin, depMax });
 }
 
 void spider::srdagless::SRLessHandler::computeDelayedDependency(const pisdf::Edge *edge,
@@ -163,7 +163,7 @@ void spider::srdagless::SRLessHandler::computeDelayedDependency(const pisdf::Edg
         const auto memoryEnd = static_cast<u32>((upperCons - 1) % setterRate);
         const auto depMin = static_cast<u32>(math::floorDiv(lowerCons, setterRate));
         const auto depMax = static_cast<u32>(math::floorDiv(upperCons - 1, setterRate));
-        firingDependency.push_back({ delayEdge->source(), memoryStart, memoryEnd, depMin, depMax });
+        firingDependency.push_back({ delayEdge->source(), sinkRate, memoryStart, memoryEnd, depMin, depMax });
     } else if (delayValue > lowerCons) {
         const auto *delayEdge = delay->vertex()->inputEdge(0);
         auto *setter = delayEdge->source();
@@ -174,14 +174,15 @@ void spider::srdagless::SRLessHandler::computeDelayedDependency(const pisdf::Edg
         const auto depMin = static_cast<u32>(math::floorDiv(lowerCons - delayValue, setterRate));
         const auto depSetterMax = setter->repetitionValue() - 1;
         const auto depMax = static_cast<u32>(math::floorDiv(upperCons - delayValue - 1, sourceRate));
-        firingDependency.push_back({ delayEdge->source(), memoryStart, memorySetterEnd, depMin, depSetterMax });
-        firingDependency.push_back({ source, 0u, memoryEnd, 0, depMax });
+        firingDependency.push_back(
+                { delayEdge->source(), sinkRate, memoryStart, memorySetterEnd, depMin, depSetterMax });
+        firingDependency.push_back({ source, sinkRate, 0u, memoryEnd, 0, depMax });
     } else {
         const auto memoryStart = static_cast<u32>(lowerCons % sourceRate);
         const auto memoryEnd = static_cast<u32>((upperCons - 1) % sourceRate);
         const auto depMin = static_cast<u32>(math::floorDiv(lowerCons - delayValue, sourceRate));
         const auto depMax = static_cast<u32>(math::floorDiv(upperCons - delayValue - 1, sourceRate));
-        firingDependency.push_back({ source, memoryStart, memoryEnd, depMin, depMax });
+        firingDependency.push_back({ source, sinkRate, memoryStart, memoryEnd, depMin, depMax });
     }
 }
 
@@ -192,15 +193,16 @@ void spider::srdagless::SRLessHandler::computeGetterDependency(const pisdf::Edge
     const auto *delayEdge = delay->edge();
     const auto originalSourceRate = delayEdge->sourceRateExpression().evaluate(params_);
     const auto originalSinkRate = delayEdge->sinkRateExpression().evaluate(params_);
-    const auto offset = delay->value() + delayEdge->sink()->repetitionValue() * originalSinkRate;
+    const auto offset = delayEdge->sink()->repetitionValue() * originalSinkRate - delay->value();
     const auto sourceRV = delayEdge->source()->repetitionValue();
     const auto sinkRate = edge->sinkRateExpression().evaluate(params_);
     const auto memoryStart = static_cast<u32>((offset + firing * sinkRate) % originalSourceRate);
     const auto memoryEnd = static_cast<u32>((offset + (firing + 1) * sinkRate - 1) % originalSourceRate);
-    const auto depMin = sourceRV - static_cast<u32>(math::ceilDiv(firing * sinkRate, originalSourceRate));
-    const auto depMax = sourceRV - static_cast<u32>(math::ceilDiv((firing + 1) * sinkRate, originalSourceRate));
-    firingDependency.push_back({ delayEdge->source(), memoryStart, memoryEnd, depMin, depMax });
-
+    const auto depMin = sourceRV - static_cast<u32>(math::ceilDiv(delay->value() - (firing * sinkRate),
+                                                                  originalSourceRate));
+    const auto depMax = sourceRV - static_cast<u32>(math::ceilDiv(delay->value() - (firing + 1) * sinkRate + 1,
+                                                                  originalSourceRate));
+    firingDependency.push_back({ delayEdge->source(), sinkRate, memoryStart, memoryEnd, depMin, depMax });
 }
 
 

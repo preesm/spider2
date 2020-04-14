@@ -53,6 +53,7 @@
 #include <api/runtime-api.h>
 #include <scheduling/allocator/FifoAllocator.h>
 #include <scheduling/allocator/DefaultFifoAllocator.h>
+#include <scheduling/allocator/SRLessDefaultFifoAllocator.h>
 
 /* === Static variable === */
 
@@ -166,6 +167,18 @@ spider::FifoAllocator *spider::Runtime::makeFifoAllocator(FifoAllocatorType type
     switch (type) {
         case spider::FifoAllocatorType::DEFAULT:
             return spider::make<DefaultFifoAllocator, StackID::RUNTIME>();
+        case spider::FifoAllocatorType::ARCHI_AWARE:
+            break;
+        default:
+            throwSpiderException("unsupported type of FifoAllocator.");
+    }
+    return nullptr;
+}
+
+spider::FifoAllocator *spider::Runtime::makeSRLessFifoAllocator(FifoAllocatorType type) {
+    switch (type) {
+        case spider::FifoAllocatorType::DEFAULT:
+            return spider::make<SRLessDefaultFifoAllocator, StackID::RUNTIME>();
         case spider::FifoAllocatorType::ARCHI_AWARE:
             break;
         default:

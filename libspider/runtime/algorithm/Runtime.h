@@ -133,6 +133,8 @@ namespace spider {
                                  const std::string &path = "./exec-gantt");
 
         static FifoAllocator *makeFifoAllocator(FifoAllocatorType type);
+
+        static FifoAllocator *makeSRLessFifoAllocator(FifoAllocatorType type);
     };
 }
 #endif //SPIDER2_RUNTIME_H

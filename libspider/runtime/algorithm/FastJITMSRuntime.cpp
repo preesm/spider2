@@ -64,7 +64,7 @@ spider::FastJITMSRuntime::FastJITMSRuntime(pisdf::Graph *graph,
                                            FifoAllocatorType type) :
         Runtime(graph),
         scheduler_{ makeSRLessScheduler(graph, schedulingAlgorithm) },
-        fifoAllocator_{ makeFifoAllocator(type) } {
+        fifoAllocator_{ makeSRLessFifoAllocator(type) } {
     if (!scheduler_) {
         throwSpiderException("Failed to create scheduler.\n"
                              "Check compatibility between algorithm and runtime.");

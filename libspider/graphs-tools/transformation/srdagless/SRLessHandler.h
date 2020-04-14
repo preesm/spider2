@@ -63,6 +63,7 @@ namespace spider {
 
     struct ExecDependency {
         pisdf::Vertex *vertex_;
+        i64 rate_;
         u32 memoryStart_;
         u32 memoryEnd_;
         u32 firingStart_;
