@@ -52,8 +52,11 @@ void *GenericAllocatorPolicy::allocate(size_t size) {
         lastAllocatedSize_ = 0;
         return nullptr;
     }
+    fprintf(stderr, "size: %zu\n", size);
     size = size + sizeof(uint64_t);
+    fprintf(stderr, "size: %zu\n", size);
     size = AbstractAllocatorPolicy::computeAlignedSize(size, alignment_);
+    fprintf(stderr, "size: %zu\n", size);
 
     auto *headerAddress = std::malloc(size);
     if (!headerAddress) {
