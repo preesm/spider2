@@ -98,7 +98,119 @@ jobs:
             - export CXX=g++-7
             - cd bin
             - cmake .. -DCMAKE_BUILD_TYPE=Debug
-            - cmake --build . --target spider2 -- -j$(nproc) VERBOSE=1
+            - cmake --build . --target spider2 -- -j$(nproc)
             - cd ..
             - ./scripts/linux/runTest.sh allocator
+
+        - stage: Test
+          name: "Test containers"
+          os: linux
+          dist: xenial
+          compiler: gcc-7
+          addons:
+            apt:
+                sources:
+                    - ubuntu-toolchain-r-test
+                packages:
+                    - g++-7
+                    - doxygen
+                    - gcovr
+                    - lcov
+          env:
+            - GENERATOR="Unix Makefile"
+            - PATH=/opt/python/3.7.1/bin:$PATH
+          install:
+            - pip install gcovr
+          script:
+            - export CC=gcc-7
+            - export CXX=g++-7
+            - cd bin
+            - cmake .. -DCMAKE_BUILD_TYPE=Debug
+            - cmake --build . --target spider2 -- -j$(nproc)
+            - cd ..
+            - ./scripts/linux/runTest.sh containers
+
+        - stage: Test
+          name: "Test expression"
+          os: linux
+          dist: xenial
+          compiler: gcc-7
+          addons:
+            apt:
+                sources:
+                    - ubuntu-toolchain-r-test
+                packages:
+                    - g++-7
+                    - doxygen
+                    - gcovr
+                    - lcov
+          env:
+            - GENERATOR="Unix Makefile"
+            - PATH=/opt/python/3.7.1/bin:$PATH
+          install:
+            - pip install gcovr
+          script:
+            - export CC=gcc-7
+            - export CXX=g++-7
+            - cd bin
+            - cmake .. -DCMAKE_BUILD_TYPE=Debug
+            - cmake --build . --target spider2 -- -j$(nproc)
+            - cd ..
+            - ./scripts/linux/runTest.sh expression
+
+        - stage: Test
+          name: "Test graph"
+          os: linux
+          dist: xenial
+          compiler: gcc-7
+          addons:
+            apt:
+                sources:
+                    - ubuntu-toolchain-r-test
+                packages:
+                    - g++-7
+                    - doxygen
+                    - gcovr
+                    - lcov
+          env:
+            - GENERATOR="Unix Makefile"
+            - PATH=/opt/python/3.7.1/bin:$PATH
+          install:
+            - pip install gcovr
+          script:
+            - export CC=gcc-7
+            - export CXX=g++-7
+            - cd bin
+            - cmake .. -DCMAKE_BUILD_TYPE=Debug
+            - cmake --build . --target spider2 -- -j$(nproc)
+            - cd ..
+            - ./scripts/linux/runTest.sh graph
+
+        - stage: Test
+          name: "Test math"
+          os: linux
+          dist: xenial
+          compiler: gcc-7
+          addons:
+            apt:
+                sources:
+                    - ubuntu-toolchain-r-test
+                packages:
+                    - g++-7
+                    - doxygen
+                    - gcovr
+                    - lcov
+          env:
+            - GENERATOR="Unix Makefile"
+            - PATH=/opt/python/3.7.1/bin:$PATH
+          install:
+            - pip install gcovr
+          script:
+            - export CC=gcc-7
+            - export CXX=g++-7
+            - cd bin
+            - cmake .. -DCMAKE_BUILD_TYPE=Debug
+            - cmake --build . --target spider2 -- -j$(nproc)
+            - cd ..
+            - ./scripts/linux/runTest.sh math
 
