@@ -65,4 +65,6 @@ jobs:
             - ./scripts/linux/runTest.sh expression
             - ./scripts/linux/runTest.sh graph
             - ./scripts/linux/runTest.sh math
+            - ./scripts/linux/runTest.sh runtime
+            - ./scripts/linux/runTest.sh srdag
 
