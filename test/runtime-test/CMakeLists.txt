@@ -1,8 +1,5 @@
 set(RUNTIME_TARGET_NAME runtime-${PROJECT_NAME}-test)
 
-# Locate GTest
-find_package(GTest REQUIRED)
-
 # Add the test files
 set(${RUNTIME_TARGET_NAME}_SRC
         ../main.cpp

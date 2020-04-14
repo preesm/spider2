@@ -1,8 +1,5 @@
 set(CONTAINERS_TARGET_NAME containers-${PROJECT_NAME}-test)
 
-# Locate GTest
-find_package(GTest REQUIRED)
-
 # Add the test files
 set(${CONTAINERS_TARGET_NAME}_SRC ../main.cpp containersTest.cpp)
 
