@@ -1,0 +1,83 @@
+language: cpp
+
+stages:
+    - Build
+    - Test
+    - Deploy
+
+jobs:
+    include:
+        - stage: Build
+          os: linux
+          dist: xenial
+          compiler: gcc-7
+          addons:
+            apt:
+                sources:
+                    - ubuntu-toolchain-r-test
+                packages:
+                    - g++-7
+                    - doxygen
+          env:
+            - GENERATOR="Unix Makefile"
+            - PATH=/opt/python/3.7.1/bin:$PATH
+          script:
+            - export CC=gcc-7
+            - export CXX=g++-7
+            - cd bin
+            - cmake .. -DCMAKE_BUILD_TYPE=Release -DTYPE_SAFE=ON -DBUILD_TESTING=OFF
+            - cmake --build . --target spider2 -- -j$(nproc)
+            - rm -rf ../bin/*
+            - cmake .. -DCMAKE_BUILD_TYPE=Debug -DTYPE_SAFE=ON -DBUILD_TESTING=OFF
+            - cmake --build . --target spider2 -- -j$(nproc)
+            - rm -rf ../bin/*
+            - cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF
+            - cmake --build . --target spider2 -- -j$(nproc)
+            - rm -rf ../bin/*
+            - cmake .. -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=OFF
+            - cmake --build . --target spider2 -- -j$(nproc)
+
+        - stage: Test
+          os: linux
+          dist: xenial
+          compiler: gcc-7
+          addons:
+            apt:
+                sources:
+                    - ubuntu-toolchain-r-test
+                packages:
+                    - g++-7
+                    - doxygen
+                    - gcovr
+                    - lcov
+          env:
+            - GENERATOR="Unix Makefile"
+            - PATH=/opt/python/3.7.1/bin:$PATH
+          install:
+            - pip install gcovr
+          script:
+            - export CC=gcc-7
+            - export CXX=g++-7
+            - cd bin
+            - cmake .. -DCMAKE_BUILD_TYPE=Debug
+            - cmake --build . --target spider2 -- -j$(nproc)
+            - cd ..
+            - ./scripts/linux/runTest.sh all
+
+        - stage: Deploy
+          os: linux
+          dist: xenial
+          script:
+            - echo "Empty job"
+          before_deploy: "./scripts/linux/prepare_release_note.sh"
+          deploy:
+            - provider: releases
+              edge: true
+              token: $GITHUB_TOKEN
+              draft: true
+              release_notes_file: release_note.md
+              on:
+                repo: preesm/spider2
+                branch: master
+                tags: true
+

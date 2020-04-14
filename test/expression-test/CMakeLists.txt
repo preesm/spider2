@@ -1,8 +1,5 @@
 set(EXPR_TARGET_NAME expression-${PROJECT_NAME}-test)
 
-# Locate GTest
-find_package(GTest REQUIRED)
-
 # Add the test files
 set(${EXPR_TARGET_NAME}_SRC ../main.cpp expressionTest.cpp)
 

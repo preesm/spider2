@@ -1,8 +1,5 @@
 set(MATH_TARGET_NAME math-${PROJECT_NAME}-test)
 
-# Locate GTest
-find_package(GTest REQUIRED)
-
 # Add the test files
 set(${MATH_TARGET_NAME}_SRC ../main.cpp mathTest.cpp)
 
