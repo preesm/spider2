@@ -60,6 +60,8 @@ cd spider-2.0/libspider/build-scripts/windows
 ./CMakeVS2017.bat
 ```
 
+* **IMPORTANT:** If there is an error during the cmake command on failing to find Gtest framework, look at the README.md in the test subfolder.
+
 ### System wide installation
 
 * Linux platforms:

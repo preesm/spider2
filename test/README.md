@@ -5,18 +5,18 @@ The unitary tests of SPIDER 2.0 rely on the GTest framework.
 
 # Install GTest framework 
 
-To install GTest:
-    - on Linux:
-        ```
-            sudo apt install libgtest-dev
-            cd /usr/src/gtest
-            sudo su
-            cmake CMakeLists.txt
-            make -j$(nproc)
-            cp *.a /usr/lib
-        ```
-    - on Windows:
-        __(coming soon...)__
+Installing GTest:
+- on Linux:
+```shell
+    sudo apt install libgtest-dev
+    cd /usr/src/gtest
+    sudo su
+    cmake CMakeLists.txt
+    make -j$(nproc)
+    cp *.a /usr/lib
+```
+- on Windows:
+__(coming soon...)__
 
 With root permissions run the **install.sh** script.
 
@@ -39,12 +39,12 @@ Run the following command from the top-level folder:
 
 **ATTENTION:** To run the coverage report you need to have gcovr installed.
 To install gcovr:
-    - on Linux:
-        ```
-            sudo apt install gcovr
-        ```
-    - on Windows:
-        __(coming soon...)__
+- on Linux:
+```shell
+    sudo apt install gcovr
+```
+- on Windows:
+__(coming soon...)__
 
 Run the following command from the top-level folder:
 ```
