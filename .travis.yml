@@ -3,6 +3,7 @@ language: cpp
 stages:
     - Build
     - Test
+    - Deploy
 
 jobs:
     include:
@@ -61,11 +62,28 @@ jobs:
             - cmake .. -DCMAKE_BUILD_TYPE=Debug
             - cmake --build . --target spider2 -- -j$(nproc)
             - cd ..
-            - ./scripts/linux/runTest.sh allocator
+            - # ./scripts/linux/runTest.sh allocator Deactivate for tests
             - ./scripts/linux/runTest.sh containers
             - ./scripts/linux/runTest.sh expression
             - ./scripts/linux/runTest.sh graph
             - ./scripts/linux/runTest.sh math
             - ./scripts/linux/runTest.sh runtime
             - ./scripts/linux/runTest.sh srdag
+
+        - stage: Deploy
+          os: linux
+          dist: xenial
+          script:
+            - echo "Empty job"
+          before_deploy: "./scripts/linux/prepare_release_note.sh"
+          deploy:
+            - provider: releases
+              edge: true
+              token: $GITHUB_TOKEN
+              draft: true
+              release_notes_file: release_note.md
+              on:
+                repo: preesm/spider2
+                branch: setupTravisCI #master
+                tags: false #true
 
