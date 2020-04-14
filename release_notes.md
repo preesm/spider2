@@ -1,8 +1,8 @@
 Spider2 Changelog
 ================
 
-## Release version X.Y.Z
-*XXXX.XX.XX*
+## Release version 0.0.0
+*2020.04.14*
 
 ### New Feature
 * Implementation of a PiSDF runtime (see https://hal.inria.fr/hal-00877492).
