@@ -71,8 +71,8 @@ TEST_F(expressionTest, expressionCtorTest) {
     ASSERT_NO_THROW(Expression(4)) << "Expression(int64_t) failed.";
     ASSERT_NO_THROW(Expression("")) << "Expression(std::string, {}) failed.";
     ASSERT_NO_THROW(Expression(Expression(10))) << "Expression(Expression &&) failed.";
-    auto tmp = Expression("10 * 11");
-    ASSERT_NO_THROW(Expression(tmp)) << "Expression(const Expression &) failed.";
+    const auto tmpExpr = Expression("10 * 11");
+    ASSERT_NO_THROW(auto test = Expression(tmpExpr)) << "Expression(const Expression &) failed.";
     ASSERT_THROW(Expression("width", { }), spider::Exception)
                                 << "Parameterized Expression should throw when parameter is not found.";
     ASSERT_THROW(Expression("width"), spider::Exception)
@@ -94,10 +94,10 @@ TEST_F(expressionTest, expressionCtorTest) {
                                 << "Expression should throw when function is missing an operand.";
     ASSERT_EQ(Expression(4).value(), 4) << "Expression evaluation failed.";
     auto tmp2 = spider::ExpressionElt();
-    ASSERT_NO_THROW(spider::ExpressionElt());
-    ASSERT_NO_THROW(spider::ExpressionElt(tmp2));
-    ASSERT_NO_THROW(spider::ExpressionElt(std::move(tmp2)));
-    ASSERT_NO_THROW(spider::Expression("dummy(1)")) << "Expression::Expression() should not throw with dummy operator.";
+    ASSERT_NO_THROW(auto test = spider::ExpressionElt());
+    ASSERT_NO_THROW(auto test = spider::ExpressionElt(tmp2));
+    ASSERT_NO_THROW(auto test = spider::ExpressionElt(std::move(tmp2)));
+    ASSERT_NO_THROW(auto test = spider::Expression("dummy(1)")) << "Expression::Expression() should not throw with dummy operator.";
     spider::api::disableLogger(spider::log::EXPR);
 }
 

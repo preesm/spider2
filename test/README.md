@@ -3,35 +3,26 @@ How to run SPIDER 2.0 unitary tests
 
 The unitary tests of SPIDER 2.0 rely on the GTest framework.
 
-# Install GTest framework 
+# Configuring project with tests building
 
-Installing GTest:
-- on Linux:
+Make sure that during the cmake configuration the **BUILD_TESTING** flag was set to ON.
+If not, re-run your cmake command with the following addition:
 ```shell
-    sudo apt install libgtest-dev
-    cd /usr/src/gtest
-    sudo su
-    cmake CMakeLists.txt
-    make -j$(nproc)
-    cp *.a /usr/lib
+    cmake .. [YOUR_CMAKE_OPTIONS] -DBUILD_TESTING=ON
 ```
-- on Windows:
-__(coming soon...)__
-
-With root permissions run the **install.sh** script.
 
 # Run a specific test
 
 Run the **runTest.sh** script in the folder scripts/ with the test name from the top-level folder.
 ex: 
-```
+```shell
     ./scripts/linux/runTest.sh expression
 ```
 
 # Run all tests
 
 Run the following command from the top-level folder:
-```
+```shell
     ./scripts/linux/runTest.sh all
 ```
 
@@ -47,7 +38,7 @@ To install gcovr:
 __(coming soon...)__
 
 Run the following command from the top-level folder:
-```
+```shell
     ./scripts/linux/runTestWithCoverage.sh
 ```
 The coverage report will be located in **bin/coverage** folder.

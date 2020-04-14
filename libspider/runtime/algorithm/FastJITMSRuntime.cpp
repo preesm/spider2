@@ -97,7 +97,7 @@ bool spider::FastJITMSRuntime::dynamicExecute() {
     return true;
 }
 
-void spider::FastJITMSRuntime::handleStaticGraph(pisdf::Graph *graph) {
+void spider::FastJITMSRuntime::handleStaticGraph(pisdf::Graph *) {
     auto &handler = scheduler_->srLessHandler();
     /* == Compute BRV == */
     handler.resolveStatic();

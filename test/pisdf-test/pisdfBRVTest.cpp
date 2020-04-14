@@ -139,12 +139,12 @@ TEST_F(pisdfBRVTest, brvTest) {
     spider::api::enableVerbose();
     spider::api::enableLogger(spider::log::TRANSFO);
     ASSERT_NO_THROW(spider::brv::compute(graph_));
-    ASSERT_EQ(graph_->vertex(0)->repetitionValue(), 2) << "spider::brv::compute failed.";
-    ASSERT_EQ(graph_->vertex(1)->repetitionValue(), 2) << "spider::brv::compute failed.";
-    ASSERT_EQ(graph_->vertex(2)->repetitionValue(), 1) << "spider::brv::compute failed.";
-    ASSERT_EQ(graph_->vertex(3)->repetitionValue(), 1) << "spider::brv::compute failed.";
-    ASSERT_EQ(graph_->vertex(4)->repetitionValue(), 1) << "spider::brv::compute failed.";
-    ASSERT_EQ(graph_->vertex(5)->repetitionValue(), 1) << "spider::brv::compute failed.";
+    ASSERT_EQ(graph_->vertex(0)->repetitionValue(), 2u) << "spider::brv::compute failed.";
+    ASSERT_EQ(graph_->vertex(1)->repetitionValue(), 2u) << "spider::brv::compute failed.";
+    ASSERT_EQ(graph_->vertex(2)->repetitionValue(), 1u) << "spider::brv::compute failed.";
+    ASSERT_EQ(graph_->vertex(3)->repetitionValue(), 1u) << "spider::brv::compute failed.";
+    ASSERT_EQ(graph_->vertex(4)->repetitionValue(), 1u) << "spider::brv::compute failed.";
+    ASSERT_EQ(graph_->vertex(5)->repetitionValue(), 1u) << "spider::brv::compute failed.";
     ASSERT_THROW(spider::brv::compute(graph_->subgraphs()[0]), spider::Exception)
                                 << "spider::brv::compute should throw for rv != 1 on config vertex.";
     ASSERT_NO_THROW(spider::brv::compute(graph_->subgraphs()[0]->subgraphs()[0]));

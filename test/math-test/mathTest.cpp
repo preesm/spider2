@@ -69,27 +69,27 @@ TEST_F(mathTest, functionsTest) {
     ASSERT_EQ(spider::math::abs(static_cast<int16_t>(2)), 2) << "math::abs(int16_t) failed";
     ASSERT_EQ(spider::math::abs(static_cast<int32_t>(2)), 2) << "math::abs(int32_t) failed";
     ASSERT_EQ(spider::math::abs(static_cast<int64_t>(2)), 2) << "math::abs(int64_t) failed";
-    ASSERT_EQ(spider::math::abs(static_cast<uint16_t>(2)), 2) << "math::abs(uint16_t) failed";
-    ASSERT_EQ(spider::math::abs(static_cast<uint32_t>(2)), 2) << "math::abs(uint32_t) failed";
-    ASSERT_EQ(spider::math::abs(static_cast<uint64_t>(2)), 2) << "math::abs(uint64_t) failed";
+    ASSERT_EQ(spider::math::abs(static_cast<uint16_t>(2)), 2u) << "math::abs(uint16_t) failed";
+    ASSERT_EQ(spider::math::abs(static_cast<uint32_t>(2)), 2u) << "math::abs(uint32_t) failed";
+    ASSERT_EQ(spider::math::abs(static_cast<uint64_t>(2)), 2u) << "math::abs(uint64_t) failed";
     ASSERT_EQ(spider::math::abs(-2.f), 2.f) << "math::abs(float) failed";
     ASSERT_EQ(spider::math::abs(-2.), 2.) << "math::abs(double) failed";
 
     ASSERT_EQ(spider::math::gcd(static_cast<int64_t>(-4), static_cast<int64_t>(2)), 2) << "math::gcd() failed";
     ASSERT_EQ(spider::math::gcd(static_cast<int64_t>(4), static_cast<int64_t>(-2)), 2) << "math::gcd() failed";
-    ASSERT_EQ(spider::math::gcd(static_cast<uint64_t>(4), static_cast<uint64_t>(2)), 2) << "math::gcd() failed";
+    ASSERT_EQ(spider::math::gcd(static_cast<uint64_t>(4), static_cast<uint64_t>(2)), 2u) << "math::gcd() failed";
     ASSERT_EQ(spider::math::gcd(static_cast<int32_t>(-4), static_cast<int32_t>(2)), 2) << "math::gcd() failed";
     ASSERT_EQ(spider::math::gcd(static_cast<int32_t>(4), static_cast<int32_t>(-2)), 2) << "math::gcd() failed";
-    ASSERT_EQ(spider::math::gcd(static_cast<uint32_t>(4), static_cast<uint32_t>(2)), 2) << "math::gcd() failed";
+    ASSERT_EQ(spider::math::gcd(static_cast<uint32_t>(4), static_cast<uint32_t>(2)), 2u) << "math::gcd() failed";
 
     ASSERT_EQ(spider::math::lcm(static_cast<int64_t>(-4), static_cast<int64_t>(2)), 4) << "math::lcm() failed";
     ASSERT_EQ(spider::math::lcm(static_cast<int64_t>(4), static_cast<int64_t>(-2)), 4) << "math::lcm() failed";
-    ASSERT_EQ(spider::math::lcm(static_cast<uint64_t>(4), static_cast<uint64_t>(2)), 4) << "math::lcm() failed";
+    ASSERT_EQ(spider::math::lcm(static_cast<uint64_t>(4), static_cast<uint64_t>(2)), 4u) << "math::lcm() failed";
     ASSERT_EQ(spider::math::lcm(static_cast<int32_t>(-4), static_cast<int32_t>(2)), 4) << "math::lcm() failed";
     ASSERT_EQ(spider::math::lcm(static_cast<int32_t>(4), static_cast<int32_t>(-2)), 4) << "math::lcm() failed";
-    ASSERT_EQ(spider::math::lcm(static_cast<uint32_t>(4), static_cast<uint32_t>(2)), 4) << "math::lcm() failed";
+    ASSERT_EQ(spider::math::lcm(static_cast<uint32_t>(4), static_cast<uint32_t>(2)), 4u) << "math::lcm() failed";
 
-    ASSERT_EQ(spider::math::ceilDiv(static_cast<uint64_t>(5), static_cast<uint64_t>(2)), 3) << "math::ceilDiv() failed";
+    ASSERT_EQ(spider::math::ceilDiv(static_cast<uint64_t>(5), static_cast<uint64_t>(2)), 3u) << "math::ceilDiv() failed";
     ASSERT_EQ(spider::math::ceilDiv(5, 2), 3) << "math::ceilDiv() failed";
     ASSERT_EQ(spider::math::ceilDiv(-5, 2), -2) << "math::ceilDiv() failed";
     ASSERT_EQ(spider::math::ceilDiv(5, -2), -2) << "math::ceilDiv() failed";
@@ -104,7 +104,7 @@ TEST_F(mathTest, functionsTest) {
                                 << "math::floorDiv() failed";
     ASSERT_EQ(spider::math::floorDiv(static_cast<int64_t>(5), static_cast<int64_t>(-2)), -3)
                                 << "math::floorDiv() failed";
-    ASSERT_EQ(spider::math::floorDiv(static_cast<uint64_t>(5), static_cast<uint64_t>(2)), 2)
+    ASSERT_EQ(spider::math::floorDiv(static_cast<uint64_t>(5), static_cast<uint64_t>(2)), 2u)
                                 << "math::floorDiv() failed";
 
     try {
@@ -120,7 +120,7 @@ TEST_F(mathTest, rationalTest) {
     ASSERT_DOUBLE_EQ(spider::Rational(1, 2).toDouble(), 0.5) << "Rational::toDouble() failed";
     ASSERT_EQ(spider::Rational(1, 2).toInt64(), 0) << "Rational::toInt64() failed";
     ASSERT_EQ(spider::Rational(314159265358979).toInt64(), 314159265358979) << "Rational::toInt64() failed";
-    ASSERT_EQ(spider::Rational(314159265358979).toUInt64(), 314159265358979) << "Rational::toUInt64() failed";
+    ASSERT_EQ(spider::Rational(314159265358979).toUInt64(), 314159265358979u) << "Rational::toUInt64() failed";
     ASSERT_EQ(spider::Rational(1, 2) == spider::Rational(1, 2), true) << "Rational::operator==() failed";
     ASSERT_EQ(spider::Rational(1, 2) > spider::Rational(1, 4), true) << "Rational::operator>() failed";
     ASSERT_EQ(spider::Rational(1, 2) >= spider::Rational(1, 4), true) << "Rational::operator>=() failed";

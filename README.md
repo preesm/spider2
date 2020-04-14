@@ -32,10 +32,11 @@ The SPIDER 2.0 code is annotated with the [doxygen](http://www.doxygen.nl/) synt
 To build the shared library, a variety of scripts are provided.
 
 * Building SPIDER 2.0 shared library on Linux using GCC:
+* *Note: by default the following does not enable the build of unit tests. To change this behavior, set the BUILD_TESTING option to ON instead of OFF.*
 ```shell
 git clone https://github.com/preesm/spider2.git
 cd spider2/bin
-cmake .. -DCMAKE_BUILD_TYPE=Release
+cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF
 make spider2 -j$(nproc)
 ```
 

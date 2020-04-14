@@ -1,5 +1,5 @@
 # cmake minimum version
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.8)
 
 # This CMakeLists was freely adapted by Florian Arrestier from 
 # https://github.com/robotology/how-to-export-cpp-library and
@@ -46,6 +46,9 @@ project(spider2
 # Defines the CMAKE_INSTALL_LIBDIR, CMAKE_INSTALL_BINDIR and many other useful macros.
 # See https://cmake.org/cmake/help/latest/module/GNUInstallDirs.html
 include(GNUInstallDirs)
+
+# We need thread support
+include(FindThreads)
 
 # Control where libraries and executables are placed during the build.
 # With the following settings executables are placed in <the top level of the
@@ -160,7 +163,39 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 option(BUILD_TESTING "Create tests using CMake" ON)
 if (BUILD_TESTING)
     enable_testing()
+    # Download and unpack googletest at configure time
+    # from https://github.com/google/googletest/tree/master/googletest#incorporating-into-an-existing-cmake-project
+    configure_file(CMakeLists.txt.in googletest-download/CMakeLists.txt)
+    execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
+            RESULT_VARIABLE result
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/googletest-download)
+    if (result)
+        message(FATAL_ERROR "CMake step for googletest failed: ${result}")
+    endif ()
+    execute_process(COMMAND ${CMAKE_COMMAND} --build .
+            RESULT_VARIABLE result
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/googletest-download)
+    if (result)
+        message(FATAL_ERROR "Build step for googletest failed: ${result}")
+    endif ()
+
+    # Prevent overriding the parent project's compiler/linker
+    # settings on Windows
+    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+
+    # Add googletest directly to our build. This defines
+    # the gtest and gtest_main targets.
+    add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
+            ${CMAKE_CURRENT_BINARY_DIR}/googletest-build
+            EXCLUDE_FROM_ALL)
 endif ()
+
+# Enable RPATH support for installed binaries and libraries
+include(AddInstallRPATHSupport)
+add_install_rpath_support(BIN_DIRS "${CMAKE_INSTALL_FULL_BINDIR}"
+        LIB_DIRS "${CMAKE_INSTALL_FULL_LIBDIR}"
+        INSTALL_NAME_DIR "${CMAKE_INSTALL_FULL_LIBDIR}"
+        USE_LINK_PATH)
 
 # Type safe printf?
 option(TYPE_SAFE "Enforce type safety in printf" OFF)
