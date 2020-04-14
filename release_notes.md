@@ -1,7 +1,7 @@
 Spider2 Changelog
 ================
 
-## Release version 6.6.6
+## Release version X.Y.Z
 *XXXX.XX.XX*
 
 ### New Feature
