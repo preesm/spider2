@@ -35,6 +35,11 @@
 *.sql
 *.sqlite
 
+# Doxygen files and xml #
+######################
+*.html
+*.xml
+
 # OS generated files #
 ######################
 .DS_Store
@@ -76,13 +81,26 @@ aclocal.m4
 compile
 config.h.in
 configure
+*.make
 
 # Clion Project files #
-master/.idea/*
-master/cmake-build-release/*
-master/cmake-build-debug/*
+#######################
+.idea/
+cmake-build-*/
 configure.scan
 depcomp
 install-sh
 missing
 stamp-h1
+
+# Temporary files
+*~
+
+# Content of these folders
+/bin
+/doc
+
+# Unit tests generated files #
+##############################
+report/
+*.info

@@ -1,0 +1,47 @@
+stages: 
+  - build
+  - test
+build-typesafe: 
+  stage: build
+  script:
+    - cd bin
+    - cmake .. -DCMAKE_BUILD_TYPE=Release -DTYPE_SAFE=ON
+    - cmake --build . --target spider2 -- -j$(nproc) VERBOSE=1
+    - rm -rf ../bin/*
+    - cmake .. -DCMAKE_BUILD_TYPE=Debug -DTYPE_SAFE=ON
+    - cmake --build . --target spider2 -- -j$(nproc) VERBOSE=1
+build-release: 
+  stage: build
+  script:
+    - cd bin
+    - cmake .. -DCMAKE_BUILD_TYPE=Release
+    - cmake --build . --target spider2 -- -j$(nproc) VERBOSE=1
+build-debug: 
+  stage: build
+  script: 
+    - cd bin
+    - cmake .. -DCMAKE_BUILD_TYPE=Debug
+    - cmake --build . --target spider2 -- -j$(nproc) VERBOSE=1
+  artifacts:
+    paths:
+    - "bin"
+test-allocator: 
+  stage: test
+  script: 
+    - ./scripts/linux/runTest.sh allocator
+test-containers: 
+  stage: test
+  script: 
+    - ./scripts/linux/runTest.sh containers
+test-expression: 
+  stage: test
+  script: 
+    - ./scripts/linux/runTest.sh expression
+test-graph: 
+  stage: test
+  script: 
+    - ./scripts/linux/runTest.sh graph
+test-math: 
+  stage: test
+  script: 
+    - ./scripts/linux/runTest.sh math
