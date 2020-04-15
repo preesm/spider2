@@ -1,6 +1,7 @@
 language: cpp
 
 stages:
+    - Analyze #first to speedup setup
     - Build
     - Test
     - Deploy
@@ -80,8 +81,44 @@ jobs:
                 repo: preesm/spider2
                 branch: master
                 tags: true
-                
-                
+
+        - stage: Analyze
+          os: linux
+          dist: xenial
+          compiler: gcc-7
+          addons:
+            apt:
+                sources:
+                    - ubuntu-toolchain-r-test
+                packages:
+                    - g++-7
+                    - doxygen
+                    - gcovr
+                    - lcov
+            sonarcloud:
+                organization: "preesm"
+          env:
+            - GENERATOR="Unix Makefile"
+            - PATH=/opt/python/3.7.1/bin:$PATH
+          install:
+            - pip install gcovr
+          script:
+            - export CC=gcc-7
+            - export CXX=g++-7
+            - cd bin
+            - cmake .. -DCMAKE_BUILD_TYPE=Debug
+            - cd ..
+            - build-wrapper-linux-x86-64 --out-dir bw-output cmake --build bin/ --target all-spider2-test
+            - cd bin
+            - ./bin/all-spider2-test
+            - gcovr -r .. -s --sonarqube=sonarqube.xml
+            - sed 's/ branchesToCover=\"[0-9]\+\" coveredBranches=\"[0-9]\+\"/ /g' sonarqube.xml > sonarqubecleaned.xml # Remove condition coverage info from report, only line coverage interests us.
+            - cd ..
+            - sonar-scanner -Dsonar.login=${SONAR_TOKEN}
+          cache:
+            directories:
+              - '$HOME/.sonar/cache'
+
 notifications:
     email:
         on_success: change
