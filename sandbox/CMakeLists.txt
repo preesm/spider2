@@ -12,7 +12,7 @@ file(
 include_directories(
         ${PAPI_INCLUDE_DIRS}
         ${PTHREADDIR}/include
-        ../libspider/
+        ../libspider/include
 )
 
 add_executable(${SANDBOX_TARGET_NAME} ${${SANDBOX_TARGET_NAME}_SRC})

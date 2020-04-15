@@ -7,7 +7,7 @@ set(${SRDAG_TARGET_NAME}_SRC ../main.cpp srdagTest.cpp)
 include_directories(
         ${PAPI_INCLUDE_DIRS}
         ${PTHREADDIR}/include
-        ../../libspider/
+        ../../libspider/include
 )
 
 # On GNU add compile flags

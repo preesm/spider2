@@ -7,7 +7,7 @@ set(${ALLOCATOR_TARGET_NAME}_SRC ../main.cpp allocatorTest.cpp)
 include_directories(
         ${PAPI_INCLUDE_DIRS}
         ${PTHREADDIR}/include
-        ../../libspider/
+        ../../libspider/include
 )
 
 # On GNU add compile flags

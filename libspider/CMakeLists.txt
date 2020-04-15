@@ -23,13 +23,13 @@ set(LIBRARY_TARGET_NAME ${PROJECT_NAME})
 # List of CPP (source) library files.
 file(GLOB_RECURSE
         ${LIBRARY_TARGET_NAME}_SRC
-        ./*.cpp
+        ./src/*.cpp
         )
 
 # List of HPP (header) library files.
 file(GLOB_RECURSE
         ${LIBRARY_TARGET_NAME}_HDR
-        ./*.h
+        ./include/*.h
         )
 
 # Add definition for relative path into project
@@ -39,7 +39,7 @@ add_definitions(-DPROJECT_ROOT_PATH="${CMAKE_CURRENT_SOURCE_DIR}")
 include_directories(
         ${PAPI_INCLUDE_DIRS}
         ${PTHREADDIR}/include
-        ./
+        ./include
 )
 
 # You can add an external dependency using the find_package() function call

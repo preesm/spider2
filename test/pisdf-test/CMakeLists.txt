@@ -19,7 +19,7 @@ set(${GRAPH_TARGET_NAME}_SRC
 include_directories(
         ${PAPI_INCLUDE_DIRS}
         ${PTHREADDIR}/include
-        ../../libspider/
+        ../../libspider/include
 )
 
 # On GNU add compile flags

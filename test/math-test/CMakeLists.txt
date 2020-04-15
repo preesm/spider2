@@ -7,7 +7,7 @@ set(${MATH_TARGET_NAME}_SRC ../main.cpp mathTest.cpp)
 include_directories(
         ${PAPI_INCLUDE_DIRS}
         ${PTHREADDIR}/include
-        ../../libspider/
+        ../../libspider/include
 )
 
 # On GNU add compile flags
