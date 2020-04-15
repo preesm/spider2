@@ -123,9 +123,3 @@ notifications:
     email:
         on_success: change
         on_failure: change
-    slack:
-        on_success: change
-        on_failure: change
-    rooms:
-      - vaader-ietr:aG96ytGEWdW5wnHwzVyenfEY#spider2
-
