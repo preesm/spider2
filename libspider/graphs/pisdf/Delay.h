@@ -62,7 +62,13 @@ namespace spider {
 
             ~Delay();
 
-            friend class Edge;
+            Delay(Delay &&) = default;
+
+            Delay(const Delay &) = delete;
+
+            Delay &operator=(Delay &&) = default;
+
+            Delay &operator=(const Delay &) = delete;
 
             /* === Method(s) === */
 

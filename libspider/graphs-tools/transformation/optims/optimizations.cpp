@@ -190,7 +190,7 @@ bool spider::optims::reduceRepeatFork(spider::pisdf::Graph *graph) {
             auto inputRate = vertex->inputEdge(0)->sinkRateValue();
             auto outputRate = vertex->outputEdge(0)->sourceRateValue();
             auto *sink = vertex->outputEdge(0)->sink();
-            if (!(outputRate % inputRate) &&
+            if (inputRate && !(outputRate % inputRate) &&
                 (sink->subtype() == pisdf::VertexType::FORK && sink->scheduleTaskIx() == SIZE_MAX)) {
                 verticesToOptimize.push_back(vertex.get());
             }

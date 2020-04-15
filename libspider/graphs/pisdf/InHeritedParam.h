@@ -54,11 +54,13 @@ namespace spider {
                 }
             }
 
+            ~InHeritedParam() override = default;
+
             InHeritedParam(const InHeritedParam &other) : Param(other) {
                 parent_ = other.parent_;
             }
 
-            InHeritedParam(InHeritedParam &&other) noexcept : Param(std::move(other)) {
+            InHeritedParam(InHeritedParam &&other) noexcept: Param(std::move(other)) {
                 std::swap(parent_, other.parent_);
             }
 

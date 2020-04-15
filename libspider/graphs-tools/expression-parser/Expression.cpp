@@ -223,13 +223,13 @@ spider::Expression::buildExpressionStack(spider::vector<RPNElement> &postfixStac
                     stack.back().arg.value_ = value;
                 }
             } else {
-                const auto &value = std::strtod(elt.token_.c_str(), nullptr);
+                const auto value = std::strtod(elt.token_.c_str(), nullptr);
                 evalStack.emplace_back(value);
                 stack.emplace_back(std::move(elt));
                 stack.back().arg.value_ = value;
             }
         } else {
-            const auto &opType = rpn::getOperatorTypeFromString(elt.token_);
+            const auto opType = rpn::getOperatorTypeFromString(elt.token_);
             const auto &op = rpn::getOperatorFromOperatorType(opType);
             if (elt.subtype_ == RPNElementSubType::FUNCTION && argCount < op.argCount) {
                 throwSpiderException("Function [%s] expecting argument !", elt.token_.c_str());

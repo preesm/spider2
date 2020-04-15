@@ -53,6 +53,14 @@ public:
         }
     };
 
+    LinearStaticAllocator(LinearStaticAllocator &&) = default;
+
+    LinearStaticAllocator(const LinearStaticAllocator &) = delete;
+
+    LinearStaticAllocator &operator=(LinearStaticAllocator &&) = default;
+
+    LinearStaticAllocator &operator=(const LinearStaticAllocator &) = delete;
+
     void *allocate(size_t size) override;
 
     u64 deallocate(void *ptr) override;

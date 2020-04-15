@@ -148,7 +148,7 @@ spider::RTKernel *spider::api::createRuntimeKernel(pisdf::Vertex *vertex, Kernel
         }
         if (rt::platform()) {
             auto *runtimeKernel = make<RTKernel, StackID::RUNTIME>(kernel);
-            const auto &index = rt::platform()->addKernel(runtimeKernel);
+            const auto index = rt::platform()->addKernel(runtimeKernel);
             runtimeInfo->setKernelIx(index);
             return runtimeKernel;
         }

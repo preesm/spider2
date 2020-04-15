@@ -54,7 +54,6 @@ public:
     struct Node {
         size_t blockSize_ = 0;
         Node *next_ = nullptr;
-
     };
 
     explicit FreeListAllocatorPolicy(size_t staticBufferSize,
@@ -63,6 +62,14 @@ public:
                                      size_t alignment = sizeof(int64_t));
 
     ~FreeListAllocatorPolicy() noexcept override;
+
+    FreeListAllocatorPolicy(FreeListAllocatorPolicy &&) = default;
+
+    FreeListAllocatorPolicy(const FreeListAllocatorPolicy &) = delete;
+
+    FreeListAllocatorPolicy &operator=(FreeListAllocatorPolicy &&) = default;
+
+    FreeListAllocatorPolicy &operator=(const FreeListAllocatorPolicy &) = delete;
 
     void *allocate(size_t size) override;
 
