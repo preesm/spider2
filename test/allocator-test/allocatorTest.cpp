@@ -44,9 +44,9 @@
 #include <common/Exception.h>
 #include <memory/allocator/allocator.h>
 #include <memory/memory.h>
-#include <memory/dynamic-policies/FreeListAllocatorPolicy.h>
-#include <memory/dynamic-policies/GenericAllocatorPolicy.h>
-#include <memory/static-policies/LinearStaticAllocator.h>
+#include <memory/allocator/dynamic-policies/FreeListAllocatorPolicy.h>
+#include <memory/allocator/dynamic-policies/GenericAllocatorPolicy.h>
+#include <memory/allocator/static-policies/LinearStaticAllocator.h>
 #include <api/spider.h>
 
 class allocatorTest : public ::testing::Test {
