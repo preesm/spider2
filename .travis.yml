@@ -1,10 +1,10 @@
 language: cpp
 
 stages:
-    - Analyze #first to speedup setup
     - Build
     - Test
     - Deploy
+    - Analyze
 
 jobs:
     include:
