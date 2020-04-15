@@ -61,6 +61,14 @@ namespace spider {
 
         ~InterMemoryBus();
 
+        InterMemoryBus(InterMemoryBus &&) = default;
+
+        InterMemoryBus(const InterMemoryBus &) = delete;
+
+        InterMemoryBus &operator=(InterMemoryBus &&) = default;
+
+        InterMemoryBus &operator=(const InterMemoryBus &) = delete;
+
         /* === Method(s) === */
 
         /**

@@ -307,17 +307,17 @@ spider::pisdf::PiSDFDOTExporterVisitor::interfaceBodyPrinter(Interface *interfac
     vertexNamePrinter(interface, 5);
 
     /* == Get widths == */
-    const auto &digitCount = computeMaxDigitCount(interface);
-    const auto &rateWidth = 24 + digitCount * 6;
-    const auto &nameWidth = static_cast<int_fast32_t >(std::min(interface->name().length(), MAX_LENGTH) * 16);
+    const auto digitCount = computeMaxDigitCount(interface);
+    const auto rateWidth = 24 + digitCount * 6;
+    const auto nameWidth = static_cast<int_fast32_t >(std::min(interface->name().length(), MAX_LENGTH) * 16);
     const auto balanceWidth = std::max((nameWidth - (2 * rateWidth + 20)) / 2, ifast32{ 20 });
 
     auto *inputEdge = interface->inputEdge();
     auto *outputEdge = interface->outputEdge();
-    auto inIx = inputEdge->sinkPortIx();
-    auto outIx = outputEdge->sourcePortIx();
-    auto inRate = inputEdge->sinkRateExpression().evaluate((*params_));
-    auto outRate = outputEdge->sourceRateExpression().evaluate((*params_));
+    const auto inIx = inputEdge->sinkPortIx();
+    const auto outIx = outputEdge->sourcePortIx();
+    const auto inRate = inputEdge->sinkRateExpression().evaluate((*params_));
+    const auto outRate = outputEdge->sourceRateExpression().evaluate((*params_));
     printer::fprintf(file_, "%s\t\t<tr>\n", offset_.c_str());
     printer::fprintf(file_,
                      "%s\t\t\t" R"(<td border="0" bgcolor="#ffffff00" fixedsize="true" width="%ld" height="60"></td>)" "\n",
@@ -372,8 +372,8 @@ struct GetVertexVisitor final : public spider::pisdf::DefaultVisitor {
 
 void spider::pisdf::PiSDFDOTExporterVisitor::edgePrinter(Edge *edge) const {
     const auto *delay = edge->delay();
-    const auto &srcPortIx = edge->sourcePortIx();
-    const auto &snkPortIx = edge->sinkPortIx();
+    const auto srcPortIx = edge->sourcePortIx();
+    const auto snkPortIx = edge->sinkPortIx();
     /* == Get the source and sink == */
     GetVertexVisitor visitor;
     visitor.ix_ = srcPortIx;

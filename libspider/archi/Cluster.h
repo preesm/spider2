@@ -55,6 +55,14 @@ namespace spider {
 
         ~Cluster();
 
+        Cluster(Cluster &&) = default;
+
+        Cluster(const Cluster &) = delete;
+
+        Cluster &operator=(Cluster &&) = default;
+
+        Cluster &operator=(const Cluster &) = delete;
+
         /* === Method(s) === */
 
         /**

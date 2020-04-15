@@ -63,6 +63,14 @@ namespace spider {
 
         ~Platform();
 
+        Platform(Platform &&) = default;
+
+        Platform(const Platform &) = delete;
+
+        Platform &operator=(Platform &&) = default;
+
+        Platform &operator=(const Platform &) = delete;
+
         /* === Method(s) === */
 
         /**

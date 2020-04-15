@@ -142,6 +142,7 @@ void spider::api::setStackAllocatorPolicy(StackID stackId,
 
 void spider::start(const StartUpConfig &cfg) {
     if (startFlag) {
+        quit();
         throwSpiderException("spider::start() function should be called only once.");
     }
 

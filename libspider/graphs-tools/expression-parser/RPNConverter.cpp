@@ -90,7 +90,7 @@ static bool missMatchParenthesis(It1 first, It2 last) {
  * @param infixExprString String to evaluate.
  */
 static void checkInfixExpression(const std::string &infixExprString) {
-    static const auto &restrictedOperators = std::string{ "*/+-%^" };
+    static const auto restrictedOperators = std::string{ "*/+-%^" };
     uint32_t i = 0;
     for (const auto &c: infixExprString) {
         i += 1;
@@ -116,8 +116,10 @@ static void checkInfixExpression(const std::string &infixExprString) {
  */
 static std::string &stringReplace(std::string &s, const std::string &pattern, const std::string &replace) {
     if (!pattern.empty()) {
-        for (size_t pos = 0; (pos = s.find(pattern, pos)) != std::string::npos; pos += replace.size()) {
+        size_t pos = 0;
+        while ((pos = s.find(pattern, pos)) != std::string::npos) {
             s.replace(pos, pattern.size(), replace);
+            pos += replace.size();
         }
     }
     return s;
@@ -186,13 +188,15 @@ static std::string cleanInfixExpression(std::string infixExprString) {
     /* == Clean the inFix expression by replacing every occurrence of PI to its value == */
     const std::string piValue = "3.1415926535";
     const std::string piString = "pi";
-    for (size_t pos = 0; (pos = cleanExpression.find(piString, pos)) != std::string::npos; pos += piValue.size()) {
+    size_t pos = 0;
+    while ((pos = cleanExpression.find(piString, pos)) != std::string::npos) {
         /* == we can effectively do the change if we are not part of a word == */
         bool isAlphPrev = (pos > 0) && std::isalnum(cleanExpression[pos - 1]);
         bool isAlphNext = ((pos + 2) != cleanExpression.length()) && std::isalnum(cleanExpression[pos + 2]);
         if (!isAlphPrev && !isAlphNext) {
             cleanExpression.replace(pos, 2, piValue);
         }
+        pos += piValue.size();
     }
     return cleanExpression;
 }
@@ -208,9 +212,8 @@ static void addElementFromToken(spider::vector<RPNElement> &tokenStack, const st
     }
     if (isOperator(token)) {
         /* == Function case == */
-        const auto &opType = spider::rpn::getOperatorTypeFromString(token);
-        const auto &subtype = isFunction(opType) ? RPNElementSubType::FUNCTION
-                                                 : RPNElementSubType::OPERATOR;
+        const auto opType = spider::rpn::getOperatorTypeFromString(token);
+        const auto subtype = isFunction(opType) ? RPNElementSubType::FUNCTION : RPNElementSubType::OPERATOR;
         tokenStack.push_back(RPNElement(RPNElementType::OPERATOR, subtype, token));
     } else {
         auto pos = token.find_first_of(',', 0);
