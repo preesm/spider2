@@ -38,6 +38,29 @@ jobs:
             - cmake .. -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=OFF
             - cmake --build . --target spider2 -- -j$(nproc)
 
+        - stage: Build
+          os: windows
+          env: GENERATOR="Visual Studio 16 2019"
+          compiler: msvc19
+          before_install:
+            - choco install visualstudio2019buildtools --package-parameters "--includeRecommended --includeOptional"
+            - choco install visualstudio2019-workload-vctools
+          install:
+            - mkdir doxygen && cd doxygen
+            - curl -o doxygen.zip https://netix.dl.sourceforge.net/project/doxygen/rel-1.8.16/doxygen-1.8.16.windows.bin.zip
+            - unzip doxygen.zip
+            - export PATH=$PATH:$PWD
+            - cd ..
+          script: 
+            - cd bin
+            - cmake .. -DTYPE_SAFE=ON -DBUILD_TESTING=OFF
+            - cmake --build . --target spider2 --config Debug
+            - cmake --build . --target spider2 --config Release
+            - rm -rf ../bin/*
+            - cmake .. -DBUILD_TESTING=OFF
+            - cmake --build . --target spider2 --config Debug
+            - cmake --build . --target spider2 --config Release
+
         - stage: Test
           os: linux
           dist: xenial
