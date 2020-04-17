@@ -57,8 +57,7 @@ namespace spider {
         /**
          * @brief Copy constructor. mutex state of the queue will NOT be copied.
          */
-        IndexedQueue(const IndexedQueue<T> &other) : IndexedQueue(),
-                                                     freeIndexQueue_{ other.freeIndexQueue_ },
+        IndexedQueue(const IndexedQueue<T> &other) : freeIndexQueue_{ other.freeIndexQueue_ },
                                                      queue_{ other.queue_ } {
         }
 

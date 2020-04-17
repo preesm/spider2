@@ -41,6 +41,7 @@
 #include <api/pisdf-api.h>
 #include <archi/MemoryInterface.h>
 #include <api/runtime-api.h>
+#include <common/Printer.h>
 
 /* === Static variable(s) === */
 

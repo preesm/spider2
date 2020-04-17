@@ -40,7 +40,7 @@
 #include <graphs-tools/expression-parser/Expression.h>
 #include <graphs/pisdf/Param.h>
 #include <graphs/pisdf/Graph.h>
-#include <api/config-api.h>
+#include <common/Printer.h>
 
 /* === Static method(s) === */
 

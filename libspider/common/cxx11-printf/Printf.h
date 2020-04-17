@@ -150,7 +150,7 @@ namespace spider {
             template<class R, class T>
             constexpr R
             formatted_pointer(T p, typename std::enable_if<std::is_convertible<T, const void *>::value>::type * = 0) {
-                return reinterpret_cast<R>(reinterpret_cast<uintptr_t>(p));
+                return reinterpret_cast<R>(reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(p)));
             }
 
             template<class R, class T>
@@ -655,9 +655,17 @@ namespace spider {
                 }
                 ++format;
             }
+#if defined(_MSC_VER)
+            // Visual does not seem to like constant expression evaluation..
+#pragma warning(push)
+#pragma warning(disable: 4127)
+#endif
             if (n_args) {
                 throw format_error("Bad format: expected format_specifier.");
             }
+#if defined(_MSC_VER)
+#pragma warning(pop)
+#endif
             // clean up any trailing stuff
             return Printf(ctx, format + 1, ts...);
         }
