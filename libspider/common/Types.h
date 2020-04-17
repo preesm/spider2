@@ -38,6 +38,7 @@
 /* === Include(s) === */
 
 #include <cstdint>
+#include <cstddef>
 #include <cinttypes>
 
 /* === Defining short aliases for all types === */

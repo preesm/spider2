@@ -97,20 +97,28 @@ namespace spider {
             return *this;
         }
 
-        inline Rational operator+(const Rational &b) const {
-            return Rational{ *this } += b;
+        friend inline Rational operator+(const Rational &a, const Rational &b) {
+            auto tmp = a;
+            tmp += b;
+            return tmp;
         }
 
-        inline Rational operator-(const Rational &b) const {
-            return Rational{ *this } -= b;
+        friend inline Rational operator-(const Rational &a, const Rational &b) {
+            auto tmp = a;
+            tmp -= b;
+            return tmp;
         }
 
-        inline Rational operator*(const Rational &b) const {
-            return Rational{ *this } *= b;
+        friend inline Rational operator*(const Rational &a, const Rational &b) {
+            auto tmp = a;
+            tmp *= b;
+            return tmp;
         }
 
-        inline Rational operator/(const Rational &b) const {
-            return Rational{ *this } /= b;
+        friend inline Rational operator/(const Rational &a, const Rational &b) {
+            auto tmp = a;
+            tmp /= b;
+            return tmp;
         }
 
         inline bool operator==(const Rational &b) const {
