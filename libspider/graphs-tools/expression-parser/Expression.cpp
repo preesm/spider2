@@ -58,68 +58,68 @@ template<class StartIterator>
 static double applyOperator(StartIterator start, RPNOperatorType type) {
     switch (type) {
         case RPNOperatorType::ADD:
-            return (*start) + (*(start + 1));
+            return *start + *(start + 1);
         case RPNOperatorType::SUB:
-            return (*start) - (*(start + 1));
+            return *start - *(start + 1);
         case RPNOperatorType::MUL:
-            return (*start) * (*(start + 1));
+            return *start * *(start + 1);
         case RPNOperatorType::DIV:
-            return (*start) / (*(start + 1));
+            return *start / *(start + 1);
         case RPNOperatorType::MOD:
-            return static_cast<double>(static_cast<int64_t>((*start)) % static_cast<int64_t>((*(start + 1))));
+            return static_cast<double>(static_cast<int64_t>(*start) % static_cast<int64_t>(*(start + 1)));
         case RPNOperatorType::POW:
-            return std::pow((*start), (*(start + 1)));
+            return std::pow(*start, (*(start + 1)));
         case RPNOperatorType::FACT:
-            return spider::math::factorial((*start));
+            return spider::math::factorial(*start);
         case RPNOperatorType::COS:
-            return std::cos((*start));
+            return std::cos(*start);
         case RPNOperatorType::SIN:
-            return std::sin((*start));
+            return std::sin(*start);
         case RPNOperatorType::TAN:
-            return std::tan((*start));
+            return std::tan(*start);
         case RPNOperatorType::COSH:
-            return std::cosh((*start));
+            return std::cosh(*start);
         case RPNOperatorType::SINH:
-            return std::sinh((*start));
+            return std::sinh(*start);
         case RPNOperatorType::TANH:
-            return std::tanh((*start));
+            return std::tanh(*start);
         case RPNOperatorType::EXP:
-            return std::exp((*start));
+            return std::exp(*start);
         case RPNOperatorType::LOG:
-            return std::log((*start));
+            return std::log(*start);
         case RPNOperatorType::LOG2:
-            return std::log2((*start));
+            return std::log2(*start);
         case RPNOperatorType::LOG10:
-            return std::log10((*start));
+            return std::log10(*start);
         case RPNOperatorType::CEIL:
-            return std::ceil((*start));
+            return std::ceil(*start);
         case RPNOperatorType::FLOOR:
-            return std::floor((*start));
+            return std::floor(*start);
         case RPNOperatorType::ABS:
-            return spider::math::abs((*start));
+            return spider::math::abs(*start);
         case RPNOperatorType::SQRT:
-            return std::sqrt((*start));
+            return std::sqrt(*start);
         case RPNOperatorType::MAX:
-            return std::max((*start), (*(start + 1)));
+            return std::max(*start, *(start + 1));
         case RPNOperatorType::MIN:
-            return std::min((*start), (*(start + 1)));
+            return std::min(*start, *(start + 1));
         case RPNOperatorType::LOG_AND:
             return static_cast<double>(static_cast<long>(*start) && static_cast<long>(*(start + 1)));
         case RPNOperatorType::LOG_OR:
             return static_cast<double>(static_cast<long>(*start) || static_cast<long>(*(start + 1)));
         case RPNOperatorType::IF:
-            if ((*start) >= 1.) {
-                return (*(start + 1));
+            if (*start >= 1.) {
+                return *(start + 1);
             }
-            return (*(start + 2));
+            return *(start + 2);
         case RPNOperatorType::GREATER:
-            return (*start) > (*(start + 1));
+            return *start > *(start + 1);
         case RPNOperatorType::GEQ:
-            return (*start) >= (*(start + 1));
+            return *start >= *(start + 1);
         case RPNOperatorType::LESS:
-            return (*start) < (*(start + 1));
+            return *start < *(start + 1);
         case RPNOperatorType::LEQ:
-            return (*start) <= (*(start + 1));
+            return *start <= *(start + 1);
         case RPNOperatorType::LEFT_PAR:
         case RPNOperatorType::RIGHT_PAR:
         case RPNOperatorType::DUMMY:
@@ -156,8 +156,7 @@ spider::Expression::Expression(std::string expression, const spider::vector<std:
     }
 }
 
-spider::Expression::Expression(int64_t value) {
-    value_ = static_cast<double>(value);
+spider::Expression::Expression(int64_t value) : value_{ static_cast<double>(value) } {
 }
 
 spider::Expression::~Expression() {

@@ -71,8 +71,8 @@ namespace spider {
          * @param stack  Stack on which the array should be allocated.
          * @param size   Size of the array.
          */
-        explicit array(size_type size, StackID stack = StackID::GENERAL) : size_{ size } {
-            data_ = allocate<T>(stack, size);
+        explicit array(size_type size, StackID stack = StackID::GENERAL) : data_{ allocate<T>(stack, size) },
+                                                                           size_{ size } {
         }
 
         /**
@@ -95,7 +95,7 @@ namespace spider {
             std::copy(other.begin(), other.end(), begin());
         };
 
-        array(array &&other) noexcept : array() {
+        array(array &&other) noexcept: array() {
             swap(*this, other);
         }
 

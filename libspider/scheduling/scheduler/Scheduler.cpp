@@ -176,7 +176,7 @@ spider::ScheduleTask *spider::Scheduler::insertCommunicationTask(Cluster *cluste
     /* == Set job information and update schedule == */
     const auto mappedPeIx{ mappedPe->virtualIx() };
     const auto mappingSt{ std::max(schedule_.endTime(mappedPeIx), minStartTime) };
-    const auto mappingEt{ mappingSt + comTime };
+    const auto mappingEt{ mappingSt + static_cast<u64>(comTime) };
     schedule_.updateTaskAndSetReady(static_cast<size_t>(comTask->ix()), mappedPeIx, mappingSt, mappingEt);
     return comTask;
 }

@@ -77,34 +77,34 @@ spider::MemoryInterface *spider::api::createMemoryInterface(uint64_t size) {
 
 void spider::api::setMemoryInterfaceAllocateRoutine(MemoryInterface *interface, MemoryAllocateRoutine routine) {
     if (interface) {
-        interface->setAllocateRoutine(routine);
+        interface->setAllocateRoutine(std::move(routine));
     }
 }
 
 void spider::api::setMemoryInterfaceDeallocateRoutine(MemoryInterface *interface, MemoryDeallocateRoutine routine) {
     if (interface) {
-        interface->setDeallocateRoutine(routine);
+        interface->setDeallocateRoutine(std::move(routine));
     }
 }
 
 spider::MemoryBus *spider::api::createMemoryBus(MemoryBusRoutine sendRoutine, MemoryBusRoutine receiveRoutine) {
     auto *bus = make<MemoryBus, StackID::ARCHI>();
     if (bus) {
-        bus->setSendRoutine(sendRoutine);
-        bus->setReceiveRoutine(receiveRoutine);
+        bus->setSendRoutine(std::move(sendRoutine));
+        bus->setReceiveRoutine(std::move(receiveRoutine));
     }
     return bus;
 }
 
 void spider::api::setMemoryBusSendCostRoutine(MemoryBus *bus, MemoryExchangeCostRoutine routine) {
     if (bus) {
-        bus->setSendCostRoutine(routine);
+        bus->setSendCostRoutine(std::move(routine));
     }
 }
 
 void spider::api::setMemoryBusReceiveCostRoutine(MemoryBus *bus, MemoryExchangeCostRoutine routine) {
     if (bus) {
-        bus->setReceiveCostRoutine(routine);
+        bus->setReceiveCostRoutine(std::move(routine));
     }
 }
 

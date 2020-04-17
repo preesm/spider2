@@ -71,7 +71,7 @@ namespace spider {
 
         template<class T>
         inline spider::deque<T> deque(spider::deque<T> &&other, StackID stack = StackID::GENERAL) {
-            return spider::deque<T>(other, spider::allocator<T>(stack));
+            return spider::deque<T>(std::move(other), spider::allocator<T>(stack));
         }
 
         template<class T>

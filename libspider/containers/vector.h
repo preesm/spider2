@@ -77,7 +77,7 @@ namespace spider {
 
         template<class T>
         inline spider::vector<T> vector(spider::vector<T> &&other, StackID stack = StackID::GENERAL) {
-            return spider::vector<T>(other, spider::allocator<T>(stack));
+            return spider::vector<T>(std::move(other), spider::allocator<T>(stack));
         }
 
         template<class T>

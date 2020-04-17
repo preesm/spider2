@@ -47,7 +47,7 @@ namespace spider {
     class RTKernel {
     public:
 
-        explicit RTKernel(Kernel kernel) : kernel_{ kernel } { };
+        explicit RTKernel(Kernel kernel) : kernel_{ std::move(kernel) } { };
 
         RTKernel() = default;
 

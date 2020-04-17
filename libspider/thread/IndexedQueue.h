@@ -52,20 +52,20 @@ namespace spider {
     template<class T, StackID stack = StackID::GENERAL>
     class IndexedQueue {
     public:
-        IndexedQueue() : queue_{ factory::vector<T>(stack) } { };
+        IndexedQueue() = default;
 
         /**
          * @brief Copy constructor. mutex state of the queue will NOT be copied.
          */
-        IndexedQueue(const IndexedQueue<T> &other) : IndexedQueue() {
-            queue_ = other.queue_;
-            freeIndexQueue_ = other.freeIndexQueue_;
+        IndexedQueue(const IndexedQueue<T> &other) : IndexedQueue(),
+                                                     freeIndexQueue_{ other.freeIndexQueue_ },
+                                                     queue_{ other.queue_ } {
         }
 
         /**
          * @brief Move constructor. mutex state of the queue will NOT be moved.
          */
-        IndexedQueue(IndexedQueue<T> &&other) noexcept : IndexedQueue() {
+        IndexedQueue(IndexedQueue<T> &&other) noexcept: IndexedQueue() {
             queue_.swap(other.queue_);
             freeIndexQueue_.swap(other.freeIndexQueue_);
         }
@@ -115,8 +115,8 @@ namespace spider {
         /* === Setter(s) === */
 
     private:
-        spider::queue<size_t> freeIndexQueue_; /* = Keeping track of available space in vector = */
-        spider::vector<T> queue_;              /* = Actual queue = */
+        spider::queue<size_t> freeIndexQueue_;                /* = Keeping track of available space in vector = */
+        spider::vector<T> queue_ = factory::vector<T>(stack); /* = Actual queue = */
         std::mutex mutex_;
 
         /* === Private method(s) === */
