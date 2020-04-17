@@ -130,7 +130,7 @@ void spider::api::createThreadRTPlatform() {
 
 spider::RTKernel *spider::api::createRuntimeKernel(Kernel kernel) {
     if (rt::platform()) {
-        auto *runtimeKernel = make<RTKernel, StackID::RUNTIME>(kernel);
+        auto *runtimeKernel = make<RTKernel, StackID::RUNTIME>(std::move(kernel));
         rt::platform()->addKernel(runtimeKernel);
         return runtimeKernel;
     }
@@ -147,7 +147,7 @@ spider::RTKernel *spider::api::createRuntimeKernel(pisdf::Vertex *vertex, Kernel
             throwSpiderException("vertex %s already has a runtime kernel.", vertex->name().c_str());
         }
         if (rt::platform()) {
-            auto *runtimeKernel = make<RTKernel, StackID::RUNTIME>(kernel);
+            auto *runtimeKernel = make<RTKernel, StackID::RUNTIME>(std::move(kernel));
             const auto index = rt::platform()->addKernel(runtimeKernel);
             runtimeInfo->setKernelIx(index);
             return runtimeKernel;

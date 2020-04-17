@@ -416,7 +416,7 @@ void spider::srdag::SingleRateTransformer::populateTransfoVertexVector(vector<Tr
     const auto *clone = srdag_->vertex(ref2Clone_[getIx(reference, job_.reference_)]);
     const auto &cloneIx = clone->ix();
     for (auto ix = (cloneIx + reference->repetitionValue()); ix != cloneIx; --ix) {
-        vector.emplace_back(rate, portIx, srdag_->vertex(ix - 1));
+        vector.emplace_back(rate, static_cast<uint32_t>(portIx), srdag_->vertex(ix - 1));
     }
 }
 

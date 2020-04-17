@@ -181,12 +181,12 @@ spider::JobMessage spider::ScheduleTask::createJobMessage() const {
     setJobMessageInputParameters(message);
 
     /* == Copy input Fifos == */
-    const auto inputFifos = taskMemory_->inputFifos();
+    auto inputFifos = taskMemory_->inputFifos();
     message.inputFifoArray_ = array<RTFifo>(taskMemory_->inputFifoCount(), StackID::RUNTIME);
     std::copy(std::begin(inputFifos), std::end(inputFifos), std::begin(message.inputFifoArray_));
 
     /* == Copy output Fifos == */
-    const auto outputFifos = taskMemory_->outputFifos();
+    auto outputFifos = taskMemory_->outputFifos();
     message.outputFifoArray_ = array<RTFifo>(taskMemory_->outputFifoCount(), StackID::RUNTIME);
     std::copy(std::begin(outputFifos), std::end(outputFifos), std::begin(message.outputFifoArray_));
     return message;

@@ -95,15 +95,15 @@ uint64_t spider::MemoryBus::readSpeed() const {
 }
 
 void spider::MemoryBus::setSendCostRoutine(MemoryExchangeCostRoutine routine) {
-    sendCostRoutine_ = routine;
+    sendCostRoutine_ = std::move(routine);
 }
 
 void spider::MemoryBus::setReceiveCostRoutine(MemoryExchangeCostRoutine routine) {
-    receiveCostRoutine_ = routine;
+    receiveCostRoutine_ = std::move(routine);
 }
 
 void spider::MemoryBus::setSendRoutine(MemoryBusRoutine routine) {
-    sendRoutine_ = routine;
+    sendRoutine_ = std::move(routine);
     auto *platform = rt::platform();
     if (platform) {
         auto *kernel = make<RTKernel, StackID::ARCHI>(send);
@@ -112,7 +112,7 @@ void spider::MemoryBus::setSendRoutine(MemoryBusRoutine routine) {
 }
 
 void spider::MemoryBus::setReceiveRoutine(MemoryBusRoutine routine) {
-    receiveRoutine_ = routine;
+    receiveRoutine_ = std::move(routine);
     auto *platform = rt::platform();
     if (platform) {
         auto *kernel = make<RTKernel, StackID::ARCHI>(receive);

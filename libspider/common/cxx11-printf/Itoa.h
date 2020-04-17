@@ -114,8 +114,18 @@ namespace spider {
 
                     // reserve space for leading chars as needed
                     // and if necessary negate the value in ud
-                    if (d < 0) {
+#if defined(_MSC_VER)
+                    // For some reason, visual is not able to see that T is necessary signed here so we silence the warning
+                    // Also, visual does not seem to like constant expression evaluation..
+#pragma warning(push)
+#pragma warning(disable: 4146)
+#pragma warning(disable: 4127)
+#endif
+                    if (std::is_signed<T>::value && d < 0) {
                         d = static_cast<T>(-d);
+#if defined(_MSC_VER)
+#pragma warning(pop)
+#endif
                         ud = static_cast<typename std::make_unsigned<T>::type>(d);
                         width -= 1;
                     } else if (flags.space) {

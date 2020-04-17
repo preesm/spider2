@@ -246,9 +246,10 @@ void spider::pisdf::Graph::removeParam(const std::shared_ptr<Param> &param) {
 }
 
 spider::pisdf::Param *spider::pisdf::Graph::paramFromName(const std::string &name) {
-    std::string lowerCaseName = name;
-    std::transform(lowerCaseName.begin(), lowerCaseName.end(), lowerCaseName.begin(), ::tolower);
-    for (auto &param : paramVector_) {
+    auto lowerCaseName = name;
+    std::transform(std::begin(lowerCaseName), std::end(lowerCaseName), std::begin(lowerCaseName),
+                   [](char c) { return static_cast<char>(::tolower(c)); });
+    for (const auto &param : paramVector_) {
         if (param->name() == lowerCaseName) {
             return param.get();
         }

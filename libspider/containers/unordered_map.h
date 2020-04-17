@@ -65,7 +65,7 @@ namespace spider {
         template<class Key, class T>
         inline spider::unordered_map<Key, T>
         unordered_map(spider::unordered_map<Key, T> &&other, StackID stack = StackID::GENERAL) {
-            return spider::unordered_map<Key, T>(other, spider::allocator<std::pair<const Key, T>>(stack));
+            return spider::unordered_map<Key, T>(std::move(other), spider::allocator<std::pair<const Key, T>>(stack));
         }
     }
 }

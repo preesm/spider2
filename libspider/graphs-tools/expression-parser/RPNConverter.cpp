@@ -141,7 +141,8 @@ static std::string cleanInfixExpression(std::string infixExprString) {
                                localInfixExpression.end());
 
     /* == Convert the infix to lowercase == */
-    std::transform(localInfixExpression.begin(), localInfixExpression.end(), localInfixExpression.begin(), ::tolower);
+    std::transform(std::begin(localInfixExpression), std::end(localInfixExpression), std::begin(localInfixExpression),
+                   [](char c) { return static_cast<char>(::tolower(c)); });
 
     /* == Replace (+x) to (x) == */
     stringReplace(localInfixExpression, "(+", "(");

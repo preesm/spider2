@@ -41,6 +41,7 @@
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/DelayVertex.h>
 #include <api/pisdf-api.h>
+#include <common/Printer.h>
 
 /* === Private structure(s) === */
 

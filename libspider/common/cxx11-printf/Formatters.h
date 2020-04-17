@@ -56,6 +56,7 @@
 #include <cstddef>
 #include <cstring>
 #include <iterator>
+#include <algorithm>
 
 namespace spider {
     namespace cxx11 {

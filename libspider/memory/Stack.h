@@ -49,8 +49,8 @@ namespace spider {
 
     class Stack {
     public:
-        explicit Stack(StackID stack) : stack_{ stack } {
-            policy_ = new GenericAllocatorPolicy();
+        explicit Stack(StackID stack) : policy_{ new GenericAllocatorPolicy() },
+                                        stack_{ stack } {
         }
 
         Stack(Stack &&) = delete;
@@ -169,13 +169,13 @@ namespace spider {
         }
 
     private:
+        AbstractAllocatorPolicy *policy_ = nullptr;
+        std::mutex lock_;
         uint64_t usage_ = 0;
         uint64_t peak_ = 0;
         uint64_t total_ = 0;
         uint64_t sampleCount_ = 0;
         StackID stack_ = StackID::GENERAL;
-        AbstractAllocatorPolicy *policy_ = nullptr;
-        std::mutex lock_;
 
 
         /* === Private methods === */

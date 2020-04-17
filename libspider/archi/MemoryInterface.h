@@ -117,7 +117,7 @@ namespace spider {
          * @param routine  Routine to set.
          */
         inline void setAllocateRoutine(MemoryAllocateRoutine routine) {
-            allocateRoutine_ = routine;
+            allocateRoutine_ = std::move(routine);
         }
 
         /**
@@ -126,7 +126,7 @@ namespace spider {
          * @param routine  Routine to set.
          */
         inline void setDeallocateRoutine(MemoryDeallocateRoutine routine) {
-            deallocateRoutine_ = routine;
+            deallocateRoutine_ = std::move(routine);
         }
 
     private:

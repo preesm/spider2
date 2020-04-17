@@ -99,7 +99,7 @@ namespace spider {
                 return value_;
             }
 
-            virtual inline int64_t value(const vector<std::shared_ptr<Param>> &) const {
+            virtual inline int64_t value(const vector <std::shared_ptr<Param>> &) const {
                 return value_;
             }
 
@@ -115,7 +115,7 @@ namespace spider {
                 return nullptr;
             }
 
-            virtual inline Expression expression()const {
+            virtual inline Expression expression() const {
                 return Expression(value_);
             }
 
@@ -149,7 +149,8 @@ namespace spider {
 
             /* == Protected ctor == */
             explicit Param(std::string name) : name_{ std::move(name) } {
-                std::transform(name_.begin(), name_.end(), name_.begin(), ::tolower);
+                std::transform(std::begin(name_), std::end(name_), std::begin(name_),
+                               [](char c) { return static_cast<char>(::tolower(c)); });
                 if (name_ == "pi") {
                     throwSpiderException("ambiguous name for parameter: pi is a math constant.");
                 }
