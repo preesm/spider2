@@ -64,16 +64,19 @@ static spider::Platform *safeGetPlatform() {
 }
 
 static void findAndReplacePREESMBroadcast(spider::pisdf::Graph *graph) {
+    const auto checkBroadcast = [](const spider::pisdf::Vertex *vertex) {
+        const auto &inputExpression = vertex->inputEdge(0)->sinkRateExpression();
+        for (const auto &edge : vertex->outputEdgeVector()) {
+            if (edge->sourceRateExpression() != inputExpression) {
+                return true;
+            }
+        }
+        return false;
+    };
     auto broadcastVector = spider::factory::vector<spider::pisdf::Vertex *>(StackID::TRANSFO);
     for (const auto &vertex : graph->vertices()) {
-        if (vertex->subtype() == spider::pisdf::VertexType::DUPLICATE) {
-            const auto &inputExpression = vertex->inputEdge(0)->sinkRateExpression();
-            for (const auto &edge : vertex->outputEdgeVector()) {
-                if (edge->sourceRateExpression() != inputExpression) {
-                    broadcastVector.emplace_back(vertex.get());
-                    break;
-                }
-            }
+        if (vertex->subtype() == spider::pisdf::VertexType::DUPLICATE && checkBroadcast(vertex.get())) {
+            broadcastVector.emplace_back(vertex.get());
         }
     }
     for (auto *vertex : broadcastVector) {

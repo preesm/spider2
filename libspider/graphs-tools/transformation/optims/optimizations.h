@@ -56,6 +56,8 @@ namespace spider {
 
         /**
          * @brief Optimize Repeat -> Fork patterns in a @refitem pisdf::Graph.
+         *        This optimization is important because fork / duplicate are memory optimized and results in no
+         *        memory operations whereas repeat actors are not optimizable.
          * @param graph Pointer to the graph to be optimized.
          * @return true if optimization was applied, false else.
          */
