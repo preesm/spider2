@@ -38,14 +38,17 @@
 #include <graphs/pisdf/Edge.h>
 #include <graphs/pisdf/Param.h>
 #include <graphs/pisdf/Graph.h>
+#include <graphs-tools/helper/visitors/PiSDFVisitor.h>
 
 /* === Function(s) definition === */
 
 spider::pisdf::Vertex::Vertex(VertexType type, std::string name, size_t edgeINCount, size_t edgeOUTCount) :
-        AbstractVertex<Graph, Edge>(stack_t < StackID::PISDF > { }, std::move(name), edgeINCount, edgeOUTCount),
+        inputEdgeVector_{ factory::vector<Edge *>(edgeINCount, nullptr, StackID::PISDF) },
+        outputEdgeVector_{ factory::vector<Edge *>(edgeOUTCount, nullptr, StackID::PISDF) },
         inputParamVector_{ factory::vector<std::shared_ptr<Param>>(StackID::PISDF) },
         refinementParamVector_{ factory::vector<std::shared_ptr<Param>>(StackID::PISDF) },
         outputParamVector_{ factory::vector<std::shared_ptr<Param>>(StackID::PISDF) },
+        name_{ std::move(name) },
         subtype_{ type } {
     checkTypeConsistency();
 }
@@ -56,6 +59,32 @@ spider::pisdf::Vertex::~Vertex() noexcept {
         log::error("Removing vertex [%s] with copies out there.\n", name().c_str());
     }
     this->reference_->copyCount_ -= 1;
+}
+
+void spider::pisdf::Vertex::connectInputEdge(Edge *edge, size_t pos) {
+    connectEdge(inputEdgeVector_, edge, pos);
+}
+
+void spider::pisdf::Vertex::connectOutputEdge(Edge *edge, size_t pos) {
+    connectEdge(outputEdgeVector_, edge, pos);
+}
+
+spider::pisdf::Edge *spider::pisdf::Vertex::disconnectInputEdge(size_t ix) {
+    auto *edge = disconnectEdge(inputEdgeVector_, ix);
+    if (edge) {
+        /* == Reset the Edge == */
+        edge->setSink(nullptr, SIZE_MAX, Expression());
+    }
+    return edge;
+}
+
+spider::pisdf::Edge *spider::pisdf::Vertex::disconnectOutputEdge(size_t ix) {
+    auto *edge = disconnectEdge(outputEdgeVector_, ix);
+    if (edge) {
+        /* == Reset the Edge == */
+        edge->setSource(nullptr, SIZE_MAX, Expression());
+    }
+    return edge;
 }
 
 void spider::pisdf::Vertex::visit(Visitor *visitor) {
@@ -124,6 +153,12 @@ void spider::pisdf::Vertex::setInstanceValue(size_t value) {
     instanceValue_ = value;
 }
 
+void spider::pisdf::Vertex::setGraph(spider::pisdf::Graph *graph) {
+    if (graph) {
+        graph_ = graph;
+    }
+}
+
 /* === Protected method(s) === */
 
 void spider::pisdf::Vertex::checkTypeConsistency() const {
@@ -183,5 +218,26 @@ void spider::pisdf::Vertex::checkTypeConsistency() const {
             break;
         default:
             break;
+    }
+}
+
+
+/* === Private method(s) === */
+
+spider::pisdf::Edge *spider::pisdf::Vertex::disconnectEdge(spider::vector<Edge *> &edges, size_t ix) {
+    auto *&edge = edges.at(ix);
+    auto *ret = edge;
+    if (edge) {
+        edge = nullptr;
+    }
+    return ret;
+}
+
+void spider::pisdf::Vertex::connectEdge(spider::vector<Edge *> &edges, Edge *edge, size_t ix) {
+    auto *&current = edges.at(ix);
+    if (!current) {
+        current = edge;
+    } else {
+        throwSpiderException("Edge already exists at position: %zu", ix);
     }
 }
