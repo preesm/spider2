@@ -37,11 +37,8 @@
 
 /* === Include(s) === */
 
-#include <string>
-#include <cstdint>
 #include <memory/unique_ptr.h>
 #include <common/Exception.h>
-#include <graphs/abstract/AbstractGraph.h>
 #include <graphs/pisdf/ExecVertex.h>
 #include <graphs/pisdf/Interface.h>
 #include <graphs/pisdf/Edge.h>
@@ -53,7 +50,7 @@ namespace spider {
 
         /* === Class definition === */
 
-        class Graph : public AbstractGraph<pisdf::Graph, pisdf::Vertex, pisdf::Edge>, public Vertex {
+        class Graph : public Vertex {
         public:
 
             explicit Graph(std::string name = "unnamed-graph",
@@ -81,13 +78,13 @@ namespace spider {
             /**
              * @brief Clears a graph without destroying it.
              */
-            void clear() override;
+            void clear();
 
             /**
              * @brief Add a vertex to the graph.
              * @param vertex Vertex to add.
              */
-            void addVertex(Vertex *vertex) override;
+            void addVertex(Vertex *vertex);
 
             /**
              * @brief Remove a vertex from the graph.
@@ -95,7 +92,7 @@ namespace spider {
              * @param vertex Vertex to remove.
              * @throw @refitem Spider::Exception if vertex does not exist in the graph.
              */
-            void removeVertex(Vertex *vertex) override;
+            void removeVertex(Vertex *vertex);
 
             /**
              * @brief Move vertex ownership from this graph to another graph.
@@ -105,7 +102,32 @@ namespace spider {
              * @throws spider::Exception if failed to remove vertex from current graph or failed to add it to new graph.
              * Be aware that in the latter case the vertex has already been removed from the graph.
              */
-            void moveVertex(Vertex *vertex, Graph *graph) override;
+            void moveVertex(Vertex *vertex, Graph *graph);
+
+            /**
+             * @brief Add an edge to the graph.
+             * @param edge Edge to add.
+             */
+            void addEdge(Edge *edge);
+
+            /**
+             * @brief Remove an edge from the graph.
+             * @remark If edge is nullptr, nothing happens.
+             * @param edge Edge to remove.
+             * @throw @refitem Spider::Exception if edge does not exist in the graph.
+             */
+            void removeEdge(Edge *edge);
+
+            /**
+             * @brief Move edge ownership from this graph to another graph.
+             * @remark If graph or edge is nullptr, nothing happen.
+             * @warning This method simply moves ownership of the Edge, no check on src / snk are performed.
+             * @param elt    Edge to move.
+             * @param graph  Graph to move to.
+             * @throws spider::Exception if failed to remove edge from current graph or failed to add it to new graph.
+             * Be aware that in the latter case the edge has already been removed from the graph.
+             */
+            void moveEdge(Edge *edge, Graph *graph);
 
             /**
              * @brief Override automatic property of Graph.
@@ -152,31 +174,56 @@ namespace spider {
              * @brief Checks if a graph is the top-level graph.
              * @return true if no upper graph exists, false else.
              */
-            inline bool isTopGraph() const {
-                return graph() == nullptr;
-            }
+            inline bool isTopGraph() const { return graph() == nullptr; }
 
-            inline void visit(Visitor *visitor) override {
-                visitor->visit(this);
-            }
+            inline void visit(Visitor *visitor) override { visitor->visit(this); }
 
             /* === Getter(s) === */
+
+            /**
+             * @brief A const reference on the vector of vertex. Useful for iterating on the vertices.
+             * @return const reference to vertex vector
+             */
+            inline const vector<unique_ptr<Vertex>> &vertices() const { return vertexVector_; }
+
+            /**
+             * @brief Return the vertex corresponding to the ix.
+             * @warning This method does not check for out of bound error.
+             * @param ix  Ix of the vertex.
+             * @return @refitem Vertex pointer
+             */
+            inline Vertex *vertex(size_t ix) const { return vertexVector_[ix].get(); }
+
+            /**
+             * @brief Get the number of vertices in the graph.
+             * @remark This method exclude the number of interfaces and the number of config actors.
+             * @return Total number of vertices.
+             */
+            inline size_t vertexCount() const { return vertexVector_.size(); }
+
+            /**
+             * @brief A const reference on the set of edges. Useful for iterating on the edges.
+             * @return const reference to edge vector
+             */
+            inline const vector<unique_ptr<Edge>> &edges() const { return edgeVector_; }
+
+            /**
+             * @brief Get the number of edges contained in the graph.
+             * @return Number of edges.
+             */
+            inline size_t edgeCount() const { return edgeVector_.size(); }
 
             /**
              * @brief Return dynamic property of the graph.
              * @return true if graph is dynamic, false else.
              */
-            inline bool dynamic() const {
-                return dynamic_;
-            }
+            inline bool dynamic() const { return dynamic_; }
 
             /**
              * @brief Get the number of config actors in the graph.
              * @return Total number of config actors.
              */
-            inline size_t configVertexCount() const {
-                return configVertexVector_.size();
-            }
+            inline size_t configVertexCount() const { return configVertexVector_.size(); }
 
             /**
              * @brief Get the total number of actors of a graph, including actors in subgraphs.
@@ -188,57 +235,43 @@ namespace spider {
              * @brief Get the number of params contained in the graph.
              * @return Number of params.
              */
-            inline size_t paramCount() const {
-                return paramVector_.size();
-            }
+            inline size_t paramCount() const { return paramVector_.size(); }
 
             /**
              * @brief Get the number of subgraphs.
              * @return Number of subgraphs.
              */
-            inline size_t subgraphCount() const {
-                return subgraphVector_.size();
-            }
+            inline size_t subgraphCount() const { return subgraphVector_.size(); }
 
             /**
             * @brief A const reference on the set of subgraphs. Useful for iterating on the subgraphs.
             * @return const reference to subgraph vector
             */
-            inline const vector<Graph *> &subgraphs() const {
-                return subgraphVector_;
-            }
+            inline const vector<Graph *> &subgraphs() const { return subgraphVector_; }
 
             /**
             * @brief A const reference on the set of vertices. Useful for iterating on the vertices.
             * @return const reference to vertex vector
             */
-            inline const vector<Vertex *> &configVertices() const {
-                return configVertexVector_;
-            }
+            inline const vector<Vertex *> &configVertices() const { return configVertexVector_; }
 
             /**
             * @brief A const reference on the set of output interfaces. Useful for iterating on the input interfaces.
             * @return const reference to input interface vector
             */
-            inline const vector<unique_ptr<Interface>> &inputInterfaceVector() const {
-                return inputInterfaceVector_;
-            }
+            inline const vector<unique_ptr<Interface>> &inputInterfaceVector() const { return inputInterfaceVector_; }
 
             /**
             * @brief A const reference on the set of output interfaces. Useful for iterating on the output interfaces.
             * @return const reference to output interface vector
             */
-            inline const vector<unique_ptr<Interface>> &outputInterfaceVector() const {
-                return outputInterfaceVector_;
-            }
+            inline const vector<unique_ptr<Interface>> &outputInterfaceVector() const { return outputInterfaceVector_; }
 
             /**
             * @brief A const reference on the set of params. Useful for iterating on the params.
             * @return const reference to param vector
             */
-            inline const vector<std::shared_ptr<Param>> &params() const {
-                return paramVector_;
-            }
+            inline const vector<std::shared_ptr<Param>> &params() const { return paramVector_; }
 
             /**
              * @brief Return the parameter corresponding to the ix.
@@ -246,9 +279,7 @@ namespace spider {
              * @param ix Ix of the param.
              * @return @refitem Param pointer
              */
-            inline Param *param(size_t ix) const {
-                return paramVector_[ix].get();
-            }
+            inline Param *param(size_t ix) const { return paramVector_[ix].get(); }
 
             /**
              * @brief Return the input interface corresponding to the port ix.
@@ -258,9 +289,7 @@ namespace spider {
              * @param ix  Ix of the port
              * @return @refitem InputInterface pointer
              */
-            inline Interface *inputInterface(size_t ix) const {
-                return inputInterfaceVector_[ix].get();
-            }
+            inline Interface *inputInterface(size_t ix) const { return inputInterfaceVector_[ix].get(); }
 
             /**
              * @brief Return the output interface corresponding to the port ix.
@@ -270,21 +299,19 @@ namespace spider {
              * @param ix  Ix of the port
              * @return @refitem OutputInterface pointer
              */
-            inline Interface *outputInterface(size_t ix) const {
-                return outputInterfaceVector_[ix].get();
-            }
+            inline Interface *outputInterface(size_t ix) const { return outputInterfaceVector_[ix].get(); }
 
             /**
              * @brief Get the ix of the graph inside its containing graph subgraphVector_.
              * @return subgraph ix of the graph.
              */
-            inline size_t subIx() const {
-                return subIx_;
-            }
+            inline size_t subIx() const { return subIx_; }
 
             /* === Setter(s) === */
 
         private:
+            vector<unique_ptr<Vertex>> vertexVector_;              /* = Vector of all the Vertices of the graph = */
+            vector<unique_ptr<Edge>> edgeVector_;                  /* = Vector of Edge contained in the graph = */
             vector<Vertex *> configVertexVector_;                   /* = Vector of Vertices with VertexType::CONFIG. This is just a "viewer" vector. = */
             vector<Graph *> subgraphVector_;                        /* = Vector of Vertices with VertexType::GRAPH.  This is just a "viewer" vector. = */
             vector<std::shared_ptr<Param>> paramVector_;            /* = Vector of Param = */
@@ -298,6 +325,14 @@ namespace spider {
             struct RemoveSubgraphVisitor;
 
             struct AddSubgraphVisitor;
+
+            /* === Private method(s) === */
+
+            template<class T>
+            void assertElement(T *elt, vector<unique_ptr<T>> &eltVector);
+
+            template<class T, class U>
+            void swapElement(T *elt, vector<U> &eltVector);
 
         };
     }
