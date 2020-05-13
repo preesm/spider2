@@ -145,13 +145,6 @@ namespace spider {
             return dynamic() ? evaluateStack(params) : value_;
         }
 
-        /**
-         * @brief Get the expression string.
-         * @remark The obtained string does not necessarily to the input string due to optimizations.
-         * @return expression string.
-         */
-        std::string string() const;
-
         /* === Getters === */
 
         /**
@@ -180,9 +173,9 @@ namespace spider {
          * @brief Build and reduce the expression tree parser.
          * @param expressionStack Stack of the postfix expression elements.
          */
-        spider::vector<ExpressionElt> buildExpressionStack(spider::vector<RPNElement> &postfixStack,
-                                                           const spider::vector<std::shared_ptr<pisdf::Param>> &params,
-                                                           bool &staticExpression);
+        spider::vector<ExpressionElt> compile(spider::vector<RPNElement> &postfixStack,
+                                              const spider::vector<std::shared_ptr<pisdf::Param>> &params,
+                                              bool &staticExpression);
 
         /**
          * @brief Evaluate the expression (if dynamic)

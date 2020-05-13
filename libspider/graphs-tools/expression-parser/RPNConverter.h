@@ -229,6 +229,16 @@ namespace spider {
          * @return RPNOperatorType
          */
         RPNOperatorType getOperatorTypeFromString(const std::string &operatorString);
+
+        /**
+         * @brief Apply an operator on given arguments.
+         * @param type    Operator type.
+         * @param args    Argument vector.
+         * @param offset  Offset in the args vector of the first argument to use.
+         * @return result of the operator, 0 by default.
+         * @remark print a log message if operator is not found and if log::EXPR is enabled.
+         */
+        double apply(RPNOperatorType type, const spider::vector<double> &args, size_t offset = 0);
     }
 }
 #endif // SPIDER2_RPNCONVERTER_H

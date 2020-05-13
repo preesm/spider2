@@ -39,6 +39,8 @@
 #include <containers/stack.h>
 #include <common/Exception.h>
 #include <cctype>
+#include <common/Math.h>
+#include <cmath>
 
 /* === Static variable definition(s) === */
 
@@ -519,5 +521,78 @@ RPNOperatorType spider::rpn::getOperatorTypeFromString(const std::string &operat
         throwSpiderException("Can not convert string [%s] to operator.", operatorString.c_str());
     }
     return getOperator(i - 1).type;
+}
+
+double spider::rpn::apply(RPNOperatorType type, const spider::vector<double> &args, size_t offset) {
+    switch (type) {
+        case RPNOperatorType::ADD:
+            return args[offset] + args[offset + 1];
+        case RPNOperatorType::SUB:
+            return args[offset] - args[offset + 1];
+        case RPNOperatorType::MUL:
+            return args[offset] * args[offset + 1];
+        case RPNOperatorType::DIV:
+            return args[offset] / args[offset + 1];
+        case RPNOperatorType::MOD:
+            return static_cast<double>(static_cast<int64_t>(args[offset]) % static_cast<int64_t>(args[offset + 1]));
+        case RPNOperatorType::POW:
+            return std::pow(args[offset], args[offset + 1]);
+        case RPNOperatorType::FACT:
+            return math::factorial(args[offset]);
+        case RPNOperatorType::COS:
+            return std::cos(args[offset]);
+        case RPNOperatorType::SIN:
+            return std::sin(args[offset]);
+        case RPNOperatorType::TAN:
+            return std::tan(args[offset]);
+        case RPNOperatorType::COSH:
+            return std::cosh(args[offset]);
+        case RPNOperatorType::SINH:
+            return std::sinh(args[offset]);
+        case RPNOperatorType::TANH:
+            return std::tanh(args[offset]);
+        case RPNOperatorType::EXP:
+            return std::exp(args[offset]);
+        case RPNOperatorType::LOG:
+            return std::log(args[offset]);
+        case RPNOperatorType::LOG2:
+            return std::log2(args[offset]);
+        case RPNOperatorType::LOG10:
+            return std::log10(args[offset]);
+        case RPNOperatorType::CEIL:
+            return std::ceil(args[offset]);
+        case RPNOperatorType::FLOOR:
+            return std::floor(args[offset]);
+        case RPNOperatorType::ABS:
+            return spider::math::abs(args[offset]);
+        case RPNOperatorType::SQRT:
+            return std::sqrt(args[offset]);
+        case RPNOperatorType::MAX:
+            return std::max(args[offset], args[offset + 1]);
+        case RPNOperatorType::MIN:
+            return std::min(args[offset], args[offset + 1]);
+        case RPNOperatorType::LOG_AND:
+            return static_cast<double>(static_cast<long>(args[offset]) && static_cast<long>(args[offset + 1]));
+        case RPNOperatorType::LOG_OR:
+            return static_cast<double>(static_cast<long>(args[offset]) || static_cast<long>(args[offset + 1]));
+        case RPNOperatorType::IF:
+            return args[offset] >= 1. ? args[offset + 1] : args[offset + 2];
+        case RPNOperatorType::GREATER:
+            return args[offset] > args[offset + 1];
+        case RPNOperatorType::GEQ:
+            return args[offset] >= args[offset + 1];
+        case RPNOperatorType::LESS:
+            return args[offset] < args[offset + 1];
+        case RPNOperatorType::LEQ:
+            return args[offset] <= args[offset + 1];
+        case RPNOperatorType::LEFT_PAR:
+        case RPNOperatorType::RIGHT_PAR:
+        case RPNOperatorType::DUMMY:
+        default:
+            if (log::enabled<log::EXPR>()) {
+                log::error<log::EXPR>("Unsupported operation.\n");
+            }
+    }
+    return 0.;
 }
 
