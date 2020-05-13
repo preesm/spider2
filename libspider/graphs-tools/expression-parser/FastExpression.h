@@ -139,25 +139,33 @@ namespace spider {
         struct ExpressionNode {
             std::function<double()> func_;
             size_t lastArgIndex_;
+            RPNElementSubType type_;
 
-            ExpressionNode(std::function<double()> func, size_t index) : func_{ std::move(func) },
-                                                                         lastArgIndex_{ index } { }
+            ExpressionNode(const ExpressionNode &) = default;
+
+            ExpressionNode &operator=(const ExpressionNode &) = default;
+
+            ExpressionNode(ExpressionNode &&) = default;
+
+            ExpressionNode &operator=(ExpressionNode &&) = default;
+
+            ExpressionNode(std::function<double()> func, size_t index, RPNElementSubType type) :
+                    func_{ std::move(func) }, lastArgIndex_{ index }, type_{ type } { }
 
             inline double operator()() const { return func_(); }
         };
 
+        /* = Declaring stack_ and symbols_ has pointer allows for low memory overhead when expression is static == */
         mutable unordered_map<std::string, double> *symbols_ = nullptr;
         spider::vector<ExpressionNode> *stack_ = nullptr;
         double value_ = 0;
 
-        spider::vector<RPNElement> partialEvaluation(spider::vector<RPNElement> &postfixStack,
-                                                     const spider::vector<std::shared_ptr<pisdf::Param>> &params = { }) const;
-
-        void compile(spider::vector<RPNElement> &postfixStack);
+        void compile(spider::vector<RPNElement> &postfixStack,
+                     const spider::vector<std::shared_ptr<pisdf::Param>> &params);
 
         double evaluateImpl(const spider::vector<std::shared_ptr<pisdf::Param>> &params = { }) const;
 
-        ExpressionNode createNode(RPNOperatorType operatorType) const;
+        ExpressionNode createNode(RPNOperatorType operatorType, spider::vector<ExpressionNode> &stack) const;
     };
 }
 
