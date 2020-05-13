@@ -121,6 +121,8 @@ void spider::FastExpression::compile(vector<RPNElement> &postfixStack,
     auto localSymbols = factory::unordered_map<std::string, double>(StackID::EXPRESSION);
     auto stack = factory::vector<ExpressionNode>(StackID::EXPRESSION);
     stack.reserve(postfixStack.size());
+    auto hashString = std::string{ "" };
+    auto tmpString = std::string{ "" };
     for (auto &elt : postfixStack) {
         if (elt.type_ == RPNElementType::OPERAND) {
             if (elt.subtype_ == RPNElementSubType::PARAMETER) {
@@ -128,14 +130,17 @@ void spider::FastExpression::compile(vector<RPNElement> &postfixStack,
                 if (!param->dynamic()) {
                     const auto value = static_cast<double>(param->value());
                     stack.emplace_back([value]() { return value; }, stack.size(), RPNElementSubType::VALUE);
+                    tmpString.append(std::to_string(value).append(" "));
                 } else {
                     localSymbols[elt.token_] = 0.0;
                     const auto &value = localSymbols[elt.token_];
                     stack.emplace_back([&value]() { return value; }, stack.size(), RPNElementSubType::PARAMETER);
+                    tmpString.append(elt.token_ + " ");
                 }
             } else {
                 const auto value = std::strtod(elt.token_.c_str(), nullptr);
                 stack.emplace_back([value]() { return value; }, stack.size(), RPNElementSubType::VALUE);
+                tmpString.append(std::to_string(value).append(" "));
             }
         } else {
             const auto &opType = rpn::getOperatorTypeFromString(elt.token_);
@@ -156,15 +161,21 @@ void spider::FastExpression::compile(vector<RPNElement> &postfixStack,
                     stack.pop_back();
                 }
                 stack.emplace_back([value]() { return value; }, stack.size(), RPNElementSubType::VALUE);
+                tmpString = std::to_string(value) + " ";
             } else {
                 stack.emplace_back(std::move(expressionNode));
+                /* == Since we're not going to evaluate this bit, we can add to the final string == */
+                hashString.append(tmpString + elt.token_ + " ");
+                tmpString = "";
             }
         }
     }
     if (localSymbols.empty()) {
         /* == Static expression is optimized away == */
         value_ = stack.size() == 1 ? stack.back()() : 0.;
+        hash_ = std::hash<std::string>{}(std::to_string(value_));
     } else {
+        hash_ = std::hash<std::string>{}(hashString);
         symbols_ = make<unordered_map<std::string, double>, StackID::EXPRESSION>(std::move(localSymbols));
         stack_ = make<spider::vector<ExpressionNode>, StackID::EXPRESSION>(std::move(stack));
     }

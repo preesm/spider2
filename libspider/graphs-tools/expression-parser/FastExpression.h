@@ -91,9 +91,13 @@ namespace spider {
             return *this;
         }
 
-        bool operator==(const FastExpression &other) = delete;
+        inline bool operator==(const FastExpression &rhs) const {
+            return hash_ == rhs.hash_;
+        }
 
-        bool operator!=(const FastExpression &other) = delete;
+        inline bool operator!=(const FastExpression &rhs) const {
+            return !(*this == rhs);
+        }
 
         FastExpression &operator+=(const FastExpression &rhs);
 
@@ -159,6 +163,7 @@ namespace spider {
         mutable unordered_map<std::string, double> *symbols_ = nullptr;
         spider::vector<ExpressionNode> *stack_ = nullptr;
         double value_ = 0;
+        size_t hash_ = SIZE_MAX; /* = used for equality test = */
 
         void compile(spider::vector<RPNElement> &postfixStack,
                      const spider::vector<std::shared_ptr<pisdf::Param>> &params);
