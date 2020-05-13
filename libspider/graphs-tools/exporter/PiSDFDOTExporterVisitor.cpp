@@ -318,8 +318,11 @@ spider::pisdf::PiSDFDOTExporterVisitor::interfaceBodyPrinter(const Interface *in
     auto *outputEdge = interface->outputEdge();
     const auto inIx = inputEdge->sinkPortIx();
     const auto outIx = outputEdge->sourcePortIx();
-    const auto inRate = inputEdge->sinkRateExpression().evaluate((*params_));
-    const auto outRate = outputEdge->sourceRateExpression().evaluate((*params_));
+    const auto &parentParams = interface->graph()->graph()->params();
+    const auto inRate = inputEdge->sinkRateExpression().evaluate(
+            interface->subtype() == VertexType::INPUT ? parentParams : (*params_));
+    const auto outRate = outputEdge->sourceRateExpression().evaluate(
+            interface->subtype() == VertexType::OUTPUT ? parentParams : (*params_));
     printer::fprintf(file_, "%s\t\t<tr>\n", offset_.c_str());
     printer::fprintf(file_,
                      R"(%s            <td border="0" bgcolor="#ffffff00" fixedsize="true" width="%ld" height="60"></td>)" "\n",

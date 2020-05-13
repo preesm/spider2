@@ -161,7 +161,7 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 # Build test related commands?
 option(BUILD_TESTING "Create tests using CMake" ON)
-if (BUILD_TESTING)
+if (BUILD_TESTING MATCHES "ON")
     enable_testing()
     # Download and unpack googletest at configure time
     # from https://github.com/google/googletest/tree/master/googletest#incorporating-into-an-existing-cmake-project
