@@ -64,7 +64,7 @@ protected:
     }
 };
 
-using Expression = spider::Expression;
+using Expression = spider::FastExpression;
 
 TEST_F(expressionTest, expressionCtorTest) {
     spider::api::enableVerbose();
@@ -117,18 +117,18 @@ TEST_F(expressionTest, expression2StringTest) {
 }
 
 TEST_F(expressionTest, testEquality) {
-//    ASSERT_EQ(Expression("4*3"), Expression("4*3")) << "Expression::operator== static expression should be equal.";
-//    ASSERT_NE(Expression("4*3"), Expression("4*3.1"))
-//                                << "Expression::operator== static expression should not be equal.";
-//    ASSERT_EQ(Expression("4*3"), Expression("3*4"))
-//                                << "Expression::operator== order should not influence equality on static Expression";
-//    ASSERT_EQ(Expression("4pi"), Expression("pi*4"))
-//                                << "Expression::operator== order should not influence equality on static Expression";
-//    auto param = spider::api::createDynamicParam(nullptr, "width");
-//    ASSERT_EQ(Expression("3*width", { param }), Expression("3*width", { param }))
-//                                << "Expression::operator== parameterized expression should be equal.";
-//    ASSERT_NE(Expression("3*width", { param }), Expression("width*3", { param }))
-//                                << "Expression::operator== order matters.";
+    ASSERT_EQ(Expression("4*3"), Expression("4*3")) << "Expression::operator== static expression should be equal.";
+    ASSERT_NE(Expression("4*3"), Expression("4*3.1"))
+                                << "Expression::operator== static expression should not be equal.";
+    ASSERT_EQ(Expression("4*3"), Expression("3*4"))
+                                << "Expression::operator== order should not influence equality on static Expression";
+    ASSERT_EQ(Expression("4pi"), Expression("pi*4"))
+                                << "Expression::operator== order should not influence equality on static Expression";
+    auto param = spider::api::createDynamicParam(nullptr, "width");
+    ASSERT_EQ(Expression("3*width", { param }), Expression("3*width", { param }))
+                                << "Expression::operator== parameterized expression should be equal.";
+    ASSERT_NE(Expression("3*width", { param }), Expression("width*3", { param }))
+                                << "Expression::operator== order matters.";
 }
 
 TEST_F(expressionTest, expressionOperatorsTest) {

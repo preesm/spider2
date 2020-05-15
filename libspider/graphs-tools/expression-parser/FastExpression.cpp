@@ -173,9 +173,9 @@ void spider::FastExpression::compile(vector<RPNElement> &postfixStack,
     if (localSymbols.empty()) {
         /* == Static expression is optimized away == */
         value_ = stack.size() == 1 ? stack.back()() : 0.;
-        hash_ = std::hash<std::string>{}(std::to_string(value_));
+        hash_ = std::hash<std::string>{ }(std::to_string(value_));
     } else {
-        hash_ = std::hash<std::string>{}(hashString);
+        hash_ = std::hash<std::string>{ }(hashString);
         symbols_ = make<unordered_map<std::string, double>, StackID::EXPRESSION>(std::move(localSymbols));
         stack_ = make<spider::vector<ExpressionNode>, StackID::EXPRESSION>(std::move(stack));
     }
