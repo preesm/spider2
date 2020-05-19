@@ -54,8 +54,6 @@ namespace spider {
 
         /* === Methods prototype === */
 
-#ifdef _SPIDER_NO_TYPESAFETY_PRINT
-
         int fprintf(FILE *stream, const char *format, ...);
 
         int sprintf(char *str, size_t size, const char *format, ...);
@@ -67,26 +65,6 @@ namespace spider {
         int sprintf(char *str, size_t size, const char *format, va_list list);
 
         int printf(const char *format, va_list list);
-
-#else
-
-        template<class... Args>
-        inline int fprintf(FILE *stream, const char *format, Args &&... args) {
-            return cxx11::fprintf(stream, format, std::forward<Args>(args)...);
-        }
-
-        template<class... Args>
-        inline int sprintf(char *str, size_t size, const char *format, Args &&... args) {
-            return cxx11::sprintf(str, size, format, std::forward<Args>(args)...);
-        }
-
-        template<class... Args>
-        inline int printf(const char *format, Args &&... args) {
-            return cxx11::printf(format, std::forward<Args>(args)...);
-        }
-
-
-#endif
     }
 }
 

@@ -197,15 +197,6 @@ add_install_rpath_support(BIN_DIRS "${CMAKE_INSTALL_FULL_BINDIR}"
         INSTALL_NAME_DIR "${CMAKE_INSTALL_FULL_LIBDIR}"
         USE_LINK_PATH)
 
-# Type safe printf?
-option(TYPE_SAFE "Enforce type safety in printf" OFF)
-if (TYPE_SAFE)
-    message(STATUS "Using C++11 template-based type safe printf.")
-    message(STATUS "--> This will increase the size of the shared library.")
-else ()
-    add_definitions(-D_SPIDER_NO_TYPESAFETY_PRINT)
-endif ()
-
 # Use PAPI library?
 option(USE_PAPI "Enable PAPI library support." OFF)
 if (USE_PAPI)

@@ -7,6 +7,7 @@ Spider2 Changelog
 ### New Feature
 
 ### Changes
+* Removed c++11 custom typesafe printf (was not used).
 
 ### Bug fix
 
