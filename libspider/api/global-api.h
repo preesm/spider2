@@ -99,7 +99,8 @@ namespace spider {
         */
         enum class ParamType : uint_least8_t {
             STATIC,            /*! Static parameter: expression is evaluated at startup only once */
-            DYNAMIC,           /*! Dynamic parameter: value is set at runtime */
+            DYNAMIC,           /*! Fully dynamic parameter: value is set at runtime by a config actor */
+            DYNAMIC_DEPENDANT, /*! Dynamic parameter but set by other dynamic parameter or as inherited */
             INHERITED,         /*! Inherited parameter: value depend on parent */
         };
 

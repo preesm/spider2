@@ -161,7 +161,7 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 # Build test related commands?
 option(BUILD_TESTING "Create tests using CMake" ON)
-if (BUILD_TESTING)
+if (BUILD_TESTING MATCHES "ON")
     enable_testing()
     # Download and unpack googletest at configure time
     # from https://github.com/google/googletest/tree/master/googletest#incorporating-into-an-existing-cmake-project
@@ -196,15 +196,6 @@ add_install_rpath_support(BIN_DIRS "${CMAKE_INSTALL_FULL_BINDIR}"
         LIB_DIRS "${CMAKE_INSTALL_FULL_LIBDIR}"
         INSTALL_NAME_DIR "${CMAKE_INSTALL_FULL_LIBDIR}"
         USE_LINK_PATH)
-
-# Type safe printf?
-option(TYPE_SAFE "Enforce type safety in printf" OFF)
-if (TYPE_SAFE)
-    message(STATUS "Using C++11 template-based type safe printf.")
-    message(STATUS "--> This will increase the size of the shared library.")
-else ()
-    add_definitions(-D_SPIDER_NO_TYPESAFETY_PRINT)
-endif ()
 
 # Use PAPI library?
 option(USE_PAPI "Enable PAPI library support." OFF)

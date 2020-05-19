@@ -26,12 +26,6 @@ jobs:
             - export CC=gcc-7
             - export CXX=g++-7
             - cd bin
-            - cmake .. -DCMAKE_BUILD_TYPE=Release -DTYPE_SAFE=ON -DBUILD_TESTING=OFF
-            - cmake --build . --target spider2 -- -j$(nproc)
-            - rm -rf ../bin/*
-            - cmake .. -DCMAKE_BUILD_TYPE=Debug -DTYPE_SAFE=ON -DBUILD_TESTING=OFF
-            - cmake --build . --target spider2 -- -j$(nproc)
-            - rm -rf ../bin/*
             - cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF
             - cmake --build . --target spider2 -- -j$(nproc)
             - rm -rf ../bin/*
@@ -53,10 +47,6 @@ jobs:
             - cd ..
           script: 
             - cd bin
-            - cmake .. -DTYPE_SAFE=ON -DBUILD_TESTING=OFF
-            - cmake --build . --target spider2 --config Debug
-            - cmake --build . --target spider2 --config Release
-            - rm -rf ../bin/*
             - cmake .. -DBUILD_TESTING=OFF
             - cmake --build . --target spider2 --config Debug
             - cmake --build . --target spider2 --config Release
