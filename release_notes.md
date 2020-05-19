@@ -7,6 +7,7 @@ Spider2 Changelog
 ### New Feature
 
 ### Changes
+* Updated parameter creation API (merged static and dynamic derived parameter creation into one api call).
 
 ### Bug fix
 * The JITMSRuntime does no longer consider subgraph with inherited dynamic parameters as fully dynamic.
