@@ -37,7 +37,7 @@
 
 /* === Include(s) === */
 
-#include <cstdint>
+#include <containers/vector.h>
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/Param.h>
 
@@ -48,7 +48,7 @@ namespace spider {
         /* === Struct definition === */
 
         struct TransfoJob {
-            vector <std::shared_ptr<pisdf::Param>> params_;
+            spider::vector<std::shared_ptr<pisdf::Param>> params_;
             pisdf::Graph *reference_ = nullptr;
             pisdf::Vertex *srdagInstance_ = nullptr;
             uint32_t firingValue_ = UINT32_MAX;

@@ -395,17 +395,6 @@ spider::api::createStaticParam(pisdf::Graph *graph, std::string name, int64_t va
 }
 
 std::shared_ptr<spider::pisdf::Param>
-spider::api::createStaticParam(pisdf::Graph *graph, std::string name, std::string expression) {
-    if (graph) {
-        auto param = make_shared<pisdf::Param, StackID::PISDF>(std::move(name),
-                                                               Expression(std::move(expression), graph->params()));
-        graph->addParam(param);
-        return param;
-    }
-    return make_shared<pisdf::Param, StackID::PISDF>(std::move(name), Expression(std::move(expression)));
-}
-
-std::shared_ptr<spider::pisdf::Param>
 spider::api::createDynamicParam(pisdf::Graph *graph, std::string name) {
     if (graph) {
         auto param = make_shared<pisdf::DynamicParam, StackID::PISDF>(std::move(name), Expression(0));
@@ -416,51 +405,32 @@ spider::api::createDynamicParam(pisdf::Graph *graph, std::string name) {
 }
 
 std::shared_ptr<spider::pisdf::Param>
-spider::api::createDynamicParam(pisdf::Graph *graph, std::string name, std::string expression) {
-    if (graph) {
-        auto param = make_shared<pisdf::DynamicParam, StackID::PISDF>(std::move(name),
-                                                                      Expression(std::move(expression),
-                                                                                 graph->params()));
-        graph->addParam(param);
-        return param;
+spider::api::createDerivedParam(pisdf::Graph *graph, std::string name, std::string expression) {
+    auto expr = graph ? Expression(std::move(expression), graph->params()) : Expression(std::move(expression));
+    std::shared_ptr<pisdf::Param> param;
+    if (expr.dynamic()) {
+        param = make_shared<pisdf::DynamicParam, StackID::PISDF>(std::move(name), std::move(expr));
+    } else {
+        param = make_shared<pisdf::Param, StackID::PISDF>(std::move(name), expr.value());
     }
-    return make_shared<pisdf::DynamicParam, StackID::PISDF>(std::move(name), Expression(std::move(expression)));
+    if (graph) {
+        graph->addParam(param);
+    }
+    return param;
 }
 
 std::shared_ptr<spider::pisdf::Param>
-spider::api::createInheritedParam(pisdf::Graph *graph, std::string name, pisdf::Param *parent) {
+spider::api::createInheritedParam(spider::pisdf::Graph *graph, std::string name, std::shared_ptr<pisdf::Param> parent) {
     if (!parent) {
         throwSpiderException("Cannot instantiate inherited parameter [%s] with null parent.", name.c_str());
     }
     if (!parent->dynamic()) {
         return createStaticParam(graph, std::move(name), parent->value());
     }
+    auto param = make_shared<pisdf::InHeritedParam, StackID::PISDF>(std::move(name), std::move(parent));
     if (graph) {
-        auto param = make_shared<pisdf::InHeritedParam, StackID::PISDF>(std::move(name), parent);
         graph->addParam(param);
-        return param;
     }
-    return make_shared<pisdf::InHeritedParam, StackID::PISDF>(std::move(name), parent);
-}
-
-std::shared_ptr<spider::pisdf::Param>
-spider::api::createInheritedParam(pisdf::Graph *graph, std::string name, const std::string &parentName) {
-    if (!graph) {
-        throwSpiderException("Cannot instantiate inherited parameter from name in a nullptr graph.");
-    }
-    if (!graph->graph()) {
-        throwSpiderException("Cannot instantiate inherited parameter from name if graph [%s] has no parent graph.",
-                             graph->name().c_str());
-    }
-    auto *parent = graph->graph()->paramFromName(parentName);
-    if (!parent) {
-        throwSpiderException("Cannot instantiate inherited parameter [%s] with null parent.", name.c_str());
-    }
-    if (!parent->dynamic()) {
-        return createStaticParam(graph, std::move(name), parent->value());
-    }
-    auto param = make_shared<pisdf::InHeritedParam, StackID::PISDF>(std::move(name), parent);
-    graph->addParam(param);
     return param;
 }
 

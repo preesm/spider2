@@ -8,8 +8,11 @@ Spider2 Changelog
 
 ### Changes
 * Removed c++11 custom typesafe printf (was not used).
+* Updated parameter creation API (merged static and dynamic derived parameter creation into one api call).
 
 ### Bug fix
+* The JITMSRuntime does no longer consider subgraph with inherited dynamic parameters as fully dynamic.
+* Fixed handling of inherited parameters with different names.
 
 
 ## Release version 0.0.0

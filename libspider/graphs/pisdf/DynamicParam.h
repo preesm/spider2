@@ -67,7 +67,7 @@ namespace spider {
                 expression_ = make<Expression, StackID::PISDF>(other.expression());
             }
 
-            DynamicParam(DynamicParam &&other) noexcept : Param(std::move(other)) {
+            DynamicParam(DynamicParam &&other) noexcept: Param(std::move(other)) {
                 using std::swap;
                 swap(expression_, other.expression_);
             }
@@ -93,14 +93,14 @@ namespace spider {
             }
 
             inline ParamType type() const override {
-                return ParamType::DYNAMIC;
+                return expression_ ? ParamType::DYNAMIC_DEPENDANT : ParamType::DYNAMIC;
             }
 
             inline bool dynamic() const override {
                 return true;
             }
 
-            inline Expression expression()const override  {
+            inline Expression expression() const override {
                 return expression_ ? (*expression_) : Expression(value_);
             }
 

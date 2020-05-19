@@ -168,7 +168,7 @@ namespace spider {
              * @param name Name of the parameter to find.
              * @return pointer to the found Param, nullptr else.
              */
-            Param *paramFromName(const std::string &name);
+            std::shared_ptr<spider::pisdf::Param> paramFromName(const std::string &name);
 
             /**
              * @brief Checks if a graph is the top-level graph.
@@ -176,7 +176,19 @@ namespace spider {
              */
             inline bool isTopGraph() const { return graph() == nullptr; }
 
-            inline void visit(Visitor *visitor) override { visitor->visit(this); }
+            /**
+             * @brief Override of the visit method of @refitem pisdf::Vertex
+             * @param visitor Pointer to the visitor to apply
+             */
+            void visit(Visitor *visitor) override;
+
+            /**
+             * @brief Get the dynamic property of the graph.
+             * @remark A graph is considered dynamic if it contains as much @refitem pisdf::Param with type of
+             *         @refitem pisdf::ParamType::DYNAMIC as ConfigActor.
+             * @return true if the graph is dynamic, false else.
+             */
+            bool dynamic() const;
 
             /* === Getter(s) === */
 
@@ -212,12 +224,6 @@ namespace spider {
              * @return Number of edges.
              */
             inline size_t edgeCount() const { return edgeVector_.size(); }
-
-            /**
-             * @brief Return dynamic property of the graph.
-             * @return true if graph is dynamic, false else.
-             */
-            inline bool dynamic() const { return dynamic_; }
 
             /**
              * @brief Get the number of config actors in the graph.
@@ -318,7 +324,6 @@ namespace spider {
             vector<unique_ptr<Interface>> inputInterfaceVector_;    /* = Vector of InputInterface = */
             vector<unique_ptr<Interface>> outputInterfaceVector_;   /* = Vector of OutputInterface = */
             size_t subIx_ = SIZE_MAX;  /* = Index of the Graph in containing Graph subgraphVector = */
-            bool dynamic_ = false;     /* = Dynamic property of the Graph (false if static, true if dynamic) = */
 
             /* === Private structure(s) === */
 

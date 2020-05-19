@@ -109,6 +109,13 @@ namespace spider {
             static size_t getIx(const pisdf::Vertex *vertex, const pisdf::Graph *graph);
 
             /**
+             * @brief Update the parameters of type @refitem pisdf::ParamType::DYNAMIC_DEPENDANT and
+             *        of type  @refitem pisdf::ParamType::INHERITED of a @refitem srdag::TransfoJob
+             * @param job
+             */
+            static void updateParams(TransfoJob &job);
+
+            /**
              * @brief Insert @refitem RepeatVertex and @refitem TailVertex for every input and output interfaces of
              *        a given subgraph instance, respectively.
              */
