@@ -362,7 +362,7 @@ namespace spider {
          * @throws @refitem spider::Exception if parent parameter is nullptr.
          */
         std::shared_ptr<spider::pisdf::Param>
-        createInheritedParam(pisdf::Graph *graph, std::string name, pisdf::Param *parent);
+        createInheritedParam(pisdf::Graph *graph, std::string name, std::shared_ptr<pisdf::Param> parent);
 
         /**
          * @brief Creates a @refitem pisdf::InheritedParam.

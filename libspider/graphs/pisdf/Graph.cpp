@@ -114,6 +114,10 @@ spider::pisdf::Graph::Graph(std::string name,
     }
 }
 
+void spider::pisdf::Graph::visit(pisdf::Visitor *visitor) {
+    visitor->visit(this);
+}
+
 void spider::pisdf::Graph::clear() {
     edgeVector_.clear();
     vertexVector_.clear();
@@ -282,7 +286,6 @@ void spider::pisdf::Graph::addParam(std::shared_ptr<Param> param) {
         param->setIx(paramVector_.size());
         param->setGraph(this);
     }
-    dynamic_ |= (param->dynamic() && param->type() != ParamType::INHERITED);
     paramVector_.emplace_back(std::move(param));
 }
 
@@ -293,32 +296,26 @@ void spider::pisdf::Graph::removeParam(const std::shared_ptr<Param> &param) {
     const auto tmp = param;
     out_of_order_erase(paramVector_, tmp->ix());
     paramVector_[tmp->ix()]->setIx(tmp->ix());
-    if (tmp->dynamic() && tmp->type() != ParamType::INHERITED) {
-        /* == Update dynamic property == */
-        dynamic_ = false;
-        for (auto &p : paramVector_) {
-            dynamic_ |= (p->dynamic() && p->type() != ParamType::INHERITED);
-            if (dynamic_) {
-                break;
-            }
-        }
-    }
 }
 
-spider::pisdf::Param *spider::pisdf::Graph::paramFromName(const std::string &name) {
+std::shared_ptr<spider::pisdf::Param> spider::pisdf::Graph::paramFromName(const std::string &name) {
     auto lowerCaseName = name;
     std::transform(std::begin(lowerCaseName), std::end(lowerCaseName), std::begin(lowerCaseName),
                    [](char c) { return static_cast<char>(::tolower(c)); });
     for (const auto &param : paramVector_) {
         if (param->name() == lowerCaseName) {
-            return param.get();
+            return param;
         }
     }
     return nullptr;
 }
 
-void spider::pisdf::Graph::overrideDynamicProperty(bool value) {
-    dynamic_ = value;
+bool spider::pisdf::Graph::dynamic() const {
+    const auto paramCount = std::count_if(std::begin(paramVector_), std::end(paramVector_),
+                                          [](const std::shared_ptr<Param> &p) {
+                                              return p->type() == ParamType::DYNAMIC;
+                                          });
+    return (paramCount > 0) && (paramCount == static_cast<long>(configVertexCount()));
 }
 
 /* === Private method(s) implementation === */

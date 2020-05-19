@@ -264,7 +264,7 @@ void spider::test::runtimeDynamicHierarchical(spider::RuntimeType type, spider::
     spider::api::createStaticParam(subgraph, "height", 10);
     auto width = spider::api::createDynamicParam(subgraph, "width");
     auto sub_width = spider::api::createDynamicParam(subsubgraph, "sub_width");
-    auto inherited_width = spider::api::createInheritedParam(subsubgraph, "width", width.get());
+    auto inherited_width = spider::api::createInheritedParam(subsubgraph, "width", width);
     auto width_derived = spider::api::createDynamicParam(subsubgraph, "width_derived", "width * sub_width");
 
     /* === Set param to vertex === */
