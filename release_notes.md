@@ -7,6 +7,7 @@ Spider2 Changelog
 ### New Feature
 
 ### Changes
+* Removed c++11 custom typesafe printf (was not used).
 * Updated parameter creation API (merged static and dynamic derived parameter creation into one api call).
 
 ### Bug fix
