@@ -9,6 +9,8 @@ Spider2 Changelog
 ### Changes
 
 ### Bug fix
+* The JITMSRuntime does no longer consider subgraph with inherited dynamic parameters as fully dynamic.
+* Fixed handling of inherited parameters with different names.
 
 
 ## Release version 0.0.0

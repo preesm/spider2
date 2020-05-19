@@ -482,8 +482,8 @@ TEST_F(srdagTest, srdagHTest3) {
     ASSERT_EQ(srdag->vertexCount(), 3);
     ASSERT_EQ(srdag->edgeCount(), 2);
     ASSERT_NO_THROW(res = spider::srdag::singleRateTransformation(res.first[0], srdag));
-    ASSERT_EQ(res.second.empty(), false) << "srdag::singleRateTransformation should return nullptr for dynamic H graph";
     ASSERT_NO_THROW(spider::api::exportGraphToDOT(srdag, "srdag.dot"));
+    ASSERT_EQ(res.second.empty(), false) << "srdag::singleRateTransformation should return nullptr for dynamic H graph";
     /*
      * vertex_0_0 -> cfg -> grun_subgraph_0 -> vertex_1_0
      */

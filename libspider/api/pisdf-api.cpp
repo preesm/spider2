@@ -428,7 +428,7 @@ spider::api::createDynamicParam(pisdf::Graph *graph, std::string name, std::stri
 }
 
 std::shared_ptr<spider::pisdf::Param>
-spider::api::createInheritedParam(pisdf::Graph *graph, std::string name, pisdf::Param *parent) {
+spider::api::createInheritedParam(pisdf::Graph *graph, std::string name, std::shared_ptr<pisdf::Param> parent) {
     if (!parent) {
         throwSpiderException("Cannot instantiate inherited parameter [%s] with null parent.", name.c_str());
     }
@@ -436,11 +436,11 @@ spider::api::createInheritedParam(pisdf::Graph *graph, std::string name, pisdf::
         return createStaticParam(graph, std::move(name), parent->value());
     }
     if (graph) {
-        auto param = make_shared<pisdf::InHeritedParam, StackID::PISDF>(std::move(name), parent);
+        auto param = make_shared<pisdf::InHeritedParam, StackID::PISDF>(std::move(name), std::move(parent));
         graph->addParam(param);
         return param;
     }
-    return make_shared<pisdf::InHeritedParam, StackID::PISDF>(std::move(name), parent);
+    return make_shared<pisdf::InHeritedParam, StackID::PISDF>(std::move(name), std::move(parent));
 }
 
 std::shared_ptr<spider::pisdf::Param>
@@ -448,20 +448,12 @@ spider::api::createInheritedParam(pisdf::Graph *graph, std::string name, const s
     if (!graph) {
         throwSpiderException("Cannot instantiate inherited parameter from name in a nullptr graph.");
     }
-    if (!graph->graph()) {
+    auto *parentGraph = graph->graph();
+    if (!parentGraph) {
         throwSpiderException("Cannot instantiate inherited parameter from name if graph [%s] has no parent graph.",
                              graph->name().c_str());
     }
-    auto *parent = graph->graph()->paramFromName(parentName);
-    if (!parent) {
-        throwSpiderException("Cannot instantiate inherited parameter [%s] with null parent.", name.c_str());
-    }
-    if (!parent->dynamic()) {
-        return createStaticParam(graph, std::move(name), parent->value());
-    }
-    auto param = make_shared<pisdf::InHeritedParam, StackID::PISDF>(std::move(name), parent);
-    graph->addParam(param);
-    return param;
+    return createInheritedParam(graph, std::move(name), parentGraph->paramFromName(parentName));
 }
 
 void spider::api::addInputParamToVertex(pisdf::Vertex *vertex, std::shared_ptr<spider::pisdf::Param> param) {

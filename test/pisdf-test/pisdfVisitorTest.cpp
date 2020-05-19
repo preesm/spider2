@@ -116,8 +116,8 @@ TEST_F(pisdfVisitorTest, defaultTest) {
     }
     {
         spider::pisdf::DefaultVisitor visitor;
-        spider::pisdf::Param p("", 0);
-        spider::pisdf::InHeritedParam param("", &p);
+        auto p = spider::make_shared<spider::pisdf::Param>("", 0);
+        spider::pisdf::InHeritedParam param("", p);
         ASSERT_THROW(param.visit(&visitor), spider::Exception) << "DefaultVisitor should throw for inherited param.";
     }
 }
