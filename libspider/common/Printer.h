@@ -37,17 +37,9 @@
 
 /* === Includes === */
 
-#ifdef _SPIDER_NO_TYPESAFETY_PRINT
-
 #include <cstdlib>
 #include <cstdio>
 #include <cstdarg>
-
-#else
-
-#include <common/cxx11-printf/Printf.h>
-
-#endif
 
 namespace spider {
     namespace printer {
