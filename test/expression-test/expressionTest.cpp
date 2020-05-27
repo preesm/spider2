@@ -159,6 +159,28 @@ TEST_F(expressionTest, expressionOperatorsTest) {
                                 << "Expression: multiplication -> addition priority ordering failed.";
     ASSERT_EQ(Expression("(2+2)(2 + 2)").evaluateDBL(), 16.)
                                 << "Expression: parenthesis implicit multiplication failed.";
+    ASSERT_EQ(Expression("2 > 1").evaluateDBL(), 1.)
+                                << "Expression: > failed.";
+    ASSERT_EQ(Expression("2 > 2").evaluateDBL(), 0.)
+                                << "Expression: > failed.";
+    ASSERT_EQ(Expression("2 >= 1").evaluateDBL(), 1.)
+                                << "Expression: >= failed.";
+    ASSERT_EQ(Expression("2 >= 1+1").evaluateDBL(), 1.)
+                                << "Expression: >= failed.";
+    ASSERT_EQ(Expression("2 >= 1+2").evaluateDBL(), 0.)
+                                << "Expression: >= failed.";
+    ASSERT_EQ(Expression("2 <= 1+2").evaluateDBL(), 1.)
+                                << "Expression: <= failed.";
+    ASSERT_EQ(Expression("2 <= 1+1").evaluateDBL(), 1.)
+                                << "Expression: <= failed.";
+    ASSERT_EQ(Expression("2 <= 1").evaluateDBL(), 0.)
+                                << "Expression: <= failed.";
+    ASSERT_EQ(Expression("2 < 1").evaluateDBL(), 0.)
+                                << "Expression: < failed.";
+    ASSERT_EQ(Expression("1 < 1").evaluateDBL(), 0.)
+                                << "Expression: < failed.";
+    ASSERT_EQ(Expression("0< 1").evaluateDBL(), 1.)
+                                << "Expression: < failed.";
     ASSERT_EQ(Expression("and(0,1)").evaluateDBL(), 0.)
                                 << "Expression: and operator failed.";
     ASSERT_EQ(Expression("and(1,1)").evaluateDBL(), 1.)
@@ -170,6 +192,14 @@ TEST_F(expressionTest, expressionOperatorsTest) {
     ASSERT_EQ(Expression("if(or(0,0), 4, 5)").evaluateDBL(), 5.)
                                 << "Expression: if  failed.";
     ASSERT_EQ(Expression("if(1, 4, 5)").evaluateDBL(), 4.)
+                                << "Expression: if  failed.";
+    ASSERT_EQ(Expression("if(1>0, 4, 5)").evaluateDBL(), 4.)
+                                << "Expression: if  failed.";
+    auto param = spider::api::createDynamicParam(nullptr, "x");
+    ASSERT_EQ(Expression("if(x > 0, 4, 5)", { param }).evaluateDBL({ param }), 5.)
+                                << "Expression: if  failed.";
+    param->setValue(1);
+    ASSERT_EQ(Expression("if(x > 0, 4, 5)", { param }).evaluateDBL({ param }), 4.)
                                 << "Expression: if  failed.";
 }
 

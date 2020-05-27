@@ -72,6 +72,10 @@ enum class RPNOperatorType : uint8_t {
     MOD,        /*!< Modulo operator */
     POW,        /*!< Power operator */
     FACT,       /*!< Factorial operator */
+    GREATER,    /*!< Greater than function (a,b) return 1 if a > b */
+    GEQ,        /*!< Greater than or equal function (a,b) return 1 if a >= b */
+    LESS,       /*!< Less than function (a,b) return 1 if a < b */
+    LEQ,        /*!< Less than or equal function (a,b) return 1 if a <= b */
     LEFT_PAR,   /*!< Left parenthesis */
     RIGHT_PAR,  /*!< Right parenthesis */
     COS,        /*!< Cosine function */
@@ -93,10 +97,6 @@ enum class RPNOperatorType : uint8_t {
     IF,         /*!< If expression function (predicate, pathA, pathB) */
     LOG_AND,    /*!< Logical AND function */
     LOG_OR,     /*!< Logical OR function */
-    GREATER,    /*!< Greater than function (a,b) return 1 if a > b */
-    GEQ,        /*!< Greater than or equal function (a,b) return 1 if a >= b */
-    LESS,       /*!< Less than function (a,b) return 1 if a < b */
-    LEQ,        /*!< Less than or equal function (a,b) return 1 if a <= b */
     DUMMY,      /*!< Dummy function */
     First = ADD,   /*!< Sentry for EnumIterator::begin */
     Last = DUMMY,  /*!< Sentry for EnumIterator::end */
@@ -108,7 +108,7 @@ enum class RPNOperatorType : uint8_t {
 struct RPNOperator {
     std::string label;      /*!< Label of the operator */
     RPNOperatorType type;   /*!< Operator type (see @refitem RPNOperatorType) */
-    uint8_t precedence;     /*!< Precedence value level of the operator */
+    int8_t precedence;     /*!< Precedence value level of the operator */
     uint8_t argCount;       /*!< Number of argument of the operator */
     bool isRighAssociative; /*!< Right associativity property of the operator */
 };

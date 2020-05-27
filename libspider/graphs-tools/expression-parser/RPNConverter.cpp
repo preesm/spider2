@@ -48,7 +48,7 @@
  * @brief String containing all supported operators (should not be edited).
  */
 static const std::string &supportedBasicOperators() {
-    static std::string operators{ "+-*/%^!()" };
+    static std::string operators{ "+-*/%^!()<>" };
     return operators;
 }
 
@@ -57,6 +57,7 @@ static const std::string &supportedBasicOperators() {
 
 static bool isOperator(const std::string &s) {
     bool found = supportedBasicOperators().find_first_of(s) != std::string::npos;
+    found |= (s == "<=") || (s == ">=");
     for (auto i = spider::rpn::FUNCTION_OFFSET; !found && i < spider::rpn::OPERATOR_COUNT; ++i) {
         found |= (spider::rpn::getOperator(i).label == s);
     }
@@ -337,6 +338,9 @@ spider::vector<RPNElement> spider::rpn::extractInfixElements(std::string infixEx
 
         /* == Operator element == */
         token = infixExpressionLocal.substr(pos++, 1);
+        if ((token == ">" || token == "<") && (infixExpressionLocal[pos] == '=')) {
+            token += infixExpressionLocal.substr(pos++, 1);
+        }
         addElementFromToken(tokens, token);
 
         /* == Update pos == */
@@ -469,10 +473,6 @@ void spider::rpn::reorderPostfixStack(spider::vector<RPNElement> &postfixStack) 
 const RPNOperator &spider::rpn::getOperator(uint32_t ix) {
     static std::array<RPNOperator, rpn::OPERATOR_COUNT>
             operatorArray{{
-//                                  { ">", RPNOperatorType::GREATER, 0, 2, false },    /*! GREATER operator */
-//                                  { ">=", RPNOperatorType::GEQ, 0, 2, false },        /*! GEQ operator */
-//                                  { "<", RPNOperatorType::LESS, 0, 2, false },      /*! LESS operator */
-//                                  { "<=", RPNOperatorType::LEQ, 0, 2, false },        /*! LEQ operator */
                                   { "+", RPNOperatorType::ADD, 1, 2, false },          /*! ADD operator */
                                   { "-", RPNOperatorType::SUB, 1, 2, false },          /*! SUB operator */
 
@@ -481,6 +481,10 @@ const RPNOperator &spider::rpn::getOperator(uint32_t ix) {
                                   { "%", RPNOperatorType::MOD, 3, 2, false },          /*! MOD operator */
                                   { "^", RPNOperatorType::POW, 3, 2, true },           /*! POW operator */
                                   { "!", RPNOperatorType::FACT, 4, 1, true },          /*! FACT operator */
+                                  { ">", RPNOperatorType::GREATER, 0, 2, false },    /*! GREATER operator */
+                                  { ">=", RPNOperatorType::GEQ, 0, 2, false },        /*! GEQ operator */
+                                  { "<", RPNOperatorType::LESS, 0, 2, false },      /*! LESS operator */
+                                  { "<=", RPNOperatorType::LEQ, 0, 2, false },        /*! LEQ operator */
                                   { "(", RPNOperatorType::LEFT_PAR, 1, 0, false },     /*! LEFT_PAR operator */
                                   { ")", RPNOperatorType::RIGHT_PAR, 1, 0, false },    /*! RIGHT_PAR operator */
                                   { "cos", RPNOperatorType::COS, 5, 1, false },        /*! COS function */
@@ -502,10 +506,6 @@ const RPNOperator &spider::rpn::getOperator(uint32_t ix) {
                                   { "if", RPNOperatorType::IF, 5, 3, false },          /*! IF operator */
                                   { "and", RPNOperatorType::LOG_AND, 5, 2, false },    /*! AND operator */
                                   { "or", RPNOperatorType::LOG_OR, 5, 2, false },      /*! OR operator */
-                                  { "grt", RPNOperatorType::GREATER, 5, 2, false },    /*! GREATER operator */
-                                  { "geq", RPNOperatorType::GEQ, 5, 2, false },        /*! GEQ operator */
-                                  { "less", RPNOperatorType::LESS, 5, 2, false },      /*! LESS operator */
-                                  { "leq", RPNOperatorType::LEQ, 5, 2, false },        /*! LEQ operator */
                                   { "dummy", RPNOperatorType::DUMMY, 5, 1, false },    /*! Dummy operator */
                           }};
     return operatorArray.at(ix);
