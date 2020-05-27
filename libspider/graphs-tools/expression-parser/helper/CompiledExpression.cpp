@@ -179,7 +179,7 @@ std::string spider::expr::CompiledExpression::writeFunctionFile(const std::strin
 std::string spider::expr::CompiledExpression::compileExpression(const std::string &func) const {
     const auto lib = std::string("./jit-expr/lib") + func + ".so";
     const auto cpp = std::string("./jit-expr/") + func + ".cpp";
-    const auto cmd = std::string("g++ -shared -o ") + lib + " " + cpp + " -O2";
+    const auto cmd = std::string("g++ -shared -o ") + lib + " " + cpp + " -std=c++11 -O2";
     if (system(cmd.c_str())) {
         throwSpiderException("failed to compile expression.");
     }
