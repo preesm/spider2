@@ -146,7 +146,9 @@ namespace spider {
 
         void compile(const spider::vector<RPNElement> &postfixStack, const param_table_t &params);
 
-        expr::Token compile(spider::vector<RPNElement>::const_reverse_iterator &iterator, const param_table_t &params);
+        expr::Token compile(spider::vector<RPNElement>::const_reverse_iterator &iterator,
+                            const spider::vector<RPNElement>::const_reverse_iterator end,
+                            const param_table_t &params);
 
         expr::Token generate(RPNOperatorType type, const expr::Token &arg) const;
 

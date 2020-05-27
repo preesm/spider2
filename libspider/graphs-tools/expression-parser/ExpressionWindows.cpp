@@ -126,7 +126,7 @@ void spider::Expression::compile(const spider::vector<RPNElement> &postfixStack,
         expr_ = 0.;
     } else {
         auto iterator = postfixStack.rbegin();
-        expr_ = compile(iterator, params);
+        expr_ = compile(iterator, postfixStack.crend(), params);
     }
     if (expr_.type() == expr::Token::CONSTANT) {
         hash_ = std::hash<std::string>{ }(std::to_string(expr_.value_));
@@ -138,23 +138,27 @@ void spider::Expression::compile(const spider::vector<RPNElement> &postfixStack,
 
 spider::expr::Token
 spider::Expression::compile(spider::vector<RPNElement>::const_reverse_iterator &iterator,
+                            const spider::vector<RPNElement>::const_reverse_iterator end,
                             const param_table_t &params) {
+    if (iterator == end) {
+        throwSpiderException("invalid number of argument.");
+    }
     const auto &elt = *(iterator++);
     if (elt.type_ == RPNElementType::OPERATOR) {
         const auto opType = rpn::getOperatorTypeFromString(elt.token_);
         const auto &op = rpn::getOperatorFromOperatorType(opType);
         switch (op.argCount) {
             case 1:
-                return generate(opType, compile(iterator, params));
+                return generate(opType, compile(iterator, end, params));
             case 2: {
-                const auto right = compile(iterator, params);
-                const auto left = compile(iterator, params);
+                const auto right = compile(iterator, end, params);
+                const auto left = compile(iterator, end, params);
                 return generate(opType, left, right);
             }
             case 3: {
-                const auto arg2 = compile(iterator, params);
-                const auto arg1 = compile(iterator, params);
-                const auto arg0 = compile(iterator, params);
+                const auto arg2 = compile(iterator, end, params);
+                const auto arg1 = compile(iterator, end, params);
+                const auto arg0 = compile(iterator, end, params);
                 return generate(opType, arg0, arg1, arg2);
             }
             default:
@@ -166,10 +170,8 @@ spider::Expression::compile(spider::vector<RPNElement>::const_reverse_iterator &
             return { registerSymbol(param) };
         }
         return { static_cast<double>(param->value(params)) };
-    } else {
-        const auto value = std::strtod(elt.token_.c_str(), nullptr);
-        return { value };
     }
+    return { std::strtod(elt.token_.c_str(), nullptr) };
 }
 
 spider::expr::Token
