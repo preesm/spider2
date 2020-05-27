@@ -1,9 +1,14 @@
-/**
- * Copyright or © or Copr. IETR/INSA - Rennes (2019 - 2020) :
+/*
+ * Copyright or © or Copr. IETR/INSA - Rennes (2013 - 2019) :
  *
- * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2019 - 2020)
+ * Antoine Morvan <antoine.morvan@insa-rennes.fr> (2018)
+ * Clément Guy <clement.guy@insa-rennes.fr> (2014)
+ * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2017-2019)
+ * Hugo Miomandre <hugo.miomandre@insa-rennes.fr> (2017)
+ * Julien Heulot <julien.heulot@insa-rennes.fr> (2013 - 2015)
+ * Yaset Oliva <yaset.oliva@insa-rennes.fr> (2013 - 2014)
  *
- * Spider 2.0 is a dataflow based runtime used to execute dynamic PiSDF
+ * Spider is a dataflow based runtime used to execute dynamic PiSDF
  * applications. The Preesm tool may be used to design PiSDF applications.
  *
  * This software is governed by the CeCILL  license under French law and
@@ -35,156 +40,8 @@
 #ifndef SPIDER2_EXPRESSION_H
 #define SPIDER2_EXPRESSION_H
 
-/* === Includes === */
+/* === Include(s) === */
 
-#include <cstdint>
-#include <string>
-#include <graphs-tools/expression-parser/RPNConverter.h>
-
-namespace spider {
-
-    /* === Structure definition(s) === */
-
-    struct ExpressionElt {
-        RPNElement elt_;
-        union {
-            double value_ = 0;
-            RPNOperatorType opType_;
-        } arg;
-
-        ExpressionElt() = default;
-
-        ExpressionElt(const ExpressionElt &) = default;
-
-        ExpressionElt(ExpressionElt &&) noexcept = default;
-
-        ExpressionElt &operator=(ExpressionElt &&) = default;
-
-        ExpressionElt &operator=(const ExpressionElt &) = default;
-
-        explicit ExpressionElt(RPNElement elt) : elt_{ std::move(elt) } { }
-
-        inline bool operator==(const ExpressionElt &second) const {
-            return (elt_ == second.elt_) && ((arg.value_ == second.arg.value_) || (arg.opType_ == second.arg.opType_));
-        }
-
-        inline bool operator!=(const ExpressionElt &other) const { return !((*this) == other); }
-    };
-
-    /* === Class definition === */
-
-    class Expression {
-    public:
-
-        explicit Expression(std::string expression,
-                            const spider::vector<std::shared_ptr<pisdf::Param>> &params = { });
-
-        explicit Expression(int64_t value);
-
-        Expression() = default;
-
-        Expression(const Expression &other) : value_{ other.value_ } {
-            if (other.expressionStack_) {
-                expressionStack_ = make<spider::vector<ExpressionElt>, StackID::EXPRESSION>(*(other.expressionStack_));
-            }
-        }
-
-        Expression(Expression &&other) noexcept : Expression() {
-            swap(*this, other);
-        };
-
-        ~Expression();
-
-        /* === Operator(s) === */
-
-        inline friend void swap(Expression &first, Expression &second) noexcept {
-            /* == Enable ADL == */
-            using std::swap;
-
-            /* == Swap members of both objects == */
-            swap(first.expressionStack_, second.expressionStack_);
-            swap(first.value_, second.value_);
-        }
-
-        inline Expression &operator=(Expression temp) {
-            swap(*this, temp);
-            return *this;
-        }
-
-        inline bool operator==(const Expression &other) const {
-            bool sameType = dynamic() == other.dynamic();
-            if (!sameType) {
-                return false;
-            } else if (dynamic()) {
-                return (*(expressionStack_)) == (*(other.expressionStack_));
-            }
-            return value_ == other.value_;
-        }
-
-        inline bool operator!=(const Expression &other) const {
-            return !((*this) == other);
-        }
-
-        Expression &operator+=(const Expression &rhs);
-
-        /* === Methods === */
-
-        /**
-         * @brief Evaluate the expression and return the value and cast result in int64_.
-         * @return Evaluated value of the expression.
-         */
-        inline int64_t evaluate(const spider::vector<std::shared_ptr<pisdf::Param>> &params = { }) const {
-            return dynamic() ? static_cast<int64_t>(evaluateStack(params)) : value();
-        }
-
-        /**
-         * @brief Evaluate the expression and return the value.
-         * @return Evaluated value of the expression.
-         */
-        inline double evaluateDBL(const spider::vector<std::shared_ptr<pisdf::Param>> &params = { }) const {
-            return dynamic() ? evaluateStack(params) : value_;
-        }
-
-        /* === Getters === */
-
-        /**
-         * @brief Get the last evaluated value (faster than evaluated on static expressions)
-         * @return last evaluated value (default value, i.e no evaluation done, is 0)
-         */
-        inline int64_t value() const {
-            return static_cast<int64_t>(value_);
-        }
-
-        /**
-         * @brief Get the static property of the expression.
-         * @return true if the expression is static, false else.
-         */
-        inline bool dynamic() const {
-            return expressionStack_ != nullptr;
-        }
-
-    private:
-        spider::vector<ExpressionElt> *expressionStack_ = nullptr;
-        double value_ = 0;
-
-        /* === Private method(s) === */
-
-        /**
-         * @brief Build and reduce the expression tree parser.
-         * @param expressionStack Stack of the postfix expression elements.
-         */
-        spider::vector<ExpressionElt> compile(spider::vector<RPNElement> &postfixStack,
-                                              const spider::vector<std::shared_ptr<pisdf::Param>> &params,
-                                              bool &staticExpression);
-
-        /**
-         * @brief Evaluate the expression (if dynamic)
-         * @warning There is no check for the presence of the parameters in the params vector.
-         * @param params  Vector of parameters needed for the eval.
-         * @return evaluated value
-         */
-        double evaluateStack(const spider::vector<std::shared_ptr<pisdf::Param>> &params) const;
-    };
-}
+#include <graphs-tools/expression-parser/ExpressionWindows.h>
 
 #endif //SPIDER2_EXPRESSION_H

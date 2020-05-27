@@ -63,40 +63,40 @@ static spider::Platform *safeGetPlatform() {
     return platform;
 }
 
-static void findAndReplacePREESMBroadcast(spider::pisdf::Graph *graph) {
-    const auto checkBroadcast = [](const spider::pisdf::Vertex *vertex) {
-        const auto &inputExpression = vertex->inputEdge(0)->sinkRateExpression();
-        for (const auto &edge : vertex->outputEdgeVector()) {
-            if (edge->sourceRateExpression() != inputExpression) {
-                return true;
-            }
-        }
-        return false;
-    };
-    auto broadcastVector = spider::factory::vector<spider::pisdf::Vertex *>(StackID::TRANSFO);
-    for (const auto &vertex : graph->vertices()) {
-        if (vertex->subtype() == spider::pisdf::VertexType::DUPLICATE && checkBroadcast(vertex.get())) {
-            broadcastVector.emplace_back(vertex.get());
-        }
-    }
-    for (auto *vertex : broadcastVector) {
-        auto *repeat = spider::api::createRepeat(graph, "repeat::" + vertex->name());
-        auto *fork = spider::api::createFork(graph, "fork::" + vertex->name(), vertex->outputEdgeCount());
-        auto *inputEdge = vertex->inputEdge(0);
-        inputEdge->setSink(repeat, 0, inputEdge->sinkRateExpression());
-        spider::Expression expression{ };
-        for (const auto &edge : vertex->outputEdgeVector()) {
-            expression += edge->sourceRateExpression();
-            edge->setSource(fork, edge->sourcePortIx(), edge->sourceRateExpression());
-        }
-        auto *edge = spider::make<spider::pisdf::Edge, StackID::PISDF>(repeat, 0u, expression, fork, 0u,
-                                                                       std::move(expression));
-        graph->addEdge(edge);
-        graph->removeVertex(vertex);
-    }
-    for (const auto &subgraph : graph->subgraphs()) {
-        findAndReplacePREESMBroadcast(subgraph);
-    }
+static void findAndReplacePREESMBroadcast(spider::pisdf::Graph *) {
+//    const auto checkBroadcast = [](const spider::pisdf::Vertex *vertex) {
+//        const auto &inputExpression = vertex->inputEdge(0)->sinkRateExpression();
+//        for (const auto &edge : vertex->outputEdgeVector()) {
+//            if (edge->sourceRateExpression() != inputExpression) {
+//                return true;
+//            }
+//        }
+//        return false;
+//    };
+//    auto broadcastVector = spider::factory::vector<spider::pisdf::Vertex *>(StackID::TRANSFO);
+//    for (const auto &vertex : graph->vertices()) {
+//        if (vertex->subtype() == spider::pisdf::VertexType::DUPLICATE && checkBroadcast(vertex.get())) {
+//            broadcastVector.emplace_back(vertex.get());
+//        }
+//    }
+//    for (auto *vertex : broadcastVector) {
+//        auto *repeat = spider::api::createRepeat(graph, "repeat::" + vertex->name());
+//        auto *fork = spider::api::createFork(graph, "fork::" + vertex->name(), vertex->outputEdgeCount());
+//        auto *inputEdge = vertex->inputEdge(0);
+//        inputEdge->setSink(repeat, 0, inputEdge->sinkRateExpression());
+//        spider::Expression expression{ };
+//        for (const auto &edge : vertex->outputEdgeVector()) {
+//            expression += edge->sourceRateExpression();
+//            edge->setSource(fork, edge->sourcePortIx(), edge->sourceRateExpression());
+//        }
+//        auto *edge = spider::make<spider::pisdf::Edge, StackID::PISDF>(repeat, 0u, expression, fork, 0u,
+//                                                                       std::move(expression));
+//        graph->addEdge(edge);
+//        graph->removeVertex(vertex);
+//    }
+//    for (const auto &subgraph : graph->subgraphs()) {
+//        findAndReplacePREESMBroadcast(subgraph);
+//    }
 }
 
 /* === Methods implementation === */

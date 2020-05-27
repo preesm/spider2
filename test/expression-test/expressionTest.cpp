@@ -51,7 +51,6 @@
 #include <graphs-tools/expression-parser/Expression.h>
 #include <api/config-api.h>
 #include <api/spider.h>
-#include <graphs-tools/expression-parser/FastExpression.h>
 
 class expressionTest : public ::testing::Test {
 protected:
@@ -64,7 +63,7 @@ protected:
     }
 };
 
-using Expression = spider::FastExpression;
+using Expression = spider::Expression;
 
 TEST_F(expressionTest, expressionCtorTest) {
     spider::api::enableVerbose();
