@@ -217,7 +217,7 @@ static void addElementFromToken(spider::vector<RPNElement> &tokenStack, const st
         /* == Function case == */
         const auto opType = spider::rpn::getOperatorTypeFromString(token);
         const auto subtype = isFunction(opType) ? RPNElementSubType::FUNCTION : RPNElementSubType::OPERATOR;
-        tokenStack.push_back(RPNElement(RPNElementType::OPERATOR, subtype, token));
+        tokenStack.emplace_back(RPNElementType::OPERATOR, subtype, opType, token);
     } else {
         auto pos = token.find_first_of(',', 0);
         if (pos != std::string::npos) {
@@ -230,7 +230,7 @@ static void addElementFromToken(spider::vector<RPNElement> &tokenStack, const st
             std::strtod(token.c_str(), &end);
             auto subtype = (end == token.c_str() || (*end) != '\0') ? RPNElementSubType::PARAMETER
                                                                     : RPNElementSubType::VALUE;
-            tokenStack.push_back(RPNElement(RPNElementType::OPERAND, subtype, token));
+            tokenStack.emplace_back(RPNElementType::OPERAND, subtype, token);
         }
     }
 }
@@ -272,7 +272,7 @@ std::string spider::rpn::infixString(const spider::vector<RPNElement> &postfixSt
         if (element.type_ == RPNElementType::OPERAND) {
             stack.push(element.token_);
         } else {
-            const auto &op = getOperatorFromOperatorType(getOperatorTypeFromString(element.token_));
+            const auto &op = getOperatorFromOperatorType(element.operation_);
             std::string builtInfix;
             if (element.subtype_ == RPNElementSubType::FUNCTION) {
                 builtInfix += (element.token_ + '(');
@@ -469,8 +469,13 @@ void spider::rpn::reorderPostfixStack(spider::vector<RPNElement> &postfixStack) 
 const RPNOperator &spider::rpn::getOperator(uint32_t ix) {
     static std::array<RPNOperator, rpn::OPERATOR_COUNT>
             operatorArray{{
+//                                  { ">", RPNOperatorType::GREATER, 0, 2, false },    /*! GREATER operator */
+//                                  { ">=", RPNOperatorType::GEQ, 0, 2, false },        /*! GEQ operator */
+//                                  { "<", RPNOperatorType::LESS, 0, 2, false },      /*! LESS operator */
+//                                  { "<=", RPNOperatorType::LEQ, 0, 2, false },        /*! LEQ operator */
                                   { "+", RPNOperatorType::ADD, 1, 2, false },          /*! ADD operator */
                                   { "-", RPNOperatorType::SUB, 1, 2, false },          /*! SUB operator */
+
                                   { "*", RPNOperatorType::MUL, 2, 2, false },          /*! MUL operator */
                                   { "/", RPNOperatorType::DIV, 2, 2, false },          /*! DIV operator */
                                   { "%", RPNOperatorType::MOD, 3, 2, false },          /*! MOD operator */

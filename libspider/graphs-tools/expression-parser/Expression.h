@@ -42,6 +42,14 @@
 
 /* === Include(s) === */
 
+#ifdef __linux__
+
+#include <graphs-tools/expression-parser/ExpressionLinux.h>
+
+#elif _WIN32
+
 #include <graphs-tools/expression-parser/ExpressionWindows.h>
+
+#endif
 
 #endif //SPIDER2_EXPRESSION_H

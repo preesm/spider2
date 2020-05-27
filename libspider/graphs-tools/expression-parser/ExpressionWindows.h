@@ -40,6 +40,8 @@
 #ifndef SPIDER2_EXPRESSIONWINDOWS_H
 #define SPIDER2_EXPRESSIONWINDOWS_H
 
+#ifdef _WIN32
+
 /* === Include(s) === */
 
 #include <graphs-tools/expression-parser/RPNConverter.h>
@@ -195,5 +197,7 @@ namespace spider {
 
     };
 }
+
+#endif
 
 #endif //SPIDER2_EXPRESSIONWINDOWS_H

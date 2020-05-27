@@ -40,6 +40,8 @@
 #ifndef SPIDER2_EXPRESSIONTOKEN_H
 #define SPIDER2_EXPRESSIONTOKEN_H
 
+#ifdef _WIN32
+
 /* === Include(s) === */
 
 #include <functional>
@@ -121,4 +123,5 @@ namespace spider {
     }
 }
 
+#endif
 #endif //SPIDER2_EXPRESSIONTOKEN_H

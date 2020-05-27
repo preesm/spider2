@@ -122,6 +122,7 @@ struct RPNOperator {
 struct RPNElement {
     RPNElementType type_ = RPNElementType::OPERATOR;
     RPNElementSubType subtype_ = RPNElementSubType::OPERATOR;
+    RPNOperatorType operation_ = RPNOperatorType::DUMMY;
     std::string token_;
 
     RPNElement() = default;
@@ -132,9 +133,11 @@ struct RPNElement {
 
     RPNElement &operator=(const RPNElement &) = default;
 
-    RPNElement(RPNElementType type, RPNElementSubType subtype, std::string token = "") : type_{ type },
-                                                                                         subtype_{ subtype },
-                                                                                         token_{ std::move(token) } { }
+    RPNElement(RPNElementType type, RPNElementSubType subtype, std::string token = "") :
+            type_{ type }, subtype_{ subtype }, token_{ std::move(token) } { }
+
+    RPNElement(RPNElementType type, RPNElementSubType subtype, RPNOperatorType op, std::string token = "") :
+            type_{ type }, subtype_{ subtype }, operation_{ op }, token_{ std::move(token) } { }
 
     inline bool operator==(const RPNElement &other) const {
         return (type_ == other.type_) && (subtype_ == other.subtype_) && (token_ == other.token_);

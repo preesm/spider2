@@ -145,6 +145,9 @@ void spider::start(const StartUpConfig &cfg) {
         quit();
         throwSpiderException("spider::start() function should be called only once.");
     }
+#ifdef __linux__
+    expr::details::cleanFolder();
+#endif
 
     /* == Print the configuration == */
     printConfig(cfg);
@@ -281,4 +284,7 @@ void spider::quit() {
 
     /* == Reset start flag == */
     startFlag = false;
+#ifdef __linux__
+    expr::details::cleanFolder();
+#endif
 }

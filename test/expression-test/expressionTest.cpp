@@ -159,6 +159,18 @@ TEST_F(expressionTest, expressionOperatorsTest) {
                                 << "Expression: multiplication -> addition priority ordering failed.";
     ASSERT_EQ(Expression("(2+2)(2 + 2)").evaluateDBL(), 16.)
                                 << "Expression: parenthesis implicit multiplication failed.";
+    ASSERT_EQ(Expression("and(0,1)").evaluateDBL(), 0.)
+                                << "Expression: and operator failed.";
+    ASSERT_EQ(Expression("and(1,1)").evaluateDBL(), 1.)
+                                << "Expression: and operator failed.";
+    ASSERT_EQ(Expression("or(0,1)").evaluateDBL(), 1.)
+                                << "Expression: or operator failed.";
+    ASSERT_EQ(Expression("or(0,0)").evaluateDBL(), 0.)
+                                << "Expression: or operator failed.";
+    ASSERT_EQ(Expression("if(or(0,0), 4, 5)").evaluateDBL(), 5.)
+                                << "Expression: if  failed.";
+    ASSERT_EQ(Expression("if(1, 4, 5)").evaluateDBL(), 4.)
+                                << "Expression: if  failed.";
 }
 
 TEST_F(expressionTest, expressionFunctionsTest) {

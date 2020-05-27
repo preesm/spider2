@@ -38,6 +38,8 @@
  * knowledge of the CeCILL license and that you accept its terms.
  */
 
+#ifdef _WIN32
+
 /* === Include(s) === */
 
 #include <graphs-tools/expression-parser/ExpressionWindows.h>
@@ -350,3 +352,5 @@ spider::Expression::functor_t
 spider::Expression::function(const functor_t &f0, const functor_t &f1) const {
     return [=](const symbol_table_t &t) { return Operation::apply(f0(t), f1(t)); };
 }
+
+#endif

@@ -54,6 +54,8 @@ namespace spider {
                 return std::not_equal_to<double>{ }(0., v);
             }
 
+#ifdef _WIN32
+
             /* === Unary functions === */
 
             struct fact {
@@ -235,6 +237,7 @@ namespace spider {
 
                 static inline RPNOperatorType type() { return RPNOperatorType::LOG_OR; }
             };
+#endif
         }
 
         /**
