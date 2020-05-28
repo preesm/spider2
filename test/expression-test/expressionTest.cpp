@@ -63,7 +63,7 @@ protected:
     }
 };
 
-using spider::Expression;
+using Expression = spider::Expression;
 
 TEST_F(expressionTest, expressionCtorTest) {
     spider::api::enableVerbose();
@@ -92,27 +92,27 @@ TEST_F(expressionTest, expressionCtorTest) {
     ASSERT_THROW(Expression("-2"), spider::Exception) << "Expression should throw when expression start with '-'.";
     ASSERT_THROW(Expression("max(1,)"), spider::Exception)
                                 << "Expression should throw when function is missing an operand.";
-    ASSERT_EQ(Expression(4).value(), 4) << "Expression evaluation failed.";
-    auto tmp2 = spider::ExpressionElt();
-    ASSERT_NO_THROW(auto test = spider::ExpressionElt());
-    ASSERT_NO_THROW(auto test = spider::ExpressionElt(tmp2));
-    ASSERT_NO_THROW(auto test = spider::ExpressionElt(std::move(tmp2)));
-    ASSERT_NO_THROW(auto test = spider::Expression("dummy(1)")) << "Expression::Expression() should not throw with dummy operator.";
+//    ASSERT_EQ(Expression(4).value(), 4) << "Expression evaluation failed.";
+//    auto tmp2 = spider::ExpressionElt();
+//    ASSERT_NO_THROW(auto test = spider::ExpressionElt());
+//    ASSERT_NO_THROW(auto test = spider::ExpressionElt(tmp2));
+//    ASSERT_NO_THROW(auto test = spider::ExpressionElt(std::move(tmp2)));
+//    ASSERT_NO_THROW(auto test = spider::Expression("dummy(1)")) << "Expression::Expression() should not throw with dummy operator.";
     spider::api::disableLogger(spider::log::EXPR);
 }
 
 TEST_F(expressionTest, expression2StringTest) {
-    ASSERT_EQ(Expression(4).string(), "4.000000") << "Expression to string from simple value failed.";
-    ASSERT_EQ(Expression("").string(), "0.000000") << "Empty Expression should convert to 0.000000";
-    ASSERT_EQ(Expression("4cos(0)").string(), "4.000000") << "Static Expression to string failed.";
-    auto width = spider::api::createStaticParam(nullptr, "width", 0);
-    ASSERT_EQ(Expression("4cos(width)", { width }).string(), "4.000000")
-                                << "Static parameterized Expression to string failed";
-    auto height = spider::api::createDynamicParam(nullptr, "height");
-    ASSERT_EQ(Expression("cos(height)", { width, height }).string(), "height cos")
-                                << "Dynamic parameterized Expression to string failed.";
-    ASSERT_EQ(Expression("4min(1,height)", { width, height }).string(), "4 1 height min *")
-                                << "Dynamic parameterized Expression to string failed.";;
+//    ASSERT_EQ(Expression(4).string(), "4.000000") << "Expression to string from simple value failed.";
+//    ASSERT_EQ(Expression("").string(), "0.000000") << "Empty Expression should convert to 0.000000";
+//    ASSERT_EQ(Expression("4cos(0)").string(), "4.000000") << "Static Expression to string failed.";
+//    auto width = spider::api::createStaticParam(nullptr, "width", 0);
+//    ASSERT_EQ(Expression("4cos(width)", { width }).string(), "4.000000")
+//                                << "Static parameterized Expression to string failed";
+//    auto height = spider::api::createDynamicParam(nullptr, "height");
+//    ASSERT_EQ(Expression("cos(height)", { width, height }).string(), "height cos")
+//                                << "Dynamic parameterized Expression to string failed.";
+//    ASSERT_EQ(Expression("4min(1,height)", { width, height }).string(), "4 1 height min *")
+//                                << "Dynamic parameterized Expression to string failed.";;
 }
 
 TEST_F(expressionTest, testEquality) {
@@ -159,6 +159,48 @@ TEST_F(expressionTest, expressionOperatorsTest) {
                                 << "Expression: multiplication -> addition priority ordering failed.";
     ASSERT_EQ(Expression("(2+2)(2 + 2)").evaluateDBL(), 16.)
                                 << "Expression: parenthesis implicit multiplication failed.";
+    ASSERT_EQ(Expression("2 > 1").evaluateDBL(), 1.)
+                                << "Expression: > failed.";
+    ASSERT_EQ(Expression("2 > 2").evaluateDBL(), 0.)
+                                << "Expression: > failed.";
+    ASSERT_EQ(Expression("2 >= 1").evaluateDBL(), 1.)
+                                << "Expression: >= failed.";
+    ASSERT_EQ(Expression("2 >= 1+1").evaluateDBL(), 1.)
+                                << "Expression: >= failed.";
+    ASSERT_EQ(Expression("2 >= 1+2").evaluateDBL(), 0.)
+                                << "Expression: >= failed.";
+    ASSERT_EQ(Expression("2 <= 1+2").evaluateDBL(), 1.)
+                                << "Expression: <= failed.";
+    ASSERT_EQ(Expression("2 <= 1+1").evaluateDBL(), 1.)
+                                << "Expression: <= failed.";
+    ASSERT_EQ(Expression("2 <= 1").evaluateDBL(), 0.)
+                                << "Expression: <= failed.";
+    ASSERT_EQ(Expression("2 < 1").evaluateDBL(), 0.)
+                                << "Expression: < failed.";
+    ASSERT_EQ(Expression("1 < 1").evaluateDBL(), 0.)
+                                << "Expression: < failed.";
+    ASSERT_EQ(Expression("0< 1").evaluateDBL(), 1.)
+                                << "Expression: < failed.";
+    ASSERT_EQ(Expression("and(0,1)").evaluateDBL(), 0.)
+                                << "Expression: and operator failed.";
+    ASSERT_EQ(Expression("and(1,1)").evaluateDBL(), 1.)
+                                << "Expression: and operator failed.";
+    ASSERT_EQ(Expression("or(0,1)").evaluateDBL(), 1.)
+                                << "Expression: or operator failed.";
+    ASSERT_EQ(Expression("or(0,0)").evaluateDBL(), 0.)
+                                << "Expression: or operator failed.";
+    ASSERT_EQ(Expression("if(or(0,0), 4, 5)").evaluateDBL(), 5.)
+                                << "Expression: if  failed.";
+    ASSERT_EQ(Expression("if(1, 4, 5)").evaluateDBL(), 4.)
+                                << "Expression: if  failed.";
+    ASSERT_EQ(Expression("if(1>0, 4, 5)").evaluateDBL(), 4.)
+                                << "Expression: if  failed.";
+    auto param = spider::api::createDynamicParam(nullptr, "x");
+    ASSERT_EQ(Expression("if(x > 0, 4, 5)", { param }).evaluateDBL({ param }), 5.)
+                                << "Expression: if  failed.";
+    param->setValue(1);
+    ASSERT_EQ(Expression("if(x > 0, 4, 5)", { param }).evaluateDBL({ param }), 4.)
+                                << "Expression: if  failed.";
 }
 
 TEST_F(expressionTest, expressionFunctionsTest) {

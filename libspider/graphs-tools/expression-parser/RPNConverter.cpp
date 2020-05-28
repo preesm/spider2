@@ -39,6 +39,8 @@
 #include <containers/stack.h>
 #include <common/Exception.h>
 #include <cctype>
+#include <common/Math.h>
+#include <cmath>
 
 /* === Static variable definition(s) === */
 
@@ -46,7 +48,7 @@
  * @brief String containing all supported operators (should not be edited).
  */
 static const std::string &supportedBasicOperators() {
-    static std::string operators{ "+-*/%^!()" };
+    static std::string operators{ "+-*/%^!()<>" };
     return operators;
 }
 
@@ -55,6 +57,7 @@ static const std::string &supportedBasicOperators() {
 
 static bool isOperator(const std::string &s) {
     bool found = supportedBasicOperators().find_first_of(s) != std::string::npos;
+    found |= (s == "<=") || (s == ">=");
     for (auto i = spider::rpn::FUNCTION_OFFSET; !found && i < spider::rpn::OPERATOR_COUNT; ++i) {
         found |= (spider::rpn::getOperator(i).label == s);
     }
@@ -215,7 +218,7 @@ static void addElementFromToken(spider::vector<RPNElement> &tokenStack, const st
         /* == Function case == */
         const auto opType = spider::rpn::getOperatorTypeFromString(token);
         const auto subtype = isFunction(opType) ? RPNElementSubType::FUNCTION : RPNElementSubType::OPERATOR;
-        tokenStack.push_back(RPNElement(RPNElementType::OPERATOR, subtype, token));
+        tokenStack.emplace_back(RPNElementType::OPERATOR, subtype, opType, token);
     } else {
         auto pos = token.find_first_of(',', 0);
         if (pos != std::string::npos) {
@@ -228,7 +231,7 @@ static void addElementFromToken(spider::vector<RPNElement> &tokenStack, const st
             std::strtod(token.c_str(), &end);
             auto subtype = (end == token.c_str() || (*end) != '\0') ? RPNElementSubType::PARAMETER
                                                                     : RPNElementSubType::VALUE;
-            tokenStack.push_back(RPNElement(RPNElementType::OPERAND, subtype, token));
+            tokenStack.emplace_back(RPNElementType::OPERAND, subtype, token);
         }
     }
 }
@@ -270,7 +273,7 @@ std::string spider::rpn::infixString(const spider::vector<RPNElement> &postfixSt
         if (element.type_ == RPNElementType::OPERAND) {
             stack.push(element.token_);
         } else {
-            const auto &op = getOperatorFromOperatorType(getOperatorTypeFromString(element.token_));
+            const auto &op = getOperatorFromOperatorType(element.operation_);
             std::string builtInfix;
             if (element.subtype_ == RPNElementSubType::FUNCTION) {
                 builtInfix += (element.token_ + '(');
@@ -335,6 +338,9 @@ spider::vector<RPNElement> spider::rpn::extractInfixElements(std::string infixEx
 
         /* == Operator element == */
         token = infixExpressionLocal.substr(pos++, 1);
+        if ((token == ">" || token == "<") && (infixExpressionLocal[pos] == '=')) {
+            token += infixExpressionLocal.substr(pos++, 1);
+        }
         addElementFromToken(tokens, token);
 
         /* == Update pos == */
@@ -469,11 +475,16 @@ const RPNOperator &spider::rpn::getOperator(uint32_t ix) {
             operatorArray{{
                                   { "+", RPNOperatorType::ADD, 1, 2, false },          /*! ADD operator */
                                   { "-", RPNOperatorType::SUB, 1, 2, false },          /*! SUB operator */
+
                                   { "*", RPNOperatorType::MUL, 2, 2, false },          /*! MUL operator */
                                   { "/", RPNOperatorType::DIV, 2, 2, false },          /*! DIV operator */
                                   { "%", RPNOperatorType::MOD, 3, 2, false },          /*! MOD operator */
                                   { "^", RPNOperatorType::POW, 3, 2, true },           /*! POW operator */
                                   { "!", RPNOperatorType::FACT, 4, 1, true },          /*! FACT operator */
+                                  { ">", RPNOperatorType::GREATER, 0, 2, false },    /*! GREATER operator */
+                                  { ">=", RPNOperatorType::GEQ, 0, 2, false },        /*! GEQ operator */
+                                  { "<", RPNOperatorType::LESS, 0, 2, false },      /*! LESS operator */
+                                  { "<=", RPNOperatorType::LEQ, 0, 2, false },        /*! LEQ operator */
                                   { "(", RPNOperatorType::LEFT_PAR, 1, 0, false },     /*! LEFT_PAR operator */
                                   { ")", RPNOperatorType::RIGHT_PAR, 1, 0, false },    /*! RIGHT_PAR operator */
                                   { "cos", RPNOperatorType::COS, 5, 1, false },        /*! COS function */
@@ -495,10 +506,6 @@ const RPNOperator &spider::rpn::getOperator(uint32_t ix) {
                                   { "if", RPNOperatorType::IF, 5, 3, false },          /*! IF operator */
                                   { "and", RPNOperatorType::LOG_AND, 5, 2, false },    /*! AND operator */
                                   { "or", RPNOperatorType::LOG_OR, 5, 2, false },      /*! OR operator */
-                                  { "grt", RPNOperatorType::GREATER, 5, 2, false },    /*! GREATER operator */
-                                  { "geq", RPNOperatorType::GEQ, 5, 2, false },        /*! GEQ operator */
-                                  { "less", RPNOperatorType::LESS, 5, 2, false },      /*! LESS operator */
-                                  { "leq", RPNOperatorType::LEQ, 5, 2, false },        /*! LEQ operator */
                                   { "dummy", RPNOperatorType::DUMMY, 5, 1, false },    /*! Dummy operator */
                           }};
     return operatorArray.at(ix);
@@ -520,4 +527,3 @@ RPNOperatorType spider::rpn::getOperatorTypeFromString(const std::string &operat
     }
     return getOperator(i - 1).type;
 }
-
