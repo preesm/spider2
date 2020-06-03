@@ -34,13 +34,10 @@
  */
 /* === Includes === */
 
+#include <common/Exception.h>
+#include <containers/stack.h>
 #include <algorithm>
 #include <graphs-tools/expression-parser/RPNConverter.h>
-#include <containers/stack.h>
-#include <common/Exception.h>
-#include <cctype>
-#include <common/Math.h>
-#include <cmath>
 
 /* === Static variable definition(s) === */
 
@@ -110,6 +107,13 @@ static void checkInfixExpression(const std::string &infixExprString) {
     }
 }
 
+static bool isWord(const std::string &s, const std::string &pattern, size_t pos) {
+    static const auto delimiters = std::string{ "\n\t .,!?\"()/+-*^%!=<>" };
+    const auto isEndOfString = (pos + pattern.size()) >= s.length();
+    return (!pos || delimiters.find(s[pos - 1]) != std::string::npos) &&
+           (isEndOfString || delimiters.find(s[pos + pattern.size()]) != std::string::npos);
+}
+
 /**
  * @brief In place replace of all occurrences of substring in a string.
  * @param s        String on which we are working.
@@ -126,6 +130,26 @@ static std::string &stringReplace(std::string &s, const std::string &pattern, co
         }
     }
     return s;
+}
+
+/**
+ * @brief In place replace of all exact occurrences of substring in a string.
+ * @param s         String to modify.
+ * @param pattern   Substring to find.
+ * @param replace   Substring to replace found matches.
+ */
+static void replaceExactMatch(std::string &s, const std::string &pattern, const std::string &replace) {
+    const auto replaceSize = replace.size();
+    const auto patternSize = pattern.size();
+    size_t pos = 0;
+    while ((pos = s.find(pattern, pos)) != std::string::npos) {
+        if (isWord(s, pattern, pos)) {
+            s.replace(pos, patternSize, replace);
+            pos += replaceSize;
+        } else {
+            pos += patternSize;
+        }
+    }
 }
 
 /**
@@ -181,27 +205,15 @@ static std::string cleanInfixExpression(std::string infixExprString) {
     if (positionComa != std::string::npos) {
         /* == Replace ")" by "))" == */
         stringReplace(cleanExpression, ")", "))");
-
         /* == Replace "(" by "((" == */
         stringReplace(cleanExpression, "(", "((");
-
         /* == Replace "," by "),(" == */
         stringReplace(cleanExpression, ",", "),(");
     }
 
-    /* == Clean the inFix expression by replacing every occurrence of PI to its value == */
-    const std::string piValue = "3.1415926535";
-    const std::string piString = "pi";
-    size_t pos = 0;
-    while ((pos = cleanExpression.find(piString, pos)) != std::string::npos) {
-        /* == we can effectively do the change if we are not part of a word == */
-        bool isAlphPrev = (pos > 0) && std::isalnum(cleanExpression[pos - 1]);
-        bool isAlphNext = ((pos + 2) != cleanExpression.length()) && std::isalnum(cleanExpression[pos + 2]);
-        if (!isAlphPrev && !isAlphNext) {
-            cleanExpression.replace(pos, 2, piValue);
-        }
-        pos += piValue.size();
-    }
+    /* == Clean the inFix expression by replacing every occurrence of PI and e == */
+    replaceExactMatch(cleanExpression, "pi", "3.1415926536");
+    replaceExactMatch(cleanExpression, "e", "2.7182818285");
     return cleanExpression;
 }
 
