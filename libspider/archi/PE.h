@@ -37,8 +37,8 @@
 
 /* === Include(s) === */
 
-#include <cstdint>
 #include <string>
+#include <common/Types.h>
 #include <api/archi-api.h>
 
 namespace spider {

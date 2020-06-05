@@ -37,11 +37,11 @@
 
 /* === Include(s) === */
 
-#include <cstdint>
 #include <algorithm>
-#include <containers/array.h>
-#include <archi/PE.h>
 #include <api/archi-api.h>
+#include <archi/PE.h>
+#include <common/Types.h>
+#include <containers/array.h>
 #include <containers/array_handle.h>
 
 namespace spider {

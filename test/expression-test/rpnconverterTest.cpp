@@ -77,9 +77,14 @@ TEST_F(rpnconverterTest, rpnconverter2StringTest) {
     ASSERT_EQ(spider::rpn::postfixString(spider::rpn::extractPostfixElements("exp(log(0.2))")), "0.2 log exp");
     ASSERT_EQ(spider::rpn::infixString(spider::rpn::extractPostfixElements("exp(log(0.2))")), "exp(log(0.2))");
     ASSERT_EQ(spider::rpn::infixString(spider::rpn::extractPostfixElements("exp( log ( 0.2) )")), "exp(log(0.2))");
-    ASSERT_EQ(spider::rpn::infixString(spider::rpn::extractPostfixElements("4cos(PI/2)")), "(4*cos((3.1415926535/2)))");
+    ASSERT_EQ(spider::rpn::infixString(spider::rpn::extractPostfixElements("4cos(PI/2)")), "(4*cos((3.1415926536/2)))");
     ASSERT_EQ(spider::rpn::infixString(spider::rpn::extractPostfixElements("4max(4,cos(PI))")),
-              "(4*max(4,cos(3.1415926535)))");
+              "(4*max(4,cos(3.1415926536)))");
+    ASSERT_EQ(spider::rpn::infixString(spider::rpn::extractPostfixElements("e")),
+              "2.7182818285");
+    ASSERT_EQ(spider::rpn::infixString(spider::rpn::extractPostfixElements("4cos(E/2)")), "(4*cos((2.7182818285/2)))");
+    ASSERT_EQ(spider::rpn::infixString(spider::rpn::extractPostfixElements("4max(4,cos(e))")),
+              "(4*max(4,cos(2.7182818285)))");
 }
 
 TEST_F(rpnconverterTest, rpnconverterGetStringFunctionsTest) {

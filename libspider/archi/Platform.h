@@ -37,7 +37,7 @@
 
 /* === Include(s) === */
 
-#include <cstdint>
+#include <common/Types.h>
 #include <containers/array.h>
 #include <containers/vector.h>
 #include <api/archi-api.h>

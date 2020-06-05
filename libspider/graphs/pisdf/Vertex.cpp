@@ -111,7 +111,8 @@ void spider::pisdf::Vertex::addInputParameter(std::shared_ptr<Param> param) {
 
 void spider::pisdf::Vertex::addOutputParameter(std::shared_ptr<Param> param) {
     if (subtype() != VertexType::CONFIG) {
-        throwSpiderException("[%s] can not have output parameter.", name().c_str());
+        throwSpiderException("Failed to set output parameter [%s] of vertex [%s]: not a config actor.",
+                             param->name().c_str(), name().c_str());
     }
     outputParamVector_.emplace_back(std::move(param));
 }

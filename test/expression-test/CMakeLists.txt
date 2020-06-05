@@ -1,7 +1,7 @@
 set(EXPR_TARGET_NAME expression-${PROJECT_NAME}-test)
 
 # Add the test files
-set(${EXPR_TARGET_NAME}_SRC ../main.cpp expressionTest.cpp)
+set(${EXPR_TARGET_NAME}_SRC ../main.cpp expressionTest.cpp rpnconverterTest.cpp)
 
 # Set the include directories to use <> instead of ""
 include_directories(

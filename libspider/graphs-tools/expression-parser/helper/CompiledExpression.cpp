@@ -163,6 +163,7 @@ std::string spider::expr::CompiledExpression::writeFunctionFile(const std::strin
                 "\t\treturn std::not_equal_to<double>{ }(0., x) || std::not_equal_to<double>{ }(0., y) ? 1. : 0.;\n");
         fprintf(outputFile, "\t}\n\n");
         fprintf(outputFile, "\tdouble %s(const double *args) {\n", func.c_str());
+        fprintf(outputFile, "\t\tusing namespace std;\n");
         for (size_t i = 0; i < args.size(); ++i) {
             fprintf(outputFile, "\t\tconst auto %s = args[%zuu];\n", args[i].c_str(), i);
         }
