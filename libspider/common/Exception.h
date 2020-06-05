@@ -80,27 +80,6 @@ namespace spider {
 
     class Exception : public std::exception {
     public:
-#ifdef _SPIDER_NO_TYPESAFETY_PRINT
-
-        explicit Exception(const char *fileName, const char *fctName, int lineNumber, const char *msg, ...)
-                : exceptionMessage_{ } {
-            /* == Writes exception header == */
-            int n = printer::sprintf(exceptionMessage_, EXCEPTION_BUFFER_SIZE, "%s::%s(%d): ", fileName,
-                                     fctName, lineNumber);
-
-            /* == Write the actual exception message == */
-            va_list list;
-            va_start(list, msg);
-            n = printer::sprintf(exceptionMessage_ + n, static_cast<size_t>(EXCEPTION_BUFFER_SIZE - n), msg, list);
-            va_end(list);
-            if (n > EXCEPTION_BUFFER_SIZE) {
-                printer::fprintf(stderr, "Exception: ERROR: exception message too big.\n");
-                printer::fprintf(stderr, "Partially recovered exception: %s\n", exceptionMessage_);
-                fflush(stderr);
-            }
-        }
-
-#else
         template<class... Args>
         explicit Exception(const char *fileName, const char *fctName, int lineNumber,
                            const char *msg, Args &&...args)
@@ -110,14 +89,14 @@ namespace spider {
                                      fctName, lineNumber);
 
             /* == Write the actual exception message == */
-            n = printer::sprintf(exceptionMessage_ + n, static_cast<size_t>(EXCEPTION_BUFFER_SIZE - n), msg, std::forward<Args>(args)...);
+            n = printer::sprintf(exceptionMessage_ + n, static_cast<size_t>(EXCEPTION_BUFFER_SIZE - n), msg,
+                                 std::forward<Args>(args)...);
             if (n > EXCEPTION_BUFFER_SIZE) {
                 printer::fprintf(stderr, "Exception: ERROR: exception message too big.\n");
                 printer::fprintf(stderr, "Partially recovered exception: %s\n", exceptionMessage_);
                 fflush(stderr);
             }
         }
-#endif
 
         const char *what() const noexcept override { return exceptionMessage_; }
 
