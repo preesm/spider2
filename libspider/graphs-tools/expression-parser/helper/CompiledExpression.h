@@ -126,6 +126,11 @@ namespace spider {
                                           const spider::vector<std::string> &args) const;
 
             /**
+             * @brief Write the .h file with custom functions (if it does not exists).
+             */
+            void writeHelperFile() const;
+
+            /**
              * @brief Perform just in time compilation of the expression.
              * @param func  Name of the function to compile
              * @return string to the generated file.
