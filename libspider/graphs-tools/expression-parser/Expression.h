@@ -46,7 +46,7 @@
 
 #include <graphs-tools/expression-parser/ExpressionLinux.h>
 
-#elif _WIN32
+#elif defined(_WIN32)
 
 #include <graphs-tools/expression-parser/ExpressionWindows.h>
 

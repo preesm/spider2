@@ -51,9 +51,11 @@
 spider::expr::CompiledExpression::CompiledExpression(const spider::vector<RPNElement> &postfixStack,
                                                      const param_table_t &params) {
     /* == Tries to create the folder if it does not already exists == */
-    if (system("mkdir -p ./jit-expr")) {
+    if (system("mkdir -p ./.cache")) {
         throwSpiderException("failed to create directory for jit compiled expressions.");
     }
+    /* == Write helper functions (only once) == */
+    writeHelperFile();
     /* == Convert string to C++ syntax == */
     const auto stack = convertToCpp(postfixStack);
     /* == Compute hash for equality == */
@@ -74,14 +76,17 @@ spider::expr::CompiledExpression::convertToCpp(const spider::vector<RPNElement> 
     auto res = factory::vector<RPNElement>(postfixStack, StackID::EXPRESSION);
     for (auto &e : res) {
         if (e.token_ == "^") {
-            e.token_ = "std::pow";
+            e.token_ = "jitexpr::pow";
             e.subtype_ = RPNElementSubType::FUNCTION;
         } else if (e.token_ == "and") {
-            e.token_ = "and__";
+            e.token_ = "jitexpr::land";
         } else if (e.token_ == "or") {
-            e.token_ = "or__";
+            e.token_ = "jitexpr::lor";
+        } else if (e.token_ == "if") {
+            e.token_ = "jitexpr::ifelse";
         }
     }
+    return res;
     return res;
 }
 
@@ -106,6 +111,7 @@ void spider::expr::CompiledExpression::registerSymbol(param_t const param) {
 }
 
 void spider::expr::CompiledExpression::updateSymbolTable(const param_table_t &params) const {
+#ifndef NDEBUG
     auto it = valueTable_.begin();
     for (const auto &sym : symbolTable_) {
         for (const auto &p : params) {
@@ -115,6 +121,12 @@ void spider::expr::CompiledExpression::updateSymbolTable(const param_table_t &pa
             }
         }
     }
+#else
+    auto it = valueTable_.begin();
+    for (const auto &p : params) {
+        *(it++) = static_cast<double>(p->value(params));
+    }
+#endif
 }
 
 void spider::expr::CompiledExpression::compile(const vector<RPNElement> &postfixStack, const param_table_t &params) {
@@ -130,7 +142,7 @@ void spider::expr::CompiledExpression::compile(const vector<RPNElement> &postfix
     const auto file = writeFunctionFile(func, rpn::infixString(postfixStack), symbolTable_);
     if (file == "__exists__") {
         /* == Import function == */
-        expr_ = importExpression(std::string("./jit-expr/lib") + func + ".so", func);
+        expr_ = importExpression(std::string("./.cache/lib") + func + ".so", func);
     } else {
         /* == Invoke g++ to compile expression == */
         const auto lib = compileExpression(func);
@@ -142,7 +154,7 @@ void spider::expr::CompiledExpression::compile(const vector<RPNElement> &postfix
 std::string spider::expr::CompiledExpression::writeFunctionFile(const std::string &func,
                                                                 const std::string &expression,
                                                                 const spider::vector<std::string> &args) const {
-    const auto fileName = std::string("./jit-expr/") + func + ".cpp";
+    const auto fileName = std::string("./.cache/") + func + ".cpp";
     /* == Check if file already exists == */
     if (FILE *file = fopen(fileName.c_str(), "r")) {
         fclose(file);
@@ -150,18 +162,8 @@ std::string spider::expr::CompiledExpression::writeFunctionFile(const std::strin
     }
     FILE *outputFile = fopen(fileName.c_str(), "w+");
     if (outputFile) {
-        fprintf(outputFile, "#include <cmath>\n");
-        fprintf(outputFile, "#include <functional>\n\n");
-        fprintf(outputFile, "#define if(x, y, z) ((x) ? (y) : (z))\n");
+        fprintf(outputFile, "#include \"jitexpr-helper.h\"\n\n");
         fprintf(outputFile, "extern \"C\" {\n");
-        fprintf(outputFile, "\tconst double and__(const double x, const double y) {\n");
-        fprintf(outputFile,
-                "\t\treturn std::not_equal_to<double>{ }(0., x) && std::not_equal_to<double>{ }(0., y) ? 1. : 0.;\n");
-        fprintf(outputFile, "\t}\n\n");
-        fprintf(outputFile, "\tconst double or__(const double x, const double y) {\n");
-        fprintf(outputFile,
-                "\t\treturn std::not_equal_to<double>{ }(0., x) || std::not_equal_to<double>{ }(0., y) ? 1. : 0.;\n");
-        fprintf(outputFile, "\t}\n\n");
         fprintf(outputFile, "\tdouble %s(const double *args) {\n", func.c_str());
         fprintf(outputFile, "\t\tusing namespace std;\n");
         for (size_t i = 0; i < args.size(); ++i) {
@@ -170,30 +172,86 @@ std::string spider::expr::CompiledExpression::writeFunctionFile(const std::strin
         fprintf(outputFile, "\t\treturn %s;\n", expression.c_str());
         fprintf(outputFile, "\t}\n");
         fprintf(outputFile, "}\n");
-        fprintf(outputFile, "#undef if");
         fclose(outputFile);
         return fileName;
     }
     return "";
 }
 
+void spider::expr::CompiledExpression::writeHelperFile() const {
+    const auto fileName = "./.cache/jitexpr-helper.h";
+    if (FILE *file = fopen(fileName, "r")) {
+        fclose(file);
+        return;
+    }
+    FILE *outputFile = fopen(fileName, "w+");
+    if (outputFile) {
+        fprintf(outputFile, "#ifndef JITEXPR_HELPER_FCT_H\n");
+        fprintf(outputFile, "#define JITEXPR_HELPER_FCT_H\n\n");
+        fprintf(outputFile, "#include <cmath>\n");
+        fprintf(outputFile, "#include <functional>\n\n");
+        fprintf(outputFile, "namespace jitexpr {\n");
+        /* == Conditional if == */
+        fprintf(outputFile, "\tstatic inline double ifelse(bool p, const double b0, const double b1) {\n");
+        fprintf(outputFile, "\t\tif(p) {\n");
+        fprintf(outputFile, "\t\t\treturn b0;\n");
+        fprintf(outputFile, "\t\t}\n");
+        fprintf(outputFile, "\t\treturn b1;\n");
+        fprintf(outputFile, "\t}\n\n");
+        /* == Logical AND == */
+        fprintf(outputFile, "\tstatic inline double land(const double x, const double y) {\n");
+        fprintf(outputFile, "\t\tif(std::not_equal_to<double>{ }(0., x) && \n"
+                            "\t\t   std::not_equal_to<double>{ }(0., y)) {\n");
+        fprintf(outputFile, "\t\t\treturn 1.;\n");
+        fprintf(outputFile, "\t\t}\n");
+        fprintf(outputFile, "\t\treturn 0.;\n");
+        fprintf(outputFile, "\t}\n\n");
+        /* == Logical OR == */
+        fprintf(outputFile, "\tstatic inline double lor(const double x, const double y) {\n");
+        fprintf(outputFile, "\t\tif(std::not_equal_to<double>{ }(0., x) || \n"
+                            "\t\t   std::not_equal_to<double>{ }(0., y)) {\n");
+        fprintf(outputFile, "\t\t\treturn 1.;\n");
+        fprintf(outputFile, "\t\t}\n");
+        fprintf(outputFile, "\t\treturn 0.;\n");
+        fprintf(outputFile, "\t}\n\n");
+        /* == pow optimized function (see: https://baptiste-wicht.com/posts/2017/09/cpp11-performance-tip-when-to-use-std-pow.html) == */
+        fprintf(outputFile, "\tstatic inline double pow(const double x, int n) {\n");
+        fprintf(outputFile, "\t\tif(n < 100) {\n");
+        fprintf(outputFile, "\t\t\tauto r { x };\n");
+        fprintf(outputFile, "\t\t\twhile(n > 1) {\n");
+        fprintf(outputFile, "\t\t\t\tr *= x;\n");
+        fprintf(outputFile, "\t\t\t\tn -= 1;\n");
+        fprintf(outputFile, "\t\t\t}\n");
+        fprintf(outputFile, "\t\t\treturn r;\n");
+        fprintf(outputFile, "\t\t}\n");
+        fprintf(outputFile, "\t\treturn std::pow(x, n);\n");
+        fprintf(outputFile, "\t}\n\n");
+        fprintf(outputFile, "\tstatic inline double pow(const double x, const double n) {\n");
+        fprintf(outputFile, "\t\treturn std::pow(x, n);\n");
+        fprintf(outputFile, "\t}\n");
+        fprintf(outputFile, "}\n");
+        fprintf(outputFile, "#endif // JITEXPR_HELPER_FCT_H\n");
+        fclose(outputFile);
+    }
+}
+
 std::string spider::expr::CompiledExpression::compileExpression(const std::string &func) const {
-    const auto lib = std::string("./jit-expr/lib") + func + ".so";
-    const auto cpp = std::string("./jit-expr/") + func + ".cpp";
-    const auto cmd = std::string("g++ -shared -o ") + lib + " " + cpp + " -std=c++11 -O2 -fPIC";
+    const auto lib = std::string("./.cache/lib") + func + ".so";
+    const auto cpp = std::string("./.cache/") + func + ".cpp";
+    const auto cmd = std::string("g++ -shared -o ") + lib + " " + cpp + " -std=c++11 -O2 -fPIC -lm";
     if (system(cmd.c_str())) {
         throwSpiderException("failed to compile expression.");
     }
     return lib;
 }
 
-std::function<double(const double *)>
+spider::expr::CompiledExpression::functor_t
 spider::expr::CompiledExpression::importExpression(const std::string &lib, const std::string &func) {
     hndl_ = std::shared_ptr<void>(dlopen(lib.c_str(), RTLD_LAZY), dlclose);
     if (hndl_) {
         auto *ptr = dlsym(hndl_.get(), func.c_str());
         if (ptr) {
-            return [ptr](const double *args) { return reinterpret_cast<functor_t>(ptr)(args); };
+            return reinterpret_cast<functor_t>(ptr);
         }
     }
     throwSpiderException("failed to import compiled expression.");

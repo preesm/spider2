@@ -114,6 +114,10 @@ static bool isWord(const std::string &s, const std::string &pattern, size_t pos)
            (isEndOfString || delimiters.find(s[pos + pattern.size()]) != std::string::npos);
 }
 
+static bool isInteger(const double value) {
+    return std::trunc(value) == value;
+}
+
 /**
  * @brief In place replace of all occurrences of substring in a string.
  * @param s        String on which we are working.
@@ -212,9 +216,22 @@ static std::string cleanInfixExpression(std::string infixExprString) {
     }
 
     /* == Clean the inFix expression by replacing every occurrence of PI and e == */
-    replaceExactMatch(cleanExpression, "pi", "3.1415926536");
-    replaceExactMatch(cleanExpression, "e", "2.7182818285");
+    replaceExactMatch(cleanExpression, "pi", "3.14159265358979323846");
+    replaceExactMatch(cleanExpression, "e", "2.7182818284590452354");
     return cleanExpression;
+}
+
+static void addOperandFromToken(spider::vector<RPNElement> &tokenStack, const std::string &token) {
+    char *end;
+    const auto res = std::strtod(token.c_str(), &end);
+    const auto subtype = (end == token.c_str() || (*end) != '\0') ? RPNElementSubType::PARAMETER
+                                                                  : RPNElementSubType::VALUE;
+    const auto isIntegerValue = subtype == RPNElementSubType::VALUE && isInteger(res);
+    if (isIntegerValue && !tokenStack.empty() && (tokenStack.back().operation_ == RPNOperatorType::DIV)) {
+        tokenStack.emplace_back(RPNElementType::OPERAND, subtype, token + '.');
+    } else {
+        tokenStack.emplace_back(RPNElementType::OPERAND, subtype, token);
+    }
 }
 
 /**
@@ -239,11 +256,7 @@ static void addElementFromToken(spider::vector<RPNElement> &tokenStack, const st
             addElementFromToken(tokenStack, token.substr(pos, (token.size() - pos)));
         } else {
             /* == Operand case == */
-            char *end;
-            std::strtod(token.c_str(), &end);
-            auto subtype = (end == token.c_str() || (*end) != '\0') ? RPNElementSubType::PARAMETER
-                                                                    : RPNElementSubType::VALUE;
-            tokenStack.emplace_back(RPNElementType::OPERAND, subtype, token);
+            addOperandFromToken(tokenStack, token);
         }
     }
 }
