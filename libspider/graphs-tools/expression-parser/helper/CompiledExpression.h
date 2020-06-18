@@ -92,7 +92,7 @@ namespace spider {
             /* === Private members === */
 
             mutable spider::vector<double> valueTable_;
-            spider::vector<std::string> symbolTable_;
+            spider::vector<std::pair<size_t, std::string>> symbolTable_;
             std::shared_ptr<void> hndl_;
             functor_t expr_;
             size_t hash_{ SIZE_MAX };
@@ -123,7 +123,7 @@ namespace spider {
              */
             std::string writeFunctionFile(const std::string &func,
                                           const std::string &expression,
-                                          const spider::vector<std::string> &args) const;
+                                          const spider::vector<std::pair<size_t, std::string>> &args) const;
 
             /**
              * @brief Write the .h file with custom functions (if it does not exists).

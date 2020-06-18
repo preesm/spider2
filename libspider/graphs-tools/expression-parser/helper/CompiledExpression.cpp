@@ -102,11 +102,11 @@ spider::expr::CompiledExpression::findParameter(const param_table_t &params, con
 
 void spider::expr::CompiledExpression::registerSymbol(param_t const param) {
     for (const auto &s : symbolTable_) {
-        if (s == param->name()) {
+        if (s.second == param->name()) {
             return;
         }
     }
-    symbolTable_.emplace_back(param->name());
+    symbolTable_.emplace_back(param->ix(), param->name());
     valueTable_.emplace_back(0.);
 }
 
@@ -114,17 +114,22 @@ void spider::expr::CompiledExpression::updateSymbolTable(const param_table_t &pa
 #ifndef NDEBUG
     auto it = valueTable_.begin();
     for (const auto &sym : symbolTable_) {
+        bool found = false;
         for (const auto &p : params) {
-            if (sym == p->name()) {
+            if (sym.second == p->name()) {
                 *(it++) = static_cast<double>(p->value(params));
+                found = true;
                 break;
             }
+        }
+        if (!found) {
+            throwSpiderException("missing parameter [%s] for expression evaluation.", sym.second.c_str());
         }
     }
 #else
     auto it = valueTable_.begin();
-    for (const auto &p : params) {
-        *(it++) = static_cast<double>(p->value(params));
+    for (const auto &sym : symbolTable_) {
+        *(it++) = static_cast<double>(params[sym.first]->value(params));
     }
 #endif
 }
@@ -153,7 +158,7 @@ void spider::expr::CompiledExpression::compile(const vector<RPNElement> &postfix
 
 std::string spider::expr::CompiledExpression::writeFunctionFile(const std::string &func,
                                                                 const std::string &expression,
-                                                                const spider::vector<std::string> &args) const {
+                                                                const spider::vector<std::pair<size_t, std::string>> &args) const {
     const auto fileName = std::string("./.cache/") + func + ".cpp";
     /* == Check if file already exists == */
     if (FILE *file = fopen(fileName.c_str(), "r")) {
@@ -167,7 +172,7 @@ std::string spider::expr::CompiledExpression::writeFunctionFile(const std::strin
         fprintf(outputFile, "\tdouble %s(const double *args) {\n", func.c_str());
         fprintf(outputFile, "\t\tusing namespace std;\n");
         for (size_t i = 0; i < args.size(); ++i) {
-            fprintf(outputFile, "\t\tconst auto %s = args[%zuu];\n", args[i].c_str(), i);
+            fprintf(outputFile, "\t\tconst auto %s = args[%zuu];\n", args[i].second.c_str(), i);
         }
         fprintf(outputFile, "\t\treturn %s;\n", expression.c_str());
         fprintf(outputFile, "\t}\n");
