@@ -54,7 +54,7 @@ namespace spider {
 
         namespace details {
             static inline void cleanFolder() {
-                if (system("rm -rf ./jit-expr")) {
+                if (system("rm -rf ./.cache")) {
                     throwSpiderException("failed to clean jit expression folder.");
                 }
             }
@@ -94,7 +94,7 @@ namespace spider {
             mutable spider::vector<double> valueTable_;
             spider::vector<std::string> symbolTable_;
             std::shared_ptr<void> hndl_;
-            std::function<double(const double *)> expr_;
+            functor_t expr_;
             size_t hash_{ SIZE_MAX };
 
             /* === Private method(s) === */
@@ -145,7 +145,7 @@ namespace spider {
              * @return imported function.
              * @throw @refitem spider::Exception if failed to import.
              */
-            std::function<double(const double *)> importExpression(const std::string &lib, const std::string &func);
+            functor_t importExpression(const std::string &lib, const std::string &func);
 
         };
     }
