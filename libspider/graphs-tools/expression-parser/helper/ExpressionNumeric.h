@@ -175,7 +175,18 @@ namespace spider {
             };
 
             struct pow {
-                static inline double apply(const double v0, const double v1) { return std::pow(v0, v1); }
+                static inline double apply(const double v0, const double v1) {
+                    if (v1 < 100. && (std::trunc(v1) == v1)) {
+                        auto res{ v0 };
+                        auto n{ v1 };
+                        while (n > 1.) {
+                            res *= v0;
+                            n -= 1;
+                        }
+                        return res;
+                    }
+                    return std::pow(v0, v1);
+                }
 
                 static inline RPNOperatorType type() { return RPNOperatorType::POW; }
             };
@@ -237,6 +248,7 @@ namespace spider {
 
                 static inline RPNOperatorType type() { return RPNOperatorType::LOG_OR; }
             };
+
 #endif
         }
 
