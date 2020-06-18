@@ -66,8 +66,8 @@ namespace spider {
         /* === Setter(s) === */
 
     private:
-        int64_t virtualMemoryAddress_ = 0;
-        int64_t reservedMemory_ = 0;
+//        size_t reservedMemory_ = 0;
+//        size_t virtualMemoryAddress_ = 0;
 
         /* === Private method(s) === */
 

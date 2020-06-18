@@ -37,7 +37,7 @@
 
 /* === Include(s) === */
 
-#include <cstdint>
+#include <common/Types.h>
 #include <containers/array.h>
 #include <containers/vector.h>
 #include <api/archi-api.h>
@@ -62,6 +62,14 @@ namespace spider {
         Platform(size_t clusterCount, size_t peCount);
 
         ~Platform();
+
+        Platform(Platform &&) = default;
+
+        Platform(const Platform &) = delete;
+
+        Platform &operator=(Platform &&) = default;
+
+        Platform &operator=(const Platform &) = delete;
 
         /* === Method(s) === */
 

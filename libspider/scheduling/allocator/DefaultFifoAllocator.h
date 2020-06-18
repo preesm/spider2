@@ -60,7 +60,7 @@ namespace spider {
 
         /* === Method(s) === */
 
-        RTFifo allocate(int64_t size) override;
+        RTFifo allocate(size_t size) override;
 
         void allocate(ScheduleTask *task) override;
 
@@ -77,8 +77,8 @@ namespace spider {
         /* === Setter(s) === */
 
     protected:
-        int64_t virtualMemoryAddress_ = 0;
-        int64_t reservedMemory_ = 0;
+        size_t reservedMemory_ = 0;
+        size_t virtualMemoryAddress_ = 0;
 
         /* === Protected method(s) === */
 

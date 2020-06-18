@@ -40,6 +40,7 @@
 #include <cstdint>
 #include <cstddef>
 #include <array>
+#include <functional>
 
 /* === non-namespace Enumeration(s) === */
 
@@ -98,7 +99,8 @@ namespace spider {
         */
         enum class ParamType : uint_least8_t {
             STATIC,            /*! Static parameter: expression is evaluated at startup only once */
-            DYNAMIC,           /*! Dynamic parameter: value is set at runtime */
+            DYNAMIC,           /*! Fully dynamic parameter: value is set at runtime by a config actor */
+            DYNAMIC_DEPENDANT, /*! Dynamic parameter but set by other dynamic parameter or as inherited */
             INHERITED,         /*! Inherited parameter: value depend on parent */
         };
 
@@ -178,10 +180,9 @@ namespace spider {
      * @brief Spider scheduling algorithms.
      */
     enum class SchedulingPolicy {
-        LIST_BEST_FIT,        /*!< Use a list based algorithm with best fit mapping decision (use srdag) */
-        LIST_ROUND_ROBIN,     /*!< Use a list based algorithm with round robin mapping decision (use srdag) */
-        GREEDY,               /*!< Greedy algorithm with no heuristics (use srdag) */
-        SRLESS_LIST_BEST_FIT, /*!< Use a list based algorithm with best fit mapping decision (srdag less version) */
+        LIST_BEST_FIT,        /*!< Use a list based algorithm with best fit mapping decision */
+        LIST_ROUND_ROBIN,     /*!< Use a list based algorithm with round robin mapping decision */
+        GREEDY,               /*!< Greedy algorithm with no heuristics */
     };
 
     /**
@@ -279,30 +280,30 @@ namespace spider {
     /**
      * @brief Memory exchange cost routine (overridable).
      */
-    using MemoryExchangeCostRoutine = uint_least64_t (*)(uint_least64_t /* = Number of bytes = */);
+    using MemoryExchangeCostRoutine = std::function<uint_least64_t(uint_least64_t /* = Number of bytes = */)>;
 
     /**
      * @brief Memory bus send / receive routine.
      */
-    using MemoryBusRoutine = void (*)(int_least64_t  /* = Size in bytes = */,
-                                      int_least32_t, /* = Packet id = */
-                                      void *         /* = Buffer to send / receive = */);
+    using MemoryBusRoutine = std::function<void(int_least64_t  /* = Size in bytes = */,
+                                                int_least32_t, /* = Packet id = */
+                                                void *         /* = Buffer to send / receive = */)>;
 
     /**
      * @brief Data memory allocation routine (overridable).
      *        This should return the allocated buffer.
      */
-    using MemoryAllocateRoutine = void *(*)(uint_least64_t /* = Number of bytes = */);
+    using MemoryAllocateRoutine = std::function<void *(uint_least64_t /* = Number of bytes = */)>;
 
     /**
      * @brief Data memory deallocation routine (overridable).
      */
-    using MemoryDeallocateRoutine = void (*)(void * /* = physical address to free = */);
+    using MemoryDeallocateRoutine = std::function<void(void * /* = physical address to free = */)>;
 
     /**
      * @brief Generic refinement used by spider for the actors.
      */
-    using Kernel = void (*)(const int_least64_t *, int_least64_t *, void *[], void *[]);
+    using Kernel = std::function<void(const int_least64_t *, int_least64_t *, void *[], void *[])>;
 }
 
 #endif //SPIDER2_GLOBAL_API_H

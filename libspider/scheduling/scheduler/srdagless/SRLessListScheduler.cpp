@@ -173,7 +173,7 @@ ifast32 spider::SRLessListScheduler::computeScheduleLevel(SRLessListScheduler::L
                         auto &srcDep = dependencies[firingListTask.firing_][index++];
                         for (auto delta = srcDep.firingStart_; delta <= srcDep.firingEnd_; ++delta) {
                             auto &srcTask = listVertexVector[srcDep.vertex_->scheduleTaskIx() + delta];
-                            srcTask.level_ = std::max(srcTask.level_, firingListTask.level_ + minExecutionTime);
+                            srcTask.level_ = std::max(srcTask.level_, firingListTask.level_ + static_cast<ifast32>(minExecutionTime));
                         }
                         source = srcDep.vertex_;
                     }

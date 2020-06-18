@@ -83,39 +83,39 @@ namespace spider {
                                      int_fast32_t border = 2,
                                      const std::string &style = "") const;
 
-            int_fast32_t computeMaxDigitCount(Vertex *vertex) const;
+            int_fast32_t computeMaxDigitCount(const Vertex *vertex) const;
 
             /**
              * @brief Prints a vertex name to DOT with stripped size.
              * @param vertex       Pointer to the vertex.
              * @param columnCount  Number of column in the html table.
              */
-            void vertexNamePrinter(Vertex *vertex, size_t columnCount) const;
+            void vertexNamePrinter(const Vertex *vertex, size_t columnCount) const;
 
             /**
              * @brief Prints a vertex into DOT format.
              * @param vertex   Pointer to the vertex.
              */
-            void vertexPrinter(Vertex *vertex) const;
+            void vertexPrinter(const Vertex *vertex) const;
 
             /**
              * @brief Prints a graph interface into DOT format.
              * @param interface Pointer to the interface.
              * @param color     Color of the interface (red for output or green for input).
              */
-            void interfaceBodyPrinter(Interface *interface, const std::string &color) const;
+            void interfaceBodyPrinter(const Interface *interface, const std::string &color) const;
 
             /**
              * @brief Prints an edge.
              * @param edge Pointer to the edge.
              */
-            void edgePrinter(Edge *edge) const;
+            void edgePrinter(const Edge *edge) const;
 
             /**
              * @brief Prints a param.
              * @param param  Pointer to the parameter.
              */
-            void paramPrinter(Param *param) const;
+            void paramPrinter(const Param *param) const;
 
             /**
              * @brief Prints a data port.

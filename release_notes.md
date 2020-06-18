@@ -1,6 +1,24 @@
 Spider2 Changelog
 ================
 
+## Release version 0.1.0
+*2020.06.18*
+
+### New Feature
+
+### Changes
+* Updated expression parser with just-in-time compilation on Linux and optimized runtime parsing on Windows.
+* Removed c++11 custom typesafe printf (was not used).
+* Updated parameter creation API (merged static and dynamic derived parameter creation into one api call).
+* Removed abstract classes for graph internal API.
+
+### Bug fix
+* The JITMSRuntime does no longer consider subgraph with inherited dynamic parameters as fully dynamic.
+* Fixed handling of inherited parameters with different names.
+* Fixed compile issues on Windows.
+* Fixed join/fork optimization pattern in some corner cases.
+
+
 ## Release version 0.0.0
 *2020.04.14*
 

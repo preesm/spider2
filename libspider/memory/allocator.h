@@ -74,7 +74,7 @@ namespace spider {
 
         /* === Constructors / Destructors === */
 
-        allocator() noexcept : stack_{ stackArray()[static_cast<size_t>(StackID::GENERAL)] } { };
+        allocator() noexcept: stack_{ stackArray()[static_cast<size_t>(StackID::GENERAL)] } { };
 
         template<class U>
         allocator(const allocator<U> &other) noexcept : stack_{ other.stack() } { }
@@ -85,9 +85,15 @@ namespace spider {
             }
         }
 
-        allocator(const allocator &other) noexcept : stack_{ other.stack_ } { };
-
         ~allocator() = default;
+
+        allocator(allocator &&other) noexcept = default;
+
+        allocator(const allocator &other) noexcept = default;
+
+        allocator &operator=(const allocator &other) noexcept = default;
+
+        allocator &operator=(allocator &&other) noexcept = default;
 
         inline Stack *stack() const {
             return stack_;

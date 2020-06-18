@@ -63,37 +63,40 @@ static spider::Platform *safeGetPlatform() {
     return platform;
 }
 
-static void findAndReplacePREESMBroadcast(spider::pisdf::Graph *graph) {
-    auto broadcastVector = spider::factory::vector<spider::pisdf::Vertex *>(StackID::TRANSFO);
-    for (const auto &vertex : graph->vertices()) {
-        if (vertex->subtype() == spider::pisdf::VertexType::DUPLICATE) {
-            const auto &inputExpression = vertex->inputEdge(0)->sinkRateExpression();
-            for (const auto &edge : vertex->outputEdgeVector()) {
-                if (edge->sourceRateExpression() != inputExpression) {
-                    broadcastVector.emplace_back(vertex.get());
-                    break;
-                }
-            }
-        }
-    }
-    for (auto *vertex : broadcastVector) {
-        auto *repeat = spider::api::createRepeat(graph, "repeat::" + vertex->name());
-        auto *fork = spider::api::createFork(graph, "fork::" + vertex->name(), vertex->outputEdgeCount());
-        auto *inputEdge = vertex->inputEdge(0);
-        inputEdge->setSink(repeat, 0, inputEdge->sinkRateExpression());
-        spider::Expression expression{ };
-        for (const auto &edge : vertex->outputEdgeVector()) {
-            expression += edge->sourceRateExpression();
-            edge->setSource(fork, edge->sourcePortIx(), edge->sourceRateExpression());
-        }
-        auto *edge = spider::make<spider::pisdf::Edge, StackID::PISDF>(repeat, 0u, expression, fork, 0u,
-                                                                       std::move(expression));
-        graph->addEdge(edge);
-        graph->removeVertex(vertex);
-    }
-    for (const auto &subgraph : graph->subgraphs()) {
-        findAndReplacePREESMBroadcast(subgraph);
-    }
+static void findAndReplacePREESMBroadcast(spider::pisdf::Graph *) {
+//    const auto checkBroadcast = [](const spider::pisdf::Vertex *vertex) {
+//        const auto &inputExpression = vertex->inputEdge(0)->sinkRateExpression();
+//        for (const auto &edge : vertex->outputEdgeVector()) {
+//            if (edge->sourceRateExpression() != inputExpression) {
+//                return true;
+//            }
+//        }
+//        return false;
+//    };
+//    auto broadcastVector = spider::factory::vector<spider::pisdf::Vertex *>(StackID::TRANSFO);
+//    for (const auto &vertex : graph->vertices()) {
+//        if (vertex->subtype() == spider::pisdf::VertexType::DUPLICATE && checkBroadcast(vertex.get())) {
+//            broadcastVector.emplace_back(vertex.get());
+//        }
+//    }
+//    for (auto *vertex : broadcastVector) {
+//        auto *repeat = spider::api::createRepeat(graph, "repeat::" + vertex->name());
+//        auto *fork = spider::api::createFork(graph, "fork::" + vertex->name(), vertex->outputEdgeCount());
+//        auto *inputEdge = vertex->inputEdge(0);
+//        inputEdge->setSink(repeat, 0, inputEdge->sinkRateExpression());
+//        spider::Expression expression{ };
+//        for (const auto &edge : vertex->outputEdgeVector()) {
+//            expression += edge->sourceRateExpression();
+//            edge->setSource(fork, edge->sourcePortIx(), edge->sourceRateExpression());
+//        }
+//        auto *edge = spider::make<spider::pisdf::Edge, StackID::PISDF>(repeat, 0u, expression, fork, 0u,
+//                                                                       std::move(expression));
+//        graph->addEdge(edge);
+//        graph->removeVertex(vertex);
+//    }
+//    for (const auto &subgraph : graph->subgraphs()) {
+//        findAndReplacePREESMBroadcast(subgraph);
+//    }
 }
 
 /* === Methods implementation === */
@@ -392,17 +395,6 @@ spider::api::createStaticParam(pisdf::Graph *graph, std::string name, int64_t va
 }
 
 std::shared_ptr<spider::pisdf::Param>
-spider::api::createStaticParam(pisdf::Graph *graph, std::string name, std::string expression) {
-    if (graph) {
-        auto param = make_shared<pisdf::Param, StackID::PISDF>(std::move(name),
-                                                               Expression(std::move(expression), graph->params()));
-        graph->addParam(param);
-        return param;
-    }
-    return make_shared<pisdf::Param, StackID::PISDF>(std::move(name), Expression(std::move(expression)));
-}
-
-std::shared_ptr<spider::pisdf::Param>
 spider::api::createDynamicParam(pisdf::Graph *graph, std::string name) {
     if (graph) {
         auto param = make_shared<pisdf::DynamicParam, StackID::PISDF>(std::move(name), Expression(0));
@@ -413,51 +405,32 @@ spider::api::createDynamicParam(pisdf::Graph *graph, std::string name) {
 }
 
 std::shared_ptr<spider::pisdf::Param>
-spider::api::createDynamicParam(pisdf::Graph *graph, std::string name, std::string expression) {
-    if (graph) {
-        auto param = make_shared<pisdf::DynamicParam, StackID::PISDF>(std::move(name),
-                                                                      Expression(std::move(expression),
-                                                                                 graph->params()));
-        graph->addParam(param);
-        return param;
+spider::api::createDerivedParam(pisdf::Graph *graph, std::string name, std::string expression) {
+    auto expr = graph ? Expression(std::move(expression), graph->params()) : Expression(std::move(expression));
+    std::shared_ptr<pisdf::Param> param;
+    if (expr.dynamic()) {
+        param = make_shared<pisdf::DynamicParam, StackID::PISDF>(std::move(name), std::move(expr));
+    } else {
+        param = make_shared<pisdf::Param, StackID::PISDF>(std::move(name), expr.value());
     }
-    return make_shared<pisdf::DynamicParam, StackID::PISDF>(std::move(name), Expression(std::move(expression)));
+    if (graph) {
+        graph->addParam(param);
+    }
+    return param;
 }
 
 std::shared_ptr<spider::pisdf::Param>
-spider::api::createInheritedParam(pisdf::Graph *graph, std::string name, pisdf::Param *parent) {
+spider::api::createInheritedParam(spider::pisdf::Graph *graph, std::string name, std::shared_ptr<pisdf::Param> parent) {
     if (!parent) {
         throwSpiderException("Cannot instantiate inherited parameter [%s] with null parent.", name.c_str());
     }
     if (!parent->dynamic()) {
         return createStaticParam(graph, std::move(name), parent->value());
     }
+    auto param = make_shared<pisdf::InHeritedParam, StackID::PISDF>(std::move(name), std::move(parent));
     if (graph) {
-        auto param = make_shared<pisdf::InHeritedParam, StackID::PISDF>(std::move(name), parent);
         graph->addParam(param);
-        return param;
     }
-    return make_shared<pisdf::InHeritedParam, StackID::PISDF>(std::move(name), parent);
-}
-
-std::shared_ptr<spider::pisdf::Param>
-spider::api::createInheritedParam(pisdf::Graph *graph, std::string name, const std::string &parentName) {
-    if (!graph) {
-        throwSpiderException("Cannot instantiate inherited parameter from name in a nullptr graph.");
-    }
-    if (!graph->graph()) {
-        throwSpiderException("Cannot instantiate inherited parameter from name if graph [%s] has no parent graph.",
-                             graph->name().c_str());
-    }
-    auto *parent = graph->graph()->paramFromName(parentName);
-    if (!parent) {
-        throwSpiderException("Cannot instantiate inherited parameter [%s] with null parent.", name.c_str());
-    }
-    if (!parent->dynamic()) {
-        return createStaticParam(graph, std::move(name), parent->value());
-    }
-    auto param = make_shared<pisdf::InHeritedParam, StackID::PISDF>(std::move(name), parent);
-    graph->addParam(param);
     return param;
 }
 

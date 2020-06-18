@@ -162,10 +162,10 @@ void spider::srdag::separateRunGraphFromInit(pisdf::Graph *graph) {
     }
 
     /* == Copy the params to the run graph == */
+    auto paramsToRemove = factory::vector<std::shared_ptr<pisdf::Param>>(StackID::TRANSFO);
     for (auto &param : graph->params()) {
-        runGraph->addParam(param);
+        api::createInheritedParam(runGraph, param->name(), param);
     }
-    graph->overrideDynamicProperty(false);
 }
 
 std::pair<spider::srdag::JobStack, spider::srdag::JobStack>
@@ -173,8 +173,13 @@ spider::srdag::singleRateTransformation(TransfoJob &job, pisdf::Graph *srdag) {
     if (!srdag) {
         throwSpiderException("nullptr for single rate graph.");
     }
-    if (!job.reference_) {
+    auto *graph = job.reference_;
+    if (!graph) {
         throwSpiderException("nullptr for reference graph.");
+    }
+    if (graph->configVertexCount() && (graph->subgraphCount() != 1) &&
+        (graph->vertexCount() != graph->configVertexCount())) {
+        separateRunGraphFromInit(graph);
     }
     SingleRateTransformer transformer{ job, srdag };
     return transformer.execute();

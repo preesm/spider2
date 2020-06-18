@@ -47,18 +47,20 @@ namespace spider {
         class InHeritedParam final : public Param {
         public:
 
-            InHeritedParam(std::string name, Param *parent) : Param(std::move(name)),
-                                                              parent_{ parent } {
-                if (!parent) {
+            InHeritedParam(std::string name, std::shared_ptr<Param> parent) : Param(std::move(name)),
+                                                                              parent_{ std::move(parent) } {
+                if (!parent_) {
                     throwSpiderException("Inherited parameter can not have nullptr parent.");
                 }
             }
+
+            ~InHeritedParam() override = default;
 
             InHeritedParam(const InHeritedParam &other) : Param(other) {
                 parent_ = other.parent_;
             }
 
-            InHeritedParam(InHeritedParam &&other) noexcept : Param(std::move(other)) {
+            InHeritedParam(InHeritedParam &&other) noexcept: Param(std::move(other)) {
                 std::swap(parent_, other.parent_);
             }
 
@@ -87,13 +89,17 @@ namespace spider {
             }
 
             inline Param *parent() const override {
-                return parent_;
+                return parent_.get();
             }
 
             /* === Setter(s) === */
 
+            inline void setValue(int64_t value) override {
+                parent_->setValue(value);
+            }
+
         private:
-            Param *parent_ = nullptr; /* = Pointer to the corresponding parameter in the upper Graph = */
+            std::shared_ptr<Param> parent_;
         };
     }
 }

@@ -54,7 +54,15 @@ namespace spider {
             reduce();
         };
 
-        inline Rational(const Rational &r) : Rational{ r.n_, r.d_ } { };
+        ~Rational() = default;
+
+        Rational(Rational &&) = default;
+
+        Rational(const Rational &) = default;
+
+        Rational &operator=(Rational &&) = default;
+
+        Rational &operator=(const Rational &) = default;
 
         /* === Operators overload === */
 
@@ -89,20 +97,28 @@ namespace spider {
             return *this;
         }
 
-        inline Rational operator+(const Rational &b) const {
-            return Rational{ *this } += b;
+        friend inline Rational operator+(const Rational &a, const Rational &b) {
+            auto tmp = a;
+            tmp += b;
+            return tmp;
         }
 
-        inline Rational operator-(const Rational &b) const {
-            return Rational{ *this } -= b;
+        friend inline Rational operator-(const Rational &a, const Rational &b) {
+            auto tmp = a;
+            tmp -= b;
+            return tmp;
         }
 
-        inline Rational operator*(const Rational &b) const {
-            return Rational{ *this } *= b;
+        friend inline Rational operator*(const Rational &a, const Rational &b) {
+            auto tmp = a;
+            tmp *= b;
+            return tmp;
         }
 
-        inline Rational operator/(const Rational &b) const {
-            return Rational{ *this } /= b;
+        friend inline Rational operator/(const Rational &a, const Rational &b) {
+            auto tmp = a;
+            tmp /= b;
+            return tmp;
         }
 
         inline bool operator==(const Rational &b) const {

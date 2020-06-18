@@ -84,8 +84,9 @@ spider::pisdf::Graph::Graph(std::string name,
                             size_t numberOfInputEdge,
                             size_t numberOfOutputEdge,
                             size_t cfgVertexCount) :
-        AbstractGraph<Graph, Vertex, Edge>(stack_t < StackID::PISDF > { }, vertexCount, edgeCount),
         Vertex(VertexType::GRAPH, std::move(name), numberOfInputEdge, numberOfOutputEdge),
+        vertexVector_{ factory::vector<spider::unique_ptr<pisdf::Vertex>>(StackID::PISDF) },
+        edgeVector_{ factory::vector<spider::unique_ptr<pisdf::Edge>>(StackID::PISDF) },
         configVertexVector_{ factory::vector<Vertex *>(StackID::PISDF) },
         subgraphVector_{ factory::vector<Graph *>(StackID::PISDF) },
         paramVector_{ factory::vector<std::shared_ptr<Param>>(StackID::PISDF) },
@@ -93,6 +94,8 @@ spider::pisdf::Graph::Graph(std::string name,
         outputInterfaceVector_{ factory::vector<spider::unique_ptr<Interface>>(StackID::PISDF) } {
 
     /* == Reserve the memory == */
+    vertexVector_.reserve(vertexCount);
+    edgeVector_.reserve(edgeCount);
     paramVector_.reserve(paramCount);
     configVertexVector_.reserve(cfgVertexCount);
     inputInterfaceVector_.reserve(numberOfInputEdge);
@@ -111,8 +114,13 @@ spider::pisdf::Graph::Graph(std::string name,
     }
 }
 
+void spider::pisdf::Graph::visit(pisdf::Visitor *visitor) {
+    visitor->visit(this);
+}
+
 void spider::pisdf::Graph::clear() {
-    AbstractGraph::clear();
+    edgeVector_.clear();
+    vertexVector_.clear();
     paramVector_.clear();
     subgraphVector_.clear();
     configVertexVector_.clear();
@@ -160,7 +168,9 @@ void spider::pisdf::Graph::addVertex(Vertex *vertex) {
     if (!vertex) {
         return;
     }
-    AbstractGraph::addVertex(vertex);
+    vertex->setIx(vertexVector_.size());
+    vertex->setGraph(static_cast<Graph *>(this));
+    vertexVector_.emplace_back(vertex);
     if (vertex->subtype() == VertexType::CONFIG) {
         /* == Add config vertex to the "viewer" vector == */
         configVertexVector_.emplace_back(vertex);
@@ -187,15 +197,35 @@ void spider::pisdf::Graph::removeVertex(Vertex *vertex) {
         RemoveSubgraphVisitor visitor{ this };
         vertex->visit(&visitor);
     }
-    AbstractGraph::removeVertex(vertex);
+    /* == Assert that vertex is part of the edgeVector_ == */
+    assertElement(vertex, vertexVector_);
+    /* == Reset vertex input edges == */
+    for (auto &edge : vertex->inputEdgeVector()) {
+        if (edge) {
+            edge->setSink(nullptr, SIZE_MAX, Expression());
+        }
+    }
+    /* == Reset vertex output edges == */
+    for (auto &edge : vertex->outputEdgeVector()) {
+        if (edge) {
+            edge->setSource(nullptr, SIZE_MAX, Expression());
+        }
+    }
+    /* == swap and destroy the element == */
+    swapElement(vertex, vertexVector_);
 }
 
-
 void spider::pisdf::Graph::moveVertex(Vertex *vertex, Graph *graph) {
-    if (!vertex || !graph) {
+    if (!vertex || !graph || (graph == this)) {
         return;
     }
-    AbstractGraph::moveVertex(vertex, graph);
+    /* == Assert that elt is part of the vertexVector_ == */
+    assertElement(vertex, vertexVector_);
+    /* == Release the unique_ptr before swap to avoid destruction == */
+    vertex = vertexVector_[vertex->ix()].release();
+    swapElement(vertex, vertexVector_);
+    /* == Add the edge to the other graph == */
+    graph->addVertex(vertex);
     if (vertex->subtype() == VertexType::CONFIG) {
         /* == configVertexVector_ is just a "viewer" for config vertices so we need to find manually == */
         for (auto &cfg : configVertexVector_) {
@@ -211,6 +241,40 @@ void spider::pisdf::Graph::moveVertex(Vertex *vertex, Graph *graph) {
     }
 }
 
+void spider::pisdf::Graph::addEdge(Edge *edge) {
+    if (!edge) {
+        return;
+    }
+    edge->setIx(edgeVector_.size());
+    edgeVector_.emplace_back(edge);
+}
+
+void spider::pisdf::Graph::removeEdge(Edge *edge) {
+    if (!edge) {
+        return;
+    }
+    /* == Assert that edge is part of the edgeVector_ == */
+    assertElement(edge, edgeVector_);
+    /* == Reset edge source and sink == */
+    edge->setSource(nullptr, SIZE_MAX, Expression());
+    edge->setSink(nullptr, SIZE_MAX, Expression());
+    /* == swap and destroy the element == */
+    swapElement(edge, edgeVector_);
+}
+
+void spider::pisdf::Graph::moveEdge(Edge *edge, Graph *graph) {
+    if (!graph || (graph == this) || !edge) {
+        return;
+    }
+    /* == Assert that elt is part of the edgeVector_ == */
+    assertElement(edge, edgeVector_);
+    /* == Release the unique_ptr before swap to avoid destruction == */
+    edge = edgeVector_[edge->ix()].release();
+    swapElement(edge, edgeVector_);
+    /* == Add the edge to the other graph == */
+    graph->addEdge(edge);
+}
+
 void spider::pisdf::Graph::addParam(std::shared_ptr<Param> param) {
     /* == Check if a parameter with the same name already exists in the scope of this graph == */
     for (auto &p : paramVector_) {
@@ -222,7 +286,6 @@ void spider::pisdf::Graph::addParam(std::shared_ptr<Param> param) {
         param->setIx(paramVector_.size());
         param->setGraph(this);
     }
-    dynamic_ |= (param->dynamic() && param->type() != ParamType::INHERITED);
     paramVector_.emplace_back(std::move(param));
 }
 
@@ -233,29 +296,46 @@ void spider::pisdf::Graph::removeParam(const std::shared_ptr<Param> &param) {
     const auto tmp = param;
     out_of_order_erase(paramVector_, tmp->ix());
     paramVector_[tmp->ix()]->setIx(tmp->ix());
-    if (tmp->dynamic() && tmp->type() != ParamType::INHERITED) {
-        /* == Update dynamic property == */
-        dynamic_ = false;
-        for (auto &p : paramVector_) {
-            dynamic_ |= (p->dynamic() && p->type() != ParamType::INHERITED);
-            if (dynamic_) {
-                break;
-            }
-        }
-    }
 }
 
-spider::pisdf::Param *spider::pisdf::Graph::paramFromName(const std::string &name) {
-    std::string lowerCaseName = name;
-    std::transform(lowerCaseName.begin(), lowerCaseName.end(), lowerCaseName.begin(), ::tolower);
-    for (auto &param : paramVector_) {
+std::shared_ptr<spider::pisdf::Param> spider::pisdf::Graph::paramFromName(const std::string &name) {
+    auto lowerCaseName = name;
+    std::transform(std::begin(lowerCaseName), std::end(lowerCaseName), std::begin(lowerCaseName),
+                   [](char c) { return static_cast<char>(::tolower(c)); });
+    for (const auto &param : paramVector_) {
         if (param->name() == lowerCaseName) {
-            return param.get();
+            return param;
         }
     }
     return nullptr;
 }
 
-void spider::pisdf::Graph::overrideDynamicProperty(bool value) {
-    dynamic_ = value;
+bool spider::pisdf::Graph::dynamic() const {
+    const auto paramCount = std::count_if(std::begin(paramVector_), std::end(paramVector_),
+                                          [](const std::shared_ptr<Param> &p) {
+                                              return p->type() == ParamType::DYNAMIC;
+                                          });
+    return (paramCount > 0) && (paramCount == static_cast<long>(configVertexCount()));
+}
+
+/* === Private method(s) implementation === */
+
+template<class T>
+void spider::pisdf::Graph::assertElement(T *elt, spider::vector<unique_ptr<T>> &eltVector) {
+    auto ix = elt->ix();
+    if (ix >= eltVector.size()) {
+        throwSpiderException("Trying to remove an element not from this graph.");
+    } else if (eltVector[ix].get() != elt) {
+        throwSpiderException("Different element in ix position. Expected: %s -- Got: %s", elt->name().c_str(),
+                             eltVector[ix]->name().c_str());
+    }
+}
+
+template<class T, class U>
+void spider::pisdf::Graph::swapElement(T *elt, spider::vector<U> &eltVector) {
+    auto ix = elt->ix();
+    if (eltVector.back()) {
+        eltVector.back()->setIx(ix);
+    }
+    out_of_order_erase(eltVector, ix);
 }

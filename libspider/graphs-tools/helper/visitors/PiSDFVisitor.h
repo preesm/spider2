@@ -37,8 +37,6 @@
 
 /* === Include(s) === */
 
-#include <typeinfo>
-#include <string>
 #include <stdexcept>
 #include <api/global-api.h>
 

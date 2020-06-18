@@ -78,6 +78,14 @@ namespace spider {
 
         ~ScheduleTask();
 
+        ScheduleTask(ScheduleTask &&) = default;
+
+        ScheduleTask(const ScheduleTask &) = delete;
+
+        ScheduleTask &operator=(ScheduleTask &&) = default;
+
+        ScheduleTask &operator=(const ScheduleTask &) = delete;
+
         /* === Method(s) === */
 
         /**

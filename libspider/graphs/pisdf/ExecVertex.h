@@ -37,9 +37,8 @@
 
 /* === Include(s) === */
 
-#include <cstdint>
-#include <string>
 #include <graphs/pisdf/Vertex.h>
+#include <graphs-tools/helper/visitors/PiSDFVisitor.h>
 
 namespace spider {
 

@@ -59,6 +59,8 @@
 #include <csignal>
 #include <runtime/runner/JITMSRTRunner.h>
 #include <graphs-tools/transformation/srdagless/SRLessHandler.h>
+#include <graphs-tools/expression-parser/Expression.h>
+#include <graphs-tools/expression-parser/ExpressionWindows.h>
 
 void createUserPlatform();
 
@@ -281,13 +283,90 @@ void testGraphRec() {
     spider::quit();
 }
 
+spider::Expression test_cpy() {
+    const char *expressionString = "(5.5 + x) + (2 * x - 2 / 3 * y) * (x / 3 + y / 4) + (y + 7.7)";
+    auto param_x = spider::api::createDynamicParam(nullptr, "x");
+    auto param_y = spider::api::createDynamicParam(nullptr, "y");
+    spider::vector<std::shared_ptr<spider::pisdf::Param>> params{ param_x, param_y };
+    auto expr = spider::Expression(expressionString, params);
+    return expr;
+}
+
 int main(int, char **) {
 //    simpleNoExecHTest();
 //    simpleNoExecTest();
 //    testGraphRec();
-    simpleTest();
+//    simpleTest();
 //    spiderSmallTest();
-//    spiderTest();
+    spiderTest();
+    spider::start();
+    {
+        const char *expressionString = "(5.5 + 7.7) + (2 * x + 2 * 3 * y) * (x * 3 + y * 4) + (y + x)"; //"(5.5 + x) + (2 * x + 2 * 3 * y) * (x * 3 + y * 4) + (y + 7.7)"; // "if(less(x,2),1,geq(y,2))";
+        auto param_x = spider::api::createDynamicParam(nullptr, "x");
+        auto param_y = spider::api::createDynamicParam(nullptr, "y");
+        spider::vector<std::shared_ptr<spider::pisdf::Param>> params{ param_x, param_y };
+        auto expr = spider::Expression(expressionString, params);
+        param_x->setValue(2);
+        param_y->setValue(2);
+        std::cerr << expr.evaluateDBL({ param_x, param_y }) << std::endl;
+        auto expr2 = expr;
+        std::cerr << expr2.evaluateDBL({ param_x, param_y }) << std::endl;
+        const auto nIt = 2000;
+//        std::cerr << "==========" << std::endl;
+//        for (int k = 0; k < 20; ++k) {
+//            auto x = param_x.get();
+//            auto y = param_y.get();
+//            double total = 0;
+//            auto start = spider::time::now();
+//            for (int64_t i = 0; i < nIt; ++i) {
+//                x->setValue(i);
+//                for (int64_t j = 0; j < nIt; ++j) {
+//                    y->setValue(j);
+//                    volatile auto result = expr.evaluateDBL(params);
+//                    total += result;
+//                }
+//            }
+//            auto end = spider::time::now();
+//            std::cerr << "Total: " << total << std::endl;
+//            std::cerr << "Elapsed: " << spider::time::duration::milliseconds(start, end) << std::endl;
+//        }
+//        std::cerr << "==========" << std::endl;
+//        for (int k = 0; k < 20; ++k) {
+//            auto x = param_x.get();
+//            auto y = param_y.get();
+//            double total = 0;
+//            auto start = spider::time::now();
+//            for (int64_t i = 0; i < nIt; ++i) {
+//                x->setValue(i);
+//                for (int64_t j = 0; j < nIt; ++j) {
+//                    y->setValue(j);
+//                    volatile auto result = expr2.evaluateDBL(params);
+//                    total += result;
+//                }
+//            }
+//            auto end = spider::time::now();
+//            std::cerr << "Total: " << total << std::endl;
+//            std::cerr << "Elapsed: " << spider::time::duration::milliseconds(start, end) << std::endl;
+//        }
+//        for (int k = 0; k < 20; ++k) {
+//            auto x = param_x.get();
+//            auto y = param_y.get();
+//            double total = 0;
+//            auto start = spider::time::now();
+//            for (int64_t i = 0; i < nIt; ++i) {
+//                x->setValue(i);
+//                for (int64_t j = 0; j < nIt; ++j) {
+//                    y->setValue(j);
+////                    volatile auto result = std::sqrt(std::pow(x, 2.) + std::pow(y, 2.));
+//                    total += (x->value() < 2. ? std::sqrt(y->value()) : y->value() >= 2.);
+//                }
+//            }
+//            auto end = spider::time::now();
+//            std::cerr << "Total: " << total << std::endl;
+//            std::cerr << "Elapsed: " << spider::time::duration::milliseconds(start, end) << std::endl;
+//        }
+    }
+    spider::quit();
     return 0;
 }
 
@@ -483,7 +562,7 @@ void spiderTest() {
 //    spider::api::enableLogger(spider::log::Type::SCHEDULE);
 //    spider::api::enableVerbose();
 
-//    spider::api::enableExportSRDAG();
+    spider::api::enableExportSRDAG();
     spider::api::enableExportGantt();
     {
         createUserPlatform();
@@ -532,13 +611,14 @@ void spiderTest() {
                                              output[0] = i;
                                              spider::printer::printf("width_setter: setting value: %" PRId64".\n",
                                                                      output[0]);
+                                             i *= 2;
                                          });
 
         spider::api::createRuntimeKernel(sub_setter,
                                          [](const int64_t *, int64_t *output, void *[], void *[]) -> void {
                                              static int64_t i = 1;
                                              output[0] = i;
-//                                             ++i;
+                                             ++i;
                                              spider::printer::printf("sub_setter: setting value: %" PRId64".\n",
                                                                      output[0]);
                                          });
@@ -574,8 +654,12 @@ void spiderTest() {
         spider::api::createStaticParam(subgraph, "height", 10);
         auto width = spider::api::createDynamicParam(subgraph, "width");
         auto sub_width = spider::api::createDynamicParam(subsubgraph, "sub_width");
-        auto inherited_width = spider::api::createInheritedParam(subsubgraph, "width", width.get());
-        auto width_derived = spider::api::createDynamicParam(subsubgraph, "width_derived", "width * sub_width");
+        auto inherited_width = spider::api::createInheritedParam(subsubgraph, "width", width);
+        auto width_derived = spider::api::createDerivedParam(subsubgraph, "width_derived", "width * sub_width");
+
+        width->setValue(1);
+        sub_width->setValue(2);
+        std::cerr << width_derived->value({ width, sub_width }) << std::endl;
 
         /* === Set param to vertex === */
 
@@ -603,7 +687,7 @@ void spiderTest() {
         fprintf(stderr, "%zu\n", graph->totalActorCount());
         try {
             const auto &start = spider::time::now();
-            auto context = spider::createRuntimeContext(graph, spider::RunMode::LOOP, 10, spider::RuntimeType::JITMS,
+            auto context = spider::createRuntimeContext(graph, spider::RunMode::LOOP, 1, spider::RuntimeType::JITMS,
                                                         spider::SchedulingPolicy::LIST_BEST_FIT);
             spider::run(context);
             spider::destroyRuntimeContext(context);
@@ -615,6 +699,8 @@ void spiderTest() {
 
         /* === Export dot === */
         spider::api::exportGraphToDOT(graph, "./new.dot");
+
+        spider::api::destroyGraph(graph);
     }
     spider::quit();
 }

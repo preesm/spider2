@@ -4,6 +4,7 @@ stages:
     - Build
     - Test
     - Deploy
+    - Analyze
 
 jobs:
     include:
@@ -25,17 +26,30 @@ jobs:
             - export CC=gcc-7
             - export CXX=g++-7
             - cd bin
-            - cmake .. -DCMAKE_BUILD_TYPE=Release -DTYPE_SAFE=ON -DBUILD_TESTING=OFF
-            - cmake --build . --target spider2 -- -j$(nproc)
-            - rm -rf ../bin/*
-            - cmake .. -DCMAKE_BUILD_TYPE=Debug -DTYPE_SAFE=ON -DBUILD_TESTING=OFF
-            - cmake --build . --target spider2 -- -j$(nproc)
-            - rm -rf ../bin/*
             - cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF
             - cmake --build . --target spider2 -- -j$(nproc)
             - rm -rf ../bin/*
             - cmake .. -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=OFF
             - cmake --build . --target spider2 -- -j$(nproc)
+
+        - stage: Build
+          os: windows
+          env: GENERATOR="Visual Studio 16 2019"
+          compiler: msvc19
+          before_install:
+            - choco install visualstudio2019buildtools --package-parameters "--includeRecommended --includeOptional"
+            - choco install visualstudio2019-workload-vctools
+          install:
+            - mkdir doxygen && cd doxygen
+            - curl -o doxygen.zip https://netix.dl.sourceforge.net/project/doxygen/rel-1.8.16/doxygen-1.8.16.windows.bin.zip
+            - unzip doxygen.zip
+            - export PATH=$PATH:$PWD
+            - cd ..
+          script: 
+            - cd bin
+            - cmake .. -DBUILD_TESTING=OFF
+            - cmake --build . --target spider2 --config Debug
+            - cmake --build . --target spider2 --config Release
 
         - stage: Test
           os: linux
@@ -81,3 +95,44 @@ jobs:
                 branch: master
                 tags: true
 
+        - stage: Analyze
+          os: linux
+          dist: xenial
+          compiler: gcc-7
+          addons:
+            apt:
+                sources:
+                    - ubuntu-toolchain-r-test
+                packages:
+                    - g++-7
+                    - doxygen
+                    - gcovr
+                    - lcov
+            sonarcloud:
+                organization: "preesm"
+          env:
+            - GENERATOR="Unix Makefile"
+            - PATH=/opt/python/3.7.1/bin:$PATH
+          install:
+            - pip install gcovr
+          script:
+            - export CC=gcc-7
+            - export CXX=g++-7
+            - cd bin
+            - cmake .. -DCMAKE_BUILD_TYPE=Debug
+            - cd ..
+            - build-wrapper-linux-x86-64 --out-dir bw-output cmake --build bin/ --target all-spider2-test
+            - cd bin
+            - ./bin/all-spider2-test
+            - gcovr -r .. -s --sonarqube=sonarqube.xml
+            - sed 's/ branchesToCover=\"[0-9]\+\" coveredBranches=\"[0-9]\+\"/ /g' sonarqube.xml > sonarqubecleaned.xml # Remove condition coverage info from report, only line coverage interests us.
+            - cd ..
+            - sonar-scanner -Dsonar.login=${SONAR_TOKEN}
+          cache:
+            directories:
+              - '$HOME/.sonar/cache'
+
+notifications:
+    email:
+        on_success: change
+        on_failure: change

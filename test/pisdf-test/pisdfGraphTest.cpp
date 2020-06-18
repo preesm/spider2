@@ -100,10 +100,10 @@ TEST_F(pisdfGraphTest, graphTest) {
     ASSERT_NO_THROW(graph->removeParam(nullptr)) << "pisdf::Graph::removeParam should not throw for nullptr.";
 
     /* == Getter(s) test == */
-    ASSERT_EQ(graph->paramFromName("WIDTH"), param.get());
-    ASSERT_EQ(graph->paramFromName("width"), param.get());
-    ASSERT_EQ(graph->paramFromName("wIdTh"), param.get());
-    ASSERT_EQ(graph->paramFromName("height2"), nullptr);
+    ASSERT_EQ(graph->paramFromName("WIDTH").get(), param.get());
+    ASSERT_EQ(graph->paramFromName("width").get(), param.get());
+    ASSERT_EQ(graph->paramFromName("wIdTh").get(), param.get());
+    ASSERT_EQ(graph->paramFromName("height2").get(), nullptr);
     ASSERT_EQ(graph->vertexCount(), 0) << "Graph::vertexCount() failed.";
     ASSERT_EQ(graph->edgeCount(), 0) << "Graph::edgeCount() failed.";
     ASSERT_EQ(graph->paramCount(), 2) << "Graph::paramCount() failed.";

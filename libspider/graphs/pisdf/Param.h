@@ -59,8 +59,7 @@ namespace spider {
 
             Param(std::string name, const Expression &expression) : Param(std::move(name)) {
                 if (expression.dynamic()) {
-                    throwSpiderException("STATIC parameter should have static expression: %s.",
-                                         expression.string().c_str());
+                    throwSpiderException("STATIC parameter [%s] should have static expression.", name_.c_str());
                 }
                 value_ = expression.value();
             }
@@ -115,7 +114,7 @@ namespace spider {
                 return nullptr;
             }
 
-            virtual inline Expression expression()const {
+            virtual inline Expression expression() const {
                 return Expression(value_);
             }
 
@@ -149,7 +148,8 @@ namespace spider {
 
             /* == Protected ctor == */
             explicit Param(std::string name) : name_{ std::move(name) } {
-                std::transform(name_.begin(), name_.end(), name_.begin(), ::tolower);
+                std::transform(std::begin(name_), std::end(name_), std::begin(name_),
+                               [](char c) { return static_cast<char>(::tolower(c)); });
                 if (name_ == "pi") {
                     throwSpiderException("ambiguous name for parameter: pi is a math constant.");
                 }

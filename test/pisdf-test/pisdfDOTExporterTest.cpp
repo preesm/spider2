@@ -120,10 +120,10 @@ protected:
 
         /* == Creating param == */
         auto param = spider::api::createStaticParam(graph_, "width", 10);
-        spider::api::createInheritedParam(subgraph, "top-width", param.get());
+        spider::api::createInheritedParam(subgraph, "top-width", param);
         spider::api::createStaticParam(subgraph, "height", 10);
         auto param2 = spider::api::createDynamicParam(subgraph, "width");
-        spider::api::createInheritedParam(vertex_3, "up-width", param2.get());
+        spider::api::createInheritedParam(vertex_3, "up-width", param2);
 
     }
 

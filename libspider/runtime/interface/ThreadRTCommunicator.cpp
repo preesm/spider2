@@ -103,6 +103,9 @@ bool spider::ThreadRTCommunicator::pop(TraceMessage &message, size_t, size_t ix)
 #elif defined(__clang__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-function"
+#elif defined(_MSC_VER)
+#pragma warning(push)
+#pragma warning(disable: 4505)
 #endif
 
 /**
@@ -119,4 +122,6 @@ static void foo() {
 #pragma GCC diagnostic pop
 #elif defined(__clang__)
 #pragma clang diagnostic pop
+#elif defined(_MSC_VER)
+#pragma warning(pop)
 #endif

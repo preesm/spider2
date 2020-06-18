@@ -37,24 +37,12 @@
 #include <graphs-tools/transformation/optims/optimizations.h>
 #include <graphs-tools/transformation/optims/helper/unitaryOptimizer.h>
 #include <graphs-tools/transformation/optims/helper/patternOptimizer.h>
+#include <graphs-tools/transformation/optims/helper/partialSingleRate.h>
 #include <graphs/pisdf/Edge.h>
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/DelayVertex.h>
 #include <api/pisdf-api.h>
-
-/* === Private structure(s) === */
-
-struct EdgeLinker {
-    spider::pisdf::Vertex *vertex_ = nullptr;
-    int64_t rate_ = 0;
-    size_t portIx_ = 0;
-
-    EdgeLinker() = default;
-
-    EdgeLinker(spider::pisdf::Vertex *vertex, int64_t rate, size_t portIx) : vertex_{ vertex },
-                                                                             rate_{ rate },
-                                                                             portIx_{ portIx } { };
-};
+#include <common/Printer.h>
 
 /* === Static function(s) === */
 
@@ -149,16 +137,6 @@ static spider::pisdf::Vertex *createNewJoin(spider::pisdf::Vertex *firstJoin, sp
     return newJoin;
 }
 
-static size_t computeNEdge(int64_t sinkRate, spider::array<EdgeLinker>::iterator it) {
-    size_t edgeCount = 0;
-    int64_t totalRate = 0;
-    while (sinkRate > totalRate) {
-        totalRate += (*(it++)).rate_;
-        edgeCount += 1;
-    }
-    return edgeCount;
-}
-
 /* === Function(s) definition === */
 
 void spider::optims::optimize(spider::pisdf::Graph *graph) {
@@ -183,37 +161,54 @@ bool spider::optims::reduceRepeatFork(spider::pisdf::Graph *graph) {
     if (!graph) {
         return false;
     }
-    auto verticesToOptimize = factory::vector<pisdf::Vertex *>(StackID::TRANSFO);
+
     /* == Retrieve the vertices to remove == */
+    auto verticesToOptimize = factory::vector<pisdf::Vertex *>(StackID::TRANSFO);
     for (auto &vertex : graph->vertices()) {
         if (vertex->subtype() == pisdf::VertexType::REPEAT && vertex->scheduleTaskIx() == SIZE_MAX) {
             auto inputRate = vertex->inputEdge(0)->sinkRateValue();
             auto outputRate = vertex->outputEdge(0)->sourceRateValue();
             auto *sink = vertex->outputEdge(0)->sink();
-            if (!(outputRate % inputRate) &&
+            if (inputRate && !(outputRate % inputRate) &&
                 (sink->subtype() == pisdf::VertexType::FORK && sink->scheduleTaskIx() == SIZE_MAX)) {
                 verticesToOptimize.push_back(vertex.get());
             }
         }
     }
 
-    /* == Remove repeate / fork connections and replace them with duplicate vertex == */
-    for (auto *repeat : verticesToOptimize) {
-        auto *edge = repeat->outputEdge(0);
-        auto *fork = edge->sink();
-        auto *duplicate = api::createDuplicate(graph, repeat->name(), fork->outputEdgeCount());
+    /* == Remove repeat / fork connections and replace them with duplicate vertex == */
+    for (auto &repeat : verticesToOptimize) {
+        auto *outEdge = repeat->outputEdge(0);
         auto *inEdge = repeat->inputEdge(0);
+        const auto inRate = inEdge->sinkRateValue();
+        const auto nEdges = static_cast<size_t>(outEdge->sourceRateValue() / inRate);
+        auto *duplicate = api::createDuplicate(graph, repeat->name(), nEdges);
         inEdge->setSink(duplicate, 0, inEdge->sinkRateExpression());
-        for (auto *outputEdge : fork->outputEdgeVector()) {
-            outputEdge->setSource(duplicate, outputEdge->sourcePortIx(), outputEdge->sourceRateExpression());
+
+        /* == Creates the source array == */
+        spider::array<EdgeLinker> sourceArray{ nEdges, StackID::TRANSFO };
+        for (size_t i = 0; i < nEdges; ++i) {
+            sourceArray[i] = EdgeLinker{ duplicate, inRate, i };
         }
+
+        /* == Creates the sink array == */
+        auto *fork = outEdge->sink();
+        spider::array<EdgeLinker> sinkArray{ fork->outputEdgeCount(), StackID::TRANSFO };
+        for (auto *edge : fork->outputEdgeVector()) {
+            sinkArray[edge->sourcePortIx()] = EdgeLinker{ edge->sink(), edge->sinkRateValue(), edge->sinkPortIx() };
+            graph->removeEdge(edge);
+        }
+
+        /* == Re-do the linking == */
+        partialSingleRateTransformation(graph, sourceArray, sinkArray);
+
         if (log::enabled<log::OPTIMS>()) {
             log::verbose<log::OPTIMS>("reduceRepeatFork: removing repeat [%s] and fork [%s] vertices.\n",
                                       repeat->name().c_str(), fork->name().c_str());
         }
-        graph->removeEdge(edge);
         graph->removeVertex(repeat);
         graph->removeVertex(fork);
+        graph->removeEdge(outEdge);
     }
     return verticesToOptimize.empty();
 }
@@ -336,46 +331,7 @@ bool spider::optims::reduceJoinFork(pisdf::Graph *graph) {
         graph->removeVertex(fork);
 
         /* == Re-do the linking == */
-        auto sourceIt = std::begin(sourceArray);
-        auto sinkIt = std::begin(sinkArray);
-        while (sinkIt != std::end(sinkArray)) {
-            if (sinkIt->rate_ == sourceIt->rate_) {
-                api::createEdge(sourceIt->vertex_, sourceIt->portIx_, sourceIt->rate_, sinkIt->vertex_, sinkIt->portIx_,
-                                sinkIt->rate_);
-                sourceIt++;
-                sinkIt++;
-            } else if (sourceIt->rate_ > sinkIt->rate_) {
-                /* == Need for a Fork == */
-                auto name = std::string("fork::").append(sourceIt->vertex_->name()).append("::out::").append(
-                        std::to_string(sourceIt->portIx_));
-                const auto nForkEdge = computeNEdge(sourceIt->rate_, sinkIt);
-                auto *addedFork = spider::api::createFork(graph, std::move(name), nForkEdge);
-                api::createEdge(sourceIt->vertex_, sourceIt->portIx_, sourceIt->rate_, addedFork, 0, sourceIt->rate_);
-                for (size_t forkPortIx = 0; forkPortIx < (nForkEdge - 1); ++forkPortIx) {
-                    api::createEdge(addedFork, forkPortIx, sinkIt->rate_,
-                                    sinkIt->vertex_, sinkIt->portIx_, sinkIt->rate_);
-                    sourceIt->rate_ -= sinkIt->rate_;
-                    sinkIt++;
-                }
-                sourceIt->vertex_ = addedFork;
-                sourceIt->portIx_ = (nForkEdge - 1);
-            } else {
-                /* == Need for a Join == */
-                auto name = std::string("join::").append(sinkIt->vertex_->name()).append("::in::").append(
-                        std::to_string(sinkIt->portIx_));
-                const auto nJoinEdge = computeNEdge(sinkIt->rate_, sourceIt);
-                auto *addedJoin = api::createJoin(graph, std::move(name), nJoinEdge);
-                api::createEdge(addedJoin, 0, sinkIt->rate_, sinkIt->vertex_, sinkIt->portIx_, sinkIt->rate_);
-                for (size_t joinPortIx = 0; joinPortIx < (nJoinEdge - 1); ++joinPortIx) {
-                    api::createEdge(sourceIt->vertex_, sourceIt->portIx_, sourceIt->rate_,
-                                    addedJoin, joinPortIx, sourceIt->rate_);
-                    sinkIt->rate_ -= sourceIt->rate_;
-                    sourceIt++;
-                }
-                sinkIt->vertex_ = addedJoin;
-                sinkIt->portIx_ = (nJoinEdge - 1);
-            }
-        }
+        partialSingleRateTransformation(graph, sourceArray, sinkArray);
     }
     return verticesToOptimize.empty();
 }

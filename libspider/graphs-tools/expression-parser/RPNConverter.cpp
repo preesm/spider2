@@ -34,11 +34,10 @@
  */
 /* === Includes === */
 
+#include <common/Exception.h>
+#include <containers/stack.h>
 #include <algorithm>
 #include <graphs-tools/expression-parser/RPNConverter.h>
-#include <containers/stack.h>
-#include <common/Exception.h>
-#include <cctype>
 
 /* === Static variable definition(s) === */
 
@@ -46,7 +45,7 @@
  * @brief String containing all supported operators (should not be edited).
  */
 static const std::string &supportedBasicOperators() {
-    static std::string operators{ "+-*/%^!()" };
+    static std::string operators{ "+-*/%^!()<>" };
     return operators;
 }
 
@@ -55,6 +54,7 @@ static const std::string &supportedBasicOperators() {
 
 static bool isOperator(const std::string &s) {
     bool found = supportedBasicOperators().find_first_of(s) != std::string::npos;
+    found |= (s == "<=") || (s == ">=");
     for (auto i = spider::rpn::FUNCTION_OFFSET; !found && i < spider::rpn::OPERATOR_COUNT; ++i) {
         found |= (spider::rpn::getOperator(i).label == s);
     }
@@ -90,7 +90,7 @@ static bool missMatchParenthesis(It1 first, It2 last) {
  * @param infixExprString String to evaluate.
  */
 static void checkInfixExpression(const std::string &infixExprString) {
-    static const auto &restrictedOperators = std::string{ "*/+-%^" };
+    static const auto restrictedOperators = std::string{ "*/+-%^" };
     uint32_t i = 0;
     for (const auto &c: infixExprString) {
         i += 1;
@@ -107,6 +107,17 @@ static void checkInfixExpression(const std::string &infixExprString) {
     }
 }
 
+static bool isWord(const std::string &s, const std::string &pattern, size_t pos) {
+    static const auto delimiters = std::string{ "\n\t .,!?\"()/+-*^%!=<>" };
+    const auto isEndOfString = (pos + pattern.size()) >= s.length();
+    return (!pos || delimiters.find(s[pos - 1]) != std::string::npos) &&
+           (isEndOfString || delimiters.find(s[pos + pattern.size()]) != std::string::npos);
+}
+
+static bool isInteger(const double value) {
+    return std::trunc(value) == value;
+}
+
 /**
  * @brief In place replace of all occurrences of substring in a string.
  * @param s        String on which we are working.
@@ -116,11 +127,33 @@ static void checkInfixExpression(const std::string &infixExprString) {
  */
 static std::string &stringReplace(std::string &s, const std::string &pattern, const std::string &replace) {
     if (!pattern.empty()) {
-        for (size_t pos = 0; (pos = s.find(pattern, pos)) != std::string::npos; pos += replace.size()) {
+        size_t pos = 0;
+        while ((pos = s.find(pattern, pos)) != std::string::npos) {
             s.replace(pos, pattern.size(), replace);
+            pos += replace.size();
         }
     }
     return s;
+}
+
+/**
+ * @brief In place replace of all exact occurrences of substring in a string.
+ * @param s         String to modify.
+ * @param pattern   Substring to find.
+ * @param replace   Substring to replace found matches.
+ */
+static void replaceExactMatch(std::string &s, const std::string &pattern, const std::string &replace) {
+    const auto replaceSize = replace.size();
+    const auto patternSize = pattern.size();
+    size_t pos = 0;
+    while ((pos = s.find(pattern, pos)) != std::string::npos) {
+        if (isWord(s, pattern, pos)) {
+            s.replace(pos, patternSize, replace);
+            pos += replaceSize;
+        } else {
+            pos += patternSize;
+        }
+    }
 }
 
 /**
@@ -139,7 +172,8 @@ static std::string cleanInfixExpression(std::string infixExprString) {
                                localInfixExpression.end());
 
     /* == Convert the infix to lowercase == */
-    std::transform(localInfixExpression.begin(), localInfixExpression.end(), localInfixExpression.begin(), ::tolower);
+    std::transform(std::begin(localInfixExpression), std::end(localInfixExpression), std::begin(localInfixExpression),
+                   [](char c) { return static_cast<char>(::tolower(c)); });
 
     /* == Replace (+x) to (x) == */
     stringReplace(localInfixExpression, "(+", "(");
@@ -175,26 +209,29 @@ static std::string cleanInfixExpression(std::string infixExprString) {
     if (positionComa != std::string::npos) {
         /* == Replace ")" by "))" == */
         stringReplace(cleanExpression, ")", "))");
-
         /* == Replace "(" by "((" == */
         stringReplace(cleanExpression, "(", "((");
-
         /* == Replace "," by "),(" == */
         stringReplace(cleanExpression, ",", "),(");
     }
 
-    /* == Clean the inFix expression by replacing every occurrence of PI to its value == */
-    const std::string piValue = "3.1415926535";
-    const std::string piString = "pi";
-    for (size_t pos = 0; (pos = cleanExpression.find(piString, pos)) != std::string::npos; pos += piValue.size()) {
-        /* == we can effectively do the change if we are not part of a word == */
-        bool isAlphPrev = (pos > 0) && std::isalnum(cleanExpression[pos - 1]);
-        bool isAlphNext = ((pos + 2) != cleanExpression.length()) && std::isalnum(cleanExpression[pos + 2]);
-        if (!isAlphPrev && !isAlphNext) {
-            cleanExpression.replace(pos, 2, piValue);
-        }
-    }
+    /* == Clean the inFix expression by replacing every occurrence of PI and e == */
+    replaceExactMatch(cleanExpression, "pi", "3.14159265358979323846");
+    replaceExactMatch(cleanExpression, "e", "2.7182818284590452354");
     return cleanExpression;
+}
+
+static void addOperandFromToken(spider::vector<RPNElement> &tokenStack, const std::string &token) {
+    char *end;
+    const auto res = std::strtod(token.c_str(), &end);
+    const auto subtype = (end == token.c_str() || (*end) != '\0') ? RPNElementSubType::PARAMETER
+                                                                  : RPNElementSubType::VALUE;
+    const auto isIntegerValue = subtype == RPNElementSubType::VALUE && isInteger(res);
+    if (isIntegerValue && !tokenStack.empty() && (tokenStack.back().operation_ == RPNOperatorType::DIV)) {
+        tokenStack.emplace_back(RPNElementType::OPERAND, subtype, token + '.');
+    } else {
+        tokenStack.emplace_back(RPNElementType::OPERAND, subtype, token);
+    }
 }
 
 /**
@@ -208,10 +245,9 @@ static void addElementFromToken(spider::vector<RPNElement> &tokenStack, const st
     }
     if (isOperator(token)) {
         /* == Function case == */
-        const auto &opType = spider::rpn::getOperatorTypeFromString(token);
-        const auto &subtype = isFunction(opType) ? RPNElementSubType::FUNCTION
-                                                 : RPNElementSubType::OPERATOR;
-        tokenStack.push_back(RPNElement(RPNElementType::OPERATOR, subtype, token));
+        const auto opType = spider::rpn::getOperatorTypeFromString(token);
+        const auto subtype = isFunction(opType) ? RPNElementSubType::FUNCTION : RPNElementSubType::OPERATOR;
+        tokenStack.emplace_back(RPNElementType::OPERATOR, subtype, opType, token);
     } else {
         auto pos = token.find_first_of(',', 0);
         if (pos != std::string::npos) {
@@ -220,11 +256,7 @@ static void addElementFromToken(spider::vector<RPNElement> &tokenStack, const st
             addElementFromToken(tokenStack, token.substr(pos, (token.size() - pos)));
         } else {
             /* == Operand case == */
-            char *end;
-            std::strtod(token.c_str(), &end);
-            auto subtype = (end == token.c_str() || (*end) != '\0') ? RPNElementSubType::PARAMETER
-                                                                    : RPNElementSubType::VALUE;
-            tokenStack.push_back(RPNElement(RPNElementType::OPERAND, subtype, token));
+            addOperandFromToken(tokenStack, token);
         }
     }
 }
@@ -266,7 +298,7 @@ std::string spider::rpn::infixString(const spider::vector<RPNElement> &postfixSt
         if (element.type_ == RPNElementType::OPERAND) {
             stack.push(element.token_);
         } else {
-            const auto &op = getOperatorFromOperatorType(getOperatorTypeFromString(element.token_));
+            const auto &op = getOperatorFromOperatorType(element.operation_);
             std::string builtInfix;
             if (element.subtype_ == RPNElementSubType::FUNCTION) {
                 builtInfix += (element.token_ + '(');
@@ -331,6 +363,9 @@ spider::vector<RPNElement> spider::rpn::extractInfixElements(std::string infixEx
 
         /* == Operator element == */
         token = infixExpressionLocal.substr(pos++, 1);
+        if ((token == ">" || token == "<") && (infixExpressionLocal[pos] == '=')) {
+            token += infixExpressionLocal.substr(pos++, 1);
+        }
         addElementFromToken(tokens, token);
 
         /* == Update pos == */
@@ -465,11 +500,16 @@ const RPNOperator &spider::rpn::getOperator(uint32_t ix) {
             operatorArray{{
                                   { "+", RPNOperatorType::ADD, 1, 2, false },          /*! ADD operator */
                                   { "-", RPNOperatorType::SUB, 1, 2, false },          /*! SUB operator */
+
                                   { "*", RPNOperatorType::MUL, 2, 2, false },          /*! MUL operator */
                                   { "/", RPNOperatorType::DIV, 2, 2, false },          /*! DIV operator */
                                   { "%", RPNOperatorType::MOD, 3, 2, false },          /*! MOD operator */
                                   { "^", RPNOperatorType::POW, 3, 2, true },           /*! POW operator */
                                   { "!", RPNOperatorType::FACT, 4, 1, true },          /*! FACT operator */
+                                  { ">", RPNOperatorType::GREATER, 0, 2, false },    /*! GREATER operator */
+                                  { ">=", RPNOperatorType::GEQ, 0, 2, false },        /*! GEQ operator */
+                                  { "<", RPNOperatorType::LESS, 0, 2, false },      /*! LESS operator */
+                                  { "<=", RPNOperatorType::LEQ, 0, 2, false },        /*! LEQ operator */
                                   { "(", RPNOperatorType::LEFT_PAR, 1, 0, false },     /*! LEFT_PAR operator */
                                   { ")", RPNOperatorType::RIGHT_PAR, 1, 0, false },    /*! RIGHT_PAR operator */
                                   { "cos", RPNOperatorType::COS, 5, 1, false },        /*! COS function */
@@ -491,10 +531,6 @@ const RPNOperator &spider::rpn::getOperator(uint32_t ix) {
                                   { "if", RPNOperatorType::IF, 5, 3, false },          /*! IF operator */
                                   { "and", RPNOperatorType::LOG_AND, 5, 2, false },    /*! AND operator */
                                   { "or", RPNOperatorType::LOG_OR, 5, 2, false },      /*! OR operator */
-                                  { "grt", RPNOperatorType::GREATER, 5, 2, false },    /*! GREATER operator */
-                                  { "geq", RPNOperatorType::GEQ, 5, 2, false },        /*! GEQ operator */
-                                  { "less", RPNOperatorType::LESS, 5, 2, false },      /*! LESS operator */
-                                  { "leq", RPNOperatorType::LEQ, 5, 2, false },        /*! LEQ operator */
                                   { "dummy", RPNOperatorType::DUMMY, 5, 1, false },    /*! Dummy operator */
                           }};
     return operatorArray.at(ix);
@@ -516,4 +552,3 @@ RPNOperatorType spider::rpn::getOperatorTypeFromString(const std::string &operat
     }
     return getOperator(i - 1).type;
 }
-

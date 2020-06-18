@@ -94,7 +94,7 @@ if (USE_PAPI AND PAPI_FOUND)
 endif ()
 if (NOT MSVC)
     find_package(Threads REQUIRED)
-    target_link_libraries(${LIBRARY_TARGET_NAME} ${CMAKE_THREAD_LIBS_INIT})
+    target_link_libraries(${LIBRARY_TARGET_NAME} ${CMAKE_THREAD_LIBS_INIT} dl)
 endif ()
 
 # If you used find_package() you need to use target_include_directories() and/or

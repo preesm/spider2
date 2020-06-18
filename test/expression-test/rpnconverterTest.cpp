@@ -77,9 +77,14 @@ TEST_F(rpnconverterTest, rpnconverter2StringTest) {
     ASSERT_EQ(spider::rpn::postfixString(spider::rpn::extractPostfixElements("exp(log(0.2))")), "0.2 log exp");
     ASSERT_EQ(spider::rpn::infixString(spider::rpn::extractPostfixElements("exp(log(0.2))")), "exp(log(0.2))");
     ASSERT_EQ(spider::rpn::infixString(spider::rpn::extractPostfixElements("exp( log ( 0.2) )")), "exp(log(0.2))");
-    ASSERT_EQ(spider::rpn::infixString(spider::rpn::extractPostfixElements("4cos(PI/2)")), "(4*cos((3.1415926535/2)))");
+    ASSERT_EQ(spider::rpn::infixString(spider::rpn::extractPostfixElements("4cos(PI/2)")), "(4*cos((3.14159265358979323846/2.)))");
     ASSERT_EQ(spider::rpn::infixString(spider::rpn::extractPostfixElements("4max(4,cos(PI))")),
-              "(4*max(4,cos(3.1415926535)))");
+              "(4*max(4,cos(3.14159265358979323846)))");
+    ASSERT_EQ(spider::rpn::infixString(spider::rpn::extractPostfixElements("e")),
+              "2.7182818284590452354");
+    ASSERT_EQ(spider::rpn::infixString(spider::rpn::extractPostfixElements("4cos(E/2)")), "(4*cos((2.7182818284590452354/2.)))");
+    ASSERT_EQ(spider::rpn::infixString(spider::rpn::extractPostfixElements("4max(4,cos(e))")),
+              "(4*max(4,cos(2.7182818284590452354)))");
 }
 
 TEST_F(rpnconverterTest, rpnconverterGetStringFunctionsTest) {
@@ -164,9 +169,9 @@ TEST_F(rpnconverterTest, rpnconverterReorderTest) {
     }
     {
         auto stack = spider::rpn::extractPostfixElements("(4/w)/2");
-        ASSERT_EQ(spider::rpn::postfixString(stack), "4 w / 2 /");
+        ASSERT_EQ(spider::rpn::postfixString(stack), "4 w / 2. /");
         ASSERT_NO_THROW(spider::rpn::reorderPostfixStack(stack)) << "RPNConverter: stack reordering should not throw.";
-        ASSERT_EQ(spider::rpn::postfixString(stack), "4 2 / w /");
+        ASSERT_EQ(spider::rpn::postfixString(stack), "4 2. / w /");
     }
 }
 

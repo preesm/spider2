@@ -37,7 +37,6 @@
 
 /* === Include(s) === */
 
-#include <cstdint>
 #include <api/global-api.h>
 #include <common/Types.h>
 

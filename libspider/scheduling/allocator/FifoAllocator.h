@@ -82,7 +82,7 @@ namespace spider {
          * @param size      Size of the FIFO to allocate in bytes.
          * @return created @refitem RTFifo.
          */
-        virtual RTFifo allocate(int64_t size) = 0;
+        virtual RTFifo allocate(size_t size) = 0;
 
         virtual void allocate(ScheduleTask *task) = 0;
 

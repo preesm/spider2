@@ -108,7 +108,7 @@ namespace spider {
 
         T *operator->() const noexcept { return get(); };
 
-        explicit operator bool() const noexcept { return data_; }
+        explicit operator bool() const noexcept { return data_ != nullptr; }
 
     private:
         T *data_ = nullptr;

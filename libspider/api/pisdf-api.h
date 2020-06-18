@@ -311,7 +311,7 @@ namespace spider {
         /* === Param API === */
 
         /**
-         * @brief Creates a static @refitem pisdf::Param with fixed value.
+         * @brief Creates a fully static parameter (@refitem pisdf::Param with fixed value).
          * @remark If graph is not nullptr, the parameter will be added to it.
          * @param graph   Pointer to the graph the parameter should be added.
          * @param name    Name of the parameter (will be transformed to lowercase).
@@ -321,18 +321,7 @@ namespace spider {
         std::shared_ptr<pisdf::Param> createStaticParam(pisdf::Graph *graph, std::string name, int64_t value);
 
         /**
-         * @brief Creates a static @refitem pisdf::Param with static expression.
-         * @remark If graph is not nullptr, the parameter will be added to it.
-         * @param graph      Pointer to the graph the parameter should be added.
-         * @param name       Name of the parameter (will be transformed to lowercase).
-         * @param expression Expression of the parameter.
-         * @return pointer to the created @refitem pisdf::Param.
-         */
-        std::shared_ptr<spider::pisdf::Param>
-        createStaticParam(pisdf::Graph *graph, std::string name, std::string expression);
-
-        /**
-         * @brief Creates a @refitem pisdf::DynamicParam.
+         * @brief Creates a fully dynamic parameter (@refitem pisdf::DynamicParam).
          * @remark If graph is not nullptr, the parameter will be added to it.
          * @param graph      Pointer to the graph the parameter should be added.
          * @param name       Name of the parameter (will be transformed to lowercase).
@@ -341,18 +330,18 @@ namespace spider {
         std::shared_ptr<spider::pisdf::Param> createDynamicParam(pisdf::Graph *graph, std::string name);
 
         /**
-         * @brief Creates a @refitem pisdf::DynamicParam with dynamic expression.
+         * @brief Creates a @refitem pisdf::Param with expression.
+         * @remark If expression is dynamic then a @refitem pisdf::DynamicParam is created.
          * @remark If graph is not nullptr, the parameter will be added to it.
          * @param graph      Pointer to the graph the parameter should be added.
          * @param name       Name of the parameter (will be transformed to lowercase).
          * @param expression Expression of the parameter.
-         * @return pointer to the created @refitem pisdf::DynamicParam.
+         * @return pointer to the created @refitem pisdf::Param.
          */
-        std::shared_ptr<spider::pisdf::Param>
-        createDynamicParam(pisdf::Graph *graph, std::string name, std::string expression);
+        std::shared_ptr<pisdf::Param> createDerivedParam(pisdf::Graph *graph, std::string name, std::string expression);
 
         /**
-         * @brief Creates a @refitem pisdf::InheritedParam.
+         * @brief Creates an inherited parameter. (@refitem pisdf::InheritedParam).
          * @remark If the parent parameter is static, then a static parameter will be created instead.
          * @remark If graph is not nullptr, the parameter will be added to it.
          * @param graph   Pointer to the graph the parameter should be added.
@@ -362,20 +351,7 @@ namespace spider {
          * @throws @refitem spider::Exception if parent parameter is nullptr.
          */
         std::shared_ptr<spider::pisdf::Param>
-        createInheritedParam(pisdf::Graph *graph, std::string name, pisdf::Param *parent);
-
-        /**
-         * @brief Creates a @refitem pisdf::InheritedParam.
-         * @remark If the parent parameter is static, then a static parameter will be created instead.
-         * @param graph      Pointer to the graph the parameter should be added.
-         * @param name       Name of the parameter (will be transformed to lowercase).
-         * @param parentName Name of the parent parameter (will be transformed to lowercase).
-         * @return pointer to the created @refitem pisdf::Param.
-         * @throws @refitem spider::Exception if parent parameter is not found or if graph is nullptr or if
-         * graph does not have any parent graph.
-         */
-        std::shared_ptr<spider::pisdf::Param>
-        createInheritedParam(pisdf::Graph *graph, std::string name, const std::string &parentName);
+        createInheritedParam(pisdf::Graph *graph, std::string name, std::shared_ptr<pisdf::Param> parent);
 
         /**
          * @brief Add an input parameter to a given Vertex.

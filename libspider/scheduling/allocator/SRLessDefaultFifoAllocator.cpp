@@ -92,7 +92,7 @@ void spider::SRLessDefaultFifoAllocator::allocateDefaultVertexTask(spider::Sched
 
     for (const auto &edge : vertex->outputEdgeVector()) {
         const auto size = edge->sourceRateValue();
-        taskMemory->setOutputFifo(edge->sourcePortIx(), allocate(size));
+        taskMemory->setOutputFifo(edge->sourcePortIx(), allocate(static_cast<size_t>(size)));
     }
     task->setTaskMemory(std::move(taskMemory));
 }

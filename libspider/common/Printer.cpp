@@ -34,17 +34,11 @@
  */
 /* === Include(s) === */
 
-#ifdef _SPIDER_NO_TYPESAFETY_PRINT
-
 #include <cstdarg>
-
-#endif
-
 #include <common/Printer.h>
 
 /* === Function(s) definition === */
 
-#ifdef _SPIDER_NO_TYPESAFETY_PRINT
 namespace spider {
     namespace printer {
 
@@ -92,6 +86,7 @@ namespace spider {
         int printf(const char *format, va_list list) {
             return std::vprintf(format, list);
         }
+
 #if defined(__clang__)
 #pragma clang diagnostic pop
 #elif defined(__GNUC__)
@@ -99,4 +94,3 @@ namespace spider {
 #endif
     }
 }
-#endif

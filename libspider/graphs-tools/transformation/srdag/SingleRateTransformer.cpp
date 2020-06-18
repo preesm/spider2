@@ -43,6 +43,7 @@
 #include <graphs/pisdf/Edge.h>
 #include <graphs/pisdf/Delay.h>
 #include <graphs/pisdf/DynamicParam.h>
+#include <graphs/pisdf/InHeritedParam.h>
 #include <api/pisdf-api.h>
 #include <api/runtime-api.h>
 
@@ -57,31 +58,37 @@ size_t spider::srdag::SingleRateTransformer::getIx(const pisdf::Vertex *vertex, 
     return vertex->ix();
 }
 
+void spider::srdag::SingleRateTransformer::updateParams(TransfoJob &job) {
+    auto *graph = job.reference_;
+    if (!graph->configVertexCount()) {
+        for (auto &param : job.params_) {
+            if (param->type() == pisdf::ParamType::INHERITED) {
+                const auto value = param->parent()->value(job.params_);
+                auto p = spider::make_shared<pisdf::Param, StackID::PISDF>(param->name(), value);
+                p->setIx(param->ix());
+                job.params_[param->ix()] = std::move(p);
+            } else if (param->type() == pisdf::ParamType::DYNAMIC_DEPENDANT) {
+                param->setValue(param->value(job.params_));
+            }
+        }
+    }
+}
+
 /* === Method(s) implementation === */
 
 spider::srdag::SingleRateTransformer::SingleRateTransformer(TransfoJob &job, pisdf::Graph *srdag) :
         ref2Clone_{ factory::vector<size_t>(StackID::TRANSFO) },
         job_{ job },
         srdag_{ srdag } {
-    /* == -1. Set dynamic dependent parameter values == */
-    auto *graph = job_.reference_;
-    if (graph->dynamic()) {
-        if (!graph->configVertexCount()) {
-            for (auto &param : job_.params_) {
-                if (param->dynamic()) {
-                    param->setValue(param->value(job_.params_));
-                }
-            }
-        } else {
-            srdag::separateRunGraphFromInit(graph);
-        }
-    }
 
-    /* == 0. Compute the repetition vector == */
-    if (graph->dynamic() || (job_.firingValue_ == 0)) {
+    /* == 0. Set dynamic dependent parameter values == */
+    updateParams(job_);
+
+    /* == 1. Compute the repetition vector == */
+    auto *graph = job.reference_;
+    if (job_.firingValue_ == 0) {
         brv::compute(graph, job_.params_);
     }
-
     const auto vertexCount = graph->vertexCount() + graph->inputEdgeCount() + graph->outputEdgeCount();
     ref2Clone_ = factory::vector<size_t>(vertexCount, SIZE_MAX, StackID::TRANSFO);
 }
@@ -174,9 +181,11 @@ void spider::srdag::SingleRateTransformer::replaceInterfaces() {
 std::pair<spider::srdag::JobStack, spider::srdag::JobStack> spider::srdag::SingleRateTransformer::makeFutureJobs() {
     auto staticJobStack = factory::vector<TransfoJob>(StackID::TRANSFO);
     auto dynaJobStack = factory::vector<TransfoJob>(StackID::TRANSFO);
+
+    /* == Creates future TransfoJob == */
+    const auto isDynamic = job_.reference_->dynamic();
     for (auto *subgraph : job_.reference_->subgraphs()) {
-        const auto isDynamic = subgraph->dynamic() && !subgraph->configVertexCount();
-        const auto &params = isDynamic ? job_.params_ : subgraph->params();
+        const auto &params = subgraph->params();
         const auto firstCloneIx = ref2Clone_[subgraph->ix()];
         auto &stack = isDynamic ? dynaJobStack : staticJobStack;
         for (auto ix = firstCloneIx; ix < firstCloneIx + subgraph->repetitionValue(); ++ix) {
@@ -204,12 +213,15 @@ std::pair<spider::srdag::JobStack, spider::srdag::JobStack> spider::srdag::Singl
 std::shared_ptr<spider::pisdf::Param>
 spider::srdag::SingleRateTransformer::copyParameter(const std::shared_ptr<pisdf::Param> &param) const {
     if (param->dynamic()) {
-        if (param->type() == pisdf::ParamType::DYNAMIC) {
-            auto p = spider::make_shared<pisdf::DynamicParam, StackID::PISDF>(param->name(), param->expression());
-            p->setIx(param->ix());
-            return p;
+        std::shared_ptr<pisdf::Param> p;
+        if (param->type() == pisdf::ParamType::INHERITED) {
+            const auto &parentParam = job_.params_[param->parent()->ix()];
+            p = spider::make_shared<pisdf::InHeritedParam, StackID::PISDF>(param->name(), parentParam);
+        } else {
+            p = spider::make_shared<pisdf::DynamicParam, StackID::PISDF>(param->name(), param->expression());
         }
-        return job_.params_[param->parent()->ix()];
+        p->setIx(param->ix());
+        return p;
     }
     return param;
 }
@@ -416,7 +428,7 @@ void spider::srdag::SingleRateTransformer::populateTransfoVertexVector(vector<Tr
     const auto *clone = srdag_->vertex(ref2Clone_[getIx(reference, job_.reference_)]);
     const auto &cloneIx = clone->ix();
     for (auto ix = (cloneIx + reference->repetitionValue()); ix != cloneIx; --ix) {
-        vector.emplace_back(rate, portIx, srdag_->vertex(ix - 1));
+        vector.emplace_back(rate, static_cast<uint32_t>(portIx), srdag_->vertex(ix - 1));
     }
 }
 
