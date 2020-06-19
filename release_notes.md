@@ -1,8 +1,8 @@
 Spider2 Changelog
 ================
 
-## Release version X.Y.Z
-*XXXX.XX.XX*
+## Release version 0.1.1
+*2020.06.19*
 
 ### New Feature
 
