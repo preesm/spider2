@@ -256,10 +256,7 @@ void spider::DefaultFifoAllocator::allocateReceiveTask(ScheduleTask *task) {
     if (!information) {
         throwNullptrException();
     }
-    auto taskMemory = make_unique<TaskMemory>(make<TaskMemory, StackID::SCHEDULE>(1U, 1U));
-    auto fifo = task->dependencies()[0]->getOutputFifo(0);
-    fifo.attribute_ = FifoAttribute::READ_OWN;
-    taskMemory->setInputFifo(0U, fifo);
+    auto taskMemory = make_unique<TaskMemory>(make<TaskMemory, StackID::SCHEDULE>(0U, 1U));
     taskMemory->setOutputFifo(0U, allocate(static_cast<size_t>(information->size_)));
     task->setTaskMemory(std::move(taskMemory));
 }
@@ -269,11 +266,10 @@ void spider::DefaultFifoAllocator::allocateSendTask(ScheduleTask *task) {
     if (!information) {
         throwNullptrException();
     }
-    auto taskMemory = make_unique<TaskMemory>(make<TaskMemory, StackID::SCHEDULE>(1U, 1U));
+    auto taskMemory = make_unique<TaskMemory>(make<TaskMemory, StackID::SCHEDULE>(1U, 0U));
     auto fifo = task->dependencies()[0]->getOutputFifo(static_cast<size_t>(information->inputPortIx_));
     fifo.attribute_ = (fifo.attribute_ == FifoAttribute::WRITE_EXT) ? FifoAttribute::READ_EXT
                                                                     : FifoAttribute::READ_OWN;
     taskMemory->setInputFifo(0U, fifo);
-    taskMemory->setOutputFifo(0U, allocate(static_cast<size_t>(information->size_)));
     task->setTaskMemory(std::move(taskMemory));
 }

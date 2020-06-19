@@ -46,6 +46,10 @@
 
 namespace spider {
 
+    class ScheduleTask;
+
+    class TaskMemory;
+
     enum class TaskState : char {
         NOT_SCHEDULABLE = 0,
         PENDING,
@@ -60,13 +64,12 @@ namespace spider {
     };
 
     struct ComTaskInformation {
+        ScheduleTask *successor_{ nullptr };
         ufast64 size_{ 0 };
         size_t kernelIx_{ SIZE_MAX };
         i32 inputPortIx_{ 0 };
         i32 packetIx_{ 0 };
     };
-
-    class TaskMemory;
 
     /* === Class definition === */
 
@@ -357,6 +360,12 @@ namespace spider {
          * @param taskMemory  Unique pointer to the task memory.
          */
         void setTaskMemory(spider::unique_ptr<TaskMemory> taskMemory);
+
+        /**
+         * @brief Set the successor of a send task (should be a receive task).
+         * @param task pointer to the task to set.
+         */
+        void setSendSuccessor(ScheduleTask *task);
 
     protected:
         spider::array<ScheduleTask *> dependenciesArray_;

@@ -69,6 +69,11 @@ spider::MemoryBus *spider::InterMemoryBus::get(Cluster *clusterA, Cluster *clust
 }
 
 spider::InterMemoryBus::~InterMemoryBus() {
-    destroy(busAToB_);
-    destroy(busBToA_);
+    if (busAToB_ != busBToA_) {
+        destroy(busAToB_);
+        destroy(busBToA_);
+    } else {
+        destroy(busAToB_);
+        busBToA_ = nullptr;
+    }
 }

@@ -68,9 +68,10 @@ spider::Schedule &spider::BestFitScheduler::execute() {
             Scheduler::mapTask(listTask.task_);
         });
         /* == Allocate output fifos for all the tasks == */
-        std::for_each(startIterator, endIterator, [this](ListScheduler::ListTask &listTask) {
-            Scheduler::allocateTaskMemory(listTask.task_);
-        });
+        std::for_each(std::begin(schedule_.readyTasks()), std::end(schedule_.readyTasks()),
+                      [this](ScheduleTask *task) {
+                          Scheduler::allocateTaskMemory(task);
+                      });
         /* == Creates all job messages and send them == */
         schedule_.sendReadyTasks();
     }

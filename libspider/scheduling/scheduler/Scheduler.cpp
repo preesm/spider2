@@ -142,8 +142,7 @@ spider::ScheduleTask *spider::Scheduler::insertCommunicationTask(Cluster *cluste
                                                                  Cluster *distCluster,
                                                                  ufast64 dataSize,
                                                                  ScheduleTask *previousTask,
-                                                                 TaskType type,
-                                                                 i32 portIx) {
+                                                                 TaskType type) {
     const auto *bus = archi::platform()->getClusterToClusterMemoryBus(cluster, distCluster);
     const auto busSpeed = type == TaskType::SYNC_SEND ? bus->writeSpeed() : bus->readSpeed();
     const auto *busKernel = type == TaskType::SYNC_SEND ? bus->sendKernel() : bus->receiveKernel();
@@ -162,14 +161,12 @@ spider::ScheduleTask *spider::Scheduler::insertCommunicationTask(Cluster *cluste
     /* == Create the com task == */
     auto *comTask = make<ScheduleTask, StackID::SCHEDULE>(type);
     comTask->setDependency(previousTask, 0);
-    comTask->setExecutionConstraint(previousTask->mappedLrt(), previousTask->execIx());
     schedule_.addScheduleTask(comTask);
 
     /* == Creates the com task information == */
     auto *comTaskInfo = make<ComTaskInformation, StackID::SCHEDULE>();
     comTaskInfo->size_ = dataSize;
     comTaskInfo->kernelIx_ = busKernel->ix();
-    comTaskInfo->inputPortIx_ = portIx;
     comTaskInfo->packetIx_ = type == TaskType::SYNC_SEND ? comTask->execIx() : previousTask->execIx();
     comTask->setInternal(comTaskInfo);
 
@@ -185,21 +182,28 @@ void spider::Scheduler::scheduleCommunications(ScheduleTask *task,
                                                vector<DataDependency> &dependencies,
                                                Cluster *cluster) {
     /* == Lamba used to set com task information == */
-    for (auto &dependency : dependencies) {
+    for (auto it = std::begin(dependencies); it != std::end(dependencies); ++it) {
+        auto &dependency = *it;
         const auto sendPe = dependency.sender_;
         const auto dataSize = dependency.size_;
-        const auto pos = dependency.position_;
+        const auto pos = static_cast<size_t>(dependency.position_);
         auto *sendCluster = sendPe->cluster();
         if (sendCluster != cluster) {
             /* == Insert send on source cluster == */
-            auto *sendTask =
-                    insertCommunicationTask(sendCluster, cluster, dataSize, dependency.task_, TaskType::SYNC_SEND, pos);
+            auto *inputTask = dependency.task_;
+            const auto *vertex = task->vertex();
+            auto *sendTask = insertCommunicationTask(sendCluster, cluster, dataSize, inputTask, TaskType::SYNC_SEND);
+            if (vertex) {
+                sendTask->comTaskInfo()->inputPortIx_ = static_cast<i32>(vertex->inputEdge(pos)->sourcePortIx());
+            } else {
+                sendTask->comTaskInfo()->inputPortIx_ = 0;
+            }
 
             /* == Insert receive on mapped cluster == */
             auto *recvTask = insertCommunicationTask(cluster, sendCluster, dataSize, sendTask, TaskType::SYNC_RECEIVE);
 
             /* == Re-route dependency of the original vertex to the recvTask == */
-            task->setDependency(recvTask, static_cast<size_t>(pos));
+            task->setDependency(recvTask, static_cast<size_t>(std::distance(std::begin(dependencies), it)));
             const auto currentStartTime = task->startTime();
             if (recvTask->endTime() > currentStartTime) {
                 const auto offset = recvTask->endTime() - currentStartTime;
@@ -217,7 +221,6 @@ spider::Scheduler::getDataDependencies(ScheduleTask *task) {
     auto taskDependenciesIterator{ std::begin(task->dependencies()) };
     auto dataDependencies = factory::vector<DataDependency>(StackID::SCHEDULE);
     dataDependencies.reserve(vertex->inputEdgeCount());
-    i32 pos = 0;
     for (auto &edge : vertex->inputEdgeVector()) {
         const auto rate = edge->sinkRateValue();
         if (rate) {
@@ -225,10 +228,9 @@ spider::Scheduler::getDataDependencies(ScheduleTask *task) {
             dataDependencies.push_back({ taskDep,
                                          platform->processingElement(taskDep->mappedPe()),
                                          static_cast<ufast64>(rate),
-                                         pos });
+                                         static_cast<i32>(edge->sinkPortIx()) });
         }
         taskDependenciesIterator++;
-        pos++;
     }
     return dataDependencies;
 }
@@ -300,6 +302,7 @@ void spider::Scheduler::mapTask(ScheduleTask *task) {
     }
 
     /* == Set job information and update schedule == */
+    schedule_.addScheduleTask(task);
     schedule_.updateTaskAndSetReady(static_cast<size_t>(task->ix()), mappingPe->virtualIx(), mappingSt, mappingEt);
 }
 

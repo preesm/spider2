@@ -50,8 +50,8 @@
 spider::MemoryBus::MemoryBus() {
     sendCostRoutine_ = [](u64) -> u64 { return 0; };
     receiveCostRoutine_ = [](u64) -> u64 { return 0; };
-    sendRoutine_ = [](i64, i32, void *) {};
-    receiveRoutine_ = [](i64, i32, void *) {};
+    sendRoutine_ = [](i64, i32, void *) { };
+    receiveRoutine_ = [](i64, i32, void *) { };
 }
 
 uint64_t spider::MemoryBus::sendCost(uint64_t size) const {
@@ -73,6 +73,11 @@ void spider::MemoryBus::dataReceive(i64 size, i32 packetIx, void *buffer) {
 spider::RTKernel *spider::MemoryBus::sendKernel() const {
     auto *platform = rt::platform();
     if (platform) {
+        if (sendKernelIx_ == SIZE_MAX) {
+            auto *kernel = make<RTKernel, StackID::ARCHI>(MemoryBus::send);
+            sendKernelIx_ = platform->addKernel(kernel);
+            return kernel;
+        }
         return platform->getKernel(sendKernelIx_);
     }
     return nullptr;
@@ -81,6 +86,11 @@ spider::RTKernel *spider::MemoryBus::sendKernel() const {
 spider::RTKernel *spider::MemoryBus::receiveKernel() const {
     auto *platform = rt::platform();
     if (platform) {
+        if (recvKernelIx_ == SIZE_MAX) {
+            auto *kernel = make<RTKernel, StackID::ARCHI>(MemoryBus::receive);
+            recvKernelIx_ = platform->addKernel(kernel);
+            return kernel;
+        }
         return platform->getKernel(recvKernelIx_);
     }
     return nullptr;
@@ -106,7 +116,7 @@ void spider::MemoryBus::setSendRoutine(MemoryBusRoutine routine) {
     sendRoutine_ = std::move(routine);
     auto *platform = rt::platform();
     if (platform) {
-        auto *kernel = make<RTKernel, StackID::ARCHI>(send);
+        auto *kernel = make<RTKernel, StackID::ARCHI>(MemoryBus::send);
         sendKernelIx_ = platform->addKernel(kernel);
     }
 }
@@ -115,7 +125,7 @@ void spider::MemoryBus::setReceiveRoutine(MemoryBusRoutine routine) {
     receiveRoutine_ = std::move(routine);
     auto *platform = rt::platform();
     if (platform) {
-        auto *kernel = make<RTKernel, StackID::ARCHI>(receive);
+        auto *kernel = make<RTKernel, StackID::ARCHI>(MemoryBus::receive);
         recvKernelIx_ = platform->addKernel(kernel);
     }
 }
@@ -124,14 +134,14 @@ void spider::MemoryBus::send(const int64_t *paramsIN, int64_t *, void *in[], voi
     auto *clusterA = archi::platform()->cluster(static_cast<size_t>(paramsIN[0])); /* = source = */
     auto *clusterB = archi::platform()->cluster(static_cast<size_t>(paramsIN[1])); /* = target = */
     auto *bus = archi::platform()->getClusterToClusterMemoryBus(clusterA, clusterB);
-    bus->dataSend(paramsIN[2], static_cast<i32>(paramsIN[3]), in);
+    bus->dataSend(paramsIN[2], static_cast<i32>(paramsIN[3]), in[0]);
 }
 
 void spider::MemoryBus::receive(const int64_t *paramsIN, int64_t *, void *[], void *out[]) {
     auto *clusterA = archi::platform()->cluster(static_cast<size_t>(paramsIN[0])); /* = source = */
     auto *clusterB = archi::platform()->cluster(static_cast<size_t>(paramsIN[1])); /* = target = */
     auto *bus = archi::platform()->getClusterToClusterMemoryBus(clusterA, clusterB);
-    bus->dataReceive(paramsIN[2], static_cast<i32>(paramsIN[3]), out);
+    bus->dataReceive(paramsIN[2], static_cast<i32>(paramsIN[3]), out[0]);
 }
 
 void spider::MemoryBus::setWriteSpeed(uint64_t value) {
