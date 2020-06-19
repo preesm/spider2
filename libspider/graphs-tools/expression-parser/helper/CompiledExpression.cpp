@@ -161,16 +161,16 @@ std::string spider::expr::CompiledExpression::writeFunctionFile(const std::strin
     }
     FILE *outputFile = fopen(fileName.c_str(), "w+");
     if (outputFile) {
-        fprintf(outputFile, "#include \"jitexpr-helper.h\"\n\n");
-        fprintf(outputFile, "extern \"C\" {\n");
-        fprintf(outputFile, "\tdouble %s(const double *args) {\n", func.c_str());
-        fprintf(outputFile, "\t\tusing namespace std;\n");
+        printer::fprintf(outputFile, "#include \"jitexpr-helper.h\"\n\n");
+        printer::fprintf(outputFile, "extern \"C\" {\n");
+        printer::fprintf(outputFile, "\tdouble %s(const double *args) {\n", func.c_str());
+        printer::fprintf(outputFile, "\t\tusing namespace std;\n");
         for (size_t i = 0; i < args.size(); ++i) {
-            fprintf(outputFile, "\t\tconst auto %s = args[%zuu];\n", args[i].second.c_str(), i);
+            printer::fprintf(outputFile, "\t\tconst auto %s = args[%zuu];\n", args[i].second.c_str(), i);
         }
-        fprintf(outputFile, "\t\treturn %s;\n", expression.c_str());
-        fprintf(outputFile, "\t}\n");
-        fprintf(outputFile, "}\n");
+        printer::fprintf(outputFile, "\t\treturn %s;\n", expression.c_str());
+        printer::fprintf(outputFile, "\t}\n");
+        printer::fprintf(outputFile, "}\n");
         fclose(outputFile);
         return fileName;
     }
@@ -185,51 +185,51 @@ void spider::expr::CompiledExpression::writeHelperFile() const {
     }
     FILE *outputFile = fopen(fileName, "w+");
     if (outputFile) {
-        fprintf(outputFile, "#ifndef JITEXPR_HELPER_FCT_H\n");
-        fprintf(outputFile, "#define JITEXPR_HELPER_FCT_H\n\n");
-        fprintf(outputFile, "#include <cmath>\n");
-        fprintf(outputFile, "#include <functional>\n\n");
-        fprintf(outputFile, "namespace jitexpr {\n");
+        printer::fprintf(outputFile, "#ifndef JITEXPR_HELPER_FCT_H\n");
+        printer::fprintf(outputFile, "#define JITEXPR_HELPER_FCT_H\n\n");
+        printer::fprintf(outputFile, "#include <cmath>\n");
+        printer::fprintf(outputFile, "#include <functional>\n\n");
+        printer::fprintf(outputFile, "namespace jitexpr {\n");
         /* == Conditional if == */
-        fprintf(outputFile, "\tstatic inline double ifelse(bool p, const double b0, const double b1) {\n");
-        fprintf(outputFile, "\t\tif(p) {\n");
-        fprintf(outputFile, "\t\t\treturn b0;\n");
-        fprintf(outputFile, "\t\t}\n");
-        fprintf(outputFile, "\t\treturn b1;\n");
-        fprintf(outputFile, "\t}\n\n");
+        printer::fprintf(outputFile, "\tstatic inline double ifelse(bool p, const double b0, const double b1) {\n");
+        printer::fprintf(outputFile, "\t\tif(p) {\n");
+        printer::fprintf(outputFile, "\t\t\treturn b0;\n");
+        printer::fprintf(outputFile, "\t\t}\n");
+        printer::fprintf(outputFile, "\t\treturn b1;\n");
+        printer::fprintf(outputFile, "\t}\n\n");
         /* == Logical AND == */
-        fprintf(outputFile, "\tstatic inline double land(const double x, const double y) {\n");
-        fprintf(outputFile, "\t\tif(std::not_equal_to<double>{ }(0., x) && \n"
+        printer::fprintf(outputFile, "\tstatic inline double land(const double x, const double y) {\n");
+        printer::fprintf(outputFile, "\t\tif(std::not_equal_to<double>{ }(0., x) && \n"
                             "\t\t   std::not_equal_to<double>{ }(0., y)) {\n");
-        fprintf(outputFile, "\t\t\treturn 1.;\n");
-        fprintf(outputFile, "\t\t}\n");
-        fprintf(outputFile, "\t\treturn 0.;\n");
-        fprintf(outputFile, "\t}\n\n");
+        printer::fprintf(outputFile, "\t\t\treturn 1.;\n");
+        printer::fprintf(outputFile, "\t\t}\n");
+        printer::fprintf(outputFile, "\t\treturn 0.;\n");
+        printer::fprintf(outputFile, "\t}\n\n");
         /* == Logical OR == */
-        fprintf(outputFile, "\tstatic inline double lor(const double x, const double y) {\n");
-        fprintf(outputFile, "\t\tif(std::not_equal_to<double>{ }(0., x) || \n"
+        printer::fprintf(outputFile, "\tstatic inline double lor(const double x, const double y) {\n");
+        printer::fprintf(outputFile, "\t\tif(std::not_equal_to<double>{ }(0., x) || \n"
                             "\t\t   std::not_equal_to<double>{ }(0., y)) {\n");
-        fprintf(outputFile, "\t\t\treturn 1.;\n");
-        fprintf(outputFile, "\t\t}\n");
-        fprintf(outputFile, "\t\treturn 0.;\n");
-        fprintf(outputFile, "\t}\n\n");
+        printer::fprintf(outputFile, "\t\t\treturn 1.;\n");
+        printer::fprintf(outputFile, "\t\t}\n");
+        printer::fprintf(outputFile, "\t\treturn 0.;\n");
+        printer::fprintf(outputFile, "\t}\n\n");
         /* == pow optimized function (see: https://baptiste-wicht.com/posts/2017/09/cpp11-performance-tip-when-to-use-std-pow.html) == */
-        fprintf(outputFile, "\tstatic inline double pow(const double x, int n) {\n");
-        fprintf(outputFile, "\t\tif(n < 100) {\n");
-        fprintf(outputFile, "\t\t\tauto r { x };\n");
-        fprintf(outputFile, "\t\t\twhile(n > 1) {\n");
-        fprintf(outputFile, "\t\t\t\tr *= x;\n");
-        fprintf(outputFile, "\t\t\t\tn -= 1;\n");
-        fprintf(outputFile, "\t\t\t}\n");
-        fprintf(outputFile, "\t\t\treturn r;\n");
-        fprintf(outputFile, "\t\t}\n");
-        fprintf(outputFile, "\t\treturn std::pow(x, n);\n");
-        fprintf(outputFile, "\t}\n\n");
-        fprintf(outputFile, "\tstatic inline double pow(const double x, const double n) {\n");
-        fprintf(outputFile, "\t\treturn std::pow(x, n);\n");
-        fprintf(outputFile, "\t}\n");
-        fprintf(outputFile, "}\n");
-        fprintf(outputFile, "#endif // JITEXPR_HELPER_FCT_H\n");
+        printer::fprintf(outputFile, "\tstatic inline double pow(const double x, int n) {\n");
+        printer::fprintf(outputFile, "\t\tif(n < 100) {\n");
+        printer::fprintf(outputFile, "\t\t\tauto r { x };\n");
+        printer::fprintf(outputFile, "\t\t\twhile(n > 1) {\n");
+        printer::fprintf(outputFile, "\t\t\t\tr *= x;\n");
+        printer::fprintf(outputFile, "\t\t\t\tn -= 1;\n");
+        printer::fprintf(outputFile, "\t\t\t}\n");
+        printer::fprintf(outputFile, "\t\t\treturn r;\n");
+        printer::fprintf(outputFile, "\t\t}\n");
+        printer::fprintf(outputFile, "\t\treturn std::pow(x, n);\n");
+        printer::fprintf(outputFile, "\t}\n\n");
+        printer::fprintf(outputFile, "\tstatic inline double pow(const double x, const double n) {\n");
+        printer::fprintf(outputFile, "\t\treturn std::pow(x, n);\n");
+        printer::fprintf(outputFile, "\t}\n");
+        printer::fprintf(outputFile, "}\n");
+        printer::fprintf(outputFile, "#endif // JITEXPR_HELPER_FCT_H\n");
         fclose(outputFile);
     }
 }

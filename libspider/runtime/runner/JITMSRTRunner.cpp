@@ -126,20 +126,20 @@
 
 #define LOG_JOB() \
     if (log::enabled<log::LRT>() && spider::api::verboseEnabled()) {\
-        log::print<log::LRT>(log::blue, "INFO:", "Runner #%zu -> Task: %zu\n", ix(), job.ix_);\
-        log::print<log::LRT>(log::blue, "INFO:", "Runner #%zu -> Constraints:\n", ix());\
+        log::print<log::LRT>(log::blue, "INFO", "Runner #%zu -> Task: %zu\n", ix(), job.ix_);\
+        log::print<log::LRT>(log::blue, "INFO", "Runner #%zu -> Constraints:\n", ix());\
         for (const auto &constraint : job.execConstraints_) {\
-            log::print<log::LRT>(log::blue, "INFO:", "Runner #%zu -> >> job %zu on runner #%zu\n", ix(),\
+            log::print<log::LRT>(log::blue, "INFO", "Runner #%zu -> >> job %zu on runner #%zu\n", ix(),\
                     constraint.jobToWait_, constraint.lrtToWait_);\
         }\
-        log::print<log::LRT>(log::blue, "INFO:", "Runner #%zu -> Input Fifo(s):\n", ix());\
+        log::print<log::LRT>(log::blue, "INFO", "Runner #%zu -> Input Fifo(s):\n", ix());\
         for (auto &fifo : job.inputFifoArray_) {\
-            log::print<log::LRT>(log::blue, "INFO:", "Runner #%zu -> >> size: %zu -- address: %zu -- offset: %zu\n", ix(), fifo.size_,\
+            log::print<log::LRT>(log::blue, "INFO", "Runner #%zu -> >> size: %zu -- address: %zu -- offset: %zu\n", ix(), fifo.size_,\
             fifo.virtualAddress_, fifo.offset_);\
         }\
-        log::print<log::LRT>(log::blue, "INFO:", "Runner #%zu -> Output Fifo(s):\n", ix());\
+        log::print<log::LRT>(log::blue, "INFO", "Runner #%zu -> Output Fifo(s):\n", ix());\
         for (auto &fifo : job.outputFifoArray_) {\
-            log::print<log::LRT>(log::blue, "INFO:", "Runner #%zu -> >> size: %zu -- address: %zu -- offset: %zu\n", ix(), fifo.size_,\
+            log::print<log::LRT>(log::blue, "INFO", "Runner #%zu -> >> size: %zu -- address: %zu -- offset: %zu\n", ix(), fifo.size_,\
             fifo.virtualAddress_, fifo.offset_);\
         }\
     }

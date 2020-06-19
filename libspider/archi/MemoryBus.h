@@ -165,8 +165,8 @@ namespace spider {
         MemoryBusRoutine receiveRoutine_;              /* = Memory receive routine used by this MemoryBus = */
         uint64_t writeSpeed_ = 0;                      /* = Memory bus write speed in bytes / s = */
         uint64_t readSpeed_ = 0;                       /* = Memory bus read speed in bytes / s = */
-        size_t sendKernelIx_ = SIZE_MAX;               /* = Ix of the send kernel = */
-        size_t recvKernelIx_ = SIZE_MAX;               /* = Ix of the receive kernel = */
+        mutable size_t sendKernelIx_ = SIZE_MAX;       /* = Ix of the send kernel = */
+        mutable size_t recvKernelIx_ = SIZE_MAX;       /* = Ix of the receive kernel = */
 
         /* === Private method(s) === */
 

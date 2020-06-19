@@ -135,7 +135,14 @@ void spider::ScheduleTask::setDependency(ScheduleTask *task, size_t pos) {
     if (!task || dependenciesArray_.empty()) {
         return;
     }
+#ifndef NDEBUG
     dependenciesArray_.at(pos) = task;
+#else
+    dependenciesArray_[pos] = task;
+#endif
+    if (task->type_ == TaskType::SYNC_SEND) {
+        task->setSendSuccessor(this);
+    }
 }
 
 void spider::ScheduleTask::setInternal(void *information) {
@@ -196,6 +203,17 @@ void spider::ScheduleTask::setTaskMemory(spider::unique_ptr<TaskMemory> taskMemo
     taskMemory_ = std::move(taskMemory);
 }
 
+void spider::ScheduleTask::setSendSuccessor(ScheduleTask *task) {
+    if (!task) {
+        return;
+    }
+    if (type_ != TaskType::SYNC_SEND) {
+        throwSpiderException("can not set successor on non SYNC_SEND task.");
+    }
+    auto *info = reinterpret_cast<ComTaskInformation *>(internal_);
+    info->successor_ = task;
+}
+
 /* === Private method(s) === */
 
 void spider::ScheduleTask::setJobMessageInputParameters(JobMessage &message) const {
@@ -205,15 +223,17 @@ void spider::ScheduleTask::setJobMessageInputParameters(JobMessage &message) con
             break;
         case TaskType::SYNC_SEND:
         case TaskType::SYNC_RECEIVE: {
+            const auto *info = comTaskInfo();
             const auto fstPeIx = type_ == TaskType::SYNC_SEND ? mappedLrt() : dependenciesArray_[0]->mappedLrt();
-            const auto sndPeIx = type_ == TaskType::SYNC_SEND ? dependenciesArray_[0]->mappedLrt() : mappedLrt();
+            const auto sndPeIx = type_ == TaskType::SYNC_SEND ? info->successor_->mappedLrt() : mappedLrt();
+            const auto packetIx_ = type_ == TaskType::SYNC_SEND ? execIx() : dependenciesArray_[0]->execIx();
             const auto *fstPe = archi::platform()->processingElement(fstPeIx);
             const auto *sndPe = archi::platform()->processingElement(sndPeIx);
             message.inputParams_ = array<i64>(4, StackID::RUNTIME);
             message.inputParams_[0] = static_cast<i64>(fstPe->cluster()->ix());
             message.inputParams_[1] = static_cast<i64>(sndPe->cluster()->ix());
-            message.inputParams_[2] = static_cast<i64>(comTaskInfo()->size_);
-            message.inputParams_[3] = static_cast<i64>(comTaskInfo()->packetIx_);
+            message.inputParams_[2] = static_cast<i64>(info->size_);
+            message.inputParams_[3] = static_cast<i64>(packetIx_);
         }
             break;
     }

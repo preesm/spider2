@@ -62,7 +62,8 @@ void *spider::MemoryInterface::allocate(uint64_t virtualAddress, size_t size) {
     }
     std::lock_guard<std::mutex> lockGuard{ lock_ };
     if (log::enabled<log::MEMORY>()) {
-        log::print<log::MEMORY>(log::yellow, "INFO: ", "PHYSICAL: allocating %zu bytes address %zu.\n", size,
+        log::print<log::MEMORY>(log::yellow, "INFO", "PHYSICAL: [%p] allocating: %zu bytes at address %zu.\n", this,
+                                size,
                                 virtualAddress);
     }
     uint64_t res = UINT64_MAX;
@@ -92,7 +93,8 @@ void spider::MemoryInterface::deallocate(uint64_t virtualAddress, size_t size) {
     }
     if (!(--(buffer->count_))) {
         if (log::enabled<log::MEMORY>()) {
-            log::print<log::MEMORY>(log::green, "INFO: ", "PHYSICAL: deallocating %zu bytes at address %zu.\n", buffer->size_, virtualAddress);
+            log::print<log::MEMORY>(log::green, "INFO", "PHYSICAL: [%p] deallocating: %zu bytes at address %zu.\n",
+                                    this, buffer->size_, virtualAddress);
         }
         used_ -= buffer->size_;
         deallocateRoutine_(buffer->buffer_);
@@ -112,7 +114,16 @@ void spider::MemoryInterface::registerPhysicalAddress(uint64_t virtualAddress, v
 
 spider::MemoryInterface::buffer_t *spider::MemoryInterface::retrieveBuffer(uint64_t virtualAddress) {
     if (log::enabled<log::MEMORY>()) {
-        log::print<log::MEMORY>(log::red, "INFO: ", "PHYSICAL: fetching address %zu.\n", virtualAddress);
+        log::print<log::MEMORY>(log::red, "INFO", "PHYSICAL: [%p] fetching address: %zu.\n", this, virtualAddress);
     }
+#ifndef NDEBUG
+    try {
+        return &(virtual2Phys_.at(virtualAddress));
+    } catch (std::out_of_range &e) {
+        printer::fprintf(stderr, "[%p]: %s\n", reinterpret_cast<void *>(this), e.what());
+        throw e;
+    }
+#else
     return &(virtual2Phys_.at(virtualAddress));
+#endif
 }

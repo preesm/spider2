@@ -146,15 +146,13 @@ namespace spider {
          * @param dataSize     Size in bytes of the data to transfer.
          * @param previousTask Pointer to the task sending data.
          * @param type         Type of the task to insert (@refitem TaskType::SYNC_SEND or @refitem TaskType::SYNC_RECEIVE).
-         * @param portIx       Port ix of the previous task sending data (0 for @refitem TaskType::SYNC_RECEIVE).
          * @return pointer to the created ScheduleTask.
          */
         ScheduleTask *insertCommunicationTask(Cluster *cluster,
                                               Cluster *distCluster,
                                               ufast64 dataSize,
                                               ScheduleTask *previousTask,
-                                              TaskType type,
-                                              i32 portIx = 0);
+                                              TaskType type);
 
         /**
          * @brief Schedules inter cluster communications (if any are needed).
@@ -162,7 +160,7 @@ namespace spider {
          * @param dependencies   Reference to the data dependencies of the task.
          * @param cluster  Pointer on which the task is mapped.
          */
-        void scheduleCommunications(ScheduleTask *task, vector <DataDependency> &dependencies, Cluster *cluster);
+        void scheduleCommunications(ScheduleTask *task, vector<DataDependency> &dependencies, Cluster *cluster);
 
         /**
          * @brief Build a vector of Data dependency. Only the dependencies with exchange of data > 0 are taken into
@@ -170,7 +168,7 @@ namespace spider {
          * @param task  Pointer to the task.
          * @return vector of @refitem DataDependency.
          */
-        static vector <DataDependency> getDataDependencies(ScheduleTask *task);
+        static vector<DataDependency> getDataDependencies(ScheduleTask *task);
 
         /**
          * @brief Default task mapper that try to best fit.

@@ -167,9 +167,11 @@ namespace spider {
             peMappableVector_.at(pe->virtualIx()) = mappable;
             if (!mappable) {
                 /* == We need to recompute the condition to check if at least one PE in the cluster is valid == */
-                clusterMappableVector_.at(cluster->ix()) = std::count(clusterMappableVector_.begin(),
-                                                                      clusterMappableVector_.end(),
-                                                                      true) != 0;
+                bool clusterMappable = false;
+                for (auto *elt : cluster->peArray()) {
+                    clusterMappable |= peMappableVector_.at(elt->virtualIx());
+                }
+                clusterMappableVector_.at(cluster->ix()) = clusterMappable;
             } else {
                 clusterMappableVector_.at(cluster->ix()) = mappable;
             }

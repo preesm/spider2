@@ -50,7 +50,7 @@ namespace spider {
     class Schedule {
     public:
 
-        Schedule() : taskVector_{ factory::vector<unique_ptr<ScheduleTask>>(StackID::SCHEDULE)} { }
+        Schedule() : taskVector_{ factory::vector<unique_ptr<ScheduleTask>>(StackID::SCHEDULE) } { }
 
         ~Schedule() = default;
 
@@ -117,6 +117,14 @@ namespace spider {
          */
         inline const vector<unique_ptr<ScheduleTask>> &tasks() const {
             return taskVector_;
+        }
+
+        /**
+         * @brief Get the ready task vector of the schedule.
+         * @return  const reference to the ready task vector.
+         */
+        inline const vector<ScheduleTask *> &readyTasks() const {
+            return readyTaskVector_;
         }
 
         /**

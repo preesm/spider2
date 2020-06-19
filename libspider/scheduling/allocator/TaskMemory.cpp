@@ -66,11 +66,25 @@ size_t spider::TaskMemory::outputFifoCount() const {
 }
 
 spider::RTFifo spider::TaskMemory::inputFifo(size_t ix) const {
+#ifndef NDEBUG
+    if (ix >= inputFifoCount_) {
+        throwSpiderException("accessing out_of_range input fifo");
+    }
     return inputFifos_.get()[ix];
+#else
+    return inputFifos_.get()[ix];
+#endif
 }
 
 spider::RTFifo spider::TaskMemory::outputFifo(size_t ix) const {
+#ifndef NDEBUG
+    if (ix >= outputFifoCount_) {
+        throwSpiderException("accessing out_of_range output fifo");
+    }
     return outputFifos_.get()[ix];
+#else
+    return outputFifos_.get()[ix];
+#endif
 }
 
 void spider::TaskMemory::setInputFifo(size_t ix, spider::RTFifo fifo) {

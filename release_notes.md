@@ -1,6 +1,16 @@
 Spider2 Changelog
 ================
 
+## Release version 0.1.1
+*2020.06.19*
+
+### New Feature
+
+### Changes
+
+### Bug fix
+* Fixed support of inter-cluster communication (scheduling, runtime and memalloc).
+
 ## Release version 0.1.0
 *2020.06.18*
 

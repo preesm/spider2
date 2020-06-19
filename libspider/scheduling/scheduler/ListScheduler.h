@@ -87,6 +87,25 @@ namespace spider {
         /* === Private method(s) === */
 
         /**
+         * @brief Reset unscheduled task from previous schedule iteration.
+         */
+        void resetUnScheduledTasks();
+
+        /**
+         * @brief Create @refitem ListScheduler::ListTask for every non-scheduled vertex.
+         * @remark The attribute @refitem pisdf::Vertex::scheduleTaskIx_ of the vertex is set to the last position of
+         *         sortedTaskVector_.
+         * @param vertex  Pointer to the vertex associated.
+         */
+        void createTaskVertexRecursively(pisdf::Vertex *vertex);
+
+        /**
+         * @brief Update the schedule task ix of every non-scheduled vertex based on the associated task position in the
+         *        vector sortedTaskVector_.
+         */
+        void updateScheduleTaskIx() const;
+
+        /**
          * @brief Compute recursively the schedule level used to sort the vertices for scheduling.
          * The criteria used is based on the critical execution time path.
          * @example:
@@ -113,7 +132,15 @@ namespace spider {
          * @brief Removes all the non executable vertices from the list for scheduling.
          * @return number of non schedulable tasks.
          */
-        size_t resetNonSchedulableTasks();
+        size_t countNonSchedulableTasks();
+
+        /**
+         * @brief Set the input dependencies of a @refitem ScheduleTask.
+         *        This method will call @refitem ListScheduler::createTaskVertexRecursively if needed.
+         * @param task   Pointer to the task.
+         * @param vertex Pointer to the vertex associated with the task.
+         */
+        void setTaskDependencies(ScheduleTask *task, const pisdf::Vertex *vertex);
     };
 }
 
