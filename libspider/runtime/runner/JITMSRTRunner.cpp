@@ -155,7 +155,7 @@ spider::array<void *> createInputFifos(const spider::array<spider::RTFifo> &fifo
                            return nullptr;
                        }
                        void *buffer = nullptr;
-                       if (fifo.attribute_ == spider::FifoAttribute::READ_EXT) {
+                       if (fifo.attribute_ == spider::FifoAttribute::RW_EXT) {
                            buffer = spider::archi::platform()->getExternalBuffer(fifo.virtualAddress_);
                        } else {
                            buffer = memoryInterface->read(fifo.virtualAddress_, fifo.count_);
@@ -170,11 +170,11 @@ spider::array<void *> createOutputFifos(const spider::array<spider::RTFifo> &fif
     spider::array<void *> outputBuffersArray{ fifos.size(), nullptr, StackID::RUNTIME };
     std::transform(std::begin(fifos), std::end(fifos), std::begin(outputBuffersArray),
                    [&memoryInterface](const spider::RTFifo &fifo) -> void * {
-                       if (fifo.attribute_ == spider::FifoAttribute::WRITE_OWN) {
+                       if (fifo.attribute_ == spider::FifoAttribute::RW_OWN) {
                            return memoryInterface->allocate(fifo.virtualAddress_, fifo.size_, fifo.count_);
                        }
                        void *buffer = nullptr;
-                       if (fifo.attribute_ == spider::FifoAttribute::WRITE_EXT) {
+                       if (fifo.attribute_ == spider::FifoAttribute::RW_EXT) {
                            buffer = spider::archi::platform()->getExternalBuffer(fifo.virtualAddress_);
                        } else {
                            buffer = memoryInterface->read(fifo.virtualAddress_);
@@ -304,7 +304,7 @@ void spider::JITMSRTRunner::runJob(const JobMessage &job) {
 
     /* == Deallocate input buffers == */
     for (auto &inputFIFO : job.inputFifoArray_) {
-        if (inputFIFO.attribute_ == FifoAttribute::READ_OWN) {
+        if (inputFIFO.attribute_ == FifoAttribute::RW_OWN) {
             auto *memoryInterface = attachedPE_->cluster()->memoryInterface();
             memoryInterface->deallocate(inputFIFO.virtualAddress_, inputFIFO.size_);
         }

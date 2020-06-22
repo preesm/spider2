@@ -67,13 +67,15 @@ spider::NoSyncDefaultFifoAllocator::allocateDefaultVertexInputFifo(ScheduleTask 
         }
         /* == Set the fifo == */
         auto fifo = inputTask->getOutputFifo(edge->sourcePortIx());
-        fifo.attribute_ = (fifo.attribute_ == FifoAttribute::WRITE_EXT) ? FifoAttribute::READ_EXT
-                                                                        : FifoAttribute::READ_OWN;
+        if (fifo.attribute_ != FifoAttribute::RW_EXT) {
+            fifo.attribute_ = FifoAttribute::RW_OWN;
+        }
         return fifo;
     } else {
         auto fifo = inputTask->getOutputFifo(0U);
-        fifo.attribute_ = (fifo.attribute_ == FifoAttribute::WRITE_EXT) ? FifoAttribute::READ_EXT
-                                                                        : FifoAttribute::READ_OWN;
+        if (fifo.attribute_ != FifoAttribute::RW_EXT) {
+            fifo.attribute_ = FifoAttribute::RW_OWN;
+        }
         return fifo;
     }
 }
@@ -84,7 +86,7 @@ void spider::NoSyncDefaultFifoAllocator::allocateForkTask(ScheduleTask *task) {
     const auto *inputEdge = vertex->inputEdge(0U);
     const auto *previousTask = task->dependencies()[0];
     auto inputFifo = previousTask->getOutputFifo(inputEdge->sourcePortIx());
-    if (inputFifo.attribute_ != FifoAttribute::WRITE_EXT) {
+    if (inputFifo.attribute_ != FifoAttribute::RW_EXT) {
         if (previousTask->state() != TaskState::RUNNING) {
             inputFifo.count_ = task->taskMemory()->inputFifo(0).count_;
             previousTask->taskMemory()->setOutputFifo(inputEdge->sourcePortIx(), inputFifo);
@@ -107,7 +109,7 @@ void spider::NoSyncDefaultFifoAllocator::allocateDuplicateTask(ScheduleTask *tas
     const auto *inputEdge = vertex->inputEdge(0U);
     const auto *previousTask = task->dependencies()[0];
     auto inputFifo = previousTask->getOutputFifo(inputEdge->sourcePortIx());
-    if (inputFifo.attribute_ != FifoAttribute::WRITE_EXT) {
+    if (inputFifo.attribute_ != FifoAttribute::RW_EXT) {
         if (previousTask->state() != TaskState::RUNNING) {
             inputFifo.count_ = task->taskMemory()->inputFifo(0).count_;
             previousTask->taskMemory()->setOutputFifo(inputEdge->sourcePortIx(), inputFifo);

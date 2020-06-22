@@ -58,7 +58,7 @@ namespace spider {
 
         explicit JITMSRuntime(pisdf::Graph *graph,
                               SchedulingPolicy schedulingAlgorithm = SchedulingPolicy::LIST_BEST_FIT,
-                              FifoAllocatorType type = FifoAllocatorType::DEFAULT);
+                              FifoAllocatorType type = FifoAllocatorType::DEFAULT_NOSYNC);
 
         ~JITMSRuntime() override = default;
 
