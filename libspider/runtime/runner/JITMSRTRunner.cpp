@@ -171,7 +171,7 @@ spider::array<void *> createOutputFifos(const spider::array<spider::RTFifo> &fif
     std::transform(std::begin(fifos), std::end(fifos), std::begin(outputBuffersArray),
                    [&memoryInterface](const spider::RTFifo &fifo) -> void * {
                        if (fifo.attribute_ == spider::FifoAttribute::WRITE_OWN) {
-                           return memoryInterface->allocate(fifo.virtualAddress_, fifo.size_);
+                           return memoryInterface->allocate(fifo.virtualAddress_, fifo.size_, fifo.count_);
                        }
                        void *buffer = nullptr;
                        if (fifo.attribute_ == spider::FifoAttribute::WRITE_EXT) {

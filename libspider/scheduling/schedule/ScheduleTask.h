@@ -267,6 +267,11 @@ namespace spider {
         void setDependency(ScheduleTask *task, size_t pos);
 
         /**
+         * @brief Update execution constraints based on task dependencies.
+         */
+        void updateExecutionConstraints();
+
+        /**
          * @brief Set the job constraint on a given lrt.
          * @warning There is no check on the value of lrt.
          * @param lrt  Ix of the lrt.

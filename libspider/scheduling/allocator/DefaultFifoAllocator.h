@@ -51,10 +51,7 @@ namespace spider {
 
     class DefaultFifoAllocator : public FifoAllocator {
     public:
-        DefaultFifoAllocator() : FifoAllocator() {
-            traits_.jitAllocator_ = true;
-            traits_.postSchedulingAllocator_ = true;
-        };
+        DefaultFifoAllocator(FifoAllocatorTraits traits = { true, true }) : FifoAllocator(traits) { }
 
         ~DefaultFifoAllocator() override = default;
 
@@ -70,9 +67,7 @@ namespace spider {
 
         /* === Getter(s) === */
 
-        inline FifoAllocatorType type() const override {
-            return FifoAllocatorType::DEFAULT;
-        }
+        inline FifoAllocatorType type() const override { return FifoAllocatorType::DEFAULT; }
 
         /* === Setter(s) === */
 
@@ -85,6 +80,10 @@ namespace spider {
         virtual void allocateVertexTask(ScheduleTask *task);
 
         virtual void allocateDefaultVertexTask(ScheduleTask *task);
+
+        virtual RTFifo allocateDefaultVertexInputFifo(ScheduleTask *task, const pisdf::Edge *edge);
+
+        virtual RTFifo allocateDefaultVertexOutputFifo(const pisdf::Edge *edge);
 
         virtual void allocateRepeatTask(ScheduleTask *task);
 

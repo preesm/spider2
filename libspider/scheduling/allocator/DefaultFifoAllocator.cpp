@@ -128,36 +128,47 @@ void spider::DefaultFifoAllocator::allocateDefaultVertexTask(ScheduleTask *task)
     auto taskMemory = make_unique<TaskMemory>(
             make<TaskMemory, StackID::SCHEDULE>(vertex->inputEdgeCount(), vertex->outputEdgeCount()));
     for (const auto &edge : vertex->inputEdgeVector()) {
-        const auto snkIx = edge->sinkPortIx();
-        const auto &inputTask = task->dependencies()[snkIx];
-        if (!inputTask) {
-            taskMemory->setInputFifo(snkIx, RTFifo{ });
-        } else {
-            const auto srcIx = (inputTask->type() == TaskType::VERTEX) ? edge->sourcePortIx() : 0U;
-            auto fifo = inputTask->getOutputFifo(srcIx);
-            fifo.attribute_ = (fifo.attribute_ == FifoAttribute::WRITE_EXT) ? FifoAttribute::READ_EXT
-                                                                            : FifoAttribute::READ_OWN;
-            taskMemory->setInputFifo(snkIx, fifo);
-        }
+        taskMemory->setInputFifo(edge->sinkPortIx(), allocateDefaultVertexInputFifo(task, edge));
     }
-
     for (const auto &edge : vertex->outputEdgeVector()) {
-        const auto size = edge->sourceRateValue();
-        if (edge->sink()->subtype() == pisdf::VertexType::EXTERN_OUT) {
-            const auto *reference = edge->sink()->reference()->convertTo<pisdf::ExternInterface>();
-            const auto index = reference->bufferIndex();
-            RTFifo fifo{ };
-            fifo.size_ = static_cast<u32>(size);
-            fifo.count_ = 1;
-            fifo.virtualAddress_ = index;
-            fifo.offset_ = 0;
-            fifo.attribute_ = FifoAttribute::WRITE_EXT;
-            taskMemory->setOutputFifo(edge->sourcePortIx(), fifo);
-        } else {
-            taskMemory->setOutputFifo(edge->sourcePortIx(), allocate(static_cast<size_t>(size)));
-        }
+        taskMemory->setOutputFifo(edge->sourcePortIx(), allocateDefaultVertexOutputFifo(edge));
     }
     task->setTaskMemory(std::move(taskMemory));
+}
+
+
+spider::RTFifo
+spider::DefaultFifoAllocator::allocateDefaultVertexInputFifo(ScheduleTask *task, const pisdf::Edge *edge) {
+    const auto snkIx = edge->sinkPortIx();
+    const auto &inputTask = task->dependencies()[snkIx];
+    if (!inputTask) {
+        return RTFifo{ };
+    } else {
+        const auto srcIx = (inputTask->type() == TaskType::VERTEX) ? edge->sourcePortIx() : 0U;
+        auto fifo = inputTask->getOutputFifo(srcIx);
+        fifo.attribute_ = (fifo.attribute_ == FifoAttribute::WRITE_EXT) ? FifoAttribute::READ_EXT
+                                                                        : FifoAttribute::READ_OWN;
+        return fifo;
+    }
+}
+
+spider::RTFifo
+spider::DefaultFifoAllocator::allocateDefaultVertexOutputFifo(const pisdf::Edge *edge) {
+    const auto size = edge->sourceRateValue();
+    const auto *sink = edge->sink();
+    if (sink && sink->subtype() == pisdf::VertexType::EXTERN_OUT) {
+        const auto *reference = sink->reference()->convertTo<pisdf::ExternInterface>();
+        const auto index = reference->bufferIndex();
+        RTFifo fifo{ };
+        fifo.size_ = static_cast<u32>(size);
+        fifo.count_ = 1;
+        fifo.virtualAddress_ = index;
+        fifo.offset_ = 0;
+        fifo.attribute_ = FifoAttribute::WRITE_EXT;
+        return fifo;
+    } else {
+        return allocate(static_cast<size_t>(size));
+    }
 }
 
 void spider::DefaultFifoAllocator::allocateExternInTask(ScheduleTask *task) {

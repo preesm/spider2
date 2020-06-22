@@ -44,8 +44,9 @@ namespace spider {
     /* === Enum definition === */
 
     enum class FifoAllocatorType {
-        DEFAULT,      /*!< Default Fifo allocator */
-        ARCHI_AWARE,  /*!< Architecture aware Fifo allocator */
+        DEFAULT,        /*!< Default Fifo allocator */
+        DEFAULT_NOSYNC, /*!< Default Fifo allocator with Fork/Duplicate/Extern_IN no-sync optimization */
+        ARCHI_AWARE,    /*!< Architecture aware Fifo allocator */
     };
 
     /* === Forward declaration(s) === */
@@ -63,17 +64,17 @@ namespace spider {
     class FifoAllocator {
     public:
         struct FifoAllocatorTraits {
-            bool jitAllocator_ = false;
-            bool postSchedulingAllocator_ = false;
+            bool jitAllocator_;
+            bool postSchedulingAllocator_;
         };
 
         /* === Allocator traits === */
 
         FifoAllocatorTraits traits_;
 
-        FifoAllocator() = default;
+        FifoAllocator(FifoAllocatorTraits traits = { false, false }) noexcept: traits_{ traits } { }
 
-        virtual ~FifoAllocator() = default;
+        virtual ~FifoAllocator() noexcept = default;
 
         /* === Method(s) === */
 
