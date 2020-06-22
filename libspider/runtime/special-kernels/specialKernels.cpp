@@ -48,7 +48,6 @@
 /* === Function(s) definition === */
 
 void spider::rt::fork(const int64_t *paramsIn, int64_t *, void **in, void **out) {
-    printer::fprintf(stderr, "[fork] i'm a fork.\n");
     const auto inputRate = paramsIn[0];   /* = Rate of the input port (used for sanity check) = */
     const auto outputCount = paramsIn[1]; /* = Number of output = */
     size_t offset = 0;
@@ -152,7 +151,6 @@ void spider::rt::repeat(const int64_t *paramsIn, int64_t *, void **in, void **ou
 }
 
 void spider::rt::duplicate(const int64_t *paramsIn, int64_t *, void **in, void **out) {
-    printer::fprintf(stderr, "[duplicate] i'm a duplicate.\n");
     const auto outputCount = paramsIn[0]; /* = Number of output = */
     const auto inputSize = paramsIn[1];   /* = Rate of the input port = */
     const auto *input = in[0];            /* = Input buffer = */

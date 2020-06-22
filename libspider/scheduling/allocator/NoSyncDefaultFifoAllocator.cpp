@@ -54,14 +54,16 @@ spider::NoSyncDefaultFifoAllocator::allocateDefaultVertexInputFifo(ScheduleTask 
     if (!inputTask) {
         return RTFifo{ };
     } else if (inputTask->type() == TaskType::VERTEX) {
-        /* == If input is a Fork, then we replace the dependency in order to avoid useless sync == */
-        const auto *srcVertex = inputTask->vertex();
-        if (srcVertex && (srcVertex->subtype() == pisdf::VertexType::FORK ||
-                          srcVertex->subtype() == pisdf::VertexType::DUPLICATE||
-                          srcVertex->subtype() == pisdf::VertexType::EXTERN_IN)) {
-            auto *newInputTask = inputTask->dependencies()[0];
-            task->setDependency(newInputTask, snkIx);
-            task->updateExecutionConstraints();
+        if (inputTask->state() == TaskState::RUNNING) {
+            /* == If input is a Fork, Duplicate or ExternInterface, then we replace the dependency in order to avoid useless sync == */
+            const auto *srcVertex = inputTask->vertex();
+            if (srcVertex && (srcVertex->subtype() == pisdf::VertexType::FORK ||
+                              srcVertex->subtype() == pisdf::VertexType::DUPLICATE ||
+                              srcVertex->subtype() == pisdf::VertexType::EXTERN_IN)) {
+                auto *newInputTask = inputTask->dependencies()[0];
+                task->setDependency(newInputTask, snkIx);
+                task->updateExecutionConstraints();
+            }
         }
         /* == Set the fifo == */
         auto fifo = inputTask->getOutputFifo(edge->sourcePortIx());
@@ -83,10 +85,20 @@ void spider::NoSyncDefaultFifoAllocator::allocateForkTask(ScheduleTask *task) {
     const auto *previousTask = task->dependencies()[0];
     auto inputFifo = previousTask->getOutputFifo(inputEdge->sourcePortIx());
     if (inputFifo.attribute_ != FifoAttribute::WRITE_EXT) {
-        inputFifo.count_ = task->taskMemory()->inputFifo(0).count_;
-        previousTask->taskMemory()->setOutputFifo(inputEdge->sourcePortIx(), inputFifo);
+        if (previousTask->state() != TaskState::RUNNING) {
+            inputFifo.count_ = task->taskMemory()->inputFifo(0).count_;
+            previousTask->taskMemory()->setOutputFifo(inputEdge->sourcePortIx(), inputFifo);
+        }
+        /* ==
+         *    In the case of the task being in RUNNING state, we could perform a MemoryInterface::read here.
+         *    However, assuming an heterogeneous architecture, we may not be able to access the corresponding
+         *    MemoryInterface from here. Thus, it seems to be a better solution to leave the synchronization point to
+         *    take charge of that.
+         * == */
     }
-    task->setState(TaskState::RUNNING);
+    if (previousTask->state() != TaskState::RUNNING) {
+        task->setState(TaskState::RUNNING);
+    }
 }
 
 void spider::NoSyncDefaultFifoAllocator::allocateDuplicateTask(ScheduleTask *task) {
@@ -96,10 +108,20 @@ void spider::NoSyncDefaultFifoAllocator::allocateDuplicateTask(ScheduleTask *tas
     const auto *previousTask = task->dependencies()[0];
     auto inputFifo = previousTask->getOutputFifo(inputEdge->sourcePortIx());
     if (inputFifo.attribute_ != FifoAttribute::WRITE_EXT) {
-        inputFifo.count_ = task->taskMemory()->inputFifo(0).count_;
-        previousTask->taskMemory()->setOutputFifo(inputEdge->sourcePortIx(), inputFifo);
+        if (previousTask->state() != TaskState::RUNNING) {
+            inputFifo.count_ = task->taskMemory()->inputFifo(0).count_;
+            previousTask->taskMemory()->setOutputFifo(inputEdge->sourcePortIx(), inputFifo);
+        }
+        /* ==
+         *    In the case of the task being in RUNNING state, we could perform a MemoryInterface::read here.
+         *    However, assuming an heterogeneous architecture, we may not be able to access the corresponding
+         *    MemoryInterface from here. Thus, it seems to be a better solution to leave the synchronization point to
+         *    take charge of that.
+         * == */
     }
-    task->setState(TaskState::RUNNING);
+    if (previousTask->state() != TaskState::RUNNING) {
+        task->setState(TaskState::RUNNING);
+    }
 }
 
 void spider::NoSyncDefaultFifoAllocator::allocateExternInTask(ScheduleTask *task) {
