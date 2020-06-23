@@ -136,7 +136,7 @@ void spider::Schedule::sendReadyTasks() {
     const auto grtIx = archi::platform()->getGRTIx();
     auto *communicator = rt::platform()->communicator();
     for (auto &task : readyTaskVector_) {
-        if (task->state() != TaskState::RUNNING) {
+        if (task->state() == TaskState::READY) {
             /* == Create job message and send the notification == */
             const auto messageIx = communicator->push(task->createJobMessage(), task->mappedLrt());
             communicator->push(Notification{ NotificationType::JOB_ADD, grtIx, messageIx }, task->mappedLrt());

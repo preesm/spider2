@@ -68,6 +68,12 @@ namespace spider {
 
         void allocateExternInTask(ScheduleTask *task) override;
 
+        void updateForkDuplicateInputTask(ScheduleTask *task);
+
+        void updateForkDuplicateInputFifoCount(ScheduleTask *task, const pisdf::Vertex *vertex);
+
+        bool replaceInputTask(ScheduleTask *task, const ScheduleTask *oldInputTask, size_t ix) const;
+
     };
 }
 #endif //SPIDER2_NOSYNCDEFAULTFIFOALLOCATOR_H

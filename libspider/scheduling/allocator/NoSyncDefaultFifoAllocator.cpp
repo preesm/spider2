@@ -54,16 +54,8 @@ spider::NoSyncDefaultFifoAllocator::allocateDefaultVertexInputFifo(ScheduleTask 
     if (!inputTask) {
         return RTFifo{ };
     } else if (inputTask->type() == TaskType::VERTEX) {
-        if (inputTask->state() == TaskState::RUNNING) {
-            /* == If input is a Fork, Duplicate or ExternInterface, then we replace the dependency in order to avoid useless sync == */
-            const auto *srcVertex = inputTask->vertex();
-            if (srcVertex && (srcVertex->subtype() == pisdf::VertexType::FORK ||
-                              srcVertex->subtype() == pisdf::VertexType::DUPLICATE ||
-                              srcVertex->subtype() == pisdf::VertexType::EXTERN_IN)) {
-                auto *newInputTask = inputTask->dependencies()[0];
-                task->setDependency(newInputTask, snkIx);
-                task->updateExecutionConstraints();
-            }
+        if (inputTask->state() == TaskState::NOT_SCHEDULABLE) {
+            replaceInputTask(task, inputTask, snkIx);
         }
         /* == Set the fifo == */
         auto fifo = inputTask->getOutputFifo(edge->sourcePortIx());
@@ -82,51 +74,76 @@ spider::NoSyncDefaultFifoAllocator::allocateDefaultVertexInputFifo(ScheduleTask 
 
 void spider::NoSyncDefaultFifoAllocator::allocateForkTask(ScheduleTask *task) {
     DefaultFifoAllocator::allocateForkTask(task);
-    const auto *vertex = task->vertex();
-    const auto *inputEdge = vertex->inputEdge(0U);
-    const auto *previousTask = task->dependencies()[0];
-    auto inputFifo = previousTask->getOutputFifo(inputEdge->sourcePortIx());
+    auto inputFifo = task->taskMemory()->inputFifo(0U);
     if (inputFifo.attribute_ != FifoAttribute::RW_EXT) {
-        if (previousTask->state() != TaskState::RUNNING) {
-            inputFifo.count_ = task->taskMemory()->inputFifo(0).count_;
-            previousTask->taskMemory()->setOutputFifo(inputEdge->sourcePortIx(), inputFifo);
-        }
-        /* ==
-         *    In the case of the task being in RUNNING state, we could perform a MemoryInterface::read here.
-         *    However, assuming an heterogeneous architecture, we may not be able to access the corresponding
-         *    MemoryInterface from here. Thus, it seems to be a better solution to leave the synchronization point to
-         *    take charge of that.
-         * == */
+        updateForkDuplicateInputTask(task);
     }
-    if (previousTask->state() != TaskState::RUNNING) {
-        task->setState(TaskState::RUNNING);
+    if (task->dependencies()[0U]->state() != TaskState::RUNNING) {
+        task->setState(TaskState::NOT_SCHEDULABLE);
     }
 }
 
 void spider::NoSyncDefaultFifoAllocator::allocateDuplicateTask(ScheduleTask *task) {
     DefaultFifoAllocator::allocateDuplicateTask(task);
-    const auto *vertex = task->vertex();
-    const auto *inputEdge = vertex->inputEdge(0U);
-    const auto *previousTask = task->dependencies()[0];
-    auto inputFifo = previousTask->getOutputFifo(inputEdge->sourcePortIx());
+    auto inputFifo = task->taskMemory()->inputFifo(0U);
     if (inputFifo.attribute_ != FifoAttribute::RW_EXT) {
-        if (previousTask->state() != TaskState::RUNNING) {
-            inputFifo.count_ = task->taskMemory()->inputFifo(0).count_;
-            previousTask->taskMemory()->setOutputFifo(inputEdge->sourcePortIx(), inputFifo);
-        }
-        /* ==
-         *    In the case of the task being in RUNNING state, we could perform a MemoryInterface::read here.
-         *    However, assuming an heterogeneous architecture, we may not be able to access the corresponding
-         *    MemoryInterface from here. Thus, it seems to be a better solution to leave the synchronization point to
-         *    take charge of that.
-         * == */
+        updateForkDuplicateInputTask(task);
     }
-    if (previousTask->state() != TaskState::RUNNING) {
-        task->setState(TaskState::RUNNING);
+    if (task->dependencies()[0U]->state() != TaskState::RUNNING) {
+        task->setState(TaskState::NOT_SCHEDULABLE);
     }
+}
+
+void spider::NoSyncDefaultFifoAllocator::updateForkDuplicateInputTask(ScheduleTask *task) {
+    auto *inputTask = task->dependencies()[0U];
+    if (inputTask->state() == TaskState::READY) {
+        updateForkDuplicateInputFifoCount(task, task->vertex());
+    } else if (replaceInputTask(task, inputTask, 0U)) {
+        updateForkDuplicateInputFifoCount(task, inputTask->vertex());
+    }
+    /* ==
+     *    In the case of the task being in RUNNING state, we could perform a MemoryInterface::read here.
+     *    However, assuming an heterogeneous architecture, we may not be able to access the corresponding
+     *    MemoryInterface from here. Thus, it seems to be a better solution to leave the synchronization point to
+     *    take charge of that.
+     * == */
+}
+
+void spider::NoSyncDefaultFifoAllocator::updateForkDuplicateInputFifoCount(ScheduleTask *task,
+                                                                           const pisdf::Vertex *vertex) {
+    /* == Update fifo count == */
+    const auto *edge = vertex->inputEdge(0U);
+    const auto *inputTask = task->dependencies()[0U];
+    auto fifo = inputTask->getOutputFifo(edge->sourcePortIx());
+    auto *taskMemory = task->taskMemory();
+    fifo.count_ += (taskMemory->inputFifo(0U).count_ - 1);
+
+    /* == Replace the fifo == */
+    auto *inputTaskMemory = inputTask->taskMemory();
+    inputTaskMemory->setOutputFifo(edge->sourcePortIx(), fifo);
 }
 
 void spider::NoSyncDefaultFifoAllocator::allocateExternInTask(ScheduleTask *task) {
     DefaultFifoAllocator::allocateExternInTask(task);
     task->setState(TaskState::RUNNING);
 }
+
+bool spider::NoSyncDefaultFifoAllocator::replaceInputTask(ScheduleTask *task,
+                                                          const ScheduleTask *oldInputTask,
+                                                          size_t ix) const {
+    if (oldInputTask->state() != TaskState::RUNNING) {
+        /* == If input is a Fork, Duplicate or ExternInterface, then we replace the dependency in order to avoid useless sync == */
+        const auto *srcVertex = oldInputTask->vertex();
+        if (srcVertex && (srcVertex->subtype() == pisdf::VertexType::FORK ||
+                          srcVertex->subtype() == pisdf::VertexType::DUPLICATE ||
+                          srcVertex->subtype() == pisdf::VertexType::EXTERN_IN)) {
+            auto *newInputTask = oldInputTask->dependencies()[0U];
+            task->setDependency(newInputTask, ix);
+            task->updateExecutionConstraints();
+            return true;
+        }
+    }
+    return false;
+}
+
+
