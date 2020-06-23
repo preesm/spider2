@@ -95,7 +95,7 @@ void spider::NoSyncDefaultFifoAllocator::allocateDuplicateTask(ScheduleTask *tas
 }
 
 void spider::NoSyncDefaultFifoAllocator::updateForkDuplicateInputTask(ScheduleTask *task) {
-    auto *inputTask = task->dependencies()[0U];
+    const auto *inputTask = task->dependencies()[0U];
     if (inputTask->state() == TaskState::READY) {
         updateForkDuplicateInputFifoCount(task, task->vertex());
     } else if (replaceInputTask(task, inputTask, 0U)) {
@@ -109,13 +109,13 @@ void spider::NoSyncDefaultFifoAllocator::updateForkDuplicateInputTask(ScheduleTa
      * == */
 }
 
-void spider::NoSyncDefaultFifoAllocator::updateForkDuplicateInputFifoCount(ScheduleTask *task,
-                                                                           const pisdf::Vertex *vertex) {
+void spider::NoSyncDefaultFifoAllocator::updateForkDuplicateInputFifoCount(const ScheduleTask *task,
+                                                                           const pisdf::Vertex *vertex) const {
     /* == Update fifo count == */
     const auto *edge = vertex->inputEdge(0U);
     const auto *inputTask = task->dependencies()[0U];
     auto fifo = inputTask->getOutputFifo(edge->sourcePortIx());
-    auto *taskMemory = task->taskMemory();
+    const auto *taskMemory = task->taskMemory();
     fifo.count_ += (taskMemory->inputFifo(0U).count_ - 1);
 
     /* == Replace the fifo == */

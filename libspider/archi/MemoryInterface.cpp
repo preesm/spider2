@@ -120,7 +120,8 @@ spider::MemoryInterface::buffer_t *spider::MemoryInterface::retrieveBuffer(uint6
     try {
         return &virtual2Phys_.at(virtualAddress);
     } catch (std::out_of_range &e) {
-        printer::fprintf(stderr, "[%p]: %s\n", reinterpret_cast<void *>(this), e.what());
+        log::print<log::MEMORY>(log::red, "ERROR", " [%p] accessing bad memory address.\n",
+                                reinterpret_cast<void *>(this));
         throw e;
     }
 #else

@@ -51,7 +51,8 @@ namespace spider {
 
     class DefaultFifoAllocator : public FifoAllocator {
     public:
-        DefaultFifoAllocator(FifoAllocatorTraits traits = { true, true }) : FifoAllocator(traits) { }
+
+        DefaultFifoAllocator() noexcept : FifoAllocator({ true, true }) { };
 
         ~DefaultFifoAllocator() override = default;
 
@@ -72,6 +73,8 @@ namespace spider {
         /* === Setter(s) === */
 
     protected:
+        explicit DefaultFifoAllocator(FifoAllocatorTraits traits) : FifoAllocator(traits) { }
+
         size_t reservedMemory_ = 0;
         size_t virtualMemoryAddress_ = 0;
 

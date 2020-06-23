@@ -161,7 +161,7 @@ void spider::ScheduleTask::updateExecutionConstraints() {
         }
         ix++;
     }
-    for (auto &value : shouldNotifyArray) {
+    for (const auto &value : shouldNotifyArray) {
         if (value >= 0) {
             dependenciesArray_[static_cast<size_t>(value)]->setNotificationFlag(mappedLrt(), true);
         }

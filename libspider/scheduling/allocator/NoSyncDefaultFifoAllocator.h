@@ -46,7 +46,7 @@ namespace spider {
     class NoSyncDefaultFifoAllocator : public DefaultFifoAllocator {
     public:
 
-        NoSyncDefaultFifoAllocator() : DefaultFifoAllocator({ false, true }) { }
+        NoSyncDefaultFifoAllocator() noexcept : DefaultFifoAllocator({ false, true }) { }
 
         ~NoSyncDefaultFifoAllocator() = default;
 
@@ -70,7 +70,7 @@ namespace spider {
 
         void updateForkDuplicateInputTask(ScheduleTask *task);
 
-        void updateForkDuplicateInputFifoCount(ScheduleTask *task, const pisdf::Vertex *vertex);
+        void updateForkDuplicateInputFifoCount(const ScheduleTask *task, const pisdf::Vertex *vertex) const;
 
         bool replaceInputTask(ScheduleTask *task, const ScheduleTask *oldInputTask, size_t ix) const;
 

@@ -72,7 +72,7 @@ namespace spider {
 
         FifoAllocatorTraits traits_;
 
-        FifoAllocator(FifoAllocatorTraits traits = { false, false }) noexcept: traits_{ traits } { }
+        explicit FifoAllocator(FifoAllocatorTraits traits = { false, false }) noexcept: traits_{ traits } { }
 
         virtual ~FifoAllocator() noexcept = default;
 
