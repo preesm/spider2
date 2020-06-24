@@ -277,7 +277,7 @@ void spider::pisdf::Graph::moveEdge(Edge *edge, Graph *graph) {
 
 void spider::pisdf::Graph::addParam(std::shared_ptr<Param> param) {
     /* == Check if a parameter with the same name already exists in the scope of this graph == */
-    for (auto &p : paramVector_) {
+    for (const auto &p : paramVector_) {
         if (p->name() == param->name()) {
             throwSpiderException("Parameter [%s] already exist in graph [%s].", param->name().c_str(), name().c_str());
         }

@@ -455,7 +455,7 @@ spider::pisdf::Edge *spider::api::createEdge(pisdf::Vertex *source,
 
         source->graph()->addEdge(edge);
         return edge;
-    } catch (spider::Exception &e) {
+    } catch (const spider::Exception &e) {
         throw e;
     }
 }
@@ -471,7 +471,7 @@ spider::pisdf::Edge *spider::api::createEdge(pisdf::Vertex *source,
                                                        sink, snkPortIx, Expression(snkRate));
         source->graph()->addEdge(edge);
         return edge;
-    } catch (spider::Exception &e) {
+    } catch (const spider::Exception &e) {
         throw e;
     }
 

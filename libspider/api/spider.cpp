@@ -244,7 +244,7 @@ void spider::run(spider::RuntimeContext &context) {
             default:
                 break;
         }
-    } catch (spider::Exception &e) {
+    } catch (const spider::Exception &e) {
         throw std::runtime_error(e.what());
     }
 }

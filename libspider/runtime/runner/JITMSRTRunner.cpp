@@ -254,7 +254,7 @@ void spider::JITMSRTRunner::begin() {
     if (affinity_ >= 0) {
         this_thread::set_affinity(affinity_);
     }
-    auto *platform = archi::platform();
+    const auto *platform = archi::platform();
     if (attachedPE_ != platform->spiderGRTPE()) {
         run(true);
     }

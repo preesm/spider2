@@ -150,10 +150,10 @@ spider::ScheduleTask *spider::Scheduler::insertCommunicationTask(Cluster *cluste
 
     /* == Search for the first PE able to run the send task == */
     const auto minStartTime = previousTask->endTime();
-    auto *mappedPe = findBestPEFit(cluster, minStartTime, &comTime,
-                                   [](const PE *,
-                                      const void *info) -> i64 { return reinterpret_cast<const i64 *>(info)[0]; },
-                                   [](const PE *, const void *) -> bool { return false; });
+    const auto *mappedPe = findBestPEFit(cluster, minStartTime, &comTime,
+                                         [](const PE *,
+                                            const void *info) -> i64 { return reinterpret_cast<const i64 *>(info)[0]; },
+                                         [](const PE *, const void *) -> bool { return false; });
     if (!mappedPe) {
         throwSpiderException("could not find any processing element to map task.");
     }
@@ -250,7 +250,7 @@ void spider::Scheduler::mapTask(ScheduleTask *task) {
     /* == Search for a slave to map the task on */
     const auto *vertexRtConstraints{ vertex->runtimeInformation() };
     auto needToScheduleCom{ false };
-    PE *mappingPe{ nullptr };
+    const PE *mappingPe{ nullptr };
     auto mappingSt{ UINT_FAST64_MAX };
     auto mappingEt{ UINT_FAST64_MAX };
     auto bestScheduleCost{ UINT_FAST64_MAX };

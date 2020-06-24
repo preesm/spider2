@@ -161,7 +161,7 @@ void spider::SchedSVGGanttExporter::printFromFile(FILE *file) const {
 
 u32 spider::SchedSVGGanttExporter::computeRealXOffset() const {
     auto maxWidth = static_cast<double>(OFFSET_X);
-    auto *archi = archi::platform();
+    const auto *archi = archi::platform();
     for (auto &pe : archi->peArray()) {
         if (schedule_->stats().utilizationFactor(pe->virtualIx()) > 0.) {
             const auto width = computeWidthFromFontSize(PE_FONT_SIZE, pe->name().length());
@@ -177,7 +177,7 @@ u64 spider::SchedSVGGanttExporter::computeWidth(u64 time) const {
 
 void spider::SchedSVGGanttExporter::pePrinter(FILE *file) const {
     /* == Print the name of the processors == */
-    auto *archi = archi::platform();
+    const auto *archi = archi::platform();
     for (auto &pe : archi->peArray()) {
         if (schedule_->stats().utilizationFactor(pe->virtualIx()) > 0.) {
             const auto yLine = height_ - (OFFSET_Y + ARROW_STROKE + (pe->virtualIx() + 1) * (TASK_HEIGHT + BORDER));

@@ -99,7 +99,7 @@ void spider::Runtime::exportPostExecGantt(const pisdf::Graph *graph,
         task.pe_ = notification.senderIx_;
         switch (notification.type_) {
             case NotificationType::TRACE_TASK: {
-                auto *vertex = graph->vertex(msg.taskIx_);
+                const auto *vertex = graph->vertex(msg.taskIx_);
                 if (vertex) {
                     task.name_ = vertex->name();
                     task.color_ = VERTEX_TASK_COLOR;

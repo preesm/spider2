@@ -66,7 +66,7 @@ u64 GenericAllocatorPolicy::deallocate(void *ptr) {
         return 0;
     }
     const auto &headerAddress = reinterpret_cast<uintptr_t>(ptr) - sizeof(uint64_t);
-    auto *header = reinterpret_cast<uint64_t *>(headerAddress);
+    const auto *header = reinterpret_cast<uint64_t *>(headerAddress);
     auto size = *header;
     usage_ -= size;
     std::free(reinterpret_cast<void *>(headerAddress));

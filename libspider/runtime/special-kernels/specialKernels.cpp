@@ -54,7 +54,7 @@ void spider::rt::fork(const int64_t *paramsIn, const int64_t *, void **in, void 
     for (int64_t i = 0; i < outputCount; ++i) {
         /* == Size of the current output to copy == */
         const auto outputSize = static_cast<size_t>(paramsIn[i + 2]);
-        auto *input = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(in[0]) + offset);
+        const auto *input = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(in[0]) + offset);
         if (input != out[i]) {
             std::memcpy(out[i], input, outputSize);
         }
@@ -112,7 +112,7 @@ void spider::rt::tail(const int64_t *paramsIn, const int64_t *, void **in, void 
     const auto sizeFirstInput = static_cast<size_t>(paramsIn[3]); /* = Effective size to copy of the first input = */
 
     /* == Copy the first input with the offset == */
-    auto *input = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(in[inputStart]) + inputOffset);
+    const auto *input = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(in[inputStart]) + inputOffset);
     std::memcpy(out[0], input, sizeFirstInput);
 
     /* == Do the general case == */
@@ -170,7 +170,7 @@ void spider::rt::init(const int64_t *paramsIn, const int64_t *, void **, void **
         const auto address = paramsIn[2];
         const auto *grt = archi::platform()->spiderGRTPE();
         auto *memInterface = grt->cluster()->memoryInterface();
-        auto *buffer = memInterface->read(static_cast<u64>(address), 1);
+        const auto *buffer = memInterface->read(static_cast<u64>(address), 1);
         if (out[0] != buffer) {
             memcpy(out[0], buffer, static_cast<size_t>(size));
         }

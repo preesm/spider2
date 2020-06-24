@@ -53,7 +53,7 @@ bool spider::optims::reduceFFJJWorker(pisdf::VertexType type,
     for (auto &vertex : graph->vertices()) {
         auto *vertexA = vertex.get();
         if (vertex->subtype() == type && vertex->scheduleTaskIx() == SIZE_MAX) {
-            auto *vertexB = getNextVertex(vertexA);
+            const auto *vertexB = getNextVertex(vertexA);
             if (vertexB->subtype() == type && vertexB->scheduleTaskIx() == SIZE_MAX) {
                 verticesToOptimize.emplace_back(vertexA);
             }
@@ -96,7 +96,7 @@ bool spider::optims::reduceFFJJWorker(pisdf::VertexType type,
 
         /* == Search for the pair to modify (if any) == */
         for (auto it2 = std::next(it); it2 != std::end(verticesToOptimize); ++it2) {
-            auto *secVertexA = (*it2);
+            const auto *secVertexA = (*it2);
             if (secVertexA == vertexA || secVertexA == vertexB) {
                 (*it2) = newVertex;
             }

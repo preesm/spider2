@@ -157,7 +157,7 @@ void spider::RTPlatform::waitForRunnersToFinish() {
             }
         }
     }
-    for (auto &notification : notifVector) {
+    for (const auto &notification : notifVector) {
         /* == push back notification == */
         communicator()->push(notification, grtIx);
     }

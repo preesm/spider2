@@ -88,8 +88,8 @@ void spider::srdag::separateRunGraphFromInit(pisdf::Graph *graph) {
     /* == Move the edges == */
     auto itEdge = graph->edges().begin();
     while (graph->edgeCount() != (inputIf2CfgCount + cfg2OutputIfCount)) {
-        auto *source = itEdge->get()->source();
-        auto *sink = itEdge->get()->sink();
+        const auto *source = itEdge->get()->source();
+        const auto *sink = itEdge->get()->sink();
         if (sink->subtype() == pisdf::VertexType::CONFIG ||
             (sink->subtype() == pisdf::VertexType::OUTPUT &&
              source->subtype() == pisdf::VertexType::CONFIG)) {

@@ -170,7 +170,7 @@ bool spider::optims::reduceRepeatFork(spider::pisdf::Graph *graph) {
         if (vertex->subtype() == pisdf::VertexType::REPEAT && vertex->scheduleTaskIx() == SIZE_MAX) {
             auto inputRate = vertex->inputEdge(0)->sinkRateValue();
             auto outputRate = vertex->outputEdge(0)->sourceRateValue();
-            auto *sink = vertex->outputEdge(0)->sink();
+            const auto *sink = vertex->outputEdge(0)->sink();
             if (inputRate && !(outputRate % inputRate) &&
                 (sink->subtype() == pisdf::VertexType::FORK && sink->scheduleTaskIx() == SIZE_MAX)) {
                 verticesToOptimize.push_back(vertex.get());
@@ -304,7 +304,7 @@ bool spider::optims::reduceJoinFork(pisdf::Graph *graph) {
     /* == Search for the pair of join / fork to optimize == */
     for (const auto &vertex : graph->vertices()) {
         if (vertex->subtype() == pisdf::VertexType::JOIN && vertex->scheduleTaskIx() == SIZE_MAX) {
-            auto *sink = vertex->outputEdge(0)->sink();
+            const auto *sink = vertex->outputEdge(0)->sink();
             if (sink->subtype() == pisdf::VertexType::FORK && sink->scheduleTaskIx() == SIZE_MAX) {
                 verticesToOptimize.emplace_back(vertex.get());
             }
@@ -347,7 +347,7 @@ bool spider::optims::reduceJoinEnd(pisdf::Graph *graph) {
     /* == Retrieve the vertices to remove == */
     for (auto &vertex : graph->vertices()) {
         if (vertex->subtype() == pisdf::VertexType::JOIN && vertex->scheduleTaskIx() == SIZE_MAX) {
-            auto *sink = vertex->outputEdge(0)->sink();
+            const auto *sink = vertex->outputEdge(0)->sink();
             if (sink->subtype() == pisdf::VertexType::END && sink->scheduleTaskIx() == SIZE_MAX) {
                 verticesToOptimize.push_back(vertex.get());
             }
@@ -359,9 +359,9 @@ bool spider::optims::reduceJoinEnd(pisdf::Graph *graph) {
         auto *edge = join->outputEdge(0);
         auto *end = edge->sink();
         auto *ref = const_cast<pisdf::Vertex *>(end->reference());
-        auto *refSource = ref->inputEdge(0)->source();
+        const auto *refSource = ref->inputEdge(0)->source();
         if (refSource->subtype() == pisdf::VertexType::DELAY) {
-            auto *delay = ref->inputEdge(0)->source()->convertTo<pisdf::DelayVertex>()->delay();
+            const auto *delay = ref->inputEdge(0)->source()->convertTo<pisdf::DelayVertex>()->delay();
             if (delay->isPersistent()) {
                 continue;
             }
@@ -394,7 +394,7 @@ bool spider::optims::reduceInitEnd(pisdf::Graph *graph) {
     /* == Retrieve the vertices to remove == */
     for (auto &vertex : graph->vertices()) {
         if (vertex->subtype() == pisdf::VertexType::INIT && vertex->scheduleTaskIx() == SIZE_MAX) {
-            auto *sink = vertex->outputEdge(0)->sink();
+            const auto *sink = vertex->outputEdge(0)->sink();
             if (sink->subtype() == pisdf::VertexType::END && sink->scheduleTaskIx() == SIZE_MAX) {
                 verticesToOptimize.push_back(vertex.get());
             }

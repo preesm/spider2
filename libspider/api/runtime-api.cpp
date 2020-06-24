@@ -99,7 +99,7 @@ static void createSpecialRTKernels() {
 /* === Runtime platform related API === */
 
 void spider::api::createThreadRTPlatform() {
-    auto *platform = archi::platform();
+    const auto *platform = archi::platform();
     if (!platform) {
         throwSpiderException("function should be called after definition of the physical platform.");
     }
@@ -182,7 +182,7 @@ void spider::api::setVertexMappableOnCluster(const pisdf::Vertex *vertex, uint32
     }
     if (vertex->executable()) {
         auto *&platform = archi::platform();
-        auto *cluster = platform->cluster(clusterIx);
+        const auto *cluster = platform->cluster(clusterIx);
         setVertexMappableOnCluster(vertex, cluster, value);
     }
 }

@@ -284,7 +284,7 @@ spider::array<i64> spider::pisdf::buildVertexRuntimeInputParameters(const pisdf:
 }
 
 spider::pisdf::Vertex *spider::pisdf::getIndirectSource(const pisdf::Vertex *vertex, size_t ix) {
-    auto *edge = vertex->inputEdge(ix);
+    const auto *edge = vertex->inputEdge(ix);
     auto *source = edge->source();
     while (source->subtype() == VertexType::INPUT ||
            source->subtype() == VertexType::GRAPH) {
@@ -301,7 +301,7 @@ spider::pisdf::Vertex *spider::pisdf::getIndirectSource(const pisdf::Vertex *ver
 }
 
 spider::pisdf::Vertex *spider::pisdf::getIndirectSink(const pisdf::Vertex *vertex, size_t ix) {
-    auto *edge = vertex->outputEdge(ix);
+    const auto *edge = vertex->outputEdge(ix);
     auto *sink = edge->sink();
     while (sink->subtype() == VertexType::GRAPH ||
            sink->subtype() == VertexType::OUTPUT) {

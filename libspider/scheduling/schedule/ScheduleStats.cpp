@@ -50,7 +50,7 @@ spider::Stats::Stats() : startTimeVector_{ factory::vector<uint64_t>(StackID::SC
                          loadTimeVector_{ factory::vector<uint64_t>(StackID::SCHEDULE) },
                          idleTimeVector_{ factory::vector<uint64_t>(StackID::SCHEDULE) },
                          jobCountVector_{ factory::vector<size_t>(StackID::SCHEDULE) } {
-    auto *platform = archi::platform();
+    const auto *platform = archi::platform();
 
     /* == Init stat vectors == */
     const auto &n = platform->PECount();

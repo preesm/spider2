@@ -100,7 +100,7 @@ void spider::DefaultFifoAllocator::allocatePersistentDelays(pisdf::Graph *graph)
 /* === Private method(s) implementation === */
 
 void spider::DefaultFifoAllocator::allocateVertexTask(ScheduleTask *task) {
-    auto *vertex = task->vertex();
+    const auto *vertex = task->vertex();
     if (!vertex) {
         // LCOV_IGNORE
         throwNullptrException();
@@ -259,7 +259,7 @@ void spider::DefaultFifoAllocator::allocateDuplicateTask(ScheduleTask *task) {
 }
 
 void spider::DefaultFifoAllocator::allocateReceiveTask(ScheduleTask *task) {
-    auto *information = task->comTaskInfo();
+    const auto *information = task->comTaskInfo();
     if (!information) {
         throwNullptrException();
     }
@@ -269,7 +269,7 @@ void spider::DefaultFifoAllocator::allocateReceiveTask(ScheduleTask *task) {
 }
 
 void spider::DefaultFifoAllocator::allocateSendTask(ScheduleTask *task) {
-    auto *information = task->comTaskInfo();
+    const auto *information = task->comTaskInfo();
     if (!information) {
         throwNullptrException();
     }

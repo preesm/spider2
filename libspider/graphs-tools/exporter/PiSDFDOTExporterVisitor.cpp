@@ -116,8 +116,8 @@ void spider::pisdf::PiSDFDOTExporterVisitor::visit(Graph *graph) {
     /* == draw invisible edges between params to put them on the same line == */
     for (auto iterator = graph->params().begin(); iterator != graph->params().end(); ++iterator) {
         if ((iterator + 1) != graph->params().end()) {
-            auto *param = (*iterator).get();
-            auto *nextParam = (*(iterator + 1)).get();
+            const auto *param = (*iterator).get();
+            const auto *nextParam = (*(iterator + 1)).get();
             printer::fprintf(file_, R"(%s"%s:%s" -> "%s:%s" [style="invis"])" "\n", offset_.c_str(),
                              param->graph()->vertexPath().c_str(), param->name().c_str(),
                              nextParam->graph()->vertexPath().c_str(), nextParam->name().c_str());
@@ -275,7 +275,7 @@ void spider::pisdf::PiSDFDOTExporterVisitor::vertexPrinter(const Vertex *vertex)
 
     /* == Trailing output ports == */
     for (size_t i = nOutput; i < vertex->outputEdgeCount(); ++i) {
-        auto *edge = vertex->outputEdge(i);
+        const auto *edge = vertex->outputEdge(i);
         printer::fprintf(file_,
                          R"(%s        <tr> <td border="0" style="invis" colspan="4" fixedsize="false" height="10"></td></tr>)" "\n",
                          offset_.c_str());
@@ -314,8 +314,8 @@ spider::pisdf::PiSDFDOTExporterVisitor::interfaceBodyPrinter(const Interface *in
     const auto nameWidth = static_cast<int_fast32_t >(std::min(interface->name().length(), MAX_LENGTH) * 16);
     const auto balanceWidth = std::max((nameWidth - (2 * rateWidth + 20)) / 2, ifast32{ 20 });
 
-    auto *inputEdge = interface->inputEdge();
-    auto *outputEdge = interface->outputEdge();
+    const auto *inputEdge = interface->inputEdge();
+    const auto *outputEdge = interface->outputEdge();
     const auto inIx = inputEdge->sinkPortIx();
     const auto outIx = outputEdge->sourcePortIx();
     const auto &parentParams = interface->graph()->graph()->params();
@@ -383,13 +383,13 @@ void spider::pisdf::PiSDFDOTExporterVisitor::edgePrinter(const Edge *edge) const
     GetVertexVisitor visitor;
     visitor.ix_ = srcPortIx;
     edge->source()->visit(&visitor);
-    auto *source = visitor.vertex_;
-    auto srcName = std::move(visitor.name_);
+    const auto *source = visitor.vertex_;
+    const auto srcName = std::move(visitor.name_);
     visitor.source_ = false;
     visitor.ix_ = snkPortIx;
     edge->sink()->visit(&visitor);
-    auto *sink = visitor.vertex_;
-    auto snkName = std::move(visitor.name_);
+    const auto *sink = visitor.vertex_;
+    const auto snkName = std::move(visitor.name_);
     if (delay) {
         /* == Draw circle of the delay == */
         printer::fprintf(file_,

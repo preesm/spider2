@@ -121,7 +121,7 @@ void spider::ListScheduler::createTaskVertexRecursively(pisdf::Vertex *vertex) {
 void spider::ListScheduler::updateScheduleTaskIx() const {
     auto iterator = std::next(std::begin(sortedTaskVector_), static_cast<long>(lastSchedulableTask_));
     for (; iterator != std::end(sortedTaskVector_); ++iterator) {
-        auto *task = iterator->task_;
+        const auto *task = iterator->task_;
         auto *vertex = task->vertex();
         const auto ix = static_cast<size_t>(std::distance(std::begin(sortedTaskVector_), iterator));
         vertex->setScheduleTaskIx(ix);
@@ -130,7 +130,7 @@ void spider::ListScheduler::updateScheduleTaskIx() const {
 
 ifast32 spider::ListScheduler::computeScheduleLevel(ListTask &listTask,
                                                     vector<ListTask> &listVertexVector) const {
-    auto *vertex = listTask.task_->vertex();
+    const auto *vertex = listTask.task_->vertex();
     if ((listTask.level_ == NON_SCHEDULABLE_LEVEL) || !vertex->executable()) {
         listTask.level_ = NON_SCHEDULABLE_LEVEL;
         for (auto &edge : vertex->outputEdgeVector()) {
@@ -142,13 +142,13 @@ ifast32 spider::ListScheduler::computeScheduleLevel(ListTask &listTask,
             }
         }
     } else if (listTask.level_ < 0) {
-        auto *platform = archi::platform();
+        const auto *platform = archi::platform();
         ifast32 level = 0;
         for (auto &edge : vertex->outputEdgeVector()) {
-            auto *sink = edge->sink();
+            const auto *sink = edge->sink();
             if (sink && sink->executable()) {
                 const auto &sinkParams = sink->inputParamVector();
-                auto *sinkRTInfo = sink->runtimeInformation();
+                const auto *sinkRTInfo = sink->runtimeInformation();
                 auto minExecutionTime = INT64_MAX;
                 for (auto &cluster : platform->clusters()) {
                     if (sinkRTInfo->isClusterMappable(cluster)) {

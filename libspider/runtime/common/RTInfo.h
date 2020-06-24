@@ -53,7 +53,7 @@ namespace spider {
         RTInfo() : peMappableVector_{ factory::vector<bool>(StackID::RUNTIME) },
                    clusterMappableVector_{ factory::vector<bool>(StackID::RUNTIME) },
                    timingVector_{ factory::vector<Expression>(StackID::RUNTIME) } {
-            auto *platform = archi::platform();
+            const auto *platform = archi::platform();
             if (platform) {
                 peMappableVector_.resize(platform->PECount(), true);
                 clusterMappableVector_.resize(platform->clusterCount(), true);
@@ -121,7 +121,7 @@ namespace spider {
          * @throws std::out_of_range
          */
         inline int64_t timingOnPE(size_t ix, const vector<std::shared_ptr<pisdf::Param>> &params = { }) const {
-            auto *pe = archi::platform()->processingElement(ix);
+            const auto *pe = archi::platform()->processingElement(ix);
             return timingVector_.at(pe->hardwareType()).evaluate(params);
         }
 
@@ -163,12 +163,12 @@ namespace spider {
          * @throws std::out_of_range
          */
         inline void setMappableConstraintOnPE(const PE *pe, bool mappable = true) {
-            auto *cluster = pe->cluster();
+            const auto *cluster = pe->cluster();
             peMappableVector_.at(pe->virtualIx()) = mappable;
             if (!mappable) {
                 /* == We need to recompute the condition to check if at least one PE in the cluster is valid == */
                 bool clusterMappable = false;
-                for (auto *elt : cluster->peArray()) {
+                for (const auto *elt : cluster->peArray()) {
                     clusterMappable |= peMappableVector_.at(elt->virtualIx());
                 }
                 clusterMappableVector_.at(cluster->ix()) = clusterMappable;

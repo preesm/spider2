@@ -175,9 +175,9 @@ uint64_t spider::Platform::dataCommunicationCostPEToPE(const PE *peSrc, const PE
         return 0;
     }
     /* == For inter cluster communication, cost is a bit more complicated to compute == */
-    auto *interComBus = getClusterToClusterMemoryBus(peSrc->cluster(), peSnk->cluster());
+    const auto *interComBus = getClusterToClusterMemoryBus(peSrc->cluster(), peSnk->cluster());
     /* == Total cost is cost of send ClusterSrc -> ClusterSnk + costof receive ClusterSrc -> ClusterSnk == */
-    auto cost = interComBus->sendCost(dataSize);
+    const auto cost = interComBus->sendCost(dataSize);
     interComBus = getClusterToClusterMemoryBus(peSnk->cluster(), peSrc->cluster());
     return math::saturateAdd(cost, interComBus->receiveCost(dataSize));
 }

@@ -59,9 +59,9 @@ size_t spider::srdag::SingleRateTransformer::getIx(const pisdf::Vertex *vertex, 
 }
 
 void spider::srdag::SingleRateTransformer::updateParams(TransfoJob &job) {
-    auto *graph = job.reference_;
+    const auto *graph = job.reference_;
     if (!graph->configVertexCount()) {
-        for (auto &param : job.params_) {
+        for (const auto &param : job.params_) {
             if (param->type() == pisdf::ParamType::INHERITED) {
                 const auto value = param->parent()->value(job.params_);
                 auto p = spider::make_shared<pisdf::Param, StackID::PISDF>(param->name(), value);
@@ -85,7 +85,7 @@ spider::srdag::SingleRateTransformer::SingleRateTransformer(TransfoJob &job, pis
     updateParams(job_);
 
     /* == 1. Compute the repetition vector == */
-    auto *graph = job.reference_;
+    const auto *graph = job.reference_;
     if (job_.firingValue_ == 0) {
         brv::compute(graph, job_.params_);
     }
@@ -231,7 +231,7 @@ bool spider::srdag::SingleRateTransformer::checkForNullEdge(const pisdf::Edge *e
                       !(edge->sinkRateExpression().evaluate(job_.params_));
     if (isNullEdge) {
         /* == Add an empty INIT to the sink == */
-        auto *sink = edge->sink();
+        const auto *sink = edge->sink();
         if (sink->repetitionValue()) {
             auto start = ref2Clone_[getIx(sink, job_.reference_)];
             for (auto i = start; i < start + sink->repetitionValue(); ++i) {
@@ -244,7 +244,7 @@ bool spider::srdag::SingleRateTransformer::checkForNullEdge(const pisdf::Edge *e
             }
         }
         /* == Add an empty END to the source == */
-        auto *source = edge->source();
+        const auto *source = edge->source();
         if (source->repetitionValue()) {
             auto start = ref2Clone_[getIx(source, job_.reference_)];
             for (auto i = start; i < start + source->repetitionValue(); ++i) {
@@ -436,8 +436,8 @@ spider::srdag::SingleRateTransformer::TransfoVertexVector
 spider::srdag::SingleRateTransformer::buildSinkLinkerVector(const pisdf::Edge *edge) {
     /* == 0. Reserve size of the vector == */
     auto sinkVector = factory::vector<TransfoVertex>(StackID::TRANSFO);
-    auto *sink = edge->sink();
-    auto *delay = edge->delay();
+    const auto *sink = edge->sink();
+    const auto *delay = edge->delay();
     sinkVector.reserve(sink->repetitionValue() + (delay != nullptr));
 
     /* == 1. If delay, populate the getter clones in reverse order == */
@@ -452,7 +452,7 @@ spider::srdag::SingleRateTransformer::buildSinkLinkerVector(const pisdf::Edge *e
                                  edge->name().c_str());
         }
         const auto *delayVertex = delay->vertex();
-        auto *clone = srdag_->vertex(ref2Clone_[delayVertex->ix()]);
+        const auto *clone = srdag_->vertex(ref2Clone_[delayVertex->ix()]);
         auto *outputEdge = clone->outputEdge(0);
         if (outputEdge) {
             /* == 1.1 We already connected getter, we'll use it directly == */
@@ -464,7 +464,7 @@ spider::srdag::SingleRateTransformer::buildSinkLinkerVector(const pisdf::Edge *e
     }
 
     /* == 2. Populate the rest of the sinkVector == */
-    auto *clone = srdag_->vertex(ref2Clone_[getIx(sink, job_.reference_)]);
+    const auto *clone = srdag_->vertex(ref2Clone_[getIx(sink, job_.reference_)]);
     if (sink->subtype() == pisdf::VertexType::OUTPUT) {
         /* == 2.0 Check if we are in the trivial case of no interface == */
         if (clone->subtype() != pisdf::VertexType::TAIL) {
@@ -490,12 +490,12 @@ spider::srdag::SingleRateTransformer::TransfoVertexVector
 spider::srdag::SingleRateTransformer::buildSourceLinkerVector(const pisdf::Edge *edge) {
     /* == 0. Reserve size of the vector == */
     auto sourceVector = factory::vector<TransfoVertex>(StackID::TRANSFO);
-    auto *source = edge->source();
-    auto *delay = edge->delay();
+    const auto *source = edge->source();
+    const auto *delay = edge->delay();
     sourceVector.reserve(source->repetitionValue() + (delay != nullptr));
 
     /* == 1. Populate the sourceVector == */
-    auto *clone = srdag_->vertex(ref2Clone_[getIx(source, job_.reference_)]);
+    const auto *clone = srdag_->vertex(ref2Clone_[getIx(source, job_.reference_)]);
     if (source->subtype() == pisdf::VertexType::INPUT) {
         /* == 1.0 Check if we are in the trivial case of no interface == */
         if (clone->subtype() != pisdf::VertexType::REPEAT) {
@@ -518,7 +518,7 @@ spider::srdag::SingleRateTransformer::buildSourceLinkerVector(const pisdf::Edge 
     /* == 2. If delay, populate the setter clones in reverse order == */
     if (delay) {
         const auto *delayVertex = delay->vertex();
-        auto *delayClone = srdag_->vertex(ref2Clone_[delayVertex->ix()]);
+        const auto *delayClone = srdag_->vertex(ref2Clone_[delayVertex->ix()]);
         auto *inputEdge = delayClone->inputEdge(0);
         if (inputEdge) {
             /* == 2.1 We already connected setter, we'll use it directly == */

@@ -54,7 +54,7 @@ void spider::Schedule::clear() {
 }
 
 void spider::Schedule::reset() {
-    for (auto &task : taskVector_) {
+    for (const auto &task : taskVector_) {
         task->setState(TaskState::READY);
         readyTaskVector_.emplace_back(task.get());
     }
@@ -100,7 +100,7 @@ void spider::Schedule::addScheduleTask(ScheduleTask *task) {
 }
 
 void spider::Schedule::updateTaskAndSetReady(size_t taskIx, size_t slave, uint64_t startTime, uint64_t endTime) {
-    auto &task = taskVector_.at(taskIx);
+    const auto &task = taskVector_.at(taskIx);
     if (task->state() == TaskState::READY) {
         return;
     }
