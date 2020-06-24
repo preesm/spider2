@@ -81,7 +81,6 @@ spider::expr::CompiledExpression::convertToCpp(const spider::vector<RPNElement> 
         }
     }
     return res;
-    return res;
 }
 
 spider::expr::CompiledExpression::param_t

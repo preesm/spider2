@@ -122,7 +122,7 @@ spider::MemoryInterface::buffer_t *spider::MemoryInterface::retrieveBuffer(uint6
     } catch (const std::out_of_range &e) {
         log::print<log::MEMORY>(log::red, "ERROR", " [%p] accessing bad memory address.\n",
                                 reinterpret_cast<void *>(this));
-        throw e;
+        throw;
     }
 #else
     return &virtual2Phys_[virtualAddress];

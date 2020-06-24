@@ -456,7 +456,7 @@ spider::pisdf::Edge *spider::api::createEdge(pisdf::Vertex *source,
         source->graph()->addEdge(edge);
         return edge;
     } catch (const spider::Exception &e) {
-        throw e;
+        throw;
     }
 }
 
@@ -472,7 +472,7 @@ spider::pisdf::Edge *spider::api::createEdge(pisdf::Vertex *source,
         source->graph()->addEdge(edge);
         return edge;
     } catch (const spider::Exception &e) {
-        throw e;
+        throw;
     }
 
 }

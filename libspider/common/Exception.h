@@ -41,12 +41,6 @@
 #include <stdexcept>
 #include <common/Printer.h>
 
-#ifdef _SPIDER_NO_TYPESAFETY_PRINT
-
-#include <cstdarg>
-
-#endif
-
 /* === Defines === */
 
 /* == Size of 50 minimum is required for the error message associated == */
