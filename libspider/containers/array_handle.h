@@ -257,7 +257,7 @@ namespace spider {
             return !(lhs == rhs);
         }
 
-    private:
+    protected:
         pointer data_ = nullptr;
         size_type size_ = 0;
     };
