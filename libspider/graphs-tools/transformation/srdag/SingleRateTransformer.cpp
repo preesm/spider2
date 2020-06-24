@@ -226,7 +226,7 @@ spider::srdag::SingleRateTransformer::copyParameter(const std::shared_ptr<pisdf:
     return param;
 }
 
-bool spider::srdag::SingleRateTransformer::checkForNullEdge(pisdf::Edge *edge) {
+bool spider::srdag::SingleRateTransformer::checkForNullEdge(const pisdf::Edge *edge) {
     bool isNullEdge = !(edge->sourceRateExpression().evaluate(job_.params_)) &&
                       !(edge->sinkRateExpression().evaluate(job_.params_));
     if (isNullEdge) {
@@ -306,7 +306,7 @@ void spider::srdag::SingleRateTransformer::singleRateLinkage(pisdf::Edge *edge) 
     }
 }
 
-void spider::srdag::SingleRateTransformer::computeDependencies(pisdf::Edge *edge,
+void spider::srdag::SingleRateTransformer::computeDependencies(const pisdf::Edge *edge,
                                                                vector<TransfoVertex> &srcVector,
                                                                vector<TransfoVertex> &snkVector) {
     const auto srcRate = srcVector[0].rate_;     /* = This should be the proper source rate of the edge = */
@@ -433,7 +433,7 @@ void spider::srdag::SingleRateTransformer::populateTransfoVertexVector(vector<Tr
 }
 
 spider::srdag::SingleRateTransformer::TransfoVertexVector
-spider::srdag::SingleRateTransformer::buildSinkLinkerVector(pisdf::Edge *edge) {
+spider::srdag::SingleRateTransformer::buildSinkLinkerVector(const pisdf::Edge *edge) {
     /* == 0. Reserve size of the vector == */
     auto sinkVector = factory::vector<TransfoVertex>(StackID::TRANSFO);
     auto *sink = edge->sink();
@@ -487,7 +487,7 @@ spider::srdag::SingleRateTransformer::buildSinkLinkerVector(pisdf::Edge *edge) {
 }
 
 spider::srdag::SingleRateTransformer::TransfoVertexVector
-spider::srdag::SingleRateTransformer::buildSourceLinkerVector(pisdf::Edge *edge) {
+spider::srdag::SingleRateTransformer::buildSourceLinkerVector(const pisdf::Edge *edge) {
     /* == 0. Reserve size of the vector == */
     auto sourceVector = factory::vector<TransfoVertex>(StackID::TRANSFO);
     auto *source = edge->source();

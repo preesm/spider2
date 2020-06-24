@@ -66,7 +66,7 @@ static u64 getTime(spider::time::time_point value, spider::time::time_point offs
 
 /* === Function(s) definition === */
 
-void spider::Runtime::exportPreExecGantt(Schedule *schedule, const std::string &path) {
+void spider::Runtime::exportPreExecGantt(const Schedule *schedule, const std::string &path) {
     if (api::useSVGOverXMLGantt()) {
         SchedSVGGanttExporter exporter{ schedule };
         exporter.printFromPath(path + ".svg");
@@ -76,8 +76,8 @@ void spider::Runtime::exportPreExecGantt(Schedule *schedule, const std::string &
     }
 }
 
-void spider::Runtime::exportPostExecGantt(pisdf::Graph *graph,
-                                          Schedule *schedule,
+void spider::Runtime::exportPostExecGantt(const pisdf::Graph *graph,
+                                          const Schedule *schedule,
                                           time::time_point offset,
                                           const std::string &path) {
     if (!graph || !schedule) {

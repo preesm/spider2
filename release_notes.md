@@ -10,6 +10,7 @@ Spider2 Changelog
 ### Changes
 
 ### Bug fix
+* Sonar: fixed const qualified function parameters.
 
 
 ## Release version 0.1.1

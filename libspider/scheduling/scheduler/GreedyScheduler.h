@@ -67,7 +67,7 @@ namespace spider {
          * @param vertex  Vertex to evaluate.
          * @return true if vertex is schedulable, false else.
          */
-        bool isSchedulable(pisdf::Vertex *vertex) const;
+        bool isSchedulable(const pisdf::Vertex *vertex) const;
     };
 
     /* === Inline method(s) === */

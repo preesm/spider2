@@ -140,7 +140,7 @@ namespace spider {
              * @param edge  Pointer to the edge.
              * @return true if null edge, false else.
              */
-            bool checkForNullEdge(pisdf::Edge *edge);
+            bool checkForNullEdge(const pisdf::Edge *edge);
 
             /**
              * @brief Perform single rate linkage for a given Edge.
@@ -154,7 +154,7 @@ namespace spider {
              * @param srcVector   Vector of @refitem TransfoVertex corresponding to the sources of the edge of the job.
              * @param snkVector   Vector of @refitem TransfoVertex corresponding to the sinks of the edge of the job.
              */
-            void computeDependencies(pisdf::Edge *edge,
+            void computeDependencies(const pisdf::Edge *edge,
                                      spider::vector<TransfoVertex> &srcVector,
                                      spider::vector<TransfoVertex> &snkVector);
 
@@ -196,14 +196,14 @@ namespace spider {
              * @param edge Edge to evaluate.
              * @return vector of TransfoVertex.
              */
-            TransfoVertexVector buildSinkLinkerVector(pisdf::Edge *edge);
+            TransfoVertexVector buildSinkLinkerVector(const pisdf::Edge *edge);
 
             /**
              * @brief Build a vector of @refitem TransfoVertex of the source clones of a given edge.
              * @param edge Edge to evaluate.
              * @return vector of TransfoVertex.
              */
-            TransfoVertexVector buildSourceLinkerVector(pisdf::Edge *edge);
+            TransfoVertexVector buildSourceLinkerVector(const pisdf::Edge *edge);
 
             /**
              * @brief Populate vector from delay vertex and removes the edge.

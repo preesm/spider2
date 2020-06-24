@@ -56,7 +56,7 @@ spider::InterMemoryBus::InterMemoryBus(Cluster *clusterA,
     }
 }
 
-spider::MemoryBus *spider::InterMemoryBus::get(Cluster *clusterA, Cluster *clusterB) {
+spider::MemoryBus *spider::InterMemoryBus::get(const Cluster *clusterA, const Cluster *clusterB) {
     if (!clusterA || !clusterB) {
         throwSpiderException("nullptr for passed parameter cluster.");
     }

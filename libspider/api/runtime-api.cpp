@@ -137,7 +137,7 @@ spider::RTKernel *spider::api::createRuntimeKernel(Kernel kernel) {
     return nullptr;
 }
 
-spider::RTKernel *spider::api::createRuntimeKernel(pisdf::Vertex *vertex, Kernel kernel) {
+spider::RTKernel *spider::api::createRuntimeKernel(const pisdf::Vertex *vertex, Kernel kernel) {
     if (!vertex) {
         throwSpiderException("nullptr vertex.");
     }
@@ -158,7 +158,7 @@ spider::RTKernel *spider::api::createRuntimeKernel(pisdf::Vertex *vertex, Kernel
 
 /* === Mapping and Timing related API === */
 
-void spider::api::setVertexMappableOnCluster(pisdf::Vertex *vertex, const Cluster *cluster, bool value) {
+void spider::api::setVertexMappableOnCluster(const pisdf::Vertex *vertex, const Cluster *cluster, bool value) {
     if (!vertex) {
         throwSpiderException("nullptr vertex.");
     }
@@ -173,7 +173,7 @@ void spider::api::setVertexMappableOnCluster(pisdf::Vertex *vertex, const Cluste
     }
 }
 
-void spider::api::setVertexMappableOnCluster(pisdf::Vertex *vertex, uint32_t clusterIx, bool value) {
+void spider::api::setVertexMappableOnCluster(const pisdf::Vertex *vertex, uint32_t clusterIx, bool value) {
     if (!vertex) {
         throwSpiderException("nullptr vertex.");
     }
@@ -183,11 +183,11 @@ void spider::api::setVertexMappableOnCluster(pisdf::Vertex *vertex, uint32_t clu
     if (vertex->executable()) {
         auto *&platform = archi::platform();
         auto *cluster = platform->cluster(clusterIx);
-        spider::api::setVertexMappableOnCluster(vertex, cluster, value);
+        setVertexMappableOnCluster(vertex, cluster, value);
     }
 }
 
-void spider::api::setVertexMappableOnPE(pisdf::Vertex *vertex, const spider::PE *pe, bool value) {
+void spider::api::setVertexMappableOnPE(const pisdf::Vertex *vertex, const spider::PE *pe, bool value) {
     if (!vertex) {
         throwSpiderException("nullptr vertex.");
     }
@@ -200,14 +200,14 @@ void spider::api::setVertexMappableOnPE(pisdf::Vertex *vertex, const spider::PE 
     }
 }
 
-void spider::api::setVertexMappableOnPE(pisdf::Vertex *vertex, size_t PEId, bool value) {
+void spider::api::setVertexMappableOnPE(const pisdf::Vertex *vertex, size_t PEId, bool value) {
     if (!archi::platform()) {
         throwSpiderException("platform must be created first.");
     }
     setVertexMappableOnPE(vertex, archi::platform()->processingElement(PEId), value);
 }
 
-void spider::api::setVertexMappableOnAllPE(pisdf::Vertex *vertex, bool value) {
+void spider::api::setVertexMappableOnAllPE(const pisdf::Vertex *vertex, bool value) {
     if (!vertex) {
         throwSpiderException("nullptr vertex.");
     }
@@ -217,12 +217,13 @@ void spider::api::setVertexMappableOnAllPE(pisdf::Vertex *vertex, bool value) {
     }
 }
 
-void spider::api::setVertexExecutionTimingOnHWType(pisdf::Vertex *vertex, uint32_t hardwareType, int64_t timing) {
+void spider::api::setVertexExecutionTimingOnHWType(const pisdf::Vertex *vertex, uint32_t hardwareType, int64_t timing) {
     setVertexExecutionTimingOnHWType(vertex, hardwareType, std::to_string(timing));
 }
 
 void
-spider::api::setVertexExecutionTimingOnHWType(pisdf::Vertex *vertex, uint32_t hardwareType, std::string timingExpression) {
+spider::api::setVertexExecutionTimingOnHWType(const pisdf::Vertex *vertex, uint32_t hardwareType,
+                                              std::string timingExpression) {
     if (!archi::platform()) {
         throwSpiderException("platform must be created first.");
     }
@@ -231,11 +232,12 @@ spider::api::setVertexExecutionTimingOnHWType(pisdf::Vertex *vertex, uint32_t ha
     }
     if (vertex->executable()) {
         auto *runtimeInfo = vertex->runtimeInformation();
-        runtimeInfo->setTimingOnHWType(hardwareType, Expression(std::move(timingExpression), vertex->graph()->params()));
+        runtimeInfo->setTimingOnHWType(hardwareType,
+                                       Expression(std::move(timingExpression), vertex->graph()->params()));
     }
 }
 
-void spider::api::setVertexExecutionTimingOnAllHWTypes(pisdf::Vertex *vertex, std::string timingExpression) {
+void spider::api::setVertexExecutionTimingOnAllHWTypes(const pisdf::Vertex *vertex, std::string timingExpression) {
     if (!vertex) {
         throwSpiderException("nullptr vertex.");
     }
@@ -245,7 +247,7 @@ void spider::api::setVertexExecutionTimingOnAllHWTypes(pisdf::Vertex *vertex, st
     }
 }
 
-void spider::api::setVertexExecutionTimingOnAllHWTypes(pisdf::Vertex *vertex, int64_t timing) {
+void spider::api::setVertexExecutionTimingOnAllHWTypes(const pisdf::Vertex *vertex, int64_t timing) {
     if (!vertex) {
         throwSpiderException("nullptr vertex.");
     }

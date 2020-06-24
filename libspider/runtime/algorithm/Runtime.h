@@ -112,7 +112,7 @@ namespace spider {
          * @param schedule Pointer to the schedule.
          * @param path     Path of the file.
          */
-        void exportPreExecGantt(Schedule *schedule, const std::string &path = "./sched-gantt");
+        void exportPreExecGantt(const Schedule *schedule, const std::string &path = "./sched-gantt");
 
         /**
          * @brief Export the Gantt of the real execution trace of the application for 1 graph iteration.
@@ -122,8 +122,8 @@ namespace spider {
          * @param offset   Time offset to apply.
          * @param path     Path of the file.
          */
-        void exportPostExecGantt(pisdf::Graph *graph,
-                                 Schedule *schedule,
+        void exportPostExecGantt(const pisdf::Graph *graph,
+                                 const Schedule *schedule,
                                  time::time_point offset = time::min(),
                                  const std::string &path = "./exec-gantt");
 

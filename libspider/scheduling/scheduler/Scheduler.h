@@ -132,7 +132,7 @@ namespace spider {
          */
         ufast64 computeMinStartTime(ScheduleTask *task) const;
 
-        PE *findBestPEFit(Cluster *cluster,
+        PE *findBestPEFit(const Cluster *cluster,
                           ufast64 minStartTime,
                           const void *info,
                           TimePredicate execTimePredicate,
@@ -168,7 +168,7 @@ namespace spider {
          * @param task  Pointer to the task.
          * @return vector of @refitem DataDependency.
          */
-        static vector<DataDependency> getDataDependencies(ScheduleTask *task);
+        static vector<DataDependency> getDataDependencies(const ScheduleTask *task);
 
         /**
          * @brief Default task mapper that try to best fit.

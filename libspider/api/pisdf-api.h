@@ -83,13 +83,6 @@ namespace spider {
         pisdf::Vertex *convertGraphToVertex(pisdf::Graph *graph);
 
         /**
-         * @brief This functions converts every broadcast as they are expressed in the Preesm tool in convertible
-         *        pattern for Spider to understand.
-         * @param graph Pointer to the graph.
-         */
-        void convertPreesmBroadcast(pisdf::Graph *graph);
-
-        /**
          * @brief Creates a @refitem pisdf::Graph with a parent graph.
          * @param graph           Pointer to the parent graph.
          * @param name            Name of the graph.
@@ -277,7 +270,7 @@ namespace spider {
          * @return pointer to the corresponding @refitem pisdf::Vertex.
          * @throws spider::Exception if graph is nullptr or interface is not found.
          */
-        pisdf::Vertex *getInputInterface(pisdf::Graph *graph, size_t ix);
+        pisdf::Vertex *getInputInterface(const pisdf::Graph *graph, size_t ix);
 
         /**
          * @brief Get an input @refitem pisdf::Interface of a given graph.
@@ -286,7 +279,7 @@ namespace spider {
          * @return pointer to the corresponding @refitem pisdf::Vertex.
          * @throws spider::Exception if graph is nullptr or interface is not found.
          */
-        pisdf::Vertex *getOutputInterface(pisdf::Graph *graph, size_t ix);
+        pisdf::Vertex *getOutputInterface(const pisdf::Graph *graph, size_t ix);
 
         /**
          * @brief Change the name of an input @refitem pisdf::Interface.
@@ -296,7 +289,7 @@ namespace spider {
          * @return pointer to the corresponding @refitem pisdf::Vertex.
          * @throws spider::Exception if graph is nullptr or interface is not found.
          */
-        pisdf::Vertex *setInputInterfaceName(pisdf::Graph *graph, size_t ix, std::string name);
+        pisdf::Vertex *setInputInterfaceName(const pisdf::Graph *graph, size_t ix, std::string name);
 
         /**
          * @brief Change the name of an output @refitem pisdf::Interface.
@@ -306,7 +299,7 @@ namespace spider {
          * @return pointer to the corresponding @refitem pisdf::Vertex.
          * @throws spider::Exception if graph is nullptr or interface is not found.
          */
-        pisdf::Vertex *setOutputInterfaceName(pisdf::Graph *graph, size_t ix, std::string name);
+        pisdf::Vertex *setOutputInterfaceName(const pisdf::Graph *graph, size_t ix, std::string name);
 
         /* === Param API === */
 

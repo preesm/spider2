@@ -46,10 +46,10 @@ namespace spider {
 
     /* === Function(s) prototype === */
 
-    using EdgeConnecter = void (*)(pisdf::Vertex *, size_t, pisdf::Vertex *, size_t);
-    using EdgeRemover = size_t (*)(pisdf::Vertex *, pisdf::Vertex *);
-    using NextVertexGetter = pisdf::Vertex *(*)(pisdf::Vertex *);
-    using VertexMaker = pisdf::Vertex *(*)(pisdf::Vertex *, pisdf::Vertex *);
+    using EdgeConnecter = void (*)(const pisdf::Vertex *, size_t, pisdf::Vertex *, size_t);
+    using EdgeRemover = size_t (*)(const pisdf::Vertex *, const pisdf::Vertex *);
+    using NextVertexGetter = pisdf::Vertex *(*)(const pisdf::Vertex *);
+    using VertexMaker = pisdf::Vertex *(*)(const pisdf::Vertex *, const pisdf::Vertex *);
 
     namespace optims {
 

@@ -81,7 +81,7 @@ namespace spider {
          * @return pointer to the created @refitem RTKernel.
          * @throws spider::Exception if the vertex is nullptr or if the vertex already has a kernel.
          */
-        RTKernel *createRuntimeKernel(pisdf::Vertex *vertex, Kernel kernel);
+        RTKernel *createRuntimeKernel(const pisdf::Vertex *vertex, Kernel kernel);
 
         /* === Mapping and Timing related API === */
 
@@ -92,7 +92,7 @@ namespace spider {
          * @param value   Value to be set (true = mappable, false = non mappable).
          * @throws spider::Exception if vertex is nullptr.
          */
-        void setVertexMappableOnCluster(pisdf::Vertex *vertex, const Cluster *cluster, bool value = true);
+        void setVertexMappableOnCluster(const pisdf::Vertex *vertex, const Cluster *cluster, bool value = true);
 
         /**
          * @brief Sets mappable property of a vertex on a given Cluster of processing element.
@@ -101,7 +101,7 @@ namespace spider {
          * @param value     Value to be set (true = mappable, false = non mappable).
          * @throws spider::Exception if vertex is nullptr.
          */
-        void setVertexMappableOnCluster(pisdf::Vertex *vertex, uint32_t clusterIx, bool value = true);
+        void setVertexMappableOnCluster(const pisdf::Vertex *vertex, uint32_t clusterIx, bool value = true);
 
         /**
          * @brief Sets mappable property of a vertex on a given processing element.
@@ -110,7 +110,7 @@ namespace spider {
          * @param value   Value to be set (true = mappable, false = non mappable).
          * @throws spider::Exception if vertex is nullptr.
          */
-        void setVertexMappableOnPE(pisdf::Vertex *vertex, const PE *pe, bool value = true);
+        void setVertexMappableOnPE(const pisdf::Vertex *vertex, const PE *pe, bool value = true);
 
         /**
          * @brief Sets mappable property of a vertex on a given processing element.
@@ -119,7 +119,7 @@ namespace spider {
          * @param value   Value to be set (true = mappable, false = non mappable).
          * @throws spider::Exception if vertex is nullptr.
          */
-        void setVertexMappableOnPE(pisdf::Vertex *vertex, size_t PEId, bool value = true);
+        void setVertexMappableOnPE(const pisdf::Vertex *vertex, size_t PEId, bool value = true);
 
         /**
          * @brief Sets mappable property of a vertex for all processing elements.
@@ -127,7 +127,7 @@ namespace spider {
          * @param value   Value to be set (true = mappable, false = non mappable).
          * @throws spider::Exception if vertex is nullptr.
          */
-        void setVertexMappableOnAllPE(pisdf::Vertex *vertex, bool value = true);
+        void setVertexMappableOnAllPE(const pisdf::Vertex *vertex, bool value = true);
 
         /**
          * @brief Sets the execution time expression of a vertex on a given processing element.
@@ -137,7 +137,7 @@ namespace spider {
          * @throws spider::Exception if vertex is nullptr.
          */
         void
-        setVertexExecutionTimingOnCluster(pisdf::Vertex *vertex, const Cluster *pe,
+        setVertexExecutionTimingOnCluster(const pisdf::Vertex *vertex, const Cluster *pe,
                                           std::string timingExpression = "100");
 
         /**
@@ -147,7 +147,7 @@ namespace spider {
          * @param timing       Value of the timing to be set.
          * @throws spider::Exception if vertex is nullptr.
          */
-        void setVertexExecutionTimingOnHWType(pisdf::Vertex *vertex, uint32_t hardwareType, int64_t timing = 100);
+        void setVertexExecutionTimingOnHWType(const pisdf::Vertex *vertex, uint32_t hardwareType, int64_t timing = 100);
 
         /**
          * @brief Sets the execution time expression of a vertex on a given processing element.
@@ -157,7 +157,7 @@ namespace spider {
          * @throws spider::Exception if vertex is nullptr.
          */
         void
-        setVertexExecutionTimingOnHWType(pisdf::Vertex *vertex, uint32_t hardwareType,
+        setVertexExecutionTimingOnHWType(const pisdf::Vertex *vertex, uint32_t hardwareType,
                                          std::string timingExpression = "100");
 
 
@@ -167,7 +167,7 @@ namespace spider {
          * @param timingExpression  Expression of the execution time (can be parameterized).
          * @throws spider::Exception if vertex is nullptr.
          */
-        void setVertexExecutionTimingOnAllHWTypes(pisdf::Vertex *vertex, std::string timingExpression);
+        void setVertexExecutionTimingOnAllHWTypes(const pisdf::Vertex *vertex, std::string timingExpression);
 
         /**
          * @brief Sets the execution time value of a vertex for all processing elements.
@@ -175,7 +175,7 @@ namespace spider {
          * @param timing  Value of the timing to be set.
          * @throws spider::Exception if vertex is nullptr.
          */
-        void setVertexExecutionTimingOnAllHWTypes(pisdf::Vertex *vertex, int64_t timing = 100);
+        void setVertexExecutionTimingOnAllHWTypes(const pisdf::Vertex *vertex, int64_t timing = 100);
     }
 }
 

@@ -76,7 +76,7 @@ spider::Schedule &spider::GreedyScheduler::execute() {
     return schedule_;
 }
 
-bool spider::GreedyScheduler::isSchedulable(pisdf::Vertex *vertex) const {
+bool spider::GreedyScheduler::isSchedulable(const pisdf::Vertex *vertex) const {
     if (!vertex->inputEdgeCount()) {
         return true;
     }

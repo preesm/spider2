@@ -62,7 +62,8 @@
  * @param secondFork  Pointer to the secondary vertex.
  * @return pointer to the created Vertex.
  */
-static spider::pisdf::Vertex *createNewFork(spider::pisdf::Vertex *secondFork, spider::pisdf::Vertex *firstFork) {
+static spider::pisdf::Vertex *
+createNewFork(const spider::pisdf::Vertex *secondFork, const spider::pisdf::Vertex *firstFork) {
     auto *graph = firstFork->graph();
     const auto &outputCount = static_cast<uint32_t>((firstFork->outputEdgeCount() - 1) +
                                                     secondFork->outputEdgeCount());
@@ -93,7 +94,7 @@ static spider::pisdf::Vertex *createNewFork(spider::pisdf::Vertex *secondFork, s
  * @return pointer to the created Vertex.
  */
 static spider::pisdf::Vertex *
-createNewDuplicate(spider::pisdf::Vertex *secondDuplicate, spider::pisdf::Vertex *firstDuplicate) {
+createNewDuplicate(const spider::pisdf::Vertex *secondDuplicate, const spider::pisdf::Vertex *firstDuplicate) {
     auto *graph = firstDuplicate->graph();
     const auto &outputCount = static_cast<uint32_t>((firstDuplicate->outputEdgeCount() - 1) +
                                                     secondDuplicate->outputEdgeCount());
@@ -123,7 +124,8 @@ createNewDuplicate(spider::pisdf::Vertex *secondDuplicate, spider::pisdf::Vertex
  * @param secondJoin  Pointer to the secondary vertex.
  * @return pointer to the created Vertex.
  */
-static spider::pisdf::Vertex *createNewJoin(spider::pisdf::Vertex *firstJoin, spider::pisdf::Vertex *secondJoin) {
+static spider::pisdf::Vertex *
+createNewJoin(const spider::pisdf::Vertex *firstJoin, const spider::pisdf::Vertex *secondJoin) {
     auto *graph = firstJoin->graph();
     const auto &inputCount = static_cast<uint32_t>(firstJoin->inputEdgeCount() +
                                                    (secondJoin->inputEdgeCount() - 1));
@@ -218,15 +220,15 @@ bool spider::optims::reduceDupDup(pisdf::Graph *graph) {
         return false;
     }
     /* == Declare the lambdas == */
-    auto getNextVertex = [](pisdf::Vertex *vertex) -> pisdf::Vertex * {
+    auto getNextVertex = [](const pisdf::Vertex *vertex) -> pisdf::Vertex * {
         return vertex->inputEdge(0)->source();
     };
-    auto removeEdge = [](pisdf::Vertex *vertex, pisdf::Vertex *vertexB) -> size_t {
+    auto removeEdge = [](const pisdf::Vertex *vertex, const pisdf::Vertex *vertexB) -> size_t {
         const auto offset = vertex->inputEdge(0)->sourcePortIx();
         vertex->graph()->removeEdge(vertexB->outputEdge(offset));
         return offset;
     };
-    auto reconnectEdge = [](pisdf::Vertex *vertex, size_t srcIx, pisdf::Vertex *target, size_t snkIx) {
+    auto reconnectEdge = [](const pisdf::Vertex *vertex, size_t srcIx, pisdf::Vertex *target, size_t snkIx) {
         auto *edge = vertex->outputEdge(srcIx);
         edge->setSource(target, snkIx, edge->sourceRateExpression());
     };
@@ -245,15 +247,15 @@ bool spider::optims::reduceForkFork(pisdf::Graph *graph) {
         return false;
     }
     /* == Declare the lambdas == */
-    auto getNextVertex = [](pisdf::Vertex *vertex) -> pisdf::Vertex * {
+    auto getNextVertex = [](const pisdf::Vertex *vertex) -> pisdf::Vertex * {
         return vertex->inputEdge(0)->source();
     };
-    auto removeEdge = [](pisdf::Vertex *vertex, pisdf::Vertex *vertexB) -> size_t {
+    auto removeEdge = [](const pisdf::Vertex *vertex, const pisdf::Vertex *vertexB) -> size_t {
         const auto offset = vertex->inputEdge(0)->sourcePortIx();
         vertex->graph()->removeEdge(vertexB->outputEdge(offset));
         return offset;
     };
-    auto reconnectEdge = [](pisdf::Vertex *vertex, size_t srcIx, pisdf::Vertex *target, size_t snkIx) {
+    auto reconnectEdge = [](const pisdf::Vertex *vertex, size_t srcIx, pisdf::Vertex *target, size_t snkIx) {
         auto *edge = vertex->outputEdge(srcIx);
         edge->setSource(target, snkIx, edge->sourceRateExpression());
     };
@@ -272,15 +274,15 @@ bool spider::optims::reduceJoinJoin(pisdf::Graph *graph) {
         return false;
     }
     /* == Declare the lambdas == */
-    auto getNextVertex = [](pisdf::Vertex *vertex) -> pisdf::Vertex * {
+    auto getNextVertex = [](const pisdf::Vertex *vertex) -> pisdf::Vertex * {
         return vertex->outputEdge(0)->sink();
     };
-    auto removeEdge = [](pisdf::Vertex *vertex, pisdf::Vertex *vertexB) -> size_t {
+    auto removeEdge = [](const pisdf::Vertex *vertex, const pisdf::Vertex *vertexB) -> size_t {
         const auto offset = vertex->outputEdge(0)->sinkPortIx();
         vertex->graph()->removeEdge(vertexB->inputEdge(offset));
         return offset;
     };
-    auto reconnectEdge = [](pisdf::Vertex *vertex, size_t srcIx, pisdf::Vertex *target, size_t snkIx) {
+    auto reconnectEdge = [](const pisdf::Vertex *vertex, size_t srcIx, pisdf::Vertex *target, size_t snkIx) {
         auto *edge = vertex->inputEdge(srcIx);
         edge->setSink(target, snkIx, edge->sinkRateExpression());
     };
@@ -414,7 +416,7 @@ bool spider::optims::reduceInitEnd(pisdf::Graph *graph) {
     return verticesToOptimize.empty();
 }
 
-bool spider::optims::reduceUnitaryRateActors(pisdf::Graph *graph) {
+bool spider::optims::reduceUnitaryRateActors(const pisdf::Graph *graph) {
     if (!graph) {
         return false;
     }

@@ -96,7 +96,7 @@ namespace spider {
          * @param dataSize   Size (in byte) of the data to send / receive.
          * @return communication cost (UINT64_MAX if communication is not possible).
          */
-        uint64_t dataCommunicationCostPEToPE(PE *peSrc, PE *peSnk, uint64_t dataSize) const;
+        uint64_t dataCommunicationCostPEToPE(const PE *peSrc, const PE *peSnk, uint64_t dataSize) const;
 
         /**
          * @brief Register a new external buffer.
@@ -177,7 +177,7 @@ namespace spider {
          * @return @refitem MemoryBus if cluster A != cluster B, nullptr else.
          * @throws std::out_of_range if not found.
          */
-        MemoryBus *getClusterToClusterMemoryBus(Cluster *clusterA, Cluster *clusterB) const;
+        MemoryBus *getClusterToClusterMemoryBus(const Cluster *clusterA, const Cluster *clusterB) const;
 
         /**
          * @brief Returns the linear array of processing element (order is not guaranteed to respect Cluster order).
@@ -244,7 +244,7 @@ namespace spider {
          * @param bus        Pointer to the @refitem InterMemoryBus.
          * @throws std::out_of_range if out of bound
          */
-        void setClusterToClusterMemoryBus(Cluster *clusterA, Cluster *clusterB, InterMemoryBus *bus);
+        void setClusterToClusterMemoryBus(const Cluster *clusterA, const Cluster *clusterB, InterMemoryBus *bus);
 
     private:
         array<Cluster *> clusterArray_;                      /* = Array of Cluster in the Platform = */

@@ -47,7 +47,7 @@
 
 /* === Function(s) definition === */
 
-void spider::rt::fork(const int64_t *paramsIn, int64_t *, void **in, void **out) {
+void spider::rt::fork(const int64_t *paramsIn, const int64_t *, void **in, void **out) {
     const auto inputRate = paramsIn[0];   /* = Rate of the input port (used for sanity check) = */
     const auto outputCount = paramsIn[1]; /* = Number of output = */
     size_t offset = 0;
@@ -69,7 +69,7 @@ void spider::rt::fork(const int64_t *paramsIn, int64_t *, void **in, void **out)
     }
 }
 
-void spider::rt::join(const int64_t *paramsIn, int64_t *, void **in, void **out) {
+void spider::rt::join(const int64_t *paramsIn, const int64_t *, void **in, void **out) {
     const auto outputRate = paramsIn[0]; /* = Rate of the output port (used for sanity check) = */
     const auto inputCount = paramsIn[1]; /* = Number of input = */
     size_t offset = 0;
@@ -91,7 +91,7 @@ void spider::rt::join(const int64_t *paramsIn, int64_t *, void **in, void **out)
     }
 }
 
-void spider::rt::head(const int64_t *paramsIn, int64_t *, void **in, void **out) {
+void spider::rt::head(const int64_t *paramsIn, const int64_t *, void **in, void **out) {
     const auto inputEnd = paramsIn[0]; /* = Number of inputs to consider = */
     size_t offset = 0;
     for (int64_t i = 0; i < inputEnd; ++i) {
@@ -105,7 +105,7 @@ void spider::rt::head(const int64_t *paramsIn, int64_t *, void **in, void **out)
     }
 }
 
-void spider::rt::tail(const int64_t *paramsIn, int64_t *, void **in, void **out) {
+void spider::rt::tail(const int64_t *paramsIn, const int64_t *, void **in, void **out) {
     const auto inputCount = static_cast<size_t>(paramsIn[0]);     /* = Number of input = */
     const auto inputStart = static_cast<size_t>(paramsIn[1]);     /* = First input to be considered = */
     const auto inputOffset = static_cast<size_t>(paramsIn[2]);    /* = Offset in the first buffer if any = */
@@ -127,7 +127,7 @@ void spider::rt::tail(const int64_t *paramsIn, int64_t *, void **in, void **out)
     }
 }
 
-void spider::rt::repeat(const int64_t *paramsIn, int64_t *, void **in, void **out) {
+void spider::rt::repeat(const int64_t *paramsIn, const int64_t *, void **in, void **out) {
     if (in[0] == out[0]) {
         return;
     }
@@ -150,7 +150,7 @@ void spider::rt::repeat(const int64_t *paramsIn, int64_t *, void **in, void **ou
     }
 }
 
-void spider::rt::duplicate(const int64_t *paramsIn, int64_t *, void **in, void **out) {
+void spider::rt::duplicate(const int64_t *paramsIn, const int64_t *, void **in, void **out) {
     const auto outputCount = paramsIn[0]; /* = Number of output = */
     const auto inputSize = paramsIn[1];   /* = Rate of the input port = */
     const auto *input = in[0];            /* = Input buffer = */
@@ -161,7 +161,7 @@ void spider::rt::duplicate(const int64_t *paramsIn, int64_t *, void **in, void *
     }
 }
 
-void spider::rt::init(const int64_t *paramsIn, int64_t *, void **, void **out) {
+void spider::rt::init(const int64_t *paramsIn, const int64_t *, void **, void **out) {
     const auto isPersistent = paramsIn[0];
     const auto size = paramsIn[1];
     if (!isPersistent) {
@@ -180,7 +180,7 @@ void spider::rt::init(const int64_t *paramsIn, int64_t *, void **, void **out) {
     }
 }
 
-void spider::rt::end(const int64_t *paramsIn, int64_t *, void **in, void **) {
+void spider::rt::end(const int64_t *paramsIn, const int64_t *, void **in, void **) {
     if (paramsIn[0]) {
         const auto size = paramsIn[1];
         const auto address = paramsIn[2];
@@ -196,9 +196,9 @@ void spider::rt::end(const int64_t *paramsIn, int64_t *, void **in, void **) {
     }
 }
 
-void spider::rt::externIn(const int64_t *, int64_t *, void **, void **) { }
+void spider::rt::externIn(const int64_t *, const int64_t *, void **, void **) { }
 
-void spider::rt::externOut(const int64_t *paramsIn, int64_t *, void **in, void **) {
+void spider::rt::externOut(const int64_t *paramsIn, const int64_t *, void **in, void **) {
     const auto bufferIndex = paramsIn[0];
     const auto size = paramsIn[1];
     auto *buffer = archi::platform()->getExternalBuffer(static_cast<size_t>(bufferIndex));

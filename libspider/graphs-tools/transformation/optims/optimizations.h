@@ -122,7 +122,7 @@ namespace spider {
          * @param graph Pointer to the graph to be optimized.
          * @return true if optimization was applied, false else.
          */
-        bool reduceUnitaryRateActors(pisdf::Graph *graph);
+        bool reduceUnitaryRateActors(const pisdf::Graph *graph);
     }
 }
 

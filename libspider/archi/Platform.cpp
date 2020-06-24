@@ -131,7 +131,8 @@ size_t spider::Platform::LRTCount() const {
     return lrtVector_.size();
 }
 
-spider::MemoryBus *spider::Platform::getClusterToClusterMemoryBus(Cluster *clusterA, Cluster *clusterB) const {
+spider::MemoryBus *
+spider::Platform::getClusterToClusterMemoryBus(const Cluster *clusterA, const Cluster *clusterB) const {
     if (clusterA == clusterB) {
         return nullptr;
     }
@@ -157,7 +158,8 @@ void spider::Platform::setPE(spider::PE *pe) {
     }
 }
 
-void spider::Platform::setClusterToClusterMemoryBus(Cluster *clusterA, Cluster *clusterB, InterMemoryBus *bus) {
+void
+spider::Platform::setClusterToClusterMemoryBus(const Cluster *clusterA, const Cluster *clusterB, InterMemoryBus *bus) {
     if ((clusterA == clusterB) || !bus) {
         return;
     }
@@ -165,7 +167,7 @@ void spider::Platform::setClusterToClusterMemoryBus(Cluster *clusterA, Cluster *
     interClusterMemoryBusArray_.at(index) = bus;
 }
 
-uint64_t spider::Platform::dataCommunicationCostPEToPE(PE *peSrc, PE *peSnk, uint64_t dataSize) const {
+uint64_t spider::Platform::dataCommunicationCostPEToPE(const PE *peSrc, const PE *peSnk, uint64_t dataSize) const {
     if (!peSrc || !peSnk) {
         throwSpiderException("nullptr for peSrc or peSnk.");
     }

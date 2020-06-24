@@ -49,7 +49,7 @@
 
 /* === Static function(s) definition === */
 
-static void checkFifoAllocatorTraits(spider::FifoAllocator *allocator, spider::Scheduler::ScheduleMode mode) {
+static void checkFifoAllocatorTraits(const spider::FifoAllocator *allocator, spider::Scheduler::ScheduleMode mode) {
     switch (mode) {
         case spider::Scheduler::JIT_SEND:
             if (!allocator->traits_.jitAllocator_) {
@@ -109,7 +109,7 @@ ufast64 spider::Scheduler::computeMinStartTime(ScheduleTask *task) const {
     return minimumStartTime;
 }
 
-spider::PE *spider::Scheduler::findBestPEFit(Cluster *cluster,
+spider::PE *spider::Scheduler::findBestPEFit(const Cluster *cluster,
                                              ufast64 minStartTime,
                                              const void *info,
                                              TimePredicate execTimePredicate,
@@ -215,7 +215,7 @@ void spider::Scheduler::scheduleCommunications(ScheduleTask *task,
 }
 
 spider::vector<spider::Scheduler::DataDependency>
-spider::Scheduler::getDataDependencies(ScheduleTask *task) {
+spider::Scheduler::getDataDependencies(const ScheduleTask *task) {
     const auto *vertex = task->vertex();
     const auto *platform = archi::platform();
     auto taskDependenciesIterator{ std::begin(task->dependencies()) };

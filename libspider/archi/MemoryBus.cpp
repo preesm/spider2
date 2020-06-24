@@ -50,8 +50,8 @@
 spider::MemoryBus::MemoryBus() {
     sendCostRoutine_ = [](u64) -> u64 { return 0; };
     receiveCostRoutine_ = [](u64) -> u64 { return 0; };
-    sendRoutine_ = [](i64, i32, void *) { };
-    receiveRoutine_ = [](i64, i32, void *) { };
+    sendRoutine_ = [](i64, i32, const void *) { };
+    receiveRoutine_ = [](i64, i32, const void *) { };
 }
 
 uint64_t spider::MemoryBus::sendCost(uint64_t size) const {
@@ -130,14 +130,14 @@ void spider::MemoryBus::setReceiveRoutine(MemoryBusRoutine routine) {
     }
 }
 
-void spider::MemoryBus::send(const int64_t *paramsIN, int64_t *, void *in[], void *[]) {
+void spider::MemoryBus::send(const int64_t *paramsIN, const int64_t *, void *in[], void *[]) {
     auto *clusterA = archi::platform()->cluster(static_cast<size_t>(paramsIN[0])); /* = source = */
     auto *clusterB = archi::platform()->cluster(static_cast<size_t>(paramsIN[1])); /* = target = */
     auto *bus = archi::platform()->getClusterToClusterMemoryBus(clusterA, clusterB);
     bus->dataSend(paramsIN[2], static_cast<i32>(paramsIN[3]), in[0]);
 }
 
-void spider::MemoryBus::receive(const int64_t *paramsIN, int64_t *, void *[], void *out[]) {
+void spider::MemoryBus::receive(const int64_t *paramsIN, const int64_t *, void *[], void *out[]) {
     auto *clusterA = archi::platform()->cluster(static_cast<size_t>(paramsIN[0])); /* = source = */
     auto *clusterB = archi::platform()->cluster(static_cast<size_t>(paramsIN[1])); /* = target = */
     auto *bus = archi::platform()->getClusterToClusterMemoryBus(clusterA, clusterB);

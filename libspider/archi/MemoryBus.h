@@ -170,9 +170,9 @@ namespace spider {
 
         /* === Private method(s) === */
 
-        static void send(const int64_t *paramsIN, int64_t *, void *in[], void *[]);
+        static void send(const int64_t *paramsIN, const int64_t *, void *in[], void *[]);
 
-        static void receive(const int64_t *paramsIN, int64_t *, void *[], void *out[]);
+        static void receive(const int64_t *paramsIN, const int64_t *, void *[], void *out[]);
     };
 }
 #endif //SPIDER2_MEMORYBUS_H

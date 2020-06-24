@@ -94,7 +94,7 @@ spider::expr::CompiledExpression::findParameter(const param_table_t &params, con
     throwSpiderException("Did not find parameter [%s] for expression parsing.", name.c_str());
 }
 
-void spider::expr::CompiledExpression::registerSymbol(param_t const param) {
+void spider::expr::CompiledExpression::registerSymbol(const param_t param) {
     for (const auto &s : symbolTable_) {
         if (s.second == param->name()) {
             return;
@@ -200,7 +200,7 @@ void spider::expr::CompiledExpression::writeHelperFile() const {
         /* == Logical AND == */
         printer::fprintf(outputFile, "\tstatic inline double land(const double x, const double y) {\n");
         printer::fprintf(outputFile, "\t\tif(std::not_equal_to<double>{ }(0., x) && \n"
-                            "\t\t   std::not_equal_to<double>{ }(0., y)) {\n");
+                                     "\t\t   std::not_equal_to<double>{ }(0., y)) {\n");
         printer::fprintf(outputFile, "\t\t\treturn 1.;\n");
         printer::fprintf(outputFile, "\t\t}\n");
         printer::fprintf(outputFile, "\t\treturn 0.;\n");
@@ -208,7 +208,7 @@ void spider::expr::CompiledExpression::writeHelperFile() const {
         /* == Logical OR == */
         printer::fprintf(outputFile, "\tstatic inline double lor(const double x, const double y) {\n");
         printer::fprintf(outputFile, "\t\tif(std::not_equal_to<double>{ }(0., x) || \n"
-                            "\t\t   std::not_equal_to<double>{ }(0., y)) {\n");
+                                     "\t\t   std::not_equal_to<double>{ }(0., y)) {\n");
         printer::fprintf(outputFile, "\t\t\treturn 1.;\n");
         printer::fprintf(outputFile, "\t\t}\n");
         printer::fprintf(outputFile, "\t\treturn 0.;\n");
