@@ -56,7 +56,7 @@ void *spider::MemoryInterface::read(uint64_t virtualAddress, u32 count) {
     return buffer->buffer_;
 }
 
-void *spider::MemoryInterface::allocate(uint64_t virtualAddress, size_t size) {
+void *spider::MemoryInterface::allocate(uint64_t virtualAddress, size_t size, u32 count) {
     if (!size) {
         return nullptr;
     }
@@ -78,7 +78,7 @@ void *spider::MemoryInterface::allocate(uint64_t virtualAddress, size_t size) {
     if (!physicalAddress) {
         return nullptr;
     }
-    registerPhysicalAddress(virtualAddress, physicalAddress, size);
+    registerPhysicalAddress(virtualAddress, physicalAddress, size, count);
     return physicalAddress;
 }
 
@@ -107,9 +107,9 @@ void spider::MemoryInterface::clear() {
 
 /* === Private method(s) === */
 
-void spider::MemoryInterface::registerPhysicalAddress(uint64_t virtualAddress, void *physicalAddress, size_t size) {
+void spider::MemoryInterface::registerPhysicalAddress(uint64_t virtAddress, void *phyAddress, size_t size, u32 count) {
     /* == Apply offset to virtual address to get the corresponding address associated to attached MemoryUnit == */
-    virtual2Phys_[virtualAddress] = buffer_t{ physicalAddress, size, 1 };
+    virtual2Phys_[virtAddress] = buffer_t{ phyAddress, size, count };
 }
 
 spider::MemoryInterface::buffer_t *spider::MemoryInterface::retrieveBuffer(uint64_t virtualAddress) {
@@ -118,12 +118,13 @@ spider::MemoryInterface::buffer_t *spider::MemoryInterface::retrieveBuffer(uint6
     }
 #ifndef NDEBUG
     try {
-        return &(virtual2Phys_.at(virtualAddress));
+        return &virtual2Phys_.at(virtualAddress);
     } catch (std::out_of_range &e) {
-        printer::fprintf(stderr, "[%p]: %s\n", reinterpret_cast<void *>(this), e.what());
+        log::print<log::MEMORY>(log::red, "ERROR", " [%p] accessing bad memory address.\n",
+                                reinterpret_cast<void *>(this));
         throw e;
     }
 #else
-    return &(virtual2Phys_.at(virtualAddress));
+    return &virtual2Phys_[virtualAddress];
 #endif
 }

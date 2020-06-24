@@ -1,12 +1,7 @@
 /*
- * Copyright or © or Copr. IETR/INSA - Rennes (2013 - 2019) :
+ * Copyright or © or Copr. IETR/INSA - Rennes (2020) :
  *
- * Antoine Morvan <antoine.morvan@insa-rennes.fr> (2018)
- * Clément Guy <clement.guy@insa-rennes.fr> (2014)
- * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2017-2019)
- * Hugo Miomandre <hugo.miomandre@insa-rennes.fr> (2017)
- * Julien Heulot <julien.heulot@insa-rennes.fr> (2013 - 2015)
- * Yaset Oliva <yaset.oliva@insa-rennes.fr> (2013 - 2014)
+ * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2020)
  *
  * Spider is a dataflow based runtime used to execute dynamic PiSDF
  * applications. The Preesm tool may be used to design PiSDF applications.
@@ -37,28 +32,48 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_RUNTIMETESTCASES_H
-#define SPIDER2_RUNTIMETESTCASES_H
+#ifndef SPIDER2_NOSYNCDEFAULTFIFOALLOCATOR_H
+#define SPIDER2_NOSYNCDEFAULTFIFOALLOCATOR_H
 
 /* === Include(s) === */
 
-#include <api/spider.h>
-
-/* === Function(s) prototype === */
+#include <scheduling/allocator/DefaultFifoAllocator.h>
 
 namespace spider {
-    namespace test {
-        void runtimeStaticFlat(RuntimeType type, SchedulingPolicy algorithm, spider::FifoAllocatorType allocatorType);
 
-        void runtimeStaticHierarchical(RuntimeType type, SchedulingPolicy algorithm, spider::FifoAllocatorType allocatorType);
+    /* === Class definition === */
 
-        void runtimeStaticFlatNoExec(RuntimeType type, SchedulingPolicy algorithm, spider::FifoAllocatorType allocatorType);
+    class NoSyncDefaultFifoAllocator : public DefaultFifoAllocator {
+    public:
 
-        void runtimeStaticHierarchicalNoExec(RuntimeType type, SchedulingPolicy algorithm, spider::FifoAllocatorType allocatorType);
+        NoSyncDefaultFifoAllocator() noexcept : DefaultFifoAllocator({ false, true }) { }
 
-        void
-        runtimeDynamicHierarchical(RuntimeType type, SchedulingPolicy algorithm, spider::FifoAllocatorType allocatorType);
-    }
+        ~NoSyncDefaultFifoAllocator() = default;
+
+        /* === Method(s) === */
+
+        /* === Getter(s) === */
+
+        inline FifoAllocatorType type() const override { return FifoAllocatorType::DEFAULT_NOSYNC; }
+
+        /* === Setter(s) === */
+
+    private:
+
+        RTFifo allocateDefaultVertexInputFifo(ScheduleTask *task, const pisdf::Edge *edge) override;
+
+        void allocateForkTask(ScheduleTask *task) override;
+
+        void allocateDuplicateTask(ScheduleTask *task) override;
+
+        void allocateExternInTask(ScheduleTask *task) override;
+
+        void updateForkDuplicateInputTask(ScheduleTask *task) const;
+
+        void updateForkDuplicateInputFifoCount(const ScheduleTask *task, const pisdf::Vertex *vertex) const;
+
+        bool replaceInputTask(ScheduleTask *task, const ScheduleTask *oldInputTask, size_t ix) const;
+
+    };
 }
-
-#endif //SPIDER2_RUNTIMETESTCASES_H
+#endif //SPIDER2_NOSYNCDEFAULTFIFOALLOCATOR_H

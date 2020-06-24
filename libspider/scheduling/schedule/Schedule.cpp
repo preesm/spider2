@@ -115,23 +115,7 @@ void spider::Schedule::updateTaskAndSetReady(size_t taskIx, size_t slave, uint64
     task->setExecIx(static_cast<i32>(stats_.jobCount(peIx)));
 
     /* == Find minimal dependencies == */
-    const auto lrtCount = archi::platform()->LRTCount();
-    auto shouldNotifyArray = array<i32>(lrtCount, -1, StackID::SCHEDULE);
-    for (const auto *dependency : task->dependencies()) {
-        if (dependency) {
-            const auto mappedLRT = dependency->mappedLrt();
-            const auto currentJobConstraint = task->executionConstraint(mappedLRT);
-            if ((currentJobConstraint < 0) || (dependency->execIx() > currentJobConstraint)) {
-                task->setExecutionConstraint(mappedLRT, dependency->execIx());
-                shouldNotifyArray[mappedLRT] = dependency->ix();
-            }
-        }
-    }
-    for (auto &value : shouldNotifyArray) {
-        if (value >= 0) {
-            taskVector_[static_cast<size_t>(value)]->setNotificationFlag(task->mappedLrt(), true);
-        }
-    }
+    task->updateExecutionConstraints();
 
     /* == Update schedule statistics == */
     stats_.updateStartTime(peIx, startTime);
@@ -152,11 +136,13 @@ void spider::Schedule::sendReadyTasks() {
     const auto grtIx = archi::platform()->getGRTIx();
     auto *communicator = rt::platform()->communicator();
     for (auto &task : readyTaskVector_) {
-        /* == Create job message and send the notification == */
-        const auto messageIx = communicator->push(task->createJobMessage(), task->mappedLrt());
-        communicator->push(Notification{ NotificationType::JOB_ADD, grtIx, messageIx }, task->mappedLrt());
-        /* == Set job in TaskState::RUNNING == */
-        task->setState(TaskState::RUNNING);
+        if (task->state() == TaskState::READY) {
+            /* == Create job message and send the notification == */
+            const auto messageIx = communicator->push(task->createJobMessage(), task->mappedLrt());
+            communicator->push(Notification{ NotificationType::JOB_ADD, grtIx, messageIx }, task->mappedLrt());
+            /* == Set job in TaskState::RUNNING == */
+            task->setState(TaskState::RUNNING);
+        }
     }
     /* == Reset ready task vector == */
     readyTaskVector_.clear();

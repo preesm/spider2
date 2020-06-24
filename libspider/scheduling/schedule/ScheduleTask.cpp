@@ -145,6 +145,29 @@ void spider::ScheduleTask::setDependency(ScheduleTask *task, size_t pos) {
     }
 }
 
+void spider::ScheduleTask::updateExecutionConstraints() {
+    const auto lrtCount = archi::platform()->LRTCount();
+    auto shouldNotifyArray = array<i32>(lrtCount, -1, StackID::SCHEDULE);
+    auto ix = 0;
+    std::fill(executionConstraints_.get(), executionConstraints_.get() + lrtCount, -1);
+    for (const auto *dependency : dependenciesArray_) {
+        if (dependency) {
+            const auto mappedLRT = dependency->mappedLrt();
+            const auto currentJobConstraint = executionConstraint(mappedLRT);
+            if ((currentJobConstraint < 0) || (dependency->execIx() > currentJobConstraint)) {
+                setExecutionConstraint(mappedLRT, dependency->execIx());
+                shouldNotifyArray[mappedLRT] = ix;
+            }
+        }
+        ix++;
+    }
+    for (const auto &value : shouldNotifyArray) {
+        if (value >= 0) {
+            dependenciesArray_[static_cast<size_t>(value)]->setNotificationFlag(mappedLrt(), true);
+        }
+    }
+}
+
 void spider::ScheduleTask::setInternal(void *information) {
     if (information && !internal_) {
         internal_ = information;

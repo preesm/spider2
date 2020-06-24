@@ -52,10 +52,7 @@ namespace spider {
 
     class SRLessDefaultFifoAllocator final : public DefaultFifoAllocator {
     public:
-        SRLessDefaultFifoAllocator() : DefaultFifoAllocator() {
-            traits_.jitAllocator_ = true;
-            traits_.postSchedulingAllocator_ = true;
-        };
+        SRLessDefaultFifoAllocator() noexcept : DefaultFifoAllocator({ true, true }) { }
 
         ~SRLessDefaultFifoAllocator() override = default;
 

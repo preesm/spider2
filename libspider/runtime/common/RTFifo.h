@@ -42,22 +42,21 @@
 namespace spider {
 
     enum class FifoAttribute {
-        READ_ONLY = 0, /*!< Reader of the FIFO does not own memory (no dealloc) */
-        READ_OWN,      /*!< Reader of the FIFO is the owner (dealloc after read) */
-        READ_EXT,      /*!< Reader of the FIFO reads from external memory */
-        WRITE_ONLY,    /*!< Writer of the FIFO does not own the memory (no alloc) */
-        WRITE_OWN,     /*!< Writer of the FIFO own the memory (alloc before write) */
-        WRITE_EXT,     /*!< Writer of the FIFO writes to external memory */
+        RW_ONLY = 0, /*!< Owner of the FIFO does not own the associated memory:
+                        *   --> no dealloc after read, no alloc before write */
+        RW_OWN,      /*!< Owner of the FIFO own the associated memory:
+                        *   --> dealloc after read, alloc before write */
+        RW_EXT,      /*!< Owner of the FIFO reads (writes) from (to) external memory */
     };
 
     /* === Class definition === */
 
     struct RTFifo {
-        size_t virtualAddress_ = SIZE_MAX;             /* = Virtual address of the Fifo = */
-        u32 size_ = 0;                                      /* = Size of the Fifo = */
-        u32 offset_ = 0;                                    /* = Offset in the address = */
-        u32 count_ = 1;                                     /* = Number of use of this FIFO = */
-        FifoAttribute attribute_ = FifoAttribute::READ_OWN; /* = Attribute of the Fifo = */
+        size_t virtualAddress_ = SIZE_MAX;                /* = Virtual address of the Fifo = */
+        u32 size_ = 0;                                    /* = Size of the Fifo = */
+        u32 offset_ = 0;                                  /* = Offset in the address = */
+        u32 count_ = 1;                                   /* = Number of use of this FIFO = */
+        FifoAttribute attribute_ = FifoAttribute::RW_OWN; /* = Attribute of the Fifo = */
     };
 }
 

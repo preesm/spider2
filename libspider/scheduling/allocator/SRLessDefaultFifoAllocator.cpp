@@ -84,8 +84,9 @@ void spider::SRLessDefaultFifoAllocator::allocateDefaultVertexTask(spider::Sched
         } else {
             const auto srcIx = (inputTask->type() == TaskType::VERTEX) ? edge->sourcePortIx() : 0u;
             auto fifo = inputTask->getOutputFifo(srcIx);
-            fifo.attribute_ = (fifo.attribute_ == FifoAttribute::WRITE_EXT) ? FifoAttribute::READ_EXT
-                                                                            : FifoAttribute::READ_OWN;
+            if (fifo.attribute_ != FifoAttribute::RW_EXT) {
+                fifo.attribute_ = FifoAttribute::RW_OWN;
+            }
             taskMemory->setInputFifo(snkIx, fifo);
         }
     }

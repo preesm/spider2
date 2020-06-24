@@ -66,9 +66,10 @@ namespace spider {
          * @brief Allocate memory to the given virtual address.
          * @param virtualAddress  Virtual address to evaluate.
          * @param size            Size of the memory to allocate.
+         * @param count           Number of use of the buffer to set.
          * @return physical memory addressed allocated.
          */
-        void *allocate(uint64_t virtualAddress, size_t size);
+        void *allocate(uint64_t virtualAddress, size_t size, u32 count = 1);
 
         /**
          * @brief Deallocate memory from the given virtual address.
@@ -152,11 +153,12 @@ namespace spider {
 
         /**
          * @brief Register a physical address associated with a given virtual address.
-         * @param virtualAddress   Virtual address to evaluate.
-         * @param physicalAddress  Physical address to register.
+         * @param virtAddress   Virtual address to evaluate.
+         * @param phyAddress  Physical address to register.
          * @param size             Size of the memory to allocate.
+         * @param count           Number of use of the buffer to set.
          */
-        void registerPhysicalAddress(uint64_t virtualAddress, void *physicalAddress, size_t size);
+        void registerPhysicalAddress(uint64_t virtAddress, void *phyAddress, size_t size, u32 count = 1);
 
         /**
          * @brief Retrieve the physical address corresponding to the given virtual address.

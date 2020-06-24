@@ -3,7 +3,7 @@
  *
  * Antoine Morvan <antoine.morvan@insa-rennes.fr> (2018)
  * Clément Guy <clement.guy@insa-rennes.fr> (2014)
- * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2017-2019)
+ * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2017-2020)
  * Hugo Miomandre <hugo.miomandre@insa-rennes.fr> (2017)
  * Julien Heulot <julien.heulot@insa-rennes.fr> (2013 - 2015)
  * Yaset Oliva <yaset.oliva@insa-rennes.fr> (2013 - 2014)
@@ -37,28 +37,32 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_RUNTIMETESTCASES_H
-#define SPIDER2_RUNTIMETESTCASES_H
 
 /* === Include(s) === */
 
-#include <api/spider.h>
+#include "spider2-application.h"
 
-/* === Function(s) prototype === */
+/* === Constants declaration === */
 
-namespace spider {
-    namespace test {
-        void runtimeStaticFlat(RuntimeType type, SchedulingPolicy algorithm, spider::FifoAllocatorType allocatorType);
+constexpr size_t CLUSTER_COUNT = 1;
 
-        void runtimeStaticHierarchical(RuntimeType type, SchedulingPolicy algorithm, spider::FifoAllocatorType allocatorType);
+constexpr size_t PE_COUNT = 1;
 
-        void runtimeStaticFlatNoExec(RuntimeType type, SchedulingPolicy algorithm, spider::FifoAllocatorType allocatorType);
+/* === Platform definition === */
 
-        void runtimeStaticHierarchicalNoExec(RuntimeType type, SchedulingPolicy algorithm, spider::FifoAllocatorType allocatorType);
-
-        void
-        runtimeDynamicHierarchical(RuntimeType type, SchedulingPolicy algorithm, spider::FifoAllocatorType allocatorType);
-    }
+void spider::createUserPhysicalPlatform() {
+    /* == Creates the main platform == */
+    spider::api::createPlatform(CLUSTER_COUNT, PE_COUNT);
+    
+    /* == Creates the intra MemoryInterface of the cluster == */
+    auto *x86MemoryInterface = spider::api::createMemoryInterface(1073741824);
+    
+    /* == Creates the actual Cluster == */
+    auto *x86Cluster = spider::api::createCluster(1, x86MemoryInterface);
+    
+    /* == Creates the processing element(s) of the cluster == */
+    auto *x86Core0 = spider::api::createProcessingElement(TYPE_X86, PE_X86_CORE0, x86Cluster, "Core0", spider::PEType::LRT, 0);
+    
+    /* == Set the GRT == */
+    spider::api::setSpiderGRTPE(x86Core0);
 }
-
-#endif //SPIDER2_RUNTIMETESTCASES_H

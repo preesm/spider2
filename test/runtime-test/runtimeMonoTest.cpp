@@ -48,14 +48,14 @@
 #include <memory/dynamic-policies/GenericAllocatorPolicy.h>
 #include <memory/static-policies/LinearStaticAllocator.h>
 #include <api/spider.h>
+#include <scheduling/allocator/FifoAllocator.h>
 #include "RuntimeTestCases.h"
 
 class runtimeMonoTest : public ::testing::Test {
 protected:
     void SetUp() override {
         spider::start();
-        spider::api::enableLogger(spider::log::LRT);
-        spider::api::enableLogger(spider::log::TRANSFO);
+        spider::api::enableVerbose();
         spider::api::enableExportSRDAG();
         spider::api::enableExportGantt();
         /* == Create the mono core platform == */
@@ -73,26 +73,51 @@ protected:
 
 TEST_F(runtimeMonoTest, TestStaticFlat) {
     ASSERT_NO_THROW(
-            spider::test::runtimeStaticFlat(spider::RuntimeType::JITMS, spider::SchedulingPolicy::LIST_BEST_FIT));
+            spider::test::runtimeStaticFlat(spider::RuntimeType::JITMS, spider::SchedulingPolicy::LIST_BEST_FIT, spider::FifoAllocatorType::DEFAULT));
+}
+
+TEST_F(runtimeMonoTest, TestStaticFlatNoSync) {
+    ASSERT_NO_THROW(
+            spider::test::runtimeStaticFlat(spider::RuntimeType::JITMS, spider::SchedulingPolicy::LIST_BEST_FIT, spider::FifoAllocatorType::DEFAULT_NOSYNC));
 }
 
 TEST_F(runtimeMonoTest, TestStaticNoExecFlat) {
     ASSERT_NO_THROW(
-            spider::test::runtimeStaticFlatNoExec(spider::RuntimeType::JITMS, spider::SchedulingPolicy::LIST_BEST_FIT));
+            spider::test::runtimeStaticFlatNoExec(spider::RuntimeType::JITMS, spider::SchedulingPolicy::LIST_BEST_FIT, spider::FifoAllocatorType::DEFAULT));
+}
+
+TEST_F(runtimeMonoTest, TestStaticNoExecFlatNoSync) {
+    ASSERT_NO_THROW(
+            spider::test::runtimeStaticFlatNoExec(spider::RuntimeType::JITMS, spider::SchedulingPolicy::LIST_BEST_FIT, spider::FifoAllocatorType::DEFAULT_NOSYNC));
 }
 
 TEST_F(runtimeMonoTest, TestStaticHierarchical) {
     ASSERT_NO_THROW(spider::test::runtimeStaticHierarchical(spider::RuntimeType::JITMS,
-                                                            spider::SchedulingPolicy::LIST_BEST_FIT));
+                                                            spider::SchedulingPolicy::LIST_BEST_FIT, spider::FifoAllocatorType::DEFAULT));
+}
+
+TEST_F(runtimeMonoTest, TestStaticHierarchicalNoSync) {
+    ASSERT_NO_THROW(spider::test::runtimeStaticHierarchical(spider::RuntimeType::JITMS,
+                                                            spider::SchedulingPolicy::LIST_BEST_FIT, spider::FifoAllocatorType::DEFAULT_NOSYNC));
 }
 
 TEST_F(runtimeMonoTest, TestStaticNoExecHierarchical) {
     ASSERT_NO_THROW(spider::test::runtimeStaticHierarchicalNoExec(spider::RuntimeType::JITMS,
-                                                            spider::SchedulingPolicy::LIST_BEST_FIT));
+                                                            spider::SchedulingPolicy::LIST_BEST_FIT, spider::FifoAllocatorType::DEFAULT));
+}
+
+TEST_F(runtimeMonoTest, TestStaticNoExecHierarchicalNoSync) {
+    ASSERT_NO_THROW(spider::test::runtimeStaticHierarchicalNoExec(spider::RuntimeType::JITMS,
+                                                            spider::SchedulingPolicy::LIST_BEST_FIT, spider::FifoAllocatorType::DEFAULT_NOSYNC));
 }
 
 TEST_F(runtimeMonoTest, TestDynamicHierarchical) {
     ASSERT_NO_THROW(
-            spider::test::runtimeDynamicHierarchical(spider::RuntimeType::JITMS, spider::SchedulingPolicy::LIST_BEST_FIT));
+            spider::test::runtimeDynamicHierarchical(spider::RuntimeType::JITMS, spider::SchedulingPolicy::LIST_BEST_FIT, spider::FifoAllocatorType::DEFAULT));
+}
+
+TEST_F(runtimeMonoTest, TestDynamicHierarchicalNoSync) {
+    ASSERT_NO_THROW(
+            spider::test::runtimeDynamicHierarchical(spider::RuntimeType::JITMS, spider::SchedulingPolicy::LIST_BEST_FIT, spider::FifoAllocatorType::DEFAULT_NOSYNC));
 }
 

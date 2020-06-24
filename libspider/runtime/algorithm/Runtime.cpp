@@ -48,6 +48,7 @@
 #include <scheduling/allocator/FifoAllocator.h>
 #include <scheduling/allocator/DefaultFifoAllocator.h>
 #include <scheduling/allocator/SRLessDefaultFifoAllocator.h>
+#include <scheduling/allocator/NoSyncDefaultFifoAllocator.h>
 
 /* === Static variable === */
 
@@ -161,6 +162,8 @@ spider::FifoAllocator *spider::Runtime::makeFifoAllocator(FifoAllocatorType type
     switch (type) {
         case spider::FifoAllocatorType::DEFAULT:
             return spider::make<DefaultFifoAllocator, StackID::RUNTIME>();
+        case spider::FifoAllocatorType::DEFAULT_NOSYNC:
+            return spider::make<NoSyncDefaultFifoAllocator, StackID::RUNTIME>();
         case spider::FifoAllocatorType::ARCHI_AWARE:
             break;
         default:
