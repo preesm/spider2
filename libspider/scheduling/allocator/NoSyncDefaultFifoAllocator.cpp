@@ -94,7 +94,7 @@ void spider::NoSyncDefaultFifoAllocator::allocateDuplicateTask(ScheduleTask *tas
     }
 }
 
-void spider::NoSyncDefaultFifoAllocator::updateForkDuplicateInputTask(ScheduleTask *task) {
+void spider::NoSyncDefaultFifoAllocator::updateForkDuplicateInputTask(ScheduleTask *task) const {
     const auto *inputTask = task->dependencies()[0U];
     if (inputTask->state() == TaskState::READY) {
         updateForkDuplicateInputFifoCount(task, task->vertex());

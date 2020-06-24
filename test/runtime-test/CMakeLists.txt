@@ -1,11 +1,16 @@
 set(RUNTIME_TARGET_NAME runtime-${PROJECT_NAME}-test)
 
 # Add the test files
-set(${RUNTIME_TARGET_NAME}_SRC
+file(GLOB_RECURSE
+        ${RUNTIME_TARGET_NAME}_SRC
+        ./appTest/stabilization/*.cpp
+        ./appTest/stabilization/*.h
         ../main.cpp
+        runtimeAppTests.cpp
         runtimeMonoTest.cpp
         RuntimeTestCases.cpp
-        RuntimeTestCases.h)
+        RuntimeTestCases.h
+        )
 
 # Set the include directories to use <> instead of ""
 include_directories(

@@ -102,6 +102,7 @@ void spider::DefaultFifoAllocator::allocatePersistentDelays(pisdf::Graph *graph)
 void spider::DefaultFifoAllocator::allocateVertexTask(ScheduleTask *task) {
     auto *vertex = task->vertex();
     if (!vertex) {
+        // LCOV_IGNORE
         throwNullptrException();
     }
     switch (vertex->subtype()) {
