@@ -12,6 +12,7 @@ Spider2 Changelog
 ### Bug fix
 * Sonar: fixed const qualified function parameters.
 * Sonar: fixed const qualified variables.
+* Sonar: fixed implicit string concatenation.
 
 
 ## Release version 0.1.1
