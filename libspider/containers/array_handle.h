@@ -103,6 +103,20 @@ namespace spider {
             std::copy(ilist.begin(), std::min(ilist.begin() + size(), ilist.end()), begin());
         }
 
+        /**
+         * @brief Exchanges the contents of the container with those of other.
+         * Does not invoke any move, copy, or swap operations on individual elements.
+         * All iterators and references remain valid.
+         * @param first   First container.
+         * @param second  Other container to exchange the contents with.
+         */
+        inline friend void swap(array_handle<T> &first, array_handle<T> &second) noexcept {
+            /* == Do the swapping of the values == */
+            using std::swap;
+            swap(first.data_, second.data_);
+            swap(first.size_, second.size_);
+        }
+
         /* === Element access === */
 
         /**
@@ -257,7 +271,7 @@ namespace spider {
             return !(lhs == rhs);
         }
 
-    protected:
+    private:
         pointer data_ = nullptr;
         size_type size_ = 0;
     };

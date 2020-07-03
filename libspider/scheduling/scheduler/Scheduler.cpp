@@ -146,7 +146,7 @@ spider::ScheduleTask *spider::Scheduler::insertCommunicationTask(Cluster *cluste
     const auto *bus = archi::platform()->getClusterToClusterMemoryBus(cluster, distCluster);
     const auto busSpeed = type == TaskType::SYNC_SEND ? bus->writeSpeed() : bus->readSpeed();
     const auto *busKernel = type == TaskType::SYNC_SEND ? bus->sendKernel() : bus->receiveKernel();
-    const i64 comTime = static_cast<const i64>(busSpeed / dataSize);
+    const i64 comTime = static_cast<i64>(busSpeed / dataSize);
 
     /* == Search for the first PE able to run the send task == */
     const auto minStartTime = previousTask->endTime();

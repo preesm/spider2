@@ -99,7 +99,7 @@ namespace spider {
             swap(*this, other);
         }
 
-        ~array() { deallocate(array_handle<T>::data_); }
+        ~array() { deallocate(array_handle<T>::data()); }
 
         /* === Member functions === */
 
@@ -129,8 +129,7 @@ namespace spider {
         inline friend void swap(array<T> &first, array<T> &second) noexcept {
             /* == Do the swapping of the values == */
             using std::swap;
-            swap(first.data_, second.data_);
-            swap(first.size_, second.size_);
+            swap(static_cast<array_handle<T> &>(first), static_cast<array_handle<T> &>(second));
         }
 
         /* === Non member functions === */
