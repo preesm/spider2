@@ -168,7 +168,7 @@ namespace spider {
              * @param name Name of the parameter to find.
              * @return pointer to the found Param, nullptr else.
              */
-            std::shared_ptr<spider::pisdf::Param> paramFromName(const std::string &name);
+            std::shared_ptr<spider::pisdf::Param> paramFromName(const std::string &name) const;
 
             /**
              * @brief Checks if a graph is the top-level graph.

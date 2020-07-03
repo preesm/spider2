@@ -35,8 +35,6 @@
 /* === Include(s) === */
 
 #include <graphs-tools/helper/visitors/PiSDFDefaultVisitor.h>
-#include <graphs/pisdf/DynamicParam.h>
-#include <graphs/pisdf/InHeritedParam.h>
 #include <graphs/pisdf/DelayVertex.h>
 #include <graphs/pisdf/ExternInterface.h>
 
@@ -64,12 +62,4 @@ void spider::pisdf::DefaultVisitor::visit(Interface *) {
 
 void spider::pisdf::DefaultVisitor::visit(Param *) {
     throwSpiderException("unsupported visitor type: Param.");
-}
-
-void spider::pisdf::DefaultVisitor::visit(DynamicParam *param) {
-    this->visit(static_cast<Param *>(param));
-}
-
-void spider::pisdf::DefaultVisitor::visit(InHeritedParam *param) {
-    this->visit(static_cast<Param *>(param));
 }

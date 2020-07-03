@@ -53,6 +53,7 @@ void spider::pisdf::PiSDFDOTExporterVisitor::visit(Graph *graph) {
     nodesep = 1;)");
         printer::fprintf(file_, "\n");
     }
+    graph_ = graph;
 
     /* == Subgraph header == */
     params_ = &(graph->params());
@@ -69,9 +70,7 @@ void spider::pisdf::PiSDFDOTExporterVisitor::visit(Graph *graph) {
     /* == Write parameters (if any) == */
     printer::fprintf(file_, "\n%s// Parameters\n", offset_.c_str());
     for (const auto &param : graph->params()) {
-        if (param->graph() == graph) {
-            param->visit(this);
-        }
+        param->visit(this);
     }
 
     /* == Write interfaces in case of hierarchical graphs == */
@@ -120,8 +119,8 @@ void spider::pisdf::PiSDFDOTExporterVisitor::visit(Graph *graph) {
             const auto *param = (*iterator).get();
             const auto *nextParam = (*(iterator + 1)).get();
             printer::fprintf(file_, "%s\"%s:%s\" -> \"%s:%s\" [style=\"invis\"]\n", offset_.c_str(),
-                             param->graph()->vertexPath().c_str(), param->name().c_str(),
-                             nextParam->graph()->vertexPath().c_str(), nextParam->name().c_str());
+                             graph->vertexPath().c_str(), param->name().c_str(),
+                             graph->vertexPath().c_str(), nextParam->name().c_str());
         }
     }
 
@@ -444,7 +443,7 @@ void spider::pisdf::PiSDFDOTExporterVisitor::edgePrinter(const Edge *edge) const
 void spider::pisdf::PiSDFDOTExporterVisitor::paramPrinter(const Param *param) const {
     printer::fprintf(file_,
                      "%s\"%s:%s\"[shape=house, style=filled, fillcolor=\"%s\", margin=0, width=0, height=0, label=<\n",
-                     offset_.c_str(), param->graph()->vertexPath().c_str(), param->name().c_str(),
+                     offset_.c_str(), graph_->vertexPath().c_str(), param->name().c_str(),
                      (param->dynamic() ? "#19b5fe" : "#89c4f4"));
     printer::fprintf(file_, R"(%s    <table border="0" style="" cellspacing="0" cellpadding="0">)",
                      offset_.c_str());

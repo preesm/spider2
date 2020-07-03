@@ -142,10 +142,6 @@ namespace spider {
 
         class Param;
 
-        class DynamicParam;
-
-        class InHeritedParam;
-
         class Edge;
 
         class Delay;

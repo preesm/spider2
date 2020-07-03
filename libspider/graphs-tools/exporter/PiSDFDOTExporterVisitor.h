@@ -39,8 +39,6 @@
 
 #include <graphs-tools/helper/visitors/PiSDFDefaultVisitor.h>
 #include <graphs-tools/exporter/PiSDFDOTExporter.h>
-#include <graphs/pisdf/InHeritedParam.h>
-#include <graphs/pisdf/DynamicParam.h>
 #include <utility>
 
 namespace spider {
@@ -67,6 +65,7 @@ namespace spider {
             void visit(Param *param) override;
 
         private:
+            Graph *graph_ = nullptr;
             const spider::vector<std::shared_ptr<Param>> *params_ = nullptr;
             FILE *file_;
             std::string offset_;

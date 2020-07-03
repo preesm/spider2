@@ -46,7 +46,7 @@
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/Edge.h>
 #include <graphs/pisdf/Delay.h>
-#include <graphs/pisdf/DynamicParam.h>
+#include <graphs/pisdf/Param.h>
 #include <graphs/pisdf/ExecVertex.h>
 #include <graphs/pisdf/ExternInterface.h>
 #include <graphs/pisdf/DelayVertex.h>

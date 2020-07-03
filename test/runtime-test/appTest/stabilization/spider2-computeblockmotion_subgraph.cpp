@@ -125,8 +125,7 @@ spider::pisdf::Vertex *spider::createComputeBlockMotionSubgraph(std::string name
 
 
     /* == Set the input parameters used by rate expressions of the vertex ComputeBlockMotionVector == */
-//    spider::api::addInputParamsToVertex(vertex_ComputeBlockMotionVector, { param_nbVectors });
-    spider::api::addInputParamToVertex(vertex_ComputeBlockMotionVector, param_nbVectors);
+    spider::api::addInputParamsToVertex(vertex_ComputeBlockMotionVector, { param_nbVectors });
 
     /* == Set the input parameters needed by the refinement of the vertex ComputeBlockMotionVector == */
     spider::api::addInputRefinementParamToVertex(vertex_ComputeBlockMotionVector, param_width);
@@ -152,8 +151,7 @@ spider::pisdf::Vertex *spider::createComputeBlockMotionSubgraph(std::string name
 
 
     /* == Set the input parameters used by rate expressions of the vertex DivideBlocks == */
-//    spider::api::addInputParamsToVertex(vertex_DivideBlocks, { param_nbVectors });
-    spider::api::addInputParamToVertex(vertex_DivideBlocks, param_nbVectors);
+    spider::api::addInputParamsToVertex(vertex_DivideBlocks, { param_nbVectors });
 
     /* == Set the input parameters needed by the refinement of the vertex DivideBlocks == */
     spider::api::addInputRefinementParamToVertex(vertex_DivideBlocks, param_width);

@@ -108,9 +108,8 @@ spider::pisdf::Graph *spider::createUserApplicationGraph() {
 
 
     /* == Set the input parameters used by rate expressions of the vertex DuplicateV == */
-//    spider::api::addInputParamsToVertex(vertex_DuplicateV, { param_displaySize });
-    spider::api::addInputParamToVertex(vertex_DuplicateV, param_displaySize);
-    
+    spider::api::addInputParamsToVertex(vertex_DuplicateV, { param_displaySize });
+
     /* == Setting mappable constraints of the vertex DuplicateV == */
     spider::api::setVertexMappableOnPE(vertex_DuplicateV, PE_X86_CORE0, true);
     
@@ -165,10 +164,7 @@ spider::pisdf::Graph *spider::createUserApplicationGraph() {
 
 
     /* == Set the input parameters used by rate expressions of the vertex DisplayYUV == */
-    spider::api::addInputParamToVertex(vertex_DisplayYUV, param_displayHeight);
-    spider::api::addInputParamToVertex(vertex_DisplayYUV, param_displayWidth);
-    spider::api::addInputParamToVertex(vertex_DisplayYUV, param_border);
-//    spider::api::addInputParamsToVertex(vertex_DisplayYUV, { param_displayHeight, param_displayWidth, param_border });
+    spider::api::addInputParamsToVertex(vertex_DisplayYUV, { param_displayHeight, param_displayWidth, param_border });
 
     /* == Set the input parameters needed by the refinement of the vertex DisplayYUV == */
     spider::api::addInputRefinementParamToVertex(vertex_DisplayYUV, param_id);
@@ -189,8 +185,7 @@ spider::pisdf::Graph *spider::createUserApplicationGraph() {
 
 
     /* == Set the input parameters used by rate expressions of the vertex DuplicateY == */
-    spider::api::addInputParamToVertex(vertex_DuplicateY, param_displaySize);
-//    spider::api::addInputParamsToVertex(vertex_DuplicateY, { param_displaySize });
+    spider::api::addInputParamsToVertex(vertex_DuplicateY, { param_displaySize });
     
     /* == Setting mappable constraints of the vertex DuplicateY == */
     spider::api::setVertexMappableOnPE(vertex_DuplicateY, PE_X86_CORE0, true);
@@ -208,8 +203,7 @@ spider::pisdf::Graph *spider::createUserApplicationGraph() {
 
 
     /* == Set the input parameters used by rate expressions of the vertex DuplicateU == */
-    spider::api::addInputParamToVertex(vertex_DuplicateU, param_displaySize);
-//    spider::api::addInputParamsToVertex(vertex_DuplicateU, { param_displaySize });
+    spider::api::addInputParamsToVertex(vertex_DuplicateU, { param_displaySize });
     
     /* == Setting mappable constraints of the vertex DuplicateU == */
     spider::api::setVertexMappableOnPE(vertex_DuplicateU, PE_X86_CORE0, true);

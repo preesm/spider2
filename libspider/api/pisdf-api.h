@@ -40,6 +40,7 @@
 #include <cstdint>
 #include <string>
 #include <memory>
+#include <vector>
 #include <api/global-api.h>
 
 /* === API methods === */
@@ -347,30 +348,34 @@ namespace spider {
         createInheritedParam(pisdf::Graph *graph, std::string name, std::shared_ptr<pisdf::Param> parent);
 
         /**
-         * @brief Add an input parameter to a given Vertex.
-         * @remark If param or vertex is nullptr, nothing happen.
+         * @brief Add input parameter(s) to a given Vertex.
+         * @remark If params is empty or vertex is nullptr, nothing happen.
          * @param vertex  Pointer to the vertex to evaluate.
          * @param param   Pointer to the parameter to add.
+         * @throws spider::Exception if one the parameter is not part of the same graph as the vertex.
          */
-        void addInputParamToVertex(pisdf::Vertex *vertex, std::shared_ptr<spider::pisdf::Param> param);
+        void addInputParamsToVertex(pisdf::Vertex *vertex,
+                                    const std::vector<std::shared_ptr<spider::pisdf::Param>> &params);
 
         /**
-         * @brief Add an input parameter to a given Vertex for its refinement.
-         * @remark If param or vertex is nullptr, nothing happen.
+         * @brief Add output parameter(s) to a given Vertex.
+         * @remark If params is empty or vertex is nullptr, nothing happen.
+         * @param vertex  Pointer to the vertex to evaluate.
+         * @param param   Vector of parameters to add.
+         * @throws spider::Exception if vertex is not of type @refitem VertexType::CONFIG or if one of the parameter
+         *        is not part of the same graph as the vertex.
+         */
+        void addOutputParamsToVertex(pisdf::Vertex *vertex,
+                                     const std::vector<std::shared_ptr<spider::pisdf::Param>> &params);
+
+        /**
+         * @brief Add input parameter(s) used for the execution refinement of a given Vertex.
+         * @remark If params is empty or vertex is nullptr, nothing happen.
          * @remark A secondary call to vertex->addInputParam is done.
          * @param vertex  Pointer to the vertex to evaluate.
          * @param param   Pointer to the parameter to add.
          */
         void addInputRefinementParamToVertex(pisdf::Vertex *vertex, std::shared_ptr<spider::pisdf::Param> param);
-
-        /**
-         * @brief Add an output parameter to a given Vertex.
-         * @remark If param or vertex is nullptr, nothing happen.
-         * @param vertex  Pointer to the vertex to evaluate.
-         * @param param   Pointer to the parameter to add.
-         * @throw spider::Exception if vertex is not of type @refitem VertexType::ConfigVertex.
-         */
-        void addOutputParamToVertex(pisdf::Vertex *vertex, std::shared_ptr<spider::pisdf::Param> param);
 
         /* === Edge API === */
 

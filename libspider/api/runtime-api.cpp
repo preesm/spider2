@@ -41,8 +41,7 @@
 #include <archi/PE.h>
 #include <graphs/pisdf/ExecVertex.h>
 #include <graphs/pisdf/Param.h>
-#include <graphs/pisdf/DynamicParam.h>
-#include <graphs/pisdf/InHeritedParam.h>
+#include <graphs/pisdf/Graph.h>
 #include <runtime/common/RTKernel.h>
 #include <runtime/runner/JITMSRTRunner.h>
 #include <runtime/interface/ThreadRTCommunicator.h>

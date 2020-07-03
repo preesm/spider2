@@ -41,11 +41,10 @@
 #include <graphs/pisdf/Edge.h>
 #include <graphs/pisdf/Delay.h>
 #include <graphs/pisdf/ExecVertex.h>
-#include <graphs/pisdf/DynamicParam.h>
-#include <graphs/pisdf/InHeritedParam.h>
 #include <graphs/pisdf/NonExecVertex.h>
 #include <graphs/pisdf/ExternInterface.h>
 #include <runtime/special-kernels/specialKernels.h>
+#include <containers/vector.h>
 
 /* === Static function(s) === */
 
@@ -356,22 +355,17 @@ spider::api::createStaticParam(pisdf::Graph *graph, std::string name, int64_t va
 std::shared_ptr<spider::pisdf::Param>
 spider::api::createDynamicParam(pisdf::Graph *graph, std::string name) {
     if (graph) {
-        auto param = make_shared<pisdf::DynamicParam, StackID::PISDF>(std::move(name), Expression(0));
+        auto param = make_shared<pisdf::Param, StackID::PISDF>(std::move(name));
         graph->addParam(param);
         return param;
     }
-    return make_shared<pisdf::DynamicParam, StackID::PISDF>(std::move(name), Expression(0));
+    return make_shared<pisdf::Param, StackID::PISDF>(std::move(name));
 }
 
 std::shared_ptr<spider::pisdf::Param>
 spider::api::createDerivedParam(pisdf::Graph *graph, std::string name, std::string expression) {
     auto expr = graph ? Expression(std::move(expression), graph->params()) : Expression(std::move(expression));
-    std::shared_ptr<pisdf::Param> param;
-    if (expr.dynamic()) {
-        param = make_shared<pisdf::DynamicParam, StackID::PISDF>(std::move(name), std::move(expr));
-    } else {
-        param = make_shared<pisdf::Param, StackID::PISDF>(std::move(name), expr.value());
-    }
+    auto param = make_shared<pisdf::Param, StackID::PISDF>(std::move(name), std::move(expr));
     if (graph) {
         graph->addParam(param);
     }
@@ -386,55 +380,65 @@ spider::api::createInheritedParam(pisdf::Graph *graph, std::string name, std::sh
     if (!parent->dynamic()) {
         return createStaticParam(graph, std::move(name), parent->value());
     }
-    auto param = make_shared<pisdf::InHeritedParam, StackID::PISDF>(std::move(name), std::move(parent));
+    auto param = make_shared<pisdf::Param, StackID::PISDF>(std::move(name), std::move(parent));
     if (graph) {
         graph->addParam(param);
     }
     return param;
 }
 
-void spider::api::addInputParamToVertex(pisdf::Vertex *vertex, std::shared_ptr<spider::pisdf::Param> param) {
-    if (!param || !vertex) {
+void spider::api::addInputParamsToVertex(spider::pisdf::Vertex *vertex,
+                                         const std::vector<std::shared_ptr<spider::pisdf::Param>> &params) {
+    if (params.empty() || !vertex) {
         return;
     }
-    if (param->graph() != vertex->graph()) {
-        throwSpiderException("parameter [%s] and vertex [%s] are not in the same graph.",
-                             param->name().c_str(),
-                             vertex->name().c_str());
+    const auto *graph = vertex->graph();
+    for (auto &p : params) {
+        if (p) {
+            if (graph->paramFromName(p->name()) != p) {
+                throwSpiderException("parameter [%s] and vertex [%s] are not in the same graph.",
+                                     p->name().c_str(),
+                                     vertex->name().c_str());
+
+            }
+            vertex->addInputParameter(std::move(p));
+        }
     }
-    vertex->addInputParameter(std::move(param));
+}
+
+void spider::api::addOutputParamsToVertex(spider::pisdf::Vertex *vertex,
+                                          const std::vector<std::shared_ptr<spider::pisdf::Param>> &params) {
+    if (params.empty() || !vertex) {
+        return;
+    }
+    const auto *graph = vertex->graph();
+    for (auto &p : params) {
+        if (p) {
+            if (graph->paramFromName(p->name()) != p) {
+                throwSpiderException("parameter [%s] and vertex [%s] are not in the same graph.",
+                                     p->name().c_str(),
+                                     vertex->name().c_str());
+
+            }
+            vertex->addOutputParameter(std::move(p));
+        }
+    }
 }
 
 void spider::api::addInputRefinementParamToVertex(pisdf::Vertex *vertex, std::shared_ptr<spider::pisdf::Param> param) {
     if (!param || !vertex) {
         return;
     }
-    if (param->graph() != vertex->graph()) {
+    const auto *graph = vertex->graph();
+    if (graph->paramFromName(param->name()) != param) {
         throwSpiderException("parameter [%s] and vertex [%s] are not in the same graph.",
                              param->name().c_str(),
                              vertex->name().c_str());
+
     }
     vertex->addRefinementParameter(param);
     vertex->addInputParameter(std::move(param));
 }
-
-void spider::api::addOutputParamToVertex(pisdf::Vertex *vertex, std::shared_ptr<spider::pisdf::Param> param) {
-    if (!param || !vertex) {
-        return;
-    }
-    if (vertex->subtype() != pisdf::VertexType::CONFIG) {
-        throwSpiderException("Failed to set parameter [%s] as output param of vertex [%s]: not a config actor.",
-                             param->name().c_str(),
-                             vertex->name().c_str());
-    }
-    if (param->graph() != vertex->graph()) {
-        throwSpiderException("parameter [%s] and vertex [%s] are not in the same graph.",
-                             param->name().c_str(),
-                             vertex->name().c_str());
-    }
-    vertex->addOutputParameter(std::move(param));
-}
-
 
 /* === Edge API === */
 

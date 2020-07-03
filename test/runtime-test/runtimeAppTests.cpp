@@ -85,7 +85,7 @@ TEST_F(runtimeAppTest, TestStabilization) {
             throw std::runtime_error("failed to create runtime.");
         }
         for (size_t i = 0; i < 10U && !spider2StopRunning; ++i) {
-            runtime->execute();
+            ASSERT_NO_THROW(runtime->execute());
         }
     } catch (spider::Exception &e) {
         throw std::runtime_error(e.what());
@@ -102,7 +102,7 @@ TEST_F(runtimeAppTest, TestStabilizationNoSync) {
             throw std::runtime_error("failed to create runtime.");
         }
         for (size_t i = 0; i < 10U && !spider2StopRunning; ++i) {
-            runtime->execute();
+            ASSERT_NO_THROW(runtime->execute());
         }
     } catch (spider::Exception &e) {
         throw std::runtime_error(e.what());

@@ -72,10 +72,6 @@ namespace spider {
 
             virtual void visit(Param *) = 0;
 
-            virtual void visit(DynamicParam *) = 0;
-
-            virtual void visit(InHeritedParam *) = 0;
-
         private:
 
         };

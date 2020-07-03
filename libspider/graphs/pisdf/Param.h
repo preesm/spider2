@@ -44,35 +44,45 @@
 namespace spider {
     namespace pisdf {
 
-        /* === Forward declaration(s) === */
-
-        class Graph;
-
         /* === Class definition === */
 
-        class Param {
+        class Param final {
         public:
 
-            explicit Param(std::string name, int64_t value) : Param(std::move(name)) {
-                value_ = value;
+            explicit Param(std::string name) : expression_{ 0 }, type_{ ParamType::DYNAMIC } {
+                setName(std::move(name));
             }
 
-            Param(std::string name, const Expression &expression) : Param(std::move(name)) {
-                if (expression.dynamic()) {
-                    throwSpiderException("STATIC parameter [%s] should have static expression.", name_.c_str());
+            explicit Param(std::string name, int64_t value) : expression_{ value }, type_{ ParamType::STATIC } {
+                setName(std::move(name));
+            }
+
+            Param(std::string name, Expression expression) : expression_{ std::move(expression) } {
+                setName(std::move(name));
+                if (expression_.dynamic()) {
+                    type_ = ParamType::DYNAMIC_DEPENDANT;
+                } else {
+                    type_ = ParamType::STATIC;
                 }
-                value_ = expression.value();
             }
 
-            virtual ~Param() = default;
+            Param(std::string name, std::shared_ptr<Param> parent) : parent_{ std::move(parent) },
+                                                                     type_{ ParamType::INHERITED } {
+                setName(std::move(name));
+                if (!parent_) {
+                    throwSpiderException("Inherited parameter can not have nullptr parent.");
+                }
+            }
+
+            ~Param() = default;
 
             Param(const Param &) = default;
 
             Param(Param &&) noexcept = default;
 
-            Param &operator=(const Param &) = delete;
+            Param &operator=(const Param &) = default;
 
-            Param &operator=(Param &&) = delete;
+            Param &operator=(Param &&) = default;
 
             /* === Method(s) === */
 
@@ -82,74 +92,63 @@ namespace spider {
 
             /* === Getter(s) === */
 
-            inline Graph *graph() const {
-                return graph_;
+            inline const std::string &name() const { return name_; }
+
+            inline size_t ix() const { return ix_; }
+
+            inline int64_t value() const {
+                if (parent_) {
+                    return parent_->value();
+                }
+                return expression_.value();
             }
 
-            inline const std::string &name() const {
-                return name_;
+            inline int64_t value(const vector <std::shared_ptr<Param>> &params) const {
+                if (parent_) {
+                    return parent_->value(params);
+                }
+                return expression_.evaluate(params);
             }
 
-            inline size_t ix() const {
-                return ix_;
+            inline ParamType type() const { return type_; }
+
+            inline bool dynamic() const {
+                if (parent()) {
+                    return parent()->dynamic();
+                }
+                return (type_ == ParamType::DYNAMIC) || (type_ == ParamType::DYNAMIC_DEPENDANT);
             }
 
-            virtual inline int64_t value() const {
-                return value_;
-            }
+            inline Param *parent() const { return parent_.get(); }
 
-            virtual inline int64_t value(const vector<std::shared_ptr<Param>> &) const {
-                return value_;
-            }
-
-            virtual inline ParamType type() const {
-                return ParamType::STATIC;
-            }
-
-            virtual inline bool dynamic() const {
-                return false;
-            }
-
-            virtual inline Param *parent() const {
-                return nullptr;
-            }
-
-            virtual inline Expression expression() const {
-                return Expression(value_);
-            }
+            inline Expression expression() const { return expression_; }
 
             /* === Setter(s) === */
 
-            inline void setIx(size_t ix) {
-                ix_ = ix;
-            }
+            inline void setIx(size_t ix) { ix_ = ix; }
 
-            virtual inline void setValue(int64_t) {
-                throwSpiderException("Can not set value on non-DYNAMIC parameter type.");
-            }
-
-            /**
-             * @brief Set the graph of the param.
-             * @remark This method changes current value.
-             * @remark If graph is nullptr, nothing happen.
-             * @param graph  Graph to set.
-             */
-            void setGraph(Graph *graph) {
-                if (graph) {
-                    graph_ = graph;
+            inline void setValue(int64_t value) {
+                if (dynamic()) {
+                    expression_ = Expression(value);
+                } else {
+                    throwSpiderException("Can not set value on non-DYNAMIC parameter type.");
                 }
             }
 
-        protected:
-            Graph *graph_ = nullptr;   /* = Containing Graph (can be nullptr) = */
-            std::string name_ = "";    /* = Name of the Param. It is transformed to lower case on construction = */
-            size_t ix_ = SIZE_MAX;     /* = Index of the Param in the Graph = */
-            int64_t value_ = 0;        /* = Value of the Param. = */
+        private:
+            Expression expression_;          /* = Expression of the Param. = */
+            std::string name_{
+                    "" };                /* = Name of the Param. It is transformed to lower case on construction = */
+            size_t ix_{ SIZE_MAX };               /* = Index of the Param in the Graph = */
+            std::shared_ptr<Param> parent_;
+            ParamType type_{ ParamType::STATIC }; /* = Type of the parameter = */
 
-            /* == Protected ctor == */
-            explicit Param(std::string name) : name_{ std::move(name) } {
+            /* === Private method(s) === */
+
+            inline void setName(std::string name) {
+                name_ = std::move(name);
                 std::transform(std::begin(name_), std::end(name_), std::begin(name_),
-                               [](char c) { return static_cast<char>(::tolower(c)); });
+                               [](char c) { return ::tolower(c); });
                 if (name_ == "pi") {
                     throwSpiderException("ambiguous name for parameter: pi is a math constant.");
                 }

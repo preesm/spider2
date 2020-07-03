@@ -99,7 +99,7 @@ namespace spider {
             swap(*this, other);
         }
 
-        ~array() { deallocate(array_handle<T>::data()); }
+        ~array() { deallocate(array_handle<T>::data_); }
 
         /* === Member functions === */
 

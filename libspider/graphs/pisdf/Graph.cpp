@@ -282,28 +282,35 @@ void spider::pisdf::Graph::addParam(std::shared_ptr<Param> param) {
             throwSpiderException("Parameter [%s] already exist in graph [%s].", param->name().c_str(), name().c_str());
         }
     }
-    if (!param->graph()) {
-        param->setIx(paramVector_.size());
-        param->setGraph(this);
-    }
+    param->setIx(paramVector_.size());
     paramVector_.emplace_back(std::move(param));
 }
 
 void spider::pisdf::Graph::removeParam(const std::shared_ptr<Param> &param) {
-    if (!param || param->graph() != this) {
+    if (!param || param->ix() >= paramVector_.size()) {
         return;
+    } else if (paramVector_[param->ix()] == param) {
+        const auto tmp = param;
+        out_of_order_erase(paramVector_, tmp->ix());
+        paramVector_[tmp->ix()]->setIx(tmp->ix());
     }
-    const auto tmp = param;
-    out_of_order_erase(paramVector_, tmp->ix());
-    paramVector_[tmp->ix()]->setIx(tmp->ix());
 }
 
-std::shared_ptr<spider::pisdf::Param> spider::pisdf::Graph::paramFromName(const std::string &name) {
-    auto lowerCaseName = name;
-    std::transform(std::begin(lowerCaseName), std::end(lowerCaseName), std::begin(lowerCaseName),
-                   [](char c) { return static_cast<char>(::tolower(c)); });
+std::shared_ptr<spider::pisdf::Param> spider::pisdf::Graph::paramFromName(const std::string &name) const {
+    auto iStrEquals = [](const std::string &s0, const std::string &s1) {
+        if (s0.size() != s1.size()) {
+            return false;
+        }
+        auto itS1 = std::begin(s1);
+        for (const auto &c0 : s0) {
+            if (::tolower(c0) != ::tolower(*(itS1++))) {
+                return false;
+            }
+        }
+        return true;
+    };
     for (const auto &param : paramVector_) {
-        if (param->name() == lowerCaseName) {
+        if (iStrEquals(param->name(), name)) {
             return param;
         }
     }

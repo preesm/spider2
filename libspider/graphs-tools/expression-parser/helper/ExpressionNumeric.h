@@ -315,6 +315,15 @@ namespace spider {
                 case RPNOperatorType::MOD:
                     return std::fmod(arg0, arg1);
                 case RPNOperatorType::POW:
+                    if (arg1 < 100. && (std::trunc(arg1) == arg1)) {
+                        auto res{ arg0 };
+                        auto n{ arg1 };
+                        while (n > 1.) {
+                            res *= arg0;
+                            n -= 1;
+                        }
+                        return res;
+                    }
                     return std::pow(arg0, arg1);
                 case RPNOperatorType::MAX:
                     return std::max(arg0, arg1);

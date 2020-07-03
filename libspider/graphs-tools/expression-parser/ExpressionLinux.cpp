@@ -45,9 +45,7 @@
 
 /* === Method(s) implementation === */
 
-spider::Expression::Expression(int64_t value) : value_{ static_cast<double>(value) } {
-
-}
+spider::Expression::Expression(int64_t value) : value_{ static_cast<double>(value) } { }
 
 spider::Expression::Expression(std::string expression, const vector<std::shared_ptr<pisdf::Param>> &params) {
     /* == Get the postfix expression stack == */

@@ -35,9 +35,8 @@
 /* === Include(s) === */
 
 #include <graphs-tools/transformation/srdagless/SRLessHandler.h>
-#include <graphs/pisdf/DynamicParam.h>
-#include <graphs/pisdf/InHeritedParam.h>
 #include <graphs/pisdf/Param.h>
+#include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/DelayVertex.h>
 #include <graphs-tools/helper/pisdf-helper.h>
 #include <graphs-tools/numerical/brv.h>
@@ -57,8 +56,7 @@ spider::srdagless::SRLessHandler::SRLessHandler(spider::pisdf::Graph *graph, con
         const auto ix = param->ix();
         if (param->dynamic()) {
             if (param->type() == pisdf::ParamType::DYNAMIC) {
-                params_[ix] = spider::make_shared<pisdf::DynamicParam, StackID::PISDF>(param->name(),
-                                                                                       param->expression());
+                params_[ix] = spider::make_shared<pisdf::Param, StackID::PISDF>(param->name(), param->expression());
                 params_[ix]->setIx(ix);
             } else if (parentHandler_) {
                 params_[ix] = parentHandler_->params_[param->ix()];

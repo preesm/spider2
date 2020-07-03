@@ -92,7 +92,7 @@ void spider::yuvwriteRTKernel(const int64_t [], int64_t [], void *[], void *[]) 
     
 void spider::finddominatingmotionvectorRTKernel(const int64_t inputParams[], int64_t [], void *inputs[], void *outputs[]) {
     findDominatingMotionVector(
-    /* = nbVectors        = */ static_cast<const int>(inputParams[0]),
+    /* = nbVectors        = */ static_cast<int>(inputParams[0]),
     /* = vectors          = */ reinterpret_cast<const coord *>(inputs[0]),
     /* = dominatingVector = */ reinterpret_cast<coordf *>(outputs[0]));
 }
@@ -101,10 +101,10 @@ void spider::finddominatingmotionvectorRTKernel(const int64_t inputParams[], int
     
 void spider::renderframeRTKernel(const int64_t inputParams[], int64_t [], void *inputs[], void *outputs[]) {
     renderFrame(
-    /* = frameWidth  = */ static_cast<const int>(inputParams[0]),
-    /* = frameHeight = */ static_cast<const int>(inputParams[1]),
-    /* = dispWidth   = */ static_cast<const int>(inputParams[2]),
-    /* = dispHeight  = */ static_cast<const int>(inputParams[3]),
+    /* = frameWidth  = */ static_cast<int>(inputParams[0]),
+    /* = frameHeight = */ static_cast<int>(inputParams[1]),
+    /* = dispWidth   = */ static_cast<int>(inputParams[2]),
+    /* = dispHeight  = */ static_cast<int>(inputParams[3]),
     /* = delta       = */ reinterpret_cast<const coordf *>(inputs[0]),
     /* = deltaPrev   = */ reinterpret_cast<const coordf *>(inputs[1]),
     /* = yIn         = */ reinterpret_cast<const unsigned char *>(inputs[2]),
@@ -133,10 +133,10 @@ void spider::accumulatemotionRTKernel(const int64_t [], int64_t [], void *inputs
     
 void spider::divideblocksRTKernel(const int64_t inputParams[], int64_t [], void *inputs[], void *outputs[]) {
     divideBlocks(
-    /* = width       = */ static_cast<const int>(inputParams[0]),
-    /* = height      = */ static_cast<const int>(inputParams[1]),
-    /* = blockWidth  = */ static_cast<const int>(inputParams[2]),
-    /* = blockHeight = */ static_cast<const int>(inputParams[3]),
+    /* = width       = */ static_cast<int>(inputParams[0]),
+    /* = height      = */ static_cast<int>(inputParams[1]),
+    /* = blockWidth  = */ static_cast<int>(inputParams[2]),
+    /* = blockHeight = */ static_cast<int>(inputParams[3]),
     /* = frame       = */ reinterpret_cast<const unsigned char *>(inputs[0]),
     /* = blocksCoord = */ reinterpret_cast<coord *>(outputs[0]),
     /* = blocksData  = */ reinterpret_cast<unsigned char *>(outputs[1]));
@@ -146,12 +146,12 @@ void spider::divideblocksRTKernel(const int64_t inputParams[], int64_t [], void 
     
 void spider::computeblockmotionvectorRTKernel(const int64_t inputParams[], int64_t [], void *inputs[], void *outputs[]) {
     computeBlockMotionVector(
-    /* = width         = */ static_cast<const int>(inputParams[0]),
-    /* = height        = */ static_cast<const int>(inputParams[1]),
-    /* = blockWidth    = */ static_cast<const int>(inputParams[2]),
-    /* = blockHeight   = */ static_cast<const int>(inputParams[3]),
-    /* = maxDeltaX     = */ static_cast<const int>(inputParams[4]),
-    /* = maxDeltaY     = */ static_cast<const int>(inputParams[5]),
+    /* = width         = */ static_cast<int>(inputParams[0]),
+    /* = height        = */ static_cast<int>(inputParams[1]),
+    /* = blockWidth    = */ static_cast<int>(inputParams[2]),
+    /* = blockHeight   = */ static_cast<int>(inputParams[3]),
+    /* = maxDeltaX     = */ static_cast<int>(inputParams[4]),
+    /* = maxDeltaY     = */ static_cast<int>(inputParams[5]),
     /* = blockCoord    = */ reinterpret_cast<const coord *>(inputs[0]),
     /* = blockData     = */ reinterpret_cast<const unsigned char *>(inputs[1]),
     /* = previousFrame = */ reinterpret_cast<const unsigned char *>(inputs[2]),

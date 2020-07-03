@@ -155,9 +155,7 @@ spider::pisdf::Vertex *spider::createStabilizationSubgraph(std::string name,
 
 
     /* == Set the input parameters used by rate expressions of the vertex BrY == */
-    spider::api::addInputParamToVertex(vertex_BrY, param_displayWidth);
-    spider::api::addInputParamToVertex(vertex_BrY, param_displayHeight);
-//    spider::api::addInputParamsToVertex(vertex_BrY, { param_displayWidth, param_displayHeight });
+    spider::api::addInputParamsToVertex(vertex_BrY, { param_displayWidth, param_displayHeight });
     
     /* == Setting mappable constraints of the vertex BrY == */
     spider::api::setVertexMappableOnPE(vertex_BrY, PE_X86_CORE0, true);
@@ -190,9 +188,7 @@ spider::pisdf::Vertex *spider::createStabilizationSubgraph(std::string name,
 
 
     /* == Set the input parameters used by rate expressions of the vertex DuplicateFrame == */
-    spider::api::addInputParamToVertex(vertex_DuplicateFrame, param_width);
-    spider::api::addInputParamToVertex(vertex_DuplicateFrame, param_height);
-//    spider::api::addInputParamsToVertex(vertex_DuplicateFrame, { param_width, param_height });
+    spider::api::addInputParamsToVertex(vertex_DuplicateFrame, { param_width, param_height });
     
     /* == Setting mappable constraints of the vertex DuplicateFrame == */
     spider::api::setVertexMappableOnPE(vertex_DuplicateFrame, PE_X86_CORE0, true);
@@ -225,9 +221,7 @@ spider::pisdf::Vertex *spider::createStabilizationSubgraph(std::string name,
 
 
     /* == Set the input parameters used by rate expressions of the vertex FindDominatingMotion == */
-    spider::api::addInputParamToVertex(vertex_FindDominatingMotion, param_width);
-    spider::api::addInputParamToVertex(vertex_FindDominatingMotion, param_height);
-//    spider::api::addInputParamsToVertex(vertex_FindDominatingMotion, { param_width, param_height });
+    spider::api::addInputParamsToVertex(vertex_FindDominatingMotion, { param_width, param_height });
 
     /* == Set the input parameters needed by the refinement of the vertex FindDominatingMotion == */
     spider::api::addInputRefinementParamToVertex(vertex_FindDominatingMotion, param_nbVectors);
@@ -248,9 +242,7 @@ spider::pisdf::Vertex *spider::createStabilizationSubgraph(std::string name,
 
 
     /* == Set the input parameters used by rate expressions of the vertex BrU == */
-    spider::api::addInputParamToVertex(vertex_BrU, param_displayWidth);
-    spider::api::addInputParamToVertex(vertex_BrU, param_displayHeight);
-//    spider::api::addInputParamsToVertex(vertex_BrU, { param_displayWidth, param_displayHeight });
+    spider::api::addInputParamsToVertex(vertex_BrU, { param_displayWidth, param_displayHeight });
     
     /* == Setting mappable constraints of the vertex BrU == */
     spider::api::setVertexMappableOnPE(vertex_BrU, PE_X86_CORE0, true);
@@ -304,9 +296,7 @@ spider::pisdf::Vertex *spider::createStabilizationSubgraph(std::string name,
 
 
     /* == Set the input parameters used by rate expressions of the vertex BrV == */
-    spider::api::addInputParamToVertex(vertex_BrV, param_displayWidth);
-    spider::api::addInputParamToVertex(vertex_BrV, param_displayHeight);
-//    spider::api::addInputParamsToVertex(vertex_BrV, { param_displayWidth, param_displayHeight });
+    spider::api::addInputParamsToVertex(vertex_BrV, { param_displayWidth, param_displayHeight });
     
     /* == Setting mappable constraints of the vertex BrV == */
     spider::api::setVertexMappableOnPE(vertex_BrV, PE_X86_CORE0, true);

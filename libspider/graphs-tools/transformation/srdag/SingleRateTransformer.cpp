@@ -42,8 +42,6 @@
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/Edge.h>
 #include <graphs/pisdf/Delay.h>
-#include <graphs/pisdf/DynamicParam.h>
-#include <graphs/pisdf/InHeritedParam.h>
 #include <api/pisdf-api.h>
 #include <api/runtime-api.h>
 
@@ -203,7 +201,7 @@ std::pair<spider::srdag::JobStack, spider::srdag::JobStack> spider::srdag::Singl
     for (const auto &cfg : job_.reference_->configVertices()) {
         auto *clone = srdag_->vertex(ref2Clone_[cfg->ix()]);
         for (const auto &param : cfg->outputParamVector()) {
-            clone->addOutputParameter(dynaJobStack[0].params_[param->ix()]);
+            clone->addOutputParameter(job_.params_[param->ix()]);
         }
     }
 
@@ -216,9 +214,9 @@ spider::srdag::SingleRateTransformer::copyParameter(const std::shared_ptr<pisdf:
         std::shared_ptr<pisdf::Param> p;
         if (param->type() == pisdf::ParamType::INHERITED) {
             const auto &parentParam = job_.params_[param->parent()->ix()];
-            p = spider::make_shared<pisdf::InHeritedParam, StackID::PISDF>(param->name(), parentParam);
+            p = spider::make_shared<pisdf::Param, StackID::PISDF>(param->name(), parentParam);
         } else {
-            p = spider::make_shared<pisdf::DynamicParam, StackID::PISDF>(param->name(), param->expression());
+            p = spider::make_shared<pisdf::Param, StackID::PISDF>(*param);
         }
         p->setIx(param->ix());
         return p;

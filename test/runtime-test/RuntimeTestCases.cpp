@@ -317,7 +317,6 @@ void spider::test::runtimeDynamicHierarchical(spider::RuntimeType type, spider::
                                      [](const int64_t *, int64_t *out, void *[], void *[]) -> void {
                                          static int64_t i = 1;
                                          out[0] = i;
-//                                             ++i;
                                          spider::printer::printf("sub_setter: setting value: %" PRId64".\n",
                                                                  out[0]);
                                      });
@@ -358,10 +357,10 @@ void spider::test::runtimeDynamicHierarchical(spider::RuntimeType type, spider::
 
     /* === Set param to vertex === */
 
-    spider::api::addOutputParamToVertex(width_setter, width);
-    spider::api::addOutputParamToVertex(sub_setter, sub_width);
-    spider::api::addInputParamToVertex(vertex_2, width);
-    spider::api::addInputParamToVertex(vertex_6, sub_width);
+    spider::api::addOutputParamsToVertex(width_setter, { width });
+    spider::api::addOutputParamsToVertex(sub_setter, { sub_width });
+    spider::api::addInputParamsToVertex(vertex_2, { width });
+    spider::api::addInputParamsToVertex(vertex_6, { sub_width });
     spider::api::addInputRefinementParamToVertex(vertex_6, width_derived);
 
     /* === Creating edges === */

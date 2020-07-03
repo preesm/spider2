@@ -46,8 +46,6 @@
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/Delay.h>
 #include <graphs/pisdf/Param.h>
-#include <graphs/pisdf/DynamicParam.h>
-#include <graphs/pisdf/InHeritedParam.h>
 #include <graphs/pisdf/ExecVertex.h>
 #include <api/spider.h>
 #include <graphs-tools/helper/visitors/PiSDFDefaultVisitor.h>
@@ -111,13 +109,13 @@ TEST_F(pisdfVisitorTest, defaultTest) {
     }
     {
         spider::pisdf::DefaultVisitor visitor;
-        spider::pisdf::DynamicParam param("");
+        spider::pisdf::Param param("");
         ASSERT_THROW(param.visit(&visitor), spider::Exception) << "DefaultVisitor should throw for dynamic param.";
     }
     {
         spider::pisdf::DefaultVisitor visitor;
         auto p = spider::make_shared<spider::pisdf::Param>("", 0);
-        spider::pisdf::InHeritedParam param("", p);
+        spider::pisdf::Param param("", p);
         ASSERT_THROW(param.visit(&visitor), spider::Exception) << "DefaultVisitor should throw for inherited param.";
     }
 }
