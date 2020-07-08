@@ -80,10 +80,9 @@ if (MSVC)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
     install(FILES $<TARGET_PDB_FILE:${PROJECT_NAME}> CONFIGURATIONS "Debug" "RelWithDebInfo" DESTINATION "${CMAKE_INSTALL_BINDIR}")
 else ()
-    #    set(SPIDER_EXTRA_FLAGS "-Wall -Wextra -pedantic-errors -Wnon-virtual-dtor -Wconversion -Wformat -Wredundant-decls -Wold-style-cast")
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -pg -O0 --coverage")
-    message(STATUS "Using Link Time Optimization (-flto) on GNU platforms.")
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}  -O2 -DNDEBUG -fno-rtti -flto")
+    message(STATUS "Using Link Time Optimization (-flto) on GNU platforms.")
     if (${CMAKE_GENERATOR} MATCHES "MinGW Makefiles")
         # To prevent a redefinition conflict
         message(STATUS "Add definition _TIMESPEC_DEFINED")
@@ -196,6 +195,17 @@ add_install_rpath_support(BIN_DIRS "${CMAKE_INSTALL_FULL_BINDIR}"
         LIB_DIRS "${CMAKE_INSTALL_FULL_LIBDIR}"
         INSTALL_NAME_DIR "${CMAKE_INSTALL_FULL_LIBDIR}"
         USE_LINK_PATH)
+
+# Use JIT-Compiled expression (default is yes) ?
+option(USE_JIT_EXPRESSION   "Enable the JIT-Compiled expression parser (only on Linux)." ON)
+if (USE_JIT_EXPRESSION)
+    if (NOT MSVC)
+        add_definitions(-D_SPIDER_JIT_EXPRESSION)
+        message(STATUS "Using just-in-time compiled expression parser.")
+    else ()
+        message(STATUS "Defaulting to runtime expression parser on Windows.")
+    endif ()
+endif ()
 
 # Use PAPI library?
 option(USE_PAPI "Enable PAPI library support." OFF)

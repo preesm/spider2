@@ -35,7 +35,7 @@
 #ifndef SPIDER2_COMPILEDEXPRESSION_H
 #define SPIDER2_COMPILEDEXPRESSION_H
 
-#ifdef __linux__
+#if defined(__linux__) && defined(_SPIDER_JIT_EXPRESSION)
 
 /* === Include(s) === */
 

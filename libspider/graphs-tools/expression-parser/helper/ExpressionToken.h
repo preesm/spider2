@@ -35,7 +35,7 @@
 #ifndef SPIDER2_EXPRESSIONTOKEN_H
 #define SPIDER2_EXPRESSIONTOKEN_H
 
-#ifdef _WIN32
+#ifndef _SPIDER_JIT_EXPRESSION
 
 /* === Include(s) === */
 

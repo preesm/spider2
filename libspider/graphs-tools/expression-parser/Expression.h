@@ -37,13 +37,13 @@
 
 /* === Include(s) === */
 
-#ifdef __linux__
+#if defined(__linux__) && defined(_SPIDER_JIT_EXPRESSION)
 
-#include <graphs-tools/expression-parser/ExpressionLinux.h>
+#include <graphs-tools/expression-parser/ExpressionJIT.h>
 
-#elif defined(_WIN32)
+#else
 
-#include <graphs-tools/expression-parser/ExpressionWindows.h>
+#include <graphs-tools/expression-parser/ExpressionRuntime.h>
 
 #endif
 

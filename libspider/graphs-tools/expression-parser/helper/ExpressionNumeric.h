@@ -49,7 +49,7 @@ namespace spider {
                 return std::not_equal_to<double>{ }(0., v);
             }
 
-#ifdef _WIN32
+#ifndef _SPIDER_JIT_EXPRESSION
 
             /* === Unary functions === */
 

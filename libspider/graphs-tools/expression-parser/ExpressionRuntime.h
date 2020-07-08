@@ -32,10 +32,10 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_EXPRESSIONWINDOWS_H
-#define SPIDER2_EXPRESSIONWINDOWS_H
+#ifndef SPIDER2_EXPRESSIONRUNTIME_H
+#define SPIDER2_EXPRESSIONRUNTIME_H
 
-#ifdef _WIN32
+#ifndef _SPIDER_JIT_EXPRESSION
 
 /* === Include(s) === */
 
@@ -195,4 +195,4 @@ namespace spider {
 
 #endif
 
-#endif //SPIDER2_EXPRESSIONWINDOWS_H
+#endif //SPIDER2_EXPRESSIONRUNTIME_H

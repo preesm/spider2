@@ -32,10 +32,10 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_EXPRESSIONLINUX_H
-#define SPIDER2_EXPRESSIONLINUX_H
+#ifndef SPIDER2_EXPRESSIONJIT_H
+#define SPIDER2_EXPRESSIONJIT_H
 
-#ifdef __linux__
+#if defined(__linux__) && defined(_SPIDER_JIT_EXPRESSION)
 
 /* === Include(s) === */
 
