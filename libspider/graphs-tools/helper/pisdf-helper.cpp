@@ -246,6 +246,7 @@ bool spider::pisdf::isGraphFullyStatic(const Graph *graph) {
 
 void spider::pisdf::recursiveSplitDynamicGraph(Graph *graph) {
     if (graph->dynamic()) {
+        // TODO: put this method into pisdf namespace and into this cpp file
         srdag::separateRunGraphFromInit(graph);
     }
     for (auto &subgraph : graph->subgraphs()) {

@@ -51,22 +51,22 @@ namespace spider {
         struct ptr_t {
             using type = U *;
         };
+        template<typename Cond>
+        using require = typename std::enable_if<Cond::value>::type;
     public:
         using pointer = typename ptr_t<T>::type;
-        using element_type  = T;
+        using element_type = T;
 
-        constexpr unique_ptr() noexcept : data_{ nullptr } { }
+        constexpr unique_ptr() noexcept: data_{ nullptr } { }
 
         explicit unique_ptr(T *value) : data_{ value } { }
 
-        unique_ptr(unique_ptr &&rhs) noexcept : data_{ rhs.release() } { }
+        unique_ptr(unique_ptr &&rhs) noexcept: data_{ rhs.release() } { }
 
-        template<typename U, typename = typename std::_Require<
-                std::is_convertible<typename unique_ptr<U>::pointer, pointer>>>
+        template<typename U, typename = require<std::is_convertible<typename unique_ptr<U>::pointer, pointer>>>
         explicit unique_ptr(U *value) : data_{ value } { }
 
-        template<typename U, typename = typename std::_Require<
-                std::is_convertible<typename unique_ptr<U>::pointer, pointer>>>
+        template<typename U, typename = require<std::is_convertible<typename unique_ptr<U>::pointer, pointer>>>
         unique_ptr(unique_ptr<U> &&rhs) noexcept : data_{ rhs.release() } { }
 
         ~unique_ptr() {

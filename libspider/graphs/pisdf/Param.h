@@ -113,7 +113,7 @@ namespace spider {
             inline ParamType type() const { return type_; }
 
             inline bool dynamic() const {
-                if (parent()) {
+                if (parent_) {
                     return parent()->dynamic();
                 }
                 return (type_ == ParamType::DYNAMIC) || (type_ == ParamType::DYNAMIC_DEPENDANT);

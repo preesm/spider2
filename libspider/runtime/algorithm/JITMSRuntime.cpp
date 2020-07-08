@@ -161,9 +161,6 @@ bool spider::JITMSRuntime::staticExecute() {
 
 bool spider::JITMSRuntime::dynamicExecute() {
     const auto grtIx = archi::platform()->spiderGRTPE()->attachedLRT()->virtualIx();
-    if (graph_->dynamic()) {
-        srdag::separateRunGraphFromInit(graph_);
-    }
 
     /* == Time point used as reference == */
     if (api::exportTraceEnabled()) {

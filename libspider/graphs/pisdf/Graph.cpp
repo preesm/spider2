@@ -318,11 +318,12 @@ std::shared_ptr<spider::pisdf::Param> spider::pisdf::Graph::paramFromName(const 
 }
 
 bool spider::pisdf::Graph::dynamic() const {
-    const auto paramCount = std::count_if(std::begin(paramVector_), std::end(paramVector_),
-                                          [](const std::shared_ptr<Param> &p) {
-                                              return p->type() == ParamType::DYNAMIC;
-                                          });
-    return (paramCount > 0) && (paramCount == static_cast<long>(configVertexCount()));
+    for (const auto &param : paramVector_) {
+        if (param->type() == ParamType::DYNAMIC) {
+            return true;
+        }
+    }
+    return false;
 }
 
 /* === Private method(s) implementation === */
