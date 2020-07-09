@@ -55,8 +55,8 @@ spider::pisdf::Delay::Delay(int64_t value, Edge *edge,
                             bool persistent) : value_{ value },
                                                edge_{ edge },
                                                setter_{ setter },
-                                               setterPortIx_{ setterPortIx },
                                                getter_{ getter },
+                                               setterPortIx_{ setterPortIx },
                                                getterPortIx_{ getterPortIx },
                                                persistent_{ persistent } {
     if (!edge_) {

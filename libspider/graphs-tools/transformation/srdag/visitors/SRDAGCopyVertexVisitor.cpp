@@ -36,24 +36,46 @@
 
 #include <graphs-tools/transformation/srdag/visitors/SRDAGCopyVertexVisitor.h>
 #include <graphs/pisdf/ExecVertex.h>
+#include <graphs/pisdf/DelayVertex.h>
 #include <api/pisdf-api.h>
 
 /* === Function(s) definition === */
 
 void spider::srdag::SRDAGCopyVertexVisitor::visit(pisdf::ExecVertex *vertex) {
-    if (vertex->subtype() == pisdf::VertexType::DELAY) {
-        /* == This a trick to ensure proper coherence even with recursive delay init == */
-        /* == For given scenario:   A -> | delay | -> B
-         *                         setter --^ --> getter
-         *    This will produce this:
-         *                          setter -> | delay | -> getter
-         *                               A -> |       | -> B
-         *    But in reality the vertex does not make it after the SR-Transformation.
-         */
-        api::createVertex(srdag_, std::move(buildCloneName(vertex).append("(0)")), 2, 2);
-        ix_ = srdag_->vertexCount() - 1;
-    } else {
-        makeClone(vertex);
+    switch (vertex->subtype()) {
+        case pisdf::VertexType::DELAY:
+            /* == This a trick to ensure proper coherence even with recursive delay init == */
+            /* == For given scenario:   A -> | delay | -> B
+             *                         setter --^ --> getter
+             *    This will produce this:
+             *                          setter -> | delay | -> getter
+             *                               A -> |       | -> B
+             *    But in reality the vertex does not make it after the SR-Transformation.
+             */
+            api::createVertex(srdag_, std::move(buildCloneName(vertex).append("(0)")), 2, 2);
+            ix_ = srdag_->vertexCount() - 1;
+            break;
+        case pisdf::VertexType::INIT:
+        case pisdf::VertexType::END:
+            makeClone(vertex);
+            {
+                const pisdf::DelayVertex *delayVertex;
+                if (vertex->subtype() == pisdf::VertexType::INIT) {
+                    delayVertex = vertex->outputEdge(0)->sink()->convertTo<spider::pisdf::DelayVertex>();
+                } else {
+                    delayVertex = vertex->inputEdge(0)->source()->convertTo<spider::pisdf::DelayVertex>();
+                }
+                const auto *delay = delayVertex->delay();
+                auto *clone = srdag_->vertices().back().get();
+                clone->addInputParameter(make_shared<pisdf::Param, StackID::TRANSFO>("", delay->isPersistent()));
+                clone->addInputParameter(make_shared<pisdf::Param, StackID::TRANSFO>("", delay->value()));
+                clone->addInputParameter(
+                        make_shared<pisdf::Param, StackID::TRANSFO>("", static_cast<i64>(delay->memoryAddress())));
+            }
+            break;
+        default:
+            makeClone(vertex);
+            break;
     }
 }
 

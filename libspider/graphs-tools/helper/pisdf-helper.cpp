@@ -198,14 +198,9 @@ spider::array<i64> buildDuplicateRuntimeInputParameters(const spider::pisdf::Ver
  */
 spider::array<i64> buildInitEndRuntimeInputParameters(const spider::pisdf::Vertex *vertex) {
     auto outParams = spider::array<i64>(3, StackID::RUNTIME);
-    if (vertex->subtype() == spider::pisdf::VertexType::DELAY) {
-        const auto *delay = vertex->convertTo<spider::pisdf::DelayVertex>()->delay();
-        outParams[0] = delay->isPersistent();
-        outParams[1] = delay->value();
-        outParams[2] = static_cast<i64>(delay->memoryAddress());
-    } else {
-        outParams[0] = 0;
-    }
+    outParams[0] = vertex->inputParamVector()[0]->value(); /* = Persistence property = */
+    outParams[1] = vertex->inputParamVector()[1]->value(); /* = Value of the delay = */
+    outParams[2] = vertex->inputParamVector()[2]->value(); /* = Memory address (may be unused) = */
     return outParams;
 }
 
@@ -274,9 +269,9 @@ spider::array<i64> spider::pisdf::buildVertexRuntimeInputParameters(const pisdf:
         case VertexType::DUPLICATE:
             return buildDuplicateRuntimeInputParameters(vertex, params);
         case VertexType::INIT:
-            return buildInitEndRuntimeInputParameters(vertex->reference()->outputEdge(0)->sink());
+            return buildInitEndRuntimeInputParameters(vertex);
         case VertexType::END:
-            return buildInitEndRuntimeInputParameters(vertex->reference()->inputEdge(0)->source());
+            return buildInitEndRuntimeInputParameters(vertex);
         case VertexType::EXTERN_OUT:
             return buildExternOutRuntimeInputParameters(vertex, params);;
         default:
