@@ -268,14 +268,19 @@ void spider::Scheduler::mapTask(ScheduleTask *task) {
                                           return !reinterpret_cast<const RTInfo *>(info)->isPEMappable(pe);
                                       });
         if (foundPE) {
+            /* == Data to allocate == */
+            ufast64 dataToAllocate = 0;
             /* == Compute communication cost == */
             ufast64 dataTransfertCost = 0;
             for (auto &dep : dataDependencies) {
                 const auto peSrc{ dep.sender_ };
                 const auto dataSize{ dep.size_ };
                 dataTransfertCost += platform->dataCommunicationCostPEToPE(peSrc, foundPE, dataSize);
+                if (foundPE->cluster() != peSrc->cluster()) {
+                    dataToAllocate += dep.size_;
+                }
             }
-            needToScheduleCom |= (dataTransfertCost != 0);
+            needToScheduleCom |= (dataToAllocate != 0);
             /* == Check if it is better than previous cluster PE == */
             const auto startTime{ std::max(schedule_.endTime(foundPE->virtualIx()), minStartTime) };
             const auto endTime{ startTime + static_cast<ufast64>(vertexRtConstraints->timingOnPE(foundPE)) };

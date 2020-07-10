@@ -249,14 +249,17 @@ void spider::ScheduleTask::setJobMessageInputParameters(JobMessage &message) con
             const auto *info = comTaskInfo();
             const auto fstPeIx = type_ == TaskType::SYNC_SEND ? mappedLrt() : dependenciesArray_[0]->mappedLrt();
             const auto sndPeIx = type_ == TaskType::SYNC_SEND ? info->successor_->mappedLrt() : mappedLrt();
-            const auto packetIx_ = type_ == TaskType::SYNC_SEND ? execIx() : dependenciesArray_[0]->execIx();
             const auto *fstPe = archi::platform()->processingElement(fstPeIx);
             const auto *sndPe = archi::platform()->processingElement(sndPeIx);
             message.inputParams_ = array<i64>(4, StackID::RUNTIME);
             message.inputParams_[0] = static_cast<i64>(fstPe->cluster()->ix());
             message.inputParams_[1] = static_cast<i64>(sndPe->cluster()->ix());
             message.inputParams_[2] = static_cast<i64>(info->size_);
-            message.inputParams_[3] = static_cast<i64>(packetIx_);
+            if (type_ == TaskType::SYNC_RECEIVE) {
+                message.inputParams_[3] = static_cast<i64>(dependenciesArray_[0]->getOutputFifo(0U).virtualAddress_);
+            } else {
+                message.inputParams_[3] = 0;
+            }
         }
             break;
     }

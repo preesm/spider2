@@ -282,7 +282,7 @@ namespace spider {
      * @brief Memory bus send / receive routine.
      */
     using MemoryBusRoutine = std::function<void(int_least64_t  /* = Size in bytes = */,
-                                                int_least32_t, /* = Packet id = */
+                                                void *,        /* = Buffer to send / receive = */
                                                 void *         /* = Buffer to send / receive = */)>;
 
     /**

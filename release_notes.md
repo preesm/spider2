@@ -8,6 +8,8 @@ Spider2 Changelog
 * Adding new DEFAULT_NOSYNC allocator (which only work post scheduling) that removes synchronisation points on forks, duplicates and extern interfaces. Default remains DEFAULT allocator.
 
 ### Changes
+* Changed Semaphore.h to use POSIX semaphore on Linux.
+* Changed how send and receive task work in an heterogeneous setup.
 
 ### Bug fix
 * Sonar: fixed const qualified function parameters.
