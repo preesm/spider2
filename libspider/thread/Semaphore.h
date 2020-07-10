@@ -46,11 +46,19 @@
 /* === Includes === */
 
 #include <cstdint>
+
+#ifdef _WIN32
 #include <condition_variable>
 #include <mutex>
+#elif defined(__linux__)
+
+#include <semaphore.h>
+
+#endif
 
 namespace spider {
 
+#ifdef _WIN32
     template<typename Mutex, typename CondVar>
     class basic_semaphore {
     public:
@@ -142,5 +150,60 @@ namespace spider {
         return mCv.native_handle();
     }
 }
+#elif defined(__linux__)
 
+    class semaphore {
+    public:
+        using native_handle_type = sem_t *;
+
+        explicit inline semaphore(size_t count = 0) {
+            sem_init(&sem_, 0, static_cast<unsigned int>(count));
+        }
+
+        semaphore(const semaphore &) = delete;
+
+        semaphore(semaphore &&) = delete;
+
+        semaphore &operator=(const semaphore &) = delete;
+
+        semaphore &operator=(semaphore &&) = delete;
+
+        inline void notify() {
+            sem_post(&sem_);
+        }
+
+        inline void wait() {
+            sem_wait(&sem_);
+        }
+
+        inline bool try_wait() {
+            if (!sem_trywait(&sem_)) {
+                return true;
+            }
+            return false;
+        }
+
+        template<class Rep, class Period>
+        inline bool wait_for(const std::chrono::duration<Rep, Period> &d) {
+            timespec waitTime;
+            auto dSec = std::chrono::duration_cast<std::chrono::seconds>(d);
+            auto dNanoSec = std::chrono::duration_cast<std::chrono::nanoseconds>(d) - dSec;
+            waitTime.tv_nsec = dNanoSec;
+            waitTime.tv_sec = dSec;
+            return sem_timedwait(&sem_, &waitTime) == 0;
+        }
+
+        template<class Clock, class Duration>
+        inline bool wait_until(const std::chrono::time_point<Clock, Duration> &t) {
+            // not implemented
+            return true;
+        }
+
+        inline native_handle_type native_handle() { return &sem_; };
+    private:
+        sem_t sem_;
+    };
+
+#endif
+}
 #endif //SPIDER2_SEMAPHORE_H
