@@ -36,7 +36,7 @@
 
 #include <scheduling/allocator/SRLessDefaultFifoAllocator.h>
 #include <scheduling/schedule/ScheduleTask.h>
-#include <scheduling/allocator/TaskMemory.h>
+#include <scheduling/task/TaskFifos.h>
 #include <graphs/pisdf/DelayVertex.h>
 #include <graphs/pisdf/ExternInterface.h>
 #include <graphs/pisdf/Graph.h>
@@ -74,8 +74,8 @@ void spider::SRLessDefaultFifoAllocator::allocateVertexTask(spider::ScheduleTask
 
 void spider::SRLessDefaultFifoAllocator::allocateDefaultVertexTask(spider::ScheduleTask *task) {
     const auto *vertex = task->vertex();
-    auto taskMemory = make_unique<TaskMemory>(
-            make<TaskMemory, StackID::SCHEDULE>(vertex->inputEdgeCount(), vertex->outputEdgeCount()));
+    auto taskMemory = make_unique<TaskFifos>(
+            make<TaskFifos, StackID::SCHEDULE>(vertex->inputEdgeCount(), vertex->outputEdgeCount()));
     for (const auto &edge : vertex->inputEdgeVector()) {
         const auto snkIx = edge->sinkPortIx();
         const auto &inputTask = task->dependencies()[snkIx];

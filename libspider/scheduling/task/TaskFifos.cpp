@@ -34,14 +34,14 @@
  */
 /* === Include(s) === */
 
-#include <scheduling/allocator/TaskMemory.h>
+#include <scheduling/task/TaskFifos.h>
 #include <containers/vector.h>
 
 /* === Static function === */
 
 /* === Method(s) implementation === */
 
-spider::TaskMemory::TaskMemory(size_t inputFifoCount, size_t outputFifoCount) :
+spider::TaskFifos::TaskFifos(size_t inputFifoCount, size_t outputFifoCount) :
         inputFifos_{ spider::allocate<RTFifo, StackID::SCHEDULE>(inputFifoCount) },
         outputFifos_{ spider::allocate<RTFifo, StackID::SCHEDULE>(outputFifoCount) },
         inputFifoCount_{ inputFifoCount },
@@ -49,23 +49,23 @@ spider::TaskMemory::TaskMemory(size_t inputFifoCount, size_t outputFifoCount) :
 
 }
 
-spider::array_handle<spider::RTFifo> spider::TaskMemory::inputFifos() const {
-    return array_handle<RTFifo>{ inputFifos_.get(), inputFifoCount_ };
+spider::array_handle<spider::RTFifo> spider::TaskFifos::inputFifos() const {
+    return make_handle(inputFifos_.get(), inputFifoCount_);
 }
 
-spider::array_handle<spider::RTFifo> spider::TaskMemory::outputFifos() const {
+spider::array_handle<spider::RTFifo> spider::TaskFifos::outputFifos() const {
     return make_handle(outputFifos_.get(), outputFifoCount_);
 }
 
-size_t spider::TaskMemory::inputFifoCount() const {
+size_t spider::TaskFifos::inputFifoCount() const {
     return inputFifoCount_;
 }
 
-size_t spider::TaskMemory::outputFifoCount() const {
+size_t spider::TaskFifos::outputFifoCount() const {
     return outputFifoCount_;
 }
 
-spider::RTFifo spider::TaskMemory::inputFifo(size_t ix) const {
+spider::RTFifo spider::TaskFifos::inputFifo(size_t ix) const {
 #ifndef NDEBUG
     if (ix >= inputFifoCount_) {
         throwSpiderException("accessing out_of_range input fifo");
@@ -76,7 +76,7 @@ spider::RTFifo spider::TaskMemory::inputFifo(size_t ix) const {
 #endif
 }
 
-spider::RTFifo spider::TaskMemory::outputFifo(size_t ix) const {
+spider::RTFifo spider::TaskFifos::outputFifo(size_t ix) const {
 #ifndef NDEBUG
     if (ix >= outputFifoCount_) {
         throwSpiderException("accessing out_of_range output fifo");
@@ -87,13 +87,13 @@ spider::RTFifo spider::TaskMemory::outputFifo(size_t ix) const {
 #endif
 }
 
-void spider::TaskMemory::setInputFifo(size_t ix, spider::RTFifo fifo) {
+void spider::TaskFifos::setInputFifo(size_t ix, spider::RTFifo fifo) {
     if (inputFifos_ && (ix < inputFifoCount_)) {
         inputFifos_.get()[ix] = fifo;
     }
 }
 
-void spider::TaskMemory::setOutputFifo(size_t ix, spider::RTFifo fifo) {
+void spider::TaskFifos::setOutputFifo(size_t ix, spider::RTFifo fifo) {
     if (outputFifos_ && (ix < outputFifoCount_)) {
         outputFifos_.get()[ix] = fifo;
     }

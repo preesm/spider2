@@ -36,7 +36,7 @@
 
 #include <scheduling/allocator/DefaultFifoAllocator.h>
 #include <scheduling/schedule/ScheduleTask.h>
-#include <scheduling/allocator/TaskMemory.h>
+#include <scheduling/task/TaskFifos.h>
 #include <graphs/pisdf/DelayVertex.h>
 #include <graphs/pisdf/ExternInterface.h>
 #include <graphs/pisdf/Graph.h>
@@ -126,8 +126,8 @@ void spider::DefaultFifoAllocator::allocateVertexTask(ScheduleTask *task) {
 
 void spider::DefaultFifoAllocator::allocateDefaultVertexTask(ScheduleTask *task) {
     const auto *vertex = task->vertex();
-    auto taskMemory = make_unique<TaskMemory>(
-            make<TaskMemory, StackID::SCHEDULE>(vertex->inputEdgeCount(), vertex->outputEdgeCount()));
+    auto taskMemory = make_unique<TaskFifos>(
+            make<TaskFifos, StackID::SCHEDULE>(vertex->inputEdgeCount(), vertex->outputEdgeCount()));
     for (const auto &edge : vertex->inputEdgeVector()) {
         taskMemory->setInputFifo(edge->sinkPortIx(), allocateDefaultVertexInputFifo(task, edge));
     }
@@ -177,7 +177,7 @@ void spider::DefaultFifoAllocator::allocateExternInTask(ScheduleTask *task) {
     const auto *vertex = task->vertex();
     const auto *reference = vertex->reference()->convertTo<pisdf::ExternInterface>();
     const auto index = reference->bufferIndex();
-    auto taskMemory = make_unique<TaskMemory>(make<TaskMemory, StackID::SCHEDULE>(0U, 1U));
+    auto taskMemory = make_unique<TaskFifos>(make<TaskFifos, StackID::SCHEDULE>(0U, 1U));
     RTFifo fifo{ };
     fifo.size_ = static_cast<u32>(vertex->outputEdge(0U)->sourceRateValue());
     fifo.count_ = 1;
@@ -196,7 +196,7 @@ void spider::DefaultFifoAllocator::allocateRepeatTask(ScheduleTask *task) {
         const auto *previousTask = task->dependencies()[0];
         auto inputFifo = previousTask->getOutputFifo(inputEdge->sourcePortIx());
         auto outputFifo = inputFifo;
-        auto taskMemory = make_unique<TaskMemory>(make<TaskMemory, StackID::SCHEDULE>(1U, 1U));
+        auto taskMemory = make_unique<TaskFifos>(make<TaskFifos, StackID::SCHEDULE>(1U, 1U));
         if (inputFifo.attribute_ != FifoAttribute::RW_EXT) {
             inputFifo.count_ = 2;
             inputFifo.attribute_ = FifoAttribute::RW_ONLY;
@@ -215,7 +215,7 @@ void spider::DefaultFifoAllocator::allocateForkTask(ScheduleTask *task) {
     const auto *inputEdge = vertex->inputEdge(0U);
     const auto *previousTask = task->dependencies()[0];
     auto inputFifo = previousTask->getOutputFifo(inputEdge->sourcePortIx());
-    auto taskMemory = make_unique<TaskMemory>(make<TaskMemory, StackID::SCHEDULE>(1U, vertex->outputEdgeCount()));
+    auto taskMemory = make_unique<TaskFifos>(make<TaskFifos, StackID::SCHEDULE>(1U, vertex->outputEdgeCount()));
     u32 count = 0;
     u32 offset = 0;
     for (const auto &edge : vertex->outputEdgeVector()) {
@@ -242,7 +242,7 @@ void spider::DefaultFifoAllocator::allocateDuplicateTask(ScheduleTask *task) {
     const auto *inputEdge = vertex->inputEdge(0U);
     const auto *previousTask = task->dependencies()[0];
     auto inputFifo = previousTask->getOutputFifo(inputEdge->sourcePortIx());
-    auto taskMemory = make_unique<TaskMemory>(make<TaskMemory, StackID::SCHEDULE>(1U, vertex->outputEdgeCount()));
+    auto taskMemory = make_unique<TaskFifos>(make<TaskFifos, StackID::SCHEDULE>(1U, vertex->outputEdgeCount()));
     /* == Copy input fifo for each output == */
     for (size_t i = 0; i < vertex->outputEdgeCount(); ++i) {
         auto fifo = inputFifo;
@@ -263,7 +263,7 @@ void spider::DefaultFifoAllocator::allocateReceiveTask(ScheduleTask *task) {
     if (!information) {
         throwNullptrException();
     }
-    auto taskMemory = make_unique<TaskMemory>(make<TaskMemory, StackID::SCHEDULE>(0U, 1U));
+    auto taskMemory = make_unique<TaskFifos>(make<TaskFifos, StackID::SCHEDULE>(0U, 1U));
     taskMemory->setOutputFifo(0U, allocate(static_cast<size_t>(information->size_)));
     task->setTaskMemory(std::move(taskMemory));
 }
@@ -273,7 +273,7 @@ void spider::DefaultFifoAllocator::allocateSendTask(ScheduleTask *task) {
     if (!information) {
         throwNullptrException();
     }
-    auto taskMemory = make_unique<TaskMemory>(make<TaskMemory, StackID::SCHEDULE>(1U, 1U));
+    auto taskMemory = make_unique<TaskFifos>(make<TaskFifos, StackID::SCHEDULE>(1U, 1U));
     auto fifo = task->dependencies()[0]->getOutputFifo(static_cast<size_t>(information->inputPortIx_));
     if (fifo.attribute_ != FifoAttribute::RW_EXT) {
         fifo.attribute_ = FifoAttribute::RW_ONLY;

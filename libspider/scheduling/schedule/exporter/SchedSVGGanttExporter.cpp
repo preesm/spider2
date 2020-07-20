@@ -39,24 +39,25 @@
 #include <graphs/pisdf/Graph.h>
 #include <scheduling/schedule/Schedule.h>
 #include <scheduling/schedule/ScheduleTask.h>
-#include <iomanip>
 
 /* === Static variable(s) === */
 
-static constexpr u32 OFFSET_X = 3;
-static constexpr u32 OFFSET_Y = 3;
-static constexpr u32 BORDER = 5;
-static constexpr u32 ARROW_SIZE = 8;
-static constexpr u32 ARROW_STROKE = 2;
-static constexpr u32 TASK_HEIGHT = 50;
-static constexpr u32 TASK_SPACE = 5;
-static constexpr u32 TASK_MIN_WIDTH = 50;
-static constexpr u32 TASK_MAX_WIDTH = 600;
-static constexpr u32 TEXT_BORDER = 2;
-static constexpr u32 TEXT_MAX_HEIGHT = (TASK_HEIGHT - 10);
-static constexpr double PE_FONT_SIZE = (TEXT_MAX_HEIGHT / 3.);
-static constexpr double X_FONT_OFFSET = 0.2588;
-static constexpr double Y_FONT_OFFSET = 0.2358;
+namespace {
+    constexpr u32 OFFSET_X = 3;
+    constexpr u32 OFFSET_Y = 3;
+    constexpr u32 BORDER = 5;
+    constexpr u32 ARROW_SIZE = 8;
+    constexpr u32 ARROW_STROKE = 2;
+    constexpr u32 TASK_HEIGHT = 50;
+    constexpr u32 TASK_SPACE = 5;
+    constexpr u32 TASK_MIN_WIDTH = 50;
+    constexpr u32 TASK_MAX_WIDTH = 600;
+    constexpr u32 TEXT_BORDER = 2;
+    constexpr u32 TEXT_MAX_HEIGHT = (TASK_HEIGHT - 10);
+    constexpr double PE_FONT_SIZE = (TEXT_MAX_HEIGHT / 3.);
+    constexpr double X_FONT_OFFSET = 0.2588;
+    constexpr double Y_FONT_OFFSET = 0.2358;
+}
 
 /* === Static function(s) === */
 

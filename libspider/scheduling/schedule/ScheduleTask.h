@@ -48,7 +48,7 @@ namespace spider {
 
     class ScheduleTask;
 
-    class TaskMemory;
+    class TaskFifos;
 
     enum class TaskState : char {
         NOT_SCHEDULABLE = 0,
@@ -68,7 +68,6 @@ namespace spider {
         ufast64 size_{ 0 };
         size_t kernelIx_{ SIZE_MAX };
         i32 inputPortIx_{ 0 };
-        i32 packetIx_{ 0 };
     };
 
     /* === Class definition === */
@@ -230,7 +229,7 @@ namespace spider {
          * @brief Gets the @refitem TaskMemory associated with this task.
          * @return pointer to the memory (input / output fifos) of the Task.
          */
-        inline TaskMemory *taskMemory() const {
+        inline TaskFifos *taskMemory() const {
             return taskMemory_.get();
         }
 
@@ -364,7 +363,7 @@ namespace spider {
          * @brief Set the internal task memory of the ScheduleTask and replace current one.
          * @param taskMemory  Unique pointer to the task memory.
          */
-        void setTaskMemory(spider::unique_ptr<TaskMemory> taskMemory);
+        void setTaskMemory(spider::unique_ptr<TaskFifos> taskMemory);
 
         /**
          * @brief Set the successor of a send task (should be a receive task).
@@ -374,7 +373,7 @@ namespace spider {
 
     protected:
         spider::array<ScheduleTask *> dependenciesArray_;
-        spider::unique_ptr<TaskMemory> taskMemory_;
+        spider::unique_ptr<TaskFifos> taskMemory_;
         spider::unique_ptr<i32> executionConstraints_;
         spider::unique_ptr<bool> notificationFlags_;
         void *internal_{ nullptr };

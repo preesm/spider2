@@ -167,7 +167,6 @@ spider::ScheduleTask *spider::Scheduler::insertCommunicationTask(Cluster *cluste
     auto *comTaskInfo = make<ComTaskInformation, StackID::SCHEDULE>();
     comTaskInfo->size_ = dataSize;
     comTaskInfo->kernelIx_ = busKernel->ix();
-    comTaskInfo->packetIx_ = type == TaskType::SYNC_SEND ? comTask->execIx() : previousTask->execIx();
     comTask->setInternal(comTaskInfo);
 
     /* == Set job information and update schedule == */

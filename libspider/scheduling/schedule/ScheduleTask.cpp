@@ -35,7 +35,7 @@
 /* === Include(s) === */
 
 #include <scheduling/schedule/ScheduleTask.h>
-#include <scheduling/allocator/TaskMemory.h>
+#include <scheduling/task/TaskFifos.h>
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/DelayVertex.h>
 #include <graphs/pisdf/ExternInterface.h>
@@ -222,7 +222,7 @@ spider::JobMessage spider::ScheduleTask::createJobMessage() const {
     return message;
 }
 
-void spider::ScheduleTask::setTaskMemory(spider::unique_ptr<TaskMemory> taskMemory) {
+void spider::ScheduleTask::setTaskMemory(spider::unique_ptr<TaskFifos> taskMemory) {
     taskMemory_ = std::move(taskMemory);
 }
 

@@ -39,7 +39,7 @@
 #include <graphs/pisdf/Edge.h>
 #include <graphs/pisdf/Vertex.h>
 #include <scheduling/schedule/ScheduleTask.h>
-#include <scheduling/allocator/TaskMemory.h>
+#include <scheduling/task/TaskFifos.h>
 
 /* === Static function === */
 
