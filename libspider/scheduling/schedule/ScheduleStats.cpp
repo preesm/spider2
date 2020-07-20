@@ -37,6 +37,8 @@
 #include <scheduling/schedule/ScheduleStats.h>
 #include <api/archi-api.h>
 #include <archi/Platform.h>
+#include <archi/Cluster.h>
+#include <archi/MemoryInterface.h>
 
 /* === Static variable(s) === */
 
@@ -49,6 +51,7 @@ spider::Stats::Stats() : startTimeVector_{ factory::vector<uint64_t>(StackID::SC
                          endTimeVector_{ factory::vector<uint64_t>(StackID::SCHEDULE) },
                          loadTimeVector_{ factory::vector<uint64_t>(StackID::SCHEDULE) },
                          idleTimeVector_{ factory::vector<uint64_t>(StackID::SCHEDULE) },
+                         memoryUsageVector_{ factory::vector<uint64_t>(StackID::SCHEDULE) },
                          jobCountVector_{ factory::vector<size_t>(StackID::SCHEDULE) } {
     const auto *platform = archi::platform();
 
@@ -58,6 +61,7 @@ spider::Stats::Stats() : startTimeVector_{ factory::vector<uint64_t>(StackID::SC
     endTimeVector_.resize(n, 0);
     loadTimeVector_.resize(n, 0);
     idleTimeVector_.resize(n, 0);
+    memoryUsageVector_.resize(platform->clusterCount(), 0);
     jobCountVector_.resize(n, 0);
 }
 
@@ -68,6 +72,10 @@ void spider::Stats::reset() {
     std::fill(loadTimeVector_.begin(), loadTimeVector_.end(), 0);
     std::fill(idleTimeVector_.begin(), idleTimeVector_.end(), 0);
     std::fill(jobCountVector_.begin(), jobCountVector_.end(), 0);
+    auto it = std::begin(memoryUsageVector_);
+    for (auto *cluster : archi::platform()->clusters()) {
+        *(it++) = cluster->memoryInterface()->size();
+    }
 
     /* == Reset min / max time == */
     minStartTime_ = UINT64_MAX;
