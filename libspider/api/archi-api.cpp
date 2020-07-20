@@ -167,6 +167,19 @@ spider::api::createProcessingElement(uint32_t hwType,
     return processingElement;
 }
 
+void spider::api::attachPEToLRT(spider::PE *pe, spider::PE *lrt) {
+    if (!pe || !lrt) {
+        return;
+    }
+    if ((pe->attachedLRT() == pe) || (pe->isLRT())) {
+        return;
+    }
+    if (!lrt->isLRT()) {
+        throwSpiderException("can not attached PE [%s] to PE [%s]: not an LRT.", pe->name().c_str(), lrt->name().c_str());
+    }
+    pe->setAttachedLRT(lrt);
+}
+
 void spider::api::setPESpiderPEType(PE *processingElement, PEType type) {
     processingElement->setSpiderPEType(type);
 }

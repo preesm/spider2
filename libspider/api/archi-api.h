@@ -182,6 +182,16 @@ namespace spider {
                                     PEType type = PEType::LRT, int32_t affinity = -1);
 
         /**
+         * @brief Attach a Processing Element to a managing Local RunTime (LRT).
+         * @param pe   Pointer to the PE.
+         * @param lrt  Pointer to the LRT.
+         * @remark If the either of the pointers is null, nothing happens.
+         * @remark If the pe is already attached to an LRT or is an LRT, nothing happens.
+         * @throws @refitem spider::Exception If lrt is not a valid LRT, nothing happens.
+         */
+        void attachPEToLRT(PE *pe, PE *lrt);
+
+        /**
          * @brief Set the SpiderPEType of a given PE.
          * @param processingElement    Pointer to the PE.
          * @param type  Spider::PEType to set.
