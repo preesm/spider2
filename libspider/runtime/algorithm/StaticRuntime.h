@@ -1,9 +1,9 @@
-/**
- * Copyright or © or Copr. IETR/INSA - Rennes (2019 - 2020) :
+/*
+ * Copyright or © or Copr. IETR/INSA - Rennes (2020) :
  *
- * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2019 - 2020)
+ * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2020)
  *
- * Spider 2.0 is a dataflow based runtime used to execute dynamic PiSDF
+ * Spider is a dataflow based runtime used to execute dynamic PiSDF
  * applications. The Preesm tool may be used to design PiSDF applications.
  *
  * This software is governed by the CeCILL  license under French law and
@@ -32,31 +32,35 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_FASTJITMSRUNTIME_H
-#define SPIDER2_FASTJITMSRUNTIME_H
+#ifndef SPIDER2_STATICRUNTIME_H
+#define SPIDER2_STATICRUNTIME_H
 
 /* === Include(s) === */
 
 #include <runtime/algorithm/Runtime.h>
 #include <graphs-tools/transformation/srdag/TransfoJob.h>
 #include <scheduling/allocator/FifoAllocator.h>
-#include <graphs-tools/transformation/srdagless/SRLessHandler.h>
+#include <containers/unordered_map.h>
 
 namespace spider {
 
     /* === Forward declaration(s) === */
 
-    class SRLessScheduler;
+    class Scheduler;
+
 
     /* === Class definition === */
 
-    class FastJITMSRuntime final : public Runtime {
+    /**
+     * @brief Runtime to handle static application.
+     */
+    class StaticRuntime final : public Runtime {
     public:
-        explicit FastJITMSRuntime(pisdf::Graph *graph,
-                                  SchedulingPolicy schedulingAlgorithm = SchedulingPolicy::LIST,
-                                  FifoAllocatorType type = FifoAllocatorType::DEFAULT);
+        explicit StaticRuntime(pisdf::Graph *graph,
+                               SchedulingPolicy schedulingAlgorithm = SchedulingPolicy::LIST,
+                               FifoAllocatorType type = FifoAllocatorType::DEFAULT);
 
-        ~FastJITMSRuntime() override = default;
+        ~StaticRuntime() override = default;
 
         /* === Method(s) === */
 
@@ -69,26 +73,26 @@ namespace spider {
         /* === Setter(s) === */
 
     private:
-        unique_ptr<SRLessScheduler> scheduler_;
+        time::time_point startIterStamp_ = time::min();
+        unique_ptr<pisdf::Graph> srdag_;
+        unique_ptr<Scheduler> scheduler_;
         unique_ptr<FifoAllocator> fifoAllocator_;
-        bool isFullyStatic_ = true;
+        size_t iter_ = 0U;
 
         /* === Private method(s) === */
 
         /**
-         * @brief Handle execution of static applications.
-         * @return true
+         * @brief Apply the single-rate transformation, perform the scheduling and run the application.
+         * @remark This method should be called only on the first iteration of the application.
          */
-        bool staticExecute();
+        void applyTransformationAndRun();
 
         /**
-         * @brief Handle execution of dynamic applications.
-         * @return true
+         * @brief Run the application.
+         * @remark This method should be called at any iteration as long as a schedule as been derived.
          */
-        bool dynamicExecute();
-
-        void handleStaticGraph(pisdf::Graph *graph);
+        void run();
     };
 }
 
-#endif //SPIDER2_FASTJITMSRUNTIME_H
+#endif //SPIDER2_STATICRUNTIME_H

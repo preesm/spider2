@@ -49,13 +49,14 @@
 namespace spider {
 
     struct StartUpConfig {
-        bool verbose_ = false;         /* = Enable / disable the verbose = */
-        bool standAlone_ = false;      /* = Enable / disable the stand-alone mode = */
-        bool usePapify_ = false;       /* = Enable / disable the papify support (if available) = */
-        bool useApollo_ = false;       /* = Enable / disable the apollo support (if available) = */
-        bool enableGeneralLog_ = true; /* = Enable / disable the main logger = */
-        bool exportTrace_ = false;     /* = Enable / disable the export of the traces = */
-        bool exportSRDAG_ = false;     /* = Enable / disable the export of the srdag = */
+        bool verbose_ = false;            /* = Enable / disable the verbose = */
+        bool standAlone_ = false;         /* = Enable / disable the stand-alone mode = */
+        bool usePapify_ = false;          /* = Enable / disable the papify support (if available) = */
+        bool useApollo_ = false;          /* = Enable / disable the apollo support (if available) = */
+        bool enableGeneralLog_ = true;    /* = Enable / disable the main logger = */
+        bool exportTrace_ = false;        /* = Enable / disable the export of the traces = */
+        bool exportSRDAG_ = false;        /* = Enable / disable the export of the srdag = */
+        bool adaptiveStaticSched_ = true; /* = Enable / disable the adaptive static scheduling method = */
         size_t standAloneClusterIx_ = SIZE_MAX; /* = Id of the current cluster in stand-alone mode = */
         AllocatorPolicy generalStackAllocatorPolicy_ = AllocatorPolicy::GENERIC; /* = Allocation policy of the general stack = */
         size_t generalStackAlignment_ = sizeof(int64_t);
@@ -68,6 +69,30 @@ namespace spider {
         Runtime *algorithm_ = nullptr;
         size_t loopSize_ = 0;
         RunMode mode_ = RunMode::LOOP;
+    };
+
+    struct RuntimeConfig {
+        RunMode mode_ = RunMode::LOOP;                         /*!< Execution mode: default is LOOP */
+        RuntimeType runtimeType_ = RuntimeType::JITMS;          /*!< Runtime algorithm to use: default is JITMS */
+        ExecutionPolicy execPolicy_ = ExecutionPolicy::DELAYED; /*!< Execution policy to use: default is DELAYED */
+        SchedulingPolicy schedPolicy_ = SchedulingPolicy::LIST; /*!< Scheduling policy to use: default is LIST */
+        MappingPolicy mapPolicy_ = MappingPolicy::BEST_FIT;     /*!< Mapping policy to use: default is BEST_FIT */
+        size_t loopCount_ = 0;                                  /*!< Number of loop to perform (only used in LOOP mode) */
+
+        RuntimeConfig() = default;
+
+        RuntimeConfig(const RuntimeConfig &) = default;
+
+        RuntimeConfig(RuntimeConfig &&) = default;
+
+        explicit RuntimeConfig(RunMode mode = RunMode::LOOP,
+                               RuntimeType type = RuntimeType::JITMS,
+                               ExecutionPolicy execPolicy = ExecutionPolicy::DELAYED,
+                               SchedulingPolicy schedPolicy = SchedulingPolicy::LIST,
+                               MappingPolicy mapPolicy = MappingPolicy::BEST_FIT,
+                               size_t loopCount = 0) : mode_{ mode }, runtimeType_{ type },
+                                                       execPolicy_{ execPolicy }, schedPolicy_{ schedPolicy },
+                                                       mapPolicy_{ mapPolicy }, loopCount_{ loopCount } { };
     };
 
     /**
@@ -93,18 +118,15 @@ namespace spider {
     bool isInit();
 
     /**
-     * @brief Creates a runtime context for a given graph.
+     * @brief Creates a runtime context for a given graph according to the given config.
      * @remark In INFINITE mode, the application can only be stopped properly on receive of the SIGINT signal.
      * @warning If the user application already catches this signal, it should define and set the extern bool
      *          variable spider2StopRunning to true.
-     * @param mode      Run mode the application graph (INFINITE or LOOP).
-     * @param loopCount Number of loop to perform (only used in LOOP mode).
-     * @param type      Runtime algorithm to use.
-     * @param policy    Scheduling policy to use.
-     * @return Created runtime context.
+     * @param graph   Pointer to the graph associated to this context.
+     * @param config  Config of the runtime context (see @refitem RuntimeConfig).
+     * @return  Created runtime context.
      */
-    RuntimeContext createRuntimeContext(pisdf::Graph *graph, RunMode mode, size_t loopCount, RuntimeType type,
-                                        SchedulingPolicy policy);
+    RuntimeContext createRuntimeContext(pisdf::Graph *graph, RuntimeConfig config);
 
     /**
      * @brief Run a given runtime context.

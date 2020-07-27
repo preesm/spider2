@@ -111,6 +111,12 @@ namespace spider {
         void sendRepeatToRunners(bool value) const;
 
         /**
+         * @brief Send TRACE_ENABLE(DISABLE) notification to every runners.
+         * @param value if true send TRACE_ENABLE, else send TRACE_DISABLE
+         */
+        void sendTraceToRunners(bool value) const;
+
+        /**
          * @brief Wait for every runners to send the LRT_FINISHED_ITERATION notification.
          */
         void waitForRunnersToFinish();

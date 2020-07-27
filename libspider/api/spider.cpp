@@ -44,6 +44,8 @@
 #include <runtime/algorithm/Runtime.h>
 #include <runtime/algorithm/JITMSRuntime.h>
 #include <runtime/algorithm/FastJITMSRuntime.h>
+#include <runtime/algorithm/StaticRuntime.h>
+#include <graphs-tools/helper/pisdf-helper.h>
 
 /* === Static variable(s) definition === */
 
@@ -195,33 +197,39 @@ bool spider::isInit() {
 
 static spider::Runtime *getRuntimeFromType(spider::pisdf::Graph *graph,
                                            spider::RuntimeType type,
-                                           spider::SchedulingPolicy policy) {
+                                           spider::ExecutionPolicy executionPolicy,
+                                           spider::SchedulingPolicy schedulingPolicy,
+                                           spider::MappingPolicy mappingPolicy) {
+    // TODO: create the mapper/scheduler class here and pass it to the runtime.
     switch (type) {
         case spider::RuntimeType::JITMS:
-            return spider::make<spider::JITMSRuntime>(StackID::GENERAL, graph, policy);
+            if (spider::pisdf::isGraphFullyStatic(graph)) {
+                return spider::make<spider::StaticRuntime>(StackID::GENERAL, graph, schedulingPolicy);
+            }
+            return spider::make<spider::JITMSRuntime>(StackID::GENERAL, graph, schedulingPolicy);
         case spider::RuntimeType::FAST_JITMS:
-            return spider::make<spider::FastJITMSRuntime>(StackID::GENERAL, graph, policy);
+            return spider::make<spider::FastJITMSRuntime>(StackID::GENERAL, graph, schedulingPolicy);
         default:
             return nullptr;
     }
 }
 
-
-spider::RuntimeContext
-spider::createRuntimeContext(pisdf::Graph *graph, RunMode mode, size_t loopCount, RuntimeType type,
-                             SchedulingPolicy policy) {
+spider::RuntimeContext spider::createRuntimeContext(pisdf::Graph *graph, RuntimeConfig config) {
     if (!isInit()) {
         log::warning("SPIDER has not been initialized, returning.\n");
         return RuntimeContext{ };
     }
     RuntimeContext context{ };
-    context.graph_ = graph;
-    context.algorithm_ = getRuntimeFromType(graph, type, policy);
+    context.algorithm_ = getRuntimeFromType(graph,
+                                            config.runtimeType_,
+                                            config.execPolicy_,
+                                            config.schedPolicy_,
+                                            config.mapPolicy_);
     if (!context.algorithm_) {
         throwSpiderException("could not create runtime algorithm.");
     }
-    context.loopSize_ = loopCount;
-    context.mode_ = mode;
+    context.loopSize_ = config.loopCount_;
+    context.mode_ = config.mode_;
     return context;
 }
 

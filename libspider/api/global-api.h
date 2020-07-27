@@ -176,9 +176,24 @@ namespace spider {
      * @brief Spider scheduling algorithms.
      */
     enum class SchedulingPolicy {
-        LIST_BEST_FIT,        /*!< Use a list based algorithm with best fit mapping decision */
-        LIST_ROUND_ROBIN,     /*!< Use a list based algorithm with round robin mapping decision */
-        GREEDY,               /*!< Greedy algorithm with no heuristics */
+        LIST,        /*!< List-based algorithm using critical path based heuristic */
+        GREEDY,      /*!< Greedy scheduling algorithm with no heuristics */
+    };
+
+    /**
+     * @brief Spider mapping policy.
+     */
+    enum class MappingPolicy {
+        BEST_FIT,        /*!< Map actors according to a best fit policy */
+        ROUND_ROBIN,     /*!< Map actors according to a round robin policy */
+    };
+
+    /**
+     * @brief Spider execution policy.
+     */
+    enum class ExecutionPolicy {
+        JIT,        /*!< Just-in-Time execution policy: send jobs as soon as they are scheduled. */
+        DELAYED,    /*!< Delayed execution policy: wait for all jobs to be scheduled to send them. */
     };
 
     /**
