@@ -50,8 +50,7 @@ extern bool spider2StopRunning;
 
 /* === Function(s) definition === */
 
-void spider::test::runtimeStaticFlat(spider::RuntimeType type, SchedulingPolicy algorithm,
-                                     spider::FifoAllocatorType allocatorType) {
+void spider::test::runtimeStaticFlat(spider::RuntimeConfig cfg) {
     auto *graph = spider::api::createGraph("topgraph", 1, 0, 0);
     auto *vertex_0 = spider::api::createVertex(graph, "vertex_0", 0, 1);
     auto *vertex_1 = spider::api::createVertex(graph, "vertex_1", 1, 0);
@@ -73,34 +72,14 @@ void spider::test::runtimeStaticFlat(spider::RuntimeType type, SchedulingPolicy 
                                          auto *buffer = reinterpret_cast<char *>(input[0]);
                                          log::info("vertex_1 reading %d\n", buffer[0]);
                                      });
-    spider::Runtime *runtime;
-    switch (type) {
-        case spider::RuntimeType::JITMS:
-            runtime = spider::make<spider::JITMSRuntime>(StackID::GENERAL, graph, algorithm, allocatorType);
-            break;
-        case spider::RuntimeType::FAST_JITMS:
-            runtime = spider::make<spider::FastJITMSRuntime>(StackID::GENERAL, graph, algorithm, allocatorType);
-            break;
-        default:
-            runtime = nullptr;
-            break;
-    }
-    try {
-        if (!runtime) {
-            throw std::runtime_error("failed to create runtime.");
-        }
-        for (size_t i = 0; i < 10U && !spider2StopRunning; ++i) {
-            runtime->execute();
-        }
-    } catch (spider::Exception &e) {
-        throw std::runtime_error(e.what());
-    }
-    destroy(runtime);
+
+    auto context = spider::createRuntimeContext(graph, cfg);
+    spider::run(context);
+    spider::destroyRuntimeContext(context);
     api::destroyGraph(graph);
 }
 
-void spider::test::runtimeStaticHierarchical(spider::RuntimeType type, SchedulingPolicy algorithm,
-                                             spider::FifoAllocatorType allocatorType) {
+void spider::test::runtimeStaticHierarchical(spider::RuntimeConfig cfg) {
     spider::api::createThreadRTPlatform();
     auto *graph = spider::api::createGraph("topgraph", 1, 0, 0);
     auto *vertex_0 = spider::api::createVertex(graph, "vertex_0", 0, 1);
@@ -124,34 +103,15 @@ void spider::test::runtimeStaticHierarchical(spider::RuntimeType type, Schedulin
     spider::api::createEdge(subgraph, 0, 1, vertex_3, 0, 1);
     auto *edge = spider::api::createEdge(vertex_2, 1, 1, vertex_2, 1, 1);
     spider::api::createLocalDelay(edge, "1");
-    spider::Runtime *runtime;
-    switch (type) {
-        case spider::RuntimeType::JITMS:
-            runtime = spider::make<spider::JITMSRuntime>(StackID::GENERAL, graph, algorithm, allocatorType);
-            break;
-        case spider::RuntimeType::FAST_JITMS:
-            runtime = spider::make<spider::FastJITMSRuntime>(StackID::GENERAL, graph, algorithm, allocatorType);
-            break;
-        default:
-            runtime = nullptr;
-            break;
-    }
-    try {
-        if (!runtime) {
-            throw std::runtime_error("failed to create runtime.");
-        }
-        for (size_t i = 0; i < 10U && !spider2StopRunning; ++i) {
-            runtime->execute();
-        }
-    } catch (spider::Exception &e) {
-        throw std::runtime_error(e.what());
-    }
-    destroy(runtime);
+
+    auto context = spider::createRuntimeContext(graph, cfg);
+    spider::run(context);
+    spider::destroyRuntimeContext(context);
+
     api::destroyGraph(graph);
 }
 
-void spider::test::runtimeStaticFlatNoExec(spider::RuntimeType type, spider::SchedulingPolicy algorithm,
-                                           spider::FifoAllocatorType allocatorType) {
+void spider::test::runtimeStaticFlatNoExec(spider::RuntimeConfig cfg) {
     auto *graph = spider::api::createGraph("topgraph", 1, 0, 0);
     auto *vertex_0 = spider::api::createVertex(graph, "vertex_0", 0, 2);
     auto *vertex_1 = spider::api::createVertex(graph, "vertex_1", 2, 0);
@@ -178,34 +138,14 @@ void spider::test::runtimeStaticFlatNoExec(spider::RuntimeType type, spider::Sch
                                          auto *buffer = reinterpret_cast<char *>(input[0]);
                                          spider::log::info("vertex_2 reading %d\n", buffer[0]);
                                      });
-    spider::Runtime *runtime;
-    switch (type) {
-        case spider::RuntimeType::JITMS:
-            runtime = spider::make<spider::JITMSRuntime>(StackID::GENERAL, graph, algorithm, allocatorType);
-            break;
-        case spider::RuntimeType::FAST_JITMS:
-            runtime = spider::make<spider::FastJITMSRuntime>(StackID::GENERAL, graph, algorithm, allocatorType);
-            break;
-        default:
-            runtime = nullptr;
-            break;
-    }
-    try {
-        if (!runtime) {
-            throw std::runtime_error("failed to create runtime.");
-        }
-        for (size_t i = 0; i < 10U && !spider2StopRunning; ++i) {
-            runtime->execute();
-        }
-    } catch (spider::Exception &e) {
-        throw std::runtime_error(e.what());
-    }
-    destroy(runtime);
+
+    auto context = spider::createRuntimeContext(graph, cfg);
+    spider::run(context);
+    spider::destroyRuntimeContext(context);
     api::destroyGraph(graph);
 }
 
-void spider::test::runtimeStaticHierarchicalNoExec(spider::RuntimeType type, spider::SchedulingPolicy algorithm,
-                                                   spider::FifoAllocatorType allocatorType) {
+void spider::test::runtimeStaticHierarchicalNoExec(spider::RuntimeConfig cfg) {
     auto *graph = spider::api::createGraph("topgraph", 1, 0, 0);
     auto *vertex_0 = spider::api::createVertex(graph, "vertex_0", 0, 2);
     auto *vertex_1 = spider::api::createVertex(graph, "vertex_1", 2, 0);
@@ -238,34 +178,14 @@ void spider::test::runtimeStaticHierarchicalNoExec(spider::RuntimeType type, spi
                                          auto *buffer = reinterpret_cast<char *>(in[0]);
                                          spider::log::info("vertex_2 reading %d\n", buffer[0]);
                                      });
-    spider::Runtime *runtime;
-    switch (type) {
-        case spider::RuntimeType::JITMS:
-            runtime = spider::make<spider::JITMSRuntime>(StackID::GENERAL, graph, algorithm, allocatorType);
-            break;
-        case spider::RuntimeType::FAST_JITMS:
-            runtime = spider::make<spider::FastJITMSRuntime>(StackID::GENERAL, graph, algorithm, allocatorType);
-            break;
-        default:
-            runtime = nullptr;
-            break;
-    }
-    try {
-        if (!runtime) {
-            throw std::runtime_error("failed to create runtime.");
-        }
-        for (size_t i = 0; i < 10U && !spider2StopRunning; ++i) {
-            runtime->execute();
-        }
-    } catch (spider::Exception &e) {
-        throw std::runtime_error(e.what());
-    }
-    destroy(runtime);
+
+    auto context = spider::createRuntimeContext(graph, cfg);
+    spider::run(context);
+    spider::destroyRuntimeContext(context);
     api::destroyGraph(graph);
 }
 
-void spider::test::runtimeDynamicHierarchical(spider::RuntimeType type, spider::SchedulingPolicy algorithm,
-                                              spider::FifoAllocatorType allocatorType) {
+void spider::test::runtimeDynamicHierarchical(spider::RuntimeConfig cfg) {
     auto *graph = spider::api::createGraph("topgraph", 15, 15, 1);
 
     /* === Creating vertices === */
@@ -374,28 +294,9 @@ void spider::test::runtimeDynamicHierarchical(spider::RuntimeType type, spider::
     spider::api::createEdge(vertex_5, 0, 1, vertex_4, 0, 1);
     spider::api::createEdge(vertex_2, 1, "10", subsubgraph, 0, "10");
     spider::api::createEdge(sub_input, 0, "10", vertex_6, 0, "sub_width");
-    spider::Runtime *runtime;
-    switch (type) {
-        case spider::RuntimeType::JITMS:
-            runtime = spider::make<spider::JITMSRuntime>(StackID::GENERAL, graph, algorithm, allocatorType);
-            break;
-        case spider::RuntimeType::FAST_JITMS:
-            runtime = spider::make<spider::FastJITMSRuntime>(StackID::GENERAL, graph, algorithm, allocatorType);
-            break;
-        default:
-            runtime = nullptr;
-            break;
-    }
-    try {
-        if (!runtime) {
-            throw std::runtime_error("failed to create runtime.");
-        }
-        for (size_t i = 0; i < 10U && !spider2StopRunning; ++i) {
-            runtime->execute();
-        }
-    } catch (spider::Exception &e) {
-        throw std::runtime_error(e.what());
-    }
-    destroy(runtime);
+
+    auto context = spider::createRuntimeContext(graph, cfg);
+    spider::run(context);
+    spider::destroyRuntimeContext(context);
     api::destroyGraph(graph);
 }

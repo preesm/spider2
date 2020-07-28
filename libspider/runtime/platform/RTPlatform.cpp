@@ -141,6 +141,14 @@ void spider::RTPlatform::sendRepeatToRunners(bool value) const {
     }
 }
 
+void spider::RTPlatform::sendTraceToRunners(bool value) const {
+    NotificationType type = value ? NotificationType::TRACE_ENABLE
+                                  : NotificationType::TRACE_DISABLE;
+    for (size_t i = 0; i < archi::platform()->LRTCount(); ++i) {
+        communicator()->push(Notification{ type, archi::platform()->getGRTIx() }, i);
+    }
+}
+
 void spider::RTPlatform::waitForRunnersToFinish() {
     const auto grtIx = archi::platform()->spiderGRTPE()->attachedLRT()->virtualIx();
     auto notifVector = factory::vector<Notification>(StackID::RUNTIME);

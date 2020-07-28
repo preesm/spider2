@@ -53,7 +53,7 @@ namespace spider {
     class FastJITMSRuntime final : public Runtime {
     public:
         explicit FastJITMSRuntime(pisdf::Graph *graph,
-                                  SchedulingPolicy schedulingAlgorithm = SchedulingPolicy::LIST_BEST_FIT,
+                                  SchedulingPolicy schedulingAlgorithm = SchedulingPolicy::LIST,
                                   FifoAllocatorType type = FifoAllocatorType::DEFAULT);
 
         ~FastJITMSRuntime() override = default;

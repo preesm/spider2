@@ -62,106 +62,15 @@ spider::JITMSRuntime::JITMSRuntime(pisdf::Graph *graph,
         scheduler_{ makeScheduler(schedulingAlgorithm, srdag_.get()) },
         fifoAllocator_{ makeFifoAllocator(type) } {
     scheduler_->setAllocator(fifoAllocator_.get());
-    isFullyStatic_ = pisdf::isGraphFullyStatic(graph);
     if (!rt::platform()) {
         throwSpiderException("JITMSRuntime need the runtime platform to be created.");
     }
     fifoAllocator_->allocatePersistentDelays(graph_);
-    if (!isFullyStatic_) {
-        pisdf::recursiveSplitDynamicGraph(graph);
-    }
+    pisdf::recursiveSplitDynamicGraph(graph);
 }
 
 bool spider::JITMSRuntime::execute() {
-    if (isFullyStatic_) {
-        return staticExecute();
-    }
-    return dynamicExecute();
-}
-
-/* === Private method(s) === */
-
-bool spider::JITMSRuntime::staticExecute() {
-    /* == Time point used as reference == */
-    if (api::exportTraceEnabled()) {
-        startIterStamp_ = time::now();
-    }
-    const auto grtIx = archi::platform()->getGRTIx();
-    if (srdag_->vertexCount()) {
-        TraceMessage schedMsg{ };
-        TRACE_SCHEDULE_START();
-        /* == Send LRT_START_ITERATION notification == */
-        rt::platform()->sendStartIteration();
-        /* == Send LRT_END_ITERATION notification == */
-        rt::platform()->sendEndIteration();
-        TRACE_SCHEDULE_END();
-        /* == Run and wait == */
-        rt::platform()->runner(grtIx)->run(false);
-        rt::platform()->waitForRunnersToFinish();
-        /* == Runners should reset their parameters == */
-        rt::platform()->sendResetToRunners();
-        /* == Export post-exec gantt if needed  == */
-        if (api::exportTraceEnabled()) {
-            exportPostExecGantt(srdag_.get(), &scheduler_->schedule(), startIterStamp_);
-        }
-        return true;
-    }
-    /* == Runners should repeat their iteration == */
-    rt::platform()->sendRepeatToRunners(true);
-
-    TraceMessage transfoMsg{ };
-    TRACE_TRANSFO_START();
-    /* == Apply first transformation of root graph == */
-    auto rootJob = srdag::TransfoJob(graph_);
-    rootJob.params_ = graph_->params();
-    auto resultRootJob = srdag::singleRateTransformation(rootJob, srdag_.get());
-    /* == Initialize the job stacks == */
-    auto staticJobStack = factory::vector<srdag::TransfoJob>(StackID::TRANSFO);
-    updateJobStack(resultRootJob.first, staticJobStack);
-    auto tempJobStack = factory::vector<srdag::TransfoJob>(StackID::TRANSFO);
-    while (!staticJobStack.empty()) {
-        for (auto &job : staticJobStack) {
-            /* == Transform static graphs == */
-            auto &&result = srdag::singleRateTransformation(job, srdag_.get());
-
-            /* == Move static TransfoJob into static JobStack == */
-            updateJobStack(result.first, tempJobStack);
-        }
-
-        /* == Swap vectors == */
-        staticJobStack.swap(tempJobStack);
-        tempJobStack.clear();
-    }
-    TRACE_TRANSFO_END();
-
-    /* == Apply graph optimizations == */
-    if (api::shouldOptimizeSRDAG()) {
-        TRACE_TRANSFO_START();
-        optims::optimize(srdag_.get());
-        TRACE_TRANSFO_END();
-    }
-
-    /* == Export srdag if needed  == */
-    if (api::exportSRDAGEnabled()) {
-        api::exportGraphToDOT(srdag_.get(), "./srdag.dot");
-    }
-
-    /* == Update schedule, run and wait == */
-    scheduleRunAndWait(false);
-
-    /* == Runners should reset their parameters == */
-    rt::platform()->sendResetToRunners();
-
-    /* == Export post-exec gantt if needed  == */
-    if (api::exportTraceEnabled()) {
-        exportPostExecGantt(srdag_.get(), &scheduler_->schedule(), startIterStamp_);
-    }
-    return true;
-}
-
-bool spider::JITMSRuntime::dynamicExecute() {
     const auto grtIx = archi::platform()->spiderGRTPE()->attachedLRT()->virtualIx();
-
     /* == Time point used as reference == */
     if (api::exportTraceEnabled()) {
         startIterStamp_ = time::now();
@@ -268,6 +177,8 @@ bool spider::JITMSRuntime::dynamicExecute() {
     scheduler_->clear();
     return true;
 }
+
+/* === Private method(s) === */
 
 void spider::JITMSRuntime::scheduleRunAndWait(bool shouldBroadcast) {
     TraceMessage schedMsg{ };

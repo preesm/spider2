@@ -77,35 +77,29 @@ protected:
 };
 
 TEST_F(runtimeAppTest, TestStabilization) {
-    auto *runtime = spider::make<spider::JITMSRuntime>(StackID::GENERAL, graph_,
-                                                       spider::SchedulingPolicy::LIST_BEST_FIT,
-                                                       spider::FifoAllocatorType::DEFAULT);
-    try {
-        if (!runtime) {
-            throw std::runtime_error("failed to create runtime.");
-        }
-        for (size_t i = 0; i < 10U && !spider2StopRunning; ++i) {
-            ASSERT_NO_THROW(runtime->execute());
-        }
-    } catch (spider::Exception &e) {
-        throw std::runtime_error(e.what());
-    }
-    destroy(runtime);
+    auto context = spider::createRuntimeContext(graph_, spider::RuntimeConfig{
+            spider::RunMode::LOOP,
+            spider::RuntimeType::JITMS,
+            spider::ExecutionPolicy::DELAYED,
+            spider::SchedulingPolicy::LIST,
+            spider::MappingPolicy::BEST_FIT,
+            spider::FifoAllocatorType::DEFAULT,
+            10U,
+    });
+    ASSERT_NO_THROW(spider::run(context));
+    spider::destroyRuntimeContext(context);
 }
 
 TEST_F(runtimeAppTest, TestStabilizationNoSync) {
-    auto *runtime = spider::make<spider::JITMSRuntime>(StackID::GENERAL, graph_,
-                                                       spider::SchedulingPolicy::LIST_BEST_FIT,
-                                                       spider::FifoAllocatorType::DEFAULT_NOSYNC);
-    try {
-        if (!runtime) {
-            throw std::runtime_error("failed to create runtime.");
-        }
-        for (size_t i = 0; i < 10U && !spider2StopRunning; ++i) {
-            ASSERT_NO_THROW(runtime->execute());
-        }
-    } catch (spider::Exception &e) {
-        throw std::runtime_error(e.what());
-    }
-    destroy(runtime);
+    auto context = spider::createRuntimeContext(graph_, spider::RuntimeConfig{
+            spider::RunMode::LOOP,
+            spider::RuntimeType::JITMS,
+            spider::ExecutionPolicy::DELAYED,
+            spider::SchedulingPolicy::LIST,
+            spider::MappingPolicy::BEST_FIT,
+            spider::FifoAllocatorType::DEFAULT_NOSYNC,
+            10U,
+    });
+    ASSERT_NO_THROW(spider::run(context));
+    spider::destroyRuntimeContext(context);
 }
