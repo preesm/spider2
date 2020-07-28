@@ -149,7 +149,6 @@ namespace spider {
     typename basic_semaphore<Mutex, CondVar>::native_handle_type basic_semaphore<Mutex, CondVar>::native_handle() {
         return mCv.native_handle();
     }
-}
 #elif defined(__linux__)
 
     class semaphore {
@@ -203,7 +202,6 @@ namespace spider {
     private:
         sem_t sem_;
     };
-
 #endif
 }
 #endif //SPIDER2_SEMAPHORE_H
