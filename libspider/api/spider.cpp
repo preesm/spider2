@@ -196,19 +196,16 @@ bool spider::isInit() {
 }
 
 static spider::Runtime *getRuntimeFromType(spider::pisdf::Graph *graph,
-                                           spider::RuntimeType type,
-                                           spider::ExecutionPolicy executionPolicy,
-                                           spider::SchedulingPolicy schedulingPolicy,
-                                           spider::MappingPolicy mappingPolicy) {
+                                           const spider::RuntimeConfig &cfg) {
     // TODO: create the mapper/scheduler class here and pass it to the runtime.
-    switch (type) {
+    switch (cfg.runtimeType_) {
         case spider::RuntimeType::JITMS:
             if (spider::pisdf::isGraphFullyStatic(graph)) {
-                return spider::make<spider::StaticRuntime>(StackID::GENERAL, graph, schedulingPolicy);
+                return spider::make<spider::StaticRuntime>(StackID::GENERAL, graph, cfg.schedPolicy_, cfg.allocType_);
             }
-            return spider::make<spider::JITMSRuntime>(StackID::GENERAL, graph, schedulingPolicy);
+            return spider::make<spider::JITMSRuntime>(StackID::GENERAL, graph, cfg.schedPolicy_, cfg.allocType_);
         case spider::RuntimeType::FAST_JITMS:
-            return spider::make<spider::FastJITMSRuntime>(StackID::GENERAL, graph, schedulingPolicy);
+            return spider::make<spider::FastJITMSRuntime>(StackID::GENERAL, graph, cfg.schedPolicy_, cfg.allocType_);
         default:
             return nullptr;
     }
@@ -220,11 +217,7 @@ spider::RuntimeContext spider::createRuntimeContext(pisdf::Graph *graph, Runtime
         return RuntimeContext{ };
     }
     RuntimeContext context{ };
-    context.algorithm_ = getRuntimeFromType(graph,
-                                            config.runtimeType_,
-                                            config.execPolicy_,
-                                            config.schedPolicy_,
-                                            config.mapPolicy_);
+    context.algorithm_ = getRuntimeFromType(graph, config);
     if (!context.algorithm_) {
         throwSpiderException("could not create runtime algorithm.");
     }

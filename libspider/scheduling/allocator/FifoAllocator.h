@@ -38,16 +38,11 @@
 /* === Include(s) === */
 
 #include <runtime/common/RTFifo.h>
+#include <api/global-api.h>
 
 namespace spider {
 
     /* === Enum definition === */
-
-    enum class FifoAllocatorType {
-        DEFAULT,        /*!< Default Fifo allocator */
-        DEFAULT_NOSYNC, /*!< Default Fifo allocator with Fork/Duplicate/Extern_IN no-sync optimization */
-        ARCHI_AWARE,    /*!< Architecture aware Fifo allocator */
-    };
 
     /* === Forward declaration(s) === */
 

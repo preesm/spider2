@@ -72,12 +72,13 @@ namespace spider {
     };
 
     struct RuntimeConfig {
-        RunMode mode_ = RunMode::LOOP;                         /*!< Execution mode: default is LOOP */
-        RuntimeType runtimeType_ = RuntimeType::JITMS;          /*!< Runtime algorithm to use: default is JITMS */
-        ExecutionPolicy execPolicy_ = ExecutionPolicy::DELAYED; /*!< Execution policy to use: default is DELAYED */
-        SchedulingPolicy schedPolicy_ = SchedulingPolicy::LIST; /*!< Scheduling policy to use: default is LIST */
-        MappingPolicy mapPolicy_ = MappingPolicy::BEST_FIT;     /*!< Mapping policy to use: default is BEST_FIT */
-        size_t loopCount_ = 0;                                  /*!< Number of loop to perform (only used in LOOP mode) */
+        RunMode mode_ = RunMode::LOOP;                             /*!< Execution mode: default is LOOP */
+        RuntimeType runtimeType_ = RuntimeType::JITMS;             /*!< Runtime algorithm to use: default is JITMS */
+        ExecutionPolicy execPolicy_ = ExecutionPolicy::DELAYED;    /*!< Execution policy to use: default is DELAYED */
+        SchedulingPolicy schedPolicy_ = SchedulingPolicy::LIST;    /*!< Scheduling policy to use: default is LIST */
+        MappingPolicy mapPolicy_ = MappingPolicy::BEST_FIT;        /*!< Mapping policy to use: default is BEST_FIT */
+        FifoAllocatorType allocType_ = FifoAllocatorType::DEFAULT; /*!< Allocator type to use */
+        size_t loopCount_ = 1000U;                                 /*!< Number of loop to perform (only used in LOOP mode) */
 
         RuntimeConfig() = default;
 
@@ -90,9 +91,29 @@ namespace spider {
                                ExecutionPolicy execPolicy = ExecutionPolicy::DELAYED,
                                SchedulingPolicy schedPolicy = SchedulingPolicy::LIST,
                                MappingPolicy mapPolicy = MappingPolicy::BEST_FIT,
-                               size_t loopCount = 0) : mode_{ mode }, runtimeType_{ type },
-                                                       execPolicy_{ execPolicy }, schedPolicy_{ schedPolicy },
-                                                       mapPolicy_{ mapPolicy }, loopCount_{ loopCount } { };
+                               FifoAllocatorType allocatorType = FifoAllocatorType::DEFAULT,
+                               size_t loopCount = 0U) : mode_{ mode },
+                                                        runtimeType_{ type },
+                                                        execPolicy_{ execPolicy },
+                                                        schedPolicy_{ schedPolicy },
+                                                        mapPolicy_{ mapPolicy },
+                                                        allocType_{ allocatorType },
+                                                        loopCount_{ loopCount } { };
+
+        explicit RuntimeConfig(RunMode mode) : mode_{ mode } { };
+
+        explicit RuntimeConfig(RuntimeType type) : runtimeType_{ type } { };
+
+        explicit RuntimeConfig(ExecutionPolicy policy) : execPolicy_{ policy } { };
+
+        explicit RuntimeConfig(SchedulingPolicy policy) : schedPolicy_{ policy } { };
+
+        explicit RuntimeConfig(MappingPolicy policy) : mapPolicy_{ policy } { };
+
+        explicit RuntimeConfig(FifoAllocatorType type) : allocType_{ type } { };
+
+        explicit RuntimeConfig(size_t loopCount) : loopCount_{ loopCount } { };
+
     };
 
     /**

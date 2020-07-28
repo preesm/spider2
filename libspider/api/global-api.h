@@ -189,6 +189,15 @@ namespace spider {
     };
 
     /**
+     * @brief Fifo memory allocator type.
+     */
+    enum class FifoAllocatorType {
+        DEFAULT,        /*!< Default Fifo allocator */
+        DEFAULT_NOSYNC, /*!< Default Fifo allocator with Fork/Duplicate/Extern_IN no-sync optimization */
+        ARCHI_AWARE,    /*!< Architecture aware Fifo allocator */
+    };
+
+    /**
      * @brief Spider execution policy.
      */
     enum class ExecutionPolicy {
