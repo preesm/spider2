@@ -545,7 +545,7 @@ void spider::srdag::SingleRateTransformer::populateFromDelayVertex(vector<Transf
         rate = edge->sinkRateExpression().evaluate(job_.params_);
         portIx = edge->sourcePortIx();
     }
-    vector.emplace_back(rate, portIx, vertex);
+    vector.emplace_back(rate, static_cast<uint32_t>(portIx), vertex);
 
     /* == Remove the Edge == */
     srdag_->removeEdge(edge);
