@@ -76,10 +76,10 @@ void spider::Runtime::exportPreExecGantt(const Schedule *schedule, const std::st
     }
 }
 
-void spider::Runtime::exportPostExecGantt(const pisdf::Graph *graph,
-                                          const Schedule *schedule,
-                                          time::time_point offset,
-                                          const std::string &path) {
+void spider::Runtime::useExecutionTraces(const pisdf::Graph *graph,
+                                         const Schedule *schedule,
+                                         time::time_point offset,
+                                         const std::string &path) {
     if (!graph || !schedule) {
         return;
     }
@@ -149,12 +149,14 @@ void spider::Runtime::exportPostExecGantt(const pisdf::Graph *graph,
                              static_cast<double>(applicationRealTime)));
 
     /* == Export the schedule == */
-    if (api::useSVGOverXMLGantt()) {
-        SchedSVGGanttExporter exporter{ schedule };
-        exporter.printFromPath(path + ".svg");
-    } else {
-        SchedXMLGanttExporter exporter{ schedule };
-        exporter.printFromTasks(ganttTasks, path + ".xml");
+    if (api::exportGanttEnabled()) {
+        if (api::useSVGOverXMLGantt()) {
+            SchedSVGGanttExporter exporter{ schedule };
+            exporter.printFromPath(path + ".svg");
+        } else {
+            SchedXMLGanttExporter exporter{ schedule };
+            exporter.printFromTasks(ganttTasks, path + ".xml");
+        }
     }
 }
 
@@ -183,3 +185,5 @@ spider::FifoAllocator *spider::Runtime::makeSRLessFifoAllocator(FifoAllocatorTyp
     }
     return nullptr;
 }
+
+
