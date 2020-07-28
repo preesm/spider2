@@ -137,9 +137,8 @@ namespace spider {
 
         private:
             Expression expression_;          /* = Expression of the Param. = */
-            std::string name_{
-                    "" };                /* = Name of the Param. It is transformed to lower case on construction = */
-            size_t ix_{ SIZE_MAX };               /* = Index of the Param in the Graph = */
+            std::string name_{"" };          /* = Name of the Param. It is transformed to lower case on construction = */
+            size_t ix_{ SIZE_MAX };          /* = Index of the Param in the Graph = */
             std::shared_ptr<Param> parent_;
             ParamType type_{ ParamType::STATIC }; /* = Type of the parameter = */
 
@@ -148,7 +147,7 @@ namespace spider {
             inline void setName(std::string name) {
                 name_ = std::move(name);
                 std::transform(std::begin(name_), std::end(name_), std::begin(name_),
-                               [](char c) { return ::tolower(c); });
+                               [](char c) { return static_cast<char>(::tolower(static_cast<int>(c))); });
                 if (name_ == "pi") {
                     throwSpiderException("ambiguous name for parameter: pi is a math constant.");
                 }

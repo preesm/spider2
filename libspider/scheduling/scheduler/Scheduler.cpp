@@ -319,11 +319,8 @@ void spider::Scheduler::allocateTaskMemory(spider::ScheduleTask *task) {
 spider::unique_ptr<spider::Scheduler> spider::makeScheduler(SchedulingPolicy algorithm, pisdf::Graph *graph) {
     Scheduler *scheduler = nullptr;
     switch (algorithm) {
-        case SchedulingPolicy::LIST_BEST_FIT:
+        case SchedulingPolicy::LIST:
             scheduler = make<BestFitScheduler, StackID::SCHEDULE>(graph);
-            break;
-        case SchedulingPolicy::LIST_ROUND_ROBIN:
-            scheduler = make<RoundRobinScheduler, StackID::SCHEDULE>(graph);
             break;
         case SchedulingPolicy::GREEDY:
             scheduler = make<GreedyScheduler, StackID::SCHEDULE>(graph);

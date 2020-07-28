@@ -57,7 +57,7 @@ namespace spider {
     public:
 
         explicit JITMSRuntime(pisdf::Graph *graph,
-                              SchedulingPolicy schedulingAlgorithm = SchedulingPolicy::LIST_BEST_FIT,
+                              SchedulingPolicy schedulingAlgorithm = SchedulingPolicy::LIST,
                               FifoAllocatorType type = FifoAllocatorType::DEFAULT);
 
         ~JITMSRuntime() override = default;
@@ -77,21 +77,8 @@ namespace spider {
         unique_ptr<Scheduler> scheduler_;
         unique_ptr<FifoAllocator> fifoAllocator_;
         time::time_point startIterStamp_ = time::min();
-        bool isFullyStatic_ = true;
 
         /* === Private method(s) === */
-
-        /**
-         * @brief Handle execution of static applications.
-         * @return true
-         */
-        bool staticExecute();
-
-        /**
-         * @brief Handle execution of dynamic applications.
-         * @return true
-         */
-        bool dynamicExecute();
 
         /**
          * @brief Update scheduler, execute scheduler, run schedule and wait.

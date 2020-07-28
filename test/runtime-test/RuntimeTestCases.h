@@ -48,16 +48,15 @@
 
 namespace spider {
     namespace test {
-        void runtimeStaticFlat(RuntimeType type, SchedulingPolicy algorithm, spider::FifoAllocatorType allocatorType);
+        void runtimeStaticFlat(spider::RuntimeConfig cfg);
 
-        void runtimeStaticHierarchical(RuntimeType type, SchedulingPolicy algorithm, spider::FifoAllocatorType allocatorType);
+        void runtimeStaticHierarchical(spider::RuntimeConfig cfg);
 
-        void runtimeStaticFlatNoExec(RuntimeType type, SchedulingPolicy algorithm, spider::FifoAllocatorType allocatorType);
+        void runtimeStaticFlatNoExec(spider::RuntimeConfig cfg);
 
-        void runtimeStaticHierarchicalNoExec(RuntimeType type, SchedulingPolicy algorithm, spider::FifoAllocatorType allocatorType);
+        void runtimeStaticHierarchicalNoExec(spider::RuntimeConfig cfg);
 
-        void
-        runtimeDynamicHierarchical(RuntimeType type, SchedulingPolicy algorithm, spider::FifoAllocatorType allocatorType);
+        void runtimeDynamicHierarchical(spider::RuntimeConfig cfg);
     }
 }
 

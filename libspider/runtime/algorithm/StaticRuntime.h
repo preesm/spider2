@@ -1,9 +1,9 @@
-/**
- * Copyright or © or Copr. IETR/INSA - Rennes (2019 - 2020) :
+/*
+ * Copyright or © or Copr. IETR/INSA - Rennes (2020) :
  *
- * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2019 - 2020)
+ * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2020)
  *
- * Spider 2.0 is a dataflow based runtime used to execute dynamic PiSDF
+ * Spider is a dataflow based runtime used to execute dynamic PiSDF
  * applications. The Preesm tool may be used to design PiSDF applications.
  *
  * This software is governed by the CeCILL  license under French law and
@@ -32,76 +32,67 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_FIFOALLOCATOR_H
-#define SPIDER2_FIFOALLOCATOR_H
+#ifndef SPIDER2_STATICRUNTIME_H
+#define SPIDER2_STATICRUNTIME_H
 
 /* === Include(s) === */
 
-#include <runtime/common/RTFifo.h>
-#include <api/global-api.h>
+#include <runtime/algorithm/Runtime.h>
+#include <graphs-tools/transformation/srdag/TransfoJob.h>
+#include <scheduling/allocator/FifoAllocator.h>
+#include <containers/unordered_map.h>
 
 namespace spider {
 
-    /* === Enum definition === */
-
     /* === Forward declaration(s) === */
 
-    class MemoryInterface;
+    class Scheduler;
 
-    class ScheduleTask;
-
-    namespace pisdf {
-        class Graph;
-    }
 
     /* === Class definition === */
 
-    class FifoAllocator {
+    /**
+     * @brief Runtime to handle static application.
+     */
+    class StaticRuntime final : public Runtime {
     public:
-        struct FifoAllocatorTraits {
-            bool jitAllocator_;
-            bool postSchedulingAllocator_;
-        };
+        explicit StaticRuntime(pisdf::Graph *graph,
+                               SchedulingPolicy schedulingAlgorithm = SchedulingPolicy::LIST,
+                               FifoAllocatorType type = FifoAllocatorType::DEFAULT);
 
-        /* === Allocator traits === */
-
-        FifoAllocatorTraits traits_;
-
-        explicit FifoAllocator(FifoAllocatorTraits traits = { false, false }) noexcept: traits_{ traits } { }
-
-        virtual ~FifoAllocator() noexcept = default;
+        ~StaticRuntime() override = default;
 
         /* === Method(s) === */
 
-        /**
-         * @brief Allocate a FIFO of given size.
-         * @param size      Size of the FIFO to allocate in bytes.
-         * @return created @refitem RTFifo.
-         */
-        virtual RTFifo allocate(size_t size) = 0;
+        inline void setup() override { };
 
-        virtual void allocate(ScheduleTask *task) = 0;
-
-        /**
-         * @brief Clears the allocator.
-         */
-        virtual void clear() noexcept = 0;
-
-        /**
-         * @brief Reserve memory for permanent delays.
-         * @param graph pointer to the graph.
-         */
-        virtual void allocatePersistentDelays(pisdf::Graph *graph) = 0;
+        bool execute() override;
 
         /* === Getter(s) === */
 
-        /**
-         * @brief Get the type of the FifoAllocator
-         * @return @refitem FifoAllocatorType
-         */
-        virtual FifoAllocatorType type() const = 0;
+        /* === Setter(s) === */
 
     private:
+        time::time_point startIterStamp_ = time::min();
+        unique_ptr<pisdf::Graph> srdag_;
+        unique_ptr<Scheduler> scheduler_;
+        unique_ptr<FifoAllocator> fifoAllocator_;
+        size_t iter_ = 0U;
+
+        /* === Private method(s) === */
+
+        /**
+         * @brief Apply the single-rate transformation, perform the scheduling and run the application.
+         * @remark This method should be called only on the first iteration of the application.
+         */
+        void applyTransformationAndRun();
+
+        /**
+         * @brief Run the application.
+         * @remark This method should be called at any iteration as long as a schedule as been derived.
+         */
+        void run();
     };
 }
-#endif //SPIDER2_FIFOALLOCATOR_H
+
+#endif //SPIDER2_STATICRUNTIME_H

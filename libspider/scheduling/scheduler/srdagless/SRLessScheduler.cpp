@@ -44,7 +44,7 @@ spider::unique_ptr<spider::SRLessScheduler>
 spider::makeSRLessScheduler(pisdf::Graph *graph, SchedulingPolicy algorithm) {
     SRLessScheduler *scheduler = nullptr;
     switch (algorithm) {
-        case SchedulingPolicy::LIST_BEST_FIT:
+        case SchedulingPolicy::LIST:
             scheduler = make<SRLessBestFitScheduler, StackID::SCHEDULE>(graph);
             break;
 //        case SchedulingAlgorithm::GREEDY:
