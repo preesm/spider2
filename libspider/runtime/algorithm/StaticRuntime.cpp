@@ -159,8 +159,8 @@ void spider::StaticRuntime::applyTransformationAndRun() {
     rt::platform()->sendResetToRunners();
 
     /* == Export post-exec gantt if needed  == */
-    if (api::exportTraceEnabled() && api::exportGanttEnabled()) {
-        exportPostExecGantt(srdag_.get(), &scheduler_->schedule(), startIterStamp_);
+    if (api::exportTraceEnabled()) {
+        useExecutionTraces(srdag_.get(), &scheduler_->schedule(), startIterStamp_);
     }
 }
 
@@ -181,8 +181,7 @@ void spider::StaticRuntime::run() {
     /* == Runners should reset their parameters == */
     rt::platform()->sendResetToRunners();
     /* == Check if we need to re-schedule == */
-    if (api::exportTraceEnabled() && api::exportGanttEnabled()) {
-        /* == Export post-exec gantt if needed  == */
-        exportPostExecGantt(srdag_.get(), &scheduler_->schedule(), startIterStamp_);
+    if (api::exportTraceEnabled()) {
+        useExecutionTraces(srdag_.get(), &scheduler_->schedule(), startIterStamp_);
     }
 }

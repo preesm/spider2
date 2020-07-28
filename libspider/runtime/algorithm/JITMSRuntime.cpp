@@ -167,7 +167,7 @@ bool spider::JITMSRuntime::execute() {
 
     /* == Export post-exec gantt if needed  == */
     if (api::exportTraceEnabled()) {
-        exportPostExecGantt(srdag_.get(), &scheduler_->schedule(), startIterStamp_);
+        useExecutionTraces(srdag_.get(), &scheduler_->schedule(), startIterStamp_);
     }
 
     /* == Clear the srdag == */

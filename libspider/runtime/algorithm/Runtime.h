@@ -122,10 +122,10 @@ namespace spider {
          * @param offset   Time offset to apply.
          * @param path     Path of the file.
          */
-        void exportPostExecGantt(const pisdf::Graph *graph,
-                                 const Schedule *schedule,
-                                 time::time_point offset = time::min(),
-                                 const std::string &path = "./exec-gantt");
+        void useExecutionTraces(const pisdf::Graph *graph,
+                                const Schedule *schedule,
+                                time::time_point offset = time::min(),
+                                const std::string &path = "./exec-gantt");
 
         static FifoAllocator *makeFifoAllocator(FifoAllocatorType type);
 
