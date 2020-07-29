@@ -47,11 +47,19 @@ namespace spider {
     class PE;
 
     namespace sched {
+
+        class Task;
+
         namespace detail {
             struct MappingInfo {
                 u64 startTime_{ UINT64_MAX };
                 u64 endTime_{ UINT64_MAX };
                 const PE *mappedPE_{ nullptr };
+            };
+
+            struct ExecInfo {
+                spider::unique_ptr<Task *> constraints_;
+                spider::unique_ptr<bool> notifications_;
             };
         }
 
@@ -141,7 +149,7 @@ namespace spider {
             * @remark This method will overwrite current values.
             * @param mappedPE  Lrt ix inside spider.
             */
-            void setMappedPE(const PE *const pe);
+            void setMappedPE(const PE *pe);
 
             /**
              * @brief Set the state of the job.
@@ -151,6 +159,7 @@ namespace spider {
             inline void setState(TaskState state) { state_ = state; }
 
         private:
+            detail::ExecInfo execInfo_;
             std::shared_ptr<TaskFifos> fifos_;
             spider::unique_ptr<detail::MappingInfo> mappingInfo_;
             TaskState state_{ NOT_SCHEDULABLE };
