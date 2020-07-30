@@ -52,6 +52,8 @@ namespace spider {
 
         class Mapper;
 
+        class Schedule;
+
         /* === Class definition === */
 
         class ResourcesAllocator final {
@@ -77,6 +79,7 @@ namespace spider {
         private:
             spider::unique_ptr<Scheduler> scheduler_;
             spider::unique_ptr<Mapper> mapper_;
+            spider::unique_ptr<Schedule> schedule_;
             ExecutionPolicy executionPolicy_;
 
             /* === Private method(s) === */

@@ -37,6 +37,8 @@
 
 /* === Include(s) === */
 
+#include <common/Types.h>
+
 namespace spider {
 
     namespace pisdf {
@@ -48,6 +50,8 @@ namespace spider {
         class Task;
 
         class TaskVertex;
+
+        class Schedule;
 
         /* === Class definition === */
 
@@ -61,17 +65,20 @@ namespace spider {
 
             /**
              * @brief Map a task onto available resources.
-             * @param task pointer to the task to map.
+             * @param task     pointer to the task to map.
+             * @param schedule pointer to the schedule to update.
              * @throw @refitem spider::Exception if the mapper was unable to find any processing elements for the task.
              */
-            virtual void map(TaskVertex *task) = 0;
+            virtual void map(TaskVertex *task, Schedule *schedule) = 0;
 
             /* === Getter(s) === */
 
             /* === Setter(s) === */
 
-        private:
+            inline void setStartTime(ufast64 time) { startTime_ = time; }
 
+        protected:
+            ufast64 startTime_{ 0U };
         };
     }
 }

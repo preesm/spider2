@@ -36,8 +36,8 @@
 /* === Include(s) === */
 
 #include <scheduling/mapper/BestFitMapper.h>
+#include <scheduling/schedule/Schedule.h>
 #include <scheduling/task/TaskVertex.h>
-#include <scheduling/task/Task.h>
 #include <graphs/pisdf/Vertex.h>
 #include <graphs/pisdf/Edge.h>
 
@@ -47,6 +47,111 @@
 
 /* === Private method(s) implementation === */
 
-void spider::sched::BestFitMapper::map(sched::TaskVertex *task) {
+void spider::sched::BestFitMapper::map(TaskVertex *task, Schedule *schedule) {
+    auto *vertex = task->vertex();
+    if (!vertex) {
+        throwSpiderException("can not schedule a task with no vertex.");
+    }
+    task->setState(sched::TaskState::PENDING);
+    vertex->setScheduleTaskIx(task->ix());
 
+    /* == Compute the minimum start time possible for the task == */
+    const auto minStartTime = computeStartTime(vertex, schedule);
+
+    /* == Build the data dependency vector in order to compute receive cost == */
+    const auto *platform = archi::platform();
+
+    /* == Search for a slave to map the task on */
+    const auto *constraints{ vertex->runtimeInformation() };
+    const PE *bestFitPE{ nullptr };
+    auto needToScheduleCom{ false };
+    auto bestStartTime{ UINT_FAST64_MAX };
+    auto bestEndTime{ UINT_FAST64_MAX };
+    auto bestScheduleCost{ UINT_FAST64_MAX };
+    for (const auto &cluster : platform->clusters()) {
+        /* == Fast check to discard entire cluster == */
+        if (!constraints->isClusterMappable(cluster)) {
+            continue;
+        }
+        /* == Find best fit PE for this cluster == */
+        PE *foundPE = nullptr;
+        auto bestFitIdleTime = UINT_FAST64_MAX;
+        auto bestFitEndTime = UINT_FAST64_MAX;
+        for (const auto &pe : cluster->peArray()) {
+            if (!pe->enabled() || !constraints->isPEMappable(pe)) {
+                continue;
+            }
+            const auto readyTime = schedule->stats().endTime(pe->virtualIx());
+            const auto startTime = std::max(readyTime, minStartTime);
+            const auto idleTime = startTime - readyTime;
+            const auto endTime = startTime + static_cast<u64>(constraints->timingOnPE(pe));
+            if (endTime < bestFitEndTime) {
+                foundPE = pe;
+                bestFitEndTime = endTime;
+                bestFitIdleTime = std::min(idleTime, bestFitIdleTime);
+            } else if ((endTime == bestFitEndTime) && (idleTime < bestFitIdleTime)) {
+                foundPE = pe;
+                bestFitEndTime = endTime;
+                bestFitIdleTime = idleTime;
+            }
+        }
+
+        if (foundPE) {
+            /* == Data to allocate == */
+            ufast64 dataToSend = 0U;
+            /* == Compute communication cost == */
+            ufast64 communicationCost = 0;
+            for (const auto &edge : vertex->inputEdgeVector()) {
+                const auto rate = static_cast<u64>(edge->sourceRateValue());
+                const auto source = edge->source();
+                if (rate && source && source->executable()) {
+                    const auto taskSource = schedule->tasks()[source->scheduleTaskIx()].get();
+                    const auto mappedPESource = taskSource->mappedPe();
+                    communicationCost += platform->dataCommunicationCostPEToPE(mappedPESource, foundPE, rate);
+                    if (foundPE->cluster() != mappedPESource->cluster()) {
+                        dataToSend += rate;
+                    }
+                }
+            }
+            needToScheduleCom |= (dataToSend != 0);
+            /* == Check if it is better than previous cluster PE == */
+            const auto startTime{ std::max(schedule->stats().endTime(foundPE->virtualIx()), minStartTime) };
+            const auto endTime{ startTime + static_cast<ufast64>(constraints->timingOnPE(foundPE)) };
+            const auto scheduleCost{ math::saturateAdd(endTime, communicationCost) };
+            if (scheduleCost < bestScheduleCost) {
+                bestFitPE = foundPE;
+                bestStartTime = startTime;
+                bestEndTime = endTime;
+            }
+        }
+    }
+
+    /* == Throw if no possible mapping was found == */
+    if (!bestFitPE) {
+        throwSpiderException("Could not find suitable processing element for vertex: [%s]", vertex->name().c_str());
+    }
+
+//    if (needToScheduleCom) {
+//        /* == Schedule communications == */
+//        task->setStartTime(mappingSt);
+//        task->setEndTime(mappingEt);
+//        scheduleCommunications(task, dataDependencies, mappingPe->cluster());
+//        mappingSt = task->startTime();
+//        mappingEt = task->endTime();
+//    }
+    schedule->updateTaskAndSetReady(task, bestFitPE->virtualIx(), bestStartTime, bestEndTime);
+}
+
+ufast64 spider::sched::BestFitMapper::computeStartTime(const pisdf::Vertex *vertex, Schedule *schedule) const {
+    auto minTime = startTime_;
+    if (vertex) {
+        for (const auto *edge : vertex->inputEdgeVector()) {
+            const auto source = edge->source();
+            if (source && source->executable()) {
+                const auto &task = schedule->tasks()[source->scheduleTaskIx()];
+                minTime = std::max(minTime, task->endTime());
+            }
+        }
+    }
+    return minTime;
 }

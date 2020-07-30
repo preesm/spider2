@@ -36,9 +36,9 @@
 /* === Include(s) === */
 
 #include <scheduling/ResourcesAllocator.h>
+#include <scheduling/schedule/Schedule.h>
 #include <scheduling/scheduler/ListScheduler.h>
 #include <scheduling/mapper/BestFitMapper.h>
-#include <scheduling/task/Task.h>
 #include <scheduling/task/TaskVertex.h>
 
 /* === Static function === */
@@ -50,6 +50,7 @@ spider::sched::ResourcesAllocator::ResourcesAllocator(SchedulingPolicy schedulin
                                                       ExecutionPolicy executionPolicy) :
         scheduler_{ spider::make_unique(allocateScheduler(schedulingPolicy)) },
         mapper_{ spider::make_unique(allocateMapper(mappingPolicy)) },
+        schedule_{ spider::make_unique<Schedule, StackID::SCHEDULE>() },
         executionPolicy_{ executionPolicy } {
 }
 
@@ -68,6 +69,9 @@ void spider::sched::ResourcesAllocator::execute(const pisdf::Graph *graph) {
         default:
             throwSpiderException("unsupported execution policy.");
     }
+
+    /* == Clear resources == */
+    scheduler_->clear();
 }
 
 /* === Private method(s) implementation === */
@@ -93,9 +97,9 @@ spider::sched::Mapper *spider::sched::ResourcesAllocator::allocateMapper(Mapping
 template<class T>
 void spider::sched::ResourcesAllocator::jitExecutionPolicy() {
     /* == Map, allocate fifos and execute tasks == */
-    for (auto *task : scheduler_->tasks()) {
+    for (auto &task : scheduler_->tasks()) {
         /* == Map the task == */
-        mapper_->map(static_cast<T>(task));
+        mapper_->map(static_cast<T>(task.get()), schedule_.get());
 
         /* == Allocate the fifos task == */
 
@@ -106,15 +110,17 @@ void spider::sched::ResourcesAllocator::jitExecutionPolicy() {
 template<class T>
 void spider::sched::ResourcesAllocator::delayedExecutionPolicy() {
     /* == Map every tasks == */
-    for (auto *task : scheduler_->tasks()) {
-        mapper_->map(static_cast<T>(task));
+    for (auto &task : scheduler_->tasks()) {
+        auto castTask = static_cast<T>(task.get());
+        schedule_->addTask(std::move(task));
+        mapper_->map(castTask, schedule_.get());
     }
     /* == Allocate fifos for every tasks == */
-    for (auto *task : scheduler_->tasks()) {
+    for (auto &task : scheduler_->tasks()) {
 
     }
     /* == Execute every tasks == */
-    for (auto *task : scheduler_->tasks()) {
+    for (auto &task : scheduler_->tasks()) {
 
     }
 }

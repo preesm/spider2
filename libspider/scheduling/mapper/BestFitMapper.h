@@ -53,7 +53,7 @@ namespace spider {
 
             /* === Method(s) === */
 
-            void map(TaskVertex *task) override;
+            void map(TaskVertex *task, Schedule *schedule) override;
 
             /* === Getter(s) === */
 
@@ -61,6 +61,9 @@ namespace spider {
 
         private:
 
+            /* === Private method(s) === */
+
+            ufast64 computeStartTime(const pisdf::Vertex *vertex, Schedule *schedule) const;
         };
     }
 }
