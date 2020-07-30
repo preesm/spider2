@@ -34,7 +34,7 @@
  */
 /* === Include(s) === */
 
-#include <scheduling/scheduler/srdagless/SRLessBestFitScheduler.h>
+#include <scheduling/scheduler_legacy/srdagless/SRLessBestFitScheduler.h>
 
 /* === Static function === */
 

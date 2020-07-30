@@ -37,16 +37,16 @@
 
 /* === Include(s) === */
 
-#include <scheduling/scheduler/Scheduler.h>
+#include <scheduling/scheduler_legacy/SchedulerLegacy.h>
 
 namespace spider {
 
     /* === Class definition === */
 
-    class GreedyScheduler final : public Scheduler {
+    class GreedyScheduler final : public SchedulerLegacy {
     public:
 
-        explicit GreedyScheduler(pisdf::Graph *graph) : Scheduler{ graph } { };
+        explicit GreedyScheduler(pisdf::Graph *graph) : SchedulerLegacy{ graph } { };
 
         ~GreedyScheduler() override = default;
 

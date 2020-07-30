@@ -34,8 +34,8 @@
  */
 /* === Include(s) === */
 
-#include <scheduling/scheduler/srdagless/SRLessScheduler.h>
-#include <scheduling/scheduler/srdagless/SRLessBestFitScheduler.h>
+#include <scheduling/scheduler_legacy/srdagless/SRLessScheduler.h>
+#include <scheduling/scheduler_legacy/srdagless/SRLessBestFitScheduler.h>
 
 /* === Function(s) definition === */
 
@@ -62,7 +62,7 @@ void spider::SRLessScheduler::mapTask(ScheduleTask *task) {
         throwSpiderException("can not schedule a task with no vertex.");
     }
     /* == Compute the minimum start time possible for vertex == */
-    const auto minStartTime = Scheduler::computeMinStartTime(task);
+    const auto minStartTime = SchedulerLegacy::computeMinStartTime(task);
 
     /* == Search for a slave to map the task on */
     const auto *platform = archi::platform();

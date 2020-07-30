@@ -45,7 +45,7 @@ namespace spider {
 
     /* === Forward declaration(s) === */
 
-    class Scheduler;
+    class SchedulerLegacy;
 
     /* === Class definition === */
 
@@ -74,7 +74,7 @@ namespace spider {
 
     private:
         unique_ptr<pisdf::Graph> srdag_;
-        unique_ptr<Scheduler> scheduler_;
+        unique_ptr<SchedulerLegacy> scheduler_;
         unique_ptr<FifoAllocator> fifoAllocator_;
         time::time_point startIterStamp_ = time::min();
 

@@ -34,7 +34,7 @@
  */
 /* === Include(s) === */
 
-#include <scheduling/scheduler/BestFitScheduler.h>
+#include <scheduling/scheduler_legacy/BestFitScheduler.h>
 #include <scheduling/allocator/FifoAllocator.h>
 #include <runtime/interface/Message.h>
 #include <runtime/platform/RTPlatform.h>
@@ -52,25 +52,25 @@ spider::Schedule &spider::BestFitScheduler::execute() {
     auto startIterator = sortedTaskVector_.begin() + static_cast<long>(lastScheduledTask_);
     auto endIterator = sortedTaskVector_.begin() + static_cast<long>(lastSchedulableTask_);
     if (mode_ == JIT_SEND) {
-        std::for_each(startIterator, endIterator, [this](ListScheduler::ListTask &listTask) {
+        std::for_each(startIterator, endIterator, [this](ListSchedulerLegacy::ListTask &listTask) {
             /* == Do the mapping scheduling for the task == */
-            Scheduler::mapTask(listTask.task_);
+            SchedulerLegacy::mapTask(listTask.task_);
             /* == We are in JIT mode, we need to broadcast the job stamp == */
             listTask.task_->enableBroadcast();
             /* == Allocate output fifos for the task == */
-            Scheduler::allocateTaskMemory(listTask.task_);
+            SchedulerLegacy::allocateTaskMemory(listTask.task_);
             /* == Create job message and send it == */
             schedule_.sendReadyTasks();
         });
     } else {
         /* == Do the mapping scheduling for all the tasks == */
-        std::for_each(startIterator, endIterator, [this](ListScheduler::ListTask &listTask) {
-            Scheduler::mapTask(listTask.task_);
+        std::for_each(startIterator, endIterator, [this](ListSchedulerLegacy::ListTask &listTask) {
+            SchedulerLegacy::mapTask(listTask.task_);
         });
         /* == Allocate output fifos for all the tasks == */
         std::for_each(std::begin(schedule_.readyTasks()), std::end(schedule_.readyTasks()),
                       [this](ScheduleTask *task) {
-                          Scheduler::allocateTaskMemory(task);
+                          SchedulerLegacy::allocateTaskMemory(task);
                       });
         /* == Creates all job messages and send them == */
         schedule_.sendReadyTasks();

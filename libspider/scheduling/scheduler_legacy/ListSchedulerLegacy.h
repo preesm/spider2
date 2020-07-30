@@ -32,8 +32,8 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_LISTSCHEDULER_H
-#define SPIDER2_LISTSCHEDULER_H
+#ifndef SPIDER2_LISTSCHEDULERLEGACY_H
+#define SPIDER2_LISTSCHEDULERLEGACY_H
 
 /* === Include(s) === */
 
@@ -45,10 +45,10 @@ namespace spider {
 
     /* === Class definition === */
 
-    class ListScheduler : public SchedulerLegacy {
+    class ListSchedulerLegacy : public SchedulerLegacy {
     public:
 
-        ~ListScheduler() override = default;
+        ~ListSchedulerLegacy() override = default;
 
         /* === Method(s) === */
 
@@ -80,7 +80,7 @@ namespace spider {
 
         /* === Protected method(s) === */
 
-        explicit ListScheduler(pisdf::Graph *graph);
+        explicit ListSchedulerLegacy(pisdf::Graph *graph);
 
     private:
 
@@ -144,4 +144,4 @@ namespace spider {
     };
 }
 
-#endif //SPIDER2_LISTSCHEDULER_H
+#endif //SPIDER2_LISTSCHEDULERLEGACY_H

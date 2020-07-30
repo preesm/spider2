@@ -37,16 +37,16 @@
 
 /* === Include(s) === */
 
-#include <scheduling/scheduler/ListScheduler.h>
+#include <scheduling/scheduler_legacy/ListSchedulerLegacy.h>
 
 namespace spider {
 
     /* === Class definition === */
 
-    class RoundRobinScheduler : public ListScheduler {
+    class RoundRobinScheduler : public ListSchedulerLegacy {
     public:
 
-        explicit RoundRobinScheduler(pisdf::Graph *graph) : ListScheduler(graph) { };
+        explicit RoundRobinScheduler(pisdf::Graph *graph) : ListSchedulerLegacy(graph) { };
 
         ~RoundRobinScheduler() override = default;
 

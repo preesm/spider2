@@ -37,19 +37,19 @@
 
 /* === Include(s) === */
 
-#include <scheduling/scheduler/Scheduler.h>
+#include <scheduling/scheduler_legacy/SchedulerLegacy.h>
 #include <graphs-tools/transformation/srdagless/SRLessHandler.h>
 
 namespace spider {
 
     /* === Class definition === */
 
-    class SRLessScheduler : public Scheduler {
+    class SRLessScheduler : public SchedulerLegacy {
     public:
         explicit SRLessScheduler(pisdf::Graph *graph,
                                  ScheduleMode mode = DELAYED_SEND,
                                  FifoAllocator *allocator = nullptr) :
-                Scheduler(graph, mode, allocator), handler_{ graph } {
+                SchedulerLegacy(graph, mode, allocator), handler_{ graph } {
 
         }
 

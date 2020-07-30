@@ -37,17 +37,17 @@
 
 /* === Include(s) === */
 
-#include <scheduling/scheduler/ListScheduler.h>
+#include <scheduling/scheduler_legacy/ListSchedulerLegacy.h>
 #include <runtime/interface/Message.h>
 
 namespace spider {
 
     /* === Class definition === */
 
-    class BestFitScheduler final : public ListScheduler {
+    class BestFitScheduler final : public ListSchedulerLegacy {
     public:
 
-        explicit BestFitScheduler(pisdf::Graph *graph) : ListScheduler(graph) { };
+        explicit BestFitScheduler(pisdf::Graph *graph) : ListSchedulerLegacy(graph) { };
 
         ~BestFitScheduler() override = default;
 

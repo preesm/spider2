@@ -34,7 +34,7 @@
  */
 /* === Include(s) === */
 
-#include <scheduling/scheduler/RoundRobinScheduler.h>
+#include <scheduling/scheduler_legacy/RoundRobinScheduler.h>
 
 /* === Static variable(s) === */
 

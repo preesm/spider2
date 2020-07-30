@@ -34,7 +34,7 @@
  */
 /* === Include(s) === */
 
-#include <scheduling/scheduler/GreedyScheduler.h>
+#include <scheduling/scheduler_legacy/GreedyScheduler.h>
 #include <scheduling/schedule/Schedule.h>
 
 /* === Static function === */

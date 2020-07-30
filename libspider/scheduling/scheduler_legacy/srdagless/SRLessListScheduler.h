@@ -37,7 +37,7 @@
 
 /* === Include(s) === */
 
-#include <scheduling/scheduler/srdagless/SRLessScheduler.h>
+#include <scheduling/scheduler_legacy/srdagless/SRLessScheduler.h>
 #include <containers/vector.h>
 #include <common/Types.h>
 

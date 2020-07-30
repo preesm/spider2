@@ -34,7 +34,7 @@
  */
 /* === Include(s) === */
 
-#include <scheduling/scheduler/srdagless/SRLessListScheduler.h>
+#include <scheduling/scheduler_legacy/srdagless/SRLessListScheduler.h>
 #include <api/archi-api.h>
 #include <archi/Platform.h>
 #include <archi/Cluster.h>
@@ -126,7 +126,7 @@ void spider::SRLessListScheduler::update() {
 }
 
 void spider::SRLessListScheduler::clear() {
-    Scheduler::clear();
+    SchedulerLegacy::clear();
 }
 
 /* === Private method(s) === */

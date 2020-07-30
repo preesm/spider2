@@ -37,7 +37,7 @@
 
 /* === Include(s) === */
 
-#include <scheduling/scheduler/srdagless/SRLessListScheduler.h>
+#include <scheduling/scheduler_legacy/srdagless/SRLessListScheduler.h>
 
 namespace spider {
     /* === Class definition === */
