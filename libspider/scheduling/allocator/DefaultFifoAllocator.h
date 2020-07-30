@@ -58,7 +58,7 @@ namespace spider {
 
         /* === Method(s) === */
 
-        RTFifo allocate(size_t size) override;
+        Fifo allocate(size_t size) override;
 
         void allocate(ScheduleTask *task) override;
 
@@ -84,9 +84,9 @@ namespace spider {
 
         virtual void allocateDefaultVertexTask(ScheduleTask *task);
 
-        virtual RTFifo allocateDefaultVertexInputFifo(ScheduleTask *task, const pisdf::Edge *edge);
+        virtual Fifo allocateDefaultVertexInputFifo(ScheduleTask *task, const pisdf::Edge *edge);
 
-        virtual RTFifo allocateDefaultVertexOutputFifo(const pisdf::Edge *edge);
+        virtual Fifo allocateDefaultVertexOutputFifo(const pisdf::Edge *edge);
 
         virtual void allocateRepeatTask(ScheduleTask *task);
 

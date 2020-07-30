@@ -44,8 +44,8 @@
 
 /* === Function(s) definition === */
 
-spider::RTFifo spider::DefaultFifoAllocator::allocate(size_t size) {
-    RTFifo fifo;
+spider::Fifo spider::DefaultFifoAllocator::allocate(size_t size) {
+    Fifo fifo;
     fifo.size_ = static_cast<u32>(size);
     fifo.count_ = 1;
     fifo.offset_ = 0;
@@ -138,12 +138,12 @@ void spider::DefaultFifoAllocator::allocateDefaultVertexTask(ScheduleTask *task)
 }
 
 
-spider::RTFifo
+spider::Fifo
 spider::DefaultFifoAllocator::allocateDefaultVertexInputFifo(ScheduleTask *task, const pisdf::Edge *edge) {
     const auto snkIx = edge->sinkPortIx();
     const auto &inputTask = task->dependencies()[snkIx];
     if (!inputTask) {
-        return RTFifo{ };
+        return Fifo{ };
     } else {
         const auto srcIx = (inputTask->type() == TaskType::VERTEX) ? edge->sourcePortIx() : 0U;
         auto fifo = inputTask->getOutputFifo(srcIx);
@@ -154,14 +154,14 @@ spider::DefaultFifoAllocator::allocateDefaultVertexInputFifo(ScheduleTask *task,
     }
 }
 
-spider::RTFifo
+spider::Fifo
 spider::DefaultFifoAllocator::allocateDefaultVertexOutputFifo(const pisdf::Edge *edge) {
     const auto size = edge->sourceRateValue();
     const auto *sink = edge->sink();
     if (sink && sink->subtype() == pisdf::VertexType::EXTERN_OUT) {
         const auto *reference = sink->reference()->convertTo<pisdf::ExternInterface>();
         const auto index = reference->bufferIndex();
-        RTFifo fifo{ };
+        Fifo fifo{ };
         fifo.size_ = static_cast<u32>(size);
         fifo.count_ = 1;
         fifo.virtualAddress_ = index;
@@ -178,7 +178,7 @@ void spider::DefaultFifoAllocator::allocateExternInTask(ScheduleTask *task) {
     const auto *reference = vertex->reference()->convertTo<pisdf::ExternInterface>();
     const auto index = reference->bufferIndex();
     auto taskMemory = make_unique<TaskFifos>(make<TaskFifos, StackID::SCHEDULE>(0U, 1U));
-    RTFifo fifo{ };
+    Fifo fifo{ };
     fifo.size_ = static_cast<u32>(vertex->outputEdge(0U)->sourceRateValue());
     fifo.count_ = 1;
     fifo.virtualAddress_ = index;
@@ -219,7 +219,7 @@ void spider::DefaultFifoAllocator::allocateForkTask(ScheduleTask *task) {
     u32 count = 0;
     u32 offset = 0;
     for (const auto &edge : vertex->outputEdgeVector()) {
-        RTFifo fifo{ };
+        Fifo fifo{ };
         fifo.size_ = static_cast<u32>(edge->sourceRateValue());
         fifo.count_ = 1;
         fifo.virtualAddress_ = inputFifo.virtualAddress_;

@@ -32,8 +32,8 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_RTFIFO_H
-#define SPIDER2_RTFIFO_H
+#ifndef SPIDER2_FIFO_H
+#define SPIDER2_FIFO_H
 
 /* === Include(s) === */
 
@@ -41,7 +41,7 @@
 
 namespace spider {
 
-    enum class FifoAttribute {
+    enum class FifoAttribute : u8 {
         RW_ONLY = 0, /*!< Owner of the FIFO does not own the associated memory:
                         *   --> no dealloc after read, no alloc before write */
         RW_OWN,      /*!< Owner of the FIFO own the associated memory:
@@ -51,7 +51,7 @@ namespace spider {
 
     /* === Class definition === */
 
-    struct RTFifo {
+    struct Fifo {
         size_t virtualAddress_ = SIZE_MAX;                /* = Virtual address of the Fifo = */
         u32 size_ = 0;                                    /* = Size of the Fifo = */
         u32 offset_ = 0;                                  /* = Offset in the address = */
@@ -60,4 +60,4 @@ namespace spider {
     };
 }
 
-#endif //SPIDER2_RTFIFO_H
+#endif //SPIDER2_FIFO_H

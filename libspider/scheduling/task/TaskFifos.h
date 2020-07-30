@@ -37,7 +37,7 @@
 
 /* === Include(s) === */
 
-#include <runtime/common/RTFifo.h>
+#include <runtime/common/Fifo.h>
 #include <containers/array_handle.h>
 #include <memory/unique_ptr.h>
 
@@ -67,13 +67,13 @@ namespace spider {
          * @brief Return an array handle on the input @refitem RTFifo.
          * @return @refitem spider::array_handle of @refitem RTFifo.
          */
-        array_handle<RTFifo> inputFifos() const;
+        array_handle<Fifo> inputFifos() const;
 
         /**
          * @brief Return an array handle on the output @refitem RTFifo.
          * @return @refitem spider::array_handle of @refitem RTFifo.
          */
-        array_handle<RTFifo> outputFifos() const;
+        array_handle<Fifo> outputFifos() const;
 
         /**
          * @brief Get the input fifo at index ix.
@@ -81,7 +81,7 @@ namespace spider {
          * @param ix Index of the fifo.
          * @return corresponding input fifo else.
          */
-        RTFifo inputFifo(size_t ix) const;
+        Fifo inputFifo(size_t ix) const;
 
         /**
          * @brief Get the output fifo at index ix.
@@ -89,7 +89,7 @@ namespace spider {
          * @param ix Index of the fifo.
          * @return corresponding output fifo else.
          */
-        RTFifo outputFifo(size_t ix) const;
+        Fifo outputFifo(size_t ix) const;
 
         /**
          * @brief Returns the number of input fifos.
@@ -110,18 +110,18 @@ namespace spider {
          * @param ix    Position to set the fifo.
          * @param fifo  Fifo to set.
          */
-        void setInputFifo(size_t ix, RTFifo fifo);
+        void setInputFifo(size_t ix, Fifo fifo);
 
         /**
          * @brief Sets the output fifo at position ix.
          * @param ix    Position to set the fifo.
          * @param fifo  Fifo to set.
          */
-        void setOutputFifo(size_t ix, RTFifo fifo);
+        void setOutputFifo(size_t ix, Fifo fifo);
 
     private:
-        unique_ptr<RTFifo> inputFifos_;
-        unique_ptr<RTFifo> outputFifos_;
+        unique_ptr<Fifo> inputFifos_;
+        unique_ptr<Fifo> outputFifos_;
         size_t inputFifoCount_ = 0;
         size_t outputFifoCount_ = 0;
     };

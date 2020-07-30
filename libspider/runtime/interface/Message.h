@@ -39,7 +39,7 @@
 
 #include <containers/array.h>
 #include <memory/unique_ptr.h>
-#include <runtime/common/RTFifo.h>
+#include <runtime/common/Fifo.h>
 #include <common/Time.h>
 
 namespace spider {
@@ -74,8 +74,8 @@ namespace spider {
 
         array<JobConstraint> execConstraints_;    /*!< Array of jobs this job has to wait before running (size is inferior or equal to the number of LRT) */
         array<i64> inputParams_;                  /*!< Array of static input parameters */
-        array<RTFifo> inputFifoArray_;            /*!< Array of input FIFO for the job */
-        array<RTFifo> outputFifoArray_;           /*!< Array of output FIFO for the job */
+        array<Fifo> inputFifoArray_;              /*!< Array of input FIFO for the job */
+        array<Fifo> outputFifoArray_;             /*!< Array of output FIFO for the job */
         unique_ptr<bool> notificationFlagsArray_; /*!< Array of LRT to notify after job completion (size IS equal to the number of LRT) */
         size_t kernelIx_ = SIZE_MAX;              /*!< Index of the kernel to use to run this job */
         size_t vertexIx_ = SIZE_MAX;              /*!< Index of the vertex associated with the job */

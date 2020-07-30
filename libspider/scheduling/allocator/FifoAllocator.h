@@ -37,7 +37,7 @@
 
 /* === Include(s) === */
 
-#include <runtime/common/RTFifo.h>
+#include <runtime/common/Fifo.h>
 #include <api/global-api.h>
 
 namespace spider {
@@ -78,7 +78,7 @@ namespace spider {
          * @param size      Size of the FIFO to allocate in bytes.
          * @return created @refitem RTFifo.
          */
-        virtual RTFifo allocate(size_t size) = 0;
+        virtual Fifo allocate(size_t size) = 0;
 
         virtual void allocate(ScheduleTask *task) = 0;
 

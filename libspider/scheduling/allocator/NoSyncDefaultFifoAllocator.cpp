@@ -47,12 +47,12 @@
 
 /* === Private method(s) implementation === */
 
-spider::RTFifo
+spider::Fifo
 spider::NoSyncDefaultFifoAllocator::allocateDefaultVertexInputFifo(ScheduleTask *task, const pisdf::Edge *edge) {
     const auto snkIx = edge->sinkPortIx();
     const auto *inputTask = task->dependencies()[snkIx];
     if (!inputTask) {
-        return RTFifo{ };
+        return Fifo{ };
     } else if (inputTask->type() == TaskType::VERTEX) {
         if (inputTask->state() == TaskState::NOT_SCHEDULABLE) {
             replaceInputTask(task, inputTask, snkIx);

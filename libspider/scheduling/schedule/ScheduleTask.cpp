@@ -111,18 +111,18 @@ size_t spider::ScheduleTask::kernelIx() const {
            reinterpret_cast<ComTaskInformation *>(internal_)->kernelIx_;
 }
 
-spider::RTFifo spider::ScheduleTask::getInputFifo(size_t ix) const {
+spider::Fifo spider::ScheduleTask::getInputFifo(size_t ix) const {
     if (taskMemory_) {
         return taskMemory_->inputFifo(ix);
     }
-    return spider::RTFifo{ };
+    return spider::Fifo{ };
 }
 
-spider::RTFifo spider::ScheduleTask::getOutputFifo(size_t ix) const {
+spider::Fifo spider::ScheduleTask::getOutputFifo(size_t ix) const {
     if (taskMemory_) {
         return taskMemory_->outputFifo(ix);
     }
-    return spider::RTFifo{ };
+    return spider::Fifo{ };
 }
 
 void spider::ScheduleTask::setNumberOfDependencies(size_t count) {
@@ -212,12 +212,12 @@ spider::JobMessage spider::ScheduleTask::createJobMessage() const {
 
     /* == Copy input Fifos == */
     auto inputFifos = taskMemory_->inputFifos();
-    message.inputFifoArray_ = array<RTFifo>(taskMemory_->inputFifoCount(), StackID::RUNTIME);
+    message.inputFifoArray_ = array<Fifo>(taskMemory_->inputFifoCount(), StackID::RUNTIME);
     std::copy(std::begin(inputFifos), std::end(inputFifos), std::begin(message.inputFifoArray_));
 
     /* == Copy output Fifos == */
     auto outputFifos = taskMemory_->outputFifos();
-    message.outputFifoArray_ = array<RTFifo>(taskMemory_->outputFifoCount(), StackID::RUNTIME);
+    message.outputFifoArray_ = array<Fifo>(taskMemory_->outputFifoCount(), StackID::RUNTIME);
     std::copy(std::begin(outputFifos), std::end(outputFifos), std::begin(message.outputFifoArray_));
     return message;
 }

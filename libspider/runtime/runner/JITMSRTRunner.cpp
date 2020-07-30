@@ -146,11 +146,11 @@
 
 /* === Static function === */
 
-spider::array<void *> createInputFifos(const spider::array<spider::RTFifo> &fifos,
+spider::array<void *> createInputFifos(const spider::array<spider::Fifo> &fifos,
                                        spider::MemoryInterface *memoryInterface) {
     spider::array<void *> inputBuffersArray{ fifos.size(), nullptr, StackID::RUNTIME };
     std::transform(std::begin(fifos), std::end(fifos), std::begin(inputBuffersArray),
-                   [&memoryInterface](const spider::RTFifo &fifo) -> void * {
+                   [&memoryInterface](const spider::Fifo &fifo) -> void * {
                        if (!fifo.size_) {
                            return nullptr;
                        }
@@ -165,11 +165,11 @@ spider::array<void *> createInputFifos(const spider::array<spider::RTFifo> &fifo
     return inputBuffersArray;
 }
 
-spider::array<void *> createOutputFifos(const spider::array<spider::RTFifo> &fifos,
+spider::array<void *> createOutputFifos(const spider::array<spider::Fifo> &fifos,
                                         spider::MemoryInterface *memoryInterface) {
     spider::array<void *> outputBuffersArray{ fifos.size(), nullptr, StackID::RUNTIME };
     std::transform(std::begin(fifos), std::end(fifos), std::begin(outputBuffersArray),
-                   [&memoryInterface](const spider::RTFifo &fifo) -> void * {
+                   [&memoryInterface](const spider::Fifo &fifo) -> void * {
                        if (fifo.attribute_ == spider::FifoAttribute::RW_OWN) {
                            return memoryInterface->allocate(fifo.virtualAddress_, fifo.size_, fifo.count_);
                        }

@@ -37,7 +37,7 @@
 
 /* === Include(s) === */
 
-#include <runtime/common/RTFifo.h>
+#include <runtime/common/Fifo.h>
 #include <runtime/interface/Message.h>
 #include <memory/unique_ptr.h>
 #include <containers/array.h>
@@ -239,7 +239,7 @@ namespace spider {
          * @return empty fifo if no @refitem TaskMemory is attached to this task, corresponding input fifo else.
          * @throws std::out_of_range
          */
-        RTFifo getInputFifo(size_t ix) const;
+        Fifo getInputFifo(size_t ix) const;
 
         /**
          * @brief Get the output fifo at index ix of the task.
@@ -247,7 +247,7 @@ namespace spider {
          * @return empty fifo if no @refitem TaskMemory is attached to this task, corresponding output fifo else.
          * @throws std::out_of_range
          */
-        RTFifo getOutputFifo(size_t ix) const;
+        Fifo getOutputFifo(size_t ix) const;
 
         /* === Setter(s) === */
 

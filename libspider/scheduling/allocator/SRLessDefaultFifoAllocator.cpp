@@ -80,7 +80,7 @@ void spider::SRLessDefaultFifoAllocator::allocateDefaultVertexTask(spider::Sched
         const auto snkIx = edge->sinkPortIx();
         const auto &inputTask = task->dependencies()[snkIx];
         if (!inputTask) {
-            taskMemory->setInputFifo(snkIx, RTFifo{ });
+            taskMemory->setInputFifo(snkIx, Fifo{ });
         } else {
             const auto srcIx = (inputTask->type() == TaskType::VERTEX) ? edge->sourcePortIx() : 0u;
             auto fifo = inputTask->getOutputFifo(srcIx);

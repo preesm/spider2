@@ -60,7 +60,7 @@ namespace spider {
 
     private:
 
-        RTFifo allocateDefaultVertexInputFifo(ScheduleTask *task, const pisdf::Edge *edge) override;
+        Fifo allocateDefaultVertexInputFifo(ScheduleTask *task, const pisdf::Edge *edge) override;
 
         void allocateForkTask(ScheduleTask *task) override;
 
