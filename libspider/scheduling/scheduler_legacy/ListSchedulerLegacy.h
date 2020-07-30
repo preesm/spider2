@@ -37,7 +37,7 @@
 
 /* === Include(s) === */
 
-#include <scheduling/scheduler/Scheduler.h>
+#include <scheduling/scheduler_legacy/SchedulerLegacy.h>
 #include <containers/vector.h>
 #include <common/Types.h>
 
@@ -45,7 +45,7 @@ namespace spider {
 
     /* === Class definition === */
 
-    class ListScheduler : public Scheduler {
+    class ListScheduler : public SchedulerLegacy {
     public:
 
         ~ListScheduler() override = default;

@@ -106,7 +106,7 @@ namespace spider {
             inline const Expression &sourceRateExpression() const { return srcExpression_; }
 
             /**
-             * @brief Evaluates the sourceRateExpression with source input param.
+             * @brief Shortcurt for the method of @refitem Expression::value.
              * @return value of the source rate expression.
              */
             int64_t sourceRateValue() const;
@@ -118,7 +118,7 @@ namespace spider {
             inline const Expression &sinkRateExpression() const { return snkExpression_; }
 
             /**
-             * @brief Evaluates the sinkRateExpression with source input param.
+             * @brief Shortcurt for the method of @refitem Expression::value.
              * @return value of the sink rate expression.
              */
             int64_t sinkRateValue() const;

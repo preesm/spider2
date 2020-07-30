@@ -32,8 +32,8 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_SCHEDULER_H
-#define SPIDER2_SCHEDULER_H
+#ifndef SPIDER2_SCHEDULERLEGACY_H
+#define SPIDER2_SCHEDULERLEGACY_H
 
 /* === Include(s) === */
 
@@ -52,7 +52,7 @@ namespace spider {
 
     /* === Class definition === */
 
-    class Scheduler {
+    class SchedulerLegacy {
     public:
 
         enum ScheduleMode {
@@ -60,9 +60,9 @@ namespace spider {
             DELAYED_SEND, /*!< Send jobs after every jobs have been scheduled. Minimize synchronizations. */
         };
 
-        explicit Scheduler(pisdf::Graph *graph, ScheduleMode mode = DELAYED_SEND, FifoAllocator *allocator = nullptr);
+        explicit SchedulerLegacy(pisdf::Graph *graph, ScheduleMode mode = DELAYED_SEND, FifoAllocator *allocator = nullptr);
 
-        virtual ~Scheduler() = default;
+        virtual ~SchedulerLegacy() = default;
 
         /* === Method(s) === */
 
@@ -189,6 +189,6 @@ namespace spider {
      * @param graph  Pointer to the graph.
      * @return unique_ptr of the created scheduler.
      */
-    spider::unique_ptr<Scheduler> makeScheduler(SchedulingPolicy algorithm, pisdf::Graph *graph);
+    spider::unique_ptr<SchedulerLegacy> makeScheduler(SchedulingPolicy algorithm, pisdf::Graph *graph);
 }
-#endif //SPIDER2_SCHEDULER_H
+#endif //SPIDER2_SCHEDULERLEGACY_H

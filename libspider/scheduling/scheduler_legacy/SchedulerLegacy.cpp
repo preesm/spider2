@@ -34,10 +34,10 @@
  */
 /* === Include(s) === */
 
-#include <scheduling/scheduler/Scheduler.h>
-#include <scheduling/scheduler/GreedyScheduler.h>
-#include <scheduling/scheduler/BestFitScheduler.h>
-#include <scheduling/scheduler/RoundRobinScheduler.h>
+#include <scheduling/scheduler_legacy/SchedulerLegacy.h>
+#include <scheduling/scheduler_legacy/GreedyScheduler.h>
+#include <scheduling/scheduler_legacy/BestFitScheduler.h>
+#include <scheduling/scheduler_legacy/RoundRobinScheduler.h>
 #include <scheduling/allocator/DefaultFifoAllocator.h>
 #include <scheduling/schedule/ScheduleTask.h>
 #include <runtime/common/RTKernel.h>
@@ -45,18 +45,18 @@
 #include <archi/PE.h>
 #include <archi/Platform.h>
 #include <archi/MemoryBus.h>
-#include <scheduling/scheduler/srdagless/SRLessBestFitScheduler.h>
+#include <scheduling/scheduler_legacy/srdagless/SRLessBestFitScheduler.h>
 
 /* === Static function(s) definition === */
 
-static void checkFifoAllocatorTraits(const spider::FifoAllocator *allocator, spider::Scheduler::ScheduleMode mode) {
+static void checkFifoAllocatorTraits(const spider::FifoAllocator *allocator, spider::SchedulerLegacy::ScheduleMode mode) {
     switch (mode) {
-        case spider::Scheduler::JIT_SEND:
+        case spider::SchedulerLegacy::JIT_SEND:
             if (!allocator->traits_.jitAllocator_) {
                 throwSpiderException("Using a scheduler in JIT_SEND mode with incompatible fifo allocator.");
             }
             break;
-        case spider::Scheduler::DELAYED_SEND:
+        case spider::SchedulerLegacy::DELAYED_SEND:
             if (!allocator->traits_.postSchedulingAllocator_) {
                 throwSpiderException("Using a scheduler in DELAYED_SEND mode with incompatible fifo allocator.");
             }
@@ -66,7 +66,7 @@ static void checkFifoAllocatorTraits(const spider::FifoAllocator *allocator, spi
 
 /* === Function(s) definition === */
 
-spider::Scheduler::Scheduler(pisdf::Graph *graph, ScheduleMode mode, FifoAllocator *allocator) :
+spider::SchedulerLegacy::SchedulerLegacy(pisdf::Graph *graph, ScheduleMode mode, FifoAllocator *allocator) :
         graph_{ graph },
         mode_{ mode },
         allocator_{ allocator } {
@@ -75,21 +75,21 @@ spider::Scheduler::Scheduler(pisdf::Graph *graph, ScheduleMode mode, FifoAllocat
     }
 }
 
-void spider::Scheduler::clear() {
+void spider::SchedulerLegacy::clear() {
     schedule_.clear();
     if (allocator_) {
         allocator_->clear();
     }
 }
 
-void spider::Scheduler::setMode(spider::Scheduler::ScheduleMode mode) {
+void spider::SchedulerLegacy::setMode(spider::SchedulerLegacy::ScheduleMode mode) {
     mode_ = mode;
     if (allocator_) {
         checkFifoAllocatorTraits(allocator_, mode_);
     }
 }
 
-void spider::Scheduler::setAllocator(spider::FifoAllocator *allocator) {
+void spider::SchedulerLegacy::setAllocator(spider::FifoAllocator *allocator) {
     allocator_ = allocator;
     if (allocator_) {
         checkFifoAllocatorTraits(allocator_, mode_);
@@ -98,7 +98,7 @@ void spider::Scheduler::setAllocator(spider::FifoAllocator *allocator) {
 
 /* === Protected method(s) === */
 
-ufast64 spider::Scheduler::computeMinStartTime(ScheduleTask *task) const {
+ufast64 spider::SchedulerLegacy::computeMinStartTime(ScheduleTask *task) const {
     ufast64 minimumStartTime = minStartTime_;
     task->setState(TaskState::PENDING);
     for (const auto *dependency : task->dependencies()) {
@@ -109,11 +109,11 @@ ufast64 spider::Scheduler::computeMinStartTime(ScheduleTask *task) const {
     return minimumStartTime;
 }
 
-spider::PE *spider::Scheduler::findBestPEFit(const Cluster *cluster,
-                                             ufast64 minStartTime,
-                                             const void *info,
-                                             TimePredicate execTimePredicate,
-                                             SkipPredicate skipPredicate) {
+spider::PE *spider::SchedulerLegacy::findBestPEFit(const Cluster *cluster,
+                                                   ufast64 minStartTime,
+                                                   const void *info,
+                                                   TimePredicate execTimePredicate,
+                                                   SkipPredicate skipPredicate) {
     auto bestFitIdleTime = UINT_FAST64_MAX;
     auto bestFitEndTime = UINT_FAST64_MAX;
     PE *foundPE = nullptr;
@@ -138,11 +138,11 @@ spider::PE *spider::Scheduler::findBestPEFit(const Cluster *cluster,
     return foundPE;
 }
 
-spider::ScheduleTask *spider::Scheduler::insertCommunicationTask(Cluster *cluster,
-                                                                 Cluster *distCluster,
-                                                                 ufast64 dataSize,
-                                                                 ScheduleTask *previousTask,
-                                                                 TaskType type) {
+spider::ScheduleTask *spider::SchedulerLegacy::insertCommunicationTask(Cluster *cluster,
+                                                                       Cluster *distCluster,
+                                                                       ufast64 dataSize,
+                                                                       ScheduleTask *previousTask,
+                                                                       TaskType type) {
     const auto *bus = archi::platform()->getClusterToClusterMemoryBus(cluster, distCluster);
     const auto busSpeed = type == TaskType::SYNC_SEND ? bus->writeSpeed() : bus->readSpeed();
     const auto *busKernel = type == TaskType::SYNC_SEND ? bus->sendKernel() : bus->receiveKernel();
@@ -177,9 +177,9 @@ spider::ScheduleTask *spider::Scheduler::insertCommunicationTask(Cluster *cluste
     return comTask;
 }
 
-void spider::Scheduler::scheduleCommunications(ScheduleTask *task,
-                                               vector<DataDependency> &dependencies,
-                                               Cluster *cluster) {
+void spider::SchedulerLegacy::scheduleCommunications(ScheduleTask *task,
+                                                     vector<DataDependency> &dependencies,
+                                                     Cluster *cluster) {
     /* == Lamba used to set com task information == */
     for (auto it = std::begin(dependencies); it != std::end(dependencies); ++it) {
         auto &dependency = *it;
@@ -213,8 +213,8 @@ void spider::Scheduler::scheduleCommunications(ScheduleTask *task,
     }
 }
 
-spider::vector<spider::Scheduler::DataDependency>
-spider::Scheduler::getDataDependencies(const ScheduleTask *task) {
+spider::vector<spider::SchedulerLegacy::DataDependency>
+spider::SchedulerLegacy::getDataDependencies(const ScheduleTask *task) {
     const auto *vertex = task->vertex();
     const auto *platform = archi::platform();
     auto taskDependenciesIterator{ std::begin(task->dependencies()) };
@@ -234,13 +234,13 @@ spider::Scheduler::getDataDependencies(const ScheduleTask *task) {
     return dataDependencies;
 }
 
-void spider::Scheduler::mapTask(ScheduleTask *task) {
+void spider::SchedulerLegacy::mapTask(ScheduleTask *task) {
     const auto *vertex = task->vertex();
     if (!vertex) {
         throwSpiderException("can not schedule a task with no vertex.");
     }
     /* == Compute the minimum start time possible for vertex == */
-    const auto minStartTime = Scheduler::computeMinStartTime(task);
+    const auto minStartTime = SchedulerLegacy::computeMinStartTime(task);
 
     /* == Build the data dependency vector in order to compute receive cost == */
     const auto *platform = archi::platform();
@@ -310,14 +310,14 @@ void spider::Scheduler::mapTask(ScheduleTask *task) {
     schedule_.updateTaskAndSetReady(static_cast<size_t>(task->ix()), mappingPe->virtualIx(), mappingSt, mappingEt);
 }
 
-void spider::Scheduler::allocateTaskMemory(spider::ScheduleTask *task) {
+void spider::SchedulerLegacy::allocateTaskMemory(spider::ScheduleTask *task) {
     if (task && allocator_) {
         allocator_->allocate(task);
     }
 }
 
-spider::unique_ptr<spider::Scheduler> spider::makeScheduler(SchedulingPolicy algorithm, pisdf::Graph *graph) {
-    Scheduler *scheduler = nullptr;
+spider::unique_ptr<spider::SchedulerLegacy> spider::makeScheduler(SchedulingPolicy algorithm, pisdf::Graph *graph) {
+    SchedulerLegacy *scheduler = nullptr;
     switch (algorithm) {
         case SchedulingPolicy::LIST:
             scheduler = make<BestFitScheduler, StackID::SCHEDULE>(graph);
@@ -328,5 +328,5 @@ spider::unique_ptr<spider::Scheduler> spider::makeScheduler(SchedulingPolicy alg
         default:
             break;
     }
-    return make_unique<Scheduler>(scheduler);
+    return make_unique<SchedulerLegacy>(scheduler);
 }
