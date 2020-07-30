@@ -67,6 +67,8 @@ namespace spider {
 
             /* === Getter(s) === */
 
+            inline pisdf::Vertex *vertex() const { return vertex_; }
+
             /* === Setter(s) === */
 
         private:

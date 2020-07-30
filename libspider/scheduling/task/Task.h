@@ -149,6 +149,12 @@ namespace spider {
              */
             inline TaskState state() const { return state_; }
 
+            /**
+             * @brief Returns the ix of the task in the schedule.
+             * @return ix of the task in the schedule, -1 else.
+             */
+            inline u32 ix() const { return ix_; }
+
             /* === Setter(s) === */
 
             /**
@@ -179,10 +185,18 @@ namespace spider {
              */
             inline void setState(TaskState state) { state_ = state; }
 
+            /**
+             * @brief Set the ix of the job.
+             * @remark This method will overwrite current value.
+             * @param ix Ix to set.
+             */
+            inline void setIx(u32 ix) { ix_ = ix; }
+
         protected:
             detail::ExecInfo execInfo_;
             std::shared_ptr<TaskFifos> fifos_;
             spider::unique_ptr<detail::MappingInfo> mappingInfo_;
+            u32 ix_{ UINT32_MAX };
             TaskState state_{ NOT_SCHEDULABLE };
         };
     }
