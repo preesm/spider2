@@ -35,7 +35,7 @@
 /* === Include(s) === */
 
 #include <scheduling/schedule/exporter/SchedStatsExporter.h>
-#include <scheduling/schedule/Schedule.h>
+#include <scheduling/schedule/ScheduleLegacy.h>
 #include <scheduling/schedule/ScheduleTask.h>
 #include <archi/Platform.h>
 #include <archi/PE.h>

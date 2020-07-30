@@ -35,7 +35,7 @@
 /* === Include(s) === */
 
 #include <scheduling/scheduler_legacy/GreedyScheduler.h>
-#include <scheduling/schedule/Schedule.h>
+#include <scheduling/schedule/ScheduleLegacy.h>
 
 /* === Static function === */
 
@@ -43,7 +43,7 @@
 
 /* === Private method(s) implementation === */
 
-spider::Schedule &spider::GreedyScheduler::execute() {
+spider::ScheduleLegacy &spider::GreedyScheduler::execute() {
     auto vertexVector = factory::vector<pisdf::Vertex *>(StackID::SCHEDULE);
     vertexVector.reserve(graph_->vertexCount());
 

@@ -47,7 +47,7 @@ namespace spider {
 
     /* === Forward declaration(s) === */
 
-    class Schedule;
+    class ScheduleLegacy;
 
     class ScheduleTask;
 
@@ -60,7 +60,7 @@ namespace spider {
     class SchedSVGGanttExporter final : public Exporter {
     public:
 
-        explicit SchedSVGGanttExporter(const Schedule *schedule);
+        explicit SchedSVGGanttExporter(const ScheduleLegacy *schedule);
 
         ~SchedSVGGanttExporter() override = default;
 
@@ -77,7 +77,7 @@ namespace spider {
         void printFromTasks(const vector<GanttTask> &taskVector, const std::string &path = "./gantt.xml");
 
     private:
-        const Schedule *schedule_ = nullptr;
+        const ScheduleLegacy *schedule_ = nullptr;
         double widthMin_ = 0;
         double widthMax_ = 0;
         double alpha_ = 0.;

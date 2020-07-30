@@ -37,7 +37,7 @@
 #include <scheduling/schedule/exporter/SchedSVGGanttExporter.h>
 #include <api/archi-api.h>
 #include <graphs/pisdf/Graph.h>
-#include <scheduling/schedule/Schedule.h>
+#include <scheduling/schedule/ScheduleLegacy.h>
 #include <scheduling/schedule/ScheduleTask.h>
 
 /* === Static variable(s) === */
@@ -111,11 +111,11 @@ static void printText(FILE *file, const std::string &text, double size, double x
 
 /* === Method(s) implementation === */
 
-spider::SchedSVGGanttExporter::SchedSVGGanttExporter(const Schedule *schedule) : Exporter(),
-                                                                                 schedule_{ schedule },
-                                                                                 widthMin_{ TASK_MIN_WIDTH },
-                                                                                 widthMax_{ TASK_MAX_WIDTH },
-                                                                                 offsetX_{ OFFSET_X } {
+spider::SchedSVGGanttExporter::SchedSVGGanttExporter(const ScheduleLegacy *schedule) : Exporter(),
+                                                                                       schedule_{ schedule },
+                                                                                       widthMin_{ TASK_MIN_WIDTH },
+                                                                                       widthMax_{ TASK_MAX_WIDTH },
+                                                                                       offsetX_{ OFFSET_X } {
     /* == Compute values needed for printing == */
     u64 minExecTime = UINT64_MAX;
     u64 maxExecTime = 0;

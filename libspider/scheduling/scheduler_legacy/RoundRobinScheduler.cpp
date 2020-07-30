@@ -42,6 +42,6 @@
 
 /* === Method(s) implementation === */
 
-spider::Schedule &spider::RoundRobinScheduler::execute() {
+spider::ScheduleLegacy &spider::RoundRobinScheduler::execute() {
     return schedule_;
 }

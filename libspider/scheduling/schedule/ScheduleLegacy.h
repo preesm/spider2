@@ -32,8 +32,8 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_SCHEDULE_H
-#define SPIDER2_SCHEDULE_H
+#ifndef SPIDER2_SCHEDULELEGACY_H
+#define SPIDER2_SCHEDULELEGACY_H
 
 /* === Include(s) === */
 
@@ -47,12 +47,12 @@ namespace spider {
 
     /* === Class definition === */
 
-    class Schedule {
+    class ScheduleLegacy {
     public:
 
-        Schedule() : taskVector_{ factory::vector<unique_ptr<ScheduleTask>>(StackID::SCHEDULE) } { }
+        ScheduleLegacy() : taskVector_{ factory::vector<unique_ptr<ScheduleTask>>(StackID::SCHEDULE) } { }
 
-        ~Schedule() = default;
+        ~ScheduleLegacy() = default;
 
         /* === Method(s) === */
 
@@ -182,4 +182,4 @@ namespace spider {
     };
 }
 
-#endif //SPIDER2_SCHEDULE_H
+#endif //SPIDER2_SCHEDULELEGACY_H

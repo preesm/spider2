@@ -34,7 +34,7 @@
  */
 /* === Include(s) === */
 
-#include <scheduling/schedule/Schedule.h>
+#include <scheduling/schedule/ScheduleLegacy.h>
 #include <graphs/pisdf/Vertex.h>
 #include <runtime/interface/RTCommunicator.h>
 #include <runtime/platform/RTPlatform.h>
@@ -47,20 +47,20 @@
 
 /* === Method(s) implementation === */
 
-void spider::Schedule::clear() {
+void spider::ScheduleLegacy::clear() {
     taskVector_.clear();
     readyTaskVector_.clear();
     stats_.reset();
 }
 
-void spider::Schedule::reset() {
+void spider::ScheduleLegacy::reset() {
     for (const auto &task : taskVector_) {
         task->setState(TaskState::READY);
         readyTaskVector_.emplace_back(task.get());
     }
 }
 
-void spider::Schedule::print() const {
+void spider::ScheduleLegacy::print() const {
     if (log::enabled<log::SCHEDULE>()) {
 //        const auto lrtCount = archi::platform()->LRTCount();
 //        for (const auto &task : taskVector_) {
@@ -91,7 +91,7 @@ void spider::Schedule::print() const {
     }
 }
 
-void spider::Schedule::addScheduleTask(ScheduleTask *task) {
+void spider::ScheduleLegacy::addScheduleTask(ScheduleTask *task) {
     if (!task || (task->ix() >= 0)) {
         return;
     }
@@ -99,7 +99,7 @@ void spider::Schedule::addScheduleTask(ScheduleTask *task) {
     taskVector_.emplace_back(task);
 }
 
-void spider::Schedule::updateTaskAndSetReady(size_t taskIx, size_t slave, uint64_t startTime, uint64_t endTime) {
+void spider::ScheduleLegacy::updateTaskAndSetReady(size_t taskIx, size_t slave, uint64_t startTime, uint64_t endTime) {
     const auto &task = taskVector_.at(taskIx);
     if (task->state() == TaskState::READY) {
         return;
@@ -129,7 +129,7 @@ void spider::Schedule::updateTaskAndSetReady(size_t taskIx, size_t slave, uint64
     readyTaskVector_.emplace_back(task.get());
 }
 
-void spider::Schedule::sendReadyTasks() {
+void spider::ScheduleLegacy::sendReadyTasks() {
     if (log::enabled<log::SCHEDULE>()) {
         print();
     }

@@ -54,7 +54,7 @@ namespace spider {
 
         inline void update() override { };
 
-        Schedule &execute() override;
+        ScheduleLegacy &execute() override;
 
         /* === Getter(s) === */
 

@@ -53,7 +53,7 @@ namespace spider {
 
         /* === Method(s) === */
 
-        Schedule &execute() override;
+        ScheduleLegacy &execute() override;
 
     private:
     };

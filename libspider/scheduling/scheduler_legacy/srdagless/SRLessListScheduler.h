@@ -64,7 +64,7 @@ namespace spider {
          *        actually perform a scheduling. The scheduling and mapping algorithm must be implemented in derived
          *        class.
          */
-        Schedule &execute() override = 0;
+        ScheduleLegacy &execute() override = 0;
 
         void clear() override;
 

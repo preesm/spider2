@@ -76,7 +76,7 @@ namespace spider {
 
     class Monitor;
 
-    class Schedule;
+    class ScheduleLegacy;
 
     /* === Class definition === */
 
@@ -112,7 +112,7 @@ namespace spider {
          * @param schedule Pointer to the schedule.
          * @param path     Path of the file.
          */
-        void exportPreExecGantt(const Schedule *schedule, const std::string &path = "./sched-gantt");
+        void exportPreExecGantt(const ScheduleLegacy *schedule, const std::string &path = "./sched-gantt");
 
         /**
          * @brief Export the Gantt of the real execution trace of the application for 1 graph iteration.
@@ -123,7 +123,7 @@ namespace spider {
          * @param path     Path of the file.
          */
         void useExecutionTraces(const pisdf::Graph *graph,
-                                const Schedule *schedule,
+                                const ScheduleLegacy *schedule,
                                 time::time_point offset = time::min(),
                                 const std::string &path = "./exec-gantt");
 

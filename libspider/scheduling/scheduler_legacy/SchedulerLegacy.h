@@ -38,7 +38,7 @@
 /* === Include(s) === */
 
 #include <runtime/interface/Message.h>
-#include <scheduling/schedule/Schedule.h>
+#include <scheduling/schedule/ScheduleLegacy.h>
 #include <graphs/pisdf/Graph.h>
 #include <common/Types.h>
 
@@ -87,7 +87,7 @@ namespace spider {
          * @brief Perform the mapping and scheduling of a given graph.
          * @return @refitem Schedule.
          */
-        virtual Schedule &execute() = 0;
+        virtual ScheduleLegacy &execute() = 0;
 
         /**
          * @brief Clears scheduler resources.
@@ -100,12 +100,12 @@ namespace spider {
          * @brief Returns the @refitem Schedule owned by the Scheduler.
          * @return const reference to @refitem Schedule.
          */
-        inline Schedule &schedule() {
+        inline ScheduleLegacy &schedule() {
             return schedule_;
         }
 
     protected:
-        Schedule schedule_;
+        ScheduleLegacy schedule_;
         pisdf::Graph *graph_ = nullptr;
         ScheduleMode mode_ = JIT_SEND;
         FifoAllocator *allocator_ = nullptr;

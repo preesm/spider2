@@ -47,7 +47,7 @@
 
 /* === Method(s) implementation === */
 
-spider::Schedule &spider::BestFitScheduler::execute() {
+spider::ScheduleLegacy &spider::BestFitScheduler::execute() {
     /* == Schedule and map the vertex onto available resource == */
     auto startIterator = sortedTaskVector_.begin() + static_cast<long>(lastScheduledTask_);
     auto endIterator = sortedTaskVector_.begin() + static_cast<long>(lastSchedulableTask_);

@@ -42,7 +42,7 @@
 
 /* === Private method(s) implementation === */
 
-spider::Schedule &spider::SRLessBestFitScheduler::execute() {
+spider::ScheduleLegacy &spider::SRLessBestFitScheduler::execute() {
     for (auto &listTask : sortedTaskVector_) {
         SRLessScheduler::mapTask(listTask.task_);
     }
