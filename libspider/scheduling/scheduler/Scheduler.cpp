@@ -32,47 +32,17 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_MAPPER_H
-#define SPIDER2_MAPPER_H
 
 /* === Include(s) === */
 
-namespace spider {
+#include <scheduling/scheduler/Scheduler.h>
 
-    namespace pisdf {
-        class Vertex;
-    }
+/* === Static function === */
 
-    namespace sched {
+/* === Method(s) implementation === */
 
-        class Task;
+/* === Private method(s) implementation === */
 
-        class TaskVertex;
-
-        /* === Class definition === */
-
-        class Mapper {
-        public:
-            Mapper() = default;
-
-            virtual ~Mapper() noexcept = default;
-
-            /* === Method(s) === */
-
-            /**
-             * @brief Map a task onto available resources.
-             * @param task pointer to the task to map.
-             * @throw @refitem spider::Exception if the mapper was unable to find any processing elements for the task.
-             */
-            virtual void map(TaskVertex *task) = 0;
-
-            /* === Getter(s) === */
-
-            /* === Setter(s) === */
-
-        private:
-
-        };
-    }
+void spider::sched::Scheduler::clear() {
+    tasks_.clear();
 }
-#endif //SPIDER2_MAPPER_H

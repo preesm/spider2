@@ -3,9 +3,6 @@
  *
  * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2020)
  *
- * Spider is a dataflow based runtime used to execute dynamic PiSDF
- * applications. The Preesm tool may be used to design PiSDF applications.
- *
  * This software is governed by the CeCILL  license under French law and
  * abiding by the rules of distribution of free software.  You can  use,
  * modify and/ or redistribute the software under the terms of the CeCILL
@@ -32,47 +29,29 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_MAPPER_H
-#define SPIDER2_MAPPER_H
+#ifndef SPIDER2_ALLOCATIONRULE_H
+#define SPIDER2_ALLOCATIONRULE_H
 
 /* === Include(s) === */
 
+#include <common/Types.h>
+#include <runtime/common/Fifo.h>
+
 namespace spider {
-
-    namespace pisdf {
-        class Vertex;
-    }
-
     namespace sched {
 
-        class Task;
+        enum AllocType : u8 {
+            NEW,   /*!< Specify that a new FIFO should be allocated */
+            SAME   /*!< Specify that an existing FIFO should be used */
+        };
 
-        class TaskVertex;
-
-        /* === Class definition === */
-
-        class Mapper {
-        public:
-            Mapper() = default;
-
-            virtual ~Mapper() noexcept = default;
-
-            /* === Method(s) === */
-
-            /**
-             * @brief Map a task onto available resources.
-             * @param task pointer to the task to map.
-             * @throw @refitem spider::Exception if the mapper was unable to find any processing elements for the task.
-             */
-            virtual void map(TaskVertex *task) = 0;
-
-            /* === Getter(s) === */
-
-            /* === Setter(s) === */
-
-        private:
-
+        struct AllocationRule {
+            size_t offset_;
+            size_t size_;
+            AllocType type_;
+            FifoAttribute attribute_;
         };
     }
 }
-#endif //SPIDER2_MAPPER_H
+
+#endif //SPIDER2_ALLOCATIONRULE_H

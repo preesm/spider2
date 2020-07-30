@@ -35,10 +35,18 @@
 
 /* === Include(s) === */
 
-#include "BestFitMapper.h"
+#include <scheduling/mapper/BestFitMapper.h>
+#include <scheduling/task/TaskVertex.h>
+#include <scheduling/task/Task.h>
+#include <graphs/pisdf/Vertex.h>
+#include <graphs/pisdf/Edge.h>
 
 /* === Static function === */
 
 /* === Method(s) implementation === */
 
 /* === Private method(s) implementation === */
+
+void spider::sched::BestFitMapper::map(sched::TaskVertex *task) {
+
+}

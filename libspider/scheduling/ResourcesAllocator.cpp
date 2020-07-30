@@ -35,10 +35,86 @@
 
 /* === Include(s) === */
 
-#include "ResourcesAllocator.h"
+#include <scheduling/ResourcesAllocator.h>
+#include <scheduling/scheduler/ListScheduler.h>
+#include <scheduling/mapper/BestFitMapper.h>
+#include <scheduling/task/Task.h>
+#include <scheduling/task/TaskVertex.h>
 
 /* === Static function === */
 
 /* === Method(s) implementation === */
 
+spider::sched::ResourcesAllocator::ResourcesAllocator(SchedulingPolicy schedulingPolicy,
+                                                      MappingPolicy mappingPolicy,
+                                                      ExecutionPolicy executionPolicy) :
+        scheduler_{ spider::make_unique(allocateScheduler(schedulingPolicy)) },
+        mapper_{ spider::make_unique(allocateMapper(mappingPolicy)) },
+        executionPolicy_{ executionPolicy } {
+}
+
+void spider::sched::ResourcesAllocator::execute(const pisdf::Graph *graph) {
+    /* == Schedule the graph == */
+    scheduler_->schedule(graph);
+
+    /* == Map and execute the scheduled tasks == */
+    switch (executionPolicy_) {
+        case ExecutionPolicy::JIT:
+            jitExecutionPolicy<TaskVertex *>();
+            break;
+        case ExecutionPolicy::DELAYED:
+            delayedExecutionPolicy<TaskVertex *>();
+            break;
+        default:
+            throwSpiderException("unsupported execution policy.");
+    }
+}
+
 /* === Private method(s) implementation === */
+
+spider::sched::Scheduler *spider::sched::ResourcesAllocator::allocateScheduler(SchedulingPolicy policy) {
+    switch (policy) {
+        case SchedulingPolicy::LIST:
+            return spider::make<sched::ListScheduler, StackID::SCHEDULE>();
+        default:
+            throwSpiderException("unsupported scheduling policy.");
+    }
+}
+
+spider::sched::Mapper *spider::sched::ResourcesAllocator::allocateMapper(MappingPolicy policy) {
+    switch (policy) {
+        case MappingPolicy::BEST_FIT:
+            return spider::make<sched::BestFitMapper, StackID::SCHEDULE>();
+        default:
+            throwSpiderException("unsupported mapping policy.");
+    }
+}
+
+template<class T>
+void spider::sched::ResourcesAllocator::jitExecutionPolicy() {
+    /* == Map, allocate fifos and execute tasks == */
+    for (auto *task : scheduler_->tasks()) {
+        /* == Map the task == */
+        mapper_->map(static_cast<T>(task));
+
+        /* == Allocate the fifos task == */
+
+        /* == Execute the task == */
+    }
+}
+
+template<class T>
+void spider::sched::ResourcesAllocator::delayedExecutionPolicy() {
+    /* == Map every tasks == */
+    for (auto *task : scheduler_->tasks()) {
+        mapper_->map(static_cast<T>(task));
+    }
+    /* == Allocate fifos for every tasks == */
+    for (auto *task : scheduler_->tasks()) {
+
+    }
+    /* == Execute every tasks == */
+    for (auto *task : scheduler_->tasks()) {
+
+    }
+}

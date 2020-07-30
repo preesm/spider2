@@ -32,47 +32,58 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_MAPPER_H
-#define SPIDER2_MAPPER_H
+#ifndef SPIDER2_SCHEDULER_H
+#define SPIDER2_SCHEDULER_H
 
 /* === Include(s) === */
+
+#include <containers/vector.h>
 
 namespace spider {
 
     namespace pisdf {
-        class Vertex;
+        class Graph;
     }
 
     namespace sched {
 
         class Task;
 
-        class TaskVertex;
-
         /* === Class definition === */
 
-        class Mapper {
+        class Scheduler {
         public:
-            Mapper() = default;
+            Scheduler() : tasks_{ factory::vector<Task *>(StackID::SCHEDULE) } { };
 
-            virtual ~Mapper() noexcept = default;
+            virtual ~Scheduler() noexcept = default;
 
             /* === Method(s) === */
 
             /**
-             * @brief Map a task onto available resources.
-             * @param task pointer to the task to map.
-             * @throw @refitem spider::Exception if the mapper was unable to find any processing elements for the task.
+             * @brief Update internal state of the scheduler (mostly for dynamic applications)
+             * @param graph  Graph to use to perform the update.
              */
-            virtual void map(TaskVertex *task) = 0;
+            virtual void schedule(const pisdf::Graph *graph) = 0;
+
+            /**
+             * @brief Clears scheduler resources.
+             */
+            virtual void clear();
 
             /* === Getter(s) === */
 
+            /**
+             * @brief Get the list of scheduled tasks, obtained after the call to Scheduler::schedule method.
+             * @return const reference to a vector of pointer to Task.
+             */
+            inline const spider::vector<Task *> &tasks() const { return tasks_; }
+
             /* === Setter(s) === */
 
-        private:
-
+        protected:
+            spider::vector<Task *> tasks_;
         };
     }
 }
-#endif //SPIDER2_MAPPER_H
+
+#endif //SPIDER2_SCHEDULER_H

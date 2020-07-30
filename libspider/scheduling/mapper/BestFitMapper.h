@@ -41,23 +41,28 @@
 
 namespace spider {
 
-    /* === Class definition === */
+    namespace sched {
 
-    class BestFitMapper final : public Mapper {
-    public:
-        BestFitMapper() = default;
+        /* === Class definition === */
 
-        ~BestFitMapper() noexcept override = default;
+        class BestFitMapper final : public Mapper {
+        public:
+            BestFitMapper() : Mapper() { };
 
-        /* === Method(s) === */
+            ~BestFitMapper() noexcept override = default;
 
-        /* === Getter(s) === */
+            /* === Method(s) === */
 
-        /* === Setter(s) === */
+            void map(TaskVertex *task) override;
 
-    private:
+            /* === Getter(s) === */
 
-    };
+            /* === Setter(s) === */
+
+        private:
+
+        };
+    }
 }
 
 #endif //SPIDER2_BESTFITMAPPER_H

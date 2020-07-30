@@ -43,9 +43,8 @@
 
 /* === Private method(s) implementation === */
 
-spider::sched::Task::Task() : fifos_{ allocate<TaskFifos>() },
-                              mappingInfo_{
-                                      make_unique<detail::MappingInfo, StackID::SCHEDULE>(detail::MappingInfo{ }) } {
+spider::sched::Task::Task() : mappingInfo_{
+        make_unique<detail::MappingInfo, StackID::SCHEDULE>(detail::MappingInfo{ }) } {
 }
 
 u64 spider::sched::Task::startTime() const {

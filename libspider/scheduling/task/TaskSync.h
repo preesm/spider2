@@ -32,47 +32,68 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_MAPPER_H
-#define SPIDER2_MAPPER_H
+#ifndef SPIDER2_TASKSYNC_H
+#define SPIDER2_TASKSYNC_H
 
 /* === Include(s) === */
 
+#include <scheduling/task/Task.h>
+
 namespace spider {
-
-    namespace pisdf {
-        class Vertex;
-    }
-
     namespace sched {
 
-        class Task;
-
-        class TaskVertex;
+        enum SyncType {
+            SEND,
+            RECEIVE
+        };
 
         /* === Class definition === */
 
-        class Mapper {
+        class TaskSync final : public Task {
         public:
-            Mapper() = default;
+            explicit TaskSync(SyncType type);
 
-            virtual ~Mapper() noexcept = default;
+            ~TaskSync() noexcept override = default;
 
             /* === Method(s) === */
 
-            /**
-             * @brief Map a task onto available resources.
-             * @param task pointer to the task to map.
-             * @throw @refitem spider::Exception if the mapper was unable to find any processing elements for the task.
-             */
-            virtual void map(TaskVertex *task) = 0;
+            AllocationRule allocationRuleForInputFifo(size_t ix) const override;
+
+            AllocationRule allocationRuleForOutputFifo(size_t ix) const override;
+
+            Task *previousTask(size_t ix) const override;
+
+            u32 color() const override;
 
             /* === Getter(s) === */
 
             /* === Setter(s) === */
 
-        private:
+            /**
+             * @brief Set the task succeeding to this task.
+             * @param successor pointer to the successor.
+             */
+            void setSuccessor(Task *successor);
 
+            /**
+             * @brief Set the data size (in bytes) to send / receive.
+             * @param size Size of the data to send / receive
+             */
+            void setSize(size_t size);
+
+            /**
+             * @brief Set the index of the output port of the previous task
+             * @param ix index.
+             */
+            void setInputPortIx(u32 ix);
+
+        private:
+            Task *successor_{ nullptr };
+            size_t size_{ 0U };
+            u32 inputPortIx_{ 0U };
+            SyncType type_;
         };
     }
 }
-#endif //SPIDER2_MAPPER_H
+
+#endif //SPIDER2_TASKSYNC_H

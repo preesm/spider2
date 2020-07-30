@@ -40,6 +40,7 @@
 #include <memory/memory.h>
 #include <common/Types.h>
 #include <scheduling/task/TaskFifos.h>
+#include <scheduling/task/AllocationRule.h>
 
 namespace spider {
     /* === Forward Declaration(s) === */
@@ -71,21 +72,47 @@ namespace spider {
             RUNNING,
         };
 
-        enum TaskType : u8 {
-            VERTEX = 0,
-            SYNC_SEND,
-            SYNC_RECEIVE,
-        };
-
         /* === Class definition === */
 
         class Task {
         public:
             Task();
 
-            ~Task() = default;
+            virtual ~Task() noexcept = default;
 
             /* === Method(s) === */
+
+            /**
+             * @brief Return the memory allocation rule for a given input fifo.
+             * @param ix Index of the Fifo.
+             * @return @refitem AllocationRule
+             * @throws @refitem spider::Exception if index out of bound (only in debug)
+             */
+            virtual AllocationRule allocationRuleForInputFifo(size_t ix) const = 0;
+
+
+            /**
+             * @brief Return the memory allocation rule for a given output fifo.
+             * @param ix Index of the Fifo.
+             * @return @refitem AllocationRule
+             * @throws @refitem spider::Exception if index out of bound (only in debug)
+             */
+            virtual AllocationRule allocationRuleForOutputFifo(size_t ix) const = 0;
+
+            /**
+             * @brief Get the previous task of a given index.
+             * @param ix Index of the task.
+             * @return pointer to the previous task, nullptr else.
+             * @throws @refitem spider::Exception if index out of bound (only in debug)
+             */
+            virtual Task *previousTask(size_t ix) const = 0;
+
+            /**
+             * @brief Return a color value for the task.
+             *        format is RGB with 8 bits per component in the lower part of the returned value.
+             * @return  color of the task.
+             */
+            virtual u32 color() const = 0;
 
             /* === Getter(s) === */
 
@@ -122,12 +149,6 @@ namespace spider {
              */
             inline TaskState state() const { return state_; }
 
-            /**
-             * @brief Returns the type of the task.
-             * @return @refitem TaskType of the task
-             */
-            inline TaskType type() const { return type_; }
-
             /* === Setter(s) === */
 
             /**
@@ -158,12 +179,11 @@ namespace spider {
              */
             inline void setState(TaskState state) { state_ = state; }
 
-        private:
+        protected:
             detail::ExecInfo execInfo_;
             std::shared_ptr<TaskFifos> fifos_;
             spider::unique_ptr<detail::MappingInfo> mappingInfo_;
             TaskState state_{ NOT_SCHEDULABLE };
-            TaskType type_{ VERTEX };
         };
     }
 }

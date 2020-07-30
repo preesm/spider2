@@ -32,47 +32,64 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_MAPPER_H
-#define SPIDER2_MAPPER_H
 
 /* === Include(s) === */
 
-namespace spider {
+#include "TaskSync.h"
 
-    namespace pisdf {
-        class Vertex;
+/* === Static function === */
+
+/* === Method(s) implementation === */
+
+/* === Private method(s) implementation === */
+
+spider::sched::TaskSync::TaskSync(SyncType type) : Task(), type_{ type } {
+    fifos_ = spider::make_shared<TaskFifos, StackID::SCHEDULE>(type == SyncType::SEND, 1U);
+}
+
+spider::sched::AllocationRule spider::sched::TaskSync::allocationRuleForInputFifo(size_t ix) const {
+#ifndef NDEBUG
+    if (ix >= 1U) {
+        throwSpiderException("index out of bound.");
     }
+#endif
+    return { 0U, SIZE_MAX, AllocType::SAME, FifoAttribute::RW_ONLY };
+}
 
-    namespace sched {
+spider::sched::AllocationRule spider::sched::TaskSync::allocationRuleForOutputFifo(size_t ix) const {
+#ifndef NDEBUG
+    if (ix >= 1U) {
+        throwSpiderException("index out of bound.");
+    }
+#endif
+    return { 0U, SIZE_MAX, AllocType::SAME, FifoAttribute::RW_ONLY };
+}
 
-        class Task;
+spider::sched::Task *spider::sched::TaskSync::previousTask(size_t ix) const {
+#ifndef NDEBUG
+    if (ix >= 1U) {
+        throwSpiderException("index out of bound.");
+    }
+#endif
+    return nullptr;
+}
 
-        class TaskVertex;
+u32 spider::sched::TaskSync::color() const {
+    /* ==  SEND    -> vivid tangerine color == */
+    /* ==  RECEIVE -> Studio purple color == */
+    return type_ == SEND ? 0xff9478 : 0x8e44ad;
+}
 
-        /* === Class definition === */
-
-        class Mapper {
-        public:
-            Mapper() = default;
-
-            virtual ~Mapper() noexcept = default;
-
-            /* === Method(s) === */
-
-            /**
-             * @brief Map a task onto available resources.
-             * @param task pointer to the task to map.
-             * @throw @refitem spider::Exception if the mapper was unable to find any processing elements for the task.
-             */
-            virtual void map(TaskVertex *task) = 0;
-
-            /* === Getter(s) === */
-
-            /* === Setter(s) === */
-
-        private:
-
-        };
+void spider::sched::TaskSync::setSuccessor(spider::sched::Task *successor) {
+    if (successor) {
+        successor_ = successor;
     }
 }
-#endif //SPIDER2_MAPPER_H
+
+void spider::sched::TaskSync::setSize(size_t size) {
+    size_ = size;
+}
+
+void spider::sched::TaskSync::setInputPortIx(u32 ix) {
+    inputPortIx_ = ix;
+}

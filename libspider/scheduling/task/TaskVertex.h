@@ -32,10 +32,12 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_MAPPER_H
-#define SPIDER2_MAPPER_H
+#ifndef SPIDER2_TASKVERTEX_H
+#define SPIDER2_TASKVERTEX_H
 
 /* === Include(s) === */
+
+#include <scheduling/task/Task.h>
 
 namespace spider {
 
@@ -45,34 +47,31 @@ namespace spider {
 
     namespace sched {
 
-        class Task;
-
-        class TaskVertex;
-
         /* === Class definition === */
 
-        class Mapper {
+        class TaskVertex final : public Task {
         public:
-            Mapper() = default;
+            explicit TaskVertex(pisdf::Vertex *vertex);
 
-            virtual ~Mapper() noexcept = default;
+            ~TaskVertex() noexcept override = default;
 
             /* === Method(s) === */
 
-            /**
-             * @brief Map a task onto available resources.
-             * @param task pointer to the task to map.
-             * @throw @refitem spider::Exception if the mapper was unable to find any processing elements for the task.
-             */
-            virtual void map(TaskVertex *task) = 0;
+            AllocationRule allocationRuleForInputFifo(size_t ix) const override;
+
+            AllocationRule allocationRuleForOutputFifo(size_t ix) const override;
+
+            Task *previousTask(size_t ix) const override;
+
+            u32 color() const override;
 
             /* === Getter(s) === */
 
             /* === Setter(s) === */
 
         private:
-
+            pisdf::Vertex *vertex_;
         };
     }
 }
-#endif //SPIDER2_MAPPER_H
+#endif //SPIDER2_TASKVERTEX_H

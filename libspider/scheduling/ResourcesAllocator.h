@@ -38,34 +38,79 @@
 /* === Include(s) === */
 
 #include <memory/unique_ptr.h>
+#include <global-api.h>
 
 namespace spider {
 
-    class Scheduler;
+    namespace pisdf {
+        class Graph;
+    }
 
-    class Mapper;
+    namespace sched {
 
-    /* === Class definition === */
+        class Scheduler;
 
-    class ResourcesAllocator {
-    public:
-        ResourcesAllocator() = default;
+        class Mapper;
 
-        ~ResourcesAllocator() noexcept = default;
+        /* === Class definition === */
 
-        /* === Method(s) === */
+        class ResourcesAllocator final {
+        public:
+            explicit ResourcesAllocator(SchedulingPolicy schedulingPolicy,
+                                        MappingPolicy mappingPolicy,
+                                        ExecutionPolicy executionPolicy);
 
-        /* === Getter(s) === */
+            ~ResourcesAllocator() noexcept = default;
 
-        inline const Mapper *mapper() const noexcept { return mapper_.get(); }
+            /* === Method(s) === */
 
-        inline const Scheduler *scheduler() const noexcept { return scheduler_.get(); }
+            void execute(const pisdf::Graph *graph);
 
-        /* === Setter(s) === */
+            /* === Getter(s) === */
 
-    private:
-        spider::unique_ptr<Mapper> mapper_;
-        spider::unique_ptr<Scheduler> scheduler_;
-    };
+            inline const Mapper *mapper() const noexcept { return mapper_.get(); }
+
+            inline const Scheduler *scheduler() const noexcept { return scheduler_.get(); }
+
+            /* === Setter(s) === */
+
+        private:
+            spider::unique_ptr<Scheduler> scheduler_;
+            spider::unique_ptr<Mapper> mapper_;
+            ExecutionPolicy executionPolicy_;
+
+            /* === Private method(s) === */
+
+            /**
+             * @brief Allocates the scheduler corresponding to the given policy.
+             * @param policy  Scheduling policy to use.
+             * @return pointer to the created @refitem Scheduler.
+             * @throw @refitem spider::Exception if the scheduling policy is not supported.
+             */
+            Scheduler *allocateScheduler(SchedulingPolicy policy);
+
+            /**
+             * @brief Allocates the mapper corresponding to the given policy.
+             * @param policy  Mapping policy to use.
+             * @return pointer to the created @refitem Mapper.
+             * @throw @refitem spider::Exception if the mapping policy is not supported.
+             */
+            Mapper *allocateMapper(MappingPolicy policy);
+
+            /**
+             * @brief Apply the Just-In-Time (JIT) execution policy.
+             *        In this execution policy, tasks are sent to their mapped LRT as soon as they are mapped.
+             */
+            template<class T>
+            void jitExecutionPolicy();
+
+            /**
+             * @brief Apply the Delayed execution policy.
+             *        In this execution policy, tasks are sent to their mapped LRT after EVERY tasks have been mapped.
+             */
+            template<class T>
+            void delayedExecutionPolicy();
+        };
+    }
 }
 #endif //SPIDER2_RESOURCESALLOCATOR_H
