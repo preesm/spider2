@@ -91,12 +91,6 @@ namespace spider {
             void createListTask(pisdf::Vertex *vertex);
 
             /**
-             * @brief Update the schedule task ix of every non-scheduled vertex based on the associated task position in the
-             *        vector sortedTaskVector_.
-             */
-            void updateScheduleTaskIx() const;
-
-            /**
              * @brief Compute recursively the schedule level used to sort the vertices for scheduling.
              * The criteria used is based on the critical execution time path.
              * @example:

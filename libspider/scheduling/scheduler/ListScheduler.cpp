@@ -45,13 +45,11 @@
 
 /* === Static variable === */
 
-namespace  {
+namespace {
     constexpr auto NON_SCHEDULABLE_LEVEL = -314159265; /* = Value is arbitrary, just needed something unique = */
 }
 
 /* === Method(s) implementation === */
-
-/* === Private method(s) implementation === */
 
 void spider::sched::ListScheduler::schedule(const pisdf::Graph *graph) {
     /* == Reserve space for the new ListTasks == */
@@ -78,16 +76,12 @@ void spider::sched::ListScheduler::schedule(const pisdf::Graph *graph) {
     /* == Remove the non-executable hierarchical vertex == */
     const auto nonSchedulableTaskCount = countNonSchedulableTasks();
 
-    /* == Update schedule task ix of vertices == */
-    updateScheduleTaskIx();
-
     /* == Update last schedulable vertex == */
     lastSchedulableTask_ = sortedTaskVector_.size() - nonSchedulableTaskCount;
 
     /* == Create the list of tasks to be scheduled == */
-    tasks_.clear();
     for (auto k = lastScheduledTask_; k < lastSchedulableTask_; ++k) {
-        tasks_.push_back(make<TaskVertex>(sortedTaskVector_[k].vertex_));
+        tasks_.emplace_back(make<TaskVertex>(sortedTaskVector_[k].vertex_));
     }
 }
 
@@ -97,6 +91,8 @@ void spider::sched::ListScheduler::clear() {
     lastSchedulableTask_ = 0;
     lastScheduledTask_ = 0;
 }
+
+/* === Private method(s) implementation === */
 
 void spider::sched::ListScheduler::resetUnScheduledTasks() {
     auto last = sortedTaskVector_.size();
@@ -112,15 +108,6 @@ void spider::sched::ListScheduler::createListTask(pisdf::Vertex *vertex) {
     }
     sortedTaskVector_.push_back({ vertex, -1 });
     vertex->setScheduleTaskIx(sortedTaskVector_.size() - 1);
-}
-
-void spider::sched::ListScheduler::updateScheduleTaskIx() const {
-    auto iterator = std::next(std::begin(sortedTaskVector_), static_cast<long>(lastSchedulableTask_));
-    for (; iterator != std::end(sortedTaskVector_); ++iterator) {
-        auto *vertex = iterator->vertex_;
-        const auto ix = static_cast<size_t>(std::distance(std::begin(sortedTaskVector_), iterator));
-        vertex->setScheduleTaskIx(ix);
-    }
 }
 
 ifast32 spider::sched::ListScheduler::computeScheduleLevel(ListTask &listTask,

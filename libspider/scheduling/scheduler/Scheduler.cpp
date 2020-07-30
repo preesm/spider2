@@ -36,13 +36,18 @@
 /* === Include(s) === */
 
 #include <scheduling/scheduler/Scheduler.h>
+#include <scheduling/task/Task.h>
 
 /* === Static function === */
 
 /* === Method(s) implementation === */
 
-/* === Private method(s) implementation === */
+spider::sched::Scheduler::Scheduler() : tasks_{ factory::vector<spider::unique_ptr<Task>>(StackID::SCHEDULE) } {
+
+}
 
 void spider::sched::Scheduler::clear() {
     tasks_.clear();
 }
+
+/* === Private method(s) implementation === */
