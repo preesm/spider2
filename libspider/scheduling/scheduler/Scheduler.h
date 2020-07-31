@@ -39,6 +39,7 @@
 
 #include <containers/vector.h>
 #include <memory/unique_ptr.h>
+#include <scheduling/task/Task.h>
 
 namespace spider {
 
@@ -47,8 +48,6 @@ namespace spider {
     }
 
     namespace sched {
-
-        class Task;
 
         /* === Class definition === */
 

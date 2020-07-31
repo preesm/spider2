@@ -35,9 +35,8 @@
 /* === Include(s) === */
 
 #include <scheduling/scheduler_legacy/SchedulerLegacy.h>
-#include <scheduling/scheduler_legacy/GreedyScheduler.h>
+#include <scheduling/scheduler/GreedyScheduler.h>
 #include <scheduling/scheduler_legacy/BestFitScheduler.h>
-#include <scheduling/scheduler_legacy/RoundRobinScheduler.h>
 #include <scheduling/allocator/DefaultFifoAllocator.h>
 #include <scheduling/schedule/ScheduleTask.h>
 #include <runtime/common/RTKernel.h>
@@ -322,9 +321,6 @@ spider::unique_ptr<spider::SchedulerLegacy> spider::makeScheduler(SchedulingPoli
     switch (algorithm) {
         case SchedulingPolicy::LIST:
             scheduler = make<BestFitScheduler, StackID::SCHEDULE>(graph);
-            break;
-        case SchedulingPolicy::GREEDY:
-            scheduler = make<GreedyScheduler, StackID::SCHEDULE>(graph);
             break;
         default:
             break;

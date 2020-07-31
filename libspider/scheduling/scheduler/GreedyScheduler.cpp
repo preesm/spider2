@@ -34,58 +34,43 @@
  */
 /* === Include(s) === */
 
-#include <scheduling/scheduler_legacy/GreedyScheduler.h>
-#include <scheduling/schedule/ScheduleLegacy.h>
+#include <scheduling/scheduler/GreedyScheduler.h>
+#include <scheduling/task/TaskVertex.h>
+#include <graphs/pisdf/Graph.h>
+#include <graphs/pisdf/Vertex.h>
 
 /* === Static function === */
 
 /* === Method(s) implementation === */
 
-/* === Private method(s) implementation === */
-
-spider::ScheduleLegacy &spider::GreedyScheduler::execute() {
-    auto vertexVector = factory::vector<pisdf::Vertex *>(StackID::SCHEDULE);
-    vertexVector.reserve(graph_->vertexCount());
-
-    /* == Initialize vector of vertex == */
-    for (const auto &vertex : graph_->vertices()) {
-        vertexVector.emplace_back(vertex.get());
-//        schedule_.addJobToSchedule(vertex.get());
-    }
-
-    /* == Iterate on vector until a schedulable vertex is found == */
-    auto it = vertexVector.begin();
-    while (!vertexVector.empty()) {
-        /* == Reset iterator to start over == */
-        if (it == vertexVector.end()) {
-            it = vertexVector.begin();
-        }
-
-        /* == Test if vertex is schedulable == */
-        if (isSchedulable((*it))) {
-            /* == Map the vertex == */
-//            Scheduler::vertexMapper((*it));
-
-            /* == Remove current vertex from the vector == */
-            std::swap((*it), vertexVector.back());
-            vertexVector.pop_back();
-        } else {
-            it++;
+void spider::sched::GreedyScheduler::schedule(const pisdf::Graph *graph) {
+    /* == Go through the list of vertices and add them as soon as they are schedulable == */
+    for (const auto &vertex : graph->vertices()) {
+        if (isSchedulable(vertex.get())) {
+            vertex->setScheduleTaskIx(tasks_.size());
+            tasks_.emplace_back(make<TaskVertex>(vertex.get()));
         }
     }
-    return schedule_;
+
 }
 
-bool spider::GreedyScheduler::isSchedulable(const pisdf::Vertex *vertex) const {
+void spider::sched::GreedyScheduler::clear() {
+    Scheduler::clear();
+}
+
+/* === Private method(s) implementation === */
+
+bool spider::sched::GreedyScheduler::isSchedulable(const spider::pisdf::Vertex *vertex) const {
     if (!vertex->inputEdgeCount()) {
         return true;
+    } else if (vertex->executable() && vertex->scheduleTaskIx() == SIZE_MAX) {
+        for (const auto *edge : vertex->inputEdgeVector()) {
+            const auto *source = edge->source();
+            if (!source || !source->executable() || source->scheduleTaskIx() == SIZE_MAX) {
+                return false;
+            }
+        }
+        return true;
     }
-//    for (const auto &edge : vertex->inputEdgeVector()) {
-//        const auto &source = edge->source();
-//        const auto &job = schedule_.job(source->ix());
-//        if (job.PEIx() == UINT32_MAX) {
-//            return false;
-//        }
-//    }
-    return true;
+    return false;
 }

@@ -38,6 +38,7 @@
 #include <scheduling/ResourcesAllocator.h>
 #include <scheduling/schedule/Schedule.h>
 #include <scheduling/scheduler/ListScheduler.h>
+#include <scheduling/scheduler/GreedyScheduler.h>
 #include <scheduling/mapper/BestFitMapper.h>
 #include <scheduling/task/TaskVertex.h>
 #include <api/archi-api.h>
@@ -84,6 +85,8 @@ spider::sched::Scheduler *spider::sched::ResourcesAllocator::allocateScheduler(S
     switch (policy) {
         case SchedulingPolicy::LIST:
             return spider::make<sched::ListScheduler, StackID::SCHEDULE>();
+        case SchedulingPolicy::GREEDY:
+            return spider::make<sched::GreedyScheduler, StackID::SCHEDULE>();
         default:
             throwSpiderException("unsupported scheduling policy.");
     }

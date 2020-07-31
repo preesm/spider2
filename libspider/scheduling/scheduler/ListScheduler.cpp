@@ -36,7 +36,6 @@
 /* === Include(s) === */
 
 #include <scheduling/scheduler/ListScheduler.h>
-#include <scheduling/task/Task.h>
 #include <scheduling/task/TaskVertex.h>
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/Vertex.h>

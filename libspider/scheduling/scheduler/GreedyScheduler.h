@@ -32,16 +32,50 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
+#ifndef SPIDER2_GREEDYSCHEDULER_H
+#define SPIDER2_GREEDYSCHEDULER_H
+
 /* === Include(s) === */
 
-#include <scheduling/scheduler_legacy/RoundRobinScheduler.h>
+#include <scheduling/scheduler/Scheduler.h>
 
-/* === Static variable(s) === */
+namespace spider {
 
-/* === Static function(s) === */
+    namespace sched {
 
-/* === Method(s) implementation === */
+        /* === Class definition === */
 
-spider::ScheduleLegacy &spider::RoundRobinScheduler::execute() {
-    return schedule_;
+        class GreedyScheduler final : public Scheduler {
+        public:
+
+            GreedyScheduler() : Scheduler() { };
+
+            ~GreedyScheduler() noexcept override = default;
+
+            /* === Method(s) === */
+
+            void schedule(const pisdf::Graph *graph) override;
+
+            void clear() override;
+
+            /* === Getter(s) === */
+
+            /* === Setter(s) === */
+
+            /* === Getter(s) === */
+
+            /* === Setter(s) === */
+
+        private:
+
+            /**
+             * @brief Check if a vertex is schedulable based on its dependencies.
+             * @param vertex  Vertex to evaluate.
+             * @return true if vertex is schedulable, false else.
+             */
+            bool isSchedulable(const pisdf::Vertex *vertex) const;
+        };
+    }
 }
+
+#endif //SPIDER2_GREEDYSCHEDULER_H
