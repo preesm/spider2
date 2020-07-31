@@ -288,6 +288,7 @@ void spider::SchedulerLegacy::mapTask(ScheduleTask *task) {
                 mappingPe = foundPE;
                 mappingSt = startTime;
                 mappingEt = endTime;
+                bestScheduleCost = scheduleCost;
             }
         }
     }
