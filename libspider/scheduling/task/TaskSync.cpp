@@ -45,6 +45,8 @@
 
 spider::sched::TaskSync::TaskSync(SyncType type) : Task(), type_{ type } {
     fifos_ = spider::make_shared<TaskFifos, StackID::SCHEDULE>(type == SyncType::SEND, 1U);
+    execInfo_.constraints_ = spider::make_unique(allocate<Task *, StackID::SCHEDULE>(1U));
+    execInfo_.constraints_.get()[0] = nullptr;
 }
 
 spider::sched::AllocationRule spider::sched::TaskSync::allocationRuleForInputFifo(size_t ix) const {
@@ -81,7 +83,7 @@ u32 spider::sched::TaskSync::color() const {
 }
 
 void spider::sched::TaskSync::setSuccessor(spider::sched::Task *successor) {
-    if (successor) {
+    if (successor && type_ == SyncType::SEND) {
         successor_ = successor;
     }
 }
@@ -92,4 +94,15 @@ void spider::sched::TaskSync::setSize(size_t size) {
 
 void spider::sched::TaskSync::setInputPortIx(u32 ix) {
     inputPortIx_ = ix;
+}
+
+void spider::sched::TaskSync::setExecutionDependency(size_t ix, Task *task) {
+#ifndef NDEBUG
+    if (ix >= 1U) {
+        throwSpiderException("index out of bound.");
+    }
+#endif
+    if (task) {
+        execInfo_.constraints_.get()[0] = task;
+    }
 }

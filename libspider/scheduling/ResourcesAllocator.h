@@ -100,6 +100,8 @@ namespace spider {
              */
             Mapper *allocateMapper(MappingPolicy policy);
 
+            ufast64 computeMinStartTime() const;
+
             /**
              * @brief Apply the Just-In-Time (JIT) execution policy.
              *        In this execution policy, tasks are sent to their mapped LRT as soon as they are mapped.

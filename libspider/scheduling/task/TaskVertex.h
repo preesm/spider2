@@ -65,11 +65,15 @@ namespace spider {
 
             u32 color() const override;
 
+            void updateTaskExecutionDependencies(const Schedule *schedule) override;
+
             /* === Getter(s) === */
 
             inline pisdf::Vertex *vertex() const { return vertex_; }
 
             /* === Setter(s) === */
+
+            void setExecutionDependency(size_t ix, Task *task) override;
 
         private:
             pisdf::Vertex *vertex_;

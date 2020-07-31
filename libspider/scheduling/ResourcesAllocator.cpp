@@ -40,6 +40,9 @@
 #include <scheduling/scheduler/ListScheduler.h>
 #include <scheduling/mapper/BestFitMapper.h>
 #include <scheduling/task/TaskVertex.h>
+#include <api/archi-api.h>
+#include <archi/Platform.h>
+#include <archi/PE.h>
 
 /* === Static function === */
 
@@ -59,6 +62,7 @@ void spider::sched::ResourcesAllocator::execute(const pisdf::Graph *graph) {
     scheduler_->schedule(graph);
 
     /* == Map and execute the scheduled tasks == */
+    mapper_->setStartTime(computeMinStartTime());
     switch (executionPolicy_) {
         case ExecutionPolicy::JIT:
             jitExecutionPolicy<TaskVertex *>();
@@ -92,6 +96,14 @@ spider::sched::Mapper *spider::sched::ResourcesAllocator::allocateMapper(Mapping
         default:
             throwSpiderException("unsupported mapping policy.");
     }
+}
+
+ufast64 spider::sched::ResourcesAllocator::computeMinStartTime() const {
+    ufast64 minStartTime = UINT_FAST64_MAX;
+    for (const auto *pe : archi::platform()->peArray()) {
+        minStartTime = std::min(minStartTime, schedule_->stats().endTime(pe->virtualIx()));
+    }
+    return minStartTime;
 }
 
 template<class T>

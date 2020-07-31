@@ -40,6 +40,9 @@
 #include <scheduling/task/Task.h>
 
 namespace spider {
+
+    class MemoryBus;
+
     namespace sched {
 
         enum SyncType {
@@ -65,6 +68,8 @@ namespace spider {
 
             u32 color() const override;
 
+            inline void updateTaskExecutionDependencies(const Schedule *) override { }
+
             /* === Getter(s) === */
 
             /* === Setter(s) === */
@@ -87,8 +92,21 @@ namespace spider {
              */
             void setInputPortIx(u32 ix);
 
+            /**
+             * @brief Sets the memory bus attached to this synchronization task.
+             * @param bus pointer to the memory bus.
+             */
+            inline void setMemoryBus(const MemoryBus *bus) {
+                if (bus) {
+                    bus_ = bus;
+                }
+            }
+
+            void setExecutionDependency(size_t ix, Task *task) override;
+
         private:
             Task *successor_{ nullptr };
+            const MemoryBus *bus_{ nullptr };
             size_t size_{ 0U };
             u32 inputPortIx_{ 0U };
             SyncType type_;

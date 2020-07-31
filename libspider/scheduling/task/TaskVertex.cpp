@@ -39,6 +39,7 @@
 #include <graphs/pisdf/ExternInterface.h>
 #include <graphs/pisdf/Edge.h>
 #include <scheduling/task/TaskVertex.h>
+#include <scheduling/schedule/Schedule.h>
 
 /* === Static function === */
 
@@ -51,6 +52,20 @@ spider::sched::TaskVertex::TaskVertex(pisdf::Vertex *vertex) : Task(), vertex_{ 
         throwSpiderException("nullptr vertex.");
     }
     fifos_ = spider::make_shared<TaskFifos, StackID::SCHEDULE>(vertex->inputEdgeCount(), vertex->outputEdgeCount());
+    execInfo_.constraints_ = spider::make_unique(allocate<Task *, StackID::SCHEDULE>(vertex->inputEdgeCount()));
+    std::fill(execInfo_.constraints_.get(),
+              std::next(execInfo_.constraints_.get(), static_cast<long>(vertex->inputEdgeCount())), nullptr);
+}
+
+void spider::sched::TaskVertex::updateTaskExecutionDependencies(const spider::sched::Schedule *schedule) {
+    for (const auto *edge : vertex_->inputEdgeVector()) {
+        const auto *source = edge->source();
+        const auto rate = static_cast<u64>(edge->sinkRateValue());
+        if (rate && source && source->executable()) {
+            const auto &sourceTask = schedule->tasks()[source->scheduleTaskIx()];
+            execInfo_.constraints_.get()[edge->sinkPortIx()] = sourceTask.get();
+        }
+    }
 }
 
 spider::sched::AllocationRule spider::sched::TaskVertex::allocationRuleForInputFifo(size_t ix) const {
@@ -125,4 +140,15 @@ u32 spider::sched::TaskVertex::color() const {
     const u32 green = static_cast<u8>((reinterpret_cast<uintptr_t>(reference) >> 2u) * 50 + 100);
     const u32 blue = static_cast<u8>((reinterpret_cast<uintptr_t>(reference) >> 4u) * 50 + 100);
     return 0u | (red << 16u) | (green << 8u) | (blue);
+}
+
+void spider::sched::TaskVertex::setExecutionDependency(size_t ix, Task *task) {
+#ifndef NDEBUG
+    if (ix >= vertex_->inputEdgeCount()) {
+        throwSpiderException("index out of bound.");
+    }
+#endif
+    if (task) {
+        execInfo_.constraints_.get()[ix] = task;
+    }
 }

@@ -51,6 +51,8 @@ namespace spider {
 
         class Task;
 
+        class Schedule;
+
         namespace detail {
             struct MappingInfo {
                 u64 startTime_{ UINT64_MAX };
@@ -60,7 +62,7 @@ namespace spider {
 
             struct ExecInfo {
                 spider::unique_ptr<Task *> constraints_;
-                spider::unique_ptr<bool> notifications_;
+                spider::unique_ptr<std::pair<size_t, bool>> notifications_;
             };
         }
 
@@ -113,6 +115,12 @@ namespace spider {
              * @return  color of the task.
              */
             virtual u32 color() const = 0;
+
+            /**
+             * @brief Update task execution dependencies based on schedule information.
+             * @param schedule pointer to the schedule.
+             */
+            virtual void updateTaskExecutionDependencies(const Schedule *schedule) = 0;
 
             /* === Getter(s) === */
 
@@ -191,6 +199,14 @@ namespace spider {
              * @param ix Ix to set.
              */
             inline void setIx(u32 ix) { ix_ = ix; }
+
+            /**
+             * @brief Override the current execution dependency at given position.
+             * @param ix   position of the dependency to set.
+             * @param task pointer to the task to set.
+             * @throws @refitem spider::Exception if index out of bound (only in debug)
+             */
+            virtual void setExecutionDependency(size_t ix, Task *task) = 0;
 
         protected:
             detail::ExecInfo execInfo_;
