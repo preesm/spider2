@@ -1,10 +1,7 @@
-/**
- * Copyright or © or Copr. IETR/INSA - Rennes (2019 - 2020) :
+/*
+ * Copyright or © or Copr. IETR/INSA - Rennes (2020) :
  *
- * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2019 - 2020)
- *
- * Spider 2.0 is a dataflow based runtime used to execute dynamic PiSDF
- * applications. The Preesm tool may be used to design PiSDF applications.
+ * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2020)
  *
  * This software is governed by the CeCILL  license under French law and
  * abiding by the rules of distribution of free software.  You can  use,
@@ -32,19 +29,39 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
+#ifndef SPIDER2_JOBMESSAGE_H
+#define SPIDER2_JOBMESSAGE_H
+
 /* === Include(s) === */
 
-#include <scheduling/scheduler_legacy/srdagless/SRLessBestFitScheduler.h>
+#include <scheduling/task/TaskFifos.h>
+#include <common/Types.h>
 
-/* === Static function === */
+namespace spider {
 
-/* === Method(s) implementation === */
+    class RTKernel;
 
-/* === Private method(s) implementation === */
+    /* === Type(s) definition === */
 
-spider::ScheduleLegacy &spider::SRLessBestFitScheduler::execute() {
-    for (auto &listTask : sortedTaskVector_) {
-        SRLessScheduler::mapTask(listTask.task_);
-    }
-    return schedule_;
+    struct JobConstraint {
+        size_t lrtToWait_ = SIZE_MAX;
+        size_t jobToWait_ = SIZE_MAX;
+    };
+
+    /**
+     * @brief Information message about an LRT job to run.
+     */
+    struct JobMessage {
+
+        /* === Struct member(s) === */
+
+        spider::array<JobConstraint> execConstraints_; /*!< Array of jobs this job has to wait before running (size is inferior or equal to the number of LRT) */
+        std::shared_ptr<TaskFifos> fifos_;             /*!< Fifos of the task */
+        RTKernel *kernel_;                             /*!< Kernel used for executing the task */
+        u32 ix_;                                       /*!< Index of the job */
+        u32 taskIx_;                                   /*!< Index of the task associated with the job */
+        u32 nParamsOut_;                               /*!< Number of output parameters to be set by this job. */
+    };
 }
+
+#endif //SPIDER2_JOBMESSAGE_H

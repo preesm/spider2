@@ -65,7 +65,13 @@ namespace spider {
 
             u32 color() const override;
 
+            std::string name() const override;
+
             void updateTaskExecutionDependencies(const Schedule *schedule) override;
+
+            void updateExecutionConstraints() override;
+
+            JobMessage createJobMessage() const override;
 
             /* === Getter(s) === */
 

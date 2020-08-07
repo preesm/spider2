@@ -38,7 +38,7 @@
 /* === Include(s) === */
 
 #include <runtime/common/Fifo.h>
-#include <runtime/interface/Message.h>
+#include <runtime/message/Message.h>
 #include <memory/unique_ptr.h>
 #include <containers/array.h>
 #include <containers/vector.h>
@@ -112,7 +112,7 @@ namespace spider {
          * @brief Creates a job message out of the information of the task.
          * @return  JobMessage.
          */
-        JobMessage createJobMessage() const;
+//        JobMessage createJobMessage() const;
 
         /* === Getter(s) === */
 
@@ -392,7 +392,7 @@ namespace spider {
          * @brief Set JobMessage input parameters (if any).
          * @param message Reference to the jobMessage to update.
          */
-        void setJobMessageInputParameters(JobMessage &message) const;
+//        void setJobMessageInputParameters(JobMessage &message) const;
     };
 }
 #endif //SPIDER2_SCHEDULETASK_H

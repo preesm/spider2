@@ -174,53 +174,53 @@ void spider::ScheduleTask::setInternal(void *information) {
     }
 }
 
-spider::JobMessage spider::ScheduleTask::createJobMessage() const {
-    JobMessage message{ };
-    /* == Set core properties == */
-    const auto *vertex = this->vertex();
-    message.outputParamCount_ = vertex ? static_cast<i32>(vertex->reference()->outputParamCount()) : 0;
-    message.kernelIx_ = kernelIx();
-    message.vertexIx_ = vertex ? vertex->ix() : SIZE_MAX;
-    message.ix_ = static_cast<size_t>(execIx());
-
-    /* == Set the notification flags == */
-    const auto lrtCount{ archi::platform()->LRTCount() };
-    message.notificationFlagsArray_ = make_unique<bool>(allocate<bool, StackID::SCHEDULE>(lrtCount));
-    auto flags = notificationFlags_.get();
-    for (auto &value : make_handle(message.notificationFlagsArray_.get(), lrtCount)) {
-        value = (*(flags++));
-    }
-
-    /* == Set the execution task constraints == */
-    const auto numberOfConstraints{ lrtCount - static_cast<size_t>(std::count(executionConstraints_.get(),
-                                                                              executionConstraints_.get() + lrtCount,
-                                                                              -1)) };
-    message.execConstraints_ = array<JobConstraint>(numberOfConstraints, StackID::RUNTIME);
-    size_t lrtIt = 0;
-    auto jobIterator = message.execConstraints_.begin();
-    for (auto value : make_handle(executionConstraints_.get(), lrtCount)) {
-        if (value >= 0) {
-            jobIterator->lrtToWait_ = lrtIt;
-            jobIterator->jobToWait_ = static_cast<size_t>(value);
-            jobIterator++;
-        }
-        lrtIt++;
-    }
-
-    /* == Set the input parameters (if any) == */
-    setJobMessageInputParameters(message);
-
-    /* == Copy input Fifos == */
-    auto inputFifos = taskMemory_->inputFifos();
-    message.inputFifoArray_ = array<Fifo>(taskMemory_->inputFifoCount(), StackID::RUNTIME);
-    std::copy(std::begin(inputFifos), std::end(inputFifos), std::begin(message.inputFifoArray_));
-
-    /* == Copy output Fifos == */
-    auto outputFifos = taskMemory_->outputFifos();
-    message.outputFifoArray_ = array<Fifo>(taskMemory_->outputFifoCount(), StackID::RUNTIME);
-    std::copy(std::begin(outputFifos), std::end(outputFifos), std::begin(message.outputFifoArray_));
-    return message;
-}
+//spider::JobMessage spider::ScheduleTask::createJobMessage() const {
+//    JobMessage message{ };
+//    /* == Set core properties == */
+//    const auto *vertex = this->vertex();
+//    message.outputParamCount_ = vertex ? static_cast<i32>(vertex->reference()->outputParamCount()) : 0;
+//    message.kernelIx_ = kernelIx();
+//    message.vertexIx_ = vertex ? vertex->ix() : SIZE_MAX;
+//    message.ix_ = static_cast<size_t>(execIx());
+//
+//    /* == Set the notification flags == */
+//    const auto lrtCount{ archi::platform()->LRTCount() };
+//    message.notificationFlagsArray_ = make_unique<bool>(allocate<bool, StackID::SCHEDULE>(lrtCount));
+//    auto flags = notificationFlags_.get();
+//    for (auto &value : make_handle(message.notificationFlagsArray_.get(), lrtCount)) {
+//        value = (*(flags++));
+//    }
+//
+//    /* == Set the execution task constraints == */
+//    const auto numberOfConstraints{ lrtCount - static_cast<size_t>(std::count(executionConstraints_.get(),
+//                                                                              executionConstraints_.get() + lrtCount,
+//                                                                              -1)) };
+//    message.execConstraints_ = array<JobConstraint>(numberOfConstraints, StackID::RUNTIME);
+//    size_t lrtIt = 0;
+//    auto jobIterator = message.execConstraints_.begin();
+//    for (auto value : make_handle(executionConstraints_.get(), lrtCount)) {
+//        if (value >= 0) {
+//            jobIterator->lrtToWait_ = lrtIt;
+//            jobIterator->jobToWait_ = static_cast<size_t>(value);
+//            jobIterator++;
+//        }
+//        lrtIt++;
+//    }
+//
+//    /* == Set the input parameters (if any) == */
+//    setJobMessageInputParameters(message);
+//
+//    /* == Copy input Fifos == */
+//    auto inputFifos = taskMemory_->inputFifos();
+//    message.inputFifoArray_ = array<Fifo>(taskMemory_->inputFifoCount(), StackID::RUNTIME);
+//    std::copy(std::begin(inputFifos), std::end(inputFifos), std::begin(message.inputFifoArray_));
+//
+//    /* == Copy output Fifos == */
+//    auto outputFifos = taskMemory_->outputFifos();
+//    message.outputFifoArray_ = array<Fifo>(taskMemory_->outputFifoCount(), StackID::RUNTIME);
+//    std::copy(std::begin(outputFifos), std::end(outputFifos), std::begin(message.outputFifoArray_));
+//    return message;
+//}
 
 void spider::ScheduleTask::setTaskMemory(spider::unique_ptr<TaskFifos> taskMemory) {
     taskMemory_ = std::move(taskMemory);
@@ -239,28 +239,28 @@ void spider::ScheduleTask::setSendSuccessor(ScheduleTask *task) {
 
 /* === Private method(s) === */
 
-void spider::ScheduleTask::setJobMessageInputParameters(JobMessage &message) const {
-    switch (type_) {
-        case TaskType::VERTEX:
-            message.inputParams_ = pisdf::buildVertexRuntimeInputParameters(vertex());
-            break;
-        case TaskType::SYNC_SEND:
-        case TaskType::SYNC_RECEIVE: {
-            const auto *info = comTaskInfo();
-            const auto fstPeIx = type_ == TaskType::SYNC_SEND ? mappedLrt() : dependenciesArray_[0]->mappedLrt();
-            const auto sndPeIx = type_ == TaskType::SYNC_SEND ? info->successor_->mappedLrt() : mappedLrt();
-            const auto *fstPe = archi::platform()->processingElement(fstPeIx);
-            const auto *sndPe = archi::platform()->processingElement(sndPeIx);
-            message.inputParams_ = array<i64>(4, StackID::RUNTIME);
-            message.inputParams_[0] = static_cast<i64>(fstPe->cluster()->ix());
-            message.inputParams_[1] = static_cast<i64>(sndPe->cluster()->ix());
-            message.inputParams_[2] = static_cast<i64>(info->size_);
-            if (type_ == TaskType::SYNC_RECEIVE) {
-                message.inputParams_[3] = static_cast<i64>(dependenciesArray_[0]->getOutputFifo(0U).virtualAddress_);
-            } else {
-                message.inputParams_[3] = 0;
-            }
-        }
-            break;
-    }
-}
+//void spider::ScheduleTask::setJobMessageInputParameters(JobMessage &message) const {
+//    switch (type_) {
+//        case TaskType::VERTEX:
+//            message.inputParams_ = pisdf::buildVertexRuntimeInputParameters(vertex());
+//            break;
+//        case TaskType::SYNC_SEND:
+//        case TaskType::SYNC_RECEIVE: {
+//            const auto *info = comTaskInfo();
+//            const auto fstPeIx = type_ == TaskType::SYNC_SEND ? mappedLrt() : dependenciesArray_[0]->mappedLrt();
+//            const auto sndPeIx = type_ == TaskType::SYNC_SEND ? info->successor_->mappedLrt() : mappedLrt();
+//            const auto *fstPe = archi::platform()->processingElement(fstPeIx);
+//            const auto *sndPe = archi::platform()->processingElement(sndPeIx);
+//            message.inputParams_ = array<i64>(4, StackID::RUNTIME);
+//            message.inputParams_[0] = static_cast<i64>(fstPe->cluster()->ix());
+//            message.inputParams_[1] = static_cast<i64>(sndPe->cluster()->ix());
+//            message.inputParams_[2] = static_cast<i64>(info->size_);
+//            if (type_ == TaskType::SYNC_RECEIVE) {
+//                message.inputParams_[3] = static_cast<i64>(dependenciesArray_[0]->getOutputFifo(0U).virtualAddress_);
+//            } else {
+//                message.inputParams_[3] = 0;
+//            }
+//        }
+//            break;
+//    }
+//}

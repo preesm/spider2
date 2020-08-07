@@ -35,14 +35,13 @@
 /* === Include(s) === */
 
 #include <runtime/algorithm/Runtime.h>
-#include <scheduling/schedule/ScheduleLegacy.h>
 #include <scheduling/schedule/exporter/SchedXMLGanttExporter.h>
 #include <scheduling/schedule/exporter/SchedSVGGanttExporter.h>
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/Vertex.h>
 #include <runtime/platform/RTPlatform.h>
-#include <runtime/interface/RTCommunicator.h>
-#include <runtime/interface/Notification.h>
+#include <runtime/communicator/RTCommunicator.h>
+#include <runtime/message/Notification.h>
 #include <api/config-api.h>
 #include <api/runtime-api.h>
 #include <scheduling/allocator/FifoAllocator.h>
@@ -66,7 +65,7 @@ static u64 getTime(spider::time::time_point value, spider::time::time_point offs
 
 /* === Function(s) definition === */
 
-void spider::Runtime::exportPreExecGantt(const ScheduleLegacy *schedule, const std::string &path) {
+void spider::Runtime::exportPreExecGantt(const sched::Schedule *schedule, const std::string &path) {
     if (api::useSVGOverXMLGantt()) {
         SchedSVGGanttExporter exporter{ schedule };
         exporter.printFromPath(path + ".svg");
@@ -77,7 +76,7 @@ void spider::Runtime::exportPreExecGantt(const ScheduleLegacy *schedule, const s
 }
 
 void spider::Runtime::useExecutionTraces(const pisdf::Graph *graph,
-                                         const ScheduleLegacy *schedule,
+                                         const sched::Schedule *schedule,
                                          time::time_point offset,
                                          const std::string &path) {
     if (!graph || !schedule) {

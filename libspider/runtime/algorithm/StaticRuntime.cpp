@@ -38,11 +38,10 @@
 #include <runtime/algorithm/StaticRuntime.h>
 #include <runtime/runner/RTRunner.h>
 #include <runtime/platform/RTPlatform.h>
-#include <runtime/interface/RTCommunicator.h>
+#include <runtime/communicator/RTCommunicator.h>
 #include <api/runtime-api.h>
 #include <graphs-tools/transformation/srdag/Transformation.h>
 #include <graphs-tools/transformation/optims/optimizations.h>
-#include <scheduling/scheduler_legacy/BestFitScheduler.h>
 #include <scheduling/allocator/DefaultFifoAllocator.h>
 #include <monitor/Monitor.h>
 #include <api/config-api.h>
@@ -68,14 +67,12 @@ spider::StaticRuntime::StaticRuntime(pisdf::Graph *graph,
                                      SchedulingPolicy schedulingAlgorithm,
                                      FifoAllocatorType type) :
         Runtime(graph),
-        srdag_{ make_unique<pisdf::Graph, StackID::RUNTIME>("srdag-" + graph->name()) },
-        scheduler_{ makeScheduler(schedulingAlgorithm, srdag_.get()) },
-        fifoAllocator_{ makeFifoAllocator(type) } {
-    scheduler_->setAllocator(fifoAllocator_.get());
+        srdag_{ make_unique<pisdf::Graph, StackID::RUNTIME>("srdag-" + graph->name()) } {
+//    scheduler_->setAllocator(fifoAllocator_.get());
     if (!rt::platform()) {
         throwSpiderException("JITMSRuntime need the runtime platform to be created.");
     }
-    fifoAllocator_->allocatePersistentDelays(graph_);
+//    fifoAllocator_->allocatePersistentDelays(graph_);
 }
 
 bool spider::StaticRuntime::execute() {
@@ -139,8 +136,8 @@ void spider::StaticRuntime::applyTransformationAndRun() {
     /* == Send LRT_START_ITERATION notification == */
     rt::platform()->sendStartIteration();
     /* == Schedule / Map current Single-Rate graph == */
-    scheduler_->update();
-    scheduler_->execute();
+//    scheduler_->update();
+//    scheduler_->execute();
 
     /* == Send LRT_END_ITERATION notification == */
     rt::platform()->sendEndIteration();
@@ -148,7 +145,7 @@ void spider::StaticRuntime::applyTransformationAndRun() {
 
     /* == Export pre-exec gantt if needed  == */
     if (api::exportGanttEnabled()) {
-        exportPreExecGantt(&scheduler_->schedule());
+//        exportPreExecGantt(&scheduler_->schedule());
     }
 
     /* == If there are jobs left, run == */
@@ -160,7 +157,7 @@ void spider::StaticRuntime::applyTransformationAndRun() {
 
     /* == Export post-exec gantt if needed  == */
     if (api::exportTraceEnabled()) {
-        useExecutionTraces(srdag_.get(), &scheduler_->schedule(), startIterStamp_);
+//        useExecutionTraces(srdag_.get(), &scheduler_->schedule(), startIterStamp_);
     }
 }
 
@@ -182,6 +179,6 @@ void spider::StaticRuntime::run() {
     rt::platform()->sendResetToRunners();
     /* == Check if we need to re-schedule == */
     if (api::exportTraceEnabled()) {
-        useExecutionTraces(srdag_.get(), &scheduler_->schedule(), startIterStamp_);
+//        useExecutionTraces(srdag_.get(), &scheduler_->schedule(), startIterStamp_);
     }
 }

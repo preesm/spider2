@@ -57,9 +57,40 @@ namespace spider {
 
             /* === Method(s) === */
 
+            /**
+             * @brief Clear schedule tasks.
+             */
+            void clear();
+
+            /**
+             * @brief Reset schedule tasks.
+             * @remark Set all task state to @refitem TaskState::PENDING.
+             * @remark Statistics of the platform are not modified.
+             */
+            void reset();
+
+            /**
+             * @brief Add a new schedule task to the schedule.
+             * @remark if task has an index >= 0, nothing happens.
+             * @remark if task is nullptr, nothing happens.
+             * @param task Pointer to the task.
+             */
             void addTask(spider::unique_ptr<Task> task);
 
+            /**
+             * @brief Updates a task information and set its state as JobState::READY
+             * @param task      Pointer to the task.
+             * @param slave     Slave (cluster and pe) to execute on.
+             * @param startTime Start time of the task.
+             * @param endTime   End time of the task.
+             * @throw std::out_of_range if bad ix.
+             */
             void updateTaskAndSetReady(Task *task, size_t slave, u64 startTime, u64 endTime);
+
+            /**
+             * @brief Send every tasks currently in JobState::READY.
+             */
+            void sendReadyTasks();
 
             /* === Getter(s) === */
 
@@ -70,6 +101,14 @@ namespace spider {
             inline const spider::vector<spider::unique_ptr<Task>> &tasks() const { return tasks_; }
 
             inline const Stats &stats() const { return stats_; }
+
+            /**
+             * @brief Get the number of task in the schedule (including already launched tasks).
+             * @return number of tasks in the schedule.
+             */
+            inline size_t taskCount() const {
+                return tasks_.size();
+            }
 
             /* === Setter(s) === */
 

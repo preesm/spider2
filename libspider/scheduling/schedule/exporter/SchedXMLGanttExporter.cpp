@@ -35,11 +35,11 @@
 /* === Include(s) === */
 
 #include <scheduling/schedule/exporter/SchedXMLGanttExporter.h>
-#include <scheduling/schedule/ScheduleLegacy.h>
-#include <scheduling/schedule/ScheduleTask.h>
 #include <api/archi-api.h>
 #include <archi/PE.h>
 #include <archi/Platform.h>
+#include <scheduling/schedule/Schedule.h>
+#include <scheduling/task/Task.h>
 
 /* === Method(s) implementation === */
 
@@ -49,15 +49,15 @@ void spider::SchedXMLGanttExporter::print() const {
 
 void spider::SchedXMLGanttExporter::printFromFile(FILE *file) const {
     printer::fprintf(file, "<data>\n");
-    for (auto &task : schedule_->tasks()) {
-        if (task->state() != TaskState::PENDING && task->state() != TaskState::NOT_SCHEDULABLE) {
+    for (const auto &task : schedule_->tasks()) {
+        if (task->state() != sched::TaskState::PENDING && task->state() != sched::TaskState::NOT_SCHEDULABLE) {
             printTask(file, task.get());
         }
     }
     printer::fprintf(file, "</data>\n");
 }
 
-void spider::SchedXMLGanttExporter::printTask(FILE *file, const ScheduleTask *task) const {
+void spider::SchedXMLGanttExporter::printTask(FILE *file, const sched::Task *task) const {
     const auto *platform = archi::platform();
 
     /* == Let's compute a color based on the value of the pointer == */
@@ -70,7 +70,7 @@ void spider::SchedXMLGanttExporter::printTask(FILE *file, const ScheduleTask *ta
     printer::fprintf(file, "\t\t" R"(start=")" "%" PRIu64"" R"(")" "\n", task->startTime());
     printer::fprintf(file, "\t\t" R"(end=")" "%" PRIu64"" R"(")" "\n", task->endTime());
     printer::fprintf(file, "\t\t" R"(title="%s")" "\n", name.c_str());
-    printer::fprintf(file, "\t\t" R"(mapping="%s")" "\n", platform->peFromVirtualIx(task->mappedPe())->name().c_str());
+    printer::fprintf(file, "\t\t" R"(mapping="%s")" "\n", task->mappedPe()->name().c_str());
     printer::fprintf(file, "\t\t" R"(color="#%.2X%.2X%.2X")" "\n", red, green, blue);
     printer::fprintf(file, "\t\t>%s.</event>\n", name.c_str());
 }

@@ -36,6 +36,9 @@
 /* === Include(s) === */
 
 #include <scheduling/task/Task.h>
+#include <api/archi-api.h>
+#include <archi/Platform.h>
+#include <archi/PE.h>
 
 /* === Static function === */
 
@@ -44,7 +47,10 @@
 /* === Private method(s) implementation === */
 
 spider::sched::Task::Task() : mappingInfo_{
-        make_unique<detail::MappingInfo, StackID::SCHEDULE>(detail::MappingInfo{ }) } {
+        spider::make_unique<detail::MappingInfo, StackID::SCHEDULE>(detail::MappingInfo{ }) } {
+    const auto lrtCount{ archi::platform()->LRTCount() };
+    execInfo_.constraints_ = make_unique<size_t>(allocate<size_t, StackID::SCHEDULE>(lrtCount));
+    execInfo_.notifications_ = make_unique<bool>(allocate<bool, StackID::SCHEDULE>(lrtCount));
 }
 
 u64 spider::sched::Task::startTime() const {
@@ -57,6 +63,10 @@ u64 spider::sched::Task::endTime() const {
 
 const spider::PE *spider::sched::Task::mappedPe() const {
     return mappingInfo_->mappedPE_;
+}
+
+const spider::PE *spider::sched::Task::mappedLRT() const {
+    return mappingInfo_->mappedPE_->attachedLRT();
 }
 
 void spider::sched::Task::setStartTime(u64 time) {

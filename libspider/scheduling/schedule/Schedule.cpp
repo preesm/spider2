@@ -40,10 +40,26 @@
 #include <api/archi-api.h>
 #include <archi/Platform.h>
 #include <archi/PE.h>
+#include <api/runtime-api.h>
+#include <runtime/platform/RTPlatform.h>
+#include <runtime/communicator/RTCommunicator.h>
 
 /* === Static function === */
 
 /* === Method(s) implementation === */
+
+void spider::sched::Schedule::clear() {
+    tasks_.clear();
+    readyTaskVector_.clear();
+    stats_.reset();
+}
+
+void spider::sched::Schedule::reset() {
+    for (const auto &task : tasks_) {
+        task->setState(TaskState::READY);
+        readyTaskVector_.emplace_back(task.get());
+    }
+}
 
 void spider::sched::Schedule::addTask(spider::unique_ptr<Task> task) {
     if (!task || UINT32_MAX == task->ix()) {
@@ -52,8 +68,6 @@ void spider::sched::Schedule::addTask(spider::unique_ptr<Task> task) {
     task->setIx(static_cast<u32>(tasks_.size()));
     tasks_.emplace_back(std::move(task));
 }
-
-/* === Private method(s) implementation === */
 
 void spider::sched::Schedule::updateTaskAndSetReady(Task *task, size_t slave, u64 startTime, u64 endTime) {
     if (task->state() == TaskState::READY) {
@@ -66,10 +80,10 @@ void spider::sched::Schedule::updateTaskAndSetReady(Task *task, size_t slave, u6
     task->setMappedPE(pe);
     task->setStartTime(startTime);
     task->setEndTime(endTime);
-//    task->setExecIx(static_cast<i32>(stats_.jobCount(peIx)));
+    task->setJobExecIx(static_cast<u32>(stats_.jobCount(peIx)));
 
     /* == Find minimal dependencies == */
-//    task->updateExecutionConstraints();
+    task->updateExecutionConstraints();
 
     /* == Update schedule statistics == */
     stats_.updateStartTime(peIx, startTime);
@@ -82,3 +96,24 @@ void spider::sched::Schedule::updateTaskAndSetReady(Task *task, size_t slave, u6
     task->setState(TaskState::READY);
     readyTaskVector_.emplace_back(task);
 }
+
+void spider::sched::Schedule::sendReadyTasks() {
+    if (log::enabled<log::SCHEDULE>()) {
+//        print();
+    }
+    const auto grtIx = archi::platform()->getGRTIx();
+    auto *communicator = rt::platform()->communicator();
+    for (const auto &task : readyTaskVector_) {
+        if (task->state() == TaskState::READY) {
+            /* == Create job message and send the notification == */
+            const auto messageIx = communicator->push(task->createJobMessage(), task->mappedLRT()->virtualIx());
+            communicator->push(Notification{ NotificationType::JOB_ADD, grtIx, messageIx }, task->mappedLRT()->virtualIx());
+            /* == Set job in TaskState::RUNNING == */
+            task->setState(TaskState::RUNNING);
+        }
+    }
+    /* == Reset ready task vector == */
+    readyTaskVector_.clear();
+}
+
+/* === Private method(s) implementation === */

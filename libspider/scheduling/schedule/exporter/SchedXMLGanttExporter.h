@@ -45,9 +45,12 @@ namespace spider {
 
     /* === Forward declaration(s) === */
 
-    class ScheduleTask;
+    namespace sched {
 
-    class ScheduleLegacy;
+        class Task;
+
+        class Schedule;
+    }
 
     namespace pisdf {
         class Graph;
@@ -58,8 +61,8 @@ namespace spider {
     class SchedXMLGanttExporter final : public Exporter {
     public:
 
-        explicit SchedXMLGanttExporter(const ScheduleLegacy *schedule) : Exporter(),
-                                                                         schedule_{ schedule } { }
+        explicit SchedXMLGanttExporter(const sched::Schedule *schedule) : Exporter(),
+                                                                          schedule_{ schedule } { }
 
         ~SchedXMLGanttExporter() override = default;
 
@@ -80,9 +83,9 @@ namespace spider {
         void printFromTasks(const vector<GanttTask> &taskVector, const std::string &path = "./gantt.xml");
 
     private:
-        const ScheduleLegacy *schedule_ = nullptr;
+        const sched::Schedule *schedule_ = nullptr;
 
-        void printTask(FILE *file, const ScheduleTask *task) const;
+        void printTask(FILE *file, const sched::Task *task) const;
     };
 }
 #endif //SPIDER2_SCHEDXMLGANTTEXPORTER_H

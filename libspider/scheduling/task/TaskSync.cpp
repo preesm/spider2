@@ -35,41 +35,56 @@
 
 /* === Include(s) === */
 
-#include "TaskSync.h"
+#include <scheduling/task/TaskSync.h>
+#include <archi/PE.h>
+#include <archi/Platform.h>
 
 /* === Static function === */
 
 /* === Method(s) implementation === */
 
-/* === Private method(s) implementation === */
-
 spider::sched::TaskSync::TaskSync(SyncType type) : Task(), type_{ type } {
     fifos_ = spider::make_shared<TaskFifos, StackID::SCHEDULE>(type == SyncType::SEND, 1U);
-    execInfo_.constraints_ = spider::make_unique(allocate<Task *, StackID::SCHEDULE>(1U));
-    execInfo_.constraints_.get()[0] = nullptr;
+    execInfo_.dependencies_ = spider::make_unique(allocate<Task *, StackID::SCHEDULE>(1u));
+    execInfo_.dependencies_.get()[0u] = nullptr;
+}
+
+void spider::sched::TaskSync::updateExecutionConstraints() {
+    auto *execDependencies = execInfo_.dependencies_.get();
+    auto *execConstraints = execInfo_.constraints_.get();
+    auto *dependency = execDependencies[0u];
+    const auto lrtCount = archi::platform()->LRTCount();
+    std::fill(execConstraints, execConstraints + lrtCount, SIZE_MAX);
+    if (dependency) {
+        const auto *depLRT = dependency->mappedLRT();
+        if (depLRT != mappedLRT()) {
+            dependency->setNotificationFlag(mappedLRT()->virtualIx(), true);
+            execConstraints[depLRT->virtualIx()] = dependency->jobExecIx();
+        }
+    }
 }
 
 spider::sched::AllocationRule spider::sched::TaskSync::allocationRuleForInputFifo(size_t ix) const {
 #ifndef NDEBUG
-    if (ix >= 1U) {
+    if (ix >= 1u) {
         throwSpiderException("index out of bound.");
     }
 #endif
-    return { 0U, SIZE_MAX, AllocType::SAME, FifoAttribute::RW_ONLY };
+    return { 0u, SIZE_MAX, AllocType::SAME, FifoAttribute::RW_ONLY };
 }
 
 spider::sched::AllocationRule spider::sched::TaskSync::allocationRuleForOutputFifo(size_t ix) const {
 #ifndef NDEBUG
-    if (ix >= 1U) {
+    if (ix >= 1u) {
         throwSpiderException("index out of bound.");
     }
 #endif
-    return { 0U, SIZE_MAX, AllocType::SAME, FifoAttribute::RW_ONLY };
+    return { 0u, SIZE_MAX, AllocType::SAME, FifoAttribute::RW_ONLY };
 }
 
 spider::sched::Task *spider::sched::TaskSync::previousTask(size_t ix) const {
 #ifndef NDEBUG
-    if (ix >= 1U) {
+    if (ix >= 1u) {
         throwSpiderException("index out of bound.");
     }
 #endif
@@ -79,7 +94,11 @@ spider::sched::Task *spider::sched::TaskSync::previousTask(size_t ix) const {
 u32 spider::sched::TaskSync::color() const {
     /* ==  SEND    -> vivid tangerine color == */
     /* ==  RECEIVE -> Studio purple color == */
-    return type_ == SEND ? 0xff9478 : 0x8e44ad;
+    return type_ == SyncType::SEND ? 0xff9478 : 0x8e44ad;
+}
+
+std::string spider::sched::TaskSync::name() const {
+    return type_ == SyncType::SEND ? "send" : "receive";
 }
 
 void spider::sched::TaskSync::setSuccessor(spider::sched::Task *successor) {
@@ -98,11 +117,17 @@ void spider::sched::TaskSync::setInputPortIx(u32 ix) {
 
 void spider::sched::TaskSync::setExecutionDependency(size_t ix, Task *task) {
 #ifndef NDEBUG
-    if (ix >= 1U) {
+    if (ix >= 1u) {
         throwSpiderException("index out of bound.");
     }
 #endif
     if (task) {
-        execInfo_.constraints_.get()[0] = task;
+        execInfo_.dependencies_.get()[0u] = task;
     }
 }
+
+spider::JobMessage spider::sched::TaskSync::createJobMessage() const {
+    return spider::JobMessage();
+}
+
+/* === Private method(s) implementation === */

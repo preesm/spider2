@@ -39,8 +39,10 @@
 
 #include <memory/memory.h>
 #include <common/Types.h>
+#include <containers/array.h>
 #include <scheduling/task/TaskFifos.h>
 #include <scheduling/task/AllocationRule.h>
+#include <runtime/message/JobMessage.h>
 
 namespace spider {
     /* === Forward Declaration(s) === */
@@ -61,8 +63,9 @@ namespace spider {
             };
 
             struct ExecInfo {
-                spider::unique_ptr<Task *> constraints_;
-                spider::unique_ptr<std::pair<size_t, bool>> notifications_;
+                spider::unique_ptr<Task *> dependencies_;
+                spider::unique_ptr<bool> notifications_;
+                spider::unique_ptr<size_t> constraints_;
             };
         }
 
@@ -81,6 +84,14 @@ namespace spider {
             Task();
 
             virtual ~Task() noexcept = default;
+
+            Task(Task &&) noexcept = default;
+
+            Task &operator=(Task &&) noexcept = default;
+
+            Task(const Task &) = delete;
+
+            Task &operator=(const Task &) noexcept = delete;
 
             /* === Method(s) === */
 
@@ -122,6 +133,23 @@ namespace spider {
              */
             virtual void updateTaskExecutionDependencies(const Schedule *schedule) = 0;
 
+            /**
+             * @brief Returns the name of the task
+             * @return name of the task
+             */
+            virtual std::string name() const = 0;
+
+            /**
+             * @brief Update execution constraints based on task dependencies.
+             */
+            virtual void updateExecutionConstraints() = 0;
+
+            /**
+             * @brief Creates a job message out of the information of the task.
+             * @return  JobMessage.
+             */
+            virtual JobMessage createJobMessage() const = 0;
+
             /* === Getter(s) === */
 
             inline TaskFifos &fifos() const {
@@ -146,22 +174,34 @@ namespace spider {
             u64 endTime() const;
 
             /**
-             * @brief Returns the PE virtual ix on which the task is mapped.
+             * @brief Returns the PE on which the task is mapped.
              * @return pointer to the PE onto which the task is mapped, nullptr else
              */
             const PE *mappedPe() const;
 
             /**
+             * @brief Returns the LRT attached to the PE on which the task is mapped.
+             * @return pointer to the LRT, nullptr else
+             */
+            const PE *mappedLRT() const;
+
+            /**
              * @brief Returns the state of the task.
              * @return @refitem TaskState of the task
              */
-            inline TaskState state() const { return state_; }
+            inline TaskState state() const noexcept { return state_; }
 
             /**
              * @brief Returns the ix of the task in the schedule.
              * @return ix of the task in the schedule, -1 else.
              */
-            inline u32 ix() const { return ix_; }
+            inline u32 ix() const noexcept { return ix_; }
+
+            /**
+             * @brief Returns the executable job index value of the task in the job queue of the mapped PE.
+             * @return ix value, SIZE_MAX else.
+             */
+            inline u32 jobExecIx() const noexcept { return jobExecIx_; }
 
             /* === Setter(s) === */
 
@@ -191,14 +231,14 @@ namespace spider {
              * @remark This method will overwrite current value.
              * @param state State to set.
              */
-            inline void setState(TaskState state) { state_ = state; }
+            inline void setState(TaskState state) noexcept { state_ = state; }
 
             /**
              * @brief Set the ix of the job.
              * @remark This method will overwrite current value.
              * @param ix Ix to set.
              */
-            inline void setIx(u32 ix) { ix_ = ix; }
+            inline void setIx(u32 ix) noexcept { ix_ = ix; }
 
             /**
              * @brief Override the current execution dependency at given position.
@@ -208,12 +248,30 @@ namespace spider {
              */
             virtual void setExecutionDependency(size_t ix, Task *task) = 0;
 
+            /**
+             * @brief Set the execution job index value of the task (that will be used for synchronization).
+             * @remark This method will overwrite current values.
+             * @param ix Ix to set.
+             */
+            inline void setJobExecIx(u32 ix) noexcept { jobExecIx_ = ix; }
+
+            /**
+             * @brief Set the notification flag for this lrt.
+             * @warning There is no check on the value of lrt.
+             * @param lrt   Index of the lrt.
+             * @param value Value to set: true = should notify, false = should not notify.
+             */
+            inline void setNotificationFlag(size_t lrt, bool value) {
+                execInfo_.notifications_.get()[lrt] = value;
+            }
+
         protected:
-            detail::ExecInfo execInfo_;
-            std::shared_ptr<TaskFifos> fifos_;
-            spider::unique_ptr<detail::MappingInfo> mappingInfo_;
-            u32 ix_{ UINT32_MAX };
-            TaskState state_{ NOT_SCHEDULABLE };
+            detail::ExecInfo execInfo_;                            /*!< Execution information (constraints and notifs) */
+            std::shared_ptr<TaskFifos> fifos_;                     /*!< Fifo(s) attached to the task */
+            spider::unique_ptr<detail::MappingInfo> mappingInfo_;  /*!< Mapping information of the task */
+            u32 ix_{ UINT32_MAX };                                 /*!< Index of the task in the schedule */
+            u32 jobExecIx_{ UINT32_MAX };                          /*!< Index of the job sent to the PE */
+            TaskState state_{ NOT_SCHEDULABLE };                   /*!< State of the task */
         };
     }
 }

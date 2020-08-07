@@ -37,8 +37,8 @@
 #include <scheduling/schedule/exporter/SchedSVGGanttExporter.h>
 #include <api/archi-api.h>
 #include <graphs/pisdf/Graph.h>
-#include <scheduling/schedule/ScheduleLegacy.h>
-#include <scheduling/schedule/ScheduleTask.h>
+#include <scheduling/schedule/Schedule.h>
+#include <scheduling/task/Task.h>
 
 /* === Static variable(s) === */
 
@@ -111,7 +111,7 @@ static void printText(FILE *file, const std::string &text, double size, double x
 
 /* === Method(s) implementation === */
 
-spider::SchedSVGGanttExporter::SchedSVGGanttExporter(const ScheduleLegacy *schedule) : Exporter(),
+spider::SchedSVGGanttExporter::SchedSVGGanttExporter(const sched::Schedule *schedule) : Exporter(),
                                                                                        schedule_{ schedule },
                                                                                        widthMin_{ TASK_MIN_WIDTH },
                                                                                        widthMax_{ TASK_MAX_WIDTH },
@@ -119,7 +119,7 @@ spider::SchedSVGGanttExporter::SchedSVGGanttExporter(const ScheduleLegacy *sched
     /* == Compute values needed for printing == */
     u64 minExecTime = UINT64_MAX;
     u64 maxExecTime = 0;
-    for (auto &task : schedule_->tasks()) {
+    for (const auto &task : schedule_->tasks()) {
         const auto execTime = task->endTime() - task->startTime();
         minExecTime = std::min(execTime, minExecTime);
         maxExecTime = std::max(execTime, maxExecTime);
@@ -273,14 +273,14 @@ void spider::SchedSVGGanttExporter::axisPrinter(FILE *file) const {
                      (height_ - ARROW_SIZE));
 }
 
-void spider::SchedSVGGanttExporter::taskPrinter(FILE *file, const ScheduleTask *task) const {
+void spider::SchedSVGGanttExporter::taskPrinter(FILE *file, const sched::Task *task) const {
     /* == Compute color and width == */
     const auto name = task->name();
 
     /* == Compute coordinates == */
     const auto taskWidth = computeWidth((task->endTime() - task->startTime()));
     const auto x = offsetX_ + ARROW_STROKE + BORDER + computeWidth(task->startTime());
-    const auto y = height_ - (OFFSET_Y + ARROW_STROKE + (task->mappedPe() + 1) * (TASK_HEIGHT + BORDER));
+    const auto y = height_ - (OFFSET_Y + ARROW_STROKE + (task->mappedPe()->virtualIx() + 1) * (TASK_HEIGHT + BORDER));
 
     /* == Print rect == */
     u32 color = task->color();

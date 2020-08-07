@@ -74,8 +74,6 @@ namespace spider {
 
     private:
         unique_ptr<pisdf::Graph> srdag_;
-        unique_ptr<SchedulerLegacy> scheduler_;
-        unique_ptr<FifoAllocator> fifoAllocator_;
         time::time_point startIterStamp_ = time::min();
 
         /* === Private method(s) === */

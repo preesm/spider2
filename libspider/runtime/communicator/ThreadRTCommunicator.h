@@ -32,56 +32,66 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_SRLESSSCHEDULER_H
-#define SPIDER2_SRLESSSCHEDULER_H
+#ifndef SPIDER2_THREADRTCOMMUNICATOR_H
+#define SPIDER2_THREADRTCOMMUNICATOR_H
 
 /* === Include(s) === */
 
-#include <scheduling/scheduler_legacy/SchedulerLegacy.h>
-#include <graphs-tools/transformation/srdagless/SRLessHandler.h>
+#include <runtime/communicator/RTCommunicator.h>
+#include <thread/Queue.h>
+#include <thread/IndexedQueue.h>
+#include <containers/array.h>
+#include <containers/vector.h>
 
 namespace spider {
 
     /* === Class definition === */
 
-    class SRLessScheduler : public SchedulerLegacy {
+    class ThreadRTCommunicator final : public RTCommunicator {
     public:
-        explicit SRLessScheduler(pisdf::Graph *graph,
-                                 ScheduleMode mode = DELAYED_SEND,
-                                 FifoAllocator *allocator = nullptr) :
-                SchedulerLegacy(graph, mode, allocator), handler_{ graph } {
+        explicit ThreadRTCommunicator(size_t lrtCount);
 
-        }
-
-        ~SRLessScheduler() override = default;
+        ~ThreadRTCommunicator() override = default;
 
         /* === Method(s) === */
 
+        void push(Notification notification, size_t receiver) override;
 
-        /* === Getter(s) === */
+        bool pop(Notification &notification, size_t receiver) override;
 
-        srdagless::SRLessHandler &srLessHandler() {
-            return handler_;
-        }
+        bool try_pop(Notification &notification, size_t receiver) override;
 
-        /* === Setter(s) === */
+        void pushParamNotification(size_t sender, size_t messageIndex) override;
 
-    protected:
-        srdagless::SRLessHandler handler_;
+        bool popParamNotification(Notification &notification) override;
 
-        /**
-         * @brief Default task mapper that try to best fit.
-         * @param task Pointer to the task to map.
-         */
-        void mapTask(ScheduleTask *task) override;
+        void pushTraceNotification(Notification notification) override;
+
+        bool popTraceNotification(Notification &notification) override;
+
+        size_t push(JobMessage message, size_t receiver) override;
+
+        bool pop(JobMessage &message, size_t receiver, size_t ix) override;
+
+        size_t push(ParameterMessage message, size_t receiver) override;
+
+        bool pop(ParameterMessage &message, size_t receiver, size_t ix) override;
+
+        size_t push(TraceMessage message, size_t receiver) override;
+
+        bool pop(TraceMessage &message, size_t receiver, size_t ix) override;
+
+    private:
+        vector<spider::Queue<Notification>> notificationQueueVector_;
+        spider::Queue<Notification> paramNotificationQueue_;
+        spider::Queue<Notification> traceNotificationQueue_;
+        IndexedQueue<JobMessage, StackID::RUNTIME> jobMessageQueueArray_;
+        IndexedQueue<ParameterMessage, StackID::RUNTIME> paramMessageQueueArray_;
+        IndexedQueue<TraceMessage, StackID::RUNTIME> traceMessageQueueArray_;
     };
 
-    /**
-     * @brief Make a new scheduler based on the scheduling algorithm.
-     * @param algorithm Algorithm type (see @refitem SchedulingAlgorithm).
-     * @return unique_ptr of the created scheduler.
-     */
-    spider::unique_ptr<SRLessScheduler> makeSRLessScheduler(pisdf::Graph *graph, SchedulingPolicy algorithm);
+    /* === Inline method(s) === */
+
 }
 
-#endif //SPIDER2_SRLESSSCHEDULER_H
+#endif //SPIDER2_THREADRTCOMMUNICATOR_H

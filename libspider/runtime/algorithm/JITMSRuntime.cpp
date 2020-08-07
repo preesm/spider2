@@ -37,11 +37,10 @@
 #include <runtime/algorithm/JITMSRuntime.h>
 #include <runtime/runner/RTRunner.h>
 #include <runtime/platform/RTPlatform.h>
-#include <runtime/interface/RTCommunicator.h>
+#include <runtime/communicator/RTCommunicator.h>
 #include <api/runtime-api.h>
 #include <graphs-tools/transformation/srdag/Transformation.h>
 #include <graphs-tools/transformation/optims/optimizations.h>
-#include <scheduling/scheduler_legacy/BestFitScheduler.h>
 #include <scheduling/allocator/DefaultFifoAllocator.h>
 #include <monitor/Monitor.h>
 #include <api/config-api.h>
@@ -58,14 +57,11 @@ spider::JITMSRuntime::JITMSRuntime(pisdf::Graph *graph,
                                    SchedulingPolicy schedulingAlgorithm,
                                    FifoAllocatorType type) :
         Runtime(graph),
-        srdag_{ make_unique<pisdf::Graph, StackID::RUNTIME>("srdag-" + graph->name()) },
-        scheduler_{ makeScheduler(schedulingAlgorithm, srdag_.get()) },
-        fifoAllocator_{ makeFifoAllocator(type) } {
-    scheduler_->setAllocator(fifoAllocator_.get());
+        srdag_{ make_unique<pisdf::Graph, StackID::RUNTIME>("srdag-" + graph->name()) } {
     if (!rt::platform()) {
         throwSpiderException("JITMSRuntime need the runtime platform to be created.");
     }
-    fifoAllocator_->allocatePersistentDelays(graph_);
+//    fifoAllocator_->allocatePersistentDelays(graph_);
     pisdf::recursiveSplitDynamicGraph(graph);
 }
 
@@ -167,14 +163,14 @@ bool spider::JITMSRuntime::execute() {
 
     /* == Export post-exec gantt if needed  == */
     if (api::exportTraceEnabled()) {
-        useExecutionTraces(srdag_.get(), &scheduler_->schedule(), startIterStamp_);
+//        useExecutionTraces(srdag_.get(), &scheduler_->schedule(), startIterStamp_);
     }
 
     /* == Clear the srdag == */
     srdag_->clear();
 
     /* == Clear the scheduler == */
-    scheduler_->clear();
+//    scheduler_->clear();
     return true;
 }
 
@@ -186,8 +182,8 @@ void spider::JITMSRuntime::scheduleRunAndWait(bool shouldBroadcast) {
     /* == Send LRT_START_ITERATION notification == */
     rt::platform()->sendStartIteration();
     /* == Schedule / Map current Single-Rate graph == */
-    scheduler_->update();
-    scheduler_->execute();
+//    scheduler_->update();
+//    scheduler_->execute();
     if (shouldBroadcast) {
         /* == Send JOB_DELAY_BROADCAST_JOBSTAMP notification == */
         rt::platform()->sendDelayedBroadCastToRunners();
@@ -198,7 +194,7 @@ void spider::JITMSRuntime::scheduleRunAndWait(bool shouldBroadcast) {
 
     /* == Export pre-exec gantt if needed  == */
     if (api::exportGanttEnabled()) {
-        exportPreExecGantt(&scheduler_->schedule());
+//        exportPreExecGantt(&scheduler_->schedule());
     }
 
     /* == If there are jobs left, run == */
