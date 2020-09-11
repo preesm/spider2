@@ -38,6 +38,9 @@
 #include <scheduling/task/TaskSync.h>
 #include <archi/PE.h>
 #include <archi/Platform.h>
+#include <archi/MemoryBus.h>
+#include <archi/Cluster.h>
+#include <runtime/common/RTKernel.h>
 
 /* === Static function === */
 
@@ -127,7 +130,48 @@ void spider::sched::TaskSync::setExecutionDependency(size_t ix, Task *task) {
 }
 
 spider::JobMessage spider::sched::TaskSync::createJobMessage() const {
-    return spider::JobMessage();
-}
+    JobMessage message{ };
+    /* == Set core properties == */
+    message.nParamsOut_ = 0u;
+    const auto &kernel = type_ == SyncType::SEND ? bus_->sendKernel() : bus_->receiveKernel();
+    message.kernelIx_ = static_cast<u32>(kernel->ix());
+    message.taskIx_ = ix_;
+    message.ix_ = jobExecIx_;
 
-/* === Private method(s) implementation === */
+    /* == Set the synchronization flags == */
+    const auto lrtCount{ archi::platform()->LRTCount() };
+    const auto *flags = execInfo_.notifications_.get();
+    message.synchronizationFlags_ = make_unique<bool>(allocate<bool, StackID::RUNTIME>(lrtCount));
+    std::copy(flags, std::next(flags, static_cast<long long>(lrtCount)), message.synchronizationFlags_.get());
+
+    /* == Set the execution task constraints == */
+    auto *execConstraints = execInfo_.constraints_.get();
+    message.execConstraints_ = array<SyncInfo>(1u, StackID::RUNTIME);
+    for (size_t i = 0; i < lrtCount; ++i) {
+        const auto value = execConstraints[i];
+        if (value != SIZE_MAX) {
+            message.execConstraints_[0u].lrtToWait_ = i;
+            message.execConstraints_[0u].jobToWait_ = static_cast<size_t>(value);
+            break;
+        }
+    }
+
+    /* == Set the params == */
+    const auto *fstLRT = type_ == SyncType::SEND ? mappedLRT() : execInfo_.dependencies_.get()[0u]->mappedLRT();
+    const auto *sndLRT = type_ == SyncType::SEND ? successor_->mappedLRT() : mappedLRT();
+    message.inputParams_ = make_unique(allocate<i64, StackID::RUNTIME>(4u));
+    message.inputParams_.get()[0u] = static_cast<i64>(fstLRT->cluster()->ix());
+    message.inputParams_.get()[1u] = static_cast<i64>(sndLRT->cluster()->ix());
+    message.inputParams_.get()[2u] = static_cast<i64>(size_);
+    if (type_ == SyncType::RECEIVE) {
+        const auto *dependency = execInfo_.dependencies_.get()[0u];
+        const auto &outputFifo = dependency->fifos().outputFifo(0u);
+        message.inputParams_.get()[3u] = static_cast<i64>(outputFifo.virtualAddress_);
+    } else {
+        message.inputParams_.get()[3u] = 0;
+    }
+
+    /* == Set Fifos == */
+    message.fifos_ = fifos_;
+    return message;
+}

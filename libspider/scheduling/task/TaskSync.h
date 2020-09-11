@@ -112,8 +112,8 @@ namespace spider {
 
         private:
             Task *successor_{ nullptr };
-            const MemoryBus *bus_{ nullptr };
-            size_t size_{ 0U };
+            const MemoryBus *bus_{ nullptr }; /*!< Memory bus used by the task */
+            size_t size_{ 0U };               /*!< Data size (in bytes) to send / receive. */
             u32 inputPortIx_{ 0U };
             SyncType type_;
         };

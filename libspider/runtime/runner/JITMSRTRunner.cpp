@@ -286,13 +286,14 @@ void spider::JITMSRTRunner::runJob(const JobMessage &job) {
     }
 
     /* == Run the job == */
-    if (job.kernel_) {
+    const auto &kernel = rt::platform()->getKernel(job.kernelIx_);
+    if (kernel) {
         TraceMessage msgExec{ };
         if (trace_) {
             msgExec.taskIx_ = job.taskIx_;
             msgExec.startTime_ = time::now();
         }
-        (*job.kernel_)(outputParams.data(), inputBuffersArray.data(), outputBuffersArray.data());
+        (*kernel)(job.inputParams_.get(), outputParams.data(), inputBuffersArray.data(), outputBuffersArray.data());
         if (trace_) {
             msgExec.endTime_ = time::now();
             auto *communicator = rt::platform()->communicator();
@@ -300,21 +301,6 @@ void spider::JITMSRTRunner::runJob(const JobMessage &job) {
             communicator->pushTraceNotification(Notification{ NotificationType::TRACE_TASK, ix(), msgIx });
         }
     }
-//    const auto &kernel = (rt::platform()->getKernel(job.kernelIx_));
-//    if (kernel) {
-//        TraceMessage msgExec{ };
-//        if (trace_) {
-//            msgExec.taskIx_ = job.taskIx_;
-//            msgExec.startTime_ = time::now();
-//        }
-//        (*kernel)(job.inputParams_.data(), outputParams.data(), inputBuffersArray.data(), outputBuffersArray.data());
-//        if (trace_) {
-//            msgExec.endTime_ = time::now();
-//            auto *communicator = rt::platform()->communicator();
-//            auto msgIx = communicator->push(msgExec, archi::platform()->getGRTIx());
-//            communicator->pushTraceNotification(Notification{ NotificationType::TRACE_TASK, ix(), msgIx });
-//        }
-//    }
 
     /* == Deallocate input buffers == */
     for (auto &inputFIFO : job.fifos_->inputFifos()) {
@@ -326,7 +312,7 @@ void spider::JITMSRTRunner::runJob(const JobMessage &job) {
 
     /* == Notify other runtimes that need to know == */
     updateJobStamp(ix(), job.ix_);
-    sendJobStampNotification(job.notificationFlagsArray_.get(), job.ix_);
+    sendJobStampNotification(job.synchronizationFlags_.get(), job.ix_);
 
     /* == Send output parameters == */
     sendParameters(job.taskIx_, outputParams);

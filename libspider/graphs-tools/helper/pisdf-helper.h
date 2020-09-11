@@ -39,6 +39,7 @@
 
 #include <containers/array.h>
 #include <containers/vector.h>
+#include <memory/unique_ptr.h>
 
 /* === Function(s) prototype === */
 
@@ -73,7 +74,7 @@ namespace spider {
          * @param vertex Pointer to the vertex.
          * @return array of int_least_64_t.
          */
-        array<i64> buildVertexRuntimeInputParameters(const pisdf::Vertex *vertex);
+        spider::unique_ptr<i64> buildVertexRuntimeInputParameters(const pisdf::Vertex *vertex);
 
         /**
          * @brief Creates an array with parameters needed for the runtime exec of a vertex.
@@ -81,8 +82,8 @@ namespace spider {
          * @param params  Parameters to use for the rates evaluation. (should contain the same parameters as the graphs)
          * @return array of int_least_64_t.
          */
-        array<i64> buildVertexRuntimeInputParameters(const pisdf::Vertex *vertex,
-                                                     const spider::vector<std::shared_ptr<pisdf::Param>> &params);
+        spider::unique_ptr<i64> buildVertexRuntimeInputParameters(const pisdf::Vertex *vertex,
+                                                                  const spider::vector<std::shared_ptr<pisdf::Param>> &params);
 
         /**
          * @brief Get the source of the vertex across interfaces.

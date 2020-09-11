@@ -38,6 +38,7 @@
 #include <graphs/pisdf/Vertex.h>
 #include <graphs/pisdf/ExternInterface.h>
 #include <graphs/pisdf/Edge.h>
+#include <graphs-tools/helper/pisdf-helper.h>
 #include <scheduling/task/TaskVertex.h>
 #include <scheduling/schedule/Schedule.h>
 #include <api/runtime-api.h>
@@ -187,23 +188,21 @@ spider::JobMessage spider::sched::TaskVertex::createJobMessage() const {
     JobMessage message{ };
     /* == Set core properties == */
     message.nParamsOut_ = static_cast<u32>(vertex_->reference()->outputParamCount());
-    message.kernel_ = rt::platform()->getKernel(vertex_->runtimeInformation()->kernelIx());
+    message.kernelIx_ = static_cast<u32>(vertex_->runtimeInformation()->kernelIx());
     message.taskIx_ = static_cast<u32>(vertex_->ix());
     message.ix_ = jobExecIx_;
 
-    /* == Set the notification flags == */
+    /* == Set the synchronization flags == */
     const auto lrtCount{ archi::platform()->LRTCount() };
-//    message.notificationFlagsArray_ = make_unique<bool>(allocate<bool, StackID::SCHEDULE>(lrtCount));
-//    auto flags = notificationFlags_.get();
-//    for (auto &value : make_handle(message.notificationFlagsArray_.get(), lrtCount)) {
-//        value = (*(flags++));
-//    }
+    const auto *flags = execInfo_.notifications_.get();
+    message.synchronizationFlags_ = make_unique<bool>(allocate<bool, StackID::RUNTIME>(lrtCount));
+    std::copy(flags, std::next(flags, static_cast<long long>(lrtCount)), message.synchronizationFlags_.get());
 
     /* == Set the execution task constraints == */
     auto *execConstraints = execInfo_.constraints_.get();
     const auto numberOfConstraints{
             lrtCount - static_cast<size_t>(std::count(execConstraints, execConstraints + lrtCount, SIZE_MAX)) };
-    message.execConstraints_ = array<JobConstraint>(numberOfConstraints, StackID::RUNTIME);
+    message.execConstraints_ = array<SyncInfo>(numberOfConstraints, StackID::RUNTIME);
     auto jobIterator = std::begin(message.execConstraints_);
     for (size_t i = 0; i < lrtCount; ++i) {
         const auto value = execConstraints[i];
@@ -215,11 +214,9 @@ spider::JobMessage spider::sched::TaskVertex::createJobMessage() const {
     }
 
     /* == Set the input parameters (if any) == */
-//    setJobMessageInputParameters(message);
+    message.inputParams_ = pisdf::buildVertexRuntimeInputParameters(vertex_);
 
     /* == Set Fifos == */
     message.fifos_ = fifos_;
     return message;
 }
-
-/* === Private method(s) implementation === */

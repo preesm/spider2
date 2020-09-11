@@ -43,7 +43,7 @@ namespace spider {
 
     /* === Type(s) definition === */
 
-    struct JobConstraint {
+    struct SyncInfo {
         size_t lrtToWait_ = SIZE_MAX;
         size_t jobToWait_ = SIZE_MAX;
     };
@@ -52,15 +52,14 @@ namespace spider {
      * @brief Information message about an LRT job to run.
      */
     struct JobMessage {
-
-        /* === Struct member(s) === */
-
-        spider::array<JobConstraint> execConstraints_; /*!< Array of jobs this job has to wait before running (size is inferior or equal to the number of LRT) */
-        std::shared_ptr<TaskFifos> fifos_;             /*!< Fifos of the task */
-        RTKernel *kernel_;                             /*!< Kernel used for executing the task */
-        u32 ix_;                                       /*!< Index of the job */
-        u32 taskIx_;                                   /*!< Index of the task associated with the job */
-        u32 nParamsOut_;                               /*!< Number of output parameters to be set by this job. */
+        std::shared_ptr<TaskFifos> fifos_;              /*!< Fifos of the task */
+        spider::array<SyncInfo> execConstraints_;       /*!< Array of jobs this job has to wait before running (size is inferior or equal to the number of LRT) */
+        spider::unique_ptr<i64> inputParams_;           /*!< Array of static input parameters */
+        spider::unique_ptr<bool> synchronizationFlags_; /*!< Array of LRT to notify after job completion (size IS equal to the number of LRT) */
+        u32 kernelIx_;                                  /*!< Kernel used for executing the task */
+        u32 ix_;                                        /*!< Index of the job */
+        u32 taskIx_;                                    /*!< Index of the task associated with the job */
+        u32 nParamsOut_;                                /*!< Number of output parameters to be set by this job. */
     };
 }
 

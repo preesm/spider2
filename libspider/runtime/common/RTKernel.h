@@ -48,9 +48,7 @@ namespace spider {
     class RTKernel {
     public:
 
-        explicit RTKernel(Kernel kernel, size_t inputParamCount = 0) :
-                inputParams_{ inputParamCount, 0, StackID::RUNTIME },
-                kernel_{ std::move(kernel) } { };
+        explicit RTKernel(Kernel kernel) : kernel_{ std::move(kernel) } { };
 
         RTKernel() = default;
 
@@ -68,8 +66,8 @@ namespace spider {
 
         /* === Operator === */
 
-        void operator()(int64_t *paramOUT, void *buffersIN[], void *buffersOUT[]) {
-            kernel_(inputParams_.data(), paramOUT, buffersIN, buffersOUT);
+        void operator()(const int64_t *paramIN, int64_t *paramOUT, void *buffersIN[], void *buffersOUT[]) {
+            kernel_(paramIN, paramOUT, buffersIN, buffersOUT);
         }
 
         /* === Getter(s) === */
@@ -93,23 +91,9 @@ namespace spider {
             ix_ = ix;
         }
 
-        /**
-         * @brief Set the ix of the kernel.
-         * @param ix Ix to set.
-         * @throw std::out_of_range (only in debug)
-         */
-        inline void setInputParam(size_t ix, int64_t value) {
-#ifndef NDEBUG
-            inputParams_.at(ix) = value;
-#else
-            inputParams_[ix] = value;
-#endif
-        }
-
     private:
-        array <int64_t> inputParams_; /* = Buffer of input parameters = */
-        Kernel kernel_;              /* = Kernel function to be called when executing the associated vertex = */
-        size_t ix_ = SIZE_MAX;       /* = Index of the kernel in the @refitem RTPlatform = */
+        Kernel kernel_;               /* = Kernel function to be called when executing the associated vertex = */
+        size_t ix_ = SIZE_MAX;        /* = Index of the kernel in the @refitem RTPlatform = */
     };
 
 }
