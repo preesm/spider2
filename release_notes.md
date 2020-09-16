@@ -10,6 +10,7 @@ Spider2 Changelog
 ### Changes
 * Changed Semaphore.h to use POSIX semaphore on Linux.
 * Changed how send and receive task work in an heterogeneous setup.
+* Decoupled Mapper and Scheduler. 
 
 ### Bug fix
 * Sonar: fixed const qualified function parameters.

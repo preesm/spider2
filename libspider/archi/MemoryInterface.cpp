@@ -50,9 +50,7 @@ spider::MemoryInterface::MemoryInterface(uint64_t size) : size_{ size }, used_{ 
 void *spider::MemoryInterface::read(uint64_t virtualAddress, u32 count) {
     std::lock_guard<std::mutex> lockGuard{ lock_ };
     auto *buffer = retrieveBuffer(virtualAddress);
-    if (count > 1) {
-        buffer->count_ += (count - 1);
-    }
+    buffer->count_ += count;
     return buffer->buffer_;
 }
 
@@ -91,7 +89,8 @@ void spider::MemoryInterface::deallocate(uint64_t virtualAddress, size_t size) {
     if (buffer->size_ > used_) {
         throwSpiderException("Deallocating more memory than used.");
     }
-    if (!(--(buffer->count_))) {
+    buffer->count_ -= 1;
+    if (!buffer->count_) {
         if (log::enabled<log::MEMORY>()) {
             log::print<log::MEMORY>(log::green, "INFO", "PHYSICAL: [%p] deallocating: %zu bytes at address %zu.\n",
                                     this, buffer->size_, virtualAddress);

@@ -60,7 +60,7 @@ namespace spider {
          * @param count           Number of use of the buffer to set.
          * @return physical address corresponding to the virtual address.
          */
-        void *read(uint64_t virtualAddress, u32 count = 1);
+        void *read(uint64_t virtualAddress, u32 count = 0u);
 
         /**
          * @brief Allocate memory to the given virtual address.

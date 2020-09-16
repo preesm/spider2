@@ -52,10 +52,11 @@ namespace {
 
 void spider::sched::ListScheduler::schedule(const pisdf::Graph *graph) {
     /* == Reserve space for the new ListTasks == */
+    tasks_.clear();
     sortedTaskVector_.reserve(graph->vertexCount());
 
     /* == Reset previous non-schedulable tasks == */
-    lastScheduledTask_ = lastSchedulableTask_ + 1;
+    lastScheduledTask_ = lastSchedulableTask_;
     resetUnScheduledTasks();
 
     /* == Creates ListTasks == */

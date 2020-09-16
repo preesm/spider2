@@ -81,6 +81,8 @@ namespace spider {
 
             void setExecutionDependency(size_t ix, Task *task) override;
 
+            void setIx(u32 ix) noexcept override;
+
         private:
             pisdf::Vertex *vertex_;
         };

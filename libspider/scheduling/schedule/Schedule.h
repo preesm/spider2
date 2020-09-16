@@ -100,7 +100,47 @@ namespace spider {
              */
             inline const spider::vector<spider::unique_ptr<Task>> &tasks() const { return tasks_; }
 
+            /**
+             * @brief Get the ready task vector of the schedule.
+             * @return  const reference to the ready task vector.
+             */
+            inline const spider::vector<Task *> &readyTasks() const { return readyTaskVector_; }
+
+            /**
+             * @brief Get a task from its ix.
+             * @param ix  Ix of the task to fetch.
+             * @return pointer to the task.
+             * @throws @refitem std::out_of_range if ix is out of range.
+             */
+            inline Task *task(size_t ix) const {
+                return tasks_.at(ix).get();
+            }
+
+            /**
+             * @brief Get the different statistics of the platform.
+             * @return const reference to @refitem Stats
+             */
             inline const Stats &stats() const { return stats_; }
+
+            /**
+             * @brief Return the scheduled start time of a given PE.
+             * @param ix  PE to check.
+             * @return start time of given PE.
+             * @throws @refitem std::out_of_range if PE out of range.
+             */
+            inline uint64_t startTime(size_t ix) const {
+                return stats().startTime(ix);
+            }
+
+            /**
+             * @brief Return the scheduled end time of a given PE.
+             * @param ix  PE to check.
+             * @return end time of given PE.
+             * @throws @refitem std::out_of_range if PE out of range.
+             */
+            inline uint64_t endTime(size_t ix) const {
+                return stats().endTime(ix);
+            }
 
             /**
              * @brief Get the number of task in the schedule (including already launched tasks).

@@ -40,8 +40,8 @@
 #include <memory/memory.h>
 #include <common/Types.h>
 #include <containers/array.h>
-#include <scheduling/task/TaskFifos.h>
-#include <scheduling/task/AllocationRule.h>
+#include <scheduling/memory/AllocatedFifos.h>
+#include <scheduling/memory/AllocationRule.h>
 #include <runtime/message/JobMessage.h>
 
 namespace spider {
@@ -150,9 +150,14 @@ namespace spider {
              */
             virtual JobMessage createJobMessage() const = 0;
 
+            /**
+             * @brief Set all notification flags to true.
+             */
+            void enableBroadcast();
+
             /* === Getter(s) === */
 
-            inline TaskFifos &fifos() const {
+            inline AllocatedFifos &fifos() const {
 #ifndef NDEBUG
                 if (!fifos_) {
                     throwSpiderException("Nullptr TaskFifos.");
@@ -238,7 +243,7 @@ namespace spider {
              * @remark This method will overwrite current value.
              * @param ix Ix to set.
              */
-            inline void setIx(u32 ix) noexcept { ix_ = ix; }
+            virtual inline void setIx(u32 ix) noexcept { ix_ = ix; }
 
             /**
              * @brief Override the current execution dependency at given position.
@@ -267,7 +272,7 @@ namespace spider {
 
         protected:
             detail::ExecInfo execInfo_;                            /*!< Execution information (constraints and notifs) */
-            std::shared_ptr<TaskFifos> fifos_;                     /*!< Fifo(s) attached to the task */
+            std::shared_ptr<AllocatedFifos> fifos_;                     /*!< Fifo(s) attached to the task */
             spider::unique_ptr<detail::MappingInfo> mappingInfo_;  /*!< Mapping information of the task */
             u32 ix_{ UINT32_MAX };                                 /*!< Index of the task in the schedule */
             u32 jobExecIx_{ UINT32_MAX };                          /*!< Index of the job sent to the PE */

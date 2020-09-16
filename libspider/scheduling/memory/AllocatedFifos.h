@@ -32,8 +32,8 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_TASKFIFOS_H
-#define SPIDER2_TASKFIFOS_H
+#ifndef SPIDER2_ALLOCATEDFIFOS_H
+#define SPIDER2_ALLOCATEDFIFOS_H
 
 /* === Include(s) === */
 
@@ -45,19 +45,19 @@ namespace spider {
 
     /* === Class definition === */
 
-    class TaskFifos {
+    class AllocatedFifos {
     public:
-        TaskFifos(size_t inputFifoCount, size_t outputFifoCount);
+        AllocatedFifos(size_t inputFifoCount, size_t outputFifoCount);
 
-        ~TaskFifos() = default;
+        ~AllocatedFifos() = default;
 
-        TaskFifos(TaskFifos &&) = default;
+        AllocatedFifos(AllocatedFifos &&) = default;
 
-        TaskFifos &operator=(TaskFifos &&) = default;
+        AllocatedFifos &operator=(AllocatedFifos &&) = default;
 
-        TaskFifos(const TaskFifos &) = delete;
+        AllocatedFifos(const AllocatedFifos &) = delete;
 
-        TaskFifos &operator=(const TaskFifos &) = delete;
+        AllocatedFifos &operator=(const AllocatedFifos &) = delete;
 
         /* === Method(s) === */
 
@@ -126,4 +126,4 @@ namespace spider {
         size_t outputFifoCount_ = 0;
     };
 }
-#endif //SPIDER2_TASKFIFOS_H
+#endif //SPIDER2_ALLOCATEDFIFOS_H

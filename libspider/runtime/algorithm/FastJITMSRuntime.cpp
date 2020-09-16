@@ -41,7 +41,6 @@
 #include <api/runtime-api.h>
 #include <graphs-tools/transformation/srdagless/SRLessHandler.h>
 #include <graphs-tools/transformation/srdag/Transformation.h>
-#include <scheduling/allocator/DefaultFifoAllocator.h>
 #include <graphs-tools/numerical/brv.h>
 #include <graphs-tools/helper/pisdf-helper.h>
 #include <api/config-api.h>

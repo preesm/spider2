@@ -38,6 +38,9 @@
 /* === Include(s) === */
 
 #include <memory/unique_ptr.h>
+#include <scheduling/schedule/Schedule.h>
+#include <scheduling/scheduler/Scheduler.h>
+#include <scheduling/mapper/Mapper.h>
 #include <global-api.h>
 
 namespace spider {
@@ -48,11 +51,7 @@ namespace spider {
 
     namespace sched {
 
-        class Scheduler;
-
-        class Mapper;
-
-        class Schedule;
+        class FifoAllocator;
 
         /* === Class definition === */
 
@@ -60,7 +59,8 @@ namespace spider {
         public:
             explicit ResourcesAllocator(SchedulingPolicy schedulingPolicy,
                                         MappingPolicy mappingPolicy,
-                                        ExecutionPolicy executionPolicy);
+                                        ExecutionPolicy executionPolicy,
+                                        FifoAllocatorType allocatorType);
 
             ~ResourcesAllocator() noexcept = default;
 
@@ -68,11 +68,17 @@ namespace spider {
 
             void execute(const pisdf::Graph *graph);
 
+            void clear();
+
             /* === Getter(s) === */
 
             inline const Mapper *mapper() const noexcept { return mapper_.get(); }
 
             inline const Scheduler *scheduler() const noexcept { return scheduler_.get(); }
+
+            inline const Schedule *schedule() const noexcept { return schedule_.get(); }
+
+            inline FifoAllocator *allocator() const noexcept { return allocator_.get(); }
 
             /* === Setter(s) === */
 
@@ -80,6 +86,7 @@ namespace spider {
             spider::unique_ptr<Scheduler> scheduler_;
             spider::unique_ptr<Mapper> mapper_;
             spider::unique_ptr<Schedule> schedule_;
+            spider::unique_ptr<FifoAllocator> allocator_;
             ExecutionPolicy executionPolicy_;
 
             /* === Private method(s) === */

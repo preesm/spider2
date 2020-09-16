@@ -41,13 +41,16 @@ namespace spider {
     namespace sched {
 
         enum AllocType : u8 {
-            NEW,   /*!< Specify that a new FIFO should be allocated */
-            SAME   /*!< Specify that an existing FIFO should be used */
+            NEW,      /*!< Specify that a new FIFO should be allocated */
+            SAME_IN,  /*!< Specify that an existing input FIFO should be used */
+            SAME_OUT, /*!< Specify that an existing output FIFO should be used */
+            EXT       /*!< Specify that allocation of FIFO is external */
         };
 
         struct AllocationRule {
-            size_t offset_;
             size_t size_;
+            size_t offset_;
+            size_t index_;
             AllocType type_;
             FifoAttribute attribute_;
         };

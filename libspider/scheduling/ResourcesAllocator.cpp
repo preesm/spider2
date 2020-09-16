@@ -36,10 +36,10 @@
 /* === Include(s) === */
 
 #include <scheduling/ResourcesAllocator.h>
-#include <scheduling/schedule/Schedule.h>
 #include <scheduling/scheduler/ListScheduler.h>
 #include <scheduling/scheduler/GreedyScheduler.h>
 #include <scheduling/mapper/BestFitMapper.h>
+#include <scheduling/memory/FifoAllocator.h>
 #include <scheduling/task/TaskVertex.h>
 #include <api/archi-api.h>
 #include <archi/Platform.h>
@@ -47,14 +47,30 @@
 
 /* === Static function === */
 
+static spider::sched::FifoAllocator *makeFifoAllocator(spider::FifoAllocatorType type) {
+    switch (type) {
+        case spider::FifoAllocatorType::DEFAULT:
+            return spider::make<spider::sched::FifoAllocator, StackID::RUNTIME>();
+        case spider::FifoAllocatorType::DEFAULT_NOSYNC:
+            return spider::make<spider::sched::FifoAllocator, StackID::RUNTIME>();
+        case spider::FifoAllocatorType::ARCHI_AWARE:
+            break;
+        default:
+            throwSpiderException("unsupported type of FifoAllocator.");
+    }
+    return nullptr;
+}
+
 /* === Method(s) implementation === */
 
 spider::sched::ResourcesAllocator::ResourcesAllocator(SchedulingPolicy schedulingPolicy,
                                                       MappingPolicy mappingPolicy,
-                                                      ExecutionPolicy executionPolicy) :
+                                                      ExecutionPolicy executionPolicy,
+                                                      FifoAllocatorType allocatorType) :
         scheduler_{ spider::make_unique(allocateScheduler(schedulingPolicy)) },
         mapper_{ spider::make_unique(allocateMapper(mappingPolicy)) },
         schedule_{ spider::make_unique<Schedule, StackID::SCHEDULE>() },
+        allocator_{ spider::make_unique(makeFifoAllocator(allocatorType)) },
         executionPolicy_{ executionPolicy } {
 }
 
@@ -75,7 +91,12 @@ void spider::sched::ResourcesAllocator::execute(const pisdf::Graph *graph) {
             throwSpiderException("unsupported execution policy.");
     }
 
-    /* == Clear resources == */
+//    /* == Clear resources == */
+//    scheduler_->clear();
+}
+
+void spider::sched::ResourcesAllocator::clear() {
+    schedule_->clear();
     scheduler_->clear();
 }
 
@@ -116,9 +137,15 @@ void spider::sched::ResourcesAllocator::jitExecutionPolicy() {
         /* == Map the task == */
         mapper_->map(static_cast<T>(task.get()), schedule_.get());
 
+        /* == We are in JIT mode, we need to broadcast the job stamp == */
+        task->enableBroadcast();
+
         /* == Allocate the fifos task == */
+        allocator_->allocate(task.get());
 
         /* == Execute the task == */
+        schedule_->addTask(std::move(task));
+        schedule_->sendReadyTasks();
     }
 }
 
@@ -127,15 +154,15 @@ void spider::sched::ResourcesAllocator::delayedExecutionPolicy() {
     /* == Map every tasks == */
     for (auto &task : scheduler_->tasks()) {
         auto castTask = static_cast<T>(task.get());
-        schedule_->addTask(std::move(task));
         mapper_->map(castTask, schedule_.get());
+        schedule_->addTask(std::move(task));
     }
+
     /* == Allocate fifos for every tasks == */
-    for (auto &task : scheduler_->tasks()) {
-
+    for (auto *task : schedule_->readyTasks()) {
+        allocator_->allocate(task);
     }
+
     /* == Execute every tasks == */
-    for (auto &task : scheduler_->tasks()) {
-
-    }
+    schedule_->sendReadyTasks();
 }

@@ -40,7 +40,6 @@
 #include <common/Exception.h>
 #include <common/Time.h>
 #include <api/global-api.h>
-#include <scheduling/allocator/FifoAllocator.h>
 
 /* === Define(s) === */
 
@@ -128,10 +127,6 @@ namespace spider {
                                 const sched::Schedule *schedule,
                                 time::time_point offset = time::min(),
                                 const std::string &path = "./exec-gantt");
-
-        static FifoAllocator *makeFifoAllocator(FifoAllocatorType type);
-
-        static FifoAllocator *makeSRLessFifoAllocator(FifoAllocatorType type);
     };
 }
 #endif //SPIDER2_RUNTIME_H

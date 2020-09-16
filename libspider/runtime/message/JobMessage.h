@@ -34,7 +34,7 @@
 
 /* === Include(s) === */
 
-#include <scheduling/task/TaskFifos.h>
+#include <scheduling/memory/AllocatedFifos.h>
 #include <common/Types.h>
 
 namespace spider {
@@ -52,7 +52,7 @@ namespace spider {
      * @brief Information message about an LRT job to run.
      */
     struct JobMessage {
-        std::shared_ptr<TaskFifos> fifos_;              /*!< Fifos of the task */
+        std::shared_ptr<AllocatedFifos> fifos_;              /*!< Fifos of the task */
         spider::array<SyncInfo> execConstraints_;       /*!< Array of jobs this job has to wait before running (size is inferior or equal to the number of LRT) */
         spider::unique_ptr<i64> inputParams_;           /*!< Array of static input parameters */
         spider::unique_ptr<bool> synchronizationFlags_; /*!< Array of LRT to notify after job completion (size IS equal to the number of LRT) */

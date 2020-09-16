@@ -34,14 +34,14 @@
  */
 /* === Include(s) === */
 
-#include <scheduling/task/TaskFifos.h>
+#include <scheduling/memory/AllocatedFifos.h>
 #include <containers/vector.h>
 
 /* === Static function === */
 
 /* === Method(s) implementation === */
 
-spider::TaskFifos::TaskFifos(size_t inputFifoCount, size_t outputFifoCount) :
+spider::AllocatedFifos::AllocatedFifos(size_t inputFifoCount, size_t outputFifoCount) :
         inputFifos_{ spider::allocate<Fifo, StackID::SCHEDULE>(inputFifoCount) },
         outputFifos_{ spider::allocate<Fifo, StackID::SCHEDULE>(outputFifoCount) },
         inputFifoCount_{ inputFifoCount },
@@ -49,23 +49,23 @@ spider::TaskFifos::TaskFifos(size_t inputFifoCount, size_t outputFifoCount) :
 
 }
 
-spider::array_handle<spider::Fifo> spider::TaskFifos::inputFifos() const {
+spider::array_handle<spider::Fifo> spider::AllocatedFifos::inputFifos() const {
     return make_handle(inputFifos_.get(), inputFifoCount_);
 }
 
-spider::array_handle<spider::Fifo> spider::TaskFifos::outputFifos() const {
+spider::array_handle<spider::Fifo> spider::AllocatedFifos::outputFifos() const {
     return make_handle(outputFifos_.get(), outputFifoCount_);
 }
 
-size_t spider::TaskFifos::inputFifoCount() const {
+size_t spider::AllocatedFifos::inputFifoCount() const {
     return inputFifoCount_;
 }
 
-size_t spider::TaskFifos::outputFifoCount() const {
+size_t spider::AllocatedFifos::outputFifoCount() const {
     return outputFifoCount_;
 }
 
-spider::Fifo spider::TaskFifos::inputFifo(size_t ix) const {
+spider::Fifo spider::AllocatedFifos::inputFifo(size_t ix) const {
 #ifndef NDEBUG
     if (ix >= inputFifoCount_) {
         throwSpiderException("accessing out_of_range input fifo");
@@ -76,7 +76,7 @@ spider::Fifo spider::TaskFifos::inputFifo(size_t ix) const {
 #endif
 }
 
-spider::Fifo spider::TaskFifos::outputFifo(size_t ix) const {
+spider::Fifo spider::AllocatedFifos::outputFifo(size_t ix) const {
 #ifndef NDEBUG
     if (ix >= outputFifoCount_) {
         throwSpiderException("accessing out_of_range output fifo");
@@ -87,13 +87,13 @@ spider::Fifo spider::TaskFifos::outputFifo(size_t ix) const {
 #endif
 }
 
-void spider::TaskFifos::setInputFifo(size_t ix, spider::Fifo fifo) {
+void spider::AllocatedFifos::setInputFifo(size_t ix, spider::Fifo fifo) {
     if (inputFifos_ && (ix < inputFifoCount_)) {
         inputFifos_.get()[ix] = fifo;
     }
 }
 
-void spider::TaskFifos::setOutputFifo(size_t ix, spider::Fifo fifo) {
+void spider::AllocatedFifos::setOutputFifo(size_t ix, spider::Fifo fifo) {
     if (outputFifos_ && (ix < outputFifoCount_)) {
         outputFifos_.get()[ix] = fifo;
     }

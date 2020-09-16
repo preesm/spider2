@@ -170,7 +170,7 @@ void spider::rt::init(const int64_t *paramsIn, const int64_t *, void **, void **
         const auto address = paramsIn[2];
         const auto *grt = archi::platform()->spiderGRTPE();
         auto *memInterface = grt->cluster()->memoryInterface();
-        const auto *buffer = memInterface->read(static_cast<u64>(address), 1);
+        const auto *buffer = memInterface->read(static_cast<u64>(address));
         if (out[0] != buffer) {
             memcpy(out[0], buffer, static_cast<size_t>(size));
         }
@@ -186,7 +186,7 @@ void spider::rt::end(const int64_t *paramsIn, const int64_t *, void **in, void *
         const auto address = paramsIn[2];
         const auto *grt = archi::platform()->spiderGRTPE();
         auto *memInterface = grt->cluster()->memoryInterface();
-        auto *buffer = memInterface->read(static_cast<u64>(address), 1);
+        auto *buffer = memInterface->read(static_cast<u64>(address));
         if (in[0] != buffer) {
             memcpy(buffer, in[0], static_cast<size_t>(size));
         }

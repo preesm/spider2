@@ -62,7 +62,7 @@ void spider::sched::Schedule::reset() {
 }
 
 void spider::sched::Schedule::addTask(spider::unique_ptr<Task> task) {
-    if (!task || UINT32_MAX == task->ix()) {
+    if (!task || UINT32_MAX != task->ix()) {
         return;
     }
     task->setIx(static_cast<u32>(tasks_.size()));
@@ -107,7 +107,8 @@ void spider::sched::Schedule::sendReadyTasks() {
         if (task->state() == TaskState::READY) {
             /* == Create job message and send the notification == */
             const auto messageIx = communicator->push(task->createJobMessage(), task->mappedLRT()->virtualIx());
-            communicator->push(Notification{ NotificationType::JOB_ADD, grtIx, messageIx }, task->mappedLRT()->virtualIx());
+            communicator->push(Notification{ NotificationType::JOB_ADD, grtIx, messageIx },
+                               task->mappedLRT()->virtualIx());
             /* == Set job in TaskState::RUNNING == */
             task->setState(TaskState::RUNNING);
         }

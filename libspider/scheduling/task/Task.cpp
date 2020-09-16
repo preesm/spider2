@@ -47,10 +47,15 @@
 /* === Private method(s) implementation === */
 
 spider::sched::Task::Task() : mappingInfo_{
-        spider::make_unique<detail::MappingInfo, StackID::SCHEDULE>(detail::MappingInfo{ }) } {
+        spider::make_unique<detail::MappingInfo, StackID::SCHEDULE>() } {
     const auto lrtCount{ archi::platform()->LRTCount() };
     execInfo_.constraints_ = make_unique<size_t>(allocate<size_t, StackID::SCHEDULE>(lrtCount));
     execInfo_.notifications_ = make_unique<bool>(allocate<bool, StackID::SCHEDULE>(lrtCount));
+}
+
+void spider::sched::Task::enableBroadcast() {
+    const auto lrtCount = archi::platform()->LRTCount();
+    std::fill(execInfo_.notifications_.get(), execInfo_.notifications_.get() + lrtCount, true);
 }
 
 u64 spider::sched::Task::startTime() const {

@@ -197,8 +197,8 @@ add_install_rpath_support(BIN_DIRS "${CMAKE_INSTALL_FULL_BINDIR}"
         USE_LINK_PATH)
 
 # Use JIT-Compiled expression (default is yes) ?
-option(USE_JIT_EXPRESSION   "Enable the JIT-Compiled expression parser (only on Linux)." ON)
-if (USE_JIT_EXPRESSION)
+option(USE_JIT_EXPRESSION "Enable the JIT-Compiled expression parser (only on Linux)." ON)
+if (${USE_JIT_EXPRESSION})
     if (NOT MSVC)
         add_definitions(-D_SPIDER_JIT_EXPRESSION)
         message(STATUS "Using just-in-time compiled expression parser.")
@@ -209,7 +209,7 @@ endif ()
 
 # Use PAPI library?
 option(USE_PAPI "Enable PAPI library support." OFF)
-if (USE_PAPI)
+if (${USE_PAPI})
     find_package(PAPI)
     if (PAPI_FOUND)
         add_definitions(-D_SPIDER_PAPI_AVAILABLE)

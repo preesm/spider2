@@ -42,9 +42,10 @@
 #include <api/runtime-api.h>
 #include <graphs-tools/transformation/srdag/Transformation.h>
 #include <graphs-tools/transformation/optims/optimizations.h>
-#include <scheduling/allocator/DefaultFifoAllocator.h>
 #include <monitor/Monitor.h>
 #include <api/config-api.h>
+#include <scheduling/ResourcesAllocator.h>
+#include <scheduling/memory/FifoAllocator.h>
 #include <scheduling/schedule/exporter/SchedXMLGanttExporter.h>
 #include <scheduling/schedule/exporter/SchedStatsExporter.h>
 #include <scheduling/schedule/exporter/SchedSVGGanttExporter.h>
@@ -64,15 +65,20 @@ updateJobStack(spider::vector<spider::srdag::TransfoJob> &src, spider::vector<sp
 /* === Private method(s) implementation === */
 
 spider::StaticRuntime::StaticRuntime(pisdf::Graph *graph,
-                                     SchedulingPolicy schedulingAlgorithm,
-                                     FifoAllocatorType type) :
+                                     SchedulingPolicy schedulingPolicy,
+                                     MappingPolicy mappingPolicy,
+                                     ExecutionPolicy executionPolicy,
+                                     FifoAllocatorType allocatorType) :
         Runtime(graph),
-        srdag_{ make_unique<pisdf::Graph, StackID::RUNTIME>("srdag-" + graph->name()) } {
-//    scheduler_->setAllocator(fifoAllocator_.get());
+        srdag_{ make_unique<pisdf::Graph, StackID::RUNTIME>("srdag-" + graph->name()) },
+        ressourcesAllocator_{ make_unique<sched::ResourcesAllocator, StackID::RUNTIME>(schedulingPolicy,
+                                                                                       mappingPolicy,
+                                                                                       executionPolicy,
+                                                                                       allocatorType) } {
     if (!rt::platform()) {
         throwSpiderException("JITMSRuntime need the runtime platform to be created.");
     }
-//    fifoAllocator_->allocatePersistentDelays(graph_);
+    ressourcesAllocator_->allocator()->allocatePersistentDelays(graph_);
 }
 
 bool spider::StaticRuntime::execute() {
@@ -136,9 +142,7 @@ void spider::StaticRuntime::applyTransformationAndRun() {
     /* == Send LRT_START_ITERATION notification == */
     rt::platform()->sendStartIteration();
     /* == Schedule / Map current Single-Rate graph == */
-//    scheduler_->update();
-//    scheduler_->execute();
-
+    ressourcesAllocator_->execute(srdag_.get());
     /* == Send LRT_END_ITERATION notification == */
     rt::platform()->sendEndIteration();
     TRACE_SCHEDULE_END();

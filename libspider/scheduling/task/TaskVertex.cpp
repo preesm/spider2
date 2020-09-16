@@ -43,6 +43,7 @@
 #include <scheduling/schedule/Schedule.h>
 #include <api/runtime-api.h>
 #include <runtime/platform/RTPlatform.h>
+#include <runtime/common/Fifo.h>
 
 /* === Static function === */
 
@@ -52,7 +53,8 @@ spider::sched::TaskVertex::TaskVertex(pisdf::Vertex *vertex) : Task(), vertex_{ 
     if (!vertex) {
         throwSpiderException("nullptr vertex.");
     }
-    fifos_ = spider::make_shared<TaskFifos, StackID::SCHEDULE>(vertex->inputEdgeCount(), vertex->outputEdgeCount());
+    fifos_ = spider::make_shared<AllocatedFifos, StackID::SCHEDULE>(vertex->inputEdgeCount(),
+                                                                    vertex->outputEdgeCount());
     execInfo_.dependencies_ = spider::make_unique(allocate<Task *, StackID::SCHEDULE>(vertex->inputEdgeCount()));
     std::fill(execInfo_.dependencies_.get(),
               std::next(execInfo_.dependencies_.get(), static_cast<long>(vertex->inputEdgeCount())), nullptr);
@@ -101,23 +103,21 @@ spider::sched::AllocationRule spider::sched::TaskVertex::allocationRuleForInputF
         throwSpiderException("index out of bound.");
     }
 #endif
-    const auto size = static_cast<size_t>(vertex_->inputEdge(ix)->sinkRateValue());
+    const auto *inputEdge = vertex_->inputEdge(ix);
+    const auto size = static_cast<size_t>(inputEdge->sinkRateValue());
+    const auto index = inputEdge->sourcePortIx();
     switch (vertex_->subtype()) {
         case pisdf::VertexType::FORK:
-            return { 0U, size, AllocType::SAME, FifoAttribute::RW_ONLY };
+            return { size, 0u, index, AllocType::SAME_IN, FifoAttribute::RW_ONLY };
         case pisdf::VertexType::DUPLICATE:
-            return { 0U, size, AllocType::SAME, FifoAttribute::RW_ONLY };
-        case pisdf::VertexType::EXTERN_OUT: {
-            const auto ref = vertex_->reference()->convertTo<pisdf::ExternInterface>();
-            return { ref->bufferIndex(), size, AllocType::NEW, FifoAttribute::RW_EXT };
-        }
+            return { size, 0u, index, AllocType::SAME_IN, FifoAttribute::RW_ONLY };
         case pisdf::VertexType::REPEAT:
-            if (size == static_cast<size_t>(vertex_->outputEdge(ix)->sourceRateValue())) {
-                return { 0U, size, AllocType::SAME, FifoAttribute::RW_ONLY };
+            if (size == static_cast<size_t>(vertex_->outputEdge(0u)->sourceRateValue())) {
+                return { size, 0u, index, AllocType::SAME_IN, FifoAttribute::RW_ONLY };
             }
-            return { 0U, size, AllocType::SAME, FifoAttribute::RW_OWN };
+            return { size, 0u, index, spider::sched::AllocType::SAME_IN, spider::FifoAttribute::RW_OWN };
         default:
-            return { 0U, size, AllocType::SAME, FifoAttribute::RW_OWN };
+            return { size, 0u, index, spider::sched::AllocType::SAME_IN, spider::FifoAttribute::RW_OWN };
     }
 }
 
@@ -127,28 +127,36 @@ spider::sched::AllocationRule spider::sched::TaskVertex::allocationRuleForOutput
         throwSpiderException("index out of bound.");
     }
 #endif
-    const auto size = static_cast<size_t>(vertex_->outputEdge(ix)->sourceRateValue());
+    const auto *edge = vertex_->outputEdge(ix);
+    const auto size = static_cast<size_t>(edge->sourceRateValue());
     switch (vertex_->subtype()) {
-        case pisdf::VertexType::FORK: {
-            size_t offset{ 0U };
-            for (size_t i = 0U; i < ix; ++i) {
-                offset += static_cast<size_t>(vertex_->outputEdge(i)->sourceRateValue());
+        case pisdf::VertexType::FORK:
+            if (ix == 0u) {
+                return { size, 0u, 0u, AllocType::SAME_IN, FifoAttribute::RW_ONLY };
+            } else {
+                const auto offset = static_cast<size_t>(vertex_->outputEdge(ix - 1)->sourceRateValue());
+                return { size, offset, ix - 1, AllocType::SAME_OUT, FifoAttribute::RW_ONLY };
             }
-            return { offset, size, AllocType::SAME, FifoAttribute::RW_ONLY };
-        }
         case pisdf::VertexType::DUPLICATE:
-            return { 0U, size, AllocType::SAME, FifoAttribute::RW_ONLY };
+            return { size, 0u, 0u, AllocType::SAME_IN, FifoAttribute::RW_ONLY };
         case pisdf::VertexType::EXTERN_IN: {
             const auto ref = vertex_->reference()->convertTo<pisdf::ExternInterface>();
-            return { ref->bufferIndex(), size, AllocType::NEW, FifoAttribute::RW_EXT };
+            return { size, 0u, ref->bufferIndex(), AllocType::EXT, FifoAttribute::RW_EXT };
         }
         case pisdf::VertexType::REPEAT:
-            if (size == static_cast<size_t>(vertex_->inputEdge(ix)->sinkRateValue())) {
-                return { 0U, size, AllocType::SAME, FifoAttribute::RW_ONLY };
+            if (size == static_cast<size_t>(vertex_->outputEdge(0u)->sourceRateValue())) {
+                auto inputFifo = fifos_->inputFifo(0u);
+                return { size, 0u, 0u, AllocType::SAME_IN, inputFifo.attribute_ };
             }
-            return { 0U, size, AllocType::NEW, FifoAttribute::RW_OWN };
-        default:
-            return { 0U, size, AllocType::NEW, FifoAttribute::RW_OWN };
+            return { size, 0u, SIZE_MAX, AllocType::NEW, FifoAttribute::RW_OWN };
+        default: {
+            const auto *sink = edge->sink();
+            if (sink && sink->subtype() == pisdf::VertexType::EXTERN_OUT) {
+                const auto *extInterface = sink->reference()->convertTo<pisdf::ExternInterface>();
+                return { size, 0u, extInterface->bufferIndex(), AllocType::EXT, FifoAttribute::RW_EXT };
+            }
+            return { size, 0u, SIZE_MAX, AllocType::NEW, FifoAttribute::RW_OWN };
+        }
     }
 }
 
@@ -158,7 +166,7 @@ spider::sched::Task *spider::sched::TaskVertex::previousTask(size_t ix) const {
         throwSpiderException("index out of bound.");
     }
 #endif
-    return nullptr;
+    return execInfo_.dependencies_.get()[ix];
 }
 
 u32 spider::sched::TaskVertex::color() const {
@@ -219,4 +227,9 @@ spider::JobMessage spider::sched::TaskVertex::createJobMessage() const {
     /* == Set Fifos == */
     message.fifos_ = fifos_;
     return message;
+}
+
+void spider::sched::TaskVertex::setIx(u32 ix) noexcept {
+    Task::setIx(ix);
+    vertex_->setScheduleTaskIx(ix);
 }

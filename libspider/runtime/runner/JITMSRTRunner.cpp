@@ -144,6 +144,8 @@
         }\
     }
 
+#define cast_buffer_woffset(buffer, offset) (reinterpret_cast<void *>(reinterpret_cast<uintptr_t>((buffer)) + (offset)))
+
 /* === Static function === */
 
 namespace spider {
@@ -153,14 +155,13 @@ namespace spider {
                        [&memoryInterface](const Fifo &fifo) -> void * {
                            if (!fifo.size_) {
                                return nullptr;
-                           }
-                           void *buffer;
-                           if (fifo.attribute_ == FifoAttribute::RW_EXT) {
-                               buffer = archi::platform()->getExternalBuffer(fifo.virtualAddress_);
+                           } else if (fifo.attribute_ == FifoAttribute::RW_EXT) {
+                               return cast_buffer_woffset(archi::platform()->getExternalBuffer(fifo.virtualAddress_),
+                                                          fifo.offset_);
                            } else {
-                               buffer = memoryInterface->read(fifo.virtualAddress_, fifo.count_);
+                               return cast_buffer_woffset(memoryInterface->read(fifo.virtualAddress_, fifo.count_),
+                                                          fifo.offset_);
                            }
-                           return reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(buffer) + fifo.offset_);
                        });
         return inputBuffersArray;
     }
@@ -171,14 +172,13 @@ namespace spider {
                        [&memoryInterface](const Fifo &fifo) -> void * {
                            if (fifo.attribute_ == FifoAttribute::RW_OWN) {
                                return memoryInterface->allocate(fifo.virtualAddress_, fifo.size_, fifo.count_);
-                           }
-                           void *buffer;
-                           if (fifo.attribute_ == FifoAttribute::RW_EXT) {
-                               buffer = archi::platform()->getExternalBuffer(fifo.virtualAddress_);
+                           } else if (fifo.attribute_ == FifoAttribute::RW_EXT) {
+                               return cast_buffer_woffset(archi::platform()->getExternalBuffer(fifo.virtualAddress_),
+                                                          fifo.offset_);
                            } else {
-                               buffer = memoryInterface->read(fifo.virtualAddress_);
+                               return cast_buffer_woffset(memoryInterface->read(fifo.virtualAddress_, fifo.count_),
+                                                          fifo.offset_);
                            }
-                           return reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(buffer) + fifo.offset_);
                        });
         return outputBuffersArray;
     }
@@ -304,10 +304,8 @@ void spider::JITMSRTRunner::runJob(const JobMessage &job) {
 
     /* == Deallocate input buffers == */
     for (auto &inputFIFO : job.fifos_->inputFifos()) {
-        if (inputFIFO.attribute_ == FifoAttribute::RW_OWN) {
-            auto *memoryInterface = attachedPE_->cluster()->memoryInterface();
-            memoryInterface->deallocate(inputFIFO.virtualAddress_, inputFIFO.size_);
-        }
+        auto *memoryInterface = attachedPE_->cluster()->memoryInterface();
+        memoryInterface->deallocate(inputFIFO.virtualAddress_, inputFIFO.size_);
     }
 
     /* == Notify other runtimes that need to know == */
