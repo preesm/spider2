@@ -45,13 +45,35 @@
 
 void spider::sched::GreedyScheduler::schedule(const pisdf::Graph *graph) {
     /* == Go through the list of vertices and add them as soon as they are schedulable == */
+    tasks_.clear();
+    verticesToSchedule_.reserve(graph->vertexCount());
+    /* == Generate the list of vertex to be scheduled == */
     for (const auto &vertex : graph->vertices()) {
-        if (isSchedulable(vertex.get())) {
-            vertex->setScheduleTaskIx(tasks_.size());
-            tasks_.emplace_back(make<TaskVertex>(vertex.get()));
+        if (vertex->executable() && (vertex->scheduleTaskIx() == SIZE_MAX)) {
+            verticesToSchedule_.emplace_back(vertex.get());
         }
     }
-
+    /* == Schedule actors == */
+    auto it = std::begin(verticesToSchedule_);
+    while (!verticesToSchedule_.empty()) {
+        const auto dist = static_cast<size_t>(std::distance(std::begin(verticesToSchedule_), it));
+        if (isSchedulable(*it)) {
+            (*it)->setScheduleTaskIx(tasks_.size());
+            tasks_.emplace_back(make<TaskVertex>(*it));
+            /* == update iterator == */
+            std::swap(*it, verticesToSchedule_.back());
+            verticesToSchedule_.pop_back();
+            if (dist != verticesToSchedule_.size()) {
+                it = std::next(std::begin(verticesToSchedule_), static_cast<long>(dist));
+            } else {
+                it = std::begin(verticesToSchedule_);
+            }
+        } else if (dist == (verticesToSchedule_.size() - 1)) {
+            it = std::begin(verticesToSchedule_);
+        } else {
+            ++it;
+        }
+    }
 }
 
 void spider::sched::GreedyScheduler::clear() {
@@ -61,7 +83,10 @@ void spider::sched::GreedyScheduler::clear() {
 /* === Private method(s) implementation === */
 
 bool spider::sched::GreedyScheduler::isSchedulable(const spider::pisdf::Vertex *vertex) const {
-    if (!vertex->inputEdgeCount()) {
+    if (vertex->scheduleTaskIx() != SIZE_MAX) {
+        return false;
+    }
+    if (!vertex->inputEdgeCount() && vertex->executable()) {
         return true;
     } else if (vertex->executable() && vertex->scheduleTaskIx() == SIZE_MAX) {
         for (const auto *edge : vertex->inputEdgeVector()) {

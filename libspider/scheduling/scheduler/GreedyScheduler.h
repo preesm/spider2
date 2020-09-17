@@ -67,6 +67,7 @@ namespace spider {
             /* === Setter(s) === */
 
         private:
+            spider::vector<pisdf::Vertex *> verticesToSchedule_;
 
             /**
              * @brief Check if a vertex is schedulable based on its dependencies.
