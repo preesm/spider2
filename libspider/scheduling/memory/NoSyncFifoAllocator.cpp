@@ -58,66 +58,69 @@ void spider::sched::NoSyncFifoAllocator::allocate(spider::sched::Task *task) {
     if (!task) {
         return;
     }
-    /* == Allocating input FIFOs == */
-    size_t ix{ 0u };
-    auto inputFifos = task->fifos().inputFifos();
-    for (auto &fifo : inputFifos) {
-        const auto rule = task->allocationRuleForInputFifo(ix);
-        const auto *prevTask = task->previousTask(ix);
-        if (prevTask) {
-            if (prevTask->state() == TaskState::NOT_RUNNABLE) {
-                replaceInputTask(task, prevTask, ix);
-            }
-            /* == Set the fifo == */
-            if (rule.type_ == AllocType::SAME_IN) {
-                fifo = prevTask->fifos().outputFifo(rule.index_);
-                if (fifo.attribute_ != FifoAttribute::RW_EXT) {
-                    fifo.attribute_ = rule.attribute_;
-                    fifo.count_ = 0u;
+    if (task->isSyncOptimizable()) {
+        FifoAllocator::allocate(task);
+        reduceSyncTask(task);
+        return;
+    } else {
+        /* == Allocating input FIFOs == */
+        size_t ix{ 0u };
+        auto inputFifos = task->fifos().inputFifos();
+        for (auto &fifo : inputFifos) {
+            const auto rule = task->allocationRuleForInputFifo(ix);
+            const auto *prevTask = task->previousTask(ix);
+            if (prevTask) {
+                if (prevTask->state() == TaskState::NOT_RUNNABLE) {
+                    replaceInputTask(task, prevTask, ix);
+                }
+                /* == Set the fifo == */
+                if (rule.type_ == AllocType::SAME_IN) {
+                    fifo = prevTask->fifos().outputFifo(rule.index_);
+                    if (fifo.attribute_ != FifoAttribute::RW_EXT) {
+                        fifo.attribute_ = rule.attribute_;
+                        fifo.count_ = 0u;
+                    }
+                } else {
+                    throwSpiderException("invalid AllocAttribute for input FIFO.");
                 }
             } else {
-                throwSpiderException("invalid AllocAttribute for input FIFO.");
+                fifo = Fifo{ };
             }
-        } else {
-            fifo = Fifo{ };
+            ix++;
         }
-        ix++;
-    }
 
-    /* == Allocating output FIFOs == */
-    ix = 0u;
-    auto outputFifos = task->fifos().outputFifos();
-    for (auto &fifo : outputFifos) {
-        const auto rule = task->allocationRuleForOutputFifo(ix);
-        switch (rule.type_) {
-            case NEW:
-                fifo.virtualAddress_ = virtualMemoryAddress_;
-                virtualMemoryAddress_ += rule.size_;
-                fifo.offset_ = 0u;
-                break;
-            case SAME_IN: {
-                auto &inputFifo = inputFifos[rule.index_];
-                fifo.virtualAddress_ = inputFifo.virtualAddress_;
-                fifo.offset_ = inputFifo.offset_ + static_cast<u32>(rule.offset_);
+        /* == Allocating output FIFOs == */
+        ix = 0u;
+        auto outputFifos = task->fifos().outputFifos();
+        for (auto &fifo : outputFifos) {
+            const auto rule = task->allocationRuleForOutputFifo(ix);
+            switch (rule.type_) {
+                case NEW:
+                    fifo.virtualAddress_ = virtualMemoryAddress_;
+                    virtualMemoryAddress_ += rule.size_;
+                    fifo.offset_ = 0u;
+                    break;
+                case SAME_IN: {
+                    auto &inputFifo = inputFifos[rule.index_];
+                    fifo.virtualAddress_ = inputFifo.virtualAddress_;
+                    fifo.offset_ = inputFifo.offset_ + static_cast<u32>(rule.offset_);
+                }
+                    break;
+                case SAME_OUT: {
+                    auto &outputFifo = outputFifos[rule.index_];
+                    fifo.virtualAddress_ = outputFifo.virtualAddress_;
+                    fifo.offset_ = outputFifo.offset_ + static_cast<u32>(rule.offset_);
+                }
+                    break;
+                case EXT:
+                    fifo.virtualAddress_ = rule.index_;
+                    break;
             }
-                break;
-            case SAME_OUT: {
-                auto &outputFifo = outputFifos[rule.index_];
-                fifo.virtualAddress_ = outputFifo.virtualAddress_;
-                fifo.offset_ = outputFifo.offset_ + static_cast<u32>(rule.offset_);
-            }
-                break;
-            case EXT:
-                fifo.virtualAddress_ = rule.index_;
-                break;
+            fifo.size_ = static_cast<u32>(rule.size_);
+            fifo.attribute_ = rule.attribute_;
+            fifo.count_ = (fifo.size_ != 0u);
+            ix++;
         }
-        fifo.size_ = static_cast<u32>(rule.size_);
-        fifo.attribute_ = rule.attribute_;
-        fifo.count_ = (fifo.size_ != 0u);
-        ix++;
-    }
-    if (task->isSyncOptimizable()) {
-        reduceSyncTask(task);
     }
 }
 
