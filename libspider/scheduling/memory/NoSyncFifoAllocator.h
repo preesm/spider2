@@ -32,44 +32,23 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_FIFOALLOCATOR_H
-#define SPIDER2_FIFOALLOCATOR_H
+#ifndef SPIDER2_NOSYNCFIFOALLOCATOR_H
+#define SPIDER2_NOSYNCFIFOALLOCATOR_H
 
 /* === Include(s) === */
 
-#include <runtime/common/Fifo.h>
-#include <api/global-api.h>
+#include <scheduling/memory/FifoAllocator.h>
 
 namespace spider {
-
-    /* === Forward declaration(s) === */
-
-    class MemoryInterface;
-
-    namespace pisdf {
-        class Graph;
-    }
-
     namespace sched {
-
-        class Task;
 
         /* === Class definition === */
 
-        class FifoAllocator {
+        class NoSyncFifoAllocator final : public FifoAllocator {
         public:
-            struct FifoAllocatorTraits {
-                bool jitAllocator_;
-                bool postSchedulingAllocator_;
-            };
+            NoSyncFifoAllocator() : FifoAllocator({ false, true }) { }
 
-            /* === Allocator traits === */
-
-            FifoAllocatorTraits traits_;
-
-            FifoAllocator() : FifoAllocator({ true, true }) {}
-
-            virtual ~FifoAllocator() noexcept = default;
+            ~NoSyncFifoAllocator() noexcept override = default;
 
             /* === Method(s) === */
 
@@ -78,18 +57,7 @@ namespace spider {
              * @param size      Size of the FIFO to allocate in bytes.
              * @return created @refitem RTFifo.
              */
-            virtual void allocate(sched::Task *task);
-
-            /**
-             * @brief Clears the allocator.
-             */
-            virtual void clear() noexcept;
-
-            /**
-             * @brief Reserve memory for permanent delays.
-             * @param graph pointer to the graph.
-             */
-            virtual void allocatePersistentDelays(pisdf::Graph *graph);
+            void allocate(sched::Task *task) override;
 
             /* === Getter(s) === */
 
@@ -97,14 +65,19 @@ namespace spider {
              * @brief Get the type of the FifoAllocator
              * @return @refitem FifoAllocatorType
              */
-            virtual FifoAllocatorType type() const { return FifoAllocatorType::DEFAULT; };
+            FifoAllocatorType type() const override { return FifoAllocatorType::DEFAULT_NOSYNC; };
 
-        protected:
-            size_t reservedMemory_ = 0;
-            size_t virtualMemoryAddress_ = 0;
+            /* === Setter(s) === */
 
-            explicit FifoAllocator(FifoAllocatorTraits traits) noexcept: traits_{ traits } { }
+        private:
+
+            void reduceSyncTask(sched::Task *task) const;
+
+            void updateFifoCount(const sched::Task *task, const sched::Task *inputTask, u32 count) const;
+
+            bool replaceInputTask(sched::Task *task, const sched::Task *inputTask, size_t ix) const;
         };
     }
 }
-#endif //SPIDER2_FIFOALLOCATOR_H
+
+#endif //SPIDER2_NOSYNCFIFOALLOCATOR_H

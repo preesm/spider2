@@ -40,6 +40,7 @@
 #include <scheduling/scheduler/GreedyScheduler.h>
 #include <scheduling/mapper/BestFitMapper.h>
 #include <scheduling/memory/FifoAllocator.h>
+#include <scheduling/memory/NoSyncFifoAllocator.h>
 #include <scheduling/task/TaskVertex.h>
 #include <api/archi-api.h>
 #include <archi/Platform.h>
@@ -52,13 +53,28 @@ static spider::sched::FifoAllocator *makeFifoAllocator(spider::FifoAllocatorType
         case spider::FifoAllocatorType::DEFAULT:
             return spider::make<spider::sched::FifoAllocator, StackID::RUNTIME>();
         case spider::FifoAllocatorType::DEFAULT_NOSYNC:
-            return spider::make<spider::sched::FifoAllocator, StackID::RUNTIME>();
+            return spider::make<spider::sched::NoSyncFifoAllocator, StackID::RUNTIME>();
         case spider::FifoAllocatorType::ARCHI_AWARE:
             break;
         default:
             throwSpiderException("unsupported type of FifoAllocator.");
     }
     return nullptr;
+}
+
+static void checkFifoAllocatorTraits(const spider::sched::FifoAllocator *allocator, spider::ExecutionPolicy policy) {
+    switch (policy) {
+        case spider::ExecutionPolicy::JIT:
+            if (!allocator->traits_.jitAllocator_) {
+                throwSpiderException("Using a scheduler in JIT_SEND mode with incompatible fifo allocator.");
+            }
+            break;
+        case spider::ExecutionPolicy::DELAYED:
+            if (!allocator->traits_.postSchedulingAllocator_) {
+                throwSpiderException("Using a scheduler in DELAYED_SEND mode with incompatible fifo allocator.");
+            }
+            break;
+    }
 }
 
 /* === Method(s) implementation === */
@@ -72,6 +88,9 @@ spider::sched::ResourcesAllocator::ResourcesAllocator(SchedulingPolicy schedulin
         schedule_{ spider::make_unique<Schedule, StackID::SCHEDULE>() },
         allocator_{ spider::make_unique(makeFifoAllocator(allocatorType)) },
         executionPolicy_{ executionPolicy } {
+    if (allocator_) {
+        checkFifoAllocatorTraits(allocator_.get(), executionPolicy);
+    }
 }
 
 void spider::sched::ResourcesAllocator::execute(const pisdf::Graph *graph) {
@@ -90,9 +109,6 @@ void spider::sched::ResourcesAllocator::execute(const pisdf::Graph *graph) {
         default:
             throwSpiderException("unsupported execution policy.");
     }
-
-//    /* == Clear resources == */
-//    scheduler_->clear();
 }
 
 void spider::sched::ResourcesAllocator::clear() {

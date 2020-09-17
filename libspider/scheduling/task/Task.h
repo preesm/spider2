@@ -208,6 +208,12 @@ namespace spider {
              */
             inline u32 jobExecIx() const noexcept { return jobExecIx_; }
 
+            /**
+             * @brief Flag indicating whether or not a task can be optimized away by a smart fifo allocator.
+             * @return true if the task could be optimized away by allocator, false else.
+             */
+            virtual bool isSyncOptimizable() const noexcept = 0;
+
             /* === Setter(s) === */
 
             /**

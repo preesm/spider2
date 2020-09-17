@@ -78,6 +78,8 @@ namespace spider {
 
             /* === Getter(s) === */
 
+            inline bool isSyncOptimizable() const noexcept override { return false; }
+
             /* === Setter(s) === */
 
             /**

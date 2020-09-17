@@ -181,6 +181,13 @@ std::string spider::sched::TaskVertex::name() const {
     return vertex_->name();
 }
 
+bool spider::sched::TaskVertex::isSyncOptimizable() const noexcept {
+    if (vertex_) {
+        return (vertex_->subtype() == pisdf::VertexType::FORK) || (vertex_->subtype() == pisdf::VertexType::DUPLICATE);
+    }
+    return false;
+}
+
 void spider::sched::TaskVertex::setExecutionDependency(size_t ix, Task *task) {
 #ifndef NDEBUG
     if (ix >= vertex_->inputEdgeCount()) {

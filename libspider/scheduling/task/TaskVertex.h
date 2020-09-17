@@ -77,6 +77,8 @@ namespace spider {
 
             inline pisdf::Vertex *vertex() const { return vertex_; }
 
+            bool isSyncOptimizable() const noexcept override;
+
             /* === Setter(s) === */
 
             void setExecutionDependency(size_t ix, Task *task) override;
