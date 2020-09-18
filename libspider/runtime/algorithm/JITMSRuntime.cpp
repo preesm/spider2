@@ -200,7 +200,7 @@ void spider::JITMSRuntime::scheduleRunAndWait(bool shouldBroadcast) {
 
     /* == Export pre-exec gantt if needed  == */
     if (api::exportGanttEnabled()) {
-//        exportPreExecGantt(&scheduler_->schedule());
+        exportPreExecGantt(resourcesAllocator_->schedule());
     }
 
     /* == If there are jobs left, run == */

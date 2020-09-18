@@ -149,7 +149,7 @@ void spider::StaticRuntime::applyTransformationAndRun() {
 
     /* == Export pre-exec gantt if needed  == */
     if (api::exportGanttEnabled()) {
-//        exportPreExecGantt(&scheduler_->schedule());
+        exportPreExecGantt(ressourcesAllocator_->schedule());
     }
 
     /* == If there are jobs left, run == */
@@ -161,7 +161,7 @@ void spider::StaticRuntime::applyTransformationAndRun() {
 
     /* == Export post-exec gantt if needed  == */
     if (api::exportTraceEnabled()) {
-//        useExecutionTraces(srdag_.get(), &scheduler_->schedule(), startIterStamp_);
+        useExecutionTraces(srdag_.get(), ressourcesAllocator_->schedule(), startIterStamp_);
     }
 }
 
@@ -183,6 +183,6 @@ void spider::StaticRuntime::run() {
     rt::platform()->sendResetToRunners();
     /* == Check if we need to re-schedule == */
     if (api::exportTraceEnabled()) {
-//        useExecutionTraces(srdag_.get(), &scheduler_->schedule(), startIterStamp_);
+        useExecutionTraces(srdag_.get(), ressourcesAllocator_->schedule(), startIterStamp_);
     }
 }
