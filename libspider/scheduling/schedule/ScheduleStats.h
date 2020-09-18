@@ -145,6 +145,8 @@ namespace spider {
 
         inline void updateIDLETime(size_t ix, uint64_t time);
 
+        inline void updateMemoryUsage(size_t ix, uint64_t size);
+
         inline void updateJobCount(size_t ix, uint32_t incValue = 1);
 
     private:
@@ -152,11 +154,10 @@ namespace spider {
         vector<uint64_t> endTimeVector_;
         vector<uint64_t> loadTimeVector_;
         vector<uint64_t> idleTimeVector_;
+        vector<uint64_t> memoryUsageVector_;
         vector<size_t> jobCountVector_;
         uint64_t minStartTime_ = UINT64_MAX;
         uint64_t maxEndTime_ = 0;
-
-        /* === Private method(s) === */
     };
 
     /* === Inline method(s) === */
@@ -225,6 +226,11 @@ namespace spider {
     void Stats::updateIDLETime(size_t ix, uint64_t time) {
         auto &idleTime = idleTimeVector_.at(ix);
         idleTime += time;
+    }
+
+    void Stats::updateMemoryUsage(size_t ix, uint64_t size) {
+        auto &usage = memoryUsageVector_.at(ix);
+        usage -= size;
     }
 
     void Stats::updateJobCount(size_t ix, uint32_t incValue) {

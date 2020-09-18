@@ -35,10 +35,10 @@
 /* === Include(s) === */
 
 #include <scheduling/schedule/exporter/SchedStatsExporter.h>
-#include <scheduling/schedule/Schedule.h>
-#include <scheduling/schedule/ScheduleTask.h>
 #include <archi/Platform.h>
 #include <archi/PE.h>
+#include <scheduling/schedule/Schedule.h>
+#include <scheduling/task/Task.h>
 
 
 /* === Method(s) implementation === */
@@ -62,8 +62,8 @@ void spider::SchedStatsExporter::printFromFile(FILE *file) const {
         printer::fprintf(file, "\t >> utilization factor: %f\n", stats.utilizationFactor(pe->virtualIx()));
         if (stats.jobCount(pe->virtualIx())) {
             printer::fprintf(file, "\t >> job list: \n");
-            for (auto &task : schedule_->tasks()) {
-                if (task->mappedPe() == pe->virtualIx()) {
+            for (const auto &task : schedule_->tasks()) {
+                if (task->mappedPe()->virtualIx() == pe->virtualIx()) {
                     printer::fprintf(file, "\t\t >> {%zu,%zu}\n", task->startTime(), task->endTime());
                 }
             }

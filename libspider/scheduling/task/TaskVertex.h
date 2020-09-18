@@ -1,9 +1,9 @@
-/**
- * Copyright or © or Copr. IETR/INSA - Rennes (2019 - 2020) :
+/*
+ * Copyright or © or Copr. IETR/INSA - Rennes (2020) :
  *
- * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2019 - 2020)
+ * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2020)
  *
- * Spider 2.0 is a dataflow based runtime used to execute dynamic PiSDF
+ * Spider is a dataflow based runtime used to execute dynamic PiSDF
  * applications. The Preesm tool may be used to design PiSDF applications.
  *
  * This software is governed by the CeCILL  license under French law and
@@ -32,56 +32,62 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_SRLESSSCHEDULER_H
-#define SPIDER2_SRLESSSCHEDULER_H
+#ifndef SPIDER2_TASKVERTEX_H
+#define SPIDER2_TASKVERTEX_H
 
 /* === Include(s) === */
 
-#include <scheduling/scheduler/Scheduler.h>
-#include <graphs-tools/transformation/srdagless/SRLessHandler.h>
+#include <scheduling/task/Task.h>
 
 namespace spider {
 
-    /* === Class definition === */
+    namespace pisdf {
+        class Vertex;
+    }
 
-    class SRLessScheduler : public Scheduler {
-    public:
-        explicit SRLessScheduler(pisdf::Graph *graph,
-                                 ScheduleMode mode = DELAYED_SEND,
-                                 FifoAllocator *allocator = nullptr) :
-                Scheduler(graph, mode, allocator), handler_{ graph } {
+    namespace sched {
 
-        }
+        /* === Class definition === */
 
-        ~SRLessScheduler() override = default;
+        class TaskVertex final : public Task {
+        public:
+            explicit TaskVertex(pisdf::Vertex *vertex);
 
-        /* === Method(s) === */
+            ~TaskVertex() noexcept override = default;
 
+            /* === Method(s) === */
 
-        /* === Getter(s) === */
+            AllocationRule allocationRuleForInputFifo(size_t ix) const override;
 
-        srdagless::SRLessHandler &srLessHandler() {
-            return handler_;
-        }
+            AllocationRule allocationRuleForOutputFifo(size_t ix) const override;
 
-        /* === Setter(s) === */
+            Task *previousTask(size_t ix) const override;
 
-    protected:
-        srdagless::SRLessHandler handler_;
+            u32 color() const override;
 
-        /**
-         * @brief Default task mapper that try to best fit.
-         * @param task Pointer to the task to map.
-         */
-        void mapTask(ScheduleTask *task) override;
-    };
+            std::string name() const override;
 
-    /**
-     * @brief Make a new scheduler based on the scheduling algorithm.
-     * @param algorithm Algorithm type (see @refitem SchedulingAlgorithm).
-     * @return unique_ptr of the created scheduler.
-     */
-    spider::unique_ptr<SRLessScheduler> makeSRLessScheduler(pisdf::Graph *graph, SchedulingPolicy algorithm);
+            void updateTaskExecutionDependencies(const Schedule *schedule) override;
+
+            void updateExecutionConstraints() override;
+
+            JobMessage createJobMessage() const override;
+
+            /* === Getter(s) === */
+
+            inline pisdf::Vertex *vertex() const { return vertex_; }
+
+            bool isSyncOptimizable() const noexcept override;
+
+            /* === Setter(s) === */
+
+            void setExecutionDependency(size_t ix, Task *task) override;
+
+            void setIx(u32 ix) noexcept override;
+
+        private:
+            pisdf::Vertex *vertex_;
+        };
+    }
 }
-
-#endif //SPIDER2_SRLESSSCHEDULER_H
+#endif //SPIDER2_TASKVERTEX_H

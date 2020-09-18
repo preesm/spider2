@@ -39,14 +39,15 @@
 
 #include <runtime/algorithm/Runtime.h>
 #include <graphs-tools/transformation/srdag/TransfoJob.h>
-#include <scheduling/allocator/FifoAllocator.h>
 #include <containers/unordered_map.h>
 
 namespace spider {
 
     /* === Forward declaration(s) === */
 
-    class Scheduler;
+    namespace sched {
+        class ResourcesAllocator;
+    }
 
 
     /* === Class definition === */
@@ -57,8 +58,10 @@ namespace spider {
     class StaticRuntime final : public Runtime {
     public:
         explicit StaticRuntime(pisdf::Graph *graph,
-                               SchedulingPolicy schedulingAlgorithm = SchedulingPolicy::LIST,
-                               FifoAllocatorType type = FifoAllocatorType::DEFAULT);
+                               SchedulingPolicy schedulingPolicy = SchedulingPolicy::LIST,
+                               MappingPolicy mappingPolicy = MappingPolicy::BEST_FIT,
+                               ExecutionPolicy executionPolicy = ExecutionPolicy::DELAYED,
+                               FifoAllocatorType allocatorType = FifoAllocatorType::DEFAULT);
 
         ~StaticRuntime() override = default;
 
@@ -74,9 +77,8 @@ namespace spider {
 
     private:
         time::time_point startIterStamp_ = time::min();
-        unique_ptr<pisdf::Graph> srdag_;
-        unique_ptr<Scheduler> scheduler_;
-        unique_ptr<FifoAllocator> fifoAllocator_;
+        spider::unique_ptr<pisdf::Graph> srdag_;
+        spider::unique_ptr<sched::ResourcesAllocator> ressourcesAllocator_;
         size_t iter_ = 0U;
 
         /* === Private method(s) === */

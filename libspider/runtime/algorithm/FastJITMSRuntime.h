@@ -38,8 +38,6 @@
 /* === Include(s) === */
 
 #include <runtime/algorithm/Runtime.h>
-#include <graphs-tools/transformation/srdag/TransfoJob.h>
-#include <scheduling/allocator/FifoAllocator.h>
 #include <graphs-tools/transformation/srdagless/SRLessHandler.h>
 
 namespace spider {
@@ -69,9 +67,6 @@ namespace spider {
         /* === Setter(s) === */
 
     private:
-        unique_ptr<SRLessScheduler> scheduler_;
-        unique_ptr<FifoAllocator> fifoAllocator_;
-        bool isFullyStatic_ = true;
 
         /* === Private method(s) === */
 

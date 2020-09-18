@@ -39,49 +39,42 @@
 
 #include <containers/array.h>
 #include <memory/unique_ptr.h>
-#include <runtime/common/RTFifo.h>
+#include <runtime/common/Fifo.h>
 #include <common/Time.h>
 
 namespace spider {
 
-    /* === Type(s) definition === */
-
-    struct JobConstraint {
-        size_t lrtToWait_ = SIZE_MAX;
-        size_t jobToWait_ = SIZE_MAX;
-    };
-
     /* === Structure(s) definition === */
 
-    /**
-    * @brief Information message about an LRT job to run.
-    */
-    struct JobMessage {
-
-        JobMessage() = default;
-
-        JobMessage(const JobMessage &) = delete;
-
-        JobMessage(JobMessage &&) noexcept = default;
-
-        JobMessage &operator=(const JobMessage &) = delete;
-
-        JobMessage &operator=(JobMessage &&) noexcept = default;
-
-        ~JobMessage() = default;
-
-        /* === Struct member(s) === */
-
-        array<JobConstraint> execConstraints_;    /*!< Array of jobs this job has to wait before running (size is inferior or equal to the number of LRT) */
-        array<i64> inputParams_;                  /*!< Array of static input parameters */
-        array<RTFifo> inputFifoArray_;            /*!< Array of input FIFO for the job */
-        array<RTFifo> outputFifoArray_;           /*!< Array of output FIFO for the job */
-        unique_ptr<bool> notificationFlagsArray_; /*!< Array of LRT to notify after job completion (size IS equal to the number of LRT) */
-        size_t kernelIx_ = SIZE_MAX;              /*!< Index of the kernel to use to run this job */
-        size_t vertexIx_ = SIZE_MAX;              /*!< Index of the vertex associated with the job */
-        size_t ix_ = SIZE_MAX;                    /*!< Index of the job */
-        i32 outputParamCount_ = 0;                /*!< Number of output parameters to be set by this job. */
-    };
+//    /**
+//    * @brief Information message about an LRT job to run.
+//    */
+//    struct JobMessage {
+//
+//        JobMessage() = default;
+//
+//        JobMessage(const JobMessage &) = delete;
+//
+//        JobMessage(JobMessage &&) noexcept = default;
+//
+//        JobMessage &operator=(const JobMessage &) = delete;
+//
+//        JobMessage &operator=(JobMessage &&) noexcept = default;
+//
+//        ~JobMessage() = default;
+//
+//        /* === Struct member(s) === */
+//
+//        array<JobConstraint> execConstraints_;    /*!< Array of jobs this job has to wait before running (size is inferior or equal to the number of LRT) */
+//        array<i64> inputParams_;                  /*!< Array of static input parameters */
+//        array<Fifo> inputFifoArray_;              /*!< Array of input FIFO for the job */
+//        array<Fifo> outputFifoArray_;             /*!< Array of output FIFO for the job */
+//        unique_ptr<bool> notificationFlagsArray_; /*!< Array of LRT to notify after job completion (size IS equal to the number of LRT) */
+//        size_t kernelIx_ = SIZE_MAX;              /*!< Index of the kernel to use to run this job */
+//        size_t vertexIx_ = SIZE_MAX;              /*!< Index of the vertex associated with the job */
+//        size_t ix_ = SIZE_MAX;                    /*!< Index of the job */
+//        i32 outputParamCount_ = 0;                /*!< Number of output parameters to be set by this job. */
+//    };
 
     /**
      * @brief Message containing dynamic parameters values set by a job.
@@ -113,21 +106,6 @@ namespace spider {
      * @brief Message containing trace information.
      */
     struct TraceMessage {
-
-        TraceMessage() = default;
-
-        TraceMessage(const TraceMessage &) = default;
-
-        TraceMessage(TraceMessage &&) noexcept = default;
-
-        TraceMessage &operator=(const TraceMessage &) = default;
-
-        TraceMessage &operator=(TraceMessage &&) noexcept = default;
-
-        ~TraceMessage() = default;
-
-        /* === Struct member(s) === */
-
         time::time_point startTime_ = time::max();  /*!< Start time of the job */
         time::time_point endTime_ = time::min();    /*!< End time of the job */
         size_t taskIx_ = SIZE_MAX;                  /*!< Ix of the task */

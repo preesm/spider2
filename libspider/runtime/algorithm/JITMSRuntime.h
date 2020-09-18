@@ -39,13 +39,14 @@
 
 #include <runtime/algorithm/Runtime.h>
 #include <graphs-tools/transformation/srdag/TransfoJob.h>
-#include <scheduling/allocator/FifoAllocator.h>
 
 namespace spider {
 
     /* === Forward declaration(s) === */
 
-    class Scheduler;
+    namespace sched {
+        class ResourcesAllocator;
+    }
 
     /* === Class definition === */
 
@@ -57,8 +58,10 @@ namespace spider {
     public:
 
         explicit JITMSRuntime(pisdf::Graph *graph,
-                              SchedulingPolicy schedulingAlgorithm = SchedulingPolicy::LIST,
-                              FifoAllocatorType type = FifoAllocatorType::DEFAULT);
+                              SchedulingPolicy schedulingPolicy = SchedulingPolicy::LIST,
+                              MappingPolicy mappingPolicy = MappingPolicy::BEST_FIT,
+                              ExecutionPolicy executionPolicy = ExecutionPolicy::DELAYED,
+                              FifoAllocatorType allocatorType = FifoAllocatorType::DEFAULT);
 
         ~JITMSRuntime() override = default;
 
@@ -73,9 +76,8 @@ namespace spider {
         /* === Setter(s) === */
 
     private:
-        unique_ptr<pisdf::Graph> srdag_;
-        unique_ptr<Scheduler> scheduler_;
-        unique_ptr<FifoAllocator> fifoAllocator_;
+        spider::unique_ptr<pisdf::Graph> srdag_;
+        spider::unique_ptr<sched::ResourcesAllocator> resourcesAllocator_;
         time::time_point startIterStamp_ = time::min();
 
         /* === Private method(s) === */

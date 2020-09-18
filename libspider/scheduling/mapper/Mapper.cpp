@@ -1,9 +1,9 @@
-/**
- * Copyright or © or Copr. IETR/INSA - Rennes (2019 - 2020) :
+/*
+ * Copyright or © or Copr. IETR/INSA - Rennes (2020) :
  *
- * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2019 - 2020)
+ * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2020)
  *
- * Spider 2.0 is a dataflow based runtime used to execute dynamic PiSDF
+ * Spider is a dataflow based runtime used to execute dynamic PiSDF
  * applications. The Preesm tool may be used to design PiSDF applications.
  *
  * This software is governed by the CeCILL  license under French law and
@@ -32,57 +32,13 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_SRLESSDEFAULTFIFOALLOCATOR_H
-#define SPIDER2_SRLESSDEFAULTFIFOALLOCATOR_H
 
 /* === Include(s) === */
 
+#include "Mapper.h"
 
-#include <scheduling/allocator/DefaultFifoAllocator.h>
-#include <archi/MemoryInterface.h>
-#include <common/Exception.h>
+/* === Static function === */
 
-namespace spider {
+/* === Method(s) implementation === */
 
-    namespace pisdf {
-        class Delay;
-    }
-
-    /* === Class definition === */
-
-    class SRLessDefaultFifoAllocator final : public DefaultFifoAllocator {
-    public:
-        SRLessDefaultFifoAllocator() noexcept : DefaultFifoAllocator({ true, true }) { }
-
-        ~SRLessDefaultFifoAllocator() override = default;
-
-        /* === Method(s) === */
-
-        /* === Getter(s) === */
-
-        /* === Setter(s) === */
-
-    private:
-//        size_t reservedMemory_ = 0;
-//        size_t virtualMemoryAddress_ = 0;
-
-        /* === Private method(s) === */
-
-        void allocateVertexTask(ScheduleTask *task) override;
-
-        void allocateDefaultVertexTask(ScheduleTask *task) override;
-
-        void allocateRepeatTask(ScheduleTask *task) override;
-
-        void allocateForkTask(ScheduleTask *task) override;
-
-        void allocateDuplicateTask(ScheduleTask *task) override;
-
-        void allocateExternInTask(ScheduleTask *task) override;
-
-        void allocateReceiveTask(ScheduleTask *task) override;
-
-        void allocateSendTask(ScheduleTask *task) override;
-    };
-}
-#endif //SPIDER2_SRLESSDEFAULTFIFOALLOCATOR_H
+/* === Private method(s) implementation === */

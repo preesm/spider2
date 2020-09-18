@@ -44,7 +44,7 @@
 #include <graphs/pisdf/Graph.h>
 #include <runtime/common/RTKernel.h>
 #include <runtime/runner/JITMSRTRunner.h>
-#include <runtime/interface/ThreadRTCommunicator.h>
+#include <runtime/communicator/ThreadRTCommunicator.h>
 #include <runtime/platform/ThreadRTPlatform.h>
 #include <runtime/special-kernels/specialKernels.h>
 

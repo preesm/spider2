@@ -79,11 +79,11 @@ spider::pisdf::Delay *spider::pisdf::Edge::delay() const {
 }
 
 int64_t spider::pisdf::Edge::sourceRateValue() const {
-    return src_ ? srcExpression_.evaluate(src_->inputParamVector()) : 0;
+    return srcExpression_.value();
 }
 
 int64_t spider::pisdf::Edge::sinkRateValue() const {
-    return snk_ ? snkExpression_.evaluate(snk_->inputParamVector()) : 0;
+    return snkExpression_.value();
 }
 
 void spider::pisdf::Edge::setDelay(Delay *delay) {

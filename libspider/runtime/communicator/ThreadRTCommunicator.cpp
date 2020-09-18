@@ -34,7 +34,7 @@
  */
 /* === Include(s) === */
 
-#include <runtime/interface/ThreadRTCommunicator.h>
+#include <runtime/communicator/ThreadRTCommunicator.h>
 
 /* === Static function === */
 

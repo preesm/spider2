@@ -1,9 +1,9 @@
-/**
- * Copyright or © or Copr. IETR/INSA - Rennes (2019 - 2020) :
+/*
+ * Copyright or © or Copr. IETR/INSA - Rennes (2020) :
  *
- * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2019 - 2020)
+ * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2020)
  *
- * Spider 2.0 is a dataflow based runtime used to execute dynamic PiSDF
+ * Spider is a dataflow based runtime used to execute dynamic PiSDF
  * applications. The Preesm tool may be used to design PiSDF applications.
  *
  * This software is governed by the CeCILL  license under French law and
@@ -32,18 +32,13 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
+
 /* === Include(s) === */
 
-#include <runtime/algorithm/FastJITMSRuntime.h>
-#include <runtime/runner/RTRunner.h>
-#include <runtime/platform/RTPlatform.h>
-#include <runtime/communicator/RTCommunicator.h>
-#include <api/runtime-api.h>
-#include <graphs-tools/transformation/srdagless/SRLessHandler.h>
-#include <graphs-tools/transformation/srdag/Transformation.h>
-#include <graphs-tools/numerical/brv.h>
-#include <graphs-tools/helper/pisdf-helper.h>
-#include <api/config-api.h>
+#include <scheduling/task/Task.h>
+#include <api/archi-api.h>
+#include <archi/Platform.h>
+#include <archi/PE.h>
 
 /* === Static function === */
 
@@ -51,26 +46,43 @@
 
 /* === Private method(s) implementation === */
 
-spider::FastJITMSRuntime::FastJITMSRuntime(pisdf::Graph *graph,
-                                           SchedulingPolicy schedulingAlgorithm,
-                                           FifoAllocatorType type) :
-        Runtime(graph) {
+spider::sched::Task::Task() : mappingInfo_{
+        spider::make_unique<detail::MappingInfo, StackID::SCHEDULE>() } {
+    const auto lrtCount{ archi::platform()->LRTCount() };
+    execInfo_.constraints_ = make_unique<size_t>(allocate<size_t, StackID::SCHEDULE>(lrtCount));
+    execInfo_.notifications_ = make_unique<bool>(allocate<bool, StackID::SCHEDULE>(lrtCount));
+    std::fill(execInfo_.notifications_.get(), execInfo_.notifications_.get() + lrtCount, false);
 }
 
-bool spider::FastJITMSRuntime::execute() {
-    return dynamicExecute();
+void spider::sched::Task::enableBroadcast() {
+    const auto lrtCount = archi::platform()->LRTCount();
+    std::fill(execInfo_.notifications_.get(), execInfo_.notifications_.get() + lrtCount, true);
 }
 
-/* === Private method(s) implementation === */
-
-bool spider::FastJITMSRuntime::staticExecute() {
-    return true;
+u64 spider::sched::Task::startTime() const {
+    return mappingInfo_->startTime_;
 }
 
-bool spider::FastJITMSRuntime::dynamicExecute() {
-    return true;
+u64 spider::sched::Task::endTime() const {
+    return mappingInfo_->endTime_;
 }
 
-void spider::FastJITMSRuntime::handleStaticGraph(pisdf::Graph *) {
-    /* == Compute BRV == */
+const spider::PE *spider::sched::Task::mappedPe() const {
+    return mappingInfo_->mappedPE_;
+}
+
+const spider::PE *spider::sched::Task::mappedLRT() const {
+    return mappingInfo_->mappedPE_->attachedLRT();
+}
+
+void spider::sched::Task::setStartTime(u64 time) {
+    mappingInfo_->startTime_ = time;
+}
+
+void spider::sched::Task::setEndTime(u64 time) {
+    mappingInfo_->endTime_ = time;
+}
+
+void spider::sched::Task::setMappedPE(const spider::PE *const pe) {
+    mappingInfo_->mappedPE_ = pe;
 }

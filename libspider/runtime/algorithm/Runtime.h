@@ -40,7 +40,6 @@
 #include <common/Exception.h>
 #include <common/Time.h>
 #include <api/global-api.h>
-#include <scheduling/allocator/FifoAllocator.h>
 
 /* === Define(s) === */
 
@@ -76,7 +75,9 @@ namespace spider {
 
     class Monitor;
 
-    class Schedule;
+    namespace sched {
+        class Schedule;
+    }
 
     /* === Class definition === */
 
@@ -112,7 +113,7 @@ namespace spider {
          * @param schedule Pointer to the schedule.
          * @param path     Path of the file.
          */
-        void exportPreExecGantt(const Schedule *schedule, const std::string &path = "./sched-gantt");
+        void exportPreExecGantt(const sched::Schedule *schedule, const std::string &path = "./sched-gantt");
 
         /**
          * @brief Export the Gantt of the real execution trace of the application for 1 graph iteration.
@@ -123,13 +124,9 @@ namespace spider {
          * @param path     Path of the file.
          */
         void useExecutionTraces(const pisdf::Graph *graph,
-                                const Schedule *schedule,
+                                const sched::Schedule *schedule,
                                 time::time_point offset = time::min(),
                                 const std::string &path = "./exec-gantt");
-
-        static FifoAllocator *makeFifoAllocator(FifoAllocatorType type);
-
-        static FifoAllocator *makeSRLessFifoAllocator(FifoAllocatorType type);
     };
 }
 #endif //SPIDER2_RUNTIME_H

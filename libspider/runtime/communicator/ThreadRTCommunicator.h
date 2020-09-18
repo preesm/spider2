@@ -32,32 +32,66 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_BESTFITSCHEDULER_H
-#define SPIDER2_BESTFITSCHEDULER_H
+#ifndef SPIDER2_THREADRTCOMMUNICATOR_H
+#define SPIDER2_THREADRTCOMMUNICATOR_H
 
 /* === Include(s) === */
 
-#include <scheduling/scheduler/ListScheduler.h>
-#include <runtime/interface/Message.h>
+#include <runtime/communicator/RTCommunicator.h>
+#include <thread/Queue.h>
+#include <thread/IndexedQueue.h>
+#include <containers/array.h>
+#include <containers/vector.h>
 
 namespace spider {
 
     /* === Class definition === */
 
-    class BestFitScheduler final : public ListScheduler {
+    class ThreadRTCommunicator final : public RTCommunicator {
     public:
+        explicit ThreadRTCommunicator(size_t lrtCount);
 
-        explicit BestFitScheduler(pisdf::Graph *graph) : ListScheduler(graph) { };
-
-        ~BestFitScheduler() override = default;
+        ~ThreadRTCommunicator() override = default;
 
         /* === Method(s) === */
 
-        Schedule &execute() override;
+        void push(Notification notification, size_t receiver) override;
+
+        bool pop(Notification &notification, size_t receiver) override;
+
+        bool try_pop(Notification &notification, size_t receiver) override;
+
+        void pushParamNotification(size_t sender, size_t messageIndex) override;
+
+        bool popParamNotification(Notification &notification) override;
+
+        void pushTraceNotification(Notification notification) override;
+
+        bool popTraceNotification(Notification &notification) override;
+
+        size_t push(JobMessage message, size_t receiver) override;
+
+        bool pop(JobMessage &message, size_t receiver, size_t ix) override;
+
+        size_t push(ParameterMessage message, size_t receiver) override;
+
+        bool pop(ParameterMessage &message, size_t receiver, size_t ix) override;
+
+        size_t push(TraceMessage message, size_t receiver) override;
+
+        bool pop(TraceMessage &message, size_t receiver, size_t ix) override;
 
     private:
+        vector<spider::Queue<Notification>> notificationQueueVector_;
+        spider::Queue<Notification> paramNotificationQueue_;
+        spider::Queue<Notification> traceNotificationQueue_;
+        IndexedQueue<JobMessage, StackID::RUNTIME> jobMessageQueueArray_;
+        IndexedQueue<ParameterMessage, StackID::RUNTIME> paramMessageQueueArray_;
+        IndexedQueue<TraceMessage, StackID::RUNTIME> traceMessageQueueArray_;
     };
+
+    /* === Inline method(s) === */
+
 }
 
-
-#endif //SPIDER2_BESTFITSCHEDULER_H
+#endif //SPIDER2_THREADRTCOMMUNICATOR_H

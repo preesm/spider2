@@ -1,9 +1,9 @@
-/**
- * Copyright or © or Copr. IETR/INSA - Rennes (2019 - 2020) :
+/*
+ * Copyright or © or Copr. IETR/INSA - Rennes (2020) :
  *
- * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2019 - 2020)
+ * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2020)
  *
- * Spider 2.0 is a dataflow based runtime used to execute dynamic PiSDF
+ * Spider is a dataflow based runtime used to execute dynamic PiSDF
  * applications. The Preesm tool may be used to design PiSDF applications.
  *
  * This software is governed by the CeCILL  license under French law and
@@ -32,19 +32,54 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
+#ifndef SPIDER2_MAPPER_H
+#define SPIDER2_MAPPER_H
+
 /* === Include(s) === */
 
-#include <scheduling/scheduler/srdagless/SRLessBestFitScheduler.h>
+#include <common/Types.h>
 
-/* === Static function === */
+namespace spider {
 
-/* === Method(s) implementation === */
-
-/* === Private method(s) implementation === */
-
-spider::Schedule &spider::SRLessBestFitScheduler::execute() {
-    for (auto &listTask : sortedTaskVector_) {
-        SRLessScheduler::mapTask(listTask.task_);
+    namespace pisdf {
+        class Vertex;
     }
-    return schedule_;
+
+    namespace sched {
+
+        class Task;
+
+        class TaskVertex;
+
+        class Schedule;
+
+        /* === Class definition === */
+
+        class Mapper {
+        public:
+            Mapper() = default;
+
+            virtual ~Mapper() noexcept = default;
+
+            /* === Method(s) === */
+
+            /**
+             * @brief Map a task onto available resources.
+             * @param task     pointer to the task to map.
+             * @param schedule pointer to the schedule to update.
+             * @throw @refitem spider::Exception if the mapper was unable to find any processing elements for the task.
+             */
+            virtual void map(TaskVertex *task, Schedule *schedule) = 0;
+
+            /* === Getter(s) === */
+
+            /* === Setter(s) === */
+
+            inline void setStartTime(ufast64 time) { startTime_ = time; }
+
+        protected:
+            ufast64 startTime_{ 0U };
+        };
+    }
 }
+#endif //SPIDER2_MAPPER_H

@@ -38,25 +38,26 @@
 #include <api/archi-api.h>
 #include <graphs/pisdf/Graph.h>
 #include <scheduling/schedule/Schedule.h>
-#include <scheduling/schedule/ScheduleTask.h>
-#include <iomanip>
+#include <scheduling/task/Task.h>
 
 /* === Static variable(s) === */
 
-static constexpr u32 OFFSET_X = 3;
-static constexpr u32 OFFSET_Y = 3;
-static constexpr u32 BORDER = 5;
-static constexpr u32 ARROW_SIZE = 8;
-static constexpr u32 ARROW_STROKE = 2;
-static constexpr u32 TASK_HEIGHT = 50;
-static constexpr u32 TASK_SPACE = 5;
-static constexpr u32 TASK_MIN_WIDTH = 50;
-static constexpr u32 TASK_MAX_WIDTH = 600;
-static constexpr u32 TEXT_BORDER = 2;
-static constexpr u32 TEXT_MAX_HEIGHT = (TASK_HEIGHT - 10);
-static constexpr double PE_FONT_SIZE = (TEXT_MAX_HEIGHT / 3.);
-static constexpr double X_FONT_OFFSET = 0.2588;
-static constexpr double Y_FONT_OFFSET = 0.2358;
+namespace {
+    constexpr u32 OFFSET_X = 3;
+    constexpr u32 OFFSET_Y = 3;
+    constexpr u32 BORDER = 5;
+    constexpr u32 ARROW_SIZE = 8;
+    constexpr u32 ARROW_STROKE = 2;
+    constexpr u32 TASK_HEIGHT = 50;
+    constexpr u32 TASK_SPACE = 5;
+    constexpr u32 TASK_MIN_WIDTH = 50;
+    constexpr u32 TASK_MAX_WIDTH = 600;
+    constexpr u32 TEXT_BORDER = 2;
+    constexpr u32 TEXT_MAX_HEIGHT = (TASK_HEIGHT - 10);
+    constexpr double PE_FONT_SIZE = (TEXT_MAX_HEIGHT / 3.);
+    constexpr double X_FONT_OFFSET = 0.2588;
+    constexpr double Y_FONT_OFFSET = 0.2358;
+}
 
 /* === Static function(s) === */
 
@@ -110,15 +111,15 @@ static void printText(FILE *file, const std::string &text, double size, double x
 
 /* === Method(s) implementation === */
 
-spider::SchedSVGGanttExporter::SchedSVGGanttExporter(const Schedule *schedule) : Exporter(),
-                                                                                 schedule_{ schedule },
-                                                                                 widthMin_{ TASK_MIN_WIDTH },
-                                                                                 widthMax_{ TASK_MAX_WIDTH },
-                                                                                 offsetX_{ OFFSET_X } {
+spider::SchedSVGGanttExporter::SchedSVGGanttExporter(const sched::Schedule *schedule) : Exporter(),
+                                                                                       schedule_{ schedule },
+                                                                                       widthMin_{ TASK_MIN_WIDTH },
+                                                                                       widthMax_{ TASK_MAX_WIDTH },
+                                                                                       offsetX_{ OFFSET_X } {
     /* == Compute values needed for printing == */
     u64 minExecTime = UINT64_MAX;
     u64 maxExecTime = 0;
-    for (auto &task : schedule_->tasks()) {
+    for (const auto &task : schedule_->tasks()) {
         const auto execTime = task->endTime() - task->startTime();
         minExecTime = std::min(execTime, minExecTime);
         maxExecTime = std::max(execTime, maxExecTime);
@@ -272,14 +273,14 @@ void spider::SchedSVGGanttExporter::axisPrinter(FILE *file) const {
                      (height_ - ARROW_SIZE));
 }
 
-void spider::SchedSVGGanttExporter::taskPrinter(FILE *file, const ScheduleTask *task) const {
+void spider::SchedSVGGanttExporter::taskPrinter(FILE *file, const sched::Task *task) const {
     /* == Compute color and width == */
     const auto name = task->name();
 
     /* == Compute coordinates == */
     const auto taskWidth = computeWidth((task->endTime() - task->startTime()));
     const auto x = offsetX_ + ARROW_STROKE + BORDER + computeWidth(task->startTime());
-    const auto y = height_ - (OFFSET_Y + ARROW_STROKE + (task->mappedPe() + 1) * (TASK_HEIGHT + BORDER));
+    const auto y = height_ - (OFFSET_Y + ARROW_STROKE + (task->mappedPe()->virtualIx() + 1) * (TASK_HEIGHT + BORDER));
 
     /* == Print rect == */
     u32 color = task->color();

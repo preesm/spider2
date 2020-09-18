@@ -48,7 +48,6 @@
 #include <memory/dynamic-policies/GenericAllocatorPolicy.h>
 #include <memory/static-policies/LinearStaticAllocator.h>
 #include <api/spider.h>
-#include <scheduling/allocator/FifoAllocator.h>
 #include "RuntimeTestCases.h"
 
 class runtimeMonoTest : public ::testing::Test {

@@ -1,10 +1,7 @@
-/**
- * Copyright or © or Copr. IETR/INSA - Rennes (2019 - 2020) :
+/*
+ * Copyright or © or Copr. IETR/INSA - Rennes (2020) :
  *
- * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2019 - 2020)
- *
- * Spider 2.0 is a dataflow based runtime used to execute dynamic PiSDF
- * applications. The Preesm tool may be used to design PiSDF applications.
+ * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2020)
  *
  * This software is governed by the CeCILL  license under French law and
  * abiding by the rules of distribution of free software.  You can  use,
@@ -32,32 +29,38 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_RTFIFO_H
-#define SPIDER2_RTFIFO_H
+#ifndef SPIDER2_JOBMESSAGE_H
+#define SPIDER2_JOBMESSAGE_H
 
 /* === Include(s) === */
 
+#include <scheduling/memory/AllocatedFifos.h>
 #include <common/Types.h>
 
 namespace spider {
 
-    enum class FifoAttribute {
-        RW_ONLY = 0, /*!< Owner of the FIFO does not own the associated memory:
-                        *   --> no dealloc after read, no alloc before write */
-        RW_OWN,      /*!< Owner of the FIFO own the associated memory:
-                        *   --> dealloc after read, alloc before write */
-        RW_EXT,      /*!< Owner of the FIFO reads (writes) from (to) external memory */
+    class RTKernel;
+
+    /* === Type(s) definition === */
+
+    struct SyncInfo {
+        size_t lrtToWait_ = SIZE_MAX;
+        size_t jobToWait_ = SIZE_MAX;
     };
 
-    /* === Class definition === */
-
-    struct RTFifo {
-        size_t virtualAddress_ = SIZE_MAX;                /* = Virtual address of the Fifo = */
-        u32 size_ = 0;                                    /* = Size of the Fifo = */
-        u32 offset_ = 0;                                  /* = Offset in the address = */
-        u32 count_ = 1;                                   /* = Number of use of this FIFO = */
-        FifoAttribute attribute_ = FifoAttribute::RW_OWN; /* = Attribute of the Fifo = */
+    /**
+     * @brief Information message about an LRT job to run.
+     */
+    struct JobMessage {
+        std::shared_ptr<AllocatedFifos> fifos_;              /*!< Fifos of the task */
+        spider::array<SyncInfo> execConstraints_;       /*!< Array of jobs this job has to wait before running (size is inferior or equal to the number of LRT) */
+        spider::unique_ptr<i64> inputParams_;           /*!< Array of static input parameters */
+        spider::unique_ptr<bool> synchronizationFlags_; /*!< Array of LRT to notify after job completion (size IS equal to the number of LRT) */
+        u32 kernelIx_;                                  /*!< Kernel used for executing the task */
+        u32 ix_;                                        /*!< Index of the job */
+        u32 taskIx_;                                    /*!< Index of the task associated with the job */
+        u32 nParamsOut_;                                /*!< Number of output parameters to be set by this job. */
     };
 }
 
-#endif //SPIDER2_RTFIFO_H
+#endif //SPIDER2_JOBMESSAGE_H

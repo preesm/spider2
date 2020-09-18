@@ -47,10 +47,10 @@
  * @param vertex Pointer to the vertex.
  * @return array of int_least_64_t.
  */
-spider::array<i64> buildDefaultVertexRuntimeParameters(const spider::pisdf::Vertex *vertex) {
+static spider::unique_ptr<i64> buildDefaultVertexRuntimeParameters(const spider::pisdf::Vertex *vertex) {
     const auto &inputParams = vertex->refinementParamVector();
-    auto outParams = spider::array<i64>(inputParams.size(), StackID::RUNTIME);
-    std::transform(std::begin(inputParams), std::end(inputParams), std::begin(outParams),
+    auto outParams = spider::make_unique(spider::allocate<i64, StackID::RUNTIME>(inputParams.size()));
+    std::transform(std::begin(inputParams), std::end(inputParams), outParams.get(),
                    [](const std::shared_ptr<spider::pisdf::Param> &param) { return param->value(); });
     return outParams;
 }
@@ -62,13 +62,13 @@ spider::array<i64> buildDefaultVertexRuntimeParameters(const spider::pisdf::Vert
  * @param params Parameters to use for the rates evaluation. (should contain the same parameters as the graphs)
  * @return array of int_least_64_t.
  */
-spider::array<i64> buildForkRuntimeInputParameters(const spider::pisdf::Vertex *vertex,
-                                                   const spider::vector<std::shared_ptr<spider::pisdf::Param>> &params) {
+static spider::unique_ptr<i64> buildForkRuntimeInputParameters(const spider::pisdf::Vertex *vertex,
+                                                               const spider::vector<std::shared_ptr<spider::pisdf::Param>> &params) {
     const auto &outputEdges = vertex->outputEdgeVector();
-    auto outParams = spider::array<i64>(outputEdges.size() + 2, StackID::RUNTIME);
-    outParams[0] = vertex->inputEdge(0)->sinkRateExpression().evaluate(params);
-    outParams[1] = static_cast<i64>(outputEdges.size());
-    std::transform(std::begin(outputEdges), std::end(outputEdges), std::next(std::begin(outParams), 2),
+    auto outParams = spider::make_unique(spider::allocate<i64, StackID::RUNTIME>(outputEdges.size() + 2));
+    outParams.get()[0] = vertex->inputEdge(0)->sinkRateExpression().evaluate(params);
+    outParams.get()[1] = static_cast<i64>(outputEdges.size());
+    std::transform(std::begin(outputEdges), std::end(outputEdges), std::next(outParams.get(), 2),
                    [&params](const spider::pisdf::Edge *edge) {
                        return edge->sourceRateExpression().evaluate(params);
                    });
@@ -82,13 +82,13 @@ spider::array<i64> buildForkRuntimeInputParameters(const spider::pisdf::Vertex *
  * @param params Parameters to use for the rates evaluation. (should contain the same parameters as the graphs)
  * @return array of int_least_64_t.
  */
-spider::array<i64> buildJoinRuntimeInputParameters(const spider::pisdf::Vertex *vertex,
-                                                   const spider::vector<std::shared_ptr<spider::pisdf::Param>> &params) {
+static spider::unique_ptr<i64> buildJoinRuntimeInputParameters(const spider::pisdf::Vertex *vertex,
+                                                               const spider::vector<std::shared_ptr<spider::pisdf::Param>> &params) {
     const auto &inputEdges = vertex->inputEdgeVector();
-    auto outParams = spider::array<i64>(inputEdges.size() + 2, StackID::RUNTIME);
-    outParams[0] = vertex->outputEdge(0)->sourceRateExpression().evaluate(params);
-    outParams[1] = static_cast<i64>(inputEdges.size());
-    std::transform(std::begin(inputEdges), std::end(inputEdges), std::next(std::begin(outParams), 2),
+    auto outParams = spider::make_unique(spider::allocate<i64, StackID::RUNTIME>(inputEdges.size() + 2));
+    outParams.get()[0] = vertex->outputEdge(0)->sourceRateExpression().evaluate(params);
+    outParams.get()[1] = static_cast<i64>(inputEdges.size());
+    std::transform(std::begin(inputEdges), std::end(inputEdges), std::next(outParams.get(), 2),
                    [&params](const spider::pisdf::Edge *edge) { return edge->sinkRateExpression().evaluate(params); });
     return outParams;
 }
@@ -100,8 +100,8 @@ spider::array<i64> buildJoinRuntimeInputParameters(const spider::pisdf::Vertex *
  * @param params Parameters to use for the rates evaluation. (should contain the same parameters as the graphs)
  * @return array of int_least_64_t.
  */
-spider::array<i64> buildTailRuntimeInputParameters(const spider::pisdf::Vertex *vertex,
-                                                   const spider::vector<std::shared_ptr<spider::pisdf::Param>> &params) {
+static spider::unique_ptr<i64> buildTailRuntimeInputParameters(const spider::pisdf::Vertex *vertex,
+                                                               const spider::vector<std::shared_ptr<spider::pisdf::Param>> &params) {
     size_t inputCount = 1;
     auto rate = vertex->outputEdge(0)->sourceRateExpression().evaluate(params);
     const auto &inputEdges = vertex->inputEdgeVector();
@@ -113,19 +113,20 @@ spider::array<i64> buildTailRuntimeInputParameters(const spider::pisdf::Vertex *
         rate -= inRate;
         inputCount++;
     }
-    auto outParams = spider::array<i64>(4 + inputCount, StackID::RUNTIME);
+    auto outParams = spider::make_unique(spider::allocate<i64, StackID::RUNTIME>(inputCount + 4u));
     /* = Number of input = */
-    outParams[0] = static_cast<i64>(inputEdges.size());
+    outParams.get()[0] = static_cast<i64>(inputEdges.size());
     /* = First input to be considered = */
-    outParams[1] = static_cast<i64>(inputEdges.size() - inputCount);
+    outParams.get()[1] = static_cast<i64>(inputEdges.size() - inputCount);
     /* = Offset in the first buffer if any = */
-    outParams[2] = vertex->inputEdge(inputEdges.size() - inputCount)->sinkRateExpression().evaluate(params) - rate;
+    outParams.get()[2] =
+            vertex->inputEdge(inputEdges.size() - inputCount)->sinkRateExpression().evaluate(params) - rate;
     /* = Effective size to copy of the first input = */
-    outParams[3] = rate;
+    outParams.get()[3] = rate;
     size_t i = 4;
     for (auto it = vertex->inputEdgeVector().rbegin();
          it != vertex->inputEdgeVector().rbegin() + static_cast<long>(inputCount) - 1; ++it) {
-        outParams[i++] = (*it)->sinkRateExpression().evaluate(params);
+        outParams.get()[i++] = (*it)->sinkRateExpression().evaluate(params);
     }
     return outParams;
 }
@@ -137,8 +138,8 @@ spider::array<i64> buildTailRuntimeInputParameters(const spider::pisdf::Vertex *
  * @param params Parameters to use for the rates evaluation. (should contain the same parameters as the graphs)
  * @return array of int_least_64_t.
  */
-spider::array<i64> buildHeadRuntimeInputParameters(const spider::pisdf::Vertex *vertex,
-                                                   const spider::vector<std::shared_ptr<spider::pisdf::Param>> &params) {
+static spider::unique_ptr<i64> buildHeadRuntimeInputParameters(const spider::pisdf::Vertex *vertex,
+                                                               const spider::vector<std::shared_ptr<spider::pisdf::Param>> &params) {
     size_t inputCount = 1;
     auto rate = vertex->outputEdge(0)->sourceRateExpression().evaluate(params);
     for (auto &edge : vertex->inputEdgeVector()) {
@@ -149,12 +150,12 @@ spider::array<i64> buildHeadRuntimeInputParameters(const spider::pisdf::Vertex *
         rate -= inRate;
         inputCount++;
     }
-    auto outParams = spider::array<i64>(1 + inputCount, StackID::RUNTIME);
-    outParams[0] = static_cast<i64>(inputCount);
+    auto outParams = spider::make_unique(spider::allocate<i64, StackID::RUNTIME>(inputCount + 1u));
+    outParams.get()[0] = static_cast<i64>(inputCount);
     rate = vertex->outputEdge(0)->sourceRateExpression().evaluate(params);
     for (size_t i = 0; i < inputCount; ++i) {
         const auto &inRate = vertex->inputEdge(i)->sinkRateExpression().evaluate(params);
-        outParams[i + 1] = std::min(inRate, rate);
+        outParams.get()[i + 1] = std::min(inRate, rate);
         rate -= inRate;
     }
     return outParams;
@@ -167,11 +168,11 @@ spider::array<i64> buildHeadRuntimeInputParameters(const spider::pisdf::Vertex *
  * @param params Parameters to use for the rates evaluation. (should contain the same parameters as the graphs)
  * @return array of int_least_64_t.
  */
-spider::array<i64> buildRepeatRuntimeInputParameters(const spider::pisdf::Vertex *vertex,
-                                                     const spider::vector<std::shared_ptr<spider::pisdf::Param>> &params) {
-    auto outParams = spider::array<i64>(2, StackID::RUNTIME);
-    outParams[0] = vertex->inputEdge(0)->sinkRateExpression().evaluate(params);
-    outParams[1] = vertex->outputEdge(0)->sourceRateExpression().evaluate(params);
+static spider::unique_ptr<i64> buildRepeatRuntimeInputParameters(const spider::pisdf::Vertex *vertex,
+                                                                 const spider::vector<std::shared_ptr<spider::pisdf::Param>> &params) {
+    auto outParams = spider::make_unique(spider::allocate<i64, StackID::RUNTIME>(2u));
+    outParams.get()[0] = vertex->inputEdge(0)->sinkRateExpression().evaluate(params);
+    outParams.get()[1] = vertex->outputEdge(0)->sourceRateExpression().evaluate(params);
     return outParams;
 }
 
@@ -182,11 +183,11 @@ spider::array<i64> buildRepeatRuntimeInputParameters(const spider::pisdf::Vertex
  * @param params Parameters to use for the rates evaluation. (should contain the same parameters as the graphs)
  * @return array of int_least_64_t.
  */
-spider::array<i64> buildDuplicateRuntimeInputParameters(const spider::pisdf::Vertex *vertex,
-                                                        const spider::vector<std::shared_ptr<spider::pisdf::Param>> &params) {
-    auto outParams = spider::array<i64>(2, StackID::RUNTIME);
-    outParams[0] = static_cast<i64>(vertex->outputEdgeCount());
-    outParams[1] = vertex->inputEdge(0)->sinkRateExpression().evaluate(params);
+static spider::unique_ptr<i64> buildDuplicateRuntimeInputParameters(const spider::pisdf::Vertex *vertex,
+                                                                    const spider::vector<std::shared_ptr<spider::pisdf::Param>> &params) {
+    auto outParams = spider::make_unique(spider::allocate<i64, StackID::RUNTIME>(2u));
+    outParams.get()[0] = static_cast<i64>(vertex->outputEdgeCount());
+    outParams.get()[1] = vertex->inputEdge(0)->sinkRateExpression().evaluate(params);
     return outParams;
 }
 
@@ -196,11 +197,11 @@ spider::array<i64> buildDuplicateRuntimeInputParameters(const spider::pisdf::Ver
  * @param vertex Pointer to the @refitem pisdf::DelayVertex associated with the delay.
  * @return array of int_least_64_t.
  */
-spider::array<i64> buildInitEndRuntimeInputParameters(const spider::pisdf::Vertex *vertex) {
-    auto outParams = spider::array<i64>(3, StackID::RUNTIME);
-    outParams[0] = vertex->inputParamVector()[0]->value(); /* = Persistence property = */
-    outParams[1] = vertex->inputParamVector()[1]->value(); /* = Value of the delay = */
-    outParams[2] = vertex->inputParamVector()[2]->value(); /* = Memory address (may be unused) = */
+static spider::unique_ptr<i64> buildInitEndRuntimeInputParameters(const spider::pisdf::Vertex *vertex) {
+    auto outParams = spider::make_unique(spider::allocate<i64, StackID::RUNTIME>(3u));
+    outParams.get()[0] = vertex->inputParamVector()[0]->value(); /* = Persistence property = */
+    outParams.get()[1] = vertex->inputParamVector()[1]->value(); /* = Value of the delay = */
+    outParams.get()[2] = vertex->inputParamVector()[2]->value(); /* = Memory address (may be unused) = */
     return outParams;
 }
 
@@ -211,13 +212,13 @@ spider::array<i64> buildInitEndRuntimeInputParameters(const spider::pisdf::Verte
  * @param params Parameters to use for the rates evaluation. (should contain the same parameters as the graphs)
  * @return array of int_least_64_t.
  */
-static spider::array<i64> buildExternOutRuntimeInputParameters(const spider::pisdf::Vertex *vertex,
-                                                               const spider::vector<std::shared_ptr<spider::pisdf::Param>> &params) {
-    auto outParams = spider::array<i64>(2, StackID::RUNTIME);
+static spider::unique_ptr<i64> buildExternOutRuntimeInputParameters(const spider::pisdf::Vertex *vertex,
+                                                                    const spider::vector<std::shared_ptr<spider::pisdf::Param>> &params) {
+    auto outParams = spider::make_unique(spider::allocate<i64, StackID::RUNTIME>(2u));
     const auto *reference = vertex->reference()->convertTo<spider::pisdf::ExternInterface>();
     const auto *inputEdge = vertex->inputEdge(0);
-    outParams[0] = static_cast<i64>(reference->bufferIndex());
-    outParams[1] = inputEdge->sinkRateExpression().evaluate(params);
+    outParams.get()[0] = static_cast<i64>(reference->bufferIndex());
+    outParams.get()[1] = inputEdge->sinkRateExpression().evaluate(params);
     return outParams;
 }
 
@@ -249,12 +250,12 @@ void spider::pisdf::recursiveSplitDynamicGraph(Graph *graph) {
     }
 }
 
-spider::array<i64> spider::pisdf::buildVertexRuntimeInputParameters(const pisdf::Vertex *vertex) {
+spider::unique_ptr<i64> spider::pisdf::buildVertexRuntimeInputParameters(const pisdf::Vertex *vertex) {
     return buildVertexRuntimeInputParameters(vertex, vertex->inputParamVector());
 }
 
-spider::array<i64> spider::pisdf::buildVertexRuntimeInputParameters(const pisdf::Vertex *vertex,
-                                                                    const vector<std::shared_ptr<pisdf::Param>> &params) {
+spider::unique_ptr<i64> spider::pisdf::buildVertexRuntimeInputParameters(const pisdf::Vertex *vertex,
+                                                                         const vector<std::shared_ptr<pisdf::Param>> &params) {
     switch (vertex->subtype()) {
         case VertexType::FORK:
             return buildForkRuntimeInputParameters(vertex, params);

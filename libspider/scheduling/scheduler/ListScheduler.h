@@ -1,9 +1,9 @@
-/**
- * Copyright or © or Copr. IETR/INSA - Rennes (2019 - 2020) :
+/*
+ * Copyright or © or Copr. IETR/INSA - Rennes (2020) :
  *
- * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2019 - 2020)
+ * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2020)
  *
- * Spider 2.0 is a dataflow based runtime used to execute dynamic PiSDF
+ * Spider is a dataflow based runtime used to execute dynamic PiSDF
  * applications. The Preesm tool may be used to design PiSDF applications.
  *
  * This software is governed by the CeCILL  license under French law and
@@ -38,110 +38,87 @@
 /* === Include(s) === */
 
 #include <scheduling/scheduler/Scheduler.h>
-#include <containers/vector.h>
 #include <common/Types.h>
 
 namespace spider {
 
-    /* === Class definition === */
+    namespace pisdf {
+        class Vertex;
+    }
 
-    class ListScheduler : public Scheduler {
-    public:
+    namespace sched {
 
-        ~ListScheduler() override = default;
+        /* === Class definition === */
 
-        /* === Method(s) === */
+        class ListScheduler final : public Scheduler {
+        public:
+            ListScheduler() : Scheduler(), sortedTaskVector_{ factory::vector<ListTask>(StackID::SCHEDULE) } { };
 
-        /**
-         * @brief Add vertices of the member @refitem pisdf::Graph in sorted order into the sortedVertexVector_
-         * for mappingScheduling.
-         * @remark This method also updates the number of jobs in the member @refitem sched::Schedule.
-         */
-        void update() override;
+            ~ListScheduler() override = default;
 
-        /**
-         * @brief ListScheduler is an abstract class regrouping common method for list based schedulers but it can not
-         *        actually perform a scheduling. The scheduling and mapping algorithm must be implemented in derived
-         *        class.
-         */
-        Schedule &execute() override = 0;
+            /* === Method(s) === */
 
-        void clear() override;
+            void schedule(const pisdf::Graph *graph) override;
 
-    protected:
-        struct ListTask {
-            ScheduleTask *task_;
-            ifast32 level_;
+            void clear() override;
+
+            /* === Getter(s) === */
+
+            /* === Setter(s) === */
+
+        private:
+            struct ListTask {
+                pisdf::Vertex *vertex_;
+                ifast32 level_;
+            };
+            spider::vector<ListTask> sortedTaskVector_;
+            size_t lastSchedulableTask_ = 0;
+            size_t lastScheduledTask_ = 0;
+
+            /* === Private method(s) === */
+
+            /**
+             * @brief Reset unscheduled task from previous schedule iteration.
+             */
+            void resetUnScheduledTasks();
+
+            /**
+             * @brief Create @refitem ListScheduler::ListTask for every non-scheduled vertex.
+             * @remark The attribute @refitem pisdf::Vertex::scheduleTaskIx_ of the vertex is set to the last position of
+             *         sortedTaskVector_.
+             * @param vertex  Pointer to the vertex associated.
+             */
+            void createListTask(pisdf::Vertex *vertex);
+
+            /**
+             * @brief Compute recursively the schedule level used to sort the vertices for scheduling.
+             * The criteria used is based on the critical execution time path.
+             * @example:
+             *         input graph:
+             *             A (100) -> B(200)
+             *                     -> C(100) -> D(100)
+             *                               -> E(300)
+             *         result:
+             *           level(A) = max(level(C) + time(C); level(B) + time(B)) = 400
+             *           level(B) = level(D) = level(E) = 0
+             *           level(C) = max(level(D) + time(D); level(E) + time(E)) = 300
+             * @param listTask       Pointer to the current @refitem ListVertex evaluated.
+             * @param listVertexVector Vector of @refitem ListVertex to evaluate.
+             * @return
+             */
+            ifast32 computeScheduleLevel(ListTask &listTask, vector <ListTask> &listVertexVector) const;
+
+            /**
+             * @brief Sort the list of vertices.
+             */
+            void sortVertices();
+
+            /**
+             * @brief Removes all the non executable vertices from the list for scheduling.
+             * @return number of non schedulable tasks.
+             */
+            size_t countNonSchedulableTasks();
         };
-
-        vector<ListTask> sortedTaskVector_;
-        size_t lastSchedulableTask_ = 0;
-        size_t lastScheduledTask_ = 0;
-
-        /* === Protected method(s) === */
-
-        explicit ListScheduler(pisdf::Graph *graph);
-
-    private:
-
-        /* === Private method(s) === */
-
-        /**
-         * @brief Reset unscheduled task from previous schedule iteration.
-         */
-        void resetUnScheduledTasks();
-
-        /**
-         * @brief Create @refitem ListScheduler::ListTask for every non-scheduled vertex.
-         * @remark The attribute @refitem pisdf::Vertex::scheduleTaskIx_ of the vertex is set to the last position of
-         *         sortedTaskVector_.
-         * @param vertex  Pointer to the vertex associated.
-         */
-        void createTaskVertexRecursively(pisdf::Vertex *vertex);
-
-        /**
-         * @brief Update the schedule task ix of every non-scheduled vertex based on the associated task position in the
-         *        vector sortedTaskVector_.
-         */
-        void updateScheduleTaskIx() const;
-
-        /**
-         * @brief Compute recursively the schedule level used to sort the vertices for scheduling.
-         * The criteria used is based on the critical execution time path.
-         * @example:
-         *         input graph:
-         *             A (100) -> B(200)
-         *                     -> C(100) -> D(100)
-         *                               -> E(300)
-         *         result:
-         *           level(A) = max(level(C) + time(C); level(B) + time(B)) = 400
-         *           level(B) = level(D) = level(E) = 0
-         *           level(C) = max(level(D) + time(D); level(E) + time(E)) = 300
-         * @param listTask       Pointer to the current @refitem ListVertex evaluated.
-         * @param listVertexVector Vector of @refitem ListVertex to evaluate.
-         * @return
-         */
-        ifast32 computeScheduleLevel(ListTask &listTask, vector<ListTask> &listVertexVector) const;
-
-        /**
-         * @brief Sort the list of vertices.
-         */
-        void sortVertices();
-
-        /**
-         * @brief Removes all the non executable vertices from the list for scheduling.
-         * @return number of non schedulable tasks.
-         */
-        size_t countNonSchedulableTasks();
-
-        /**
-         * @brief Set the input dependencies of a @refitem ScheduleTask.
-         *        This method will call @refitem ListScheduler::createTaskVertexRecursively if needed.
-         * @param task   Pointer to the task.
-         * @param vertex Pointer to the vertex associated with the task.
-         */
-        void setTaskDependencies(ScheduleTask *task, const pisdf::Vertex *vertex);
-    };
+    }
 }
-
 #endif //SPIDER2_LISTSCHEDULER_H

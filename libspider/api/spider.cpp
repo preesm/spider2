@@ -201,9 +201,13 @@ static spider::Runtime *getRuntimeFromType(spider::pisdf::Graph *graph,
     switch (cfg.runtimeType_) {
         case spider::RuntimeType::JITMS:
             if (spider::pisdf::isGraphFullyStatic(graph)) {
-                return spider::make<spider::StaticRuntime>(StackID::GENERAL, graph, cfg.schedPolicy_, cfg.allocType_);
+                return spider::make<spider::StaticRuntime>(StackID::GENERAL, graph,
+                                                           cfg.schedPolicy_, cfg.mapPolicy_, cfg.execPolicy_,
+                                                           cfg.allocType_);
             }
-            return spider::make<spider::JITMSRuntime>(StackID::GENERAL, graph, cfg.schedPolicy_, cfg.allocType_);
+            return spider::make<spider::JITMSRuntime>(StackID::GENERAL, graph,
+                                                      cfg.schedPolicy_, cfg.mapPolicy_, cfg.execPolicy_,
+                                                      cfg.allocType_);
         case spider::RuntimeType::FAST_JITMS:
             return spider::make<spider::FastJITMSRuntime>(StackID::GENERAL, graph, cfg.schedPolicy_, cfg.allocType_);
         default:

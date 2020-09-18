@@ -1,9 +1,9 @@
-/**
- * Copyright or © or Copr. IETR/INSA - Rennes (2019 - 2020) :
+/*
+ * Copyright or © or Copr. IETR/INSA - Rennes (2020) :
  *
- * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2019 - 2020)
+ * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2020)
  *
- * Spider 2.0 is a dataflow based runtime used to execute dynamic PiSDF
+ * Spider is a dataflow based runtime used to execute dynamic PiSDF
  * applications. The Preesm tool may be used to design PiSDF applications.
  *
  * This software is governed by the CeCILL  license under French law and
@@ -37,71 +37,74 @@
 
 /* === Include(s) === */
 
-#include <runtime/common/RTFifo.h>
+#include <runtime/common/Fifo.h>
 #include <api/global-api.h>
 
 namespace spider {
-
-    /* === Enum definition === */
 
     /* === Forward declaration(s) === */
 
     class MemoryInterface;
 
-    class ScheduleTask;
-
     namespace pisdf {
         class Graph;
     }
 
-    /* === Class definition === */
+    namespace sched {
 
-    class FifoAllocator {
-    public:
-        struct FifoAllocatorTraits {
-            bool jitAllocator_;
-            bool postSchedulingAllocator_;
+        class Task;
+
+        /* === Class definition === */
+
+        class FifoAllocator {
+        public:
+            struct FifoAllocatorTraits {
+                bool jitAllocator_;
+                bool postSchedulingAllocator_;
+            };
+
+            /* === Allocator traits === */
+
+            FifoAllocatorTraits traits_;
+
+            FifoAllocator() : FifoAllocator({ true, true }) {}
+
+            virtual ~FifoAllocator() noexcept = default;
+
+            /* === Method(s) === */
+
+            /**
+             * @brief Allocate a FIFO of given size.
+             * @param size      Size of the FIFO to allocate in bytes.
+             * @return created @refitem RTFifo.
+             */
+            virtual void allocate(sched::Task *task);
+
+            /**
+             * @brief Clears the allocator.
+             */
+            virtual void clear() noexcept;
+
+            /**
+             * @brief Reserve memory for permanent delays.
+             * @param graph pointer to the graph.
+             */
+            virtual void allocatePersistentDelays(pisdf::Graph *graph);
+
+            /* === Getter(s) === */
+
+            /**
+             * @brief Get the type of the FifoAllocator
+             * @return @refitem FifoAllocatorType
+             */
+            virtual FifoAllocatorType type() const { return FifoAllocatorType::DEFAULT; };
+
+        protected:
+            size_t reservedMemory_ = 0;
+            size_t virtualMemoryAddress_ = 0;
+
+            explicit FifoAllocator(FifoAllocatorTraits traits) noexcept: traits_{ traits } { }
         };
-
-        /* === Allocator traits === */
-
-        FifoAllocatorTraits traits_;
-
-        explicit FifoAllocator(FifoAllocatorTraits traits = { false, false }) noexcept: traits_{ traits } { }
-
-        virtual ~FifoAllocator() noexcept = default;
-
-        /* === Method(s) === */
-
-        /**
-         * @brief Allocate a FIFO of given size.
-         * @param size      Size of the FIFO to allocate in bytes.
-         * @return created @refitem RTFifo.
-         */
-        virtual RTFifo allocate(size_t size) = 0;
-
-        virtual void allocate(ScheduleTask *task) = 0;
-
-        /**
-         * @brief Clears the allocator.
-         */
-        virtual void clear() noexcept = 0;
-
-        /**
-         * @brief Reserve memory for permanent delays.
-         * @param graph pointer to the graph.
-         */
-        virtual void allocatePersistentDelays(pisdf::Graph *graph) = 0;
-
-        /* === Getter(s) === */
-
-        /**
-         * @brief Get the type of the FifoAllocator
-         * @return @refitem FifoAllocatorType
-         */
-        virtual FifoAllocatorType type() const = 0;
-
-    private:
-    };
+    }
 }
 #endif //SPIDER2_FIFOALLOCATOR_H

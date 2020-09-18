@@ -39,6 +39,7 @@
 
 #include <cstdint>
 #include <cstddef>
+#include <containers/array.h>
 
 namespace spider {
 
@@ -91,8 +92,8 @@ namespace spider {
         }
 
     private:
-        Kernel kernel_;         /* = Kernel function to be called when executing the associated vertex = */
-        size_t ix_ = SIZE_MAX;  /* = Index of the kernel in the @refitem RTPlatform = */
+        Kernel kernel_;               /* = Kernel function to be called when executing the associated vertex = */
+        size_t ix_ = SIZE_MAX;        /* = Index of the kernel in the @refitem RTPlatform = */
     };
 
 }

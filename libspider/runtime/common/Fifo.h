@@ -32,16 +32,38 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
+#ifndef SPIDER2_FIFO_H
+#define SPIDER2_FIFO_H
+
 /* === Include(s) === */
 
-#include <scheduling/scheduler/RoundRobinScheduler.h>
+#include <common/Types.h>
 
-/* === Static variable(s) === */
+namespace spider {
 
-/* === Static function(s) === */
+    enum class FifoAttribute : u8 {
+        RW_ONLY = 0, /*!< Owner of the FIFO does not own the associated memory:
+                        *   --> no dealloc after read, no alloc before write */
+        RW_OWN,      /*!< Owner of the FIFO own the associated memory:
+                        *   --> dealloc after read, alloc before write */
+        RW_EXT,      /*!< Owner of the FIFO reads (writes) from (to) external memory */
+    };
 
-/* === Method(s) implementation === */
+    /* === Class definition === */
 
-spider::Schedule &spider::RoundRobinScheduler::execute() {
-    return schedule_;
+    struct Fifo {
+        size_t virtualAddress_;   /* = Virtual address of the Fifo = */
+        u32 size_;                /* = Size of the Fifo = */
+        u32 offset_;              /* = Offset in the address = */
+        u32 count_;               /* = Number of use of this FIFO = */
+        FifoAttribute attribute_; /* = Attribute of the Fifo = */
+
+        Fifo() : virtualAddress_{ 0u },
+                 size_{ 0u },
+                 offset_{ 0u },
+                 count_{ 0u },
+                 attribute_{ FifoAttribute::RW_OWN } { }
+    };
 }
+
+#endif //SPIDER2_FIFO_H

@@ -37,8 +37,9 @@
 
 /* === Include(s) === */
 
-#include <runtime/interface/Message.h>
-#include <runtime/interface/Notification.h>
+#include <runtime/message/Message.h>
+#include <runtime/message/JobMessage.h>
+#include <runtime/message/Notification.h>
 
 namespace spider {
 

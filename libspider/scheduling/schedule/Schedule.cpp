@@ -1,9 +1,9 @@
-/**
- * Copyright or © or Copr. IETR/INSA - Rennes (2019 - 2020) :
+/*
+ * Copyright or © or Copr. IETR/INSA - Rennes (2020) :
  *
- * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2019 - 2020)
+ * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2020)
  *
- * Spider 2.0 is a dataflow based runtime used to execute dynamic PiSDF
+ * Spider is a dataflow based runtime used to execute dynamic PiSDF
  * applications. The Preesm tool may be used to design PiSDF applications.
  *
  * This software is governed by the CeCILL  license under French law and
@@ -32,75 +32,44 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
+
 /* === Include(s) === */
 
 #include <scheduling/schedule/Schedule.h>
-#include <graphs/pisdf/Vertex.h>
-#include <runtime/interface/RTCommunicator.h>
-#include <runtime/platform/RTPlatform.h>
+#include <scheduling/task/Task.h>
 #include <api/archi-api.h>
+#include <archi/Platform.h>
+#include <archi/PE.h>
 #include <api/runtime-api.h>
+#include <runtime/platform/RTPlatform.h>
+#include <runtime/communicator/RTCommunicator.h>
 
-/* === Static variable(s) === */
-
-/* === Static function(s) === */
+/* === Static function === */
 
 /* === Method(s) implementation === */
 
-void spider::Schedule::clear() {
-    taskVector_.clear();
+void spider::sched::Schedule::clear() {
+    tasks_.clear();
     readyTaskVector_.clear();
     stats_.reset();
 }
 
-void spider::Schedule::reset() {
-    for (const auto &task : taskVector_) {
+void spider::sched::Schedule::reset() {
+    for (const auto &task : tasks_) {
         task->setState(TaskState::READY);
         readyTaskVector_.emplace_back(task.get());
     }
 }
 
-void spider::Schedule::print() const {
-    if (log::enabled<log::SCHEDULE>()) {
-//        const auto lrtCount = archi::platform()->LRTCount();
-//        for (const auto &task : taskVector_) {
-//            log::print<log::SCHEDULE>(log::magenta, "INFO: ", "Schedule: \n");
-//            log::print<log::SCHEDULE>(log::magenta, "INFO: ", "   >> task: %zu (runner: %zu -- exec: %d) [%s]\n",
-//                                      task->ix(),
-//                                      task->mappedLrt(), task->execIx(), task->name().c_str());
-//            log::print<log::SCHEDULE>(log::magenta, "INFO: ", "   >> will wait for:\n");
-//            for (size_t lrtIx = 0; lrtIx < lrtCount; ++lrtIx) {
-//                const auto taskIx = task->executionConstraint(lrtIx);
-//                if (taskIx >= 0) {
-//                    log::print<log::SCHEDULE>(log::magenta, "INFO: ",
-//                                              "           ----> task: %zu (runner: %zu -- exec: %d) [%s]\n",
-//                                              taskVector_[static_cast<size_t>(taskIx)]->ix(), lrtIx,
-//                                              taskVector_[static_cast<size_t>(taskIx)]->execIx(),
-//                                              taskVector_[static_cast<size_t>(taskIx)]->name().c_str());
-//                }
-//            }
-//            log::print<log::SCHEDULE>(log::magenta, "INFO: ", "   >> will notify:\n");
-//            for (size_t lrtIx = 0; lrtIx < lrtCount; ++lrtIx) {
-//                const auto notify = task->notificationFlags()[lrtIx];
-//                if (notify) {
-//                    log::print<log::SCHEDULE>(log::magenta, "INFO: ",
-//                                              "           ----> runner: %zu\n", lrtIx);
-//                }
-//            }
-//        }
-    }
-}
-
-void spider::Schedule::addScheduleTask(ScheduleTask *task) {
-    if (!task || (task->ix() >= 0)) {
+void spider::sched::Schedule::addTask(spider::unique_ptr<Task> task) {
+    if (!task || UINT32_MAX != task->ix()) {
         return;
     }
-    task->setIx(static_cast<i32>(taskVector_.size()));
-    taskVector_.emplace_back(task);
+    task->setIx(static_cast<u32>(tasks_.size()));
+    tasks_.emplace_back(std::move(task));
 }
 
-void spider::Schedule::updateTaskAndSetReady(size_t taskIx, size_t slave, uint64_t startTime, uint64_t endTime) {
-    const auto &task = taskVector_.at(taskIx);
+void spider::sched::Schedule::updateTaskAndSetReady(Task *task, size_t slave, u64 startTime, u64 endTime) {
     if (task->state() == TaskState::READY) {
         return;
     }
@@ -108,11 +77,10 @@ void spider::Schedule::updateTaskAndSetReady(size_t taskIx, size_t slave, uint64
     const auto &peIx = pe->virtualIx();
 
     /* == Set job information == */
-    task->setMappedLrt(pe->attachedLRT()->virtualIx());
-    task->setMappedPE(peIx);
+    task->setMappedPE(pe);
     task->setStartTime(startTime);
     task->setEndTime(endTime);
-    task->setExecIx(static_cast<i32>(stats_.jobCount(peIx)));
+    task->setJobExecIx(static_cast<u32>(stats_.jobCount(peIx)));
 
     /* == Find minimal dependencies == */
     task->updateExecutionConstraints();
@@ -126,20 +94,21 @@ void spider::Schedule::updateTaskAndSetReady(size_t taskIx, size_t slave, uint64
 
     /* == Update job state == */
     task->setState(TaskState::READY);
-    readyTaskVector_.emplace_back(task.get());
+    readyTaskVector_.emplace_back(task);
 }
 
-void spider::Schedule::sendReadyTasks() {
+void spider::sched::Schedule::sendReadyTasks() {
     if (log::enabled<log::SCHEDULE>()) {
-        print();
+//        print();
     }
     const auto grtIx = archi::platform()->getGRTIx();
     auto *communicator = rt::platform()->communicator();
-    for (auto &task : readyTaskVector_) {
+    for (const auto &task : readyTaskVector_) {
         if (task->state() == TaskState::READY) {
             /* == Create job message and send the notification == */
-            const auto messageIx = communicator->push(task->createJobMessage(), task->mappedLrt());
-            communicator->push(Notification{ NotificationType::JOB_ADD, grtIx, messageIx }, task->mappedLrt());
+            const auto messageIx = communicator->push(task->createJobMessage(), task->mappedLRT()->virtualIx());
+            communicator->push(Notification{ NotificationType::JOB_ADD, grtIx, messageIx },
+                               task->mappedLRT()->virtualIx());
             /* == Set job in TaskState::RUNNING == */
             task->setState(TaskState::RUNNING);
         }
@@ -147,3 +116,5 @@ void spider::Schedule::sendReadyTasks() {
     /* == Reset ready task vector == */
     readyTaskVector_.clear();
 }
+
+/* === Private method(s) implementation === */

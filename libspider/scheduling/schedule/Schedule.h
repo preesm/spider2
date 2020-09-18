@@ -1,9 +1,9 @@
-/**
- * Copyright or © or Copr. IETR/INSA - Rennes (2019 - 2020) :
+/*
+ * Copyright or © or Copr. IETR/INSA - Rennes (2020) :
  *
- * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2019 - 2020)
+ * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2020)
  *
- * Spider 2.0 is a dataflow based runtime used to execute dynamic PiSDF
+ * Spider is a dataflow based runtime used to execute dynamic PiSDF
  * applications. The Preesm tool may be used to design PiSDF applications.
  *
  * This software is governed by the CeCILL  license under French law and
@@ -38,148 +38,125 @@
 /* === Include(s) === */
 
 #include <containers/vector.h>
-#include <scheduling/schedule/ScheduleTask.h>
-#include <scheduling/schedule/ScheduleStats.h>
-#include <functional>
 #include <memory/unique_ptr.h>
+#include "ScheduleStats.h"
 
 namespace spider {
 
-    /* === Class definition === */
+    namespace sched {
 
-    class Schedule {
-    public:
+        class Task;
 
-        Schedule() : taskVector_{ factory::vector<unique_ptr<ScheduleTask>>(StackID::SCHEDULE) } { }
+        /* === Class definition === */
 
-        ~Schedule() = default;
+        class Schedule {
+        public:
+            Schedule() : tasks_{ factory::vector<spider::unique_ptr<Task>>(StackID::SCHEDULE) } { };
 
-        /* === Method(s) === */
+            ~Schedule() = default;
 
-        /**
-         * @brief Clear schedule tasks.
-         */
-        void clear();
+            /* === Method(s) === */
 
-        /**
-         * @brief Reset schedule tasks.
-         * @remark Set all task state to @refitem TaskState::PENDING.
-         * @remark Statistics of the platform are not modified.
-         */
-        void reset();
+            /**
+             * @brief Clear schedule tasks.
+             */
+            void clear();
 
-        /**
-         * @brief Send every tasks currently in JobState::READY.
-         */
-        void sendReadyTasks();
+            /**
+             * @brief Reset schedule tasks.
+             * @remark Set all task state to @refitem TaskState::PENDING.
+             * @remark Statistics of the platform are not modified.
+             */
+            void reset();
 
-        /**
-         * @brief Print the Schedule in the console with the format:
-         *        task: index
-         *          ----> dependency on lrt[0]
-         *          ...
-         *          ----> dependency on lrt[n]
-         * @remark requires the SCHEDULE log to be enabled.
-         */
-        void print() const;
+            /**
+             * @brief Add a new schedule task to the schedule.
+             * @remark if task has an index >= 0, nothing happens.
+             * @remark if task is nullptr, nothing happens.
+             * @param task Pointer to the task.
+             */
+            void addTask(spider::unique_ptr<Task> task);
 
-        /**
-         * @brief Add a new schedule task to the schedule.
-         * @remark if task has an index >= 0, nothing happens.
-         * @remark if task is nullptr, nothing happens.
-         * @param task Pointer to the task.
-         */
-        void addScheduleTask(ScheduleTask *task);
+            /**
+             * @brief Updates a task information and set its state as JobState::READY
+             * @param task      Pointer to the task.
+             * @param slave     Slave (cluster and pe) to execute on.
+             * @param startTime Start time of the task.
+             * @param endTime   End time of the task.
+             * @throw std::out_of_range if bad ix.
+             */
+            void updateTaskAndSetReady(Task *task, size_t slave, u64 startTime, u64 endTime);
 
-        /**
-         * @brief Updates a task information and set its state as JobState::READY
-         * @param taskIx    Ix of the task to update.
-         * @param slave     Slave (cluster and pe) to execute on.
-         * @param startTime Start time of the task.
-         * @param endTime   End time of the task.
-         * @throw std::out_of_range if bad ix.
-         */
-        void updateTaskAndSetReady(size_t taskIx, size_t slave, uint64_t startTime, uint64_t endTime);
+            /**
+             * @brief Send every tasks currently in JobState::READY.
+             */
+            void sendReadyTasks();
 
-        /* === Getter(s) === */
+            /* === Getter(s) === */
 
-        /**
-         * @brief Get the number of tasks in the schedule.
-         * @return number of tasks.
-         */
-        inline size_t taskCount() const {
-            return taskVector_.size();
-        }
+            /**
+             * @brief Get the list of scheduled tasks, obtained after the call to Scheduler::schedule method.
+             * @return const reference to a vector of pointer to Task.
+             */
+            inline const spider::vector<spider::unique_ptr<Task>> &tasks() const { return tasks_; }
 
-        /**
-         * @brief Get the task vector of the schedule.
-         * @return const reference to the task vector
-         */
-        inline const vector<unique_ptr<ScheduleTask>> &tasks() const {
-            return taskVector_;
-        }
+            /**
+             * @brief Get the ready task vector of the schedule.
+             * @return  const reference to the ready task vector.
+             */
+            inline const spider::vector<Task *> &readyTasks() const { return readyTaskVector_; }
 
-        /**
-         * @brief Get the ready task vector of the schedule.
-         * @return  const reference to the ready task vector.
-         */
-        inline const vector<ScheduleTask *> &readyTasks() const {
-            return readyTaskVector_;
-        }
+            /**
+             * @brief Get a task from its ix.
+             * @param ix  Ix of the task to fetch.
+             * @return pointer to the task.
+             * @throws @refitem std::out_of_range if ix is out of range.
+             */
+            inline Task *task(size_t ix) const {
+                return tasks_.at(ix).get();
+            }
 
-        /**
-         * @brief Get a task from its ix.
-         * @param ix  Ix of the task to fetch.
-         * @return pointer to the task.
-         * @throws @refitem std::out_of_range if ix is out of range.
-         */
-        inline ScheduleTask *task(size_t ix) const {
-            return taskVector_.at(ix).get();
-        }
+            /**
+             * @brief Get the different statistics of the platform.
+             * @return const reference to @refitem Stats
+             */
+            inline const Stats &stats() const { return stats_; }
 
-        /**
-         * @brief Get the different statistics of the platform.
-         * @return const reference to @refitem Stats
-         */
-        inline const Stats &stats() const {
-            return stats_;
-        }
+            /**
+             * @brief Return the scheduled start time of a given PE.
+             * @param ix  PE to check.
+             * @return start time of given PE.
+             * @throws @refitem std::out_of_range if PE out of range.
+             */
+            inline uint64_t startTime(size_t ix) const {
+                return stats().startTime(ix);
+            }
 
-        /**
-         * @brief Get the different statistics of the platform.
-         * @return const reference to @refitem Stats
-         */
-        inline Stats &stats() {
-            return stats_;
-        }
+            /**
+             * @brief Return the scheduled end time of a given PE.
+             * @param ix  PE to check.
+             * @return end time of given PE.
+             * @throws @refitem std::out_of_range if PE out of range.
+             */
+            inline uint64_t endTime(size_t ix) const {
+                return stats().endTime(ix);
+            }
 
-        /**
-         * @brief Return the scheduled start time of a given PE.
-         * @param ix  PE to check.
-         * @return start time of given PE.
-         * @throws @refitem std::out_of_range if PE out of range.
-         */
-        inline uint64_t startTime(size_t ix) const {
-            return stats().startTime(ix);
-        }
+            /**
+             * @brief Get the number of task in the schedule (including already launched tasks).
+             * @return number of tasks in the schedule.
+             */
+            inline size_t taskCount() const {
+                return tasks_.size();
+            }
 
-        /**
-         * @brief Return the scheduled end time of a given PE.
-         * @param ix  PE to check.
-         * @return end time of given PE.
-         * @throws @refitem std::out_of_range if PE out of range.
-         */
-        inline uint64_t endTime(size_t ix) const {
-            return stats().endTime(ix);
-        }
+            /* === Setter(s) === */
 
-        /* === Setter(s) === */
-
-    private:
-        vector<unique_ptr<ScheduleTask>> taskVector_;
-        vector<ScheduleTask *> readyTaskVector_;
-        Stats stats_;
-    };
+        private:
+            spider::vector<spider::unique_ptr<Task>> tasks_;
+            spider::vector<Task *> readyTaskVector_;
+            Stats stats_;
+        };
+    }
 }
-
 #endif //SPIDER2_SCHEDULE_H

@@ -53,6 +53,12 @@ namespace spider {
         v.pop_back();
     }
 
+    template<class T>
+    inline void out_of_order_erase(vector<T> &v, typename vector<T>::iterator it) {
+        (*it) = std::move(v.back());
+        v.pop_back();
+    }
+
     namespace factory {
 
         template<class T>
