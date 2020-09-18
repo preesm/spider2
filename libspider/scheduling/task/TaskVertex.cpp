@@ -77,6 +77,7 @@ void spider::sched::TaskVertex::updateExecutionConstraints() {
     const auto lrtCount = archi::platform()->LRTCount();
     std::fill(execConstraints, execConstraints + lrtCount, SIZE_MAX);
     auto shouldNotifyArray = array<size_t>(lrtCount, SIZE_MAX, StackID::SCHEDULE);
+    // TODO: see how these two loops could be merged into one
     for (size_t i = 0; i < vertex_->inputEdgeCount(); ++i) {
         auto *dependency = execDependencies[i];
         if (dependency) {

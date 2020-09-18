@@ -58,8 +58,6 @@ void spider::SchedXMLGanttExporter::printFromFile(FILE *file) const {
 }
 
 void spider::SchedXMLGanttExporter::printTask(FILE *file, const sched::Task *task) const {
-    const auto *platform = archi::platform();
-
     /* == Let's compute a color based on the value of the pointer == */
     const auto name = task->name();
     u32 color = task->color();

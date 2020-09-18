@@ -82,6 +82,7 @@ void spider::sched::ListScheduler::schedule(const pisdf::Graph *graph) {
     /* == Create the list of tasks to be scheduled == */
     for (auto k = lastScheduledTask_; k < lastSchedulableTask_; ++k) {
         tasks_.emplace_back(make<TaskVertex>(sortedTaskVector_[k].vertex_));
+        sortedTaskVector_[k].vertex_->setScheduleTaskIx(SIZE_MAX);
     }
 }
 
