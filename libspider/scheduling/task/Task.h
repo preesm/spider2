@@ -214,6 +214,13 @@ namespace spider {
              */
             virtual bool isSyncOptimizable() const noexcept = 0;
 
+            /**
+             * @brief Get notification flag for given LRT.
+             * @remark no boundary check is performed.
+             * @return boolean flag indicating if this task is notifying given LRT.
+             */
+            inline bool getNotificationFlagForLRT(size_t ix) const { return execInfo_.notifications_.get()[ix]; }
+
             /* === Setter(s) === */
 
             /**

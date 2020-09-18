@@ -57,7 +57,6 @@ void spider::sched::BestFitMapper::map(TaskVertex *task, Schedule *schedule) {
     }
     task->setState(sched::TaskState::PENDING);
     task->updateTaskExecutionDependencies(schedule);
-    vertex->setScheduleTaskIx(task->ix());
 
     /* == Compute the minimum start time possible for the task == */
     const auto minStartTime = computeStartTime(vertex, schedule);

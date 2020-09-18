@@ -72,27 +72,25 @@ void spider::sched::TaskVertex::updateTaskExecutionDependencies(const spider::sc
 }
 
 void spider::sched::TaskVertex::updateExecutionConstraints() {
-    const auto lrtCount = archi::platform()->LRTCount();
-    auto oldDependencies = array<size_t>(lrtCount, SIZE_MAX, StackID::SCHEDULE);
     auto *execDependencies = execInfo_.dependencies_.get();
     auto *execConstraints = execInfo_.constraints_.get();
+    const auto lrtCount = archi::platform()->LRTCount();
     std::fill(execConstraints, execConstraints + lrtCount, SIZE_MAX);
+    auto shouldNotifyArray = array<size_t>(lrtCount, SIZE_MAX, StackID::SCHEDULE);
     for (size_t i = 0; i < vertex_->inputEdgeCount(); ++i) {
-        auto *dependency = execInfo_.dependencies_.get()[i];
+        auto *dependency = execDependencies[i];
         if (dependency) {
             const auto *depLRT = dependency->mappedLRT();
             const auto currentJobConstraint = execConstraints[depLRT->virtualIx()];
-            if (currentJobConstraint == SIZE_MAX) {
-                oldDependencies[depLRT->virtualIx()] = i;
+            if ((currentJobConstraint == SIZE_MAX) || (dependency->jobExecIx() > currentJobConstraint)) {
                 execConstraints[depLRT->virtualIx()] = dependency->jobExecIx();
-                dependency->setNotificationFlag(mappedLRT()->virtualIx(), true);
-            } else if (dependency->jobExecIx() > currentJobConstraint) {
-                auto *oldDep = execDependencies[oldDependencies[depLRT->virtualIx()]];
-                oldDep->setNotificationFlag(mappedLRT()->virtualIx(), false);
-                dependency->setNotificationFlag(mappedLRT()->virtualIx(), true);
-                oldDependencies[depLRT->virtualIx()] = i;
-                execConstraints[depLRT->virtualIx()] = dependency->jobExecIx();
+                shouldNotifyArray[depLRT->virtualIx()] = i;
             }
+        }
+    }
+    for (const auto &value : shouldNotifyArray) {
+        if (value != SIZE_MAX) {
+            execDependencies[value]->setNotificationFlag(mappedLRT()->virtualIx(), true);
         }
     }
 }

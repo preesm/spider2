@@ -51,6 +51,7 @@ spider::sched::Task::Task() : mappingInfo_{
     const auto lrtCount{ archi::platform()->LRTCount() };
     execInfo_.constraints_ = make_unique<size_t>(allocate<size_t, StackID::SCHEDULE>(lrtCount));
     execInfo_.notifications_ = make_unique<bool>(allocate<bool, StackID::SCHEDULE>(lrtCount));
+    std::fill(execInfo_.notifications_.get(), execInfo_.notifications_.get() + lrtCount, false);
 }
 
 void spider::sched::Task::enableBroadcast() {
