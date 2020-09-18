@@ -1,9 +1,9 @@
-/**
- * Copyright or © or Copr. IETR/INSA - Rennes (2019 - 2020) :
+/*
+ * Copyright or © or Copr. IETR/INSA - Rennes (2020) :
  *
- * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2019 - 2020)
+ * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2020)
  *
- * Spider 2.0 is a dataflow based runtime used to execute dynamic PiSDF
+ * Spider is a dataflow based runtime used to execute dynamic PiSDF
  * applications. The Preesm tool may be used to design PiSDF applications.
  *
  * This software is governed by the CeCILL  license under French law and
@@ -32,45 +32,13 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
+
 /* === Include(s) === */
 
-#include <runtime/algorithm/FastJITMSRuntime.h>
-#include <runtime/runner/RTRunner.h>
-#include <runtime/platform/RTPlatform.h>
-#include <runtime/communicator/RTCommunicator.h>
-#include <api/runtime-api.h>
-#include <graphs-tools/transformation/srdagless/SRLessHandler.h>
-#include <graphs-tools/transformation/srdag/Transformation.h>
-#include <graphs-tools/numerical/brv.h>
-#include <graphs-tools/helper/pisdf-helper.h>
-#include <api/config-api.h>
+#include "GraphHandler.h"
 
 /* === Static function === */
 
 /* === Method(s) implementation === */
 
 /* === Private method(s) implementation === */
-
-spider::FastJITMSRuntime::FastJITMSRuntime(pisdf::Graph *graph,
-                                           SchedulingPolicy schedulingAlgorithm,
-                                           FifoAllocatorType type) :
-        Runtime(graph) {
-}
-
-bool spider::FastJITMSRuntime::execute() {
-    return dynamicExecute();
-}
-
-/* === Private method(s) implementation === */
-
-bool spider::FastJITMSRuntime::staticExecute() {
-    return true;
-}
-
-bool spider::FastJITMSRuntime::dynamicExecute() {
-    return true;
-}
-
-void spider::FastJITMSRuntime::handleStaticGraph(pisdf::Graph *) {
-    /* == Compute BRV == */
-}

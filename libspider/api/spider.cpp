@@ -43,7 +43,7 @@
 #include <graphs/pisdf/Graph.h>
 #include <runtime/algorithm/Runtime.h>
 #include <runtime/algorithm/JITMSRuntime.h>
-#include <runtime/algorithm/FastJITMSRuntime.h>
+#include <runtime/algorithm/FastRuntime.h>
 #include <runtime/algorithm/StaticRuntime.h>
 #include <graphs-tools/helper/pisdf-helper.h>
 
@@ -208,8 +208,10 @@ static spider::Runtime *getRuntimeFromType(spider::pisdf::Graph *graph,
             return spider::make<spider::JITMSRuntime>(StackID::GENERAL, graph,
                                                       cfg.schedPolicy_, cfg.mapPolicy_, cfg.execPolicy_,
                                                       cfg.allocType_);
-        case spider::RuntimeType::FAST_JITMS:
-            return spider::make<spider::FastJITMSRuntime>(StackID::GENERAL, graph, cfg.schedPolicy_, cfg.allocType_);
+        case spider::RuntimeType::FAST:
+            return spider::make<spider::FastRuntime>(StackID::GENERAL, graph,
+                                                     cfg.schedPolicy_, cfg.mapPolicy_, cfg.execPolicy_,
+                                                     cfg.allocType_);
         default:
             return nullptr;
     }

@@ -167,7 +167,7 @@ namespace spider {
         JITMS = 0,  /*!< Use the Just In Time Multicore Scheduling runtime
                      *   see: https://tel.archives-ouvertes.fr/tel-01301642/file/These_HEULOT_Julien.pdf
                      */
-        FAST_JITMS, /*!< Use a faster version of the JITMS runtime by not computing the Single Rate intermediate graph.
+        FAST, /*!< Use a faster version of the JITMS runtime by not computing the Single Rate intermediate graph.
                      *   see: https://hal-univ-rennes1.archives-ouvertes.fr/hal-02355636
                      */
     };

@@ -32,8 +32,8 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_FASTJITMSRUNTIME_H
-#define SPIDER2_FASTJITMSRUNTIME_H
+#ifndef SPIDER2_FASTRUNTIME_H
+#define SPIDER2_FASTRUNTIME_H
 
 /* === Include(s) === */
 
@@ -44,17 +44,21 @@ namespace spider {
 
     /* === Forward declaration(s) === */
 
-    class SRLessScheduler;
+    namespace sched {
+        class ResourcesAllocator;
+    }
 
     /* === Class definition === */
 
-    class FastJITMSRuntime final : public Runtime {
+    class FastRuntime final : public Runtime {
     public:
-        explicit FastJITMSRuntime(pisdf::Graph *graph,
-                                  SchedulingPolicy schedulingAlgorithm = SchedulingPolicy::LIST,
-                                  FifoAllocatorType type = FifoAllocatorType::DEFAULT);
+        explicit FastRuntime(pisdf::Graph *graph,
+                             SchedulingPolicy schedulingPolicy = SchedulingPolicy::LIST,
+                             MappingPolicy mappingPolicy = MappingPolicy::BEST_FIT,
+                             ExecutionPolicy executionPolicy = ExecutionPolicy::DELAYED,
+                             FifoAllocatorType allocatorType = FifoAllocatorType::DEFAULT);
 
-        ~FastJITMSRuntime() override = default;
+        ~FastRuntime() override = default;
 
         /* === Method(s) === */
 
@@ -67,6 +71,7 @@ namespace spider {
         /* === Setter(s) === */
 
     private:
+        spider::unique_ptr<sched::ResourcesAllocator> resourcesAllocator_;
 
         /* === Private method(s) === */
 
@@ -86,4 +91,4 @@ namespace spider {
     };
 }
 
-#endif //SPIDER2_FASTJITMSRUNTIME_H
+#endif //SPIDER2_FASTRUNTIME_H
