@@ -49,6 +49,10 @@ namespace spider {
         class Graph;
     }
 
+    namespace srless {
+        class GraphHandler;
+    }
+
     namespace sched {
 
         class FifoAllocator;
@@ -67,6 +71,8 @@ namespace spider {
             /* === Method(s) === */
 
             void execute(const pisdf::Graph *graph);
+
+            void execute(const srless::GraphHandler *graphHandler);
 
             void clear();
 

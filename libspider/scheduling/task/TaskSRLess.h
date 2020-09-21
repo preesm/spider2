@@ -32,55 +32,66 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_FIRINGHANDLER_H
-#define SPIDER2_FIRINGHANDLER_H
+#ifndef SPIDER2_TASKSRLESS_H
+#define SPIDER2_TASKSRLESS_H
 
 /* === Include(s) === */
 
-#include <common/Types.h>
-#include <memory/unique_ptr.h>
-#include <containers/vector.h>
+#include <scheduling/task/Task.h>
 
 namespace spider {
 
-    class GraphHandler;
-
-    namespace pisdf {
-        class Graph;
-
-        class Param;
+    namespace srless {
+        class FiringHandler;
     }
 
-    /* === Class definition === */
+    namespace pisdf {
+        class Vertex;
+    }
+    namespace sched {
 
-    class FiringHandler {
-    public:
-        FiringHandler(const GraphHandler *parent, spider::vector<std::shared_ptr<pisdf::Param>> &params);
+        /* === Class definition === */
 
-        ~FiringHandler() = default;
+        class TaskSRLess final : public Task {
+        public:
+            explicit TaskSRLess(const srless::FiringHandler *handler,
+                                const pisdf::Vertex *vertex,
+                                u32 firing);
 
-        /* === Method(s) === */
+            ~TaskSRLess() noexcept override = default;
 
-        /* === Getter(s) === */
+            /* === Method(s) === */
 
-        int64_t getParamValue(size_t ix);
+            AllocationRule allocationRuleForInputFifo(size_t ix) const override;
 
-        /* === Setter(s) === */
+            AllocationRule allocationRuleForOutputFifo(size_t ix) const override;
 
-        void setParamValue(size_t ix, int64_t value);
+            Task *previousTask(size_t ix) const override;
 
-        inline void setIx(size_t ix) { ix_ = ix; }
+            u32 color() const override;
 
-        inline void setFiring(u32 firing) { firing_ = firing; }
+            std::string name() const override;
 
-    private:
-        spider::vector<spider::unique_ptr<GraphHandler>> children_; /* == match between subgraphs and their handler == */
-        spider::vector<std::shared_ptr<pisdf::Param>> params_;
-        spider::vector<u32> brv_;
-        const GraphHandler *parent_;
-        size_t ix_{ };
-        u32 firing_{ };
-    };
+            inline void updateTaskExecutionDependencies(const Schedule *) override { }
+
+            void updateExecutionConstraints() override;
+
+            JobMessage createJobMessage() const override;
+
+            /* === Getter(s) === */
+
+            inline bool isSyncOptimizable() const noexcept override { return false; }
+
+            /* === Setter(s) === */
+
+            void setExecutionDependency(size_t ix, Task *task) override;
+
+        private:
+            const srless::FiringHandler *handler_;
+            const pisdf::Vertex *vertex_;
+            u32 firing_;
+        };
+    }
 }
 
-#endif //SPIDER2_FIRINGHANDLER_H
+#endif //SPIDER2_TASKSRLESS_H

@@ -43,6 +43,12 @@
 
 /* === Method(s) implementation === */
 
+spider::sched::GreedyScheduler::GreedyScheduler() :
+        Scheduler(),
+        unscheduledVertices_{ factory::vector<ScheduleVertex>(StackID::SCHEDULE) } {
+
+}
+
 void spider::sched::GreedyScheduler::schedule(const pisdf::Graph *graph) {
     tasks_.clear();
     unscheduledVertices_.reserve(graph->vertexCount());

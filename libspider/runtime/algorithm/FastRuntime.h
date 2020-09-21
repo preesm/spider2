@@ -38,7 +38,7 @@
 /* === Include(s) === */
 
 #include <runtime/algorithm/Runtime.h>
-#include <graphs-tools/transformation/srdagless/SRLessHandler.h>
+#include <memory/unique_ptr.h>
 
 namespace spider {
 

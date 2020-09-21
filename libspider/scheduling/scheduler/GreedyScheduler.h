@@ -48,7 +48,7 @@ namespace spider {
         class GreedyScheduler final : public Scheduler {
         public:
 
-            GreedyScheduler() : Scheduler() { };
+            GreedyScheduler();
 
             ~GreedyScheduler() noexcept override = default;
 
@@ -57,10 +57,6 @@ namespace spider {
             void schedule(const pisdf::Graph *graph) override;
 
             void clear() override;
-
-            /* === Getter(s) === */
-
-            /* === Setter(s) === */
 
             /* === Getter(s) === */
 
@@ -81,6 +77,8 @@ namespace spider {
             spider::vector<ScheduleVertex> unscheduledVertices_;
 
             /* === Private method(s) === */
+
+            inline void schedule(const srless::GraphHandler *) override { }
 
             /**
              * @brief Reset unscheduled task from previous schedule iteration.

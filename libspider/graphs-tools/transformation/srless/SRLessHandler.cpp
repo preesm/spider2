@@ -34,7 +34,7 @@
  */
 /* === Include(s) === */
 
-#include <graphs-tools/transformation/srdagless/SRLessHandler.h>
+#include <graphs-tools/transformation/srless/SRLessHandler.h>
 #include <graphs/pisdf/Param.h>
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/DelayVertex.h>

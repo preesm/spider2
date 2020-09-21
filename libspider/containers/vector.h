@@ -59,6 +59,33 @@ namespace spider {
         v.pop_back();
     }
 
+    template<class T>
+    inline void set_at(vector<T> &v, size_t ix, const T &value) {
+#ifndef NDEBUG
+        v.at(ix) = value;
+#else
+        v[ix] = value;
+#endif
+    }
+
+    template<class T>
+    inline void set_at(vector<T> &v, size_t ix, T &&value) {
+#ifndef NDEBUG
+        v.at(ix) = std::move(value);
+#else
+        v[ix] = std::move(value);
+#endif
+    }
+
+    template<class T>
+    inline T get_at(const vector<T> &v, size_t ix) {
+#ifndef NDEBUG
+        return v.at(ix);
+#else
+        return v[ix];
+#endif
+    }
+
     namespace factory {
 
         template<class T>

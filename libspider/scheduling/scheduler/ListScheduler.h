@@ -52,7 +52,7 @@ namespace spider {
 
         class ListScheduler final : public Scheduler {
         public:
-            ListScheduler() : Scheduler(), sortedTaskVector_{ factory::vector<ListTask>(StackID::SCHEDULE) } { };
+            ListScheduler();
 
             ~ListScheduler() override = default;
 
@@ -76,6 +76,8 @@ namespace spider {
             size_t lastScheduledTask_ = 0;
 
             /* === Private method(s) === */
+
+            inline void schedule(const srless::GraphHandler *) override { }
 
             /**
              * @brief Reset unscheduled task from previous schedule iteration.
@@ -106,7 +108,7 @@ namespace spider {
              * @param listVertexVector Vector of @refitem ListVertex to evaluate.
              * @return
              */
-            ifast32 computeScheduleLevel(ListTask &listTask, vector <ListTask> &listVertexVector) const;
+            ifast32 computeScheduleLevel(ListTask &listTask, vector<ListTask> &listVertexVector) const;
 
             /**
              * @brief Sort the list of vertices.

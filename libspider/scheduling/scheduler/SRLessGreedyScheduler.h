@@ -32,68 +32,75 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_SCHEDULER_H
-#define SPIDER2_SCHEDULER_H
+#ifndef SPIDER2_SRLESSGREEDYSCHEDULER_H
+#define SPIDER2_SRLESSGREEDYSCHEDULER_H
 
 /* === Include(s) === */
 
-#include <containers/vector.h>
-#include <memory/unique_ptr.h>
-#include <scheduling/task/Task.h>
+#include <scheduling/scheduler/Scheduler.h>
 
 namespace spider {
 
-    namespace pisdf {
-        class Graph;
-    }
-
     namespace srless {
-        class GraphHandler;
+        class FiringHandler;
     }
 
     namespace sched {
 
         /* === Class definition === */
 
-        class Scheduler {
+        class SRLessGreedyScheduler final : public Scheduler {
         public:
-            Scheduler();
 
-            virtual ~Scheduler() noexcept = default;
+            SRLessGreedyScheduler();
+
+            ~SRLessGreedyScheduler() noexcept override = default;
 
             /* === Method(s) === */
 
-            /**
-             * @brief Update internal state of the scheduler (mostly for dynamic applications)
-             * @param graph  Graph to use to perform the update.
-             */
-            virtual void schedule(const pisdf::Graph *graph) = 0;
+            void schedule(const srless::GraphHandler *graphHandler) override;
 
-            /**
-             * @brief Update internal state of the scheduler (mostly for dynamic applications)
-             * @param
-             */
-            virtual void schedule(const srless::GraphHandler *graphHandler) = 0;
-
-            /**
-             * @brief Clears scheduler resources.
-             */
-            virtual void clear();
+            void clear() override;
 
             /* === Getter(s) === */
 
-            /**
-             * @brief Get the list of scheduled tasks, obtained after the call to Scheduler::schedule method.
-             * @return const reference to a vector of pointer to Task.
-             */
-            inline spider::vector<spider::unique_ptr<Task>> &tasks() { return tasks_; }
-
             /* === Setter(s) === */
 
-        protected:
-            spider::vector<spider::unique_ptr<Task>> tasks_;
+        private:
+
+            /* === Types definition === */
+
+            struct ScheduleVertex {
+                pisdf::Vertex *vertex_;
+                srless::FiringHandler *handler_;
+                bool executable_;
+                bool scheduled_;
+            };
+            using iterator_t = spider::vector<ScheduleVertex>::iterator;
+
+            spider::vector<ScheduleVertex> unscheduledVertices_;
+
+            /* == Private method(s) === */
+
+            inline void schedule(const pisdf::Graph *) override { }
+
+            /**
+             * @brief Evaluate current vertex pointed by the iterator it for schedulability.
+             * @param it Iterator to the vertex to be evaluated.
+             * @return it + 1 if vertex was schedulable due to dependency not being executable,
+             *         iterator to one of the source of the vertex if it was schedulable due to dependency not yet satisfied,
+             *         iterator to last value of the unscheduledVertices_ vector if vertex was scheduled.
+             */
+            iterator_t evaluate(iterator_t it);
+
+            /**
+             * @brief Remove value at given position and swap it with the value at the end of the unscheduledVertices_ vector.
+             * @param it Iterator to the value to be removed.
+             * @return iterator pointing to the element at the same position as the removed one (end iterator else)
+             */
+            iterator_t removeAndSwap(iterator_t it);
+
         };
     }
 }
-
-#endif //SPIDER2_SCHEDULER_H
+#endif //SPIDER2_SRLESSGREEDYSCHEDULER_H

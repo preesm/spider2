@@ -50,6 +50,11 @@ namespace {
 
 /* === Method(s) implementation === */
 
+spider::sched::ListScheduler::ListScheduler() : Scheduler(),
+                                                sortedTaskVector_{ factory::vector<ListTask>(StackID::SCHEDULE) } {
+
+}
+
 void spider::sched::ListScheduler::schedule(const pisdf::Graph *graph) {
     /* == Reserve space for the new ListTasks == */
     tasks_.clear();

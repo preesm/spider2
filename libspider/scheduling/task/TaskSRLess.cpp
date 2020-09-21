@@ -35,38 +35,53 @@
 
 /* === Include(s) === */
 
-#include <graphs-tools/transformation/srdagless/FiringHandler.h>
-#include <graphs-tools/transformation/srdagless/GraphHandler.h>
-#include <graphs/pisdf/Graph.h>
+#include <scheduling/task/TaskSRLess.h>
+#include <graphs-tools/transformation/srless/GraphHandler.h>
+#include <graphs-tools/transformation/srless/FiringHandler.h>
+#include <graphs/pisdf/Vertex.h>
+#include <graphs/pisdf/Edge.h>
 
 /* === Static function === */
 
 /* === Method(s) implementation === */
 
-spider::FiringHandler::FiringHandler(const GraphHandler *parent,
-                                     spider::vector<std::shared_ptr<pisdf::Param>> &params) :
-        children_{ factory::vector<spider::unique_ptr<GraphHandler>>(StackID::TRANSFO) },
-        params_{ factory::vector<std::shared_ptr<pisdf::Param>>(StackID::TRANSFO) },
-        parent_{ parent } {
-    const auto *graph = parent->graph();
-    children_.reserve(graph->subgraphCount());
-    params_.reserve(params.size());
+spider::sched::TaskSRLess::TaskSRLess(const srless::FiringHandler *handler,
+                                      const pisdf::Vertex *vertex,
+                                      u32 firing) : Task(),
+                                                    handler_{ handler }, vertex_{ vertex }, firing_{ firing } {
+
 }
 
-int64_t spider::FiringHandler::getParamValue(size_t ix) {
-#ifndef NDEBUG
-    return params_.at(ix)->value(params_);
-#else
-    return params_[ix]->value(params_);
-#endif
+spider::sched::AllocationRule spider::sched::TaskSRLess::allocationRuleForInputFifo(size_t ix) const {
+    return spider::sched::AllocationRule();
 }
 
-void spider::FiringHandler::setParamValue(size_t ix, int64_t value) {
-#ifndef NDEBUG
-    params_.at(ix)->setValue(value);
-#else
-    params_[ix]->setValue(value);
-#endif
+spider::sched::AllocationRule spider::sched::TaskSRLess::allocationRuleForOutputFifo(size_t ix) const {
+    return spider::sched::AllocationRule();
+}
+
+spider::sched::Task *spider::sched::TaskSRLess::previousTask(size_t ix) const {
+    return nullptr;
+}
+
+u32 spider::sched::TaskSRLess::color() const {
+    return 0;
+}
+
+std::string spider::sched::TaskSRLess::name() const {
+    return vertex_->name() + ":" + std::to_string(firing_);
+}
+
+void spider::sched::TaskSRLess::updateExecutionConstraints() {
+
+}
+
+spider::JobMessage spider::sched::TaskSRLess::createJobMessage() const {
+    return spider::JobMessage();
+}
+
+void spider::sched::TaskSRLess::setExecutionDependency(size_t ix, spider::sched::Task *task) {
+
 }
 
 /* === Private method(s) implementation === */

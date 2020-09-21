@@ -32,45 +32,38 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_GRAPHHANDLER_H
-#define SPIDER2_GRAPHHANDLER_H
 
 /* === Include(s) === */
 
-#include <common/Types.h>
-#include <memory/unique_ptr.h>
+#include <graphs-tools/transformation/srless/GraphHandler.h>
+#include <graphs-tools/transformation/srless/FiringHandler.h>
+#include <graphs-tools/helper/pisdf-helper.h>
 #include <containers/vector.h>
 
-namespace spider {
+/* === Static function === */
 
-    class FiringHandler;
+/* === Method(s) implementation === */
 
-    namespace pisdf {
-        class Graph;
-
-        class Param;
+spider::srless::GraphHandler::GraphHandler(const spider::pisdf::Graph *graph,
+                                           const spider::vector<std::shared_ptr<pisdf::Param>> &params,
+                                           u32 repetitionCount) :
+        firings_{ factory::vector<spider::unique_ptr<FiringHandler>>(StackID::TRANSFO) },
+        graph_{ graph },
+        repetitionCount_{ repetitionCount },
+        static_{ pisdf::isGraphFullyStatic(graph) } {
+    if (!static_) {
+        firings_.reserve(repetitionCount);
+        for (size_t k = 0; k < repetitionCount; ++k) {
+            firings_.emplace_back(spider::make_unique<FiringHandler, StackID::TRANSFO>(this, params, static_cast<u32>(k)));
+        }
+    } else {
+        firings_.emplace_back(spider::make_unique<FiringHandler, StackID::TRANSFO>(this, params, 0u));
+        firings_[0u]->resolveBRV();
     }
-
-    /* === Class definition === */
-
-    class GraphHandler {
-    public:
-        GraphHandler() = default;
-
-        ~GraphHandler() = default;
-
-        /* === Method(s) === */
-
-        /* === Getter(s) === */
-
-        const pisdf::Graph *graph() const { return graph_; }
-
-        /* === Setter(s) === */
-
-    private:
-        spider::vector<spider::unique_ptr<FiringHandler>> firings_;
-        const pisdf::Graph *graph_;
-    };
 }
 
-#endif //SPIDER2_GRAPHHANDLER_H
+u32 spider::srless::GraphHandler::repetitionCount() const {
+    return repetitionCount_;
+}
+
+/* === Private method(s) implementation === */

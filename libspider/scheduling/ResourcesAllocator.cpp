@@ -38,10 +38,12 @@
 #include <scheduling/ResourcesAllocator.h>
 #include <scheduling/scheduler/ListScheduler.h>
 #include <scheduling/scheduler/GreedyScheduler.h>
+#include <scheduling/scheduler/SRLessGreedyScheduler.h>
 #include <scheduling/mapper/BestFitMapper.h>
 #include <scheduling/memory/FifoAllocator.h>
 #include <scheduling/memory/NoSyncFifoAllocator.h>
 #include <scheduling/task/TaskVertex.h>
+#include <scheduling/task/TaskSRLess.h>
 #include <api/archi-api.h>
 #include <archi/Platform.h>
 #include <archi/PE.h>
@@ -109,6 +111,25 @@ void spider::sched::ResourcesAllocator::execute(const pisdf::Graph *graph) {
         default:
             throwSpiderException("unsupported execution policy.");
     }
+}
+
+void spider::sched::ResourcesAllocator::execute(const srless::GraphHandler *graphHandler) {
+    /* == Schedule the graph == */
+    scheduler_->schedule(graphHandler);
+
+    /* == Map and execute the scheduled tasks == */
+    mapper_->setStartTime(computeMinStartTime());
+    switch (executionPolicy_) {
+        case ExecutionPolicy::JIT:
+//            jitExecutionPolicy<TaskSRLess *>();
+            break;
+        case ExecutionPolicy::DELAYED:
+//            delayedExecutionPolicy<TaskSRLess *>();
+            break;
+        default:
+            throwSpiderException("unsupported execution policy.");
+    }
+
 }
 
 void spider::sched::ResourcesAllocator::clear() {

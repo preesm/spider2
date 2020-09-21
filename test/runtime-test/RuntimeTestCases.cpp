@@ -43,7 +43,7 @@
 #include <common/Logger.h>
 #include <graphs/pisdf/Graph.h>
 #include <runtime/algorithm/JITMSRuntime.h>
-#include <runtime/algorithm/FastJITMSRuntime.h>
+#include <runtime/algorithm/FastRuntime.h>
 #include "RuntimeTestCases.h"
 
 extern bool spider2StopRunning;
