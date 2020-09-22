@@ -82,6 +82,8 @@ namespace spider {
 
             inline bool isSyncOptimizable() const noexcept override { return false; }
 
+            spider::array_handle<Task *> getDependencies() const override;
+
             /* === Setter(s) === */
 
             void setExecutionDependency(size_t ix, Task *task) override;

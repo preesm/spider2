@@ -96,61 +96,6 @@ namespace spider {
             /* === Method(s) === */
 
             /**
-             * @brief Return the memory allocation rule for a given input fifo.
-             * @param ix Index of the Fifo.
-             * @return @refitem AllocationRule
-             * @throws @refitem spider::Exception if index out of bound (only in debug)
-             */
-            virtual AllocationRule allocationRuleForInputFifo(size_t ix) const = 0;
-
-
-            /**
-             * @brief Return the memory allocation rule for a given output fifo.
-             * @param ix Index of the Fifo.
-             * @return @refitem AllocationRule
-             * @throws @refitem spider::Exception if index out of bound (only in debug)
-             */
-            virtual AllocationRule allocationRuleForOutputFifo(size_t ix) const = 0;
-
-            /**
-             * @brief Get the previous task of a given index.
-             * @param ix Index of the task.
-             * @return pointer to the previous task, nullptr else.
-             * @throws @refitem spider::Exception if index out of bound (only in debug)
-             */
-            virtual Task *previousTask(size_t ix) const = 0;
-
-            /**
-             * @brief Return a color value for the task.
-             *        format is RGB with 8 bits per component in the lower part of the returned value.
-             * @return  color of the task.
-             */
-            virtual u32 color() const = 0;
-
-            /**
-             * @brief Update task execution dependencies based on schedule information.
-             * @param schedule pointer to the schedule.
-             */
-            virtual void updateTaskExecutionDependencies(const Schedule *schedule) = 0;
-
-            /**
-             * @brief Returns the name of the task
-             * @return name of the task
-             */
-            virtual std::string name() const = 0;
-
-            /**
-             * @brief Update execution constraints based on task dependencies.
-             */
-            virtual void updateExecutionConstraints() = 0;
-
-            /**
-             * @brief Creates a job message out of the information of the task.
-             * @return  JobMessage.
-             */
-            virtual JobMessage createJobMessage() const = 0;
-
-            /**
              * @brief Set all notification flags to true.
              */
             void enableBroadcast();
@@ -209,12 +154,6 @@ namespace spider {
             inline u32 jobExecIx() const noexcept { return jobExecIx_; }
 
             /**
-             * @brief Flag indicating whether or not a task can be optimized away by a smart fifo allocator.
-             * @return true if the task could be optimized away by allocator, false else.
-             */
-            virtual bool isSyncOptimizable() const noexcept = 0;
-
-            /**
              * @brief Get notification flag for given LRT.
              * @remark no boundary check is performed.
              * @return boolean flag indicating if this task is notifying given LRT.
@@ -252,21 +191,6 @@ namespace spider {
             inline void setState(TaskState state) noexcept { state_ = state; }
 
             /**
-             * @brief Set the ix of the job.
-             * @remark This method will overwrite current value.
-             * @param ix Ix to set.
-             */
-            virtual inline void setIx(u32 ix) noexcept { ix_ = ix; }
-
-            /**
-             * @brief Override the current execution dependency at given position.
-             * @param ix   position of the dependency to set.
-             * @param task pointer to the task to set.
-             * @throws @refitem spider::Exception if index out of bound (only in debug)
-             */
-            virtual void setExecutionDependency(size_t ix, Task *task) = 0;
-
-            /**
              * @brief Set the execution job index value of the task (that will be used for synchronization).
              * @remark This method will overwrite current values.
              * @param ix Ix to set.
@@ -283,9 +207,88 @@ namespace spider {
                 execInfo_.notifications_.get()[lrt] = value;
             }
 
+            /* === Virtual method(s) === */
+
+            /**
+             * @brief Set the ix of the job.
+             * @remark This method will overwrite current value.
+             * @param ix Ix to set.
+             */
+            virtual inline void setIx(u32 ix) noexcept { ix_ = ix; }
+
+            /**
+             * @brief Override the current execution dependency at given position.
+             * @param ix   position of the dependency to set.
+             * @param task pointer to the task to set.
+             * @throws @refitem spider::Exception if index out of bound (only in debug)
+             */
+            virtual void setExecutionDependency(size_t ix, Task *task) = 0;
+
+            /**
+             * @brief Flag indicating whether or not a task can be optimized away by a smart fifo allocator.
+             * @return true if the task could be optimized away by allocator, false else.
+             */
+            virtual bool isSyncOptimizable() const noexcept = 0;
+
+            /**
+             * @brief Return the memory allocation rule for a given input fifo.
+             * @param ix Index of the Fifo.
+             * @return @refitem AllocationRule
+             * @throws @refitem spider::Exception if index out of bound (only in debug)
+             */
+            virtual AllocationRule allocationRuleForInputFifo(size_t ix) const = 0;
+
+            /**
+             * @brief Return the memory allocation rule for a given output fifo.
+             * @param ix Index of the Fifo.
+             * @return @refitem AllocationRule
+             * @throws @refitem spider::Exception if index out of bound (only in debug)
+             */
+            virtual AllocationRule allocationRuleForOutputFifo(size_t ix) const = 0;
+
+            /**
+             * @brief Get the previous task of a given index.
+             * @param ix Index of the task.
+             * @return pointer to the previous task, nullptr else.
+             * @throws @refitem spider::Exception if index out of bound (only in debug)
+             */
+            virtual Task *previousTask(size_t ix) const = 0;
+
+            /**
+             * @brief Return a color value for the task.
+             *        format is RGB with 8 bits per component in the lower part of the returned value.
+             * @return  color of the task.
+             */
+            virtual u32 color() const = 0;
+
+            /**
+             * @brief Update task execution dependencies based on schedule information.
+             * @param schedule pointer to the schedule.
+             */
+            virtual void updateTaskExecutionDependencies(const Schedule *schedule) = 0;
+
+            /**
+             * @brief Returns the name of the task
+             * @return name of the task
+             */
+            virtual std::string name() const = 0;
+
+            /**
+             * @brief Update execution constraints based on task dependencies.
+             */
+            virtual void updateExecutionConstraints() = 0;
+
+            /**
+             * @brief Creates a job message out of the information of the task.
+             * @return  JobMessage.
+             */
+            virtual JobMessage createJobMessage() const = 0;
+
+            virtual spider::array_handle<Task *> getDependencies() const = 0;
+
         protected:
             detail::ExecInfo execInfo_;                            /*!< Execution information (constraints and notifs) */
-            std::shared_ptr<AllocatedFifos> fifos_;                     /*!< Fifo(s) attached to the task */
+            std::shared_ptr<AllocatedFifos> fifos_;                /*!< Fifo(s) attached to the task */
             spider::unique_ptr<detail::MappingInfo> mappingInfo_;  /*!< Mapping information of the task */
             u32 ix_{ UINT32_MAX };                                 /*!< Index of the task in the schedule */
             u32 jobExecIx_{ UINT32_MAX };                          /*!< Index of the job sent to the PE */

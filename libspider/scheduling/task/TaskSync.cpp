@@ -112,6 +112,10 @@ u32 spider::sched::TaskSync::color() const {
     return type_ == SyncType::SEND ? 0xff9478 : 0x8e44ad;
 }
 
+spider::array_handle<spider::sched::Task *> spider::sched::TaskSync::getDependencies() const {
+    return {execInfo_.dependencies_.get(), 1u};
+}
+
 std::string spider::sched::TaskSync::name() const {
     return type_ == SyncType::SEND ? "send" : "receive";
 }

@@ -84,4 +84,8 @@ void spider::sched::TaskSRLess::setExecutionDependency(size_t ix, spider::sched:
 
 }
 
+spider::array_handle<spider::sched::Task *> spider::sched::TaskSRLess::getDependencies() const {
+    return { nullptr, 0u };
+}
+
 /* === Private method(s) implementation === */

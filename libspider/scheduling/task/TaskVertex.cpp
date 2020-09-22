@@ -187,6 +187,10 @@ bool spider::sched::TaskVertex::isSyncOptimizable() const noexcept {
     return false;
 }
 
+spider::array_handle<spider::sched::Task *> spider::sched::TaskVertex::getDependencies() const {
+    return { execInfo_.dependencies_.get(), vertex_->inputEdgeCount() };
+}
+
 void spider::sched::TaskVertex::setExecutionDependency(size_t ix, Task *task) {
 #ifndef NDEBUG
     if (ix >= vertex_->inputEdgeCount()) {

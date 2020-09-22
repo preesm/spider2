@@ -59,7 +59,7 @@ void spider::sched::BestFitMapper::map(TaskVertex *task, Schedule *schedule) {
     task->updateTaskExecutionDependencies(schedule);
 
     /* == Compute the minimum start time possible for the task == */
-    const auto minStartTime = computeStartTime(vertex, schedule);
+    const auto minStartTime = computeStartTime(task);
 
     /* == Build the data dependency vector in order to compute receive cost == */
     const auto *platform = archi::platform();
@@ -81,10 +81,10 @@ void spider::sched::BestFitMapper::map(TaskVertex *task, Schedule *schedule) {
                                             });
 
         if (foundPE) {
-            const auto result = computeComputationCost(vertex, foundPE, schedule);
+            const auto result = computeCommunicationCost(vertex, foundPE, schedule);
             const auto communicationCost = result.first;
-            const auto dataToSend = result.second;
-            mappingResult.needToAddCommunication |= (dataToSend != 0);
+            const auto externDataToReceive = result.second;
+            mappingResult.needToAddCommunication |= (externDataToReceive != 0);
             /* == Check if it is better than previous cluster PE == */
             const auto startTime{ std::max(scheduleStats.endTime(foundPE->virtualIx()), minStartTime) };
             const auto endTime{ startTime + static_cast<ufast64>(constraints->timingOnPE(foundPE)) };
@@ -115,14 +115,12 @@ void spider::sched::BestFitMapper::map(TaskVertex *task, Schedule *schedule) {
                                     mappingResult.startTime, mappingResult.endTime);
 }
 
-ufast64 spider::sched::BestFitMapper::computeStartTime(const pisdf::Vertex *vertex, Schedule *schedule) const {
+ufast64 spider::sched::BestFitMapper::computeStartTime(const Task *task) const {
     auto minTime = startTime_;
-    if (vertex) {
-        for (const auto *edge : vertex->inputEdgeVector()) {
-            const auto source = edge->source();
-            if (source && source->executable()) {
-                const auto &task = schedule->tasks()[source->scheduleTaskIx()];
-                minTime = std::max(minTime, task->endTime());
+    if (task) {
+        for(const auto *previousTask : task->getDependencies()) {
+            if (previousTask) {
+                minTime = std::max(minTime, previousTask->endTime());
             }
         }
     }
@@ -159,13 +157,13 @@ const spider::PE *spider::sched::BestFitMapper::findBestFitPE(const Cluster *clu
 }
 
 std::pair<ufast64, ufast64>
-spider::sched::BestFitMapper::computeComputationCost(const pisdf::Vertex *vertex,
-                                                     const PE *mappedPE,
-                                                     const Schedule *schedule) {
+spider::sched::BestFitMapper::computeCommunicationCost(const pisdf::Vertex *vertex,
+                                                       const PE *mappedPE,
+                                                       const Schedule *schedule) {
     const auto *platform = archi::platform();
-    ufast64 dataToSend = 0U;
-    ufast64 communicationCost = 0;
+    ufast64 externDataToReceive = 0u;
     /* == Compute communication cost == */
+    ufast64 communicationCost = 0;
     for (const auto &edge : vertex->inputEdgeVector()) {
         const auto rate = static_cast<u64>(edge->sourceRateValue());
         const auto source = edge->source();
@@ -174,11 +172,11 @@ spider::sched::BestFitMapper::computeComputationCost(const pisdf::Vertex *vertex
             const auto mappedPESource = taskSource->mappedPe();
             communicationCost += platform->dataCommunicationCostPEToPE(mappedPESource, mappedPE, rate);
             if (mappedPE->cluster() != mappedPESource->cluster()) {
-                dataToSend += rate;
+                externDataToReceive += rate;
             }
         }
     }
-    return { communicationCost, dataToSend };
+    return { communicationCost, externDataToReceive };
 }
 
 void spider::sched::BestFitMapper::mapCommunications(TaskVertex *task,
