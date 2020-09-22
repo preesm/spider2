@@ -88,4 +88,8 @@ spider::array_handle<spider::sched::Task *> spider::sched::TaskSRLess::getDepend
     return { nullptr, 0u };
 }
 
+std::pair<ufast64, ufast64> spider::sched::TaskSRLess::computeCommunicationCost(const spider::PE *mappedPE) const {
+    return { };
+}
+
 /* === Private method(s) implementation === */

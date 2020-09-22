@@ -35,10 +35,24 @@
 
 /* === Include(s) === */
 
-#include "Mapper.h"
+#include <scheduling/mapper/Mapper.h>
+#include <scheduling/task/TaskVertex.h>
+#include <scheduling/task/TaskSync.h>
 
 /* === Static function === */
 
 /* === Method(s) implementation === */
 
 /* === Private method(s) implementation === */
+
+ufast64 spider::sched::Mapper::computeStartTime(const Task *task) const {
+    auto minTime = startTime_;
+    if (task) {
+        for(const auto *previousTask : task->getDependencies()) {
+            if (previousTask) {
+                minTime = std::max(minTime, previousTask->endTime());
+            }
+        }
+    }
+    return minTime;
+}

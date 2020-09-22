@@ -243,3 +243,23 @@ void spider::sched::TaskVertex::setIx(u32 ix) noexcept {
     Task::setIx(ix);
     vertex_->setScheduleTaskIx(ix);
 }
+
+std::pair<ufast64, ufast64> spider::sched::TaskVertex::computeCommunicationCost(const PE *mappedPE) const {
+    const auto *platform = archi::platform();
+    ufast64 externDataToReceive = 0u;
+    /* == Compute communication cost == */
+    ufast64 communicationCost = 0;
+    for (const auto &edge : vertex_->inputEdgeVector()) {
+        const auto rate = static_cast<u64>(edge->sourceRateValue());
+        const auto source = edge->source();
+        if (rate && source && source->executable()) {
+            const auto *taskSource = previousTask(edge->sinkPortIx());
+            const auto *mappedPESource = taskSource->mappedPe();
+            communicationCost += platform->dataCommunicationCostPEToPE(mappedPESource, mappedPE, rate);
+            if (mappedPE->cluster() != mappedPESource->cluster()) {
+                externDataToReceive += rate;
+            }
+        }
+    }
+    return { communicationCost, externDataToReceive };
+}

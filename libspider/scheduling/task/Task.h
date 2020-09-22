@@ -284,7 +284,19 @@ namespace spider {
              */
             virtual JobMessage createJobMessage() const = 0;
 
+            /**
+             * @brief Get an iterable handle over the dependencies of the task.
+             * @return @refitem spider::array_handle of dependencies
+             */
             virtual spider::array_handle<Task *> getDependencies() const = 0;
+
+            /**
+             * @brief Compute the communication cost and the data size that would need to be send if a task is mapped
+             *        on a given PE.
+             * @param mappedPE  PE on which the task is currently mapped.
+             * @return pair containing the communication cost as first and the total size of data to send as second.
+             */
+            virtual std::pair<ufast64, ufast64> computeCommunicationCost(const PE *mappedPE) const = 0;
 
         protected:
             detail::ExecInfo execInfo_;                            /*!< Execution information (constraints and notifs) */

@@ -58,7 +58,7 @@ namespace spider {
 
             ~TaskSync() noexcept override = default;
 
-            /* === Method(s) === */
+            /* === Virtual method(s) === */
 
             AllocationRule allocationRuleForInputFifo(size_t ix) const override;
 
@@ -76,11 +76,16 @@ namespace spider {
 
             JobMessage createJobMessage() const override;
 
-            /* === Getter(s) === */
-
             inline bool isSyncOptimizable() const noexcept override { return false; }
 
             spider::array_handle<Task *> getDependencies() const override;
+
+            std::pair<ufast64, ufast64> computeCommunicationCost(const PE *mappedPE) const override;
+
+            void setExecutionDependency(size_t ix, Task *task) override;
+
+            /* === Getter(s) === */
+
 
             /* === Setter(s) === */
 
@@ -111,8 +116,6 @@ namespace spider {
                     bus_ = bus;
                 }
             }
-
-            void setExecutionDependency(size_t ix, Task *task) override;
 
         private:
             Task *successor_{ nullptr };

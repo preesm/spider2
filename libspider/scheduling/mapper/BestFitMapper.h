@@ -78,13 +78,6 @@ namespace spider {
             /* === Private method(s) === */
 
             /**
-             * @brief Compute the minimum start time possible for a given task.
-             * @param task    Pointer to the task.
-             * @return value of the minimum start time possible
-             */
-            ufast64 computeStartTime(const Task *task) const;
-
-            /**
              * @brief Find which PE is the best fit inside a given cluster.
              * @param cluster       Cluster to go through.
              * @param constraints   Runtime constraints of the task to map.
@@ -97,18 +90,6 @@ namespace spider {
                                     ufast64 minStartTime,
                                     const std::function<bool(const PE *)> &isPEMappable,
                                     const std::function<u64(const PE *)> &timingOnPE) const;
-
-            /**
-             * @brief Compute the communication cost and the data size that would need to be send if a vertex is mapped
-             *        on a given PE.
-             * @param vertex    Pointer to the vertex.
-             * @param mappedPE  PE on which the vertex is currently mapped.
-             * @param schedule  Pointer to the schedule.
-             * @return pair containing the communication cost as first and the total size of data to send as second.
-             */
-            std::pair<ufast64, ufast64> computeCommunicationCost(const pisdf::Vertex *vertex,
-                                                                 const PE *mappedPE,
-                                                                 const Schedule *schedule);
 
             void mapCommunications(TaskVertex *task, const Cluster *cluster, Schedule *schedule);
 

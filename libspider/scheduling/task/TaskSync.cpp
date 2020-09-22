@@ -68,12 +68,13 @@ void spider::sched::TaskSync::updateExecutionConstraints() {
 }
 
 #ifndef NDEBUG
+
 spider::sched::AllocationRule spider::sched::TaskSync::allocationRuleForInputFifo(size_t ix) const {
     if (ix >= 1u) {
         throwSpiderException("index out of bound.");
     }
 #else
-spider::sched::AllocationRule spider::sched::TaskSync::allocationRuleForInputFifo(size_t) const {
+    spider::sched::AllocationRule spider::sched::TaskSync::allocationRuleForInputFifo(size_t) const {
 #endif
     if (type_ == SyncType::SEND) {
         return { SIZE_MAX, 0u, inputPortIx_, AllocType::SAME_IN, FifoAttribute::RW_ONLY };
@@ -113,7 +114,7 @@ u32 spider::sched::TaskSync::color() const {
 }
 
 spider::array_handle<spider::sched::Task *> spider::sched::TaskSync::getDependencies() const {
-    return {execInfo_.dependencies_.get(), 1u};
+    return { execInfo_.dependencies_.get(), 1u };
 }
 
 std::string spider::sched::TaskSync::name() const {
@@ -190,4 +191,20 @@ spider::JobMessage spider::sched::TaskSync::createJobMessage() const {
     /* == Set Fifos == */
     message.fifos_ = fifos_;
     return message;
+}
+
+std::pair<ufast64, ufast64> spider::sched::TaskSync::computeCommunicationCost(const spider::PE *mappedPE) const {
+    const auto *platform = archi::platform();
+    ufast64 externDataToReceive = 0u;
+    /* == Compute communication cost == */
+    ufast64 communicationCost = 0;
+    const auto *taskSource = previousTask(0u);
+    if (size_ && taskSource) {
+        const auto *mappedPESource = taskSource->mappedPe();
+        communicationCost += platform->dataCommunicationCostPEToPE(mappedPESource, mappedPE, size_);
+        if (mappedPE->cluster() != mappedPESource->cluster()) {
+            externDataToReceive += size_;
+        }
+    }
+    return { communicationCost, externDataToReceive };
 }

@@ -55,7 +55,7 @@ namespace spider {
 
             ~TaskVertex() noexcept override = default;
 
-            /* === Method(s) === */
+            /* === Virtual method(s) === */
 
             AllocationRule allocationRuleForInputFifo(size_t ix) const override;
 
@@ -73,19 +73,21 @@ namespace spider {
 
             JobMessage createJobMessage() const override;
 
-            /* === Getter(s) === */
-
-            inline pisdf::Vertex *vertex() const { return vertex_; }
-
             bool isSyncOptimizable() const noexcept override;
 
             spider::array_handle<Task *> getDependencies() const override;
 
-            /* === Setter(s) === */
-
             void setExecutionDependency(size_t ix, Task *task) override;
 
             void setIx(u32 ix) noexcept override;
+
+            std::pair<ufast64, ufast64> computeCommunicationCost(const PE *mappedPE) const override;
+
+            /* === Getter(s) === */
+
+            inline pisdf::Vertex *vertex() const { return vertex_; }
+
+            /* === Setter(s) === */
 
         private:
             pisdf::Vertex *vertex_;

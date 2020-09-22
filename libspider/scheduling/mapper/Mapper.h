@@ -79,6 +79,16 @@ namespace spider {
 
         protected:
             ufast64 startTime_{ 0U };
+
+            /* === Protected method(s) === */
+
+            /**
+             * @brief Compute the minimum start time possible for a given task.
+             * @param task    Pointer to the task.
+             * @return value of the minimum start time possible
+             */
+            ufast64 computeStartTime(const Task *task) const;
+
         };
     }
 }
