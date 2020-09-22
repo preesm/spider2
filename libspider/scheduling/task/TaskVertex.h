@@ -83,9 +83,15 @@ namespace spider {
 
             std::pair<ufast64, ufast64> computeCommunicationCost(const PE *mappedPE) const override;
 
+            bool isMappableOnPE(const PE *pe) const override;
+
+            u64 timingOnPE(const PE *pe) const override;
+
             /* === Getter(s) === */
 
             inline pisdf::Vertex *vertex() const { return vertex_; }
+
+            DependencyInfo getDependencyInfo(size_t size) const override;
 
             /* === Setter(s) === */
 

@@ -86,7 +86,12 @@ namespace spider {
 
             void setExecutionDependency(size_t ix, Task *task) override;
 
+            bool isMappableOnPE(const PE *pe) const override;
+
+            u64 timingOnPE(const PE *pe) const override;
+
             /* === Getter(s) === */
+            DependencyInfo getDependencyInfo(size_t size) const override;
 
             /* === Setter(s) === */
 

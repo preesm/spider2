@@ -59,7 +59,7 @@ namespace spider {
 
             /* === Method(s) === */
 
-            void map(TaskVertex *task, Schedule *schedule) override;
+            void map(Task *task, Schedule *schedule) override;
 
             /* === Getter(s) === */
 
@@ -80,18 +80,15 @@ namespace spider {
             /**
              * @brief Find which PE is the best fit inside a given cluster.
              * @param cluster       Cluster to go through.
-             * @param constraints   Runtime constraints of the task to map.
              * @param stats         Schedule information about current usage of PEs.
              * @param minStartTime  Lower bound for start time.
+             * @param task          Pointer to the task.
              * @return best fit PE found, nullptr if no fit was found.
              */
-            const PE *findBestFitPE(const Cluster *cluster,
-                                    const Stats &stats,
-                                    ufast64 minStartTime,
-                                    const std::function<bool(const PE *)> &isPEMappable,
-                                    const std::function<u64(const PE *)> &timingOnPE) const;
+            const PE *
+            findBestFitPE(const Cluster *cluster, const Stats &stats, ufast64 minStartTime, const Task *task) const;
 
-            void mapCommunications(TaskVertex *task, const Cluster *cluster, Schedule *schedule);
+            void mapCommunications(Task *task, const Cluster *cluster, Schedule *schedule);
 
             TaskSync *insertCommunicationTask(const Cluster *cluster,
                                               const Cluster *distCluster,

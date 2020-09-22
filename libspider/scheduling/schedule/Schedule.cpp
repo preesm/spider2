@@ -69,15 +69,14 @@ void spider::sched::Schedule::addTask(spider::unique_ptr<Task> task) {
     tasks_.emplace_back(std::move(task));
 }
 
-void spider::sched::Schedule::updateTaskAndSetReady(Task *task, size_t slave, u64 startTime, u64 endTime) {
+void spider::sched::Schedule::updateTaskAndSetReady(Task *task, const PE* slave, u64 startTime, u64 endTime) {
     if (task->state() == TaskState::READY) {
         return;
     }
-    const auto &pe = archi::platform()->peFromVirtualIx(slave);
-    const auto &peIx = pe->virtualIx();
+    const auto peIx = slave->virtualIx();
 
     /* == Set job information == */
-    task->setMappedPE(pe);
+    task->setMappedPE(slave);
     task->setStartTime(startTime);
     task->setEndTime(endTime);
     task->setJobExecIx(static_cast<u32>(stats_.jobCount(peIx)));

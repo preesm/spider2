@@ -69,6 +69,11 @@ namespace spider {
             };
         }
 
+        struct DependencyInfo {
+            size_t fifoIx_;
+            size_t dataSize_;
+        };
+
         enum TaskState : u8 {
             NOT_SCHEDULABLE = 0,
             NOT_RUNNABLE,
@@ -297,6 +302,26 @@ namespace spider {
              * @return pair containing the communication cost as first and the total size of data to send as second.
              */
             virtual std::pair<ufast64, ufast64> computeCommunicationCost(const PE *mappedPE) const = 0;
+
+            /**
+             * @brief Check if the task is mappable on a given PE.
+             * @param pe  Pointer to the PE.
+             * @return true if mappable on PE, false else.
+             */
+            virtual inline bool isMappableOnPE(const PE */* pe */) const { return true; }
+
+            /**
+             * @brief Get the execution timing on a given PE.
+             * @param pe  Pointer to the PE.
+             * @return exec timing on the PE, UINT64_MAX else.
+             */
+            virtual inline u64 timingOnPE(const PE */* pe */) const { return UINT64_MAX; }
+
+            /**
+             * @brief
+             * @return
+             */
+            virtual DependencyInfo getDependencyInfo(size_t /* ix */) const = 0;
 
         protected:
             detail::ExecInfo execInfo_;                            /*!< Execution information (constraints and notifs) */

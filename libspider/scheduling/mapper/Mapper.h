@@ -69,7 +69,7 @@ namespace spider {
              * @param schedule pointer to the schedule to update.
              * @throw @refitem spider::Exception if the mapper was unable to find any processing elements for the task.
              */
-            virtual void map(TaskVertex *task, Schedule *schedule) = 0;
+            virtual void map(Task *task, Schedule *schedule) = 0;
 
             /* === Getter(s) === */
 

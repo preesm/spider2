@@ -98,38 +98,15 @@ spider::sched::ResourcesAllocator::ResourcesAllocator(SchedulingPolicy schedulin
 void spider::sched::ResourcesAllocator::execute(const pisdf::Graph *graph) {
     /* == Schedule the graph == */
     scheduler_->schedule(graph);
-
     /* == Map and execute the scheduled tasks == */
-    mapper_->setStartTime(computeMinStartTime());
-    switch (executionPolicy_) {
-        case ExecutionPolicy::JIT:
-            jitExecutionPolicy<TaskVertex *>();
-            break;
-        case ExecutionPolicy::DELAYED:
-            delayedExecutionPolicy<TaskVertex *>();
-            break;
-        default:
-            throwSpiderException("unsupported execution policy.");
-    }
+    applyExecPolicy();
 }
 
 void spider::sched::ResourcesAllocator::execute(const srless::GraphHandler *graphHandler) {
     /* == Schedule the graph == */
     scheduler_->schedule(graphHandler);
-
     /* == Map and execute the scheduled tasks == */
-    mapper_->setStartTime(computeMinStartTime());
-    switch (executionPolicy_) {
-        case ExecutionPolicy::JIT:
-//            jitExecutionPolicy<TaskSRLess *>();
-            break;
-        case ExecutionPolicy::DELAYED:
-//            delayedExecutionPolicy<TaskSRLess *>();
-            break;
-        default:
-            throwSpiderException("unsupported execution policy.");
-    }
-
+    applyExecPolicy();
 }
 
 void spider::sched::ResourcesAllocator::clear() {
@@ -167,39 +144,37 @@ ufast64 spider::sched::ResourcesAllocator::computeMinStartTime() const {
     return minStartTime;
 }
 
-template<class T>
-void spider::sched::ResourcesAllocator::jitExecutionPolicy() {
-    /* == Map, allocate fifos and execute tasks == */
-    for (auto &task : scheduler_->tasks()) {
-        /* == Map the task == */
-        mapper_->map(static_cast<T>(task.get()), schedule_.get());
-
-        /* == We are in JIT mode, we need to broadcast the job stamp == */
-        task->enableBroadcast();
-
-        /* == Allocate the fifos task == */
-        allocator_->allocate(task.get());
-
-        /* == Execute the task == */
-        schedule_->addTask(std::move(task));
-        schedule_->sendReadyTasks();
+void spider::sched::ResourcesAllocator::applyExecPolicy() {
+    mapper_->setStartTime(computeMinStartTime());
+    switch (executionPolicy_) {
+        case ExecutionPolicy::JIT:
+            /* == Map, allocate fifos and execute tasks == */
+            for (auto &task : scheduler_->tasks()) {
+                /* == Map the task == */
+                mapper_->map(task.get(), schedule_.get());
+                /* == We are in JIT mode, we need to broadcast the job stamp == */
+                task->enableBroadcast();
+                /* == Allocate the fifos task == */
+                allocator_->allocate(task.get());
+                /* == Add and execute the task == */
+                schedule_->addTask(std::move(task));
+                schedule_->sendReadyTasks();
+            }
+            break;
+        case ExecutionPolicy::DELAYED:
+            /* == Map every tasks == */
+            for (auto &task : scheduler_->tasks()) {
+                mapper_->map(task.get(), schedule_.get());
+                schedule_->addTask(std::move(task));
+            }
+            /* == Allocate fifos for every tasks == */
+            for (auto *task : schedule_->readyTasks()) {
+                allocator_->allocate(task);
+            }
+            /* == Execute every tasks == */
+            schedule_->sendReadyTasks();
+            break;
+        default:
+            throwSpiderException("unsupported execution policy.");
     }
-}
-
-template<class T>
-void spider::sched::ResourcesAllocator::delayedExecutionPolicy() {
-    /* == Map every tasks == */
-    for (auto &task : scheduler_->tasks()) {
-        auto castTask = static_cast<T>(task.get());
-        mapper_->map(castTask, schedule_.get());
-        schedule_->addTask(std::move(task));
-    }
-
-    /* == Allocate fifos for every tasks == */
-    for (auto *task : schedule_->readyTasks()) {
-        allocator_->allocate(task);
-    }
-
-    /* == Execute every tasks == */
-    schedule_->sendReadyTasks();
 }

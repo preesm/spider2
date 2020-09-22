@@ -92,4 +92,16 @@ std::pair<ufast64, ufast64> spider::sched::TaskSRLess::computeCommunicationCost(
     return { };
 }
 
+bool spider::sched::TaskSRLess::isMappableOnPE(const spider::PE *pe) const {
+    return vertex_->runtimeInformation()->isPEMappable(pe);
+}
+
+u64 spider::sched::TaskSRLess::timingOnPE(const spider::PE *pe) const {
+    return static_cast<u64>(vertex_->runtimeInformation()->timingOnPE(pe, handler_->getParams()));
+}
+
+spider::sched::DependencyInfo spider::sched::TaskSRLess::getDependencyInfo(size_t size) const {
+    return { };
+}
+
 /* === Private method(s) implementation === */

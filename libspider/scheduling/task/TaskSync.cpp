@@ -208,3 +208,15 @@ std::pair<ufast64, ufast64> spider::sched::TaskSync::computeCommunicationCost(co
     }
     return { communicationCost, externDataToReceive };
 }
+
+u64 spider::sched::TaskSync::timingOnPE(const spider::PE *) const {
+    if (!bus_) {
+        return UINT64_MAX;
+    }
+    const auto busSpeed = type_ == SyncType::SEND ? bus_->writeSpeed() : bus_->readSpeed();
+    return busSpeed / size_;
+}
+
+spider::sched::DependencyInfo spider::sched::TaskSync::getDependencyInfo(size_t) const {
+    return { inputPortIx_, size_ };
+}

@@ -84,6 +84,8 @@ namespace spider {
 
             void setExecutionDependency(size_t ix, Task *task) override;
 
+            u64 timingOnPE(const PE *) const override;
+
             /* === Getter(s) === */
 
 
@@ -116,6 +118,8 @@ namespace spider {
                     bus_ = bus;
                 }
             }
+
+            DependencyInfo getDependencyInfo(size_t size) const override;
 
         private:
             Task *successor_{ nullptr };

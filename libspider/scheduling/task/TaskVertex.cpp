@@ -263,3 +263,15 @@ std::pair<ufast64, ufast64> spider::sched::TaskVertex::computeCommunicationCost(
     }
     return { communicationCost, externDataToReceive };
 }
+
+spider::sched::DependencyInfo spider::sched::TaskVertex::getDependencyInfo(size_t size) const {
+    return DependencyInfo();
+}
+
+bool spider::sched::TaskVertex::isMappableOnPE(const spider::PE *pe) const {
+    return vertex_->runtimeInformation()->isPEMappable(pe);
+}
+
+u64 spider::sched::TaskVertex::timingOnPE(const spider::PE *pe) const {
+    return static_cast<u64>(vertex_->runtimeInformation()->timingOnPE(pe, vertex_->inputParamVector()));
+}

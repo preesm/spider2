@@ -48,11 +48,10 @@
 
 /* === Method(s) implementation === */
 
-void spider::sched::BestFitMapper::map(TaskVertex *task, Schedule *schedule) {
+void spider::sched::BestFitMapper::map(Task *task, Schedule *schedule) {
     if (!task) {
         throwSpiderException("can not map nullptr task.");
     }
-    auto *vertex = task->vertex();
     task->setState(sched::TaskState::PENDING);
     task->updateTaskExecutionDependencies(schedule);
 
@@ -63,21 +62,11 @@ void spider::sched::BestFitMapper::map(TaskVertex *task, Schedule *schedule) {
     const auto *platform = archi::platform();
 
     /* == Search for a slave to map the task on */
-    const auto *constraints{ vertex->runtimeInformation() };
     const auto scheduleStats = schedule->stats();
     MappingResult mappingResult{ };
     for (const auto *cluster : platform->clusters()) {
-        /* == Fast check to discard entire cluster == */
-        if (!constraints->isClusterMappable(cluster)) {
-            continue;
-        }
         /* == Find best fit PE for this cluster == */
-        const auto *foundPE = findBestFitPE(cluster, scheduleStats, minStartTime,
-                                            [constraints](const PE *pe) { return constraints->isPEMappable(pe); },
-                                            [constraints](const PE *pe) {
-                                                return static_cast<u64>(constraints->timingOnPE(pe));
-                                            });
-
+        const auto *foundPE = findBestFitPE(cluster, scheduleStats, minStartTime, task);
         if (foundPE) {
             const auto result = task->computeCommunicationCost(foundPE);
             const auto communicationCost = result.first;
@@ -85,7 +74,7 @@ void spider::sched::BestFitMapper::map(TaskVertex *task, Schedule *schedule) {
             mappingResult.needToAddCommunication |= (externDataToReceive != 0);
             /* == Check if it is better than previous cluster PE == */
             const auto startTime{ std::max(scheduleStats.endTime(foundPE->virtualIx()), minStartTime) };
-            const auto endTime{ startTime + static_cast<ufast64>(constraints->timingOnPE(foundPE)) };
+            const auto endTime{ startTime + task->timingOnPE(foundPE) };
             const auto scheduleCost{ math::saturateAdd(endTime, communicationCost) };
             if (scheduleCost < mappingResult.scheduleCost) {
                 mappingResult.mappingPE = foundPE;
@@ -98,7 +87,7 @@ void spider::sched::BestFitMapper::map(TaskVertex *task, Schedule *schedule) {
 
     /* == Throw if no possible mapping was found == */
     if (!mappingResult.mappingPE) {
-        throwSpiderException("Could not find suitable processing element for vertex: [%s]", vertex->name().c_str());
+        throwSpiderException("Could not find suitable processing element for vertex: [%s]", task->name().c_str());
     }
 
     if (mappingResult.needToAddCommunication) {
@@ -109,8 +98,7 @@ void spider::sched::BestFitMapper::map(TaskVertex *task, Schedule *schedule) {
         mappingResult.startTime = task->startTime();
         mappingResult.endTime = task->endTime();
     }
-    schedule->updateTaskAndSetReady(task, mappingResult.mappingPE->virtualIx(),
-                                    mappingResult.startTime, mappingResult.endTime);
+    schedule->updateTaskAndSetReady(task, mappingResult.mappingPE, mappingResult.startTime, mappingResult.endTime);
 }
 
 /* === Private method(s) implementation === */
@@ -118,19 +106,18 @@ void spider::sched::BestFitMapper::map(TaskVertex *task, Schedule *schedule) {
 const spider::PE *spider::sched::BestFitMapper::findBestFitPE(const Cluster *cluster,
                                                               const Stats &stats,
                                                               const ufast64 minStartTime,
-                                                              const std::function<bool(const PE *)> &isPEMappable,
-                                                              const std::function<u64(const PE *)> &timingOnPE) const {
+                                                              const Task *task) const {
     const PE *foundPE = nullptr;
     auto bestFitIdleTime = UINT_FAST64_MAX;
     auto bestFitEndTime = UINT_FAST64_MAX;
     for (const auto *pe : cluster->peArray()) {
-        if (!pe->enabled() || !isPEMappable(pe)) {
+        if (!pe->enabled() || !task->isMappableOnPE(pe)) {
             continue;
         }
         const auto readyTime = stats.endTime(pe->virtualIx());
         const auto startTime = std::max(readyTime, minStartTime);
         const auto idleTime = startTime - readyTime;
-        const auto endTime = startTime + timingOnPE(pe);
+        const auto endTime = startTime + task->timingOnPE(pe);
         if (endTime < bestFitEndTime) {
             foundPE = pe;
             bestFitEndTime = endTime;
@@ -144,26 +131,23 @@ const spider::PE *spider::sched::BestFitMapper::findBestFitPE(const Cluster *clu
     return foundPE;
 }
 
-void spider::sched::BestFitMapper::mapCommunications(TaskVertex *task,
-                                                     const Cluster *cluster,
-                                                     Schedule *schedule) {
-    const auto *vertex = task->vertex();
-    for (const auto *edge : vertex->inputEdgeVector()) {
-        const auto *source = edge->source();
-        const auto rate = static_cast<u64>(edge->sinkRateValue());
-        if (rate && source && source->executable()) {
-            const auto &sourceTask = schedule->tasks()[source->scheduleTaskIx()];
-            const auto *srcCluster = sourceTask->mappedPe()->cluster();
-            if (cluster != srcCluster) {
+void spider::sched::BestFitMapper::mapCommunications(Task *task, const Cluster *cluster, Schedule *schedule) {
+    size_t ix = 0u;
+    for (const auto *previousTask : task->getDependencies()) {
+        if (previousTask) {
+            const auto *prevCluster = previousTask->mappedPe()->cluster();
+            if (prevCluster != cluster) {
+                const auto info = task->getDependencyInfo(ix);
                 /* == Insert send on source cluster == */
-                auto *sendTask = insertCommunicationTask(srcCluster, cluster, rate, task, SyncType::SEND, schedule);
-                sendTask->setInputPortIx(static_cast<u32>(edge->sourcePortIx()));
+                auto *sendTask = insertCommunicationTask(prevCluster, cluster, info.dataSize_, task,
+                                                         SyncType::SEND, schedule);
+                sendTask->setInputPortIx(static_cast<u32>(info.fifoIx_));
                 /* == Insert receive on mapped cluster == */
-                auto *recvTask = insertCommunicationTask(cluster, srcCluster, rate, sendTask, SyncType::RECEIVE,
-                                                         schedule);
+                auto *recvTask = insertCommunicationTask(cluster, prevCluster, info.dataSize_, sendTask,
+                                                         SyncType::RECEIVE, schedule);
                 sendTask->setSuccessor(recvTask);
                 /* == Re-route dependency of the original vertex to the recvTask == */
-                task->setExecutionDependency(edge->sinkPortIx(), recvTask);
+                task->setExecutionDependency(ix, recvTask);
                 const auto currentStartTime = task->startTime();
                 if (recvTask->endTime() > currentStartTime) {
                     const auto offset = recvTask->endTime() - currentStartTime;
@@ -174,6 +158,7 @@ void spider::sched::BestFitMapper::mapCommunications(TaskVertex *task,
                 schedule->addTask(spider::make_unique(recvTask));
             }
         }
+        ix++;
     }
 }
 
@@ -184,20 +169,6 @@ spider::sched::TaskSync *spider::sched::BestFitMapper::insertCommunicationTask(c
                                                                                SyncType type,
                                                                                Schedule *schedule) {
     const auto *bus = archi::platform()->getClusterToClusterMemoryBus(cluster, distCluster);
-    const auto busSpeed = type == SyncType::SEND ? bus->writeSpeed() : bus->readSpeed();
-    const auto comTime = static_cast<i64>(busSpeed / dataSize);
-
-    /* == Search for the first PE able to run the send task == */
-    const auto minStartTime = previousTask->endTime();
-    const auto *mappedPe = findBestFitPE(cluster,
-                                         schedule->stats(),
-                                         minStartTime,
-                                         [](const PE *) { return true; },
-                                         [comTime](const PE *) { return static_cast<u64>(comTime); });
-    if (!mappedPe) {
-        throwSpiderException("could not find any processing element to map communication task.");
-    }
-
     /* == Create the com task == */
     auto *comTask = make<TaskSync, StackID::SCHEDULE>(type);
     comTask->setExecutionDependency(0, previousTask);
@@ -206,10 +177,17 @@ spider::sched::TaskSync *spider::sched::BestFitMapper::insertCommunicationTask(c
     comTask->setSize(dataSize);
     comTask->setMemoryBus(bus);
 
+    /* == Search for the first PE able to run the send task == */
+    const auto minStartTime = previousTask->endTime();
+    const auto *mappedPe = findBestFitPE(cluster, schedule->stats(), minStartTime, comTask);
+    if (!mappedPe) {
+        throwSpiderException("could not find any processing element to map communication task.");
+    }
+
     /* == Set job information and update schedule == */
     const auto mappedPeIx{ mappedPe->virtualIx() };
     const auto mappingSt{ std::max(schedule->stats().endTime(mappedPeIx), minStartTime) };
-    const auto mappingEt{ mappingSt + static_cast<u64>(comTime) };
-    schedule->updateTaskAndSetReady(comTask, mappedPeIx, mappingSt, mappingEt);
+    const auto mappingEt{ mappingSt + comTask->timingOnPE(nullptr) };
+    schedule->updateTaskAndSetReady(comTask, mappedPe, mappingSt, mappingEt);
     return comTask;
 }
