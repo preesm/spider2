@@ -65,9 +65,11 @@ namespace spider {
         array_handle() = default;
 
         array_handle(T *data, size_type size) : data_{ data }, size_{ size } {
+#ifndef NDEBUG
             if (!data && size) {
                 throwSpiderException("unsafe array handle created with nullptr data and size != 0.");
             }
+#endif
         }
 
         array_handle(const array_handle &) = default;
