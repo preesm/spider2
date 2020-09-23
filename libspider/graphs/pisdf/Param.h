@@ -49,11 +49,13 @@ namespace spider {
         class Param final {
         public:
 
-            explicit Param(std::string name) : expression_{ 0 }, type_{ ParamType::DYNAMIC } {
+            explicit Param(std::string name) : expression_{ 0u },
+                                               type_{ ParamType::DYNAMIC } {
                 setName(std::move(name));
             }
 
-            explicit Param(std::string name, int64_t value) : expression_{ value }, type_{ ParamType::STATIC } {
+            explicit Param(std::string name, int64_t value) : expression_{ value },
+                                                              type_{ ParamType::STATIC } {
                 setName(std::move(name));
             }
 
@@ -80,13 +82,13 @@ namespace spider {
 
             Param(Param &&) noexcept = default;
 
-            Param &operator=(const Param &) = default;
+            inline Param &operator=(const Param &) = default;
 
             Param &operator=(Param &&) = default;
 
             /* === Method(s) === */
 
-            inline virtual void visit(Visitor *visitor) {
+            inline void visit(Visitor *visitor) {
                 visitor->visit(this);
             }
 
@@ -103,7 +105,7 @@ namespace spider {
                 return expression_.value();
             }
 
-            inline int64_t value(const vector <std::shared_ptr<Param>> &params) const {
+            inline int64_t value(const vector<std::shared_ptr<Param>> &params) const {
                 if (parent_) {
                     return parent_->value(params);
                 }
@@ -136,10 +138,10 @@ namespace spider {
             }
 
         private:
-            Expression expression_;          /* = Expression of the Param. = */
-            std::string name_{"" };          /* = Name of the Param. It is transformed to lower case on construction = */
-            size_t ix_{ SIZE_MAX };          /* = Index of the Param in the Graph = */
-            std::shared_ptr<Param> parent_;
+            std::string name_;                    /* = Name of the Param. It is transformed to lower case on construction = */
+            Expression expression_;               /* = Expression of the Param. = */
+            size_t ix_{ SIZE_MAX };               /* = Index of the Param in the Graph = */
+            std::shared_ptr<Param> parent_;       /* = Parent of the param = */
             ParamType type_{ ParamType::STATIC }; /* = Type of the parameter = */
 
             /* === Private method(s) === */
