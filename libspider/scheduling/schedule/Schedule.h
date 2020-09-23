@@ -39,7 +39,7 @@
 
 #include <containers/vector.h>
 #include <memory/unique_ptr.h>
-#include "ScheduleStats.h"
+#include <scheduling/schedule/ScheduleStats.h>
 
 namespace spider {
 

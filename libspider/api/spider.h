@@ -86,6 +86,10 @@ namespace spider {
 
         RuntimeConfig(RuntimeConfig &&) = default;
 
+        RuntimeConfig &operator=(const RuntimeConfig &) = default;
+
+        RuntimeConfig &operator=(RuntimeConfig &&) = default;
+
         explicit RuntimeConfig(RunMode mode = RunMode::LOOP,
                                RuntimeType type = RuntimeType::JITMS,
                                ExecutionPolicy execPolicy = ExecutionPolicy::DELAYED,

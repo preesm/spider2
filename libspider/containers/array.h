@@ -99,9 +99,11 @@ namespace spider {
             swap(*this, other);
         }
 
+        array(T *data, size_type size) : array_handle<T>(data, size) { }
+
         ~array() {
             clear();
-            deallocate(array_handle<T>::data_);
+            destroy(array_handle<T>::data_);
         }
 
         /* === Member functions === */
