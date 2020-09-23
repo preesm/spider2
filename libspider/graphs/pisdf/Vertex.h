@@ -69,7 +69,7 @@ namespace spider {
 
             Vertex &operator=(const Vertex &) = delete;
 
-            virtual ~Vertex() noexcept;
+            virtual ~Vertex() noexcept = default;
 
             /* === Method(s) === */
 
@@ -373,7 +373,6 @@ namespace spider {
                                                 * = */
             size_t instanceValue_ = 0;         /* = Value of the instance relative to reference Vertex = */
             uint32_t repetitionValue_ = 1;     /* = Repetition value of the Vertex, default is 1 but it can be set to 0. = */
-            mutable uint32_t copyCount_ = 0;   /* = Number of copy of the Vertex = */
             VertexType subtype_ = VertexType::NORMAL;
 
             /**

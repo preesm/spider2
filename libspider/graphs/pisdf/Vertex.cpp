@@ -53,14 +53,6 @@ spider::pisdf::Vertex::Vertex(VertexType type, std::string name, size_t edgeINCo
     checkTypeConsistency();
 }
 
-spider::pisdf::Vertex::~Vertex() noexcept {
-    if (copyCount_ && log::enabled()) {
-        // LCOV_IGNORE: this is a log message that does not need to be tested.
-        log::error("Removing vertex [%s] with copies out there.\n", name().c_str());
-    }
-    this->reference_->copyCount_ -= 1;
-}
-
 void spider::pisdf::Vertex::connectInputEdge(Edge *edge, size_t pos) {
     connectEdge(inputEdgeVector_, edge, pos);
 }
@@ -96,7 +88,6 @@ void spider::pisdf::Vertex::setAsReference(Vertex *clone) {
     clone->inputEdgeVector_.resize(this->inputEdgeVector_.size(), nullptr);
     clone->outputEdgeVector_.resize(this->outputEdgeVector_.size(), nullptr);
     clone->reference_ = this;
-    this->copyCount_++;
     clone->rtInformation_ = this->rtInformation_;
     clone->inputParamVector_.reserve(this->inputParamVector_.size());
     clone->refinementParamVector_.reserve(this->refinementParamVector_.size());
