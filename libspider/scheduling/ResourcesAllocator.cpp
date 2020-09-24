@@ -84,8 +84,9 @@ static void checkFifoAllocatorTraits(const spider::sched::FifoAllocator *allocat
 spider::sched::ResourcesAllocator::ResourcesAllocator(SchedulingPolicy schedulingPolicy,
                                                       MappingPolicy mappingPolicy,
                                                       ExecutionPolicy executionPolicy,
-                                                      FifoAllocatorType allocatorType) :
-        scheduler_{ spider::make_unique(allocateScheduler(schedulingPolicy)) },
+                                                      FifoAllocatorType allocatorType,
+                                                      bool legacy) :
+        scheduler_{ spider::make_unique(allocateScheduler(schedulingPolicy, legacy)) },
         mapper_{ spider::make_unique(allocateMapper(mappingPolicy)) },
         schedule_{ spider::make_unique<Schedule, StackID::SCHEDULE>() },
         allocator_{ spider::make_unique(makeFifoAllocator(allocatorType)) },
@@ -116,12 +117,19 @@ void spider::sched::ResourcesAllocator::clear() {
 
 /* === Private method(s) implementation === */
 
-spider::sched::Scheduler *spider::sched::ResourcesAllocator::allocateScheduler(SchedulingPolicy policy) {
+spider::sched::Scheduler *spider::sched::ResourcesAllocator::allocateScheduler(SchedulingPolicy policy, bool legacy) {
     switch (policy) {
         case SchedulingPolicy::LIST:
-            return spider::make<sched::ListScheduler, StackID::SCHEDULE>();
+            if (legacy) {
+                return spider::make<sched::ListScheduler, StackID::SCHEDULE>();
+            }
+            return nullptr;
         case SchedulingPolicy::GREEDY:
-            return spider::make<sched::GreedyScheduler, StackID::SCHEDULE>();
+            if (legacy) {
+                return spider::make<sched::GreedyScheduler, StackID::SCHEDULE>();
+            } else {
+                return spider::make<sched::SRLessGreedyScheduler, StackID::SCHEDULE>();
+            }
         default:
             throwSpiderException("unsupported scheduling policy.");
     }

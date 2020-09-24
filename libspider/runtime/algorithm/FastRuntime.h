@@ -71,7 +71,9 @@ namespace spider {
         /* === Setter(s) === */
 
     private:
+        time::time_point startIterStamp_ = time::min();
         spider::unique_ptr<sched::ResourcesAllocator> resourcesAllocator_;
+        size_t iter_ = 0U;
 
         /* === Private method(s) === */
 

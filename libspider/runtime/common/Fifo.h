@@ -47,6 +47,7 @@ namespace spider {
         RW_OWN,      /*!< Owner of the FIFO own the associated memory:
                         *   --> dealloc after read, alloc before write */
         RW_EXT,      /*!< Owner of the FIFO reads (writes) from (to) external memory */
+        RW_MERGE,    /*!< Owner of the FIFO needs to merge multiple FIFOs together */
     };
 
     /* === Class definition === */

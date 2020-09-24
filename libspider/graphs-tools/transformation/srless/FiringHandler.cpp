@@ -49,16 +49,18 @@
 spider::srless::FiringHandler::FiringHandler(const GraphHandler *parent,
                                              const spider::vector<std::shared_ptr<pisdf::Param>> &params,
                                              u32 firing) :
-        children_{ factory::vector<spider::unique_ptr<GraphHandler>>(StackID::TRANSFO) },
         params_{ factory::vector<std::shared_ptr<pisdf::Param>>(StackID::TRANSFO) },
-        brv_{ factory::vector<u32>(StackID::TRANSFO) },
         parent_{ parent },
         ix_{ SIZE_MAX },
         firing_{ firing },
         resolved_{ false } {
+    if (!parent) {
+        throwNullptrException();
+    }
     const auto *graph = parent->graph();
-    brv_.resize(graph->vertexCount(), UINT32_MAX);
-    children_.reserve(graph->subgraphCount());
+    brv_ = spider::array<u32>(graph->vertexCount(), UINT32_MAX, StackID::TRANSFO);
+    children_ = spider::array<spider::unique_ptr<GraphHandler>>(graph->subgraphCount(), StackID::TRANSFO);
+    taskIxRegister_ = spider::array<spider::unique_ptr<u32>>(graph->vertexCount(), StackID::TRANSFO);
     /* == copy parameters == */
     params_.reserve(params.size());
     for (const auto &param : params) {
@@ -75,13 +77,18 @@ void spider::srless::FiringHandler::resolveBRV() {
     }
     spider::brv::compute(parent_->graph(), params_);
     for (const auto &vertex : parent_->graph()->vertices()) {
-        spider::set_at(brv_, vertex->ix(), static_cast<u32>(vertex->repetitionValue()));
+        const auto ix = vertex->ix();
+        const auto rvValue = vertex->repetitionValue();
+        brv_.at(ix) = static_cast<u32>(rvValue);
+        auto &currentPointer = taskIxRegister_.at(ix);
+        currentPointer.release();
+        currentPointer = spider::make_unique(spider::allocate<u32>(rvValue));
+        std::fill(currentPointer.get(), std::next(currentPointer.get(), static_cast<long>(rvValue)), SIZE_MAX);
     }
     /* == creates children == */
-    children_.clear();
     for (const auto &subgraph : parent_->graph()->subgraphs()) {
-        children_.emplace_back(spider::make_unique<GraphHandler, StackID::TRANSFO>(subgraph, params_,
-                                                                                   subgraph->repetitionValue()));
+        children_.at(subgraph->subIx()) = spider::make_unique<GraphHandler, StackID::TRANSFO>(subgraph, params_,
+                                                                                              subgraph->repetitionValue());
     }
     resolved_ = true;
 }
@@ -92,72 +99,46 @@ u32 spider::srless::FiringHandler::getRV(const spider::pisdf::Vertex *vertex) co
         throwSpiderException("vertex does not belong to the correct graph.");
     }
 #endif
-    return spider::get_at(brv_, vertex->ix());
+    return brv_.at(vertex->ix());
 }
 
 spider::vector<spider::srless::ExecDependency>
-spider::srless::FiringHandler::computeDependencies(const pisdf::Vertex *vertex, u32 vertexFiring) const {
+spider::srless::FiringHandler::computeExecDependenciesByFiring(const pisdf::Vertex *vertex, u32 vertexFiring) const {
     auto dependencies = factory::vector<ExecDependency>(StackID::TRANSFO);
+    dependencies.reserve(vertex->inputEdgeCount());
     for (const auto *edge : vertex->inputEdgeVector()) {
-        const auto sinkRate = edge->sinkRateExpression().evaluate(params_);
-        const auto sourceRate = edge->sourceRateExpression().evaluate(params_);
-        const auto *source = edge->source();
-        if (source->subtype() == pisdf::VertexType::DELAY) {
-            const auto *delay = source->convertTo<pisdf::DelayVertex>()->delay();
-            const auto *delayEdge = delay->edge();
-            const auto originalSourceRate = delayEdge->sourceRateExpression().evaluate(params_);
-            const auto originalSinkRate = delayEdge->sinkRateExpression().evaluate(params_);
-            const auto offset = delayEdge->sink()->repetitionValue() * originalSinkRate - delay->value();
-            const auto sourceRV = delayEdge->source()->repetitionValue();
-            const auto memoryStart = static_cast<u32>((offset + vertexFiring * sinkRate) % originalSourceRate);
-            const auto memoryEnd = static_cast<u32>((offset + (vertexFiring + 1) * sinkRate - 1) % originalSourceRate);
-            const auto depMin = sourceRV - static_cast<u32>(math::ceilDiv(delay->value() - (vertexFiring * sinkRate),
-                                                                          originalSourceRate));
-            const auto depMax =
-                    sourceRV - static_cast<u32>(math::ceilDiv(delay->value() - (vertexFiring + 1) * sinkRate + 1,
-                                                              originalSourceRate));
-            dependencies.push_back({ delayEdge->source(), sinkRate, memoryStart, memoryEnd, depMin, depMax });
-        } else if (edge->delay()) {
-            const auto *delay = edge->delay();
-            const auto delayValue = delay->value();
-            const auto lowerCons = sinkRate * vertexFiring;
-            const auto upperCons = sinkRate * (vertexFiring + 1u);
-            if ((delayValue + 1) > upperCons) {
-                const auto *delayEdge = delay->vertex()->inputEdge(0);
-                const auto setterRate = delayEdge->sourceRateExpression().evaluate(params_);
-                const auto memoryStart = static_cast<u32>(lowerCons % setterRate);
-                const auto memoryEnd = static_cast<u32>((upperCons - 1) % setterRate);
-                const auto depMin = static_cast<u32>(math::floorDiv(lowerCons, setterRate));
-                const auto depMax = static_cast<u32>(math::floorDiv(upperCons - 1, setterRate));
-                dependencies.push_back({ delayEdge->source(), sinkRate, memoryStart, memoryEnd, depMin, depMax });
-            } else if (delayValue > lowerCons) {
-                const auto *delayEdge = delay->vertex()->inputEdge(0);
-                const auto *setter = delayEdge->source();
-                const auto setterRate = delayEdge->sourceRateExpression().evaluate(params_);
-                const auto memoryStart = static_cast<u32>(lowerCons % setterRate);
-                const auto memorySetterEnd = static_cast<u32>(setterRate - 1);
-                const auto memoryEnd = static_cast<u32>((upperCons - 1) % sourceRate);
-                const auto depMin = static_cast<u32>(math::floorDiv(lowerCons - delayValue, setterRate));
-                const auto depSetterMax = setter->repetitionValue() - 1;
-                const auto depMax = static_cast<u32>(math::floorDiv(upperCons - delayValue - 1, sourceRate));
-                dependencies.push_back({ setter, sinkRate, memoryStart, memorySetterEnd, depMin, depSetterMax });
-                dependencies.push_back({ source, sinkRate, 0u, memoryEnd, 0, depMax });
-            } else {
-                const auto memoryStart = static_cast<u32>(lowerCons % sourceRate);
-                const auto memoryEnd = static_cast<u32>((upperCons - 1) % sourceRate);
-                const auto depMin = static_cast<u32>(math::floorDiv(lowerCons - delayValue, sourceRate));
-                const auto depMax = static_cast<u32>(math::floorDiv(upperCons - delayValue - 1, sourceRate));
-                dependencies.push_back({ source, sinkRate, memoryStart, memoryEnd, depMin, depMax });
-            }
-        } else {
-            const auto memoryStart = static_cast<u32>((vertexFiring * sinkRate) % sourceRate);
-            const auto memoryEnd = static_cast<u32>(((vertexFiring + 1) * sinkRate - 1) % sourceRate);
-            const auto depMin = static_cast<u32>(pisdf::computeConsLowerDep(sinkRate, sourceRate, vertexFiring, 0));
-            const auto depMax = static_cast<u32>(pisdf::computeConsUpperDep(sinkRate, sourceRate, vertexFiring, 0));
-            dependencies.push_back({ edge->source(), sinkRate, memoryStart, memoryEnd, depMin, depMax });
-        }
+        compute(edge, vertexFiring, dependencies);
     }
     return dependencies;
+}
+
+spider::vector<spider::srless::ExecDependency>
+spider::srless::FiringHandler::computeExecDependenciesByEdge(const pisdf::Vertex *vertex,
+                                                             u32 vertexFiring,
+                                                             u32 edgeIx) const {
+    auto dependencies = factory::vector<ExecDependency>(StackID::TRANSFO);
+    dependencies.reserve(2u);
+    const auto *edge = vertex->inputEdge(edgeIx);
+    compute(edge, vertexFiring, dependencies);
+    return dependencies;
+}
+
+void spider::srless::FiringHandler::registerTaskIx(const pisdf::Vertex *vertex, u32 vertexFiring, u32 taskIx) {
+#ifndef NDEBUG
+    if (vertexFiring >= getRV(vertex)) {
+        throwSpiderException("invalid vertex firing.");
+    }
+#endif
+    taskIxRegister_.at(vertex->ix()).get()[vertexFiring] = taskIx;
+}
+
+u32 spider::srless::FiringHandler::getTaskIx(const spider::pisdf::Vertex *vertex, u32 vertexFiring) const {
+#ifndef NDEBUG
+    if (vertexFiring >= getRV(vertex)) {
+        throwSpiderException("invalid vertex firing.");
+    }
+#endif
+    return taskIxRegister_.at(vertex->ix()).get()[vertexFiring];
 }
 
 int64_t spider::srless::FiringHandler::getParamValue(size_t ix) {
@@ -186,4 +167,91 @@ spider::srless::FiringHandler::copyParameter(const std::shared_ptr<pisdf::Param>
         return newParam;
     }
     return param;
+}
+
+void spider::srless::FiringHandler::compute(const spider::pisdf::Edge *edge,
+                                            u32 firing,
+                                            spider::vector<spider::srless::ExecDependency> &dependencies) const {
+    const auto snkRate = edge->sinkRateExpression().evaluate(params_);
+    const auto srcRate = edge->sourceRateExpression().evaluate(params_);
+    if (!snkRate) {
+        dependencies.push_back({ nullptr, nullptr, UINT32_MAX, UINT32_MAX, MemoryDependency{ }});
+    }
+    const auto *source = edge->source();
+    if (source->subtype() == pisdf::VertexType::DELAY) {
+        const auto *delay = source->convertTo<pisdf::DelayVertex>()->delay();
+        const auto *delayEdge = delay->edge();
+        const auto delaySrcRate = delayEdge->sourceRateExpression().evaluate(params_);
+        const auto delaySnkRate = delayEdge->sinkRateExpression().evaluate(params_);
+        const auto srcRV = delayEdge->source()->repetitionValue();
+        const auto depMin = srcRV - math::ceilDiv(delay->value() - (firing * snkRate), delaySrcRate);
+        const auto depMax = srcRV - math::ceilDiv(delay->value() - (firing + 1) * snkRate + 1, delaySrcRate);
+        const auto offset = delayEdge->sink()->repetitionValue() * delaySnkRate - delay->value();
+        const auto memoryStart = static_cast<u32>((offset + firing * snkRate) % delaySrcRate);
+        const auto memoryEnd = static_cast<u32>((offset + (firing + 1) * snkRate - 1) % delaySrcRate);
+        dependencies.push_back({ delayEdge->source(), this, static_cast<u32>(depMin), static_cast<u32>(depMax),
+                                 MemoryDependency{ static_cast<size_t>(delaySrcRate),
+                                                   static_cast<u32>(delayEdge->sourcePortIx()),
+                                                   memoryStart,
+                                                   memoryEnd }});
+    } else if (edge->delay()) {
+        const auto *delay = edge->delay();
+        const auto delayValue = delay->value();
+        const auto lowerCons = snkRate * firing;
+        const auto upperCons = snkRate * (firing + 1u);
+        if ((delayValue + 1) > upperCons) {
+            const auto *delayEdge = delay->vertex()->inputEdge(0);
+            const auto setterRate = delayEdge->sourceRateExpression().evaluate(params_);
+            const auto depMin = static_cast<u32>(math::floorDiv(lowerCons, setterRate));
+            const auto depMax = static_cast<u32>(math::floorDiv(upperCons - 1, setterRate));
+            const auto memoryStart = static_cast<u32>(lowerCons % setterRate);
+            const auto memoryEnd = static_cast<u32>((upperCons - 1) % setterRate);
+            dependencies.push_back({ delayEdge->source(), this, depMin, depMax,
+                                     MemoryDependency{ static_cast<size_t>(setterRate),
+                                                       static_cast<u32>(delayEdge->sourcePortIx()),
+                                                       memoryStart,
+                                                       memoryEnd }});
+        } else if (delayValue > lowerCons) {
+            const auto *delayEdge = delay->vertex()->inputEdge(0);
+            const auto *setter = delayEdge->source();
+            /* == Set dependency on setter == */
+            const auto setterRate = delayEdge->sourceRateExpression().evaluate(params_);
+            const auto depMin = static_cast<u32>(math::floorDiv(lowerCons - delayValue, setterRate));
+            const auto memoryStart = static_cast<u32>(lowerCons % setterRate);
+            const auto memorySetterEnd = static_cast<u32>(setterRate - 1);
+            dependencies.push_back({ setter, this, depMin, setter->repetitionValue() - 1,
+                                     MemoryDependency{ static_cast<size_t>(setterRate),
+                                                       static_cast<u32>(delayEdge->sourcePortIx()),
+                                                       memoryStart,
+                                                       memorySetterEnd }});
+            /* == Set dependency on original source == */
+            const auto depMax = static_cast<u32>(math::floorDiv(upperCons - delayValue - 1, srcRate));
+            const auto memoryEnd = static_cast<u32>((upperCons - 1) % srcRate);
+            dependencies.push_back({ source, this, 0u, depMax,
+                                     MemoryDependency{ static_cast<size_t>(srcRate),
+                                                       static_cast<u32>(edge->sourcePortIx()),
+                                                       0u,
+                                                       memoryEnd }});
+        } else {
+            const auto depMin = static_cast<u32>(math::floorDiv(lowerCons - delayValue, srcRate));
+            const auto depMax = static_cast<u32>(math::floorDiv(upperCons - delayValue - 1, srcRate));
+            const auto memoryStart = static_cast<u32>(lowerCons % srcRate);
+            const auto memoryEnd = static_cast<u32>((upperCons - 1) % srcRate);
+            dependencies.push_back({ source, this, depMin, depMax,
+                                     MemoryDependency{ static_cast<size_t>(srcRate),
+                                                       static_cast<u32>(edge->sourcePortIx()),
+                                                       memoryStart,
+                                                       memoryEnd }});
+        }
+    } else {
+        const auto depMin = static_cast<u32>(pisdf::computeConsLowerDep(snkRate, srcRate, firing, 0));
+        const auto depMax = static_cast<u32>(pisdf::computeConsUpperDep(snkRate, srcRate, firing, 0));
+        const auto memoryStart = static_cast<u32>((firing * snkRate) % srcRate);
+        const auto memoryEnd = static_cast<u32>(((firing + 1) * snkRate - 1) % srcRate);
+        dependencies.push_back({ edge->source(), this, depMin, depMax,
+                                 MemoryDependency{ static_cast<size_t>(srcRate),
+                                                   static_cast<u32>(edge->sourcePortIx()),
+                                                   memoryStart,
+                                                   memoryEnd }});
+    }
 }

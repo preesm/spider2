@@ -64,7 +64,8 @@ spider::JITMSRuntime::JITMSRuntime(pisdf::Graph *graph,
         resourcesAllocator_{ make_unique<sched::ResourcesAllocator, StackID::RUNTIME>(schedulingPolicy,
                                                                                       mappingPolicy,
                                                                                       executionPolicy,
-                                                                                      allocatorType) } {
+                                                                                      allocatorType,
+                                                                                      true) } {
     if (!rt::platform()) {
         throwSpiderException("JITMSRuntime need the runtime platform to be created.");
     }

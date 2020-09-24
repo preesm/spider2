@@ -38,11 +38,14 @@
 /* === Include(s) === */
 
 #include <scheduling/task/Task.h>
+#include <containers/vector.h>
 
 namespace spider {
 
     namespace srless {
         class FiringHandler;
+
+        struct ExecDependency;
     }
 
     namespace pisdf {
@@ -54,51 +57,56 @@ namespace spider {
 
         class TaskSRLess final : public Task {
         public:
-            explicit TaskSRLess(const srless::FiringHandler *handler,
+            explicit TaskSRLess(srless::FiringHandler *handler,
                                 const pisdf::Vertex *vertex,
-                                u32 firing);
+                                u32 firing,
+                                const spider::vector<spider::srless::ExecDependency> &dependencies);
 
             ~TaskSRLess() noexcept override = default;
 
             /* === Virtual method(s) === */
 
+            Task *previousTask(size_t ix) const override;
+
+            spider::array_handle<Task *> getDependencies() const override;
+
+            inline void updateTaskExecutionDependencies(const Schedule *schedule) override;
+
+            void updateExecutionConstraints() override;
+
+            void setExecutionDependency(size_t ix, Task *task) override;
+
             AllocationRule allocationRuleForInputFifo(size_t ix) const override;
 
             AllocationRule allocationRuleForOutputFifo(size_t ix) const override;
 
-            Task *previousTask(size_t ix) const override;
+            JobMessage createJobMessage() const override;
 
             u32 color() const override;
 
             std::string name() const override;
 
-            inline void updateTaskExecutionDependencies(const Schedule *) override { }
-
-            void updateExecutionConstraints() override;
-
-            JobMessage createJobMessage() const override;
-
             inline bool isSyncOptimizable() const noexcept override { return false; }
 
-            spider::array_handle<Task *> getDependencies() const override;
-
             std::pair<ufast64, ufast64> computeCommunicationCost(const PE *mappedPE) const override;
-
-            void setExecutionDependency(size_t ix, Task *task) override;
 
             bool isMappableOnPE(const PE *pe) const override;
 
             u64 timingOnPE(const PE *pe) const override;
 
             /* === Getter(s) === */
+
             DependencyInfo getDependencyInfo(size_t size) const override;
+
+            void setIx(u32 ix) noexcept override;
 
             /* === Setter(s) === */
 
         private:
-            const srless::FiringHandler *handler_;
+            srless::FiringHandler *handler_;
             const pisdf::Vertex *vertex_;
             u32 firing_;
+            u32 dependenciesCount_;
         };
     }
 }

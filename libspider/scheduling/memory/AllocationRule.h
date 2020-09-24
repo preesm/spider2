@@ -44,13 +44,15 @@ namespace spider {
             NEW,      /*!< Specify that a new FIFO should be allocated */
             SAME_IN,  /*!< Specify that an existing input FIFO should be used */
             SAME_OUT, /*!< Specify that an existing output FIFO should be used */
-            EXT       /*!< Specify that allocation of FIFO is external */
+            EXT,      /*!< Specify that allocation of FIFO is external */
+            MERGE     /*!< Specify that allocation of FIFO requires to merge multiple FIFOs */
         };
 
         struct AllocationRule {
+            AllocationRule *others_;
             size_t size_;
             size_t offset_;
-            size_t index_;
+            u32 fifoIx_;
             AllocType type_;
             FifoAttribute attribute_;
         };

@@ -38,6 +38,7 @@
 /* === Include(s) === */
 
 #include <runtime/common/Fifo.h>
+#include <scheduling/memory/AllocationRule.h>
 #include <api/global-api.h>
 
 namespace spider {
@@ -67,7 +68,7 @@ namespace spider {
 
             FifoAllocatorTraits traits_;
 
-            FifoAllocator() : FifoAllocator({ true, true }) {}
+            FifoAllocator() : FifoAllocator({ true, true }) { }
 
             virtual ~FifoAllocator() noexcept = default;
 
@@ -104,6 +105,16 @@ namespace spider {
             size_t virtualMemoryAddress_ = 0;
 
             explicit FifoAllocator(FifoAllocatorTraits traits) noexcept: traits_{ traits } { }
+
+        private:
+
+            size_t allocateMergedInputFifo(Task *task,
+                                           Fifo *fifo,
+                                           sched::AllocationRule &rule,
+                                           size_t realFifoIx,
+                                           size_t taskOffset);
+
+            void allocateInputFifo(const Task *task, Fifo *fifo, sched::AllocationRule &rule);
         };
     }
 }

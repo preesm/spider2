@@ -77,7 +77,7 @@ spider::sched::AllocationRule spider::sched::TaskSync::allocationRuleForInputFif
     spider::sched::AllocationRule spider::sched::TaskSync::allocationRuleForInputFifo(size_t) const {
 #endif
     if (type_ == SyncType::SEND) {
-        return { SIZE_MAX, 0u, inputPortIx_, AllocType::SAME_IN, FifoAttribute::RW_ONLY };
+        return { nullptr, SIZE_MAX, 0u, inputPortIx_, AllocType::SAME_IN, FifoAttribute::RW_ONLY };
     }
     return { };
 }
@@ -92,9 +92,9 @@ spider::sched::AllocationRule spider::sched::TaskSync::allocationRuleForOutputFi
     spider::sched::AllocationRule spider::sched::TaskSync::allocationRuleForOutputFifo(size_t) const {
 #endif
     if (type_ == SyncType::SEND) {
-        return { SIZE_MAX, 0u, 0u, AllocType::SAME_IN, FifoAttribute::RW_ONLY };
+        return { nullptr, SIZE_MAX, 0u, 0u, AllocType::SAME_IN, FifoAttribute::RW_ONLY };
     } else {
-        return { size_, 0u, SIZE_MAX, AllocType::NEW, FifoAttribute::RW_OWN };
+        return { nullptr, size_, 0u, UINT32_MAX, AllocType::NEW, FifoAttribute::RW_OWN };
     }
 }
 

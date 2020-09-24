@@ -75,7 +75,7 @@ void spider::sched::NoSyncFifoAllocator::allocate(spider::sched::Task *task) {
                 }
                 /* == Set the fifo == */
                 if (rule.type_ == AllocType::SAME_IN) {
-                    fifo = prevTask->fifos().outputFifo(rule.index_);
+                    fifo = prevTask->fifos().outputFifo(rule.fifoIx_);
                     if (fifo.attribute_ != FifoAttribute::RW_EXT) {
                         fifo.attribute_ = rule.attribute_;
                         fifo.count_ = 0u;
@@ -101,19 +101,21 @@ void spider::sched::NoSyncFifoAllocator::allocate(spider::sched::Task *task) {
                     fifo.offset_ = 0u;
                     break;
                 case SAME_IN: {
-                    auto &inputFifo = inputFifos[rule.index_];
+                    auto &inputFifo = inputFifos[rule.fifoIx_];
                     fifo.virtualAddress_ = inputFifo.virtualAddress_;
                     fifo.offset_ = inputFifo.offset_ + static_cast<u32>(rule.offset_);
                 }
                     break;
                 case SAME_OUT: {
-                    auto &outputFifo = outputFifos[rule.index_];
+                    auto &outputFifo = outputFifos[rule.fifoIx_];
                     fifo.virtualAddress_ = outputFifo.virtualAddress_;
                     fifo.offset_ = outputFifo.offset_ + static_cast<u32>(rule.offset_);
                 }
                     break;
                 case EXT:
-                    fifo.virtualAddress_ = rule.index_;
+                    fifo.virtualAddress_ = rule.fifoIx_;
+                    break;
+                default:
                     break;
             }
             fifo.size_ = static_cast<u32>(rule.size_);
@@ -161,7 +163,7 @@ void spider::sched::NoSyncFifoAllocator::updateFifoCount(const sched::Task *task
                                                          const sched::Task *inputTask,
                                                          u32 count) const {
     const auto rule = task->allocationRuleForInputFifo(0u);
-    auto &outputFifoOfInputTask = inputTask->fifos().outputFifos()[rule.index_];
+    auto &outputFifoOfInputTask = inputTask->fifos().outputFifos()[rule.fifoIx_];
     outputFifoOfInputTask.count_ += count;
 }
 

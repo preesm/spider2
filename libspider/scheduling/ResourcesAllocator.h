@@ -64,7 +64,8 @@ namespace spider {
             explicit ResourcesAllocator(SchedulingPolicy schedulingPolicy,
                                         MappingPolicy mappingPolicy,
                                         ExecutionPolicy executionPolicy,
-                                        FifoAllocatorType allocatorType);
+                                        FifoAllocatorType allocatorType,
+                                        bool legacy);
 
             ~ResourcesAllocator() noexcept = default;
 
@@ -100,10 +101,11 @@ namespace spider {
             /**
              * @brief Allocates the scheduler corresponding to the given policy.
              * @param policy  Scheduling policy to use.
+             * @param legacy  Flag indicating if we are using the legacy intermediate representation (i.e SRDAG).
              * @return pointer to the created @refitem Scheduler.
              * @throw @refitem spider::Exception if the scheduling policy is not supported.
              */
-            Scheduler *allocateScheduler(SchedulingPolicy policy);
+            Scheduler *allocateScheduler(SchedulingPolicy policy, bool legacy);
 
             /**
              * @brief Allocates the mapper corresponding to the given policy.

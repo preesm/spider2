@@ -53,6 +53,7 @@ spider::sched::SRLessGreedyScheduler::SRLessGreedyScheduler() :
 }
 
 void spider::sched::SRLessGreedyScheduler::schedule(const srless::GraphHandler *graphHandler) {
+    tasks_.clear();
     for (auto &firing : graphHandler->firings()) {
         if (firing->isResolved() && (firing->ix() == SIZE_MAX)) {
             for (const auto &vertex : graphHandler->graph()->vertices()) {
@@ -94,14 +95,14 @@ spider::sched::SRLessGreedyScheduler::evaluate(SRLessGreedyScheduler::iterator_t
     /* == add vertex to task vector == */
     const auto itFirstFiring = std::next(std::begin(unscheduledVertices_), static_cast<long>(vertex->scheduleTaskIx()));
     auto k = static_cast<u32>(std::distance(itFirstFiring, it));
+    const auto dependencies = it->handler_->computeExecDependenciesByFiring(vertex, k);
     if (vertex->inputEdgeCount() > 0u) {
-        const auto dependencies = it->handler_->computeDependencies(vertex, k);
         for (const auto &dep : dependencies) {
-            if (!dep.rate_) {
+            if (!dep.vertex_) {
                 continue;
             }
             const auto *source = dep.vertex_;
-            if (!source || !source->executable()) {
+            if (!source->executable()) {
                 it->executable_ = false;
                 return it + 1;
             } else if (source->scheduleTaskIx() < unscheduledVertices_.size()) {
@@ -120,7 +121,7 @@ spider::sched::SRLessGreedyScheduler::evaluate(SRLessGreedyScheduler::iterator_t
             }
         }
     }
-    tasks_.emplace_back(make<TaskSRLess>(it->handler_, it->vertex_, static_cast<u32>(k)));
+    tasks_.emplace_back(make<TaskSRLess>(it->handler_, it->vertex_, static_cast<u32>(k), dependencies));
     it->scheduled_ = true;
     return it + 1;
 }
