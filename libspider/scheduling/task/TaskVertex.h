@@ -91,7 +91,7 @@ namespace spider {
 
             inline pisdf::Vertex *vertex() const { return vertex_; }
 
-            DependencyInfo getDependencyInfo(size_t size) const override;
+            DependencyInfo getDependencyInfo(size_t ix) const override;
 
             /* === Setter(s) === */
 

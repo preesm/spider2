@@ -104,19 +104,19 @@ spider::sched::AllocationRule spider::sched::TaskVertex::allocationRuleForInputF
 #endif
     const auto *inputEdge = vertex_->inputEdge(ix);
     const auto size = static_cast<size_t>(inputEdge->sinkRateValue());
-    const auto index = inputEdge->sourcePortIx();
+    const auto index = static_cast<u32>(inputEdge->sourcePortIx());
     switch (vertex_->subtype()) {
         case pisdf::VertexType::FORK:
-            return { size, 0u, index, AllocType::SAME_IN, FifoAttribute::RW_ONLY };
+            return { nullptr, size, 0u, index, AllocType::SAME_IN, FifoAttribute::RW_ONLY };
         case pisdf::VertexType::DUPLICATE:
-            return { size, 0u, index, AllocType::SAME_IN, FifoAttribute::RW_ONLY };
+            return { nullptr, size, 0u, index, AllocType::SAME_IN, FifoAttribute::RW_ONLY };
         case pisdf::VertexType::REPEAT:
             if (size == static_cast<size_t>(vertex_->outputEdge(0u)->sourceRateValue())) {
-                return { size, 0u, index, AllocType::SAME_IN, FifoAttribute::RW_ONLY };
+                return { nullptr, size, 0u, index, AllocType::SAME_IN, FifoAttribute::RW_ONLY };
             }
-            return { size, 0u, index, spider::sched::AllocType::SAME_IN, spider::FifoAttribute::RW_OWN };
+            return { nullptr, size, 0u, index, spider::sched::AllocType::SAME_IN, spider::FifoAttribute::RW_OWN };
         default:
-            return { size, 0u, index, spider::sched::AllocType::SAME_IN, spider::FifoAttribute::RW_OWN };
+            return { nullptr, size, 0u, index, spider::sched::AllocType::SAME_IN, spider::FifoAttribute::RW_OWN };
     }
 }
 
@@ -131,30 +131,30 @@ spider::sched::AllocationRule spider::sched::TaskVertex::allocationRuleForOutput
     switch (vertex_->subtype()) {
         case pisdf::VertexType::FORK:
             if (ix == 0u) {
-                return { size, 0u, 0u, AllocType::SAME_IN, FifoAttribute::RW_ONLY };
+                return { nullptr, size, 0u, 0u, AllocType::SAME_IN, FifoAttribute::RW_ONLY };
             } else {
                 const auto offset = static_cast<size_t>(vertex_->outputEdge(ix - 1)->sourceRateValue());
-                return { size, offset, ix - 1, AllocType::SAME_OUT, FifoAttribute::RW_ONLY };
+                return { nullptr, size, offset, static_cast<u32>(ix - 1), AllocType::SAME_OUT, FifoAttribute::RW_ONLY };
             }
         case pisdf::VertexType::DUPLICATE:
-            return { size, 0u, 0u, AllocType::SAME_IN, FifoAttribute::RW_ONLY };
+            return { nullptr, size, 0u, 0u, AllocType::SAME_IN, FifoAttribute::RW_ONLY };
         case pisdf::VertexType::EXTERN_IN: {
             const auto ref = vertex_->reference()->convertTo<pisdf::ExternInterface>();
-            return { size, 0u, ref->bufferIndex(), AllocType::EXT, FifoAttribute::RW_EXT };
+            return { nullptr, size, ref->bufferIndex(), 0u, AllocType::EXT, FifoAttribute::RW_EXT };
         }
         case pisdf::VertexType::REPEAT:
-            if (size == static_cast<size_t>(vertex_->outputEdge(0u)->sourceRateValue())) {
+            if (size == static_cast<size_t>(vertex_->inputEdge(0u)->sourceRateValue())) {
                 auto inputFifo = fifos_->inputFifo(0u);
-                return { size, 0u, 0u, AllocType::SAME_IN, inputFifo.attribute_ };
+                return { nullptr, size, 0u, 0u, AllocType::SAME_IN, inputFifo.attribute_ };
             }
-            return { size, 0u, SIZE_MAX, AllocType::NEW, FifoAttribute::RW_OWN };
+            return { nullptr, size, 0u, UINT32_MAX, AllocType::NEW, FifoAttribute::RW_OWN };
         default: {
             const auto *sink = edge->sink();
             if (sink && sink->subtype() == pisdf::VertexType::EXTERN_OUT) {
                 const auto *extInterface = sink->reference()->convertTo<pisdf::ExternInterface>();
-                return { size, 0u, extInterface->bufferIndex(), AllocType::EXT, FifoAttribute::RW_EXT };
+                return { nullptr, size, extInterface->bufferIndex(), 0u, AllocType::EXT, FifoAttribute::RW_EXT };
             }
-            return { size, 0u, SIZE_MAX, AllocType::NEW, FifoAttribute::RW_OWN };
+            return { nullptr, size, 0u, UINT32_MAX, AllocType::NEW, FifoAttribute::RW_OWN };
         }
     }
 }
@@ -264,8 +264,9 @@ std::pair<ufast64, ufast64> spider::sched::TaskVertex::computeCommunicationCost(
     return { communicationCost, externDataToReceive };
 }
 
-spider::sched::DependencyInfo spider::sched::TaskVertex::getDependencyInfo(size_t size) const {
-    return DependencyInfo();
+spider::sched::DependencyInfo spider::sched::TaskVertex::getDependencyInfo(size_t ix) const {
+    return { vertex_->inputEdge(ix)->sourcePortIx(),
+             static_cast<size_t>(vertex_->inputEdge(ix)->sourceRateValue()) };
 }
 
 bool spider::sched::TaskVertex::isMappableOnPE(const spider::PE *pe) const {

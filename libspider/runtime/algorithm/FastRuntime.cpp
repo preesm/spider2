@@ -36,16 +36,21 @@
 
 #include <runtime/algorithm/FastRuntime.h>
 #include <api/runtime-api.h>
-#include <graphs-tools/transformation/srdag/Transformation.h>
-#include <graphs-tools/helper/pisdf-helper.h>
+#include <graphs/pisdf/Graph.h>
+#include <graphs-tools/transformation/srless/FiringHandler.h>
+#include <graphs-tools/transformation/srless/GraphHandler.h>
 #include <scheduling/ResourcesAllocator.h>
 #include <scheduling/memory/FifoAllocator.h>
+#include <scheduling/scheduler/SRLessGreedyScheduler.h>
+#include <scheduling/mapper/BestFitMapper.h>
+#include <runtime/runner/RTRunner.h>
+#include <runtime/platform/RTPlatform.h>
+#include <runtime/communicator/RTCommunicator.h>
+#include <api/config-api.h>
 
 /* === Static function === */
 
 /* === Method(s) implementation === */
-
-/* === Private method(s) implementation === */
 
 spider::FastRuntime::FastRuntime(pisdf::Graph *graph,
                                  SchedulingPolicy schedulingPolicy,
@@ -56,15 +61,64 @@ spider::FastRuntime::FastRuntime(pisdf::Graph *graph,
         resourcesAllocator_{ make_unique<sched::ResourcesAllocator, StackID::RUNTIME>(schedulingPolicy,
                                                                                       mappingPolicy,
                                                                                       executionPolicy,
-                                                                                      allocatorType) } {
+                                                                                      allocatorType,
+                                                                                      false) } {
 }
 
 bool spider::FastRuntime::execute() {
+    return staticExecute();
 }
 
 /* === Private method(s) implementation === */
 
 bool spider::FastRuntime::staticExecute() {
+    /* == Time point used as reference == */
+    if (api::exportTraceEnabled()) {
+        startIterStamp_ = time::now();
+    }
+    if (iter_) {
+        const auto grtIx = archi::platform()->getGRTIx();
+        TraceMessage schedMsg{ };
+        TRACE_SCHEDULE_START();
+        /* == Send LRT_START_ITERATION notification == */
+        rt::platform()->sendStartIteration();
+        /* == Send LRT_END_ITERATION notification == */
+        rt::platform()->sendEndIteration();
+        TRACE_SCHEDULE_END();
+        /* == Run and wait == */
+        rt::platform()->runner(grtIx)->run(false);
+        rt::platform()->waitForRunnersToFinish();
+        /* == Runners should reset their parameters == */
+        rt::platform()->sendResetToRunners();
+        if (api::exportTraceEnabled()) {
+            useExecutionTraces(graph_, resourcesAllocator_->schedule(), startIterStamp_);
+        }
+    } else {
+        /* == Runners should repeat their iteration == */
+        rt::platform()->sendRepeatToRunners(true);
+        auto graphHandler = srless::GraphHandler(graph_, graph_->params(), 1u);
+        TraceMessage schedMsg{ };
+        TRACE_SCHEDULE_START();
+        /* == Send LRT_START_ITERATION notification == */
+        rt::platform()->sendStartIteration();
+        resourcesAllocator_->execute(&graphHandler);
+        /* == Send LRT_END_ITERATION notification == */
+        rt::platform()->sendEndIteration();
+        TRACE_SCHEDULE_END();
+        /* == Export pre-exec gantt if needed  == */
+        if (api::exportGanttEnabled()) {
+            exportPreExecGantt(resourcesAllocator_->schedule());
+        }
+        /* == If there are jobs left, run == */
+        rt::platform()->runner(archi::platform()->getGRTIx())->run(false);
+        rt::platform()->waitForRunnersToFinish();
+        /* == Runners should reset their parameters == */
+        rt::platform()->sendResetToRunners();
+        if (api::exportTraceEnabled()) {
+            useExecutionTraces(graph_, resourcesAllocator_->schedule(), startIterStamp_);
+        }
+    }
+    iter_++;
     return true;
 }
 

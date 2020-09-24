@@ -40,6 +40,7 @@
 #include <common/Types.h>
 #include <memory/unique_ptr.h>
 #include <containers/vector.h>
+#include <containers/array.h>
 
 namespace spider {
 
@@ -53,13 +54,21 @@ namespace spider {
 
         class GraphHandler;
 
-        struct ExecDependency {
-            const pisdf::Vertex *vertex_;
-            i64 rate_;
+        class FiringHandler;
+
+        struct MemoryDependency {
+            size_t rate_;
+            u32 edgeIx_;
             u32 memoryStart_;
             u32 memoryEnd_;
+        };
+
+        struct ExecDependency {
+            const pisdf::Vertex *vertex_;
+            const FiringHandler *handler_;
             u32 firingStart_;
             u32 firingEnd_;
+            MemoryDependency memory_;
         };
 
         /* === Class definition === */
@@ -82,11 +91,19 @@ namespace spider {
 
             u32 getRV(const pisdf::Vertex *vertex) const;
 
-            spider::vector<ExecDependency> computeDependencies(const pisdf::Vertex *vertex, u32 vertexFiring) const;
+            spider::vector<ExecDependency>
+            computeExecDependenciesByFiring(const pisdf::Vertex *vertex, u32 vertexFiring) const;
+
+            spider::vector<ExecDependency>
+            computeExecDependenciesByEdge(const pisdf::Vertex *vertex, u32 vertexFiring, u32 edgeIx) const;
+
+            void registerTaskIx(const pisdf::Vertex *vertex, u32 vertexFiring, u32 taskIx);
+
+            u32 getTaskIx(const pisdf::Vertex *vertex, u32 vertexFiring) const;
 
             /* === Getter(s) === */
 
-            inline const spider::vector<spider::unique_ptr<GraphHandler>> &children() { return children_; }
+            inline const spider::array<spider::unique_ptr<GraphHandler>> &children() { return children_; }
 
             inline const spider::vector<std::shared_ptr<pisdf::Param>> &getParams() const { return params_; }
 
@@ -107,9 +124,10 @@ namespace spider {
             inline void setFiring(u32 firing) { firing_ = firing; }
 
         private:
-            spider::vector<spider::unique_ptr<GraphHandler>> children_; /* == match between subgraphs and their handler == */
             spider::vector<std::shared_ptr<pisdf::Param>> params_;
-            spider::vector<u32> brv_;
+            spider::array<spider::unique_ptr<GraphHandler>> children_; /* == match between subgraphs and their handler == */
+            spider::array<u32> brv_;
+            spider::array<spider::unique_ptr<u32>> taskIxRegister_;
             const GraphHandler *parent_;
             size_t ix_{ };
             u32 firing_{ };
@@ -119,6 +137,8 @@ namespace spider {
 
             std::shared_ptr<pisdf::Param> copyParameter(const std::shared_ptr<pisdf::Param> &param,
                                                         const spider::vector<std::shared_ptr<pisdf::Param>> &parentParams);
+
+            void compute(const pisdf::Edge *edge, u32 firing, spider::vector<ExecDependency> &dependencies) const;
         };
     }
 }
