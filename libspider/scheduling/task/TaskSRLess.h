@@ -46,6 +46,7 @@ namespace spider {
         class FiringHandler;
 
         struct ExecDependency;
+        struct ExecDependencyInfo;
     }
 
     namespace pisdf {
@@ -57,10 +58,7 @@ namespace spider {
 
         class TaskSRLess final : public Task {
         public:
-            explicit TaskSRLess(srless::FiringHandler *handler,
-                                const pisdf::Vertex *vertex,
-                                u32 firing,
-                                const spider::vector<spider::srless::ExecDependency> &dependencies);
+            explicit TaskSRLess(srless::FiringHandler *handler, const pisdf::Vertex *vertex, u32 firing);
 
             ~TaskSRLess() noexcept override = default;
 
@@ -107,6 +105,16 @@ namespace spider {
             const pisdf::Vertex *vertex_;
             u32 firing_;
             u32 dependenciesCount_;
+
+
+            /* === private method(s) === */
+
+            size_t updateTaskExecutionDependency(const Schedule *schedule,
+                                                 const srless::ExecDependencyInfo &dependencyInfo,
+                                                 size_t index);
+
+            size_t setExtraAllocationRules(AllocationRule *rules,
+                                           const srless::ExecDependencyInfo &dependencyInfo, size_t offset) const;
         };
     }
 }

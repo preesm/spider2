@@ -90,40 +90,63 @@ void spider::sched::SRLessGreedyScheduler::clear() {
 /* === Private method(s) implementation === */
 
 spider::sched::SRLessGreedyScheduler::iterator_t
-spider::sched::SRLessGreedyScheduler::evaluate(SRLessGreedyScheduler::iterator_t it) {
+spider::sched::SRLessGreedyScheduler::evaluate(iterator_t it) {
     auto *vertex = it->vertex_;
     /* == add vertex to task vector == */
     const auto itFirstFiring = std::next(std::begin(unscheduledVertices_), static_cast<long>(vertex->scheduleTaskIx()));
     auto k = static_cast<u32>(std::distance(itFirstFiring, it));
-    const auto dependencies = it->handler_->computeExecDependenciesByFiring(vertex, k);
     if (vertex->inputEdgeCount() > 0u) {
-        for (const auto &dep : dependencies) {
-            if (!dep.vertex_) {
-                continue;
-            }
-            const auto *source = dep.vertex_;
-            if (!source->executable()) {
+        for (const auto *edge : vertex->inputEdgeVector()) {
+            if (!edge->source() || !edge->source()->executable()) {
                 it->executable_ = false;
                 return it + 1;
-            } else if (source->scheduleTaskIx() < unscheduledVertices_.size()) {
-                auto sourceIt = std::next(std::begin(unscheduledVertices_),
-                                          static_cast<long>(source->scheduleTaskIx()));
-                if (sourceIt->vertex_ == source) {
-                    for (auto j = dep.firingStart_; j <= dep.firingEnd_; ++j) {
-                        auto currentIt = sourceIt + j;
-                        if (currentIt->executable_ && !currentIt->scheduled_) {
-                            return currentIt;
-                        }
-                    }
-                } else {
-                    return it + 1;
+            }
+            const auto edgeIx = static_cast<u32>(edge->sinkPortIx());
+            const auto dep = it->handler_->computeExecDependenciesByEdge(vertex, k, edgeIx);
+            if (!dep.setter_.vertex_) {
+                if (!dep.source_.vertex_) {
+                    continue;
+                }
+                auto res = evaluateCurrentDependency(it, dep.source_);
+                if (res != it) {
+                    return res;
+                }
+            } else {
+                auto res = evaluateCurrentDependency(it, dep.setter_);
+                if (res != it) {
+                    return res;
+                } else if ((res = evaluateCurrentDependency(it, dep.source_)) != it) {
+                    return res;
                 }
             }
         }
     }
-    tasks_.emplace_back(make<TaskSRLess>(it->handler_, it->vertex_, static_cast<u32>(k), dependencies));
+    tasks_.emplace_back(make<TaskSRLess>(it->handler_, it->vertex_, k));
     it->scheduled_ = true;
     return it + 1;
+}
+
+spider::sched::SRLessGreedyScheduler::iterator_t
+spider::sched::SRLessGreedyScheduler::evaluateCurrentDependency(iterator_t it,
+                                                                const srless::ExecDependencyInfo &dependencyInfo) {
+    const auto *source = dependencyInfo.vertex_;
+    if (!source->executable()) {
+        it->executable_ = false;
+        return it + 1;
+    } else if (source->scheduleTaskIx() < unscheduledVertices_.size()) {
+        auto sourceIt = std::next(std::begin(unscheduledVertices_),
+                                  static_cast<long>(source->scheduleTaskIx()));
+        /* == if vertex has been scheduled in a previous round it may have a valid scheduleTaskIx but not in this vector == */
+        if (sourceIt->vertex_ == source) {
+            for (auto j = dependencyInfo.firingStart_; j <= dependencyInfo.firingEnd_; ++j) {
+                auto currentIt = sourceIt + j;
+                if (currentIt->executable_ && !currentIt->scheduled_) {
+                    return currentIt;
+                }
+            }
+        }
+    }
+    return it;
 }
 
 spider::sched::SRLessGreedyScheduler::iterator_t

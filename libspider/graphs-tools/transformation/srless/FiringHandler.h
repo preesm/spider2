@@ -56,19 +56,20 @@ namespace spider {
 
         class FiringHandler;
 
-        struct MemoryDependency {
+        struct ExecDependencyInfo {
+            const pisdf::Vertex *vertex_;
+            const FiringHandler *handler_;
             size_t rate_;
             u32 edgeIx_;
             u32 memoryStart_;
             u32 memoryEnd_;
+            u32 firingStart_;
+            u32 firingEnd_;
         };
 
         struct ExecDependency {
-            const pisdf::Vertex *vertex_;
-            const FiringHandler *handler_;
-            u32 firingStart_;
-            u32 firingEnd_;
-            MemoryDependency memory_;
+            ExecDependencyInfo setter_;
+            ExecDependencyInfo source_;
         };
 
         /* === Class definition === */
@@ -94,7 +95,7 @@ namespace spider {
             spider::vector<ExecDependency>
             computeExecDependenciesByFiring(const pisdf::Vertex *vertex, u32 vertexFiring) const;
 
-            spider::vector<ExecDependency>
+            ExecDependency
             computeExecDependenciesByEdge(const pisdf::Vertex *vertex, u32 vertexFiring, u32 edgeIx) const;
 
             void registerTaskIx(const pisdf::Vertex *vertex, u32 vertexFiring, u32 taskIx);
@@ -138,7 +139,11 @@ namespace spider {
             std::shared_ptr<pisdf::Param> copyParameter(const std::shared_ptr<pisdf::Param> &param,
                                                         const spider::vector<std::shared_ptr<pisdf::Param>> &parentParams);
 
-            void compute(const pisdf::Edge *edge, u32 firing, spider::vector<ExecDependency> &dependencies) const;
+            ExecDependency compute(const pisdf::Edge *edge, u32 firing) const;
+
+            ExecDependency computeFlatGetterDependency(const spider::pisdf::Edge *edgeGetter, u32 firing) const;
+
+            ExecDependency computeFlatDelayedDependency(const spider::pisdf::Edge *edge, u32 firing) const;
         };
     }
 }

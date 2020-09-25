@@ -43,6 +43,8 @@ namespace spider {
 
     namespace srless {
         class FiringHandler;
+
+        struct ExecDependencyInfo;
     }
 
     namespace sched {
@@ -92,6 +94,8 @@ namespace spider {
              *         iterator to last value of the unscheduledVertices_ vector if vertex was scheduled.
              */
             iterator_t evaluate(iterator_t it);
+
+            iterator_t evaluateCurrentDependency(iterator_t it, const srless::ExecDependencyInfo &dependencyInfo);
 
             /**
              * @brief Remove value at given position and swap it with the value at the end of the unscheduledVertices_ vector.
