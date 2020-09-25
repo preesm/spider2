@@ -55,13 +55,15 @@ spider::sched::SRLessGreedyScheduler::SRLessGreedyScheduler() :
 void spider::sched::SRLessGreedyScheduler::schedule(const srless::GraphHandler *graphHandler) {
     tasks_.clear();
     for (auto &firing : graphHandler->firings()) {
-        if (firing->isResolved() && (firing->ix() == SIZE_MAX)) {
+        if (firing.isResolved() && (firing.ix() == SIZE_MAX)) {
             for (const auto &vertex : graphHandler->graph()->vertices()) {
                 if (vertex->scheduleTaskIx() == SIZE_MAX) {
-                    const auto vertexRV = firing->getRV(vertex.get());
+                    const auto vertexRV = firing.getRV(vertex.get());
                     vertex->setScheduleTaskIx(unscheduledVertices_.size());
                     for (size_t k = 0; k < vertexRV; ++k) {
-                        unscheduledVertices_.push_back({ vertex.get(), firing.get(), vertex->executable(), false });
+                        unscheduledVertices_.push_back(
+                                { vertex.get(), &const_cast<srless::FiringHandler &>(firing), vertex->executable(),
+                                  false });
                     }
                 }
             }
@@ -103,21 +105,11 @@ spider::sched::SRLessGreedyScheduler::evaluate(iterator_t it) {
             }
             const auto edgeIx = static_cast<u32>(edge->sinkPortIx());
             const auto dep = it->handler_->computeExecDependenciesByEdge(vertex, k, edgeIx);
-            if (!dep.setter_.vertex_) {
-                if (!dep.source_.vertex_) {
-                    continue;
-                }
-                auto res = evaluateCurrentDependency(it, dep.source_);
-                if (res != it) {
-                    return res;
-                }
-            } else {
-                auto res = evaluateCurrentDependency(it, dep.setter_);
-                if (res != it) {
-                    return res;
-                } else if ((res = evaluateCurrentDependency(it, dep.source_)) != it) {
-                    return res;
-                }
+            auto res = evaluateCurrentDependency(it, dep.setter_);
+            if (res != it) {
+                return res;
+            } else if ((res = evaluateCurrentDependency(it, dep.source_)) != it) {
+                return res;
             }
         }
     }
@@ -129,6 +121,9 @@ spider::sched::SRLessGreedyScheduler::evaluate(iterator_t it) {
 spider::sched::SRLessGreedyScheduler::iterator_t
 spider::sched::SRLessGreedyScheduler::evaluateCurrentDependency(iterator_t it,
                                                                 const srless::ExecDependencyInfo &dependencyInfo) {
+    if (!dependencyInfo.vertex_) {
+        return it;
+    }
     const auto *source = dependencyInfo.vertex_;
     if (!source->executable()) {
         it->executable_ = false;

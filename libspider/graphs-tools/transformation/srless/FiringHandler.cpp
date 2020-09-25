@@ -68,12 +68,19 @@ spider::srless::FiringHandler::FiringHandler(const GraphHandler *parent,
     }
     const auto *graph = parent->graph();
     brv_ = spider::array<u32>(graph->vertexCount(), UINT32_MAX, StackID::TRANSFO);
-    children_ = spider::array<spider::unique_ptr<GraphHandler>>(graph->subgraphCount(), StackID::TRANSFO);
-    taskIxRegister_ = spider::array<spider::unique_ptr<u32>>(graph->vertexCount(), StackID::TRANSFO);
+    children_ = spider::array<GraphHandler>(graph->subgraphCount(), StackID::TRANSFO);
+    taskIxRegister_ = spider::array<u32 *>(graph->vertexCount(), StackID::TRANSFO);
+    std::fill(std::begin(taskIxRegister_), std::end(taskIxRegister_), nullptr);
     /* == copy parameters == */
     params_.reserve(params.size());
     for (const auto &param : params) {
         params_.emplace_back(copyParameter(param, params));
+    }
+}
+
+spider::srless::FiringHandler::~FiringHandler() {
+    for (auto &ptr : taskIxRegister_) {
+        deallocate(ptr);
     }
 }
 
@@ -90,14 +97,13 @@ void spider::srless::FiringHandler::resolveBRV() {
         const auto rvValue = vertex->repetitionValue();
         brv_.at(ix) = static_cast<u32>(rvValue);
         auto &currentPointer = taskIxRegister_.at(ix);
-        currentPointer.release();
-        currentPointer = spider::make_unique(spider::allocate<u32>(rvValue));
-        std::fill(currentPointer.get(), std::next(currentPointer.get(), static_cast<long>(rvValue)), SIZE_MAX);
+        deallocate(currentPointer);
+        currentPointer = spider::allocate<u32, StackID::TRANSFO>(rvValue);
+        std::fill(currentPointer, std::next(currentPointer, static_cast<long>(rvValue)), SIZE_MAX);
     }
     /* == creates children == */
     for (const auto &subgraph : parent_->graph()->subgraphs()) {
-        children_.at(subgraph->subIx()) = spider::make_unique<GraphHandler, StackID::TRANSFO>(subgraph, params_,
-                                                                                              subgraph->repetitionValue());
+        children_.at(subgraph->subIx()) = GraphHandler(subgraph, params_, subgraph->repetitionValue());
     }
     resolved_ = true;
 }
@@ -134,7 +140,7 @@ void spider::srless::FiringHandler::registerTaskIx(const pisdf::Vertex *vertex, 
         throwSpiderException("invalid vertex firing.");
     }
 #endif
-    taskIxRegister_.at(vertex->ix()).get()[vertexFiring] = taskIx;
+    taskIxRegister_.at(vertex->ix())[vertexFiring] = taskIx;
 }
 
 u32 spider::srless::FiringHandler::getTaskIx(const spider::pisdf::Vertex *vertex, u32 vertexFiring) const {
@@ -143,7 +149,7 @@ u32 spider::srless::FiringHandler::getTaskIx(const spider::pisdf::Vertex *vertex
         throwSpiderException("invalid vertex firing.");
     }
 #endif
-    return taskIxRegister_.at(vertex->ix()).get()[vertexFiring];
+    return taskIxRegister_.at(vertex->ix())[vertexFiring];
 }
 
 int64_t spider::srless::FiringHandler::getParamValue(size_t ix) {
@@ -255,3 +261,4 @@ spider::srless::FiringHandler::computeFlatDelayedDependency(const pisdf::Edge *e
     return { detail::dummyInfo,
              { edge->source(), this, rate, fifoIx, memoryStart, memoryEnd, depMin, depMax }};
 }
+

@@ -138,9 +138,8 @@ size_t spider::sched::FifoAllocator::allocateMergedInputFifo(Task *task,
     fifo->count_ = 1u;
     fifo->attribute_ = rule.attribute_;
     /* == do the other fifos == */
-    const auto *otherRules = rule.others_;
 #ifndef NDEBUG
-    if (!otherRules) {
+    if (!rule.others_) {
         throwNullptrException();
     }
 #endif

@@ -102,8 +102,7 @@ namespace spider {
         array(T *data, size_type size) : array_handle<T>(data, size) { }
 
         ~array() {
-            clear();
-            destroy(array_handle<T>::data_);
+            deallocate(array_handle<T>::data_);
         }
 
         /* === Member functions === */
@@ -135,15 +134,6 @@ namespace spider {
             /* == Do the swapping of the values == */
             using std::swap;
             swap(static_cast<array_handle<T> &>(first), static_cast<array_handle<T> &>(second));
-        }
-
-        /**
-         * @brief Clear the array content, i.e effectively calls the destructor of T on every elements.
-         */
-        inline void clear() {
-            for (size_t i = 0; i < array_handle<T>::size_; ++i) {
-                array_handle<T>::data_[i].~T();
-            }
         }
 
         /* === Non member functions === */

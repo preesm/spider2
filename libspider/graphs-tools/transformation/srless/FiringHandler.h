@@ -84,7 +84,11 @@ namespace spider {
 
             FiringHandler(const FiringHandler &) = default;
 
-            ~FiringHandler() = default;
+            FiringHandler &operator=(FiringHandler &&) = default;
+
+            FiringHandler &operator=(const FiringHandler &) = default;
+
+            ~FiringHandler();
 
             /* === Method(s) === */
 
@@ -104,7 +108,7 @@ namespace spider {
 
             /* === Getter(s) === */
 
-            inline const spider::array<spider::unique_ptr<GraphHandler>> &children() { return children_; }
+            inline const spider::array<GraphHandler> &children() { return children_; }
 
             inline const spider::vector<std::shared_ptr<pisdf::Param>> &getParams() const { return params_; }
 
@@ -126,9 +130,9 @@ namespace spider {
 
         private:
             spider::vector<std::shared_ptr<pisdf::Param>> params_;
-            spider::array<spider::unique_ptr<GraphHandler>> children_; /* == match between subgraphs and their handler == */
+            spider::array<GraphHandler> children_; /* == match between subgraphs and their handler == */
             spider::array<u32> brv_;
-            spider::array<spider::unique_ptr<u32>> taskIxRegister_;
+            spider::array<u32 *> taskIxRegister_;
             const GraphHandler *parent_;
             size_t ix_{ };
             u32 firing_{ };
