@@ -60,7 +60,7 @@ namespace spider {
 
             /* === Method(s) === */
 
-            void schedule(const srless::GraphHandler *graphHandler) override;
+            void schedule(srless::GraphHandler *graphHandler) override;
 
             void clear() override;
 
@@ -75,6 +75,7 @@ namespace spider {
             struct ScheduleVertex {
                 pisdf::Vertex *vertex_;
                 srless::FiringHandler *handler_;
+                u32 firing_;
                 bool executable_;
                 bool scheduled_;
             };

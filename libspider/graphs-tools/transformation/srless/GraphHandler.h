@@ -82,7 +82,7 @@ namespace spider {
 
             inline const spider::vector<FiringHandler> &firings() const { return firings_; }
 
-            inline const spider::vector<FiringHandler> &firings() { return firings_; }
+            inline spider::vector<FiringHandler> &firings() { return firings_; }
 
             /* === Setter(s) === */
 

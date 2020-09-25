@@ -73,7 +73,7 @@ namespace spider {
 
             void execute(const pisdf::Graph *graph);
 
-            void execute(const srless::GraphHandler *graphHandler);
+            void execute(srless::GraphHandler *graphHandler);
 
             void clear();
 

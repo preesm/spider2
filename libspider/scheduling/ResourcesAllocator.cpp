@@ -103,7 +103,7 @@ void spider::sched::ResourcesAllocator::execute(const pisdf::Graph *graph) {
     applyExecPolicy();
 }
 
-void spider::sched::ResourcesAllocator::execute(const srless::GraphHandler *graphHandler) {
+void spider::sched::ResourcesAllocator::execute(srless::GraphHandler *graphHandler) {
     /* == Schedule the graph == */
     scheduler_->schedule(graphHandler);
     /* == Map and execute the scheduled tasks == */

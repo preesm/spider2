@@ -63,6 +63,10 @@ spider::FastRuntime::FastRuntime(pisdf::Graph *graph,
                                                                                       executionPolicy,
                                                                                       allocatorType,
                                                                                       false) } {
+    if (!rt::platform()) {
+        throwSpiderException("JITMSRuntime need the runtime platform to be created.");
+    }
+    resourcesAllocator_->allocator()->allocatePersistentDelays(graph_);
 }
 
 bool spider::FastRuntime::execute() {

@@ -201,11 +201,11 @@ spider::srless::FiringHandler::computeFlatGetterDependency(const pisdf::Edge *ed
     const auto *edge = delay->edge();
     const auto srcRate = edge->sourceRateExpression().evaluate(params_);
     const auto snkRate = edge->sinkRateExpression().evaluate(params_);
-    const auto srcRV = edge->source()->repetitionValue();
+    const auto srcRV = getRV(edge->source());
     const auto depMin = static_cast<u32>(srcRV - math::ceilDiv(delay->value() - (firing * getterRate), srcRate));
     const auto depMax = static_cast<u32>(srcRV -
                                          math::ceilDiv(delay->value() - (firing + 1) * getterRate + 1, srcRate));
-    const auto offset = edge->sink()->repetitionValue() * snkRate - delay->value();
+    const auto offset = getRV(edge->sink()) * snkRate - delay->value();
     const auto memoryStart = static_cast<u32>((offset + firing * getterRate) % srcRate);
     const auto memoryEnd = static_cast<u32>((offset + (firing + 1) * getterRate - 1) % srcRate);
     const auto fifoIx = static_cast<u32>(edge->sourcePortIx());
@@ -242,7 +242,7 @@ spider::srless::FiringHandler::computeFlatDelayedDependency(const pisdf::Edge *e
         const auto memSetterEnd = static_cast<u32>(setterRate - 1);
         const auto fifoSetterIx = static_cast<u32>(delayEdge->sourcePortIx());
         const auto castSetterRate = static_cast<size_t>(setterRate);
-        const auto depSetterMax = setter->repetitionValue() - 1;
+        const auto depSetterMax = getRV(setter) - 1;
         /* == Compute dependency on original source == */
         const auto *source = edge->source();
         const auto fifoSrcIx = static_cast<u32>(edge->sourcePortIx());

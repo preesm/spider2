@@ -77,7 +77,7 @@ namespace spider {
 
             /* === Private method(s) === */
 
-            inline void schedule(const srless::GraphHandler *) override { }
+            inline void schedule(srless::GraphHandler *) override { }
 
             /**
              * @brief Reset unscheduled task from previous schedule iteration.
