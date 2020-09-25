@@ -55,24 +55,6 @@ void spider::srdag::SRDAGCopyVertexVisitor::visit(pisdf::ExecVertex *vertex) {
             api::createVertex(srdag_, std::move(buildCloneName(vertex).append("(0)")), 2, 2);
             ix_ = srdag_->vertexCount() - 1;
             break;
-        case pisdf::VertexType::INIT:
-        case pisdf::VertexType::END:
-            makeClone(vertex);
-            {
-                const pisdf::DelayVertex *delayVertex;
-                if (vertex->subtype() == pisdf::VertexType::INIT) {
-                    delayVertex = vertex->outputEdge(0)->sink()->convertTo<spider::pisdf::DelayVertex>();
-                } else {
-                    delayVertex = vertex->inputEdge(0)->source()->convertTo<spider::pisdf::DelayVertex>();
-                }
-                const auto *delay = delayVertex->delay();
-                auto *clone = srdag_->vertices().back().get();
-                clone->addInputParameter(make_shared<pisdf::Param, StackID::TRANSFO>("", delay->isPersistent()));
-                clone->addInputParameter(make_shared<pisdf::Param, StackID::TRANSFO>("", delay->value()));
-                clone->addInputParameter(
-                        make_shared<pisdf::Param, StackID::TRANSFO>("", static_cast<i64>(delay->memoryAddress())));
-            }
-            break;
         default:
             makeClone(vertex);
             break;

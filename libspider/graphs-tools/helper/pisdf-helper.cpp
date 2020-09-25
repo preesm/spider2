@@ -192,16 +192,34 @@ static spider::unique_ptr<i64> buildDuplicateRuntimeInputParameters(const spider
 }
 
 /**
- * @brief Creates an array with parameters needed for the runtime exec of @refitem pisdf::VertexType::INIT or
- *        of @refitem pisdf::VertexType::END special vertex.
- * @param vertex Pointer to the @refitem pisdf::DelayVertex associated with the delay.
+ * @brief Creates an array with parameters needed for the runtime exec of @refitem pisdf::VertexType::INIT special vertex.
+ * @param vertex Pointer to the @refitem pisdf::Vertex associated with the delay.
  * @return array of int_least_64_t.
  */
-static spider::unique_ptr<i64> buildInitEndRuntimeInputParameters(const spider::pisdf::Vertex *vertex) {
+static spider::unique_ptr<i64> buildInitRuntimeInputParameters(const spider::pisdf::Vertex *vertex) {
     auto outParams = spider::make_unique(spider::allocate<i64, StackID::RUNTIME>(3u));
-    outParams.get()[0] = vertex->inputParamVector()[0]->value(); /* = Persistence property = */
-    outParams.get()[1] = vertex->inputParamVector()[1]->value(); /* = Value of the delay = */
-    outParams.get()[2] = vertex->inputParamVector()[2]->value(); /* = Memory address (may be unused) = */
+    const auto *reference = vertex->reference();
+    const auto *delayVertex = reference->outputEdge(0u)->sink()->convertTo<spider::pisdf::DelayVertex>();
+    const auto *delay = delayVertex->delay();
+    outParams.get()[0] = delay->isPersistent();                    /* = Persistence property = */
+    outParams.get()[1] = delay->value();                           /* = Value of the delay = */
+    outParams.get()[2] = static_cast<i64>(delay->memoryAddress()); /* = Memory address (may be unused) = */
+    return outParams;
+}
+
+/**
+ * @brief Creates an array with parameters needed for the runtime exec of @refitem pisdf::VertexType::END special vertex.
+ * @param vertex Pointer to the @refitem pisdf::Vertex associated with the delay.
+ * @return array of int_least_64_t.
+ */
+static spider::unique_ptr<i64> buildEndRuntimeInputParameters(const spider::pisdf::Vertex *vertex) {
+    auto outParams = spider::make_unique(spider::allocate<i64, StackID::RUNTIME>(3u));
+    const auto *reference = vertex->reference();
+    const auto *delayVertex = reference->inputEdge(0u)->source()->convertTo<spider::pisdf::DelayVertex>();
+    const auto *delay = delayVertex->delay();
+    outParams.get()[0] = delay->isPersistent();                    /* = Persistence property = */
+    outParams.get()[1] = delay->value();                           /* = Value of the delay = */
+    outParams.get()[2] = static_cast<i64>(delay->memoryAddress()); /* = Memory address (may be unused) = */
     return outParams;
 }
 
@@ -270,9 +288,9 @@ spider::unique_ptr<i64> spider::pisdf::buildVertexRuntimeInputParameters(const p
         case VertexType::DUPLICATE:
             return buildDuplicateRuntimeInputParameters(vertex, params);
         case VertexType::INIT:
-            return buildInitEndRuntimeInputParameters(vertex);
+            return buildInitRuntimeInputParameters(vertex);
         case VertexType::END:
-            return buildInitEndRuntimeInputParameters(vertex);
+            return buildEndRuntimeInputParameters(vertex);
         case VertexType::EXTERN_OUT:
             return buildExternOutRuntimeInputParameters(vertex, params);;
         default:

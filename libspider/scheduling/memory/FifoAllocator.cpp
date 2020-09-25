@@ -159,7 +159,7 @@ void spider::sched::FifoAllocator::allocateInputFifo(const Task *task, Fifo *fif
             fifo->count_ = 0u;
         }
         fifo->size_ = static_cast<u32>(rule.size_);
-        fifo->offset_ = static_cast<u32>(rule.offset_);
+        fifo->offset_ += static_cast<u32>(rule.offset_);
     } else {
         *fifo = Fifo{ };
     }
