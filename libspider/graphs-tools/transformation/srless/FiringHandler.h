@@ -102,6 +102,8 @@ namespace spider {
             ExecDependency
             computeExecDependenciesByEdge(const pisdf::Vertex *vertex, u32 vertexFiring, u32 edgeIx) const;
 
+            ExecDependencyInfo computeConsDependency(const pisdf::Vertex *vertex, u32 firing, u32 edgeIx) const;
+
             void registerTaskIx(const pisdf::Vertex *vertex, u32 vertexFiring, u32 taskIx);
 
             u32 getTaskIx(const pisdf::Vertex *vertex, u32 vertexFiring) const;

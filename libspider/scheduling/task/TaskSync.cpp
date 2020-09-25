@@ -76,10 +76,15 @@ spider::sched::AllocationRule spider::sched::TaskSync::allocationRuleForInputFif
 #else
     spider::sched::AllocationRule spider::sched::TaskSync::allocationRuleForInputFifo(size_t) const {
 #endif
+    auto rule = AllocationRule{ };
     if (type_ == SyncType::SEND) {
-        return { nullptr, SIZE_MAX, 0u, inputPortIx_, AllocType::SAME_IN, FifoAttribute::RW_ONLY };
+        rule.size_ = size_;
+        rule.offset_ = 0u;
+        rule.fifoIx_ = inputPortIx_;
+        rule.type_ = AllocType::SAME_IN;
+        rule.attribute_ = FifoAttribute::RW_ONLY;
     }
-    return { };
+    return rule;
 }
 
 #ifndef NDEBUG
@@ -91,11 +96,19 @@ spider::sched::AllocationRule spider::sched::TaskSync::allocationRuleForOutputFi
 #else
     spider::sched::AllocationRule spider::sched::TaskSync::allocationRuleForOutputFifo(size_t) const {
 #endif
+    auto rule = AllocationRule{ };
+    rule.size_ = size_;
+    rule.offset_ = 0u;
     if (type_ == SyncType::SEND) {
-        return { nullptr, SIZE_MAX, 0u, 0u, AllocType::SAME_IN, FifoAttribute::RW_ONLY };
+        rule.fifoIx_ = 0u;
+        rule.type_ = AllocType::SAME_IN;
+        rule.attribute_ = FifoAttribute::RW_ONLY;
     } else {
-        return { nullptr, size_, 0u, UINT32_MAX, AllocType::NEW, FifoAttribute::RW_OWN };
+        rule.fifoIx_ = UINT32_MAX;
+        rule.type_ = AllocType::NEW;
+        rule.attribute_ = FifoAttribute::RW_OWN;
     }
+    return rule;
 }
 
 spider::sched::Task *spider::sched::TaskSync::previousTask(size_t ix) const {

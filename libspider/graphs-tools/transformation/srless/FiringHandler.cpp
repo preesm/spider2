@@ -237,17 +237,17 @@ spider::srless::FiringHandler::computeFlatDelayedDependency(const pisdf::Edge *e
         const auto *setter = delayEdge->source();
         /* == Compute dependency on setter == */
         const auto setterRate = delayEdge->sourceRateExpression().evaluate(params_);
-        const auto depMin = static_cast<u32>(math::floorDiv(lowerCons - delayValue, setterRate));
+        const auto castSetterRate = static_cast<size_t>(setterRate);
+        const auto fifoSetterIx = static_cast<u32>(delayEdge->sourcePortIx());
         const auto memStart = static_cast<u32>(lowerCons % setterRate);
         const auto memSetterEnd = static_cast<u32>(setterRate - 1);
-        const auto fifoSetterIx = static_cast<u32>(delayEdge->sourcePortIx());
-        const auto castSetterRate = static_cast<size_t>(setterRate);
+        const auto depMin = static_cast<u32>(math::floorDiv(lowerCons, setterRate));
         const auto depSetterMax = getRV(setter) - 1;
         /* == Compute dependency on original source == */
         const auto *source = edge->source();
-        const auto fifoSrcIx = static_cast<u32>(edge->sourcePortIx());
         const auto castSrcRate = static_cast<size_t>(srcRate);
-        const auto memSrcEnd = static_cast<u32>((upperCons - 1) % srcRate);
+        const auto fifoSrcIx = static_cast<u32>(edge->sourcePortIx());
+        const auto memSrcEnd = static_cast<u32>((upperCons - (delayValue - lowerCons) - 1) % srcRate);
         const auto depSrcMax = static_cast<u32>(math::floorDiv(upperCons - delayValue - 1, srcRate));
         return {{ setter, this, castSetterRate, fifoSetterIx, memStart, memSetterEnd, depMin, depSetterMax },
                 { source, this, castSrcRate,    fifoSrcIx,    0u,       memSrcEnd,    0u,     depSrcMax }};
@@ -260,5 +260,47 @@ spider::srless::FiringHandler::computeFlatDelayedDependency(const pisdf::Edge *e
     const auto depMax = static_cast<u32>(math::floorDiv(upperCons - delayValue - 1, srcRate));
     return { detail::dummyInfo,
              { edge->source(), this, rate, fifoIx, memoryStart, memoryEnd, depMin, depMax }};
+}
+
+spider::srless::ExecDependencyInfo
+spider::srless::FiringHandler::computeConsDependency(const pisdf::Vertex *vertex, u32 firing, u32 edgeIx) const {
+    if (vertex) {
+        const auto *edge = vertex->outputEdge(edgeIx);
+        const auto srcRate = edge->sourceRateExpression().evaluate(params_);
+        const auto lowerProd = srcRate * firing;
+        const auto upperProd = srcRate * (firing + 1u);
+        if (edge->sink()->subtype() == pisdf::VertexType::DELAY) {
+            const auto *delayEdge = edge->sink()->convertTo<pisdf::DelayVertex>()->delay()->edge();
+            const auto snkRate = delayEdge->sinkRateExpression().evaluate(params_);
+            const auto fifoIx = static_cast<u32>(delayEdge->sinkPortIx());
+            const auto depMin = static_cast<u32>(math::floorDiv(firing * srcRate, snkRate));
+            const auto depMax = static_cast<u32>(math::floorDiv((firing + 1) * snkRate - 1, srcRate));
+            return { delayEdge->sink(), this, static_cast<size_t>(srcRate), fifoIx, 0, 0, depMin, depMax };
+        } else {
+            const auto delayValue = edge->delay() ? edge->delay()->value() : 0u;
+            const auto snkRate = edge->sinkRateExpression().evaluate(params_);
+            const auto totalCons = snkRate * getRV(edge->sink());
+            if ((lowerProd + delayValue) >= totalCons) {
+                const auto *delayEdge = edge->delay()->vertex()->outputEdge(0u);
+                const auto getterRate = delayEdge->sinkRateExpression().evaluate(params_);
+                const auto rate = static_cast<size_t>(getterRate);
+                const auto fifoIx = static_cast<u32>(delayEdge->sinkPortIx());
+                const auto memoryStart = static_cast<u32>(lowerProd % getterRate);
+                const auto memoryEnd = static_cast<u32>((upperProd - 1) % getterRate);
+                const auto depMin = static_cast<u32>(math::floorDiv(lowerProd + delayValue, getterRate));
+                const auto depMax = static_cast<u32>(math::floorDiv(upperProd + delayValue - 1, getterRate));
+                return { delayEdge->sink(), this, rate, fifoIx, memoryStart, memoryEnd, depMin, depMax };
+            } else if ((upperProd + delayValue) > totalCons) {
+                return detail::dummyInfo;
+            }
+            const auto fifoIx = static_cast<u32>(edge->sinkPortIx());
+            const auto memoryStart = static_cast<u32>(lowerProd % snkRate);
+            const auto memoryEnd = static_cast<u32>((upperProd - 1) % snkRate);
+            const auto depMin = static_cast<u32>(math::floorDiv(lowerProd + delayValue, snkRate));
+            const auto depMax = static_cast<u32>(math::floorDiv(upperProd + delayValue - 1, snkRate));
+            return { edge->sink(), this, static_cast<size_t>(srcRate), fifoIx, memoryStart, memoryEnd, depMin, depMax };
+        }
+    }
+    return detail::dummyInfo;
 }
 
