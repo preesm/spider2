@@ -46,9 +46,11 @@
 
 spider::srless::GraphHandler::GraphHandler(const spider::pisdf::Graph *graph,
                                            const spider::vector<std::shared_ptr<pisdf::Param>> &params,
-                                           u32 repetitionCount) :
+                                           u32 repetitionCount,
+                                           const srless::FiringHandler *handler) :
         firings_{ factory::vector<FiringHandler>(StackID::TRANSFO) },
         graph_{ graph },
+        handler_{handler},
         repetitionCount_{ repetitionCount },
         static_{ pisdf::isGraphFullyStatic(graph) } {
     if (!static_) {

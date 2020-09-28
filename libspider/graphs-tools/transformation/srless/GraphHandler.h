@@ -58,7 +58,8 @@ namespace spider {
         public:
             GraphHandler(const pisdf::Graph *graph,
                          const spider::vector<std::shared_ptr<pisdf::Param>> &params,
-                         u32 repetitionCount);
+                         u32 repetitionCount,
+                         const srless::FiringHandler *handler = nullptr);
 
             GraphHandler(GraphHandler &&) = default;
 
@@ -78,6 +79,8 @@ namespace spider {
 
             u32 repetitionCount() const;
 
+            inline const FiringHandler *handler() const { return handler_; }
+
             inline bool isStatic() const { return static_; }
 
             inline const spider::vector<FiringHandler> &firings() const { return firings_; }
@@ -89,6 +92,7 @@ namespace spider {
         private:
             spider::vector<srless::FiringHandler> firings_;
             const pisdf::Graph *graph_;
+            const srless::FiringHandler *handler_;
             u32 repetitionCount_;
             bool static_;
 

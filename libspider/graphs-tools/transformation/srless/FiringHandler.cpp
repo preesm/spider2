@@ -68,9 +68,10 @@ spider::srless::FiringHandler::FiringHandler(const GraphHandler *parent,
     }
     const auto *graph = parent->graph();
     brv_ = spider::array<u32>(graph->vertexCount(), UINT32_MAX, StackID::TRANSFO);
-    children_ = spider::array<GraphHandler>(graph->subgraphCount(), StackID::TRANSFO);
+    children_ = spider::array<GraphHandler *>(graph->subgraphCount(), StackID::TRANSFO);
     taskIxRegister_ = spider::array<u32 *>(graph->vertexCount(), StackID::TRANSFO);
     std::fill(std::begin(taskIxRegister_), std::end(taskIxRegister_), nullptr);
+    std::fill(std::begin(children_), std::end(children_), nullptr);
     /* == copy parameters == */
     params_.reserve(params.size());
     for (const auto &param : params) {
@@ -81,6 +82,9 @@ spider::srless::FiringHandler::FiringHandler(const GraphHandler *parent,
 spider::srless::FiringHandler::~FiringHandler() {
     for (auto &ptr : taskIxRegister_) {
         deallocate(ptr);
+    }
+    for (auto &child : children_) {
+        destroy(child);
     }
 }
 
@@ -103,7 +107,9 @@ void spider::srless::FiringHandler::resolveBRV() {
     }
     /* == creates children == */
     for (const auto &subgraph : parent_->graph()->subgraphs()) {
-        children_.at(subgraph->subIx()) = GraphHandler(subgraph, params_, subgraph->repetitionValue());
+        destroy(children_.at(subgraph->subIx()));
+        children_.at(subgraph->subIx()) = spider::make<GraphHandler>(subgraph, params_, subgraph->repetitionValue(),
+                                                                     this);
     }
     resolved_ = true;
 }
@@ -193,15 +199,42 @@ spider::srless::FiringHandler::computeExec(const spider::pisdf::Edge *edge, u32 
     if (!snkRate) {
         return { detail::dummyInfo, detail::dummyInfo };
     }
-    if (edge->source()->subtype() == pisdf::VertexType::DELAY) {
-        const auto *delay = edge->source()->convertTo<pisdf::DelayVertex>()->delay();
-        const auto *delayEdge = delay->edge();
-        const auto getterOffset = delayEdge->sinkRateExpression().evaluate(params_) * getRV(delayEdge->sink());
-        const auto lowerCons = snkRate * firing + getterOffset;
-        const auto upperCons = snkRate * (firing + 1u) + getterOffset;
-        return computeExecDependency(delayEdge, lowerCons, upperCons);
+    if (edge->sink()->subtype() == pisdf::VertexType::OUTPUT) {
+        const auto srcRate = edge->sourceRateExpression().evaluate(params_);
+        const auto srcPortIx = static_cast<u32>(edge->sourcePortIx());
+        const auto srcRV = getRV(edge->source());
+        const auto memStart = static_cast<u32>(snkRate % srcRate);
+        const auto memEnd = static_cast<u32>(srcRate - 1);
+        const auto depMin = static_cast<u32>(srcRV - math::ceilDiv(snkRate, srcRate));
+        return {{ edge->source(), this, static_cast<size_t>(srcRate), srcPortIx, memStart, memEnd, depMin, srcRV - 1 },
+                detail::dummyInfo };
     } else {
-        return computeExecDependency(edge, snkRate * firing, snkRate * (firing + 1));
+        switch (edge->source()->subtype()) {
+            case pisdf::VertexType::INPUT: {
+                const auto *parentHandler = parent_->handler();
+                const auto *graph = parent_->graph();
+                auto res = parentHandler->computeExec(graph->inputEdge(edge->sinkPortIx()), firing_);
+                res.first_.memoryStart_ = static_cast<u32>(snkRate * firing) % static_cast<u32>(res.first_.rate_);
+                if (res.second_.vertex_) {
+                    res.second_.memoryEnd_ =
+                            static_cast<u32>(snkRate * (firing + 1) - 1) % static_cast<u32>(res.second_.rate_);
+                } else {
+                    res.first_.memoryEnd_ =
+                            static_cast<u32>(snkRate * (firing + 1) - 1) % static_cast<u32>(res.first_.rate_);
+                }
+                return res;
+            }
+            case pisdf::VertexType::DELAY: {
+                const auto *delay = edge->source()->convertTo<pisdf::DelayVertex>()->delay();
+                const auto *delayEdge = delay->edge();
+                const auto getterOffset = delayEdge->sinkRateExpression().evaluate(params_) * getRV(delayEdge->sink());
+                const auto lowerCons = snkRate * firing + getterOffset;
+                const auto upperCons = snkRate * (firing + 1u) + getterOffset;
+                return computeExecDependency(delayEdge, lowerCons, upperCons);
+            }
+            default:
+                return computeExecDependency(edge, snkRate * firing, snkRate * (firing + 1));
+        }
     }
 }
 
@@ -344,5 +377,15 @@ spider::srless::ExecDependency spider::srless::FiringHandler::computeConsDepende
         result.second_.firingEnd_ = static_cast<u32>(math::floorDiv(upperProd + delayValue - 1 - snkTotRate, getRate));
     }
     return result;
+}
+
+const spider::srless::FiringHandler *
+spider::srless::FiringHandler::getChildFiring(const pisdf::Graph *subgraph, u32 firing) const {
+#ifndef NDEBUG
+    if (subgraph->graph() != parent_->graph()) {
+        throwSpiderException("subgraph does not belong to this graph.");
+    }
+#endif
+    return &(children_[subgraph->subIx()]->firings()[firing]);
 }
 

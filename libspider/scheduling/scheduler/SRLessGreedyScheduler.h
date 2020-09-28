@@ -78,7 +78,20 @@ namespace spider {
                 u32 firing_;
                 bool executable_;
                 bool scheduled_;
+
+                friend inline bool operator==(const ScheduleVertex &lhs, const ScheduleVertex &rhs) {
+                    return (lhs.vertex_ == rhs.vertex_) &&
+                           (lhs.handler_ == rhs.handler_) &&
+                           (lhs.firing_ == rhs.firing_) &&
+                           (lhs.executable_ == rhs.executable_) &&
+                           (lhs.scheduled_ == rhs.scheduled_);
+                }
+
+                friend inline bool operator!=(const ScheduleVertex &lhs, const ScheduleVertex &rhs) {
+                    return !(lhs == rhs);
+                }
             };
+
             using iterator_t = spider::vector<ScheduleVertex>::iterator;
 
             spider::vector<ScheduleVertex> unscheduledVertices_;
@@ -86,6 +99,8 @@ namespace spider {
             /* == Private method(s) === */
 
             inline void schedule(const pisdf::Graph *) override { }
+
+            void recursiveAddVertices(spider::srless::GraphHandler *graphHandler);
 
             /**
              * @brief Evaluate current vertex pointed by the iterator it for schedulability.
@@ -97,6 +112,9 @@ namespace spider {
             iterator_t evaluate(iterator_t it);
 
             iterator_t evaluateCurrentDependency(iterator_t it, const srless::ExecDependencyInfo &dependencyInfo);
+
+            iterator_t
+            evaluateHierarchical(iterator_t it, const pisdf::Graph *graph, u32 edgeIx);
 
             /**
              * @brief Remove value at given position and swap it with the value at the end of the unscheduledVertices_ vector.
