@@ -126,6 +126,14 @@ int64_t spider::pisdf::Delay::value() const {
     return value_;
 }
 
+int64_t spider::pisdf::Delay::setterRate(const spider::vector<std::shared_ptr<Param>> &params) const {
+    return vertex_->inputEdge(0u)->sourceRateExpression().evaluate(params);
+}
+
+int64_t spider::pisdf::Delay::getterRate(const spider::vector<std::shared_ptr<Param>> &params) const {
+    return vertex_->outputEdge(0u)->sinkRateExpression().evaluate(params);
+}
+
 void spider::pisdf::Delay::setMemoryAddress(uint64_t address) {
     if (!persistent_) {
         return;

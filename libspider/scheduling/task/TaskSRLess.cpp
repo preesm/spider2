@@ -58,16 +58,14 @@ spider::sched::TaskSRLess::TaskSRLess(srless::FiringHandler *handler, const pisd
     for (const auto *edge : vertex->inputEdgeVector()) {
         const auto edgeIx = static_cast<u32>(edge->sinkPortIx());
         const auto dep = handler_->computeExecDependenciesByEdge(vertex_, firing_, edgeIx);
-        if (dep.setter_.vertex_) {
-            auto diff = dep.setter_.firingEnd_ - dep.setter_.firingStart_;
-            dependenciesCount_ += diff + 1u;
-            mergedFifoCount += (diff > 0);
+        const auto current = dependenciesCount_;
+        if (dep.first_.vertex_) {
+            dependenciesCount_ += dep.first_.firingEnd_ - dep.first_.firingStart_ + 1u;
         }
-        if (dep.source_.vertex_) {
-            auto diff = (dep.source_.firingEnd_ - dep.source_.firingStart_);
-            dependenciesCount_ += diff + 1u;
-            mergedFifoCount += (diff > 0);
+        if (dep.second_.vertex_) {
+            dependenciesCount_ += dep.second_.firingEnd_ - dep.second_.firingStart_ + 1u;
         }
+        mergedFifoCount += ((current + 1) < dependenciesCount_);
     }
     fifos_ = spider::make_shared<AllocatedFifos, StackID::SCHEDULE>(dependenciesCount_ + mergedFifoCount,
                                                                     vertex->outputEdgeCount());
@@ -90,11 +88,11 @@ void spider::sched::TaskSRLess::updateTaskExecutionDependencies(const Schedule *
     for (const auto *edge : vertex_->inputEdgeVector()) {
         const auto edgeIx = static_cast<u32>(edge->sinkPortIx());
         const auto dep = handler_->computeExecDependenciesByEdge(vertex_, firing_, edgeIx);
-        if (dep.setter_.vertex_ && dep.setter_.vertex_->executable()) {
-            i = updateTaskExecutionDependency(schedule, dep.setter_, i);
+        if (dep.first_.vertex_ && dep.first_.vertex_->executable()) {
+            i = updateTaskExecutionDependency(schedule, dep.first_, i);
         }
-        if (dep.source_.vertex_ && dep.source_.vertex_->executable()) {
-            i = updateTaskExecutionDependency(schedule, dep.source_, i);
+        if (dep.second_.vertex_ && dep.second_.vertex_->executable()) {
+            i = updateTaskExecutionDependency(schedule, dep.second_, i);
         }
     }
 }
@@ -141,9 +139,9 @@ spider::sched::AllocationRule spider::sched::TaskSRLess::allocationRuleForInputF
     }
 #endif
     const auto dep = handler_->computeExecDependenciesByEdge(vertex_, firing_, static_cast<u32>(ix));
-    auto count = dep.source_.firingEnd_ - dep.source_.firingStart_ + 1u;
-    if (dep.setter_.vertex_) {
-        count += (dep.setter_.firingEnd_ - dep.setter_.firingStart_) + 1u;
+    auto count = dep.first_.firingEnd_ - dep.first_.firingStart_ + 1u;
+    if (dep.second_.vertex_) {
+        count += (dep.second_.firingEnd_ - dep.second_.firingStart_) + 1u;
     }
     auto rule = AllocationRule{ };
     if (count > 1u) {
@@ -155,13 +153,13 @@ spider::sched::AllocationRule spider::sched::TaskSRLess::allocationRuleForInputF
         rule.count_ = 0u;
         rule.type_ = AllocType::MERGE;
         rule.attribute_ = FifoAttribute::RW_MERGE;
-        const auto i = setExtraAllocationRules(rule.others_, dep.setter_, 0u);
-        setExtraAllocationRules(rule.others_, dep.source_, i);
+        const auto i = setExtraAllocationRules(rule.others_, dep.first_, 0u);
+        setExtraAllocationRules(rule.others_, dep.second_, i);
         return rule;
     } else {
-        rule.size_ = dep.source_.memoryEnd_ - dep.source_.memoryStart_;
-        rule.offset_ = dep.source_.memoryStart_;
-        rule.fifoIx_ = dep.source_.edgeIx_;
+        rule.size_ = dep.first_.memoryEnd_ - dep.first_.memoryStart_;
+        rule.offset_ = dep.first_.memoryStart_;
+        rule.fifoIx_ = dep.first_.edgeIx_;
         rule.count_ = 0u;
         rule.type_ = AllocType::SAME_IN;
         rule.attribute_ = FifoAttribute::RW_OWN;
@@ -176,12 +174,16 @@ spider::sched::AllocationRule spider::sched::TaskSRLess::allocationRuleForOutput
     }
 #endif
     const auto *edge = vertex_->outputEdge(ix);
-    const auto prodDependency = handler_->computeConsDependency(vertex_, firing_, static_cast<u32>(ix));
+    const auto dep = handler_->computeConsDependenciesByEdge(vertex_, firing_, static_cast<u32>(ix));
+    auto count = dep.first_.firingEnd_ - dep.first_.firingStart_ + 1u;
+    if (dep.second_.vertex_) {
+        count += (dep.second_.firingEnd_ - dep.second_.firingStart_) + 1u;
+    }
     auto rule = AllocationRule{ };
     rule.size_ = static_cast<size_t>(edge->sourceRateExpression().evaluate(handler_->getParams()));
     rule.offset_ = 0u;
     rule.fifoIx_ = 0u;
-    rule.count_ = rule.size_ ? (prodDependency.firingEnd_ - prodDependency.firingStart_ + 1u) : 0u;
+    rule.count_ = rule.size_ ? count : 0u;
     switch (vertex_->subtype()) {
         case pisdf::VertexType::FORK:
             if (ix == 0u) {

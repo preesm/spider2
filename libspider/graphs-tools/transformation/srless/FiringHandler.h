@@ -68,8 +68,8 @@ namespace spider {
         };
 
         struct ExecDependency {
-            ExecDependencyInfo setter_;
-            ExecDependencyInfo source_;
+            ExecDependencyInfo first_;
+            ExecDependencyInfo second_;
         };
 
         /* === Class definition === */
@@ -100,9 +100,10 @@ namespace spider {
             computeExecDependenciesByFiring(const pisdf::Vertex *vertex, u32 vertexFiring) const;
 
             ExecDependency
-            computeExecDependenciesByEdge(const pisdf::Vertex *vertex, u32 vertexFiring, u32 edgeIx) const;
+            computeExecDependenciesByEdge(const pisdf::Vertex *vertex, u32 firing, u32 edgeIx) const;
 
-            ExecDependencyInfo computeConsDependency(const pisdf::Vertex *vertex, u32 firing, u32 edgeIx) const;
+            ExecDependency
+            computeConsDependenciesByEdge(const pisdf::Vertex *vertex, u32 firing, u32 edgeIx) const;
 
             void registerTaskIx(const pisdf::Vertex *vertex, u32 vertexFiring, u32 taskIx);
 
@@ -145,11 +146,17 @@ namespace spider {
             std::shared_ptr<pisdf::Param> copyParameter(const std::shared_ptr<pisdf::Param> &param,
                                                         const spider::vector<std::shared_ptr<pisdf::Param>> &parentParams);
 
-            ExecDependency compute(const pisdf::Edge *edge, u32 firing) const;
+            ExecDependency computeExec(const pisdf::Edge *edge, u32 firing) const;
 
-            ExecDependency computeFlatGetterDependency(const spider::pisdf::Edge *edgeGetter, u32 firing) const;
+            ExecDependency computeExecDependency(const spider::pisdf::Edge *edge,
+                                                 int64_t lowerCons,
+                                                 int64_t upperCons) const;
 
-            ExecDependency computeFlatDelayedDependency(const spider::pisdf::Edge *edge, u32 firing) const;
+            ExecDependency computeCons(const pisdf::Edge *edge, u32 firing) const;
+
+            ExecDependency computeConsDependency(const spider::pisdf::Edge *edge,
+                                                 int64_t lowerProd,
+                                                 int64_t upperProd) const;
         };
     }
 }

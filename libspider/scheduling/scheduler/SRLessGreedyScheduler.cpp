@@ -105,11 +105,11 @@ spider::sched::SRLessGreedyScheduler::evaluate(iterator_t it) {
             }
             const auto edgeIx = static_cast<u32>(edge->sinkPortIx());
             const auto dep = it->handler_->computeExecDependenciesByEdge(vertex, k, edgeIx);
-            auto res = evaluateCurrentDependency(it, dep.setter_);
+            auto res = evaluateCurrentDependency(it, dep.first_);
             if ((res->vertex_ != vertex) || (res->firing_ != k)) {
                 return res;
             } else {
-                res = evaluateCurrentDependency(it, dep.source_);
+                res = evaluateCurrentDependency(it, dep.second_);
                 if ((res->vertex_ != vertex) || (res->firing_ != k)) {
                     return res;
                 }

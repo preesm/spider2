@@ -102,10 +102,24 @@ namespace spider {
             inline size_t setterPortIx() const { return setterPortIx_; }
 
             /**
+             * @brief Get the setter rate of this delay.
+             * @param params Vector of parameters to use for the evaluation of the expression.
+             * @return value of the setter rate.
+             */
+            int64_t setterRate(const spider::vector<std::shared_ptr<Param>> &params = { }) const;
+
+            /**
              * @brief Return the port ix on which the delay is connected to the getter.
              * @return getter output port ix.
              */
             inline size_t getterPortIx() const { return getterPortIx_; }
+
+            /**
+             * @brief Get the getter rate of this delay.
+             * @param params Vector of parameters to use for the evaluation of the expression.
+             * @return value of the getter rate.
+             */
+            int64_t getterRate(const spider::vector<std::shared_ptr<Param>> &params = { }) const;
 
             /**
              * @brief Get the virtual vertex associated to the Delay.
