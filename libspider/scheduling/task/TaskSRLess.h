@@ -109,12 +109,31 @@ namespace spider {
 
             /* === private method(s) === */
 
+            /* === Dependencies methods === */
+
+            size_t updateTaskExecutionDependency(const Schedule *schedule,
+                                                 const srless::ExecDependency &dep,
+                                                 size_t index);
+
             size_t updateTaskExecutionDependency(const Schedule *schedule,
                                                  const srless::ExecDependencyInfo &dependencyInfo,
                                                  size_t index);
 
-            size_t setExtraAllocationRules(AllocationRule *rules,
-                                           const srless::ExecDependencyInfo &dependencyInfo, size_t offset) const;
+            /* === Input FIFO allocation methods === */
+
+            template<typename T>
+            AllocationRule allocateInputFifo(const T &dependencies, const pisdf::Edge *edge) const;
+
+            AllocationRule allocateDefaultInputFifo(const spider::vector<srless::ExecDependency> &dependencies) const;
+
+            AllocationRule allocateDefaultInputFifo(const srless::ExecDependency &dependencies) const;
+
+            void setInputFifoExtraRules(const spider::vector<srless::ExecDependency> &dependencies,
+                                        AllocationRule *rules) const;
+
+            size_t setInputFifoExtraRules(const srless::ExecDependency &dependencies,
+                                          AllocationRule *rules,
+                                          size_t offset = 0u) const;
         };
     }
 }

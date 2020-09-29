@@ -44,6 +44,8 @@ namespace spider {
     namespace srless {
         class FiringHandler;
 
+        struct ExecDependency;
+
         struct ExecDependencyInfo;
     }
 
@@ -111,10 +113,9 @@ namespace spider {
              */
             iterator_t evaluate(iterator_t it);
 
-            iterator_t evaluateCurrentDependency(iterator_t it, const srless::ExecDependencyInfo &dependencyInfo);
+            bool evaluate(iterator_t &it, const srless::ExecDependency &dependency);
 
-            iterator_t
-            evaluateHierarchical(iterator_t it, const pisdf::Graph *graph, u32 edgeIx);
+            bool evaluate(iterator_t &it, const srless::ExecDependencyInfo &dependencyInfo);
 
             /**
              * @brief Remove value at given position and swap it with the value at the end of the unscheduledVertices_ vector.

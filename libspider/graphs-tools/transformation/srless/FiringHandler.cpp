@@ -128,7 +128,8 @@ spider::srless::FiringHandler::computeExecDependenciesByFiring(const pisdf::Vert
     auto dependencies = factory::vector<ExecDependency>(StackID::TRANSFO);
     dependencies.reserve(vertex->inputEdgeCount());
     for (const auto *edge : vertex->inputEdgeVector()) {
-        dependencies.emplace_back(computeExec(edge, vertexFiring));
+        dependencies.emplace_back(
+                computeExecDependenciesByEdge(vertex, vertexFiring, static_cast<u32>(edge->sinkPortIx())));
     }
     return dependencies;
 }
@@ -137,7 +138,101 @@ spider::srless::ExecDependency
 spider::srless::FiringHandler::computeExecDependenciesByEdge(const pisdf::Vertex *vertex,
                                                              u32 firing,
                                                              u32 edgeIx) const {
-    return computeExec(vertex->inputEdge(edgeIx), firing);
+    const auto *edge = vertex->inputEdge(edgeIx);
+    const auto snkRate = edge->sinkRateExpression().evaluate(params_);
+    if (!snkRate) {
+        return { detail::dummyInfo, detail::dummyInfo };
+    }
+    const auto *source = edge->source();
+    if (vertex->subtype() == pisdf::VertexType::OUTPUT) {
+        const auto srcRate = edge->sourceRateExpression().evaluate(params_);
+        const auto srcPortIx = static_cast<u32>(edge->sourcePortIx());
+        const auto srcRV = getRV(edge->source());
+        const auto memStart = static_cast<u32>(snkRate % srcRate);
+        const auto memEnd = static_cast<u32>(srcRate - 1);
+        const auto depMin = static_cast<u32>(srcRV - math::ceilDiv(snkRate, srcRate));
+        return {{ edge->source(), this, static_cast<size_t>(srcRate), srcPortIx, memStart, memEnd, depMin, srcRV - 1 },
+                detail::dummyInfo };
+    } else if (source->subtype() == pisdf::VertexType::INPUT) {
+        const auto *parentHandler = parent_->handler();
+        const auto *graph = parent_->graph();
+        auto res = parentHandler->computeExecDependenciesByEdge(graph, firing_, static_cast<u32>(edge->sinkPortIx()));
+        res.first_.memoryStart_ = static_cast<u32>(snkRate * firing) % static_cast<u32>(res.first_.rate_);
+        if (res.second_.vertex_) {
+            res.second_.memoryEnd_ =
+                    static_cast<u32>(snkRate * (firing + 1) - 1) % static_cast<u32>(res.second_.rate_);
+        } else {
+            res.first_.memoryEnd_ =
+                    static_cast<u32>(snkRate * (firing + 1) - 1) % static_cast<u32>(res.first_.rate_);
+        }
+        return res;
+    } else if (source->subtype() == pisdf::VertexType::DELAY) {
+        const auto *delay = edge->source()->convertTo<pisdf::DelayVertex>()->delay();
+        const auto *delayEdge = delay->edge();
+        const auto getterOffset = delayEdge->sinkRateExpression().evaluate(params_) * getRV(delayEdge->sink());
+        const auto lowerCons = snkRate * firing + getterOffset;
+        const auto upperCons = snkRate * (firing + 1u) + getterOffset;
+        return computeExecDependency(delayEdge, lowerCons, upperCons);
+    }
+    return computeExecDependency(edge, snkRate * firing, snkRate * (firing + 1));
+}
+
+
+spider::vector<spider::srless::ExecDependency>
+spider::srless::FiringHandler::computeHExecDependenciesByEdge(const pisdf::Vertex *vertex,
+                                                              u32 firing,
+                                                              u32 edgeIx) const {
+    auto dependencies = factory::vector<ExecDependency>(StackID::TRANSFO);
+    const auto *edge = vertex->inputEdge(edgeIx);
+    const auto snkRate = edge->sinkRateExpression().evaluate(params_);
+    if (!snkRate) {
+        dependencies.push_back({ detail::dummyInfo, detail::dummyInfo });
+    } else {
+        auto dep = computeExecDependenciesByEdge(vertex, firing, edgeIx);
+        if (!dep.first_.vertex_->hierarchical()) {
+//            if (dep.second_.vertex_) {
+//                if (!dep.second_.vertex_->hierarchical()) {
+            dependencies.emplace_back(dep);
+//                } else {
+//                    dependencies.push_back({ dep.first_, detail::dummyInfo });
+//                    const auto *graph = dep.second_.vertex_->convertTo<pisdf::Graph>();
+//                    for (auto k = dep.second_.firingStart_; k < dep.second_.firingEnd_; ++k) {
+//                        const auto *handler = &(children_[graph->subIx()]->firings()[k]);
+//                        auto res = handler->computeHExecDependenciesByEdge(graph->outputInterface(dep.second_.edgeIx_),
+//                                                                           k,
+//                                                                           dep.second_.edgeIx_);
+//                        for (auto &v : res) {
+//                            dependencies.emplace_back(v);
+//                        }
+//                    }
+//                    dependencies[1u].first_.memoryStart_ = static_cast<u32>(snkRate) %
+//                                                           static_cast<u32>(dependencies[1u].first_.rate_);
+//                    dependencies.back().first_.memoryEnd_ = static_cast<u32>(snkRate * (firing + 1) - 1) %
+//                                                            static_cast<u32>(dependencies.back().first_.rate_);
+//                }
+//            }
+        } else {
+            const auto *graph = dep.first_.vertex_->convertTo<pisdf::Graph>();
+            for (auto k = dep.first_.firingStart_; k <= dep.first_.firingEnd_; ++k) {
+                const auto *handler = &(children_[graph->subIx()]->firings()[k]);
+                if (!handler->isResolved()) {
+                    dependencies.push_back({ detail::dummyInfo, detail::dummyInfo });
+                    return dependencies;
+                }
+                const auto *interface = graph->outputInterface(dep.first_.edgeIx_);
+                if (interface->opposite()->hierarchical()) {
+                    spider::append(handler->computeHExecDependenciesByEdge(interface, 0, 0), dependencies);
+                } else {
+                    dependencies.emplace_back(handler->computeExecDependenciesByEdge(interface, 0, 0));
+                }
+            }
+            dependencies[0u].first_.memoryStart_ = static_cast<u32>(snkRate * firing) %
+                                                   static_cast<u32>(dependencies[0u].first_.rate_);
+            dependencies.back().first_.memoryEnd_ = static_cast<u32>(snkRate * (firing + 1) - 1) %
+                                                    static_cast<u32>(dependencies.back().first_.rate_);
+        }
+    }
+    return dependencies;
 }
 
 spider::srless::ExecDependency
@@ -191,51 +286,6 @@ spider::srless::FiringHandler::copyParameter(const std::shared_ptr<pisdf::Param>
         return newParam;
     }
     return param;
-}
-
-spider::srless::ExecDependency
-spider::srless::FiringHandler::computeExec(const spider::pisdf::Edge *edge, u32 firing) const {
-    const auto snkRate = edge->sinkRateExpression().evaluate(params_);
-    if (!snkRate) {
-        return { detail::dummyInfo, detail::dummyInfo };
-    }
-    if (edge->sink()->subtype() == pisdf::VertexType::OUTPUT) {
-        const auto srcRate = edge->sourceRateExpression().evaluate(params_);
-        const auto srcPortIx = static_cast<u32>(edge->sourcePortIx());
-        const auto srcRV = getRV(edge->source());
-        const auto memStart = static_cast<u32>(snkRate % srcRate);
-        const auto memEnd = static_cast<u32>(srcRate - 1);
-        const auto depMin = static_cast<u32>(srcRV - math::ceilDiv(snkRate, srcRate));
-        return {{ edge->source(), this, static_cast<size_t>(srcRate), srcPortIx, memStart, memEnd, depMin, srcRV - 1 },
-                detail::dummyInfo };
-    } else {
-        switch (edge->source()->subtype()) {
-            case pisdf::VertexType::INPUT: {
-                const auto *parentHandler = parent_->handler();
-                const auto *graph = parent_->graph();
-                auto res = parentHandler->computeExec(graph->inputEdge(edge->sinkPortIx()), firing_);
-                res.first_.memoryStart_ = static_cast<u32>(snkRate * firing) % static_cast<u32>(res.first_.rate_);
-                if (res.second_.vertex_) {
-                    res.second_.memoryEnd_ =
-                            static_cast<u32>(snkRate * (firing + 1) - 1) % static_cast<u32>(res.second_.rate_);
-                } else {
-                    res.first_.memoryEnd_ =
-                            static_cast<u32>(snkRate * (firing + 1) - 1) % static_cast<u32>(res.first_.rate_);
-                }
-                return res;
-            }
-            case pisdf::VertexType::DELAY: {
-                const auto *delay = edge->source()->convertTo<pisdf::DelayVertex>()->delay();
-                const auto *delayEdge = delay->edge();
-                const auto getterOffset = delayEdge->sinkRateExpression().evaluate(params_) * getRV(delayEdge->sink());
-                const auto lowerCons = snkRate * firing + getterOffset;
-                const auto upperCons = snkRate * (firing + 1u) + getterOffset;
-                return computeExecDependency(delayEdge, lowerCons, upperCons);
-            }
-            default:
-                return computeExecDependency(edge, snkRate * firing, snkRate * (firing + 1));
-        }
-    }
 }
 
 spider::srless::ExecDependency spider::srless::FiringHandler::computeExecDependency(const pisdf::Edge *edge,

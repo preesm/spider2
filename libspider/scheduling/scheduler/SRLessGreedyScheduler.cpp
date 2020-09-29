@@ -99,15 +99,18 @@ void spider::sched::SRLessGreedyScheduler::recursiveAddVertices(spider::srless::
 }
 
 spider::sched::SRLessGreedyScheduler::iterator_t spider::sched::SRLessGreedyScheduler::evaluate(iterator_t it) {
-    auto current = *it;
     if (it->vertex_->inputEdgeCount() > 0u) {
         for (u32 i = 0; i < static_cast<u32>(it->vertex_->inputEdgeCount()); ++i) {
-            const auto dep = it->handler_->computeExecDependenciesByEdge(it->vertex_, it->firing_, i);
-            auto res = evaluateCurrentDependency(it, dep.first_);
-            if (*(res) != current) {
-                return res;
-            } else if (*(res = evaluateCurrentDependency(it, dep.second_)) != current) {
-                return res;
+            const auto *edge = it->vertex_->inputEdge(i);
+            if (edge->source()->hierarchical()) {
+                const auto dependencies = it->handler_->computeHExecDependenciesByEdge(it->vertex_, it->firing_, i);
+                for (auto &dep : dependencies) {
+                    if (evaluate(it, dep)) {
+                        return it;
+                    }
+                }
+            } else if (evaluate(it, it->handler_->computeExecDependenciesByEdge(it->vertex_, it->firing_, i))) {
+                return it;
             }
         }
     }
@@ -117,11 +120,13 @@ spider::sched::SRLessGreedyScheduler::iterator_t spider::sched::SRLessGreedySche
     return removeAndSwap(it);
 }
 
-spider::sched::SRLessGreedyScheduler::iterator_t
-spider::sched::SRLessGreedyScheduler::evaluateCurrentDependency(iterator_t it,
-                                                                const srless::ExecDependencyInfo &dependencyInfo) {
+bool spider::sched::SRLessGreedyScheduler::evaluate(iterator_t &it, const srless::ExecDependency &dependency) {
+    return evaluate(it, dependency.first_) || evaluate(it, dependency.second_);
+}
+
+bool spider::sched::SRLessGreedyScheduler::evaluate(iterator_t &it, const srless::ExecDependencyInfo &dependencyInfo) {
     if (!dependencyInfo.vertex_ || !dependencyInfo.rate_) {
-        return it;
+        return false;
     }
     const auto *source = dependencyInfo.vertex_;
     for (auto k = dependencyInfo.firingStart_; k <= dependencyInfo.firingEnd_; ++k) {
@@ -129,35 +134,22 @@ spider::sched::SRLessGreedyScheduler::evaluateCurrentDependency(iterator_t it,
         if (ix < unscheduledVertices_.size()) {
             auto &srcSchedVertex = unscheduledVertices_[ix];
             if (srcSchedVertex.vertex_ == source) {
-                if (source->hierarchical()) {
-                    const auto *graph = source->convertTo<pisdf::Graph>();
-                    const auto *graphFiring = srcSchedVertex.handler_->getChildFiring(graph, srcSchedVertex.firing_);
-                    if (graphFiring->isResolved()) {
-                        const auto *interface = graph->outputInterface(dependencyInfo.edgeIx_);
-                        const auto dep = graphFiring->computeExecDependenciesByEdge(interface, 0u, 0u);
-                        auto res = evaluateCurrentDependency(it, dep.first_);
-                        if ((*res) != (*it)) {
-                            return res;
-                        }
-                    } else {
-                        it->executable_ = false;
-                        return it + 1;
-                    }
-                } else if (srcSchedVertex.executable_) {
+                if (srcSchedVertex.executable_) {
                     const auto distance = std::distance(std::begin(unscheduledVertices_), it);
                     std::swap(*it, srcSchedVertex);
                     srcSchedVertex.handler_->registerTaskIx(srcSchedVertex.vertex_, srcSchedVertex.firing_, ix);
                     it = std::next(std::begin(unscheduledVertices_), distance);
                     it->handler_->registerTaskIx(it->vertex_, it->firing_, static_cast<u32>(distance));
-                    return it;
+                    return true;
                 } else {
                     it->executable_ = false;
-                    return it + 1;
+                    it += 1;
+                    return true;
                 }
             }
         }
     }
-    return it;
+    return false;
 }
 
 spider::sched::SRLessGreedyScheduler::iterator_t
@@ -169,25 +161,6 @@ spider::sched::SRLessGreedyScheduler::removeAndSwap(iterator_t it) {
     it = std::next(std::begin(unscheduledVertices_), distance);
     if (it != std::end(unscheduledVertices_)) {
         it->handler_->registerTaskIx(it->vertex_, it->firing_, static_cast<u32>(distance));
-    }
-    return it;
-}
-
-spider::sched::SRLessGreedyScheduler::iterator_t
-spider::sched::SRLessGreedyScheduler::evaluateHierarchical(iterator_t it, const pisdf::Graph *graph, u32 edgeIx) {
-    const auto *graphFiring = it->handler_->getChildFiring(graph, it->firing_);
-    if (graphFiring->isResolved()) {
-        const auto *interface = graph->outputInterface(edgeIx);
-        const auto dep = graphFiring->computeExecDependenciesByEdge(interface, 0u, 0u);
-        const auto *vertex = it->vertex_;
-        const auto k = it->firing_;
-        auto res = evaluateCurrentDependency(it, dep.first_);
-        if ((res->vertex_ != vertex) || (res->firing_ != k)) {
-            return res;
-        }
-    } else {
-        it->executable_ = false;
-        return it + 1;
     }
     return it;
 }

@@ -102,6 +102,9 @@ namespace spider {
             ExecDependency
             computeExecDependenciesByEdge(const pisdf::Vertex *vertex, u32 firing, u32 edgeIx) const;
 
+            spider::vector<ExecDependency>
+            computeHExecDependenciesByEdge(const pisdf::Vertex *vertex, u32 firing, u32 edgeIx) const;
+
             ExecDependency
             computeConsDependenciesByEdge(const pisdf::Vertex *vertex, u32 firing, u32 edgeIx) const;
 
@@ -149,8 +152,6 @@ namespace spider {
 
             std::shared_ptr<pisdf::Param> copyParameter(const std::shared_ptr<pisdf::Param> &param,
                                                         const spider::vector<std::shared_ptr<pisdf::Param>> &parentParams);
-
-            ExecDependency computeExec(const pisdf::Edge *edge, u32 firing) const;
 
             ExecDependency computeExecDependency(const spider::pisdf::Edge *edge,
                                                  int64_t lowerCons,
