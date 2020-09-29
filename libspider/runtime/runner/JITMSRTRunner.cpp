@@ -264,10 +264,17 @@ void spider::JITMSRTRunner::runJob(const JobMessage &job) {
     }
 
     /* == Deallocate input buffers == */
-    for (auto &inputFIFO : job.fifos_->inputFifos()) {
-        if (inputFIFO.attribute_ != FifoAttribute::RW_EXT) {
+    for (auto &fifo : job.fifos_->inputFifos()) {
+        if (fifo.attribute_ != FifoAttribute::RW_EXT) {
             auto *memoryInterface = attachedPE_->cluster()->memoryInterface();
-            memoryInterface->deallocate(inputFIFO.virtualAddress_, inputFIFO.size_);
+            memoryInterface->deallocate(fifo.virtualAddress_, fifo.size_);
+        }
+    }
+    /* == Deallocate output buffers (only buffers to sinks) == */
+    for (auto &fifo : job.fifos_->outputFifos()) {
+        if (fifo.attribute_ == FifoAttribute::W_SINK) {
+            auto *memoryInterface = attachedPE_->cluster()->memoryInterface();
+            memoryInterface->deallocate(fifo.virtualAddress_, fifo.size_);
         }
     }
 

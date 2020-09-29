@@ -49,8 +49,10 @@ namespace spider {
                         *   --> dealloc after read, alloc before write */
         RW_EXT,      /*!< Owner of the FIFO reads (writes) from (to) external memory */
         R_MERGE,     /*!< Owner of the FIFO needs to merge multiple FIFOs together */
+        R_REPEAT,    /*!< Owner of the FIFO needs to repeat the input FIFO a given number of times */
+        W_SINK,      /*!< Owner of the FIFO writes to a sink, i.e FIFO is useless */
         First = RW_ONLY, /*!< Sentry for EnumIterator::begin */
-        Last = R_MERGE   /*!< Sentry for EnumIterator::end */
+        Last = W_SINK   /*!< Sentry for EnumIterator::end */
     };
 
     constexpr auto FIFO_ATTR_COUNT = static_cast<u8>(FifoAttribute::Last) - static_cast<u8>(FifoAttribute::First) + 1u;

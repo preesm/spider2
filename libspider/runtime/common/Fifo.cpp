@@ -56,18 +56,25 @@ namespace spider {
 
     static void *readBuffer(array_handle<Fifo>::iterator &, MemoryInterface *);
 
+    static void *readRepeatBuffer(array_handle<Fifo>::iterator &, MemoryInterface *);
+
     static void *readMergedBuffer(array_handle<Fifo>::iterator &, MemoryInterface *);
 
     /* === Static array of read functions === */
 
     using fifo_fun_t = void *(*)(array_handle<Fifo>::iterator &it, MemoryInterface *);
 
-    static std::array<fifo_fun_t, FIFO_ATTR_COUNT> readFunctions = {{ readBuffer, readBuffer, readExternBuffer, readMergedBuffer }};
+    static std::array<fifo_fun_t, FIFO_ATTR_COUNT> readFunctions = {{ readBuffer,
+                                                                            readBuffer,
+                                                                            readExternBuffer,
+                                                                            readMergedBuffer,
+                                                                            readRepeatBuffer,
+                                                                            readDummy }};
 
     /* === Static read functions definition === */
 
     static void *readExternBuffer(array_handle<Fifo>::iterator &it, MemoryInterface *) {
-        const auto &fifo = *(it++);
+        const auto fifo = *(it++);
         if (!fifo.size_) {
             return nullptr;
         }
@@ -75,7 +82,7 @@ namespace spider {
     }
 
     static void *readBuffer(array_handle<Fifo>::iterator &it, MemoryInterface *memoryInterface) {
-        const auto &fifo = *(it++);
+        const auto fifo = *(it++);
         if (!fifo.size_) {
             return nullptr;
         }
@@ -83,7 +90,7 @@ namespace spider {
     }
 
     static void *readMergedBuffer(array_handle<Fifo>::iterator &it, MemoryInterface *memoryInterface) {
-        const auto &mergedFifo = *(it++);
+        const auto mergedFifo = *(it++);
         auto *mergedBuffer = memoryInterface->allocate(mergedFifo.virtualAddress_, mergedFifo.size_, mergedFifo.count_);
 #ifndef NDEBUG
         if (!mergedBuffer) {
@@ -93,7 +100,7 @@ namespace spider {
         const auto lastIt = std::next(it, mergedFifo.offset_);
         size_t offset{ 0u };
         while (it != lastIt) {
-            const auto &fifo = *it;
+            const auto fifo = *it;
             auto *buffer = readFunctions[static_cast<u8>(fifo.attribute_)](it, memoryInterface);
             auto *destBuffer = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(mergedBuffer) + offset);
             if (buffer) {
@@ -105,16 +112,48 @@ namespace spider {
         return mergedBuffer;
     }
 
+    static void *readRepeatBuffer(array_handle<Fifo>::iterator &it, MemoryInterface *memoryInterface) {
+        const auto repeatFifo = *(it++);
+        auto *repeatBuffer = memoryInterface->allocate(repeatFifo.virtualAddress_, repeatFifo.size_, repeatFifo.count_);
+#ifndef NDEBUG
+        if (!repeatBuffer) {
+            throwNullptrException();
+        }
+#endif
+        const auto inputFifo = *it;
+        auto *inputBuffer = readFunctions[static_cast<u8>(inputFifo.attribute_)](it, memoryInterface);
+        if (inputBuffer && (inputFifo.size_ >= repeatFifo.size_)) {
+            std::memcpy(repeatBuffer, inputBuffer, repeatFifo.size_);
+        } else if (inputBuffer) {
+            const auto repeatCount = repeatFifo.size_ / inputFifo.size_;
+            const auto rest = repeatFifo.size_ % inputFifo.size_;
+            for (size_t i = 0; i < repeatCount; ++i) {
+                auto *output = cast_buffer_woffset(repeatBuffer, i * inputFifo.size_);
+                std::memcpy(output, inputBuffer, inputFifo.size_);
+            }
+            if (rest) {
+                auto *output = cast_buffer_woffset(repeatBuffer, repeatCount * inputFifo.size_);
+                std::memcpy(output, inputBuffer, rest);
+            }
+        }
+        return repeatBuffer;
+    }
+
     /* === Static allocate functions declaration === */
 
     static void *allocBuffer(array_handle<Fifo>::iterator &, MemoryInterface *);
 
     /* === Static array of allocate functions === */
 
-    static std::array<fifo_fun_t, FIFO_ATTR_COUNT> allocFunctions = {{ readBuffer, allocBuffer, readExternBuffer, readMergedBuffer }};
+    static std::array<fifo_fun_t, FIFO_ATTR_COUNT> allocFunctions = {{ readBuffer,
+                                                                             allocBuffer,
+                                                                             readExternBuffer,
+                                                                             readDummy,
+                                                                             readDummy,
+                                                                             allocBuffer }};
 
     void *allocBuffer(array_handle<Fifo>::iterator &it, MemoryInterface *memoryInterface) {
-        const auto &fifo = *(it++);
+        const auto fifo = *(it++);
         return memoryInterface->allocate(fifo.virtualAddress_, fifo.size_, fifo.count_);
     }
 }
