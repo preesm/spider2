@@ -144,91 +144,7 @@
         }\
     }
 
-#define cast_buffer_woffset(buffer, offset) (reinterpret_cast<void *>(reinterpret_cast<uintptr_t>((buffer)) + (offset)))
-
 /* === Static function === */
-
-namespace spider {
-    static void *getInputBuffer(const Fifo &fifo, MemoryInterface *memoryInterface) {
-        if (!fifo.size_) {
-            return nullptr;
-        } else if (fifo.attribute_ == FifoAttribute::RW_EXT) {
-            return cast_buffer_woffset(archi::platform()->getExternalBuffer(fifo.virtualAddress_),
-                                       fifo.offset_);
-        } else {
-            return cast_buffer_woffset(memoryInterface->read(fifo.virtualAddress_, fifo.count_),
-                                       fifo.offset_);
-        }
-    }
-
-    static void *mergeBuffers(const Fifo *inputIt, MemoryInterface *memoryInterface) {
-        auto *mergedBuffer = memoryInterface->allocate((*inputIt).virtualAddress_, (*inputIt).size_, (*inputIt).count_);
-        size_t offset{ 0u };
-        for (size_t k = 0u; k < (*inputIt).offset_; ++k) {
-            const auto &fifo = *(inputIt + k + 1);
-            auto *buffer = getInputBuffer(fifo, memoryInterface);
-            auto *destBuffer = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(mergedBuffer) + offset);
-            if (buffer) {
-                buffer = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(buffer) + fifo.offset_);
-                std::memcpy(destBuffer, buffer, fifo.size_);
-            }
-            offset += fifo.size_;
-        }
-        return mergedBuffer;
-    }
-
-    static array<void *> createInputFifos(const array_handle<Fifo> &fifos, MemoryInterface *memoryInterface) {
-        size_t count = 0u;
-        for (auto it = std::begin(fifos); it != std::end(fifos); ++it) {
-            if (it->attribute_ == FifoAttribute::RW_MERGE) {
-                it += it->offset_;
-            }
-            count += 1;
-        }
-        array<void *> inputBuffersArray{ count, nullptr, StackID::RUNTIME };
-        size_t i = 0u;
-        for (auto it = std::begin(fifos); it != std::end(fifos); ++it) {
-            const auto &fifo = *it;
-            if (fifo.attribute_ == FifoAttribute::RW_MERGE) {
-                inputBuffersArray.at(i) = mergeBuffers(it, memoryInterface);
-                it += fifo.offset_;
-            } else {
-                inputBuffersArray.at(i) = getInputBuffer(fifo, memoryInterface);
-            }
-            i++;
-        }
-//        std::transform(std::begin(fifos), std::end(fifos), std::begin(inputBuffersArray),
-//                       [&memoryInterface](const Fifo &fifo) -> void * {
-//                           if (!fifo.size_) {
-//                               return nullptr;
-//                           } else if (fifo.attribute_ == FifoAttribute::RW_EXT) {
-//                               return cast_buffer_woffset(archi::platform()->getExternalBuffer(fifo.virtualAddress_),
-//                                                          fifo.offset_);
-//                           } else {
-//                               return cast_buffer_woffset(memoryInterface->read(fifo.virtualAddress_, fifo.count_),
-//                                                          fifo.offset_);
-//                           }
-//                       });
-        return inputBuffersArray;
-    }
-
-    static array<void *> createOutputFifos(const array_handle<Fifo> &fifos, MemoryInterface *memoryInterface) {
-        array<void *> outputBuffersArray{ fifos.size(), nullptr, StackID::RUNTIME };
-        std::transform(std::begin(fifos), std::end(fifos), std::begin(outputBuffersArray),
-                       [&memoryInterface](const Fifo &fifo) -> void * {
-                           if (fifo.attribute_ == FifoAttribute::RW_OWN) {
-                               return memoryInterface->allocate(fifo.virtualAddress_, fifo.size_, fifo.count_);
-                           } else if (fifo.attribute_ == FifoAttribute::RW_EXT) {
-                               return cast_buffer_woffset(archi::platform()->getExternalBuffer(fifo.virtualAddress_),
-                                                          fifo.offset_);
-                           } else {
-                               return cast_buffer_woffset(memoryInterface->read(fifo.virtualAddress_, fifo.count_),
-                                                          fifo.offset_);
-                           }
-                       });
-        return outputBuffersArray;
-    }
-}
 
 /* === Method(s) implementation === */
 
@@ -316,14 +232,13 @@ void spider::JITMSRTRunner::runJob(const JobMessage &job) {
         msgMemory.startTime_ = time::now();
     }
     /* == Create input buffers == */
-    auto inputBuffersArray = createInputFifos(job.fifos_->inputFifos(), attachedPE_->cluster()->memoryInterface());
+    auto inputBuffersArray = getInputBuffers(job.fifos_->inputFifos(), attachedPE_->cluster()->memoryInterface());
 
     /* == Create output buffers == */
-    auto outputBuffersArray = createOutputFifos(job.fifos_->outputFifos(), attachedPE_->cluster()->memoryInterface());
+    auto outputBuffersArray = getOutputBuffers(job.fifos_->outputFifos(), attachedPE_->cluster()->memoryInterface());
 
     /* == Allocate output parameter memory == */
     array<int64_t> outputParams{ static_cast<size_t>(job.nParamsOut_), 0, StackID::RUNTIME };
-
     if (trace_) {
         msgMemory.endTime_ = time::now();
         auto *communicator = rt::platform()->communicator();

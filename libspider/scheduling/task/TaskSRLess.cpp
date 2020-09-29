@@ -152,7 +152,7 @@ spider::sched::AllocationRule spider::sched::TaskSRLess::allocationRuleForInputF
         rule.fifoIx_ = UINT32_MAX;
         rule.count_ = 0u;
         rule.type_ = AllocType::MERGE;
-        rule.attribute_ = FifoAttribute::RW_MERGE;
+        rule.attribute_ = FifoAttribute::R_MERGE;
         const auto i = setExtraAllocationRules(rule.others_, dep.first_, 0u);
         setExtraAllocationRules(rule.others_, dep.second_, i);
         return rule;
