@@ -35,6 +35,8 @@
 #ifndef SPIDER2_GREEDYSCHEDULER_H
 #define SPIDER2_GREEDYSCHEDULER_H
 
+#ifndef _NO_BUILD_LEGACY_RT
+
 /* === Include(s) === */
 
 #include <scheduling/scheduler/Scheduler.h>
@@ -114,5 +116,5 @@ namespace spider {
         };
     }
 }
-
+#endif
 #endif //SPIDER2_GREEDYSCHEDULER_H

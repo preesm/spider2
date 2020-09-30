@@ -33,6 +33,8 @@
  * knowledge of the CeCILL license and that you accept its terms.
  */
 
+#ifndef _NO_BUILD_LEGACY_RT
+
 /* === Include(s) === */
 
 #include <runtime/algorithm/StaticRuntime.h>
@@ -187,3 +189,5 @@ void spider::StaticRuntime::run() {
         useExecutionTraces(srdag_.get(), ressourcesAllocator_->schedule(), startIterStamp_);
     }
 }
+
+#endif

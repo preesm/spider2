@@ -64,6 +64,15 @@ namespace spider {
         bool isGraphFullyStatic(const Graph *graph);
 
         /**
+         * @brief Creates a subgraph for the 'run' section of a dynamic graph and keep config actors as the 'init'
+         *        section.
+         * @remark This method changes original graph.
+         * @param graph  Pointer to the graph to split (if static nothing happen).
+         * @return true if split the graph, false else.
+         */
+        void separateRunGraphFromInit(pisdf::Graph *graph);
+
+        /**
          * @brief Recursively split dynamic graphs to separate init from run sections of the graph.
          * @param graph  Pointer to the top graph.
          */

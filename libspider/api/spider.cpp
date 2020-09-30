@@ -38,14 +38,18 @@
 #include <memory/Stack.h>
 #include <memory/memory.h>
 #include <common/Logger.h>
-#include <archi/Platform.h>
 #include <runtime/platform/RTPlatform.h>
 #include <graphs/pisdf/Graph.h>
 #include <runtime/algorithm/Runtime.h>
-#include <runtime/algorithm/JITMSRuntime.h>
 #include <runtime/algorithm/FastRuntime.h>
-#include <runtime/algorithm/StaticRuntime.h>
 #include <graphs-tools/helper/pisdf-helper.h>
+
+#ifndef _NO_BUILD_LEGACY_RT
+
+#include <runtime/algorithm/JITMSRuntime.h>
+#include <runtime/algorithm/StaticRuntime.h>
+
+#endif
 
 /* === Static variable(s) definition === */
 
@@ -200,6 +204,7 @@ static spider::Runtime *getRuntimeFromType(spider::pisdf::Graph *graph,
     // TODO: create the mapper/scheduler class here and pass it to the runtime.
     switch (cfg.runtimeType_) {
         case spider::RuntimeType::JITMS:
+#ifndef _NO_BUILD_LEGACY_RT
             if (spider::pisdf::isGraphFullyStatic(graph)) {
                 return spider::make<spider::StaticRuntime>(StackID::GENERAL, graph,
                                                            cfg.schedPolicy_, cfg.mapPolicy_, cfg.execPolicy_,
@@ -208,6 +213,10 @@ static spider::Runtime *getRuntimeFromType(spider::pisdf::Graph *graph,
             return spider::make<spider::JITMSRuntime>(StackID::GENERAL, graph,
                                                       cfg.schedPolicy_, cfg.mapPolicy_, cfg.execPolicy_,
                                                       cfg.allocType_);
+#else
+            spider::printer::fprintf(stderr,"JITMS runtime was not compiled and can not be used.\n");
+            return nullptr;
+#endif
         case spider::RuntimeType::FAST:
             return spider::make<spider::FastRuntime>(StackID::GENERAL, graph,
                                                      cfg.schedPolicy_, cfg.mapPolicy_, cfg.execPolicy_,

@@ -36,8 +36,14 @@
 /* === Include(s) === */
 
 #include <scheduling/ResourcesAllocator.h>
+
+#ifndef _NO_BUILD_LEGACY_RT
+
 #include <scheduling/scheduler/ListScheduler.h>
 #include <scheduling/scheduler/GreedyScheduler.h>
+
+#endif
+
 #include <scheduling/scheduler/SRLessGreedyScheduler.h>
 #include <scheduling/mapper/BestFitMapper.h>
 #include <scheduling/memory/FifoAllocator.h>
@@ -121,12 +127,20 @@ spider::sched::Scheduler *spider::sched::ResourcesAllocator::allocateScheduler(S
     switch (policy) {
         case SchedulingPolicy::LIST:
             if (legacy) {
+#ifndef _NO_BUILD_LEGACY_RT
                 return spider::make<sched::ListScheduler, StackID::SCHEDULE>();
+#else
+                return nullptr;
+#endif
             }
             return nullptr;
         case SchedulingPolicy::GREEDY:
             if (legacy) {
+#ifndef _NO_BUILD_LEGACY_RT
                 return spider::make<sched::GreedyScheduler, StackID::SCHEDULE>();
+#else
+                return nullptr;
+#endif
             } else {
                 return spider::make<sched::SRLessGreedyScheduler, StackID::SCHEDULE>();
             }

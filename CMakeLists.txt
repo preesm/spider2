@@ -189,6 +189,13 @@ if (BUILD_TESTING MATCHES "ON")
             EXCLUDE_FROM_ALL)
 endif ()
 
+# Use JIT-Compiled expression (default is yes) ?
+option(BUILD_LEGACY_RUNTIME "Build the code related to the legacy runtime of SPIDER." ON)
+if (NOT ${BUILD_LEGACY_RUNTIME})
+    add_definitions(-D_NO_BUILD_LEGACY_RT)
+    message(STATUS "Legacy runtime will not be built.")
+endif ()
+
 # Enable RPATH support for installed binaries and libraries
 include(AddInstallRPATHSupport)
 add_install_rpath_support(BIN_DIRS "${CMAKE_INSTALL_FULL_BINDIR}"

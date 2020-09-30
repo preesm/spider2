@@ -32,6 +32,7 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
+#ifndef _NO_BUILD_LEGACY_RT
 
 /* === Include(s) === */
 
@@ -296,3 +297,5 @@ bool spider::sched::TaskVertex::isMappableOnPE(const spider::PE *pe) const {
 u64 spider::sched::TaskVertex::timingOnPE(const spider::PE *pe) const {
     return static_cast<u64>(vertex_->runtimeInformation()->timingOnPE(pe, vertex_->inputParamVector()));
 }
+
+#endif

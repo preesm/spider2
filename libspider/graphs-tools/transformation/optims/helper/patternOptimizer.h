@@ -35,6 +35,8 @@
 #ifndef SPIDER2_PATTERNOPTIMIZER_H
 #define SPIDER2_PATTERNOPTIMIZER_H
 
+#ifndef _NO_BUILD_LEGACY_RT
+
 /* === Include(s) === */
 
 #include <cstddef>
@@ -66,6 +68,5 @@ namespace spider {
                               EdgeConnecter reconnect);
     }
 }
-
-
+#endif
 #endif //SPIDER2_PATTERNOPTIMIZER_H

@@ -32,6 +32,36 @@ file(GLOB_RECURSE
         ./*.h
         )
 
+# If Legacy runtime is not built, let's remove every source and header files
+if (NOT ${BUILD_LEGACY_RUNTIME})
+    list(REMOVE_ITEM ${LIBRARY_TARGET_NAME}_SRC ${CMAKE_CURRENT_SOURCE_DIR}/./graphs-tools/transformation/optims/helper/partialSingleRate.cpp)
+    list(REMOVE_ITEM ${LIBRARY_TARGET_NAME}_SRC ${CMAKE_CURRENT_SOURCE_DIR}/./graphs-tools/transformation/optims/helper/patternOptimizer.cpp)
+    list(REMOVE_ITEM ${LIBRARY_TARGET_NAME}_SRC ${CMAKE_CURRENT_SOURCE_DIR}/./graphs-tools/transformation/optims/helper/unitaryOptimizer.cpp)
+    list(REMOVE_ITEM ${LIBRARY_TARGET_NAME}_SRC ${CMAKE_CURRENT_SOURCE_DIR}/./graphs-tools/transformation/optims/optimizations.cpp)
+    list(REMOVE_ITEM ${LIBRARY_TARGET_NAME}_SRC ${CMAKE_CURRENT_SOURCE_DIR}/./graphs-tools/transformation/srdag/visitors/SRDAGCopyVertexVisitor.cpp)
+    list(REMOVE_ITEM ${LIBRARY_TARGET_NAME}_SRC ${CMAKE_CURRENT_SOURCE_DIR}/./graphs-tools/transformation/srdag/SingleRateTransformer.cpp)
+    list(REMOVE_ITEM ${LIBRARY_TARGET_NAME}_SRC ${CMAKE_CURRENT_SOURCE_DIR}/./graphs-tools/transformation/srdag/Transformation.cpp)
+    list(REMOVE_ITEM ${LIBRARY_TARGET_NAME}_SRC ${CMAKE_CURRENT_SOURCE_DIR}/./runtime/algorithm/JITMSRuntime.cpp)
+    list(REMOVE_ITEM ${LIBRARY_TARGET_NAME}_SRC ${CMAKE_CURRENT_SOURCE_DIR}/./runtime/algorithm/StaticRuntime.cpp)
+    list(REMOVE_ITEM ${LIBRARY_TARGET_NAME}_SRC ${CMAKE_CURRENT_SOURCE_DIR}/./scheduling/scheduler/GreedyScheduler.cpp)
+    list(REMOVE_ITEM ${LIBRARY_TARGET_NAME}_SRC ${CMAKE_CURRENT_SOURCE_DIR}/./scheduling/scheduler/ListScheduler.cpp)
+    list(REMOVE_ITEM ${LIBRARY_TARGET_NAME}_SRC ${CMAKE_CURRENT_SOURCE_DIR}/./scheduling/task/TaskVertex.cpp)
+
+    list(REMOVE_ITEM ${LIBRARY_TARGET_NAME}_HDR ${CMAKE_CURRENT_SOURCE_DIR}/./graphs-tools/transformation/optims/helper/partialSingleRate.h)
+    list(REMOVE_ITEM ${LIBRARY_TARGET_NAME}_HDR ${CMAKE_CURRENT_SOURCE_DIR}/./graphs-tools/transformation/optims/helper/patternOptimizer.h)
+    list(REMOVE_ITEM ${LIBRARY_TARGET_NAME}_HDR ${CMAKE_CURRENT_SOURCE_DIR}/./graphs-tools/transformation/optims/helper/unitaryOptimizer.h)
+    list(REMOVE_ITEM ${LIBRARY_TARGET_NAME}_HDR ${CMAKE_CURRENT_SOURCE_DIR}/./graphs-tools/transformation/optims/optimizations.h)
+    list(REMOVE_ITEM ${LIBRARY_TARGET_NAME}_HDR ${CMAKE_CURRENT_SOURCE_DIR}/./graphs-tools/transformation/srdag/visitors/SRDAGCopyVertexVisitor.h)
+    list(REMOVE_ITEM ${LIBRARY_TARGET_NAME}_HDR ${CMAKE_CURRENT_SOURCE_DIR}/./graphs-tools/transformation/srdag/SingleRateTransformer.h)
+    list(REMOVE_ITEM ${LIBRARY_TARGET_NAME}_HDR ${CMAKE_CURRENT_SOURCE_DIR}/./graphs-tools/transformation/srdag/Transformation.h)
+    list(REMOVE_ITEM ${LIBRARY_TARGET_NAME}_HDR ${CMAKE_CURRENT_SOURCE_DIR}/./graphs-tools/transformation/srdag/TransfoJob.h)
+    list(REMOVE_ITEM ${LIBRARY_TARGET_NAME}_HDR ${CMAKE_CURRENT_SOURCE_DIR}/./runtime/algorithm/JITMSRuntime.h)
+    list(REMOVE_ITEM ${LIBRARY_TARGET_NAME}_HDR ${CMAKE_CURRENT_SOURCE_DIR}/./runtime/algorithm/StaticRuntime.h)
+    list(REMOVE_ITEM ${LIBRARY_TARGET_NAME}_HDR ${CMAKE_CURRENT_SOURCE_DIR}/./scheduling/scheduler/GreedyScheduler.h)
+    list(REMOVE_ITEM ${LIBRARY_TARGET_NAME}_HDR ${CMAKE_CURRENT_SOURCE_DIR}/./scheduling/scheduler/ListScheduler.h)
+    list(REMOVE_ITEM ${LIBRARY_TARGET_NAME}_HDR ${CMAKE_CURRENT_SOURCE_DIR}/./scheduling/task/TaskVertex.h)
+endif ()
+
 # Add definition for relative path into project
 add_definitions(-DPROJECT_ROOT_PATH="${CMAKE_CURRENT_SOURCE_DIR}")
 

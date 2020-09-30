@@ -35,6 +35,8 @@
 #ifndef SPIDER2_TASKVERTEX_H
 #define SPIDER2_TASKVERTEX_H
 
+#ifndef _NO_BUILD_LEGACY_RT
+
 /* === Include(s) === */
 
 #include <scheduling/task/Task.h>
@@ -100,4 +102,5 @@ namespace spider {
         };
     }
 }
+#endif
 #endif //SPIDER2_TASKVERTEX_H

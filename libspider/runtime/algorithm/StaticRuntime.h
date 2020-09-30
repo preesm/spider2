@@ -35,6 +35,8 @@
 #ifndef SPIDER2_STATICRUNTIME_H
 #define SPIDER2_STATICRUNTIME_H
 
+#ifndef _NO_BUILD_LEGACY_RT
+
 /* === Include(s) === */
 
 #include <runtime/algorithm/Runtime.h>
@@ -96,5 +98,5 @@ namespace spider {
         void run();
     };
 }
-
+#endif
 #endif //SPIDER2_STATICRUNTIME_H

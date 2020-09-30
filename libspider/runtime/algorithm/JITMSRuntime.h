@@ -35,6 +35,8 @@
 #ifndef SPIDER2_JITMSRUNTIME_H
 #define SPIDER2_JITMSRUNTIME_H
 
+#ifndef _NO_BUILD_LEGACY_RT
+
 /* === Include(s) === */
 
 #include <runtime/algorithm/Runtime.h>
@@ -121,4 +123,5 @@ namespace spider {
         transformDynamicJobs(vector<srdag::TransfoJob> &staticJobStack, vector<srdag::TransfoJob> &dynamicJobStack);
     };
 }
+#endif
 #endif //SPIDER2_JITMSRUNTIME_H

@@ -46,36 +46,6 @@ namespace spider {
 
     /* === Structure(s) definition === */
 
-//    /**
-//    * @brief Information message about an LRT job to run.
-//    */
-//    struct JobMessage {
-//
-//        JobMessage() = default;
-//
-//        JobMessage(const JobMessage &) = delete;
-//
-//        JobMessage(JobMessage &&) noexcept = default;
-//
-//        JobMessage &operator=(const JobMessage &) = delete;
-//
-//        JobMessage &operator=(JobMessage &&) noexcept = default;
-//
-//        ~JobMessage() = default;
-//
-//        /* === Struct member(s) === */
-//
-//        array<JobConstraint> execConstraints_;    /*!< Array of jobs this job has to wait before running (size is inferior or equal to the number of LRT) */
-//        array<i64> inputParams_;                  /*!< Array of static input parameters */
-//        array<Fifo> inputFifoArray_;              /*!< Array of input FIFO for the job */
-//        array<Fifo> outputFifoArray_;             /*!< Array of output FIFO for the job */
-//        unique_ptr<bool> notificationFlagsArray_; /*!< Array of LRT to notify after job completion (size IS equal to the number of LRT) */
-//        size_t kernelIx_ = SIZE_MAX;              /*!< Index of the kernel to use to run this job */
-//        size_t vertexIx_ = SIZE_MAX;              /*!< Index of the vertex associated with the job */
-//        size_t ix_ = SIZE_MAX;                    /*!< Index of the job */
-//        i32 outputParamCount_ = 0;                /*!< Number of output parameters to be set by this job. */
-//    };
-
     /**
      * @brief Message containing dynamic parameters values set by a job.
      */

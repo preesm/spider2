@@ -35,6 +35,8 @@
 #ifndef SPIDER2_TRANSFORMATION_H
 #define SPIDER2_TRANSFORMATION_H
 
+#ifndef _NO_BUILD_LEGACY_RT
+
 /* === Includes === */
 
 #include <graphs-tools/transformation/srdag/SingleRateTransformer.h>
@@ -43,15 +45,6 @@ namespace spider {
     namespace srdag {
 
         /* === Functions prototype === */
-
-        /**
-         * @brief Creates a subgraph for the 'run' section of a dynamic graph and keep config actors as the 'init'
-         *        section.
-         * @remark This method changes original graph.
-         * @param graph  Pointer to the graph to split (if static nothing happen).
-         * @return true if split the graph, false else.
-         */
-        void separateRunGraphFromInit(pisdf::Graph *graph);
 
         /**
          * @brief Perform static single rate transformation for a given input job.
@@ -66,5 +59,5 @@ namespace spider {
         std::pair<JobStack, JobStack> singleRateTransformation(TransfoJob &job, pisdf::Graph *srdag);
     }
 }
-
+#endif
 #endif //SPIDER2_TRANSFORMATION_H

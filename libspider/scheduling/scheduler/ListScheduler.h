@@ -35,6 +35,8 @@
 #ifndef SPIDER2_LISTSCHEDULER_H
 #define SPIDER2_LISTSCHEDULER_H
 
+#ifndef _NO_BUILD_LEGACY_RT
+
 /* === Include(s) === */
 
 #include <scheduling/scheduler/Scheduler.h>
@@ -123,4 +125,5 @@ namespace spider {
         };
     }
 }
+#endif
 #endif //SPIDER2_LISTSCHEDULER_H

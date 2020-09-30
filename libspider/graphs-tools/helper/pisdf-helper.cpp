@@ -39,8 +39,23 @@
 #include <graphs/pisdf/DelayVertex.h>
 #include <graphs/pisdf/ExternInterface.h>
 #include <graphs-tools/transformation/srdag/Transformation.h>
+#include <api/pisdf-api.h>
 
 /* === Static function(s) === */
+
+template<class InterfaceVector, class EdgeReconnector>
+static ufast32 reconnectInterface(const InterfaceVector &interfaceVector, const EdgeReconnector &reconnector) {
+    ufast32 ix = 0;
+    for (auto &interface : interfaceVector) {
+        const auto &vertex = interface->opposite();
+        if (vertex->subtype() != spider::pisdf::VertexType::CONFIG) {
+            auto *edge = reconnector(interface.get(), interface->edge(), ix);
+            interface->graph()->addEdge(edge);
+            ix++;
+        }
+    }
+    return ix;
+}
 
 /**
  * @brief Creates an array with parameters needed for the runtime exec of a normal vertex.
@@ -258,10 +273,123 @@ bool spider::pisdf::isGraphFullyStatic(const Graph *graph) {
     return isFullyStatic;
 }
 
+void spider::pisdf::separateRunGraphFromInit(Graph *graph) {
+    if (!graph->configVertexCount() || !graph->dynamic()) {
+        return;
+    }
+
+    /* == Compute the input interface count for both graphs == */
+    ufast32 cfg2OutputIfCount = 0;
+    ufast32 cfg2RunIfCount = 0;
+    ufast32 inputIf2CfgCount = 0;
+    for (const auto &cfg : graph->configVertices()) {
+        for (const auto &edge : cfg->inputEdgeVector()) {
+            const auto &source = edge->source();
+            if (source->subtype() != pisdf::VertexType::INPUT) {
+                throwSpiderException("Config vertex can not have source of type other than interface.");
+            }
+            inputIf2CfgCount++;
+        }
+        for (const auto &edge : cfg->outputEdgeVector()) {
+            auto isOutputIf = edge->sink()->subtype() == pisdf::VertexType::OUTPUT;
+            cfg2OutputIfCount += (isOutputIf);
+            cfg2RunIfCount += (!isOutputIf);
+        }
+    }
+    const auto runInputIfCount = graph->inputEdgeCount() + cfg2RunIfCount - inputIf2CfgCount;
+    const auto runOutputIfCount = graph->outputEdgeCount() - cfg2OutputIfCount;
+
+    /* == Create the run subgraph == */
+    auto *runGraph = api::createGraph("run", graph->vertexCount(), graph->edgeCount(), graph->paramCount(),
+                                      runInputIfCount, runOutputIfCount);
+
+    /* == Move the edges == */
+    auto itEdge = graph->edges().begin();
+    while (graph->edgeCount() != (inputIf2CfgCount + cfg2OutputIfCount)) {
+        const auto *source = itEdge->get()->source();
+        const auto *sink = itEdge->get()->sink();
+        if (sink->subtype() == pisdf::VertexType::CONFIG ||
+            (sink->subtype() == pisdf::VertexType::OUTPUT &&
+             source->subtype() == pisdf::VertexType::CONFIG)) {
+            itEdge++;
+        } else {
+            graph->moveEdge(itEdge->get(), runGraph);
+            itEdge = graph->edges().begin();
+        }
+    }
+
+    /* == Move the subgraphs == */
+    while (!graph->subgraphs().empty()) {
+        graph->moveVertex(graph->subgraphs()[0], runGraph);
+    }
+
+    /* == Move the vertices == */
+    auto itVertex = graph->vertices().begin();
+    while (graph->vertexCount() != graph->configVertexCount()) {
+        if ((*itVertex)->subtype() == pisdf::VertexType::CONFIG) {
+            itVertex++;
+        } else {
+            graph->moveVertex(itVertex->get(), runGraph);
+            itVertex = graph->vertices().begin();
+        }
+    }
+
+    /* == Add run graph == */
+    graph->addVertex(runGraph);
+
+    /* == Reconnect Edges from input interfaces == */
+    auto inputRunIx = reconnectInterface(graph->inputInterfaceVector(),
+                                         [&runGraph](pisdf::Interface *input, pisdf::Edge *edge, ufast32 ix) {
+                                             auto expr = edge->sourceRateExpression();
+                                             /* == Change source of original edge to run graph interface == */
+                                             edge->setSource(runGraph->inputInterface(ix), 0u, expr);
+                                             edge->source()->setName(input->name());
+                                             /* == Create an edge with the original interface == */
+                                             return make<pisdf::Edge, StackID::PISDF>(input, 0u, expr,
+                                                                                      runGraph, ix, std::move(expr));
+                                         });
+
+    /* == Reconnect Edges from output interfaces == */
+    reconnectInterface(graph->outputInterfaceVector(),
+                       [&runGraph](pisdf::Interface *output, pisdf::Edge *edge, ufast32 ix) {
+                           auto expr = edge->sinkRateExpression();
+                           /* == Change sink of original edge to run graph interface == */
+                           edge->setSink(runGraph->outputInterface(ix), 0u, expr);
+                           edge->sink()->setName(output->name());
+                           /* == Create an edge with the original interface == */
+                           return make<pisdf::Edge, StackID::PISDF>(runGraph, ix, expr,
+                                                                    output, 0u, std::move(expr));
+                       });
+
+    /* == Connect the output edges of config vertices == */
+    for (auto &cfg : graph->configVertices()) {
+        for (auto edge : cfg->outputEdgeVector()) {
+            const auto &sink = edge->sink();
+            if (sink->subtype() != pisdf::VertexType::OUTPUT) {
+                const auto srcRate = edge->sourceRateValue(); /* = Config actors can not have dynamic rate = */
+                const auto srcPortIx = edge->sourcePortIx();
+                /* == Connect input interface to vertex in run graph == */
+                auto *input = runGraph->inputInterface(inputRunIx);
+                edge->setSource(input, 0, edge->sourceRateExpression());
+                input->setName(cfg->name() + "::out:" + std::to_string(srcPortIx));
+                /* == Connect cfg to run graph == */
+                api::createEdge(cfg, edge->sourcePortIx(), srcRate, runGraph, inputRunIx, srcRate);
+                inputRunIx += 1;
+            }
+        }
+    }
+
+    /* == Copy the params to the run graph == */
+    auto paramsToRemove = factory::vector<std::shared_ptr<pisdf::Param>>(StackID::TRANSFO);
+    for (auto &param : graph->params()) {
+        api::createInheritedParam(runGraph, param->name(), param);
+    }
+}
+
 void spider::pisdf::recursiveSplitDynamicGraph(Graph *graph) {
     if (graph->dynamic()) {
         // TODO: put this method into pisdf namespace and into this cpp file
-        srdag::separateRunGraphFromInit(graph);
+        separateRunGraphFromInit(graph);
     }
     for (auto &subgraph : graph->subgraphs()) {
         recursiveSplitDynamicGraph(subgraph);
