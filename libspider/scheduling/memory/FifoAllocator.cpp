@@ -119,7 +119,7 @@ void spider::sched::FifoAllocator::allocate(sched::Task *task) {
                 fifo.virtualAddress_ = rule.offset_;
                 fifo.offset_ = 0u;
                 break;
-            case MERGE:
+            default:
                 break;
         }
         fifo.size_ = static_cast<u32>(rule.size_);

@@ -90,12 +90,12 @@ namespace spider {
      * @brief Append a vector using move semantics. Inspired by this answer: https://stackoverflow.com/a/37210097 but
      *        modified to allow the caller to choose between copy or move.
      * @tparam T
-     * @param src   source vector
      * @param dest  destination vector to be appended.
+     * @param src   source vector
      * @return begin iterator of dest after append.
      */
     template<typename T>
-    typename spider::vector<T>::iterator append(spider::vector<T> src, spider::vector<T> &dest) {
+    typename spider::vector<T>::iterator append(spider::vector<T> &dest, spider::vector<T> src) {
         typename spider::vector<T>::iterator result;
         if (dest.empty()) {
             dest = std::move(src);

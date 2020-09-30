@@ -91,6 +91,13 @@ void spider::sched::SRLessGreedyScheduler::recursiveAddVertices(spider::srless::
                     }
                 }
             }
+            for (const auto &interface : graphHandler->graph()->inputInterfaceVector()) {
+                if (!firing.isInputInterfaceTransparent(interface->ix()) &&
+                    firing.getTaskIx(interface.get()) == UINT32_MAX) {
+                    firing.registerTaskIx(interface.get(), static_cast<u32>(this->unscheduledVertices_.size()));
+                    this->unscheduledVertices_.push_back({ interface.get(), &firing, 0, true, false });
+                }
+            }
         }
         for (auto *child : firing.children()) {
             recursiveAddVertices(child);
@@ -102,14 +109,14 @@ spider::sched::SRLessGreedyScheduler::iterator_t spider::sched::SRLessGreedySche
     if (it->vertex_->inputEdgeCount() > 0u) {
         for (u32 i = 0; i < static_cast<u32>(it->vertex_->inputEdgeCount()); ++i) {
             const auto *edge = it->vertex_->inputEdge(i);
-            if (edge->source()->hierarchical()) {
-                const auto dependencies = it->handler_->computeHExecDependenciesByEdge(it->vertex_, it->firing_, i);
+            if (edge->source()->hierarchical() || edge->source()->subtype() == pisdf::VertexType::INPUT) {
+                const auto dependencies = it->handler_->computeRelaxedExecDependency(it->vertex_, it->firing_, i);
                 for (auto &dep : dependencies) {
                     if (evaluate(it, dep)) {
                         return it;
                     }
                 }
-            } else if (evaluate(it, it->handler_->computeExecDependenciesByEdge(it->vertex_, it->firing_, i))) {
+            } else if (evaluate(it, it->handler_->computeExecDependency(it->vertex_, it->firing_, i))) {
                 return it;
             }
         }

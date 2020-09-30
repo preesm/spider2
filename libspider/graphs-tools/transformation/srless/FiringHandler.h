@@ -92,25 +92,41 @@ namespace spider {
 
             /* === Method(s) === */
 
-            void resolveBRV();
-
-            u32 getRV(const pisdf::Vertex *vertex) const;
+            ExecDependency computeExecDependency(const pisdf::Vertex *vertex, u32 firing, u32 edgeIx) const;
 
             spider::vector<ExecDependency>
-            computeExecDependenciesByFiring(const pisdf::Vertex *vertex, u32 vertexFiring) const;
-
-            ExecDependency
-            computeExecDependenciesByEdge(const pisdf::Vertex *vertex, u32 firing, u32 edgeIx) const;
-
-            spider::vector<ExecDependency>
-            computeHExecDependenciesByEdge(const pisdf::Vertex *vertex, u32 firing, u32 edgeIx) const;
+            computeRelaxedExecDependency(const pisdf::Vertex *vertex, u32 firing, u32 edgeIx) const;
 
             ExecDependency
             computeConsDependenciesByEdge(const pisdf::Vertex *vertex, u32 firing, u32 edgeIx) const;
 
-            void registerTaskIx(const pisdf::Vertex *vertex, u32 vertexFiring, u32 taskIx);
+            bool isInputInterfaceTransparent(size_t ix) const;
 
-            u32 getTaskIx(const pisdf::Vertex *vertex, u32 vertexFiring) const;
+            /**
+             * @brief Registers the Task ix for a given firing of a given vertex.
+             * @param vertex  Pointer to the vertex.
+             * @param firing  Value of the firing.
+             * @param taskIx  Value of the task ix to set.
+             */
+            void registerTaskIx(const pisdf::Vertex *vertex, u32 firing, u32 taskIx);
+
+            /**
+             * @brief Registers the Task ix for a given input interface.
+             * @param interface Pointer to the interface.
+             * @param taskIx    Task ix.
+             */
+            void registerTaskIx(const pisdf::Interface *interface, u32 taskIx);
+
+            /**
+             * @brief Compute BRV and save the values based on current value of parameters.
+             * @remark this method automatically set the resolved_ flag to true.
+             */
+            void resolveBRV();
+
+            /**
+             * @brief Clears every values, and set resolved_ flag to false.
+             */
+            void clear();
 
             /* === Getter(s) === */
 
@@ -118,11 +134,7 @@ namespace spider {
 
             inline spider::array<GraphHandler *> &children() { return children_; }
 
-            const FiringHandler *getChildFiring(const pisdf::Graph *subgraph, u32 firing) const;
-
             inline const spider::vector<std::shared_ptr<pisdf::Param>> &getParams() const { return params_; }
-
-            int64_t getParamValue(size_t ix);
 
             inline size_t ix() const { return ix_; }
 
@@ -130,13 +142,23 @@ namespace spider {
 
             inline bool isResolved() const { return resolved_; }
 
-            /* === Setter(s) === */
+            u32 getRV(const pisdf::Vertex *vertex) const;
 
-            void setParamValue(size_t ix, int64_t value);
+            u32 getTaskIx(const pisdf::Vertex *vertex, u32 vertexFiring) const;
+
+            u32 getTaskIx(const pisdf::Interface *interface) const;
+
+            const FiringHandler *getChildFiring(const pisdf::Graph *subgraph, u32 firing) const;
+
+            int64_t getParamValue(size_t ix);
+
+            /* === Setter(s) === */
 
             inline void setIx(size_t ix) { ix_ = ix; }
 
             inline void setFiring(u32 firing) { firing_ = firing; }
+
+            void setParamValue(size_t ix, int64_t value);
 
         private:
             spider::vector<std::shared_ptr<pisdf::Param>> params_;
@@ -153,15 +175,37 @@ namespace spider {
             std::shared_ptr<pisdf::Param> copyParameter(const std::shared_ptr<pisdf::Param> &param,
                                                         const spider::vector<std::shared_ptr<pisdf::Param>> &parentParams);
 
+            int64_t computeSrcRate(const pisdf::Edge *edge) const;
+
             ExecDependency computeExecDependency(const spider::pisdf::Edge *edge,
                                                  int64_t lowerCons,
                                                  int64_t upperCons) const;
 
-            ExecDependency computeCons(const pisdf::Edge *edge, u32 firing) const;
-
             ExecDependency computeConsDependency(const spider::pisdf::Edge *edge,
                                                  int64_t lowerProd,
                                                  int64_t upperProd) const;
+
+            spider::vector<ExecDependency> computeRelaxedExecDependency(const pisdf::Edge *edge,
+                                                                        int64_t lowerCons,
+                                                                        int64_t upperCons,
+                                                                        int64_t prevSrcRate,
+                                                                        u32 prevSrcRV,
+                                                                        u32 prevLowDep,
+                                                                        u32 prevUpDep) const;
+
+            spider::vector<ExecDependency> computeRelFirstExecDependency(const pisdf::Edge *edge,
+                                                                         int64_t consumption,
+                                                                         int64_t prevSrcRate,
+                                                                         u32 prevSrcRV,
+                                                                         u32 prevDep) const;
+
+            spider::vector<ExecDependency> computeRelLastExecDependency(const pisdf::Edge *edge,
+                                                                        int64_t consumption,
+                                                                        int64_t prevSrcRate,
+                                                                        u32 prevSrcRV,
+                                                                        u32 prevDep) const;
+
+            spider::vector<ExecDependency> computeRelMidExecDependency(const pisdf::Edge *edge) const;
         };
     }
 }

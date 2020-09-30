@@ -45,7 +45,8 @@ namespace spider {
             SAME_IN,  /*!< Specify that an existing input FIFO should be used */
             SAME_OUT, /*!< Specify that an existing output FIFO should be used */
             EXT,      /*!< Specify that allocation of FIFO is external */
-            MERGE     /*!< Specify that allocation of FIFO requires to merge multiple FIFOs */
+            MERGE,    /*!< Specify that allocation of FIFO requires to merge multiple FIFOs */
+            REPEAT,   /*!< Specify that allocation of FIFO requires to repeat input FIFO */
         };
 
         struct AllocationRule {

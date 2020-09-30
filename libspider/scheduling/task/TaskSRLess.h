@@ -134,6 +134,13 @@ namespace spider {
             size_t setInputFifoExtraRules(const srless::ExecDependency &dependencies,
                                           AllocationRule *rules,
                                           size_t offset = 0u) const;
+
+            u32 computeConsCount(const pisdf::Edge *edge) const;
+
+            u32 recursiveConsCount(const pisdf::Edge *edge,
+                                   const srless::FiringHandler *handler,
+                                   u32 firstFiring,
+                                   u32 lastFiring) const;
         };
     }
 }
