@@ -32,6 +32,9 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
+
+#ifndef _NO_BUILD_GRAPH_EXPORTER
+
 /* === Include(s) === */
 
 #include <graphs-tools/exporter/PiSDFDOTExporter.h>
@@ -51,5 +54,4 @@ void spider::pisdf::PiSDFDOTExporter::printFromFile(FILE *file) const {
     PiSDFDOTExporterVisitor visitor{ file, "\t" };
     graph_->visit(&visitor);
 }
-
-/* === Private method(s) === */
+#endif

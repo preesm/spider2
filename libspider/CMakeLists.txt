@@ -61,6 +61,25 @@ if (NOT ${BUILD_LEGACY_RUNTIME})
     list(REMOVE_ITEM ${LIBRARY_TARGET_NAME}_HDR ${CMAKE_CURRENT_SOURCE_DIR}/./scheduling/scheduler/ListScheduler.h)
     list(REMOVE_ITEM ${LIBRARY_TARGET_NAME}_HDR ${CMAKE_CURRENT_SOURCE_DIR}/./scheduling/task/TaskVertex.h)
 endif ()
+unset(BUILD_LEGACY_RUNTIME CACHE)
+
+if (NOT ${BUILD_GANTT_EXPORTER})
+    list(REMOVE_ITEM ${LIBRARY_TARGET_NAME}_SRC ${CMAKE_CURRENT_SOURCE_DIR}/./scheduling/schedule/exporter/SchedSVGGanttExporter.cpp)
+    list(REMOVE_ITEM ${LIBRARY_TARGET_NAME}_SRC ${CMAKE_CURRENT_SOURCE_DIR}/./scheduling/schedule/exporter/SchedXMLGanttExporter.cpp)
+
+    list(REMOVE_ITEM ${LIBRARY_TARGET_NAME}_HDR ${CMAKE_CURRENT_SOURCE_DIR}/./scheduling/schedule/exporter/SchedSVGGanttExporter.h)
+    list(REMOVE_ITEM ${LIBRARY_TARGET_NAME}_HDR ${CMAKE_CURRENT_SOURCE_DIR}/./scheduling/schedule/exporter/SchedXMLGanttExporter.h)
+endif ()
+unset(BUILD_GANTT_EXPORTER CACHE)
+
+if (NOT ${BUILD_GRAPH_EXPORTER})
+    list(REMOVE_ITEM ${LIBRARY_TARGET_NAME}_SRC ${CMAKE_CURRENT_SOURCE_DIR}/./graphs-tools/exporter/PiSDFDOTExporter.cpp)
+    list(REMOVE_ITEM ${LIBRARY_TARGET_NAME}_SRC ${CMAKE_CURRENT_SOURCE_DIR}/./graphs-tools/exporter/PiSDFDOTExporterVisitor.cpp)
+
+    list(REMOVE_ITEM ${LIBRARY_TARGET_NAME}_HDR ${CMAKE_CURRENT_SOURCE_DIR}/./graphs-tools/exporter/PiSDFDOTExporter.h)
+    list(REMOVE_ITEM ${LIBRARY_TARGET_NAME}_HDR ${CMAKE_CURRENT_SOURCE_DIR}/./graphs-tools/exporter/PiSDFDOTExporterVisitor.h)
+endif ()
+unset(BUILD_GRAPH_EXPORTER CACHE)
 
 # Add definition for relative path into project
 add_definitions(-DPROJECT_ROOT_PATH="${CMAKE_CURRENT_SOURCE_DIR}")
