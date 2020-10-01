@@ -56,22 +56,6 @@ namespace spider {
 
         class FiringHandler;
 
-        struct ExecDependencyInfo {
-            const pisdf::Vertex *vertex_;
-            const FiringHandler *handler_;
-            size_t rate_;
-            u32 edgeIx_;
-            u32 memoryStart_;
-            u32 memoryEnd_;
-            u32 firingStart_;
-            u32 firingEnd_;
-        };
-
-        struct ExecDependency {
-            ExecDependencyInfo first_;
-            ExecDependencyInfo second_;
-        };
-
         /* === Class definition === */
 
         class FiringHandler {
@@ -91,16 +75,6 @@ namespace spider {
             ~FiringHandler();
 
             /* === Method(s) === */
-
-            ExecDependency computeExecDependency(const pisdf::Vertex *vertex, u32 firing, u32 edgeIx) const;
-
-            spider::vector<ExecDependency>
-            computeRelaxedExecDependency(const pisdf::Vertex *vertex, u32 firing, u32 edgeIx) const;
-
-            ExecDependency
-            computeConsDependenciesByEdge(const pisdf::Vertex *vertex, u32 firing, u32 edgeIx) const;
-
-            bool isInputInterfaceTransparent(size_t ix) const;
 
             /**
              * @brief Registers the Task ix for a given firing of a given vertex.
@@ -129,6 +103,8 @@ namespace spider {
             void clear();
 
             /* === Getter(s) === */
+
+            inline const GraphHandler *getParent() const { return parent_; }
 
             inline const spider::array<GraphHandler *> &children() const { return children_; }
 
@@ -174,38 +150,6 @@ namespace spider {
 
             std::shared_ptr<pisdf::Param> copyParameter(const std::shared_ptr<pisdf::Param> &param,
                                                         const spider::vector<std::shared_ptr<pisdf::Param>> &parentParams);
-
-            int64_t computeSrcRate(const pisdf::Edge *edge) const;
-
-            ExecDependency computeExecDependency(const spider::pisdf::Edge *edge,
-                                                 int64_t lowerCons,
-                                                 int64_t upperCons) const;
-
-            ExecDependency computeConsDependency(const spider::pisdf::Edge *edge,
-                                                 int64_t lowerProd,
-                                                 int64_t upperProd) const;
-
-            spider::vector<ExecDependency> computeRelaxedExecDependency(const pisdf::Edge *edge,
-                                                                        int64_t lowerCons,
-                                                                        int64_t upperCons,
-                                                                        int64_t prevSrcRate,
-                                                                        u32 prevSrcRV,
-                                                                        u32 prevLowDep,
-                                                                        u32 prevUpDep) const;
-
-            spider::vector<ExecDependency> computeRelFirstExecDependency(const pisdf::Edge *edge,
-                                                                         int64_t consumption,
-                                                                         int64_t prevSrcRate,
-                                                                         u32 prevSrcRV,
-                                                                         u32 prevDep) const;
-
-            spider::vector<ExecDependency> computeRelLastExecDependency(const pisdf::Edge *edge,
-                                                                        int64_t consumption,
-                                                                        int64_t prevSrcRate,
-                                                                        u32 prevSrcRV,
-                                                                        u32 prevDep) const;
-
-            spider::vector<ExecDependency> computeRelMidExecDependency(const pisdf::Edge *edge) const;
         };
     }
 }

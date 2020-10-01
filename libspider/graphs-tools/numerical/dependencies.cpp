@@ -35,10 +35,154 @@
 /* === Include(s) === */
 
 #include <graphs-tools/numerical/dependencies.h>
+#include <graphs-tools/numerical/brv.h>
+#include <graphs-tools/helper/pisdf-helper.h>
+#include <graphs-tools/transformation/srless/GraphHandler.h>
+#include <graphs-tools/transformation/srless/FiringHandler.h>
+#include <graphs/pisdf/Graph.h>
+#include <graphs/pisdf/DelayVertex.h>
 #include <common/Math.h>
 #include <algorithm>
+#include <graphs-tools/numerical/detail/dependenciesImpl.h>
+
+/* === Static variable(s) === */
+
+/* === Static funtions definition === */
+
+namespace spider {
+    namespace pisdf {
+
+        static DependencyIterator computeRelaxedExecDependency(const Vertex *vertex,
+                                                               u32 firing,
+                                                               size_t edgeIx,
+                                                               const srless::FiringHandler *handler) {
+#ifndef NDEBUG
+            if (!handler || !vertex) {
+                throwNullptrException();
+            }
+#endif
+            const auto *edge = vertex->inputEdge(edgeIx);
+            const auto snkRate = edge->sinkRateExpression().evaluate(handler->getParams());
+            if (!snkRate) {
+                return DependencyIterator{ UniqueDependency{{ nullptr,
+                                                                    nullptr,
+                                                                    INT64_MAX,
+                                                                    UINT32_MAX,
+                                                                    UINT32_MAX,
+                                                                    UINT32_MAX,
+                                                                    UINT32_MAX,
+                                                                    UINT32_MAX }}};
+            }
+            const auto *source = edge->source();
+            if (!source->hierarchical()) {
+                return detail::computeExecDependencyImpl(edge, snkRate * firing, snkRate * (firing + 1), handler);
+            } else {
+                auto dependencies = factory::vector<ExecDependencyInfo>(StackID::TRANSFO);
+                const auto *graph = source->convertTo<pisdf::Graph>();
+                const auto dependencyIt = detail::computeExecDependencyImpl(edge, snkRate * firing,
+                                                                            snkRate * (firing + 1), handler);
+                for (const auto &dep : dependencyIt) {
+                    if (dep.vertex_ == source) {
+                        const auto srcRate = edge->sourceRateExpression().evaluate(handler->getParams());
+                        const auto delayValue = edge->delay() ? edge->delay()->value() : 0;
+                        /* == Computing C^{0,1}_{a|j,k} == */
+                        const auto lowerCons = (dep.firingStart_ + 1) * srcRate + delayValue - snkRate * firing;
+                        /* == Computing C^{1,1}_{a|j,k} == */
+                        const auto upperCons = (dep.firingEnd_ + 1) * srcRate + delayValue - snkRate * (firing + 1) + 1;
+                        edge = graph->outputInterface(edge->sourcePortIx())->edge();
+                        if (dep.firingStart_ == dep.firingEnd_) {
+                            handler = handler->getChildFiring(graph, dep.firingStart_);
+                            const auto it = detail::computeRelaxedExecDependencyImpl(edge, lowerCons, upperCons, 0, 0,
+                                                                                     0, 0,
+                                                                                     handler);
+                            std::move(std::begin(it), std::end(it), std::back_inserter(dependencies));
+                        } else {
+                            const auto *lh = handler->getChildFiring(graph, dep.firingStart_);
+                            const auto lit = detail::computeRelFirstExecDependency(edge, lowerCons, 0, 0, 0, lh);
+                            std::move(std::begin(lit), std::end(lit), std::back_inserter(dependencies));
+                            for (auto k = dep.firingStart_ + 1; k < dep.firingEnd_; ++k) {
+                                const auto mit = detail::computeRelMidExecDependency(edge,
+                                                                                     handler->getChildFiring(graph, k));
+                                std::move(std::begin(mit), std::end(mit), std::back_inserter(dependencies));
+                            }
+                            const auto *uh = handler->getChildFiring(graph, dep.firingEnd_);
+                            const auto uit = detail::computeRelLastExecDependency(edge, upperCons, 0, 0, 0, uh);
+                            std::move(std::begin(uit), std::end(uit), std::back_inserter(dependencies));
+                        }
+                    }
+                }
+                return DependencyIterator(MultipleDependency(std::move(dependencies)));
+            }
+        }
+
+    }
+}
 
 /* === Function(s) definition === */
+
+spider::pisdf::DependencyIterator spider::pisdf::computeExecDependency(const Vertex *vertex,
+                                                                       u32 firing,
+                                                                       size_t edgeIx,
+                                                                       const srless::FiringHandler *handler) {
+#ifndef NDEBUG
+    if (!handler || !vertex) {
+        throwNullptrException();
+    }
+#endif
+    const auto *edge = vertex->inputEdge(edgeIx);
+    const auto snkRate = edge->sinkRateExpression().evaluate(handler->getParams());
+    if (!snkRate) {
+        return DependencyIterator{ UniqueDependency{{ nullptr,
+                                                            nullptr,
+                                                            INT64_MAX,
+                                                            UINT32_MAX,
+                                                            UINT32_MAX,
+                                                            UINT32_MAX,
+                                                            UINT32_MAX,
+                                                            UINT32_MAX }}};
+    }
+    const auto *source = edge->source();
+    if (source->subtype() == VertexType::INPUT) {
+        if (!isInterfaceTransparent(source, handler)) {
+            return detail::computeExecDependencyImpl(edge, snkRate * firing, snkRate * (firing + 1), handler);
+        } else {
+            const auto *graph = vertex->graph();
+            edge = graph->inputEdge(source->ix());
+            source = edge->source();
+            if (!source->hierarchical()) {
+                handler = handler->getParent()->handler();
+                return detail::computeExecDependencyImpl(edge, snkRate * firing, snkRate * (firing + 1), handler);
+            } else {
+                const auto graphFiring = handler->firingValue();
+                handler = handler->getParent()->handler();
+                return computeRelaxedExecDependency(graph, graphFiring, edge->sinkPortIx(), handler);
+            }
+        }
+    } else if (source->hierarchical()) {
+        return computeRelaxedExecDependency(vertex, firing, edgeIx, handler);
+    } else {
+        return detail::computeExecDependencyImpl(edge, snkRate * firing, snkRate * (firing + 1), handler);
+    }
+}
+
+spider::pisdf::DependencyIterator spider::pisdf::computeConsDependency(const Vertex *vertex,
+                                                                       u32 firing,
+                                                                       size_t edgeIx,
+                                                                       const spider::srless::FiringHandler *handler) {
+    const auto *edge = vertex->outputEdge(edgeIx);
+    const auto srcRate = edge->sourceRateExpression().evaluate(handler->getParams());
+    if (!srcRate) {
+        return DependencyIterator{ UniqueDependency{{ nullptr,
+                                                            nullptr,
+                                                            INT64_MAX,
+                                                            UINT32_MAX,
+                                                            UINT32_MAX,
+                                                            UINT32_MAX,
+                                                            UINT32_MAX,
+                                                            UINT32_MAX }}};
+    }
+    return detail::computeConsDependencyImpl(edge, srcRate * firing, srcRate * (firing + 1), handler);
+}
 
 ifast64 spider::pisdf::computeConsLowerDep(ifast64 consumption, ifast64 production, ifast32 firing, ifast64 delay) {
     return std::max(static_cast<ifast64>(-1), math::floorDiv(firing * consumption - delay, production));
@@ -46,28 +190,4 @@ ifast64 spider::pisdf::computeConsLowerDep(ifast64 consumption, ifast64 producti
 
 ifast64 spider::pisdf::computeConsUpperDep(ifast64 consumption, ifast64 production, ifast32 firing, ifast64 delay) {
     return std::max(static_cast<ifast64>(-1), math::floorDiv((firing + 1) * consumption - delay - 1, production));
-}
-
-ifast64 spider::pisdf::computeProdLowerDep(ifast64 consumption, ifast64 production, ifast32 firing, ifast64 delay) {
-    return math::floorDiv(firing * production + delay, consumption);
-}
-
-ifast64 spider::pisdf::computeProdUpperDep(ifast64 consumption, ifast64 production, ifast32 firing, ifast64 delay) {
-    return math::floorDiv((firing + 1) * production + delay - 1, consumption);
-}
-
-ifast64 spider::pisdf::computeProdLowerDep(ifast64 consumption,
-                                           ifast64 production,
-                                           ifast32 firing,
-                                           ifast64 delay,
-                                           ifast64 sinkRepetitionValue) {
-    return std::min(sinkRepetitionValue, math::floorDiv(firing * production + delay, consumption));
-}
-
-ifast64 spider::pisdf::computeProdUpperDep(ifast64 consumption,
-                                           ifast64 production,
-                                           ifast32 firing,
-                                           ifast64 delay,
-                                           ifast64 sinkRepetitionValue) {
-    return std::min(sinkRepetitionValue, math::floorDiv((firing + 1) * production + delay - 1, consumption));
 }

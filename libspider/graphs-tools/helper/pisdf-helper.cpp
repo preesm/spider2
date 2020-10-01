@@ -38,7 +38,7 @@
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/DelayVertex.h>
 #include <graphs/pisdf/ExternInterface.h>
-#include <graphs-tools/transformation/srdag/Transformation.h>
+#include <graphs-tools/transformation/srless/FiringHandler.h>
 #include <api/pisdf-api.h>
 
 /* === Static function(s) === */
@@ -423,6 +423,26 @@ spider::unique_ptr<i64> spider::pisdf::buildVertexRuntimeInputParameters(const p
             return buildExternOutRuntimeInputParameters(vertex, params);;
         default:
             return buildDefaultVertexRuntimeParameters(vertex);
+    }
+}
+
+bool spider::pisdf::isInterfaceTransparent(const Vertex *interface, const srless::FiringHandler *handler) {
+#ifndef NDEBUG
+    if (!interface || !handler) {
+        throwNullptrException();
+    }
+#endif
+    if ((interface->subtype() != VertexType::INPUT) && (interface->subtype() != VertexType::OUTPUT)) {
+        throwSpiderException("expected interface.");
+    }
+    const auto isInput = interface->subtype() == VertexType::INPUT;
+    const auto *edge = isInput ? interface->outputEdge(0u) : interface->inputEdge(0u);
+    const auto srcRate = edge->sourceRateExpression().evaluate(handler->getParams());
+    const auto snkRate = edge->sinkRateExpression().evaluate(handler->getParams());
+    if (isInput) {
+        return ((snkRate * handler->getRV(edge->sink())) % srcRate) == 0;
+    } else {
+        return (srcRate * handler->getRV(edge->source())) == snkRate;
     }
 }
 

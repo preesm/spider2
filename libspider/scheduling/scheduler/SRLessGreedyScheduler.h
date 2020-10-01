@@ -43,10 +43,10 @@ namespace spider {
 
     namespace srless {
         class FiringHandler;
+    }
 
-        struct ExecDependency;
-
-        struct ExecDependencyInfo;
+    namespace pisdf {
+        class ExecDependencyInfo;
     }
 
     namespace sched {
@@ -113,9 +113,7 @@ namespace spider {
              */
             iterator_t evaluate(iterator_t it);
 
-            bool evaluate(iterator_t &it, const srless::ExecDependency &dependency);
-
-            bool evaluate(iterator_t &it, const srless::ExecDependencyInfo &dependencyInfo);
+            bool evaluate(iterator_t &it, const pisdf::ExecDependencyInfo &dependencyInfo);
 
             /**
              * @brief Remove value at given position and swap it with the value at the end of the unscheduledVertices_ vector.

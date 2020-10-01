@@ -41,6 +41,8 @@
 #include <graphs-tools/transformation/srless/GraphHandler.h>
 #include <graphs-tools/transformation/srless/FiringHandler.h>
 #include <scheduling/task/TaskSRLess.h>
+#include <graphs-tools/helper/pisdf-helper.h>
+#include <graphs-tools/numerical/dependencies.h>
 
 /* === Static function === */
 
@@ -92,7 +94,7 @@ void spider::sched::SRLessGreedyScheduler::recursiveAddVertices(spider::srless::
                 }
             }
             for (const auto &interface : graphHandler->graph()->inputInterfaceVector()) {
-                if (!firing.isInputInterfaceTransparent(interface->ix()) &&
+                if (!pisdf::isInterfaceTransparent(interface.get(), &firing) &&
                     firing.getTaskIx(interface.get()) == UINT32_MAX) {
                     firing.registerTaskIx(interface.get(), static_cast<u32>(this->unscheduledVertices_.size()));
                     this->unscheduledVertices_.push_back({ interface.get(), &firing, 0, true, false });
@@ -108,16 +110,11 @@ void spider::sched::SRLessGreedyScheduler::recursiveAddVertices(spider::srless::
 spider::sched::SRLessGreedyScheduler::iterator_t spider::sched::SRLessGreedyScheduler::evaluate(iterator_t it) {
     if (it->vertex_->inputEdgeCount() > 0u) {
         for (u32 i = 0; i < static_cast<u32>(it->vertex_->inputEdgeCount()); ++i) {
-            const auto *edge = it->vertex_->inputEdge(i);
-            if (edge->source()->hierarchical() || edge->source()->subtype() == pisdf::VertexType::INPUT) {
-                const auto dependencies = it->handler_->computeRelaxedExecDependency(it->vertex_, it->firing_, i);
-                for (auto &dep : dependencies) {
-                    if (evaluate(it, dep)) {
-                        return it;
-                    }
+            const auto dependencies = pisdf::computeExecDependency(it->vertex_, it->firing_, i, it->handler_);
+            for (const auto &dep : dependencies) {
+                if (evaluate(it, dep)) {
+                    return it;
                 }
-            } else if (evaluate(it, it->handler_->computeExecDependency(it->vertex_, it->firing_, i))) {
-                return it;
             }
         }
     }
@@ -127,11 +124,7 @@ spider::sched::SRLessGreedyScheduler::iterator_t spider::sched::SRLessGreedySche
     return removeAndSwap(it);
 }
 
-bool spider::sched::SRLessGreedyScheduler::evaluate(iterator_t &it, const srless::ExecDependency &dependency) {
-    return evaluate(it, dependency.first_) || evaluate(it, dependency.second_);
-}
-
-bool spider::sched::SRLessGreedyScheduler::evaluate(iterator_t &it, const srless::ExecDependencyInfo &dependencyInfo) {
+bool spider::sched::SRLessGreedyScheduler::evaluate(iterator_t &it, const pisdf::ExecDependencyInfo &dependencyInfo) {
     if (!dependencyInfo.vertex_ || !dependencyInfo.rate_) {
         return false;
     }

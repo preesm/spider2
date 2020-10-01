@@ -44,6 +44,11 @@
 /* === Function(s) prototype === */
 
 namespace spider {
+
+    namespace srless {
+        class FiringHandler;
+    }
+
     namespace pisdf {
 
         /* === Forward declaration(s) === */
@@ -93,6 +98,16 @@ namespace spider {
          */
         spider::unique_ptr<i64> buildVertexRuntimeInputParameters(const pisdf::Vertex *vertex,
                                                                   const spider::vector<std::shared_ptr<pisdf::Param>> &params);
+
+        /**
+         * @brief Check if an interface behave as a round buffer or not.
+         * @param interface  const pointer to the interface.
+         * @param handler    const pointer to the handler.
+         * @return true if interface is transparent, false else.
+         * @throw nullptr exception in debug if interface or handler is nullptr.
+         * @throw spider::Execption if interface if not of type INPUT nor OUTPUT.
+         */
+        bool isInterfaceTransparent(const Vertex *interface, const srless::FiringHandler *handler);
 
         /**
          * @brief Get the source of the vertex across interfaces.
