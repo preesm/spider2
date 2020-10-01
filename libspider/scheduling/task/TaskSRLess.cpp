@@ -181,7 +181,7 @@ spider::sched::AllocationRule spider::sched::TaskSRLess::allocationRuleForOutput
     rule.size_ = static_cast<size_t>(edge->sourceRateExpression().evaluate(handler_->getParams()));
     rule.offset_ = 0u;
     rule.fifoIx_ = 0u;
-    rule.count_ = rule.size_ ? computeConsCount(edge) : 0u;
+    rule.count_ = rule.size_ ? computeConsCount(edge, firing_, handler_) : 0u;
     switch (vertex_->subtype()) {
         case pisdf::VertexType::FORK:
             if (ix == 0u) {
@@ -379,19 +379,34 @@ spider::sched::TaskSRLess::allocateInputFifo(const pisdf::DependencyIterator &de
     return rule;
 }
 
-u32 spider::sched::TaskSRLess::computeConsCount(const spider::pisdf::Edge *edge) const {
+u32 spider::sched::TaskSRLess::computeConsCount(const pisdf::Edge *edge,
+                                                u32 firing,
+                                                const srless::FiringHandler *handler) const {
     if (vertex_->subtype() == pisdf::VertexType::INPUT) {
-        return recursiveConsCount(edge, handler_, 0u, handler_->getRV(edge->sink()) - 1);
+        return recursiveConsCount(edge, handler, 0u, handler->getRV(edge->sink()) - 1);
     } else if (edge->sink()->hierarchical()) {
-        const auto dependencies = pisdf::computeConsDependency(vertex_, firing_, static_cast<u32>(edge->sinkPortIx()),
-                                                               handler_);
+        const auto dependencies = pisdf::computeConsDependency(edge->source(),
+                                                               firing,
+                                                               static_cast<u32>(edge->sinkPortIx()),
+                                                               handler);
         const auto dep = dependencies.begin();
-        return recursiveConsCount(edge, handler_, dep->firingStart_, dep->firingEnd_);
+        return recursiveConsCount(edge, handler, dep->firingStart_, dep->firingEnd_);
     } else if (edge->sink()->subtype() == pisdf::VertexType::OUTPUT) {
-        return 1;
+        const auto snkRate = edge->sinkRateExpression().evaluate(handler->getParams());
+        const auto srcRate = edge->sourceRateExpression().evaluate(handler->getParams());
+        const auto srcRV = handler->getRV(vertex_);
+        const auto depMin = static_cast<u32>(srcRV - math::ceilDiv(snkRate, srcRate));
+        if (firing_ < depMin) {
+            return 0;
+        }
+        const auto graphFiring = handler->firingValue();
+        handler = handler->getParent()->handler();
+        return computeConsCount(vertex_->graph()->outputEdge(edge->sink()->ix()), graphFiring, handler);
     } else {
-        const auto dependencies = pisdf::computeConsDependency(vertex_, firing_, static_cast<u32>(edge->sinkPortIx()),
-                                                               handler_);
+        const auto dependencies = pisdf::computeConsDependency(edge->source(),
+                                                               firing,
+                                                               static_cast<u32>(edge->sinkPortIx()),
+                                                               handler);
         u32 count = 0;
         for (const auto &dep : dependencies) {
             count += dep.firingEnd_ - dep.firingStart_ + 1u;

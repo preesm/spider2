@@ -120,7 +120,7 @@ namespace spider {
             AllocationRule
             allocateInputFifo(const pisdf::DependencyIterator &dependencies, const pisdf::Edge *edge) const;
 
-            u32 computeConsCount(const pisdf::Edge *edge) const;
+            u32 computeConsCount(const pisdf::Edge *edge, u32 firing, const srless::FiringHandler *handler) const;
 
             u32 recursiveConsCount(const pisdf::Edge *edge,
                                    const srless::FiringHandler *handler,
