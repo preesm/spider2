@@ -77,9 +77,9 @@ spider::pisdf::detail::computeExecDependencyImpl(const Edge *edge,
         dep.info_.rate_ = srcRate;
         dep.info_.edgeIx_ = static_cast<u32>(edge->sourcePortIx());
         dep.info_.memoryStart_ = static_cast<u32>((lowerCons - delayValue) % srcRate);
-        dep.info_.memoryEnd_ = static_cast<u32>((upperCons - delayValue - 1) % srcRate);
+        dep.info_.memoryEnd_ = static_cast<u32>((upperCons - delayValue) % srcRate);
         dep.info_.firingStart_ = static_cast<u32>(math::floorDiv(lowerCons - delayValue, srcRate));
-        dep.info_.firingEnd_ = static_cast<u32>(math::floorDiv(upperCons - delayValue - 1, srcRate));
+        dep.info_.firingEnd_ = static_cast<u32>(math::floorDiv(upperCons - delayValue, srcRate));
         return DependencyIterator{ dep };
     } else if (upperCons <= delayValue) {
 #ifndef NDEBUG
@@ -94,9 +94,9 @@ spider::pisdf::detail::computeExecDependencyImpl(const Edge *edge,
         dep.info_.rate_ = setRate;
         dep.info_.edgeIx_ = static_cast<u32>(delay->setterPortIx());
         dep.info_.memoryStart_ = static_cast<u32>(lowerCons % setRate);
-        dep.info_.memoryEnd_ = static_cast<u32>((upperCons - 1) % setRate);
+        dep.info_.memoryEnd_ = static_cast<u32>((upperCons) % setRate);
         dep.info_.firingStart_ = static_cast<u32>(math::floorDiv(lowerCons, setRate));
-        dep.info_.firingEnd_ = static_cast<u32>(math::floorDiv(upperCons - 1, setRate));
+        dep.info_.firingEnd_ = static_cast<u32>(math::floorDiv(upperCons, setRate));
         return DependencyIterator{ dep };
     } else {
 #ifndef NDEBUG
@@ -121,9 +121,9 @@ spider::pisdf::detail::computeExecDependencyImpl(const Edge *edge,
         dep.infos_[1].rate_ = srcRate;
         dep.infos_[1].edgeIx_ = static_cast<u32>(edge->sourcePortIx());
         dep.infos_[1].memoryStart_ = 0u;
-        dep.infos_[1].memoryEnd_ = static_cast<u32>((upperCons - delayValue - 1) % srcRate);
+        dep.infos_[1].memoryEnd_ = static_cast<u32>((upperCons - delayValue) % srcRate);
         dep.infos_[1].firingStart_ = 0u;
-        dep.infos_[1].firingEnd_ = static_cast<u32>(math::floorDiv(upperCons - delayValue - 1, srcRate));
+        dep.infos_[1].firingEnd_ = static_cast<u32>(math::floorDiv(upperCons - delayValue, srcRate));
         return DependencyIterator{ dep };
     }
 }

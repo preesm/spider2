@@ -62,7 +62,7 @@ void spider::sched::BestFitMapper::map(Task *task, Schedule *schedule) {
     const auto *platform = archi::platform();
 
     /* == Search for a slave to map the task on */
-    const auto scheduleStats = schedule->stats();
+    const auto &scheduleStats = schedule->stats();
     MappingResult mappingResult{ };
     for (const auto *cluster : platform->clusters()) {
         /* == Find best fit PE for this cluster == */

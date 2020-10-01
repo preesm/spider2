@@ -89,7 +89,7 @@ bool spider::StaticRuntime::execute() {
     if (api::exportTraceEnabled()) {
         startIterStamp_ = time::now();
     }
-    if (iter_) {
+    if (false) {
         run();
     } else {
         applyTransformationAndRun();
@@ -101,11 +101,13 @@ bool spider::StaticRuntime::execute() {
 /* === Private method(s) === */
 
 void spider::StaticRuntime::applyTransformationAndRun() {
+    long long duration =0;
     /* == Runners should repeat their iteration == */
     rt::platform()->sendRepeatToRunners(true);
     TraceMessage transfoMsg{ };
     TRACE_TRANSFO_START();
     /* == Apply first transformation of root graph == */
+    auto start = time::now();
     auto rootJob = srdag::TransfoJob(graph_);
     rootJob.params_ = graph_->params();
     auto resultRootJob = srdag::singleRateTransformation(rootJob, srdag_.get());
@@ -133,6 +135,8 @@ void spider::StaticRuntime::applyTransformationAndRun() {
         optims::optimize(srdag_.get());
         TRACE_TRANSFO_END();
     }
+    auto end = spider::time::now();
+    duration += time::duration::nanoseconds(start, end);
 
     /* == Export srdag if needed  == */
     if (api::exportSRDAGEnabled()) {
@@ -145,7 +149,11 @@ void spider::StaticRuntime::applyTransformationAndRun() {
     /* == Send LRT_START_ITERATION notification == */
     rt::platform()->sendStartIteration();
     /* == Schedule / Map current Single-Rate graph == */
+    start = time::now();
     ressourcesAllocator_->execute(srdag_.get());
+    end = spider::time::now();
+    duration += time::duration::nanoseconds(start, end);
+    printer::fprintf(stderr, "time: %lld ns\n", duration);
     /* == Send LRT_END_ITERATION notification == */
     rt::platform()->sendEndIteration();
     TRACE_SCHEDULE_END();

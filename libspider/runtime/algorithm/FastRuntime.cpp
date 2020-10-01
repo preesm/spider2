@@ -80,7 +80,7 @@ bool spider::FastRuntime::staticExecute() {
     if (api::exportTraceEnabled()) {
         startIterStamp_ = time::now();
     }
-    if (iter_) {
+    if (false) {
         const auto grtIx = archi::platform()->getGRTIx();
         TraceMessage schedMsg{ };
         TRACE_SCHEDULE_START();
@@ -100,12 +100,19 @@ bool spider::FastRuntime::staticExecute() {
     } else {
         /* == Runners should repeat their iteration == */
         rt::platform()->sendRepeatToRunners(true);
+        auto start = spider::time::now();
         auto graphHandler = srless::GraphHandler(graph_, graph_->params(), 1u);
+        auto end = spider::time::now();
+        auto duration = time::duration::nanoseconds(start, end);
         TraceMessage schedMsg{ };
         TRACE_SCHEDULE_START();
         /* == Send LRT_START_ITERATION notification == */
         rt::platform()->sendStartIteration();
+        start = spider::time::now();
         resourcesAllocator_->execute(&graphHandler);
+        end = spider::time::now();
+        duration += time::duration::nanoseconds(start, end);
+        printer::fprintf(stderr, "time: %lld ns\n", duration);
         /* == Send LRT_END_ITERATION notification == */
         rt::platform()->sendEndIteration();
         TRACE_SCHEDULE_END();

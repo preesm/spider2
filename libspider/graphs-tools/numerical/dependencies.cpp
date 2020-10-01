@@ -75,12 +75,12 @@ namespace spider {
             }
             const auto *source = edge->source();
             if (!source->hierarchical()) {
-                return detail::computeExecDependencyImpl(edge, snkRate * firing, snkRate * (firing + 1), handler);
+                return detail::computeExecDependencyImpl(edge, snkRate * firing, snkRate * (firing + 1) - 1, handler);
             } else {
                 auto dependencies = factory::vector<ExecDependencyInfo>(StackID::TRANSFO);
                 const auto *graph = source->convertTo<pisdf::Graph>();
                 const auto dependencyIt = detail::computeExecDependencyImpl(edge, snkRate * firing,
-                                                                            snkRate * (firing + 1), handler);
+                                                                            snkRate * (firing + 1) - 1, handler);
                 for (const auto &dep : dependencyIt) {
                     if (dep.vertex_ == source) {
                         const auto srcRate = edge->sourceRateExpression().evaluate(handler->getParams());
@@ -144,14 +144,17 @@ spider::pisdf::DependencyIterator spider::pisdf::computeExecDependency(const Ver
     const auto *source = edge->source();
     if (source->subtype() == VertexType::INPUT) {
         if (!isInterfaceTransparent(source, handler)) {
-            return detail::computeExecDependencyImpl(edge, snkRate * firing, snkRate * (firing + 1), handler);
+            return detail::computeExecDependencyImpl(edge, snkRate * firing, snkRate * (firing + 1) - 1, handler);
         } else {
             const auto *graph = vertex->graph();
             edge = graph->inputEdge(source->ix());
             source = edge->source();
             if (!source->hierarchical()) {
                 handler = handler->getParent()->handler();
-                return detail::computeExecDependencyImpl(edge, snkRate * firing, snkRate * (firing + 1), handler);
+                const auto srcRate = edge->sourceRateExpression().evaluate(handler->getParams());
+                const auto lowerCons = (snkRate * firing) % srcRate;
+                const auto upperCons = (snkRate * (firing + 1) - 1) % srcRate;
+                return detail::computeExecDependencyImpl(edge, lowerCons, upperCons, handler);
             } else {
                 const auto graphFiring = handler->firingValue();
                 handler = handler->getParent()->handler();
@@ -161,7 +164,7 @@ spider::pisdf::DependencyIterator spider::pisdf::computeExecDependency(const Ver
     } else if (source->hierarchical()) {
         return computeRelaxedExecDependency(vertex, firing, edgeIx, handler);
     } else {
-        return detail::computeExecDependencyImpl(edge, snkRate * firing, snkRate * (firing + 1), handler);
+        return detail::computeExecDependencyImpl(edge, snkRate * firing, snkRate * (firing + 1) - 1, handler);
     }
 }
 
