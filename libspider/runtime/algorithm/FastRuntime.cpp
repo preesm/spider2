@@ -99,11 +99,12 @@ bool spider::FastRuntime::staticExecute() {
         }
     } else {
         /* == Runners should repeat their iteration == */
-        rt::platform()->sendRepeatToRunners(true);
+//        rt::platform()->sendRepeatToRunners(true);
         auto start = spider::time::now();
         auto graphHandler = srless::GraphHandler(graph_, graph_->params(), 1u);
         auto end = spider::time::now();
         auto duration = time::duration::nanoseconds(start, end);
+        printer::fprintf(stderr, "ir-time:    %lld ns\n", duration);
         TraceMessage schedMsg{ };
         TRACE_SCHEDULE_START();
         /* == Send LRT_START_ITERATION notification == */
@@ -111,8 +112,8 @@ bool spider::FastRuntime::staticExecute() {
         start = spider::time::now();
         resourcesAllocator_->execute(&graphHandler);
         end = spider::time::now();
-        duration += time::duration::nanoseconds(start, end);
-        printer::fprintf(stderr, "time: %lld ns\n", duration);
+        duration = time::duration::nanoseconds(start, end);
+        printer::fprintf(stderr, "alloc-time: %lld ns\n", duration);
         /* == Send LRT_END_ITERATION notification == */
         rt::platform()->sendEndIteration();
         TRACE_SCHEDULE_END();
@@ -124,11 +125,13 @@ bool spider::FastRuntime::staticExecute() {
         rt::platform()->runner(archi::platform()->getGRTIx())->run(false);
         rt::platform()->waitForRunnersToFinish();
         /* == Runners should reset their parameters == */
-        rt::platform()->sendResetToRunners();
+//        rt::platform()->sendResetToRunners();
+        rt::platform()->sendClearToRunners();
         if (api::exportTraceEnabled()) {
             useExecutionTraces(graph_, resourcesAllocator_->schedule(), startIterStamp_);
         }
     }
+    resourcesAllocator_->clear();
     iter_++;
     return true;
 }

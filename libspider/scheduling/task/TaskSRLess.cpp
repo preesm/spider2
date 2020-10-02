@@ -51,7 +51,9 @@
 
 /* === Method(s) implementation === */
 
-spider::sched::TaskSRLess::TaskSRLess(srless::FiringHandler *handler, const pisdf::Vertex *vertex, u32 firing) :
+spider::sched::TaskSRLess::TaskSRLess(srless::FiringHandler *handler,
+                                      const pisdf::Vertex *vertex,
+                                      u32 firing) :
         Task(),
         handler_{ handler },
         vertex_{ vertex },
@@ -182,6 +184,9 @@ spider::sched::AllocationRule spider::sched::TaskSRLess::allocationRuleForOutput
     rule.offset_ = 0u;
     rule.fifoIx_ = 0u;
     rule.count_ = rule.size_ ? computeConsCount(edge, firing_, handler_) : 0u;
+    if (!rule.count_ && rule.size_) {
+        rule.attribute_ = FifoAttribute::W_SINK;
+    }
     switch (vertex_->subtype()) {
         case pisdf::VertexType::FORK:
             if (ix == 0u) {
@@ -336,7 +341,7 @@ spider::sched::TaskSRLess::allocateInputFifo(const pisdf::DependencyIterator &de
             if (dep.vertex_) {
                 /* == first dependency == */
                 rule.others_[offset].others_ = nullptr;
-                rule.others_[offset].size_ = dep.memoryEnd_ - dep.memoryStart_;
+                rule.others_[offset].size_ = dep.memoryEnd_ - dep.memoryStart_ + 1u;
                 rule.others_[offset].offset_ = dep.memoryStart_;
                 rule.others_[offset].fifoIx_ = dep.edgeIx_;
                 rule.others_[offset].count_ = 0u;
@@ -357,7 +362,7 @@ spider::sched::TaskSRLess::allocateInputFifo(const pisdf::DependencyIterator &de
                 const auto ix = dep.firingEnd_ - dep.firingStart_ + offset;
                 if (ix > offset) {
                     rule.others_[ix].others_ = nullptr;
-                    rule.others_[ix].size_ = dep.memoryEnd_;
+                    rule.others_[ix].size_ = dep.memoryEnd_ + 1u;
                     rule.others_[ix].offset_ = 0u;
                     rule.others_[ix].fifoIx_ = dep.edgeIx_;
                     rule.others_[ix].count_ = 0u;
@@ -387,7 +392,7 @@ u32 spider::sched::TaskSRLess::computeConsCount(const pisdf::Edge *edge,
     } else if (edge->sink()->hierarchical()) {
         const auto dependencies = pisdf::computeConsDependency(edge->source(),
                                                                firing,
-                                                               static_cast<u32>(edge->sinkPortIx()),
+                                                               static_cast<u32>(edge->sourcePortIx()),
                                                                handler);
         const auto dep = dependencies.begin();
         return recursiveConsCount(edge, handler, dep->firingStart_, dep->firingEnd_);
@@ -405,7 +410,7 @@ u32 spider::sched::TaskSRLess::computeConsCount(const pisdf::Edge *edge,
     } else {
         const auto dependencies = pisdf::computeConsDependency(edge->source(),
                                                                firing,
-                                                               static_cast<u32>(edge->sinkPortIx()),
+                                                               static_cast<u32>(edge->sourcePortIx()),
                                                                handler);
         u32 count = 0;
         for (const auto &dep : dependencies) {

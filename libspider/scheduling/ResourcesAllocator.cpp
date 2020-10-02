@@ -53,6 +53,7 @@
 #include <api/archi-api.h>
 #include <archi/Platform.h>
 #include <archi/PE.h>
+#include <common/Time.h>
 
 /* === Static function === */
 
@@ -104,19 +105,28 @@ spider::sched::ResourcesAllocator::ResourcesAllocator(SchedulingPolicy schedulin
 
 void spider::sched::ResourcesAllocator::execute(const pisdf::Graph *graph) {
     /* == Schedule the graph == */
+    auto start = spider::time::now();
     scheduler_->schedule(graph);
+    auto end = spider::time::now();
+    auto duration = time::duration::nanoseconds(start, end);
+    printer::fprintf(stderr, "sched-time: %lld ns\n", duration);
     /* == Map and execute the scheduled tasks == */
     applyExecPolicy();
 }
 
 void spider::sched::ResourcesAllocator::execute(srless::GraphHandler *graphHandler) {
     /* == Schedule the graph == */
+    auto start = spider::time::now();
     scheduler_->schedule(graphHandler);
+    auto end = spider::time::now();
+    auto duration = time::duration::nanoseconds(start, end);
+    printer::fprintf(stderr, "sched-time: %lld ns\n", duration);
     /* == Map and execute the scheduled tasks == */
     applyExecPolicy();
 }
 
 void spider::sched::ResourcesAllocator::clear() {
+    allocator_->clear();
     schedule_->clear();
     scheduler_->clear();
 }
@@ -183,18 +193,26 @@ void spider::sched::ResourcesAllocator::applyExecPolicy() {
                 schedule_->sendReadyTasks();
             }
             break;
-        case ExecutionPolicy::DELAYED:
-            /* == Map every tasks == */
+        case ExecutionPolicy::DELAYED: {            /* == Map every tasks == */
+            auto start = spider::time::now();
             for (auto &task : scheduler_->tasks()) {
                 mapper_->map(task.get(), schedule_.get());
                 schedule_->addTask(std::move(task));
             }
+            auto end = spider::time::now();
+            auto duration = time::duration::nanoseconds(start, end);
+            printer::fprintf(stderr, "map-time:   %lld ns\n", duration);
             /* == Allocate fifos for every tasks == */
+            start = spider::time::now();
             for (auto *task : schedule_->readyTasks()) {
                 allocator_->allocate(task);
             }
+            end = spider::time::now();
+            duration = time::duration::nanoseconds(start, end);
+            printer::fprintf(stderr, "mem-time:   %lld ns\n", duration);
             /* == Execute every tasks == */
             schedule_->sendReadyTasks();
+        }
             break;
         default:
             throwSpiderException("unsupported execution policy.");

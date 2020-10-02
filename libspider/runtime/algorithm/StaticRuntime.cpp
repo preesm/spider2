@@ -93,6 +93,8 @@ bool spider::StaticRuntime::execute() {
         run();
     } else {
         applyTransformationAndRun();
+        srdag_->clear();
+        ressourcesAllocator_->clear();
     }
     iter_++;
     return true;
@@ -101,9 +103,8 @@ bool spider::StaticRuntime::execute() {
 /* === Private method(s) === */
 
 void spider::StaticRuntime::applyTransformationAndRun() {
-    long long duration =0;
     /* == Runners should repeat their iteration == */
-    rt::platform()->sendRepeatToRunners(true);
+//    rt::platform()->sendRepeatToRunners(true);
     TraceMessage transfoMsg{ };
     TRACE_TRANSFO_START();
     /* == Apply first transformation of root graph == */
@@ -136,7 +137,8 @@ void spider::StaticRuntime::applyTransformationAndRun() {
         TRACE_TRANSFO_END();
     }
     auto end = spider::time::now();
-    duration += time::duration::nanoseconds(start, end);
+    auto duration = time::duration::nanoseconds(start, end);
+    printer::fprintf(stderr, "ir-time:    %lld ns\n", duration);
 
     /* == Export srdag if needed  == */
     if (api::exportSRDAGEnabled()) {
@@ -152,8 +154,8 @@ void spider::StaticRuntime::applyTransformationAndRun() {
     start = time::now();
     ressourcesAllocator_->execute(srdag_.get());
     end = spider::time::now();
-    duration += time::duration::nanoseconds(start, end);
-    printer::fprintf(stderr, "time: %lld ns\n", duration);
+    duration = time::duration::nanoseconds(start, end);
+    printer::fprintf(stderr, "alloc-time: %lld ns\n", duration);
     /* == Send LRT_END_ITERATION notification == */
     rt::platform()->sendEndIteration();
     TRACE_SCHEDULE_END();
@@ -168,7 +170,8 @@ void spider::StaticRuntime::applyTransformationAndRun() {
     rt::platform()->waitForRunnersToFinish();
 
     /* == Runners should reset their parameters == */
-    rt::platform()->sendResetToRunners();
+//    rt::platform()->sendResetToRunners();
+    rt::platform()->sendClearToRunners();
 
     /* == Export post-exec gantt if needed  == */
     if (api::exportTraceEnabled()) {

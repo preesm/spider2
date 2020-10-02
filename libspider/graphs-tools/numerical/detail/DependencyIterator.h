@@ -59,9 +59,9 @@ namespace spider {
 
             explicit DependencyIterator(DualDependency it) : it_{ it } { };
 
-            DependencyIterator(DependencyIterator &&) = default;
-
             DependencyIterator(const DependencyIterator &) = default;
+
+            DependencyIterator(DependencyIterator &&) = default;
 
             DependencyIterator &operator=(const DependencyIterator &) = default;
 

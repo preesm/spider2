@@ -58,7 +58,9 @@ namespace spider {
 
         class TaskSRLess final : public Task {
         public:
-            explicit TaskSRLess(srless::FiringHandler *handler, const pisdf::Vertex *vertex, u32 firing);
+            explicit TaskSRLess(srless::FiringHandler *handler,
+                                const pisdf::Vertex *vertex,
+                                u32 firing);
 
             ~TaskSRLess() noexcept override = default;
 

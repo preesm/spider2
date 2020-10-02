@@ -127,6 +127,10 @@ spider::sched::SRLessGreedyScheduler::iterator_t spider::sched::SRLessGreedySche
 bool spider::sched::SRLessGreedyScheduler::evaluate(iterator_t &it, const pisdf::ExecDependencyInfo &dependencyInfo) {
     if (!dependencyInfo.vertex_ || !dependencyInfo.rate_) {
         return false;
+    } else if (dependencyInfo.rate_ < 0) {
+        it->executable_ = false;
+        it += 1;
+        return true;
     }
     const auto *source = dependencyInfo.vertex_;
     for (auto k = dependencyInfo.firingStart_; k <= dependencyInfo.firingEnd_; ++k) {

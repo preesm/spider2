@@ -49,75 +49,6 @@
 
 /* === Static funtions definition === */
 
-namespace spider {
-    namespace pisdf {
-
-        static DependencyIterator computeRelaxedExecDependency(const Vertex *vertex,
-                                                               u32 firing,
-                                                               size_t edgeIx,
-                                                               const srless::FiringHandler *handler) {
-#ifndef NDEBUG
-            if (!handler || !vertex) {
-                throwNullptrException();
-            }
-#endif
-            const auto *edge = vertex->inputEdge(edgeIx);
-            const auto snkRate = edge->sinkRateExpression().evaluate(handler->getParams());
-            if (!snkRate) {
-                return DependencyIterator{ UniqueDependency{{ nullptr,
-                                                                    nullptr,
-                                                                    INT64_MAX,
-                                                                    UINT32_MAX,
-                                                                    UINT32_MAX,
-                                                                    UINT32_MAX,
-                                                                    UINT32_MAX,
-                                                                    UINT32_MAX }}};
-            }
-            const auto *source = edge->source();
-            if (!source->hierarchical()) {
-                return detail::computeExecDependencyImpl(edge, snkRate * firing, snkRate * (firing + 1) - 1, handler);
-            } else {
-                auto dependencies = factory::vector<ExecDependencyInfo>(StackID::TRANSFO);
-                const auto *graph = source->convertTo<pisdf::Graph>();
-                const auto dependencyIt = detail::computeExecDependencyImpl(edge, snkRate * firing,
-                                                                            snkRate * (firing + 1) - 1, handler);
-                for (const auto &dep : dependencyIt) {
-                    if (dep.vertex_ == source) {
-                        const auto srcRate = edge->sourceRateExpression().evaluate(handler->getParams());
-                        const auto delayValue = edge->delay() ? edge->delay()->value() : 0;
-                        /* == Computing C^{0,1}_{a|j,k} == */
-                        const auto lowerCons = (dep.firingStart_ + 1) * srcRate + delayValue - snkRate * firing;
-                        /* == Computing C^{1,1}_{a|j,k} == */
-                        const auto upperCons = (dep.firingEnd_ + 1) * srcRate + delayValue - snkRate * (firing + 1) + 1;
-                        edge = graph->outputInterface(edge->sourcePortIx())->edge();
-                        if (dep.firingStart_ == dep.firingEnd_) {
-                            handler = handler->getChildFiring(graph, dep.firingStart_);
-                            const auto it = detail::computeRelaxedExecDependencyImpl(edge, lowerCons, upperCons, 0, 0,
-                                                                                     0, 0,
-                                                                                     handler);
-                            std::move(std::begin(it), std::end(it), std::back_inserter(dependencies));
-                        } else {
-                            const auto *lh = handler->getChildFiring(graph, dep.firingStart_);
-                            const auto lit = detail::computeRelFirstExecDependency(edge, lowerCons, 0, 0, 0, lh);
-                            std::move(std::begin(lit), std::end(lit), std::back_inserter(dependencies));
-                            for (auto k = dep.firingStart_ + 1; k < dep.firingEnd_; ++k) {
-                                const auto mit = detail::computeRelMidExecDependency(edge,
-                                                                                     handler->getChildFiring(graph, k));
-                                std::move(std::begin(mit), std::end(mit), std::back_inserter(dependencies));
-                            }
-                            const auto *uh = handler->getChildFiring(graph, dep.firingEnd_);
-                            const auto uit = detail::computeRelLastExecDependency(edge, upperCons, 0, 0, 0, uh);
-                            std::move(std::begin(uit), std::end(uit), std::back_inserter(dependencies));
-                        }
-                    }
-                }
-                return DependencyIterator(MultipleDependency(std::move(dependencies)));
-            }
-        }
-
-    }
-}
-
 /* === Function(s) definition === */
 
 spider::pisdf::DependencyIterator spider::pisdf::computeExecDependency(const Vertex *vertex,
@@ -141,31 +72,7 @@ spider::pisdf::DependencyIterator spider::pisdf::computeExecDependency(const Ver
                                                             UINT32_MAX,
                                                             UINT32_MAX }}};
     }
-    const auto *source = edge->source();
-    if (source->subtype() == VertexType::INPUT) {
-        if (!isInterfaceTransparent(source, handler)) {
-            return detail::computeExecDependencyImpl(edge, snkRate * firing, snkRate * (firing + 1) - 1, handler);
-        } else {
-            const auto *graph = vertex->graph();
-            edge = graph->inputEdge(source->ix());
-            source = edge->source();
-            if (!source->hierarchical()) {
-                handler = handler->getParent()->handler();
-                const auto srcRate = edge->sourceRateExpression().evaluate(handler->getParams());
-                const auto lowerCons = (snkRate * firing) % srcRate;
-                const auto upperCons = (snkRate * (firing + 1) - 1) % srcRate;
-                return detail::computeExecDependencyImpl(edge, lowerCons, upperCons, handler);
-            } else {
-                const auto graphFiring = handler->firingValue();
-                handler = handler->getParent()->handler();
-                return computeRelaxedExecDependency(graph, graphFiring, edge->sinkPortIx(), handler);
-            }
-        }
-    } else if (source->hierarchical()) {
-        return computeRelaxedExecDependency(vertex, firing, edgeIx, handler);
-    } else {
-        return detail::computeExecDependencyImpl(edge, snkRate * firing, snkRate * (firing + 1) - 1, handler);
-    }
+    return detail::computeExecDependencyImpl(edge, snkRate * firing, snkRate * (firing + 1) - 1, handler);
 }
 
 spider::pisdf::DependencyIterator spider::pisdf::computeConsDependency(const Vertex *vertex,

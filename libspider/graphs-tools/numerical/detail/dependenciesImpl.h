@@ -47,37 +47,11 @@ namespace spider {
 
             /* === Function(s) prototype === */
 
-            int64_t computeSrcRate(const Edge *edge, const srless::FiringHandler *handler);
-
             DependencyIterator computeExecDependencyImpl(const Edge *edge,
                                                          int64_t lowerCons,
                                                          int64_t upperCons,
-                                                         const srless::FiringHandler *handler);
-
-            DependencyIterator computeRelMidExecDependency(const Edge *edge, const srless::FiringHandler *handler);
-
-            DependencyIterator computeRelFirstExecDependency(const Edge *edge,
-                                                             int64_t lowerCons,
-                                                             int64_t prevSrcRate,
-                                                             u32 prevSrcRV,
-                                                             u32 prevDep,
-                                                             const srless::FiringHandler *handler);
-
-            DependencyIterator computeRelLastExecDependency(const Edge *edge,
-                                                            int64_t upperCons,
-                                                            int64_t prevSrcRate,
-                                                            u32 prevSrcRV,
-                                                            u32 prevDep,
-                                                            const srless::FiringHandler *handler);
-
-            DependencyIterator computeRelaxedExecDependencyImpl(const Edge *edge,
-                                                                int64_t lowerCons,
-                                                                int64_t upperCons,
-                                                                int64_t prevSrcRate,
-                                                                u32 prevSrcRV,
-                                                                u32 prevLowDep,
-                                                                u32 prevUpDep,
-                                                                const srless::FiringHandler *handler);
+                                                         const srless::FiringHandler *handler,
+                                                         bool bypass = false);
 
             DependencyIterator computeConsDependencyImpl(const Edge *edge,
                                                          int64_t lowerProd,
