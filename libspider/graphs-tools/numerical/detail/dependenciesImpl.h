@@ -56,7 +56,8 @@ namespace spider {
             DependencyIterator computeConsDependencyImpl(const Edge *edge,
                                                          int64_t lowerProd,
                                                          int64_t upperProd,
-                                                         const srless::FiringHandler *handler);
+                                                         const srless::FiringHandler *handler,
+                                                         bool bypass = false);
         }
     }
 }

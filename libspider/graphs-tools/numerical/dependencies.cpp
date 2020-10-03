@@ -79,6 +79,11 @@ spider::pisdf::DependencyIterator spider::pisdf::computeConsDependency(const Ver
                                                                        u32 firing,
                                                                        size_t edgeIx,
                                                                        const spider::srless::FiringHandler *handler) {
+#ifndef NDEBUG
+    if (!handler || !vertex) {
+        throwNullptrException();
+    }
+#endif
     const auto *edge = vertex->outputEdge(edgeIx);
     const auto srcRate = edge->sourceRateExpression().evaluate(handler->getParams());
     if (!srcRate) {
@@ -91,7 +96,7 @@ spider::pisdf::DependencyIterator spider::pisdf::computeConsDependency(const Ver
                                                             UINT32_MAX,
                                                             UINT32_MAX }}};
     }
-    return detail::computeConsDependencyImpl(edge, srcRate * firing, srcRate * (firing + 1), handler);
+    return detail::computeConsDependencyImpl(edge, srcRate * firing, srcRate * (firing + 1) - 1, handler);
 }
 
 ifast64 spider::pisdf::computeConsLowerDep(ifast64 consumption, ifast64 production, ifast32 firing, ifast64 delay) {
