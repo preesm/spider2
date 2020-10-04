@@ -85,9 +85,10 @@ void spider::srless::FiringHandler::registerTaskIx(const pisdf::Vertex *vertex, 
     }
 #endif
     if (vertex->subtype() == pisdf::VertexType::INPUT) {
-        taskIxRegister_.at(vertex->ix() + parent_->graph()->vertexCount())[0u] = taskIx;
+        taskIxRegister_.at(vertex->ix() + vertex->graph()->vertexCount())[0u] = taskIx;
+    } else {
+        taskIxRegister_.at(vertex->ix())[firing] = taskIx;
     }
-    taskIxRegister_.at(vertex->ix())[firing] = taskIx;
 }
 
 void spider::srless::FiringHandler::registerTaskIx(const pisdf::Interface *interface, u32 taskIx) {
@@ -96,7 +97,7 @@ void spider::srless::FiringHandler::registerTaskIx(const pisdf::Interface *inter
         throwSpiderException("invalid interface type.");
     }
 #endif
-    taskIxRegister_.at(interface->ix() + parent_->graph()->vertexCount())[0u] = taskIx;
+    taskIxRegister_.at(interface->ix() + interface->graph()->vertexCount())[0u] = taskIx;
 }
 
 void spider::srless::FiringHandler::resolveBRV() {
@@ -173,7 +174,7 @@ u32 spider::srless::FiringHandler::getTaskIx(const spider::pisdf::Vertex *vertex
     }
 #endif
     if (vertex->subtype() == pisdf::VertexType::INPUT) {
-        return taskIxRegister_.at(vertex->ix() + parent_->graph()->vertexCount())[0u];
+        return taskIxRegister_.at(vertex->ix() + vertex->graph()->vertexCount())[0u];
     }
     return taskIxRegister_.at(vertex->ix())[vertexFiring];
 }
@@ -184,7 +185,7 @@ u32 spider::srless::FiringHandler::getTaskIx(const spider::pisdf::Interface *int
         throwSpiderException("invalid interface type.");
     }
 #endif
-    return taskIxRegister_.at(interface->ix() + parent_->graph()->vertexCount())[0u];
+    return taskIxRegister_.at(interface->ix() + interface->graph()->vertexCount())[0u];
 }
 
 const spider::srless::FiringHandler *

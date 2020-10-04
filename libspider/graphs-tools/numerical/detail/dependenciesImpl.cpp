@@ -117,8 +117,9 @@ spider::pisdf::DependencyIterator spider::pisdf::detail::computeExecDependencyIm
             if ((snkRate * snkRV) % srcRate == 0) {
                 const auto *graph = source->graph();
                 edge = graph->inputEdge(source->ix());
-                lowerCons = (lowerCons - delayValue) % srcRate + srcRate * handler->firingValue();
-                upperCons = (upperCons - delayValue) % srcRate + srcRate * handler->firingValue();
+                const auto parentLowerCons = srcRate * handler->firingValue();
+                lowerCons = parentLowerCons + (lowerCons - delayValue) % srcRate;
+                upperCons = parentLowerCons + (upperCons - delayValue) % srcRate;
                 handler = handler->getParent()->handler();
                 return computeExecDependencyImpl(edge, lowerCons, upperCons, handler);
             } else {
@@ -175,7 +176,7 @@ spider::pisdf::DependencyIterator spider::pisdf::detail::computeExecDependencyIm
     if (lowerCons >= delayValue) {
         /* == source only == */
         return DependencyIterator{ createExecDependency(edge, lowerCons, upperCons, srcRate, delayValue, handler) };
-    } else if (delay && (upperCons <= delayValue)) {
+    } else if (delay && (upperCons < delayValue)) {
         /* == setter only == */
         edge = delay->setter()->outputEdge(delay->setterPortIx());
         return computeExecDependencyImpl(edge, lowerCons, upperCons, handler);
@@ -296,15 +297,15 @@ spider::pisdf::DependencyIterator spider::pisdf::detail::computeConsDependencyIm
     const auto *delay = edge->delay();
     const auto delayValue = delay ? delay->value() : 0;
     const auto delayedSnkRate = snkTotRate - delayValue;
-    if (upperProd <= delayedSnkRate) {
-        /* == sink only == */
-        return DependencyIterator{ createConsDependency(edge, lowerProd, upperProd, snkRate, delayValue, handler) };
-    } else if (delay && (lowerProd >= delayedSnkRate)) {
+    if (delay && (lowerProd >= delayedSnkRate)) {
         /* == getter only == */
         edge = delay->getter()->inputEdge(delay->getterPortIx());
         lowerProd -= delayedSnkRate;
         upperProd -= delayedSnkRate;
         return computeConsDependencyImpl(edge, lowerProd, upperProd, handler);
+    } else if (upperProd < delayedSnkRate) {
+        /* == sink only == */
+        return DependencyIterator{ createConsDependency(edge, lowerProd, upperProd, snkRate, delayValue, handler) };
     } else if (delay) {
         /* == sink + getter == */
         const auto *getterEdge = delay->getter()->inputEdge(delay->getterPortIx());
