@@ -63,14 +63,7 @@ spider::pisdf::DependencyIterator spider::pisdf::computeExecDependency(const Ver
     const auto *edge = vertex->inputEdge(edgeIx);
     const auto snkRate = edge->sinkRateExpression().evaluate(handler->getParams());
     if (!snkRate) {
-        return DependencyIterator{ UniqueDependency{{ nullptr,
-                                                            nullptr,
-                                                            INT64_MAX,
-                                                            UINT32_MAX,
-                                                            UINT32_MAX,
-                                                            UINT32_MAX,
-                                                            UINT32_MAX,
-                                                            UINT32_MAX }}};
+        return DependencyIterator{ VoidDependency{ }};
     }
     return detail::computeExecDependencyImpl(edge, snkRate * firing, snkRate * (firing + 1) - 1, handler);
 }
@@ -87,14 +80,7 @@ spider::pisdf::DependencyIterator spider::pisdf::computeConsDependency(const Ver
     const auto *edge = vertex->outputEdge(edgeIx);
     const auto srcRate = edge->sourceRateExpression().evaluate(handler->getParams());
     if (!srcRate) {
-        return DependencyIterator{ UniqueDependency{{ nullptr,
-                                                            nullptr,
-                                                            INT64_MAX,
-                                                            UINT32_MAX,
-                                                            UINT32_MAX,
-                                                            UINT32_MAX,
-                                                            UINT32_MAX,
-                                                            UINT32_MAX }}};
+        return DependencyIterator{ VoidDependency{ }};
     }
     return detail::computeConsDependencyImpl(edge, srcRate * firing, srcRate * (firing + 1) - 1, handler);
 }

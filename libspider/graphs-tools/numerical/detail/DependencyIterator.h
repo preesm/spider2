@@ -47,6 +47,8 @@ namespace spider {
 
         /* === Class definition === */
 
+        struct VoidDependency { };
+
         struct DependencyIterator {
         public:
             using iterator = ExecDependencyInfo *;
@@ -54,6 +56,8 @@ namespace spider {
             using const_iterator = const ExecDependencyInfo *;
 
             explicit DependencyIterator(UniqueDependency it) : it_{ it } { };
+
+            explicit DependencyIterator(VoidDependency it) : it_{ it } { };
 
             explicit DependencyIterator(MultipleDependency it) : it_{ std::move(it) } { };
 
@@ -74,6 +78,8 @@ namespace spider {
             iterator begin() {
                 if (mpark::holds_alternative<UniqueDependency>(it_)) {
                     return &(mpark::get<UniqueDependency>(it_).info_);
+                } else if (mpark::holds_alternative<VoidDependency>(it_)) {
+                    return nullptr;
                 } else if (mpark::holds_alternative<DualDependency>(it_)) {
                     return mpark::get<DualDependency>(it_).infos_.data();
                 }
@@ -83,6 +89,8 @@ namespace spider {
             const_iterator begin() const {
                 if (mpark::holds_alternative<UniqueDependency>(it_)) {
                     return &(mpark::get<UniqueDependency>(it_).info_);
+                } else if (mpark::holds_alternative<VoidDependency>(it_)) {
+                    return nullptr;
                 } else if (mpark::holds_alternative<DualDependency>(it_)) {
                     return mpark::get<DualDependency>(it_).infos_.data();
                 }
@@ -92,6 +100,8 @@ namespace spider {
             iterator end() {
                 if (mpark::holds_alternative<UniqueDependency>(it_)) {
                     return &(mpark::get<UniqueDependency>(it_).info_) + 1;
+                } else if (mpark::holds_alternative<VoidDependency>(it_)) {
+                    return nullptr;
                 } else if (mpark::holds_alternative<DualDependency>(it_)) {
                     return mpark::get<DualDependency>(it_).infos_.end();
                 } else {
@@ -102,6 +112,8 @@ namespace spider {
             const_iterator end() const {
                 if (mpark::holds_alternative<UniqueDependency>(it_)) {
                     return &(mpark::get<UniqueDependency>(it_).info_) + 1;
+                } else if (mpark::holds_alternative<VoidDependency>(it_)) {
+                    return nullptr;
                 } else if (mpark::holds_alternative<DualDependency>(it_)) {
                     return mpark::get<DualDependency>(it_).infos_.end();
                 } else {
@@ -110,7 +122,7 @@ namespace spider {
             }
 
         private:
-            mpark::variant<UniqueDependency, DualDependency, MultipleDependency> it_;
+            mpark::variant<UniqueDependency, DualDependency, MultipleDependency, VoidDependency> it_;
         };
     }
 }
