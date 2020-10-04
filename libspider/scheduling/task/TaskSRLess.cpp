@@ -73,12 +73,13 @@ spider::sched::TaskSRLess::TaskSRLess(srless::FiringHandler *handler,
     if (vertex_->subtype() == pisdf::VertexType::INPUT) {
         const auto *graph = vertex_->graph();
         const auto graphFiring = handler_->firingValue();
-        const auto *graphHandler = handler_->getChildFiring(graph, graphFiring);
+        const auto *graphHandler = handler_->getParent()->handler();
         const auto dependencies = pisdf::computeExecDependency(graph, graphFiring, static_cast<u32>(vertex_->ix()),
                                                                graphHandler);
         for (const auto &dep : dependencies) {
             dependenciesCount_ += dep.firingEnd_ - dep.firingStart_ + 1u;
         }
+        mergedFifoCount = dependenciesCount_ > 1;
     }
     fifos_ = spider::make_shared<AllocatedFifos, StackID::SCHEDULE>(dependenciesCount_ + mergedFifoCount,
                                                                     vertex->outputEdgeCount());
@@ -101,7 +102,7 @@ void spider::sched::TaskSRLess::updateTaskExecutionDependencies(const Schedule *
     if (vertex_->subtype() == pisdf::VertexType::INPUT) {
         const auto *graph = vertex_->graph();
         const auto graphFiring = handler_->firingValue();
-        const auto *graphHandler = handler_->getChildFiring(graph, graphFiring);
+        const auto *graphHandler = handler_->getParent()->handler();
         const auto edgeIx = static_cast<u32>(vertex_->ix());
         const auto dependencies = pisdf::computeExecDependency(graph, graphFiring, edgeIx, graphHandler);
         for (const auto &dep : dependencies) {
@@ -155,14 +156,14 @@ void spider::sched::TaskSRLess::setExecutionDependency(size_t ix, spider::sched:
 
 spider::sched::AllocationRule spider::sched::TaskSRLess::allocationRuleForInputFifo(size_t ix) const {
 #ifndef NDEBUG
-    if (ix >= vertex_->inputEdgeCount()) {
+    if ((vertex_->subtype() != pisdf::VertexType::INPUT) && (ix >= vertex_->inputEdgeCount())) {
         throwSpiderException("index out of bound.");
     }
 #endif
     if (vertex_->subtype() == pisdf::VertexType::INPUT) {
         const auto *graph = vertex_->graph();
         const auto graphFiring = handler_->firingValue();
-        const auto *graphHandler = handler_->getChildFiring(graph, graphFiring);
+        const auto *graphHandler = handler_->getParent()->handler();
         const auto edgeIx = static_cast<u32>(vertex_->ix());
         const auto dependencies = pisdf::computeExecDependency(graph, graphFiring, edgeIx, graphHandler);
         return allocateInputFifo(dependencies, graph->inputEdge(edgeIx));
@@ -265,7 +266,18 @@ spider::JobMessage spider::sched::TaskSRLess::createJobMessage() const {
     }
 
     /* == Set the input parameters (if any) == */
-    message.inputParams_ = pisdf::buildVertexRuntimeInputParameters(vertex_, handler_->getParams());
+    if (vertex_->subtype() == pisdf::VertexType::INPUT) {
+        message.inputParams_ = spider::make_unique(spider::allocate<i64, StackID::RUNTIME>(2u));
+        const auto *graph = vertex_->graph();
+        const auto *graphHandler = handler_->getParent()->handler();
+        message.inputParams_.get()[0] = graph->inputEdge(vertex_->ix())->sinkRateExpression().evaluate(
+                graphHandler->getParams());
+        const auto *outputEdge = vertex_->outputEdge(0u);
+        const auto snkRate= outputEdge->sinkRateExpression().evaluate(handler_->getParams());
+        message.inputParams_.get()[1] = snkRate * handler_->getRV(outputEdge->sink());
+    } else {
+        message.inputParams_ = pisdf::buildVertexRuntimeInputParameters(vertex_, handler_->getParams());
+    }
 
     /* == Set Fifos == */
     message.fifos_ = fifos_;
@@ -297,10 +309,16 @@ std::pair<ufast64, ufast64> spider::sched::TaskSRLess::computeCommunicationCost(
 }
 
 bool spider::sched::TaskSRLess::isMappableOnPE(const spider::PE *pe) const {
+    if (vertex_->subtype() == pisdf::VertexType::INPUT) {
+        return true;
+    }
     return vertex_->runtimeInformation()->isPEMappable(pe);
 }
 
 u64 spider::sched::TaskSRLess::timingOnPE(const spider::PE *pe) const {
+    if (vertex_->subtype() == pisdf::VertexType::INPUT) {
+        return 0;
+    }
     return static_cast<u64>(vertex_->runtimeInformation()->timingOnPE(pe, handler_->getParams()));
 }
 
@@ -342,7 +360,7 @@ spider::sched::TaskSRLess::allocateInputFifo(const pisdf::DependencyIterator &de
             if (dep.vertex_) {
                 /* == first dependency == */
                 rule.others_[offset].others_ = nullptr;
-                rule.others_[offset].size_ = dep.memoryEnd_ - dep.memoryStart_ + 1u;
+                rule.others_[offset].size_ = static_cast<size_t>(dep.rate_ - dep.memoryStart_);
                 rule.others_[offset].offset_ = dep.memoryStart_;
                 rule.others_[offset].fifoIx_ = dep.edgeIx_;
                 rule.others_[offset].count_ = 0u;

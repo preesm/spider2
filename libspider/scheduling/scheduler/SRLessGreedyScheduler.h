@@ -47,6 +47,8 @@ namespace spider {
 
     namespace pisdf {
         class ExecDependencyInfo;
+
+        struct DependencyIterator;
     }
 
     namespace sched {
@@ -75,11 +77,35 @@ namespace spider {
             /* === Types definition === */
 
             struct ScheduleVertex {
+                spider::vector<pisdf::DependencyIterator> deps_;
                 pisdf::Vertex *vertex_;
                 srless::FiringHandler *handler_;
                 u32 firing_;
                 bool executable_;
                 bool scheduled_;
+
+                ScheduleVertex() = default;
+
+                ~ScheduleVertex() = default;
+
+                ScheduleVertex &operator=(ScheduleVertex &&) = default;
+
+                ScheduleVertex &operator=(const ScheduleVertex &) = default;
+
+                ScheduleVertex(const ScheduleVertex &) = default;
+
+                ScheduleVertex(ScheduleVertex &&) = default;
+
+                inline friend void swap(ScheduleVertex &lhs, ScheduleVertex &rhs) noexcept {
+                    /* == Do the swapping of the values == */
+                    using std::swap;
+                    swap(lhs.deps_, rhs.deps_);
+                    swap(lhs.vertex_, rhs.vertex_);
+                    swap(lhs.handler_, rhs.handler_);
+                    swap(lhs.firing_, rhs.firing_);
+                    swap(lhs.executable_, rhs.executable_);
+                    swap(lhs.scheduled_, rhs.scheduled_);
+                }
 
                 friend inline bool operator==(const ScheduleVertex &lhs, const ScheduleVertex &rhs) {
                     return (lhs.vertex_ == rhs.vertex_) &&

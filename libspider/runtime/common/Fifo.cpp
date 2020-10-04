@@ -102,9 +102,8 @@ namespace spider {
         while (it != lastIt) {
             const auto fifo = *it;
             auto *buffer = readFunctions[static_cast<u8>(fifo.attribute_)](it, memoryInterface);
-            auto *destBuffer = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(mergedBuffer) + offset);
             if (buffer) {
-                buffer = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(buffer) + fifo.offset_);
+                auto *destBuffer = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(mergedBuffer) + offset);
                 std::memcpy(destBuffer, buffer, fifo.size_);
             }
             offset += fifo.size_;

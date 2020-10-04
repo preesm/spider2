@@ -69,7 +69,7 @@ namespace spider {
 
             GraphHandler &operator=(const GraphHandler &) = default;
 
-            ~GraphHandler() = default;
+            ~GraphHandler();
 
             /* === Method(s) === */
 
@@ -83,14 +83,14 @@ namespace spider {
 
             inline bool isStatic() const { return static_; }
 
-            inline const spider::vector<FiringHandler> &firings() const { return firings_; }
+            inline const spider::vector<FiringHandler *> &firings() const { return firings_; }
 
-            inline spider::vector<FiringHandler> &firings() { return firings_; }
+            inline spider::vector<FiringHandler *> &firings() { return firings_; }
 
             /* === Setter(s) === */
 
         private:
-            spider::vector<srless::FiringHandler> firings_;
+            spider::vector<FiringHandler *> firings_;
             const pisdf::Graph *graph_;
             const srless::FiringHandler *handler_;
             u32 repetitionCount_;

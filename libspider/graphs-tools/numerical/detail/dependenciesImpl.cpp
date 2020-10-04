@@ -117,9 +117,9 @@ spider::pisdf::DependencyIterator spider::pisdf::detail::computeExecDependencyIm
             if ((snkRate * snkRV) % srcRate == 0) {
                 const auto *graph = source->graph();
                 edge = graph->inputEdge(source->ix());
+                lowerCons = (lowerCons - delayValue) % srcRate + srcRate * handler->firingValue();
+                upperCons = (upperCons - delayValue) % srcRate + srcRate * handler->firingValue();
                 handler = handler->getParent()->handler();
-                lowerCons = lowerCons % srcRate;
-                upperCons = upperCons % srcRate;
                 return computeExecDependencyImpl(edge, lowerCons, upperCons, handler);
             } else {
                 srcRate = snkRate * snkRV;
@@ -224,7 +224,7 @@ spider::pisdf::DependencyIterator spider::pisdf::detail::computeConsDependencyIm
             } else if (upperProd >= (srcRate * srcRV - snkRate)) {
                 return computeConsDependencyImpl(edge, 0, upperProd % snkRate, handler);
             }
-            return DependencyIterator{ UniqueDependency{ unresolved }};
+            return DependencyIterator{ VoidDependency{ }};
         }
         case VertexType::DELAY: {
             /* == Case of setter vertex == */
@@ -266,8 +266,10 @@ spider::pisdf::DependencyIterator spider::pisdf::detail::computeConsDependencyIm
                                     result.emplace_back(tmp);
                                 } else {
                                     const auto repFactor = ifSnkRate * ifSnkRV / ifSrcRate;
-                                    const auto updatedLowerProd = (lowerProd + delayValue) % ifSrcRate;
-                                    const auto updatedUpperProd = (upperProd + delayValue) % ifSrcRate;
+                                    const auto updatedLowerProd = k == dep.firingStart_ ?
+                                                                  (lowerProd + delayValue) % ifSrcRate : 0;
+                                    const auto updatedUpperProd = k == dep.firingEnd_ ?
+                                                                  (upperProd + delayValue) % ifSrcRate : ifSrcRate - 1;
                                     for (auto i = 0; i < repFactor; ++i) {
                                         const auto lp = updatedLowerProd + i * ifSrcRate;
                                         const auto up = updatedUpperProd + i * ifSrcRate;

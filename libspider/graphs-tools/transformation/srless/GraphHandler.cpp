@@ -48,22 +48,28 @@ spider::srless::GraphHandler::GraphHandler(const spider::pisdf::Graph *graph,
                                            const spider::vector<std::shared_ptr<pisdf::Param>> &params,
                                            u32 repetitionCount,
                                            const srless::FiringHandler *handler) :
-        firings_{ factory::vector<FiringHandler>(StackID::TRANSFO) },
+        firings_{ factory::vector<FiringHandler *>(StackID::TRANSFO) },
         graph_{ graph },
-        handler_{handler},
+        handler_{ handler },
         repetitionCount_{ repetitionCount },
         static_{ pisdf::isGraphFullyStatic(graph) } {
     firings_.reserve(repetitionCount);
-    for (size_t k = 0; k < repetitionCount; ++k) {
-        firings_.emplace_back(FiringHandler(this, params, static_cast<u32>(k)));
+    for (u32 k = 0; k < repetitionCount; ++k) {
+        firings_.emplace_back(spider::make<FiringHandler>(this, params, k));
         if (static_) {
-            firings_[k].resolveBRV();
+            firings_[k]->resolveBRV();
         }
     }
 }
 
 u32 spider::srless::GraphHandler::repetitionCount() const {
     return repetitionCount_;
+}
+
+spider::srless::GraphHandler::~GraphHandler() {
+    for (u32 k = 0; k < repetitionCount_; ++k) {
+        destroy(firings_[k]);
+    }
 }
 
 /* === Private method(s) implementation === */

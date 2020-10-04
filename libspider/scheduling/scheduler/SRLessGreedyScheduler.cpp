@@ -79,29 +79,33 @@ void spider::sched::SRLessGreedyScheduler::clear() {
 /* === Private method(s) implementation === */
 
 void spider::sched::SRLessGreedyScheduler::recursiveAddVertices(spider::srless::GraphHandler *graphHandler) {
-    for (auto &firing : graphHandler->firings()) {
-        if (firing.isResolved()) {
+    for (auto &firingHandler : graphHandler->firings()) {
+        if (firingHandler->isResolved()) {
             for (const auto &vertex : graphHandler->graph()->vertices()) {
                 if (vertex->subtype() != spider::pisdf::VertexType::DELAY) {
-                    const auto vertexRV = firing.getRV(vertex.get());
+                    const auto vertexRV = firingHandler->getRV(vertex.get());
                     for (u32 k = 0u; k < vertexRV; ++k) {
-                        if (firing.getTaskIx(vertex.get(), k) == UINT32_MAX) {
-                            firing.registerTaskIx(vertex.get(), k, static_cast<u32>(this->unscheduledVertices_.size()));
+                        if (firingHandler->getTaskIx(vertex.get(), k) == UINT32_MAX) {
+                            firingHandler->registerTaskIx(vertex.get(), k,
+                                                          static_cast<u32>(this->unscheduledVertices_.size()));
                             this->unscheduledVertices_.push_back(
-                                    { vertex.get(), &firing, k, vertex->executable(), false });
+                                    { factory::vector<pisdf::DependencyIterator>(StackID::SCHEDULE),
+                                      vertex.get(), firingHandler, k, vertex->executable(), false });
                         }
                     }
                 }
             }
             for (const auto &interface : graphHandler->graph()->inputInterfaceVector()) {
-                if (!pisdf::isInterfaceTransparent(interface.get(), &firing) &&
-                    firing.getTaskIx(interface.get()) == UINT32_MAX) {
-                    firing.registerTaskIx(interface.get(), static_cast<u32>(this->unscheduledVertices_.size()));
-                    this->unscheduledVertices_.push_back({ interface.get(), &firing, 0, true, false });
+                if (!pisdf::isInterfaceTransparent(interface.get(), firingHandler) &&
+                    firingHandler->getTaskIx(interface.get()) == UINT32_MAX) {
+                    firingHandler->registerTaskIx(interface.get(), static_cast<u32>(this->unscheduledVertices_.size()));
+                    this->unscheduledVertices_.push_back(
+                            { factory::vector<pisdf::DependencyIterator>(StackID::SCHEDULE),
+                              interface.get(), firingHandler, 0, true, false });
                 }
             }
         }
-        for (auto *child : firing.children()) {
+        for (auto *child : firingHandler->children()) {
             recursiveAddVertices(child);
         }
     }
@@ -109,16 +113,28 @@ void spider::sched::SRLessGreedyScheduler::recursiveAddVertices(spider::srless::
 
 spider::sched::SRLessGreedyScheduler::iterator_t spider::sched::SRLessGreedyScheduler::evaluate(iterator_t it) {
     if (it->vertex_->inputEdgeCount() > 0u) {
-        for (u32 i = 0; i < static_cast<u32>(it->vertex_->inputEdgeCount()); ++i) {
-            const auto dependencies = pisdf::computeExecDependency(it->vertex_, it->firing_, i, it->handler_);
-            for (const auto &dep : dependencies) {
-                if (evaluate(it, dep)) {
-                    return it;
-                }
+        if (it->deps_.empty()) {
+            it->deps_.reserve(it->vertex_->inputEdgeCount());
+            for (u32 i = 0; i < static_cast<u32>(it->vertex_->inputEdgeCount()); ++i) {
+                it->deps_.emplace_back(pisdf::computeExecDependency(it->vertex_, it->firing_, i, it->handler_));
+            }
+        }
+    } else if (it->vertex_->subtype() == pisdf::VertexType::INPUT) {
+        const auto *graph = it->vertex_->graph();
+        const auto graphFiring = it->handler_->firingValue();
+        const auto *graphHandler = it->handler_->getParent()->handler();
+        const auto edgeIx = static_cast<u32>(it->vertex_->ix());
+        it->deps_.emplace_back(pisdf::computeExecDependency(graph, graphFiring, edgeIx, graphHandler));
+    }
+    for (const auto &itDep : it->deps_) {
+        for (const auto &dep : itDep) {
+            if (evaluate(it, dep)) {
+                return it;
             }
         }
     }
     /* == add vertex to task vector == */
+//    tasks_.emplace_back(make<TaskSRLess>(it->handler_, it->vertex_, it->firing_, std::move(it->deps_)));
     tasks_.emplace_back(make<TaskSRLess>(it->handler_, it->vertex_, it->firing_));
     it->handler_->registerTaskIx(it->vertex_, it->firing_, UINT32_MAX);
     return removeAndSwap(it);
@@ -140,7 +156,7 @@ bool spider::sched::SRLessGreedyScheduler::evaluate(iterator_t &it, const pisdf:
             if (srcSchedVertex.vertex_ == source) {
                 if (srcSchedVertex.executable_) {
                     const auto distance = std::distance(std::begin(unscheduledVertices_), it);
-                    std::swap(*it, srcSchedVertex);
+                    swap(*it, srcSchedVertex);
                     srcSchedVertex.handler_->registerTaskIx(srcSchedVertex.vertex_, srcSchedVertex.firing_, ix);
                     it = std::next(std::begin(unscheduledVertices_), distance);
                     it->handler_->registerTaskIx(it->vertex_, it->firing_, static_cast<u32>(distance));

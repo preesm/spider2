@@ -78,34 +78,15 @@ spider::srless::FiringHandler::~FiringHandler() {
     }
 }
 
-//spider::srless::ExecDependency
-//spider::srless::FiringHandler::computeConsDependenciesByEdge(const pisdf::Vertex *vertex,
-//                                                             u32 firing,
-//                                                             u32 edgeIx) const {
-//    const auto *edge = vertex->outputEdge(edgeIx);
-//    const auto srcRate = edge->sourceRateExpression().evaluate(params_);
-//    if (!srcRate) {
-//        return { detail::dummyInfo, detail::dummyInfo };
-//    }
-//    if (edge->sink()->subtype() == pisdf::VertexType::DELAY) {
-//        const auto *delay = edge->sink()->convertTo<pisdf::DelayVertex>()->delay();
-//        const auto lowerProd = srcRate * firing - delay->value();
-//        const auto upperProd = srcRate * (firing + 1u) - delay->value();
-//        return computeConsDependency(delay->edge(), lowerProd, upperProd);
-//    } else {
-//        return computeConsDependency(edge, srcRate * firing, srcRate * (firing + 1));
-//    }
-//}
-
 void spider::srless::FiringHandler::registerTaskIx(const pisdf::Vertex *vertex, u32 firing, u32 taskIx) {
 #ifndef NDEBUG
     if (firing >= getRV(vertex)) {
         throwSpiderException("invalid vertex firing.");
     }
 #endif
-//    if (vertex->subtype() == pisdf::VertexType::INPUT) {
-//        taskIxRegister_.at(vertex->ix() + parent_->graph()->vertexCount())[0u] = taskIx;
-//    }
+    if (vertex->subtype() == pisdf::VertexType::INPUT) {
+        taskIxRegister_.at(vertex->ix() + parent_->graph()->vertexCount())[0u] = taskIx;
+    }
     taskIxRegister_.at(vertex->ix())[firing] = taskIx;
 }
 
@@ -213,7 +194,7 @@ spider::srless::FiringHandler::getChildFiring(const pisdf::Graph *subgraph, u32 
         throwSpiderException("subgraph does not belong to this graph.");
     }
 #endif
-    return &(children_[subgraph->subIx()]->firings()[firing]);
+    return children_[subgraph->subIx()]->firings()[firing];
 }
 
 int64_t spider::srless::FiringHandler::getParamValue(size_t ix) {
