@@ -46,6 +46,7 @@
 #include <graphs/pisdf/Graph.h>
 #include <runtime/special-kernels/specialKernels.h>
 #include <graphs-tools/numerical/dependencies.h>
+#include <numeric>
 
 /* === Static function === */
 
@@ -374,7 +375,7 @@ spider::sched::TaskSRLess::allocateInputFifo(const pisdf::DependencyIterator &de
         }
     } else {
         const auto &dep = *(dependencies.begin());
-        rule.size_ = dep.memoryEnd_ - dep.memoryStart_;
+        rule.size_ = dep.memoryEnd_ - dep.memoryStart_ + 1u;
         rule.offset_ = dep.memoryStart_;
         rule.fifoIx_ = dep.edgeIx_;
         rule.count_ = 0u;
@@ -387,37 +388,15 @@ spider::sched::TaskSRLess::allocateInputFifo(const pisdf::DependencyIterator &de
 u32 spider::sched::TaskSRLess::computeConsCount(const pisdf::Edge *edge,
                                                 u32 firing,
                                                 const srless::FiringHandler *handler) const {
-    if (vertex_->subtype() == pisdf::VertexType::INPUT) {
-        return recursiveConsCount(edge, handler, 0u, handler->getRV(edge->sink()) - 1);
-    } else if (edge->sink()->hierarchical()) {
-        const auto dependencies = pisdf::computeConsDependency(edge->source(),
-                                                               firing,
-                                                               static_cast<u32>(edge->sourcePortIx()),
-                                                               handler);
-        const auto dep = dependencies.begin();
-        return recursiveConsCount(edge, handler, dep->firingStart_, dep->firingEnd_);
-    } else if (edge->sink()->subtype() == pisdf::VertexType::OUTPUT) {
-        const auto snkRate = edge->sinkRateExpression().evaluate(handler->getParams());
-        const auto srcRate = edge->sourceRateExpression().evaluate(handler->getParams());
-        const auto srcRV = handler->getRV(vertex_);
-        const auto depMin = static_cast<u32>(srcRV - math::ceilDiv(snkRate, srcRate));
-        if (firing_ < depMin) {
-            return 0;
-        }
-        const auto graphFiring = handler->firingValue();
-        handler = handler->getParent()->handler();
-        return computeConsCount(vertex_->graph()->outputEdge(edge->sink()->ix()), graphFiring, handler);
-    } else {
-        const auto dependencies = pisdf::computeConsDependency(edge->source(),
-                                                               firing,
-                                                               static_cast<u32>(edge->sourcePortIx()),
-                                                               handler);
-        u32 count = 0;
-        for (const auto &dep : dependencies) {
-            count += dep.firingEnd_ - dep.firingStart_ + 1u;
-        }
-        return count;
+    const auto dependencies = pisdf::computeConsDependency(edge->source(),
+                                                           firing,
+                                                           static_cast<u32>(edge->sourcePortIx()),
+                                                           handler);
+    u32 count = 0;
+    for (const auto &dep : dependencies) {
+        count += dep.firingEnd_ - dep.firingStart_ + 1u;
     }
+    return count;
 }
 
 u32 spider::sched::TaskSRLess::recursiveConsCount(const pisdf::Edge *edge,
@@ -438,5 +417,5 @@ u32 spider::sched::TaskSRLess::recursiveConsCount(const pisdf::Edge *edge,
         }
         return count;
     }
-    return handler->getRV(edge->source());
+    return handler->getRV(edge->sink());
 }

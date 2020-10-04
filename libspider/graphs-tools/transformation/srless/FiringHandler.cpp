@@ -191,9 +191,9 @@ u32 spider::srless::FiringHandler::getTaskIx(const spider::pisdf::Vertex *vertex
         throwSpiderException("invalid vertex firing.");
     }
 #endif
-//    if (vertex->subtype() == pisdf::VertexType::INPUT) {
-//        return taskIxRegister_.at(vertex->ix() + parent_->graph()->vertexCount())[0u];
-//    }
+    if (vertex->subtype() == pisdf::VertexType::INPUT) {
+        return taskIxRegister_.at(vertex->ix() + parent_->graph()->vertexCount())[0u];
+    }
     return taskIxRegister_.at(vertex->ix())[vertexFiring];
 }
 

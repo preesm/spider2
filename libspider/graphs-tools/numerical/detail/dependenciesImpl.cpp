@@ -229,65 +229,61 @@ spider::pisdf::DependencyIterator spider::pisdf::detail::computeConsDependencyIm
         case VertexType::DELAY: {
             /* == Case of setter vertex == */
             const auto *delay = edge->sink()->convertTo<pisdf::DelayVertex>()->delay();
-            const auto delayValue = delay->value();
+            const auto currentDelayValue = edge->delay() ? edge->delay()->value() : 0;
+            const auto delayValue = delay->value() - currentDelayValue;
             edge = delay->edge();
             return computeConsDependencyImpl(edge, lowerProd - delayValue, upperProd - delayValue, handler);
         }
         case VertexType::GRAPH:
             if (!bypass) {
                 const auto graphDeps = computeConsDependencyImpl(edge, lowerProd, upperProd, handler, true);
-//                auto result = factory::vector<ExecDependencyInfo>(StackID::TRANSFO);
-//                for (auto &dep : graphDeps) {
-//                    if (dep.vertex_ == sink) {
-//                        const auto *graph = sink->convertTo<pisdf::Graph>();
-//                        for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
-//                            const auto *gh = handler->getChildFiring(graph, k);
-//                            if (!gh->isResolved()) {
-//                                result.push_back(unresolved);
-//                            } else {
-//                                const auto *interface = graph->inputInterface(edge->sinkPortIx());
-//                                edge = interface->edge();
-//                                const auto srcRate = edge->sourceRateExpression().evaluate(handler->getParams());
-//                                const auto ifSnkRV = gh->getRV(edge->sink());
-//                                const auto ifSnkRate = edge->sinkRateExpression().evaluate(handler->getParams());
-//                                if (!(((ifSnkRate * ifSnkRV) % srcRate) == 0)) {
-//                                    ExecDependencyInfo tmp{ };
-//                                    tmp.vertex_ = graph;
-//                                    tmp.handler_ = handler;
-//                                    tmp.rate_ = snkRate;
-//                                    tmp.edgeIx_ = static_cast<u32>(edge->sinkPortIx());
-//                                    tmp.memoryStart_ = static_cast<u32>((lowerProd + delayValue) % snkRate);
-//                                    tmp.memoryEnd_ = static_cast<u32>((upperProd + delayValue) % snkRate);
-//                                    tmp.firingStart_ = k;
-//                                    tmp.firingEnd_ = k;
-//                                    result.emplace_back(tmp);
-//                                } else if (ifSnkRate * ifSnkRV == srcRate) {
-//                                    const auto deps = computeConsDependencyImpl(edge, lowerProd, upperProd, gh);
-//                                    std::move(std::begin(deps), std::end(deps), std::back_inserter(result));
-//                                } else {
-//                                    const auto deps = computeConsDependencyImpl(edge, lowerProd, upperProd, gh);
-//                                    const auto nSnkDeps = std::distance(std::begin(deps), std::end(deps));
-//                                    if (nSnkDeps == 1) {
-//                                        const auto repFactor = ifSnkRate * ifSnkRV / srcRate;
-//                                        auto depInfo = *(deps.begin());
-//                                        const auto offset = depInfo.firingStart_ + 1;
-//                                        for (auto i = 0; i < repFactor; ++i) {
-//                                            result.emplace_back(depInfo);
-//                                            depInfo.firingStart_ += offset;
-//                                            depInfo.firingEnd_ += offset;
-//                                        }
-//                                    } else {
-//                                        // TODO: fix this case
-//                                        std::move(std::begin(deps), std::end(deps), std::back_inserter(result));
-//                                    }
-//                                }
-//                            }
-//                        }
-//                    } else {
-//                        result.emplace_back(dep);
-//                    }
-//                }
-//                return DependencyIterator{ MultipleDependency{ std::move(result) }};
+                auto result = factory::vector<ExecDependencyInfo>(StackID::TRANSFO);
+                for (auto &dep : graphDeps) {
+                    if (dep.vertex_ == sink) {
+                        const auto *delay = edge->delay();
+                        const auto delayValue = delay ? delay->value() : 0;
+                        const auto *graph = sink->convertTo<pisdf::Graph>();
+                        for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
+                            const auto *gh = handler->getChildFiring(graph, k);
+                            if (!gh->isResolved()) {
+                                result.push_back(unresolved);
+                            } else {
+                                const auto *interface = graph->inputInterface(edge->sinkPortIx());
+                                edge = interface->edge();
+                                const auto ifSrcRate = edge->sourceRateExpression().evaluate(handler->getParams());
+                                const auto ifSnkRV = gh->getRV(edge->sink());
+                                const auto ifSnkRate = edge->sinkRateExpression().evaluate(handler->getParams());
+                                if (!(((ifSnkRate * ifSnkRV) % ifSrcRate) == 0)) {
+                                    ExecDependencyInfo tmp{ };
+                                    tmp.vertex_ = graph;
+                                    tmp.handler_ = handler;
+                                    tmp.rate_ = snkRate;
+                                    tmp.edgeIx_ = static_cast<u32>(edge->sinkPortIx());
+                                    tmp.memoryStart_ = static_cast<u32>((lowerProd + delayValue) % snkRate);
+                                    tmp.memoryEnd_ = static_cast<u32>((upperProd + delayValue) % snkRate);
+                                    tmp.firingStart_ = k;
+                                    tmp.firingEnd_ = k;
+                                    result.emplace_back(tmp);
+                                } else {
+                                    const auto repFactor = ifSnkRate * ifSnkRV / ifSrcRate;
+                                    const auto updatedLowerProd = (lowerProd + delayValue) % ifSrcRate;
+                                    const auto updatedUpperProd = (upperProd + delayValue) % ifSrcRate;
+                                    for (auto i = 0; i < repFactor; ++i) {
+                                        const auto lp = updatedLowerProd + i * ifSrcRate;
+                                        const auto up = updatedUpperProd + i * ifSrcRate;
+                                        const auto deps = computeConsDependencyImpl(edge, lp, up, gh);
+                                        std::move(std::begin(deps), std::end(deps), std::back_inserter(result));
+                                    }
+                                }
+                                lowerProd -= ifSrcRate;
+                                upperProd -= ifSrcRate;
+                            }
+                        }
+                    } else {
+                        result.emplace_back(dep);
+                    }
+                }
+                return DependencyIterator{ MultipleDependency{ std::move(result) }};
             }
             break;
         default:

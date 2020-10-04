@@ -53,15 +53,12 @@ spider::srless::GraphHandler::GraphHandler(const spider::pisdf::Graph *graph,
         handler_{handler},
         repetitionCount_{ repetitionCount },
         static_{ pisdf::isGraphFullyStatic(graph) } {
-    if (!static_) {
-        firings_.reserve(repetitionCount);
-        for (size_t k = 0; k < repetitionCount; ++k) {
-            firings_.emplace_back(FiringHandler(this, params, static_cast<u32>(k)));
+    firings_.reserve(repetitionCount);
+    for (size_t k = 0; k < repetitionCount; ++k) {
+        firings_.emplace_back(FiringHandler(this, params, static_cast<u32>(k)));
+        if (static_) {
+            firings_[k].resolveBRV();
         }
-    } else {
-        firings_.reserve(1u);
-        firings_.emplace_back(srless::FiringHandler(this, params, 0u));
-        firings_[0u].resolveBRV();
     }
 }
 
