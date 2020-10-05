@@ -60,7 +60,8 @@ namespace spider {
         public:
             explicit TaskSRLess(srless::FiringHandler *handler,
                                 const pisdf::Vertex *vertex,
-                                u32 firing);
+                                u32 firing,
+                                spider::vector<pisdf::DependencyIterator> deps);
 
             ~TaskSRLess() noexcept override = default;
 
@@ -103,6 +104,7 @@ namespace spider {
             /* === Setter(s) === */
 
         private:
+            spider::vector<pisdf::DependencyIterator> dependencies_;
             srless::FiringHandler *handler_;
             const pisdf::Vertex *vertex_;
             u32 firing_;

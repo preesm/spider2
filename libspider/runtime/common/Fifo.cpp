@@ -91,13 +91,13 @@ namespace spider {
 
     static void *readMergedBuffer(array_handle<Fifo>::iterator &it, MemoryInterface *memoryInterface) {
         const auto mergedFifo = *(it++);
-        auto *mergedBuffer = memoryInterface->allocate(mergedFifo.virtualAddress_, mergedFifo.size_, mergedFifo.count_);
+        auto *mergedBuffer = memoryInterface->allocate(mergedFifo.virtualAddress_, mergedFifo.size_, 1u);
 #ifndef NDEBUG
         if (!mergedBuffer) {
             throwNullptrException();
         }
 #endif
-        const auto lastIt = std::next(it, mergedFifo.offset_);
+        const auto lastIt = std::next(it, mergedFifo.count_);
         size_t offset{ 0u };
         while (it != lastIt) {
             const auto fifo = *it;
@@ -164,7 +164,7 @@ spider::getInputBuffers(const array_handle<Fifo> &fifos, MemoryInterface *memory
     size_t count = 0u;
     for (auto it = std::begin(fifos); it != std::end(fifos); ++it) {
         if (it->attribute_ == FifoAttribute::R_MERGE) {
-            it += it->offset_;
+            it += it->count_;
         }
         count += 1;
     }

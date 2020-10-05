@@ -54,18 +54,18 @@
 
 spider::sched::TaskSRLess::TaskSRLess(srless::FiringHandler *handler,
                                       const pisdf::Vertex *vertex,
-                                      u32 firing) :
+                                      u32 firing,
+                                      spider::vector<pisdf::DependencyIterator> deps) :
         Task(),
+        dependencies_{ std::move(deps) },
         handler_{ handler },
         vertex_{ vertex },
         firing_{ firing },
         dependenciesCount_{ 0u } {
     size_t mergedFifoCount{ 0u };
     for (const auto *edge : vertex->inputEdgeVector()) {
-        const auto edgeIx = static_cast<u32>(edge->sinkPortIx());
         const auto current = dependenciesCount_;
-        const auto dependencies = pisdf::computeExecDependency(vertex_, firing, edgeIx, handler_);
-        for (const auto &dep : dependencies) {
+        for (const auto &dep : dependencies_[edge->sinkPortIx()]) {
             dependenciesCount_ += dep.firingEnd_ - dep.firingStart_ + 1u;
         }
         mergedFifoCount += ((current + 1) < dependenciesCount_);
@@ -89,9 +89,7 @@ spider::sched::Task *spider::sched::TaskSRLess::previousTask(size_t ix) const {
 void spider::sched::TaskSRLess::updateTaskExecutionDependencies(const Schedule *schedule) {
     size_t i = 0u;
     for (const auto *edge : vertex_->inputEdgeVector()) {
-        const auto edgeIx = static_cast<u32>(edge->sinkPortIx());
-        const auto dependencies = pisdf::computeExecDependency(vertex_, firing_, edgeIx, handler_);
-        for (const auto &dep : dependencies) {
+        for (const auto &dep : dependencies_[edge->sinkPortIx()]) {
             i = updateTaskExecutionDependency(schedule, dep, i);
         }
     }
@@ -139,8 +137,7 @@ spider::sched::AllocationRule spider::sched::TaskSRLess::allocationRuleForInputF
     }
 #endif
     const auto *edge = vertex_->inputEdge(ix);
-    const auto dependencies = pisdf::computeExecDependency(vertex_, firing_, static_cast<u32>(ix), handler_);
-    return allocateInputFifo(dependencies, edge);
+    return allocateInputFifo(dependencies_[ix], edge);
 }
 
 spider::sched::AllocationRule spider::sched::TaskSRLess::allocationRuleForOutputFifo(size_t ix) const {
@@ -156,6 +153,7 @@ spider::sched::AllocationRule spider::sched::TaskSRLess::allocationRuleForOutput
     rule.fifoIx_ = 0u;
     rule.count_ = rule.size_ ? computeConsCount(edge, firing_, handler_) : 0u;
     if (!rule.count_ && rule.size_) {
+        rule.count_ = 1u;
         rule.attribute_ = FifoAttribute::W_SINK;
     }
     switch (vertex_->subtype()) {
@@ -263,16 +261,10 @@ std::pair<ufast64, ufast64> spider::sched::TaskSRLess::computeCommunicationCost(
 }
 
 bool spider::sched::TaskSRLess::isMappableOnPE(const spider::PE *pe) const {
-    if (vertex_->subtype() == pisdf::VertexType::INPUT) {
-        return true;
-    }
     return vertex_->runtimeInformation()->isPEMappable(pe);
 }
 
 u64 spider::sched::TaskSRLess::timingOnPE(const spider::PE *pe) const {
-    if (vertex_->subtype() == pisdf::VertexType::INPUT) {
-        return 0;
-    }
     return static_cast<u64>(vertex_->runtimeInformation()->timingOnPE(pe, handler_->getParams()));
 }
 
@@ -304,9 +296,9 @@ spider::sched::TaskSRLess::allocateInputFifo(const pisdf::DependencyIterator &de
     if (count > 1u) {
         rule.others_ = spider::allocate<AllocationRule, StackID::SCHEDULE>(count);
         rule.size_ = static_cast<size_t>(edge->sinkRateExpression().evaluate(handler_->getParams()));
-        rule.offset_ = count;
+        rule.offset_ = 0u;
         rule.fifoIx_ = UINT32_MAX;
-        rule.count_ = 0u;
+        rule.count_ = count;
         rule.type_ = AllocType::MERGE;
         rule.attribute_ = FifoAttribute::R_MERGE;
         size_t offset = 0u;

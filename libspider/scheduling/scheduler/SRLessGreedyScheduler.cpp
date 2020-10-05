@@ -117,8 +117,7 @@ spider::sched::SRLessGreedyScheduler::iterator_t spider::sched::SRLessGreedySche
         }
     }
     /* == add vertex to task vector == */
-//    tasks_.emplace_back(make<TaskSRLess>(it->handler_, it->vertex_, it->firing_, std::move(it->deps_)));
-    tasks_.emplace_back(make<TaskSRLess>(it->handler_, it->vertex_, it->firing_));
+    tasks_.emplace_back(make<TaskSRLess>(it->handler_, it->vertex_, it->firing_, std::move(it->deps_)));
     it->handler_->registerTaskIx(it->vertex_, it->firing_, UINT32_MAX);
     return removeAndSwap(it);
 }

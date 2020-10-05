@@ -80,7 +80,7 @@ void spider::sched::FifoAllocator::allocate(sched::Task *task) {
         if (rule.type_ == AllocType::MERGE) {
             /* == Set the merged fifo == */
             offset += allocateMergedInputFifo(task, it, rule, fifoIx, offset);
-            it = it + rule.offset_;
+            it = it + rule.count_;
             if (it == std::end(inputFifos)) {
                 break;
             }
@@ -137,8 +137,8 @@ size_t spider::sched::FifoAllocator::allocateMergedInputFifo(Task *task,
     fifo->virtualAddress_ = virtualMemoryAddress_;
     virtualMemoryAddress_ += rule.size_;
     fifo->size_ = static_cast<u32>(rule.size_);
-    fifo->offset_ = static_cast<u32>(rule.offset_);
-    fifo->count_ = 1u;
+    fifo->offset_ = 0u;
+    fifo->count_ = rule.count_;
     fifo->attribute_ = rule.attribute_;
     /* == do the other fifos == */
 #ifndef NDEBUG
@@ -146,12 +146,12 @@ size_t spider::sched::FifoAllocator::allocateMergedInputFifo(Task *task,
         throwNullptrException();
     }
 #endif
-    for (size_t i = 0; i < rule.offset_; ++i) {
+    for (size_t i = 0; i < rule.count_; ++i) {
         const auto *prevTask = task->previousTask(realFifoIx + taskOffset + i);
         allocateInputFifo(prevTask, fifo + i + 1, rule.others_[i]);
     }
     destroy(rule.others_);
-    return rule.offset_ - 1u;
+    return rule.count_ - 1u;
 }
 
 void spider::sched::FifoAllocator::allocateInputFifo(const Task *task, Fifo *fifo, AllocationRule &rule) {
