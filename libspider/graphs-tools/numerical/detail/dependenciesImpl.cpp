@@ -101,76 +101,11 @@ namespace spider {
 spider::pisdf::DependencyIterator spider::pisdf::detail::computeExecDependencyImpl(const Edge *edge,
                                                                                    int64_t lowerCons,
                                                                                    int64_t upperCons,
-                                                                                   const srless::FiringHandler *handler,
-                                                                                   bool bypass) {
+                                                                                   int64_t srcRate,
+                                                                                   const srless::FiringHandler *handler) {
     /* == Compute numerical values needed for the dependency computation == */
-    const auto *source = edge->source();
     const auto *delay = edge->delay();
     const auto delayValue = delay ? delay->value() : 0;
-    auto srcRate = edge->sourceRateExpression().evaluate(handler->getParams());
-
-    /* == Handle specific cases == */
-    switch (source->subtype()) {
-        case VertexType::INPUT: {
-            const auto snkRate = edge->sinkRateExpression().evaluate(handler->getParams());
-            const auto snkRV = handler->getRV(edge->sink());
-            if ((snkRate * snkRV) % srcRate == 0) {
-                const auto *graph = source->graph();
-                edge = graph->inputEdge(source->ix());
-                const auto parentLowerCons = srcRate * handler->firingValue();
-                lowerCons = parentLowerCons + (lowerCons - delayValue) % srcRate;
-                upperCons = parentLowerCons + (upperCons - delayValue) % srcRate;
-                handler = handler->getParent()->handler();
-                return computeExecDependencyImpl(edge, lowerCons, upperCons, handler);
-            } else {
-                srcRate = snkRate * snkRV;
-            }
-        }
-            break;
-        case VertexType::DELAY: {
-            /* == Case of getter vertex == */
-            const auto *delayFromVertex = edge->source()->convertTo<pisdf::DelayVertex>()->delay();
-            edge = delayFromVertex->edge();
-            const auto snkRate = edge->sinkRateExpression().evaluate(handler->getParams());
-            const auto offset = snkRate * handler->getRV(edge->sink());
-            lowerCons += offset;
-            upperCons += offset;
-            return computeExecDependencyImpl(edge, lowerCons, upperCons, handler);
-        }
-        case VertexType::GRAPH:
-            if (!bypass) {
-                const auto graphDeps = computeExecDependencyImpl(edge, lowerCons, upperCons, handler, true);
-                auto result = factory::vector<ExecDependencyInfo>(StackID::TRANSFO);
-                for (auto &dep : graphDeps) {
-                    if (dep.vertex_ == source) {
-                        const auto *graph = source->convertTo<pisdf::Graph>();
-                        for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
-                            const auto *gh = handler->getChildFiring(graph, k);
-                            if (!gh->isResolved()) {
-                                result.push_back(unresolved);
-                            } else {
-                                edge = graph->outputInterface(edge->sourcePortIx())->edge();
-                                const auto ifSrcRV = gh->getRV(edge->source());
-                                const auto ifSrcRate = edge->sourceRateExpression().evaluate(gh->getParams());
-                                const auto ifDelay = edge->delay() ? edge->delay()->value() : 0u;
-                                const auto start = k == dep.firingStart_ ? (lowerCons - delayValue) % srcRate : 0;
-                                const auto end = k == dep.firingEnd_ ? (upperCons - delayValue) % srcRate : srcRate - 1;
-                                const auto lCons = (ifSrcRV * ifSrcRate - srcRate) + start % srcRate + ifDelay;
-                                const auto uCons = (ifSrcRV * ifSrcRate - srcRate) + end % srcRate + ifDelay;
-                                const auto deps = computeExecDependencyImpl(edge, lCons, uCons, gh);
-                                std::move(std::begin(deps), std::end(deps), std::back_inserter(result));
-                            }
-                        }
-                    } else {
-                        result.emplace_back(dep);
-                    }
-                }
-                return DependencyIterator{ MultipleDependency{ std::move(result) }};
-            }
-            break;
-        default:
-            break;
-    }
 
     /* == Actual dependency computation == */
     if (lowerCons >= delayValue) {
@@ -179,14 +114,14 @@ spider::pisdf::DependencyIterator spider::pisdf::detail::computeExecDependencyIm
     } else if (delay && (upperCons < delayValue)) {
         /* == setter only == */
         edge = delay->setter()->outputEdge(delay->setterPortIx());
-        return computeExecDependencyImpl(edge, lowerCons, upperCons, handler);
+        return computeExecDependency(edge, lowerCons, upperCons, handler);
     } else if (delay) {
         /* == setter + source == */
         const auto *setterEdge = delay->setter()->outputEdge(delay->setterPortIx());
-        const auto setDeps = computeExecDependencyImpl(setterEdge, lowerCons, delayValue - 1, handler);
-        const auto srcDeps = computeExecDependencyImpl(edge, delayValue, upperCons, handler);
-        const auto nSetDeps = std::distance(std::begin(setDeps), std::end(setDeps));
-        const auto nSrcDeps = std::distance(std::begin(srcDeps), std::end(srcDeps));
+        const auto setDeps = computeExecDependency(setterEdge, lowerCons, delayValue - 1, handler);
+        const auto srcDeps = computeExecDependency(edge, delayValue, upperCons, handler);
+        const auto nSetDeps = setDeps.count();
+        const auto nSrcDeps = srcDeps.count();
         if (nSetDeps + nSrcDeps > 2) {
             auto dependencies = factory::vector<ExecDependencyInfo>(StackID::TRANSFO);
             dependencies.reserve(static_cast<size_t>(nSetDeps + nSrcDeps));
@@ -198,6 +133,108 @@ spider::pisdf::DependencyIterator spider::pisdf::detail::computeExecDependencyIm
         }
     } else {
         throwSpiderException("unexpected behavior.");
+    }
+}
+
+spider::pisdf::DependencyIterator spider::pisdf::detail::computeInputExecDependency(const Edge *edge,
+                                                                                    int64_t lowerCons,
+                                                                                    int64_t upperCons,
+                                                                                    const srless::FiringHandler *handler) {
+    const auto *source = edge->source();
+    const auto *delay = edge->delay();
+    const auto delayValue = delay ? delay->value() : 0;
+    const auto srcRate = edge->sourceRateExpression().evaluate(handler->getParams());
+    const auto snkRate = edge->sinkRateExpression().evaluate(handler->getParams());
+    const auto snkRV = handler->getRV(edge->sink());
+    const auto isTransparent = (snkRate * snkRV) % srcRate == 0;
+    const auto deps = computeExecDependencyImpl(edge, lowerCons, upperCons, snkRate * snkRV, handler);
+    auto computeIFDeps= [&]() {
+        const auto parentLowerCons = srcRate * handler->firingValue();
+        lowerCons = parentLowerCons + (lowerCons - delayValue) % srcRate;
+        upperCons = parentLowerCons + (upperCons - delayValue) % srcRate;
+        handler = handler->getParent()->handler();
+        edge = source->graph()->inputEdge(source->ix());
+        return computeExecDependency(edge, lowerCons, upperCons, handler);
+    };
+    if (deps.count() == 1) {
+        if (deps.begin()->vertex_ == source && isTransparent) {
+            return computeIFDeps();
+        }
+        return deps;
+    } else {
+        auto result = factory::vector<ExecDependencyInfo>(StackID::TRANSFO);
+        result.reserve(static_cast<size_t>(deps.count()));
+        for (auto &dep : deps) {
+            if (dep.vertex_ == source && isTransparent) {
+                auto ifDeps = computeIFDeps();
+                std::move(std::begin(ifDeps), std::end(ifDeps), std::back_inserter(result));
+            } else {
+                result.emplace_back(dep);
+            }
+        }
+        return DependencyIterator{ MultipleDependency{ std::move(result) }};
+    }
+}
+
+spider::pisdf::DependencyIterator spider::pisdf::detail::computeGraphExecDependency(const Edge *edge,
+                                                                                    int64_t lowerCons,
+                                                                                    int64_t upperCons,
+                                                                                    const srless::FiringHandler *handler) {
+    const auto *source = edge->source();
+    const auto *delay = edge->delay();
+    const auto delayValue = delay ? delay->value() : 0;
+    const auto srcRate = edge->sourceRateExpression().evaluate(handler->getParams());
+    const auto graphDeps = computeExecDependencyImpl(edge, lowerCons, upperCons, srcRate, handler);
+    auto result = factory::vector<ExecDependencyInfo>(StackID::TRANSFO);
+    for (auto &dep : graphDeps) {
+        if (dep.vertex_ == source) {
+            const auto *graph = source->convertTo<pisdf::Graph>();
+            for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
+                const auto *gh = handler->getChildFiring(graph, k);
+                if (!gh->isResolved()) {
+                    result.push_back(unresolved);
+                } else {
+                    edge = graph->outputInterface(edge->sourcePortIx())->edge();
+                    const auto ifSrcRV = gh->getRV(edge->source());
+                    const auto ifSrcRate = edge->sourceRateExpression().evaluate(gh->getParams());
+                    const auto ifDelay = edge->delay() ? edge->delay()->value() : 0u;
+                    const auto start = k == dep.firingStart_ ? (lowerCons - delayValue) % srcRate : 0;
+                    const auto end = k == dep.firingEnd_ ? (upperCons - delayValue) % srcRate : srcRate - 1;
+                    const auto lCons = (ifSrcRV * ifSrcRate - srcRate) + start % srcRate + ifDelay;
+                    const auto uCons = (ifSrcRV * ifSrcRate - srcRate) + end % srcRate + ifDelay;
+                    const auto deps = computeExecDependency(edge, lCons, uCons, gh);
+                    std::move(std::begin(deps), std::end(deps), std::back_inserter(result));
+                }
+            }
+        } else {
+            result.emplace_back(dep);
+        }
+    }
+    return DependencyIterator{ MultipleDependency{ std::move(result) }};
+}
+
+spider::pisdf::DependencyIterator spider::pisdf::detail::computeExecDependency(const Edge *edge,
+                                                                               int64_t lowerCons,
+                                                                               int64_t upperCons,
+                                                                               const srless::FiringHandler *handler) {
+    /* == Handle specific cases == */
+    const auto *source = edge->source();
+    if (source->subtype() == VertexType::INPUT) {
+        return computeInputExecDependency(edge, lowerCons, upperCons, handler);
+    } else if (source->subtype() == VertexType::DELAY) {
+        /* == Case of getter vertex == */
+        const auto *delayFromVertex = edge->source()->convertTo<pisdf::DelayVertex>()->delay();
+        edge = delayFromVertex->edge();
+        const auto snkRate = edge->sinkRateExpression().evaluate(handler->getParams());
+        const auto offset = snkRate * handler->getRV(edge->sink());
+        lowerCons += offset;
+        upperCons += offset;
+        return computeExecDependency(edge, lowerCons, upperCons, handler);
+    } else if (source->subtype() == VertexType::GRAPH) {
+        return computeGraphExecDependency(edge, lowerCons, upperCons, handler);
+    } else {
+        const auto srcRate = edge->sourceRateExpression().evaluate(handler->getParams());
+        return computeExecDependencyImpl(edge, lowerCons, upperCons, srcRate, handler);
     }
 }
 
@@ -311,8 +348,8 @@ spider::pisdf::DependencyIterator spider::pisdf::detail::computeConsDependencyIm
         const auto *getterEdge = delay->getter()->inputEdge(delay->getterPortIx());
         const auto snkDeps = computeConsDependencyImpl(edge, lowerProd, snkTotRate - delayValue - 1, handler);
         const auto getDeps = computeConsDependencyImpl(getterEdge, 0, upperProd - delayedSnkRate, handler);
-        const auto nSnkDeps = std::distance(std::begin(snkDeps), std::end(snkDeps));
-        const auto nGetDeps = std::distance(std::begin(getDeps), std::end(getDeps));
+        const auto nSnkDeps = snkDeps.count();
+        const auto nGetDeps = getDeps.count();
         if (nGetDeps + nSnkDeps > 2) {
             auto dependencies = factory::vector<ExecDependencyInfo>(StackID::TRANSFO);
             dependencies.reserve(static_cast<size_t>(nGetDeps + nSnkDeps));

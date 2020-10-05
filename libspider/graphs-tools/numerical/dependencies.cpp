@@ -65,7 +65,7 @@ spider::pisdf::DependencyIterator spider::pisdf::computeExecDependency(const Ver
     if (!snkRate) {
         return DependencyIterator{ VoidDependency{ }};
     }
-    return detail::computeExecDependencyImpl(edge, snkRate * firing, snkRate * (firing + 1) - 1, handler);
+    return detail::computeExecDependency(edge, snkRate * firing, snkRate * (firing + 1) - 1, handler);
 }
 
 spider::pisdf::DependencyIterator spider::pisdf::computeConsDependency(const Vertex *vertex,

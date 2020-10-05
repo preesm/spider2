@@ -75,7 +75,11 @@ namespace spider {
 
             /* === Methods === */
 
-            iterator begin() {
+            inline long count() const {
+                return std::distance(begin(), end());
+            }
+
+            inline iterator begin() {
                 if (mpark::holds_alternative<UniqueDependency>(it_)) {
                     return &(mpark::get<UniqueDependency>(it_).info_);
                 } else if (mpark::holds_alternative<VoidDependency>(it_)) {
@@ -86,7 +90,7 @@ namespace spider {
                 return mpark::get<MultipleDependency>(it_).infos_.data();
             }
 
-            const_iterator begin() const {
+            inline const_iterator begin() const {
                 if (mpark::holds_alternative<UniqueDependency>(it_)) {
                     return &(mpark::get<UniqueDependency>(it_).info_);
                 } else if (mpark::holds_alternative<VoidDependency>(it_)) {
@@ -97,7 +101,7 @@ namespace spider {
                 return mpark::get<MultipleDependency>(it_).infos_.data();
             }
 
-            iterator end() {
+            inline iterator end() {
                 if (mpark::holds_alternative<UniqueDependency>(it_)) {
                     return &(mpark::get<UniqueDependency>(it_).info_) + 1;
                 } else if (mpark::holds_alternative<VoidDependency>(it_)) {
@@ -109,7 +113,7 @@ namespace spider {
                 }
             }
 
-            const_iterator end() const {
+            inline const_iterator end() const {
                 if (mpark::holds_alternative<UniqueDependency>(it_)) {
                     return &(mpark::get<UniqueDependency>(it_).info_) + 1;
                 } else if (mpark::holds_alternative<VoidDependency>(it_)) {
