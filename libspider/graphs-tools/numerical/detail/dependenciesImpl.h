@@ -72,7 +72,13 @@ namespace spider {
                                                          int64_t lowerProd,
                                                          int64_t upperProd,
                                                          int64_t snkRate,
+                                                         int64_t snkTotRate,
                                                          const srless::FiringHandler *handler);
+
+            DependencyIterator computeOutputConsDependency(const Edge *edge,
+                                                           int64_t lowerProd,
+                                                           int64_t upperProd,
+                                                           const srless::FiringHandler *handler);
 
             DependencyIterator computeGraphConsDependency(const Edge *edge,
                                                           int64_t lowerProd,

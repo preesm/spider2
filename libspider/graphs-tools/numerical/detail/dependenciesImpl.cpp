@@ -217,11 +217,17 @@ spider::pisdf::DependencyIterator spider::pisdf::detail::computeExecDependency(c
         /* == Case of getter vertex == */
         const auto *delayFromVertex = edge->source()->convertTo<pisdf::DelayVertex>()->delay();
         edge = delayFromVertex->edge();
+        const auto *sink = edge->sink();
         const auto snkRate = edge->sinkRateExpression().evaluate(handler->getParams());
-        const auto offset = snkRate * handler->getRV(edge->sink());
-        lowerCons += offset;
-        upperCons += offset;
-        return computeExecDependency(edge, lowerCons, upperCons, handler);
+        if (sink->subtype() == VertexType::OUTPUT) {
+            const auto srcRate = edge->sourceRateExpression().evaluate(handler->getParams());
+            const auto totSrcRate = srcRate * handler->getRV(edge->source());
+            const auto offset = totSrcRate - snkRate;
+            return computeExecDependency(edge, lowerCons + offset, upperCons + offset, handler);
+        } else {
+            const auto offset = snkRate * handler->getRV(edge->sink());
+            return computeExecDependency(edge, lowerCons + offset, upperCons + offset, handler);
+        }
     } else if (sourceType == VertexType::GRAPH) {
         return computeGraphExecDependency(edge, lowerCons, upperCons, handler);
     } else {
@@ -236,11 +242,12 @@ spider::pisdf::DependencyIterator spider::pisdf::detail::computeConsDependencyIm
                                                                                    int64_t lowerProd,
                                                                                    int64_t upperProd,
                                                                                    int64_t snkRate,
+                                                                                   int64_t snkTotRate,
                                                                                    const srless::FiringHandler *handler) {
     /* == Actual computation of dependencies == */
     const auto *delay = edge->delay();
     const auto delayValue = delay ? delay->value() : 0;
-    const auto snkTotRate = edge->sinkRateExpression().evaluate(handler->getParams()) * handler->getRV(edge->sink());
+//    const auto snkTotRate = edge->sinkRateExpression().evaluate(handler->getParams()) * handler->getRV(edge->sink());
     const auto delayedSnkRate = snkTotRate - delayValue;
     if (delay && (lowerProd >= delayedSnkRate)) {
         /* == getter only == */
@@ -272,6 +279,72 @@ spider::pisdf::DependencyIterator spider::pisdf::detail::computeConsDependencyIm
     }
 }
 
+spider::pisdf::DependencyIterator spider::pisdf::detail::computeOutputConsDependency(const Edge *edge,
+                                                                                     int64_t lowerProd,
+                                                                                     int64_t upperProd,
+                                                                                     const srless::FiringHandler *handler) {
+    const auto *sink = edge->sink();
+    const auto snkRate = edge->sinkRateExpression().evaluate(handler->getParams());
+    const auto srcRate = edge->sourceRateExpression().evaluate(handler->getParams());
+    const auto srcRV = handler->getRV(edge->source());
+    const auto *delay = edge->delay();
+    const auto delayValue = delay ? edge->delay()->value() : 0;
+    const auto totalRate = srcRate * srcRV + delayValue;
+    /* == Compute memory consumption on a virtual interface first == */
+    auto deps = computeConsDependencyImpl(edge, lowerProd, upperProd, totalRate, totalRate + delayValue, handler);
+    auto &dep = *deps.begin();
+    /* == Now check where we fall == */
+    const auto minValidMemWDelay = srcRate * srcRV - snkRate;
+    const auto minValidMemWODelay = minValidMemWDelay + delayValue;
+    if (dep.memoryEnd_ < minValidMemWDelay) {
+        return DependencyIterator{ VoidDependency{ }};
+    } else if ((dep.memoryStart_ >= minValidMemWODelay) || (!delayValue && (dep.memoryEnd_ >= minValidMemWODelay))) {
+        /* == forward dependency == */
+        edge = sink->graph()->outputEdge(sink->ix());
+        handler = handler->getParent()->handler();
+        lowerProd = dep.memoryStart_ < minValidMemWODelay ? 0 : dep.memoryStart_ - minValidMemWODelay;
+        upperProd = dep.memoryEnd_ - minValidMemWODelay;
+        return computeConsDependency(edge, lowerProd, upperProd, handler);
+    } else if (delay && dep.memoryEnd_ < minValidMemWODelay) {
+        /* == getter only == */
+        lowerProd = dep.memoryStart_ < minValidMemWDelay ? 0 : dep.memoryStart_ - minValidMemWDelay;
+        upperProd = dep.memoryEnd_ - minValidMemWDelay;
+        const auto *getterEdge = delay->getter()->inputEdge(delay->getterPortIx());
+        return computeConsDependency(getterEdge, lowerProd, upperProd, handler);
+    } else if (delay) {
+        /* == mix of getter and interface == */
+        const auto *getterEdge = delay->getter()->inputEdge(delay->getterPortIx());
+        const auto getterLowerProd = dep.memoryStart_ - minValidMemWDelay;
+        const auto getDeps = computeConsDependency(getterEdge, getterLowerProd, delayValue - 1, handler);
+        lowerProd = dep.memoryStart_ < minValidMemWODelay ? 0 : dep.memoryStart_ - minValidMemWODelay;
+        upperProd = dep.memoryEnd_ - minValidMemWODelay;
+        const auto snkDeps = computeConsDependency(edge, lowerProd, upperProd, handler);
+        const auto nSnkDeps = snkDeps.count();
+        const auto nGetDeps = getDeps.count();
+        if (nGetDeps + nSnkDeps > 2) {
+            auto dependencies = factory::vector<ExecDependencyInfo>(StackID::TRANSFO);
+            dependencies.reserve(static_cast<size_t>(nGetDeps + nSnkDeps));
+            std::move(std::begin(getDeps), std::end(getDeps), std::back_inserter(dependencies));
+            std::move(std::begin(snkDeps), std::end(snkDeps), std::back_inserter(dependencies));
+            return DependencyIterator{ MultipleDependency{ std::move(dependencies) }};
+        } else {
+            return DependencyIterator{ DualDependency{{ *(getDeps.begin()), *(snkDeps.begin()) }}};
+        }
+    } else {
+        throwSpiderException("unexpected behavior.");
+    }
+//    edge = sink->graph()->outputEdge(sink->ix());
+//    handler = handler->getParent()->handler();
+//    if ((srcRate * srcRV) == snkRate) {
+//        return computeConsDependency(edge, lowerProd, upperProd, handler);
+//    } else if (lowerProd >= (srcRate * srcRV - snkRate)) {
+//        return computeConsDependency(edge, lowerProd % snkRate, upperProd % snkRate, handler);
+//    } else if (upperProd >= (srcRate * srcRV - snkRate)) {
+//        return computeConsDependency(edge, 0, upperProd % snkRate, handler);
+//    }
+//    return DependencyIterator{ VoidDependency{ }};
+}
+
 
 spider::pisdf::DependencyIterator spider::pisdf::detail::computeGraphConsDependency(const Edge *edge,
                                                                                     int64_t lowerProd,
@@ -279,7 +352,8 @@ spider::pisdf::DependencyIterator spider::pisdf::detail::computeGraphConsDepende
                                                                                     const srless::FiringHandler *handler) {
     const auto *sink = edge->sink();
     const auto snkRate = edge->sinkRateExpression().evaluate(handler->getParams());
-    const auto graphDeps = computeConsDependencyImpl(edge, lowerProd, upperProd, snkRate, handler);
+    const auto snkRV = handler->getRV(sink);
+    const auto graphDeps = computeConsDependencyImpl(edge, lowerProd, upperProd, snkRate, snkRate * snkRV, handler);
     auto result = factory::vector<ExecDependencyInfo>(StackID::TRANSFO);
     for (auto &dep : graphDeps) {
         if (dep.vertex_ == sink) {
@@ -328,22 +402,9 @@ spider::pisdf::DependencyIterator spider::pisdf::detail::computeConsDependency(c
                                                                                int64_t upperProd,
                                                                                const srless::FiringHandler *handler) {
     /* == Handle specific cases == */
-    const auto *sink = edge->sink();
-    const auto sinkType = sink->subtype();
+    const auto sinkType = edge->sink()->subtype();
     if (sinkType == VertexType::OUTPUT) {
-        const auto snkRate = edge->sinkRateExpression().evaluate(handler->getParams());
-        const auto srcRate = edge->sourceRateExpression().evaluate(handler->getParams());
-        const auto srcRV = handler->getRV(edge->source());
-        edge = sink->graph()->outputEdge(sink->ix());
-        handler = handler->getParent()->handler();
-        if ((srcRate * srcRV) == snkRate) {
-            return computeConsDependency(edge, lowerProd, upperProd, handler);
-        } else if (lowerProd >= (srcRate * srcRV - snkRate)) {
-            return computeConsDependency(edge, lowerProd % snkRate, upperProd % snkRate, handler);
-        } else if (upperProd >= (srcRate * srcRV - snkRate)) {
-            return computeConsDependency(edge, 0, upperProd % snkRate, handler);
-        }
-        return DependencyIterator{ VoidDependency{ }};
+        return computeOutputConsDependency(edge, lowerProd, upperProd, handler);
     } else if (sinkType == VertexType::DELAY) {
         /* == Case of setter vertex == */
         const auto *delay = edge->sink()->convertTo<pisdf::DelayVertex>()->delay();
@@ -355,6 +416,7 @@ spider::pisdf::DependencyIterator spider::pisdf::detail::computeConsDependency(c
         return computeGraphConsDependency(edge, lowerProd, upperProd, handler);
     } else {
         const auto snkRate = edge->sinkRateExpression().evaluate(handler->getParams());
-        return computeConsDependencyImpl(edge, lowerProd, upperProd, snkRate, handler);
+        const auto snkRV = handler->getRV(edge->sink());
+        return computeConsDependencyImpl(edge, lowerProd, upperProd, snkRate, snkRate * snkRV, handler);
     }
 }
