@@ -98,15 +98,12 @@ namespace spider {
         }
 #endif
         const auto lastIt = std::next(it, mergedFifo.count_);
-        size_t offset{ 0u };
+        auto *destBuffer = reinterpret_cast<char *>(mergedBuffer);
         while (it != lastIt) {
             const auto fifo = *it;
             auto *buffer = readFunctions[static_cast<u8>(fifo.attribute_)](it, memoryInterface);
-            if (buffer) {
-                auto *destBuffer = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(mergedBuffer) + offset);
-                std::memcpy(destBuffer, buffer, fifo.size_);
-            }
-            offset += fifo.size_;
+            std::memcpy(destBuffer, buffer, fifo.size_);
+            destBuffer += fifo.size_;
         }
         return mergedBuffer;
     }
