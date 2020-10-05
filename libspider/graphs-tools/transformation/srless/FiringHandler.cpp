@@ -61,7 +61,7 @@ spider::srless::FiringHandler::FiringHandler(const GraphHandler *parent,
     const auto *graph = parent->graph();
     brv_ = spider::array<u32>(graph->vertexCount(), UINT32_MAX, StackID::TRANSFO);
     children_ = spider::array<GraphHandler *>(graph->subgraphCount(), nullptr, StackID::TRANSFO);
-    taskIxRegister_ = spider::array<u32 *>(graph->vertexCount() + graph->inputEdgeCount(), nullptr, StackID::TRANSFO);
+    taskIxRegister_ = spider::array<u32 *>(graph->vertexCount(), nullptr, StackID::TRANSFO);
     /* == copy parameters == */
     params_.reserve(params.size());
     for (const auto &param : params) {
@@ -84,20 +84,7 @@ void spider::srless::FiringHandler::registerTaskIx(const pisdf::Vertex *vertex, 
         throwSpiderException("invalid vertex firing.");
     }
 #endif
-    if (vertex->subtype() == pisdf::VertexType::INPUT) {
-        taskIxRegister_.at(vertex->ix() + vertex->graph()->vertexCount())[0u] = taskIx;
-    } else {
-        taskIxRegister_.at(vertex->ix())[firing] = taskIx;
-    }
-}
-
-void spider::srless::FiringHandler::registerTaskIx(const pisdf::Interface *interface, u32 taskIx) {
-#ifndef NDEBUG
-    if (interface->subtype() != pisdf::VertexType::INPUT) {
-        throwSpiderException("invalid interface type.");
-    }
-#endif
-    taskIxRegister_.at(interface->ix() + interface->graph()->vertexCount())[0u] = taskIx;
+    taskIxRegister_.at(vertex->ix())[firing] = taskIx;
 }
 
 void spider::srless::FiringHandler::resolveBRV() {
@@ -119,19 +106,6 @@ void spider::srless::FiringHandler::resolveBRV() {
             taskIxRegister_[ix] = spider::allocate<u32, StackID::TRANSFO>(rvValue);
         }
         std::fill(taskIxRegister_.at(ix), std::next(taskIxRegister_.at(ix), rvValue), UINT32_MAX);
-    }
-    /* == Check input interfaces == */
-    for (const auto &interface : parent_->graph()->inputInterfaceVector()) {
-        const auto ix = interface->ix() + parent_->graph()->vertexCount();
-        if (!pisdf::isInterfaceTransparent(interface.get(), this)) {
-            if (!taskIxRegister_[ix]) {
-                taskIxRegister_[ix] = spider::allocate<u32, StackID::TRANSFO>(1u);
-            }
-            taskIxRegister_[ix][0u] = UINT32_MAX;
-        } else if (taskIxRegister_[ix]) {
-            deallocate(taskIxRegister_[ix]);
-            taskIxRegister_[ix] = nullptr;
-        }
     }
     /* == creates children == */
     for (const auto &subgraph : parent_->graph()->subgraphs()) {
@@ -161,9 +135,6 @@ u32 spider::srless::FiringHandler::getRV(const spider::pisdf::Vertex *vertex) co
         throwSpiderException("vertex does not belong to the correct graph.");
     }
 #endif
-    if (vertex->subtype() == pisdf::VertexType::INPUT || vertex->subtype() == pisdf::VertexType::OUTPUT) {
-        return 1u;
-    }
     return brv_.at(vertex->ix());
 }
 
@@ -173,19 +144,7 @@ u32 spider::srless::FiringHandler::getTaskIx(const spider::pisdf::Vertex *vertex
         throwSpiderException("invalid vertex firing.");
     }
 #endif
-    if (vertex->subtype() == pisdf::VertexType::INPUT) {
-        return taskIxRegister_.at(vertex->ix() + vertex->graph()->vertexCount())[0u];
-    }
     return taskIxRegister_.at(vertex->ix())[vertexFiring];
-}
-
-u32 spider::srless::FiringHandler::getTaskIx(const spider::pisdf::Interface *interface) const {
-#ifndef NDEBUG
-    if (interface->subtype() != pisdf::VertexType::INPUT) {
-        throwSpiderException("invalid interface type.");
-    }
-#endif
-    return taskIxRegister_.at(interface->ix() + interface->graph()->vertexCount())[0u];
 }
 
 const spider::srless::FiringHandler *

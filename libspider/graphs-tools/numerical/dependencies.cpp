@@ -82,7 +82,7 @@ spider::pisdf::DependencyIterator spider::pisdf::computeConsDependency(const Ver
     if (!srcRate) {
         return DependencyIterator{ VoidDependency{ }};
     }
-    return detail::computeConsDependencyImpl(edge, srcRate * firing, srcRate * (firing + 1) - 1, handler);
+    return detail::computeConsDependency(edge, srcRate * firing, srcRate * (firing + 1) - 1, handler);
 }
 
 ifast64 spider::pisdf::computeConsLowerDep(ifast64 consumption, ifast64 production, ifast32 firing, ifast64 delay) {

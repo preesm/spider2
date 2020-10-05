@@ -85,13 +85,6 @@ namespace spider {
             void registerTaskIx(const pisdf::Vertex *vertex, u32 firing, u32 taskIx);
 
             /**
-             * @brief Registers the Task ix for a given input interface.
-             * @param interface Pointer to the interface.
-             * @param taskIx    Task ix.
-             */
-            void registerTaskIx(const pisdf::Interface *interface, u32 taskIx);
-
-            /**
              * @brief Compute BRV and save the values based on current value of parameters.
              * @remark this method automatically set the resolved_ flag to true.
              */
@@ -121,8 +114,6 @@ namespace spider {
             u32 getRV(const pisdf::Vertex *vertex) const;
 
             u32 getTaskIx(const pisdf::Vertex *vertex, u32 vertexFiring) const;
-
-            u32 getTaskIx(const pisdf::Interface *interface) const;
 
             const FiringHandler *getChildFiring(const pisdf::Graph *subgraph, u32 firing) const;
 

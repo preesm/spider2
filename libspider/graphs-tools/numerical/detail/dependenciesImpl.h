@@ -71,8 +71,18 @@ namespace spider {
             DependencyIterator computeConsDependencyImpl(const Edge *edge,
                                                          int64_t lowerProd,
                                                          int64_t upperProd,
-                                                         const srless::FiringHandler *handler,
-                                                         bool bypass = false);
+                                                         int64_t snkRate,
+                                                         const srless::FiringHandler *handler);
+
+            DependencyIterator computeGraphConsDependency(const Edge *edge,
+                                                          int64_t lowerProd,
+                                                          int64_t upperProd,
+                                                          const srless::FiringHandler *handler);
+
+            DependencyIterator computeConsDependency(const Edge *edge,
+                                                     int64_t lowerProd,
+                                                     int64_t upperProd,
+                                                     const srless::FiringHandler *handler);
         }
     }
 }

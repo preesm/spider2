@@ -95,15 +95,6 @@ void spider::sched::SRLessGreedyScheduler::recursiveAddVertices(spider::srless::
                     }
                 }
             }
-            for (const auto &interface : graphHandler->graph()->inputInterfaceVector()) {
-                if (!pisdf::isInterfaceTransparent(interface.get(), firingHandler) &&
-                    firingHandler->getTaskIx(interface.get()) == UINT32_MAX) {
-                    firingHandler->registerTaskIx(interface.get(), static_cast<u32>(this->unscheduledVertices_.size()));
-                    this->unscheduledVertices_.push_back(
-                            { factory::vector<pisdf::DependencyIterator>(StackID::SCHEDULE),
-                              interface.get(), firingHandler, 0, true, false });
-                }
-            }
         }
         for (auto *child : firingHandler->children()) {
             recursiveAddVertices(child);
@@ -112,19 +103,11 @@ void spider::sched::SRLessGreedyScheduler::recursiveAddVertices(spider::srless::
 }
 
 spider::sched::SRLessGreedyScheduler::iterator_t spider::sched::SRLessGreedyScheduler::evaluate(iterator_t it) {
-    if (it->vertex_->inputEdgeCount() > 0u) {
-        if (it->deps_.empty()) {
-            it->deps_.reserve(it->vertex_->inputEdgeCount());
-            for (u32 i = 0; i < static_cast<u32>(it->vertex_->inputEdgeCount()); ++i) {
-                it->deps_.emplace_back(pisdf::computeExecDependency(it->vertex_, it->firing_, i, it->handler_));
-            }
+    if ((it->vertex_->inputEdgeCount() > 0u) && it->deps_.empty()) {
+        it->deps_.reserve(it->vertex_->inputEdgeCount());
+        for (u32 i = 0; i < static_cast<u32>(it->vertex_->inputEdgeCount()); ++i) {
+            it->deps_.emplace_back(pisdf::computeExecDependency(it->vertex_, it->firing_, i, it->handler_));
         }
-    } else if (it->vertex_->subtype() == pisdf::VertexType::INPUT) {
-        const auto *graph = it->vertex_->graph();
-        const auto graphFiring = it->handler_->firingValue();
-        const auto *graphHandler = it->handler_->getParent()->handler();
-        const auto edgeIx = static_cast<u32>(it->vertex_->ix());
-        it->deps_.emplace_back(pisdf::computeExecDependency(graph, graphFiring, edgeIx, graphHandler));
     }
     for (const auto &itDep : it->deps_) {
         for (const auto &dep : itDep) {
