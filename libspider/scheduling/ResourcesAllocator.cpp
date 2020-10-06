@@ -45,11 +45,11 @@
 #endif
 
 #include <scheduling/scheduler/SRLessGreedyScheduler.h>
+#include <scheduling/scheduler/SRLessListScheduler.h>
 #include <scheduling/mapper/BestFitMapper.h>
 #include <scheduling/memory/FifoAllocator.h>
 #include <scheduling/memory/NoSyncFifoAllocator.h>
-#include <scheduling/task/TaskVertex.h>
-#include <scheduling/task/TaskSRLess.h>
+#include <scheduling/task/Task.h>
 #include <api/archi-api.h>
 #include <archi/Platform.h>
 #include <archi/PE.h>
@@ -130,7 +130,7 @@ spider::sched::ResourcesAllocator::allocateScheduler(SchedulingPolicy policy, bo
                 return nullptr;
 #endif
             }
-            return nullptr;
+            return spider::make<sched::SRLessListScheduler, StackID::SCHEDULE>();
         case SchedulingPolicy::GREEDY:
             if (legacy) {
 #ifndef _NO_BUILD_LEGACY_RT

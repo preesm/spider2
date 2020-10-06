@@ -126,6 +126,10 @@ namespace spider {
 
             inline void schedule(const pisdf::Graph *) override { }
 
+            /**
+             * @brief Recursively add vertices into the unscheduledVertices_ vector.
+             * @param graphHandler  Top level graph handler;
+             */
             void recursiveAddVertices(spider::srless::GraphHandler *graphHandler);
 
             /**
@@ -137,6 +141,13 @@ namespace spider {
              */
             iterator_t evaluate(iterator_t it);
 
+            /**
+             * @brief Evaluate schedulability of given iterator with given dependencies information.
+             * @remark if method return true, iterator is probably swapped.
+             * @param it              Reference to the iterator
+             * @param dependencyInfo  Dependencies information
+             * @return true if not schedulable, false else
+             */
             bool evaluate(iterator_t &it, const pisdf::DependencyInfo &dependencyInfo);
 
             /**
