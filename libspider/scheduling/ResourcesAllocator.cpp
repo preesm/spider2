@@ -57,20 +57,6 @@
 
 /* === Static function === */
 
-static spider::sched::FifoAllocator *makeFifoAllocator(spider::FifoAllocatorType type) {
-    switch (type) {
-        case spider::FifoAllocatorType::DEFAULT:
-            return spider::make<spider::sched::FifoAllocator, StackID::RUNTIME>();
-        case spider::FifoAllocatorType::DEFAULT_NOSYNC:
-            return spider::make<spider::sched::NoSyncFifoAllocator, StackID::RUNTIME>();
-        case spider::FifoAllocatorType::ARCHI_AWARE:
-            break;
-        default:
-            throwSpiderException("unsupported type of FifoAllocator.");
-    }
-    return nullptr;
-}
-
 static void checkFifoAllocatorTraits(const spider::sched::FifoAllocator *allocator, spider::ExecutionPolicy policy) {
     switch (policy) {
         case spider::ExecutionPolicy::JIT:
@@ -96,7 +82,7 @@ spider::sched::ResourcesAllocator::ResourcesAllocator(SchedulingPolicy schedulin
         scheduler_{ spider::make_unique(allocateScheduler(schedulingPolicy, legacy)) },
         mapper_{ spider::make_unique(allocateMapper(mappingPolicy)) },
         schedule_{ spider::make_unique<Schedule, StackID::SCHEDULE>() },
-        allocator_{ spider::make_unique(makeFifoAllocator(allocatorType)) },
+        allocator_{ spider::make_unique(allocateAllocator(allocatorType, legacy)) },
         executionPolicy_{ executionPolicy } {
     if (allocator_) {
         checkFifoAllocatorTraits(allocator_.get(), executionPolicy);
@@ -133,7 +119,8 @@ void spider::sched::ResourcesAllocator::clear() {
 
 /* === Private method(s) implementation === */
 
-spider::sched::Scheduler *spider::sched::ResourcesAllocator::allocateScheduler(SchedulingPolicy policy, bool legacy) {
+spider::sched::Scheduler *
+spider::sched::ResourcesAllocator::allocateScheduler(SchedulingPolicy policy, bool legacy) const {
     switch (policy) {
         case SchedulingPolicy::LIST:
             if (legacy) {
@@ -159,7 +146,23 @@ spider::sched::Scheduler *spider::sched::ResourcesAllocator::allocateScheduler(S
     }
 }
 
-spider::sched::Mapper *spider::sched::ResourcesAllocator::allocateMapper(MappingPolicy policy) {
+spider::sched::FifoAllocator *
+spider::sched::ResourcesAllocator::allocateAllocator(FifoAllocatorType type, bool legacy) const {
+    switch (type) {
+        case spider::FifoAllocatorType::DEFAULT:
+            return spider::make<spider::sched::FifoAllocator, StackID::RUNTIME>();
+        case spider::FifoAllocatorType::DEFAULT_NOSYNC:
+            if (!legacy) {
+                return spider::make<spider::sched::FifoAllocator, StackID::RUNTIME>();
+            }
+            return spider::make<spider::sched::NoSyncFifoAllocator, StackID::RUNTIME>();
+        case spider::FifoAllocatorType::ARCHI_AWARE:
+        default:
+            throwSpiderException("unsupported type of FifoAllocator.");
+    }
+}
+
+spider::sched::Mapper *spider::sched::ResourcesAllocator::allocateMapper(MappingPolicy policy) const {
     switch (policy) {
         case MappingPolicy::BEST_FIT:
             return spider::make<sched::BestFitMapper, StackID::SCHEDULE>();

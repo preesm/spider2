@@ -34,7 +34,7 @@
 
 /* === Include(s) === */
 
-#include <graphs-tools/numerical/detail/ExecDependencyInfo.h>
+#include <graphs-tools/numerical/detail/DependencyInfo.h>
 #include <containers/vector.h>
 
 namespace spider {
@@ -43,9 +43,9 @@ namespace spider {
         /* === Class definition === */
 
         struct MultipleDependency {
-            spider::vector<ExecDependencyInfo> infos_;
+            spider::vector<DependencyInfo> infos_;
 
-            explicit MultipleDependency(spider::vector<ExecDependencyInfo> infos) : infos_{ std::move(infos) } {
+            explicit MultipleDependency(spider::vector<DependencyInfo> infos) : infos_{ std::move(infos) } {
 
             }
 

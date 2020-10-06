@@ -46,8 +46,6 @@
 #include <graphs/pisdf/Graph.h>
 #include <runtime/special-kernels/specialKernels.h>
 #include <graphs-tools/numerical/dependencies.h>
-#include <numeric>
-#include <graphs-tools/numerical/ExecIterator.h>
 
 /* === Static function === */
 
@@ -55,26 +53,18 @@
 
 spider::sched::TaskSRLess::TaskSRLess(srless::FiringHandler *handler,
                                       const pisdf::Vertex *vertex,
-                                      u32 firing) :
-        Task(),
-        handler_{ handler },
-        vertex_{ vertex },
-        firing_{ firing },
-        dependenciesCount_{ 0u } {
-    size_t mergedFifoCount{ 0u };
-    for (const auto *edge : vertex->inputEdgeVector()) {
-        const auto current = dependenciesCount_;
-        auto depIt = spider::pisdf::make_iterator(vertex_, firing_, edge->sinkPortIx(), handler_);
-        for (auto dep = depIt.begin(); dep != depIt.end(); dep = (depIt)++) {
-            dependenciesCount_ += dep->firingEnd_ - dep->firingStart_ + 1u;
-        }
-        mergedFifoCount += ((current + 1) < dependenciesCount_);
-    }
-    fifos_ = spider::make_shared<AllocatedFifos, StackID::SCHEDULE>(dependenciesCount_ + mergedFifoCount,
-                                                                    vertex->outputEdgeCount());
-    execInfo_.dependencies_ = spider::make_unique(allocate<Task *, StackID::SCHEDULE>(dependenciesCount_));
+                                      u32 firing,
+                                      u32 depCount,
+                                      u32 mergedFifoCount) : Task(),
+                                                             handler_{ handler },
+                                                             vertex_{ vertex },
+                                                             firing_{ firing },
+                                                             dependenciesCount_{ depCount } {
+    const auto inputFifoCount = depCount + mergedFifoCount;
+    fifos_ = spider::make_shared<AllocatedFifos, StackID::SCHEDULE>(inputFifoCount, vertex->outputEdgeCount());
+    execInfo_.dependencies_ = spider::make_unique(allocate<Task *, StackID::SCHEDULE>(depCount));
     auto *beginIt = execInfo_.dependencies_.get();
-    std::fill(beginIt, std::next(beginIt, static_cast<long>(dependenciesCount_)), nullptr);
+    std::fill(beginIt, std::next(beginIt, static_cast<long>(depCount)), nullptr);
 }
 
 spider::sched::Task *spider::sched::TaskSRLess::previousTask(size_t ix) const {
@@ -89,9 +79,9 @@ spider::sched::Task *spider::sched::TaskSRLess::previousTask(size_t ix) const {
 void spider::sched::TaskSRLess::updateTaskExecutionDependencies(const Schedule *schedule) {
     size_t i = 0u;
     for (const auto *edge : vertex_->inputEdgeVector()) {
-        auto depIt = spider::pisdf::make_iterator(vertex_, firing_, edge->sinkPortIx(), handler_);
-        for (auto dep = depIt.begin(); dep != depIt.end(); dep = (depIt)++) {
-            i = updateTaskExecutionDependency(schedule, *dep, i);
+        const auto deps = spider::pisdf::computeExecDependency(vertex_, firing_, edge->sinkPortIx(), handler_);
+        for (const auto &dep : deps) {
+            i = updateTaskExecutionDependency(schedule, dep, i);
         }
     }
 }
@@ -138,9 +128,7 @@ spider::sched::AllocationRule spider::sched::TaskSRLess::allocationRuleForInputF
     }
 #endif
     const auto *edge = vertex_->inputEdge(ix);
-//    return allocateInputFifo(pisdf::computeExecDependency(vertex_, firing_, edge->sinkPortIx(), handler_), edge);
     return allocateInputFifo(edge);
-//    return allocateInputFifo(dependencies_[ix], edge);
 }
 
 spider::sched::AllocationRule spider::sched::TaskSRLess::allocationRuleForOutputFifo(size_t ix) const {
@@ -154,7 +142,7 @@ spider::sched::AllocationRule spider::sched::TaskSRLess::allocationRuleForOutput
     rule.size_ = static_cast<size_t>(edge->sourceRateExpression().evaluate(handler_->getParams()));
     rule.offset_ = 0u;
     rule.fifoIx_ = 0u;
-    rule.count_ = rule.size_ ? computeConsCount(edge, firing_, handler_) : 0u;
+    rule.count_ = rule.size_ ? computeConsCount(edge) : 0u;
     if (!rule.count_ && rule.size_) {
         rule.count_ = 1u;
         rule.attribute_ = FifoAttribute::W_SINK;
@@ -278,7 +266,7 @@ spider::sched::DependencyInfo spider::sched::TaskSRLess::getDependencyInfo(size_
 /* === Private method(s) implementation === */
 
 size_t spider::sched::TaskSRLess::updateTaskExecutionDependency(const Schedule *schedule,
-                                                                const pisdf::ExecDependencyInfo &dependencyInfo,
+                                                                const pisdf::DependencyInfo &dependencyInfo,
                                                                 size_t index) {
     for (u32 k = dependencyInfo.firingStart_; k <= dependencyInfo.firingEnd_; ++k) {
         const auto taskIx = dependencyInfo.handler_->getTaskIx(dependencyInfo.vertex_, k);
@@ -291,9 +279,9 @@ size_t spider::sched::TaskSRLess::updateTaskExecutionDependency(const Schedule *
 spider::sched::AllocationRule
 spider::sched::TaskSRLess::allocateInputFifo(const pisdf::Edge *edge) const {
     u32 count = 0;
-    auto depIt = spider::pisdf::make_iterator(vertex_, firing_, edge->sinkPortIx(), handler_);
-    for (auto dep = depIt.begin(); dep != depIt.end(); dep = (depIt)++) {
-        count += dep->firingEnd_ - dep->firingStart_ + 1u;
+    const auto deps = spider::pisdf::computeExecDependency(vertex_, firing_, edge->sinkPortIx(), handler_);
+    for (const auto &dep : deps) {
+        count += dep.firingEnd_ - dep.firingStart_ + 1u;
     }
     auto rule = AllocationRule{ };
     if (count > 1u) {
@@ -305,43 +293,43 @@ spider::sched::TaskSRLess::allocateInputFifo(const pisdf::Edge *edge) const {
         rule.type_ = AllocType::MERGE;
         rule.attribute_ = FifoAttribute::R_MERGE;
         size_t offset = 0u;
-        for (auto dep = depIt.begin(); dep != depIt.end(); dep = (depIt)++) {
+        for (const auto &dep : deps) {
             /* == first dependency == */
             rule.others_[offset].others_ = nullptr;
-            rule.others_[offset].size_ = dep->firingStart_ == dep->firingEnd_ ?
-                                         (dep->memoryEnd_ - dep->memoryStart_ + 1u) :
-                                         static_cast<size_t>(dep->rate_ - dep->memoryStart_);
-            rule.others_[offset].offset_ = dep->memoryStart_;
-            rule.others_[offset].fifoIx_ = dep->edgeIx_;
+            rule.others_[offset].size_ = dep.firingStart_ == dep.firingEnd_ ?
+                                         (dep.memoryEnd_ - dep.memoryStart_ + 1u) :
+                                         static_cast<size_t>(dep.rate_ - dep.memoryStart_);
+            rule.others_[offset].offset_ = dep.memoryStart_;
+            rule.others_[offset].fifoIx_ = dep.edgeIx_;
             rule.others_[offset].count_ = 0u;
             rule.others_[offset].type_ = spider::sched::AllocType::SAME_IN;
             rule.others_[offset].attribute_ = spider::FifoAttribute::RW_OWN;
             /* == middle dependencies if > 2 == */
-            for (auto k = dep->firingStart_ + 1; k < dep->firingEnd_; ++k) {
-                const auto ix = k + offset - dep->firingStart_;
+            for (auto k = dep.firingStart_ + 1; k < dep.firingEnd_; ++k) {
+                const auto ix = k + offset - dep.firingStart_;
                 rule.others_[ix].others_ = nullptr;
-                rule.others_[ix].size_ = static_cast<size_t>(dep->rate_);
+                rule.others_[ix].size_ = static_cast<size_t>(dep.rate_);
                 rule.others_[ix].offset_ = 0u;
-                rule.others_[ix].fifoIx_ = dep->edgeIx_;
+                rule.others_[ix].fifoIx_ = dep.edgeIx_;
                 rule.others_[ix].count_ = 0u;
                 rule.others_[ix].type_ = spider::sched::AllocType::SAME_IN;
                 rule.others_[ix].attribute_ = spider::FifoAttribute::RW_OWN;
             }
             /* == last dependency == */
-            const auto ix = dep->firingEnd_ - dep->firingStart_ + offset;
+            const auto ix = dep.firingEnd_ - dep.firingStart_ + offset;
             if (ix > offset) {
                 rule.others_[ix].others_ = nullptr;
-                rule.others_[ix].size_ = dep->memoryEnd_ + 1u;
+                rule.others_[ix].size_ = dep.memoryEnd_ + 1u;
                 rule.others_[ix].offset_ = 0u;
-                rule.others_[ix].fifoIx_ = dep->edgeIx_;
+                rule.others_[ix].fifoIx_ = dep.edgeIx_;
                 rule.others_[ix].count_ = 0u;
                 rule.others_[ix].type_ = spider::sched::AllocType::SAME_IN;
                 rule.others_[ix].attribute_ = spider::FifoAttribute::RW_OWN;
             }
-            offset += (dep->firingEnd_ - dep->firingStart_) + 1u;
+            offset += (dep.firingEnd_ - dep.firingStart_) + 1u;
         }
     } else {
-        const auto &dep = *(depIt.begin());
+        const auto &dep = *(deps.begin());
         rule.size_ = dep.memoryEnd_ - dep.memoryStart_ + 1u;
         rule.offset_ = dep.memoryStart_;
         rule.fifoIx_ = dep.edgeIx_;
@@ -352,12 +340,10 @@ spider::sched::TaskSRLess::allocateInputFifo(const pisdf::Edge *edge) const {
     return rule;
 }
 
-u32 spider::sched::TaskSRLess::computeConsCount(const pisdf::Edge *edge,
-                                                u32 firing,
-                                                const srless::FiringHandler *handler) const {
-    const auto edgeIx = static_cast<u32>(edge->sourcePortIx());
-    const auto dependencies = pisdf::computeConsDependency(edge->source(), firing, edgeIx, handler);
+u32 spider::sched::TaskSRLess::computeConsCount(const pisdf::Edge *edge) const {
     u32 count = 0;
+    const auto edgeIx = static_cast<u32>(edge->sourcePortIx());
+    const auto dependencies = pisdf::computeConsDependency(vertex_, firing_, edgeIx, handler_);
     for (const auto &dep : dependencies) {
         count += dep.firingEnd_ - dep.firingStart_ + 1u;
     }

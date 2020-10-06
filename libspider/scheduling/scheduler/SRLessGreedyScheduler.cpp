@@ -43,7 +43,6 @@
 #include <scheduling/task/TaskSRLess.h>
 #include <graphs-tools/helper/pisdf-helper.h>
 #include <graphs-tools/numerical/dependencies.h>
-#include <graphs-tools/numerical/ExecIterator.h>
 
 /* === Static function === */
 
@@ -103,21 +102,26 @@ void spider::sched::SRLessGreedyScheduler::recursiveAddVertices(spider::srless::
 }
 
 spider::sched::SRLessGreedyScheduler::iterator_t spider::sched::SRLessGreedyScheduler::evaluate(iterator_t it) {
+    u32 depCount{};
+    u32 mergedFifoCount{ };
     for (u32 i = 0; i < static_cast<u32>(it->vertex_->inputEdgeCount()); ++i) {
-        auto depIt = spider::pisdf::make_iterator(it->vertex_, it->firing_, i, it->handler_);
-        for (auto dep = depIt.begin(); dep != depIt.end(); dep = (depIt)++) {
-            if (evaluate(it, *dep)) {
+        const auto current = depCount;
+        const auto deps = pisdf::computeExecDependency(it->vertex_, it->firing_, i, it->handler_);
+        for (const auto dep : deps) {
+            if (evaluate(it, dep)) {
                 return it;
             }
+            depCount += dep.firingEnd_ - dep.firingStart_ + 1u;
         }
+        mergedFifoCount += ((current + 1) < depCount);
     }
     /* == add vertex to task vector == */
-    tasks_.emplace_back(make<TaskSRLess>(it->handler_, it->vertex_, it->firing_));
+    tasks_.emplace_back(make<TaskSRLess>(it->handler_, it->vertex_, it->firing_, depCount, mergedFifoCount));
     it->handler_->registerTaskIx(it->vertex_, it->firing_, UINT32_MAX);
     return removeAndSwap(it);
 }
 
-bool spider::sched::SRLessGreedyScheduler::evaluate(iterator_t &it, const pisdf::ExecDependencyInfo &dependencyInfo) {
+bool spider::sched::SRLessGreedyScheduler::evaluate(iterator_t &it, const pisdf::DependencyInfo &dependencyInfo) {
     if (!dependencyInfo.vertex_ || !dependencyInfo.rate_) {
         return false;
     } else if (dependencyInfo.rate_ < 0) {

@@ -105,7 +105,16 @@ namespace spider {
              * @return pointer to the created @refitem Scheduler.
              * @throw @refitem spider::Exception if the scheduling policy is not supported.
              */
-            Scheduler *allocateScheduler(SchedulingPolicy policy, bool legacy);
+            Scheduler *allocateScheduler(SchedulingPolicy policy, bool legacy) const;
+
+            /**
+             * @brief Allocates the fifo allocator corresponding to the given type.
+             * @param type    Allocator type to use.
+             * @param legacy  Flag indicating if we are using the legacy intermediate representation (i.e SRDAG).
+             * @return pointer to the created @refitem FifoAllocator.
+             * @throw @refitem spider::Exception if the allocating type is not supported.
+             */
+            FifoAllocator *allocateAllocator(FifoAllocatorType type, bool legacy) const;
 
             /**
              * @brief Allocates the mapper corresponding to the given policy.
@@ -113,7 +122,7 @@ namespace spider {
              * @return pointer to the created @refitem Mapper.
              * @throw @refitem spider::Exception if the mapping policy is not supported.
              */
-            Mapper *allocateMapper(MappingPolicy policy);
+            Mapper *allocateMapper(MappingPolicy policy) const;
 
             /**
              * @brief Apply the @refitem ExecutionPolicy of the ResourceAllocator.

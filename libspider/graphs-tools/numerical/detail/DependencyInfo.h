@@ -32,15 +32,12 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_EXECITERATOR_H
-#define SPIDER2_EXECITERATOR_H
+#ifndef SPIDER2_DEPENDENCYINFO_H
+#define SPIDER2_DEPENDENCYINFO_H
 
 /* === Include(s) === */
 
 #include <common/Types.h>
-#include <memory/unique_ptr.h>
-#include <containers/vector.h>
-#include <graphs-tools/numerical/detail/ExecDependencyInfo.h>
 
 namespace spider {
 
@@ -49,59 +46,22 @@ namespace spider {
     }
 
     namespace pisdf {
-        class Edge;
 
         class Vertex;
 
-        /* === Class definition === */
+        /* === Struct definition === */
 
-        class ExecIterator final {
-        public:
-            using type_t = ExecDependencyInfo;
-            using pointer_t = ExecDependencyInfo *;
-            using const_pointer_t = const ExecDependencyInfo *;
-
-            ExecIterator(const Edge *edge, int64_t lowerCons, int64_t upperCons, const srless::FiringHandler *handler);
-
-            ~ExecIterator() = default;
-
-            ExecIterator(const ExecIterator &) = delete;
-
-            ExecIterator &operator=(const ExecIterator &) = delete;
-
-            ExecIterator &operator=(ExecIterator &&) = default;
-
-            ExecIterator(ExecIterator &&) = default;
-
-            /* === Method(s) === */
-
-            pointer_t begin();
-
-            pointer_t operator++(int);
-
-            pointer_t end();
-
-            /* === Getter(s) === */
-
-            /* === Setter(s) === */
-
-        private:
-            spider::vector<spider::unique_ptr<ExecIterator>> deps_;
-            spider::unique_ptr<ExecDependencyInfo> info_;
-            u32 current_{ };
-
-            /* === Private method(s) === */
-
-            ExecDependencyInfo createExecDependency(const Edge *edge,
-                                                    int64_t lowerCons,
-                                                    int64_t upperCons,
-                                                    int64_t srcRate,
-                                                    int64_t delayValue,
-                                                    const srless::FiringHandler *handler) const;
+        struct DependencyInfo {
+            const Vertex *vertex_;
+            const srless::FiringHandler *handler_;
+            int64_t rate_;
+            u32 edgeIx_;
+            u32 memoryStart_;
+            u32 memoryEnd_;
+            u32 firingStart_;
+            u32 firingEnd_;
         };
-
-        ExecIterator make_iterator(const Vertex *vertex, u32 firing, size_t edgeIx, const srless::FiringHandler *handler);
     }
 }
 
-#endif //SPIDER2_EXECITERATOR_H
+#endif //SPIDER2_DEPENDENCYINFO_H

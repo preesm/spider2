@@ -47,43 +47,10 @@ namespace spider {
 
             /* === Function(s) prototype === */
 
-            DependencyIterator computeExecDependencyImpl(const Edge *edge,
-                                                         int64_t lowerCons,
-                                                         int64_t upperCons,
-                                                         int64_t srcRate,
-                                                         const srless::FiringHandler *handler);
-
-            DependencyIterator computeInputExecDependency(const Edge *edge,
-                                                          int64_t lowerCons,
-                                                          int64_t upperCons,
-                                                          const srless::FiringHandler *handler);
-
-            DependencyIterator computeGraphExecDependency(const Edge *edge,
-                                                          int64_t lowerCons,
-                                                          int64_t upperCons,
-                                                          const srless::FiringHandler *handler);
-
             DependencyIterator computeExecDependency(const Edge *edge,
                                                      int64_t lowerCons,
                                                      int64_t upperCons,
                                                      const srless::FiringHandler *handler);
-
-            DependencyIterator computeConsDependencyImpl(const Edge *edge,
-                                                         int64_t lowerProd,
-                                                         int64_t upperProd,
-                                                         int64_t snkRate,
-                                                         int64_t snkTotRate,
-                                                         const srless::FiringHandler *handler);
-
-            DependencyIterator computeOutputConsDependency(const Edge *edge,
-                                                           int64_t lowerProd,
-                                                           int64_t upperProd,
-                                                           const srless::FiringHandler *handler);
-
-            DependencyIterator computeGraphConsDependency(const Edge *edge,
-                                                          int64_t lowerProd,
-                                                          int64_t upperProd,
-                                                          const srless::FiringHandler *handler);
 
             DependencyIterator computeConsDependency(const Edge *edge,
                                                      int64_t lowerProd,

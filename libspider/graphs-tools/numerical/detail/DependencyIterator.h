@@ -39,7 +39,6 @@
 
 #include <extra/variant.h>
 #include <graphs-tools/numerical/detail/UniqueDependency.h>
-#include <graphs-tools/numerical/detail/DualDependency.h>
 #include <graphs-tools/numerical/detail/MultipleDependency.h>
 
 namespace spider {
@@ -51,17 +50,15 @@ namespace spider {
 
         struct DependencyIterator {
         public:
-            using iterator = ExecDependencyInfo *;
+            using iterator = DependencyInfo *;
 
-            using const_iterator = const ExecDependencyInfo *;
+            using const_iterator = const DependencyInfo *;
 
             explicit DependencyIterator(UniqueDependency it) : it_{ it } { };
 
             explicit DependencyIterator(VoidDependency it) : it_{ it } { };
 
             explicit DependencyIterator(MultipleDependency it) : it_{ std::move(it) } { };
-
-            explicit DependencyIterator(DualDependency it) : it_{ it } { };
 
             DependencyIterator(const DependencyIterator &) = default;
 
@@ -84,8 +81,6 @@ namespace spider {
                     return &(mpark::get<UniqueDependency>(it_).info_);
                 } else if (mpark::holds_alternative<VoidDependency>(it_)) {
                     return nullptr;
-                } else if (mpark::holds_alternative<DualDependency>(it_)) {
-                    return mpark::get<DualDependency>(it_).infos_.data();
                 }
                 return mpark::get<MultipleDependency>(it_).infos_.data();
             }
@@ -95,8 +90,6 @@ namespace spider {
                     return &(mpark::get<UniqueDependency>(it_).info_);
                 } else if (mpark::holds_alternative<VoidDependency>(it_)) {
                     return nullptr;
-                } else if (mpark::holds_alternative<DualDependency>(it_)) {
-                    return mpark::get<DualDependency>(it_).infos_.data();
                 }
                 return mpark::get<MultipleDependency>(it_).infos_.data();
             }
@@ -106,8 +99,6 @@ namespace spider {
                     return &(mpark::get<UniqueDependency>(it_).info_) + 1;
                 } else if (mpark::holds_alternative<VoidDependency>(it_)) {
                     return nullptr;
-                } else if (mpark::holds_alternative<DualDependency>(it_)) {
-                    return mpark::get<DualDependency>(it_).infos_.end();
                 } else {
                     return mpark::get<MultipleDependency>(it_).infos_.end().base();
                 }
@@ -118,15 +109,13 @@ namespace spider {
                     return &(mpark::get<UniqueDependency>(it_).info_) + 1;
                 } else if (mpark::holds_alternative<VoidDependency>(it_)) {
                     return nullptr;
-                } else if (mpark::holds_alternative<DualDependency>(it_)) {
-                    return mpark::get<DualDependency>(it_).infos_.end();
                 } else {
                     return mpark::get<MultipleDependency>(it_).infos_.end().base();
                 }
             }
 
         private:
-            mpark::variant<UniqueDependency, DualDependency, MultipleDependency, VoidDependency> it_;
+            mpark::variant<UniqueDependency, MultipleDependency, VoidDependency> it_;
         };
     }
 }

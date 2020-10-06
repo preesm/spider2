@@ -37,7 +37,7 @@
 
 /* === Include(s) === */
 
-#include <graphs-tools/numerical/detail/ExecDependencyInfo.h>
+#include <graphs-tools/numerical/detail/DependencyInfo.h>
 
 namespace spider {
     namespace pisdf {
@@ -45,7 +45,7 @@ namespace spider {
         /* === Class definition === */
 
         struct UniqueDependency {
-            ExecDependencyInfo info_;
+            DependencyInfo info_;
         };
     }
 }

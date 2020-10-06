@@ -49,7 +49,7 @@ namespace spider {
     namespace pisdf {
         class Vertex;
 
-        struct ExecDependencyInfo;
+        struct DependencyInfo;
         struct DependencyIterator;
     }
     namespace sched {
@@ -60,7 +60,9 @@ namespace spider {
         public:
             explicit TaskSRLess(srless::FiringHandler *handler,
                                 const pisdf::Vertex *vertex,
-                                u32 firing);
+                                u32 firing,
+                                u32 depCount,
+                                u32 mergedFifoCount);
 
             ~TaskSRLess() noexcept override = default;
 
@@ -114,17 +116,14 @@ namespace spider {
             /* === Dependencies methods === */
 
             size_t updateTaskExecutionDependency(const Schedule *schedule,
-                                                 const pisdf::ExecDependencyInfo &dependencyInfo,
+                                                 const pisdf::DependencyInfo &dependencyInfo,
                                                  size_t index);
 
             /* === Input FIFO allocation methods === */
 
             AllocationRule allocateInputFifo(const pisdf::Edge *edge) const;
 
-            AllocationRule
-            allocateInputFifo(const pisdf::DependencyIterator &dependencies, const pisdf::Edge *edge) const;
-
-            u32 computeConsCount(const pisdf::Edge *edge, u32 firing, const srless::FiringHandler *handler) const;
+            u32 computeConsCount(const pisdf::Edge *edge) const;
         };
     }
 }
