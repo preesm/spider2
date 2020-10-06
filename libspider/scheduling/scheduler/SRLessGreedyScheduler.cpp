@@ -43,6 +43,7 @@
 #include <scheduling/task/TaskSRLess.h>
 #include <graphs-tools/helper/pisdf-helper.h>
 #include <graphs-tools/numerical/dependencies.h>
+#include <graphs-tools/numerical/ExecIterator.h>
 
 /* === Static function === */
 
@@ -89,8 +90,7 @@ void spider::sched::SRLessGreedyScheduler::recursiveAddVertices(spider::srless::
                             firingHandler->registerTaskIx(vertex.get(), k,
                                                           static_cast<u32>(this->unscheduledVertices_.size()));
                             this->unscheduledVertices_.push_back(
-                                    { factory::vector<pisdf::DependencyIterator>(StackID::SCHEDULE),
-                                      vertex.get(), firingHandler, k, vertex->executable(), false });
+                                    { vertex.get(), firingHandler, k, vertex->executable(), false });
                         }
                     }
                 }
@@ -103,21 +103,16 @@ void spider::sched::SRLessGreedyScheduler::recursiveAddVertices(spider::srless::
 }
 
 spider::sched::SRLessGreedyScheduler::iterator_t spider::sched::SRLessGreedyScheduler::evaluate(iterator_t it) {
-    if ((it->vertex_->inputEdgeCount() > 0u) && it->deps_.empty()) {
-        it->deps_.reserve(it->vertex_->inputEdgeCount());
-        for (u32 i = 0; i < static_cast<u32>(it->vertex_->inputEdgeCount()); ++i) {
-            it->deps_.emplace_back(pisdf::computeExecDependency(it->vertex_, it->firing_, i, it->handler_));
-        }
-    }
-    for (const auto &itDep : it->deps_) {
-        for (const auto &dep : itDep) {
-            if (evaluate(it, dep)) {
+    for (u32 i = 0; i < static_cast<u32>(it->vertex_->inputEdgeCount()); ++i) {
+        auto depIt = spider::pisdf::make_iterator(it->vertex_, it->firing_, i, it->handler_);
+        for (auto dep = depIt.begin(); dep != depIt.end(); dep = (depIt)++) {
+            if (evaluate(it, *dep)) {
                 return it;
             }
         }
     }
     /* == add vertex to task vector == */
-    tasks_.emplace_back(make<TaskSRLess>(it->handler_, it->vertex_, it->firing_, std::move(it->deps_)));
+    tasks_.emplace_back(make<TaskSRLess>(it->handler_, it->vertex_, it->firing_));
     it->handler_->registerTaskIx(it->vertex_, it->firing_, UINT32_MAX);
     return removeAndSwap(it);
 }

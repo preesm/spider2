@@ -60,8 +60,7 @@ namespace spider {
         public:
             explicit TaskSRLess(srless::FiringHandler *handler,
                                 const pisdf::Vertex *vertex,
-                                u32 firing,
-                                spider::vector<pisdf::DependencyIterator> deps);
+                                u32 firing);
 
             ~TaskSRLess() noexcept override = default;
 
@@ -104,7 +103,6 @@ namespace spider {
             /* === Setter(s) === */
 
         private:
-            spider::vector<pisdf::DependencyIterator> dependencies_;
             srless::FiringHandler *handler_;
             const pisdf::Vertex *vertex_;
             u32 firing_;
@@ -120,6 +118,8 @@ namespace spider {
                                                  size_t index);
 
             /* === Input FIFO allocation methods === */
+
+            AllocationRule allocateInputFifo(const pisdf::Edge *edge) const;
 
             AllocationRule
             allocateInputFifo(const pisdf::DependencyIterator &dependencies, const pisdf::Edge *edge) const;

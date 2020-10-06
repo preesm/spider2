@@ -77,7 +77,6 @@ namespace spider {
             /* === Types definition === */
 
             struct ScheduleVertex {
-                spider::vector<pisdf::DependencyIterator> deps_;
                 pisdf::Vertex *vertex_;
                 srless::FiringHandler *handler_;
                 u32 firing_;
@@ -99,7 +98,6 @@ namespace spider {
                 inline friend void swap(ScheduleVertex &lhs, ScheduleVertex &rhs) noexcept {
                     /* == Do the swapping of the values == */
                     using std::swap;
-                    swap(lhs.deps_, rhs.deps_);
                     swap(lhs.vertex_, rhs.vertex_);
                     swap(lhs.handler_, rhs.handler_);
                     swap(lhs.firing_, rhs.firing_);
