@@ -130,20 +130,23 @@ void spider::StaticRuntime::applyTransformationAndRun() {
     }
     TRACE_TRANSFO_END();
 
+    /* == Export srdag if needed  == */
+    if (api::exportSRDAGEnabled()) {
+        api::exportGraphToDOT(srdag_.get(), "./srdag.dot");
+    }
+
     /* == Apply graph optimizations == */
     if (api::shouldOptimizeSRDAG()) {
         TRACE_TRANSFO_START();
         optims::optimize(srdag_.get());
         TRACE_TRANSFO_END();
+        if (api::exportSRDAGEnabled()) {
+            api::exportGraphToDOT(srdag_.get(), "./srdag-optims.dot");
+        }
     }
     auto end = spider::time::now();
     auto duration = time::duration::nanoseconds(start, end);
     printer::fprintf(stderr, "ir-time:    %lld ns\n", duration);
-
-    /* == Export srdag if needed  == */
-    if (api::exportSRDAGEnabled()) {
-        api::exportGraphToDOT(srdag_.get(), "./srdag.dot");
-    }
 
     /* == Update schedule, run and wait == */
     TraceMessage schedMsg{ };
