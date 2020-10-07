@@ -46,7 +46,7 @@
 namespace spider {
 
     namespace srless {
-        class FiringHandler;
+        class GraphFiring;
     }
 
     namespace pisdf {
@@ -107,7 +107,7 @@ namespace spider {
          * @throw nullptr exception in debug if interface or handler is nullptr.
          * @throw spider::Execption if interface if not of type INPUT nor OUTPUT.
          */
-        bool isInterfaceTransparent(const Vertex *interface, const srless::FiringHandler *handler);
+        bool isInterfaceTransparent(const Vertex *interface, const srless::GraphFiring *handler);
 
         /**
          * @brief Get the source of the vertex across interfaces.

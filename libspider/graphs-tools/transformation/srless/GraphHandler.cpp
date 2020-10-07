@@ -36,7 +36,7 @@
 /* === Include(s) === */
 
 #include <graphs-tools/transformation/srless/GraphHandler.h>
-#include <graphs-tools/transformation/srless/FiringHandler.h>
+#include <graphs-tools/transformation/srless/GraphFiring.h>
 #include <graphs-tools/helper/pisdf-helper.h>
 #include <containers/vector.h>
 
@@ -47,15 +47,15 @@
 spider::srless::GraphHandler::GraphHandler(const spider::pisdf::Graph *graph,
                                            const spider::vector<std::shared_ptr<pisdf::Param>> &params,
                                            u32 repetitionCount,
-                                           const srless::FiringHandler *handler) :
-        firings_{ factory::vector<FiringHandler *>(StackID::TRANSFO) },
+                                           const srless::GraphFiring *handler) :
+        firings_{ factory::vector<GraphFiring *>(StackID::TRANSFO) },
         graph_{ graph },
         handler_{ handler },
         repetitionCount_{ repetitionCount },
         static_{ pisdf::isGraphFullyStatic(graph) } {
     firings_.reserve(repetitionCount);
     for (u32 k = 0; k < repetitionCount; ++k) {
-        firings_.emplace_back(spider::make<FiringHandler>(this, params, k));
+        firings_.emplace_back(spider::make<GraphFiring>(this, params, k));
         if (static_) {
             firings_[k]->resolveBRV();
         }

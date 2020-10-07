@@ -43,7 +43,7 @@
 namespace spider {
 
     namespace srless {
-        class FiringHandler;
+        class GraphFiring;
     }
 
     namespace pisdf {
@@ -58,7 +58,7 @@ namespace spider {
 
         class TaskSRLess final : public Task {
         public:
-            explicit TaskSRLess(srless::FiringHandler *handler,
+            explicit TaskSRLess(srless::GraphFiring *handler,
                                 const pisdf::Vertex *vertex,
                                 u32 firing,
                                 u32 depCount,
@@ -105,7 +105,7 @@ namespace spider {
             /* === Setter(s) === */
 
         private:
-            srless::FiringHandler *handler_;
+            srless::GraphFiring *handler_;
             const pisdf::Vertex *vertex_;
             u32 firing_;
             u32 dependenciesCount_;

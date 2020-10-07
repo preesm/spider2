@@ -37,7 +37,7 @@
 
 #include <graphs-tools/numerical/detail/dependenciesImpl.h>
 #include <graphs-tools/transformation/srless/GraphHandler.h>
-#include <graphs-tools/transformation/srless/FiringHandler.h>
+#include <graphs-tools/transformation/srless/GraphFiring.h>
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/DelayVertex.h>
 
@@ -61,7 +61,7 @@ namespace spider {
                                                   int64_t upperCons,
                                                   int64_t srcRate,
                                                   int64_t delayValue,
-                                                  const srless::FiringHandler *handler) {
+                                                  const srless::GraphFiring *handler) {
                 UniqueDependency dep{ };
                 dep.info_.vertex_ = edge->source();
                 dep.info_.handler_ = handler;
@@ -79,7 +79,7 @@ namespace spider {
                                                   int64_t upperProd,
                                                   int64_t snkRate,
                                                   int64_t delayValue,
-                                                  const srless::FiringHandler *handler) {
+                                                  const srless::GraphFiring *handler) {
                 UniqueDependency dep{ };
                 dep.info_.vertex_ = edge->sink();
                 dep.info_.handler_ = handler;
@@ -100,7 +100,7 @@ namespace spider {
 spider::pisdf::DependencyIterator spider::pisdf::detail::computeExecDependency(const Edge *edge,
                                                                                int64_t lowerCons,
                                                                                int64_t upperCons,
-                                                                               const srless::FiringHandler *handler) {
+                                                                               const srless::GraphFiring *handler) {
     /* == Handle specific cases == */
     const auto sourceType = edge->source()->subtype();
     const auto srcRate = edge->sourceRateExpression().evaluate(handler->getParams());
@@ -179,7 +179,7 @@ spider::pisdf::DependencyIterator spider::pisdf::detail::computeExecDependency(c
 spider::pisdf::DependencyIterator spider::pisdf::detail::computeConsDependency(const Edge *edge,
                                                                                int64_t lowerProd,
                                                                                int64_t upperProd,
-                                                                               const srless::FiringHandler *handler) {
+                                                                               const srless::GraphFiring *handler) {
     /* == Precompute some numerical values == */
     const auto sinkType = edge->sink()->subtype();
     const auto snkRate = edge->sinkRateExpression().evaluate(handler->getParams());

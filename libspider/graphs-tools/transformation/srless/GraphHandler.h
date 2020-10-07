@@ -50,7 +50,7 @@ namespace spider {
     }
     namespace srless {
 
-        class FiringHandler;
+        class GraphFiring;
 
         /* === Class definition === */
 
@@ -59,7 +59,7 @@ namespace spider {
             GraphHandler(const pisdf::Graph *graph,
                          const spider::vector<std::shared_ptr<pisdf::Param>> &params,
                          u32 repetitionCount,
-                         const srless::FiringHandler *handler = nullptr);
+                         const srless::GraphFiring *handler = nullptr);
 
             GraphHandler(GraphHandler &&) = default;
 
@@ -81,24 +81,20 @@ namespace spider {
 
             u32 repetitionCount() const;
 
-            inline const FiringHandler *handler() const { return handler_; }
+            inline const GraphFiring *handler() const { return handler_; }
 
             inline bool isStatic() const { return static_; }
 
-            inline const spider::vector<FiringHandler *> &firings() const { return firings_; }
+            inline const spider::vector<GraphFiring *> &firings() const { return firings_; }
 
-            inline spider::vector<FiringHandler *> &firings() { return firings_; }
-
-            /* === Setter(s) === */
+            inline spider::vector<GraphFiring *> &firings() { return firings_; }
 
         private:
-            spider::vector<FiringHandler *> firings_;
+            spider::vector<GraphFiring *> firings_;
             const pisdf::Graph *graph_;
-            const srless::FiringHandler *handler_;
+            const srless::GraphFiring *handler_;
             u32 repetitionCount_;
             bool static_;
-
-            /* === private method(s) === */
         };
     }
 }

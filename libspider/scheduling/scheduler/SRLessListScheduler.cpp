@@ -40,7 +40,7 @@
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/Vertex.h>
 #include <graphs-tools/transformation/srless/GraphHandler.h>
-#include <graphs-tools/transformation/srless/FiringHandler.h>
+#include <graphs-tools/transformation/srless/GraphFiring.h>
 #include <graphs-tools/numerical/dependencies.h>
 
 /* === Static function === */
@@ -129,7 +129,7 @@ void spider::sched::SRLessListScheduler::recursiveAddVertices(spider::srless::Gr
 
 void spider::sched::SRLessListScheduler::createListTask(pisdf::Vertex *vertex,
                                                         u32 firing,
-                                                        srless::FiringHandler *handler) {
+                                                        srless::GraphFiring *handler) {
     const auto vertexTaskIx = handler->getTaskIx(vertex, firing);
     if (vertexTaskIx == UINT32_MAX && vertex->executable()) {
         sortedTaskVector_.push_back({ vertex, handler, firing, -1 });

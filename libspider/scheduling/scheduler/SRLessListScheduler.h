@@ -42,7 +42,7 @@
 namespace spider {
 
     namespace srless {
-        class FiringHandler;
+        class GraphFiring;
     }
 
     namespace pisdf {
@@ -78,7 +78,7 @@ namespace spider {
 
             struct ListTask {
                 pisdf::Vertex *vertex_;
-                srless::FiringHandler *handler_;
+                srless::GraphFiring *handler_;
                 u32 firing_;
                 ifast32 level_;
             };
@@ -107,7 +107,7 @@ namespace spider {
              *         sortedTaskVector_.
              * @param vertex  Pointer to the vertex associated.
              */
-            void createListTask(pisdf::Vertex *vertex, u32 firing, srless::FiringHandler *handler);
+            void createListTask(pisdf::Vertex *vertex, u32 firing, srless::GraphFiring *handler);
 
             /**
              * @brief Compute recursively the schedule level used to sort the vertices for scheduling.

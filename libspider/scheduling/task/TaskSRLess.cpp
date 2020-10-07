@@ -39,7 +39,7 @@
 #include <scheduling/schedule/Schedule.h>
 #include <graphs-tools/helper/pisdf-helper.h>
 #include <graphs-tools/transformation/srless/GraphHandler.h>
-#include <graphs-tools/transformation/srless/FiringHandler.h>
+#include <graphs-tools/transformation/srless/GraphFiring.h>
 #include <graphs/pisdf/Vertex.h>
 #include <graphs/pisdf/ExternInterface.h>
 #include <graphs/pisdf/Edge.h>
@@ -51,7 +51,7 @@
 
 /* === Method(s) implementation === */
 
-spider::sched::TaskSRLess::TaskSRLess(srless::FiringHandler *handler,
+spider::sched::TaskSRLess::TaskSRLess(srless::GraphFiring *handler,
                                       const pisdf::Vertex *vertex,
                                       u32 firing,
                                       u32 depCount,

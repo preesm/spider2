@@ -35,7 +35,7 @@
 
 /* === Include(s) === */
 
-#include <graphs-tools/transformation/srless/FiringHandler.h>
+#include <graphs-tools/transformation/srless/GraphFiring.h>
 #include <graphs-tools/transformation/srless/GraphHandler.h>
 #include <graphs-tools/numerical/dependencies.h>
 #include <graphs-tools/numerical/brv.h>
@@ -47,9 +47,9 @@
 
 /* === Method(s) implementation === */
 
-spider::srless::FiringHandler::FiringHandler(const GraphHandler *parent,
-                                             const spider::vector<std::shared_ptr<pisdf::Param>> &params,
-                                             u32 firing) :
+spider::srless::GraphFiring::GraphFiring(const GraphHandler *parent,
+                                         const spider::vector<std::shared_ptr<pisdf::Param>> &params,
+                                         u32 firing) :
         params_{ factory::vector<std::shared_ptr<pisdf::Param>>(StackID::TRANSFO) },
         parent_{ parent },
         ix_{ SIZE_MAX },
@@ -69,7 +69,7 @@ spider::srless::FiringHandler::FiringHandler(const GraphHandler *parent,
     }
 }
 
-spider::srless::FiringHandler::~FiringHandler() {
+spider::srless::GraphFiring::~GraphFiring() {
     for (auto &ptr : taskIxRegister_) {
         deallocate(ptr);
     }
@@ -78,7 +78,7 @@ spider::srless::FiringHandler::~FiringHandler() {
     }
 }
 
-void spider::srless::FiringHandler::registerTaskIx(const pisdf::Vertex *vertex, u32 firing, u32 taskIx) {
+void spider::srless::GraphFiring::registerTaskIx(const pisdf::Vertex *vertex, u32 firing, u32 taskIx) {
 #ifndef NDEBUG
     if (firing >= getRV(vertex)) {
         throwSpiderException("invalid vertex firing.");
@@ -87,7 +87,7 @@ void spider::srless::FiringHandler::registerTaskIx(const pisdf::Vertex *vertex, 
     taskIxRegister_.at(vertex->ix())[firing] = taskIx;
 }
 
-void spider::srless::FiringHandler::resolveBRV() {
+void spider::srless::GraphFiring::resolveBRV() {
     /* == Compute BRV == */
     spider::brv::compute(parent_->graph(), params_);
     /* == Save RV values into the array == */
@@ -114,7 +114,7 @@ void spider::srless::FiringHandler::resolveBRV() {
     resolved_ = true;
 }
 
-void spider::srless::FiringHandler::clear() {
+void spider::srless::GraphFiring::clear() {
     for (const auto &vertex : parent_->graph()->vertices()) {
         const auto ix = vertex->ix();
         const auto rvValue = brv_.at(ix);
@@ -130,7 +130,7 @@ void spider::srless::FiringHandler::clear() {
     resolved_ = false;
 }
 
-u32 spider::srless::FiringHandler::getRV(const spider::pisdf::Vertex *vertex) const {
+u32 spider::srless::GraphFiring::getRV(const spider::pisdf::Vertex *vertex) const {
 #ifndef NDEBUG
     if (vertex->graph() != parent_->graph()) {
         throwSpiderException("vertex does not belong to the correct graph.");
@@ -139,7 +139,7 @@ u32 spider::srless::FiringHandler::getRV(const spider::pisdf::Vertex *vertex) co
     return brv_.at(vertex->ix());
 }
 
-u32 spider::srless::FiringHandler::getTaskIx(const spider::pisdf::Vertex *vertex, u32 vertexFiring) const {
+u32 spider::srless::GraphFiring::getTaskIx(const spider::pisdf::Vertex *vertex, u32 vertexFiring) const {
 #ifndef NDEBUG
     if (vertexFiring >= getRV(vertex)) {
         throwSpiderException("invalid vertex firing.");
@@ -148,8 +148,8 @@ u32 spider::srless::FiringHandler::getTaskIx(const spider::pisdf::Vertex *vertex
     return taskIxRegister_.at(vertex->ix())[vertexFiring];
 }
 
-const spider::srless::FiringHandler *
-spider::srless::FiringHandler::getChildFiring(const pisdf::Graph *subgraph, u32 firing) const {
+const spider::srless::GraphFiring *
+spider::srless::GraphFiring::getChildFiring(const pisdf::Graph *subgraph, u32 firing) const {
 #ifndef NDEBUG
     if (subgraph->graph() != parent_->graph()) {
         throwSpiderException("subgraph does not belong to this graph.");
@@ -158,19 +158,19 @@ spider::srless::FiringHandler::getChildFiring(const pisdf::Graph *subgraph, u32 
     return children_[subgraph->subIx()]->firings()[firing];
 }
 
-int64_t spider::srless::FiringHandler::getParamValue(size_t ix) {
+int64_t spider::srless::GraphFiring::getParamValue(size_t ix) {
     return spider::get_at(params_, ix)->value(params_);
 }
 
-void spider::srless::FiringHandler::setParamValue(size_t ix, int64_t value) {
+void spider::srless::GraphFiring::setParamValue(size_t ix, int64_t value) {
     spider::get_at(params_, ix)->setValue(value);
 }
 
 /* === Private method(s) implementation === */
 
 std::shared_ptr<spider::pisdf::Param>
-spider::srless::FiringHandler::copyParameter(const std::shared_ptr<pisdf::Param> &param,
-                                             const spider::vector<std::shared_ptr<pisdf::Param>> &parentParams) {
+spider::srless::GraphFiring::copyParameter(const std::shared_ptr<pisdf::Param> &param,
+                                           const spider::vector<std::shared_ptr<pisdf::Param>> &parentParams) {
     if (param->dynamic()) {
         std::shared_ptr<pisdf::Param> newParam;
         if (param->type() == pisdf::ParamType::INHERITED) {

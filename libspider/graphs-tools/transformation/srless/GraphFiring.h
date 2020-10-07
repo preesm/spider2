@@ -32,8 +32,8 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_FIRINGHANDLER_H
-#define SPIDER2_FIRINGHANDLER_H
+#ifndef SPIDER2_GRAPHFIRING_H
+#define SPIDER2_GRAPHFIRING_H
 
 /* === Include(s) === */
 
@@ -54,25 +54,25 @@ namespace spider {
 
         class GraphHandler;
 
-        class FiringHandler;
+        class GraphFiring;
 
         /* === Class definition === */
 
-        class FiringHandler {
+        class GraphFiring {
         public:
-            FiringHandler(const GraphHandler *parent,
-                          const spider::vector<std::shared_ptr<pisdf::Param>> &params,
-                          u32 firing);
+            GraphFiring(const GraphHandler *parent,
+                        const spider::vector<std::shared_ptr<pisdf::Param>> &params,
+                        u32 firing);
 
-            FiringHandler(FiringHandler &&) = default;
+            GraphFiring(GraphFiring &&) = default;
 
-            FiringHandler(const FiringHandler &) = default;
+            GraphFiring(const GraphFiring &) = default;
 
-            FiringHandler &operator=(FiringHandler &&) = default;
+            GraphFiring &operator=(GraphFiring &&) = default;
 
-            FiringHandler &operator=(const FiringHandler &) = default;
+            GraphFiring &operator=(const GraphFiring &) = default;
 
-            ~FiringHandler();
+            ~GraphFiring();
 
             /* === Method(s) === */
 
@@ -115,7 +115,7 @@ namespace spider {
 
             u32 getTaskIx(const pisdf::Vertex *vertex, u32 vertexFiring) const;
 
-            const FiringHandler *getChildFiring(const pisdf::Graph *subgraph, u32 firing) const;
+            const GraphFiring *getChildFiring(const pisdf::Graph *subgraph, u32 firing) const;
 
             int64_t getParamValue(size_t ix);
 
@@ -145,4 +145,4 @@ namespace spider {
     }
 }
 
-#endif //SPIDER2_FIRINGHANDLER_H
+#endif //SPIDER2_GRAPHFIRING_H

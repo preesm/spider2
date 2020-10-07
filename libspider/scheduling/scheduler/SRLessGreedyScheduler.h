@@ -42,7 +42,7 @@
 namespace spider {
 
     namespace srless {
-        class FiringHandler;
+        class GraphFiring;
     }
 
     namespace pisdf {
@@ -78,7 +78,7 @@ namespace spider {
 
             struct ScheduleVertex {
                 pisdf::Vertex *vertex_;
-                srless::FiringHandler *handler_;
+                srless::GraphFiring *handler_;
                 u32 firing_;
                 bool executable_;
                 bool scheduled_;

@@ -38,7 +38,7 @@
 #include <graphs-tools/numerical/brv.h>
 #include <graphs-tools/helper/pisdf-helper.h>
 #include <graphs-tools/transformation/srless/GraphHandler.h>
-#include <graphs-tools/transformation/srless/FiringHandler.h>
+#include <graphs-tools/transformation/srless/GraphFiring.h>
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/DelayVertex.h>
 #include <common/Math.h>
@@ -54,7 +54,7 @@
 spider::pisdf::DependencyIterator spider::pisdf::computeExecDependency(const Vertex *vertex,
                                                                        u32 firing,
                                                                        size_t edgeIx,
-                                                                       const srless::FiringHandler *handler) {
+                                                                       const srless::GraphFiring *handler) {
 #ifndef NDEBUG
     if (!handler || !vertex) {
         throwNullptrException();
@@ -71,7 +71,7 @@ spider::pisdf::DependencyIterator spider::pisdf::computeExecDependency(const Ver
 spider::pisdf::DependencyIterator spider::pisdf::computeConsDependency(const Vertex *vertex,
                                                                        u32 firing,
                                                                        size_t edgeIx,
-                                                                       const spider::srless::FiringHandler *handler) {
+                                                                       const spider::srless::GraphFiring *handler) {
 #ifndef NDEBUG
     if (!handler || !vertex) {
         throwNullptrException();

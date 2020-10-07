@@ -38,7 +38,7 @@
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/DelayVertex.h>
 #include <graphs/pisdf/ExternInterface.h>
-#include <graphs-tools/transformation/srless/FiringHandler.h>
+#include <graphs-tools/transformation/srless/GraphFiring.h>
 #include <api/pisdf-api.h>
 
 /* === Static function(s) === */
@@ -426,7 +426,7 @@ spider::unique_ptr<i64> spider::pisdf::buildVertexRuntimeInputParameters(const p
     }
 }
 
-bool spider::pisdf::isInterfaceTransparent(const Vertex *interface, const srless::FiringHandler *handler) {
+bool spider::pisdf::isInterfaceTransparent(const Vertex *interface, const srless::GraphFiring *handler) {
 #ifndef NDEBUG
     if (!interface || !handler) {
         throwNullptrException();

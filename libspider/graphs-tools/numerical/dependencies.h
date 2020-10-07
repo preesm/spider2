@@ -47,7 +47,7 @@
 namespace spider {
 
     namespace srless {
-        class FiringHandler;
+        class GraphFiring;
     }
 
     namespace pisdf {
@@ -57,12 +57,12 @@ namespace spider {
         DependencyIterator computeExecDependency(const Vertex *vertex,
                                                  u32 firing,
                                                  size_t edgeIx,
-                                                 const srless::FiringHandler *handler);
+                                                 const srless::GraphFiring *handler);
 
         DependencyIterator computeConsDependency(const Vertex *vertex,
                                                  u32 firing,
                                                  size_t edgeIx,
-                                                 const srless::FiringHandler *handler);
+                                                 const srless::GraphFiring *handler);
 
         /**
          * @brief Compute the lower consumption dependencies of a vertex in a flat graph:

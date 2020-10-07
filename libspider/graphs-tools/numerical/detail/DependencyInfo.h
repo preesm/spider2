@@ -42,7 +42,7 @@
 namespace spider {
 
     namespace srless {
-        class FiringHandler;
+        class GraphFiring;
     }
 
     namespace pisdf {
@@ -53,7 +53,7 @@ namespace spider {
 
         struct DependencyInfo {
             const Vertex *vertex_;
-            const srless::FiringHandler *handler_;
+            const srless::GraphFiring *handler_;
             int64_t rate_;
             u32 edgeIx_;
             u32 memoryStart_;

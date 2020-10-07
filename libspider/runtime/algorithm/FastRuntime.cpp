@@ -37,7 +37,7 @@
 #include <runtime/algorithm/FastRuntime.h>
 #include <api/runtime-api.h>
 #include <graphs/pisdf/Graph.h>
-#include <graphs-tools/transformation/srless/FiringHandler.h>
+#include <graphs-tools/transformation/srless/GraphFiring.h>
 #include <graphs-tools/transformation/srless/GraphHandler.h>
 #include <scheduling/ResourcesAllocator.h>
 #include <scheduling/memory/FifoAllocator.h>
