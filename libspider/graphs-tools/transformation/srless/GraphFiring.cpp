@@ -142,6 +142,9 @@ u32 spider::srless::GraphFiring::getRV(const spider::pisdf::Vertex *vertex) cons
         throwSpiderException("vertex does not belong to the correct graph.");
     }
 #endif
+    if (vertex->subtype() == pisdf::VertexType::INPUT || vertex->subtype() == pisdf::VertexType::OUTPUT) {
+        return 1;
+    }
     return brv_.at(vertex->ix());
 }
 
