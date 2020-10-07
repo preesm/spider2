@@ -88,12 +88,6 @@ void spider::srless::FiringHandler::registerTaskIx(const pisdf::Vertex *vertex, 
 }
 
 void spider::srless::FiringHandler::resolveBRV() {
-    /* == update dependent params == */
-    for (const auto &param : params_) {
-        if (param->type() == pisdf::ParamType::DYNAMIC_DEPENDANT) {
-            param->setValue(param->value(params_));
-        }
-    }
     /* == Compute BRV == */
     spider::brv::compute(parent_->graph(), params_);
     /* == Save RV values into the array == */
@@ -109,9 +103,13 @@ void spider::srless::FiringHandler::resolveBRV() {
     }
     /* == creates children == */
     for (const auto &subgraph : parent_->graph()->subgraphs()) {
-        destroy(children_.at(subgraph->subIx()));
-        children_.at(subgraph->subIx()) = spider::make<GraphHandler>(subgraph, params_, subgraph->repetitionValue(),
-                                                                     this);
+        const auto ix = subgraph->ix();
+        const auto rvValue = brv_.at(ix);
+        auto &currentGraphHandler = children_.at(subgraph->subIx());
+        if (!currentGraphHandler || (rvValue != currentGraphHandler->repetitionCount())) {
+            destroy(currentGraphHandler);
+            currentGraphHandler = spider::make<GraphHandler>(subgraph, params_, subgraph->repetitionValue(), this);
+        }
     }
     resolved_ = true;
 }
@@ -119,12 +117,15 @@ void spider::srless::FiringHandler::resolveBRV() {
 void spider::srless::FiringHandler::clear() {
     for (const auto &vertex : parent_->graph()->vertices()) {
         const auto ix = vertex->ix();
-        brv_.at(ix) = UINT32_MAX;
-        deallocate(taskIxRegister_.at(ix));
-        taskIxRegister_[ix] = nullptr;
+        const auto rvValue = brv_.at(ix);
+        if (rvValue != UINT32_MAX) {
+            std::fill(taskIxRegister_.at(ix), std::next(taskIxRegister_.at(ix), brv_.at(ix)), UINT32_MAX);
+        }
     }
-    for (const auto &subgraph : parent_->graph()->subgraphs()) {
-        destroy(children_.at(subgraph->subIx()));
+    for (auto &graphHandler : children_) {
+        if (graphHandler) {
+            graphHandler->clear();
+        }
     }
     resolved_ = false;
 }
@@ -174,7 +175,7 @@ spider::srless::FiringHandler::copyParameter(const std::shared_ptr<pisdf::Param>
         std::shared_ptr<pisdf::Param> newParam;
         if (param->type() == pisdf::ParamType::INHERITED) {
             const auto &parent = parentParams[param->parent()->ix()];
-            newParam = spider::make_shared<pisdf::Param, StackID::PISDF>(param->name(), parent->value(parentParams));
+            newParam = spider::make_shared<pisdf::Param, StackID::PISDF>(param->name(), parent);
         } else {
             newParam = spider::make_shared<pisdf::Param, StackID::PISDF>(*param);
         }

@@ -72,4 +72,12 @@ spider::srless::GraphHandler::~GraphHandler() {
     }
 }
 
+void spider::srless::GraphHandler::clear() {
+    for (auto &firing : firings_) {
+        if (firing) {
+            firing->clear();
+        }
+    }
+}
+
 /* === Private method(s) implementation === */

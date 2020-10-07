@@ -73,6 +73,8 @@ namespace spider {
 
             /* === Method(s) === */
 
+            void clear();
+
             /* === Getter(s) === */
 
             const pisdf::Graph *graph() const { return graph_; }
