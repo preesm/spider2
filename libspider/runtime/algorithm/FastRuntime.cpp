@@ -35,7 +35,6 @@
 /* === Include(s) === */
 
 #include <runtime/algorithm/FastRuntime.h>
-#include <api/runtime-api.h>
 #include <graphs/pisdf/Graph.h>
 #include <graphs-tools/transformation/srless/GraphFiring.h>
 #include <graphs-tools/transformation/srless/GraphHandler.h>
@@ -46,22 +45,20 @@
 #include <runtime/runner/RTRunner.h>
 #include <runtime/platform/RTPlatform.h>
 #include <runtime/communicator/RTCommunicator.h>
+#include <api/runtime-api.h>
 #include <api/config-api.h>
+#include <api/spider.h>
 
 /* === Static function === */
 
 /* === Method(s) implementation === */
 
-spider::FastRuntime::FastRuntime(pisdf::Graph *graph,
-                                 SchedulingPolicy schedulingPolicy,
-                                 MappingPolicy mappingPolicy,
-                                 ExecutionPolicy executionPolicy,
-                                 FifoAllocatorType allocatorType) :
+spider::FastRuntime::FastRuntime(pisdf::Graph *graph, const RuntimeConfig &cfg) :
         Runtime(graph),
-        resourcesAllocator_{ make_unique<sched::ResourcesAllocator, StackID::RUNTIME>(schedulingPolicy,
-                                                                                      mappingPolicy,
-                                                                                      executionPolicy,
-                                                                                      allocatorType,
+        resourcesAllocator_{ make_unique<sched::ResourcesAllocator, StackID::RUNTIME>(cfg.schedPolicy_,
+                                                                                      cfg.mapPolicy_,
+                                                                                      cfg.execPolicy_,
+                                                                                      cfg.allocType_,
                                                                                       false) } {
     if (!rt::platform()) {
         throwSpiderException("JITMSRuntime need the runtime platform to be created.");

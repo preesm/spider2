@@ -201,26 +201,20 @@ bool spider::isInit() {
 
 static spider::Runtime *getRuntimeFromType(spider::pisdf::Graph *graph,
                                            const spider::RuntimeConfig &cfg) {
-    // TODO: create the mapper/scheduler class here and pass it to the runtime.
+
     switch (cfg.runtimeType_) {
         case spider::RuntimeType::JITMS:
 #ifndef _NO_BUILD_LEGACY_RT
             if (spider::pisdf::isGraphFullyStatic(graph)) {
-                return spider::make<spider::StaticRuntime>(StackID::GENERAL, graph,
-                                                           cfg.schedPolicy_, cfg.mapPolicy_, cfg.execPolicy_,
-                                                           cfg.allocType_);
+                return spider::make<spider::StaticRuntime>(StackID::GENERAL, graph, cfg);
             }
-            return spider::make<spider::JITMSRuntime>(StackID::GENERAL, graph,
-                                                      cfg.schedPolicy_, cfg.mapPolicy_, cfg.execPolicy_,
-                                                      cfg.allocType_);
+            return spider::make<spider::JITMSRuntime>(StackID::GENERAL, graph, cfg);
 #else
             spider::printer::fprintf(stderr,"JITMS runtime was not compiled and can not be used.\n");
             return nullptr;
 #endif
         case spider::RuntimeType::FAST:
-            return spider::make<spider::FastRuntime>(StackID::GENERAL, graph,
-                                                     cfg.schedPolicy_, cfg.mapPolicy_, cfg.execPolicy_,
-                                                     cfg.allocType_);
+            return spider::make<spider::FastRuntime>(StackID::GENERAL, graph, cfg);
         default:
             return nullptr;
     }

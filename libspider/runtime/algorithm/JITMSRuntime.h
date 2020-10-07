@@ -46,6 +46,8 @@ namespace spider {
 
     /* === Forward declaration(s) === */
 
+    class RuntimeConfig;
+
     namespace sched {
         class ResourcesAllocator;
     }
@@ -59,11 +61,7 @@ namespace spider {
     class JITMSRuntime final : public Runtime {
     public:
 
-        explicit JITMSRuntime(pisdf::Graph *graph,
-                              SchedulingPolicy schedulingPolicy = SchedulingPolicy::LIST,
-                              MappingPolicy mappingPolicy = MappingPolicy::BEST_FIT,
-                              ExecutionPolicy executionPolicy = ExecutionPolicy::DELAYED,
-                              FifoAllocatorType allocatorType = FifoAllocatorType::DEFAULT);
+        explicit JITMSRuntime(pisdf::Graph *graph, const RuntimeConfig &cfg);
 
         ~JITMSRuntime() override = default;
 

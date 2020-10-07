@@ -44,6 +44,8 @@ namespace spider {
 
     /* === Forward declaration(s) === */
 
+    class RuntimeConfig;
+
     namespace sched {
         class ResourcesAllocator;
     }
@@ -52,11 +54,7 @@ namespace spider {
 
     class FastRuntime final : public Runtime {
     public:
-        explicit FastRuntime(pisdf::Graph *graph,
-                             SchedulingPolicy schedulingPolicy = SchedulingPolicy::LIST,
-                             MappingPolicy mappingPolicy = MappingPolicy::BEST_FIT,
-                             ExecutionPolicy executionPolicy = ExecutionPolicy::DELAYED,
-                             FifoAllocatorType allocatorType = FifoAllocatorType::DEFAULT);
+        explicit FastRuntime(pisdf::Graph *graph, const RuntimeConfig &cfg);
 
         ~FastRuntime() override = default;
 

@@ -47,10 +47,11 @@ namespace spider {
 
     /* === Forward declaration(s) === */
 
+    class RuntimeConfig;
+
     namespace sched {
         class ResourcesAllocator;
     }
-
 
     /* === Class definition === */
 
@@ -59,11 +60,7 @@ namespace spider {
      */
     class StaticRuntime final : public Runtime {
     public:
-        explicit StaticRuntime(pisdf::Graph *graph,
-                               SchedulingPolicy schedulingPolicy = SchedulingPolicy::LIST,
-                               MappingPolicy mappingPolicy = MappingPolicy::BEST_FIT,
-                               ExecutionPolicy executionPolicy = ExecutionPolicy::DELAYED,
-                               FifoAllocatorType allocatorType = FifoAllocatorType::DEFAULT);
+        explicit StaticRuntime(pisdf::Graph *graph, const RuntimeConfig &cfg);
 
         ~StaticRuntime() override = default;
 

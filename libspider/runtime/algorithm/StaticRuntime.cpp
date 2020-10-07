@@ -41,17 +41,17 @@
 #include <runtime/runner/RTRunner.h>
 #include <runtime/platform/RTPlatform.h>
 #include <runtime/communicator/RTCommunicator.h>
-#include <api/runtime-api.h>
 #include <graphs-tools/transformation/srdag/Transformation.h>
 #include <graphs-tools/transformation/optims/optimizations.h>
-#include <monitor/Monitor.h>
-#include <api/config-api.h>
+#include <graphs-tools/helper/pisdf-helper.h>
 #include <scheduling/ResourcesAllocator.h>
 #include <scheduling/memory/FifoAllocator.h>
 #include <scheduling/schedule/exporter/SchedXMLGanttExporter.h>
 #include <scheduling/schedule/exporter/SchedStatsExporter.h>
 #include <scheduling/schedule/exporter/SchedSVGGanttExporter.h>
-#include <graphs-tools/helper/pisdf-helper.h>
+#include <api/runtime-api.h>
+#include <api/config-api.h>
+#include <api/spider.h>
 
 /* === Static function === */
 
@@ -66,17 +66,13 @@ updateJobStack(spider::vector<spider::srdag::TransfoJob> &src, spider::vector<sp
 
 /* === Private method(s) implementation === */
 
-spider::StaticRuntime::StaticRuntime(pisdf::Graph *graph,
-                                     SchedulingPolicy schedulingPolicy,
-                                     MappingPolicy mappingPolicy,
-                                     ExecutionPolicy executionPolicy,
-                                     FifoAllocatorType allocatorType) :
+spider::StaticRuntime::StaticRuntime(pisdf::Graph *graph, const RuntimeConfig &cfg) :
         Runtime(graph),
         srdag_{ make_unique<pisdf::Graph, StackID::RUNTIME>("srdag-" + graph->name()) },
-        ressourcesAllocator_{ make_unique<sched::ResourcesAllocator, StackID::RUNTIME>(schedulingPolicy,
-                                                                                       mappingPolicy,
-                                                                                       executionPolicy,
-                                                                                       allocatorType,
+        ressourcesAllocator_{ make_unique<sched::ResourcesAllocator, StackID::RUNTIME>(cfg.schedPolicy_,
+                                                                                       cfg.mapPolicy_,
+                                                                                       cfg.execPolicy_,
+                                                                                       cfg.allocType_,
                                                                                        true) } {
     if (!rt::platform()) {
         throwSpiderException("JITMSRuntime need the runtime platform to be created.");
