@@ -32,8 +32,8 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_TASKVERTEX_H
-#define SPIDER2_TASKVERTEX_H
+#ifndef SPIDER2_VERTEXTASK_H
+#define SPIDER2_VERTEXTASK_H
 
 #ifndef _NO_BUILD_LEGACY_RT
 
@@ -51,11 +51,11 @@ namespace spider {
 
         /* === Class definition === */
 
-        class TaskVertex final : public Task {
+        class VertexTask final : public Task {
         public:
-            explicit TaskVertex(pisdf::Vertex *vertex);
+            explicit VertexTask(pisdf::Vertex *vertex);
 
-            ~TaskVertex() noexcept override = default;
+            ~VertexTask() noexcept override = default;
 
             /* === Virtual method(s) === */
 
@@ -103,4 +103,4 @@ namespace spider {
     }
 }
 #endif
-#endif //SPIDER2_TASKVERTEX_H
+#endif //SPIDER2_VERTEXTASK_H

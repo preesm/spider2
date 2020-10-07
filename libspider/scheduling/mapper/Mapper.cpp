@@ -36,8 +36,8 @@
 /* === Include(s) === */
 
 #include <scheduling/mapper/Mapper.h>
-#include <scheduling/task/TaskVertex.h>
-#include <scheduling/task/TaskSync.h>
+#include <scheduling/task/VertexTask.h>
+#include <scheduling/task/SyncTask.h>
 
 /* === Static function === */
 

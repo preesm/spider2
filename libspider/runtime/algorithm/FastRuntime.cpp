@@ -40,7 +40,7 @@
 #include <graphs-tools/transformation/srless/GraphHandler.h>
 #include <scheduling/ResourcesAllocator.h>
 #include <scheduling/memory/FifoAllocator.h>
-#include <scheduling/task/TaskSRLess.h>
+#include <scheduling/task/SRLessTask.h>
 #include <runtime/runner/RTRunner.h>
 #include <runtime/platform/RTPlatform.h>
 #include <runtime/communicator/RTCommunicator.h>
@@ -190,7 +190,7 @@ bool spider::FastRuntime::dynamicExecute() {
                     rt::platform()->communicator()->pop(message, grtIx, notification.notificationIx_);
                     /* == Get the config vertex == */
                     const auto *task = resourcesAllocator_->schedule()->task(message.taskIx_);
-                    const auto *srlessTask = static_cast<const sched::TaskSRLess *>(task);
+                    const auto *srlessTask = static_cast<const sched::SRLessTask *>(task);
                     const auto *cfg = srlessTask->vertex();
                     auto *handler = srlessTask->handler();
                     auto paramIterator = message.params_.begin();

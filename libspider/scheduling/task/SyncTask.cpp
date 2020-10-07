@@ -35,7 +35,7 @@
 
 /* === Include(s) === */
 
-#include <scheduling/task/TaskSync.h>
+#include <scheduling/task/SyncTask.h>
 #include <archi/PE.h>
 #include <archi/Platform.h>
 #include <archi/MemoryBus.h>
@@ -46,13 +46,13 @@
 
 /* === Method(s) implementation === */
 
-spider::sched::TaskSync::TaskSync(SyncType type) : Task(), type_{ type } {
+spider::sched::SyncTask::SyncTask(SyncType type) : Task(), type_{ type } {
     fifos_ = spider::make_shared<AllocatedFifos, StackID::SCHEDULE>(type == SyncType::SEND, 1U);
     execInfo_.dependencies_ = spider::make_unique(allocate<Task *, StackID::SCHEDULE>(1u));
     execInfo_.dependencies_.get()[0u] = nullptr;
 }
 
-void spider::sched::TaskSync::updateExecutionConstraints() {
+void spider::sched::SyncTask::updateExecutionConstraints() {
     auto *execDependencies = execInfo_.dependencies_.get();
     auto *execConstraints = execInfo_.constraints_.get();
     auto *dependency = execDependencies[0u];
@@ -69,12 +69,12 @@ void spider::sched::TaskSync::updateExecutionConstraints() {
 
 #ifndef NDEBUG
 
-spider::sched::AllocationRule spider::sched::TaskSync::allocationRuleForInputFifo(size_t ix) const {
+spider::sched::AllocationRule spider::sched::SyncTask::allocationRuleForInputFifo(size_t ix) const {
     if (ix >= 1u) {
         throwSpiderException("index out of bound.");
     }
 #else
-    spider::sched::AllocationRule spider::sched::TaskSync::allocationRuleForInputFifo(size_t) const {
+    spider::sched::AllocationRule spider::sched::SyncTask::allocationRuleForInputFifo(size_t) const {
 #endif
     auto rule = AllocationRule{ };
     if (type_ == SyncType::SEND) {
@@ -89,12 +89,12 @@ spider::sched::AllocationRule spider::sched::TaskSync::allocationRuleForInputFif
 
 #ifndef NDEBUG
 
-spider::sched::AllocationRule spider::sched::TaskSync::allocationRuleForOutputFifo(size_t ix) const {
+spider::sched::AllocationRule spider::sched::SyncTask::allocationRuleForOutputFifo(size_t ix) const {
     if (ix >= 1u) {
         throwSpiderException("index out of bound.");
     }
 #else
-    spider::sched::AllocationRule spider::sched::TaskSync::allocationRuleForOutputFifo(size_t) const {
+    spider::sched::AllocationRule spider::sched::SyncTask::allocationRuleForOutputFifo(size_t) const {
 #endif
     auto rule = AllocationRule{ };
     rule.size_ = size_;
@@ -111,7 +111,7 @@ spider::sched::AllocationRule spider::sched::TaskSync::allocationRuleForOutputFi
     return rule;
 }
 
-spider::sched::Task *spider::sched::TaskSync::previousTask(size_t ix) const {
+spider::sched::Task *spider::sched::SyncTask::previousTask(size_t ix) const {
 #ifndef NDEBUG
     if (ix >= 1u) {
         throwSpiderException("index out of bound.");
@@ -120,35 +120,35 @@ spider::sched::Task *spider::sched::TaskSync::previousTask(size_t ix) const {
     return execInfo_.dependencies_.get()[ix];
 }
 
-u32 spider::sched::TaskSync::color() const {
+u32 spider::sched::SyncTask::color() const {
     /* ==  SEND    -> vivid tangerine color == */
     /* ==  RECEIVE -> Studio purple color == */
     return type_ == SyncType::SEND ? 0xff9478 : 0x8e44ad;
 }
 
-spider::array_handle<spider::sched::Task *> spider::sched::TaskSync::getDependencies() const {
+spider::array_handle<spider::sched::Task *> spider::sched::SyncTask::getDependencies() const {
     return { execInfo_.dependencies_.get(), 1u };
 }
 
-std::string spider::sched::TaskSync::name() const {
+std::string spider::sched::SyncTask::name() const {
     return type_ == SyncType::SEND ? "send" : "receive";
 }
 
-void spider::sched::TaskSync::setSuccessor(spider::sched::Task *successor) {
+void spider::sched::SyncTask::setSuccessor(spider::sched::Task *successor) {
     if (successor && type_ == SyncType::SEND) {
         successor_ = successor;
     }
 }
 
-void spider::sched::TaskSync::setSize(size_t size) {
+void spider::sched::SyncTask::setSize(size_t size) {
     size_ = size;
 }
 
-void spider::sched::TaskSync::setInputPortIx(u32 ix) {
+void spider::sched::SyncTask::setInputPortIx(u32 ix) {
     inputPortIx_ = ix;
 }
 
-void spider::sched::TaskSync::setExecutionDependency(size_t ix, Task *task) {
+void spider::sched::SyncTask::setExecutionDependency(size_t ix, Task *task) {
 #ifndef NDEBUG
     if (ix >= 1u) {
         throwSpiderException("index out of bound.");
@@ -159,7 +159,7 @@ void spider::sched::TaskSync::setExecutionDependency(size_t ix, Task *task) {
     }
 }
 
-spider::JobMessage spider::sched::TaskSync::createJobMessage() const {
+spider::JobMessage spider::sched::SyncTask::createJobMessage() const {
     JobMessage message{ };
     /* == Set core properties == */
     message.nParamsOut_ = 0u;
@@ -206,7 +206,7 @@ spider::JobMessage spider::sched::TaskSync::createJobMessage() const {
     return message;
 }
 
-std::pair<ufast64, ufast64> spider::sched::TaskSync::computeCommunicationCost(const spider::PE *mappedPE) const {
+std::pair<ufast64, ufast64> spider::sched::SyncTask::computeCommunicationCost(const spider::PE *mappedPE) const {
     const auto *platform = archi::platform();
     ufast64 externDataToReceive = 0u;
     /* == Compute communication cost == */
@@ -222,7 +222,7 @@ std::pair<ufast64, ufast64> spider::sched::TaskSync::computeCommunicationCost(co
     return { communicationCost, externDataToReceive };
 }
 
-u64 spider::sched::TaskSync::timingOnPE(const spider::PE *) const {
+u64 spider::sched::SyncTask::timingOnPE(const spider::PE *) const {
     if (!bus_) {
         return UINT64_MAX;
     }
@@ -230,6 +230,6 @@ u64 spider::sched::TaskSync::timingOnPE(const spider::PE *) const {
     return busSpeed / size_;
 }
 
-spider::sched::DependencyInfo spider::sched::TaskSync::getDependencyInfo(size_t) const {
+spider::sched::DependencyInfo spider::sched::SyncTask::getDependencyInfo(size_t) const {
     return { inputPortIx_, size_ };
 }

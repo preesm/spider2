@@ -37,7 +37,7 @@
 /* === Include(s) === */
 
 #include <scheduling/scheduler/GreedyScheduler.h>
-#include <scheduling/task/TaskVertex.h>
+#include <scheduling/task/VertexTask.h>
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/Vertex.h>
 
@@ -140,7 +140,7 @@ spider::sched::GreedyScheduler::evaluate(iterator_t it) {
         }
     }
     /* == add vertex to task vector == */
-    tasks_.emplace_back(make<TaskVertex>(it->vertex_));
+    tasks_.emplace_back(make<VertexTask>(it->vertex_));
     it->vertex_->setScheduleTaskIx(SIZE_MAX);
     return removeAndSwap(it);
 }

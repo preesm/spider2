@@ -37,8 +37,8 @@
 
 #include <scheduling/mapper/BestFitMapper.h>
 #include <scheduling/schedule/Schedule.h>
-#include <scheduling/task/TaskVertex.h>
-#include <scheduling/task/TaskSync.h>
+#include <scheduling/task/VertexTask.h>
+#include <scheduling/task/SyncTask.h>
 #include <archi/Platform.h>
 #include <archi/MemoryBus.h>
 #include <graphs/pisdf/Vertex.h>
@@ -162,7 +162,7 @@ void spider::sched::BestFitMapper::mapCommunications(Task *task, const Cluster *
     }
 }
 
-spider::sched::TaskSync *spider::sched::BestFitMapper::insertCommunicationTask(const Cluster *cluster,
+spider::sched::SyncTask *spider::sched::BestFitMapper::insertCommunicationTask(const Cluster *cluster,
                                                                                const Cluster *distCluster,
                                                                                ufast64 dataSize,
                                                                                Task *previousTask,
@@ -170,7 +170,7 @@ spider::sched::TaskSync *spider::sched::BestFitMapper::insertCommunicationTask(c
                                                                                Schedule *schedule) {
     const auto *bus = archi::platform()->getClusterToClusterMemoryBus(cluster, distCluster);
     /* == Create the com task == */
-    auto *comTask = make<TaskSync, StackID::SCHEDULE>(type);
+    auto *comTask = make<SyncTask, StackID::SCHEDULE>(type);
     comTask->setExecutionDependency(0, previousTask);
 
     /* == Creates the com task information == */

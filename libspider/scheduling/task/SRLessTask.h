@@ -32,8 +32,8 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_TASKSRLESS_H
-#define SPIDER2_TASKSRLESS_H
+#ifndef SPIDER2_SRLESSTASK_H
+#define SPIDER2_SRLESSTASK_H
 
 /* === Include(s) === */
 
@@ -56,15 +56,15 @@ namespace spider {
 
         /* === Class definition === */
 
-        class TaskSRLess final : public Task {
+        class SRLessTask final : public Task {
         public:
-            explicit TaskSRLess(srless::GraphFiring *handler,
+            explicit SRLessTask(srless::GraphFiring *handler,
                                 const pisdf::Vertex *vertex,
                                 u32 firing,
                                 u32 depCount,
                                 u32 mergedFifoCount);
 
-            ~TaskSRLess() noexcept override = default;
+            ~SRLessTask() noexcept override = default;
 
             /* === Virtual method(s) === */
 
@@ -139,4 +139,4 @@ namespace spider {
     }
 }
 
-#endif //SPIDER2_TASKSRLESS_H
+#endif //SPIDER2_SRLESSTASK_H

@@ -39,7 +39,7 @@
 
 #include <scheduling/mapper/Mapper.h>
 #include <scheduling/schedule/ScheduleStats.h>
-#include <scheduling/task/TaskSync.h>
+#include <scheduling/task/SyncTask.h>
 
 namespace spider {
 
@@ -90,7 +90,7 @@ namespace spider {
 
             void mapCommunications(Task *task, const Cluster *cluster, Schedule *schedule);
 
-            TaskSync *insertCommunicationTask(const Cluster *cluster,
+            SyncTask *insertCommunicationTask(const Cluster *cluster,
                                               const Cluster *distCluster,
                                               ufast64 dataSize,
                                               Task *previousTask,

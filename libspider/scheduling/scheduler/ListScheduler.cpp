@@ -37,7 +37,7 @@
 /* === Include(s) === */
 
 #include <scheduling/scheduler/ListScheduler.h>
-#include <scheduling/task/TaskVertex.h>
+#include <scheduling/task/VertexTask.h>
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/Vertex.h>
 #include <graphs/pisdf/Edge.h>
@@ -87,7 +87,7 @@ void spider::sched::ListScheduler::schedule(const pisdf::Graph *graph) {
 
     /* == Create the list of tasks to be scheduled == */
     for (auto k = lastScheduledTask_; k < lastSchedulableTask_; ++k) {
-        tasks_.emplace_back(make<TaskVertex>(sortedTaskVector_[k].vertex_));
+        tasks_.emplace_back(make<VertexTask>(sortedTaskVector_[k].vertex_));
         sortedTaskVector_[k].vertex_->setScheduleTaskIx(SIZE_MAX);
     }
 }

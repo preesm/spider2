@@ -49,7 +49,7 @@ namespace spider {
 
         class Task;
 
-        class TaskVertex;
+        class VertexTask;
 
         class Schedule;
 

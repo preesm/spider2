@@ -40,7 +40,7 @@
 #include <graphs/pisdf/ExternInterface.h>
 #include <graphs/pisdf/Edge.h>
 #include <graphs-tools/helper/pisdf-helper.h>
-#include <scheduling/task/TaskVertex.h>
+#include <scheduling/task/VertexTask.h>
 #include <scheduling/schedule/Schedule.h>
 #include <api/runtime-api.h>
 #include <runtime/platform/RTPlatform.h>
@@ -50,7 +50,7 @@
 
 /* === Method(s) implementation === */
 
-spider::sched::TaskVertex::TaskVertex(pisdf::Vertex *vertex) : Task(), vertex_{ vertex } {
+spider::sched::VertexTask::VertexTask(pisdf::Vertex *vertex) : Task(), vertex_{ vertex } {
     if (!vertex) {
         throwSpiderException("nullptr vertex.");
     }
@@ -61,7 +61,7 @@ spider::sched::TaskVertex::TaskVertex(pisdf::Vertex *vertex) : Task(), vertex_{ 
               std::next(execInfo_.dependencies_.get(), static_cast<long>(vertex->inputEdgeCount())), nullptr);
 }
 
-void spider::sched::TaskVertex::updateTaskExecutionDependencies(const spider::sched::Schedule *schedule) {
+void spider::sched::VertexTask::updateTaskExecutionDependencies(const spider::sched::Schedule *schedule) {
     for (const auto *edge : vertex_->inputEdgeVector()) {
         const auto *source = edge->source();
         const auto rate = static_cast<u64>(edge->sinkRateValue());
@@ -72,7 +72,7 @@ void spider::sched::TaskVertex::updateTaskExecutionDependencies(const spider::sc
     }
 }
 
-void spider::sched::TaskVertex::updateExecutionConstraints() {
+void spider::sched::VertexTask::updateExecutionConstraints() {
     auto *execDependencies = execInfo_.dependencies_.get();
     auto *execConstraints = execInfo_.constraints_.get();
     const auto lrtCount = archi::platform()->LRTCount();
@@ -97,7 +97,7 @@ void spider::sched::TaskVertex::updateExecutionConstraints() {
     }
 }
 
-spider::sched::AllocationRule spider::sched::TaskVertex::allocationRuleForInputFifo(size_t ix) const {
+spider::sched::AllocationRule spider::sched::VertexTask::allocationRuleForInputFifo(size_t ix) const {
 #ifndef NDEBUG
     if (ix >= vertex_->inputEdgeCount()) {
         throwSpiderException("index out of bound.");
@@ -127,7 +127,7 @@ spider::sched::AllocationRule spider::sched::TaskVertex::allocationRuleForInputF
     return rule;
 }
 
-spider::sched::AllocationRule spider::sched::TaskVertex::allocationRuleForOutputFifo(size_t ix) const {
+spider::sched::AllocationRule spider::sched::VertexTask::allocationRuleForOutputFifo(size_t ix) const {
 #ifndef NDEBUG
     if (ix >= vertex_->outputEdgeCount()) {
         throwSpiderException("index out of bound.");
@@ -180,7 +180,7 @@ spider::sched::AllocationRule spider::sched::TaskVertex::allocationRuleForOutput
     return rule;
 }
 
-spider::sched::Task *spider::sched::TaskVertex::previousTask(size_t ix) const {
+spider::sched::Task *spider::sched::VertexTask::previousTask(size_t ix) const {
 #ifndef NDEBUG
     if (ix >= vertex_->inputEdgeCount()) {
         throwSpiderException("index out of bound.");
@@ -189,7 +189,7 @@ spider::sched::Task *spider::sched::TaskVertex::previousTask(size_t ix) const {
     return execInfo_.dependencies_.get()[ix];
 }
 
-u32 spider::sched::TaskVertex::color() const {
+u32 spider::sched::VertexTask::color() const {
     const auto *reference = vertex_->reference();
     const u32 red = static_cast<u8>((reinterpret_cast<uintptr_t>(reference) >> 3u) * 50 + 100);
     const u32 green = static_cast<u8>((reinterpret_cast<uintptr_t>(reference) >> 2u) * 50 + 100);
@@ -197,22 +197,22 @@ u32 spider::sched::TaskVertex::color() const {
     return 0u | (red << 16u) | (green << 8u) | (blue);
 }
 
-std::string spider::sched::TaskVertex::name() const {
+std::string spider::sched::VertexTask::name() const {
     return vertex_->name();
 }
 
-bool spider::sched::TaskVertex::isSyncOptimizable() const noexcept {
+bool spider::sched::VertexTask::isSyncOptimizable() const noexcept {
     if (vertex_) {
         return (vertex_->subtype() == pisdf::VertexType::FORK) || (vertex_->subtype() == pisdf::VertexType::DUPLICATE);
     }
     return false;
 }
 
-spider::array_handle<spider::sched::Task *> spider::sched::TaskVertex::getDependencies() const {
+spider::array_handle<spider::sched::Task *> spider::sched::VertexTask::getDependencies() const {
     return { execInfo_.dependencies_.get(), vertex_->inputEdgeCount() };
 }
 
-void spider::sched::TaskVertex::setExecutionDependency(size_t ix, Task *task) {
+void spider::sched::VertexTask::setExecutionDependency(size_t ix, Task *task) {
 #ifndef NDEBUG
     if (ix >= vertex_->inputEdgeCount()) {
         throwSpiderException("index out of bound.");
@@ -223,7 +223,7 @@ void spider::sched::TaskVertex::setExecutionDependency(size_t ix, Task *task) {
     }
 }
 
-spider::JobMessage spider::sched::TaskVertex::createJobMessage() const {
+spider::JobMessage spider::sched::VertexTask::createJobMessage() const {
     JobMessage message{ };
     /* == Set core properties == */
     message.nParamsOut_ = static_cast<u32>(vertex_->reference()->outputParamCount());
@@ -260,12 +260,12 @@ spider::JobMessage spider::sched::TaskVertex::createJobMessage() const {
     return message;
 }
 
-void spider::sched::TaskVertex::setIx(u32 ix) noexcept {
+void spider::sched::VertexTask::setIx(u32 ix) noexcept {
     Task::setIx(ix);
     vertex_->setScheduleTaskIx(ix);
 }
 
-std::pair<ufast64, ufast64> spider::sched::TaskVertex::computeCommunicationCost(const PE *mappedPE) const {
+std::pair<ufast64, ufast64> spider::sched::VertexTask::computeCommunicationCost(const PE *mappedPE) const {
     const auto *platform = archi::platform();
     ufast64 externDataToReceive = 0u;
     /* == Compute communication cost == */
@@ -285,16 +285,16 @@ std::pair<ufast64, ufast64> spider::sched::TaskVertex::computeCommunicationCost(
     return { communicationCost, externDataToReceive };
 }
 
-spider::sched::DependencyInfo spider::sched::TaskVertex::getDependencyInfo(size_t ix) const {
+spider::sched::DependencyInfo spider::sched::VertexTask::getDependencyInfo(size_t ix) const {
     return { vertex_->inputEdge(ix)->sourcePortIx(),
              static_cast<size_t>(vertex_->inputEdge(ix)->sourceRateValue()) };
 }
 
-bool spider::sched::TaskVertex::isMappableOnPE(const spider::PE *pe) const {
+bool spider::sched::VertexTask::isMappableOnPE(const spider::PE *pe) const {
     return vertex_->runtimeInformation()->isPEMappable(pe);
 }
 
-u64 spider::sched::TaskVertex::timingOnPE(const spider::PE *pe) const {
+u64 spider::sched::VertexTask::timingOnPE(const spider::PE *pe) const {
     return static_cast<u64>(vertex_->runtimeInformation()->timingOnPE(pe, vertex_->inputParamVector()));
 }
 

@@ -35,7 +35,7 @@
 
 /* === Include(s) === */
 
-#include <scheduling/task/TaskSRLess.h>
+#include <scheduling/task/SRLessTask.h>
 #include <scheduling/schedule/Schedule.h>
 #include <graphs-tools/helper/pisdf-helper.h>
 #include <graphs-tools/transformation/srless/GraphHandler.h>
@@ -51,7 +51,7 @@
 
 /* === Method(s) implementation === */
 
-spider::sched::TaskSRLess::TaskSRLess(srless::GraphFiring *handler,
+spider::sched::SRLessTask::SRLessTask(srless::GraphFiring *handler,
                                       const pisdf::Vertex *vertex,
                                       u32 firing,
                                       u32 depCount,
@@ -67,7 +67,7 @@ spider::sched::TaskSRLess::TaskSRLess(srless::GraphFiring *handler,
     std::fill(beginIt, std::next(beginIt, static_cast<long>(depCount)), nullptr);
 }
 
-spider::sched::Task *spider::sched::TaskSRLess::previousTask(size_t ix) const {
+spider::sched::Task *spider::sched::SRLessTask::previousTask(size_t ix) const {
 #ifndef NDEBUG
     if (ix >= dependenciesCount_) {
         throwSpiderException("index out of bound.");
@@ -76,7 +76,7 @@ spider::sched::Task *spider::sched::TaskSRLess::previousTask(size_t ix) const {
     return execInfo_.dependencies_.get()[ix];
 }
 
-void spider::sched::TaskSRLess::updateTaskExecutionDependencies(const Schedule *schedule) {
+void spider::sched::SRLessTask::updateTaskExecutionDependencies(const Schedule *schedule) {
     size_t i = 0u;
     for (const auto *edge : vertex_->inputEdgeVector()) {
         const auto deps = spider::pisdf::computeExecDependency(vertex_, firing_, edge->sinkPortIx(), handler_);
@@ -93,7 +93,7 @@ void spider::sched::TaskSRLess::updateTaskExecutionDependencies(const Schedule *
     }
 }
 
-void spider::sched::TaskSRLess::updateExecutionConstraints() {
+void spider::sched::SRLessTask::updateExecutionConstraints() {
     auto *execDependencies = execInfo_.dependencies_.get();
     auto *execConstraints = execInfo_.constraints_.get();
     const auto lrtCount = archi::platform()->LRTCount();
@@ -117,7 +117,7 @@ void spider::sched::TaskSRLess::updateExecutionConstraints() {
     }
 }
 
-void spider::sched::TaskSRLess::setExecutionDependency(size_t ix, spider::sched::Task *task) {
+void spider::sched::SRLessTask::setExecutionDependency(size_t ix, spider::sched::Task *task) {
 #ifndef NDEBUG
     if (ix >= dependenciesCount_) {
         throwSpiderException("index out of bound.");
@@ -128,7 +128,7 @@ void spider::sched::TaskSRLess::setExecutionDependency(size_t ix, spider::sched:
     }
 }
 
-spider::sched::AllocationRule spider::sched::TaskSRLess::allocationRuleForInputFifo(size_t ix) const {
+spider::sched::AllocationRule spider::sched::SRLessTask::allocationRuleForInputFifo(size_t ix) const {
 #ifndef NDEBUG
     if ((vertex_->subtype() != pisdf::VertexType::INPUT) && (ix >= vertex_->inputEdgeCount())) {
         throwSpiderException("index out of bound.");
@@ -138,7 +138,7 @@ spider::sched::AllocationRule spider::sched::TaskSRLess::allocationRuleForInputF
     return allocateInputFifo(edge);
 }
 
-spider::sched::AllocationRule spider::sched::TaskSRLess::allocationRuleForOutputFifo(size_t ix) const {
+spider::sched::AllocationRule spider::sched::SRLessTask::allocationRuleForOutputFifo(size_t ix) const {
 #ifndef NDEBUG
     if (ix >= vertex_->outputEdgeCount()) {
         throwSpiderException("index out of bound.");
@@ -204,7 +204,7 @@ spider::sched::AllocationRule spider::sched::TaskSRLess::allocationRuleForOutput
     return rule;
 }
 
-spider::JobMessage spider::sched::TaskSRLess::createJobMessage() const {
+spider::JobMessage spider::sched::SRLessTask::createJobMessage() const {
     JobMessage message{ };
     /* == Set core properties == */
     message.nParamsOut_ = static_cast<u32>(vertex_->reference()->outputParamCount());
@@ -241,14 +241,14 @@ spider::JobMessage spider::sched::TaskSRLess::createJobMessage() const {
     return message;
 }
 
-u32 spider::sched::TaskSRLess::color() const {
+u32 spider::sched::SRLessTask::color() const {
     const u32 red = static_cast<u8>((reinterpret_cast<uintptr_t>(vertex_) >> 3u) * 50 + 100);
     const u32 green = static_cast<u8>((reinterpret_cast<uintptr_t>(vertex_) >> 2u) * 50 + 100);
     const u32 blue = static_cast<u8>((reinterpret_cast<uintptr_t>(vertex_) >> 4u) * 50 + 100);
     return 0u | (red << 16u) | (green << 8u) | (blue);
 }
 
-std::string spider::sched::TaskSRLess::name() const {
+std::string spider::sched::SRLessTask::name() const {
     std::string name{ };
     const auto *vertex = vertex_;
     const auto *handler = handler_;
@@ -262,34 +262,34 @@ std::string spider::sched::TaskSRLess::name() const {
     return name.append(vertex_->name()).append(":").append(std::to_string(firing_));
 }
 
-void spider::sched::TaskSRLess::setIx(u32 ix) noexcept {
+void spider::sched::SRLessTask::setIx(u32 ix) noexcept {
     Task::setIx(ix);
     handler_->registerTaskIx(vertex_, firing_, ix);
 }
 
-spider::array_handle<spider::sched::Task *> spider::sched::TaskSRLess::getDependencies() const {
+spider::array_handle<spider::sched::Task *> spider::sched::SRLessTask::getDependencies() const {
     return { execInfo_.dependencies_.get(), dependenciesCount_ };
 }
 
-std::pair<ufast64, ufast64> spider::sched::TaskSRLess::computeCommunicationCost(const spider::PE */*mappedPE*/) const {
+std::pair<ufast64, ufast64> spider::sched::SRLessTask::computeCommunicationCost(const spider::PE */*mappedPE*/) const {
     return { };
 }
 
-bool spider::sched::TaskSRLess::isMappableOnPE(const spider::PE *pe) const {
+bool spider::sched::SRLessTask::isMappableOnPE(const spider::PE *pe) const {
     return vertex_->runtimeInformation()->isPEMappable(pe);
 }
 
-u64 spider::sched::TaskSRLess::timingOnPE(const spider::PE *pe) const {
+u64 spider::sched::SRLessTask::timingOnPE(const spider::PE *pe) const {
     return static_cast<u64>(vertex_->runtimeInformation()->timingOnPE(pe, handler_->getParams()));
 }
 
-spider::sched::DependencyInfo spider::sched::TaskSRLess::getDependencyInfo(size_t /*size*/) const {
+spider::sched::DependencyInfo spider::sched::SRLessTask::getDependencyInfo(size_t /*size*/) const {
     return { };
 }
 
 /* === Private method(s) implementation === */
 
-size_t spider::sched::TaskSRLess::updateTaskExecutionDependency(const Schedule *schedule,
+size_t spider::sched::SRLessTask::updateTaskExecutionDependency(const Schedule *schedule,
                                                                 const pisdf::DependencyInfo &dependency,
                                                                 size_t index) {
     if (!dependency.vertex_) {
@@ -304,7 +304,7 @@ size_t spider::sched::TaskSRLess::updateTaskExecutionDependency(const Schedule *
 }
 
 spider::sched::AllocationRule
-spider::sched::TaskSRLess::allocateInputFifo(const pisdf::Edge *edge) const {
+spider::sched::SRLessTask::allocateInputFifo(const pisdf::Edge *edge) const {
     u32 count = 0;
     const auto deps = spider::pisdf::computeExecDependency(vertex_, firing_, edge->sinkPortIx(), handler_);
     for (const auto &dep : deps) {

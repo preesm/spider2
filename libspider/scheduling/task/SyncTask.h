@@ -32,8 +32,8 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_TASKSYNC_H
-#define SPIDER2_TASKSYNC_H
+#ifndef SPIDER2_SYNCTASK_H
+#define SPIDER2_SYNCTASK_H
 
 /* === Include(s) === */
 
@@ -52,11 +52,11 @@ namespace spider {
 
         /* === Class definition === */
 
-        class TaskSync final : public Task {
+        class SyncTask final : public Task {
         public:
-            explicit TaskSync(SyncType type);
+            explicit SyncTask(SyncType type);
 
-            ~TaskSync() noexcept override = default;
+            ~SyncTask() noexcept override = default;
 
             /* === Virtual method(s) === */
 
@@ -131,4 +131,4 @@ namespace spider {
     }
 }
 
-#endif //SPIDER2_TASKSYNC_H
+#endif //SPIDER2_SYNCTASK_H

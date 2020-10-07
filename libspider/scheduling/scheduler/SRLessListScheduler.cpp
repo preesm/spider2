@@ -36,7 +36,7 @@
 /* === Include(s) === */
 
 #include <scheduling/scheduler/SRLessListScheduler.h>
-#include <scheduling/task/TaskSRLess.h>
+#include <scheduling/task/SRLessTask.h>
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/Vertex.h>
 #include <graphs-tools/transformation/srless/GraphHandler.h>
@@ -87,7 +87,7 @@ void spider::sched::SRLessListScheduler::schedule(srless::GraphHandler *graphHan
     for (auto k = lastScheduledTask_; k < lastSchedulableTask_; ++k) {
         const auto &task = sortedTaskVector_[k];
         const auto depInfo = countDependenciesAndMergedFifos(task);
-        tasks_.emplace_back(make<TaskSRLess>(task.handler_, task.vertex_, task.firing_, depInfo.first, depInfo.second));
+        tasks_.emplace_back(make<SRLessTask>(task.handler_, task.vertex_, task.firing_, depInfo.first, depInfo.second));
         sortedTaskVector_[k].vertex_->setScheduleTaskIx(SIZE_MAX);
     }
 }

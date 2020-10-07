@@ -36,7 +36,7 @@
 /* === Include(s) === */
 
 #include <scheduling/scheduler/SRLessGreedyScheduler.h>
-#include <scheduling/task/TaskSRLess.h>
+#include <scheduling/task/SRLessTask.h>
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/Vertex.h>
 #include <graphs-tools/transformation/srless/GraphHandler.h>
@@ -115,7 +115,7 @@ spider::sched::SRLessGreedyScheduler::iterator_t spider::sched::SRLessGreedySche
         mergedFifoCount += ((current + 1) < depCount);
     }
     /* == add vertex to task vector == */
-    tasks_.emplace_back(make<TaskSRLess>(it->handler_, it->vertex_, it->firing_, depCount, mergedFifoCount));
+    tasks_.emplace_back(make<SRLessTask>(it->handler_, it->vertex_, it->firing_, depCount, mergedFifoCount));
     it->handler_->registerTaskIx(it->vertex_, it->firing_, UINT32_MAX);
     return removeAndSwap(it);
 }
