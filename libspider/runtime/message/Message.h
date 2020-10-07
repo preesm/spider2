@@ -68,8 +68,8 @@ namespace spider {
 
         /* === Struct member(s) === */
 
-        array<i64> params_;          /*!< Array of parameter(s) value */
-        size_t taskIx_ = SIZE_MAX; /*!< Ix of the kernel setting the parameter(s) */
+        spider::array<i64> params_; /*!< Array of parameter(s) value */
+        size_t taskIx_ = SIZE_MAX;  /*!< Ix of the kernel setting the parameter(s) */
     };
 
     /**
@@ -80,7 +80,6 @@ namespace spider {
         time::time_point endTime_ = time::min();    /*!< End time of the job */
         size_t taskIx_ = SIZE_MAX;                  /*!< Ix of the task */
     };
-
 }
 
 #endif //SPIDER2_MESSAGE_H

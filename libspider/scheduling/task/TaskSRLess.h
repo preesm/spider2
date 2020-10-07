@@ -116,22 +116,25 @@ namespace spider {
             u32 firing_;
             u32 dependenciesCount_;
 
+            /* === Private method(s) === */
 
-            /* === private method(s) === */
-
-            std::string name(const pisdf::Vertex *vertex, const srless::GraphFiring *handler) const;
-
-            /* === Dependencies methods === */
-
+            /**
+             * @brief Update task dependencies based on this dependency and the schedule.
+             * @param schedule    Pointer to the schedule.
+             * @param dependency  Dependency to evaluate.
+             * @param index       Offset to be applied for accessing the execinfo dependency array.
+             * @return updated offset based on the number of firing of the dependency.
+             */
             size_t updateTaskExecutionDependency(const Schedule *schedule,
-                                                 const pisdf::DependencyInfo &dependencyInfo,
+                                                 const pisdf::DependencyInfo &dependency,
                                                  size_t index);
 
-            /* === Input FIFO allocation methods === */
-
+            /**
+             * @brief Get the allocation rule for a given edge.
+             * @param edge Pointer to the edge.
+             * @return allocation rule for this edge.
+             */
             AllocationRule allocateInputFifo(const pisdf::Edge *edge) const;
-
-            u32 computeConsCount(const pisdf::Edge *edge) const;
         };
     }
 }

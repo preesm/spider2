@@ -51,8 +51,9 @@ namespace spider {
         R_MERGE,     /*!< Owner of the FIFO needs to merge multiple FIFOs together */
         R_REPEAT,    /*!< Owner of the FIFO needs to repeat the input FIFO a given number of times */
         W_SINK,      /*!< Owner of the FIFO writes to a sink, i.e FIFO is useless */
+        DUMMY,       /*!< Sentry for synchronization */
         First = RW_ONLY, /*!< Sentry for EnumIterator::begin */
-        Last = W_SINK   /*!< Sentry for EnumIterator::end */
+        Last = DUMMY     /*!< Sentry for EnumIterator::end */
     };
 
     constexpr auto FIFO_ATTR_COUNT = static_cast<u8>(FifoAttribute::Last) - static_cast<u8>(FifoAttribute::First) + 1u;

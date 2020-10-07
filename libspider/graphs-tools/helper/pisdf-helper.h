@@ -73,17 +73,15 @@ namespace spider {
          *        section.
          * @remark This method changes original graph.
          * @param graph         Pointer to the graph to split (if static nothing happen).
-         * @param moveDynParam  Flag indicating if dynamic params should be moved or inherited.
          * @return true if split the graph, false else.
          */
-        void separateRunGraphFromInit(pisdf::Graph *graph, bool moveDynParam = false);
+        void separateRunGraphFromInit(pisdf::Graph *graph);
 
         /**
          * @brief Recursively split dynamic graphs to separate init from run sections of the graph.
          * @param graph         Pointer to the top graph.
-         * @param moveDynParam  Flag indicating if dynamic params should be moved or inherited.
          */
-        void recursiveSplitDynamicGraph(Graph *graph, bool moveDynParam = false);
+        void recursiveSplitDynamicGraph(Graph *graph);
 
         /**
          * @brief Creates an array with parameters needed for the runtime exec of a vertex.

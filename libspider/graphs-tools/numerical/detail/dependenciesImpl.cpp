@@ -62,6 +62,9 @@ namespace spider {
                                                   int64_t srcRate,
                                                   int64_t delayValue,
                                                   const srless::GraphFiring *handler) {
+                if (!srcRate) {
+                    return UniqueDependency{{ nullptr, nullptr, 0, 0, 0, 0, 0, 0 }};
+                }
                 UniqueDependency dep{ };
                 dep.info_.vertex_ = edge->source();
                 dep.info_.handler_ = handler;
@@ -80,6 +83,9 @@ namespace spider {
                                                   int64_t snkRate,
                                                   int64_t delayValue,
                                                   const srless::GraphFiring *handler) {
+                if (!snkRate) {
+                    return UniqueDependency{{ nullptr, nullptr, 0, 0, 0, 0, 0, 0 }};
+                }
                 UniqueDependency dep{ };
                 dep.info_.vertex_ = edge->sink();
                 dep.info_.handler_ = handler;
@@ -106,6 +112,9 @@ spider::pisdf::DependencyIterator spider::pisdf::detail::computeExecDependency(c
     const auto srcRate = edge->sourceRateExpression().evaluate(handler->getParams());
     const auto *delay = edge->delay();
     const auto delayValue = delay ? delay->value() : 0;
+    if (!srcRate) {
+        return DependencyIterator{ UniqueDependency{{ nullptr, nullptr, 0, 0, 0, 0, 0, 0 }}};
+    }
     if (sourceType == VertexType::DELAY) {
         /* == Case of getter vertex == */
         const auto *delayFromVertex = edge->source()->convertTo<pisdf::DelayVertex>()->delay();
@@ -257,9 +266,9 @@ spider::pisdf::DependencyIterator spider::pisdf::detail::computeConsDependency(c
                 } else {
                     const auto *interface = graph->inputInterface(edge->sinkPortIx());
                     const auto *innerEdge = interface->edge();
-                    const auto ifSrcRate = innerEdge->sourceRateExpression().evaluate(handler->getParams());
+                    const auto ifSrcRate = innerEdge->sourceRateExpression().evaluate(gh->getParams());
                     const auto ifSnkRV = gh->getRV(innerEdge->sink());
-                    const auto ifSnkRate = innerEdge->sinkRateExpression().evaluate(handler->getParams());
+                    const auto ifSnkRate = innerEdge->sinkRateExpression().evaluate(gh->getParams());
                     const auto adjustedSnkRate = ifSnkRate * ifSnkRV;
                     const auto fullRepCount = adjustedSnkRate / ifSrcRate;
                     const auto lProd = k == dep.firingStart_ ? dep.memoryStart_ % ifSrcRate : 0;

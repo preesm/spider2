@@ -284,7 +284,7 @@ bool spider::pisdf::isGraphFullyStatic(const Graph *graph) {
     return isFullyStatic;
 }
 
-void spider::pisdf::separateRunGraphFromInit(Graph *graph, bool moveDynParam) {
+void spider::pisdf::separateRunGraphFromInit(Graph *graph) {
     if (!graph->configVertexCount() || !graph->dynamic()) {
         return;
     }
@@ -410,12 +410,12 @@ void spider::pisdf::separateRunGraphFromInit(Graph *graph, bool moveDynParam) {
     }
 }
 
-void spider::pisdf::recursiveSplitDynamicGraph(Graph *graph, bool moveDynParam) {
+void spider::pisdf::recursiveSplitDynamicGraph(Graph *graph) {
     if (graph->dynamic()) {
-        separateRunGraphFromInit(graph, moveDynParam);
+        separateRunGraphFromInit(graph);
     }
     for (auto &subgraph : graph->subgraphs()) {
-        recursiveSplitDynamicGraph(subgraph, moveDynParam);
+        recursiveSplitDynamicGraph(subgraph);
     }
 }
 

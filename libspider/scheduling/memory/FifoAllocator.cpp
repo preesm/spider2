@@ -40,8 +40,12 @@
 #include <graphs/pisdf/DelayVertex.h>
 #include <graphs/pisdf/ExternInterface.h>
 #include <graphs/pisdf/Graph.h>
-#include <api/archi-api.h>
 #include <archi/MemoryInterface.h>
+#include <runtime/message/Notification.h>
+#include <runtime/communicator/RTCommunicator.h>
+#include <runtime/platform/RTPlatform.h>
+#include <api/archi-api.h>
+#include <api/runtime-api.h>
 
 /* === Function(s) definition === */
 
@@ -80,12 +84,13 @@ void spider::sched::FifoAllocator::allocate(sched::Task *task) {
         if (rule.type_ == AllocType::MERGE) {
             /* == Set the merged fifo == */
             offset += allocateMergedInputFifo(task, it, rule, fifoIx, offset);
-            it = it + rule.count_;
+            it += rule.count_;
             if (it == std::end(inputFifos)) {
                 break;
             }
         } else if (rule.type_ == AllocType::SAME_IN) {
-            allocateInputFifo(task->previousTask(fifoIx + offset), it, rule);
+            const auto *previousTask = task->previousTask(fifoIx + offset);
+            allocateInputFifo(previousTask, it, rule);
         } else {
             throwSpiderException("invalid AllocAttribute for input FIFO.");
         }
@@ -155,11 +160,22 @@ size_t spider::sched::FifoAllocator::allocateMergedInputFifo(Task *task,
 }
 
 void spider::sched::FifoAllocator::allocateInputFifo(const Task *task, Fifo *fifo, AllocationRule &rule) {
-    if (task) {
+    if (task && (rule.attribute_ != FifoAttribute::DUMMY)) {
         *fifo = task->fifos().outputFifo(rule.fifoIx_);
         if (fifo->attribute_ != FifoAttribute::RW_EXT) {
+            if (task->state() == TaskState::RUNNING && (fifo->size_ > 0) && (fifo->count_ == 0)) {
+                /* == We are in the case of a vertex already executed, now we try to update its counter value == */
+                auto tmp = task->allocationRuleForOutputFifo(rule.fifoIx_);
+                fifo->count_ = tmp.count_;
+                const auto sndIx = task->mappedLRT()->virtualIx();
+                auto addrNotifcation = Notification{ NotificationType::MEM_UPDATE_COUNT, sndIx, fifo->virtualAddress_ };
+                auto countNotifcation = Notification{ NotificationType::MEM_UPDATE_COUNT, sndIx, fifo->count_ };
+                rt::platform()->communicator()->push(addrNotifcation, sndIx);
+                rt::platform()->communicator()->push(countNotifcation, sndIx);
+                task->fifos().setOutputFifo(rule.fifoIx_, *fifo);
+            }
+            fifo->count_ = 0;
             fifo->attribute_ = rule.attribute_;
-            fifo->count_ = rule.count_;
         }
         fifo->size_ = static_cast<u32>(rule.size_);
         fifo->offset_ += static_cast<u32>(rule.offset_);

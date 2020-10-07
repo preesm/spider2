@@ -74,7 +74,7 @@ namespace spider {
             size_t dataSize_;
         };
 
-        enum TaskState : u8 {
+        enum class TaskState : u8 {
             NOT_SCHEDULABLE = 0,
             NOT_RUNNABLE,
             PENDING,
@@ -329,7 +329,7 @@ namespace spider {
             spider::unique_ptr<detail::MappingInfo> mappingInfo_;  /*!< Mapping information of the task */
             u32 ix_{ UINT32_MAX };                                 /*!< Index of the task in the schedule */
             u32 jobExecIx_{ UINT32_MAX };                          /*!< Index of the job sent to the PE */
-            TaskState state_{ NOT_SCHEDULABLE };                   /*!< State of the task */
+            TaskState state_{ TaskState::NOT_SCHEDULABLE };        /*!< State of the task */
         };
     }
 }

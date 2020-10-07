@@ -65,8 +65,7 @@ spider::FastRuntime::FastRuntime(pisdf::Graph *graph, const RuntimeConfig &cfg, 
         throwSpiderException("JITMSRuntime need the runtime platform to be created.");
     }
     resourcesAllocator_->allocator()->allocatePersistentDelays(graph_);
-    pisdf::recursiveSplitDynamicGraph(graph_, true);
-    api::exportGraphToDOT(graph_, "./new.dot");
+    pisdf::recursiveSplitDynamicGraph(graph_);
 }
 
 bool spider::FastRuntime::execute() {
@@ -176,7 +175,7 @@ bool spider::FastRuntime::dynamicExecute() {
         /* == Wait for all parameters to be resolved == */
         const auto expectedParamCount = countExpectedNumberOfParams(&graphHandler);
         if (!expectedParamCount) {
-            done = true;
+            break;
         } else {
             if (log::enabled<log::TRANSFO>()) {
                 log::info<log::TRANSFO>("Waiting fo dynamic parameters..\n");

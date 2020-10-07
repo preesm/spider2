@@ -200,10 +200,6 @@ ifast32 spider::sched::SRLessListScheduler::computeScheduleLevel(ListTask &listT
                             level = std::max(level, sinkLevel + static_cast<ifast32>(minExecutionTime));
                         }
                     }
-                } else if (dep.rate_ < 0) {
-                    listTask.level_ = NON_SCHEDULABLE_LEVEL;
-                    recursiveSetNonSchedulable(vertex, firing, handler);
-                    return listTask.level_;
                 }
             }
         }
@@ -248,7 +244,7 @@ size_t spider::sched::SRLessListScheduler::countNonSchedulableTasks() {
     size_t count{ };
     for (; (it->level_ == NON_SCHEDULABLE_LEVEL) && (it != sortedTaskVector_.rend()); ++it) {
         count++;
-        it->level_ = -1;      /* = Reset the schedule level = */
+        it->level_ = -1; /* = Reset the schedule level = */
     }
     return count;
 }
