@@ -49,7 +49,7 @@ namespace spider {
     public:
         explicit MemoryInterface(uint64_t size = 0);
 
-        ~MemoryInterface() = default;
+        ~MemoryInterface();
 
         /* === Method(s) === */
 
