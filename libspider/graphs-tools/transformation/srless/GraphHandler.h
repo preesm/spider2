@@ -77,22 +77,22 @@ namespace spider {
 
             /* === Getter(s) === */
 
-            const pisdf::Graph *graph() const { return graph_; }
-
-            u32 repetitionCount() const;
+            inline const spider::vector<GraphFiring *> &firings() const { return firings_; }
 
             inline const GraphFiring *handler() const { return handler_; }
 
-            inline bool isStatic() const { return static_; }
+            const pisdf::Graph *graph() const { return graph_; }
 
-            inline const spider::vector<GraphFiring *> &firings() const { return firings_; }
+            inline u32 repetitionCount() const { return repetitionCount_; };
+
+            inline bool isStatic() const { return static_; }
 
             inline spider::vector<GraphFiring *> &firings() { return firings_; }
 
         private:
             spider::vector<GraphFiring *> firings_;
-            const pisdf::Graph *graph_;
             const srless::GraphFiring *handler_;
+            const pisdf::Graph *graph_;
             u32 repetitionCount_;
             bool static_;
         };

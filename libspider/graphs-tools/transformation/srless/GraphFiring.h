@@ -99,13 +99,11 @@ namespace spider {
 
             inline const GraphHandler *getParent() const { return parent_; }
 
-            inline const spider::array<GraphHandler *> &children() const { return children_; }
+            inline const spider::array<GraphHandler *> &children() const { return subgraphHandlers_; }
 
-            inline spider::array<GraphHandler *> &children() { return children_; }
+            inline spider::array<GraphHandler *> &children() { return subgraphHandlers_; }
 
             inline const spider::vector<std::shared_ptr<pisdf::Param>> &getParams() const { return params_; }
-
-            inline size_t ix() const { return ix_; }
 
             inline u32 firingValue() const { return firing_; }
 
@@ -121,26 +119,22 @@ namespace spider {
 
             /* === Setter(s) === */
 
-            inline void setIx(size_t ix) { ix_ = ix; }
-
-            inline void setFiring(u32 firing) { firing_ = firing; }
-
             void setParamValue(size_t ix, int64_t value);
 
         private:
             spider::vector<std::shared_ptr<pisdf::Param>> params_;
-            spider::array<GraphHandler *> children_; /* == match between subgraphs and their handler == */
-            spider::array<u32> brv_;
+            spider::array<GraphHandler *> subgraphHandlers_; /* == match between subgraphs and their handler == */
+            spider::array<u32> brv_; /* == BRV of this firing of the graph == */
             spider::array<u32 *> taskIxRegister_;
             const GraphHandler *parent_;
-            size_t ix_{ };
             u32 firing_{ };
+            u32 dynamicParamCount_{ };
+            u32 paramResolvedCount_{};
             bool resolved_;
 
             /* === private method(s) === */
 
-            std::shared_ptr<pisdf::Param> copyParameter(const std::shared_ptr<pisdf::Param> &param,
-                                                        const spider::vector<std::shared_ptr<pisdf::Param>> &parentParams);
+            std::shared_ptr<pisdf::Param> copyParameter(const std::shared_ptr<pisdf::Param> &param);
         };
     }
 }

@@ -109,7 +109,7 @@ void spider::sched::SRLessListScheduler::resetUnScheduledTasks() {
     }
 }
 
-void spider::sched::SRLessListScheduler::recursiveAddVertices(spider::srless::GraphHandler *graphHandler) {
+void spider::sched::SRLessListScheduler::recursiveAddVertices(srless::GraphHandler *graphHandler) {
     for (auto &firingHandler : graphHandler->firings()) {
         if (firingHandler->isResolved()) {
             for (const auto &vertex : graphHandler->graph()->vertices()) {
@@ -120,9 +120,14 @@ void spider::sched::SRLessListScheduler::recursiveAddVertices(spider::srless::Gr
                     }
                 }
             }
-        }
-        for (auto *child : firingHandler->children()) {
-            recursiveAddVertices(child);
+            for (auto *child : firingHandler->children()) {
+                recursiveAddVertices(child);
+            }
+        } else {
+            const auto *graph = graphHandler->graph();
+            const auto *handler = graphHandler->handler();
+            const auto firing = firingHandler->firingValue();
+            recursiveSetNonSchedulable(graph, firing, handler);
         }
     }
 }
@@ -132,30 +137,39 @@ void spider::sched::SRLessListScheduler::createListTask(pisdf::Vertex *vertex,
                                                         srless::GraphFiring *handler) {
     const auto vertexTaskIx = handler->getTaskIx(vertex, firing);
     if (vertexTaskIx == UINT32_MAX && vertex->executable()) {
-        sortedTaskVector_.push_back({ vertex, handler, firing, -1 });
+        sortedTaskVector_.push_back({ vertex, handler, -1, firing });
         handler->registerTaskIx(vertex, firing, static_cast<u32>(sortedTaskVector_.size() - 1));
     }
 }
 
+void spider::sched::SRLessListScheduler::recursiveSetNonSchedulable(const pisdf::Vertex *vertex,
+                                                                    u32 firing,
+                                                                    const srless::GraphFiring *handler) {
+    for (const auto *edge : vertex->outputEdgeVector()) {
+        const auto deps = pisdf::computeConsDependency(vertex, firing, edge->sourcePortIx(), handler);
+        for (const auto &dep : deps) {
+            if (dep.rate_ < 0) {
+                continue;
+            }
+            /* == Disable non-null edge == */
+            for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
+                const auto ix = dep.handler_->getTaskIx(dep.vertex_, k);
+                auto &sinkTask = sortedTaskVector_[ix];
+                sinkTask.level_ = NON_SCHEDULABLE_LEVEL;
+                recursiveSetNonSchedulable(dep.vertex_, k, dep.handler_);
+            }
+        }
+    }
+}
+
 ifast32 spider::sched::SRLessListScheduler::computeScheduleLevel(ListTask &listTask,
-                                                                 spider::vector<ListTask> &listVertexVector) const {
+                                                                 spider::vector<ListTask> &listVertexVector) {
     const auto *vertex = listTask.vertex_;
     const auto *handler = listTask.handler_;
     const auto firing = listTask.firing_;
     if ((listTask.level_ == NON_SCHEDULABLE_LEVEL) || !vertex->executable()) {
         listTask.level_ = NON_SCHEDULABLE_LEVEL;
-        for (const auto *edge : vertex->outputEdgeVector()) {
-            const auto deps = pisdf::computeConsDependency(vertex, firing, edge->sourcePortIx(), handler);
-            for (const auto &dep : deps) {
-                /* == Disable non-null edge == */
-                for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
-                    const auto ix = dep.handler_->getTaskIx(dep.vertex_, k);
-                    auto &sinkTask = listVertexVector[ix];
-                    sinkTask.level_ = NON_SCHEDULABLE_LEVEL;
-                    computeScheduleLevel(sinkTask, listVertexVector);
-                }
-            }
-        }
+        recursiveSetNonSchedulable(vertex, firing, handler);
     } else if (listTask.level_ < 0) {
         const auto *platform = archi::platform();
         ifast32 level = 0;
@@ -186,6 +200,10 @@ ifast32 spider::sched::SRLessListScheduler::computeScheduleLevel(ListTask &listT
                             level = std::max(level, sinkLevel + static_cast<ifast32>(minExecutionTime));
                         }
                     }
+                } else if (dep.rate_ < 0) {
+                    listTask.level_ = NON_SCHEDULABLE_LEVEL;
+                    recursiveSetNonSchedulable(vertex, firing, handler);
+                    return listTask.level_;
                 }
             }
         }
@@ -203,7 +221,17 @@ void spider::sched::SRLessListScheduler::sortVertices() {
                       const auto *vertexA = A.vertex_;
                       const auto *vertexB = B.vertex_;
                       if (vertexB->reference() == vertexA->reference()) {
-                          return vertexA->instanceValue() < vertexB->instanceValue();
+                          auto firingA = A.firing_;
+                          auto firingB = B.firing_;
+                          const auto *handlerA = A.handler_;
+                          const auto *handlerB = B.handler_;
+                          while ((handlerA && handlerB) && (firingA == firingB)) {
+                              firingA = handlerA->firingValue();
+                              firingB = handlerB->firingValue();
+                              handlerA = handlerA->getParent()->handler();
+                              handlerB = handlerB->getParent()->handler();
+                          }
+                          return firingA < firingB;
                       } else if ((vertexA->subtype() != vertexB->subtype()) &&
                                  ((vertexA->subtype() == pisdf::VertexType::INIT) ||
                                   (vertexB->subtype() == pisdf::VertexType::END))) {

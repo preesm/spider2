@@ -58,7 +58,7 @@ namespace spider {
         ParameterMessage(ParameterMessage &&) noexcept = default;
 
         ParameterMessage(size_t kernelIx, spider::array<int64_t> params) : params_{ std::move(params) },
-                                                                           vertexIx_{ kernelIx } { };
+                                                                           taskIx_{ kernelIx } { };
 
         ParameterMessage &operator=(const ParameterMessage &) = default;
 
@@ -69,7 +69,7 @@ namespace spider {
         /* === Struct member(s) === */
 
         array<i64> params_;          /*!< Array of parameter(s) value */
-        size_t vertexIx_ = SIZE_MAX; /*!< Ix of the kernel setting the parameter(s) */
+        size_t taskIx_ = SIZE_MAX; /*!< Ix of the kernel setting the parameter(s) */
     };
 
     /**

@@ -60,13 +60,24 @@ static ufast32 reconnectInterface(const InterfaceVector &interfaceVector, const 
 /**
  * @brief Creates an array with parameters needed for the runtime exec of a normal vertex.
  * @param vertex Pointer to the vertex.
+ * @param params Parameters to use for the rates evaluation. (should contain the same parameters as the graphs)
  * @return array of int_least_64_t.
  */
-static spider::unique_ptr<i64> buildDefaultVertexRuntimeParameters(const spider::pisdf::Vertex *vertex) {
+static spider::unique_ptr<i64> buildDefaultVertexRuntimeParameters(const spider::pisdf::Vertex *vertex,
+                                                                   const spider::vector<std::shared_ptr<spider::pisdf::Param>> &params) {
     const auto &inputParams = vertex->refinementParamVector();
     auto outParams = spider::make_unique(spider::allocate<i64, StackID::RUNTIME>(inputParams.size()));
-    std::transform(std::begin(inputParams), std::end(inputParams), outParams.get(),
-                   [](const std::shared_ptr<spider::pisdf::Param> &param) { return param->value(); });
+    if (params.empty()) {
+        std::transform(std::begin(inputParams), std::end(inputParams), outParams.get(),
+                       [](const std::shared_ptr<spider::pisdf::Param> &param) {
+                           return param->value();
+                       });
+    } else {
+        std::transform(std::begin(inputParams), std::end(inputParams), outParams.get(),
+                       [&params](const std::shared_ptr<spider::pisdf::Param> &param) {
+                           return params[param->ix()]->value(params);
+                       });
+    }
     return outParams;
 }
 
@@ -273,7 +284,7 @@ bool spider::pisdf::isGraphFullyStatic(const Graph *graph) {
     return isFullyStatic;
 }
 
-void spider::pisdf::separateRunGraphFromInit(Graph *graph) {
+void spider::pisdf::separateRunGraphFromInit(Graph *graph, bool moveDynParam) {
     if (!graph->configVertexCount() || !graph->dynamic()) {
         return;
     }
@@ -379,25 +390,33 @@ void spider::pisdf::separateRunGraphFromInit(Graph *graph) {
         }
     }
 
-    /* == Copy the params to the run graph == */
-    auto paramsToRemove = factory::vector<std::shared_ptr<pisdf::Param>>(StackID::TRANSFO);
-    for (auto &param : graph->params()) {
+    /* == Copy or move the params to the run graph == */
+//    auto it = std::begin(graph->params());
+//    while (it != std::end(graph->params())) {
+//        auto &param = *it;
+//        if (moveDynParam &&
+//            (param->type() == ParamType::DYNAMIC || param->type() == ParamType::DYNAMIC_DEPENDANT)) {
+//            runGraph->addParam(param);
+//            auto dist = std::distance(std::begin(graph->params()), it);
+//            graph->removeParam(param);
+//            it = std::next(std::begin(graph->params()), dist);
+//        } else {
+//            api::createInheritedParam(runGraph, param->name(), param);
+//            it++;
+//        }
+//    }
+    for (auto &param: graph->params()) {
         api::createInheritedParam(runGraph, param->name(), param);
     }
 }
 
-void spider::pisdf::recursiveSplitDynamicGraph(Graph *graph) {
+void spider::pisdf::recursiveSplitDynamicGraph(Graph *graph, bool moveDynParam) {
     if (graph->dynamic()) {
-        // TODO: put this method into pisdf namespace and into this cpp file
-        separateRunGraphFromInit(graph);
+        separateRunGraphFromInit(graph, moveDynParam);
     }
     for (auto &subgraph : graph->subgraphs()) {
-        recursiveSplitDynamicGraph(subgraph);
+        recursiveSplitDynamicGraph(subgraph, moveDynParam);
     }
-}
-
-spider::unique_ptr<i64> spider::pisdf::buildVertexRuntimeInputParameters(const pisdf::Vertex *vertex) {
-    return buildVertexRuntimeInputParameters(vertex, vertex->inputParamVector());
 }
 
 spider::unique_ptr<i64> spider::pisdf::buildVertexRuntimeInputParameters(const pisdf::Vertex *vertex,
@@ -422,7 +441,7 @@ spider::unique_ptr<i64> spider::pisdf::buildVertexRuntimeInputParameters(const p
         case VertexType::EXTERN_OUT:
             return buildExternOutRuntimeInputParameters(vertex, params);;
         default:
-            return buildDefaultVertexRuntimeParameters(vertex);
+            return buildDefaultVertexRuntimeParameters(vertex, params);
     }
 }
 

@@ -52,7 +52,6 @@ spider::srless::GraphFiring::GraphFiring(const GraphHandler *parent,
                                          u32 firing) :
         params_{ factory::vector<std::shared_ptr<pisdf::Param>>(StackID::TRANSFO) },
         parent_{ parent },
-        ix_{ SIZE_MAX },
         firing_{ firing },
         resolved_{ false } {
     if (!parent) {
@@ -60,12 +59,18 @@ spider::srless::GraphFiring::GraphFiring(const GraphHandler *parent,
     }
     const auto *graph = parent->graph();
     brv_ = spider::array<u32>(graph->vertexCount(), UINT32_MAX, StackID::TRANSFO);
-    children_ = spider::array<GraphHandler *>(graph->subgraphCount(), nullptr, StackID::TRANSFO);
+    subgraphHandlers_ = spider::array<GraphHandler *>(graph->subgraphCount(), nullptr, StackID::TRANSFO);
     taskIxRegister_ = spider::array<u32 *>(graph->vertexCount(), nullptr, StackID::TRANSFO);
     /* == copy parameters == */
     params_.reserve(params.size());
     for (const auto &param : params) {
-        params_.emplace_back(copyParameter(param, params));
+        params_.emplace_back(copyParameter(param));
+    }
+    dynamicParamCount_ = 0;
+    for (const auto &param : params) {
+        if (param->type() == pisdf::ParamType::DYNAMIC) {
+            dynamicParamCount_++;
+        }
     }
 }
 
@@ -73,7 +78,7 @@ spider::srless::GraphFiring::~GraphFiring() {
     for (auto &ptr : taskIxRegister_) {
         deallocate(ptr);
     }
-    for (auto &child : children_) {
+    for (auto &child : subgraphHandlers_) {
         destroy(child);
     }
 }
@@ -105,10 +110,10 @@ void spider::srless::GraphFiring::resolveBRV() {
     for (const auto &subgraph : parent_->graph()->subgraphs()) {
         const auto ix = subgraph->ix();
         const auto rvValue = brv_.at(ix);
-        auto &currentGraphHandler = children_.at(subgraph->subIx());
+        auto &currentGraphHandler = subgraphHandlers_.at(subgraph->subIx());
         if (!currentGraphHandler || (rvValue != currentGraphHandler->repetitionCount())) {
             destroy(currentGraphHandler);
-            currentGraphHandler = spider::make<GraphHandler>(subgraph, params_, subgraph->repetitionValue(), this);
+            currentGraphHandler = spider::make<GraphHandler>(subgraph, subgraph->params(), rvValue, this);
         }
     }
     resolved_ = true;
@@ -122,11 +127,12 @@ void spider::srless::GraphFiring::clear() {
             std::fill(taskIxRegister_.at(ix), std::next(taskIxRegister_.at(ix), brv_.at(ix)), UINT32_MAX);
         }
     }
-    for (auto &graphHandler : children_) {
+    for (auto &graphHandler : subgraphHandlers_) {
         if (graphHandler) {
             graphHandler->clear();
         }
     }
+    paramResolvedCount_ = 0;
     resolved_ = false;
 }
 
@@ -155,7 +161,7 @@ spider::srless::GraphFiring::getChildFiring(const pisdf::Graph *subgraph, u32 fi
         throwSpiderException("subgraph does not belong to this graph.");
     }
 #endif
-    return children_[subgraph->subIx()]->firings()[firing];
+    return subgraphHandlers_[subgraph->subIx()]->firings()[firing];
 }
 
 int64_t spider::srless::GraphFiring::getParamValue(size_t ix) {
@@ -164,17 +170,26 @@ int64_t spider::srless::GraphFiring::getParamValue(size_t ix) {
 
 void spider::srless::GraphFiring::setParamValue(size_t ix, int64_t value) {
     spider::get_at(params_, ix)->setValue(value);
+    paramResolvedCount_++;
+    if (paramResolvedCount_ == dynamicParamCount_) {
+        for (auto *subHandler : subgraphHandlers_) {
+            for (auto *firing : subHandler->firings()) {
+                if (!firing->isResolved()) {
+                    firing->resolveBRV();
+                }
+            }
+        }
+    }
 }
 
 /* === Private method(s) implementation === */
 
 std::shared_ptr<spider::pisdf::Param>
-spider::srless::GraphFiring::copyParameter(const std::shared_ptr<pisdf::Param> &param,
-                                           const spider::vector<std::shared_ptr<pisdf::Param>> &parentParams) {
+spider::srless::GraphFiring::copyParameter(const std::shared_ptr<pisdf::Param> &param) {
     if (param->dynamic()) {
         std::shared_ptr<pisdf::Param> newParam;
         if (param->type() == pisdf::ParamType::INHERITED) {
-            const auto &parent = parentParams[param->parent()->ix()];
+            const auto &parent = parent_->handler()->params_[param->parent()->ix()];
             newParam = spider::make_shared<pisdf::Param, StackID::PISDF>(param->name(), parent);
         } else {
             newParam = spider::make_shared<pisdf::Param, StackID::PISDF>(*param);

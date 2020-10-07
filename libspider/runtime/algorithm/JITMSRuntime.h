@@ -84,9 +84,8 @@ namespace spider {
 
         /**
          * @brief Update scheduler, execute scheduler, run schedule and wait.
-         * @param shouldBroadcast  Flag to check if we should broadcast job stamp at the end of the iteration.
          */
-        void scheduleRunAndWait(bool shouldBroadcast);
+        void scheduleRunAndWait();
 
         /**
          * @brief Appends @refitem spider::srdag::TransfoJob from source vector to destination vector using MOVE semantic.

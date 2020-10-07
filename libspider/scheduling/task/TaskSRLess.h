@@ -100,9 +100,15 @@ namespace spider {
 
             DependencyInfo getDependencyInfo(size_t size) const override;
 
-            void setIx(u32 ix) noexcept override;
+            inline srless::GraphFiring *handler() const { return handler_; }
+
+            inline const pisdf::Vertex *vertex() const { return vertex_; }
+
+            inline u32 vertexFiring() const { return firing_; }
 
             /* === Setter(s) === */
+
+            void setIx(u32 ix) noexcept override;
 
         private:
             srless::GraphFiring *handler_;
@@ -112,6 +118,8 @@ namespace spider {
 
 
             /* === private method(s) === */
+
+            std::string name(const pisdf::Vertex *vertex, const srless::GraphFiring *handler) const;
 
             /* === Dependencies methods === */
 

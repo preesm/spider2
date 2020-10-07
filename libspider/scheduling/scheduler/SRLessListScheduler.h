@@ -79,8 +79,8 @@ namespace spider {
             struct ListTask {
                 pisdf::Vertex *vertex_;
                 srless::GraphFiring *handler_;
-                u32 firing_;
                 ifast32 level_;
+                u32 firing_;
             };
             spider::vector<ListTask> sortedTaskVector_;
             size_t lastSchedulableTask_ = 0;
@@ -109,6 +109,10 @@ namespace spider {
              */
             void createListTask(pisdf::Vertex *vertex, u32 firing, srless::GraphFiring *handler);
 
+            void recursiveSetNonSchedulable(const pisdf::Vertex *vertex,
+                                            u32 firing,
+                                            const srless::GraphFiring *handler);
+
             /**
              * @brief Compute recursively the schedule level used to sort the vertices for scheduling.
              * The criteria used is based on the critical execution time path.
@@ -125,7 +129,7 @@ namespace spider {
              * @param listVertexVector Vector of @refitem ListVertex to evaluate.
              * @return
              */
-            ifast32 computeScheduleLevel(ListTask &listTask, vector<ListTask> &listVertexVector) const;
+            ifast32 computeScheduleLevel(ListTask &listTask, vector<ListTask> &listVertexVector);
 
             /**
              * @brief Sort the list of vertices.

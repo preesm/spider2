@@ -282,12 +282,12 @@ void spider::brv::compute(const pisdf::Graph *graph, const vector<std::shared_pt
             /* == 2.1 If there are no edges then RV is supposed to be 1 == */
             if (!component.edgeCount_) {
                 continue;
-            } else if ((nVertex == 1) && hasIForCFG) {
+            }
+            /* == 3. Compute Repetition vector for current connected component == */
+            computeRepetitionValues(component, handler);
+            if ((nVertex == 1) && hasIForCFG) {
                 /* == 2.2 If there is 1 vertex and input or output interfaces then RV is at least 1 == */
                 checkAloneVertexInSubgraph(*component.startIt_, preComputedEdgeRates);
-            } else {
-                /* == 3. Compute Repetition vector for current connected component == */
-                computeRepetitionValues(component, handler);
             }
             /* == 4. Update repetition vector based on PiSDF rules == */
             updateComponentBRV(component, preComputedEdgeRates);

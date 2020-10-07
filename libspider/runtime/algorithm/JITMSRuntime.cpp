@@ -108,7 +108,7 @@ bool spider::JITMSRuntime::execute() {
         }
 
         /* == Update schedule, run and wait == */
-        scheduleRunAndWait(true);
+        scheduleRunAndWait();
 
         /* == Wait for all parameters to be resolved == */
         if (!dynamicJobStack.empty()) {
@@ -126,7 +126,7 @@ bool spider::JITMSRuntime::execute() {
                     rt::platform()->communicator()->pop(message, grtIx, notification.notificationIx_);
 
                     /* == Get the config vertex == */
-                    const auto *cfg = srdag_->vertex(message.vertexIx_);
+                    const auto *cfg = srdag_->vertex(message.taskIx_);
                     auto paramIterator = message.params_.begin();
                     for (const auto &param : cfg->outputParamVector()) {
                         param->setValue((*(paramIterator++)));
@@ -156,7 +156,7 @@ bool spider::JITMSRuntime::execute() {
             }
 
             /* == Update schedule, run and wait == */
-            scheduleRunAndWait(true);
+            scheduleRunAndWait();
         }
     }
 
@@ -183,17 +183,15 @@ bool spider::JITMSRuntime::execute() {
 
 /* === Private method(s) === */
 
-void spider::JITMSRuntime::scheduleRunAndWait(bool shouldBroadcast) {
+void spider::JITMSRuntime::scheduleRunAndWait() {
     TraceMessage schedMsg{ };
     TRACE_SCHEDULE_START();
     /* == Send LRT_START_ITERATION notification == */
     rt::platform()->sendStartIteration();
     /* == Schedule / Map current Single-Rate graph == */
     resourcesAllocator_->execute(srdag_.get());
-    if (shouldBroadcast) {
-        /* == Send JOB_DELAY_BROADCAST_JOBSTAMP notification == */
-        rt::platform()->sendDelayedBroadCastToRunners();
-    }
+    /* == Send JOB_DELAY_BROADCAST_JOBSTAMP notification == */
+    rt::platform()->sendDelayedBroadCastToRunners();
     /* == Send LRT_END_ITERATION notification == */
     rt::platform()->sendEndIteration();
     TRACE_SCHEDULE_END();

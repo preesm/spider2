@@ -96,7 +96,7 @@ namespace spider {
 
             static param_t findParameter(const param_table_t &params, const std::string &name);
 
-            void registerSymbol(const param_t param);
+            void registerSymbol(param_t param);
 
             void updateSymbolTable(const param_table_t &params) const;
 

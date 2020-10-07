@@ -72,23 +72,18 @@ namespace spider {
          * @brief Creates a subgraph for the 'run' section of a dynamic graph and keep config actors as the 'init'
          *        section.
          * @remark This method changes original graph.
-         * @param graph  Pointer to the graph to split (if static nothing happen).
+         * @param graph         Pointer to the graph to split (if static nothing happen).
+         * @param moveDynParam  Flag indicating if dynamic params should be moved or inherited.
          * @return true if split the graph, false else.
          */
-        void separateRunGraphFromInit(pisdf::Graph *graph);
+        void separateRunGraphFromInit(pisdf::Graph *graph, bool moveDynParam = false);
 
         /**
          * @brief Recursively split dynamic graphs to separate init from run sections of the graph.
-         * @param graph  Pointer to the top graph.
+         * @param graph         Pointer to the top graph.
+         * @param moveDynParam  Flag indicating if dynamic params should be moved or inherited.
          */
-        void recursiveSplitDynamicGraph(Graph *graph);
-
-        /**
-         * @brief Creates an array with parameters needed for the runtime exec of a vertex.
-         * @param vertex Pointer to the vertex.
-         * @return array of int_least_64_t.
-         */
-        spider::unique_ptr<i64> buildVertexRuntimeInputParameters(const pisdf::Vertex *vertex);
+        void recursiveSplitDynamicGraph(Graph *graph, bool moveDynParam = false);
 
         /**
          * @brief Creates an array with parameters needed for the runtime exec of a vertex.
@@ -97,7 +92,7 @@ namespace spider {
          * @return array of int_least_64_t.
          */
         spider::unique_ptr<i64> buildVertexRuntimeInputParameters(const pisdf::Vertex *vertex,
-                                                                  const spider::vector<std::shared_ptr<pisdf::Param>> &params);
+                                                                  const spider::vector<std::shared_ptr<pisdf::Param>> &params = { });
 
         /**
          * @brief Check if an interface behave as a round buffer or not.

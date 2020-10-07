@@ -195,7 +195,7 @@ spider::JobMessage spider::sched::TaskSRLess::createJobMessage() const {
     /* == Set core properties == */
     message.nParamsOut_ = static_cast<u32>(vertex_->reference()->outputParamCount());
     message.kernelIx_ = static_cast<u32>(vertex_->runtimeInformation()->kernelIx());
-    message.taskIx_ = static_cast<u32>(vertex_->ix()); // TODO: update this with value for CFG vertices
+    message.taskIx_ = ix_;
     message.ix_ = jobExecIx_;
 
     /* == Set the synchronization flags == */
@@ -235,7 +235,7 @@ u32 spider::sched::TaskSRLess::color() const {
 }
 
 std::string spider::sched::TaskSRLess::name() const {
-    return vertex_->name() + ":" + std::to_string(firing_);
+    return name(vertex_, handler_);
 }
 
 void spider::sched::TaskSRLess::setIx(u32 ix) noexcept {
@@ -264,6 +264,19 @@ spider::sched::DependencyInfo spider::sched::TaskSRLess::getDependencyInfo(size_
 }
 
 /* === Private method(s) implementation === */
+
+std::string
+spider::sched::TaskSRLess::name(const pisdf::Vertex *vertex, const srless::GraphFiring *handler) const {
+    std::string name{ };
+    while(handler) {
+        const auto *graph = vertex->graph();
+        const auto firing = handler->firingValue();
+        name = graph->name() + std::string(":").append(std::to_string(firing)).append(":").append(name);
+        handler = handler->getParent()->handler();
+        vertex = graph;
+    }
+    return name.append(vertex_->name()).append(":").append(std::to_string(firing_));
+}
 
 size_t spider::sched::TaskSRLess::updateTaskExecutionDependency(const Schedule *schedule,
                                                                 const pisdf::DependencyInfo &dependencyInfo,

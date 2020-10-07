@@ -50,11 +50,15 @@ namespace spider {
         class ResourcesAllocator;
     }
 
+    namespace srless {
+        class GraphHandler;
+    }
+
     /* === Class definition === */
 
     class FastRuntime final : public Runtime {
     public:
-        explicit FastRuntime(pisdf::Graph *graph, const RuntimeConfig &cfg);
+        explicit FastRuntime(pisdf::Graph *graph, const RuntimeConfig &cfg, bool isStatic);
 
         ~FastRuntime() override = default;
 
@@ -72,6 +76,7 @@ namespace spider {
         time::time_point startIterStamp_ = time::min();
         spider::unique_ptr<sched::ResourcesAllocator> resourcesAllocator_;
         size_t iter_ = 0U;
+        bool isStatic_{};
 
         /* === Private method(s) === */
 
@@ -87,7 +92,7 @@ namespace spider {
          */
         bool dynamicExecute();
 
-        void handleStaticGraph(pisdf::Graph *graph);
+        size_t countExpectedNumberOfParams(const srless::GraphHandler *graphHandler) const;
     };
 }
 
