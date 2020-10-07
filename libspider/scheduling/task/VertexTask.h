@@ -77,8 +77,6 @@ namespace spider {
 
             bool isSyncOptimizable() const noexcept override;
 
-            spider::array_handle<Task *> getDependencies() const override;
-
             void setExecutionDependency(size_t ix, Task *task) override;
 
             void setIx(u32 ix) noexcept override;
@@ -88,6 +86,8 @@ namespace spider {
             bool isMappableOnPE(const PE *pe) const override;
 
             u64 timingOnPE(const PE *pe) const override;
+
+            size_t dependencyCount() const override;
 
             /* === Getter(s) === */
 

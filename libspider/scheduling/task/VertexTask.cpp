@@ -208,10 +208,6 @@ bool spider::sched::VertexTask::isSyncOptimizable() const noexcept {
     return false;
 }
 
-spider::array_handle<spider::sched::Task *> spider::sched::VertexTask::getDependencies() const {
-    return { execInfo_.dependencies_.get(), vertex_->inputEdgeCount() };
-}
-
 void spider::sched::VertexTask::setExecutionDependency(size_t ix, Task *task) {
 #ifndef NDEBUG
     if (ix >= vertex_->inputEdgeCount()) {
@@ -296,6 +292,10 @@ bool spider::sched::VertexTask::isMappableOnPE(const spider::PE *pe) const {
 
 u64 spider::sched::VertexTask::timingOnPE(const spider::PE *pe) const {
     return static_cast<u64>(vertex_->runtimeInformation()->timingOnPE(pe, vertex_->inputParamVector()));
+}
+
+size_t spider::sched::VertexTask::dependencyCount() const {
+    return vertex_->inputEdgeCount();
 }
 
 #endif

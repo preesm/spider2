@@ -267,10 +267,6 @@ void spider::sched::SRLessTask::setIx(u32 ix) noexcept {
     handler_->registerTaskIx(vertex_, firing_, ix);
 }
 
-spider::array_handle<spider::sched::Task *> spider::sched::SRLessTask::getDependencies() const {
-    return { execInfo_.dependencies_.get(), dependenciesCount_ };
-}
-
 std::pair<ufast64, ufast64> spider::sched::SRLessTask::computeCommunicationCost(const spider::PE */*mappedPE*/) const {
     return { };
 }
@@ -285,6 +281,10 @@ u64 spider::sched::SRLessTask::timingOnPE(const spider::PE *pe) const {
 
 spider::sched::DependencyInfo spider::sched::SRLessTask::getDependencyInfo(size_t /*size*/) const {
     return { };
+}
+
+size_t spider::sched::SRLessTask::dependencyCount() const {
+    return dependenciesCount_;
 }
 
 /* === Private method(s) implementation === */

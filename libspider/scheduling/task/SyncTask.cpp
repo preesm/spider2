@@ -126,10 +126,6 @@ u32 spider::sched::SyncTask::color() const {
     return type_ == SyncType::SEND ? 0xff9478 : 0x8e44ad;
 }
 
-spider::array_handle<spider::sched::Task *> spider::sched::SyncTask::getDependencies() const {
-    return { execInfo_.dependencies_.get(), 1u };
-}
-
 std::string spider::sched::SyncTask::name() const {
     return type_ == SyncType::SEND ? "send" : "receive";
 }
@@ -232,4 +228,8 @@ u64 spider::sched::SyncTask::timingOnPE(const spider::PE *) const {
 
 spider::sched::DependencyInfo spider::sched::SyncTask::getDependencyInfo(size_t) const {
     return { inputPortIx_, size_ };
+}
+
+size_t spider::sched::SyncTask::dependencyCount() const {
+    return 1u;
 }

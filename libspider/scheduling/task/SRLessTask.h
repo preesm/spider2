@@ -70,8 +70,6 @@ namespace spider {
 
             Task *previousTask(size_t ix) const override;
 
-            spider::array_handle<Task *> getDependencies() const override;
-
             inline void updateTaskExecutionDependencies(const Schedule *schedule) override;
 
             void updateExecutionConstraints() override;
@@ -95,6 +93,8 @@ namespace spider {
             bool isMappableOnPE(const PE *pe) const override;
 
             u64 timingOnPE(const PE *pe) const override;
+
+            size_t dependencyCount() const override;
 
             /* === Getter(s) === */
 

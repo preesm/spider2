@@ -78,13 +78,13 @@ namespace spider {
 
             inline bool isSyncOptimizable() const noexcept override { return false; }
 
-            spider::array_handle<Task *> getDependencies() const override;
-
             std::pair<ufast64, ufast64> computeCommunicationCost(const PE *mappedPE) const override;
 
             void setExecutionDependency(size_t ix, Task *task) override;
 
             u64 timingOnPE(const PE *) const override;
+
+            size_t dependencyCount() const override;
 
             /* === Getter(s) === */
 

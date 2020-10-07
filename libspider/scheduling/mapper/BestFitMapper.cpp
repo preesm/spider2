@@ -132,8 +132,8 @@ const spider::PE *spider::sched::BestFitMapper::findBestFitPE(const Cluster *clu
 }
 
 void spider::sched::BestFitMapper::mapCommunications(Task *task, const Cluster *cluster, Schedule *schedule) {
-    size_t ix = 0u;
-    for (const auto *previousTask : task->getDependencies()) {
+    for (size_t ix = 0; ix < task->dependencyCount(); ++ix) {
+        const auto *previousTask = task->previousTask(ix);
         if (previousTask) {
             const auto *prevCluster = previousTask->mappedPe()->cluster();
             if (prevCluster != cluster) {
@@ -158,7 +158,6 @@ void spider::sched::BestFitMapper::mapCommunications(Task *task, const Cluster *
                 schedule->addTask(spider::make_unique(recvTask));
             }
         }
-        ix++;
     }
 }
 

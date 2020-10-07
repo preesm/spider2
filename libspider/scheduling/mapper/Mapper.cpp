@@ -48,7 +48,8 @@
 ufast64 spider::sched::Mapper::computeStartTime(const Task *task) const {
     auto minTime = startTime_;
     if (task) {
-        for(const auto *previousTask : task->getDependencies()) {
+        for (size_t ix = 0; ix < task->dependencyCount(); ++ix) {
+            const auto *previousTask = task->previousTask(ix);
             if (previousTask) {
                 minTime = std::max(minTime, previousTask->endTime());
             }
