@@ -227,12 +227,12 @@ spider::pisdf::DependencyIterator spider::pisdf::detail::computeConsDependency(c
             } else if ((dep.memoryStart_ >= minValidMemWODelay) ||
                        (!delayValue && (dep.memoryEnd_ >= minValidMemWODelay))) {
                 /* == forward dependency == */
-                lowerProd = parentLProd + std::max(0l, dep.memoryStart_ - minValidMemWODelay);
+                lowerProd = parentLProd + std::max(int64_t{ 0 }, int64_t{ dep.memoryStart_ - minValidMemWODelay });
                 upperProd = parentLProd + (dep.memoryEnd_ - minValidMemWODelay);
                 return computeConsDependency(upperEdge, lowerProd, upperProd, gh);
             } else if (delay && dep.memoryEnd_ < minValidMemWODelay) {
                 /* == getter only == */
-                lowerProd = std::max(0l, dep.memoryStart_ - minValidMemWDelay);
+                lowerProd = std::max(int64_t{ 0 }, int64_t{ dep.memoryStart_ - minValidMemWDelay });
                 upperProd = dep.memoryEnd_ - minValidMemWDelay;
                 const auto *getterEdge = delay->getter()->inputEdge(delay->getterPortIx());
                 return computeConsDependency(getterEdge, lowerProd, upperProd, handler);
@@ -243,7 +243,7 @@ spider::pisdf::DependencyIterator spider::pisdf::detail::computeConsDependency(c
                 /* == Getter dependencies, same level as current actor == */
                 const auto getDeps = computeConsDependency(getterEdge, getterLowerProd, delayValue - 1, handler);
                 /* == Sink dependencies, one level up of the one of current actor == */
-                lowerProd = parentLProd + std::max(0l, dep.memoryStart_ - minValidMemWODelay);
+                lowerProd = parentLProd + std::max(int64_t{ 0 }, int64_t{ dep.memoryStart_ - minValidMemWODelay });
                 upperProd = parentLProd + (dep.memoryEnd_ - minValidMemWODelay);
                 const auto snkDeps = computeConsDependency(upperEdge, lowerProd, upperProd, gh);
                 /* == Return a compound dependency iterator == */

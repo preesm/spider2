@@ -72,7 +72,7 @@ namespace spider {
 
             /* === Methods === */
 
-            inline long count() const {
+            inline std::iterator_traits<iterator>::difference_type count() const {
                 return std::distance(begin(), end());
             }
 
