@@ -47,120 +47,68 @@
 
 /* === Method(s) implementation === */
 
-spider::sched::SRLessGreedyScheduler::SRLessGreedyScheduler() :
-        Scheduler(),
-        unscheduledVertices_{ factory::vector<ScheduleVertex>(StackID::SCHEDULE) } {
-
-}
-
 void spider::sched::SRLessGreedyScheduler::schedule(srless::GraphHandler *graphHandler) {
+    /* == Reserve space for the new ListTasks == */
     tasks_.clear();
-    unscheduledVertices_.reserve(graphHandler->graph()->vertexCount());
-    /* == add vertices == */
-    recursiveAddVertices(graphHandler);
-
-    /* == Schedule actors == */
-    auto it = std::begin(unscheduledVertices_);
-    while (it != std::end(unscheduledVertices_)) {
-        if (it->executable_) {
-            it = evaluate(it);
-        } else {
-            it++;
-        }
-    }
-}
-
-void spider::sched::SRLessGreedyScheduler::clear() {
-    Scheduler::clear();
-    unscheduledVertices_.clear();
+    /* == Evaluate tasks == */
+    recursiveEvaluate(graphHandler);
 }
 
 /* === Private method(s) implementation === */
 
-void spider::sched::SRLessGreedyScheduler::recursiveAddVertices(spider::srless::GraphHandler *graphHandler) {
+void spider::sched::SRLessGreedyScheduler::recursiveEvaluate(spider::srless::GraphHandler *graphHandler) {
     for (auto &firingHandler : graphHandler->firings()) {
         if (firingHandler->isResolved()) {
             for (const auto &vertex : graphHandler->graph()->vertices()) {
-                if (vertex->subtype() != spider::pisdf::VertexType::DELAY) {
+                if (vertex->subtype() != spider::pisdf::VertexType::DELAY && vertex->executable()) {
                     const auto vertexRV = firingHandler->getRV(vertex.get());
                     for (u32 k = 0u; k < vertexRV; ++k) {
-                        if (firingHandler->getTaskIx(vertex.get(), k) == UINT32_MAX) {
-                            firingHandler->registerTaskIx(vertex.get(), k,
-                                                          static_cast<u32>(this->unscheduledVertices_.size()));
-                            this->unscheduledVertices_.push_back(
-                                    { vertex.get(), firingHandler, k, vertex->executable(), false });
-                        }
+                        evaluate(vertex.get(), k, firingHandler);
                     }
                 }
             }
-        }
-        for (auto *child : firingHandler->children()) {
-            recursiveAddVertices(child);
-        }
-    }
-}
-
-spider::sched::SRLessGreedyScheduler::iterator_t spider::sched::SRLessGreedyScheduler::evaluate(iterator_t it) {
-    u32 depCount{};
-    u32 mergedFifoCount{ };
-    for (u32 i = 0; i < static_cast<u32>(it->vertex_->inputEdgeCount()); ++i) {
-        const auto current = depCount;
-        const auto deps = pisdf::computeExecDependency(it->vertex_, it->firing_, i, it->handler_);
-        for (const auto dep : deps) {
-            if (evaluate(it, dep)) {
-                return it;
+            for (auto *child : firingHandler->children()) {
+                recursiveEvaluate(child);
             }
-            depCount += dep.firingEnd_ - dep.firingStart_ + 1u;
         }
-        mergedFifoCount += ((current + 1) < depCount);
     }
-    /* == add vertex to task vector == */
-    tasks_.emplace_back(make<SRLessTask>(it->handler_, it->vertex_, it->firing_, depCount, mergedFifoCount));
-    it->handler_->registerTaskIx(it->vertex_, it->firing_, UINT32_MAX);
-    return removeAndSwap(it);
 }
 
-bool spider::sched::SRLessGreedyScheduler::evaluate(iterator_t &it, const pisdf::DependencyInfo &dependencyInfo) {
-    if (!dependencyInfo.vertex_ || !dependencyInfo.rate_) {
+bool spider::sched::SRLessGreedyScheduler::evaluate(const pisdf::Vertex *vertex,
+                                                    u32 firing,
+                                                    srless::GraphFiring *handler) {
+    if (!handler || !handler->isResolved()) {
         return false;
-    } else if (dependencyInfo.rate_ < 0) {
-        it->executable_ = false;
-        it += 1;
-        return true;
+    } else if (!vertex || !vertex->executable()) {
+        return false;
     }
-    const auto *source = dependencyInfo.vertex_;
-    for (auto k = dependencyInfo.firingStart_; k <= dependencyInfo.firingEnd_; ++k) {
-        const auto ix = dependencyInfo.handler_->getTaskIx(source, k);
-        if (ix < unscheduledVertices_.size()) {
-            auto &srcSchedVertex = unscheduledVertices_[ix];
-            if (srcSchedVertex.vertex_ == source) {
-                if (srcSchedVertex.executable_) {
-                    const auto distance = std::distance(std::begin(unscheduledVertices_), it);
-                    swap(*it, srcSchedVertex);
-                    srcSchedVertex.handler_->registerTaskIx(srcSchedVertex.vertex_, srcSchedVertex.firing_, ix);
-                    it = std::next(std::begin(unscheduledVertices_), distance);
-                    it->handler_->registerTaskIx(it->vertex_, it->firing_, static_cast<u32>(distance));
-                    return true;
-                } else {
-                    it->executable_ = false;
-                    it += 1;
-                    return true;
+    if (handler->getTaskIx(vertex, firing) == UINT32_MAX) {
+        u32 depCount{ };
+        u32 mergedFifoCount{ };
+        auto schedulable = true;
+        for (const auto *edge : vertex->inputEdgeVector()) {
+            const auto current = depCount;
+            const auto deps = pisdf::computeExecDependency(vertex, firing, edge->sinkPortIx(), handler);
+            for (const auto &dep : deps) {
+                depCount += (dep.firingEnd_ - dep.firingStart_ + 1u);
+                if (dep.vertex_ && dep.rate_ > 0) {
+                    for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
+                        if (dep.handler_->getTaskIx(dep.vertex_, k) == UINT32_MAX) {
+                            schedulable &= evaluate(dep.vertex_, k, const_cast<srless::GraphFiring *>(dep.handler_));
+                        }
+                    }
+                } else if (dep.rate_ < 0) {
+                    return false;
                 }
             }
+            mergedFifoCount += ((current + 1) < depCount);
         }
+        if (schedulable) {
+            handler->registerTaskIx(vertex, firing, static_cast<u32>(tasks_.size()));
+            tasks_.emplace_back(make<SRLessTask>(handler, vertex, firing, depCount, mergedFifoCount));
+            return true;
+        }
+        return false;
     }
-    return false;
-}
-
-spider::sched::SRLessGreedyScheduler::iterator_t
-spider::sched::SRLessGreedyScheduler::removeAndSwap(iterator_t it) {
-    const auto distance = std::distance(std::begin(unscheduledVertices_), it);
-    /* == Swap and pop == */
-    out_of_order_erase(unscheduledVertices_, it);
-    /* == update value of swapped element == */
-    it = std::next(std::begin(unscheduledVertices_), distance);
-    if (it != std::end(unscheduledVertices_)) {
-        it->handler_->registerTaskIx(it->vertex_, it->firing_, static_cast<u32>(distance));
-    }
-    return it;
+    return true;
 }
