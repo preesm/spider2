@@ -85,7 +85,7 @@ bool spider::StaticRuntime::execute() {
     if (api::exportTraceEnabled()) {
         startIterStamp_ = time::now();
     }
-    if (false) {
+    if (iter_) {
         run();
     } else {
         applyTransformationAndRun();
@@ -100,11 +100,10 @@ bool spider::StaticRuntime::execute() {
 
 void spider::StaticRuntime::applyTransformationAndRun() {
     /* == Runners should repeat their iteration == */
-//    rt::platform()->sendRepeatToRunners(true);
+    rt::platform()->sendRepeatToRunners(true);
     TraceMessage transfoMsg{ };
     TRACE_TRANSFO_START();
     /* == Apply first transformation of root graph == */
-    auto start = time::now();
     auto rootJob = srdag::TransfoJob(graph_);
     rootJob.params_ = graph_->params();
     auto resultRootJob = srdag::singleRateTransformation(rootJob, srdag_.get());
@@ -140,21 +139,13 @@ void spider::StaticRuntime::applyTransformationAndRun() {
             api::exportGraphToDOT(srdag_.get(), "./srdag-optims.dot");
         }
     }
-    auto end = spider::time::now();
-    auto duration = time::duration::nanoseconds(start, end);
-    printer::fprintf(stderr, "ir-time:    %lld ns\n", duration);
-
     /* == Update schedule, run and wait == */
     TraceMessage schedMsg{ };
     TRACE_SCHEDULE_START();
     /* == Send LRT_START_ITERATION notification == */
     rt::platform()->sendStartIteration();
     /* == Schedule / Map current Single-Rate graph == */
-    start = time::now();
     ressourcesAllocator_->execute(srdag_.get());
-    end = spider::time::now();
-    duration = time::duration::nanoseconds(start, end);
-    printer::fprintf(stderr, "alloc-time: %lld ns\n", duration);
     /* == Send LRT_END_ITERATION notification == */
     rt::platform()->sendEndIteration();
     TRACE_SCHEDULE_END();
@@ -169,8 +160,7 @@ void spider::StaticRuntime::applyTransformationAndRun() {
     rt::platform()->waitForRunnersToFinish();
 
     /* == Runners should reset their parameters == */
-//    rt::platform()->sendResetToRunners();
-    rt::platform()->sendClearToRunners();
+    rt::platform()->sendResetToRunners();
 
     /* == Export post-exec gantt if needed  == */
     if (api::exportTraceEnabled()) {

@@ -82,7 +82,7 @@ bool spider::FastRuntime::staticExecute() {
     if (api::exportTraceEnabled()) {
         startIterStamp_ = time::now();
     }
-    if (false) {
+    if (iter_) {
         const auto grtIx = archi::platform()->getGRTIx();
         TraceMessage schedMsg{ };
         TRACE_SCHEDULE_START();
@@ -101,24 +101,16 @@ bool spider::FastRuntime::staticExecute() {
         }
     } else {
         /* == Runners should repeat their iteration == */
-//        rt::platform()->sendRepeatToRunners(true);
-        auto start = spider::time::now();
+        rt::platform()->sendRepeatToRunners(true);
         TraceMessage transfoMsg{ };
         TRACE_TRANSFO_START();
         auto graphHandler = srless::GraphHandler(graph_, graph_->params(), 1u);
         TRACE_TRANSFO_END();
-        auto end = spider::time::now();
-        auto duration = time::duration::nanoseconds(start, end);
-        printer::fprintf(stderr, "ir-time:    %lld ns\n", duration);
         TraceMessage schedMsg{ };
         TRACE_SCHEDULE_START();
         /* == Send LRT_START_ITERATION notification == */
         rt::platform()->sendStartIteration();
-        start = spider::time::now();
         resourcesAllocator_->execute(&graphHandler);
-        end = spider::time::now();
-        duration = time::duration::nanoseconds(start, end);
-        printer::fprintf(stderr, "alloc-time: %lld ns\n", duration);
         /* == Send LRT_END_ITERATION notification == */
         rt::platform()->sendEndIteration();
         TRACE_SCHEDULE_END();
@@ -130,8 +122,7 @@ bool spider::FastRuntime::staticExecute() {
         rt::platform()->runner(archi::platform()->getGRTIx())->run(false);
         rt::platform()->waitForRunnersToFinish();
         /* == Runners should reset their parameters == */
-//        rt::platform()->sendResetToRunners();
-        rt::platform()->sendClearToRunners();
+        rt::platform()->sendResetToRunners();
         if (api::exportTraceEnabled()) {
             useExecutionTraces(graph_, resourcesAllocator_->schedule(), startIterStamp_);
         }
