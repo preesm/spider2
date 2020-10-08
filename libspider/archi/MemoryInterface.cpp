@@ -50,9 +50,10 @@ spider::MemoryInterface::~MemoryInterface() {
     if (log::enabled<log::MEMORY>()) {
         for (const auto &buff : virtual2Phys_) {
             if (buff.second.count_) {
-                log::print<log::MEMORY>(log::yellow, "INFO", "PHYSICAL: [%p] remaining: %zu bytes at address %zu.\n", this,
+                log::print<log::MEMORY>(log::yellow, "INFO", "PHYSICAL: [%p] remaining: %zu bytes at address %zu with count: %u.\n", this,
                                         buff.second.size_,
-                                        buff.first);
+                                        buff.first,
+                                        buff.second.count_);
             }
         }
     }

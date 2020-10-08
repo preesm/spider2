@@ -194,20 +194,18 @@ spider::sched::AllocationRule spider::sched::SRLessTask::allocationRuleForOutput
     rule.size_ = static_cast<size_t>(edge->sourceRateExpression().evaluate(handler_->getParams()));
     rule.offset_ = 0u;
     rule.fifoIx_ = 0u;
-    rule.count_ = rule.size_ ? 1u : 0u;
+    rule.count_ = 0;
     if (rule.size_) {
         const auto edgeIx = static_cast<u32>(edge->sourcePortIx());
         const auto dependencies = pisdf::computeConsDependency(vertex_, firing_, edgeIx, handler_);
         if (!dependencies.count()) {
+            rule.count_ = 1;
             rule.attribute_ = FifoAttribute::W_SINK;
         } else {
-            u32 count = 0;
             for (const auto &dep : dependencies) {
-                count += (dep.rate_ > 0) * (dep.firingEnd_ - dep.firingStart_ + 1u);
+                rule.count_ += (dep.rate_ > 0) * (dep.firingEnd_ - dep.firingStart_ + 1u);
             }
-            if (count) {
-                rule.count_ += count - 1;
-            }
+            rule.count_ = rule.count_ ? rule.count_ : 1;
         }
     }
     switch (vertex_->subtype()) {

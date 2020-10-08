@@ -163,16 +163,20 @@ void spider::sched::FifoAllocator::allocateInputFifo(const Task *task, Fifo *fif
     if (task && (rule.attribute_ != FifoAttribute::DUMMY)) {
         *fifo = task->fifos().outputFifo(rule.fifoIx_);
         if (fifo->attribute_ != FifoAttribute::RW_EXT) {
-            if (task->state() == TaskState::RUNNING && (fifo->size_ > 0) && (fifo->count_ == 0)) {
+            if (task->state() == TaskState::RUNNING) {
                 /* == We are in the case of a vertex already executed, now we try to update its counter value == */
                 auto tmp = task->allocationRuleForOutputFifo(rule.fifoIx_);
-                fifo->count_ = tmp.count_;
-                const auto sndIx = task->mappedLRT()->virtualIx();
-                auto addrNotifcation = Notification{ NotificationType::MEM_UPDATE_COUNT, sndIx, fifo->virtualAddress_ };
-                auto countNotifcation = Notification{ NotificationType::MEM_UPDATE_COUNT, sndIx, fifo->count_ - 1 };
-                rt::platform()->communicator()->push(addrNotifcation, sndIx);
-                rt::platform()->communicator()->push(countNotifcation, sndIx);
-                task->fifos().setOutputFifo(rule.fifoIx_, *fifo);
+                if (tmp.count_ > fifo->count_) {
+                    const auto diff = tmp.count_ - fifo->count_;
+                    fifo->count_ = tmp.count_;
+                    const auto sndIx = task->mappedLRT()->virtualIx();
+                    auto addrNotifcation = Notification{ NotificationType::MEM_UPDATE_COUNT, sndIx,
+                                                         fifo->virtualAddress_ };
+                    auto countNotifcation = Notification{ NotificationType::MEM_UPDATE_COUNT, sndIx, diff };
+                    rt::platform()->communicator()->push(addrNotifcation, sndIx);
+                    rt::platform()->communicator()->push(countNotifcation, sndIx);
+                    task->fifos().setOutputFifo(rule.fifoIx_, *fifo);
+                }
             }
             fifo->count_ = 0;
             fifo->attribute_ = rule.attribute_;
