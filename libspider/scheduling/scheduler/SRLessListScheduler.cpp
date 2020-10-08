@@ -113,7 +113,7 @@ void spider::sched::SRLessListScheduler::recursiveAddVertices(srless::GraphHandl
                     }
                 }
             }
-            for (auto *child : firingHandler->children()) {
+            for (auto *child : firingHandler->subgraphHandlers()) {
                 recursiveAddVertices(child);
             }
         } else {

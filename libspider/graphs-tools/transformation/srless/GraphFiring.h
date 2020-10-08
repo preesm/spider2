@@ -101,7 +101,7 @@ namespace spider {
 
             inline const spider::array<GraphHandler *> &children() const { return subgraphHandlers_; }
 
-            inline spider::array<GraphHandler *> &children() { return subgraphHandlers_; }
+            inline spider::array<GraphHandler *> &subgraphHandlers() { return subgraphHandlers_; }
 
             inline const spider::vector<std::shared_ptr<pisdf::Param>> &getParams() const { return params_; }
 

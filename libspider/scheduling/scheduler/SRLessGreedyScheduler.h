@@ -70,7 +70,7 @@ namespace spider {
              * @brief Recursively add vertices into the unscheduledVertices_ vector.
              * @param graphHandler  Top level graph handler;
              */
-            void recursiveEvaluate(srless::GraphHandler *graphHandler);
+            void evaluate(srless::GraphHandler *graphHandler);
 
             /**
              * @brief Evaluate if a vertex is schedulable for a given firing.

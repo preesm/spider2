@@ -45,131 +45,34 @@
 
 /* === Method(s) implementation === */
 
-spider::sched::GreedyScheduler::GreedyScheduler() :
-        Scheduler(),
-        unscheduledVertices_{ factory::vector<ScheduleVertex>(StackID::SCHEDULE) } {
-
-}
-
 void spider::sched::GreedyScheduler::schedule(const pisdf::Graph *graph) {
     tasks_.clear();
-    unscheduledVertices_.reserve(graph->vertexCount());
-
-    /* == Reset previous non-schedulable tasks == */
-    resetUnScheduledTasks();
-
-    /* == Generate the list of vertex to be scheduled == */
-    for (const auto &vertex : graph->vertices()) {
-        if (vertex->scheduleTaskIx() == SIZE_MAX) {
-            vertex->setScheduleTaskIx(unscheduledVertices_.size());
-            unscheduledVertices_.push_back({ vertex.get(), vertex->executable() });
+    for (auto &vertex : graph->vertices()) {
+        if (vertex->executable()) {
+            evaluate(vertex.get());
         }
     }
-
-    /* == Schedule actors == */
-    auto it = std::begin(unscheduledVertices_);
-    while (it != std::end(unscheduledVertices_)) {
-        if (it->executable_) {
-            it = evaluate(it);
-        } else {
-            if (!it->vertex_->executable()) {
-                /* == Recursively set all output as non exec == */
-                setSinksAsNonExecutable(*it);
-            }
-            it++;
-        }
-    }
-
-    /* == Remove non executable vertices == */
-    removeNonExecutableVertices();
-}
-
-void spider::sched::GreedyScheduler::clear() {
-    Scheduler::clear();
-    unscheduledVertices_.clear();
 }
 
 /* === Private method(s) implementation === */
 
-void spider::sched::GreedyScheduler::setSinksAsNonExecutable(ScheduleVertex &scheduleVertex) {
-    scheduleVertex.executable_ = false;
-    const auto *vertex = scheduleVertex.vertex_;
-    for (const auto *edge : vertex->outputEdgeVector()) {
-        const auto *sink = edge->sink();
-        if (edge->sinkRateValue()) {
-            setSinksAsNonExecutable(unscheduledVertices_[sink->scheduleTaskIx()]);
-        }
-    }
-}
-
-void spider::sched::GreedyScheduler::resetUnScheduledTasks() {
-    auto last = unscheduledVertices_.size();
-    for (size_t k = 0u; k < last; ++k) {
-        auto *vertex = unscheduledVertices_[k].vertex_;
-        vertex->setScheduleTaskIx(k);
-        unscheduledVertices_[k].executable_ = true;
-    }
-}
-
-spider::sched::GreedyScheduler::iterator_t
-spider::sched::GreedyScheduler::evaluate(iterator_t it) {
-    if (it->vertex_->inputEdgeCount() > 0u) {
-        for (const auto *edge : it->vertex_->inputEdgeVector()) {
-            const auto *source = edge->source();
+bool spider::sched::GreedyScheduler::evaluate(spider::pisdf::Vertex *vertex) {
+    auto schedulable = true;
+    if (vertex->scheduleTaskIx() == SIZE_MAX) {
+        for (const auto *edge : vertex->inputEdgeVector()) {
             if (!edge->sourceRateValue()) {
                 continue;
+            } else if (!edge->source() || !edge->source()->executable()) {
+                return false;
             }
-            if (!source || !source->executable()) {
-                setSinksAsNonExecutable(*it);
-                return it + 1;
-            } else if (source->scheduleTaskIx() < unscheduledVertices_.size()) {
-                auto &srcSchedVertex = unscheduledVertices_[source->scheduleTaskIx()];
-                if (srcSchedVertex.vertex_ == source) {
-                    if (srcSchedVertex.executable_) {
-                        std::swap(*it, srcSchedVertex);
-                        srcSchedVertex.vertex_->setScheduleTaskIx(it->vertex_->scheduleTaskIx());
-                        const auto itPos = std::distance(std::begin(unscheduledVertices_), it);
-                        it->vertex_->setScheduleTaskIx(static_cast<size_t>(itPos));
-                        return it;
-                    } else {
-                        setSinksAsNonExecutable(srcSchedVertex);
-                        return it + 1;
-                    }
-                }
-            }
+            schedulable &= evaluate(edge->source());
+        }
+        if (schedulable) {
+            vertex->setScheduleTaskIx(tasks_.size());
+            tasks_.emplace_back(make<VertexTask>(vertex));
         }
     }
-    /* == add vertex to task vector == */
-    tasks_.emplace_back(make<VertexTask>(it->vertex_));
-    it->vertex_->setScheduleTaskIx(SIZE_MAX);
-    return removeAndSwap(it);
+    return schedulable;
 }
 
-spider::sched::GreedyScheduler::iterator_t
-spider::sched::GreedyScheduler::removeAndSwap(iterator_t it) {
-    const auto distance = std::distance(std::begin(unscheduledVertices_), it);
-    /* == Swap and pop == */
-    out_of_order_erase(unscheduledVertices_, it);
-    /* == update value of swapped element == */
-    it = std::next(std::begin(unscheduledVertices_), distance);
-    if (it != std::end(unscheduledVertices_)) {
-        it->vertex_->setScheduleTaskIx(static_cast<size_t>(distance));
-    }
-    return it;
-}
-
-void spider::sched::GreedyScheduler::removeNonExecutableVertices() {
-    auto it = std::begin(unscheduledVertices_);
-    while (it != std::end(unscheduledVertices_)) {
-        if (!it->vertex_->executable()) {
-            /* == Distinguish between intrinsically non executable vertices from the one deriving from them == */
-            const auto pos = std::distance(std::begin(unscheduledVertices_), it);
-            std::swap(*it, unscheduledVertices_.back());
-            unscheduledVertices_.pop_back();
-            it = std::next(std::begin(unscheduledVertices_), pos);
-        } else {
-            it++;
-        }
-    }
-}
 #endif

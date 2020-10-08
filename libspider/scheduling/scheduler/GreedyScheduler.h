@@ -50,7 +50,7 @@ namespace spider {
         class GreedyScheduler final : public Scheduler {
         public:
 
-            GreedyScheduler();
+            GreedyScheduler() = default;
 
             ~GreedyScheduler() noexcept override = default;
 
@@ -58,61 +58,20 @@ namespace spider {
 
             void schedule(const pisdf::Graph *graph) override;
 
-            void clear() override;
-
-            /* === Getter(s) === */
-
-            /* === Setter(s) === */
-
         private:
-
-            /* === Types definition === */
-
-            struct ScheduleVertex {
-                pisdf::Vertex *vertex_;
-                bool executable_;
-            };
-            using iterator_t = spider::vector<ScheduleVertex>::iterator;
-
-            /* === Private member(s) === */
-
-            spider::vector<ScheduleVertex> unscheduledVertices_;
 
             /* === Private method(s) === */
 
             inline void schedule(srless::GraphHandler *) override { }
 
             /**
-             * @brief Reset unscheduled task from previous schedule iteration.
+             * @brief Evaluate if a vertex is schedulable for a given firing.
+             * @param vertex  Pointer to the vertex.
+             * @param firing  Firing of the vertex.
+             * @param handler Pointer to the GraphFiring handler.
+             * @return true if schedulable, false else.
              */
-            void resetUnScheduledTasks();
-
-            /**
-             * @brief Recursively sets all output of a given vertex as non executable.
-             * @param scheduleVertex Reference to current @refitem GreedyScheduler::ScheduleVertex.
-             */
-            void setSinksAsNonExecutable(ScheduleVertex &scheduleVertex);
-
-            /**
-             * @brief Evaluate current vertex pointed by the iterator it for schedulability.
-             * @param it Iterator to the vertex to be evaluated.
-             * @return it + 1 if vertex was schedulable due to dependency not being executable,
-             *         iterator to one of the source of the vertex if it was schedulable due to dependency not yet satisfied,
-             *         iterator to last value of the unscheduledVertices_ vector if vertex was scheduled.
-             */
-            iterator_t evaluate(iterator_t it);
-
-            /**
-             * @brief Remove value at given position and swap it with the value at the end of the unscheduledVertices_ vector.
-             * @param it Iterator to the value to be removed.
-             * @return iterator pointing to the element at the same position as the removed one (end iterator else)
-             */
-            iterator_t removeAndSwap(iterator_t it);
-
-            /**
-             * @brief Remove all non executable (!= non schedulable) vertices from the  unscheduledVertices_ vector.
-             */
-            void removeNonExecutableVertices();
+            bool evaluate(spider::pisdf::Vertex *vertex);
         };
     }
 }
