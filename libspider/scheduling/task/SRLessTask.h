@@ -49,7 +49,6 @@ namespace spider {
     namespace pisdf {
         class Vertex;
 
-        struct DependencyInfo;
         struct DependencyIterator;
     }
     namespace sched {

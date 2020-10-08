@@ -169,7 +169,7 @@ void spider::sched::FifoAllocator::allocateInputFifo(const Task *task, Fifo *fif
                 fifo->count_ = tmp.count_;
                 const auto sndIx = task->mappedLRT()->virtualIx();
                 auto addrNotifcation = Notification{ NotificationType::MEM_UPDATE_COUNT, sndIx, fifo->virtualAddress_ };
-                auto countNotifcation = Notification{ NotificationType::MEM_UPDATE_COUNT, sndIx, fifo->count_ };
+                auto countNotifcation = Notification{ NotificationType::MEM_UPDATE_COUNT, sndIx, fifo->count_ - 1 };
                 rt::platform()->communicator()->push(addrNotifcation, sndIx);
                 rt::platform()->communicator()->push(countNotifcation, sndIx);
                 task->fifos().setOutputFifo(rule.fifoIx_, *fifo);

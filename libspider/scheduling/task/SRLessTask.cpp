@@ -201,8 +201,12 @@ spider::sched::AllocationRule spider::sched::SRLessTask::allocationRuleForOutput
         if (!dependencies.count()) {
             rule.attribute_ = FifoAttribute::W_SINK;
         } else {
+            u32 count = 0;
             for (const auto &dep : dependencies) {
-                rule.count_ += (dep.rate_ > 0) * (dep.firingEnd_ - dep.firingStart_);
+                count += (dep.rate_ > 0) * (dep.firingEnd_ - dep.firingStart_ + 1u);
+            }
+            if (count) {
+                rule.count_ += count - 1;
             }
         }
     }
