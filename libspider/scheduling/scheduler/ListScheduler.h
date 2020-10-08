@@ -107,10 +107,9 @@ namespace spider {
              *           level(B) = level(D) = level(E) = 0
              *           level(C) = max(level(D) + time(D); level(E) + time(E)) = 300
              * @param listTask       Pointer to the current @refitem ListVertex evaluated.
-             * @param listVertexVector Vector of @refitem ListVertex to evaluate.
-             * @return
+             * @return level value of the vertex.
              */
-            ifast32 computeScheduleLevel(ListTask &listTask, vector<ListTask> &listVertexVector) const;
+            ifast32 computeScheduleLevel(ListTask &listTask);
 
             /**
              * @brief Sort the list of vertices.

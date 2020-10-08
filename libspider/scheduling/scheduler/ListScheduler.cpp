@@ -73,7 +73,7 @@ void spider::sched::ListScheduler::schedule(const pisdf::Graph *graph) {
     /* == Compute the schedule level == */
     auto it = std::next(std::begin(sortedTaskVector_), static_cast<long>(lastSchedulableTask_));
     for (; it != std::end(sortedTaskVector_); ++it) {
-        computeScheduleLevel(*it, sortedTaskVector_);
+        computeScheduleLevel(*it);
     }
 
     /* == Sort the vector == */
@@ -117,17 +117,16 @@ void spider::sched::ListScheduler::createListTask(pisdf::Vertex *vertex) {
     vertex->setScheduleTaskIx(sortedTaskVector_.size() - 1);
 }
 
-ifast32 spider::sched::ListScheduler::computeScheduleLevel(ListTask &listTask,
-                                                           spider::vector<ListTask> &listVertexVector) const {
+ifast32 spider::sched::ListScheduler::computeScheduleLevel(ListTask &listTask) {
     const auto *vertex = listTask.vertex_;
     if ((listTask.level_ == NON_SCHEDULABLE_LEVEL) || !vertex->executable()) {
         listTask.level_ = NON_SCHEDULABLE_LEVEL;
         for (const auto *edge : vertex->outputEdgeVector()) {
             if (edge->sinkRateValue()) {
                 /* == Disable non-null edge == */
-                auto &sinkTask = listVertexVector[edge->sink()->scheduleTaskIx()];
+                auto &sinkTask = sortedTaskVector_[edge->sink()->scheduleTaskIx()];
                 sinkTask.level_ = NON_SCHEDULABLE_LEVEL;
-                computeScheduleLevel(sinkTask, listVertexVector);
+                computeScheduleLevel(sinkTask);
             }
         }
     } else if (listTask.level_ < 0) {
@@ -151,8 +150,7 @@ ifast32 spider::sched::ListScheduler::computeScheduleLevel(ListTask &listTask,
                         }
                     }
                 }
-                const auto sinkLevel = computeScheduleLevel(listVertexVector[sink->scheduleTaskIx()],
-                                                            listVertexVector);
+                const auto sinkLevel = computeScheduleLevel(sortedTaskVector_[sink->scheduleTaskIx()]);
                 if (sinkLevel != NON_SCHEDULABLE_LEVEL) {
                     level = std::max(level, sinkLevel + static_cast<ifast32>(minExecutionTime));
                 }
