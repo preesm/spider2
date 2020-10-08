@@ -60,35 +60,28 @@ spider::sched::SRLessListScheduler::SRLessListScheduler() :
 void spider::sched::SRLessListScheduler::schedule(srless::GraphHandler *graphHandler) {
     /* == Reserve space for the new ListTasks == */
     tasks_.clear();
-
     /* == Reset previous non-schedulable tasks == */
     lastScheduledTask_ = lastSchedulableTask_;
     resetUnScheduledTasks();
-
     /* == Creates ListTasks == */
     recursiveAddVertices(graphHandler);
-
     /* == Compute the schedule level == */
     auto it = std::next(std::begin(sortedTaskVector_), static_cast<long>(lastSchedulableTask_));
     for (; it != std::end(sortedTaskVector_); ++it) {
-        computeScheduleLevel(*it, sortedTaskVector_);
+        computeScheduleLevel(*it);
     }
-
     /* == Sort the vector == */
     sortVertices();
-
     /* == Remove the non-executable hierarchical vertex == */
     const auto nonSchedulableTaskCount = countNonSchedulableTasks();
-
     /* == Update last schedulable vertex == */
     lastSchedulableTask_ = sortedTaskVector_.size() - nonSchedulableTaskCount;
-
     /* == Create the list of tasks to be scheduled == */
     for (auto k = lastScheduledTask_; k < lastSchedulableTask_; ++k) {
         const auto &task = sortedTaskVector_[k];
         tasks_.emplace_back(
                 make<SRLessTask>(task.handler_, task.vertex_, task.firing_, task.depCount_, task.mergedFifoCount_));
-        sortedTaskVector_[k].vertex_->setScheduleTaskIx(SIZE_MAX);
+        task.handler_->registerTaskIx(task.vertex_, task.firing_, UINT32_MAX);
     }
 }
 
@@ -148,27 +141,24 @@ void spider::sched::SRLessListScheduler::recursiveSetNonSchedulable(const pisdf:
     for (const auto *edge : vertex->outputEdgeVector()) {
         const auto deps = pisdf::computeConsDependency(vertex, firing, edge->sourcePortIx(), handler);
         for (const auto &dep : deps) {
-            if (dep.rate_ < 0) {
-                continue;
-            }
-            /* == Disable non-null edge == */
-            for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
-                const auto ix = dep.handler_->getTaskIx(dep.vertex_, k);
-                auto &sinkTask = sortedTaskVector_[ix];
-                sinkTask.level_ = NON_SCHEDULABLE_LEVEL;
-                recursiveSetNonSchedulable(dep.vertex_, k, dep.handler_);
+            if (dep.vertex_ && dep.rate_ > 0) {
+                /* == Disable non-null edge == */
+                for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
+                    const auto ix = dep.handler_->getTaskIx(dep.vertex_, k);
+                    auto &sinkTask = sortedTaskVector_[ix];
+                    sinkTask.level_ = NON_SCHEDULABLE_LEVEL;
+                    recursiveSetNonSchedulable(dep.vertex_, k, dep.handler_);
+                }
             }
         }
     }
 }
 
-i32 spider::sched::SRLessListScheduler::computeScheduleLevel(ListTask &listTask,
-                                                             spider::vector<ListTask> &listVertexVector) {
+i32 spider::sched::SRLessListScheduler::computeScheduleLevel(ListTask &listTask) {
     const auto *vertex = listTask.vertex_;
     const auto *handler = listTask.handler_;
     const auto firing = listTask.firing_;
-    if ((listTask.level_ == NON_SCHEDULABLE_LEVEL) || !vertex->executable()) {
-        listTask.level_ = NON_SCHEDULABLE_LEVEL;
+    if (listTask.level_ == NON_SCHEDULABLE_LEVEL) {
         recursiveSetNonSchedulable(vertex, firing, handler);
     } else if (listTask.level_ < 0) {
         const auto *platform = archi::platform();
@@ -197,7 +187,7 @@ i32 spider::sched::SRLessListScheduler::computeScheduleLevel(ListTask &listTask,
                             }
                         }
                         const auto sourceTaskIx = dep.handler_->getTaskIx(source, k);
-                        const auto sourceLevel = computeScheduleLevel(listVertexVector[sourceTaskIx], listVertexVector);
+                        const auto sourceLevel = computeScheduleLevel(sortedTaskVector_[sourceTaskIx]);
                         if (sourceLevel != NON_SCHEDULABLE_LEVEL) {
                             level = std::max(level, sourceLevel + static_cast<i32>(minExecutionTime));
                         }

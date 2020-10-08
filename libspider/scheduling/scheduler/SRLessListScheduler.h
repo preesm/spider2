@@ -84,6 +84,9 @@ namespace spider {
                 u32 depCount_;
                 u32 mergedFifoCount_;
             };
+
+            /* === Members === */
+
             spider::vector<ListTask> sortedTaskVector_;
             size_t lastSchedulableTask_ = 0;
             size_t lastScheduledTask_ = 0;
@@ -108,9 +111,17 @@ namespace spider {
              * @remark The attribute @refitem pisdf::Vertex::scheduleTaskIx_ of the vertex is set to the last position of
              *         sortedTaskVector_.
              * @param vertex  Pointer to the vertex associated.
+             * @param firing  Firing of the vertex.
+             * @param handler Pointer to the handler of the vertex.
              */
             void createListTask(pisdf::Vertex *vertex, u32 firing, srless::GraphFiring *handler);
 
+            /**
+             * @brief Recursively set all consumer of this vertex as not schedulable.
+             * @param vertex  Pointer to the vertex associated.
+             * @param firing  Firing of the vertex.
+             * @param handler Pointer to the handler of the vertex.
+             */
             void recursiveSetNonSchedulable(const pisdf::Vertex *vertex,
                                             u32 firing,
                                             const srless::GraphFiring *handler);
@@ -122,16 +133,19 @@ namespace spider {
              *         input graph:
              *             A (100) -> B(200)
              *                     -> C(100) -> D(100)
-             *                               -> E(300)
+             *                               -> E(300) -> G(100)
+             *                                  F(100) ->
              *         result:
-             *           level(A) = max(level(C) + time(C); level(B) + time(B)) = 400
-             *           level(B) = level(D) = level(E) = 0
-             *           level(C) = max(level(D) + time(D); level(E) + time(E)) = 300
-             * @param listTask       Pointer to the current @refitem ListVertex evaluated.
-             * @param listVertexVector Vector of @refitem ListVertex to evaluate.
-             * @return
+             *           level(A) = 0
+             *           level(B) = max(level(A) + time(A); 0) = 100
+             *           level(C) = max(level(A) + time(A); 0) = 100
+             *           level(D) = max(level(C) + time(C); 0) = 200
+             *           level(E) = max(level(C) + time(C); 0) = 200
+             *           level(G) = max(level(E) + time(E); level(F) + time(F)) = 500
+             * @param listTask  Reference to the current @refitem ListVertex evaluated.
+             * @return level value of the vertex for its given firing.
              */
-            i32 computeScheduleLevel(ListTask &listTask, vector<ListTask> &listVertexVector);
+            i32 computeScheduleLevel(ListTask &listTask);
 
             /**
              * @brief Sort the list of vertices.
