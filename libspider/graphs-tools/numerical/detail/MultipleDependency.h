@@ -45,9 +45,7 @@ namespace spider {
         struct MultipleDependency {
             spider::vector<DependencyInfo> infos_;
 
-            explicit MultipleDependency(spider::vector<DependencyInfo> infos) : infos_{ std::move(infos) } {
-
-            }
+            explicit MultipleDependency(spider::vector<DependencyInfo> infos) : infos_{ std::move(infos) } { }
 
             MultipleDependency(MultipleDependency &&) = default;
 

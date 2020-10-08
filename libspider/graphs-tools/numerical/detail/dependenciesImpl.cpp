@@ -40,6 +40,7 @@
 #include <graphs-tools/transformation/srless/GraphFiring.h>
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/DelayVertex.h>
+#include <iterator>
 
 /* === Static variable(s) === */
 

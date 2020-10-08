@@ -100,7 +100,8 @@ namespace spider {
                 } else if (mpark::holds_alternative<VoidDependency>(it_)) {
                     return nullptr;
                 } else {
-                    return mpark::get<MultipleDependency>(it_).infos_.end().base();
+                    auto &deps = mpark::get<MultipleDependency>(it_).infos_;
+                    return deps.data() + deps.size();
                 }
             }
 
@@ -110,7 +111,8 @@ namespace spider {
                 } else if (mpark::holds_alternative<VoidDependency>(it_)) {
                     return nullptr;
                 } else {
-                    return mpark::get<MultipleDependency>(it_).infos_.end().base();
+                    const auto &deps = mpark::get<MultipleDependency>(it_).infos_;
+                    return deps.data() + deps.size();
                 }
             }
 
