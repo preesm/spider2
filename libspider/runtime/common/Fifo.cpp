@@ -150,9 +150,6 @@ namespace spider {
 
     void *allocBuffer(array_handle<Fifo>::iterator &it, MemoryInterface *memoryInterface) {
         const auto fifo = *(it++);
-        if (fifo.attribute_ == FifoAttribute::W_SINK) {
-            return memoryInterface->allocate(fifo.virtualAddress_, fifo.size_, 1u);
-        }
         return memoryInterface->allocate(fifo.virtualAddress_, fifo.size_, fifo.count_);
     }
 }

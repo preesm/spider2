@@ -76,7 +76,7 @@ namespace spider {
 
             void setExecutionDependency(size_t ix, Task *task) override;
 
-            AllocationRule allocationRuleForInputFifo(size_t ix) const override;
+            AllocationRule allocationRuleForInputFifo(size_t edgeIx) const override;
 
             AllocationRule allocationRuleForOutputFifo(size_t ix) const override;
 
@@ -115,26 +115,6 @@ namespace spider {
             const pisdf::Vertex *vertex_;
             u32 firing_;
             u32 dependenciesCount_;
-
-            /* === Private method(s) === */
-
-            /**
-             * @brief Update task dependencies based on this dependency and the schedule.
-             * @param schedule    Pointer to the schedule.
-             * @param dependency  Dependency to evaluate.
-             * @param index       Offset to be applied for accessing the execinfo dependency array.
-             * @return updated offset based on the number of firing of the dependency.
-             */
-            size_t updateTaskExecutionDependency(const Schedule *schedule,
-                                                 const pisdf::DependencyInfo &dependency,
-                                                 size_t index);
-
-            /**
-             * @brief Get the allocation rule for a given edge.
-             * @param edge Pointer to the edge.
-             * @return allocation rule for this edge.
-             */
-            AllocationRule allocateInputFifo(const pisdf::Edge *edge) const;
         };
     }
 }
