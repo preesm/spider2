@@ -46,7 +46,7 @@
 /* === Static function === */
 
 namespace {
-    constexpr auto NON_SCHEDULABLE_LEVEL = -314159265; /* = Value is arbitrary, just needed something unique = */
+    constexpr auto NON_SCHEDULABLE_LEVEL = 314159265; /* = Value is arbitrary, just needed something unique = */
 }
 
 /* === Method(s) implementation === */
@@ -86,8 +86,8 @@ void spider::sched::SRLessListScheduler::schedule(srless::GraphHandler *graphHan
     /* == Create the list of tasks to be scheduled == */
     for (auto k = lastScheduledTask_; k < lastSchedulableTask_; ++k) {
         const auto &task = sortedTaskVector_[k];
-        const auto depInfo = countDependenciesAndMergedFifos(task);
-        tasks_.emplace_back(make<SRLessTask>(task.handler_, task.vertex_, task.firing_, depInfo.first, depInfo.second));
+        tasks_.emplace_back(
+                make<SRLessTask>(task.handler_, task.vertex_, task.firing_, task.depCount_, task.mergedFifoCount_));
         sortedTaskVector_[k].vertex_->setScheduleTaskIx(SIZE_MAX);
     }
 }
@@ -137,7 +137,7 @@ void spider::sched::SRLessListScheduler::createListTask(pisdf::Vertex *vertex,
                                                         srless::GraphFiring *handler) {
     const auto vertexTaskIx = handler->getTaskIx(vertex, firing);
     if (vertexTaskIx == UINT32_MAX && vertex->executable()) {
-        sortedTaskVector_.push_back({ vertex, handler, -1, firing });
+        sortedTaskVector_.push_back({ vertex, handler, -1, firing, 0, 0 });
         handler->registerTaskIx(vertex, firing, static_cast<u32>(sortedTaskVector_.size() - 1));
     }
 }
@@ -162,8 +162,8 @@ void spider::sched::SRLessListScheduler::recursiveSetNonSchedulable(const pisdf:
     }
 }
 
-ifast32 spider::sched::SRLessListScheduler::computeScheduleLevel(ListTask &listTask,
-                                                                 spider::vector<ListTask> &listVertexVector) {
+i32 spider::sched::SRLessListScheduler::computeScheduleLevel(ListTask &listTask,
+                                                             spider::vector<ListTask> &listVertexVector) {
     const auto *vertex = listTask.vertex_;
     const auto *handler = listTask.handler_;
     const auto firing = listTask.firing_;
@@ -172,36 +172,39 @@ ifast32 spider::sched::SRLessListScheduler::computeScheduleLevel(ListTask &listT
         recursiveSetNonSchedulable(vertex, firing, handler);
     } else if (listTask.level_ < 0) {
         const auto *platform = archi::platform();
-        ifast32 level = 0;
-        for (const auto *edge : vertex->outputEdgeVector()) {
-            const auto deps = pisdf::computeConsDependency(vertex, firing, edge->sourcePortIx(), handler);
+        i32 level = 0;
+        for (const auto *edge : vertex->inputEdgeVector()) {
+            const auto current = listTask.depCount_;
+            const auto deps = pisdf::computeExecDependency(vertex, firing, edge->sinkPortIx(), handler);
             for (const auto &dep : deps) {
-                const auto *sink = dep.vertex_;
-                if (sink && dep.rate_ >= 0) {
-                    const auto *sinkRTInfo = sink->runtimeInformation();
+                listTask.depCount_ += (dep.firingEnd_ - dep.firingStart_ + 1u);
+                const auto *source = dep.vertex_;
+                if (source && dep.rate_ > 0) {
+                    const auto *sourceRTInfo = source->runtimeInformation();
                     for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
                         auto minExecutionTime = INT64_MAX;
                         for (auto &cluster : platform->clusters()) {
-                            if (sinkRTInfo->isClusterMappable(cluster)) {
+                            if (sourceRTInfo->isClusterMappable(cluster)) {
                                 for (const auto &pe : cluster->peArray()) {
-                                    auto executionTime = sinkRTInfo->timingOnPE(pe, dep.handler_->getParams());
+                                    auto executionTime = sourceRTInfo->timingOnPE(pe, dep.handler_->getParams());
                                     if (!executionTime) {
                                         throwSpiderException(
                                                 "Vertex [%s:%u] has null execution time on mappable cluster.",
-                                                sink->name().c_str(), k);
+                                                source->name().c_str(), k);
                                     }
                                     minExecutionTime = std::min(minExecutionTime, executionTime);
                                 }
                             }
                         }
-                        const auto sinkTaskIx = dep.handler_->getTaskIx(sink, k);
-                        const auto sinkLevel = computeScheduleLevel(listVertexVector[sinkTaskIx], listVertexVector);
-                        if (sinkLevel != NON_SCHEDULABLE_LEVEL) {
-                            level = std::max(level, sinkLevel + static_cast<ifast32>(minExecutionTime));
+                        const auto sourceTaskIx = dep.handler_->getTaskIx(source, k);
+                        const auto sourceLevel = computeScheduleLevel(listVertexVector[sourceTaskIx], listVertexVector);
+                        if (sourceLevel != NON_SCHEDULABLE_LEVEL) {
+                            level = std::max(level, sourceLevel + static_cast<i32>(minExecutionTime));
                         }
                     }
                 }
             }
+            listTask.mergedFifoCount_ += ((current + 1) < listTask.depCount_);
         }
         listTask.level_ = level;
     }
@@ -235,7 +238,7 @@ void spider::sched::SRLessListScheduler::sortVertices() {
                       }
                       return vertexA->name() > vertexB->name();
                   }
-                  return (diff > 0);
+                  return diff < 0;
               });
 }
 
@@ -247,18 +250,4 @@ size_t spider::sched::SRLessListScheduler::countNonSchedulableTasks() {
         it->level_ = -1; /* = Reset the schedule level = */
     }
     return count;
-}
-
-std::pair<u32, u32> spider::sched::SRLessListScheduler::countDependenciesAndMergedFifos(const ListTask &task) const {
-    u32 depCount{ };
-    u32 mergedFifoCount{ };
-    for (u32 i = 0; i < static_cast<u32>(task.vertex_->inputEdgeCount()); ++i) {
-        const auto current = depCount;
-        const auto deps = pisdf::computeExecDependency(task.vertex_, task.firing_, i, task.handler_);
-        for (const auto dep : deps) {
-            depCount += dep.firingEnd_ - dep.firingStart_ + 1u;
-        }
-        mergedFifoCount += ((current + 1) < depCount);
-    }
-    return { depCount, mergedFifoCount };
 }

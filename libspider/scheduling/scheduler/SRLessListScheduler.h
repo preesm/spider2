@@ -79,8 +79,10 @@ namespace spider {
             struct ListTask {
                 pisdf::Vertex *vertex_;
                 srless::GraphFiring *handler_;
-                ifast32 level_;
+                i32 level_;
                 u32 firing_;
+                u32 depCount_;
+                u32 mergedFifoCount_;
             };
             spider::vector<ListTask> sortedTaskVector_;
             size_t lastSchedulableTask_ = 0;
@@ -129,7 +131,7 @@ namespace spider {
              * @param listVertexVector Vector of @refitem ListVertex to evaluate.
              * @return
              */
-            ifast32 computeScheduleLevel(ListTask &listTask, vector<ListTask> &listVertexVector);
+            i32 computeScheduleLevel(ListTask &listTask, vector<ListTask> &listVertexVector);
 
             /**
              * @brief Sort the list of vertices.
@@ -141,13 +143,6 @@ namespace spider {
              * @return number of non schedulable tasks.
              */
             size_t countNonSchedulableTasks();
-
-            /**
-             * @brief Count the number of dependencies and merged Fifos for a listTask.
-             * @param task  Const reference to the task.
-             * @return a pair composed of the number of dependnecies (first) and the number of merged Fifos (second).
-             */
-            std::pair<u32, u32> countDependenciesAndMergedFifos(const ListTask &task) const;
 
         };
     }
