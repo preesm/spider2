@@ -79,6 +79,8 @@ namespace spider {
         class Schedule;
     }
 
+    struct RuntimeConfig;
+
     /* === Class definition === */
 
     class Runtime {

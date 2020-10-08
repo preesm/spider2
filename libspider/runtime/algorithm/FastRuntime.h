@@ -44,8 +44,6 @@ namespace spider {
 
     /* === Forward declaration(s) === */
 
-    class RuntimeConfig;
-
     namespace sched {
         class ResourcesAllocator;
     }
