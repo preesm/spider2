@@ -203,7 +203,7 @@ static spider::Runtime *getRuntimeFromType(spider::pisdf::Graph *graph,
                                            const spider::RuntimeConfig &cfg) {
     const auto isStatic = spider::pisdf::isGraphFullyStatic(graph);
     switch (cfg.runtimeType_) {
-        case spider::RuntimeType::JITMS:
+        case spider::RuntimeType::SRDAG_BASED:
 #ifndef _NO_BUILD_LEGACY_RT
             if (isStatic) {
                 return spider::make<spider::StaticRuntime>(StackID::GENERAL, graph, cfg);
@@ -213,7 +213,7 @@ static spider::Runtime *getRuntimeFromType(spider::pisdf::Graph *graph,
             spider::printer::fprintf(stderr,"JITMS runtime was not compiled and can not be used.\n");
             return nullptr;
 #endif
-        case spider::RuntimeType::FAST:
+        case spider::RuntimeType::SRDAG_LESS:
             return spider::make<spider::FastRuntime>(StackID::GENERAL, graph, cfg, isStatic);
         default:
             return nullptr;

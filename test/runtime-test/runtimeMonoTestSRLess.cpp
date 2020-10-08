@@ -50,7 +50,7 @@
 #include <api/spider.h>
 #include "RuntimeTestCases.h"
 
-class runtimeMonoTest : public ::testing::Test {
+class runtimeMonoTestSRLess : public ::testing::Test {
 protected:
     void SetUp() override {
         spider::start();
@@ -70,10 +70,10 @@ protected:
     }
 };
 
-TEST_F(runtimeMonoTest, TestStaticFlat) {
+TEST_F(runtimeMonoTestSRLess, TestStaticFlat) {
     const auto runtimeConfig = spider::RuntimeConfig{
             spider::RunMode::LOOP,
-            spider::RuntimeType::SRDAG_BASED,
+            spider::RuntimeType::SRDAG_LESS,
             spider::ExecutionPolicy::DELAYED,
             spider::SchedulingPolicy::LIST,
             spider::MappingPolicy::BEST_FIT,
@@ -83,10 +83,10 @@ TEST_F(runtimeMonoTest, TestStaticFlat) {
     ASSERT_NO_THROW(spider::test::runtimeStaticFlat(runtimeConfig));
 }
 
-TEST_F(runtimeMonoTest, TestStaticFlatNoSync) {
+TEST_F(runtimeMonoTestSRLess, TestStaticFlatNoSync) {
     const auto runtimeConfig = spider::RuntimeConfig{
             spider::RunMode::LOOP,
-            spider::RuntimeType::SRDAG_BASED,
+            spider::RuntimeType::SRDAG_LESS,
             spider::ExecutionPolicy::DELAYED,
             spider::SchedulingPolicy::LIST,
             spider::MappingPolicy::BEST_FIT,
@@ -96,10 +96,10 @@ TEST_F(runtimeMonoTest, TestStaticFlatNoSync) {
     ASSERT_NO_THROW(spider::test::runtimeStaticFlat(runtimeConfig));
 }
 
-TEST_F(runtimeMonoTest, TestStaticNoExecFlat) {
+TEST_F(runtimeMonoTestSRLess, TestStaticNoExecFlat) {
     const auto runtimeConfig = spider::RuntimeConfig{
             spider::RunMode::LOOP,
-            spider::RuntimeType::SRDAG_BASED,
+            spider::RuntimeType::SRDAG_LESS,
             spider::ExecutionPolicy::DELAYED,
             spider::SchedulingPolicy::LIST,
             spider::MappingPolicy::BEST_FIT,
@@ -109,10 +109,10 @@ TEST_F(runtimeMonoTest, TestStaticNoExecFlat) {
     ASSERT_NO_THROW(spider::test::runtimeStaticFlatNoExec(runtimeConfig));
 }
 
-TEST_F(runtimeMonoTest, TestStaticNoExecFlatNoSync) {
+TEST_F(runtimeMonoTestSRLess, TestStaticNoExecFlatNoSync) {
     const auto runtimeConfig = spider::RuntimeConfig{
             spider::RunMode::LOOP,
-            spider::RuntimeType::SRDAG_BASED,
+            spider::RuntimeType::SRDAG_LESS,
             spider::ExecutionPolicy::DELAYED,
             spider::SchedulingPolicy::LIST,
             spider::MappingPolicy::BEST_FIT,
@@ -122,10 +122,10 @@ TEST_F(runtimeMonoTest, TestStaticNoExecFlatNoSync) {
     ASSERT_NO_THROW(spider::test::runtimeStaticFlatNoExec(runtimeConfig));
 }
 
-TEST_F(runtimeMonoTest, TestStaticHierarchical) {
+TEST_F(runtimeMonoTestSRLess, TestStaticHierarchical) {
     const auto runtimeConfig = spider::RuntimeConfig{
             spider::RunMode::LOOP,
-            spider::RuntimeType::SRDAG_BASED,
+            spider::RuntimeType::SRDAG_LESS,
             spider::ExecutionPolicy::DELAYED,
             spider::SchedulingPolicy::LIST,
             spider::MappingPolicy::BEST_FIT,
@@ -135,10 +135,10 @@ TEST_F(runtimeMonoTest, TestStaticHierarchical) {
     ASSERT_NO_THROW(spider::test::runtimeStaticHierarchical(runtimeConfig));
 }
 
-TEST_F(runtimeMonoTest, TestStaticHierarchicalNoSync) {
+TEST_F(runtimeMonoTestSRLess, TestStaticHierarchicalNoSync) {
     const auto runtimeConfig = spider::RuntimeConfig{
             spider::RunMode::LOOP,
-            spider::RuntimeType::SRDAG_BASED,
+            spider::RuntimeType::SRDAG_LESS,
             spider::ExecutionPolicy::DELAYED,
             spider::SchedulingPolicy::LIST,
             spider::MappingPolicy::BEST_FIT,
@@ -148,10 +148,10 @@ TEST_F(runtimeMonoTest, TestStaticHierarchicalNoSync) {
     ASSERT_NO_THROW(spider::test::runtimeStaticHierarchical(runtimeConfig));
 }
 
-TEST_F(runtimeMonoTest, TestStaticNoExecHierarchical) {
+TEST_F(runtimeMonoTestSRLess, TestStaticNoExecHierarchical) {
     const auto runtimeConfig = spider::RuntimeConfig{
             spider::RunMode::LOOP,
-            spider::RuntimeType::SRDAG_BASED,
+            spider::RuntimeType::SRDAG_LESS,
             spider::ExecutionPolicy::DELAYED,
             spider::SchedulingPolicy::LIST,
             spider::MappingPolicy::BEST_FIT,
@@ -161,10 +161,10 @@ TEST_F(runtimeMonoTest, TestStaticNoExecHierarchical) {
     ASSERT_NO_THROW(spider::test::runtimeStaticHierarchicalNoExec(runtimeConfig));
 }
 
-TEST_F(runtimeMonoTest, TestStaticNoExecHierarchicalNoSync) {
+TEST_F(runtimeMonoTestSRLess, TestStaticNoExecHierarchicalNoSync) {
     const auto runtimeConfig = spider::RuntimeConfig{
             spider::RunMode::LOOP,
-            spider::RuntimeType::SRDAG_BASED,
+            spider::RuntimeType::SRDAG_LESS,
             spider::ExecutionPolicy::DELAYED,
             spider::SchedulingPolicy::LIST,
             spider::MappingPolicy::BEST_FIT,
@@ -174,10 +174,10 @@ TEST_F(runtimeMonoTest, TestStaticNoExecHierarchicalNoSync) {
     ASSERT_NO_THROW(spider::test::runtimeStaticHierarchicalNoExec(runtimeConfig));
 }
 
-TEST_F(runtimeMonoTest, TestDynamicHierarchical) {
+TEST_F(runtimeMonoTestSRLess, TestDynamicHierarchical) {
     const auto runtimeConfig = spider::RuntimeConfig{
             spider::RunMode::LOOP,
-            spider::RuntimeType::SRDAG_BASED,
+            spider::RuntimeType::SRDAG_LESS,
             spider::ExecutionPolicy::DELAYED,
             spider::SchedulingPolicy::LIST,
             spider::MappingPolicy::BEST_FIT,
@@ -187,10 +187,10 @@ TEST_F(runtimeMonoTest, TestDynamicHierarchical) {
     ASSERT_NO_THROW(spider::test::runtimeDynamicHierarchical(runtimeConfig));
 }
 
-TEST_F(runtimeMonoTest, TestDynamicHierarchicalNoSync) {
+TEST_F(runtimeMonoTestSRLess, TestDynamicHierarchicalNoSync) {
     const auto runtimeConfig = spider::RuntimeConfig{
             spider::RunMode::LOOP,
-            spider::RuntimeType::SRDAG_BASED,
+            spider::RuntimeType::SRDAG_LESS,
             spider::ExecutionPolicy::DELAYED,
             spider::SchedulingPolicy::LIST,
             spider::MappingPolicy::BEST_FIT,
@@ -200,10 +200,10 @@ TEST_F(runtimeMonoTest, TestDynamicHierarchicalNoSync) {
     ASSERT_NO_THROW(spider::test::runtimeDynamicHierarchical(runtimeConfig));
 }
 
-TEST_F(runtimeMonoTest, TestGreedyStaticFlat) {
+TEST_F(runtimeMonoTestSRLess, TestGreedyStaticFlat) {
     const auto runtimeConfig = spider::RuntimeConfig{
             spider::RunMode::LOOP,
-            spider::RuntimeType::SRDAG_BASED,
+            spider::RuntimeType::SRDAG_LESS,
             spider::ExecutionPolicy::DELAYED,
             spider::SchedulingPolicy::GREEDY,
             spider::MappingPolicy::BEST_FIT,
@@ -213,10 +213,10 @@ TEST_F(runtimeMonoTest, TestGreedyStaticFlat) {
     ASSERT_NO_THROW(spider::test::runtimeStaticFlat(runtimeConfig));
 }
 
-TEST_F(runtimeMonoTest, TestGreedyStaticFlatNoSync) {
+TEST_F(runtimeMonoTestSRLess, TestGreedyStaticFlatNoSync) {
     const auto runtimeConfig = spider::RuntimeConfig{
             spider::RunMode::LOOP,
-            spider::RuntimeType::SRDAG_BASED,
+            spider::RuntimeType::SRDAG_LESS,
             spider::ExecutionPolicy::DELAYED,
             spider::SchedulingPolicy::GREEDY,
             spider::MappingPolicy::BEST_FIT,
@@ -226,10 +226,10 @@ TEST_F(runtimeMonoTest, TestGreedyStaticFlatNoSync) {
     ASSERT_NO_THROW(spider::test::runtimeStaticFlat(runtimeConfig));
 }
 
-TEST_F(runtimeMonoTest, TestGreedyStaticNoExecFlat) {
+TEST_F(runtimeMonoTestSRLess, TestGreedyStaticNoExecFlat) {
     const auto runtimeConfig = spider::RuntimeConfig{
             spider::RunMode::LOOP,
-            spider::RuntimeType::SRDAG_BASED,
+            spider::RuntimeType::SRDAG_LESS,
             spider::ExecutionPolicy::DELAYED,
             spider::SchedulingPolicy::GREEDY,
             spider::MappingPolicy::BEST_FIT,
@@ -239,10 +239,10 @@ TEST_F(runtimeMonoTest, TestGreedyStaticNoExecFlat) {
     ASSERT_NO_THROW(spider::test::runtimeStaticFlatNoExec(runtimeConfig));
 }
 
-TEST_F(runtimeMonoTest, TestGreedyStaticNoExecFlatNoSync) {
+TEST_F(runtimeMonoTestSRLess, TestGreedyStaticNoExecFlatNoSync) {
     const auto runtimeConfig = spider::RuntimeConfig{
             spider::RunMode::LOOP,
-            spider::RuntimeType::SRDAG_BASED,
+            spider::RuntimeType::SRDAG_LESS,
             spider::ExecutionPolicy::DELAYED,
             spider::SchedulingPolicy::GREEDY,
             spider::MappingPolicy::BEST_FIT,
@@ -252,10 +252,10 @@ TEST_F(runtimeMonoTest, TestGreedyStaticNoExecFlatNoSync) {
     ASSERT_NO_THROW(spider::test::runtimeStaticFlatNoExec(runtimeConfig));
 }
 
-TEST_F(runtimeMonoTest, TestGreedyStaticHierarchical) {
+TEST_F(runtimeMonoTestSRLess, TestGreedyStaticHierarchical) {
     const auto runtimeConfig = spider::RuntimeConfig{
             spider::RunMode::LOOP,
-            spider::RuntimeType::SRDAG_BASED,
+            spider::RuntimeType::SRDAG_LESS,
             spider::ExecutionPolicy::DELAYED,
             spider::SchedulingPolicy::GREEDY,
             spider::MappingPolicy::BEST_FIT,
@@ -265,10 +265,10 @@ TEST_F(runtimeMonoTest, TestGreedyStaticHierarchical) {
     ASSERT_NO_THROW(spider::test::runtimeStaticHierarchical(runtimeConfig));
 }
 
-TEST_F(runtimeMonoTest, TestGreedyStaticHierarchicalNoSync) {
+TEST_F(runtimeMonoTestSRLess, TestGreedyStaticHierarchicalNoSync) {
     const auto runtimeConfig = spider::RuntimeConfig{
             spider::RunMode::LOOP,
-            spider::RuntimeType::SRDAG_BASED,
+            spider::RuntimeType::SRDAG_LESS,
             spider::ExecutionPolicy::DELAYED,
             spider::SchedulingPolicy::GREEDY,
             spider::MappingPolicy::BEST_FIT,
@@ -278,10 +278,10 @@ TEST_F(runtimeMonoTest, TestGreedyStaticHierarchicalNoSync) {
     ASSERT_NO_THROW(spider::test::runtimeStaticHierarchical(runtimeConfig));
 }
 
-TEST_F(runtimeMonoTest, TestGreedyStaticNoExecHierarchical) {
+TEST_F(runtimeMonoTestSRLess, TestGreedyStaticNoExecHierarchical) {
     const auto runtimeConfig = spider::RuntimeConfig{
             spider::RunMode::LOOP,
-            spider::RuntimeType::SRDAG_BASED,
+            spider::RuntimeType::SRDAG_LESS,
             spider::ExecutionPolicy::DELAYED,
             spider::SchedulingPolicy::GREEDY,
             spider::MappingPolicy::BEST_FIT,
@@ -291,10 +291,10 @@ TEST_F(runtimeMonoTest, TestGreedyStaticNoExecHierarchical) {
     ASSERT_NO_THROW(spider::test::runtimeStaticHierarchicalNoExec(runtimeConfig));
 }
 
-TEST_F(runtimeMonoTest, TestGreedyStaticNoExecHierarchicalNoSync) {
+TEST_F(runtimeMonoTestSRLess, TestGreedyStaticNoExecHierarchicalNoSync) {
     const auto runtimeConfig = spider::RuntimeConfig{
             spider::RunMode::LOOP,
-            spider::RuntimeType::SRDAG_BASED,
+            spider::RuntimeType::SRDAG_LESS,
             spider::ExecutionPolicy::DELAYED,
             spider::SchedulingPolicy::GREEDY,
             spider::MappingPolicy::BEST_FIT,
@@ -304,10 +304,10 @@ TEST_F(runtimeMonoTest, TestGreedyStaticNoExecHierarchicalNoSync) {
     ASSERT_NO_THROW(spider::test::runtimeStaticHierarchicalNoExec(runtimeConfig));
 }
 
-TEST_F(runtimeMonoTest, TestGreedyDynamicHierarchical) {
+TEST_F(runtimeMonoTestSRLess, TestGreedyDynamicHierarchical) {
     const auto runtimeConfig = spider::RuntimeConfig{
             spider::RunMode::LOOP,
-            spider::RuntimeType::SRDAG_BASED,
+            spider::RuntimeType::SRDAG_LESS,
             spider::ExecutionPolicy::DELAYED,
             spider::SchedulingPolicy::GREEDY,
             spider::MappingPolicy::BEST_FIT,
@@ -317,10 +317,10 @@ TEST_F(runtimeMonoTest, TestGreedyDynamicHierarchical) {
     ASSERT_NO_THROW(spider::test::runtimeDynamicHierarchical(runtimeConfig));
 }
 
-TEST_F(runtimeMonoTest, TestGreedyDynamicHierarchicalNoSync) {
+TEST_F(runtimeMonoTestSRLess, TestGreedyDynamicHierarchicalNoSync) {
     const auto runtimeConfig = spider::RuntimeConfig{
             spider::RunMode::LOOP,
-            spider::RuntimeType::SRDAG_BASED,
+            spider::RuntimeType::SRDAG_LESS,
             spider::ExecutionPolicy::DELAYED,
             spider::SchedulingPolicy::GREEDY,
             spider::MappingPolicy::BEST_FIT,
