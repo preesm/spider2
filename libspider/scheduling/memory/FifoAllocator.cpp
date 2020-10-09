@@ -76,32 +76,32 @@ void spider::sched::FifoAllocator::allocate(sched::Task *task) {
         return;
     }
     /* == Allocating input FIFOs == */
-    size_t fifoIx{ 0u };
-    size_t offset{ 0u };
+    size_t ix{ 0u };
     auto inputFifos = task->fifos().inputFifos();
-    for (auto it = std::begin(inputFifos); it != std::end(inputFifos); ++it) {
-        auto rule = task->allocationRuleForInputFifo(fifoIx);
-        if (rule.type_ == AllocType::MERGE) {
-            /* == Set the merged fifo == */
-            offset += allocateMergedInputFifo(task, it, rule, fifoIx, offset);
-            it += rule.count_;
-            if (it == std::end(inputFifos)) {
-                break;
+    for (auto &fifo : inputFifos) {
+        const auto rule = task->allocationRuleForInputFifo(ix);
+        const auto *prevTask = task->previousTask(ix);
+        if (prevTask) {
+            if (rule.type_ == AllocType::SAME_IN) {
+                fifo = prevTask->fifos().outputFifo(rule.fifoIx_);
+                if (fifo.attribute_ != FifoAttribute::RW_EXT) {
+                    fifo.attribute_ = rule.attribute_;
+                    fifo.count_ = 0u;
+                }
+            } else {
+                throwSpiderException("invalid AllocAttribute for input FIFO.");
             }
-        } else if (rule.type_ == AllocType::SAME_IN) {
-            const auto *previousTask = task->previousTask(fifoIx + offset);
-            allocateInputFifo(previousTask, it, rule);
         } else {
-            throwSpiderException("invalid AllocAttribute for input FIFO.");
+            fifo = Fifo{ };
         }
-        fifoIx++;
+        ix++;
     }
 
     /* == Allocating output FIFOs == */
-    fifoIx = 0u;
+    ix = 0u;
     auto outputFifos = task->fifos().outputFifos();
     for (auto &fifo : outputFifos) {
-        const auto rule = task->allocationRuleForOutputFifo(fifoIx);
+        const auto rule = task->allocationRuleForOutputFifo(ix);
         switch (rule.type_) {
             case NEW:
                 fifo.virtualAddress_ = virtualMemoryAddress_;
@@ -121,69 +121,14 @@ void spider::sched::FifoAllocator::allocate(sched::Task *task) {
             }
                 break;
             case EXT:
-                fifo.virtualAddress_ = rule.offset_;
-                fifo.offset_ = 0u;
+                fifo.virtualAddress_ = rule.fifoIx_;
                 break;
             default:
                 break;
         }
         fifo.size_ = static_cast<u32>(rule.size_);
         fifo.attribute_ = rule.attribute_;
-        fifo.count_ = rule.count_;
-        fifoIx++;
-    }
-}
-
-size_t spider::sched::FifoAllocator::allocateMergedInputFifo(Task *task,
-                                                             Fifo *fifo,
-                                                             AllocationRule &rule,
-                                                             size_t realFifoIx,
-                                                             size_t taskOffset) {
-    fifo->virtualAddress_ = virtualMemoryAddress_;
-    virtualMemoryAddress_ += rule.size_;
-    fifo->size_ = static_cast<u32>(rule.size_);
-    fifo->offset_ = 0u;
-    fifo->count_ = rule.count_;
-    fifo->attribute_ = rule.attribute_;
-    /* == do the other fifos == */
-#ifndef NDEBUG
-    if (!rule.others_) {
-        throwNullptrException();
-    }
-#endif
-    for (size_t i = 0; i < rule.count_; ++i) {
-        const auto *prevTask = task->previousTask(realFifoIx + taskOffset + i);
-        allocateInputFifo(prevTask, fifo + i + 1, rule.others_[i]);
-    }
-    destroy(rule.others_);
-    return rule.count_ - 1u;
-}
-
-void spider::sched::FifoAllocator::allocateInputFifo(const Task *task, Fifo *fifo, AllocationRule &rule) {
-    if (task && (rule.attribute_ != FifoAttribute::DUMMY)) {
-        *fifo = task->fifos().outputFifo(rule.fifoIx_);
-        if (fifo->attribute_ != FifoAttribute::RW_EXT) {
-            if (task->state() == TaskState::RUNNING) {
-                /* == We are in the case of a vertex already executed, now we try to update its counter value == */
-                auto tmp = task->allocationRuleForOutputFifo(rule.fifoIx_);
-                if (tmp.count_ > fifo->count_) {
-                    const auto diff = tmp.count_ - fifo->count_;
-                    fifo->count_ = tmp.count_;
-                    const auto sndIx = task->mappedLRT()->virtualIx();
-                    auto addrNotifcation = Notification{ NotificationType::MEM_UPDATE_COUNT, sndIx,
-                                                         fifo->virtualAddress_ };
-                    auto countNotifcation = Notification{ NotificationType::MEM_UPDATE_COUNT, sndIx, diff };
-                    rt::platform()->communicator()->push(addrNotifcation, sndIx);
-                    rt::platform()->communicator()->push(countNotifcation, sndIx);
-                    task->fifos().setOutputFifo(rule.fifoIx_, *fifo);
-                }
-            }
-            fifo->count_ = 0;
-            fifo->attribute_ = rule.attribute_;
-        }
-        fifo->size_ = static_cast<u32>(rule.size_);
-        fifo->offset_ += static_cast<u32>(rule.offset_);
-    } else {
-        *fifo = Fifo{ };
+        fifo.count_ = (fifo.size_ != 0u);
+        ix++;
     }
 }

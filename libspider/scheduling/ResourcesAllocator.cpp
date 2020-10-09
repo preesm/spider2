@@ -48,6 +48,7 @@
 #include <scheduling/scheduler/SRLessListScheduler.h>
 #include <scheduling/mapper/BestFitMapper.h>
 #include <scheduling/memory/FifoAllocator.h>
+#include <scheduling/memory/SRLessFifoAllocator.h>
 #include <scheduling/memory/NoSyncFifoAllocator.h>
 #include <scheduling/task/Task.h>
 #include <api/archi-api.h>
@@ -142,10 +143,13 @@ spider::sched::FifoAllocator *
 spider::sched::ResourcesAllocator::allocateAllocator(FifoAllocatorType type, bool legacy) const {
     switch (type) {
         case spider::FifoAllocatorType::DEFAULT:
+            if (!legacy) {
+                return spider::make<spider::sched::SRLessFifoAllocator, StackID::RUNTIME>();
+            }
             return spider::make<spider::sched::FifoAllocator, StackID::RUNTIME>();
         case spider::FifoAllocatorType::DEFAULT_NOSYNC:
             if (!legacy) {
-                return spider::make<spider::sched::FifoAllocator, StackID::RUNTIME>();
+                return spider::make<spider::sched::SRLessFifoAllocator, StackID::RUNTIME>();
             }
             return spider::make<spider::sched::NoSyncFifoAllocator, StackID::RUNTIME>();
         case spider::FifoAllocatorType::ARCHI_AWARE:
