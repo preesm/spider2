@@ -95,7 +95,7 @@ namespace spider {
          * @brief Evaluate the expression and return the value and cast result in int64_.
          * @return Evaluated value of the expression.
          */
-        inline int64_t evaluate(const spider::vector<std::shared_ptr<pisdf::Param>> &params = { }) {
+        inline int64_t evaluate(const spider::vector<std::shared_ptr<pisdf::Param>> &params = { }) const {
             return static_cast<int64_t>(evaluateDBL(params));
         }
 
@@ -103,7 +103,7 @@ namespace spider {
          * @brief Evaluate the expression and return the value.
          * @return Evaluated value of the expression.
          */
-        inline double evaluateDBL(const spider::vector<std::shared_ptr<pisdf::Param>> &params = { }) {
+        inline double evaluateDBL(const spider::vector<std::shared_ptr<pisdf::Param>> &params = { }) const {
             if (dynamic()) {
                 expr_.value_ = evaluateImpl(params);
             }
@@ -138,7 +138,7 @@ namespace spider {
 
         static param_t findParameter(const param_table_t &params, const std::string &name);
 
-        size_t registerSymbol(const param_t param);
+        size_t registerSymbol(param_t param);
 
         void updateSymbolTable(const param_table_t &params) const;
 
@@ -147,7 +147,7 @@ namespace spider {
         void compile(const spider::vector<RPNElement> &postfixStack, const param_table_t &params);
 
         expr::Token compile(spider::vector<RPNElement>::const_reverse_iterator &iterator,
-                            const spider::vector<RPNElement>::const_reverse_iterator end,
+                            const spider::vector<RPNElement>::const_reverse_iterator &end,
                             const param_table_t &params);
 
         expr::Token generate(RPNOperatorType type, const expr::Token &arg) const;

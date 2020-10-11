@@ -134,7 +134,7 @@ void spider::Expression::compile(const spider::vector<RPNElement> &postfixStack,
 
 spider::expr::Token
 spider::Expression::compile(spider::vector<RPNElement>::const_reverse_iterator &iterator,
-                            const spider::vector<RPNElement>::const_reverse_iterator end,
+                            const spider::vector<RPNElement>::const_reverse_iterator& end,
                             const param_table_t &params) {
     if (iterator == end) {
         throwSpiderException("invalid number of argument.");
