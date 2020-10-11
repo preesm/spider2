@@ -95,7 +95,7 @@ namespace spider {
          * @brief Evaluate the expression and return the value and cast result in int64_.
          * @return Evaluated value of the expression.
          */
-        inline int64_t evaluate(const spider::vector<std::shared_ptr<pisdf::Param>> &params = { }) const {
+        inline int64_t evaluate(const spider::vector<std::shared_ptr<pisdf::Param>> &params = { }) {
             return static_cast<int64_t>(evaluateDBL(params));
         }
 
@@ -103,8 +103,11 @@ namespace spider {
          * @brief Evaluate the expression and return the value.
          * @return Evaluated value of the expression.
          */
-        inline double evaluateDBL(const spider::vector<std::shared_ptr<pisdf::Param>> &params = { }) const {
-            return dynamic() ? evaluateImpl(params) : expr_.value_;
+        inline double evaluateDBL(const spider::vector<std::shared_ptr<pisdf::Param>> &params = { }) {
+            if (dynamic()) {
+                expr_.value_ = evaluateImpl(params);
+            }
+            return expr_.value_;
         }
 
         /* === Getter(s) === */
@@ -127,7 +130,7 @@ namespace spider {
 
         /* === Private member(s) === */
 
-        expr::Token expr_;
+        mutable expr::Token expr_;
         mutable symbol_table_t *symbolTable_ = nullptr;
         size_t hash_{ SIZE_MAX };
 
