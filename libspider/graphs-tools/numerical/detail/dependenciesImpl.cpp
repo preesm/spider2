@@ -148,7 +148,7 @@ spider::pisdf::DependencyIterator spider::pisdf::detail::computeExecDependency(c
             result.reserve(dep.firingEnd_ - dep.firingStart_ + 1);
             const auto *graph = edge->source()->convertTo<pisdf::Graph>();
             for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
-                const auto *gh = handler->getChildFiring(graph, dep.firingStart_);
+                const auto *gh = handler->getChildFiring(graph, k);
                 if (!gh->isResolved()) {
                     result.push_back(unresolved);
                 } else {
