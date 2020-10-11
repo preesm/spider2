@@ -143,7 +143,7 @@ spider::sched::AllocationRule spider::sched::SRLessTask::allocationRuleForInputF
     auto rule = AllocationRule{ };
     if (count > 1u) {
         rule.others_ = spider::allocate<AllocationRule, StackID::SCHEDULE>(count);
-        rule.size_ = static_cast<u32>(edge->sinkRateExpression().evaluate(handler_->getParams()));
+        rule.size_ = static_cast<u32>(handler_->getSinkRate(edge));
         rule.offset_ = count;
         rule.fifoIx_ = UINT32_MAX;
         rule.count_ = 1u;
@@ -190,8 +190,7 @@ spider::sched::AllocationRule spider::sched::SRLessTask::allocationRuleForOutput
     }
 #endif
     const auto *edge = vertex_->outputEdge(ix);
-    const auto &params = handler_->getParams();
-    const auto rate = static_cast<u32>(edge->sourceRateExpression().evaluate(params));
+    const auto rate = static_cast<u32>(handler_->getSourceRate(edge));
     const auto count = countConsummerCount(edge);
     if (rate && !count) {
         return { rate, 0u, 0u, 1u, AllocType::NEW, FifoAttribute::W_SINK };
@@ -203,7 +202,7 @@ spider::sched::AllocationRule spider::sched::SRLessTask::allocationRuleForOutput
             } else {
                 const auto prevIx = static_cast<u32>(ix - 1);
                 const auto *previousEdge = vertex_->outputEdge(prevIx);
-                const auto offset = static_cast<u32>(previousEdge->sourceRateExpression().evaluate(params));
+                const auto offset = static_cast<u32>(handler_->getSourceRate(previousEdge));
                 return { rate, offset, prevIx, count, AllocType::SAME_OUT, FifoAttribute::RW_ONLY };
             }
         case pisdf::VertexType::DUPLICATE:
@@ -213,7 +212,7 @@ spider::sched::AllocationRule spider::sched::SRLessTask::allocationRuleForOutput
             return { rate, static_cast<u32>(offset), 0u, count, AllocType::EXT, FifoAttribute::RW_EXT };
         }
         case pisdf::VertexType::REPEAT:
-            if (rate == static_cast<size_t>(vertex_->inputEdge(0u)->sourceRateExpression().evaluate(params))) {
+            if (rate == static_cast<size_t>(handler_->getSourceRate(vertex_->inputEdge(0u)))) {
                 return { rate, 0u, 0u, count, AllocType::SAME_IN, fifos_->inputFifo(0u).attribute_ };
             }
             break;

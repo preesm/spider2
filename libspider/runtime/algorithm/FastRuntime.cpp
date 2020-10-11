@@ -218,7 +218,7 @@ size_t spider::FastRuntime::countExpectedNumberOfParams(const srless::GraphHandl
     size_t count = 0;
     for (const auto *firingHandler : graphHandler->firings()) {
         if (firingHandler->isResolved()) {
-            for (const auto *subHandler : firingHandler->children()) {
+            for (const auto *subHandler : firingHandler->subgraphFirings()) {
                 count += countExpectedNumberOfParams(subHandler);
             }
         } else {

@@ -95,41 +95,102 @@ namespace spider {
              */
             void clear();
 
+            int64_t getSourceRate(const pisdf::Edge *edge) const;
+
+            int64_t getSinkRate(const pisdf::Edge *edge) const;
+
             /* === Getter(s) === */
 
+            /**
+             * @brief Get the @refitem GraphHandler holding this graph firing.
+             * @return const pointer to the GraphHandler of this graph firing.
+             */
             inline const GraphHandler *getParent() const { return parent_; }
 
-            inline const spider::array<GraphHandler *> &children() const { return subgraphHandlers_; }
+            /**
+             * @brief Get the subgraphs @refitem GraphFiring.
+             * @return const reference to the array of subgraphs GraphFiring.
+             */
+            inline const spider::array<GraphHandler *> &subgraphFirings() const { return subgraphHandlers_; }
 
-            inline spider::array<GraphHandler *> &subgraphHandlers() { return subgraphHandlers_; }
+            /**
+             * @brief non const overload of the @refitem GraphFiring::subgraphFirings method.
+             * @return non const reference to the array of subgraphs GraphFiring.
+             */
+            inline spider::array<GraphHandler *> &subgraphFirings() { return subgraphHandlers_; }
 
+            /**
+             * @brief Get the parameters of this graph firing.
+             * @return parameters vector.
+             */
             inline const spider::vector<std::shared_ptr<pisdf::Param>> &getParams() const { return params_; }
 
             inline u32 firingValue() const { return firing_; }
 
+            /**
+             * @brief Get the status of this graph firing (resolved or not).
+             * @return true if the graph firing is resolved (i.e its parameters are set), false else.
+             */
             inline bool isResolved() const { return resolved_; }
 
+            /**
+             * @brief Get the repetition value of a vertex for this graph firing.
+             * @param vertex Pointer to the vertex.
+             * @return repetition value of the vertex in this graph firing.
+             * @warning if this graph firing has not yet been resolved, value should be UINT32_MAX but it is not guarenteed.
+             * @throw @refitem spider::Exception if vertex does belong to the graph associated to this graph firing.
+             */
             u32 getRV(const pisdf::Vertex *vertex) const;
 
-            u32 getTaskIx(const pisdf::Vertex *vertex, u32 vertexFiring) const;
+            /**
+             * @brief Get the task index associated with a given firing of a given vertex for this graph firing.
+             * @param vertex  Pointer to the vertex.
+             * @param firing  Firing of the vertex.
+             * @return value of the task index.
+             * @warning if this graph firing has not yet been resolved, value should be UINT32_MAX but it is not guarenteed.
+             * @throw @refitem spider::Exception if firing is greater or equal to the repetition value of the vertex.
+             */
+            u32 getTaskIx(const pisdf::Vertex *vertex, u32 firing) const;
 
-            const GraphFiring *getChildFiring(const pisdf::Graph *subgraph, u32 firing) const;
+            /**
+             * @brief Get the @refitem GraphFiring of a subgraph in this graph firing context.
+             * @param subgraph Pointer to the subgraph.
+             * @param firing   Firing of the subgraph to fetch.
+             * @return pointer to the subgraph @refitem GraphFiring (if resolved).
+             * @throw @refitem spider::Exception if subgraph does belong to the graph associated to this graph firing.
+             */
+            const GraphFiring *getSubgraphGraphFiring(const pisdf::Graph *subgraph, u32 firing) const;
 
+            /**
+             * @brief Get the parameter value of index ix.
+             * @param ix Index of the parameter.
+             * @return parameter value.
+             */
             int64_t getParamValue(size_t ix);
 
             /* === Setter(s) === */
 
+            /**
+             * @brief Set the parameter value of param of index ix.
+             * @param ix    Index of the parameter.
+             * @param value Value of the parameter to be set.
+             */
             void setParamValue(size_t ix, int64_t value);
 
         private:
+            struct EdgeRate {
+                int64_t srcRate_;
+                int64_t snkRate_;
+            };
             spider::vector<std::shared_ptr<pisdf::Param>> params_;
             spider::array<GraphHandler *> subgraphHandlers_; /* == match between subgraphs and their handler == */
             spider::array<u32> brv_; /* == BRV of this firing of the graph == */
             spider::array<u32 *> taskIxRegister_;
+            spider::array<EdgeRate> rates_;
             const GraphHandler *parent_;
             u32 firing_{ };
             u32 dynamicParamCount_{ };
-            u32 paramResolvedCount_{};
+            u32 paramResolvedCount_{ };
             bool resolved_;
 
             /* === private method(s) === */

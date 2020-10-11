@@ -61,6 +61,7 @@ spider::srless::GraphFiring::GraphFiring(const GraphHandler *parent,
     brv_ = spider::array<u32>(graph->vertexCount(), UINT32_MAX, StackID::TRANSFO);
     subgraphHandlers_ = spider::array<GraphHandler *>(graph->subgraphCount(), nullptr, StackID::TRANSFO);
     taskIxRegister_ = spider::array<u32 *>(graph->vertexCount(), nullptr, StackID::TRANSFO);
+    rates_ = spider::array<EdgeRate>(graph->edgeCount(), StackID::TRANSFO);
     /* == copy parameters == */
     params_.reserve(params.size());
     for (const auto &param : params) {
@@ -116,6 +117,12 @@ void spider::srless::GraphFiring::resolveBRV() {
             currentGraphHandler = spider::make<GraphHandler>(subgraph, subgraph->params(), rvValue, this);
         }
     }
+    /* == Save the rates == */
+    for (const auto &edge : parent_->graph()->edges()) {
+        const auto ix = edge->ix();
+        rates_.at(ix).srcRate_ = edge->sourceRateValue();
+        rates_.at(ix).snkRate_ = edge->sinkRateValue();
+    }
     resolved_ = true;
 }
 
@@ -136,6 +143,26 @@ void spider::srless::GraphFiring::clear() {
     resolved_ = false;
 }
 
+int64_t spider::srless::GraphFiring::getSourceRate(const pisdf::Edge *edge) const {
+#ifndef NDEBUG
+    if (edge->graph() != parent_->graph()) {
+        throwSpiderException("edge does not belong to this graph.");
+    }
+#endif
+    // TODO:: add possibility to switch off this optim with compiler flag
+    return rates_.at(edge->ix()).srcRate_;
+}
+
+int64_t spider::srless::GraphFiring::getSinkRate(const pisdf::Edge *edge) const {
+#ifndef NDEBUG
+    if (edge->graph() != parent_->graph()) {
+        throwSpiderException("edge does not belong to this graph.");
+    }
+#endif
+    // TODO:: add possibility to switch off this optim with compiler flag
+    return rates_.at(edge->ix()).snkRate_;
+}
+
 u32 spider::srless::GraphFiring::getRV(const spider::pisdf::Vertex *vertex) const {
 #ifndef NDEBUG
     if (vertex->graph() != parent_->graph()) {
@@ -148,17 +175,17 @@ u32 spider::srless::GraphFiring::getRV(const spider::pisdf::Vertex *vertex) cons
     return brv_.at(vertex->ix());
 }
 
-u32 spider::srless::GraphFiring::getTaskIx(const spider::pisdf::Vertex *vertex, u32 vertexFiring) const {
+u32 spider::srless::GraphFiring::getTaskIx(const spider::pisdf::Vertex *vertex, u32 firing) const {
 #ifndef NDEBUG
-    if (vertexFiring >= getRV(vertex)) {
+    if (firing >= getRV(vertex)) {
         throwSpiderException("invalid vertex firing.");
     }
 #endif
-    return taskIxRegister_.at(vertex->ix())[vertexFiring];
+    return taskIxRegister_.at(vertex->ix())[firing];
 }
 
 const spider::srless::GraphFiring *
-spider::srless::GraphFiring::getChildFiring(const pisdf::Graph *subgraph, u32 firing) const {
+spider::srless::GraphFiring::getSubgraphGraphFiring(const pisdf::Graph *subgraph, u32 firing) const {
 #ifndef NDEBUG
     if (subgraph->graph() != parent_->graph()) {
         throwSpiderException("subgraph does not belong to this graph.");

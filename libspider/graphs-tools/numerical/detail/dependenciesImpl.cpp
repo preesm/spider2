@@ -109,8 +109,9 @@ spider::pisdf::DependencyIterator spider::pisdf::detail::computeExecDependency(c
                                                                                int64_t upperCons,
                                                                                const srless::GraphFiring *handler) {
     /* == Handle specific cases == */
-    const auto sourceType = edge->source()->subtype();
-    const auto srcRate = edge->sourceRateExpression().evaluate(handler->getParams());
+    const auto *source = edge->source();
+    const auto sourceType = source->subtype();
+    const auto srcRate = handler->getSourceRate(edge);
     const auto *delay = edge->delay();
     const auto delayValue = delay ? delay->value() : 0;
     if (!srcRate) {
@@ -118,10 +119,10 @@ spider::pisdf::DependencyIterator spider::pisdf::detail::computeExecDependency(c
     }
     if (sourceType == VertexType::DELAY) {
         /* == Case of getter vertex == */
-        const auto *delayFromVertex = edge->source()->convertTo<pisdf::DelayVertex>()->delay();
+        const auto *delayFromVertex = source->convertTo<pisdf::DelayVertex>()->delay();
         const auto *delayEdge = delayFromVertex->edge();
         const auto *sink = delayEdge->sink();
-        const auto snkRate = delayEdge->sinkRateExpression().evaluate(handler->getParams());
+        const auto snkRate = handler->getSinkRate(delayEdge);
         const auto snkRV = handler->getRV(sink);
         const auto srcRV = handler->getRV(delayEdge->source());
         const auto offset = sink->subtype() == VertexType::OUTPUT ? srcRate * srcRV - snkRate : snkRate * snkRV;
@@ -137,7 +138,7 @@ spider::pisdf::DependencyIterator spider::pisdf::detail::computeExecDependency(c
             for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
                 const auto start = k == dep.firingStart_ ? (lowerCons - delayValue) % srcRate : 0;
                 const auto end = k == dep.firingEnd_ ? (upperCons - delayValue) % srcRate : srcRate - 1;
-                const auto *upperEdge = edge->source()->graph()->inputEdge(edge->source()->ix());
+                const auto *upperEdge = source->graph()->inputEdge(source->ix());
                 auto deps = computeExecDependency(upperEdge, upperLCons + start, upperLCons + end, gh);
                 std::move(std::begin(deps), std::end(deps), std::back_inserter(result));
             }
@@ -146,15 +147,15 @@ spider::pisdf::DependencyIterator spider::pisdf::detail::computeExecDependency(c
             auto dep = createExecDependency(edge, lowerCons, upperCons, srcRate, delayValue, handler).info_;
             auto result = factory::vector<DependencyInfo>(StackID::TRANSFO);
             result.reserve(dep.firingEnd_ - dep.firingStart_ + 1);
-            const auto *graph = edge->source()->convertTo<pisdf::Graph>();
+            const auto *graph = source->convertTo<pisdf::Graph>();
             for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
-                const auto *gh = handler->getChildFiring(graph, k);
+                const auto *gh = handler->getSubgraphGraphFiring(graph, k);
                 if (!gh->isResolved()) {
                     result.push_back(unresolved);
                 } else {
                     const auto *innerEdge = graph->outputInterface(edge->sourcePortIx())->edge();
                     const auto ifSrcRV = gh->getRV(innerEdge->source());
-                    const auto ifSrcRate = innerEdge->sourceRateExpression().evaluate(gh->getParams());
+                    const auto ifSrcRate = gh->getSourceRate(innerEdge);
                     const auto ifDelay = innerEdge->delay() ? innerEdge->delay()->value() : 0u;
                     const auto start = k == dep.firingStart_ ? (lowerCons - delayValue) % srcRate : 0;
                     const auto end = k == dep.firingEnd_ ? (upperCons - delayValue) % srcRate : srcRate - 1;
@@ -191,11 +192,12 @@ spider::pisdf::DependencyIterator spider::pisdf::detail::computeConsDependency(c
                                                                                int64_t upperProd,
                                                                                const srless::GraphFiring *handler) {
     /* == Precompute some numerical values == */
-    const auto sinkType = edge->sink()->subtype();
-    const auto snkRate = edge->sinkRateExpression().evaluate(handler->getParams());
-    const auto srcRate = edge->sourceRateExpression().evaluate(handler->getParams());
+    const auto *sink = edge->sink();
+    const auto sinkType = sink->subtype();
+    const auto snkRate = handler->getSinkRate(edge);
+    const auto srcRate = handler->getSourceRate(edge);
     const auto srcRV = handler->getRV(edge->source());
-    const auto snkRV = handler->getRV(edge->sink());
+    const auto snkRV = handler->getRV(sink);
     const auto *delay = edge->delay();
     const auto delayValue = delay ? delay->value() : 0;
     const auto totalRate = sinkType == VertexType::OUTPUT ? srcRate * srcRV + delayValue : snkRate * snkRV;
@@ -204,7 +206,7 @@ spider::pisdf::DependencyIterator spider::pisdf::detail::computeConsDependency(c
     /* == Handle specific cases == */
     if (sinkType == VertexType::DELAY) {
         /* == Case of setter vertex == */
-        const auto *nextDelay = edge->sink()->convertTo<pisdf::DelayVertex>()->delay();
+        const auto *nextDelay = sink->convertTo<pisdf::DelayVertex>()->delay();
         const auto offset = nextDelay->value() - delayValue;
         return computeConsDependency(nextDelay->edge(), lowerProd - offset, upperProd - offset, handler);
     } else if (delay && (lowerProd >= delayedTotalRate)) {
@@ -219,7 +221,7 @@ spider::pisdf::DependencyIterator spider::pisdf::detail::computeConsDependency(c
             const auto minValidMemWDelay = srcRate * srcRV - snkRate;
             const auto minValidMemWODelay = minValidMemWDelay + delayValue;
             const auto parentLProd = snkRate * handler->firingValue();
-            const auto *upperEdge = edge->sink()->graph()->outputEdge(edge->sink()->ix());
+            const auto *upperEdge = sink->graph()->outputEdge(sink->ix());
             const auto *gh = handler->getParent()->handler();
             if (dep.memoryEnd_ < minValidMemWDelay) {
                 /* == void dependency == */
@@ -259,17 +261,17 @@ spider::pisdf::DependencyIterator spider::pisdf::detail::computeConsDependency(c
             auto dep = createConsDependency(edge, lowerProd, upperProd, snkRate, delayValue, handler).info_;
             auto result = factory::vector<DependencyInfo>(StackID::TRANSFO);
             result.reserve(dep.firingEnd_ - dep.firingStart_ + 1);
-            const auto *graph = edge->sink()->convertTo<pisdf::Graph>();
+            const auto *graph = sink->convertTo<pisdf::Graph>();
             for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
-                const auto *gh = handler->getChildFiring(graph, k);
+                const auto *gh = handler->getSubgraphGraphFiring(graph, k);
                 if (!gh->isResolved()) {
                     result.emplace_back(unresolved);
                 } else {
                     const auto *interface = graph->inputInterface(edge->sinkPortIx());
                     const auto *innerEdge = interface->edge();
-                    const auto ifSrcRate = innerEdge->sourceRateExpression().evaluate(gh->getParams());
+                    const auto ifSrcRate = gh->getSourceRate(innerEdge);
                     const auto ifSnkRV = gh->getRV(innerEdge->sink());
-                    const auto ifSnkRate = innerEdge->sinkRateExpression().evaluate(gh->getParams());
+                    const auto ifSnkRate = gh->getSinkRate(innerEdge);
                     const auto adjustedSnkRate = ifSnkRate * ifSnkRV;
                     const auto fullRepCount = adjustedSnkRate / ifSrcRate;
                     const auto lProd = k == dep.firingStart_ ? dep.memoryStart_ % ifSrcRate : 0;

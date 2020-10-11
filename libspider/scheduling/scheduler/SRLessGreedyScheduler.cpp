@@ -67,7 +67,7 @@ void spider::sched::SRLessGreedyScheduler::evaluate(srless::GraphHandler *graphH
                     }
                 }
             }
-            for (auto *subgraphHandler : firingHandler->subgraphHandlers()) {
+            for (auto *subgraphHandler : firingHandler->subgraphFirings()) {
                 evaluate(subgraphHandler);
             }
         }
