@@ -89,7 +89,7 @@ namespace spider {
             mutable spider::vector<double> valueTable_;
             spider::vector<std::pair<size_t, std::string>> symbolTable_;
             std::shared_ptr<void> hndl_;
-            functor_t expr_;
+            functor_t expr_{};
             size_t hash_{ SIZE_MAX };
 
             /* === Private method(s) === */
