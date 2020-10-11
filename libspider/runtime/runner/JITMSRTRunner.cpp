@@ -265,7 +265,7 @@ void spider::JITMSRTRunner::runJob(const JobMessage &job) {
 
     /* == Deallocate input buffers == */
     for (auto &fifo : job.fifos_->inputFifos()) {
-        if (fifo.attribute_ != FifoAttribute::RW_EXT) {
+        if (fifo.attribute_ != FifoAttribute::RW_EXT && fifo.attribute_ != FifoAttribute::RW_ONLY) {
             auto *memoryInterface = attachedPE_->cluster()->memoryInterface();
             memoryInterface->deallocate(fifo.virtualAddress_, fifo.size_);
         }

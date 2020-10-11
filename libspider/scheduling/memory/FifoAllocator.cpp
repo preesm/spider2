@@ -111,13 +111,13 @@ void spider::sched::FifoAllocator::allocate(sched::Task *task) {
             case SAME_IN: {
                 auto &inputFifo = inputFifos[rule.fifoIx_];
                 fifo.virtualAddress_ = inputFifo.virtualAddress_;
-                fifo.offset_ = inputFifo.offset_ + static_cast<u32>(rule.offset_);
+                fifo.offset_ = inputFifo.offset_ + rule.offset_;
             }
                 break;
             case SAME_OUT: {
                 auto &outputFifo = outputFifos[rule.fifoIx_];
                 fifo.virtualAddress_ = outputFifo.virtualAddress_;
-                fifo.offset_ = outputFifo.offset_ + static_cast<u32>(rule.offset_);
+                fifo.offset_ = outputFifo.offset_ + rule.offset_;
             }
                 break;
             case EXT:
@@ -126,7 +126,7 @@ void spider::sched::FifoAllocator::allocate(sched::Task *task) {
             default:
                 break;
         }
-        fifo.size_ = static_cast<u32>(rule.size_);
+        fifo.size_ = rule.size_;
         fifo.attribute_ = rule.attribute_;
         fifo.count_ = (fifo.size_ != 0u);
         ix++;

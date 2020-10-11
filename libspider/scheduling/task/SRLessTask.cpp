@@ -143,23 +143,23 @@ spider::sched::AllocationRule spider::sched::SRLessTask::allocationRuleForInputF
     auto rule = AllocationRule{ };
     if (count > 1u) {
         rule.others_ = spider::allocate<AllocationRule, StackID::SCHEDULE>(count);
-        rule.size_ = static_cast<size_t>(edge->sinkRateExpression().evaluate(handler_->getParams()));
-        rule.offset_ = 0u;
+        rule.size_ = static_cast<u32>(edge->sinkRateExpression().evaluate(handler_->getParams()));
+        rule.offset_ = count;
         rule.fifoIx_ = UINT32_MAX;
-        rule.count_ = count;
+        rule.count_ = 1u;
         rule.type_ = AllocType::MERGE;
         rule.attribute_ = FifoAttribute::R_MERGE;
         size_t depOffset = 0u;
         for (const auto &dep : deps) {
             /* == first dependency == */
             auto rate = dep.firingStart_ == dep.firingEnd_ ? (dep.memoryEnd_ - dep.memoryStart_ + 1u) :
-                        static_cast<size_t>(dep.rate_ - dep.memoryStart_);
+                        static_cast<u32>(dep.rate_) - dep.memoryStart_;
             rule.others_[depOffset] = AllocationRule(rate, dep.memoryStart_, dep.edgeIx_, 0u, AllocType::SAME_IN,
                                                      FifoAttribute::RW_OWN);
             /* == middle dependencies if > 2 == */
             for (auto k = dep.firingStart_ + 1; k < dep.firingEnd_; ++k) {
                 const auto ix = k + depOffset - dep.firingStart_;
-                rate = static_cast<size_t>(dep.rate_);
+                rate = static_cast<u32>(dep.rate_);
                 rule.others_[ix] = AllocationRule(rate, 0u, dep.edgeIx_, 0u, AllocType::SAME_IN, FifoAttribute::RW_OWN);
             }
             /* == last dependency == */
@@ -190,56 +190,41 @@ spider::sched::AllocationRule spider::sched::SRLessTask::allocationRuleForOutput
     }
 #endif
     const auto *edge = vertex_->outputEdge(ix);
-    auto rule = AllocationRule{ };
-    rule.size_ = static_cast<size_t>(edge->sourceRateExpression().evaluate(handler_->getParams()));
-    rule.offset_ = 0u;
-    rule.fifoIx_ = 0u;
-    rule.count_ = rule.size_ ? countConsummerCount(edge) : 0u;
-    if (rule.size_ && !rule.count_) {
-        rule.count_ = 1;
-        rule.attribute_ = FifoAttribute::W_SINK;
+    const auto &params = handler_->getParams();
+    const auto rate = static_cast<u32>(edge->sourceRateExpression().evaluate(params));
+    const auto count = countConsummerCount(edge);
+    if (rate && !count) {
+        return { rate, 0u, 0u, 1u, AllocType::NEW, FifoAttribute::W_SINK };
     }
     switch (vertex_->subtype()) {
         case pisdf::VertexType::FORK:
             if (ix == 0u) {
-                rule.type_ = AllocType::SAME_IN;
+                return { rate, 0u, 0u, count, AllocType::SAME_IN, FifoAttribute::RW_ONLY };
             } else {
-                rule.offset_ = static_cast<size_t>(vertex_->outputEdge(ix - 1)->sourceRateExpression().evaluate(
-                        handler_->getParams()));
-                rule.fifoIx_ = static_cast<u32>(ix - 1);
-                rule.type_ = AllocType::SAME_OUT;
+                const auto prevIx = static_cast<u32>(ix - 1);
+                const auto *previousEdge = vertex_->outputEdge(prevIx);
+                const auto offset = static_cast<u32>(previousEdge->sourceRateExpression().evaluate(params));
+                return { rate, offset, prevIx, count, AllocType::SAME_OUT, FifoAttribute::RW_ONLY };
             }
-            rule.attribute_ = FifoAttribute::RW_ONLY;
-            break;
         case pisdf::VertexType::DUPLICATE:
-            rule.type_ = AllocType::SAME_IN;
-            rule.attribute_ = FifoAttribute::RW_ONLY;
-            break;
-        case pisdf::VertexType::EXTERN_IN:
-            rule.offset_ = vertex_->reference()->convertTo<pisdf::ExternInterface>()->bufferIndex();
-            rule.type_ = AllocType::EXT;
-            rule.attribute_ = FifoAttribute::RW_EXT;
-            break;
-        case pisdf::VertexType::REPEAT:
-            if (rule.size_ ==
-                static_cast<size_t>(vertex_->inputEdge(0u)->sourceRateExpression().evaluate(handler_->getParams()))) {
-                auto inputFifo = fifos_->inputFifo(0u);
-                rule.type_ = AllocType::SAME_IN;
-                rule.attribute_ = inputFifo.attribute_;
-            }
-            break;
-        default: {
-            const auto *sink = edge->sink();
-            if (sink && sink->subtype() == pisdf::VertexType::EXTERN_OUT) {
-                const auto *extInterface = sink->reference()->convertTo<pisdf::ExternInterface>();
-                rule.offset_ = extInterface->bufferIndex();
-                rule.type_ = AllocType::EXT;
-                rule.attribute_ = FifoAttribute::RW_EXT;
-            }
-            break;
+            return { rate, 0u, 0u, count, AllocType::SAME_IN, FifoAttribute::RW_ONLY };
+        case pisdf::VertexType::EXTERN_IN: {
+            const auto offset = vertex_->convertTo<pisdf::ExternInterface>()->bufferIndex();
+            return { rate, static_cast<u32>(offset), 0u, count, AllocType::EXT, FifoAttribute::RW_EXT };
         }
+        case pisdf::VertexType::REPEAT:
+            if (rate == static_cast<size_t>(vertex_->inputEdge(0u)->sourceRateExpression().evaluate(params))) {
+                return { rate, 0u, 0u, count, AllocType::SAME_IN, fifos_->inputFifo(0u).attribute_ };
+            }
+            break;
+        default:
+            if (edge->sink() && edge->sink()->subtype() == pisdf::VertexType::EXTERN_OUT) {
+                const auto offset = edge->sink()->convertTo<pisdf::ExternInterface>()->bufferIndex();
+                return { rate, static_cast<u32>(offset), 0u, count, AllocType::EXT, FifoAttribute::RW_EXT };
+            }
+            break;
     }
-    return rule;
+    return { rate, 0u, 0u, count, AllocType::NEW, FifoAttribute::RW_OWN };
 }
 
 spider::JobMessage spider::sched::SRLessTask::createJobMessage() const {

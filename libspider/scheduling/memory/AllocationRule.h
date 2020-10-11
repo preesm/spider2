@@ -51,10 +51,10 @@ namespace spider {
 
         struct AllocationRule {
             AllocationRule *others_ = nullptr;
-            size_t size_ = SIZE_MAX;
-            size_t offset_ = SIZE_MAX;
-            u32 fifoIx_ = UINT32_MAX;
-            u32 count_ = UINT32_MAX;
+            u32 size_ = UINT32_MAX;
+            u32 offset_ = 0u;
+            u32 fifoIx_ = 0u;
+            u32 count_ = 0u;
             AllocType type_ = AllocType::NEW;
             FifoAttribute attribute_ = FifoAttribute::RW_OWN;
 
@@ -70,7 +70,7 @@ namespace spider {
 
             AllocationRule &operator=(AllocationRule &&) = default;
 
-            AllocationRule(size_t size, size_t offset, u32 ix, u32 count, AllocType type, FifoAttribute attribute) :
+            AllocationRule(u32 size, u32 offset, u32 ix, u32 count, AllocType type, FifoAttribute attribute) :
                     others_{ nullptr }, size_{ size }, offset_{ offset }, fifoIx_{ ix }, count_{ count }, type_{ type },
                     attribute_{ attribute } {
             }

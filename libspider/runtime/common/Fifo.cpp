@@ -91,13 +91,13 @@ namespace spider {
 
     static void *readMergedBuffer(array_handle<Fifo>::iterator &it, MemoryInterface *memoryInterface) {
         const auto mergedFifo = *(it++);
-        auto *mergedBuffer = memoryInterface->allocate(mergedFifo.virtualAddress_, mergedFifo.size_, 1u);
+        auto *mergedBuffer = memoryInterface->allocate(mergedFifo.virtualAddress_, mergedFifo.size_, mergedFifo.count_);
 #ifndef NDEBUG
         if (!mergedBuffer) {
             throwNullptrException();
         }
 #endif
-        const auto lastIt = std::next(it, mergedFifo.count_);
+        const auto lastIt = std::next(it, mergedFifo.offset_);
         auto *destBuffer = reinterpret_cast<char *>(mergedBuffer);
         while (it != lastIt) {
             const auto fifo = *it;
@@ -161,15 +161,20 @@ spider::getInputBuffers(const array_handle<Fifo> &fifos, MemoryInterface *memory
     size_t count = 0u;
     for (auto it = std::begin(fifos); it != std::end(fifos); ++it) {
         if (it->attribute_ == FifoAttribute::R_MERGE) {
-            it += it->count_;
+            it += it->offset_;
         }
-        count += 1;
+        count += it->attribute_ != FifoAttribute::DUMMY;
     }
     auto result = spider::array<void *>{ count, nullptr, StackID::RUNTIME };
     /* = yeah it is ugly, but avoids changing everything else and keeps const at high level = */
     auto fifoIt = const_cast<array_handle<Fifo>::iterator>(std::begin(fifos));
     for (auto it = std::begin(result); it != std::end(result); ++it) {
-        (*it) = readFunctions[static_cast<u8>((*fifoIt).attribute_)](fifoIt, memoryInterface);
+        if (fifoIt->attribute_ == FifoAttribute::DUMMY) {
+            fifoIt++;
+            it--;
+        } else {
+            (*it) = readFunctions[static_cast<u8>(fifoIt->attribute_)](fifoIt, memoryInterface);
+        }
     }
     return result;
 }

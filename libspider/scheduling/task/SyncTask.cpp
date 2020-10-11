@@ -78,7 +78,7 @@ spider::sched::AllocationRule spider::sched::SyncTask::allocationRuleForInputFif
 #endif
     auto rule = AllocationRule{ };
     if (type_ == SyncType::SEND) {
-        rule.size_ = size_;
+        rule.size_ = static_cast<u32>(size_);
         rule.offset_ = 0u;
         rule.fifoIx_ = inputPortIx_;
         rule.type_ = AllocType::SAME_IN;
@@ -97,7 +97,7 @@ spider::sched::AllocationRule spider::sched::SyncTask::allocationRuleForOutputFi
     spider::sched::AllocationRule spider::sched::SyncTask::allocationRuleForOutputFifo(size_t) const {
 #endif
     auto rule = AllocationRule{ };
-    rule.size_ = size_;
+    rule.size_ = static_cast<u32>(size_);
     rule.offset_ = 0u;
     if (type_ == SyncType::SEND) {
         rule.fifoIx_ = 0u;

@@ -62,7 +62,7 @@ void spider::sched::SRLessFifoAllocator::allocate(sched::Task *task) {
         if (rule.type_ == AllocType::MERGE) {
             /* == Set the merged fifo == */
             offset += allocateMergedInputFifo(task, it, rule, fifoIx, offset);
-            it += rule.count_;
+            it += rule.offset_;
             if (it == std::end(inputFifos)) {
                 break;
             }
@@ -89,13 +89,17 @@ void spider::sched::SRLessFifoAllocator::allocate(sched::Task *task) {
             case SAME_IN: {
                 auto &inputFifo = inputFifos[rule.fifoIx_];
                 fifo.virtualAddress_ = inputFifo.virtualAddress_;
-                fifo.offset_ = inputFifo.offset_ + static_cast<u32>(rule.offset_);
+                if (inputFifo.attribute_ == FifoAttribute::R_MERGE) {
+                    fifo.offset_ = rule.offset_;
+                } else {
+                    fifo.offset_ = inputFifo.offset_ + rule.offset_;
+                }
             }
                 break;
             case SAME_OUT: {
                 auto &outputFifo = outputFifos[rule.fifoIx_];
                 fifo.virtualAddress_ = outputFifo.virtualAddress_;
-                fifo.offset_ = outputFifo.offset_ + static_cast<u32>(rule.offset_);
+                fifo.offset_ = outputFifo.offset_ + rule.offset_;
             }
                 break;
             case EXT:
@@ -105,22 +109,68 @@ void spider::sched::SRLessFifoAllocator::allocate(sched::Task *task) {
             default:
                 break;
         }
-        fifo.size_ = static_cast<u32>(rule.size_);
+        fifo.size_ = rule.size_;
         fifo.attribute_ = rule.attribute_;
         fifo.count_ = rule.count_;
         fifoIx++;
     }
 }
 
+void spider::sched::SRLessFifoAllocator::clear() noexcept {
+    FifoAllocator::clear();
+    mergedFifos_.clear();
+}
+
+/* === Private methods === */
+
 size_t spider::sched::SRLessFifoAllocator::allocateMergedInputFifo(Task *task,
-                                                             Fifo *fifo,
-                                                             AllocationRule &rule,
-                                                             size_t realFifoIx,
-                                                             size_t taskOffset) {
+                                                                   Fifo *fifo,
+                                                                   AllocationRule &rule,
+                                                                   size_t realFifoIx,
+                                                                   size_t taskOffset) {
+    /* == Search for existing same merged fifo == */
+    for (const auto &mergedFifoInfo : mergedFifos_) {
+        auto *mergedTask = mergedFifoInfo.task_;
+        if (mergedTask->state() != TaskState::RUNNING) {
+            const auto &mergedTaskInputFifos = mergedTask->fifos().inputFifos();
+            auto existingFifo = mergedTaskInputFifos.at(mergedFifoInfo.ix_);
+            if (existingFifo.size_ == rule.size_ && existingFifo.offset_ == rule.offset_) {
+                /* == Let's check if it is the same merged fifo == */
+                auto isSame = true;
+                for (size_t i = 0; i < rule.offset_; ++i) {
+                    const auto *prevTask = task->previousTask(realFifoIx + taskOffset + i);
+                    const auto prevFifo = prevTask->fifos().outputFifo(rule.others_[i].fifoIx_);
+                    const auto prevMergedFifo = mergedTaskInputFifos.at(mergedFifoInfo.ix_ + i + 1);
+                    if ((prevFifo.virtualAddress_ != prevMergedFifo.virtualAddress_) ||
+                        (prevFifo.size_ != prevMergedFifo.size_) ||
+                        (prevFifo.offset_ != prevMergedFifo.offset_)) {
+                        isSame = false;
+                        break;
+                    }
+                }
+                if (isSame) {
+                    *fifo = existingFifo;
+                    fifo->offset_ = 0u;
+                    fifo->count_ = 0u;
+                    fifo->attribute_ = FifoAttribute::RW_OWN;
+                    for (size_t i = 0; i < rule.offset_; ++i) {
+                        const auto *prevTask = task->previousTask(realFifoIx + taskOffset + i);
+                        allocateInputFifo(prevTask, fifo + i + 1, rule.others_[i]);
+                        (fifo + i + 1)->attribute_ = FifoAttribute::DUMMY;
+                    }
+                    destroy(rule.others_);
+                    /* == Update info == */
+                    existingFifo.count_ += 1;
+                    mergedTask->fifos().setInputFifo(mergedFifoInfo.ix_, existingFifo);
+                    return rule.offset_ - 1u;
+                }
+            }
+        }
+    }
     fifo->virtualAddress_ = virtualMemoryAddress_;
     virtualMemoryAddress_ += rule.size_;
-    fifo->size_ = static_cast<u32>(rule.size_);
-    fifo->offset_ = 0u;
+    fifo->size_ = rule.size_;
+    fifo->offset_ = rule.offset_;
     fifo->count_ = rule.count_;
     fifo->attribute_ = rule.attribute_;
     /* == do the other fifos == */
@@ -129,12 +179,13 @@ size_t spider::sched::SRLessFifoAllocator::allocateMergedInputFifo(Task *task,
         throwNullptrException();
     }
 #endif
-    for (size_t i = 0; i < rule.count_; ++i) {
+    for (size_t i = 0; i < rule.offset_; ++i) {
         const auto *prevTask = task->previousTask(realFifoIx + taskOffset + i);
         allocateInputFifo(prevTask, fifo + i + 1, rule.others_[i]);
     }
     destroy(rule.others_);
-    return rule.count_ - 1u;
+    mergedFifos_.push_back({ realFifoIx, realFifoIx + taskOffset, task });
+    return rule.offset_ - 1u;
 }
 
 void spider::sched::SRLessFifoAllocator::allocateInputFifo(const Task *task, Fifo *fifo, AllocationRule &rule) {
@@ -159,9 +210,11 @@ void spider::sched::SRLessFifoAllocator::allocateInputFifo(const Task *task, Fif
             fifo->count_ = 0;
             fifo->attribute_ = rule.attribute_;
         }
-        fifo->size_ = static_cast<u32>(rule.size_);
-        fifo->offset_ += static_cast<u32>(rule.offset_);
+        fifo->size_ = rule.size_;
+        fifo->offset_ += rule.offset_;
     } else {
         *fifo = Fifo{ };
     }
 }
+
+
