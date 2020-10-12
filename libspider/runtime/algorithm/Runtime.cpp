@@ -45,11 +45,12 @@
 #endif
 
 #include <scheduling/schedule/exporter/GanttTask.h>
-#include <graphs/pisdf/Graph.h>
-#include <graphs/pisdf/Vertex.h>
+#include <scheduling/schedule/Schedule.h>
+#include <scheduling/task/Task.h>
 #include <runtime/platform/RTPlatform.h>
 #include <runtime/communicator/RTCommunicator.h>
 #include <runtime/message/Notification.h>
+#include <archi/Platform.h>
 #include <api/runtime-api.h>
 
 /* === Static variable === */
@@ -114,9 +115,9 @@ void spider::Runtime::useExecutionTraces(const pisdf::Graph *graph,
         task.pe_ = notification.senderIx_;
         switch (notification.type_) {
             case NotificationType::TRACE_TASK: {
-                const auto *vertex = graph->vertex(msg.taskIx_);
-                if (vertex) {
-                    task.name_ = vertex->name();
+                const auto *schedTask = schedule->task(msg.taskIx_);
+                if (schedTask) {
+                    task.name_ = schedTask->name();
                     task.color_ = VERTEX_TASK_COLOR;
                     applicationMinTime = std::min(applicationMinTime, task.start_);
                     applicationMaxTime = std::max(applicationMaxTime, task.end_);

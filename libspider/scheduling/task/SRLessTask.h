@@ -67,13 +67,7 @@ namespace spider {
 
             /* === Virtual method(s) === */
 
-            Task *previousTask(size_t ix) const override;
-
-            inline void updateTaskExecutionDependencies(const Schedule *schedule) override;
-
-            void updateExecutionConstraints() override;
-
-            void setExecutionDependency(size_t ix, Task *task) override;
+            void updateTaskExecutionDependencies(const Schedule *schedule) override;
 
             AllocationRule allocationRuleForInputFifo(size_t edgeIx) const override;
 
@@ -118,7 +112,6 @@ namespace spider {
             /* === Private method(s) === */
 
             u32 countConsummerCount(const pisdf::Edge *edge) const;
-
         };
     }
 }

@@ -150,8 +150,6 @@ namespace spider {
                 return tasks_.size();
             }
 
-            /* === Setter(s) === */
-
         private:
             spider::vector<spider::unique_ptr<Task>> tasks_;
             spider::vector<Task *> readyTaskVector_;

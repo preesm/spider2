@@ -49,6 +49,7 @@
 #include <scheduling/schedule/exporter/SchedXMLGanttExporter.h>
 #include <scheduling/schedule/exporter/SchedStatsExporter.h>
 #include <scheduling/schedule/exporter/SchedSVGGanttExporter.h>
+#include <scheduling/task/VertexTask.h>
 #include <api/runtime-api.h>
 #include <api/config-api.h>
 #include <api/spider.h>
@@ -126,7 +127,9 @@ bool spider::JITMSRuntime::execute() {
                     rt::platform()->communicator()->pop(message, grtIx, notification.notificationIx_);
 
                     /* == Get the config vertex == */
-                    const auto *cfg = srdag_->vertex(message.taskIx_);
+                    const auto *task = resourcesAllocator_->schedule()->task(message.taskIx_);
+                    const auto *vertexTask = static_cast<const sched::VertexTask *>(task);
+                    const auto *cfg = vertexTask->vertex();
                     auto paramIterator = message.params_.begin();
                     for (const auto &param : cfg->outputParamVector()) {
                         param->setValue((*(paramIterator++)));

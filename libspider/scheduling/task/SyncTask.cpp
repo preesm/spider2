@@ -48,23 +48,8 @@
 
 spider::sched::SyncTask::SyncTask(SyncType type) : Task(), type_{ type } {
     fifos_ = spider::make_shared<AllocatedFifos, StackID::SCHEDULE>(type == SyncType::SEND, 1U);
-    execInfo_.dependencies_ = spider::make_unique(allocate<Task *, StackID::SCHEDULE>(1u));
-    execInfo_.dependencies_.get()[0u] = nullptr;
-}
-
-void spider::sched::SyncTask::updateExecutionConstraints() {
-    auto *execDependencies = execInfo_.dependencies_.get();
-    auto *execConstraints = execInfo_.constraints_.get();
-    auto *dependency = execDependencies[0u];
-    const auto lrtCount = archi::platform()->LRTCount();
-    std::fill(execConstraints, execConstraints + lrtCount, SIZE_MAX);
-    if (dependency) {
-        const auto *depLRT = dependency->mappedLRT();
-        if (depLRT != mappedLRT()) {
-            dependency->setNotificationFlag(mappedLRT()->virtualIx(), true);
-            execConstraints[depLRT->virtualIx()] = dependency->jobExecIx();
-        }
-    }
+    dependencies_ = spider::make_unique(allocate<Task *, StackID::SCHEDULE>(1u));
+    dependencies_.get()[0u] = nullptr;
 }
 
 #ifndef NDEBUG
@@ -111,15 +96,6 @@ spider::sched::AllocationRule spider::sched::SyncTask::allocationRuleForOutputFi
     return rule;
 }
 
-spider::sched::Task *spider::sched::SyncTask::previousTask(size_t ix) const {
-#ifndef NDEBUG
-    if (ix >= 1u) {
-        throwSpiderException("index out of bound.");
-    }
-#endif
-    return execInfo_.dependencies_.get()[ix];
-}
-
 u32 spider::sched::SyncTask::color() const {
     /* ==  SEND    -> vivid tangerine color == */
     /* ==  RECEIVE -> Studio purple color == */
@@ -144,61 +120,25 @@ void spider::sched::SyncTask::setInputPortIx(u32 ix) {
     inputPortIx_ = ix;
 }
 
-void spider::sched::SyncTask::setExecutionDependency(size_t ix, Task *task) {
-#ifndef NDEBUG
-    if (ix >= 1u) {
-        throwSpiderException("index out of bound.");
-    }
-#endif
-    if (task) {
-        execInfo_.dependencies_.get()[ix] = task;
-    }
-}
-
 spider::JobMessage spider::sched::SyncTask::createJobMessage() const {
-    JobMessage message{ };
+    auto message = Task::createJobMessage();
     /* == Set core properties == */
-    message.nParamsOut_ = 0u;
     const auto &kernel = type_ == SyncType::SEND ? bus_->sendKernel() : bus_->receiveKernel();
     message.kernelIx_ = static_cast<u32>(kernel->ix());
-    message.taskIx_ = ix_;
-    message.ix_ = jobExecIx_;
-
-    /* == Set the synchronization flags == */
-    const auto lrtCount{ archi::platform()->LRTCount() };
-    const auto *flags = execInfo_.notifications_.get();
-    message.synchronizationFlags_ = make_unique<bool>(allocate<bool, StackID::RUNTIME>(lrtCount));
-    std::copy(flags, std::next(flags, static_cast<long long>(lrtCount)), message.synchronizationFlags_.get());
-
-    /* == Set the execution task constraints == */
-    auto *execConstraints = execInfo_.constraints_.get();
-    message.execConstraints_ = array<SyncInfo>(1u, StackID::RUNTIME);
-    for (size_t i = 0; i < lrtCount; ++i) {
-        const auto value = execConstraints[i];
-        if (value != SIZE_MAX) {
-            message.execConstraints_[0u].lrtToWait_ = i;
-            message.execConstraints_[0u].jobToWait_ = static_cast<size_t>(value);
-            break;
-        }
-    }
-
     /* == Set the params == */
-    const auto *fstLRT = type_ == SyncType::SEND ? mappedLRT() : execInfo_.dependencies_.get()[0u]->mappedLRT();
+    const auto *fstLRT = type_ == SyncType::SEND ? mappedLRT() : dependencies_.get()[0u]->mappedLRT();
     const auto *sndLRT = type_ == SyncType::SEND ? successor_->mappedLRT() : mappedLRT();
     message.inputParams_ = make_unique(allocate<i64, StackID::RUNTIME>(4u));
     message.inputParams_.get()[0u] = static_cast<i64>(fstLRT->cluster()->ix());
     message.inputParams_.get()[1u] = static_cast<i64>(sndLRT->cluster()->ix());
     message.inputParams_.get()[2u] = static_cast<i64>(size_);
     if (type_ == SyncType::RECEIVE) {
-        const auto *dependency = execInfo_.dependencies_.get()[0u];
+        const auto *dependency = dependencies_.get()[0u];
         const auto &outputFifo = dependency->fifos().outputFifo(0u);
         message.inputParams_.get()[3u] = static_cast<i64>(outputFifo.virtualAddress_);
     } else {
         message.inputParams_.get()[3u] = 0;
     }
-
-    /* == Set Fifos == */
-    message.fifos_ = fifos_;
     return message;
 }
 

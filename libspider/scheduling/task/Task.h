@@ -56,16 +56,9 @@ namespace spider {
         class Schedule;
 
         namespace detail {
-            struct MappingInfo {
-                u64 startTime_{ UINT64_MAX };
-                u64 endTime_{ UINT64_MAX };
-                const PE *mappedPE_{ nullptr };
-            };
-
             struct ExecInfo {
                 spider::unique_ptr<Task *> dependencies_;
                 spider::unique_ptr<bool> notifications_;
-                spider::unique_ptr<size_t> constraints_;
             };
         }
 
@@ -163,7 +156,15 @@ namespace spider {
              * @remark no boundary check is performed.
              * @return boolean flag indicating if this task is notifying given LRT.
              */
-            inline bool getNotificationFlagForLRT(size_t ix) const { return execInfo_.notifications_.get()[ix]; }
+            inline bool getNotificationFlagForLRT(size_t ix) const { return notifications_.get()[ix]; }
+
+            /**
+             * @brief Get the previous task of a given index.
+             * @param ix Index of the task.
+             * @return pointer to the previous task, nullptr else.
+             * @throws @refitem spider::Exception if index out of bound (only in debug)
+             */
+            Task *previousTask(size_t ix) const;
 
             /* === Setter(s) === */
 
@@ -209,8 +210,16 @@ namespace spider {
              * @param value Value to set: true = should notify, false = should not notify.
              */
             inline void setNotificationFlag(size_t lrt, bool value) {
-                execInfo_.notifications_.get()[lrt] = value;
+                notifications_.get()[lrt] = value;
             }
+
+            /**
+             * @brief Override the current execution dependency at given position.
+             * @param ix   position of the dependency to set.
+             * @param task pointer to the task to set.
+             * @throws @refitem spider::Exception if index out of bound (only in debug)
+             */
+            void setExecutionDependency(size_t ix, Task *task);
 
             /* === Virtual method(s) === */
 
@@ -220,14 +229,6 @@ namespace spider {
              * @param ix Ix to set.
              */
             virtual inline void setIx(u32 ix) noexcept { ix_ = ix; }
-
-            /**
-             * @brief Override the current execution dependency at given position.
-             * @param ix   position of the dependency to set.
-             * @param task pointer to the task to set.
-             * @throws @refitem spider::Exception if index out of bound (only in debug)
-             */
-            virtual void setExecutionDependency(size_t ix, Task *task) = 0;
 
             /**
              * @brief Flag indicating whether or not a task can be optimized away by a smart fifo allocator.
@@ -252,14 +253,6 @@ namespace spider {
             virtual AllocationRule allocationRuleForOutputFifo(size_t ix) const = 0;
 
             /**
-             * @brief Get the previous task of a given index.
-             * @param ix Index of the task.
-             * @return pointer to the previous task, nullptr else.
-             * @throws @refitem spider::Exception if index out of bound (only in debug)
-             */
-            virtual Task *previousTask(size_t ix) const = 0;
-
-            /**
              * @brief Return a color value for the task.
              *        format is RGB with 8 bits per component in the lower part of the returned value.
              * @return  color of the task.
@@ -279,15 +272,17 @@ namespace spider {
             virtual std::string name() const = 0;
 
             /**
-             * @brief Update execution constraints based on task dependencies.
+             * @brief Set dependencies notification flag (i.e search which dependencies should send us a notif)
+             * @return an array of size of archi::Platform::LRTCount filled with indices to the dependencies that should
+             * be notifying us.
              */
-            virtual void updateExecutionConstraints() = 0;
+            spider::array<size_t> updateDependenciesNotificationFlag() const;
 
             /**
              * @brief Creates a job message out of the information of the task.
              * @return  JobMessage.
              */
-            virtual JobMessage createJobMessage() const = 0;
+            virtual JobMessage createJobMessage() const;
 
             /**
              * @brief Compute the communication cost and the data size that would need to be send if a task is mapped
@@ -320,12 +315,20 @@ namespace spider {
             virtual size_t dependencyCount() const = 0;
 
         protected:
-            detail::ExecInfo execInfo_;                            /*!< Execution information (constraints and notifs) */
-            std::shared_ptr<AllocatedFifos> fifos_;                /*!< Fifo(s) attached to the task */
-            spider::unique_ptr<detail::MappingInfo> mappingInfo_;  /*!< Mapping information of the task */
-            u32 ix_{ UINT32_MAX };                                 /*!< Index of the task in the schedule */
-            u32 jobExecIx_{ UINT32_MAX };                          /*!< Index of the job sent to the PE */
-            TaskState state_{ TaskState::NOT_SCHEDULABLE };        /*!< State of the task */
+            spider::unique_ptr<Task *> dependencies_;       /*!< Dependencies of the task */
+            spider::unique_ptr<bool> notifications_;        /*!< Notification flags of the task */
+            std::shared_ptr<AllocatedFifos> fifos_;         /*!< Fifo(s) attached to the task */
+            const PE *mappedPE_{ nullptr };                 /*!< Mapping PE of the task */
+            u64 startTime_{ UINT64_MAX };                   /*!< Mapping start time of the task */
+            u64 endTime_{ UINT64_MAX };                     /*!< Mapping end time of the task */
+            u32 ix_{ UINT32_MAX };                          /*!< Index of the task in the schedule */
+            u32 jobExecIx_{ UINT32_MAX };                   /*!< Index of the job sent to the PE */
+            TaskState state_{ TaskState::NOT_SCHEDULABLE }; /*!< State of the task */
+
+            /* === Protected method(s) === */
+
+            spider::array<SyncInfo> getExecutionConstraints() const;
+
         };
     }
 }

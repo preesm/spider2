@@ -63,21 +63,15 @@ namespace spider {
 
             AllocationRule allocationRuleForOutputFifo(size_t ix) const override;
 
-            Task *previousTask(size_t ix) const override;
-
             u32 color() const override;
 
             std::string name() const override;
 
             void updateTaskExecutionDependencies(const Schedule *schedule) override;
 
-            void updateExecutionConstraints() override;
-
             JobMessage createJobMessage() const override;
 
             bool isSyncOptimizable() const noexcept override;
-
-            void setExecutionDependency(size_t ix, Task *task) override;
 
             void setIx(u32 ix) noexcept override;
 

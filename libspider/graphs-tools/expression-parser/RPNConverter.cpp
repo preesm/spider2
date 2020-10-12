@@ -34,10 +34,11 @@
  */
 /* === Includes === */
 
+#include <graphs-tools/expression-parser/RPNConverter.h>
 #include <common/Exception.h>
 #include <containers/stack.h>
 #include <algorithm>
-#include <graphs-tools/expression-parser/RPNConverter.h>
+#include <cctype>
 
 /* === Static variable definition(s) === */
 

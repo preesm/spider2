@@ -80,9 +80,7 @@ void spider::sched::Schedule::updateTaskAndSetReady(Task *task, const PE* slave,
     task->setStartTime(startTime);
     task->setEndTime(endTime);
     task->setJobExecIx(static_cast<u32>(stats_.jobCount(peIx)));
-
-    /* == Find minimal dependencies == */
-    task->updateExecutionConstraints();
+    task->updateDependenciesNotificationFlag();
 
     /* == Update schedule statistics == */
     stats_.updateStartTime(peIx, startTime);
@@ -115,5 +113,3 @@ void spider::sched::Schedule::sendReadyTasks() {
     /* == Reset ready task vector == */
     readyTaskVector_.clear();
 }
-
-/* === Private method(s) implementation === */

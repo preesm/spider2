@@ -174,7 +174,7 @@ bool spider::sched::NoSyncFifoAllocator::replaceInputTask(sched::Task *task,
         /* == If input is also optimizable, then we replace dependency to avoid cascade sync == */
         auto *newInputTask = inputTask->previousTask(0u);
         task->setExecutionDependency(ix, newInputTask);
-        task->updateExecutionConstraints();
+        task->updateDependenciesNotificationFlag();
         return true;
     }
     return false;

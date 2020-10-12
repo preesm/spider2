@@ -62,18 +62,8 @@ spider::sched::SRLessTask::SRLessTask(srless::GraphFiring *handler,
                                                              dependenciesCount_{ depCount } {
     const auto inputFifoCount = depCount + mergedFifoCount;
     fifos_ = spider::make_shared<AllocatedFifos, StackID::SCHEDULE>(inputFifoCount, vertex->outputEdgeCount());
-    execInfo_.dependencies_ = spider::make_unique(allocate<Task *, StackID::SCHEDULE>(depCount));
-    auto *beginIt = execInfo_.dependencies_.get();
-    std::fill(beginIt, std::next(beginIt, static_cast<long>(depCount)), nullptr);
-}
-
-spider::sched::Task *spider::sched::SRLessTask::previousTask(size_t ix) const {
-#ifndef NDEBUG
-    if (ix >= dependenciesCount_) {
-        throwSpiderException("index out of bound.");
-    }
-#endif
-    return execInfo_.dependencies_.get()[ix];
+    dependencies_ = spider::make_unique(allocate<Task *, StackID::SCHEDULE>(depCount));
+    std::fill(dependencies_.get(), std::next(dependencies_.get(), static_cast<long>(depCount)), nullptr);
 }
 
 void spider::sched::SRLessTask::updateTaskExecutionDependencies(const Schedule *schedule) {
@@ -84,47 +74,11 @@ void spider::sched::SRLessTask::updateTaskExecutionDependencies(const Schedule *
             if (dep.vertex_) {
                 for (u32 k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
                     const auto taskIx = dep.handler_->getTaskIx(dep.vertex_, k);
-                    const auto &sourceTask = schedule->tasks()[taskIx];
-                    execInfo_.dependencies_.get()[i + k - dep.firingStart_] = sourceTask.get();
+                    setExecutionDependency(i + k - dep.firingStart_, schedule->tasks()[taskIx].get());
                 }
             }
             i += (dep.firingEnd_ - dep.firingStart_) + 1u;
         }
-    }
-}
-
-void spider::sched::SRLessTask::updateExecutionConstraints() {
-    auto *execDependencies = execInfo_.dependencies_.get();
-    auto *execConstraints = execInfo_.constraints_.get();
-    const auto lrtCount = archi::platform()->LRTCount();
-    std::fill(execConstraints, execConstraints + lrtCount, SIZE_MAX);
-    auto shouldNotifyArray = array<size_t>(lrtCount, SIZE_MAX, StackID::SCHEDULE);
-    for (u32 i = 0; i < dependenciesCount_; ++i) {
-        auto *dependency = execDependencies[i];
-        if (dependency) {
-            const auto *depLRT = dependency->mappedLRT();
-            const auto currentJobConstraint = execConstraints[depLRT->virtualIx()];
-            if ((currentJobConstraint == SIZE_MAX) || (dependency->jobExecIx() > currentJobConstraint)) {
-                execConstraints[depLRT->virtualIx()] = dependency->jobExecIx();
-                shouldNotifyArray[depLRT->virtualIx()] = i;
-            }
-        }
-    }
-    for (const auto &value : shouldNotifyArray) {
-        if (value != SIZE_MAX) {
-            execDependencies[value]->setNotificationFlag(mappedLRT()->virtualIx(), true);
-        }
-    }
-}
-
-void spider::sched::SRLessTask::setExecutionDependency(size_t ix, spider::sched::Task *task) {
-#ifndef NDEBUG
-    if (ix >= dependenciesCount_) {
-        throwSpiderException("index out of bound.");
-    }
-#endif
-    if (task) {
-        execInfo_.dependencies_.get()[ix] = task;
     }
 }
 
@@ -227,39 +181,11 @@ spider::sched::AllocationRule spider::sched::SRLessTask::allocationRuleForOutput
 }
 
 spider::JobMessage spider::sched::SRLessTask::createJobMessage() const {
-    JobMessage message{ };
-    /* == Set core properties == */
+    auto message = Task::createJobMessage();
     message.nParamsOut_ = static_cast<u32>(vertex_->reference()->outputParamCount());
     message.kernelIx_ = static_cast<u32>(vertex_->runtimeInformation()->kernelIx());
-    message.taskIx_ = ix_;
-    message.ix_ = jobExecIx_;
-
-    /* == Set the synchronization flags == */
-    const auto lrtCount{ archi::platform()->LRTCount() };
-    const auto *flags = execInfo_.notifications_.get();
-    message.synchronizationFlags_ = make_unique<bool>(allocate<bool, StackID::RUNTIME>(lrtCount));
-    std::copy(flags, std::next(flags, static_cast<long long>(lrtCount)), message.synchronizationFlags_.get());
-
-    /* == Set the execution task constraints == */
-    auto *execConstraints = execInfo_.constraints_.get();
-    const auto numberOfConstraints{
-            lrtCount - static_cast<size_t>(std::count(execConstraints, execConstraints + lrtCount, SIZE_MAX)) };
-    message.execConstraints_ = array<SyncInfo>(numberOfConstraints, StackID::RUNTIME);
-    auto jobIterator = std::begin(message.execConstraints_);
-    for (size_t i = 0; i < lrtCount; ++i) {
-        const auto value = execConstraints[i];
-        if (value != SIZE_MAX) {
-            jobIterator->lrtToWait_ = i;
-            jobIterator->jobToWait_ = static_cast<size_t>(value);
-            jobIterator++;
-        }
-    }
-
     /* == Set the input parameters (if any) == */
     message.inputParams_ = pisdf::buildVertexRuntimeInputParameters(vertex_, handler_->getParams());
-
-    /* == Set Fifos == */
-    message.fifos_ = fifos_;
     return message;
 }
 
