@@ -90,7 +90,7 @@ static spider::unique_ptr<i64> buildDefaultVertexRuntimeParameters(const spider:
  */
 static spider::unique_ptr<i64> buildForkRuntimeInputParameters(const spider::pisdf::Vertex *vertex,
                                                                const spider::vector<std::shared_ptr<spider::pisdf::Param>> &params) {
-    const auto &outputEdges = vertex->outputEdgeVector();
+    const auto &outputEdges = vertex->outputEdges();
     auto outParams = spider::make_unique(spider::allocate<i64, StackID::RUNTIME>(outputEdges.size() + 2));
     outParams.get()[0] = vertex->inputEdge(0)->sinkRateExpression().evaluate(params);
     outParams.get()[1] = static_cast<i64>(outputEdges.size());
@@ -110,7 +110,7 @@ static spider::unique_ptr<i64> buildForkRuntimeInputParameters(const spider::pis
  */
 static spider::unique_ptr<i64> buildJoinRuntimeInputParameters(const spider::pisdf::Vertex *vertex,
                                                                const spider::vector<std::shared_ptr<spider::pisdf::Param>> &params) {
-    const auto &inputEdges = vertex->inputEdgeVector();
+    const auto &inputEdges = vertex->inputEdges();
     auto outParams = spider::make_unique(spider::allocate<i64, StackID::RUNTIME>(inputEdges.size() + 2));
     outParams.get()[0] = vertex->outputEdge(0)->sourceRateExpression().evaluate(params);
     outParams.get()[1] = static_cast<i64>(inputEdges.size());
@@ -130,8 +130,10 @@ static spider::unique_ptr<i64> buildTailRuntimeInputParameters(const spider::pis
                                                                const spider::vector<std::shared_ptr<spider::pisdf::Param>> &params) {
     size_t inputCount = 1;
     auto rate = vertex->outputEdge(0)->sourceRateExpression().evaluate(params);
-    const auto &inputEdges = vertex->inputEdgeVector();
-    for (auto it = inputEdges.rbegin(); it != inputEdges.rend(); ++it) {
+    const auto inputEdges = vertex->inputEdges();
+    const auto itRBegin = std::next(std::begin(inputEdges), static_cast<long>(inputEdges.size() - 1 ));
+    const auto itREnd = std::next(std::begin(inputEdges), -1);
+    for (auto it = itRBegin; it != itREnd; --it) {
         const auto &inRate = (*it)->sinkRateExpression().evaluate(params);
         if (inRate >= rate) {
             break;
@@ -150,8 +152,7 @@ static spider::unique_ptr<i64> buildTailRuntimeInputParameters(const spider::pis
     /* = Effective size to copy of the first input = */
     outParams.get()[3] = rate;
     size_t i = 4;
-    for (auto it = vertex->inputEdgeVector().rbegin();
-         it != vertex->inputEdgeVector().rbegin() + static_cast<long>(inputCount) - 1; ++it) {
+    for (auto it = itRBegin; it != itREnd - static_cast<long>(inputCount) + 1; --it) {
         outParams.get()[i++] = (*it)->sinkRateExpression().evaluate(params);
     }
     return outParams;
@@ -168,7 +169,7 @@ static spider::unique_ptr<i64> buildHeadRuntimeInputParameters(const spider::pis
                                                                const spider::vector<std::shared_ptr<spider::pisdf::Param>> &params) {
     size_t inputCount = 1;
     auto rate = vertex->outputEdge(0)->sourceRateExpression().evaluate(params);
-    for (auto &edge : vertex->inputEdgeVector()) {
+    for (auto &edge : vertex->inputEdges()) {
         const auto &inRate = edge->sinkRateExpression().evaluate(params);
         if (inRate >= rate) {
             break;
@@ -294,14 +295,14 @@ void spider::pisdf::separateRunGraphFromInit(Graph *graph) {
     ufast32 cfg2RunIfCount = 0;
     ufast32 inputIf2CfgCount = 0;
     for (const auto &cfg : graph->configVertices()) {
-        for (const auto &edge : cfg->inputEdgeVector()) {
+        for (const auto &edge : cfg->inputEdges()) {
             const auto &source = edge->source();
             if (source->subtype() != pisdf::VertexType::INPUT) {
                 throwSpiderException("Config vertex can not have source of type other than interface.");
             }
             inputIf2CfgCount++;
         }
-        for (const auto &edge : cfg->outputEdgeVector()) {
+        for (const auto &edge : cfg->outputEdges()) {
             auto isOutputIf = edge->sink()->subtype() == pisdf::VertexType::OUTPUT;
             cfg2OutputIfCount += (isOutputIf);
             cfg2RunIfCount += (!isOutputIf);
@@ -374,7 +375,7 @@ void spider::pisdf::separateRunGraphFromInit(Graph *graph) {
 
     /* == Connect the output edges of config vertices == */
     for (auto &cfg : graph->configVertices()) {
-        for (auto edge : cfg->outputEdgeVector()) {
+        for (auto edge : cfg->outputEdges()) {
             const auto &sink = edge->sink();
             if (sink->subtype() != pisdf::VertexType::OUTPUT) {
                 const auto srcRate = edge->sourceRateValue(); /* = Config actors can not have dynamic rate = */
@@ -391,20 +392,6 @@ void spider::pisdf::separateRunGraphFromInit(Graph *graph) {
     }
 
     /* == Copy or move the params to the run graph == */
-//    auto it = std::begin(graph->params());
-//    while (it != std::end(graph->params())) {
-//        auto &param = *it;
-//        if (moveDynParam &&
-//            (param->type() == ParamType::DYNAMIC || param->type() == ParamType::DYNAMIC_DEPENDANT)) {
-//            runGraph->addParam(param);
-//            auto dist = std::distance(std::begin(graph->params()), it);
-//            graph->removeParam(param);
-//            it = std::next(std::begin(graph->params()), dist);
-//        } else {
-//            api::createInheritedParam(runGraph, param->name(), param);
-//            it++;
-//        }
-//    }
     for (auto &param: graph->params()) {
         api::createInheritedParam(runGraph, param->name(), param);
     }

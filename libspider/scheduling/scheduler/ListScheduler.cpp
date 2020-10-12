@@ -121,7 +121,7 @@ ifast32 spider::sched::ListScheduler::computeScheduleLevel(ListTask &listTask) {
     const auto *vertex = listTask.vertex_;
     if ((listTask.level_ == NON_SCHEDULABLE_LEVEL) || !vertex->executable()) {
         listTask.level_ = NON_SCHEDULABLE_LEVEL;
-        for (const auto *edge : vertex->outputEdgeVector()) {
+        for (const auto *edge : vertex->outputEdges()) {
             if (edge->sinkRateValue()) {
                 /* == Disable non-null edge == */
                 auto &sinkTask = sortedTaskVector_[edge->sink()->scheduleTaskIx()];
@@ -132,7 +132,7 @@ ifast32 spider::sched::ListScheduler::computeScheduleLevel(ListTask &listTask) {
     } else if (listTask.level_ < 0) {
         const auto *platform = archi::platform();
         ifast32 level = 0;
-        for (const auto *edge : vertex->outputEdgeVector()) {
+        for (const auto *edge : vertex->outputEdges()) {
             const auto *sink = edge->sink();
             if (sink && sink->executable()) {
                 const auto &sinkParams = sink->inputParamVector();

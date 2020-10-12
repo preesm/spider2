@@ -138,7 +138,7 @@ void spider::sched::SRLessListScheduler::createListTask(pisdf::Vertex *vertex,
 void spider::sched::SRLessListScheduler::recursiveSetNonSchedulable(const pisdf::Vertex *vertex,
                                                                     u32 firing,
                                                                     const srless::GraphFiring *handler) {
-    for (const auto *edge : vertex->outputEdgeVector()) {
+    for (const auto *edge : vertex->outputEdges()) {
         const auto deps = pisdf::computeConsDependency(vertex, firing, edge->sourcePortIx(), handler);
         for (const auto &dep : deps) {
             if (dep.vertex_ && dep.rate_ > 0) {
@@ -163,7 +163,7 @@ i32 spider::sched::SRLessListScheduler::computeScheduleLevel(ListTask &listTask)
     } else if (listTask.level_ < 0) {
         const auto *platform = archi::platform();
         i32 level = 0;
-        for (const auto *edge : vertex->inputEdgeVector()) {
+        for (const auto *edge : vertex->inputEdges()) {
             const auto current = listTask.depCount_;
             const auto deps = pisdf::computeExecDependency(vertex, firing, edge->sinkPortIx(), handler);
             for (const auto &dep : deps) {

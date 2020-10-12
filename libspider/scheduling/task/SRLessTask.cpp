@@ -68,7 +68,7 @@ spider::sched::SRLessTask::SRLessTask(srless::GraphFiring *handler,
 
 void spider::sched::SRLessTask::updateTaskExecutionDependencies(const Schedule *schedule) {
     size_t i = 0u;
-    for (const auto *edge : vertex_->inputEdgeVector()) {
+    for (const auto *edge : vertex_->inputEdges()) {
         const auto deps = spider::pisdf::computeExecDependency(vertex_, firing_, edge->sinkPortIx(), handler_);
         for (const auto &dep : deps) {
             if (dep.vertex_) {

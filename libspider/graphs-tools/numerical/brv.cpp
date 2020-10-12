@@ -110,7 +110,7 @@ namespace spider {
                 if (currentVertex->subtype() == pisdf::VertexType::CONFIG) {
                     component.configs_.emplace_back(vertex);
                 }
-                for (const auto *edge : currentVertex->outputEdgeVector()) {
+                for (const auto *edge : currentVertex->outputEdges()) {
                     if (!edge) {
                         throwSpiderException("Vertex [%s] has null output edge.", currentVertex->name().c_str());
                     } else if (!handler.visitedEdges_[edge->ix()]) {
@@ -127,7 +127,7 @@ namespace spider {
                         }
                     }
                 }
-                for (const auto *edge : currentVertex->inputEdgeVector()) {
+                for (const auto *edge : currentVertex->inputEdges()) {
                     if (!edge) {
                         throwSpiderException("Vertex [%s] has null input edge.", currentVertex->name().c_str());
                     } else if (!handler.visitedEdges_[edge->ix()]) {
@@ -187,7 +187,7 @@ namespace spider {
                 }
             };
             for (const auto &cfg : component.configs_) {
-                for (const auto &edge : cfg->outputEdgeVector()) {
+                for (const auto &edge : cfg->outputEdges()) {
                     updateInput(edge);
                 }
             }
@@ -220,7 +220,7 @@ namespace spider {
          */
         static void checkConsistency(const ConnectedComponent &component, const vector<std::pair<i64, i64>> &rates) {
             for (auto it = component.startIt_; it < component.endIt_; ++it) {
-                for (const auto &edge : (*it)->outputEdgeVector()) {
+                for (const auto &edge : (*it)->outputEdges()) {
                     if (edge->sink()->subtype() == pisdf::VertexType::OUTPUT) {
                         continue;
                     }
@@ -240,7 +240,7 @@ namespace spider {
 
         static void checkAloneVertexInSubgraph(pisdf::Vertex *vertex, const vector<std::pair<i64, i64>> &rates) {
             auto allInputNull = true;
-            for (const auto *edge: vertex->inputEdgeVector()) {
+            for (const auto *edge: vertex->inputEdges()) {
                 const auto sinkRate = rates[edge->ix()].second;
                 if (sinkRate) {
                     allInputNull = false;
@@ -249,7 +249,7 @@ namespace spider {
             }
             if (allInputNull) {
                 auto allOutputNull = true;
-                for (const auto *edge: vertex->outputEdgeVector()) {
+                for (const auto *edge: vertex->outputEdges()) {
                     const auto sourceRate = rates[edge->ix()].first;
                     if (sourceRate) {
                         allOutputNull = false;

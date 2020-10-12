@@ -62,7 +62,7 @@ spider::sched::VertexTask::VertexTask(pisdf::Vertex *vertex) : Task(), vertex_{ 
 }
 
 void spider::sched::VertexTask::updateTaskExecutionDependencies(const spider::sched::Schedule *schedule) {
-    for (const auto *edge : vertex_->inputEdgeVector()) {
+    for (const auto *edge : vertex_->inputEdges()) {
         const auto *source = edge->source();
         const auto rate = static_cast<u64>(edge->sinkRateValue());
         if (rate && source && source->executable()) {
@@ -164,7 +164,7 @@ std::pair<ufast64, ufast64> spider::sched::VertexTask::computeCommunicationCost(
     ufast64 externDataToReceive = 0u;
     /* == Compute communication cost == */
     ufast64 communicationCost = 0;
-    for (const auto &edge : vertex_->inputEdgeVector()) {
+    for (const auto &edge : vertex_->inputEdges()) {
         const auto rate = static_cast<u64>(edge->sourceRateValue());
         const auto source = edge->source();
         if (rate && source && source->executable()) {

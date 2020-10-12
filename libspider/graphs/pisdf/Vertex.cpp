@@ -43,14 +43,21 @@
 /* === Function(s) definition === */
 
 spider::pisdf::Vertex::Vertex(VertexType type, std::string name, size_t edgeINCount, size_t edgeOUTCount) :
-        inputEdgeVector_{ factory::vector<Edge *>(edgeINCount, nullptr, StackID::PISDF) },
-        outputEdgeVector_{ factory::vector<Edge *>(edgeOUTCount, nullptr, StackID::PISDF) },
         inputParamVector_{ factory::vector<std::shared_ptr<Param>>(StackID::PISDF) },
         refinementParamVector_{ factory::vector<std::shared_ptr<Param>>(StackID::PISDF) },
         outputParamVector_{ factory::vector<std::shared_ptr<Param>>(StackID::PISDF) },
         name_{ std::move(name) },
+        nINEdges_{ static_cast<u32>(edgeINCount) },
+        nOUTEdges_{ static_cast<u32>(edgeOUTCount) },
         subtype_{ type } {
+    inputEdgeVector_ = spider::make_n<Edge *, StackID::PISDF>(edgeINCount, nullptr);
+    outputEdgeVector_ = spider::make_n<Edge *, StackID::PISDF>(edgeOUTCount, nullptr);
     checkTypeConsistency();
+}
+
+spider::pisdf::Vertex::~Vertex() noexcept {
+    deallocate(inputEdgeVector_);
+    deallocate(outputEdgeVector_);
 }
 
 void spider::pisdf::Vertex::connectInputEdge(Edge *edge, size_t pos) {
@@ -85,13 +92,11 @@ void spider::pisdf::Vertex::visit(Visitor *visitor) {
 }
 
 void spider::pisdf::Vertex::setAsReference(Vertex *clone) {
-    clone->inputEdgeVector_.resize(this->inputEdgeVector_.size(), nullptr);
-    clone->outputEdgeVector_.resize(this->outputEdgeVector_.size(), nullptr);
     clone->reference_ = this;
     clone->rtInformation_ = this->rtInformation_;
     clone->inputParamVector_.reserve(this->inputParamVector_.size());
-    clone->refinementParamVector_.reserve(this->refinementParamVector_.size());
     clone->outputParamVector_.reserve(this->outputParamVector_.size());
+    clone->refinementParamVector_.reserve(this->refinementParamVector_.size());
 }
 
 void spider::pisdf::Vertex::addInputParameter(std::shared_ptr<Param> param) {
@@ -216,8 +221,8 @@ void spider::pisdf::Vertex::checkTypeConsistency() const {
 
 /* === Private method(s) === */
 
-spider::pisdf::Edge *spider::pisdf::Vertex::disconnectEdge(spider::vector<Edge *> &edges, size_t ix) {
-    auto *&edge = edges.at(ix);
+spider::pisdf::Edge *spider::pisdf::Vertex::disconnectEdge(Edge **edges, size_t ix) {
+    auto *&edge = edges[ix];
     auto *ret = edge;
     if (edge) {
         edge = nullptr;
@@ -225,8 +230,8 @@ spider::pisdf::Edge *spider::pisdf::Vertex::disconnectEdge(spider::vector<Edge *
     return ret;
 }
 
-void spider::pisdf::Vertex::connectEdge(spider::vector<Edge *> &edges, Edge *edge, size_t ix) {
-    auto *&current = edges.at(ix);
+void spider::pisdf::Vertex::connectEdge(Edge **edges, Edge *edge, size_t ix) {
+    auto *&current = edges[ix];
     if (!current) {
         current = edge;
     } else {

@@ -232,6 +232,7 @@ spider::RuntimeContext spider::createRuntimeContext(pisdf::Graph *graph, Runtime
     }
     context.loopSize_ = config.loopCount_;
     context.mode_ = config.mode_;
+    context.graph_ = graph;
     return context;
 }
 

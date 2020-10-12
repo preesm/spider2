@@ -69,7 +69,7 @@ namespace spider {
 
             Vertex &operator=(const Vertex &) = delete;
 
-            virtual ~Vertex() noexcept = default;
+            virtual ~Vertex() noexcept;
 
             /* === Method(s) === */
 
@@ -188,7 +188,9 @@ namespace spider {
              * @brief A const reference on the array of input edges. Useful for iterating on the edges.
              * @return const reference to input edge array
              */
-            inline const vector<Edge *> &inputEdgeVector() const { return inputEdgeVector_; };
+            inline spider::array_handle<Edge *> inputEdges() const {
+                return spider::make_handle(inputEdgeVector_, nINEdges_);
+            };
 
             /**
              * @brief Get input edge connected to port Ix.
@@ -196,19 +198,28 @@ namespace spider {
              * @return @refitem spider::pisdf::Edge
              * @throw std::out_of_range.
              */
-            inline Edge *inputEdge(size_t ix) const { return inputEdgeVector_.at(ix); };
+            inline Edge *inputEdge(size_t ix) const {
+#ifndef NDEBUG
+                if (ix >= nINEdges_) {
+                    throwSpiderException("index out of bound");
+                }
+#endif
+                return inputEdgeVector_[ix];
+            };
 
             /**
              * @brief Get the number of input edges connected to the vertex.
              * @return number of input edges.
              */
-            inline size_t inputEdgeCount() const { return inputEdgeVector_.size(); };
+            inline size_t inputEdgeCount() const { return nINEdges_; };
 
             /**
              * @brief A const reference on the array of output edges. Useful for iterating on the edges.
              * @return const reference to output edge array.
              */
-            inline const vector<Edge *> &outputEdgeVector() const { return outputEdgeVector_; };
+            inline spider::array_handle<Edge *> outputEdges() const {
+                return spider::make_handle(outputEdgeVector_, nOUTEdges_);
+            };
 
             /**
              * @brief Get input edge connected to port Ix.
@@ -216,13 +227,20 @@ namespace spider {
              * @return @refitem spider::pisdf::Edge
              * @throw std::out_of_range.
              */
-            inline Edge *outputEdge(size_t ix) const { return outputEdgeVector_.at(ix); };
+            inline Edge *outputEdge(size_t ix) const {
+#ifndef NDEBUG
+                if (ix >= nOUTEdges_) {
+                    throwSpiderException("index out of bound");
+                }
+#endif
+                return outputEdgeVector_[ix];
+            };
 
             /**
              * @brief Get the number of output edges connected to the vertex.
              * @return number of output edges.
              */
-            inline size_t outputEdgeCount() const { return outputEdgeVector_.size(); };
+            inline size_t outputEdgeCount() const { return nOUTEdges_; };
 
             /**
              * @brief Get the subtype of the vertex.
@@ -353,11 +371,11 @@ namespace spider {
             virtual void setGraph(Graph *graph);
 
         protected:
-            vector<Edge *> inputEdgeVector_;                       /* = Vector of input Edge = */
-            vector<Edge *> outputEdgeVector_;                      /* = Vector of output Edge = */
             vector<std::shared_ptr<Param>> inputParamVector_;      /* = Vector of input Params = */
             vector<std::shared_ptr<Param>> refinementParamVector_; /* = Vector of refinement Params = */
             vector<std::shared_ptr<Param>> outputParamVector_;     /* = Vector of output Params = */
+            Edge **inputEdgeVector_ = nullptr;                     /* = Vector of input Edge = */
+            Edge **outputEdgeVector_ = nullptr;                    /* = Vector of output Edge = */
             std::string name_ = "unnamed-vertex";                  /* = Name of the Vertex (uniqueness is not required) = */
             std::shared_ptr<RTInfo> rtInformation_;                /* = Runtime information of the Vertex (timing, mappable, etc.) = */
             const Vertex *reference_ = this;   /* =
@@ -372,7 +390,9 @@ namespace spider {
                                                 * schedule pass in order to maintain coherence.
                                                 * = */
             size_t instanceValue_ = 0;         /* = Value of the instance relative to reference Vertex = */
-            uint32_t repetitionValue_ = 1;     /* = Repetition value of the Vertex, default is 1 but it can be set to 0. = */
+            u32 repetitionValue_ = 1;          /* = Repetition value of the Vertex, default is 1 but it can be set to 0. = */
+            u32 nINEdges_ = 0;
+            u32 nOUTEdges_ = 0;
             VertexType subtype_ = VertexType::NORMAL;
 
             /**
@@ -388,7 +408,7 @@ namespace spider {
              * @param ix     Index of the edge to disconnect.
              * @return pointer to the disconnected edge, nullptr else.
              */
-            Edge *disconnectEdge(vector<Edge *> &edges, size_t ix);
+            Edge *disconnectEdge(Edge **edges, size_t ix);
 
             /**
              * @brief Connect an edge in the given edge vector (input or output).
@@ -397,7 +417,7 @@ namespace spider {
              * @param ix     Index of the edge to connect.
              * @throw spider::Exception if edge already exists in the vector at given index.
              */
-            void connectEdge(vector<Edge *> &edges, Edge *edge, size_t ix);
+            void connectEdge(Edge **edges, Edge *edge, size_t ix);
         };
     }
 }

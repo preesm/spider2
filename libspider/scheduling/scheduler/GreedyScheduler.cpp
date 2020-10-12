@@ -59,7 +59,7 @@ void spider::sched::GreedyScheduler::schedule(const pisdf::Graph *graph) {
 bool spider::sched::GreedyScheduler::evaluate(spider::pisdf::Vertex *vertex) {
     auto schedulable = true;
     if (vertex->scheduleTaskIx() == SIZE_MAX) {
-        for (const auto *edge : vertex->inputEdgeVector()) {
+        for (const auto *edge : vertex->inputEdges()) {
             if (!edge->sourceRateValue()) {
                 continue;
             } else if (!edge->source() || !edge->source()->executable()) {

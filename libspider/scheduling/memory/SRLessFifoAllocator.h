@@ -58,8 +58,7 @@ namespace spider {
 
         class SRLessFifoAllocator final : public FifoAllocator {
         public:
-            SRLessFifoAllocator() : FifoAllocator({ true, true }),
-                                    mergedFifos_{ factory::vector<MergedFifoInfo>(StackID::SCHEDULE) } {
+            SRLessFifoAllocator() : FifoAllocator({ true, true }) {
 
             }
 
@@ -74,8 +73,6 @@ namespace spider {
              */
             void allocate(sched::Task *task) override;
 
-            void clear() noexcept override;
-
             /* === Getter(s) === */
 
             /**
@@ -85,18 +82,6 @@ namespace spider {
             FifoAllocatorType type() const override { return FifoAllocatorType::DEFAULT; };
 
         private:
-
-            /* === Type definition === */
-
-            struct MergedFifoInfo {
-                size_t ix_;
-                size_t offsetTask_;
-                Task *task_;
-            };
-
-            /* === Private members === */
-
-            spider::vector<MergedFifoInfo> mergedFifos_;
 
             size_t allocateMergedInputFifo(Task *task,
                                            Fifo *fifo,

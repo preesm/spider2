@@ -199,8 +199,8 @@ TEST_F(pisdfVertexTest, vertexTest) {
                                                                    spider::Expression());
     ASSERT_EQ(v0->outputEdge(0), edge) << "Vertex::connectOutputEdge() failed.";
     ASSERT_EQ(v1->inputEdge(0), edge) << "Vertex::connectInputEdge() failed.";
-    ASSERT_EQ(v0->outputEdgeVector()[0], edge) << "Vertex::outputEdgeArray() failed.";
-    ASSERT_EQ(v1->inputEdgeVector()[0], edge) << "Vertex::inputEdgeArray() failed.";
+    ASSERT_EQ(v0->outputEdges()[0], edge) << "Vertex::outputEdgeArray() failed.";
+    ASSERT_EQ(v1->inputEdges()[0], edge) << "Vertex::inputEdgeArray() failed.";
 
     /* == Test hierarchical property for every vertex == */
     testHierarchical();

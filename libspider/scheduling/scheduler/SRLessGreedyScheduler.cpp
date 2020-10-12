@@ -81,7 +81,7 @@ bool spider::sched::SRLessGreedyScheduler::evaluate(const pisdf::Vertex *vertex,
     if (handler->getTaskIx(vertex, firing) == UINT32_MAX) {
         u32 depCount{ };
         u32 mergedFifoCount{ };
-        for (const auto *edge : vertex->inputEdgeVector()) {
+        for (const auto *edge : vertex->inputEdges()) {
             const auto current = depCount;
             const auto deps = pisdf::computeExecDependency(vertex, firing, edge->sinkPortIx(), handler);
             for (const auto &dep : deps) {

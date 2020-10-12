@@ -145,7 +145,11 @@ void spider::pisdf::Graph::addInputInterface(Interface *interface) {
 
     /* == Resize the input edge vector == */
     if (inputEdgeCount() < inputInterfaceVector_.size()) {
-        inputEdgeVector_.emplace_back(nullptr);
+        auto *tmp = spider::make_n<Edge *, StackID::PISDF>(inputInterfaceVector_.size(), nullptr);
+        std::move(inputEdgeVector_, inputEdgeVector_ + nINEdges_, tmp);
+        std::swap(tmp, inputEdgeVector_);
+        deallocate(tmp);
+        nINEdges_++;
     }
 }
 
@@ -160,7 +164,11 @@ void spider::pisdf::Graph::addOutputInterface(Interface *interface) {
 
     /* == Resize the output edge vector == */
     if (outputEdgeCount() < outputInterfaceVector_.size()) {
-        outputEdgeVector_.emplace_back(nullptr);
+        auto *tmp = spider::make_n<Edge *, StackID::PISDF>(outputInterfaceVector_.size(), nullptr);
+        std::move(outputEdgeVector_, outputEdgeVector_ + nOUTEdges_, tmp);
+        std::swap(tmp, outputEdgeVector_);
+        deallocate(tmp);
+        nOUTEdges_++;
     }
 }
 
@@ -200,13 +208,13 @@ void spider::pisdf::Graph::removeVertex(Vertex *vertex) {
     /* == Assert that vertex is part of the edgeVector_ == */
     assertElement(vertex, vertexVector_);
     /* == Reset vertex input edges == */
-    for (auto &edge : vertex->inputEdgeVector()) {
+    for (auto &edge : vertex->inputEdges()) {
         if (edge) {
             edge->setSink(nullptr, SIZE_MAX, Expression());
         }
     }
     /* == Reset vertex output edges == */
-    for (auto &edge : vertex->outputEdgeVector()) {
+    for (auto &edge : vertex->outputEdges()) {
         if (edge) {
             edge->setSource(nullptr, SIZE_MAX, Expression());
         }
