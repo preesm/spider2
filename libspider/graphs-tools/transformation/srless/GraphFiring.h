@@ -66,11 +66,11 @@ namespace spider {
 
             GraphFiring(GraphFiring &&) = default;
 
-            GraphFiring(const GraphFiring &) = default;
+            GraphFiring(const GraphFiring &) = delete;
 
             GraphFiring &operator=(GraphFiring &&) = default;
 
-            GraphFiring &operator=(const GraphFiring &) = default;
+            GraphFiring &operator=(const GraphFiring &) = delete;
 
             ~GraphFiring();
 
@@ -111,20 +111,24 @@ namespace spider {
              * @brief Get the subgraphs @refitem GraphFiring.
              * @return const reference to the array of subgraphs GraphFiring.
              */
-            inline const spider::array<GraphHandler *> &subgraphFirings() const { return subgraphHandlers_; }
+            spider::array_handle<GraphHandler *> subgraphFirings() const;
 
             /**
              * @brief non const overload of the @refitem GraphFiring::subgraphFirings method.
              * @return non const reference to the array of subgraphs GraphFiring.
              */
-            inline spider::array<GraphHandler *> &subgraphFirings() { return subgraphHandlers_; }
+            spider::array_handle<GraphHandler *> subgraphFirings();
 
             /**
              * @brief Get the parameters of this graph firing.
              * @return parameters vector.
              */
-            inline const spider::vector<std::shared_ptr<pisdf::Param>> &getParams() const { return params_; }
+            const spider::vector<std::shared_ptr<pisdf::Param>> &getParams() const;
 
+            /**
+             * @brief Get the firing value of this GraphFiring.
+             * @return firing value.
+             */
             inline u32 firingValue() const { return firing_; }
 
             /**
@@ -161,13 +165,6 @@ namespace spider {
              */
             const GraphFiring *getSubgraphGraphFiring(const pisdf::Graph *subgraph, u32 firing) const;
 
-            /**
-             * @brief Get the parameter value of index ix.
-             * @param ix Index of the parameter.
-             * @return parameter value.
-             */
-            int64_t getParamValue(size_t ix);
-
             /* === Setter(s) === */
 
             /**
@@ -182,11 +179,17 @@ namespace spider {
                 int64_t srcRate_;
                 int64_t snkRate_;
             };
+
+            struct ParamValue {
+                int64_t value_;
+                size_t ix_;
+            };
+
             spider::vector<std::shared_ptr<pisdf::Param>> params_;
-            spider::array<GraphHandler *> subgraphHandlers_; /* == match between subgraphs and their handler == */
-            spider::array<u32> brv_; /* == BRV of this firing of the graph == */
-            spider::array<u32 *> taskIxRegister_;
-            spider::array<EdgeRate> rates_;
+            spider::unique_ptr<GraphHandler *> subgraphHandlers_; /* == match between subgraphs and their handler == */
+            spider::unique_ptr<u32> brv_;                         /* == BRV of this firing of the graph == */
+            spider::unique_ptr<u32 *> taskIxRegister_;
+            spider::unique_ptr<EdgeRate> rates_;
             const GraphHandler *parent_;
             u32 firing_{ };
             u32 dynamicParamCount_{ };

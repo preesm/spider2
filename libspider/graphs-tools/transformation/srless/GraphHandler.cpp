@@ -49,12 +49,11 @@ spider::srless::GraphHandler::GraphHandler(const spider::pisdf::Graph *graph,
                                            const spider::vector<std::shared_ptr<pisdf::Param>> &params,
                                            u32 repetitionCount,
                                            const srless::GraphFiring *handler) :
-        firings_{ factory::vector<GraphFiring *>(StackID::TRANSFO) },
         handler_{ handler },
         graph_{ graph },
         repetitionCount_{ repetitionCount } {
-    firings_.reserve(repetitionCount);
     static_ = true;
+    firings_ = spider::make_unique(spider::make_n<GraphFiring *, StackID::TRANSFO>(repetitionCount, nullptr));
     for (const auto &param : graph->params()) {
         if (param->dynamic()) {
             static_ &= graph->configVertexCount() > 0;
@@ -62,25 +61,23 @@ spider::srless::GraphHandler::GraphHandler(const spider::pisdf::Graph *graph,
         }
     }
     for (u32 k = 0; k < repetitionCount; ++k) {
-        firings_.emplace_back(spider::make<GraphFiring>(this, params, k));
+        firings_.get()[k] = spider::make<GraphFiring>(this, params, k);
         if (static_) {
-            firings_[k]->resolveBRV();
+            firings_.get()[k]->resolveBRV();
         }
     }
 }
 
 spider::srless::GraphHandler::~GraphHandler() {
     for (u32 k = 0; k < repetitionCount_; ++k) {
-        destroy(firings_[k]);
+        destroy(firings_.get()[k]);
     }
 }
 
 void spider::srless::GraphHandler::clear() {
-    for (auto &firing : firings_) {
+    for (auto &firing : firings()) {
         if (firing) {
             firing->clear();
         }
     }
 }
-
-/* === Private method(s) implementation === */

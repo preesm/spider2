@@ -39,6 +39,7 @@
 
 #include <common/Types.h>
 #include <memory/unique_ptr.h>
+#include <containers/array_handle.h>
 #include <containers/vector.h>
 
 namespace spider {
@@ -63,11 +64,11 @@ namespace spider {
 
             GraphHandler(GraphHandler &&) = default;
 
-            GraphHandler(const GraphHandler &) = default;
+            GraphHandler(const GraphHandler &) = delete;
 
             GraphHandler &operator=(GraphHandler &&) = default;
 
-            GraphHandler &operator=(const GraphHandler &) = default;
+            GraphHandler &operator=(const GraphHandler &) = delete;
 
             ~GraphHandler();
 
@@ -77,7 +78,13 @@ namespace spider {
 
             /* === Getter(s) === */
 
-            inline const spider::vector<GraphFiring *> &firings() const { return firings_; }
+            inline array_handle<GraphFiring *> firings() const {
+                return make_handle(firings_.get(), repetitionCount_);
+            }
+
+            inline array_handle<GraphFiring *> firings() {
+                return make_handle(firings_.get(), repetitionCount_);
+            }
 
             inline const GraphFiring *handler() const { return handler_; }
 
@@ -87,10 +94,8 @@ namespace spider {
 
             inline bool isStatic() const { return static_; }
 
-            inline spider::vector<GraphFiring *> &firings() { return firings_; }
-
         private:
-            spider::vector<GraphFiring *> firings_;
+            spider::unique_ptr<GraphFiring *> firings_;
             const srless::GraphFiring *handler_;
             const pisdf::Graph *graph_;
             u32 repetitionCount_;

@@ -432,26 +432,6 @@ spider::unique_ptr<i64> spider::pisdf::buildVertexRuntimeInputParameters(const p
     }
 }
 
-bool spider::pisdf::isInterfaceTransparent(const Vertex *interface, const srless::GraphFiring *handler) {
-#ifndef NDEBUG
-    if (!interface || !handler) {
-        throwNullptrException();
-    }
-#endif
-    if ((interface->subtype() != VertexType::INPUT) && (interface->subtype() != VertexType::OUTPUT)) {
-        throwSpiderException("expected interface.");
-    }
-    const auto isInput = interface->subtype() == VertexType::INPUT;
-    const auto *edge = isInput ? interface->outputEdge(0u) : interface->inputEdge(0u);
-    const auto srcRate = edge->sourceRateExpression().evaluate(handler->getParams());
-    const auto snkRate = edge->sinkRateExpression().evaluate(handler->getParams());
-    if (isInput) {
-        return ((snkRate * handler->getRV(edge->sink())) % srcRate) == 0;
-    } else {
-        return (srcRate * handler->getRV(edge->source())) == snkRate;
-    }
-}
-
 spider::pisdf::Vertex *spider::pisdf::getIndirectSource(const pisdf::Vertex *vertex, size_t ix) {
     const auto *edge = vertex->inputEdge(ix);
     auto *source = edge->source();

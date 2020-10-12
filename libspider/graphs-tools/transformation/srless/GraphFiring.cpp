@@ -50,7 +50,7 @@
 spider::srless::GraphFiring::GraphFiring(const GraphHandler *parent,
                                          const spider::vector<std::shared_ptr<pisdf::Param>> &params,
                                          u32 firing) :
-        params_{ factory::vector<std::shared_ptr<pisdf::Param>>(StackID::TRANSFO) },
+//        params_{ factory::vector<std::shared_ptr<pisdf::Param>>(StackID::TRANSFO) },
         parent_{ parent },
         firing_{ firing },
         resolved_{ false } {
@@ -58,28 +58,24 @@ spider::srless::GraphFiring::GraphFiring(const GraphHandler *parent,
         throwNullptrException();
     }
     const auto *graph = parent->graph();
-    brv_ = spider::array<u32>(graph->vertexCount(), UINT32_MAX, StackID::TRANSFO);
-    subgraphHandlers_ = spider::array<GraphHandler *>(graph->subgraphCount(), nullptr, StackID::TRANSFO);
-    taskIxRegister_ = spider::array<u32 *>(graph->vertexCount(), nullptr, StackID::TRANSFO);
-    rates_ = spider::array<EdgeRate>(graph->edgeCount(), StackID::TRANSFO);
+    brv_ = spider::make_unique(make_n<u32, StackID::TRANSFO>(graph->vertexCount(), UINT32_MAX));
+    taskIxRegister_ = spider::make_unique(make_n<u32 *, StackID::TRANSFO>(graph->vertexCount(), nullptr));
+    subgraphHandlers_ = spider::make_unique(make_n<GraphHandler *, StackID::TRANSFO>(graph->subgraphCount(), nullptr));
+    rates_ = spider::make_unique(make_n<EdgeRate, StackID::TRANSFO>(graph->edgeCount(), { 0, 0 }));
     /* == copy parameters == */
     params_.reserve(params.size());
-    for (const auto &param : params) {
-        params_.emplace_back(copyParameter(param));
-    }
     dynamicParamCount_ = 0;
     for (const auto &param : params) {
-        if (param->type() == pisdf::ParamType::DYNAMIC) {
-            dynamicParamCount_++;
-        }
+        dynamicParamCount_ += param->type() == pisdf::ParamType::DYNAMIC;
+        params_.emplace_back(copyParameter(param));
     }
 }
 
 spider::srless::GraphFiring::~GraphFiring() {
-    for (auto &ptr : taskIxRegister_) {
+    for (auto &ptr : make_handle(taskIxRegister_.get(), parent_->graph()->vertexCount())) {
         deallocate(ptr);
     }
-    for (auto &child : subgraphHandlers_) {
+    for (auto &child : subgraphFirings()) {
         destroy(child);
     }
 }
@@ -90,7 +86,7 @@ void spider::srless::GraphFiring::registerTaskIx(const pisdf::Vertex *vertex, u3
         throwSpiderException("invalid vertex firing.");
     }
 #endif
-    taskIxRegister_.at(vertex->ix())[firing] = taskIx;
+    taskIxRegister_.get()[vertex->ix()][firing] = taskIx;
 }
 
 void spider::srless::GraphFiring::resolveBRV() {
@@ -100,18 +96,20 @@ void spider::srless::GraphFiring::resolveBRV() {
     for (const auto &vertex : parent_->graph()->vertices()) {
         const auto ix = vertex->ix();
         const auto rvValue = vertex->repetitionValue();
-        if (brv_.at(ix) != rvValue) {
-            brv_[ix] = static_cast<u32>(rvValue);
-            deallocate(taskIxRegister_.at(ix));
-            taskIxRegister_[ix] = spider::allocate<u32, StackID::TRANSFO>(rvValue);
+        if (brv_.get()[ix] != rvValue) {
+            brv_.get()[ix] = rvValue;
+            deallocate(taskIxRegister_.get()[ix]);
+            taskIxRegister_.get()[ix] = spider::make_n<u32, StackID::TRANSFO>(rvValue, UINT32_MAX);
+        } else {
+            /* == reset values == */
+            std::fill(taskIxRegister_.get()[ix], taskIxRegister_.get()[ix] + rvValue, UINT32_MAX);
         }
-        std::fill(taskIxRegister_.at(ix), std::next(taskIxRegister_.at(ix), rvValue), UINT32_MAX);
     }
     /* == creates children == */
     for (const auto &subgraph : parent_->graph()->subgraphs()) {
         const auto ix = subgraph->ix();
-        const auto rvValue = brv_.at(ix);
-        auto &currentGraphHandler = subgraphHandlers_.at(subgraph->subIx());
+        const auto rvValue = brv_.get()[ix];
+        auto &currentGraphHandler = subgraphHandlers_.get()[subgraph->subIx()];
         if (!currentGraphHandler || (rvValue != currentGraphHandler->repetitionCount())) {
             destroy(currentGraphHandler);
             currentGraphHandler = spider::make<GraphHandler>(subgraph, subgraph->params(), rvValue, this);
@@ -120,8 +118,8 @@ void spider::srless::GraphFiring::resolveBRV() {
     /* == Save the rates == */
     for (const auto &edge : parent_->graph()->edges()) {
         const auto ix = edge->ix();
-        rates_.at(ix).srcRate_ = edge->sourceRateValue();
-        rates_.at(ix).snkRate_ = edge->sinkRateValue();
+        rates_.get()[ix].srcRate_ = edge->sourceRateValue();
+        rates_.get()[ix].snkRate_ = edge->sinkRateValue();
     }
     resolved_ = true;
 }
@@ -129,18 +127,26 @@ void spider::srless::GraphFiring::resolveBRV() {
 void spider::srless::GraphFiring::clear() {
     for (const auto &vertex : parent_->graph()->vertices()) {
         const auto ix = vertex->ix();
-        const auto rvValue = brv_.at(ix);
+        const auto rvValue = brv_.get()[ix];
         if (rvValue != UINT32_MAX) {
-            std::fill(taskIxRegister_.at(ix), std::next(taskIxRegister_.at(ix), brv_.at(ix)), UINT32_MAX);
+            std::fill(taskIxRegister_.get()[ix], taskIxRegister_.get()[ix] + brv_.get()[ix], UINT32_MAX);
         }
     }
-    for (auto &graphHandler : subgraphHandlers_) {
+    for (auto &graphHandler : subgraphFirings()) {
         if (graphHandler) {
             graphHandler->clear();
         }
     }
     paramResolvedCount_ = 0;
     resolved_ = false;
+}
+
+spider::array_handle<spider::srless::GraphHandler *> spider::srless::GraphFiring::subgraphFirings() const {
+    return make_handle(subgraphHandlers_.get(), parent_->graph()->subgraphCount());
+}
+
+spider::array_handle<spider::srless::GraphHandler *> spider::srless::GraphFiring::subgraphFirings() {
+    return make_handle(subgraphHandlers_.get(), parent_->graph()->subgraphCount());
 }
 
 int64_t spider::srless::GraphFiring::getSourceRate(const pisdf::Edge *edge) const {
@@ -150,7 +156,7 @@ int64_t spider::srless::GraphFiring::getSourceRate(const pisdf::Edge *edge) cons
     }
 #endif
     // TODO:: add possibility to switch off this optim with compiler flag
-    return rates_.at(edge->ix()).srcRate_;
+    return rates_.get()[edge->ix()].srcRate_;
 }
 
 int64_t spider::srless::GraphFiring::getSinkRate(const pisdf::Edge *edge) const {
@@ -160,7 +166,7 @@ int64_t spider::srless::GraphFiring::getSinkRate(const pisdf::Edge *edge) const 
     }
 #endif
     // TODO:: add possibility to switch off this optim with compiler flag
-    return rates_.at(edge->ix()).snkRate_;
+    return rates_.get()[edge->ix()].snkRate_;
 }
 
 u32 spider::srless::GraphFiring::getRV(const spider::pisdf::Vertex *vertex) const {
@@ -172,7 +178,7 @@ u32 spider::srless::GraphFiring::getRV(const spider::pisdf::Vertex *vertex) cons
     if (vertex->subtype() == pisdf::VertexType::INPUT || vertex->subtype() == pisdf::VertexType::OUTPUT) {
         return 1;
     }
-    return brv_.at(vertex->ix());
+    return brv_.get()[vertex->ix()];
 }
 
 u32 spider::srless::GraphFiring::getTaskIx(const spider::pisdf::Vertex *vertex, u32 firing) const {
@@ -181,7 +187,7 @@ u32 spider::srless::GraphFiring::getTaskIx(const spider::pisdf::Vertex *vertex, 
         throwSpiderException("invalid vertex firing.");
     }
 #endif
-    return taskIxRegister_.at(vertex->ix())[firing];
+    return taskIxRegister_.get()[vertex->ix()][firing];
 }
 
 const spider::srless::GraphFiring *
@@ -191,18 +197,18 @@ spider::srless::GraphFiring::getSubgraphGraphFiring(const pisdf::Graph *subgraph
         throwSpiderException("subgraph does not belong to this graph.");
     }
 #endif
-    return subgraphHandlers_[subgraph->subIx()]->firings()[firing];
+    return subgraphHandlers_.get()[subgraph->subIx()]->firings()[firing];
 }
 
-int64_t spider::srless::GraphFiring::getParamValue(size_t ix) {
-    return spider::get_at(params_, ix)->value(params_);
+const spider::vector<std::shared_ptr<spider::pisdf::Param>> &spider::srless::GraphFiring::getParams() const {
+    return params_;
 }
 
 void spider::srless::GraphFiring::setParamValue(size_t ix, int64_t value) {
     spider::get_at(params_, ix)->setValue(value);
     paramResolvedCount_++;
     if (paramResolvedCount_ == dynamicParamCount_) {
-        for (auto *subHandler : subgraphHandlers_) {
+        for (auto *subHandler : subgraphFirings()) {
             for (auto *firing : subHandler->firings()) {
                 if (!firing->isResolved()) {
                     firing->resolveBRV();
