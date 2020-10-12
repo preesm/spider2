@@ -54,7 +54,6 @@ class runtimeMonoTest : public ::testing::Test {
 protected:
     void SetUp() override {
         spider::start();
-        spider::api::enableVerbose();
         spider::api::enableExportSRDAG();
         spider::api::enableExportGantt();
         /* == Create the mono core platform == */
