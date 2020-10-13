@@ -87,13 +87,13 @@ namespace spider {
              * @brief Get the setter vertex of the delay.
              * @return @refitem Spider::PiSDF::Vertex connected to the delay.
              */
-            inline Vertex *setter() const { return setter_; }
+            const Vertex *setter() const;
 
             /**
              * @brief Get the getter vertex of the delay.
              * @return @refitem Spider::PiSDF::Vertex connected to the delay.
              */
-            inline Vertex *getter() const { return getter_; }
+            const Vertex *getter() const;
 
             /**
              * @brief Return the port ix on which the delay is connected to the setter.
@@ -164,8 +164,6 @@ namespace spider {
             MemoryInterface *memoryInterface_{ nullptr }; /* = Memory interface on which the delay is allocated = */
             Edge *edge_{ nullptr };                /* = Edge associated to the Delay = */
             Vertex *vertex_{ nullptr };            /* = Virtual vertex created for consistency evaluation = */
-            Vertex *setter_{ nullptr };            /* = Setter of the Delay = */
-            Vertex *getter_{ nullptr };            /* = Getter of the Delay = */
             size_t setterPortIx_{ 0 };             /* = Input port ix of the setter connected to the Delay = */
             size_t getterPortIx_{ 0 };             /* = Ouput port ix of the getter connected to the Delay = */
             bool persistent_{ true };              /* = Persistence property of the Delay = */

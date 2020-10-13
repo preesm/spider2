@@ -54,8 +54,6 @@ spider::pisdf::Delay::Delay(int64_t value, Edge *edge,
                             Vertex *getter, size_t getterPortIx, Expression getterRateExpression,
                             bool persistent) : value_{ value },
                                                edge_{ edge },
-                                               setter_{ setter },
-                                               getter_{ getter },
                                                setterPortIx_{ setterPortIx },
                                                getterPortIx_{ getterPortIx },
                                                persistent_{ persistent } {
@@ -69,27 +67,27 @@ spider::pisdf::Delay::Delay(int64_t value, Edge *edge,
     }
 
     /* == If no setter is provided then an INIT is created == */
-    if (!setter_) {
+    if (!setter) {
         setterPortIx_ = 0; /* = Ensure the proper value of the port ix = */
-        setter_ = api::createInit(edge->graph(),
-                                  "init::" + edge->sink()->name() + ":" + std::to_string(edge->sinkPortIx()));
+        setter = api::createInit(edge->graph(),
+                                 "init::" + edge->sink()->name() + ":" + std::to_string(edge->sinkPortIx()));
     }
 
     /* == If no getter is provided then an END is created == */
-    if (!getter_) {
+    if (!getter) {
         getterPortIx_ = 0; /* = Ensure the proper value of the port ix = */
-        getter_ = api::createEnd(edge->graph(),
-                                 "end::" + edge->source()->name() + ":" + std::to_string(edge->sourcePortIx()));
+        getter = api::createEnd(edge->graph(),
+                                "end::" + edge->source()->name() + ":" + std::to_string(edge->sourcePortIx()));
     }
 
     /* == Set init / end of persistent delays only mappable on PE of the same cluster of the GRT for memory reason == */
     if (persistent && archi::platform()) {
-        api::setVertexMappableOnAllPE(setter_, false);
-        api::setVertexMappableOnAllPE(getter_, false);
+        api::setVertexMappableOnAllPE(setter, false);
+        api::setVertexMappableOnAllPE(getter, false);
         const auto *grt = archi::platform()->spiderGRTPE();
         for (auto &pe : grt->cluster()->peArray()) {
-            api::setVertexMappableOnPE(setter_, pe->virtualIx(), true);
-            api::setVertexMappableOnPE(getter_, pe->virtualIx(), true);
+            api::setVertexMappableOnPE(setter, pe->virtualIx(), true);
+            api::setVertexMappableOnPE(getter, pe->virtualIx(), true);
         }
     }
 
@@ -97,10 +95,10 @@ spider::pisdf::Delay::Delay(int64_t value, Edge *edge,
     vertex_ = make<DelayVertex, StackID::PISDF>(this->name(), this);
     edge->graph()->addVertex(vertex_);
 
-    auto *setterEdge = make<Edge, StackID::PISDF>(setter_, setterPortIx_, std::move(setterRateExpression),
+    auto *setterEdge = make<Edge, StackID::PISDF>(setter, setterPortIx_, std::move(setterRateExpression),
                                                   vertex_, 0u, Expression(value));
     auto *getterEdge = make<Edge, StackID::PISDF>(vertex_, 0u, Expression(value),
-                                                  getter_, getterPortIx_, std::move(getterRateExpression));
+                                                  getter, getterPortIx_, std::move(getterRateExpression));
 
     /* == Add things to the graph == */
     edge->graph()->addEdge(setterEdge);
@@ -121,9 +119,16 @@ std::string spider::pisdf::Delay::name() const {
            edge_->sink()->name() + ":" + std::to_string(edge_->sinkPortIx());
 }
 
-
 int64_t spider::pisdf::Delay::value() const {
     return value_;
+}
+
+const spider::pisdf::Vertex *spider::pisdf::Delay::setter() const {
+    return vertex_->inputEdge(0)->source();
+}
+
+const spider::pisdf::Vertex *spider::pisdf::Delay::getter() const {
+    return vertex_->outputEdge(0)->sink();
 }
 
 int64_t spider::pisdf::Delay::setterRate(const spider::vector<std::shared_ptr<Param>> &params) const {
