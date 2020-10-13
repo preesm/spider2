@@ -72,6 +72,8 @@ enum class RPNOperatorType : uint8_t {
     MOD,        /*!< Modulo operator */
     POW,        /*!< Power operator */
     FACT,       /*!< Factorial operator */
+    NOT_EQUAL,  /*!< NOT_EQUAL function (a,b) return 1 if a != b */
+    EQUAL,      /*!< EQUAL function (a,b) return 1 if a == b */
     GREATER,    /*!< Greater than function (a,b) return 1 if a > b */
     GEQ,        /*!< Greater than or equal function (a,b) return 1 if a >= b */
     LESS,       /*!< Less than function (a,b) return 1 if a < b */

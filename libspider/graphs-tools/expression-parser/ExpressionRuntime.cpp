@@ -290,6 +290,10 @@ spider::Expression::makeBinaryFunction(RPNOperatorType type, Args &&... args) co
             return function<numeric::details::land>(std::forward<Args>(args)...);
         case RPNOperatorType::LOG_OR:
             return function<numeric::details::lor>(std::forward<Args>(args)...);
+        case RPNOperatorType::NOT_EQUAL:
+            return function<numeric::details::neq>(std::forward<Args>(args)...);
+        case RPNOperatorType::EQUAL:
+            return function<numeric::details::eq>(std::forward<Args>(args)...);
         case RPNOperatorType::GREATER:
             return function<numeric::details::gt>(std::forward<Args>(args)...);
         case RPNOperatorType::GEQ:
