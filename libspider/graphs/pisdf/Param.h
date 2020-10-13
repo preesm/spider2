@@ -105,14 +105,14 @@ namespace spider {
                 if (mpark::holds_alternative<param_t>(internal_)) {
                     return mpark::get<param_t>(internal_)->value();
                 } else if (mpark::holds_alternative<Expression>(internal_)) {
-                    return mpark::get<Expression>(internal_).evaluate();
+                    return mpark::get<Expression>(internal_).value();
                 }
                 return mpark::get<int64_t>(internal_);
             }
 
             inline int64_t value(const vector <std::shared_ptr<Param>> &params) const {
                 if (mpark::holds_alternative<param_t>(internal_)) {
-                    return mpark::get<param_t>(internal_)->value(params);
+                    return mpark::get<param_t>(internal_)->value();
                 } else if (mpark::holds_alternative<Expression>(internal_)) {
                     return mpark::get<Expression>(internal_).evaluate(params);
                 }
