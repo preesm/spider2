@@ -65,7 +65,9 @@ spider::pisdf::Edge::Edge(Vertex *source, size_t srcIx, Expression srcExpr,
 }
 
 std::string spider::pisdf::Edge::name() const {
-    return "edge_" + src_->name() + "-" + snk_->name();
+    auto srcName = std::string(src_->name()).append(":").append(std::to_string(srcPortIx_));
+    auto snkName = std::string(snk_->name()).append(":").append(std::to_string(snkPortIx_));
+    return std::string("edge_").append(srcName).append("-").append(snkName);
 }
 
 spider::pisdf::Graph *spider::pisdf::Edge::graph() const {
