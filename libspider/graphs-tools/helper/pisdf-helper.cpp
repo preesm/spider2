@@ -226,11 +226,18 @@ static spider::unique_ptr<i64> buildDuplicateRuntimeInputParameters(const spider
 static spider::unique_ptr<i64> buildInitRuntimeInputParameters(const spider::pisdf::Vertex *vertex) {
     auto outParams = spider::make_unique(spider::allocate<i64, StackID::RUNTIME>(3u));
     const auto *reference = vertex->reference();
-    const auto *delayVertex = reference->outputEdge(0u)->sink()->convertTo<spider::pisdf::DelayVertex>();
-    const auto *delay = delayVertex->delay();
-    outParams.get()[0] = delay->isPersistent();                    /* = Persistence property = */
-    outParams.get()[1] = delay->value();                           /* = Value of the delay = */
-    outParams.get()[2] = static_cast<i64>(delay->memoryAddress()); /* = Memory address (may be unused) = */
+    const auto *sink = reference->outputEdge(0u)->sink();
+    if (sink->subtype() == spider::pisdf::VertexType::DELAY) {
+        const auto *delayVertex = sink->convertTo<spider::pisdf::DelayVertex>();
+        const auto *delay = delayVertex->delay();
+        outParams.get()[0] = delay->isPersistent();                    /* = Persistence property = */
+        outParams.get()[1] = delay->value();                           /* = Value of the delay = */
+        outParams.get()[2] = static_cast<i64>(delay->memoryAddress()); /* = Memory address (may be unused) = */
+    } else {
+        outParams.get()[0] = 0;
+        outParams.get()[1] = 0;
+        outParams.get()[2] = 0;
+    }
     return outParams;
 }
 
@@ -242,11 +249,18 @@ static spider::unique_ptr<i64> buildInitRuntimeInputParameters(const spider::pis
 static spider::unique_ptr<i64> buildEndRuntimeInputParameters(const spider::pisdf::Vertex *vertex) {
     auto outParams = spider::make_unique(spider::allocate<i64, StackID::RUNTIME>(3u));
     const auto *reference = vertex->reference();
-    const auto *delayVertex = reference->inputEdge(0u)->source()->convertTo<spider::pisdf::DelayVertex>();
-    const auto *delay = delayVertex->delay();
-    outParams.get()[0] = delay->isPersistent();                    /* = Persistence property = */
-    outParams.get()[1] = delay->value();                           /* = Value of the delay = */
-    outParams.get()[2] = static_cast<i64>(delay->memoryAddress()); /* = Memory address (may be unused) = */
+    const auto *source = reference->inputEdge(0u)->source();
+    if (source->subtype() == spider::pisdf::VertexType::DELAY) {
+        const auto *delayVertex = source->convertTo<spider::pisdf::DelayVertex>();
+        const auto *delay = delayVertex->delay();
+        outParams.get()[0] = delay->isPersistent();                    /* = Persistence property = */
+        outParams.get()[1] = delay->value();                           /* = Value of the delay = */
+        outParams.get()[2] = static_cast<i64>(delay->memoryAddress()); /* = Memory address (may be unused) = */
+    } else {
+        outParams.get()[0] = 0;
+        outParams.get()[1] = 0;
+        outParams.get()[2] = 0;
+    }
     return outParams;
 }
 
@@ -291,43 +305,75 @@ void spider::pisdf::separateRunGraphFromInit(Graph *graph) {
     }
 
     /* == Compute the input interface count for both graphs == */
-    ufast32 cfg2OutputIfCount = 0;
     ufast32 cfg2RunIfCount = 0;
-    ufast32 inputIf2CfgCount = 0;
     for (const auto &cfg : graph->configVertices()) {
         for (const auto &edge : cfg->inputEdges()) {
-            const auto &source = edge->source();
-            if (source->subtype() != pisdf::VertexType::INPUT) {
+            if (edge->source()->subtype() != pisdf::VertexType::INPUT && edge->source() != cfg) {
                 throwSpiderException("Config vertex can not have source of type other than interface.");
             }
-            inputIf2CfgCount++;
         }
         for (const auto &edge : cfg->outputEdges()) {
             auto isOutputIf = edge->sink()->subtype() == pisdf::VertexType::OUTPUT;
-            cfg2OutputIfCount += (isOutputIf);
-            cfg2RunIfCount += (!isOutputIf);
+            cfg2RunIfCount += !isOutputIf && (edge->sink() != cfg);
         }
     }
-    const auto runInputIfCount = graph->inputEdgeCount() + cfg2RunIfCount - inputIf2CfgCount;
-    const auto runOutputIfCount = graph->outputEdgeCount() - cfg2OutputIfCount;
+    ufast32 inputIFNotForRun = 0;
+    for (const auto &input : graph->inputInterfaceVector()) {
+        const auto *edge = input->edge();
+        if (edge->sink()->subtype() == VertexType::CONFIG) {
+            inputIFNotForRun++;
+        } else if (edge->sink()->subtype() == VertexType::DELAY) {
+            const auto *delayVertex = edge->sink()->convertTo<DelayVertex>();
+            const auto *delayEdge = delayVertex->delay()->edge();
+            if (delayEdge->sink()->subtype() == VertexType::CONFIG ||
+                delayEdge->source()->subtype() == VertexType::CONFIG) {
+                inputIFNotForRun++;
+            }
+        }
+    }
+    ufast32 outputIFNotForRun = 0;
+    for (const auto &output : graph->outputInterfaceVector()) {
+        const auto *edge = output->edge();
+        if (edge->source()->subtype() == VertexType::CONFIG) {
+            outputIFNotForRun++;
+        } else if (edge->source()->subtype() == VertexType::DELAY) {
+            const auto *delayVertex = edge->source()->convertTo<DelayVertex>();
+            const auto *delayEdge = delayVertex->delay()->edge();
+            if (delayEdge->sink()->subtype() == VertexType::CONFIG ||
+                delayEdge->source()->subtype() == VertexType::CONFIG) {
+                outputIFNotForRun++;
+            }
+        }
+    }
+    const auto runInputIfCount = graph->inputEdgeCount() + cfg2RunIfCount - inputIFNotForRun;
+    const auto runOutputIfCount = graph->outputEdgeCount() - outputIFNotForRun;
 
     /* == Create the run subgraph == */
     auto *runGraph = api::createGraph("run", graph->vertexCount(), graph->edgeCount(), graph->paramCount(),
                                       runInputIfCount, runOutputIfCount);
 
     /* == Move the edges == */
-    auto itEdge = graph->edges().begin();
-    while (graph->edgeCount() != (inputIf2CfgCount + cfg2OutputIfCount)) {
-        const auto *source = itEdge->get()->source();
-        const auto *sink = itEdge->get()->sink();
-        if (sink->subtype() == pisdf::VertexType::CONFIG ||
-            (sink->subtype() == pisdf::VertexType::OUTPUT &&
-             source->subtype() == pisdf::VertexType::CONFIG)) {
-            itEdge++;
-        } else {
-            graph->moveEdge(itEdge->get(), runGraph);
-            itEdge = graph->edges().begin();
+    auto edgeIT = std::begin(graph->edges());
+    while (edgeIT != std::end(graph->edges())) {
+        auto *edge = edgeIT->get();
+        const auto *src = edge->source();
+        const auto *snk = edge->sink();
+        if ((snk->subtype() == VertexType::CONFIG) ||
+            (src->subtype() == VertexType::CONFIG && snk->subtype() == VertexType::OUTPUT)) {
+            edgeIT++;
+            continue;
+        } else if (snk->subtype() == VertexType::DELAY || src->subtype() == VertexType::DELAY) {
+            /* == Skip self loop on cfg == */
+            const auto *delayVertex =
+                    src->subtype() == VertexType::DELAY ? src->convertTo<DelayVertex>() : snk->convertTo<DelayVertex>();
+            const auto *delayEdge = delayVertex->delay()->edge();
+            if (delayEdge->sink() == delayEdge->source() && (delayEdge->sink()->subtype() == VertexType::CONFIG)) {
+                edgeIT++;
+                continue;
+            }
         }
+        graph->moveEdge(edge, runGraph);
+        edgeIT = std::begin(graph->edges());
     }
 
     /* == Move the subgraphs == */
@@ -336,48 +382,64 @@ void spider::pisdf::separateRunGraphFromInit(Graph *graph) {
     }
 
     /* == Move the vertices == */
-    auto itVertex = graph->vertices().begin();
-    while (graph->vertexCount() != graph->configVertexCount()) {
+    auto itVertex = std::begin(graph->vertices());
+    while (itVertex != std::end(graph->vertices())) {
         if ((*itVertex)->subtype() == pisdf::VertexType::CONFIG) {
             itVertex++;
-        } else {
-            graph->moveVertex(itVertex->get(), runGraph);
-            itVertex = graph->vertices().begin();
+            continue;
+        } else if ((*itVertex)->subtype() == VertexType::DELAY) {
+            const auto *delayVertex = (*itVertex)->convertTo<DelayVertex>();
+            const auto *delayEdge = delayVertex->delay()->edge();
+            if (delayEdge->sink() == delayEdge->source() && (delayEdge->sink()->subtype() == VertexType::CONFIG)) {
+                itVertex++;
+                continue;
+            }
         }
+        graph->moveVertex(itVertex->get(), runGraph);
+        itVertex = std::begin(graph->vertices());
     }
 
     /* == Add run graph == */
     graph->addVertex(runGraph);
 
     /* == Reconnect Edges from input interfaces == */
-    auto inputRunIx = reconnectInterface(graph->inputInterfaceVector(),
-                                         [&runGraph](pisdf::Interface *input, pisdf::Edge *edge, ufast32 ix) {
-                                             auto expr = edge->sourceRateExpression();
-                                             /* == Change source of original edge to run graph interface == */
-                                             edge->setSource(runGraph->inputInterface(ix), 0u, expr);
-                                             edge->source()->setName(input->name());
-                                             /* == Create an edge with the original interface == */
-                                             return make<pisdf::Edge, StackID::PISDF>(input, 0u, expr,
-                                                                                      runGraph, ix, std::move(expr));
-                                         });
+    ufast32 inputRunIx = 0;
+    for (const auto &input : graph->inputInterfaceVector()) {
+        auto *edge = input->edge();
+        const auto *sink = edge->sink();
+        if (sink->graph() == runGraph) {
+            auto expr = edge->sourceRateExpression();
+            /* == Change source of original edge to run graph interface == */
+            edge->setSource(runGraph->inputInterface(inputRunIx), 0u, expr);
+            edge->source()->setName(input->name());
+            /* == Create an edge with the original interface == */
+            graph->addEdge(
+                    make<pisdf::Edge, StackID::PISDF>(input.get(), 0u, expr, runGraph, inputRunIx, std::move(expr)));
+            inputRunIx++;
+        }
+    }
 
     /* == Reconnect Edges from output interfaces == */
-    reconnectInterface(graph->outputInterfaceVector(),
-                       [&runGraph](pisdf::Interface *output, pisdf::Edge *edge, ufast32 ix) {
-                           auto expr = edge->sinkRateExpression();
-                           /* == Change sink of original edge to run graph interface == */
-                           edge->setSink(runGraph->outputInterface(ix), 0u, expr);
-                           edge->sink()->setName(output->name());
-                           /* == Create an edge with the original interface == */
-                           return make<pisdf::Edge, StackID::PISDF>(runGraph, ix, expr,
-                                                                    output, 0u, std::move(expr));
-                       });
+    size_t ix = 0;
+    for (const auto &output : graph->outputInterfaceVector()) {
+        auto *edge = output->edge();
+        const auto *source = edge->source();
+        if (source->graph() == runGraph) {
+            auto expr = edge->sinkRateExpression();
+            /* == Change sink of original edge to run graph interface == */
+            edge->setSink(runGraph->outputInterface(ix), 0u, expr);
+            edge->sink()->setName(output->name());
+            /* == Create an edge with the original interface == */
+            graph->addEdge(make<pisdf::Edge, StackID::PISDF>(runGraph, ix, expr, output.get(), 0u, std::move(expr)));
+            ix++;
+        }
+    }
 
     /* == Connect the output edges of config vertices == */
     for (auto &cfg : graph->configVertices()) {
         for (auto edge : cfg->outputEdges()) {
             const auto &sink = edge->sink();
-            if (sink->subtype() != pisdf::VertexType::OUTPUT) {
+            if (sink->subtype() != pisdf::VertexType::OUTPUT && sink != cfg) {
                 const auto srcRate = edge->sourceRateValue(); /* = Config actors can not have dynamic rate = */
                 const auto srcPortIx = edge->sourcePortIx();
                 /* == Connect input interface to vertex in run graph == */

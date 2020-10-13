@@ -164,6 +164,9 @@ void spider::rt::duplicate(const int64_t *paramsIn, const int64_t *, void **in, 
 void spider::rt::init(const int64_t *paramsIn, const int64_t *, void **, void **out) {
     const auto isPersistent = paramsIn[0];
     const auto size = paramsIn[1];
+    if (!size) {
+        return;
+    }
     if (!isPersistent) {
         std::memset(out[0], 0, static_cast<size_t>(size));
     } else {
