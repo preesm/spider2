@@ -8,6 +8,7 @@ file(GLOB_RECURSE
         ../main.cpp
         runtimeAppTests.cpp
         runtimeMonoTest.cpp
+        runtimeMonoTestSRLess.cpp
         RuntimeTestCases.cpp
         RuntimeTestCases.h
         )

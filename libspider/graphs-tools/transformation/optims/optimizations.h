@@ -35,6 +35,8 @@
 #ifndef SPIDER2_OPTIMIZATIONS_H
 #define SPIDER2_OPTIMIZATIONS_H
 
+#ifndef _NO_BUILD_LEGACY_RT
+
 /* === Include(s) === */
 
 namespace spider {
@@ -125,5 +127,5 @@ namespace spider {
         bool reduceUnitaryRateActors(const pisdf::Graph *graph);
     }
 }
-
+#endif
 #endif //SPIDER2_OPTIMIZATIONS_H

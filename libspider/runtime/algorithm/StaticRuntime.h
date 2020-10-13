@@ -35,6 +35,8 @@
 #ifndef SPIDER2_STATICRUNTIME_H
 #define SPIDER2_STATICRUNTIME_H
 
+#ifndef _NO_BUILD_LEGACY_RT
+
 /* === Include(s) === */
 
 #include <runtime/algorithm/Runtime.h>
@@ -49,7 +51,6 @@ namespace spider {
         class ResourcesAllocator;
     }
 
-
     /* === Class definition === */
 
     /**
@@ -57,11 +58,7 @@ namespace spider {
      */
     class StaticRuntime final : public Runtime {
     public:
-        explicit StaticRuntime(pisdf::Graph *graph,
-                               SchedulingPolicy schedulingPolicy = SchedulingPolicy::LIST,
-                               MappingPolicy mappingPolicy = MappingPolicy::BEST_FIT,
-                               ExecutionPolicy executionPolicy = ExecutionPolicy::DELAYED,
-                               FifoAllocatorType allocatorType = FifoAllocatorType::DEFAULT);
+        explicit StaticRuntime(pisdf::Graph *graph, const RuntimeConfig &cfg);
 
         ~StaticRuntime() override = default;
 
@@ -96,5 +93,5 @@ namespace spider {
         void run();
     };
 }
-
+#endif
 #endif //SPIDER2_STATICRUNTIME_H

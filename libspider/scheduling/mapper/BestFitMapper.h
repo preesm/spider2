@@ -39,7 +39,7 @@
 
 #include <scheduling/mapper/Mapper.h>
 #include <scheduling/schedule/ScheduleStats.h>
-#include <scheduling/task/TaskSync.h>
+#include <scheduling/task/SyncTask.h>
 
 namespace spider {
 
@@ -59,7 +59,7 @@ namespace spider {
 
             /* === Method(s) === */
 
-            void map(TaskVertex *task, Schedule *schedule) override;
+            void map(Task *task, Schedule *schedule) override;
 
             /* === Getter(s) === */
 
@@ -78,42 +78,19 @@ namespace spider {
             /* === Private method(s) === */
 
             /**
-             * @brief Compute the minimum start time possible for a given vertex.
-             * @param vertex    Pointer to the vertex.
-             * @param schedule  Pointer to the schedule.
-             * @return value of the minimum start time possible
-             */
-            ufast64 computeStartTime(const pisdf::Vertex *vertex, Schedule *schedule) const;
-
-            /**
              * @brief Find which PE is the best fit inside a given cluster.
              * @param cluster       Cluster to go through.
-             * @param constraints   Runtime constraints of the task to map.
              * @param stats         Schedule information about current usage of PEs.
              * @param minStartTime  Lower bound for start time.
+             * @param task          Pointer to the task.
              * @return best fit PE found, nullptr if no fit was found.
              */
-            const PE *findBestFitPE(const Cluster *cluster,
-                                    const Stats &stats,
-                                    ufast64 minStartTime,
-                                    const std::function<bool(const PE *)> &isPEMappable,
-                                    const std::function<u64(const PE *)> &timingOnPE) const;
+            const PE *
+            findBestFitPE(const Cluster *cluster, const Stats &stats, ufast64 minStartTime, const Task *task) const;
 
-            /**
-             * @brief Compute the communication cost and the data size that would need to be send if a vertex is mapped
-             *        on a given PE.
-             * @param vertex    Pointer to the vertex.
-             * @param mappedPE  PE on which the vertex is currently mapped.
-             * @param schedule  Pointer to the schedule.
-             * @return pair containing the communication cost as first and the total size of data to send as second.
-             */
-            std::pair<ufast64, ufast64> computeComputationCost(const pisdf::Vertex *vertex,
-                                                               const PE *mappedPE,
-                                                               const Schedule *schedule);
+            void mapCommunications(Task *task, const Cluster *cluster, Schedule *schedule);
 
-            void mapCommunications(TaskVertex *task, const Cluster *cluster, Schedule *schedule);
-
-            TaskSync *insertCommunicationTask(const Cluster *cluster,
+            SyncTask *insertCommunicationTask(const Cluster *cluster,
                                               const Cluster *distCluster,
                                               ufast64 dataSize,
                                               Task *previousTask,

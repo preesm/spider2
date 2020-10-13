@@ -79,7 +79,7 @@ protected:
 TEST_F(runtimeAppTest, TestStabilization) {
     auto context = spider::createRuntimeContext(graph_, spider::RuntimeConfig{
             spider::RunMode::LOOP,
-            spider::RuntimeType::JITMS,
+            spider::RuntimeType::SRDAG_BASED,
             spider::ExecutionPolicy::DELAYED,
             spider::SchedulingPolicy::LIST,
             spider::MappingPolicy::BEST_FIT,
@@ -93,7 +93,7 @@ TEST_F(runtimeAppTest, TestStabilization) {
 TEST_F(runtimeAppTest, TestStabilizationNoSync) {
     auto context = spider::createRuntimeContext(graph_, spider::RuntimeConfig{
             spider::RunMode::LOOP,
-            spider::RuntimeType::JITMS,
+            spider::RuntimeType::SRDAG_BASED,
             spider::ExecutionPolicy::DELAYED,
             spider::SchedulingPolicy::LIST,
             spider::MappingPolicy::BEST_FIT,

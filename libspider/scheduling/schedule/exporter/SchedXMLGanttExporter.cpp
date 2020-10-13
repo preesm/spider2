@@ -32,6 +32,8 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
+ #ifndef _NO_BUILD_GANTT_EXPORTER
+
 /* === Include(s) === */
 
 #include <scheduling/schedule/exporter/SchedXMLGanttExporter.h>
@@ -92,3 +94,4 @@ void spider::SchedXMLGanttExporter::printFromTasks(const vector<GanttTask> &task
     printer::fprintf(file, "</data>\n");
     std::fclose(file);
 }
+ #endif

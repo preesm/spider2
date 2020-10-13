@@ -35,6 +35,8 @@
 #ifndef SPIDER2_SINGLERATETRANSFORMER_H
 #define SPIDER2_SINGLERATETRANSFORMER_H
 
+#ifndef _NO_BUILD_LEGACY_RT
+
 /* === Include(s) === */
 
 #include <graphs-tools/transformation/srdag/TransfoJob.h>
@@ -216,5 +218,5 @@ namespace spider {
         };
     }
 }
-
+#endif
 #endif //SPIDER2_SINGLERATETRANSFORMER_H

@@ -65,9 +65,11 @@ namespace spider {
         array_handle() = default;
 
         array_handle(T *data, size_type size) : data_{ data }, size_{ size } {
+#ifndef NDEBUG
             if (!data && size) {
                 throwSpiderException("unsafe array handle created with nullptr data and size != 0.");
             }
+#endif
         }
 
         array_handle(const array_handle &) = default;
@@ -127,12 +129,16 @@ namespace spider {
          * @throws std::out_of_range if !(pos < size()).
          */
         inline reference at(size_type pos) {
+#ifndef NDEBUG
             if (pos >= size()) { throw std::out_of_range("array out of bound."); }
+#endif
             return data_[pos];
         }
 
         inline const_reference at(size_type pos) const {
+#ifndef NDEBUG
             if (pos >= size()) { throw std::out_of_range("array out of bound."); }
+#endif
             return data_[pos];
         }
 
@@ -276,7 +282,7 @@ namespace spider {
         size_type size_ = 0;
     };
 
-    template <class T>
+    template<class T>
     array_handle<T> make_handle(T *data, size_t size) {
         return array_handle<T>(data, size);
     }

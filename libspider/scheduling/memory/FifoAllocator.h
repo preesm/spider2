@@ -38,6 +38,7 @@
 /* === Include(s) === */
 
 #include <runtime/common/Fifo.h>
+#include <scheduling/memory/AllocationRule.h>
 #include <api/global-api.h>
 
 namespace spider {
@@ -67,7 +68,7 @@ namespace spider {
 
             FifoAllocatorTraits traits_;
 
-            FifoAllocator() : FifoAllocator({ true, true }) {}
+            FifoAllocator() : FifoAllocator({ true, true }) { }
 
             virtual ~FifoAllocator() noexcept = default;
 

@@ -32,8 +32,10 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_TASKSYNC_H
-#define SPIDER2_TASKSYNC_H
+#ifndef SPIDER2_VERTEXTASK_H
+#define SPIDER2_VERTEXTASK_H
+
+#ifndef _NO_BUILD_LEGACY_RT
 
 /* === Include(s) === */
 
@@ -41,85 +43,58 @@
 
 namespace spider {
 
-    class MemoryBus;
+    namespace pisdf {
+        class Vertex;
+    }
 
     namespace sched {
 
-        enum SyncType {
-            SEND,
-            RECEIVE
-        };
-
         /* === Class definition === */
 
-        class TaskSync final : public Task {
+        class VertexTask final : public Task {
         public:
-            explicit TaskSync(SyncType type);
+            explicit VertexTask(pisdf::Vertex *vertex);
 
-            ~TaskSync() noexcept override = default;
+            ~VertexTask() noexcept override = default;
 
-            /* === Method(s) === */
+            /* === Virtual method(s) === */
 
             AllocationRule allocationRuleForInputFifo(size_t ix) const override;
 
             AllocationRule allocationRuleForOutputFifo(size_t ix) const override;
 
-            Task *previousTask(size_t ix) const override;
-
             u32 color() const override;
 
             std::string name() const override;
 
-            inline void updateTaskExecutionDependencies(const Schedule *) override { }
-
-            void updateExecutionConstraints() override;
+            void updateTaskExecutionDependencies(const Schedule *schedule) override;
 
             JobMessage createJobMessage() const override;
 
+            bool isSyncOptimizable() const noexcept override;
+
+            void setIx(u32 ix) noexcept override;
+
+            std::pair<ufast64, ufast64> computeCommunicationCost(const PE *mappedPE) const override;
+
+            bool isMappableOnPE(const PE *pe) const override;
+
+            u64 timingOnPE(const PE *pe) const override;
+
+            size_t dependencyCount() const override;
+
             /* === Getter(s) === */
 
-            inline bool isSyncOptimizable() const noexcept override { return false; }
+            inline pisdf::Vertex *vertex() const { return vertex_; }
+
+            DependencyInfo getDependencyInfo(size_t ix) const override;
 
             /* === Setter(s) === */
 
-            /**
-             * @brief Set the task succeeding to this task.
-             * @param successor pointer to the successor.
-             */
-            void setSuccessor(Task *successor);
-
-            /**
-             * @brief Set the data size (in bytes) to send / receive.
-             * @param size Size of the data to send / receive
-             */
-            void setSize(size_t size);
-
-            /**
-             * @brief Set the index of the output port of the previous task
-             * @param ix index.
-             */
-            void setInputPortIx(u32 ix);
-
-            /**
-             * @brief Sets the memory bus attached to this synchronization task.
-             * @param bus pointer to the memory bus.
-             */
-            inline void setMemoryBus(const MemoryBus *bus) {
-                if (bus) {
-                    bus_ = bus;
-                }
-            }
-
-            void setExecutionDependency(size_t ix, Task *task) override;
-
         private:
-            Task *successor_{ nullptr };
-            const MemoryBus *bus_{ nullptr }; /*!< Memory bus used by the task */
-            size_t size_{ 0U };               /*!< Data size (in bytes) to send / receive. */
-            u32 inputPortIx_{ 0U };
-            SyncType type_;
+            pisdf::Vertex *vertex_;
         };
     }
 }
-
-#endif //SPIDER2_TASKSYNC_H
+#endif
+#endif //SPIDER2_VERTEXTASK_H

@@ -33,23 +33,25 @@
  * knowledge of the CeCILL license and that you accept its terms.
  */
 
+#ifndef _NO_BUILD_LEGACY_RT
+
 /* === Include(s) === */
 
 #include <runtime/algorithm/StaticRuntime.h>
 #include <runtime/runner/RTRunner.h>
 #include <runtime/platform/RTPlatform.h>
 #include <runtime/communicator/RTCommunicator.h>
-#include <api/runtime-api.h>
 #include <graphs-tools/transformation/srdag/Transformation.h>
 #include <graphs-tools/transformation/optims/optimizations.h>
-#include <monitor/Monitor.h>
-#include <api/config-api.h>
+#include <graphs-tools/helper/pisdf-helper.h>
 #include <scheduling/ResourcesAllocator.h>
 #include <scheduling/memory/FifoAllocator.h>
 #include <scheduling/schedule/exporter/SchedXMLGanttExporter.h>
 #include <scheduling/schedule/exporter/SchedStatsExporter.h>
 #include <scheduling/schedule/exporter/SchedSVGGanttExporter.h>
-#include <graphs-tools/helper/pisdf-helper.h>
+#include <api/runtime-api.h>
+#include <api/config-api.h>
+#include <api/spider.h>
 
 /* === Static function === */
 
@@ -64,17 +66,14 @@ updateJobStack(spider::vector<spider::srdag::TransfoJob> &src, spider::vector<sp
 
 /* === Private method(s) implementation === */
 
-spider::StaticRuntime::StaticRuntime(pisdf::Graph *graph,
-                                     SchedulingPolicy schedulingPolicy,
-                                     MappingPolicy mappingPolicy,
-                                     ExecutionPolicy executionPolicy,
-                                     FifoAllocatorType allocatorType) :
+spider::StaticRuntime::StaticRuntime(pisdf::Graph *graph, const RuntimeConfig &cfg) :
         Runtime(graph),
         srdag_{ make_unique<pisdf::Graph, StackID::RUNTIME>("srdag-" + graph->name()) },
-        ressourcesAllocator_{ make_unique<sched::ResourcesAllocator, StackID::RUNTIME>(schedulingPolicy,
-                                                                                       mappingPolicy,
-                                                                                       executionPolicy,
-                                                                                       allocatorType) } {
+        ressourcesAllocator_{ make_unique<sched::ResourcesAllocator, StackID::RUNTIME>(cfg.schedPolicy_,
+                                                                                       cfg.mapPolicy_,
+                                                                                       cfg.execPolicy_,
+                                                                                       cfg.allocType_,
+                                                                                       true) } {
     if (!rt::platform()) {
         throwSpiderException("JITMSRuntime need the runtime platform to be created.");
     }
@@ -90,6 +89,8 @@ bool spider::StaticRuntime::execute() {
         run();
     } else {
         applyTransformationAndRun();
+        srdag_->clear();
+        ressourcesAllocator_->clear();
     }
     iter_++;
     return true;
@@ -124,18 +125,20 @@ void spider::StaticRuntime::applyTransformationAndRun() {
     }
     TRACE_TRANSFO_END();
 
-    /* == Apply graph optimizations == */
-    if (api::shouldOptimizeSRDAG()) {
-        TRACE_TRANSFO_START();
-        optims::optimize(srdag_.get());
-        TRACE_TRANSFO_END();
-    }
-
     /* == Export srdag if needed  == */
     if (api::exportSRDAGEnabled()) {
         api::exportGraphToDOT(srdag_.get(), "./srdag.dot");
     }
 
+    /* == Apply graph optimizations == */
+    if (api::shouldOptimizeSRDAG()) {
+        TRACE_TRANSFO_START();
+        optims::optimize(srdag_.get());
+        TRACE_TRANSFO_END();
+        if (api::exportSRDAGEnabled()) {
+            api::exportGraphToDOT(srdag_.get(), "./srdag-optims.dot");
+        }
+    }
     /* == Update schedule, run and wait == */
     TraceMessage schedMsg{ };
     TRACE_SCHEDULE_START();
@@ -161,7 +164,7 @@ void spider::StaticRuntime::applyTransformationAndRun() {
 
     /* == Export post-exec gantt if needed  == */
     if (api::exportTraceEnabled()) {
-        useExecutionTraces(srdag_.get(), ressourcesAllocator_->schedule(), startIterStamp_);
+        useExecutionTraces(ressourcesAllocator_->schedule(), startIterStamp_);
     }
 }
 
@@ -183,6 +186,8 @@ void spider::StaticRuntime::run() {
     rt::platform()->sendResetToRunners();
     /* == Check if we need to re-schedule == */
     if (api::exportTraceEnabled()) {
-        useExecutionTraces(srdag_.get(), ressourcesAllocator_->schedule(), startIterStamp_);
+        fprintf(stderr, "static applications are not monitored beyond first iteration.\n");
     }
 }
+
+#endif

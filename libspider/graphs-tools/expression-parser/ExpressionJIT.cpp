@@ -39,7 +39,6 @@
 #include <graphs-tools/expression-parser/ExpressionJIT.h>
 #include <graphs-tools/expression-parser/helper/ExpressionNumeric.h>
 #include <graphs/pisdf/Param.h>
-#include <dlfcn.h>
 
 /* === Static function === */
 
@@ -92,7 +91,7 @@ spider::Expression::findParameter(const param_table_t &params, const std::string
 
 double
 spider::Expression::evaluateStatic(spider::vector<RPNElement>::const_reverse_iterator &iterator,
-                                   spider::vector<RPNElement>::const_reverse_iterator end,
+                                   const spider::vector<RPNElement>::const_reverse_iterator& end,
                                    const spider::Expression::param_table_t &params) {
     if (iterator == end) {
         throwSpiderException("invalid number of argument.");

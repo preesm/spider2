@@ -35,10 +35,59 @@
 /* === Include(s) === */
 
 #include <graphs-tools/numerical/dependencies.h>
+#include <graphs-tools/numerical/brv.h>
+#include <graphs-tools/helper/pisdf-helper.h>
+#include <graphs-tools/transformation/srless/GraphHandler.h>
+#include <graphs-tools/transformation/srless/GraphFiring.h>
+#include <graphs/pisdf/Graph.h>
+#include <graphs/pisdf/DelayVertex.h>
 #include <common/Math.h>
 #include <algorithm>
+#include <graphs-tools/numerical/detail/dependenciesImpl.h>
+
+/* === Static variable(s) === */
+
+/* === Static funtions definition === */
 
 /* === Function(s) definition === */
+
+spider::pisdf::DependencyIterator spider::pisdf::computeExecDependency(const Vertex *vertex,
+                                                                       u32 firing,
+                                                                       size_t edgeIx,
+                                                                       const srless::GraphFiring *handler) {
+#ifndef NDEBUG
+    if (!handler || !vertex) {
+        throwNullptrException();
+    }
+#endif
+    const auto *edge = vertex->inputEdge(edgeIx);
+    const auto snkRate = handler->getSinkRate(edge);
+    if (!snkRate) {
+        return DependencyIterator{{{ nullptr, nullptr, 0, 0, 0, 0, 0, 0 }}};
+    }
+    auto result = factory::vector<DependencyInfo>(StackID::TRANSFO);
+    detail::computeExecDependency(edge, snkRate * firing, snkRate * (firing + 1) - 1, handler, result);
+    return DependencyIterator{ std::move(result) };
+}
+
+spider::pisdf::DependencyIterator spider::pisdf::computeConsDependency(const Vertex *vertex,
+                                                                       u32 firing,
+                                                                       size_t edgeIx,
+                                                                       const spider::srless::GraphFiring *handler) {
+#ifndef NDEBUG
+    if (!handler || !vertex) {
+        throwNullptrException();
+    }
+#endif
+    const auto *edge = vertex->outputEdge(edgeIx);
+    const auto srcRate = handler->getSourceRate(edge);
+    if (!srcRate) {
+        return DependencyIterator{{{ nullptr, nullptr, 0, 0, 0, 0, 0, 0 }}};
+    }
+    auto result = factory::vector<DependencyInfo>(StackID::TRANSFO);
+    detail::computeConsDependency(edge, srcRate * firing, srcRate * (firing + 1) - 1, handler, result);
+    return DependencyIterator{ std::move(result) };
+}
 
 ifast64 spider::pisdf::computeConsLowerDep(ifast64 consumption, ifast64 production, ifast32 firing, ifast64 delay) {
     return std::max(static_cast<ifast64>(-1), math::floorDiv(firing * consumption - delay, production));
@@ -46,28 +95,4 @@ ifast64 spider::pisdf::computeConsLowerDep(ifast64 consumption, ifast64 producti
 
 ifast64 spider::pisdf::computeConsUpperDep(ifast64 consumption, ifast64 production, ifast32 firing, ifast64 delay) {
     return std::max(static_cast<ifast64>(-1), math::floorDiv((firing + 1) * consumption - delay - 1, production));
-}
-
-ifast64 spider::pisdf::computeProdLowerDep(ifast64 consumption, ifast64 production, ifast32 firing, ifast64 delay) {
-    return math::floorDiv(firing * production + delay, consumption);
-}
-
-ifast64 spider::pisdf::computeProdUpperDep(ifast64 consumption, ifast64 production, ifast32 firing, ifast64 delay) {
-    return math::floorDiv((firing + 1) * production + delay - 1, consumption);
-}
-
-ifast64 spider::pisdf::computeProdLowerDep(ifast64 consumption,
-                                           ifast64 production,
-                                           ifast32 firing,
-                                           ifast64 delay,
-                                           ifast64 sinkRepetitionValue) {
-    return std::min(sinkRepetitionValue, math::floorDiv(firing * production + delay, consumption));
-}
-
-ifast64 spider::pisdf::computeProdUpperDep(ifast64 consumption,
-                                           ifast64 production,
-                                           ifast32 firing,
-                                           ifast64 delay,
-                                           ifast64 sinkRepetitionValue) {
-    return std::min(sinkRepetitionValue, math::floorDiv((firing + 1) * production + delay - 1, consumption));
 }

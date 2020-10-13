@@ -45,6 +45,21 @@ spider::MemoryInterface::MemoryInterface(uint64_t size) : size_{ size }, used_{ 
     deallocateRoutine_ = [](void *addr) -> void { std::free(addr); };
 }
 
+spider::MemoryInterface::~MemoryInterface() {
+#ifndef NDEBUG
+    if (log::enabled<log::MEMORY>()) {
+        for (const auto &buff : virtual2Phys_) {
+            if (buff.second.count_) {
+                log::print<log::MEMORY>(log::yellow, "INFO", "PHYSICAL: [%p] remaining: %zu bytes at address %zu with count: %u.\n", this,
+                                        buff.second.size_,
+                                        buff.first,
+                                        buff.second.count_);
+            }
+        }
+    }
+#endif
+}
+
 /* === Private method(s) implementation === */
 
 void *spider::MemoryInterface::read(uint64_t virtualAddress, u32 count) {

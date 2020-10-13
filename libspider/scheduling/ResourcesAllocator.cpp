@@ -36,31 +36,27 @@
 /* === Include(s) === */
 
 #include <scheduling/ResourcesAllocator.h>
+
+#ifndef _NO_BUILD_LEGACY_RT
+
 #include <scheduling/scheduler/ListScheduler.h>
 #include <scheduling/scheduler/GreedyScheduler.h>
+
+#endif
+
+#include <scheduling/scheduler/SRLessGreedyScheduler.h>
+#include <scheduling/scheduler/SRLessListScheduler.h>
 #include <scheduling/mapper/BestFitMapper.h>
 #include <scheduling/memory/FifoAllocator.h>
+#include <scheduling/memory/SRLessFifoAllocator.h>
 #include <scheduling/memory/NoSyncFifoAllocator.h>
-#include <scheduling/task/TaskVertex.h>
+#include <scheduling/task/Task.h>
 #include <api/archi-api.h>
 #include <archi/Platform.h>
 #include <archi/PE.h>
+#include <common/Time.h>
 
 /* === Static function === */
-
-static spider::sched::FifoAllocator *makeFifoAllocator(spider::FifoAllocatorType type) {
-    switch (type) {
-        case spider::FifoAllocatorType::DEFAULT:
-            return spider::make<spider::sched::FifoAllocator, StackID::RUNTIME>();
-        case spider::FifoAllocatorType::DEFAULT_NOSYNC:
-            return spider::make<spider::sched::NoSyncFifoAllocator, StackID::RUNTIME>();
-        case spider::FifoAllocatorType::ARCHI_AWARE:
-            break;
-        default:
-            throwSpiderException("unsupported type of FifoAllocator.");
-    }
-    return nullptr;
-}
 
 static void checkFifoAllocatorTraits(const spider::sched::FifoAllocator *allocator, spider::ExecutionPolicy policy) {
     switch (policy) {
@@ -82,11 +78,12 @@ static void checkFifoAllocatorTraits(const spider::sched::FifoAllocator *allocat
 spider::sched::ResourcesAllocator::ResourcesAllocator(SchedulingPolicy schedulingPolicy,
                                                       MappingPolicy mappingPolicy,
                                                       ExecutionPolicy executionPolicy,
-                                                      FifoAllocatorType allocatorType) :
-        scheduler_{ spider::make_unique(allocateScheduler(schedulingPolicy)) },
+                                                      FifoAllocatorType allocatorType,
+                                                      bool legacy) :
+        scheduler_{ spider::make_unique(allocateScheduler(schedulingPolicy, legacy)) },
         mapper_{ spider::make_unique(allocateMapper(mappingPolicy)) },
         schedule_{ spider::make_unique<Schedule, StackID::SCHEDULE>() },
-        allocator_{ spider::make_unique(makeFifoAllocator(allocatorType)) },
+        allocator_{ spider::make_unique(allocateAllocator(allocatorType, legacy)) },
         executionPolicy_{ executionPolicy } {
     if (allocator_) {
         checkFifoAllocatorTraits(allocator_.get(), executionPolicy);
@@ -96,40 +93,72 @@ spider::sched::ResourcesAllocator::ResourcesAllocator(SchedulingPolicy schedulin
 void spider::sched::ResourcesAllocator::execute(const pisdf::Graph *graph) {
     /* == Schedule the graph == */
     scheduler_->schedule(graph);
-
     /* == Map and execute the scheduled tasks == */
-    mapper_->setStartTime(computeMinStartTime());
-    switch (executionPolicy_) {
-        case ExecutionPolicy::JIT:
-            jitExecutionPolicy<TaskVertex *>();
-            break;
-        case ExecutionPolicy::DELAYED:
-            delayedExecutionPolicy<TaskVertex *>();
-            break;
-        default:
-            throwSpiderException("unsupported execution policy.");
-    }
+    applyExecPolicy();
+}
+
+void spider::sched::ResourcesAllocator::execute(srless::GraphHandler *graphHandler) {
+    /* == Schedule the graph == */
+    scheduler_->schedule(graphHandler);
+    /* == Map and execute the scheduled tasks == */
+    applyExecPolicy();
 }
 
 void spider::sched::ResourcesAllocator::clear() {
+    allocator_->clear();
     schedule_->clear();
     scheduler_->clear();
 }
 
 /* === Private method(s) implementation === */
 
-spider::sched::Scheduler *spider::sched::ResourcesAllocator::allocateScheduler(SchedulingPolicy policy) {
+spider::sched::Scheduler *
+spider::sched::ResourcesAllocator::allocateScheduler(SchedulingPolicy policy, bool legacy) const {
     switch (policy) {
         case SchedulingPolicy::LIST:
-            return spider::make<sched::ListScheduler, StackID::SCHEDULE>();
+            if (legacy) {
+#ifndef _NO_BUILD_LEGACY_RT
+                return spider::make<sched::ListScheduler, StackID::SCHEDULE>();
+#else
+                return nullptr;
+#endif
+            }
+            return spider::make<sched::SRLessListScheduler, StackID::SCHEDULE>();
         case SchedulingPolicy::GREEDY:
-            return spider::make<sched::GreedyScheduler, StackID::SCHEDULE>();
+            if (legacy) {
+#ifndef _NO_BUILD_LEGACY_RT
+                return spider::make<sched::GreedyScheduler, StackID::SCHEDULE>();
+#else
+                return nullptr;
+#endif
+            } else {
+                return spider::make<sched::SRLessGreedyScheduler, StackID::SCHEDULE>();
+            }
         default:
             throwSpiderException("unsupported scheduling policy.");
     }
 }
 
-spider::sched::Mapper *spider::sched::ResourcesAllocator::allocateMapper(MappingPolicy policy) {
+spider::sched::FifoAllocator *
+spider::sched::ResourcesAllocator::allocateAllocator(FifoAllocatorType type, bool legacy) const {
+    switch (type) {
+        case spider::FifoAllocatorType::DEFAULT:
+            if (!legacy) {
+                return spider::make<spider::sched::SRLessFifoAllocator, StackID::RUNTIME>();
+            }
+            return spider::make<spider::sched::FifoAllocator, StackID::RUNTIME>();
+        case spider::FifoAllocatorType::DEFAULT_NOSYNC:
+            if (!legacy) {
+                return spider::make<spider::sched::SRLessFifoAllocator, StackID::RUNTIME>();
+            }
+            return spider::make<spider::sched::NoSyncFifoAllocator, StackID::RUNTIME>();
+        case spider::FifoAllocatorType::ARCHI_AWARE:
+        default:
+            throwSpiderException("unsupported type of FifoAllocator.");
+    }
+}
+
+spider::sched::Mapper *spider::sched::ResourcesAllocator::allocateMapper(MappingPolicy policy) const {
     switch (policy) {
         case MappingPolicy::BEST_FIT:
             return spider::make<sched::BestFitMapper, StackID::SCHEDULE>();
@@ -146,39 +175,37 @@ ufast64 spider::sched::ResourcesAllocator::computeMinStartTime() const {
     return minStartTime;
 }
 
-template<class T>
-void spider::sched::ResourcesAllocator::jitExecutionPolicy() {
-    /* == Map, allocate fifos and execute tasks == */
-    for (auto &task : scheduler_->tasks()) {
-        /* == Map the task == */
-        mapper_->map(static_cast<T>(task.get()), schedule_.get());
-
-        /* == We are in JIT mode, we need to broadcast the job stamp == */
-        task->enableBroadcast();
-
-        /* == Allocate the fifos task == */
-        allocator_->allocate(task.get());
-
-        /* == Execute the task == */
-        schedule_->addTask(std::move(task));
-        schedule_->sendReadyTasks();
+void spider::sched::ResourcesAllocator::applyExecPolicy() {
+    mapper_->setStartTime(computeMinStartTime());
+    switch (executionPolicy_) {
+        case ExecutionPolicy::JIT:
+            /* == Map, allocate fifos and execute tasks == */
+            for (auto &task : scheduler_->tasks()) {
+                /* == Map the task == */
+                mapper_->map(task.get(), schedule_.get());
+                /* == We are in JIT mode, we need to broadcast the job stamp == */
+                task->enableBroadcast();
+                /* == Allocate the fifos task == */
+                allocator_->allocate(task.get());
+                /* == Add and execute the task == */
+                schedule_->addTask(std::move(task));
+                schedule_->sendReadyTasks();
+            }
+            break;
+        case ExecutionPolicy::DELAYED: {            /* == Map every tasks == */
+            for (auto &task : scheduler_->tasks()) {
+                mapper_->map(task.get(), schedule_.get());
+                schedule_->addTask(std::move(task));
+            }
+            /* == Allocate fifos for every tasks == */
+            for (auto *task : schedule_->readyTasks()) {
+                allocator_->allocate(task);
+            }
+            /* == Execute every tasks == */
+            schedule_->sendReadyTasks();
+        }
+            break;
+        default:
+            throwSpiderException("unsupported execution policy.");
     }
-}
-
-template<class T>
-void spider::sched::ResourcesAllocator::delayedExecutionPolicy() {
-    /* == Map every tasks == */
-    for (auto &task : scheduler_->tasks()) {
-        auto castTask = static_cast<T>(task.get());
-        mapper_->map(castTask, schedule_.get());
-        schedule_->addTask(std::move(task));
-    }
-
-    /* == Allocate fifos for every tasks == */
-    for (auto *task : schedule_->readyTasks()) {
-        allocator_->allocate(task);
-    }
-
-    /* == Execute every tasks == */
-    schedule_->sendReadyTasks();
 }

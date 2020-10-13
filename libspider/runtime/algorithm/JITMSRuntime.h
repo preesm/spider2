@@ -35,6 +35,8 @@
 #ifndef SPIDER2_JITMSRUNTIME_H
 #define SPIDER2_JITMSRUNTIME_H
 
+#ifndef _NO_BUILD_LEGACY_RT
+
 /* === Include(s) === */
 
 #include <runtime/algorithm/Runtime.h>
@@ -57,11 +59,7 @@ namespace spider {
     class JITMSRuntime final : public Runtime {
     public:
 
-        explicit JITMSRuntime(pisdf::Graph *graph,
-                              SchedulingPolicy schedulingPolicy = SchedulingPolicy::LIST,
-                              MappingPolicy mappingPolicy = MappingPolicy::BEST_FIT,
-                              ExecutionPolicy executionPolicy = ExecutionPolicy::DELAYED,
-                              FifoAllocatorType allocatorType = FifoAllocatorType::DEFAULT);
+        explicit JITMSRuntime(pisdf::Graph *graph, const RuntimeConfig &cfg);
 
         ~JITMSRuntime() override = default;
 
@@ -84,9 +82,8 @@ namespace spider {
 
         /**
          * @brief Update scheduler, execute scheduler, run schedule and wait.
-         * @param shouldBroadcast  Flag to check if we should broadcast job stamp at the end of the iteration.
          */
-        void scheduleRunAndWait(bool shouldBroadcast);
+        void scheduleRunAndWait();
 
         /**
          * @brief Appends @refitem spider::srdag::TransfoJob from source vector to destination vector using MOVE semantic.
@@ -121,4 +118,5 @@ namespace spider {
         transformDynamicJobs(vector<srdag::TransfoJob> &staticJobStack, vector<srdag::TransfoJob> &dynamicJobStack);
     };
 }
+#endif
 #endif //SPIDER2_JITMSRUNTIME_H

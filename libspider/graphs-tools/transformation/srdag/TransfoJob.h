@@ -35,6 +35,8 @@
 #ifndef SPIDER2_SRDAGJOB_H
 #define SPIDER2_SRDAGJOB_H
 
+#ifndef _NO_BUILD_LEGACY_RT
+
 /* === Include(s) === */
 
 #include <containers/vector.h>
@@ -77,4 +79,5 @@ namespace spider {
         };
     }
 }
+#endif
 #endif //SPIDER2_JOB_H

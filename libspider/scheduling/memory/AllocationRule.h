@@ -44,15 +44,36 @@ namespace spider {
             NEW,      /*!< Specify that a new FIFO should be allocated */
             SAME_IN,  /*!< Specify that an existing input FIFO should be used */
             SAME_OUT, /*!< Specify that an existing output FIFO should be used */
-            EXT       /*!< Specify that allocation of FIFO is external */
+            EXT,      /*!< Specify that allocation of FIFO is external */
+            MERGE,    /*!< Specify that allocation of FIFO requires to merge multiple FIFOs */
+            REPEAT,   /*!< Specify that allocation of FIFO requires to repeat input FIFO */
         };
 
         struct AllocationRule {
-            size_t size_;
-            size_t offset_;
-            size_t index_;
-            AllocType type_;
-            FifoAttribute attribute_;
+            AllocationRule *others_ = nullptr;
+            u32 size_ = UINT32_MAX;
+            u32 offset_ = 0u;
+            u32 fifoIx_ = 0u;
+            u32 count_ = 0u;
+            AllocType type_ = AllocType::NEW;
+            FifoAttribute attribute_ = FifoAttribute::RW_OWN;
+
+            AllocationRule() = default;
+
+            ~AllocationRule() noexcept = default;
+
+            AllocationRule(const AllocationRule &) = default;
+
+            AllocationRule(AllocationRule &&) = default;
+
+            AllocationRule &operator=(const AllocationRule &) = default;
+
+            AllocationRule &operator=(AllocationRule &&) = default;
+
+            AllocationRule(u32 size, u32 offset, u32 ix, u32 count, AllocType type, FifoAttribute attribute) :
+                    others_{ nullptr }, size_{ size }, offset_{ offset }, fifoIx_{ ix }, count_{ count }, type_{ type },
+                    attribute_{ attribute } {
+            }
         };
     }
 }

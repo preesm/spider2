@@ -47,6 +47,10 @@ namespace spider {
         class Graph;
     }
 
+    namespace srless {
+        class GraphHandler;
+    }
+
     namespace sched {
 
         /* === Class definition === */
@@ -64,6 +68,12 @@ namespace spider {
              * @param graph  Graph to use to perform the update.
              */
             virtual void schedule(const pisdf::Graph *graph) = 0;
+
+            /**
+             * @brief Update internal state of the scheduler (mostly for dynamic applications)
+             * @param
+             */
+            virtual void schedule(srless::GraphHandler *graphHandler) = 0;
 
             /**
              * @brief Clears scheduler resources.

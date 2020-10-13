@@ -73,7 +73,7 @@ namespace spider {
 
     struct RuntimeConfig {
         RunMode mode_ = RunMode::LOOP;                             /*!< Execution mode: default is LOOP */
-        RuntimeType runtimeType_ = RuntimeType::JITMS;             /*!< Runtime algorithm to use: default is JITMS */
+        RuntimeType runtimeType_ = RuntimeType::SRDAG_BASED;             /*!< Runtime algorithm to use: default is JITMS */
         ExecutionPolicy execPolicy_ = ExecutionPolicy::DELAYED;    /*!< Execution policy to use: default is DELAYED */
         SchedulingPolicy schedPolicy_ = SchedulingPolicy::LIST;    /*!< Scheduling policy to use: default is LIST */
         MappingPolicy mapPolicy_ = MappingPolicy::BEST_FIT;        /*!< Mapping policy to use: default is BEST_FIT */
@@ -86,8 +86,12 @@ namespace spider {
 
         RuntimeConfig(RuntimeConfig &&) = default;
 
+        RuntimeConfig &operator=(const RuntimeConfig &) = default;
+
+        RuntimeConfig &operator=(RuntimeConfig &&) = default;
+
         explicit RuntimeConfig(RunMode mode = RunMode::LOOP,
-                               RuntimeType type = RuntimeType::JITMS,
+                               RuntimeType type = RuntimeType::SRDAG_BASED,
                                ExecutionPolicy execPolicy = ExecutionPolicy::DELAYED,
                                SchedulingPolicy schedPolicy = SchedulingPolicy::LIST,
                                MappingPolicy mapPolicy = MappingPolicy::BEST_FIT,

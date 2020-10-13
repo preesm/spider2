@@ -104,7 +104,10 @@ namespace spider {
          * @return Evaluated value of the expression.
          */
         inline double evaluateDBL(const spider::vector<std::shared_ptr<pisdf::Param>> &params = { }) const {
-            return dynamic() ? evaluateImpl(params) : expr_.value_;
+            if (dynamic()) {
+                expr_.value_ = evaluateImpl(params);
+            }
+            return expr_.value_;
         }
 
         /* === Getter(s) === */
@@ -127,7 +130,7 @@ namespace spider {
 
         /* === Private member(s) === */
 
-        expr::Token expr_;
+        mutable expr::Token expr_;
         mutable symbol_table_t *symbolTable_ = nullptr;
         size_t hash_{ SIZE_MAX };
 
@@ -135,7 +138,7 @@ namespace spider {
 
         static param_t findParameter(const param_table_t &params, const std::string &name);
 
-        size_t registerSymbol(const param_t param);
+        size_t registerSymbol(param_t param);
 
         void updateSymbolTable(const param_table_t &params) const;
 
@@ -144,7 +147,7 @@ namespace spider {
         void compile(const spider::vector<RPNElement> &postfixStack, const param_table_t &params);
 
         expr::Token compile(spider::vector<RPNElement>::const_reverse_iterator &iterator,
-                            const spider::vector<RPNElement>::const_reverse_iterator end,
+                            const spider::vector<RPNElement>::const_reverse_iterator &end,
                             const param_table_t &params);
 
         expr::Token generate(RPNOperatorType type, const expr::Token &arg) const;

@@ -81,7 +81,7 @@ namespace spider {
             return !rhs.expr_ && (value_ == rhs.value_);
         }
 
-        inline bool operator!=(const Expression &rhs) const  { return !(*this == rhs); }
+        inline bool operator!=(const Expression &rhs) const { return !(*this == rhs); }
 
         /* === Method(s) === */
 
@@ -98,7 +98,10 @@ namespace spider {
          * @return Evaluated value of the expression.
          */
         inline double evaluateDBL(const spider::vector<std::shared_ptr<pisdf::Param>> &params = { }) const {
-            return dynamic() ? expr_->evaluate(params) : value_;
+            if (dynamic()) {
+                value_ = expr_->evaluate(params);
+            }
+            return value_;
         }
 
         /* === Getter(s) === */
@@ -124,12 +127,12 @@ namespace spider {
 
         /* === Private member(s) === */
         std::shared_ptr<expr::CompiledExpression> expr_;
-        double value_{ };
+        mutable double value_{ };
 
         /* === Private method(s) === */
 
         double evaluateStatic(spider::vector<RPNElement>::const_reverse_iterator &iterator,
-                              const spider::vector<RPNElement>::const_reverse_iterator end,
+                              const spider::vector<RPNElement>::const_reverse_iterator &end,
                               const param_table_t &params);
 
         static param_t findParameter(const param_table_t &params, const std::string &name);

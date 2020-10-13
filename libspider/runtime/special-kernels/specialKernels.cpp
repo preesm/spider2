@@ -55,7 +55,7 @@ void spider::rt::fork(const int64_t *paramsIn, const int64_t *, void **in, void 
         /* == Size of the current output to copy == */
         const auto outputSize = static_cast<size_t>(paramsIn[i + 2]);
         const auto *input = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(in[0]) + offset);
-        if (input != out[i]) {
+        if (outputSize && input != out[i]) {
             std::memcpy(out[i], input, outputSize);
         }
         offset += outputSize;

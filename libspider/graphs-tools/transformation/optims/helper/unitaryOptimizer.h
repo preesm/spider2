@@ -35,6 +35,8 @@
 #ifndef SPIDER2_UNITARYOPTIMIZER_H
 #define SPIDER2_UNITARYOPTIMIZER_H
 
+#ifndef _NO_BUILD_LEGACY_RT
+
 /* === Include(s) === */
 
 /* === Function(s) prototype === */
@@ -55,4 +57,5 @@ namespace spider {
         bool optimizeUnitaryVertex(pisdf::Vertex *vertex);
     }
 }
+#endif
 #endif //SPIDER2_UNITARYOPTIMIZER_H

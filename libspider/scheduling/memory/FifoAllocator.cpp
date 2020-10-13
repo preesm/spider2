@@ -40,8 +40,12 @@
 #include <graphs/pisdf/DelayVertex.h>
 #include <graphs/pisdf/ExternInterface.h>
 #include <graphs/pisdf/Graph.h>
-#include <api/archi-api.h>
 #include <archi/MemoryInterface.h>
+#include <runtime/message/Notification.h>
+#include <runtime/communicator/RTCommunicator.h>
+#include <runtime/platform/RTPlatform.h>
+#include <api/archi-api.h>
+#include <api/runtime-api.h>
 
 /* === Function(s) definition === */
 
@@ -79,7 +83,7 @@ void spider::sched::FifoAllocator::allocate(sched::Task *task) {
         const auto *prevTask = task->previousTask(ix);
         if (prevTask) {
             if (rule.type_ == AllocType::SAME_IN) {
-                fifo = prevTask->fifos().outputFifo(rule.index_);
+                fifo = prevTask->fifos().outputFifo(rule.fifoIx_);
                 if (fifo.attribute_ != FifoAttribute::RW_EXT) {
                     fifo.attribute_ = rule.attribute_;
                     fifo.count_ = 0u;
@@ -105,22 +109,24 @@ void spider::sched::FifoAllocator::allocate(sched::Task *task) {
                 fifo.offset_ = 0u;
                 break;
             case SAME_IN: {
-                auto &inputFifo = inputFifos[rule.index_];
+                auto &inputFifo = inputFifos[rule.fifoIx_];
                 fifo.virtualAddress_ = inputFifo.virtualAddress_;
-                fifo.offset_ = inputFifo.offset_ + static_cast<u32>(rule.offset_);
+                fifo.offset_ = inputFifo.offset_ + rule.offset_;
             }
                 break;
             case SAME_OUT: {
-                auto &outputFifo = outputFifos[rule.index_];
+                auto &outputFifo = outputFifos[rule.fifoIx_];
                 fifo.virtualAddress_ = outputFifo.virtualAddress_;
-                fifo.offset_ = outputFifo.offset_ + static_cast<u32>(rule.offset_);
+                fifo.offset_ = outputFifo.offset_ + rule.offset_;
             }
                 break;
             case EXT:
-                fifo.virtualAddress_ = rule.index_;
+                fifo.virtualAddress_ = rule.fifoIx_;
+                break;
+            default:
                 break;
         }
-        fifo.size_ = static_cast<u32>(rule.size_);
+        fifo.size_ = rule.size_;
         fifo.attribute_ = rule.attribute_;
         fifo.count_ = (fifo.size_ != 0u);
         ix++;

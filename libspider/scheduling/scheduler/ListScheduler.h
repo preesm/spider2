@@ -35,6 +35,8 @@
 #ifndef SPIDER2_LISTSCHEDULER_H
 #define SPIDER2_LISTSCHEDULER_H
 
+#ifndef _NO_BUILD_LEGACY_RT
+
 /* === Include(s) === */
 
 #include <scheduling/scheduler/Scheduler.h>
@@ -52,7 +54,7 @@ namespace spider {
 
         class ListScheduler final : public Scheduler {
         public:
-            ListScheduler() : Scheduler(), sortedTaskVector_{ factory::vector<ListTask>(StackID::SCHEDULE) } { };
+            ListScheduler();
 
             ~ListScheduler() override = default;
 
@@ -76,6 +78,8 @@ namespace spider {
             size_t lastScheduledTask_ = 0;
 
             /* === Private method(s) === */
+
+            inline void schedule(srless::GraphHandler *) override { }
 
             /**
              * @brief Reset unscheduled task from previous schedule iteration.
@@ -103,10 +107,9 @@ namespace spider {
              *           level(B) = level(D) = level(E) = 0
              *           level(C) = max(level(D) + time(D); level(E) + time(E)) = 300
              * @param listTask       Pointer to the current @refitem ListVertex evaluated.
-             * @param listVertexVector Vector of @refitem ListVertex to evaluate.
-             * @return
+             * @return level value of the vertex.
              */
-            ifast32 computeScheduleLevel(ListTask &listTask, vector <ListTask> &listVertexVector) const;
+            ifast32 computeScheduleLevel(ListTask &listTask);
 
             /**
              * @brief Sort the list of vertices.
@@ -121,4 +124,5 @@ namespace spider {
         };
     }
 }
+#endif
 #endif //SPIDER2_LISTSCHEDULER_H

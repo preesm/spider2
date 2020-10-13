@@ -35,6 +35,8 @@
 #ifndef SPIDER2_SCHEDSVGGANTTEXPORTER_H
 #define SPIDER2_SCHEDSVGGANTTEXPORTER_H
 
+#ifndef _NO_BUILD_GANTT_EXPORTER
+
 /* === Include(s) === */
 
 #include <common/Exporter.h>
@@ -106,4 +108,5 @@ namespace spider {
 
     /* === Inline method(s) === */
 }
+#endif
 #endif //SPIDER2_SCHEDSVGGANTTEXPORTER_H

@@ -144,45 +144,7 @@
         }\
     }
 
-#define cast_buffer_woffset(buffer, offset) (reinterpret_cast<void *>(reinterpret_cast<uintptr_t>((buffer)) + (offset)))
-
 /* === Static function === */
-
-namespace spider {
-    static array<void *> createInputFifos(const array_handle<Fifo> &fifos, MemoryInterface *memoryInterface) {
-        array<void *> inputBuffersArray{ fifos.size(), nullptr, StackID::RUNTIME };
-        std::transform(std::begin(fifos), std::end(fifos), std::begin(inputBuffersArray),
-                       [&memoryInterface](const Fifo &fifo) -> void * {
-                           if (!fifo.size_) {
-                               return nullptr;
-                           } else if (fifo.attribute_ == FifoAttribute::RW_EXT) {
-                               return cast_buffer_woffset(archi::platform()->getExternalBuffer(fifo.virtualAddress_),
-                                                          fifo.offset_);
-                           } else {
-                               return cast_buffer_woffset(memoryInterface->read(fifo.virtualAddress_, fifo.count_),
-                                                          fifo.offset_);
-                           }
-                       });
-        return inputBuffersArray;
-    }
-
-    static array<void *> createOutputFifos(const array_handle<Fifo> &fifos, MemoryInterface *memoryInterface) {
-        array<void *> outputBuffersArray{ fifos.size(), nullptr, StackID::RUNTIME };
-        std::transform(std::begin(fifos), std::end(fifos), std::begin(outputBuffersArray),
-                       [&memoryInterface](const Fifo &fifo) -> void * {
-                           if (fifo.attribute_ == FifoAttribute::RW_OWN) {
-                               return memoryInterface->allocate(fifo.virtualAddress_, fifo.size_, fifo.count_);
-                           } else if (fifo.attribute_ == FifoAttribute::RW_EXT) {
-                               return cast_buffer_woffset(archi::platform()->getExternalBuffer(fifo.virtualAddress_),
-                                                          fifo.offset_);
-                           } else {
-                               return cast_buffer_woffset(memoryInterface->read(fifo.virtualAddress_, fifo.count_),
-                                                          fifo.offset_);
-                           }
-                       });
-        return outputBuffersArray;
-    }
-}
 
 /* === Method(s) implementation === */
 
@@ -270,14 +232,13 @@ void spider::JITMSRTRunner::runJob(const JobMessage &job) {
         msgMemory.startTime_ = time::now();
     }
     /* == Create input buffers == */
-    auto inputBuffersArray = createInputFifos(job.fifos_->inputFifos(), attachedPE_->cluster()->memoryInterface());
+    auto inputBuffersArray = getInputBuffers(job.fifos_->inputFifos(), attachedPE_->cluster()->memoryInterface());
 
     /* == Create output buffers == */
-    auto outputBuffersArray = createOutputFifos(job.fifos_->outputFifos(), attachedPE_->cluster()->memoryInterface());
+    auto outputBuffersArray = getOutputBuffers(job.fifos_->outputFifos(), attachedPE_->cluster()->memoryInterface());
 
     /* == Allocate output parameter memory == */
     array<int64_t> outputParams{ static_cast<size_t>(job.nParamsOut_), 0, StackID::RUNTIME };
-
     if (trace_) {
         msgMemory.endTime_ = time::now();
         auto *communicator = rt::platform()->communicator();
@@ -303,9 +264,18 @@ void spider::JITMSRTRunner::runJob(const JobMessage &job) {
     }
 
     /* == Deallocate input buffers == */
-    for (auto &inputFIFO : job.fifos_->inputFifos()) {
-        auto *memoryInterface = attachedPE_->cluster()->memoryInterface();
-        memoryInterface->deallocate(inputFIFO.virtualAddress_, inputFIFO.size_);
+    for (auto &fifo : job.fifos_->inputFifos()) {
+        if (fifo.attribute_ != FifoAttribute::RW_EXT && fifo.attribute_ != FifoAttribute::RW_ONLY) {
+            auto *memoryInterface = attachedPE_->cluster()->memoryInterface();
+            memoryInterface->deallocate(fifo.virtualAddress_, fifo.size_);
+        }
+    }
+    /* == Deallocate output buffers (only buffers to sinks) == */
+    for (auto &fifo : job.fifos_->outputFifos()) {
+        if (fifo.attribute_ == FifoAttribute::W_SINK) {
+            auto *memoryInterface = attachedPE_->cluster()->memoryInterface();
+            memoryInterface->deallocate(fifo.virtualAddress_, fifo.size_);
+        }
     }
 
     /* == Notify other runtimes that need to know == */
@@ -420,6 +390,20 @@ bool spider::JITMSRTRunner::readNotification(bool blocking) {
                                      ix(), notification.senderIx_);
             }
             updateJobStamp(notification.senderIx_, notification.notificationIx_);
+            break;
+        case NotificationType::MEM_UPDATE_COUNT: {
+            const auto fifoAddress = notification.notificationIx_;
+            rt::platform()->communicator()->pop(notification, ix());
+            while (notification.type_ != NotificationType::MEM_UPDATE_COUNT) {
+                rt::platform()->communicator()->push(notification, ix());
+                if (!rt::platform()->communicator()->try_pop(notification, ix())) {
+                    throwSpiderException("Expected a secondary notification.");
+                }
+            }
+            const auto countUpdate = notification.notificationIx_;
+            auto *memoryInterface = attachedPE_->cluster()->memoryInterface();
+            memoryInterface->read(fifoAddress, static_cast<u32>(countUpdate));
+        }
             break;
         default:
             LOG_UNHANDLED();

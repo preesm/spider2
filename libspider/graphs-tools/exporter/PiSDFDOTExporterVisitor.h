@@ -35,6 +35,8 @@
 #ifndef SPIDER2_PISDFDOTEXPORTERVISITOR_H
 #define SPIDER2_PISDFDOTEXPORTERVISITOR_H
 
+#ifndef _NO_BUILD_GRAPH_EXPORTER
+
 /* === Include(s) === */
 
 #include <graphs-tools/helper/visitors/PiSDFDefaultVisitor.h>
@@ -146,4 +148,5 @@ namespace spider {
         };
     }
 }
+#endif
 #endif //SPIDER2_PISDFDOTEXPORTERVISITOR_H

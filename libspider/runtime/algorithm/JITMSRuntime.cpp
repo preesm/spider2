@@ -32,39 +32,40 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
+
 /* === Include(s) === */
+
+#ifndef _NO_BUILD_LEGACY_RT
 
 #include <runtime/algorithm/JITMSRuntime.h>
 #include <runtime/runner/RTRunner.h>
 #include <runtime/platform/RTPlatform.h>
 #include <runtime/communicator/RTCommunicator.h>
-#include <api/runtime-api.h>
 #include <graphs-tools/transformation/srdag/Transformation.h>
 #include <graphs-tools/transformation/optims/optimizations.h>
-#include <monitor/Monitor.h>
-#include <api/config-api.h>
+#include <graphs-tools/helper/pisdf-helper.h>
 #include <scheduling/ResourcesAllocator.h>
 #include <scheduling/memory/FifoAllocator.h>
 #include <scheduling/schedule/exporter/SchedXMLGanttExporter.h>
 #include <scheduling/schedule/exporter/SchedStatsExporter.h>
 #include <scheduling/schedule/exporter/SchedSVGGanttExporter.h>
-#include <graphs-tools/helper/pisdf-helper.h>
+#include <scheduling/task/VertexTask.h>
+#include <api/runtime-api.h>
+#include <api/config-api.h>
+#include <api/spider.h>
 
 /* === Static function(s) === */
 
 /* === Method(s) implementation === */
 
-spider::JITMSRuntime::JITMSRuntime(pisdf::Graph *graph,
-                                   SchedulingPolicy schedulingPolicy,
-                                   MappingPolicy mappingPolicy,
-                                   ExecutionPolicy executionPolicy,
-                                   FifoAllocatorType allocatorType) :
+spider::JITMSRuntime::JITMSRuntime(pisdf::Graph *graph, const RuntimeConfig &cfg) :
         Runtime(graph),
         srdag_{ make_unique<pisdf::Graph, StackID::RUNTIME>("srdag-" + graph->name()) },
-        resourcesAllocator_{ make_unique<sched::ResourcesAllocator, StackID::RUNTIME>(schedulingPolicy,
-                                                                                      mappingPolicy,
-                                                                                      executionPolicy,
-                                                                                      allocatorType) } {
+        resourcesAllocator_{ make_unique<sched::ResourcesAllocator, StackID::RUNTIME>(cfg.schedPolicy_,
+                                                                                      cfg.mapPolicy_,
+                                                                                      cfg.execPolicy_,
+                                                                                      cfg.allocType_,
+                                                                                      true) } {
     if (!rt::platform()) {
         throwSpiderException("JITMSRuntime need the runtime platform to be created.");
     }
@@ -108,7 +109,7 @@ bool spider::JITMSRuntime::execute() {
         }
 
         /* == Update schedule, run and wait == */
-        scheduleRunAndWait(true);
+        scheduleRunAndWait();
 
         /* == Wait for all parameters to be resolved == */
         if (!dynamicJobStack.empty()) {
@@ -126,7 +127,9 @@ bool spider::JITMSRuntime::execute() {
                     rt::platform()->communicator()->pop(message, grtIx, notification.notificationIx_);
 
                     /* == Get the config vertex == */
-                    const auto *cfg = srdag_->vertex(message.vertexIx_);
+                    const auto *task = resourcesAllocator_->schedule()->task(message.taskIx_);
+                    const auto *vertexTask = static_cast<const sched::VertexTask *>(task);
+                    const auto *cfg = vertexTask->vertex();
                     auto paramIterator = message.params_.begin();
                     for (const auto &param : cfg->outputParamVector()) {
                         param->setValue((*(paramIterator++)));
@@ -156,7 +159,7 @@ bool spider::JITMSRuntime::execute() {
             }
 
             /* == Update schedule, run and wait == */
-            scheduleRunAndWait(true);
+            scheduleRunAndWait();
         }
     }
 
@@ -170,7 +173,7 @@ bool spider::JITMSRuntime::execute() {
 
     /* == Export post-exec gantt if needed  == */
     if (api::exportTraceEnabled()) {
-//        useExecutionTraces(srdag_.get(), &scheduler_->schedule(), startIterStamp_);
+        useExecutionTraces(resourcesAllocator_->schedule(), startIterStamp_);
     }
 
     /* == Clear the srdag == */
@@ -183,17 +186,15 @@ bool spider::JITMSRuntime::execute() {
 
 /* === Private method(s) === */
 
-void spider::JITMSRuntime::scheduleRunAndWait(bool shouldBroadcast) {
+void spider::JITMSRuntime::scheduleRunAndWait() {
     TraceMessage schedMsg{ };
     TRACE_SCHEDULE_START();
     /* == Send LRT_START_ITERATION notification == */
     rt::platform()->sendStartIteration();
     /* == Schedule / Map current Single-Rate graph == */
     resourcesAllocator_->execute(srdag_.get());
-    if (shouldBroadcast) {
-        /* == Send JOB_DELAY_BROADCAST_JOBSTAMP notification == */
-        rt::platform()->sendDelayedBroadCastToRunners();
-    }
+    /* == Send JOB_DELAY_BROADCAST_JOBSTAMP notification == */
+    rt::platform()->sendDelayedBroadCastToRunners();
     /* == Send LRT_END_ITERATION notification == */
     rt::platform()->sendEndIteration();
     TRACE_SCHEDULE_END();
@@ -251,3 +252,5 @@ void spider::JITMSRuntime::transformDynamicJobs(vector<srdag::TransfoJob> &stati
     /* == Swap vectors == */
     dynamicJobStack.swap(tempJobStack);
 }
+
+#endif

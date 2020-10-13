@@ -49,6 +49,10 @@ namespace spider {
         class Graph;
     }
 
+    namespace srless {
+        class GraphHandler;
+    }
+
     namespace sched {
 
         class FifoAllocator;
@@ -60,13 +64,16 @@ namespace spider {
             explicit ResourcesAllocator(SchedulingPolicy schedulingPolicy,
                                         MappingPolicy mappingPolicy,
                                         ExecutionPolicy executionPolicy,
-                                        FifoAllocatorType allocatorType);
+                                        FifoAllocatorType allocatorType,
+                                        bool legacy);
 
             ~ResourcesAllocator() noexcept = default;
 
             /* === Method(s) === */
 
             void execute(const pisdf::Graph *graph);
+
+            void execute(srless::GraphHandler *graphHandler);
 
             void clear();
 
@@ -94,10 +101,20 @@ namespace spider {
             /**
              * @brief Allocates the scheduler corresponding to the given policy.
              * @param policy  Scheduling policy to use.
+             * @param legacy  Flag indicating if we are using the legacy intermediate representation (i.e SRDAG).
              * @return pointer to the created @refitem Scheduler.
              * @throw @refitem spider::Exception if the scheduling policy is not supported.
              */
-            Scheduler *allocateScheduler(SchedulingPolicy policy);
+            Scheduler *allocateScheduler(SchedulingPolicy policy, bool legacy) const;
+
+            /**
+             * @brief Allocates the fifo allocator corresponding to the given type.
+             * @param type    Allocator type to use.
+             * @param legacy  Flag indicating if we are using the legacy intermediate representation (i.e SRDAG).
+             * @return pointer to the created @refitem FifoAllocator.
+             * @throw @refitem spider::Exception if the allocating type is not supported.
+             */
+            FifoAllocator *allocateAllocator(FifoAllocatorType type, bool legacy) const;
 
             /**
              * @brief Allocates the mapper corresponding to the given policy.
@@ -105,23 +122,18 @@ namespace spider {
              * @return pointer to the created @refitem Mapper.
              * @throw @refitem spider::Exception if the mapping policy is not supported.
              */
-            Mapper *allocateMapper(MappingPolicy policy);
+            Mapper *allocateMapper(MappingPolicy policy) const;
+
+            /**
+             * @brief Apply the @refitem ExecutionPolicy of the ResourceAllocator.
+             * @details - Just-In-Time (JIT) execution policy: In this execution policy,
+             *            tasks are sent to their mapped LRT as soon as they are mapped.
+             *          - Delayed execution policy: In this execution policy, tasks are
+             *            sent to their mapped LRT after EVERY tasks have been mapped.
+             */
+            void applyExecPolicy();
 
             ufast64 computeMinStartTime() const;
-
-            /**
-             * @brief Apply the Just-In-Time (JIT) execution policy.
-             *        In this execution policy, tasks are sent to their mapped LRT as soon as they are mapped.
-             */
-            template<class T>
-            void jitExecutionPolicy();
-
-            /**
-             * @brief Apply the Delayed execution policy.
-             *        In this execution policy, tasks are sent to their mapped LRT after EVERY tasks have been mapped.
-             */
-            template<class T>
-            void delayedExecutionPolicy();
         };
     }
 }

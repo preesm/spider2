@@ -40,14 +40,25 @@
 #include <api/debug-api.h>
 #include <api/pisdf-api.h>
 #include <api/config-api.h>
+
+#ifndef _NO_BUILD_GRAPH_EXPORTER
+
 #include <graphs-tools/exporter/PiSDFDOTExporter.h>
+
+#endif
 
 /* === Methods implementation === */
 
+#ifndef _NO_BUILD_GRAPH_EXPORTER
 void spider::api::exportGraphToDOT(pisdf::Graph *graph, const std::string &path) {
     /* == Print the Graph == */
-    auto exporter =pisdf::PiSDFDOTExporter(graph);
+    auto exporter = pisdf::PiSDFDOTExporter(graph);
     exporter.printFromPath(path);
+#else
+
+void spider::api::exportGraphToDOT(pisdf::Graph *, const std::string &) {
+    printer::fprintf(stderr, "Graph exporter is not built. Recompile spider2 with -DBUILD_GRAPH_EXPORTER=ON option.\n");
+#endif
 }
 
 void spider::api::enableLogger(log::Type type) {

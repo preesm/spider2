@@ -38,6 +38,7 @@
 /* === Include(s) === */
 
 #include <utility>
+#include <cassert>
 #include <api/global-api.h>
 #include <memory/memory.h>
 
@@ -102,6 +103,11 @@ namespace spider {
         };
 
         T &operator*() const {
+            assert(data_ != nullptr);
+            return *get();
+        };
+
+        T &operator*() {
             assert(data_ != nullptr);
             return *get();
         };

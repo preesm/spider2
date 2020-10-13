@@ -89,14 +89,14 @@ namespace spider {
             mutable spider::vector<double> valueTable_;
             spider::vector<std::pair<size_t, std::string>> symbolTable_;
             std::shared_ptr<void> hndl_;
-            functor_t expr_;
+            functor_t expr_{};
             size_t hash_{ SIZE_MAX };
 
             /* === Private method(s) === */
 
             static param_t findParameter(const param_table_t &params, const std::string &name);
 
-            void registerSymbol(const param_t param);
+            void registerSymbol(param_t param);
 
             void updateSymbolTable(const param_table_t &params) const;
 

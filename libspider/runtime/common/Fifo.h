@@ -38,6 +38,7 @@
 /* === Include(s) === */
 
 #include <common/Types.h>
+#include <containers/array.h>
 
 namespace spider {
 
@@ -47,7 +48,15 @@ namespace spider {
         RW_OWN,      /*!< Owner of the FIFO own the associated memory:
                         *   --> dealloc after read, alloc before write */
         RW_EXT,      /*!< Owner of the FIFO reads (writes) from (to) external memory */
+        R_MERGE,     /*!< Owner of the FIFO needs to merge multiple FIFOs together */
+        R_REPEAT,    /*!< Owner of the FIFO needs to repeat the input FIFO a given number of times */
+        W_SINK,      /*!< Owner of the FIFO writes to a sink, i.e FIFO is useless */
+        DUMMY,       /*!< Sentry for synchronization */
+        First = RW_ONLY, /*!< Sentry for EnumIterator::begin */
+        Last = DUMMY     /*!< Sentry for EnumIterator::end */
     };
+
+    constexpr auto FIFO_ATTR_COUNT = static_cast<u8>(FifoAttribute::Last) - static_cast<u8>(FifoAttribute::First) + 1u;
 
     /* === Class definition === */
 
@@ -64,6 +73,14 @@ namespace spider {
                  count_{ 0u },
                  attribute_{ FifoAttribute::RW_OWN } { }
     };
+
+    /* === Function(s) declaration === */
+
+    class MemoryInterface;
+
+    spider::array<void *> getInputBuffers(const array_handle<Fifo> &fifos, MemoryInterface *memoryInterface);
+
+    spider::array<void *> getOutputBuffers(const array_handle<Fifo> &fifos, MemoryInterface *memoryInterface);
 }
 
 #endif //SPIDER2_FIFO_H

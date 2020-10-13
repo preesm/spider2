@@ -32,6 +32,9 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
+
+#ifndef _NO_BUILD_LEGACY_RT
+
 /* === Include(s) === */
 
 #include <graphs-tools/transformation/optims/optimizations.h>
@@ -196,7 +199,7 @@ bool spider::optims::reduceRepeatFork(spider::pisdf::Graph *graph) {
         /* == Creates the sink array == */
         auto *fork = outEdge->sink();
         spider::array<EdgeLinker> sinkArray{ fork->outputEdgeCount(), StackID::TRANSFO };
-        for (auto *edge : fork->outputEdgeVector()) {
+        for (auto *edge : fork->outputEdges()) {
             sinkArray[edge->sourcePortIx()] = EdgeLinker{ edge->sink(), edge->sinkRateValue(), edge->sinkPortIx() };
             graph->removeEdge(edge);
         }
@@ -317,13 +320,13 @@ bool spider::optims::reduceJoinFork(pisdf::Graph *graph) {
         spider::array<EdgeLinker> sourceArray{ join->inputEdgeCount(), StackID::TRANSFO };
         spider::array<EdgeLinker> sinkArray{ fork->outputEdgeCount(), StackID::TRANSFO };
 
-        for (auto *edge : join->inputEdgeVector()) {
+        for (auto *edge : join->inputEdges()) {
             sourceArray[edge->sinkPortIx()] = EdgeLinker{ edge->source(), edge->sourceRateValue(),
                                                           edge->sourcePortIx() };
             graph->removeEdge(edge);
         }
         graph->removeEdge(join->outputEdge(0));
-        for (auto *edge : fork->outputEdgeVector()) {
+        for (auto *edge : fork->outputEdges()) {
             sinkArray[edge->sourcePortIx()] = EdgeLinker{ edge->sink(), edge->sinkRateValue(), edge->sinkPortIx() };
             graph->removeEdge(edge);
         }
@@ -367,7 +370,7 @@ bool spider::optims::reduceJoinEnd(pisdf::Graph *graph) {
             }
         }
         graph->removeEdge(edge);
-        for (auto *inputEdge : join->inputEdgeVector()) {
+        for (auto *inputEdge : join->inputEdges()) {
             auto *newEnd = api::createEnd(graph, "end-" + inputEdge->source()->name());
             if (ref != end) {
                 ref->setAsReference(newEnd);
@@ -431,3 +434,4 @@ bool spider::optims::reduceUnitaryRateActors(const pisdf::Graph *graph) {
     }
     return optimized;
 }
+#endif

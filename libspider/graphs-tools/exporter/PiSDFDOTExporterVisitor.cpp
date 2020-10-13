@@ -32,6 +32,9 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
+
+#ifndef _NO_BUILD_GRAPH_EXPORTER
+
 /* === Include(s) === */
 
 #include <graphs-tools/exporter/PiSDFDOTExporterVisitor.h>
@@ -169,14 +172,14 @@ void spider::pisdf::PiSDFDOTExporterVisitor::visit(Param *param) {
 int_fast32_t spider::pisdf::PiSDFDOTExporterVisitor::computeMaxDigitCount(const Vertex *vertex) const {
     /* == Get the maximum number of digits == */
     int_fast32_t maxDigitCount = 0;
-    for (const auto &e: vertex->inputEdgeVector()) {
+    for (const auto &e: vertex->inputEdges()) {
         if (!e) {
             throwSpiderException("vertex [%s]: null input edge.", vertex->name().c_str());
         }
         const auto rate = e->sinkRateExpression().evaluate((*params_));
         maxDigitCount = std::max(maxDigitCount, static_cast<int_fast32_t>(std::log10(rate)));
     }
-    for (const auto &e: vertex->outputEdgeVector()) {
+    for (const auto &e: vertex->outputEdges()) {
         if (!e) {
             throwSpiderException("vertex [%s]: null output edge.", vertex->name().c_str());
         }
@@ -252,7 +255,7 @@ void spider::pisdf::PiSDFDOTExporterVisitor::vertexPrinter(const Vertex *vertex)
 
     /* == Export data ports == */
     size_t nOutput = 0;
-    for (const auto &edge : vertex->inputEdgeVector()) {
+    for (const auto &edge : vertex->inputEdges()) {
         printer::fprintf(file_,
                          R"(%s        <tr> <td border="0" style="invis" colspan="4" fixedsize="false" height="10"></td></tr>)",
                          offset_.c_str());
@@ -541,3 +544,4 @@ void spider::pisdf::PiSDFDOTExporterVisitor::dummyPortPrinter(int_fast32_t width
     /* == Footer == */
     portFooterPrinter();
 }
+#endif

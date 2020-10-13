@@ -32,6 +32,9 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
+
+#ifndef _NO_BUILD_GANTT_EXPORTER
+
 /* === Include(s) === */
 
 #include <scheduling/schedule/exporter/SchedSVGGanttExporter.h>
@@ -345,5 +348,4 @@ void spider::SchedSVGGanttExporter::printFromTasks(const vector<spider::GanttTas
     printer::fprintf(file, "</svg>");
     std::fclose(file);
 }
-
-
+#endif

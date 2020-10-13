@@ -59,6 +59,62 @@ namespace spider {
         v.pop_back();
     }
 
+    template<class T>
+    inline void set_at(vector<T> &v, size_t ix, const T &value) {
+#ifndef NDEBUG
+        v.at(ix) = value;
+#else
+        v[ix] = value;
+#endif
+    }
+
+    template<class T>
+    inline void set_at(vector<T> &v, size_t ix, T &&value) {
+#ifndef NDEBUG
+        v.at(ix) = std::forward<T>(value);
+#else
+        v[ix] = std::forward<T>(value);
+#endif
+    }
+
+    template<class T>
+    inline T get_at(const vector<T> &v, size_t ix) {
+#ifndef NDEBUG
+        return v.at(ix);
+#else
+        return v[ix];
+#endif
+    }
+
+    template<typename T>
+    inline void reserve(spider::vector<T> &vect, size_t size) {
+        vect.reserve(std::max(vect.capacity(), vect.size() + size));
+    }
+
+    /**
+     * @brief Append a vector using move semantics. Inspired by this answer: https://stackoverflow.com/a/37210097 but
+     *        modified to allow the caller to choose between copy or move.
+     * @tparam T
+     * @param dest  destination vector to be appended.
+     * @param src   source vector
+     * @return begin iterator of dest after append.
+     */
+    template<typename T>
+    typename spider::vector<T>::iterator append(spider::vector<T> &dest, spider::vector<T> src) {
+        typename spider::vector<T>::iterator result;
+        if (dest.empty()) {
+            dest = std::move(src);
+            result = std::begin(dest);
+        } else {
+            result = dest.insert(std::end(dest),
+                                 std::make_move_iterator(std::begin(src)),
+                                 std::make_move_iterator(std::end(src)));
+        }
+//        src.clear();
+//        src.shrink_to_fit();
+        return result;
+    }
+
     namespace factory {
 
         template<class T>

@@ -35,14 +35,22 @@
 /* === Include(s) === */
 
 #include <runtime/algorithm/Runtime.h>
+
+#ifndef _NO_BUILD_GANTT_EXPORTER
+
 #include <scheduling/schedule/exporter/SchedXMLGanttExporter.h>
 #include <scheduling/schedule/exporter/SchedSVGGanttExporter.h>
-#include <graphs/pisdf/Graph.h>
-#include <graphs/pisdf/Vertex.h>
+#include <api/config-api.h>
+
+#endif
+
+#include <scheduling/schedule/exporter/GanttTask.h>
+#include <scheduling/schedule/Schedule.h>
+#include <scheduling/task/Task.h>
 #include <runtime/platform/RTPlatform.h>
 #include <runtime/communicator/RTCommunicator.h>
 #include <runtime/message/Notification.h>
-#include <api/config-api.h>
+#include <archi/Platform.h>
 #include <api/runtime-api.h>
 
 /* === Static variable === */
@@ -61,6 +69,8 @@ static u64 getTime(spider::time::time_point value, spider::time::time_point offs
 
 /* === Function(s) definition === */
 
+#ifndef _NO_BUILD_GANTT_EXPORTER
+
 void spider::Runtime::exportPreExecGantt(const sched::Schedule *schedule, const std::string &path) {
     if (api::useSVGOverXMLGantt()) {
         SchedSVGGanttExporter exporter{ schedule };
@@ -69,20 +79,27 @@ void spider::Runtime::exportPreExecGantt(const sched::Schedule *schedule, const 
         SchedXMLGanttExporter exporter{ schedule };
         exporter.printFromPath(path + ".xml");
     }
+#else
+
+    void spider::Runtime::exportPreExecGantt(const sched::Schedule *, const std::string &) {
+        printer::fprintf(stderr, "Gantt exporter is not built. Recompile spider2 with -DBUILD_GANTT_EXPORTER=ON.\n");
+#endif
 }
 
-void spider::Runtime::useExecutionTraces(const pisdf::Graph *graph,
-                                         const sched::Schedule *schedule,
+void spider::Runtime::useExecutionTraces(const sched::Schedule *schedule,
                                          time::time_point offset,
+#ifndef _NO_BUILD_GANTT_EXPORTER
                                          const std::string &path) {
-    if (!graph || !schedule) {
-        return;
-    }
+#else
+    const std::string &) {
+#endif
     u64 applicationMinTime = UINT64_MAX;
     u64 applicationMaxTime = 0;
     u64 spiderTime = 0;
     u64 applicationRealTime = 0;
+#ifndef _NO_BUILD_GANTT_EXPORTER
     auto ganttTasks = factory::vector<GanttTask>();
+#endif
     /* == Get execution traces and update schedule info == */
     Notification notification;
     while (rt::platform()->communicator()->popTraceNotification(notification)) {
@@ -94,9 +111,9 @@ void spider::Runtime::useExecutionTraces(const pisdf::Graph *graph,
         task.pe_ = notification.senderIx_;
         switch (notification.type_) {
             case NotificationType::TRACE_TASK: {
-                const auto *vertex = graph->vertex(msg.taskIx_);
-                if (vertex) {
-                    task.name_ = vertex->name();
+                const auto *schedTask = schedule->task(msg.taskIx_);
+                if (schedTask) {
+                    task.name_ = schedTask->name();
                     task.color_ = VERTEX_TASK_COLOR;
                     applicationMinTime = std::min(applicationMinTime, task.start_);
                     applicationMaxTime = std::max(applicationMaxTime, task.end_);
@@ -127,7 +144,9 @@ void spider::Runtime::useExecutionTraces(const pisdf::Graph *graph,
             default:
                 throwSpiderException("received unexpected notification type");
         }
+#ifndef _NO_BUILD_GANTT_EXPORTER
         ganttTasks.emplace_back(std::move(task));
+#endif
     }
 
     /* == Print exec time == */
@@ -144,6 +163,7 @@ void spider::Runtime::useExecutionTraces(const pisdf::Graph *graph,
                              static_cast<double>(applicationRealTime)));
 
     /* == Export the schedule == */
+#ifndef _NO_BUILD_GANTT_EXPORTER
     if (api::exportGanttEnabled()) {
         if (api::useSVGOverXMLGantt()) {
             SchedSVGGanttExporter exporter{ schedule };
@@ -153,4 +173,5 @@ void spider::Runtime::useExecutionTraces(const pisdf::Graph *graph,
             exporter.printFromTasks(ganttTasks, path + ".xml");
         }
     }
+#endif
 }

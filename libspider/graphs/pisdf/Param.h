@@ -40,6 +40,7 @@
 #include <common/Exception.h>
 #include <graphs-tools/expression-parser/Expression.h>
 #include <graphs-tools/helper/visitors/PiSDFVisitor.h>
+#include <extra/variant.h>
 
 namespace spider {
     namespace pisdf {
@@ -49,29 +50,33 @@ namespace spider {
         class Param final {
         public:
 
-            explicit Param(std::string name) : expression_{ 0 }, type_{ ParamType::DYNAMIC } {
+            explicit Param(std::string name) : internal_{ 0 },
+                                               type_{ ParamType::DYNAMIC } {
                 setName(std::move(name));
             }
 
-            explicit Param(std::string name, int64_t value) : expression_{ value }, type_{ ParamType::STATIC } {
+            explicit Param(std::string name, int64_t value) : internal_{ value },
+                                                              type_{ ParamType::STATIC } {
                 setName(std::move(name));
             }
 
-            Param(std::string name, Expression expression) : expression_{ std::move(expression) } {
+            Param(std::string name, Expression expression) {
                 setName(std::move(name));
-                if (expression_.dynamic()) {
+                if (expression.dynamic()) {
                     type_ = ParamType::DYNAMIC_DEPENDANT;
+                    internal_ = std::move(expression);
                 } else {
                     type_ = ParamType::STATIC;
+                    internal_ = expression.value();
                 }
             }
 
-            Param(std::string name, std::shared_ptr<Param> parent) : parent_{ std::move(parent) },
-                                                                     type_{ ParamType::INHERITED } {
+            Param(std::string name, std::shared_ptr<Param> parent) : type_{ ParamType::INHERITED } {
                 setName(std::move(name));
-                if (!parent_) {
+                if (!parent) {
                     throwSpiderException("Inherited parameter can not have nullptr parent.");
                 }
+                internal_ = std::move(parent);
             }
 
             ~Param() = default;
@@ -80,13 +85,13 @@ namespace spider {
 
             Param(Param &&) noexcept = default;
 
-            Param &operator=(const Param &) = default;
+            inline Param &operator=(const Param &) = default;
 
             Param &operator=(Param &&) = default;
 
             /* === Method(s) === */
 
-            inline virtual void visit(Visitor *visitor) {
+            inline void visit(Visitor *visitor) {
                 visitor->visit(this);
             }
 
@@ -97,31 +102,47 @@ namespace spider {
             inline size_t ix() const { return ix_; }
 
             inline int64_t value() const {
-                if (parent_) {
-                    return parent_->value();
+                if (mpark::holds_alternative<param_t>(internal_)) {
+                    return mpark::get<param_t>(internal_)->value();
+                } else if (mpark::holds_alternative<Expression>(internal_)) {
+                    return mpark::get<Expression>(internal_).evaluate();
                 }
-                return expression_.value();
+                return mpark::get<int64_t>(internal_);
             }
 
             inline int64_t value(const vector <std::shared_ptr<Param>> &params) const {
-                if (parent_) {
-                    return parent_->value(params);
+                if (mpark::holds_alternative<param_t>(internal_)) {
+                    return mpark::get<param_t>(internal_)->value(params);
+                } else if (mpark::holds_alternative<Expression>(internal_)) {
+                    return mpark::get<Expression>(internal_).evaluate(params);
                 }
-                return expression_.evaluate(params);
+                return mpark::get<int64_t>(internal_);
             }
 
             inline ParamType type() const { return type_; }
 
             inline bool dynamic() const {
-                if (parent_) {
-                    return parent()->dynamic();
+                if (mpark::holds_alternative<param_t>(internal_)) {
+                    return mpark::get<param_t>(internal_)->dynamic();
                 }
                 return (type_ == ParamType::DYNAMIC) || (type_ == ParamType::DYNAMIC_DEPENDANT);
             }
 
-            inline Param *parent() const { return parent_.get(); }
+            inline Param *parent() const {
+                if (mpark::holds_alternative<param_t>(internal_)) {
+                    return mpark::get<param_t>(internal_).get();
+                }
+                return nullptr;
+            }
 
-            inline Expression expression() const { return expression_; }
+            inline Expression expression() const {
+                if (mpark::holds_alternative<param_t>(internal_)) {
+                    return mpark::get<param_t>(internal_)->expression();
+                } else if (mpark::holds_alternative<Expression>(internal_)) {
+                    return mpark::get<Expression>(internal_);
+                }
+                return Expression(mpark::get<int64_t>(internal_));
+            }
 
             /* === Setter(s) === */
 
@@ -129,17 +150,18 @@ namespace spider {
 
             inline void setValue(int64_t value) {
                 if (dynamic()) {
-                    expression_ = Expression(value);
+                    internal_ = value;
                 } else {
                     throwSpiderException("Can not set value on non-DYNAMIC parameter type.");
                 }
             }
 
         private:
-            Expression expression_;          /* = Expression of the Param. = */
-            std::string name_{"" };          /* = Name of the Param. It is transformed to lower case on construction = */
-            size_t ix_{ SIZE_MAX };          /* = Index of the Param in the Graph = */
-            std::shared_ptr<Param> parent_;
+            using param_t = std::shared_ptr<Param>;
+            using type_t = mpark::variant<int64_t, Expression, param_t>;
+            std::string name_;                    /* = Name of the Param. It is transformed to lower case on construction = */
+            type_t internal_;                     /* = Internal storage of the parameter = */
+            size_t ix_{ SIZE_MAX };               /* = Index of the Param in the Graph = */
             ParamType type_{ ParamType::STATIC }; /* = Type of the parameter = */
 
             /* === Private method(s) === */

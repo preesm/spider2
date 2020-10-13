@@ -35,6 +35,8 @@
 #ifndef SPIDER2_SCHEDXMLGANTTEXPORTER_H
 #define SPIDER2_SCHEDXMLGANTTEXPORTER_H
 
+#ifndef _NO_BUILD_GANTT_EXPORTER
+
 /* === Include(s) === */
 
 #include <common/Exporter.h>
@@ -88,4 +90,5 @@ namespace spider {
         void printTask(FILE *file, const sched::Task *task) const;
     };
 }
+#endif
 #endif //SPIDER2_SCHEDXMLGANTTEXPORTER_H

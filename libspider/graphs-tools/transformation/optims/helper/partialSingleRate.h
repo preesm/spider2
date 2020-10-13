@@ -35,6 +35,8 @@
 #ifndef SPIDER2_PARTIALSINGLERATE_H
 #define SPIDER2_PARTIALSINGLERATE_H
 
+#ifndef _NO_BUILD_LEGACY_RT
+
 /* === Include(s) === */
 
 #include <common/Types.h>
@@ -76,5 +78,5 @@ namespace spider {
                                          array<EdgeLinker> &sourceArray,
                                          array<EdgeLinker> &sinkArray);
 }
-
+#endif
 #endif //SPIDER2_PARTIALSINGLERATE_H

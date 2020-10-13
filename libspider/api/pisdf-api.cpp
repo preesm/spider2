@@ -561,8 +561,8 @@ spider::pisdf::Delay *spider::api::createLocalDelay(pisdf::Edge *edge,
         log::warning("delay with null value on edge [%s] ignored.\n", edge->name().c_str());
         return nullptr;
     }
-    const auto setterExpr = setter ? std::move(setterRateExpression) : std::to_string(value);
-    const auto getterExpr = getter ? std::move(getterRateExpression) : std::to_string(value);
+    auto setterExpr = setter ? std::move(setterRateExpression) : std::to_string(value);
+    auto getterExpr = getter ? std::move(getterRateExpression) : std::to_string(value);
     return make<pisdf::Delay, StackID::PISDF>(value, edge,
                                               setter,
                                               setterPortIx,

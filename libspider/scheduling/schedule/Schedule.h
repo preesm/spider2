@@ -39,7 +39,7 @@
 
 #include <containers/vector.h>
 #include <memory/unique_ptr.h>
-#include "ScheduleStats.h"
+#include <scheduling/schedule/ScheduleStats.h>
 
 namespace spider {
 
@@ -85,7 +85,7 @@ namespace spider {
              * @param endTime   End time of the task.
              * @throw std::out_of_range if bad ix.
              */
-            void updateTaskAndSetReady(Task *task, size_t slave, u64 startTime, u64 endTime);
+            void updateTaskAndSetReady(Task *task, const PE *slave, u64 startTime, u64 endTime);
 
             /**
              * @brief Send every tasks currently in JobState::READY.
@@ -149,8 +149,6 @@ namespace spider {
             inline size_t taskCount() const {
                 return tasks_.size();
             }
-
-            /* === Setter(s) === */
 
         private:
             spider::vector<spider::unique_ptr<Task>> tasks_;

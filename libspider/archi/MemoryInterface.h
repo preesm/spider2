@@ -39,7 +39,7 @@
 
 #include <api/global-api.h>
 #include <common/Exception.h>
-#include <containers/unordered_map.h>
+#include <containers/map.h>
 
 namespace spider {
 
@@ -49,7 +49,7 @@ namespace spider {
     public:
         explicit MemoryInterface(uint64_t size = 0);
 
-        ~MemoryInterface() = default;
+        ~MemoryInterface();
 
         /* === Method(s) === */
 
@@ -137,7 +137,7 @@ namespace spider {
             u32 count_;
         };
         /* = Map associating virtual address to physical ones = */
-        spider::unordered_map<uint64_t, buffer_t> virtual2Phys_;
+        spider::map<uint64_t, buffer_t> virtual2Phys_;
         /* = Total size of the MemoryUnit = */
         uint64_t size_ = 0;
         /* = Currently used memory (strictly less or equal to size_) = */

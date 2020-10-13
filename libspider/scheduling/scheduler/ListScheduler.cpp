@@ -32,11 +32,12 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
+#ifndef _NO_BUILD_LEGACY_RT
 
 /* === Include(s) === */
 
 #include <scheduling/scheduler/ListScheduler.h>
-#include <scheduling/task/TaskVertex.h>
+#include <scheduling/task/VertexTask.h>
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/Vertex.h>
 #include <graphs/pisdf/Edge.h>
@@ -49,6 +50,11 @@ namespace {
 }
 
 /* === Method(s) implementation === */
+
+spider::sched::ListScheduler::ListScheduler() : Scheduler(),
+                                                sortedTaskVector_{ factory::vector<ListTask>(StackID::SCHEDULE) } {
+
+}
 
 void spider::sched::ListScheduler::schedule(const pisdf::Graph *graph) {
     /* == Reserve space for the new ListTasks == */
@@ -67,7 +73,7 @@ void spider::sched::ListScheduler::schedule(const pisdf::Graph *graph) {
     /* == Compute the schedule level == */
     auto it = std::next(std::begin(sortedTaskVector_), static_cast<long>(lastSchedulableTask_));
     for (; it != std::end(sortedTaskVector_); ++it) {
-        computeScheduleLevel(*it, sortedTaskVector_);
+        computeScheduleLevel(*it);
     }
 
     /* == Sort the vector == */
@@ -81,7 +87,7 @@ void spider::sched::ListScheduler::schedule(const pisdf::Graph *graph) {
 
     /* == Create the list of tasks to be scheduled == */
     for (auto k = lastScheduledTask_; k < lastSchedulableTask_; ++k) {
-        tasks_.emplace_back(make<TaskVertex>(sortedTaskVector_[k].vertex_));
+        tasks_.emplace_back(make<VertexTask>(sortedTaskVector_[k].vertex_));
         sortedTaskVector_[k].vertex_->setScheduleTaskIx(SIZE_MAX);
     }
 }
@@ -111,23 +117,22 @@ void spider::sched::ListScheduler::createListTask(pisdf::Vertex *vertex) {
     vertex->setScheduleTaskIx(sortedTaskVector_.size() - 1);
 }
 
-ifast32 spider::sched::ListScheduler::computeScheduleLevel(ListTask &listTask,
-                                                           spider::vector<ListTask> &listVertexVector) const {
+ifast32 spider::sched::ListScheduler::computeScheduleLevel(ListTask &listTask) {
     const auto *vertex = listTask.vertex_;
     if ((listTask.level_ == NON_SCHEDULABLE_LEVEL) || !vertex->executable()) {
         listTask.level_ = NON_SCHEDULABLE_LEVEL;
-        for (auto &edge : vertex->outputEdgeVector()) {
+        for (const auto *edge : vertex->outputEdges()) {
             if (edge->sinkRateValue()) {
                 /* == Disable non-null edge == */
-                auto &sinkTask = listVertexVector[edge->sink()->scheduleTaskIx()];
+                auto &sinkTask = sortedTaskVector_[edge->sink()->scheduleTaskIx()];
                 sinkTask.level_ = NON_SCHEDULABLE_LEVEL;
-                computeScheduleLevel(sinkTask, listVertexVector);
+                computeScheduleLevel(sinkTask);
             }
         }
     } else if (listTask.level_ < 0) {
         const auto *platform = archi::platform();
         ifast32 level = 0;
-        for (auto &edge : vertex->outputEdgeVector()) {
+        for (const auto *edge : vertex->outputEdges()) {
             const auto *sink = edge->sink();
             if (sink && sink->executable()) {
                 const auto &sinkParams = sink->inputParamVector();
@@ -145,8 +150,7 @@ ifast32 spider::sched::ListScheduler::computeScheduleLevel(ListTask &listTask,
                         }
                     }
                 }
-                const auto sinkLevel = computeScheduleLevel(listVertexVector[sink->scheduleTaskIx()],
-                                                            listVertexVector);
+                const auto sinkLevel = computeScheduleLevel(sortedTaskVector_[sink->scheduleTaskIx()]);
                 if (sinkLevel != NON_SCHEDULABLE_LEVEL) {
                     level = std::max(level, sinkLevel + static_cast<ifast32>(minExecutionTime));
                 }
@@ -190,3 +194,5 @@ size_t spider::sched::ListScheduler::countNonSchedulableTasks() {
     }
     return static_cast<size_t>(std::distance(sortedTaskVector_.rbegin(), it));
 }
+
+#endif

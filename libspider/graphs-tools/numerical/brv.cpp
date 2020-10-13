@@ -110,7 +110,7 @@ namespace spider {
                 if (currentVertex->subtype() == pisdf::VertexType::CONFIG) {
                     component.configs_.emplace_back(vertex);
                 }
-                for (const auto *edge : currentVertex->outputEdgeVector()) {
+                for (const auto *edge : currentVertex->outputEdges()) {
                     if (!edge) {
                         throwSpiderException("Vertex [%s] has null output edge.", currentVertex->name().c_str());
                     } else if (!handler.visitedEdges_[edge->ix()]) {
@@ -127,7 +127,7 @@ namespace spider {
                         }
                     }
                 }
-                for (const auto *edge : currentVertex->inputEdgeVector()) {
+                for (const auto *edge : currentVertex->inputEdges()) {
                     if (!edge) {
                         throwSpiderException("Vertex [%s] has null input edge.", currentVertex->name().c_str());
                     } else if (!handler.visitedEdges_[edge->ix()]) {
@@ -187,7 +187,7 @@ namespace spider {
                 }
             };
             for (const auto &cfg : component.configs_) {
-                for (const auto &edge : cfg->outputEdgeVector()) {
+                for (const auto &edge : cfg->outputEdges()) {
                     updateInput(edge);
                 }
             }
@@ -220,7 +220,7 @@ namespace spider {
          */
         static void checkConsistency(const ConnectedComponent &component, const vector<std::pair<i64, i64>> &rates) {
             for (auto it = component.startIt_; it < component.endIt_; ++it) {
-                for (const auto &edge : (*it)->outputEdgeVector()) {
+                for (const auto &edge : (*it)->outputEdges()) {
                     if (edge->sink()->subtype() == pisdf::VertexType::OUTPUT) {
                         continue;
                     }
@@ -234,6 +234,30 @@ namespace spider {
                                 PRIu32").", edge->name().c_str(), sourceRate, source->repetitionValue(),
                                 sinkRate, sink->repetitionValue());
                     }
+                }
+            }
+        }
+
+        static void checkAloneVertexInSubgraph(pisdf::Vertex *vertex, const vector<std::pair<i64, i64>> &rates) {
+            auto allInputNull = true;
+            for (const auto *edge: vertex->inputEdges()) {
+                const auto sinkRate = rates[edge->ix()].second;
+                if (sinkRate) {
+                    allInputNull = false;
+                    break;
+                }
+            }
+            if (allInputNull) {
+                auto allOutputNull = true;
+                for (const auto *edge: vertex->outputEdges()) {
+                    const auto sourceRate = rates[edge->ix()].first;
+                    if (sourceRate) {
+                        allOutputNull = false;
+                        break;
+                    }
+                }
+                if (allOutputNull) {
+                    vertex->setRepetitionValue(0);
                 }
             }
         }
@@ -252,12 +276,19 @@ void spider::brv::compute(const pisdf::Graph *graph, const vector<std::shared_pt
         if (!handler.visitedVertices_[vertex->ix()]) {
             /* == 2. Extract current connected component == */
             const auto component = extractConnectedComponent(vertex.get(), preComputedEdgeRates, handler);
+            const auto nVertex = std::distance(component.startIt_, component.endIt_);
+            const auto hasIForCFG = !component.inputs_.empty() || !component.outputs_.empty() ||
+                                    !component.configs_.empty();
             /* == 2.1 If there are no edges then RV is supposed to be 1 == */
             if (!component.edgeCount_) {
                 continue;
             }
             /* == 3. Compute Repetition vector for current connected component == */
             computeRepetitionValues(component, handler);
+            if ((nVertex == 1) && hasIForCFG) {
+                /* == 2.2 If there is 1 vertex and input or output interfaces then RV is at least 1 == */
+                checkAloneVertexInSubgraph(*component.startIt_, preComputedEdgeRates);
+            }
             /* == 4. Update repetition vector based on PiSDF rules == */
             updateComponentBRV(component, preComputedEdgeRates);
             /* == 5. Check graph consistency == */

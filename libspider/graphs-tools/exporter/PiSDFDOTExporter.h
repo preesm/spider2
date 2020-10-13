@@ -35,6 +35,8 @@
 #ifndef SPIDER2_PISDFDOTEXPORTER_H
 #define SPIDER2_PISDFDOTEXPORTER_H
 
+#ifndef _NO_BUILD_GRAPH_EXPORTER
+
 /* === Include(s) === */
 
 #include <common/Exporter.h>
@@ -75,5 +77,5 @@ namespace spider {
         };
     }
 }
-
+#endif
 #endif //SPIDER2_PISDFDOTEXPORTER_H

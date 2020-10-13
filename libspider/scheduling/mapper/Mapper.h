@@ -49,7 +49,7 @@ namespace spider {
 
         class Task;
 
-        class TaskVertex;
+        class VertexTask;
 
         class Schedule;
 
@@ -69,7 +69,7 @@ namespace spider {
              * @param schedule pointer to the schedule to update.
              * @throw @refitem spider::Exception if the mapper was unable to find any processing elements for the task.
              */
-            virtual void map(TaskVertex *task, Schedule *schedule) = 0;
+            virtual void map(Task *task, Schedule *schedule) = 0;
 
             /* === Getter(s) === */
 
@@ -79,6 +79,16 @@ namespace spider {
 
         protected:
             ufast64 startTime_{ 0U };
+
+            /* === Protected method(s) === */
+
+            /**
+             * @brief Compute the minimum start time possible for a given task.
+             * @param task    Pointer to the task.
+             * @return value of the minimum start time possible
+             */
+            ufast64 computeStartTime(const Task *task) const;
+
         };
     }
 }
