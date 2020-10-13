@@ -86,6 +86,11 @@ namespace spider {
 #endif
     }
 
+    template<typename T>
+    inline void reserve(spider::vector<T> &vect, size_t size) {
+        vect.reserve(std::max(vect.capacity(), vect.size() + size));
+    }
+
     /**
      * @brief Append a vector using move semantics. Inspired by this answer: https://stackoverflow.com/a/37210097 but
      *        modified to allow the caller to choose between copy or move.

@@ -97,7 +97,7 @@ bool spider::FastRuntime::staticExecute() {
         /* == Runners should reset their parameters == */
         rt::platform()->sendResetToRunners();
         if (api::exportTraceEnabled()) {
-            useExecutionTraces(graph_, resourcesAllocator_->schedule(), startIterStamp_);
+            fprintf(stderr, "static applications are not monitored beyond first iteration.\n");
         }
     } else {
         /* == Runners should repeat their iteration == */
@@ -124,7 +124,7 @@ bool spider::FastRuntime::staticExecute() {
         /* == Runners should reset their parameters == */
         rt::platform()->sendResetToRunners();
         if (api::exportTraceEnabled()) {
-            useExecutionTraces(graph_, resourcesAllocator_->schedule(), startIterStamp_);
+            useExecutionTraces(resourcesAllocator_->schedule(), startIterStamp_);
         }
     }
     resourcesAllocator_->clear();
@@ -166,7 +166,7 @@ bool spider::FastRuntime::dynamicExecute() {
         /* == Wait for all parameters to be resolved == */
         const auto expectedParamCount = countExpectedNumberOfParams(&graphHandler);
         if (!expectedParamCount) {
-            break;
+            done = true;
         } else {
             if (log::enabled<log::TRANSFO>()) {
                 log::info<log::TRANSFO>("Waiting fo dynamic parameters..\n");
@@ -207,7 +207,7 @@ bool spider::FastRuntime::dynamicExecute() {
 
     /* == Export post-exec gantt if needed  == */
     if (api::exportTraceEnabled()) {
-        useExecutionTraces(graph_, resourcesAllocator_->schedule(), startIterStamp_);
+        useExecutionTraces(resourcesAllocator_->schedule(), startIterStamp_);
     }
     /* == Clear the resource allocator == */
     resourcesAllocator_->clear();

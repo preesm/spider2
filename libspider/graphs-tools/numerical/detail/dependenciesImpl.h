@@ -47,15 +47,17 @@ namespace spider {
 
             /* === Function(s) prototype === */
 
-            DependencyIterator computeExecDependency(const Edge *edge,
-                                                     int64_t lowerCons,
-                                                     int64_t upperCons,
-                                                     const srless::GraphFiring *handler);
+            void computeExecDependency(const Edge *edge,
+                                       int64_t lowerCons,
+                                       int64_t upperCons,
+                                       const srless::GraphFiring *handler,
+                                       spider::vector<DependencyInfo> &result);
 
-            DependencyIterator computeConsDependency(const Edge *edge,
-                                                     int64_t lowerProd,
-                                                     int64_t upperProd,
-                                                     const srless::GraphFiring *handler);
+            void computeConsDependency(const Edge *edge,
+                                       int64_t lowerProd,
+                                       int64_t upperProd,
+                                       const srless::GraphFiring *handler,
+                                       spider::vector<DependencyInfo> &result);
         }
     }
 }

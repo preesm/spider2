@@ -86,17 +86,13 @@ void spider::Runtime::exportPreExecGantt(const sched::Schedule *schedule, const 
 #endif
 }
 
-void spider::Runtime::useExecutionTraces(const pisdf::Graph *graph,
-                                         const sched::Schedule *schedule,
+void spider::Runtime::useExecutionTraces(const sched::Schedule *schedule,
                                          time::time_point offset,
 #ifndef _NO_BUILD_GANTT_EXPORTER
                                          const std::string &path) {
 #else
     const std::string &) {
 #endif
-    if (!graph || !schedule) {
-        return;
-    }
     u64 applicationMinTime = UINT64_MAX;
     u64 applicationMaxTime = 0;
     u64 spiderTime = 0;

@@ -164,7 +164,7 @@ void spider::StaticRuntime::applyTransformationAndRun() {
 
     /* == Export post-exec gantt if needed  == */
     if (api::exportTraceEnabled()) {
-        useExecutionTraces(srdag_.get(), ressourcesAllocator_->schedule(), startIterStamp_);
+        useExecutionTraces(ressourcesAllocator_->schedule(), startIterStamp_);
     }
 }
 
@@ -186,7 +186,7 @@ void spider::StaticRuntime::run() {
     rt::platform()->sendResetToRunners();
     /* == Check if we need to re-schedule == */
     if (api::exportTraceEnabled()) {
-        useExecutionTraces(srdag_.get(), ressourcesAllocator_->schedule(), startIterStamp_);
+        fprintf(stderr, "static applications are not monitored beyond first iteration.\n");
     }
 }
 

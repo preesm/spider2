@@ -37,16 +37,13 @@
 
 /* === Include(s) === */
 
-#include <extra/variant.h>
-#include <graphs-tools/numerical/detail/UniqueDependency.h>
-#include <graphs-tools/numerical/detail/MultipleDependency.h>
+#include <graphs-tools/numerical/detail/DependencyInfo.h>
+#include <containers/vector.h>
 
 namespace spider {
     namespace pisdf {
 
         /* === Class definition === */
-
-        struct VoidDependency { };
 
         struct DependencyIterator {
         public:
@@ -54,70 +51,42 @@ namespace spider {
 
             using const_iterator = const DependencyInfo *;
 
-            explicit DependencyIterator(UniqueDependency it) : it_{ it } { };
-
-            explicit DependencyIterator(VoidDependency it) : it_{ it } { };
-
-            explicit DependencyIterator(MultipleDependency it) : it_{ std::move(it) } { };
+            explicit DependencyIterator(spider::vector<DependencyInfo> infos) : infos_{ std::move(infos) } { }
 
             DependencyIterator(const DependencyIterator &) = default;
 
-            DependencyIterator(DependencyIterator &&) = default;
+            DependencyIterator(DependencyIterator &&) noexcept = default;
 
             DependencyIterator &operator=(const DependencyIterator &) = default;
 
-            DependencyIterator &operator=(DependencyIterator &&) = default;
+            DependencyIterator &operator=(DependencyIterator &&) noexcept = default;
 
-            ~DependencyIterator() = default;
+            ~DependencyIterator() noexcept = default;
 
             /* === Methods === */
 
-            inline std::iterator_traits<iterator>::difference_type count() const {
-                return std::distance(begin(), end());
+            inline size_t count() const {
+                return infos_.size();
             }
 
             inline iterator begin() {
-                if (mpark::holds_alternative<UniqueDependency>(it_)) {
-                    return &(mpark::get<UniqueDependency>(it_).info_);
-                } else if (mpark::holds_alternative<VoidDependency>(it_)) {
-                    return nullptr;
-                }
-                return mpark::get<MultipleDependency>(it_).infos_.data();
+                return infos_.data();
             }
 
             inline const_iterator begin() const {
-                if (mpark::holds_alternative<UniqueDependency>(it_)) {
-                    return &(mpark::get<UniqueDependency>(it_).info_);
-                } else if (mpark::holds_alternative<VoidDependency>(it_)) {
-                    return nullptr;
-                }
-                return mpark::get<MultipleDependency>(it_).infos_.data();
+                return infos_.data();
             }
 
             inline iterator end() {
-                if (mpark::holds_alternative<UniqueDependency>(it_)) {
-                    return &(mpark::get<UniqueDependency>(it_).info_) + 1;
-                } else if (mpark::holds_alternative<VoidDependency>(it_)) {
-                    return nullptr;
-                } else {
-                    auto &deps = mpark::get<MultipleDependency>(it_).infos_;
-                    return deps.data() + deps.size();
-                }
+                return infos_.data() + infos_.size();
             }
 
             inline const_iterator end() const {
-                if (mpark::holds_alternative<UniqueDependency>(it_)) {
-                    return &(mpark::get<UniqueDependency>(it_).info_) + 1;
-                } else if (mpark::holds_alternative<VoidDependency>(it_)) {
-                    return nullptr;
-                } else {
-                    const auto &deps = mpark::get<MultipleDependency>(it_).infos_;
-                    return deps.data() + deps.size();
-                }
+                return infos_.data() + infos_.size();
             }
 
         private:
-            mpark::variant<UniqueDependency, MultipleDependency, VoidDependency> it_;
+            spider::vector<DependencyInfo> infos_;
         };
     }
 }

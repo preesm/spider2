@@ -120,13 +120,11 @@ namespace spider {
         /**
          * @brief Export the Gantt of the real execution trace of the application for 1 graph iteration.
          * @remark Requires to have enable the execution traces with @refitem spider::enableExportTrace.
-         * @param graph    Pointer to the graph to be used as referece.
          * @param schedule Pointer to the schedule.
          * @param offset   Time offset to apply.
          * @param path     Path of the file.
          */
-        void useExecutionTraces(const pisdf::Graph *graph,
-                                const sched::Schedule *schedule,
+        void useExecutionTraces(const sched::Schedule *schedule,
                                 time::time_point offset = time::min(),
                                 const std::string &path = "./exec-gantt");
     };
