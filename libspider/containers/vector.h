@@ -71,9 +71,9 @@ namespace spider {
     template<class T>
     inline void set_at(vector<T> &v, size_t ix, T &&value) {
 #ifndef NDEBUG
-        v.at(ix) = std::move(value);
+        v.at(ix) = std::forward<T>(value);
 #else
-        v[ix] = std::move(value);
+        v[ix] = std::forward<T>(value);
 #endif
     }
 

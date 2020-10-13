@@ -159,21 +159,21 @@ namespace spider {
 spider::array<void *>
 spider::getInputBuffers(const array_handle<Fifo> &fifos, MemoryInterface *memoryInterface) {
     size_t count = 0u;
-    for (auto it = std::begin(fifos); it != std::end(fifos); ++it) {
-        if (it->attribute_ == FifoAttribute::R_MERGE) {
-            it += it->offset_;
-        }
+    auto it = std::begin(fifos);
+    while (it != std::end(fifos)) {
         count += it->attribute_ != FifoAttribute::DUMMY;
+        it = it->attribute_ == FifoAttribute::R_MERGE ? it + it->offset_ + 1 : it + 1;
     }
     auto result = spider::array<void *>{ count, nullptr, StackID::RUNTIME };
     /* = yeah it is ugly, but avoids changing everything else and keeps const at high level = */
     auto fifoIt = const_cast<array_handle<Fifo>::iterator>(std::begin(fifos));
-    for (auto it = std::begin(result); it != std::end(result); ++it) {
+    auto resIt = std::begin(result);
+    while (resIt != std::end(result)) {
         if (fifoIt->attribute_ == FifoAttribute::DUMMY) {
             fifoIt++;
-            it--;
         } else {
-            (*it) = readFunctions[static_cast<u8>(fifoIt->attribute_)](fifoIt, memoryInterface);
+            (*resIt) = readFunctions[static_cast<u8>(fifoIt->attribute_)](fifoIt, memoryInterface);
+            resIt++;
         }
     }
     return result;

@@ -62,14 +62,15 @@ size_t spider::srdag::SingleRateTransformer::getIx(const pisdf::Vertex *vertex, 
 void spider::srdag::SingleRateTransformer::updateParams(TransfoJob &job) {
     const auto *graph = job.reference_;
     if (!graph->configVertexCount()) {
-        for (const auto &param : job.params_) {
+        for (auto &param : job.params_) {
             if (param->type() == pisdf::ParamType::INHERITED) {
                 const auto value = param->parent()->value(job.params_);
-                auto p = spider::make_shared<pisdf::Param, StackID::PISDF>(param->name(), value);
-                p->setIx(param->ix());
-                job.params_[param->ix()] = std::move(p);
+                const auto ix = param->ix();
+                param = spider::make_shared<pisdf::Param, StackID::PISDF>(param->name(), value);
+                param->setIx(ix);
             } else if (param->type() == pisdf::ParamType::DYNAMIC_DEPENDANT) {
-                param->setValue(param->value(job.params_));
+                const auto value = param->value(job.params_);
+                param = spider::make_shared<pisdf::Param, StackID::PISDF>(param->name(), value);
             }
         }
     }
@@ -553,4 +554,5 @@ void spider::srdag::SingleRateTransformer::populateFromDelayVertex(vector<Transf
     /* == Remove the Edge == */
     srdag_->removeEdge(edge);
 }
+
 #endif
