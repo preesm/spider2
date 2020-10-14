@@ -6,18 +6,21 @@ Spider2 Changelog
 
 ### New Feature
 * Adding new DEFAULT_NOSYNC allocator (which only work post scheduling) that removes synchronisation points on forks, duplicates and extern interfaces. Default remains DEFAULT allocator.
-* Adding full support of SR-DAG less execution of both static and dynamic applications.
+* Adding full support of SR-DAG less execution of both static and dynamic applications (see: https://hal.archives-ouvertes.fr/hal-02355636 for more details).
 
 ### Changes
 * Changed Semaphore.h to use POSIX semaphore on Linux.
 * Changed how send and receive task work in an heterogeneous setup.
 * Decoupled Mapper and Scheduler. 
+* Start up time with JIT Compiled expressions is now order of magnitude faster (usage of 1 unique file with only 1 dynamic compilation for all expressions). 
+* Adding support of new operators in expression parser (==, >, <, >=, <=, !=).
 
 ### Bug fix
 * Sonar: fixed const qualified function parameters.
 * Sonar: fixed const qualified variables.
 * Sonar: fixed implicit string concatenation.
-
+* Fixed various bugs linked to the dynamic behavior of applications.
+* Fixed join/fork optimization pattern in some corner cases.
 
 ## Release version 0.1.1
 *2020.06.19*
