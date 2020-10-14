@@ -116,7 +116,7 @@ bool spider::JITMSRuntime::execute() {
             if (log::enabled<log::TRANSFO>()) {
                 log::info<log::TRANSFO>("Waiting fo dynamic parameters..\n");
             }
-
+            TRACE_TRANSFO_START();
             size_t readParam = 0;
             while (readParam != dynamicJobStack.size()) {
                 Notification notification;
@@ -144,6 +144,7 @@ bool spider::JITMSRuntime::execute() {
                     // LCOV_IGNORE: this is a sanity check, it should never happen and it is not testable from the outside.
                     throwSpiderException("expected parameter notification");
                 }
+                TRACE_TRANSFO_END();
             }
 
             /* == Transform dynamic jobs == */

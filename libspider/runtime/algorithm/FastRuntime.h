@@ -73,6 +73,7 @@ namespace spider {
     private:
         time::time_point startIterStamp_ = time::min();
         spider::unique_ptr<sched::ResourcesAllocator> resourcesAllocator_;
+        spider::unique_ptr<srless::GraphHandler> graphHandler_;
         size_t iter_ = 0U;
         bool isStatic_{};
 

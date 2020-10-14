@@ -50,7 +50,7 @@
 spider::srless::GraphFiring::GraphFiring(const GraphHandler *parent,
                                          const spider::vector<std::shared_ptr<pisdf::Param>> &params,
                                          u32 firing) :
-//        params_{ factory::vector<std::shared_ptr<pisdf::Param>>(StackID::TRANSFO) },
+        params_{ factory::vector<std::shared_ptr<pisdf::Param>>(StackID::TRANSFO) },
         parent_{ parent },
         firing_{ firing },
         resolved_{ false } {
@@ -138,7 +138,7 @@ void spider::srless::GraphFiring::clear() {
         }
     }
     paramResolvedCount_ = 0;
-    resolved_ = false;
+    resolved_ = parent_->isStatic();
 }
 
 spider::array_handle<spider::srless::GraphHandler *> spider::srless::GraphFiring::subgraphFirings() const {

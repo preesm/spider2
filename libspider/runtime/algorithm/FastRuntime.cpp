@@ -66,6 +66,7 @@ spider::FastRuntime::FastRuntime(pisdf::Graph *graph, const RuntimeConfig &cfg, 
     }
     resourcesAllocator_->allocator()->allocatePersistentDelays(graph_);
     pisdf::recursiveSplitDynamicGraph(graph_);
+    graphHandler_ = make_unique<srless::GraphHandler, StackID::TRANSFO>(graph_, graph_->params(), 1u);
 }
 
 bool spider::FastRuntime::execute() {
@@ -102,15 +103,11 @@ bool spider::FastRuntime::staticExecute() {
     } else {
         /* == Runners should repeat their iteration == */
         rt::platform()->sendRepeatToRunners(true);
-        TraceMessage transfoMsg{ };
-        TRACE_TRANSFO_START();
-        auto graphHandler = srless::GraphHandler(graph_, graph_->params(), 1u);
-        TRACE_TRANSFO_END();
         TraceMessage schedMsg{ };
         TRACE_SCHEDULE_START();
         /* == Send LRT_START_ITERATION notification == */
         rt::platform()->sendStartIteration();
-        resourcesAllocator_->execute(&graphHandler);
+        resourcesAllocator_->execute(graphHandler_.get());
         /* == Send LRT_END_ITERATION notification == */
         rt::platform()->sendEndIteration();
         TRACE_SCHEDULE_END();
@@ -128,6 +125,7 @@ bool spider::FastRuntime::staticExecute() {
         }
     }
     resourcesAllocator_->clear();
+    graphHandler_->clear();
     iter_++;
     return true;
 }
@@ -137,10 +135,6 @@ bool spider::FastRuntime::dynamicExecute() {
     if (api::exportTraceEnabled()) {
         startIterStamp_ = time::now();
     }
-    TraceMessage transfoMsg{ };
-    TRACE_TRANSFO_START();
-    auto graphHandler = srless::GraphHandler(graph_, graph_->params(), 1u);
-    TRACE_TRANSFO_END();
     /* == Resolve, schedule and run == */
     const auto grtIx = archi::platform()->getGRTIx();
     auto done = false;
@@ -149,7 +143,7 @@ bool spider::FastRuntime::dynamicExecute() {
         TRACE_SCHEDULE_START();
         /* == Send LRT_START_ITERATION notification == */
         rt::platform()->sendStartIteration();
-        resourcesAllocator_->execute(&graphHandler);
+        resourcesAllocator_->execute(graphHandler_.get());
         /* == Send JOB_DELAY_BROADCAST_JOBSTAMP notification == */
         rt::platform()->sendDelayedBroadCastToRunners();
         /* == Send LRT_END_ITERATION notification == */
@@ -164,13 +158,15 @@ bool spider::FastRuntime::dynamicExecute() {
         rt::platform()->waitForRunnersToFinish();
 
         /* == Wait for all parameters to be resolved == */
-        const auto expectedParamCount = countExpectedNumberOfParams(&graphHandler);
+        const auto expectedParamCount = countExpectedNumberOfParams(graphHandler_.get());
         if (!expectedParamCount) {
             done = true;
         } else {
             if (log::enabled<log::TRANSFO>()) {
                 log::info<log::TRANSFO>("Waiting fo dynamic parameters..\n");
             }
+            TraceMessage transfoMsg{ };
+            TRACE_TRANSFO_START();
             size_t readParam = 0;
             while (readParam != expectedParamCount) {
                 Notification notification;
@@ -199,6 +195,7 @@ bool spider::FastRuntime::dynamicExecute() {
                     throwSpiderException("expected parameter notification");
                 }
             }
+            TRACE_TRANSFO_END();
         }
     }
 
@@ -209,8 +206,9 @@ bool spider::FastRuntime::dynamicExecute() {
     if (api::exportTraceEnabled()) {
         useExecutionTraces(resourcesAllocator_->schedule(), startIterStamp_);
     }
-    /* == Clear the resource allocator == */
+    /* == Clear the resources == */
     resourcesAllocator_->clear();
+    graphHandler_->clear();
     return true;
 }
 
