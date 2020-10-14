@@ -45,6 +45,7 @@
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/Edge.h>
 #include <graphs/pisdf/Delay.h>
+#include <graphs/pisdf/DelayVertex.h>
 #include <api/pisdf-api.h>
 #include <api/runtime-api.h>
 
@@ -239,7 +240,7 @@ bool spider::srdag::SingleRateTransformer::checkForNullEdge(const pisdf::Edge *e
             for (auto i = start; i < start + sink->repetitionValue(); ++i) {
                 auto *clone = srdag_->vertex(i);
                 auto *init = api::createNonExecVertex(srdag_,
-                                                      "void::" + clone->name() + ":" +
+                                                      "void::in::" + clone->name() + ":" +
                                                       std::to_string(edge->sinkPortIx()),
                                                       0, 1);
                 api::createEdge(init, 0, 0, clone, edge->sinkPortIx(), 0);
@@ -252,7 +253,7 @@ bool spider::srdag::SingleRateTransformer::checkForNullEdge(const pisdf::Edge *e
             for (auto i = start; i < start + source->repetitionValue(); ++i) {
                 auto *clone = srdag_->vertex(i);
                 auto *end = api::createNonExecVertex(srdag_,
-                                                     "void::" + clone->name() + ":" +
+                                                     "void::out::" + clone->name() + ":" +
                                                      std::to_string(edge->sourcePortIx()),
                                                      1);
                 api::createEdge(clone, edge->sourcePortIx(), 0, end, 0, 0);
@@ -477,9 +478,22 @@ spider::srdag::SingleRateTransformer::buildSinkLinkerVector(const pisdf::Edge *e
             const auto rate = edge->sourceRateExpression().evaluate(job_.params_) * edge->source()->repetitionValue();
             populateTransfoVertexVector(sinkVector, sink, rate, edge->sinkPortIx());
         }
-    } else if (sink->subtype() == pisdf::VertexType::DELAY && clone->outputEdge(1)) {
-        /* == 2.1 We already connected sink of original edge containing the delay, we'll use it directly == */
-        populateFromDelayVertex(sinkVector, clone->outputEdge(1), true);
+    } else if (sink->subtype() == pisdf::VertexType::DELAY) {
+        if (clone->outputEdge(1)) {
+            /* == 2.1 We already connected sink of original edge containing the delay, we'll use it directly == */
+            populateFromDelayVertex(sinkVector, clone->outputEdge(1), true);
+        } else {
+            const auto *delayEdge = sink->convertTo<pisdf::DelayVertex>()->delay()->edge();
+            const auto isNullEdge = !(delayEdge->sourceRateExpression().evaluate(job_.params_)) &&
+                                    !(delayEdge->sinkRateExpression().evaluate(job_.params_));
+            if (isNullEdge && clone->outputEdge(0)) {
+                /* == let set the setter as our source == */
+                populateFromDelayVertex(sinkVector, clone->outputEdge(0), true);
+            } else {
+                const auto rate = edge->sinkRateExpression().evaluate(job_.params_);
+                populateTransfoVertexVector(sinkVector, sink, rate, edge->sinkPortIx());
+            }
+        }
     } else {
         /* == 2.2 Normal case == */
         const auto rate = edge->sinkRateExpression().evaluate(job_.params_);
@@ -508,9 +522,22 @@ spider::srdag::SingleRateTransformer::buildSourceLinkerVector(const pisdf::Edge 
             const auto rate = edge->sinkRateExpression().evaluate(job_.params_) * edge->sink()->repetitionValue();
             populateTransfoVertexVector(sourceVector, source, rate, edge->sourcePortIx());
         }
-    } else if (source->subtype() == pisdf::VertexType::DELAY && clone->inputEdge(1)) {
-        /* == 1.1 We already connected source of original edge containing the delay, we'll use it directly == */
-        populateFromDelayVertex(sourceVector, clone->inputEdge(1), false);
+    } else if (source->subtype() == pisdf::VertexType::DELAY) {
+        if (clone->inputEdge(1)) {
+            /* == 1.1 We already connected source of original edge containing the delay, we'll use it directly == */
+            populateFromDelayVertex(sourceVector, clone->inputEdge(1), false);
+        } else {
+            const auto *delayEdge = source->convertTo<pisdf::DelayVertex>()->delay()->edge();
+            const auto isNullEdge = !(delayEdge->sourceRateExpression().evaluate(job_.params_)) &&
+                                    !(delayEdge->sinkRateExpression().evaluate(job_.params_));
+            if (isNullEdge && clone->inputEdge(0)) {
+                /* == let set the setter as our source == */
+                populateFromDelayVertex(sourceVector, clone->inputEdge(0), false);
+            } else {
+                const auto rate = edge->sourceRateExpression().evaluate(job_.params_);
+                populateTransfoVertexVector(sourceVector, source, rate, edge->sourcePortIx());
+            }
+        }
     } else {
         /* == 1.2 Normal case == */
         const auto rate = edge->sourceRateExpression().evaluate(job_.params_);
