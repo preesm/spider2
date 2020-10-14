@@ -49,6 +49,16 @@
 
 /* === Static function(s) === */
 
+static u32 countNonNullEdges(const spider::array_handle<spider::pisdf::Edge *> &edges) {
+    u32 count = 0;
+    for (const auto *edge : edges) {
+        if (edge) {
+            count += edge->sourceRateValue() != 0;
+        }
+    }
+    return count;
+}
+
 /**
  * @brief Creates one new @refitem pisdf::VertexType::FORK out of two.
  *        detail: pattern is as follow:
@@ -68,8 +78,10 @@
 static spider::pisdf::Vertex *
 createNewFork(const spider::pisdf::Vertex *secondFork, const spider::pisdf::Vertex *firstFork) {
     auto *graph = firstFork->graph();
-    const auto &outputCount = static_cast<uint32_t>((firstFork->outputEdgeCount() - 1) +
-                                                    secondFork->outputEdgeCount());
+//    const auto &outputCount = static_cast<uint32_t>((firstFork->outputEdgeCount() - 1) +
+//                                                    secondFork->outputEdgeCount());
+    const auto outputCount =
+            countNonNullEdges(firstFork->outputEdges()) + countNonNullEdges(secondFork->outputEdges()) - 1;
     auto *newFork = spider::api::createFork(graph,
                                             "merged-" + firstFork->name() + "-" + secondFork->name(),
                                             outputCount);
@@ -233,7 +245,15 @@ bool spider::optims::reduceDupDup(pisdf::Graph *graph) {
     };
     auto reconnectEdge = [](const pisdf::Vertex *vertex, size_t srcIx, pisdf::Vertex *target, size_t snkIx) {
         auto *edge = vertex->outputEdge(srcIx);
-        edge->setSource(target, snkIx, edge->sourceRateExpression());
+        if (edge && !edge->sourceRateValue() && !edge->sink()->executable()) {
+            vertex->graph()->removeVertex(edge->sink());
+            vertex->graph()->removeEdge(edge);
+        } else if (edge) {
+            edge->setSource(target, snkIx, edge->sourceRateExpression());
+        }
+    };
+    auto countEdges = [](const pisdf::Vertex *vertex) -> u32 {
+        return countNonNullEdges(vertex->outputEdges());
     };
 
     /* == Do the optimization == */
@@ -242,6 +262,7 @@ bool spider::optims::reduceDupDup(pisdf::Graph *graph) {
                             createNewDuplicate,
                             std::move(getNextVertex),
                             std::move(removeEdge),
+                            std::move(countEdges),
                             std::move(reconnectEdge));
 }
 
@@ -260,7 +281,15 @@ bool spider::optims::reduceForkFork(pisdf::Graph *graph) {
     };
     auto reconnectEdge = [](const pisdf::Vertex *vertex, size_t srcIx, pisdf::Vertex *target, size_t snkIx) {
         auto *edge = vertex->outputEdge(srcIx);
-        edge->setSource(target, snkIx, edge->sourceRateExpression());
+        if (edge && !edge->sourceRateValue() && !edge->sink()->executable()) {
+            vertex->graph()->removeVertex(edge->sink());
+            vertex->graph()->removeEdge(edge);
+        } else if (edge) {
+            edge->setSource(target, snkIx, edge->sourceRateExpression());
+        }
+    };
+    auto countEdges = [](const pisdf::Vertex *vertex) -> u32 {
+        return countNonNullEdges(vertex->outputEdges());
     };
 
     /* == Do the optimization == */
@@ -269,6 +298,7 @@ bool spider::optims::reduceForkFork(pisdf::Graph *graph) {
                             createNewFork,
                             std::move(getNextVertex),
                             std::move(removeEdge),
+                            std::move(countEdges),
                             std::move(reconnectEdge));
 }
 
@@ -287,7 +317,15 @@ bool spider::optims::reduceJoinJoin(pisdf::Graph *graph) {
     };
     auto reconnectEdge = [](const pisdf::Vertex *vertex, size_t srcIx, pisdf::Vertex *target, size_t snkIx) {
         auto *edge = vertex->inputEdge(srcIx);
-        edge->setSink(target, snkIx, edge->sinkRateExpression());
+        if (edge && !edge->sinkRateValue() && !edge->source()->executable()) {
+            vertex->graph()->removeVertex(edge->source());
+            vertex->graph()->removeEdge(edge);
+        } else if (edge) {
+            edge->setSink(target, snkIx, edge->sinkRateExpression());
+        }
+    };
+    auto countEdges = [](const pisdf::Vertex *vertex) -> u32 {
+        return countNonNullEdges(vertex->inputEdges());
     };
     /* == Do the optimization == */
     return reduceFFJJWorker(pisdf::VertexType::JOIN,
@@ -295,6 +333,7 @@ bool spider::optims::reduceJoinJoin(pisdf::Graph *graph) {
                             createNewJoin,
                             std::move(getNextVertex),
                             std::move(removeEdge),
+                            std::move(countEdges),
                             std::move(reconnectEdge));
 }
 
@@ -434,4 +473,5 @@ bool spider::optims::reduceUnitaryRateActors(const pisdf::Graph *graph) {
     }
     return optimized;
 }
+
 #endif

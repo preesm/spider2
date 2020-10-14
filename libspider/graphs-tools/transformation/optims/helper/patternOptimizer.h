@@ -41,6 +41,7 @@
 
 #include <cstddef>
 #include <api/global-api.h>
+#include <common/Types.h>
 
 namespace spider {
 
@@ -52,6 +53,7 @@ namespace spider {
     using EdgeRemover = size_t (*)(const pisdf::Vertex *, const pisdf::Vertex *);
     using NextVertexGetter = pisdf::Vertex *(*)(const pisdf::Vertex *);
     using VertexMaker = pisdf::Vertex *(*)(const pisdf::Vertex *, const pisdf::Vertex *);
+    using EdgeCounter = u32 (*)(const pisdf::Vertex *);
 
     namespace optims {
 
@@ -65,6 +67,7 @@ namespace spider {
                               VertexMaker makeNewVertex,
                               NextVertexGetter getNextVertex,
                               EdgeRemover removeEdge,
+                              EdgeCounter countEdges,
                               EdgeConnecter reconnect);
     }
 }

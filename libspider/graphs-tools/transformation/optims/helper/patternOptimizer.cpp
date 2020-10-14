@@ -49,6 +49,7 @@ bool spider::optims::reduceFFJJWorker(pisdf::VertexType type,
                                       VertexMaker makeNewVertex,
                                       NextVertexGetter getNextVertex,
                                       EdgeRemover removeEdge,
+                                      EdgeCounter countEdges,
                                       EdgeConnecter reconnect) {
     auto verticesToOptimize = factory::vector<pisdf::Vertex *>(StackID::TRANSFO);
 
@@ -68,11 +69,6 @@ bool spider::optims::reduceFFJJWorker(pisdf::VertexType type,
         auto *vertexA = (*it);                  /* = Second fork or first join = */
         auto *vertexB = getNextVertex(vertexA); /* = First fork or second join = */
 
-        /* == Remove edge == */
-        /* == If type is JOIN, then it gets the output edge of the first join
-         *    else if type if FORK, it gets the input edge of the second fork == */
-        const auto offset = removeEdge(vertexA, vertexB);
-
         /* == Creates new vertex == */
         auto *newVertex = makeNewVertex(vertexA, vertexB);
 
@@ -80,23 +76,31 @@ bool spider::optims::reduceFFJJWorker(pisdf::VertexType type,
         const auto vertexAEdgeCount = std::max(vertexA->inputEdgeCount(), vertexA->outputEdgeCount());
         const auto vertexBEdgeCount = std::max(vertexB->inputEdgeCount(), vertexB->outputEdgeCount());
 
+        /* == Remove edge == */
+        /* == If type is JOIN, then it gets the output edge of the first join
+         *    else if type if FORK, it gets the input edge of the second fork == */
+        const auto offset = removeEdge(vertexA, vertexB);
+
         /* == Link edges of vertexB into newVertex == */
         /* == If type is JOIN, connects every input edges of the first join into the new join
          *    else if type if FORK, connects every output edges of the second fork into the new fork == */
+        size_t ix = 0;
         for (size_t i = 0; i < offset; ++i) {
-            reconnect(vertexB, i, newVertex, i);
+            reconnect(vertexB, i, newVertex, ix++);
         }
+        auto savedIx = ix;
+        ix += countEdges(vertexA);
         for (size_t i = offset + 1; i < vertexBEdgeCount; ++i) {
-            reconnect(vertexB, i, newVertex, i + vertexAEdgeCount - 1);
+            reconnect(vertexB, i, newVertex, ix++);
         }
 
         /* == Link edges of vertexA into newVertex == */
         /* == If type is JOIN, connects every input edges of the second join into the new join
          *    else if type if FORK, connects every output edges of the first fork into the new fork == */
+        ix = savedIx;
         for (size_t i = 0; i < vertexAEdgeCount; ++i) {
-            reconnect(vertexA, i, newVertex, i + offset);
+            reconnect(vertexA, i, newVertex, ix++);
         }
-
         /* == Search for the pair to modify (if any) == */
         for (auto it2 = std::next(it); it2 != std::end(verticesToOptimize); ++it2) {
             const auto *secVertexA = (*it2);
