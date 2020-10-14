@@ -574,3 +574,39 @@ TEST_F(srdagTest, srdagHTest5) {
     spider::destroy(srdag);
     spider::destroy(graph);
 }
+
+TEST_F(srdagTest, srdagHTest6) {
+    auto *graph = spider::api::createGraph("topgraph", 2, 1);
+    auto *vertex_0 = spider::api::createVertex(graph, "vertex_0", 0, 1);
+    auto *subgraph = spider::api::createSubgraph(graph, "subgraph", 1, 2, 0, 1, 1);
+    auto *vertex_1 = spider::api::createVertex(graph, "vertex_1", 1);
+    auto *input = spider::api::setInputInterfaceName(subgraph, 0, "input");
+    auto *output = spider::api::setOutputInterfaceName(subgraph, 0, "output");
+    auto *vertex_2 = spider::api::createVertex(subgraph, "vertex_2", 2, 2);
+    spider::api::createEdge(vertex_0, 0, 1, subgraph, 0, 1);
+    spider::api::createEdge(subgraph, 0, 1, vertex_1, 0, 1);
+    spider::api::createEdge(input, 0, 1, vertex_2, 0, 1);
+    spider::api::createEdge(vertex_2, 0, 1, output, 0, 1);
+    auto *edge = spider::api::createEdge(vertex_2, 1, 0, vertex_2, 1, 0);
+    spider::api::createPersistentDelay(edge, "1");
+    ASSERT_NO_THROW(spider::api::exportGraphToDOT(graph, "pisdf.dot"));
+
+    auto *srdag = spider::api::createGraph("srdag");
+    spider::srdag::TransfoJob rootJob{ graph };
+    std::pair<spider::srdag::JobStack, spider::srdag::JobStack> res;
+    ASSERT_NO_THROW(res = spider::srdag::singleRateTransformation(rootJob, srdag));
+    ASSERT_NO_THROW(spider::api::exportGraphToDOT(srdag, "srdag.dot"));
+    ASSERT_EQ(res.first.empty(), false)
+                                << "srdag::singleRateTransformation should not return nullptr for static H graph";
+    ASSERT_EQ(res.second.empty(), true) << "srdag::singleRateTransformation should return nullptr for static H graph";
+    /*
+     * vertex_0_0 -> subgraph_0 -> vertex_1_0
+     *     init   ->            -> end
+     */
+    ASSERT_EQ(srdag->vertexCount(), 5);
+    ASSERT_EQ(srdag->edgeCount(), 4);
+    ASSERT_NO_THROW(spider::srdag::singleRateTransformation(res.first[0], srdag));
+    ASSERT_NO_THROW(spider::api::exportGraphToDOT(srdag, "srdag.dot"));
+    spider::destroy(srdag);
+    spider::destroy(graph);
+}
