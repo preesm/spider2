@@ -67,7 +67,7 @@ namespace spider {
 
             CompiledExpression(CompiledExpression &&) = default;
 
-            ~CompiledExpression() = default;
+            ~CompiledExpression();
 
             /* === Operator(s) === */
 
@@ -81,15 +81,17 @@ namespace spider {
 
             /* === Method(s) === */
 
-            double evaluate(const param_table_t &params = { }) const;
+            double evaluate(const param_table_t &params = { });
 
         private:
+
             /* === Private members === */
 
-            mutable spider::vector<double> valueTable_;
+            static void* hndl_;
+            void *localHndlCpy_ = nullptr;
+            spider::vector<double> valueTable_;
             spider::vector<std::pair<size_t, std::string>> symbolTable_;
-            std::shared_ptr<void> hndl_;
-            functor_t expr_{};
+            functor_t expr_{ };
             size_t hash_{ SIZE_MAX };
 
             /* === Private method(s) === */
@@ -98,7 +100,7 @@ namespace spider {
 
             void registerSymbol(param_t param);
 
-            void updateSymbolTable(const param_table_t &params) const;
+            void updateSymbolTable(const param_table_t &params);
 
             spider::vector<RPNElement> convertToCpp(const spider::vector<RPNElement> &postfixStack) const;
 
@@ -114,11 +116,10 @@ namespace spider {
              * @param func         Name of the function to generate.
              * @param expression   Infix string of the expression to compile.
              * @param args         Arguments of the expression.
-             * @return string to the generated file.
              */
-            std::string writeFunctionFile(const std::string &func,
-                                          const std::string &expression,
-                                          const spider::vector<std::pair<size_t, std::string>> &args) const;
+            void writeFunctionFile(const std::string &func,
+                                   const std::string &expression,
+                                   const spider::vector<std::pair<size_t, std::string>> &args) const;
 
             /**
              * @brief Write the .h file with custom functions (if it does not exists).
@@ -127,20 +128,17 @@ namespace spider {
 
             /**
              * @brief Perform just in time compilation of the expression.
-             * @param func  Name of the function to compile
-             * @return string to the generated file.
              * @throw @refitem spider::Exception if failed to compile.
              */
-            std::string compileExpression(const std::string &func) const;
+            void compileExpression() const;
 
             /**
              * @brief Import the function from the compiled library.
-             * @param lib    Lib file name.
              * @param func   Function name.
              * @return imported function.
              * @throw @refitem spider::Exception if failed to import.
              */
-            functor_t importExpression(const std::string &lib, const std::string &func);
+            functor_t importExpression(const std::string &func);
 
         };
     }

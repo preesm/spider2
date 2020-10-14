@@ -401,7 +401,7 @@ void spider::api::addInputParamsToVertex(spider::pisdf::Vertex *vertex,
                                      vertex->name().c_str());
 
             }
-            vertex->addInputParameter(std::move(p));
+            vertex->addInputParameter(p);
         }
     }
 }
@@ -420,7 +420,7 @@ void spider::api::addOutputParamsToVertex(spider::pisdf::Vertex *vertex,
                                      vertex->name().c_str());
 
             }
-            vertex->addOutputParameter(std::move(p));
+            vertex->addOutputParameter(p);
         }
     }
 }

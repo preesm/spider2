@@ -225,6 +225,9 @@ spider::RuntimeContext spider::createRuntimeContext(pisdf::Graph *graph, Runtime
         log::warning("SPIDER has not been initialized, returning.\n");
         return RuntimeContext{ };
     }
+    if (!graph) {
+        throwSpiderException("nullptr graph.");
+    }
     RuntimeContext context{ };
     context.algorithm_ = getRuntimeFromType(graph, config);
     if (!context.algorithm_) {
