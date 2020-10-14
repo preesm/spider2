@@ -113,22 +113,27 @@ void spider::sched::ListScheduler::createListTask(pisdf::Vertex *vertex) {
     if (vertex->scheduleTaskIx() != SIZE_MAX) {
         return;
     }
-    sortedTaskVector_.push_back({ vertex, -1 });
+    sortedTaskVector_.push_back({ vertex, vertex->executable() ? -1 : NON_SCHEDULABLE_LEVEL });
     vertex->setScheduleTaskIx(sortedTaskVector_.size() - 1);
+}
+
+void spider::sched::ListScheduler::recursiveSetNonSchedulable(const pisdf::Vertex *vertex) {
+    for (const auto *edge : vertex->outputEdges()) {
+        if (edge->sinkRateValue()) {
+            /* == Disable non-null edge == */
+            auto &sinkTask = sortedTaskVector_[edge->sink()->scheduleTaskIx()];
+            if (sinkTask.level_ != NON_SCHEDULABLE_LEVEL) {
+                sinkTask.level_ = NON_SCHEDULABLE_LEVEL;
+                recursiveSetNonSchedulable(sinkTask.vertex_);
+            }
+        }
+    }
 }
 
 ifast32 spider::sched::ListScheduler::computeScheduleLevel(ListTask &listTask) {
     const auto *vertex = listTask.vertex_;
-    if ((listTask.level_ == NON_SCHEDULABLE_LEVEL) || !vertex->executable()) {
-        listTask.level_ = NON_SCHEDULABLE_LEVEL;
-        for (const auto *edge : vertex->outputEdges()) {
-            if (edge->sinkRateValue()) {
-                /* == Disable non-null edge == */
-                auto &sinkTask = sortedTaskVector_[edge->sink()->scheduleTaskIx()];
-                sinkTask.level_ = NON_SCHEDULABLE_LEVEL;
-                computeScheduleLevel(sinkTask);
-            }
-        }
+    if (listTask.level_ == NON_SCHEDULABLE_LEVEL) {
+        recursiveSetNonSchedulable(vertex);
     } else if (listTask.level_ < 0) {
         const auto *platform = archi::platform();
         ifast32 level = 0;
@@ -176,7 +181,7 @@ void spider::sched::ListScheduler::sortVertices() {
                                   (vertexB->subtype() == pisdf::VertexType::END))) {
                           return true;
                       }
-                      return vertexA->name() > vertexB->name();
+                      return vertexA->name() < vertexB->name();
                   }
                   return (diff > 0);
               });

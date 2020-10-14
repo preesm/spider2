@@ -94,6 +94,8 @@ namespace spider {
              */
             void createListTask(pisdf::Vertex *vertex);
 
+            void recursiveSetNonSchedulable(const pisdf::Vertex *vertex);
+
             /**
              * @brief Compute recursively the schedule level used to sort the vertices for scheduling.
              * The criteria used is based on the critical execution time path.
