@@ -84,9 +84,15 @@ void spider::srless::GraphHandler::clear() {
 }
 
 void spider::srless::GraphHandler::resolveFirings() {
-    auto *firstFiring = firings_.get()[0u];
-    firstFiring->resolveBRV();
-    for (u32 k = 1; k < repetitionCount_; ++k) {
-        firings_.get()[k]->apply(firstFiring);
+    if (repetitionCount_ && !graph_->configVertexCount()) {
+        auto *firstFiring = firings_.get()[0u];
+        firstFiring->resolveBRV();
+        for (u32 k = 1; k < repetitionCount_; ++k) {
+            firings_.get()[k]->apply(firstFiring);
+        }
+    } else {
+        for (u32 k = 0; k < repetitionCount_; ++k) {
+            firings_.get()[k]->resolveBRV();
+        }
     }
 }

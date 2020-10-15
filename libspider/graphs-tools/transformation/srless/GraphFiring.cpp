@@ -252,21 +252,18 @@ void spider::srless::GraphFiring::setParamValue(size_t ix, int64_t value) {
 
 std::shared_ptr<spider::pisdf::Param>
 spider::srless::GraphFiring::copyParameter(const std::shared_ptr<pisdf::Param> &param) {
-    if (param->dynamic()) {
-        std::shared_ptr<pisdf::Param> newParam;
-        if (param->type() == pisdf::ParamType::INHERITED) {
-            const auto *parentHandler = parent_->handler();
-            auto paramParentIx = param->parent() ? param->parent()->ix() : throwNullptrException();
-            const auto *parent = &parentHandler->params_[paramParentIx];
-            while (parent && ((*parent)->type() == pisdf::ParamType::INHERITED)) {
-                parentHandler = parentHandler->parent_->handler();
-                paramParentIx = (*parent)->parent() ? (*parent)->parent()->ix() : throwNullptrException();
-                parent = &parentHandler->params_[paramParentIx];
-            }
-            newParam = spider::make_shared<pisdf::Param, StackID::PISDF>(param->name(), *parent);
-        } else {
-            newParam = spider::make_shared<pisdf::Param, StackID::PISDF>(*param);
+    if (param->type() == pisdf::ParamType::DYNAMIC) {
+        return spider::make_shared<pisdf::Param, StackID::PISDF>(*param);
+    } else if (param->type() == pisdf::ParamType::INHERITED) {
+        const auto *parentHandler = parent_->handler();
+        auto paramParentIx = param->parent() ? param->parent()->ix() : throwNullptrException();
+        const auto *parent = &parentHandler->params_[paramParentIx];
+        while (parent && ((*parent)->type() == pisdf::ParamType::INHERITED)) {
+            parentHandler = parentHandler->parent_->handler();
+            paramParentIx = (*parent)->parent() ? (*parent)->parent()->ix() : throwNullptrException();
+            parent = &parentHandler->params_[paramParentIx];
         }
+        auto newParam = spider::make_shared<pisdf::Param, StackID::PISDF>(param->name(), *parent);
         newParam->setIx(param->ix());
         return newParam;
     }
@@ -274,12 +271,6 @@ spider::srless::GraphFiring::copyParameter(const std::shared_ptr<pisdf::Param> &
 }
 
 void spider::srless::GraphFiring::createOrUpdateSubgraphHandlers() {
-    /* == Update params == */
-    for (auto &param : params_) {
-        if (param->type() == pisdf::ParamType::DYNAMIC_DEPENDANT) {
-            param->value(params_);
-        }
-    }
     for (const auto &subgraph : parent_->graph()->subgraphs()) {
         const auto ix = subgraph->ix();
         const auto rvValue = brv_.get()[ix];
