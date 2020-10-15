@@ -76,6 +76,8 @@ namespace spider {
 
             void clear();
 
+            void resolveFirings();
+
             /* === Getter(s) === */
 
             inline array_handle<GraphFiring *> firings() const {

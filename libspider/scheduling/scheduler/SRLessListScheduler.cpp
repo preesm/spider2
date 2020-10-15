@@ -78,7 +78,7 @@ void spider::sched::SRLessListScheduler::schedule(srless::GraphHandler *graphHan
     lastSchedulableTask_ = sortedTaskVector_.size() - nonSchedulableTaskCount;
     /* == Create the list of tasks to be scheduled == */
     for (auto k = lastScheduledTask_; k < lastSchedulableTask_; ++k) {
-        const auto &task = sortedTaskVector_[k];
+        auto &task = sortedTaskVector_[k];
         tasks_.emplace_back(
                 make<SRLessTask>(task.handler_, task.vertex_, task.firing_, task.depCount_, task.mergedFifoCount_));
         task.handler_->registerTaskIx(task.vertex_, task.firing_, UINT32_MAX);
@@ -113,7 +113,7 @@ void spider::sched::SRLessListScheduler::recursiveAddVertices(srless::GraphHandl
                     }
                 }
             }
-            for (auto *child : firingHandler->subgraphFirings()) {
+            for (auto *child : firingHandler->subgraphHandlers()) {
                 recursiveAddVertices(child);
             }
         } else {
@@ -130,7 +130,7 @@ void spider::sched::SRLessListScheduler::createListTask(pisdf::Vertex *vertex,
                                                         srless::GraphFiring *handler) {
     const auto vertexTaskIx = handler->getTaskIx(vertex, firing);
     if (vertexTaskIx == UINT32_MAX && vertex->executable()) {
-        sortedTaskVector_.push_back({ vertex, handler, -1, firing, 0, 0 });
+        sortedTaskVector_.push_back({ vertex, handler, -1, firing, 0, 0});
         handler->registerTaskIx(vertex, firing, static_cast<u32>(sortedTaskVector_.size() - 1));
     }
 }
@@ -165,7 +165,7 @@ i32 spider::sched::SRLessListScheduler::computeScheduleLevel(ListTask &listTask)
         i32 level = 0;
         for (const auto *edge : vertex->inputEdges()) {
             const auto current = listTask.depCount_;
-            const auto deps = pisdf::computeExecDependency(vertex, firing, edge->sinkPortIx(), handler);
+            auto deps = pisdf::computeExecDependency(vertex, firing, edge->sinkPortIx(), handler);
             for (const auto &dep : deps) {
                 listTask.depCount_ += (dep.firingEnd_ - dep.firingStart_ + 1u);
                 const auto *source = dep.vertex_;

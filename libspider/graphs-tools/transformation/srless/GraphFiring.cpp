@@ -75,7 +75,7 @@ spider::srless::GraphFiring::~GraphFiring() {
     for (auto &ptr : make_handle(taskIxRegister_.get(), parent_->graph()->vertexCount())) {
         deallocate(ptr);
     }
-    for (auto &child : subgraphFirings()) {
+    for (auto &child : subgraphHandlers()) {
         destroy(child);
     }
 }
@@ -90,6 +90,9 @@ void spider::srless::GraphFiring::registerTaskIx(const pisdf::Vertex *vertex, u3
 }
 
 void spider::srless::GraphFiring::resolveBRV() {
+    if (resolved_) {
+        return;
+    }
     /* == Compute BRV == */
     spider::brv::compute(parent_->graph(), params_);
     /* == Save RV values into the array == */
@@ -105,22 +108,47 @@ void spider::srless::GraphFiring::resolveBRV() {
             std::fill(taskIxRegister_.get()[ix], taskIxRegister_.get()[ix] + rvValue, UINT32_MAX);
         }
     }
-    /* == creates children == */
-    for (const auto &subgraph : parent_->graph()->subgraphs()) {
-        const auto ix = subgraph->ix();
-        const auto rvValue = brv_.get()[ix];
-        auto &currentGraphHandler = subgraphHandlers_.get()[subgraph->subIx()];
-        if (!currentGraphHandler || (rvValue != currentGraphHandler->repetitionCount())) {
-            destroy(currentGraphHandler);
-            currentGraphHandler = spider::make<GraphHandler>(subgraph, subgraph->params(), rvValue, this);
-        }
-    }
+    /* == creates subgraph handlers == */
+    createOrUpdateSubgraphHandlers();
     /* == Save the rates == */
     for (const auto &edge : parent_->graph()->edges()) {
         const auto ix = edge->ix();
         rates_.get()[ix].srcRate_ = edge->sourceRateValue();
         rates_.get()[ix].snkRate_ = edge->sinkRateValue();
     }
+    resolved_ = true;
+}
+
+void spider::srless::GraphFiring::apply(const GraphFiring *srcFiring) {
+#ifndef NDEBUG
+    if (!srcFiring) {
+        throwNullptrException();
+    } else if (srcFiring->parent_ != parent_) {
+        throwSpiderException("expected a firing from the same parent_.");
+    } else if (!srcFiring->resolved_) {
+        throwSpiderException("expected a resolved firing.");
+    }
+#endif
+    if (resolved_ || srcFiring == this) {
+        return;
+    }
+    const auto *srcFiringBRV = srcFiring->brv_.get();
+    auto *thisBRV = brv_.get();
+    for (size_t ix = 0; ix < parent_->graph()->vertexCount(); ++ix) {
+        const auto rvValue = srcFiringBRV[ix];
+        if (thisBRV[ix] != rvValue) {
+            thisBRV[ix] = rvValue;
+            deallocate(taskIxRegister_.get()[ix]);
+            taskIxRegister_.get()[ix] = spider::make_n<u32, StackID::TRANSFO>(rvValue, UINT32_MAX);
+        } else {
+            /* == reset values == */
+            std::fill(taskIxRegister_.get()[ix], taskIxRegister_.get()[ix] + rvValue, UINT32_MAX);
+        }
+    }
+    /* == creates subgraph handlers == */
+    createOrUpdateSubgraphHandlers();
+    /* == Copy rates == */
+    memcpy(rates_.get(), srcFiring->rates_.get(), parent_->graph()->edgeCount() * sizeof(EdgeRate));
     resolved_ = true;
 }
 
@@ -132,7 +160,7 @@ void spider::srless::GraphFiring::clear() {
             std::fill(taskIxRegister_.get()[ix], taskIxRegister_.get()[ix] + brv_.get()[ix], UINT32_MAX);
         }
     }
-    for (auto &graphHandler : subgraphFirings()) {
+    for (auto &graphHandler : subgraphHandlers()) {
         if (graphHandler) {
             graphHandler->clear();
         }
@@ -145,7 +173,7 @@ spider::array_handle<spider::srless::GraphHandler *> spider::srless::GraphFiring
     return make_handle(subgraphHandlers_.get(), parent_->graph()->subgraphCount());
 }
 
-spider::array_handle<spider::srless::GraphHandler *> spider::srless::GraphFiring::subgraphFirings() {
+spider::array_handle<spider::srless::GraphHandler *> spider::srless::GraphFiring::subgraphHandlers() {
     return make_handle(subgraphHandlers_.get(), parent_->graph()->subgraphCount());
 }
 
@@ -214,12 +242,8 @@ void spider::srless::GraphFiring::setParamValue(size_t ix, int64_t value) {
                 param->value(params_);
             }
         }
-        for (auto *subHandler : subgraphFirings()) {
-            for (auto *firing : subHandler->firings()) {
-                if (!firing->isResolved()) {
-                    firing->resolveBRV();
-                }
-            }
+        for (auto *subHandler : subgraphHandlers()) {
+            subHandler->resolveFirings();
         }
     }
 }
@@ -247,4 +271,25 @@ spider::srless::GraphFiring::copyParameter(const std::shared_ptr<pisdf::Param> &
         return newParam;
     }
     return param;
+}
+
+void spider::srless::GraphFiring::createOrUpdateSubgraphHandlers() {
+    /* == Update params == */
+    for (auto &param : params_) {
+        if (param->type() == pisdf::ParamType::DYNAMIC_DEPENDANT) {
+            param->value(params_);
+        }
+    }
+    for (const auto &subgraph : parent_->graph()->subgraphs()) {
+        const auto ix = subgraph->ix();
+        const auto rvValue = brv_.get()[ix];
+        auto &currentGraphHandler = subgraphHandlers_.get()[subgraph->subIx()];
+        if (!currentGraphHandler || (rvValue != currentGraphHandler->repetitionCount())) {
+            destroy(currentGraphHandler);
+            currentGraphHandler = spider::make<GraphHandler>(subgraph, subgraph->params(), rvValue, this);
+        } else {
+            /* == Resolve every child == */
+            currentGraphHandler->resolveFirings();
+        }
+    }
 }

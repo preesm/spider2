@@ -91,6 +91,12 @@ namespace spider {
             void resolveBRV();
 
             /**
+             * @brief Apply BRV and copy exisiting rates from an other GraphFiring into this.
+             * @param srcFiring Pointer to the other GraphFiring.
+             */
+            void apply(const GraphFiring *srcFiring);
+
+            /**
              * @brief Clears every values, and set resolved_ flag to false.
              */
             void clear();
@@ -117,7 +123,7 @@ namespace spider {
              * @brief non const overload of the @refitem GraphFiring::subgraphFirings method.
              * @return non const reference to the array of subgraphs GraphFiring.
              */
-            spider::array_handle<GraphHandler *> subgraphFirings();
+            spider::array_handle<GraphHandler *> subgraphHandlers();
 
             /**
              * @brief Get the parameters of this graph firing.
@@ -179,12 +185,6 @@ namespace spider {
                 int64_t srcRate_;
                 int64_t snkRate_;
             };
-
-            struct ParamValue {
-                int64_t value_;
-                size_t ix_;
-            };
-
             spider::vector<std::shared_ptr<pisdf::Param>> params_;
             spider::unique_ptr<GraphHandler *> subgraphHandlers_; /* == match between subgraphs and their handler == */
             spider::unique_ptr<u32> brv_;                         /* == BRV of this firing of the graph == */
@@ -199,6 +199,8 @@ namespace spider {
             /* === private method(s) === */
 
             std::shared_ptr<pisdf::Param> copyParameter(const std::shared_ptr<pisdf::Param> &param);
+
+            void createOrUpdateSubgraphHandlers();
         };
     }
 }

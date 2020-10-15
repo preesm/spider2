@@ -60,11 +60,12 @@ spider::srless::GraphHandler::GraphHandler(const spider::pisdf::Graph *graph,
             break;
         }
     }
+    const auto *parentGraph = graph->graph();
     for (u32 k = 0; k < repetitionCount; ++k) {
         firings_.get()[k] = spider::make<GraphFiring>(this, params, k);
-        if (static_) {
-            firings_.get()[k]->resolveBRV();
-        }
+    }
+    if (static_ || (parentGraph && !parentGraph->configVertexCount())) {
+        resolveFirings();
     }
 }
 
@@ -79,5 +80,13 @@ void spider::srless::GraphHandler::clear() {
         if (firing) {
             firing->clear();
         }
+    }
+}
+
+void spider::srless::GraphHandler::resolveFirings() {
+    auto *firstFiring = firings_.get()[0u];
+    firstFiring->resolveBRV();
+    for (u32 k = 1; k < repetitionCount_; ++k) {
+        firings_.get()[k]->apply(firstFiring);
     }
 }
