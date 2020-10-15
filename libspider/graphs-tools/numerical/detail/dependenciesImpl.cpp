@@ -214,40 +214,31 @@ u32 spider::pisdf::detail::computeConsDependency(const Edge *edge,
     } else if (upperProd < delayedTotalRate) {
         /* == sink only == */
         if (sinkType == VertexType::OUTPUT) {
-            auto dep = createConsDependency(edge, lowerProd, upperProd, totalRate, delayValue, handler);
-            /* == Now check where we fall == */
-            const auto minValidMemWDelay = srcRate * srcRV - snkRate;
-            const auto minValidMemWODelay = minValidMemWDelay + delayValue;
-            const auto parentLProd = snkRate * handler->firingValue();
-            const auto *upperEdge = sink->graph()->outputEdge(sink->ix());
-            const auto *gh = handler->getParent()->handler();
-            if (dep.memoryEnd_ < minValidMemWDelay) {
+            const auto totalSrcRate = srcRate * srcRV;
+            if (upperProd < (totalSrcRate - (snkRate + delayValue))) {
                 /* == void dependency == */
                 return UINT32_MAX;
-            } else if ((dep.memoryStart_ >= minValidMemWODelay) ||
-                       (!delayValue && (dep.memoryEnd_ >= minValidMemWODelay))) {
-                /* == forward dependency == */
-                lowerProd = parentLProd + std::max(int64_t{ 0 }, int64_t{ dep.memoryStart_ - minValidMemWODelay });
-                upperProd = parentLProd + (dep.memoryEnd_ - minValidMemWODelay);
-                return computeConsDependency(upperEdge, lowerProd, upperProd, gh, result);
-            } else if (delay && dep.memoryEnd_ < minValidMemWODelay) {
-                /* == getter only == */
-                lowerProd = std::max(int64_t{ 0 }, int64_t{ dep.memoryStart_ - minValidMemWDelay });
-                upperProd = dep.memoryEnd_ - minValidMemWDelay;
-                const auto *getterEdge = delay->getter()->inputEdge(delay->getterPortIx());
-                return computeConsDependency(getterEdge, lowerProd, upperProd, handler, result);
-            } else if (delay) {
-                /* == mix of getter and interface == */
-                const auto *getterEdge = delay->getter()->inputEdge(delay->getterPortIx());
-                const auto getterLowerProd = dep.memoryStart_ - minValidMemWDelay;
-                /* == Getter dependencies, same level as current actor == */
-                auto count = computeConsDependency(getterEdge, getterLowerProd, delayValue - 1, handler, result);
-                /* == Sink dependencies, one level up of the one of current actor == */
-                lowerProd = parentLProd + std::max(int64_t{ 0 }, int64_t{ dep.memoryStart_ - minValidMemWODelay });
-                upperProd = parentLProd + (dep.memoryEnd_ - minValidMemWODelay);
-                return count + computeConsDependency(upperEdge, lowerProd, upperProd, gh, result);
             } else {
-                throwSpiderException("unexpected behavior.");
+                const auto *gh = handler->getParent()->handler();
+                const auto *upperEdge = sink->graph()->outputEdge(sink->ix());
+                const auto upperSrcRate = snkRate * handler->firingValue();
+                if (lowerProd >= (totalSrcRate - snkRate)) {
+                    /* == forward dependency == */
+                    lowerProd = upperSrcRate + lowerProd % snkRate;
+                    upperProd = upperSrcRate + upperProd % snkRate;
+                    return computeConsDependency(upperEdge, lowerProd, upperProd, gh, result);
+                } else if (upperProd < (totalSrcRate - snkRate)) {
+                    /* == getter only == */
+                    lowerProd = lowerProd < (totalSrcRate - (snkRate + delayValue)) ? 0 : lowerProd % delayValue;
+                    const auto *getterEdge = delay->getter()->inputEdge(delay->getterPortIx());
+                    return computeConsDependency(getterEdge, lowerProd, upperProd % delayValue, handler, result);
+                } else {
+                    /* == mix of getter / interface == */
+                    const auto *getterEdge = delay->getter()->inputEdge(delay->getterPortIx());
+                    upperProd = upperSrcRate + upperProd % snkRate;
+                    return computeConsDependency(getterEdge, lowerProd % delayValue, delayValue - 1, handler, result) +
+                           computeConsDependency(upperEdge, upperSrcRate, upperProd, gh, result);
+                }
             }
         } else if (sinkType == VertexType::GRAPH) {
             const auto firingStart = static_cast<u32>(math::floorDiv(lowerProd + delayValue, snkRate));
@@ -283,18 +274,12 @@ u32 spider::pisdf::detail::computeConsDependency(const Edge *edge,
             }
             return count;
         } else {
+            auto dep = createConsDependency(edge, lowerProd, upperProd, snkRate, delayValue, handler);
             if (result) {
-                auto dep = createConsDependency(edge, lowerProd, upperProd, snkRate, delayValue, handler);
-                const auto firingStart = dep.firingStart_;
-                const auto firingEnd = dep.firingEnd_;
                 spider::reserve(*result, 1u);
                 result->emplace_back(dep);
-                return firingEnd - firingStart + 1;
-            } else {
-                const auto firingStart = static_cast<u32>(math::floorDiv(lowerProd + delayValue, snkRate));
-                const auto firingEnd = static_cast<u32>(math::floorDiv(upperProd + delayValue, snkRate));
-                return firingEnd - firingStart + 1;
             }
+            return dep.firingEnd_ - dep.firingStart_ + 1;
         }
     } else if (delay) {
         /* == sink + getter == */
