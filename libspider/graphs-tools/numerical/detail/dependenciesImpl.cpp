@@ -104,18 +104,17 @@ namespace spider {
 
 /* === Function(s) definition === */
 
-void spider::pisdf::detail::computeExecDependency(const Edge *edge,
-                                                  int64_t lowerCons,
-                                                  int64_t upperCons,
-                                                  const srless::GraphFiring *handler,
-                                                  spider::vector<DependencyInfo> &result) {
-    /* == Handle specific cases == */
+u32 spider::pisdf::detail::computeExecDependency(const Edge *edge,
+                                                 int64_t lowerCons,
+                                                 int64_t upperCons,
+                                                 const srless::GraphFiring *handler,
+                                                 spider::vector<DependencyInfo> *result) {
     const auto *source = edge->source();
     const auto sourceType = source->subtype();
     const auto srcRate = handler->getSourceRate(edge);
     const auto *delay = edge->delay();
     const auto delayValue = delay ? delay->value() : 0;
-
+    /* == Handle specific cases == */
     if (sourceType == VertexType::DELAY) {
         /* == Case of getter vertex == */
         const auto *delayFromVertex = source->convertTo<pisdf::DelayVertex>()->delay();
@@ -125,65 +124,71 @@ void spider::pisdf::detail::computeExecDependency(const Edge *edge,
         const auto snkRV = handler->getRV(sink);
         const auto srcRV = handler->getRV(delayEdge->source());
         const auto offset = sink->subtype() == VertexType::OUTPUT ? srcRate * srcRV - snkRate : snkRate * snkRV;
-        computeExecDependency(delayEdge, lowerCons + offset, upperCons + offset, handler, result);
+        return computeExecDependency(delayEdge, lowerCons + offset, upperCons + offset, handler, result);
     } else if (lowerCons >= delayValue) {
         /* == source only == */
+        u32 count = 0;
+        auto dep = createExecDependency(edge, lowerCons, upperCons, srcRate, delayValue, handler);
         if (sourceType == VertexType::INPUT) {
-            auto dep = createExecDependency(edge, lowerCons, upperCons, srcRate, delayValue, handler);
+            if (result) {
+                spider::reserve(*result, dep.firingEnd_ - dep.firingStart_ + 1);
+            }
             const auto *gh = handler->getParent()->handler();
-            spider::reserve(result, dep.firingEnd_ - dep.firingStart_ + 1);
             const auto upperLCons = srcRate * handler->firingValue();
+            const auto *upperEdge = source->graph()->inputEdge(source->ix());
             for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
                 const auto start = k == dep.firingStart_ ? (lowerCons - delayValue) % srcRate : 0;
                 const auto end = k == dep.firingEnd_ ? (upperCons - delayValue) % srcRate : srcRate - 1;
-                const auto *upperEdge = source->graph()->inputEdge(source->ix());
-                computeExecDependency(upperEdge, upperLCons + start, upperLCons + end, gh, result);
+                count += computeExecDependency(upperEdge, upperLCons + start, upperLCons + end, gh, result);
             }
-            return;
         } else if (sourceType == VertexType::GRAPH) {
-            auto dep = createExecDependency(edge, lowerCons, upperCons, srcRate, delayValue, handler);
-            spider::reserve(result, dep.firingEnd_ - dep.firingStart_ + 1);
+            if (result) {
+                spider::reserve(*result, dep.firingEnd_ - dep.firingStart_ + 1);
+            }
             const auto *graph = source->convertTo<pisdf::Graph>();
+            const auto *innerEdge = graph->outputInterface(edge->sourcePortIx())->edge();
+            const auto ifDelay = innerEdge->delay() ? innerEdge->delay()->value() : 0u;
             for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
                 const auto *gh = handler->getSubgraphGraphFiring(graph, k);
-                if (!gh->isResolved()) {
-                    result.emplace_back(unresolved);
-                } else {
-                    const auto *innerEdge = graph->outputInterface(edge->sourcePortIx())->edge();
+                if (gh->isResolved()) {
                     const auto ifSrcRV = gh->getRV(innerEdge->source());
                     const auto ifSrcRate = gh->getSourceRate(innerEdge);
-                    const auto ifDelay = innerEdge->delay() ? innerEdge->delay()->value() : 0u;
                     const auto start = k == dep.firingStart_ ? (lowerCons - delayValue) % srcRate : 0;
                     const auto end = k == dep.firingEnd_ ? (upperCons - delayValue) % srcRate : srcRate - 1;
-                    const auto lCons = (ifSrcRV * ifSrcRate - srcRate) + start + ifDelay;
-                    const auto uCons = (ifSrcRV * ifSrcRate - srcRate) + end + ifDelay;
-                    computeExecDependency(innerEdge, lCons, uCons, gh, result);
+                    const auto lCons = ifSrcRV * ifSrcRate - srcRate + start + ifDelay;
+                    const auto uCons = ifSrcRV * ifSrcRate - srcRate + end + ifDelay;
+                    count += computeExecDependency(innerEdge, lCons, uCons, gh, result);
+                } else if (result) {
+                    result->emplace_back(unresolved);
                 }
             }
-            return;
+        } else {
+            if (result) {
+                spider::reserve(*result, 1u);
+                result->emplace_back(dep);
+            }
+            count = dep.firingEnd_ - dep.firingStart_ + 1;
         }
-        spider::reserve(result, 1u);
-        result.emplace_back(createExecDependency(edge, lowerCons, upperCons, srcRate, delayValue, handler));
+        return count;
     } else if (delay && (upperCons < delayValue)) {
         /* == setter only == */
         const auto *setterEdge = delay->setter()->outputEdge(delay->setterPortIx());
-        computeExecDependency(setterEdge, lowerCons, upperCons, handler, result);
+        return computeExecDependency(setterEdge, lowerCons, upperCons, handler, result);
     } else if (delay) {
         /* == setter + source == */
         const auto *setterEdge = delay->setter()->outputEdge(delay->setterPortIx());
-        computeExecDependency(setterEdge, lowerCons, delayValue - 1, handler, result);
-        computeExecDependency(edge, delayValue, upperCons, handler, result);
+        return computeExecDependency(setterEdge, lowerCons, delayValue - 1, handler, result) +
+               computeExecDependency(edge, delayValue, upperCons, handler, result);
     } else {
         throwNullptrException();
     }
 }
 
-
-void spider::pisdf::detail::computeConsDependency(const Edge *edge,
-                                                  int64_t lowerProd,
-                                                  int64_t upperProd,
-                                                  const srless::GraphFiring *handler,
-                                                  spider::vector<DependencyInfo> &result) {
+u32 spider::pisdf::detail::computeConsDependency(const Edge *edge,
+                                                 int64_t lowerProd,
+                                                 int64_t upperProd,
+                                                 const srless::GraphFiring *handler,
+                                                 spider::vector<DependencyInfo> *result) {
     /* == Precompute some numerical values == */
     const auto *sink = edge->sink();
     const auto sinkType = sink->subtype();
@@ -195,17 +200,17 @@ void spider::pisdf::detail::computeConsDependency(const Edge *edge,
     const auto delayValue = delay ? delay->value() : 0;
     const auto totalRate = sinkType == VertexType::OUTPUT ? srcRate * srcRV + delayValue : snkRate * snkRV;
     const auto delayedTotalRate = sinkType == VertexType::OUTPUT ? totalRate : totalRate - delayValue;
-
     /* == Handle specific cases == */
     if (sinkType == VertexType::DELAY) {
         /* == Case of setter vertex == */
         const auto *nextDelay = sink->convertTo<pisdf::DelayVertex>()->delay();
         const auto offset = nextDelay->value() - delayValue;
-        computeConsDependency(nextDelay->edge(), lowerProd - offset, upperProd - offset, handler, result);
+        return computeConsDependency(nextDelay->edge(), lowerProd - offset, upperProd - offset, handler, result);
     } else if (delay && (lowerProd >= delayedTotalRate)) {
         /* == getter only == */
         const auto *getterEdge = delay->getter()->inputEdge(delay->getterPortIx());
-        computeConsDependency(getterEdge, lowerProd - delayedTotalRate, upperProd - delayedTotalRate, handler, result);
+        return computeConsDependency(getterEdge, lowerProd - delayedTotalRate, upperProd - delayedTotalRate, handler,
+                                     result);
     } else if (upperProd < delayedTotalRate) {
         /* == sink only == */
         if (sinkType == VertexType::OUTPUT) {
@@ -218,76 +223,84 @@ void spider::pisdf::detail::computeConsDependency(const Edge *edge,
             const auto *gh = handler->getParent()->handler();
             if (dep.memoryEnd_ < minValidMemWDelay) {
                 /* == void dependency == */
-                return;
+                return UINT32_MAX;
             } else if ((dep.memoryStart_ >= minValidMemWODelay) ||
                        (!delayValue && (dep.memoryEnd_ >= minValidMemWODelay))) {
                 /* == forward dependency == */
                 lowerProd = parentLProd + std::max(int64_t{ 0 }, int64_t{ dep.memoryStart_ - minValidMemWODelay });
                 upperProd = parentLProd + (dep.memoryEnd_ - minValidMemWODelay);
-                computeConsDependency(upperEdge, lowerProd, upperProd, gh, result);
-                return;
+                return computeConsDependency(upperEdge, lowerProd, upperProd, gh, result);
             } else if (delay && dep.memoryEnd_ < minValidMemWODelay) {
                 /* == getter only == */
                 lowerProd = std::max(int64_t{ 0 }, int64_t{ dep.memoryStart_ - minValidMemWDelay });
                 upperProd = dep.memoryEnd_ - minValidMemWDelay;
                 const auto *getterEdge = delay->getter()->inputEdge(delay->getterPortIx());
-                computeConsDependency(getterEdge, lowerProd, upperProd, handler, result);
-                return;
+                return computeConsDependency(getterEdge, lowerProd, upperProd, handler, result);
             } else if (delay) {
                 /* == mix of getter and interface == */
                 const auto *getterEdge = delay->getter()->inputEdge(delay->getterPortIx());
                 const auto getterLowerProd = dep.memoryStart_ - minValidMemWDelay;
                 /* == Getter dependencies, same level as current actor == */
-                computeConsDependency(getterEdge, getterLowerProd, delayValue - 1, handler, result);
+                auto count = computeConsDependency(getterEdge, getterLowerProd, delayValue - 1, handler, result);
                 /* == Sink dependencies, one level up of the one of current actor == */
                 lowerProd = parentLProd + std::max(int64_t{ 0 }, int64_t{ dep.memoryStart_ - minValidMemWODelay });
                 upperProd = parentLProd + (dep.memoryEnd_ - minValidMemWODelay);
-                computeConsDependency(upperEdge, lowerProd, upperProd, gh, result);
-                return;
+                return count + computeConsDependency(upperEdge, lowerProd, upperProd, gh, result);
             } else {
                 throwSpiderException("unexpected behavior.");
             }
         } else if (sinkType == VertexType::GRAPH) {
-            auto dep = createConsDependency(edge, lowerProd, upperProd, snkRate, delayValue, handler);
-            spider::reserve(result, dep.firingEnd_ - dep.firingStart_ + 1);
+            const auto firingStart = static_cast<u32>(math::floorDiv(lowerProd + delayValue, snkRate));
+            const auto firingEnd = static_cast<u32>(math::floorDiv(upperProd + delayValue, snkRate));
             const auto *graph = sink->convertTo<pisdf::Graph>();
-            for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
+            const auto *innerEdge = graph->inputInterface(edge->sinkPortIx())->edge();
+            if (result) {
+                spider::reserve(*result, firingEnd - firingStart + 1);
+            }
+            u32 count = 0;
+            for (auto k = firingStart; k <= firingEnd; ++k) {
                 const auto *gh = handler->getSubgraphGraphFiring(graph, k);
-                if (!gh->isResolved()) {
-                    result.emplace_back(unresolved);
-                } else {
-                    const auto *interface = graph->inputInterface(edge->sinkPortIx());
-                    const auto *innerEdge = interface->edge();
-                    const auto ifSrcRate = gh->getSourceRate(innerEdge);
-                    const auto ifSnkRV = gh->getRV(innerEdge->sink());
-                    const auto ifSnkRate = gh->getSinkRate(innerEdge);
-                    const auto adjustedSnkRate = ifSnkRate * ifSnkRV;
-                    const auto fullRepCount = adjustedSnkRate / ifSrcRate;
-                    const auto lProd = k == dep.firingStart_ ? dep.memoryStart_ % ifSrcRate : 0;
-                    const auto uProd = k == dep.firingEnd_ ? dep.memoryEnd_ % ifSrcRate : ifSrcRate - 1;
-                    spider::reserve(result, static_cast<size_t>(fullRepCount));
+                if (gh->isResolved()) {
+                    const auto adjustedSnkRate = gh->getSinkRate(innerEdge) * gh->getRV(innerEdge->sink());
+                    const auto fullRepCount = adjustedSnkRate / snkRate;
+                    const auto lProd = k == firingStart ? (lowerProd + delayValue) % snkRate : 0;
+                    const auto uProd = k == firingEnd ? (upperProd + delayValue) % snkRate : snkRate - 1;
+                    if (result) {
+                        spider::reserve(*result, static_cast<size_t>(fullRepCount));
+                    }
                     for (auto i = 0; i < fullRepCount; ++i) {
                         const auto offset = i * snkRate;
-                        computeConsDependency(innerEdge, lProd + offset, uProd + offset, gh, result);
+                        count += computeConsDependency(innerEdge, lProd + offset, uProd + offset, gh, result);
                     }
-                    if ((ifSrcRate * fullRepCount) != adjustedSnkRate) {
-                        const auto lp = lProd + fullRepCount * snkRate;
-                        if (lp < adjustedSnkRate) {
-                            const auto up = std::min(uProd + fullRepCount * snkRate, adjustedSnkRate - 1);
-                            computeConsDependency(innerEdge, lp, up, gh, result);
-                        }
+                    const auto lp = lProd + fullRepCount * snkRate;
+                    if ((snkRate * fullRepCount) != adjustedSnkRate && (lp < adjustedSnkRate)) {
+                        const auto up = std::min(uProd + fullRepCount * snkRate, adjustedSnkRate - 1);
+                        count += computeConsDependency(innerEdge, lp, up, gh, result);
                     }
+                } else if (result) {
+                    result->emplace_back(unresolved);
                 }
             }
-            return;
+            return count;
+        } else {
+            if (result) {
+                auto dep = createConsDependency(edge, lowerProd, upperProd, snkRate, delayValue, handler);
+                const auto firingStart = dep.firingStart_;
+                const auto firingEnd = dep.firingEnd_;
+                spider::reserve(*result, 1u);
+                result->emplace_back(dep);
+                return firingEnd - firingStart + 1;
+            } else {
+                const auto firingStart = static_cast<u32>(math::floorDiv(lowerProd + delayValue, snkRate));
+                const auto firingEnd = static_cast<u32>(math::floorDiv(upperProd + delayValue, snkRate));
+                return firingEnd - firingStart + 1;
+            }
         }
-        spider::reserve(result, 1u);
-        result.emplace_back(createConsDependency(edge, lowerProd, upperProd, snkRate, delayValue, handler));
     } else if (delay) {
         /* == sink + getter == */
         const auto *getterEdge = delay->getter()->inputEdge(delay->getterPortIx());
-        computeConsDependency(edge, lowerProd, totalRate - delayValue - 1, handler, result);
-        computeConsDependency(getterEdge, 0, upperProd - delayedTotalRate, handler, result);
+        return computeConsDependency(edge, lowerProd, totalRate - delayValue - 1, handler, result) +
+               computeConsDependency(getterEdge, 0, upperProd - delayedTotalRate, handler, result);
     } else {
         throwSpiderException("unexpected behavior.");
     }

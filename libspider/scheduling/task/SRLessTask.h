@@ -108,10 +108,6 @@ namespace spider {
             const pisdf::Vertex *vertex_;
             u32 firing_;
             u32 dependenciesCount_;
-
-            /* === Private method(s) === */
-
-            u32 countConsummerCount(const pisdf::Edge *edge) const;
         };
     }
 }

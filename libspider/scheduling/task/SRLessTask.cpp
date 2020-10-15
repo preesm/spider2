@@ -145,9 +145,11 @@ spider::sched::AllocationRule spider::sched::SRLessTask::allocationRuleForOutput
 #endif
     const auto *edge = vertex_->outputEdge(ix);
     const auto rate = static_cast<u32>(handler_->getSourceRate(edge));
-    const auto count = countConsummerCount(edge);
-    if (rate && !count) {
+    auto count = spider::pisdf::computeConsDependencyCount(vertex_, firing_, edge->sourcePortIx(), handler_);
+    if (rate && count == UINT32_MAX) {
         return { rate, 0u, 0u, 1u, AllocType::NEW, FifoAttribute::W_SINK };
+    } else if (!count) {
+        count = rate > 0;
     }
     switch (vertex_->subtype()) {
         case pisdf::VertexType::FORK:
@@ -233,18 +235,4 @@ spider::sched::DependencyInfo spider::sched::SRLessTask::getDependencyInfo(size_
 
 size_t spider::sched::SRLessTask::dependencyCount() const {
     return dependenciesCount_;
-}
-
-/* === Private method(s) implementation === */
-
-u32 spider::sched::SRLessTask::countConsummerCount(const spider::pisdf::Edge *edge) const {
-    const auto dependencies = pisdf::computeConsDependency(vertex_, firing_, edge->sourcePortIx(), handler_);
-    if (dependencies.count()) {
-        u32 count = 0;
-        for (const auto &dep : dependencies) {
-            count += (dep.rate_ > 0) * (dep.firingEnd_ - dep.firingStart_ + 1u);
-        }
-        return count ? count : 1;
-    }
-    return 0;
 }
