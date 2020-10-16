@@ -63,8 +63,9 @@ namespace spider {
             void visit(Interface *interface) override;
 
             void visit(Param *param) override;
-
+#ifndef _NO_BUILD_LEGACY_RT
             void visit(srdag::Graph *graph) override;
+#endif
 
         private:
             Graph *graph_ = nullptr;

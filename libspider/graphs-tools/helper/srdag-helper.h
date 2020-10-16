@@ -32,6 +32,8 @@
 #ifndef SPIDER2_SRDAG_HELPER_H
 #define SPIDER2_SRDAG_HELPER_H
 
+#ifndef _NO_BUILD_LEGACY_RT
+
 /* === Include(s) === */
 
 #include <common/Types.h>
@@ -51,5 +53,5 @@ namespace spider {
         spider::unique_ptr<i64> buildVertexRuntimeInputParameters(const srdag::Vertex *vertex);
     }
 }
-
+#endif
 #endif //SPIDER2_SRDAG_HELPER_H

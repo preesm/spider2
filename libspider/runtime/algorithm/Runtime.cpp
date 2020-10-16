@@ -178,7 +178,7 @@ void spider::Runtime::useExecutionTraces(const sched::Schedule *schedule,
 }
 
 
-
+#ifndef _NO_BUILD_LEGACY_RT
 #ifndef _NO_BUILD_GRAPH_EXPORTER
 void spider::Runtime::exportSRDAG(srdag::Graph *graph, const std::string &path) {
     /* == Print the Graph == */
@@ -190,3 +190,4 @@ void spider::Runtime::exportSRDAG(srdag::Graph *graph, const std::string &path) 
     printer::fprintf(stderr, "Graph exporter is not built. Recompile spider2 with -DBUILD_GRAPH_EXPORTER=ON option.\n");
 #endif
 }
+#endif

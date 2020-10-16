@@ -31,6 +31,30 @@ jobs:
             - rm -rf ../bin/*
             - cmake .. -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=OFF
             - cmake --build . --target spider2 -- -j$(nproc)
+            - rm -rf ../bin/*
+            - cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_JIT_EXPRESSION=OFF
+            - cmake --build . --target spider2 -- -j$(nproc)
+            - rm -rf ../bin/*
+            - cmake .. -DCMAKE_BUILD_TYPE=Debug -DUSE_JIT_EXPRESSION=OFF
+            - cmake --build . --target spider2 -- -j$(nproc)
+            - rm -rf ../bin/*
+            - cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_LEGACY_RUNTIME=OFF
+            - cmake --build . --target spider2 -- -j$(nproc)
+            - rm -rf ../bin/*
+            - cmake .. -DCMAKE_BUILD_TYPE=Debug -DBUILD_LEGACY_RUNTIME=OFF
+            - cmake --build . --target spider2 -- -j$(nproc)
+            - rm -rf ../bin/*
+            - cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_GANTT_EXPORTER=OFF
+            - cmake --build . --target spider2 -- -j$(nproc)
+            - rm -rf ../bin/*
+            - cmake .. -DCMAKE_BUILD_TYPE=Debug -DBUILD_GANTT_EXPORTER=OFF
+            - cmake --build . --target spider2 -- -j$(nproc)
+            - rm -rf ../bin/*
+            - cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_GRAPH_EXPORTER=OFF
+            - cmake --build . --target spider2 -- -j$(nproc)
+            - rm -rf ../bin/*
+            - cmake .. -DCMAKE_BUILD_TYPE=Debug -DBUILD_GRAPH_EXPORTER=OFF
+            - cmake --build . --target spider2 -- -j$(nproc)
 
         - stage: Build
           os: windows

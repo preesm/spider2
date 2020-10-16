@@ -532,6 +532,8 @@ void spider::pisdf::PiSDFDOTExporterVisitor::dummyPortPrinter(int_fast32_t width
     portFooterPrinter();
 }
 
+#ifndef _NO_BUILD_LEGACY_RT
+
 void spider::pisdf::PiSDFDOTExporterVisitor::visit(srdag::Graph *graph) {
     /* == Header == */
     printer::fprintf(file_, R"(digraph {
@@ -573,5 +575,6 @@ void spider::pisdf::PiSDFDOTExporterVisitor::visit(srdag::Graph *graph) {
     printer::fprintf(file_, "\t}\n"
                             "}");
 }
+#endif
 
 #endif
