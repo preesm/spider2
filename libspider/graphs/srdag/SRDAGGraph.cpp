@@ -124,8 +124,7 @@ void spider::srdag::Graph::removeEdge(spider::srdag::Edge *edge) {
 }
 
 spider::srdag::Vertex *spider::srdag::Graph::createDuplicateVertex(std::string name, size_t edgeOUTCount) {
-    auto *vertex = make<pisdf::Vertex, StackID::TRANSFO>(pisdf::VertexType::DUPLICATE, std::move(name), 1u,
-                                                         edgeOUTCount);
+    auto *vertex = make<pisdf::Vertex, StackID::TRANSFO>(pisdf::VertexType::DUPLICATE, std::move(name), 1u);
     auto *runtimeInfo = vertex->runtimeInformation();
     runtimeInfo->setKernelIx(rt::DUPLICATE_KERNEL_IX);
     specialVertexVector_.emplace_back(vertex);
@@ -135,8 +134,7 @@ spider::srdag::Vertex *spider::srdag::Graph::createDuplicateVertex(std::string n
 }
 
 spider::srdag::Vertex *spider::srdag::Graph::createForkVertex(std::string name, size_t edgeOUTCount) {
-    auto *vertex = make<pisdf::Vertex, StackID::TRANSFO>(pisdf::VertexType::FORK, std::move(name), 1u,
-                                                         edgeOUTCount);
+    auto *vertex = make<pisdf::Vertex, StackID::TRANSFO>(pisdf::VertexType::FORK, std::move(name), 1u);
     auto *runtimeInfo = vertex->runtimeInformation();
     runtimeInfo->setKernelIx(rt::FORK_KERNEL_IX);
     specialVertexVector_.emplace_back(vertex);
@@ -146,7 +144,7 @@ spider::srdag::Vertex *spider::srdag::Graph::createForkVertex(std::string name, 
 }
 
 spider::srdag::Vertex *spider::srdag::Graph::createJoinVertex(std::string name, size_t edgeINCount) {
-    auto *vertex = make<pisdf::Vertex, StackID::TRANSFO>(pisdf::VertexType::JOIN, std::move(name), edgeINCount, 1u);
+    auto *vertex = make<pisdf::Vertex, StackID::TRANSFO>(pisdf::VertexType::JOIN, std::move(name), 0, 1u);
     auto *runtimeInfo = vertex->runtimeInformation();
     runtimeInfo->setKernelIx(rt::JOIN_KERNEL_IX);
     specialVertexVector_.emplace_back(vertex);
@@ -157,8 +155,7 @@ spider::srdag::Vertex *spider::srdag::Graph::createJoinVertex(std::string name, 
 
 spider::srdag::Vertex *
 spider::srdag::Graph::createVertex(std::string name, size_t edgeINCount, size_t edgeOUTCount) {
-    auto *vertex = make<pisdf::Vertex, StackID::TRANSFO>(pisdf::VertexType::NORMAL, std::move(name), edgeINCount,
-                                                         edgeOUTCount);
+    auto *vertex = make<pisdf::Vertex, StackID::TRANSFO>(pisdf::VertexType::NORMAL, std::move(name));
     specialVertexVector_.emplace_back(vertex);
     auto *srVertex = make<srdag::Vertex, StackID::TRANSFO>(vertex, 0, edgeINCount, edgeOUTCount);
     addVertex(srVertex);
@@ -167,8 +164,7 @@ spider::srdag::Graph::createVertex(std::string name, size_t edgeINCount, size_t 
 
 spider::srdag::Vertex *
 spider::srdag::Graph::createVoidVertex(std::string name, size_t edgeINCount, size_t edgeOUTCount) {
-    auto *vertex = make<pisdf::Vertex, StackID::TRANSFO>(pisdf::VertexType::NORMAL, std::move(name), edgeINCount,
-                                                         edgeOUTCount);
+    auto *vertex = make<pisdf::Vertex, StackID::TRANSFO>(pisdf::VertexType::NORMAL, std::move(name));
     specialVertexVector_.emplace_back(vertex);
     auto *srVertex = make<srdag::Vertex, StackID::TRANSFO>(vertex, 0, edgeINCount, edgeOUTCount);
     srVertex->setExecutable(false);
@@ -187,7 +183,7 @@ spider::srdag::Vertex *spider::srdag::Graph::createRepeatVertex(std::string name
 }
 
 spider::srdag::Vertex *spider::srdag::Graph::createTailVertex(std::string name, size_t edgeINCount) {
-    auto *vertex = make<pisdf::Vertex, StackID::TRANSFO>(pisdf::VertexType::TAIL, std::move(name), edgeINCount, 1u);
+    auto *vertex = make<pisdf::Vertex, StackID::TRANSFO>(pisdf::VertexType::TAIL, std::move(name), 0, 1u);
     auto *runtimeInfo = vertex->runtimeInformation();
     runtimeInfo->setKernelIx(rt::TAIL_KERNEL_IX);
     specialVertexVector_.emplace_back(vertex);
@@ -197,7 +193,7 @@ spider::srdag::Vertex *spider::srdag::Graph::createTailVertex(std::string name, 
 }
 
 spider::srdag::Vertex *spider::srdag::Graph::createHeadVertex(std::string name, size_t edgeINCount) {
-    auto *vertex = make<pisdf::Vertex, StackID::TRANSFO>(pisdf::VertexType::HEAD, std::move(name), edgeINCount, 1u);
+    auto *vertex = make<pisdf::Vertex, StackID::TRANSFO>(pisdf::VertexType::HEAD, std::move(name), 0, 1u);
     auto *runtimeInfo = vertex->runtimeInformation();
     runtimeInfo->setKernelIx(rt::HEAD_KERNEL_IX);
     specialVertexVector_.emplace_back(vertex);
@@ -235,7 +231,7 @@ spider::srdag::Graph::createEdge(srdag::Vertex *source, size_t srcIx, i64 srcRat
 }
 
 void spider::srdag::Graph::exportToDOT(const std::string &path) const {
-    auto exporter = pisdf::SRDAGDOTExporter(const_cast<Graph*>(this));
+    auto exporter = pisdf::SRDAGDOTExporter(const_cast<Graph *>(this));
     exporter.printFromPath(path);
 }
 

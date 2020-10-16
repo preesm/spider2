@@ -55,7 +55,7 @@ namespace spider {
                                                                                 type == VertexType::OUTPUT,
                                                                                 type == VertexType::INPUT) {
                 if (type != VertexType::INPUT && type != VertexType::OUTPUT) {
-                    throwSpiderException("INTERFACE [%s] has invalid type.", name_.c_str());
+                    throwSpiderException("INTERFACE [%s] has invalid type.", name_.get());
                 }
             }
 

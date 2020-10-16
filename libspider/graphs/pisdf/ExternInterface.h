@@ -54,7 +54,7 @@ namespace spider {
                                                                           type == VertexType::EXTERN_IN),
                                                                    bufferIndex_{ bufferIndex } {
                 if (type != VertexType::EXTERN_OUT && type != VertexType::EXTERN_IN) {
-                    throwSpiderException("External interface [%s] wrong VertexType.", name_.c_str());
+                    throwSpiderException("External interface [%s] wrong VertexType.", name_.get());
                 }
                 if (bufferIndex == SIZE_MAX) {
                     throwSpiderException("invalid buffer index for extern interface.");

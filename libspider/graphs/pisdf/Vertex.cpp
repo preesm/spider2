@@ -43,40 +43,32 @@
 /* === Function(s) definition === */
 
 spider::pisdf::Vertex::Vertex(VertexType type, std::string name, size_t edgeINCount, size_t edgeOUTCount) :
-        inputParamVector_{ factory::vector<u32>(StackID::PISDF) },
-        outputParamVector_{ factory::vector<u32>(StackID::PISDF) },
-        refinementParamVector_{ factory::vector<u32>(StackID::PISDF) },
-        name_{ std::move(name) },
         nINEdges_{ static_cast<u32>(edgeINCount) },
         nOUTEdges_{ static_cast<u32>(edgeOUTCount) },
         subtype_{ type } {
-    inputEdgeArray_ = spider::make_n<Edge *, StackID::PISDF>(edgeINCount, nullptr);
-    outputEdgeArray_ = spider::make_n<Edge *, StackID::PISDF>(edgeOUTCount, nullptr);
+    inputEdgeArray_ .reset(spider::make_n<Edge *, StackID::PISDF>(edgeINCount, nullptr));
+    outputEdgeArray_.reset(spider::make_n<Edge *, StackID::PISDF>(edgeOUTCount, nullptr));
     rtInformation_ = spider::make_unique<RTInfo>(StackID::RUNTIME);
+    setName(std::move(name));
     checkTypeConsistency();
-}
-
-spider::pisdf::Vertex::~Vertex() noexcept {
-    deallocate(inputEdgeArray_);
-    deallocate(outputEdgeArray_);
 }
 
 void spider::pisdf::Vertex::connectInputEdge(Edge *edge, size_t pos) {
     if (pos >= nINEdges_) {
         throwSpiderException("trying to connect edge out of bound.");
     }
-    connectEdge(inputEdgeArray_, edge, pos);
+    connectEdge(inputEdgeArray_.get(), edge, pos);
 }
 
 void spider::pisdf::Vertex::connectOutputEdge(Edge *edge, size_t pos) {
     if (pos >= nOUTEdges_) {
         throwSpiderException("trying to connect edge out of bound.");
     }
-    connectEdge(outputEdgeArray_, edge, pos);
+    connectEdge(outputEdgeArray_.get(), edge, pos);
 }
 
 spider::pisdf::Edge *spider::pisdf::Vertex::disconnectInputEdge(size_t ix) {
-    auto *edge = disconnectEdge(inputEdgeArray_, ix);
+    auto *edge = disconnectEdge(inputEdgeArray_.get(), ix);
     if (edge) {
         /* == Reset the Edge == */
         edge->setSink(nullptr, SIZE_MAX, Expression());
@@ -85,7 +77,7 @@ spider::pisdf::Edge *spider::pisdf::Vertex::disconnectInputEdge(size_t ix) {
 }
 
 spider::pisdf::Edge *spider::pisdf::Vertex::disconnectOutputEdge(size_t ix) {
-    auto *edge = disconnectEdge(outputEdgeArray_, ix);
+    auto *edge = disconnectEdge(outputEdgeArray_.get(), ix);
     if (edge) {
         /* == Reset the Edge == */
         edge->setSource(nullptr, SIZE_MAX, Expression());
@@ -100,7 +92,10 @@ void spider::pisdf::Vertex::visit(Visitor *visitor) {
 
 void spider::pisdf::Vertex::addInputParameter(const std::shared_ptr<Param> &param) {
     if (subtype_ != VertexType::GRAPH) {
-        inputParamVector_.emplace_back(param->ix());
+        auto *tmp = spider::make_n<u32, StackID::PISDF>(nINParams_ + 1);
+        std::move(inputParamArray_.get(), inputParamArray_.get() + nINParams_, tmp);
+        inputParamArray_.reset(tmp);
+        inputParamArray_.get()[nINParams_++] = static_cast<u32>(param->ix());
     }
 }
 
@@ -109,20 +104,26 @@ void spider::pisdf::Vertex::addOutputParameter(const std::shared_ptr<Param> &par
         throwSpiderException("Failed to set output parameter [%s] of vertex [%s]: not a config actor.",
                              param->name().c_str(), name().c_str());
     }
-    outputParamVector_.emplace_back(param->ix());
+    auto *tmp = spider::make_n<u32, StackID::PISDF>(nOUTParams_ + 1);
+    std::move(outputParamArray_.get(), outputParamArray_.get() + nOUTParams_, tmp);
+    outputParamArray_.reset(tmp);
+    outputParamArray_.get()[nOUTParams_++] = static_cast<u32>(param->ix());
 }
 
 void spider::pisdf::Vertex::addRefinementParameter(const std::shared_ptr<Param> &param) {
     if (subtype_ != VertexType::GRAPH) {
-        refinementParamVector_.emplace_back(param->ix());
+        auto *tmp = spider::make_n<u32, StackID::PISDF>(nRefinementParams_ + 1);
+        std::move(refinementParamArray_.get(), refinementParamArray_.get() + nRefinementParams_, tmp);
+        refinementParamArray_.reset(tmp);
+        refinementParamArray_.get()[nRefinementParams_++] = static_cast<u32>(param->ix());
     }
 }
 
 std::string spider::pisdf::Vertex::vertexPath() const {
     if (graph_) {
-        return graph_->vertexPath().append(":").append(name_);
+        return graph_->vertexPath().append(":").append(name_.get());
     }
-    return name_;
+    return name_.get();
 }
 
 void spider::pisdf::Vertex::setRepetitionValue(uint32_t value) {
@@ -132,7 +133,7 @@ void spider::pisdf::Vertex::setRepetitionValue(uint32_t value) {
         case VertexType::EXTERN_IN:
         case VertexType::EXTERN_OUT:
             if (value > 1) {
-                throwSpiderException("Vertex [%s] can not have repetition value greater than 1.", name_.c_str());
+                throwSpiderException("Vertex [%s] can not have repetition value greater than 1.", name_.get());
             }
             repetitionValue_ = value;
             break;
@@ -154,60 +155,67 @@ void spider::pisdf::Vertex::checkTypeConsistency() const {
     switch (subtype_) {
         case VertexType::FORK:
             if (inputEdgeCount() != 1) {
-                throwSpiderException("FORK vertex [%s] has more than one input edge.", name_.c_str());
+                throwSpiderException("FORK vertex [%s] has more than one input edge.", name_.get());
             }
             break;
         case VertexType::JOIN:
             if (outputEdgeCount() != 1) {
-                throwSpiderException("JOIN vertex [%s] has more than one output edge.", name_.c_str());
+                throwSpiderException("JOIN vertex [%s] has more than one output edge.", name_.get());
             }
             break;
         case VertexType::TAIL:
             if (outputEdgeCount() != 1) {
-                throwSpiderException("TAIL vertex [%s] has more than one output edge.", name_.c_str());
+                throwSpiderException("TAIL vertex [%s] has more than one output edge.", name_.get());
             }
             break;
         case VertexType::HEAD:
             if (outputEdgeCount() != 1) {
-                throwSpiderException("HEAD vertex [%s] has more than one output edge.", name_.c_str());
+                throwSpiderException("HEAD vertex [%s] has more than one output edge.", name_.get());
             }
             break;
         case VertexType::DELAY:
             if (inputEdgeCount() != 1) {
-                throwSpiderException("DELAY vertex [%s] has more than one input edge.", name_.c_str());
+                throwSpiderException("DELAY vertex [%s] has more than one input edge.", name_.get());
             } else if (outputEdgeCount() != 1) {
-                throwSpiderException("DELAY vertex [%s] has more than one output edge.", name_.c_str());
+                throwSpiderException("DELAY vertex [%s] has more than one output edge.", name_.get());
             }
             break;
         case VertexType::REPEAT:
             if (inputEdgeCount() != 1) {
-                throwSpiderException("REPEAT vertex [%s] has more than one input edge.", name_.c_str());
+                throwSpiderException("REPEAT vertex [%s] has more than one input edge.", name_.get());
             } else if (outputEdgeCount() != 1) {
-                throwSpiderException("REPEAT vertex [%s] has more than one output edge.", name_.c_str());
+                throwSpiderException("REPEAT vertex [%s] has more than one output edge.", name_.get());
             }
             break;
         case VertexType::DUPLICATE:
             if (inputEdgeCount() != 1) {
-                throwSpiderException("DUPLICATE vertex [%s] has more than one input edge.", name_.c_str());
+                throwSpiderException("DUPLICATE vertex [%s] has more than one input edge.", name_.get());
             }
             break;
         case VertexType::INIT:
             if (outputEdgeCount() != 1) {
-                throwSpiderException("INIT vertex [%s] has more than one output edge.", name_.c_str());
+                throwSpiderException("INIT vertex [%s] has more than one output edge.", name_.get());
             } else if (inputEdgeCount()) {
-                throwSpiderException("INIT vertex [%s] has at least one input edge.", name_.c_str());
+                throwSpiderException("INIT vertex [%s] has at least one input edge.", name_.get());
             }
             break;
         case VertexType::END:
             if (inputEdgeCount() != 1) {
-                throwSpiderException("END vertex [%s] has more than one input edge.", name_.c_str());
+                throwSpiderException("END vertex [%s] has more than one input edge.", name_.get());
             } else if (outputEdgeCount()) {
-                throwSpiderException("END vertex [%s] has at least one output edge.", name_.c_str());
+                throwSpiderException("END vertex [%s] has at least one output edge.", name_.get());
             }
             break;
         default:
             break;
     }
+}
+
+void spider::pisdf::Vertex::setName(std::string name) {
+    const auto size = name.size();
+    name_.reset(spider::make_n<char, StackID::PISDF>(size + 1));
+    std::move(std::begin(name), std::end(name), name_.get());
+    name_.get()[size] = '\0';
 }
 
 

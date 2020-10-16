@@ -39,12 +39,10 @@
 
 #include <graphs-tools/transformation/srdag/SingleRateTransformer.h>
 #include <graphs-tools/transformation/srdag/visitors/SRDAGCopyVertexVisitor.h>
-#include <graphs-tools/transformation/srdag/Transformation.h>
 #include <graphs-tools/numerical/brv.h>
 #include <graphs-tools/numerical/dependencies.h>
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/Edge.h>
-#include <graphs/pisdf/Delay.h>
 #include <graphs/pisdf/DelayVertex.h>
 #include <graphs/srdag/SRDAGGraph.h>
 #include <graphs/srdag/SRDAGEdge.h>

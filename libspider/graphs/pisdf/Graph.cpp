@@ -146,9 +146,8 @@ void spider::pisdf::Graph::addInputInterface(Interface *interface) {
     /* == Resize the input edge vector == */
     if (inputEdgeCount() < inputInterfaceVector_.size()) {
         auto *tmp = spider::make_n<Edge *, StackID::PISDF>(inputInterfaceVector_.size(), nullptr);
-        std::move(inputEdgeArray_, inputEdgeArray_ + nINEdges_, tmp);
-        std::swap(tmp, inputEdgeArray_);
-        deallocate(tmp);
+        std::move(inputEdgeArray_.get(), inputEdgeArray_.get() + nINEdges_, tmp);
+        inputEdgeArray_.reset(tmp);
         nINEdges_++;
     }
 }
@@ -165,9 +164,8 @@ void spider::pisdf::Graph::addOutputInterface(Interface *interface) {
     /* == Resize the output edge vector == */
     if (outputEdgeCount() < outputInterfaceVector_.size()) {
         auto *tmp = spider::make_n<Edge *, StackID::PISDF>(outputInterfaceVector_.size(), nullptr);
-        std::move(outputEdgeArray_, outputEdgeArray_ + nOUTEdges_, tmp);
-        std::swap(tmp, outputEdgeArray_);
-        deallocate(tmp);
+        std::move(outputEdgeArray_.get(), outputEdgeArray_.get() + nOUTEdges_, tmp);
+        outputEdgeArray_.reset(tmp);
         nOUTEdges_++;
     }
 }

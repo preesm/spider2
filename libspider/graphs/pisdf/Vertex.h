@@ -74,7 +74,7 @@ namespace spider {
 
             Vertex &operator=(const Vertex &) = delete;
 
-            virtual ~Vertex() noexcept;
+            virtual ~Vertex() noexcept = default;
 
             /* === Method(s) === */
 
@@ -169,7 +169,7 @@ namespace spider {
              * @brief Get the name string of the vertex.
              * @return name of the vertex.
              */
-            inline const std::string &name() const { return name_; };
+            inline std::string name() const { return name_.get(); };
 
             /**
              * @brief Get the ix of the vertex in the containing graph.
@@ -188,7 +188,7 @@ namespace spider {
              * @return const reference to input edge array
              */
             inline spider::array_handle<Edge *> inputEdges() const {
-                return spider::make_handle(inputEdgeArray_, nINEdges_);
+                return spider::make_handle(inputEdgeArray_.get(), nINEdges_);
             };
 
             /**
@@ -203,7 +203,7 @@ namespace spider {
                     throwSpiderException("index out of bound");
                 }
 #endif
-                return inputEdgeArray_[ix];
+                return inputEdgeArray_.get()[ix];
             };
 
             /**
@@ -217,7 +217,7 @@ namespace spider {
              * @return const reference to output edge array.
              */
             inline spider::array_handle<Edge *> outputEdges() const {
-                return spider::make_handle(outputEdgeArray_, nOUTEdges_);
+                return spider::make_handle(outputEdgeArray_.get(), nOUTEdges_);
             };
 
             /**
@@ -232,7 +232,7 @@ namespace spider {
                     throwSpiderException("index out of bound");
                 }
 #endif
-                return outputEdgeArray_[ix];
+                return outputEdgeArray_.get()[ix];
             };
 
             /**
@@ -263,31 +263,37 @@ namespace spider {
              * @brief A const reference on the vector of refinement input params.
              * @return const reference to input params vector.
              */
-            inline const spider::vector<u32> &refinementParamIxVector() const { return refinementParamVector_; };
+            inline spider::array_handle<u32> refinementParamIxVector() const {
+                return spider::make_handle(refinementParamArray_.get(), nRefinementParams_);
+            };
 
             /**
              * @brief A const reference on the vector of input params.
              * @return const reference to input params vector.
              */
-            inline const spider::vector<u32> &inputParamIxVector() const { return inputParamVector_; };
+            inline spider::array_handle<u32> inputParamIxVector() const {
+                return spider::make_handle(inputParamArray_.get(), nINParams_);
+            };
 
             /**
              * @brief Get the number of input params connected to the vertex.
              * @return number of input params.
              */
-            inline size_t inputParamCount() const { return inputParamVector_.size(); };
+            inline size_t inputParamCount() const { return nINParams_;; };
 
             /**
              * @brief A const reference on the vector of output params.
              * @return const reference to output params vector.
              */
-            inline const spider::vector<u32> &outputParamIxVector() const { return outputParamVector_; };
+            inline spider::array_handle<u32> outputParamIxVector() const {
+                return spider::make_handle(outputParamArray_.get(), nOUTParams_);
+            };
 
             /**
              * @brief Get the number of output params connected to the vertex.
              * @return number of output params.
              */
-            inline size_t outputParamCount() const { return outputParamVector_.size(); };
+            inline size_t outputParamCount() const { return nOUTParams_; };
 
             /**
              * @brief Return the executable property of a vertex.
@@ -316,7 +322,7 @@ namespace spider {
              * @warning No check on the name is performed to see if it is unique in the graph.
              * @param name  Name to set.
              */
-            inline void setName(std::string name) { name_ = std::move(name); };
+            void setName(std::string name);
 
             /**
              * @brief Set the ix of the vertex in the containing graph.
@@ -333,18 +339,21 @@ namespace spider {
             void setGraph(Graph *graph);
 
         protected:
-            spider::vector<u32> inputParamVector_;      /* = Vector of input Params ix = */
-            spider::vector<u32> outputParamVector_;     /* = Vector of output Params = */
-            spider::vector<u32> refinementParamVector_; /* = Vector of refinement Params = */
-            pisdf::Edge **inputEdgeArray_ = nullptr;    /* = Vector of input Edge = */
-            pisdf::Edge **outputEdgeArray_ = nullptr;   /* = Vector of output Edge = */
-            std::string name_ = "unnamed-vertex";       /* = Name of the Vertex (uniqueness is not required) = */
-            spider::unique_ptr<RTInfo> rtInformation_;  /* = Runtime information of the Vertex (timing, mappable, etc.) = */
+            spider::unique_ptr<u32> inputParamArray_;      /* = Array of input Params = */
+            spider::unique_ptr<u32> outputParamArray_;     /* = Array of output Params = */
+            spider::unique_ptr<u32> refinementParamArray_; /* = Array of refinement Params = */
+            spider::unique_ptr<pisdf::Edge *> inputEdgeArray_;  /* = Array of input Edge = */
+            spider::unique_ptr<pisdf::Edge *> outputEdgeArray_; /* = Array of output Edge = */
+            spider::unique_ptr<char> name_;            /* = Name of the Vertex (uniqueness is not required) = */
+            spider::unique_ptr<RTInfo> rtInformation_; /* = Runtime information of the Vertex (timing, mappable, etc.) = */
             Graph *graph_ = nullptr;           /* = Graph of the vertex = */
             size_t ix_ = SIZE_MAX;             /* = Index of the Vertex in the containing Graph = */
             u32 repetitionValue_ = 1;          /* = Repetition value of the Vertex, default is 1 but it can be set to 0. = */
             u32 nINEdges_ = 0;
             u32 nOUTEdges_ = 0;
+            u32 nINParams_ = 0;
+            u32 nOUTParams_ = 0;
+            u32 nRefinementParams_ = 0;
             VertexType subtype_ = VertexType::NORMAL;
 
             /**
