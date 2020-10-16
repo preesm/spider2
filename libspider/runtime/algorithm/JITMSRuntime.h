@@ -74,7 +74,7 @@ namespace spider {
         /* === Setter(s) === */
 
     private:
-        spider::unique_ptr<pisdf::Graph> srdag_;
+        spider::unique_ptr<srdag::Graph> srdag_;
         spider::unique_ptr<sched::ResourcesAllocator> resourcesAllocator_;
         time::time_point startIterStamp_ = time::min();
 

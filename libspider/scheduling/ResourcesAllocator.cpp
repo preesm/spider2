@@ -90,7 +90,7 @@ spider::sched::ResourcesAllocator::ResourcesAllocator(SchedulingPolicy schedulin
     }
 }
 
-void spider::sched::ResourcesAllocator::execute(const pisdf::Graph *graph) {
+void spider::sched::ResourcesAllocator::execute(const srdag::Graph *graph) {
     /* == Schedule the graph == */
     scheduler_->schedule(graph);
     /* == Map and execute the scheduled tasks == */

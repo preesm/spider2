@@ -45,7 +45,7 @@
 
 namespace spider {
 
-    namespace pisdf {
+    namespace srdag {
         class Graph;
     }
 
@@ -71,7 +71,7 @@ namespace spider {
 
             /* === Method(s) === */
 
-            void execute(const pisdf::Graph *graph);
+            void execute(const srdag::Graph *graph);
 
             void execute(srless::GraphHandler *graphHandler);
 

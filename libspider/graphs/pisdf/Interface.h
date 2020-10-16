@@ -61,13 +61,15 @@ namespace spider {
 
             /* === Method(s) === */
 
-            void connectInputEdge(Edge *edge, size_t pos) override;
-
-            void connectOutputEdge(Edge *edge, size_t pos) override;
-
             inline void visit(Visitor *visitor) override { visitor->visit(this); }
 
             /* === Getter(s) === */
+
+            /**
+             * @brief Ensure that any vertex inheriting from Interface will not be able to override this method.
+             * @return false.
+             */
+            inline bool executable() const final { return false; };
 
             Edge *inputEdge() const;
 

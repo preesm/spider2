@@ -60,7 +60,7 @@
 
 spider::JITMSRuntime::JITMSRuntime(pisdf::Graph *graph, const RuntimeConfig &cfg) :
         Runtime(graph),
-        srdag_{ make_unique<pisdf::Graph, StackID::RUNTIME>("srdag-" + graph->name()) },
+        srdag_{ make_unique<srdag::Graph, StackID::RUNTIME>(graph) },
         resourcesAllocator_{ make_unique<sched::ResourcesAllocator, StackID::RUNTIME>(cfg.schedPolicy_,
                                                                                       cfg.mapPolicy_,
                                                                                       cfg.execPolicy_,
@@ -166,7 +166,7 @@ bool spider::JITMSRuntime::execute() {
 
     /* == Export srdag if needed  == */
     if (api::exportSRDAGEnabled()) {
-        api::exportGraphToDOT(srdag_.get(), "./srdag.dot");
+        Runtime::exportSRDAG(srdag_.get(), "./srdag.dot");
     }
 
     /* == Runners should clear their parameters == */

@@ -36,7 +36,7 @@
 
 #include <graphs/pisdf/Graph.h>
 #include <graphs-tools/helper/visitors/PiSDFDefaultVisitor.h>
-#include <graphs/pisdf/ExecVertex.h>
+#include <graphs/pisdf/Vertex.h>
 #include <graphs/pisdf/Interface.h>
 #include <graphs/pisdf/Param.h>
 #include <graphs/pisdf/Delay.h>
@@ -146,8 +146,8 @@ void spider::pisdf::Graph::addInputInterface(Interface *interface) {
     /* == Resize the input edge vector == */
     if (inputEdgeCount() < inputInterfaceVector_.size()) {
         auto *tmp = spider::make_n<Edge *, StackID::PISDF>(inputInterfaceVector_.size(), nullptr);
-        std::move(inputEdgeVector_, inputEdgeVector_ + nINEdges_, tmp);
-        std::swap(tmp, inputEdgeVector_);
+        std::move(inputEdgeArray_, inputEdgeArray_ + nINEdges_, tmp);
+        std::swap(tmp, inputEdgeArray_);
         deallocate(tmp);
         nINEdges_++;
     }
@@ -165,8 +165,8 @@ void spider::pisdf::Graph::addOutputInterface(Interface *interface) {
     /* == Resize the output edge vector == */
     if (outputEdgeCount() < outputInterfaceVector_.size()) {
         auto *tmp = spider::make_n<Edge *, StackID::PISDF>(outputInterfaceVector_.size(), nullptr);
-        std::move(outputEdgeVector_, outputEdgeVector_ + nOUTEdges_, tmp);
-        std::swap(tmp, outputEdgeVector_);
+        std::move(outputEdgeArray_, outputEdgeArray_ + nOUTEdges_, tmp);
+        std::swap(tmp, outputEdgeArray_);
         deallocate(tmp);
         nOUTEdges_++;
     }

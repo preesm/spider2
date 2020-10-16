@@ -35,7 +35,7 @@
 #include <iostream>
 #include <graphs/pisdf/Param.h>
 #include <graphs/pisdf/Delay.h>
-#include <graphs/pisdf/ExecVertex.h>
+#include <graphs/pisdf/Vertex.h>
 #include <api/spider.h>
 #include <graphs-tools/exporter/PiSDFDOTExporter.h>
 #include <runtime/algorithm/JITMSRuntime.h>

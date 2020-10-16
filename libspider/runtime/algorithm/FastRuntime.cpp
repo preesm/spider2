@@ -181,12 +181,12 @@ bool spider::FastRuntime::dynamicExecute() {
                     const auto *cfg = srlessTask->vertex();
                     auto *handler = srlessTask->handler();
                     auto paramIterator = message.params_.begin();
-                    for (const auto &param : cfg->outputParamVector()) {
+                    for (const auto ix : cfg->outputParamIxVector()) {
                         const auto value = *(paramIterator++);
-                        handler->setParamValue(param->ix(), value);
+                        handler->setParamValue(ix, value);
                         if (log::enabled<log::TRANSFO>()) {
                             log::info<log::TRANSFO>("Parameter [%12s]: received value #%" PRId64".\n",
-                                                    param->name().c_str(), value);
+                                                    handler->getParams()[ix]->name().c_str(), value);
                         }
                     }
                     readParam++;

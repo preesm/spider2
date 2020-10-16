@@ -38,9 +38,9 @@
 
 #include <scheduling/scheduler/ListScheduler.h>
 #include <scheduling/task/VertexTask.h>
-#include <graphs/pisdf/Graph.h>
-#include <graphs/pisdf/Vertex.h>
-#include <graphs/pisdf/Edge.h>
+#include <graphs/srdag/SRDAGGraph.h>
+#include <graphs/srdag/SRDAGEdge.h>
+#include <graphs/srdag/SRDAGVertex.h>
 
 
 /* === Static variable === */
@@ -56,7 +56,7 @@ spider::sched::ListScheduler::ListScheduler() : Scheduler(),
 
 }
 
-void spider::sched::ListScheduler::schedule(const pisdf::Graph *graph) {
+void spider::sched::ListScheduler::schedule(const srdag::Graph *graph) {
     /* == Reserve space for the new ListTasks == */
     tasks_.clear();
     sortedTaskVector_.reserve(graph->vertexCount());
@@ -109,7 +109,7 @@ void spider::sched::ListScheduler::resetUnScheduledTasks() {
     }
 }
 
-void spider::sched::ListScheduler::createListTask(pisdf::Vertex *vertex) {
+void spider::sched::ListScheduler::createListTask(srdag::Vertex *vertex) {
     if (vertex->scheduleTaskIx() != SIZE_MAX) {
         return;
     }
@@ -117,7 +117,7 @@ void spider::sched::ListScheduler::createListTask(pisdf::Vertex *vertex) {
     vertex->setScheduleTaskIx(sortedTaskVector_.size() - 1);
 }
 
-void spider::sched::ListScheduler::recursiveSetNonSchedulable(const pisdf::Vertex *vertex) {
+void spider::sched::ListScheduler::recursiveSetNonSchedulable(const srdag::Vertex *vertex) {
     for (const auto *edge : vertex->outputEdges()) {
         if (edge->sinkRateValue()) {
             /* == Disable non-null edge == */

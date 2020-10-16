@@ -36,21 +36,21 @@
 
 /* === Include(s) === */
 
-#include <graphs/pisdf/Vertex.h>
 #include <graphs/pisdf/ExternInterface.h>
-#include <graphs/pisdf/Edge.h>
-#include <graphs-tools/helper/pisdf-helper.h>
 #include <scheduling/task/VertexTask.h>
 #include <scheduling/schedule/Schedule.h>
 #include <api/runtime-api.h>
-#include <runtime/platform/RTPlatform.h>
 #include <runtime/common/Fifo.h>
+#include <graphs/srdag/SRDAGGraph.h>
+#include <graphs/srdag/SRDAGEdge.h>
+#include <graphs/srdag/SRDAGVertex.h>
+#include <graphs-tools/helper/srdag-helper.h>
 
 /* === Static function === */
 
 /* === Method(s) implementation === */
 
-spider::sched::VertexTask::VertexTask(pisdf::Vertex *vertex) : Task(), vertex_{ vertex } {
+spider::sched::VertexTask::VertexTask(srdag::Vertex *vertex) : Task(), vertex_{ vertex } {
     if (!vertex) {
         throwSpiderException("nullptr vertex.");
     }
@@ -150,7 +150,7 @@ spider::JobMessage spider::sched::VertexTask::createJobMessage() const {
     message.nParamsOut_ = static_cast<u32>(vertex_->reference()->outputParamCount());
     message.kernelIx_ = static_cast<u32>(vertex_->runtimeInformation()->kernelIx());
     /* == Set the input parameters (if any) == */
-    message.inputParams_ = pisdf::buildVertexRuntimeInputParameters(vertex_);
+    message.inputParams_ = srdag::buildVertexRuntimeInputParameters(vertex_);
     return message;
 }
 

@@ -45,15 +45,21 @@
 
 namespace spider {
 
+    namespace srdag {
+        class Vertex;
+
+        class Graph;
+    }
+
     class Expression;
 
     /* === Function(s) prototype === */
 
-    using EdgeConnecter = void (*)(const pisdf::Vertex *, size_t, pisdf::Vertex *, size_t);
-    using EdgeRemover = size_t (*)(const pisdf::Vertex *, const pisdf::Vertex *);
-    using NextVertexGetter = pisdf::Vertex *(*)(const pisdf::Vertex *);
-    using VertexMaker = pisdf::Vertex *(*)(const pisdf::Vertex *, const pisdf::Vertex *);
-    using EdgeCounter = u32 (*)(const pisdf::Vertex *);
+    using EdgeConnecter = void (*)(srdag::Vertex *, size_t, srdag::Vertex *, size_t);
+    using EdgeRemover = size_t (*)(srdag::Vertex *, const srdag::Vertex *);
+    using NextVertexGetter = srdag::Vertex *(*)(const srdag::Vertex *);
+    using VertexMaker = srdag::Vertex *(*)(const srdag::Vertex *, const srdag::Vertex *);
+    using EdgeCounter = u32 (*)(const srdag::Vertex *);
 
     namespace optims {
 
@@ -63,7 +69,7 @@ namespace spider {
          * @return true if optimization(s) were performed, false else.
          */
         bool reduceFFJJWorker(pisdf::VertexType type,
-                              pisdf::Graph *graph,
+                              srdag::Graph *graph,
                               VertexMaker makeNewVertex,
                               NextVertexGetter getNextVertex,
                               EdgeRemover removeEdge,

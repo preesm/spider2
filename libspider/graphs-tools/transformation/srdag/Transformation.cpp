@@ -44,7 +44,7 @@
 /* === Methods implementation === */
 
 std::pair<spider::srdag::JobStack, spider::srdag::JobStack>
-spider::srdag::singleRateTransformation(TransfoJob &job, pisdf::Graph *srdag) {
+spider::srdag::singleRateTransformation(TransfoJob &job, srdag::Graph *srdag) {
     if (!srdag) {
         throwSpiderException("nullptr for single rate graph.");
     }

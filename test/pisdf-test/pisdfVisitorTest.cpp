@@ -46,7 +46,7 @@
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/Delay.h>
 #include <graphs/pisdf/Param.h>
-#include <graphs/pisdf/ExecVertex.h>
+#include <graphs/pisdf/Vertex.h>
 #include <api/spider.h>
 #include <graphs-tools/helper/visitors/PiSDFDefaultVisitor.h>
 
@@ -68,7 +68,7 @@ struct TestDefaultVisitor final : public spider::pisdf::DefaultVisitor {
     }
 
 
-    void visit(spider::pisdf::ExecVertex *) override {
+    void visit(spider::pisdf::Vertex *) override {
         hitExec_ = true;
     }
 
@@ -84,7 +84,7 @@ struct TestDefaultVisitor final : public spider::pisdf::DefaultVisitor {
 TEST_F(pisdfVisitorTest, defaultTest) {
     {
         spider::pisdf::DefaultVisitor visitor;
-        spider::pisdf::ExecVertex vertex;
+        spider::pisdf::Vertex vertex;
         ASSERT_NO_THROW(vertex.visit(&visitor)) << "ExecVertex::visit should not throw for default visitor";
     }
     {
@@ -123,7 +123,7 @@ TEST_F(pisdfVisitorTest, defaultTest) {
 TEST_F(pisdfVisitorTest, defaultTest2) {
     {
         TestDefaultVisitor visitor;
-        spider::pisdf::ExecVertex vertex;
+        spider::pisdf::Vertex vertex;
         ASSERT_NO_THROW(vertex.visit(&visitor)) << "ExecVertex::visit should not throw for default visitor";
         ASSERT_EQ(visitor.hitExec_, true) << "ExecVertex::visit failed";
     }

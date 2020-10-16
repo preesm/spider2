@@ -1,9 +1,9 @@
-/**
- * Copyright or © or Copr. IETR/INSA - Rennes (2019 - 2020) :
+/*
+ * Copyright or © or Copr. IETR/INSA - Rennes (2020) :
  *
- * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2019 - 2020)
+ * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2020)
  *
- * Spider 2.0 is a dataflow based runtime used to execute dynamic PiSDF
+ * Spider is a dataflow based runtime used to execute dynamic PiSDF
  * applications. The Preesm tool may be used to design PiSDF applications.
  *
  * This software is governed by the CeCILL  license under French law and
@@ -32,35 +32,36 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_VERTEX_H
-#define SPIDER2_VERTEX_H
+#ifndef SPIDER2_SRDAGVERTEX_H
+#define SPIDER2_SRDAGVERTEX_H
+
+#ifndef _NO_BUILD_LEGACY_RT
 
 /* === Include(s) === */
 
-#include <containers/array.h>
-#include <memory/unique_ptr.h>
+#include <containers/vector.h>
 #include <runtime/common/RTInfo.h>
-#include <graphs-tools/helper/visitors/PiSDFVisitor.h>
 
 namespace spider {
 
     namespace pisdf {
+        class Vertex;
 
-        /* === Forward declaration(s) === */
+        class Param;
+    }
 
-        class Graph;
+    namespace srdag {
 
         class Edge;
 
-        class Visitor;
+        class Graph;
 
         /* === Class definition === */
 
         class Vertex {
         public:
-
-            explicit Vertex(VertexType type = VertexType::NORMAL,
-                            std::string name = "unnamed-vertex",
+            explicit Vertex(const pisdf::Vertex *reference,
+                            size_t instanceValue,
                             size_t edgeINCount = 0,
                             size_t edgeOUTCount = 0);
 
@@ -68,24 +69,22 @@ namespace spider {
 
             Vertex &operator=(Vertex &&) = default;
 
-            /* === Disabling copy construction / assignment === */
+            Vertex(const Vertex &) = default;
 
-            Vertex(const Vertex &) = delete;
+            Vertex &operator=(const Vertex &) = default;
 
-            Vertex &operator=(const Vertex &) = delete;
-
-            virtual ~Vertex() noexcept;
+            ~Vertex();
 
             /* === Method(s) === */
 
             /**
-             * @brief Connect an input edge at given position.
-             * @param edge  Pointer to the edge to connect.
-             * @param pos   Input position where to connect the edge.
-             * @throw @refitem std::out_of_range.
-             * @throw @refitem spider::Exception if an edge already exists at this position.
-             */
-            void connectInputEdge(Edge *edge, size_t pos);
+            * @brief Connect an input edge at given position.
+            * @param edge  Pointer to the edge to connect.
+            * @param pos   Input position where to connect the edge.
+            * @throw @refitem std::out_of_range.
+            * @throw @refitem spider::Exception if an edge already exists at this position.
+            */
+            void connectInputEdge(srdag::Edge *edge, size_t pos);
 
             /**
              * @brief Connect an output edge at given position.
@@ -94,48 +93,41 @@ namespace spider {
              * @throw @refitem std::out_of_range.
              * @throw @refitem spider::Exception if an edge already exists at this position.
              */
-            void connectOutputEdge(Edge *edge, size_t pos);
+            void connectOutputEdge(srdag::Edge *edge, size_t pos);
 
             /**
              * @brief Disconnect input edge on port ix. If no edge is connected, nothing happens.
              * @remark Call @refitem Edge::setSink to reset the edge if found.
              * @param ix  Index of the input edge to disconnect.
              */
-            Edge *disconnectInputEdge(size_t ix);
+            srdag::Edge *disconnectInputEdge(size_t ix);
 
             /**
              * @brief Disconnect output edge on port ix. If no edge is connected, nothing happens
              * @remark Call @refitem Edge::setSource to reset the edge if found.
              * @param ix  Index of the output edge to disconnect.
              */
-            Edge *disconnectOutputEdge(size_t ix);
-
-            /**
-             * @brief Generic method that accept a visitor for class specific treatments.
-             * @remark This implement a double-dispatch visitor pattern.
-             * @param visitor  Pointer to the visitor to accept.
-             */
-            virtual void visit(Visitor *visitor);
+            srdag::Edge *disconnectOutputEdge(size_t ix);
 
             /**
              * @brief Add an input parameter to the Vertex.
              * @param param  Pointer to the parameter to add.
              */
-            void addInputParameter(const std::shared_ptr<Param> &param);
+            void addInputParameter(std::shared_ptr<pisdf::Param> param);
 
             /**
              * @brief Add an input parameter for the refinement of the Vertex.
              * @warning a separate call to addInputParameter is needed.
              * @param param  Pointer to the parameter to add.
              */
-            void addRefinementParameter(const std::shared_ptr<Param> &param);
+            void addRefinementParameter(std::shared_ptr<pisdf::Param> param);
 
             /**
              * @brief Add an output parameter to the Vertex.
              * @param param  Pointer to the parameter to add.
              * @throw spider::Exception if subtype() is not @refitem VertexType::CONFIG.
              */
-            void addOutputParameter(const std::shared_ptr<Param> &param);
+            void addOutputParameter(std::shared_ptr<pisdf::Param> param);
 
             /**
              * @brief Get the complete path of the Vertex.
@@ -145,31 +137,13 @@ namespace spider {
              */
             std::string vertexPath() const;
 
-            /**
-             * @brief Convert a vertex to the desired type (if possible) using static_cast.
-             * @warning This a static_cast so it is your responsibility to ensure the type compatibility.
-             * @tparam T Type to convert to.
-             * @return pointer to the converted type.
-             */
-            template<class T>
-            inline T *convertTo() { return static_cast<T *>(this); }
-
-            /**
-             * @brief Convert a vertex to the desired type (if possible) using static_cast.
-             * @warning This a static_cast so it is your responsibility to ensure the type compatibility.
-             * @tparam T Type to convert to.
-             * @return pointer to the converted type.
-             */
-            template<class T>
-            inline const T *convertTo() const { return static_cast<const T *>(this); }
-
             /* === Getter(s) === */
 
             /**
              * @brief Get the name string of the vertex.
              * @return name of the vertex.
              */
-            inline const std::string &name() const { return name_; };
+            std::string name() const;
 
             /**
              * @brief Get the ix of the vertex in the containing graph.
@@ -181,13 +155,19 @@ namespace spider {
              * @brief Returns the graph of the vertex (if any)
              * @return Pointer to the containing graph, nullptr else.
              */
-            inline Graph *graph() const { return graph_; }
+            inline srdag::Graph *graph() { return const_cast<srdag::Graph*>(graph_); }
+
+            /**
+             * @brief Returns the graph of the vertex (if any)
+             * @return Pointer to the containing graph, nullptr else.
+             */
+            inline const srdag::Graph *graph() const { return graph_; }
 
             /**
              * @brief A const reference on the array of input edges. Useful for iterating on the edges.
              * @return const reference to input edge array
              */
-            inline spider::array_handle<Edge *> inputEdges() const {
+            inline spider::array_handle<srdag::Edge *> inputEdges() const {
                 return spider::make_handle(inputEdgeArray_, nINEdges_);
             };
 
@@ -197,7 +177,7 @@ namespace spider {
              * @return @refitem spider::pisdf::Edge
              * @throw std::out_of_range.
              */
-            inline Edge *inputEdge(size_t ix) const {
+            inline srdag::Edge *inputEdge(size_t ix) const {
 #ifndef NDEBUG
                 if (ix >= nINEdges_) {
                     throwSpiderException("index out of bound");
@@ -216,7 +196,7 @@ namespace spider {
              * @brief A const reference on the array of output edges. Useful for iterating on the edges.
              * @return const reference to output edge array.
              */
-            inline spider::array_handle<Edge *> outputEdges() const {
+            inline spider::array_handle<srdag::Edge *> outputEdges() const {
                 return spider::make_handle(outputEdgeArray_, nOUTEdges_);
             };
 
@@ -226,7 +206,7 @@ namespace spider {
              * @return @refitem spider::pisdf::Edge
              * @throw std::out_of_range.
              */
-            inline Edge *outputEdge(size_t ix) const {
+            inline srdag::Edge *outputEdge(size_t ix) const {
 #ifndef NDEBUG
                 if (ix >= nOUTEdges_) {
                     throwSpiderException("index out of bound");
@@ -242,34 +222,18 @@ namespace spider {
             inline size_t outputEdgeCount() const { return nOUTEdges_; };
 
             /**
-             * @brief Get the subtype of the vertex.
-             * @return @refitem spider::pisdf::VertexType corresponding to the subtype
-             */
-            inline VertexType subtype() const { return subtype_; };
-
-            /**
-             * @brief Test if the vertex is a graph.
-             * @return true if vertex is a graph, false else.
-             */
-            inline bool hierarchical() const { return subtype_ == VertexType::GRAPH; };
-
-            /**
-             * @brief Get the repetition vector value of the vertex.
-             * @return repetition vector value of the vertex. (UINT32_MAX if uninitialized)
-             */
-            inline uint32_t repetitionValue() const { return repetitionValue_; };
-
-            /**
              * @brief A const reference on the vector of refinement input params.
              * @return const reference to input params vector.
              */
-            inline const spider::vector<u32> &refinementParamIxVector() const { return refinementParamVector_; };
+            inline const spider::vector<std::shared_ptr<pisdf::Param>> &
+            refinementParamVector() const { return refinementParamVector_; };
 
             /**
              * @brief A const reference on the vector of input params.
              * @return const reference to input params vector.
              */
-            inline const spider::vector<u32> &inputParamIxVector() const { return inputParamVector_; };
+            inline const spider::vector<std::shared_ptr<pisdf::Param>> &
+            inputParamVector() const { return inputParamVector_; };
 
             /**
              * @brief Get the number of input params connected to the vertex.
@@ -281,7 +245,8 @@ namespace spider {
              * @brief A const reference on the vector of output params.
              * @return const reference to output params vector.
              */
-            inline const spider::vector<u32> &outputParamIxVector() const { return outputParamVector_; };
+            inline const spider::vector<std::shared_ptr<pisdf::Param>> &
+            outputParamVector() const { return outputParamVector_; };
 
             /**
              * @brief Get the number of output params connected to the vertex.
@@ -290,33 +255,52 @@ namespace spider {
             inline size_t outputParamCount() const { return outputParamVector_.size(); };
 
             /**
+             * @brief Return the reference vertex attached to current copy.
+             * @remark If vertex is not a copy, this return the vertex itself.
+             * @warning There is a potential risk here. If the reference is freed before the copy,
+             * there are no possibilities to know it.
+             * @return pointer to @refitem Vertex reference.
+             */
+            inline const pisdf::Vertex *reference() const { return reference_; };
+
+            /**
              * @brief Return the executable property of a vertex.
              * @return true if vertex is executable, false else.
              */
-            inline virtual bool executable() const { return true; };
+            inline bool executable() const { return executable_; };
 
             /**
              * @brief Returns the @refitem RTInfo structure associated with this vertex.
              * @remark If the vertex is non-executable, it should return nullptr.
              * @return pointer to the @refitem RTInfo of the vertex, nullptr if !(this->executable()).
              */
-            inline RTInfo *runtimeInformation() const { return rtInformation_.get(); };
+            RTInfo *runtimeInformation() const;
+
+            /**
+             * @brief Get the schedule job ix associated to this vertex.
+             * @return ix of the job, SIZE_MAX if not set.
+             */
+            inline size_t scheduleTaskIx() const { return scheduleJobIx_; };
+
+            /**
+             * @brief Get the instance value associated to this clone vertex (0 if original).
+             * @return instance value of the vertex, 0 by default.
+             */
+            inline size_t instanceValue() const { return instanceValue_; };
+
+            /**
+             * @brief Get the subtype of the vertex.
+             * @return @refitem spider::pisdf::VertexType corresponding to the subtype
+             */
+            pisdf::VertexType subtype() const;
 
             /* === Setter(s) === */
 
             /**
-             * @brief Set the repetition vector value of the vertex;
-             * @param value Repetition value to set.
+             * @brief Set the schedule job ix of the vertex.
+             * @param ix  Ix to set.
              */
-            void setRepetitionValue(uint32_t value);
-
-            /**
-             * @brief Set the name of the vertex.
-             * @remark This method will replace current name of the vertex.
-             * @warning No check on the name is performed to see if it is unique in the graph.
-             * @param name  Name to set.
-             */
-            inline void setName(std::string name) { name_ = std::move(name); };
+            inline void setScheduleTaskIx(size_t ix) { scheduleJobIx_ = ix; };
 
             /**
              * @brief Set the ix of the vertex in the containing graph.
@@ -324,35 +308,34 @@ namespace spider {
              */
             inline void setIx(size_t ix) { ix_ = ix; };
 
+            inline void setExecutable(bool executable) { executable_ = executable; }
+
             /**
              * @brief Set the containing graph of the vertex.
              * @remark override current value.
              * @remark if graph is nullptr, nothing happens.
              * @param graph  Pointer to the graph to set.
              */
-            void setGraph(Graph *graph);
-
-        protected:
-            spider::vector<u32> inputParamVector_;      /* = Vector of input Params ix = */
-            spider::vector<u32> outputParamVector_;     /* = Vector of output Params = */
-            spider::vector<u32> refinementParamVector_; /* = Vector of refinement Params = */
-            pisdf::Edge **inputEdgeArray_ = nullptr;    /* = Vector of input Edge = */
-            pisdf::Edge **outputEdgeArray_ = nullptr;   /* = Vector of output Edge = */
-            std::string name_ = "unnamed-vertex";       /* = Name of the Vertex (uniqueness is not required) = */
-            spider::unique_ptr<RTInfo> rtInformation_;  /* = Runtime information of the Vertex (timing, mappable, etc.) = */
-            Graph *graph_ = nullptr;           /* = Graph of the vertex = */
-            size_t ix_ = SIZE_MAX;             /* = Index of the Vertex in the containing Graph = */
-            u32 repetitionValue_ = 1;          /* = Repetition value of the Vertex, default is 1 but it can be set to 0. = */
-            u32 nINEdges_ = 0;
-            u32 nOUTEdges_ = 0;
-            VertexType subtype_ = VertexType::NORMAL;
-
-            /**
-             * @brief Verify that VertexType and vertex properties are coherent.
-             */
-            void checkTypeConsistency() const;
+            inline void setGraph(srdag::Graph *graph) {
+                if (graph) {
+                    graph_ = graph;
+                }
+            }
 
         private:
+            spider::vector<std::shared_ptr<pisdf::Param>> inputParamVector_;      /* = Vector of input Params = */
+            spider::vector<std::shared_ptr<pisdf::Param>> refinementParamVector_; /* = Vector of refinement Params = */
+            spider::vector<std::shared_ptr<pisdf::Param>> outputParamVector_;     /* = Vector of output Params = */
+            srdag::Edge **inputEdgeArray_ = nullptr;                             /* = Vector of input Edge = */
+            srdag::Edge **outputEdgeArray_ = nullptr;                            /* = Vector of output Edge = */
+            const pisdf::Vertex *reference_ = nullptr;                            /* = Pointer to the reference Vertex. = */
+            const srdag::Graph *graph_ = nullptr;                                 /* = Graph of the vertex = */
+            size_t ix_ = SIZE_MAX;                                                /* = Index of the Vertex in the containing Graph = */
+            size_t scheduleJobIx_ = SIZE_MAX;  /* = Index of the schedule job associated to this Vertex. = */
+            size_t instanceValue_ = 0;         /* = Value of the instance relative to reference Vertex = */
+            u32 nINEdges_ = 0;
+            u32 nOUTEdges_ = 0;
+            bool executable_ = true;
 
             /**
              * @brief Disconnect an edge from the given edge vector (input or output).
@@ -360,7 +343,7 @@ namespace spider {
              * @param ix     Index of the edge to disconnect.
              * @return pointer to the disconnected edge, nullptr else.
              */
-            Edge *disconnectEdge(Edge **edges, size_t ix);
+            srdag::Edge *disconnectEdge(srdag::Edge **edges, size_t ix);
 
             /**
              * @brief Connect an edge in the given edge vector (input or output).
@@ -369,8 +352,11 @@ namespace spider {
              * @param ix     Index of the edge to connect.
              * @throw spider::Exception if edge already exists in the vector at given index.
              */
-            void connectEdge(Edge **edges, Edge *edge, size_t ix);
+            void connectEdge(srdag::Edge **edges, Edge *edge, size_t ix);
         };
+
     }
 }
-#endif //SPIDER2_VERTEX_H
+
+#endif
+#endif //SPIDER2_SRDAGVERTEX_H

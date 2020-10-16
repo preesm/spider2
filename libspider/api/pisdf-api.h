@@ -138,18 +138,6 @@ namespace spider {
                                     size_t edgeOUTCount = 0);
 
         /**
-         * @brief Creates a @refitem pisdf::NonExecVertex.
-         * @param graph         Pointer to the parent graph the vertex should be added.
-         * @param name          Name of the vertex.
-         * @param edgeINCount   Number of input edges (can NOT be modified afterwards).
-         * @param edgeOUTCount  Number of output edges (can NOT be modified afterwards).
-         * @return pointer to the created @refitem pisdf::Vertex.
-         * @throws @refitem spider::Exception if the parent graph is nullptr.
-         */
-        pisdf::Vertex *
-        createNonExecVertex(pisdf::Graph *graph, std::string name, size_t edgeINCount = 0, size_t edgeOUTCount = 0);
-
-        /**
          * @brief Creates a @refitem pisdf::ForkVertex.
          * @param graph         Pointer to the parent graph the vertex should be added.
          * @param name          Name of the vertex.

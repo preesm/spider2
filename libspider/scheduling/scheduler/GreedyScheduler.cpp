@@ -38,14 +38,14 @@
 
 #include <scheduling/scheduler/GreedyScheduler.h>
 #include <scheduling/task/VertexTask.h>
-#include <graphs/pisdf/Graph.h>
-#include <graphs/pisdf/Vertex.h>
+#include <graphs/srdag/SRDAGGraph.h>
+#include <graphs/srdag/SRDAGVertex.h>
 
 /* === Static function === */
 
 /* === Method(s) implementation === */
 
-void spider::sched::GreedyScheduler::schedule(const pisdf::Graph *graph) {
+void spider::sched::GreedyScheduler::schedule(const srdag::Graph *graph) {
     tasks_.clear();
     for (auto &vertex : graph->vertices()) {
         if (vertex->executable()) {
@@ -56,7 +56,7 @@ void spider::sched::GreedyScheduler::schedule(const pisdf::Graph *graph) {
 
 /* === Private method(s) implementation === */
 
-bool spider::sched::GreedyScheduler::evaluate(spider::pisdf::Vertex *vertex) {
+bool spider::sched::GreedyScheduler::evaluate(spider::srdag::Vertex *vertex) {
     auto schedulable = true;
     if (vertex->scheduleTaskIx() == SIZE_MAX) {
         for (const auto *edge : vertex->inputEdges()) {

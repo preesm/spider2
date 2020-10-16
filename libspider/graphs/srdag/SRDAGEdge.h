@@ -1,9 +1,9 @@
-/**
- * Copyright or © or Copr. IETR/INSA - Rennes (2019 - 2020) :
+/*
+ * Copyright or © or Copr. IETR/INSA - Rennes (2020) :
  *
- * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2019 - 2020)
+ * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2020)
  *
- * Spider 2.0 is a dataflow based runtime used to execute dynamic PiSDF
+ * Spider is a dataflow based runtime used to execute dynamic PiSDF
  * applications. The Preesm tool may be used to design PiSDF applications.
  *
  * This software is governed by the CeCILL  license under French law and
@@ -32,32 +32,30 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_EDGE_H
-#define SPIDER2_EDGE_H
+#ifndef SPIDER2_SRDAGEDGE_H
+#define SPIDER2_SRDAGEDGE_H
+
+#ifndef _NO_BUILD_LEGACY_RT
 
 /* === Include(s) === */
 
-#include <memory/unique_ptr.h>
-#include <graphs/pisdf/Delay.h>
-#include <graphs-tools/expression-parser/Expression.h>
+#include <common/Types.h>
+#include <string>
 
 namespace spider {
-    namespace pisdf {
-
-        /* === Forward declaration(s) === */
+    namespace srdag {
 
         class Vertex;
-
-        class Graph;
 
         /* === Class definition === */
 
         class Edge {
         public:
 
-            Edge(Vertex *source, size_t srcIx, Expression srcExpr, Vertex *sink, size_t snkIx, Expression snkExpr);
+            Edge(srdag::Vertex *source, size_t srcIx, i64 srcRate,
+                 srdag::Vertex *sink, size_t snkIx, i64 snkRate);
 
-            ~Edge() noexcept = default;
+            ~Edge() = default;
 
             /* === Method(s) === */
 
@@ -68,18 +66,6 @@ namespace spider {
             std::string name() const;
 
             /* === Getter(s) === */
-
-            /**
-             * @brief Get the containing @refitem spider::pisdf::Graph of the edge.
-             * @return containing @refitem spider::pisdf::Graph
-             */
-            Graph *graph() const;
-
-            /**
-             * @brief Get the delay (if any) associated to the edge.
-             * @return @refitem PiSDFDelay of the edge.
-             */
-            Delay *delay() const;
 
             /**
              * @brief Get the ix of the edge in the containing graph.
@@ -100,48 +86,30 @@ namespace spider {
             inline size_t sinkPortIx() const { return snkPortIx_; }
 
             /**
-             * @brief Evaluate the expression rate of the source.
-             * @return @refitem Expression of the source rate .
-             */
-            inline const Expression &sourceRateExpression() const { return *(srcExpression_.get()); }
-
-            /**
-             * @brief Shortcurt for the method of @refitem Expression::value.
+             * @brief Get source rate of the edge.
              * @return value of the source rate expression.
              */
-            int64_t sourceRateValue() const;
+            inline int64_t sourceRateValue() const { return srcRate_; }
 
             /**
-             * @brief Evaluate the expression rate of the sink.
-             * @return @refitem Expression of the sink rate.
-             */
-            inline const Expression &sinkRateExpression() const { return *(snkExpression_.get()); }
-
-            /**
-             * @brief Shortcurt for the method of @refitem Expression::value.
+             * @brief Get sink rate of the edge.
              * @return value of the sink rate expression.
              */
-            int64_t sinkRateValue() const;
+            inline int64_t sinkRateValue() const { return snkRate_; }
 
             /**
              * @brief Get the source reference vertex.
              * @return reference to source
              */
-            inline Vertex *source() const { return src_; }
+            inline srdag::Vertex *source() const { return source_; }
 
             /**
              * @brief Get the sink reference vertex.
              * @return reference to sink
              */
-            inline Vertex *sink() const { return snk_; }
+            inline srdag::Vertex *sink() const { return sink_; }
 
             /* === Setter(s) === */
-
-            /**
-             * @brief Set the delay associated with the Edge.
-             * @param delay Pointer to the delay to set.
-             */
-            void setDelay(Delay *delay);
 
             /**
              * @brief Set the ix of the edge in the containing graph.
@@ -155,31 +123,33 @@ namespace spider {
              * @remark This method disconnect any previous connected edge on vertex and disconnect current source.
              * @param vertex  Vertex to connect to.
              * @param ix      Output port ix.
-             * @param expr    Expression of the rate.
+             * @param rate    Value of the rate.
              * @return pointer to the old output @refitem Edge of vertex, nullptr else.
              */
-            void setSource(Vertex *vertex, size_t ix, Expression expr);
+            void setSource(srdag::Vertex *vertex, size_t ix, i64 rate);
 
             /**
              * @brief Set the sink vertex of the edge.
              * @remark This method disconnect any previous connected edge on vertex and disconnect current sink.
              * @param vertex  Vertex to connect to.
              * @param ix      Input port ix.
-             * @param expr    Expression of the rate.
+             * @param rate    Value of the rate.
              * @return pointer to the old input @refitem Edge of vertex, nullptr else.
              */
-            void setSink(Vertex *vertex, size_t ix, Expression expr);
+            void setSink(srdag::Vertex *vertex, size_t ix, i64 rate);
 
         private:
-            spider::unique_ptr<Expression> srcExpression_;     /* = Expression of the source rate of the Edge = */
-            spider::unique_ptr<Expression> snkExpression_;     /* = Expression of the sink rate of the Edge = */
-            Vertex *src_ = nullptr;        /* = Pointer to the source Vertex (if any) = */
-            Vertex *snk_ = nullptr;        /* = Pointer to the sink Vertex (if any) = */
-            unique_ptr<Delay> delay_;      /* = Pointer to Delay associated to the Edge (if any) = */
-            size_t ix_ = SIZE_MAX;         /* = Index of the Edge in the Graph (used for add and remove) = */
+            srdag::Vertex *source_ = nullptr;
+            srdag::Vertex *sink_ = nullptr;
+            i64 srcRate_ = 0;
+            i64 snkRate_ = 0;
             size_t srcPortIx_ = SIZE_MAX;  /* = Index of the Edge in the source outputEdgeArray = */
             size_t snkPortIx_ = SIZE_MAX;  /* = Index of the Edge in the sink inputEdgeArray = */
+            size_t ix_ = SIZE_MAX;         /* = Index of the Edge in the Graph (used for add and remove) = */
         };
+
+
     }
 }
-#endif //SPIDER2_GRAPH_H
+#endif
+#endif //SPIDER2_SRDAGEDGE_H

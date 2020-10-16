@@ -41,6 +41,13 @@
 #include <api/global-api.h>
 
 namespace spider {
+
+    namespace srdag {
+        class Vertex;
+
+        class Graph;
+    }
+
     namespace pisdf {
 
         /* === Class definition === */
@@ -60,17 +67,19 @@ namespace spider {
 
             virtual void visit(Graph *) = 0;
 
-            virtual void visit(ExecVertex *) = 0;
+            virtual void visit(Vertex *) = 0;
 
             virtual void visit(ExternInterface *) = 0;
 
             virtual void visit(DelayVertex *) = 0;
 
-            virtual void visit(NonExecVertex *) = 0;
-
             virtual void visit(Interface *) = 0;
 
             virtual void visit(Param *) = 0;
+
+            virtual void visit(srdag::Graph *) = 0;
+
+            virtual void visit(srdag::Vertex *) = 0;
 
         private:
 

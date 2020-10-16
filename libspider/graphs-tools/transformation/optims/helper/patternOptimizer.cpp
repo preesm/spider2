@@ -38,20 +38,18 @@
 /* === Include(s) === */
 
 #include <graphs-tools/transformation/optims/helper/patternOptimizer.h>
-#include <graphs/pisdf/Vertex.h>
-#include <graphs/pisdf/Edge.h>
-#include <graphs/pisdf/Graph.h>
+#include <graphs/srdag/SRDAGGraph.h>
 
 /* === Function(s) definition === */
 
 bool spider::optims::reduceFFJJWorker(pisdf::VertexType type,
-                                      pisdf::Graph *graph,
+                                      srdag::Graph *graph,
                                       VertexMaker makeNewVertex,
                                       NextVertexGetter getNextVertex,
                                       EdgeRemover removeEdge,
                                       EdgeCounter countEdges,
                                       EdgeConnecter reconnect) {
-    auto verticesToOptimize = factory::vector<pisdf::Vertex *>(StackID::TRANSFO);
+    auto verticesToOptimize = factory::vector<srdag::Vertex *>(StackID::TRANSFO);
 
     /* == Search for the pair of fork to optimize == */
     for (auto &vertex : graph->vertices()) {

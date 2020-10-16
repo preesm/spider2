@@ -46,7 +46,7 @@ namespace spider {
 
     /* === Forward declaration(s) === */
 
-    namespace pisdf {
+    namespace srdag {
         class Vertex;
 
         class Graph;
@@ -55,13 +55,13 @@ namespace spider {
     /* === Struct(s) definition === */
 
     struct EdgeLinker {
-        pisdf::Vertex *vertex_ = nullptr;
+        srdag::Vertex *vertex_ = nullptr;
         int64_t rate_ = 0;
         size_t portIx_ = 0;
 
         EdgeLinker() = default;
 
-        EdgeLinker(pisdf::Vertex *vertex, int64_t rate, size_t portIx) : vertex_{ vertex },
+        EdgeLinker(srdag::Vertex *vertex, int64_t rate, size_t portIx) : vertex_{ vertex },
                                                                          rate_{ rate },
                                                                          portIx_{ portIx } { };
     };
@@ -74,7 +74,7 @@ namespace spider {
      * @param sourceArray   Reference to the array of sources (see @refitem EdgeLinker).
      * @param sinkArray     Reference to the array of sinks (see @refitem EdgeLinker).
      */
-    void partialSingleRateTransformation(pisdf::Graph *graph,
+    void partialSingleRateTransformation(srdag::Graph *graph,
                                          array<EdgeLinker> &sourceArray,
                                          array<EdgeLinker> &sinkArray);
 }

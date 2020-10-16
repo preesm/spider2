@@ -74,7 +74,7 @@ namespace spider {
 
     private:
         time::time_point startIterStamp_ = time::min();
-        spider::unique_ptr<pisdf::Graph> srdag_;
+        spider::unique_ptr<srdag::Graph> srdag_;
         spider::unique_ptr<sched::ResourcesAllocator> ressourcesAllocator_;
         size_t iter_ = 0U;
 

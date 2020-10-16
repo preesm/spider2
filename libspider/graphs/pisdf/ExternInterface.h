@@ -37,21 +37,21 @@
 
 /* === Include(s) === */
 
-#include <graphs/pisdf/ExecVertex.h>
+#include <graphs/pisdf/Vertex.h>
 
 namespace spider {
     namespace pisdf {
 
         /* === Class definition === */
 
-        class ExternInterface final : public ExecVertex {
+        class ExternInterface final : public Vertex {
         public:
             ExternInterface(VertexType type,
                             size_t bufferIndex,
-                            std::string name = "unnamed-extern") : ExecVertex(type,
-                                                                              std::move(name),
-                                                                              type == VertexType::EXTERN_OUT,
-                                                                              type == VertexType::EXTERN_IN),
+                            std::string name = "unnamed-extern") : Vertex(type,
+                                                                          std::move(name),
+                                                                          type == VertexType::EXTERN_OUT,
+                                                                          type == VertexType::EXTERN_IN),
                                                                    bufferIndex_{ bufferIndex } {
                 if (type != VertexType::EXTERN_OUT && type != VertexType::EXTERN_IN) {
                     throwSpiderException("External interface [%s] wrong VertexType.", name_.c_str());

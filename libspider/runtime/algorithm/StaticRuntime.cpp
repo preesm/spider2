@@ -68,7 +68,7 @@ updateJobStack(spider::vector<spider::srdag::TransfoJob> &src, spider::vector<sp
 
 spider::StaticRuntime::StaticRuntime(pisdf::Graph *graph, const RuntimeConfig &cfg) :
         Runtime(graph),
-        srdag_{ make_unique<pisdf::Graph, StackID::RUNTIME>("srdag-" + graph->name()) },
+        srdag_{ make_unique<srdag::Graph, StackID::RUNTIME>(graph) },
         ressourcesAllocator_{ make_unique<sched::ResourcesAllocator, StackID::RUNTIME>(cfg.schedPolicy_,
                                                                                        cfg.mapPolicy_,
                                                                                        cfg.execPolicy_,
@@ -127,7 +127,7 @@ void spider::StaticRuntime::applyTransformationAndRun() {
 
     /* == Export srdag if needed  == */
     if (api::exportSRDAGEnabled()) {
-        api::exportGraphToDOT(srdag_.get(), "./srdag.dot");
+        Runtime::exportSRDAG(srdag_.get(), "./srdag.dot");
     }
 
     /* == Apply graph optimizations == */
@@ -136,7 +136,7 @@ void spider::StaticRuntime::applyTransformationAndRun() {
         optims::optimize(srdag_.get());
         TRACE_TRANSFO_END();
         if (api::exportSRDAGEnabled()) {
-            api::exportGraphToDOT(srdag_.get(), "./srdag-optims.dot");
+            Runtime::exportSRDAG(srdag_.get(), "./srdag-optims.dot");
         }
     }
     /* == Update schedule, run and wait == */

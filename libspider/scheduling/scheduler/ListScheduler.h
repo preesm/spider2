@@ -44,7 +44,7 @@
 
 namespace spider {
 
-    namespace pisdf {
+    namespace srdag {
         class Vertex;
     }
 
@@ -60,7 +60,7 @@ namespace spider {
 
             /* === Method(s) === */
 
-            void schedule(const pisdf::Graph *graph) override;
+            void schedule(const srdag::Graph *graph) override;
 
             void clear() override;
 
@@ -70,7 +70,7 @@ namespace spider {
 
         private:
             struct ListTask {
-                pisdf::Vertex *vertex_;
+                srdag::Vertex *vertex_;
                 ifast32 level_;
             };
             spider::vector<ListTask> sortedTaskVector_;
@@ -92,9 +92,9 @@ namespace spider {
              *         sortedTaskVector_.
              * @param vertex  Pointer to the vertex associated.
              */
-            void createListTask(pisdf::Vertex *vertex);
+            void createListTask(srdag::Vertex *vertex);
 
-            void recursiveSetNonSchedulable(const pisdf::Vertex *vertex);
+            void recursiveSetNonSchedulable(const srdag::Vertex *vertex);
 
             /**
              * @brief Compute recursively the schedule level used to sort the vertices for scheduling.

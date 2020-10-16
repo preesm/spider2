@@ -39,7 +39,7 @@
 
 #include <memory/unique_ptr.h>
 #include <common/Exception.h>
-#include <graphs/pisdf/ExecVertex.h>
+#include <graphs/pisdf/Vertex.h>
 #include <graphs/pisdf/Interface.h>
 #include <graphs/pisdf/Edge.h>
 #include <graphs/pisdf/Param.h>
@@ -185,6 +185,12 @@ namespace spider {
             bool dynamic() const;
 
             /* === Getter(s) === */
+
+            /**
+             * @brief Ensure that any vertex inheriting from Graph will not be able to override this method.
+             * @return false.
+             */
+            inline bool executable() const final { return false; };
 
             /**
              * @brief A const reference on the vector of vertex. Useful for iterating on the vertices.

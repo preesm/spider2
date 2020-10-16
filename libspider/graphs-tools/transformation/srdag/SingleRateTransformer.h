@@ -64,7 +64,7 @@ namespace spider {
         public:
             SingleRateTransformer() = delete;
 
-            SingleRateTransformer(TransfoJob &job, pisdf::Graph *srdag);
+            SingleRateTransformer(TransfoJob &job, srdag::Graph *srdag);
 
             ~SingleRateTransformer() = default;
 
@@ -75,7 +75,7 @@ namespace spider {
         private:
 
             struct TransfoVertex {
-                pisdf::Vertex *vertex_ = nullptr;
+                srdag::Vertex *vertex_ = nullptr;
                 int64_t rate_ = -1;
                 uint32_t portIx_ = UINT32_MAX;
                 uint32_t lowerDep_ = UINT32_MAX;
@@ -83,7 +83,7 @@ namespace spider {
 
                 TransfoVertex() = default;
 
-                TransfoVertex(int64_t rate, uint32_t portIx, pisdf::Vertex *vertex) : vertex_{ vertex },
+                TransfoVertex(int64_t rate, uint32_t portIx, srdag::Vertex *vertex) : vertex_{ vertex },
                                                                                       rate_{ rate },
                                                                                       portIx_{ portIx } { }
             };
@@ -94,7 +94,7 @@ namespace spider {
 
             vector<size_t> ref2Clone_;
             TransfoJob &job_;
-            pisdf::Graph *srdag_ = nullptr;
+            srdag::Graph *srdag_ = nullptr;
 
             /* === Private method(s) === */
 
@@ -161,7 +161,7 @@ namespace spider {
                                      spider::vector<TransfoVertex> &snkVector);
 
             template<class ConnectEdge>
-            void connectForkOrJoin(pisdf::Vertex *vertex,
+            void connectForkOrJoin(srdag::Vertex *vertex,
                                    vector<TransfoVertex> &workingVector,
                                    vector<TransfoVertex> &oppositeVector,
                                    const ConnectEdge &edgeConnector) const;
@@ -214,7 +214,7 @@ namespace spider {
              * @param edge       Corresponding edge in the four possible (in_0: setter, in_1: producer, out_0:getter, out_1:consumer)
              * @param isSink     Boolean corresponding to type (true if calling for sink, false else)
              */
-            void populateFromDelayVertex(spider::vector<TransfoVertex> &vector, pisdf::Edge *edge, bool isSink);
+            void populateFromDelayVertex(spider::vector<TransfoVertex> &vector, srdag::Edge *edge, bool isSink);
         };
     }
 }

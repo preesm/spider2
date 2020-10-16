@@ -111,7 +111,7 @@ void spider::pisdf::Edge::setSource(Vertex *vertex, size_t ix, Expression expr) 
         vertex->disconnectOutputEdge(ix);
 
         /* == Connect this edge == */
-        vertex->connectOutputEdge(static_cast<Edge *>(this), ix);
+        vertex->connectOutputEdge(this, ix);
     }
 
     /* == Disconnect current src (if any) == */
@@ -135,7 +135,7 @@ void spider::pisdf::Edge::setSink(Vertex *vertex, size_t ix, Expression expr) {
         vertex->disconnectInputEdge(ix);
 
         /* == Connect this edge == */
-        vertex->connectInputEdge(static_cast<Edge *>(this), ix);
+        vertex->connectInputEdge(this, ix);
     }
 
     /* == Disconnect current snk_ (if any) == */

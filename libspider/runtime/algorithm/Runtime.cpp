@@ -52,6 +52,7 @@
 #include <runtime/message/Notification.h>
 #include <archi/Platform.h>
 #include <api/runtime-api.h>
+#include <graphs-tools/exporter/SRDAGDOTExporter.h>
 
 /* === Static variable === */
 
@@ -173,5 +174,19 @@ void spider::Runtime::useExecutionTraces(const sched::Schedule *schedule,
             exporter.printFromTasks(ganttTasks, path + ".xml");
         }
     }
+#endif
+}
+
+
+
+#ifndef _NO_BUILD_GRAPH_EXPORTER
+void spider::Runtime::exportSRDAG(srdag::Graph *graph, const std::string &path) {
+    /* == Print the Graph == */
+    auto exporter = pisdf::SRDAGDOTExporter(graph);
+    exporter.printFromPath(path);
+#else
+
+    void spider::api::exportGraphToDOT(pisdf::Graph *, const std::string &) {
+    printer::fprintf(stderr, "Graph exporter is not built. Recompile spider2 with -DBUILD_GRAPH_EXPORTER=ON option.\n");
 #endif
 }

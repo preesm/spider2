@@ -43,6 +43,10 @@
 
 namespace spider {
 
+    namespace srdag {
+        class Vertex;
+    }
+
     namespace sched {
 
         /* === Class definition === */
@@ -56,7 +60,7 @@ namespace spider {
 
             /* === Method(s) === */
 
-            void schedule(const pisdf::Graph *graph) override;
+            void schedule(const srdag::Graph *graph) override;
 
         private:
 
@@ -71,7 +75,7 @@ namespace spider {
              * @param handler Pointer to the GraphFiring handler.
              * @return true if schedulable, false else.
              */
-            bool evaluate(spider::pisdf::Vertex *vertex);
+            bool evaluate(spider::srdag::Vertex *vertex);
         };
     }
 }

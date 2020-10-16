@@ -1,9 +1,9 @@
-/**
- * Copyright or © or Copr. IETR/INSA - Rennes (2019 - 2020) :
+/*
+ * Copyright or © or Copr. IETR/INSA - Rennes (2020) :
  *
- * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2019 - 2020)
+ * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2020)
  *
- * Spider 2.0 is a dataflow based runtime used to execute dynamic PiSDF
+ * Spider is a dataflow based runtime used to execute dynamic PiSDF
  * applications. The Preesm tool may be used to design PiSDF applications.
  *
  * This software is governed by the CeCILL  license under French law and
@@ -32,52 +32,52 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_NONEXECVERTEX_H
-#define SPIDER2_NONEXECVERTEX_H
+#ifndef SPIDER2_SRDAGDOTEXPORTER_H
+#define SPIDER2_SRDAGDOTEXPORTER_H
+
+#ifndef _NO_BUILD_GRAPH_EXPORTER
+#ifndef _NO_BUILD_LEGACY_RT
 
 /* === Include(s) === */
 
-#include <graphs/pisdf/Vertex.h>
+#include <common/Exporter.h>
+#include <containers/vector.h>
+#include <graphs/srdag/SRDAGGraph.h>
 
 namespace spider {
-
     namespace pisdf {
+
+        /* === Forward declaration(s) === */
+
+        struct PiSDFDOTExporterVisitor;
 
         /* === Class definition === */
 
-        class NonExecVertex : public Vertex {
+        class SRDAGDOTExporter final : public Exporter {
         public:
-            explicit NonExecVertex(VertexType type,
-                                   std::string name = "unnamed-non-execvertex",
-                                   size_t edgeINCount = 0,
-                                   size_t edgeOUTCount = 0) : Vertex(type,
-                                                                     std::move(name),
-                                                                     edgeINCount,
-                                                                     edgeOUTCount) { };
 
-            NonExecVertex(NonExecVertex &&) noexcept = default;
+            explicit SRDAGDOTExporter(srdag::Graph *graph) : Exporter(),
+                                                             graph_{ graph } { }
 
-            NonExecVertex &operator=(NonExecVertex &&) = default;
+            ~SRDAGDOTExporter() override = default;
 
-            ~NonExecVertex() override = default;
-
-            NonExecVertex(const NonExecVertex &) = delete;
-
-            NonExecVertex &operator=(const NonExecVertex &) = delete;
+            friend PiSDFDOTExporterVisitor;
 
             /* === Method(s) === */
 
-            inline void visit(Visitor *visitor) override { visitor->visit(this); };
-
-            /* === Getter(s) === */
-
             /**
-             * @brief Ensure that any vertex inheriting from NonExecVertex will not be able to override this method.
-             * @return false
+             * @brief Print the graph to default file path.
+             * @remark default path: ./pisdf-graph.dot
              */
-            inline bool executable() const final { return false; };
+            void print() const override;
+
+            void printFromFile(FILE *file) const override;
+
+        private:
+            srdag::Graph *graph_ = nullptr;
         };
     }
 }
-
-#endif //SPIDER2_NONEXECVERTEX_H
+#endif
+#endif
+#endif //SPIDER2_SRDAGDOTEXPORTER_H

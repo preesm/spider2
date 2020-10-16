@@ -1,10 +1,7 @@
-/**
- * Copyright or © or Copr. IETR/INSA - Rennes (2019 - 2020) :
+/*
+ * Copyright or © or Copr. IETR/INSA - Rennes (2020) :
  *
- * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2019 - 2020)
- *
- * Spider 2.0 is a dataflow based runtime used to execute dynamic PiSDF
- * applications. The Preesm tool may be used to design PiSDF applications.
+ * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2020)
  *
  * This software is governed by the CeCILL  license under French law and
  * abiding by the rules of distribution of free software.  You can  use,
@@ -32,32 +29,27 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_TRANSFORMATION_H
-#define SPIDER2_TRANSFORMATION_H
+#ifndef SPIDER2_SRDAG_HELPER_H
+#define SPIDER2_SRDAG_HELPER_H
 
-#ifndef _NO_BUILD_LEGACY_RT
+/* === Include(s) === */
 
-/* === Includes === */
+#include <common/Types.h>
+#include <memory/unique_ptr.h>
 
-#include <graphs-tools/transformation/srdag/SingleRateTransformer.h>
+/* === Function(s) prototype === */
 
 namespace spider {
     namespace srdag {
-
-        /* === Functions prototype === */
+        class Vertex;
 
         /**
-         * @brief Perform static single rate transformation for a given input job.
-         * @remark If one of the subgraph of the job is dynamic then it is automatically split into two graphs.
-         * @warning This function expect that dynamic graphs have been split using @refitem splitDynamicGraph before hand.
-         * @param job    TransfoJob containing information on the transformation to perform.
-         * @param srdag  Graph to append result of the transformation.
-         * @return a pair of @refitem JobStack, the first one containing future static jobs, second one containing
-         * jobs of dynamic graphs.
-         * @throws @refitem Spider::Exception if srdag is nullptr
+         * @brief Creates an array with parameters needed for the runtime exec of a vertex.
+         * @param vertex  Pointer to the vertex.
+         * @return array of int_least_64_t.
          */
-        std::pair<JobStack, JobStack> singleRateTransformation(TransfoJob &job, srdag::Graph *srdag);
+        spider::unique_ptr<i64> buildVertexRuntimeInputParameters(const srdag::Vertex *vertex);
     }
 }
-#endif
-#endif //SPIDER2_TRANSFORMATION_H
+
+#endif //SPIDER2_SRDAG_HELPER_H

@@ -43,33 +43,40 @@
 /* === Function(s) definition === */
 
 spider::pisdf::Vertex::Vertex(VertexType type, std::string name, size_t edgeINCount, size_t edgeOUTCount) :
-        inputParamVector_{ factory::vector<std::shared_ptr<Param>>(StackID::PISDF) },
-        refinementParamVector_{ factory::vector<std::shared_ptr<Param>>(StackID::PISDF) },
-        outputParamVector_{ factory::vector<std::shared_ptr<Param>>(StackID::PISDF) },
+        inputParamVector_{ factory::vector<u32>(StackID::PISDF) },
+        outputParamVector_{ factory::vector<u32>(StackID::PISDF) },
+        refinementParamVector_{ factory::vector<u32>(StackID::PISDF) },
         name_{ std::move(name) },
         nINEdges_{ static_cast<u32>(edgeINCount) },
         nOUTEdges_{ static_cast<u32>(edgeOUTCount) },
         subtype_{ type } {
-    inputEdgeVector_ = spider::make_n<Edge *, StackID::PISDF>(edgeINCount, nullptr);
-    outputEdgeVector_ = spider::make_n<Edge *, StackID::PISDF>(edgeOUTCount, nullptr);
+    inputEdgeArray_ = spider::make_n<Edge *, StackID::PISDF>(edgeINCount, nullptr);
+    outputEdgeArray_ = spider::make_n<Edge *, StackID::PISDF>(edgeOUTCount, nullptr);
+    rtInformation_ = spider::make_unique<RTInfo>(StackID::RUNTIME);
     checkTypeConsistency();
 }
 
 spider::pisdf::Vertex::~Vertex() noexcept {
-    deallocate(inputEdgeVector_);
-    deallocate(outputEdgeVector_);
+    deallocate(inputEdgeArray_);
+    deallocate(outputEdgeArray_);
 }
 
 void spider::pisdf::Vertex::connectInputEdge(Edge *edge, size_t pos) {
-    connectEdge(inputEdgeVector_, edge, pos);
+    if (pos >= nINEdges_) {
+        throwSpiderException("trying to connect edge out of bound.");
+    }
+    connectEdge(inputEdgeArray_, edge, pos);
 }
 
 void spider::pisdf::Vertex::connectOutputEdge(Edge *edge, size_t pos) {
-    connectEdge(outputEdgeVector_, edge, pos);
+    if (pos >= nOUTEdges_) {
+        throwSpiderException("trying to connect edge out of bound.");
+    }
+    connectEdge(outputEdgeArray_, edge, pos);
 }
 
 spider::pisdf::Edge *spider::pisdf::Vertex::disconnectInputEdge(size_t ix) {
-    auto *edge = disconnectEdge(inputEdgeVector_, ix);
+    auto *edge = disconnectEdge(inputEdgeArray_, ix);
     if (edge) {
         /* == Reset the Edge == */
         edge->setSink(nullptr, SIZE_MAX, Expression());
@@ -78,7 +85,7 @@ spider::pisdf::Edge *spider::pisdf::Vertex::disconnectInputEdge(size_t ix) {
 }
 
 spider::pisdf::Edge *spider::pisdf::Vertex::disconnectOutputEdge(size_t ix) {
-    auto *edge = disconnectEdge(outputEdgeVector_, ix);
+    auto *edge = disconnectEdge(outputEdgeArray_, ix);
     if (edge) {
         /* == Reset the Edge == */
         edge->setSource(nullptr, SIZE_MAX, Expression());
@@ -91,31 +98,23 @@ void spider::pisdf::Vertex::visit(Visitor *visitor) {
     // LCOV_IGNORE: this line can not be reached because above line throw exception
 }
 
-void spider::pisdf::Vertex::setAsReference(Vertex *clone) {
-    clone->reference_ = this;
-    clone->rtInformation_ = this->rtInformation_;
-    clone->inputParamVector_.reserve(this->inputParamVector_.size());
-    clone->outputParamVector_.reserve(this->outputParamVector_.size());
-    clone->refinementParamVector_.reserve(this->refinementParamVector_.size());
-}
-
-void spider::pisdf::Vertex::addInputParameter(std::shared_ptr<Param> param) {
+void spider::pisdf::Vertex::addInputParameter(const std::shared_ptr<Param> &param) {
     if (subtype_ != VertexType::GRAPH) {
-        inputParamVector_.emplace_back(std::move(param));
+        inputParamVector_.emplace_back(param->ix());
     }
 }
 
-void spider::pisdf::Vertex::addOutputParameter(std::shared_ptr<Param> param) {
+void spider::pisdf::Vertex::addOutputParameter(const std::shared_ptr<Param> &param) {
     if (subtype() != VertexType::CONFIG) {
         throwSpiderException("Failed to set output parameter [%s] of vertex [%s]: not a config actor.",
                              param->name().c_str(), name().c_str());
     }
-    outputParamVector_.emplace_back(std::move(param));
+    outputParamVector_.emplace_back(param->ix());
 }
 
-void spider::pisdf::Vertex::addRefinementParameter(std::shared_ptr<Param> param) {
+void spider::pisdf::Vertex::addRefinementParameter(const std::shared_ptr<Param> &param) {
     if (subtype_ != VertexType::GRAPH) {
-        refinementParamVector_.emplace_back(std::move(param));
+        refinementParamVector_.emplace_back(param->ix());
     }
 }
 
@@ -141,13 +140,6 @@ void spider::pisdf::Vertex::setRepetitionValue(uint32_t value) {
             repetitionValue_ = value;
             break;
     }
-}
-
-void spider::pisdf::Vertex::setInstanceValue(size_t value) {
-    if (value >= reference_->repetitionValue()) {
-        throwSpiderException("invalid instance value for vertex [%s].", name_.c_str());
-    }
-    instanceValue_ = value;
 }
 
 void spider::pisdf::Vertex::setGraph(spider::pisdf::Graph *graph) {

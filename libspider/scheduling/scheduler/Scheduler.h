@@ -43,7 +43,7 @@
 
 namespace spider {
 
-    namespace pisdf {
+    namespace srdag {
         class Graph;
     }
 
@@ -67,7 +67,7 @@ namespace spider {
              * @brief Update internal state of the scheduler (mostly for dynamic applications)
              * @param graph  Graph to use to perform the update.
              */
-            virtual void schedule(const pisdf::Graph *graph) = 0;
+            virtual void schedule(const srdag::Graph *graph) = 0;
 
             /**
              * @brief Update internal state of the scheduler (mostly for dynamic applications)

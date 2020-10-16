@@ -43,7 +43,7 @@
 
 namespace spider {
 
-    namespace pisdf {
+    namespace srdag {
         class Vertex;
     }
 
@@ -54,7 +54,7 @@ namespace spider {
          * @param vertex  Pointer to the vertex.
          * @return true if optimized vertex, false else.
          */
-        bool optimizeUnitaryVertex(pisdf::Vertex *vertex);
+        bool optimizeUnitaryVertex(srdag::Vertex *vertex);
     }
 }
 #endif

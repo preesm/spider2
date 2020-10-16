@@ -75,6 +75,10 @@ namespace spider {
 
     class Monitor;
 
+    namespace srdag {
+        class Graph;
+    }
+
     namespace sched {
         class Schedule;
     }
@@ -127,6 +131,8 @@ namespace spider {
         void useExecutionTraces(const sched::Schedule *schedule,
                                 time::time_point offset = time::min(),
                                 const std::string &path = "./exec-gantt");
+
+        void exportSRDAG(srdag::Graph *graph, const std::string &path);
     };
 }
 #endif //SPIDER2_RUNTIME_H

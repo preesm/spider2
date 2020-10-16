@@ -43,7 +43,7 @@
 
 namespace spider {
 
-    namespace pisdf {
+    namespace srdag {
         class Vertex;
     }
 
@@ -53,7 +53,7 @@ namespace spider {
 
         class VertexTask final : public Task {
         public:
-            explicit VertexTask(pisdf::Vertex *vertex);
+            explicit VertexTask(srdag::Vertex *vertex);
 
             ~VertexTask() noexcept override = default;
 
@@ -85,14 +85,14 @@ namespace spider {
 
             /* === Getter(s) === */
 
-            inline pisdf::Vertex *vertex() const { return vertex_; }
+            inline srdag::Vertex *vertex() const { return vertex_; }
 
             DependencyInfo getDependencyInfo(size_t ix) const override;
 
             /* === Setter(s) === */
 
         private:
-            pisdf::Vertex *vertex_;
+            srdag::Vertex *vertex_;
         };
     }
 }

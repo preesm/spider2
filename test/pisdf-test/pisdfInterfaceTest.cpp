@@ -44,7 +44,7 @@
 #include <common/Exception.h>
 #include <memory/memory.h>
 #include <graphs/pisdf/Graph.h>
-#include <graphs/pisdf/ExecVertex.h>
+#include <graphs/pisdf/Vertex.h>
 #include <graphs-tools/helper/visitors/PiSDFDefaultVisitor.h>
 #include <api/spider.h>
 
@@ -92,24 +92,25 @@ struct InterfaceVisitorTest final : public spider::pisdf::DefaultVisitor {
 
 TEST_F(pisdfInterfaceTest, usageTest) {
     auto *graph = spider::make<spider::pisdf::Graph, StackID::PISDF>("graph", 1, 2, 0, 1, 1);
-    auto *vertex = spider::make<spider::pisdf::ExecVertex, StackID::PISDF>("vertex", 1, 1);
+    auto *vertex = spider::make<spider::pisdf::Vertex, StackID::PISDF>(spider::pisdf::VertexType::NORMAL, "vertex", 1,
+                                                                       1);
     graph->addVertex(vertex);
-    graph->addEdge(spider::make<spider::pisdf::Edge, StackID::PISDF>(graph->inputInterface(0), 0, spider::Expression(1),
-                                                                     vertex, 0, spider::Expression(1)));
-    graph->addEdge(spider::make<spider::pisdf::Edge, StackID::PISDF>(vertex, 0, spider::Expression(1),
-                                                                     graph->outputInterface(0), 0,
-                                                                     spider::Expression(1)));
     auto *input = graph->inputInterface(0);
     auto *output = graph->outputInterface(0);
+    graph->addEdge(spider::make<spider::pisdf::Edge, StackID::PISDF>(input, 0, spider::Expression(1),
+                                                                     vertex, 0, spider::Expression(1)));
+    graph->addEdge(spider::make<spider::pisdf::Edge, StackID::PISDF>(vertex, 0, spider::Expression(1),
+                                                                     output, 0,
+                                                                     spider::Expression(1)));
     ASSERT_EQ(input->opposite(), vertex) << "opposite of input interface failed.";
     ASSERT_EQ(output->opposite(), vertex) << "opposite of output interface failed.";
     ASSERT_EQ(input->subtype(), spider::pisdf::VertexType::INPUT) << "input interface subtype failed";
     ASSERT_EQ(output->subtype(), spider::pisdf::VertexType::OUTPUT) << "output interface subtype failed";
     auto *top = new spider::pisdf::Graph("top", 3, 2, 0);
     top->addVertex(graph);
-    auto *v1 = spider::make<spider::pisdf::ExecVertex, StackID::PISDF>("v1", 0, 1);
+    auto *v1 = spider::make<spider::pisdf::Vertex, StackID::PISDF>(spider::pisdf::VertexType::NORMAL, "v1", 0, 1);
     top->addVertex(v1);
-    auto *v2 = spider::make<spider::pisdf::ExecVertex, StackID::PISDF>("v2", 1, 0);
+    auto *v2 = spider::make<spider::pisdf::Vertex, StackID::PISDF>(spider::pisdf::VertexType::NORMAL, "v2", 1, 0);
     top->addVertex(v2);
     auto *e0 = spider::make<spider::pisdf::Edge, StackID::PISDF>(v1, 0, spider::Expression(1), graph, 0,
                                                                  spider::Expression(1));

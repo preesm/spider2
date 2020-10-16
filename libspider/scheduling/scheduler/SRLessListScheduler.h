@@ -46,8 +46,6 @@ namespace spider {
     }
 
     namespace pisdf {
-        class DependencyInfo;
-
         struct DependencyIterator;
     }
 
@@ -93,7 +91,7 @@ namespace spider {
 
             /* == Private method(s) === */
 
-            inline void schedule(const pisdf::Graph *) override { }
+            inline void schedule(const srdag::Graph *) override { }
 
             /**
              * @brief Reset unscheduled task from previous schedule iteration.

@@ -50,17 +50,19 @@ namespace spider {
 
             void visit(Graph *) override;
 
-            void visit(ExecVertex *) override;
+            void visit(Vertex *) override;
 
             void visit(ExternInterface *) override;
 
             void visit(DelayVertex *vertex) override;
 
-            void visit(NonExecVertex *) override;
-
             void visit(Interface *) override;
 
             void visit(Param *) override;
+
+            void visit(srdag::Graph *) override;
+
+            void visit(srdag::Vertex *) override;
         };
     }
 }

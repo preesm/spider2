@@ -1,9 +1,9 @@
-/**
- * Copyright or © or Copr. IETR/INSA - Rennes (2019 - 2020) :
+/*
+ * Copyright or © or Copr. IETR/INSA - Rennes (2020) :
  *
- * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2019 - 2020)
+ * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2020)
  *
- * Spider 2.0 is a dataflow based runtime used to execute dynamic PiSDF
+ * Spider is a dataflow based runtime used to execute dynamic PiSDF
  * applications. The Preesm tool may be used to design PiSDF applications.
  *
  * This software is governed by the CeCILL  license under French law and
@@ -32,32 +32,30 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_TRANSFORMATION_H
-#define SPIDER2_TRANSFORMATION_H
+
+#ifndef _NO_BUILD_GRAPH_EXPORTER
 
 #ifndef _NO_BUILD_LEGACY_RT
 
-/* === Includes === */
+/* === Include(s) === */
 
-#include <graphs-tools/transformation/srdag/SingleRateTransformer.h>
+#include <graphs-tools/exporter/SRDAGDOTExporter.h>
+#include <graphs-tools/exporter/PiSDFDOTExporterVisitor.h>
 
-namespace spider {
-    namespace srdag {
+/* === Static variable(s) === */
 
-        /* === Functions prototype === */
+/* === Static function(s) === */
 
-        /**
-         * @brief Perform static single rate transformation for a given input job.
-         * @remark If one of the subgraph of the job is dynamic then it is automatically split into two graphs.
-         * @warning This function expect that dynamic graphs have been split using @refitem splitDynamicGraph before hand.
-         * @param job    TransfoJob containing information on the transformation to perform.
-         * @param srdag  Graph to append result of the transformation.
-         * @return a pair of @refitem JobStack, the first one containing future static jobs, second one containing
-         * jobs of dynamic graphs.
-         * @throws @refitem Spider::Exception if srdag is nullptr
-         */
-        std::pair<JobStack, JobStack> singleRateTransformation(TransfoJob &job, srdag::Graph *srdag);
-    }
+/* === Method(s) implementation === */
+
+void spider::pisdf::SRDAGDOTExporter::print() const {
+    Exporter::printFromPath("./pisdf-graph.dot");
 }
+
+void spider::pisdf::SRDAGDOTExporter::printFromFile(FILE *file) const {
+    PiSDFDOTExporterVisitor visitor{ file, "\t" };
+    visitor.visit(graph_);
+}
+
 #endif
-#endif //SPIDER2_TRANSFORMATION_H
+#endif
