@@ -209,7 +209,7 @@ void spider::sched::SRLessListScheduler::sortVertices() {
                   if (!diff) {
                       const auto *vertexA = A.vertex_;
                       const auto *vertexB = B.vertex_;
-                      if (vertexB->reference() == vertexA->reference()) {
+                      if (vertexB == vertexA) {
                           auto firingA = A.firing_;
                           auto firingB = B.firing_;
                           const auto *handlerA = A.handler_;

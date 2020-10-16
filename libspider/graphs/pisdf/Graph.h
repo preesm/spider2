@@ -50,7 +50,7 @@ namespace spider {
 
         /* === Class definition === */
 
-        class Graph : public Vertex {
+        class Graph final : public Vertex {
         public:
 
             explicit Graph(std::string name = "unnamed-graph",
@@ -128,12 +128,6 @@ namespace spider {
              * Be aware that in the latter case the edge has already been removed from the graph.
              */
             void moveEdge(Edge *edge, Graph *graph);
-
-            /**
-             * @brief Override automatic property of Graph.
-             * @param value Value to set.
-             */
-            void overrideDynamicProperty(bool value);
 
             /**
              * @brief Adds an input interface to the graph.

@@ -79,7 +79,7 @@ namespace spider {
              * @return pointer to the vertex runtime information.
              */
             inline RTInfo *makeRTInformation() {
-                if (!rtInformation_ && this == reference()) {
+                if (!rtInformation_) {
                     rtInformation_ = spider::make_shared<RTInfo>(StackID::RUNTIME);
                 }
                 return rtInformation_.get();

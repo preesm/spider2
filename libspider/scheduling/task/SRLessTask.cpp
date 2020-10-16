@@ -184,7 +184,7 @@ spider::sched::AllocationRule spider::sched::SRLessTask::allocationRuleForOutput
 
 spider::JobMessage spider::sched::SRLessTask::createJobMessage() const {
     auto message = Task::createJobMessage();
-    message.nParamsOut_ = static_cast<u32>(vertex_->reference()->outputParamCount());
+    message.nParamsOut_ = static_cast<u32>(vertex_->outputParamCount());
     message.kernelIx_ = static_cast<u32>(vertex_->runtimeInformation()->kernelIx());
     /* == Set the input parameters (if any) == */
     message.inputParams_ = pisdf::buildVertexRuntimeInputParameters(vertex_, handler_->getParams());
