@@ -54,6 +54,7 @@ spider::sched::VertexTask::VertexTask(srdag::Vertex *vertex) : Task(), vertex_{ 
     if (!vertex) {
         throwSpiderException("nullptr vertex.");
     }
+    fifos_ = spider::make_shared<JobFifos, StackID::SCHEDULE>(vertex->inputEdgeCount(), vertex->outputEdgeCount());
     dependencies_ = spider::make_unique(allocate<Task *, StackID::SCHEDULE>(vertex->inputEdgeCount()));
     std::fill(dependencies_.get(), dependencies_.get() + vertex->inputEdgeCount(), nullptr);
 }
@@ -150,15 +151,6 @@ spider::JobMessage spider::sched::VertexTask::createJobMessage() const {
     message.inputParams_ = srdag::buildVertexRuntimeInputParameters(vertex_);
     message.fifos_ = spider::make_shared<JobFifos, StackID::SCHEDULE>(vertex_->inputEdgeCount(),
                                                                       vertex_->outputEdgeCount());
-    for (const auto *edge: vertex_->inputEdges()) {
-        auto fifo = edge->getAlloc();
-        fifo.count_ = 0;
-        fifo.attribute_ = FifoAttribute::RW_OWN;
-        message.fifos_->setInputFifo(edge->sinkPortIx(), fifo);
-    }
-    for (const auto *edge: vertex_->outputEdges()) {
-        message.fifos_->setOutputFifo(edge->sourcePortIx(), edge->getAlloc());
-    }
     return message;
 }
 

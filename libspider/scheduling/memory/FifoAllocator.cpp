@@ -76,25 +76,50 @@ void spider::sched::FifoAllocator::allocate(sched::Task *task) {
     if (!task) {
         return;
     }
-    auto *vertexTask = static_cast<sched::VertexTask *>(task);
-    auto *vertex = vertexTask->vertex();
+    /* == Allocating input FIFOs == */
+    size_t ix{ 0u };
+    auto inputFifos = task->fifos().inputFifos();
+    for (auto &fifo : inputFifos) {
+        const auto rule = task->allocationRuleForInputFifo(ix);
+        const auto *prevTask = task->previousTask(ix);
+        if (prevTask) {
+            if (rule.type_ == AllocType::SAME_IN) {
+                fifo = prevTask->fifos().outputFifo(rule.fifoIx_);
+                if (fifo.attribute_ != FifoAttribute::RW_EXT) {
+                    fifo.attribute_ = rule.attribute_;
+                    fifo.count_ = 0u;
+                }
+            } else {
+                throwSpiderException("invalid AllocAttribute for input FIFO.");
+            }
+        } else {
+            fifo = Fifo{ };
+        }
+        ix++;
+    }
+
     /* == Allocating output FIFOs == */
-    for (auto *edge : vertex->outputEdges()) {
-        const auto rule = task->allocationRuleForOutputFifo(edge->sourcePortIx());
-        Fifo fifo{ };
+    ix = 0u;
+    auto outputFifos = task->fifos().outputFifos();
+    for (auto &fifo : outputFifos) {
+        const auto rule = task->allocationRuleForOutputFifo(ix);
         switch (rule.type_) {
             case NEW:
                 fifo.virtualAddress_ = virtualMemoryAddress_;
-                fifo.offset_ = 0u;
                 virtualMemoryAddress_ += rule.size_;
+                fifo.offset_ = 0u;
                 break;
-            case SAME_IN:
-                fifo = vertex->inputEdge(rule.fifoIx_)->getAlloc();
-                fifo.offset_ += rule.offset_;
+            case SAME_IN: {
+                auto &inputFifo = inputFifos[rule.fifoIx_];
+                fifo.virtualAddress_ = inputFifo.virtualAddress_;
+                fifo.offset_ = inputFifo.offset_ + rule.offset_;
+            }
                 break;
-            case SAME_OUT:
-                fifo = vertex->outputEdge(rule.fifoIx_)->getAlloc();
-                fifo.offset_ += rule.offset_;
+            case SAME_OUT: {
+                auto &outputFifo = outputFifos[rule.fifoIx_];
+                fifo.virtualAddress_ = outputFifo.virtualAddress_;
+                fifo.offset_ = outputFifo.offset_ + rule.offset_;
+            }
                 break;
             case EXT:
                 fifo.virtualAddress_ = rule.fifoIx_;
@@ -104,7 +129,7 @@ void spider::sched::FifoAllocator::allocate(sched::Task *task) {
         }
         fifo.size_ = rule.size_;
         fifo.attribute_ = rule.attribute_;
-        fifo.count_ = rule.count_;
-        edge->setAlloc(fifo);
+        fifo.count_ = (fifo.size_ != 0u);
+        ix++;
     }
 }

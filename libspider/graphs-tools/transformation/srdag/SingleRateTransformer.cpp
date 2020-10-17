@@ -437,7 +437,7 @@ spider::srdag::SingleRateTransformer::buildSinkLinkerVector(const pisdf::Edge *e
         /* == 2.0 Check if we are in the trivial case of no interface == */
         auto *output = sink->convertTo<pisdf::Interface>();
         auto *srEdge = job_.srdagInstance_->outputEdge(sink->ix());
-        if (isInterfaceTransparent(job_, output) && srEdge->sink()->scheduleTaskIx() == SIZE_MAX) {
+        if (isInterfaceTransparent(job_, output)) {
             sinkVector.emplace_back(srEdge->sinkRateValue(), srEdge->sinkPortIx(), srEdge->sink());
             srdag_->removeEdge(srEdge);
         } else {
@@ -484,7 +484,7 @@ spider::srdag::SingleRateTransformer::buildSourceLinkerVector(const pisdf::Edge 
         /* == 1.0 Check if we are in the trivial case of no interface == */
         auto *input = source->convertTo<pisdf::Interface>();
         auto *srEdge = job_.srdagInstance_->inputEdge(source->ix());
-        if (isInterfaceTransparent(job_, input) && srEdge->source()->scheduleTaskIx() == SIZE_MAX) {
+        if (isInterfaceTransparent(job_, input)) {
             sourceVector.emplace_back(srEdge->sourceRateValue(), srEdge->sourcePortIx(), srEdge->source());
             srdag_->removeEdge(srEdge);
         } else {
