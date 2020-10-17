@@ -117,11 +117,7 @@ namespace spider {
              */
             static void updateParams(TransfoJob &job);
 
-            /**
-             * @brief Insert @refitem RepeatVertex and @refitem TailVertex for every input and output interfaces of
-             *        a given subgraph instance, respectively.
-             */
-            void replaceInterfaces();
+            static bool isInterfaceTransparent(const TransfoJob &job, const pisdf::Interface *interface);
 
             /**
              * @brief Create the future @refitem TransfoJob from the subgraphs of current job_.reference_.
@@ -156,7 +152,7 @@ namespace spider {
              * @param srcVector   Vector of @refitem TransfoVertex corresponding to the sources of the edge of the job.
              * @param snkVector   Vector of @refitem TransfoVertex corresponding to the sinks of the edge of the job.
              */
-            void computeDependencies(const pisdf::Edge *edge,
+            static void computeDependencies(const pisdf::Edge *edge,
                                      spider::vector<TransfoVertex> &srcVector,
                                      spider::vector<TransfoVertex> &snkVector);
 

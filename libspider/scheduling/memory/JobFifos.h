@@ -32,8 +32,8 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_ALLOCATEDFIFOS_H
-#define SPIDER2_ALLOCATEDFIFOS_H
+#ifndef SPIDER2_JOBFIFOS_H
+#define SPIDER2_JOBFIFOS_H
 
 /* === Include(s) === */
 
@@ -45,19 +45,19 @@ namespace spider {
 
     /* === Class definition === */
 
-    class AllocatedFifos {
+    class JobFifos {
     public:
-        AllocatedFifos(size_t inputFifoCount, size_t outputFifoCount);
+        JobFifos(u32 inputFifoCount, u32 outputFifoCount);
 
-        ~AllocatedFifos() = default;
+        ~JobFifos() = default;
 
-        AllocatedFifos(AllocatedFifos &&) = default;
+        JobFifos(JobFifos &&) = default;
 
-        AllocatedFifos &operator=(AllocatedFifos &&) = default;
+        JobFifos &operator=(JobFifos &&) = default;
 
-        AllocatedFifos(const AllocatedFifos &) = delete;
+        JobFifos(const JobFifos &) = delete;
 
-        AllocatedFifos &operator=(const AllocatedFifos &) = delete;
+        JobFifos &operator=(const JobFifos &) = delete;
 
         /* === Method(s) === */
 
@@ -120,10 +120,10 @@ namespace spider {
         void setOutputFifo(size_t ix, Fifo fifo);
 
     private:
-        unique_ptr<Fifo> inputFifos_;
-        unique_ptr<Fifo> outputFifos_;
-        size_t inputFifoCount_ = 0;
-        size_t outputFifoCount_ = 0;
+        spider::unique_ptr<Fifo> inputFifos_;
+        spider::unique_ptr<Fifo> outputFifos_;
+        u32 inputFifoCount_ = 0;
+        u32 outputFifoCount_ = 0;
     };
 }
-#endif //SPIDER2_ALLOCATEDFIFOS_H
+#endif //SPIDER2_JOBFIFOS_H

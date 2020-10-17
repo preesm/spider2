@@ -47,7 +47,7 @@
 /* === Method(s) implementation === */
 
 spider::sched::SyncTask::SyncTask(SyncType type) : Task(), type_{ type } {
-    fifos_ = spider::make_shared<AllocatedFifos, StackID::SCHEDULE>(type == SyncType::SEND, 1U);
+    fifos_ = spider::make_shared<JobFifos, StackID::SCHEDULE>(type == SyncType::SEND, 1U);
     dependencies_ = spider::make_unique(allocate<Task *, StackID::SCHEDULE>(1u));
     dependencies_.get()[0u] = nullptr;
 }

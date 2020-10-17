@@ -40,7 +40,7 @@
 /* === Include(s) === */
 
 #include <common/Types.h>
-#include <string>
+#include <runtime/common/Fifo.h>
 
 namespace spider {
     namespace srdag {
@@ -109,6 +109,8 @@ namespace spider {
              */
             inline srdag::Vertex *sink() const { return sink_; }
 
+            inline Fifo getAlloc() const { return allocatedFifo_; }
+
             /* === Setter(s) === */
 
             /**
@@ -138,7 +140,10 @@ namespace spider {
              */
             void setSink(srdag::Vertex *vertex, size_t ix, i64 rate);
 
+            inline void setAlloc(Fifo alloc) { allocatedFifo_ = alloc; }
+
         private:
+            Fifo allocatedFifo_;
             srdag::Vertex *source_ = nullptr;
             srdag::Vertex *sink_ = nullptr;
             i64 srcRate_ = 0;

@@ -61,9 +61,9 @@ spider::sched::SRLessTask::SRLessTask(srless::GraphFiring *handler,
                                                              firing_{ firing },
                                                              dependenciesCount_{ depCount } {
     const auto inputFifoCount = depCount + mergedFifoCount;
-    fifos_ = spider::make_shared<AllocatedFifos, StackID::SCHEDULE>(inputFifoCount, vertex->outputEdgeCount());
+    fifos_ = spider::make_shared<JobFifos, StackID::SCHEDULE>(inputFifoCount, vertex->outputEdgeCount());
     dependencies_ = spider::make_unique(allocate<Task *, StackID::SCHEDULE>(depCount));
-    std::fill(dependencies_.get(), std::next(dependencies_.get(), static_cast<long>(depCount)), nullptr);
+    std::fill(dependencies_.get(), dependencies_.get() + depCount, nullptr);
 }
 
 void spider::sched::SRLessTask::updateTaskExecutionDependencies(const Schedule *schedule) {

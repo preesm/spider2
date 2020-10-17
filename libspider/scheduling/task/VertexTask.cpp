@@ -54,11 +54,8 @@ spider::sched::VertexTask::VertexTask(srdag::Vertex *vertex) : Task(), vertex_{ 
     if (!vertex) {
         throwSpiderException("nullptr vertex.");
     }
-    fifos_ = spider::make_shared<AllocatedFifos, StackID::SCHEDULE>(vertex->inputEdgeCount(),
-                                                                    vertex->outputEdgeCount());
     dependencies_ = spider::make_unique(allocate<Task *, StackID::SCHEDULE>(vertex->inputEdgeCount()));
-    std::fill(dependencies_.get(),
-              std::next(dependencies_.get(), static_cast<long>(vertex->inputEdgeCount())), nullptr);
+    std::fill(dependencies_.get(), dependencies_.get() + vertex->inputEdgeCount(), nullptr);
 }
 
 void spider::sched::VertexTask::updateTaskExecutionDependencies(const spider::sched::Schedule *schedule) {
@@ -89,7 +86,7 @@ spider::sched::AllocationRule spider::sched::VertexTask::allocationRuleForOutput
         throwSpiderException("index out of bound.");
     }
 #endif
-    const auto *edge = vertex_->outputEdge(ix);
+    auto *edge = vertex_->outputEdge(ix);
     const auto rate = static_cast<u32>(edge->sourceRateValue());
     const auto count = rate ? 1u : 0u;
     switch (vertex_->subtype()) {
@@ -151,6 +148,17 @@ spider::JobMessage spider::sched::VertexTask::createJobMessage() const {
     message.kernelIx_ = static_cast<u32>(vertex_->runtimeInformation()->kernelIx());
     /* == Set the input parameters (if any) == */
     message.inputParams_ = srdag::buildVertexRuntimeInputParameters(vertex_);
+    message.fifos_ = spider::make_shared<JobFifos, StackID::SCHEDULE>(vertex_->inputEdgeCount(),
+                                                                      vertex_->outputEdgeCount());
+    for (const auto *edge: vertex_->inputEdges()) {
+        auto fifo = edge->getAlloc();
+        fifo.count_ = 0;
+        fifo.attribute_ = FifoAttribute::RW_OWN;
+        message.fifos_->setInputFifo(edge->sinkPortIx(), fifo);
+    }
+    for (const auto *edge: vertex_->outputEdges()) {
+        message.fifos_->setOutputFifo(edge->sourcePortIx(), edge->getAlloc());
+    }
     return message;
 }
 

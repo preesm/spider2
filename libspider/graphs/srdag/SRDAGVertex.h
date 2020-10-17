@@ -343,7 +343,7 @@ namespace spider {
              * @param ix     Index of the edge to disconnect.
              * @return pointer to the disconnected edge, nullptr else.
              */
-            srdag::Edge *disconnectEdge(srdag::Edge **edges, size_t ix);
+            static srdag::Edge *disconnectEdge(srdag::Edge **edges, size_t ix);
 
             /**
              * @brief Connect an edge in the given edge vector (input or output).
@@ -352,7 +352,7 @@ namespace spider {
              * @param ix     Index of the edge to connect.
              * @throw spider::Exception if edge already exists in the vector at given index.
              */
-            void connectEdge(srdag::Edge **edges, Edge *edge, size_t ix);
+            static void connectEdge(srdag::Edge **edges, Edge *edge, size_t ix);
         };
 
     }

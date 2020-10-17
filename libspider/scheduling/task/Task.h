@@ -40,7 +40,7 @@
 #include <memory/memory.h>
 #include <common/Types.h>
 #include <containers/array.h>
-#include <scheduling/memory/AllocatedFifos.h>
+#include <scheduling/memory/JobFifos.h>
 #include <scheduling/memory/AllocationRule.h>
 #include <runtime/message/JobMessage.h>
 
@@ -100,7 +100,7 @@ namespace spider {
 
             /* === Getter(s) === */
 
-            inline AllocatedFifos &fifos() const {
+            inline JobFifos &fifos() const {
 #ifndef NDEBUG
                 if (!fifos_) {
                     throwSpiderException("Nullptr TaskFifos.");
@@ -317,7 +317,7 @@ namespace spider {
         protected:
             spider::unique_ptr<Task *> dependencies_;       /*!< Dependencies of the task */
             spider::unique_ptr<bool> notifications_;        /*!< Notification flags of the task */
-            std::shared_ptr<AllocatedFifos> fifos_;         /*!< Fifo(s) attached to the task */
+            std::shared_ptr<JobFifos> fifos_;         /*!< Fifo(s) attached to the task */
             const PE *mappedPE_{ nullptr };                 /*!< Mapping PE of the task */
             u64 startTime_{ UINT64_MAX };                   /*!< Mapping start time of the task */
             u64 endTime_{ UINT64_MAX };                     /*!< Mapping end time of the task */
