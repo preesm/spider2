@@ -51,6 +51,8 @@
 
 extern bool spider2StopRunning;
 
+constexpr auto LOOP_COUNT = 5U;
+
 /* === Function(s) definition === */
 
 class runtimeAppTest : public ::testing::Test {
@@ -84,7 +86,49 @@ TEST_F(runtimeAppTest, TestStabilization) {
             spider::SchedulingPolicy::LIST,
             spider::MappingPolicy::BEST_FIT,
             spider::FifoAllocatorType::DEFAULT,
-            10U,
+            LOOP_COUNT,
+    });
+    ASSERT_NO_THROW(spider::run(context));
+    spider::destroyRuntimeContext(context);
+}
+
+TEST_F(runtimeAppTest, TestStabilizationJIT) {
+    auto context = spider::createRuntimeContext(graph_, spider::RuntimeConfig{
+            spider::RunMode::LOOP,
+            spider::RuntimeType::SRDAG_BASED,
+            spider::ExecutionPolicy::JIT,
+            spider::SchedulingPolicy::LIST,
+            spider::MappingPolicy::BEST_FIT,
+            spider::FifoAllocatorType::DEFAULT,
+            LOOP_COUNT,
+    });
+    ASSERT_NO_THROW(spider::run(context));
+    spider::destroyRuntimeContext(context);
+}
+
+TEST_F(runtimeAppTest, TestStabilizationSRLess) {
+    auto context = spider::createRuntimeContext(graph_, spider::RuntimeConfig{
+            spider::RunMode::LOOP,
+            spider::RuntimeType::SRDAG_LESS,
+            spider::ExecutionPolicy::DELAYED,
+            spider::SchedulingPolicy::LIST,
+            spider::MappingPolicy::BEST_FIT,
+            spider::FifoAllocatorType::DEFAULT,
+            LOOP_COUNT,
+    });
+    ASSERT_NO_THROW(spider::run(context));
+    spider::destroyRuntimeContext(context);
+}
+
+TEST_F(runtimeAppTest, TestStabilizationSRLessJIT) {
+    auto context = spider::createRuntimeContext(graph_, spider::RuntimeConfig{
+            spider::RunMode::LOOP,
+            spider::RuntimeType::SRDAG_LESS,
+            spider::ExecutionPolicy::JIT,
+            spider::SchedulingPolicy::LIST,
+            spider::MappingPolicy::BEST_FIT,
+            spider::FifoAllocatorType::DEFAULT,
+            LOOP_COUNT,
     });
     ASSERT_NO_THROW(spider::run(context));
     spider::destroyRuntimeContext(context);
@@ -98,7 +142,7 @@ TEST_F(runtimeAppTest, TestStabilizationNoSync) {
             spider::SchedulingPolicy::LIST,
             spider::MappingPolicy::BEST_FIT,
             spider::FifoAllocatorType::DEFAULT_NOSYNC,
-            10U,
+            LOOP_COUNT,
     });
     ASSERT_NO_THROW(spider::run(context));
     spider::destroyRuntimeContext(context);

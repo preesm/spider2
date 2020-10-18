@@ -96,10 +96,11 @@ spider::srdag::SingleRateTransformer::SingleRateTransformer(TransfoJob &job, srd
         ref2Clone_{ factory::vector<size_t>(StackID::TRANSFO) },
         job_{ job },
         srdag_{ srdag } {
-
+    if (job.reference_->graph() && !job.srdagInstance_) {
+        throwNullptrException();
+    }
     /* == 0. Set dynamic dependent parameter values == */
     updateParams(job_);
-
     /* == 1. Compute the repetition vector == */
     const auto *graph = job.reference_;
     if (job_.firingValue_ == 0) {
