@@ -42,10 +42,13 @@
 #include <archi/MemoryInterface.h>
 #include <runtime/message/Notification.h>
 #include <api/archi-api.h>
+
+#ifndef _NO_BUILD_LEGACY_RT
 #include <scheduling/task/VertexTask.h>
 #include <graphs/srdag/SRDAGGraph.h>
 #include <graphs/srdag/SRDAGEdge.h>
 #include <graphs/srdag/SRDAGVertex.h>
+#endif
 
 /* === Function(s) definition === */
 
@@ -81,6 +84,7 @@ void spider::sched::FifoAllocator::allocate(VertexTask *task) {
     if (!task) {
         return;
     }
+#ifndef _NO_BUILD_LEGACY_RT
     /* == Allocating output FIFOs == */
     size_t ix{ 0u };
     const auto *vertex = task->vertex();
@@ -114,4 +118,5 @@ void spider::sched::FifoAllocator::allocate(VertexTask *task) {
         fifo.count_ = rule.count_;
         ix++;
     }
+#endif
 }

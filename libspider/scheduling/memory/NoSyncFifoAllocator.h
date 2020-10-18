@@ -34,6 +34,7 @@
  */
 #ifndef SPIDER2_NOSYNCFIFOALLOCATOR_H
 #define SPIDER2_NOSYNCFIFOALLOCATOR_H
+#ifndef _NO_BUILD_LEGACY_RT
 
 /* === Include(s) === */
 
@@ -74,5 +75,5 @@ namespace spider {
         };
     }
 }
-
+#endif
 #endif //SPIDER2_NOSYNCFIFOALLOCATOR_H

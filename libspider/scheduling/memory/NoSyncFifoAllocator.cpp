@@ -32,6 +32,7 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
+#ifndef _NO_BUILD_LEGACY_RT
 
 /* === Include(s) === */
 
@@ -179,3 +180,4 @@ bool spider::sched::NoSyncFifoAllocator::replaceInputTask(sched::Task *task,
     }
     return false;
 }
+#endif

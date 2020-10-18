@@ -41,6 +41,7 @@
 
 #include <scheduling/scheduler/ListScheduler.h>
 #include <scheduling/scheduler/GreedyScheduler.h>
+#include <scheduling/memory/NoSyncFifoAllocator.h>
 
 #endif
 
@@ -49,7 +50,6 @@
 #include <scheduling/mapper/BestFitMapper.h>
 #include <scheduling/memory/FifoAllocator.h>
 #include <scheduling/memory/SRLessFifoAllocator.h>
-#include <scheduling/memory/NoSyncFifoAllocator.h>
 #include <scheduling/task/Task.h>
 #include <api/archi-api.h>
 #include <archi/Platform.h>
@@ -151,7 +151,13 @@ spider::sched::ResourcesAllocator::allocateAllocator(FifoAllocatorType type, boo
             if (!legacy) {
                 return spider::make<spider::sched::SRLessFifoAllocator, StackID::RUNTIME>();
             }
+#ifndef _NO_BUILD_LEGACY_RT
             return spider::make<spider::sched::NoSyncFifoAllocator, StackID::RUNTIME>();
+#else
+            printer::fprintf(stderr, "NO_SYNC allocator is part of the legacy runtime which was not built.\n"
+                                     "Rebuild the Spider 2.0 library with the cmake flag -DBUILD_LEGACY_RUNTIME.\n");
+            return nullptr;
+#endif
         case spider::FifoAllocatorType::ARCHI_AWARE:
         default:
             throwSpiderException("unsupported type of FifoAllocator.");

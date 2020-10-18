@@ -48,7 +48,7 @@
 /* === Method(s) implementation === */
 
 spider::sched::SyncTask::SyncTask(SyncType type) : Task(), type_{ type } {
-    fifos_ = spider::make_shared<JobFifos, StackID::SCHEDULE>(type == SyncType::SEND, 1U);
+    fifos_ = spider::make_shared<JobFifos, StackID::SCHEDULE>(0, 1);
     dependencies_ = spider::make_unique(spider::allocate<Task *, StackID::SCHEDULE>(1u));
     dependencies_.get()[0u] = nullptr;
 }
@@ -128,9 +128,13 @@ spider::JobMessage spider::sched::SyncTask::createJobMessage() const {
         const auto *dependency = dependencies_.get()[0u];
         const auto &outputFifo = dependency->fifos().outputFifo(0u);
         message.inputParams_.get()[3u] = static_cast<i64>(outputFifo.virtualAddress_);
+        message.fifos_ = spider::make_shared<JobFifos, StackID::SCHEDULE>(0, 1);
     } else {
         message.inputParams_.get()[3u] = 0;
+        message.fifos_ = spider::make_shared<JobFifos, StackID::SCHEDULE>(1, 1);
+        message.fifos_->setInputFifo(0, previousTask(0)->fifos().outputFifo(inputPortIx_));
     }
+    message.fifos_->setOutputFifo(0, fifos().outputFifo(0));
     return message;
 }
 
