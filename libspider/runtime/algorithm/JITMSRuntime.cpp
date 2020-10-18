@@ -48,7 +48,6 @@
 #include <scheduling/memory/FifoAllocator.h>
 #include <scheduling/schedule/exporter/SchedXMLGanttExporter.h>
 #include <scheduling/schedule/exporter/SchedStatsExporter.h>
-#include <scheduling/schedule/exporter/SchedSVGGanttExporter.h>
 #include <scheduling/task/VertexTask.h>
 #include <api/runtime-api.h>
 #include <api/config-api.h>
@@ -82,7 +81,7 @@ bool spider::JITMSRuntime::execute() {
 
     /* == Apply first transformation of root graph == */
     TraceMessage transfoMsg{ };
-    TRACE_TRANSFO_START();
+    TRACE_TRANSFO_START()
     auto rootJob = srdag::TransfoJob(graph_);
     rootJob.params_ = graph_->params();
     auto resultRootJob = srdag::singleRateTransformation(rootJob, srdag_.get());
@@ -92,20 +91,20 @@ bool spider::JITMSRuntime::execute() {
     auto dynamicJobStack = factory::vector<srdag::TransfoJob>(StackID::TRANSFO);
     updateJobStack(resultRootJob.first, staticJobStack);
     updateJobStack(resultRootJob.second, dynamicJobStack);
-    TRACE_TRANSFO_END();
+    TRACE_TRANSFO_END()
 
     /* == Transform, schedule and run == */
     while (!staticJobStack.empty() || !dynamicJobStack.empty()) {
         /* == Transform static jobs == */
-        TRACE_TRANSFO_START();
+        TRACE_TRANSFO_START()
         transformStaticJobs(staticJobStack, dynamicJobStack);
-        TRACE_TRANSFO_END();
+        TRACE_TRANSFO_END()
 
         /* == Apply graph optimizations == */
         if (api::shouldOptimizeSRDAG()) {
-            TRACE_TRANSFO_START();
+            TRACE_TRANSFO_START()
             optims::optimize(srdag_.get());
-            TRACE_TRANSFO_END();
+            TRACE_TRANSFO_END()
         }
 
         /* == Update schedule, run and wait == */
@@ -116,7 +115,7 @@ bool spider::JITMSRuntime::execute() {
             if (log::enabled<log::TRANSFO>()) {
                 log::info<log::TRANSFO>("Waiting fo dynamic parameters..\n");
             }
-            TRACE_TRANSFO_START();
+            TRACE_TRANSFO_START()
             size_t readParam = 0;
             while (readParam != dynamicJobStack.size()) {
                 Notification notification;
@@ -144,19 +143,19 @@ bool spider::JITMSRuntime::execute() {
                     // LCOV_IGNORE: this is a sanity check, it should never happen and it is not testable from the outside.
                     throwSpiderException("expected parameter notification");
                 }
-                TRACE_TRANSFO_END();
+                TRACE_TRANSFO_END()
             }
 
             /* == Transform dynamic jobs == */
-            TRACE_TRANSFO_START();
+            TRACE_TRANSFO_START()
             transformDynamicJobs(staticJobStack, dynamicJobStack);
-            TRACE_TRANSFO_END();
+            TRACE_TRANSFO_END()
 
             /* == Apply graph optimizations == */
             if (api::shouldOptimizeSRDAG()) {
-                TRACE_TRANSFO_START();
+                TRACE_TRANSFO_START()
                 optims::optimize(srdag_.get());
-                TRACE_TRANSFO_END();
+                TRACE_TRANSFO_END()
             }
 
             /* == Update schedule, run and wait == */
@@ -189,7 +188,7 @@ bool spider::JITMSRuntime::execute() {
 
 void spider::JITMSRuntime::scheduleRunAndWait() {
     TraceMessage schedMsg{ };
-    TRACE_SCHEDULE_START();
+    TRACE_SCHEDULE_START()
     /* == Send LRT_START_ITERATION notification == */
     rt::platform()->sendStartIteration();
     /* == Schedule / Map current Single-Rate graph == */
@@ -198,7 +197,7 @@ void spider::JITMSRuntime::scheduleRunAndWait() {
     rt::platform()->sendDelayedBroadCastToRunners();
     /* == Send LRT_END_ITERATION notification == */
     rt::platform()->sendEndIteration();
-    TRACE_SCHEDULE_END();
+    TRACE_SCHEDULE_END()
 
     /* == Export pre-exec gantt if needed  == */
     if (api::exportGanttEnabled()) {
@@ -212,7 +211,7 @@ void spider::JITMSRuntime::scheduleRunAndWait() {
 
 /* === Transformation related methods === */
 
-void spider::JITMSRuntime::updateJobStack(vector<srdag::TransfoJob> &src, vector<srdag::TransfoJob> &dest) const {
+void spider::JITMSRuntime::updateJobStack(vector<srdag::TransfoJob> &src, vector<srdag::TransfoJob> &dest) {
     std::for_each(src.begin(), src.end(), [&dest](srdag::TransfoJob &job) {
         dest.emplace_back(std::move(job));
     });

@@ -36,6 +36,7 @@
 /* === Include(s) === */
 
 #include <scheduling/task/SyncTask.h>
+#include <scheduling/memory/FifoAllocator.h>
 #include <archi/PE.h>
 #include <archi/Platform.h>
 #include <archi/MemoryBus.h>
@@ -48,8 +49,12 @@
 
 spider::sched::SyncTask::SyncTask(SyncType type) : Task(), type_{ type } {
     fifos_ = spider::make_shared<JobFifos, StackID::SCHEDULE>(type == SyncType::SEND, 1U);
-    dependencies_ = spider::make_unique(allocate<Task *, StackID::SCHEDULE>(1u));
+    dependencies_ = spider::make_unique(spider::allocate<Task *, StackID::SCHEDULE>(1u));
     dependencies_.get()[0u] = nullptr;
+}
+
+void spider::sched::SyncTask::allocate(FifoAllocator *allocator) {
+    allocator->allocate(this);
 }
 
 #ifndef NDEBUG
@@ -61,15 +66,10 @@ spider::sched::AllocationRule spider::sched::SyncTask::allocationRuleForInputFif
 #else
     spider::sched::AllocationRule spider::sched::SyncTask::allocationRuleForInputFifo(size_t) const {
 #endif
-    auto rule = AllocationRule{ };
     if (type_ == SyncType::SEND) {
-        rule.size_ = static_cast<u32>(size_);
-        rule.offset_ = 0u;
-        rule.fifoIx_ = inputPortIx_;
-        rule.type_ = AllocType::SAME_IN;
-        rule.attribute_ = FifoAttribute::RW_ONLY;
+        return { static_cast<u32>(size_), 0, inputPortIx_, 0, AllocType::SAME_IN, FifoAttribute::RW_ONLY };
     }
-    return rule;
+    return { };
 }
 
 #ifndef NDEBUG
@@ -81,19 +81,11 @@ spider::sched::AllocationRule spider::sched::SyncTask::allocationRuleForOutputFi
 #else
     spider::sched::AllocationRule spider::sched::SyncTask::allocationRuleForOutputFifo(size_t) const {
 #endif
-    auto rule = AllocationRule{ };
-    rule.size_ = static_cast<u32>(size_);
-    rule.offset_ = 0u;
     if (type_ == SyncType::SEND) {
-        rule.fifoIx_ = 0u;
-        rule.type_ = AllocType::SAME_IN;
-        rule.attribute_ = FifoAttribute::RW_ONLY;
+        return { static_cast<u32>(size_), 0, 0, 0, AllocType::SAME_IN, FifoAttribute::RW_OWN };
     } else {
-        rule.fifoIx_ = UINT32_MAX;
-        rule.type_ = AllocType::NEW;
-        rule.attribute_ = FifoAttribute::RW_OWN;
+        return { static_cast<u32>(size_), 0, UINT32_MAX, 0, AllocType::SAME_IN, FifoAttribute::RW_OWN };
     }
-    return rule;
 }
 
 u32 spider::sched::SyncTask::color() const {
@@ -128,7 +120,7 @@ spider::JobMessage spider::sched::SyncTask::createJobMessage() const {
     /* == Set the params == */
     const auto *fstLRT = type_ == SyncType::SEND ? mappedLRT() : dependencies_.get()[0u]->mappedLRT();
     const auto *sndLRT = type_ == SyncType::SEND ? successor_->mappedLRT() : mappedLRT();
-    message.inputParams_ = make_unique(allocate<i64, StackID::RUNTIME>(4u));
+    message.inputParams_ = make_unique(spider::allocate<i64, StackID::RUNTIME>(4u));
     message.inputParams_.get()[0u] = static_cast<i64>(fstLRT->cluster()->ix());
     message.inputParams_.get()[1u] = static_cast<i64>(sndLRT->cluster()->ix());
     message.inputParams_.get()[2u] = static_cast<i64>(size_);

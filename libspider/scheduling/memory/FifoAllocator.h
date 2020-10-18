@@ -55,6 +55,12 @@ namespace spider {
 
         class Task;
 
+        class SRLessTask;
+
+        class VertexTask;
+
+        class SyncTask;
+
         /* === Class definition === */
 
         class FifoAllocator {
@@ -75,11 +81,22 @@ namespace spider {
             /* === Method(s) === */
 
             /**
-             * @brief Allocate a FIFO of given size.
-             * @param size      Size of the FIFO to allocate in bytes.
-             * @return created @refitem RTFifo.
+             * @brief Allocate Fifos of a given task.
+             * @param task Pointer to the task.
              */
-            virtual void allocate(sched::Task *task);
+            virtual void allocate(sched::SyncTask *task);
+
+            /**
+             * @brief Allocate Fifos of a given task.
+             * @param task Pointer to the task.
+             */
+            inline virtual void allocate(sched::SRLessTask *) {}
+
+            /**
+             * @brief Allocate Fifos of a given task.
+             * @param task Pointer to the task.
+             */
+            virtual void allocate(sched::VertexTask *task);
 
             /**
              * @brief Clears the allocator.

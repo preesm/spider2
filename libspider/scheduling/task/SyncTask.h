@@ -60,6 +60,8 @@ namespace spider {
 
             /* === Virtual method(s) === */
 
+            void allocate(FifoAllocator *allocator) override;
+
             AllocationRule allocationRuleForInputFifo(size_t ix) const override;
 
             AllocationRule allocationRuleForOutputFifo(size_t ix) const override;

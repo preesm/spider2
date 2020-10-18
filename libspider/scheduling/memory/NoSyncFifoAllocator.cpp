@@ -36,7 +36,7 @@
 /* === Include(s) === */
 
 #include <scheduling/memory/NoSyncFifoAllocator.h>
-#include <scheduling/task/Task.h>
+#include <scheduling/task/VertexTask.h>
 #include <graphs/pisdf/DelayVertex.h>
 #include <graphs/pisdf/ExternInterface.h>
 #include <graphs/pisdf/Graph.h>
@@ -54,7 +54,7 @@ static u32 countNonNullFifos(const spider::array_handle<spider::Fifo> &fifos) {
 
 /* === Method(s) implementation === */
 
-void spider::sched::NoSyncFifoAllocator::allocate(spider::sched::Task *task) {
+void spider::sched::NoSyncFifoAllocator::allocate(VertexTask *task) {
     if (!task) {
         return;
     }

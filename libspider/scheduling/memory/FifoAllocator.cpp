@@ -36,7 +36,6 @@
 /* === Include(s) === */
 
 #include <scheduling/memory/FifoAllocator.h>
-#include <scheduling/task/Task.h>
 #include <graphs/pisdf/DelayVertex.h>
 #include <graphs/pisdf/ExternInterface.h>
 #include <graphs/pisdf/Graph.h>
@@ -72,34 +71,19 @@ void spider::sched::FifoAllocator::allocatePersistentDelays(pisdf::Graph *graph)
     virtualMemoryAddress_ = reservedMemory_;
 }
 
-void spider::sched::FifoAllocator::allocate(sched::Task *task) {
+void spider::sched::FifoAllocator::allocate(SyncTask *task) {
     if (!task) {
         return;
     }
-    /* == Allocating input FIFOs == */
-    size_t ix{ 0u };
-    auto inputFifos = task->fifos().inputFifos();
-    for (auto &fifo : inputFifos) {
-        const auto rule = task->allocationRuleForInputFifo(ix);
-        const auto *prevTask = task->previousTask(ix);
-        if (prevTask) {
-            if (rule.type_ == AllocType::SAME_IN) {
-                fifo = prevTask->fifos().outputFifo(rule.fifoIx_);
-                if (fifo.attribute_ != FifoAttribute::RW_EXT) {
-                    fifo.attribute_ = rule.attribute_;
-                    fifo.count_ = 0u;
-                }
-            } else {
-                throwSpiderException("invalid AllocAttribute for input FIFO.");
-            }
-        } else {
-            fifo = Fifo{ };
-        }
-        ix++;
-    }
+}
 
+void spider::sched::FifoAllocator::allocate(VertexTask *task) {
+    if (!task) {
+        return;
+    }
     /* == Allocating output FIFOs == */
-    ix = 0u;
+    size_t ix{ 0u };
+    const auto *vertex = task->vertex();
     auto outputFifos = task->fifos().outputFifos();
     for (auto &fifo : outputFifos) {
         const auto rule = task->allocationRuleForOutputFifo(ix);
@@ -110,16 +94,14 @@ void spider::sched::FifoAllocator::allocate(sched::Task *task) {
                 fifo.offset_ = 0u;
                 break;
             case SAME_IN: {
-                auto &inputFifo = inputFifos[rule.fifoIx_];
-                fifo.virtualAddress_ = inputFifo.virtualAddress_;
-                fifo.offset_ = inputFifo.offset_ + rule.offset_;
+                const auto *prevTask = task->previousTask(rule.fifoIx_);
+                fifo = prevTask->fifos().outputFifo(vertex->inputEdge(rule.fifoIx_)->sourcePortIx());
+                fifo.offset_ += rule.offset_;
             }
                 break;
-            case SAME_OUT: {
-                auto &outputFifo = outputFifos[rule.fifoIx_];
-                fifo.virtualAddress_ = outputFifo.virtualAddress_;
-                fifo.offset_ = outputFifo.offset_ + rule.offset_;
-            }
+            case SAME_OUT:
+                fifo.virtualAddress_ = outputFifos[rule.fifoIx_].virtualAddress_;
+                fifo.offset_ = outputFifos[rule.fifoIx_].offset_ + rule.offset_;
                 break;
             case EXT:
                 fifo.virtualAddress_ = rule.fifoIx_;
@@ -129,7 +111,7 @@ void spider::sched::FifoAllocator::allocate(sched::Task *task) {
         }
         fifo.size_ = rule.size_;
         fifo.attribute_ = rule.attribute_;
-        fifo.count_ = (fifo.size_ != 0u);
+        fifo.count_ = rule.count_;
         ix++;
     }
 }

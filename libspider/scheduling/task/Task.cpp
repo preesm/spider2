@@ -49,7 +49,7 @@
 
 spider::sched::Task::Task() {
     const auto lrtCount{ archi::platform()->LRTCount() };
-    notifications_ = make_unique<bool>(allocate<bool, StackID::SCHEDULE>(lrtCount));
+    notifications_ = make_unique<bool>(spider::allocate<bool, StackID::SCHEDULE>(lrtCount));
     std::fill(notifications_.get(), notifications_.get() + lrtCount, false);
 }
 
@@ -142,8 +142,8 @@ spider::JobMessage spider::sched::Task::createJobMessage() const {
     /* == Set the synchronization flags == */
     const auto lrtCount{ archi::platform()->LRTCount() };
     const auto *flags = notifications_.get();
-    message.synchronizationFlags_ = make_unique<bool>(allocate<bool, StackID::RUNTIME>(lrtCount));
-    std::copy(flags, std::next(flags, static_cast<long long>(lrtCount)), message.synchronizationFlags_.get());
+    message.synchronizationFlags_ = make_unique<bool>(spider::allocate<bool, StackID::RUNTIME>(lrtCount));
+    std::copy(flags, flags + lrtCount, message.synchronizationFlags_.get());
     /* == Set the execution task constraints == */
     message.execConstraints_ = Task::getExecutionConstraints();
     /* == Set Fifos == */

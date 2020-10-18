@@ -113,7 +113,7 @@ void spider::sched::ResourcesAllocator::clear() {
 /* === Private method(s) implementation === */
 
 spider::sched::Scheduler *
-spider::sched::ResourcesAllocator::allocateScheduler(SchedulingPolicy policy, bool legacy) const {
+spider::sched::ResourcesAllocator::allocateScheduler(SchedulingPolicy policy, bool legacy) {
     switch (policy) {
         case SchedulingPolicy::LIST:
             if (legacy) {
@@ -140,7 +140,7 @@ spider::sched::ResourcesAllocator::allocateScheduler(SchedulingPolicy policy, bo
 }
 
 spider::sched::FifoAllocator *
-spider::sched::ResourcesAllocator::allocateAllocator(FifoAllocatorType type, bool legacy) const {
+spider::sched::ResourcesAllocator::allocateAllocator(FifoAllocatorType type, bool legacy) {
     switch (type) {
         case spider::FifoAllocatorType::DEFAULT:
             if (!legacy) {
@@ -158,7 +158,7 @@ spider::sched::ResourcesAllocator::allocateAllocator(FifoAllocatorType type, boo
     }
 }
 
-spider::sched::Mapper *spider::sched::ResourcesAllocator::allocateMapper(MappingPolicy policy) const {
+spider::sched::Mapper *spider::sched::ResourcesAllocator::allocateMapper(MappingPolicy policy) {
     switch (policy) {
         case MappingPolicy::BEST_FIT:
             return spider::make<sched::BestFitMapper, StackID::SCHEDULE>();
@@ -186,7 +186,7 @@ void spider::sched::ResourcesAllocator::applyExecPolicy() {
                 /* == We are in JIT mode, we need to broadcast the job stamp == */
                 task->enableBroadcast();
                 /* == Allocate the fifos task == */
-                allocator_->allocate(task.get());
+                task->allocate(allocator_.get());
                 /* == Add and execute the task == */
                 schedule_->addTask(std::move(task));
                 schedule_->sendReadyTasks();
@@ -199,7 +199,7 @@ void spider::sched::ResourcesAllocator::applyExecPolicy() {
             }
             /* == Allocate fifos for every tasks == */
             for (auto *task : schedule_->readyTasks()) {
-                allocator_->allocate(task);
+                task->allocate(allocator_.get());
             }
             /* == Execute every tasks == */
             schedule_->sendReadyTasks();

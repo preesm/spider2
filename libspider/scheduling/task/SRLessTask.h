@@ -67,6 +67,8 @@ namespace spider {
 
             /* === Virtual method(s) === */
 
+            void allocate(FifoAllocator *allocator) override;
+
             void updateTaskExecutionDependencies(const Schedule *schedule) override;
 
             AllocationRule allocationRuleForInputFifo(size_t edgeIx) const override;

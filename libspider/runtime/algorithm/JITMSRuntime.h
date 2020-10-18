@@ -90,7 +90,7 @@ namespace spider {
          * @param src       Source vector of the TransfoJobs to move.
          * @param dest      Destination vector to move the TransfoJobs to.
          */
-        void updateJobStack(vector<srdag::TransfoJob> &src, vector<srdag::TransfoJob> &dest) const;
+        static void updateJobStack(vector<srdag::TransfoJob> &src, vector<srdag::TransfoJob> &dest) ;
 
         /**
          * @brief Transform all jobs of a given job stack and update results in static and dynamic job stacks.

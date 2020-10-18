@@ -55,12 +55,7 @@ namespace spider {
 
         class Schedule;
 
-        namespace detail {
-            struct ExecInfo {
-                spider::unique_ptr<Task *> dependencies_;
-                spider::unique_ptr<bool> notifications_;
-            };
-        }
+        class FifoAllocator;
 
         struct DependencyInfo {
             size_t fifoIx_;
@@ -224,6 +219,11 @@ namespace spider {
             /* === Virtual method(s) === */
 
             /**
+             * @brief Allocate task memory.
+             */
+            virtual void allocate(FifoAllocator *) = 0;
+
+            /**
              * @brief Set the ix of the job.
              * @remark This method will overwrite current value.
              * @param ix Ix to set.
@@ -317,7 +317,7 @@ namespace spider {
         protected:
             spider::unique_ptr<Task *> dependencies_;       /*!< Dependencies of the task */
             spider::unique_ptr<bool> notifications_;        /*!< Notification flags of the task */
-            std::shared_ptr<JobFifos> fifos_;         /*!< Fifo(s) attached to the task */
+            std::shared_ptr<JobFifos> fifos_;               /*!< Fifo(s) attached to the task */
             const PE *mappedPE_{ nullptr };                 /*!< Mapping PE of the task */
             u64 startTime_{ UINT64_MAX };                   /*!< Mapping start time of the task */
             u64 endTime_{ UINT64_MAX };                     /*!< Mapping end time of the task */

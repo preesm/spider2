@@ -37,7 +37,9 @@
 
 #include <scheduling/task/SRLessTask.h>
 #include <scheduling/schedule/Schedule.h>
+#include <scheduling/memory/FifoAllocator.h>
 #include <graphs-tools/helper/pisdf-helper.h>
+#include <graphs-tools/numerical/dependencies.h>
 #include <graphs-tools/transformation/srless/GraphHandler.h>
 #include <graphs-tools/transformation/srless/GraphFiring.h>
 #include <graphs/pisdf/Vertex.h>
@@ -45,7 +47,6 @@
 #include <graphs/pisdf/Edge.h>
 #include <graphs/pisdf/Graph.h>
 #include <runtime/special-kernels/specialKernels.h>
-#include <graphs-tools/numerical/dependencies.h>
 
 /* === Static function === */
 
@@ -62,8 +63,12 @@ spider::sched::SRLessTask::SRLessTask(srless::GraphFiring *handler,
                                                              dependenciesCount_{ depCount } {
     const auto inputFifoCount = depCount + mergedFifoCount;
     fifos_ = spider::make_shared<JobFifos, StackID::SCHEDULE>(inputFifoCount, vertex->outputEdgeCount());
-    dependencies_ = spider::make_unique(allocate<Task *, StackID::SCHEDULE>(depCount));
+    dependencies_ = spider::make_unique(spider::allocate<Task *, StackID::SCHEDULE>(depCount));
     std::fill(dependencies_.get(), dependencies_.get() + depCount, nullptr);
+}
+
+void spider::sched::SRLessTask::allocate(FifoAllocator *allocator) {
+    allocator->allocate(this);
 }
 
 void spider::sched::SRLessTask::updateTaskExecutionDependencies(const Schedule *schedule) {

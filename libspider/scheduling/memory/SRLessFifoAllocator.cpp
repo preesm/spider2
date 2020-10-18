@@ -36,7 +36,7 @@
 /* === Include(s) === */
 
 #include <scheduling/memory/SRLessFifoAllocator.h>
-#include <scheduling/task/Task.h>
+#include <scheduling/task/SRLessTask.h>
 #include <graphs/pisdf/DelayVertex.h>
 #include <graphs/pisdf/ExternInterface.h>
 #include <graphs/pisdf/Graph.h>
@@ -49,7 +49,11 @@
 
 /* === Function(s) definition === */
 
-void spider::sched::SRLessFifoAllocator::allocate(sched::Task *task) {
+void spider::sched::SRLessFifoAllocator::allocate(SyncTask *task) {
+    FifoAllocator::allocate(task);
+}
+
+void spider::sched::SRLessFifoAllocator::allocate(SRLessTask *task) {
     if (!task) {
         return;
     }

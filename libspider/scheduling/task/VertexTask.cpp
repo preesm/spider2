@@ -39,6 +39,7 @@
 #include <graphs/pisdf/ExternInterface.h>
 #include <scheduling/task/VertexTask.h>
 #include <scheduling/schedule/Schedule.h>
+#include <scheduling/memory/FifoAllocator.h>
 #include <api/runtime-api.h>
 #include <runtime/common/Fifo.h>
 #include <graphs/srdag/SRDAGGraph.h>
@@ -54,9 +55,13 @@ spider::sched::VertexTask::VertexTask(srdag::Vertex *vertex) : Task(), vertex_{ 
     if (!vertex) {
         throwSpiderException("nullptr vertex.");
     }
-    fifos_ = spider::make_shared<JobFifos, StackID::SCHEDULE>(vertex->inputEdgeCount(), vertex->outputEdgeCount());
-    dependencies_ = spider::make_unique(allocate<Task *, StackID::SCHEDULE>(vertex->inputEdgeCount()));
+    fifos_ = spider::make_shared<JobFifos, StackID::SCHEDULE>(0, vertex->outputEdgeCount());
+    dependencies_ = spider::make_unique(spider::allocate<Task *, StackID::SCHEDULE>(vertex->inputEdgeCount()));
     std::fill(dependencies_.get(), dependencies_.get() + vertex->inputEdgeCount(), nullptr);
+}
+
+void spider::sched::VertexTask::allocate(FifoAllocator *allocator) {
+    allocator->allocate(this);
 }
 
 void spider::sched::VertexTask::updateTaskExecutionDependencies(const spider::sched::Schedule *schedule) {
@@ -151,6 +156,25 @@ spider::JobMessage spider::sched::VertexTask::createJobMessage() const {
     message.inputParams_ = srdag::buildVertexRuntimeInputParameters(vertex_);
     message.fifos_ = spider::make_shared<JobFifos, StackID::SCHEDULE>(vertex_->inputEdgeCount(),
                                                                       vertex_->outputEdgeCount());
+    /* == Set input fifos == */
+    for (const auto *edge : vertex_->inputEdges()) {
+        auto *prevTask = previousTask(edge->sinkPortIx());
+        if (prevTask) {
+            // TODO: check for sync tasks
+            auto fifo = prevTask->fifos().outputFifo(edge->sourcePortIx());
+            if (fifo.attribute_ != FifoAttribute::RW_EXT) {
+                fifo.attribute_ = FifoAttribute::RW_OWN;
+                fifo.count_ = 0u;
+            }
+            message.fifos_->setInputFifo(edge->sinkPortIx(), fifo);
+        } else {
+            message.fifos_->setInputFifo(edge->sinkPortIx(), Fifo{ });
+        }
+    }
+    /* == Copy output fifos == */
+    for (const auto *edge : vertex_->outputEdges()) {
+        message.fifos_->setOutputFifo(edge->sourcePortIx(), fifos_->outputFifo(edge->sourcePortIx()));
+    }
     return message;
 }
 

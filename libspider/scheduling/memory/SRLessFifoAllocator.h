@@ -66,12 +66,9 @@ namespace spider {
 
             /* === Method(s) === */
 
-            /**
-             * @brief Allocate a FIFO of given size.
-             * @param size      Size of the FIFO to allocate in bytes.
-             * @return created @refitem RTFifo.
-             */
-            void allocate(sched::Task *task) override;
+            void allocate(sched::SyncTask *task) override;
+
+            void allocate(sched::SRLessTask *task) override;
 
             /* === Getter(s) === */
 

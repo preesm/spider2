@@ -59,7 +59,7 @@ namespace spider {
     }
 
     constexpr bool str_slant(const char *str) {
-        return *str == '/' ? true : (*str ? str_slant(str + 1) : false);
+        return *str == '/' || (*str != 0 && str_slant(str + 1));
     }
 
     constexpr const char *r_slant(const char *str) {
