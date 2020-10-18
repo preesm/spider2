@@ -36,18 +36,17 @@
 /* === Include(s) === */
 
 #include <scheduling/memory/FifoAllocator.h>
-#include <graphs/pisdf/DelayVertex.h>
-#include <graphs/pisdf/ExternInterface.h>
-#include <graphs/pisdf/Graph.h>
+#include <scheduling/task/SyncTask.h>
 #include <archi/MemoryInterface.h>
-#include <runtime/message/Notification.h>
 #include <api/archi-api.h>
+#include <graphs/pisdf/ExternInterface.h>
 
 #ifndef _NO_BUILD_LEGACY_RT
+
 #include <scheduling/task/VertexTask.h>
 #include <graphs/srdag/SRDAGGraph.h>
 #include <graphs/srdag/SRDAGEdge.h>
-#include <graphs/srdag/SRDAGVertex.h>
+
 #endif
 
 /* === Function(s) definition === */
@@ -74,49 +73,167 @@ void spider::sched::FifoAllocator::allocatePersistentDelays(pisdf::Graph *graph)
     virtualMemoryAddress_ = reservedMemory_;
 }
 
-void spider::sched::FifoAllocator::allocate(SyncTask *task) {
-    if (!task) {
-        return;
-    }
-}
-
 void spider::sched::FifoAllocator::allocate(VertexTask *task) {
     if (!task) {
         return;
     }
 #ifndef _NO_BUILD_LEGACY_RT
     /* == Allocating output FIFOs == */
-    size_t ix{ 0u };
     const auto *vertex = task->vertex();
-    auto outputFifos = task->fifos().outputFifos();
-    for (auto &fifo : outputFifos) {
-        const auto rule = task->allocationRuleForOutputFifo(ix);
-        switch (rule.type_) {
-            case NEW:
-                fifo.virtualAddress_ = virtualMemoryAddress_;
-                virtualMemoryAddress_ += rule.size_;
-                fifo.offset_ = 0u;
-                break;
-            case SAME_IN: {
-                const auto *prevTask = task->previousTask(rule.fifoIx_);
-                fifo = prevTask->fifos().outputFifo(vertex->inputEdge(rule.fifoIx_)->sourcePortIx());
-                fifo.offset_ += rule.offset_;
-            }
-                break;
-            case SAME_OUT:
-                fifo.virtualAddress_ = outputFifos[rule.fifoIx_].virtualAddress_;
-                fifo.offset_ = outputFifos[rule.fifoIx_].offset_ + rule.offset_;
-                break;
-            case EXT:
-                fifo.virtualAddress_ = rule.fifoIx_;
-                break;
-            default:
-                break;
-        }
-        fifo.size_ = rule.size_;
-        fifo.attribute_ = rule.attribute_;
-        fifo.count_ = rule.count_;
-        ix++;
+    switch (vertex->subtype()) {
+        case pisdf::VertexType::REPEAT:
+            allocateRepeatTask(task);
+            break;
+        case pisdf::VertexType::FORK:
+            allocateForkTask(task);
+            break;
+        case pisdf::VertexType::DUPLICATE:
+            allocateDuplicateTask(task);
+            break;
+        case pisdf::VertexType::EXTERN_IN:
+            allocateExternInTask(task);
+            break;
+        default:
+            allocateDefaultVertexTask(task);
+            break;
     }
 #endif
+}
+
+void spider::sched::FifoAllocator::allocate(SyncTask *task) {
+    if (!task) {
+        return;
+    }
+    if (task->syncType() == RECEIVE) {
+        task->fifos().setOutputFifo(0, allocateNewFifo(task->size()));
+    } else {
+        auto fifo = task->previousTask(0)->getOutputFifo(task->inputPortIx());
+        if (fifo.attribute_ != FifoAttribute::RW_EXT) {
+            fifo.attribute_ = FifoAttribute::RW_ONLY;
+        }
+        task->fifos().setInputFifo(0, fifo);
+        task->fifos().setOutputFifo(0, fifo);
+    }
+}
+
+/* === Protected method(s) === */
+
+spider::Fifo spider::sched::FifoAllocator::allocateNewFifo(size_t size) {
+    Fifo fifo{ };
+    fifo.size_ = static_cast<u32>(size);
+    fifo.offset_ = 0;
+    fifo.count_ = size ? 1 : 0;
+    fifo.virtualAddress_ = virtualMemoryAddress_;
+    fifo.attribute_ = FifoAttribute::RW_OWN;
+    if (log::enabled<log::MEMORY>()) {
+        log::print<log::MEMORY>(log::green, "INFO:", "VIRTUAL: allocating %zu bytes at address %zu.\n", size,
+                                virtualMemoryAddress_);
+    }
+    virtualMemoryAddress_ += size;
+    return fifo;
+}
+
+void spider::sched::FifoAllocator::allocateDefaultVertexTask(VertexTask *task) {
+    const auto *vertex = task->vertex();
+    for (const auto *edge : vertex->inputEdges()) {
+        task->fifos().setInputFifo(edge->sinkPortIx(), allocateDefaultVertexInputFifo(task, edge));
+    }
+    for (const auto &edge : vertex->outputEdges()) {
+        task->fifos().setOutputFifo(edge->sourcePortIx(), allocateDefaultVertexOutputFifo(edge));
+    }
+}
+
+spider::Fifo
+spider::sched::FifoAllocator::allocateDefaultVertexInputFifo(VertexTask *task, const srdag::Edge *edge) const {
+    const auto *inputTask = task->previousTask(edge->sinkPortIx());
+    if (!inputTask) {
+        return Fifo{ };
+    } else {
+        auto fifo = inputTask->getOutputFifo(edge->sourcePortIx());
+        if (fifo.attribute_ != FifoAttribute::RW_EXT) {
+            fifo.attribute_ = FifoAttribute::RW_OWN;
+            fifo.count_ = 0u;
+        }
+        return fifo;
+    }
+}
+
+spider::Fifo spider::sched::FifoAllocator::allocateDefaultVertexOutputFifo(const srdag::Edge *edge) {
+    const auto size = edge->sourceRateValue();
+    const auto *sink = edge->sink();
+    if (sink && sink->subtype() == pisdf::VertexType::EXTERN_OUT) {
+        const auto *reference = sink->reference()->convertTo<pisdf::ExternInterface>();
+        Fifo fifo{ };
+        fifo.size_ = static_cast<u32>(size);
+        fifo.offset_ = 0;
+        fifo.count_ = size ? 1 : 0;
+        fifo.virtualAddress_ = reference->bufferIndex();
+        fifo.attribute_ = FifoAttribute::RW_EXT;
+        return fifo;
+    } else {
+        return allocateNewFifo(static_cast<size_t>(size));
+    }
+}
+
+void spider::sched::FifoAllocator::allocateExternInTask(VertexTask *task) {
+    const auto *vertex = task->vertex();
+    const auto *reference = vertex->reference()->convertTo<pisdf::ExternInterface>();
+    Fifo fifo{ };
+    fifo.size_ = static_cast<u32>(vertex->outputEdge(0U)->sourceRateValue());
+    fifo.offset_ = 0;
+    fifo.count_ = fifo.size_ ? 1 : 0;
+    fifo.virtualAddress_ = reference->bufferIndex();
+    fifo.attribute_ = FifoAttribute::RW_EXT;
+    task->fifos().setOutputFifo(0U, fifo);
+}
+
+void spider::sched::FifoAllocator::allocateForkTask(VertexTask *task) const {
+    const auto *vertex = task->vertex();
+    const auto *inputEdge = vertex->inputEdge(0U);
+    const auto *previousTask = task->previousTask(0U);
+    auto inputFifo = previousTask->getOutputFifo(inputEdge->sourcePortIx());
+    u32 offset = 0;
+    for (const auto *edge : vertex->outputEdges()) {
+        Fifo fifo{ };
+        fifo.size_ = static_cast<u32>(edge->sourceRateValue());
+        fifo.offset_ = inputFifo.offset_ + offset;
+        fifo.count_ = fifo.size_ ? 1 : 0;
+        fifo.virtualAddress_ = inputFifo.virtualAddress_;
+        fifo.attribute_ = FifoAttribute::RW_ONLY;
+        offset += fifo.size_;
+        task->fifos().setOutputFifo(edge->sourcePortIx(), fifo);
+    }
+    task->fifos().setInputFifo(0U, allocateDefaultVertexInputFifo(task, inputEdge));
+}
+
+void spider::sched::FifoAllocator::allocateDuplicateTask(VertexTask *task)  const{
+    const auto *vertex = task->vertex();
+    const auto *inputEdge = vertex->inputEdge(0U);
+    const auto *previousTask = task->previousTask(0U);
+    auto inputFifo = previousTask->getOutputFifo(inputEdge->sourcePortIx());
+    for (const auto *edge : vertex->outputEdges()) {
+        auto fifo = inputFifo;
+        fifo.count_ = fifo.size_ ? 1 : 0;
+        fifo.attribute_ = FifoAttribute::RW_ONLY;
+        task->fifos().setOutputFifo(edge->sourcePortIx(), fifo);
+    }
+    task->fifos().setInputFifo(0U, allocateDefaultVertexInputFifo(task, inputEdge));
+}
+
+void spider::sched::FifoAllocator::allocateRepeatTask(VertexTask *task) {
+    const auto *vertex = task->vertex();
+    const auto *inputEdge = vertex->inputEdge(0U);
+    const auto *outputEdge = vertex->outputEdge(0U);
+    if (inputEdge->sinkRateValue() == outputEdge->sourceRateValue()) {
+        const auto *previousTask = task->previousTask(0U);
+        auto outputFifo = previousTask->fifos().inputFifo(inputEdge->sourcePortIx());
+        outputFifo.count_ = outputFifo.size_ ? 1 : 0;
+        if (outputFifo.attribute_ != FifoAttribute::RW_EXT) {
+            outputFifo.attribute_ = FifoAttribute::RW_ONLY;
+        }
+        task->fifos().setInputFifo(0U, allocateDefaultVertexInputFifo(task, inputEdge));
+        task->fifos().setOutputFifo(0U, outputFifo);
+    } else {
+        allocateDefaultVertexTask(task);
+    }
 }

@@ -47,8 +47,8 @@ namespace spider {
 
     class MemoryInterface;
 
-    namespace pisdf {
-        class Graph;
+    namespace srdag {
+        class Edge;
     }
 
     namespace sched {
@@ -84,19 +84,19 @@ namespace spider {
              * @brief Allocate Fifos of a given task.
              * @param task Pointer to the task.
              */
-            virtual void allocate(sched::SyncTask *task);
-
-            /**
-             * @brief Allocate Fifos of a given task.
-             * @param task Pointer to the task.
-             */
-            inline virtual void allocate(sched::SRLessTask *) {}
+            inline virtual void allocate(sched::SRLessTask *) { }
 
             /**
              * @brief Allocate Fifos of a given task.
              * @param task Pointer to the task.
              */
             virtual void allocate(sched::VertexTask *task);
+
+            /**
+             * @brief Allocate Fifos of a given task.
+             * @param task Pointer to the task.
+             */
+            virtual void allocate(sched::SyncTask *task);
 
             /**
              * @brief Clears the allocator.
@@ -122,6 +122,28 @@ namespace spider {
             size_t virtualMemoryAddress_ = 0;
 
             explicit FifoAllocator(FifoAllocatorTraits traits) noexcept: traits_{ traits } { }
+
+            /* === Protected Method(s) === */
+
+            Fifo allocateNewFifo(size_t size);
+
+#ifndef _NO_BUILD_LEGACY_RT
+
+            void allocateDefaultVertexTask(sched::VertexTask *task);
+
+            virtual spider::Fifo allocateDefaultVertexInputFifo(sched::VertexTask *task, const srdag::Edge *edge) const;
+
+            spider::Fifo allocateDefaultVertexOutputFifo(const srdag::Edge *edge);
+
+            static void allocateExternInTask(sched::VertexTask *task);
+
+            virtual void allocateForkTask(sched::VertexTask *task) const;
+
+            virtual void allocateDuplicateTask(sched::VertexTask *task) const;
+
+            void allocateRepeatTask(sched::VertexTask *task);
+
+#endif
         };
     }
 }

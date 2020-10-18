@@ -218,6 +218,10 @@ namespace spider {
 
             /* === Virtual method(s) === */
 
+            virtual Fifo getOutputFifo(size_t ix) const;
+
+            virtual Fifo getInputFifo(size_t ix) const;
+
             /**
              * @brief Allocate task memory.
              */

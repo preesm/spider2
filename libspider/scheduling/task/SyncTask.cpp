@@ -48,10 +48,12 @@
 /* === Method(s) implementation === */
 
 spider::sched::SyncTask::SyncTask(SyncType type) : Task(), type_{ type } {
-    fifos_ = spider::make_shared<JobFifos, StackID::SCHEDULE>(0, 1);
+    fifos_ = spider::make_shared<JobFifos, StackID::SCHEDULE>(type == SyncType::SEND ? 1 : 0, 1);
     dependencies_ = spider::make_unique(spider::allocate<Task *, StackID::SCHEDULE>(1u));
     dependencies_.get()[0u] = nullptr;
 }
+
+/* === Virtual method(s) === */
 
 void spider::sched::SyncTask::allocate(FifoAllocator *allocator) {
     allocator->allocate(this);
@@ -98,20 +100,6 @@ std::string spider::sched::SyncTask::name() const {
     return type_ == SyncType::SEND ? "send" : "receive";
 }
 
-void spider::sched::SyncTask::setSuccessor(spider::sched::Task *successor) {
-    if (successor && type_ == SyncType::SEND) {
-        successor_ = successor;
-    }
-}
-
-void spider::sched::SyncTask::setSize(size_t size) {
-    size_ = size;
-}
-
-void spider::sched::SyncTask::setInputPortIx(u32 ix) {
-    inputPortIx_ = ix;
-}
-
 spider::JobMessage spider::sched::SyncTask::createJobMessage() const {
     auto message = Task::createJobMessage();
     /* == Set core properties == */
@@ -128,13 +116,9 @@ spider::JobMessage spider::sched::SyncTask::createJobMessage() const {
         const auto *dependency = dependencies_.get()[0u];
         const auto &outputFifo = dependency->fifos().outputFifo(0u);
         message.inputParams_.get()[3u] = static_cast<i64>(outputFifo.virtualAddress_);
-        message.fifos_ = spider::make_shared<JobFifos, StackID::SCHEDULE>(0, 1);
     } else {
         message.inputParams_.get()[3u] = 0;
-        message.fifos_ = spider::make_shared<JobFifos, StackID::SCHEDULE>(1, 1);
-        message.fifos_->setInputFifo(0, previousTask(0)->fifos().outputFifo(inputPortIx_));
     }
-    message.fifos_->setOutputFifo(0, fifos().outputFifo(0));
     return message;
 }
 
@@ -168,4 +152,15 @@ spider::sched::DependencyInfo spider::sched::SyncTask::getDependencyInfo(size_t)
 
 size_t spider::sched::SyncTask::dependencyCount() const {
     return 1u;
+}
+
+spider::Fifo spider::sched::SyncTask::getOutputFifo(size_t) const {
+    return fifos_->outputFifo(0U);
+}
+
+spider::Fifo spider::sched::SyncTask::getInputFifo(size_t) const {
+    if (type_ != SyncType::SEND) {
+        throwSpiderException("RECEIVE tasks do not have input fifos.");
+    }
+    return fifos_->inputFifo(0U);
 }

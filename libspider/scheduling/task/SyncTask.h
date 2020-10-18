@@ -60,6 +60,10 @@ namespace spider {
 
             /* === Virtual method(s) === */
 
+            Fifo getOutputFifo(size_t) const override;
+
+            Fifo getInputFifo(size_t) const override;
+
             void allocate(FifoAllocator *allocator) override;
 
             AllocationRule allocationRuleForInputFifo(size_t ix) const override;
@@ -82,8 +86,15 @@ namespace spider {
 
             size_t dependencyCount() const override;
 
+            DependencyInfo getDependencyInfo(size_t size) const override;
+
             /* === Getter(s) === */
 
+            inline SyncType syncType() const { return type_; }
+
+            inline size_t size() const { return size_; }
+
+            inline u32 inputPortIx() const { return inputPortIx_; }
 
             /* === Setter(s) === */
 
@@ -91,19 +102,24 @@ namespace spider {
              * @brief Set the task succeeding to this task.
              * @param successor pointer to the successor.
              */
-            void setSuccessor(Task *successor);
+            inline void setSuccessor(Task *successor) {
+                if (successor && type_ == SyncType::SEND) {
+                    successor_ = successor;
+                }
+            }
 
             /**
              * @brief Set the data size (in bytes) to send / receive.
              * @param size Size of the data to send / receive
              */
-            void setSize(size_t size);
+            inline void setSize(size_t size) { size_ = size; }
+
 
             /**
              * @brief Set the index of the output port of the previous task
              * @param ix index.
              */
-            void setInputPortIx(u32 ix);
+            inline void setInputPortIx(u32 ix) { inputPortIx_ = ix; }
 
             /**
              * @brief Sets the memory bus attached to this synchronization task.
@@ -115,10 +131,8 @@ namespace spider {
                 }
             }
 
-            DependencyInfo getDependencyInfo(size_t size) const override;
-
         private:
-            Task *successor_{ nullptr };
+            Task *successor_{ nullptr };      /*!< Successor task */
             const MemoryBus *bus_{ nullptr }; /*!< Memory bus used by the task */
             size_t size_{ 0U };               /*!< Data size (in bytes) to send / receive. */
             u32 inputPortIx_{ 0U };

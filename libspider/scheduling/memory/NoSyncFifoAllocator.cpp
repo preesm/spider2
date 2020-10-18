@@ -41,6 +41,8 @@
 #include <graphs/pisdf/DelayVertex.h>
 #include <graphs/pisdf/ExternInterface.h>
 #include <graphs/pisdf/Graph.h>
+#include <graphs/srdag/SRDAGVertex.h>
+#include <graphs/srdag/SRDAGEdge.h>
 #include <api/archi-api.h>
 #include <archi/MemoryInterface.h>
 
@@ -55,122 +57,76 @@ static u32 countNonNullFifos(const spider::array_handle<spider::Fifo> &fifos) {
 
 /* === Method(s) implementation === */
 
-void spider::sched::NoSyncFifoAllocator::allocate(VertexTask *task) {
-    if (!task) {
-        return;
-    }
-    if (task->isSyncOptimizable()) {
-        FifoAllocator::allocate(task);
-        reduceSyncTask(task);
-        return;
-    } else {
-        /* == Allocating input FIFOs == */
-        size_t ix{ 0u };
-        auto inputFifos = task->fifos().inputFifos();
-        for (auto &fifo : inputFifos) {
-            const auto rule = task->allocationRuleForInputFifo(ix);
-            const auto *prevTask = task->previousTask(ix);
-            if (prevTask) {
-                if (prevTask->state() == TaskState::NOT_RUNNABLE) {
-                    replaceInputTask(task, prevTask, ix);
-                }
-                /* == Set the fifo == */
-                if (rule.type_ == AllocType::SAME_IN) {
-                    fifo = prevTask->fifos().outputFifo(rule.fifoIx_);
-                    if (fifo.attribute_ != FifoAttribute::RW_EXT) {
-                        fifo.attribute_ = rule.attribute_;
-                        fifo.count_ = 0u;
-                    }
-                } else {
-                    throwSpiderException("invalid AllocAttribute for input FIFO.");
-                }
-            } else {
-                fifo = Fifo{ };
-            }
-            ix++;
-        }
-
-        /* == Allocating output FIFOs == */
-        ix = 0u;
-        auto outputFifos = task->fifos().outputFifos();
-        for (auto &fifo : outputFifos) {
-            const auto rule = task->allocationRuleForOutputFifo(ix);
-            switch (rule.type_) {
-                case NEW:
-                    fifo.virtualAddress_ = virtualMemoryAddress_;
-                    virtualMemoryAddress_ += rule.size_;
-                    fifo.offset_ = 0u;
-                    break;
-                case SAME_IN: {
-                    auto &inputFifo = inputFifos[rule.fifoIx_];
-                    fifo.virtualAddress_ = inputFifo.virtualAddress_;
-                    fifo.offset_ = inputFifo.offset_ + static_cast<u32>(rule.offset_);
-                }
-                    break;
-                case SAME_OUT: {
-                    auto &outputFifo = outputFifos[rule.fifoIx_];
-                    fifo.virtualAddress_ = outputFifo.virtualAddress_;
-                    fifo.offset_ = outputFifo.offset_ + static_cast<u32>(rule.offset_);
-                }
-                    break;
-                case EXT:
-                    fifo.virtualAddress_ = rule.fifoIx_;
-                    break;
-                default:
-                    break;
-            }
-            fifo.size_ = static_cast<u32>(rule.size_);
-            fifo.attribute_ = rule.attribute_;
-            fifo.count_ = (fifo.size_ != 0u);
-            ix++;
-        }
-    }
-}
-
 /* === Private method(s) implementation === */
 
-void spider::sched::NoSyncFifoAllocator::reduceSyncTask(spider::sched::Task *task) const {
-    auto inputFifos = task->fifos().inputFifos();
-    auto isOptimizable = true;
-    for (auto &fifo : inputFifos) {
-        isOptimizable &= (fifo.attribute_ != FifoAttribute::RW_EXT);
-    }
-    if (isOptimizable) {
-        auto isRunnable = false;
-        const auto *inputTask = task->previousTask(0u);
-        if (inputTask->state() == TaskState::READY) {
-            /* == update fifo count == */
-            updateFifoCount(task, inputTask, countNonNullFifos(task->fifos().outputFifos()) - 1u);
-        } else if (replaceInputTask(task, inputTask, 0u)) {
-            /* == update fifo count == */
-            updateFifoCount(inputTask, inputTask->previousTask(0u),
-                            countNonNullFifos(task->fifos().outputFifos()) - 1u);
-        } else {
-            isRunnable = true;
+spider::Fifo spider::sched::NoSyncFifoAllocator::allocateDefaultVertexInputFifo(VertexTask *task,
+                                                                                const srdag::Edge *edge) const {
+    const auto *inputTask = task->previousTask(edge->sinkPortIx());
+    if (!inputTask) {
+        return Fifo{ };
+    } else {
+        if (inputTask->state() == TaskState::NOT_SCHEDULABLE) {
+            replaceInputTask(task, inputTask, edge->sinkPortIx());
         }
-        /* ==
-         *    In the case of the task being in RUNNING state, we could perform a MemoryInterface::read here.
-         *    However, assuming an heterogeneous architecture, we may not be able to access the corresponding
-         *    MemoryInterface from here. Thus, it seems to be a better solution to leave the synchronization point to
-         *    take charge of that.
-         * == */
-        if (!isRunnable) {
-            task->setState(TaskState::NOT_RUNNABLE);
+        /* == Set the fifo == */
+        auto fifo = inputTask->getOutputFifo(edge->sourcePortIx());
+        if (fifo.attribute_ != FifoAttribute::RW_EXT) {
+            fifo.attribute_ = FifoAttribute::RW_OWN;
+            fifo.count_ = 0u;
         }
+        return fifo;
     }
 }
 
-void spider::sched::NoSyncFifoAllocator::updateFifoCount(const sched::Task *task,
-                                                         const sched::Task *inputTask,
-                                                         u32 count) const {
+void spider::sched::NoSyncFifoAllocator::allocateForkTask(VertexTask *task) const {
+    FifoAllocator::allocateForkTask(task);
+    auto inputFifo = task->getInputFifo(0U);
+    if (inputFifo.attribute_ != FifoAttribute::RW_EXT) {
+        updateForkDuplicateInputTask(task);
+    }
+    if (task->previousTask(0U)->state() != TaskState::RUNNING) {
+        task->setState(TaskState::NOT_SCHEDULABLE);
+    }
+}
+
+void spider::sched::NoSyncFifoAllocator::allocateDuplicateTask(VertexTask *task) const {
+    FifoAllocator::allocateDuplicateTask(task);
+    auto inputFifo = task->getInputFifo(0U);
+    if (inputFifo.attribute_ != FifoAttribute::RW_EXT) {
+        updateForkDuplicateInputTask(task);
+    }
+    if (task->previousTask(0U)->state() != TaskState::RUNNING) {
+        task->setState(TaskState::NOT_SCHEDULABLE);
+    }
+}
+
+void spider::sched::NoSyncFifoAllocator::updateForkDuplicateInputTask(VertexTask *task) {
+    auto *inputTask = task->previousTask(0U);
+    if (inputTask->state() == TaskState::READY) {
+        updateFifoCount(task, inputTask, countNonNullFifos(task->fifos().outputFifos()) - 1u);
+    } else if (replaceInputTask(task, inputTask, 0U)) {
+        updateFifoCount(inputTask, inputTask->previousTask(0u), countNonNullFifos(task->fifos().outputFifos()) - 1u);
+    }
+    /* ==
+     *    In the case of the task being in RUNNING state, we could perform a MemoryInterface::read here.
+     *    However, assuming an heterogeneous architecture, we may not be able to access the corresponding
+     *    MemoryInterface from here. Thus, it seems to be a better solution to leave the synchronization point to
+     *    take charge of that.
+     * == */
+}
+
+void spider::sched::NoSyncFifoAllocator::updateFifoCount(const Task *task,
+                                                         const Task *inputTask,
+                                                         u32 count) {
     const auto rule = task->allocationRuleForInputFifo(0u);
-    auto &outputFifoOfInputTask = inputTask->fifos().outputFifos()[rule.fifoIx_];
-    outputFifoOfInputTask.count_ += count;
+    auto fifo = inputTask->getOutputFifo(rule.fifoIx_);
+    fifo.count_ += count;
+    inputTask->fifos().setOutputFifo(rule.fifoIx_, fifo);
 }
 
 bool spider::sched::NoSyncFifoAllocator::replaceInputTask(sched::Task *task,
                                                           const sched::Task *inputTask,
-                                                          size_t ix) const {
+                                                          size_t ix) {
     if ((inputTask->state() != TaskState::RUNNING) && (inputTask->isSyncOptimizable())) {
         /* == If input is also optimizable, then we replace dependency to avoid cascade sync == */
         auto *newInputTask = inputTask->previousTask(0u);
@@ -180,4 +136,5 @@ bool spider::sched::NoSyncFifoAllocator::replaceInputTask(sched::Task *task,
     }
     return false;
 }
+
 #endif

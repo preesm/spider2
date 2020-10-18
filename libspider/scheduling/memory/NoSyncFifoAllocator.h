@@ -53,8 +53,6 @@ namespace spider {
 
             /* === Method(s) === */
 
-            void allocate(sched::VertexTask *task) override;
-
             /* === Getter(s) === */
 
             /**
@@ -67,11 +65,18 @@ namespace spider {
 
         private:
 
-            void reduceSyncTask(sched::Task *task) const;
+            spider::Fifo
+            allocateDefaultVertexInputFifo(sched::VertexTask *task, const srdag::Edge *edge) const override;
 
-            void updateFifoCount(const sched::Task *task, const sched::Task *inputTask, u32 count) const;
+            void allocateForkTask(sched::VertexTask *task) const override;
 
-            bool replaceInputTask(sched::Task *task, const sched::Task *inputTask, size_t ix) const;
+            void allocateDuplicateTask(sched::VertexTask *task) const override;
+
+            static void updateForkDuplicateInputTask(sched::VertexTask *task);
+
+            static void updateFifoCount(const sched::Task *task, const sched::Task *inputTask, u32 count);
+
+            static bool replaceInputTask(sched::Task *task, const sched::Task *inputTask, size_t ix);
         };
     }
 }

@@ -84,6 +84,14 @@ spider::array<size_t> spider::sched::Task::updateDependenciesNotificationFlag() 
     return shouldNotifyArray;
 }
 
+spider::Fifo spider::sched::Task::getInputFifo(size_t ix) const {
+    return fifos_->inputFifo(ix);
+}
+
+spider::Fifo spider::sched::Task::getOutputFifo(size_t ix) const {
+    return fifos_->outputFifo(ix);
+}
+
 u64 spider::sched::Task::startTime() const {
     return startTime_;
 }
