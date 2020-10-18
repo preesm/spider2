@@ -230,9 +230,11 @@ spider::srdag::Graph::createEdge(srdag::Vertex *source, size_t srcIx, i64 srcRat
     return edge;
 }
 
+#ifndef _NO_BUILD_GRAPH_EXPORTER
 void spider::srdag::Graph::exportToDOT(const std::string &path) const {
     auto exporter = pisdf::SRDAGDOTExporter(const_cast<Graph *>(this));
     exporter.printFromPath(path);
 }
+#endif
 
 #endif

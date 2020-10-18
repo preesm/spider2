@@ -132,7 +132,7 @@ namespace spider {
                                 time::time_point offset = time::min(),
                                 const std::string &path = "./exec-gantt");
 #ifndef _NO_BUILD_LEGACY_RT
-        void exportSRDAG(srdag::Graph *graph, const std::string &path);
+        static void exportSRDAG(srdag::Graph *graph, const std::string &path);
 #endif
     };
 }

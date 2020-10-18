@@ -94,7 +94,9 @@ namespace spider {
             srdag::Edge * createEdge(srdag::Vertex *source, size_t srcIx, i64 srcRate,
                                      srdag::Vertex *sink, size_t snkIx, i64 snkRate);
 
+#ifndef _NO_BUILD_GRAPH_EXPORTER
             void exportToDOT(const std::string &path) const;
+#endif
 
             /**
              * @brief Clears a graph without destroying it.

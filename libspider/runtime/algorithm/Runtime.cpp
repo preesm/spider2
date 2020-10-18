@@ -185,9 +185,9 @@ void spider::Runtime::exportSRDAG(srdag::Graph *graph, const std::string &path) 
     auto exporter = pisdf::SRDAGDOTExporter(graph);
     exporter.printFromPath(path);
 #else
-
-    void spider::api::exportGraphToDOT(pisdf::Graph *, const std::string &) {
+void spider::Runtime::exportSRDAG(srdag::Graph *, const std::string &) {
     printer::fprintf(stderr, "Graph exporter is not built. Recompile spider2 with -DBUILD_GRAPH_EXPORTER=ON option.\n");
 #endif
 }
+
 #endif
