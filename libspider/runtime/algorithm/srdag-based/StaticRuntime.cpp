@@ -37,7 +37,7 @@
 
 /* === Include(s) === */
 
-#include <runtime/algorithm/StaticRuntime.h>
+#include <runtime/algorithm/srdag-based/StaticRuntime.h>
 #include <runtime/runner/RTRunner.h>
 #include <runtime/platform/RTPlatform.h>
 #include <runtime/communicator/RTCommunicator.h>

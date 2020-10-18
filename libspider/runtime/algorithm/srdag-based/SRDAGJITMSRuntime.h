@@ -32,8 +32,8 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_JITMSRUNTIME_H
-#define SPIDER2_JITMSRUNTIME_H
+#ifndef SPIDER2_SRDAGJITMSRUNTIME_H
+#define SPIDER2_SRDAGJITMSRUNTIME_H
 
 #ifndef _NO_BUILD_LEGACY_RT
 
@@ -56,12 +56,12 @@ namespace spider {
      * @brief JITMS runtime to handle dynamic application.
      * @remark see: https://tel.archives-ouvertes.fr/tel-01301642/file/These_HEULOT_Julien.pdf
      */
-    class JITMSRuntime final : public Runtime {
+    class SRDAGJITMSRuntime final : public Runtime {
     public:
 
-        explicit JITMSRuntime(pisdf::Graph *graph, const RuntimeConfig &cfg);
+        explicit SRDAGJITMSRuntime(pisdf::Graph *graph, const RuntimeConfig &cfg);
 
-        ~JITMSRuntime() override = default;
+        ~SRDAGJITMSRuntime() override = default;
 
         /* === Method(s) === */
 
@@ -119,4 +119,4 @@ namespace spider {
     };
 }
 #endif
-#endif //SPIDER2_JITMSRUNTIME_H
+#endif //SPIDER2_SRDAGJITMSRUNTIME_H

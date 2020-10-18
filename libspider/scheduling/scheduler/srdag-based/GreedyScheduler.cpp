@@ -36,8 +36,8 @@
 
 /* === Include(s) === */
 
-#include <scheduling/scheduler/GreedyScheduler.h>
-#include <scheduling/task/VertexTask.h>
+#include <scheduling/scheduler/srdag-based/GreedyScheduler.h>
+#include <scheduling/task/SRDAGTask.h>
 #include <graphs/srdag/SRDAGGraph.h>
 #include <graphs/srdag/SRDAGVertex.h>
 
@@ -69,7 +69,7 @@ bool spider::sched::GreedyScheduler::evaluate(spider::srdag::Vertex *vertex) {
         }
         if (schedulable) {
             vertex->setScheduleTaskIx(tasks_.size());
-            tasks_.emplace_back(make<VertexTask>(vertex));
+            tasks_.emplace_back(make<SRDAGTask>(vertex));
         }
     }
     return schedulable;

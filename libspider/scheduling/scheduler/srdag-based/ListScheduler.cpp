@@ -36,8 +36,8 @@
 
 /* === Include(s) === */
 
-#include <scheduling/scheduler/ListScheduler.h>
-#include <scheduling/task/VertexTask.h>
+#include <scheduling/scheduler/srdag-based/ListScheduler.h>
+#include <scheduling/task/SRDAGTask.h>
 #include <graphs/srdag/SRDAGGraph.h>
 #include <graphs/srdag/SRDAGEdge.h>
 #include <graphs/srdag/SRDAGVertex.h>
@@ -87,7 +87,7 @@ void spider::sched::ListScheduler::schedule(const srdag::Graph *graph) {
 
     /* == Create the list of tasks to be scheduled == */
     for (auto k = lastScheduledTask_; k < lastSchedulableTask_; ++k) {
-        tasks_.emplace_back(make<VertexTask>(sortedTaskVector_[k].vertex_));
+        tasks_.emplace_back(make<SRDAGTask>(sortedTaskVector_[k].vertex_));
         sortedTaskVector_[k].vertex_->setScheduleTaskIx(SIZE_MAX);
     }
 }

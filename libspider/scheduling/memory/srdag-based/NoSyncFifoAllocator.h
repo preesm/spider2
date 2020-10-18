@@ -32,43 +32,26 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_SRLESSFIFOALLOCATOR_H
-#define SPIDER2_SRLESSFIFOALLOCATOR_H
+#ifndef SPIDER2_NOSYNCFIFOALLOCATOR_H
+#define SPIDER2_NOSYNCFIFOALLOCATOR_H
+#ifndef _NO_BUILD_LEGACY_RT
 
 /* === Include(s) === */
 
-#include <scheduling/memory/FifoAllocator.h>
-#include <containers/vector.h>
+#include <scheduling/memory/srdag-based/SRDAGFifoAllocator.h>
 
 namespace spider {
-
-    /* === Forward declaration(s) === */
-
-    class MemoryInterface;
-
-    namespace pisdf {
-        class Graph;
-    }
-
     namespace sched {
-
-        class Task;
 
         /* === Class definition === */
 
-        class SRLessFifoAllocator final : public FifoAllocator {
+        class NoSyncFifoAllocator final : public SRDAGFifoAllocator {
         public:
-            SRLessFifoAllocator() : FifoAllocator({ true, true }) {
+            NoSyncFifoAllocator() : FifoAllocator({ false, true }) { }
 
-            }
-
-            ~SRLessFifoAllocator() noexcept override = default;
+            ~NoSyncFifoAllocator() noexcept override = default;
 
             /* === Method(s) === */
-
-            void allocate(sched::SyncTask *task) override;
-
-            void allocate(sched::SRLessTask *task) override;
 
             /* === Getter(s) === */
 
@@ -76,18 +59,26 @@ namespace spider {
              * @brief Get the type of the FifoAllocator
              * @return @refitem FifoAllocatorType
              */
-            FifoAllocatorType type() const override { return FifoAllocatorType::DEFAULT; };
+            FifoAllocatorType type() const override { return FifoAllocatorType::DEFAULT_NOSYNC; };
+
+            /* === Setter(s) === */
 
         private:
 
-            size_t allocateMergedInputFifo(Task *task,
-                                           Fifo *fifo,
-                                           sched::AllocationRule &rule,
-                                           size_t realFifoIx,
-                                           size_t taskOffset);
+            spider::Fifo
+            allocateDefaultVertexInputFifo(sched::SRDAGTask *task, const srdag::Edge *edge) const override;
 
-            void allocateInputFifo(const Task *task, Fifo *fifo, sched::AllocationRule &rule);
+            void allocateForkTask(sched::SRDAGTask *task) const override;
+
+            void allocateDuplicateTask(sched::SRDAGTask *task) const override;
+
+            static void updateForkDuplicateInputTask(sched::SRDAGTask *task);
+
+            static void updateFifoCount(const sched::Task *task, const sched::Task *inputTask, u32 count);
+
+            static bool replaceInputTask(sched::Task *task, const sched::Task *inputTask, size_t ix);
         };
     }
 }
-#endif //SPIDER2_FIFOALLOCATOR_H
+#endif
+#endif //SPIDER2_NOSYNCFIFOALLOCATOR_H

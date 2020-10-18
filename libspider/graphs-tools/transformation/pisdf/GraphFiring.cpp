@@ -35,8 +35,8 @@
 
 /* === Include(s) === */
 
-#include <graphs-tools/transformation/srless/GraphFiring.h>
-#include <graphs-tools/transformation/srless/GraphHandler.h>
+#include <graphs-tools/transformation/pisdf/GraphFiring.h>
+#include <graphs-tools/transformation/pisdf/GraphHandler.h>
 #include <graphs-tools/numerical/dependencies.h>
 #include <graphs-tools/numerical/brv.h>
 #include <graphs/pisdf/Graph.h>

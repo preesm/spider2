@@ -32,50 +32,56 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_VERTEXTASK_H
-#define SPIDER2_VERTEXTASK_H
-
-#ifndef _NO_BUILD_LEGACY_RT
+#ifndef SPIDER2_PISDFTASK_H
+#define SPIDER2_PISDFTASK_H
 
 /* === Include(s) === */
 
 #include <scheduling/task/Task.h>
+#include <containers/vector.h>
 
 namespace spider {
 
-    namespace srdag {
-        class Vertex;
+    namespace srless {
+        class GraphFiring;
     }
 
+    namespace pisdf {
+        class Vertex;
+
+        struct DependencyIterator;
+    }
     namespace sched {
 
         /* === Class definition === */
 
-        class VertexTask final : public Task {
+        class PiSDFTask final : public Task {
         public:
-            explicit VertexTask(srdag::Vertex *vertex);
+            explicit PiSDFTask(srless::GraphFiring *handler,
+                               const pisdf::Vertex *vertex,
+                               u32 firing,
+                               u32 depCount,
+                               u32 mergedFifoCount);
 
-            ~VertexTask() noexcept override = default;
+            ~PiSDFTask() noexcept override = default;
 
             /* === Virtual method(s) === */
 
             void allocate(FifoAllocator *allocator) override;
 
-            AllocationRule allocationRuleForInputFifo(size_t ix) const override;
+            void updateTaskExecutionDependencies(const Schedule *schedule) override;
+
+            AllocationRule allocationRuleForInputFifo(size_t edgeIx) const override;
 
             AllocationRule allocationRuleForOutputFifo(size_t ix) const override;
+
+            JobMessage createJobMessage() const override;
 
             u32 color() const override;
 
             std::string name() const override;
 
-            void updateTaskExecutionDependencies(const Schedule *schedule) override;
-
-            JobMessage createJobMessage() const override;
-
-            bool isSyncOptimizable() const noexcept override;
-
-            void setIx(u32 ix) noexcept override;
+            inline bool isSyncOptimizable() const noexcept override { return false; }
 
             std::pair<ufast64, ufast64> computeCommunicationCost(const PE *mappedPE) const override;
 
@@ -87,16 +93,25 @@ namespace spider {
 
             /* === Getter(s) === */
 
-            inline srdag::Vertex *vertex() const { return vertex_; }
+            DependencyInfo getDependencyInfo(size_t size) const override;
 
-            DependencyInfo getDependencyInfo(size_t ix) const override;
+            inline srless::GraphFiring *handler() const { return handler_; }
+
+            inline const pisdf::Vertex *vertex() const { return vertex_; }
+
+            inline u32 vertexFiring() const { return firing_; }
 
             /* === Setter(s) === */
 
+            void setIx(u32 ix) noexcept override;
+
         private:
-            srdag::Vertex *vertex_;
+            srless::GraphFiring *handler_;
+            const pisdf::Vertex *vertex_;
+            u32 firing_;
+            u32 dependenciesCount_;
         };
     }
 }
-#endif
-#endif //SPIDER2_VERTEXTASK_H
+
+#endif //SPIDER2_PISDFTASK_H

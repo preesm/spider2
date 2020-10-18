@@ -165,7 +165,7 @@ namespace spider {
         SRDAG_BASED = 0,  /*!< Use the Just In Time Multicore Scheduling runtime
                            *   see: https://tel.archives-ouvertes.fr/tel-01301642/file/These_HEULOT_Julien.pdf
                            */
-        SRDAG_LESS, /*!< Use a faster version of the JITMS runtime which does not compute the Single Rate intermediate graph.
+        PISDF_BASED, /*!< Use a faster version of the JITMS runtime which does not compute the Single Rate intermediate graph.
                      *   see: https://hal-univ-rennes1.archives-ouvertes.fr/hal-02355636
                      */
     };

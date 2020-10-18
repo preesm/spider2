@@ -38,7 +38,7 @@
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/DelayVertex.h>
 #include <graphs/pisdf/ExternInterface.h>
-#include <graphs-tools/transformation/srless/GraphFiring.h>
+#include <graphs-tools/transformation/pisdf/GraphFiring.h>
 #include <api/pisdf-api.h>
 
 /* === Static function(s) === */

@@ -37,8 +37,8 @@
 #include <graphs-tools/numerical/dependencies.h>
 #include <graphs-tools/numerical/brv.h>
 #include <graphs-tools/helper/pisdf-helper.h>
-#include <graphs-tools/transformation/srless/GraphHandler.h>
-#include <graphs-tools/transformation/srless/GraphFiring.h>
+#include <graphs-tools/transformation/pisdf/GraphHandler.h>
+#include <graphs-tools/transformation/pisdf/GraphFiring.h>
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/DelayVertex.h>
 #include <common/Math.h>

@@ -32,8 +32,8 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_SRLESSLISTSCHEDULER_H
-#define SPIDER2_SRLESSLISTSCHEDULER_H
+#ifndef SPIDER2_PISDFLISTSCHEDULER_H
+#define SPIDER2_PISDFLISTSCHEDULER_H
 
 /* === Include(s) === */
 
@@ -53,12 +53,12 @@ namespace spider {
 
         /* === Class definition === */
 
-        class SRLessListScheduler final : public Scheduler {
+        class PiSDFListScheduler final : public Scheduler {
         public:
 
-            SRLessListScheduler();
+            PiSDFListScheduler();
 
-            ~SRLessListScheduler() noexcept override = default;
+            ~PiSDFListScheduler() noexcept override = default;
 
             /* === Method(s) === */
 

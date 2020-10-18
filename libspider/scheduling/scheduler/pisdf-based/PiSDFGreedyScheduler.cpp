@@ -35,19 +35,19 @@
 
 /* === Include(s) === */
 
-#include <scheduling/scheduler/SRLessGreedyScheduler.h>
-#include <scheduling/task/SRLessTask.h>
+#include <scheduling/scheduler/pisdf-based/PiSDFGreedyScheduler.h>
+#include <scheduling/task/PiSDFTask.h>
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/Vertex.h>
-#include <graphs-tools/transformation/srless/GraphHandler.h>
-#include <graphs-tools/transformation/srless/GraphFiring.h>
+#include <graphs-tools/transformation/pisdf/GraphHandler.h>
+#include <graphs-tools/transformation/pisdf/GraphFiring.h>
 #include <graphs-tools/numerical/dependencies.h>
 
 /* === Static function === */
 
 /* === Method(s) implementation === */
 
-void spider::sched::SRLessGreedyScheduler::schedule(srless::GraphHandler *graphHandler) {
+void spider::sched::PiSDFGreedyScheduler::schedule(srless::GraphHandler *graphHandler) {
     /* == Reserve space for the new ListTasks == */
     tasks_.clear();
     /* == Evaluate tasks == */
@@ -56,7 +56,7 @@ void spider::sched::SRLessGreedyScheduler::schedule(srless::GraphHandler *graphH
 
 /* === Private method(s) implementation === */
 
-void spider::sched::SRLessGreedyScheduler::evaluate(srless::GraphHandler *graphHandler) {
+void spider::sched::PiSDFGreedyScheduler::evaluate(srless::GraphHandler *graphHandler) {
     for (auto *firingHandler : graphHandler->firings()) {
         if (firingHandler->isResolved()) {
             for (const auto &vertex : graphHandler->graph()->vertices()) {
@@ -74,9 +74,9 @@ void spider::sched::SRLessGreedyScheduler::evaluate(srless::GraphHandler *graphH
     }
 }
 
-bool spider::sched::SRLessGreedyScheduler::evaluate(const pisdf::Vertex *vertex,
-                                                    u32 firing,
-                                                    srless::GraphFiring *handler) {
+bool spider::sched::PiSDFGreedyScheduler::evaluate(const pisdf::Vertex *vertex,
+                                                   u32 firing,
+                                                   srless::GraphFiring *handler) {
     auto schedulable = true;
     if (handler->getTaskIx(vertex, firing) == UINT32_MAX) {
         u32 depCount{ };
@@ -101,7 +101,7 @@ bool spider::sched::SRLessGreedyScheduler::evaluate(const pisdf::Vertex *vertex,
         }
         if (schedulable) {
             handler->registerTaskIx(vertex, firing, static_cast<u32>(tasks_.size()));
-            tasks_.emplace_back(make<SRLessTask>(handler, vertex, firing, depCount, mergedFifoCount));
+            tasks_.emplace_back(make<PiSDFTask>(handler, vertex, firing, depCount, mergedFifoCount));
         }
     }
     return schedulable;

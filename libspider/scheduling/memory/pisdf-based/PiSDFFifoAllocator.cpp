@@ -35,8 +35,8 @@
 
 /* === Include(s) === */
 
-#include <scheduling/memory/SRLessFifoAllocator.h>
-#include <scheduling/task/SRLessTask.h>
+#include <scheduling/memory/pisdf-based/PiSDFFifoAllocator.h>
+#include <scheduling/task/PiSDFTask.h>
 #include <graphs/pisdf/DelayVertex.h>
 #include <graphs/pisdf/ExternInterface.h>
 #include <graphs/pisdf/Graph.h>
@@ -49,11 +49,11 @@
 
 /* === Function(s) definition === */
 
-void spider::sched::SRLessFifoAllocator::allocate(SyncTask *task) {
+void spider::sched::PiSDFFifoAllocator::allocate(SyncTask *task) {
     FifoAllocator::allocate(task);
 }
 
-void spider::sched::SRLessFifoAllocator::allocate(SRLessTask *task) {
+void spider::sched::PiSDFFifoAllocator::allocate(PiSDFTask *task) {
     if (!task) {
         return;
     }
@@ -122,11 +122,11 @@ void spider::sched::SRLessFifoAllocator::allocate(SRLessTask *task) {
 
 /* === Private methods === */
 
-size_t spider::sched::SRLessFifoAllocator::allocateMergedInputFifo(Task *task,
-                                                                   Fifo *fifo,
-                                                                   AllocationRule &rule,
-                                                                   size_t realFifoIx,
-                                                                   size_t taskOffset) {
+size_t spider::sched::PiSDFFifoAllocator::allocateMergedInputFifo(Task *task,
+                                                                  Fifo *fifo,
+                                                                  AllocationRule &rule,
+                                                                  size_t realFifoIx,
+                                                                  size_t taskOffset) {
     fifo->virtualAddress_ = virtualMemoryAddress_;
     virtualMemoryAddress_ += rule.size_;
     fifo->size_ = rule.size_;
@@ -147,7 +147,7 @@ size_t spider::sched::SRLessFifoAllocator::allocateMergedInputFifo(Task *task,
     return rule.offset_ - 1u;
 }
 
-void spider::sched::SRLessFifoAllocator::allocateInputFifo(const Task *task, Fifo *fifo, AllocationRule &rule) {
+void spider::sched::PiSDFFifoAllocator::allocateInputFifo(const Task *task, Fifo *fifo, AllocationRule &rule) {
     if (task && (rule.attribute_ != FifoAttribute::DUMMY)) {
         *fifo = task->fifos().outputFifo(rule.fifoIx_);
         if (fifo->attribute_ != FifoAttribute::RW_EXT) {

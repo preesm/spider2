@@ -41,13 +41,13 @@
 #include <runtime/platform/RTPlatform.h>
 #include <graphs/pisdf/Graph.h>
 #include <runtime/algorithm/Runtime.h>
-#include <runtime/algorithm/FastRuntime.h>
+#include <runtime/algorithm/pisdf-based/PiSDFJITMSRuntime.h>
 #include <graphs-tools/helper/pisdf-helper.h>
 
 #ifndef _NO_BUILD_LEGACY_RT
 
-#include <runtime/algorithm/JITMSRuntime.h>
-#include <runtime/algorithm/StaticRuntime.h>
+#include <runtime/algorithm/srdag-based/SRDAGJITMSRuntime.h>
+#include <runtime/algorithm/srdag-based/StaticRuntime.h>
 
 #endif
 
@@ -208,13 +208,13 @@ static spider::Runtime *getRuntimeFromType(spider::pisdf::Graph *graph,
             if (isStatic) {
                 return spider::make<spider::StaticRuntime>(StackID::GENERAL, graph, cfg);
             }
-            return spider::make<spider::JITMSRuntime>(StackID::GENERAL, graph, cfg);
+            return spider::make<spider::SRDAGJITMSRuntime>(StackID::GENERAL, graph, cfg);
 #else
             spider::printer::fprintf(stderr,"JITMS runtime was not compiled and can not be used.\n");
             return nullptr;
 #endif
-        case spider::RuntimeType::SRDAG_LESS:
-            return spider::make<spider::FastRuntime>(StackID::GENERAL, graph, cfg, isStatic);
+        case spider::RuntimeType::PISDF_BASED:
+            return spider::make<spider::PiSDFJITMSRuntime>(StackID::GENERAL, graph, cfg, isStatic);
         default:
             return nullptr;
     }

@@ -34,13 +34,13 @@
  */
 /* === Include(s) === */
 
-#include <runtime/algorithm/FastRuntime.h>
+#include <runtime/algorithm/pisdf-based/PiSDFJITMSRuntime.h>
 #include <graphs/pisdf/Graph.h>
-#include <graphs-tools/transformation/srless/GraphFiring.h>
-#include <graphs-tools/transformation/srless/GraphHandler.h>
+#include <graphs-tools/transformation/pisdf/GraphFiring.h>
+#include <graphs-tools/transformation/pisdf/GraphHandler.h>
 #include <scheduling/ResourcesAllocator.h>
 #include <scheduling/memory/FifoAllocator.h>
-#include <scheduling/task/SRLessTask.h>
+#include <scheduling/task/PiSDFTask.h>
 #include <runtime/runner/RTRunner.h>
 #include <runtime/platform/RTPlatform.h>
 #include <runtime/communicator/RTCommunicator.h>
@@ -53,7 +53,7 @@
 
 /* === Method(s) implementation === */
 
-spider::FastRuntime::FastRuntime(pisdf::Graph *graph, const RuntimeConfig &cfg, bool isStatic) :
+spider::PiSDFJITMSRuntime::PiSDFJITMSRuntime(pisdf::Graph *graph, const RuntimeConfig &cfg, bool isStatic) :
         Runtime(graph),
         resourcesAllocator_{ make_unique<sched::ResourcesAllocator, StackID::RUNTIME>(cfg.schedPolicy_,
                                                                                       cfg.mapPolicy_,
@@ -69,7 +69,7 @@ spider::FastRuntime::FastRuntime(pisdf::Graph *graph, const RuntimeConfig &cfg, 
     graphHandler_ = make_unique<srless::GraphHandler, StackID::TRANSFO>(graph_, graph_->params(), 1u);
 }
 
-bool spider::FastRuntime::execute() {
+bool spider::PiSDFJITMSRuntime::execute() {
     if (isStatic_) {
         return staticExecute();
     }
@@ -78,7 +78,7 @@ bool spider::FastRuntime::execute() {
 
 /* === Private method(s) implementation === */
 
-bool spider::FastRuntime::staticExecute() {
+bool spider::PiSDFJITMSRuntime::staticExecute() {
     /* == Time point used as reference == */
     if (api::exportTraceEnabled()) {
         startIterStamp_ = time::now();
@@ -130,7 +130,7 @@ bool spider::FastRuntime::staticExecute() {
     return true;
 }
 
-bool spider::FastRuntime::dynamicExecute() {
+bool spider::PiSDFJITMSRuntime::dynamicExecute() {
     /* == Time point used as reference == */
     if (api::exportTraceEnabled()) {
         startIterStamp_ = time::now();
@@ -177,7 +177,7 @@ bool spider::FastRuntime::dynamicExecute() {
                     rt::platform()->communicator()->pop(message, grtIx, notification.notificationIx_);
                     /* == Get the config vertex == */
                     const auto *task = resourcesAllocator_->schedule()->task(message.taskIx_);
-                    const auto *srlessTask = static_cast<const sched::SRLessTask *>(task);
+                    const auto *srlessTask = static_cast<const sched::PiSDFTask *>(task);
                     const auto *cfg = srlessTask->vertex();
                     auto *handler = srlessTask->handler();
                     auto paramIterator = message.params_.begin();
@@ -212,7 +212,7 @@ bool spider::FastRuntime::dynamicExecute() {
     return true;
 }
 
-size_t spider::FastRuntime::countExpectedNumberOfParams(const srless::GraphHandler *graphHandler) const {
+size_t spider::PiSDFJITMSRuntime::countExpectedNumberOfParams(const srless::GraphHandler *graphHandler) const {
     size_t count = 0;
     for (const auto *firingHandler : graphHandler->firings()) {
         if (firingHandler->isResolved()) {

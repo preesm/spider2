@@ -45,8 +45,8 @@
 #include <api/spider.h>
 #include <graphs/pisdf/Graph.h>
 #include <scheduling/scheduler/Scheduler.h>
-#include <scheduling/scheduler/ListScheduler.h>
-#include <runtime/algorithm/JITMSRuntime.h>
+#include <scheduling/scheduler/srdag-based/ListScheduler.h>
+#include <runtime/algorithm/srdag-based/SRDAGJITMSRuntime.h>
 #include "appTest/stabilization/spider2-application.h"
 
 extern bool spider2StopRunning;
@@ -109,7 +109,7 @@ TEST_F(runtimeAppTest, TestStabilizationJIT) {
 TEST_F(runtimeAppTest, TestStabilizationSRLess) {
     auto context = spider::createRuntimeContext(graph_, spider::RuntimeConfig{
             spider::RunMode::LOOP,
-            spider::RuntimeType::SRDAG_LESS,
+            spider::RuntimeType::PISDF_BASED,
             spider::ExecutionPolicy::DELAYED,
             spider::SchedulingPolicy::LIST,
             spider::MappingPolicy::BEST_FIT,
@@ -123,7 +123,7 @@ TEST_F(runtimeAppTest, TestStabilizationSRLess) {
 TEST_F(runtimeAppTest, TestStabilizationSRLessJIT) {
     auto context = spider::createRuntimeContext(graph_, spider::RuntimeConfig{
             spider::RunMode::LOOP,
-            spider::RuntimeType::SRDAG_LESS,
+            spider::RuntimeType::PISDF_BASED,
             spider::ExecutionPolicy::JIT,
             spider::SchedulingPolicy::LIST,
             spider::MappingPolicy::BEST_FIT,

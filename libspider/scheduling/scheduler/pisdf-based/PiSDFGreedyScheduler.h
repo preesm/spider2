@@ -1,9 +1,9 @@
-/**
- * Copyright or © or Copr. IETR/INSA - Rennes (2019 - 2020) :
+/*
+ * Copyright or © or Copr. IETR/INSA - Rennes (2020) :
  *
- * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2019 - 2020)
+ * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2020)
  *
- * Spider 2.0 is a dataflow based runtime used to execute dynamic PiSDF
+ * Spider is a dataflow based runtime used to execute dynamic PiSDF
  * applications. The Preesm tool may be used to design PiSDF applications.
  *
  * This software is governed by the CeCILL  license under French law and
@@ -32,67 +32,55 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_FASTRUNTIME_H
-#define SPIDER2_FASTRUNTIME_H
+#ifndef SPIDER2_PISDFGREEDYSCHEDULER_H
+#define SPIDER2_PISDFGREEDYSCHEDULER_H
 
 /* === Include(s) === */
 
-#include <runtime/algorithm/Runtime.h>
-#include <memory/unique_ptr.h>
+#include <scheduling/scheduler/Scheduler.h>
 
 namespace spider {
 
-    /* === Forward declaration(s) === */
+    namespace srless {
+        class GraphFiring;
+    }
 
     namespace sched {
-        class ResourcesAllocator;
+
+        /* === Class definition === */
+
+        class PiSDFGreedyScheduler final : public Scheduler {
+        public:
+
+            PiSDFGreedyScheduler() = default;
+
+            ~PiSDFGreedyScheduler() noexcept override = default;
+
+            /* === Method(s) === */
+
+            void schedule(srless::GraphHandler *graphHandler) override;
+
+        private:
+
+            /* == Private method(s) === */
+
+            inline void schedule(const srdag::Graph *) override { }
+
+            /**
+             * @brief Recursively add vertices into the unscheduledVertices_ vector.
+             * @param graphHandler  Top level graph handler;
+             */
+            void evaluate(srless::GraphHandler *graphHandler);
+
+            /**
+             * @brief Evaluate if a vertex is schedulable for a given firing.
+             * @param vertex  Pointer to the vertex.
+             * @param firing  Firing of the vertex.
+             * @param handler Pointer to the GraphFiring handler.
+             * @return true if schedulable, false else.
+             */
+            bool evaluate(const pisdf::Vertex *vertex, u32 firing, srless::GraphFiring *handler);
+        };
     }
-
-    namespace srless {
-        class GraphHandler;
-    }
-
-    /* === Class definition === */
-
-    class FastRuntime final : public Runtime {
-    public:
-        explicit FastRuntime(pisdf::Graph *graph, const RuntimeConfig &cfg, bool isStatic);
-
-        ~FastRuntime() override = default;
-
-        /* === Method(s) === */
-
-        inline void setup() override { };
-
-        bool execute() override;
-
-        /* === Getter(s) === */
-
-        /* === Setter(s) === */
-
-    private:
-        time::time_point startIterStamp_ = time::min();
-        spider::unique_ptr<sched::ResourcesAllocator> resourcesAllocator_;
-        spider::unique_ptr<srless::GraphHandler> graphHandler_;
-        size_t iter_ = 0U;
-        bool isStatic_{};
-
-        /* === Private method(s) === */
-
-        /**
-         * @brief Handle execution of static applications.
-         * @return true
-         */
-        bool staticExecute();
-
-        /**
-         * @brief Handle execution of dynamic applications.
-         * @return true
-         */
-        bool dynamicExecute();
-
-        size_t countExpectedNumberOfParams(const srless::GraphHandler *graphHandler) const;
-    };
 }
-
-#endif //SPIDER2_FASTRUNTIME_H
+#endif //SPIDER2_PISDFGREEDYSCHEDULER_H

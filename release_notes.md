@@ -44,7 +44,7 @@ Spider2 Changelog
 * Removed abstract classes for graph internal API.
 
 ### Bug fix
-* The JITMSRuntime does no longer consider subgraph with inherited dynamic parameters as fully dynamic.
+* The SRDAGJITMSRuntime does no longer consider subgraph with inherited dynamic parameters as fully dynamic.
 * Fixed handling of inherited parameters with different names.
 * Fixed compile issues on Windows.
 * Fixed join/fork optimization pattern in some corner cases.

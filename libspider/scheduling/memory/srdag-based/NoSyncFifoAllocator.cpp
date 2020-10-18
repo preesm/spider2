@@ -36,8 +36,8 @@
 
 /* === Include(s) === */
 
-#include <scheduling/memory/NoSyncFifoAllocator.h>
-#include <scheduling/task/VertexTask.h>
+#include <scheduling/memory/srdag-based/NoSyncFifoAllocator.h>
+#include <scheduling/task/SRDAGTask.h>
 #include <graphs/pisdf/DelayVertex.h>
 #include <graphs/pisdf/ExternInterface.h>
 #include <graphs/pisdf/Graph.h>
@@ -59,7 +59,7 @@ static u32 countNonNullFifos(const spider::array_handle<spider::Fifo> &fifos) {
 
 /* === Private method(s) implementation === */
 
-spider::Fifo spider::sched::NoSyncFifoAllocator::allocateDefaultVertexInputFifo(VertexTask *task,
+spider::Fifo spider::sched::NoSyncFifoAllocator::allocateDefaultVertexInputFifo(SRDAGTask *task,
                                                                                 const srdag::Edge *edge) const {
     const auto *inputTask = task->previousTask(edge->sinkPortIx());
     if (!inputTask) {
@@ -78,8 +78,8 @@ spider::Fifo spider::sched::NoSyncFifoAllocator::allocateDefaultVertexInputFifo(
     }
 }
 
-void spider::sched::NoSyncFifoAllocator::allocateForkTask(VertexTask *task) const {
-    FifoAllocator::allocateForkTask(task);
+void spider::sched::NoSyncFifoAllocator::allocateForkTask(SRDAGTask *task) const {
+    SRDAGFifoAllocator::allocateForkTask(task);
     auto inputFifo = task->getInputFifo(0U);
     if (inputFifo.attribute_ != FifoAttribute::RW_EXT) {
         updateForkDuplicateInputTask(task);
@@ -89,8 +89,8 @@ void spider::sched::NoSyncFifoAllocator::allocateForkTask(VertexTask *task) cons
     }
 }
 
-void spider::sched::NoSyncFifoAllocator::allocateDuplicateTask(VertexTask *task) const {
-    FifoAllocator::allocateDuplicateTask(task);
+void spider::sched::NoSyncFifoAllocator::allocateDuplicateTask(SRDAGTask *task) const {
+    SRDAGFifoAllocator::allocateDuplicateTask(task);
     auto inputFifo = task->getInputFifo(0U);
     if (inputFifo.attribute_ != FifoAttribute::RW_EXT) {
         updateForkDuplicateInputTask(task);
@@ -100,7 +100,7 @@ void spider::sched::NoSyncFifoAllocator::allocateDuplicateTask(VertexTask *task)
     }
 }
 
-void spider::sched::NoSyncFifoAllocator::updateForkDuplicateInputTask(VertexTask *task) {
+void spider::sched::NoSyncFifoAllocator::updateForkDuplicateInputTask(SRDAGTask *task) {
     auto *inputTask = task->previousTask(0U);
     if (inputTask->state() == TaskState::READY) {
         updateFifoCount(task, inputTask, countNonNullFifos(task->fifos().outputFifos()) - 1u);

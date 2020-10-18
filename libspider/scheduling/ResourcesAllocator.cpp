@@ -39,17 +39,17 @@
 
 #ifndef _NO_BUILD_LEGACY_RT
 
-#include <scheduling/scheduler/ListScheduler.h>
-#include <scheduling/scheduler/GreedyScheduler.h>
-#include <scheduling/memory/NoSyncFifoAllocator.h>
+#include <scheduling/scheduler/srdag-based/ListScheduler.h>
+#include <scheduling/scheduler/srdag-based/GreedyScheduler.h>
+#include <scheduling/memory/srdag-based/NoSyncFifoAllocator.h>
 
 #endif
 
-#include <scheduling/scheduler/SRLessGreedyScheduler.h>
-#include <scheduling/scheduler/SRLessListScheduler.h>
+#include <scheduling/scheduler/pisdf-based/PiSDFGreedyScheduler.h>
+#include <scheduling/scheduler/pisdf-based/PiSDFListScheduler.h>
 #include <scheduling/mapper/BestFitMapper.h>
 #include <scheduling/memory/FifoAllocator.h>
-#include <scheduling/memory/SRLessFifoAllocator.h>
+#include <scheduling/memory/pisdf-based/PiSDFFifoAllocator.h>
 #include <scheduling/task/Task.h>
 #include <api/archi-api.h>
 #include <archi/Platform.h>
@@ -123,7 +123,7 @@ spider::sched::ResourcesAllocator::allocateScheduler(SchedulingPolicy policy, bo
                 return nullptr;
 #endif
             }
-            return spider::make<sched::SRLessListScheduler, StackID::SCHEDULE>();
+            return spider::make<sched::PiSDFListScheduler, StackID::SCHEDULE>();
         case SchedulingPolicy::GREEDY:
             if (legacy) {
 #ifndef _NO_BUILD_LEGACY_RT
@@ -132,7 +132,7 @@ spider::sched::ResourcesAllocator::allocateScheduler(SchedulingPolicy policy, bo
                 return nullptr;
 #endif
             } else {
-                return spider::make<sched::SRLessGreedyScheduler, StackID::SCHEDULE>();
+                return spider::make<sched::PiSDFGreedyScheduler, StackID::SCHEDULE>();
             }
         default:
             throwSpiderException("unsupported scheduling policy.");
@@ -144,18 +144,24 @@ spider::sched::ResourcesAllocator::allocateAllocator(FifoAllocatorType type, boo
     switch (type) {
         case spider::FifoAllocatorType::DEFAULT:
             if (!legacy) {
-                return spider::make<spider::sched::SRLessFifoAllocator, StackID::RUNTIME>();
+                return spider::make<spider::sched::PiSDFFifoAllocator, StackID::RUNTIME>();
             }
-            return spider::make<spider::sched::FifoAllocator, StackID::RUNTIME>();
+#ifndef _NO_BUILD_LEGACY_RT
+            return spider::make<spider::sched::SRDAGFifoAllocator, StackID::RUNTIME>();
+#else
+            printer::fprintf(stderr, "Default allocator is part of the legacy runtime which was not built.\n"
+                                     "Rebuild the Spider 2.0 library with the cmake flag -DBUILD_LEGACY_RUNTIME=ON.\n");
+            return nullptr;
+#endif
         case spider::FifoAllocatorType::DEFAULT_NOSYNC:
             if (!legacy) {
-                return spider::make<spider::sched::SRLessFifoAllocator, StackID::RUNTIME>();
+                return spider::make<spider::sched::PiSDFFifoAllocator, StackID::RUNTIME>();
             }
 #ifndef _NO_BUILD_LEGACY_RT
             return spider::make<spider::sched::NoSyncFifoAllocator, StackID::RUNTIME>();
 #else
             printer::fprintf(stderr, "NO_SYNC allocator is part of the legacy runtime which was not built.\n"
-                                     "Rebuild the Spider 2.0 library with the cmake flag -DBUILD_LEGACY_RUNTIME.\n");
+                                     "Rebuild the Spider 2.0 library with the cmake flag -DBUILD_LEGACY_RUNTIME=ON.\n");
             return nullptr;
 #endif
         case spider::FifoAllocatorType::ARCHI_AWARE:

@@ -32,55 +32,65 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_SRLESSGREEDYSCHEDULER_H
-#define SPIDER2_SRLESSGREEDYSCHEDULER_H
+#ifndef SPIDER2_SRDAGFIFOALLOCATOR_H
+#define SPIDER2_SRDAGFIFOALLOCATOR_H
+#ifndef _NO_BUILD_LEGACY_RT
 
 /* === Include(s) === */
 
-#include <scheduling/scheduler/Scheduler.h>
+#include <scheduling/memory/FifoAllocator.h>
+#include <containers/vector.h>
 
 namespace spider {
 
-    namespace srless {
-        class GraphFiring;
-    }
+    /* === Forward declaration(s) === */
 
     namespace sched {
 
+        class Task;
+
         /* === Class definition === */
 
-        class SRLessGreedyScheduler final : public Scheduler {
+        class SRDAGFifoAllocator : public virtual FifoAllocator {
         public:
+            SRDAGFifoAllocator() : FifoAllocator({ true, true }) {
 
-            SRLessGreedyScheduler() = default;
+            }
 
-            ~SRLessGreedyScheduler() noexcept override = default;
+            ~SRDAGFifoAllocator() noexcept override = default;
 
             /* === Method(s) === */
 
-            void schedule(srless::GraphHandler *graphHandler) override;
+            void allocate(SRDAGTask *task) override;
 
-        private:
-
-            /* == Private method(s) === */
-
-            inline void schedule(const srdag::Graph *) override { }
+            /* === Getter(s) === */
 
             /**
-             * @brief Recursively add vertices into the unscheduledVertices_ vector.
-             * @param graphHandler  Top level graph handler;
+             * @brief Get the type of the FifoAllocator
+             * @return @refitem FifoAllocatorType
              */
-            void evaluate(srless::GraphHandler *graphHandler);
+            FifoAllocatorType type() const override { return FifoAllocatorType::DEFAULT; };
 
-            /**
-             * @brief Evaluate if a vertex is schedulable for a given firing.
-             * @param vertex  Pointer to the vertex.
-             * @param firing  Firing of the vertex.
-             * @param handler Pointer to the GraphFiring handler.
-             * @return true if schedulable, false else.
-             */
-            bool evaluate(const pisdf::Vertex *vertex, u32 firing, srless::GraphFiring *handler);
+        protected:
+
+            /* === Private Method(s) === */
+
+            void allocateDefaultVertexTask(sched::SRDAGTask *task);
+
+            virtual spider::Fifo allocateDefaultVertexInputFifo(sched::SRDAGTask *task, const srdag::Edge *edge) const;
+
+            spider::Fifo allocateDefaultVertexOutputFifo(const srdag::Edge *edge);
+
+            static void allocateExternInTask(sched::SRDAGTask *task);
+
+            virtual void allocateForkTask(sched::SRDAGTask *task) const;
+
+            virtual void allocateDuplicateTask(sched::SRDAGTask *task) const;
+
+            void allocateRepeatTask(sched::SRDAGTask *task);
+
         };
     }
 }
-#endif //SPIDER2_SRLESSGREEDYSCHEDULER_H
+#endif
+#endif //SPIDER2_SRDAGFIFOALLOCATOR_H

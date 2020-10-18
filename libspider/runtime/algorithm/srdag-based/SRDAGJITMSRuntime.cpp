@@ -37,7 +37,7 @@
 
 #ifndef _NO_BUILD_LEGACY_RT
 
-#include <runtime/algorithm/JITMSRuntime.h>
+#include <runtime/algorithm/srdag-based/SRDAGJITMSRuntime.h>
 #include <runtime/runner/RTRunner.h>
 #include <runtime/platform/RTPlatform.h>
 #include <runtime/communicator/RTCommunicator.h>
@@ -48,7 +48,7 @@
 #include <scheduling/memory/FifoAllocator.h>
 #include <scheduling/schedule/exporter/SchedXMLGanttExporter.h>
 #include <scheduling/schedule/exporter/SchedStatsExporter.h>
-#include <scheduling/task/VertexTask.h>
+#include <scheduling/task/SRDAGTask.h>
 #include <api/runtime-api.h>
 #include <api/config-api.h>
 #include <api/spider.h>
@@ -57,7 +57,7 @@
 
 /* === Method(s) implementation === */
 
-spider::JITMSRuntime::JITMSRuntime(pisdf::Graph *graph, const RuntimeConfig &cfg) :
+spider::SRDAGJITMSRuntime::SRDAGJITMSRuntime(pisdf::Graph *graph, const RuntimeConfig &cfg) :
         Runtime(graph),
         srdag_{ make_unique<srdag::Graph, StackID::RUNTIME>(graph) },
         resourcesAllocator_{ make_unique<sched::ResourcesAllocator, StackID::RUNTIME>(cfg.schedPolicy_,
@@ -72,7 +72,7 @@ spider::JITMSRuntime::JITMSRuntime(pisdf::Graph *graph, const RuntimeConfig &cfg
     pisdf::recursiveSplitDynamicGraph(graph);
 }
 
-bool spider::JITMSRuntime::execute() {
+bool spider::SRDAGJITMSRuntime::execute() {
     const auto grtIx = archi::platform()->spiderGRTPE()->attachedLRT()->virtualIx();
     /* == Time point used as reference == */
     if (api::exportTraceEnabled()) {
@@ -127,7 +127,7 @@ bool spider::JITMSRuntime::execute() {
 
                     /* == Get the config vertex == */
                     const auto *task = resourcesAllocator_->schedule()->task(message.taskIx_);
-                    const auto *vertexTask = static_cast<const sched::VertexTask *>(task);
+                    const auto *vertexTask = static_cast<const sched::SRDAGTask *>(task);
                     const auto *cfg = vertexTask->vertex();
                     auto paramIterator = message.params_.begin();
                     for (const auto &param : cfg->outputParamVector()) {
@@ -186,7 +186,7 @@ bool spider::JITMSRuntime::execute() {
 
 /* === Private method(s) === */
 
-void spider::JITMSRuntime::scheduleRunAndWait() {
+void spider::SRDAGJITMSRuntime::scheduleRunAndWait() {
     TraceMessage schedMsg{ };
     TRACE_SCHEDULE_START()
     /* == Send LRT_START_ITERATION notification == */
@@ -211,15 +211,15 @@ void spider::JITMSRuntime::scheduleRunAndWait() {
 
 /* === Transformation related methods === */
 
-void spider::JITMSRuntime::updateJobStack(vector<srdag::TransfoJob> &src, vector<srdag::TransfoJob> &dest) {
+void spider::SRDAGJITMSRuntime::updateJobStack(vector<srdag::TransfoJob> &src, vector<srdag::TransfoJob> &dest) {
     std::for_each(src.begin(), src.end(), [&dest](srdag::TransfoJob &job) {
         dest.emplace_back(std::move(job));
     });
 }
 
-void spider::JITMSRuntime::transformJobs(vector<srdag::TransfoJob> &iterJobStack,
-                                         vector<srdag::TransfoJob> &staticJobStack,
-                                         vector<srdag::TransfoJob> &dynamicJobStack) {
+void spider::SRDAGJITMSRuntime::transformJobs(vector<srdag::TransfoJob> &iterJobStack,
+                                              vector<srdag::TransfoJob> &staticJobStack,
+                                              vector<srdag::TransfoJob> &dynamicJobStack) {
     for (auto &job : iterJobStack) {
         /* == Transform current job == */
         auto result = srdag::singleRateTransformation(job, srdag_.get());
@@ -232,8 +232,8 @@ void spider::JITMSRuntime::transformJobs(vector<srdag::TransfoJob> &iterJobStack
     }
 }
 
-void spider::JITMSRuntime::transformStaticJobs(vector<srdag::TransfoJob> &staticJobStack,
-                                               vector<srdag::TransfoJob> &dynamicJobStack) {
+void spider::SRDAGJITMSRuntime::transformStaticJobs(vector<srdag::TransfoJob> &staticJobStack,
+                                                    vector<srdag::TransfoJob> &dynamicJobStack) {
     auto tempJobStack = factory::vector<srdag::TransfoJob>(StackID::TRANSFO);
     while (!staticJobStack.empty()) {
         /* == Transform jobs of current static stack == */
@@ -244,8 +244,8 @@ void spider::JITMSRuntime::transformStaticJobs(vector<srdag::TransfoJob> &static
     }
 }
 
-void spider::JITMSRuntime::transformDynamicJobs(vector<srdag::TransfoJob> &staticJobStack,
-                                                vector<srdag::TransfoJob> &dynamicJobStack) {
+void spider::SRDAGJITMSRuntime::transformDynamicJobs(vector<srdag::TransfoJob> &staticJobStack,
+                                                     vector<srdag::TransfoJob> &dynamicJobStack) {
     auto tempJobStack = factory::vector<srdag::TransfoJob>(StackID::TRANSFO);
     /* == Transform jobs of current dynamic stack == */
     transformJobs(dynamicJobStack, staticJobStack, tempJobStack);

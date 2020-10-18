@@ -1,9 +1,9 @@
-/*
- * Copyright or © or Copr. IETR/INSA - Rennes (2020) :
+/**
+ * Copyright or © or Copr. IETR/INSA - Rennes (2019 - 2020) :
  *
- * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2020)
+ * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2019 - 2020)
  *
- * Spider is a dataflow based runtime used to execute dynamic PiSDF
+ * Spider 2.0 is a dataflow based runtime used to execute dynamic PiSDF
  * applications. The Preesm tool may be used to design PiSDF applications.
  *
  * This software is governed by the CeCILL  license under French law and
@@ -32,64 +32,67 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_MAPPER_H
-#define SPIDER2_MAPPER_H
+#ifndef SPIDER2_PISDFJITMSRUNTIME_H
+#define SPIDER2_PISDFJITMSRUNTIME_H
 
 /* === Include(s) === */
 
-#include <common/Types.h>
+#include <runtime/algorithm/Runtime.h>
+#include <memory/unique_ptr.h>
 
 namespace spider {
 
-    namespace pisdf {
-        class Vertex;
-    }
+    /* === Forward declaration(s) === */
 
     namespace sched {
-
-        class Task;
-
-        class SRDAGTask;
-
-        class Schedule;
-
-        /* === Class definition === */
-
-        class Mapper {
-        public:
-            Mapper() = default;
-
-            virtual ~Mapper() noexcept = default;
-
-            /* === Method(s) === */
-
-            /**
-             * @brief Map a task onto available resources.
-             * @param task     pointer to the task to map.
-             * @param schedule pointer to the schedule to update.
-             * @throw @refitem spider::Exception if the mapper was unable to find any processing elements for the task.
-             */
-            virtual void map(Task *task, Schedule *schedule) = 0;
-
-            /* === Getter(s) === */
-
-            /* === Setter(s) === */
-
-            inline void setStartTime(ufast64 time) { startTime_ = time; }
-
-        protected:
-            ufast64 startTime_{ 0U };
-
-            /* === Protected method(s) === */
-
-            /**
-             * @brief Compute the minimum start time possible for a given task.
-             * @param task    Pointer to the task.
-             * @return value of the minimum start time possible
-             */
-            ufast64 computeStartTime(const Task *task) const;
-
-        };
+        class ResourcesAllocator;
     }
+
+    namespace srless {
+        class GraphHandler;
+    }
+
+    /* === Class definition === */
+
+    class PiSDFJITMSRuntime final : public Runtime {
+    public:
+        explicit PiSDFJITMSRuntime(pisdf::Graph *graph, const RuntimeConfig &cfg, bool isStatic);
+
+        ~PiSDFJITMSRuntime() override = default;
+
+        /* === Method(s) === */
+
+        inline void setup() override { };
+
+        bool execute() override;
+
+        /* === Getter(s) === */
+
+        /* === Setter(s) === */
+
+    private:
+        time::time_point startIterStamp_ = time::min();
+        spider::unique_ptr<sched::ResourcesAllocator> resourcesAllocator_;
+        spider::unique_ptr<srless::GraphHandler> graphHandler_;
+        size_t iter_ = 0U;
+        bool isStatic_{};
+
+        /* === Private method(s) === */
+
+        /**
+         * @brief Handle execution of static applications.
+         * @return true
+         */
+        bool staticExecute();
+
+        /**
+         * @brief Handle execution of dynamic applications.
+         * @return true
+         */
+        bool dynamicExecute();
+
+        size_t countExpectedNumberOfParams(const srless::GraphHandler *graphHandler) const;
+    };
 }
-#endif //SPIDER2_MAPPER_H
+
+#endif //SPIDER2_PISDFJITMSRUNTIME_H

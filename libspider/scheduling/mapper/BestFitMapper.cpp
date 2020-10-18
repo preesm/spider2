@@ -37,7 +37,7 @@
 
 #include <scheduling/mapper/BestFitMapper.h>
 #include <scheduling/schedule/Schedule.h>
-#include <scheduling/task/VertexTask.h>
+#include <scheduling/task/SRDAGTask.h>
 #include <scheduling/task/SyncTask.h>
 #include <archi/Platform.h>
 #include <archi/MemoryBus.h>

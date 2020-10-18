@@ -35,12 +35,12 @@
 
 /* === Include(s) === */
 
-#include <scheduling/scheduler/SRLessListScheduler.h>
-#include <scheduling/task/SRLessTask.h>
+#include <scheduling/scheduler/pisdf-based/PiSDFListScheduler.h>
+#include <scheduling/task/PiSDFTask.h>
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/Vertex.h>
-#include <graphs-tools/transformation/srless/GraphHandler.h>
-#include <graphs-tools/transformation/srless/GraphFiring.h>
+#include <graphs-tools/transformation/pisdf/GraphHandler.h>
+#include <graphs-tools/transformation/pisdf/GraphFiring.h>
 #include <graphs-tools/numerical/dependencies.h>
 
 /* === Static function === */
@@ -51,13 +51,13 @@ namespace {
 
 /* === Method(s) implementation === */
 
-spider::sched::SRLessListScheduler::SRLessListScheduler() :
+spider::sched::PiSDFListScheduler::PiSDFListScheduler() :
         Scheduler(),
         sortedTaskVector_{ factory::vector<ListTask>(StackID::SCHEDULE) } {
 
 }
 
-void spider::sched::SRLessListScheduler::schedule(srless::GraphHandler *graphHandler) {
+void spider::sched::PiSDFListScheduler::schedule(srless::GraphHandler *graphHandler) {
     /* == Reserve space for the new ListTasks == */
     tasks_.clear();
     /* == Reset previous non-schedulable tasks == */
@@ -80,12 +80,12 @@ void spider::sched::SRLessListScheduler::schedule(srless::GraphHandler *graphHan
     for (auto k = lastScheduledTask_; k < lastSchedulableTask_; ++k) {
         auto &task = sortedTaskVector_[k];
         tasks_.emplace_back(
-                make<SRLessTask>(task.handler_, task.vertex_, task.firing_, task.depCount_, task.mergedFifoCount_));
+                make<PiSDFTask>(task.handler_, task.vertex_, task.firing_, task.depCount_, task.mergedFifoCount_));
         task.handler_->registerTaskIx(task.vertex_, task.firing_, UINT32_MAX);
     }
 }
 
-void spider::sched::SRLessListScheduler::clear() {
+void spider::sched::PiSDFListScheduler::clear() {
     Scheduler::clear();
     sortedTaskVector_.clear();
     lastSchedulableTask_ = 0;
@@ -94,7 +94,7 @@ void spider::sched::SRLessListScheduler::clear() {
 
 /* === Private method(s) implementation === */
 
-void spider::sched::SRLessListScheduler::resetUnScheduledTasks() {
+void spider::sched::PiSDFListScheduler::resetUnScheduledTasks() {
     auto last = sortedTaskVector_.size();
     for (auto k = lastSchedulableTask_; k < last; ++k) {
         auto &listTask = sortedTaskVector_[k];
@@ -102,7 +102,7 @@ void spider::sched::SRLessListScheduler::resetUnScheduledTasks() {
     }
 }
 
-void spider::sched::SRLessListScheduler::recursiveAddVertices(srless::GraphHandler *graphHandler) {
+void spider::sched::PiSDFListScheduler::recursiveAddVertices(srless::GraphHandler *graphHandler) {
     for (auto &firingHandler : graphHandler->firings()) {
         if (firingHandler->isResolved()) {
             for (const auto &vertex : graphHandler->graph()->vertices()) {
@@ -125,9 +125,9 @@ void spider::sched::SRLessListScheduler::recursiveAddVertices(srless::GraphHandl
     }
 }
 
-void spider::sched::SRLessListScheduler::createListTask(pisdf::Vertex *vertex,
-                                                        u32 firing,
-                                                        srless::GraphFiring *handler) {
+void spider::sched::PiSDFListScheduler::createListTask(pisdf::Vertex *vertex,
+                                                       u32 firing,
+                                                       srless::GraphFiring *handler) {
     const auto vertexTaskIx = handler->getTaskIx(vertex, firing);
     if (vertexTaskIx == UINT32_MAX && vertex->executable()) {
         sortedTaskVector_.push_back({ vertex, handler, -1, firing, 0, 0});
@@ -135,9 +135,9 @@ void spider::sched::SRLessListScheduler::createListTask(pisdf::Vertex *vertex,
     }
 }
 
-void spider::sched::SRLessListScheduler::recursiveSetNonSchedulable(const pisdf::Vertex *vertex,
-                                                                    u32 firing,
-                                                                    const srless::GraphFiring *handler) {
+void spider::sched::PiSDFListScheduler::recursiveSetNonSchedulable(const pisdf::Vertex *vertex,
+                                                                   u32 firing,
+                                                                   const srless::GraphFiring *handler) {
     for (const auto *edge : vertex->outputEdges()) {
         const auto deps = pisdf::computeConsDependency(vertex, firing, edge->sourcePortIx(), handler);
         for (const auto &dep : deps) {
@@ -154,7 +154,7 @@ void spider::sched::SRLessListScheduler::recursiveSetNonSchedulable(const pisdf:
     }
 }
 
-i32 spider::sched::SRLessListScheduler::computeScheduleLevel(ListTask &listTask) {
+i32 spider::sched::PiSDFListScheduler::computeScheduleLevel(ListTask &listTask) {
     const auto *vertex = listTask.vertex_;
     const auto *handler = listTask.handler_;
     const auto firing = listTask.firing_;
@@ -201,7 +201,7 @@ i32 spider::sched::SRLessListScheduler::computeScheduleLevel(ListTask &listTask)
     return listTask.level_;
 }
 
-void spider::sched::SRLessListScheduler::sortVertices() {
+void spider::sched::PiSDFListScheduler::sortVertices() {
     std::sort(std::next(std::begin(sortedTaskVector_), static_cast<long>(lastSchedulableTask_)),
               std::end(sortedTaskVector_),
               [](const ListTask &A, const ListTask &B) -> bool {
@@ -232,7 +232,7 @@ void spider::sched::SRLessListScheduler::sortVertices() {
               });
 }
 
-size_t spider::sched::SRLessListScheduler::countNonSchedulableTasks() {
+size_t spider::sched::PiSDFListScheduler::countNonSchedulableTasks() {
     auto it = sortedTaskVector_.rbegin();
     size_t count{ };
     for (; (it->level_ == NON_SCHEDULABLE_LEVEL) && (it != sortedTaskVector_.rend()); ++it) {
