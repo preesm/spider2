@@ -54,7 +54,8 @@
 spider::pisdf::DependencyIterator spider::pisdf::computeExecDependency(const Vertex *vertex,
                                                                        u32 firing,
                                                                        size_t edgeIx,
-                                                                       const srless::GraphFiring *handler) {
+                                                                       const srless::GraphFiring *handler,
+                                                                       u32 *count) {
 #ifndef NDEBUG
     if (!handler || !vertex) {
         throwNullptrException();
@@ -66,7 +67,10 @@ spider::pisdf::DependencyIterator spider::pisdf::computeExecDependency(const Ver
         return DependencyIterator{{{ nullptr, nullptr, 0, 0, 0, 0, 0, 0 }}};
     }
     auto result = factory::vector<DependencyInfo>(StackID::TRANSFO);
-    detail::computeExecDependency(edge, snkRate * firing, snkRate * (firing + 1) - 1, handler, &result);
+    auto depCount = detail::computeExecDependency(edge, snkRate * firing, snkRate * (firing + 1) - 1, handler, &result);
+    if (count) {
+        *count = depCount;
+    }
     return DependencyIterator{ std::move(result) };
 }
 
@@ -90,7 +94,8 @@ u32 spider::pisdf::computeExecDependencyCount(const Vertex *vertex,
 spider::pisdf::DependencyIterator spider::pisdf::computeConsDependency(const Vertex *vertex,
                                                                        u32 firing,
                                                                        size_t edgeIx,
-                                                                       const spider::srless::GraphFiring *handler) {
+                                                                       const spider::srless::GraphFiring *handler,
+                                                                       u32 *count) {
 #ifndef NDEBUG
     if (!handler || !vertex) {
         throwNullptrException();
@@ -102,7 +107,10 @@ spider::pisdf::DependencyIterator spider::pisdf::computeConsDependency(const Ver
         return DependencyIterator{{{ nullptr, nullptr, 0, 0, 0, 0, 0, 0 }}};
     }
     auto result = factory::vector<DependencyInfo>(StackID::TRANSFO);
-    detail::computeConsDependency(edge, srcRate * firing, srcRate * (firing + 1) - 1, handler, &result);
+    auto depCount = detail::computeConsDependency(edge, srcRate * firing, srcRate * (firing + 1) - 1, handler, &result);
+    if (count) {
+        *count = depCount;
+    }
     return DependencyIterator{ std::move(result) };
 }
 
