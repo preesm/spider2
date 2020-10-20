@@ -50,7 +50,8 @@ spider::MemoryInterface::~MemoryInterface() {
     if (log::enabled<log::MEMORY>()) {
         for (const auto &buff : virtual2Phys_) {
             if (buff.second.count_) {
-                log::print<log::MEMORY>(log::yellow, "INFO", "PHYSICAL: [%p] remaining: %zu bytes at address %zu with count: %u.\n", this,
+                log::print<log::MEMORY>(log::yellow, "INFO",
+                                        "PHYSICAL: [%p] remaining: %zu bytes at address %zu with count: %u.\n", this,
                                         buff.second.size_,
                                         buff.first,
                                         buff.second.count_);
@@ -62,14 +63,14 @@ spider::MemoryInterface::~MemoryInterface() {
 
 /* === Private method(s) implementation === */
 
-void *spider::MemoryInterface::read(uint64_t virtualAddress, u32 count) {
+void *spider::MemoryInterface::read(uint64_t virtualAddress, i32 count) {
     std::lock_guard<std::mutex> lockGuard{ lock_ };
     auto *buffer = retrieveBuffer(virtualAddress);
     buffer->count_ += count;
     return buffer->buffer_;
 }
 
-void *spider::MemoryInterface::allocate(uint64_t virtualAddress, size_t size, u32 count) {
+void *spider::MemoryInterface::allocate(uint64_t virtualAddress, size_t size, i32 count) {
     if (!size) {
         return nullptr;
     }
@@ -101,10 +102,15 @@ void spider::MemoryInterface::deallocate(uint64_t virtualAddress, size_t size) {
     }
     std::lock_guard<std::mutex> lockGuard{ lock_ };
     auto *buffer = retrieveBuffer(virtualAddress);
+    buffer->count_ -= 1;
+#ifndef NDEBUG
     if (buffer->size_ > used_) {
         throwSpiderException("Deallocating more memory than used.");
     }
-    buffer->count_ -= 1;
+    if (buffer->count_ < 0) {
+        throwSpiderException("Double free of a buffer.");
+    }
+#endif
     if (!buffer->count_) {
         if (log::enabled<log::MEMORY>()) {
             log::print<log::MEMORY>(log::green, "INFO", "PHYSICAL: [%p] deallocating: %zu bytes at address %zu.\n",
@@ -116,12 +122,26 @@ void spider::MemoryInterface::deallocate(uint64_t virtualAddress, size_t size) {
 }
 
 void spider::MemoryInterface::clear() {
+    std::lock_guard<std::mutex> lockGuard{ lock_ };
     virtual2Phys_.clear();
+}
+
+void spider::MemoryInterface::garbageCollect() {
+    std::lock_guard<std::mutex> lockGuard{ lock_ };
+    for (auto &elt : virtual2Phys_) {
+        auto &buffer = elt.second;
+        if (buffer.count_ < 0) {
+            used_ -= buffer.size_;
+            deallocateRoutine_(buffer.buffer_);
+            buffer.count_ = 0;
+            buffer.buffer_ = nullptr;
+        }
+    }
 }
 
 /* === Private method(s) === */
 
-void spider::MemoryInterface::registerPhysicalAddress(uint64_t virtAddress, void *phyAddress, size_t size, u32 count) {
+void spider::MemoryInterface::registerPhysicalAddress(uint64_t virtAddress, void *phyAddress, size_t size, i32 count) {
     /* == Apply offset to virtual address to get the corresponding address associated to attached MemoryUnit == */
     virtual2Phys_[virtAddress] = buffer_t{ phyAddress, size, count };
 }

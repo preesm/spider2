@@ -57,10 +57,10 @@ namespace spider {
          * @brief Read memory at the given memory virtual address.
          * @remark if count is 0, the value is discarded.
          * @param virtualAddress  Virtual address to evaluate.
-         * @param count           Number of use of the buffer to set.
+         * @param count           Number of use of the buffer to add.
          * @return physical address corresponding to the virtual address.
          */
-        void *read(uint64_t virtualAddress, u32 count = 0u);
+        void *read(uint64_t virtualAddress, i32 count = 0);
 
         /**
          * @brief Allocate memory to the given virtual address.
@@ -69,7 +69,7 @@ namespace spider {
          * @param count           Number of use of the buffer to set.
          * @return physical memory addressed allocated.
          */
-        void *allocate(uint64_t virtualAddress, size_t size, u32 count = 1);
+        void *allocate(uint64_t virtualAddress, size_t size, i32 count = 1);
 
         /**
          * @brief Deallocate memory from the given virtual address.
@@ -77,6 +77,11 @@ namespace spider {
          * @param size            Size of the memory to deallocate.
          */
         void deallocate(uint64_t virtualAddress, size_t size);
+
+        /**
+         * @brief Free every existing buffer with non-zero counter.
+         */
+        void garbageCollect();
 
         /**
          * @brief Reset the memory interface.
@@ -134,7 +139,7 @@ namespace spider {
         struct buffer_t {
             void *buffer_;
             size_t size_;
-            u32 count_;
+            i32 count_;
         };
         /* = Map associating virtual address to physical ones = */
         spider::map<uint64_t, buffer_t> virtual2Phys_;
@@ -153,12 +158,12 @@ namespace spider {
 
         /**
          * @brief Register a physical address associated with a given virtual address.
-         * @param virtAddress   Virtual address to evaluate.
+         * @param virtAddress Virtual address to evaluate.
          * @param phyAddress  Physical address to register.
-         * @param size             Size of the memory to allocate.
-         * @param count           Number of use of the buffer to set.
+         * @param size        Size of the memory to allocate.
+         * @param count       Number of use of the buffer to set.
          */
-        void registerPhysicalAddress(uint64_t virtAddress, void *phyAddress, size_t size, u32 count = 1);
+        void registerPhysicalAddress(uint64_t virtAddress, void *phyAddress, size_t size, i32 count = 1);
 
         /**
          * @brief Retrieve the physical address corresponding to the given virtual address.
