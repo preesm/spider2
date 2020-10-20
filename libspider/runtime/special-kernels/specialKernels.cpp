@@ -184,7 +184,7 @@ void spider::rt::init(const int64_t *paramsIn, const int64_t *, void **, void **
 }
 
 void spider::rt::end(const int64_t *paramsIn, const int64_t *, void **in, void **) {
-    if (paramsIn[0]) {
+    if (paramsIn && paramsIn[0]) {
         const auto size = paramsIn[1];
         const auto address = paramsIn[2];
         const auto *grt = archi::platform()->spiderGRTPE();
