@@ -104,7 +104,7 @@ namespace spider {
 
 /* === Function(s) definition === */
 
-u32 spider::pisdf::detail::computeExecDependency(const Edge *edge,
+i32 spider::pisdf::detail::computeExecDependency(const Edge *edge,
                                                  int64_t lowerCons,
                                                  int64_t upperCons,
                                                  const srless::GraphFiring *handler,
@@ -127,7 +127,7 @@ u32 spider::pisdf::detail::computeExecDependency(const Edge *edge,
         return computeExecDependency(delayEdge, lowerCons + offset, upperCons + offset, handler, result);
     } else if (lowerCons >= delayValue) {
         /* == source only == */
-        u32 count = 0;
+        i32 count = 0;
         auto dep = createExecDependency(edge, lowerCons, upperCons, srcRate, delayValue, handler);
         if (sourceType == VertexType::INPUT) {
             if (result) {
@@ -167,7 +167,7 @@ u32 spider::pisdf::detail::computeExecDependency(const Edge *edge,
                 spider::reserve(*result, 1u);
                 result->emplace_back(dep);
             }
-            count = dep.firingEnd_ - dep.firingStart_ + 1;
+            count = static_cast<i32>(dep.firingEnd_ - dep.firingStart_ + 1);
         }
         return count;
     } else if (delay && (upperCons < delayValue)) {
@@ -184,7 +184,7 @@ u32 spider::pisdf::detail::computeExecDependency(const Edge *edge,
     }
 }
 
-u32 spider::pisdf::detail::computeConsDependency(const Edge *edge,
+i32 spider::pisdf::detail::computeConsDependency(const Edge *edge,
                                                  int64_t lowerProd,
                                                  int64_t upperProd,
                                                  const srless::GraphFiring *handler,
@@ -218,7 +218,7 @@ u32 spider::pisdf::detail::computeConsDependency(const Edge *edge,
             const auto validBound = (totalSrcRate - (snkRate + delayValue));
             if (upperProd < validBound) {
                 /* == void dependency == */
-                return UINT32_MAX;
+                return -1;
             } else {
                 const auto *gh = handler->getParent()->handler();
                 const auto *upperEdge = sink->graph()->outputEdge(sink->ix());
@@ -250,7 +250,7 @@ u32 spider::pisdf::detail::computeConsDependency(const Edge *edge,
             if (result) {
                 spider::reserve(*result, firingEnd - firingStart + 1);
             }
-            u32 count = 0;
+            i32 count = 0;
             for (auto k = firingStart; k <= firingEnd; ++k) {
                 const auto *gh = handler->getSubgraphGraphFiring(graph, k);
                 if (gh->isResolved()) {
@@ -281,7 +281,7 @@ u32 spider::pisdf::detail::computeConsDependency(const Edge *edge,
                 spider::reserve(*result, 1u);
                 result->emplace_back(dep);
             }
-            return dep.firingEnd_ - dep.firingStart_ + 1;
+            return static_cast<i32>(dep.firingEnd_ - dep.firingStart_ + 1);
         }
     } else if (delay) {
         /* == sink + getter == */

@@ -71,7 +71,7 @@ namespace spider {
                                                  u32 firing,
                                                  size_t edgeIx,
                                                  const srless::GraphFiring *handler,
-                                                 u32 *count = nullptr);
+                                                 i32 *count = nullptr);
 
         /**
          * @brief Compute the number of execution dependencies for a given input edge of a given firing of a given vertex.
@@ -85,7 +85,7 @@ namespace spider {
          * @return the exec dependency count.
          * @throw nullpointer exception in DEBUG mode only if handler or vertex is nullptr.
          */
-        u32 computeExecDependencyCount(const Vertex *vertex,
+        i32 computeExecDependencyCount(const Vertex *vertex,
                                        u32 firing,
                                        size_t edgeIx,
                                        const srless::GraphFiring *handler);
@@ -107,7 +107,7 @@ namespace spider {
                                                  u32 firing,
                                                  size_t edgeIx,
                                                  const srless::GraphFiring *handler,
-                                                 u32 *count = nullptr);
+                                                 i32 *count = nullptr);
 
         /**
          * @brief Compute the number of consumer dependencies for a given input edge of a given firing of a given vertex.
@@ -121,7 +121,7 @@ namespace spider {
          * @return the exec dependency count.
          * @throw nullpointer exception in DEBUG mode only if handler or vertex is nullptr.
          */
-        u32 computeConsDependencyCount(const Vertex *vertex,
+        i32 computeConsDependencyCount(const Vertex *vertex,
                                        u32 firing,
                                        size_t edgeIx,
                                        const srless::GraphFiring *handler);

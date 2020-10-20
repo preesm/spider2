@@ -35,6 +35,7 @@
 /* === Include(s) === */
 
 #include <graphs-tools/numerical/dependencies.h>
+#include <graphs-tools/numerical/detail/dependenciesImpl.h>
 #include <graphs-tools/numerical/brv.h>
 #include <graphs-tools/helper/pisdf-helper.h>
 #include <graphs-tools/transformation/pisdf/GraphHandler.h>
@@ -43,7 +44,6 @@
 #include <graphs/pisdf/DelayVertex.h>
 #include <common/Math.h>
 #include <algorithm>
-#include <graphs-tools/numerical/detail/dependenciesImpl.h>
 
 /* === Static variable(s) === */
 
@@ -55,7 +55,7 @@ spider::pisdf::DependencyIterator spider::pisdf::computeExecDependency(const Ver
                                                                        u32 firing,
                                                                        size_t edgeIx,
                                                                        const srless::GraphFiring *handler,
-                                                                       u32 *count) {
+                                                                       i32 *count) {
 #ifndef NDEBUG
     if (!handler || !vertex) {
         throwNullptrException();
@@ -74,7 +74,7 @@ spider::pisdf::DependencyIterator spider::pisdf::computeExecDependency(const Ver
     return DependencyIterator{ std::move(result) };
 }
 
-u32 spider::pisdf::computeExecDependencyCount(const Vertex *vertex,
+i32 spider::pisdf::computeExecDependencyCount(const Vertex *vertex,
                                               u32 firing,
                                               size_t edgeIx,
                                               const srless::GraphFiring *handler) {
@@ -95,7 +95,7 @@ spider::pisdf::DependencyIterator spider::pisdf::computeConsDependency(const Ver
                                                                        u32 firing,
                                                                        size_t edgeIx,
                                                                        const spider::srless::GraphFiring *handler,
-                                                                       u32 *count) {
+                                                                       i32 *count) {
 #ifndef NDEBUG
     if (!handler || !vertex) {
         throwNullptrException();
@@ -114,7 +114,7 @@ spider::pisdf::DependencyIterator spider::pisdf::computeConsDependency(const Ver
     return DependencyIterator{ std::move(result) };
 }
 
-u32 spider::pisdf::computeConsDependencyCount(const Vertex *vertex,
+i32 spider::pisdf::computeConsDependencyCount(const Vertex *vertex,
                                               u32 firing,
                                               size_t edgeIx,
                                               const srless::GraphFiring *handler) {
