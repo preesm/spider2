@@ -52,27 +52,6 @@ namespace spider {
         return nullptr;
     }
 
-    static void *readExternBuffer(array_handle<Fifo>::iterator &, MemoryInterface *);
-
-    static void *readBuffer(array_handle<Fifo>::iterator &, MemoryInterface *);
-
-    static void *readRepeatBuffer(array_handle<Fifo>::iterator &, MemoryInterface *);
-
-    static void *readMergedBuffer(array_handle<Fifo>::iterator &, MemoryInterface *);
-
-    /* === Static array of read functions === */
-
-    using fifo_fun_t = void *(*)(array_handle<Fifo>::iterator &it, MemoryInterface *);
-
-    static std::array<fifo_fun_t, FIFO_ATTR_COUNT> readFunctions = {{ readBuffer,
-                                                                            readBuffer,
-                                                                            readExternBuffer,
-                                                                            readMergedBuffer,
-                                                                            readRepeatBuffer,
-                                                                            readDummy }};
-
-    /* === Static read functions definition === */
-
     static void *readExternBuffer(array_handle<Fifo>::iterator &it, MemoryInterface *) {
         const auto fifo = *(it++);
         if (!fifo.size_) {
@@ -88,6 +67,25 @@ namespace spider {
         }
         return cast_buffer_woffset(memoryInterface->read(fifo.virtualAddress_, fifo.count_), fifo.offset_);
     }
+
+    static void *readRepeatBuffer(array_handle<Fifo>::iterator &, MemoryInterface *);
+
+    static void *readMergedBuffer(array_handle<Fifo>::iterator &, MemoryInterface *);
+
+    /* === Static array of read functions === */
+
+    using fifo_fun_t = void *(*)(array_handle<Fifo>::iterator &it, MemoryInterface *);
+
+    static std::array<fifo_fun_t, FIFO_ATTR_COUNT> readFunctions = {{ readBuffer,             /*!< RW_ONLY  */
+                                                                            readBuffer,       /*!< RW_OWN   */
+                                                                            readExternBuffer, /*!< RW_EXT   */
+                                                                            readMergedBuffer, /*!< R_MERGE  */
+                                                                            readRepeatBuffer, /*!< R_REPEAT */
+                                                                            readDummy,        /*!< W_SINK   */
+                                                                            readBuffer,       /*!< RW_AUTO  */
+                                                                            readDummy         /*!< DUMMY    */ }};
+
+    /* === Static read functions definition === */
 
     static void *readMergedBuffer(array_handle<Fifo>::iterator &it, MemoryInterface *memoryInterface) {
         const auto mergedFifo = *(it++);
@@ -135,23 +133,23 @@ namespace spider {
         return repeatBuffer;
     }
 
-    /* === Static allocate functions declaration === */
+    /* === Static allocate functions === */
 
-    static void *allocBuffer(array_handle<Fifo>::iterator &, MemoryInterface *);
-
-    /* === Static array of allocate functions === */
-
-    static std::array<fifo_fun_t, FIFO_ATTR_COUNT> allocFunctions = {{ readBuffer,
-                                                                             allocBuffer,
-                                                                             readExternBuffer,
-                                                                             readDummy,
-                                                                             readDummy,
-                                                                             allocBuffer }};
-
-    void *allocBuffer(array_handle<Fifo>::iterator &it, MemoryInterface *memoryInterface) {
+    static void *allocBuffer(array_handle<Fifo>::iterator &it, MemoryInterface *memoryInterface) {
         const auto fifo = *(it++);
         return memoryInterface->allocate(fifo.virtualAddress_, fifo.size_, fifo.count_);
     }
+
+    /* === Static array of allocate functions === */
+
+    static std::array<fifo_fun_t, FIFO_ATTR_COUNT> allocFunctions = {{ readBuffer,             /*!< RW_ONLY  */
+                                                                             allocBuffer,      /*!< RW_OWN   */
+                                                                             readExternBuffer, /*!< RW_EXT   */
+                                                                             readDummy,        /*!< R_MERGE  */
+                                                                             readDummy,        /*!< R_REPEAT */
+                                                                             allocBuffer,      /*!< W_SINK   */
+                                                                             allocBuffer,      /*!< RW_AUTO  */
+                                                                             readDummy         /*!< DUMMY    */}};
 }
 
 /* === Function(s) definition === */

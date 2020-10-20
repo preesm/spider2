@@ -51,6 +51,7 @@ namespace spider {
         R_MERGE,     /*!< Owner of the FIFO needs to merge multiple FIFOs together */
         R_REPEAT,    /*!< Owner of the FIFO needs to repeat the input FIFO a given number of times */
         W_SINK,      /*!< Owner of the FIFO writes to a sink, i.e FIFO is useless */
+        RW_AUTO,     /*!< Owner of the FIFO allocates / reads a FIFO that will be automatically managed */
         DUMMY,       /*!< Sentry for synchronization */
         First = RW_ONLY, /*!< Sentry for EnumIterator::begin */
         Last = DUMMY     /*!< Sentry for EnumIterator::end */
@@ -64,14 +65,18 @@ namespace spider {
         size_t virtualAddress_;   /* = Virtual address of the Fifo = */
         u32 size_;                /* = Size of the Fifo = */
         u32 offset_;              /* = Offset in the address = */
-        u32 count_;               /* = Number of use of this FIFO = */
+        i32 count_;               /* = Number of use of this FIFO = */
         FifoAttribute attribute_; /* = Attribute of the Fifo = */
 
-        Fifo() : virtualAddress_{ 0u },
+        Fifo() : virtualAddress_{ SIZE_MAX },
                  size_{ 0u },
                  offset_{ 0u },
                  count_{ 0u },
                  attribute_{ FifoAttribute::RW_OWN } { }
+
+        Fifo(size_t address, u32 size, u32 offset, i32 count, spider::FifoAttribute attribute) :
+                virtualAddress_{ address }, size_{ size }, offset_{ offset }, count_{ count }, attribute_{ attribute } {
+        }
     };
 
     /* === Function(s) declaration === */
