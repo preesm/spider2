@@ -103,9 +103,10 @@ void spider::sched::NoSyncFifoAllocator::allocateDuplicateTask(SRDAGTask *task) 
 void spider::sched::NoSyncFifoAllocator::updateForkDuplicateInputTask(SRDAGTask *task) {
     auto *inputTask = task->previousTask(0U);
     if (inputTask->state() == TaskState::READY) {
-        updateFifoCount(task, inputTask, countNonNullFifos(task->fifos().outputFifos()) - 1u);
-    } else if (replaceInputTask(task, inputTask, 0U)) {
-        updateFifoCount(inputTask, inputTask->previousTask(0u), countNonNullFifos(task->fifos().outputFifos()) - 1u);
+        const auto fifoIx = task->vertex()->inputEdge(0)->sourcePortIx();
+        auto fifo = inputTask->getOutputFifo(fifoIx);
+        fifo.count_ += countNonNullFifos(task->fifos().outputFifos()) - 1u;
+        inputTask->fifos().setOutputFifo(fifoIx, fifo);
     }
     /* ==
      *    In the case of the task being in RUNNING state, we could perform a MemoryInterface::read here.
@@ -113,15 +114,6 @@ void spider::sched::NoSyncFifoAllocator::updateForkDuplicateInputTask(SRDAGTask 
      *    MemoryInterface from here. Thus, it seems to be a better solution to leave the synchronization point to
      *    take charge of that.
      * == */
-}
-
-void spider::sched::NoSyncFifoAllocator::updateFifoCount(const Task *task,
-                                                         const Task *inputTask,
-                                                         u32 count) {
-    const auto rule = task->allocationRuleForInputFifo(0u);
-    auto fifo = inputTask->getOutputFifo(rule.fifoIx_);
-    fifo.count_ += count;
-    inputTask->fifos().setOutputFifo(rule.fifoIx_, fifo);
 }
 
 bool spider::sched::NoSyncFifoAllocator::replaceInputTask(sched::Task *task,

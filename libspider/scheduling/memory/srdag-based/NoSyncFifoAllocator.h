@@ -74,8 +74,6 @@ namespace spider {
 
             static void updateForkDuplicateInputTask(sched::SRDAGTask *task);
 
-            static void updateFifoCount(const sched::Task *task, const sched::Task *inputTask, u32 count);
-
             static bool replaceInputTask(sched::Task *task, const sched::Task *inputTask, size_t ix);
         };
     }
