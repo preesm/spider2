@@ -101,7 +101,7 @@ bool spider::sched::PiSDFGreedyScheduler::evaluate(const pisdf::Vertex *vertex,
         }
         if (schedulable) {
             handler->registerTaskIx(vertex, firing, static_cast<u32>(tasks_.size()));
-            tasks_.emplace_back(make<PiSDFTask>(handler, vertex, firing, depCount, mergedFifoCount));
+            tasks_.emplace_back(make<PiSDFTask, StackID::SCHEDULE>(handler, vertex, firing, depCount, mergedFifoCount));
         }
     }
     return schedulable;

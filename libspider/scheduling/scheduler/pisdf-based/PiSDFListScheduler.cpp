@@ -80,7 +80,8 @@ void spider::sched::PiSDFListScheduler::schedule(srless::GraphHandler *graphHand
     for (auto k = lastScheduledTask_; k < lastSchedulableTask_; ++k) {
         auto &task = sortedTaskVector_[k];
         tasks_.emplace_back(
-                make<PiSDFTask>(task.handler_, task.vertex_, task.firing_, task.depCount_, task.mergedFifoCount_));
+                make<PiSDFTask, StackID::SCHEDULE>(task.handler_, task.vertex_, task.firing_, task.depCount_,
+                                                   task.mergedFifoCount_));
         task.handler_->registerTaskIx(task.vertex_, task.firing_, UINT32_MAX);
     }
 }
@@ -130,7 +131,7 @@ void spider::sched::PiSDFListScheduler::createListTask(pisdf::Vertex *vertex,
                                                        srless::GraphFiring *handler) {
     const auto vertexTaskIx = handler->getTaskIx(vertex, firing);
     if (vertexTaskIx == UINT32_MAX && vertex->executable()) {
-        sortedTaskVector_.push_back({ vertex, handler, -1, firing, 0, 0});
+        sortedTaskVector_.push_back({ vertex, handler, -1, firing, 0, 0 });
         handler->registerTaskIx(vertex, firing, static_cast<u32>(sortedTaskVector_.size() - 1));
     }
 }

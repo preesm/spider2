@@ -87,7 +87,7 @@ void spider::sched::ListScheduler::schedule(const srdag::Graph *graph) {
 
     /* == Create the list of tasks to be scheduled == */
     for (auto k = lastScheduledTask_; k < lastSchedulableTask_; ++k) {
-        tasks_.emplace_back(make<SRDAGTask>(sortedTaskVector_[k].vertex_));
+        tasks_.emplace_back(make<SRDAGTask, StackID::SCHEDULE>(sortedTaskVector_[k].vertex_));
         sortedTaskVector_[k].vertex_->setScheduleTaskIx(SIZE_MAX);
     }
 }

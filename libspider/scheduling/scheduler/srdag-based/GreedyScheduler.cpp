@@ -69,7 +69,7 @@ bool spider::sched::GreedyScheduler::evaluate(spider::srdag::Vertex *vertex) {
         }
         if (schedulable) {
             vertex->setScheduleTaskIx(tasks_.size());
-            tasks_.emplace_back(make<SRDAGTask>(vertex));
+            tasks_.emplace_back(make<SRDAGTask, StackID::SCHEDULE>(vertex));
         }
     }
     return schedulable;
