@@ -215,19 +215,20 @@ u32 spider::pisdf::detail::computeConsDependency(const Edge *edge,
         /* == sink only == */
         if (sinkType == VertexType::OUTPUT) {
             const auto totalSrcRate = srcRate * srcRV;
-            if (upperProd < (totalSrcRate - (snkRate + delayValue))) {
+            const auto validBound = (totalSrcRate - (snkRate + delayValue));
+            if (upperProd < validBound) {
                 /* == void dependency == */
                 return UINT32_MAX;
             } else {
                 const auto *gh = handler->getParent()->handler();
                 const auto *upperEdge = sink->graph()->outputEdge(sink->ix());
                 const auto upperSrcRate = snkRate * handler->firingValue();
-                if (lowerProd >= (totalSrcRate - snkRate)) {
+                if (lowerProd >= (validBound + delayValue)) {
                     /* == forward dependency == */
                     lowerProd = upperSrcRate + lowerProd % snkRate;
                     upperProd = upperSrcRate + upperProd % snkRate;
                     return computeConsDependency(upperEdge, lowerProd, upperProd, gh, result);
-                } else if (upperProd < (totalSrcRate - snkRate)) {
+                } else if (upperProd < (validBound + delayValue)) {
                     /* == getter only == */
                     lowerProd = lowerProd < (totalSrcRate - (snkRate + delayValue)) ? 0 : lowerProd % delayValue;
                     const auto *getterEdge = delay->getter()->inputEdge(delay->getterPortIx());
@@ -235,9 +236,10 @@ u32 spider::pisdf::detail::computeConsDependency(const Edge *edge,
                 } else {
                     /* == mix of getter / interface == */
                     const auto *getterEdge = delay->getter()->inputEdge(delay->getterPortIx());
-                    upperProd = upperSrcRate + upperProd % snkRate;
-                    return computeConsDependency(getterEdge, lowerProd % delayValue, delayValue - 1, handler, result) +
-                           computeConsDependency(upperEdge, upperSrcRate, upperProd, gh, result);
+                    const auto delta = upperProd - (validBound + delayValue);
+                    const auto getterLowerProd = std::max(int64_t{ 0 }, delayValue - (upperProd - delta));
+                    return computeConsDependency(getterEdge, getterLowerProd, delayValue - 1, handler, result) +
+                           computeConsDependency(upperEdge, upperSrcRate, upperSrcRate + delta, gh, result);
                 }
             }
         } else if (sinkType == VertexType::GRAPH) {
