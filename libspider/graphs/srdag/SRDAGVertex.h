@@ -149,13 +149,13 @@ namespace spider {
              * @brief Get the ix of the vertex in the containing graph.
              * @return ix of the vertex (SIZE_MAX if no ix).
              */
-            inline const size_t &ix() const { return ix_; };
+            inline size_t ix() const { return ix_; };
 
             /**
              * @brief Returns the graph of the vertex (if any)
              * @return Pointer to the containing graph, nullptr else.
              */
-            inline srdag::Graph *graph() { return const_cast<srdag::Graph*>(graph_); }
+            inline srdag::Graph *graph() { return const_cast<srdag::Graph *>(graph_); }
 
             /**
              * @brief Returns the graph of the vertex (if any)

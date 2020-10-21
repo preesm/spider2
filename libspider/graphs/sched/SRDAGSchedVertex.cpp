@@ -32,65 +32,29 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_MAPPER_H
-#define SPIDER2_MAPPER_H
+
+#ifndef _NO_BUILD_LEGACY_RT
 
 /* === Include(s) === */
 
-#include <common/Types.h>
+#include <graphs/sched/SRDAGSchedVertex.h>
+#include <graphs/srdag/SRDAGVertex.h>
+#include <runtime/common/RTInfo.h>
 
-namespace spider {
+/* === Static function === */
 
-    namespace sched {
+/* === Method(s) implementation === */
 
-        class Vertex;
-
-        class Graph;
-
-        class Task;
-
-        class SRDAGTask;
-
-        class Schedule;
-
-        /* === Class definition === */
-
-        class Mapper {
-        public:
-            Mapper() = default;
-
-            virtual ~Mapper() noexcept = default;
-
-            /* === Method(s) === */
-
-            /**
-             * @brief Map a task onto available resources.
-             * @param task     pointer to the task to map.
-             * @param schedule pointer to the schedule to update.
-             * @throw @refitem spider::Exception if the mapper was unable to find any processing elements for the task.
-             */
-            virtual void map(Task *task, Schedule *schedule) = 0;
-
-            /* === Getter(s) === */
-
-            /* === Setter(s) === */
-
-            inline void setStartTime(ufast64 time) { startTime_ = time; }
-
-        protected:
-            ufast64 startTime_{ 0U };
-
-            /* === Protected method(s) === */
-
-            /**
-             * @brief Compute the minimum start time possible for a given task.
-             * @param task    Pointer to the task.
-             * @return value of the minimum start time possible
-             */
-            ufast64 computeStartTime(const Task *task) const;
-            ufast64 computeStartTime(const sched::Vertex *vertex) const;
-
-        };
-    }
+bool spider::sched::SRDAGVertex::isMappableOnPE(const spider::PE *pe) const {
+    return vertex_->runtimeInformation()->isPEMappable(pe);
 }
-#endif //SPIDER2_MAPPER_H
+
+u64 spider::sched::SRDAGVertex::timingOnPE(const spider::PE *pe) const {
+    return static_cast<u64>(vertex_->runtimeInformation()->timingOnPE(pe, vertex_->inputParamVector()));
+}
+
+std::string spider::sched::SRDAGVertex::name() const {
+    return vertex_->name();
+}
+
+#endif

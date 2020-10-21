@@ -32,65 +32,52 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_MAPPER_H
-#define SPIDER2_MAPPER_H
+#ifndef SPIDER2_SRDAGSCHEDVERTEX_H
+#define SPIDER2_SRDAGSCHEDVERTEX_H
+
+#ifndef _NO_BUILD_LEGACY_RT
 
 /* === Include(s) === */
 
-#include <common/Types.h>
+#include <graphs/sched/SchedVertex.h>
 
 namespace spider {
 
-    namespace sched {
-
+    namespace srdag {
         class Vertex;
+    }
 
-        class Graph;
-
-        class Task;
-
-        class SRDAGTask;
-
-        class Schedule;
+    namespace sched {
 
         /* === Class definition === */
 
-        class Mapper {
+        class SRDAGVertex final : public sched::Vertex {
         public:
-            Mapper() = default;
 
-            virtual ~Mapper() noexcept = default;
+            explicit SRDAGVertex(srdag::Vertex *vertex) : sched::Vertex(), vertex_{ vertex } {
+
+            }
+
+            ~SRDAGVertex() final = default;
 
             /* === Method(s) === */
 
-            /**
-             * @brief Map a task onto available resources.
-             * @param task     pointer to the task to map.
-             * @param schedule pointer to the schedule to update.
-             * @throw @refitem spider::Exception if the mapper was unable to find any processing elements for the task.
-             */
-            virtual void map(Task *task, Schedule *schedule) = 0;
+            bool isMappableOnPE(const PE *pe) const final;
+
+            u64 timingOnPE(const PE *pe) const final;
 
             /* === Getter(s) === */
 
+            inline sched::Type type() const final { return Type::NORMAL; }
+
+            std::string name() const final;
+
             /* === Setter(s) === */
 
-            inline void setStartTime(ufast64 time) { startTime_ = time; }
-
-        protected:
-            ufast64 startTime_{ 0U };
-
-            /* === Protected method(s) === */
-
-            /**
-             * @brief Compute the minimum start time possible for a given task.
-             * @param task    Pointer to the task.
-             * @return value of the minimum start time possible
-             */
-            ufast64 computeStartTime(const Task *task) const;
-            ufast64 computeStartTime(const sched::Vertex *vertex) const;
-
+        private:
+            srdag::Vertex *vertex_ = nullptr;
         };
     }
 }
-#endif //SPIDER2_MAPPER_H
+#endif
+#endif //SPIDER2_SRDAGSCHEDVERTEX_H

@@ -35,38 +35,58 @@
 
 /* === Include(s) === */
 
-#include <scheduling/mapper/Mapper.h>
-#include <scheduling/task/SRDAGTask.h>
-#include <scheduling/task/SyncTask.h>
-#include <graphs/sched/SchedVertex.h>
 #include <graphs/sched/SchedEdge.h>
+#include <graphs/sched/SchedVertex.h>
 
 /* === Static function === */
 
 /* === Method(s) implementation === */
 
-ufast64 spider::sched::Mapper::computeStartTime(const Task *task) const {
-    auto minTime = startTime_;
-    if (task) {
-        for (size_t ix = 0; ix < task->dependencyCount(); ++ix) {
-            const auto *previousTask = task->previousTask(ix);
-            if (previousTask) {
-                minTime = std::max(minTime, previousTask->endTime());
-            }
-        }
+spider::sched::Edge::Edge(sched::Vertex *source, u32 srcIx, sched::Vertex *sink, u32 snkIx, Fifo alloc) :
+        alloc_{ alloc },
+        source_{ source }, sink_{ sink },
+        srcPortIx_{ srcIx }, snkPortIx_{ snkIx } {
+    if (!source || !sink) {
+        throwSpiderException("nullptr vertex connected to Edge.");
     }
-    return minTime;
+    source->connectOutputEdge(this, srcIx);
+    sink->connectInputEdge(this, snkIx);
 }
 
-ufast64 spider::sched::Mapper::computeStartTime(const sched::Vertex *vertex) const {
-    auto minTime = startTime_;
+std::string spider::sched::Edge::name() const {
+    auto srcName = std::string(source_->name()).append(":").append(std::to_string(srcPortIx_));
+    auto snkName = std::string(sink_->name()).append(":").append(std::to_string(snkPortIx_));
+    return std::string("edge_").append(srcName).append("-").append(snkName);
+}
+
+void spider::sched::Edge::setSource(sched::Vertex *vertex, u32 ix) {
     if (vertex) {
-        for (const auto *edge : vertex->inputEdges()) {
-            const auto *source = edge->source();
-            minTime = std::max(minTime, source ? source->endTime() : ufast64{ 0 });
-        }
+        /* == Disconnect current input edge (if any) == */
+        vertex->disconnectOutputEdge(ix);
+        /* == Connect this edge == */
+        vertex->connectOutputEdge(this, ix);
     }
-    return minTime;
+    /* == Disconnect current snk_ (if any) == */
+    if (source_) {
+        source_->disconnectOutputEdge(srcPortIx_);
+    }
+    /* == Set sink of this edge == */
+    source_ = vertex;
+    srcPortIx_ = ix;
 }
 
-/* === Private method(s) implementation === */
+void spider::sched::Edge::setSink(sched::Vertex *vertex, u32 ix) {
+    if (vertex) {
+        /* == Disconnect current input edge (if any) == */
+        vertex->disconnectInputEdge(ix);
+        /* == Connect this edge == */
+        vertex->connectInputEdge(this, ix);
+    }
+    /* == Disconnect current snk_ (if any) == */
+    if (sink_) {
+        sink_->disconnectInputEdge(snkPortIx_);
+    }
+    /* == Set sink of this edge == */
+    sink_ = vertex;
+    snkPortIx_ = ix;
+}

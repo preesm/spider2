@@ -43,10 +43,60 @@
 #include <archi/MemoryBus.h>
 #include <graphs/pisdf/Vertex.h>
 #include <graphs/pisdf/Edge.h>
+#include <graphs/sched/SchedVertex.h>
+#include <graphs/sched/SchedEdge.h>
 
 /* === Static function === */
 
 /* === Method(s) implementation === */
+
+void spider::sched::BestFitMapper::map(sched::Graph *graph, sched::Vertex *vertex, Schedule *schedule) {
+    if (!vertex) {
+        throwSpiderException("can not map nullptr task.");
+    }
+    vertex->setState(sched::SchedState::PENDING);
+    /* == Compute the minimum start time possible for the task == */
+    const auto minStartTime = Mapper::computeStartTime(vertex);
+    /* == Build the data dependency vector in order to compute receive cost == */
+    const auto *platform = archi::platform();
+    /* == Search for a slave to map the task on */
+    const auto &scheduleStats = schedule->stats();
+    MappingResult mappingResult{ };
+    for (const auto *cluster : platform->clusters()) {
+        /* == Find best fit PE for this cluster == */
+        const auto *foundPE = findBestFitPE(cluster, scheduleStats, vertex, minStartTime);
+        if (foundPE) {
+            const auto result = vertex->computeCommunicationCost(foundPE);
+            const auto communicationCost = result.first;
+            const auto externDataToReceive = result.second;
+            mappingResult.needToAddCommunication |= (externDataToReceive != 0);
+            /* == Check if it is better than previous cluster PE == */
+            const auto startTime{ std::max(scheduleStats.endTime(foundPE->virtualIx()), minStartTime) };
+            const auto endTime{ startTime + vertex->timingOnPE(foundPE) };
+            const auto scheduleCost{ math::saturateAdd(endTime, communicationCost) };
+            if (scheduleCost < mappingResult.scheduleCost) {
+                mappingResult.mappingPE = foundPE;
+                mappingResult.startTime = startTime;
+                mappingResult.endTime = endTime;
+                mappingResult.scheduleCost = scheduleCost;
+            }
+        }
+    }
+    /* == Throw if no possible mapping was found == */
+    if (!mappingResult.mappingPE) {
+        throwSpiderException("Could not find suitable processing element for vertex: [%s]", vertex->name().c_str());
+    }
+    vertex->setMappedPE(mappingResult.mappingPE);
+    vertex->setStartTime(mappingResult.startTime);
+    vertex->setEndTime(mappingResult.endTime);
+    if (mappingResult.needToAddCommunication) {
+        /* == Map communications == */
+//        mapCommunications(task, mappingResult.mappingPE->cluster(), schedule);
+//        mappingResult.startTime = task->startTime();
+//        mappingResult.endTime = task->endTime();
+    }
+    // TODO: add to schedule
+}
 
 void spider::sched::BestFitMapper::map(Task *task, Schedule *schedule) {
     if (!task) {
@@ -54,13 +104,10 @@ void spider::sched::BestFitMapper::map(Task *task, Schedule *schedule) {
     }
     task->setState(sched::TaskState::PENDING);
     task->updateTaskExecutionDependencies(schedule);
-
     /* == Compute the minimum start time possible for the task == */
     const auto minStartTime = Mapper::computeStartTime(task);
-
     /* == Build the data dependency vector in order to compute receive cost == */
     const auto *platform = archi::platform();
-
     /* == Search for a slave to map the task on */
     const auto &scheduleStats = schedule->stats();
     MappingResult mappingResult{ };
@@ -84,12 +131,10 @@ void spider::sched::BestFitMapper::map(Task *task, Schedule *schedule) {
             }
         }
     }
-
     /* == Throw if no possible mapping was found == */
     if (!mappingResult.mappingPE) {
         throwSpiderException("Could not find suitable processing element for vertex: [%s]", task->name().c_str());
     }
-
     if (mappingResult.needToAddCommunication) {
         /* == Map communications == */
         task->setStartTime(mappingResult.startTime);
@@ -102,6 +147,34 @@ void spider::sched::BestFitMapper::map(Task *task, Schedule *schedule) {
 }
 
 /* === Private method(s) implementation === */
+
+const spider::PE *spider::sched::BestFitMapper::findBestFitPE(const Cluster *cluster,
+                                                              const Stats &stats,
+                                                              const sched::Vertex *vertex,
+                                                              ufast64 minStartTime) {
+    const PE *foundPE = nullptr;
+    auto bestFitIdleTime = UINT_FAST64_MAX;
+    auto bestFitEndTime = UINT_FAST64_MAX;
+    for (const auto *pe : cluster->peArray()) {
+        if (!pe->enabled() || !vertex->isMappableOnPE(pe)) {
+            continue;
+        }
+        const auto readyTime = stats.endTime(pe->virtualIx());
+        const auto startTime = std::max(readyTime, minStartTime);
+        const auto idleTime = startTime - readyTime;
+        const auto endTime = startTime + vertex->timingOnPE(pe);
+        if (endTime < bestFitEndTime) {
+            foundPE = pe;
+            bestFitEndTime = endTime;
+            bestFitIdleTime = std::min(idleTime, bestFitIdleTime);
+        } else if ((endTime == bestFitEndTime) && (idleTime < bestFitIdleTime)) {
+            foundPE = pe;
+            bestFitEndTime = endTime;
+            bestFitIdleTime = idleTime;
+        }
+    }
+    return foundPE;
+}
 
 const spider::PE *spider::sched::BestFitMapper::findBestFitPE(const Cluster *cluster,
                                                               const Stats &stats,

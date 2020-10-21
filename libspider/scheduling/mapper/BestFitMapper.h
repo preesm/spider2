@@ -61,6 +61,8 @@ namespace spider {
 
             void map(Task *task, Schedule *schedule) override;
 
+            void map(sched::Graph *graph, sched::Vertex *vertex, Schedule *schedule);
+
             /* === Getter(s) === */
 
             /* === Setter(s) === */
@@ -87,6 +89,11 @@ namespace spider {
              */
             const PE *
             findBestFitPE(const Cluster *cluster, const Stats &stats, ufast64 minStartTime, const Task *task) const;
+
+            static const PE *findBestFitPE(const Cluster *cluster,
+                                           const Stats &stats,
+                                           const sched::Vertex *vertex,
+                                           ufast64 minStartTime);
 
             void mapCommunications(Task *task, const Cluster *cluster, Schedule *schedule);
 
