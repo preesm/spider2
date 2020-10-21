@@ -86,8 +86,6 @@ namespace spider {
             /* === Members === */
 
             spider::vector<ListTask> sortedTaskVector_;
-            size_t lastSchedulableTask_ = 0;
-            size_t lastScheduledTask_ = 0;
 
             /* == Private method(s) === */
 

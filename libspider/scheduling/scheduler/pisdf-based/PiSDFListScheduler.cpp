@@ -61,43 +61,46 @@ void spider::sched::PiSDFListScheduler::schedule(srless::GraphHandler *graphHand
     /* == Reserve space for the new ListTasks == */
     tasks_.clear();
     /* == Reset previous non-schedulable tasks == */
-    lastScheduledTask_ = lastSchedulableTask_;
     resetUnScheduledTasks();
     /* == Creates ListTasks == */
     recursiveAddVertices(graphHandler);
     /* == Compute the schedule level == */
-    auto it = std::next(std::begin(sortedTaskVector_), static_cast<long>(lastSchedulableTask_));
-    for (; it != std::end(sortedTaskVector_); ++it) {
-        computeScheduleLevel(*it);
+    for (auto &task : sortedTaskVector_) {
+        computeScheduleLevel(task);
     }
     /* == Sort the vector == */
     sortVertices();
     /* == Remove the non-executable hierarchical vertex == */
     const auto nonSchedulableTaskCount = countNonSchedulableTasks();
     /* == Update last schedulable vertex == */
-    lastSchedulableTask_ = sortedTaskVector_.size() - nonSchedulableTaskCount;
+    const auto lastSchedulable = sortedTaskVector_.size() - nonSchedulableTaskCount;
     /* == Create the list of tasks to be scheduled == */
-    for (auto k = lastScheduledTask_; k < lastSchedulableTask_; ++k) {
+    for (size_t k = 0; k < lastSchedulable; ++k) {
         auto &task = sortedTaskVector_[k];
         tasks_.emplace_back(
                 make<PiSDFTask, StackID::SCHEDULE>(task.handler_, task.vertex_, task.firing_, task.depCount_,
                                                    task.mergedFifoCount_));
         task.handler_->registerTaskIx(task.vertex_, task.firing_, UINT32_MAX);
     }
+    /* == Remove scheduled vertices == */
+    auto it = std::begin(sortedTaskVector_);
+    for (auto k = lastSchedulable; k < sortedTaskVector_.size(); ++k) {
+        std::swap(sortedTaskVector_[k], *(it++));
+    }
+    while (sortedTaskVector_.size() != nonSchedulableTaskCount) {
+        sortedTaskVector_.pop_back();
+    }
 }
 
 void spider::sched::PiSDFListScheduler::clear() {
     Scheduler::clear();
     sortedTaskVector_.clear();
-    lastSchedulableTask_ = 0;
-    lastScheduledTask_ = 0;
 }
 
 /* === Private method(s) implementation === */
 
 void spider::sched::PiSDFListScheduler::resetUnScheduledTasks() {
-    auto last = sortedTaskVector_.size();
-    for (auto k = lastSchedulableTask_; k < last; ++k) {
+    for (size_t k = 0; k < sortedTaskVector_.size(); ++k) {
         auto &listTask = sortedTaskVector_[k];
         listTask.handler_->registerTaskIx(listTask.vertex_, listTask.firing_, static_cast<u32>(k));
     }
@@ -188,9 +191,16 @@ i32 spider::sched::PiSDFListScheduler::computeScheduleLevel(ListTask &listTask) 
                             }
                         }
                         const auto sourceTaskIx = dep.handler_->getTaskIx(source, k);
-                        const auto sourceLevel = computeScheduleLevel(sortedTaskVector_[sourceTaskIx]);
-                        if (sourceLevel != NON_SCHEDULABLE_LEVEL) {
-                            level = std::max(level, sourceLevel + static_cast<i32>(minExecutionTime));
+                        if (sourceTaskIx < sortedTaskVector_.size()) {
+                            auto &task = sortedTaskVector_[sourceTaskIx];
+                            if (task.vertex_ == source &&
+                                task.handler_ == dep.handler_ &&
+                                task.firing_ >= dep.firingStart_ && task.firing_ <= dep.firingEnd_) {
+                                const auto sourceLevel = computeScheduleLevel(task);
+                                if (sourceLevel != NON_SCHEDULABLE_LEVEL) {
+                                    level = std::max(level, sourceLevel + static_cast<i32>(minExecutionTime));
+                                }
+                            }
                         }
                     }
                 }
@@ -203,8 +213,7 @@ i32 spider::sched::PiSDFListScheduler::computeScheduleLevel(ListTask &listTask) 
 }
 
 void spider::sched::PiSDFListScheduler::sortVertices() {
-    std::sort(std::next(std::begin(sortedTaskVector_), static_cast<long>(lastSchedulableTask_)),
-              std::end(sortedTaskVector_),
+    std::sort(std::begin(sortedTaskVector_), std::end(sortedTaskVector_),
               [](const ListTask &A, const ListTask &B) -> bool {
                   const auto diff = A.level_ - B.level_;
                   if (!diff) {
