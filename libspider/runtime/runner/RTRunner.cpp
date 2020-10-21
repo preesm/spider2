@@ -105,7 +105,7 @@ void spider::RTRunner::sendFinishedNotification() const {
 }
 
 void spider::RTRunner::sendJobStampNotification(bool *notificationFlags, size_t jobIx) const {
-    if (jobIx == SIZE_MAX) {
+    if (jobIx == SIZE_MAX || !notificationFlags) {
         return;
     }
     size_t lrtIx = 0;
