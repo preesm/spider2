@@ -57,9 +57,10 @@ namespace spider {
             RECEIVE,
         };
 
-        enum class SchedState : u8 {
+        enum class State : u8 {
             NOT_SCHEDULABLE = 0,
             NOT_RUNNABLE,
+            SKIPPED,
             PENDING,
             READY,
             RUNNING,
@@ -139,6 +140,12 @@ namespace spider {
             virtual inline u64 timingOnPE(const PE */* pe */) const { return UINT64_MAX; }
 
             /**
+             * @brief Try to remove this synchronization point (if possible).
+             * @param graph Pointer to the schedule graph.
+             */
+            virtual void reduce(sched::Graph *graph) = 0;
+
+            /**
              * @brief Send the execution job associated with this vertex to its mapped LRT and set state as RUNNING.
              */
             void send();
@@ -156,6 +163,13 @@ namespace spider {
              * @return name of the vertex.
              */
             virtual std::string name() const = 0;
+
+            /**
+             * @brief Return a color value for the task.
+             *        format is RGB with 8 bits per component in the lower part of the returned value.
+             * @return  color of the task.
+             */
+            virtual u32 color() const = 0;
 
             /**
              * @brief Get the ix of the vertex in the containing graph.
@@ -249,7 +263,20 @@ namespace spider {
              * @brief Returns the state of the task.
              * @return @refitem SchedState of the task
              */
-            inline SchedState state() const noexcept { return state_; }
+            inline State state() const noexcept { return state_; }
+
+            /**
+             * @brief Get notification flag for given LRT.
+             * @remark no boundary check is performed.
+             * @return boolean flag indicating if this task is notifying given LRT.
+             */
+            inline bool getNotificationFlagForLRT(size_t ix) const { return notifications_.get()[ix]; }
+
+            /**
+             * @brief Returns the executable job index value of the task in the job queue of the mapped PE.
+             * @return ix value, SIZE_MAX else.
+             */
+            inline u32 jobExecIx() const noexcept { return jobExecIx_; }
 
             /* === Setter(s) === */
 
@@ -257,7 +284,7 @@ namespace spider {
              * @brief Set the ix of the vertex in the containing graph.
              * @param ix Ix to set.
              */
-            inline void setIx(u32 ix) { ix_ = ix; };
+            virtual inline void setIx(u32 ix) { ix_ = ix; };
 
             /**
              * @brief Set the start time of the job.
@@ -285,7 +312,30 @@ namespace spider {
              * @remark This method will overwrite current value.
              * @param state State to set.
              */
-            inline void setState(SchedState state) noexcept { state_ = state; }
+            inline void setState(State state) noexcept { state_ = state; }
+
+            /**
+             * @brief Set the notification flag for this lrt.
+             * @warning There is no check on the value of lrt.
+             * @param lrt   Index of the lrt.
+             * @param value Value to set: true = should notify, false = should not notify.
+             */
+            inline void setNotificationFlag(size_t lrt, bool value) { notifications_.get()[lrt] = value; }
+
+            /**
+             * @brief Set the execution job index value of the task (that will be used for synchronization).
+             * @remark This method will overwrite current values.
+             * @param ix Ix to set.
+             */
+            inline void setJobExecIx(u32 ix) noexcept { jobExecIx_ = ix; }
+
+        protected:
+
+            inline virtual u32 getOutputParamsCount() const { return 0; }
+
+            inline virtual u32 getKernelIx() const { return UINT32_MAX; }
+
+            inline virtual spider::unique_ptr<i64> buildInputParams() const { return spider::unique_ptr<i64>(); }
 
         private:
             spider::unique_ptr<bool> notifications_;  /*!< Notification flags of the task */
@@ -298,7 +348,7 @@ namespace spider {
             u32 jobExecIx_{ UINT32_MAX };             /*!< Index of the job sent to the PE */
             u32 nINEdges_ = 0;
             u32 nOUTEdges_ = 0;
-            SchedState state_{ SchedState::NOT_SCHEDULABLE }; /*!< State of the task */
+            State state_{ State::NOT_SCHEDULABLE }; /*!< State of the task */
 
             /**
              * @brief Disconnect an edge from the given edge vector (input or output).

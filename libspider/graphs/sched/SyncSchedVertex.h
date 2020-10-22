@@ -32,10 +32,8 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_SRDAGSCHEDVERTEX_H
-#define SPIDER2_SRDAGSCHEDVERTEX_H
-
-#ifndef _NO_BUILD_LEGACY_RT
+#ifndef SPIDER2_SYNCSCHEDVERTEX_H
+#define SPIDER2_SYNCSCHEDVERTEX_H
 
 /* === Include(s) === */
 
@@ -43,59 +41,55 @@
 
 namespace spider {
 
-    namespace srdag {
-        class Vertex;
-    }
+    class MemoryBus;
 
     namespace sched {
 
+        enum class SyncType : u8 {
+            SEND,
+            RECEIVE
+        };
+
         /* === Class definition === */
 
-        class SRDAGVertex final : public sched::Vertex {
+        class SyncSchedVertex final : public sched::Vertex {
         public:
 
-            explicit SRDAGVertex(srdag::Vertex *vertex) : sched::Vertex(), vertex_{ vertex } {
+            explicit SyncSchedVertex(SyncType type, MemoryBus *bus) : sched::Vertex(), bus_{ bus }, type_{ type } { }
 
-            }
-
-            ~SRDAGVertex() final = default;
+            ~SyncSchedVertex() final = default;
 
             /* === Method(s) === */
 
-            bool isMappableOnPE(const PE *pe) const final;
-
             u64 timingOnPE(const PE *pe) const final;
 
-            void reduce(sched::Graph *graph) final;
+            inline void reduce(sched::Graph *) final { };
+
+            inline u32 color() const final {
+                /* ==  SEND    -> vivid tangerine color == */
+                /* ==  RECEIVE -> Studio purple color == */
+                return type_ == SyncType::SEND ? 0xff9478 : 0x8e44ad;
+            }
 
             /* === Getter(s) === */
 
             inline sched::Type type() const final { return Type::NORMAL; }
 
-            std::string name() const final;
-
-            u32 color() const final;
+            inline std::string name() const final { return type_ == SyncType::SEND ? "send" : "receive"; }
 
             /* === Setter(s) === */
 
-            void setIx(u32 ix) final;
-
         private:
-            srdag::Vertex *vertex_ = nullptr;
+            const MemoryBus *bus_{ nullptr }; /*!< Memory bus used by the task */
+            SyncType type_;
 
             /* === Private method(s) === */
-
-            u32 getOutputParamsCount() const final;
 
             u32 getKernelIx() const final;
 
             spider::unique_ptr<i64> buildInputParams() const final;
 
-            void reduceForkDuplicate();
-
-            void reduceRepeat(sched::Graph *graph);
         };
     }
 }
-#endif
-#endif //SPIDER2_SRDAGSCHEDVERTEX_H
+#endif //SPIDER2_SYNCSCHEDVERTEX_H

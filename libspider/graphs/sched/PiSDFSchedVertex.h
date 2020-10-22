@@ -32,10 +32,8 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_SRDAGSCHEDVERTEX_H
-#define SPIDER2_SRDAGSCHEDVERTEX_H
-
-#ifndef _NO_BUILD_LEGACY_RT
+#ifndef SPIDER2_PISDFSCHEDVERTEX_H
+#define SPIDER2_PISDFSCHEDVERTEX_H
 
 /* === Include(s) === */
 
@@ -43,22 +41,31 @@
 
 namespace spider {
 
-    namespace srdag {
+    namespace pisdf {
         class Vertex;
+    }
+
+    namespace srless {
+        class GraphFiring;
     }
 
     namespace sched {
 
         /* === Class definition === */
 
-        class SRDAGVertex final : public sched::Vertex {
+        class PiSDFVertex final : public sched::Vertex {
         public:
 
-            explicit SRDAGVertex(srdag::Vertex *vertex) : sched::Vertex(), vertex_{ vertex } {
+            explicit PiSDFVertex(srless::GraphFiring *handler,
+                                 const pisdf::Vertex *vertex,
+                                 u32 firing) : sched::Vertex(),
+                                               handler_{ handler },
+                                               vertex_{ vertex },
+                                               firing_{ firing } {
 
             }
 
-            ~SRDAGVertex() final = default;
+            ~PiSDFVertex() final = default;
 
             /* === Method(s) === */
 
@@ -81,7 +88,9 @@ namespace spider {
             void setIx(u32 ix) final;
 
         private:
-            srdag::Vertex *vertex_ = nullptr;
+            srless::GraphFiring *handler_ = nullptr;
+            const pisdf::Vertex *vertex_ = nullptr;
+            u32 firing_ = UINT32_MAX;
 
             /* === Private method(s) === */
 
@@ -97,5 +106,4 @@ namespace spider {
         };
     }
 }
-#endif
-#endif //SPIDER2_SRDAGSCHEDVERTEX_H
+#endif //SPIDER2_PISDFSCHEDVERTEX_H

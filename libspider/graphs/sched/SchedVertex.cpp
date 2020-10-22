@@ -98,7 +98,7 @@ std::pair<ufast64, ufast64> spider::sched::Vertex::computeCommunicationCost(cons
     for (const auto *edge : inputEdges()) {
         const auto rate = edge->rate();
         const auto source = edge->source();
-        if (rate && source && source->state() != SchedState::NOT_RUNNABLE) {
+        if (rate && source && source->state() != State::NOT_RUNNABLE) {
             const auto *mappedPESource = source->mappedPe();
             communicationCost += platform->dataCommunicationCostPEToPE(mappedPESource, mappedPE, rate);
             if (mappedPE->cluster() != mappedPESource->cluster()) {
@@ -110,17 +110,19 @@ std::pair<ufast64, ufast64> spider::sched::Vertex::computeCommunicationCost(cons
 }
 
 void spider::sched::Vertex::send() {
-    if (state_ != SchedState::PENDING) {
+    if (state_ != State::READY) {
         return;
     }
     JobMessage message{ };
     /* == Set core properties == */
-    message.nParamsOut_ = 0u;
-    message.kernelIx_ = UINT32_MAX;
+    message.nParamsOut_ = this->getOutputParamsCount();
+    message.kernelIx_ = this->getKernelIx();
     message.taskIx_ = ix_;
     message.ix_ = jobExecIx_;
     /* == Set the synchronization flags == */
     message.synchronizationFlags_ = buildJobNotificationFlags();
+    /* == Set input params == */
+    message.inputParams_ = this->buildInputParams();
     /* == Set Fifos == */
     message.fifos_ = buildJobFifos();
     /* == Send the job == */
@@ -130,7 +132,7 @@ void spider::sched::Vertex::send() {
     const auto messageIx = communicator->push(std::move(message), mappedLRTIx);
     communicator->push(Notification{ NotificationType::JOB_ADD, grtIx, messageIx }, mappedLRTIx);
     /* == Set job in TaskState::RUNNING == */
-    state_ = SchedState::RUNNING;
+    state_ = State::RUNNING;
 }
 
 /* === Private method(s) implementation === */
@@ -156,7 +158,7 @@ void spider::sched::Vertex::connectEdge(sched::Edge **edges, sched::Edge *edge, 
 spider::unique_ptr<bool> spider::sched::Vertex::buildJobNotificationFlags() const {
     auto shouldBroadcast = false;
     for (const auto *edge : outputEdges()) {
-        if (edge->sink()->state() != SchedState::READY) {
+        if (edge->sink()->state() != State::READY) {
             shouldBroadcast = true;
             break;
         }

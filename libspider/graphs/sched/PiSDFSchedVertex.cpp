@@ -33,41 +33,39 @@
  * knowledge of the CeCILL license and that you accept its terms.
  */
 
-#ifndef _NO_BUILD_LEGACY_RT
-
 /* === Include(s) === */
 
-#include <graphs/sched/SRDAGSchedVertex.h>
+#include <graphs/sched/PiSDFSchedVertex.h>
 #include <graphs/sched/SchedGraph.h>
-#include <graphs/srdag/SRDAGVertex.h>
-#include <graphs-tools/helper/srdag-helper.h>
+#include <graphs/pisdf/Vertex.h>
+#include <graphs-tools/helper/pisdf-helper.h>
+#include <graphs-tools/transformation/pisdf/GraphFiring.h>
 #include <runtime/common/RTInfo.h>
 
 /* === Static function === */
 
 /* === Method(s) implementation === */
 
-bool spider::sched::SRDAGVertex::isMappableOnPE(const spider::PE *pe) const {
+bool spider::sched::PiSDFVertex::isMappableOnPE(const spider::PE *pe) const {
     return vertex_->runtimeInformation()->isPEMappable(pe);
 }
 
-u64 spider::sched::SRDAGVertex::timingOnPE(const spider::PE *pe) const {
-    return static_cast<u64>(vertex_->runtimeInformation()->timingOnPE(pe, vertex_->inputParamVector()));
+u64 spider::sched::PiSDFVertex::timingOnPE(const spider::PE *pe) const {
+    return static_cast<u64>(vertex_->runtimeInformation()->timingOnPE(pe, handler_->getParams()));
 }
 
-std::string spider::sched::SRDAGVertex::name() const {
+std::string spider::sched::PiSDFVertex::name() const {
     return vertex_->name();
 }
 
-u32 spider::sched::SRDAGVertex::color() const {
-    const auto *reference = vertex_->reference();
-    const u32 red = static_cast<u8>((reinterpret_cast<uintptr_t>(reference) >> 3u) * 50 + 100);
-    const u32 green = static_cast<u8>((reinterpret_cast<uintptr_t>(reference) >> 2u) * 50 + 100);
-    const u32 blue = static_cast<u8>((reinterpret_cast<uintptr_t>(reference) >> 4u) * 50 + 100);
+u32 spider::sched::PiSDFVertex::color() const {
+    const u32 red = static_cast<u8>((reinterpret_cast<uintptr_t>(vertex_) >> 3u) * 50 + 100);
+    const u32 green = static_cast<u8>((reinterpret_cast<uintptr_t>(vertex_) >> 2u) * 50 + 100);
+    const u32 blue = static_cast<u8>((reinterpret_cast<uintptr_t>(vertex_) >> 4u) * 50 + 100);
     return 0u | (red << 16u) | (green << 8u) | (blue);
 }
 
-void spider::sched::SRDAGVertex::reduce(sched::Graph *graph) {
+void spider::sched::PiSDFVertex::reduce(sched::Graph *graph) {
     auto isOptimizable = Vertex::state() == State::READY;
     /* == Check if predecessors are running or not == */
     for (const auto *edge : Vertex::inputEdges()) {
@@ -92,26 +90,26 @@ void spider::sched::SRDAGVertex::reduce(sched::Graph *graph) {
     }
 }
 
-void spider::sched::SRDAGVertex::setIx(u32 ix) {
+void spider::sched::PiSDFVertex::setIx(u32 ix) {
     Vertex::setIx(ix);
-    vertex_->setScheduleTaskIx(ix);
+    handler_->registerTaskIx(vertex_, firing_, ix);
 }
 
 /* === Private method(s) === */
 
-u32 spider::sched::SRDAGVertex::getOutputParamsCount() const {
-    return static_cast<u32>(vertex_->reference()->outputParamCount());
+u32 spider::sched::PiSDFVertex::getOutputParamsCount() const {
+    return static_cast<u32>(vertex_->outputParamCount());
 }
 
-u32 spider::sched::SRDAGVertex::getKernelIx() const {
+u32 spider::sched::PiSDFVertex::getKernelIx() const {
     return static_cast<u32>(vertex_->runtimeInformation()->kernelIx());
 }
 
-spider::unique_ptr<i64> spider::sched::SRDAGVertex::buildInputParams() const {
-    return srdag::buildVertexRuntimeInputParameters(vertex_);
+spider::unique_ptr<i64> spider::sched::PiSDFVertex::buildInputParams() const {
+    return pisdf::buildVertexRuntimeInputParameters(vertex_, handler_->getParams());
 }
 
-void spider::sched::SRDAGVertex::reduceForkDuplicate() {
+void spider::sched::PiSDFVertex::reduceForkDuplicate() {
     i32 count = 0;
     for (const auto *edge : Vertex::outputEdges()) {
         count += edge->getAlloc().count_;
@@ -130,7 +128,7 @@ void spider::sched::SRDAGVertex::reduceForkDuplicate() {
     Vertex::setState(State::SKIPPED);
 }
 
-void spider::sched::SRDAGVertex::reduceRepeat(sched::Graph *graph) {
+void spider::sched::PiSDFVertex::reduceRepeat(sched::Graph *graph) {
     auto *edgeIn = Vertex::inputEdge(0);
     auto *edgeOut = Vertex::outputEdge(0);
     auto inputFifo = edgeIn->getAlloc();
@@ -144,5 +142,3 @@ void spider::sched::SRDAGVertex::reduceRepeat(sched::Graph *graph) {
         graph->removeVertex(this);
     }
 }
-
-#endif
